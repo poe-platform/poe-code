@@ -1,6 +1,6 @@
 import { splitSyncJqExpression } from "./sync-jq-expression.js";
 import { wcDisplayWidth } from "../commands/wc-width.js";
-import { text as awkValueText } from "../commands/text-programs/awk-values.js";
+import { text as awkValueText, compare as awkCompare, inputValue as awkInputValue, numeric as awkNumeric, string as awkString } from "../commands/text-programs/awk-values.js";
 import { bytesToHex, latin1Text } from "../byte-encoding.js";
 const sharedCaptureDecoder = new TextDecoder();
 const cachedCaptureAsciiBytes = new Uint8Array(4096);
@@ -23453,6 +23453,7 @@ export class Runtime {
     const isLineRegexp = mode.includes("x");
     const isWordRegexp = mode.includes("w");
     const isCaseInsensitive = mode.includes("i");
+    const foldCase = (value: string): string => value.replace(/[A-Z]/g, ch => ch.toLowerCase());
     const isInvert = mode.includes("v");
     const isCount = mode.includes("c");
     const isExtended = mode.includes("E");
@@ -23496,14 +23497,14 @@ export class Runtime {
       if (br.length === 0) return undefined;
       if (isFixed) {
         if (br.includes("\0")) return undefined;
-        compiledBranches.push({ anchorStart: isLineRegexp, anchorEnd: isLineRegexp, needle: isCaseInsensitive ? br.toLowerCase() : br });
+        compiledBranches.push({ anchorStart: isLineRegexp, anchorEnd: isLineRegexp, needle: isCaseInsensitive ? foldCase(br) : br });
       } else {
         const anchorStart = isLineRegexp || br.startsWith("^");
         const c1 = br.startsWith("^") ? br.slice(1) : br;
         const anchorEnd = isLineRegexp || c1.endsWith("$");
         const core = c1.endsWith("$") ? c1.slice(0, -1) : c1;
         if (core.length === 0 || !/^[a-zA-Z0-9_ :;,/-]+$/.test(core)) return undefined;
-        compiledBranches.push({ anchorStart, anchorEnd, needle: isCaseInsensitive ? core.toLowerCase() : core });
+        compiledBranches.push({ anchorStart, anchorEnd, needle: isCaseInsensitive ? foldCase(core) : core });
       }
     }
     const isWordChar = (ch: string | undefined): boolean => ch !== undefined && /^[a-zA-Z0-9_]$/.test(ch);
@@ -23523,7 +23524,7 @@ export class Runtime {
     const matched: string[] = [];
     for (let li = 0; li < rawLines.length; li++) {
       const l = rawLines[li]!;
-      const hay = isCaseInsensitive ? l.toLowerCase() : l;
+      const hay = isCaseInsensitive ? foldCase(l) : l;
       let hit = false;
       for (let bi = 0; bi < compiledBranches.length; bi++) {
         const b = compiledBranches[bi]!;
@@ -23666,14 +23667,10 @@ export class Runtime {
             const idx = fTok === "NF" ? fields.length : Number(fTok!);
             rawVal = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
           }
-          if (strRhs !== undefined) {
-            const s = String(rawVal);
-            return op === "==" ? s === strRhs : s !== strRhs;
-          }
-          const lhsNum = typeof rawVal === "number" ? rawVal : Number(rawVal);
-          if (Number.isNaN(lhsNum)) return false;
-          const r = numRhs!;
-          return op === "==" ? lhsNum === r : op === "!=" ? lhsNum !== r : op === ">=" ? lhsNum >= r : op === "<=" ? lhsNum <= r : op === ">" ? lhsNum > r : lhsNum < r;
+          const left = typeof rawVal === "number" ? awkNumeric(rawVal) : awkInputValue(rawVal);
+          const right = strRhs !== undefined ? awkString(strRhs) : awkNumeric(numRhs!);
+          const comparison = awkCompare(left, right, "%.6g");
+          return op === "==" ? comparison === 0 : op === "!=" ? comparison !== 0 : op === ">=" ? comparison >= 0 : op === "<=" ? comparison <= 0 : op === ">" ? comparison > 0 : comparison < 0;
         };
         progRest = progRest.slice(cmpCondM[0]!.length).trim();
       }
@@ -24512,7 +24509,7 @@ export class Runtime {
                 const cleaned = inStr.replace(/[ \t\r\n]+/g, "");
                 if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
                 const decoded = this.syncBase64DecodeBytes(cleaned);
-                if (decoded.includes(0) || decoded.byteLength > nextBuf.byteLength) return undefined;
+                if (decoded.some(byte => byte === 0 || byte >= 128) || decoded.byteLength > nextBuf.byteLength) return undefined;
                 const nextTotalBytes = this.budget.bytes + decoded.byteLength;
                 if (nextTotalBytes > this.budget.maxOutputBytesSmi && decoded.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
                 this.budget.bytes = nextTotalBytes;
@@ -24794,7 +24791,12 @@ export class Runtime {
               fileRes = this.evalSyncTr(fileStr, opArgs);
             } else if (hasSingleHereStringRedir && w0Plain === "base64" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "--decode")))) {
               if (opArgs.length === 0) fileRes = this.syncBase64Encode(view) + "\n";
-              else fileRes = sharedSyncPipeDecoder.decode(this.syncBase64DecodeBytes(fileStr));
+              else {
+                const decoded = this.syncBase64DecodeBytes(fileStr);
+                // Text-only substitutions cannot retain binary byte provenance.
+                if (decoded.some(byte => byte === 0 || byte >= 128)) return undefined;
+                fileRes = sharedSyncPipeDecoder.decode(decoded);
+              }
             } else if (hasSingleHereStringRedir && w0Plain === "rev" && opArgs.length === 0) {
               fileRes = renderLines(rawLines.map(l => Array.from(l).reverse().join("")));
             } else if (hasSingleHereStringRedir && w0Plain === "tac" && opArgs.length === 0) {

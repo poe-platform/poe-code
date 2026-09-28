@@ -345,17 +345,19 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     },
     save(stage, durationMs) {
       if (!fingerprints.has(stage.name)) return;
-      pending.push({ stage, value: {
+      const key = taskCacheKey(fingerprints.get(stage.name), "build");
+      store.write(key, {
         success: true, durationMs, outputs: store.capture(path.join(plan.root, stage.path), outputs.get(stage.name))
-      } });
+      });
+      pending.push({ stage, key });
     },
     flush() {
       if (!pending.length) return;
       const started = performance.now();
       const current = createTaskFingerprints(plan, { fileSystem, files: cacheFiles, environment, event: "build", selected: pending.map(record => record.stage.name) });
       stats.fingerprintMs += Math.round(performance.now() - started);
-      for (const { stage, value } of pending) {
-        if (current.get(stage.name) === fingerprints.get(stage.name)) store.write(taskCacheKey(fingerprints.get(stage.name), "build"), value);
+      for (const { stage, key } of pending) {
+        if (current.get(stage.name) !== fingerprints.get(stage.name)) store.remove?.(key);
       }
       pending.length = 0;
     }
@@ -383,8 +385,13 @@ export function prepareNativeUnitCache(plan, stages, { cacheStore, cacheFiles, e
     return typeof scripts["test:unit"] === "string" && scripts["test:unit"].includes("cargo.mjs test")
       && scripts["pretest:unit"] === undefined && scripts["posttest:unit"] === undefined;
   };
+  const isPythonUnitTask = stage => {
+    const scripts = manifests.get(stage.path)?.scripts ?? {};
+    return scripts["test:unit"] === "python3 -m unittest discover -s tests -t ."
+      && scripts["pretest:unit"] === undefined && scripts["posttest:unit"] === undefined;
+  };
   const eligible = stages.filter(stage => stage.path !== null && stage.event === "test:unit"
-    && (selections.has(stage.path) || isRustUnitTask(stage))
+    && (selections.has(stage.path) || isRustUnitTask(stage) || isPythonUnitTask(stage))
     && ({ ...plan.configuration.tasks["test:unit"], ...plan.configuration.tasks[stage.name + "#test:unit"] }).cache !== false);
   if (!eligible.length) return undefined;
   const started = performance.now();
@@ -404,15 +411,18 @@ export function prepareNativeUnitCache(plan, stages, { cacheStore, cacheFiles, e
       return hit;
     },
     save(stage, durationMs) {
-      if (fingerprints.has(stage.name)) pending.push({ stage, durationMs });
+      if (!fingerprints.has(stage.name)) return;
+      const key = taskCacheKey(fingerprints.get(stage.name), "test:unit:native", plan.testArguments);
+      store.write(key, { success: true, durationMs });
+      pending.push({ stage, key });
     },
     flush() {
       if (!pending.length) return;
       const started = performance.now();
       const current = createTaskFingerprints(plan, options);
       stats.unitFingerprintMs += Math.round(performance.now() - started);
-      for (const { stage, durationMs } of pending) {
-        if (current.get(stage.name) === fingerprints.get(stage.name)) store.write(taskCacheKey(fingerprints.get(stage.name), "test:unit:native", plan.testArguments), { success: true, durationMs });
+      for (const { stage, key } of pending) {
+        if (current.get(stage.name) !== fingerprints.get(stage.name)) store.remove?.(key);
       }
       pending.length = 0;
     }
@@ -522,6 +532,11 @@ export function createCheckCache({
           return;
         }
         throw error;
+      }
+    },
+    remove(key) {
+      for (const baseDirectory of new Set([writableDirectory, directory, fallbackDirectory].filter(Boolean))) {
+        try { fileSystem.rmSync(filename(key, baseDirectory), { force: true }); } catch { /* ignore */ }
       }
     },
     capture(root, patterns) {

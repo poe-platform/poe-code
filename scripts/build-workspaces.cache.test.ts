@@ -192,4 +192,21 @@ describe("workspace build caching", () => {
       state.fileSystem.readFileSync("/repo/packages/beta/src/intl-data/dist/numberformat-engine.js", "utf8")
     ).toBe("export const NumberFormat = {};");
   });
+
+  it("writes completed build cache entries immediately before downstream stages finish", async () => {
+    const state = fixture();
+    const originalSpawn = state.spawn;
+    let betaSavedWhileAlphaRunning = false;
+    const spawn = vi.fn((command, args, options) => {
+      if (args.includes("--workspace=packages/alpha")) {
+        const cachedFiles = state.fileSystem.existsSync("/cache")
+          ? state.fileSystem.readdirSync("/cache").filter((name: string) => name.endsWith(".json.gz"))
+          : [];
+        betaSavedWhileAlphaRunning = cachedFiles.length === 1;
+      }
+      return originalSpawn(command, args, options);
+    });
+    await buildWorkspaces(state.root, { ...state, spawn });
+    expect(betaSavedWhileAlphaRunning).toBe(true);
+  });
 });

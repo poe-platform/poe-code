@@ -632,6 +632,11 @@ function unitChildEnvironment(rootDirectory, environment) {
   return childEnvironment;
 }
 
+const priorityUnitWorkspaces = new Map([
+  ["@poe-code/safe-js", 1], ["docx", 2], ["safe-bash-command-ssconvert", 3],
+  ["safe-bash-command-pandoc", 4], ["xlsx", 5], ["pptx", 6], ["@poe-code/safe-playwright-cloudflare", 7]
+]);
+
 export async function testWorkspaces(rootDirectory, options = {}) {
   const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, cache, cacheStore, cacheFiles, affected, affectedFiles, workspaces, changedSince, dryRun = false, testFiles } = options;
   validateEnvironment(environment);
@@ -643,6 +648,12 @@ export async function testWorkspaces(rootDirectory, options = {}) {
   if (plan.rootManifest.scripts["test:unit:shared"]) {
     const { sharedVitestStages } = await import("./test-vitest-workspaces.mjs");
     testStages = sharedVitestStages(plan, fileSystem);
+  }
+  if (concurrency > 1) {
+    testStages = [...testStages].sort((a, b) =>
+      (a.event === "test:unit:shared" ? 0 : priorityUnitWorkspaces.get(a.name) ?? 99) -
+      (b.event === "test:unit:shared" ? 0 : priorityUnitWorkspaces.get(b.name) ?? 99)
+    );
   }
   assert.ok(testFiles === undefined || testStages.length === 1 && testStages[0].event === "test:unit:shared", "Focused files require the maintained hook-free shared Vitest route");
   if (testFiles !== undefined) {

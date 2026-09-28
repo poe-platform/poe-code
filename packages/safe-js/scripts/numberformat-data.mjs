@@ -304,12 +304,21 @@ export function isolatePluralRulesEngine(source, license) {
 async function generate() {
   const packageDirectory = fileURLToPath(new URL("../", import.meta.url));
   const output = resolve(packageDirectory, "src/intl-data/dist");
+  const expectedFiles = ["numberformat.js", "numberformat.d.ts", "numberformat-engine.js", "numberformat-engine.d.ts", "pluralrules.js", "pluralrules.d.ts", "pluralrules-engine.js", "pluralrules-engine.d.ts"];
   if (process.argv.includes("--copy")) {
     const destination = resolve(packageDirectory, "dist/intl-data/dist");
     await mkdir(destination, { recursive: true });
-    for (const name of ["numberformat.js", "numberformat.d.ts", "numberformat-engine.js", "numberformat-engine.d.ts", "pluralrules.js", "pluralrules.d.ts", "pluralrules-engine.js", "pluralrules-engine.d.ts"])
+    for (const name of expectedFiles)
       await copyFile(resolve(output, name), resolve(destination, name));
     return;
+  }
+  if (!process.argv.includes("--force")) {
+    const { stat } = await import("node:fs/promises");
+    try {
+      const scriptStat = await stat(fileURLToPath(import.meta.url));
+      const stats = await Promise.all(expectedFiles.map(name => stat(resolve(output, name))));
+      if (stats.every(item => item.size > 0 && item.mtimeMs >= scriptStat.mtimeMs)) return;
+    } catch { /* Proceed with generation when outputs are absent or older than script. */ }
   }
   const require = createRequire(import.meta.url);
   const dataDirectory = resolve(dirname(require.resolve("@formatjs/intl-numberformat")), "locale-data");

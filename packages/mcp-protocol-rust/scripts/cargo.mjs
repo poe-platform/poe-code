@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { accessSync, constants, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { accessSync, constants, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 const packageDirectory = process.env.npm_package_json
   ? path.dirname(process.env.npm_package_json)
   : path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const repoRoot = path.resolve(packageDirectory, "../..");
 const operation = process.argv[2];
 const manifest = path.join(packageDirectory, "Cargo.toml");
 function resolveTargetDirectory() {
@@ -96,13 +97,13 @@ function computeRustInputsState() {
 
 function resolveNapiCacheDirectories() {
   const primary = process.env.POE_CHECK_CACHE_DIR
-    ? path.join(path.dirname(path.resolve(process.env.POE_CHECK_CACHE_DIR)), "napi-artifacts-v1")
+    ? path.join(path.dirname(path.resolve(repoRoot, process.env.POE_CHECK_CACHE_DIR)), "napi-artifacts-v1")
     : path.join(process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"), "poe-code", "napi-artifacts-v1");
   const fallback = path.join(os.tmpdir(), "poe-code", "napi-artifacts-v1");
   return primary === fallback ? [primary] : [fallback, primary];
 }
 
-if (operation !== "build" || !existsSync(bindingManifest)) {
+if (operation === "lint" || !existsSync(bindingManifest)) {
   for (const args of commands[operation]) run("cargo", args);
 }
 
@@ -113,6 +114,22 @@ if ((operation === "build" || operation === "test") && existsSync(bindingManifes
   const { digest: rustDigest, maxMtimeMs } = computeRustInputsState();
   const pkgName = path.basename(packageDirectory);
   const cacheDirs = resolveNapiCacheDirectories();
+  if (operation === "test") {
+    const hasCachedCargoTest = cacheDirs.some((base) =>
+      existsSync(path.join(base, `${pkgName}-${rustDigest}`, "cargo-test.ok"))
+    );
+    if (!hasCachedCargoTest) {
+      for (const args of commands.test) run("cargo", args);
+      for (const base of [...cacheDirs].reverse()) {
+        try {
+          const dest = path.join(base, `${pkgName}-${rustDigest}`);
+          mkdirSync(dest, { recursive: true });
+          writeFileSync(path.join(dest, "cargo-test.ok"), "ok\n");
+          break;
+        } catch (error) { void error; }
+      }
+    }
+  }
   const cachedEntryDir = cacheDirs
     .map((base) => path.join(base, `${pkgName}-${rustDigest}`))
     .find((dir) => existsSync(dir) && existsSync(path.join(dir, dtsName)) && readdirSync(dir).some((name) => name.endsWith(".node")));

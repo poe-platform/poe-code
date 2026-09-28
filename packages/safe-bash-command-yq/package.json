@@ -70,6 +70,10 @@
     "./toml": {
       "types": "./dist/toml.d.ts",
       "import": "./dist/toml.js"
+    },
+    "./bytes": {
+      "types": "./dist/bytes.d.ts",
+      "import": "./dist/bytes.js"
     }
   },
   "files": [

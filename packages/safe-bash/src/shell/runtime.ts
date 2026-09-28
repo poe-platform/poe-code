@@ -11649,10 +11649,23 @@ export class Runtime {
           }
           return false;
         }
-        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq") || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
+        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && w0Plain !== "cat" && w0Plain !== "head" && w0Plain !== "tail" && w0Plain !== "jq" && w0Plain !== "awk") || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
         const def = this.commands.get(w0Plain);
         if (!def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : w0Plain === "seq" ? (customRegisteredCommands.has(def.execute) || customRegisteredRegistries.has(this.commands)) : !builtInDirectContextExecutors.has(def.execute))) return false;
         if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
+        if (w0Plain === "cat" || w0Plain === "head" || w0Plain === "tail" || w0Plain === "jq" || w0Plain === "awk") {
+          const fPlain = cmd.words[cmd.words.length - 1]?.plain;
+          if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return false;
+          const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain));
+          if (!vCheck || vCheck.byteLength > 16384 || vCheck.includes(0)) return false;
+          if (w0Plain === "cat") {
+            if (cmd.words.length !== 2) return false;
+          } else if (w0Plain === "head" || w0Plain === "tail") {
+            if (p.commands.length !== 1 || (cmd.words.length !== 2 && cmd.words.length !== 3 && cmd.words.length !== 4)) return false;
+          } else if (w0Plain === "jq" || w0Plain === "awk") {
+            if (p.commands.length !== 1 || (cmd.words.length !== 3 && cmd.words.length !== 4)) return false;
+          }
+        }
         if (w0Plain === "printf") {
           const fmtW = cmd.words[1];
           const fmtP = fmtW?.plain ?? (fmtW?.parts.length === 1 && fmtW.parts[0]!.kind === "text" ? fmtW.parts[0]!.value : undefined);
@@ -11679,7 +11692,7 @@ export class Runtime {
           if (cmd.words.length < 2 || cmd.words.length > 4 || !cmd.words.slice(1).every(isSeqIntWord)) return false;
         }
         if (p.commands.length >= 2) {
-          if ((w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "seq") || syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || rawState.errexit || rawState.nounset) return false;
+          if ((w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "seq" && w0Plain !== "cat") || syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || rawState.errexit || rawState.nounset) return false;
           for (let sIdx = 1; sIdx < p.commands.length; sIdx++) {
             const sCmd = p.commands[sIdx]!;
             if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return false;
@@ -19656,6 +19669,20 @@ export class Runtime {
     if (out.length * 3 > maxBytesSmi && shellValueByteLength(out) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
     return out;
   }
+  private tryReadMemoryFileViewSync(path: string): Uint8Array | undefined {
+    if (!this._isMemoryBackingFs || !this.backingFs || this.backingFs.capabilitiesFor !== undefined || (this._fileWrites !== undefined && this._fileWrites.size > 0)) return undefined;
+    try {
+      const mem = this.backingFs as unknown as {
+        file: (p: string, s: string) => { data: Uint8Array };
+        permission: (n: unknown, m: number, s: string, p: string) => void;
+      };
+      const node = mem.file(path, "readFile");
+      mem.permission(node, 4, "readFile", path);
+      return node.data;
+    } catch {
+      return undefined;
+    }
+  }
   private arePureArgWords(words: readonly Word[], rawState: State): boolean {
     for (let i = 0; i < words.length; i++) {
       if (!this.isPureArgWord(words[i]!, rawState)) return false;
@@ -19721,11 +19748,12 @@ export class Runtime {
       const cmd0 = pipeline.commands[0]!;
       if (cmd0.kind !== "simple" || cmd0.redirects.length !== 0) return undefined;
       const w0Plain0 = cmd0.words[0]?.plain;
-      if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq") || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
+      if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat") || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
+      if (w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
       const def0 = this.commands.get(w0Plain0);
-      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
+      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : w0Plain0 === "cat" ? !builtInDirectContextExecutors.has(def0.execute) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
       const n = pipeline.commands.length;
       const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
@@ -19832,6 +19860,13 @@ export class Runtime {
             const seqLines: string[] = [];
             for (let cur = first; incr > 0 ? cur <= last : cur >= last; cur += incr) seqLines.push(String(cur));
             stage0Formatted = seqLines.length > 0 ? seqLines.join("\n") + "\n" : "";
+          }
+        }
+      } else if (w0Plain0 === "cat") {
+        if (subArgs0.length === 1 && !subArgs0[0]!.startsWith("-") && subArgs0[0] !== "/dev/stdin") {
+          const view = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, subArgs0[0]!));
+          if (view && view.byteLength <= 16384 && !view.includes(0)) {
+            stage0Formatted = sharedSyncPipeDecoder.decode(view);
           }
         }
       } else if (!subArgs0[0]?.startsWith("-")) {
@@ -20224,6 +20259,102 @@ export class Runtime {
     if (cmd.kind !== "simple" || cmd.redirects.length > 0 || cmd.words.length === 0) return undefined;
     let w0Plain = cmd.words[0]!.plain;
     if (!w0Plain || rawState.extensions?.builtins.has(w0Plain)) return undefined;
+    if ((w0Plain === "cat" || w0Plain === "head" || w0Plain === "tail" || w0Plain === "jq" || w0Plain === "awk") && !hasShellFunction(rawState, w0Plain) && this.commands.has(w0Plain)) {
+      const fArgs: string[] = [];
+      let fOk = true;
+      for (let i = 1; i < cmd.words.length; i++) {
+        if (!this.isPureArgWord(cmd.words[i]!, rawState)) { fOk = false; break; }
+        const val = this.fastValueWord(cmd.words[i]!, state, io, true, false, false, true, undefined, part.line);
+        if (typeof val !== "string") { fOk = false; break; }
+        fArgs.push(val);
+      }
+      if (fOk && fArgs.length >= 1) {
+        const fileArg = fArgs[fArgs.length - 1]!;
+        if (!fileArg.startsWith("-") && fileArg !== "/dev/stdin") {
+          const view = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fileArg));
+          if (view && view.byteLength <= 16384 && !view.includes(0)) {
+            const fileStr = sharedSyncPipeDecoder.decode(view);
+            let fileRes: string | undefined;
+            if (w0Plain === "cat" && fArgs.length === 1) {
+              fileRes = fileStr;
+            } else if ((w0Plain === "head" || w0Plain === "tail") && fArgs.length <= 3) {
+              let count: number | undefined = fArgs.length === 1 ? 10 : undefined;
+              if (fArgs.length === 2 && fArgs[0]!.startsWith("-n") && /^[0-9]{1,5}$/.test(fArgs[0]!.slice(2))) count = Number(fArgs[0]!.slice(2));
+              else if (fArgs.length === 2 && /^-[0-9]{1,5}$/.test(fArgs[0]!)) count = Number(fArgs[0]!.slice(1));
+              else if (fArgs.length === 3 && fArgs[0] === "-n" && /^[0-9]{1,5}$/.test(fArgs[1]!)) count = Number(fArgs[1]!);
+              if (count !== undefined) {
+                const rawLines = fileStr.endsWith("\n") ? fileStr.slice(0, -1).split("\n") : (fileStr.length === 0 ? [] : fileStr.split("\n"));
+                const sliced = w0Plain === "head" ? rawLines.slice(0, count) : (count === 0 ? [] : rawLines.slice(-count));
+                fileRes = sliced.join("\n");
+              }
+            } else if (w0Plain === "jq" && (fArgs.length === 2 || fArgs.length === 3)) {
+              const rawMode = fArgs.length === 3 && (fArgs[0] === "-r" || fArgs[0] === "--raw-output");
+              const jqFilter = fArgs.length === 2 ? fArgs[0]! : (rawMode ? fArgs[1]! : "");
+              if (/^\.[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(jqFilter)) {
+                try {
+                  let cur: unknown = JSON.parse(fileStr.trim());
+                  const keys = jqFilter.slice(1).split(".");
+                  let validJq = true;
+                  for (const k of keys) {
+                    if (cur !== null && typeof cur === "object" && !Array.isArray(cur)) {
+                      cur = (cur as Record<string, unknown>)[k];
+                    } else {
+                      validJq = false;
+                      break;
+                    }
+                  }
+                  if (validJq && cur !== undefined && (cur === null || typeof cur === "string" || typeof cur === "number" || typeof cur === "boolean")) {
+                    fileRes = cur === null ? "null" : typeof cur === "string" ? (rawMode ? cur : JSON.stringify(cur)) : String(cur);
+                  }
+                } catch {}
+              }
+            } else if (w0Plain === "awk" && (fArgs.length === 2 || fArgs.length === 3)) {
+              let awkSep: string | undefined;
+              let awkProg: string | undefined;
+              if (fArgs.length === 2) awkProg = fArgs[0]!;
+              else if (fArgs.length === 3 && fArgs[0]!.length === 3 && fArgs[0]!.startsWith("-F") && fArgs[0]![2] !== "\\") {
+                awkSep = fArgs[0]!.slice(2);
+                awkProg = fArgs[1]!;
+              }
+              const awkM = awkProg ? /^\s*\{\s*print(?:\s+(\$(?:[0-9]+|NF)(?:\s*,\s*\$(?:[0-9]+|NF))*))?\s*;?\s*\}\s*$/.exec(awkProg) : null;
+              if (awkM) {
+                const toks = awkM[1] ? awkM[1].split(",").map(t => t.trim().slice(1)) : ["0"];
+                const rawLines = fileStr.endsWith("\n") ? fileStr.slice(0, -1).split("\n") : (fileStr.length === 0 ? [] : fileStr.split("\n"));
+                const outLines: string[] = [];
+                for (let li = 0; li < rawLines.length; li++) {
+                  const l = rawLines[li]!;
+                  if (toks.length === 1 && toks[0] === "0") {
+                    outLines.push(l);
+                  } else {
+                    const fields = awkSep !== undefined ? (awkSep === " " ? l.trim().split(/\s+/).filter(Boolean) : l.split(awkSep)) : l.trim().split(/\s+/).filter(Boolean);
+                    const vals = toks.map(tk => {
+                      if (tk === "0") return l;
+                      const idx = tk === "NF" ? fields.length : Number(tk);
+                      return idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "";
+                    });
+                    outLines.push(vals.join(" "));
+                  }
+                }
+                fileRes = outLines.join("\n");
+              }
+            }
+            if (fileRes !== undefined) {
+              let end = fileRes.length;
+              while (end > 0 && fileRes.charCodeAt(end - 1) === 10) end--;
+              if (end < fileRes.length) fileRes = fileRes.slice(0, end);
+              const outBytes = (fileRes.length * 3 > 127 ? shellValueByteLength(fileRes) : fileRes.length) + 1;
+              const nextTotalBytes = this.budget.bytes + outBytes;
+              if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+              this.budget.bytes = nextTotalBytes;
+              this.budget.tick(w0Plain === "cat" ? 2 : 3);
+              rawState.substitutionStatus = 0;
+              rawState.status = 0;
+              return fileRes;
+            }
+          }
+        }
+      }
+    }
     let fnPositional: string[] | undefined;
     if (rawState.functions.has(w0Plain)) {
       if (rawState.depth + 1 >= this.budget.limits.maxSubstitutionDepth) return undefined;

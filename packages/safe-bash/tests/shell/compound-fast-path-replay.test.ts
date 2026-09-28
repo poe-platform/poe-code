@@ -1125,3 +1125,32 @@ test("matches bash for Wave 73 inline jq, base64, tac, nl, ((...)) arithmetic st
     await shell.dispose();
   }
 });
+
+test("trySyncLoop accelerates memory-file cat|grep|cut pipelines and single-command cat/head/tail/jq/awk substitutions (Wave 74)", async () => {
+  const memFs = createMemoryFileSystem();
+  await memFs.mkdir("/tmp");
+  const shell = new Shell({ fs: memFs });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands(), ...createTextProgramCommands(), ...grepCommands(), ...createStructuredCommands()]) {
+    shell.commands.register(command, { replace: true });
+  }
+  try {
+    await shell.exec("printf \"alpha:10\\nbeta:20\\ngamma:30\\n\" > /tmp/config.txt; printf \"{\\\"name\\\":\\\"safe-bash\\\",\\\"version\\\":\\\"2.4.0\\\"}\\n\" > /tmp/pkg.json");
+    const t0 = performance.now();
+    const res = await shell.exec([
+      "for ((i = 1; i <= 1200; i++)); do",
+      "  pipeVal=$(cat /tmp/config.txt | grep beta | cut -d: -f2)",
+      "  headVal=$(head -n1 /tmp/config.txt)",
+      "  tailVal=$(tail -n1 /tmp/config.txt)",
+      "  verVal=$(jq -r .version /tmp/pkg.json)",
+      "  awkVal=$(awk -F: \"{print \\$2}\" /tmp/config.txt)",
+      "done",
+      "printf \"%s|%s|%s|%s|%s\\n\" \"$pipeVal\" \"$headVal\" \"$tailVal\" \"$verVal\" \"${awkVal//$'\\n'/,}\"",
+    ].join("\n"));
+    const elapsed = performance.now() - t0;
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "20|alpha:10|gamma:30|2.4.0|10,20,30\n");
+    assert.ok(elapsed < 1000, "Expected < 1000ms, got " + elapsed.toFixed(1) + "ms");
+  } finally {
+    await shell.dispose();
+  }
+});

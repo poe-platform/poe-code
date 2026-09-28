@@ -993,6 +993,19 @@ pub fn execute_git_cli_with_http(
                     positionals.get(1).copied().unwrap_or("HEAD"),
                 ) {
                     Ok(oid) => Some(oid),
+                    Err(_)
+                        if positionals.len() == 1
+                            && resolve_ref(fs, &gitdir, "HEAD", None).is_err()
+                            && current_branch(fs, &gitdir, false, false)
+                                .ok()
+                                .flatten()
+                                .is_some() =>
+                    {
+                        return match branch(fs, &gitdir, ref_target, None, true, reset_branch) {
+                            Ok(()) => CliResult::ok(format!("Switched to branch '{ref_target}'\n")),
+                            Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                        };
+                    }
                     Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
             } else {

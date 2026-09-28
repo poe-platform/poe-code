@@ -151,3 +151,53 @@ fn at_sign_is_head_with_ancestry_and_path_operators() {
     ok(&fs, &["checkout", "-f", "@"]);
     assert_eq!(ok(&fs, &["rev-parse", "HEAD"]), head);
 }
+
+#[test]
+fn branch_creation_preserves_unborn_head_and_failed_resets() {
+    for (command, create, reset) in [("checkout", "-b", "-B"), ("switch", "-c", "-C")] {
+        let fs = MemoryFs::new();
+        ok(&fs, &["init", "-b", "main"]);
+        ok(&fs, &[command, create, "initial"]);
+        assert_eq!(ok(&fs, &["branch", "--show-current"]), "initial\n");
+        let fs = repo();
+        let head = ok(&fs, &["rev-parse", "HEAD"]);
+        ok(&fs, &["branch", "existing", "HEAD~1"]);
+        ok(&fs, &[command, reset, "existing"]);
+        assert_eq!(ok(&fs, &["rev-parse", "existing"]), head);
+        fs.write_str("/repo/a.txt", "local\n");
+        assert_ne!(
+            run(&fs, &[command, reset, "existing", "HEAD~1"]).exit_code,
+            0
+        );
+        assert_eq!(ok(&fs, &["rev-parse", "existing"]), head);
+        assert_eq!(fs.read_str("/repo/a.txt").unwrap(), "local\n");
+        assert_ne!(run(&fs, &[command, reset, "new", "HEAD~1"]).exit_code, 0);
+        assert_ne!(run(&fs, &["rev-parse", "new"]).exit_code, 0);
+        assert_eq!(ok(&fs, &["branch", "--show-current"]), "existing\n");
+    }
+}
+
+#[test]
+fn annotated_tag_ancestry_and_non_commit_targets() {
+    let fs = repo();
+    let old = ok(&fs, &["rev-parse", "HEAD~1"]);
+    let head = ok(&fs, &["rev-parse", "HEAD"]);
+    ok(&fs, &["tag", "-a", "v2", "-m", "message"]);
+    for revision in ["v2~1", "v2^", "v2^1"] {
+        assert_eq!(ok(&fs, &["rev-parse", revision]), old);
+    }
+    for revision in ["v2~0", "v2^0"] {
+        assert_eq!(ok(&fs, &["rev-parse", revision]), head);
+    }
+    let blob = ok(&fs, &["rev-parse", "HEAD:a.txt"]);
+    ok(&fs, &["tag", "-a", "blob-tag", "-m", "blob", blob.trim()]);
+    for args in [
+        vec!["branch", "bad", "blob-tag"],
+        vec!["checkout", "blob-tag"],
+        vec!["reset", "--soft", "blob-tag"],
+    ] {
+        assert_ne!(run(&fs, &args).exit_code, 0);
+        assert_eq!(ok(&fs, &["rev-parse", "HEAD"]), head);
+        assert_eq!(ok(&fs, &["branch", "--show-current"]), "main\n");
+    }
+}

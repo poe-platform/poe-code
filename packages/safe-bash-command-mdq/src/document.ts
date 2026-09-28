@@ -18,13 +18,14 @@ export function plain(inlines: readonly Inline[]): string {
 }
 export async function parseDocument(source: string, budget: MdqBudget): Promise<Document> {
   const footnotes = new Map<string, Node[]>(), pendingNotes = new Map<string, PendingBlock[]>();
+  const noteLabels = new Set<string>();
   const references = new WeakMap<object, Omit<Link, "url" | "title">>();
   const autolinks = new WeakMap<object, Pick<Link, "url" | "autolink">>();
   const ctx: AdapterContext = {
     checkpoint: n => budget.checkpoint(n), charge: (k, n) => budget.charge(k, n), bound: (k, n) => budget.bound(k, n), cooperate: n => budget.cooperate(n), decodeEntity: n => budget.decodeEntity(n),
     linkReference(target, label, style) { references.set(target, style === "full" ? { reference: label } : { reference: label, style }); },
     autolink(target, label, style) { autolinks.set(target, { url: label, autolink: style }); },
-    footnoteReference(label) { return pendingNotes.has(normalizeLabel(label, budget)); }
+    footnoteReference(label) { return noteLabels.has(normalizeLabel(label, budget)); }
   };
   const roots: Node[] = [];
   let beginning = 0;
@@ -56,15 +57,15 @@ export async function parseDocument(source: string, budget: MdqBudget): Promise<
   }
   const extensions = { pipe_tables: true, preserve_table_columns: true, strikeout: true, single_tilde: true, autolink_bare_uris: true, footnotes: true };
   const parsed = await parseCommonMarkBlocks(source, ctx, "input", extensions);
-  const stack = [...parsed.blocks];
+  const stack = [...parsed.blocks].reverse();
   while (stack.length) {
     const b = stack.pop()!;
     if (b.kind === "footnote") {
-      const label = normalizeLabel(b.label, budget);
-      if (!pendingNotes.has(label)) pendingNotes.set(label, b.blocks);
+      noteLabels.add(normalizeLabel(b.label, budget));
+      if (!pendingNotes.has(b.label)) pendingNotes.set(b.label, b.blocks);
     }
-    if ("blocks" in b) stack.push(...b.blocks);
-    if (b.kind === "list") for (const item of b.items) stack.push(...item.blocks);
+    if ("blocks" in b) stack.push(...[...b.blocks].reverse());
+    if (b.kind === "list") for (const item of [...b.items].reverse()) stack.push(...[...item.blocks].reverse());
   }
   const convertInline = (items: readonly ParsedInline[]): Inline[] => items.flatMap((i): Inline[] => {
     budget.charge("retainedBytes", 128); budget.charge("nodes", 1);

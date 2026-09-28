@@ -170,7 +170,7 @@ export async function render(doc: Document, nodes: Node[], options: Arguments, b
         await out.withoutWrapping(out => out.write(join(["]: ", target(links.get(id)!)])));
         if (--remaining > 0) await out.write("\n");
       }
-      if (notePosition) for (const [label, id] of [...notes].sort((a, b) => a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0)) {
+      if (notePosition) for (const [label, id] of [...notes].sort((a, b) => compare(a[1], b[1]))) {
         if (emittedNotes.has(id)) continue;
         emittedNotes.add(id);
         await out.write(join(["[^", id, "]: "]));

@@ -182,3 +182,25 @@ for (const write of ['arr=new', 'printf -v arr %s new', 'read arr <<< new', 'rea
   });
 }
 
+for (const [pipeline, expected] of [
+  [String.raw`echo abc | grep '[[:alpha:]]'`, 'abc'],
+  [String.raw`printf '%s\n' 1e5 20 | sort -n`, '1e5\n20'],
+  [String.raw`echo '  foo   bar' | awk -F ' ' '{print $1}'`, 'foo'],
+] as const) test(`function substitution uses shared evaluator: ${pipeline}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`f() { local value; value=$(${pipeline}); echo "$value"; }; f; f`);
+  assert.equal(result.stderr, '');
+  assert.equal(result.stdout, (expected + '\n').repeat(2));
+});
+
+for (const wrap of [(body: string) => `{ ${body}; }`, (body: string) => `f() { ${body}; }; f`]) {
+  test(`function substitution budget rollback: ${wrap('value')}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), limits: { maxOutputBytes: 110 } }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(wrap(String.raw`value=$(printf 'abcdefghijklmnopqrst\n' | head -n 1 | grep -E '['); echo "$value"`));
+    assert.equal(result.stdout, '\n');
+    assert.match(result.stderr, /grep:/);
+  });
+}
+

@@ -77,3 +77,19 @@ describe("parser nesting at execution boundaries", () => {
       .not.toThrow();
   });
 });
+
+it("rejects 2000 left-nested ternary tests before exhausting the host stack", () => {
+  const expression = "(".repeat(2000) + "true" + ") ? 1 : 0".repeat(2000);
+  expect(() => parseWithDepth(`return ${expression};`, 5)).toThrow("Conditional expression nesting limit exceeded");
+});
+
+it("accepts deep redundant grouping independently of the ternary budget", () => {
+  expect(() => parseWithDepth(`return ${"(".repeat(2000)}true${")".repeat(2000)};`, 5)).not.toThrow();
+});
+
+
+it("bounds ternaries independently across successive uninvoked arrows", () => {
+  expect(() => parseWithDepth("const a=true; const f=a ? () => (a ? () => (a ? () => (a ? 1 : 0) : 0) : 0) : 0;", 2)).not.toThrow();
+  expect(() => parseWithDepth("const a=true; return (() => a ? (a ? (a ? (a ? 1 : 0) : 0) : 0) : 0) ? 1 : 0;", 2))
+    .toThrow("Conditional expression nesting limit exceeded");
+});

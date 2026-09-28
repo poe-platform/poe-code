@@ -902,6 +902,7 @@ const ordinaryFunctionContext: LexicalParseContext = {
 
 class Parser {
   private index = 0;
+  private readonly closingParentheses = new Map<number, number>();
   private allowIn = true;
   private breakableDepth = 0;
   private conditionalExpressionDepth = 0;
@@ -929,6 +930,14 @@ class Parser {
     private readonly importSpecifiers?: ReadonlySet<string>
   ) {
     this.functionScopes.add(this.scopes[0]!);
+    const openings: number[] = [];
+    for (let index = 0; index < tokens.length; index++) {
+      const token = tokens[index]!;
+      if (token.type !== "punctuator") continue;
+      if (token.value === "(") openings.push(index);
+      else if (token.value === ")" && openings.length > 0)
+        this.closingParentheses.set(openings.pop()!, index);
+    }
   }
 
   enableCompactAst(): void {
@@ -1088,11 +1097,11 @@ class Parser {
     };
   }
 
-  private parseExpression(options: ExpressionParseOptions = {}): ParsedExpression {
+  private parseExpression(options: ExpressionParseOptions = {}, initial?: ParsedExpression): ParsedExpression {
     const previousAllowIn = this.allowIn;
     this.allowIn = options.allowIn ?? true;
     try {
-      const first = this.parseAssignmentExpression();
+      const first = initial === undefined ? this.parseAssignmentExpression() : this.parseConditionalExpression(initial);
       if (options.allowSequence !== true || this.consumePunctuator(",") === undefined) {
         return first;
       }
@@ -1286,9 +1295,9 @@ class Parser {
     return this.conditionalDepths.get(node)!;
   }
 
-  private parseConditionalExpression(): ParsedExpression {
+  private parseConditionalExpression(initial?: ParsedExpression): ParsedExpression {
     const token = this.currentToken();
-    const test = this.parseCoalesceExpression();
+    const test = initial ?? this.parseCoalesceExpression();
     if (this.consumePunctuator("?") === undefined) {
       return test;
     }
@@ -3693,15 +3702,26 @@ class Parser {
     }
 
     if (token.type === "punctuator" && token.value === "(") {
-      const start = this.expectPunctuator("(");
-      const expression = this.parseExpression({ allowSequence: true });
-      const end = this.expectPunctuator(")");
-      expression.node.span = createSpan(start.start, end.end);
-      this.parenthesizedNodes.add(expression.node);
-      return {
-        node: expression.node,
-        parenthesized: true
-      };
+      const starts = [this.expectPunctuator("(")];
+      // Peel grouping and conditional-test prefixes without entering another
+      // recursive precedence stack. Leave arrow parameters and other suffixes
+      // to the ordinary expression parser.
+      while (this.currentToken().value === "(") {
+        const close = this.closingParentheses.get(this.index);
+        const suffix = close === undefined ? undefined : this.tokens[close + 1];
+        if (suffix?.type !== "punctuator" || (suffix.value !== ")" && suffix.value !== "?")) break;
+        starts.push(this.expectPunctuator("("));
+      }
+      let expression = this.parseExpression({ allowSequence: true });
+      while (starts.length > 0) {
+        const start = starts.pop()!;
+        const end = this.expectPunctuator(")");
+        expression.node.span = createSpan(start.start, end.end);
+        this.parenthesizedNodes.add(expression.node);
+        expression = { node: expression.node, parenthesized: true };
+        if (starts.length > 0) expression = this.parseExpression({ allowSequence: true }, expression);
+      }
+      return expression;
     }
 
     if (token.type === "punctuator" && token.value === "[") {

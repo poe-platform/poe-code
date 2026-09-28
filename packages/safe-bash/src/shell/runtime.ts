@@ -4268,6 +4268,7 @@ export class Runtime {
     name = this.referenceName(state, name);
     const binding = arrayStore(state)?.get(name);
     if (binding) return binding.get(binding.associative ? binding.keys.get("30")?.index ?? -1 : 0);
+    if (name === "DIRSTACK") return state.cwd;
     if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined) return state.functionNames?.[0];
     if (name === "_" && state.variables._ === undefined) return state.lastArgument ?? "";
     return state.variables[name];
@@ -10536,7 +10537,7 @@ export class Runtime {
           if (rawState.nounset && part.name >= "1" && part.name <= "9" && rawState.positional[part.name.charCodeAt(0) - 49] === undefined) return false;
           continue;
         }
-        if ( part.prefixNames || part.specialParameter || part.transform || part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || !isShellIdentifier(part.name)) {
+        if ( part.prefixNames || part.specialParameter || part.transform || part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK" || !isShellIdentifier(part.name)) {
           return false;
         }
         if (part.indirect) {
@@ -16789,6 +16790,8 @@ export class Runtime {
         allocation.reserveBytes(name.length * 2 + 64);
         seen.add(name);
         names.push(name);};
+      await consider("DIRSTACK", true);
+      if (state.functionNames?.length) await consider("FUNCNAME", true);
       for (const name in state.variables) if (Object.hasOwn(state.variables, name)) await consider(name, state.variables[name] !== undefined);
       if (store) for (const [name, entry] of store.bindings) await consider(name, entry.binding.assigned);
       for (const frame of state.locals) for (const [name, saved] of frame) {
@@ -16914,8 +16917,7 @@ export class Runtime {
       const selector = getArraySelector(part);
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
         const members = selector ? await this.arrayMembers(part.name, state, io, part.keys) : this.positionalValues(state);
-        const ifs = state.variables.IFS ?? " ";
-        const separator = !split && (selector?.kind === "members" ? selector.separator === "@" || !part.quoted : part.name === "@") ? " " : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
+        const separator = !split && (selector?.kind === "members" ? selector.separator === "@" : part.name === "@") ? " " : this.ifsSeparator(state, io);
         const fragments: ShellValue[] = [];
         let bytes = 0;
         for (const member of members) {
@@ -17632,7 +17634,7 @@ export class Runtime {
           const refRaw = rawVars[part.name];
           const refName = refRaw === undefined ? undefined : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? refRaw : (monitor?.values.get(part.name, refRaw) ?? refRaw));
           if (typeof refName !== "string" || !isShellIdentifier(refName)) return undefined;
-          if ( activeArrayStore?.get(refName) || rawState.variableAttributes?.get(refName) || refName === "PIPESTATUS" || refName === "LINENO" || refName === "_" || refName === "FUNCNAME") {
+          if ( activeArrayStore?.get(refName) || rawState.variableAttributes?.get(refName) || refName === "PIPESTATUS" || refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || refName === "DIRSTACK") {
             return undefined;
           }
           const targetRaw = rawVars[refName];
@@ -17645,7 +17647,7 @@ export class Runtime {
           continue;
         }
         if (part.indirect || part.prefixNames || part.specialParameter || part.transform) return undefined;
-        if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME") return undefined;
+        if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK") return undefined;
         if (!isShellIdentifier(part.name)) return undefined;
         const selector = getArraySelector(part);
         const arrayBinding = activeArrayStore?.get(part.name);
@@ -18218,7 +18220,7 @@ export class Runtime {
           if (rawState.nounset && p.name >= "1" && p.name <= "9" && activePos[p.name.charCodeAt(0) - 49] === undefined) return false;
           continue;
         }
-        if ( p.prefixNames || p.specialParameter || p.transform || p.name === "@" || p.name === "*" || p.name === "PIPESTATUS" || p.name === "LINENO" || p.name === "_" || p.name === "FUNCNAME" || !isShellIdentifier(p.name)) {
+        if ( p.prefixNames || p.specialParameter || p.transform || p.name === "@" || p.name === "*" || p.name === "PIPESTATUS" || p.name === "LINENO" || p.name === "_" || p.name === "FUNCNAME" || p.name === "DIRSTACK" || !isShellIdentifier(p.name)) {
           return false;
         }
         if (p.operator !== undefined && (p.operator === "=" || p.operator === ":=" || p.operator === "?" || p.operator === ":?")) return false;

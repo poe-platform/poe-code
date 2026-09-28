@@ -287,3 +287,29 @@ test("Wave 89: for x in \"$@\"/implicit \"$@\", read -ra <<<, declare -u/-l/-i, 
   assert.equal(r4.exitCode, 0);
   assert.equal(r4.stdout, "210:21:5:-1\n");
 });
+
+for (const args of [
+  '-n "$v" "a\\nb"',
+  '"-n" "$v" "a\\nb"',
+  '-n "-e" "a\\nb"',
+  '"-e" "a\\nb"',
+  '-n "" "$v" "a\\nb"',
+  '"line:$i" "$v" "a\\nb"',
+  '"$v"',
+]) {
+  for (const loop of ['for i in 1 2', 'for ((i=1;i<=2;i++))']) {
+    for (const redirected of [false, true]) {
+      test(`loop echo preserves option interpretation: ${loop}; echo ${args}; redirected=${redirected}`, async t => {
+        const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+        t.after(() => shell.dispose());
+        const source = `v=-e; ${loop}; do echo ${args}; done`;
+        const oracle = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+        assert.ifError(oracle.error);
+        const result = await shell.exec(redirected ? `v=-e; ${loop}; do echo ${args} >> /result; done; cat /result` : source);
+        assert.equal(result.exitCode, oracle.status, result.stderr);
+        assert.equal(result.stderr, oracle.stderr);
+        assert.equal(result.stdout, oracle.stdout);
+      });
+    }
+  }
+}

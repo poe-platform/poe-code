@@ -12067,9 +12067,15 @@ export class Runtime {
       if (!p0 || !this.isPureSyncValueWord(w, rawState)) return false;
       if (p0.kind === "text" && !p0.quoted && p0.value.startsWith("~")) return false;
       if (inOptions) {
-        if (w.plain !== undefined && /^-[nE]+$/.test(w.plain)) continue;
-        if ((w.plain !== undefined && w.plain.startsWith("-")) || (p0.kind === "text" && !p0.quoted && p0.value.startsWith("-")) || (p0.kind === "variable" && i === 1 && cmd.words.length > 2)) {
-          return false;
+        const literal = w.parts.reduce<string | undefined>((text, part) => text !== undefined && part.kind === "text" ? text + part.value : undefined, "");
+        if (literal !== undefined) {
+          if (/^-[nE]+$/.test(literal)) continue;
+          if (literal.startsWith("-")) return false;
+        } else {
+          const prefix = w.parts.find(part => part.kind !== "text" || part.value.length > 0);
+          // An unresolved option can enable escapes in subsequent operands.
+          // A sole dynamic argument is handled by formatSyncEchoLine.
+          if (cmd.words.length !== 2 && (prefix?.kind !== "text" || prefix.value.startsWith("-"))) return false;
         }
         inOptions = false;
       }

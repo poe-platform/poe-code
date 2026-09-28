@@ -3075,7 +3075,7 @@ function tryCompileFixedGlobToRegex(pat: string, op: string, extglob: boolean): 
   if (op === "/%") reSrc += "$";
   let compiled: RegExp | null = null;
   try {
-    compiled = new RegExp(reSrc, op === "//" ? "gs" : "s");
+    compiled = new RegExp(reSrc, op === "//" ? "gsu" : "su");
   } catch {
     compiled = null;
   }
@@ -3138,7 +3138,7 @@ function tryCompileTrimGlobToRegex(pat: string, op: "#" | "##" | "%" | "%%", ext
       : "^[\\s\\S]*?(" + bodySrc + ")\u0024";
   let compiled: RegExp | null = null;
   try {
-    compiled = new RegExp(reSrc);
+    compiled = new RegExp(reSrc, "u");
   } catch {
     compiled = null;
   }
@@ -4818,12 +4818,6 @@ export class Runtime {
   private applySyncArrayMemberOperator(members: string[], p0: Extract<WordPart, { kind: "variable" }>, rawState: State): string[] | undefined {
     const op = p0.operator;
     if (op === undefined) return members;
-    for (let i = 0; i < members.length; i++) {
-      const m = members[i]!;
-      for (let k = 0; k < m.length; k++) {
-        if (m.charCodeAt(k) >= 128) return undefined;
-      }
-    }
     if (op === "^" || op === "^^" || op === "," || op === ",,") {
       for (let i = 0; i < members.length; i++) {
         const m = members[i]!;
@@ -4834,9 +4828,6 @@ export class Runtime {
     const tp = p0.alternate?.parts[0];
     if (!tp || tp.kind !== "text") return undefined;
     const pat = tp.value;
-    for (let k = 0; k < pat.length; k++) {
-      if (pat.charCodeAt(k) >= 128) return undefined;
-    }
     if (op === "#" || op === "##" || op === "%" || op === "%%") {
       const isPrefixTrim = op === "#" || op === "##";
       if (!tp.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
@@ -4857,9 +4848,6 @@ export class Runtime {
     }
     if (op === "/" || op === "//" || op === "/#" || op === "/%") {
       const rep = (p0.replacement && p0.replacement.parts.length === 1 && p0.replacement.parts[0]!.kind === "text") ? p0.replacement.parts[0]!.value : "";
-      for (let k = 0; k < rep.length; k++) {
-        if (rep.charCodeAt(k) >= 128) return undefined;
-      }
       if (!tp.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
         const repRe = tryCompileFixedGlobToRegex(pat, op, !!rawState.extglob);
         if (!repRe) return undefined;

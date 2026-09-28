@@ -521,3 +521,33 @@ for (const [name, source, expected] of [
     assert.equal(result.exitCode, 0);
   } finally { await shell.dispose(); }
 });
+
+for (const operator of ["^", "^^", ",", ",,", "#a", "##a*", "%a", "%%*a", "/a/X", "//a/X", "/#a/X", "/%a/X", "/é/🙂", "/?/X"]) {
+  test(`UTF-8 array operator ${operator} never replays a loop`, async () => {
+    const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: "C.UTF-8" } });
+    for (const command of basicCommands()) shell.commands.register(command);
+    try {
+      const body = `echo "iter=$i"; b=("\${arr[@]${operator}}"); echo "\${b[*]}"`;
+      const source = `arr=(abc); for i in 1 2; do ${body}; arr=(aéa); done`;
+      // Obtain values from the normal executor independently of the loop executor.
+      const baseline = await shell.exec(`arr=(abc); i=1; ${body}; arr=(aéa); i=2; ${body}`);
+      const result = await shell.exec(source);
+      assert.equal(result.stdout, baseline.stdout);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const [operator, expected] of [["/?/X", "Xa"], ["#?", "a"], ["%?", "🙂"]]) {
+  test(`UTF-8 array glob ${operator} matches complete characters`, async () => {
+    const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: "C.UTF-8" } });
+    for (const command of basicCommands()) shell.commands.register(command);
+    try {
+      const result = await shell.exec(`arr=(🙂a); for i in 1 2; do b=("\${arr[@]${operator}}"); echo "\${b[@]}"; done`);
+      assert.equal(result.stdout, `${expected}\n${expected}\n`);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}

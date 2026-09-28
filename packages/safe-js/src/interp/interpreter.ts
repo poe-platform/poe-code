@@ -285,7 +285,7 @@ export type InterpretOptions = {
   snapshot?: InterpreterSnapshot;
 };
 
-type EvaluationContext = AsyncEvaluationContext;
+type EvaluationContext = AsyncEvaluationContext & { deferDataScans?: boolean };
 const intrinsicRealmContexts = new WeakMap<object, EvaluationContext>();
 
 type EvaluationResult = AsyncEvaluationResult;
@@ -669,6 +669,8 @@ export async function evaluateNode(
   const evaluationContext = compilation === undefined ? context : {
     ...context,
     compilation,
+    deferDataScans: context.deferDataScans || node.type === "ForStatement" || node.type === "ForInStatement" ||
+      node.type === "ForOfStatement" || node.type === "WhileStatement" || node.type === "DoWhileStatement",
     get generatorResume() {
       return context.generatorResume;
     },
@@ -680,14 +682,20 @@ export async function evaluateNode(
     const result = node.type === "Identifier" && onReference !== undefined
       ? await evaluateIdentifier(node, evaluationContext, onReference)
       : await handler(node as never, evaluationContext);
-    reconcileDataBudget(
-      context.budget,
-      context.stats,
-      context.scope,
-      "hasValue" in result && result.hasValue ? result.value : undefined,
-      compilation,
-      context.compilation
-    );
+    // Unlimited loops measure their retained graph when the loop completes,
+    // rather than repeatedly walking an ever-growing graph each iteration.
+    // Scopes owning compilation tickets still reconcile before disposal.
+    if (!context.deferDataScans || context.budget.limits.dataSize !== undefined ||
+        (compilation?.tickets.size ?? 0) > 0) {
+      reconcileDataBudget(
+        context.budget,
+        context.stats,
+        context.scope,
+        "hasValue" in result && result.hasValue ? result.value : undefined,
+        compilation,
+        context.compilation
+      );
+    }
     if (result.kind === "break" && result.label !== undefined && "labels" in node && node.labels?.includes(result.label))
       return { kind: "normal", hasValue: context.evalCompletion === true && result.hasValue, value: context.evalCompletion ? result.value : undefined };
     return result;

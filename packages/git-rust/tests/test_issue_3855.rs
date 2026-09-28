@@ -78,3 +78,54 @@ fn tag_message_options_do_not_become_tag_names() {
     assert_ne!(run(&fs, &["tag", "-m"]).exit_code, 0);
     assert_eq!(ok(&fs, &["tag"]), "");
 }
+#[test]
+fn annotated_tags_are_peeled_only_for_commit_consumers() {
+    for command in [
+        "branch",
+        "checkout-new",
+        "checkout",
+        "reset",
+        "merge",
+        "cherry-pick",
+    ] {
+        let fs = repo();
+        let head = ok(&fs, &["rev-parse", "HEAD"]);
+        ok(&fs, &["tag", "-a", "v2", "-m", "v2 message"]);
+        let tag = ok(&fs, &["rev-parse", "v2"]);
+        assert_ne!(tag, head);
+        ok(&fs, &["tag", "-a", "nested", "-m", "nested", "v2"]);
+        match command {
+            "branch" => {
+                ok(&fs, &["branch", "from-tag", "nested"]);
+            }
+            "checkout-new" => {
+                ok(&fs, &["checkout", "-b", "from-tag", "nested"]);
+            }
+            "checkout" => {
+                ok(&fs, &["checkout", "nested"]);
+            }
+            "reset" => {
+                ok(&fs, &["reset", "--hard", "HEAD~1"]);
+                ok(&fs, &["reset", "--hard", "nested"]);
+            }
+            "merge" => {
+                ok(&fs, &["reset", "--hard", "HEAD~1"]);
+                ok(&fs, &["merge", "nested"]);
+            }
+            _ => {
+                ok(&fs, &["reset", "--hard", "HEAD~1"]);
+                ok(&fs, &["cherry-pick", "nested"]);
+            }
+        }
+        if matches!(command, "branch" | "checkout-new") {
+            assert_eq!(ok(&fs, &["rev-parse", "from-tag"]), head);
+        } else if command != "cherry-pick" {
+            assert_eq!(ok(&fs, &["rev-parse", "HEAD"]), head);
+        }
+        if command != "branch" {
+            assert_eq!(fs.read_str("/repo/a.txt").unwrap(), "a2\n");
+            assert_eq!(ok(&fs, &["cat-file", "-t", "HEAD"]), "commit\n");
+        }
+        assert_eq!(ok(&fs, &["rev-parse", "v2"]), tag);
+    }
+}

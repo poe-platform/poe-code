@@ -594,7 +594,7 @@ pub fn execute_git_cli_with_http(
             } else if names.len() <= 2 {
                 let object = match names
                     .get(1)
-                    .map(|rev| crate::cli_history::resolve(fs, &gitdir, rev))
+                    .map(|rev| crate::cli_history::resolve_commit(fs, &gitdir, rev))
                     .transpose()
                 {
                     Ok(oid) => oid,
@@ -987,7 +987,7 @@ pub fn execute_git_cli_with_http(
                         format!("fatal: branch '{ref_target}' already exists\n"),
                     );
                 }
-                match crate::cli_history::resolve(
+                match crate::cli_history::resolve_commit(
                     fs,
                     &gitdir,
                     positionals.get(1).copied().unwrap_or("HEAD"),
@@ -1001,8 +1001,11 @@ pub fn execute_git_cli_with_http(
             let resolved_target;
             let checkout_target = if let Some(start) = start.as_deref() {
                 start
-            } else if ref_target.contains(['~', '^']) {
-                match crate::cli_history::resolve(fs, &gitdir, ref_target) {
+            } else if crate::cli_history::resolve(fs, &gitdir, ref_target).is_ok()
+                && !crate::GitRefManager::expand(fs, &gitdir, ref_target)
+                    .is_ok_and(|name| name.starts_with("refs/heads/"))
+            {
+                match crate::cli_history::resolve_commit(fs, &gitdir, ref_target) {
                     Ok(oid) => {
                         resolved_target = oid;
                         &resolved_target
@@ -1147,7 +1150,7 @@ pub fn execute_git_cli_with_http(
             let Some(&theirs) = sub_args.iter().find(|a| !a.starts_with('-')) else {
                 return CliResult::err(128, "fatal: No commit specified\n");
             };
-            let theirs = match crate::cli_history::resolve(fs, &gitdir, theirs) {
+            let theirs = match crate::cli_history::resolve_commit(fs, &gitdir, theirs) {
                 Ok(oid) => oid,
                 Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
             };
@@ -1197,7 +1200,7 @@ pub fn execute_git_cli_with_http(
             let Some(&theirs) = sub_args.iter().find(|a| !a.starts_with('-')) else {
                 return CliResult::err(128, "fatal: No commit specified\n");
             };
-            let theirs = match crate::cli_history::resolve(fs, &gitdir, theirs) {
+            let theirs = match crate::cli_history::resolve_commit(fs, &gitdir, theirs) {
                 Ok(oid) => oid,
                 Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
             };
@@ -1491,7 +1494,7 @@ fn reset_repository(
     hard: bool,
     soft: bool,
 ) -> Result<(), crate::GitError> {
-    let oid = crate::cli_history::resolve(fs, gitdir, target)?;
+    let oid = crate::cli_history::resolve_commit(fs, gitdir, target)?;
     if hard {
         let tracked = list_files(fs, gitdir, None)?;
         let target_files = list_files(fs, gitdir, Some(&oid))?;

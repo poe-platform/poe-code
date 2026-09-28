@@ -74,6 +74,7 @@ pub(crate) fn resolve(fs: &MemoryFs, gitdir: &str, revision: &str) -> Result<Str
         if !suffix.is_empty() && !suffix.starts_with(['~', '^']) {
             return Err(GitError::not_found(revision));
         }
+        oid = resolve_commit(fs, gitdir, &oid)?;
         if operator == b'^' {
             if count > 0 {
                 oid = crate::read_commit(fs, gitdir, &oid)?
@@ -97,6 +98,25 @@ pub(crate) fn resolve(fs: &MemoryFs, gitdir: &str, revision: &str) -> Result<Str
         }
     }
     Ok(oid)
+}
+
+// Object inspection preserves tag OIDs; commands that update commit refs must peel them.
+pub(crate) fn resolve_commit(
+    fs: &MemoryFs,
+    gitdir: &str,
+    revision: &str,
+) -> Result<String, GitError> {
+    let mut oid = resolve(fs, gitdir, revision)?;
+    let mut visited = BTreeSet::new();
+    while visited.insert(oid.clone()) {
+        let object = crate::_read_object(fs, gitdir, &oid, "content")?;
+        match object.obj_type.as_str() {
+            "commit" => return Ok(oid),
+            "tag" => oid = crate::read_tag(fs, gitdir, &oid)?.tag.object,
+            _ => return Err(GitError::not_found(revision)),
+        }
+    }
+    Err(GitError::not_found(revision))
 }
 
 pub(crate) fn matches_path(path: &str, paths: &[String]) -> bool {

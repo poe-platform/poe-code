@@ -15989,13 +15989,18 @@ export class Runtime {
       const outKind = kind === "command" ? (shellBuiltinNames.has(target) ? "builtin" : "file") : kind === "interpreter" ? "file" : kind;
       return { text: mode === "name" ? target : outKind, status: 0 };
     }
-    if (!target.includes("/") && target.length > 0 && this._isMemoryBackingFs && this.canFastMemoryRedirect && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0)) {
+    if (!target.includes("/") && target.length > 0 && this._isMemoryBackingFs && this.canFastMemoryRedirect && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0) && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, "/") !== undefined) {
       const rawPath = stateMonitor(rawState)?.values.get("PATH", rawState.variables.PATH ?? "/usr/local/bin:/usr/bin:/bin") ?? rawState.variables.PATH ?? "/usr/local/bin:/usr/bin:/bin";
       if (typeof rawPath === "string" && rawPath.length <= 512) {
         const parts = rawPath.split(":");
         let anyHit = false;
         for (let i = 0; i < parts.length; i++) {
-          const dir = pathOf(rawState, parts[i]! || ".");
+          const part = parts[i]!;
+          const dir = !part || part === "." ? rawState.cwd : pathOf(rawState, part);
+          if (!isCleanAbsolutePath(dir) || dir === "/dev" || dir.startsWith("/dev/")) {
+            anyHit = true;
+            break;
+          }
           const entries = tryGetMemoryDirectoryEntryNamesSync(this.backingFs, dir);
           if (entries !== undefined && entries.has(target)) {
             anyHit = true;

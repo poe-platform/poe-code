@@ -3,7 +3,8 @@ import { assertCommandRequirements } from 'safe-bash-contracts/command-requireme
 import { fdTemplate, formatFdPath } from './templates.js';
 export { formatFdPath } from './templates.js';
 import { commandRuntimeIdentity, getCommandArguments, writeBytes, FsError, type CommandHandler, type CommandContext, type CommandDefinition, type CommandResult } from 'safe-bash-contracts';
-import { resolvePath, posixPath, type FileStat } from '@poe-code/safe-fs/core';
+import { resolvePath, posixPath, FsError as CoreFsError, type FileStat } from '@poe-code/safe-fs/core';
+const isFsErrorInstance = (error: unknown): error is FsError => error instanceof FsError || error instanceof CoreFsError;
 import { parseFdArguments, type FdArguments } from './arguments.js';
 
 export interface FdLimits { readonly maxDepth: number; readonly maxEntries: number }
@@ -128,7 +129,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
         await admit(path,['ignore']);
         const text=sharedFatalDecoder.decode(await fs.readFile(path,{signal,...(Number.isFinite(maxIgnoreFileBytes) ? {maxBytes:maxIgnoreFileBytes} : {})}));
         for (const rule of await matcher.ignores(text)) rules.push({base:dir,priority,...rule});
-      } catch(error) { signal.throwIfAborted(); if (!(error instanceof FsError && error.code==='ENOENT')) throw error; }
+      } catch(error) { signal.throwIfAborted(); if (!(isFsErrorInstance(error) && error.code==='ENOENT')) throw error; }
     }
     return rules;
   };
@@ -170,7 +171,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
         await admit(path,['metadata']);
         let stat=await fs.lstat(path,io);
         if (stat.type==='symlink' && a.follow) {
-          try { stat=await fs.stat(path,io); } catch(error) { signal.throwIfAborted(); if (!(error instanceof FsError && error.code==='ENOENT')) throw error; }
+          try { stat=await fs.stat(path,io); } catch(error) { signal.throwIfAborted(); if (!(isFsErrorInstance(error) && error.code==='ENOENT')) throw error; }
           if (stat.type==='directory' && ancestors.has(await fs.realpath(path,io))) continue;
         }
         const directory=stat.type==='directory';
@@ -187,7 +188,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
           if (a.quiet || found>=a.maxResults) return true;
         }
         if (directory && await walk(path,display,depth+1,local,ancestors,prefixCwd,searchRoot)) return true;
-        } catch(error) { signal.throwIfAborted(); if (!(error instanceof FsError)) throw error; await report(error); }
+        } catch(error) { signal.throwIfAborted(); if (!(isFsErrorInstance(error))) throw error; await report(error); }
       }
       return false;
     } finally { ancestors.delete(canonical); }

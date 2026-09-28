@@ -2480,7 +2480,7 @@
       "tests/contracts/invocation-cleanup.cases.ts": "e5abb8fa59166c298850edb995eae0fac58581a7ee1cbcf4ce2891661fabaa8f",
       "tests/contracts/invoke.cases.ts": "268c2ae71dc10209953485591654e5a6ec62a649b2c66a24c2919b1785eb5104",
       "tests/contracts/path-error.stress.cases.ts": "2d80b2df8087b45d989ef59ef1c9a32585b5047a55ff2c718925bfd7959d69e5",
-      "tests/contracts/path.cases.ts": "d72b3e44af75bc19d08319ddbee245d9aa0df65275a9936c16c0029cac8c1ed0",
+      "tests/contracts/path.cases.ts": "6049245b44654bc88c0163cc107c9695c8f568e4b674eefff38646afd6104076",
       "tests/contracts/stdin-provenance.cases.ts": "d31c16212694b5a843777be0a9bd901266697c2293eb70969a10057f6554ece1"
     },
     "tests/contracts/diagnostic-escaping.test.ts": {

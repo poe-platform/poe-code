@@ -180,6 +180,7 @@ jobs:
         run: |
           printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
           tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+          npm --workspace=safe-bash-contracts run build
       - name: Install Zsh for native completion tests
         run: |
           sudo apt-get update
@@ -238,6 +239,7 @@ jobs:
         run: |
           printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
           tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+          npm --workspace=safe-bash-contracts run build
       - name: Identify cache runtime
         run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"
       - name: Restore eligible unit task cache

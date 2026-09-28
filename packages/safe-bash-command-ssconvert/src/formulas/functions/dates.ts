@@ -74,10 +74,12 @@ function zonedDate(now: number, host: FunctionHost): Date {
   if (host.context.environment.timezone === "UTC") return new Date(now);
   let parts: Intl.DateTimeFormatPart[];
   try {
-    parts = new Intl.DateTimeFormat("en-US", { timeZone: host.context.environment.timezone, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric", hourCycle: "h23" }).formatToParts(now);
+    parts = new Intl.DateTimeFormat("en-US", { timeZone: host.context.environment.timezone, era: "short", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric", hourCycle: "h23" }).formatToParts(now);
   } catch { throw new SsconvertError("invalid-request", "Invalid ssconvert timezone"); }
   const part = (type: string) => Number(parts.find(item => item.type === type)?.value);
-  const date = gregorian(part("year"), part("month"), part("day")); date.setUTCHours(part("hour"), part("minute"), part("second"), ((now % 1000) + 1000) % 1000); return date;
+  // Intl uses era years; JavaScript dates use astronomical years (1 BC is year 0).
+  const year = parts.find(item => item.type === "era")?.value === "BC" ? 1 - part("year") : part("year");
+  const date = gregorian(year, part("month"), part("day")); date.setUTCHours(part("hour"), part("minute"), part("second"), ((now % 1000) + 1000) % 1000); return date;
 }
 function isoWeek(date: Date): number {
   const thursday = new Date(date); thursday.setUTCDate(date.getUTCDate() + 3 - (date.getUTCDay() + 6) % 7);

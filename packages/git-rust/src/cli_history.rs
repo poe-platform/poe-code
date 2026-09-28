@@ -188,6 +188,7 @@ pub(crate) struct HistoryOutput<'a> {
     pub abbrev: bool,
     pub modes: Vec<crate::cli_files::DiffMode>,
     pub no_patch: bool,
+    pub skip_merge_diff: bool,
 }
 
 pub(crate) fn render_history(
@@ -212,7 +213,7 @@ pub(crate) fn render_history(
             output.abbrev,
         ));
         for (mode_index, mode) in output.modes.iter().enumerate() {
-            if output.no_patch {
+            if output.no_patch || (output.skip_merge_diff && c.commit.parent.len() > 1) {
                 break;
             }
             let options = crate::cli_files::DiffOptions {
@@ -237,7 +238,8 @@ pub(crate) fn render_history(
                 if !out.ends_with('\n') {
                     out.push('\n');
                 }
-                let oneline = matches!(output.format, "oneline" | "%h %s");
+                let oneline = matches!(output.format, "oneline" | "%h %s")
+                    || output.format.starts_with("format:");
                 if mode_index == 0
                     && !oneline
                     && matches!(mode, crate::cli_files::DiffMode::Stat)
@@ -272,6 +274,7 @@ pub(crate) fn execute(
         abbrev: false,
         modes: Vec::new(),
         no_patch: false,
+        skip_merge_diff: !show,
     };
     let mut reverse = false;
     let mut patch = None;
@@ -324,10 +327,21 @@ pub(crate) fn execute(
             output.abbrev = true;
         } else if matches!(arg, "-s" | "--no-patch") {
             output.no_patch = true;
+            output.modes.clear();
+            patch = Some(false);
         } else if matches!(arg, "-p" | "--patch") {
             patch = Some(true);
             output.no_patch = false;
         } else if matches!(arg, "--name-only" | "--name-status" | "--stat") {
+            if output.no_patch && arg != "--stat" {
+                return CliResult::err(
+                    128,
+                    "fatal: options '--name-only', '--name-status', '--check', and '-s' cannot be used together\n",
+                );
+            }
+            if arg == "--stat" {
+                output.no_patch = false;
+            }
             output.modes.push(match arg {
                 "--name-only" => crate::cli_files::DiffMode::Names,
                 "--name-status" => crate::cli_files::DiffMode::Status,
@@ -451,7 +465,7 @@ fn render(commits: &[ReadCommitResult], format: &str, abbrev: bool) -> String {
                 out.push_str(&format!(
                     "{} {}\n",
                     if abbrev { &c.oid[..7] } else { &c.oid },
-                    c.commit.message.lines().next().unwrap_or("")
+                    subject(&c.commit.message)
                 ));
                 continue;
             }
@@ -459,10 +473,23 @@ fn render(commits: &[ReadCommitResult], format: &str, abbrev: bool) -> String {
                 out.push('\n');
             }
             out.push_str(&format!(
-                "commit {}\nAuthor: {} <{}>\n",
+                "commit {}\n",
                 if abbrev { &c.oid[..7] } else { &c.oid },
-                c.commit.author.name,
-                c.commit.author.email
+            ));
+            if c.commit.parent.len() > 1 {
+                out.push_str(&format!(
+                    "Merge: {}\n",
+                    c.commit
+                        .parent
+                        .iter()
+                        .map(|oid| &oid[..7])
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                ));
+            }
+            out.push_str(&format!(
+                "Author: {} <{}>\n",
+                c.commit.author.name, c.commit.author.email
             ));
             if format == "medium" {
                 out.push_str(&format!("Date:   {}\n", date(&c.commit.author)));
@@ -501,7 +528,7 @@ fn render(commits: &[ReadCommitResult], format: &str, abbrev: bool) -> String {
 }
 
 // Civil date conversion uses integer arithmetic so native and WASM builds agree.
-pub(crate) fn date(author: &crate::utils::Author) -> String {
+fn calendar(author: &crate::utils::Author) -> (i64, i64, i64, i64, i64, i64) {
     let offset = -(author.timezone_offset as i64);
     let seconds = author.timestamp + offset * 60;
     let days = seconds.div_euclid(86400);
@@ -516,6 +543,34 @@ pub(crate) fn date(author: &crate::utils::Author) -> String {
     let day = doy - (153 * mp + 2) / 5 + 1;
     let month = mp + if mp < 10 { 3 } else { -9 };
     let year = y + i64::from(month <= 2);
+    (year, month, day, days, time, offset)
+}
+
+pub(crate) fn iso_date(author: &crate::utils::Author) -> String {
+    let (year, month, day, _, time, offset) = calendar(author);
+    format!(
+        "{year:04}-{month:02}-{day:02} {:02}:{:02}:{:02} {}{:02}{:02}",
+        time / 3600,
+        time / 60 % 60,
+        time % 60,
+        if offset < 0 { '-' } else { '+' },
+        offset.abs() / 60,
+        offset.abs() % 60
+    )
+}
+
+pub(crate) fn subject(message: &str) -> String {
+    message
+        .lines()
+        .skip_while(|line| line.trim().is_empty())
+        .take_while(|line| !line.trim().is_empty())
+        .map(str::trim)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+pub(crate) fn date(author: &crate::utils::Author) -> String {
+    let (year, month, day, days, time, offset) = calendar(author);
     let weekdays = ["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"];
     let months = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",

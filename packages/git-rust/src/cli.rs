@@ -1428,6 +1428,12 @@ pub fn execute_git_cli_with_http(
             }
         }
         "rev-parse" => {
+            if find_root(fs, &effective_cwd).is_err() {
+                return CliResult::err(
+                    128,
+                    "fatal: not a git repository (or any of the parent directories): .git\n",
+                );
+            }
             if sub_args.contains(&"--show-toplevel") {
                 return CliResult::ok(format!("{repo_root}\n"));
             }
@@ -1737,7 +1743,23 @@ pub(crate) fn format_commit(
             Some('n') => out.push('\n'),
             Some('H') => out.push_str(&c.oid),
             Some('h') => out.push_str(&c.oid[..7]),
-            Some('s') => out.push_str(c.commit.message.lines().next().unwrap_or("")),
+            Some('s') => out.push_str(&crate::cli_history::subject(&c.commit.message)),
+            Some(selector @ ('P' | 'p')) => out.push_str(
+                &c.commit
+                    .parent
+                    .iter()
+                    .map(|oid| {
+                        if selector == 'p' {
+                            &oid[..7]
+                        } else {
+                            oid.as_str()
+                        }
+                    })
+                    .collect::<Vec<_>>()
+                    .join(" "),
+            ),
+            Some('T') => out.push_str(&c.commit.tree),
+            Some('t') => out.push_str(&c.commit.tree[..7]),
             Some('B') => out.push_str(&c.commit.message),
             Some('b') => out.push_str(
                 c.commit
@@ -1755,6 +1777,9 @@ pub(crate) fn format_commit(
                 match chars.next() {
                     Some('n') => out.push_str(&who.name),
                     Some('e') => out.push_str(&who.email),
+                    Some('t') => out.push_str(&who.timestamp.to_string()),
+                    Some('i') => out.push_str(&crate::cli_history::iso_date(who)),
+                    Some('d') => out.push_str(&crate::cli_history::date(who)),
                     Some(other) => {
                         out.push('%');
                         out.push(selector);

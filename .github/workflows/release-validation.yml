@@ -39,7 +39,7 @@ jobs:
       - name: Check release queue position
         id: queue-check
         run: |
-          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+          if [ "${GITHUB_REF}" = "refs/heads/main" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; }; then
             git fetch origin main --depth=1
             remote_main=$(git rev-parse origin/main)
             if [ "$remote_main" != "$GITHUB_SHA" ]; then
@@ -64,7 +64,10 @@ jobs:
         with:
           path: .turbo/ci-cache
           key: ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-${{ runner.arch }}-build-v1-
+            ${{ runner.os }}-${{ runner.arch }}-unit-fresh-v1-${{ hashFiles('package-lock.json') }}-
       - name: Build workspace and CLI outputs
         if: steps.queue-check.outputs.superseded != 'true'
         env:
@@ -80,7 +83,7 @@ jobs:
         if: steps.queue-check.outputs.superseded != 'true'
         id: post-build-queue-check
         run: |
-          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+          if [ "${GITHUB_REF}" = "refs/heads/main" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; }; then
             git fetch origin main --depth=1
             remote_main=$(git rev-parse origin/main)
             if [ "$remote_main" != "$GITHUB_SHA" ]; then
@@ -95,7 +98,7 @@ jobs:
         if: steps.queue-check.outputs.superseded != 'true' && steps.post-build-queue-check.outputs.superseded != 'true'
         id: archive
         run: |
-          extra=(); [ -f packages/safe-bash-command-git/src/wasm.generated.ts ] && extra+=(packages/safe-bash-command-git/src/wasm.generated.ts); tar -cf "$RUNNER_TEMP/build.tar" dist packages/*/dist packages/safe-js/src/intl-data/dist "${extra[@]}"
+          extra=(); [ -f packages/safe-bash-command-git/src/wasm.generated.ts ] && extra+=(packages/safe-bash-command-git/src/wasm.generated.ts); [ -d .turbo/ci-cache/napi-artifacts-v1 ] && extra+=(.turbo/ci-cache/napi-artifacts-v1); tar -cf "$RUNNER_TEMP/build.tar" dist packages/*/dist packages/safe-js/src/intl-data/dist "${extra[@]}"
           echo "sha256=$(sha256sum "$RUNNER_TEMP/build.tar" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v7.0.1
         if: steps.queue-check.outputs.superseded != 'true' && steps.post-build-queue-check.outputs.superseded != 'true'
@@ -218,6 +221,9 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-unit-fresh-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-unit-fresh-v1-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-${{ runner.arch }}-unit-fresh-v1-
+            ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-${{ runner.arch }}-build-v1-
             ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-
       - name: Run fresh unit and native checks
         env:
@@ -277,7 +283,9 @@ jobs:
         with:
           path: .turbo/ci-cache
           key: ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-${{ runner.arch }}-unit-v1-
       - name: Run cache-eligible unit checks
         env:
           POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1

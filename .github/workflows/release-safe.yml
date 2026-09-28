@@ -64,7 +64,7 @@ jobs:
               exit 0
             fi
           fi
-          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+          if { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
             changed_later=$(git diff --name-only "$GITHUB_SHA" origin/main -- \
               packages/safe-bash packages/safe-fs packages/safe-js \
               packages/safe-bash-contracts packages/safe-bash-csv-engine \
@@ -159,7 +159,7 @@ jobs:
         run: |
           set -euo pipefail
           git fetch --filter=blob:none origin main
-          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+          if { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
             changed_later=$(git diff --name-only "$GITHUB_SHA" origin/main -- \
               packages/safe-bash packages/safe-fs packages/safe-js \
               packages/safe-bash-contracts packages/safe-bash-csv-engine \

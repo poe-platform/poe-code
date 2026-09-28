@@ -20,7 +20,7 @@ accept both factory calls and `new`. `Presentation.save()` accepts byte sinks wi
 and four optional limit groups. Resources are unlimited by default; setting one
 limit leaves the others unlimited. Chunk sizes control I/O and default to 65536:
 
-- `limits`: `maxBytes`, `maxReads`, `chunkBytes`.
+- `limits`: `maxBytes`, `maxReads`, `chunkBytes`. Omitted resource limits are disabled. `createShapeXml` and `createConnectorXml` accept optional XML limits (`maxBytes`, `maxNodes`, `maxDepth`) after the namespace argument.
 - `archiveLimits`: `maxArchiveBytes`, `maxEntryBytes`, `maxTotalBytes`,
   `maxMembers`, `maxPathBytes`, `maxDepth`, `maxPaxBytes`, `maxTextBytes`, `chunkSize`.
 - `xmlLimits`: `maxBytes`, `maxNodes`, `maxDepth`.

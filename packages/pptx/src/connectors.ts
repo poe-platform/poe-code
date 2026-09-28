@@ -4,7 +4,7 @@ import { Length } from "./length.js";
 import { attr, child, required } from "./masters.js";
 import { readShape, type ShapeLength } from "./shapes.js";
 import { projectShapePoint } from "./shape-transforms.js";
-import { parseXmlPart, type XmlElement, type XmlPart, type XmlMerge } from "./xml.js";
+import { parseXmlPart, type XmlElement, type XmlPart, type XmlMerge, type XmlLimits } from "./xml.js";
 const connectorValues = { STRAIGHT: 1, ELBOW: 2, CURVE: 3, MIXED: -2 } as const;
 export type MSO_CONNECTOR_TYPE = (typeof connectorValues)[keyof typeof connectorValues];
 const connectorEntries = [
@@ -497,7 +497,8 @@ export function applyConnectorUpdate(
 export function createConnectorXml(
   id: number,
   update: ConnectorUpdate,
-  p = "http://schemas.openxmlformats.org/presentationml/2006/main"
+  p = "http://schemas.openxmlformats.org/presentationml/2006/main",
+  limits: Partial<XmlLimits> = {}
 ): string {
   validateConnectorUpdate(update, true);
   if (!Number.isInteger(id) || id < 1 || id > 4294967295)
@@ -519,7 +520,7 @@ export function createConnectorXml(
     new TextEncoder().encode(
       `<p:cxnSp xmlns:p="${p}" xmlns:a="${a}"><p:nvCxnSpPr><p:cNvPr id="${id}" name="Connector ${id}"/><p:cNvCxnSpPr/><p:nvPr/></p:nvCxnSpPr><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></a:xfrm><a:prstGeom prst="${presets[kindNumber(update.kind!)]}"><a:avLst/></a:prstGeom></p:spPr></p:cxnSp>`
     ),
-    { maxBytes: 100000, maxNodes: 1000, maxDepth: 30 }
+    limits
   );
   const local = Object.fromEntries(
     Object.entries(update).filter(([key]) => !["site", "beginTarget", "endTarget"].includes(key))

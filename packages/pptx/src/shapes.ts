@@ -13,7 +13,7 @@ import type { PartView } from "./package-view.js";
 import { Length } from "./length.js";
 import { MSO_COLOR_TYPE, MSO_THEME_COLOR_INDEX } from "./color-enums.js";
 import { attr, child } from "./masters.js";
-import { parseXmlPart, type XmlElement, type XmlPart, type XmlMerge } from "./xml.js";
+import { parseXmlPart, type XmlElement, type XmlPart, type XmlMerge, type XmlLimits } from "./xml.js";
 import { TextFrame, applyFrameFormatting } from "./text-frames.js";
 import {
   RGBColor,
@@ -634,7 +634,8 @@ export function createShapeXml(
   kind: ShapeKind,
   id: number,
   options: ShapeUpdate,
-  presentationNamespace = pns
+  presentationNamespace = pns,
+  limits: Partial<XmlLimits> = {}
 ): string {
   validateShapeOptions({ ...options, kind }, true);
   if (!Number.isInteger(id) || id < 1 || id > 4294967295)
@@ -646,7 +647,7 @@ export function createShapeXml(
     new TextEncoder().encode(
       `<p:sp xmlns:p="${presentationNamespace}" xmlns:a="${a}"><p:nvSpPr><p:cNvPr id="${id}" name="Shape ${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/></p:sp>`
     ),
-    { maxBytes: 1000000, maxNodes: 100000, maxDepth: 64 }
+    limits
   );
   doc = applyShapeUpdate(doc, doc.root, { ...options, kind, text: options.text ?? "" });
   return doc.markup(doc.root, true);

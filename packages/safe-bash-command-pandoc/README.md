@@ -181,6 +181,7 @@ await convert([{bytes: new TextEncoder().encode("Hello")}], {
 ```
 
 The VM exposes basic Lua, string, table, math and UTF-8 libraries and `FORMAT`.
+Its bundled VM works without Node globals or built-in modules, including in Workers.
 It does not expose host filesystem/process libraries. Conversion work limits
 interrupt Lua instructions. Use trusted scripts: VM allocations and library
 calls are not isolated or individually metered. Both `createLuaFilterCapability({readFile})`

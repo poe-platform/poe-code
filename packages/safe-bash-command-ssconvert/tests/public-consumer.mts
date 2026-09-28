@@ -5,6 +5,9 @@ const selectedOptions: SelectedCommandOptions = { formats: [csvFormat], limits: 
 createSelectedCommand(selectedOptions);
 createSelectedCommands(selectedOptions);
 selectedCommands(selectedOptions);
+import { posixPath } from "@poe-code/safe-fs/core";
+const publicPath: string = posixPath.join("/work", "book.xlsx");
+void publicPath;
 import { createEngine, readXlsx, createXlsxWriter, referenceText, exportOptionPairs, resolveVfsCwd, createPythonSampleFunctions, recalculateWorkbook,
   type Workbook, type CapabilityContext, type ConversionRequest, type EngineConfig, type EngineOptions, type WorkingDirectoryFileSystem, type PythonUnicodeVersion, type FormulaCapability } from "safe-bash-command-ssconvert";
 import { readXlsx as rootReadXlsx, createPythonSampleFunctions as rootPythonFunctions, createSsconvertCommand, createSsconvertCommands, ssconvertCommands, type SsconvertCommandsOptions, type SsconvertLimits, type LabelRange } from "poe-code/ssconvert";

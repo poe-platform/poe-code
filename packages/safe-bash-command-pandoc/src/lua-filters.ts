@@ -1,7 +1,9 @@
 // Ambient declarations must follow source consumers without adding a runtime import.
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./fengari.d.ts" />
-import {lua, lauxlib, lualib, to_luastring, to_jsstring} from "fengari";
+import runtime from "./fengari.generated.js";
+
+const {lua, lauxlib, lualib, to_luastring, to_jsstring} = runtime as typeof import("fengari");
 import {PandocError} from "./errors.js";
 import {luaAst} from "./lua-ast.js";
 import type {FilterCapability, Document} from "./types.js";

@@ -1,6 +1,6 @@
 # Spreadsheet conversion
 
-`createSsconvertCommand(options?)` creates one command, `createSsconvertCommands(options?)` returns its family, and `ssconvertCommands(options?)` registers a shell plugin. `SsconvertCommandsOptions` accepts optional codecs and host bindings; omitted environment settings use the C locale and UTC. All factories accept no arguments.
+`createSsconvertCommand(options?)` creates one command, `createSsconvertCommands(options?)` returns its family, and `ssconvertCommands(options?)` registers a shell plugin. `SsconvertCommandsOptions` accepts optional codecs and host bindings; omitted environment settings use the C locale and UTC. All factories accept no arguments. JPEG graph export uses typed arrays and works without Node globals.
 
 Convert spreadsheets through the `poe-code/ssconvert` SDK on Node.js 22 or newer.
 `ssconvertCommands()`, `createSsconvertCommands()` and `createSsconvertCommand()`

@@ -1,6 +1,6 @@
 # safe-fs
 
-An asynchronous filesystem interface for memory, rooted host directories, S3, and WebDAV, with mounts, copy-on-write overlays, and Node-style bridges.
+An asynchronous filesystem interface for memory, rooted host directories, S3, and WebDAV, with mounts, copy-on-write overlays, and Node-style bridges. Portable filesystem types and POSIX helpers compile without Node types.
 
 ## Quickstart
 

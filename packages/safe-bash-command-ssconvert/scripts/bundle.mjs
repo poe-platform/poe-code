@@ -7,9 +7,9 @@ await build({
   entryPoints: [new URL("../src/index.ts", import.meta.url).pathname],
   outfile: new URL("../dist/index.js", import.meta.url).pathname,
   bundle: true,
-  platform: "node",
+  platform: "browser",
   conditions: ["browser"],
-  target: "node22",
+  target: "es2022",
   format: "esm",
   external: ["@poe-code/safe-fs", "poe-code/safe-fs", ...Object.keys(manifest.devDependencies ?? {})],
   sourcemap: true

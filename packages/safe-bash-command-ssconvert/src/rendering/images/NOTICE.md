@@ -13,7 +13,8 @@ Goldberg; 2006-2018 Morten Welinder), `src/sheet-object.c`,
 `goffice/graph/gog-graph.c`.
 
 PNG, PDF, PostScript/EPS, BMP, ICO and TIFF encoders emit their declared image
-formats in JavaScript. JPEG uses jpeg-js 0.4.4 (BSD-3-Clause). Native utilities
+formats in JavaScript. JPEG uses the portable encoder from @poe-code/image-ast.
+Native utilities
 are QA oracles only. Metafile targets preserve the pinned native unsupported
 save outcome. The built-in graph scene producer supports genuinely empty graphs
 and explicitly configured opaque solid backgrounds with disabled outlines;

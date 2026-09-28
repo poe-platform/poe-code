@@ -3,6 +3,7 @@ import test from "node:test";
 import { setImmediate } from "node:timers/promises";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 import type { CommandContext, InvocationCleanup } from "safe-bash-contracts/command";
+import { FsError } from "safe-bash-contracts/errors";
 import { toByteSource, type ByteSource } from "safe-bash-contracts/io";
 import { createMdqCommand, mdq, parseMdqArguments, type MdqLimits, type MdqOptions } from "./index.js";
 import { admitLimits, MdqBudget } from "./budget.js";
@@ -130,11 +131,12 @@ test("mdq output limits reject before any stdout write, including help and versi
   assert.equal(quiet.text(), "");
 });
 
-test("mdq bounds Unicode diagnostics by bytes and emits valid UTF-8", async () => {
+test("mdq emits complete Unicode diagnostics with valid UTF-8", async () => {
   const f = fixture(["P: \"" + "😀".repeat(5000)]);
   assert.equal((await mdq(f.context)).exitCode, 1);
   const bytes = Buffer.concat(f.errors);
-  assert.ok(bytes.length <= 16_384, `diagnostic wrote ${bytes.length} bytes`);
+  assert.ok(bytes.length > 16_384, `diagnostic wrote ${bytes.length} bytes`);
+  assert.ok(decoder.decode(bytes).endsWith("\n"));
   assert.doesNotThrow(() => new TextDecoder("utf-8", { fatal: true }).decode(bytes));
 });
 
@@ -367,3 +369,70 @@ for (const { argv, options } of parityCases) {
     assert.equal(sdk.text(), cli.text()); assert.equal(sdk.error(), cli.error());
   });
 }
+
+
+test("mdq limits default to disabled and accept arbitrary safe nonnegative values", () => {
+  for (const key of Object.keys(admitLimits())) {
+    for (const value of [Infinity, 0, 200, Number.MAX_SAFE_INTEGER])
+      assert.equal(admitLimits({ [key]: value })[key as keyof MdqLimits], value);
+    assert.equal(admitLimits()[key as keyof MdqLimits], Infinity);
+    for (const value of [-1, -Infinity, NaN, 0.5, Number.MAX_SAFE_INTEGER + 1])
+      assert.throws(() => admitLimits({ [key]: value }), RangeError);
+  }
+});
+
+test("mdq defaults admit deep documents, many files and arguments, and empty chunks", async () => {
+  const deep = fixture([], "> ".repeat(130) + "hello\n");
+  assert.equal((await mdq(deep.context)).exitCode, 0, deep.error());
+  const many = fixture(["", ...Array<string>(1030).fill("-")], "hello\n");
+  assert.equal((await mdq(many.context)).exitCode, 0, many.error());
+  const empty = fixture([], { async *[Symbol.asyncIterator]() {
+    for (let i = 0; i < 1030; i++) yield new Uint8Array();
+    yield encoder.encode("hello\n");
+  } });
+  assert.equal((await mdq(empty.context, { limits: { work: Infinity, retainedBytes: Infinity } })).exitCode, 0, empty.error());
+});
+
+for (const resource of ["inputBytes", "retainedBytes"] as const) {
+  test(`mdq translates byte-only VFS EFBIG into ${resource} exhaustion`, async () => {
+    const f = fixture(["", "test.md"]);
+    await f.context.fs.writeFile("/test.md", encoder.encode("hello world\n"));
+    Object.defineProperty(f.context.fs, "readStream", { value: undefined });
+    // Leave only a few bytes after admitting the file arguments.
+    const limit = resource === "inputBytes" ? 3 : 33;
+    assert.equal((await mdq(f.context, { limits: { [resource]: limit } })).exitCode, 1);
+    assert.equal(f.error(), `mdq: ${resource} limit exceeded\n`);
+  });
+}
+
+test("mdq propagates byte-only VFS host input budget rejection", async () => {
+  const f = fixture(["", "one", "two"]), totals: number[] = [];
+  await f.context.fs.writeFile("/one", encoder.encode("abc"));
+  await f.context.fs.writeFile("/two", encoder.encode("defg"));
+  Object.defineProperty(f.context.fs, "readStream", { value: undefined });
+  const failure = new TypeError("host quota exhausted");
+  await assert.rejects(mdq({ ...f.context, inputBudget: { maxBytes: 6, check(total) {
+    totals.push(total); if (total > 6) throw failure;
+  } } }), error => error === failure);
+  assert.deepEqual(totals, [3, 7]);
+  assert.equal(f.error(), "");
+});
+
+
+test("mdq preserves the full filename in diagnostics beyond 16 KiB", async () => {
+  const path = "/" + "😀".repeat(5000), f = fixture(["", path]);
+  Object.defineProperty(f.context.fs, "readStream", { value: undefined });
+  Object.defineProperty(f.context.fs, "readFile", { value: async () => { throw new FsError("ENOENT"); } });
+  assert.equal((await mdq(f.context)).exitCode, 1);
+  assert.equal(f.error(), `entity not found while reading file ${JSON.stringify(path)}\n`);
+});
+
+test("mdq omits disabled byte-only VFS read caps", async () => {
+  const f = fixture(["", "test.md"]);
+  Object.defineProperty(f.context.fs, "readStream", { value: undefined });
+  Object.defineProperty(f.context.fs, "readFile", { value: async (_path: string, options?: { maxBytes?: number }) => {
+    assert.equal(options?.maxBytes, undefined);
+    return encoder.encode("hello\n");
+  } });
+  assert.equal((await mdq(f.context)).exitCode, 0, f.error());
+});

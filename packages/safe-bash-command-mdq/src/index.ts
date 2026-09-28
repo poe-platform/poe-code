@@ -103,6 +103,11 @@ export async function mdq(context: CommandContext, options: MdqRunOptions = {}):
         if (file === "-" && usedStdin) {
           budget.charge("retainedBytes", 66); fragments.push("\n"); sourceLength++; continue;
         }
+        let hostInputFailure = false;
+        const checkHostInput = (total: number): void => {
+          try { context.inputBudget?.check(total); }
+          catch (error) { hostInputFailure = true; throw error; }
+        };
         try {
           let input: ByteSource;
           if (file === "-") { usedStdin = true; input = context.stdin; }
@@ -110,12 +115,27 @@ export async function mdq(context: CommandContext, options: MdqRunOptions = {}):
             const path = file.startsWith("/") ? file : context.cwd + "/" + file;
             if (context.fs.readStream) input = context.fs.readStream(path, { signal: controller.signal });
             else {
-              const bytes = await context.fs.readFile(path, {
-                signal: controller.signal,
-                maxBytes: Math.min(limits.inputBytes - (budget.counts.inputBytes ?? 0),
-                  (context.inputBudget?.maxBytes ?? limits.inputBytes) - (budget.counts.inputBytes ?? 0),
-                  limits.retainedBytes - (budget.counts.retainedBytes ?? 0))
-              });
+              const inputUsed = budget.counts.inputBytes ?? 0;
+              const retainedUsed = budget.counts.retainedBytes ?? 0;
+              const inputRemaining = limits.inputBytes - inputUsed;
+              const hostRemaining = (context.inputBudget?.maxBytes ?? Infinity) - inputUsed;
+              const retainedRemaining = limits.retainedBytes - retainedUsed;
+              const maxBytes = Math.min(inputRemaining, hostRemaining, retainedRemaining);
+              let bytes: Uint8Array;
+              try {
+                bytes = await context.fs.readFile(path, {
+                  signal: controller.signal,
+                  ...(maxBytes === Infinity ? {} : { maxBytes })
+                });
+              } catch (error) {
+                if (error instanceof FsError && error.code === "EFBIG" && maxBytes !== Infinity) {
+                  // A capped read proves at least one byte beyond the admission quota.
+                  if (inputRemaining === maxBytes) budget.bound("inputBytes", inputUsed + maxBytes + 1);
+                  if (retainedRemaining === maxBytes) budget.bound("retainedBytes", retainedUsed + maxBytes + 1);
+                  if (hostRemaining === maxBytes) checkHostInput(inputUsed + maxBytes + 1);
+                }
+                throw error;
+              }
               budget.charge("retainedBytes", bytes.byteLength);
               input = toByteSource(bytes);
             }
@@ -130,7 +150,7 @@ export async function mdq(context: CommandContext, options: MdqRunOptions = {}):
               return { next: producer.next.bind(producer), return: closeInput };
             } }, controller.signal)) {
               budget.charge("inputBytes", bytes.byteLength);
-              context.inputBudget?.check(budget.counts.inputBytes ?? 0);
+              checkHostInput(budget.counts.inputBytes ?? 0);
               if (!bytes.length) budget.charge("emptyChunks", 1);
               else {
                 budget.charge("retainedBytes", bytes.byteLength * 2 + 64);
@@ -153,7 +173,7 @@ export async function mdq(context: CommandContext, options: MdqRunOptions = {}):
           if (readFailure) throw readFailure.error;
         } catch (error) {
           controller.signal.throwIfAborted();
-          if (error instanceof MdqError) throw error;
+          if (hostInputFailure || error instanceof MdqError) throw error;
           if (!(error instanceof FsError) && !(error instanceof TypeError)) throw error;
           const categories: Partial<Record<FsError["code"], string>> = { ENOENT: "entity not found", EACCES: "permission denied", EISDIR: "is a directory" };
           const category = error instanceof FsError ? categories[error.code] ?? "other error" : "invalid data";
@@ -173,9 +193,7 @@ export async function mdq(context: CommandContext, options: MdqRunOptions = {}):
       status = error instanceof MdqError ? error.exitCode : 1;
       const message = error instanceof MdqError ? error.message : `mdq: ${error.message}\n`;
       stderr = createOutputOperation(context, context.stderr);
-      const bytes = new Uint8Array(Math.min(16384, message.length * 3));
-      const { written } = new TextEncoder().encodeInto(message, bytes);
-      await writeBytes(stderr.output, bytes.subarray(0, written), context.signal);
+      await writeBytes(stderr.output, new TextEncoder().encode(message), context.signal);
     }
     return { exitCode: status, accounting: { ...budget.counts } };
   });

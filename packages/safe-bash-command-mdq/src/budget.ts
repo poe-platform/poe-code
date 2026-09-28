@@ -2,12 +2,12 @@ import type { CommandContext } from "safe-bash-contracts/command";
 import { Budget } from "safe-bash-regex-engine/text/budget";
 import type { AdapterContext } from "safe-bash-markdown-engine";
 import { MdqError } from "./options.js";
-export const ceilings = Object.freeze({ inputBytes: 16_777_216, outputBytes: 33_554_432, retainedBytes: 268_435_456, nodes: 262_144, references: 262_144, tableCells: 262_144, text: 33_554_432, entities: 262_144, entityBytes: 8_388_608, depth: 128, work: 268_435_456, arguments: 1024, argumentBytes: 262_144, files: 128, emptyChunks: 1024 });
-export type MdqLimits = typeof ceilings;
+const defaultLimits = Object.freeze({ inputBytes: Infinity, outputBytes: Infinity, retainedBytes: Infinity, nodes: Infinity, references: Infinity, tableCells: Infinity, text: Infinity, entities: Infinity, entityBytes: Infinity, depth: Infinity, work: Infinity, arguments: Infinity, argumentBytes: Infinity, files: Infinity, emptyChunks: Infinity });
+export type MdqLimits = typeof defaultLimits;
 export type LimitOptions = { readonly [K in keyof MdqLimits]?: number };
 export function admitLimits(options: LimitOptions = {}): { [K in keyof MdqLimits]: number } {
-  const result = { ...ceilings, ...options };
-  for (const [key, n] of Object.entries(result)) if (!Object.hasOwn(ceilings, key) || !Number.isSafeInteger(n) || n < 0 || n > ceilings[key as keyof MdqLimits]) throw new RangeError(`Invalid mdq limit: ${key}`);
+  const result = { ...defaultLimits, ...options };
+  for (const [key, n] of Object.entries(result)) if (!Object.hasOwn(defaultLimits, key) || (n !== Infinity && (!Number.isSafeInteger(n) || n < 0))) throw new RangeError(`Invalid mdq limit: ${key}`);
   return result;
 }
 export class MdqBudget implements AdapterContext {

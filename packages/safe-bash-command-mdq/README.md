@@ -83,11 +83,10 @@ status 1 with a `Selection error` diagnostic and no output. They are tested
 separately from native compatibility comparisons.
 
 Input and arguments must be valid UTF-8. Queries collect an admitted document
-before selecting elements; output is written in awaited byte chunks. Defaults
-cap input at 16 MiB, output at 32 MiB, cumulative retained allocation at 256 MiB,
-nodes/references/table cells at 262,144 each, nesting at 128, work at 268,435,456,
-files at 128, and arguments at 1,024 / 256 KiB. Hosts may lower these ceilings
-through `limits`, including to zero. Accounting measures logical allocations and
+before selecting elements; output is written in awaited byte chunks. Resource
+limits default to disabled (`Infinity`). Hosts may configure each resource
+through `limits` using a nonnegative safe integer, including zero, or `Infinity`.
+Accounting measures logical allocations and
 work, not process RSS. Host stream/filesystem budgets also apply. Cancellation
 and closed output drain admitted cooperative resources; an uncooperative host
-operation cannot be forcibly stopped. Diagnostics are capped at 16 KiB.
+operation cannot be forcibly stopped. Diagnostics are emitted in full; host output budgets still apply.

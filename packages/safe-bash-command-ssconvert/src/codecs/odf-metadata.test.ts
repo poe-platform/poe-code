@@ -27,6 +27,13 @@ it("retains comments as Gnumeric objects and maps passive hyperlinks without net
 });
 
 it.each([
+  ["#$Sheet1.$A$1", "Sheet1!$A$1"],
+  ["#$Sheet1.A1:B2", "Sheet1!A1:B2"],
+  ["#$'Sheet 1'.$A$1", "'Sheet 1'!$A$1"],
+  ["#$'O''Brien'.A1", "'O\\'Brien'!A1"],
+  ["#%24'Sheet%201'.A1", "'Sheet 1'!A1"],
+  ["#$'$Revenue'.A1", "'$Revenue'!A1"],
+  ["#'$Revenue'.A1", "'$Revenue'!A1"],
   ["#'Q.1'.A1", "Q.1!A1"],
   ["#'O''Brien'.A1", "'O\\'Brien'!A1"],
   ["#'Bang!'.$A$1:$B$2", "'Bang!'!$A$1:$B$2"],

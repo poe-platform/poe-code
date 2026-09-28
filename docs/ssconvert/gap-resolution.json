@@ -2426,6 +2426,18 @@
           "remaining": "Actual application navigation remains unqualified; the source-defined dispatch and exported structure are verified.",
           "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md, step 16"
         }
+      },
+      "absoluteSheets": {
+        "issue": 3656,
+        "source": {
+          "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+          "address": "sc/source/core/tool/address.cxx:1248-1296, SHA256 8cb729f76ca00c2cb38c356aeeef2f8107aa4613d2185056cc65b185ba80e09d: consume the absolute-sheet marker before parsing quoted or unquoted sheet text.",
+          "dispatch": "Previously pinned tabvwsh3.cxx:492-538 decodes URL marks and routes them through address/range parsing."
+        },
+        "implementation": "Enable absolute-sheet syntax for unbracketed Calc hyperlink targets. The formula parser consumes the marker before reading each sheet token rather than stripping a dollar from decoded names. Quoted literal-dollar names remain exact; exported hyperlink sheet spelling stays unprefixed.",
+        "validation": "Six original metadata cases and four parser cases failed before repair. 273 tests across 12 focused ODF/formula/legacy files pass; package lint, source/test/consumer types and selected workspace build pass. Six compiled SDK/command conversions independently decoded with Python: 54 target observations, distinct sheet values and edited display text retained, zero diagnostics, input unchanged. Command transcript screenshot inspected.",
+        "scope": "Repairs the reported import/parser/export identity requirements. Actual native navigation, wider format qualification, installed registry artifacts and containing publication remain separate open requirements.",
+        "receipts": "out/ssconvert-absolute-hyperlinks/{sources,input,independent-proof,cleanup}.json"
       }
     },
     "odfCrossSheetLabelRanges": {

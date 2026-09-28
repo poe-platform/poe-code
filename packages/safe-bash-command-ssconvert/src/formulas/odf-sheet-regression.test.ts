@@ -6,6 +6,23 @@ import { serializeExpression } from "./serialization.js";
 
 const position = { sheet: "Local", row: 3, column: 2 };
 
+it.each([
+  ["=$Sheet1.$A$1", "Sheet1"],
+  ["=$'Sheet 1'.$A$1", "Sheet 1"],
+  ["=$'O''Brien'.$A$1", "O'Brien"],
+  ["=$'$Revenue'.$A$1", "$Revenue"],
+  ["='$Revenue'.$A$1", "$Revenue"]
+])("parses unbracketed absolute sheet markers outside quoted names: %s", (source, sheet) => {
+  const grammar = { ...excelGrammar, sheetSeparator: ".", absoluteSheetReferences: true };
+  const parsed = parseExpression(source, { position, grammar });
+  expect(parsed).toMatchObject({ ok: true, document: { root: {
+    kind: "reference", first: { sheet, row: { value: 0, relative: false }, column: { value: 0, relative: false } }
+  } } });
+  if (!parsed.ok) throw new Error(parsed.diagnostic.message);
+  const exported = serializeExpression(parsed.document, grammar, false);
+  expect(parseExpression(exported, { position, grammar })).toMatchObject({ ok: true, document: { root: { first: { sheet } } } });
+});
+
 it.each(["of:=[$Remote.$A1]", "of:=[$'Remote'.$A1]"])("preserves ODF absolute sheet sigils when renaming: %s", source => {
   const parsed = parseExpression(source, { position, grammar: odfGrammar });
   expect(parsed).toMatchObject({ ok: true, document: { root: { kind: "reference", first: { sheet: "Remote", column: { value: 0, relative: false } } } } });

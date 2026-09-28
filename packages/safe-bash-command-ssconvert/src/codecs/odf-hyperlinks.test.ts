@@ -29,6 +29,7 @@ it.each([
 });
 
 it.each([
+  ["'$Revenue'!A1", "#'$Revenue'.A1"],
   ["'Bang!'!$A$1:$B$2", "#'Bang!'.$A$1:$B$2"],
   ["'O\\'Brien'!A1", "#'O''Brien'.A1"],
   ["Q.1!A1", "#'Q.1'.A1"],

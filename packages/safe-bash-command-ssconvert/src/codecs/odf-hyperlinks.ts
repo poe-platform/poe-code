@@ -4,7 +4,7 @@ import { quoteNativeSheet, serializeExpression } from "../formulas/serialization
 import { foldSheetName } from "../workbook/case-fold.js";
 
 // Calc hyperlink fragments use unbracketed addresses, not OpenFormula syntax.
-const linkGrammar = { ...excelGrammar, id: "odf-hyperlink", sheetSeparator: "." };
+const linkGrammar = { ...excelGrammar, id: "odf-hyperlink", sheetSeparator: ".", absoluteSheetReferences: true };
 
 export function translateOdfHyperlink(source: string, direction: "import" | "export" | "normalize", charge: (n?: number) => void,
   sheetNames: readonly string[] = []): string {

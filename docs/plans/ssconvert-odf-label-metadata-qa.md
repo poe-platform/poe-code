@@ -241,3 +241,15 @@ string transport as native recalculation qualification.
     remote declaration to CSV and independently inspect the result and untouched
     local values. Record that these BIFF inputs are product-writer-seeded and
     that native application recalculation remains unqualified.
+
+19. For absolute-sheet hyperlink marks, inspect Calc `address.cxx` 1248–1296:
+    consume `$` before the quoted or unquoted sheet token. Import `$Sheet1`,
+    `$'Sheet 1'`, `$'O''Brien'`, URI-encoded markers and `$'$Revenue'` alongside
+    literal `'$Revenue'`, ordinary references and an external URL. Independently
+    author the ODF input with distinct destination values and automatic label
+    lookup disabled. Convert through compiled SDK and command to Gnumeric XML,
+    then edit every display string and reexport strict/extended ODF. Independently
+    inspect all targets, destination names/values and changed text. Require no
+    diagnostics, no input changes and unprefixed exported sheet syntax. Use the
+    stable imported sheet ID for SDK updates. Inspect the command transcript
+    screenshot; keep native navigation qualification separate and purge outputs.

@@ -78,9 +78,9 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     }
     let sheetRelative: boolean | undefined;
     const readSheet = (): string => {
+      if (grammar.bracketReferences && grammar.absoluteSheetReferences) sheetRelative = source[offset] !== "$";
+      if (grammar.absoluteSheetReferences && source[offset] === "$") offset++;
       if (grammar.bracketReferences) {
-        if (grammar.absoluteSheetReferences) sheetRelative = source[offset] !== "$";
-        if (grammar.absoluteSheetReferences && source[offset] === "$") offset++;
         if (source[offset] === "'") return quoted("'", grammar.stringEscape);
         const begin = offset;
         while (offset < source.length && source[offset] !== grammar.sheetSeparator &&
@@ -89,7 +89,6 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       }
       if (grammar.unquotedSheets) {
         const begin = offset;
-        if (grammar.absoluteSheetReferences && source[offset] === "$") offset++;
         while (letter(source[offset]) || digit(source[offset])) offset++;
         return source.slice(begin, offset);
       }
@@ -109,7 +108,6 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       offset = start; return {};
     }
     offset++;
-    if (grammar.absoluteSheetReferences && !grammar.bracketReferences && sheet.startsWith("$")) sheet = sheet.slice(1);
     if (sheet.startsWith("[")) {
       const close = sheet.indexOf("]");
       if (close >= 0) { workbook = sheet.slice(1, close); sheet = sheet.slice(close + 1); }

@@ -48,8 +48,8 @@ import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, She
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
-import { MemoryFileSystem, isCleanAbsolutePath, retargetScopedFileSystem, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryReadMemoryFileViewSync, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryRmRfMemorySync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/core";
-import { collectPureReadOnlySmiNames, compilePureSmiProgram, evalCompiledSmi, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs, type ArithmeticProgram, type ArithmeticReferences, type CompiledSmiExpr } from "./arithmetic.js";
+import { MemoryFileSystem, isCleanAbsolutePath, retargetScopedFileSystem, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryRmRfMemorySync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/core";
+import { collectPureReadOnlySmiNames, compilePureSmiProgram, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs, type ArithmeticProgram, type ArithmeticReferences, type CompiledSmiExpr } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
 import { expandTildes } from "./tilde-expansion.js";
@@ -60,7 +60,7 @@ import { selectMenu } from "./select-menu.js";
 import type { StringWork } from "./string-operations.js";
 import { byteLocale, cCollation, utf8Locale } from "./locale.js";
 import { diagnosticCommandName } from "./diagnostic-name.js";
-import { isWellFormedString, trimParameter } from "./parameter-trim.js";
+import { trimParameter } from "./parameter-trim.js";
 import { ownedShellSource, type OwnedShellSource } from "./source-value.js";
 import { functionDisplay } from "./display.js";
 import { ConditionalUnsupported, evaluateConditional, type ConditionalExpression } from "./conditional.js";
@@ -1655,7 +1655,7 @@ class FastShellCommandContext {
   constructor( runtime: Runtime, state: State, io: IO, scope: InvocationScope, name: string, args: readonly string[], argumentValues: CommandArguments | undefined, env: Record<string, string> | undefined, signalIsScoped: boolean, ) {
     const directContext = FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok"));
     if (!directContext) {
-      const { [invocationScope]: _scope, [valueScope]: _allocation, [declarationArrays]: _arrays, argumentValues: _arguments, ...publicIO } = io as IO & { argumentValues?: unknown };
+      const { [invocationScope]: ignoredScope, [valueScope]: ignoredAllocation, [declarationArrays]: ignoredArrays, argumentValues: ignoredArguments, ...publicIO } = io as IO & { argumentValues?: unknown };
       Object.defineProperties(this, Object.getOwnPropertyDescriptors(publicIO));
     }
     this._self = this;
@@ -2637,7 +2637,7 @@ export function warmDefaultRuntimeContextFs(sourceFs: FileSystem, backingFs: Fil
   void created.rm;
   reusableDefaultContextFsBySourceFs.set(sourceFs, { scoped: created, inUseBy: undefined });
 }
-import { abortManagedController, addAbortSignalWaiter, combineManagedSignals, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerManagedAbortSignal, registerRuntimeBackingFileSystem, removeAbortSignalWaiter, toNativeAbortSignal, type ManagedControlController } from "../fs/creation-mask.js";
+import { abortManagedController, addAbortSignalWaiter, combineManagedSignals, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerRuntimeBackingFileSystem, removeAbortSignalWaiter, toNativeAbortSignal, type ManagedControlController } from "../fs/creation-mask.js";
 export { getRuntimeBackingFileSystem, interruptible, registerRuntimeBackingFileSystem };
 const emptyWords: readonly Word[] = [];
 const emptyShellValues: readonly ShellValue[] = [];
@@ -2730,23 +2730,6 @@ interface IntLoopStep {
   readonly isSub: boolean;
   readonly extraNewlineByte: number;
 }
-function intDecimalLength(n: number): number {
-  let v = n;
-  let len = 0;
-  if (v < 0) {
-    len = 1;
-    v = -v;
-  }
-  if (v < 10) return len + 1;
-  if (v < 100) return len + 2;
-  if (v < 1000) return len + 3;
-  if (v < 10000) return len + 4;
-  if (v < 100000) return len + 5;
-  if (v < 1000000) return len + 6;
-  if (v < 10000000) return len + 7;
-  if (v < 100000000) return len + 8;
-  return len + 9;
-}
 function sameRedirectTargetWord(a: Word, b: Word): boolean {
   if (a === b) return true;
   if (a.parts.length !== b.parts.length) return false;
@@ -2778,7 +2761,6 @@ const intLoopStepCache = new WeakMap<Command, IntLoopStep | null>();
 const sharedSyncLoopTouched = new Set<string>();
 const sharedSyncLoopArithNames = new Set<string>();
 const sharedSyncLoopRegNames: string[] = [];
-const sharedSyncLoopIntSteps: (IntLoopStep | undefined)[] = [];
 let cachedRedirectNamePrefix = "";
 let cachedRedirectNameSuffix = "";
 let cachedRedirectNameTable: (string | undefined)[] = new Array(256);
@@ -5797,7 +5779,6 @@ export class Runtime {
     this.budget.fileSystemOperation();
     this.budget.bytes += byteLength0;
     let lastArg = firstCc.arg0;
-    let count = 1;
     let cur = firstCachedUnit;
     const vars = rawState.variables;
     const curLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
@@ -5858,7 +5839,6 @@ export class Runtime {
         (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations += cachedBatchPlan.totalCount;
         this.budget.bytes += cachedBatchPlan.totalBytes;
         lastArg = cachedBatchPlan.lastArg;
-        count += cachedBatchPlan.totalCount;
         cur = cachedBatchPlan.endUnit;
       } catch {
         this.signal.throwIfAborted();
@@ -5923,7 +5903,6 @@ export class Runtime {
       (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations++;
       this.budget.bytes += bLen;
       lastArg = nextCc.arg0;
-      count++;
       cur = next;
     }
       if (buildBatchStart) {
@@ -7731,6 +7710,9 @@ export class Runtime {
   private executeSyncPipelineBody( pipeline: Pipeline, command: Extract<Command, { kind: "simple" | "function" | "arithmetic" | "conditional" | "arithmetic-for" | "for" | "if" | "case" | "group" | "while" | "until" }>, state: State, io: IO, ignored: boolean, ): number | undefined {
     const scope = io[invocationScope];
     if (scope.hasFailures || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxParseUnits !== Infinity) return undefined;
+    // Caller cancellation needs the async loop path. Refuse before redirects
+    // spend admission budgets or create effects that fallback would repeat.
+    if (this.budget._hasExternalSignal && (command.kind === "while" || command.kind === "until" || command.kind === "for" || command.kind === "arithmetic-for")) return undefined;
     const monitor = stateMonitor(state) ?? stateMonitor(trackState(state, this.budget, scope));
     if (!monitor) return undefined;
     const rawState = monitor.raw;
@@ -7785,7 +7767,7 @@ export class Runtime {
         const devNullCapture = new Capture();
         devNullCapture.budget = this.budget;
         devNullCapture.signal = this.signal;
-        const { descriptors: _d, ...ioRest } = io;
+        const { descriptors: ignoredDescriptors, ...ioRest } = io;
         io = { ...ioRest, stdout: devNullCapture };
         command = { ...command, redirects: [] };
       }
@@ -8004,7 +7986,6 @@ export class Runtime {
       return undefined;
     }
     if (command.kind === "arithmetic-for" || command.kind === "for") {
-      if (this.budget._hasExternalSignal) return undefined;
       if (command.redirects.length === 1) {
         const r0 = command.redirects[0]!;
         const loopMode = 0o666 & ~(rawState.umask ?? 0o022);
@@ -8023,7 +8004,7 @@ export class Runtime {
         const loopRedirectCapture = new Capture();
         loopRedirectCapture.budget = this.budget;
         loopRedirectCapture.signal = this.signal;
-        const { descriptors: _d, ...ioRest } = io;
+        const { descriptors: ignoredDescriptors, ...ioRest } = io;
         const loopIO: IO = { ...ioRest, stdout: loopRedirectCapture };
         if (guestArrays(rawState) || !this.canSyncLoopBody(command.body, rawState, loopIO)) return undefined;
         const { steps: checkSteps, redirectCount: innerRedirs } = this.buildSyncLoopBody(command, loopIO);
@@ -10490,6 +10471,9 @@ export class Runtime {
     return 0;
   }
   private trySyncLoop( command: Extract<Command, { kind: "arithmetic-for" | "for" }>, pipeline: Pipeline, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>, elem0: { text: { shellValue: ShellValue } } | undefined, canMutatePipeStatus: boolean, io: IO, diagnosticLine: number, allowRedirect = false, ): number | undefined {
+    // Substitution callers also need to refuse before effects when status
+    // publication requires array admission. Cleanup cannot start async fallback.
+    if (store && !existing) return undefined;
     if ( (!allowRedirect && command.redirects.length !== 0) || pipeline.negate || !canMutatePipeStatus || rawState.errexit || rawState.nounset || rawState.readonlyVariables?.size || rawState.extensions?.checkpoints.length || hasYieldCheckpoint(this.signal)) {
       return undefined;
     }
@@ -10680,7 +10664,6 @@ export class Runtime {
       this._syncArithRawWriteOnly = true;
       this._syncArithTouched = touched;
       let usedFastIntPath = false;
-      let pipelineStatusDeferred = false;
       try {
         let lastInductionVal: string | undefined;
         const intBudgetSnapshot = this.budget.parsing.snapshot();
@@ -10817,17 +10800,14 @@ export class Runtime {
           rawState.lastArgument = lastArg;
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
-            if (store) { pipelineStatusDeferred = !!publishPipelineStatus(rawState, singleStatusZero, this.signal, io[invocationScope]); } else {
-              monitor.lazyPipeStatus = singleStatusZero;
-              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-            }
+            monitor.lazyPipeStatus = singleStatusZero;
+            monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
           } else {
             elem0!.text.shellValue = "0";
             store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
           }
         }
       }
-      if (pipelineStatusDeferred) return undefined;
       rawState.status = 0;
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       monitor.epoch = restEpoch;
@@ -12519,30 +12499,23 @@ export class Runtime {
           }
         } else {
           const conditionIO = io.execution?.ignoreErrexit ? io : { ...io, execution: { ignoreErrexit: true } };
-          const bodyIgnoreErrexit = Boolean(io.execution?.ignoreErrexit);
           let loopTurn = 0;
           while (true) {
             this.budget.loop();
             if ((++loopTurn & 127) === 0) {
-              if (hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
+              if (this.budget._hasExternalSignal || hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
               else runYieldCheckpoint(this.signal);
             }
-            const syncCond = this.trySyncScript(command.condition, state, conditionIO, true);
-            const condition = typeof syncCond === "number"
-              ? syncCond
-              : await this.script(command.condition, state, conditionIO, syncCond.listIndex, syncCond.pipelineIndex);
-            if ((condition === 0) !== (command.kind === "while")) break;
-            if (!state.extensions?.checkpoints.length) {
-              const syncBody = this.trySyncScript(command.body, state, io, bodyIgnoreErrexit);
-              if (typeof syncBody === "number") {
-                status = syncBody;
-                continue;
-              }
-              const result = await this.loopBody(command.body, state, io, syncBody.listIndex, syncBody.pipelineIndex);
-              status = result.status;
-              if (result.stop) break;
+            let condition: number;
+            try { condition = await this.script(command.condition, state, conditionIO); }
+            catch (error) {
+              if (!(error instanceof Flow) || (error.kind !== "break" && error.kind !== "continue")) throw error;
+              status = error.status;
+              if (--error.levels > 0) throw error;
+              if (error.kind === "break") break;
               continue;
             }
+            if ((condition === 0) !== (command.kind === "while")) break;
             const result = await this.loopBody(command.body, state, io);
             status = result.status;
             if (result.stop) break;
@@ -13537,7 +13510,7 @@ export class Runtime {
     finally { await scope.close(); }
   }
   private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false, signalIsScoped = false): Promise<number> {
-    const { [invocationScope]: scope, [valueScope]: _vs, [declarationArrays]: _da, argumentValues: _av, ...publicIO } = io as IO & { argumentValues?: unknown };
+    const { [invocationScope]: scope, [valueScope]: ignoredValueScope, [declarationArrays]: ignoredDeclarationArrays, argumentValues: ignoredArgumentValues, ...publicIO } = io as IO & { argumentValues?: unknown };
     const allocation = this.budget.values.scope();
     try {
     if (typeof nameValue !== "string") allocation.hold(nameValue);
@@ -17970,7 +17943,6 @@ export class Runtime {
       let context = pooledSyncPipeContext;
       let prevBuf = sharedSyncPipeBuf0;
       let prevLen = fastSharedTextEncoder.encodeInto(stage0Formatted, sharedSyncPipeBuf0).written;
-      let lastStageExitCode = 0;
       try {
         for (let index = 1; index < n; index++) {
           const firstName = stageNames[index - 1]!;
@@ -17990,7 +17962,6 @@ export class Runtime {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith("\n") ? inStr.slice(0, -1).split("\n") : inStr.split("\n"));
             let outLines: string[] = [];
-            let stageExit = 0;
             if (firstName === "rev") {
               outLines = rawLines.map(l => Array.from(l).reverse().join(""));
             } else if (firstName === "head") {
@@ -18052,19 +18023,16 @@ export class Runtime {
                     }
                   }
                 }
-                stageExit = outLines.length > 0 ? 0 : 1;
               } else if (flags.includes("c")) {
                 let cnt = 0;
                 for (let k = 0; k < rawLines.length; k++) {
                   if (re.test(rawLines[k]!) !== inv) cnt++;
                 }
                 outLines.push(String(cnt));
-                stageExit = cnt > 0 ? 0 : 1;
               } else {
                 for (let k = 0; k < rawLines.length; k++) {
                   if (re.test(rawLines[k]!) !== inv) outLines.push(rawLines[k]!);
                 }
-                stageExit = outLines.length > 0 ? 0 : 1;
               }
             } else {
               let sep: string | undefined;
@@ -18109,10 +18077,8 @@ export class Runtime {
             const written = outStr.length === 0 ? 0 : fastSharedTextEncoder.encodeInto(outStr, nextBuf).written;
             prevBuf = nextBuf;
             prevLen = written;
-            lastStageExitCode = stageExit;
             continue;
           }
-          lastStageExitCode = 0;
           sharedSyncPipeReader.reset(prevBuf, prevLen, this.signal, -1);
           sharedSyncPipeWriter.reset(this.budget, this.signal, nextBuf, -1);
           if (!context) {
@@ -18177,7 +18143,7 @@ export class Runtime {
           const capture = new Capture();
           capture.budget = this.budget;
           capture.signal = this.signal;
-          const { descriptors: _desc, ...ioRest } = io; const subIO: IO = { ...ioRest, stdout: capture };
+          const { descriptors: ignoredDescriptors, ...ioRest } = io; const subIO: IO = { ...ioRest, stdout: capture };
           if (this.canSyncLoopBody(cmd.body, rawState, subIO)) {
             const { steps: bodySteps } = this.buildSyncLoopBody(cmd, subIO);
             if (bodySteps.length > 0 && bodySteps.every(s => s.isStdoutEcho === true)) {
@@ -18219,7 +18185,7 @@ export class Runtime {
     if ( (cmd.kind === "case" || cmd.kind === "if") && cmd.redirects.length === 0 && !rawState.errexit && !rawState.nounset && rawState.depth + 1 < 24 && (this.budget.commands + 64) < this.budget.limits.maxCommands && this.canSyncPureFunctionBody(part.script, rawState)) {
       const prevStatus = rawState.status;
       const cap = new Capture(this.budget, this.signal);
-      const { descriptors: _ignoredDesc, ...restIO } = io;
+      const { descriptors: ignoredDescriptors, ...restIO } = io;
       const subIO: IO = { ...restIO, stdout: cap };
       rawState.depth++;
       let syncStatus: number | { listIndex: number; pipelineIndex: number };
@@ -18276,7 +18242,7 @@ export class Runtime {
         rawState.functionDepth++;
         this.budget.tick();
         const cap = new Capture(this.budget, this.signal);
-        const { descriptors: _ignoredDesc, ...restIO } = io;
+        const { descriptors: ignoredDescriptors, ...restIO } = io;
         const subIO: IO = { ...restIO, stdout: cap };
         let syncStatus: number | { listIndex: number; pipelineIndex: number };
         const savedPendingRet = this._syncPendingReturnStatus;

@@ -3,6 +3,7 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { basicCommands } from "../../src/commands/basic.js";
+import { ArrayLedger } from "../../src/shell/arrays/ledger.js";
 
 for (const argument of ["", " 0", " 7"]) {
   for (const errexit of [false, true]) test(`top-level return${argument} reports usage status${errexit ? " under errexit" : ""}`, async () => {
@@ -88,6 +89,50 @@ for (const [name, source, expected, status] of [
   } finally { await shell.dispose(); }
 });
 
+for (const kind of ["while", "until"]) {
+  for (const externalSignal of [false, true]) {
+    for (const [name, source, expected] of [
+      ["direct break", `${kind} break; do say WRONG; done; say AFTER`, "AFTER\n"],
+      ["compound break", `${kind} if true; then break; fi; do say WRONG; done; say AFTER`, "AFTER\n"],
+      ["continue", `i=0; ${kind} ((i+=1)); if ((i<3)); then continue; fi; ((${kind === "while" ? "i<4" : "i>=4"})); do say "$i"; done; say "END:$i"`, "3\nEND:4\n"],
+      ["nested break", `for ((i=0;i<3;i++)); do ${kind} if true; then break 2; fi; do say WRONG; done; say WRONG; done; say "END:$i"`, "END:0\n"],
+      ["nested continue", `for ((i=0;i<3;i++)); do ${kind} if true; then continue 2; fi; do say WRONG; done; say WRONG; done; say "END:$i"`, "END:3\n"],
+      ["return", `f() { ${kind} if true; then return 7; fi; do say WRONG; done; say WRONG; }; f; say "END:$?"`, "END:7\n"],
+      ["break after asynchronous prefix", `${kind} say PREFIX; break; do say WRONG; done; say AFTER`, "PREFIX\nAFTER\n"],
+    ] as const) test(`${kind} condition ${name}${externalSignal ? " with external signal" : ""}`, async () => {
+      const { shell } = setup({ limits: { maxLoopIterations: 64 } });
+      try {
+        const result = await shell.exec(source, externalSignal ? { signal: new AbortController().signal } : {});
+        assert.equal(result.stderr, "");
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stdout, expected);
+        assert.equal((await shell.exec("say recovered")).stdout, "recovered\n");
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const source of ["while false; do :; done", "until true; do :; done"]) {
+  for (const externalSignal of [false, true]) test(`loop redirect avoids speculative filesystem admission: ${source}${externalSignal ? " with external signal" : ""}`, async () => {
+    const { shell } = setup();
+    try {
+      const options = {
+        limits: { maxFileSystemOperations: 4 },
+        ...(externalSignal ? { signal: new AbortController().signal } : {}),
+      };
+      const baseline = await shell.exec(`sink=/dev/null; ${source} >"$sink"`, options);
+      assert.equal(baseline.exitCode, 0);
+      assert.equal(baseline.stdout, "");
+      assert.equal(baseline.stderr, "");
+      const result = await shell.exec(`${source} >/dev/null`, options);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.equal((await shell.exec("say recovered")).stdout, "recovered\n");
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const header of ["i=1/0;1;i++", "i=0;1/0;i++", "i=0;i<1;i=1/0"]) test(`arithmetic for header error remains status 1 under errexit: ${header}`, async () => {
   const { shell } = setup();
   try {
@@ -167,6 +212,34 @@ test("bounded arithmetic loops preserve copied values and final induction state"
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, "1000:999\n");
+  } finally { await shell.dispose(); }
+});
+
+test("arithmetic loop substitution awaits status admission without losing captured output", async context => {
+  const internalLedgers = new Set<ArrayLedger>();
+  const createInternal = ArrayLedger.createInternal;
+  context.mock.method(ArrayLedger, "createInternal", function(...args: Parameters<typeof createInternal>) {
+    const ledger = createInternal(...args);
+    internalLedgers.add(ledger);
+    return ledger;
+  });
+  const checkpoint = ArrayLedger.prototype.checkpoint;
+  let yielded = false;
+  context.mock.method(ArrayLedger.prototype, "checkpoint", function(this: ArrayLedger, signal?: AbortSignal, units?: number) {
+    if (internalLedgers.has(this) && units === 0 && !yielded) {
+      yielded = true;
+      return Promise.resolve();
+    }
+    return checkpoint.call(this, signal, units);
+  });
+  const { shell } = setup();
+  shell.register(basicCommands().find(command => command.name === "echo")!);
+  try {
+    const result = await shell.exec('a=(1) value=$(for ((i=0;i<2;i++)); do echo x; done); say "$value"');
+    assert.equal(yielded, true);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "x\nx\n");
+    assert.equal(result.exitCode, 0);
   } finally { await shell.dispose(); }
 });
 

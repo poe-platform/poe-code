@@ -31,7 +31,51 @@ pub(crate) fn resolve(fs: &MemoryFs, gitdir: &str, revision: &str) -> Result<Str
     let split = revision.find(['~', '^']).unwrap_or(revision.len());
     let base = &revision[..split];
     let base = if base == "@" { "HEAD" } else { base };
-    let mut oid = resolve_ref(fs, gitdir, base, None).or_else(|_| expand_oid(fs, gitdir, base))?;
+    let mut oid = if let Some((ref_part, brace_rest)) = base.split_once("@{")
+        && let Some(inner) = brace_rest.strip_suffix('}')
+    {
+        let rname = if ref_part.is_empty() || ref_part == "@" { "HEAD" } else { ref_part };
+        if inner == "u" || inner == "upstream" {
+            let branch_short = if rname == "HEAD" {
+                crate::current_branch(fs, gitdir, false, false).ok().flatten().unwrap_or_default()
+            } else {
+                rname.strip_prefix("refs/heads/").unwrap_or(rname).to_string()
+            };
+            let remote = crate::commands::plumbing::get_config(fs, gitdir, &format!("branch.{branch_short}.remote"))
+                .map(|v| v.as_str().to_string())
+                .unwrap_or_else(|| "origin".to_string());
+            let merge_ref = crate::commands::plumbing::get_config(fs, gitdir, &format!("branch.{branch_short}.merge"))
+                .map(|v| v.as_str().to_string())
+                .unwrap_or_else(|| format!("refs/heads/{branch_short}"));
+            let remote_branch = merge_ref.strip_prefix("refs/heads/").unwrap_or(&branch_short);
+            resolve_ref(fs, gitdir, &format!("refs/remotes/{remote}/{remote_branch}"), None)?
+        } else if let Ok(nth) = inner.parse::<usize>() {
+            let log_rel = if rname == "HEAD" || rname.starts_with("refs/") {
+                format!("logs/{rname}")
+            } else if rname == "stash" {
+                "logs/refs/stash".to_string()
+            } else {
+                format!("logs/refs/heads/{rname}")
+            };
+            let log_path = format!("{gitdir}/{log_rel}");
+            if let Some(text) = fs.read_str(&log_path) {
+                let mut lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty()).collect();
+                if rname != "stash" {
+                    lines.reverse();
+                }
+                let line = lines.get(nth).ok_or_else(|| GitError::not_found(revision))?;
+                let (meta, _) = line.split_once('\t').unwrap_or((line, ""));
+                meta.split_whitespace().nth(1).ok_or_else(|| GitError::not_found(revision))?.to_string()
+            } else {
+                let commits = log(fs, gitdir, Some(rname), None, None, None, false, false)?;
+                commits.get(nth).map(|c| c.oid.clone()).ok_or_else(|| GitError::not_found(revision))?
+            }
+        } else {
+            return Err(GitError::not_found(revision));
+        }
+    } else {
+        resolve_ref(fs, gitdir, base, None).or_else(|_| expand_oid(fs, gitdir, base))?
+    };
     let mut suffix = &revision[split..];
     while !suffix.is_empty() {
         let operator = suffix.as_bytes()[0];

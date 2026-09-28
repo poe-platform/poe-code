@@ -2802,20 +2802,9 @@ pub fn execute_git_cli_with_http(
             }
         }
         "write-tree" => {
-            let Ok(index_entries) = crate::GitIndexManager::acquire(fs, &gitdir, |idx| Ok(idx.entries())) else {
-                return CliResult::err(128, "fatal: unable to read index\n");
-            };
-            let entries: Vec<crate::models::TreeEntry> = index_entries
-                .into_iter()
-                .filter(|e| !e.path.contains('/'))
-                .map(|e| crate::models::TreeEntry {
-                    mode: format!("{:06o}", e.mode),
-                    path: e.path,
-                    oid: e.oid,
-                    entry_type: if e.mode == 0o160000 { "commit".to_string() } else { "blob".to_string() },
-                })
-                .collect();
-            match crate::commands::plumbing::write_tree(fs, &gitdir, &entries) {
+            match crate::GitIndexManager::acquire(fs, &gitdir, |idx| {
+                crate::commands::worktree::construct_index_tree(fs, &gitdir, idx, false)
+            }) {
                 Ok(oid) => CliResult::ok(format!("{oid}\n")),
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
@@ -2832,15 +2821,14 @@ pub fn execute_git_cli_with_http(
             } else {
                 oid
             };
-            let Ok(tree_res) = crate::commands::plumbing::read_tree(fs, &gitdir, &tree_oid, None) else {
-                return CliResult::err(128, format!("fatal: failed to read tree {tree_oid}\n"));
-            };
+            let mut flat_map = std::collections::BTreeMap::new();
+            if let Err(e) = crate::commands::worktree::collect_tree_map(fs, &gitdir, &tree_oid, "", &mut flat_map) {
+                return CliResult::err(128, format!("fatal: {}\n", e.message));
+            }
             let _ = crate::GitIndexManager::acquire(fs, &gitdir, |idx| {
                 idx.clear();
-                for entry in tree_res.tree {
-                    if entry.entry_type != "tree" {
-                        idx.insert(&entry.path, None, &entry.oid, 0);
-                    }
+                for (path, entry) in flat_map {
+                    idx.insert(&path, None, &entry.oid, 0);
                 }
                 Ok(())
             });

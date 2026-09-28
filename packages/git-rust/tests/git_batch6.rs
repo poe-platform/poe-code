@@ -1217,3 +1217,53 @@ dual_fixture_test!(cli_write_tree_commit_tree_read_tree_var_and_name_rev, cli_wr
     assert_eq!(r_nr.exit_code, 0);
     assert_eq!(r_nr.stdout.trim(), "test-branch");
 });
+
+
+dual_fixture_test!(cli_recursive_write_tree_and_read_tree_nested_dirs, cli_recursive_write_tree_and_read_tree_nested_dirs_sub, "test-init", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, Some("main")).unwrap();
+    let _ = f.fs.mkdir(&join(&[&f.dir, "src/core"]));
+    f.fs.write_str(&join(&[&f.dir, "src/core/engine.rs"]), "pub fn run() {}\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "src/core/engine.rs"]);
+
+    let r_wt = execute_git_cli(&f.fs, &f.dir, &["write-tree"]);
+    assert_eq!(r_wt.exit_code, 0);
+    let root_tree = r_wt.stdout.trim().to_string();
+    assert_eq!(root_tree.len(), 40);
+
+    let r_ls = execute_git_cli(&f.fs, &f.dir, &["ls-tree", "-r", "--name-only", &root_tree]);
+    assert_eq!(r_ls.exit_code, 0);
+    assert_eq!(r_ls.stdout.trim(), "src/core/engine.rs");
+
+    execute_git_cli(&f.fs, &f.dir, &["rm", "--cached", "src/core/engine.rs"]);
+    assert!(git_rust::commands::worktree::list_files(&f.fs, &f.gitdir, None).unwrap().is_empty());
+
+    let r_rt = execute_git_cli(&f.fs, &f.dir, &["read-tree", &root_tree]);
+    assert_eq!(r_rt.exit_code, 0);
+    assert_eq!(git_rust::commands::worktree::list_files(&f.fs, &f.gitdir, None).unwrap(), vec!["src/core/engine.rs"]);
+});
+
+dual_fixture_test!(cli_reflog_selectors_and_upstream_shorthand, cli_reflog_selectors_and_upstream_shorthand_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    execute_git_cli(&f.fs, &f.dir, &["config", "user.name", "Reflog Tester"]);
+    execute_git_cli(&f.fs, &f.dir, &["config", "user.email", "reflog@example.com"]);
+
+    f.fs.write_str(&join(&[&f.dir, "step1.txt"]), "one\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "step1.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "step one"]);
+    let oid1 = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "HEAD"]).stdout.trim().to_string();
+
+    f.fs.write_str(&join(&[&f.dir, "step2.txt"]), "two\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "step2.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "step two"]);
+    let oid2 = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "HEAD"]).stdout.trim().to_string();
+
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "HEAD@{0}"]).stdout.trim(), oid2);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "HEAD@{1}"]).stdout.trim(), oid1);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "@{1}"]).stdout.trim(), oid1);
+
+    execute_git_cli(&f.fs, &f.dir, &["update-ref", "refs/remotes/origin/test-branch", &oid1]);
+    execute_git_cli(&f.fs, &f.dir, &["config", "branch.test-branch.remote", "origin"]);
+    execute_git_cli(&f.fs, &f.dir, &["config", "branch.test-branch.merge", "refs/heads/test-branch"]);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "@{u}"]).stdout.trim(), oid1);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "test-branch@{upstream}"]).stdout.trim(), oid1);
+});

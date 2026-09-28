@@ -484,7 +484,7 @@ pub fn update_index(
     })
 }
 
-fn construct_index_tree(fs: &MemoryFs, gitdir: &str, index: &GitIndex, dry_run: bool) -> Result<String, GitError> {
+pub fn construct_index_tree(fs: &MemoryFs, gitdir: &str, index: &GitIndex, dry_run: bool) -> Result<String, GitError> {
     let entries: Vec<(String, TreeEntry)> = index
         .entries()
         .into_iter()
@@ -679,6 +679,33 @@ pub fn commit(
         let oid = _write_object(fs, &gdir, "commit", &bytes, "content", None, dry_run)?;
         if !no_update_branch && !dry_run {
             let update_ref = if detached_head { "HEAD" } else { &target_ref };
+            let old_oid = ref_oid.as_deref().unwrap_or("0000000000000000000000000000000000000000");
+            let subj = comm_obj.message.lines().next().unwrap_or("");
+            let action_prefix = if initial_commit {
+                "commit (initial)"
+            } else if amend {
+                "commit (amend)"
+            } else {
+                "commit"
+            };
+            let entry_line = format!(
+                "{} {} {} <{}> {} +0000\t{}: {}\n",
+                old_oid,
+                oid,
+                comm_obj.committer.name,
+                comm_obj.committer.email,
+                comm_obj.committer.timestamp,
+                action_prefix,
+                subj
+            );
+            let head_log = format!("{gdir}/logs/HEAD");
+            let prev_head_log = fs.read_str(&head_log).unwrap_or_default();
+            fs.write_str(&head_log, &format!("{prev_head_log}{entry_line}"));
+            if update_ref != "HEAD" {
+                let ref_log = format!("{gdir}/logs/{update_ref}");
+                let prev_ref_log = fs.read_str(&ref_log).unwrap_or_default();
+                fs.write_str(&ref_log, &format!("{prev_ref_log}{entry_line}"));
+            }
             GitRefManager::write_ref(fs, &gdir, update_ref, &oid)?;
         }
         Ok(oid)

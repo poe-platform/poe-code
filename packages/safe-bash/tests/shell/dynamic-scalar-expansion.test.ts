@@ -68,7 +68,7 @@ for (const maxExpansionBytes of [undefined, 65536]) {
     ["negative elements", 'g() { echo "<${FUNCNAME[-1]}>:<${FUNCNAME[-2]}>"; }; f() { g; }; f', "<f>:<g>\n"],
     ["negative caller operators", 'g() { echo "<${FUNCNAME[-1]:-missing}>"; set -- ${FUNCNAME[-1]:+"a" "b"}; echo "$#:<$1><$2>"; }; f() { g; }; f', "<f>\n2:<a><b>\n"],
     ["caller operators", 'g() { echo "<${FUNCNAME[1]:-missing}>:<${FUNCNAME[1]-missing}>"; set -- ${FUNCNAME[1]:+"a" "b"}; echo "$#:<$1><$2>"; set -- ${FUNCNAME[1]+"a" "b"}; echo "$#:<$1><$2>"; echo "<${FUNCNAME[5]:-missing}>"; }; f() { g; }; f', "<f>:<f>\n2:<a><b>\n2:<a><b>\n<missing>\n"],
-  ]) {
+  ] as const) {
     test(`FUNCNAME ${name}, budget ${maxExpansionBytes}`, async context => {
       const shell = new Shell({ fs: createMemoryFileSystem(), limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } });
       for (const command of basicCommands()) shell.register(command);

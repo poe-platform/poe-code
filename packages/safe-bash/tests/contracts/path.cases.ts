@@ -54,13 +54,14 @@ test("internal path helpers share the canonical portable POSIX object", () => {
   assert.equal(portablePath.join("/a", "..", "b"), "/b");
 });
 
-test("Node contract entries and the root preserve native POSIX identity", async () => {
+test("Node contracts preserve native POSIX identity and the root shares portable paths", async () => {
   const [contracts, paths, root] = await Promise.all([
     import("../../src/contracts/node.js"),
     import("../../src/contracts/node-path.js"),
     import("../../src/index.js"),
   ]);
-  for (const entry of [contracts, paths, root]) assert.equal(entry.posixPath, posix);
+  for (const entry of [contracts, paths]) assert.equal(entry.posixPath, posix);
+  assert.equal(root.posixPath, canonicalPortablePath);
   assert.equal(paths.normalizePath, normalizePath);
   assert.equal(contracts.normalizePath, normalizePath);
   assert.deepEqual(Object.keys(paths).sort(), [

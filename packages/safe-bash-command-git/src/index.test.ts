@@ -87,3 +87,60 @@ test('cat-file preserves binary object bytes', async () => {
   const oid = new TextDecoder().decode(await run(['hash-object','-w','binary'])).trim();
   assert.deepEqual(await run(['cat-file','-p',oid]),binary);
 });
+
+test("extended porcelain and plumbing commands work over safe-fs WASM", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/repo", { recursive: true });
+  const command = createGitCommand();
+  const run = async (args: string[]) => {
+    let stdout = "";
+    let stderr = "";
+    const result = await command.execute({
+      command: "git",
+      args,
+      cwd: "/repo",
+      env: {},
+      fs,
+      signal: new AbortController().signal,
+      stdin: (async function* () {})(),
+      stdout: { write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
+    } as CommandContext);
+    assert.equal(result.exitCode, 0, stderr);
+    return stdout;
+  };
+  await run(["init"]);
+  await run(["config", "user.name", "Safe Bash User"]);
+  await run(["config", "user.email", "safe@example.com"]);
+  await fs.writeFile("/repo/hello.txt", new TextEncoder().encode("Alpha line\nBeta line\n"));
+  await run(["add", "hello.txt"]);
+  await run(["commit", "-m", "initial commit"]);
+  await run(["tag", "v0.1.0"]);
+
+  assert.equal((await run(["describe", "--tags"])).trim(), "v0.1.0");
+  assert.match(await run(["shortlog", "-sn"]), /Safe Bash User/u);
+  assert.match(await run(["grep", "-n", "Beta"]), /hello\.txt:2:Beta line/u);
+  assert.match(await run(["blame", "-L", "1,1", "hello.txt"]), /1\) Alpha line/u);
+
+  await run(["notes", "add", "-m", "verified in wasm", "HEAD"]);
+  assert.equal((await run(["notes", "show", "HEAD"])).trim(), "verified in wasm");
+  assert.match(await run(["reflog", "show", "HEAD"]), /HEAD@\{0\}:/u);
+
+  await fs.writeFile("/repo/extra.txt", new TextEncoder().encode("temporary\n"));
+  await run(["add", "extra.txt"]);
+  await run(["commit", "-m", "add extra"]);
+  const patchFile = (await run(["format-patch", "-1"])).trim();
+  assert.match(patchFile, /\.patch$/u);
+
+  await run(["revert", "HEAD"]);
+  await assert.rejects(fs.stat("/repo/extra.txt"));
+
+  await run(["am", patchFile]);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/repo/extra.txt")), "temporary\n");
+
+  await run(["archive", "--prefix=dist/", "-o", "bundle.tar", "HEAD"]);
+  assert.ok((await fs.readFile("/repo/bundle.tar")).length >= 1024);
+
+  assert.match(await run(["fsck"]), /Checking object directories: 100%/u);
+  assert.match(await run(["count-objects", "-v"]), /count:/u);
+});

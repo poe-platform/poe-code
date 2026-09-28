@@ -115,3 +115,23 @@ export { createGpgCommand, createGpgCommands, gpgCommands, type GpgCommandsOptio
 export { createGhCommand, createGhCommands, ghCommands, type GhCommandOptions, type GhCommandsOptions, type GhLimits } from "./lazy-optional.js";
 
 export { optionalCommands, createOptionalCommands, optionalCommandCatalog, createLazyCommands, createLazyCommandLoader, lazyCommandPlugin, type OptionalCommandsOptions, type OptionalCommandConfiguration, type OptionalCommandFamily, type LazyCommandMetadata, type LazyCommandFactory } from "./lazy-optional.js";
+
+export type { PdfinfoLimits } from "./commands/pdfinfo/index.js";
+
+export type { PdftotextLimits } from "./commands/pdftotext/index.js";
+
+export type { PdfimagesLimits } from "./commands/pdfimages/index.js";
+
+export type { PdftoppmLimits } from "./commands/pdftoppm/index.js";
+
+export type { PdftkLimits } from "./commands/pdftk/index.js";
+
+export type { SipsLimits } from "./commands/sips/index.js";
+
+export type { ImagemagickLimits } from "./commands/imagemagick/index.js";
+
+export type { UnrtfLimits } from "./commands/unrtf/index.js";
+
+export type { WkhtmltopdfLimits } from "./commands/wkhtmltopdf/index.js";
+
+export type { XzLimits } from "./commands/xz/index.js";

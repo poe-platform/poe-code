@@ -1,3 +1,5 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
+import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -282,7 +284,12 @@ function parseColor(raw: string): RgbaColor {
   return baseParseColor(s);
 }
 
+export interface ImagemagickLimits {
+  readonly maxInputBytes: number;
+}
+
 export interface ImageMagickCommandOptions {
+  readonly limits?: Partial<ImagemagickLimits>;
   readonly replace?: boolean;
 }
 
@@ -520,91 +527,106 @@ function createDefaultState(): MagickState {
   };
 }
 
-function applyMagickMorphology4Ch(
-  img: RgbaImage,
-  methodRaw: string,
-  kernelSpec: string
-): RgbaImage {
-  const m = methodRaw.toLowerCase();
-  let rx = 1;
-  let ry = 1;
-  const colonIdx = kernelSpec.indexOf(":");
-  const sizePart = colonIdx >= 0 ? kernelSpec.slice(colonIdx + 1) : kernelSpec;
-  if (sizePart.includes("x")) {
-    const [wS, hS] = sizePart.split("x");
-    rx = Math.max(1, Math.floor((Number(wS) || 3) / 2));
-    ry = Math.max(1, Math.floor((Number(hS) || 3) / 2));
-  } else if (sizePart.length > 0 && !Number.isNaN(Number(sizePart))) {
-    rx = Math.max(1, Math.round(Number(sizePart)));
-    ry = rx;
-  }
-
-  const step = (src: RgbaImage, isMax: boolean): RgbaImage => {
-    const w = src.width;
-    const h = src.height;
-    const out = new Uint8Array(src.data.length);
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const dstOff = (y * w + x) * 4;
-        for (let c = 0; c < 4; c++) {
-          let best = src.data[dstOff + c]!;
-          for (let dy = -ry; dy <= ry; dy++) {
-            const sy = Math.max(0, Math.min(h - 1, y + dy));
-            for (let dx = -rx; dx <= rx; dx++) {
-              const sx = Math.max(0, Math.min(w - 1, x + dx));
-              const v = src.data[(sy * w + sx) * 4 + c]!;
-              if (isMax ? v > best : v < best) best = v;
+function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kernelSpec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const m = methodRaw.toLowerCase();
+    let rx = 1;
+    let ry = 1;
+    const colonIdx = kernelSpec.indexOf(":");
+    const sizePart = colonIdx >= 0 ? kernelSpec.slice(colonIdx + 1) : kernelSpec;
+    if (sizePart.includes("x")) {
+        const [wS, hS] = sizePart.split("x");
+        rx = Math.max(1, Math.floor((Number(wS) || 3) / 2));
+        ry = Math.max(1, Math.floor((Number(hS) || 3) / 2));
+    }
+    else if (sizePart.length > 0 && !Number.isNaN(Number(sizePart))) {
+        rx = Math.max(1, Math.round(Number(sizePart)));
+        ry = rx;
+    }
+    const step = (src: RgbaImage, isMax: boolean): RgbaImage => {
+        const w = src.width;
+        const h = src.height;
+        const out = new Uint8Array(src.data.length);
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                const dstOff = (y * w + x) * 4;
+                for (let c = 0; c < 4; c++) {
+                    let best = src.data[dstOff + c]!;
+                    for (let dy = -ry; dy <= ry; dy++) {
+                        const sy = Math.max(0, Math.min(h - 1, y + dy));
+                        for (let dx = -rx; dx <= rx; dx++) {
+                            const sx = Math.max(0, Math.min(w - 1, x + dx));
+                            const v = src.data[(sy * w + sx) * 4 + c]!;
+                            if (isMax ? v > best : v < best)
+                                best = v;
+                        }
+                    }
+                    out[dstOff + c] = best;
+                }
             }
-          }
-          out[dstOff + c] = best;
         }
-      }
-    }
-    return { ...src, data: out };
-  };
-
-  const diffImg = (a: RgbaImage, b: RgbaImage): RgbaImage => {
-    const out = new Uint8Array(a.data.length);
-    for (let i = 0; i < out.length; i++) {
-      out[i] = clampByteVal(a.data[i]! - b.data[i]!);
-    }
-    return { ...a, data: out };
-  };
-
-  if (m === "erode" || m === "minimum") return step(img, false);
-  if (m === "dilate" || m === "maximum") return step(img, true);
-  if (m === "open") return step(step(img, false), true);
-  if (m === "close") return step(step(img, true), false);
-  if (m === "edgein") return diffImg(img, step(img, false));
-  if (m === "edgeout") return diffImg(step(img, true), img);
-  if (m === "edge" || m === "gradient") return diffImg(step(img, true), step(img, false));
-  if (m === "tophat") return diffImg(img, step(step(img, false), true));
-  if (m === "bottomhat") return diffImg(step(step(img, true), false), img);
-  if (m === "median") {
-    const w = img.width;
-    const h = img.height;
-    const out = new Uint8Array(img.data.length);
-    const win: number[] = [];
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const dstOff = (y * w + x) * 4;
-        for (let c = 0; c < 4; c++) {
-          win.length = 0;
-          for (let dy = -ry; dy <= ry; dy++) {
-            const sy = Math.max(0, Math.min(h - 1, y + dy));
-            for (let dx = -rx; dx <= rx; dx++) {
-              const sx = Math.max(0, Math.min(w - 1, x + dx));
-              win.push(img.data[(sy * w + sx) * 4 + c]!);
+        return { ...src, data: out };
+    };
+    const diffImg = (a: RgbaImage, b: RgbaImage): RgbaImage => {
+        const out = new Uint8Array(a.data.length);
+        for (let i = 0; i < out.length; i++) {
+            out[i] = clampByteVal(a.data[i]! - b.data[i]!);
+        }
+        return { ...a, data: out };
+    };
+    if (m === "erode" || m === "minimum")
+        return step(img, false);
+    if (m === "dilate" || m === "maximum")
+        return step(img, true);
+    if (m === "open")
+        return step(step(img, false), true);
+    if (m === "close")
+        return step(step(img, true), false);
+    if (m === "edgein")
+        return diffImg(img, step(img, false));
+    if (m === "edgeout")
+        return diffImg(step(img, true), img);
+    if (m === "edge" || m === "gradient")
+        return diffImg(step(img, true), step(img, false));
+    if (m === "tophat")
+        return diffImg(img, step(step(img, false), true));
+    if (m === "bottomhat")
+        return diffImg(step(step(img, true), false), img);
+    if (m === "median") {
+        const w = img.width;
+        const h = img.height;
+        const out = new Uint8Array(img.data.length);
+        const win: number[] = [];
+        for (let y = 0; y < h; y++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            for (let x = 0; x < w; x++) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                const dstOff = (y * w + x) * 4;
+                for (let c = 0; c < 4; c++) {
+                    if (++cooperativeWork % 65536 === 0)
+                        yield;
+                    win.length = 0;
+                    for (let dy = -ry; dy <= ry; dy++) {
+                        if (++cooperativeWork % 65536 === 0)
+                            yield;
+                        const sy = Math.max(0, Math.min(h - 1, y + dy));
+                        for (let dx = -rx; dx <= rx; dx++) {
+                            if (++cooperativeWork % 65536 === 0)
+                                yield;
+                            const sx = Math.max(0, Math.min(w - 1, x + dx));
+                            win.push(img.data[(sy * w + sx) * 4 + c]!);
+                        }
+                    }
+                    win.sort((a, b) => a - b);
+                    out[dstOff + c] = win[Math.floor(win.length / 2)]!;
+                }
             }
-          }
-          win.sort((a, b) => a - b);
-          out[dstOff + c] = win[Math.floor(win.length / 2)]!;
         }
-      }
+        return { ...img, data: out };
     }
-    return { ...img, data: out };
-  }
-  return step(img, true);
+    return step(img, true);
 }
 
 function createRoseImage(): RgbaImage {
@@ -636,269 +658,304 @@ function createRoseImage(): RgbaImage {
   };
 }
 
-function applyMagickFloodfill(
-  img: RgbaImage,
-  geomStr: string,
-  targetColor: RgbaColor | undefined,
-  replacement: RgbaColor,
-  fuzz: number
-): RgbaImage {
-  const g = parseMagickGeometry(geomStr);
-  const w = img.width;
-  const h = img.height;
-  const sx = Math.max(0, Math.min(w - 1, Math.round(g.x || g.width || 0)));
-  const sy = Math.max(0, Math.min(h - 1, Math.round(g.y || g.height || 0)));
-  const out = new Uint8Array(img.data);
-  const seedOff = (sy * w + sx) * 4;
-  const refR = targetColor ? targetColor.r : out[seedOff]!;
-  const refG = targetColor ? targetColor.g : out[seedOff + 1]!;
-  const refB = targetColor ? targetColor.b : out[seedOff + 2]!;
-
-  const matchesRef = (pIdx: number): boolean => {
-    const off = pIdx * 4;
-    return (
-      Math.max(
-        Math.abs(out[off]! - refR),
-        Math.abs(out[off + 1]! - refG),
-        Math.abs(out[off + 2]! - refB)
-      ) <= fuzz
-    );
-  };
-
-  const startIdx = sy * w + sx;
-  if (!matchesRef(startIdx)) return img;
-
-  const visited = new Uint8Array(w * h);
-  const queue = new Int32Array(w * h);
-  let head = 0;
-  let tail = 0;
-  queue[tail++] = startIdx;
-  visited[startIdx] = 1;
-
-  while (head < tail) {
-    const cur = queue[head++]!;
-    const off = cur * 4;
-    out[off] = replacement.r;
-    out[off + 1] = replacement.g;
-    out[off + 2] = replacement.b;
-    out[off + 3] = replacement.a;
-
-    const cx = cur % w;
-    const cy = Math.floor(cur / w);
-    const neighbors = [
-      cx > 0 ? cur - 1 : -1,
-      cx + 1 < w ? cur + 1 : -1,
-      cy > 0 ? cur - w : -1,
-      cy + 1 < h ? cur + w : -1
-    ];
-    for (const nb of neighbors) {
-      if (nb >= 0 && visited[nb] === 0 && matchesRef(nb)) {
-        visited[nb] = 1;
-        queue[tail++] = nb;
-      }
-    }
-  }
-  return { ...img, data: out, hasAlpha: true };
-}
-
-function applyMagickEvaluateSequence(stack: readonly RgbaImage[], opRaw: string): RgbaImage {
-  if (stack.length === 0) {
-    throw new Error("evaluate-sequence requires at least one image");
-  }
-  if (stack.length === 1) return stack[0]!;
-  const base = stack[0]!;
-  const w = base.width;
-  const h = base.height;
-  const normalized = stack.map((im) =>
-    im.width === w && im.height === h ? im : applyMagickResize(im, `${w}x${h}!`, "bilinear")
-  );
-  const n = normalized.length;
-  const out = new Uint8Array(w * h * 4);
-  const op = opRaw.toLowerCase().replace(/[-_]/g, "");
-  const vals = new Float64Array(n);
-
-  for (let i = 0; i < out.length; i++) {
-    if ((i & 3) === 3) {
-      out[i] = base.data[i]!;
-      continue;
-    }
-    for (let k = 0; k < n; k++) {
-      vals[k] = normalized[k]!.data[i]!;
-    }
-    let res = vals[0]!;
-    if (op === "mean" || op === "average") {
-      let s = 0;
-      for (let k = 0; k < n; k++) s += vals[k]!;
-      res = s / n;
-    } else if (op === "median") {
-      const baseOff = i & ~3;
-      const order = Array.from({ length: n }, (_, k) => k).sort((a, b) => {
-        const da = normalized[a]!.data;
-        const db = normalized[b]!.data;
-        const sumA = da[baseOff]! + da[baseOff + 1]! + da[baseOff + 2]! + da[baseOff + 3]!;
-        const sumB = db[baseOff]! + db[baseOff + 1]! + db[baseOff + 2]! + db[baseOff + 3]!;
-        return sumA - sumB;
-      });
-      res = vals[order[Math.floor(n / 2)]!]!;
-    } else if (op === "min") {
-      res = Math.min(...vals);
-    } else if (op === "max") {
-      res = Math.max(...vals);
-    } else if (op === "add") {
-      let s = 0;
-      for (let k = 0; k < n; k++) s += vals[k]!;
-      res = s;
-    } else if (op === "multiply") {
-      let p = 1;
-      for (let k = 0; k < n; k++) p *= vals[k]! / 255;
-      res = p * 255;
-    }
-    out[i] = clampByteVal(res);
-  }
-  return { ...base, data: out };
-}
-
-function applyMagickCustomConvolve(img: RgbaImage, spec: string): RgbaImage {
-  const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
-  const coeffs = afterColon
-    .trim()
-    .split(/[\s,]+/)
-    .filter((s) => s.length > 0)
-    .map(Number)
-    .filter((n) => Number.isFinite(n));
-  if (coeffs.length === 0) return img;
-  const side = Math.max(1, Math.round(Math.sqrt(coeffs.length)));
-  const half = Math.floor(side / 2);
-  const w = img.width;
-  const h = img.height;
-  const out = new Uint8Array(img.data);
-
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      for (let c = 0; c < 3; c++) {
-        let sum = 0;
-        for (let ky = 0; ky < side; ky++) {
-          const sy = Math.max(0, Math.min(h - 1, y + ky - half));
-          for (let kx = 0; kx < side; kx++) {
-            const sx = Math.max(0, Math.min(w - 1, x + kx - half));
-            const weight = coeffs[ky * side + kx] ?? 0;
-            sum += img.data[(sy * w + sx) * 4 + c]! * weight;
-          }
+function* applyMagickFloodfillSteps(img: RgbaImage, geomStr: string, targetColor: RgbaColor | undefined, replacement: RgbaColor, fuzz: number, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const g = parseMagickGeometry(geomStr);
+    const w = img.width;
+    const h = img.height;
+    const sx = Math.max(0, Math.min(w - 1, Math.round(g.x || g.width || 0)));
+    const sy = Math.max(0, Math.min(h - 1, Math.round(g.y || g.height || 0)));
+    const out = new Uint8Array(img.data);
+    const seedOff = (sy * w + sx) * 4;
+    const refR = targetColor ? targetColor.r : out[seedOff]!;
+    const refG = targetColor ? targetColor.g : out[seedOff + 1]!;
+    const refB = targetColor ? targetColor.b : out[seedOff + 2]!;
+    const matchesRef = (pIdx: number): boolean => {
+        const off = pIdx * 4;
+        return (Math.max(Math.abs(out[off]! - refR), Math.abs(out[off + 1]! - refG), Math.abs(out[off + 2]! - refB)) <= fuzz);
+    };
+    const startIdx = sy * w + sx;
+    if (!matchesRef(startIdx))
+        return img;
+    const visited = new Uint8Array(w * h);
+    const queue = new Int32Array(w * h);
+    let head = 0;
+    let tail = 0;
+    queue[tail++] = startIdx;
+    visited[startIdx] = 1;
+    while (head < tail) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const cur = queue[head++]!;
+        const off = cur * 4;
+        out[off] = replacement.r;
+        out[off + 1] = replacement.g;
+        out[off + 2] = replacement.b;
+        out[off + 3] = replacement.a;
+        const cx = cur % w;
+        const cy = Math.floor(cur / w);
+        const neighbors = [
+            cx > 0 ? cur - 1 : -1,
+            cx + 1 < w ? cur + 1 : -1,
+            cy > 0 ? cur - w : -1,
+            cy + 1 < h ? cur + w : -1
+        ];
+        for (const nb of neighbors) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            if (nb >= 0 && visited[nb] === 0 && matchesRef(nb)) {
+                visited[nb] = 1;
+                queue[tail++] = nb;
+            }
         }
-        out[(y * w + x) * 4 + c] = clampByteVal(sum);
-      }
     }
-  }
-  return { ...img, data: out };
+    return { ...img, data: out, hasAlpha: true };
 }
 
-function applyMagickColorMatrix(img: RgbaImage, spec: string): RgbaImage {
-  const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
-  const m = afterColon
-    .trim()
-    .split(/[\s,]+/)
-    .filter((s) => s.length > 0)
-    .map(Number);
-  if (m.length < 9) return img;
-  const out = new Uint8Array(img.data);
-  const cols = m.length >= 16 ? Math.round(Math.sqrt(m.length)) : 3;
-  for (let i = 0; i < out.length; i += 4) {
-    const r = out[i]!;
-    const g = out[i + 1]!;
-    const b = out[i + 2]!;
-    out[i] = clampByteVal((m[0] ?? 1) * r + (m[1] ?? 0) * g + (m[2] ?? 0) * b);
-    out[i + 1] = clampByteVal((m[cols] ?? 0) * r + (m[cols + 1] ?? 1) * g + (m[cols + 2] ?? 0) * b);
-    out[i + 2] = clampByteVal(
-      (m[cols * 2] ?? 0) * r + (m[cols * 2 + 1] ?? 0) * g + (m[cols * 2 + 2] ?? 1) * b
-    );
-  }
-  return { ...img, data: out };
-}
-
-function applyMagickEqualize(img: RgbaImage): RgbaImage {
-  const out = new Uint8Array(img.data);
-  const totalPixels = Math.max(1, img.width * img.height);
-  for (let c = 0; c < 3; c++) {
-    const hist = new Uint32Array(256);
-    for (let i = c; i < out.length; i += 4) {
-      hist[out[i]!]!++;
+function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    if (stack.length === 0) {
+        throw new Error("evaluate-sequence requires at least one image");
     }
-    const lut = new Uint8Array(256);
-    let cdf = 0;
-    let cdfMin = 0;
-    for (let v = 0; v < 256; v++) {
-      cdf += hist[v]!;
-      if (cdfMin === 0 && cdf > 0) cdfMin = cdf;
-      const denom = Math.max(1, totalPixels - cdfMin);
-      lut[v] = clampByteVal(((cdf - cdfMin) / denom) * 255);
-    }
-    for (let i = c; i < out.length; i += 4) {
-      out[i] = lut[out[i]!]!;
-    }
-  }
-  return { ...img, data: out };
-}
-
-function applyMagickRemap(img: RgbaImage, palImg: RgbaImage, dither: boolean): RgbaImage {
-  const palette: Array<{ r: number; g: number; b: number }> = [];
-  const seen = new Set<number>();
-  for (let i = 0; i < palImg.data.length; i += 4) {
-    const r = palImg.data[i]!;
-    const g = palImg.data[i + 1]!;
-    const b = palImg.data[i + 2]!;
-    const key = (r << 16) | (g << 8) | b;
-    if (!seen.has(key)) {
-      seen.add(key);
-      palette.push({ r, g, b });
-      if (palette.length >= 256) break;
-    }
-  }
-  if (palette.length === 0) return img;
-
-  const w = img.width;
-  const h = img.height;
-  const buf = new Float32Array(img.data);
-  const out = new Uint8Array(img.data);
-
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const idx = (y * w + x) * 4;
-      const oldR = Math.max(0, Math.min(255, buf[idx]!));
-      const oldG = Math.max(0, Math.min(255, buf[idx + 1]!));
-      const oldB = Math.max(0, Math.min(255, buf[idx + 2]!));
-
-      let best = palette[0]!;
-      let bestDist = Infinity;
-      for (const p of palette) {
-        const d = (oldR - p.r) ** 2 + (oldG - p.g) ** 2 + (oldB - p.b) ** 2;
-        if (d < bestDist) {
-          bestDist = d;
-          best = p;
+    if (stack.length === 1)
+        return stack[0]!;
+    const base = stack[0]!;
+    const w = base.width;
+    const h = base.height;
+    const normalized = stack.map((im) => im.width === w && im.height === h ? im : applyMagickResize(im, `${w}x${h}!`, "bilinear"));
+    const n = normalized.length;
+    const out = new Uint8Array(w * h * 4);
+    const op = opRaw.toLowerCase().replace(/[-_]/g, "");
+    const vals = new Float64Array(n);
+    for (let i = 0; i < out.length; i++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        if ((i & 3) === 3) {
+            out[i] = base.data[i]!;
+            continue;
         }
-      }
-      out[idx] = best.r;
-      out[idx + 1] = best.g;
-      out[idx + 2] = best.b;
-
-      if (dither) {
-        const errR = oldR - best.r;
-        const errG = oldG - best.g;
-        const errB = oldB - best.b;
-        const spread = (nx: number, ny: number, wgt: number) => {
-          if (nx < 0 || nx >= w || ny < 0 || ny >= h) return;
-          const nIdx = (ny * w + nx) * 4;
-          buf[nIdx] = buf[nIdx]! + errR * wgt;
-          buf[nIdx + 1] = buf[nIdx + 1]! + errG * wgt;
-          buf[nIdx + 2] = buf[nIdx + 2]! + errB * wgt;
-        };
-        spread(x + 1, y, 7 / 16);
-        spread(x - 1, y + 1, 3 / 16);
-        spread(x, y + 1, 5 / 16);
-        spread(x + 1, y + 1, 1 / 16);
-      }
+        for (let k = 0; k < n; k++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            vals[k] = normalized[k]!.data[i]!;
+        }
+        let res = vals[0]!;
+        if (op === "mean" || op === "average") {
+            let s = 0;
+            for (let k = 0; k < n; k++)
+                s += vals[k]!;
+            res = s / n;
+        }
+        else if (op === "median") {
+            const baseOff = i & ~3;
+            const order = Array.from({ length: n }, (_, k) => k).sort((a, b) => {
+                const da = normalized[a]!.data;
+                const db = normalized[b]!.data;
+                const sumA = da[baseOff]! + da[baseOff + 1]! + da[baseOff + 2]! + da[baseOff + 3]!;
+                const sumB = db[baseOff]! + db[baseOff + 1]! + db[baseOff + 2]! + db[baseOff + 3]!;
+                return sumA - sumB;
+            });
+            res = vals[order[Math.floor(n / 2)]!]!;
+        }
+        else if (op === "min") {
+            res = Math.min(...vals);
+        }
+        else if (op === "max") {
+            res = Math.max(...vals);
+        }
+        else if (op === "add") {
+            let s = 0;
+            for (let k = 0; k < n; k++)
+                s += vals[k]!;
+            res = s;
+        }
+        else if (op === "multiply") {
+            let p = 1;
+            for (let k = 0; k < n; k++)
+                p *= vals[k]! / 255;
+            res = p * 255;
+        }
+        out[i] = clampByteVal(res);
     }
-  }
-  return { ...img, data: out };
+    return { ...base, data: out };
+}
+
+function* applyMagickCustomConvolveSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
+    const coeffs = afterColon
+        .trim()
+        .split(/[\s,]+/)
+        .filter((s) => s.length > 0)
+        .map(Number)
+        .filter((n) => Number.isFinite(n));
+    if (coeffs.length === 0)
+        return img;
+    const side = Math.max(1, Math.round(Math.sqrt(coeffs.length)));
+    const half = Math.floor(side / 2);
+    const w = img.width;
+    const h = img.height;
+    const out = new Uint8Array(img.data);
+    for (let y = 0; y < h; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let x = 0; x < w; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            for (let c = 0; c < 3; c++) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                let sum = 0;
+                for (let ky = 0; ky < side; ky++) {
+                    if (++cooperativeWork % 65536 === 0)
+                        yield;
+                    const sy = Math.max(0, Math.min(h - 1, y + ky - half));
+                    for (let kx = 0; kx < side; kx++) {
+                        if (++cooperativeWork % 65536 === 0)
+                            yield;
+                        const sx = Math.max(0, Math.min(w - 1, x + kx - half));
+                        const weight = coeffs[ky * side + kx] ?? 0;
+                        sum += img.data[(sy * w + sx) * 4 + c]! * weight;
+                    }
+                }
+                out[(y * w + x) * 4 + c] = clampByteVal(sum);
+            }
+        }
+    }
+    return { ...img, data: out };
+}
+
+function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
+    const m = afterColon
+        .trim()
+        .split(/[\s,]+/)
+        .filter((s) => s.length > 0)
+        .map(Number);
+    if (m.length < 9)
+        return img;
+    const out = new Uint8Array(img.data);
+    const cols = m.length >= 16 ? Math.round(Math.sqrt(m.length)) : 3;
+    for (let i = 0; i < out.length; i += 4) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const r = out[i]!;
+        const g = out[i + 1]!;
+        const b = out[i + 2]!;
+        out[i] = clampByteVal((m[0] ?? 1) * r + (m[1] ?? 0) * g + (m[2] ?? 0) * b);
+        out[i + 1] = clampByteVal((m[cols] ?? 0) * r + (m[cols + 1] ?? 1) * g + (m[cols + 2] ?? 0) * b);
+        out[i + 2] = clampByteVal((m[cols * 2] ?? 0) * r + (m[cols * 2 + 1] ?? 0) * g + (m[cols * 2 + 2] ?? 1) * b);
+    }
+    return { ...img, data: out };
+}
+
+function* applyMagickEqualizeSteps(img: RgbaImage, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const out = new Uint8Array(img.data);
+    const totalPixels = Math.max(1, img.width * img.height);
+    for (let c = 0; c < 3; c++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const hist = new Uint32Array(256);
+        for (let i = c; i < out.length; i += 4) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            hist[out[i]!]!++;
+        }
+        const lut = new Uint8Array(256);
+        let cdf = 0;
+        let cdfMin = 0;
+        for (let v = 0; v < 256; v++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            cdf += hist[v]!;
+            if (cdfMin === 0 && cdf > 0)
+                cdfMin = cdf;
+            const denom = Math.max(1, totalPixels - cdfMin);
+            lut[v] = clampByteVal(((cdf - cdfMin) / denom) * 255);
+        }
+        for (let i = c; i < out.length; i += 4) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            out[i] = lut[out[i]!]!;
+        }
+    }
+    return { ...img, data: out };
+}
+
+function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const palette: Array<{
+        r: number;
+        g: number;
+        b: number;
+    }> = [];
+    const seen = new Set<number>();
+    for (let i = 0; i < palImg.data.length; i += 4) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const r = palImg.data[i]!;
+        const g = palImg.data[i + 1]!;
+        const b = palImg.data[i + 2]!;
+        const key = (r << 16) | (g << 8) | b;
+        if (!seen.has(key)) {
+            seen.add(key);
+            palette.push({ r, g, b });
+            if (palette.length >= 256)
+                break;
+        }
+    }
+    if (palette.length === 0)
+        return img;
+    const w = img.width;
+    const h = img.height;
+    const buf = new Float32Array(img.data);
+    const out = new Uint8Array(img.data);
+    for (let y = 0; y < h; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let x = 0; x < w; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const idx = (y * w + x) * 4;
+            const oldR = Math.max(0, Math.min(255, buf[idx]!));
+            const oldG = Math.max(0, Math.min(255, buf[idx + 1]!));
+            const oldB = Math.max(0, Math.min(255, buf[idx + 2]!));
+            let best = palette[0]!;
+            let bestDist = Infinity;
+            for (const p of palette) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                const d = (oldR - p.r) ** 2 + (oldG - p.g) ** 2 + (oldB - p.b) ** 2;
+                if (d < bestDist) {
+                    bestDist = d;
+                    best = p;
+                }
+            }
+            out[idx] = best.r;
+            out[idx + 1] = best.g;
+            out[idx + 2] = best.b;
+            if (dither) {
+                const errR = oldR - best.r;
+                const errG = oldG - best.g;
+                const errB = oldB - best.b;
+                const spread = (nx: number, ny: number, wgt: number) => {
+                    if (nx < 0 || nx >= w || ny < 0 || ny >= h)
+                        return;
+                    const nIdx = (ny * w + nx) * 4;
+                    buf[nIdx] = buf[nIdx]! + errR * wgt;
+                    buf[nIdx + 1] = buf[nIdx + 1]! + errG * wgt;
+                    buf[nIdx + 2] = buf[nIdx + 2]! + errB * wgt;
+                };
+                spread(x + 1, y, 7 / 16);
+                spread(x - 1, y + 1, 3 / 16);
+                spread(x, y + 1, 5 / 16);
+                spread(x + 1, y + 1, 1 / 16);
+            }
+        }
+    }
+    return { ...img, data: out };
 }
 
 function formatMagickPropertyString(fmt: string, img: RgbaImage, sceneIdx = 0, sceneCount = 1): string {
@@ -1057,132 +1114,144 @@ function createCheckerboardImage(width: number, height: number): RgbaImage {
   };
 }
 
-function applyMagickSplice(
-  img: RgbaImage,
-  geomStr: string,
-  bg: RgbaColor,
-  gravity: GravityPosition = "northwest"
-): RgbaImage {
-  const g = parseMagickGeometry(geomStr);
-  const sw = Math.max(0, Math.round(g.width ?? 0));
-  const sh = Math.max(0, Math.round(g.height ?? 0));
-  const base = resolveGravityOffset(img.width, img.height, gravity);
-  const isEast = gravity === "east" || gravity === "northeast" || gravity === "southeast";
-  const isSouth = gravity === "south" || gravity === "southwest" || gravity === "southeast";
-  const sx = Math.max(0, Math.min(img.width, Math.round(base.left + (isEast ? -g.x : g.x))));
-  const sy = Math.max(0, Math.min(img.height, Math.round(base.top + (isSouth ? -g.y : g.y))));
-  const outW = img.width + sw;
-  const outH = img.height + sh;
-  const out = new Uint8Array(outW * outH * 4);
-
-  for (let y = 0; y < outH; y++) {
-    for (let x = 0; x < outW; x++) {
-      const dstIdx = (y * outW + x) * 4;
-      if ((x >= sx && x < sx + sw) || (y >= sy && y < sy + sh)) {
-        out[dstIdx] = bg.r;
-        out[dstIdx + 1] = bg.g;
-        out[dstIdx + 2] = bg.b;
-        out[dstIdx + 3] = bg.a;
-      } else {
-        const origX = x < sx ? x : x - sw;
-        const origY = y < sy ? y : y - sh;
-        const srcIdx = (origY * img.width + origX) * 4;
-        out[dstIdx] = img.data[srcIdx]!;
-        out[dstIdx + 1] = img.data[srcIdx + 1]!;
-        out[dstIdx + 2] = img.data[srcIdx + 2]!;
-        out[dstIdx + 3] = img.data[srcIdx + 3]!;
-      }
+function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, gravity: GravityPosition = "northwest", signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const g = parseMagickGeometry(geomStr);
+    const sw = Math.max(0, Math.round(g.width ?? 0));
+    const sh = Math.max(0, Math.round(g.height ?? 0));
+    const base = resolveGravityOffset(img.width, img.height, gravity);
+    const isEast = gravity === "east" || gravity === "northeast" || gravity === "southeast";
+    const isSouth = gravity === "south" || gravity === "southwest" || gravity === "southeast";
+    const sx = Math.max(0, Math.min(img.width, Math.round(base.left + (isEast ? -g.x : g.x))));
+    const sy = Math.max(0, Math.min(img.height, Math.round(base.top + (isSouth ? -g.y : g.y))));
+    const outW = img.width + sw;
+    const outH = img.height + sh;
+    const out = new Uint8Array(outW * outH * 4);
+    for (let y = 0; y < outH; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let x = 0; x < outW; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const dstIdx = (y * outW + x) * 4;
+            if ((x >= sx && x < sx + sw) || (y >= sy && y < sy + sh)) {
+                out[dstIdx] = bg.r;
+                out[dstIdx + 1] = bg.g;
+                out[dstIdx + 2] = bg.b;
+                out[dstIdx + 3] = bg.a;
+            }
+            else {
+                const origX = x < sx ? x : x - sw;
+                const origY = y < sy ? y : y - sh;
+                const srcIdx = (origY * img.width + origX) * 4;
+                out[dstIdx] = img.data[srcIdx]!;
+                out[dstIdx + 1] = img.data[srcIdx + 1]!;
+                out[dstIdx + 2] = img.data[srcIdx + 2]!;
+                out[dstIdx + 3] = img.data[srcIdx + 3]!;
+            }
+        }
     }
-  }
-  return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
+    return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
 }
 
-function applyMagickChop(
-  img: RgbaImage,
-  geomStr: string,
-  gravity: GravityPosition = "northwest"
-): RgbaImage {
-  const g = parseMagickGeometry(geomStr);
-  const cw = Math.max(0, Math.round(g.width ?? 0));
-  const ch = Math.max(0, Math.round(g.height ?? 0));
-  const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height, cw, ch, g.x, g.y, gravity);
-  if (x0 + cw < 0 || y0 + ch < 0 || x0 > img.width || y0 > img.height) {
-    return img;
-  }
-  const cx0 = Math.max(0, Math.min(img.width, x0));
-  const cx1 = Math.max(cx0, Math.min(img.width, x0 + cw));
-  const cy0 = Math.max(0, Math.min(img.height, y0));
-  const cy1 = Math.max(cy0, Math.min(img.height, y0 + ch));
-  const choppedW = cx1 - cx0;
-  const choppedH = cy1 - cy0;
-  if (choppedW >= img.width || choppedH >= img.height) {
-    return img;
-  }
-  const outW = img.width - choppedW;
-  const outH = img.height - choppedH;
-  const out = new Uint8Array(outW * outH * 4);
-
-  for (let y = 0; y < outH; y++) {
-    const srcY = y < cy0 ? y : Math.min(img.height - 1, y + choppedH);
-    for (let x = 0; x < outW; x++) {
-      const srcX = x < cx0 ? x : Math.min(img.width - 1, x + choppedW);
-      const dstIdx = (y * outW + x) * 4;
-      const srcIdx = (srcY * img.width + srcX) * 4;
-      out[dstIdx] = img.data[srcIdx]!;
-      out[dstIdx + 1] = img.data[srcIdx + 1]!;
-      out[dstIdx + 2] = img.data[srcIdx + 2]!;
-      out[dstIdx + 3] = img.data[srcIdx + 3]!;
+function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const g = parseMagickGeometry(geomStr);
+    const cw = Math.max(0, Math.round(g.width ?? 0));
+    const ch = Math.max(0, Math.round(g.height ?? 0));
+    const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height, cw, ch, g.x, g.y, gravity);
+    if (x0 + cw < 0 || y0 + ch < 0 || x0 > img.width || y0 > img.height) {
+        return img;
     }
-  }
-  return { ...img, width: outW, height: outH, data: out };
+    const cx0 = Math.max(0, Math.min(img.width, x0));
+    const cx1 = Math.max(cx0, Math.min(img.width, x0 + cw));
+    const cy0 = Math.max(0, Math.min(img.height, y0));
+    const cy1 = Math.max(cy0, Math.min(img.height, y0 + ch));
+    const choppedW = cx1 - cx0;
+    const choppedH = cy1 - cy0;
+    if (choppedW >= img.width || choppedH >= img.height) {
+        return img;
+    }
+    const outW = img.width - choppedW;
+    const outH = img.height - choppedH;
+    const out = new Uint8Array(outW * outH * 4);
+    for (let y = 0; y < outH; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const srcY = y < cy0 ? y : Math.min(img.height - 1, y + choppedH);
+        for (let x = 0; x < outW; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const srcX = x < cx0 ? x : Math.min(img.width - 1, x + choppedW);
+            const dstIdx = (y * outW + x) * 4;
+            const srcIdx = (srcY * img.width + srcX) * 4;
+            out[dstIdx] = img.data[srcIdx]!;
+            out[dstIdx + 1] = img.data[srcIdx + 1]!;
+            out[dstIdx + 2] = img.data[srcIdx + 2]!;
+            out[dstIdx + 3] = img.data[srcIdx + 3]!;
+        }
+    }
+    return { ...img, width: outW, height: outH, data: out };
 }
 
-function applyMagickRoll(img: RgbaImage, geomStr: string): RgbaImage {
-  const g = parseMagickGeometry(geomStr);
-  const rx = Math.round(g.x || g.width || 0);
-  const ry = Math.round(g.y || g.height || 0);
-  const w = img.width;
-  const h = img.height;
-  const out = new Uint8Array(img.data.length);
-
-  for (let y = 0; y < h; y++) {
-    const sy = (((y - ry) % h) + h) % h;
-    for (let x = 0; x < w; x++) {
-      const sx = (((x - rx) % w) + w) % w;
-      const dstIdx = (y * w + x) * 4;
-      const srcIdx = (sy * w + sx) * 4;
-      out[dstIdx] = img.data[srcIdx]!;
-      out[dstIdx + 1] = img.data[srcIdx + 1]!;
-      out[dstIdx + 2] = img.data[srcIdx + 2]!;
-      out[dstIdx + 3] = img.data[srcIdx + 3]!;
+function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const g = parseMagickGeometry(geomStr);
+    const rx = Math.round(g.x || g.width || 0);
+    const ry = Math.round(g.y || g.height || 0);
+    const w = img.width;
+    const h = img.height;
+    const out = new Uint8Array(img.data.length);
+    for (let y = 0; y < h; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const sy = (((y - ry) % h) + h) % h;
+        for (let x = 0; x < w; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const sx = (((x - rx) % w) + w) % w;
+            const dstIdx = (y * w + x) * 4;
+            const srcIdx = (sy * w + sx) * 4;
+            out[dstIdx] = img.data[srcIdx]!;
+            out[dstIdx + 1] = img.data[srcIdx + 1]!;
+            out[dstIdx + 2] = img.data[srcIdx + 2]!;
+            out[dstIdx + 3] = img.data[srcIdx + 3]!;
+        }
     }
-  }
-  return { ...img, data: out };
+    return { ...img, data: out };
 }
 
-function applyMagickMorph(stack: readonly RgbaImage[], countRaw: number): RgbaImage[] {
-  const count = Math.max(0, Math.round(countRaw));
-  if (stack.length < 2 || count === 0) return [...stack];
-  const out: RgbaImage[] = [];
-  for (let idx = 0; idx < stack.length - 1; idx++) {
-    const a = stack[idx]!;
-    const b = stack[idx + 1]!;
-    out.push(a);
-    for (let step = 1; step <= count; step++) {
-      const t = step / (count + 1);
-      const w = Math.max(1, Math.round(a.width * (1 - t) + b.width * t));
-      const h = Math.max(1, Math.round(a.height * (1 - t) + b.height * t));
-      const ra = a.width === w && a.height === h ? a : applyMagickResize(a, `${w}x${h}!`, "bilinear");
-      const rb = b.width === w && b.height === h ? b : applyMagickResize(b, `${w}x${h}!`, "bilinear");
-      const data = new Uint8Array(w * h * 4);
-      for (let p = 0; p < data.length; p++) {
-        data[p] = clampByteVal(ra.data[p]! * (1 - t) + rb.data[p]! * t);
-      }
-      out.push({ ...ra, width: w, height: h, data });
+function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, signal?: AbortSignal): Generator<void, RgbaImage[], void> {
+    let cooperativeWork = 0;
+    const count = Math.max(0, Math.round(countRaw));
+    if (stack.length < 2 || count === 0)
+        return [...stack];
+    const out: RgbaImage[] = [];
+    for (let idx = 0; idx < stack.length - 1; idx++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const a = stack[idx]!;
+        const b = stack[idx + 1]!;
+        out.push(a);
+        for (let step = 1; step <= count; step++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const t = step / (count + 1);
+            const w = Math.max(1, Math.round(a.width * (1 - t) + b.width * t));
+            const h = Math.max(1, Math.round(a.height * (1 - t) + b.height * t));
+            const ra = a.width === w && a.height === h ? a : applyMagickResize(a, `${w}x${h}!`, "bilinear");
+            const rb = b.width === w && b.height === h ? b : applyMagickResize(b, `${w}x${h}!`, "bilinear");
+            const data = new Uint8Array(w * h * 4);
+            for (let p = 0; p < data.length; p++) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                data[p] = clampByteVal(ra.data[p]! * (1 - t) + rb.data[p]! * t);
+            }
+            out.push({ ...ra, width: w, height: h, data });
+        }
     }
-  }
-  out.push(stack[stack.length - 1]!);
-  return out;
+    out.push(stack[stack.length - 1]!);
+    return out;
 }
 
 function formatSceneOutputPath(pattern: string, index: number): string {
@@ -1227,216 +1296,229 @@ function clampByteVal(n: number): number {
   return Math.max(0, Math.min(255, Math.round(n)));
 }
 
-function applyMagickOpaque(
-  img: RgbaImage,
-  target: RgbaColor,
-  replacement: RgbaColor,
-  fuzz: number,
-  invert: boolean
-): RgbaImage {
-  const out = new Uint8Array(img.data);
-  for (let i = 0; i < out.length; i += 4) {
-    const dr = Math.abs(out[i]! - target.r);
-    const dg = Math.abs(out[i + 1]! - target.g);
-    const db = Math.abs(out[i + 2]! - target.b);
-    const matched = Math.max(dr, dg, db) <= fuzz;
-    if (invert ? !matched : matched) {
-      out[i] = replacement.r;
-      out[i + 1] = replacement.g;
-      out[i + 2] = replacement.b;
-      out[i + 3] = replacement.a;
+function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement: RgbaColor, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const out = new Uint8Array(img.data);
+    for (let i = 0; i < out.length; i += 4) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const dr = Math.abs(out[i]! - target.r);
+        const dg = Math.abs(out[i + 1]! - target.g);
+        const db = Math.abs(out[i + 2]! - target.b);
+        const matched = Math.max(dr, dg, db) <= fuzz;
+        if (invert ? !matched : matched) {
+            out[i] = replacement.r;
+            out[i + 1] = replacement.g;
+            out[i + 2] = replacement.b;
+            out[i + 3] = replacement.a;
+        }
     }
-  }
-  return { ...img, data: out, hasAlpha: true };
+    return { ...img, data: out, hasAlpha: true };
 }
 
-function applyMagickTransparent(
-  img: RgbaImage,
-  target: RgbaColor,
-  fuzz: number,
-  invert: boolean
-): RgbaImage {
-  const out = new Uint8Array(img.data);
-  for (let i = 0; i < out.length; i += 4) {
-    const dr = Math.abs(out[i]! - target.r);
-    const dg = Math.abs(out[i + 1]! - target.g);
-    const db = Math.abs(out[i + 2]! - target.b);
-    const matched = Math.max(dr, dg, db) <= fuzz;
-    if (invert ? !matched : matched) {
-      out[i + 3] = 0;
+function* applyMagickTransparentSteps(img: RgbaImage, target: RgbaColor, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const out = new Uint8Array(img.data);
+    for (let i = 0; i < out.length; i += 4) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const dr = Math.abs(out[i]! - target.r);
+        const dg = Math.abs(out[i + 1]! - target.g);
+        const db = Math.abs(out[i + 2]! - target.b);
+        const matched = Math.max(dr, dg, db) <= fuzz;
+        if (invert ? !matched : matched) {
+            out[i + 3] = 0;
+        }
     }
-  }
-  return { ...img, data: out, hasAlpha: true };
+    return { ...img, data: out, hasAlpha: true };
 }
 
-function applyMagickEvaluate(
-  img: RgbaImage,
-  opRaw: string,
-  valStr: string,
-  channels: { r: boolean; g: boolean; b: boolean; a: boolean }
-): RgbaImage {
-  const op = opRaw.toLowerCase().replace(/[-_]/g, "");
-  const isPct = valStr.trim().endsWith("%");
-  const rawNum = parseFloat(valStr);
-  const vByte = isPct
-    ? (rawNum / 100) * 255
-    : rawNum <= 1 && valStr.includes(".")
-      ? rawNum * 255
-      : rawNum > 255
-        ? rawNum / 257
-        : rawNum;
-  const vFactor = isPct ? rawNum / 100 : rawNum;
-
-  const out = new Uint8Array(img.data);
-  const mask = [channels.r, channels.g, channels.b, channels.a];
-
-  for (let i = 0; i < out.length; i += 4) {
-    for (let c = 0; c < 4; c++) {
-      if (!mask[c]) continue;
-      const cur = out[i + c]!;
-      let next = cur;
-      switch (op) {
-        case "add":
-          next = cur + vByte;
-          break;
-        case "addmodulus":
-          next = (((cur + Math.round(vByte)) % 256) + 256) % 256;
-          break;
-        case "mean":
-          next = (cur + vByte) / 2;
-          break;
-        case "subtract":
-          next = cur - vByte;
-          break;
-        case "multiply":
-          next = cur * vFactor;
-          break;
-        case "divide":
-          next = cur / (vFactor || 1);
-          break;
-        case "pow":
-          next = 255 * Math.pow(cur / 255, vFactor);
-          break;
-        case "log":
-          next = 255 * (Math.log(1 + Math.max(1e-6, vFactor) * (cur / 255)) / Math.log(1 + Math.max(1e-6, vFactor)));
-          break;
-        case "set":
-          next = vByte;
-          break;
-        case "min":
-          next = Math.min(cur, vByte);
-          break;
-        case "max":
-          next = Math.max(cur, vByte);
-          break;
-        case "and":
-          next = cur & Math.round(vByte);
-          break;
-        case "or":
-          next = cur | Math.round(vByte);
-          break;
-        case "xor":
-          next = cur ^ Math.round(vByte);
-          break;
-        case "leftshift":
-          next = (cur << Math.round(vFactor)) & 0xff;
-          break;
-        case "rightshift":
-          next = cur >> Math.round(vFactor);
-          break;
-        case "abs":
-          next = Math.abs(cur + vByte);
-          break;
-        case "sine":
-          next = 255 * (0.5 + 0.5 * Math.sin(2 * Math.PI * vFactor * (cur / 255)));
-          break;
-        case "cosine":
-          next = 255 * (0.5 + 0.5 * Math.cos(2 * Math.PI * vFactor * (cur / 255)));
-          break;
-        case "threshold":
-          next = cur >= vByte ? 255 : 0;
-          break;
-        case "thresholdblack":
-          next = cur < vByte ? 0 : cur;
-          break;
-        case "thresholdwhite":
-          next = cur > vByte ? 255 : cur;
-          break;
-        default:
-          break;
-      }
-      out[i + c] = clampByteVal(next);
+function* applyMagickEvaluateSteps(img: RgbaImage, opRaw: string, valStr: string, channels: {
+    r: boolean;
+    g: boolean;
+    b: boolean;
+    a: boolean;
+}, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const op = opRaw.toLowerCase().replace(/[-_]/g, "");
+    const isPct = valStr.trim().endsWith("%");
+    const rawNum = parseFloat(valStr);
+    const vByte = isPct
+        ? (rawNum / 100) * 255
+        : rawNum <= 1 && valStr.includes(".")
+            ? rawNum * 255
+            : rawNum > 255
+                ? rawNum / 257
+                : rawNum;
+    const vFactor = isPct ? rawNum / 100 : rawNum;
+    const out = new Uint8Array(img.data);
+    const mask = [channels.r, channels.g, channels.b, channels.a];
+    for (let i = 0; i < out.length; i += 4) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let c = 0; c < 4; c++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            if (!mask[c])
+                continue;
+            const cur = out[i + c]!;
+            let next = cur;
+            switch (op) {
+                case "add":
+                    next = cur + vByte;
+                    break;
+                case "addmodulus":
+                    next = (((cur + Math.round(vByte)) % 256) + 256) % 256;
+                    break;
+                case "mean":
+                    next = (cur + vByte) / 2;
+                    break;
+                case "subtract":
+                    next = cur - vByte;
+                    break;
+                case "multiply":
+                    next = cur * vFactor;
+                    break;
+                case "divide":
+                    next = cur / (vFactor || 1);
+                    break;
+                case "pow":
+                    next = 255 * Math.pow(cur / 255, vFactor);
+                    break;
+                case "log":
+                    next = 255 * (Math.log(1 + Math.max(1e-6, vFactor) * (cur / 255)) / Math.log(1 + Math.max(1e-6, vFactor)));
+                    break;
+                case "set":
+                    next = vByte;
+                    break;
+                case "min":
+                    next = Math.min(cur, vByte);
+                    break;
+                case "max":
+                    next = Math.max(cur, vByte);
+                    break;
+                case "and":
+                    next = cur & Math.round(vByte);
+                    break;
+                case "or":
+                    next = cur | Math.round(vByte);
+                    break;
+                case "xor":
+                    next = cur ^ Math.round(vByte);
+                    break;
+                case "leftshift":
+                    next = (cur << Math.round(vFactor)) & 0xff;
+                    break;
+                case "rightshift":
+                    next = cur >> Math.round(vFactor);
+                    break;
+                case "abs":
+                    next = Math.abs(cur + vByte);
+                    break;
+                case "sine":
+                    next = 255 * (0.5 + 0.5 * Math.sin(2 * Math.PI * vFactor * (cur / 255)));
+                    break;
+                case "cosine":
+                    next = 255 * (0.5 + 0.5 * Math.cos(2 * Math.PI * vFactor * (cur / 255)));
+                    break;
+                case "threshold":
+                    next = cur >= vByte ? 255 : 0;
+                    break;
+                case "thresholdblack":
+                    next = cur < vByte ? 0 : cur;
+                    break;
+                case "thresholdwhite":
+                    next = cur > vByte ? 255 : cur;
+                    break;
+                default:
+                    break;
+            }
+            out[i + c] = clampByteVal(next);
+        }
     }
-  }
-  return { ...img, data: out };
+    return { ...img, data: out };
 }
 
-function applyMagickFunction(
-  img: RgbaImage,
-  funcRaw: string,
-  paramsRaw: string,
-  channels: { r: boolean; g: boolean; b: boolean; a: boolean }
-): RgbaImage {
-  const fn = funcRaw.toLowerCase();
-  const params = paramsRaw.split(",").map((s) => Number(s.trim()));
-  const out = new Uint8Array(img.data);
-  const mask = [channels.r, channels.g, channels.b, channels.a];
-
-  for (let i = 0; i < out.length; i += 4) {
-    for (let c = 0; c < 4; c++) {
-      if (!mask[c]) continue;
-      const x = out[i + c]! / 255;
-      let y = x;
-      if (fn === "polynomial") {
-        y = params.reduce((acc, coeff) => acc * x + coeff, 0);
-      } else if (fn === "sinusoid") {
-        const freq = params[0] ?? 1;
-        const phase = params[1] ?? 0;
-        const amp = params[2] ?? 0.5;
-        const bias = params[3] ?? 0.5;
-        y = amp * Math.sin(2 * Math.PI * (freq * x + phase / 360)) + bias;
-      } else if (fn === "arcsin") {
-        const w = params[0] ?? 1;
-        const center = params[1] ?? 0.5;
-        const range = params[2] ?? 1;
-        const bias = params[3] ?? 0.5;
-        const arg = Math.max(-1, Math.min(1, (2 / w) * (x - center)));
-        y = (range / Math.PI) * Math.asin(arg) + bias;
-      } else if (fn === "arctan") {
-        const slope = params[0] ?? 1;
-        const center = params[1] ?? 0.5;
-        const range = params[2] ?? 1;
-        const bias = params[3] ?? 0.5;
-        y = (range / Math.PI) * Math.atan(slope * Math.PI * (x - center)) + bias;
-      }
-      out[i + c] = clampByteVal(y * 255);
+function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, paramsRaw: string, channels: {
+    r: boolean;
+    g: boolean;
+    b: boolean;
+    a: boolean;
+}, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const fn = funcRaw.toLowerCase();
+    const params = paramsRaw.split(",").map((s) => Number(s.trim()));
+    const out = new Uint8Array(img.data);
+    const mask = [channels.r, channels.g, channels.b, channels.a];
+    for (let i = 0; i < out.length; i += 4) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let c = 0; c < 4; c++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            if (!mask[c])
+                continue;
+            const x = out[i + c]! / 255;
+            let y = x;
+            if (fn === "polynomial") {
+                y = params.reduce((acc, coeff) => acc * x + coeff, 0);
+            }
+            else if (fn === "sinusoid") {
+                const freq = params[0] ?? 1;
+                const phase = params[1] ?? 0;
+                const amp = params[2] ?? 0.5;
+                const bias = params[3] ?? 0.5;
+                y = amp * Math.sin(2 * Math.PI * (freq * x + phase / 360)) + bias;
+            }
+            else if (fn === "arcsin") {
+                const w = params[0] ?? 1;
+                const center = params[1] ?? 0.5;
+                const range = params[2] ?? 1;
+                const bias = params[3] ?? 0.5;
+                const arg = Math.max(-1, Math.min(1, (2 / w) * (x - center)));
+                y = (range / Math.PI) * Math.asin(arg) + bias;
+            }
+            else if (fn === "arctan") {
+                const slope = params[0] ?? 1;
+                const center = params[1] ?? 0.5;
+                const range = params[2] ?? 1;
+                const bias = params[3] ?? 0.5;
+                y = (range / Math.PI) * Math.atan(slope * Math.PI * (x - center)) + bias;
+            }
+            out[i + c] = clampByteVal(y * 255);
+        }
     }
-  }
-  return { ...img, data: out };
+    return { ...img, data: out };
 }
 
-function applyMagickClut(
-  baseImg: RgbaImage,
-  lutImg: RgbaImage,
-  channels: { r: boolean; g: boolean; b: boolean; a: boolean }
-): RgbaImage {
-  const out = new Uint8Array(baseImg.data);
-  const horiz = lutImg.width >= lutImg.height;
-  const len = Math.max(1, horiz ? lutImg.width : lutImg.height);
-  const mask = [channels.r, channels.g, channels.b, channels.a];
-
-  for (let i = 0; i < out.length; i += 4) {
-    for (let c = 0; c < 4; c++) {
-      if (!mask[c]) continue;
-      const t = out[i + c]! / 255;
-      const pos = Math.max(0, Math.min(len - 1, Math.round(t * (len - 1))));
-      const lx = horiz ? pos : 0;
-      const ly = horiz ? 0 : pos;
-      const lutIdx = (ly * lutImg.width + lx) * 4;
-      out[i + c] = lutImg.data[lutIdx + c]!;
+function* applyMagickClutSteps(baseImg: RgbaImage, lutImg: RgbaImage, channels: {
+    r: boolean;
+    g: boolean;
+    b: boolean;
+    a: boolean;
+}, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const out = new Uint8Array(baseImg.data);
+    const horiz = lutImg.width >= lutImg.height;
+    const len = Math.max(1, horiz ? lutImg.width : lutImg.height);
+    const mask = [channels.r, channels.g, channels.b, channels.a];
+    for (let i = 0; i < out.length; i += 4) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let c = 0; c < 4; c++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            if (!mask[c])
+                continue;
+            const t = out[i + c]! / 255;
+            const pos = Math.max(0, Math.min(len - 1, Math.round(t * (len - 1))));
+            const lx = horiz ? pos : 0;
+            const ly = horiz ? 0 : pos;
+            const lutIdx = (ly * lutImg.width + lx) * 4;
+            out[i + c] = lutImg.data[lutIdx + c]!;
+        }
     }
-  }
-  return { ...baseImg, data: out };
+    return { ...baseImg, data: out };
 }
 
 interface FxEvalContext {
@@ -1877,37 +1959,45 @@ function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
   return parseTernary();
 }
 
-function applyMagickFx(
-  stack: readonly RgbaImage[],
-  exprStr: string,
-  channels: { r: boolean; g: boolean; b: boolean; a: boolean }
-): RgbaImage {
-  const base = stack[0]!;
-  const out = new Uint8Array(base.data);
-  const evalFn = compileFxExpression(exprStr);
-  const mask = [channels.r, channels.g, channels.b, channels.a];
-  const vars = new Map<string, number>();
-
-  for (let y = 0; y < base.height; y++) {
-    for (let x = 0; x < base.width; x++) {
-      const idx = (y * base.width + x) * 4;
-      for (let c = 0; c < 4; c++) {
-        if (!mask[c]) continue;
-        vars.clear();
-        const val = evalFn({
-          stack,
-          x,
-          y,
-          w: base.width,
-          h: base.height,
-          ch: c,
-          vars
-        });
-        out[idx + c] = clampByteVal(val * 255);
-      }
+function* applyMagickFxSteps(stack: readonly RgbaImage[], exprStr: string, channels: {
+    r: boolean;
+    g: boolean;
+    b: boolean;
+    a: boolean;
+}, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const base = stack[0]!;
+    const out = new Uint8Array(base.data);
+    const evalFn = compileFxExpression(exprStr);
+    const mask = [channels.r, channels.g, channels.b, channels.a];
+    const vars = new Map<string, number>();
+    for (let y = 0; y < base.height; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let x = 0; x < base.width; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const idx = (y * base.width + x) * 4;
+            for (let c = 0; c < 4; c++) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                if (!mask[c])
+                    continue;
+                vars.clear();
+                const val = evalFn({
+                    stack,
+                    x,
+                    y,
+                    w: base.width,
+                    h: base.height,
+                    ch: c,
+                    vars
+                });
+                out[idx + c] = clampByteVal(val * 255);
+            }
+        }
     }
-  }
-  return { ...base, data: out };
+    return { ...base, data: out };
 }
 
 function sampleBilinear(
@@ -1944,31 +2034,35 @@ function sampleBilinear(
   }
 }
 
-function applyMagickShear(img: RgbaImage, geomStr: string, bg: RgbaColor): RgbaImage {
-  const g = parseMagickGeometry(geomStr);
-  const degX = g.width ?? 0;
-  const degY = g.height ?? 0;
-  const tanX = Math.tan((degX * Math.PI) / 180);
-  const tanY = Math.tan((degY * Math.PI) / 180);
-  const outW = Math.max(1, Math.round(img.width + Math.abs(tanX) * img.height));
-  const outH = Math.max(1, Math.round(img.height + Math.abs(tanY) * img.width));
-  const out = new Uint8Array(outW * outH * 4);
-  const cxSrc = (img.width - 1) / 2;
-  const cySrc = (img.height - 1) / 2;
-  const cxDst = (outW - 1) / 2;
-  const cyDst = (outH - 1) / 2;
-  const det = 1 - tanX * tanY || 1;
-
-  for (let y = 0; y < outH; y++) {
-    for (let x = 0; x < outW; x++) {
-      const dx = x - cxDst;
-      const dy = y - cyDst;
-      const sx = cxSrc + (dx - tanX * dy) / det;
-      const sy = cySrc + (dy - tanY * dx) / det;
-      sampleBilinear(img, sx, sy, bg, out, (y * outW + x) * 4);
+function* applyMagickShearSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const g = parseMagickGeometry(geomStr);
+    const degX = g.width ?? 0;
+    const degY = g.height ?? 0;
+    const tanX = Math.tan((degX * Math.PI) / 180);
+    const tanY = Math.tan((degY * Math.PI) / 180);
+    const outW = Math.max(1, Math.round(img.width + Math.abs(tanX) * img.height));
+    const outH = Math.max(1, Math.round(img.height + Math.abs(tanY) * img.width));
+    const out = new Uint8Array(outW * outH * 4);
+    const cxSrc = (img.width - 1) / 2;
+    const cySrc = (img.height - 1) / 2;
+    const cxDst = (outW - 1) / 2;
+    const cyDst = (outH - 1) / 2;
+    const det = 1 - tanX * tanY || 1;
+    for (let y = 0; y < outH; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let x = 0; x < outW; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const dx = x - cxDst;
+            const dy = y - cyDst;
+            const sx = cxSrc + (dx - tanX * dy) / det;
+            const sy = cySrc + (dy - tanY * dx) / det;
+            sampleBilinear(img, sx, sy, bg, out, (y * outW + x) * 4);
+        }
     }
-  }
-  return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
+    return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
 }
 
 function solveLinearSystem(A: number[][], b: number[]): number[] {
@@ -1996,365 +2090,434 @@ function solveLinearSystem(A: number[][], b: number[]): number[] {
   return M.map((row) => row[n]!);
 }
 
-function applyMagickDistort(img: RgbaImage, methodRaw: string, argsRaw: string, bg: RgbaColor): RgbaImage {
-  const method = methodRaw.toLowerCase().replace(/[-_]/g, "");
-  const nums = argsRaw
-    .trim()
-    .split(/[\s,]+/)
-    .filter((s) => s.length > 0)
-    .map(Number);
-  const w = img.width;
-  const h = img.height;
-  const out = new Uint8Array(w * h * 4);
-
-  if (method === "srt" || method === "scalerotatetranslate") {
-    let cx = (w - 1) / 2;
-    let cy = (h - 1) / 2;
-    let scaleX = 1;
-    let scaleY = 1;
-    let angleDeg = 0;
-    let nx = cx;
-    let ny = cy;
-    if (nums.length === 1) {
-      angleDeg = nums[0]!;
-    } else if (nums.length === 2) {
-      scaleX = scaleY = nums[0] || 1;
-      angleDeg = nums[1]!;
-    } else if (nums.length === 3) {
-      cx = nx = nums[0]!;
-      cy = ny = nums[1]!;
-      angleDeg = nums[2]!;
-    } else if (nums.length === 4) {
-      cx = nx = nums[0]!;
-      cy = ny = nums[1]!;
-      scaleX = scaleY = nums[2] || 1;
-      angleDeg = nums[3]!;
-    } else if (nums.length === 5) {
-      cx = nx = nums[0]!;
-      cy = ny = nums[1]!;
-      scaleX = nums[2] || 1;
-      scaleY = nums[3] || 1;
-      angleDeg = nums[4]!;
-    } else if (nums.length === 6) {
-      cx = nums[0]!;
-      cy = nums[1]!;
-      scaleX = scaleY = nums[2] || 1;
-      angleDeg = nums[3]!;
-      nx = nums[4]!;
-      ny = nums[5]!;
-    } else if (nums.length >= 7) {
-      cx = nums[0]!;
-      cy = nums[1]!;
-      scaleX = nums[2] || 1;
-      scaleY = nums[3] || 1;
-      angleDeg = nums[4]!;
-      nx = nums[5]!;
-      ny = nums[6]!;
-    }
-    const rad = (angleDeg * Math.PI) / 180;
-    const cosA = Math.cos(rad);
-    const sinA = Math.sin(rad);
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const dx = x - nx;
-        const dy = y - ny;
-        const sx = cx + (dx * cosA + dy * sinA) / scaleX;
-        const sy = cy + (-dx * sinA + dy * cosA) / scaleY;
-        sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
-      }
-    }
-    return { ...img, data: out, hasAlpha: true };
-  }
-
-  if ((method === "perspective" && nums.length >= 16) || (method === "perspectiveprojection" && nums.length >= 8)) {
-    let hCoeff: number[];
-    if (method === "perspectiveprojection") {
-      hCoeff = nums.slice(0, 8);
-    } else {
-      // Solve inverse homography mapping dst (dx, dy) -> src (sx, sy)
-      const A: number[][] = [];
-      const bVec: number[] = [];
-      for (let p = 0; p < 4; p++) {
-        const sx = nums[p * 4]!;
-        const sy = nums[p * 4 + 1]!;
-        const dx = nums[p * 4 + 2]!;
-        const dy = nums[p * 4 + 3]!;
-        A.push([dx, dy, 1, 0, 0, 0, -dx * sx, -dy * sx]);
-        bVec.push(sx);
-        A.push([0, 0, 0, dx, dy, 1, -dx * sy, -dy * sy]);
-        bVec.push(sy);
-      }
-      hCoeff = solveLinearSystem(A, bVec);
-    }
-    if (hCoeff.every((c) => Math.abs(c) < 1e-12)) {
-      return img;
-    }
-    const [c0, c1, c2, c3, c4, c5, c6, c7] = hCoeff as [
-      number,
-      number,
-      number,
-      number,
-      number,
-      number,
-      number,
-      number
-    ];
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const denom = c6 * x + c7 * y + 1 || 1e-9;
-        const sx = (c0 * x + c1 * y + c2) / denom;
-        const sy = (c3 * x + c4 * y + c5) / denom;
-        sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
-      }
-    }
-    return { ...img, data: out, hasAlpha: true };
-  }
-
-  if (method === "affine" && nums.length >= 12) {
-    const A: number[][] = [];
-    const bx: number[] = [];
-    const by: number[] = [];
-    for (let p = 0; p < 3; p++) {
-      const sx = nums[p * 4]!;
-      const sy = nums[p * 4 + 1]!;
-      const dx = nums[p * 4 + 2]!;
-      const dy = nums[p * 4 + 3]!;
-      A.push([dx, dy, 1]);
-      bx.push(sx);
-      by.push(sy);
-    }
-    const rx = solveLinearSystem(A, bx);
-    const ry = solveLinearSystem(A, by);
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const sx = rx[0]! * x + rx[1]! * y + rx[2]!;
-        const sy = ry[0]! * x + ry[1]! * y + ry[2]!;
-        sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
-      }
-    }
-    return { ...img, data: out, hasAlpha: true };
-  }
-
-  if (method === "barrel" && nums.length >= 3) {
-    const A = nums[0] ?? 0;
-    const B = nums[1] ?? 0;
-    const C = nums[2] ?? 0;
-    const D = nums[3] ?? 1 - A - B - C;
-    const cx = nums[4] ?? (w - 1) / 2;
-    const cy = nums[5] ?? (h - 1) / 2;
-    const rNorm = Math.min(w, h) / 2;
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const dx = (x - cx) / rNorm;
-        const dy = (y - cy) / rNorm;
-        const r = Math.hypot(dx, dy);
-        const factor = A * r * r * r + B * r * r + C * r + D;
-        const sx = cx + dx * factor * rNorm;
-        const sy = cy + dy * factor * rNorm;
-        sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
-      }
-    }
-    return { ...img, data: out, hasAlpha: true };
-  }
-
-  return img;
-}
-
-function applyMagickSwirl(img: RgbaImage, degrees: number, bg: RgbaColor): RgbaImage {
-  const w = img.width;
-  const h = img.height;
-  const out = new Uint8Array(w * h * 4);
-  const cx = (w - 1) / 2;
-  const cy = (h - 1) / 2;
-  const maxR = Math.max(cx, cy, 1);
-  const radTotal = (degrees * Math.PI) / 180;
-
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const r = Math.hypot(dx, dy);
-      if (r < maxR) {
-        const factor = 1 - r / maxR;
-        const angle = factor * factor * radTotal;
-        const cosA = Math.cos(angle);
-        const sinA = Math.sin(angle);
-        const sx = cx + dx * cosA - dy * sinA;
-        const sy = cy + dx * sinA + dy * cosA;
-        sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
-      } else {
-        sampleBilinear(img, x, y, bg, out, (y * w + x) * 4);
-      }
-    }
-  }
-  return { ...img, data: out };
-}
-
-function applyMagickImplode(img: RgbaImage, amount: number, bg: RgbaColor): RgbaImage {
-  const w = img.width;
-  const h = img.height;
-  const out = new Uint8Array(w * h * 4);
-  const cx = (w - 1) / 2;
-  const cy = (h - 1) / 2;
-  const maxR = Math.min(cx, cy, 1);
-  const clamped = Math.max(-0.95, Math.min(0.95, amount));
-  const exp = 1 / (1 - clamped);
-
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const r = Math.hypot(dx, dy);
-      if (r < maxR && r > 0) {
-        const newR = maxR * Math.pow(r / maxR, exp);
-        const scale = newR / r;
-        sampleBilinear(img, cx + dx * scale, cy + dy * scale, bg, out, (y * w + x) * 4);
-      } else {
-        sampleBilinear(img, x, y, bg, out, (y * w + x) * 4);
-      }
-    }
-  }
-  return { ...img, data: out };
-}
-
-function applyMagickWave(img: RgbaImage, geomStr: string, bg: RgbaColor): RgbaImage {
-  const g = parseMagickGeometry(geomStr);
-  const amp = g.width ?? 5;
-  const waveLen = Math.max(1, g.height ?? 50);
-  const extraH = Math.round(Math.abs(amp) * 2);
-  const outW = img.width;
-  const outH = img.height + extraH;
-  const out = new Uint8Array(outW * outH * 4);
-  const yPad = Math.abs(amp);
-
-  for (let y = 0; y < outH; y++) {
-    for (let x = 0; x < outW; x++) {
-      const sy = y - yPad - amp * Math.sin((2 * Math.PI * x) / waveLen);
-      sampleBilinear(img, x, sy, bg, out, (y * outW + x) * 4);
-    }
-  }
-  return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
-}
-
-function applyMagickShadow(img: RgbaImage, geomStr: string, shadowColor: RgbaColor): RgbaImage {
-  const g = parseMagickGeometry(geomStr);
-  const opacity = Math.max(0, Math.min(100, g.width ?? 80)) / 100;
-  const sigma = Math.max(0.5, g.height ?? 3);
-  const pad = Math.max(2, Math.ceil(sigma * 2) + Math.max(Math.abs(g.x), Math.abs(g.y)));
-  const outW = img.width + pad * 2;
-  const outH = img.height + pad * 2;
-  const data = new Uint8Array(outW * outH * 4);
-  const offX = pad + Math.round(g.x);
-  const offY = pad + Math.round(g.y);
-
-  for (let y = 0; y < img.height; y++) {
-    for (let x = 0; x < img.width; x++) {
-      const dx = x + offX;
-      const dy = y + offY;
-      if (dx < 0 || dy < 0 || dx >= outW || dy >= outH) continue;
-      const srcA = img.data[(y * img.width + x) * 4 + 3]!;
-      const dstIdx = (dy * outW + dx) * 4;
-      data[dstIdx] = shadowColor.r;
-      data[dstIdx + 1] = shadowColor.g;
-      data[dstIdx + 2] = shadowColor.b;
-      data[dstIdx + 3] = clampByteVal(srcA * opacity);
-    }
-  }
-  const shadowBase: RgbaImage = {
-    ...img,
-    width: outW,
-    height: outH,
-    data,
-    hasAlpha: true
-  };
-  return blurImage(shadowBase, sigma);
-}
-
-function applyMagickVignette(img: RgbaImage, _geomStr: string, bg: RgbaColor): RgbaImage {
-  const w = img.width;
-  const h = img.height;
-  const out = new Uint8Array(img.data);
-  const cx = (w - 1) / 2;
-  const cy = (h - 1) / 2;
-
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const nx = (x - cx) / Math.max(1, cx);
-      const ny = (y - cy) / Math.max(1, cy);
-      const d = Math.hypot(nx, ny);
-      const t = Math.max(0, Math.min(1, (d - 0.65) / 0.55));
-      const idx = (y * w + x) * 4;
-      out[idx] = clampByteVal(out[idx]! * (1 - t) + bg.r * t);
-      out[idx + 1] = clampByteVal(out[idx + 1]! * (1 - t) + bg.g * t);
-      out[idx + 2] = clampByteVal(out[idx + 2]! * (1 - t) + bg.b * t);
-    }
-  }
-  return { ...img, data: out };
-}
-
-function applyMagickSepiaTone(img: RgbaImage, threshStr: string): RgbaImage {
-  const raw = parseFloat(threshStr);
-  const strength = Math.max(0, Math.min(1, (threshStr.endsWith("%") ? raw : raw / 255) / 100 || 0.8));
-  const out = new Uint8Array(img.data);
-  for (let i = 0; i < out.length; i += 4) {
-    const r = out[i]!;
-    const g = out[i + 1]!;
-    const b = out[i + 2]!;
-    const sr = Math.min(255, 0.393 * r + 0.769 * g + 0.189 * b);
-    const sg = Math.min(255, 0.349 * r + 0.686 * g + 0.168 * b);
-    const sb = Math.min(255, 0.272 * r + 0.534 * g + 0.131 * b);
-    out[i] = clampByteVal(r * (1 - strength) + sr * strength);
-    out[i + 1] = clampByteVal(g * (1 - strength) + sg * strength);
-    out[i + 2] = clampByteVal(b * (1 - strength) + sb * strength);
-  }
-  return { ...img, data: out };
-}
-
-function applyMagickSolarize(img: RgbaImage, threshStr: string): RgbaImage {
-  const raw = parseFloat(threshStr);
-  const thresh = threshStr.endsWith("%") ? (raw / 100) * 255 : raw;
-  const out = new Uint8Array(img.data);
-  for (let i = 0; i < out.length; i += 4) {
-    if (out[i]! > thresh) out[i] = 255 - out[i]!;
-    if (out[i + 1]! > thresh) out[i + 1] = 255 - out[i + 1]!;
-    if (out[i + 2]! > thresh) out[i + 2] = 255 - out[i + 2]!;
-  }
-  return { ...img, data: out };
-}
-
-function applyMagickPosterize(img: RgbaImage, levelsRaw: number): RgbaImage {
-  const levels = Math.max(2, Math.min(256, Math.round(levelsRaw)));
-  const step = 255 / (levels - 1);
-  const out = new Uint8Array(img.data);
-  for (let i = 0; i < out.length; i += 4) {
-    out[i] = clampByteVal(Math.round((out[i]! / 255) * (levels - 1)) * step);
-    out[i + 1] = clampByteVal(Math.round((out[i + 1]! / 255) * (levels - 1)) * step);
-    out[i + 2] = clampByteVal(Math.round((out[i + 2]! / 255) * (levels - 1)) * step);
-  }
-  return { ...img, data: out };
-}
-
-function applyMagickConvolve3x3(img: RgbaImage, kernel: readonly number[], bias = 0): RgbaImage {
-  const w = img.width;
-  const h = img.height;
-  const out = new Uint8Array(img.data);
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      for (let c = 0; c < 3; c++) {
-        let sum = bias;
-        let kIdx = 0;
-        for (let ky = -1; ky <= 1; ky++) {
-          const sy = Math.max(0, Math.min(h - 1, y + ky));
-          for (let kx = -1; kx <= 1; kx++) {
-            const sx = Math.max(0, Math.min(w - 1, x + kx));
-            sum += img.data[(sy * w + sx) * 4 + c]! * kernel[kIdx++]!;
-          }
+function* applyMagickDistortSteps(img: RgbaImage, methodRaw: string, argsRaw: string, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const method = methodRaw.toLowerCase().replace(/[-_]/g, "");
+    const nums = argsRaw
+        .trim()
+        .split(/[\s,]+/)
+        .filter((s) => s.length > 0)
+        .map(Number);
+    const w = img.width;
+    const h = img.height;
+    const out = new Uint8Array(w * h * 4);
+    if (method === "srt" || method === "scalerotatetranslate") {
+        let cx = (w - 1) / 2;
+        let cy = (h - 1) / 2;
+        let scaleX = 1;
+        let scaleY = 1;
+        let angleDeg = 0;
+        let nx = cx;
+        let ny = cy;
+        if (nums.length === 1) {
+            angleDeg = nums[0]!;
         }
-        out[(y * w + x) * 4 + c] = clampByteVal(sum);
-      }
+        else if (nums.length === 2) {
+            scaleX = scaleY = nums[0] || 1;
+            angleDeg = nums[1]!;
+        }
+        else if (nums.length === 3) {
+            cx = nx = nums[0]!;
+            cy = ny = nums[1]!;
+            angleDeg = nums[2]!;
+        }
+        else if (nums.length === 4) {
+            cx = nx = nums[0]!;
+            cy = ny = nums[1]!;
+            scaleX = scaleY = nums[2] || 1;
+            angleDeg = nums[3]!;
+        }
+        else if (nums.length === 5) {
+            cx = nx = nums[0]!;
+            cy = ny = nums[1]!;
+            scaleX = nums[2] || 1;
+            scaleY = nums[3] || 1;
+            angleDeg = nums[4]!;
+        }
+        else if (nums.length === 6) {
+            cx = nums[0]!;
+            cy = nums[1]!;
+            scaleX = scaleY = nums[2] || 1;
+            angleDeg = nums[3]!;
+            nx = nums[4]!;
+            ny = nums[5]!;
+        }
+        else if (nums.length >= 7) {
+            cx = nums[0]!;
+            cy = nums[1]!;
+            scaleX = nums[2] || 1;
+            scaleY = nums[3] || 1;
+            angleDeg = nums[4]!;
+            nx = nums[5]!;
+            ny = nums[6]!;
+        }
+        const rad = (angleDeg * Math.PI) / 180;
+        const cosA = Math.cos(rad);
+        const sinA = Math.sin(rad);
+        for (let y = 0; y < h; y++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            for (let x = 0; x < w; x++) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                const dx = x - nx;
+                const dy = y - ny;
+                const sx = cx + (dx * cosA + dy * sinA) / scaleX;
+                const sy = cy + (-dx * sinA + dy * cosA) / scaleY;
+                sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
+            }
+        }
+        return { ...img, data: out, hasAlpha: true };
     }
-  }
-  return { ...img, data: out };
+    if ((method === "perspective" && nums.length >= 16) || (method === "perspectiveprojection" && nums.length >= 8)) {
+        let hCoeff: number[];
+        if (method === "perspectiveprojection") {
+            hCoeff = nums.slice(0, 8);
+        }
+        else {
+            // Solve inverse homography mapping dst (dx, dy) -> src (sx, sy)
+            const A: number[][] = [];
+            const bVec: number[] = [];
+            for (let p = 0; p < 4; p++) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                const sx = nums[p * 4]!;
+                const sy = nums[p * 4 + 1]!;
+                const dx = nums[p * 4 + 2]!;
+                const dy = nums[p * 4 + 3]!;
+                A.push([dx, dy, 1, 0, 0, 0, -dx * sx, -dy * sx]);
+                bVec.push(sx);
+                A.push([0, 0, 0, dx, dy, 1, -dx * sy, -dy * sy]);
+                bVec.push(sy);
+            }
+            hCoeff = solveLinearSystem(A, bVec);
+        }
+        if (hCoeff.every((c) => Math.abs(c) < 1e-12)) {
+            return img;
+        }
+        const [c0, c1, c2, c3, c4, c5, c6, c7] = hCoeff as [
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+            number
+        ];
+        for (let y = 0; y < h; y++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            for (let x = 0; x < w; x++) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                const denom = c6 * x + c7 * y + 1 || 1e-9;
+                const sx = (c0 * x + c1 * y + c2) / denom;
+                const sy = (c3 * x + c4 * y + c5) / denom;
+                sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
+            }
+        }
+        return { ...img, data: out, hasAlpha: true };
+    }
+    if (method === "affine" && nums.length >= 12) {
+        const A: number[][] = [];
+        const bx: number[] = [];
+        const by: number[] = [];
+        for (let p = 0; p < 3; p++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const sx = nums[p * 4]!;
+            const sy = nums[p * 4 + 1]!;
+            const dx = nums[p * 4 + 2]!;
+            const dy = nums[p * 4 + 3]!;
+            A.push([dx, dy, 1]);
+            bx.push(sx);
+            by.push(sy);
+        }
+        const rx = solveLinearSystem(A, bx);
+        const ry = solveLinearSystem(A, by);
+        for (let y = 0; y < h; y++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            for (let x = 0; x < w; x++) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                const sx = rx[0]! * x + rx[1]! * y + rx[2]!;
+                const sy = ry[0]! * x + ry[1]! * y + ry[2]!;
+                sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
+            }
+        }
+        return { ...img, data: out, hasAlpha: true };
+    }
+    if (method === "barrel" && nums.length >= 3) {
+        const A = nums[0] ?? 0;
+        const B = nums[1] ?? 0;
+        const C = nums[2] ?? 0;
+        const D = nums[3] ?? 1 - A - B - C;
+        const cx = nums[4] ?? (w - 1) / 2;
+        const cy = nums[5] ?? (h - 1) / 2;
+        const rNorm = Math.min(w, h) / 2;
+        for (let y = 0; y < h; y++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            for (let x = 0; x < w; x++) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                const dx = (x - cx) / rNorm;
+                const dy = (y - cy) / rNorm;
+                const r = Math.hypot(dx, dy);
+                const factor = A * r * r * r + B * r * r + C * r + D;
+                const sx = cx + dx * factor * rNorm;
+                const sy = cy + dy * factor * rNorm;
+                sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
+            }
+        }
+        return { ...img, data: out, hasAlpha: true };
+    }
+    return img;
+}
+
+function* applyMagickSwirlSteps(img: RgbaImage, degrees: number, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const w = img.width;
+    const h = img.height;
+    const out = new Uint8Array(w * h * 4);
+    const cx = (w - 1) / 2;
+    const cy = (h - 1) / 2;
+    const maxR = Math.max(cx, cy, 1);
+    const radTotal = (degrees * Math.PI) / 180;
+    for (let y = 0; y < h; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let x = 0; x < w; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const dx = x - cx;
+            const dy = y - cy;
+            const r = Math.hypot(dx, dy);
+            if (r < maxR) {
+                const factor = 1 - r / maxR;
+                const angle = factor * factor * radTotal;
+                const cosA = Math.cos(angle);
+                const sinA = Math.sin(angle);
+                const sx = cx + dx * cosA - dy * sinA;
+                const sy = cy + dx * sinA + dy * cosA;
+                sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
+            }
+            else {
+                sampleBilinear(img, x, y, bg, out, (y * w + x) * 4);
+            }
+        }
+    }
+    return { ...img, data: out };
+}
+
+function* applyMagickImplodeSteps(img: RgbaImage, amount: number, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const w = img.width;
+    const h = img.height;
+    const out = new Uint8Array(w * h * 4);
+    const cx = (w - 1) / 2;
+    const cy = (h - 1) / 2;
+    const maxR = Math.min(cx, cy, 1);
+    const clamped = Math.max(-0.95, Math.min(0.95, amount));
+    const exp = 1 / (1 - clamped);
+    for (let y = 0; y < h; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let x = 0; x < w; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const dx = x - cx;
+            const dy = y - cy;
+            const r = Math.hypot(dx, dy);
+            if (r < maxR && r > 0) {
+                const newR = maxR * Math.pow(r / maxR, exp);
+                const scale = newR / r;
+                sampleBilinear(img, cx + dx * scale, cy + dy * scale, bg, out, (y * w + x) * 4);
+            }
+            else {
+                sampleBilinear(img, x, y, bg, out, (y * w + x) * 4);
+            }
+        }
+    }
+    return { ...img, data: out };
+}
+
+function* applyMagickWaveSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const g = parseMagickGeometry(geomStr);
+    const amp = g.width ?? 5;
+    const waveLen = Math.max(1, g.height ?? 50);
+    const extraH = Math.round(Math.abs(amp) * 2);
+    const outW = img.width;
+    const outH = img.height + extraH;
+    const out = new Uint8Array(outW * outH * 4);
+    const yPad = Math.abs(amp);
+    for (let y = 0; y < outH; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let x = 0; x < outW; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const sy = y - yPad - amp * Math.sin((2 * Math.PI * x) / waveLen);
+            sampleBilinear(img, x, sy, bg, out, (y * outW + x) * 4);
+        }
+    }
+    return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
+}
+
+function* applyMagickShadowSteps(img: RgbaImage, geomStr: string, shadowColor: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const g = parseMagickGeometry(geomStr);
+    const opacity = Math.max(0, Math.min(100, g.width ?? 80)) / 100;
+    const sigma = Math.max(0.5, g.height ?? 3);
+    const pad = Math.max(2, Math.ceil(sigma * 2) + Math.max(Math.abs(g.x), Math.abs(g.y)));
+    const outW = img.width + pad * 2;
+    const outH = img.height + pad * 2;
+    const data = new Uint8Array(outW * outH * 4);
+    const offX = pad + Math.round(g.x);
+    const offY = pad + Math.round(g.y);
+    for (let y = 0; y < img.height; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let x = 0; x < img.width; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const dx = x + offX;
+            const dy = y + offY;
+            if (dx < 0 || dy < 0 || dx >= outW || dy >= outH)
+                continue;
+            const srcA = img.data[(y * img.width + x) * 4 + 3]!;
+            const dstIdx = (dy * outW + dx) * 4;
+            data[dstIdx] = shadowColor.r;
+            data[dstIdx + 1] = shadowColor.g;
+            data[dstIdx + 2] = shadowColor.b;
+            data[dstIdx + 3] = clampByteVal(srcA * opacity);
+        }
+    }
+    const shadowBase: RgbaImage = {
+        ...img,
+        width: outW,
+        height: outH,
+        data,
+        hasAlpha: true
+    };
+    return blurImage(shadowBase, sigma);
+}
+
+function* applyMagickVignetteSteps(img: RgbaImage, _geomStr: string, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const w = img.width;
+    const h = img.height;
+    const out = new Uint8Array(img.data);
+    const cx = (w - 1) / 2;
+    const cy = (h - 1) / 2;
+    for (let y = 0; y < h; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let x = 0; x < w; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const nx = (x - cx) / Math.max(1, cx);
+            const ny = (y - cy) / Math.max(1, cy);
+            const d = Math.hypot(nx, ny);
+            const t = Math.max(0, Math.min(1, (d - 0.65) / 0.55));
+            const idx = (y * w + x) * 4;
+            out[idx] = clampByteVal(out[idx]! * (1 - t) + bg.r * t);
+            out[idx + 1] = clampByteVal(out[idx + 1]! * (1 - t) + bg.g * t);
+            out[idx + 2] = clampByteVal(out[idx + 2]! * (1 - t) + bg.b * t);
+        }
+    }
+    return { ...img, data: out };
+}
+
+function* applyMagickSepiaToneSteps(img: RgbaImage, threshStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const raw = parseFloat(threshStr);
+    const strength = Math.max(0, Math.min(1, (threshStr.endsWith("%") ? raw : raw / 255) / 100 || 0.8));
+    const out = new Uint8Array(img.data);
+    for (let i = 0; i < out.length; i += 4) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const r = out[i]!;
+        const g = out[i + 1]!;
+        const b = out[i + 2]!;
+        const sr = Math.min(255, 0.393 * r + 0.769 * g + 0.189 * b);
+        const sg = Math.min(255, 0.349 * r + 0.686 * g + 0.168 * b);
+        const sb = Math.min(255, 0.272 * r + 0.534 * g + 0.131 * b);
+        out[i] = clampByteVal(r * (1 - strength) + sr * strength);
+        out[i + 1] = clampByteVal(g * (1 - strength) + sg * strength);
+        out[i + 2] = clampByteVal(b * (1 - strength) + sb * strength);
+    }
+    return { ...img, data: out };
+}
+
+function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const raw = parseFloat(threshStr);
+    const thresh = threshStr.endsWith("%") ? (raw / 100) * 255 : raw;
+    const out = new Uint8Array(img.data);
+    for (let i = 0; i < out.length; i += 4) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        if (out[i]! > thresh)
+            out[i] = 255 - out[i]!;
+        if (out[i + 1]! > thresh)
+            out[i + 1] = 255 - out[i + 1]!;
+        if (out[i + 2]! > thresh)
+            out[i + 2] = 255 - out[i + 2]!;
+    }
+    return { ...img, data: out };
+}
+
+function* applyMagickPosterizeSteps(img: RgbaImage, levelsRaw: number, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const levels = Math.max(2, Math.min(256, Math.round(levelsRaw)));
+    const step = 255 / (levels - 1);
+    const out = new Uint8Array(img.data);
+    for (let i = 0; i < out.length; i += 4) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        out[i] = clampByteVal(Math.round((out[i]! / 255) * (levels - 1)) * step);
+        out[i + 1] = clampByteVal(Math.round((out[i + 1]! / 255) * (levels - 1)) * step);
+        out[i + 2] = clampByteVal(Math.round((out[i + 2]! / 255) * (levels - 1)) * step);
+    }
+    return { ...img, data: out };
+}
+
+function* applyMagickConvolve3x3Steps(img: RgbaImage, kernel: readonly number[], bias = 0, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const w = img.width;
+    const h = img.height;
+    const out = new Uint8Array(img.data);
+    for (let y = 0; y < h; y++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        for (let x = 0; x < w; x++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            for (let c = 0; c < 3; c++) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                let sum = bias;
+                let kIdx = 0;
+                for (let ky = -1; ky <= 1; ky++) {
+                    if (++cooperativeWork % 65536 === 0)
+                        yield;
+                    const sy = Math.max(0, Math.min(h - 1, y + ky));
+                    for (let kx = -1; kx <= 1; kx++) {
+                        if (++cooperativeWork % 65536 === 0)
+                            yield;
+                        const sx = Math.max(0, Math.min(w - 1, x + kx));
+                        sum += img.data[(sy * w + sx) * 4 + c]! * kernel[kIdx++]!;
+                    }
+                }
+                out[(y * w + x) * 4 + c] = clampByteVal(sum);
+            }
+        }
+    }
+    return { ...img, data: out };
 }
 
 function resolveGravityOffset(
@@ -2508,231 +2671,234 @@ function parseCompose(raw: string): BlendMode {
   }
 }
 
-function applyMagickCompositeLayer(
-  dst: RgbaImage,
-  src: RgbaImage,
-  modeRaw: string,
-  left: number,
-  top: number,
-  composeArgs?: string
-): RgbaImage {
-  const norm = modeRaw.toLowerCase().replace(/[-_\s]/g, "");
-  const out = new Uint8Array(dst.data);
-  const dw = dst.width;
-  const dh = dst.height;
-  const sw = src.width;
-  const sh = src.height;
-
-  for (let sy = 0; sy < sh; sy++) {
-    const dy = top + sy;
-    if (dy < 0 || dy >= dh) continue;
-    for (let sx = 0; sx < sw; sx++) {
-      const dx = left + sx;
-      if (dx < 0 || dx >= dw) continue;
-      const sIdx = (sy * sw + sx) * 4;
-      const dIdx = (dy * dw + dx) * 4;
-      const sr = src.data[sIdx]!;
-      const sg = src.data[sIdx + 1]!;
-      const sb = src.data[sIdx + 2]!;
-      const saByte = src.data[sIdx + 3]!;
-      const dr = dst.data[dIdx]!;
-      const dg = dst.data[dIdx + 1]!;
-      const db = dst.data[dIdx + 2]!;
-      const daByte = dst.data[dIdx + 3]!;
-      const sa = saByte / 255;
-      const da = daByte / 255;
-
-      if (norm === "dissolve") {
-        const [sStr, dStr] = (composeArgs || "100").split(/[xX,]/);
-        const sMod = Math.max(0, Math.min(1, (parseFloat(sStr || "100") || 0) / 100));
-        const dMod = dStr !== undefined ? Math.max(0, Math.min(1, (parseFloat(dStr) || 0) / 100)) : 1;
-        const effSa = sa * sMod;
-        const effDa = da * dMod;
-        const outA = effSa + effDa * (1 - effSa);
-        if (outA <= 1e-6) {
-          out[dIdx] = 0;
-          out[dIdx + 1] = 0;
-          out[dIdx + 2] = 0;
-          out[dIdx + 3] = 0;
-        } else {
-          out[dIdx] = clampByteVal((sr * effSa + dr * effDa * (1 - effSa)) / outA);
-          out[dIdx + 1] = clampByteVal((sg * effSa + dg * effDa * (1 - effSa)) / outA);
-          out[dIdx + 2] = clampByteVal((sb * effSa + db * effDa * (1 - effSa)) / outA);
-          out[dIdx + 3] = clampByteVal(outA * 255);
+function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const norm = modeRaw.toLowerCase().replace(/[-_\s]/g, "");
+    const out = new Uint8Array(dst.data);
+    const dw = dst.width;
+    const dh = dst.height;
+    const sw = src.width;
+    const sh = src.height;
+    for (let sy = 0; sy < sh; sy++) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const dy = top + sy;
+        if (dy < 0 || dy >= dh)
+            continue;
+        for (let sx = 0; sx < sw; sx++) {
+            if (++cooperativeWork % 65536 === 0)
+                yield;
+            const dx = left + sx;
+            if (dx < 0 || dx >= dw)
+                continue;
+            const sIdx = (sy * sw + sx) * 4;
+            const dIdx = (dy * dw + dx) * 4;
+            const sr = src.data[sIdx]!;
+            const sg = src.data[sIdx + 1]!;
+            const sb = src.data[sIdx + 2]!;
+            const saByte = src.data[sIdx + 3]!;
+            const dr = dst.data[dIdx]!;
+            const dg = dst.data[dIdx + 1]!;
+            const db = dst.data[dIdx + 2]!;
+            const daByte = dst.data[dIdx + 3]!;
+            const sa = saByte / 255;
+            const da = daByte / 255;
+            if (norm === "dissolve") {
+                const [sStr, dStr] = (composeArgs || "100").split(/[xX,]/);
+                const sMod = Math.max(0, Math.min(1, (parseFloat(sStr || "100") || 0) / 100));
+                const dMod = dStr !== undefined ? Math.max(0, Math.min(1, (parseFloat(dStr) || 0) / 100)) : 1;
+                const effSa = sa * sMod;
+                const effDa = da * dMod;
+                const outA = effSa + effDa * (1 - effSa);
+                if (outA <= 1e-6) {
+                    out[dIdx] = 0;
+                    out[dIdx + 1] = 0;
+                    out[dIdx + 2] = 0;
+                    out[dIdx + 3] = 0;
+                }
+                else {
+                    out[dIdx] = clampByteVal((sr * effSa + dr * effDa * (1 - effSa)) / outA);
+                    out[dIdx + 1] = clampByteVal((sg * effSa + dg * effDa * (1 - effSa)) / outA);
+                    out[dIdx + 2] = clampByteVal((sb * effSa + db * effDa * (1 - effSa)) / outA);
+                    out[dIdx + 3] = clampByteVal(outA * 255);
+                }
+                continue;
+            }
+            if (norm === "blend") {
+                const [sStr, dStr] = (composeArgs || "50").split(/[xX,]/);
+                const wSrc = Math.max(0, (parseFloat(sStr || "50") || 0) / 100);
+                const wDst = dStr !== undefined ? Math.max(0, (parseFloat(dStr) || 0) / 100) : Math.max(0, 1 - wSrc);
+                out[dIdx] = clampByteVal(sr * wSrc + dr * wDst);
+                out[dIdx + 1] = clampByteVal(sg * wSrc + dg * wDst);
+                out[dIdx + 2] = clampByteVal(sb * wSrc + db * wDst);
+                out[dIdx + 3] = clampByteVal(saByte * wSrc + daByte * wDst);
+                continue;
+            }
+            if (norm === "src" || norm === "source" || norm === "copy") {
+                out[dIdx] = sr;
+                out[dIdx + 1] = sg;
+                out[dIdx + 2] = sb;
+                out[dIdx + 3] = saByte;
+                continue;
+            }
+            if (norm === "dst" || norm === "dest") {
+                continue;
+            }
+            if (norm === "clear") {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
+                out[dIdx + 3] = 0;
+                continue;
+            }
+            if (norm === "copyopacity" || norm === "copyalpha") {
+                out[dIdx + 3] = saByte;
+                continue;
+            }
+            if (norm === "copyred") {
+                out[dIdx] = sr;
+                continue;
+            }
+            if (norm === "copygreen") {
+                out[dIdx + 1] = sg;
+                continue;
+            }
+            if (norm === "copyblue") {
+                out[dIdx + 2] = sb;
+                continue;
+            }
+            if (norm === "difference") {
+                out[dIdx] = Math.abs(sr - dr);
+                out[dIdx + 1] = Math.abs(sg - dg);
+                out[dIdx + 2] = Math.abs(sb - db);
+                out[dIdx + 3] = Math.abs(saByte - daByte);
+                continue;
+            }
+            if (norm === "in" || norm === "srcin") {
+                const factor = sa * da;
+                out[dIdx] = clampByteVal(sr * factor);
+                out[dIdx + 1] = clampByteVal(sg * factor);
+                out[dIdx + 2] = clampByteVal(sb * factor);
+                out[dIdx + 3] = clampByteVal(factor * 255);
+                continue;
+            }
+            if (norm === "out" || norm === "srcout") {
+                const factor = sa * (1 - da);
+                out[dIdx] = clampByteVal(sr * factor);
+                out[dIdx + 1] = clampByteVal(sg * factor);
+                out[dIdx + 2] = clampByteVal(sb * factor);
+                out[dIdx + 3] = clampByteVal(factor * 255);
+                continue;
+            }
+            if (norm === "dstin" || norm === "destin") {
+                const factor = sa * da;
+                out[dIdx] = dr;
+                out[dIdx + 1] = dg;
+                out[dIdx + 2] = db;
+                out[dIdx + 3] = clampByteVal(factor * 255);
+                continue;
+            }
+            if (norm === "dstout" || norm === "destout") {
+                const factor = da * (1 - sa);
+                out[dIdx] = dr;
+                out[dIdx + 1] = dg;
+                out[dIdx + 2] = db;
+                out[dIdx + 3] = clampByteVal(factor * 255);
+                continue;
+            }
+            if (norm === "atop" || norm === "srcatop") {
+                out[dIdx] = clampByteVal(sr * sa * da + dr * da * (1 - sa));
+                out[dIdx + 1] = clampByteVal(sg * sa * da + dg * da * (1 - sa));
+                out[dIdx + 2] = clampByteVal(sb * sa * da + db * da * (1 - sa));
+                out[dIdx + 3] = daByte;
+                continue;
+            }
+            if (norm === "dstatop" || norm === "destatop") {
+                out[dIdx] = clampByteVal(dr * da * sa + sr * sa * (1 - da));
+                out[dIdx + 1] = clampByteVal(dg * da * sa + sg * sa * (1 - da));
+                out[dIdx + 2] = clampByteVal(db * da * sa + sb * sa * (1 - da));
+                out[dIdx + 3] = saByte;
+                continue;
+            }
+            if (norm === "xor") {
+                const outA = sa * (1 - da) + da * (1 - sa);
+                out[dIdx] = clampByteVal(sr * sa * (1 - da) + dr * da * (1 - sa));
+                out[dIdx + 1] = clampByteVal(sg * sa * (1 - da) + dg * da * (1 - sa));
+                out[dIdx + 2] = clampByteVal(sb * sa * (1 - da) + db * da * (1 - sa));
+                out[dIdx + 3] = clampByteVal(outA * 255);
+                continue;
+            }
+            if (norm === "multiply" ||
+                norm === "screen" ||
+                norm === "overlay" ||
+                norm === "darken" ||
+                norm === "lighten" ||
+                norm === "exclusion") {
+                const gamma = sa + da - sa * da;
+                const sChan = [sr / 255, sg / 255, sb / 255];
+                const dChan = [dr / 255, dg / 255, db / 255];
+                for (let c = 0; c < 3; c++) {
+                    if (++cooperativeWork % 65536 === 0)
+                        yield;
+                    const sc = sChan[c]!;
+                    const dc = dChan[c]!;
+                    if (norm === "darken") {
+                        const comp = Math.min(sc * sa, dc * da) + sc * sa * (1 - da) + dc * da * (1 - sa);
+                        out[dIdx + c] = clampByteVal(comp * 255);
+                    }
+                    else if (norm === "lighten") {
+                        const comp = Math.max(sc, dc) * sa * da + sc * sa * (1 - da) + dc * da * (1 - sa);
+                        out[dIdx + c] = clampByteVal(comp * 255);
+                    }
+                    else if (norm === "exclusion") {
+                        const comp = gamma * (sc * sa + dc - 2 * sc * dc * sa);
+                        out[dIdx + c] = clampByteVal(comp * 255);
+                    }
+                    else {
+                        let f = 0;
+                        if (norm === "multiply")
+                            f = sc * dc;
+                        else if (norm === "screen")
+                            f = sc + dc - sc * dc;
+                        else
+                            f = dc <= 0.5 ? 2 * sc * dc : 1 - 2 * (1 - sc) * (1 - dc);
+                        const comp = f * sa * da + sc * sa * (1 - da) + dc * da * (1 - sa);
+                        const unpremul = gamma > 1e-6 && norm === "overlay" ? comp / gamma : comp;
+                        out[dIdx + c] = clampByteVal(unpremul * 255);
+                    }
+                }
+                out[dIdx + 3] = clampByteVal(gamma * 255);
+                continue;
+            }
         }
-        continue;
-      }
-      if (norm === "blend") {
-        const [sStr, dStr] = (composeArgs || "50").split(/[xX,]/);
-        const wSrc = Math.max(0, (parseFloat(sStr || "50") || 0) / 100);
-        const wDst = dStr !== undefined ? Math.max(0, (parseFloat(dStr) || 0) / 100) : Math.max(0, 1 - wSrc);
-        out[dIdx] = clampByteVal(sr * wSrc + dr * wDst);
-        out[dIdx + 1] = clampByteVal(sg * wSrc + dg * wDst);
-        out[dIdx + 2] = clampByteVal(sb * wSrc + db * wDst);
-        out[dIdx + 3] = clampByteVal(saByte * wSrc + daByte * wDst);
-        continue;
-      }
-      if (norm === "src" || norm === "source" || norm === "copy") {
-        out[dIdx] = sr;
-        out[dIdx + 1] = sg;
-        out[dIdx + 2] = sb;
-        out[dIdx + 3] = saByte;
-        continue;
-      }
-      if (norm === "dst" || norm === "dest") {
-        continue;
-      }
-      if (norm === "clear") {
-        out[dIdx] = 0;
-        out[dIdx + 1] = 0;
-        out[dIdx + 2] = 0;
-        out[dIdx + 3] = 0;
-        continue;
-      }
-      if (norm === "copyopacity" || norm === "copyalpha") {
-        out[dIdx + 3] = saByte;
-        continue;
-      }
-      if (norm === "copyred") {
-        out[dIdx] = sr;
-        continue;
-      }
-      if (norm === "copygreen") {
-        out[dIdx + 1] = sg;
-        continue;
-      }
-      if (norm === "copyblue") {
-        out[dIdx + 2] = sb;
-        continue;
-      }
-      if (norm === "difference") {
-        out[dIdx] = Math.abs(sr - dr);
-        out[dIdx + 1] = Math.abs(sg - dg);
-        out[dIdx + 2] = Math.abs(sb - db);
-        out[dIdx + 3] = Math.abs(saByte - daByte);
-        continue;
-      }
-      if (norm === "in" || norm === "srcin") {
-        const factor = sa * da;
-        out[dIdx] = clampByteVal(sr * factor);
-        out[dIdx + 1] = clampByteVal(sg * factor);
-        out[dIdx + 2] = clampByteVal(sb * factor);
-        out[dIdx + 3] = clampByteVal(factor * 255);
-        continue;
-      }
-      if (norm === "out" || norm === "srcout") {
-        const factor = sa * (1 - da);
-        out[dIdx] = clampByteVal(sr * factor);
-        out[dIdx + 1] = clampByteVal(sg * factor);
-        out[dIdx + 2] = clampByteVal(sb * factor);
-        out[dIdx + 3] = clampByteVal(factor * 255);
-        continue;
-      }
-      if (norm === "dstin" || norm === "destin") {
-        const factor = sa * da;
-        out[dIdx] = dr;
-        out[dIdx + 1] = dg;
-        out[dIdx + 2] = db;
-        out[dIdx + 3] = clampByteVal(factor * 255);
-        continue;
-      }
-      if (norm === "dstout" || norm === "destout") {
-        const factor = da * (1 - sa);
-        out[dIdx] = dr;
-        out[dIdx + 1] = dg;
-        out[dIdx + 2] = db;
-        out[dIdx + 3] = clampByteVal(factor * 255);
-        continue;
-      }
-      if (norm === "atop" || norm === "srcatop") {
-        out[dIdx] = clampByteVal(sr * sa * da + dr * da * (1 - sa));
-        out[dIdx + 1] = clampByteVal(sg * sa * da + dg * da * (1 - sa));
-        out[dIdx + 2] = clampByteVal(sb * sa * da + db * da * (1 - sa));
-        out[dIdx + 3] = daByte;
-        continue;
-      }
-      if (norm === "dstatop" || norm === "destatop") {
-        out[dIdx] = clampByteVal(dr * da * sa + sr * sa * (1 - da));
-        out[dIdx + 1] = clampByteVal(dg * da * sa + sg * sa * (1 - da));
-        out[dIdx + 2] = clampByteVal(db * da * sa + sb * sa * (1 - da));
-        out[dIdx + 3] = saByte;
-        continue;
-      }
-      if (norm === "xor") {
-        const outA = sa * (1 - da) + da * (1 - sa);
-        out[dIdx] = clampByteVal(sr * sa * (1 - da) + dr * da * (1 - sa));
-        out[dIdx + 1] = clampByteVal(sg * sa * (1 - da) + dg * da * (1 - sa));
-        out[dIdx + 2] = clampByteVal(sb * sa * (1 - da) + db * da * (1 - sa));
-        out[dIdx + 3] = clampByteVal(outA * 255);
-        continue;
-      }
-      if (
-        norm === "multiply" ||
-        norm === "screen" ||
-        norm === "overlay" ||
-        norm === "darken" ||
-        norm === "lighten" ||
-        norm === "exclusion"
-      ) {
-        const gamma = sa + da - sa * da;
-        const sChan = [sr / 255, sg / 255, sb / 255];
-        const dChan = [dr / 255, dg / 255, db / 255];
-        for (let c = 0; c < 3; c++) {
-          const sc = sChan[c]!;
-          const dc = dChan[c]!;
-          if (norm === "darken") {
-            const comp = Math.min(sc * sa, dc * da) + sc * sa * (1 - da) + dc * da * (1 - sa);
-            out[dIdx + c] = clampByteVal(comp * 255);
-          } else if (norm === "lighten") {
-            const comp = Math.max(sc, dc) * sa * da + sc * sa * (1 - da) + dc * da * (1 - sa);
-            out[dIdx + c] = clampByteVal(comp * 255);
-          } else if (norm === "exclusion") {
-            const comp = gamma * (sc * sa + dc - 2 * sc * dc * sa);
-            out[dIdx + c] = clampByteVal(comp * 255);
-          } else {
-            let f = 0;
-            if (norm === "multiply") f = sc * dc;
-            else if (norm === "screen") f = sc + dc - sc * dc;
-            else f = dc <= 0.5 ? 2 * sc * dc : 1 - 2 * (1 - sc) * (1 - dc);
-            const comp = f * sa * da + sc * sa * (1 - da) + dc * da * (1 - sa);
-            const unpremul = gamma > 1e-6 && norm === "overlay" ? comp / gamma : comp;
-            out[dIdx + c] = clampByteVal(unpremul * 255);
-          }
+    }
+    if (norm === "over" ||
+        norm === "srcover" ||
+        norm === "dstover" ||
+        norm === "destover" ||
+        norm === "plus" ||
+        norm === "add" ||
+        norm === "lineardodge" ||
+        norm === "colordodge" ||
+        norm === "colorburn" ||
+        norm === "hardlight" ||
+        norm === "softlight" ||
+        norm === "saturate") {
+        const ox = Math.round(left);
+        const oy = Math.round(top);
+        if (ox >= 0 && oy >= 0 && ox + src.width <= dst.width && oy + src.height <= dst.height) {
+            return compositeImage(dst, [rgbaToCompositeLayer(src, ox, oy, parseCompose(modeRaw))]);
         }
-        out[dIdx + 3] = clampByteVal(gamma * 255);
-        continue;
-      }
+        const sx0 = Math.max(0, -ox);
+        const sy0 = Math.max(0, -oy);
+        const sx1 = Math.min(src.width, dst.width - ox);
+        const sy1 = Math.min(src.height, dst.height - oy);
+        if (sx1 <= sx0 || sy1 <= sy0)
+            return dst;
+        const clipped = extractImage(src, { left: sx0, top: sy0, width: sx1 - sx0, height: sy1 - sy0 });
+        return compositeImage(dst, [rgbaToCompositeLayer(clipped, Math.max(0, ox), Math.max(0, oy), parseCompose(modeRaw))]);
     }
-  }
-
-  if (
-    norm === "over" ||
-    norm === "srcover" ||
-    norm === "dstover" ||
-    norm === "destover" ||
-    norm === "plus" ||
-    norm === "add" ||
-    norm === "lineardodge" ||
-    norm === "colordodge" ||
-    norm === "colorburn" ||
-    norm === "hardlight" ||
-    norm === "softlight" ||
-    norm === "saturate"
-  ) {
-    const ox = Math.round(left);
-    const oy = Math.round(top);
-    if (ox >= 0 && oy >= 0 && ox + src.width <= dst.width && oy + src.height <= dst.height) {
-      return compositeImage(dst, [rgbaToCompositeLayer(src, ox, oy, parseCompose(modeRaw))]);
-    }
-    const sx0 = Math.max(0, -ox);
-    const sy0 = Math.max(0, -oy);
-    const sx1 = Math.min(src.width, dst.width - ox);
-    const sy1 = Math.min(src.height, dst.height - oy);
-    if (sx1 <= sx0 || sy1 <= sy0) return dst;
-    const clipped = extractImage(src, { left: sx0, top: sy0, width: sx1 - sx0, height: sy1 - sy0 });
-    return compositeImage(dst, [rgbaToCompositeLayer(clipped, Math.max(0, ox), Math.max(0, oy), parseCompose(modeRaw))]);
-  }
-  return { ...dst, data: out, hasAlpha: true };
+    return { ...dst, data: out, hasAlpha: true };
 }
 
 function rgbaToCss(c: RgbaColor): string {
@@ -2931,196 +3097,195 @@ function applyMagickCropToStack(
   ];
 }
 
-function applyMagickExtent(img: RgbaImage, geomStr: string, state: MagickState): RgbaImage {
-  const g = parseMagickGeometry(geomStr);
-  const targetW = Math.max(1, Math.round(g.width ?? img.width));
-  const targetH = Math.max(1, Math.round(g.height ?? img.height));
-  const canvas = createSolidRgbaImage(targetW, targetH, state.background);
-  const offset = resolveGravityOffset(targetW - img.width, targetH - img.height, state.gravity);
-  const isEast = state.gravity === "east" || state.gravity === "northeast" || state.gravity === "southeast";
-  const isSouth = state.gravity === "south" || state.gravity === "southwest" || state.gravity === "southeast";
-  const left = Math.round(offset.left - (isEast ? -g.x : g.x));
-  const top = Math.round(offset.top - (isSouth ? -g.y : g.y));
-  const dstX0 = Math.max(0, left);
-  const dstY0 = Math.max(0, top);
-  const dstX1 = Math.min(targetW, left + img.width);
-  const dstY1 = Math.min(targetH, top + img.height);
-  if (dstX1 <= dstX0 || dstY1 <= dstY0) {
-    return canvas;
-  }
-  const subImg = extractImage(img, {
-    left: dstX0 - left,
-    top: dstY0 - top,
-    width: dstX1 - dstX0,
-    height: dstY1 - dstY0
-  });
-  return compositeImage(canvas, [rgbaToCompositeLayer(subImg, dstX0, dstY0, "over")]);
-}
-
-function applyMagickDraw(img: RgbaImage, drawCmd: string, state: MagickState): RgbaImage {
-  const svgElements: string[] = [];
-  let fill = rgbaToCss(state.fill);
-  let stroke = rgbaToCss(state.stroke);
-  let strokeWidth = state.strokeWidth;
-
-  const tokenRe = /'([^']*)'|"([^"]*)"|([^\s,]+)|,/g;
-  const tokens: string[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = tokenRe.exec(drawCmd)) !== null) {
-    if (m[0] === ",") continue;
-    tokens.push(m[1] ?? m[2] ?? m[3] ?? "");
-  }
-
-  let i = 0;
-  const num = () => Number(tokens[i++] ?? 0);
-  while (i < tokens.length) {
-    const cmd = tokens[i++]!.toLowerCase();
-    if (cmd === "fill") {
-      fill = rgbaToCss(parseColor(tokens[i++] ?? "#000000"));
-    } else if (cmd === "stroke") {
-      stroke = rgbaToCss(parseColor(tokens[i++] ?? "#000000"));
-    } else if (cmd === "stroke-width" || cmd === "strokewidth") {
-      strokeWidth = Math.max(0, num());
-    } else if (cmd === "rectangle") {
-      const x0 = num();
-      const y0 = num();
-      const x1 = num();
-      const y1 = num();
-      const rx = Math.min(x0, x1);
-      const ry = Math.min(y0, y1);
-      const rw = Math.max(1, Math.abs(x1 - x0) + 1);
-      const rh = Math.max(1, Math.abs(y1 - y0) + 1);
-      if (fill !== "none") {
-        svgElements.push(
-          `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${fill}"/>`
-        );
-      }
-      if (stroke !== "none" && strokeWidth > 0) {
-        svgElements.push(
-          `<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`
-        );
-      }
-    } else if (cmd === "roundrectangle") {
-      const x0 = num();
-      const y0 = num();
-      const x1 = num();
-      const y1 = num();
-      const wc = num();
-      const hc = num();
-      const rx = Math.min(x0, x1);
-      const ry = Math.min(y0, y1);
-      const rw = Math.max(1, Math.abs(x1 - x0) + 1);
-      const rh = Math.max(1, Math.abs(y1 - y0) + 1);
-      if (fill !== "none") {
-        svgElements.push(
-          `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="${wc}" ry="${hc}" fill="${fill}"/>`
-        );
-      }
-      if (stroke !== "none" && strokeWidth > 0) {
-        svgElements.push(
-          `<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`
-        );
-      }
-    } else if (cmd === "circle") {
-      const cx = num();
-      const cy = num();
-      const px = num();
-      const py = num();
-      const r = Math.max(1, Math.hypot(px - cx, py - cy));
-      svgElements.push(
-        `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`
-      );
-    } else if (cmd === "ellipse") {
-      const cx = num();
-      const cy = num();
-      const rx = num();
-      const ry = num();
-      num();
-      num();
-      svgElements.push(
-        `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`
-      );
-    } else if (cmd === "line") {
-      const x0 = num();
-      const y0 = num();
-      const x1 = num();
-      const y1 = num();
-      const lineStroke = stroke === "none" ? fill : stroke;
-      svgElements.push(
-        `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`
-      );
-    } else if (cmd === "point") {
-      const x = num();
-      const y = num();
-      svgElements.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${fill}"/>`);
-    } else if (cmd === "text") {
-      const x = num();
-      const y = num();
-      const txt = tokens[i++] ?? "";
-      svgElements.push(
-        `<text x="${x}" y="${y}" font-size="${state.pointsize}" fill="${fill}">${escapeXml(txt)}</text>`
-      );
-    } else if (cmd === "polygon" || cmd === "polyline") {
-      const pts: string[] = [];
-      while (i < tokens.length && !Number.isNaN(Number(tokens[i]))) {
-        const px = num();
-        const py = num();
-        pts.push(`${px},${py}`);
-      }
-      if (pts.length >= 2) {
-        if (cmd === "polygon") {
-          svgElements.push(
-            `<polygon points="${pts.join(" ")}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`
-          );
-        } else {
-          const lineStroke = stroke === "none" ? fill : stroke;
-          svgElements.push(
-            `<polyline points="${pts.join(" ")}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`
-          );
-        }
-      }
-    } else if (cmd === "bezier") {
-      const pts: Array<{ x: number; y: number }> = [];
-      while (i < tokens.length && !Number.isNaN(Number(tokens[i]))) {
-        pts.push({ x: num(), y: num() });
-      }
-      if (pts.length === 3) {
-        const lineStroke = stroke === "none" ? fill : stroke;
-        svgElements.push(
-          `<path d="M ${pts[0]!.x} ${pts[0]!.y} Q ${pts[1]!.x} ${pts[1]!.y} ${pts[2]!.x} ${pts[2]!.y}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`
-        );
-      } else if (pts.length >= 4) {
-        const lineStroke = stroke === "none" ? fill : stroke;
-        const rest = pts.slice(1).map((p) => `${p.x} ${p.y}`).join(" ");
-        svgElements.push(
-          `<path d="M ${pts[0]!.x} ${pts[0]!.y} C ${rest}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`
-        );
-      }
-    } else if (cmd === "path") {
-      const d = tokens[i++] ?? "";
-      svgElements.push(
-        `<path d="${escapeXml(d)}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`
-      );
+function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const g = parseMagickGeometry(geomStr);
+    const targetW = Math.max(1, Math.round(g.width ?? img.width));
+    const targetH = Math.max(1, Math.round(g.height ?? img.height));
+    const canvas = createSolidRgbaImage(targetW, targetH, state.background);
+    const offset = resolveGravityOffset(targetW - img.width, targetH - img.height, state.gravity);
+    const isEast = state.gravity === "east" || state.gravity === "northeast" || state.gravity === "southeast";
+    const isSouth = state.gravity === "south" || state.gravity === "southwest" || state.gravity === "southeast";
+    const left = Math.round(offset.left - (isEast ? -g.x : g.x));
+    const top = Math.round(offset.top - (isSouth ? -g.y : g.y));
+    const dstX0 = Math.max(0, left);
+    const dstY0 = Math.max(0, top);
+    const dstX1 = Math.min(targetW, left + img.width);
+    const dstY1 = Math.min(targetH, top + img.height);
+    if (dstX1 <= dstX0 || dstY1 <= dstY0) {
+        return canvas;
     }
-  }
-
-  if (svgElements.length === 0) return img;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}">${svgElements.join("")}</svg>`;
-  const overlay = decodeImage(new TextEncoder().encode(svg), { density: state.density });
-  return compositeImage(img, [rgbaToCompositeLayer(overlay, 0, 0, "over")]);
+    const subImg = extractImage(img, {
+        left: dstX0 - left,
+        top: dstY0 - top,
+        width: dstX1 - dstX0,
+        height: dstY1 - dstY0
+    });
+    return compositeImage(canvas, [rgbaToCompositeLayer(subImg, dstX0, dstY0, "over")]);
 }
 
-function applyMagickAnnotate(img: RgbaImage, offsetStr: string, text: string, state: MagickState): RgbaImage {
-  const g = parseMagickGeometry(offsetStr);
-  const fontSize = Math.max(8, state.pointsize);
-  const estW = Math.max(8, Math.ceil(text.length * fontSize * 0.6));
-  const estH = Math.max(8, Math.ceil(fontSize));
-  const gravOff = resolveGravityOffset(img.width - estW, img.height - estH, state.gravity);
-  const x = Math.max(0, gravOff.left + g.x);
-  const y = Math.max(fontSize, gravOff.top + estH + g.y);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"><text x="${x}" y="${y}" font-size="${fontSize}" fill="${rgbaToCss(state.fill)}">${escapeXml(text)}</text></svg>`;
-  const overlay = decodeImage(new TextEncoder().encode(svg), { density: state.density });
-  return compositeImage(img, [rgbaToCompositeLayer(overlay, 0, 0, "over")]);
+function* applyMagickDrawSteps(img: RgbaImage, drawCmd: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const svgElements: string[] = [];
+    let fill = rgbaToCss(state.fill);
+    let stroke = rgbaToCss(state.stroke);
+    let strokeWidth = state.strokeWidth;
+    const tokenRe = /'([^']*)'|"([^"]*)"|([^\s,]+)|,/g;
+    const tokens: string[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = tokenRe.exec(drawCmd)) !== null) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        if (m[0] === ",")
+            continue;
+        tokens.push(m[1] ?? m[2] ?? m[3] ?? "");
+    }
+    let i = 0;
+    const num = () => Number(tokens[i++] ?? 0);
+    while (i < tokens.length) {
+        if (++cooperativeWork % 65536 === 0)
+            yield;
+        const cmd = tokens[i++]!.toLowerCase();
+        if (cmd === "fill") {
+            fill = rgbaToCss(parseColor(tokens[i++] ?? "#000000"));
+        }
+        else if (cmd === "stroke") {
+            stroke = rgbaToCss(parseColor(tokens[i++] ?? "#000000"));
+        }
+        else if (cmd === "stroke-width" || cmd === "strokewidth") {
+            strokeWidth = Math.max(0, num());
+        }
+        else if (cmd === "rectangle") {
+            const x0 = num();
+            const y0 = num();
+            const x1 = num();
+            const y1 = num();
+            const rx = Math.min(x0, x1);
+            const ry = Math.min(y0, y1);
+            const rw = Math.max(1, Math.abs(x1 - x0) + 1);
+            const rh = Math.max(1, Math.abs(y1 - y0) + 1);
+            if (fill !== "none") {
+                svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${fill}"/>`);
+            }
+            if (stroke !== "none" && strokeWidth > 0) {
+                svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+            }
+        }
+        else if (cmd === "roundrectangle") {
+            const x0 = num();
+            const y0 = num();
+            const x1 = num();
+            const y1 = num();
+            const wc = num();
+            const hc = num();
+            const rx = Math.min(x0, x1);
+            const ry = Math.min(y0, y1);
+            const rw = Math.max(1, Math.abs(x1 - x0) + 1);
+            const rh = Math.max(1, Math.abs(y1 - y0) + 1);
+            if (fill !== "none") {
+                svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="${wc}" ry="${hc}" fill="${fill}"/>`);
+            }
+            if (stroke !== "none" && strokeWidth > 0) {
+                svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+            }
+        }
+        else if (cmd === "circle") {
+            const cx = num();
+            const cy = num();
+            const px = num();
+            const py = num();
+            const r = Math.max(1, Math.hypot(px - cx, py - cy));
+            svgElements.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+        }
+        else if (cmd === "ellipse") {
+            const cx = num();
+            const cy = num();
+            const rx = num();
+            const ry = num();
+            num();
+            num();
+            svgElements.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+        }
+        else if (cmd === "line") {
+            const x0 = num();
+            const y0 = num();
+            const x1 = num();
+            const y1 = num();
+            const lineStroke = stroke === "none" ? fill : stroke;
+            svgElements.push(`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+        }
+        else if (cmd === "point") {
+            const x = num();
+            const y = num();
+            svgElements.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${fill}"/>`);
+        }
+        else if (cmd === "text") {
+            const x = num();
+            const y = num();
+            const txt = tokens[i++] ?? "";
+            svgElements.push(`<text x="${x}" y="${y}" font-size="${state.pointsize}" fill="${fill}">${escapeXml(txt)}</text>`);
+        }
+        else if (cmd === "polygon" || cmd === "polyline") {
+            const pts: string[] = [];
+            while (i < tokens.length && !Number.isNaN(Number(tokens[i]))) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                const px = num();
+                const py = num();
+                pts.push(`${px},${py}`);
+            }
+            if (pts.length >= 2) {
+                if (cmd === "polygon") {
+                    svgElements.push(`<polygon points="${pts.join(" ")}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+                }
+                else {
+                    const lineStroke = stroke === "none" ? fill : stroke;
+                    svgElements.push(`<polyline points="${pts.join(" ")}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+                }
+            }
+        }
+        else if (cmd === "bezier") {
+            const pts: Array<{
+                x: number;
+                y: number;
+            }> = [];
+            while (i < tokens.length && !Number.isNaN(Number(tokens[i]))) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                pts.push({ x: num(), y: num() });
+            }
+            if (pts.length === 3) {
+                const lineStroke = stroke === "none" ? fill : stroke;
+                svgElements.push(`<path d="M ${pts[0]!.x} ${pts[0]!.y} Q ${pts[1]!.x} ${pts[1]!.y} ${pts[2]!.x} ${pts[2]!.y}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+            }
+            else if (pts.length >= 4) {
+                const lineStroke = stroke === "none" ? fill : stroke;
+                const rest = pts.slice(1).map((p) => `${p.x} ${p.y}`).join(" ");
+                svgElements.push(`<path d="M ${pts[0]!.x} ${pts[0]!.y} C ${rest}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+            }
+        }
+        else if (cmd === "path") {
+            const d = tokens[i++] ?? "";
+            svgElements.push(`<path d="${escapeXml(d)}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+        }
+    }
+    if (svgElements.length === 0)
+        return img;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}">${svgElements.join("")}</svg>`;
+    const overlay = decodeImage(new TextEncoder().encode(svg), { density: state.density });
+    return compositeImage(img, [rgbaToCompositeLayer(overlay, 0, 0, "over")]);
+}
+
+function* applyMagickAnnotateSteps(img: RgbaImage, offsetStr: string, text: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const g = parseMagickGeometry(offsetStr);
+    const fontSize = Math.max(8, state.pointsize);
+    const estW = Math.max(8, Math.ceil(text.length * fontSize * 0.6));
+    const estH = Math.max(8, Math.ceil(fontSize));
+    const gravOff = resolveGravityOffset(img.width - estW, img.height - estH, state.gravity);
+    const x = Math.max(0, gravOff.left + g.x);
+    const y = Math.max(fontSize, gravOff.top + estH + g.y);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"><text x="${x}" y="${y}" font-size="${fontSize}" fill="${rgbaToCss(state.fill)}">${escapeXml(text)}</text></svg>`;
+    const overlay = decodeImage(new TextEncoder().encode(svg), { density: state.density });
+    return compositeImage(img, [rgbaToCompositeLayer(overlay, 0, 0, "over")]);
 }
 
 function appendStackImages(stack: RgbaImage[], vertical: boolean, state: MagickState): RgbaImage {
@@ -3386,114 +3551,112 @@ function formatIdentifyCustom(
   return out;
 }
 
-export async function runIdentifyCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): Promise<ImageMagickCliResult> {
-  return runIdentifyCliSync(argv, files, stdinBytes);
-}
-
-export function runIdentifyCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): ImageMagickCliResult {
-  let verbose = false;
-  let customFormat: string | undefined;
-  const targets: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i]!;
-    if (a === "--help" || a === "-help" || a === "-h") {
-      return {
-        exitCode: 0,
-        stdout: "Usage: identify [-ping] [-verbose] [-format FORMAT] file...\n",
-        stderr: ""
-      };
+function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    let cooperativeWork = 63;
+    let verbose = false;
+    let customFormat: string | undefined;
+    const targets: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const a = argv[i]!;
+        if (a === "--help" || a === "-help" || a === "-h") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: identify [-ping] [-verbose] [-format FORMAT] file...\n",
+                stderr: ""
+            };
+        }
+        if (a === "--version" || a === "-version") {
+            return {
+                exitCode: 0,
+                stdout: "Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n",
+                stderr: ""
+            };
+        }
+        if (a === "-verbose" || a === "--verbose") {
+            verbose = true;
+        }
+        else if (a === "-ping" || a === "--ping") {
+            // Metadata-first reading
+        }
+        else if (a === "-format" || a === "--format") {
+            customFormat = argv[++i] ?? "";
+        }
+        else if (a === "-" || !a.startsWith("-")) {
+            targets.push(a);
+        }
     }
-    if (a === "--version" || a === "-version") {
-      return {
-        exitCode: 0,
-        stdout: "Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n",
-        stderr: ""
-      };
+    if (targets.length === 0) {
+        return {
+            exitCode: 1,
+            stdout: "",
+            stderr: "identify: missing an image filename\n"
+        };
     }
-    if (a === "-verbose" || a === "--verbose") {
-      verbose = true;
-    } else if (a === "-ping" || a === "--ping") {
-      // Metadata-first reading
-    } else if (a === "-format" || a === "--format") {
-      customFormat = argv[++i] ?? "";
-    } else if (a === "-" || !a.startsWith("-")) {
-      targets.push(a);
+    const outParts: string[] = [];
+    const errParts: string[] = [];
+    let exitCode = 0;
+    for (const inPath of targets) {
+        yield;
+        const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
+        let baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
+        const colon = baseInPath.indexOf(":");
+        if (colon > 0 && extToImageFormat(baseInPath.slice(0, colon))) {
+            baseInPath = baseInPath.slice(colon + 1);
+        }
+        const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
+        const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
+        if (!bytes) {
+            errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
+            exitCode = 1;
+            continue;
+        }
+        try {
+            const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
+            const meta = readImageMetadata(bytes, inputOptions);
+            const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
+            const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
+            if (customFormat !== undefined) {
+                outParts.push(formatIdentifyCustom(customFormat, baseInPath, meta, bytes.byteLength, bytes));
+            }
+            else if (verbose) {
+                const stats = computeImageStats(decodeImage(bytes, inputOptions));
+                outParts.push(`Image: ${inPath}\n` +
+                    `  Format: ${meta.format.toUpperCase()}\n` +
+                    `  Geometry: ${meta.width}x${meta.height}+0+0\n` +
+                    `  Resolution: ${meta.density}x${meta.density}\n` +
+                    `  Colorspace: ${spaceLabel}\n` +
+                    `  Depth: ${bitDepth}-bit\n` +
+                    `  Channels: ${meta.channels}\n` +
+                    `  Alpha: ${meta.hasAlpha ? "True" : "False"}\n` +
+                    `  Filesize: ${bytes.byteLength}B\n` +
+                    `  Entropy: ${stats.entropy.toFixed(4)}\n`);
+            }
+            else {
+                outParts.push(`${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${bytes.byteLength}B 0.000u 0:00.000\n`);
+            }
+        }
+        catch (err) {
+            errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
+            exitCode = 1;
+        }
     }
-  }
-
-  if (targets.length === 0) {
     return {
-      exitCode: 1,
-      stdout: "",
-      stderr: "identify: missing an image filename\n"
+        exitCode,
+        stdout: outParts.join(""),
+        stderr: errParts.join("")
     };
-  }
-
-  const outParts: string[] = [];
-  const errParts: string[] = [];
-  let exitCode = 0;
-
-  for (const inPath of targets) {
-    const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
-    let baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
-    const colon = baseInPath.indexOf(":");
-    if (colon > 0 && extToImageFormat(baseInPath.slice(0, colon))) {
-      baseInPath = baseInPath.slice(colon + 1);
+}
+export async function runIdentifyCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    return drainSteps(runIdentifyCliSteps(argv, files, stdinBytes, signal), signal);
+}
+export function runIdentifyCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
+    let steps = runIdentifyCliSteps(argv, files, stdinBytes, signal), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
     }
-    const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
-    const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
-    if (!bytes) {
-      errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
-      exitCode = 1;
-      continue;
-    }
-    try {
-      const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
-      const meta = readImageMetadata(bytes, inputOptions);
-      const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
-      const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
-
-      if (customFormat !== undefined) {
-        outParts.push(formatIdentifyCustom(customFormat, baseInPath, meta, bytes.byteLength, bytes));
-      } else if (verbose) {
-        const stats = computeImageStats(decodeImage(bytes, inputOptions));
-        outParts.push(
-          `Image: ${inPath}\n` +
-            `  Format: ${meta.format.toUpperCase()}\n` +
-            `  Geometry: ${meta.width}x${meta.height}+0+0\n` +
-            `  Resolution: ${meta.density}x${meta.density}\n` +
-            `  Colorspace: ${spaceLabel}\n` +
-            `  Depth: ${bitDepth}-bit\n` +
-            `  Channels: ${meta.channels}\n` +
-            `  Alpha: ${meta.hasAlpha ? "True" : "False"}\n` +
-            `  Filesize: ${bytes.byteLength}B\n` +
-            `  Entropy: ${stats.entropy.toFixed(4)}\n`
-        );
-      } else {
-        outParts.push(
-          `${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${bytes.byteLength}B 0.000u 0:00.000\n`
-        );
-      }
-    } catch (err) {
-      errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
-      exitCode = 1;
-    }
-  }
-
-  return {
-    exitCode,
-    stdout: outParts.join(""),
-    stderr: errParts.join("")
-  };
+    return next.value;
 }
 
 function parseMagickIndexSpec(spec: string, length: number): number[] {
@@ -3524,1105 +3687,1305 @@ function parseMagickIndexSpec(spec: string, length: number): number[] {
   return out;
 }
 
-function evaluatePipelineTokens(
-  tokens: readonly string[],
-  files: Map<string, Uint8Array>,
-  state: MagickState,
-  parentStack: RgbaImage[] = [],
-  stdinBytes?: Uint8Array
-): RgbaImage[] {
-  let stack: RgbaImage[] = [];
-  let i = 0;
-
-  while (i < tokens.length) {
-    const t = tokens[i]!;
-
-    if (t === "(") {
-      let depth = 1;
-      let j = i + 1;
-      while (j < tokens.length && depth > 0) {
-        if (tokens[j] === "(") depth++;
-        else if (tokens[j] === ")") depth--;
-        j++;
-      }
-      const endIdx = depth === 0 ? j - 1 : j;
-      const subTokens = tokens.slice(i + 1, endIdx);
-      const subState: MagickState = { ...state };
-      const subResult = evaluatePipelineTokens(subTokens, files, subState, stack, stdinBytes);
-      stack.push(...subResult);
-      i = j;
-      continue;
+function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack: RgbaImage[] = [], stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, RgbaImage[], void> {
+    let cooperativeWork = 63;
+    let stack: RgbaImage[] = [];
+    let i = 0;
+    while (i < tokens.length) {
+        yield;
+        const t = tokens[i]!;
+        if (t === "(") {
+            let depth = 1;
+            let j = i + 1;
+            while (j < tokens.length && depth > 0) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                if (tokens[j] === "(")
+                    depth++;
+                else if (tokens[j] === ")")
+                    depth--;
+                j++;
+            }
+            const endIdx = depth === 0 ? j - 1 : j;
+            const subTokens = tokens.slice(i + 1, endIdx);
+            const subState: MagickState = { ...state };
+            const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal));
+            stack.push(...subResult);
+            i = j;
+            continue;
+        }
+        if (t === "-size") {
+            const g = parseMagickGeometry(tokens[++i] ?? "1x1");
+            state.sizeWidth = Math.max(1, Math.round(g.width ?? 1));
+            state.sizeHeight = Math.max(1, Math.round(g.height ?? state.sizeWidth));
+            state.hasSize = true;
+        }
+        else if (t === "+size") {
+            state.hasSize = false;
+        }
+        else if (t === "-background") {
+            state.background = parseColor(tokens[++i] ?? "#ffffff");
+        }
+        else if (t === "-fill") {
+            state.fill = parseColor(tokens[++i] ?? "#000000");
+        }
+        else if (t === "-stroke") {
+            state.stroke = parseColor(tokens[++i] ?? "#000000");
+        }
+        else if (t === "-strokewidth") {
+            state.strokeWidth = Math.max(0, Number(tokens[++i] ?? 1));
+        }
+        else if (t === "-bordercolor") {
+            state.borderColor = parseColor(tokens[++i] ?? "#dfdfdf");
+        }
+        else if (t === "-pointsize") {
+            state.pointsize = Math.max(1, Number(tokens[++i] ?? 12));
+        }
+        else if (t === "-gravity") {
+            state.gravity = parseGravity(tokens[++i] ?? "center");
+        }
+        else if (t === "+gravity") {
+            state.gravity = "northwest";
+        }
+        else if (t === "-quality") {
+            state.quality = Math.max(1, Math.min(100, Number(tokens[++i] ?? 92)));
+        }
+        else if (t === "-density") {
+            const g = parseMagickGeometry(tokens[++i] ?? "72");
+            state.density = Math.max(1, Math.round(g.width ?? 72));
+        }
+        else if (t === "-fuzz") {
+            const rawFuzz = tokens[++i] ?? "10";
+            state.fuzz = rawFuzz.endsWith("%")
+                ? Math.round((parseFloat(rawFuzz) / 100) * 255)
+                : Math.round(parseFloat(rawFuzz));
+        }
+        else if (t === "-filter") {
+            state.kernel = parseKernel(tokens[++i] ?? "lanczos");
+        }
+        else if (t === "-compose") {
+            const cRaw = tokens[++i] ?? "over";
+            state.composeRaw = cRaw;
+            state.compose = parseCompose(cRaw);
+        }
+        else if (t === "-define") {
+            const defStr = tokens[++i] ?? "";
+            const m = /^compose:args=(.*)$/i.exec(defStr);
+            if (m)
+                state.composeArgs = m[1]!;
+        }
+        else if (t === "-set") {
+            const k = (tokens[++i] ?? "").toLowerCase();
+            const v = tokens[++i] ?? "";
+            if (k === "option:compose:args")
+                state.composeArgs = v;
+        }
+        else if (t === "-write" || t === "+write") {
+            const writePath = tokens[++i] ?? "";
+            if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
+                const top = stack[stack.length - 1]!;
+                const { format, path } = inferOutputFormat(writePath, top.format);
+                if (stack.length > 1 && (/%0?\d*d/.test(path) || !state.adjoin)) {
+                    for (let idx = 0; idx < stack.length; idx++) {
+                        if (++cooperativeWork % 65536 === 0)
+                            yield;
+                        const framePath = formatSceneOutputPath(path, idx);
+                        const { data: frameBytes } = encodeImage(stack[idx]!, { format, quality: state.quality });
+                        files.set(framePath, frameBytes);
+                    }
+                }
+                else {
+                    const { data: encoded } = encodeImage(top, { format, quality: state.quality });
+                    files.set(path, encoded);
+                }
+            }
+        }
+        else if (t === "-geometry") {
+            state.geometry = tokens[++i] ?? "+0+0";
+        }
+        else if (t === "-tile") {
+            state.tile = tokens[++i];
+        }
+        else if (t === "-strip") {
+            state.strip = true;
+        }
+        else if (t === "-format") {
+            state.formatStr = tokens[++i] ?? "";
+        }
+        else if (t === "+adjoin") {
+            state.adjoin = false;
+        }
+        else if (t === "-adjoin") {
+            state.adjoin = true;
+        }
+        else if (t === "-delay" || t === "-loop" || t === "-dispose") {
+            i++;
+        }
+        else if (t === "-coalesce" || t === "-deconstruct") {
+            // Coalesces frames in-place
+        }
+        else if (t === "-splice") {
+            const geom = tokens[++i] ?? "0x0";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickSpliceSteps(im, geom, state.background, state.gravity, signal));
+            });
+        }
+        else if (t === "-chop") {
+            const geom = tokens[++i] ?? "0x0";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickChopSteps(im, geom, state.gravity, signal));
+            });
+        }
+        else if (t === "-roll") {
+            const geom = tokens[++i] ?? "+0+0";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickRollSteps(im, geom, signal));
+            });
+        }
+        else if (t === "-morph") {
+            const count = Number(tokens[++i] ?? 1);
+            stack = (yield* applyMagickMorphSteps(stack, count, signal));
+        }
+        else if (t === "-floodfill") {
+            const geom = tokens[++i] ?? "+0+0";
+            const nextTok = tokens[i + 1];
+            let targetColor: RgbaColor | undefined;
+            if (nextTok && !nextTok.startsWith("-") && !nextTok.startsWith("+") && !files.has(nextTok)) {
+                try {
+                    targetColor = parseColor(nextTok);
+                    i++;
+                }
+                catch {
+                    // Optional target color omitted
+                }
+            }
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickFloodfillSteps(im, geom, targetColor, state.fill, state.fuzz, signal));
+            });
+        }
+        else if (t === "-evaluate-sequence") {
+            const op = tokens[++i] ?? "Mean";
+            if (stack.length > 0) {
+                stack = [(yield* applyMagickEvaluateSequenceSteps(stack, op, signal))];
+            }
+        }
+        else if (t === "-convolve") {
+            const kSpec = tokens[++i] ?? "1";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickCustomConvolveSteps(im, kSpec, signal));
+            });
+        }
+        else if (t === "-color-matrix" || t === "-recolor") {
+            const mSpec = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickColorMatrixSteps(im, mSpec, signal));
+            });
+        }
+        else if (t === "-equalize") {
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickEqualizeSteps(im, signal));
+            });
+        }
+        else if (t === "-remap") {
+            const palSpec = tokens[++i] ?? "";
+            const palImg = parseInputOperand(palSpec, files, state, stdinBytes);
+            if (palImg) {
+                stack = yield* mapSteps(stack, function* (im) {
+                    return (yield* applyMagickRemapSteps(im, palImg, state.dither, signal));
+                });
+            }
+        }
+        else if (t === "-channel") {
+            state.channels = parseChannelMask(tokens[++i] ?? "rgb");
+            state.channelExplicit = true;
+        }
+        else if (t === "+channel") {
+            state.channels = { r: true, g: true, b: true, a: false };
+            state.channelExplicit = false;
+        }
+        else if (t === "-opaque" || t === "+opaque") {
+            const targetColor = parseColor(tokens[++i] ?? "#000000");
+            const invert = t === "+opaque";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickOpaqueSteps(im, targetColor, state.fill, state.fuzz, invert, signal));
+            });
+        }
+        else if (t === "-transparent" || t === "+transparent") {
+            const targetColor = parseColor(tokens[++i] ?? "#ffffff");
+            const invert = t === "+transparent";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickTransparentSteps(im, targetColor, state.fuzz, invert, signal));
+            });
+        }
+        else if (t === "-evaluate") {
+            const op = tokens[++i] ?? "Add";
+            const val = tokens[++i] ?? "0";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickEvaluateSteps(im, op, val, state.channels, signal));
+            });
+        }
+        else if (t === "-function") {
+            const fn = tokens[++i] ?? "Polynomial";
+            const params = tokens[++i] ?? "1,0";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickFunctionSteps(im, fn, params, state.channels, signal));
+            });
+        }
+        else if (t === "-clut" || t === "-hald-clut") {
+            if (stack.length >= 2) {
+                const lut = stack[stack.length - 1]!;
+                const mapped = yield* mapSteps(stack.slice(0, -1), function* (im) {
+                    return (yield* applyMagickClutSteps(im, lut, state.channels, signal));
+                });
+                stack = mapped;
+            }
+        }
+        else if (t === "-fx") {
+            const expr = tokens[++i] ?? "u";
+            if (stack.length > 0) {
+                stack = [(yield* applyMagickFxSteps(stack, expr, state.channels, signal))];
+            }
+        }
+        else if (t === "-shear") {
+            const geom = tokens[++i] ?? "0x0";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickShearSteps(im, geom, state.background, signal));
+            });
+        }
+        else if (t === "-distort" || t === "+distort") {
+            const method = tokens[++i] ?? "SRT";
+            const args = tokens[++i] ?? "0";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickDistortSteps(im, method, args, state.background, signal));
+            });
+        }
+        else if (t === "-swirl") {
+            const deg = Number(tokens[++i] ?? 0);
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickSwirlSteps(im, deg, state.background, signal));
+            });
+        }
+        else if (t === "-implode") {
+            const amt = Number(tokens[++i] ?? 0);
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickImplodeSteps(im, amt, state.background, signal));
+            });
+        }
+        else if (t === "-wave") {
+            const geom = tokens[++i] ?? "5x50";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickWaveSteps(im, geom, state.background, signal));
+            });
+        }
+        else if (t === "-shadow") {
+            const geom = tokens[++i] ?? "80x3+5+5";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickShadowSteps(im, geom, state.background, signal));
+            });
+        }
+        else if (t === "-vignette") {
+            const geom = tokens[++i] ?? "0x2";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickVignetteSteps(im, geom, state.background, signal));
+            });
+        }
+        else if (t === "-sepia-tone") {
+            const thresh = tokens[++i] ?? "80%";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickSepiaToneSteps(im, thresh, signal));
+            });
+        }
+        else if (t === "-solarize") {
+            const thresh = tokens[++i] ?? "50%";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickSolarizeSteps(im, thresh, signal));
+            });
+        }
+        else if (t === "-posterize" || t === "-colors") {
+            const lv = Number(tokens[++i] ?? 8);
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickPosterizeSteps(im, lv, signal));
+            });
+        }
+        else if (t === "-dither" || t === "+dither") {
+            if (t === "+dither") {
+                state.dither = false;
+            }
+            else {
+                const dMode = (tokens[++i] ?? "floydsteinberg").toLowerCase();
+                state.dither = dMode !== "none";
+            }
+        }
+        else if (t === "-edge" || t === "-canny") {
+            i++;
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickConvolve3x3Steps(im, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0, signal));
+            });
+        }
+        else if (t === "-emboss") {
+            i++;
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickConvolve3x3Steps(im, [-2, -1, 0, -1, 1, 1, 0, 1, 2], 128, signal));
+            });
+        }
+        else if (t === "-charcoal" || t === "-sketch") {
+            i++;
+            stack = yield* mapSteps(stack, function* (im) {
+                return grayscaleImage(negateImage((yield* applyMagickConvolve3x3Steps(blurImage(im, 1), [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0, signal)), { alpha: false }));
+            });
+        }
+        else if (t === "+repage" || t === "-repage") {
+            if (t === "-repage")
+                i++;
+        }
+        else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
+            const geom = tokens[++i] ?? "100%";
+            const k = t === "-sample" ? "nearest" : state.kernel;
+            stack = stack.map((im) => applyMagickResize(im, geom, k));
+        }
+        else if (t === "-crop") {
+            const geom = tokens[++i] ?? "100%";
+            const nextStack: RgbaImage[] = [];
+            for (const im of stack) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                nextStack.push(...applyMagickCropToStack(im, geom, state.gravity));
+            }
+            stack = nextStack;
+        }
+        else if (t === "-extent") {
+            const geom = tokens[++i] ?? "100%";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickExtentSteps(im, geom, state, signal));
+            });
+        }
+        else if (t === "-border") {
+            const g = parseMagickGeometry(tokens[++i] ?? "0x0");
+            const bw = Math.max(0, Math.round(g.width ?? 0));
+            const bh = Math.max(0, Math.round(g.height ?? bw));
+            stack = stack.map((im) => extendImage(im, {
+                top: bh,
+                bottom: bh,
+                left: bw,
+                right: bw,
+                background: state.borderColor,
+                extendWith: "background"
+            }));
+        }
+        else if (t === "-shave") {
+            const g = parseMagickGeometry(tokens[++i] ?? "0x0");
+            const sw = Math.max(0, Math.round(g.width ?? 0));
+            const sh = Math.max(0, Math.round(g.height ?? sw));
+            stack = stack.map((im) => {
+                const clampedSw = Math.min(Math.floor((im.width - 1) / 2), sw);
+                const clampedSh = Math.min(Math.floor((im.height - 1) / 2), sh);
+                return extractImage(im, {
+                    left: clampedSw,
+                    top: clampedSh,
+                    width: Math.max(1, im.width - clampedSw * 2),
+                    height: Math.max(1, im.height - clampedSh * 2)
+                });
+            });
+        }
+        else if (t === "-trim") {
+            stack = stack.map((im) => trimImage(im, { threshold: state.fuzz }));
+        }
+        else if (t === "-rotate") {
+            const deg = Number(tokens[++i] ?? 0);
+            stack = stack.map((im) => rotateImage(im, deg, state.background));
+        }
+        else if (t === "-flip") {
+            stack = stack.map((im) => flipImage(im));
+        }
+        else if (t === "-flop") {
+            stack = stack.map((im) => flopImage(im));
+        }
+        else if (t === "-transpose") {
+            stack = stack.map((im) => rotateImage(flipImage(im), 90, state.background));
+        }
+        else if (t === "-transverse") {
+            stack = stack.map((im) => rotateImage(flopImage(im), 90, state.background));
+        }
+        else if (t === "-auto-orient") {
+            stack = stack.map((im) => applyExifOrientation(im));
+        }
+        else if (t === "-negate" || t === "+negate") {
+            const onlyGray = t === "+negate";
+            const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: false };
+            stack = stack.map((im) => {
+                const out = new Uint8Array(im.data);
+                for (let idx = 0; idx < out.length; idx += 4) {
+                    const r = out[idx]!;
+                    const g = out[idx + 1]!;
+                    const b = out[idx + 2]!;
+                    if (onlyGray && !(r === g && g === b))
+                        continue;
+                    if (ch.r)
+                        out[idx] = 255 - r;
+                    if (ch.g)
+                        out[idx + 1] = 255 - g;
+                    if (ch.b)
+                        out[idx + 2] = 255 - b;
+                    if (ch.a)
+                        out[idx + 3] = 255 - out[idx + 3]!;
+                }
+                return { ...im, data: out };
+            });
+        }
+        else if (t === "-colorspace" || t === "-grayscale") {
+            const cs = (tokens[++i] ?? "gray").toLowerCase();
+            if (cs.includes("gray") || cs.includes("grey") || cs === "rec709luma" || cs === "rec601luma") {
+                stack = stack.map((im) => grayscaleImage(im));
+            }
+        }
+        else if (t === "-monochrome") {
+            stack = stack.map((im) => thresholdImage(grayscaleImage(im), 128, true));
+        }
+        else if (t === "-modulate") {
+            const parts = (tokens[++i] ?? "100,100,100").split(",").map((p) => Number(p));
+            const brightness = (parts[0] ?? 100) / 100;
+            const saturation = (parts[1] ?? 100) / 100;
+            const hue = ((parts[2] ?? 100) - 100) * 1.8;
+            stack = stack.map((im) => modulateImage(im, { brightness, saturation, hue, lightness: 0 }));
+        }
+        else if (t === "-brightness-contrast") {
+            const g = parseMagickGeometry(tokens[++i] ?? "0x0");
+            const b = g.width ?? 0;
+            const c = g.height ?? 0;
+            const slope = 1 + c / 100;
+            const offset = (b / 100) * 255;
+            stack = stack.map((im) => linearImage(im, [slope], [offset]));
+        }
+        else if (t === "-gamma") {
+            const gammaVal = Math.max(0.1, Number(tokens[++i] ?? 1.0));
+            stack = stack.map((im) => gammaImage(im, gammaVal, gammaVal));
+        }
+        else if (t === "-auto-level") {
+            const indep = state.channelExplicit;
+            const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: false };
+            stack = stack.map((im) => {
+                const out = new Uint8Array(im.data);
+                const mins = [255, 255, 255, 255];
+                const maxs = [0, 0, 0, 0];
+                for (let idx = 0; idx < out.length; idx += 4) {
+                    for (let c = 0; c < 4; c++) {
+                        const v = out[idx + c]!;
+                        if (v < mins[c]!)
+                            mins[c] = v;
+                        if (v > maxs[c]!)
+                            maxs[c] = v;
+                    }
+                }
+                if (!indep) {
+                    const gMin = Math.min(mins[0]!, mins[1]!, mins[2]!);
+                    const gMax = Math.max(maxs[0]!, maxs[1]!, maxs[2]!);
+                    mins[0] = mins[1] = mins[2] = gMin;
+                    maxs[0] = maxs[1] = maxs[2] = gMax;
+                }
+                const active = [ch.r, ch.g, ch.b, ch.a];
+                for (let idx = 0; idx < out.length; idx += 4) {
+                    for (let c = 0; c < 4; c++) {
+                        if (!active[c])
+                            continue;
+                        const range = maxs[c]! - mins[c]!;
+                        if (range > 0) {
+                            out[idx + c] = clampByteVal(((out[idx + c]! - mins[c]!) / range) * 255);
+                        }
+                    }
+                }
+                return { ...im, data: out };
+            });
+        }
+        else if (t === "-normalize" || t === "-contrast-stretch" || t === "-linear-stretch") {
+            const arg = t === "-normalize" ? "2%x1%" : (tokens[++i] ?? "0%x0%");
+            const [bStr, wStr] = arg.split("x");
+            const isPct = arg.includes("%");
+            const bVal = parseFloat(bStr || "0") || 0;
+            const wVal = wStr !== undefined ? (parseFloat(wStr) || 0) : bVal;
+            stack = stack.map((im) => {
+                const out = new Uint8Array(im.data);
+                const nPix = Math.max(1, im.width * im.height);
+                const lowTarget = isPct ? (bVal / 100) * nPix : bVal;
+                const highTarget = isPct ? ((100 - wVal) / 100) * nPix : nPix - wVal;
+                for (let c = 0; c < 3; c++) {
+                    const hist = new Uint32Array(256);
+                    for (let idx = c; idx < out.length; idx += 4)
+                        hist[out[idx]!]!++;
+                    let lowBin = 0;
+                    let acc = 0;
+                    for (let b = 0; b < 256; b++) {
+                        acc += hist[b]!;
+                        if (acc > lowTarget) {
+                            lowBin = b;
+                            break;
+                        }
+                    }
+                    let highBin = 255;
+                    acc = 0;
+                    for (let b = 0; b < 256; b++) {
+                        acc += hist[b]!;
+                        if (acc >= highTarget) {
+                            highBin = b;
+                            break;
+                        }
+                    }
+                    const range = highBin - lowBin;
+                    if (range > 0) {
+                        for (let idx = c; idx < out.length; idx += 4) {
+                            out[idx] = clampByteVal(((out[idx]! - lowBin) / range) * 255);
+                        }
+                    }
+                }
+                return { ...im, data: out };
+            });
+        }
+        else if (t === "-contrast" || t === "+contrast") {
+            const slope = t === "-contrast" ? 1.15 : 0.87;
+            const offset = 128 * (1 - slope);
+            stack = stack.map((im) => linearImage(im, [slope], [offset]));
+        }
+        else if (t === "-raise" || t === "+raise") {
+            const g = parseMagickGeometry(tokens[++i] ?? "4");
+            const bw = Math.max(1, Math.round(g.width ?? 4));
+            const raised = t === "-raise";
+            stack = stack.map((im) => {
+                const out = new Uint8Array(im.data);
+                for (let y = 0; y < im.height; y++) {
+                    for (let x = 0; x < im.width; x++) {
+                        const topLeft = y < bw || x < bw;
+                        const botRight = y >= im.height - bw || x >= im.width - bw;
+                        if (!topLeft && !botRight)
+                            continue;
+                        const lighten = raised ? topLeft : botRight;
+                        const idx = (y * im.width + x) * 4;
+                        for (let c = 0; c < 3; c++) {
+                            out[idx + c] = clampByteVal(lighten ? out[idx + c]! + 40 : out[idx + c]! - 40);
+                        }
+                    }
+                }
+                return { ...im, data: out };
+            });
+        }
+        else if (t === "-frame") {
+            const g = parseMagickGeometry(tokens[++i] ?? "4x4");
+            const fw = Math.max(0, Math.round(g.width ?? 4));
+            const fh = Math.max(0, Math.round(g.height ?? fw));
+            stack = stack.map((im) => extendImage(im, {
+                top: fh,
+                bottom: fh,
+                left: fw,
+                right: fw,
+                background: state.borderColor,
+                extendWith: "background"
+            }));
+        }
+        else if (t === "-deskew") {
+            i++;
+        }
+        else if (t === "-auto-gamma") {
+            stack = stack.map((im) => {
+                const out = new Uint8Array(im.data);
+                const numCh = im.hasAlpha ? 4 : 3;
+                let sum = 0;
+                for (let idx = 0; idx < out.length; idx += 4) {
+                    for (let c = 0; c < numCh; c++)
+                        sum += out[idx + c]!;
+                }
+                const mean = sum / Math.max(1, im.width * im.height * numCh * 255);
+                if (mean > 0 && mean < 1) {
+                    const exp = Math.log(0.5) / Math.log(mean);
+                    for (let idx = 0; idx < out.length; idx += 4) {
+                        for (let c = 0; c < numCh; c++) {
+                            out[idx + c] = clampByteVal(Math.pow(out[idx + c]! / 255, exp) * 255);
+                        }
+                    }
+                }
+                return { ...im, data: out };
+            });
+        }
+        else if (t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") {
+            const raw = tokens[++i] ?? "3x50%";
+            const [cStr, mStr] = raw.split("x");
+            const beta = Math.max(1e-4, parseFloat(cStr || "3"));
+            const mRaw = parseFloat(mStr || "50");
+            const alpha = (mStr ?? "50%").endsWith("%") ? mRaw / 100 : mRaw / 255;
+            const sig = (u: number) => 1 / (1 + Math.exp(beta * (alpha - u)));
+            const s0 = sig(0);
+            const s1 = sig(1);
+            const span = Math.max(1e-6, s1 - s0);
+            stack = stack.map((im) => {
+                const out = new Uint8Array(im.data);
+                for (let idx = 0; idx < out.length; idx += 4) {
+                    for (let c = 0; c < 3; c++) {
+                        const u = out[idx + c]! / 255;
+                        out[idx + c] = clampByteVal(((sig(u) - s0) / span) * 255);
+                    }
+                }
+                return { ...im, data: out };
+            });
+        }
+        else if (t === "-level" || t === "+level") {
+            const raw = tokens[++i] ?? "0,100%";
+            const parts = raw.split(",");
+            const anyPct = raw.includes("%");
+            const parsePt = (p: string | undefined, def: number) => {
+                if (!p || p.length === 0)
+                    return def;
+                if (p.endsWith("%") || anyPct) {
+                    return (parseFloat(p) / 100) * 255;
+                }
+                return parseFloat(p);
+            };
+            const black = parsePt(parts[0], 0);
+            const white = parsePt(parts[1], 255);
+            const gamma = parts[2] !== undefined ? Math.max(0.01, parseFloat(parts[2])) : 1.0;
+            const inverse = t === "+level";
+            stack = stack.map((im) => {
+                const out = new Uint8Array(im.data);
+                const span = Math.max(1e-6, white - black);
+                for (let idx = 0; idx < out.length; idx += 4) {
+                    for (let c = 0; c < 3; c++) {
+                        const v = out[idx + c]!;
+                        if (inverse) {
+                            const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), 1 / gamma);
+                            out[idx + c] = clampByteVal(black + gVal * span);
+                        }
+                        else {
+                            const norm = Math.max(0, Math.min(1, (v - black) / span));
+                            out[idx + c] = clampByteVal(Math.pow(norm, 1 / gamma) * 255);
+                        }
+                    }
+                }
+                return { ...im, data: out };
+            });
+        }
+        else if (t === "-threshold") {
+            const raw = tokens[++i] ?? "50%";
+            const val = raw.endsWith("%")
+                ? Math.round((parseFloat(raw) / 100) * 255)
+                : Math.round(parseFloat(raw));
+            stack = stack.map((im) => thresholdImage(im, val, true));
+        }
+        else if (t === "-black-threshold" || t === "-white-threshold") {
+            const raw = tokens[++i] ?? "50%";
+            const thresh = raw.endsWith("%") ? (parseFloat(raw) / 100) * 255 : parseFloat(raw);
+            const isBlack = t === "-black-threshold";
+            stack = stack.map((im) => {
+                const out = new Uint8Array(im.data);
+                for (let idx = 0; idx < out.length; idx += 4) {
+                    const intensity = 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!;
+                    if (isBlack && intensity <= thresh) {
+                        out[idx] = 0;
+                        out[idx + 1] = 0;
+                        out[idx + 2] = 0;
+                    }
+                    else if (!isBlack && intensity > thresh) {
+                        out[idx] = 255;
+                        out[idx + 1] = 255;
+                        out[idx + 2] = 255;
+                    }
+                }
+                return { ...im, data: out };
+            });
+        }
+        else if (t === "-tint" || t === "-colorize") {
+            i++;
+            stack = stack.map((im) => tintImage(im, state.fill));
+        }
+        else if (t === "-blur" || t === "-gaussian-blur") {
+            const g = parseMagickGeometry(tokens[++i] ?? "0x1");
+            const sigma = Math.max(0.3, g.height ?? g.width ?? 1);
+            stack = stack.map((im) => blurImage(im, sigma));
+        }
+        else if (t === "-sharpen" || t === "-unsharp") {
+            const g = parseMagickGeometry(tokens[++i] ?? "0x1");
+            const sigma = Math.max(0.3, g.height ?? g.width ?? 1);
+            stack = stack.map((im) => sharpenImage(im, sigma));
+        }
+        else if (t === "-median") {
+            const r = Math.max(1, Math.round(Number(tokens[++i] ?? 3)));
+            stack = stack.map((im) => medianImage(im, r));
+        }
+        else if (t === "-morphology") {
+            const method = (tokens[++i] ?? "dilate").toLowerCase();
+            let kernelSpec = "";
+            if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) {
+                kernelSpec = tokens[++i]!;
+            }
+            if (method.includes("convolve") || method.includes("correlate")) {
+                stack = yield* mapSteps(stack, function* (im) {
+                    return (yield* applyMagickCustomConvolveSteps(im, kernelSpec, signal));
+                });
+            }
+            else {
+                stack = yield* mapSteps(stack, function* (im) {
+                    return (yield* applyMagickMorphology4ChSteps(im, method, kernelSpec, signal));
+                });
+            }
+        }
+        else if (t === "-statistic") {
+            const statType = (tokens[++i] ?? "median").toLowerCase();
+            const geom = tokens[++i] ?? "3x3";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickMorphology4ChSteps(im, statType, geom, signal));
+            });
+        }
+        else if (t === "-alpha") {
+            const mode = (tokens[++i] ?? "on").toLowerCase();
+            if (mode === "remove") {
+                stack = stack.map((im) => removeAlphaImage(flattenImage(im, state.background)));
+            }
+            else if (mode === "off" || mode === "deactivate" || mode === "opaque") {
+                stack = stack.map((im) => {
+                    const out = new Uint8Array(im.data);
+                    for (let idx = 3; idx < out.length; idx += 4)
+                        out[idx] = 255;
+                    return { ...im, data: out, hasAlpha: mode === "opaque" };
+                });
+            }
+            else if (mode === "transparent") {
+                stack = stack.map((im) => {
+                    const out = new Uint8Array(im.data);
+                    for (let idx = 3; idx < out.length; idx += 4)
+                        out[idx] = 0;
+                    return { ...im, data: out, hasAlpha: true };
+                });
+            }
+            else if (mode === "copy" || mode === "shape") {
+                stack = stack.map((im) => {
+                    const out = new Uint8Array(im.data);
+                    for (let idx = 0; idx < out.length; idx += 4) {
+                        const inten = clampByteVal(0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!);
+                        if (mode === "shape") {
+                            out[idx] = state.background.r;
+                            out[idx + 1] = state.background.g;
+                            out[idx + 2] = state.background.b;
+                        }
+                        out[idx + 3] = inten;
+                    }
+                    return { ...im, data: out, hasAlpha: true };
+                });
+            }
+            else if (mode === "on" || mode === "set" || mode === "activate") {
+                stack = stack.map((im) => ensureAlphaImage(im, 1));
+            }
+            else if (mode === "extract") {
+                stack = stack.map((im) => extractChannelImage(ensureAlphaImage(im, 1), 3));
+            }
+        }
+        else if (t === "-separate") {
+            const nextStack: RgbaImage[] = [];
+            for (const im of stack) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                if (state.channelExplicit) {
+                    if (state.channels.r)
+                        nextStack.push(extractChannelImage(im, 0));
+                    if (state.channels.g)
+                        nextStack.push(extractChannelImage(im, 1));
+                    if (state.channels.b)
+                        nextStack.push(extractChannelImage(im, 2));
+                    if (state.channels.a)
+                        nextStack.push(extractChannelImage(ensureAlphaImage(im, 1), 3));
+                }
+                else {
+                    nextStack.push(extractChannelImage(im, 0), extractChannelImage(im, 1), extractChannelImage(im, 2));
+                    if (im.hasAlpha) {
+                        nextStack.push(extractChannelImage(ensureAlphaImage(im, 1), 3));
+                    }
+                }
+            }
+            stack = nextStack;
+        }
+        else if (t === "-combine") {
+            if (stack.length >= 3) {
+                const rIm = stack[0]!;
+                const gIm = stack[1] ?? rIm;
+                const bIm = stack[2] ?? rIm;
+                const aIm = stack[3];
+                const out = new Uint8Array(rIm.width * rIm.height * 4);
+                for (let p = 0; p < out.length; p += 4) {
+                    if (++cooperativeWork % 65536 === 0)
+                        yield;
+                    out[p] = rIm.data[p]!;
+                    out[p + 1] = gIm.data[p]!;
+                    out[p + 2] = bIm.data[p]!;
+                    out[p + 3] = aIm ? aIm.data[p]! : 255;
+                }
+                stack = [{ ...rIm, space: "srgb", data: out, channels: 4, hasAlpha: Boolean(aIm) }];
+            }
+        }
+        else if (t === "-draw") {
+            const drawSpec = tokens[++i] ?? "";
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickDrawSteps(im, drawSpec, state, signal));
+            });
+        }
+        else if (t === "-annotate") {
+            const offsetOrText = tokens[++i] ?? "+0+0";
+            const hasExplicitOffset = /^[+-]\d/.test(offsetOrText) || /^\d+x\d+/.test(offsetOrText);
+            const offset = hasExplicitOffset ? offsetOrText : "+0+0";
+            const text = hasExplicitOffset ? (tokens[++i] ?? "") : offsetOrText;
+            stack = yield* mapSteps(stack, function* (im) {
+                return (yield* applyMagickAnnotateSteps(im, offset, text, state, signal));
+            });
+        }
+        else if (t === "+clone" || t === "-clone") {
+            const sourcePool = stack.length > 0 ? stack : parentStack;
+            const spec = t === "+clone" ? "-1" : (tokens[++i] ?? "-1");
+            for (const idx of parseMagickIndexSpec(spec, sourcePool.length)) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                const chosen = sourcePool[idx];
+                if (chosen)
+                    stack.push({ ...chosen, data: new Uint8Array(chosen.data) });
+            }
+        }
+        else if (t === "-duplicate" || t === "+duplicate") {
+            let count = 1;
+            let idxSpec = "-1";
+            if (t === "-duplicate") {
+                const nextTok = tokens[i + 1];
+                if (nextTok && /^\d+/.test(nextTok)) {
+                    i++;
+                    const commaIdx = nextTok.indexOf(",");
+                    if (commaIdx >= 0) {
+                        count = Math.max(0, parseInt(nextTok.slice(0, commaIdx), 10));
+                        idxSpec = nextTok.slice(commaIdx + 1) || "-1";
+                    }
+                    else {
+                        count = Math.max(0, parseInt(nextTok, 10));
+                    }
+                }
+            }
+            const sourcePool = stack.length > 0 ? stack : parentStack;
+            const indices = parseMagickIndexSpec(idxSpec, sourcePool.length);
+            for (let k = 0; k < count; k++) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                for (const idx of indices) {
+                    if (++cooperativeWork % 65536 === 0)
+                        yield;
+                    const chosen = sourcePool[idx];
+                    if (chosen)
+                        stack.push({ ...chosen, data: new Uint8Array(chosen.data) });
+                }
+            }
+        }
+        else if (t === "+insert" || t === "-insert") {
+            const rawIdx = t === "+insert" ? 0 : Number(tokens[++i] ?? 0);
+            if (stack.length > 1) {
+                const last = stack.pop()!;
+                const target = rawIdx < 0 ? Math.max(0, stack.length + 1 + rawIdx) : Math.min(stack.length, Math.max(0, rawIdx));
+                stack.splice(target, 0, last);
+            }
+        }
+        else if (t === "+swap" || t === "-swap") {
+            let i1 = stack.length - 2;
+            let i2 = stack.length - 1;
+            if (t === "-swap") {
+                const [s1, s2] = (tokens[++i] ?? "-2,-1").split(",").map((n) => Number(n));
+                i1 = (s1 ?? -2) < 0 ? stack.length + (s1 ?? -2) : (s1 ?? 0);
+                i2 = (s2 ?? -1) < 0 ? stack.length + (s2 ?? -1) : (s2 ?? 0);
+            }
+            if (stack[i1] && stack[i2]) {
+                const tmp = stack[i1]!;
+                stack[i1] = stack[i2]!;
+                stack[i2] = tmp;
+            }
+        }
+        else if (t === "+delete" || t === "-delete") {
+            if (t === "+delete") {
+                stack.pop();
+            }
+            else {
+                const toDelete = new Set(parseMagickIndexSpec(tokens[++i] ?? "-1", stack.length));
+                stack = stack.filter((_, idx) => !toDelete.has(idx));
+            }
+        }
+        else if (t === "-reverse") {
+            stack.reverse();
+        }
+        else if (t === "-append" || t === "+append") {
+            stack = [appendStackImages(stack, t === "-append", state)];
+        }
+        else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
+            if (t === "-layers")
+                i++;
+            if (stack.length > 0) {
+                const maxW = Math.max(...stack.map((im) => im.width));
+                const maxH = Math.max(...stack.map((im) => im.height));
+                const canvas = createSolidRgbaImage(maxW, maxH, state.background);
+                const layers = stack.map((im) => rgbaToCompositeLayer(im, 0, 0, state.compose));
+                stack = [compositeImage(canvas, layers)];
+            }
+        }
+        else if (t === "-composite") {
+            if (stack.length >= 2) {
+                const base = stack[0]!;
+                let overlay = stack[1]!;
+                let gx = 0;
+                let gy = 0;
+                if (state.geometry) {
+                    const g = parseMagickGeometry(state.geometry);
+                    if (g.width !== undefined || g.height !== undefined) {
+                        overlay = applyMagickResize(overlay, state.geometry, state.kernel);
+                    }
+                    gx = g.x;
+                    gy = g.y;
+                }
+                const grav = resolveGravityOffset(base.width - overlay.width, base.height - overlay.height, state.gravity);
+                const composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, grav.left + gx, grav.top + gy, state.composeArgs, signal));
+                stack = [composed, ...stack.slice(2)];
+            }
+        }
+        else {
+            const loaded = parseInputOperands(t, files, state, stdinBytes);
+            if (loaded) {
+                stack.push(...loaded);
+            }
+        }
+        i++;
     }
-
-    if (t === "-size") {
-      const g = parseMagickGeometry(tokens[++i] ?? "1x1");
-      state.sizeWidth = Math.max(1, Math.round(g.width ?? 1));
-      state.sizeHeight = Math.max(1, Math.round(g.height ?? state.sizeWidth));
-      state.hasSize = true;
-    } else if (t === "+size") {
-      state.hasSize = false;
-    } else if (t === "-background") {
-      state.background = parseColor(tokens[++i] ?? "#ffffff");
-    } else if (t === "-fill") {
-      state.fill = parseColor(tokens[++i] ?? "#000000");
-    } else if (t === "-stroke") {
-      state.stroke = parseColor(tokens[++i] ?? "#000000");
-    } else if (t === "-strokewidth") {
-      state.strokeWidth = Math.max(0, Number(tokens[++i] ?? 1));
-    } else if (t === "-bordercolor") {
-      state.borderColor = parseColor(tokens[++i] ?? "#dfdfdf");
-    } else if (t === "-pointsize") {
-      state.pointsize = Math.max(1, Number(tokens[++i] ?? 12));
-    } else if (t === "-gravity") {
-      state.gravity = parseGravity(tokens[++i] ?? "center");
-    } else if (t === "+gravity") {
-      state.gravity = "northwest";
-    } else if (t === "-quality") {
-      state.quality = Math.max(1, Math.min(100, Number(tokens[++i] ?? 92)));
-    } else if (t === "-density") {
-      const g = parseMagickGeometry(tokens[++i] ?? "72");
-      state.density = Math.max(1, Math.round(g.width ?? 72));
-    } else if (t === "-fuzz") {
-      const rawFuzz = tokens[++i] ?? "10";
-      state.fuzz = rawFuzz.endsWith("%")
-        ? Math.round((parseFloat(rawFuzz) / 100) * 255)
-        : Math.round(parseFloat(rawFuzz));
-    } else if (t === "-filter") {
-      state.kernel = parseKernel(tokens[++i] ?? "lanczos");
-    } else if (t === "-compose") {
-      const cRaw = tokens[++i] ?? "over";
-      state.composeRaw = cRaw;
-      state.compose = parseCompose(cRaw);
-    } else if (t === "-define") {
-      const defStr = tokens[++i] ?? "";
-      const m = /^compose:args=(.*)$/i.exec(defStr);
-      if (m) state.composeArgs = m[1]!;
-    } else if (t === "-set") {
-      const k = (tokens[++i] ?? "").toLowerCase();
-      const v = tokens[++i] ?? "";
-      if (k === "option:compose:args") state.composeArgs = v;
-    } else if (t === "-write" || t === "+write") {
-      const writePath = tokens[++i] ?? "";
-      if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
-        const top = stack[stack.length - 1]!;
-        const { format, path } = inferOutputFormat(writePath, top.format);
-        if (stack.length > 1 && (/%0?\d*d/.test(path) || !state.adjoin)) {
-          for (let idx = 0; idx < stack.length; idx++) {
-            const framePath = formatSceneOutputPath(path, idx);
-            const { data: frameBytes } = encodeImage(stack[idx]!, { format, quality: state.quality });
-            files.set(framePath, frameBytes);
-          }
-        } else {
-          const { data: encoded } = encodeImage(top, { format, quality: state.quality });
-          files.set(path, encoded);
-        }
-      }
-    } else if (t === "-geometry") {
-      state.geometry = tokens[++i] ?? "+0+0";
-    } else if (t === "-tile") {
-      state.tile = tokens[++i];
-    } else if (t === "-strip") {
-      state.strip = true;
-    } else if (t === "-format") {
-      state.formatStr = tokens[++i] ?? "";
-    } else if (t === "+adjoin") {
-      state.adjoin = false;
-    } else if (t === "-adjoin") {
-      state.adjoin = true;
-    } else if (t === "-delay" || t === "-loop" || t === "-dispose") {
-      i++;
-    } else if (t === "-coalesce" || t === "-deconstruct") {
-      // Coalesces frames in-place
-    } else if (t === "-splice") {
-      const geom = tokens[++i] ?? "0x0";
-      stack = stack.map((im) => applyMagickSplice(im, geom, state.background, state.gravity));
-    } else if (t === "-chop") {
-      const geom = tokens[++i] ?? "0x0";
-      stack = stack.map((im) => applyMagickChop(im, geom, state.gravity));
-    } else if (t === "-roll") {
-      const geom = tokens[++i] ?? "+0+0";
-      stack = stack.map((im) => applyMagickRoll(im, geom));
-    } else if (t === "-morph") {
-      const count = Number(tokens[++i] ?? 1);
-      stack = applyMagickMorph(stack, count);
-    } else if (t === "-floodfill") {
-      const geom = tokens[++i] ?? "+0+0";
-      const nextTok = tokens[i + 1];
-      let targetColor: RgbaColor | undefined;
-      if (nextTok && !nextTok.startsWith("-") && !nextTok.startsWith("+") && !files.has(nextTok)) {
-        try {
-          targetColor = parseColor(nextTok);
-          i++;
-        } catch {
-          // Optional target color omitted
-        }
-      }
-      stack = stack.map((im) => applyMagickFloodfill(im, geom, targetColor, state.fill, state.fuzz));
-    } else if (t === "-evaluate-sequence") {
-      const op = tokens[++i] ?? "Mean";
-      if (stack.length > 0) {
-        stack = [applyMagickEvaluateSequence(stack, op)];
-      }
-    } else if (t === "-convolve") {
-      const kSpec = tokens[++i] ?? "1";
-      stack = stack.map((im) => applyMagickCustomConvolve(im, kSpec));
-    } else if (t === "-color-matrix" || t === "-recolor") {
-      const mSpec = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
-      stack = stack.map((im) => applyMagickColorMatrix(im, mSpec));
-    } else if (t === "-equalize") {
-      stack = stack.map((im) => applyMagickEqualize(im));
-    } else if (t === "-remap") {
-      const palSpec = tokens[++i] ?? "";
-      const palImg = parseInputOperand(palSpec, files, state, stdinBytes);
-      if (palImg) {
-        stack = stack.map((im) => applyMagickRemap(im, palImg, state.dither));
-      }
-    } else if (t === "-channel") {
-      state.channels = parseChannelMask(tokens[++i] ?? "rgb");
-      state.channelExplicit = true;
-    } else if (t === "+channel") {
-      state.channels = { r: true, g: true, b: true, a: false };
-      state.channelExplicit = false;
-    } else if (t === "-opaque" || t === "+opaque") {
-      const targetColor = parseColor(tokens[++i] ?? "#000000");
-      const invert = t === "+opaque";
-      stack = stack.map((im) => applyMagickOpaque(im, targetColor, state.fill, state.fuzz, invert));
-    } else if (t === "-transparent" || t === "+transparent") {
-      const targetColor = parseColor(tokens[++i] ?? "#ffffff");
-      const invert = t === "+transparent";
-      stack = stack.map((im) => applyMagickTransparent(im, targetColor, state.fuzz, invert));
-    } else if (t === "-evaluate") {
-      const op = tokens[++i] ?? "Add";
-      const val = tokens[++i] ?? "0";
-      stack = stack.map((im) => applyMagickEvaluate(im, op, val, state.channels));
-    } else if (t === "-function") {
-      const fn = tokens[++i] ?? "Polynomial";
-      const params = tokens[++i] ?? "1,0";
-      stack = stack.map((im) => applyMagickFunction(im, fn, params, state.channels));
-    } else if (t === "-clut" || t === "-hald-clut") {
-      if (stack.length >= 2) {
-        const lut = stack[stack.length - 1]!;
-        const mapped = stack.slice(0, -1).map((im) => applyMagickClut(im, lut, state.channels));
-        stack = mapped;
-      }
-    } else if (t === "-fx") {
-      const expr = tokens[++i] ?? "u";
-      if (stack.length > 0) {
-        stack = [applyMagickFx(stack, expr, state.channels)];
-      }
-    } else if (t === "-shear") {
-      const geom = tokens[++i] ?? "0x0";
-      stack = stack.map((im) => applyMagickShear(im, geom, state.background));
-    } else if (t === "-distort" || t === "+distort") {
-      const method = tokens[++i] ?? "SRT";
-      const args = tokens[++i] ?? "0";
-      stack = stack.map((im) => applyMagickDistort(im, method, args, state.background));
-    } else if (t === "-swirl") {
-      const deg = Number(tokens[++i] ?? 0);
-      stack = stack.map((im) => applyMagickSwirl(im, deg, state.background));
-    } else if (t === "-implode") {
-      const amt = Number(tokens[++i] ?? 0);
-      stack = stack.map((im) => applyMagickImplode(im, amt, state.background));
-    } else if (t === "-wave") {
-      const geom = tokens[++i] ?? "5x50";
-      stack = stack.map((im) => applyMagickWave(im, geom, state.background));
-    } else if (t === "-shadow") {
-      const geom = tokens[++i] ?? "80x3+5+5";
-      stack = stack.map((im) => applyMagickShadow(im, geom, state.background));
-    } else if (t === "-vignette") {
-      const geom = tokens[++i] ?? "0x2";
-      stack = stack.map((im) => applyMagickVignette(im, geom, state.background));
-    } else if (t === "-sepia-tone") {
-      const thresh = tokens[++i] ?? "80%";
-      stack = stack.map((im) => applyMagickSepiaTone(im, thresh));
-    } else if (t === "-solarize") {
-      const thresh = tokens[++i] ?? "50%";
-      stack = stack.map((im) => applyMagickSolarize(im, thresh));
-    } else if (t === "-posterize" || t === "-colors") {
-      const lv = Number(tokens[++i] ?? 8);
-      stack = stack.map((im) => applyMagickPosterize(im, lv));
-    } else if (t === "-dither" || t === "+dither") {
-      if (t === "+dither") {
-        state.dither = false;
-      } else {
-        const dMode = (tokens[++i] ?? "floydsteinberg").toLowerCase();
-        state.dither = dMode !== "none";
-      }
-    } else if (t === "-edge" || t === "-canny") {
-      i++;
-      stack = stack.map((im) => applyMagickConvolve3x3(im, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0));
-    } else if (t === "-emboss") {
-      i++;
-      stack = stack.map((im) => applyMagickConvolve3x3(im, [-2, -1, 0, -1, 1, 1, 0, 1, 2], 128));
-    } else if (t === "-charcoal" || t === "-sketch") {
-      i++;
-      stack = stack.map((im) =>
-        grayscaleImage(
-          negateImage(
-            applyMagickConvolve3x3(blurImage(im, 1), [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0),
-            { alpha: false }
-          )
-        )
-      );
-    } else if (t === "+repage" || t === "-repage") {
-      if (t === "-repage") i++;
-    } else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
-      const geom = tokens[++i] ?? "100%";
-      const k = t === "-sample" ? "nearest" : state.kernel;
-      stack = stack.map((im) => applyMagickResize(im, geom, k));
-    } else if (t === "-crop") {
-      const geom = tokens[++i] ?? "100%";
-      const nextStack: RgbaImage[] = [];
-      for (const im of stack) {
-        nextStack.push(...applyMagickCropToStack(im, geom, state.gravity));
-      }
-      stack = nextStack;
-    } else if (t === "-extent") {
-      const geom = tokens[++i] ?? "100%";
-      stack = stack.map((im) => applyMagickExtent(im, geom, state));
-    } else if (t === "-border") {
-      const g = parseMagickGeometry(tokens[++i] ?? "0x0");
-      const bw = Math.max(0, Math.round(g.width ?? 0));
-      const bh = Math.max(0, Math.round(g.height ?? bw));
-      stack = stack.map((im) =>
-        extendImage(im, {
-          top: bh,
-          bottom: bh,
-          left: bw,
-          right: bw,
-          background: state.borderColor,
-          extendWith: "background"
-        })
-      );
-    } else if (t === "-shave") {
-      const g = parseMagickGeometry(tokens[++i] ?? "0x0");
-      const sw = Math.max(0, Math.round(g.width ?? 0));
-      const sh = Math.max(0, Math.round(g.height ?? sw));
-      stack = stack.map((im) => {
-        const clampedSw = Math.min(Math.floor((im.width - 1) / 2), sw);
-        const clampedSh = Math.min(Math.floor((im.height - 1) / 2), sh);
-        return extractImage(im, {
-          left: clampedSw,
-          top: clampedSh,
-          width: Math.max(1, im.width - clampedSw * 2),
-          height: Math.max(1, im.height - clampedSh * 2)
-        });
-      });
-    } else if (t === "-trim") {
-      stack = stack.map((im) => trimImage(im, { threshold: state.fuzz }));
-    } else if (t === "-rotate") {
-      const deg = Number(tokens[++i] ?? 0);
-      stack = stack.map((im) => rotateImage(im, deg, state.background));
-    } else if (t === "-flip") {
-      stack = stack.map((im) => flipImage(im));
-    } else if (t === "-flop") {
-      stack = stack.map((im) => flopImage(im));
-    } else if (t === "-transpose") {
-      stack = stack.map((im) => rotateImage(flipImage(im), 90, state.background));
-    } else if (t === "-transverse") {
-      stack = stack.map((im) => rotateImage(flopImage(im), 90, state.background));
-    } else if (t === "-auto-orient") {
-      stack = stack.map((im) => applyExifOrientation(im));
-    } else if (t === "-negate" || t === "+negate") {
-      const onlyGray = t === "+negate";
-      const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: false };
-      stack = stack.map((im) => {
-        const out = new Uint8Array(im.data);
-        for (let idx = 0; idx < out.length; idx += 4) {
-          const r = out[idx]!;
-          const g = out[idx + 1]!;
-          const b = out[idx + 2]!;
-          if (onlyGray && !(r === g && g === b)) continue;
-          if (ch.r) out[idx] = 255 - r;
-          if (ch.g) out[idx + 1] = 255 - g;
-          if (ch.b) out[idx + 2] = 255 - b;
-          if (ch.a) out[idx + 3] = 255 - out[idx + 3]!;
-        }
-        return { ...im, data: out };
-      });
-    } else if (t === "-colorspace" || t === "-grayscale") {
-      const cs = (tokens[++i] ?? "gray").toLowerCase();
-      if (cs.includes("gray") || cs.includes("grey") || cs === "rec709luma" || cs === "rec601luma") {
-        stack = stack.map((im) => grayscaleImage(im));
-      }
-    } else if (t === "-monochrome") {
-      stack = stack.map((im) => thresholdImage(grayscaleImage(im), 128, true));
-    } else if (t === "-modulate") {
-      const parts = (tokens[++i] ?? "100,100,100").split(",").map((p) => Number(p));
-      const brightness = (parts[0] ?? 100) / 100;
-      const saturation = (parts[1] ?? 100) / 100;
-      const hue = ((parts[2] ?? 100) - 100) * 1.8;
-      stack = stack.map((im) => modulateImage(im, { brightness, saturation, hue, lightness: 0 }));
-    } else if (t === "-brightness-contrast") {
-      const g = parseMagickGeometry(tokens[++i] ?? "0x0");
-      const b = g.width ?? 0;
-      const c = g.height ?? 0;
-      const slope = 1 + c / 100;
-      const offset = (b / 100) * 255;
-      stack = stack.map((im) => linearImage(im, [slope], [offset]));
-    } else if (t === "-gamma") {
-      const gammaVal = Math.max(0.1, Number(tokens[++i] ?? 1.0));
-      stack = stack.map((im) => gammaImage(im, gammaVal, gammaVal));
-    } else if (t === "-auto-level") {
-      const indep = state.channelExplicit;
-      const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: false };
-      stack = stack.map((im) => {
-        const out = new Uint8Array(im.data);
-        const mins = [255, 255, 255, 255];
-        const maxs = [0, 0, 0, 0];
-        for (let idx = 0; idx < out.length; idx += 4) {
-          for (let c = 0; c < 4; c++) {
-            const v = out[idx + c]!;
-            if (v < mins[c]!) mins[c] = v;
-            if (v > maxs[c]!) maxs[c] = v;
-          }
-        }
-        if (!indep) {
-          const gMin = Math.min(mins[0]!, mins[1]!, mins[2]!);
-          const gMax = Math.max(maxs[0]!, maxs[1]!, maxs[2]!);
-          mins[0] = mins[1] = mins[2] = gMin;
-          maxs[0] = maxs[1] = maxs[2] = gMax;
-        }
-        const active = [ch.r, ch.g, ch.b, ch.a];
-        for (let idx = 0; idx < out.length; idx += 4) {
-          for (let c = 0; c < 4; c++) {
-            if (!active[c]) continue;
-            const range = maxs[c]! - mins[c]!;
-            if (range > 0) {
-              out[idx + c] = clampByteVal(((out[idx + c]! - mins[c]!) / range) * 255);
-            }
-          }
-        }
-        return { ...im, data: out };
-      });
-    } else if (t === "-normalize" || t === "-contrast-stretch" || t === "-linear-stretch") {
-      const arg = t === "-normalize" ? "2%x1%" : (tokens[++i] ?? "0%x0%");
-      const [bStr, wStr] = arg.split("x");
-      const isPct = arg.includes("%");
-      const bVal = parseFloat(bStr || "0") || 0;
-      const wVal = wStr !== undefined ? (parseFloat(wStr) || 0) : bVal;
-      stack = stack.map((im) => {
-        const out = new Uint8Array(im.data);
-        const nPix = Math.max(1, im.width * im.height);
-        const lowTarget = isPct ? (bVal / 100) * nPix : bVal;
-        const highTarget = isPct ? ((100 - wVal) / 100) * nPix : nPix - wVal;
-        for (let c = 0; c < 3; c++) {
-          const hist = new Uint32Array(256);
-          for (let idx = c; idx < out.length; idx += 4) hist[out[idx]!]!++;
-          let lowBin = 0;
-          let acc = 0;
-          for (let b = 0; b < 256; b++) {
-            acc += hist[b]!;
-            if (acc > lowTarget) {
-              lowBin = b;
-              break;
-            }
-          }
-          let highBin = 255;
-          acc = 0;
-          for (let b = 0; b < 256; b++) {
-            acc += hist[b]!;
-            if (acc >= highTarget) {
-              highBin = b;
-              break;
-            }
-          }
-          const range = highBin - lowBin;
-          if (range > 0) {
-            for (let idx = c; idx < out.length; idx += 4) {
-              out[idx] = clampByteVal(((out[idx]! - lowBin) / range) * 255);
-            }
-          }
-        }
-        return { ...im, data: out };
-      });
-    } else if (t === "-contrast" || t === "+contrast") {
-      const slope = t === "-contrast" ? 1.15 : 0.87;
-      const offset = 128 * (1 - slope);
-      stack = stack.map((im) => linearImage(im, [slope], [offset]));
-    } else if (t === "-raise" || t === "+raise") {
-      const g = parseMagickGeometry(tokens[++i] ?? "4");
-      const bw = Math.max(1, Math.round(g.width ?? 4));
-      const raised = t === "-raise";
-      stack = stack.map((im) => {
-        const out = new Uint8Array(im.data);
-        for (let y = 0; y < im.height; y++) {
-          for (let x = 0; x < im.width; x++) {
-            const topLeft = y < bw || x < bw;
-            const botRight = y >= im.height - bw || x >= im.width - bw;
-            if (!topLeft && !botRight) continue;
-            const lighten = raised ? topLeft : botRight;
-            const idx = (y * im.width + x) * 4;
-            for (let c = 0; c < 3; c++) {
-              out[idx + c] = clampByteVal(lighten ? out[idx + c]! + 40 : out[idx + c]! - 40);
-            }
-          }
-        }
-        return { ...im, data: out };
-      });
-    } else if (t === "-frame") {
-      const g = parseMagickGeometry(tokens[++i] ?? "4x4");
-      const fw = Math.max(0, Math.round(g.width ?? 4));
-      const fh = Math.max(0, Math.round(g.height ?? fw));
-      stack = stack.map((im) =>
-        extendImage(im, {
-          top: fh,
-          bottom: fh,
-          left: fw,
-          right: fw,
-          background: state.borderColor,
-          extendWith: "background"
-        })
-      );
-    } else if (t === "-deskew") {
-      i++;
-    } else if (t === "-auto-gamma") {
-      stack = stack.map((im) => {
-        const out = new Uint8Array(im.data);
-        const numCh = im.hasAlpha ? 4 : 3;
-        let sum = 0;
-        for (let idx = 0; idx < out.length; idx += 4) {
-          for (let c = 0; c < numCh; c++) sum += out[idx + c]!;
-        }
-        const mean = sum / Math.max(1, im.width * im.height * numCh * 255);
-        if (mean > 0 && mean < 1) {
-          const exp = Math.log(0.5) / Math.log(mean);
-          for (let idx = 0; idx < out.length; idx += 4) {
-            for (let c = 0; c < numCh; c++) {
-              out[idx + c] = clampByteVal(Math.pow(out[idx + c]! / 255, exp) * 255);
-            }
-          }
-        }
-        return { ...im, data: out };
-      });
-    } else if (t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") {
-      const raw = tokens[++i] ?? "3x50%";
-      const [cStr, mStr] = raw.split("x");
-      const beta = Math.max(1e-4, parseFloat(cStr || "3"));
-      const mRaw = parseFloat(mStr || "50");
-      const alpha = (mStr ?? "50%").endsWith("%") ? mRaw / 100 : mRaw / 255;
-      const sig = (u: number) => 1 / (1 + Math.exp(beta * (alpha - u)));
-      const s0 = sig(0);
-      const s1 = sig(1);
-      const span = Math.max(1e-6, s1 - s0);
-      stack = stack.map((im) => {
-        const out = new Uint8Array(im.data);
-        for (let idx = 0; idx < out.length; idx += 4) {
-          for (let c = 0; c < 3; c++) {
-            const u = out[idx + c]! / 255;
-            out[idx + c] = clampByteVal(((sig(u) - s0) / span) * 255);
-          }
-        }
-        return { ...im, data: out };
-      });
-    } else if (t === "-level" || t === "+level") {
-      const raw = tokens[++i] ?? "0,100%";
-      const parts = raw.split(",");
-      const anyPct = raw.includes("%");
-      const parsePt = (p: string | undefined, def: number) => {
-        if (!p || p.length === 0) return def;
-        if (p.endsWith("%") || anyPct) {
-          return (parseFloat(p) / 100) * 255;
-        }
-        return parseFloat(p);
-      };
-      const black = parsePt(parts[0], 0);
-      const white = parsePt(parts[1], 255);
-      const gamma = parts[2] !== undefined ? Math.max(0.01, parseFloat(parts[2])) : 1.0;
-      const inverse = t === "+level";
-      stack = stack.map((im) => {
-        const out = new Uint8Array(im.data);
-        const span = Math.max(1e-6, white - black);
-        for (let idx = 0; idx < out.length; idx += 4) {
-          for (let c = 0; c < 3; c++) {
-            const v = out[idx + c]!;
-            if (inverse) {
-              const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), 1 / gamma);
-              out[idx + c] = clampByteVal(black + gVal * span);
-            } else {
-              const norm = Math.max(0, Math.min(1, (v - black) / span));
-              out[idx + c] = clampByteVal(Math.pow(norm, 1 / gamma) * 255);
-            }
-          }
-        }
-        return { ...im, data: out };
-      });
-    } else if (t === "-threshold") {
-      const raw = tokens[++i] ?? "50%";
-      const val = raw.endsWith("%")
-        ? Math.round((parseFloat(raw) / 100) * 255)
-        : Math.round(parseFloat(raw));
-      stack = stack.map((im) => thresholdImage(im, val, true));
-    } else if (t === "-black-threshold" || t === "-white-threshold") {
-      const raw = tokens[++i] ?? "50%";
-      const thresh = raw.endsWith("%") ? (parseFloat(raw) / 100) * 255 : parseFloat(raw);
-      const isBlack = t === "-black-threshold";
-      stack = stack.map((im) => {
-        const out = new Uint8Array(im.data);
-        for (let idx = 0; idx < out.length; idx += 4) {
-          const intensity = 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!;
-          if (isBlack && intensity <= thresh) {
-            out[idx] = 0;
-            out[idx + 1] = 0;
-            out[idx + 2] = 0;
-          } else if (!isBlack && intensity > thresh) {
-            out[idx] = 255;
-            out[idx + 1] = 255;
-            out[idx + 2] = 255;
-          }
-        }
-        return { ...im, data: out };
-      });
-    } else if (t === "-tint" || t === "-colorize") {
-      i++;
-      stack = stack.map((im) => tintImage(im, state.fill));
-    } else if (t === "-blur" || t === "-gaussian-blur") {
-      const g = parseMagickGeometry(tokens[++i] ?? "0x1");
-      const sigma = Math.max(0.3, g.height ?? g.width ?? 1);
-      stack = stack.map((im) => blurImage(im, sigma));
-    } else if (t === "-sharpen" || t === "-unsharp") {
-      const g = parseMagickGeometry(tokens[++i] ?? "0x1");
-      const sigma = Math.max(0.3, g.height ?? g.width ?? 1);
-      stack = stack.map((im) => sharpenImage(im, sigma));
-    } else if (t === "-median") {
-      const r = Math.max(1, Math.round(Number(tokens[++i] ?? 3)));
-      stack = stack.map((im) => medianImage(im, r));
-    } else if (t === "-morphology") {
-      const method = (tokens[++i] ?? "dilate").toLowerCase();
-      let kernelSpec = "";
-      if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) {
-        kernelSpec = tokens[++i]!;
-      }
-      if (method.includes("convolve") || method.includes("correlate")) {
-        stack = stack.map((im) => applyMagickCustomConvolve(im, kernelSpec));
-      } else {
-        stack = stack.map((im) => applyMagickMorphology4Ch(im, method, kernelSpec));
-      }
-    } else if (t === "-statistic") {
-      const statType = (tokens[++i] ?? "median").toLowerCase();
-      const geom = tokens[++i] ?? "3x3";
-      stack = stack.map((im) => applyMagickMorphology4Ch(im, statType, geom));
-    } else if (t === "-alpha") {
-      const mode = (tokens[++i] ?? "on").toLowerCase();
-      if (mode === "remove") {
-        stack = stack.map((im) => removeAlphaImage(flattenImage(im, state.background)));
-      } else if (mode === "off" || mode === "deactivate" || mode === "opaque") {
-        stack = stack.map((im) => {
-          const out = new Uint8Array(im.data);
-          for (let idx = 3; idx < out.length; idx += 4) out[idx] = 255;
-          return { ...im, data: out, hasAlpha: mode === "opaque" };
-        });
-      } else if (mode === "transparent") {
-        stack = stack.map((im) => {
-          const out = new Uint8Array(im.data);
-          for (let idx = 3; idx < out.length; idx += 4) out[idx] = 0;
-          return { ...im, data: out, hasAlpha: true };
-        });
-      } else if (mode === "copy" || mode === "shape") {
-        stack = stack.map((im) => {
-          const out = new Uint8Array(im.data);
-          for (let idx = 0; idx < out.length; idx += 4) {
-            const inten = clampByteVal(
-              0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!
-            );
-            if (mode === "shape") {
-              out[idx] = state.background.r;
-              out[idx + 1] = state.background.g;
-              out[idx + 2] = state.background.b;
-            }
-            out[idx + 3] = inten;
-          }
-          return { ...im, data: out, hasAlpha: true };
-        });
-      } else if (mode === "on" || mode === "set" || mode === "activate") {
-        stack = stack.map((im) => ensureAlphaImage(im, 1));
-      } else if (mode === "extract") {
-        stack = stack.map((im) => extractChannelImage(ensureAlphaImage(im, 1), 3));
-      }
-    } else if (t === "-separate") {
-      const nextStack: RgbaImage[] = [];
-      for (const im of stack) {
-        if (state.channelExplicit) {
-          if (state.channels.r) nextStack.push(extractChannelImage(im, 0));
-          if (state.channels.g) nextStack.push(extractChannelImage(im, 1));
-          if (state.channels.b) nextStack.push(extractChannelImage(im, 2));
-          if (state.channels.a) nextStack.push(extractChannelImage(ensureAlphaImage(im, 1), 3));
-        } else {
-          nextStack.push(
-            extractChannelImage(im, 0),
-            extractChannelImage(im, 1),
-            extractChannelImage(im, 2)
-          );
-          if (im.hasAlpha) {
-            nextStack.push(extractChannelImage(ensureAlphaImage(im, 1), 3));
-          }
-        }
-      }
-      stack = nextStack;
-    } else if (t === "-combine") {
-      if (stack.length >= 3) {
-        const rIm = stack[0]!;
-        const gIm = stack[1] ?? rIm;
-        const bIm = stack[2] ?? rIm;
-        const aIm = stack[3];
-        const out = new Uint8Array(rIm.width * rIm.height * 4);
-        for (let p = 0; p < out.length; p += 4) {
-          out[p] = rIm.data[p]!;
-          out[p + 1] = gIm.data[p]!;
-          out[p + 2] = bIm.data[p]!;
-          out[p + 3] = aIm ? aIm.data[p]! : 255;
-        }
-        stack = [{ ...rIm, space: "srgb", data: out, channels: 4, hasAlpha: Boolean(aIm) }];
-      }
-    } else if (t === "-draw") {
-      const drawSpec = tokens[++i] ?? "";
-      stack = stack.map((im) => applyMagickDraw(im, drawSpec, state));
-    } else if (t === "-annotate") {
-      const offsetOrText = tokens[++i] ?? "+0+0";
-      const hasExplicitOffset = /^[+-]\d/.test(offsetOrText) || /^\d+x\d+/.test(offsetOrText);
-      const offset = hasExplicitOffset ? offsetOrText : "+0+0";
-      const text = hasExplicitOffset ? (tokens[++i] ?? "") : offsetOrText;
-      stack = stack.map((im) => applyMagickAnnotate(im, offset, text, state));
-    } else if (t === "+clone" || t === "-clone") {
-      const sourcePool = stack.length > 0 ? stack : parentStack;
-      const spec = t === "+clone" ? "-1" : (tokens[++i] ?? "-1");
-      for (const idx of parseMagickIndexSpec(spec, sourcePool.length)) {
-        const chosen = sourcePool[idx];
-        if (chosen) stack.push({ ...chosen, data: new Uint8Array(chosen.data) });
-      }
-    } else if (t === "-duplicate" || t === "+duplicate") {
-      let count = 1;
-      let idxSpec = "-1";
-      if (t === "-duplicate") {
-        const nextTok = tokens[i + 1];
-        if (nextTok && /^\d+/.test(nextTok)) {
-          i++;
-          const commaIdx = nextTok.indexOf(",");
-          if (commaIdx >= 0) {
-            count = Math.max(0, parseInt(nextTok.slice(0, commaIdx), 10));
-            idxSpec = nextTok.slice(commaIdx + 1) || "-1";
-          } else {
-            count = Math.max(0, parseInt(nextTok, 10));
-          }
-        }
-      }
-      const sourcePool = stack.length > 0 ? stack : parentStack;
-      const indices = parseMagickIndexSpec(idxSpec, sourcePool.length);
-      for (let k = 0; k < count; k++) {
-        for (const idx of indices) {
-          const chosen = sourcePool[idx];
-          if (chosen) stack.push({ ...chosen, data: new Uint8Array(chosen.data) });
-        }
-      }
-    } else if (t === "+insert" || t === "-insert") {
-      const rawIdx = t === "+insert" ? 0 : Number(tokens[++i] ?? 0);
-      if (stack.length > 1) {
-        const last = stack.pop()!;
-        const target = rawIdx < 0 ? Math.max(0, stack.length + 1 + rawIdx) : Math.min(stack.length, Math.max(0, rawIdx));
-        stack.splice(target, 0, last);
-      }
-    } else if (t === "+swap" || t === "-swap") {
-      let i1 = stack.length - 2;
-      let i2 = stack.length - 1;
-      if (t === "-swap") {
-        const [s1, s2] = (tokens[++i] ?? "-2,-1").split(",").map((n) => Number(n));
-        i1 = (s1 ?? -2) < 0 ? stack.length + (s1 ?? -2) : (s1 ?? 0);
-        i2 = (s2 ?? -1) < 0 ? stack.length + (s2 ?? -1) : (s2 ?? 0);
-      }
-      if (stack[i1] && stack[i2]) {
-        const tmp = stack[i1]!;
-        stack[i1] = stack[i2]!;
-        stack[i2] = tmp;
-      }
-    } else if (t === "+delete" || t === "-delete") {
-      if (t === "+delete") {
-        stack.pop();
-      } else {
-        const toDelete = new Set(parseMagickIndexSpec(tokens[++i] ?? "-1", stack.length));
-        stack = stack.filter((_, idx) => !toDelete.has(idx));
-      }
-    } else if (t === "-reverse") {
-      stack.reverse();
-    } else if (t === "-append" || t === "+append") {
-      stack = [appendStackImages(stack, t === "-append", state)];
-    } else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
-      if (t === "-layers") i++;
-      if (stack.length > 0) {
-        const maxW = Math.max(...stack.map((im) => im.width));
-        const maxH = Math.max(...stack.map((im) => im.height));
-        const canvas = createSolidRgbaImage(maxW, maxH, state.background);
-        const layers = stack.map((im) => rgbaToCompositeLayer(im, 0, 0, state.compose));
-        stack = [compositeImage(canvas, layers)];
-      }
-    } else if (t === "-composite") {
-      if (stack.length >= 2) {
-        const base = stack[0]!;
-        let overlay = stack[1]!;
-        let gx = 0;
-        let gy = 0;
-        if (state.geometry) {
-          const g = parseMagickGeometry(state.geometry);
-          if (g.width !== undefined || g.height !== undefined) {
-            overlay = applyMagickResize(overlay, state.geometry, state.kernel);
-          }
-          gx = g.x;
-          gy = g.y;
-        }
-        const grav = resolveGravityOffset(base.width - overlay.width, base.height - overlay.height, state.gravity);
-        const composed = applyMagickCompositeLayer(
-          base,
-          overlay,
-          state.composeRaw,
-          grav.left + gx,
-          grav.top + gy,
-          state.composeArgs
-        );
-        stack = [composed, ...stack.slice(2)];
-      }
-    } else {
-      const loaded = parseInputOperands(t, files, state, stdinBytes);
-      if (loaded) {
-        stack.push(...loaded);
-      }
-    }
-
-    i++;
-  }
-
-  return stack;
+    return stack;
 }
 
-export async function runConvertCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): Promise<ImageMagickCliResult> {
-  return runConvertCliSync(argv, files, stdinBytes);
+function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    let cooperativeWork = 63;
+    if (argv.length === 0 || argv.includes("--help") || argv.includes("-help") || argv.includes("-h")) {
+        return {
+            exitCode: 0,
+            stdout: "Usage: magick [input-options] input-file [operators] output-file\n",
+            stderr: ""
+        };
+    }
+    if (argv.includes("--version") || argv.includes("-version")) {
+        return {
+            exitCode: 0,
+            stdout: "Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n",
+            stderr: ""
+        };
+    }
+    const outSpec = argv[argv.length - 1]!;
+    const pipelineTokens = argv.slice(0, -1);
+    const state = createDefaultState();
+    try {
+        const stack = (yield* evaluatePipelineTokensSteps(pipelineTokens, files, state, [], stdinBytes, signal));
+        if (stack.length === 0) {
+            return {
+                exitCode: 1,
+                stdout: "",
+                stderr: `magick: no images defined '${outSpec}'\n`
+            };
+        }
+        const finalImg = stack[stack.length - 1]!;
+        const outLower = outSpec.toLowerCase();
+        if (outLower === "info:" || outLower === "info:-") {
+            const outText = state.formatStr
+                ? stack.map((im, idx) => formatMagickPropertyString(state.formatStr!, im, idx, stack.length)).join("")
+                : stack.map((im) => `${im.width}x${im.height} sRGB 8-bit`).join("\n");
+            return {
+                exitCode: 0,
+                stdout: outText.endsWith("\n") ? outText : `${outText}\n`,
+                stderr: ""
+            };
+        }
+        if (outLower.startsWith("txt:")) {
+            const txt = formatTxtEnumeration(finalImg);
+            const target = outSpec.slice(4);
+            if (!target || target === "-") {
+                return { exitCode: 0, stdout: txt, stderr: "" };
+            }
+            files.set(target, new TextEncoder().encode(txt));
+            return { exitCode: 0, stdout: "", stderr: "" };
+        }
+        if (outLower.startsWith("histogram:")) {
+            const hist = formatHistogramOutput(finalImg);
+            return { exitCode: 0, stdout: hist, stderr: "" };
+        }
+        const { format, path: outPath } = inferOutputFormat(outSpec, "png");
+        if (stack.length > 1 && (/%0?\d*d/.test(outPath) || !state.adjoin)) {
+            for (let idx = 0; idx < stack.length; idx++) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                const framePath = formatSceneOutputPath(outPath, idx);
+                const { data: frameBytes } = encodeImage(stack[idx]!, { format, quality: state.quality });
+                files.set(framePath, frameBytes);
+            }
+            return { exitCode: 0, stdout: "", stderr: "" };
+        }
+        let toEncode = finalImg;
+        let encodePageHeight: number | undefined;
+        if (stack.length > 1 && format === "gif") {
+            const fw = stack[0]!.width;
+            const fh = stack[0]!.height;
+            const combined = new Uint8Array(fw * fh * stack.length * 4);
+            for (let idx = 0; idx < stack.length; idx++) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                const frame = stack[idx]!.width === fw && stack[idx]!.height === fh
+                    ? stack[idx]!
+                    : applyMagickResize(stack[idx]!, `${fw}x${fh}!`, state.kernel);
+                combined.set(frame.data, idx * fw * fh * 4);
+            }
+            toEncode = {
+                ...stack[0]!,
+                width: fw,
+                height: fh * stack.length,
+                pages: stack.length,
+                pageHeight: fh,
+                data: combined
+            };
+            encodePageHeight = fh;
+        }
+        const { data: encoded } = encodeImage(toEncode, {
+            format,
+            quality: state.quality,
+            ...(encodePageHeight !== undefined ? { pageHeight: encodePageHeight } : {})
+        });
+        if (outPath === "-" || outSpec.endsWith(":-")) {
+            return {
+                exitCode: 0,
+                stdout: "",
+                stderr: "",
+                stdoutBytes: encoded
+            };
+        }
+        files.set(outPath, encoded);
+        return { exitCode: 0, stdout: "", stderr: "" };
+    }
+    catch (err) {
+        return {
+            exitCode: 1,
+            stdout: "",
+            stderr: `magick: ${(err as Error).message}\n`
+        };
+    }
+}
+export async function runConvertCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    return drainSteps(runConvertCliSteps(argv, files, stdinBytes, signal), signal);
+}
+export function runConvertCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
+    let steps = runConvertCliSteps(argv, files, stdinBytes, signal), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
+    }
+    return next.value;
 }
 
-export function runConvertCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): ImageMagickCliResult {
-  if (argv.length === 0 || argv.includes("--help") || argv.includes("-help") || argv.includes("-h")) {
-    return {
-      exitCode: 0,
-      stdout: "Usage: magick [input-options] input-file [operators] output-file\n",
-      stderr: ""
-    };
-  }
-  if (argv.includes("--version") || argv.includes("-version")) {
-    return {
-      exitCode: 0,
-      stdout: "Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n",
-      stderr: ""
-    };
-  }
-
-  const outSpec = argv[argv.length - 1]!;
-  const pipelineTokens = argv.slice(0, -1);
-  const state = createDefaultState();
-
-  try {
-    const stack = evaluatePipelineTokens(pipelineTokens, files, state, [], stdinBytes);
-    if (stack.length === 0) {
-      return {
-        exitCode: 1,
-        stdout: "",
-        stderr: `magick: no images defined '${outSpec}'\n`
-      };
+function* runMogrifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    let cooperativeWork = 63;
+    let outFormatExt: string | undefined;
+    let outDir: string | undefined;
+    const opTokens: string[] = [];
+    const readSettings: string[] = [];
+    const targets: string[] = [];
+    const flagsWithOneArg = new Set([
+        "-resize",
+        "-scale",
+        "-sample",
+        "-thumbnail",
+        "-crop",
+        "-extent",
+        "-border",
+        "-bordercolor",
+        "-shave",
+        "-rotate",
+        "-background",
+        "-fill",
+        "-stroke",
+        "-strokewidth",
+        "-pointsize",
+        "-gravity",
+        "-quality",
+        "-density",
+        "-fuzz",
+        "-filter",
+        "-colorspace",
+        "-grayscale",
+        "-modulate",
+        "-brightness-contrast",
+        "-gamma",
+        "-level",
+        "+level",
+        "-threshold",
+        "-black-threshold",
+        "-white-threshold",
+        "-sigmoidal-contrast",
+        "+sigmoidal-contrast",
+        "-convolve",
+        "-color-matrix",
+        "-evaluate-sequence",
+        "-remap",
+        "-splice",
+        "-chop",
+        "-roll",
+        "-liquid-rescale",
+        "-adaptive-resize",
+        "-define",
+        "-write",
+        "+write",
+        "-compose",
+        "-geometry",
+        "-size",
+        "-depth",
+        "-units",
+        "-interlace",
+        "-sampling-factor",
+        "-tint",
+        "-colorize",
+        "-blur",
+        "-gaussian-blur",
+        "-sharpen",
+        "-unsharp",
+        "-median",
+        "-alpha",
+        "-draw",
+        "-channel",
+        "-opaque",
+        "+opaque",
+        "-transparent",
+        "+transparent",
+        "-fx",
+        "-shear",
+        "-swirl",
+        "-implode",
+        "-wave",
+        "-shadow",
+        "-vignette",
+        "-sepia-tone",
+        "-solarize",
+        "-posterize",
+        "-colors",
+        "-dither",
+        "-edge",
+        "-canny",
+        "-emboss",
+        "-charcoal",
+        "-sketch"
+    ]);
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const t = argv[i]!;
+        if (t === "-format") {
+            outFormatExt = (argv[++i] ?? "png").replace(/^\./, "").toLowerCase();
+        }
+        else if (t === "-path") {
+            outDir = argv[++i];
+        }
+        else if (t === "-annotate") {
+            const a1 = argv[++i] ?? "+0+0";
+            if (/^[+-]\d/.test(a1) || /^\d+x\d+/.test(a1)) {
+                opTokens.push("-annotate", a1, argv[++i] ?? "");
+            }
+            else {
+                opTokens.push("-annotate", a1);
+            }
+        }
+        else if (t === "-evaluate" ||
+            t === "-function" ||
+            t === "-morphology" ||
+            t === "-statistic" ||
+            t === "-set" ||
+            t === "-distort" ||
+            t === "+distort") {
+            opTokens.push(t, argv[++i] ?? "", argv[++i] ?? "");
+        }
+        else if (["-density", "-background", "-fuzz", "-filter", "-size"].includes(t)) {
+            readSettings.push(t, argv[++i] ?? "");
+        }
+        else if (flagsWithOneArg.has(t)) {
+            opTokens.push(t, argv[++i] ?? "");
+        }
+        else if (t.startsWith("-") || t.startsWith("+")) {
+            opTokens.push(t);
+        }
+        else if (files.has(t)) {
+            targets.push(t);
+        }
+        else {
+            targets.push(t);
+        }
     }
-
-    const finalImg = stack[stack.length - 1]!;
-    const outLower = outSpec.toLowerCase();
-    if (outLower === "info:" || outLower === "info:-") {
-      const outText = state.formatStr
-        ? stack.map((im, idx) => formatMagickPropertyString(state.formatStr!, im, idx, stack.length)).join("")
-        : stack.map((im) => `${im.width}x${im.height} sRGB 8-bit`).join("\n");
-      return {
-        exitCode: 0,
-        stdout: outText.endsWith("\n") ? outText : `${outText}\n`,
-        stderr: ""
-      };
+    for (const target of targets) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        if (!files.has(target)) {
+            return {
+                exitCode: 1,
+                stdout: "",
+                stderr: `mogrify: unable to open image '${target}': No such file or directory\n`
+            };
+        }
+        const baseName = target.split("/").pop() ?? target;
+        const stem = baseName.replace(/\.[^.]+$/, "");
+        const origExt = baseName.includes(".") ? baseName.split(".").pop()! : "png";
+        const targetExt = outFormatExt ?? origExt;
+        const destDir = outDir ? outDir.replace(/\/+$/, "") : target.slice(0, Math.max(0, target.lastIndexOf("/")));
+        const destPath = outFormatExt || outDir ? `${destDir ? destDir + "/" : ""}${stem}.${targetExt}` : target;
+        const res = (yield* runConvertCliSteps([...readSettings, target, ...opTokens, destPath], files, undefined, signal));
+        if (res.exitCode !== 0)
+            return res;
     }
-    if (outLower.startsWith("txt:")) {
-      const txt = formatTxtEnumeration(finalImg);
-      const target = outSpec.slice(4);
-      if (!target || target === "-") {
-        return { exitCode: 0, stdout: txt, stderr: "" };
-      }
-      files.set(target, new TextEncoder().encode(txt));
-      return { exitCode: 0, stdout: "", stderr: "" };
-    }
-    if (outLower.startsWith("histogram:")) {
-      const hist = formatHistogramOutput(finalImg);
-      return { exitCode: 0, stdout: hist, stderr: "" };
-    }
-
-    const { format, path: outPath } = inferOutputFormat(outSpec, "png");
-
-    if (stack.length > 1 && (/%0?\d*d/.test(outPath) || !state.adjoin)) {
-      for (let idx = 0; idx < stack.length; idx++) {
-        const framePath = formatSceneOutputPath(outPath, idx);
-        const { data: frameBytes } = encodeImage(stack[idx]!, { format, quality: state.quality });
-        files.set(framePath, frameBytes);
-      }
-      return { exitCode: 0, stdout: "", stderr: "" };
-    }
-
-    let toEncode = finalImg;
-    let encodePageHeight: number | undefined;
-    if (stack.length > 1 && format === "gif") {
-      const fw = stack[0]!.width;
-      const fh = stack[0]!.height;
-      const combined = new Uint8Array(fw * fh * stack.length * 4);
-      for (let idx = 0; idx < stack.length; idx++) {
-        const frame =
-          stack[idx]!.width === fw && stack[idx]!.height === fh
-            ? stack[idx]!
-            : applyMagickResize(stack[idx]!, `${fw}x${fh}!`, state.kernel);
-        combined.set(frame.data, idx * fw * fh * 4);
-      }
-      toEncode = {
-        ...stack[0]!,
-        width: fw,
-        height: fh * stack.length,
-        pages: stack.length,
-        pageHeight: fh,
-        data: combined
-      };
-      encodePageHeight = fh;
-    }
-    const { data: encoded } = encodeImage(toEncode, {
-      format,
-      quality: state.quality,
-      ...(encodePageHeight !== undefined ? { pageHeight: encodePageHeight } : {})
-    });
-
-    if (outPath === "-" || outSpec.endsWith(":-")) {
-      return {
-        exitCode: 0,
-        stdout: "",
-        stderr: "",
-        stdoutBytes: encoded
-      };
-    }
-
-    files.set(outPath, encoded);
     return { exitCode: 0, stdout: "", stderr: "" };
-  } catch (err) {
-    return {
-      exitCode: 1,
-      stdout: "",
-      stderr: `magick: ${(err as Error).message}\n`
-    };
-  }
 }
-
-export async function runMogrifyCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<ImageMagickCliResult> {
-  return runMogrifyCliSync(argv, files);
+export async function runMogrifyCli(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    return drainSteps(runMogrifyCliSteps(argv, files, _stdinBytes, signal), signal);
 }
-
-export function runMogrifyCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): ImageMagickCliResult {
-  let outFormatExt: string | undefined;
-  let outDir: string | undefined;
-  const opTokens: string[] = [];
-  const readSettings: string[] = [];
-  const targets: string[] = [];
-
-  const flagsWithOneArg = new Set([
-    "-resize",
-    "-scale",
-    "-sample",
-    "-thumbnail",
-    "-crop",
-    "-extent",
-    "-border",
-    "-bordercolor",
-    "-shave",
-    "-rotate",
-    "-background",
-    "-fill",
-    "-stroke",
-    "-strokewidth",
-    "-pointsize",
-    "-gravity",
-    "-quality",
-    "-density",
-    "-fuzz",
-    "-filter",
-    "-colorspace",
-    "-grayscale",
-    "-modulate",
-    "-brightness-contrast",
-    "-gamma",
-    "-level",
-    "+level",
-    "-threshold",
-    "-black-threshold",
-    "-white-threshold",
-    "-sigmoidal-contrast",
-    "+sigmoidal-contrast",
-    "-convolve",
-    "-color-matrix",
-    "-evaluate-sequence",
-    "-remap",
-    "-splice",
-    "-chop",
-    "-roll",
-    "-liquid-rescale",
-    "-adaptive-resize",
-    "-define",
-    "-write",
-    "+write",
-    "-compose",
-    "-geometry",
-    "-size",
-    "-depth",
-    "-units",
-    "-interlace",
-    "-sampling-factor",
-    "-tint",
-    "-colorize",
-    "-blur",
-    "-gaussian-blur",
-    "-sharpen",
-    "-unsharp",
-    "-median",
-    "-alpha",
-    "-draw",
-    "-channel",
-    "-opaque",
-    "+opaque",
-    "-transparent",
-    "+transparent",
-    "-fx",
-    "-shear",
-    "-swirl",
-    "-implode",
-    "-wave",
-    "-shadow",
-    "-vignette",
-    "-sepia-tone",
-    "-solarize",
-    "-posterize",
-    "-colors",
-    "-dither",
-    "-edge",
-    "-canny",
-    "-emboss",
-    "-charcoal",
-    "-sketch"
-  ]);
-
-  for (let i = 0; i < argv.length; i++) {
-    const t = argv[i]!;
-    if (t === "-format") {
-      outFormatExt = (argv[++i] ?? "png").replace(/^\./, "").toLowerCase();
-    } else if (t === "-path") {
-      outDir = argv[++i];
-    } else if (t === "-annotate") {
-      const a1 = argv[++i] ?? "+0+0";
-      if (/^[+-]\d/.test(a1) || /^\d+x\d+/.test(a1)) {
-        opTokens.push("-annotate", a1, argv[++i] ?? "");
-      } else {
-        opTokens.push("-annotate", a1);
-      }
-    } else if (
-      t === "-evaluate" ||
-      t === "-function" ||
-      t === "-morphology" ||
-      t === "-statistic" ||
-      t === "-set" ||
-      t === "-distort" ||
-      t === "+distort"
-    ) {
-      opTokens.push(t, argv[++i] ?? "", argv[++i] ?? "");
-    } else if (["-density", "-background", "-fuzz", "-filter", "-size"].includes(t)) {
-      readSettings.push(t, argv[++i] ?? "");
-    } else if (flagsWithOneArg.has(t)) {
-      opTokens.push(t, argv[++i] ?? "");
-    } else if (t.startsWith("-") || t.startsWith("+")) {
-      opTokens.push(t);
-    } else if (files.has(t)) {
-      targets.push(t);
-    } else {
-      targets.push(t);
+export function runMogrifyCliSync(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
+    let steps = runMogrifyCliSteps(argv, files, _stdinBytes, signal), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
     }
-  }
-
-  for (const target of targets) {
-    if (!files.has(target)) {
-      return {
-        exitCode: 1,
-        stdout: "",
-        stderr: `mogrify: unable to open image '${target}': No such file or directory\n`
-      };
-    }
-    const baseName = target.split("/").pop() ?? target;
-    const stem = baseName.replace(/\.[^.]+$/, "");
-    const origExt = baseName.includes(".") ? baseName.split(".").pop()! : "png";
-    const targetExt = outFormatExt ?? origExt;
-    const destDir = outDir ? outDir.replace(/\/+$/, "") : target.slice(0, Math.max(0, target.lastIndexOf("/")));
-    const destPath = outFormatExt || outDir ? `${destDir ? destDir + "/" : ""}${stem}.${targetExt}` : target;
-
-    const res = runConvertCliSync([...readSettings, target, ...opTokens, destPath], files);
-    if (res.exitCode !== 0) return res;
-  }
-
-  return { exitCode: 0, stdout: "", stderr: "" };
+    return next.value;
 }
 
-export async function runCompositeCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): Promise<ImageMagickCliResult> {
-  return runCompositeCliSync(argv, files, stdinBytes);
-}
-
-export function runCompositeCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): ImageMagickCliResult {
-  const options: string[] = [];
-  const operands: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const t = argv[i]!;
-    if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-background" || t === "-quality" || t === "-define") {
-      options.push(t, argv[++i] ?? "");
-    } else if (t === "-dissolve") {
-      options.push("-define", `compose:args=${argv[++i] ?? "100"}`, "-compose", "Dissolve");
-    } else if (t === "-blend" || t === "-watermark") {
-      options.push("-define", `compose:args=${argv[++i] ?? "50"}`, "-compose", "Blend");
-    } else if (t.startsWith("-")) {
-      options.push(t);
-    } else {
-      operands.push(t);
+function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    let cooperativeWork = 63;
+    const options: string[] = [];
+    const operands: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const t = argv[i]!;
+        if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-background" || t === "-quality" || t === "-define") {
+            options.push(t, argv[++i] ?? "");
+        }
+        else if (t === "-dissolve") {
+            options.push("-define", `compose:args=${argv[++i] ?? "100"}`, "-compose", "Dissolve");
+        }
+        else if (t === "-blend" || t === "-watermark") {
+            options.push("-define", `compose:args=${argv[++i] ?? "50"}`, "-compose", "Blend");
+        }
+        else if (t.startsWith("-")) {
+            options.push(t);
+        }
+        else {
+            operands.push(t);
+        }
     }
-  }
-
-  if (operands.length < 3) {
-    return {
-      exitCode: 1,
-      stdout: "",
-      stderr: "composite: missing an image filename\n"
-    };
-  }
-
-  const overlay = operands[0]!;
-  const base = operands[1]!;
-  const out = operands[operands.length - 1]!;
-  return runConvertCliSync([base, overlay, ...options, "-composite", out], files, stdinBytes);
+    if (operands.length < 3) {
+        return {
+            exitCode: 1,
+            stdout: "",
+            stderr: "composite: missing an image filename\n"
+        };
+    }
+    const overlay = operands[0]!;
+    const base = operands[1]!;
+    const out = operands[operands.length - 1]!;
+    return (yield* runConvertCliSteps([base, overlay, ...options, "-composite", out], files, stdinBytes, signal));
+}
+export async function runCompositeCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    return drainSteps(runCompositeCliSteps(argv, files, stdinBytes, signal), signal);
+}
+export function runCompositeCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
+    let steps = runCompositeCliSteps(argv, files, stdinBytes, signal), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
+    }
+    return next.value;
 }
 
 function formatMetricNum(n: number): string {
@@ -4632,458 +4995,468 @@ function formatMetricNum(n: number): string {
   return fixed === "-0" ? "0" : fixed;
 }
 
-export async function runCompareCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): Promise<ImageMagickCliResult> {
-  return runCompareCliSync(argv, files, stdinBytes);
-}
-
-export function runCompareCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): ImageMagickCliResult {
-  const state = createDefaultState();
-  state.fuzz = 0;
-  let metric = "rmse";
-  let highlightColor: RgbaColor = { r: 241, g: 0, b: 30, a: 255 };
-  let lowlightColor: RgbaColor | undefined;
-  let composeSrc = false;
-  let dissimilarityThreshold: number | undefined;
-  const operands: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const t = argv[i]!;
-    if (t === "--help" || t === "-help" || t === "-h") {
-      return {
-        exitCode: 0,
-        stdout:
-          "Usage: compare [-metric AE|MAE|MSE|RMSE|PSNR|SSIM|PAE|NCC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n",
-        stderr: ""
-      };
-    } else if (t === "-metric") {
-      metric = (argv[++i] ?? "rmse").toLowerCase();
-    } else if (t === "-fuzz") {
-      const rawFuzz = argv[++i] ?? "0";
-      state.fuzz = rawFuzz.endsWith("%")
-        ? (parseFloat(rawFuzz) / 100) * 255
-        : parseFloat(rawFuzz);
-    } else if (t === "-highlight-color") {
-      highlightColor = parseColor(argv[++i] ?? "#f1001e");
-    } else if (t === "-lowlight-color") {
-      lowlightColor = parseColor(argv[++i] ?? "#ffffff");
-    } else if (t === "-compose") {
-      const cm = (argv[++i] ?? "over").toLowerCase();
-      if (cm === "src" || cm === "source" || cm === "copy") composeSrc = true;
-    } else if (t === "-dissimilarity-threshold") {
-      dissimilarityThreshold = Number(argv[++i] ?? 1);
-    } else if (t === "-density") {
-      const g = parseMagickGeometry(argv[++i] ?? "72");
-      state.density = Math.max(1, Math.round(g.width ?? 72));
-    } else if (t === "-quality") {
-      state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
-    } else if (t.startsWith("-") && t.length > 1) {
-      // Skip optional flags with arguments if recognized
-      if (t === "-format" || t === "-alpha" || t === "-channel") i++;
-    } else {
-      operands.push(t);
+function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    let cooperativeWork = 63;
+    const state = createDefaultState();
+    state.fuzz = 0;
+    let metric = "rmse";
+    let highlightColor: RgbaColor = { r: 241, g: 0, b: 30, a: 255 };
+    let lowlightColor: RgbaColor | undefined;
+    let composeSrc = false;
+    let dissimilarityThreshold: number | undefined;
+    const operands: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const t = argv[i]!;
+        if (t === "--help" || t === "-help" || t === "-h") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: compare [-metric AE|MAE|MSE|RMSE|PSNR|SSIM|PAE|NCC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n",
+                stderr: ""
+            };
+        }
+        else if (t === "-metric") {
+            metric = (argv[++i] ?? "rmse").toLowerCase();
+        }
+        else if (t === "-fuzz") {
+            const rawFuzz = argv[++i] ?? "0";
+            state.fuzz = rawFuzz.endsWith("%")
+                ? (parseFloat(rawFuzz) / 100) * 255
+                : parseFloat(rawFuzz);
+        }
+        else if (t === "-highlight-color") {
+            highlightColor = parseColor(argv[++i] ?? "#f1001e");
+        }
+        else if (t === "-lowlight-color") {
+            lowlightColor = parseColor(argv[++i] ?? "#ffffff");
+        }
+        else if (t === "-compose") {
+            const cm = (argv[++i] ?? "over").toLowerCase();
+            if (cm === "src" || cm === "source" || cm === "copy")
+                composeSrc = true;
+        }
+        else if (t === "-dissimilarity-threshold") {
+            dissimilarityThreshold = Number(argv[++i] ?? 1);
+        }
+        else if (t === "-density") {
+            const g = parseMagickGeometry(argv[++i] ?? "72");
+            state.density = Math.max(1, Math.round(g.width ?? 72));
+        }
+        else if (t === "-quality") {
+            state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
+        }
+        else if (t.startsWith("-") && t.length > 1) {
+            // Skip optional flags with arguments if recognized
+            if (t === "-format" || t === "-alpha" || t === "-channel")
+                i++;
+        }
+        else {
+            operands.push(t);
+        }
     }
-  }
-
-  if (operands.length < 2) {
-    return {
-      exitCode: 2,
-      stdout: "",
-      stderr: "compare: missing an image filename\n"
-    };
-  }
-
-  const refSpec = operands[0]!;
-  const candSpec = operands[1]!;
-  const outSpec = operands[2] ?? "null:";
-
-  let imgA: RgbaImage | undefined;
-  let imgB: RgbaImage | undefined;
-  try {
-    imgA = parseInputOperand(refSpec, files, state, stdinBytes);
-    imgB = parseInputOperand(candSpec, files, state, stdinBytes);
-  } catch (err) {
-    return {
-      exitCode: 2,
-      stdout: "",
-      stderr: `compare: improper image header: ${(err as Error).message}\n`
-    };
-  }
-  if (!imgA) {
-    return {
-      exitCode: 2,
-      stdout: "",
-      stderr: `compare: unable to open image '${refSpec}': No such file or directory\n`
-    };
-  }
-  if (!imgB) {
-    return {
-      exitCode: 2,
-      stdout: "",
-      stderr: `compare: unable to open image '${candSpec}': No such file or directory\n`
-    };
-  }
-
-  const width = Math.max(imgA.width, imgB.width);
-  const height = Math.max(imgA.height, imgB.height);
-  const totalPixels = Math.max(1, width * height);
-  const diffData = new Uint8Array(width * height * 4);
-
-  let aeCount = 0;
-  let sumAbs = 0;
-  let sumSq = 0;
-  let maxAbs = 0;
-
-  const lumA = new Float64Array(totalPixels);
-  const lumB = new Float64Array(totalPixels);
-  let sumLumA = 0;
-  let sumLumB = 0;
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const pIdx = y * width + x;
-      const outOff = pIdx * 4;
-      const inBoundsA = x < imgA.width && y < imgA.height;
-      const inBoundsB = x < imgB.width && y < imgB.height;
-      const offA = inBoundsA ? (y * imgA.width + x) * 4 : -1;
-      const offB = inBoundsB ? (y * imgB.width + x) * 4 : -1;
-
-      const rA = offA >= 0 ? imgA.data[offA]! : 0;
-      const gA = offA >= 0 ? imgA.data[offA + 1]! : 0;
-      const bA = offA >= 0 ? imgA.data[offA + 2]! : 0;
-      const aA = offA >= 0 ? imgA.data[offA + 3]! : 0;
-
-      const rB = offB >= 0 ? imgB.data[offB]! : 0;
-      const gB = offB >= 0 ? imgB.data[offB + 1]! : 0;
-      const bB = offB >= 0 ? imgB.data[offB + 2]! : 0;
-      const aB = offB >= 0 ? imgB.data[offB + 3]! : 0;
-
-      const dr = Math.abs(rA - rB);
-      const dg = Math.abs(gA - gB);
-      const db = Math.abs(bA - bB);
-      const da = Math.abs(aA - aB);
-      const alphaA = aA / 255;
-      const alphaB = aB / 255;
-      const pdr = Math.abs(rA * alphaA - rB * alphaB);
-      const pdg = Math.abs(gA * alphaA - gB * alphaB);
-      const pdb = Math.abs(bA * alphaA - bB * alphaB);
-      const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
-      const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
-
-      if (!inBoundsA || !inBoundsB || maxDelta > state.fuzz) {
-        aeCount++;
-        diffData[outOff] = highlightColor.r;
-        diffData[outOff + 1] = highlightColor.g;
-        diffData[outOff + 2] = highlightColor.b;
-        diffData[outOff + 3] = highlightColor.a;
-      } else if (composeSrc) {
-        diffData[outOff] = 0;
-        diffData[outOff + 1] = 0;
-        diffData[outOff + 2] = 0;
-        diffData[outOff + 3] = 0;
-      } else if (lowlightColor) {
-        diffData[outOff] = lowlightColor.r;
-        diffData[outOff + 1] = lowlightColor.g;
-        diffData[outOff + 2] = lowlightColor.b;
-        diffData[outOff + 3] = lowlightColor.a;
-      } else {
-        diffData[outOff] = Math.round(rA * 0.3 + 255 * 0.7);
-        diffData[outOff + 1] = Math.round(gA * 0.3 + 255 * 0.7);
-        diffData[outOff + 2] = Math.round(bA * 0.3 + 255 * 0.7);
-        diffData[outOff + 3] = 255;
-      }
-
-      if (hasAlpha) {
-        sumAbs += pdr + pdg + pdb + da;
-        sumSq += pdr * pdr + pdg * pdg + pdb * pdb + da * da;
-      } else {
-        sumAbs += dr + dg + db;
-        sumSq += dr * dr + dg * dg + db * db;
-      }
-      if (maxDelta > maxAbs) maxAbs = maxDelta;
-
-      const lA = (0.299 * rA + 0.587 * gA + 0.114 * bA) / 255;
-      const lB = (0.299 * rB + 0.587 * gB + 0.114 * bB) / 255;
-      lumA[pIdx] = lA;
-      lumB[pIdx] = lB;
-      sumLumA += lA;
-      sumLumB += lB;
+    if (operands.length < 2) {
+        return {
+            exitCode: 2,
+            stdout: "",
+            stderr: "compare: missing an image filename\n"
+        };
     }
-  }
-
-  const numCh = imgA.hasAlpha || imgB.hasAlpha ? 4 : 3;
-  const maeNorm = sumAbs / (totalPixels * numCh * 255);
-  const mseNorm = sumSq / (totalPixels * numCh * 255 * 255);
-  const rmseNorm = Math.sqrt(mseNorm);
-  const paeNorm = maxAbs / 255;
-
-  const muA = sumLumA / totalPixels;
-  const muB = sumLumB / totalPixels;
-  let varA = 0;
-  let varB = 0;
-  let covAB = 0;
-  for (let i = 0; i < totalPixels; i++) {
-    const dA = lumA[i]! - muA;
-    const dB = lumB[i]! - muB;
-    varA += dA * dA;
-    varB += dB * dB;
-    covAB += dA * dB;
-  }
-  varA /= totalPixels;
-  varB /= totalPixels;
-  covAB /= totalPixels;
-
-  const c1 = 0.0001;
-  const c2 = 0.0009;
-  const ssim =
-    ((2 * muA * muB + c1) * (2 * covAB + c2)) /
-    ((muA * muA + muB * muB + c1) * (varA + varB + c2));
-  const ncc = varA === 0 && varB === 0 ? 1 : covAB / (Math.sqrt(varA * varB) || 1);
-
-  let metricStr: string;
-  switch (metric) {
-    case "ae":
-      metricStr = String(aeCount);
-      break;
-    case "mae":
-      metricStr = `${formatMetricNum(maeNorm * 65535)} (${formatMetricNum(maeNorm)})`;
-      break;
-    case "mse":
-      metricStr = `${formatMetricNum(mseNorm * 65535)} (${formatMetricNum(mseNorm)})`;
-      break;
-    case "pae":
-      metricStr = `${formatMetricNum(paeNorm * 65535)} (${formatMetricNum(paeNorm)})`;
-      break;
-    case "psnr":
-      metricStr = mseNorm === 0 ? "inf" : formatMetricNum(10 * Math.log10(1 / mseNorm));
-      break;
-    case "ssim":
-      metricStr = formatMetricNum(ssim);
-      break;
-    case "dssim":
-      metricStr = formatMetricNum((1 - ssim) / 2);
-      break;
-    case "ncc":
-      metricStr = formatMetricNum(ncc);
-      break;
-    case "rmse":
-    default:
-      metricStr = `${formatMetricNum(rmseNorm * 65535)} (${formatMetricNum(rmseNorm)})`;
-      break;
-  }
-
-  const exitCode =
-    dissimilarityThreshold !== undefined ? (rmseNorm > dissimilarityThreshold ? 1 : 0) : (aeCount > 0 ? 1 : 0);
-
-  if (outSpec.toLowerCase() !== "null:") {
-    const diffImg: RgbaImage = {
-      width,
-      height,
-      format: "png",
-      channels: 4,
-      depth: "uchar",
-      density: state.density,
-      space: "srgb",
-      hasAlpha: true,
-      data: diffData
-    };
-    const { format, path: outPath } = inferOutputFormat(outSpec, "png");
-    const { data: encoded } = encodeImage(diffImg, { format, quality: state.quality });
-    if (outPath === "-" || outSpec.endsWith(":-")) {
-      return {
+    const refSpec = operands[0]!;
+    const candSpec = operands[1]!;
+    const outSpec = operands[2] ?? "null:";
+    let imgA: RgbaImage | undefined;
+    let imgB: RgbaImage | undefined;
+    try {
+        imgA = parseInputOperand(refSpec, files, state, stdinBytes);
+        imgB = parseInputOperand(candSpec, files, state, stdinBytes);
+    }
+    catch (err) {
+        return {
+            exitCode: 2,
+            stdout: "",
+            stderr: `compare: improper image header: ${(err as Error).message}\n`
+        };
+    }
+    if (!imgA) {
+        return {
+            exitCode: 2,
+            stdout: "",
+            stderr: `compare: unable to open image '${refSpec}': No such file or directory\n`
+        };
+    }
+    if (!imgB) {
+        return {
+            exitCode: 2,
+            stdout: "",
+            stderr: `compare: unable to open image '${candSpec}': No such file or directory\n`
+        };
+    }
+    const width = Math.max(imgA.width, imgB.width);
+    const height = Math.max(imgA.height, imgB.height);
+    const totalPixels = Math.max(1, width * height);
+    const diffData = new Uint8Array(width * height * 4);
+    let aeCount = 0;
+    let sumAbs = 0;
+    let sumSq = 0;
+    let maxAbs = 0;
+    const lumA = new Float64Array(totalPixels);
+    const lumB = new Float64Array(totalPixels);
+    let sumLumA = 0;
+    let sumLumB = 0;
+    for (let y = 0; y < height; y++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        for (let x = 0; x < width; x++) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            const pIdx = y * width + x;
+            const outOff = pIdx * 4;
+            const inBoundsA = x < imgA.width && y < imgA.height;
+            const inBoundsB = x < imgB.width && y < imgB.height;
+            const offA = inBoundsA ? (y * imgA.width + x) * 4 : -1;
+            const offB = inBoundsB ? (y * imgB.width + x) * 4 : -1;
+            const rA = offA >= 0 ? imgA.data[offA]! : 0;
+            const gA = offA >= 0 ? imgA.data[offA + 1]! : 0;
+            const bA = offA >= 0 ? imgA.data[offA + 2]! : 0;
+            const aA = offA >= 0 ? imgA.data[offA + 3]! : 0;
+            const rB = offB >= 0 ? imgB.data[offB]! : 0;
+            const gB = offB >= 0 ? imgB.data[offB + 1]! : 0;
+            const bB = offB >= 0 ? imgB.data[offB + 2]! : 0;
+            const aB = offB >= 0 ? imgB.data[offB + 3]! : 0;
+            const dr = Math.abs(rA - rB);
+            const dg = Math.abs(gA - gB);
+            const db = Math.abs(bA - bB);
+            const da = Math.abs(aA - aB);
+            const alphaA = aA / 255;
+            const alphaB = aB / 255;
+            const pdr = Math.abs(rA * alphaA - rB * alphaB);
+            const pdg = Math.abs(gA * alphaA - gB * alphaB);
+            const pdb = Math.abs(bA * alphaA - bB * alphaB);
+            const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
+            const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
+            if (!inBoundsA || !inBoundsB || maxDelta > state.fuzz) {
+                aeCount++;
+                diffData[outOff] = highlightColor.r;
+                diffData[outOff + 1] = highlightColor.g;
+                diffData[outOff + 2] = highlightColor.b;
+                diffData[outOff + 3] = highlightColor.a;
+            }
+            else if (composeSrc) {
+                diffData[outOff] = 0;
+                diffData[outOff + 1] = 0;
+                diffData[outOff + 2] = 0;
+                diffData[outOff + 3] = 0;
+            }
+            else if (lowlightColor) {
+                diffData[outOff] = lowlightColor.r;
+                diffData[outOff + 1] = lowlightColor.g;
+                diffData[outOff + 2] = lowlightColor.b;
+                diffData[outOff + 3] = lowlightColor.a;
+            }
+            else {
+                diffData[outOff] = Math.round(rA * 0.3 + 255 * 0.7);
+                diffData[outOff + 1] = Math.round(gA * 0.3 + 255 * 0.7);
+                diffData[outOff + 2] = Math.round(bA * 0.3 + 255 * 0.7);
+                diffData[outOff + 3] = 255;
+            }
+            if (hasAlpha) {
+                sumAbs += pdr + pdg + pdb + da;
+                sumSq += pdr * pdr + pdg * pdg + pdb * pdb + da * da;
+            }
+            else {
+                sumAbs += dr + dg + db;
+                sumSq += dr * dr + dg * dg + db * db;
+            }
+            if (maxDelta > maxAbs)
+                maxAbs = maxDelta;
+            const lA = (0.299 * rA + 0.587 * gA + 0.114 * bA) / 255;
+            const lB = (0.299 * rB + 0.587 * gB + 0.114 * bB) / 255;
+            lumA[pIdx] = lA;
+            lumB[pIdx] = lB;
+            sumLumA += lA;
+            sumLumB += lB;
+        }
+    }
+    const numCh = imgA.hasAlpha || imgB.hasAlpha ? 4 : 3;
+    const maeNorm = sumAbs / (totalPixels * numCh * 255);
+    const mseNorm = sumSq / (totalPixels * numCh * 255 * 255);
+    const rmseNorm = Math.sqrt(mseNorm);
+    const paeNorm = maxAbs / 255;
+    const muA = sumLumA / totalPixels;
+    const muB = sumLumB / totalPixels;
+    let varA = 0;
+    let varB = 0;
+    let covAB = 0;
+    for (let i = 0; i < totalPixels; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const dA = lumA[i]! - muA;
+        const dB = lumB[i]! - muB;
+        varA += dA * dA;
+        varB += dB * dB;
+        covAB += dA * dB;
+    }
+    varA /= totalPixels;
+    varB /= totalPixels;
+    covAB /= totalPixels;
+    const c1 = 0.0001;
+    const c2 = 0.0009;
+    const ssim = ((2 * muA * muB + c1) * (2 * covAB + c2)) /
+        ((muA * muA + muB * muB + c1) * (varA + varB + c2));
+    const ncc = varA === 0 && varB === 0 ? 1 : covAB / (Math.sqrt(varA * varB) || 1);
+    let metricStr: string;
+    switch (metric) {
+        case "ae":
+            metricStr = String(aeCount);
+            break;
+        case "mae":
+            metricStr = `${formatMetricNum(maeNorm * 65535)} (${formatMetricNum(maeNorm)})`;
+            break;
+        case "mse":
+            metricStr = `${formatMetricNum(mseNorm * 65535)} (${formatMetricNum(mseNorm)})`;
+            break;
+        case "pae":
+            metricStr = `${formatMetricNum(paeNorm * 65535)} (${formatMetricNum(paeNorm)})`;
+            break;
+        case "psnr":
+            metricStr = mseNorm === 0 ? "inf" : formatMetricNum(10 * Math.log10(1 / mseNorm));
+            break;
+        case "ssim":
+            metricStr = formatMetricNum(ssim);
+            break;
+        case "dssim":
+            metricStr = formatMetricNum((1 - ssim) / 2);
+            break;
+        case "ncc":
+            metricStr = formatMetricNum(ncc);
+            break;
+        case "rmse":
+        default:
+            metricStr = `${formatMetricNum(rmseNorm * 65535)} (${formatMetricNum(rmseNorm)})`;
+            break;
+    }
+    const exitCode = dissimilarityThreshold !== undefined ? (rmseNorm > dissimilarityThreshold ? 1 : 0) : (aeCount > 0 ? 1 : 0);
+    if (outSpec.toLowerCase() !== "null:") {
+        const diffImg: RgbaImage = {
+            width,
+            height,
+            format: "png",
+            channels: 4,
+            depth: "uchar",
+            density: state.density,
+            space: "srgb",
+            hasAlpha: true,
+            data: diffData
+        };
+        const { format, path: outPath } = inferOutputFormat(outSpec, "png");
+        const { data: encoded } = encodeImage(diffImg, { format, quality: state.quality });
+        if (outPath === "-" || outSpec.endsWith(":-")) {
+            return {
+                exitCode,
+                stdout: "",
+                stderr: `${metricStr}\n`,
+                stdoutBytes: encoded
+            };
+        }
+        files.set(outPath, encoded);
+    }
+    return {
         exitCode,
         stdout: "",
-        stderr: `${metricStr}\n`,
-        stdoutBytes: encoded
-      };
+        stderr: `${metricStr}\n`
+    };
+}
+export async function runCompareCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    return drainSteps(runCompareCliSteps(argv, files, stdinBytes, signal), signal);
+}
+export function runCompareCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
+    let steps = runCompareCliSteps(argv, files, stdinBytes, signal), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
+    }
+    return next.value;
+}
+
+function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    let cooperativeWork = 63;
+    const state = createDefaultState();
+    let tileCols: number | undefined;
+    let tileRows: number | undefined;
+    let cellW: number | undefined;
+    let cellH: number | undefined;
+    let padX = 2;
+    let padY = 2;
+    let borderW = 0;
+    const operands: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const t = argv[i]!;
+        if (t === "-tile") {
+            const g = parseMagickGeometry(argv[++i] ?? "2x2");
+            tileCols = g.width;
+            tileRows = g.height;
+        }
+        else if (t === "-geometry") {
+            const g = parseMagickGeometry(argv[++i] ?? "+2+2");
+            cellW = g.width;
+            cellH = g.height;
+            if (g.hasOffset) {
+                padX = Math.max(0, Math.round(g.x));
+                padY = Math.max(0, Math.round(g.y));
+            }
+        }
+        else if (t === "-background") {
+            state.background = parseColor(argv[++i] ?? "#ffffff");
+        }
+        else if (t === "-bordercolor") {
+            state.borderColor = parseColor(argv[++i] ?? "#dfdfdf");
+        }
+        else if (t === "-border") {
+            borderW = Math.max(0, Math.round(Number(argv[++i] ?? 0)));
+        }
+        else if (t === "-gravity") {
+            state.gravity = parseGravity(argv[++i] ?? "center");
+        }
+        else if (t === "-quality") {
+            state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
+        }
+        else if (t === "-mode" || t === "-label" || t === "-title") {
+            i++;
+        }
+        else if (!t.startsWith("-")) {
+            operands.push(t);
+        }
+    }
+    if (operands.length < 2) {
+        return {
+            exitCode: 1,
+            stdout: "",
+            stderr: "montage: missing an image filename\n"
+        };
+    }
+    const outSpec = operands[operands.length - 1]!;
+    const inPaths = operands.slice(0, -1);
+    const images: RgbaImage[] = [];
+    for (const p of inPaths) {
+        yield;
+        let loadedList: RgbaImage[] | undefined;
+        try {
+            loadedList = parseInputOperands(p, files, state, stdinBytes);
+        }
+        catch (err) {
+            return {
+                exitCode: 1,
+                stdout: "",
+                stderr: `montage: improper image header '${p}': ${(err as Error).message}\n`
+            };
+        }
+        if (!loadedList || loadedList.length === 0) {
+            return {
+                exitCode: 1,
+                stdout: "",
+                stderr: `montage: unable to open image '${p}': No such file or directory\n`
+            };
+        }
+        for (const loaded of loadedList) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            let thumb = loaded;
+            if (cellW !== undefined || cellH !== undefined) {
+                const geomSpec = `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}`;
+                thumb = applyMagickResize(thumb, geomSpec, state.kernel);
+            }
+            if (borderW > 0) {
+                thumb = extendImage(thumb, {
+                    top: borderW,
+                    bottom: borderW,
+                    left: borderW,
+                    right: borderW,
+                    background: state.borderColor,
+                    extendWith: "background"
+                });
+            }
+            images.push(thumb);
+        }
+    }
+    const n = images.length;
+    const cols = tileCols ?? (tileRows ? Math.ceil(n / tileRows) : Math.ceil(Math.sqrt(n)));
+    const rows = tileRows ?? Math.ceil(n / cols);
+    const maxThumbW = Math.max(cellW ?? 0, ...images.map((im) => im.width));
+    const maxThumbH = Math.max(cellH ?? 0, ...images.map((im) => im.height));
+    const slotW = maxThumbW + padX * 2;
+    const slotH = maxThumbH + padY * 2;
+    const canvasW = Math.max(1, cols * slotW);
+    const canvasH = Math.max(1, rows * slotH);
+    const canvas = createSolidRgbaImage(canvasW, canvasH, state.background);
+    const layers = [];
+    for (let idx = 0; idx < images.length; idx++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const col = idx % cols;
+        const row = Math.floor(idx / cols);
+        if (row >= rows)
+            break;
+        const im = images[idx]!;
+        const cellX = col * slotW + padX;
+        const cellY = row * slotH + padY;
+        const off = resolveGravityOffset(maxThumbW - im.width, maxThumbH - im.height, state.gravity);
+        layers.push(rgbaToCompositeLayer(im, cellX + off.left, cellY + off.top, "over"));
+    }
+    const composed = compositeImage(canvas, layers);
+    const { format, path: outPath } = inferOutputFormat(outSpec, "png");
+    const { data: encoded } = encodeImage(composed, { format, quality: state.quality });
+    if (outPath === "-" || outSpec.endsWith(":-")) {
+        return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: encoded };
     }
     files.set(outPath, encoded);
-  }
-
-  return {
-    exitCode,
-    stdout: "",
-    stderr: `${metricStr}\n`
-  };
+    return { exitCode: 0, stdout: "", stderr: "" };
+}
+export async function runMontageCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    return drainSteps(runMontageCliSteps(argv, files, stdinBytes, signal), signal);
+}
+export function runMontageCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
+    let steps = runMontageCliSteps(argv, files, stdinBytes, signal), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
+    }
+    return next.value;
 }
 
-export async function runMontageCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): Promise<ImageMagickCliResult> {
-  return runMontageCliSync(argv, files, stdinBytes);
+
+
+function* runMagickCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array): Generator<void, ImageMagickCliResult, void> {
+    const sub = argv[0];
+    if (sub === "identify") {
+        return (yield* runIdentifyCliSteps(argv.slice(1), files, stdinBytes, signal));
+    }
+    if (sub === "mogrify") {
+        return (yield* runMogrifyCliSteps(argv.slice(1), files, undefined, signal));
+    }
+    if (sub === "composite") {
+        return (yield* runCompositeCliSteps(argv.slice(1), files, stdinBytes, signal));
+    }
+    if (sub === "montage") {
+        return (yield* runMontageCliSteps(argv.slice(1), files, stdinBytes, signal));
+    }
+    if (sub === "compare") {
+        return (yield* runCompareCliSteps(argv.slice(1), files, stdinBytes, signal));
+    }
+    if (sub === "convert") {
+        return (yield* runConvertCliSteps(argv.slice(1), files, stdinBytes, signal));
+    }
+    return (yield* runConvertCliSteps(argv, files, stdinBytes, signal));
 }
-
-export function runMontageCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): ImageMagickCliResult {
-  const state = createDefaultState();
-  let tileCols: number | undefined;
-  let tileRows: number | undefined;
-  let cellW: number | undefined;
-  let cellH: number | undefined;
-  let padX = 2;
-  let padY = 2;
-  let borderW = 0;
-  const operands: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const t = argv[i]!;
-    if (t === "-tile") {
-      const g = parseMagickGeometry(argv[++i] ?? "2x2");
-      tileCols = g.width;
-      tileRows = g.height;
-    } else if (t === "-geometry") {
-      const g = parseMagickGeometry(argv[++i] ?? "+2+2");
-      cellW = g.width;
-      cellH = g.height;
-      if (g.hasOffset) {
-        padX = Math.max(0, Math.round(g.x));
-        padY = Math.max(0, Math.round(g.y));
-      }
-    } else if (t === "-background") {
-      state.background = parseColor(argv[++i] ?? "#ffffff");
-    } else if (t === "-bordercolor") {
-      state.borderColor = parseColor(argv[++i] ?? "#dfdfdf");
-    } else if (t === "-border") {
-      borderW = Math.max(0, Math.round(Number(argv[++i] ?? 0)));
-    } else if (t === "-gravity") {
-      state.gravity = parseGravity(argv[++i] ?? "center");
-    } else if (t === "-quality") {
-      state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
-    } else if (t === "-mode" || t === "-label" || t === "-title") {
-      i++;
-    } else if (!t.startsWith("-")) {
-      operands.push(t);
-    }
-  }
-
-  if (operands.length < 2) {
-    return {
-      exitCode: 1,
-      stdout: "",
-      stderr: "montage: missing an image filename\n"
-    };
-  }
-
-  const outSpec = operands[operands.length - 1]!;
-  const inPaths = operands.slice(0, -1);
-  const images: RgbaImage[] = [];
-
-  for (const p of inPaths) {
-    let loadedList: RgbaImage[] | undefined;
-    try {
-      loadedList = parseInputOperands(p, files, state, stdinBytes);
-    } catch (err) {
-      return {
-        exitCode: 1,
-        stdout: "",
-        stderr: `montage: improper image header '${p}': ${(err as Error).message}\n`
-      };
-    }
-    if (!loadedList || loadedList.length === 0) {
-      return {
-        exitCode: 1,
-        stdout: "",
-        stderr: `montage: unable to open image '${p}': No such file or directory\n`
-      };
-    }
-    for (const loaded of loadedList) {
-      let thumb = loaded;
-      if (cellW !== undefined || cellH !== undefined) {
-        const geomSpec = `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}`;
-        thumb = applyMagickResize(thumb, geomSpec, state.kernel);
-      }
-      if (borderW > 0) {
-        thumb = extendImage(thumb, {
-          top: borderW,
-          bottom: borderW,
-          left: borderW,
-          right: borderW,
-          background: state.borderColor,
-          extendWith: "background"
-        });
-      }
-      images.push(thumb);
-    }
-  }
-
-  const n = images.length;
-  const cols = tileCols ?? (tileRows ? Math.ceil(n / tileRows) : Math.ceil(Math.sqrt(n)));
-  const rows = tileRows ?? Math.ceil(n / cols);
-  const maxThumbW = Math.max(cellW ?? 0, ...images.map((im) => im.width));
-  const maxThumbH = Math.max(cellH ?? 0, ...images.map((im) => im.height));
-  const slotW = maxThumbW + padX * 2;
-  const slotH = maxThumbH + padY * 2;
-  const canvasW = Math.max(1, cols * slotW);
-  const canvasH = Math.max(1, rows * slotH);
-
-  const canvas = createSolidRgbaImage(canvasW, canvasH, state.background);
-  const layers = [];
-  for (let idx = 0; idx < images.length; idx++) {
-    const col = idx % cols;
-    const row = Math.floor(idx / cols);
-    if (row >= rows) break;
-    const im = images[idx]!;
-    const cellX = col * slotW + padX;
-    const cellY = row * slotH + padY;
-    const off = resolveGravityOffset(maxThumbW - im.width, maxThumbH - im.height, state.gravity);
-    layers.push(rgbaToCompositeLayer(im, cellX + off.left, cellY + off.top, "over"));
-  }
-
-  const composed = compositeImage(canvas, layers);
-  const { format, path: outPath } = inferOutputFormat(outSpec, "png");
-  const { data: encoded } = encodeImage(composed, { format, quality: state.quality });
-  if (outPath === "-" || outSpec.endsWith(":-")) {
-    return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: encoded };
-  }
-  files.set(outPath, encoded);
-  return { exitCode: 0, stdout: "", stderr: "" };
+export async function runMagickCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array): Promise<ImageMagickCliResult> {
+    return drainSteps(runMagickCliSteps(argv, files, stdinBytes), undefined);
 }
-
-export async function runMagickCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): Promise<ImageMagickCliResult> {
-  return runMagickCliSync(argv, files, stdinBytes);
-}
-
-export function runMagickCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>,
-  stdinBytes?: Uint8Array
-): ImageMagickCliResult {
-  const sub = argv[0];
-  if (sub === "identify") {
-    return runIdentifyCliSync(argv.slice(1), files, stdinBytes);
-  }
-  if (sub === "mogrify") {
-    return runMogrifyCliSync(argv.slice(1), files);
-  }
-  if (sub === "composite") {
-    return runCompositeCliSync(argv.slice(1), files, stdinBytes);
-  }
-  if (sub === "montage") {
-    return runMontageCliSync(argv.slice(1), files, stdinBytes);
-  }
-  if (sub === "compare") {
-    return runCompareCliSync(argv.slice(1), files, stdinBytes);
-  }
-  if (sub === "convert") {
-    return runConvertCliSync(argv.slice(1), files, stdinBytes);
-  }
-  return runConvertCliSync(argv, files, stdinBytes);
+export function runMagickCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array): ImageMagickCliResult {
+    let steps = runMagickCliSteps(argv, files, stdinBytes), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
+    }
+    return next.value;
 }
 
 async function executeVfsMagickTool(
@@ -5091,9 +5464,11 @@ async function executeVfsMagickTool(
   runner: (
     argv: readonly string[],
     files: Map<string, Uint8Array>,
-    stdinBytes?: Uint8Array
+    stdinBytes?: Uint8Array,
+    signal?: AbortSignal
   ) => Promise<ImageMagickCliResult>
 ): Promise<{ exitCode: number }> {
+  let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
@@ -5105,6 +5480,7 @@ async function executeVfsMagickTool(
     let needsStdin = false;
     const hasOutputOperand = runner !== runIdentifyCli && !(runner === runMagickCli && argv[0] === "identify");
     for (const [index, token] of argv.entries()) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (token === "-" || token.endsWith(":-")) {
         if (!hasOutputOperand || index < argv.length - 1) needsStdin = true;
         continue;
@@ -5134,18 +5510,21 @@ async function executeVfsMagickTool(
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
         chunks.push(chunk);
         total += chunk.byteLength;
       }
       stdinBytes = new Uint8Array(total);
       let off = 0;
       for (const chunk of chunks) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
         stdinBytes.set(chunk, off);
         off += chunk.byteLength;
       }
     }
+    context.inputBudget?.check(0);
     const existingSnap = new Map(vfsFiles);
-    const res = await runner(argv, vfsFiles, stdinBytes);
+    const res = await runner(argv, vfsFiles, stdinBytes, invocation.signal);
 
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
@@ -5159,6 +5538,7 @@ async function executeVfsMagickTool(
     }
 
     for (const [key, val] of vfsFiles.entries()) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (existingSnap.get(key) !== val) {
         const abs = resolveVfsPath(key);
         const parentDir = abs.slice(0, abs.lastIndexOf("/")) || "/";
@@ -5176,91 +5556,112 @@ async function executeVfsMagickTool(
   }
 }
 
-export function createMagickCommand(_options: ImageMagickCommandOptions = {}): CommandDefinition {
+export function createMagickCommand(options: ImageMagickCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "magick",
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick v7 image processor powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return executeVfsMagickTool(context, runMagickCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executeVfsMagickTool(context, runMagickCli);
+      });
     }
   });
 }
 
 export const magickCommand: CommandDefinition = createMagickCommand();
 
-export function createConvertCommand(_options: ImageMagickCommandOptions = {}): CommandDefinition {
+export function createConvertCommand(options: ImageMagickCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "convert",
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick convert pipeline powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return executeVfsMagickTool(context, runConvertCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executeVfsMagickTool(context, runConvertCli);
+      });
     }
   });
 }
 
 export const convertCommand: CommandDefinition = createConvertCommand();
 
-export function createMogrifyCommand(_options: ImageMagickCommandOptions = {}): CommandDefinition {
+export function createMogrifyCommand(options: ImageMagickCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "mogrify",
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick in-place batch image processor powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return executeVfsMagickTool(context, (argv, files) => runMogrifyCli(argv, files));
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executeVfsMagickTool(context, runMogrifyCli);
+      });
     }
   });
 }
 
 export const mogrifyCommand: CommandDefinition = createMogrifyCommand();
 
-export function createCompositeCommand(_options: ImageMagickCommandOptions = {}): CommandDefinition {
+export function createCompositeCommand(options: ImageMagickCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "composite",
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick overlay composition tool powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return executeVfsMagickTool(context, runCompositeCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executeVfsMagickTool(context, runCompositeCli);
+      });
     }
   });
 }
 
 export const compositeCommand: CommandDefinition = createCompositeCommand();
 
-export function createMontageCommand(_options: ImageMagickCommandOptions = {}): CommandDefinition {
+export function createMontageCommand(options: ImageMagickCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "montage",
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick contact-sheet grid generator powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return executeVfsMagickTool(context, runMontageCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executeVfsMagickTool(context, runMontageCli);
+      });
     }
   });
 }
 
 export const montageCommand: CommandDefinition = createMontageCommand();
 
-export function createIdentifyCommand(_options: ImageMagickCommandOptions = {}): CommandDefinition {
+export function createIdentifyCommand(options: ImageMagickCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "identify",
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick image metadata inspector powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return executeVfsMagickTool(context, runIdentifyCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executeVfsMagickTool(context, runIdentifyCli);
+      });
     }
   });
 }
 
 export const identifyCommand: CommandDefinition = createIdentifyCommand();
 
-export function createCompareCommand(_options: ImageMagickCommandOptions = {}): CommandDefinition {
+export function createCompareCommand(options: ImageMagickCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "compare",
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick image comparison and diff generator powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return executeVfsMagickTool(context, runCompareCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executeVfsMagickTool(context, runCompareCli);
+      });
     }
   });
 }
@@ -5298,4 +5699,21 @@ export { createMagickCommand as createImagemagickCommand };
 
 export function createImagemagickCommands(options: ImagemagickCommandsOptions = {}): readonly CommandDefinition[] {
     return [createMagickCommand(options), createConvertCommand(options), createMogrifyCommand(options), createCompositeCommand(options), createMontageCommand(options), createIdentifyCommand(options), createCompareCommand(options)];
+}
+
+async function drainSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
+  try {
+    for (;;) {
+      signal?.throwIfAborted();
+      const next = steps.next();
+      if (next.done) return next.value;
+      await yieldTurn(signal);
+    }
+  } finally { steps.return(undefined as T); }
+}
+
+function* mapSteps<T, U>(values: readonly T[], mapper: (value: T) => Generator<void, U, void>): Generator<void, U[], void> {
+  const result: U[] = [];
+  for (const value of values) result.push(yield* mapper(value));
+  return result;
 }

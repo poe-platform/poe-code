@@ -13,3 +13,5 @@ The workspace entrypoint exports `sipsCommands()` for plugin registration,
 `createSipsCommands()` for the command collection, and
 `createSipsCommand()` for a single command. Each accepts an optional
 `SipsCommandsOptions` object; existing factory names remain available.
+
+Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `SipsLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.

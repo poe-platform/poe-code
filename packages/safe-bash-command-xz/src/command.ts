@@ -10,12 +10,17 @@ import { inspectXz, listingRatio, listingChecks, humanListing, type XzListing } 
 
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 
+export interface XzLimits {
+  readonly maxDecodedBytes: number;
+}
+
 export interface XzCommandsOptions extends CompressionCommandOptions {
+  readonly limits?: Partial<XzLimits>;
   readonly replace?: boolean;
 }
 
 export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): CommandDefinition {
-  const maxDecodedBytes = config.maxDecodedBytes;
+  const maxDecodedBytes = config.limits?.maxDecodedBytes ?? config.maxDecodedBytes ?? Infinity;
   if (maxDecodedBytes !== undefined && maxDecodedBytes !== Infinity && (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0)) {
     throw new RangeError("maxDecodedBytes must be a nonnegative safe integer or Infinity");
   }

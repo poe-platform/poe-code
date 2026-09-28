@@ -347,3 +347,5 @@ The workspace entrypoint exports `opCommands()` for plugin registration,
 `OpCommandsOptions` object; existing factory names remain available.
 Omitting the backend creates a fresh empty object backend. Supply `backend`
 to use your own data; defaults do not read host credentials.
+
+Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `OpLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.

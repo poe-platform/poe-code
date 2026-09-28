@@ -1,3 +1,5 @@
+import type { CommandContext, CommandResult } from "./command.js";
+import { yieldTurn } from "./yield.js";
 import { collectBytes, readBytes } from "@poe-code/safe-fs/core";
 import type { ByteSource, CollectOptions } from "@poe-code/safe-fs/core";
 export { collectBytes, readBytes, toByteSource } from "@poe-code/safe-fs/core";
@@ -979,4 +981,77 @@ function createLegacyWritable(pipe: BytePipeImpl): ByteSink {
       write: legacyWrite,
     },
   };
+}
+
+/** Cumulative command-local input accounting, including failures caught by file probes. */
+export class InputByteBudget {
+  #used = 0;
+  #failure: FsError | undefined;
+
+  static limit(value: number = Infinity): number {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) {
+      throw new RangeError("maxInputBytes must be a nonnegative safe integer or Infinity");
+    }
+    return value;
+  }
+
+  constructor(readonly maximum: number = Infinity) {
+    InputByteBudget.limit(maximum);
+  }
+
+  assertOpen(): void {
+    if (this.#failure) throw this.#failure;
+  }
+
+  charge(bytes: number): void {
+    this.assertOpen();
+    if (!Number.isSafeInteger(bytes) || bytes < 0) throw new RangeError("Invalid input byte charge");
+    if (bytes > this.maximum - this.#used) {
+      this.#failure = new FsError("EFBIG", { message: "command input byte limit exceeded" });
+      throw this.#failure;
+    }
+    this.#used += bytes;
+  }
+
+  async run(context: CommandContext, execute: (context: CommandContext) => Promise<CommandResult>): Promise<CommandResult> {
+    const fs = context.fs;
+    const limited = {
+      ...context,
+      stdin: this.read(context.stdin, context.signal),
+      fs: Object.assign(Object.create(fs), {
+        readFile: async (...args: Parameters<typeof fs.readFile>) => {
+          this.assertOpen();
+          const bytes = await fs.readFile(...args);
+          this.charge(bytes.byteLength);
+          return bytes;
+        },
+        ...(fs.readStream ? { readStream: (...args: Parameters<NonNullable<typeof fs.readStream>>) => {
+          this.assertOpen();
+          return this.read(fs.readStream!(...args), context.signal);
+        } } : {}),
+      }),
+      inputBudget: {
+        maxBytes: Math.min(this.maximum, context.inputBudget?.maxBytes ?? Infinity),
+        check: (total: number) => {
+          this.assertOpen();
+          if (total > this.maximum) this.charge(total);
+          context.inputBudget?.check(total);
+        },
+      },
+    };
+    try { return await execute(limited); }
+    finally { context.signal.throwIfAborted(); this.assertOpen(); }
+  }
+
+  async *read(source: ByteSource, signal: AbortSignal): ByteSource {
+    let chunks = 0;
+    for await (const chunk of readBytes(source, signal)) {
+      this.charge(chunk.byteLength);
+      if (++chunks % 64 === 0) await yieldTurn(signal);
+      signal.throwIfAborted();
+      yield chunk;
+    }
+    this.assertOpen();
+    signal.throwIfAborted();
+  }
 }

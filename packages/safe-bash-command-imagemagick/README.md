@@ -33,3 +33,5 @@ The workspace entrypoint exports `imagemagickCommands()` for plugin registration
 `ImagemagickCommandsOptions` object; existing factory names remain available.
 `createImagemagickCommand` is the `createMagickCommand` factory; the collection
 includes all seven tools registered by the ImageMagick plugin.
+
+Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `ImagemagickLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.

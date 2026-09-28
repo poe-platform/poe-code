@@ -9,3 +9,5 @@ Command handlers can read optional `context.argv0` for the zeroth argument ident
 `createBytePipe({ maxObservationWaiters })` bounds pending endpoint observations across both ends of a pipe. It defaults to `Infinity`; use a non-negative safe integer for a finite ceiling. Zero permits immediate probes but disables pending observation waits. Settled or cancelled observations release capacity.
 
 Shared file-output and descriptor helpers preserve shell output budgets and invocation cleanup when command packages write virtual files. Managed cancellation controls share the same waiter registry with the shell.
+
+`InputByteBudget` counts cumulative reads, retains failures caught by file probes, and yields while consuming streams. Its `run` method applies the budget to a command context while preserving host input budgets and cancellation.

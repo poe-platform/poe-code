@@ -1,3 +1,5 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
+import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -38,7 +40,12 @@ import {
   type PdfPage
 } from "@poe-code/pdf-ast";
 
+export interface PdfinfoLimits {
+  readonly maxInputBytes: number;
+}
+
 export interface PdfinfoCommandOptions {
+  readonly limits?: Partial<PdfinfoLimits>;
   readonly replace?: boolean;
 }
 
@@ -864,11 +871,9 @@ function applyPopplerOutputEncoding(text: string, encoding: string): string {
   return text;
 }
 
-export function inspectPdfBytes(
-  bytes: Uint8Array,
-  argv: readonly string[] = [],
-  options: PdfinfoInspectionOptions = {}
-): PdfinfoCliResult {
+function* inspectPdfBytesSteps(bytes: Uint8Array,
+argv: readonly string[] = [],
+options: PdfinfoInspectionOptions = {}): Generator<void, PdfinfoCliResult> {
   const args = parseArgs(argv);
   if (args.error) {
     return { exitCode: args.errorExitCode ?? 99, stdout: "", stderr: args.error };
@@ -949,6 +954,7 @@ export function inspectPdfBytes(
     const actions = collectJavaScriptActions(cos);
     let out = "";
     for (const act of actions) {
+    yield;
       out += `Name: ${act.name}\nJS:\n${act.js}\n`;
     }
     return { exitCode: 0, stdout: out, stderr: "" };
@@ -983,6 +989,7 @@ export function inspectPdfBytes(
 
   if (info) {
     for (const entry of info.entries) {
+    yield;
       const key = entry.key.decoded;
       const resolved = cos.resolve(entry.value);
       if (resolved?.kind === "string") {
@@ -998,16 +1005,19 @@ export function inspectPdfBytes(
 
   let out = "";
   for (const key of ["Title", "Subject", "Keywords", "Author", "Creator", "Producer"]) {
+    yield;
     const val = infoMap.get(key);
     if (val !== undefined) out += formatField(key, val);
   }
   for (const dateKey of ["CreationDate", "ModDate"]) {
+    yield;
     const val = infoMap.get(dateKey);
     if (val !== undefined) out += formatField(dateKey, formatPdfDate(val, dateMode));
   }
 
   if (args.custom) {
     for (const customKey of customKeys) {
+    yield;
       const val = infoMap.get(customKey);
       if (val !== undefined) out += formatField(customKey, val);
     }
@@ -1063,6 +1073,7 @@ export function inspectPdfBytes(
   }
 
   for (let p = firstPage; p <= lastPage; p++) {
+    yield;
     const page = doc.getPage(p - 1);
     const mediaBox = resolvePageBox(cos, page, "MediaBox", [0, 0, 612, 792]);
     const cropBox = resolvePageBox(cos, page, "CropBox", mediaBox);
@@ -1098,34 +1109,59 @@ export function inspectPdfBytes(
   return { exitCode: 0, stdout: applyPopplerOutputEncoding(out, args.encoding), stderr: "" };
 }
 
-export async function runPdfinfoCli(
-  argv: readonly string[],
-  files: ReadonlyMap<string, Uint8Array>,
-  stdinBytes: Uint8Array = new Uint8Array(0)
-): Promise<PdfinfoCliResult> {
-  const args = parseArgs(argv);
-  if (args.error) {
-    return { exitCode: args.errorExitCode ?? 99, stdout: "", stderr: args.error };
+export function inspectPdfBytes(bytes: Uint8Array,
+argv: readonly string[] = [],
+options: PdfinfoInspectionOptions = {}): PdfinfoCliResult {
+  const steps = inspectPdfBytesSteps(bytes, argv, options);
+  for (;;) {
+    const step = steps.next();
+    if (step.done) return step.value;
   }
-  if (args.listenc || args.version || args.help) {
-    return inspectPdfBytes(new Uint8Array(0), argv);
-  }
-  const target = args.inputFile ?? "-";
-  if (target === "-") {
-    return inspectPdfBytes(stdinBytes, argv, { isStdin: true, fileSize: 0 });
-  }
-  const fileBytes = files.get(target);
-  if (!fileBytes) {
-    return {
-      exitCode: 1,
-      stdout: "",
-      stderr: `I/O Error: Couldn't open file '${target}': No such file or directory.\n`
-    };
-  }
-  return inspectPdfBytes(fileBytes, argv, { fileSize: fileBytes.byteLength });
+}
+
+function* inspectPdfBytesCooperativelySteps(bytes: Uint8Array, argv: readonly string[] = [], options: PdfinfoInspectionOptions = {}, signal?: AbortSignal): Generator<void, PdfinfoCliResult, void> {
+    const steps = inspectPdfBytesSteps(bytes, argv, options);
+    try {
+        for (;;) {
+            yield;
+            const step = steps.next();
+            if (step.done)
+                return step.value;
+        }
+    }
+    finally {
+        steps.return({ exitCode: 1, stdout: "", stderr: "" });
+    }
+}
+
+function* runPdfinfoCliSteps(argv: readonly string[], files: ReadonlyMap<string, Uint8Array>, stdinBytes: Uint8Array = new Uint8Array(0), signal?: AbortSignal): Generator<void, PdfinfoCliResult, void> {
+    const args = parseArgs(argv);
+    if (args.error) {
+        return { exitCode: args.errorExitCode ?? 99, stdout: "", stderr: args.error };
+    }
+    if (args.listenc || args.version || args.help) {
+        return (yield* inspectPdfBytesCooperativelySteps(new Uint8Array(0), argv, undefined, signal));
+    }
+    const target = args.inputFile ?? "-";
+    if (target === "-") {
+        return (yield* inspectPdfBytesCooperativelySteps(stdinBytes, argv, { isStdin: true, fileSize: 0 }, signal));
+    }
+    const fileBytes = files.get(target);
+    if (!fileBytes) {
+        return {
+            exitCode: 1,
+            stdout: "",
+            stderr: `I/O Error: Couldn't open file '${target}': No such file or directory.\n`
+        };
+    }
+    return (yield* inspectPdfBytesCooperativelySteps(fileBytes, argv, { fileSize: fileBytes.byteLength }, signal));
+}
+export async function runPdfinfoCli(argv: readonly string[], files: ReadonlyMap<string, Uint8Array>, stdinBytes: Uint8Array = new Uint8Array(0), signal?: AbortSignal): Promise<PdfinfoCliResult> {
+    return drainSteps(runPdfinfoCliSteps(argv, files, stdinBytes, signal), signal);
 }
 
 export async function pdfinfo(context: CommandContext): Promise<{ exitCode: number }> {
+  let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
@@ -1140,7 +1176,7 @@ export async function pdfinfo(context: CommandContext): Promise<{ exitCode: numb
       return { exitCode: parsed.errorExitCode ?? 99 };
     }
     if (parsed.listenc || parsed.version || parsed.help) {
-      const res = inspectPdfBytes(new Uint8Array(0), argv);
+      const res = await inspectPdfBytesCooperatively(new Uint8Array(0), argv, undefined, invocation.signal);
       if (res.stdout) {
         const stdout = invocation.child(context.stdout);
         await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
@@ -1163,6 +1199,7 @@ export async function pdfinfo(context: CommandContext): Promise<{ exitCode: numb
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
         chunks.push(chunk);
         total += chunk.byteLength;
         chargeBytes(chunk.byteLength);
@@ -1170,6 +1207,7 @@ export async function pdfinfo(context: CommandContext): Promise<{ exitCode: numb
       pdfBytes = new Uint8Array(total);
       let offset = 0;
       for (const c of chunks) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
         pdfBytes.set(c, offset);
         offset += c.byteLength;
       }
@@ -1187,10 +1225,10 @@ export async function pdfinfo(context: CommandContext): Promise<{ exitCode: numb
       }
     }
 
-    const res = inspectPdfBytes(pdfBytes, argv, {
+    const res = await inspectPdfBytesCooperatively(pdfBytes, argv, {
       fileSize: isStdin ? 0 : pdfBytes.byteLength,
       isStdin
-    });
+    }, invocation.signal);
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
@@ -1204,306 +1242,370 @@ export async function pdfinfo(context: CommandContext): Promise<{ exitCode: numb
   }
 }
 
-export function createPdfinfoCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+export function createPdfinfoCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "pdfinfo",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Extract PDF metadata, page boxes, encryption, and structure via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return pdfinfo(context);
+      return new InputByteBudget(maxInputBytes).run(context, pdfinfo);
     }
   });
 }
 
 export const pdfinfoCommand: CommandDefinition = createPdfinfoCommand();
 
-export async function runPdftoppmCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<{ exitCode: number; stdout: string; stderr: string; stdoutBytes?: Uint8Array }> {
-  let format: "png" | "ppm" | "pgm" | "pbm" | "jpeg" | "svg" | "tif" = "ppm";
-  let colorMode: "color" | "gray" | "mono" = "color";
-  let dpi = 150;
-  let dpiX: number | undefined;
-  let dpiY: number | undefined;
-  let scaleTo = 0;
-  let scaleToX = 0;
-  let scaleToY = 0;
-  let cropX = 0;
-  let cropY = 0;
-  let cropW = 0;
-  let cropH = 0;
-  let hasCrop = false;
-  let useCropBox = false;
-  let hideAnnotations = false;
-  let transparent = false;
-  let progress = false;
-  let quiet = false;
-  let jpegQuality = 90;
-  let firstPage = 1;
-  let lastPage = 0;
-  let oddOnly = false;
-  let evenOnly = false;
-  let singleFile = false;
-  let forceNum = false;
-  let sep = "-";
-  let setPageNo: number | undefined;
-  let password = "";
-  const positionals: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "-v" || arg === "--version") {
-      return { exitCode: 0, stdout: "pdftoppm version 24.08.0\n", stderr: "" };
-    }
-    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-      return {
-        exitCode: 0,
-        stdout:
-          "Usage: pdftoppm [options] [PDF-file [PPM-file-prefix]]\n  -png / -ppm / -gray / -mono / -jpeg / -svg\n  -r <dpi> / -rx <dpi> / -ry <dpi> / -scale-to <px> / -f <int> / -l <int> / -singlefile / -cropbox\n",
-        stderr: ""
-      };
-    }
-    if (arg === "-png") format = "png";
-    else if (arg === "-tiff") format = "tif";
-    else if (arg === "-ppm") format = "ppm";
-    else if (arg === "-gray" || arg === "-pgm") {
-      colorMode = "gray";
-      if (format === "ppm") format = "pgm";
-    } else if (arg === "-mono" || arg === "-pbm") {
-      colorMode = "mono";
-      if (format === "ppm") format = "pbm";
-    }
-    else if (arg === "-jpeg" || arg === "-jpg") format = "jpeg";
-    else if (arg === "-svg") format = "svg";
-    else if (arg === "-singlefile") singleFile = true;
-    else if (arg === "-forcenum") forceNum = true;
-    else if (arg === "-o") oddOnly = true;
-    else if (arg === "-e") evenOnly = true;
-    else if (arg === "-cropbox") useCropBox = true;
-    else if (arg === "-hide-annotations") hideAnnotations = true;
-    else if (arg === "-transp") transparent = true;
-    else if (arg === "-overprint") {
-      // Accepted for Poppler CLI compatibility
-    }
-    else if (arg === "-progress") progress = true;
-    else if (arg === "-q") quiet = true;
-    else if (arg === "-setpageno") {
-      const n = Number.parseInt(argv[++i] ?? "", 10);
-      if (Number.isFinite(n)) setPageNo = n;
-    }
-    else if (arg === "-jpegopt") {
-      const optStr = argv[++i] ?? "";
-      for (const part of optStr.split(",")) {
-        const eqIdx = part.indexOf("=");
-        if (eqIdx > 0 && part.slice(0, eqIdx).trim().toLowerCase() === "quality") {
-          const qVal = Number(part.slice(eqIdx + 1).trim());
-          if (Number.isFinite(qVal) && qVal >= 1 && qVal <= 100) {
-            jpegQuality = Math.round(qVal);
-          }
+function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    stdoutBytes?: Uint8Array;
+}, void> {
+    let cooperativeWork = 63;
+    let format: "png" | "ppm" | "pgm" | "pbm" | "jpeg" | "svg" | "tif" = "ppm";
+    let colorMode: "color" | "gray" | "mono" = "color";
+    let dpi = 150;
+    let dpiX: number | undefined;
+    let dpiY: number | undefined;
+    let scaleTo = 0;
+    let scaleToX = 0;
+    let scaleToY = 0;
+    let cropX = 0;
+    let cropY = 0;
+    let cropW = 0;
+    let cropH = 0;
+    let hasCrop = false;
+    let useCropBox = false;
+    let hideAnnotations = false;
+    let transparent = false;
+    let progress = false;
+    let quiet = false;
+    let jpegQuality = 90;
+    let firstPage = 1;
+    let lastPage = 0;
+    let oddOnly = false;
+    let evenOnly = false;
+    let singleFile = false;
+    let forceNum = false;
+    let sep = "-";
+    let setPageNo: number | undefined;
+    let password = "";
+    const positionals: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const arg = argv[i]!;
+        if (arg === "-v" || arg === "--version") {
+            return { exitCode: 0, stdout: "pdftoppm version 24.08.0\n", stderr: "" };
         }
-      }
-    }
-    else if (arg === "-sep") sep = argv[++i] ?? "-";
-    else if (arg === "-r") dpi = Number(argv[++i] ?? "150") || 150;
-    else if (arg === "-rx") dpiX = Number(argv[++i] ?? "150") || 150;
-    else if (arg === "-ry") dpiY = Number(argv[++i] ?? "150") || 150;
-    else if (arg === "-scale-to") scaleTo = Number(argv[++i] ?? "0") || 0;
-    else if (arg === "-scale-to-x") scaleToX = Number(argv[++i] ?? "0") || 0;
-    else if (arg === "-scale-to-y") scaleToY = Number(argv[++i] ?? "0") || 0;
-    else if (arg === "-x") {
-      cropX = Number(argv[++i] ?? "0") || 0;
-      hasCrop = true;
-    } else if (arg === "-y") {
-      cropY = Number(argv[++i] ?? "0") || 0;
-      hasCrop = true;
-    } else if (arg === "-W") {
-      cropW = Number(argv[++i] ?? "0") || 0;
-      hasCrop = true;
-    } else if (arg === "-H") {
-      cropH = Number(argv[++i] ?? "0") || 0;
-      hasCrop = true;
-    }
-    else if (arg === "-sz") {
-      const sz = Number(argv[++i] ?? "0") || 0;
-      cropW = sz;
-      cropH = sz;
-      hasCrop = true;
-    }
-    else if (arg === "-f") firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
-    else if (arg === "-l") lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
-    else if (arg === "-upw" || arg === "-opw") password = argv[++i] ?? "";
-    else if (
-      arg === "-tiffcompression" ||
-      arg === "-aa" ||
-      arg === "-aaVector" ||
-      arg === "-thinlinemode" ||
-      arg === "-freetype"
-    ) i++;
-    else if (!arg.startsWith("-") || arg === "-") positionals.push(arg);
-  }
-
-  const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-  if (!inputPath) {
-    return { exitCode: 99, stdout: "", stderr: "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n" };
-  }
-  const pdfBytes = files.get(inputPath);
-  if (!pdfBytes) {
-    return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
-  }
-
-  let doc: PdfDocument;
-  try {
-    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-  } catch (err) {
-    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
-  }
-
-  const totalPages = Math.max(1, doc.pageCount);
-  const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
-  const prefix = positionals[1];
-  const ext = format === "jpeg" ? "jpg" : format;
-  const padWidth = Math.max(1, String(totalPages).length);
-  const outChunks: Uint8Array[] = [];
-  const progressLines: string[] = [];
-
-  for (let p = firstPage; p <= endPage; p++) {
-    if (oddOnly && p % 2 === 0) continue;
-    if (evenOnly && p % 2 === 1) continue;
-    const page = doc.getPage(p - 1);
-    let rawSize = page.getSize();
-    let resolvedCropBox: [number, number, number, number] | undefined;
-    if (useCropBox) {
-      let cur: PdfCosDict | undefined = page.pageDict;
-      const visited = new Set<PdfCosDict>();
-      while (cur && !visited.has(cur)) {
-        visited.add(cur);
-        const cb = doc.cos.resolveArray(dictGet(cur, "CropBox"));
-        if (cb && cb.items.length >= 4) {
-          const nums = cb.items.slice(0, 4).map(it => {
-            const r = doc.cos.resolve(it);
-            return r?.kind === "number" ? r.value : 0;
-          });
-          resolvedCropBox = [nums[0]!, nums[1]!, nums[2]!, nums[3]!];
-          rawSize = {
-            width: Math.max(1, Math.abs(nums[2]! - nums[0]!)),
-            height: Math.max(1, Math.abs(nums[3]! - nums[1]!)),
-          };
-          break;
+        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: pdftoppm [options] [PDF-file [PPM-file-prefix]]\n  -png / -ppm / -gray / -mono / -jpeg / -svg\n  -r <dpi> / -rx <dpi> / -ry <dpi> / -scale-to <px> / -f <int> / -l <int> / -singlefile / -cropbox\n",
+                stderr: ""
+            };
         }
-        cur = doc.cos.resolveDict(dictGet(cur, "Parent"));
-      }
-    }
-    const rot = page.getRotation();
-    const ptW = Math.max(1, rot === 90 || rot === 270 ? rawSize.height : rawSize.width);
-    const ptH = Math.max(1, rot === 90 || rot === 270 ? rawSize.width : rawSize.height);
-    let effDpiX = dpiX ?? dpi;
-    let effDpiY = dpiY ?? dpi;
-    if (scaleTo > 0) {
-      const s = (scaleTo * 72) / Math.max(ptW, ptH);
-      effDpiX = s;
-      effDpiY = s;
-    } else {
-      if (scaleToX > 0) {
-        effDpiX = (scaleToX * 72) / ptW;
-        if (scaleToY <= 0) effDpiY = effDpiX;
-      }
-      if (scaleToY > 0) {
-        effDpiY = (scaleToY * 72) / ptH;
-        if (scaleToX <= 0) effDpiX = effDpiY;
-      }
-    }
-
-    let renderedBytes: Uint8Array;
-    if (format === "svg") {
-      const fullSz = page.getSize();
-      let svgCropRect: PdfCropRect | undefined = hasCrop
-        ? { x: cropX, y: cropY, width: cropW, height: cropH }
-        : undefined;
-      if (useCropBox && resolvedCropBox) {
-        const sx = effDpiX / 72;
-        const sy = effDpiY / 72;
-        const cbScreenX = Math.min(resolvedCropBox[0], resolvedCropBox[2]) * sx;
-        const cbScreenY = (fullSz.height - Math.max(resolvedCropBox[1], resolvedCropBox[3])) * sy;
-        const cbScreenW = Math.abs(resolvedCropBox[2] - resolvedCropBox[0]) * sx;
-        const cbScreenH = Math.abs(resolvedCropBox[3] - resolvedCropBox[1]) * sy;
-        svgCropRect = svgCropRect
-          ? {
-              x: cbScreenX + svgCropRect.x,
-              y: cbScreenY + svgCropRect.y,
-              width: svgCropRect.width || cbScreenW,
-              height: svgCropRect.height || cbScreenH,
+        if (arg === "-png")
+            format = "png";
+        else if (arg === "-tiff")
+            format = "tif";
+        else if (arg === "-ppm")
+            format = "ppm";
+        else if (arg === "-gray" || arg === "-pgm") {
+            colorMode = "gray";
+            if (format === "ppm")
+                format = "pgm";
+        }
+        else if (arg === "-mono" || arg === "-pbm") {
+            colorMode = "mono";
+            if (format === "ppm")
+                format = "pbm";
+        }
+        else if (arg === "-jpeg" || arg === "-jpg")
+            format = "jpeg";
+        else if (arg === "-svg")
+            format = "svg";
+        else if (arg === "-singlefile")
+            singleFile = true;
+        else if (arg === "-forcenum")
+            forceNum = true;
+        else if (arg === "-o")
+            oddOnly = true;
+        else if (arg === "-e")
+            evenOnly = true;
+        else if (arg === "-cropbox")
+            useCropBox = true;
+        else if (arg === "-hide-annotations")
+            hideAnnotations = true;
+        else if (arg === "-transp")
+            transparent = true;
+        else if (arg === "-overprint") {
+            // Accepted for Poppler CLI compatibility
+        }
+        else if (arg === "-progress")
+            progress = true;
+        else if (arg === "-q")
+            quiet = true;
+        else if (arg === "-setpageno") {
+            const n = Number.parseInt(argv[++i] ?? "", 10);
+            if (Number.isFinite(n))
+                setPageNo = n;
+        }
+        else if (arg === "-jpegopt") {
+            const optStr = argv[++i] ?? "";
+            for (const part of optStr.split(",")) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                const eqIdx = part.indexOf("=");
+                if (eqIdx > 0 && part.slice(0, eqIdx).trim().toLowerCase() === "quality") {
+                    const qVal = Number(part.slice(eqIdx + 1).trim());
+                    if (Number.isFinite(qVal) && qVal >= 1 && qVal <= 100) {
+                        jpegQuality = Math.round(qVal);
+                    }
+                }
             }
-          : { x: cbScreenX, y: cbScreenY, width: cbScreenW, height: cbScreenH };
-      }
-      const svgText = renderDisplayListToSvg(page.evaluateDisplayList({ hideAnnotations }), {
-        dpi: effDpiX,
-        dpiX: effDpiX,
-        dpiY: effDpiY,
-        useCropBox,
-        cropRect: svgCropRect,
-        hideAnnotations,
-        transparent,
-      });
-      renderedBytes = new TextEncoder().encode(svgText);
-    } else {
-      const bitmap = renderPdfPageToBitmap(doc.cos, p - 1, {
-        dpi: effDpiX,
-        dpiX: effDpiX,
-        dpiY: effDpiY,
-        useCropBox,
-        hideAnnotations,
-        transparent,
-        ...(hasCrop ? { cropRect: { x: cropX, y: cropY, width: cropW, height: cropH } } : {}),
-      });
-      if (colorMode !== "color" && (format === "png" || format === "tif" || format === "jpeg")) {
-        for (let px = 0; px < bitmap.data.length; px += 4) {
-          const r = bitmap.data[px]!;
-          const g = bitmap.data[px + 1]!;
-          const b = bitmap.data[px + 2]!;
-          const lum = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-          const v = colorMode === "mono" ? (lum < 128 ? 0 : 255) : lum;
-          bitmap.data[px] = v;
-          bitmap.data[px + 1] = v;
-          bitmap.data[px + 2] = v;
         }
-      }
-      if (format === "png") renderedBytes = encodePng(bitmap);
-      else if (format === "tif") renderedBytes = encodeTiff(bitmap, effDpiX);
-      else if (format === "ppm") renderedBytes = encodePpm(bitmap);
-      else if (format === "pgm") renderedBytes = encodePgm(bitmap);
-      else if (format === "pbm") renderedBytes = encodePbm(bitmap);
-      else renderedBytes = encodeJpeg(bitmap, jpegQuality);
+        else if (arg === "-sep")
+            sep = argv[++i] ?? "-";
+        else if (arg === "-r")
+            dpi = Number(argv[++i] ?? "150") || 150;
+        else if (arg === "-rx")
+            dpiX = Number(argv[++i] ?? "150") || 150;
+        else if (arg === "-ry")
+            dpiY = Number(argv[++i] ?? "150") || 150;
+        else if (arg === "-scale-to")
+            scaleTo = Number(argv[++i] ?? "0") || 0;
+        else if (arg === "-scale-to-x")
+            scaleToX = Number(argv[++i] ?? "0") || 0;
+        else if (arg === "-scale-to-y")
+            scaleToY = Number(argv[++i] ?? "0") || 0;
+        else if (arg === "-x") {
+            cropX = Number(argv[++i] ?? "0") || 0;
+            hasCrop = true;
+        }
+        else if (arg === "-y") {
+            cropY = Number(argv[++i] ?? "0") || 0;
+            hasCrop = true;
+        }
+        else if (arg === "-W") {
+            cropW = Number(argv[++i] ?? "0") || 0;
+            hasCrop = true;
+        }
+        else if (arg === "-H") {
+            cropH = Number(argv[++i] ?? "0") || 0;
+            hasCrop = true;
+        }
+        else if (arg === "-sz") {
+            const sz = Number(argv[++i] ?? "0") || 0;
+            cropW = sz;
+            cropH = sz;
+            hasCrop = true;
+        }
+        else if (arg === "-f")
+            firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
+        else if (arg === "-l")
+            lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
+        else if (arg === "-upw" || arg === "-opw")
+            password = argv[++i] ?? "";
+        else if (arg === "-tiffcompression" ||
+            arg === "-aa" ||
+            arg === "-aaVector" ||
+            arg === "-thinlinemode" ||
+            arg === "-freetype")
+            i++;
+        else if (!arg.startsWith("-") || arg === "-")
+            positionals.push(arg);
     }
-
-    if (!prefix || prefix === "-") {
-      outChunks.push(renderedBytes);
-      if (progress && !quiet) progressLines.push(`${p} ${endPage} -`);
-    } else {
-      const effectivePageNo = setPageNo !== undefined ? setPageNo + (p - firstPage) : p;
-      const pageNumStr = String(effectivePageNo).padStart(
-        Math.max(padWidth, String(effectivePageNo).length),
-        "0"
-      );
-      const fileName = singleFile && !forceNum ? `${prefix}.${ext}` : `${prefix}${sep}${pageNumStr}.${ext}`;
-      files.set(fileName, renderedBytes);
-      if (progress && !quiet) progressLines.push(`${p} ${endPage} ${fileName}`);
+    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+    if (!inputPath) {
+        return { exitCode: 99, stdout: "", stderr: "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n" };
     }
-    if (singleFile) break;
-  }
-
-  const stderrText = progressLines.length > 0 ? progressLines.join("\n") + "\n" : "";
-  if (outChunks.length > 0) {
-    const totalLen = outChunks.reduce((s, c) => s + c.byteLength, 0);
-    const merged = new Uint8Array(totalLen);
-    let off = 0;
-    for (const c of outChunks) {
-      merged.set(c, off);
-      off += c.byteLength;
+    const pdfBytes = files.get(inputPath);
+    if (!pdfBytes) {
+        return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
     }
-    return { exitCode: 0, stdout: "", stderr: stderrText, stdoutBytes: merged };
-  }
-  return { exitCode: 0, stdout: "", stderr: stderrText };
+    let doc: PdfDocument;
+    try {
+        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+    }
+    catch (err) {
+        return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+    }
+    const totalPages = Math.max(1, doc.pageCount);
+    const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
+    const prefix = positionals[1];
+    const ext = format === "jpeg" ? "jpg" : format;
+    const padWidth = Math.max(1, String(totalPages).length);
+    const outChunks: Uint8Array[] = [];
+    const progressLines: string[] = [];
+    for (let p = firstPage; p <= endPage; p++) {
+        yield;
+        if (oddOnly && p % 2 === 0)
+            continue;
+        if (evenOnly && p % 2 === 1)
+            continue;
+        const page = doc.getPage(p - 1);
+        let rawSize = page.getSize();
+        let resolvedCropBox: [
+            number,
+            number,
+            number,
+            number
+        ] | undefined;
+        if (useCropBox) {
+            let cur: PdfCosDict | undefined = page.pageDict;
+            const visited = new Set<PdfCosDict>();
+            while (cur && !visited.has(cur)) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                visited.add(cur);
+                const cb = doc.cos.resolveArray(dictGet(cur, "CropBox"));
+                if (cb && cb.items.length >= 4) {
+                    const nums = cb.items.slice(0, 4).map(it => {
+                        const r = doc.cos.resolve(it);
+                        return r?.kind === "number" ? r.value : 0;
+                    });
+                    resolvedCropBox = [nums[0]!, nums[1]!, nums[2]!, nums[3]!];
+                    rawSize = {
+                        width: Math.max(1, Math.abs(nums[2]! - nums[0]!)),
+                        height: Math.max(1, Math.abs(nums[3]! - nums[1]!)),
+                    };
+                    break;
+                }
+                cur = doc.cos.resolveDict(dictGet(cur, "Parent"));
+            }
+        }
+        const rot = page.getRotation();
+        const ptW = Math.max(1, rot === 90 || rot === 270 ? rawSize.height : rawSize.width);
+        const ptH = Math.max(1, rot === 90 || rot === 270 ? rawSize.width : rawSize.height);
+        let effDpiX = dpiX ?? dpi;
+        let effDpiY = dpiY ?? dpi;
+        if (scaleTo > 0) {
+            const s = (scaleTo * 72) / Math.max(ptW, ptH);
+            effDpiX = s;
+            effDpiY = s;
+        }
+        else {
+            if (scaleToX > 0) {
+                effDpiX = (scaleToX * 72) / ptW;
+                if (scaleToY <= 0)
+                    effDpiY = effDpiX;
+            }
+            if (scaleToY > 0) {
+                effDpiY = (scaleToY * 72) / ptH;
+                if (scaleToX <= 0)
+                    effDpiX = effDpiY;
+            }
+        }
+        let renderedBytes: Uint8Array;
+        if (format === "svg") {
+            const fullSz = page.getSize();
+            let svgCropRect: PdfCropRect | undefined = hasCrop
+                ? { x: cropX, y: cropY, width: cropW, height: cropH }
+                : undefined;
+            if (useCropBox && resolvedCropBox) {
+                const sx = effDpiX / 72;
+                const sy = effDpiY / 72;
+                const cbScreenX = Math.min(resolvedCropBox[0], resolvedCropBox[2]) * sx;
+                const cbScreenY = (fullSz.height - Math.max(resolvedCropBox[1], resolvedCropBox[3])) * sy;
+                const cbScreenW = Math.abs(resolvedCropBox[2] - resolvedCropBox[0]) * sx;
+                const cbScreenH = Math.abs(resolvedCropBox[3] - resolvedCropBox[1]) * sy;
+                svgCropRect = svgCropRect
+                    ? {
+                        x: cbScreenX + svgCropRect.x,
+                        y: cbScreenY + svgCropRect.y,
+                        width: svgCropRect.width || cbScreenW,
+                        height: svgCropRect.height || cbScreenH,
+                    }
+                    : { x: cbScreenX, y: cbScreenY, width: cbScreenW, height: cbScreenH };
+            }
+            const svgText = renderDisplayListToSvg(page.evaluateDisplayList({ hideAnnotations }), {
+                dpi: effDpiX,
+                dpiX: effDpiX,
+                dpiY: effDpiY,
+                useCropBox,
+                cropRect: svgCropRect,
+                hideAnnotations,
+                transparent,
+            });
+            renderedBytes = new TextEncoder().encode(svgText);
+        }
+        else {
+            const bitmap = renderPdfPageToBitmap(doc.cos, p - 1, {
+                dpi: effDpiX,
+                dpiX: effDpiX,
+                dpiY: effDpiY,
+                useCropBox,
+                hideAnnotations,
+                transparent,
+                ...(hasCrop ? { cropRect: { x: cropX, y: cropY, width: cropW, height: cropH } } : {}),
+            });
+            if (colorMode !== "color" && (format === "png" || format === "tif" || format === "jpeg")) {
+                for (let px = 0; px < bitmap.data.length; px += 4) {
+                    if (++cooperativeWork % 65536 === 0)
+                        yield;
+                    const r = bitmap.data[px]!;
+                    const g = bitmap.data[px + 1]!;
+                    const b = bitmap.data[px + 2]!;
+                    const lum = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+                    const v = colorMode === "mono" ? (lum < 128 ? 0 : 255) : lum;
+                    bitmap.data[px] = v;
+                    bitmap.data[px + 1] = v;
+                    bitmap.data[px + 2] = v;
+                }
+            }
+            if (format === "png")
+                renderedBytes = encodePng(bitmap);
+            else if (format === "tif")
+                renderedBytes = encodeTiff(bitmap, effDpiX);
+            else if (format === "ppm")
+                renderedBytes = encodePpm(bitmap);
+            else if (format === "pgm")
+                renderedBytes = encodePgm(bitmap);
+            else if (format === "pbm")
+                renderedBytes = encodePbm(bitmap);
+            else
+                renderedBytes = encodeJpeg(bitmap, jpegQuality);
+        }
+        if (!prefix || prefix === "-") {
+            outChunks.push(renderedBytes);
+            if (progress && !quiet)
+                progressLines.push(`${p} ${endPage} -`);
+        }
+        else {
+            const effectivePageNo = setPageNo !== undefined ? setPageNo + (p - firstPage) : p;
+            const pageNumStr = String(effectivePageNo).padStart(Math.max(padWidth, String(effectivePageNo).length), "0");
+            const fileName = singleFile && !forceNum ? `${prefix}.${ext}` : `${prefix}${sep}${pageNumStr}.${ext}`;
+            files.set(fileName, renderedBytes);
+            if (progress && !quiet)
+                progressLines.push(`${p} ${endPage} ${fileName}`);
+        }
+        if (singleFile)
+            break;
+    }
+    const stderrText = progressLines.length > 0 ? progressLines.join("\n") + "\n" : "";
+    if (outChunks.length > 0) {
+        const totalLen = outChunks.reduce((s, c) => s + c.byteLength, 0);
+        const merged = new Uint8Array(totalLen);
+        let off = 0;
+        for (const c of outChunks) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            merged.set(c, off);
+            off += c.byteLength;
+        }
+        return { exitCode: 0, stdout: "", stderr: stderrText, stdoutBytes: merged };
+    }
+    return { exitCode: 0, stdout: "", stderr: stderrText };
+}
+export async function runPdftoppmCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    stdoutBytes?: Uint8Array;
+}> {
+    return drainSteps(runPdftoppmCliSteps(argv, files, signal), signal);
 }
 
 function formatPopplerSize(byteLength: number): string {
@@ -1529,205 +1631,226 @@ function formatPopplerRatio(
   return `${pct.toFixed(1)}%`;
 }
 
-export async function runPdfimagesCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  let listOnly = false;
-  let usePng = false;
-  let useJpeg = false;
-  let useTiff = false;
-  let useJp2 = false;
-  let useJbig2 = false;
-  let useCcitt = false;
-  let firstPage = 1;
-  let lastPage = 0;
-  let includePage = false;
-  let uniqueOnly = false;
-  let printFilenames = false;
-  let quiet = false;
-  let password = "";
-  const positionals: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "-v" || arg === "--version") {
-      return { exitCode: 0, stdout: "pdfimages version 24.08.0\n", stderr: "" };
+function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}, void> {
+    let cooperativeWork = 63;
+    let listOnly = false;
+    let usePng = false;
+    let useJpeg = false;
+    let useTiff = false;
+    let useJp2 = false;
+    let useJbig2 = false;
+    let useCcitt = false;
+    let firstPage = 1;
+    let lastPage = 0;
+    let includePage = false;
+    let uniqueOnly = false;
+    let printFilenames = false;
+    let quiet = false;
+    let password = "";
+    const positionals: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const arg = argv[i]!;
+        if (arg === "-v" || arg === "--version") {
+            return { exitCode: 0, stdout: "pdfimages version 24.08.0\n", stderr: "" };
+        }
+        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: pdfimages [options] <PDF-file> [<image-root>]\n  -list / -png / -j / -all / -f <int> / -l <int> / -p\n",
+                stderr: "",
+            };
+        }
+        if (arg === "-list")
+            listOnly = true;
+        else if (arg === "-png")
+            usePng = true;
+        else if (arg === "-j")
+            useJpeg = true;
+        else if (arg === "-tiff")
+            useTiff = true;
+        else if (arg === "-jp2")
+            useJp2 = true;
+        else if (arg === "-jbig2")
+            useJbig2 = true;
+        else if (arg === "-ccitt")
+            useCcitt = true;
+        else if (arg === "-all") {
+            usePng = true;
+            useJpeg = true;
+            useJp2 = true;
+            useJbig2 = true;
+            useCcitt = true;
+        }
+        else if (arg === "-p")
+            includePage = true;
+        else if (arg === "-u")
+            uniqueOnly = true;
+        else if (arg === "-print-filenames")
+            printFilenames = true;
+        else if (arg === "-q")
+            quiet = true;
+        else if (arg === "-f") {
+            firstPage = Math.max(1, Number.parseInt(argv[++i] ?? "1", 10) || 1);
+        }
+        else if (arg === "-l") {
+            lastPage = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
+        }
+        else if (arg === "-upw" || arg === "-opw") {
+            password = argv[++i] ?? "";
+        }
+        else if (!arg.startsWith("-") || arg === "-") {
+            positionals.push(arg);
+        }
     }
-    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-      return {
-        exitCode: 0,
-        stdout:
-          "Usage: pdfimages [options] <PDF-file> [<image-root>]\n  -list / -png / -j / -all / -f <int> / -l <int> / -p\n",
-        stderr: "",
-      };
+    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+    if (!inputPath) {
+        return { exitCode: 99, stdout: "", stderr: quiet ? "" : "Usage: pdfimages [options] <PDF-file> [<image-root>]\n" };
     }
-    if (arg === "-list") listOnly = true;
-    else if (arg === "-png") usePng = true;
-    else if (arg === "-j") useJpeg = true;
-    else if (arg === "-tiff") useTiff = true;
-    else if (arg === "-jp2") useJp2 = true;
-    else if (arg === "-jbig2") useJbig2 = true;
-    else if (arg === "-ccitt") useCcitt = true;
-    else if (arg === "-all") {
-      usePng = true;
-      useJpeg = true;
-      useJp2 = true;
-      useJbig2 = true;
-      useCcitt = true;
-    } else if (arg === "-p") includePage = true;
-    else if (arg === "-u") uniqueOnly = true;
-    else if (arg === "-print-filenames") printFilenames = true;
-    else if (arg === "-q") quiet = true;
-    else if (arg === "-f") {
-      firstPage = Math.max(1, Number.parseInt(argv[++i] ?? "1", 10) || 1);
-    } else if (arg === "-l") {
-      lastPage = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
-    } else if (arg === "-upw" || arg === "-opw") {
-      password = argv[++i] ?? "";
-    } else if (!arg.startsWith("-") || arg === "-") {
-      positionals.push(arg);
+    const pdfBytes = files.get(inputPath);
+    if (!pdfBytes) {
+        return { exitCode: 1, stdout: "", stderr: quiet ? "" : `I/O Error: Couldn't open file '${inputPath}'\n` };
     }
-  }
-
-  const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-  if (!inputPath) {
-    return { exitCode: 99, stdout: "", stderr: quiet ? "" : "Usage: pdfimages [options] <PDF-file> [<image-root>]\n" };
-  }
-  const pdfBytes = files.get(inputPath);
-  if (!pdfBytes) {
-    return { exitCode: 1, stdout: "", stderr: quiet ? "" : `I/O Error: Couldn't open file '${inputPath}'\n` };
-  }
-
-  let doc: PdfDocument;
-  try {
-    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-  } catch (err) {
-    return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
-  }
-
-  const totalPages = Math.max(1, doc.pageCount);
-  const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
-  if (firstPage > totalPages || firstPage > endPage) {
-    return {
-      exitCode: 99,
-      stdout: "",
-      stderr: quiet
-        ? ""
-        : `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`,
-    };
-  }
-
-  const allExtracted = extractDocumentImages(doc.cos, {
-    firstPage,
-    ...(lastPage > 0 ? { lastPage } : {}),
-  });
-  const seenObjectIds = new Set<string>();
-  const extracted = uniqueOnly
-    ? allExtracted.filter((img) => {
-        if (img.inline || !img.objectId) return true;
-        const key = `${img.objectId.objNum}:${img.objectId.genNum}`;
-        if (seenObjectIds.has(key)) return false;
-        seenObjectIds.add(key);
-        return true;
-      })
-    : allExtracted;
-
-  const listLines = [
-    "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio",
-    "--------------------------------------------------------------------------------------------",
-  ];
-
-  const root = positionals[1] ?? "image";
-  const printedFilenames: string[] = [];
-  for (let idx = 0; idx < extracted.length; idx++) {
-    const img = extracted[idx]!;
-    const numStr = String(idx).padStart(3, "0");
-    const objField =
-      img.inline || !img.objectId
-        ? "  [inline]"
-        : `${String(img.objectId.objNum).padStart(6)} ${String(img.objectId.genNum).padStart(2)}`;
-    const sizeStr = formatPopplerSize(img.byteLength).padStart(5);
-    const ratioStr = formatPopplerRatio(
-      img.byteLength,
-      img.width,
-      img.height,
-      img.components,
-      img.bitsPerComponent
-    ).padStart(5);
-    const interpStr = (img.interpolate ? "yes" : "no").padStart(6);
-    const colorCol = (img.colorSpaceLabel ?? img.colorSpace).padEnd(5);
-    listLines.push(
-      `${String(img.pageNumber).padStart(4)} ${String(idx).padStart(5)} ${img.type.padEnd(6)} ${String(img.width).padStart(5)} ${String(img.height).padStart(6)} ${colorCol} ${String(img.components).padStart(4)} ${String(img.bitsPerComponent).padStart(3)}  ${img.encoding.padEnd(5)} ${interpStr} ${objField} ${String(img.xPpi).padStart(5)} ${String(img.yPpi).padStart(5)} ${sizeStr} ${ratioStr}`
-    );
-
-    if (!listOnly) {
-      let ext: string;
-      let outBytes: Uint8Array;
-      if (useJpeg && img.encoding === "jpeg" && img.rawJpegBytes) {
-        ext = "jpg";
-        outBytes = img.rawJpegBytes;
-      } else if (useJp2 && img.encoding === "jpx" && img.rawEncodedBytes) {
-        ext = "jp2";
-        outBytes = img.rawEncodedBytes;
-      } else if (useJbig2 && img.encoding === "jbig2" && img.rawEncodedBytes) {
-        ext = "jb2e";
-        outBytes = img.rawEncodedBytes;
-      } else if (useCcitt && img.encoding === "ccitt" && img.rawEncodedBytes) {
-        ext = "ccitt";
-        outBytes = img.rawEncodedBytes;
-      } else if (useTiff) {
-        ext = "tif";
-        outBytes = encodeTiff(img.bitmap, img.xPpi);
-      } else if (usePng) {
-        ext = "png";
-        outBytes = encodePng(img.bitmap);
-      } else if (img.colorSpace === "gray" && img.bitsPerComponent === 1) {
-        ext = "pbm";
-        outBytes = encodePbm(img.bitmap);
-      } else {
-        ext = "ppm";
-        outBytes = encodePpm(img.bitmap);
-      }
-
-      const outName = includePage
-        ? `${root}-${String(img.pageNumber).padStart(3, "0")}-${numStr}.${ext}`
-        : `${root}-${numStr}.${ext}`;
-      files.set(outName, outBytes);
-      if (ext === "jb2e" && img.jbig2GlobalsBytes) {
-        const jb2gName = includePage
-          ? `${root}-${String(img.pageNumber).padStart(3, "0")}-${numStr}.jb2g`
-          : `${root}-${numStr}.jb2g`;
-        files.set(jb2gName, img.jbig2GlobalsBytes);
-        if (printFilenames) printedFilenames.push(jb2gName);
-      }
-      if (ext === "ccitt") {
-        const paramsBase = includePage
-          ? `${root}-${String(img.pageNumber).padStart(3, "0")}-${numStr}.params`
-          : `${root}-${numStr}.params`;
-        const kVal = img.ccittParams?.k ?? 0;
-        const kFlag = kVal < 0 ? "-4" : kVal > 0 ? "-2" : "-1";
-        const extraFlags = [
-          kFlag,
-          `-x ${img.width}`,
-          `-y ${img.height}`,
-          ...(img.ccittParams?.blackIs1 ? ["-B"] : []),
-          ...(img.ccittParams?.byteAlign ? ["-A"] : []),
-        ].join(" ");
-        files.set(paramsBase, new TextEncoder().encode(`${extraFlags}\n`));
-        if (printFilenames) printedFilenames.push(paramsBase);
-      }
-      if (printFilenames) printedFilenames.push(outName);
+    let doc: PdfDocument;
+    try {
+        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
     }
-  }
-
-  if (listOnly) {
-    return { exitCode: 0, stdout: listLines.join("\n") + "\n", stderr: "" };
-  }
-  if (printFilenames && printedFilenames.length > 0) {
-    return { exitCode: 0, stdout: printedFilenames.join("\n") + "\n", stderr: "" };
-  }
-  return { exitCode: 0, stdout: "", stderr: "" };
+    catch (err) {
+        return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
+    }
+    const totalPages = Math.max(1, doc.pageCount);
+    const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
+    if (firstPage > totalPages || firstPage > endPage) {
+        return {
+            exitCode: 99,
+            stdout: "",
+            stderr: quiet
+                ? ""
+                : `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`,
+        };
+    }
+    const allExtracted = extractDocumentImages(doc.cos, {
+        firstPage,
+        ...(lastPage > 0 ? { lastPage } : {}),
+    });
+    const seenObjectIds = new Set<string>();
+    const extracted = uniqueOnly
+        ? allExtracted.filter((img) => {
+            if (img.inline || !img.objectId)
+                return true;
+            const key = `${img.objectId.objNum}:${img.objectId.genNum}`;
+            if (seenObjectIds.has(key))
+                return false;
+            seenObjectIds.add(key);
+            return true;
+        })
+        : allExtracted;
+    const listLines = [
+        "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio",
+        "--------------------------------------------------------------------------------------------",
+    ];
+    const root = positionals[1] ?? "image";
+    const printedFilenames: string[] = [];
+    for (let idx = 0; idx < extracted.length; idx++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const img = extracted[idx]!;
+        const numStr = String(idx).padStart(3, "0");
+        const objField = img.inline || !img.objectId
+            ? "  [inline]"
+            : `${String(img.objectId.objNum).padStart(6)} ${String(img.objectId.genNum).padStart(2)}`;
+        const sizeStr = formatPopplerSize(img.byteLength).padStart(5);
+        const ratioStr = formatPopplerRatio(img.byteLength, img.width, img.height, img.components, img.bitsPerComponent).padStart(5);
+        const interpStr = (img.interpolate ? "yes" : "no").padStart(6);
+        const colorCol = (img.colorSpaceLabel ?? img.colorSpace).padEnd(5);
+        listLines.push(`${String(img.pageNumber).padStart(4)} ${String(idx).padStart(5)} ${img.type.padEnd(6)} ${String(img.width).padStart(5)} ${String(img.height).padStart(6)} ${colorCol} ${String(img.components).padStart(4)} ${String(img.bitsPerComponent).padStart(3)}  ${img.encoding.padEnd(5)} ${interpStr} ${objField} ${String(img.xPpi).padStart(5)} ${String(img.yPpi).padStart(5)} ${sizeStr} ${ratioStr}`);
+        if (!listOnly) {
+            let ext: string;
+            let outBytes: Uint8Array;
+            if (useJpeg && img.encoding === "jpeg" && img.rawJpegBytes) {
+                ext = "jpg";
+                outBytes = img.rawJpegBytes;
+            }
+            else if (useJp2 && img.encoding === "jpx" && img.rawEncodedBytes) {
+                ext = "jp2";
+                outBytes = img.rawEncodedBytes;
+            }
+            else if (useJbig2 && img.encoding === "jbig2" && img.rawEncodedBytes) {
+                ext = "jb2e";
+                outBytes = img.rawEncodedBytes;
+            }
+            else if (useCcitt && img.encoding === "ccitt" && img.rawEncodedBytes) {
+                ext = "ccitt";
+                outBytes = img.rawEncodedBytes;
+            }
+            else if (useTiff) {
+                ext = "tif";
+                outBytes = encodeTiff(img.bitmap, img.xPpi);
+            }
+            else if (usePng) {
+                ext = "png";
+                outBytes = encodePng(img.bitmap);
+            }
+            else if (img.colorSpace === "gray" && img.bitsPerComponent === 1) {
+                ext = "pbm";
+                outBytes = encodePbm(img.bitmap);
+            }
+            else {
+                ext = "ppm";
+                outBytes = encodePpm(img.bitmap);
+            }
+            const outName = includePage
+                ? `${root}-${String(img.pageNumber).padStart(3, "0")}-${numStr}.${ext}`
+                : `${root}-${numStr}.${ext}`;
+            files.set(outName, outBytes);
+            if (ext === "jb2e" && img.jbig2GlobalsBytes) {
+                const jb2gName = includePage
+                    ? `${root}-${String(img.pageNumber).padStart(3, "0")}-${numStr}.jb2g`
+                    : `${root}-${numStr}.jb2g`;
+                files.set(jb2gName, img.jbig2GlobalsBytes);
+                if (printFilenames)
+                    printedFilenames.push(jb2gName);
+            }
+            if (ext === "ccitt") {
+                const paramsBase = includePage
+                    ? `${root}-${String(img.pageNumber).padStart(3, "0")}-${numStr}.params`
+                    : `${root}-${numStr}.params`;
+                const kVal = img.ccittParams?.k ?? 0;
+                const kFlag = kVal < 0 ? "-4" : kVal > 0 ? "-2" : "-1";
+                const extraFlags = [
+                    kFlag,
+                    `-x ${img.width}`,
+                    `-y ${img.height}`,
+                    ...(img.ccittParams?.blackIs1 ? ["-B"] : []),
+                    ...(img.ccittParams?.byteAlign ? ["-A"] : []),
+                ].join(" ");
+                files.set(paramsBase, new TextEncoder().encode(`${extraFlags}\n`));
+                if (printFilenames)
+                    printedFilenames.push(paramsBase);
+            }
+            if (printFilenames)
+                printedFilenames.push(outName);
+        }
+    }
+    if (listOnly) {
+        return { exitCode: 0, stdout: listLines.join("\n") + "\n", stderr: "" };
+    }
+    if (printFilenames && printedFilenames.length > 0) {
+        return { exitCode: 0, stdout: printedFilenames.join("\n") + "\n", stderr: "" };
+    }
+    return { exitCode: 0, stdout: "", stderr: "" };
+}
+export async function runPdfimagesCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}> {
+    return drainSteps(runPdfimagesCliSteps(argv, files, signal), signal);
 }
 
 function copyDocumentMetadata(srcDoc: PdfDocument, dstDoc: PdfDocument): void {
@@ -1740,201 +1863,228 @@ function copyDocumentMetadata(srcDoc: PdfDocument, dstDoc: PdfDocument): void {
   if (meta.producer) dstDoc.setProducer(meta.producer);
 }
 
-export async function runPdfuniteCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  const positionals: string[] = [];
-  let password = "";
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "-v" || arg === "--version") {
-      return { exitCode: 0, stdout: "pdfunite version 24.08.0\n", stderr: "" };
-    }
-    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-      return {
-        exitCode: 0,
-        stdout: "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n",
-        stderr: ""
-      };
-    }
-    if (arg === "-upw" || arg === "-opw") {
-      password = argv[++i] ?? "";
-      continue;
-    }
-    if (!arg.startsWith("-")) positionals.push(arg);
-  }
-  if (positionals.length < 3) {
-    return {
-      exitCode: 99,
-      stdout: "",
-      stderr: "Syntax Error: pdfunite requires at least two input files and one output file.\n"
-    };
-  }
-  const destPath = positionals[positionals.length - 1]!;
-  const sourcePaths = positionals.slice(0, -1);
-  const merged = PdfDocument.create();
-  let copiedMeta = false;
-  const mergedOutlineItems: Array<{ title: string; targetPageIdx: number }> = [];
-  const mergedAttachments: DetachedEmbeddedFile[] = [];
-  const seenAttachmentNames = new Set<string>();
-  const mergedPageLabelNums: PdfCosNode[] = [];
-  let pageOffset = 0;
-
-  for (const srcPath of sourcePaths) {
-    const srcBytes = files.get(srcPath);
-    if (!srcBytes) {
-      return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}'\n` };
-    }
-    let srcDoc: PdfDocument;
-    try {
-      srcDoc = PdfDocument.load(srcBytes, password ? { password } : undefined);
-    } catch (err) {
-      return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
-    }
-    if (!copiedMeta) {
-      copyDocumentMetadata(srcDoc, merged);
-      copiedMeta = true;
-    }
-    for (const att of collectEmbeddedAttachments(srcDoc)) {
-      if (!seenAttachmentNames.has(att.name)) {
-        seenAttachmentNames.add(att.name);
-        mergedAttachments.push(att);
-      }
-    }
-    const srcCat = srcDoc.cos.resolveDict(srcDoc.cos.rootRef);
-    const collectSrcPageLabels = (plNode: PdfCosDict | undefined, visited = new Set<number>()) => {
-      if (!plNode) return;
-      const numsArr = srcDoc.cos.resolveArray(dictGet(plNode, "Nums"));
-      if (numsArr) {
-        for (let idx = 0; idx + 1 < numsArr.items.length; idx += 2) {
-          const kNode = srcDoc.cos.resolve(numsArr.items[idx]);
-          const vDict = srcDoc.cos.resolveDict(numsArr.items[idx + 1]);
-          if (kNode?.kind === "number" && vDict) {
-            const clonedEntries: Record<string, PdfCosNode> = {};
-            const sNode = srcDoc.cos.resolve(dictGet(vDict, "S"));
-            const stNode = srcDoc.cos.resolve(dictGet(vDict, "St"));
-            const pNode = srcDoc.cos.resolve(dictGet(vDict, "P"));
-            if (sNode?.kind === "name") clonedEntries.S = cosName(sNode.decoded);
-            if (stNode?.kind === "number") clonedEntries.St = cosNumber(stNode.value);
-            if (pNode?.kind === "string") clonedEntries.P = { kind: "string", bytes: new Uint8Array(pNode.bytes), format: pNode.format };
-            mergedPageLabelNums.push(cosNumber(pageOffset + kNode.value), cosDict(clonedEntries));
-          }
+function* runPdfuniteCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}, void> {
+    let cooperativeWork = 63;
+    const positionals: string[] = [];
+    let password = "";
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const arg = argv[i]!;
+        if (arg === "-v" || arg === "--version") {
+            return { exitCode: 0, stdout: "pdfunite version 24.08.0\n", stderr: "" };
         }
-      }
-      const kidsArr = srcDoc.cos.resolveArray(dictGet(plNode, "Kids"));
-      if (kidsArr) {
-        for (const kid of kidsArr.items) {
-          if (kid.kind === "ref") {
-            if (visited.has(kid.objectNumber)) continue;
-            visited.add(kid.objectNumber);
-          }
-          collectSrcPageLabels(srcDoc.cos.resolveDict(kid), visited);
+        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n",
+                stderr: ""
+            };
         }
-      }
-    };
-    if (srcCat) {
-      collectSrcPageLabels(srcDoc.cos.resolveDict(dictGet(srcCat, "PageLabels")));
-    }
-
-    const srcOutlines = srcCat ? srcDoc.cos.resolveDict(dictGet(srcCat, "Outlines")) : undefined;
-    const collectOutlinesFromSrc = (nodeOrRef: PdfCosNode | undefined, visited = new Set<number>()) => {
-      let cur = nodeOrRef;
-      while (cur) {
-        if (cur.kind === "ref") {
-          if (visited.has(cur.objectNumber)) break;
-          visited.add(cur.objectNumber);
+        if (arg === "-upw" || arg === "-opw") {
+            password = argv[++i] ?? "";
+            continue;
         }
-        const d = srcDoc.cos.resolveDict(cur);
-        if (!d) break;
-        const tNode = srcDoc.cos.resolve(dictGet(d, "Title"));
-        const title = tNode?.kind === "string" ? decodePdfString(tNode) : "";
-        const localPage =
-          resolveDestinationPageIndex(srcDoc, dictGet(d, "Dest") ?? dictGet(d, "A")) ?? 0;
-        if (title) {
-          mergedOutlineItems.push({ title, targetPageIdx: pageOffset + localPage });
+        if (!arg.startsWith("-"))
+            positionals.push(arg);
+    }
+    if (positionals.length < 3) {
+        return {
+            exitCode: 99,
+            stdout: "",
+            stderr: "Syntax Error: pdfunite requires at least two input files and one output file.\n"
+        };
+    }
+    const destPath = positionals[positionals.length - 1]!;
+    const sourcePaths = positionals.slice(0, -1);
+    const merged = PdfDocument.create();
+    let copiedMeta = false;
+    const mergedOutlineItems: Array<{
+        title: string;
+        targetPageIdx: number;
+    }> = [];
+    const mergedAttachments: DetachedEmbeddedFile[] = [];
+    const seenAttachmentNames = new Set<string>();
+    const mergedPageLabelNums: PdfCosNode[] = [];
+    let pageOffset = 0;
+    for (const srcPath of sourcePaths) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const srcBytes = files.get(srcPath);
+        if (!srcBytes) {
+            return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}'\n` };
         }
-        const firstChild = dictGet(d, "First");
-        if (firstChild) collectOutlinesFromSrc(firstChild, visited);
-        cur = dictGet(d, "Next");
-      }
-    };
-    if (srcOutlines) collectOutlinesFromSrc(dictGet(srcOutlines, "First"));
-
-    const indices = Array.from({ length: srcDoc.pageCount }, (_, idx) => idx);
-    merged.copyPagesFrom(srcDoc, indices);
-    pageOffset += srcDoc.pageCount;
-  }
-
-  if (mergedOutlineItems.length > 0 && merged.pageCount > 0) {
-    const dstCat = merged.cos.resolveDict(merged.cos.rootRef);
-    if (dstCat) {
-      const outlinesDict = cosDict({});
-      const outlinesRef = merged.cos.allocateObject(outlinesDict);
-      const itemRefs: Array<{ ref: ReturnType<typeof merged.cos.allocateObject>; dict: PdfCosDict }> = [];
-      for (const bm of mergedOutlineItems) {
-        const pRef = merged.getPage(Math.min(merged.pageCount - 1, Math.max(0, bm.targetPageIdx))).ref;
-        const iDict = cosDict({
-          Title: { kind: "string", bytes: new TextEncoder().encode(bm.title), format: "literal" },
-          Parent: outlinesRef,
-          Dest: cosArray([pRef, cosName("Fit")]),
-        });
-        const iRef = merged.cos.allocateObject(iDict);
-        const prev = itemRefs[itemRefs.length - 1];
-        if (prev) {
-          prev.dict.entries.push({ key: cosName("Next"), value: iRef });
-          iDict.entries.push({ key: cosName("Prev"), value: prev.ref });
-        } else {
-          outlinesDict.entries.push({ key: cosName("First"), value: iRef });
+        let srcDoc: PdfDocument;
+        try {
+            srcDoc = PdfDocument.load(srcBytes, password ? { password } : undefined);
         }
-        itemRefs.push({ ref: iRef, dict: iDict });
-      }
-      const lastItem = itemRefs[itemRefs.length - 1];
-      if (lastItem) {
-        outlinesDict.entries.push({ key: cosName("Last"), value: lastItem.ref });
-        outlinesDict.entries.push({ key: cosName("Count"), value: cosNumber(itemRefs.length) });
-        dstCat.entries.push({ key: cosName("Outlines"), value: outlinesRef });
-      }
+        catch (err) {
+            return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+        }
+        if (!copiedMeta) {
+            copyDocumentMetadata(srcDoc, merged);
+            copiedMeta = true;
+        }
+        for (const att of collectEmbeddedAttachments(srcDoc)) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            if (!seenAttachmentNames.has(att.name)) {
+                seenAttachmentNames.add(att.name);
+                mergedAttachments.push(att);
+            }
+        }
+        const srcCat = srcDoc.cos.resolveDict(srcDoc.cos.rootRef);
+        const collectSrcPageLabels = (plNode: PdfCosDict | undefined, visited = new Set<number>()) => {
+            if (!plNode)
+                return;
+            const numsArr = srcDoc.cos.resolveArray(dictGet(plNode, "Nums"));
+            if (numsArr) {
+                for (let idx = 0; idx + 1 < numsArr.items.length; idx += 2) {
+                    const kNode = srcDoc.cos.resolve(numsArr.items[idx]);
+                    const vDict = srcDoc.cos.resolveDict(numsArr.items[idx + 1]);
+                    if (kNode?.kind === "number" && vDict) {
+                        const clonedEntries: Record<string, PdfCosNode> = {};
+                        const sNode = srcDoc.cos.resolve(dictGet(vDict, "S"));
+                        const stNode = srcDoc.cos.resolve(dictGet(vDict, "St"));
+                        const pNode = srcDoc.cos.resolve(dictGet(vDict, "P"));
+                        if (sNode?.kind === "name")
+                            clonedEntries.S = cosName(sNode.decoded);
+                        if (stNode?.kind === "number")
+                            clonedEntries.St = cosNumber(stNode.value);
+                        if (pNode?.kind === "string")
+                            clonedEntries.P = { kind: "string", bytes: new Uint8Array(pNode.bytes), format: pNode.format };
+                        mergedPageLabelNums.push(cosNumber(pageOffset + kNode.value), cosDict(clonedEntries));
+                    }
+                }
+            }
+            const kidsArr = srcDoc.cos.resolveArray(dictGet(plNode, "Kids"));
+            if (kidsArr) {
+                for (const kid of kidsArr.items) {
+                    if (kid.kind === "ref") {
+                        if (visited.has(kid.objectNumber))
+                            continue;
+                        visited.add(kid.objectNumber);
+                    }
+                    collectSrcPageLabels(srcDoc.cos.resolveDict(kid), visited);
+                }
+            }
+        };
+        if (srcCat) {
+            collectSrcPageLabels(srcDoc.cos.resolveDict(dictGet(srcCat, "PageLabels")));
+        }
+        const srcOutlines = srcCat ? srcDoc.cos.resolveDict(dictGet(srcCat, "Outlines")) : undefined;
+        const collectOutlinesFromSrc = (nodeOrRef: PdfCosNode | undefined, visited = new Set<number>()) => {
+            let cur = nodeOrRef;
+            while (cur) {
+                if (cur.kind === "ref") {
+                    if (visited.has(cur.objectNumber))
+                        break;
+                    visited.add(cur.objectNumber);
+                }
+                const d = srcDoc.cos.resolveDict(cur);
+                if (!d)
+                    break;
+                const tNode = srcDoc.cos.resolve(dictGet(d, "Title"));
+                const title = tNode?.kind === "string" ? decodePdfString(tNode) : "";
+                const localPage = resolveDestinationPageIndex(srcDoc, dictGet(d, "Dest") ?? dictGet(d, "A")) ?? 0;
+                if (title) {
+                    mergedOutlineItems.push({ title, targetPageIdx: pageOffset + localPage });
+                }
+                const firstChild = dictGet(d, "First");
+                if (firstChild)
+                    collectOutlinesFromSrc(firstChild, visited);
+                cur = dictGet(d, "Next");
+            }
+        };
+        if (srcOutlines)
+            collectOutlinesFromSrc(dictGet(srcOutlines, "First"));
+        const indices = Array.from({ length: srcDoc.pageCount }, (_, idx) => idx);
+        merged.copyPagesFrom(srcDoc, indices);
+        pageOffset += srcDoc.pageCount;
     }
-  }
-
-  const finalDstCat = merged.cos.resolveDict(merged.cos.rootRef);
-  if (finalDstCat) {
-    if (mergedAttachments.length > 0) {
-      const namesPairs: PdfCosNode[] = [];
-      for (const att of mergedAttachments) {
-        const efRef = merged.cos.allocateObject(
-          cosStream(att.data, {
-            dict: cosDict({ Type: cosName("EmbeddedFile") }),
-            compress: true,
-          })
-        );
-        const fnBytes = new TextEncoder().encode(att.name);
-        const fsRef = merged.cos.allocateObject(
-          cosDict({
-            Type: cosName("Filespec"),
-            F: { kind: "string", bytes: fnBytes, format: "literal" },
-            UF: { kind: "string", bytes: fnBytes, format: "literal" },
-            EF: cosDict({ F: efRef, UF: efRef }),
-          })
-        );
-        namesPairs.push({ kind: "string", bytes: fnBytes, format: "literal" }, fsRef);
-      }
-      const efTreeRef = merged.cos.allocateObject(cosDict({ Names: cosArray(namesPairs) }));
-      finalDstCat.entries.push({
-        key: cosName("Names"),
-        value: merged.cos.allocateObject(cosDict({ EmbeddedFiles: efTreeRef })),
-      });
+    if (mergedOutlineItems.length > 0 && merged.pageCount > 0) {
+        const dstCat = merged.cos.resolveDict(merged.cos.rootRef);
+        if (dstCat) {
+            const outlinesDict = cosDict({});
+            const outlinesRef = merged.cos.allocateObject(outlinesDict);
+            const itemRefs: Array<{
+                ref: ReturnType<typeof merged.cos.allocateObject>;
+                dict: PdfCosDict;
+            }> = [];
+            for (const bm of mergedOutlineItems) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                const pRef = merged.getPage(Math.min(merged.pageCount - 1, Math.max(0, bm.targetPageIdx))).ref;
+                const iDict = cosDict({
+                    Title: { kind: "string", bytes: new TextEncoder().encode(bm.title), format: "literal" },
+                    Parent: outlinesRef,
+                    Dest: cosArray([pRef, cosName("Fit")]),
+                });
+                const iRef = merged.cos.allocateObject(iDict);
+                const prev = itemRefs[itemRefs.length - 1];
+                if (prev) {
+                    prev.dict.entries.push({ key: cosName("Next"), value: iRef });
+                    iDict.entries.push({ key: cosName("Prev"), value: prev.ref });
+                }
+                else {
+                    outlinesDict.entries.push({ key: cosName("First"), value: iRef });
+                }
+                itemRefs.push({ ref: iRef, dict: iDict });
+            }
+            const lastItem = itemRefs[itemRefs.length - 1];
+            if (lastItem) {
+                outlinesDict.entries.push({ key: cosName("Last"), value: lastItem.ref });
+                outlinesDict.entries.push({ key: cosName("Count"), value: cosNumber(itemRefs.length) });
+                dstCat.entries.push({ key: cosName("Outlines"), value: outlinesRef });
+            }
+        }
     }
-    if (mergedPageLabelNums.length > 0) {
-      finalDstCat.entries.push({
-        key: cosName("PageLabels"),
-        value: merged.cos.allocateObject(cosDict({ Nums: cosArray(mergedPageLabelNums) })),
-      });
+    const finalDstCat = merged.cos.resolveDict(merged.cos.rootRef);
+    if (finalDstCat) {
+        if (mergedAttachments.length > 0) {
+            const namesPairs: PdfCosNode[] = [];
+            for (const att of mergedAttachments) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                const efRef = merged.cos.allocateObject(cosStream(att.data, {
+                    dict: cosDict({ Type: cosName("EmbeddedFile") }),
+                    compress: true,
+                }));
+                const fnBytes = new TextEncoder().encode(att.name);
+                const fsRef = merged.cos.allocateObject(cosDict({
+                    Type: cosName("Filespec"),
+                    F: { kind: "string", bytes: fnBytes, format: "literal" },
+                    UF: { kind: "string", bytes: fnBytes, format: "literal" },
+                    EF: cosDict({ F: efRef, UF: efRef }),
+                }));
+                namesPairs.push({ kind: "string", bytes: fnBytes, format: "literal" }, fsRef);
+            }
+            const efTreeRef = merged.cos.allocateObject(cosDict({ Names: cosArray(namesPairs) }));
+            finalDstCat.entries.push({
+                key: cosName("Names"),
+                value: merged.cos.allocateObject(cosDict({ EmbeddedFiles: efTreeRef })),
+            });
+        }
+        if (mergedPageLabelNums.length > 0) {
+            finalDstCat.entries.push({
+                key: cosName("PageLabels"),
+                value: merged.cos.allocateObject(cosDict({ Nums: cosArray(mergedPageLabelNums) })),
+            });
+        }
     }
-  }
-  files.set(destPath, merged.save());
-  return { exitCode: 0, stdout: "", stderr: "" };
+    files.set(destPath, merged.save());
+    return { exitCode: 0, stdout: "", stderr: "" };
+}
+export async function runPdfuniteCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}> {
+    return drainSteps(runPdfuniteCliSteps(argv, files, signal), signal);
 }
 
 function parsePdfseparateSpec(pattern: string): {
@@ -1993,79 +2143,93 @@ function parsePdfseparateSpec(pattern: string): {
   };
 }
 
-export async function runPdfseparateCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  let firstPage = 1;
-  let lastPage = 0;
-  let password = "";
-  const positionals: string[] = [];
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "-v" || arg === "--version") {
-      return { exitCode: 0, stdout: "pdfseparate version 24.08.0\n", stderr: "" };
+function* runPdfseparateCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}, void> {
+    let cooperativeWork = 63;
+    let firstPage = 1;
+    let lastPage = 0;
+    let password = "";
+    const positionals: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const arg = argv[i]!;
+        if (arg === "-v" || arg === "--version") {
+            return { exitCode: 0, stdout: "pdfseparate version 24.08.0\n", stderr: "" };
+        }
+        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
+                stderr: ""
+            };
+        }
+        if (arg === "-f")
+            firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
+        else if (arg === "-l")
+            lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
+        else if (arg === "-upw" || arg === "-opw")
+            password = argv[++i] ?? "";
+        else if (!arg.startsWith("-"))
+            positionals.push(arg);
     }
-    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-      return {
-        exitCode: 0,
-        stdout: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
-        stderr: ""
-      };
+    if (positionals.length < 2) {
+        return {
+            exitCode: 99,
+            stdout: "",
+            stderr: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n"
+        };
     }
-    if (arg === "-f") firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
-    else if (arg === "-l") lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
-    else if (arg === "-upw" || arg === "-opw") password = argv[++i] ?? "";
-    else if (!arg.startsWith("-")) positionals.push(arg);
-  }
-  if (positionals.length < 2) {
-    return {
-      exitCode: 99,
-      stdout: "",
-      stderr: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n"
-    };
-  }
-  const srcPath = positionals[0]!;
-  const pattern = positionals[1]!;
-  const srcBytes = files.get(srcPath);
-  if (!srcBytes) {
-    return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}'\n` };
-  }
-  let srcDoc: PdfDocument;
-  try {
-    srcDoc = PdfDocument.load(srcBytes, password ? { password } : undefined);
-  } catch (err) {
-    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
-  }
-  const endPage = lastPage > 0 ? Math.min(srcDoc.pageCount, lastPage) : srcDoc.pageCount;
-  if (
-    firstPage > srcDoc.pageCount ||
-    (lastPage > 0 && (lastPage > srcDoc.pageCount || firstPage > lastPage))
-  ) {
-    return {
-      exitCode: 99,
-      stdout: "",
-      stderr: `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`
-    };
-  }
-  const spec = parsePdfseparateSpec(pattern);
-  const hasPageSpec = spec.hasPageSpec;
-  if (endPage > firstPage && !hasPageSpec) {
-    return {
-      exitCode: 99,
-      stdout: "",
-      stderr: `Error: '${pattern}' must contain '%d' if more than one page should be extracted\n`
-    };
-  }
-
-  for (let p = firstPage; p <= endPage; p++) {
-    const singleDoc = PdfDocument.create();
-    copyDocumentMetadata(srcDoc, singleDoc);
-    singleDoc.copyPagesFrom(srcDoc, [p - 1]);
-    const outPath = spec.format(p);
-    files.set(outPath, singleDoc.save());
-  }
-  return { exitCode: 0, stdout: "", stderr: "" };
+    const srcPath = positionals[0]!;
+    const pattern = positionals[1]!;
+    const srcBytes = files.get(srcPath);
+    if (!srcBytes) {
+        return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}'\n` };
+    }
+    let srcDoc: PdfDocument;
+    try {
+        srcDoc = PdfDocument.load(srcBytes, password ? { password } : undefined);
+    }
+    catch (err) {
+        return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+    }
+    const endPage = lastPage > 0 ? Math.min(srcDoc.pageCount, lastPage) : srcDoc.pageCount;
+    if (firstPage > srcDoc.pageCount ||
+        (lastPage > 0 && (lastPage > srcDoc.pageCount || firstPage > lastPage))) {
+        return {
+            exitCode: 99,
+            stdout: "",
+            stderr: `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`
+        };
+    }
+    const spec = parsePdfseparateSpec(pattern);
+    const hasPageSpec = spec.hasPageSpec;
+    if (endPage > firstPage && !hasPageSpec) {
+        return {
+            exitCode: 99,
+            stdout: "",
+            stderr: `Error: '${pattern}' must contain '%d' if more than one page should be extracted\n`
+        };
+    }
+    for (let p = firstPage; p <= endPage; p++) {
+        yield;
+        const singleDoc = PdfDocument.create();
+        copyDocumentMetadata(srcDoc, singleDoc);
+        singleDoc.copyPagesFrom(srcDoc, [p - 1]);
+        const outPath = spec.format(p);
+        files.set(outPath, singleDoc.save());
+    }
+    return { exitCode: 0, stdout: "", stderr: "" };
+}
+export async function runPdfseparateCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}> {
+    return drainSteps(runPdfseparateCliSteps(argv, files, signal), signal);
 }
 
 function isSubsetFontTag(fontName: string): boolean {
@@ -2077,277 +2241,295 @@ function isSubsetFontTag(fontName: string): boolean {
   return true;
 }
 
-export async function runPdffontsCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  return runPdffontsCliSync(argv, files);
-}
-
-export function runPdffontsCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): { exitCode: number; stdout: string; stderr: string } {
-  let firstPage = 1;
-  let lastPage = 0;
-  let password = "";
-  let showLoc = false;
-  let showLocPs = false;
-  let showSubst = false;
-  const positionals: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "-v" || arg === "--version") {
-      return { exitCode: 0, stdout: "pdffonts version 24.08.0\n", stderr: "" };
+function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}, void> {
+    let cooperativeWork = 63;
+    let firstPage = 1;
+    let lastPage = 0;
+    let password = "";
+    let showLoc = false;
+    let showLocPs = false;
+    let showSubst = false;
+    const positionals: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const arg = argv[i]!;
+        if (arg === "-v" || arg === "--version") {
+            return { exitCode: 0, stdout: "pdffonts version 24.08.0\n", stderr: "" };
+        }
+        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: pdffonts [options] [PDF-file]\n  -f <int> / -l <int> / -upw <string> / -opw <string>\n",
+                stderr: ""
+            };
+        }
+        if (arg === "-f")
+            firstPage = Math.max(1, Number.parseInt(argv[++i] ?? "1", 10) || 1);
+        else if (arg === "-l")
+            lastPage = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
+        else if (arg === "-upw" || arg === "-opw")
+            password = argv[++i] ?? "";
+        else if (arg === "-loc")
+            showLoc = true;
+        else if (arg === "-locPS") {
+            showLoc = true;
+            showLocPs = true;
+        }
+        else if (arg === "-subst")
+            showSubst = true;
+        else if (!arg.startsWith("-") || arg === "-")
+            positionals.push(arg);
     }
-    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-      return {
-        exitCode: 0,
-        stdout: "Usage: pdffonts [options] [PDF-file]\n  -f <int> / -l <int> / -upw <string> / -opw <string>\n",
-        stderr: ""
-      };
+    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+    if (!inputPath) {
+        return { exitCode: 99, stdout: "", stderr: "Usage: pdffonts [options] [PDF-file]\n" };
     }
-    if (arg === "-f") firstPage = Math.max(1, Number.parseInt(argv[++i] ?? "1", 10) || 1);
-    else if (arg === "-l") lastPage = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
-    else if (arg === "-upw" || arg === "-opw") password = argv[++i] ?? "";
-    else if (arg === "-loc") showLoc = true;
-    else if (arg === "-locPS") {
-      showLoc = true;
-      showLocPs = true;
-    } else if (arg === "-subst") showSubst = true;
-    else if (!arg.startsWith("-") || arg === "-") positionals.push(arg);
-  }
-
-  const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-  if (!inputPath) {
-    return { exitCode: 99, stdout: "", stderr: "Usage: pdffonts [options] [PDF-file]\n" };
-  }
-  const pdfBytes = files.get(inputPath);
-  if (!pdfBytes) {
-    return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
-  }
-
-  let doc: PdfDocument;
-  try {
-    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-  } catch (err) {
-    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
-  }
-
-  const cos = doc.cos;
-  const endPage = lastPage > 0 ? Math.min(doc.pageCount, lastPage) : doc.pageCount;
-  if (firstPage > doc.pageCount || (lastPage > 0 && firstPage > endPage)) {
-    return {
-      exitCode: 99,
-      stdout: "",
-      stderr: `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`
-    };
-  }
-  const seenFontKeys = new Set<string>();
-  const rows: string[] = showSubst
-    ? [
-        "name                                 object ID substitute font                      substitute font file",
-        "------------------------------------ --------- ------------------------------------ ------------------------------------"
-      ]
-    : showLoc
-      ? [
-        "name                                 type              encoding         emb sub uni object ID location",
-        "------------------------------------ ----------------- ---------------- --- --- --- --------- --------"
-      ]
-      : [
-        "name                                 type              encoding         emb sub uni object ID",
-        "------------------------------------ ----------------- ---------------- --- --- --- ---------"
-      ];
-
-  const collectFontsFromResources = (resDict: PdfCosDict | undefined, visitedForms = new Set<number>()) => {
-    if (!resDict) return;
-    const fontMap = cos.resolveDict(dictGet(resDict, "Font"));
-    if (fontMap) {
-      for (const entry of fontMap.entries) {
-        const rawVal = entry.value;
-        const objKey =
-          rawVal.kind === "ref"
-            ? `${rawVal.objectNumber}:${rawVal.generationNumber}`
-            : `inline:${entry.key.decoded}`;
-        if (seenFontKeys.has(objKey)) continue;
-        seenFontKeys.add(objKey);
-
-        const fontDict = cos.resolveDict(rawVal);
-        if (!fontDict) continue;
-
-        const baseFontNode = cos.resolve(dictGet(fontDict, "BaseFont") ?? dictGet(fontDict, "Name"));
-        const fontName =
-          baseFontNode?.kind === "name"
-            ? baseFontNode.decoded
-            : baseFontNode?.kind === "string"
-              ? decodePdfString(baseFontNode)
-              : "[none]";
-
-        const subtypeNode = cos.resolve(dictGet(fontDict, "Subtype"));
-        const rawSubtype = subtypeNode?.kind === "name" ? subtypeNode.decoded : "Type1";
-
-        let descFontDict: PdfCosDict | undefined;
-        if (rawSubtype === "Type0") {
-          const descArr = cos.resolveArray(dictGet(fontDict, "DescendantFonts"));
-          if (descArr && descArr.items.length > 0) {
-            descFontDict = cos.resolveDict(descArr.items[0]);
-          }
-        }
-
-        const descriptorDict =
-          cos.resolveDict(dictGet(fontDict, "FontDescriptor")) ??
-          (descFontDict ? cos.resolveDict(dictGet(descFontDict, "FontDescriptor")) : undefined);
-        const hasEmbeddedFile = Boolean(
-          rawSubtype === "Type3" ||
-            (descriptorDict &&
-              (dictGet(descriptorDict, "FontFile") ||
-                dictGet(descriptorDict, "FontFile2") ||
-                dictGet(descriptorDict, "FontFile3")))
-        );
-
-        let fontTypeLabel = "Type 1";
-        if (rawSubtype === "TrueType") fontTypeLabel = "TrueType";
-        else if (rawSubtype === "MMType1") fontTypeLabel = "MM Type 1";
-        else if (rawSubtype === "Type3") fontTypeLabel = "Type 3";
-        else if (rawSubtype === "Type0") {
-          const descSubtype = descFontDict ? cos.resolve(dictGet(descFontDict, "Subtype")) : undefined;
-          fontTypeLabel =
-            descSubtype?.kind === "name" && descSubtype.decoded === "CIDFontType2"
-              ? "CID TrueType"
-              : "CID Type 0";
-        } else if (descriptorDict && dictGet(descriptorDict, "FontFile3")) {
-          fontTypeLabel = "Type 1C";
-        }
-
-        const encNode = cos.resolve(dictGet(fontDict, "Encoding"));
-        let encodingLabel = "Builtin";
-        if (encNode?.kind === "name") {
-          const eName = encNode.decoded;
-          if (eName === "WinAnsiEncoding") encodingLabel = "WinAnsi";
-          else if (eName === "MacRomanEncoding") encodingLabel = "MacRoman";
-          else if (eName === "StandardEncoding") encodingLabel = "Standard";
-          else encodingLabel = eName;
-        } else if (encNode?.kind === "dict") {
-          encodingLabel = "Custom";
-        }
-
-        const embStr = hasEmbeddedFile ? "yes" : "no ";
-        const subStr = isSubsetFontTag(fontName) ? "yes" : "no ";
-        const uniStr = dictGet(fontDict, "ToUnicode") ? "yes" : "no ";
-        const objIdStr =
-          rawVal.kind === "ref"
-            ? `${String(rawVal.objectNumber).padStart(6)} ${String(rawVal.generationNumber).padStart(2)}`
-            : "   [none]";
-
-        const locSuffix = showLoc
-          ? ` ${hasEmbeddedFile ? "Embedded" : showLocPs ? `Substitute (${fontName})` : "Substitute"}`
-          : "";
-        if (showSubst) {
-          if (!hasEmbeddedFile) {
-            let subFontName = fontName;
-            if (fontName.startsWith("Helvetica") || fontName.startsWith("Arial")) subFontName = "Nimbus Sans";
-            else if (fontName.startsWith("Times")) subFontName = "Nimbus Roman";
-            else if (fontName.startsWith("Courier")) subFontName = "Nimbus Mono PS";
-            else if (fontName === "Symbol") subFontName = "Standard Symbols PS";
-            else if (fontName === "ZapfDingbats") subFontName = "D050000L";
-            const subFontFile = `/usr/share/fonts/type1/urw-base35/${subFontName.replaceAll(" ", "")}.t1`;
-            rows.push(
-              `${fontName.slice(0, 36).padEnd(36)} ${objIdStr} ${subFontName.slice(0, 36).padEnd(36)} ${subFontFile}`
-            );
-          }
-        } else {
-          rows.push(
-            `${fontName.slice(0, 36).padEnd(36)} ${fontTypeLabel.padEnd(17)} ${encodingLabel.slice(0, 16).padEnd(16)} ${embStr} ${subStr} ${uniStr} ${objIdStr}${locSuffix}`
-          );
-        }
-
-        if (rawSubtype === "Type3") {
-          collectFontsFromResources(cos.resolveDict(dictGet(fontDict, "Resources")), visitedForms);
-        }
-      }
+    const pdfBytes = files.get(inputPath);
+    if (!pdfBytes) {
+        return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
     }
-
-    const extGsMap = cos.resolveDict(dictGet(resDict, "ExtGState"));
-    if (extGsMap) {
-      for (const gsEntry of extGsMap.entries) {
-        const gsDict = cos.resolveDict(gsEntry.value);
-        const gsFontArr = gsDict ? cos.resolveArray(dictGet(gsDict, "Font")) : undefined;
-        if (gsFontArr && gsFontArr.items.length >= 1) {
-          collectFontsFromResources(
-            { kind: "dict", entries: [{ key: { kind: "name", decoded: "Font", rawBytes: new Uint8Array(0) }, value: { kind: "dict", entries: [{ key: { kind: "name", decoded: `ExtGS_${gsEntry.key.decoded}`, rawBytes: new Uint8Array(0) }, value: gsFontArr.items[0]! }] } }] },
-            visitedForms
-          );
-        }
-      }
+    let doc: PdfDocument;
+    try {
+        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
     }
-
-    const xobjMap = cos.resolveDict(dictGet(resDict, "XObject"));
-    if (xobjMap) {
-      for (const entry of xobjMap.entries) {
-        if (entry.value.kind === "ref") {
-          if (visitedForms.has(entry.value.objectNumber)) continue;
-          visitedForms.add(entry.value.objectNumber);
-        }
-        const xobj = cos.resolve(entry.value);
-        if (xobj?.kind === "stream") {
-          const st = cos.resolve(dictGet(xobj.dict, "Subtype"));
-          if (st?.kind === "name" && st.decoded === "Form") {
-            collectFontsFromResources(cos.resolveDict(dictGet(xobj.dict, "Resources")), visitedForms);
-          }
-        }
-      }
+    catch (err) {
+        return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
     }
-
-    const patMap = cos.resolveDict(dictGet(resDict, "Pattern"));
-    if (patMap) {
-      for (const entry of patMap.entries) {
-        if (entry.value.kind === "ref") {
-          if (visitedForms.has(entry.value.objectNumber)) continue;
-          visitedForms.add(entry.value.objectNumber);
-        }
-        const pat = cos.resolve(entry.value);
-        if (pat?.kind === "stream") {
-          collectFontsFromResources(cos.resolveDict(dictGet(pat.dict, "Resources")), visitedForms);
-        }
-      }
+    const cos = doc.cos;
+    const endPage = lastPage > 0 ? Math.min(doc.pageCount, lastPage) : doc.pageCount;
+    if (firstPage > doc.pageCount || (lastPage > 0 && firstPage > endPage)) {
+        return {
+            exitCode: 99,
+            stdout: "",
+            stderr: `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`
+        };
     }
-  };
-
-  const rootDict = cos.resolveDict(cos.rootRef);
-  const acroFormDict = rootDict ? cos.resolveDict(dictGet(rootDict, "AcroForm")) : undefined;
-  const acroDrDict = acroFormDict ? cos.resolveDict(dictGet(acroFormDict, "DR")) : undefined;
-
-  for (let p = firstPage; p <= endPage; p++) {
-    const page = doc.getPage(p - 1);
-    collectFontsFromResources(page.getResourcesDict());
-    const annots = cos.resolveArray(dictGet(page.pageDict, "Annots"));
-    if (annots) {
-      for (const item of annots.items) {
-        const annotDict = cos.resolveDict(item);
-        const apDict = annotDict ? cos.resolveDict(dictGet(annotDict, "AP")) : undefined;
-        if (!apDict) continue;
-        for (const apKey of ["N", "R", "D"]) {
-          const apVal = cos.resolve(dictGet(apDict, apKey));
-          if (apVal?.kind === "stream") {
-            collectFontsFromResources(cos.resolveDict(dictGet(apVal.dict, "Resources")));
-          } else if (apVal?.kind === "dict") {
-            for (const sub of apVal.entries) {
-              const subStream = cos.resolve(sub.value);
-              if (subStream?.kind === "stream") {
-                collectFontsFromResources(cos.resolveDict(dictGet(subStream.dict, "Resources")));
-              }
+    const seenFontKeys = new Set<string>();
+    const rows: string[] = showSubst
+        ? [
+            "name                                 object ID substitute font                      substitute font file",
+            "------------------------------------ --------- ------------------------------------ ------------------------------------"
+        ]
+        : showLoc
+            ? [
+                "name                                 type              encoding         emb sub uni object ID location",
+                "------------------------------------ ----------------- ---------------- --- --- --- --------- --------"
+            ]
+            : [
+                "name                                 type              encoding         emb sub uni object ID",
+                "------------------------------------ ----------------- ---------------- --- --- --- ---------"
+            ];
+    const collectFontsFromResources = (resDict: PdfCosDict | undefined, visitedForms = new Set<number>()) => {
+        if (!resDict)
+            return;
+        const fontMap = cos.resolveDict(dictGet(resDict, "Font"));
+        if (fontMap) {
+            for (const entry of fontMap.entries) {
+                const rawVal = entry.value;
+                const objKey = rawVal.kind === "ref"
+                    ? `${rawVal.objectNumber}:${rawVal.generationNumber}`
+                    : `inline:${entry.key.decoded}`;
+                if (seenFontKeys.has(objKey))
+                    continue;
+                seenFontKeys.add(objKey);
+                const fontDict = cos.resolveDict(rawVal);
+                if (!fontDict)
+                    continue;
+                const baseFontNode = cos.resolve(dictGet(fontDict, "BaseFont") ?? dictGet(fontDict, "Name"));
+                const fontName = baseFontNode?.kind === "name"
+                    ? baseFontNode.decoded
+                    : baseFontNode?.kind === "string"
+                        ? decodePdfString(baseFontNode)
+                        : "[none]";
+                const subtypeNode = cos.resolve(dictGet(fontDict, "Subtype"));
+                const rawSubtype = subtypeNode?.kind === "name" ? subtypeNode.decoded : "Type1";
+                let descFontDict: PdfCosDict | undefined;
+                if (rawSubtype === "Type0") {
+                    const descArr = cos.resolveArray(dictGet(fontDict, "DescendantFonts"));
+                    if (descArr && descArr.items.length > 0) {
+                        descFontDict = cos.resolveDict(descArr.items[0]);
+                    }
+                }
+                const descriptorDict = cos.resolveDict(dictGet(fontDict, "FontDescriptor")) ??
+                    (descFontDict ? cos.resolveDict(dictGet(descFontDict, "FontDescriptor")) : undefined);
+                const hasEmbeddedFile = Boolean(rawSubtype === "Type3" ||
+                    (descriptorDict &&
+                        (dictGet(descriptorDict, "FontFile") ||
+                            dictGet(descriptorDict, "FontFile2") ||
+                            dictGet(descriptorDict, "FontFile3"))));
+                let fontTypeLabel = "Type 1";
+                if (rawSubtype === "TrueType")
+                    fontTypeLabel = "TrueType";
+                else if (rawSubtype === "MMType1")
+                    fontTypeLabel = "MM Type 1";
+                else if (rawSubtype === "Type3")
+                    fontTypeLabel = "Type 3";
+                else if (rawSubtype === "Type0") {
+                    const descSubtype = descFontDict ? cos.resolve(dictGet(descFontDict, "Subtype")) : undefined;
+                    fontTypeLabel =
+                        descSubtype?.kind === "name" && descSubtype.decoded === "CIDFontType2"
+                            ? "CID TrueType"
+                            : "CID Type 0";
+                }
+                else if (descriptorDict && dictGet(descriptorDict, "FontFile3")) {
+                    fontTypeLabel = "Type 1C";
+                }
+                const encNode = cos.resolve(dictGet(fontDict, "Encoding"));
+                let encodingLabel = "Builtin";
+                if (encNode?.kind === "name") {
+                    const eName = encNode.decoded;
+                    if (eName === "WinAnsiEncoding")
+                        encodingLabel = "WinAnsi";
+                    else if (eName === "MacRomanEncoding")
+                        encodingLabel = "MacRoman";
+                    else if (eName === "StandardEncoding")
+                        encodingLabel = "Standard";
+                    else
+                        encodingLabel = eName;
+                }
+                else if (encNode?.kind === "dict") {
+                    encodingLabel = "Custom";
+                }
+                const embStr = hasEmbeddedFile ? "yes" : "no ";
+                const subStr = isSubsetFontTag(fontName) ? "yes" : "no ";
+                const uniStr = dictGet(fontDict, "ToUnicode") ? "yes" : "no ";
+                const objIdStr = rawVal.kind === "ref"
+                    ? `${String(rawVal.objectNumber).padStart(6)} ${String(rawVal.generationNumber).padStart(2)}`
+                    : "   [none]";
+                const locSuffix = showLoc
+                    ? ` ${hasEmbeddedFile ? "Embedded" : showLocPs ? `Substitute (${fontName})` : "Substitute"}`
+                    : "";
+                if (showSubst) {
+                    if (!hasEmbeddedFile) {
+                        let subFontName = fontName;
+                        if (fontName.startsWith("Helvetica") || fontName.startsWith("Arial"))
+                            subFontName = "Nimbus Sans";
+                        else if (fontName.startsWith("Times"))
+                            subFontName = "Nimbus Roman";
+                        else if (fontName.startsWith("Courier"))
+                            subFontName = "Nimbus Mono PS";
+                        else if (fontName === "Symbol")
+                            subFontName = "Standard Symbols PS";
+                        else if (fontName === "ZapfDingbats")
+                            subFontName = "D050000L";
+                        const subFontFile = `/usr/share/fonts/type1/urw-base35/${subFontName.replaceAll(" ", "")}.t1`;
+                        rows.push(`${fontName.slice(0, 36).padEnd(36)} ${objIdStr} ${subFontName.slice(0, 36).padEnd(36)} ${subFontFile}`);
+                    }
+                }
+                else {
+                    rows.push(`${fontName.slice(0, 36).padEnd(36)} ${fontTypeLabel.padEnd(17)} ${encodingLabel.slice(0, 16).padEnd(16)} ${embStr} ${subStr} ${uniStr} ${objIdStr}${locSuffix}`);
+                }
+                if (rawSubtype === "Type3") {
+                    collectFontsFromResources(cos.resolveDict(dictGet(fontDict, "Resources")), visitedForms);
+                }
             }
-          }
         }
-      }
+        const extGsMap = cos.resolveDict(dictGet(resDict, "ExtGState"));
+        if (extGsMap) {
+            for (const gsEntry of extGsMap.entries) {
+                const gsDict = cos.resolveDict(gsEntry.value);
+                const gsFontArr = gsDict ? cos.resolveArray(dictGet(gsDict, "Font")) : undefined;
+                if (gsFontArr && gsFontArr.items.length >= 1) {
+                    collectFontsFromResources({ kind: "dict", entries: [{ key: { kind: "name", decoded: "Font", rawBytes: new Uint8Array(0) }, value: { kind: "dict", entries: [{ key: { kind: "name", decoded: `ExtGS_${gsEntry.key.decoded}`, rawBytes: new Uint8Array(0) }, value: gsFontArr.items[0]! }] } }] }, visitedForms);
+                }
+            }
+        }
+        const xobjMap = cos.resolveDict(dictGet(resDict, "XObject"));
+        if (xobjMap) {
+            for (const entry of xobjMap.entries) {
+                if (entry.value.kind === "ref") {
+                    if (visitedForms.has(entry.value.objectNumber))
+                        continue;
+                    visitedForms.add(entry.value.objectNumber);
+                }
+                const xobj = cos.resolve(entry.value);
+                if (xobj?.kind === "stream") {
+                    const st = cos.resolve(dictGet(xobj.dict, "Subtype"));
+                    if (st?.kind === "name" && st.decoded === "Form") {
+                        collectFontsFromResources(cos.resolveDict(dictGet(xobj.dict, "Resources")), visitedForms);
+                    }
+                }
+            }
+        }
+        const patMap = cos.resolveDict(dictGet(resDict, "Pattern"));
+        if (patMap) {
+            for (const entry of patMap.entries) {
+                if (entry.value.kind === "ref") {
+                    if (visitedForms.has(entry.value.objectNumber))
+                        continue;
+                    visitedForms.add(entry.value.objectNumber);
+                }
+                const pat = cos.resolve(entry.value);
+                if (pat?.kind === "stream") {
+                    collectFontsFromResources(cos.resolveDict(dictGet(pat.dict, "Resources")), visitedForms);
+                }
+            }
+        }
+    };
+    const rootDict = cos.resolveDict(cos.rootRef);
+    const acroFormDict = rootDict ? cos.resolveDict(dictGet(rootDict, "AcroForm")) : undefined;
+    const acroDrDict = acroFormDict ? cos.resolveDict(dictGet(acroFormDict, "DR")) : undefined;
+    for (let p = firstPage; p <= endPage; p++) {
+        yield;
+        const page = doc.getPage(p - 1);
+        collectFontsFromResources(page.getResourcesDict());
+        const annots = cos.resolveArray(dictGet(page.pageDict, "Annots"));
+        if (annots) {
+            for (const item of annots.items) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                const annotDict = cos.resolveDict(item);
+                const apDict = annotDict ? cos.resolveDict(dictGet(annotDict, "AP")) : undefined;
+                if (!apDict)
+                    continue;
+                for (const apKey of ["N", "R", "D"]) {
+                    if (++cooperativeWork % 64 === 0)
+                        yield;
+                    const apVal = cos.resolve(dictGet(apDict, apKey));
+                    if (apVal?.kind === "stream") {
+                        collectFontsFromResources(cos.resolveDict(dictGet(apVal.dict, "Resources")));
+                    }
+                    else if (apVal?.kind === "dict") {
+                        for (const sub of apVal.entries) {
+                            if (++cooperativeWork % 64 === 0)
+                                yield;
+                            const subStream = cos.resolve(sub.value);
+                            if (subStream?.kind === "stream") {
+                                collectFontsFromResources(cos.resolveDict(dictGet(subStream.dict, "Resources")));
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-  }
-  if (acroDrDict) {
-    collectFontsFromResources(acroDrDict);
-  }
-
-  return { exitCode: 0, stdout: rows.join("\n") + "\n", stderr: "" };
+    if (acroDrDict) {
+        collectFontsFromResources(acroDrDict);
+    }
+    return { exitCode: 0, stdout: rows.join("\n") + "\n", stderr: "" };
+}
+export async function runPdffontsCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}> {
+    return drainSteps(runPdffontsCliSteps(argv, files, signal), signal);
+}
+export function runPdffontsCliSync(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+} {
+    let steps = runPdffontsCliSteps(argv, files, signal), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
+    }
+    return next.value;
 }
 
 interface DetachedEmbeddedFile {
@@ -2438,121 +2620,142 @@ function collectEmbeddedAttachments(doc: PdfDocument): DetachedEmbeddedFile[] {
   return results;
 }
 
-export function runPdfdetachCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): { exitCode: number; stdout: string; stderr: string } {
-  let listOnly = false;
-  let saveNumber = 0;
-  let saveFileName = "";
-  let saveAll = false;
-  let outputPath = "";
-  let password = "";
-  let encoding = "UTF-8";
-  const positionals: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "-v" || arg === "--version") {
-      return { exitCode: 0, stdout: "pdfdetach version 24.08.0\n", stderr: "" };
+function* runPdfdetachCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}, void> {
+    let cooperativeWork = 63;
+    let listOnly = false;
+    let saveNumber = 0;
+    let saveFileName = "";
+    let saveAll = false;
+    let outputPath = "";
+    let password = "";
+    let encoding = "UTF-8";
+    const positionals: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const arg = argv[i]!;
+        if (arg === "-v" || arg === "--version") {
+            return { exitCode: 0, stdout: "pdfdetach version 24.08.0\n", stderr: "" };
+        }
+        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: pdfdetach [options] <PDF-file>\n  -list / -save <int> / -savefile <name> / -saveall / -o <path>\n",
+                stderr: ""
+            };
+        }
+        if (arg === "-list")
+            listOnly = true;
+        else if (arg === "-save")
+            saveNumber = Number.parseInt(argv[++i] ?? "0", 10) || 0;
+        else if (arg === "-savefile")
+            saveFileName = argv[++i] ?? "";
+        else if (arg === "-saveall")
+            saveAll = true;
+        else if (arg === "-o")
+            outputPath = argv[++i] ?? "";
+        else if (arg === "-upw" || arg === "-opw")
+            password = argv[++i] ?? "";
+        else if (arg === "-enc") {
+            const nextEnc = argv[++i] ?? "";
+            if (!SUPPORTED_ENCODINGS.has(nextEnc)) {
+                return {
+                    exitCode: 99,
+                    stdout: "",
+                    stderr: `Command Line Error: Unknown encoding '${nextEnc}'\n`
+                };
+            }
+            encoding = nextEnc;
+        }
+        else if (!arg.startsWith("-") || arg === "-")
+            positionals.push(arg);
     }
-    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-      return {
-        exitCode: 0,
-        stdout:
-          "Usage: pdfdetach [options] <PDF-file>\n  -list / -save <int> / -savefile <name> / -saveall / -o <path>\n",
-        stderr: ""
-      };
+    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+    if (!inputPath) {
+        return { exitCode: 99, stdout: "", stderr: "Usage: pdfdetach [options] <PDF-file>\n" };
     }
-    if (arg === "-list") listOnly = true;
-    else if (arg === "-save") saveNumber = Number.parseInt(argv[++i] ?? "0", 10) || 0;
-    else if (arg === "-savefile") saveFileName = argv[++i] ?? "";
-    else if (arg === "-saveall") saveAll = true;
-    else if (arg === "-o") outputPath = argv[++i] ?? "";
-    else if (arg === "-upw" || arg === "-opw") password = argv[++i] ?? "";
-    else if (arg === "-enc") {
-      const nextEnc = argv[++i] ?? "";
-      if (!SUPPORTED_ENCODINGS.has(nextEnc)) {
-        return {
-          exitCode: 99,
-          stdout: "",
-          stderr: `Command Line Error: Unknown encoding '${nextEnc}'\n`
-        };
-      }
-      encoding = nextEnc;
+    const pdfBytes = files.get(inputPath);
+    if (!pdfBytes) {
+        return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
     }
-    else if (!arg.startsWith("-") || arg === "-") positionals.push(arg);
-  }
-
-  const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-  if (!inputPath) {
-    return { exitCode: 99, stdout: "", stderr: "Usage: pdfdetach [options] <PDF-file>\n" };
-  }
-  const pdfBytes = files.get(inputPath);
-  if (!pdfBytes) {
-    return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
-  }
-
-  let doc: PdfDocument;
-  try {
-    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-  } catch (err) {
-    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
-  }
-
-  const attachments = collectEmbeddedAttachments(doc);
-  if (listOnly || (!saveNumber && !saveFileName && !saveAll)) {
-    const lines = [`${attachments.length} embedded files`];
-    for (let i = 0; i < attachments.length; i++) {
-      const attName = applyPopplerOutputEncoding(attachments[i]!.name, encoding);
-      lines.push(`${i + 1}: ${attName}`);
+    let doc: PdfDocument;
+    try {
+        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
     }
-    return { exitCode: 0, stdout: lines.join("\n") + "\n", stderr: "" };
-  }
-
-  if (saveNumber > 0) {
-    const target = attachments[saveNumber - 1];
-    if (!target) {
-      return { exitCode: 1, stdout: "", stderr: `Error: Invalid file index ${saveNumber}\n` };
+    catch (err) {
+        return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
     }
-    const dest = outputPath
-      ? outputPath.endsWith("/")
-        ? `${outputPath}${target.name}`
-        : outputPath
-      : target.name;
-    files.set(dest, target.data);
+    const attachments = collectEmbeddedAttachments(doc);
+    if (listOnly || (!saveNumber && !saveFileName && !saveAll)) {
+        const lines = [`${attachments.length} embedded files`];
+        for (let i = 0; i < attachments.length; i++) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            const attName = applyPopplerOutputEncoding(attachments[i]!.name, encoding);
+            lines.push(`${i + 1}: ${attName}`);
+        }
+        return { exitCode: 0, stdout: lines.join("\n") + "\n", stderr: "" };
+    }
+    if (saveNumber > 0) {
+        const target = attachments[saveNumber - 1];
+        if (!target) {
+            return { exitCode: 1, stdout: "", stderr: `Error: Invalid file index ${saveNumber}\n` };
+        }
+        const dest = outputPath
+            ? outputPath.endsWith("/")
+                ? `${outputPath}${target.name}`
+                : outputPath
+            : target.name;
+        files.set(dest, target.data);
+        return { exitCode: 0, stdout: "", stderr: "" };
+    }
+    if (saveFileName) {
+        const target = attachments.find((a) => a.name === saveFileName);
+        if (!target) {
+            return { exitCode: 1, stdout: "", stderr: `Error: Embedded file '${saveFileName}' not found\n` };
+        }
+        const dest = outputPath
+            ? outputPath.endsWith("/")
+                ? `${outputPath}${target.name}`
+                : outputPath
+            : target.name;
+        files.set(dest, target.data);
+        return { exitCode: 0, stdout: "", stderr: "" };
+    }
+    if (saveAll) {
+        const prefix = outputPath ? (outputPath.endsWith("/") ? outputPath.slice(0, -1) : outputPath) : "";
+        for (const att of attachments) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            files.set(prefix ? `${prefix}/${att.name}` : att.name, att.data);
+        }
+    }
     return { exitCode: 0, stdout: "", stderr: "" };
-  }
-
-  if (saveFileName) {
-    const target = attachments.find((a) => a.name === saveFileName);
-    if (!target) {
-      return { exitCode: 1, stdout: "", stderr: `Error: Embedded file '${saveFileName}' not found\n` };
+}
+export async function runPdfdetachCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}> {
+    return drainSteps(runPdfdetachCliSteps(argv, files, signal), signal);
+}
+export function runPdfdetachCliSync(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+} {
+    let steps = runPdfdetachCliSteps(argv, files, signal), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
     }
-    const dest = outputPath
-      ? outputPath.endsWith("/")
-        ? `${outputPath}${target.name}`
-        : outputPath
-      : target.name;
-    files.set(dest, target.data);
-    return { exitCode: 0, stdout: "", stderr: "" };
-  }
-
-  if (saveAll) {
-    const prefix = outputPath ? (outputPath.endsWith("/") ? outputPath.slice(0, -1) : outputPath) : "";
-    for (const att of attachments) {
-      files.set(prefix ? `${prefix}/${att.name}` : att.name, att.data);
-    }
-  }
-  return { exitCode: 0, stdout: "", stderr: "" };
+    return next.value;
 }
 
-export async function runPdfdetachCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  return runPdfdetachCliSync(argv, files);
-}
+
 
 const POPPLER_FILE_TOOL_VALUE_FLAGS = new Set([
   "-r",
@@ -2607,9 +2810,11 @@ async function executePopplerFileTool(
   context: CommandContext,
   runner: (
     argv: readonly string[],
-    files: Map<string, Uint8Array>
+    files: Map<string, Uint8Array>,
+    signal?: AbortSignal
   ) => Promise<{ exitCode: number; stdout: string; stderr: string; stdoutBytes?: Uint8Array }>
 ): Promise<{ exitCode: number }> {
+  let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
@@ -2630,6 +2835,7 @@ async function executePopplerFileTool(
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
         chunks.push(chunk);
         total += chunk.byteLength;
         chargeBytes(chunk.byteLength);
@@ -2638,6 +2844,7 @@ async function executePopplerFileTool(
         const buf = new Uint8Array(total);
         let off = 0;
         for (const c of chunks) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
           buf.set(c, off);
           off += c.byteLength;
         }
@@ -2646,6 +2853,7 @@ async function executePopplerFileTool(
     }
 
     for (const token of positionals) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (token === "-") continue;
       try {
         const bytes = await context.fs.readFile(resolveVfsPath(token), { signal: invocation.signal });
@@ -2656,8 +2864,9 @@ async function executePopplerFileTool(
       }
     }
 
+    context.inputBudget?.check(0);
     const existingSnap = new Map(vfsFiles);
-    const res = await runner(argv, vfsFiles);
+    const res = await runner(argv, vfsFiles, invocation.signal);
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
@@ -2672,6 +2881,7 @@ async function executePopplerFileTool(
       await writeBytes(stdout.output, outBytes, invocation.signal);
     }
     for (const [key, val] of vfsFiles.entries()) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (key !== "-" && existingSnap.get(key) !== val) {
         chargeBytes(val.byteLength);
         const abs = resolveVfsPath(key);
@@ -2690,252 +2900,320 @@ async function executePopplerFileTool(
   }
 }
 
-export function createPdftoppmCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+export function createPdftoppmCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "pdftoppm",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Render PDF pages to PNG, PPM, PGM, or PBM images via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return executePopplerFileTool(context, runPdftoppmCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executePopplerFileTool(context, runPdftoppmCli);
+      });
     }
   });
 }
 
 export const pdftoppmCommand: CommandDefinition = createPdftoppmCommand();
 
-export function createPdfimagesCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+export function createPdfimagesCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "pdfimages",
     runtimeIdentity: commandRuntimeIdentity,
     description: "List and extract embedded images from PDF pages via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return executePopplerFileTool(context, runPdfimagesCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executePopplerFileTool(context, runPdfimagesCli);
+      });
     }
   });
 }
 
 export const pdfimagesCommand: CommandDefinition = createPdfimagesCommand();
 
-export function createPdfuniteCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+export function createPdfuniteCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "pdfunite",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Merge multiple PDF documents into a single PDF via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return executePopplerFileTool(context, runPdfuniteCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executePopplerFileTool(context, runPdfuniteCli);
+      });
     }
   });
 }
 
 export const pdfuniteCommand: CommandDefinition = createPdfuniteCommand();
 
-export function createPdfseparateCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+export function createPdfseparateCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "pdfseparate",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Split PDF pages into individual PDF files via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return executePopplerFileTool(context, runPdfseparateCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executePopplerFileTool(context, runPdfseparateCli);
+      });
     }
   });
 }
 
 export const pdfseparateCommand: CommandDefinition = createPdfseparateCommand();
 
-export function createPdffontsCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+export function createPdffontsCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "pdffonts",
     runtimeIdentity: commandRuntimeIdentity,
     description: "List fonts used in a PDF document via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return executePopplerFileTool(context, runPdffontsCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executePopplerFileTool(context, runPdffontsCli);
+      });
     }
   });
 }
 
 export const pdffontsCommand: CommandDefinition = createPdffontsCommand();
 
-export function createPdfdetachCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+export function createPdfdetachCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "pdfdetach",
     runtimeIdentity: commandRuntimeIdentity,
     description: "List and extract embedded file attachments from PDF documents via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return executePopplerFileTool(context, runPdfdetachCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executePopplerFileTool(context, runPdfdetachCli);
+      });
     }
   });
 }
 
 export const pdfdetachCommand: CommandDefinition = createPdfdetachCommand();
 
-export async function runPdftocairoCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<{ exitCode: number; stdout: string; stderr: string; stdoutBytes?: Uint8Array }> {
-  let format: "png" | "jpg" | "tif" | "svg" | "pdf" | "ps" | "eps" = "png";
-  let grayMode = false;
-  let monoMode = false;
-  let firstPage = 1;
-  let lastPage = 0;
-  let cropX = 0;
-  let cropY = 0;
-  let cropW = 0;
-  let cropH = 0;
-  let hasCrop = false;
-  const paperW = 0;
-  const paperH = 0;
-  const origPageSizes = false;
-  let password = "";
-  const forwardedArgs: string[] = [];
-  const positionals: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "-v" || arg === "--version") {
-      return { exitCode: 0, stdout: "pdftocairo version 24.08.0\n", stderr: "" };
-    }
-    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-      return {
-        exitCode: 0,
-        stdout: "Usage: pdftocairo [options] <PDF-file> [<output-file>]\n",
-        stderr: ""
-      };
-    }
-    if (arg === "-png") {
-      format = "png";
-      forwardedArgs.push("-png");
-    } else if (arg === "-jpeg" || arg === "-jpg") {
-      format = "jpg";
-      forwardedArgs.push("-jpeg");
-    } else if (arg === "-tiff") {
-      format = "tif";
-      forwardedArgs.push("-tiff");
-    } else if (arg === "-svg") format = "svg";
-    else if (arg === "-pdf") format = "pdf";
-    else if (arg === "-ps") format = "ps";
-    else if (arg === "-eps") format = "eps";
-    else if (arg === "-gray") grayMode = true;
-    else if (arg === "-mono") monoMode = true;
-    else if (arg === "-antialias") {
-      const m = (argv[++i] ?? "").toLowerCase();
-      if (!["default", "none", "gray", "subpixel", "fast", "good", "best"].includes(m)) {
-        return { exitCode: 99, stdout: "", stderr: "Bad '-antialias' value on command line\n" };
-      }
-    } else if (POPPLER_FILE_TOOL_VALUE_FLAGS.has(arg)) {
-      const v = argv[++i] ?? "";
-      forwardedArgs.push(arg, v);
-      if (arg === "-f") firstPage = Math.max(1, Number.parseInt(v, 10) || 1);
-      else if (arg === "-l") lastPage = Math.max(0, Number.parseInt(v, 10) || 0);
-      else if (arg === "-x") { cropX = Math.max(0, Number.parseInt(v, 10) || 0); hasCrop = true; }
-      else if (arg === "-y") { cropY = Math.max(0, Number.parseInt(v, 10) || 0); hasCrop = true; }
-      else if (arg === "-W") { cropW = Math.max(0, Number.parseInt(v, 10) || 0); hasCrop = true; }
-      else if (arg === "-H") { cropH = Math.max(0, Number.parseInt(v, 10) || 0); hasCrop = true; }
-      else if (arg === "-upw" || arg === "-opw") password = v;
-    } else if (arg.startsWith("-") && arg !== "-") {
-      forwardedArgs.push(arg);
-    } else {
-      positionals.push(arg);
-    }
-  }
-
-  const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-  if (!inputPath) {
-    return { exitCode: 99, stdout: "", stderr: "Usage: pdftocairo [options] <PDF-file> [<output-file>]\n" };
-  }
-  const inputStem = inputPath.toLowerCase().endsWith(".pdf") ? inputPath.slice(0, -4) : inputPath;
-  if (format === "svg") {
-    const rawOut = positionals[1] ?? (inputPath === "-" ? "-" : `${inputStem}.svg`);
-    const rootForSvg = rawOut.toLowerCase().endsWith(".svg") ? rawOut.slice(0, -4) : rawOut;
-    return runPdftoppmCli(["-svg", "-singlefile", ...forwardedArgs, inputPath, rootForSvg], files);
-  }
-  if (format === "pdf" || format === "ps" || format === "eps") {
-    const pdfBytes = files.get(inputPath);
-    if (!pdfBytes) return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
-    const doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-    const endPage = lastPage > 0 ? Math.min(doc.pageCount, lastPage) : doc.pageCount;
-    if (firstPage > doc.pageCount || firstPage > endPage) {
-      return { exitCode: 99, stdout: "", stderr: "Command Line Error: Wrong page range given\n" };
-    }
-    const rawOut = positionals[1] ?? (inputPath === "-" ? "-" : `${inputStem}.${format}`);
-    const finalOut = rawOut === "-" || rawOut.toLowerCase().endsWith(`.${format}`) ? rawOut : `${rawOut}.${format}`;
-    if (format === "pdf") {
-      const outDoc = PdfDocument.create();
-      for (let p = firstPage; p <= endPage; p++) {
-        const [copied] = outDoc.copyPagesFrom(doc, [p - 1]);
-        if (copied && hasCrop) {
-          const origSize = copied.getSize();
-          const effW = cropW > 0 ? cropW : Math.max(1, origSize.width - cropX);
-          const effH = cropH > 0 ? cropH : Math.max(1, origSize.height - cropY);
-          dictSet(copied.pageDict, "MediaBox", cosArray([cosNumber(0), cosNumber(0), cosNumber(effW), cosNumber(effH)]));
-          dictSet(copied.pageDict, "CropBox", cosArray([cosNumber(0), cosNumber(0), cosNumber(effW), cosNumber(effH)]));
+function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    stdoutBytes?: Uint8Array;
+}, void> {
+    let cooperativeWork = 63;
+    let format: "png" | "jpg" | "tif" | "svg" | "pdf" | "ps" | "eps" = "png";
+    let grayMode = false;
+    let monoMode = false;
+    let firstPage = 1;
+    let lastPage = 0;
+    let cropX = 0;
+    let cropY = 0;
+    let cropW = 0;
+    let cropH = 0;
+    let hasCrop = false;
+    const paperW = 0;
+    const paperH = 0;
+    const origPageSizes = false;
+    let password = "";
+    const forwardedArgs: string[] = [];
+    const positionals: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const arg = argv[i]!;
+        if (arg === "-v" || arg === "--version") {
+            return { exitCode: 0, stdout: "pdftocairo version 24.08.0\n", stderr: "" };
         }
-      }
-      const outBytes = outDoc.save();
-      if (finalOut === "-") return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: outBytes };
-      files.set(finalOut, outBytes);
-      return { exitCode: 0, stdout: "", stderr: "" };
-    }
-    const firstSize = doc.getPage(firstPage - 1).getSize();
-    const psLines: string[] = [
-      format === "eps" ? "%!PS-Adobe-3.0 EPSF-3.0" : "%!PS-Adobe-3.0",
-      `%%BoundingBox: 0 0 ${Math.round(firstSize.width)} ${Math.round(firstSize.height)}`,
-      `%%Pages: ${endPage - firstPage + 1}`,
-      "%%EndComments",
-    ];
-    for (let p = firstPage; p <= endPage; p++) {
-      const page = doc.getPage(p - 1);
-      psLines.push(`%%Page: ${p - firstPage + 1} ${p - firstPage + 1}`);
-      for (const b of page.extractPage().blocks) {
-        for (const l of b.lines) {
-          psLines.push(`${Math.round(l.bbox[0])} ${Math.round(l.bbox[1])} moveto (${l.text}) show`);
+        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: pdftocairo [options] <PDF-file> [<output-file>]\n",
+                stderr: ""
+            };
         }
-      }
-      psLines.push("showpage");
+        if (arg === "-png") {
+            format = "png";
+            forwardedArgs.push("-png");
+        }
+        else if (arg === "-jpeg" || arg === "-jpg") {
+            format = "jpg";
+            forwardedArgs.push("-jpeg");
+        }
+        else if (arg === "-tiff") {
+            format = "tif";
+            forwardedArgs.push("-tiff");
+        }
+        else if (arg === "-svg")
+            format = "svg";
+        else if (arg === "-pdf")
+            format = "pdf";
+        else if (arg === "-ps")
+            format = "ps";
+        else if (arg === "-eps")
+            format = "eps";
+        else if (arg === "-gray")
+            grayMode = true;
+        else if (arg === "-mono")
+            monoMode = true;
+        else if (arg === "-antialias") {
+            const m = (argv[++i] ?? "").toLowerCase();
+            if (!["default", "none", "gray", "subpixel", "fast", "good", "best"].includes(m)) {
+                return { exitCode: 99, stdout: "", stderr: "Bad '-antialias' value on command line\n" };
+            }
+        }
+        else if (POPPLER_FILE_TOOL_VALUE_FLAGS.has(arg)) {
+            const v = argv[++i] ?? "";
+            forwardedArgs.push(arg, v);
+            if (arg === "-f")
+                firstPage = Math.max(1, Number.parseInt(v, 10) || 1);
+            else if (arg === "-l")
+                lastPage = Math.max(0, Number.parseInt(v, 10) || 0);
+            else if (arg === "-x") {
+                cropX = Math.max(0, Number.parseInt(v, 10) || 0);
+                hasCrop = true;
+            }
+            else if (arg === "-y") {
+                cropY = Math.max(0, Number.parseInt(v, 10) || 0);
+                hasCrop = true;
+            }
+            else if (arg === "-W") {
+                cropW = Math.max(0, Number.parseInt(v, 10) || 0);
+                hasCrop = true;
+            }
+            else if (arg === "-H") {
+                cropH = Math.max(0, Number.parseInt(v, 10) || 0);
+                hasCrop = true;
+            }
+            else if (arg === "-upw" || arg === "-opw")
+                password = v;
+        }
+        else if (arg.startsWith("-") && arg !== "-") {
+            forwardedArgs.push(arg);
+        }
+        else {
+            positionals.push(arg);
+        }
     }
-    psLines.push("%%Trailer", "%%EOF", "");
-    const psBytes = new TextEncoder().encode(psLines.join("\n"));
-    if (finalOut === "-") return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: psBytes };
-    files.set(finalOut, psBytes);
-    return { exitCode: 0, stdout: "", stderr: "" };
-  }
-  const rasterPositionals =
-    positionals.length === 1 && inputPath !== "-" ? [inputPath, inputStem] : positionals;
-  const snapBefore = new Map(files);
-  const res = await runPdftoppmCli([...forwardedArgs, ...rasterPositionals], files);
-  if (res.exitCode !== 0 || (!grayMode && !monoMode)) {
+    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+    if (!inputPath) {
+        return { exitCode: 99, stdout: "", stderr: "Usage: pdftocairo [options] <PDF-file> [<output-file>]\n" };
+    }
+    const inputStem = inputPath.toLowerCase().endsWith(".pdf") ? inputPath.slice(0, -4) : inputPath;
+    if (format === "svg") {
+        const rawOut = positionals[1] ?? (inputPath === "-" ? "-" : `${inputStem}.svg`);
+        const rootForSvg = rawOut.toLowerCase().endsWith(".svg") ? rawOut.slice(0, -4) : rawOut;
+        return (yield* runPdftoppmCliSteps(["-svg", "-singlefile", ...forwardedArgs, inputPath, rootForSvg], files, signal));
+    }
+    if (format === "pdf" || format === "ps" || format === "eps") {
+        const pdfBytes = files.get(inputPath);
+        if (!pdfBytes)
+            return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
+        const doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+        const endPage = lastPage > 0 ? Math.min(doc.pageCount, lastPage) : doc.pageCount;
+        if (firstPage > doc.pageCount || firstPage > endPage) {
+            return { exitCode: 99, stdout: "", stderr: "Command Line Error: Wrong page range given\n" };
+        }
+        const rawOut = positionals[1] ?? (inputPath === "-" ? "-" : `${inputStem}.${format}`);
+        const finalOut = rawOut === "-" || rawOut.toLowerCase().endsWith(`.${format}`) ? rawOut : `${rawOut}.${format}`;
+        if (format === "pdf") {
+            const outDoc = PdfDocument.create();
+            for (let p = firstPage; p <= endPage; p++) {
+                yield;
+                const [copied] = outDoc.copyPagesFrom(doc, [p - 1]);
+                if (copied && hasCrop) {
+                    const origSize = copied.getSize();
+                    const effW = cropW > 0 ? cropW : Math.max(1, origSize.width - cropX);
+                    const effH = cropH > 0 ? cropH : Math.max(1, origSize.height - cropY);
+                    dictSet(copied.pageDict, "MediaBox", cosArray([cosNumber(0), cosNumber(0), cosNumber(effW), cosNumber(effH)]));
+                    dictSet(copied.pageDict, "CropBox", cosArray([cosNumber(0), cosNumber(0), cosNumber(effW), cosNumber(effH)]));
+                }
+            }
+            const outBytes = outDoc.save();
+            if (finalOut === "-")
+                return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: outBytes };
+            files.set(finalOut, outBytes);
+            return { exitCode: 0, stdout: "", stderr: "" };
+        }
+        const firstSize = doc.getPage(firstPage - 1).getSize();
+        const psLines: string[] = [
+            format === "eps" ? "%!PS-Adobe-3.0 EPSF-3.0" : "%!PS-Adobe-3.0",
+            `%%BoundingBox: 0 0 ${Math.round(firstSize.width)} ${Math.round(firstSize.height)}`,
+            `%%Pages: ${endPage - firstPage + 1}`,
+            "%%EndComments",
+        ];
+        for (let p = firstPage; p <= endPage; p++) {
+            yield;
+            const page = doc.getPage(p - 1);
+            psLines.push(`%%Page: ${p - firstPage + 1} ${p - firstPage + 1}`);
+            for (const b of page.extractPage().blocks) {
+                yield;
+                for (const l of b.lines) {
+                    if (++cooperativeWork % 64 === 0)
+                        yield;
+                    psLines.push(`${Math.round(l.bbox[0])} ${Math.round(l.bbox[1])} moveto (${l.text}) show`);
+                }
+            }
+            psLines.push("showpage");
+        }
+        psLines.push("%%Trailer", "%%EOF", "");
+        const psBytes = new TextEncoder().encode(psLines.join("\n"));
+        if (finalOut === "-")
+            return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: psBytes };
+        files.set(finalOut, psBytes);
+        return { exitCode: 0, stdout: "", stderr: "" };
+    }
+    const rasterPositionals = positionals.length === 1 && inputPath !== "-" ? [inputPath, inputStem] : positionals;
+    const snapBefore = new Map(files);
+    const res = (yield* runPdftoppmCliSteps([...forwardedArgs, ...rasterPositionals], files, signal));
+    if (res.exitCode !== 0 || (!grayMode && !monoMode)) {
+        return res;
+    }
+    const convertRgbaInPlace = (data: Uint8Array) => {
+        for (let p = 0; p < data.length; p += 4) {
+            const lum = Math.round(0.299 * data[p]! + 0.587 * data[p + 1]! + 0.114 * data[p + 2]!);
+            const val = monoMode ? (lum >= 128 ? 255 : 0) : lum;
+            data[p] = val;
+            data[p + 1] = val;
+            data[p + 2] = val;
+        }
+    };
+    if (res.stdoutBytes && format === "png") {
+        const decoded = decodePng(res.stdoutBytes);
+        convertRgbaInPlace(decoded.data);
+        return { ...res, stdoutBytes: encodePng(decoded) };
+    }
+    for (const [k, v] of files.entries()) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        if (snapBefore.get(k) !== v && k.endsWith(".png")) {
+            const decoded = decodePng(v);
+            convertRgbaInPlace(decoded.data);
+            files.set(k, encodePng(decoded));
+        }
+    }
     return res;
-  }
-  const convertRgbaInPlace = (data: Uint8Array) => {
-    for (let p = 0; p < data.length; p += 4) {
-      const lum = Math.round(0.299 * data[p]! + 0.587 * data[p + 1]! + 0.114 * data[p + 2]!);
-      const val = monoMode ? (lum >= 128 ? 255 : 0) : lum;
-      data[p] = val;
-      data[p + 1] = val;
-      data[p + 2] = val;
-    }
-  };
-  if (res.stdoutBytes && format === "png") {
-    const decoded = decodePng(res.stdoutBytes);
-    convertRgbaInPlace(decoded.data);
-    return { ...res, stdoutBytes: encodePng(decoded) };
-  }
-  for (const [k, v] of files.entries()) {
-    if (snapBefore.get(k) !== v && k.endsWith(".png")) {
-      const decoded = decodePng(v);
-      convertRgbaInPlace(decoded.data);
-      files.set(k, encodePng(decoded));
-    }
-  }
-  return res;
+}
+export async function runPdftocairoCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    stdoutBytes?: Uint8Array;
+}> {
+    return drainSteps(runPdftocairoCliSteps(argv, files, signal), signal);
 }
 
-export function createPdftocairoCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+export function createPdftocairoCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "pdftocairo",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Render PDF pages to PNG, JPEG, TIFF, PDF, PS, EPS, or SVG via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return executePopplerFileTool(context, runPdftocairoCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executePopplerFileTool(context, runPdftocairoCli);
+      });
     }
   });
 }
@@ -2965,4 +3243,15 @@ export type PdfinfoCommandsOptions = PdfinfoCommandOptions;
 
 export function createPdfinfoCommands(options: PdfinfoCommandsOptions = {}): readonly CommandDefinition[] {
     return [createPdfinfoCommand(options), createPdfuniteCommand(options), createPdfseparateCommand(options), createPdffontsCommand(options), createPdfdetachCommand(options)];
+}
+
+async function drainSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
+  try {
+    for (;;) {
+      signal?.throwIfAborted();
+      const next = steps.next();
+      if (next.done) return next.value;
+      await yieldTurn(signal);
+    }
+  } finally { steps.return(undefined as T); }
 }

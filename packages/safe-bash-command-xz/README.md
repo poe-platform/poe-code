@@ -39,3 +39,5 @@ The workspace entrypoint exports `xzCommands()` for plugin registration,
 `createXzCommands()` for the command collection, and
 `createXzCommand()` for a single command. Each accepts an optional
 `XzCommandsOptions` object; existing factory names remain available.
+
+Use `limits: { maxDecodedBytes: 16 * 1024 * 1024 }` (`XzLimits`) to bound decompressed bytes. Omitted limits default to `Infinity`; the existing flat `maxDecodedBytes` option is also supported.

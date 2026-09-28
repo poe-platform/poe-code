@@ -1,3 +1,5 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
+import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -25,7 +27,12 @@ import {
   type RgbaImage
 } from "@poe-code/image-ast/portable";
 
+export interface SipsLimits {
+  readonly maxInputBytes: number;
+}
+
 export interface SipsCommandOptions {
+  readonly limits?: Partial<SipsLimits>;
   readonly replace?: boolean;
 }
 
@@ -232,639 +239,641 @@ function applySipsOddCanvasCropOrPad(
   return decodeImage(out, { raw: { width: dstW, height: dstH, channels: ch } });
 }
 
-export async function runSipsCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<SipsCliResult> {
-  return runSipsCliSync(argv, files);
-}
-
-export function runSipsCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): SipsCliResult {
-  if (argv.length === 0) {
-    return {
-      exitCode: 1,
-      stdout: "",
-      stderr: "sips: no arguments specified. Try 'sips --help' for help.\n"
-    };
-  }
-
-  let singleLine = false;
-  let outTarget: string | undefined;
-  let padColor: string | undefined;
-  let cropOffsetY: number | undefined;
-  let cropOffsetX: number | undefined;
-  let targetFormat: ImageFormat | undefined;
-  let formatOptionsStr: string | undefined;
-  let targetDpi: number | undefined;
-  const customSetProps = new Map<string, string | null>();
-  let verifyMode = false;
-  let propertyMutated = false;
-  const getProperties: string[] = [];
-  const actions: SipsAction[] = [];
-  const inputPaths: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "-h" || arg === "--help") {
-      return {
-        exitCode: 0,
-        stdout:
-          "sips - scriptable image processing system\n" +
-          "Usage: sips [options] file ...\n" +
-          "  -g, --getProperty <key>\n" +
-          "  -s, --setProperty <key> <value>\n" +
-          "  -Z, --resampleHeightWidthMax <size>\n" +
-          "  -z, --resampleHeightWidth <height> <width>\n" +
-          "  --resampleWidth <width>\n" +
-          "  --resampleHeight <height>\n" +
-          "  -c, --cropToHeightWidth <height> <width>\n" +
-          "  --cropOffset <offsetY> <offsetX>\n" +
-          "  -p, --padToHeightWidth <height> <width>\n" +
-          "  --padColor <hexColor>\n" +
-          "  -r, --rotate <degrees>\n" +
-          "  -f, --flip horizontal|vertical\n" +
-          "  -o, --out <file-or-directory>\n",
-        stderr: ""
-      };
-    }
-    if (arg === "-H" || arg === "--helpProperties") {
-      return {
-        exitCode: 0,
-        stdout: ALL_SIPS_KEYS.join("\n") + "\nall\nallxml\n",
-        stderr: ""
-      };
-    }
-    if (arg === "-v" || arg === "--version") {
-      return { exitCode: 0, stdout: "sips 10.4.4\n", stderr: "" };
-    }
-    if (arg === "--formats") {
-      return {
-        exitCode: 0,
-        stdout:
-          "Supported Formats:\n" +
-          "-------------------------------------------\n" +
-          "com.adobe.pdf                pdf   Writable\n" +
-          "com.compuserve.gif           gif   Writable\n" +
-          "com.microsoft.bmp            bmp   Writable\n" +
-          "org.webmproject.webp         webp  Writable\n" +
-          "public.avif                  avif  Writable\n" +
-          "public.heic                  heic  Writable\n" +
-          "public.heif                  heif  Writable\n" +
-          "public.jpeg                  jpeg  Writable\n" +
-          "public.png                   png   Writable\n" +
-          "public.tiff                  tiff  Writable\n",
-        stderr: ""
-      };
-    }
-    if (arg === "-1" || arg === "--oneLine") {
-      singleLine = true;
-    } else if (arg === "-g" || arg === "--getProperty") {
-      const key = argv[++i];
-      if (!key) {
-        return { exitCode: 1, stdout: "", stderr: "sips: missing argument for -g\n" };
-      }
-      getProperties.push(key);
-    } else if (arg === "-s" || arg === "--setProperty") {
-      const key = argv[++i];
-      const val = argv[++i];
-      if (!key || val === undefined) {
-        return { exitCode: 1, stdout: "", stderr: "sips: missing argument for -s\n" };
-      }
-      if (key === "format") {
-        const parsed = normalizeTargetFormat(val);
-        if (!parsed) {
-          return {
+function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, SipsCliResult, void> {
+    let cooperativeWork = 63;
+    if (argv.length === 0) {
+        return {
             exitCode: 1,
             stdout: "",
-            stderr: `Error:Unsupported format: ${val}\n`
-          };
-        }
-        targetFormat = parsed;
-      } else if (key === "formatOptions") {
-        formatOptionsStr = val;
-      } else if (key === "dpiWidth") {
-        const num = Number(val);
-        if (Number.isFinite(num) && num > 0) {
-          targetDpi = Math.round(num);
-          customSetProps.set("dpiWidth", num.toFixed(3));
-        }
-      } else if (key === "dpiHeight") {
-        const num = Number(val);
-        if (Number.isFinite(num) && num > 0) {
-          targetDpi = Math.round(num);
-          customSetProps.set("dpiHeight", num.toFixed(3));
-        }
-      } else {
-        customSetProps.set(key, val);
-      }
-      propertyMutated = true;
-    } else if (arg === "-Z" || arg === "--resampleHeightWidthMax") {
-      const maxDim = Number(argv[++i]);
-      if (!Number.isFinite(maxDim) || maxDim <= 0) {
-        return { exitCode: 1, stdout: "", stderr: "sips: invalid size for -Z\n" };
-      }
-      actions.push({ kind: "resampleMax", maxDim: Math.round(maxDim) });
-    } else if (arg === "-z" || arg === "--resampleHeightWidth") {
-      const h = Number(argv[++i]);
-      const w = Number(argv[++i]);
-      if (!Number.isFinite(h) || !Number.isFinite(w) || h <= 0 || w <= 0) {
-        return { exitCode: 1, stdout: "", stderr: "sips: invalid dimensions for -z\n" };
-      }
-      actions.push({ kind: "resampleHW", height: Math.round(h), width: Math.round(w) });
-    } else if (arg === "--resampleWidth") {
-      const w = Number(argv[++i]);
-      if (!Number.isFinite(w) || w <= 0) {
-        return { exitCode: 1, stdout: "", stderr: "sips: invalid width for --resampleWidth\n" };
-      }
-      actions.push({ kind: "resampleW", width: Math.round(w) });
-    } else if (arg === "--resampleHeight") {
-      const h = Number(argv[++i]);
-      if (!Number.isFinite(h) || h <= 0) {
-        return { exitCode: 1, stdout: "", stderr: "sips: invalid height for --resampleHeight\n" };
-      }
-      actions.push({ kind: "resampleH", height: Math.round(h) });
-    } else if (arg === "-c" || arg === "--cropToHeightWidth") {
-      const h = Number(argv[++i]);
-      const w = Number(argv[++i]);
-      if (!Number.isFinite(h) || !Number.isFinite(w) || h <= 0 || w <= 0) {
-        return { exitCode: 1, stdout: "", stderr: "sips: invalid dimensions for -c\n" };
-      }
-      actions.push({ kind: "crop", height: Math.round(h), width: Math.round(w) });
-    } else if (arg === "--cropOffset") {
-      const oy = Number(argv[++i]);
-      const ox = Number(argv[++i]);
-      if (!Number.isFinite(oy) || !Number.isFinite(ox)) {
-        return { exitCode: 1, stdout: "", stderr: "sips: invalid offset for --cropOffset\n" };
-      }
-      cropOffsetY = Math.round(oy);
-      cropOffsetX = Math.round(ox);
-    } else if (arg === "-p" || arg === "--padToHeightWidth") {
-      const h = Number(argv[++i]);
-      const w = Number(argv[++i]);
-      if (!Number.isFinite(h) || !Number.isFinite(w) || h <= 0 || w <= 0) {
-        return { exitCode: 1, stdout: "", stderr: "sips: invalid dimensions for -p\n" };
-      }
-      actions.push({ kind: "pad", height: Math.round(h), width: Math.round(w) });
-    } else if (arg === "--padColor") {
-      padColor = argv[++i] ?? "000000";
-    } else if (arg === "-r" || arg === "--rotate") {
-      const deg = Number(argv[++i]);
-      if (!Number.isFinite(deg)) {
-        return { exitCode: 1, stdout: "", stderr: "sips: invalid degrees for -r\n" };
-      }
-      actions.push({ kind: "rotate", degrees: deg });
-    } else if (arg === "-f" || arg === "--flip") {
-      const dir = (argv[++i] ?? "").toLowerCase();
-      if (dir !== "horizontal" && dir !== "vertical") {
-        return {
-          exitCode: 1,
-          stdout: "",
-          stderr: "sips: flip direction must be 'horizontal' or 'vertical'\n"
+            stderr: "sips: no arguments specified. Try 'sips --help' for help.\n"
         };
-      }
-      actions.push({ kind: "flip", direction: dir });
-    } else if (arg === "--verify") {
-      verifyMode = true;
-    } else if (arg === "-d" || arg === "--deleteProperty") {
-      const key = argv[++i];
-      if (!key) {
-        return { exitCode: 1, stdout: "", stderr: "sips: missing argument for -d\n" };
-      }
-      customSetProps.set(key, null);
-      propertyMutated = true;
-    } else if (
-      arg === "--deleteColorManagementProperties" ||
-      arg === "--optimizeColorForSharing" ||
-      arg === "-i" ||
-      arg === "--addIcon" ||
-      arg === "--repair" ||
-      arg === "--debug"
-    ) {
-      if (arg === "--deleteColorManagementProperties") {
-        customSetProps.set("profile", "sRGB IEC61966-2.1");
-      }
-      propertyMutated = true;
-    } else if (arg === "-x" || arg === "--extractProfile") {
-      const profile = argv[++i];
-      if (!profile) {
-        return { exitCode: 1, stdout: "", stderr: `sips: missing argument for ${arg}\n` };
-      }
-      verifyMode = true;
-    } else if (
-      arg === "-m" ||
-      arg === "--matchTo" ||
-      arg === "-e" ||
-      arg === "--embedProfile" ||
-      arg === "-E" ||
-      arg === "--embedProfileIfNone" ||
-      arg === "--deleteTag"
-    ) {
-      const profile = argv[++i];
-      if (!profile) {
-        return { exitCode: 1, stdout: "", stderr: `sips: missing argument for ${arg}\n` };
-      }
-      propertyMutated = true;
-    } else if (
-      arg === "-M" ||
-      arg === "--matchToWithIntent" ||
-      arg === "-X" ||
-      arg === "--extractTag" ||
-      arg === "--copyTag" ||
-      arg === "--loadTag"
-    ) {
-      const profile = argv[++i];
-      const intent = argv[++i];
-      if (!profile || !intent) {
-        return { exitCode: 1, stdout: "", stderr: `sips: missing arguments for ${arg}\n` };
-      }
-      propertyMutated = true;
-    } else if (arg === "-o" || arg === "--out") {
-      outTarget = argv[++i];
-      if (!outTarget) {
-        return { exitCode: 1, stdout: "", stderr: "sips: missing argument for --out\n" };
-      }
-    } else if (!arg.startsWith("-")) {
-      inputPaths.push(arg);
-    } else {
-      return { exitCode: 1, stdout: "", stderr: `sips: unknown option: ${arg}\n` };
     }
-  }
-
-  if (inputPaths.length === 0) {
-    return { exitCode: 1, stdout: "", stderr: "sips: no input files specified\n" };
-  }
-
-  const hasMutation =
-    actions.length > 0 ||
-    targetFormat !== undefined ||
-    formatOptionsStr !== undefined ||
-    targetDpi !== undefined ||
-    propertyMutated ||
-    outTarget !== undefined;
-
-  if (getProperties.length > 0 && hasMutation) {
+    let singleLine = false;
+    let outTarget: string | undefined;
+    let padColor: string | undefined;
+    let cropOffsetY: number | undefined;
+    let cropOffsetX: number | undefined;
+    let targetFormat: ImageFormat | undefined;
+    let formatOptionsStr: string | undefined;
+    let targetDpi: number | undefined;
+    const customSetProps = new Map<string, string | null>();
+    let verifyMode = false;
+    let propertyMutated = false;
+    const getProperties: string[] = [];
+    const actions: SipsAction[] = [];
+    const inputPaths: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const arg = argv[i]!;
+        if (arg === "-h" || arg === "--help") {
+            return {
+                exitCode: 0,
+                stdout: "sips - scriptable image processing system\n" +
+                    "Usage: sips [options] file ...\n" +
+                    "  -g, --getProperty <key>\n" +
+                    "  -s, --setProperty <key> <value>\n" +
+                    "  -Z, --resampleHeightWidthMax <size>\n" +
+                    "  -z, --resampleHeightWidth <height> <width>\n" +
+                    "  --resampleWidth <width>\n" +
+                    "  --resampleHeight <height>\n" +
+                    "  -c, --cropToHeightWidth <height> <width>\n" +
+                    "  --cropOffset <offsetY> <offsetX>\n" +
+                    "  -p, --padToHeightWidth <height> <width>\n" +
+                    "  --padColor <hexColor>\n" +
+                    "  -r, --rotate <degrees>\n" +
+                    "  -f, --flip horizontal|vertical\n" +
+                    "  -o, --out <file-or-directory>\n",
+                stderr: ""
+            };
+        }
+        if (arg === "-H" || arg === "--helpProperties") {
+            return {
+                exitCode: 0,
+                stdout: ALL_SIPS_KEYS.join("\n") + "\nall\nallxml\n",
+                stderr: ""
+            };
+        }
+        if (arg === "-v" || arg === "--version") {
+            return { exitCode: 0, stdout: "sips 10.4.4\n", stderr: "" };
+        }
+        if (arg === "--formats") {
+            return {
+                exitCode: 0,
+                stdout: "Supported Formats:\n" +
+                    "-------------------------------------------\n" +
+                    "com.adobe.pdf                pdf   Writable\n" +
+                    "com.compuserve.gif           gif   Writable\n" +
+                    "com.microsoft.bmp            bmp   Writable\n" +
+                    "org.webmproject.webp         webp  Writable\n" +
+                    "public.avif                  avif  Writable\n" +
+                    "public.heic                  heic  Writable\n" +
+                    "public.heif                  heif  Writable\n" +
+                    "public.jpeg                  jpeg  Writable\n" +
+                    "public.png                   png   Writable\n" +
+                    "public.tiff                  tiff  Writable\n",
+                stderr: ""
+            };
+        }
+        if (arg === "-1" || arg === "--oneLine") {
+            singleLine = true;
+        }
+        else if (arg === "-g" || arg === "--getProperty") {
+            const key = argv[++i];
+            if (!key) {
+                return { exitCode: 1, stdout: "", stderr: "sips: missing argument for -g\n" };
+            }
+            getProperties.push(key);
+        }
+        else if (arg === "-s" || arg === "--setProperty") {
+            const key = argv[++i];
+            const val = argv[++i];
+            if (!key || val === undefined) {
+                return { exitCode: 1, stdout: "", stderr: "sips: missing argument for -s\n" };
+            }
+            if (key === "format") {
+                const parsed = normalizeTargetFormat(val);
+                if (!parsed) {
+                    return {
+                        exitCode: 1,
+                        stdout: "",
+                        stderr: `Error:Unsupported format: ${val}\n`
+                    };
+                }
+                targetFormat = parsed;
+            }
+            else if (key === "formatOptions") {
+                formatOptionsStr = val;
+            }
+            else if (key === "dpiWidth") {
+                const num = Number(val);
+                if (Number.isFinite(num) && num > 0) {
+                    targetDpi = Math.round(num);
+                    customSetProps.set("dpiWidth", num.toFixed(3));
+                }
+            }
+            else if (key === "dpiHeight") {
+                const num = Number(val);
+                if (Number.isFinite(num) && num > 0) {
+                    targetDpi = Math.round(num);
+                    customSetProps.set("dpiHeight", num.toFixed(3));
+                }
+            }
+            else {
+                customSetProps.set(key, val);
+            }
+            propertyMutated = true;
+        }
+        else if (arg === "-Z" || arg === "--resampleHeightWidthMax") {
+            const maxDim = Number(argv[++i]);
+            if (!Number.isFinite(maxDim) || maxDim <= 0) {
+                return { exitCode: 1, stdout: "", stderr: "sips: invalid size for -Z\n" };
+            }
+            actions.push({ kind: "resampleMax", maxDim: Math.round(maxDim) });
+        }
+        else if (arg === "-z" || arg === "--resampleHeightWidth") {
+            const h = Number(argv[++i]);
+            const w = Number(argv[++i]);
+            if (!Number.isFinite(h) || !Number.isFinite(w) || h <= 0 || w <= 0) {
+                return { exitCode: 1, stdout: "", stderr: "sips: invalid dimensions for -z\n" };
+            }
+            actions.push({ kind: "resampleHW", height: Math.round(h), width: Math.round(w) });
+        }
+        else if (arg === "--resampleWidth") {
+            const w = Number(argv[++i]);
+            if (!Number.isFinite(w) || w <= 0) {
+                return { exitCode: 1, stdout: "", stderr: "sips: invalid width for --resampleWidth\n" };
+            }
+            actions.push({ kind: "resampleW", width: Math.round(w) });
+        }
+        else if (arg === "--resampleHeight") {
+            const h = Number(argv[++i]);
+            if (!Number.isFinite(h) || h <= 0) {
+                return { exitCode: 1, stdout: "", stderr: "sips: invalid height for --resampleHeight\n" };
+            }
+            actions.push({ kind: "resampleH", height: Math.round(h) });
+        }
+        else if (arg === "-c" || arg === "--cropToHeightWidth") {
+            const h = Number(argv[++i]);
+            const w = Number(argv[++i]);
+            if (!Number.isFinite(h) || !Number.isFinite(w) || h <= 0 || w <= 0) {
+                return { exitCode: 1, stdout: "", stderr: "sips: invalid dimensions for -c\n" };
+            }
+            actions.push({ kind: "crop", height: Math.round(h), width: Math.round(w) });
+        }
+        else if (arg === "--cropOffset") {
+            const oy = Number(argv[++i]);
+            const ox = Number(argv[++i]);
+            if (!Number.isFinite(oy) || !Number.isFinite(ox)) {
+                return { exitCode: 1, stdout: "", stderr: "sips: invalid offset for --cropOffset\n" };
+            }
+            cropOffsetY = Math.round(oy);
+            cropOffsetX = Math.round(ox);
+        }
+        else if (arg === "-p" || arg === "--padToHeightWidth") {
+            const h = Number(argv[++i]);
+            const w = Number(argv[++i]);
+            if (!Number.isFinite(h) || !Number.isFinite(w) || h <= 0 || w <= 0) {
+                return { exitCode: 1, stdout: "", stderr: "sips: invalid dimensions for -p\n" };
+            }
+            actions.push({ kind: "pad", height: Math.round(h), width: Math.round(w) });
+        }
+        else if (arg === "--padColor") {
+            padColor = argv[++i] ?? "000000";
+        }
+        else if (arg === "-r" || arg === "--rotate") {
+            const deg = Number(argv[++i]);
+            if (!Number.isFinite(deg)) {
+                return { exitCode: 1, stdout: "", stderr: "sips: invalid degrees for -r\n" };
+            }
+            actions.push({ kind: "rotate", degrees: deg });
+        }
+        else if (arg === "-f" || arg === "--flip") {
+            const dir = (argv[++i] ?? "").toLowerCase();
+            if (dir !== "horizontal" && dir !== "vertical") {
+                return {
+                    exitCode: 1,
+                    stdout: "",
+                    stderr: "sips: flip direction must be 'horizontal' or 'vertical'\n"
+                };
+            }
+            actions.push({ kind: "flip", direction: dir });
+        }
+        else if (arg === "--verify") {
+            verifyMode = true;
+        }
+        else if (arg === "-d" || arg === "--deleteProperty") {
+            const key = argv[++i];
+            if (!key) {
+                return { exitCode: 1, stdout: "", stderr: "sips: missing argument for -d\n" };
+            }
+            customSetProps.set(key, null);
+            propertyMutated = true;
+        }
+        else if (arg === "--deleteColorManagementProperties" ||
+            arg === "--optimizeColorForSharing" ||
+            arg === "-i" ||
+            arg === "--addIcon" ||
+            arg === "--repair" ||
+            arg === "--debug") {
+            if (arg === "--deleteColorManagementProperties") {
+                customSetProps.set("profile", "sRGB IEC61966-2.1");
+            }
+            propertyMutated = true;
+        }
+        else if (arg === "-x" || arg === "--extractProfile") {
+            const profile = argv[++i];
+            if (!profile) {
+                return { exitCode: 1, stdout: "", stderr: `sips: missing argument for ${arg}\n` };
+            }
+            verifyMode = true;
+        }
+        else if (arg === "-m" ||
+            arg === "--matchTo" ||
+            arg === "-e" ||
+            arg === "--embedProfile" ||
+            arg === "-E" ||
+            arg === "--embedProfileIfNone" ||
+            arg === "--deleteTag") {
+            const profile = argv[++i];
+            if (!profile) {
+                return { exitCode: 1, stdout: "", stderr: `sips: missing argument for ${arg}\n` };
+            }
+            propertyMutated = true;
+        }
+        else if (arg === "-M" ||
+            arg === "--matchToWithIntent" ||
+            arg === "-X" ||
+            arg === "--extractTag" ||
+            arg === "--copyTag" ||
+            arg === "--loadTag") {
+            const profile = argv[++i];
+            const intent = argv[++i];
+            if (!profile || !intent) {
+                return { exitCode: 1, stdout: "", stderr: `sips: missing arguments for ${arg}\n` };
+            }
+            propertyMutated = true;
+        }
+        else if (arg === "-o" || arg === "--out") {
+            outTarget = argv[++i];
+            if (!outTarget) {
+                return { exitCode: 1, stdout: "", stderr: "sips: missing argument for --out\n" };
+            }
+        }
+        else if (!arg.startsWith("-")) {
+            inputPaths.push(arg);
+        }
+        else {
+            return { exitCode: 1, stdout: "", stderr: `sips: unknown option: ${arg}\n` };
+        }
+    }
+    if (inputPaths.length === 0) {
+        return { exitCode: 1, stdout: "", stderr: "sips: no input files specified\n" };
+    }
+    const hasMutation = actions.length > 0 ||
+        targetFormat !== undefined ||
+        formatOptionsStr !== undefined ||
+        targetDpi !== undefined ||
+        propertyMutated ||
+        outTarget !== undefined;
+    if (getProperties.length > 0 && hasMutation) {
+        return {
+            exitCode: 6,
+            stdout: "",
+            stderr: "Error 6: cannot get properties and modify file in the same invocation\n" +
+                "Try 'sips --help' for help using this tool\n"
+        };
+    }
+    const outLines: string[] = [];
+    const errLines: string[] = [];
+    let exitCode = 0;
+    // Match macOS /usr/bin/sips slot precedence:
+    // - If multiple crop/pad flags (-c / --padToHeightWidth) are supplied, only the final crop/pad flag applies.
+    // - If both --resampleWidth and --resampleHeight are supplied separately, --resampleWidth takes precedence.
+    const lastCropPadIdx = actions.reduce((acc, act, idx) => (act.kind === "crop" || act.kind === "pad" ? idx : acc), -1);
+    const hasResampleW = actions.some(act => act.kind === "resampleW");
+    const filteredActions = actions.filter((act, idx) => {
+        if ((act.kind === "crop" || act.kind === "pad") && idx !== lastCropPadIdx) {
+            return false;
+        }
+        if (act.kind === "resampleH" && hasResampleW) {
+            return false;
+        }
+        return true;
+    });
+    const isResample = (k: string) => k === "resampleMax" || k === "resampleHW" || k === "resampleW" || k === "resampleH";
+    const isRotFlip = (k: string) => k === "rotate" || k === "flip";
+    const reversedRotFlips = filteredActions.filter(act => isRotFlip(act.kind)).reverse();
+    const firstRotFlipIdx = filteredActions.findIndex(act => isRotFlip(act.kind));
+    let effectiveActions: SipsAction[];
+    if (firstRotFlipIdx === -1) {
+        effectiveActions = [...filteredActions];
+    }
+    else {
+        const beforeRotFlip = filteredActions.slice(0, firstRotFlipIdx);
+        const nonResamplesBefore = beforeRotFlip.filter(act => !isResample(act.kind));
+        const resamplesBefore = beforeRotFlip.filter(act => isResample(act.kind));
+        const afterRotFlip = filteredActions.slice(firstRotFlipIdx).filter(act => !isRotFlip(act.kind));
+        const resamplesAfter = afterRotFlip.filter(act => isResample(act.kind));
+        const otherAfter = afterRotFlip.filter(act => !isResample(act.kind));
+        effectiveActions = [
+            ...nonResamplesBefore,
+            ...resamplesAfter,
+            ...reversedRotFlips,
+            ...resamplesBefore,
+            ...otherAfter
+        ];
+    }
+    for (const inPath of inputPaths) {
+        yield;
+        const inBytes = files.get(inPath);
+        if (!inBytes) {
+            errLines.push(`Error: ${inPath}: file does not exist`);
+            exitCode = 1;
+            continue;
+        }
+        try {
+            const mergedProps = new Map<string, string | null>(SIPS_BUFFER_PROPS.get(inBytes) ?? SIPS_CONTENT_PROPS.get(imageFingerprint(inBytes)) ?? []);
+            for (const [k, v] of customSetProps) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                mergedProps.set(k, v);
+            }
+            let meta = readImageMetadata(inBytes);
+            let curW = meta.width;
+            let curH = meta.height;
+            const origW = meta.width;
+            const origH = meta.height;
+            const effectivePadColor = padColor ?? (meta.hasAlpha ? { r: 0, g: 0, b: 0, alpha: 0 } : "000000");
+            if (hasMutation) {
+                let image = decodeImage(inBytes);
+                let resizeInput: RgbaImage | undefined;
+                for (const act of effectiveActions) {
+                    yield;
+                    if (act.kind === "rotate") {
+                        const rotated = encodeImage(rotateImage(image, act.degrees, parseColor(effectivePadColor)), {}).data;
+                        image = decodeImage(rotated);
+                        resizeInput = undefined;
+                        meta = readImageMetadata(rotated);
+                        curW = meta.width;
+                        curH = meta.height;
+                    }
+                    else if (act.kind === "flip") {
+                        image = decodeImage(encodeImage(act.direction === "horizontal" ? flopImage(image) : flipImage(image), {}).data);
+                        resizeInput = undefined;
+                    }
+                    else if (act.kind === "resampleMax") {
+                        const scale = act.maxDim / Math.max(origW, origH, 1);
+                        const nw = Math.max(1, Math.round(curW * scale));
+                        const nh = Math.max(1, Math.round(curH * scale));
+                        curW = nw;
+                        curH = nh;
+                    }
+                    else if (act.kind === "resampleHW") {
+                        const scaleX = act.width / Math.max(1, origW);
+                        const scaleY = act.height / Math.max(1, origH);
+                        const nw = Math.max(1, Math.round(curW * scaleX));
+                        const nh = Math.max(1, Math.round(curH * scaleY));
+                        curW = nw;
+                        curH = nh;
+                    }
+                    else if (act.kind === "resampleW") {
+                        const scale = act.width / Math.max(1, origW);
+                        const nw = Math.max(1, Math.round(curW * scale));
+                        const nh = Math.max(1, Math.round(curH * scale));
+                        curW = nw;
+                        curH = nh;
+                    }
+                    else if (act.kind === "resampleH") {
+                        const scale = act.height / Math.max(1, origH);
+                        const nw = Math.max(1, Math.round(curW * scale));
+                        const nh = Math.max(1, Math.round(curH * scale));
+                        curW = nw;
+                        curH = nh;
+                    }
+                    else if (act.kind === "crop") {
+                        if (cropOffsetX === undefined &&
+                            cropOffsetY === undefined &&
+                            ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0)) {
+                            image = applySipsOddCanvasCropOrPad(image, curW, curH, act.width, act.height, effectivePadColor);
+                            curW = act.width;
+                            curH = act.height;
+                            resizeInput = undefined;
+                            continue;
+                        }
+                        if (cropOffsetX !== undefined || cropOffsetY !== undefined) {
+                            const ox = cropOffsetX ?? Math.floor((curW - act.width) / 2);
+                            const oy = cropOffsetY ?? Math.floor((curH - act.height) / 2);
+                            const srcLeft = Math.max(0, Math.min(curW - 1, ox));
+                            const srcTop = Math.max(0, Math.min(curH - 1, oy));
+                            const srcRight = Math.max(srcLeft + 1, Math.min(curW, ox + act.width));
+                            const srcBottom = Math.max(srcTop + 1, Math.min(curH, oy + act.height));
+                            const cw = srcRight - srcLeft;
+                            const ch = srcBottom - srcTop;
+                            image = extractImage(image, { left: srcLeft, top: srcTop, width: cw, height: ch });
+                            const padLeft = Math.max(0, srcLeft - ox);
+                            const padTop = Math.max(0, srcTop - oy);
+                            const padRight = Math.max(0, act.width - cw - padLeft);
+                            const padBottom = Math.max(0, act.height - ch - padTop);
+                            if (padLeft > 0 || padTop > 0 || padRight > 0 || padBottom > 0) {
+                                image = extendImage(image, {
+                                    top: padTop,
+                                    bottom: padBottom,
+                                    left: padLeft,
+                                    right: padRight,
+                                    background: parseColor(effectivePadColor),
+                                    extendWith: "background"
+                                });
+                            }
+                            curW = act.width;
+                            curH = act.height;
+                            image = decodeImage(encodeImage(image, {}).data);
+                            resizeInput = undefined;
+                            continue;
+                        }
+                        const cw = Math.min(curW, act.width);
+                        const ch = Math.min(curH, act.height);
+                        const left = cropOffsetX !== undefined
+                            ? Math.max(0, Math.min(curW - cw, cropOffsetX))
+                            : Math.max(0, Math.floor((curW - cw) / 2));
+                        const top = cropOffsetY !== undefined
+                            ? Math.max(0, Math.min(curH - ch, cropOffsetY))
+                            : Math.max(0, Math.floor((curH - ch) / 2));
+                        image = extractImage(image, { left, top, width: cw, height: ch });
+                        curW = cw;
+                        curH = ch;
+                        if (act.width > curW || act.height > curH) {
+                            const padX = Math.max(0, act.width - curW);
+                            const padY = Math.max(0, act.height - curH);
+                            const padLeft = Math.floor(padX / 2);
+                            const padRight = padX - padLeft;
+                            const padTop = Math.floor(padY / 2);
+                            const padBottom = padY - padTop;
+                            image = extendImage(image, {
+                                top: padTop,
+                                bottom: padBottom,
+                                left: padLeft,
+                                right: padRight,
+                                background: parseColor(effectivePadColor),
+                                extendWith: "background"
+                            });
+                            curW = act.width;
+                            curH = act.height;
+                        }
+                        image = decodeImage(encodeImage(image, {}).data);
+                        resizeInput = undefined;
+                    }
+                    else if (act.kind === "pad") {
+                        if ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0) {
+                            image = applySipsOddCanvasCropOrPad(image, curW, curH, act.width, act.height, effectivePadColor);
+                            curW = act.width;
+                            curH = act.height;
+                            resizeInput = undefined;
+                            continue;
+                        }
+                        if (act.width < curW || act.height < curH) {
+                            const cw = Math.min(curW, act.width);
+                            const ch = Math.min(curH, act.height);
+                            const left = Math.max(0, Math.floor((curW - cw) / 2));
+                            const top = Math.max(0, Math.floor((curH - ch) / 2));
+                            image = extractImage(image, { left, top, width: cw, height: ch });
+                            curW = cw;
+                            curH = ch;
+                        }
+                        const padX = Math.max(0, act.width - curW);
+                        const padY = Math.max(0, act.height - curH);
+                        const left = Math.floor(padX / 2);
+                        const right = padX - left;
+                        const top = Math.floor(padY / 2);
+                        const bottom = padY - top;
+                        image = extendImage(image, {
+                            top,
+                            bottom,
+                            left,
+                            right,
+                            background: parseColor(effectivePadColor),
+                            extendWith: "background"
+                        });
+                        curW = act.width;
+                        curH = act.height;
+                        image = decodeImage(encodeImage(image, {}).data);
+                        resizeInput = undefined;
+                    }
+                    if (isResample(act.kind)) {
+                        // Repeated resample flags replace the pending resize until the next
+                        // crop, pad, rotation or flip materializes the image.
+                        resizeInput ??= image;
+                        image = resizeImage(resizeInput, {
+                            width: curW, height: curH, fit: "fill", position: "centre", kernel: "lanczos3",
+                            background: parseColor(), withoutEnlargement: false, withoutReduction: false
+                        });
+                    }
+                }
+                const outFmt = targetFormat ?? (meta.format === "pdf" || meta.format === "svg" ? "png" : meta.format);
+                const quality = resolveQualityOption(formatOptionsStr);
+                const outBytes = encodeImage(image, {
+                    format: outFmt, ...(quality === undefined ? {} : { quality }),
+                    ...(targetDpi === undefined ? {} : { density: targetDpi })
+                }).data;
+                let finalOutPath = inPath;
+                if (outTarget) {
+                    const normTarget = outTarget.endsWith("/") ? outTarget.slice(0, -1) : outTarget;
+                    let isExistingDir = false;
+                    for (const k of files.keys()) {
+                        if (++cooperativeWork % 64 === 0)
+                            yield;
+                        if (k.startsWith(`${normTarget}/`)) {
+                            isExistingDir = true;
+                            break;
+                        }
+                    }
+                    if (inputPaths.length > 1 || outTarget.endsWith("/") || isExistingDir) {
+                        const rawBase = inPath.split("/").pop() ?? inPath;
+                        let base = rawBase;
+                        if (targetFormat) {
+                            const ext = targetFormat === "jpeg"
+                                ? "jpg"
+                                : targetFormat === "tiff"
+                                    ? "tif"
+                                    : targetFormat;
+                            const dotIdx = rawBase.lastIndexOf(".");
+                            base = dotIdx > 0 ? `${rawBase.slice(0, dotIdx)}.${ext}` : `${rawBase}.${ext}`;
+                        }
+                        const dir = outTarget.endsWith("/") ? outTarget.slice(0, -1) : outTarget;
+                        finalOutPath = `${dir}/${base}`;
+                    }
+                    else {
+                        finalOutPath = outTarget;
+                    }
+                }
+                files.set(finalOutPath, outBytes);
+                if (mergedProps.size > 0) {
+                    SIPS_BUFFER_PROPS.set(outBytes, mergedProps);
+                    SIPS_CONTENT_PROPS.set(imageFingerprint(outBytes), mergedProps);
+                }
+                meta = readImageMetadata(outBytes);
+                if (getProperties.length === 0) {
+                    outLines.push(inPath);
+                    outLines.push(`  ${finalOutPath}`);
+                }
+            }
+            if (verifyMode && !hasMutation && getProperties.length === 0) {
+                outLines.push(inPath);
+            }
+            if (getProperties.length > 0) {
+                if (getProperties.includes("allxml")) {
+                    const xmlEntries = [
+                        ...ALL_SIPS_KEYS.map(k => {
+                            if (k === "pixelWidth" || k === "pixelHeight" || k === "samplesPerPixel" || k === "bitsPerSample") {
+                                const intVal = formatSipsPropertyValue(meta, k, mergedProps) ?? "0";
+                                return `  <key>${k}</key>\n  <integer>${intVal}</integer>`;
+                            }
+                            if (k === "dpiWidth" || k === "dpiHeight") {
+                                const dpiNum = Number(formatSipsPropertyValue(meta, k, mergedProps) ?? meta.density ?? 72);
+                                const dpiStr = Number.isInteger(dpiNum) ? String(dpiNum) : dpiNum.toFixed(3);
+                                return `  <key>${k}</key>\n  <real>${dpiStr}</real>`;
+                            }
+                            if (k === "hasAlpha") {
+                                return `  <key>${k}</key>\n  <${meta.hasAlpha ? "true" : "false"}/>`;
+                            }
+                            const val = formatSipsPropertyValue(meta, k, mergedProps) ?? "";
+                            return `  <key>${k}</key>\n  <string>${escapeXml(val)}</string>`;
+                        }),
+                        `  <key>path</key>\n  <string>${escapeXml(inPath)}</string>`
+                    ].join("\n");
+                    outLines.push(`<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n${xmlEntries}\n</dict>\n</plist>`);
+                }
+                else {
+                    const expandedKeys: string[] = [];
+                    for (const k of getProperties) {
+                        if (++cooperativeWork % 64 === 0)
+                            yield;
+                        if (k === "all")
+                            expandedKeys.push(...ALL_SIPS_KEYS);
+                        else
+                            expandedKeys.push(k);
+                    }
+                    const propLines: string[] = [inPath];
+                    for (const k of expandedKeys) {
+                        if (++cooperativeWork % 64 === 0)
+                            yield;
+                        const val = formatSipsPropertyValue(meta, k, mergedProps, inPath);
+                        if (val !== undefined) {
+                            propLines.push(singleLine ? `${k}: ${val}` : `  ${k}: ${val}`);
+                        }
+                        else {
+                            propLines.push(singleLine ? `${k}: <nil>` : `  ${k}: <nil>`);
+                        }
+                    }
+                    if (singleLine) {
+                        outLines.push(propLines.join("|") + "|");
+                    }
+                    else {
+                        outLines.push(...propLines);
+                    }
+                }
+            }
+        }
+        catch (err) {
+            errLines.push(`Error: ${inPath}: ${(err as Error).message}`);
+            exitCode = 1;
+        }
+    }
     return {
-      exitCode: 6,
-      stdout: "",
-      stderr:
-        "Error 6: cannot get properties and modify file in the same invocation\n" +
-        "Try 'sips --help' for help using this tool\n"
+        exitCode,
+        stdout: outLines.length > 0 ? outLines.join("\n") + "\n" : "",
+        stderr: errLines.length > 0 ? errLines.join("\n") + "\n" : ""
     };
-  }
-
-  const outLines: string[] = [];
-  const errLines: string[] = [];
-  let exitCode = 0;
-  // Match macOS /usr/bin/sips slot precedence:
-  // - If multiple crop/pad flags (-c / --padToHeightWidth) are supplied, only the final crop/pad flag applies.
-  // - If both --resampleWidth and --resampleHeight are supplied separately, --resampleWidth takes precedence.
-  const lastCropPadIdx = actions.reduce(
-    (acc, act, idx) => (act.kind === "crop" || act.kind === "pad" ? idx : acc),
-    -1
-  );
-  const hasResampleW = actions.some(act => act.kind === "resampleW");
-  const filteredActions = actions.filter((act, idx) => {
-    if ((act.kind === "crop" || act.kind === "pad") && idx !== lastCropPadIdx) {
-      return false;
+}
+export async function runSipsCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<SipsCliResult> {
+    return drainSteps(runSipsCliSteps(argv, files, signal), signal);
+}
+export function runSipsCliSync(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): SipsCliResult {
+    let steps = runSipsCliSteps(argv, files, signal), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
     }
-    if (act.kind === "resampleH" && hasResampleW) {
-      return false;
-    }
-    return true;
-  });
-  const isResample = (k: string) =>
-    k === "resampleMax" || k === "resampleHW" || k === "resampleW" || k === "resampleH";
-  const isRotFlip = (k: string) => k === "rotate" || k === "flip";
-  const reversedRotFlips = filteredActions.filter(act => isRotFlip(act.kind)).reverse();
-  const firstRotFlipIdx = filteredActions.findIndex(act => isRotFlip(act.kind));
-  let effectiveActions: SipsAction[];
-  if (firstRotFlipIdx === -1) {
-    effectiveActions = [...filteredActions];
-  } else {
-    const beforeRotFlip = filteredActions.slice(0, firstRotFlipIdx);
-    const nonResamplesBefore = beforeRotFlip.filter(act => !isResample(act.kind));
-    const resamplesBefore = beforeRotFlip.filter(act => isResample(act.kind));
-    const afterRotFlip = filteredActions.slice(firstRotFlipIdx).filter(act => !isRotFlip(act.kind));
-    const resamplesAfter = afterRotFlip.filter(act => isResample(act.kind));
-    const otherAfter = afterRotFlip.filter(act => !isResample(act.kind));
-    effectiveActions = [
-      ...nonResamplesBefore,
-      ...resamplesAfter,
-      ...reversedRotFlips,
-      ...resamplesBefore,
-      ...otherAfter
-    ];
-  }
-
-  for (const inPath of inputPaths) {
-    const inBytes = files.get(inPath);
-    if (!inBytes) {
-      errLines.push(`Error: ${inPath}: file does not exist`);
-      exitCode = 1;
-      continue;
-    }
-
-    try {
-      const mergedProps = new Map<string, string | null>(SIPS_BUFFER_PROPS.get(inBytes) ?? SIPS_CONTENT_PROPS.get(imageFingerprint(inBytes)) ?? []);
-      for (const [k, v] of customSetProps) {
-        mergedProps.set(k, v);
-      }
-      let meta = readImageMetadata(inBytes);
-      let curW = meta.width;
-      let curH = meta.height;
-      const origW = meta.width;
-      const origH = meta.height;
-      const effectivePadColor =
-        padColor ?? (meta.hasAlpha ? { r: 0, g: 0, b: 0, alpha: 0 } : "000000");
-
-      if (hasMutation) {
-        let image = decodeImage(inBytes);
-        let resizeInput: RgbaImage | undefined;
-        for (const act of effectiveActions) {
-          if (act.kind === "rotate") {
-            const rotated = encodeImage(rotateImage(image, act.degrees, parseColor(effectivePadColor)), {}).data;
-            image = decodeImage(rotated);
-            resizeInput = undefined;
-            meta = readImageMetadata(rotated);
-            curW = meta.width;
-            curH = meta.height;
-          } else if (act.kind === "flip") {
-            image = decodeImage(encodeImage(act.direction === "horizontal" ? flopImage(image) : flipImage(image), {}).data);
-            resizeInput = undefined;
-          } else if (act.kind === "resampleMax") {
-            const scale = act.maxDim / Math.max(origW, origH, 1);
-            const nw = Math.max(1, Math.round(curW * scale));
-            const nh = Math.max(1, Math.round(curH * scale));
-            curW = nw;
-            curH = nh;
-          } else if (act.kind === "resampleHW") {
-            const scaleX = act.width / Math.max(1, origW);
-            const scaleY = act.height / Math.max(1, origH);
-            const nw = Math.max(1, Math.round(curW * scaleX));
-            const nh = Math.max(1, Math.round(curH * scaleY));
-            curW = nw;
-            curH = nh;
-          } else if (act.kind === "resampleW") {
-            const scale = act.width / Math.max(1, origW);
-            const nw = Math.max(1, Math.round(curW * scale));
-            const nh = Math.max(1, Math.round(curH * scale));
-            curW = nw;
-            curH = nh;
-          } else if (act.kind === "resampleH") {
-            const scale = act.height / Math.max(1, origH);
-            const nw = Math.max(1, Math.round(curW * scale));
-            const nh = Math.max(1, Math.round(curH * scale));
-            curW = nw;
-            curH = nh;
-          } else if (act.kind === "crop") {
-            if (
-              cropOffsetX === undefined &&
-              cropOffsetY === undefined &&
-              ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0)
-            ) {
-              image = applySipsOddCanvasCropOrPad(
-                image,
-                curW,
-                curH,
-                act.width,
-                act.height,
-                effectivePadColor
-              );
-              curW = act.width;
-              curH = act.height;
-              resizeInput = undefined;
-              continue;
-            }
-            if (cropOffsetX !== undefined || cropOffsetY !== undefined) {
-              const ox = cropOffsetX ?? Math.floor((curW - act.width) / 2);
-              const oy = cropOffsetY ?? Math.floor((curH - act.height) / 2);
-              const srcLeft = Math.max(0, Math.min(curW - 1, ox));
-              const srcTop = Math.max(0, Math.min(curH - 1, oy));
-              const srcRight = Math.max(srcLeft + 1, Math.min(curW, ox + act.width));
-              const srcBottom = Math.max(srcTop + 1, Math.min(curH, oy + act.height));
-              const cw = srcRight - srcLeft;
-              const ch = srcBottom - srcTop;
-              image = extractImage(image, { left: srcLeft, top: srcTop, width: cw, height: ch });
-              const padLeft = Math.max(0, srcLeft - ox);
-              const padTop = Math.max(0, srcTop - oy);
-              const padRight = Math.max(0, act.width - cw - padLeft);
-              const padBottom = Math.max(0, act.height - ch - padTop);
-              if (padLeft > 0 || padTop > 0 || padRight > 0 || padBottom > 0) {
-                image = extendImage(image, {
-                  top: padTop,
-                  bottom: padBottom,
-                  left: padLeft,
-                  right: padRight,
-                  background: parseColor(effectivePadColor),
-                  extendWith: "background"
-                });
-              }
-              curW = act.width;
-              curH = act.height;
-              image = decodeImage(encodeImage(image, {}).data);
-              resizeInput = undefined;
-              continue;
-            }
-            const cw = Math.min(curW, act.width);
-            const ch = Math.min(curH, act.height);
-            const left =
-              cropOffsetX !== undefined
-                ? Math.max(0, Math.min(curW - cw, cropOffsetX))
-                : Math.max(0, Math.floor((curW - cw) / 2));
-            const top =
-              cropOffsetY !== undefined
-                ? Math.max(0, Math.min(curH - ch, cropOffsetY))
-                : Math.max(0, Math.floor((curH - ch) / 2));
-            image = extractImage(image, { left, top, width: cw, height: ch });
-            curW = cw;
-            curH = ch;
-            if (act.width > curW || act.height > curH) {
-              const padX = Math.max(0, act.width - curW);
-              const padY = Math.max(0, act.height - curH);
-              const padLeft = Math.floor(padX / 2);
-              const padRight = padX - padLeft;
-              const padTop = Math.floor(padY / 2);
-              const padBottom = padY - padTop;
-              image = extendImage(image, {
-                top: padTop,
-                bottom: padBottom,
-                left: padLeft,
-                right: padRight,
-                background: parseColor(effectivePadColor),
-                extendWith: "background"
-              });
-              curW = act.width;
-              curH = act.height;
-            }
-            image = decodeImage(encodeImage(image, {}).data);
-            resizeInput = undefined;
-          } else if (act.kind === "pad") {
-            if ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0) {
-              image = applySipsOddCanvasCropOrPad(
-                image,
-                curW,
-                curH,
-                act.width,
-                act.height,
-                effectivePadColor
-              );
-              curW = act.width;
-              curH = act.height;
-              resizeInput = undefined;
-              continue;
-            }
-            if (act.width < curW || act.height < curH) {
-              const cw = Math.min(curW, act.width);
-              const ch = Math.min(curH, act.height);
-              const left = Math.max(0, Math.floor((curW - cw) / 2));
-              const top = Math.max(0, Math.floor((curH - ch) / 2));
-              image = extractImage(image, { left, top, width: cw, height: ch });
-              curW = cw;
-              curH = ch;
-            }
-            const padX = Math.max(0, act.width - curW);
-            const padY = Math.max(0, act.height - curH);
-            const left = Math.floor(padX / 2);
-            const right = padX - left;
-            const top = Math.floor(padY / 2);
-            const bottom = padY - top;
-            image = extendImage(image, {
-              top,
-              bottom,
-              left,
-              right,
-              background: parseColor(effectivePadColor),
-              extendWith: "background"
-            });
-            curW = act.width;
-            curH = act.height;
-            image = decodeImage(encodeImage(image, {}).data);
-            resizeInput = undefined;
-          }
-          if (isResample(act.kind)) {
-            // Repeated resample flags replace the pending resize until the next
-            // crop, pad, rotation or flip materializes the image.
-            resizeInput ??= image;
-            image = resizeImage(resizeInput, {
-              width: curW, height: curH, fit: "fill", position: "centre", kernel: "lanczos3",
-              background: parseColor(), withoutEnlargement: false, withoutReduction: false
-            });
-          }
-        }
-
-        const outFmt =
-          targetFormat ?? (meta.format === "pdf" || meta.format === "svg" ? "png" : meta.format);
-        const quality = resolveQualityOption(formatOptionsStr);
-        const outBytes = encodeImage(image, {
-          format: outFmt, ...(quality === undefined ? {} : { quality }),
-          ...(targetDpi === undefined ? {} : { density: targetDpi })
-        }).data;
-
-        let finalOutPath = inPath;
-        if (outTarget) {
-          const normTarget = outTarget.endsWith("/") ? outTarget.slice(0, -1) : outTarget;
-          let isExistingDir = false;
-          for (const k of files.keys()) {
-            if (k.startsWith(`${normTarget}/`)) {
-              isExistingDir = true;
-              break;
-            }
-          }
-          if (inputPaths.length > 1 || outTarget.endsWith("/") || isExistingDir) {
-            const rawBase = inPath.split("/").pop() ?? inPath;
-            let base = rawBase;
-            if (targetFormat) {
-              const ext =
-                targetFormat === "jpeg"
-                  ? "jpg"
-                  : targetFormat === "tiff"
-                    ? "tif"
-                    : targetFormat;
-              const dotIdx = rawBase.lastIndexOf(".");
-              base = dotIdx > 0 ? `${rawBase.slice(0, dotIdx)}.${ext}` : `${rawBase}.${ext}`;
-            }
-            const dir = outTarget.endsWith("/") ? outTarget.slice(0, -1) : outTarget;
-            finalOutPath = `${dir}/${base}`;
-          } else {
-            finalOutPath = outTarget;
-          }
-        }
-        files.set(finalOutPath, outBytes);
-        if (mergedProps.size > 0) {
-          SIPS_BUFFER_PROPS.set(outBytes, mergedProps);
-          SIPS_CONTENT_PROPS.set(imageFingerprint(outBytes), mergedProps);
-        }
-        meta = readImageMetadata(outBytes);
-
-        if (getProperties.length === 0) {
-          outLines.push(inPath);
-          outLines.push(`  ${finalOutPath}`);
-        }
-      }
-
-      if (verifyMode && !hasMutation && getProperties.length === 0) {
-        outLines.push(inPath);
-      }
-      if (getProperties.length > 0) {
-        if (getProperties.includes("allxml")) {
-          const xmlEntries = [
-            ...ALL_SIPS_KEYS.map(k => {
-              if (k === "pixelWidth" || k === "pixelHeight" || k === "samplesPerPixel" || k === "bitsPerSample") {
-                const intVal = formatSipsPropertyValue(meta, k, mergedProps) ?? "0";
-                return `  <key>${k}</key>\n  <integer>${intVal}</integer>`;
-              }
-              if (k === "dpiWidth" || k === "dpiHeight") {
-                const dpiNum = Number(formatSipsPropertyValue(meta, k, mergedProps) ?? meta.density ?? 72);
-                const dpiStr = Number.isInteger(dpiNum) ? String(dpiNum) : dpiNum.toFixed(3);
-                return `  <key>${k}</key>\n  <real>${dpiStr}</real>`;
-              }
-              if (k === "hasAlpha") {
-                return `  <key>${k}</key>\n  <${meta.hasAlpha ? "true" : "false"}/>`;
-              }
-              const val = formatSipsPropertyValue(meta, k, mergedProps) ?? "";
-              return `  <key>${k}</key>\n  <string>${escapeXml(val)}</string>`;
-            }),
-            `  <key>path</key>\n  <string>${escapeXml(inPath)}</string>`
-          ].join("\n");
-          outLines.push(
-            `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n${xmlEntries}\n</dict>\n</plist>`
-          );
-        } else {
-          const expandedKeys: string[] = [];
-          for (const k of getProperties) {
-            if (k === "all") expandedKeys.push(...ALL_SIPS_KEYS);
-            else expandedKeys.push(k);
-          }
-          const propLines: string[] = [inPath];
-          for (const k of expandedKeys) {
-            const val = formatSipsPropertyValue(meta, k, mergedProps, inPath);
-            if (val !== undefined) {
-              propLines.push(singleLine ? `${k}: ${val}` : `  ${k}: ${val}`);
-            } else {
-              propLines.push(singleLine ? `${k}: <nil>` : `  ${k}: <nil>`);
-            }
-          }
-          if (singleLine) {
-            outLines.push(propLines.join("|") + "|");
-          } else {
-            outLines.push(...propLines);
-          }
-        }
-      }
-    } catch (err) {
-      errLines.push(`Error: ${inPath}: ${(err as Error).message}`);
-      exitCode = 1;
-    }
-  }
-
-  return {
-    exitCode,
-    stdout: outLines.length > 0 ? outLines.join("\n") + "\n" : "",
-    stderr: errLines.length > 0 ? errLines.join("\n") + "\n" : ""
-  };
+    return next.value;
 }
 
 function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata, byteSize: number): string {
@@ -1077,107 +1086,107 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
   return out;
 }
 
-export async function runIdentifyCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<SipsCliResult> {
-  let customFormat: string | undefined;
-  let verbose = false;
-  const inputPaths: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "-h" || arg === "-help" || arg === "--help") {
-      return {
-        exitCode: 0,
-        stdout:
-          "Usage: identify [options] input-file ...\n" +
-          "  -ping\n" +
-          "  -format <string>\n" +
-          "  -verbose\n",
-        stderr: ""
-      };
+function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, SipsCliResult, void> {
+    let cooperativeWork = 63;
+    let customFormat: string | undefined;
+    let verbose = false;
+    const inputPaths: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const arg = argv[i]!;
+        if (arg === "-h" || arg === "-help" || arg === "--help") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: identify [options] input-file ...\n" +
+                    "  -ping\n" +
+                    "  -format <string>\n" +
+                    "  -verbose\n",
+                stderr: ""
+            };
+        }
+        if (arg === "-version" || arg === "--version") {
+            return { exitCode: 0, stdout: "Version: ImageMagick 7.1.1-38 (safe-bash image-ast)\n", stderr: "" };
+        }
+        if (arg === "-ping" || arg === "-quiet") {
+            // metadata-only mode (default unless -verbose)
+        }
+        else if (arg === "-verbose") {
+            verbose = true;
+        }
+        else if (arg === "-format") {
+            customFormat = argv[++i] ?? "";
+        }
+        else if (!arg.startsWith("-")) {
+            inputPaths.push(arg);
+        }
     }
-    if (arg === "-version" || arg === "--version") {
-      return { exitCode: 0, stdout: "Version: ImageMagick 7.1.1-38 (safe-bash image-ast)\n", stderr: "" };
+    if (inputPaths.length === 0) {
+        return {
+            exitCode: 1,
+            stdout: "",
+            stderr: "identify: missing an image filename\n"
+        };
     }
-    if (arg === "-ping" || arg === "-quiet") {
-      // metadata-only mode (default unless -verbose)
-    } else if (arg === "-verbose") {
-      verbose = true;
-    } else if (arg === "-format") {
-      customFormat = argv[++i] ?? "";
-    } else if (!arg.startsWith("-")) {
-      inputPaths.push(arg);
+    const outParts: string[] = [];
+    const errParts: string[] = [];
+    let exitCode = 0;
+    for (const inPath of inputPaths) {
+        yield;
+        const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
+        const baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
+        const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
+        const bytes = files.get(inPath) ?? files.get(baseInPath);
+        if (!bytes) {
+            errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
+            exitCode = 1;
+            continue;
+        }
+        try {
+            const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
+            const meta = readImageMetadata(bytes, inputOptions);
+            const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
+            const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
+            if (customFormat !== undefined) {
+                outParts.push(formatIdentifyCustom(customFormat, baseInPath, meta, bytes.byteLength));
+            }
+            else if (verbose) {
+                const stats = computeImageStats(decodeImage(bytes, inputOptions));
+                outParts.push(`Image: ${inPath}\n` +
+                    `  Format: ${meta.format.toUpperCase()}\n` +
+                    `  Geometry: ${meta.width}x${meta.height}+0+0\n` +
+                    `  Resolution: ${meta.density}x${meta.density}\n` +
+                    `  Colorspace: ${spaceLabel}\n` +
+                    `  Depth: ${bitDepth}-bit\n` +
+                    `  Channels: ${meta.channels}\n` +
+                    `  Alpha: ${meta.hasAlpha ? "True" : "False"}\n` +
+                    `  Filesize: ${bytes.byteLength}B\n` +
+                    `  Entropy: ${stats.entropy.toFixed(4)}\n`);
+            }
+            else {
+                outParts.push(`${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${bytes.byteLength}B 0.000u 0:00.000\n`);
+            }
+        }
+        catch (err) {
+            errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
+            exitCode = 1;
+        }
     }
-  }
-
-  if (inputPaths.length === 0) {
     return {
-      exitCode: 1,
-      stdout: "",
-      stderr: "identify: missing an image filename\n"
+        exitCode,
+        stdout: outParts.join(""),
+        stderr: errParts.join("")
     };
-  }
-
-  const outParts: string[] = [];
-  const errParts: string[] = [];
-  let exitCode = 0;
-
-  for (const inPath of inputPaths) {
-    const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
-    const baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
-    const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
-    const bytes = files.get(inPath) ?? files.get(baseInPath);
-    if (!bytes) {
-      errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
-      exitCode = 1;
-      continue;
-    }
-    try {
-      const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
-      const meta = readImageMetadata(bytes, inputOptions);
-      const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
-      const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
-
-      if (customFormat !== undefined) {
-        outParts.push(formatIdentifyCustom(customFormat, baseInPath, meta, bytes.byteLength));
-      } else if (verbose) {
-        const stats = computeImageStats(decodeImage(bytes, inputOptions));
-        outParts.push(
-          `Image: ${inPath}\n` +
-            `  Format: ${meta.format.toUpperCase()}\n` +
-            `  Geometry: ${meta.width}x${meta.height}+0+0\n` +
-            `  Resolution: ${meta.density}x${meta.density}\n` +
-            `  Colorspace: ${spaceLabel}\n` +
-            `  Depth: ${bitDepth}-bit\n` +
-            `  Channels: ${meta.channels}\n` +
-            `  Alpha: ${meta.hasAlpha ? "True" : "False"}\n` +
-            `  Filesize: ${bytes.byteLength}B\n` +
-            `  Entropy: ${stats.entropy.toFixed(4)}\n`
-        );
-      } else {
-        outParts.push(
-          `${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${bytes.byteLength}B 0.000u 0:00.000\n`
-        );
-      }
-    } catch (err) {
-      errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
-      exitCode = 1;
-    }
-  }
-
-  return {
-    exitCode,
-    stdout: outParts.join(""),
-    stderr: errParts.join("")
-  };
+}
+export async function runIdentifyCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<SipsCliResult> {
+    return drainSteps(runIdentifyCliSteps(argv, files, signal), signal);
 }
 
 async function executeVfsImageTool(
   context: CommandContext,
-  runner: (argv: readonly string[], files: Map<string, Uint8Array>) => Promise<SipsCliResult>
+  runner: (argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal) => Promise<SipsCliResult>
 ): Promise<{ exitCode: number }> {
+  let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
@@ -1188,6 +1197,7 @@ async function executeVfsImageTool(
 
     const normalizedArgv = [...argv];
     for (let i = 0; i < normalizedArgv.length; i++) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       const token = normalizedArgv[i]!;
       if (token === "-o" || token === "--out") {
         const next = normalizedArgv[i + 1];
@@ -1216,8 +1226,9 @@ async function executeVfsImageTool(
       }
     }
 
+    context.inputBudget?.check(0);
     const existingSnap = new Map(vfsFiles);
-    const res = await runner(normalizedArgv, vfsFiles);
+    const res = await runner(normalizedArgv, vfsFiles, invocation.signal);
 
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
@@ -1228,6 +1239,7 @@ async function executeVfsImageTool(
     }
 
     for (const [key, val] of vfsFiles.entries()) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (existingSnap.get(key) !== val) {
         const abs = resolveVfsPath(key);
         const parentDir = abs.slice(0, abs.lastIndexOf("/")) || "/";
@@ -1245,26 +1257,32 @@ async function executeVfsImageTool(
   }
 }
 
-export function createSipsCommand(_options: SipsCommandOptions = {}): CommandDefinition {
+export function createSipsCommand(options: SipsCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "sips",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Scriptable image processing system powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return executeVfsImageTool(context, runSipsCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executeVfsImageTool(context, runSipsCli);
+      });
     }
   });
 }
 
 export const sipsCommand: CommandDefinition = createSipsCommand();
 
-export function createIdentifyCommand(_options: SipsCommandOptions = {}): CommandDefinition {
+export function createIdentifyCommand(options: SipsCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "identify",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Inspect image format, dimensions, and metadata via @poe-code/image-ast",
     execute(context: CommandContext) {
-      return executeVfsImageTool(context, runIdentifyCli);
+      return new InputByteBudget(maxInputBytes).run(context, async context => {
+        return executeVfsImageTool(context, runIdentifyCli);
+      });
     }
   });
 }
@@ -1288,4 +1306,15 @@ export type SipsCommandsOptions = SipsCommandOptions;
 
 export function createSipsCommands(options: SipsCommandsOptions = {}): readonly CommandDefinition[] {
     return [createSipsCommand(options)];
+}
+
+async function drainSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
+  try {
+    for (;;) {
+      signal?.throwIfAborted();
+      const next = steps.next();
+      if (next.done) return next.value;
+      await yieldTurn(signal);
+    }
+  } finally { steps.return(undefined as T); }
 }

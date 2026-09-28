@@ -1,3 +1,4 @@
+import { InputByteBudget } from "safe-bash-contracts/io";
 import type { OpBackend, OpBackendContext, OpBackendRequest, OpBindingTarget, OpPreparedBinding } from "./types.js";
 import type { OpHandlerPreparation, OpPreparedEffect, OpPreparedHandler } from "./handler-preparation.js";
 import { createOpTextCodec } from "./encoding.js";
@@ -357,25 +358,23 @@ function approvalManifest(request: OpBackendRequest, requests: readonly OpBacken
 }
 
 export function createOpCommand(options: OpCommandOptions = {}): { name: "op"; execute(context: OpCommandContext): Promise<{ exitCode: number }> } {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   const { backend = createObjectBackend(), authorize, approve, authorizeResolution, approveResolved, approvalMode = "resolved", version = "0.0.1", channel = "stable" } = options;
-  const inputLimits: OpLimits = { maxInputBytes: options.limits?.maxInputBytes ?? Infinity };
-  if (inputLimits.maxInputBytes !== Infinity && (!Number.isSafeInteger(inputLimits.maxInputBytes) || inputLimits.maxInputBytes < 1)) throw new RangeError("Invalid op limit: maxInputBytes");
   const handlers = { ...options.handlers };
   const planners = new Map(Object.entries(handlers).flatMap(([key, handler]) => typeof (handler as Partial<OpPreparedHandler>).prepare === "function" ? [[key, (handler as OpPreparedHandler).prepare.bind(handler)] as const] : []));
   return {
     name: "op",
     async execute(callerContext) {
+      const budget = new InputByteBudget(maxInputBytes);
       const context: OpCommandContext = {
         ...callerContext,
-        stdin: { async *[Symbol.asyncIterator]() {
-          let bytes = 0;
-          for await (const chunk of callerContext.stdin) {
-            callerContext.signal.throwIfAborted();
-            bytes += chunk.byteLength;
-            if (bytes > inputLimits.maxInputBytes) throw new Error(`input exceeds maximum size of ${inputLimits.maxInputBytes} bytes`);
-            yield chunk;
-          }
-        } },
+        stdin: budget.read(callerContext.stdin, callerContext.signal),
+        ...(callerContext.readFile ? { readFile: async (path: string) => {
+          budget.assertOpen();
+          const bytes = await callerContext.readFile!(path);
+          budget.charge(bytes.byteLength);
+          return bytes;
+        } } : {}),
         binding: undefined,
         args: Object.freeze([...callerContext.args]),
         env: Object.freeze({ ...callerContext.env }),

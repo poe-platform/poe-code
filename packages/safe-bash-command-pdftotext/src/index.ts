@@ -1,3 +1,5 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
+import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -25,7 +27,12 @@ import {
   type PdfTextWord
 } from "@poe-code/pdf-ast";
 
+export interface PdftotextLimits {
+  readonly maxInputBytes: number;
+}
+
 export interface PdftotextCommandOptions {
+  readonly limits?: Partial<PdftotextLimits>;
   readonly replace?: boolean;
 }
 
@@ -607,10 +614,8 @@ function renderTsv(
   return rows.join("\n") + "\n";
 }
 
-export function extractPdfToTextBytes(
-  bytes: Uint8Array,
-  argv: readonly string[] = []
-): PdftotextCliResult {
+function* extractPdfToTextBytesSteps(bytes: Uint8Array,
+argv: readonly string[] = []): Generator<void, PdftotextCliResult> {
   const args = parseArgs(argv);
   const stderrParts: string[] = [];
   // Invalid -eol prints direct stderr and continues default platform EOL, even with -q
@@ -704,12 +709,14 @@ export function extractPdfToTextBytes(
   const mode = args.raw ? "raw" : args.layout ? "layout" : "logical";
   const pages: Array<{ pageNumber: number; extracted: PdfExtractedPage }> = [];
   for (let p = firstPage; p <= lastPage; p++) {
+    yield;
     const page = doc.getPage(p - 1);
     let pageCropBoxPt: [number, number, number, number] | undefined;
     if (args.cropbox) {
       let cur: PdfCosDict | undefined = page.pageDict;
       const visited = new Set<PdfCosDict>();
       while (cur && !visited.has(cur)) {
+    yield;
         visited.add(cur);
         const cb = doc.cos.resolveArray(dictGet(cur, "CropBox"));
         if (cb && cb.items.length >= 4) {
@@ -781,6 +788,7 @@ export function extractPdfToTextBytes(
   const eolChar = args.eol === "dos" ? "\r\n" : args.eol === "mac" ? "\r" : "\n";
   let textOut = "";
   for (const { pageNumber, extracted } of pages) {
+    yield;
     let pageText = formatExtractedPageText(extracted, {
       mode,
       rejoinHyphens: mode === "logical" && args.removeHyphens,
@@ -792,6 +800,7 @@ export function extractPdfToTextBytes(
       const annots = extractPageAnnotations(doc.cos, doc.getPage(pageNumber - 1).pageDict);
       const uris: string[] = [];
       for (const ann of annots) {
+    yield;
         if (ann.uri && !pageText.includes(ann.uri) && !uris.includes(ann.uri)) {
           uris.push(ann.uri);
         }
@@ -839,34 +848,58 @@ export function extractPdfToTextBytes(
   };
 }
 
-export async function runPdftotextCli(
-  argv: readonly string[],
-  files: ReadonlyMap<string, Uint8Array>,
-  stdinBytes: Uint8Array = new Uint8Array(0)
-): Promise<PdftotextCliResult> {
-  const args = parseArgs(argv);
-  if (args.error || args.listenc || args.version || args.help) {
-    return extractPdfToTextBytes(new Uint8Array(0), argv);
+export function extractPdfToTextBytes(bytes: Uint8Array,
+argv: readonly string[] = []): PdftotextCliResult {
+  const steps = extractPdfToTextBytesSteps(bytes, argv);
+  for (;;) {
+    const step = steps.next();
+    if (step.done) return step.value;
   }
-  const target = args.inputFile ?? "-";
-  if (target === "-") {
-    return extractPdfToTextBytes(stdinBytes, argv);
-  }
-  const fileBytes = files.get(target);
-  if (!fileBytes) {
-    return {
-      exitCode: 1,
-      output: "",
-      stderr: args.quiet
-        ? ""
-        : `I/O Error: Couldn't open file '${target}': No such file or directory.\n`,
-      outputPath: args.outputFile ?? "-"
-    };
-  }
-  return extractPdfToTextBytes(fileBytes, argv);
+}
+
+function* extractPdfToTextBytesCooperativelySteps(bytes: Uint8Array, argv: readonly string[] = [], signal?: AbortSignal): Generator<void, PdftotextCliResult, void> {
+    const steps = extractPdfToTextBytesSteps(bytes, argv);
+    try {
+        for (;;) {
+            yield;
+            const step = steps.next();
+            if (step.done)
+                return step.value;
+        }
+    }
+    finally {
+        steps.return({ exitCode: 1, output: "", stderr: "", outputPath: "-" });
+    }
+}
+
+function* runPdftotextCliSteps(argv: readonly string[], files: ReadonlyMap<string, Uint8Array>, stdinBytes: Uint8Array = new Uint8Array(0), signal?: AbortSignal): Generator<void, PdftotextCliResult, void> {
+    const args = parseArgs(argv);
+    if (args.error || args.listenc || args.version || args.help) {
+        return (yield* extractPdfToTextBytesCooperativelySteps(new Uint8Array(0), argv, signal));
+    }
+    const target = args.inputFile ?? "-";
+    if (target === "-") {
+        return (yield* extractPdfToTextBytesCooperativelySteps(stdinBytes, argv, signal));
+    }
+    const fileBytes = files.get(target);
+    if (!fileBytes) {
+        return {
+            exitCode: 1,
+            output: "",
+            stderr: args.quiet
+                ? ""
+                : `I/O Error: Couldn't open file '${target}': No such file or directory.\n`,
+            outputPath: args.outputFile ?? "-"
+        };
+    }
+    return (yield* extractPdfToTextBytesCooperativelySteps(fileBytes, argv, signal));
+}
+export async function runPdftotextCli(argv: readonly string[], files: ReadonlyMap<string, Uint8Array>, stdinBytes: Uint8Array = new Uint8Array(0), signal?: AbortSignal): Promise<PdftotextCliResult> {
+    return drainSteps(runPdftotextCliSteps(argv, files, stdinBytes, signal), signal);
 }
 
 export async function pdftotext(context: CommandContext): Promise<{ exitCode: number }> {
+  let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
@@ -874,7 +907,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
     const parsed = parseArgs(argv);
 
     if (parsed.error || parsed.listenc || parsed.version || parsed.help) {
-      const res = extractPdfToTextBytes(new Uint8Array(0), argv);
+      const res = await extractPdfToTextBytesCooperatively(new Uint8Array(0), argv, invocation.signal);
       if (res.stderr) {
         await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
       }
@@ -898,6 +931,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
         chunks.push(chunk);
         total += chunk.byteLength;
         chargeBytes(chunk.byteLength);
@@ -905,6 +939,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
       pdfBytes = new Uint8Array(total);
       let offset = 0;
       for (const c of chunks) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
         pdfBytes.set(c, offset);
         offset += c.byteLength;
       }
@@ -924,7 +959,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
       }
     }
 
-    const res = extractPdfToTextBytes(pdfBytes, argv);
+    const res = await extractPdfToTextBytesCooperatively(pdfBytes, argv, invocation.signal);
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
@@ -958,13 +993,14 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
   }
 }
 
-export function createPdftotextCommand(_options: PdftotextCommandOptions = {}): CommandDefinition {
+export function createPdftotextCommand(options: PdftotextCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "pdftotext",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Extract PDF text, layout, XHTML bounding boxes, and TSV via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return pdftotext(context);
+      return new InputByteBudget(maxInputBytes).run(context, pdftotext);
     }
   });
 }
@@ -996,355 +1032,386 @@ function bytesToBase64(bytes: Uint8Array): string {
   return out;
 }
 
-export async function runPdftohtmlCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  return runPdftohtmlCliSync(argv, files);
-}
-
-export function runPdftohtmlCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): { exitCode: number; stdout: string; stderr: string } {
-  let xmlMode = false;
-  let toStdout = false;
-  let ignoreImages = false;
-  let dataUrls = false;
-  let firstPage = 1;
-  let lastPage = 0;
-  let zoom = 1;
-  let imageFmt: "png" | "jpg" = "png";
-  let encoding = "UTF-8";
-  let password = "";
-  const positionals: string[] = [];
-
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "-v" || arg === "--version") {
-      return { exitCode: 0, stdout: "pdftohtml version 24.08.0\n", stderr: "" };
+function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}, void> {
+    let cooperativeWork = 63;
+    let xmlMode = false;
+    let toStdout = false;
+    let ignoreImages = false;
+    let dataUrls = false;
+    let firstPage = 1;
+    let lastPage = 0;
+    let zoom = 1;
+    let imageFmt: "png" | "jpg" = "png";
+    let encoding = "UTF-8";
+    let password = "";
+    const positionals: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const arg = argv[i]!;
+        if (arg === "-v" || arg === "--version") {
+            return { exitCode: 0, stdout: "pdftohtml version 24.08.0\n", stderr: "" };
+        }
+        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: pdftohtml [options] <PDF-file> [<html-file>|<xml-file>]\n  -xml / -stdout / -s / -i / -noframes / -c / -f <int> / -l <int>\n",
+                stderr: ""
+            };
+        }
+        if (arg === "-xml")
+            xmlMode = true;
+        else if (arg === "-stdout")
+            toStdout = true;
+        else if (arg === "-i")
+            ignoreImages = true;
+        else if (arg === "-dataurls")
+            dataUrls = true;
+        else if (arg === "-f")
+            firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
+        else if (arg === "-l")
+            lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
+        else if (arg === "-zoom") {
+            const z = Number.parseFloat(argv[++i] ?? "1");
+            if (Number.isFinite(z) && z > 0)
+                zoom = z;
+        }
+        else if (arg === "-fmt") {
+            const fmtVal = (argv[++i] ?? "").toLowerCase();
+            if (fmtVal === "png")
+                imageFmt = "png";
+            else if (fmtVal === "jpg" || fmtVal === "jpeg")
+                imageFmt = "jpg";
+            else {
+                return { exitCode: 99, stdout: "", stderr: `Command Line Error: Invalid image format '${fmtVal}'\n` };
+            }
+        }
+        else if (arg === "-enc") {
+            const nextEnc = argv[++i] ?? "";
+            if (!SUPPORTED_ENCODINGS.has(nextEnc)) {
+                return { exitCode: 99, stdout: "", stderr: `Command Line Error: Unknown encoding '${nextEnc}'\n` };
+            }
+            encoding = nextEnc;
+        }
+        else if (arg === "-upw" || arg === "-opw")
+            password = argv[++i] ?? "";
+        else if (arg === "-s" ||
+            arg === "-noframes" ||
+            arg === "-c" ||
+            arg === "-p" ||
+            arg === "-q" ||
+            arg === "-hidden" ||
+            arg === "-nomerge" ||
+            arg === "-nodrm") {
+            // Flag options
+        }
+        else if (!arg.startsWith("-") || arg === "-") {
+            positionals.push(arg);
+        }
     }
-    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-      return {
-        exitCode: 0,
-        stdout: "Usage: pdftohtml [options] <PDF-file> [<html-file>|<xml-file>]\n  -xml / -stdout / -s / -i / -noframes / -c / -f <int> / -l <int>\n",
-        stderr: ""
-      };
+    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+    if (!inputPath) {
+        return { exitCode: 99, stdout: "", stderr: "Usage: pdftohtml [options] <PDF-file> [<html-file>]\n" };
     }
-    if (arg === "-xml") xmlMode = true;
-    else if (arg === "-stdout") toStdout = true;
-    else if (arg === "-i") ignoreImages = true;
-    else if (arg === "-dataurls") dataUrls = true;
-    else if (arg === "-f") firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
-    else if (arg === "-l") lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
-    else if (arg === "-zoom") {
-      const z = Number.parseFloat(argv[++i] ?? "1");
-      if (Number.isFinite(z) && z > 0) zoom = z;
-    } else if (arg === "-fmt") {
-      const fmtVal = (argv[++i] ?? "").toLowerCase();
-      if (fmtVal === "png") imageFmt = "png";
-      else if (fmtVal === "jpg" || fmtVal === "jpeg") imageFmt = "jpg";
-      else {
-        return { exitCode: 99, stdout: "", stderr: `Command Line Error: Invalid image format '${fmtVal}'\n` };
-      }
-    } else if (arg === "-enc") {
-      const nextEnc = argv[++i] ?? "";
-      if (!SUPPORTED_ENCODINGS.has(nextEnc)) {
-        return { exitCode: 99, stdout: "", stderr: `Command Line Error: Unknown encoding '${nextEnc}'\n` };
-      }
-      encoding = nextEnc;
+    const pdfBytes = files.get(inputPath);
+    if (!pdfBytes) {
+        return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
     }
-    else if (arg === "-upw" || arg === "-opw") password = argv[++i] ?? "";
-    else if (
-      arg === "-s" ||
-      arg === "-noframes" ||
-      arg === "-c" ||
-      arg === "-p" ||
-      arg === "-q" ||
-      arg === "-hidden" ||
-      arg === "-nomerge" ||
-      arg === "-nodrm"
-    ) {
-      // Flag options
-    } else if (!arg.startsWith("-") || arg === "-") {
-      positionals.push(arg);
+    let doc: PdfDocument;
+    try {
+        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
     }
-  }
-
-  const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-  if (!inputPath) {
-    return { exitCode: 99, stdout: "", stderr: "Usage: pdftohtml [options] <PDF-file> [<html-file>]\n" };
-  }
-  const pdfBytes = files.get(inputPath);
-  if (!pdfBytes) {
-    return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
-  }
-
-  let doc: PdfDocument;
-  try {
-    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-  } catch (err) {
-    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
-  }
-
-  const totalPages = Math.max(1, doc.pageCount);
-  const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
-  if (firstPage > totalPages || (lastPage > 0 && firstPage > endPage)) {
-    return {
-      exitCode: 99,
-      stdout: "",
-      stderr: `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`
+    catch (err) {
+        return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+    }
+    const totalPages = Math.max(1, doc.pageCount);
+    const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
+    if (firstPage > totalPages || (lastPage > 0 && firstPage > endPage)) {
+        return {
+            exitCode: 99,
+            stdout: "",
+            stderr: `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`
+        };
+    }
+    interface OutlineItem {
+        readonly title: string;
+        readonly pageNumber: number;
+        readonly children: OutlineItem[];
+    }
+    const pageRefToNum = new Map<number, number>();
+    for (let i = 0; i < doc.pageCount; i++) {
+        yield;
+        pageRefToNum.set(doc.getPage(i).ref.objectNumber, i + 1);
+    }
+    const resolveOutlineDestPage = (itemDict: PdfCosDict): number => {
+        const idx = resolveDestinationPageIndex(doc, dictGet(itemDict, "Dest") ?? dictGet(itemDict, "A"));
+        return idx !== undefined ? idx + 1 : 1;
     };
-  }
-
-  interface OutlineItem {
-    readonly title: string;
-    readonly pageNumber: number;
-    readonly children: OutlineItem[];
-  }
-  const pageRefToNum = new Map<number, number>();
-  for (let i = 0; i < doc.pageCount; i++) {
-    pageRefToNum.set(doc.getPage(i).ref.objectNumber, i + 1);
-  }
-  const resolveOutlineDestPage = (itemDict: PdfCosDict): number => {
-    const idx = resolveDestinationPageIndex(doc, dictGet(itemDict, "Dest") ?? dictGet(itemDict, "A"));
-    return idx !== undefined ? idx + 1 : 1;
-  };
-  const collectOutlines = (firstNode: import("@poe-code/pdf-ast").PdfCosNode | undefined, visited = new Set<number>()): OutlineItem[] => {
-    const items: OutlineItem[] = [];
-    let cur = firstNode;
-    while (cur) {
-      if (cur.kind === "ref") {
-        if (visited.has(cur.objectNumber)) break;
-        visited.add(cur.objectNumber);
-      }
-      const dict = doc.cos.resolveDict(cur);
-      if (!dict) break;
-      const tNode = doc.cos.resolve(dictGet(dict, "Title"));
-      const title = tNode?.kind === "string" ? decodePdfString(tNode) : "";
-      const pageNumber = resolveOutlineDestPage(dict);
-      const children = collectOutlines(dictGet(dict, "First"), visited);
-      if (title.length > 0) {
-        items.push({ title, pageNumber, children });
-      }
-      cur = dictGet(dict, "Next");
+    const collectOutlines = (firstNode: import("@poe-code/pdf-ast").PdfCosNode | undefined, visited = new Set<number>()): OutlineItem[] => {
+        const items: OutlineItem[] = [];
+        let cur = firstNode;
+        while (cur) {
+            if (cur.kind === "ref") {
+                if (visited.has(cur.objectNumber))
+                    break;
+                visited.add(cur.objectNumber);
+            }
+            const dict = doc.cos.resolveDict(cur);
+            if (!dict)
+                break;
+            const tNode = doc.cos.resolve(dictGet(dict, "Title"));
+            const title = tNode?.kind === "string" ? decodePdfString(tNode) : "";
+            const pageNumber = resolveOutlineDestPage(dict);
+            const children = collectOutlines(dictGet(dict, "First"), visited);
+            if (title.length > 0) {
+                items.push({ title, pageNumber, children });
+            }
+            cur = dictGet(dict, "Next");
+        }
+        return items;
+    };
+    const catalog = doc.cos.resolveDict(doc.cos.rootRef);
+    const outlinesRoot = catalog ? doc.cos.resolveDict(dictGet(catalog, "Outlines")) : undefined;
+    const outlineTree = outlinesRoot ? collectOutlines(dictGet(outlinesRoot, "First")) : [];
+    let outputText = "";
+    if (xmlMode) {
+        const lines = [
+            `<?xml version="1.0" encoding="UTF-8"?>`,
+            `<!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd">`,
+            `<pdf2xml producer="@poe-code/pdf-ast" version="24.08.0">`
+        ];
+        for (let p = firstPage; p <= endPage; p++) {
+            yield;
+            const page = doc.getPage(p - 1);
+            const { width, height } = page.getSize();
+            const extracted = page.extractPage();
+            const annots = extractPageAnnotations(doc.cos, page.pageDict);
+            const pageImages = ignoreImages ? [] : extractDocumentImages(doc.cos, { firstPage: p, lastPage: p });
+            const fontKeyToBaseFont = new Map<string, string>();
+            const resDict = page.getResourcesDict();
+            const fontSubDict = resDict ? doc.cos.resolveDict(dictGet(resDict, "Font")) : undefined;
+            if (fontSubDict) {
+                for (const entry of fontSubDict.entries) {
+                    if (++cooperativeWork % 64 === 0)
+                        yield;
+                    const fDict = doc.cos.resolveDict(entry.value);
+                    const bfNode = fDict ? doc.cos.resolve(dictGet(fDict, "BaseFont") ?? dictGet(fDict, "Name")) : undefined;
+                    if (bfNode?.kind === "name") {
+                        fontKeyToBaseFont.set(entry.key.decoded, bfNode.decoded);
+                    }
+                    else if (bfNode?.kind === "string") {
+                        fontKeyToBaseFont.set(entry.key.decoded, decodePdfString(bfNode));
+                    }
+                }
+            }
+            const defaultSize = Math.round(12 * zoom);
+            const fontSpecIdByKey = new Map<string, number>([[`Helvetica:${defaultSize}`, 0]]);
+            const fontSpecLines: string[] = [
+                `    <fontspec id="0" size="${defaultSize}" family="Helvetica" color="#000000"/>`
+            ];
+            lines.push(`  <page number="${p}" position="absolute" top="0" left="0" height="${Math.round(height * zoom)}" width="${Math.round(width * zoom)}">`);
+            const imageLines: string[] = [];
+            for (let imgIdx = 0; imgIdx < pageImages.length; imgIdx++) {
+                yield;
+                const img = pageImages[imgIdx]!;
+                const imgBytes = imageFmt === "jpg" ? encodeJpeg(img.bitmap) : encodePng(img.bitmap);
+                const imgFile = `page${p}_${imgIdx + 1}.${imageFmt}`;
+                if (!dataUrls) {
+                    files.set(imgFile, imgBytes);
+                }
+                const mime = imageFmt === "jpg" ? "image/jpeg" : "image/png";
+                const src = dataUrls ? `data:${mime};base64,${bytesToBase64(imgBytes)}` : imgFile;
+                imageLines.push(`    <image top="0" left="0" width="${img.width}" height="${img.height}" src="${src}"/>`);
+            }
+            const textLines: string[] = [];
+            for (const block of extracted.blocks) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                for (const line of block.lines) {
+                    if (++cooperativeWork % 64 === 0)
+                        yield;
+                    const [x0, y0, x1, y1] = line.bbox;
+                    const top = Math.max(0, Math.round((height - y1) * zoom));
+                    const left = Math.max(0, Math.round(x0 * zoom));
+                    const w = Math.max(1, Math.round((x1 - x0) * zoom));
+                    const h = Math.max(1, Math.round((y1 - y0) * zoom));
+                    const firstWord = line.words[0];
+                    const rawFontName = firstWord?.fontName ?? firstWord?.glyphs[0]?.fontName ?? "Helvetica";
+                    const family = fontKeyToBaseFont.get(rawFontName) ?? rawFontName;
+                    const rawFontSize = firstWord?.fontSize ?? firstWord?.glyphs[0]?.fontSize ?? 12;
+                    const scaledSize = Math.max(1, Math.round(rawFontSize * zoom));
+                    const specKey = `${family}:${scaledSize}`;
+                    let specId = fontSpecIdByKey.get(specKey);
+                    if (specId === undefined) {
+                        specId = fontSpecIdByKey.size;
+                        fontSpecIdByKey.set(specKey, specId);
+                        fontSpecLines.push(`    <fontspec id="${specId}" size="${scaledSize}" family="${escapeHtmlXml(family)}" color="#000000"/>`);
+                    }
+                    const matchingLink = annots.find(a => a.uri &&
+                        Math.min(x1, Math.max(a.rect[0], a.rect[2])) > Math.max(x0, Math.min(a.rect[0], a.rect[2])) &&
+                        Math.min(y1, Math.max(a.rect[1], a.rect[3])) > Math.max(y0, Math.min(a.rect[1], a.rect[3])));
+                    let styledText = escapeHtmlXml(line.text);
+                    const lowerFam = family.toLowerCase();
+                    if (lowerFam.includes("italic") || lowerFam.includes("oblique")) {
+                        styledText = `<i>${styledText}</i>`;
+                    }
+                    if (lowerFam.includes("bold")) {
+                        styledText = `<b>${styledText}</b>`;
+                    }
+                    const innerXmlText = matchingLink?.uri
+                        ? `<a href="${escapeHtmlXml(matchingLink.uri)}">${styledText}</a>`
+                        : styledText;
+                    textLines.push(`    <text top="${top}" left="${left}" width="${w}" height="${h}" font="${specId}">${innerXmlText}</text>`);
+                }
+            }
+            lines.push(...fontSpecLines, ...imageLines, ...textLines);
+            lines.push(`  </page>`);
+        }
+        if (outlineTree.length > 0) {
+            const emitXmlOutline = (items: readonly OutlineItem[], indent: string): void => {
+                lines.push(`${indent}<outline>`);
+                for (const it of items) {
+                    lines.push(`${indent}  <item page="${it.pageNumber}">${escapeHtmlXml(it.title)}</item>`);
+                    if (it.children.length > 0) {
+                        emitXmlOutline(it.children, `${indent}  `);
+                    }
+                }
+                lines.push(`${indent}</outline>`);
+            };
+            emitXmlOutline(outlineTree, "  ");
+        }
+        lines.push(`</pdf2xml>`);
+        outputText = lines.join("\n") + "\n";
     }
-    return items;
-  };
-  const catalog = doc.cos.resolveDict(doc.cos.rootRef);
-  const outlinesRoot = catalog ? doc.cos.resolveDict(dictGet(catalog, "Outlines")) : undefined;
-  const outlineTree = outlinesRoot ? collectOutlines(dictGet(outlinesRoot, "First")) : [];
-
-  let outputText = "";
-  if (xmlMode) {
-    const lines = [
-      `<?xml version="1.0" encoding="UTF-8"?>`,
-      `<!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd">`,
-      `<pdf2xml producer="@poe-code/pdf-ast" version="24.08.0">`
-    ];
-    for (let p = firstPage; p <= endPage; p++) {
-      const page = doc.getPage(p - 1);
-      const { width, height } = page.getSize();
-      const extracted = page.extractPage();
-      const annots = extractPageAnnotations(doc.cos, page.pageDict);
-      const pageImages = ignoreImages ? [] : extractDocumentImages(doc.cos, { firstPage: p, lastPage: p });
-      const fontKeyToBaseFont = new Map<string, string>();
-      const resDict = page.getResourcesDict();
-      const fontSubDict = resDict ? doc.cos.resolveDict(dictGet(resDict, "Font")) : undefined;
-      if (fontSubDict) {
-        for (const entry of fontSubDict.entries) {
-          const fDict = doc.cos.resolveDict(entry.value);
-          const bfNode = fDict ? doc.cos.resolve(dictGet(fDict, "BaseFont") ?? dictGet(fDict, "Name")) : undefined;
-          if (bfNode?.kind === "name") {
-            fontKeyToBaseFont.set(entry.key.decoded, bfNode.decoded);
-          } else if (bfNode?.kind === "string") {
-            fontKeyToBaseFont.set(entry.key.decoded, decodePdfString(bfNode));
-          }
+    else {
+        const meta = doc.getMetadata();
+        const title = escapeHtmlXml(meta.title ?? inputPath);
+        const lines = [
+            `<!DOCTYPE html>`,
+            `<html>`,
+            `<head><meta charset="utf-8"/><title>${title}</title></head>`,
+            `<body>`
+        ];
+        for (let p = firstPage; p <= endPage; p++) {
+            yield;
+            const page = doc.getPage(p - 1);
+            const { width, height } = page.getSize();
+            const extracted = page.extractPage();
+            const annots = extractPageAnnotations(doc.cos, page.pageDict);
+            const pageImages = ignoreImages ? [] : extractDocumentImages(doc.cos, { firstPage: p, lastPage: p });
+            lines.push(`<div class="page" id="page${p}" style="position:relative;width:${Math.round(width * zoom)}pt;height:${Math.round(height * zoom)}pt;">`);
+            for (let imgIdx = 0; imgIdx < pageImages.length; imgIdx++) {
+                yield;
+                const img = pageImages[imgIdx]!;
+                const imgBytes = imageFmt === "jpg" ? encodeJpeg(img.bitmap) : encodePng(img.bitmap);
+                const imgFile = `page${p}_${imgIdx + 1}.${imageFmt}`;
+                if (!dataUrls) {
+                    files.set(imgFile, imgBytes);
+                }
+                const mime = imageFmt === "jpg" ? "image/jpeg" : "image/png";
+                const src = dataUrls
+                    ? `data:${mime};base64,${bytesToBase64(imgBytes)}`
+                    : imgFile;
+                lines.push(`  <img src="${src}" width="${img.width}" height="${img.height}"/>`);
+            }
+            for (const block of extracted.blocks) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                for (const line of block.lines) {
+                    if (++cooperativeWork % 64 === 0)
+                        yield;
+                    const [x0, y0, x1, y1] = line.bbox;
+                    const top = Math.max(0, Math.round((height - y1) * zoom));
+                    const left = Math.max(0, Math.round(x0 * zoom));
+                    const matchingLink = annots.find(a => a.uri &&
+                        Math.min(x1, Math.max(a.rect[0], a.rect[2])) > Math.max(x0, Math.min(a.rect[0], a.rect[2])) &&
+                        Math.min(y1, Math.max(a.rect[1], a.rect[3])) > Math.max(y0, Math.min(a.rect[1], a.rect[3])));
+                    const firstWord = line.words[0];
+                    const rawFontName = firstWord?.fontName ?? firstWord?.glyphs[0]?.fontName ?? "Helvetica";
+                    const cleanFontKey = rawFontName.startsWith("/") ? rawFontName.slice(1) : rawFontName;
+                    const resDict = page.getResourcesDict();
+                    const fontSubDict = resDict ? doc.cos.resolveDict(dictGet(resDict, "Font")) : undefined;
+                    const fDict = fontSubDict ? doc.cos.resolveDict(dictGet(fontSubDict, cleanFontKey)) : undefined;
+                    const bfNode = fDict ? doc.cos.resolve(dictGet(fDict, "BaseFont") ?? dictGet(fDict, "Name")) : undefined;
+                    const family = bfNode?.kind === "name"
+                        ? bfNode.decoded
+                        : bfNode?.kind === "string"
+                            ? decodePdfString(bfNode)
+                            : cleanFontKey;
+                    const lowerFont = family.toLowerCase();
+                    let styledHtmlText = escapeHtmlXml(line.text);
+                    if (lowerFont.includes("italic") || lowerFont.includes("oblique")) {
+                        styledHtmlText = `<i>${styledHtmlText}</i>`;
+                    }
+                    if (lowerFont.includes("bold")) {
+                        styledHtmlText = `<b>${styledHtmlText}</b>`;
+                    }
+                    const innerText = matchingLink?.uri
+                        ? `<a href="${escapeHtmlXml(matchingLink.uri)}">${styledHtmlText}</a>`
+                        : styledHtmlText;
+                    lines.push(`  <p style="position:absolute;top:${top}pt;left:${left}pt;margin:0;">${innerText}</p>`);
+                }
+            }
+            lines.push(`</div>`);
         }
-      }
-      const defaultSize = Math.round(12 * zoom);
-      const fontSpecIdByKey = new Map<string, number>([[`Helvetica:${defaultSize}`, 0]]);
-      const fontSpecLines: string[] = [
-        `    <fontspec id="0" size="${defaultSize}" family="Helvetica" color="#000000"/>`
-      ];
-      lines.push(`  <page number="${p}" position="absolute" top="0" left="0" height="${Math.round(height * zoom)}" width="${Math.round(width * zoom)}">`);
-      const imageLines: string[] = [];
-      for (let imgIdx = 0; imgIdx < pageImages.length; imgIdx++) {
-        const img = pageImages[imgIdx]!;
-        const imgBytes = imageFmt === "jpg" ? encodeJpeg(img.bitmap) : encodePng(img.bitmap);
-        const imgFile = `page${p}_${imgIdx + 1}.${imageFmt}`;
-        if (!dataUrls) {
-          files.set(imgFile, imgBytes);
+        if (outlineTree.length > 0) {
+            lines.push(`<hr/>`, `<a name="outline"></a><h1>Document Outline</h1>`);
+            const emitHtmlOutline = (items: readonly OutlineItem[]): void => {
+                lines.push(`<ul>`);
+                for (const it of items) {
+                    lines.push(`<li><a href="#page${it.pageNumber}">${escapeHtmlXml(it.title)}</a>`);
+                    if (it.children.length > 0) {
+                        emitHtmlOutline(it.children);
+                    }
+                    lines.push(`</li>`);
+                }
+                lines.push(`</ul>`);
+            };
+            emitHtmlOutline(outlineTree);
         }
-        const mime = imageFmt === "jpg" ? "image/jpeg" : "image/png";
-        const src = dataUrls ? `data:${mime};base64,${bytesToBase64(imgBytes)}` : imgFile;
-        imageLines.push(`    <image top="0" left="0" width="${img.width}" height="${img.height}" src="${src}"/>`);
-      }
-      const textLines: string[] = [];
-      for (const block of extracted.blocks) {
-        for (const line of block.lines) {
-          const [x0, y0, x1, y1] = line.bbox;
-          const top = Math.max(0, Math.round((height - y1) * zoom));
-          const left = Math.max(0, Math.round(x0 * zoom));
-          const w = Math.max(1, Math.round((x1 - x0) * zoom));
-          const h = Math.max(1, Math.round((y1 - y0) * zoom));
-          const firstWord = line.words[0];
-          const rawFontName = firstWord?.fontName ?? firstWord?.glyphs[0]?.fontName ?? "Helvetica";
-          const family = fontKeyToBaseFont.get(rawFontName) ?? rawFontName;
-          const rawFontSize = firstWord?.fontSize ?? firstWord?.glyphs[0]?.fontSize ?? 12;
-          const scaledSize = Math.max(1, Math.round(rawFontSize * zoom));
-          const specKey = `${family}:${scaledSize}`;
-          let specId = fontSpecIdByKey.get(specKey);
-          if (specId === undefined) {
-            specId = fontSpecIdByKey.size;
-            fontSpecIdByKey.set(specKey, specId);
-            fontSpecLines.push(
-              `    <fontspec id="${specId}" size="${scaledSize}" family="${escapeHtmlXml(family)}" color="#000000"/>`
-            );
-          }
-          const matchingLink = annots.find(
-            a =>
-              a.uri &&
-              Math.min(x1, Math.max(a.rect[0], a.rect[2])) > Math.max(x0, Math.min(a.rect[0], a.rect[2])) &&
-              Math.min(y1, Math.max(a.rect[1], a.rect[3])) > Math.max(y0, Math.min(a.rect[1], a.rect[3]))
-          );
-          let styledText = escapeHtmlXml(line.text);
-          const lowerFam = family.toLowerCase();
-          if (lowerFam.includes("italic") || lowerFam.includes("oblique")) {
-            styledText = `<i>${styledText}</i>`;
-          }
-          if (lowerFam.includes("bold")) {
-            styledText = `<b>${styledText}</b>`;
-          }
-          const innerXmlText = matchingLink?.uri
-            ? `<a href="${escapeHtmlXml(matchingLink.uri)}">${styledText}</a>`
-            : styledText;
-          textLines.push(`    <text top="${top}" left="${left}" width="${w}" height="${h}" font="${specId}">${innerXmlText}</text>`);
-        }
-      }
-      lines.push(...fontSpecLines, ...imageLines, ...textLines);
-      lines.push(`  </page>`);
+        lines.push(`</body>`, `</html>`);
+        outputText = lines.join("\n") + "\n";
     }
-    if (outlineTree.length > 0) {
-      const emitXmlOutline = (items: readonly OutlineItem[], indent: string): void => {
-        lines.push(`${indent}<outline>`);
-        for (const it of items) {
-          lines.push(`${indent}  <item page="${it.pageNumber}">${escapeHtmlXml(it.title)}</item>`);
-          if (it.children.length > 0) {
-            emitXmlOutline(it.children, `${indent}  `);
-          }
-        }
-        lines.push(`${indent}</outline>`);
-      };
-      emitXmlOutline(outlineTree, "  ");
+    outputText = applyPopplerOutputEncoding(outputText, encoding);
+    const explicitOut = positionals[1];
+    if (toStdout || explicitOut === "-" || (inputPath === "-" && !explicitOut)) {
+        return { exitCode: 0, stdout: outputText, stderr: "" };
     }
-    lines.push(`</pdf2xml>`);
-    outputText = lines.join("\n") + "\n";
-  } else {
-    const meta = doc.getMetadata();
-    const title = escapeHtmlXml(meta.title ?? inputPath);
-    const lines = [
-      `<!DOCTYPE html>`,
-      `<html>`,
-      `<head><meta charset="utf-8"/><title>${title}</title></head>`,
-      `<body>`
-    ];
-    for (let p = firstPage; p <= endPage; p++) {
-      const page = doc.getPage(p - 1);
-      const { width, height } = page.getSize();
-      const extracted = page.extractPage();
-      const annots = extractPageAnnotations(doc.cos, page.pageDict);
-      const pageImages = ignoreImages ? [] : extractDocumentImages(doc.cos, { firstPage: p, lastPage: p });
-      lines.push(`<div class="page" id="page${p}" style="position:relative;width:${Math.round(width * zoom)}pt;height:${Math.round(height * zoom)}pt;">`);
-      for (let imgIdx = 0; imgIdx < pageImages.length; imgIdx++) {
-        const img = pageImages[imgIdx]!;
-        const imgBytes = imageFmt === "jpg" ? encodeJpeg(img.bitmap) : encodePng(img.bitmap);
-        const imgFile = `page${p}_${imgIdx + 1}.${imageFmt}`;
-        if (!dataUrls) {
-          files.set(imgFile, imgBytes);
-        }
-        const mime = imageFmt === "jpg" ? "image/jpeg" : "image/png";
-        const src = dataUrls
-          ? `data:${mime};base64,${bytesToBase64(imgBytes)}`
-          : imgFile;
-        lines.push(`  <img src="${src}" width="${img.width}" height="${img.height}"/>`);
-      }
-      for (const block of extracted.blocks) {
-        for (const line of block.lines) {
-          const [x0, y0, x1, y1] = line.bbox;
-          const top = Math.max(0, Math.round((height - y1) * zoom));
-          const left = Math.max(0, Math.round(x0 * zoom));
-          const matchingLink = annots.find(
-            a =>
-              a.uri &&
-              Math.min(x1, Math.max(a.rect[0], a.rect[2])) > Math.max(x0, Math.min(a.rect[0], a.rect[2])) &&
-              Math.min(y1, Math.max(a.rect[1], a.rect[3])) > Math.max(y0, Math.min(a.rect[1], a.rect[3]))
-          );
-              const firstWord = line.words[0];
-          const rawFontName = firstWord?.fontName ?? firstWord?.glyphs[0]?.fontName ?? "Helvetica";
-          const cleanFontKey = rawFontName.startsWith("/") ? rawFontName.slice(1) : rawFontName;
-          const resDict = page.getResourcesDict();
-          const fontSubDict = resDict ? doc.cos.resolveDict(dictGet(resDict, "Font")) : undefined;
-          const fDict = fontSubDict ? doc.cos.resolveDict(dictGet(fontSubDict, cleanFontKey)) : undefined;
-          const bfNode = fDict ? doc.cos.resolve(dictGet(fDict, "BaseFont") ?? dictGet(fDict, "Name")) : undefined;
-          const family =
-            bfNode?.kind === "name"
-              ? bfNode.decoded
-              : bfNode?.kind === "string"
-                ? decodePdfString(bfNode)
-                : cleanFontKey;
-          const lowerFont = family.toLowerCase();
-          let styledHtmlText = escapeHtmlXml(line.text);
-          if (lowerFont.includes("italic") || lowerFont.includes("oblique")) {
-            styledHtmlText = `<i>${styledHtmlText}</i>`;
-          }
-          if (lowerFont.includes("bold")) {
-            styledHtmlText = `<b>${styledHtmlText}</b>`;
-          }
-          const innerText = matchingLink?.uri
-            ? `<a href="${escapeHtmlXml(matchingLink.uri)}">${styledHtmlText}</a>`
-            : styledHtmlText;
-          lines.push(`  <p style="position:absolute;top:${top}pt;left:${left}pt;margin:0;">${innerText}</p>`);
-        }
-      }
-      lines.push(`</div>`);
+    const defaultExt = xmlMode ? ".xml" : ".html";
+    const inputStem = inputPath.toLowerCase().endsWith(".pdf") ? inputPath.slice(0, -4) : inputPath;
+    const outPath = explicitOut
+        ? explicitOut.endsWith(".html") || explicitOut.endsWith(".xml")
+            ? explicitOut
+            : `${explicitOut}${defaultExt}`
+        : inputStem + defaultExt;
+    files.set(outPath, new TextEncoder().encode(outputText));
+    return { exitCode: 0, stdout: "", stderr: "" };
+}
+export async function runPdftohtmlCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}> {
+    return drainSteps(runPdftohtmlCliSteps(argv, files, signal), signal);
+}
+export function runPdftohtmlCliSync(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+} {
+    let steps = runPdftohtmlCliSteps(argv, files, signal), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
     }
-    if (outlineTree.length > 0) {
-      lines.push(`<hr/>`, `<a name="outline"></a><h1>Document Outline</h1>`);
-      const emitHtmlOutline = (items: readonly OutlineItem[]): void => {
-        lines.push(`<ul>`);
-        for (const it of items) {
-          lines.push(`<li><a href="#page${it.pageNumber}">${escapeHtmlXml(it.title)}</a>`);
-          if (it.children.length > 0) {
-            emitHtmlOutline(it.children);
-          }
-          lines.push(`</li>`);
-        }
-        lines.push(`</ul>`);
-      };
-      emitHtmlOutline(outlineTree);
-    }
-    lines.push(`</body>`, `</html>`);
-    outputText = lines.join("\n") + "\n";
-  }
-
-  outputText = applyPopplerOutputEncoding(outputText, encoding);
-  const explicitOut = positionals[1];
-  if (toStdout || explicitOut === "-" || (inputPath === "-" && !explicitOut)) {
-    return { exitCode: 0, stdout: outputText, stderr: "" };
-  }
-  const defaultExt = xmlMode ? ".xml" : ".html";
-  const inputStem = inputPath.toLowerCase().endsWith(".pdf") ? inputPath.slice(0, -4) : inputPath;
-  const outPath = explicitOut
-    ? explicitOut.endsWith(".html") || explicitOut.endsWith(".xml")
-      ? explicitOut
-      : `${explicitOut}${defaultExt}`
-    : inputStem + defaultExt;
-  files.set(outPath, new TextEncoder().encode(outputText));
-  return { exitCode: 0, stdout: "", stderr: "" };
+    return next.value;
 }
 
 export async function pdftohtml(context: CommandContext): Promise<{ exitCode: number }> {
+  let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
@@ -1362,6 +1429,7 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
 
     let inputOperand: string | undefined;
     for (let i = 0; i < argv.length; i++) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       const arg = argv[i]!;
       if (["-f", "-l", "-zoom", "-fmt", "-enc", "-upw", "-opw"].includes(arg)) {
         i++;
@@ -1374,6 +1442,7 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
         chunks.push(chunk);
         total += chunk.byteLength;
         chargeBytes(chunk.byteLength);
@@ -1382,6 +1451,7 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
         const buf = new Uint8Array(total);
         let off = 0;
         for (const c of chunks) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
           buf.set(c, off);
           off += c.byteLength;
         }
@@ -1390,6 +1460,7 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
     }
 
     for (const token of argv) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (token.startsWith("-") && token !== "-") continue;
       try {
         const bytes = await context.fs.readFile(resolveVfsPath(token), { signal: invocation.signal });
@@ -1399,8 +1470,9 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
         // Non-existing output path
       }
     }
+    context.inputBudget?.check(0);
     const existingSnap = new Map(vfsFiles);
-    const res = await runPdftohtmlCli(argv, vfsFiles);
+    const res = await runPdftohtmlCli(argv, vfsFiles, invocation.signal);
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
@@ -1411,6 +1483,7 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
       await writeBytes(stdout.output, outBytes, invocation.signal);
     }
     for (const [key, val] of vfsFiles.entries()) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (existingSnap.get(key) !== val) {
         chargeBytes(val.byteLength);
         const abs = resolveVfsPath(key);
@@ -1423,13 +1496,14 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
   }
 }
 
-export function createPdftohtmlCommand(_options: PdftotextCommandOptions = {}): CommandDefinition {
+export function createPdftohtmlCommand(options: PdftotextCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "pdftohtml",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Convert PDF pages into HTML or XML layout documents via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return pdftohtml(context);
+      return new InputByteBudget(maxInputBytes).run(context, pdftohtml);
     }
   });
 }
@@ -1451,4 +1525,15 @@ export type PdftotextCommandsOptions = PdftotextCommandOptions;
 
 export function createPdftotextCommands(options: PdftotextCommandsOptions = {}): readonly CommandDefinition[] {
   return Object.freeze([createPdftotextCommand(options), createPdftohtmlCommand(options)]);
+}
+
+async function drainSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
+  try {
+    for (;;) {
+      signal?.throwIfAborted();
+      const next = steps.next();
+      if (next.done) return next.value;
+      await yieldTurn(signal);
+    }
+  } finally { steps.return(undefined as T); }
 }

@@ -39,3 +39,5 @@ The workspace entrypoint exports `pdfinfoCommands()` for plugin registration,
 `createPdfinfoCommands()` for the command collection, and
 `createPdfinfoCommand()` for a single command. Each accepts an optional
 `PdfinfoCommandsOptions` object; existing factory names remain available.
+
+Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdfinfoLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.

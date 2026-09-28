@@ -1,3 +1,5 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
+import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -31,7 +33,12 @@ import {
   type PdfCosRef,
 } from "@poe-code/pdf-ast";
 
+export interface PdftkLimits {
+  readonly maxInputBytes: number;
+}
+
 export interface PdftkCommandOptions {
+  readonly limits?: Partial<PdftkLimits>;
   readonly replace?: boolean;
 }
 
@@ -1488,506 +1495,563 @@ function normalizeQuarterTurn(degrees: number): 0 | 90 | 180 | 270 {
   return 0;
 }
 
-export async function runPdftkCli(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): Promise<PdftkCliResult> {
-  return runPdftkCliSync(argv, files);
-}
-
-export function runPdftkCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): PdftkCliResult {
-  if (argv.length === 0 || argv.includes("--help") || argv.includes("-h")) {
-    return {
-      exitCode: 0,
-      stdout:
-        "Usage: pdftk <input PDF files | [handle]=filename ...> [<operation> <operation arguments>] [output <output filename>] [flatten]\n",
-      stderr: "",
-    };
-  }
-  if (argv.includes("--version") || argv.includes("-v")) {
-    return { exitCode: 0, stdout: "pdftk port to Java 3.3.3 (safe-bash @poe-code/pdf-ast)\n", stderr: "" };
-  }
-
-  const inputPasswords = new Map<string, string>();
-  let defaultInputPassword = "";
-  for (let p = 0; p < argv.length; p++) {
-    if (argv[p]?.toLowerCase() === "input_pw") {
-      for (let q = p + 1; q < argv.length; q++) {
-        const tok = argv[q]!;
-        if (PDFTK_OPERATIONS.has(tok.toLowerCase())) break;
-        const eq = tok.indexOf("=");
-        if (eq > 0) inputPasswords.set(tok.slice(0, eq), tok.slice(eq + 1));
-        else defaultInputPassword = tok;
-      }
+function* runPdftkCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, PdftkCliResult, void> {
+    let cooperativeWork = 63;
+    if (argv.length === 0 || argv.includes("--help") || argv.includes("-h")) {
+        return {
+            exitCode: 0,
+            stdout: "Usage: pdftk <input PDF files | [handle]=filename ...> [<operation> <operation arguments>] [output <output filename>] [flatten]\n",
+            stderr: "",
+        };
     }
-  }
-
-  const handles = new Map<string, PdfDocument>();
-  const orderedDocs: Array<{ handle: string; doc: PdfDocument }> = [];
-  let idx = 0;
-  let autoHandleCharCode = 65;
-
-  while (idx < argv.length) {
-    const token = argv[idx]!;
-    if (PDFTK_OPERATIONS.has(token.toLowerCase()) || token.toLowerCase() === "input_pw") break;
+    if (argv.includes("--version") || argv.includes("-v")) {
+        return { exitCode: 0, stdout: "pdftk port to Java 3.3.3 (safe-bash @poe-code/pdf-ast)\n", stderr: "" };
+    }
+    const inputPasswords = new Map<string, string>();
+    let defaultInputPassword = "";
+    for (let p = 0; p < argv.length; p++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        if (argv[p]?.toLowerCase() === "input_pw") {
+            for (let q = p + 1; q < argv.length; q++) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                const tok = argv[q]!;
+                if (PDFTK_OPERATIONS.has(tok.toLowerCase()))
+                    break;
+                const eq = tok.indexOf("=");
+                if (eq > 0)
+                    inputPasswords.set(tok.slice(0, eq), tok.slice(eq + 1));
+                else
+                    defaultInputPassword = tok;
+            }
+        }
+    }
+    const handles = new Map<string, PdfDocument>();
+    const orderedDocs: Array<{
+        handle: string;
+        doc: PdfDocument;
+    }> = [];
+    let idx = 0;
+    let autoHandleCharCode = 65;
+    while (idx < argv.length) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const token = argv[idx]!;
+        if (PDFTK_OPERATIONS.has(token.toLowerCase()) || token.toLowerCase() === "input_pw")
+            break;
+        idx++;
+        let handleName = "";
+        let filePath = token;
+        const eqIdx = token.indexOf("=");
+        if (eqIdx > 0) {
+            handleName = token.slice(0, eqIdx);
+            filePath = token.slice(eqIdx + 1);
+        }
+        else {
+            handleName = String.fromCharCode(autoHandleCharCode++);
+        }
+        const pdfBytes = files.get(filePath);
+        if (!pdfBytes) {
+            return { exitCode: 1, stdout: "", stderr: `Error: Unable to find file '${filePath}'\n` };
+        }
+        const pw = inputPasswords.get(handleName) ?? defaultInputPassword;
+        let doc: PdfDocument;
+        try {
+            doc = PdfDocument.load(pdfBytes, pw ? { password: pw } : undefined);
+        }
+        catch (err) {
+            return { exitCode: 1, stdout: "", stderr: `Error: Failed to open PDF '${filePath}': ${(err as Error).message}\n` };
+        }
+        handles.set(handleName, doc);
+        if (!handles.has(""))
+            handles.set("", doc);
+        orderedDocs.push({ handle: handleName, doc });
+    }
+    if (orderedDocs.length === 0) {
+        return { exitCode: 1, stdout: "", stderr: "Error: No input PDF files specified.\n" };
+    }
+    while (idx < argv.length && argv[idx]?.toLowerCase() === "input_pw") {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        idx++;
+        while (idx < argv.length && !PDFTK_OPERATIONS.has(argv[idx]!.toLowerCase())) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            idx++;
+        }
+    }
+    const primaryDoc = orderedDocs[0]!.doc;
+    const primaryHandle = orderedDocs[0]!.handle;
+    const operation = (argv[idx] ?? "cat").toLowerCase();
     idx++;
-
-    let handleName = "";
-    let filePath = token;
-    const eqIdx = token.indexOf("=");
-    if (eqIdx > 0) {
-      handleName = token.slice(0, eqIdx);
-      filePath = token.slice(eqIdx + 1);
-    } else {
-      handleName = String.fromCharCode(autoHandleCharCode++);
+    const opArgs: string[] = [];
+    let outputTarget: string | undefined;
+    if (operation === "output") {
+        outputTarget = argv[idx++];
     }
-
-    const pdfBytes = files.get(filePath);
-    if (!pdfBytes) {
-      return { exitCode: 1, stdout: "", stderr: `Error: Unable to find file '${filePath}'\n` };
-    }
-    const pw = inputPasswords.get(handleName) ?? defaultInputPassword;
-    let doc: PdfDocument;
-    try {
-      doc = PdfDocument.load(pdfBytes, pw ? { password: pw } : undefined);
-    } catch (err) {
-      return { exitCode: 1, stdout: "", stderr: `Error: Failed to open PDF '${filePath}': ${(err as Error).message}\n` };
-    }
-    handles.set(handleName, doc);
-    if (!handles.has("")) handles.set("", doc);
-    orderedDocs.push({ handle: handleName, doc });
-  }
-
-  if (orderedDocs.length === 0) {
-    return { exitCode: 1, stdout: "", stderr: "Error: No input PDF files specified.\n" };
-  }
-
-  while (idx < argv.length && argv[idx]?.toLowerCase() === "input_pw") {
-    idx++;
-    while (idx < argv.length && !PDFTK_OPERATIONS.has(argv[idx]!.toLowerCase())) {
-      idx++;
-    }
-  }
-
-  const primaryDoc = orderedDocs[0]!.doc;
-  const primaryHandle = orderedDocs[0]!.handle;
-  const operation = (argv[idx] ?? "cat").toLowerCase();
-  idx++;
-
-  const opArgs: string[] = [];
-  let outputTarget: string | undefined;
-  if (operation === "output") {
-    outputTarget = argv[idx++];
-  }
-  let shouldFlatten = false;
-  let needAppearances = false;
-  let dropXfa = false;
-  let dropXmp = false;
-  let replacementFont: string | undefined;
-  let keepFirstId = false;
-  let keepFinalId = false;
-  let uncompressStreams = false;
-  let compressStreams = false;
-  let userPassword: string | undefined;
-  let ownerPassword: string | undefined;
-  const allowPermissions = new Set<string>();
-  const ALLOW_KEYWORDS = new Set([
-    "printing",
-    "degradedprinting",
-    "modifycontents",
-    "assembly",
-    "copycontents",
-    "screenreaders",
-    "modifyannotations",
-    "fillin",
-    "allfeatures"
-  ]);
-
-  while (idx < argv.length) {
-    const tok = argv[idx++]!;
-    const lower = tok.toLowerCase();
-    if (lower === "output") {
-      outputTarget = argv[idx++];
-    } else if (lower === "flatten") {
-      shouldFlatten = true;
-    } else if (lower === "need_appearances") {
-      needAppearances = true;
-    } else if (lower === "user_pw") {
-      userPassword = argv[idx++];
-    } else if (lower === "owner_pw") {
-      ownerPassword = argv[idx++];
-    } else if (lower === "allow") {
-      while (idx < argv.length && ALLOW_KEYWORDS.has(argv[idx]!.toLowerCase())) {
-        allowPermissions.add(argv[idx++]!.toLowerCase());
-      }
-    } else if (lower === "keep_first_id") {
-      keepFirstId = true;
-    } else if (lower === "keep_final_id") {
-      keepFinalId = true;
-    } else if (lower === "uncompress") {
-      uncompressStreams = true;
-    } else if (lower === "compress") {
-      compressStreams = true;
-    } else if (
-      lower === "dont_ask" ||
-      lower === "do_ask" ||
-      lower === "encrypt_128bit" ||
-      lower === "encrypt_40bit" ||
-      lower === "verbose"
-    ) {
-      // Standard PDFtk flags
-    } else if (lower === "drop_xfa") {
-      dropXfa = true;
-    } else if (lower === "drop_xmp") {
-      dropXmp = true;
-    } else if (lower === "replacement_font") {
-      replacementFont = argv[idx++];
-    } else {
-      opArgs.push(tok);
-    }
-  }
-
-  if (operation === "dump_data_fields" || operation === "dump_data_fields_utf8") {
-    const text = formatDumpDataFields(primaryDoc, operation === "dump_data_fields_utf8");
-    if (outputTarget && outputTarget !== "-") {
-      files.set(outputTarget, new TextEncoder().encode(text));
-      return { exitCode: 0, stdout: "", stderr: "" };
-    }
-    return { exitCode: 0, stdout: text, stderr: "" };
-  }
-
-  if (operation === "dump_data" || operation === "dump_data_utf8") {
-    const text = formatDumpData(primaryDoc, operation === "dump_data_utf8");
-    if (outputTarget && outputTarget !== "-") {
-      files.set(outputTarget, new TextEncoder().encode(text));
-      return { exitCode: 0, stdout: "", stderr: "" };
-    }
-    return { exitCode: 0, stdout: text, stderr: "" };
-  }
-
-  if (operation === "dump_data_annots" || operation === "dump_data_annots_utf8") {
-    const text = formatDumpDataAnnots(primaryDoc, operation === "dump_data_annots_utf8");
-    if (outputTarget && outputTarget !== "-") {
-      files.set(outputTarget, new TextEncoder().encode(text));
-      return { exitCode: 0, stdout: "", stderr: "" };
-    }
-    return { exitCode: 0, stdout: text, stderr: "" };
-  }
-
-  if (operation === "burst") {
-    const pattern = outputTarget ?? "pg_%04d.pdf";
-    for (let p = 1; p <= primaryDoc.pageCount; p++) {
-      const singleDoc = PdfDocument.create();
-      copyPrimaryMetadata(primaryDoc, singleDoc);
-      singleDoc.copyPagesFrom(primaryDoc, [p - 1]);
-      if (shouldFlatten) {
-        flattenDocumentFormFields(singleDoc.cos);
-      }
-      if (uncompressStreams || compressStreams) {
-        for (const obj of singleDoc.cos.objects.values()) {
-          if (obj.value.kind !== "stream") continue;
-          const raw = singleDoc.cos.decodeStream(obj.value);
-          dictDelete(obj.value.dict, "Filter");
-          dictDelete(obj.value.dict, "DecodeParms");
-          singleDoc.cos.objects.set(obj.objectNumber, {
-            ...obj,
-            value: cosStream(raw, {
-              dict: obj.value.dict,
-              compress: !uncompressStreams && compressStreams
-            })
-          });
+    let shouldFlatten = false;
+    let needAppearances = false;
+    let dropXfa = false;
+    let dropXmp = false;
+    let replacementFont: string | undefined;
+    let keepFirstId = false;
+    let keepFinalId = false;
+    let uncompressStreams = false;
+    let compressStreams = false;
+    let userPassword: string | undefined;
+    let ownerPassword: string | undefined;
+    const allowPermissions = new Set<string>();
+    const ALLOW_KEYWORDS = new Set([
+        "printing",
+        "degradedprinting",
+        "modifycontents",
+        "assembly",
+        "copycontents",
+        "screenreaders",
+        "modifyannotations",
+        "fillin",
+        "allfeatures"
+    ]);
+    while (idx < argv.length) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const tok = argv[idx++]!;
+        const lower = tok.toLowerCase();
+        if (lower === "output") {
+            outputTarget = argv[idx++];
         }
-      }
-      const outName = formatBurstFilename(pattern, p);
-      files.set(outName, singleDoc.save());
-    }
-    const lastSlash = pattern.lastIndexOf("/");
-    const docDataPath = lastSlash !== -1 ? `${pattern.slice(0, lastSlash + 1)}doc_data.txt` : "doc_data.txt";
-    files.set(docDataPath, new TextEncoder().encode(formatDumpData(primaryDoc)));
-    return { exitCode: 0, stdout: "", stderr: "" };
-  }
-
-  if (operation === "generate_fdf") {
-    const fdfText = formatGenerateFdf(primaryDoc);
-    if (outputTarget && outputTarget !== "-") {
-      files.set(outputTarget, new TextEncoder().encode(fdfText));
-      return { exitCode: 0, stdout: "", stderr: "" };
-    }
-    return { exitCode: 0, stdout: fdfText, stderr: "" };
-  }
-
-  if (operation === "unpack_files") {
-    unpackFilesFromDocument(primaryDoc, outputTarget ?? ".", files);
-    return { exitCode: 0, stdout: "", stderr: "" };
-  }
-
-  let resultDoc = primaryDoc;
-
-  if (operation === "update_info" || operation === "update_info_utf8") {
-    const infoFile = opArgs[0] ?? "-";
-    const infoBytes = files.get(infoFile);
-    if (!infoBytes) {
-      return { exitCode: 1, stdout: "", stderr: `Error: Unable to open info file '${infoFile}'\n` };
-    }
-    applyUpdateInfoText(resultDoc, new TextDecoder().decode(infoBytes));
-  } else if (operation === "attach_files") {
-    const filesToAttach: string[] = [];
-    let toPageSpec: string | undefined;
-    for (let k = 0; k < opArgs.length; k++) {
-      if (opArgs[k]?.toLowerCase() === "to_page") {
-        toPageSpec = opArgs[++k];
-        continue;
-      }
-      filesToAttach.push(opArgs[k]!);
-    }
-    attachFilesToDocument(resultDoc, filesToAttach, files, toPageSpec);
-  } else if (operation === "fill_form") {
-    const dataFile = opArgs[0] ?? "-";
-    const dataBytes = files.get(dataFile);
-    if (!dataBytes) {
-      return { exitCode: 1, stdout: "", stderr: `Error: Unable to open form data file '${dataFile}'\n` };
-    }
-    const fieldValues = parseFormDataBytes(dataBytes);
-    for (const [k, v] of fieldValues.entries()) {
-      setDocumentFormField(resultDoc.cos, k, v);
-    }
-    if (shouldFlatten) {
-      flattenDocumentFormFields(resultDoc.cos);
-    }
-  } else if (operation === "flatten") {
-    flattenDocumentFormFields(resultDoc.cos);
-  } else if (operation === "cat" || operation === "shuffle") {
-    resultDoc = PdfDocument.create();
-    copyPrimaryMetadata(primaryDoc, resultDoc);
-    const selections: ExpandedPageSelection[] = [];
-    if (opArgs.length === 0) {
-      for (const item of orderedDocs) {
-        for (let p = 1; p <= item.doc.pageCount; p++) {
-          selections.push({ handle: item.handle, pageNumber: p });
+        else if (lower === "flatten") {
+            shouldFlatten = true;
         }
-      }
-    } else if (operation === "shuffle") {
-      const groups = opArgs.map(arg => parsePdftkRangeToken(arg, handles, primaryHandle));
-      const maxLen = Math.max(0, ...groups.map(g => g.length));
-      for (let k = 0; k < maxLen; k++) {
-        for (const g of groups) {
-          if (k < g.length) selections.push(g[k]!);
+        else if (lower === "need_appearances") {
+            needAppearances = true;
         }
-      }
-    } else {
-      for (const arg of opArgs) {
-        selections.push(...parsePdftkRangeToken(arg, handles, primaryHandle));
-      }
-    }
-
-    const bookmarksByDoc = new Map<PdfDocument, Array<{ title: string; level: number; pageNumber: number }>>();
-    const getDocBookmarks = (d: PdfDocument) => {
-      let cached = bookmarksByDoc.get(d);
-      if (!cached) {
-        cached = [];
-        const cat = d.cos.resolveDict(d.cos.rootRef);
-        const outDict = cat ? d.cos.resolveDict(dictGet(cat, "Outlines")) : undefined;
-        if (outDict) {
-          collectOutlineBookmarks(d, dictGet(outDict, "First"), 1, cached);
+        else if (lower === "user_pw") {
+            userPassword = argv[idx++];
         }
-        bookmarksByDoc.set(d, cached);
-      }
-      return cached;
-    };
-    const remappedBookmarks: Array<{ title: string; level: number; pageNumber: number }> = [];
-
-    for (let sIdx = 0; sIdx < selections.length; sIdx++) {
-      const sel = selections[sIdx]!;
-      const srcDoc = handles.get(sel.handle) ?? primaryDoc;
-      const [copied] = resultDoc.copyPagesFrom(srcDoc, [sel.pageNumber - 1]);
-      if (copied && sel.rotation) {
-        const currentRot = copied.getRotation();
-        const rawRot =
-          sel.rotation.kind === "absolute"
-            ? sel.rotation.degrees
-            : currentRot + sel.rotation.degrees;
-        copied.setRotation(normalizeQuarterTurn(rawRot));
-      }
-      for (const bm of getDocBookmarks(srcDoc)) {
-        if (bm.pageNumber === sel.pageNumber) {
-          remappedBookmarks.push({
-            title: bm.title,
-            level: bm.level,
-            pageNumber: sIdx + 1,
-          });
+        else if (lower === "owner_pw") {
+            ownerPassword = argv[idx++];
         }
-      }
-    }
-    setDocumentBookmarks(resultDoc, remappedBookmarks);
-    const usedDocs = new Set<PdfDocument>();
-    for (const sel of selections) {
-      const d = handles.get(sel.handle) ?? primaryDoc;
-      usedDocs.add(d);
-    }
-    const unpackedMap = new Map<string, Uint8Array>();
-    for (const d of usedDocs) {
-      unpackFilesFromDocument(d, ".", unpackedMap);
-    }
-    if (unpackedMap.size > 0) {
-      attachFilesToDocument(resultDoc, [...unpackedMap.keys()], unpackedMap);
-    }
-    if (shouldFlatten) {
-      flattenDocumentFormFields(resultDoc.cos);
-    }
-  } else if (operation === "rotate") {
-    const rotByPage = new Map<number, RotationSpec>();
-    for (const arg of opArgs) {
-      for (const sel of parsePdftkRangeToken(arg, handles, primaryHandle)) {
-        if (sel.rotation) rotByPage.set(sel.pageNumber, sel.rotation);
-      }
-    }
-    for (let p = 1; p <= resultDoc.pageCount; p++) {
-      const spec = rotByPage.get(p);
-      if (spec) {
-        const page = resultDoc.getPage(p - 1);
-        const rawRot =
-          spec.kind === "absolute"
-            ? spec.degrees
-            : page.getRotation() + spec.degrees;
-        page.setRotation(normalizeQuarterTurn(rawRot));
-      }
-    }
-  } else if (
-    operation === "background" ||
-    operation === "multibackground" ||
-    operation === "stamp" ||
-    operation === "multistamp"
-  ) {
-    const overlayPath = opArgs[0];
-    const overlayBytes = overlayPath ? files.get(overlayPath) : undefined;
-    if (!overlayBytes) {
-      return { exitCode: 1, stdout: "", stderr: `Error: Unable to open '${overlayPath ?? ""}'\n` };
-    }
-    const overlayDoc = PdfDocument.load(overlayBytes);
-    applyOverlayToDocument(
-      resultDoc,
-      overlayDoc,
-      operation.includes("background") ? "background" : "stamp",
-      operation.startsWith("multi")
-    );
-    if (shouldFlatten) {
-      flattenDocumentFormFields(resultDoc.cos);
-    }
-  } else if (operation === "output") {
-    if (shouldFlatten) {
-      flattenDocumentFormFields(resultDoc.cos);
-    }
-  }
-
-  if (dropXfa) {
-    const root = resultDoc.cos.resolveDict(resultDoc.cos.rootRef);
-    const acroForm = root ? resultDoc.cos.resolveDict(dictGet(root, "AcroForm")) : undefined;
-    if (acroForm) dictDelete(acroForm, "XFA");
-  }
-
-  if (dropXmp) {
-    const root = resultDoc.cos.resolveDict(resultDoc.cos.rootRef);
-    if (root) dictDelete(root, "Metadata");
-  }
-
-  if (replacementFont && operation === "fill_form") {
-    const cleanFontName = replacementFont.startsWith("/") ? replacementFont.slice(1) : replacementFont;
-    for (const obj of resultDoc.cos.objects.values()) {
-      if (obj.value.kind === "dict") {
-        const stNode = dictGet(obj.value, "Subtype");
-        const bfNode = dictGet(obj.value, "BaseFont");
-        const subtype = stNode?.kind === "name" ? stNode.decoded : undefined;
-        const baseFont = bfNode?.kind === "name" ? bfNode.decoded : undefined;
-        if (subtype === "Type1" && baseFont === "Helvetica") {
-          dictSet(obj.value, "BaseFont", cosName(cleanFontName));
+        else if (lower === "allow") {
+            while (idx < argv.length && ALLOW_KEYWORDS.has(argv[idx]!.toLowerCase())) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                allowPermissions.add(argv[idx++]!.toLowerCase());
+            }
         }
-      }
+        else if (lower === "keep_first_id") {
+            keepFirstId = true;
+        }
+        else if (lower === "keep_final_id") {
+            keepFinalId = true;
+        }
+        else if (lower === "uncompress") {
+            uncompressStreams = true;
+        }
+        else if (lower === "compress") {
+            compressStreams = true;
+        }
+        else if (lower === "dont_ask" ||
+            lower === "do_ask" ||
+            lower === "encrypt_128bit" ||
+            lower === "encrypt_40bit" ||
+            lower === "verbose") {
+            // Standard PDFtk flags
+        }
+        else if (lower === "drop_xfa") {
+            dropXfa = true;
+        }
+        else if (lower === "drop_xmp") {
+            dropXmp = true;
+        }
+        else if (lower === "replacement_font") {
+            replacementFont = argv[idx++];
+        }
+        else {
+            opArgs.push(tok);
+        }
     }
-  }
-
-  if (operation === "fill_form" && !shouldFlatten) {
-    const root = resultDoc.cos.resolveDict(resultDoc.cos.rootRef);
-    const acroForm = root ? resultDoc.cos.resolveDict(dictGet(root, "AcroForm")) : undefined;
-    if (acroForm) {
-      dictSet(acroForm, "NeedAppearances", { kind: "boolean", value: needAppearances });
+    if (operation === "dump_data_fields" || operation === "dump_data_fields_utf8") {
+        const text = formatDumpDataFields(primaryDoc, operation === "dump_data_fields_utf8");
+        if (outputTarget && outputTarget !== "-") {
+            files.set(outputTarget, new TextEncoder().encode(text));
+            return { exitCode: 0, stdout: "", stderr: "" };
+        }
+        return { exitCode: 0, stdout: text, stderr: "" };
     }
-  } else if (needAppearances && !shouldFlatten) {
-    const root = resultDoc.cos.resolveDict(resultDoc.cos.rootRef);
-    if (root) {
-      const acroForm = resultDoc.cos.resolveDict(dictGet(root, "AcroForm"));
-      if (acroForm) {
-        dictSet(acroForm, "NeedAppearances", { kind: "boolean", value: true });
-      }
+    if (operation === "dump_data" || operation === "dump_data_utf8") {
+        const text = formatDumpData(primaryDoc, operation === "dump_data_utf8");
+        if (outputTarget && outputTarget !== "-") {
+            files.set(outputTarget, new TextEncoder().encode(text));
+            return { exitCode: 0, stdout: "", stderr: "" };
+        }
+        return { exitCode: 0, stdout: text, stderr: "" };
     }
-  }
-
-  const handleDocs = [...handles.values()];
-  if (keepFinalId) {
-    const lastInput = handleDocs[handleDocs.length - 1];
-    if (lastInput?.cos.idArray) {
-      resultDoc.cos.idArray = cosArray([...lastInput.cos.idArray.items]);
+    if (operation === "dump_data_annots" || operation === "dump_data_annots_utf8") {
+        const text = formatDumpDataAnnots(primaryDoc, operation === "dump_data_annots_utf8");
+        if (outputTarget && outputTarget !== "-") {
+            files.set(outputTarget, new TextEncoder().encode(text));
+            return { exitCode: 0, stdout: "", stderr: "" };
+        }
+        return { exitCode: 0, stdout: text, stderr: "" };
     }
-  } else if (keepFirstId || !resultDoc.cos.idArray) {
-    const firstInput = handleDocs[0];
-    if (firstInput?.cos.idArray) {
-      resultDoc.cos.idArray = cosArray([...firstInput.cos.idArray.items]);
-    }
-  }
-
-  if (uncompressStreams || compressStreams) {
-    for (const obj of resultDoc.cos.objects.values()) {
-      if (obj.value.kind !== "stream") continue;
-      const raw = resultDoc.cos.decodeStream(obj.value);
-      dictDelete(obj.value.dict, "Filter");
-      dictDelete(obj.value.dict, "DecodeParms");
-      resultDoc.cos.objects.set(obj.objectNumber, {
-        ...obj,
-        value: cosStream(raw, {
-          dict: obj.value.dict,
-          compress: !uncompressStreams && compressStreams,
-        }),
-      });
-    }
-  }
-
-  const hasAllow = allowPermissions.size > 0;
-  const allAllowed = allowPermissions.has("allfeatures");
-  const savedBytes = resultDoc.save(
-    userPassword || ownerPassword
-      ? {
-          encrypt: {
-            userPassword: userPassword ?? "",
-            ownerPassword: ownerPassword ?? userPassword ?? "owner",
-            revision: 6,
-            ...(hasAllow
-              ? {
-                  permissions: {
-                    print: allAllowed || allowPermissions.has("printing") || allowPermissions.has("degradedprinting"),
-                    modify: allAllowed || allowPermissions.has("modifycontents"),
-                    copy: allAllowed || allowPermissions.has("copycontents"),
-                    addNotes: allAllowed || allowPermissions.has("modifyannotations"),
-                    fillForms: allAllowed || allowPermissions.has("fillin") || allowPermissions.has("modifyannotations"),
-                    extractAccessibility: allAllowed || allowPermissions.has("screenreaders"),
-                    assemble: allAllowed || allowPermissions.has("assembly") || allowPermissions.has("modifycontents"),
-                    printHighRes: allAllowed || allowPermissions.has("printing")
-                  }
+    if (operation === "burst") {
+        const pattern = outputTarget ?? "pg_%04d.pdf";
+        for (let p = 1; p <= primaryDoc.pageCount; p++) {
+            yield;
+            const singleDoc = PdfDocument.create();
+            copyPrimaryMetadata(primaryDoc, singleDoc);
+            singleDoc.copyPagesFrom(primaryDoc, [p - 1]);
+            if (shouldFlatten) {
+                flattenDocumentFormFields(singleDoc.cos);
+            }
+            if (uncompressStreams || compressStreams) {
+                for (const obj of singleDoc.cos.objects.values()) {
+                    if (++cooperativeWork % 64 === 0)
+                        yield;
+                    if (obj.value.kind !== "stream")
+                        continue;
+                    const raw = singleDoc.cos.decodeStream(obj.value);
+                    dictDelete(obj.value.dict, "Filter");
+                    dictDelete(obj.value.dict, "DecodeParms");
+                    singleDoc.cos.objects.set(obj.objectNumber, {
+                        ...obj,
+                        value: cosStream(raw, {
+                            dict: obj.value.dict,
+                            compress: !uncompressStreams && compressStreams
+                        })
+                    });
                 }
-              : {})
-          }
+            }
+            const outName = formatBurstFilename(pattern, p);
+            files.set(outName, singleDoc.save());
         }
-      : {}
-  );
-  if (!outputTarget || outputTarget === "-") {
-    return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: savedBytes };
-  }
-  files.set(outputTarget, savedBytes);
-  return { exitCode: 0, stdout: "", stderr: "" };
+        const lastSlash = pattern.lastIndexOf("/");
+        const docDataPath = lastSlash !== -1 ? `${pattern.slice(0, lastSlash + 1)}doc_data.txt` : "doc_data.txt";
+        files.set(docDataPath, new TextEncoder().encode(formatDumpData(primaryDoc)));
+        return { exitCode: 0, stdout: "", stderr: "" };
+    }
+    if (operation === "generate_fdf") {
+        const fdfText = formatGenerateFdf(primaryDoc);
+        if (outputTarget && outputTarget !== "-") {
+            files.set(outputTarget, new TextEncoder().encode(fdfText));
+            return { exitCode: 0, stdout: "", stderr: "" };
+        }
+        return { exitCode: 0, stdout: fdfText, stderr: "" };
+    }
+    if (operation === "unpack_files") {
+        unpackFilesFromDocument(primaryDoc, outputTarget ?? ".", files);
+        return { exitCode: 0, stdout: "", stderr: "" };
+    }
+    let resultDoc = primaryDoc;
+    if (operation === "update_info" || operation === "update_info_utf8") {
+        const infoFile = opArgs[0] ?? "-";
+        const infoBytes = files.get(infoFile);
+        if (!infoBytes) {
+            return { exitCode: 1, stdout: "", stderr: `Error: Unable to open info file '${infoFile}'\n` };
+        }
+        applyUpdateInfoText(resultDoc, new TextDecoder().decode(infoBytes));
+    }
+    else if (operation === "attach_files") {
+        const filesToAttach: string[] = [];
+        let toPageSpec: string | undefined;
+        for (let k = 0; k < opArgs.length; k++) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            if (opArgs[k]?.toLowerCase() === "to_page") {
+                toPageSpec = opArgs[++k];
+                continue;
+            }
+            filesToAttach.push(opArgs[k]!);
+        }
+        attachFilesToDocument(resultDoc, filesToAttach, files, toPageSpec);
+    }
+    else if (operation === "fill_form") {
+        const dataFile = opArgs[0] ?? "-";
+        const dataBytes = files.get(dataFile);
+        if (!dataBytes) {
+            return { exitCode: 1, stdout: "", stderr: `Error: Unable to open form data file '${dataFile}'\n` };
+        }
+        const fieldValues = parseFormDataBytes(dataBytes);
+        for (const [k, v] of fieldValues.entries()) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            setDocumentFormField(resultDoc.cos, k, v);
+        }
+        if (shouldFlatten) {
+            flattenDocumentFormFields(resultDoc.cos);
+        }
+    }
+    else if (operation === "flatten") {
+        flattenDocumentFormFields(resultDoc.cos);
+    }
+    else if (operation === "cat" || operation === "shuffle") {
+        resultDoc = PdfDocument.create();
+        copyPrimaryMetadata(primaryDoc, resultDoc);
+        const selections: ExpandedPageSelection[] = [];
+        if (opArgs.length === 0) {
+            for (const item of orderedDocs) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                for (let p = 1; p <= item.doc.pageCount; p++) {
+                    yield;
+                    selections.push({ handle: item.handle, pageNumber: p });
+                }
+            }
+        }
+        else if (operation === "shuffle") {
+            const groups = opArgs.map(arg => parsePdftkRangeToken(arg, handles, primaryHandle));
+            const maxLen = Math.max(0, ...groups.map(g => g.length));
+            for (let k = 0; k < maxLen; k++) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                for (const g of groups) {
+                    if (++cooperativeWork % 64 === 0)
+                        yield;
+                    if (k < g.length)
+                        selections.push(g[k]!);
+                }
+            }
+        }
+        else {
+            for (const arg of opArgs) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                selections.push(...parsePdftkRangeToken(arg, handles, primaryHandle));
+            }
+        }
+        const bookmarksByDoc = new Map<PdfDocument, Array<{
+            title: string;
+            level: number;
+            pageNumber: number;
+        }>>();
+        const getDocBookmarks = (d: PdfDocument) => {
+            let cached = bookmarksByDoc.get(d);
+            if (!cached) {
+                cached = [];
+                const cat = d.cos.resolveDict(d.cos.rootRef);
+                const outDict = cat ? d.cos.resolveDict(dictGet(cat, "Outlines")) : undefined;
+                if (outDict) {
+                    collectOutlineBookmarks(d, dictGet(outDict, "First"), 1, cached);
+                }
+                bookmarksByDoc.set(d, cached);
+            }
+            return cached;
+        };
+        const remappedBookmarks: Array<{
+            title: string;
+            level: number;
+            pageNumber: number;
+        }> = [];
+        for (let sIdx = 0; sIdx < selections.length; sIdx++) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            const sel = selections[sIdx]!;
+            const srcDoc = handles.get(sel.handle) ?? primaryDoc;
+            const [copied] = resultDoc.copyPagesFrom(srcDoc, [sel.pageNumber - 1]);
+            if (copied && sel.rotation) {
+                const currentRot = copied.getRotation();
+                const rawRot = sel.rotation.kind === "absolute"
+                    ? sel.rotation.degrees
+                    : currentRot + sel.rotation.degrees;
+                copied.setRotation(normalizeQuarterTurn(rawRot));
+            }
+            for (const bm of getDocBookmarks(srcDoc)) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                if (bm.pageNumber === sel.pageNumber) {
+                    remappedBookmarks.push({
+                        title: bm.title,
+                        level: bm.level,
+                        pageNumber: sIdx + 1,
+                    });
+                }
+            }
+        }
+        setDocumentBookmarks(resultDoc, remappedBookmarks);
+        const usedDocs = new Set<PdfDocument>();
+        for (const sel of selections) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            const d = handles.get(sel.handle) ?? primaryDoc;
+            usedDocs.add(d);
+        }
+        const unpackedMap = new Map<string, Uint8Array>();
+        for (const d of usedDocs) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            unpackFilesFromDocument(d, ".", unpackedMap);
+        }
+        if (unpackedMap.size > 0) {
+            attachFilesToDocument(resultDoc, [...unpackedMap.keys()], unpackedMap);
+        }
+        if (shouldFlatten) {
+            flattenDocumentFormFields(resultDoc.cos);
+        }
+    }
+    else if (operation === "rotate") {
+        const rotByPage = new Map<number, RotationSpec>();
+        for (const arg of opArgs) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            for (const sel of parsePdftkRangeToken(arg, handles, primaryHandle)) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                if (sel.rotation)
+                    rotByPage.set(sel.pageNumber, sel.rotation);
+            }
+        }
+        for (let p = 1; p <= resultDoc.pageCount; p++) {
+            yield;
+            const spec = rotByPage.get(p);
+            if (spec) {
+                const page = resultDoc.getPage(p - 1);
+                const rawRot = spec.kind === "absolute"
+                    ? spec.degrees
+                    : page.getRotation() + spec.degrees;
+                page.setRotation(normalizeQuarterTurn(rawRot));
+            }
+        }
+    }
+    else if (operation === "background" ||
+        operation === "multibackground" ||
+        operation === "stamp" ||
+        operation === "multistamp") {
+        const overlayPath = opArgs[0];
+        const overlayBytes = overlayPath ? files.get(overlayPath) : undefined;
+        if (!overlayBytes) {
+            return { exitCode: 1, stdout: "", stderr: `Error: Unable to open '${overlayPath ?? ""}'\n` };
+        }
+        const overlayDoc = PdfDocument.load(overlayBytes);
+        applyOverlayToDocument(resultDoc, overlayDoc, operation.includes("background") ? "background" : "stamp", operation.startsWith("multi"));
+        if (shouldFlatten) {
+            flattenDocumentFormFields(resultDoc.cos);
+        }
+    }
+    else if (operation === "output") {
+        if (shouldFlatten) {
+            flattenDocumentFormFields(resultDoc.cos);
+        }
+    }
+    if (dropXfa) {
+        const root = resultDoc.cos.resolveDict(resultDoc.cos.rootRef);
+        const acroForm = root ? resultDoc.cos.resolveDict(dictGet(root, "AcroForm")) : undefined;
+        if (acroForm)
+            dictDelete(acroForm, "XFA");
+    }
+    if (dropXmp) {
+        const root = resultDoc.cos.resolveDict(resultDoc.cos.rootRef);
+        if (root)
+            dictDelete(root, "Metadata");
+    }
+    if (replacementFont && operation === "fill_form") {
+        const cleanFontName = replacementFont.startsWith("/") ? replacementFont.slice(1) : replacementFont;
+        for (const obj of resultDoc.cos.objects.values()) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            if (obj.value.kind === "dict") {
+                const stNode = dictGet(obj.value, "Subtype");
+                const bfNode = dictGet(obj.value, "BaseFont");
+                const subtype = stNode?.kind === "name" ? stNode.decoded : undefined;
+                const baseFont = bfNode?.kind === "name" ? bfNode.decoded : undefined;
+                if (subtype === "Type1" && baseFont === "Helvetica") {
+                    dictSet(obj.value, "BaseFont", cosName(cleanFontName));
+                }
+            }
+        }
+    }
+    if (operation === "fill_form" && !shouldFlatten) {
+        const root = resultDoc.cos.resolveDict(resultDoc.cos.rootRef);
+        const acroForm = root ? resultDoc.cos.resolveDict(dictGet(root, "AcroForm")) : undefined;
+        if (acroForm) {
+            dictSet(acroForm, "NeedAppearances", { kind: "boolean", value: needAppearances });
+        }
+    }
+    else if (needAppearances && !shouldFlatten) {
+        const root = resultDoc.cos.resolveDict(resultDoc.cos.rootRef);
+        if (root) {
+            const acroForm = resultDoc.cos.resolveDict(dictGet(root, "AcroForm"));
+            if (acroForm) {
+                dictSet(acroForm, "NeedAppearances", { kind: "boolean", value: true });
+            }
+        }
+    }
+    const handleDocs = [...handles.values()];
+    if (keepFinalId) {
+        const lastInput = handleDocs[handleDocs.length - 1];
+        if (lastInput?.cos.idArray) {
+            resultDoc.cos.idArray = cosArray([...lastInput.cos.idArray.items]);
+        }
+    }
+    else if (keepFirstId || !resultDoc.cos.idArray) {
+        const firstInput = handleDocs[0];
+        if (firstInput?.cos.idArray) {
+            resultDoc.cos.idArray = cosArray([...firstInput.cos.idArray.items]);
+        }
+    }
+    if (uncompressStreams || compressStreams) {
+        for (const obj of resultDoc.cos.objects.values()) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            if (obj.value.kind !== "stream")
+                continue;
+            const raw = resultDoc.cos.decodeStream(obj.value);
+            dictDelete(obj.value.dict, "Filter");
+            dictDelete(obj.value.dict, "DecodeParms");
+            resultDoc.cos.objects.set(obj.objectNumber, {
+                ...obj,
+                value: cosStream(raw, {
+                    dict: obj.value.dict,
+                    compress: !uncompressStreams && compressStreams,
+                }),
+            });
+        }
+    }
+    const hasAllow = allowPermissions.size > 0;
+    const allAllowed = allowPermissions.has("allfeatures");
+    const savedBytes = resultDoc.save(userPassword || ownerPassword
+        ? {
+            encrypt: {
+                userPassword: userPassword ?? "",
+                ownerPassword: ownerPassword ?? userPassword ?? "owner",
+                revision: 6,
+                ...(hasAllow
+                    ? {
+                        permissions: {
+                            print: allAllowed || allowPermissions.has("printing") || allowPermissions.has("degradedprinting"),
+                            modify: allAllowed || allowPermissions.has("modifycontents"),
+                            copy: allAllowed || allowPermissions.has("copycontents"),
+                            addNotes: allAllowed || allowPermissions.has("modifyannotations"),
+                            fillForms: allAllowed || allowPermissions.has("fillin") || allowPermissions.has("modifyannotations"),
+                            extractAccessibility: allAllowed || allowPermissions.has("screenreaders"),
+                            assemble: allAllowed || allowPermissions.has("assembly") || allowPermissions.has("modifycontents"),
+                            printHighRes: allAllowed || allowPermissions.has("printing")
+                        }
+                    }
+                    : {})
+            }
+        }
+        : {});
+    if (!outputTarget || outputTarget === "-") {
+        return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: savedBytes };
+    }
+    files.set(outputTarget, savedBytes);
+    return { exitCode: 0, stdout: "", stderr: "" };
+}
+export async function runPdftkCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<PdftkCliResult> {
+    return drainSteps(runPdftkCliSteps(argv, files, signal), signal);
+}
+export function runPdftkCliSync(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): PdftkCliResult {
+    let steps = runPdftkCliSteps(argv, files, signal), next = steps.next();
+    while (!next.done) {
+        next = steps.next();
+    }
+    return next.value;
 }
 
 async function executePdftk(context: CommandContext): Promise<{ exitCode: number }> {
+  let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
@@ -2007,6 +2071,7 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
         chunks.push(chunk);
         total += chunk.byteLength;
         chargeBytes(chunk.byteLength);
@@ -2014,6 +2079,7 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
       const buf = new Uint8Array(total);
       let off = 0;
       for (const c of chunks) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
         buf.set(c, off);
         off += c.byteLength;
       }
@@ -2021,6 +2087,7 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
     }
 
     for (const token of argv) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (token.startsWith("-") && token !== "-") continue;
       const eqIdx = token.indexOf("=");
       const filePath = eqIdx > 0 ? token.slice(eqIdx + 1) : token;
@@ -2034,8 +2101,9 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
       }
     }
 
+    context.inputBudget?.check(0);
     const existingSnap = new Map(vfsFiles);
-    const res = await runPdftkCli(argv, vfsFiles);
+    const res = await runPdftkCli(argv, vfsFiles, invocation.signal);
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
@@ -2050,6 +2118,7 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
       await writeBytes(stdout.output, outBytes, invocation.signal);
     }
     for (const [key, val] of vfsFiles.entries()) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (key !== "-" && existingSnap.get(key) !== val) {
         chargeBytes(val.byteLength);
         const abs = resolveVfsPath(key);
@@ -2068,13 +2137,14 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
   }
 }
 
-export function createPdftkCommand(_options: PdftkCommandOptions = {}): CommandDefinition {
+export function createPdftkCommand(options: PdftkCommandOptions = {}): CommandDefinition {
+  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
     name: "pdftk",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Manipulate PDF documents, fill/flatten AcroForms, and assemble pages via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return executePdftk(context);
+      return new InputByteBudget(maxInputBytes).run(context, executePdftk);
     },
   });
 }
@@ -2098,4 +2168,15 @@ export type PdftkCommandsOptions = PdftkCommandOptions;
 
 export function createPdftkCommands(options: PdftkCommandsOptions = {}): readonly CommandDefinition[] {
   return Object.freeze([createPdftkCommand(options)]);
+}
+
+async function drainSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
+  try {
+    for (;;) {
+      signal?.throwIfAborted();
+      const next = steps.next();
+      if (next.done) return next.value;
+      await yieldTurn(signal);
+    }
+  } finally { steps.return(undefined as T); }
 }

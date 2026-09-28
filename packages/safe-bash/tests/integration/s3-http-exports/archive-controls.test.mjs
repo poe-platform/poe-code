@@ -36,6 +36,18 @@ test("current shell facade inventory authenticates canonical contracts and rejec
   assert.throws(() => distChecks.assertRootShellExports(manifest, extra), /inventory/);
 });
 
+test("mirrored shell exports retain canonical shared contracts", () => {
+  const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
+  const root = JSON.parse(readRegularInput(resolve(authority, "../.."), "package.json", 300000));
+  root.exports = Object.fromEntries(Object.entries(manifest.exports).map(([path, target]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, distChecks.mirrorArchiveExportTargets(target)]));
+  root.exports["./safe-bash/commands/pandoc"].import = "./packages/safe-bash-command-pandoc/dist/public/command.js";
+  root.exports["./safe-bash/contracts"].types = "./packages/safe-bash-contracts/dist/index.d.ts";
+  root.exports["./safe-bash/contracts"].import = "./packages/safe-bash-contracts/dist/index.js";
+  assert.doesNotThrow(() => distChecks.assertRootShellExports(manifest, root));
+  root.exports["./safe-bash/contracts"].import = "./dist/unapproved.js";
+  assert.throws(() => distChecks.assertRootShellExports(manifest, root), /root export mismatch/);
+});
+
 test("committed workspace build metadata is authenticated with the source archive", (context) => {
   let candidate;
   try {

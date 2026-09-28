@@ -36,6 +36,9 @@ it("reads XLSX sheet names, sparse cells and cached formulas as tables", async (
   await expect(readDocument({bytes}, {from: "xlsx"}, {...context, limits: {tableColumns: 1}})).rejects.toMatchObject({code: "E_LIMIT"});
   await expect(readDocument({bytes}, {from: "xlsx"}, {...context, limits: {expandedBytes: 1}})).rejects.toMatchObject({code: "E_LIMIT"});
 });
+it("rejects malformed XLSX", async () => {
+  await expect(readDocument({bytes: encode("x")}, {from: "xlsx"}, context)).rejects.toMatchObject({code: "E_PARSE"});
+});
 it("reads a built-in PDF through the default registry", async () => {
   const pdf = await convert([{bytes: encode("Orchard report")}], {from: "commonmark", to: "pdf"}, context);
   if (pdf.kind !== "binary") throw new Error("Expected PDF");

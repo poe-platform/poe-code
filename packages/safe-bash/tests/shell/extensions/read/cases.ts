@@ -17,7 +17,7 @@ export const readCases = [
   { name: "signed whitespace count", args: "-n ' +2 ' value", input: "abcd\n", after: `printf '<%s>' "$value"`, output: "0:<ab>" },
   { name: "count zero assigns without consumption", before: "value=old;", args: "-n0 value", input: "abcd\n", after: `read -r tail; printf '<%s><%s>' "$value" "$tail"`, output: "0:<><abcd>" },
   { name: "exact count ignores newline and IFS", args: "-N4 value", input: " a\nbc\n", after: `printf '<%s>' "$value"`, output: "0:< a\nb>" },
-  { name: "exact count remains sticky after n", args: "-N4 -n2 value", input: " a\nbc\n", after: `printf '<%s>' "$value"`, output: "0:< a>" },
+  { name: "last count option restores delimiter and IFS", args: "-N4 -n2 value", input: " a\nbc\n", after: `printf '<%s>' "$value"`, output: "0:<a>" },
   { name: "exact array is one unsplit field", args: "-N3 -a values", input: "a b\n", after: `printf '<%s>' "\${values[@]}"`, output: "0:<a b>" },
   { name: "IFS nonwhitespace empty fields", before: "IFS=:;", args: "-a values", input: ":one::two:\n", after: `printf '<%s>' "\${values[@]}"`, output: "0:<><one><><two>" },
   { name: "IFS empty array unsplit", before: "IFS=;", args: "-a values", input: "  a b  \n", after: `printf '<%s>' "\${values[@]}"`, output: "0:<  a b  >" },

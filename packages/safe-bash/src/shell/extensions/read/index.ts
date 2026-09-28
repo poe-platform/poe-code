@@ -114,7 +114,7 @@ async function parse(context: ShellExtensionContext, validate: (descriptor: numb
           return 1;
         }
         if (flag === "u") { options.descriptor = number; await validate(number); }
-        else { options.count = number; if (flag === "N") options.exact = true; }
+        else { options.count = number; options.exact = flag === "N"; }
       }
       break;
     }

@@ -5192,7 +5192,7 @@ export class Runtime {
           const entry = assignment.entries[i]!;
           if (!entry.index || entry.append) return false;
           const kSrc = entry.index.source ?? entry.index.decimal;
-          if (kSrc.length === 0 || kSrc.length > 4096 || /[$\x60\\"']/.test(kSrc)) return false;
+          if (kSrc.length === 0 || kSrc.length > 4096 || kSrc.startsWith("~") || /[$\x60\\"']/.test(kSrc)) return false;
           let val: ShellValue | undefined = "";
           if (entry.value.parts.length > 0) {
             try {
@@ -5321,14 +5321,12 @@ export class Runtime {
         }
         try {
           if (!assignment.append && target.values.size > 0) {
-            if (!(target.values.size === keepIndices.size && target.maximum === resolved.length - 1)) {
-              for (const k of target.values.keys()) {
-                if (!keepIndices.has(k)) target.remove(k);
-              }
-              let newMax = -1;
-              for (const k of target.values.keys()) { if (k > newMax) newMax = k; }
-              target.maximum = newMax;
+            for (const k of target.values.keys()) {
+              if (!keepIndices.has(k)) target.remove(k);
             }
+            let newMax = -1;
+            for (const k of target.values.keys()) { if (k > newMax) newMax = k; }
+            target.maximum = newMax;
           }
           for (let i = 0; i < resolved.length; i++) {
             const { idx, val, bLen } = resolved[i]!;
@@ -7662,7 +7660,7 @@ export class Runtime {
               if (e.append) return false;
               if (isAssoc) {
                 const kSrc = e.index ? (e.index.source ?? e.index.decimal) : "";
-                return kSrc.length > 0 && !/[$\x60\\"']/.test(kSrc) && isNoBraceSyncAssignWord(e.value);
+                return kSrc.length > 0 && !kSrc.startsWith("~") && !/[$\x60\\"']/.test(kSrc) && isNoBraceSyncAssignWord(e.value);
               }
               if (e.index !== undefined) {
                 const kSrc = (e.index.source ?? e.index.decimal).trim();
@@ -7883,7 +7881,7 @@ export class Runtime {
               if (e.append) return false;
               if (wantAssoc) {
                 const kSrc = e.index ? (e.index.source ?? e.index.decimal) : "";
-                return kSrc.length > 0 && !/[$\x60\\"']/.test(kSrc) && isNoBraceSyncAssignWord(e.value);
+                return kSrc.length > 0 && !kSrc.startsWith("~") && !/[$\x60\\"']/.test(kSrc) && isNoBraceSyncAssignWord(e.value);
               }
               if (e.index !== undefined) {
                 const kSrc = (e.index.source ?? e.index.decimal).trim();
@@ -12378,7 +12376,7 @@ export class Runtime {
           argIdx += 2;
         } else if (p === "-n" || p === "-rn" || p === "-nr" || p === "-N" || p === "-rN" || p === "-Nr") {
           if (p.includes("r")) rawMode = true;
-          if (p.includes("N")) exactChars = true;
+          exactChars = p.includes("N");
           const nPlain = cmd.words[argIdx + 1]?.plain;
           if (!nPlain || !/^[1-9][0-9]{0,5}$/.test(nPlain) || byteLocale(rawState.variables)) return undefined;
           maxChars = Number(nPlain);
@@ -12386,7 +12384,7 @@ export class Runtime {
         } else if ((p.startsWith("-n") || p.startsWith("-rn") || p.startsWith("-N") || p.startsWith("-rN")) && /^[1-9][0-9]{0,5}$/.test(p.slice(p.startsWith("-r") ? 3 : 2))) {
           if (byteLocale(rawState.variables)) return undefined;
           if (p.startsWith("-r")) rawMode = true;
-          if (p.includes("N")) exactChars = true;
+          exactChars = p.includes("N");
           maxChars = Number(p.slice(p.startsWith("-r") ? 3 : 2));
           argIdx++;
         } else if (p === "-ra" || p === "-ar" || p === "-a") {
@@ -12818,7 +12816,7 @@ export class Runtime {
               const ev = entry.value;
               if (curArr.associative) {
                 const kSrc = entry.index ? (entry.index.source ?? entry.index.decimal) : "";
-                if (kSrc.length === 0 || kSrc.length > 4096 || /[$\x60\\"']/.test(kSrc) || !this.isPureSyncValueWord(ev, rawState)) {
+                if (kSrc.length === 0 || kSrc.length > 4096 || kSrc.startsWith("~") || /[$\x60\\"']/.test(kSrc) || !this.isPureSyncValueWord(ev, rawState)) {
                   allEntriesOk = false;
                   break;
                 }
@@ -13340,10 +13338,21 @@ export class Runtime {
       elem0 = existing?.values.get(0);
       if (!existing || !elem0) return undefined;
     }
-    for (const v of Object.values(rawState.variables)) {
+    for (const v of [...Object.values(rawState.variables), ...rawState.positional]) {
       if (typeof v === "string") {
         for (let k = 0; k < v.length; k++) {
           if (v.charCodeAt(k) >= 128) return undefined;
+        }
+      }
+    }
+    // The loop evaluator assumes ASCII, including values reached through array elements.
+    if (store) {
+      for (const { binding } of store.bindings.values()) {
+        for (const slot of binding.values.values()) {
+          const value = slot.text.value;
+          for (let k = 0; k < value.length; k++) {
+            if (value.charCodeAt(k) >= 128) return undefined;
+          }
         }
       }
     }
@@ -20604,7 +20613,7 @@ export class Runtime {
           if (flag === "r") { raw = true; continue; }
           if (flag === "s") continue;
           if (flag !== "n" && flag !== "N" && flag !== "d" && flag !== "a" && flag !== "p" && flag !== "u") { invalid = true; break; }
-          if (flag === "N") exact = true;
+          if (flag === "n" || flag === "N") exact = flag === "N";
           const value = option.slice(index + 1) || names.shift();
           if (value === undefined) invalid = true;
           else if (flag === "p") { /* Consume the prompt without terminal output. */ } else if (flag === "u") {

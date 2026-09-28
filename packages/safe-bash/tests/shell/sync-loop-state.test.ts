@@ -940,3 +940,37 @@ test("Wave 110: trySyncLoop supports sed -En capture groups and s///p, cut -b, s
     await shell.dispose();
   }
 });
+
+test("Wave 111: trySyncLoop supports awk print arithmetic, jq join/split/trim/tonumber/type/case, and uniq combined flags", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const { createStructuredCommands } = await import("../../src/commands/structured/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands(), ...createStructuredCommands()]),
+  });
+  try {
+    const script = [
+      "rows=$'10 20\\n30 40\\n50 60'",
+      "j='{\"tags\":[\"alpha\",\"beta\",\"gamma\"],\"ver\":\"v1.2.3-rc1\",\"cnt\":\"42\"}'",
+      "u=$'Alpha\\nalpha\\nBeta\\nGAMMA\\ngamma\\ngamma'",
+      "out=\"\"",
+      "for ((i=1; i<=20; i++)); do",
+      "  a=$(awk '{print NR - 1, $1 + $2, $2 * 2}' <<< \"$rows\")",
+      "  s1=$(jq -r '.tags | join(\",\") | ascii_upcase' <<< \"$j\")",
+      "  s2=$(jq -r '.ver | ltrimstr(\"v\") | rtrimstr(\"-rc1\")' <<< \"$j\")",
+      "  s3=$(jq -r '.cnt | tonumber' <<< \"$j\")",
+      "  u1=$(uniq -ci <<< \"$u\")",
+      "  u2=$(uniq -di <<< \"$u\")",
+      "  u3=$(uniq -ui <<< \"$u\")",
+      "  out=\"${a//$'\\n'/;};$s1;$s2;$s3;${u2//$'\\n'/,};$u3\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "0 30 40;1 70 80;2 110 120;ALPHA,BETA,GAMMA;1.2.3;42;Alpha,GAMMA;Beta\n");
+  } finally {
+    await shell.dispose();
+  }
+});

@@ -8,6 +8,12 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { predicateCommands } from "../../src/commands/predicates.js";
 
 const cases = [
+  ['locale LC_ALL quoting', 's=hello; for i in 1 2; do LC_ALL=C; echo "${s@Q}"; done', "'hello'\n'hello'\n"],
+  ['locale LANG trimming', 's=a/b; for i in 1 2; do LANG=C; echo "${s#*/}" "${s##*/}" "${s%/*}" "${s%%/*}"; done', 'b b a a\nb b a a\n'],
+  ['locale LC_CTYPE subscript', 'arr=(a b); for i in 0 1; do LC_CTYPE=C; echo "${arr[$i]}"; done', 'a\nb\n'],
+  ['locale LC_ALL assignment result', 's=hello; for i in 1 2; do LC_ALL=C; result="${s@Q}"; done; echo "$result"', "'hello'\n"],
+  ['locale nested assignment', 's=a/b; for i in 1 2; do if ((i==1)); then LC_ALL=C; fi; echo "${s#*/}"; done', 'b\nb\n'],
+  ['locale arithmetic loop', 's=hello; for ((i=0;i<2;i++)); do LANG=C; echo "${s@Q}"; done', "'hello'\n'hello'\n"],
   ['assign default loop fallback', 'sp="hello world"; for ((i=0;i<2;i++)); do unset a; echo "${a:-was_unset}" "${a:=now_set}" $sp; done; echo "$a"', 'was_unset now_set hello world\nwas_unset now_set hello world\nnow_set\n'],
   ['assign default function arguments', 'f() { printf "%s|" "$@"; echo; }; unset a; sp="hello world"; f "${a:-was_unset}" "${a:=now_set}" $sp; echo "$a"', 'was_unset|now_set|hello|world|\nnow_set\n'],
   ['assign default split fallback', 'unset a; echo "${a:-was_unset}" ${a:=hello world}; echo "$a"', 'was_unset hello world\nhello world\n'],
@@ -47,6 +53,34 @@ for (const [name, source, expected] of cases) {
       assert.equal(result.stdout, expected);
     } finally { await shell.dispose(); }
   });
+}
+
+for (const locale of ["LC_ALL", "LC_CTYPE", "LC_COLLATE", "LANG"]) {
+  for (const [expansion, expected] of [
+    ["${s@Q}", "'a/b'"],
+    ["${s#*/}", "b"],
+    ["${s##*/}", "b"],
+    ["${s%/*}", "a"],
+    ["${s%%/*}", "a"],
+    ["${arr[$i]}", "a"],
+  ]) {
+    test(`loop locale mutation ${locale} preserves ${expansion}`, async context => {
+      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+      context.after(() => shell.dispose());
+      const source = 's=a/b; arr=(a); for i in 0 0; do ' + locale + '=C; echo "' + expansion + '"; done';
+      // The macOS system Bash predates @Q, but supports trims and subscripts.
+      if (expansion !== "${s@Q}") {
+        const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+        assert.equal(native.status, 0, native.stderr);
+        assert.equal(native.stdout, expected + "\n" + expected + "\n");
+        assert.equal(native.stderr, "");
+      }
+      const result = await shell.exec(source);
+      assert.equal(result.stdout, expected + "\n" + expected + "\n");
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    });
+  }
 }
 
 for (const expansion of ["${@:2}", "${@#prefix}", "${@/a/b}", "${#@}", "$@", "${@}"]) {

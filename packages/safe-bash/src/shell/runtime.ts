@@ -12800,6 +12800,9 @@ export class Runtime {
           return false;
         }
         const assignment = this.assignment(w0);
+        // Eligibility is checked against the entry locale. Changing it can make
+        // otherwise pure expansions require the asynchronous byte-aware path.
+        if (assignment && (assignment.name === "LC_ALL" || assignment.name === "LC_CTYPE" || assignment.name === "LC_COLLATE" || assignment.name === "LANG")) return false;
         if ( !assignment || (assignment.append && this.budget.limits.maxExpansionBytes !== Infinity) || assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || rawState.variableAttributes?.get(assignment.name) || store?.get(assignment.name) || !this.isPureSyncValueWord(assignment.value, rawState)) {
           return false;
         }

@@ -23276,9 +23276,9 @@ export class Runtime {
     const outLines: string[] = [];
     for (let li = 0; li < rawLines.length; li++) {
       const l = rawLines[li]!;
-      const fields = awkSep !== undefined
-        ? (awkSep === " " ? l.trim().split(/\s+/).filter(Boolean) : (l.length === 0 ? [] : l.split(awkSep)))
-        : l.trim().split(/\s+/).filter(Boolean);
+      const fields = awkSep === undefined || awkSep === " "
+        ? l.split(/[ \t]+/).filter(Boolean)
+        : (l.length === 0 ? [] : l.split(awkSep));
       if (condVar !== undefined) {
         const lhs = condVar === "NR" ? li + 1 : fields.length;
         const ok =
@@ -24061,6 +24061,11 @@ export class Runtime {
           // Non-ASCII file inputs use normal execution, which owns their raw ShellValue.
           if (view && view.byteLength <= 16384 && !view.includes(0) && (hasSingleHereStringRedir || view.every(byte => byte < 128))) {
             const fileStr = hasSingleHereStringRedir ? hereStrVal! : sharedSyncPipeDecoder.decode(view);
+            // Record-based shortcuts below serialize complete newline-terminated records.
+            // Let normal commands preserve partial final records when reading files.
+            if (fileStr.length > 0 && !fileStr.endsWith("\n") &&
+                (w0Plain === "head" || w0Plain === "tail" || w0Plain === "sed" || w0Plain === "cut" || w0Plain === "uniq")) return undefined;
+            const renderLines = (lines: readonly string[]): string => lines.length === 0 ? "" : lines.join("\n") + "\n";
             const rawLines = fileStr.endsWith("\n") ? fileStr.slice(0, -1).split("\n") : (fileStr.length === 0 ? [] : fileStr.split("\n"));
             let fileRes: string | undefined;
             let exitStatus = 0;
@@ -24085,7 +24090,7 @@ export class Runtime {
                 } else {
                   sliced = w0Plain === "head" ? rawLines.slice(0, count) : (count === 0 ? [] : rawLines.slice(-count));
                 }
-                fileRes = sliced.join("\n");
+                fileRes = renderLines(sliced);
               } else if (byteCount !== undefined) {
                 const slicedBytes = w0Plain === "head"
                   ? view.subarray(0, Math.min(view.byteLength, byteCount))
@@ -24094,22 +24099,22 @@ export class Runtime {
               }
             } else if (w0Plain === "jq") {
               const jqRes = this.evalSyncJq(fileStr.trim(), opArgs);
-              if (jqRes !== undefined) fileRes = jqRes.join("\n");
+              if (jqRes !== undefined) fileRes = renderLines(jqRes);
             } else if (w0Plain === "awk") {
               const awkRes = this.evalSyncAwk(rawLines, opArgs);
-              if (awkRes !== undefined) fileRes = awkRes.join("\n");
+              if (awkRes !== undefined) fileRes = renderLines(awkRes);
             } else if (w0Plain === "grep") {
               const grepRes = this.evalSyncGrep(rawLines, opArgs, Boolean(rawState.errexit));
               if (grepRes !== undefined) {
                 exitStatus = grepRes.status;
-                fileRes = grepRes.lines.join("\n");
+                fileRes = renderLines(grepRes.lines);
               }
             } else if (w0Plain === "sed") {
               const sedRes = this.evalSyncSed(rawLines, opArgs);
-              if (sedRes !== undefined) fileRes = sedRes.join("\n");
+              if (sedRes !== undefined) fileRes = renderLines(sedRes);
             } else if (w0Plain === "cut") {
               const cutRes = this.evalSyncCut(rawLines, opArgs, byteLocale(rawState.variables));
-              if (cutRes !== undefined) fileRes = cutRes.join("\n");
+              if (cutRes !== undefined) fileRes = renderLines(cutRes);
             } else if (w0Plain === "wc" && opArgs.length === 1 && (opArgs[0] === "-l" || opArgs[0] === "-c" || opArgs[0] === "-w" || opArgs[0] === "-m" || opArgs[0] === "-L")) {
               let count = 0;
               if (opArgs[0] === "-l") {
@@ -24121,13 +24126,15 @@ export class Runtime {
               } else if (opArgs[0] === "-L") {
                 count = this.wcMaxLineWidth(fileStr, byteLocale(rawState.variables));
               } else {
-                const trimmed = fileStr.trim();
-                count = trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
+                // Unicode word separators depend on locale and POSIXLY_CORRECT.
+                // Use the maintained command for those inputs rather than JS whitespace.
+                if (!byteLocale(rawState.variables) && view.some(byte => byte > 127)) return undefined;
+                count = fileStr.split(/[ \t\n\r\f\v]+/).filter(Boolean).length;
               }
-              fileRes = (hasSingleStdinRedir || hasSingleHereStringRedir) ? String(count) : `${count} ${fileArg}`;
+              fileRes = ((hasSingleStdinRedir || hasSingleHereStringRedir) ? String(count) : `${count} ${fileArg}`) + "\n";
             } else if (w0Plain === "sort" && !byteLocale(rawState.variables)) {
               const sortRes = this.evalSyncSort(rawLines, opArgs, false);
-              if (sortRes !== undefined) fileRes = sortRes.join("\n");
+              if (sortRes !== undefined) fileRes = renderLines(sortRes);
             } else if (w0Plain === "uniq" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "-u" || opArgs[0] === "-c")))) {
               const mode = opArgs[0];
               const outLines: string[] = [];
@@ -24141,26 +24148,27 @@ export class Runtime {
                 }
                 uIdx = uEnd;
               }
-              fileRes = outLines.join("\n");
+              fileRes = renderLines(outLines);
             } else if (w0Plain === "tr" && (hasSingleStdinRedir || hasSingleHereStringRedir)) {
               fileRes = this.evalSyncTr(fileStr, opArgs);
             } else if (hasSingleHereStringRedir && w0Plain === "base64" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "--decode")))) {
-              if (opArgs.length === 0) fileRes = this.syncBase64Encode(view);
+              if (opArgs.length === 0) fileRes = this.syncBase64Encode(view) + "\n";
               else fileRes = sharedSyncPipeDecoder.decode(this.syncBase64DecodeBytes(fileStr));
             } else if (hasSingleHereStringRedir && w0Plain === "rev" && opArgs.length === 0) {
-              fileRes = rawLines.map(l => Array.from(l).reverse().join("")).join("\n");
+              fileRes = renderLines(rawLines.map(l => Array.from(l).reverse().join("")));
             } else if (hasSingleHereStringRedir && w0Plain === "tac" && opArgs.length === 0) {
-              fileRes = [...rawLines].reverse().join("\n");
+              fileRes = renderLines([...rawLines].reverse());
             } else if (hasSingleHereStringRedir && w0Plain === "nl" && opArgs.length === 0) {
               if (rawLines.some(l => l === "\\:" || l === "\\:\\:" || l === "\\:\\:\\:")) return undefined;
               let lineNo = 0;
-              fileRes = rawLines.map(l => l.length === 0 ? "       " : `${String(++lineNo).padStart(6, " ")}\t${l}`).join("\n");
+              fileRes = renderLines(rawLines.map(l => l.length === 0 ? "       " : `${String(++lineNo).padStart(6, " ")}\t${l}`));
             }
             if (fileRes !== undefined) {
+              // Charge emitted bytes before substitution removes trailing newlines.
+              const outBytes = shellValueByteLength(fileRes);
               let end = fileRes.length;
               while (end > 0 && fileRes.charCodeAt(end - 1) === 10) end--;
               if (end < fileRes.length) fileRes = fileRes.slice(0, end);
-              const outBytes = (fileRes.length * 3 > 127 ? shellValueByteLength(fileRes) : fileRes.length) + 1;
               const nextTotalBytes = this.budget.bytes + outBytes;
               if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
               this.budget.bytes = nextTotalBytes;

@@ -2444,7 +2444,7 @@ const syncAwkArithAtom = `(?:\\$(?:[0-9]+|NF)|NR|NF|-?[0-9]+(?:\\.[0-9]+)?|[a-zA
 const syncAwkArithPat = `(?:${syncAwkArithAtom}(?:\\s*[+*\\/%-]\\s*${syncAwkArithAtom})+)`;
 const syncAwkItemPat = `(?:(?:toupper|tolower)\\(\\$(?:[0-9]+|NF)\\)|substr\\(\\$(?:[0-9]+|NF)\\s*,\\s*[0-9]+(?:\\s*,\\s*[0-9]+)?\\)|index\\(\\$(?:[0-9]+|NF)\\s*,\\s*"[^"$\\\\]*"\\)|${syncAwkArithPat}|\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|[a-zA-Z_][a-zA-Z0-9_]*|"[^"$\\\\]*")`;
 const syncAwkPrintRe = new RegExp(`^\\{\\s*(?:(g?sub)\\(\\s*\\/(\\^?[a-zA-Z0-9_ :;,=-]+\\$?)\\/\\s*,\\s*"([^"\\\\]*)"(?:\\s*,\\s*\\$([0-9]+|NF))?\\s*\\)\\s*;\\s*)?(?:print(?:\\s+(${syncAwkItemPat}(?:\\s*,?\\s*${syncAwkItemPat})*))?|printf\\s+"([^"$\\\\]*(?:\\\\[nt\\\\"][^"$\\\\]*)*)"\\s*,\\s*(${syncAwkItemPat}(?:\\s*,\\s*${syncAwkItemPat})*))\\s*;?\\s*\\}\\s*$`);
-const syncAwkTokenRe = new RegExp(`(toupper|tolower)\\(\\$([0-9]+|NF)\\)|substr\\(\\$([0-9]+|NF)\\s*,\\s*([0-9]+)(?:\\s*,\\s*([0-9]+))?\\)|index\\(\\$([0-9]+|NF)\\s*,\\s*"([^"$\\\\]*)"\\)|(${syncAwkArithPat})|\\$\\(NF\\s*-\\s*([0-9]+)\\)|\\$([0-9]+|NF)|length(?:\\(\\$([0-9]+|NF)\\))?|(NR|NF)|"([^"$\\\\]*)"|([a-zA-Z_][a-zA-Z0-9_]*)|(,)`, "g");
+const syncAwkTokenRe = new RegExp(`(toupper|tolower)\\(\\$([0-9]+|NF)\\)|substr\\(\\$([0-9]+|NF)\\s*,\\s*([0-9]+)(?:\\s*,\\s*([0-9]+))?\\)|index\\(\\$([0-9]+|NF)\\s*,\\s*"([^"$\\\\]*)"\\)|(${syncAwkArithPat})|\\$\\(NF\\s*-\\s*([0-9]+)\\)|\\$([0-9]+|NF)|length\\b(?:\\(\\$([0-9]+|NF)\\))?|(NR|NF)\\b|"([^"$\\\\]*)"|([a-zA-Z_][a-zA-Z0-9_]*)|(,)`, "g");
 
 export class RuntimeCancellationState {
   private _records: Set<InvokeOutcomeRecord> | undefined;
@@ -22703,9 +22703,11 @@ export class Runtime {
         return out;
       }
       if (!flagD && sets.length === 2) {
+        // Delegate multi-character complements and class validation to tr.
+        if (sets[1]!.includes("[:")) return undefined;
         const arr1 = this.expandSyncTrCharArray(sets[0]!);
         const arr2 = this.expandSyncTrCharArray(sets[1]!);
-        if (!arr1 || !arr2 || arr2.length === 0) return undefined;
+        if (!arr1 || !arr2 || arr2.length !== 1) return undefined;
         const keepSet = new Set(arr1);
         const repl = arr2[arr2.length - 1]!;
         const sqSet = flagS ? new Set(arr2) : undefined;
@@ -23907,9 +23909,14 @@ export class Runtime {
           }
           parts.push({ kind: "arith", tokens: aToks });
         }
-        else if (m[9] !== undefined) parts.push({ kind: "nf_minus", offset: Number(m[9]!) });
+        else if (m[9] !== undefined) {
+          const offset = Number(m[9]!);
+          // Refuse potentially fatal fields before loop iterations mutate state.
+          if (offset > 0) return undefined;
+          parts.push({ kind: "nf_minus", offset });
+        }
         else if (m[10] !== undefined) parts.push({ kind: "field", token: m[10]! });
-        else if (m[0].startsWith("length")) parts.push({ kind: "length", token: m[11] ?? "0" });
+        else if (m[0] === "length" || m[0].startsWith("length(")) parts.push({ kind: "length", token: m[11] ?? "0" });
         else if (m[12] !== undefined) parts.push({ kind: "var", name: m[12] as "NR" | "NF" });
         else if (m[13] !== undefined) parts.push({ kind: "lit", text: m[13]! });
         else if (m[14] !== undefined) {
@@ -23955,6 +23962,7 @@ export class Runtime {
         else if (p.kind === "var") out += String(p.name === "NR" ? li + 1 : fields.length);
         else if (p.kind === "nf_minus") {
           const idx = fields.length - p.offset;
+          if (idx < 0) return undefined;
           out += idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
         } else if (p.kind === "case") {
           const idx = p.token === "NF" ? fields.length : Number(p.token);
@@ -24295,9 +24303,21 @@ export class Runtime {
       let raw = keySpec === undefined
         ? l
         : (() => {
-            const fields = sep !== undefined ? l.split(sep) : l.trimStart().split(/\s+/);
-            const slice = endField !== undefined ? fields.slice(startField - 1, endField) : fields.slice(startField - 1);
-            return slice.join(sep ?? " ");
+            if (sep !== undefined) {
+              const fields = l.split(sep);
+              return fields.slice(startField - 1, endField).join(sep);
+            }
+            // Default fields include their leading blanks; retain exact bytes.
+            let offset = 0;
+            let start = l.length;
+            let end = l.length;
+            for (let field = 1; offset < l.length; field++) {
+              if (field === startField) start = offset;
+              while (l[offset] === " " || l[offset] === "\t") offset++;
+              while (offset < l.length && l[offset] !== " " && l[offset] !== "\t") offset++;
+              if (field === endField) { end = offset; break; }
+            }
+            return l.slice(start, end);
           })();
       if (keyBlanks) raw = raw.replace(/^[ \t]+/, "");
       if (keyDict) raw = raw.replace(/[^a-zA-Z0-9 \t]+/g, "");

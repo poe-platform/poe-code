@@ -11580,14 +11580,17 @@ export class Runtime {
       if (part.kind === "arithmetic") {
         const names = new Set<string>();
         if (!collectPureReadOnlySmiNames(part.expression, names)) {
-          if (rawState.nounset) return false;
+          if (rawState.nounset || !part.expression.error) return false;
           const arithSrc = part.expression.source;
           const em = SIMPLE_EXPANDED_ARITH_RE.exec(arithSrc);
           if (!em || ((em[2] === "/" || em[2] === "%") && !(em[3] && /^[1-9][0-9]*$/.test(em[3])))) {
             if (arithSrc.includes("<<") || arithSrc.includes(">>") || arithSrc.includes("**") || /[/%](?!\s*[1-9][0-9]*\b)/.test(arithSrc)) return false;
             try {
               const expW = parseArithmeticExpansion(arithSrc, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
-              if (!this.isPureSyncValueWord(expW, rawState)) return false;
+              // Validate arithmetic syntax separately from shell expansion syntax.
+              // Text in a Word can still contain arithmetic mutations or subscripts.
+              const syntax = prepareArithmetic(expW.parts.map(p => p.kind === "text" ? p.value : "0").join(""), this.budget.parsing);
+              if (!collectPureReadOnlySmiNames(syntax, names) || !this.isPureSyncValueWord(expW, rawState)) return false;
             } catch {
               return false;
             }
@@ -12062,14 +12065,14 @@ export class Runtime {
       // order unless the shallow dependency checks below can see all reads.
       const hasNestedParamDependencies = bodyAssignments.some(step =>
         [step.value, step.targetWord].some(word => word?.parts.some(part =>
-          part.kind === "variable" && (part.indirect || part.substring !== undefined || part.operator !== undefined || getArraySelector(part) !== undefined)
+          part.kind === "variable" && (part.indirect || part.prefixNames !== undefined || part.name === "?" || part.substring !== undefined || part.operator !== undefined || getArraySelector(part) !== undefined)
         ))
       );
       let hasDeferredSteps = false;
       let deferredMask = 0;
       if (!hasAnyArrayAssign && !hasNestedParamDependencies) for (let b = 0; b < bodyAssignments.length; b++) {
         const step = bodyAssignments[b]!;
-        if ( !step.append && step.targetWord === undefined && step.name !== undefined && step.value !== undefined && step.name !== inductionName && !arithNames.has(step.name) && !paramReadNames.has(step.name) && step.value.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.indirect && !p.length && !p.substring && p.operator === undefined && getArraySelector(p) === undefined))) {
+        if ( !step.append && step.targetWord === undefined && step.name !== undefined && step.value !== undefined && step.name !== inductionName && !arithNames.has(step.name) && !paramReadNames.has(step.name) && step.value.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.indirect && !p.prefixNames && !p.length && !p.substring && p.operator === undefined && getArraySelector(p) === undefined))) {
           let readAnywhere = false;
           for (let b2 = 0; b2 < bodyAssignments.length; b2++) {
             const other = bodyAssignments[b2]!;
@@ -12648,6 +12651,7 @@ export class Runtime {
         if (deferredMask & (1 << b)) {
           lastArg = "";
           lastValueWord = undefined;
+          rawState.status = 0;
           continue;
         }
         if (step.coalesceNext) {
@@ -12690,6 +12694,7 @@ export class Runtime {
           lastArg = step.cmd.words[0]!.plain!;
           lastValueWord = undefined;
         }
+        rawState.status = 0;
       }
       if (lastValueWord !== undefined) lastArgInductionVal = rawState.variables[inductionName];
       this.syncShellArithmeticNonZero(e2, rawState, diagnosticLine);
@@ -12748,6 +12753,7 @@ export class Runtime {
           lastArg = step.cmd.words[0]!.plain!;
           lastValueWord = undefined;
         }
+        rawState.status = 0;
       }
     }
     if (lastValueWord !== undefined) lastArg = this.evalSyncRedirectWord(lastValueWord, rawState, monitor, touched);

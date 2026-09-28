@@ -136,3 +136,36 @@ for (const [name, source, expected] of [
     } finally { await shell.dispose(); }
   });
 }
+
+for (const loop of ['for ((j=0;j<2;j++))', 'for j in {0..1}', 'for ((j=0;j<1;j++))', 'for j in 0']) {
+  for (const body of [
+    'm="${!ZZ*}"; ZZx="item$j"; acc="${acc}${m}|"',
+    'm="${!ZZ@}"; ZZx="item$j"; acc="${acc}${m}|"',
+    'y=$(( ++x ))',
+    'y=$(( $j + ++x ))',
+    'y=$(( x-- ))',
+    'y=$(( x=4 ))',
+    'y=$(( x+=2 ))',
+    'y=$(( $j + (x+=2) ))',
+    'y=$(( arr[$j] ))',
+    'y=$(( $j + x ))',
+    'y=$(( ${j} + (x+=2) ))',
+    'a="$?"; k="$j"',
+    'k="$j"; a="$?"',
+    'k=$((j+1)); a="$?"',
+    'a="$?"',
+  ]) {
+    test(`sync loop command semantics: ${loop} ${body}`, async () => {
+      const source = `unset ZZx; ZZa=1; acc=""; x=0; y=initial; arr=(4 5); false; ${loop}; do ${body}; done; printf '%s\\n' "$acc|$x|$y|$a|$k"`;
+      const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+      assert.equal(bash.status, 0, bash.stderr);
+      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+      try {
+        const result = await shell.exec(source);
+        assert.equal(result.exitCode, bash.status, result.stderr);
+        assert.equal(result.stderr, bash.stderr);
+        assert.equal(result.stdout, bash.stdout);
+      } finally { await shell.dispose(); }
+    });
+  }
+}

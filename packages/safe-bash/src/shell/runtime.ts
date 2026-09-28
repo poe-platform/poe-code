@@ -3704,7 +3704,9 @@ export class Runtime {
         !pat.text.includes("[.") &&
         !pat.text.includes("[=") &&
         !pat.text.includes("()") &&
+        !pat.text.includes("(?") &&
         !pat.text.includes("[]") &&
+        !pat.text.includes("[^]") &&
         !pat.text.includes("][") &&
         !/\([^)]*[*+?][^)]*\)[*+?]/.test(pat.text)
       ) {

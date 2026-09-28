@@ -24,9 +24,11 @@ test("sync-loop unset and field splitting regressions remain in active discovery
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/sync-loop-unset-fields.test.ts"));
 });
 
-test("waves 74-77 regressions remain in active discovery", () => {
+test("synchronous loop regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
-  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/waves-74-77-regression.test.ts"));
+  const files = discoverTests(root, loadBoundaries(root));
+  assert.ok(files.includes("tests/commands/waves-74-77-regression.test.ts"));
+  assert.ok(files.includes("tests/commands/sync-loop-last-arg.test.ts"));
 });
 
 test("indirect, case and let replay regressions remain in active discovery", () => {

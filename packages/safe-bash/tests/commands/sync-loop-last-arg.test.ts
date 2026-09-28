@@ -7,6 +7,7 @@ import { createStandardCommands } from "../../src/commands/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 
 const bodies = [
+  'tmp="keep_$i"; unset tmp',
   'echo "keep_$i" >/dev/null; (( x = i + 1 ))',
   'echo "keep_$i"; (( x = i + 1 ))',
   'echo "keep_$i" >/dev/null; if [[ $i == 2 ]]; then case $i in 99) : ;; esac; fi',

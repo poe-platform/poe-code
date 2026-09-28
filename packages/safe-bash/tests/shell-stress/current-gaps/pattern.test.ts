@@ -1,17 +1,26 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { build } from "esbuild";
 import { root, sourceEvidence } from "../helpers.js";
 import { isolatedSpawn } from "../process.js";
+
+// Keep source loading out of the cancellation deadline while retaining a fresh
+// process and the complete child workload for every case.
+const child = await build({
+  entryPoints: [fileURLToPath(new URL("./pattern-child.ts", import.meta.url))],
+  bundle: true, platform: "node", format: "esm", write: false,
+});
 
 for (const { mode, matching } of [
   { mode: "matcher", matching: false }, { mode: "shell", matching: false }, { mode: "shell", matching: true },
 ] as const) {
   test(matching ? "matching shell pattern executes builtin redirection" : `unmatched bracket ${mode} completes or cancels within external deadline`, { timeout: 4000 }, async () => {
     const before = sourceEvidence();
-    const result = await isolatedSpawn(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(new URL("./pattern-child.ts", import.meta.url))], {
+    const result = await isolatedSpawn(process.execPath, ["--unhandled-rejections=strict", "--input-type=module", "-e", 'import { readFileSync } from "node:fs"; await import("data:text/javascript;base64," + readFileSync(3).toString("base64"));'], {
       cwd: root, env: { PATH: "/usr/bin:/bin", LANG: "C", LC_ALL: "C" },
-      input: JSON.stringify({ length: matching ? 1 : 65536, mode, matching }), timeout: 1500, maxBuffer: 65536,
+      input: JSON.stringify({ length: matching ? 1 : 65536, mode, matching }),
+      extraInput: child.outputFiles[0]!.contents, timeout: 1500, maxBuffer: 65536,
     });
     const after = sourceEvidence();
     console.log(JSON.stringify({ before: before.aggregate, after: after.aggregate, status: result.status, signal: result.signal, error: result.error?.message, stdout: result.stdout.toString(), stderr: result.stderr.toString() }));

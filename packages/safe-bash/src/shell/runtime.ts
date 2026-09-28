@@ -3450,7 +3450,7 @@ export class Runtime {
       }
     }
     if (this.backingFs) {
-      const emptyFs = (_sharedEmptyMemoryFs ??= (this._isMemoryBackingFs ? new (this.backingFs.constructor as new () => FileSystem)() : Object.freeze({}) as unknown as FileSystem));
+      const emptyFs = (_sharedEmptyMemoryFs ??= new MemoryFileSystem());
       (this as unknown as { backingFs: FileSystem }).backingFs = emptyFs;
       (this as unknown as { sourceFs: FileSystem }).sourceFs = emptyFs;
       (this as unknown as { _rawFs: FileSystem })._rawFs = emptyFs;

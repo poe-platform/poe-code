@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -9,7 +10,7 @@ const packageDirectory = process.env.npm_package_json
   : path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const operation = process.argv[2];
 const manifest = path.join(packageDirectory, "Cargo.toml");
-const targetDirectory = path.resolve(packageDirectory, "../../out/rust-mcp-target");
+const targetDirectory = path.resolve(process.env.CARGO_TARGET_DIR ?? (process.env.CI ? path.resolve(packageDirectory, "../../out/rust-mcp-target") : path.join(process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"), "poe-code", "rust-mcp-target")));
 const bindingManifest = path.join(packageDirectory, "bindings/Cargo.toml");
 const commands = {
   build: [["build", "--release", "--locked", "--manifest-path", manifest]],

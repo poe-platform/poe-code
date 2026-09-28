@@ -88,7 +88,7 @@ jobs:
         if: steps.queue-check.outputs.superseded != 'true' && steps.post-build-queue-check.outputs.superseded != 'true'
         id: archive
         run: |
-          tar -cf "$RUNNER_TEMP/build.tar" dist packages/*/dist packages/safe-js/src/intl-data/dist packages/safe-bash-command-git/src/wasm.generated.ts
+          extra=(); [ -f packages/safe-bash-command-git/src/wasm.generated.ts ] && extra+=(packages/safe-bash-command-git/src/wasm.generated.ts); tar -cf "$RUNNER_TEMP/build.tar" dist packages/*/dist packages/safe-js/src/intl-data/dist "${extra[@]}"
           echo "sha256=$(sha256sum "$RUNNER_TEMP/build.tar" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v7.0.1
         if: steps.queue-check.outputs.superseded != 'true' && steps.post-build-queue-check.outputs.superseded != 'true'

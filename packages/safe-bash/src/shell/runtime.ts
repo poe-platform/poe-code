@@ -3535,7 +3535,7 @@ export class Runtime {
       throw new NounsetDiagnosticFailure(reason);
     }
   }
-  private extractSimpleErePattern(pattern: Word): { text: string; literal: boolean } | undefined {
+  private extractSimpleErePattern(pattern: Word, state?: State): { text: string; literal: boolean; isVar?: string } | undefined {
     const cached = (pattern as { _cachedSimpleEre?: { text: string; literal: boolean } | null })._cachedSimpleEre;
     if (cached !== undefined) return cached ?? undefined;
     if (pattern.parts.length === 0) {
@@ -3544,8 +3544,34 @@ export class Runtime {
     }
     if (pattern.parts.length === 1) {
       const p0 = pattern.parts[0]!;
+      if (
+        state !== undefined &&
+        p0.kind === "variable" &&
+        !p0.quoted &&
+        !p0.operator &&
+        !p0.substring &&
+        !p0.length &&
+        !p0.indirect &&
+        !p0.prefixNames &&
+        !p0.specialParameter &&
+        !p0.transform &&
+        getArraySelector(p0) === undefined &&
+        isShellIdentifier(p0.name) &&
+        !stateMonitor(state)?.store?.get(p0.name)
+      ) {
+        const raw = state.variables[p0.name];
+        const val = this._syncArithRawWriteOnly && this._syncArithTouched?.has(p0.name)
+          ? raw
+          : (raw === undefined ? undefined : (stateMonitor(state)?.values.get(p0.name, raw) ?? raw));
+        if (typeof val !== "string" || val.length === 0 || val.includes("\\") || val.includes("~")) return undefined;
+        const varCache = (pattern as { _cachedVarEre?: { text: string; literal: boolean; isVar: string; _fastAnchoredRe?: RegExp | null } })._cachedVarEre;
+        if (varCache && varCache.text === val) return varCache;
+        const nextVarCache = { text: val, literal: false, isVar: p0.name };
+        (pattern as { _cachedVarEre?: { text: string; literal: boolean; isVar: string; _fastAnchoredRe?: RegExp | null } })._cachedVarEre = nextVarCache;
+        return nextVarCache;
+      }
       if (p0.kind !== "text" || p0.byteValue || p0.value.includes("\\") || p0.value.includes("~")) {
-        (pattern as { _cachedSimpleEre?: { text: string; literal: boolean } | null })._cachedSimpleEre = null;
+        if (p0.kind !== "variable") (pattern as { _cachedSimpleEre?: { text: string; literal: boolean } | null })._cachedSimpleEre = null;
         return undefined;
       }
       const res = { text: p0.value, literal: !!p0.quoted };
@@ -3566,7 +3592,7 @@ export class Runtime {
     return res;
   }
   private getFastAnchoredEreRegex(pattern: Word, state: State): RegExp | undefined {
-    const pat = this.extractSimpleErePattern(pattern);
+    const pat = this.extractSimpleErePattern(pattern, state);
     if (!pat || pat.literal || state.nocasematch || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxExpansionFields !== Infinity) {
       return undefined;
     }
@@ -3616,7 +3642,7 @@ export class Runtime {
     return patWithCache._fastAnchoredRe ?? undefined;
   }
   private trySyncEre(subject: string, pattern: Word, state: State, ignoreYield = false): number | undefined {
-    const pat = this.extractSimpleErePattern(pattern);
+    const pat = this.extractSimpleErePattern(pattern, state);
     if (!pat) return undefined;
     const monitor = stateMonitor(state);
     if (!monitor || monitor.hasOverlay("BASH_REMATCH") || state.readonlyVariables?.has("BASH_REMATCH") || state.exported.has("BASH_REMATCH") || (!ignoreYield && hasYieldCheckpoint(this.signal))) {
@@ -8102,7 +8128,7 @@ export class Runtime {
         if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v" || (syncConditionalFileUnaryOps.has(e.operator) && this._isMemoryBackingFs && this.canFastMemoryRedirect && this.budget.limits.maxFileSystemOperations >= 1000 && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0))) && this.isPureSyncValueWord(e.operand, rawState);
         if (e.kind === "binary") {
           if (e.operator === "=~") {
-            if (!this.isPureSyncValueWord(e.left, rawState) || !this.extractSimpleErePattern(e.right) || rawState.readonlyVariables?.has("BASH_REMATCH") || rawState.exported.has("BASH_REMATCH") || hasUnpreparedLocal(rawState, "BASH_REMATCH")) return false;
+            if (!this.isPureSyncValueWord(e.left, rawState) || !this.extractSimpleErePattern(e.right, rawState) || rawState.readonlyVariables?.has("BASH_REMATCH") || rawState.exported.has("BASH_REMATCH") || hasUnpreparedLocal(rawState, "BASH_REMATCH")) return false;
             const mon = stateMonitor(rawState);
             if (!mon || (this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxExpansionFields !== Infinity) || mon.hasOverlay("BASH_REMATCH")) return false;
             const st = mon.store ?? requireArrays(rawState);
@@ -8372,7 +8398,7 @@ export class Runtime {
       if (!okWord(expr.left) || !okWord(expr.right)) return false;
       // Matching publishes BASH_REMATCH. A sibling may still require fallback,
       // so only a standalone match can be attempted without replaying writes.
-      if (expr.operator === "=~") return depth === 0 && this.extractSimpleErePattern(expr.right) !== undefined;
+      if (expr.operator === "=~") return depth === 0 && this.extractSimpleErePattern(expr.right, rawState) !== undefined;
       if (expr.operator === "==" || expr.operator === "=" || expr.operator === "!=") {
         if (expr.right.parts.length > 0 && expr.right.parts.every(p => p.quoted)) return true;
         if (expr.right.parts.length > 0 && expr.right.parts.every((p, idx) =>
@@ -8474,7 +8500,7 @@ export class Runtime {
     if (expr.kind === "binary") {
       if (expr.operator === "=~") {
         if (depth !== 0) return undefined;
-        if (!this.extractSimpleErePattern(expr.right)) return undefined;
+        if (!this.extractSimpleErePattern(expr.right, rawState)) return undefined;
         let subject: ShellValue | undefined;
         try {
           subject = this.fastValueWord(expr.left, rawState, io, false, false, false, true, undefined, diagnosticLine);
@@ -11690,11 +11716,22 @@ export class Runtime {
           !cmd.redirects[0]!.move &&
           !cmd.redirects[0]!.document &&
           this.isPureSyncValueWord(cmd.redirects[0]!.target, rawState);
-        if (p.commands.length === 1 && (cmd.kind === "for" || cmd.kind === "arithmetic-for") && cmd.redirects.length === 0) {
-          if (cmd.body.lists.length === 1 && !cmd.body.lists[0]!.terminator && cmd.body.lists[0]!.pipelines.every(pl => pl.commands.length === 1 && pl.commands[0]!.kind === "simple" && pl.commands[0]!.redirects.length === 0 && (pl.commands[0]!.words[0]?.plain === "echo" ? this.isSyncEchoCallOk(pl.commands[0]!, rawState) : (pl.commands[0]!.words[0]?.plain === "printf" && pl.commands[0]!.words[1]?.plain !== "-v" && this.isSyncPrintfCallOk(pl.commands[0]!, 1, rawState, cmd.kind === "for" ? cmd.name : undefined))))) {
+        if (p.commands.length === 1 && (cmd.kind === "for" || cmd.kind === "arithmetic-for" || cmd.kind === "while") && cmd.redirects.length === 0) {
+          if (cmd.kind === "while") {
+            const wc = cmd.condition.lists.length === 1 && !cmd.condition.lists[0]!.terminator && cmd.condition.lists[0]!.pipelines.length === 1 && !cmd.condition.lists[0]!.pipelines[0]!.negate && cmd.condition.lists[0]!.pipelines[0]!.commands.length === 1 ? cmd.condition.lists[0]!.pipelines[0]!.commands[0] : undefined;
+            const wInd = wc?.kind === "arithmetic" && !wc.expression.error && wc.expression.tree?.kind === "binary" && (wc.expression.tree.left.kind === "name" ? wc.expression.tree.left.name : (wc.expression.tree.left.kind === "unary" && wc.expression.tree.left.operand.kind === "name" ? wc.expression.tree.left.operand.name : undefined));
+            if (wInd && cmd.body.lists.length >= 1 && cmd.body.lists.every(l => !l.terminator && l.pipelines.every(pl => pl.commands.length === 1 && (pl.commands[0]!.kind === "simple" && pl.commands[0]!.redirects.length === 0 && (pl.commands[0]!.words[0]?.plain === "echo" ? this.isSyncEchoCallOk(pl.commands[0]!, rawState) : (pl.commands[0]!.words[0]?.plain === "printf" && pl.commands[0]!.words[1]?.plain !== "-v" && this.isSyncPrintfCallOk(pl.commands[0]!, 1, rawState, wInd))) || (pl.commands[0]!.kind === "arithmetic" && pl.commands[0]!.redirects.length === 0 && !pl.commands[0]!.expression.error && pl.commands[0]!.expression.tree?.kind === "unary" && (pl.commands[0]!.expression.tree.operator === "++" || pl.commands[0]!.expression.tree.operator === "--") && pl.commands[0]!.expression.tree.operand.kind === "name" && pl.commands[0]!.expression.tree.operand.name === wInd))))) {
+              continue;
+            }
+            return false;
+          }
+          if (cmd.body.lists.length === 1 && !cmd.body.lists[0]!.terminator && cmd.body.lists[0]!.pipelines.every(pl => pl.commands.length === 1 && pl.commands[0]!.kind === "simple" && pl.commands[0]!.redirects.length === 0 && (pl.commands[0]!.words[0]?.plain === "echo" ? this.isSyncEchoCallOk(pl.commands[0]!, rawState) : (pl.commands[0]!.words[0]?.plain === "printf" && pl.commands[0]!.words[1]?.plain !== "-v" && this.isSyncPrintfCallOk(pl.commands[0]!, 1, rawState, cmd.kind === "for" ? cmd.name : /^([a-zA-Z_][a-zA-Z_0-9]*)\s*=/.exec(cmd.expressions[0]!.source.trim())?.[1]))))) {
             continue;
           }
           return false;
+        }
+        if (p.commands.length === 1 && (cmd.kind === "if" || cmd.kind === "case") && this.isPureSyncSubIfOrCase(cmd, rawState)) {
+          continue;
         }
         if (cmd.kind !== "simple" || (cmd.redirects.length > 0 && !hasSingleStdinRedir && !hasSingleHereStringRedir) || cmd.words.length === 0) return false;
         let w0Plain = cmd.words[0]!.plain;
@@ -12260,6 +12297,70 @@ export class Runtime {
     }
     return { ifsWord, varNames, isBareReply, inputWord: r0.target, ...(delimChar !== undefined ? { delimChar } : {}) };
   }
+  private scriptTouchesVar(script: Script, varName: string): boolean {
+    for (const list of script.lists) {
+      for (const pl of list.pipelines) {
+        for (const c of pl.commands) {
+          if (c.kind === "simple") {
+            for (const w of c.words) {
+              if (w.plain === varName || w.parts[0]?.kind === "text" && w.parts[0].value.startsWith(varName + "=")) return true;
+            }
+          } else if (c.kind === "arithmetic") {
+            if (c.expression.hasMutation && c.expression.source.includes(varName)) return true;
+          } else if (c.kind === "if") {
+            if (c.branches.some(b => this.scriptTouchesVar(b.body, varName)) || (c.otherwise && this.scriptTouchesVar(c.otherwise, varName))) return true;
+          } else if (c.kind === "case") {
+            if (c.clauses.some(cl => this.scriptTouchesVar(cl.body, varName))) return true;
+          } else if (c.kind === "for" || c.kind === "arithmetic-for" || c.kind === "while" || c.kind === "until" || c.kind === "group" || c.kind === "subshell") {
+            if (c.kind === "for" && c.name === varName) return true;
+            if (this.scriptTouchesVar(c.body, varName)) return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+  private isPureSyncSubIfOrCase(cmd: Extract<Command, { kind: "if" | "case" }>, rawState: State): boolean {
+    if (cmd.redirects.length !== 0) return false;
+    const isSimpleEchoOrPrintf = (s: Script): boolean => {
+      if (s.lists.length !== 1 || s.lists[0]!.terminator || s.lists[0]!.pipelines.length !== 1) return false;
+      const pl = s.lists[0]!.pipelines[0]!;
+      if (pl.negate || pl.commands.length !== 1) return false;
+      const sc = pl.commands[0]!;
+      if (sc.kind !== "simple" || sc.redirects.length !== 0 || sc.words.length === 0) return false;
+      const w0 = sc.words[0]?.plain;
+      if (w0 === "echo") return this.isSyncEchoCallOk(sc, rawState);
+      if (w0 === "printf" && sc.words[1]?.plain !== "-v") return this.isSyncPrintfCallOk(sc, 1, rawState);
+      return false;
+    };
+    if (cmd.kind === "if") {
+      for (const br of cmd.branches) {
+        if (br.condition.lists.length !== 1 || br.condition.lists[0]!.terminator || br.condition.lists[0]!.pipelines.length !== 1) return false;
+        const bp = br.condition.lists[0]!.pipelines[0]!;
+        if (bp.negate || bp.commands.length !== 1) return false;
+        const bc = bp.commands[0]!;
+        if (bc.kind === "arithmetic") {
+          if (bc.redirects.length !== 0 || bc.expression.error || bc.expression.hasMutation || bc.expression.hasSubscript || !isSafeSmiProgram(bc.expression) || !this.canSyncArithmeticWithoutFault(bc.expression.tree, rawState, bc.line ?? 1)) return false;
+        } else if (bc.kind === "conditional") {
+          if (bc.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(bc.expression, 0, rawState)) return false;
+          if (bc.expression.kind === "binary" && bc.expression.operator === "=~") return false;
+        } else if (!this.extractPosixBracketCondExpr(bc, rawState, true, br.body)) {
+          return false;
+        }
+        if (!isSimpleEchoOrPrintf(br.body)) return false;
+      }
+      if (cmd.otherwise && !isSimpleEchoOrPrintf(cmd.otherwise)) return false;
+      return true;
+    }
+    if (rawState.nocasematch || rawState.extglob || !this.isPureSyncValueWord(cmd.subject, rawState)) return false;
+    const work = { remaining: 4096, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    for (const cl of cmd.clauses) {
+      if (cl.terminator !== ";;" && cl.terminator !== "esac") return false;
+      if (!cl.patterns.every(pw => pw.plain !== undefined && tryMatchesPatternSync(pw.plain, "", work, false, false) !== undefined)) return false;
+      if (!isSimpleEchoOrPrintf(cl.body)) return false;
+    }
+    return true;
+  }
   private canSyncLoopBody(script: Script, rawState: State, io?: IO, nested = false, printfInductionName?: string): boolean {
     if (script.lists.length === 0) return false;
     const store = stateMonitor(rawState)?.store;
@@ -12276,7 +12377,11 @@ export class Runtime {
             if (e.kind === "nonempty") return this.isPureSyncValueWord(e.operand, rawState);
             if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v" || (syncConditionalFileUnaryOps.has(e.operator) && this._isMemoryBackingFs && this.canFastMemoryRedirect && this.budget.limits.maxFileSystemOperations >= 1000 && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0))) && this.isPureSyncValueWord(e.operand, rawState);
             if (e.kind === "binary") {
-              if (e.operator === "=~") return this.isPureSyncValueWord(e.left, rawState) && this.getFastAnchoredEreRegex(e.right, rawState) !== undefined && !rawState.readonlyVariables?.has("BASH_REMATCH") && !rawState.exported.has("BASH_REMATCH") && !stateMonitor(rawState)?.hasOverlay("BASH_REMATCH") && !(store ?? requireArrays(rawState))?.watches.has("BASH_REMATCH");
+              if (e.operator === "=~") {
+                const patInfo = this.extractSimpleErePattern(e.right, rawState);
+                if (patInfo?.isVar && this.scriptTouchesVar(script, patInfo.isVar)) return false;
+                return this.isPureSyncValueWord(e.left, rawState) && this.getFastAnchoredEreRegex(e.right, rawState) !== undefined && !rawState.readonlyVariables?.has("BASH_REMATCH") && !rawState.exported.has("BASH_REMATCH") && !stateMonitor(rawState)?.hasOverlay("BASH_REMATCH") && !(store ?? requireArrays(rawState))?.watches.has("BASH_REMATCH");
+              }
               return this.isPureSyncValueWord(e.left, rawState) && (e.operator === "==" || e.operator === "=" || e.operator === "!=" ? this.canSyncPatternWordParts(e.right, rawState) : this.isPureSyncValueWord(e.right, rawState));
             }
             if (e.kind === "not") return checkLeaf(e.operand);
@@ -13066,6 +13171,8 @@ export class Runtime {
     const initializer = command.kind === "arithmetic-for" ? command.expressions[0]?.tree : undefined;
     const condition = command.kind === "arithmetic-for" ? command.expressions[1]?.tree : undefined;
     const increment = command.kind === "arithmetic-for" ? command.expressions[2]?.tree : undefined;
+    const whileCondCmd = command.kind === "while" && command.condition.lists.length === 1 && command.condition.lists[0]!.pipelines.length === 1 ? command.condition.lists[0]!.pipelines[0]!.commands[0] : undefined;
+    const whilePrintfInd = whileCondCmd?.kind === "arithmetic" && !whileCondCmd.expression.error && whileCondCmd.expression.tree?.kind === "binary" && (whileCondCmd.expression.tree.left.kind === "name" ? whileCondCmd.expression.tree.left.name : (whileCondCmd.expression.tree.left.kind === "unary" && whileCondCmd.expression.tree.left.operand.kind === "name" ? whileCondCmd.expression.tree.left.operand.name : undefined));
     const printfInductionName =
       initializer?.kind === "binary" && initializer.operator === "=" && initializer.left.kind === "name" &&
       initializer.right.kind === "literal" && initializer.right.value >= 0n && initializer.right.value <= 2000n &&
@@ -13073,7 +13180,9 @@ export class Runtime {
       condition.left.kind === "name" && condition.left.name === initializer.left.name &&
       condition.right.kind === "literal" && condition.right.value >= 0n && condition.right.value <= 2000n &&
       increment?.kind === "unary" && increment.operator === "++" && increment.operand.kind === "name" && increment.operand.name === initializer.left.name &&
-      this.canSyncPrintfInductionBody(command.body, rawState) ? initializer.left.name : undefined;
+      this.canSyncPrintfInductionBody(command.body, rawState)
+        ? initializer.left.name
+        : (whilePrintfInd && this.canSyncPrintfInductionBody(command.body, rawState) ? whilePrintfInd : undefined);
     if ((guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || !this.canSyncLoopBody(command.body, rawState, io, false, printfInductionName)) {
       (command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop = true;
       return undefined;
@@ -13096,7 +13205,7 @@ export class Runtime {
     }
     const { steps: bodyAssignments, redirectCount } = this.buildSyncLoopBody(command, rawState, io);
     if (bodyAssignments.length > 30) return undefined;
-    const touched = sharedSyncLoopTouched;
+    const touched = this._syncArithRawWriteOnly ? new Set<string>() : sharedSyncLoopTouched;
     touched.clear();
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = "";
@@ -13347,7 +13456,7 @@ export class Runtime {
         let lastInductionVal: string | undefined;
         const intBudgetSnapshot = this.budget.parsing.snapshot();
         // Empty loops must evaluate the header without publishing unexecuted body registers or command state.
-        let canUseIntRegisters = iterations > 0 && allIntStepsReady && (!hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) && !this.budget.hasCpuLimit && this.budget.maxExpansionFieldsSmi >= 1 && this.budget.maxExpansionBytesSmi >= 32 && !store?.get(inductionName) && inductionName !== "LINENO" && inductionName !== "_" && inductionName !== "FUNCNAME";
+        let canUseIntRegisters = !prevRawWrite && iterations > 0 && allIntStepsReady && (!hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) && !this.budget.hasCpuLimit && this.budget.maxExpansionFieldsSmi >= 1 && this.budget.maxExpansionBytesSmi >= 32 && !store?.get(inductionName) && inductionName !== "LINENO" && inductionName !== "_" && inductionName !== "FUNCNAME";
         if (canUseIntRegisters && arithNamesList.length > 0) {
           for (let a = 0; a < arithNamesList.length; a++) {
             const refName = arithNamesList[a]!;
@@ -13579,6 +13688,8 @@ export class Runtime {
           if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v") && this.isPureSyncValueWord(e.operand, rawState);
           if (e.kind === "binary") {
             if (e.operator === "=~") {
+              const patInfo = this.extractSimpleErePattern(e.right, rawState);
+              if (patInfo?.isVar && this.scriptTouchesVar(command.body, patInfo.isVar)) return false;
               return (
                 depth === 0 &&
                 this.isPureSyncValueWord(e.left, rawState) &&
@@ -14289,10 +14400,15 @@ export class Runtime {
     // indirectly. Keep this proof to simple commands and isolated substitutions;
     // the loop plan separately rejects direct assignments to its counter.
     for (const list of script.lists) for (const pipeline of list.pipelines) for (const command of pipeline.commands) {
+      if (command.kind === "arithmetic") {
+        if (command.redirects.length === 0 && !command.expression.error && !command.expression.hasSubscript && isSafeSmiProgram(command.expression) && command.expression.tree?.kind === "unary" && (command.expression.tree.operator === "++" || command.expression.tree.operator === "--") && command.expression.tree.operand.kind === "name") continue;
+        return false;
+      }
       if (command.kind !== "simple" || hasShellFunction(rawState, command.words[0]?.plain ?? "") || command.words.some(word => getArrayAssignment(word) !== undefined)) return false;
       for (const word of [...command.words, ...command.redirects.map(redirect => redirect.target)]) for (const part of word.parts) {
         if (part.kind === "text") continue;
         if (part.kind === "variable" && !part.indirect && !part.length && !part.substring && !part.transform && !part.prefixNames && part.operator === undefined && getArraySelector(part) === undefined) continue;
+        if (part.kind === "arithmetic" && !part.expression.error && !part.expression.hasMutation && !part.expression.hasSubscript && isSafeSmiProgram(part.expression) && /^[a-zA-Z0-9_ +*-]+$/.test(part.expression.source)) continue;
         if (part.kind === "substitution" && this.canSyncPrintfInductionBody(part.script, rawState)) continue;
         return false;
       }
@@ -14313,6 +14429,22 @@ export class Runtime {
       const valueParts = w.parts.filter(part => part.kind !== "text" || part.value.length > 0);
       const part = valueParts[0];
       if (i > fmtWordIdx && valueParts.length === 1 && part?.kind === "variable" && part.name === inductionName && part.quoted && !part.indirect && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined) {
+        args.push("0");
+        continue;
+      }
+      if (
+        i > fmtWordIdx &&
+        inductionName !== undefined &&
+        valueParts.length === 1 &&
+        part?.kind === "arithmetic" &&
+        part.quoted &&
+        !part.expression.error &&
+        !part.expression.hasMutation &&
+        !part.expression.hasSubscript &&
+        isSafeSmiProgram(part.expression) &&
+        /^[a-zA-Z0-9_ +*-]+$/.test(part.expression.source) &&
+        this.canSyncArithmeticWithoutFault(part.expression.tree, rawState, cmd.line ?? 1)
+      ) {
         args.push("0");
         continue;
       }
@@ -22674,7 +22806,59 @@ export class Runtime {
     }
     if (pipeline.commands.length !== 1) return undefined;
     let cmd = pipeline.commands[0]!;
-    if ((cmd.kind === "arithmetic-for" || cmd.kind === "for") && cmd.redirects.length === 0 && !rawState.errexit && !rawState.nounset && !rawState.readonlyVariables?.size) {
+    if ((cmd.kind === "if" || cmd.kind === "case") && this.isPureSyncSubIfOrCase(cmd, rawState)) {
+      const monitor = stateMonitor(state);
+      if (!monitor) return undefined;
+      let selectedBody: Script | undefined;
+      if (cmd.kind === "if") {
+        for (const br of cmd.branches) {
+          const bc = br.condition.lists[0]!.pipelines[0]!.commands[0]!;
+          let condOk = false;
+          if (bc.kind === "arithmetic") {
+            condOk = this.evalSyncLoopArithStmt(bc.expression, rawState, io, this._syncArithTouched ?? new Set(), bc.line ?? part.line);
+          } else if (bc.kind === "conditional") {
+            const st = this.tryEvalConditionalSync(bc.expression, rawState, monitor, arrayStore(rawState), io, bc.line ?? part.line);
+            if (st === undefined) return undefined;
+            condOk = st === 0;
+          } else {
+            const bExpr = this.extractPosixBracketCondExpr(bc, rawState, true, br.body);
+            if (!bExpr) return undefined;
+            const st = this.tryEvalConditionalSync(bExpr, rawState, monitor, arrayStore(rawState), io, bc.line ?? part.line);
+            if (st === undefined) return undefined;
+            condOk = st === 0;
+          }
+          if (condOk) {
+            selectedBody = br.body;
+            break;
+          }
+        }
+        if (!selectedBody) selectedBody = cmd.otherwise;
+      } else {
+        const subj = this.fastValueWord(cmd.subject, rawState, io, false, false, false, false, undefined, part.line);
+        if (typeof subj !== "string") return undefined;
+        const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+        for (const cl of cmd.clauses) {
+          let matched = false;
+          for (const pw of cl.patterns) {
+            if (pw.plain !== undefined && tryMatchesPatternSync(pw.plain, subj, work, false, false) === true) {
+              matched = true;
+              break;
+            }
+          }
+          if (matched) {
+            selectedBody = cl.body;
+            break;
+          }
+        }
+      }
+      if (!selectedBody) {
+        rawState.substitutionStatus = 0;
+        rawState.status = 0;
+        return "";
+      }
+      cmd = selectedBody.lists[0]!.pipelines[0]!.commands[0]!;
+    }
+    if ((cmd.kind === "arithmetic-for" || cmd.kind === "for" || cmd.kind === "while") && cmd.redirects.length === 0 && !rawState.errexit && !rawState.nounset && !rawState.readonlyVariables?.size) {
       const monitor = stateMonitor(state);
       if (monitor) {
         const store = arrayStore(rawState);
@@ -22686,22 +22870,28 @@ export class Runtime {
           capture.budget = this.budget;
           capture.signal = this.signal;
           const { descriptors: ignoredDescriptors, ...ioRest } = io; const subIO: IO = { ...ioRest, stdout: capture };
-          if (this.canSyncLoopBody(cmd.body, rawState, subIO)) {
+          const wc = cmd.kind === "while" && cmd.condition.lists.length === 1 && cmd.condition.lists[0]!.pipelines.length === 1 ? cmd.condition.lists[0]!.pipelines[0]!.commands[0] : undefined;
+          const whileIndName = wc?.kind === "arithmetic" && !wc.expression.error && wc.expression.tree?.kind === "binary" ? (wc.expression.tree.left.kind === "name" ? wc.expression.tree.left.name : (wc.expression.tree.left.kind === "unary" && wc.expression.tree.left.operand.kind === "name" ? wc.expression.tree.left.operand.name : undefined)) : undefined;
+          const indName = cmd.kind === "for" ? cmd.name : cmd.kind === "while" ? whileIndName : /^([a-zA-Z_][a-zA-Z_0-9]*)\s*=/.exec(cmd.expressions[0]!.source.trim())?.[1];
+          if (this.canSyncLoopBody(cmd.body, rawState, subIO, false, indName)) {
             const { steps: bodySteps } = this.buildSyncLoopBody(cmd, rawState, subIO);
-            if (bodySteps.length > 0 && bodySteps.every(s => s.isStdoutEcho === true)) {
-              const indName = cmd.kind === "for" ? cmd.name : /^([a-zA-Z_][a-zA-Z_0-9]*)\s*=/.exec(cmd.expressions[0]!.source.trim())?.[1];
+            if (bodySteps.length > 0 && bodySteps.every(s => s.isStdoutEcho === true || (cmd.kind === "while" && indName !== undefined && s.arithStmt !== undefined && !s.arithStmt.error && s.arithStmt.tree?.kind === "unary" && (s.arithStmt.tree.operator === "++" || s.arithStmt.tree.operator === "--") && s.arithStmt.tree.operand.kind === "name" && s.arithStmt.tree.operand.name === indName))) {
               if (indName && !store?.get(indName)) {
                 const hadInd = Object.prototype.hasOwnProperty.call(rawState.variables, indName);
                 const prevInd = rawState.variables[indName];
                 const prevLastArg = rawState.lastArgument;
                 let loopRes: number | undefined;
                 rawState.depth++;
+                if (this._syncStdoutBatch.length > 0) this.flushSyncStdoutBatch(io);
                 try {
                   loopRes = this.trySyncLoop(cmd, pipeline, rawState, monitor, store, existing, elem0, true, subIO, part.line);
                 } finally {
                   rawState.depth--;
                   if (prevLastArg !== undefined) rawState.lastArgument = prevLastArg; else delete rawState.lastArgument;
-                  if (hadInd && prevInd !== undefined) monitor.publishStringVariable(indName, prevInd); else {
+                  if (hadInd && prevInd !== undefined) {
+                    rawState.variables[indName] = prevInd;
+                    monitor.publishStringVariable(indName, prevInd);
+                  } else {
                     delete rawState.variables[indName];
                     monitor.values.invalidate(indName);
                   }

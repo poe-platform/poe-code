@@ -301,3 +301,27 @@ for (const [label, source] of [
     } finally { await shell.dispose(); }
   });
 }
+
+for (const [label, source] of [
+  [
+    "$(if ...) and $(case ...) pure command substitutions in sync loop",
+    "out1=; out2=; for ((i=1; i<=12; i++)); do t1=$(if ((i % 2 == 0)); then echo \"e$i\"; else echo \"o$i\"; fi); m=$((i % 3)); t2=$(case \"$m\" in (0) echo \"z$i\" ;; (1) echo \"n$i\" ;; (*) echo \"w$i\" ;; esac); out1+=\"$t1,\"; out2+=\"$t2,\"; done; printf \"%s|%s\\n\" \"$out1\" \"$out2\"",
+  ],
+  [
+    "[[ $s =~ $pat ]] unquoted variable pattern and $(while ...)/$(for ...) subshells in sync loop",
+    "pat=\"^([0-9]+):([a-z]+)$\"; rsum=0; for ((i=1; i<=10; i++)); do s=\"$i:xyz\"; if [[ \"$s\" =~ $pat ]]; then ((rsum += BASH_REMATCH[1])); fi; done; j=0; s1=$(while ((j<4)); do printf \"%d,\" \"$((10+j))\"; ((j++)); done); k=99; for ((i=1; i<=3; i++)); do s2=$(for ((k=0; k<3; k++)); do printf \"%d,\" \"$((i+k))\"; done); done; printf \"%d|%s|%s:%d|%s:%d\\n\" \"$rsum\" \"${BASH_REMATCH[2]}\" \"$s1\" \"$j\" \"$s2\" \"$k\"",
+  ],
+] as const) {
+  test(`wave 93 sync loop parity: ${label}`, async () => {
+    const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(bash.status, 0, bash.stderr);
+    const commands = new CommandRegistry([...basicCommands(), ...predicateCommands()]);
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, bash.status, result.stderr);
+      assert.equal(result.stderr, bash.stderr);
+      assert.equal(result.stdout, bash.stdout);
+    } finally { await shell.dispose(); }
+  });
+}

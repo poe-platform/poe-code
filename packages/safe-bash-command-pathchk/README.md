@@ -20,3 +20,5 @@ import { createMemoryFileSystem, Shell, agentCommands } from "@poe-platform/safe
 const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
 const res = await shell.exec("pathchk --portability src/index.ts");
 ```
+
+Resource limits are disabled (`Infinity`) by default. Pass `limits` to the command factory or plugin to enforce bounds; omitted limits remain disabled.

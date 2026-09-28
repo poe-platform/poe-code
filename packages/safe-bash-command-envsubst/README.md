@@ -19,3 +19,5 @@ import { createMemoryFileSystem, Shell, agentCommands } from "@poe-platform/safe
 const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
 const res = await shell.exec("PORT=8080 envsubst <<< 'listen $PORT'");
 ```
+
+Resource limits are disabled (`Infinity`) by default. Pass `limits` to the command factory or plugin to enforce bounds; omitted limits remain disabled.

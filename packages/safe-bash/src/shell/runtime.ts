@@ -4721,7 +4721,7 @@ export class Runtime {
           let val: ShellValue | undefined = "";
           if (entry.value.parts.length > 0) {
             try {
-              val = this.fastValueWord(entry.value, rawState, io, false, false, false, false, undefined, diagnosticLine);
+              val = this.fastValueWord(entry.value, rawState, io, false, false, false, false, entry.index === undefined ? undefined : 0, diagnosticLine);
             } catch {
               return false;
             }
@@ -4771,7 +4771,7 @@ export class Runtime {
           let val: ShellValue | undefined = "";
           if (entry.value.parts.length > 0) {
             try {
-              val = this.fastValueWord(entry.value, rawState, io, false, false, false, false, undefined, diagnosticLine);
+              val = this.fastValueWord(entry.value, rawState, io, false, false, false, false, entry.index === undefined ? undefined : 0, diagnosticLine);
             } catch {
               return false;
             }
@@ -5097,7 +5097,7 @@ export class Runtime {
             if (expandedEntry) continue;
           }
           const index = entry.index ? (await this.arrayIndex(targetBinding, entry.index, state, io, operation, true))! : undefined;
-          const fields = await this.valueWord(entry.value, state, io, entry.index === undefined);
+          const fields = await this.valueWord(entry.value, state, io, entry.index === undefined, false, false, false, undefined, false, entry.index === undefined, entry.index === undefined ? undefined : 0);
           if (index !== undefined) {
             const value = await join(fields);
             await insert(index, value, entry.append);
@@ -8999,7 +8999,7 @@ export class Runtime {
                       const nextW = command.words[++readWordIdx]!;
                       if (nextW.plain !== undefined) delimStr = nextW.plain; else {
                         try {
-                          const fv = this.fastValueWord(nextW, rawState, io, false, false, false, false, 0, diagnosticLine);
+                          const fv = this.fastValueWord(nextW, rawState, io, true, false, false, false, undefined, diagnosticLine);
                           if (typeof fv === "string") delimStr = fv;
                         } catch {
                           delimStr = undefined;
@@ -16589,7 +16589,7 @@ export class Runtime {
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
         const members = selector ? await this.arrayMembers(part.name, state, io, part.keys) : this.positionalValues(state);
         const ifs = state.variables.IFS ?? " ";
-        const separator = selector?.kind === "members" && !split && (selector.separator === "@" || !part.quoted) ? " " : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
+        const separator = !split && (selector?.kind === "members" ? selector.separator === "@" || !part.quoted : part.name === "@") ? " " : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
         const fragments: ShellValue[] = [];
         let bytes = 0;
         for (const member of members) {
@@ -16944,7 +16944,7 @@ export class Runtime {
       : part.name === "?" ? String(state.status)
       : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
       : part.name === "#" ? String(state.positional.length)
-      : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
+      : part.name === "@" || part.name === "*" ? state.positional.join(part.name === "@" && !split || hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
       : part.name === "LINENO" ? (state.extensions ? String(io.diagnosticLine ?? part.line ?? 1) : state.variables.LINENO ?? String(io.diagnosticLine ?? part.line ?? 1)) : this.variable(state, part.name);
@@ -16958,7 +16958,7 @@ export class Runtime {
       } else if (/^0+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(zeroPositionKey, value) ?? value;
       else if (/^[0-9]+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(String(Number(part.name) - 1), value) ?? value;
       else if (part.name === "@" || part.name === "*") {
-        const separator = hereString && (part.name === "@" || !part.quoted) ? " " : this.ifsSeparator(state, io);
+        const separator = part.name === "@" && !split || hereString && (part.name === "@" || !part.quoted) ? " " : this.ifsSeparator(state, io);
         const values = this.positionalValues(state);
         retained = concatShellValues(values.flatMap((entry, index) => index ? [separator, entry] : [entry]), io[valueScope]);
       }

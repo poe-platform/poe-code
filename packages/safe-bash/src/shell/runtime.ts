@@ -10239,7 +10239,7 @@ export class Runtime {
                 rawState.depth++;
                 let evalStatus: number | { listIndex: number; pipelineIndex: number };
                 try {
-                  evalStatus = this.trySyncScript(cachedUnit.script, state, { ...io, diagnosticOffset: (diagnosticLine ?? 1) - 1, functionCommandLines: undefined }, Boolean(ignored));
+                  evalStatus = this.trySyncScript(cachedUnit.script, state, { ...io, diagnosticOffset: (diagnosticLine ?? 1) - 1, functionCommandLines: undefined, assignmentDiagnosticContext: { name: "eval" } }, Boolean(ignored));
                 } finally {
                   rawState.depth--;
                 }

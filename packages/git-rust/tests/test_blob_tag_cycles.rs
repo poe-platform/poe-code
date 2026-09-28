@@ -60,6 +60,17 @@ fn read_blob_rejects_self_and_two_tag_cycles() {
 }
 
 #[test]
+fn read_blob_rejects_tag_cycles_before_resolving_a_filepath() {
+    let a = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    let b = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    for edges in [vec![(a, a)], vec![(a, b), (b, a)]] {
+        let fs = cyclic_tags(&edges);
+        let err = read_blob(&fs, "/repo/.git", a, Some("file")).unwrap_err();
+        assert!(err.message.contains("cycle"), "{err:?}");
+    }
+}
+
+#[test]
 fn read_blob_still_peels_nested_valid_tags() {
     let fs = MemoryFs::new();
     let gitdir = "/repo/.git";

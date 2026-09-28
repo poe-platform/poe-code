@@ -242,24 +242,22 @@ pub fn resolve_tree(
     gitdir: &str,
     oid: &str,
 ) -> Result<(String, GitTree), GitError> {
-    if oid == "4b825dc642cb6eb9a060e54bf8d69288fbee4904" {
-        return Ok((oid.to_string(), GitTree::from_entries(Vec::new())?));
-    }
-    let obj = _read_object(fs, gitdir, oid, "content")?;
-    match obj.obj_type.as_str() {
-        "tag" => {
-            let tag = GitAnnotatedTag::from_bytes(&obj.object).parse();
-            resolve_tree(fs, gitdir, &tag.object)
+    let mut current = oid.to_string();
+    let mut visited = BTreeSet::new();
+    loop {
+        if !visited.insert(current.clone()) {
+            return Err(GitError::internal(&format!("Object cycle while resolving tree {oid}")));
         }
-        "commit" => {
-            let commit = GitCommit::from_bytes(&obj.object).parse();
-            resolve_tree(fs, gitdir, &commit.tree)
+        if current == "4b825dc642cb6eb9a060e54bf8d69288fbee4904" {
+            return Ok((current, GitTree::from_entries(Vec::new())?));
         }
-        "tree" => {
-            let tree = GitTree::from_bytes(&obj.object)?;
-            Ok((oid.to_string(), tree))
+        let obj = _read_object(fs, gitdir, &current, "content")?;
+        match obj.obj_type.as_str() {
+            "tag" => current = GitAnnotatedTag::from_bytes(&obj.object).parse().object,
+            "commit" => current = GitCommit::from_bytes(&obj.object).parse().tree,
+            "tree" => return Ok((current, GitTree::from_bytes(&obj.object)?)),
+            other => return Err(GitError::object_type(&current, other, "tree", None)),
         }
-        other => Err(GitError::object_type(oid, other, "tree", None)),
     }
 }
 

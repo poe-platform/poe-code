@@ -10330,7 +10330,7 @@ export class Runtime {
               fastAssigned = String(Number(trimmedOptind));
             }
             parsedLocals.push({ name: assignment.name, val: fastAssigned, append: assignment.append, lastArg: `${assignment.name}=${fastAssigned}` });
-          } else if ( wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && (wArg.plain !== "OPTIND" || !rawState.variableAttributes?.get("OPTIND")) && wArg.plain !== "PIPESTATUS" && !rawState.readonlyVariables?.has(wArg.plain) && !store?.get(wArg.plain)) {
+          } else if ( wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && !rawState.variableAttributes?.get(wArg.plain)?.includes("n") && (wArg.plain !== "OPTIND" || !rawState.variableAttributes?.get("OPTIND")) && wArg.plain !== "PIPESTATUS" && !rawState.readonlyVariables?.has(wArg.plain) && !store?.get(wArg.plain)) {
             parsedLocals.push({ name: wArg.plain, val: undefined, append: false, lastArg: wArg.plain });
           } else {
             allValidLocal = false;

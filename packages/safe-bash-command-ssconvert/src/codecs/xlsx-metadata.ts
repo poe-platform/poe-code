@@ -83,7 +83,7 @@ export function readXlsxMetadata(sheet: XmlElement, comments?: XmlElement): read
     }
     for (const [source, name] of [[rowBreaks, "hPageBreaks"], [colBreaks, "vPageBreaks"]] as const) if (source) {
       const breaks = source.children.filter(c => c.localName === "brk").map(node => gnode("break", {
-        pos: numeric(attribute(node, "id"), 0), type: attribute(node, "pt") === "1" ? "data-slice" : attribute(node, "man") === "1" ? "manual" : "auto" }));
+        pos: numeric(attribute(node, "id"), 0), type: ["1", "true"].includes(attribute(node, "pt") ?? "") ? "data-slice" : ["1", "true"].includes(attribute(node, "man") ?? "") ? "manual" : "auto" }));
       print.push(gnode(name, { count: breaks.length }, breaks));
     }
     records.push({ source: "Gnumeric_XmlIO:sax", kind: "PrintInformation", disposition: "retained", data: gnode("PrintInformation", {}, print) });

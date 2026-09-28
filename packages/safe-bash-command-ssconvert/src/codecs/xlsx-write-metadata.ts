@@ -69,7 +69,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
     const retained = new Map<string, MetadataNode | undefined>();
     for (const source of original ?? []) {
       charge();
-      const type = source.attributes.pt === "1" ? "data-slice" : source.attributes.man === "1" ? "manual" : "auto";
+      const type = ["1", "true"].includes(source.attributes.pt ?? "") ? "data-slice" : ["1", "true"].includes(source.attributes.man ?? "") ? "manual" : "auto";
       const key = `${Number(source.attributes.id ?? 0)}:${type}`;
       // An edited list cannot identify which duplicate owns source-only bounds.
       retained.set(key, retained.has(key) ? undefined : source);
@@ -77,7 +77,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
     const unchanged = original?.length === breaks.children.length && breaks.children.every((b, index) => {
       charge();
       const source = original[index]!;
-      const type = source.attributes.pt === "1" ? "data-slice" : source.attributes.man === "1" ? "manual" : "auto";
+      const type = ["1", "true"].includes(source.attributes.pt ?? "") ? "data-slice" : ["1", "true"].includes(source.attributes.man ?? "") ? "manual" : "auto";
       return b.name === "break" && Number(b.attributes.pos) === Number(source.attributes.id ?? 0) && b.attributes.type === type;
     });
     // Bounds and explicit flag spellings are source-only metadata. Retain them

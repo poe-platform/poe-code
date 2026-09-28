@@ -128,3 +128,38 @@ it("preserves an untouched sibling's bounds when another break is edited", async
   expect(output).toContain('<brk id="1" min="2" max="3" man="1"/>');
   expect(output).toContain('<brk id="3" max="16383" man="1"/>');
 });
+
+
+it.each(["row", "col"] as const)("accepts xs:boolean break flags on the %s axis through XLSX/BIFF/PDF", async axis => {
+  for (const [flags, type, pages] of [
+    ['man="true"', "manual", 2],
+    ['pt="true"', "data-slice", 2],
+    ['man="true" pt="true"', "data-slice", 2],
+    ['man="false" pt="false"', "auto", 1],
+    ['man="true" pt="false"', "manual", 2]
+  ] as const) {
+    const book = await readXlsx(await fixture(axis, `<brk id="2" min="0" max="3" ${flags}/>`), context);
+    const variants = [book,
+      await readXlsx(await createXlsxWriter("2008")(book, [], context), context),
+      await readBiff(await writeBiffStream(book, 8, false, context), context)];
+    for (const [index, variant] of variants.entries()) {
+      const settings = sheetPrintSettings(variant.sheets[0]!, context);
+      expect(axis === "row" ? settings.rowBreaks : settings.columnBreaks).toEqual(type === "auto" ? [] : [{ position: 2, type: index === 2 ? "manual" : type }]);
+    }
+    expect((await PDFDocument.load(await writePdf(book, [], context))).getPageCount()).toBe(pages);
+    expect(await sheetXml(book)).toContain(`<brk id="2" min="0" max="3" ${flags}/>`);
+  }
+});
+
+it.each(["manual", "data-slice"])("retains true-spelled %s bounds after sibling edits", async type => {
+  const flags = type === "manual" ? 'man="true"' : 'pt="true"';
+  const book = await readXlsx(await fixture("row", `<brk id="1" min="2" max="3" ${flags}/><brk id="2" man="1"/>`), context);
+  const records = book.sheets[0]!.unsupportedRecords!;
+  const print = metadataNode(records.find(r => r.kind === "PrintInformation")!.data)!;
+  const edited = { ...book, sheets: [{ ...book.sheets[0]!, unsupportedRecords: records.map(r => r.kind !== "PrintInformation" ? r : {
+    ...r, data: imported({ ...print, children: print.children.map(n => n.name !== "hPageBreaks" ? n : {
+      ...n, children: [{ ...n.children[0]!, attributes: { pos: "1", type } }, { ...n.children[1]!, attributes: { pos: "3", type: "manual" } }]
+    }) })
+  }) }] };
+  expect(await sheetXml(edited)).toContain(`<brk id="1" min="2" max="3" ${flags}/>`);
+});

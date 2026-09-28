@@ -1541,3 +1541,33 @@ dual_fixture_test!(cli_check_ref_format_check_attr_stripspace_show_branch_and_mk
     assert_eq!(r_mktag.exit_code, 0);
     assert_eq!(r_mktag.stdout.trim().len(), 40);
 });
+
+
+dual_fixture_test!(cli_status_ignored_ls_remote_whatchanged_and_request_pull, cli_status_ignored_ls_remote_whatchanged_and_request_pull_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+
+    // 1. status -s --ignored
+    f.fs.write_str(&join(&[&f.dir, ".gitignore"]), "*.log\n");
+    f.fs.write_str(&join(&[&f.dir, "debug.log"]), "ignored log\n");
+    let r_ign = execute_git_cli(&f.fs, &f.dir, &["status", "-s", "--ignored"]);
+    assert_eq!(r_ign.exit_code, 0);
+    assert!(r_ign.stdout.contains("!! debug.log"));
+
+    // 2. ls-remote (--get-url, --heads, --tags)
+    execute_git_cli(&f.fs, &f.dir, &["remote", "set-url", "origin", "https://example.com/repo.git"]);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["ls-remote", "--get-url", "origin"]).stdout.trim(), "https://example.com/repo.git");
+    let r_lsr = execute_git_cli(&f.fs, &f.dir, &["ls-remote", "--heads", "."]);
+    assert_eq!(r_lsr.exit_code, 0);
+    assert!(r_lsr.stdout.contains("refs/heads/test-branch"));
+
+    // 3. whatchanged and request-pull
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "new change for request-pull\n");
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-am", "feat: update readme for pr"]);
+    let r_wc = execute_git_cli(&f.fs, &f.dir, &["whatchanged", "-1"]);
+    assert_eq!(r_wc.exit_code, 0);
+    assert!(r_wc.stdout.contains("feat: update readme for pr") && r_wc.stdout.contains("README.md"));
+
+    let r_rp = execute_git_cli(&f.fs, &f.dir, &["request-pull", "HEAD~1", "https://example.com/repo.git", "HEAD"]);
+    assert_eq!(r_rp.exit_code, 0);
+    assert!(r_rp.stdout.contains("The following changes since commit") && r_rp.stdout.contains("feat: update readme for pr"));
+});

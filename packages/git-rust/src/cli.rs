@@ -240,6 +240,7 @@ pub fn execute_git_cli_with_http(
             let mut branch = false;
             let mut untracked = true;
             let mut all_untracked = false;
+            let mut show_ignored = false;
             let mut paths = Vec::new();
             let mut separator = false;
             for &arg in sub_args {
@@ -250,6 +251,7 @@ pub fn execute_git_cli_with_http(
                         "--" => separator = true,
                         "--short" | "--porcelain" | "--porcelain=v1" => short = true,
                         "--branch" => branch = true,
+                        "--ignored" => show_ignored = true,
                         "-uno" | "--untracked-files=no" => untracked = false,
                         "-u" | "-uall" | "--untracked-files" | "--untracked-files=all" => {
                             untracked = true;
@@ -344,6 +346,15 @@ pub fn execute_git_cli_with_http(
                                 _ => ' ',
                             };
                             out.push_str(&format!("{idx_char}{wt_char} {path}\n"));
+                        }
+                        if show_ignored {
+                            for entry in fs.readdir(&repo_root).unwrap_or_default() {
+                                if entry != ".git"
+                                    && crate::is_ignored(fs, &repo_root, Some(&gitdir), &entry)
+                                {
+                                    out.push_str(&format!("!! {entry}\n"));
+                                }
+                            }
                         }
                         CliResult::ok(out)
                     } else {
@@ -4319,6 +4330,161 @@ pub fn execute_git_cli_with_http(
                 Ok(oid) => CliResult::ok(format!("{oid}\n")),
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
+        }
+        "ls-remote" => {
+            let get_url = sub_args.contains(&"--get-url");
+            let heads_only = sub_args.contains(&"--heads") || sub_args.contains(&"-h");
+            let tags_only = sub_args.contains(&"--tags") || sub_args.contains(&"-t");
+            let remote_arg = positionals.first().copied().unwrap_or("origin");
+            let patterns = if positionals.len() > 1 { &positionals[1..] } else { &[] };
+            let url = get_config(fs, &gitdir, &format!("remote.{remote_arg}.url"))
+                .map(|v| v.as_str().to_string())
+                .unwrap_or_else(|| remote_arg.to_string());
+            if get_url {
+                return CliResult::ok(format!("{url}\n"));
+            }
+            if (url.starts_with("http://") || url.starts_with("https://"))
+                && let Ok(server_refs) = crate::list_server_refs(http, &url, None, false, 1, None, true, true, None)
+            {
+                let mut out = String::new();
+                for r in server_refs {
+                    if heads_only && !r.r#ref.starts_with("refs/heads/") {
+                        continue;
+                    }
+                    if tags_only && !r.r#ref.starts_with("refs/tags/") {
+                        continue;
+                    }
+                    if !patterns.is_empty() && !patterns.iter().any(|p| r.r#ref.ends_with(p) || r.r#ref.contains(p)) {
+                        continue;
+                    }
+                    out.push_str(&format!("{}\t{}\n", r.oid, r.r#ref));
+                }
+                return CliResult::ok(out);
+            }
+            let target_gitdir = if remote_arg == "." || remote_arg == "origin" {
+                gitdir.clone()
+            } else {
+                let abs = absolute_path(&effective_cwd, remote_arg);
+                if fs.exists(&join(&[&abs, ".git"])) {
+                    discover_gitdir(fs, &join(&[&abs, ".git"]))
+                } else if fs.exists(&abs) {
+                    discover_gitdir(fs, &abs)
+                } else {
+                    gitdir.clone()
+                }
+            };
+            let mut out = String::new();
+            if !heads_only && !tags_only
+                && let Ok(head_oid) = resolve_ref(fs, &target_gitdir, "HEAD", None)
+            {
+                out.push_str(&format!("{head_oid}\tHEAD\n"));
+            }
+            if !tags_only {
+                for b in crate::GitRefManager::list_refs(fs, &target_gitdir, "refs/heads") {
+                    let full = format!("refs/heads/{b}");
+                    if !patterns.is_empty() && !patterns.iter().any(|p| full.ends_with(p) || b == *p) {
+                        continue;
+                    }
+                    if let Ok(oid) = resolve_ref(fs, &target_gitdir, &full, None) {
+                        out.push_str(&format!("{oid}\t{full}\n"));
+                    }
+                }
+            }
+            if !heads_only {
+                for t in crate::GitRefManager::list_refs(fs, &target_gitdir, "refs/tags") {
+                    let full = format!("refs/tags/{t}");
+                    if !patterns.is_empty() && !patterns.iter().any(|p| full.ends_with(p) || t == *p) {
+                        continue;
+                    }
+                    if let Ok(oid) = resolve_ref(fs, &target_gitdir, &full, None) {
+                        out.push_str(&format!("{oid}\t{full}\n"));
+                    }
+                }
+            }
+            CliResult::ok(out)
+        }
+        "whatchanged" => {
+            let mut wc_args = vec!["--stat"];
+            wc_args.extend_from_slice(sub_args);
+            crate::cli_history::execute(
+                fs,
+                &repo_root,
+                &gitdir,
+                &effective_cwd,
+                &wc_args,
+                false,
+            )
+        }
+        "request-pull" => {
+            if positionals.len() < 2 {
+                return CliResult::err(129, "usage: git request-pull <start> <url> [<end>]\n");
+            }
+            let start_rev = positionals[0];
+            let url = positionals[1];
+            let end_rev = positionals.get(2).copied().unwrap_or("HEAD");
+            let Ok(start_oid) = crate::cli_history::resolve(fs, &gitdir, start_rev) else {
+                return CliResult::err(128, format!("fatal: Not a valid revision '{start_rev}'\n"));
+            };
+            let Ok(end_oid) = crate::cli_history::resolve(fs, &gitdir, end_rev) else {
+                return CliResult::err(128, format!("fatal: Not a valid revision '{end_rev}'\n"));
+            };
+            let start_subj = crate::read_commit(fs, &gitdir, &start_oid)
+                .map(|c| crate::cli_history::subject(&c.commit.message))
+                .unwrap_or_default();
+            let end_subj = crate::read_commit(fs, &gitdir, &end_oid)
+                .map(|c| crate::cli_history::subject(&c.commit.message))
+                .unwrap_or_default();
+            let mut out = format!(
+                "The following changes since commit {start_oid}:\n\n  {start_subj}\n\nare available in the Git repository at:\n\n  {url} {end_rev}\n\nfor you to fetch changes up to {end_oid}:\n\n  {end_subj}\n\n----------------------------------------------------------------\n"
+            );
+            let start_set: std::collections::HashSet<String> = crate::commands::plumbing::log(fs, &gitdir, Some(&start_oid), None, None, None, false, false)
+                .unwrap_or_default()
+                .into_iter()
+                .map(|c| c.oid)
+                .collect();
+            let commits: Vec<_> = crate::commands::plumbing::log(fs, &gitdir, Some(&end_oid), None, None, None, false, false)
+                .unwrap_or_default()
+                .into_iter()
+                .filter(|c| !start_set.contains(&c.oid))
+                .collect();
+            let mut by_author: std::collections::BTreeMap<String, Vec<String>> = std::collections::BTreeMap::new();
+            for c in commits.into_iter().rev() {
+                by_author
+                    .entry(c.commit.author.name.clone())
+                    .or_default()
+                    .push(crate::cli_history::subject(&c.commit.message));
+            }
+            for (author, subjs) in &by_author {
+                out.push_str(&format!("{author} ({}):\n", subjs.len()));
+                for s in subjs {
+                    out.push_str(&format!("      {s}\n"));
+                }
+                out.push('\n');
+            }
+            let stat_opts = crate::cli_files::DiffOptions {
+                mode: crate::cli_files::DiffMode::Stat,
+                ..Default::default()
+            };
+            if let Ok((stat_str, _)) = crate::cli_files::diff(fs, &repo_root, &gitdir, &start_oid, &end_oid, &[], &stat_opts) {
+                out.push_str(&stat_str);
+            }
+            CliResult::ok(out)
+        }
+        "show-index" => {
+            let mut out = String::new();
+            for p in positionals {
+                let full_p = absolute_path(&effective_cwd, p);
+                if let Some(bytes) = fs.read(&full_p)
+                    && let Ok(Some(idx)) = crate::models::GitPackIndex::from_idx(&bytes)
+                {
+                    for sha in &idx.hashes {
+                        let off = idx.offsets.get(sha).copied().unwrap_or(0);
+                        let crc = idx.crcs.get(sha).copied().unwrap_or(0);
+                        out.push_str(&format!("{off} {sha} ({crc:08x})\n"));
+                    }
+                }
+            }
+            CliResult::ok(out)
         }
         other => CliResult::err(1, format!("git: '{other}' is not a git command.\n")),
     }

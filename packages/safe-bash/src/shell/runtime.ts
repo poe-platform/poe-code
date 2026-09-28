@@ -13259,9 +13259,6 @@ export class Runtime {
         } else if (step.caseClauses !== undefined) {
           this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
           continue;
-        } else if (step.caseClauses !== undefined) {
-          this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
-          continue;
         } else if (step.ifBranches !== undefined) {
           this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
           continue;

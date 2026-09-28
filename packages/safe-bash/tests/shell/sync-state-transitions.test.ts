@@ -18,6 +18,32 @@ const wrappers = {
   function: (body: string) => `f() { ${body}; }; f 5 '1+2+3'`,
   eval: (body: string) => `eval '${body}'`,
 };
+for (const status of [42, 127]) {
+  for (const loop of [
+    'for ((i=0; i<3; i++)); do f; done',
+    'i=0; while ((i<3)); do f; ((i++)); done',
+    'i=0; until ((i>=3)); do f; ((i++)); done',
+  ]) {
+    test(`return ${status} preserves loop progress: ${loop}`, async () => {
+      const result = await execute(`f() { total=$((total+1)); if ((i==1)); then return ${status}; fi; }; total=0; ${loop}; echo "total=$total status=$? ps=\${PIPESTATUS[0]}"`);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, `total=3 status=0 ps=${loop.includes("while") ? 1 : 0}\n`);
+    });
+  }
+  test(`function return ${status} publishes PIPESTATUS and restores one-digit status`, async () => {
+    const result = await execute(`arr=(1); g() { return ${status}; }; g; echo "$?:\${PIPESTATUS[0]}"; g; true; echo "$?:\${PIPESTATUS[0]}"; g; false; echo "$?:\${PIPESTATUS[0]}"`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, `${status}:${status}\n0:0\n1:1\n`);
+  });
+  test(`nested implicit return preserves status ${status} in synchronous loops`, async () => {
+    const result = await execute(`g() { return ${status}; }; f() { j=0; while ((j++<1)); do g; done; return; }; seen=''; for ((i=0; i<3; i++)); do f; seen="$seen$?:\${PIPESTATUS[0]} "; done; echo "$seen"`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, `${`${status}:${status} `.repeat(3)}\n`);
+  });
+}
 for (const [name, wrap] of Object.entries(wrappers)) {
   for (const [transition, body, expected] of [
     ["positionals", 'shift; (( z = $1 ))', '1:6'],

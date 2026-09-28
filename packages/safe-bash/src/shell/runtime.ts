@@ -7960,11 +7960,22 @@ export class Runtime {
     }
     return undefined;
   }
-  private finishSyncPipeStatus(rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof guestArrays>, existing: ReturnType<NonNullable<ReturnType<typeof guestArrays>>["get"]>, elem0: { text: { shellValue: ShellValue } } | undefined, scope: InvocationScope, finalStatus: number, restEpoch: number): number | undefined {
+  private setSyncPipeStatusCell(existing: NonNullable<ReturnType<NonNullable<ReturnType<typeof guestArrays>>["get"]>>, status: string): void {
+    const cell = existing.values.get(0);
+    if (cell && cell.text.references === 1 && cell.text.bytes === status.length) {
+      cell.text.shellValue = status;
+    } else {
+      existing.owner.chargeWork(status.length);
+      const token = new OwnedText(status, status.length, existing.owner.reserve({ payload: status.length, metadata: 32, work: 4 }));
+      try { existing.insert(0, token); }
+      catch (error) { token.release(); throw error; }
+    }
+  }
+  private finishSyncPipeStatus(rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof guestArrays>, existing: ReturnType<NonNullable<ReturnType<typeof guestArrays>>["get"]>, _elem0: { text: { shellValue: ShellValue } } | undefined, scope: InvocationScope, finalStatus: number, restEpoch: number): number | undefined {
     if (!existing) {
       if (store) { if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined; } else { monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne; monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets); }
     } else {
-      (elem0 ?? existing.values.get(0))!.text.shellValue = finalStatus === 0 ? "0" : "1";
+      this.setSyncPipeStatusCell(existing, finalStatus === 0 ? "0" : "1");
       store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
     }
     rawState.status = finalStatus;
@@ -8019,7 +8030,7 @@ export class Runtime {
       return undefined;
     }
     const elem0 = existing?.values.get(0);
-    if (existing && (!elem0 || elem0.text.bytes !== 1)) return undefined;
+    if (existing && !elem0) return undefined;
     const canMutatePipeStatus = !existing || (existing.references === 1 && elem0!.text.references === 1);
     const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? io.substitutionDiagnosticLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
     if (command.kind === "function") {
@@ -8076,7 +8087,7 @@ export class Runtime {
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         }
       } else {
-        activeExisting.values.get(0)!.text.shellValue = finalStatus === 0 ? "0" : "1";
+        this.setSyncPipeStatusCell(activeExisting, finalStatus === 0 ? "0" : "1");
         activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
       }
       rawState.status = finalStatus;
@@ -8724,7 +8735,7 @@ export class Runtime {
           monitor.lazyPipeStatus = singleStatusZero;
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
-          elem0!.text.shellValue = "0";
+          this.setSyncPipeStatusCell(existing!, "0");
           store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
         const finalStatus = pipeline.negate ? 1 : 0;
@@ -8800,7 +8811,7 @@ export class Runtime {
         monitor.lazyPipeStatus = singleStatusZero;
         monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
       } else {
-        elem0!.text.shellValue = "0";
+        this.setSyncPipeStatusCell(existing!, "0");
         store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
       }
       const finalStatus = pipeline.negate ? 1 : 0;
@@ -8815,7 +8826,6 @@ export class Runtime {
       if ( w0Plain === "return" && (rawState.functionDepth > 0 || rawState.sourceDepth) && !hasActiveExtensions(rawState) && !hasShellFunction(rawState, "return") && !rawState.extensions?.builtins.has("return") && !pipeline.negate && canMutatePipeStatus) {
         const retStatus = rawState.status;
         const statusStr = retStatus === 0 ? "0" : retStatus === 1 ? "1" : String(retStatus);
-        if (existing && elem0!.text.bytes !== statusStr.length) return undefined;
         const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
         this.budget.tick();
         rawState.substitutionStatus = 0;
@@ -8826,7 +8836,7 @@ export class Runtime {
           monitor.lazyPipeStatus = retStatus === 0 ? singleStatusZero : retStatus === 1 ? singleStatusOne : [retStatus];
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
-          elem0!.text.shellValue = statusStr;
+          this.setSyncPipeStatusCell(existing!, statusStr);
           store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
         rawState.status = retStatus;
@@ -8853,7 +8863,7 @@ export class Runtime {
           monitor.lazyPipeStatus = singleStatusZero;
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
-          elem0!.text.shellValue = "0";
+          this.setSyncPipeStatusCell(existing!, "0");
           store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
         rawState.status = 0;
@@ -8878,7 +8888,7 @@ export class Runtime {
           monitor.lazyPipeStatus = rawStatus === 0 ? singleStatusZero : singleStatusOne;
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
-          elem0!.text.shellValue = statusChar;
+          this.setSyncPipeStatusCell(existing!, statusChar);
           store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
         rawState.status = finalStatus;
@@ -8907,7 +8917,7 @@ export class Runtime {
             monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
           }
         } else {
-          activeExisting.values.get(0)!.text.shellValue = "0";
+          this.setSyncPipeStatusCell(activeExisting, "0");
           activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
         const finalStatus = pipeline.negate ? 1 : 0;
@@ -8962,7 +8972,7 @@ export class Runtime {
             monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
           }
         } else {
-          activeExisting.values.get(0)!.text.shellValue = "0";
+          this.setSyncPipeStatusCell(activeExisting, "0");
           activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
         const finalStatus = pipeline.negate ? 1 : 0;
@@ -8998,7 +9008,7 @@ export class Runtime {
         monitor.lazyPipeStatus = singleStatusZero;
         monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
       } else {
-        elem0!.text.shellValue = "0";
+        this.setSyncPipeStatusCell(existing!, "0");
         store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
       }
       const finalStatus = pipeline.negate ? 1 : 0;
@@ -9078,7 +9088,7 @@ export class Runtime {
                     monitor.lazyPipeStatus = singleStatusZero;
                     monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
                   } else {
-                    elem0!.text.shellValue = "0";
+                    this.setSyncPipeStatusCell(existing!, "0");
                     store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
                   }
                   const finalStatus = pipeline.negate ? 1 : 0;
@@ -9224,7 +9234,7 @@ export class Runtime {
               monitor.lazyPipeStatus = singleStatusZero;
               monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             } else {
-              elem0!.text.shellValue = "0";
+              this.setSyncPipeStatusCell(existing!, "0");
               store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
             }
             rawState.status = 0;
@@ -9309,7 +9319,7 @@ export class Runtime {
                 monitor.lazyPipeStatus = singleStatusZero;
                 monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
               } else {
-                elem0!.text.shellValue = "0";
+                this.setSyncPipeStatusCell(existing!, "0");
                 store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
               }
               const finalStatus = pipeline.negate ? 1 : 0;
@@ -9686,7 +9696,7 @@ export class Runtime {
                     monitor.lazyPipeStatus = singleStatusZero;
                     monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
                   } else {
-                    elem0!.text.shellValue = "0";
+                    this.setSyncPipeStatusCell(existing!, "0");
                     store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
                   }
                   rawState.status = 0;
@@ -9866,7 +9876,7 @@ export class Runtime {
                 monitor.lazyPipeStatus = singleStatusZero;
                 monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
               } else {
-                elem0!.text.shellValue = "0";
+                this.setSyncPipeStatusCell(existing!, "0");
                 store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
               }
               rawState.status = 0;
@@ -9931,7 +9941,7 @@ export class Runtime {
               monitor.lazyPipeStatus = singleStatusZero;
               monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             } else {
-              elem0!.text.shellValue = "0";
+              this.setSyncPipeStatusCell(existing!, "0");
               store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
             }
             rawState.status = 0;
@@ -10162,7 +10172,7 @@ export class Runtime {
               monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             }
           } else {
-            elem0!.text.shellValue = "0";
+            this.setSyncPipeStatusCell(existing!, "0");
             store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
           }
           rawState.status = 0;
@@ -10184,7 +10194,6 @@ export class Runtime {
           if (fastArg.length > 0 && fastArg.length <= 15 && /^-?[0-9]+$/.test(fastArg)) {
             const retStatus = ((Number(fastArg) % 256) + 256) % 256;
             const statusStr = retStatus === 0 ? "0" : retStatus === 1 ? "1" : String(retStatus);
-            if (existing && elem0!.text.bytes !== statusStr.length) return undefined;
             const prevStatus = rawState.status;
             const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
@@ -10196,7 +10205,7 @@ export class Runtime {
               monitor.lazyPipeStatus = retStatus === 0 ? singleStatusZero : retStatus === 1 ? singleStatusOne : [retStatus];
               monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             } else {
-              elem0!.text.shellValue = statusStr;
+              this.setSyncPipeStatusCell(existing!, statusStr);
               store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
             }
             rawState.status = retStatus;
@@ -10356,8 +10365,8 @@ export class Runtime {
                 monitor.lazyPipeStatus = exitStatus === 0 ? singleStatusZero : exitStatus === 1 ? singleStatusOne : [exitStatus];
                 monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
               }
-            } else if (activeExisting.values.get(0)!.text.bytes === statusStr.length) {
-              activeExisting.values.get(0)!.text.shellValue = statusStr;
+            } else {
+              this.setSyncPipeStatusCell(activeExisting, statusStr);
               activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
             }
             rawState.status = exitStatus;
@@ -10419,7 +10428,7 @@ export class Runtime {
                     monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
                   }
                 } else {
-                  activeExisting.values.get(0)!.text.shellValue = "0";
+                  this.setSyncPipeStatusCell(activeExisting, "0");
                   activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
                 }
                 rawState.status = 0;
@@ -10464,7 +10473,7 @@ export class Runtime {
                         monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
                       }
                     } else {
-                      activeExisting.values.get(0)!.text.shellValue = "0";
+                      this.setSyncPipeStatusCell(activeExisting, "0");
                       activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
                     }
                   }
@@ -10536,7 +10545,7 @@ export class Runtime {
               monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             }
           } else {
-            elem0!.text.shellValue = statusChar;
+            this.setSyncPipeStatusCell(existing!, statusChar);
             store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
           }
           const finalStatus = pipeline.negate ? Number(fastPred === 0) : fastPred;
@@ -10633,7 +10642,7 @@ export class Runtime {
                   monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
                 }
               } else {
-                activeExisting.values.get(0)!.text.shellValue = "0";
+                this.setSyncPipeStatusCell(activeExisting, "0");
                 activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
               }
               const finalStatus = pipeline.negate ? 1 : 0;
@@ -10708,7 +10717,7 @@ export class Runtime {
               monitor.lazyPipeStatus = singleStatusZero;
               monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             } else {
-              elem0!.text.shellValue = "0";
+              this.setSyncPipeStatusCell(existing!, "0");
               store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
             }
             const finalStatus = pipeline.negate ? 1 : 0;
@@ -11185,7 +11194,7 @@ export class Runtime {
         monitor.lazyPipeStatus = singleStatusZero;
         monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
       } else {
-        elem0!.text.shellValue = "0";
+        this.setSyncPipeStatusCell(existing!, "0");
         store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
       }
     }
@@ -11528,7 +11537,7 @@ export class Runtime {
             monitor.lazyPipeStatus = singleStatusZero;
             monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
           } else {
-            elem0!.text.shellValue = "0";
+            this.setSyncPipeStatusCell(existing!, "0");
             store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
           }
         }
@@ -11732,7 +11741,7 @@ export class Runtime {
           monitor.lazyPipeStatus = singleStatusZero;
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
-          elem0!.text.shellValue = "0";
+          this.setSyncPipeStatusCell(existing!, "0");
           store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
       }

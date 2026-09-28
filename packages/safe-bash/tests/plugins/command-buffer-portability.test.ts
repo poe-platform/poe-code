@@ -17,6 +17,8 @@ test("command families preserve results without the global Buffer", async () => 
     "find / -type f", "printf abc | tr a-z A-Z", "printf abc | xargs echo",
     "printf 'x,y\\n1,2\\n' | xan count", "printf '<p>Hello</p>' | html-to-markdown",
     "curl -sS -u é:pw https://example.test/data", "wget -q -O - https://example.test/data",
+    "printf '%s' '--- /a\n+++ /a\n@@ -1,2 +1,2 @@\n-hello é\n+hi é\n world\n' | patch /a && cat /a",
+    "printf '%s' '*** Begin Patch\n*** Add File: /added\n+added é\n*** End Patch\n' | apply_patch && cat /added",
   ];
   const execute = async () => {
     const fs = new MemoryFileSystem();

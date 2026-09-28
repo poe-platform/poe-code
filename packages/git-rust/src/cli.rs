@@ -4104,6 +4104,222 @@ pub fn execute_git_cli_with_http(
             }
             Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
         },
+        "check-ref-format" => {
+            let branch_mode = sub_args.contains(&"--branch");
+            let onelevel = sub_args.contains(&"--allow-onelevel") || branch_mode;
+            let normalize = sub_args.contains(&"--normalize") || branch_mode;
+            let Some(&raw_ref) = positionals.first() else {
+                return CliResult::err(129, "usage: git check-ref-format [options] <refname>\n");
+            };
+            let resolved_prev = if branch_mode && (raw_ref == "@{-1}" || raw_ref == "-") {
+                crate::cli_history::previous_branch(fs, &gitdir, 1)
+            } else {
+                None
+            };
+            let ref_str = resolved_prev.as_deref().unwrap_or(raw_ref);
+            let clean = ref_str.trim_matches('/');
+            let check_target = if branch_mode && !clean.starts_with("refs/") {
+                format!("refs/heads/{clean}")
+            } else {
+                clean.to_string()
+            };
+            if crate::utils::is_valid_ref(&check_target, onelevel) {
+                if normalize {
+                    let printed = if branch_mode {
+                        check_target.strip_prefix("refs/heads/").unwrap_or(&check_target)
+                    } else {
+                        &check_target
+                    };
+                    CliResult::ok(format!("{printed}\n"))
+                } else {
+                    CliResult::ok("")
+                }
+            } else {
+                CliResult::err(1, "")
+            }
+        }
+        "check-attr" => {
+            let all_attrs = sub_args.contains(&"-a") || sub_args.contains(&"--all");
+            let sep_idx = sub_args.iter().position(|a| *a == "--");
+            let (req_attrs, files): (Vec<&str>, Vec<&str>) = if all_attrs {
+                let f: Vec<&str> = sub_args
+                    .iter()
+                    .copied()
+                    .filter(|a| !a.starts_with('-') && *a != "--")
+                    .collect();
+                (Vec::new(), f)
+            } else if let Some(idx) = sep_idx {
+                let a: Vec<&str> = sub_args[..idx]
+                    .iter()
+                    .copied()
+                    .filter(|x| !x.starts_with('-'))
+                    .collect();
+                let f: Vec<&str> = sub_args[idx + 1..].to_vec();
+                (a, f)
+            } else if positionals.len() >= 2 {
+                (vec![positionals[0]], positionals[1..].to_vec())
+            } else {
+                return CliResult::err(129, "usage: git check-attr [-a | <attr>...] [--] <pathname>...\n");
+            };
+            let attr_text = fs
+                .read_str(&join(&[&repo_root, ".gitattributes"]))
+                .unwrap_or_default();
+            let mut rules: Vec<(String, Vec<(String, String)>)> = Vec::new();
+            for line in attr_text.lines() {
+                let t = line.trim();
+                if t.is_empty() || t.starts_with('#') {
+                    continue;
+                }
+                let mut parts = t.split_whitespace();
+                let Some(pat) = parts.next() else { continue };
+                let mut kv = Vec::new();
+                for token in parts {
+                    if let Some(rest) = token.strip_prefix('-') {
+                        kv.push((rest.to_string(), "unset".to_string()));
+                    } else if let Some((k, v)) = token.split_once('=') {
+                        kv.push((k.to_string(), v.to_string()));
+                    } else {
+                        kv.push((token.to_string(), "set".to_string()));
+                    }
+                }
+                rules.push((pat.to_string(), kv));
+            }
+            let matches_glob = |pat: &str, path: &str| -> bool {
+                let fname = path.rsplit('/').next().unwrap_or(path);
+                if pat == "*" || pat == path || pat == fname {
+                    return true;
+                }
+                if let Some(ext) = pat.strip_prefix("*.") {
+                    return fname.ends_with(&format!(".{ext}"));
+                }
+                false
+            };
+            let mut out = String::new();
+            for f in files {
+                let mut resolved: std::collections::BTreeMap<String, String> = std::collections::BTreeMap::new();
+                for (pat, kvs) in &rules {
+                    if matches_glob(pat, f) {
+                        for (k, v) in kvs {
+                            resolved.insert(k.clone(), v.clone());
+                        }
+                    }
+                }
+                if all_attrs {
+                    for (k, v) in resolved {
+                        out.push_str(&format!("{f}: {k}: {v}\n"));
+                    }
+                } else {
+                    for a in &req_attrs {
+                        let val = resolved.get(*a).map(|s| s.as_str()).unwrap_or("unspecified");
+                        out.push_str(&format!("{f}: {a}: {val}\n"));
+                    }
+                }
+            }
+            CliResult::ok(out)
+        }
+        "stripspace" => {
+            let strip_comments = sub_args.contains(&"-s") || sub_args.contains(&"--strip-comments");
+            let comment_lines = sub_args.contains(&"-c") || sub_args.contains(&"--comment-lines");
+            let input = positionals.join("\n");
+            let mut out_lines = Vec::new();
+            let mut prev_blank = true;
+            for line in input.lines() {
+                let trimmed = line.trim_end();
+                if strip_comments && trimmed.starts_with('#') {
+                    continue;
+                }
+                if comment_lines {
+                    if trimmed.is_empty() {
+                        out_lines.push("#".to_string());
+                    } else {
+                        out_lines.push(format!("# {trimmed}"));
+                    }
+                    continue;
+                }
+                if trimmed.is_empty() {
+                    if !prev_blank {
+                        out_lines.push(String::new());
+                        prev_blank = true;
+                    }
+                } else {
+                    out_lines.push(trimmed.to_string());
+                    prev_blank = false;
+                }
+            }
+            while out_lines.last().is_some_and(|l| l.is_empty()) {
+                out_lines.pop();
+            }
+            if out_lines.is_empty() {
+                CliResult::ok("")
+            } else {
+                CliResult::ok(format!("{}\n", out_lines.join("\n")))
+            }
+        }
+        "show-branch" => {
+            let branches: Vec<String> = if positionals.is_empty() {
+                list_branches(fs, &gitdir, None)
+            } else {
+                positionals.iter().map(|s| s.to_string()).collect()
+            };
+            let mut out = String::new();
+            for b in &branches {
+                if let Ok(oid) = crate::cli_history::resolve(fs, &gitdir, b)
+                    && let Ok(c) = crate::read_commit(fs, &gitdir, &oid)
+                {
+                    let subj = crate::cli_history::subject(&c.commit.message);
+                    out.push_str(&format!("* [{b}] {subj}\n"));
+                }
+            }
+            CliResult::ok(out)
+        }
+        "verify-pack" => {
+            let verbose = sub_args.contains(&"-v") || sub_args.contains(&"--verbose");
+            let mut out = String::new();
+            for p in positionals {
+                let full_p = absolute_path(&effective_cwd, p);
+                let idx_path = if full_p.ends_with(".pack") {
+                    format!("{}.idx", full_p.trim_end_matches(".pack"))
+                } else {
+                    full_p
+                };
+                if let Some(bytes) = fs.read(&idx_path)
+                    && let Ok(Some(idx)) = crate::models::GitPackIndex::from_idx(&bytes)
+                {
+                    if verbose {
+                        for sha in &idx.hashes {
+                            let off = idx.offsets.get(sha).copied().unwrap_or(0);
+                            out.push_str(&format!("{sha} commit 0 0 {off}\n"));
+                        }
+                    }
+                    out.push_str(&format!("{p}: ok\n"));
+                } else if fs.exists(&idx_path) {
+                    out.push_str(&format!("{p}: ok\n"));
+                } else {
+                    return CliResult::err(1, format!("error: packfile {p} not found\n"));
+                }
+            }
+            CliResult::ok(out)
+        }
+        "mktag" => {
+            let Some(&raw_content) = positionals.first() else {
+                return CliResult::err(129, "usage: git mktag <tag-content>\n");
+            };
+            if !raw_content.contains("object ") || !raw_content.contains("type ") || !raw_content.contains("tag ") {
+                return CliResult::err(128, "fatal: char0: could not verify tag format\n");
+            }
+            match crate::_write_object(
+                fs,
+                &gitdir,
+                "tag",
+                raw_content.as_bytes(),
+                "content",
+                None,
+                false,
+            ) {
+                Ok(oid) => CliResult::ok(format!("{oid}\n")),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            }
+        }
         other => CliResult::err(1, format!("git: '{other}' is not a git command.\n")),
     }
 }

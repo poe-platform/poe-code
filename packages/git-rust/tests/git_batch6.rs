@@ -1508,3 +1508,36 @@ dual_fixture_test!(cli_ls_files_modes_diff_plumbing_pack_refs_and_mktree, cli_ls
     assert_eq!(r_mktree.exit_code, 0);
     assert_eq!(r_mktree.stdout.trim().len(), 40);
 });
+
+
+dual_fixture_test!(cli_check_ref_format_check_attr_stripspace_show_branch_and_mktag, cli_check_ref_format_check_attr_stripspace_show_branch_and_mktag_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+
+    // 1. check-ref-format
+    let r_crf = execute_git_cli(&f.fs, &f.dir, &["check-ref-format", "--branch", "feature/login"]);
+    assert_eq!(r_crf.exit_code, 0);
+    assert_eq!(r_crf.stdout.trim(), "feature/login");
+    assert_ne!(execute_git_cli(&f.fs, &f.dir, &["check-ref-format", "refs/heads/bad..name"]).exit_code, 0);
+
+    // 2. check-attr
+    f.fs.write_str(&join(&[&f.dir, ".gitattributes"]), "*.rs text eol=lf\n*.png -text binary\n");
+    let r_attr = execute_git_cli(&f.fs, &f.dir, &["check-attr", "eol", "text", "--", "src/lib.rs", "logo.png"]);
+    assert_eq!(r_attr.exit_code, 0);
+    assert!(r_attr.stdout.contains("src/lib.rs: eol: lf") && r_attr.stdout.contains("logo.png: text: unset"));
+
+    // 3. stripspace
+    let r_ss = execute_git_cli(&f.fs, &f.dir, &["stripspace", "-s", "hello   \n# comment\n\n\nworld  "]);
+    assert_eq!(r_ss.stdout, "hello\n\nworld\n");
+
+    // 4. show-branch
+    let r_sb = execute_git_cli(&f.fs, &f.dir, &["show-branch"]);
+    assert_eq!(r_sb.exit_code, 0);
+    assert!(r_sb.stdout.contains("[test-branch]"));
+
+    // 5. mktag
+    let head_oid = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "HEAD"]).stdout.trim().to_string();
+    let tag_payload = format!("object {head_oid}\ntype commit\ntag v3.0.0\ntagger Git User <user@example.com> 1502484200 +0000\n\nRelease 3.0\n");
+    let r_mktag = execute_git_cli(&f.fs, &f.dir, &["mktag", &tag_payload]);
+    assert_eq!(r_mktag.exit_code, 0);
+    assert_eq!(r_mktag.stdout.trim().len(), 40);
+});

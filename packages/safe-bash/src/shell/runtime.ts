@@ -2870,7 +2870,7 @@ type SyncLoopStep = {
   readonly condStmt?: ConditionalExpression | undefined;
   readonly ifBranches?: readonly { condCmd: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }>; cond?: ArithmeticProgram | undefined; condExpr?: ConditionalExpression | undefined; condLine: number; steps: readonly SyncLoopStep[] }[] | undefined;
   readonly caseSubject?: Word | undefined;
-  readonly caseClauses?: readonly { patterns: readonly string[]; steps: readonly SyncLoopStep[] }[] | undefined;
+  readonly caseClauses?: readonly { patterns: readonly Word[]; steps: readonly SyncLoopStep[] }[] | undefined;
   readonly fnCall?: { readonly name: string; readonly argWords: readonly Word[]; readonly locals: readonly { readonly name: string; readonly valueWord?: Word | undefined; readonly isFirstInCmd: boolean }[]; readonly steps: readonly SyncLoopStep[] } | undefined;
   readonly loopAction?: "break" | "continue" | undefined;
   readonly unsetVars?: readonly string[] | undefined;
@@ -4412,7 +4412,7 @@ export class Runtime {
       const p = word.parts[i]!;
       if (p.kind === "text") {
         if (p.byteValue || (!p.quoted && i === 0 && p.value.startsWith("~"))) return undefined;
-        out += p.quoted ? p.value.replace(/[\\*?[\]()]/g, "\\$&") : p.value;
+        out += p.quoted ? p.value.replace(/[\\*?[\]()!^-]/g, "\\$&") : p.value;
       } else if (p.kind === "variable") {
         let val: ShellValue | undefined;
         try {
@@ -4422,7 +4422,7 @@ export class Runtime {
           return undefined;
         }
         if (typeof val !== "string") return undefined;
-        out += p.quoted ? val.replace(/[\\*?[\]()]/g, "\\$&") : val;
+        out += p.quoted ? val.replace(/[\\*?[\]()!^-]/g, "\\$&") : val;
       } else return undefined;
     }
     return out;
@@ -8564,7 +8564,7 @@ export class Runtime {
           // Variable patterns can change during the loop. Only admit a static
           // pattern whose synchronous matcher is guaranteed to return a result.
           if (!expr.right.parts.every((p, idx) => p.kind === "text" && !p.byteValue && (p.quoted || idx > 0 || !p.value.startsWith("~")))) return false;
-          const pattern = expr.right.parts.map(p => p.kind === "text" ? (p.quoted ? p.value.replace(/[\\*?[\]()]/g, "\\$&") : p.value) : "").join("");
+          const pattern = expr.right.parts.map(p => p.kind === "text" ? (p.quoted ? p.value.replace(/[\\*?[\]()!^-]/g, "\\$&") : p.value) : "").join("");
           const work = { remaining: 4096, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
           return tryMatchesPatternSync(pattern, "", work, false, true) !== undefined;
         }
@@ -9151,7 +9151,7 @@ export class Runtime {
         if (!this.budget.canRedirect1) return undefined;
         if (rIn.operator === "<") {
           // The body may change the input file, invalidating a captured snapshot.
-          if ((guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || !this.canSyncLoopBody(command.body, rawState, io)) return undefined;
+          if ((guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || !this.canSyncLoopBody(command.body, rawState, io, false, undefined, command)) return undefined;
           const { steps: checkSteps, redirectCount: innerRedirs } = this.buildSyncLoopBody(command, rawState, io);
           if (innerRedirs > 0 || checkSteps.length === 0) return undefined;
           if (!this.canFastMemoryRedirect || (this._fileWrites !== undefined && this._fileWrites.size !== 0) || (this._outputFiles !== undefined && this._outputFiles.size !== 0) || !this.isPureArgWord(rIn.target, rawState) || !this.budget.canFileSystemOperation()) {
@@ -12179,15 +12179,59 @@ export class Runtime {
     }
     return true;
   }
-  private extractPosixBracketCondExpr(cmd: Command, rawState: State, checkIntVars = true, script?: Script): ConditionalExpression | undefined {
+  private extractPosixBracketCondExpr(cmd: Command, rawState: State, checkIntVars = true, script?: unknown): ConditionalExpression | undefined {
     if (cmd.kind !== "simple" || cmd.redirects.length !== 0 || cmd.words.length < 3) return undefined;
     const w0 = cmd.words[0]!.plain;
-    if ((w0 !== "[" && w0 !== "test") || (checkIntVars && (hasShellFunction(rawState, w0) || rawState.extensions?.builtins.has(w0) || !this.commands.has(w0)))) return undefined;
+    if (w0 !== "[" && w0 !== "test") return undefined;
+    if (checkIntVars) {
+      const definition = this.commands.get(w0);
+      if (hasShellFunction(rawState, w0) || rawState.extensions?.builtins.has(w0) || !definition || !defaultPredicateExecutors.has(definition.execute)) return undefined;
+    }
     const args = w0 === "[" ? (cmd.words[cmd.words.length - 1]?.plain === "]" ? cmd.words.slice(1, -1) : undefined) : cmd.words.slice(1);
     if (!args) return undefined;
-    const safeArgWord = (w: Word): boolean =>
+    // POSIX test accepts decimal integers, unlike [[ arithmetic ]] expressions.
+    // Only translate variables whose writes throughout the body remain integers.
+    const isDecimal = (value: string): boolean =>
+      Number.isSafeInteger(Number(value)) && Math.abs(Number(value)) < 1_000_000_000_000 && String(Number(value)) === value;
+    const isGuaranteedIntWord = (w: Word): boolean => {
+      const parts = w.parts.filter(p => p.kind !== "text" || p.value !== "");
+      if (parts.every(p => p.kind === "text")) {
+        return isDecimal(parts.map(p => p.kind === "text" ? p.value : "").join(""));
+      }
+      if (parts.length !== 1) return false;
+      const part = parts[0]!;
+      if (part.kind !== "variable" || part.indirect || part.prefixNames || part.substring || part.transform || part.operator !== undefined || getArraySelector(part) !== undefined) return false;
+      const current = rawState.variables[part.name];
+      if (current === undefined || !isDecimal(current)) return false;
+      const preservesInteger = (node: unknown): boolean => {
+        if (!node || typeof node !== "object") return true;
+        if (Array.isArray(node)) return node.every(preservesInteger);
+        const object = node as Record<string, unknown>;
+        if (object.name === "IFS") return false;
+        if (object.kind === "for" && object.name === part.name) return false;
+        if (object.kind === "simple") {
+          const command = node as Extract<Command, { kind: "simple" }>;
+          const first = command.words[0];
+          if (first && (hasShellFunction(rawState, first.plain ?? "") || rawState.extensions?.builtins.has(first.plain ?? ""))) return false;
+          if (first?.plain === "printf" && command.words[1]?.plain === "-v") return false;
+          if (first && !this.assignment(first) && !["echo", "printf", ":", "true", "false", "[", "test"].includes(first.plain ?? "")) return false;
+          for (const word of command.words) {
+            if (getArrayAssignment(word)?.name === part.name) return false;
+            const assignment = this.assignment(word);
+            if (assignment?.name === "IFS") return false;
+            if (assignment?.name === part.name) {
+              if (assignment.append || assignment.value.plain === undefined || !isDecimal(assignment.value.plain)) return false;
+            }
+          }
+        }
+        return Object.entries(object).every(([key, value]) => key.startsWith("_") || preservesInteger(value));
+      };
+      return preservesInteger(script);
+    };
+    const safeArgWord = (w: Word, numeric = false): boolean =>
       (!checkIntVars || this.isPureSyncValueWord(w, rawState)) &&
-      w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)));
+      (w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true))) ||
+        (numeric && ((!checkIntVars && w.parts.length === 1 && w.parts[0]!.kind === "variable") || (checkIntVars && rawState.variables.IFS === undefined && isGuaranteedIntWord(w)))));
     if (args.length === 2) {
       const op = args[0]!.plain;
       if ((op === "-n" || op === "-z") && safeArgWord(args[1]!)) {
@@ -12199,38 +12243,9 @@ export class Runtime {
       const op = args[1]!.plain;
       const isNumOp = op === "-eq" || op === "-ne" || op === "-lt" || op === "-le" || op === "-gt" || op === "-ge";
       const isStrOp = op === "=" || op === "==" || op === "!=";
-      if ((isNumOp || isStrOp) && safeArgWord(args[0]!) && safeArgWord(args[2]!)) {
-        // POSIX test compares literal strings and decimal integers. Only admit
-        // operands that the shared [[ evaluator can execute without fallback.
+      if ((isNumOp || isStrOp) && safeArgWord(args[0]!, isNumOp) && safeArgWord(args[2]!, isNumOp)) {
         if (isStrOp && checkIntVars && (rawState.nocasematch || byteLocale(rawState.variables))) return undefined;
-        const isSyncDecimal = (value: string): boolean => {
-          const number = Number(value);
-          return Number.isSafeInteger(number) && Math.abs(number) < 1_000_000_000_000 && String(number) === value;
-        };
         if (isNumOp && checkIntVars) {
-          const isGuaranteedIntWord = (w: Word): boolean => {
-            if (w.plain !== undefined) return isSyncDecimal(w.plain);
-            if (w.parts.length === 1) {
-              const p0 = w.parts[0]!;
-              if (p0.kind === "arithmetic") return false;
-              if (p0.kind === "variable" && !p0.indirect && !p0.prefixNames && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined) {
-                if (script) {
-                  for (const lst of script.lists) {
-                    for (const pl of lst.pipelines) {
-                      const c0 = pl.commands[0];
-                      if (c0?.kind === "simple" && c0.words.length === 1) {
-                        const asg = this.assignment(c0.words[0]!);
-                        if (asg?.name === p0.name && (!asg.value.plain || !isSyncDecimal(asg.value.plain))) return false;
-                      }
-                    }
-                  }
-                }
-                const cur = rawState.variables[p0.name];
-                return cur === undefined || isSyncDecimal(cur);
-              }
-            }
-            return false;
-          };
           if (!isGuaranteedIntWord(args[0]!) || !isGuaranteedIntWord(args[2]!)) return undefined;
         }
         const rightW: Word = isStrOp
@@ -12651,7 +12666,7 @@ export class Runtime {
     }
     return true;
   }
-  private canSyncLoopBody(script: Script, rawState: State, io?: IO, nested = false, printfInductionName?: string): boolean {
+  private canSyncLoopBody(script: Script, rawState: State, io?: IO, nested = false, printfInductionName?: string, integerWrites: unknown = script): boolean {
     if (script.lists.length === 0) return false;
     const store = stateMonitor(rawState)?.store;
     for (let l = 0; l < script.lists.length; l++) {
@@ -12698,13 +12713,13 @@ export class Runtime {
               if (bc.redirects.length !== 0 || (bc.expression.error ? !this.canSyncErrorArithmeticStmt(bc.expression, rawState) : (!isSafeSmiProgram(bc.expression) || bc.expression.hasSubscript || !this.canSyncArithmeticWithoutFault(bc.expression.tree, rawState, bc.line ?? 1)))) { ifOk = false; break; }
             } else if (bc.kind === "conditional") {
               if (!canSyncLoopCondCmd(bc)) { ifOk = false; break; }
-            } else if (!this.extractPosixBracketCondExpr(bc, rawState, true, script)) {
+            } else if (!this.extractPosixBracketCondExpr(bc, rawState, true, integerWrites)) {
               ifOk = false;
               break;
             }
-            if (!this.canSyncLoopBody(br.body, rawState, io, true, printfInductionName)) { ifOk = false; break; }
+            if (!this.canSyncLoopBody(br.body, rawState, io, true, printfInductionName, integerWrites)) { ifOk = false; break; }
           }
-          if (ifOk && cmd.otherwise && !this.canSyncLoopBody(cmd.otherwise, rawState, io, true, printfInductionName)) ifOk = false;
+          if (ifOk && cmd.otherwise && !this.canSyncLoopBody(cmd.otherwise, rawState, io, true, printfInductionName, integerWrites)) ifOk = false;
           if (ifOk) continue;
           return false;
         }
@@ -12715,8 +12730,13 @@ export class Runtime {
           for (let ci = 0; ci < cmd.clauses.length; ci++) {
             const cl = cmd.clauses[ci]!;
             if (cl.terminator !== ";;" && cl.terminator !== "esac") { caseOk = false; break; }
-            if (!cl.patterns.every(pw => pw.plain !== undefined && tryMatchesPatternSync(pw.plain, "", work, false, false) !== undefined)) { caseOk = false; break; }
-            if (!this.canSyncLoopBody(cl.body, rawState, io, true, printfInductionName)) { caseOk = false; break; }
+            if (!cl.patterns.every(pw => {
+              if (!pw.parts.every(p => p.kind === "text")) return false;
+              if (pw.plain === undefined && !pw.parts.every(p => p.quoted)) return false;
+              const pattern = pw.plain ?? (io ? this.tryBuildSyncPatternWord(pw, rawState, io) : undefined);
+              return pattern !== undefined && tryMatchesPatternSync(pattern, "", work, false, false) !== undefined;
+            })) { caseOk = false; break; }
+            if (!this.canSyncLoopBody(cl.body, rawState, io, true, printfInductionName, integerWrites)) { caseOk = false; break; }
           }
           if (caseOk) continue;
           return false;
@@ -12742,7 +12762,7 @@ export class Runtime {
               this.canSyncArithmeticWithoutFault(ne0.tree, rawState, cmd.line ?? 1) &&
               this.canSyncArithmeticWithoutFault(ne1.tree, rawState, cmd.line ?? 1) &&
               this.canSyncArithmeticWithoutFault(ne2.tree, rawState, cmd.line ?? 1) &&
-              this.canSyncLoopBody(cmd.body, rawState, io, true)
+              this.canSyncLoopBody(cmd.body, rawState, io, true, undefined, integerWrites)
             ) {
               continue;
             }
@@ -12758,7 +12778,7 @@ export class Runtime {
               !store?.get(cmd.name) &&
               !stateMonitor(rawState)?.hasOverlay(cmd.name) &&
               this.canSyncNestedForWords(cmd.words, rawState, io, cmd.line ?? 1) &&
-              this.canSyncLoopBody(cmd.body, rawState, io, true)
+              this.canSyncLoopBody(cmd.body, rawState, io, true, undefined, integerWrites)
             ) {
               continue;
             }
@@ -12773,15 +12793,15 @@ export class Runtime {
                 nCondOk = nbc.redirects.length === 0 && (nbc.expression.error ? this.canSyncErrorArithmeticStmt(nbc.expression, rawState) : (isSafeSmiProgram(nbc.expression) && !nbc.expression.hasSubscript && this.canSyncArithmeticWithoutFault(nbc.expression.tree, rawState, nbc.line ?? 1)));
               } else if (nbc.kind === "conditional") {
                 nCondOk = canSyncLoopCondCmd(nbc);
-              } else if (this.extractPosixBracketCondExpr(nbc, rawState, true, script)) {
+              } else if (this.extractPosixBracketCondExpr(nbc, rawState, true, integerWrites)) {
                 nCondOk = true;
               }
-              if (nCondOk && this.canSyncLoopBody(cmd.body, rawState, io, true)) continue;
+              if (nCondOk && this.canSyncLoopBody(cmd.body, rawState, io, true, undefined, integerWrites)) continue;
             }
           }
           return false;
         }
-        if (this.extractPosixBracketCondExpr(cmd, rawState, true, script) !== undefined) continue;
+        if (this.extractPosixBracketCondExpr(cmd, rawState, true, integerWrites) !== undefined) continue;
         if (cmd.kind !== "simple") return false;
         // Nested step execution does not implement redirects; use normal execution.
         if (nested && cmd.redirects.length !== 0) return false;
@@ -13158,13 +13178,13 @@ export class Runtime {
             continue;
           }
           if (rawCmd.kind === "case") {
-            const caseClauses: { patterns: readonly string[]; steps: readonly SyncLoopStep[] }[] = [];
+            const caseClauses: { patterns: readonly Word[]; steps: readonly SyncLoopStep[] }[] = [];
             for (let ci = 0; ci < rawCmd.clauses.length; ci++) {
               const cl = rawCmd.clauses[ci]!;
               const sub = buildScript(cl.body);
               redirectCount += sub.redirectCount;
               caseClauses.push({
-                patterns: cl.patterns.map(pw => pw.plain!),
+                patterns: cl.patterns,
                 steps: sub.steps,
               });
             }
@@ -13500,7 +13520,7 @@ export class Runtime {
     this._syncLoopInvariantSubMap = localInvMap;
     let bodySyncOk = false;
     try {
-      bodySyncOk = !(guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) && this.canSyncLoopBody(command.body, rawState, io, false, printfInductionName);
+      bodySyncOk = !(guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) && this.canSyncLoopBody(command.body, rawState, io, false, printfInductionName, command);
     } finally {
       this._activePrintfInductionName = prevActivePrintfInd;
       this._activeSyncLoopAssignedVars = prevAssignedVars;
@@ -15666,7 +15686,8 @@ export class Runtime {
     for (let ci = 0; ci < step.caseClauses!.length; ci++) {
       const cl = step.caseClauses![ci]!;
       for (let pi = 0; pi < cl.patterns.length; pi++) {
-        if (tryMatchesPatternSync(cl.patterns[pi]!, subj, work, false, false)) {
+        const pattern = cl.patterns[pi]!.plain ?? this.tryBuildSyncPatternWord(cl.patterns[pi]!, rawState, io, step.line);
+        if (pattern !== undefined && tryMatchesPatternSync(pattern, subj, work, false, false)) {
           chosen = cl.steps;
           break;
         }

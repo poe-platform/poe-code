@@ -135,3 +135,16 @@ test("independent resolved approval rejects a stale target without invoking its 
   assert.equal(children, 0);
   assert.equal(backend.snapshot().items?.[0]?.fields?.find(field => field.id === "password")?.value, "rotated-token");
 });
+
+
+test("default op factories register a usable help command without options", async () => {
+  assert.equal(createOpCommand().name, "op");
+  assert.deepEqual(createOpCommands().map(command => command.name), ["op"]);
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(opCommands());
+  try {
+    const result = await shell.exec("op --help");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.ok(result.stdout.includes("Usage:"));
+  } finally { await shell.dispose(); }
+});

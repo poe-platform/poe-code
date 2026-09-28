@@ -17221,6 +17221,8 @@ export class Runtime {
       const part = word.parts[i]!;
       if (part.kind === "text") {
         if (part.byteValue || invokedValues.has(part)) return undefined;
+        // Arithmetic replay must preserve the protection on an escaped dollar.
+        if (hereDocument && part.quoted && part.value.includes("$")) return undefined;
         if (!part.quoted) {
           if (braces && rawState.braceexpand !== false && part.value.includes("{")) return undefined;
           if (!hereDocument && (i === 0 && part.value.startsWith("~") || assignmentStart !== undefined && part.value.includes("~"))) return undefined;

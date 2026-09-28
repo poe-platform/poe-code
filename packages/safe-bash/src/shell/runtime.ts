@@ -12114,48 +12114,15 @@ export class Runtime {
     }
     return undefined;
   }
-  private execSyncUnsetStep(step: SyncLoopStep, rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>): string {
+  private execSyncUnsetStep(step: SyncLoopStep, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>): string {
     const uVars = step.unsetVars!;
-    const store = monitor.store;
     let lastExpanded = "";
-    for (let ui = 0; ui < uVars.length; ui++) {
-      const uvn = uVars[ui]!;
-      if (uvn.charCodeAt(0) === 64) {
-        const wIdx = Number(uvn.slice(1));
-        const wu = step.cmd.words[wIdx]!;
-        const tExpanded = this.fastValueWord(wu, rawState, io, false, false, false, false, 0, step.line) as string;
-        lastExpanded = tExpanded;
-        const bracket = tExpanded.indexOf("[");
-        if (bracket > 0 && tExpanded.endsWith("]") && store) {
-          const arrName = tExpanded.slice(0, bracket);
-          const subStr = tExpanded.slice(bracket + 1, -1);
-          const binding = store.get(arrName);
-          if (binding) {
-            if (binding.associative) {
-              const id = fastStringHexIdentity(subStr);
-              const existingKey = binding.keys.get(id);
-              if (existingKey !== undefined) {
-                binding.remove(existingKey.index);
-                store.changed(monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets), arrName);
-              }
-            } else {
-              const idxNum = /^(?:0|[1-9][0-9]{0,8})$/.test(subStr)
-                ? Number(subStr)
-                : resolveSimpleArithOperand(subStr, rawState, monitor, store, this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
-              const resolvedIdx = idxNum !== undefined ? (idxNum >= 0 ? idxNum : binding.maximum + 1 + idxNum) : undefined;
-              if (resolvedIdx !== undefined && resolvedIdx >= 0 && binding.values.has(resolvedIdx)) {
-                binding.remove(resolvedIdx);
-                store.changed(monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets), arrName);
-              }
-            }
-          }
-        }
-      } else {
-        delete rawState.variables[uvn];
-        monitor.proxy.exported.delete(uvn);
-        touched.add(uvn);
-        lastExpanded = uvn;
-      }
+    for (const uvn of uVars) {
+      delete rawState.variables[uvn];
+      rawState.exported.delete(uvn);
+      monitor.proxy.exported.delete(uvn);
+      touched.add(uvn);
+      lastExpanded = uvn;
     }
     return lastExpanded;
   }
@@ -12175,28 +12142,7 @@ export class Runtime {
       // on a later iteration. Let the full builtin handle that distinction.
       if (vn && startIdx === 1 && hasShellFunction(rawState, vn)) return undefined;
       if (!vn || vn.startsWith("-") || !isShellIdentifier(vn) || controlNames.has(vn) || vn === "OPTIND" || rawState.readonlyVariables?.has(vn) || rawState.variableAttributes?.get(vn) || store?.get(vn) || stateMonitor(rawState)?.hasOverlay(vn) || rawState.locals.some(f => f.has(vn))) {
-        const wu = cmd.words[i]!;
-        const p0 = wu.parts[0];
-        const pLast = wu.parts[wu.parts.length - 1];
-        const m = p0?.kind === "text" ? /^([a-zA-Z_][a-zA-Z0-9_]*)\[/.exec(p0.value) : undefined;
-        const arrName = m?.[1];
-        const b = arrName ? store?.get(arrName) : undefined;
-        if (
-          arrName &&
-          b &&
-          b.references === 1 &&
-          !store!.watches.has(arrName) &&
-          !rawState.readonlyVariables?.has(arrName) &&
-          !hasUnpreparedLocal(rawState, arrName) &&
-          !stateMonitor(rawState)?.hasOverlay(arrName) &&
-          pLast?.kind === "text" &&
-          pLast.value.endsWith("]") &&
-          this.isPureSyncValueWord(wu, rawState) &&
-          (p0!.quoted || rawState.noglob || (!rawState.nullglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0))
-        ) {
-          vars.push(`@${i}`);
-          continue;
-        }
+        // Array unsets need the full builtin: arithmetic, @/* and maximum-index updates.
         return undefined;
       }
       vars.push(vn);
@@ -14468,7 +14414,7 @@ export class Runtime {
             if (rawState.allexport) monitor.proxy.exported.add(varName);
           } else {
             monitor.values.invalidate(varName);
-            monitor.proxy.exported.delete(varName);
+            if (!rawState.exported.has(varName)) monitor.proxy.exported.delete(varName);
           }
         }
       }
@@ -15166,7 +15112,7 @@ export class Runtime {
           break;
         }
         if (step.unsetVars !== undefined) {
-          lastArg = this.execSyncUnsetStep(step, rawState, io, monitor, touched);
+          lastArg = this.execSyncUnsetStep(step, rawState, monitor, touched);
           rawState.status = 0;
           continue;
         }
@@ -15700,7 +15646,7 @@ export class Runtime {
         break;
       }
       if (step.unsetVars !== undefined) {
-        lastArg = this.execSyncUnsetStep(step, rawState, io, monitor, touched);
+        lastArg = this.execSyncUnsetStep(step, rawState, monitor, touched);
         rawState.status = 0;
         onUpdate({ lastCmd, lastArg });
         continue;
@@ -15858,7 +15804,7 @@ export class Runtime {
           break;
         }
         if (step.unsetVars !== undefined) {
-          lastArg = this.execSyncUnsetStep(step, rawState, io, monitor, touched);
+          lastArg = this.execSyncUnsetStep(step, rawState, monitor, touched);
           rawState.status = 0;
           continue;
         }

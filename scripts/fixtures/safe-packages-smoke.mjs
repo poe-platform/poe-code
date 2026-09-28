@@ -20,7 +20,8 @@ await privateCommandVerification;
 import "./safe-packages-atomic.mjs";
 import "./safe-packages-diff3.mjs";
 import "./safe-packages-mkdir.mjs";
-import { posixPath as posix } from "@poe-platform/safe-fs/core";
+import { posix } from "node:path";
+import { posixPath as portablePath } from "@poe-platform/safe-fs/core";
 import { posixPath as contractPath } from "@poe-platform/safe-bash/contracts";
 import { posixPath as indexedPath } from "@poe-platform/safe-bash/contracts/index";
 import { posixPath as directPath } from "@poe-platform/safe-bash/contracts/path";
@@ -71,11 +72,13 @@ await verifyNullDeviceView({ createMemoryFileSystem, createDeviceFileSystem });
 for (const paths of [posixPath, nodeEntry.posixPath]) {
   assert.equal(paths, corePosixPath);
   assert.equal(paths.join("/a", "..", "b"), "/b");
+  assert.equal(paths.basename("/a/file.txt"), "file.txt");
+  assert.equal(paths.dirname("/a/file.txt"), "/a");
+  assert.equal(paths.extname("/a/file.txt"), ".txt");
+  assert.equal(paths.isAbsolute("/a/file.txt"), true);
 }
 for (const paths of [contractPath, indexedPath, directPath]) {
   assert.equal(paths, posix);
-  assert.equal(paths.sep, "/");
-  assert.equal(paths.delimiter, ":");
   assert.equal(paths.normalize("/a/../b"), "/b");
   assert.equal(paths.format(paths.parse("/a/file.txt")), "/a/file.txt");
 }

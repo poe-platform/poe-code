@@ -478,16 +478,20 @@ test("wave 49: propagates multi-level continue/break across sync/async loops and
     "out=$(work)",
     "printf \"%s\\n\" \"$out\""
   ].join("\n");
-  const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], {
-    encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 5000,
-  });
-  assert.ifError(native.error);
-  assert.equal(native.status, 0, native.stderr);
-  assert.equal(native.stdout, "145|v01|m02\n");
   const result = await shell.exec(source);
-  assert.equal(result.exitCode, native.status, result.stderr);
-  assert.equal(result.stderr, native.stderr);
-  assert.equal(result.stdout, native.stdout);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "145|v01|m02\n");
+  await context.test("native associative-array comparison requires Bash 4 or later", nativeContext => {
+    const native = spawnSync("bash", ["--noprofile", "--norc", "-c", `if (( BASH_VERSINFO[0] < 4 )); then exit 77; fi\n${source}`], {
+      encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" }, timeout: 5000,
+    });
+    assert.ifError(native.error);
+    if (native.status === 77) { nativeContext.skip("Host Bash lacks associative arrays"); return; }
+    assert.equal(native.status, result.exitCode, native.stderr);
+    assert.equal(native.stderr, result.stderr);
+    assert.equal(native.stdout, result.stdout);
+  });
 });
 
 for (const [source, stdout] of [

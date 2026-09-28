@@ -1536,7 +1536,10 @@ export function renderDisplayListToSvg(
   for (const img of displayList.images) {
     if (!img.decodedRgba) continue;
     const pngBytes = encodeRgbaToPng(img.width, img.height, img.decodedRgba);
-    const b64 = Buffer.from(pngBytes).toString("base64");
+    const chunks: string[] = [];
+    for (let offset = 0; offset < pngBytes.length; offset += 8192)
+      chunks.push(String.fromCharCode(...pngBytes.subarray(offset, offset + 8192)));
+    const b64 = btoa(chunks.join(""));
     const [a, b, c, d, e, f] = img.matrix;
     const svgTx = e + c;
     const svgTy = displayList.height - f - d;

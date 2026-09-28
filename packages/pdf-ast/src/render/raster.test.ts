@@ -232,7 +232,12 @@ describe("Netpbm encoders & PDF rasterization options", () => {
 
     // SVG output should include embedded <image href="data:image/png;base64,...">
     const parsedDoc = PdfDocument.load(pdfBytes);
-    const svg = renderDisplayListToSvg(parsedDoc.getPage(0).evaluateDisplayList());
+    const savedBuffer = globalThis.Buffer;
+    let svg: string;
+    try {
+      globalThis.Buffer = undefined as never;
+      svg = renderDisplayListToSvg(parsedDoc.getPage(0).evaluateDisplayList());
+    } finally { globalThis.Buffer = savedBuffer; }
     expect(svg).toContain("<image");
     expect(svg).toContain("data:image/png;base64,");
   });

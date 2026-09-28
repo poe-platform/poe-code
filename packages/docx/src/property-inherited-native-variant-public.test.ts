@@ -1,5 +1,5 @@
 import { Volume } from "memfs";
-import { expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import * as source from "./index.js";
@@ -39,10 +39,17 @@ async function fixture(api: typeof source, strict: boolean, kind: "docx" | "dotx
 }
 for (const runtime of ["source", "compiled"] as const) for (const strict of [false, true])
 for (const kind of ["docx", "dotx"] as const) for (const codec of ["utf8", "utf16le", "utf16be"] as const) {
+  describe(`runtime=${runtime}; strict=${strict}; kind=${kind}; codec=${codec}`, () => {
   const api = runtime === "source" ? source : compiled;
+  let prepared: Awaited<ReturnType<typeof fixture>>;
+  beforeAll(async () => { prepared = await fixture(api, strict, kind, codec); });
+  function freshFixture() {
+    const memory = Volume.fromJSON({ "/input": Buffer.from(prepared.input), "/output": "" });
+    return { ...prepared, memory, sink: { async write(bytes: Uint8Array) { memory.appendFileSync("/output", bytes); } } };
+  }
   for (const route of ["sdk", "sdk-batch", "cli", "cli-batch"] as const)
   it(`unknown native custom variants never acquire inherited object-key types; runtime=${runtime}; strict=${strict}; kind=${kind}; codec=${codec}; route=${route}`, async () => {
-    const { input, part, vt, memory } = await fixture(api, strict, kind, codec);
+    const { input, part, vt, memory } = freshFixture();
     const records: unknown[] = [];
     if (route === "sdk") {
       records.push(...(await api.inspectDocumentProperties(input, {}, context)).items);
@@ -71,10 +78,10 @@ for (const kind of ["docx", "dotx"] as const) for (const codec of ["utf8", "utf1
     }
     expect(new Uint8Array(memory.readFileSync("/input") as Buffer)).toEqual(input); expect(memory.statSync("/output").size).toBe(0);
   });
-  for (const route of ["sdk", "sdk-batch", "cli", "cli-batch"] as const) for (const action of ["set", "remove"] as const)
-  it(`unknown native custom variants reject typed ${action} atomically; runtime=${runtime}; strict=${strict}; kind=${kind}; codec=${codec}; route=${route}`, async () => {
-    const { input, memory, sink } = await fixture(api, strict, kind, codec);
-    for (let index = 0; index < variants.length; index++) {
+  for (const route of ["sdk", "sdk-batch", "cli", "cli-batch"] as const) for (const action of ["set", "remove"] as const) for (const [index, variant] of variants.entries())
+  it(`unknown native custom variant ${variant} rejects typed ${action} atomically; runtime=${runtime}; strict=${strict}; kind=${kind}; codec=${codec}; route=${route}`, async () => {
+    const { input, memory, sink } = freshFixture();
+    {
       const arguments_ = { name: field(index), ...(action === "set" ? { value: 8, type: "integer" as const } : {}) };
       if (route === "sdk") await expect(api.editDocumentProperties(input, { operation: action === "set" ? "properties.set" : "properties.remove", ...arguments_, output: "-" } as source.PropertyEditOptions, { ...context, stdout: sink })).rejects.toMatchObject({ code: "unsupported-edit" });
       else if (route === "sdk-batch") await expect(api.executeDocumentBatch(input, { version: 1, operations: [{ operation: action === "set" ? "properties.set" : "properties.remove", arguments: arguments_ }] }, { output: "-" }, { ...context, stdout: sink })).rejects.toMatchObject({ code: "unsupported-edit", operationIndex: 0 });
@@ -95,7 +102,7 @@ for (const kind of ["docx", "dotx"] as const) for (const codec of ["utf8", "utf1
   });
   for (const route of ["model", "sdk", "sdk-batch", "cli", "cli-batch"] as const)
   it(`opaque native custom variants retain raw payloads and complete relationship membership; runtime=${runtime}; strict=${strict}; kind=${kind}; codec=${codec}; route=${route}`, async () => {
-    const { input, parts, part, opaque, memory, sink } = await fixture(api, strict, kind, codec);
+    const { input, parts, part, opaque, memory, sink } = freshFixture();
     if (route === "model") { const document = await api.Document(input, context); await document.save(sink); expect(new Uint8Array(memory.readFileSync("/output") as Buffer)).toEqual(input); }
     else if (route === "sdk") await api.editDocumentProperties(input, { operation: "properties.set", name: "custom:Witness", value: "Fresh海🌊", output: "-" }, { ...context, stdout: sink });
     else if (route === "sdk-batch") await api.executeDocumentBatch(input, { version: 1, operations: [{ operation: "properties.set", arguments: { name: "custom:Witness", value: "Fresh海🌊" } }] }, { output: "-" }, { ...context, stdout: sink });
@@ -112,5 +119,6 @@ for (const kind of ["docx", "dotx"] as const) for (const codec of ["utf8", "utf1
     expect([...after.get(part)!.subarray(0, codec === "utf8" ? 3 : 2)]).toEqual([...parts.get(part)!.subarray(0, codec === "utf8" ? 3 : 2)]);
     if (route !== "model") expect((await api.inspectDocumentProperties(output, { name: "custom:Witness" }, context)).items[0]!.properties[0]!.value).toBe("Fresh海🌊");
     expect(new Uint8Array(memory.readFileSync("/input") as Buffer)).toEqual(input);
+  });
   });
 }

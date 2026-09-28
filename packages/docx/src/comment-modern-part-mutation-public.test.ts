@@ -14,6 +14,15 @@ const metadata = [
   { name: "extra", kind: "commentsExtensible", namespace: "http://schemas.microsoft.com/office/word/2018/wordml/cex", root: "commentsExtensible", entry: "commentExtensible", relationship: "http://schemas.microsoft.com/office/2018/08/relationships/commentsExtensible", attributes: 'm:durableId="00000011" m:dateUtc="2026-01-02T03:04:05Z"', field: "dateUtc", before: "2026-01-02T03:04:05Z", after: "2026-02-03T04:05:06Z" },
   { name: "authors", kind: "people", namespace: "http://schemas.microsoft.com/office/word/2012/wordml", root: "people", entry: "person", relationship: "http://schemas.microsoft.com/office/2011/relationships/people", attributes: 'm:author="Archive"', field: "author", before: "Archive", after: "Updated" }
 ];
+const fixtures = new Map<string, Map<string, Uint8Array>>();
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+for (const target of metadata) for (const inert of [false, true]) {
+  const parts = readPackage(await textFixture('<w:p><w:r><w:t>Outside</w:t></w:r></w:p>', {
+    comments: { kind: "comments", xml: `<w:comments xmlns:w="${w}" xmlns:p="http://schemas.microsoft.com/office/word/2010/wordml"><w:comment w:id="7" w:author="Archive"><w:p p:paraId="000000A1"><w:r><w:t>Original</w:t></w:r></w:p></w:comment></w:comments>` },
+    ...Object.fromEntries(metadata.map(item => [item.name, { kind: item.kind, xml: `<m:${item.root} xmlns:m="${item === target && inert ? "urn:original:inert-metadata" : item.namespace}"><m:${item.entry} ${item.attributes}/><!--retained--><?audit exact?></m:${item.root}>` }]))
+  }, strict, { kind }));
+  fixtures.set(`${strict}:${kind}:${target.name}:${inert}`, parts);
+}
 const ref = (resultHandle: string, index?: number) => ({ resultHandle, ...(index === undefined ? {} : { index }) });
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
 for (const codec of ["utf8", "utf16le", "utf16be"] as const)
@@ -25,10 +34,8 @@ it(`modern metadata parts remain preserve-only through public XML views; strict=
   const context = { limits: textContext.limits, signal: textContext.signal, encoding: { order: "input", compression: "store" } as const };
   const namespace = mode === "inert" ? "urn:original:inert-metadata" : target.namespace;
   const relationship = mode === "inert" ? "urn:original:inert-resource" : target.relationship;
-  const parts = readPackage(await textFixture('<w:p><w:r><w:t>Outside</w:t></w:r></w:p>', {
-    comments: { kind: "comments", xml: `<w:comments xmlns:w="${w}" xmlns:p="http://schemas.microsoft.com/office/word/2010/wordml"><w:comment w:id="7" w:author="Archive"><w:p p:paraId="000000A1"><w:r><w:t>Original</w:t></w:r></w:p></w:comment></w:comments>` },
-    ...Object.fromEntries(metadata.map(item => [item.name, { kind: item.kind, xml: `<m:${item.root} xmlns:m="${item === target ? namespace : item.namespace}"><m:${item.entry} ${item.attributes}/><!--retained--><?audit exact?></m:${item.root}>` }]))
-  }, strict, { kind }));
+  const parts = new Map<string, Uint8Array>([...fixtures.get(`${strict}:${kind}:${target.name}:${mode === "inert"}`)!]
+    .map(([name, bytes]) => [name, bytes.slice()]));
   const edges = new product.DocumentXmlEditor(parts.get("word/_rels/document.xml.rels")!);
   for (const item of metadata) edges.setAttribute(edges.root.children.find(node => node.attributes.some(a => a.localName === "Id" && a.value === item.name))!, "Type", item === target ? relationship : item.relationship);
   parts.set("word/_rels/document.xml.rels", edges.serialize());

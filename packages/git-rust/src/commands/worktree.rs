@@ -769,8 +769,11 @@ pub fn checkout(
             }
 
             if filepaths.is_none() {
-                for path in head_map.keys() {
-                    if !target_map.contains_key(path) {
+                for (path, h_entry) in &head_map {
+                    if !target_map.contains_key(path)
+                        && h_entry.entry_type != "commit"
+                        && h_entry.mode != "160000"
+                    {
                         let _ = fs.unlink(&join(&[dir, path]));
                     }
                 }
@@ -786,6 +789,15 @@ pub fn checkout(
                             continue;
                         }
                     let full_path = join(&[dir, path]);
+                    if entry.entry_type == "commit" || entry.mode == "160000" {
+                        let _ = fs.mkdir(&full_path);
+                        if let Ok(mut st) = fs.lstat(&full_path) {
+                            st.mode = 0o160000;
+                            st.size = 0;
+                            index.insert(path, Some(&st), &entry.oid, 0);
+                        }
+                        continue;
+                    }
                     let blob = read_blob(fs, &gdir, &entry.oid, None)?.blob;
                     if entry.mode == "120000" {
                         let _ = fs.writelink(&full_path, &blob);

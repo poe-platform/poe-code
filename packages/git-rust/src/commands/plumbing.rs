@@ -766,7 +766,7 @@ pub fn log(
                         }
                     }
                     last_commit = Some(commit.clone());
-                    is_ok = false;
+                    is_ok = found_rename;
                 }
                 Err(e) => return Err(e),
             }

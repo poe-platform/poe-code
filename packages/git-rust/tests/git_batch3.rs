@@ -696,3 +696,558 @@ dual_fixture_test!(log_shallow_branch, log_shallow_branch_sub, "test-log", |f| {
     let commits = log(&f.fs, &f.gitdir, Some("origin/shallow-branch"), None, None, None, false, false).unwrap();
     assert_eq!(commits.len(), 1);
 });
+
+// ============================================================================
+// Expanded 1-to-1 Test Cases for Batch 3 (65 dual pairs = 130 additional tests)
+// ============================================================================
+
+dual_fixture_test!(branch_with_custom_object_oid, branch_with_custom_object_oid_sub, "test-branch", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    branch(&f.fs, &f.gitdir, "custom-oid-branch", Some(&head), false, false).unwrap();
+    assert_eq!(resolve_ref(&f.fs, &f.gitdir, "refs/heads/custom-oid-branch", None).unwrap(), head);
+});
+
+dual_fixture_test!(branch_empty_repo_no_checkout, branch_empty_repo_no_checkout_sub, "test-branch-empty-repo", |f| {
+    branch(&f.fs, &f.gitdir, "unborn-no-checkout", None, false, false).unwrap();
+    assert!(!list_branches(&f.fs, &f.gitdir, None).contains(&"unborn-no-checkout".to_string()));
+});
+
+dual_fixture_test!(branch_force_checkout_existing, branch_force_checkout_existing_sub, "test-branch", |f| {
+    branch(&f.fs, &f.gitdir, "existing-b", None, false, false).unwrap();
+    branch(&f.fs, &f.gitdir, "existing-b", None, true, true).unwrap();
+    assert_eq!(current_branch(&f.fs, &f.gitdir, false, false).unwrap().as_deref(), Some("existing-b"));
+});
+
+dual_fixture_test!(branch_full_ref_path_accepted, branch_full_ref_path_accepted_sub, "test-branch", |f| {
+    branch(&f.fs, &f.gitdir, "feature/sub-branch", None, false, false).unwrap();
+    assert!(list_branches(&f.fs, &f.gitdir, None).contains(&"feature/sub-branch".to_string()));
+});
+
+dual_fixture_test!(current_branch_fullname_true, current_branch_fullname_true_sub, "test-currentBranch", |f| {
+    let full = current_branch(&f.fs, &f.gitdir, true, false).unwrap();
+    assert_eq!(full.as_deref(), Some("refs/heads/master"));
+});
+
+dual_fixture_test!(delete_branch_missing_errors, delete_branch_missing_errors_sub, "test-deleteBranch", |f| {
+    assert_eq!(
+        delete_branch(&f.fs, &f.gitdir, "branch-not-exist").unwrap_err().code,
+        ErrorCode::NotFoundError
+    );
+});
+
+dual_fixture_test!(delete_branch_invalid_ref_errors, delete_branch_invalid_ref_errors_sub, "test-deleteBranch", |f| {
+    assert_eq!(
+        delete_branch(&f.fs, &f.gitdir, "inv@{id..branch").unwrap_err().code,
+        ErrorCode::NotFoundError
+    );
+});
+
+dual_fixture_test!(delete_branch_cleans_config_section, delete_branch_cleans_config_section_sub, "test-deleteBranch", |f| {
+    branch(&f.fs, &f.gitdir, "cfg-branch", None, false, false).unwrap();
+    set_config(&f.fs, &f.gitdir, "branch.cfg-branch.remote", Some("origin"), false).unwrap();
+    delete_branch(&f.fs, &f.gitdir, "cfg-branch").unwrap();
+    assert!(!list_branches(&f.fs, &f.gitdir, None).contains(&"cfg-branch".to_string()));
+});
+
+dual_fixture_test!(delete_branch_packed_ref, delete_branch_packed_ref_sub, "test-deleteBranch", |f| {
+    branch(&f.fs, &f.gitdir, "packed-b", None, false, false).unwrap();
+    delete_branch(&f.fs, &f.gitdir, "packed-b").unwrap();
+    assert!(!list_branches(&f.fs, &f.gitdir, None).contains(&"packed-b".to_string()));
+});
+
+dual_fixture_test!(list_branches_remote_origin, list_branches_remote_origin_sub, "test-listBranches", |f| {
+    let remote_b = list_branches(&f.fs, &f.gitdir, Some("origin"));
+    assert!(!remote_b.is_empty());
+});
+
+dual_fixture_test!(rename_branch_already_exists_error, rename_branch_already_exists_error_sub, "test-renameBranch", |f| {
+    branch(&f.fs, &f.gitdir, "b1", None, false, false).unwrap();
+    branch(&f.fs, &f.gitdir, "b2", None, false, false).unwrap();
+    assert_eq!(
+        rename_branch(&f.fs, &f.gitdir, "b2", "b1", false).unwrap_err().code,
+        ErrorCode::AlreadyExistsError
+    );
+});
+
+dual_fixture_test!(rename_branch_without_checkout, rename_branch_without_checkout_sub, "test-renameBranch", |f| {
+    branch(&f.fs, &f.gitdir, "b-old", None, false, false).unwrap();
+    rename_branch(&f.fs, &f.gitdir, "b-old", "b-new", false).unwrap();
+    assert!(list_branches(&f.fs, &f.gitdir, None).contains(&"b-new".to_string()));
+    assert!(!list_branches(&f.fs, &f.gitdir, None).contains(&"b-old".to_string()));
+});
+
+dual_fixture_test!(rename_branch_with_checkout, rename_branch_with_checkout_sub, "test-renameBranch", |f| {
+    branch(&f.fs, &f.gitdir, "b-src", None, false, false).unwrap();
+    rename_branch(&f.fs, &f.gitdir, "b-src", "b-dst", true).unwrap();
+    assert_eq!(current_branch(&f.fs, &f.gitdir, false, false).unwrap().as_deref(), Some("b-dst"));
+});
+
+dual_fixture_test!(rename_branch_invalid_name_error, rename_branch_invalid_name_error_sub, "test-renameBranch", |f| {
+    branch(&f.fs, &f.gitdir, "b-valid", None, false, false).unwrap();
+    assert_eq!(
+        rename_branch(&f.fs, &f.gitdir, "b-valid", "inv@{id..name", false).unwrap_err().code,
+        ErrorCode::InvalidRefNameError
+    );
+});
+
+dual_fixture_test!(rename_branch_updates_head_when_current, rename_branch_updates_head_when_current_sub, "test-renameBranch", |f| {
+    let cur = current_branch(&f.fs, &f.gitdir, false, false).unwrap().unwrap();
+    rename_branch(&f.fs, &f.gitdir, &cur, "renamed-current", false).unwrap();
+    assert_eq!(current_branch(&f.fs, &f.gitdir, false, false).unwrap().as_deref(), Some("renamed-current"));
+});
+
+dual_fixture_test!(rename_branch_missing_source_error, rename_branch_missing_source_error_sub, "test-renameBranch", |f| {
+    assert_eq!(
+        rename_branch(&f.fs, &f.gitdir, "new-name", "non-existent-src", false).unwrap_err().code,
+        ErrorCode::NotFoundError
+    );
+});
+
+dual_fixture_test!(tag_create_with_object_ref, tag_create_with_object_ref_sub, "test-tag", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    tag(&f.fs, &f.gitdir, "v-custom", Some(&head), false).unwrap();
+    assert_eq!(resolve_ref(&f.fs, &f.gitdir, "refs/tags/v-custom", None).unwrap(), head);
+});
+
+dual_fixture_test!(tag_already_exists_without_force, tag_already_exists_without_force_sub, "test-tag", |f| {
+    tag(&f.fs, &f.gitdir, "v-dup", None, false).unwrap();
+    assert_eq!(tag(&f.fs, &f.gitdir, "v-dup", None, false).unwrap_err().code, ErrorCode::AlreadyExistsError);
+});
+
+dual_fixture_test!(tag_force_overwrites_existing, tag_force_overwrites_existing_sub, "test-tag", |f| {
+    tag(&f.fs, &f.gitdir, "v-force", None, false).unwrap();
+    tag(&f.fs, &f.gitdir, "v-force", None, true).unwrap();
+    assert!(list_tags(&f.fs, &f.gitdir).contains(&"v-force".to_string()));
+});
+
+dual_fixture_test!(tag_invalid_name_error, tag_invalid_name_error_sub, "test-tag", |f| {
+    assert_eq!(tag(&f.fs, &f.gitdir, "inv@{id..tag", None, false).unwrap_err().code, ErrorCode::InvalidRefNameError);
+});
+
+dual_fixture_test!(annotated_tag_force_overwrites, annotated_tag_force_overwrites_sub, "test-annotatedTag", |f| {
+    let tagger = Author { name: "Tagger".into(), email: "t@e.com".into(), timestamp: 1262356920, timezone_offset: 0.0 };
+    annotated_tag(&f.fs, &f.gitdir, "v-ann-dup", Some("msg 1"), None, Some(tagger.clone()), None, false).unwrap();
+    assert_eq!(
+        annotated_tag(&f.fs, &f.gitdir, "v-ann-dup", Some("msg 2"), None, Some(tagger.clone()), None, false).unwrap_err().code,
+        ErrorCode::AlreadyExistsError
+    );
+    annotated_tag(&f.fs, &f.gitdir, "v-ann-dup", Some("msg 2"), None, Some(tagger), None, true).unwrap();
+});
+
+dual_fixture_test!(annotated_tag_custom_target_object, annotated_tag_custom_target_object_sub, "test-annotatedTag", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let tagger = Author { name: "Tagger".into(), email: "t@e.com".into(), timestamp: 1262356920, timezone_offset: 0.0 };
+    annotated_tag(&f.fs, &f.gitdir, "v-ann-obj", Some("annotated target"), Some(&head), Some(tagger), None, false).unwrap();
+    let tag_oid = resolve_ref(&f.fs, &f.gitdir, "refs/tags/v-ann-obj", None).unwrap();
+    assert_eq!(read_tag(&f.fs, &f.gitdir, &tag_oid).unwrap().tag.object, head);
+});
+
+dual_fixture_test!(delete_tag_missing_error, delete_tag_missing_error_sub, "test-deleteTag", |f| {
+    delete_tag(&f.fs, &f.gitdir, "nonexistent-tag").unwrap();
+    assert!(!list_tags(&f.fs, &f.gitdir).contains(&"nonexistent-tag".to_string()));
+});
+
+dual_fixture_test!(add_note_default_ref_and_read, add_note_default_ref_and_read_sub, "test-addNote", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let author = Author { name: "N".into(), email: "n@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    add_note(&f.fs, &f.gitdir, None, &head, b"note 1", true, author.clone(), Some(author)).unwrap();
+    assert_eq!(read_note(&f.fs, &f.gitdir, None, &head).unwrap(), b"note 1");
+});
+
+dual_fixture_test!(add_note_already_exists_without_force, add_note_already_exists_without_force_sub, "test-addNote", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let author = Author { name: "N".into(), email: "n@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    add_note(&f.fs, &f.gitdir, Some("refs/notes/test"), &head, b"n1", false, author.clone(), Some(author.clone())).unwrap();
+    assert_eq!(
+        add_note(&f.fs, &f.gitdir, Some("refs/notes/test"), &head, b"n2", false, author.clone(), Some(author)).unwrap_err().code,
+        ErrorCode::AlreadyExistsError
+    );
+});
+
+dual_fixture_test!(add_note_force_overwrites_existing, add_note_force_overwrites_existing_sub, "test-addNote", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let author = Author { name: "N".into(), email: "n@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    add_note(&f.fs, &f.gitdir, Some("refs/notes/force"), &head, b"n1", false, author.clone(), Some(author.clone())).unwrap();
+    add_note(&f.fs, &f.gitdir, Some("refs/notes/force"), &head, b"n2", true, author.clone(), Some(author)).unwrap();
+    assert_eq!(read_note(&f.fs, &f.gitdir, Some("refs/notes/force"), &head).unwrap(), b"n2");
+});
+
+dual_fixture_test!(add_note_custom_namespace_branch, add_note_custom_namespace_branch_sub, "test-addNote", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let author = Author { name: "N".into(), email: "n@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    add_note(&f.fs, &f.gitdir, Some("refs/notes/custom-ns"), &head, b"custom note", true, author.clone(), Some(author)).unwrap();
+    let notes = list_notes(&f.fs, &f.gitdir, Some("refs/notes/custom-ns")).unwrap();
+    assert_eq!(notes.len(), 1);
+    assert_eq!(notes[0].target, head);
+});
+
+dual_fixture_test!(add_note_string_and_binary_bytes, add_note_string_and_binary_bytes_sub, "test-addNote", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let author = Author { name: "N".into(), email: "n@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    add_note(&f.fs, &f.gitdir, Some("refs/notes/bin"), &head, &[0x00, 0xff, 0x42], true, author.clone(), Some(author)).unwrap();
+    assert_eq!(read_note(&f.fs, &f.gitdir, Some("refs/notes/bin"), &head).unwrap(), vec![0x00, 0xff, 0x42]);
+});
+
+dual_fixture_test!(add_note_multiple_targets_in_same_tree, add_note_multiple_targets_in_same_tree_sub, "test-addNote", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let other = "0000000000000000000000000000000000000002";
+    let author = Author { name: "N".into(), email: "n@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    add_note(&f.fs, &f.gitdir, Some("refs/notes/multi"), &head, b"n-head", true, author.clone(), Some(author.clone())).unwrap();
+    add_note(&f.fs, &f.gitdir, Some("refs/notes/multi"), other, b"n-other", true, author.clone(), Some(author)).unwrap();
+    assert_eq!(list_notes(&f.fs, &f.gitdir, Some("refs/notes/multi")).unwrap().len(), 2);
+});
+
+dual_fixture_test!(read_note_missing_returns_not_found, read_note_missing_returns_not_found_sub, "test-readNote", |f| {
+    assert_eq!(
+        read_note(&f.fs, &f.gitdir, None, "0000000000000000000000000000000000000001").unwrap_err().code,
+        ErrorCode::NotFoundError
+    );
+});
+
+dual_fixture_test!(read_note_missing_namespace_returns_not_found, read_note_missing_namespace_returns_not_found_sub, "test-readNote", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    assert_eq!(
+        read_note(&f.fs, &f.gitdir, Some("refs/notes/missing-ns"), &head).unwrap_err().code,
+        ErrorCode::NotFoundError
+    );
+});
+
+dual_fixture_test!(read_note_existing_commits_ns, read_note_existing_commits_ns_sub, "test-readNote", |f| {
+    let notes = list_notes(&f.fs, &f.gitdir, None).unwrap();
+    assert!(!notes.is_empty());
+    let content = read_note(&f.fs, &f.gitdir, None, &notes[0].target).unwrap();
+    assert!(!content.is_empty());
+});
+
+dual_fixture_test!(list_notes_empty_namespace, list_notes_empty_namespace_sub, "test-listNotes", |f| {
+    let list = list_notes(&f.fs, &f.gitdir, Some("refs/notes/nonexistent")).unwrap_or_default();
+    assert!(list.is_empty());
+});
+
+dual_fixture_test!(list_notes_default_namespace, list_notes_default_namespace_sub, "test-listNotes", |f| {
+    let list = list_notes(&f.fs, &f.gitdir, None).unwrap();
+    assert!(!list.is_empty());
+});
+
+dual_fixture_test!(remove_note_from_custom_namespace, remove_note_from_custom_namespace_sub, "test-removeNote", |f| {
+    let head = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let author = Author { name: "N".into(), email: "n@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    add_note(&f.fs, &f.gitdir, Some("refs/notes/rm"), &head, b"to-remove", true, author.clone(), Some(author.clone())).unwrap();
+    remove_note(&f.fs, &f.gitdir, Some("refs/notes/rm"), &head, author.clone(), Some(author)).unwrap();
+    assert!(list_notes(&f.fs, &f.gitdir, Some("refs/notes/rm")).unwrap().is_empty());
+});
+
+dual_fixture_test!(add_remote_already_exists_without_force, add_remote_already_exists_without_force_sub, "test-addRemote", |f| {
+    add_remote(&f.fs, &f.gitdir, "dup-remote", "https://example.com/1.git", false).unwrap();
+    assert_eq!(
+        add_remote(&f.fs, &f.gitdir, "dup-remote", "https://example.com/2.git", false).unwrap_err().code,
+        ErrorCode::AlreadyExistsError
+    );
+});
+
+dual_fixture_test!(add_remote_force_overwrites_url, add_remote_force_overwrites_url_sub, "test-addRemote", |f| {
+    add_remote(&f.fs, &f.gitdir, "force-remote", "https://example.com/1.git", false).unwrap();
+    add_remote(&f.fs, &f.gitdir, "force-remote", "https://example.com/2.git", true).unwrap();
+    assert_eq!(get_config(&f.fs, &f.gitdir, "remote.force-remote.url").unwrap().as_str(), "https://example.com/2.git");
+});
+
+dual_fixture_test!(delete_remote_removes_section, delete_remote_removes_section_sub, "test-deleteRemote", |f| {
+    add_remote(&f.fs, &f.gitdir, "temp-remote", "https://example.com/t.git", true).unwrap();
+    delete_remote(&f.fs, &f.gitdir, "temp-remote").unwrap();
+    assert!(list_remotes(&f.fs, &f.gitdir).iter().all(|e| e.remote != "temp-remote"));
+});
+
+dual_fixture_test!(log_head_default_all_commits, log_head_default_all_commits_sub, "test-log", |f| {
+    let commits = log(&f.fs, &f.gitdir, Some("HEAD"), None, None, None, false, false).unwrap();
+    assert_eq!(commits.len(), 5);
+});
+
+dual_fixture_test!(log_head_with_depth_limit, log_head_with_depth_limit_sub, "test-log", |f| {
+    let commits = log(&f.fs, &f.gitdir, Some("HEAD"), None, Some(2), None, false, false).unwrap();
+    assert_eq!(commits.len(), 2);
+});
+
+dual_fixture_test!(log_head_with_since_filter, log_head_with_since_filter_sub, "test-log", |f| {
+    let commits = log(&f.fs, &f.gitdir, Some("HEAD"), None, None, Some(1501462174), false, false).unwrap();
+    assert_eq!(commits.len(), 2);
+});
+
+dual_fixture_test!(log_complex_merging_history, log_complex_merging_history_sub, "test-log-complex", |f| {
+    let commits = log(&f.fs, &f.gitdir, Some("HEAD"), None, None, None, false, false).unwrap();
+    assert!(!commits.is_empty());
+});
+
+dual_fixture_test!(log_preserves_gpgsig_and_payload, log_preserves_gpgsig_and_payload_sub, "test-log", |f| {
+    let commits = log(&f.fs, &f.gitdir, Some("HEAD"), None, Some(1), None, false, false).unwrap();
+    assert!(!commits[0].payload.is_empty());
+});
+
+dual_fixture_test!(log_directory_replaced_file, log_directory_replaced_file_sub, "test-init", |f| {
+    use git_rust::commands::plumbing::write_blob;
+    use git_rust::models::TreeEntry;
+    let author = Author { name: "A".into(), email: "a@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    let b1 = write_blob(&f.fs, &f.gitdir, b"v1\n").unwrap();
+    let t1 = write_tree(&f.fs, &f.gitdir, &[TreeEntry { mode: "100644".into(), path: "item".into(), oid: b1.clone(), entry_type: "blob".into() }]).unwrap();
+    let c1 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "c1\n".into(), tree: t1, parent: vec![], author: author.clone(), committer: author.clone(), gpgsig: None }).unwrap();
+    let sub_t = write_tree(&f.fs, &f.gitdir, &[TreeEntry { mode: "100644".into(), path: "child.txt".into(), oid: b1, entry_type: "blob".into() }]).unwrap();
+    let t2 = write_tree(&f.fs, &f.gitdir, &[TreeEntry { mode: "040000".into(), path: "item".into(), oid: sub_t, entry_type: "tree".into() }]).unwrap();
+    let c2 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "c2\n".into(), tree: t2, parent: vec![c1], author: author.clone(), committer: author, gpgsig: None }).unwrap();
+    write_ref(&f.fs, &f.gitdir, "refs/heads/main", &c2, true, false).unwrap();
+    let commits = log(&f.fs, &f.gitdir, Some("main"), Some("item"), None, None, true, false).unwrap();
+    assert_eq!(commits.len(), 2);
+});
+
+dual_fixture_test!(log_file_newly_added_and_single_file, log_file_newly_added_and_single_file_sub, "test-init", |f| {
+    use git_rust::commands::plumbing::write_blob;
+    use git_rust::models::TreeEntry;
+    let author = Author { name: "A".into(), email: "a@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    let oid = write_blob(&f.fs, &f.gitdir, b"file-only
+").unwrap();
+    let t1 = write_tree(&f.fs, &f.gitdir, &[TreeEntry { mode: "100644".into(), path: "single.txt".into(), oid, entry_type: "blob".into() }]).unwrap();
+    let c1 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "add single
+".into(), tree: t1, parent: vec![], author: author.clone(), committer: author, gpgsig: None }).unwrap();
+    write_ref(&f.fs, &f.gitdir, "refs/heads/main", &c1, true, false).unwrap();
+    let commits = log(&f.fs, &f.gitdir, Some("main"), Some("single.txt"), None, None, false, false).unwrap();
+    assert_eq!(commits.len(), 1);
+});
+
+dual_fixture_test!(log_file_deleted_forced, log_file_deleted_forced_sub, "test-init", |f| {
+    use git_rust::commands::plumbing::write_blob;
+    use git_rust::models::TreeEntry;
+    let author = Author { name: "A".into(), email: "a@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    let oid = write_blob(&f.fs, &f.gitdir, b"hello\n").unwrap();
+    let t1 = write_tree(&f.fs, &f.gitdir, &[TreeEntry { mode: "100644".into(), path: "gone.txt".into(), oid, entry_type: "blob".into() }]).unwrap();
+    let c1 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "add\n".into(), tree: t1, parent: vec![], author: author.clone(), committer: author.clone(), gpgsig: None }).unwrap();
+    let t2 = write_tree(&f.fs, &f.gitdir, &[]).unwrap();
+    let c2 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "del\n".into(), tree: t2, parent: vec![c1], author: author.clone(), committer: author, gpgsig: None }).unwrap();
+    write_ref(&f.fs, &f.gitdir, "refs/heads/main", &c2, true, false).unwrap();
+    let forced = log(&f.fs, &f.gitdir, Some("main"), Some("gone.txt"), None, None, true, false).unwrap();
+    assert!(!forced.is_empty());
+});
+
+dual_fixture_test!(log_file_rename_with_follow, log_file_rename_with_follow_sub, "test-init", |f| {
+    use git_rust::commands::plumbing::write_blob;
+    use git_rust::models::TreeEntry;
+    let author = Author { name: "A".into(), email: "a@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    let oid = write_blob(&f.fs, &f.gitdir, b"same content\n").unwrap();
+    let t1 = write_tree(&f.fs, &f.gitdir, &[TreeEntry { mode: "100644".into(), path: "old.txt".into(), oid: oid.clone(), entry_type: "blob".into() }]).unwrap();
+    let c1 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "c1\n".into(), tree: t1, parent: vec![], author: author.clone(), committer: author.clone(), gpgsig: None }).unwrap();
+    let t2 = write_tree(&f.fs, &f.gitdir, &[TreeEntry { mode: "100644".into(), path: "new.txt".into(), oid, entry_type: "blob".into() }]).unwrap();
+    let c2 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "c2\n".into(), tree: t2, parent: vec![c1], author: author.clone(), committer: author, gpgsig: None }).unwrap();
+    write_ref(&f.fs, &f.gitdir, "refs/heads/main", &c2, true, false).unwrap();
+    let followed = log(&f.fs, &f.gitdir, Some("main"), Some("new.txt"), None, None, true, true).unwrap();
+    assert_eq!(followed.len(), 2);
+});
+
+dual_fixture_test!(log_file_rename_forced_without_follow, log_file_rename_forced_without_follow_sub, "test-init", |f| {
+    use git_rust::commands::plumbing::write_blob;
+    use git_rust::models::TreeEntry;
+    let author = Author { name: "A".into(), email: "a@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    let oid = write_blob(&f.fs, &f.gitdir, b"same content\n").unwrap();
+    let t1 = write_tree(&f.fs, &f.gitdir, &[TreeEntry { mode: "100644".into(), path: "old.txt".into(), oid: oid.clone(), entry_type: "blob".into() }]).unwrap();
+    let c1 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "c1\n".into(), tree: t1, parent: vec![], author: author.clone(), committer: author.clone(), gpgsig: None }).unwrap();
+    let t2 = write_tree(&f.fs, &f.gitdir, &[TreeEntry { mode: "100644".into(), path: "new.txt".into(), oid, entry_type: "blob".into() }]).unwrap();
+    let c2 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "c2\n".into(), tree: t2, parent: vec![c1], author: author.clone(), committer: author, gpgsig: None }).unwrap();
+    write_ref(&f.fs, &f.gitdir, "refs/heads/main", &c2, true, false).unwrap();
+    let unfollowed = log(&f.fs, &f.gitdir, Some("main"), Some("new.txt"), None, None, true, false).unwrap();
+    assert_eq!(unfollowed.len(), 1);
+});
+
+dual_fixture_test!(log_file_rename_multi_same_content_1, log_file_rename_multi_same_content_1_sub, "test-init", |f| {
+    use git_rust::commands::plumbing::write_blob;
+    use git_rust::models::TreeEntry;
+    let author = Author { name: "A".into(), email: "a@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    let oid = write_blob(&f.fs, &f.gitdir, b"dup\n").unwrap();
+    let t1 = write_tree(&f.fs, &f.gitdir, &[
+        TreeEntry { mode: "100644".into(), path: "f1.txt".into(), oid: oid.clone(), entry_type: "blob".into() },
+        TreeEntry { mode: "100644".into(), path: "f2.txt".into(), oid: oid.clone(), entry_type: "blob".into() },
+    ]).unwrap();
+    let c1 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "c1\n".into(), tree: t1, parent: vec![], author: author.clone(), committer: author.clone(), gpgsig: None }).unwrap();
+    let t2 = write_tree(&f.fs, &f.gitdir, &[
+        TreeEntry { mode: "100644".into(), path: "f1-renamed.txt".into(), oid: oid.clone(), entry_type: "blob".into() },
+        TreeEntry { mode: "100644".into(), path: "f2.txt".into(), oid, entry_type: "blob".into() },
+    ]).unwrap();
+    let c2 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "c2\n".into(), tree: t2, parent: vec![c1], author: author.clone(), committer: author, gpgsig: None }).unwrap();
+    write_ref(&f.fs, &f.gitdir, "refs/heads/main", &c2, true, false).unwrap();
+    let followed = log(&f.fs, &f.gitdir, Some("main"), Some("f1-renamed.txt"), None, None, true, true).unwrap();
+    assert_eq!(followed.len(), 2);
+});
+
+dual_fixture_test!(log_file_rename_multi_same_content_2, log_file_rename_multi_same_content_2_sub, "test-init", |f| {
+    use git_rust::commands::plumbing::write_blob;
+    use git_rust::models::TreeEntry;
+    let author = Author { name: "A".into(), email: "a@e.com".into(), timestamp: 1500000000, timezone_offset: 0.0 };
+    let oid = write_blob(&f.fs, &f.gitdir, b"dup2\n").unwrap();
+    let t1 = write_tree(&f.fs, &f.gitdir, &[
+        TreeEntry { mode: "100644".into(), path: "a.txt".into(), oid: oid.clone(), entry_type: "blob".into() },
+        TreeEntry { mode: "100644".into(), path: "b.txt".into(), oid: oid.clone(), entry_type: "blob".into() },
+    ]).unwrap();
+    let c1 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "c1\n".into(), tree: t1, parent: vec![], author: author.clone(), committer: author.clone(), gpgsig: None }).unwrap();
+    let t2 = write_tree(&f.fs, &f.gitdir, &[
+        TreeEntry { mode: "100644".into(), path: "a.txt".into(), oid: oid.clone(), entry_type: "blob".into() },
+        TreeEntry { mode: "100644".into(), path: "b-renamed.txt".into(), oid, entry_type: "blob".into() },
+    ]).unwrap();
+    let c2 = write_commit(&f.fs, &f.gitdir, &CommitObject { message: "c2\n".into(), tree: t2, parent: vec![c1], author: author.clone(), committer: author, gpgsig: None }).unwrap();
+    write_ref(&f.fs, &f.gitdir, "refs/heads/main", &c2, true, false).unwrap();
+    let followed = log(&f.fs, &f.gitdir, Some("main"), Some("b-renamed.txt"), None, None, true, true).unwrap();
+    assert_eq!(followed.len(), 2);
+});
+
+dual_fixture_test!(walk_autocrlf_respected_when_gitconfig_changes, walk_autocrlf_respected_when_gitconfig_changes_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "crlf.txt"]), "line1\r\nline2\r\n");
+    set_config(&f.fs, &f.gitdir, "core.autocrlf", Some("false"), false).unwrap();
+    let oid_false = walk(&f.fs, Some(&f.dir), &f.gitdir, &[WORKDIR()], |p, es| {
+        if p == "crlf.txt" { Ok(Some(es[0].as_ref().unwrap().oid().unwrap_or_default().to_string())) } else { Ok(None) }
+    }).unwrap()[0].clone();
+
+    set_config(&f.fs, &f.gitdir, "core.autocrlf", Some("true"), false).unwrap();
+    let oid_true = walk(&f.fs, Some(&f.dir), &f.gitdir, &[WORKDIR()], |p, es| {
+        if p == "crlf.txt" { Ok(Some(es[0].as_ref().unwrap().oid().unwrap_or_default().to_string())) } else { Ok(None) }
+    }).unwrap()[0].clone();
+    assert_ne!(oid_false, oid_true);
+});
+
+dual_fixture_test!(walk_symlink_content_and_nonexistent_target, walk_symlink_content_and_nonexistent_target_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let _ = f.fs.writelink(&join(&[&f.dir, "broken-link"]), b"nonexistent-target.txt");
+    let link_data = walk(&f.fs, Some(&f.dir), &f.gitdir, &[WORKDIR()], |p, es| {
+        if p == "broken-link" {
+            let e = es[0].as_ref().unwrap();
+            Ok(Some((e.oid().unwrap_or_default().to_string(), e.content().map(|b| b.to_vec()).unwrap_or_default())))
+        } else {
+            Ok(None)
+        }
+    }).unwrap();
+    assert_eq!(link_data.len(), 1);
+    assert_eq!(link_data[0].1, b"nonexistent-target.txt");
+});
+
+dual_fixture_test!(walk_symlink_content_matches_git_target_bytes, walk_symlink_content_matches_git_target_bytes_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "real.txt"]), "real file body");
+    let _ = f.fs.writelink(&join(&[&f.dir, "sym.txt"]), b"real.txt");
+    let sym_bytes = walk(&f.fs, Some(&f.dir), &f.gitdir, &[WORKDIR()], |p, es| {
+        if p == "sym.txt" { Ok(Some(es[0].as_ref().unwrap().content().map(|b| b.to_vec()).unwrap_or_default())) } else { Ok(None) }
+    }).unwrap();
+    assert_eq!(sym_bytes[0], b"real.txt");
+});
+
+dual_fixture_test!(walk_tree_throws_on_missing_ref, walk_tree_throws_on_missing_ref_sub, "test-walk", |f| {
+    let res = walk(&f.fs, Some(&f.dir), &f.gitdir, &[TREE(Some("nonexistent-ref"))], |_, _| Ok(Some(())));
+    assert!(res.is_err());
+});
+
+dual_fixture_test!(walk_tree_throws_on_trailing_newline_ref, walk_tree_throws_on_trailing_newline_ref_sub, "test-walk", |f| {
+    let res = walk(&f.fs, Some(&f.dir), &f.gitdir, &[TREE(Some("HEAD\n"))], |_, _| Ok(Some(())));
+    assert!(res.is_err());
+});
+
+dual_fixture_test!(walk_empty_tree_on_unborn_branch, walk_empty_tree_on_unborn_branch_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, Some("main")).unwrap();
+    let res = walk(&f.fs, Some(&f.dir), &f.gitdir, &[TREE(Some("HEAD"))], |p, _| Ok(Some(p.to_string()))).unwrap();
+    assert_eq!(res, vec!["."]);
+});
+
+dual_fixture_test!(walk_throws_when_head_points_to_missing_tag_ref, walk_throws_when_head_points_to_missing_tag_ref_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, Some("main")).unwrap();
+    let gdir = git_rust::fs::discover_gitdir(&f.fs, &f.gitdir);
+    f.fs.write_str(&join(&[&gdir, "HEAD"]), "ref: refs/tags/missing-tag\n");
+    let res = walk(&f.fs, Some(&f.dir), &f.gitdir, &[TREE(Some("HEAD"))], |_, _| Ok(Some(())));
+    assert!(res.is_err());
+});
+
+dual_fixture_test!(find_merge_base_rejects_unknown_oid, find_merge_base_rejects_unknown_oid_sub, "test-findMergeBase", |f| {
+    let err = find_merge_base(
+        &f.fs,
+        &f.gitdir,
+        &[
+            "0000000000000000000000000000000000000001".to_string(),
+            "9ec6646dd454e8f530c478c26f8b06e57f880bd6".to_string(),
+        ],
+    )
+    .unwrap_err();
+    assert_eq!(err.code, ErrorCode::NotFoundError);
+});
+
+dual_fixture_test!(find_merge_base_fast_forward_scenario, find_merge_base_fast_forward_scenario_sub, "test-findMergeBase", |f| {
+    assert_eq!(
+        find_merge_base(
+            &f.fs,
+            &f.gitdir,
+            &[
+                "9ec6646dd454e8f530c478c26f8b06e57f880bd6".to_string(),
+                "f79577b91d302d87e310c8b5af8c274bbf45502f".to_string(),
+            ],
+        )
+        .unwrap(),
+        vec!["f79577b91d302d87e310c8b5af8c274bbf45502f"]
+    );
+});
+
+dual_fixture_test!(find_merge_base_diverging_scenario, find_merge_base_diverging_scenario_sub, "test-findMergeBase", |f| {
+    assert_eq!(
+        find_merge_base(
+            &f.fs,
+            &f.gitdir,
+            &[
+                "c91a8aab1f086c8cc8914558f035e718a8a5c503".to_string(),
+                "f79577b91d302d87e310c8b5af8c274bbf45502f".to_string(),
+            ],
+        )
+        .unwrap(),
+        vec!["0526923cafece3d898dbe55ee2c2d69bfcc54c60"]
+    );
+});
+
+dual_fixture_test!(find_merge_base_merge_commit_scenario, find_merge_base_merge_commit_scenario_sub, "test-findMergeBase", |f| {
+    let bases = find_merge_base(
+        &f.fs,
+        &f.gitdir,
+        &[
+            "c91a8aab1f086c8cc8914558f035e718a8a5c503".to_string(),
+            "9ec6646dd454e8f530c478c26f8b06e57f880bd6".to_string(),
+        ],
+    )
+    .unwrap();
+    assert!(!bases.is_empty());
+});
+
+dual_fixture_test!(find_merge_base_recursive_scenario, find_merge_base_recursive_scenario_sub, "test-findMergeBase", |f| {
+    let rec = find_merge_base(
+        &f.fs,
+        &f.gitdir,
+        &[
+            "85303393b9fd415d48913dfec47d42db184dc4d8".to_string(),
+            "4c658ff41121ddada50c47e4c72c092a9f7bf2be".to_string(),
+        ],
+    )
+    .unwrap();
+    assert_eq!(rec.len(), 2);
+});
+
+dual_fixture_test!(find_merge_base_fork_and_rejoin_scenario, find_merge_base_fork_and_rejoin_scenario_sub, "test-findMergeBase", |f| {
+    let res = find_merge_base(
+        &f.fs,
+        &f.gitdir,
+        &[
+            "815474b6e581921cbe05825631decac922803d28".to_string(),
+            "83ad8e1ec6f21f8d0d74587b6a8021fec1a165e1".to_string(),
+        ],
+    )
+    .unwrap();
+    assert_eq!(res, vec!["2316ae441d2c72d8d15673beb81390272671c526"]);
+});
+
+dual_fixture_test!(find_merge_base_no_common_ancestor_scenario, find_merge_base_no_common_ancestor_scenario_sub, "test-findMergeBase", |f| {
+    let res = find_merge_base(
+        &f.fs,
+        &f.gitdir,
+        &[
+            "9ec6646dd454e8f530c478c26f8b06e57f880bd6".to_string(),
+            "99cfd5bb4e412234162ac1eb46350ec6ccffb50d".to_string(),
+        ],
+    )
+    .unwrap();
+    assert!(res.is_empty());
+});

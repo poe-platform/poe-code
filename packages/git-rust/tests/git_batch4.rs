@@ -410,3 +410,455 @@ dual_fixture_test!(submodules_staged_preserved_across_commit, submodules_staged_
     let t = read_tree(&f.fs, &f.gitdir, &c.commit.tree, None).unwrap();
     assert!(t.tree.iter().any(|e| e.mode == "160000" && e.entry_type == "commit"));
 });
+
+// ============================================================================
+// Expanded 1-to-1 Test Cases for Batch 4 (78 dual pairs = 156 additional tests)
+// ============================================================================
+
+dual_fixture_test!(add_single_file_explicit, add_single_file_explicit_sub, "test-add", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
+    assert_eq!(list_files(&f.fs, &f.gitdir, None).unwrap(), vec!["a.txt"]);
+});
+
+dual_fixture_test!(add_two_files_explicit, add_two_files_explicit_sub, "test-add", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string(), "a-copy.txt".to_string()], false).unwrap();
+    assert_eq!(list_files(&f.fs, &f.gitdir, None).unwrap(), vec!["a-copy.txt", "a.txt"]);
+});
+
+dual_fixture_test!(add_three_files_sequential, add_three_files_sequential_sub, "test-add", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["a.txt".to_string()], false).unwrap();
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["a-copy.txt".to_string()], false).unwrap();
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["b.txt".to_string()], false).unwrap();
+    assert_eq!(list_files(&f.fs, &f.gitdir, None).unwrap(), vec!["a-copy.txt", "a.txt", "b.txt"]);
+});
+
+dual_fixture_test!(add_symlink_file, add_symlink_file_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "target.txt"]), "hello\n");
+    let _ = f.fs.writelink(&join(&[&f.dir, "link.txt"]), b"target.txt");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["link.txt".to_string()], false).unwrap();
+    assert_eq!(list_files(&f.fs, &f.gitdir, None).unwrap(), vec!["link.txt"]);
+});
+
+dual_fixture_test!(add_broken_symlink_file, add_broken_symlink_file_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let _ = f.fs.writelink(&join(&[&f.dir, "broken.txt"]), b"missing.txt");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["broken.txt".to_string()], false).unwrap();
+    assert_eq!(list_files(&f.fs, &f.gitdir, None).unwrap(), vec!["broken.txt"]);
+});
+
+dual_fixture_test!(add_directory_without_gitignore, add_directory_without_gitignore_sub, "test-add", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let _ = f.fs.unlink(&join(&[&f.dir, "c/.gitignore"]));
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["c".to_string()], false).unwrap();
+    assert_eq!(list_files(&f.fs, &f.gitdir, None).unwrap().len(), 4);
+});
+
+dual_fixture_test!(add_directory_with_gitignore_respected, add_directory_with_gitignore_respected_sub, "test-add", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["c".to_string()], false).unwrap();
+    assert_eq!(list_files(&f.fs, &f.gitdir, None).unwrap().len(), 4);
+});
+
+dual_fixture_test!(add_directory_with_force_includes_ignored, add_directory_with_force_includes_ignored_sub, "test-add", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["c".to_string()], true).unwrap();
+    assert_eq!(list_files(&f.fs, &f.gitdir, None).unwrap().len(), 4);
+});
+
+dual_fixture_test!(add_autocrlf_true_normalizes_crlf_to_lf, add_autocrlf_true_normalizes_crlf_to_lf_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    set_config(&f.fs, &f.gitdir, "core.autocrlf", Some("true"), false).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "crlf.txt"]), "Hello, World!\r\n");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["crlf.txt".to_string()], false).unwrap();
+    GitIndexManager::acquire(&f.fs, &f.gitdir, |idx| {
+        assert_eq!(idx.entries()[0].oid, "8ab686eafeb1f44702738c8b0f24f2567c36da6d");
+        Ok(())
+    }).unwrap();
+});
+
+dual_fixture_test!(add_autocrlf_false_preserves_crlf, add_autocrlf_false_preserves_crlf_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    set_config(&f.fs, &f.gitdir, "core.autocrlf", Some("false"), false).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "crlf.txt"]), "Hello, World!\r\n");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["crlf.txt".to_string()], false).unwrap();
+    GitIndexManager::acquire(&f.fs, &f.gitdir, |idx| {
+        assert_ne!(idx.entries()[0].oid, "8ab686eafeb1f44702738c8b0f24f2567c36da6d");
+        Ok(())
+    }).unwrap();
+});
+
+dual_fixture_test!(add_executable_mode_preserved, add_executable_mode_preserved_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_with_mode(&join(&[&f.dir, "run.sh"]), b"#!/bin/sh\necho hi\n", 0o100755);
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["run.sh".to_string()], false).unwrap();
+    GitIndexManager::acquire(&f.fs, &f.gitdir, |idx| {
+        assert_eq!(idx.entries()[0].mode, 0o100755);
+        Ok(())
+    }).unwrap();
+});
+
+dual_fixture_test!(add_nested_subdirectories, add_nested_subdirectories_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let _ = f.fs.mkdir(&join(&[&f.dir, "a"]));
+    let _ = f.fs.mkdir(&join(&[&f.dir, "a/b"]));
+    f.fs.write_str(&join(&[&f.dir, "a/b/c.txt"]), "deep");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &[".".to_string()], false).unwrap();
+    assert_eq!(list_files(&f.fs, &f.gitdir, None).unwrap(), vec!["a/b/c.txt"]);
+});
+
+dual_fixture_test!(add_updates_modified_tracked_file, add_updates_modified_tracked_file_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "f.txt"]), "v1\n");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["f.txt".to_string()], false).unwrap();
+    let oid1 = GitIndexManager::acquire(&f.fs, &f.gitdir, |idx| Ok(idx.entries()[0].oid.clone())).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "f.txt"]), "v2\n");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["f.txt".to_string()], false).unwrap();
+    let oid2 = GitIndexManager::acquire(&f.fs, &f.gitdir, |idx| Ok(idx.entries()[0].oid.clone())).unwrap();
+    assert_ne!(oid1, oid2);
+});
+
+dual_fixture_test!(add_negated_gitignore_pattern, add_negated_gitignore_pattern_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, ".gitignore"]), "*.log\n!important.log\n");
+    f.fs.write_str(&join(&[&f.dir, "debug.log"]), "d");
+    f.fs.write_str(&join(&[&f.dir, "important.log"]), "i");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &[".".to_string()], false).unwrap();
+    let files = list_files(&f.fs, &f.gitdir, None).unwrap();
+    assert!(files.contains(&"important.log".to_string()));
+    assert!(!files.contains(&"debug.log".to_string()));
+});
+
+dual_fixture_test!(remove_single_file_only, remove_single_file_only_sub, "test-remove", |f| {
+    remove(&f.fs, &f.gitdir, "LICENSE.md").unwrap();
+    assert!(!list_files(&f.fs, &f.gitdir, None).unwrap().contains(&"LICENSE.md".to_string()));
+});
+
+dual_fixture_test!(remove_directory_recursively, remove_directory_recursively_sub, "test-remove", |f| {
+    remove(&f.fs, &f.gitdir, "src/utils").unwrap();
+    assert!(list_files(&f.fs, &f.gitdir, None).unwrap().iter().all(|p| !p.starts_with("src/utils/")));
+});
+
+dual_fixture_test!(list_files_from_index_sorted, list_files_from_index_sorted_sub, "test-listFiles", |f| {
+    let files = list_files(&f.fs, &f.gitdir, None).unwrap();
+    let mut sorted = files.clone();
+    sorted.sort();
+    assert_eq!(files, sorted);
+});
+
+dual_fixture_test!(list_files_from_branch_ref, list_files_from_branch_ref_sub, "test-checkout", |f| {
+    let files = list_files(&f.fs, &f.gitdir, Some("test-branch")).unwrap();
+    assert!(files.contains(&"package.json".to_string()));
+    assert!(files.contains(&"src/index.js".to_string()));
+});
+
+dual_fixture_test!(status_unmodified_file, status_unmodified_file_sub, "test-status", |f| {
+    assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "a.txt").unwrap(), "unmodified");
+});
+
+dual_fixture_test!(status_unstaged_modified_file, status_unstaged_modified_file_sub, "test-status", |f| {
+    assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "b.txt").unwrap(), "*modified");
+});
+
+dual_fixture_test!(status_unstaged_deleted_file, status_unstaged_deleted_file_sub, "test-status", |f| {
+    assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "c.txt").unwrap(), "*deleted");
+});
+
+dual_fixture_test!(status_untracked_added_file, status_untracked_added_file_sub, "test-status", |f| {
+    assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "d.txt").unwrap(), "*added");
+});
+
+dual_fixture_test!(status_absent_file, status_absent_file_sub, "test-status", |f| {
+    assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "e.txt").unwrap(), "absent");
+});
+
+dual_fixture_test!(status_ignored_file_returns_ignored, status_ignored_file_returns_ignored_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, ".gitignore"]), "secret.txt\n");
+    f.fs.write_str(&join(&[&f.dir, "secret.txt"]), "top secret");
+    assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "secret.txt").unwrap(), "ignored");
+});
+
+dual_fixture_test!(status_staged_modified_then_unstaged_edit, status_staged_modified_then_unstaged_edit_sub, "test-status", |f| {
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["b.txt".to_string()], false).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "b.txt"]), "further modified in worktree\n");
+    assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "b.txt").unwrap(), "*modified");
+});
+
+dual_fixture_test!(status_staged_added_then_deleted_in_worktree, status_staged_added_then_deleted_in_worktree_sub, "test-status", |f| {
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["d.txt".to_string()], false).unwrap();
+    let _ = f.fs.unlink(&join(&[&f.dir, "d.txt"]));
+    assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "d.txt").unwrap(), "*absent");
+});
+
+dual_fixture_test!(status_staged_deleted_then_recreated_in_worktree, status_staged_deleted_then_recreated_in_worktree_sub, "test-status", |f| {
+    remove(&f.fs, &f.gitdir, "a.txt").unwrap();
+    assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "a.txt").unwrap(), "*undeleted");
+});
+
+dual_fixture_test!(status_matrix_fresh_repo_no_commits, status_matrix_fresh_repo_no_commits_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "a.txt"]), "hi");
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), None, None).unwrap();
+    assert_eq!(m, vec![("a.txt".to_string(), 0, 2, 0)]);
+});
+
+dual_fixture_test!(status_matrix_fresh_repo_with_gitignore, status_matrix_fresh_repo_with_gitignore_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, ".gitignore"]), "ignored.txt\n");
+    f.fs.write_str(&join(&[&f.dir, "ignored.txt"]), "ignore me");
+    f.fs.write_str(&join(&[&f.dir, "kept.txt"]), "keep me");
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), None, None).unwrap();
+    assert!(m.iter().any(|(p, _, _, _)| p == "kept.txt"));
+    assert!(m.iter().all(|(p, _, _, _)| p != "ignored.txt"));
+});
+
+dual_fixture_test!(status_matrix_custom_ref_comparison, status_matrix_custom_ref_comparison_sub, "test-statusMatrix", |f| {
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), Some("HEAD"), Some(&["a.txt".to_string()])).unwrap();
+    assert_eq!(m, vec![("a.txt".to_string(), 1, 1, 1)]);
+});
+
+dual_fixture_test!(status_matrix_staged_addition_state_0_2_2, status_matrix_staged_addition_state_0_2_2_sub, "test-statusMatrix", |f| {
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["d.txt".to_string()], false).unwrap();
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), None, Some(&["d.txt".to_string()])).unwrap();
+    assert_eq!(m, vec![("d.txt".to_string(), 0, 2, 2)]);
+});
+
+dual_fixture_test!(status_matrix_staged_modification_state_1_2_2, status_matrix_staged_modification_state_1_2_2_sub, "test-statusMatrix", |f| {
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["b.txt".to_string()], false).unwrap();
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), None, Some(&["b.txt".to_string()])).unwrap();
+    assert_eq!(m, vec![("b.txt".to_string(), 1, 2, 2)]);
+});
+
+dual_fixture_test!(status_matrix_staged_deletion_state_1_0_0, status_matrix_staged_deletion_state_1_0_0_sub, "test-statusMatrix", |f| {
+    remove(&f.fs, &f.gitdir, "c.txt").unwrap();
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), None, Some(&["c.txt".to_string()])).unwrap();
+    assert_eq!(m, vec![("c.txt".to_string(), 1, 0, 0)]);
+});
+
+dual_fixture_test!(status_matrix_staged_modified_then_changed_state_1_2_3, status_matrix_staged_modified_then_changed_state_1_2_3_sub, "test-statusMatrix", |f| {
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["b.txt".to_string()], false).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "b.txt"]), "different from staged");
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), None, Some(&["b.txt".to_string()])).unwrap();
+    assert_eq!(m, vec![("b.txt".to_string(), 1, 2, 3)]);
+});
+
+dual_fixture_test!(status_matrix_staged_added_then_changed_state_0_2_3, status_matrix_staged_added_then_changed_state_0_2_3_sub, "test-statusMatrix", |f| {
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["d.txt".to_string()], false).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "d.txt"]), "changed after add");
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), None, Some(&["d.txt".to_string()])).unwrap();
+    assert_eq!(m, vec![("d.txt".to_string(), 0, 2, 3)]);
+});
+
+dual_fixture_test!(status_matrix_staged_added_then_deleted_state_0_0_3, status_matrix_staged_added_then_deleted_state_0_0_3_sub, "test-statusMatrix", |f| {
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["d.txt".to_string()], false).unwrap();
+    let _ = f.fs.unlink(&join(&[&f.dir, "d.txt"]));
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), None, Some(&["d.txt".to_string()])).unwrap();
+    assert_eq!(m, vec![("d.txt".to_string(), 0, 0, 2)]);
+});
+
+dual_fixture_test!(status_matrix_multiple_filepaths_filter, status_matrix_multiple_filepaths_filter_sub, "test-statusMatrix", |f| {
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), None, Some(&["a.txt".to_string(), "d.txt".to_string()])).unwrap();
+    assert_eq!(m.len(), 2);
+});
+
+dual_fixture_test!(status_matrix_subdirectory_filter, status_matrix_subdirectory_filter_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let _ = f.fs.mkdir(&join(&[&f.dir, "sub"]));
+    f.fs.write_str(&join(&[&f.dir, "sub/one.txt"]), "1");
+    f.fs.write_str(&join(&[&f.dir, "root.txt"]), "r");
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), None, Some(&["sub".to_string()])).unwrap();
+    assert_eq!(m, vec![("sub/one.txt".to_string(), 0, 2, 0)]);
+});
+
+dual_fixture_test!(reset_index_in_new_repository, reset_index_in_new_repository_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "new.txt"]), "hello");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["new.txt".to_string()], false).unwrap();
+    assert_eq!(list_files(&f.fs, &f.gitdir, None).unwrap(), vec!["new.txt"]);
+    reset_index(&f.fs, Some(&f.dir), &f.gitdir, "new.txt", None).unwrap();
+    assert!(list_files(&f.fs, &f.gitdir, None).unwrap().is_empty());
+});
+
+dual_fixture_test!(reset_index_with_explicit_ref, reset_index_with_explicit_ref_sub, "test-resetIndex", |f| {
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["b.txt".to_string()], false).unwrap();
+    reset_index(&f.fs, Some(&f.dir), &f.gitdir, "b.txt", Some("HEAD")).unwrap();
+    let m = status_matrix(&f.fs, &f.dir, Some(&f.gitdir), None, Some(&["b.txt".to_string()])).unwrap();
+    assert_eq!(m[0].3, 1);
+});
+
+dual_fixture_test!(update_index_remove_missing_file_without_force, update_index_remove_missing_file_without_force_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "temp.txt"]), "hi\n");
+    update_index(&f.fs, &f.dir, &f.gitdir, "temp.txt", None, None, true, false, false).unwrap();
+    let _ = f.fs.unlink(&join(&[&f.dir, "temp.txt"]));
+    update_index(&f.fs, &f.dir, &f.gitdir, "temp.txt", None, None, false, true, false).unwrap();
+    assert!(list_files(&f.fs, &f.gitdir, None).unwrap().is_empty());
+});
+
+dual_fixture_test!(update_index_does_not_remove_existing_workdir_file_without_force, update_index_does_not_remove_existing_workdir_file_without_force_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "keep.txt"]), "hi\n");
+    update_index(&f.fs, &f.dir, &f.gitdir, "keep.txt", None, None, true, false, false).unwrap();
+    update_index(&f.fs, &f.dir, &f.gitdir, "keep.txt", None, None, false, true, false).unwrap();
+    assert_eq!(list_files(&f.fs, &f.gitdir, None).unwrap(), vec!["keep.txt"]);
+});
+
+dual_fixture_test!(update_index_executable_mode_100755, update_index_executable_mode_100755_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let blob_oid = write_blob(&f.fs, &f.gitdir, b"#!/bin/sh\n").unwrap();
+    update_index(&f.fs, &f.dir, &f.gitdir, "exec.sh", Some(&blob_oid), Some(0o100755), true, false, false).unwrap();
+    GitIndexManager::acquire(&f.fs, &f.gitdir, |idx| {
+        assert_eq!(idx.entries()[0].mode, 0o100755);
+        Ok(())
+    }).unwrap();
+});
+
+dual_fixture_test!(update_index_replace_existing_entry, update_index_replace_existing_entry_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let b1 = write_blob(&f.fs, &f.gitdir, b"v1\n").unwrap();
+    let b2 = write_blob(&f.fs, &f.gitdir, b"v2\n").unwrap();
+    update_index(&f.fs, &f.dir, &f.gitdir, "f.txt", Some(&b1), Some(0o100644), true, false, false).unwrap();
+    update_index(&f.fs, &f.dir, &f.gitdir, "f.txt", Some(&b2), Some(0o100644), false, false, false).unwrap();
+    GitIndexManager::acquire(&f.fs, &f.gitdir, |idx| {
+        assert_eq!(idx.entries()[0].oid, b2);
+        Ok(())
+    }).unwrap();
+});
+
+dual_fixture_test!(update_index_error_when_add_false_on_new_file, update_index_error_when_add_false_on_new_file_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "new.txt"]), "new\n");
+    let err = update_index(&f.fs, &f.dir, &f.gitdir, "new.txt", None, None, false, false, false).unwrap_err();
+    assert_eq!(err.code, ErrorCode::NotFoundError);
+});
+
+dual_fixture_test!(commit_initial_in_fresh_repo, commit_initial_in_fresh_repo_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, Some("main")).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "readme.txt"]), "hello\n");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["readme.txt".to_string()], false).unwrap();
+    let author = Author { name: "A".into(), email: "a@e.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
+    let oid = commit(&f.fs, &f.gitdir, Some("init\n"), Some(author), None, false, false, false, false, None, None, None).unwrap();
+    let c = read_commit(&f.fs, &f.gitdir, &oid).unwrap();
+    assert!(c.commit.parent.is_empty());
+    assert_eq!(resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap(), oid);
+});
+
+dual_fixture_test!(commit_uses_config_user_when_author_omitted, commit_uses_config_user_when_author_omitted_sub, "test-commit", |f| {
+    set_config(&f.fs, &f.gitdir, "user.name", Some("Configured User"), false).unwrap();
+    set_config(&f.fs, &f.gitdir, "user.email", Some("cfg@example.com"), false).unwrap();
+    let oid = commit(&f.fs, &f.gitdir, Some("cfg commit\n"), None, None, false, false, false, false, None, None, None).unwrap();
+    let c = read_commit(&f.fs, &f.gitdir, &oid).unwrap();
+    assert_eq!(c.commit.author.name, "Configured User");
+    assert_eq!(c.commit.author.email, "cfg@example.com");
+});
+
+dual_fixture_test!(commit_missing_author_errors_when_not_configured, commit_missing_author_errors_when_not_configured_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let err = commit(&f.fs, &f.gitdir, Some("no author\n"), None, None, false, false, false, false, None, None, None).unwrap_err();
+    assert_eq!(err.code, ErrorCode::MissingNameError);
+});
+
+dual_fixture_test!(commit_missing_message_errors_without_amend, commit_missing_message_errors_without_amend_sub, "test-commit", |f| {
+    let author = Author { name: "A".into(), email: "a@e.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
+    let err = commit(&f.fs, &f.gitdir, None, Some(author), None, false, false, false, false, None, None, None).unwrap_err();
+    assert_eq!(err.code, ErrorCode::MissingParameterError);
+});
+
+dual_fixture_test!(commit_custom_branch_ref_without_moving_head, commit_custom_branch_ref_without_moving_head_sub, "test-commit", |f| {
+    let head_before = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let author = Author { name: "A".into(), email: "a@e.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
+    let oid = commit(
+        &f.fs,
+        &f.gitdir,
+        Some("side commit\n"),
+        Some(author),
+        None,
+        false,
+        false,
+        false,
+        false,
+        Some("refs/heads/side-branch"),
+        None,
+        None,
+    )
+    .unwrap();
+    assert_eq!(resolve_ref(&f.fs, &f.gitdir, "refs/heads/side-branch", None).unwrap(), oid);
+    assert_eq!(resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap(), head_before);
+});
+
+dual_fixture_test!(commit_custom_parents_and_tree, commit_custom_parents_and_tree_sub, "test-commit", |f| {
+    let head_oid = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+    let head_c = read_commit(&f.fs, &f.gitdir, &head_oid).unwrap();
+    let author = Author { name: "A".into(), email: "a@e.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
+    let oid = commit(
+        &f.fs,
+        &f.gitdir,
+        Some("custom parent/tree\n"),
+        Some(author),
+        None,
+        false,
+        false,
+        false,
+        false,
+        None,
+        Some(&[]),
+        Some(&head_c.commit.tree),
+    )
+    .unwrap();
+    let c = read_commit(&f.fs, &f.gitdir, &oid).unwrap();
+    assert!(c.commit.parent.is_empty());
+    assert_eq!(c.commit.tree, head_c.commit.tree);
+});
+
+dual_fixture_test!(commit_separate_committer_preserved, commit_separate_committer_preserved_sub, "test-commit", |f| {
+    let author = Author { name: "Author".into(), email: "a@e.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
+    let committer = Author { name: "Committer".into(), email: "c@e.com".into(), timestamp: 1600000100, timezone_offset: 60.0 };
+    let oid = commit(
+        &f.fs,
+        &f.gitdir,
+        Some("distinct committer\n"),
+        Some(author),
+        Some(committer),
+        false,
+        false,
+        false,
+        false,
+        None,
+        None,
+        None,
+    )
+    .unwrap();
+    let c = read_commit(&f.fs, &f.gitdir, &oid).unwrap();
+    assert_eq!(c.commit.author.name, "Author");
+    assert_eq!(c.commit.committer.name, "Committer");
+});
+
+dual_fixture_test!(unicode_paths_nested_directory_commit_and_tree, unicode_paths_nested_directory_commit_and_tree_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    let _ = f.fs.mkdir(&join(&[&f.dir, "docs"]));
+    f.fs.write_str(&join(&[&f.dir, "docs/日本語.md"]), "# こんにちは\n");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["docs/日本語.md".to_string()], false).unwrap();
+    let author = Author { name: "日本".into(), email: "jp@example.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
+    let oid = commit(&f.fs, &f.gitdir, Some("日本語コミット\n"), Some(author), None, false, false, false, false, None, None, None).unwrap();
+    let tree = read_tree(&f.fs, &f.gitdir, &oid, Some("docs")).unwrap();
+    assert_eq!(tree.tree[0].path, "日本語.md");
+});
+
+dual_fixture_test!(unicode_paths_remove_and_status, unicode_paths_remove_and_status_sub, "test-empty", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "🎉.txt"]), "party\n");
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["🎉.txt".to_string()], false).unwrap();
+    assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "🎉.txt").unwrap(), "added");
+    remove(&f.fs, &f.gitdir, "🎉.txt").unwrap();
+    assert_eq!(status(&f.fs, &f.dir, Some(&f.gitdir), "🎉.txt").unwrap(), "*added");
+});
+
+dual_fixture_test!(submodules_preserved_when_switching_branches, submodules_preserved_when_switching_branches_sub, "test-submodules", |f| {
+    checkout(&f.fs, &f.dir, Some(&f.gitdir), Some("master"), None, None, false, false, false, true, true).unwrap();
+    let files = list_files(&f.fs, &f.gitdir, None).unwrap();
+    assert!(files.contains(&"test.empty".to_string()));
+});

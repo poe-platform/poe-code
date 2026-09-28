@@ -80,7 +80,7 @@ export function basicCommands(): CommandDefinition[] {
         await output(context, result + (parsed.flags.has("z") ? "\0" : "\n"));
       }
       return { exitCode: 0 };
-    }),
+    }, 1, 1),
     define("dirname", async (context) => {
       const parsed = options(context.args, "z", { zero: "z" });
       requireOperands(parsed.operands);
@@ -91,7 +91,7 @@ export function basicCommands(): CommandDefinition[] {
         await output(context, parent.slice(0, end) + (parsed.flags.has("z") ? "\0" : "\n"));
       }
       return { exitCode: 0 };
-    }),
+    }, 1, 1),
     printfCommand,
   ].map(command => {
     if (command.name === "echo") defaultEchoExecutors.add(command.execute);

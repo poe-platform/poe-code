@@ -1,3 +1,4 @@
+import { wcDisplayWidth } from "../commands/wc-width.js";
 import { bytesToHex, latin1Text } from "../byte-encoding.js";
 const sharedCaptureDecoder = new TextDecoder();
 const cachedCaptureAsciiBytes = new Uint8Array(4096);
@@ -11934,10 +11935,8 @@ export class Runtime {
               if (st === "--") seenDoubleDash = true;
               simArgs.push(st);
             } else {
-              if (!seenDoubleDash && wi === 1 && w.parts.length === 1 && w.parts[0]!.kind === "variable") {
-                const curV = rawState.variables[w.parts[0]!.name];
-                if (curV !== undefined && curV.startsWith("-")) return false;
-              }
+              // A loop operand can become an option after admission.
+              if (!seenDoubleDash) return false;
               simArgs.push("x");
             }
           }
@@ -11962,7 +11961,19 @@ export class Runtime {
           if (w0Plain === "printf") {
             const fmtW0 = cmd.words[1];
             const fmtP0 = fmtW0?.plain ?? (fmtW0?.parts.length === 1 && fmtW0.parts[0]!.kind === "text" ? fmtW0.parts[0]!.value : undefined);
-            const isStringOnlyPrintf = fmtP0 !== undefined && !fmtP0.startsWith("-") && /^(?:[^%\\]|%%|%[-0]*\d*(?:\.\d+)?s|\\n)*$/.test(fmtP0);
+            // Only conversions whose support is independent of future operands
+            // can bypass literal-call validation.
+            let isStringOnlyPrintf = fmtP0 !== undefined && !fmtP0.startsWith("-");
+            if (fmtP0 !== undefined) for (let i = 0; i < fmtP0.length; i++) {
+              const char = fmtP0[i];
+              if (char === "%") {
+                const conversion = fmtP0[++i];
+                if (conversion !== "s" && conversion !== "%") isStringOnlyPrintf = false;
+              } else if (char === "\\") {
+                const escape = fmtP0[++i];
+                if (escape !== "n" && escape !== "t" && escape !== "r" && escape !== "\\") isStringOnlyPrintf = false;
+              }
+            }
             if (!isStringOnlyPrintf && !this.isSyncPrintfCallOk(cmd, 1, rawState)) return false;
           }
           for (let sIdx = 1; sIdx < p.commands.length; sIdx++) {
@@ -22926,6 +22937,19 @@ export class Runtime {
     return out + "'";
   }
 
+  private wcMaxLineWidth(text: string, singleByte: boolean): number {
+    let columns = 0;
+    let maximum = 0;
+    for (const char of text) {
+      const point = char.codePointAt(0)!;
+      if (point === 10 || point === 13 || point === 12) {
+        maximum = Math.max(maximum, columns);
+        columns = 0;
+      } else if (point === 9) columns += 8 - columns % 8;
+      else columns += singleByte ? Number(point >= 32 && point < 127) : wcDisplayWidth(point);
+    }
+    return Math.max(maximum, columns);
+  }
   private sortSyncLines(rawLines: readonly string[], flag: string | undefined): string[] {
     const rev = flag !== undefined && flag.includes("r");
     const num = flag !== undefined && flag.includes("n");
@@ -23294,14 +23318,9 @@ export class Runtime {
                 const trimmed = inStr.trim();
                 outLines = [String(trimmed.length === 0 ? 0 : trimmed.split(/[ \t\n\r\f\v]+/).length)];
               } else if (stageArgs[0] === "-m") {
-                outLines = [String(Array.from(inStr).length)];
+                outLines = [String(byteLocale(rawState.variables) ? prevLen : Array.from(inStr).length)];
               } else if (stageArgs[0] === "-L") {
-                let maxL = 0;
-                for (let li = 0; li < rawLines.length; li++) {
-                  const len = Array.from(rawLines[li]!).length;
-                  if (len > maxL) maxL = len;
-                }
-                outLines = [String(maxL)];
+                outLines = [String(this.wcMaxLineWidth(inStr, byteLocale(rawState.variables)))];
               } else {
                 outLines = [String(prevLen)];
               }
@@ -23613,12 +23632,9 @@ export class Runtime {
               } else if (opArgs[0] === "-c") {
                 count = view.byteLength;
               } else if (opArgs[0] === "-m") {
-                count = Array.from(fileStr).length;
+                count = byteLocale(rawState.variables) ? view.byteLength : Array.from(fileStr).length;
               } else if (opArgs[0] === "-L") {
-                for (let li = 0; li < rawLines.length; li++) {
-                  const len = Array.from(rawLines[li]!).length;
-                  if (len > count) count = len;
-                }
+                count = this.wcMaxLineWidth(fileStr, byteLocale(rawState.variables));
               } else {
                 const trimmed = fileStr.trim();
                 count = trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;

@@ -22899,7 +22899,7 @@ export class Runtime {
                 if (trRes === undefined) return undefined;
                 transformed = trRes;
               }
-              const outByteLen = transformed.length * 3 > 127 ? shellValueByteLength(transformed) : transformed.length;
+              const outByteLen = shellValueByteLength(transformed);
               if (outByteLen > nextBuf.byteLength) return undefined;
               const nextTotalBytes = this.budget.bytes + outByteLen;
               if (nextTotalBytes > this.budget.maxOutputBytesSmi && outByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");

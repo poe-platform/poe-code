@@ -18,6 +18,11 @@ for (const [source, bytes] of [
   ["printf %s é", 2],
   ["printf %s 'é\n'", 3],
   ["printf %s é | tr x y", 4],
+  ["printf %s 😀 | tr x y", 8],
+  ["printf %s abc | tr x y", 6],
+  ["printf %s é | tr x y | tr a b", 6],
+  [`printf %s ${"é".repeat(41)} | tr x y`, 164],
+  [`printf %s ${"é".repeat(43)} | tr x y`, 172],
 ] as const) for (const allowed of [false, true]) {
   test(`command substitution charges UTF-8 bytes: ${source}, allowed=${allowed}`, async context => {
     const { shell } = setup({ limits: { maxOutputBytes: bytes - (allowed ? 0 : 1) } });

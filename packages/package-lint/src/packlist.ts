@@ -85,11 +85,19 @@ async function listFallbackPackFiles(fs: LintFs, packageRoot: string): Promise<S
   if (allowlist.length === 0) return listAllFiles(fs, packageRoot);
 
   const files = new Set<string>();
+  const excludedSuffixes: string[] = [];
   for (const entry of allowlist) {
+    if (entry.startsWith("!**/*.") && !entry.slice("!**/*.".length).includes("/") && !entry.slice("!**/*.".length).includes("*")) {
+      excludedSuffixes.push(entry.slice("!**/*".length));
+      continue;
+    }
     const listedFiles = entry.endsWith("/**/*.d.ts")
       ? await collectPackageFiles(packageRoot, [entry], fs)
       : await listFilesEntry(fs, packageRoot, entry);
     for (const listed of listedFiles) files.add(listed);
+  }
+  for (const file of files) {
+    if (excludedSuffixes.some(suffix => file.endsWith(suffix))) files.delete(file);
   }
   return files;
 }

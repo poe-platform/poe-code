@@ -561,7 +561,12 @@ export async function collectPackageFiles(
       else if (!declarationsOnly || child.name.endsWith(".d.ts")) packed.add(relative);
     }
   }
+  const excludedSuffixes: string[] = [];
   for (const entry of entries) {
+    if (entry.startsWith("!**/*.") && !entry.slice("!**/*.".length).includes("/") && !entry.slice("!**/*.".length).includes("*")) {
+      excludedSuffixes.push(entry.slice("!**/*".length));
+      continue;
+    }
     const declarationsOnly = entry.endsWith("/**/*.d.ts");
     const directory = declarationsOnly ? entry.slice(0, -"/**/*.d.ts".length) : entry;
     const components = directory.split("/");
@@ -583,6 +588,9 @@ export async function collectPackageFiles(
           await visit(path.posix.join(parent, child.name, ...components.slice(wildcard + 1)), true);
       }
     } else await visit(directory, declarationsOnly);
+  }
+  for (const file of packed) {
+    if (excludedSuffixes.some(suffix => file.endsWith(suffix))) packed.delete(file);
   }
   return packed;
 }

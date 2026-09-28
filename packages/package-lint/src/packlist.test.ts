@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { memLintFs } from "./fixtures.js";
 import type { PackageInfo, WorkspaceModel } from "./model.js";
+import { collectPackageFiles } from "./bundle-policy.js";
 import { createNpmPacklistProvider, loadPackageFileView } from "./packlist.js";
 
 const root: PackageInfo = {
@@ -92,5 +93,32 @@ describe("createNpmPacklistProvider", () => {
     const files = await createNpmPacklistProvider(fs).listPackageFiles("/repo", "packages/agent");
 
     expect([...files].sort()).toEqual(["README.md", "dist/index.js", "dist/templates/x.md"]);
+  });
+
+  it("applies negated suffix exclusions in collectPackageFiles and createNpmPacklistProvider", async () => {
+    const fs = memLintFs({
+      "/repo/package.json": JSON.stringify({
+        files: ["dist", "packages/safe-fs/dist", "!**/*.js.map", "!**/*.d.ts.map"]
+      }),
+      "/repo/dist/index.js": "export {};",
+      "/repo/dist/index.js.map": "{}",
+      "/repo/packages/safe-fs/dist/index.js": "export {};",
+      "/repo/packages/safe-fs/dist/index.js.map": "{}",
+      "/repo/packages/safe-fs/dist/index.d.ts": "export {};",
+      "/repo/packages/safe-fs/dist/index.d.ts.map": "{}"
+    });
+    const manifest = JSON.parse(await fs.readFile("/repo/package.json"));
+    const collected = await collectPackageFiles("/repo", manifest.files, fs);
+    expect([...collected].sort()).toEqual([
+      "dist/index.js",
+      "packages/safe-fs/dist/index.d.ts",
+      "packages/safe-fs/dist/index.js"
+    ]);
+    const listed = await createNpmPacklistProvider(fs).listPackageFiles("/repo", ".");
+    expect([...listed].sort()).toEqual([
+      "dist/index.js",
+      "packages/safe-fs/dist/index.d.ts",
+      "packages/safe-fs/dist/index.js"
+    ]);
   });
 });

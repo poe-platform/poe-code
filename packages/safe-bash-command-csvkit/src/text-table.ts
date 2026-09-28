@@ -1,3 +1,4 @@
+import { normalizeHeaders } from "./table/headers.js";
 import type { Runtime } from "./runtime.js";
 import { defaultHeaders } from "./columns.js";
 import { CsvkitBlocked, CsvkitDiagnostic } from "./errors.js";
@@ -19,7 +20,7 @@ export async function readTextTable(runtime: Runtime, path?: string, rowLimit?: 
   for await (const record of runtime.records(path, runtime.input(path), Number(o.skip_lines ?? 0), true)) {
     if (headers === undefined) {
       headers = o.no_header_row ? defaultHeaders(record.cells.length) : record.cells;
-      if (headers.some(name => !name) || new Set(headers).size !== headers.length) throw new CsvkitBlocked("Agate duplicate/unnamed column warning provenance");
+      headers = await normalizeHeaders(headers, runtime);
       if (!o.no_header_row) { if (rowLimit === 0) break; continue; }
     }
     if (record.cells.length > headers.length) throw new CsvkitDiagnostic(`ValueError: Row ${rows.length} has ${record.cells.length} values, but Table only has ${headers.length} columns.`);

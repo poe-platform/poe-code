@@ -1,12 +1,12 @@
+import { normalizeHeaders } from "../table/headers.js";
 import type { Runtime } from "../runtime.js";
 import { readTextTable, type TextTable } from "../text-table.js";
 import { match } from "../columns.js";
 import { CsvkitBlocked, CsvkitDiagnostic } from "../errors.js";
 
-function combine(runtime: Runtime, left: TextTable, right: TextTable, leftKey: number | undefined, rightKey: number | undefined, full: boolean, inner: boolean): TextTable {
+async function combine(runtime: Runtime, left: TextTable, right: TextTable, leftKey: number | undefined, rightKey: number | undefined, full: boolean, inner: boolean): Promise<TextTable> {
   const included = right.headers.map((_, index) => index).filter(index => full || index !== rightKey);
-  const headers = [...left.headers, ...included.map(index => left.headers.includes(right.headers[index]!) ? right.headers[index]! + "2" : right.headers[index]!)];
-  if (new Set(headers).size !== headers.length) throw new CsvkitBlocked("Agate joined duplicate column warning provenance");
+  const headers = await normalizeHeaders([...left.headers, ...included.map(index => left.headers.includes(right.headers[index]!) ? right.headers[index]! + "2" : right.headers[index]!)], runtime);
   if (headers.length > runtime.context.limits.maxColumns) throw new CsvkitBlocked("column budget exceeded");
   const rightHash = new Map<string | number | null, (readonly (string | null)[])[]>();
   for (const [index, row] of right.rows.entries()) {
@@ -53,7 +53,7 @@ export async function join(runtime: Runtime): Promise<number> {
   const keys = names.map((name, index) => match(tables[index]!.headers, name, 1, true));
   if (o.right_join) { tables.reverse(); keys.reverse(); }
   let table = tables[0]!;
-  for (let index = 1; index < tables.length; index++) table = combine(runtime, table, tables[index]!, keys[0], keys[index], !names.length || Boolean(o.outer_join && !o.left_join && !o.right_join), Boolean(names.length && !o.outer_join && !o.left_join && !o.right_join));
+  for (let index = 1; index < tables.length; index++) table = await combine(runtime, table, tables[index]!, keys[0], keys[index], !names.length || Boolean(o.outer_join && !o.left_join && !o.right_join), Boolean(names.length && !o.outer_join && !o.left_join && !o.right_join));
   await runtime.row(table.headers);
   for (const row of table.rows) await runtime.row(row);
   return 0;

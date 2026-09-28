@@ -38,6 +38,7 @@ export const defaultCsvLimits: Readonly<CsvLimits> = Object.freeze({
 });
 export class CsvBudget {
   private disposed = false;
+  private lastYieldWork = 0;
   private aborted = false;
   private readonly pollSignal: boolean;
   readonly limits: Readonly<CsvLimits>;
@@ -61,6 +62,13 @@ export class CsvBudget {
   }
   getUsage(key: keyof typeof this.usage): number {
     return this.usage[key];
+  }
+  async checkpoint(): Promise<void> {
+    this.signal.throwIfAborted();
+    if (this.usage.work - this.lastYieldWork < 4096) return;
+    this.lastYieldWork = this.usage.work;
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+    this.signal.throwIfAborted();
   }
   remaining(key: Exclude<keyof CsvLimits, "fieldBytes">): number {
     return this.limits[key] - this.usage[key];
@@ -147,7 +155,9 @@ export interface CsvDialect {
   doubleQuote?: boolean;
   skipInitialSpace?: boolean;
   skipLines?: number;
-  quoting?: 0 | 3;
+  quoting?: 0 | 1 | 2 | 3;
+  encoding?: string;
+  fieldCharacters?: number;
 }
 export interface CsvRow {
   readonly cells: readonly string[];
@@ -157,7 +167,10 @@ const typedArrayByteLength = Object.getOwnPropertyDescriptor(
   Object.getPrototypeOf(Uint8Array.prototype), "byteLength"
 )!.get!;
 export class CsvParser {
-  private readonly decoder = new TextDecoder("utf-8", { fatal: true });
+  private readonly decoder: TextDecoder;
+  private readonly encoding: string;
+  private fieldCharacters = 0;
+  private quotedField = false;
   private readonly delimiter: string;
   private field = "";
   private row: string[] = [];
@@ -174,12 +187,18 @@ export class CsvParser {
     private readonly budget: CsvBudget
   ) {
     this.dialect = Object.freeze({ ...dialect });
+    this.encoding = (dialect.encoding ?? "utf-8-sig").toLowerCase().replaceAll("_", "-");
+    if (!["utf-8-sig", "utf8-sig", "utf-8", "utf8", "ascii", "us-ascii", "latin1", "latin-1", "iso-8859-1"].includes(this.encoding))
+      throw new CsvError("UNSUPPORTED", "Unsupported CSV encoding");
+    this.decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: !["utf-8-sig", "utf8-sig"].includes(this.encoding) });
+    if (dialect.fieldCharacters !== undefined && (!Number.isSafeInteger(dialect.fieldCharacters) || dialect.fieldCharacters < 0))
+      throw new CsvError("ARGUMENT", "Field size must be a nonnegative safe integer");
     this.delimiter = dialect.tabs ? "\t" : (dialect.delimiter ?? ",");
     budget.charge("work", 0);
     if (dialect.profile !== undefined && dialect.profile !== "utf8-sig-permissive-v1" && dialect.profile !== "utf8-sig-strict-v1")
       throw new CsvError("UNSUPPORTED", "Unsupported CSV reader profile");
-    if (dialect.quoting !== undefined && dialect.quoting !== 0 && dialect.quoting !== 3)
-      throw new CsvError("UNSUPPORTED", "Only quoting modes 0 and 3 are qualified");
+    if (dialect.quoting !== undefined && ![0, 1, 2, 3].includes(dialect.quoting))
+      throw new CsvError("UNSUPPORTED", "Only quoting modes 0, 1, 2 and 3 are supported");
     for (const char of [
       this.delimiter,
       dialect.quote ?? '"',
@@ -223,8 +242,15 @@ export class CsvParser {
     this.budget.charge("retainedBytes", byteLength * 2 + 8);
     let text: string;
     try {
-      text = this.decoder.decode(bytes, { stream: true });
-    } catch {
+      if (["ascii", "us-ascii", "latin1", "latin-1", "iso-8859-1"].includes(this.encoding)) {
+        text = "";
+        for (const byte of bytes) {
+          if ((this.encoding === "ascii" || this.encoding === "us-ascii") && byte > 127) throw new CsvError("INPUT", "Invalid ASCII input");
+          text += String.fromCharCode(byte);
+        }
+      } else text = this.decoder.decode(bytes, { stream: true });
+    } catch (error) {
+      if (error instanceof CsvError) throw error;
       throw new CsvError("INPUT", "Invalid UTF-8 input");
     }
     this.budget.charge("decodedBytes", text.length * 2);
@@ -260,13 +286,41 @@ export class CsvParser {
     this.active = false;
   }
   private append(char: string): void {
+    if (++this.fieldCharacters > (this.dialect.fieldCharacters ?? Infinity)) throw new CsvError("INPUT", "Field character limit exceeded");
     this.budget.chargeAppend(this.field.length + char.length);
     this.field += char;
   }
   private finishField(): void {
     this.budget.charge("cells", 1);
     this.budget.charge("retainedBytes", 32);
-    this.row.push(this.field);
+    let value = this.field;
+    if (this.dialect.quoting === 2 && !this.quotedField && value.length) {
+      this.budget.charge("work", value.length);
+      const raw = value.trim().toLowerCase();
+      const unsigned = raw.startsWith("+") || raw.startsWith("-") ? raw.slice(1) : raw;
+      const negative = raw.startsWith("-");
+      if (["inf", "infinity", "nan"].includes(unsigned)) value = unsigned === "nan" ? "nan" : negative ? "-inf" : "inf";
+      else {
+        const digit = (char: string | undefined): boolean => char !== undefined && char >= "0" && char <= "9";
+        for (let i = 0; i < raw.length; i++) {
+          const char = raw[i]!;
+          if (char === "_" && !(digit(raw[i - 1]) && digit(raw[i + 1])) ||
+              !digit(char) && !".+-e_".includes(char)) throw new CsvError("INPUT", "Could not convert unquoted field to float");
+        }
+        const number = Number(raw.replaceAll("_", ""));
+        if (!raw || Number.isNaN(number)) throw new CsvError("INPUT", "Could not convert unquoted field to float");
+        const absolute = Math.abs(number);
+        if (!Number.isFinite(number)) value = number < 0 ? "-inf" : "inf";
+        else if (absolute !== 0 && (absolute < 1e-4 || absolute >= 1e16)) {
+          const [mantissa, exponent] = number.toExponential().split("e") as [string, string];
+          value = mantissa + "e" + exponent[0] + exponent.slice(1).padStart(2, "0");
+        } else value = Object.is(number, -0) ? "-0.0" : Number.isInteger(number) ? number.toFixed(1) : String(number);
+      }
+      this.budget.charge("retainedBytes", value.length * 2);
+    }
+    this.row.push(value);
+    this.fieldCharacters = 0;
+    this.quotedField = false;
     this.field = "";
     this.state = "start";
   }
@@ -324,6 +378,7 @@ export class CsvParser {
       if (this.state === "closed" && char === quote && this.dialect.doubleQuote !== false) {
         this.append(char);
         this.state = "quoted";
+        this.quotedField = true;
         continue;
       }
       if (this.dialect.profile === "utf8-sig-strict-v1" && this.state === "closed" && !newline && char !== this.delimiter)
@@ -341,6 +396,7 @@ export class CsvParser {
       if (this.state === "start" && char === " " && this.dialect.skipInitialSpace) continue;
       if (this.state === "start" && char === quote) {
         this.state = "quoted";
+        this.quotedField = true;
         continue;
       }
       if (this.dialect.profile === "utf8-sig-strict-v1" && char === quote)

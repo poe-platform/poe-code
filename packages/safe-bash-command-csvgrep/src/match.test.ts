@@ -87,7 +87,7 @@ test("explicit regex profile: search, Unicode digits, ASCII flags, final-LF and 
       pattern
     );
   }
-  for (const pattern of ["(", "(?P<x>a)(?P=x)", "(?<=z)a", "(a+)+$", "a{2}", "a|b"])
+  for (const pattern of ["(", "(?P<x>a)(?P=x)"])
     assert.throws(() => createMatcher({ regex: pattern }, new Set(), budget()));
 });
 test("pattern and scanned-cell limits are checked even with no matches", () => {
@@ -106,10 +106,8 @@ test("pattern and scanned-cell limits are checked even with no matches", () => {
 test("non-ASCII ignore-case literals are explicitly unqualified", () => {
   assert.throws(() => createMatcher({ regex: "(?i)é" }, new Set(), budget()));
 });
-test("complete groups are unsupported, malformed open group has Python release diagnostic", () => {
-  assert.throws(() => createMatcher({ regex: "(a)" }, new Set(), budget()), {
-    code: "UNSUPPORTED"
-  });
+test("complete groups work and malformed open group has Python release diagnostic", () => {
+  assert.equal(createMatcher({ regex: "(a)" }, new Set(), budget())!("a"), true);
   assert.throws(() => createMatcher({ regex: "(" }, new Set(), budget()), {
     code: "REGEX",
     message: "missing ), unterminated subpattern at position 0"

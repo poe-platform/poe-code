@@ -24,6 +24,7 @@ export class Runtime {
   #output = 0;
   #retained = 0;
   #work = 0;
+  #lastYieldWork = 0;
   #rows = 0;
   #writtenRows = 0;
   #sniffWarning = false;
@@ -65,6 +66,13 @@ export class Runtime {
     this.#assertOpen();
     if (++this.#work > this.context.limits.maxWork) throw new CsvkitWorkBudgetError();
   };
+  async checkpoint(): Promise<void> {
+    this.#assertOpen();
+    if (this.#work - this.#lastYieldWork < 4096) return;
+    this.#lastYieldWork = this.#work;
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+    this.#assertOpen();
+  }
   retain(bytes: number): void {
     this.#retained += bytes;
     if (!Number.isSafeInteger(this.#retained) || this.#retained > this.context.limits.maxRetainedBytes) throw new CsvkitBlocked("retained byte budget exceeded");
@@ -231,6 +239,7 @@ export class Runtime {
       const cells = record.cells;
       if (!cells.every(cell => { this.step(); return preserveCells || typeof cell === "string"; }))
         throw new CsvkitBlocked(`input quoting mode ${dialect.quoting} numeric/null operation cells`);
+      await this.checkpoint();
       yield { cells, line: record.line };
       if (recordLimit !== undefined && ++emitted >= recordLimit) return;
     } } catch (failure) { failed = true; throw failure; }
@@ -261,6 +270,7 @@ export class Runtime {
     this.#output += size;
   }
   async write(text: string, channel: "stdout" | "stderr" = "stdout"): Promise<void> {
+    await this.checkpoint();
     if (this.context.limits.maxOutputBytes === Infinity && this.context.limits.maxWork === Infinity) {
       this.step();
       this.#work += text.length;
@@ -350,6 +360,7 @@ export class Runtime {
     } });
     await this.context.stdout.write(sharedTextEncoder.encode(text));
     this.step();
+    await this.checkpoint();
     this.#writtenRows++;
   }
   async rows(rowList: Iterable<readonly CsvWriteCell[]>, dialect: CsvDialect = {}, lineNumbers = Boolean(this.options.line_numbers)): Promise<void> {
@@ -373,6 +384,7 @@ export class Runtime {
           this.#output += bytes;
         } });
         this.step();
+        await this.checkpoint();
         this.#writtenRows++;
         buf += text;
         if (buf.length >= 32768) await flush();

@@ -1,3 +1,4 @@
+import { compilePythonSearch, CsvkitBlocked } from "safe-bash-command-csvkit/python-regex";
 import { CsvBudget, CsvError } from "safe-bash-csv-engine";
 export interface MatchOptions {
   regex?: string;
@@ -20,6 +21,7 @@ export function pythonRstrip(text: string): string {
   while (end && pythonWhitespace(text.charCodeAt(end - 1))) end--;
   return text.slice(0, end);
 }
+export type CellMatcher = ((text: string) => boolean) | undefined;
 // Unicode 13.0 Nd block starts, Python 3.9 baseline; each block has ten code points.
 const digitStarts = [
   0x30, 0x660, 0x6f0, 0x7c0, 0x966, 0x9e6, 0xa66, 0xae6, 0xb66, 0xbe6, 0xc66, 0xce6, 0xd66, 0xde6,
@@ -32,8 +34,7 @@ const digitStarts = [
 type Atom =
   | { kind: "cell"; test: (char: string) => boolean }
   | { kind: "anchor"; test: (chars: readonly string[], at: number) => boolean };
-export type CellMatcher = ((text: string) => boolean) | undefined;
-function compile(pattern: string, b: CsvBudget): CellMatcher {
+function compileSequence(pattern: string, b: CsvBudget): CellMatcher {
   const atoms: Atom[] = [];
   let ascii = false,
     ignoreCase = false,
@@ -217,6 +218,21 @@ function compile(pattern: string, b: CsvBudget): CellMatcher {
     }
     return false;
   };
+}
+function compile(pattern: string, b: CsvBudget): CellMatcher {
+  try { return compileSequence(pattern, b); }
+  catch (error) {
+    if (!(error instanceof CsvError) || error.code !== "UNSUPPORTED" ||
+        !(error.message.startsWith("Groups") || error.message === "Unsupported Python regex flags or group" ||
+          error.message.startsWith("Unsupported Python regex escape"))) throw error;
+    let search: (text: string) => boolean;
+    try { search = compilePythonSearch(pattern, () => b.charge("work", 1), b.remaining("work"), bytes => b.charge("retainedBytes", bytes)); }
+    catch (failure) { if (failure instanceof CsvkitBlocked) throw error; throw failure; }
+    return text => {
+      try { return search(text); }
+      catch (failure) { if (failure instanceof CsvkitBlocked) throw new CsvError("REGEX", failure.message); throw failure; }
+    };
+  }
 }
 export function createMatcher(
   options: MatchOptions,

@@ -87,20 +87,18 @@ export function parseCsvcutArguments(args: readonly string[], budget: CsvBudget)
         if (mode < 0 || mode > 3) throw new CsvError('ARGUMENT', 'Invalid quoting value');
         quoting = mode;
       } else {
-        integer(value, budget);
-        throw new CsvError('UNSUPPORTED', 'Native character field limits are unqualified; use invocation fieldBytes limits');
+        dialect.fieldCharacters = integer(value, budget);
       }
       break;
     } while (!long && offset < raw.length);
   }
   if (quoting !== undefined) {
-    if (quoting !== 0 && quoting !== 3) throw new CsvError('UNSUPPORTED', 'Quoting modes 1 and 2 are not qualified');
-    dialect.quoting = quoting;
+    dialect.quoting = quoting as 0 | 1 | 2 | 3;
   }
   options.dialect = dialect;
   return options;
 }
-const help = 'usage: csvcut [-c COLUMNS] [-C NOT_COLUMNS] [-n] [-x] [--zero] [FILE]\nProject CSV columns from stdin or a literal VFS path.\nReader profile: utf8-sig-permissive-v1; quoting 0/3 only.\n';
+const help = 'usage: csvcut [-c COLUMNS] [-C NOT_COLUMNS] [-n] [-x] [--zero] [FILE]\nProject CSV columns from stdin or a literal VFS path.\nReader profile: utf8-sig-permissive-v1; quoting 0/1/2/3.\n';
 const extent = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), 'byteLength')!.get!;
 
 async function retireInput(retire: () => Promise<unknown>, failed: boolean): Promise<void> {
@@ -161,8 +159,7 @@ export async function csvcut(context: CommandContext, invocation?: CsvcutInvocat
         }
         options = parseCsvcutArguments(context.args, budget);
       }
-      if (options.encoding !== undefined && !['utf-8-sig', 'utf8-sig'].includes(options.encoding.toLowerCase()))
-        throw new CsvError('UNSUPPORTED', 'Only utf-8-sig decoding is qualified');
+      if (options.encoding !== undefined) options = { ...options, dialect: { ...options.dialect, encoding: options.encoding } };
       if (options.help || options.version) {
         const text = options.help ? help : 'csvcut 2.2.0 (utf8-sig-permissive-v1 candidate)\n';
         budget.charge('work', text.length); budget.charge('retainedBytes', text.length * 3);

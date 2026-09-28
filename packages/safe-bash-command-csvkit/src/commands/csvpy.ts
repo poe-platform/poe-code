@@ -474,7 +474,7 @@ export async function executeCsvpy(runtime: Runtime): Promise<number> {
           }
         };
       },
-      table: () => readTable(runtime, String(o.input_path)), settings: o }, runtime.context.signal, work) :
+      table: () => readTable(runtime, String(o.input_path), undefined, true), settings: o }, runtime.context.signal, work) :
       provider.load(mode, runtime.bytes(String(o.input_path), true), o, runtime.context.signal, work), session => session.close());
     const className = mode === "dict" ? "agate.csv.DictReader" : mode === "agate" ? "agate.Table" : "agate.csv.reader";
     const name = mode === "agate" ? "table" : "reader";

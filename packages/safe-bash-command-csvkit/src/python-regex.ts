@@ -1,5 +1,6 @@
 import { decimalZeroes } from "./unicode-profile.js";
 import { CsvkitBlocked } from "./errors.js";
+export { CsvkitBlocked } from "./errors.js";
 
 export function pythonWhitespace(char: string): boolean {
   const code = char.codePointAt(0)!;

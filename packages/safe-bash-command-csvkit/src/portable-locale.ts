@@ -6,13 +6,18 @@ export const portableLocale: LocaleServices = Object.freeze<LocaleServices>({
   profile: "C",
   timezone: "UTC",
   formatNumber(value, _locale, format) {
+    const number = Number(value);
+    if (format === "%d" || format === "%i") {
+      if (!Number.isFinite(number)) throw new CsvkitBlocked("non-finite integer formatting");
+      return BigInt(Math.trunc(number)).toString();
+    }
+    if (format === "%f") format = "%.6f";
     const precisionText = format.slice(2, -1);
     const precision = Number(precisionText);
     if (!format.startsWith("%.") || !format.endsWith("f") || !precisionText ||
         !Array.from(precisionText).every(character => character >= "0" && character <= "9") ||
-        !Number.isSafeInteger(precision) || precision > 100)
+        !Number.isSafeInteger(precision))
       throw new CsvkitBlocked("portable locale supports %.Nf decimal formatting; bind locale for other formats");
-    const number = Number(value);
     if (!Number.isFinite(number)) return Number.isNaN(number) ? "nan" : number < 0 ? "-inf" : "inf";
     const bytes = new DataView(new ArrayBuffer(8));
     bytes.setFloat64(0, Math.abs(number));

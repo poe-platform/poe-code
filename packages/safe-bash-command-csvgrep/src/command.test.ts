@@ -503,8 +503,7 @@ test("independent empty-mode controls preserve headers and precedence", async ()
 });
 test("versioned profile rejects unqualified codecs, quoting modes and open ranges before output", async () => {
   for (const flags of [
-    ["-e", "latin1"],
-    ["-u", "1"],
+    ["-e", "unknown-codec"],
     ["-u", "2"],
     ["-c", "1-"]
   ]) {
@@ -641,4 +640,28 @@ test("csvgrep -n flushes a single-line header without trailing newline and accep
   const negRegex = fixture(["-c", "2", "-r", "-5"], "a,b\n1,-5\n2,3\n");
   assert.equal((await createCsvgrepCommand().execute(negRegex.context)).exitCode, 0, negRegex.error());
   assert.equal(negRegex.text(), "a,b\n1,-5\n");
+});
+
+test("standard regex groups, repetition, alternation and word boundaries", async () => {
+  for (const regex of ["user_[0-9]+", "^(user|admin)_[0-9]{2}$", "\\b\\w+_[0-9]+\\b"]) {
+    const f = fixture(["-c", "name", "-r", regex], "name\nuser_12\nother\n");
+    assert.equal((await csvgrep(f.context)).exitCode, 0, f.error());
+    assert.equal(f.text(), "name\nuser_12\n");
+  }
+});
+
+test("encoding, quoting and field character options work", async () => {
+  for (const encoding of ["utf-8", "utf8", "ascii", "latin1"]) for (const quoting of ["1", "2"]) {
+    const f = fixture(["-c", "name", "-m", "foo", "-e", encoding, "-u", quoting, "-z", "4"], '"name"\n"foo"\n"bar"\n');
+    assert.equal((await csvgrep(f.context)).exitCode, 0, f.error());
+    assert.equal(f.text(), "name\nfoo\n");
+  }
+});
+
+test("csvgrep yields independently of wall-clock progress", async () => {
+  const f = fixture(["-c", "1", "-m", "x"], "name\n" + "x\n".repeat(2500));
+  let ticks = 0;
+  const timer = setInterval(() => ticks++, 0);
+  try { assert.equal((await csvgrep(f.context)).exitCode, 0); assert.ok(ticks > 0); }
+  finally { clearInterval(timer); }
 });

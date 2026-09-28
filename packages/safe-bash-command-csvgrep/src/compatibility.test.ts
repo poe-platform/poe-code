@@ -44,11 +44,9 @@ const cells: readonly {
     options: { columns: "x", regex: "(?P<x>a)(?P=x)" }, output: "", status: 1,
     error: "error: Unsupported Python regex flags or group\n" },
   { id: "unsupported-lookbehind", input: "x\nza\n", args: ["-cx", "-r(?<=z)a"],
-    options: { columns: "x", regex: "(?<=z)a" }, output: "", status: 1,
-    error: "error: Unsupported Python regex flags or group\n" },
+    options: { columns: "x", regex: "(?<=z)a" }, output: "x\nza\n" },
   { id: "unsupported-backtracking", input: "x\naaaaaaaaaaaaaaaa!\n", args: ["-cx", "-r(a+)+$"],
-    options: { columns: "x", regex: "(a+)+$" }, output: "", status: 1,
-    error: "error: Groups are unsupported by bounded-sequence-v1\n" }
+    options: { columns: "x", regex: "(a+)+$" }, output: "x\n" }
 ];
 
 for (const cell of cells) test(`independent byte control: ${cell.id}`, async () => {

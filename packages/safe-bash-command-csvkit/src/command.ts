@@ -8,8 +8,8 @@ import { portableLocale } from "./portable-locale.js";
 import { commands } from "./commands.js";
 import { execute, defaultLimits } from "./engine.js";
 import { OwnedArguments } from "./argv.js";
-import { virtualPath } from "./io/index.js";
-import { CsvkitCleanupError } from "./errors.js";
+import { LazyInput, virtualPath } from "./io/index.js";
+import { CsvkitBlocked, CsvkitCleanupError } from "./errors.js";
 import type { CsvkitContext, CsvkitLimits } from "./contracts.js";
 import { createOutputOperation, getCommandArguments, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { writeFileOutput, openFileOutput } from "safe-bash-contracts/filesystem-output";
@@ -45,7 +45,7 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
     ...options.sniffing,
     ...(options.sniffing.warning === undefined ? {} : { warning: Object.freeze({ ...options.sniffing.warning }) })
   });
-  const columnWarnings = options.columnWarnings === undefined ? undefined : Object.freeze({ ...options.columnWarnings });
+  const columnWarnings = options.columnWarnings === undefined ? Object.freeze({ suppressWarnings: true }) : Object.freeze({ ...options.columnWarnings });
   const probeInputOpen = options.probeInputOpen;
   return Object.freeze(commands.map<CommandDefinition>(descriptor => ({
     name: descriptor.name,
@@ -83,6 +83,7 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
         const account = (bytes: Uint8Array): Uint8Array => {
           inputBytes += bytes.byteLength;
           context.inputBudget?.check(inputBytes);
+          if (inputBytes > limits.maxInputBytes) throw new CsvkitBlocked("input byte budget exceeded");
           return bytes;
         };
         result = await execute(descriptor.name, {
@@ -155,7 +156,28 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
           codecs, compression, locale, clock, databases,
           sqlDialects,
           ...(interpreter === undefined ? {} : { interpreter }),
-          ...(openMatchFile === undefined ? {} : { openMatchFile }),
+          openMatchFile: openMatchFile ?? (async (path, settings) => {
+            const resolved = virtualPath(settings.cwd, path);
+            await context.fs.stat(resolved, { signal: settings.signal });
+            settings.signal.throwIfAborted();
+            const source = context.fs.readStream
+              ? context.fs.readStream(resolved, { signal: settings.signal })
+              : (async function* () { yield await context.fs.readFile(resolved, { signal: settings.signal, ...(Number.isFinite(limits.maxInputBytes) ? { maxBytes: limits.maxInputBytes } : {}) }); })();
+            let retained = 0, work = 0, codepoints = 0;
+            const file = new LazyInput(path, () => (async function* () {
+              for await (const bytes of source) {
+                yield account(bytes);
+              }
+            })(), utf8Codec, "utf-8", settings.signal, bytes => {
+              retained += bytes;
+              if (retained > limits.maxRetainedBytes) throw new CsvkitBlocked("retained byte budget exceeded");
+            }, text => {
+              work += text.length;
+              if (work > limits.maxWork) throw new CsvkitBlocked("work budget exceeded");
+              for (const char of text) { void char; if (++codepoints > limits.maxCodepoints) throw new CsvkitBlocked("codepoint budget exceeded"); }
+            }, false);
+            return { lines: () => file.lines(), close: () => file.close() };
+          }),
           ...(sniffing === undefined ? {} : { sniffing }),
           ...(columnWarnings === undefined ? {} : { columnWarnings }),
           ...(probeInputOpen ? { probeInputOpen } : {

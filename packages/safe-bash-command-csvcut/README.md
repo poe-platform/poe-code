@@ -51,8 +51,9 @@ uses the same implementation as CLI argv and returns `{ exitCode }`.
 | `-b`, `--no-doublequote` | `dialect.doubleQuote: false` |
 | `-S`, `--skipinitialspace` | `dialect.skipInitialSpace`: skip ASCII spaces at field start |
 | `-K`, `--skip-lines INTEGER` | `dialect.skipLines`: skip physical lines; negative counts skip nothing |
-| `-u`, `--quoting INTEGER` | `dialect.quoting`: 0 MINIMAL or 3 NONE; final 1/2 explicitly unsupported |
-| `-e`, `--encoding VALUE` | `encoding`: only case-insensitive `utf-8-sig` / `utf8-sig` |
+| `-u`, `--quoting INTEGER` | `dialect.quoting`: 0 MINIMAL, 1 ALL, 2 NONNUMERIC or 3 NONE |
+| `-z`, `--maxfieldsize INTEGER` | `dialect.fieldCharacters`: maximum Unicode characters per field |
+| `-e`, `--encoding VALUE` | `encoding`: UTF-8, UTF-8-sig (default), ASCII or Latin-1 |
 | `-h`, `--help`; `-V`, `--version` | `help`, `version`: informational output without input acquisition |
 | `--` | End options; one literal operand maps to `filePath`; omitted operand or `-` reads stdin |
 
@@ -120,10 +121,10 @@ Permissive-v1 accepts NUL and unfinished quoted EOF: it is a candidate profile,
 **not full Python 3.9 CSV compatibility**. The strict profile is an explicit
 isolation deviation. The compatibility target is csvkit 2.2.0 / agate 1.14.2;
 later-source `--ignore-unknown-columns` is rejected. No Sniffer is run.
-Other codecs, quoting 1/2, compression, native error/traceback bytes, long-option
+Other codecs, compression, native error/traceback bytes, long-option
 abbreviations and full Python grammar/NUL/encoding compatibility are unqualified.
-`-z/--maxfieldsize` explicitly fails (status 1); malformed integer values fail
-with status 2. Use `fieldBytes` for the bounded storage profile. Unknown options,
+`-z/--maxfieldsize` counts Unicode characters; malformed integer values fail
+with status 2. `fieldBytes` separately limits storage. Unknown options,
 inference/locale/null flags and multiple operands fail with status 2.
 
 Success returns status 0; selector/header/input/quota/unsupported-capability

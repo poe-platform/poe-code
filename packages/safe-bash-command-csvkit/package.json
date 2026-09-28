@@ -22,6 +22,10 @@
     "./sync-support": {
       "types": "./dist/sync-support.d.ts",
       "import": "./dist/sync-support.js"
+    },
+    "./python-regex": {
+      "types": "./dist/python-regex.d.ts",
+      "import": "./dist/python-regex.js"
     }
   },
   "files": [

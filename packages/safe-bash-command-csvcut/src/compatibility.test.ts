@@ -61,7 +61,7 @@ test('negative selector, grammar and explicit capability controls', async () => 
   for (const [args, status, acquisition] of [
     [['-c', ' id'], 1, 1], [['-c', 'missing'], 1, 1], [['-C', '1-99'], 1, 1],
     [['-nH'], 1, 0], [['--ignore-unknown-columns'], 2, 0], [['-c'], 2, 0],
-    [['-u1'], 1, 0], [['-e', 'latin1'], 1, 0], [['--snifflimit', '10'], 2, 0],
+ [['--snifflimit', '10'], 2, 0],
     [['--zero', '-c1-'], 1, 1],
   ] as const) {
     const result = await invoke([...args], 'id,value\nx,y\n', 1);

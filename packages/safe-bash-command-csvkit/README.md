@@ -21,7 +21,10 @@ The engine host explicitly supplies input and output, codecs, locale, clock and 
 configuration. The `csvkitCommands()` plugin and `createCsvkitCommands()` factory also
 work without options: they use portable UTF-8/Python codecs, gzip compression, a C/UTC
 locale, a clock, a noninteractive 80×24 terminal and the built-in SQL dialects.
-The C locale formats decimals with `%.Nf`; bind a locale service for other formats.
+The C locale formats decimals with `%f` or `%.Nf` and integers with `%d`/`%i`.
+Portable commands normalize unnamed and duplicate headers with warnings suppressed;
+supply `columnWarnings` metadata for native warning text. Match files use the supplied
+virtual filesystem by default. Work-count checkpoints yield even with a frozen clock.
 The portable sniffing profile suppresses deployment-specific Python warnings; supply
 `sniffing` with warning metadata when exact native warning text is needed.
 Database providers default to an empty list; SQLite needs an explicitly initialized

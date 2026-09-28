@@ -210,12 +210,11 @@ test('SDK codec options match CLI qualification before input acquisition', async
   for (const encoding of ['utf-8-sig', 'utf8-sig', 'latin1']) {
     const cli = fixture(['-e', encoding], 'a\nx\n'), sdk = fixture([], 'a\nx\n');
     const a = await csvcut(cli.context), b = await csvcut(sdk.context, { encoding });
-    assert.equal(a.exitCode, encoding === 'latin1' ? 1 : 0); assert.equal(b.exitCode, a.exitCode);
+    assert.equal(a.exitCode, 0); assert.equal(b.exitCode, a.exitCode);
     assert.equal(sdk.output(), cli.output()); assert.equal(sdk.errors(), cli.errors());
-    if (encoding === 'latin1') assert.equal(sdk.acquired(), 0);
   }
 });
-test('unqualified native field-size capability still validates its integer grammar', async () => {
+test('native field-size capability validates its integer grammar', async () => {
   for (const args of [['-zx'], ['--maxfieldsize=no'], ['-z', '1.5']]) {
     const run = fixture(args, 'unused');
     assert.equal((await csvcutCommand.execute(run.context)).exitCode, 2);
@@ -223,8 +222,8 @@ test('unqualified native field-size capability still validates its integer gramm
     assert.equal(run.errors(), 'csvcut: Expected an ASCII integer\n');
   }
   const run = fixture(['-z10'], 'unused');
-  assert.equal((await csvcutCommand.execute(run.context)).exitCode, 1);
-  assert.equal(run.acquired(), 0);
+  assert.equal((await csvcutCommand.execute(run.context)).exitCode, 0);
+  assert.equal(run.acquired(), 1);
 });
 
 test('repeated quoting options qualify the final value and match SDK projection', async () => {
@@ -239,10 +238,10 @@ test('repeated quoting options qualify the final value and match SDK projection'
     assert.equal(cli.retired(), 1);
   }
   for (const args of [['-u0', '-u1'], ['-u3', '--quoting=2']]) {
-    const run = fixture(args, 'unused');
-    assert.equal((await csvcutCommand.execute(run.context)).exitCode, 1);
-    assert.equal(run.acquired(), 0);
-    assert.equal(run.errors(), 'csvcut: Quoting modes 1 and 2 are not qualified\n');
+    const run = fixture(args, '"a"\n1\n');
+    assert.equal((await csvcutCommand.execute(run.context)).exitCode, 0);
+    assert.equal(run.acquired(), 1);
+    assert.equal(run.errors(), '');
   }
   for (const args of [['-ux', '-u0'], ['--quoting=1.5', '-u0']]) {
     const run = fixture(args, 'unused');
@@ -250,4 +249,23 @@ test('repeated quoting options qualify the final value and match SDK projection'
     assert.equal(run.acquired(), 0);
     assert.equal(run.errors(), 'csvcut: Expected an ASCII integer\n');
   }
+});
+
+test('csvcut accepts encoding, quoting and native character field limits', async () => {
+  for (const encoding of ['utf-8', 'utf8', 'ascii', 'latin1']) for (const quoting of ['1', '2']) {
+    const f = fixture(['-c', '1', '-e', encoding, '-u', quoting, '-z', '4'], '"name"\n"foo"\n', 4096);
+    assert.equal((await csvcut(f.context)).exitCode, 0, f.errors());
+    assert.equal(f.output(), 'name\nfoo\n');
+  }
+  const over = fixture(['-z', '2'], 'a\n😀😀😀\n', 4096);
+  assert.equal((await csvcut(over.context)).exitCode, 1);
+  assert.match(over.errors(), /field/i);
+});
+
+test('csvcut yields under a frozen clock', async () => {
+  const f = fixture([], 'name\n' + 'x\n'.repeat(2500), 16384);
+  let ticks = 0;
+  const timer = setInterval(() => ticks++, 0);
+  try { assert.equal((await csvcut(f.context)).exitCode, 0); assert.ok(ticks > 0); }
+  finally { clearInterval(timer); }
 });

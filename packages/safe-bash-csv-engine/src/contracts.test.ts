@@ -118,7 +118,7 @@ test("strict dialect controls, empty cells and physical skipping stay independen
   assert.deepEqual([...none.push(enc.encode('"a",x\\,y\n')), ...none.end()], [{ cells: ['"a"', "x,y"], line: 1 }]);
 });
 test("explicit unsupported quoting and profile fail before decoding", () => {
-  for (const dialect of [{ quoting: 2 }, { profile: "python-3.12" }])
+  for (const dialect of [{ quoting: 4 }, { profile: "python-3.12" }])
     assert.throws(() => new CsvParser(dialect as never, budget()), { code: "UNSUPPORTED" });
 });
 test("parser captures dialect ownership and disposed ledgers cannot be reused", () => {
@@ -175,4 +175,42 @@ test("valid signed zero remains positional before hyphen range fallback", () => 
   assert.deepEqual(resolveColumns({ include: "-0, -00 ", zero: true }, ["a", "b"], budget()), [0, 0]);
   assert.deepEqual(resolveColumns({ exclude: "-0", zero: true }, ["a", "b"], budget()), [1]);
   assert.deepEqual(resolveColumns({ include: "-2" }, ["a", "b", "c"], budget()), [0, 1]);
+});
+
+test("explicit encodings preserve Python BOM and Latin-1 behavior across byte splits", () => {
+  for (const [encoding, bytes, cell] of [
+    ["utf-8", enc.encode('\ufeffname\n'), '\ufeffname'],
+    ["utf-8-sig", enc.encode('\ufeffname\n'), 'name'],
+    ["latin1", Uint8Array.of(0x80, 0xe9, 10), '\u0080é']
+  ] as const) for (let split = 0; split <= bytes.length; split++) {
+    const p = new CsvParser({ encoding }, budget());
+    assert.deepEqual([...p.push(bytes.subarray(0, split)), ...p.push(bytes.subarray(split)), ...p.end()], [{ cells: [cell], line: 1 }]);
+  }
+  assert.throws(() => new CsvParser({ encoding: 'ascii' }, budget()).push(Uint8Array.of(0xff)), { code: 'INPUT' });
+});
+
+test("QUOTE_NONNUMERIC converts unquoted numbers and field sizes count Unicode scalars", () => {
+  const p = new CsvParser({ quoting: 2, fieldCharacters: 4 }, budget());
+  assert.deepEqual(p.push(enc.encode('"name","n"\n"😀😀",2\n"x",-0\n')), [
+    { cells: ['name', 'n'], line: 1 }, { cells: ['😀😀', '2.0'], line: 2 }, { cells: ['x', '-0.0'], line: 3 }
+  ]);
+  assert.throws(() => p.push(enc.encode('abc,1\n')), { code: 'INPUT' });
+  assert.throws(() => new CsvParser({ fieldCharacters: 2 }, budget()).push(enc.encode('😀😀😀\n')), { code: 'INPUT' });
+});
+
+test("cooperative checkpoint observes cancellation after a frozen-clock yield", async () => {
+  const controller = new AbortController(), b = new CsvBudget({}, controller.signal);
+  b.charge('work', 4096);
+  const reason = new Error('canceled during yield');
+  const timer = setTimeout(() => controller.abort(reason), 0);
+  try { await assert.rejects(b.checkpoint(), error => error === reason); }
+  finally { clearTimeout(timer); b.dispose(); }
+});
+
+test("numeric quoting uses Python decimal syntax and float text", () => {
+  const p = new CsvParser({ quoting: 2 }, budget());
+  assert.deepEqual(p.push(enc.encode('inf,-inf,nan,1e-7,1e16\n'))[0]!.cells, ['inf', '-inf', 'nan', '1e-07', '1e+16']);
+  for (const value of ['0x10', ' ', '1__2']) {
+    assert.throws(() => new CsvParser({ quoting: 2 }, budget()).push(enc.encode(value + '\n')), { code: 'INPUT' });
+  }
 });

@@ -143,8 +143,7 @@ export function parseCsvgrepArguments(args: readonly string[], b: CsvBudget): Cs
       else if (arg === "-q" || arg === "--quotechar") dialect.quote = value;
       else if (arg === "-p" || arg === "--escapechar") dialect.escape = value;
       else if (arg === "-e" || arg === "--encoding") {
-        if (!["utf-8-sig", "utf8-sig"].includes(value.toLowerCase()))
-          throw new CsvError("UNSUPPORTED", "Only utf-8-sig decoding is qualified");
+        dialect.encoding = value;
       } else if (arg === "-K" || arg === "--skip-lines") {
         let start = 0,
           end = value.length;
@@ -179,14 +178,12 @@ export function parseCsvgrepArguments(args: readonly string[], b: CsvBudget): Cs
       } else if (arg === "-u" || arg === "--quoting") {
         if (!["0", "1", "2", "3"].includes(value))
           throw new CsvError("ARGUMENT", "Invalid quoting value");
-        if (value === "1" || value === "2")
-          throw new CsvError("UNSUPPORTED", "Quoting modes 1 and 2 are not qualified");
-        dialect.quoting = Number(value) as 0 | 3;
-      } else
-        throw new CsvError(
-          "UNSUPPORTED",
-          "Use invocation fieldBytes limits; native character field limits are unqualified"
-        );
+        dialect.quoting = Number(value) as 0 | 1 | 2 | 3;
+      } else {
+        const size = Number(value);
+        if (!Number.isSafeInteger(size)) throw new CsvError("ARGUMENT", "Invalid field size");
+        dialect.fieldCharacters = size;
+      }
       continue;
     }
     if (!ended && (arg === "-t" || arg === "--tabs")) {
@@ -517,6 +514,7 @@ export async function csvgrep(
         source(options.filePath ?? "-"),
         async (bytes) => {
           await deliver(parser.push(bytes));
+          await b.checkpoint();
         },
         () => Boolean(options.names && headers !== undefined)
       );

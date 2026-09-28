@@ -139,6 +139,7 @@ export function cutCsv(
             signal.throwIfAborted();
           }
           retain(parser.push(bytes.subarray(offset, Math.min(offset + step, length))));
+          await b.checkpoint();
           if (supplied.names && rows.length) {
             // Input counts delivered bytes, including the suffix deliberately
             // left undecoded by names mode. Producer storage remains borrowed.

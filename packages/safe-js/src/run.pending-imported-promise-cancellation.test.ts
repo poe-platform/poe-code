@@ -8,7 +8,10 @@ function deferred<T>() {
   return { promise, resolve, reject };
 }
 
-it.each(["fulfilled", "rejected"] as const)("cancels pending imported-Promise reconciliation before a late %s proof", async late => {
+it.each([
+  ["fulfilled", false], ["rejected", false],
+  ["fulfilled", true], ["rejected", true]
+] as const)("cancels pending imported-Promise reconciliation before a late %s proof (host turn due: %s)", async (late, hostTurnDue) => {
   const source = "const value=await input; boundary(); const result=await value.nested; after(); return result";
   const gate = deferred<number>();
   const paused = deferred<void>();
@@ -29,7 +32,15 @@ it.each(["fulfilled", "rejected"] as const)("cancels pending imported-Promise re
   const proof = deferred<HostCallResumeProof>();
   const requested = deferred<void>();
   let request!: HostCallResumeRequest;
-  const provider = vi.fn((value: HostCallResumeRequest) => { request = value; requested.resolve(); return proof.promise; });
+  let now = Date.now();
+  // Control host-turn admission independently of replay startup and JIT time.
+  const clock = vi.spyOn(Date, "now").mockImplementation(() => now);
+  const provider = vi.fn((value: HostCallResumeRequest) => {
+    request = value;
+    if (hostTurnDue) now += 1000;
+    requested.resolve();
+    return proof.promise;
+  });
   const controller = new AbortController();
   const resumed = run(source, { snapshot: restore(JSON.parse(saved), { source }), bindings: { boundary, after },
     signal: controller.signal, hostCallResumeProvider: provider
@@ -47,6 +58,7 @@ it.each(["fulfilled", "rejected"] as const)("cancels pending imported-Promise re
     if (late === "rejected") proof.reject(new Error("late provider failure"));
     else proof.resolve({ ...request, outcome: { status: "fulfilled", value: 7 } });
     await resumed;
+    clock.mockRestore();
   }
   await new Promise(resolve => setImmediate(resolve));
   expect(after).not.toHaveBeenCalled();

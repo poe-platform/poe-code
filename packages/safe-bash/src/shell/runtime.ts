@@ -5206,8 +5206,12 @@ export class Runtime {
           return false;
         }
         if (typeof val !== "string") return false;
+        const scalar = !current ? rawState.variables[name] : undefined;
         const target = ensureBinding(false);
         if (!target) return false;
+        if (scalar !== undefined && (idxNum !== 0 || assignment.append)) {
+          if (!this.tryFastArraySubscriptWriteSync(rawState, name, "0", scalar)) return false;
+        }
         if (assignment.append) {
           const prev = target.getValue(idxNum) ?? "";
           if (typeof prev !== "string") return false;
@@ -5431,6 +5435,13 @@ export class Runtime {
             index = stagedKey.index;
           } else index = (await this.arrayIndex(targetBinding, assignment.index, state, io, operation, true))!;
           const value = await join(await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0));
+          // Expansion can initialize the unset target as a scalar. Preserve that
+          // value when promoting it to an indexed binding.
+          if (!current && state.variables[name] !== undefined && (index !== 0 || assignment.append)) {
+            const scalar = stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!;
+            const token = await valueToken(targetBinding.owner, scalar, this.signal);
+            try { targetBinding.insert(0, token); } catch (error) { token.release(); throw error; }
+          }
           await insert(index, value, assignment.append);
         } else for (const entry of assignment.entries) {
           const original = compoundEntryWords.get(entry);
@@ -5466,7 +5477,9 @@ export class Runtime {
         }
         this.signal.throwIfAborted();
         this.assertArrayWritable(state, name, origin);
-        if (!watch.valid() || (canReviseInPlace && (store.get(name) !== current || current!.references !== 1))) throw new ArrayFailure("stale binding");
+        const scalarInitialized = assignment.kind === "element" && !current && !store.get(name)
+          && state.variables[name] !== undefined && watch.watch.typedVersion === watch.typedVersion;
+        if ((!watch.valid() && !scalarInitialized) || (canReviseInPlace && (store.get(name) !== current || current!.references !== 1))) throw new ArrayFailure("stale binding");
         if (canReviseInPlace) {
           if (declaration || !(assignment.kind === "compound" && assignment.append && writes === 0 && current!.assigned)) {
             stateMonitor(state)!.publish(tickets, name, () => {
@@ -17325,7 +17338,11 @@ export class Runtime {
       const target = this.variableTarget(this.referenceName(state, part.name))!;
       const resolved = { ...part, name: target.name };
       copyArraySelector(part, resolved);
-      if (target.subscript !== undefined) setArraySelector(resolved, { kind: "element", index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)) });
+      if (target.subscript === "@" || target.subscript === "*") {
+        setArraySelector(resolved, { kind: "members", separator: target.subscript });
+      } else if (target.subscript !== undefined) {
+        setArraySelector(resolved, { kind: "element", index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)) });
+      }
       part = resolved;
     }
     if (part.kind === "variable" && part.name === "DIRSTACK") {
@@ -19517,7 +19534,7 @@ export class Runtime {
       }
       return fields;
     }
-    const arrayOwned = word.parts.some(part => part.kind === "variable" && !part.prefixNames && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
+    const arrayOwned = word.parts.some(part => part.kind === "variable" && !part.prefixNames && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined || (part.indirect || state.variableAttributes?.get(part.name)?.includes("n")) && state.variables[part.name]?.includes("[") === true));
     const prefixOwned = word.parts.some(part => part.kind === "variable" && (part.prefixNames === "@" || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@"));
     const positionalOwned = split && word.parts.some(part => part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultParameterOperators.includes(part.operator)) && !part.transform);
     const owner = arrayOwned ? requireArrays(state).owner : undefined;

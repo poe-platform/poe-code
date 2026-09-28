@@ -121,3 +121,24 @@ test("local readonly attribute protects the referenced target", async context =>
   assert.equal(result.exitCode, 1);
   assert.ok(result.stderr.includes("readonly variable"));
 });
+
+for (const [source, stdout] of [
+  ['arr=(one "two three" four); declare -n ref="arr[@]"; printf "<%s>" "$ref"; printf "len:%s" "${#ref}"', '<one><two three><four>len:3'],
+  ['arr=(one "two three" four); declare -n ref="arr[*]"; printf "<%s>" "$ref"; printf "len:%s" "${#ref}"', '<one two three four>len:3'],
+  ['arr=(one "two three" four); declare -n ref="arr[@]"; printf "<%s>" $ref', '<one><two><three><four>'],
+  ['arr=(one "two three" four); declare -n ref="arr[*]"; IFS=:; printf "<%s>" "$ref"', '<one:two three:four>'],
+  ['arr=(); declare -n ref="arr[@]"; set -- "$ref"; echo "$#"', '0\n'],
+  ['arr=(); declare -n ref="arr[*]"; set -- "$ref"; echo "$#"', '1\n'],
+] as const) {
+  for (const bounded of [false, true]) {
+    test(`nameref array member selector (${bounded ? "bounded" : "unbounded"}): ${source}`, async context => {
+      const { shell, commands } = setup(bounded ? { limits: { maxExpansionBytes: 1024 * 1024 } } : {});
+      for (const command of basicCommands()) commands.register(command);
+      context.after(() => shell.dispose());
+      const result = await shell.exec(source);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, stdout);
+    });
+  }
+}

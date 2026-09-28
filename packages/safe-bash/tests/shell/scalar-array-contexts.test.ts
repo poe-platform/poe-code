@@ -6,6 +6,12 @@ import { nativeOptions, runNative } from "./extensions/trap/oracle.js";
 
 // Scalar star joining and new integer attributes follow Bash 5.2, not macOS Bash 3.2.
 const cases = [
+  ['unset arr; arr[1]="${arr:=zero}-one"; printf "<%s>" "${arr[0]}" "${arr[1]}"', '<zero><zero-one>'],
+  ['unset arr; arr[1]="${arr:=zero} $(echo one)"; printf "<%s>" "${arr[0]}" "${arr[1]}"', '<zero><zero one>'],
+  ['unset arr; arr[${arr:=1}]=two; printf "<%s>" "${arr[0]}" "${arr[1]}"', '<1><two>'],
+  ['unset arr; arr[0]="${arr:=zero}-one"; printf "<%s>" "${arr[0]}" "${arr[1]}"', '<zero-one><>'],
+  ['unset arr; arr=old; arr[1]=two; printf "<%s>" "${arr[0]}" "${arr[1]}"', '<old><two>'],
+  ['unset arr; arr[1]+="${arr:=zero}-one"; printf "<%s>" "${arr[0]}" "${arr[1]}"', '<zero><zero-one>'],
   ['IFS=:; set -- one two three; y="$@"; z=$@; printf "<%s>" "$y" "$z"; case "$@" in "one two three") printf space;; *) printf wrong;; esac; [[ "$@" == "one two three" ]]; printf "cond=%s" "$?"; read -r r <<< "$@"; printf "<%s>" "$r"', '<one two three><one two three>spacecond=0<one two three>'],
   ['IFS=""; set -- one two three; y="$@"; z=$@; printf "<%s>" "$y" "$z"', '<one two three><one two three>'],
   ['IFS=:; arr=(one two three); x=${arr[*]}; printf "<%s>" "$x"; [[ ${arr[*]} == "one two three" ]]; printf "cond=%s" "$?"; case ${arr[*]} in "one two three") printf space;; "one:two:three") printf colon;; *) printf wrong;; esac; read -r r <<< ${arr[*]}; printf "<%s>" "$r"', '<one:two:three>cond=1colon<one:two:three>'],

@@ -11903,7 +11903,8 @@ export class Runtime {
               plainOps.push(pw);
             }
             if (w0Plain === "cut") {
-              if (plainOps.length !== opCount || this.evalSyncCut([], plainOps, byteLocale(rawState.variables)) === undefined) return false;
+              // Probe non-ASCII input: loop data can change after admission.
+              if (plainOps.length !== opCount || this.evalSyncCut(["é"], plainOps, byteLocale(rawState.variables)) === undefined) return false;
             } else if (w0Plain === "sed") {
               if (plainOps.length !== opCount || this.evalSyncSed([], plainOps) === undefined) return false;
             } else if (w0Plain === "grep") {
@@ -11942,6 +11943,8 @@ export class Runtime {
           let seenDoubleDash = false;
           for (let wi = 1; wi < cmd.words.length; wi++) {
             const w = cmd.words[wi]!;
+            // Tilde prefixes depend on mutable HOME/PWD/OLDPWD; use normal expansion.
+            if (w.parts[0]?.kind === "text" && !w.parts[0].quoted && w.parts[0].value.startsWith("~")) return false;
             const st = w.plain ?? (w.parts.length > 0 && w.parts.every(pt => pt.kind === "text") ? w.parts.map(pt => pt.value).join("") : undefined);
             if (st !== undefined) {
               if (st === "--") seenDoubleDash = true;
@@ -12002,7 +12005,8 @@ export class Runtime {
               const okHT = sPlainArgs.length === 0 || (sPlainArgs.length === 1 && (/^-(?:n|c)?[0-9]{1,5}$/.test(sPlainArgs[0]!) || /^--(?:lines|bytes)=[0-9]{1,5}$/.test(sPlainArgs[0]!) || (sName === "tail" && /^(?:-n|--lines=)\+[0-9]{1,5}$/.test(sPlainArgs[0]!)) || (sName === "head" && /^(?:-n|--lines=)-[0-9]{1,5}$/.test(sPlainArgs[0]!)))) || (sPlainArgs.length === 2 && ((sPlainArgs[0] === "-n" && (/^[0-9]{1,5}$/.test(sPlainArgs[1]!) || (sName === "tail" && /^\+[0-9]{1,5}$/.test(sPlainArgs[1]!)) || (sName === "head" && /^-[0-9]{1,5}$/.test(sPlainArgs[1]!)))) || (sPlainArgs[0] === "-c" && /^[0-9]{1,5}$/.test(sPlainArgs[1]!))));
               if (!okHT) return false;
             } else if (sName === "cut") {
-              if (this.evalSyncCut([], sPlainArgs, byteLocale(rawState.variables)) === undefined) return false;
+              // Byte cuts may reject non-ASCII data on a later iteration.
+              if (this.evalSyncCut(["é"], sPlainArgs, byteLocale(rawState.variables)) === undefined) return false;
             } else if (sName === "sed") {
               if (this.evalSyncSed([], sPlainArgs) === undefined) return false;
             } else if (sName === "awk") {
@@ -23113,10 +23117,11 @@ export class Runtime {
     let multiple = false;
     let suffix: string | undefined;
     let idx = 0;
+    const operands: string[] = [];
     while (idx < args.length) {
       const a = args[idx]!;
-      if (a === "--") { idx++; break; }
-      if (!a.startsWith("-") || a === "-") break;
+      if (a === "--") { operands.push(...args.slice(idx + 1)); break; }
+      if (!a.startsWith("-") || a === "-") { operands.push(a); idx++; continue; }
       if (a === "-a" || a === "--multiple") {
         multiple = true;
         idx++;
@@ -23133,7 +23138,6 @@ export class Runtime {
         return undefined;
       }
     }
-    const operands = args.slice(idx);
     if (operands.length === 0) return undefined;
     if (!multiple && operands.length > 2) return undefined;
     const effSuffix = multiple ? suffix : operands[1];

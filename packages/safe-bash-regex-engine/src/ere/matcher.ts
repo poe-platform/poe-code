@@ -515,7 +515,7 @@ function tryMatchEreAsciiRangeNfaSync(
     }
     let bestPos = -1;
     while (pending.length > 0) {
-      if (ledger.workAllowanceUntilCheckpoint(signal) < 64 && !ledger.advanceSyncCheckpointIfNoExternalYield(signal)) return null;
+      if (ledger.workAllowanceUntilCheckpoint(signal) < 64) return null;
       ledger.chargeWork(1, signal);
       const state = pending.pop()!;
       const current = state.task;
@@ -558,7 +558,7 @@ function tryMatchEreAsciiRangeNfaSync(
           break;
         }
         case "sequence": {
-          if (ledger.workAllowanceUntilCheckpoint(signal) < node.children.length + 4 && !ledger.advanceSyncCheckpointIfNoExternalYield(signal)) return null;
+          if (ledger.workAllowanceUntilCheckpoint(signal) < node.children.length + 4) return null;
           ledger.chargeWork(node.children.length, signal);
           ledger.charge("allocationUnits", node.children.length * 5, signal);
           if (current.next === null) {
@@ -573,7 +573,7 @@ function tryMatchEreAsciiRangeNfaSync(
           break;
         }
         case "alternative":
-          if (ledger.workAllowanceUntilCheckpoint(signal) < node.children.length + 4 && !ledger.advanceSyncCheckpointIfNoExternalYield(signal)) return null;
+          if (ledger.workAllowanceUntilCheckpoint(signal) < node.children.length + 4) return null;
           for (let index = node.children.length - 1; index >= 0; index--) {
             ledger.chargeWork(1, signal);
             ledger.charge("allocationUnits", 5, signal);

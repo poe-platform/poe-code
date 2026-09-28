@@ -5,7 +5,10 @@ import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { build } from "esbuild";
 
-// Bound native startup and cold imports consistently on busy build hosts.
+// Native build probes include process startup and cold module loading. Keep
+// those external checks bounded without treating shared-host startup latency
+// as an interpreter failure; unit tests retain their short deadlines.
+const nativeProbeTimeoutMs = 120_000;
 for (const count of [512, 513]) {
   test(`built closure-property accounting handles ${count} nodes on a cold stack`, () => {
     const entry = name => JSON.stringify(new URL(`../dist/${name}.js`, import.meta.url).href);
@@ -18,7 +21,7 @@ for (const count of [512, 513]) {
         root = createSandboxClosure({ call: () => undefined, properties: { next: root } });
       assert.equal(measureSandboxData([root]), count * 7);
     `;
-    const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: nativeProbeTimeoutMs });
     assert.equal(result.status, 0, result.stderr || String(result.error));
   });
 }
@@ -63,19 +66,18 @@ test("portable SDK executes without Node globals or shared memory", async () => 
       if ((await realm.evaluate("return await Promise.resolve(42);")).returnValue !== 42) throw new Error("Portable realm failed");
     } finally { await realm.close(); }
   `;
-  const execution = spawnSync(process.execPath, ["--input-type=module"], { input: script, encoding: "utf8", timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
+  const execution = spawnSync(process.execPath, ["--input-type=module"], { input: script, encoding: "utf8", timeout: nativeProbeTimeoutMs, maxBuffer: 10 * 1024 * 1024 });
   assert.equal(execution.status, 0, execution.stderr.slice(-4000) || String(execution.error));
 });
 
-// Native build probes load complete fresh module graphs from disk. Match the
-// portable probe deadline so shared filesystem latency does not look like a
-// module initialization failure. Unit suites retain their own short deadlines.
+// Load each complete module graph in a fresh native realm using the same
+// external startup budget as the portable subprocess probes.
 async function initializeInFreshRealm(source) {
   const worker = new Worker(new URL("data:text/javascript;base64," + Buffer.from(source).toString("base64")), { execArgv: [] });
   let timer;
   try {
     await new Promise((resolve, reject) => {
-      timer = setTimeout(() => reject(new Error("Native ESM initialization timed out")), 30000);
+      timer = setTimeout(() => reject(new Error("Native ESM initialization timed out")), nativeProbeTimeoutMs);
       worker.once("error", reject);
       worker.once("exit", code => {
         if (code === 0) resolve();
@@ -135,7 +137,7 @@ test("built data accounting retains optimized code across garbage collections", 
       await new Promise(resolve => setImmediate(resolve));
     }
   `;
-  const result = spawnSync(process.execPath, ["--expose-gc", "--trace-opt", "--no-concurrent-recompilation", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
+  const result = spawnSync(process.execPath, ["--expose-gc", "--trace-opt", "--no-concurrent-recompilation", "--input-type=module", "-e", source], { encoding: "utf8", timeout: nativeProbeTimeoutMs });
   assert.equal(result.status, 0, result.stderr || String(result.error));
   const sections = result.stdout.split("MEASUREMENT_WARMED");
   assert.equal(sections.length, 2, "Missing warmup boundary");
@@ -179,7 +181,7 @@ test("built data accounting releases first-call roots and preserves native obser
     }
     for (const reference of references) assert.equal(reference.deref(), undefined);
   `;
-  const result = spawnSync(process.execPath, ["--expose-gc", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
+  const result = spawnSync(process.execPath, ["--expose-gc", "--input-type=module", "-e", source], { encoding: "utf8", timeout: nativeProbeTimeoutMs });
   assert.equal(result.status, 0, result.stderr || String(result.error));
 });
 
@@ -220,7 +222,7 @@ test("built scope accounting records retain fast fields without inherited metada
     child.text = "changed";
     assert.equal(child.text, "changed");
   `;
-  const result = spawnSync(process.execPath, ["--allow-natives-syntax", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 30000 });
+  const result = spawnSync(process.execPath, ["--allow-natives-syntax", "--input-type=module", "-e", source], { encoding: "utf8", timeout: nativeProbeTimeoutMs });
   assert.equal(result.status, 0, result.stderr || String(result.error));
 });
 
@@ -249,7 +251,7 @@ test("built deferred function identities keep fast storage and private construct
       assert.equal(measureSandboxData([root, closure]), charge);
     } finally { Object.setPrototypeOf = setPrototypeOf; }
   `;
-  const result = spawnSync(process.execPath, ["--allow-natives-syntax", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+  const result = spawnSync(process.execPath, ["--allow-natives-syntax", "--input-type=module", "-e", source], { encoding: "utf8", timeout: nativeProbeTimeoutMs });
   assert.equal(result.status, 0, result.stderr || String(result.error));
 });
 

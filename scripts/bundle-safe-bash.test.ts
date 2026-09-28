@@ -319,13 +319,16 @@ beforeAll(async () => {
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
     URL, FormData, Blob, Response, btoa, atob,
   });
+  expect(runInContext("typeof Buffer", sandbox)).toBe("undefined");
   filesystem = runInContext(`(function(){ const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as CoreFs;
   sandbox.canonical = filesystem;
   browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${compiled}; return module.exports; })()`, sandbox) as BrowserShell;
   browserRealm = sandbox;
   sandbox.browser = browser;
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
-  expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", sandbox)).toBe("undefined:undefined:undefined");
+  expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate + ':' + typeof require", sandbox)).toBe("function:undefined:undefined:undefined");
+  expect(runInContext("Buffer.from('é').toString('hex')", sandbox)).toBe("c3a9");
+  expect(runInContext("Buffer.prototype.utf8Slice.call(new Uint8Array([195, 169]), 0, 2)", sandbox)).toBe("é");
 });
 
 beforeAll(async () => {
@@ -430,7 +433,7 @@ it("executes the maintained browser fixture with all top-level workflows in a No
   const sandbox = browserRealm;
   Object.assign(sandbox, { URL, TypeError, console });
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
-  expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox)).toBe("undefined:undefined:undefined");
+  expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox)).toBe("function:undefined:undefined");
   await runInContext(`(async () => { ${result.outputFiles![0]!.text} })()`, sandbox);
 });
 

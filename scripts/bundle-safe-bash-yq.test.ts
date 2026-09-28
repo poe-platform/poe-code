@@ -25,7 +25,7 @@ it("inlines private contracts in the root optional YQ bundle", () => {
   expect(imports.filter(item => item.external && item.path.startsWith("safe-bash-contracts"))).toEqual([]);
 });
 
-it.each(["browser", "workerd"])("runs public optional YQ staged writes without Node globals under %s", async condition => {
+it.each(["browser", "workerd"])("runs public optional YQ staged writes with portable Buffer under %s", async condition => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
   const options = resolveBrowserShellBuild(root);
   const consumer = await build({
@@ -45,7 +45,9 @@ it.each(["browser", "workerd"])("runs public optional YQ staged writes without N
         const shell = new Shell({ fs }).use(yqCommands());
         try {
           const result = await shell.exec("yq -i '.a = 2' /input.yml");
-          return { result, text: new TextDecoder().decode(await fs.readFile("/input.yml")), nodeGlobals: "Buffer" in globalThis || "process" in globalThis };
+          return { result, text: new TextDecoder().decode(await fs.readFile("/input.yml")),
+            nodeGlobals: "process" in globalThis || "require" in globalThis,
+            portableBytes: globalThis.Buffer.from("é").toString("hex") };
         } finally { await shell.dispose(); }
       }
     ` },
@@ -69,9 +71,11 @@ it.each(["browser", "workerd"])("runs public optional YQ staged writes without N
   const sandbox = createContext({ TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream,
     ReadableStream, WritableStream, AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask,
     crypto: globalThis.crypto, performance });
+  expect(runInContext("typeof Buffer", sandbox)).toBe("undefined");
   const api = runInContext(`(function(){const module={exports:{}};${consumer.outputFiles![0]!.text};return module.exports;})()`, sandbox);
   const result = await api.run();
   expect(result.result).toMatchObject({ exitCode: 0, stdout: "", stderr: "" });
   expect(result.text).toBe("a: 2\n");
   expect(result.nodeGlobals).toBe(false);
+  expect(result.portableBytes).toBe("c3a9");
 });

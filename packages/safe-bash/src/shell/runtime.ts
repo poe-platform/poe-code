@@ -7771,7 +7771,7 @@ export class Runtime {
         }
         if (w0Plain !== undefined && rawState.functions.has(w0Plain)) {
           const fnBody = rawState.functions.get(w0Plain)!;
-          return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.isSingleSyncLeaf(fnBody.body) && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
+          return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
         }
         const st = stateMonitor(rawState)?.store ?? (stateMonitor(rawState) && (this.budget.limits.maxExpansionBytes === Infinity && this.budget.limits.maxExpansionFields === Infinity) ? requireArrays(rawState) : undefined);
         const arrayAssign = getArrayAssignment(w0);
@@ -8523,18 +8523,6 @@ export class Runtime {
     }
     return true;
   }
-  // A speculative function must not execute a prefix before falling back.
-  // Longer bodies use the executor that resumes at the first async statement.
-  private isSingleSyncLeaf(script: Script): boolean {
-    if (script.lists.length !== 1) return false;
-    const list = script.lists[0]!;
-    if (list.terminator || list.pipelines.length !== 1) return false;
-    const pipeline = list.pipelines[0]!;
-    if (pipeline.negate || pipeline.commands.length !== 1) return false;
-    const command = pipeline.commands[0]!;
-    return command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional";
-  }
-
   private canSyncScriptCompound(script: Script, rawState: State, depth = 0, loopDepth = 0): boolean {
     if (depth > 6 || rawState.noexec) return false;
     // Eligibility depends on current array, scalar, export and extension state.
@@ -11235,7 +11223,7 @@ export class Runtime {
         (this._syncReturnDepth > 0 || ((this.budget.commands + 32) & 2047) >= 32)
       ) {
         const fnBody = rawState.functions.get(w0Plain)!;
-        if (fnBody.kind === "group" && fnBody.redirects.length === 0 && this.isSingleSyncLeaf(fnBody.body)) {
+        if (fnBody.kind === "group" && fnBody.redirects.length === 0) {
           const fnArgs: string[] = [];
           let argsOk = true;
           try {

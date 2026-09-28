@@ -15,7 +15,7 @@ export const xlsxReader: ReaderCapability = {format: "xlsx", async read(input, c
     if (input.bytes.length < 22) throw new PandocError("E_PARSE", "read", "Truncated XLSX archive", "xlsx");
     const {readXlsx, recalculateWorkbook} = await import("safe-bash-command-ssconvert");
     ctx.checkpoint();
-    const workbook = recalculateWorkbook(await readXlsx(input.bytes, context), context, {force: false, ignoreCalculationMode: true});
+    const workbook = await recalculateWorkbook(await readXlsx(input.bytes, context), context, {force: false, ignoreCalculationMode: true});
     const blocks: Block[] = [];
     let nodes = 0;
     for (const sheet of workbook.sheets) {

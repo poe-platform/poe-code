@@ -1300,11 +1300,23 @@ pub fn cherry_pick(
     let parent_oid = &cp_commit.commit.parent[0];
     let head_oid = GitRefManager::resolve(fs, &gdir, "HEAD", None)?;
 
+    // No-commit picks apply to the current index, including earlier picks and staged changes.
+    let our_tree = if no_update_branch {
+        GitIndexManager::acquire(fs, &gdir, |index| {
+            if !index.unmerged_paths().is_empty() {
+                return Err(GitError::unmerged_paths(index.unmerged_paths()));
+            }
+            construct_index_tree(fs, &gdir, index, dry_run)
+        })?
+    } else {
+        head_oid.clone()
+    };
+
     let (merged_tree_oid, conflicts) = merge_trees_3way(
         fs,
         dir,
         &gdir,
-        &head_oid,
+        &our_tree,
         Some(parent_oid),
         oid,
         "HEAD",

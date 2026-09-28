@@ -398,9 +398,6 @@ fn patch(a: &str, b: &str, context: usize) -> String {
 
 pub fn show(fs: &MemoryFs, root: &str, gitdir: &str, target: &str) -> Result<String, GitError> {
     let mut oid = crate::cli_history::resolve(fs, gitdir, target)?;
-    if target.contains(':') {
-        return Ok(String::from_utf8_lossy(&read_blob(fs, gitdir, &oid, None)?.blob).to_string());
-    }
     let mut out = String::new();
     while crate::_read_object(fs, gitdir, &oid, "content")?.obj_type == "tag" {
         let tag = crate::read_tag(fs, gitdir, &oid)?.tag;
@@ -417,6 +414,29 @@ pub fn show(fs: &MemoryFs, root: &str, gitdir: &str, target: &str) -> Result<Str
             out.push('\n');
         }
         oid = tag.object;
+    }
+    match crate::_read_object(fs, gitdir, &oid, "content")?
+        .obj_type
+        .as_str()
+    {
+        "blob" => {
+            out.push_str(&String::from_utf8_lossy(
+                &read_blob(fs, gitdir, &oid, None)?.blob,
+            ));
+            return Ok(out);
+        }
+        "tree" => {
+            out.push_str(&format!("tree {target}\n\n"));
+            for entry in crate::read_tree(fs, gitdir, &oid, None)?.tree {
+                out.push_str(&entry.path);
+                if entry.entry_type == "tree" {
+                    out.push('/');
+                }
+                out.push('\n');
+            }
+            return Ok(out);
+        }
+        _ => {}
     }
     let commit = read_commit(fs, gitdir, &oid)?.commit;
     out.push_str(&format!(

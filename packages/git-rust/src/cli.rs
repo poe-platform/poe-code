@@ -1203,7 +1203,25 @@ pub fn execute_git_cli_with_http(
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 };
             }
-            let Some(&theirs) = sub_args.iter().find(|a| !a.starts_with('-')) else {
+            let mut args = sub_args.iter().copied();
+            let mut message = None;
+            let mut target = None;
+            while let Some(arg) = args.next() {
+                if arg == "-m" || arg == "--message" {
+                    let Some(value) = args.next() else {
+                        return CliResult::err(129, "error: missing merge message\n");
+                    };
+                    message = Some(value);
+                } else if let Some(value) = arg
+                    .strip_prefix("--message=")
+                    .or_else(|| arg.strip_prefix("-m"))
+                {
+                    message = Some(value);
+                } else if !arg.starts_with('-') && target.is_none() {
+                    target = Some(arg);
+                }
+            }
+            let Some(theirs) = target else {
                 return CliResult::err(128, "fatal: No commit specified\n");
             };
             let theirs = match crate::cli_history::resolve_commit(fs, &gitdir, theirs) {
@@ -1211,8 +1229,12 @@ pub fn execute_git_cli_with_http(
                 Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
             };
             let author = Author {
-                name: "Git User".to_string(),
-                email: "user@example.com".to_string(),
+                name: get_config(fs, &gitdir, "user.name")
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_else(|| "Git User".to_string()),
+                email: get_config(fs, &gitdir, "user.email")
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_else(|| "user@example.com".to_string()),
                 timestamp: 1502484200,
                 timezone_offset: 0.0,
             };
@@ -1227,7 +1249,7 @@ pub fn execute_git_cli_with_http(
                 false,
                 false,
                 false,
-                None,
+                message,
                 Some(author),
                 None,
             ) {
@@ -1253,34 +1275,55 @@ pub fn execute_git_cli_with_http(
             }
         }
         "cherry-pick" => {
-            let Some(&theirs) = sub_args.iter().find(|a| !a.starts_with('-')) else {
+            let revisions: Vec<_> = sub_args
+                .iter()
+                .copied()
+                .filter(|a| !a.starts_with('-'))
+                .collect();
+            if revisions.is_empty() {
                 return CliResult::err(128, "fatal: No commit specified\n");
-            };
-            let theirs = match crate::cli_history::resolve_commit(fs, &gitdir, theirs) {
-                Ok(oid) => oid,
-                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
-            };
-            let author = Author {
-                name: "Git User".to_string(),
-                email: "user@example.com".to_string(),
+            }
+            let mut oids = Vec::new();
+            for revision in revisions {
+                match crate::cli_history::resolve_commit(fs, &gitdir, revision) {
+                    Ok(oid) => oids.push(oid),
+                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                }
+            }
+            let committer = Author {
+                name: get_config(fs, &gitdir, "user.name")
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_else(|| "Git User".to_string()),
+                email: get_config(fs, &gitdir, "user.email")
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_else(|| "user@example.com".to_string()),
                 timestamp: 1502484200,
                 timezone_offset: 0.0,
             };
-            match cherry_pick(
-                fs,
-                Some(&repo_root),
-                &gitdir,
-                &theirs,
-                false,
-                false,
-                false,
-                None,
-                Some(author),
-                None,
-            ) {
-                Ok(oid) => CliResult::ok(format!("[{}]\n", &oid[..7])),
-                Err(e) => CliResult::err(1, format!("error: {}\n", e.message)),
+            let no_commit = sub_args.contains(&"-n") || sub_args.contains(&"--no-commit");
+            let mut out = String::new();
+            for oid in oids {
+                match cherry_pick(
+                    fs,
+                    Some(&repo_root),
+                    &gitdir,
+                    &oid,
+                    no_commit,
+                    false,
+                    false,
+                    None,
+                    None,
+                    Some(committer.clone()),
+                ) {
+                    Ok(oid) => {
+                        if !no_commit {
+                            out.push_str(&format!("[{}]\n", &oid[..7]));
+                        }
+                    }
+                    Err(e) => return CliResult::err(1, format!("error: {}\n", e.message)),
+                }
             }
+            CliResult::ok(out)
         }
         "stash" => {
             let op = match sub_args.first().copied() {
@@ -1365,29 +1408,69 @@ pub fn execute_git_cli_with_http(
             if sub_args.contains(&"--is-inside-work-tree") {
                 return CliResult::ok(format!("{}\n", fs.exists(&gitdir)));
             }
-            let Some(&target) = positionals.last() else {
+            if positionals.is_empty() {
                 return CliResult::err(128, "fatal: missing revision\n");
-            };
-            if sub_args.contains(&"--abbrev-ref") {
-                return match current_branch(fs, &gitdir, false, false) {
-                    Ok(branch) if target == "HEAD" || target == "@" => CliResult::ok(format!(
-                        "{}\n",
-                        branch.unwrap_or_else(|| "HEAD".to_string())
-                    )),
-                    _ => CliResult::ok(format!("{}\n", target.trim_start_matches("refs/heads/"))),
-                };
             }
-            match crate::cli_history::resolve(fs, &gitdir, target) {
-                Ok(oid) => CliResult::ok(format!(
-                    "{}\n",
-                    if sub_args.contains(&"--short") {
-                        &oid[..7]
-                    } else {
-                        &oid
+            let mut short = None;
+            for arg in sub_args {
+                if *arg == "--short" {
+                    short = Some(7);
+                } else if let Some(value) = arg.strip_prefix("--short=") {
+                    let Ok(length) = value.parse::<usize>() else {
+                        return CliResult::err(128, "fatal: invalid abbreviation length\n");
+                    };
+                    short = Some(length.clamp(4, 40));
+                }
+            }
+            let abbrev = sub_args.contains(&"--abbrev-ref");
+            let symbolic = sub_args.contains(&"--symbolic-full-name");
+            let mut out = String::new();
+            for target in positionals {
+                let oid = match crate::cli_history::resolve(fs, &gitdir, target) {
+                    Ok(oid) => oid,
+                    Err(_) => {
+                        return CliResult::err(
+                            128,
+                            format!("fatal: ambiguous argument '{target}'\n"),
+                        );
                     }
-                )),
-                Err(_) => CliResult::err(128, format!("fatal: ambiguous argument '{target}'\n")),
+                };
+                if abbrev || symbolic {
+                    let full = if target == "HEAD" || target == "@" {
+                        current_branch(fs, &gitdir, true, false)
+                            .ok()
+                            .flatten()
+                            .or(Some("HEAD".to_string()))
+                    } else {
+                        crate::GitRefManager::expand(fs, &gitdir, target)
+                            .ok()
+                            .filter(|name| name.starts_with("refs/"))
+                    };
+                    if let Some(full) = full {
+                        let name = if abbrev {
+                            full.strip_prefix("refs/heads/")
+                                .or_else(|| full.strip_prefix("refs/tags/"))
+                                .or_else(|| full.strip_prefix("refs/remotes/"))
+                                .unwrap_or(&full)
+                        } else {
+                            &full
+                        };
+                        out.push_str(name);
+                        out.push('\n');
+                    }
+                } else {
+                    let mut length = short.unwrap_or(oid.len());
+                    while length < oid.len()
+                        && crate::expand_oid(fs, &gitdir, &oid[..length]).ok().as_ref()
+                            != Some(&oid)
+                    {
+                        length += 1;
+                    }
+                    out.push_str(&oid[..length]);
+                    out.push('\n');
+                }
             }
+            CliResult::ok(out)
         }
         "cat-file" => {
             let Some(&target) = positionals.last() else {

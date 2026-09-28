@@ -11883,7 +11883,7 @@ export class Runtime {
             if (w0Plain === "head" || w0Plain === "tail") {
               const validHT =
                 opCount === 0 ||
-                (opCount === 1 && op0 !== undefined && (/^-(?:n|c)?[0-9]{1,5}$/.test(op0) || (w0Plain === "tail" && /^-n\+[0-9]{1,5}$/.test(op0)) || (w0Plain === "head" && /^-n-[0-9]{1,5}$/.test(op0)))) ||
+                (opCount === 1 && op0 !== undefined && (/^-(?:n|c|--lines=|--bytes=)?[0-9]{1,5}$/.test(op0) || /^--(?:lines|bytes)=[0-9]{1,5}$/.test(op0) || (w0Plain === "tail" && /^(?:-n|--lines=)\+[0-9]{1,5}$/.test(op0)) || (w0Plain === "head" && /^(?:-n|--lines=)-[0-9]{1,5}$/.test(op0)))) ||
                 (opCount === 2 && ((op0 === "-n" && op1 !== undefined && (/^[0-9]{1,5}$/.test(op1) || (w0Plain === "tail" && /^\+[0-9]{1,5}$/.test(op1)) || (w0Plain === "head" && /^-[0-9]{1,5}$/.test(op1)))) || (op0 === "-c" && op1 !== undefined && /^[0-9]{1,5}$/.test(op1))));
               if (!validHT) return false;
             }
@@ -11991,7 +11991,7 @@ export class Runtime {
             } else if (sName === "wc") {
               if (sPlainArgs.length !== 1 || (sPlainArgs[0] !== "-l" && sPlainArgs[0] !== "-c" && sPlainArgs[0] !== "-w" && sPlainArgs[0] !== "-m" && sPlainArgs[0] !== "-L")) return false;
             } else if (sName === "head" || sName === "tail") {
-              const okHT = sPlainArgs.length === 0 || (sPlainArgs.length === 1 && (/^-(?:n|c)?[0-9]{1,5}$/.test(sPlainArgs[0]!) || (sName === "tail" && /^-n\+[0-9]{1,5}$/.test(sPlainArgs[0]!)) || (sName === "head" && /^-n-[0-9]{1,5}$/.test(sPlainArgs[0]!)))) || (sPlainArgs.length === 2 && ((sPlainArgs[0] === "-n" && (/^[0-9]{1,5}$/.test(sPlainArgs[1]!) || (sName === "tail" && /^\+[0-9]{1,5}$/.test(sPlainArgs[1]!)) || (sName === "head" && /^-[0-9]{1,5}$/.test(sPlainArgs[1]!)))) || (sPlainArgs[0] === "-c" && /^[0-9]{1,5}$/.test(sPlainArgs[1]!))));
+              const okHT = sPlainArgs.length === 0 || (sPlainArgs.length === 1 && (/^-(?:n|c)?[0-9]{1,5}$/.test(sPlainArgs[0]!) || /^--(?:lines|bytes)=[0-9]{1,5}$/.test(sPlainArgs[0]!) || (sName === "tail" && /^(?:-n|--lines=)\+[0-9]{1,5}$/.test(sPlainArgs[0]!)) || (sName === "head" && /^(?:-n|--lines=)-[0-9]{1,5}$/.test(sPlainArgs[0]!)))) || (sPlainArgs.length === 2 && ((sPlainArgs[0] === "-n" && (/^[0-9]{1,5}$/.test(sPlainArgs[1]!) || (sName === "tail" && /^\+[0-9]{1,5}$/.test(sPlainArgs[1]!)) || (sName === "head" && /^-[0-9]{1,5}$/.test(sPlainArgs[1]!)))) || (sPlainArgs[0] === "-c" && /^[0-9]{1,5}$/.test(sPlainArgs[1]!))));
               if (!okHT) return false;
             } else if (sName === "cut") {
               if (this.evalSyncCut([], sPlainArgs, byteLocale(rawState.variables)) === undefined) return false;
@@ -22762,6 +22762,25 @@ export class Runtime {
       if (item && typeof item === "object") return Object.keys(item).sort();
       return undefined;
     }
+    if (st === "values") {
+      return item === null || item === undefined ? [] : [item];
+    }
+    const hasM = /^has\(\s*"([^"\\]+)"\s*\)$/.exec(st);
+    if (hasM) {
+      if (item && typeof item === "object" && !Array.isArray(item)) return [Object.hasOwn(item, hasM[1]!)];
+      return undefined;
+    }
+    const mapM = /^map\(\s*(.+)\s*\)$/.exec(st);
+    if (mapM) {
+      if (!Array.isArray(item)) return undefined;
+      const mapped: unknown[] = [];
+      for (const el of item) {
+        const subRes = this.evalSyncJqPathOps(el, mapM[1]!);
+        if (subRes === undefined) return undefined;
+        for (const v of subRes) mapped.push(v);
+      }
+      return [mapped];
+    }
     const selM = /^select\(\s*(\.[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?:(==|!=|>=|<=|>|<)\s*(.+))?\s*\)$/.exec(st);
     if (selM) {
       const fVals = this.evalSyncJqPathOps(item, selM[1]!);
@@ -22866,9 +22885,34 @@ export class Runtime {
         return undefined;
       }
     }
-    const stages = filter.split("|").map(s => s.trim());
+    const trimmedFilter = filter.trim();
+    if (trimmedFilter.startsWith("[") && trimmedFilter.endsWith("]")) {
+      const innerFilter = trimmedFilter.slice(1, -1).trim();
+      const innerArgs = rawOut || compactOut ? [compactOut ? "-c" : "-r", innerFilter] : [innerFilter];
+      const outArrays: unknown[] = [];
+      for (const item of current) {
+        const innerStages = innerFilter.split("|").map(s => s.trim());
+        let subCur: unknown[] = [item];
+        for (const st of innerStages) {
+          const commaParts = (st.startsWith("select(") || st.startsWith("map(")) ? [st] : st.split(",").map(s => s.trim());
+          const next: unknown[] = [];
+          for (const it of subCur) {
+            for (const part of commaParts) {
+              const res = this.evalSyncJqPathOps(it, part);
+              if (res === undefined) return undefined;
+              for (const v of res) next.push(v);
+            }
+          }
+          subCur = next;
+        }
+        outArrays.push(subCur);
+      }
+      void innerArgs;
+      return outArrays.map(val => JSON.stringify(val ?? null, null, compactOut ? undefined : 2));
+    }
+    const stages = trimmedFilter.split("|").map(s => s.trim());
     for (const st of stages) {
-      const commaParts = st.startsWith("select(") ? [st] : st.split(",").map(s => s.trim());
+      const commaParts = (st.startsWith("select(") || st.startsWith("map(")) ? [st] : st.split(",").map(s => s.trim());
       const next: unknown[] = [];
       for (const item of current) {
         for (const part of commaParts) {
@@ -23084,7 +23128,7 @@ export class Runtime {
       | { kind: "d" }
       | { kind: "p" }
       | { kind: "y"; map: Map<string, string> }
-      | { kind: "s"; anchorStart: boolean; anchorEnd: boolean; core: string; rep: string; global: boolean });
+      | { kind: "s"; re: RegExp; rep: string });
     const steps: SedStep[] = [];
     for (const rawE of subExprs) {
       let rest = rawE;
@@ -23144,15 +23188,28 @@ export class Runtime {
         const parts = rest.slice(2).split(delim);
         if (parts.length !== 3) return undefined;
         const [pat, rep, flags] = parts as [string, string, string];
-        if ((flags !== "" && flags !== "g") || /[\\\n]/.test(rep)) return undefined;
+        if (!/^[giI]*$/.test(flags) || /[\\\n]/.test(rep)) return undefined;
+        const global = flags.includes("g");
+        const ignoreCase = flags.includes("i") || flags.includes("I");
         const anchorStart = pat.startsWith("^");
         const core1 = anchorStart ? pat.slice(1) : pat;
         const anchorEnd = core1.endsWith("$");
         const core = anchorEnd ? core1.slice(0, -1) : core1;
         if (core.length === 0 && !anchorStart && !anchorEnd) return undefined;
-        if (!/^[a-zA-Z0-9_ :;,=-]*$/.test(core)) return undefined;
-        const effRep = rep.includes("&") ? rep.split("&").join(core) : rep;
-        steps.push({ addr, kind: "s", anchorStart, anchorEnd, core, rep: effRep, global: flags === "g" });
+        let reSrc: string | undefined;
+        if (/^[a-zA-Z0-9_ :;,=-]*$/.test(core)) {
+          reSrc = core.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        } else if (
+          core === "[ \t]*" || core === "[ \t]+" || core === "[ \\t]*" || core === "[ \\t]+" ||
+          core === "[[:space:]]*" || core === "[[:space:]]+" ||
+          core === "[0-9]+" || core === "[0-9]*" ||
+          core === "[a-zA-Z]+" || core === "[a-zA-Z0-9_]+"
+        ) {
+          reSrc = core.replace("[[:space:]]", "[ \\t\\r\\n\\v\\f]");
+        }
+        if (reSrc === undefined) return undefined;
+        const fullRe = new RegExp((anchorStart ? "^" : "") + reSrc + (anchorEnd ? "$" : ""), (global ? "g" : "") + (ignoreCase ? "i" : ""));
+        steps.push({ addr, kind: "s", re: fullRe, rep });
         continue;
       }
       return undefined;
@@ -23178,18 +23235,7 @@ export class Runtime {
           l = Array.from(l).map(c => st.map.get(c) ?? c).join("");
           continue;
         }
-        if (st.anchorStart && st.anchorEnd) {
-          if (l === st.core) l = st.rep;
-        } else if (st.anchorStart) {
-          if (l.startsWith(st.core)) l = st.rep + l.slice(st.core.length);
-        } else if (st.anchorEnd) {
-          if (l.endsWith(st.core)) l = l.slice(0, l.length - st.core.length) + st.rep;
-        } else if (st.global) {
-          l = l.split(st.core).join(st.rep);
-        } else {
-          const pos = l.indexOf(st.core);
-          if (pos !== -1) l = l.slice(0, pos) + st.rep + l.slice(pos + st.core.length);
-        }
+        l = l.replace(st.re, matched => st.rep.includes("&") ? st.rep.split("&").join(matched) : st.rep);
       }
       if (!deleted && !quiet) out.push(l);
     }
@@ -23314,17 +23360,46 @@ export class Runtime {
   }
 
   private evalSyncAwk(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
-    if (opArgs.length < 1 || opArgs.length > 3) return undefined;
-    const norm = opArgs.length === 3 && opArgs[0] === "-F" ? ["-F" + opArgs[1]!, opArgs[2]!] : opArgs;
+    if (opArgs.length < 1 || opArgs.length > 8) return undefined;
     let awkSep: string | undefined;
     let awkProg: string | undefined;
-    if (norm.length === 1) awkProg = norm[0]!;
-    else if (norm.length === 2 && norm[0]!.length === 3 && norm[0]!.startsWith("-F") && norm[0]![2] !== "\\") {
-      awkSep = norm[0]!.slice(2);
-      awkProg = norm[1]!;
+    let ofs = " ";
+    const userVars = new Map<string, string>();
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a === "-F") {
+        if (i + 1 >= opArgs.length || opArgs[i + 1]!.length !== 1 || opArgs[i + 1] === "\\") return undefined;
+        awkSep = opArgs[++i]!;
+      } else if (a.startsWith("-F") && a.length === 3 && a[2] !== "\\") {
+        awkSep = a.slice(2);
+      } else if (a === "-v") {
+        if (i + 1 >= opArgs.length) return undefined;
+        const kv = opArgs[++i]!;
+        const eq = kv.indexOf("=");
+        if (eq <= 0 || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(kv.slice(0, eq))) return undefined;
+        const k = kv.slice(0, eq);
+        const v = kv.slice(eq + 1);
+        if (v.includes("\\")) return undefined;
+        if (k === "OFS") ofs = v;
+        else if (k === "FS") { if (v.length !== 1) return undefined; awkSep = v; }
+        else userVars.set(k, v);
+      } else if (a.startsWith("-v") && a.length > 2) {
+        const kv = a.slice(2);
+        const eq = kv.indexOf("=");
+        if (eq <= 0 || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(kv.slice(0, eq))) return undefined;
+        const k = kv.slice(0, eq);
+        const v = kv.slice(eq + 1);
+        if (v.includes("\\")) return undefined;
+        if (k === "OFS") ofs = v;
+        else if (k === "FS") { if (v.length !== 1) return undefined; awkSep = v; }
+        else userVars.set(k, v);
+      } else if (!a.startsWith("-") && i === opArgs.length - 1) {
+        awkProg = a;
+      } else {
+        return undefined;
+      }
     }
     if (!awkProg) return undefined;
-    let ofs = " ";
     let progRest = awkProg.trim();
     const beginFsM = /^BEGIN\s*\{([^}]*)\}\s*/.exec(progRest);
     let initVarName: string | undefined;
@@ -23382,13 +23457,16 @@ export class Runtime {
       rowPred = (l: string) => aS && aE ? l === core : aS ? l.startsWith(core) : aE ? l.endsWith(core) : l.includes(core);
       progRest = progRest.slice(patCondM[0]!.length).trim();
     } else {
-      const cmpCondM = /^(?:(NR|NF)|\$([0-9]+|NF))\s*(==|!=|>=|<=|>|<)\s*(?:"([^"\\]*)"|(-?[0-9]+(?:\.[0-9]+)?))\s*/.exec(progRest);
+      const cmpCondM = /^(?:(NR|NF)|\$([0-9]+|NF))\s*(==|!=|>=|<=|>|<)\s*(?:"([^"\\]*)"|(-?[0-9]+(?:\.[0-9]+)?)|([a-zA-Z_][a-zA-Z0-9_]*))\s*/.exec(progRest);
       if (cmpCondM) {
         const nrNf = cmpCondM[1] as "NR" | "NF" | undefined;
         const fTok = cmpCondM[2];
         const op = cmpCondM[3]!;
-        const strRhs = cmpCondM[4];
-        const numRhs = cmpCondM[5] !== undefined ? Number(cmpCondM[5]) : undefined;
+        const varRhs = cmpCondM[6] !== undefined ? userVars.get(cmpCondM[6]!) : undefined;
+        if (cmpCondM[6] !== undefined && varRhs === undefined) return undefined;
+        const varAsNum = varRhs !== undefined && /^-?(?:\d+(?:\.\d*)?|\.\d+)$/.test(varRhs) ? Number(varRhs) : undefined;
+        const strRhs = cmpCondM[4] ?? (varAsNum === undefined ? varRhs : undefined);
+        const numRhs = cmpCondM[5] !== undefined ? Number(cmpCondM[5]) : varAsNum;
         if (strRhs !== undefined && op !== "==" && op !== "!=") return undefined;
         rowPred = (l: string, fields: readonly string[], nr: number) => {
           let rawVal: string | number;
@@ -23409,7 +23487,7 @@ export class Runtime {
         progRest = progRest.slice(cmpCondM[0]!.length).trim();
       }
     }
-    const itemPat = `(?:\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|"[^"$\\\\]*")`;
+    const itemPat = `(?:\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|[a-zA-Z_][a-zA-Z0-9_]*|"[^"$\\\\]*")`;
     const awkM = new RegExp(`^\\{\\s*print(?:\\s+(${itemPat}(?:\\s*,?\\s*${itemPat})*))?\\s*;?\\s*\\}\\s*$`).exec(progRest);
     if (!awkM) return undefined;
     const exprBody = awkM[1]?.trim();
@@ -23423,7 +23501,7 @@ export class Runtime {
     if (!exprBody) {
       parts.push({ kind: "field", token: "0" });
     } else {
-      const tokenRe = /\$\(NF\s*-\s*([0-9]+)\)|\$([0-9]+|NF)|length(?:\(\$([0-9]+|NF)\))?|(NR|NF)|"([^"$\\]*)"|(,)/g;
+      const tokenRe = /\$\(NF\s*-\s*([0-9]+)\)|\$([0-9]+|NF)|length(?:\(\$([0-9]+|NF)\))?|(NR|NF)|"([^"$\\]*)"|([a-zA-Z_][a-zA-Z0-9_]*)|(,)/g;
       let m: RegExpExecArray | null;
       while ((m = tokenRe.exec(exprBody)) !== null) {
         if (m[1] !== undefined) parts.push({ kind: "nf_minus", offset: Number(m[1]!) });
@@ -23431,7 +23509,12 @@ export class Runtime {
         else if (m[0].startsWith("length")) parts.push({ kind: "length", token: m[3] ?? "0" });
         else if (m[4] !== undefined) parts.push({ kind: "var", name: m[4] as "NR" | "NF" });
         else if (m[5] !== undefined) parts.push({ kind: "lit", text: m[5]! });
-        else if (m[6] !== undefined) parts.push({ kind: "lit", text: ofs });
+        else if (m[6] !== undefined) {
+          const uv = userVars.get(m[6]!);
+          if (uv === undefined) return undefined;
+          parts.push({ kind: "lit", text: uv });
+        }
+        else if (m[7] !== undefined) parts.push({ kind: "lit", text: ofs });
       }
     }
     const outLines: string[] = [];
@@ -23805,9 +23888,9 @@ export class Runtime {
         } else if (sName === "head" || sName === "tail") {
           if (sArgs.length === 0) {
             sArgs.push("-n", "10");
-          } else if (sArgs.length === 1 && (/^-(?:n|c)?[0-9]+$/.test(sArgs[0]!) || (sName === "tail" && /^-n\+[0-9]+$/.test(sArgs[0]!)) || (sName === "head" && /^-n-[0-9]+$/.test(sArgs[0]!)))) {
-            const flag = sArgs[0]!.startsWith("-c") ? "-c" : "-n";
-            const numStr = (sArgs[0]!.startsWith("-n") || sArgs[0]!.startsWith("-c")) ? sArgs[0]!.slice(2) : sArgs[0]!.slice(1);
+          } else if (sArgs.length === 1 && (/^-(?:n|c)?[0-9]+$/.test(sArgs[0]!) || /^--(?:lines|bytes)=[0-9]+$/.test(sArgs[0]!) || (sName === "tail" && /^(?:-n|--lines=)\+[0-9]+$/.test(sArgs[0]!)) || (sName === "head" && /^(?:-n|--lines=)-[0-9]+$/.test(sArgs[0]!)))) {
+            const flag = (sArgs[0]!.startsWith("-c") || sArgs[0]!.startsWith("--bytes=")) ? "-c" : "-n";
+            const numStr = sArgs[0]!.startsWith("--") ? sArgs[0]!.slice(sArgs[0]!.indexOf("=") + 1) : ((sArgs[0]!.startsWith("-n") || sArgs[0]!.startsWith("-c")) ? sArgs[0]!.slice(2) : sArgs[0]!.slice(1));
             sArgs.length = 0;
             sArgs.push(flag, numStr);
           }
@@ -24245,8 +24328,13 @@ export class Runtime {
               let count: number | undefined = opArgs.length === 0 ? 10 : undefined;
               let byteCount: number | undefined;
               let countRaw: string | undefined = opArgs.length === 0 ? "10" : undefined;
-              if (opArgs.length === 1 && opArgs[0]!.startsWith("-n") && (/^[0-9]{1,5}$/.test(opArgs[0]!.slice(2)) || (w0Plain === "tail" && /^\+[0-9]{1,5}$/.test(opArgs[0]!.slice(2))) || (w0Plain === "head" && /^-[0-9]{1,5}$/.test(opArgs[0]!.slice(2))))) countRaw = opArgs[0]!.slice(2);
-              else if (opArgs.length === 1 && opArgs[0]!.startsWith("-c") && /^[0-9]{1,5}$/.test(opArgs[0]!.slice(2))) byteCount = Number(opArgs[0]!.slice(2));
+              if (opArgs.length === 1 && (opArgs[0]!.startsWith("-n") || opArgs[0]!.startsWith("--lines="))) {
+                const sub = opArgs[0]!.startsWith("--lines=") ? opArgs[0]!.slice(8) : opArgs[0]!.slice(2);
+                if (/^[0-9]{1,5}$/.test(sub) || (w0Plain === "tail" && /^\+[0-9]{1,5}$/.test(sub)) || (w0Plain === "head" && /^-[0-9]{1,5}$/.test(sub))) countRaw = sub;
+              } else if (opArgs.length === 1 && (opArgs[0]!.startsWith("-c") || opArgs[0]!.startsWith("--bytes="))) {
+                const sub = opArgs[0]!.startsWith("--bytes=") ? opArgs[0]!.slice(8) : opArgs[0]!.slice(2);
+                if (/^[0-9]{1,5}$/.test(sub)) byteCount = Number(sub);
+              }
               else if (opArgs.length === 1 && /^-[0-9]{1,5}$/.test(opArgs[0]!)) countRaw = opArgs[0]!.slice(1);
               else if (opArgs.length === 2 && opArgs[0] === "-n" && (/^[0-9]{1,5}$/.test(opArgs[1]!) || (w0Plain === "tail" && /^\+[0-9]{1,5}$/.test(opArgs[1]!)) || (w0Plain === "head" && /^-[0-9]{1,5}$/.test(opArgs[1]!)))) countRaw = opArgs[1]!;
               else if (opArgs.length === 2 && opArgs[0] === "-c" && /^[0-9]{1,5}$/.test(opArgs[1]!)) byteCount = Number(opArgs[1]!);

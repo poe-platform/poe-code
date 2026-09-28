@@ -838,3 +838,38 @@ test("Wave 107: trySyncLoop supports awk /pat/ and $k conditions, grep -w and mu
     await shell.dispose();
   }
 });
+
+test("Wave 108: trySyncLoop supports sed whitespace/digit regexes and /i flag, awk -v var=val, jq map/has/[...], and head/tail --lines=", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const { createStructuredCommands } = await import("../../src/commands/structured/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands(), ...createStructuredCommands()]),
+  });
+  try {
+    const script = [
+      "raw=\"   Hello World 123   \"",
+      "rows=$\x27app 150\\ncache 50\\ndb 200\x27",
+      "json=\x27{\"host\":\"web\",\"port\":80,\"items\":[{\"id\":\"a\"},{\"id\":\"b\"}]}\x27",
+      "lines=$\x27L1\\nL2\\nL3\\nL4\x27",
+      "out=\"\"",
+      "for ((i=1; i<=20; i++)); do",
+      "  t=$(sed \x27s/^[ \\t]*//; s/[ \\t]*$//; s/hello/HI/gi\x27 <<< \"$raw\")",
+      "  av=$(awk -v p=\"svc=\" -v min=100 \x27$2 >= min {print p $1}\x27 <<< \"$rows\")",
+      "  jm=$(jq -c \x27.items | map(.id)\x27 <<< \"$json\")",
+      "  jh=$(jq -r \x27has(\"host\")\x27 <<< \"$json\")",
+      "  ja=$(jq -c \x27[.host, .port]\x27 <<< \"$json\")",
+      "  hl=$(head --lines=2 <<< \"$lines\")",
+      "  tl=$(tail --lines=+3 <<< \"$lines\")",
+      "  out=\"$t|${av//$\x27\\n\x27/,}|$jm|$jh|$ja|${hl//$\x27\\n\x27/,}|${tl//$\x27\\n\x27/,}\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "HI World 123|svc=app,svc=db|[\"a\",\"b\"]|true|[\"web\",80]|L1,L2|L3,L4\n");
+  } finally {
+    await shell.dispose();
+  }
+});

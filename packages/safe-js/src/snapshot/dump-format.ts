@@ -1,3 +1,5 @@
+import { createWeakSnapshotGraph } from "./weak-graph.js";
+import type { WeakCollectionKey } from "../interp/weak-collection.js";
 export const DUMP_FORMAT_VERSION = 2;
 export const inMemoryRunSnapshots = new WeakSet<object>();
 import { getRegexProperties, isSandboxClosure, isSandboxPromise, isSandboxRegex, type SandboxPromise } from "../interp/values.js";
@@ -73,6 +75,9 @@ type DumpState = {
   heapIds: Map<object | symbol, number>;
   serializedHeapIds: Set<number>;
   guestValues: Set<object>;
+  weakEntries: Map<object, Array<[WeakCollectionKey, unknown]>>;
+  weakTargets: Map<object, object | symbol>;
+  finalizationTargets: Map<object, Array<{target?: object | symbol; token?: object | symbol}>>;
   pendingGuests: Array<{ value: object; path: string; id: number }>;
 };
 
@@ -167,7 +172,7 @@ function createDumpFile(snapshot: DumpableSnapshot): Record<string, DumpValue> {
       const serialized = serializeDumpValue(entry, `${path}.<guest>`, state);
       if (serialized === SKIP_VALUE) throw new TypeError(`Unsupported guest graph value at ${path}.`);
       return serialized;
-    });
+    }, state.weakEntries.get(value), state.weakTargets.get(value), state.finalizationTargets.get(value));
     if (node === undefined) throw new TypeError(`Missing guest heap node at ${path}.`);
     state.heap[String(id)] = node;
   }
@@ -399,19 +404,23 @@ function serializeObjectEntries(
   return serialized;
 }
 
-function indexHeapContainers(snapshot: DumpableSnapshot): Pick<DumpState, "heapIds" | "guestValues"> {
+function indexHeapContainers(snapshot: DumpableSnapshot): Pick<DumpState, "heapIds" | "guestValues" | "weakEntries" | "weakTargets" | "finalizationTargets"> {
   const stats = new Map<object, ContainerStat>();
   const ancestors = new WeakSet<object>();
   const guestValues = new Set<object>();
+  const trusted = inMemoryRunSnapshots.has(snapshot);
+  const weakGraph = createWeakSnapshotGraph(value => stats.has(value), value => { stats.get(value)!.forceHeap = true; },
+    (value, depth, reached) => collectContainerStats(value, stats, ancestors, guestValues, trusted, depth, reached));
 
   for (const [key, value] of getEnumerableDataEntries(snapshot)) {
     if (key === "version" || key === "sourceHash" || key === "heap") {
       continue;
     }
 
-    collectContainerStats(value, stats, ancestors, guestValues, inMemoryRunSnapshots.has(snapshot));
+    collectContainerStats(value, stats, ancestors, guestValues, trusted, 0, weakGraph.reached);
   }
 
+  const weakState = weakGraph.finish(guestValues);
   const heapIds = new Map<object | symbol, number>();
   let nextId = 1;
   for (const [value, stat] of stats.entries()) {
@@ -439,7 +448,7 @@ function indexHeapContainers(snapshot: DumpableSnapshot): Pick<DumpState, "heapI
     }
   }
 
-  return { heapIds, guestValues };
+  return { heapIds, guestValues, ...weakState };
 }
 
 function collectContainerStats(
@@ -448,7 +457,8 @@ function collectContainerStats(
   ancestors: WeakSet<object>,
   guestValues: Set<object>,
   trustedRunReplay: boolean,
-  depth = 0
+  depth = 0,
+  reached?: (value: WeakCollectionKey, depth: number) => void
 ): void {
   const pending: Array<{ value: unknown; depth: number; exiting?: boolean; forceHeap?: boolean }> = [{ value, depth }];
   while (pending.length > 0) {
@@ -458,6 +468,7 @@ function collectContainerStats(
       ancestors.delete(value as object);
       continue;
     }
+    if (typeof value === "symbol") { reached?.(value, depth); continue; }
     if (value === null || typeof value !== "object") {
       continue;
     }
@@ -472,6 +483,7 @@ function collectContainerStats(
         expanded: false
       };
       stats.set(value, stat);
+      reached?.(value, depth);
     }
 
     if (frame.forceHeap) stat.forceHeap = true;
@@ -539,6 +551,7 @@ function collectContainerStats(
       pending.push({ value: entry, depth: depth + 1 });
     }
     for (const key of ownSerializableSymbolKeys(value)) {
+      reached?.(key, depth + 1);
       const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
       if ("value" in descriptor)
         pending.push({ value: descriptor.value, depth: depth + 1 });

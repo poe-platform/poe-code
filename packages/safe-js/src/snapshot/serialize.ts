@@ -1,10 +1,8 @@
-import { weakReferenceStates } from "../interp/weak-reference.js";
+import { createWeakSnapshotGraph } from "./weak-graph.js";
 import { getIntrinsicRealmIdentity } from "../interp/intrinsics.js";
 import { getFunctionRealmPrototype } from "../interp/function-realm.js";
-import { finalizationRegistryStates } from "../interp/finalization-registry-state.js";
-import { wellKnownSymbols } from "../interp/symbols.js";
 import { hashSource } from "../parse/hash.js";
-import { weakCollectionStates, type WeakCollectionKey } from "../interp/weak-collection.js";
+import { type WeakCollectionKey } from "../interp/weak-collection.js";
 import type { PropertyDescriptorData } from "./property-descriptors.js";
 import { serializeCollectionProperties } from "./collection-properties.js";
 import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
@@ -734,39 +732,9 @@ function indexHeapContainers(input: SerializeInput): Pick<SerializationState, "h
   >();
   const ancestors = new WeakSet<object>();
   const guestValues = new Set<object>();
-  const weakEntries = new Map<object, Array<[WeakCollectionKey, unknown]>>();
-  const seenSymbols = new Set<symbol>();
-  type Contribution = { owner: object; key: WeakCollectionKey; value: unknown; depth: number };
-  const waiting = new Map<WeakCollectionKey, Contribution[]>();
-  const ready: Contribution[] = [];
-  const reached = (value: WeakCollectionKey, depth: number) => {
-    if (typeof value === "symbol") {
-      if (seenSymbols.has(value)) return;
-      seenSymbols.add(value);
-    }
-    const unlocked = waiting.get(value);
-    if (unlocked !== undefined) {
-      for (const contribution of unlocked) ready.push(contribution);
-      waiting.delete(value);
-    }
-    if (typeof value === "symbol") return;
-    const weakState = weakCollectionStates.get(value);
-    if (weakState === undefined) return;
-    weakEntries.set(value, []);
-    for (const reference of weakState.references) {
-      const key = reference.deref();
-      if (key === undefined) continue;
-      const entry = weakState.entries.get(key);
-      if (entry === undefined) continue;
-      const contribution = { owner: value, key, value: weakState.kind === "map" ? entry.value : undefined, depth: depth + 1 };
-      if (typeof key === "symbol" ? seenSymbols.has(key) || Object.values(wellKnownSymbols).includes(key) : stats.has(key)) ready.push(contribution);
-      else {
-        const pending = waiting.get(key);
-        if (pending === undefined) waiting.set(key, [contribution]);
-        else pending.push(contribution);
-      }
-    }
-  };
+  const weakGraph = createWeakSnapshotGraph(value => stats.has(value), value => { stats.get(value)!.forceHeap = true; },
+    (value, depth, reached) => collectContainerStats(value, stats, ancestors, guestValues, depth, reached));
+  const { reached } = weakGraph;
 
   for (const scope of input.scopeChain) {
     for (const value of Object.values(scope.bindings)) {
@@ -784,32 +752,7 @@ function indexHeapContainers(input: SerializeInput): Pick<SerializationState, "h
     }
   }
 
-  for (let index = 0; index < ready.length; index++) {
-    const contribution = ready[index]!;
-    weakEntries.get(contribution.owner)!.push([contribution.key, contribution.value]);
-    if (typeof contribution.key === "object") stats.get(contribution.key)!.forceHeap = true;
-    collectContainerStats(contribution.value, stats, ancestors, guestValues, contribution.depth, reached);
-    if (contribution.value !== null && typeof contribution.value === "object") {
-      const stat = stats.get(contribution.value);
-      if (stat !== undefined) stat.forceHeap = true;
-    }
-  }
-  const weakTargets = new Map<object, object | symbol>();
-  const finalizationTargets = new Map<object, Array<{target?:object | symbol;token?:object | symbol}>>();
-  const reachableWeakTarget = (target: object | symbol | undefined): object | symbol | undefined => {
-    if (typeof target === "symbol") return seenSymbols.has(target) || Object.values(wellKnownSymbols).includes(target) ? target : undefined;
-    if (target === undefined || !stats.has(target)) return undefined;
-    stats.get(target)!.forceHeap = true;
-    return target;
-  };
-  for (const value of guestValues) {
-    const target = reachableWeakTarget(weakReferenceStates.get(value)?.deref());
-    if (target !== undefined) weakTargets.set(value,target);
-    const finalization = finalizationRegistryStates.get(value);
-    if (finalization !== undefined) finalizationTargets.set(value,[...finalization.state.cells].map(cell => ({
-      target:reachableWeakTarget(cell.target.deref()),token:reachableWeakTarget(cell.token?.deref())
-    })));
-  }
+  const { weakEntries, weakTargets, finalizationTargets } = weakGraph.finish(guestValues);
   const heapIds = new Map<object | symbol, number>();
   let nextId = 1;
   for (const [value, stat] of stats.entries()) {

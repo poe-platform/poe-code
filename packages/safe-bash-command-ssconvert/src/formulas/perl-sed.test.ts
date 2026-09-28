@@ -181,3 +181,63 @@ it("ignores raw-byte next-line pattern whitespace in extended modes", () => {
     expect(perlSed([{ kind: "string", value: "ab" }, { kind: "byte-string", value: prefix + "618562" }, { kind: "string", value: "X" }], host))
       .toEqual({ kind: "string", value: "X" });
 });
+
+
+it.each(["(?i)", "(?-i)", "(?^)", "(?x)", "(?xx)", "(?-)"])(
+  "rejects quantifiers following bare modifier %s", modifier => {
+    for (const quantifier of ["*", "+", "?"])
+      for (const prefix of ["", "a"])
+        expect(() => calculate(expression(["aa", prefix + modifier + quantifier + "a", "X"])))
+          .toThrow("PERL_SED pattern syntax or diagnostic");
+  }
+);
+it.each(["(?x) # comment\n +a", "(?xx) \t?a"])(
+  "rejects bare modifier quantifiers after extended whitespace %s", pattern => {
+    expect(() => calculate(expression(["a", pattern, "X"]))).toThrow("PERL_SED pattern syntax or diagnostic");
+  }
+);
+it.each(["(?i:a)+", "(?^:a){1,2}", "(?x:a){1}", "(?xx:a)+", "(?i)a+", "(?i)(?:)+a"])(
+  "keeps scoped groups and subsequent atoms quantifiable %s", pattern => {
+    expect(calculate(expression(["a", pattern, "X"]))).toEqual({ kind: "string", value: "X" });
+  }
+);
+// Outputs checked independently with Perl's byte-mode s/$pattern/X/g.
+it.each([
+  ["\t\n\r", "[\\t-\\r]", "XXX"],
+  ["abcd", "[\\x61-\\x63]", "XXXd"],
+  ["abcd", "[\\x{61}-\\x{63}]", "XXXd"],
+  ["-./01", "[\\--0]", "XXXX1"],
+  ["09:AZ[\\]^", "[0-\\]]", "XXXXXXXX^"],
+  ["\x01\x1f !", "[\\000-\\037]", "XX !"],
+  ["abcd", "[\\o{141}-\\o{143}]", "XXXd"],
+  ["\x01\x02\x03\x04", "[\\cA-\\cC]", "XXX\x04"],
+  ["[\\]^", "[\\\\-\\]]", "[XX^"],
+  ["aAbBcCdD", "(?i)[\\x61-\\x63]", "XXXXXXdD"],
+  ["abcd", "[^\\x61-\\x63]", "abcX"],
+  ["abcd", "(?xx)[ \\x61 - \\x63 ]", "XXXd"],
+  ["-a", "[\\x61-]", "XX"],
+  ["abcd", "[a-\\x63]", "XXXd"],
+  ["abcd", "[\\x61-c]", "XXXd"],
+])("matches decoded literal class range %j %j", (input, pattern, output) => {
+  expect(calculate(expression([input, pattern, "X"]))).toEqual({ kind: "string", value: output });
+});
+it.each(["[\\x63-\\x61]", "[\\r-\\t]", "[\\d-a]", "[a-\\w]", "[[:digit:]-a]", "[a-\\x{100}]"])(
+  "refuses descending or nonliteral byte range %s", pattern => {
+    expect(() => calculate(expression(["abc", pattern, "X"]))).toThrow("PERL_SED pattern syntax or diagnostic");
+  }
+);
+
+// Perl 5.34.1 treats these braces as literal text, not as a quantifier.
+it.each(["(?i)", "(?-i)", "(?^)", "(?x)", "(?xx)"])(
+  "preserves literal brace text after bare modifier %s", modifier => {
+    for (const braces of ["{1}", "{1,2}", "{1,}"])
+      for (const prefix of ["", "a"]) {
+        const pattern = prefix + modifier + braces + "a";
+        expect(calculate(expression(["aa", pattern, "X"]))).toEqual({ kind: "string", value: "aa" });
+        expect(calculate(expression([prefix + braces + "a", pattern, "X"]))).toEqual({ kind: "string", value: "X" });
+      }
+    if (modifier === "(?x)" || modifier === "(?xx)")
+      expect(calculate(expression(["{1}a", modifier + " # comment\n {1}a", "X"])))
+        .toEqual({ kind: "string", value: "X" });
+  }
+);

@@ -5,7 +5,7 @@ import { byteStringValue } from "../../encoding/byte-value.js";
 import type { FunctionHost, Value } from "./types.js";
 
 type Flags = { insensitive: boolean; multiline: boolean; dotall: boolean; extended: 0 | 1 | 2 };
-type Node = { kind: "char"; test: (byte: number) => boolean }
+type Node = { kind: "char"; byte?: number; test: (byte: number) => boolean }
   | { kind: "anchor"; test: (source: string, position: number) => boolean }
   | { kind: "sequence"; nodes: Node[] }
   | { kind: "alternative"; nodes: Node[] }
@@ -32,7 +32,7 @@ function compile(pattern: string, host: FunctionHost): Node {
       throw new SsconvertError("resource-limit", "ssconvert PERL_SED pattern node limit exceeded");
     return value;
   };
-  const literal = (byte: number, mode: Flags) => node({ kind: "char", test: (input: number) => mode.insensitive ? fold(input) === fold(byte) : input === byte } as const);
+  const literal = (byte: number, mode: Flags) => node({ kind: "char", byte, test: (input: number) => mode.insensitive ? fold(input) === fold(byte) : input === byte } as const);
   const identifier = (closing: string) => {
     let name = "";
     while (at < pattern.length && pattern[at] !== closing) {
@@ -178,16 +178,16 @@ function compile(pattern: string, host: FunctionHost): Node {
     ignoreClassSpace();
     while (at < pattern.length && (first || pattern[at] !== "]")) {
       host.tick(); first = false;
-      const start = at, left = take(), leftEnd = at;
+      const left = take();
       ignoreClassSpace();
       if (pattern[at] === "-") {
         at++;
         ignoreClassSpace();
         if (pattern[at] === "]") { tests.push(left, literal(45, mode)); break; }
         if (at === pattern.length) return unsupported();
-        const end = at, right = take();
-        if (at - end !== 1 || leftEnd - start !== 1 || left.kind !== "char" || right.kind !== "char") return unsupported();
-        const low = pattern.charCodeAt(start), high = pattern.charCodeAt(end); if (low > high) return unsupported();
+        const right = take();
+        if (left.kind !== "char" || right.kind !== "char" || left.byte === undefined || right.byte === undefined) return unsupported();
+        const low = left.byte, high = right.byte; if (low > high) return unsupported();
         tests.push(node({ kind: "char", test: (byte: number) => byte >= low && byte <= high || mode.insensitive && fold(byte) >= fold(low) && fold(byte) <= fold(high) }));
       } else tests.push(left);
       ignoreClassSpace();
@@ -297,6 +297,13 @@ function compile(pattern: string, host: FunctionHost): Node {
         if (pattern[at] === "?") while (end < pattern.length && "imsxad-^".includes(pattern[end]!)) { host.tick(); end++; }
         const bare = pattern[at] === "?" && end > at + 1 && pattern[end] === ")";
         value = group(bare ? mode : { ...mode });
+        // A bare modifier changes parsing state but is not a quantifiable atom.
+        if (bare) {
+          ignore(mode);
+          // Perl treats braces after a bare modifier as literal text.
+          if (pattern[at] !== "{") continue;
+          at++; value = literal(123, { ...mode });
+        }
       } else if (char === ".") { const dotall = mode.dotall; value = node({ kind: "char", test: (byte: number) => dotall || byte !== 10 }); }
       else if (char === "^" || char === "$") {
         const multiline = mode.multiline;

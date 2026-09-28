@@ -398,6 +398,7 @@ export default defineConfig({
         ) {
           const modules = new Map([
             ["./index.js", "index"],
+            ["./agent-session.js", "agent-session"],
             ["./registry.js", "plugin-registry"],
             ["./poe-agent-plugin-openai-responses.js", "plugin-openai-responses"],
             ["./poe-agent-plugin-openai-chat-completions.js", "plugin-openai-chat-completions"],

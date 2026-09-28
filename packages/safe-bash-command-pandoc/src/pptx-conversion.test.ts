@@ -8,10 +8,11 @@ import { crc32, inflateRawSync, deflateSync } from "node:zlib";
 import path from "node:path";
 import { SaxesParser } from "saxes";
 import { Volume } from "memfs";
+import type { CodecRuntime } from "@poe-code/office-package";
 import { Presentation, Inches, readNotes, createPresentation, addLayout, mutateAnimations, readLayouts, CategoryChartData, addOleObject, mutateTextParagraphs } from "pptx";
 
 vi.mock("../../office-package/src/runtime.js", async importOriginal => {
-  const runtime = await importOriginal<typeof import("../../office-package/src/runtime.js")>();
+  const runtime = await importOriginal<{defaultRuntime: CodecRuntime}>();
   return {
     ...runtime,
     yieldEventLoop: async () => {},

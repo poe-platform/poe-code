@@ -1,11 +1,12 @@
 import {afterAll, beforeAll, expect, it, vi} from "vitest";
 import {PDFDocument, PDFDict, PDFName, PDFArray, PDFRawStream, decodePDFRawStream} from "pdf-lib";
 import {Volume} from "memfs";
+import type {CodecRuntime} from "@poe-code/office-package";
 import {convert, writeDocument, createFormatRegistry, createStandalonePandocCommand} from "./index.js";
 import type {Document} from "./types.js";
 import "pptx";
 vi.mock("../../office-package/src/runtime.js", async importOriginal => {
-  const runtime = await importOriginal<typeof import("../../office-package/src/runtime.js")>();
+  const runtime = await importOriginal<{defaultRuntime: CodecRuntime}>();
   return {
     ...runtime,
     yieldEventLoop: async () => {},

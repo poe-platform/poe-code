@@ -402,7 +402,6 @@ export function findBundleIssues(
         continue;
       }
       if (!packedFiles.has(filename)) fail("unpacked-canonical-output");
-      if (filename.endsWith(".js")) pending.push(`${filename}.map`);
       if (
         Object.keys(output.inputs ?? {}).some((input) => !input.startsWith("packages/safe-fs/src/"))
       )

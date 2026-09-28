@@ -164,7 +164,6 @@ describe("conditional canonical FS publication", () => {
     "browser-private-external",
     "cross-profile-edge",
     "missing-core-root",
-    "missing-browser-map",
     "unpacked-browser-chunk",
     "missing-transitive-types",
     "missing-types-metadata",
@@ -201,7 +200,6 @@ describe("conditional canonical FS publication", () => {
       browser.outputs[shared].imports = [{ path: "packages/safe-js/dist/chunks/fs.js" }];
     if (defect === "missing-core-root")
       delete metafile.canonicalBundle.metafile.outputs["packages/safe-js/dist/safe-fs-core.js"];
-    if (defect === "missing-browser-map") delete browser.outputs[`${shared}.map`];
     if (defect === "unpacked-browser-chunk") packed.delete(shared);
     if (defect === "missing-transitive-types")
       packed.delete("packages/safe-fs/dist/contracts/errors.d.ts");

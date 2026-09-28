@@ -4304,12 +4304,12 @@ export class Runtime {
     const entries = this.presenceArrayEntries(state, resolved);
     if (bracket < 0) return entries ? entries[0] !== undefined : this.variable(state, base) !== undefined;
     const selector = name.slice(bracket + 1, -1);
-    if (selector === "@" || selector === "*") return entries ? entries.length > 0 : binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
     if (binding?.associative) {
       if (selector.length === 0 || selector.length > 4096 || [...selector].some(character => "$`\\\"'".includes(character))) return undefined;
       const key = binding.keys.get(fastStringHexIdentity(selector));
       return key !== undefined && binding.getValue(key.index) !== undefined;
     }
+    if (selector === "@" || selector === "*") return entries ? entries.length > 0 : binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
     if (selector.length === 0 || selector.length > 9 || [...selector].some(character => !"0123456789".includes(character)) || selector.length > 1 && selector[0] === "0") return undefined;
     const index = Number(selector);
     return entries ? entries[index] !== undefined : binding ? binding.getValue(index) !== undefined : index === 0 && this.variable(state, base) !== undefined;
@@ -4717,6 +4717,7 @@ export class Runtime {
         for (let i = 0; i < assignment.entries.length; i++) {
           const entry = assignment.entries[i]!;
           if (!entry.index || entry.append) return false;
+          if (rawState.braceexpand !== false && entry.value.parts.some(p => !p.quoted && p.kind === "text" && p.value.includes("{"))) return false;
           const kSrc = entry.index.source ?? entry.index.decimal;
           if (kSrc.length === 0 || kSrc.length > 4096 || /[$\x60\\"']/.test(kSrc)) return false;
           let val: ShellValue | undefined = "";
@@ -4761,6 +4762,7 @@ export class Runtime {
         for (let i = 0; i < assignment.entries.length; i++) {
           const entry = assignment.entries[i]!;
           if (entry.append) return false;
+          if (rawState.braceexpand !== false && entry.value.parts.some(p => !p.quoted && p.kind === "text" && p.value.includes("{"))) return false;
           let explicitIdx: number | undefined;
           if (entry.index !== undefined) {
             const kSrc = (entry.index.source ?? entry.index.decimal).trim();
@@ -7248,6 +7250,7 @@ export class Runtime {
         if (
           w0Plain === "export" &&
           rawState.locals.length === 0 &&
+          depth === 0 &&
           !hasShellFunction(rawState, "export") &&
           !rawState.extensions?.builtins.has("export")
         ) {
@@ -7874,7 +7877,7 @@ export class Runtime {
     const elem0 = existing?.values.get(0);
     if (existing && (!elem0 || elem0.text.bytes !== 1)) return undefined;
     const canMutatePipeStatus = !existing || (existing.references === 1 && elem0!.text.references === 1);
-    const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
+    const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? io.substitutionDiagnosticLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
     if (command.kind === "function") {
       if (pipeline.negate || !canMutatePipeStatus || command.redirects.length > 0 || rawState.readonlyFunctions?.has(command.name) || (rawState.profile === "sh" && (specialBuiltinNames.has(command.name) || rawState.extensions?.builtins.get(command.name)?.special))) {
         return undefined;
@@ -10232,7 +10235,7 @@ export class Runtime {
                 rawState.depth++;
                 let evalStatus: number | { listIndex: number; pipelineIndex: number };
                 try {
-                  evalStatus = this.trySyncScript(cachedUnit.script, state, io, Boolean(ignored));
+                  evalStatus = this.trySyncScript(cachedUnit.script, state, { ...io, diagnosticOffset: (diagnosticLine ?? 1) - 1, functionCommandLines: undefined }, Boolean(ignored));
                 } finally {
                   rawState.depth--;
                 }

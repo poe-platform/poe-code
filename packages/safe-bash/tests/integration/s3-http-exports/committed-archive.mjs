@@ -735,6 +735,36 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
           workerd: "./packages/safe-bash/dist/core.browser.js", browser: "./packages/safe-bash/dist/core.browser.js",
           node: "./dist/safe-bash.js", default: "./dist/safe-bash.js",
         },
+        ...(rootManifest.exports["./safe-bash/contracts"] ? {
+          "./safe-bash/contracts": {
+            types: "./packages/safe-bash-contracts/dist/index.d.ts",
+            import: "./packages/safe-bash-contracts/dist/index.js",
+          },
+        } : {}),
+        ...(rootManifest.exports["./safe-bash/contracts/*"] ? {
+          "./safe-bash/contracts/*": {
+            types: "./packages/safe-bash-contracts/dist/*.d.ts",
+            import: "./packages/safe-bash-contracts/dist/*.js",
+          },
+        } : {}),
+        ...(rootManifest.exports["./safe-bash/pdf-ast"] ? {
+          "./safe-bash/pdf-ast": {
+            types: "./packages/pdf-ast/dist/index.d.ts",
+            import: "./packages/pdf-ast/dist/index.js",
+          },
+        } : {}),
+        ...(rootManifest.exports["./safe-bash/image-ast"] ? {
+          "./safe-bash/image-ast": {
+            types: "./packages/image-ast/dist/index.d.ts",
+            import: "./packages/image-ast/dist/index.js",
+          },
+        } : {}),
+        ...(rootManifest.exports["./safe-bash/sharp"] ? {
+          "./safe-bash/sharp": {
+            types: "./packages/image-ast/dist/index.d.ts",
+            import: "./packages/image-ast/dist/index.js",
+          },
+        } : {}),
         "./safe-bash/commands/media": {
           types: "./dist/safe-bash-media.d.ts",
           workerd: "./packages/safe-bash/dist/commands/media/index.browser.js",
@@ -749,7 +779,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         const expected = mirrorArchiveExportTargets(conditions);
         if (path === "./commands/pandoc") expected.import = "./packages/safe-bash-command-pandoc/dist/public/command.js";
         if (path === "./contracts") { expected.types = "./packages/safe-bash-contracts/dist/index.d.ts"; expected.import = "./packages/safe-bash-contracts/dist/index.js"; }
-        assert.deepEqual(rootManifest.exports[name], detached ? undefined : facades ? (facadeExports[name] ?? expected) : expected, `root export mismatch: ${name}`);
+        assert.deepEqual(rootManifest.exports[name], detached ? undefined : facades ? facadeExports[name] : expected, `root export mismatch: ${name}`);
         if (detached) assert.ok(!rootManifest.files.includes("packages/safe-bash/dist"), "private shell must not be shipped by root");
       }
       assert.equal(lock.lockfileVersion, 3, "workspace lock version");

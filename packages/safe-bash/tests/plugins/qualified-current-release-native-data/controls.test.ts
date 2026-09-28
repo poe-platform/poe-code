@@ -210,6 +210,12 @@ function approvedCompilerConfiguration(): CompilerConfiguration {
         ],
         "@poe-code/safe-fs/node/filesystem": [
           "../safe-fs/src/node/filesystem.ts"
+        ],
+        "poe-code/safe-bash/contracts": [
+          "../safe-bash-contracts/src/index.ts"
+        ],
+        "poe-code/safe-bash/contracts/*": [
+          "../safe-bash-contracts/src/*.ts"
         ]
       }
     },

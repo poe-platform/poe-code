@@ -40,6 +40,7 @@ for (const scenario of [
         alias: {
           ...Object.fromEntries(Object.keys(privateWorkspaces).map(name => [name,
             fileURLToPath(new URL(`../../../${name}/dist`, import.meta.url))])),
+          "safe-bash-contracts": fileURLToPath(new URL("../../../safe-bash-contracts/src", import.meta.url)),
           "@poe-code/safe-fs": fileURLToPath(new URL("../../../safe-fs/src", import.meta.url)),
         },
         format: "esm", target: "es2022", write: false }).then(result => result.outputFiles[0]!.text);

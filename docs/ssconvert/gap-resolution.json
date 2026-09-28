@@ -2195,7 +2195,7 @@
         },
         "mixedRangeSourceAudit": {
           "issue": 3654,
-          "status": "evaluation repaired and source/native qualified; compiled refresh, remote delivery and publication pending",
+          "status": "reported parser/import/export requirements delivered on remote main; refreshed compiled/native profiles qualified",
           "sourceRevision": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77",
           "sources": {
             "sc/source/core/tool/compiler.cxx": {
@@ -2212,7 +2212,7 @@
             }
           },
           "finding": "GetRefColRowNames chooses scalar label data for immediate binary-operator neighbors, including ocRange. That branch alone does not establish native textual range behavior: compiler.cxx:5262 calls MergeRangeReference earlier during tokenization. token.cxx:518 accepts a label single-reference by its stack type, extends its anchor to the following ordinary cell, and replaces both operands and the colon with a plain range. The previous 44-versus-70 native prediction omitted this path.",
-          "next": "Refresh and qualify compiled/public artifacts, deliver and verify publication. Native Calc still replaces ungrouped label spelling with a cell range; retain that separate identity limitation. Broader labels and format families remain open.",
+          "next": "Verify containing publication and installed public artifacts. Native Calc still replaces ungrouped label spelling with a cell range; retain that separate application identity limitation. Broader labels and format families remain open.",
           "implementation": "Internal single-cell label anchors preserve range grouping and coexist with relative-sheet references. For an OpenFormula label directly before a colon and an ordinary single-cell right operand, evaluation uses the label anchor, matching Calc tokenization. The stored AST retains label identity for serialization, dependencies and copy/move. Parentheses, reversed operands, ordinary range operands and non-OpenFormula labels retain their distinct evaluation.",
           "validation": "Four original memory regressions failed before the evaluator repair. Two further regressions exposed relative label anchors wrapping past the sheet grid; anchor resolution now retains strict label bounds and dependency tracking. All 16 row/column operand-shape/boundary cases and 159 neighboring checks pass, including replay, grouping, named/array/remote expressions, renaming and copy/move. Package lint and source/test/strict consumer types pass. Source-derived mixed values are 53/86; grouped values remain 70.",
           "nativeReadback": {
@@ -2223,6 +2223,17 @@
             "probe": "Root public imports require the pending bundle refresh after workspace builds removed generated safe-fs wrappers. The scoped compiled package was used explicitly. Corrected the SDK option to recalc and accepted only the observed equivalent Other sheet spelling. Declaration addresses are compared by sheet/cell identity; Calc removes dollar markers and repeats the second endpoint sheet.",
             "before": "Sixteen strict/extended SDK/command exports, grouped/ungrouped and original/renamed labels. All eight grouped cases recalculate stale 999 to 70 and retain their live label formula. All eight ungrouped cases produce 53 instead of product 44, replacing the label expression with SUM([.B$1:.B5])+[Other.B2]. Label declarations remain. Native removal of optional quotes around Other is semantically equivalent.",
             "repairReceipts": "out/ssconvert-release-investigation/mixed-label-repair-as2_h8jb/{source-engine,native,final-source-binding,cleanup}.json; mixed-label-evaluation-{red,final,final-lint}.log and mixed-label-anchor-bounds-{red,green}.log under out/ssconvert-release-investigation"
+          },
+          "delivery": {
+            "parserAndTransport": "65c6e56a4666ad75c049c954142dcc4e5b4b2df3",
+            "nativeEvaluation": "9f8f317f9de2ea27116635757a4bcf91e7041064",
+            "verifiedRemoteMain": "2da15a898f6e5ff99fb6cab79090e5b1f881caa7"
+          },
+          "compiledRefresh": {
+            "revision": "2da15a898f6e5ff99fb6cab79090e5b1f881caa7",
+            "validation": "131 maintained tests across five focused files pass. Sixteen compiled SDK/command strict/extended exports preserve grouped/ungrouped live label ranges alongside relative Other.B2, before/after label renaming. No diagnostics; input bytes unchanged. Independent XML inspection verifies formulas and 53/70 caches; poisoned caches of 999 are then recalculated by Calc 26.8.0.3 to 53/70. Two independently authored original inputs produce the same native values.",
+            "scope": "Current compiled workspace public entry, not installed registry artifacts. Product formulas retain identity; Calc normalizes only the ungrouped label to B$1:B5. No new visual/navigation claim.",
+            "receipts": "out/ssconvert-mixed-label-current/{inputs,exports,native-proof,cleanup}.json"
           }
         }
       },

@@ -589,7 +589,7 @@ it("executes the maintained browser fixture with all top-level workflows in a No
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.exports)).toEqual([]);
   const sandbox = browserRealm;
-  Object.assign(sandbox, { URL, TypeError, console });
+  Object.assign(sandbox, { URL, TypeError, console, structuredClone });
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox)).toBe("function:undefined:undefined");
   await runInContext(`(async () => { ${result.outputFiles![0]!.text} })()`, sandbox);

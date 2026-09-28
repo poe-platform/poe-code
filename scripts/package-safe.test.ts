@@ -456,6 +456,8 @@ it.each([false, true])("keeps copied command WASM inside the standalone artifact
   volume.mkdirSync(`/repo/packages/${name}/src`, { recursive: true });
   volume.writeFileSync(`/repo/packages/${name}/src/index.ts`, 'import engine from "../dist/engine.wasm"; export { engine };');
   volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export declare const engine: unknown;");
+  volume.mkdirSync(`/repo/packages/${name}/src`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${name}/src/index.ts`, 'import engine from "../dist/engine.wasm"; export { engine };');
   for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/exiftool/index.${suffix}`, `export * from "${name}";`);
   volume.mkdirSync("/repo/packages/safe-bash/browser", { recursive: true });
   volume.writeFileSync("/repo/packages/safe-bash/browser/buffer.mjs", "export {};\n");

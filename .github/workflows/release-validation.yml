@@ -15,6 +15,10 @@ on:
       cold_cache:
         type: boolean
         default: false
+      pin_revision:
+        description: Finish this explicitly selected revision even if main advances
+        type: boolean
+        default: false
 permissions:
   actions: read
   contents: read
@@ -39,7 +43,7 @@ jobs:
       - name: Check release queue position
         id: queue-check
         run: |
-          if [ "${GITHUB_REF}" = "refs/heads/main" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; }; then
+          if [ "$PIN_REVISION" != "true" ] && [ "${GITHUB_REF}" = "refs/heads/main" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; }; then
             git fetch origin main --depth=1
             remote_main=$(git rev-parse origin/main)
             if [ "$remote_main" != "$GITHUB_SHA" ]; then
@@ -50,6 +54,8 @@ jobs:
             fi
           fi
           echo "superseded=false" >> "$GITHUB_OUTPUT"
+        env:
+          PIN_REVISION: ${{ inputs.pin_revision }}
       - uses: actions/setup-node@v7.0.0
         if: steps.queue-check.outputs.superseded != 'true'
         with:
@@ -83,7 +89,7 @@ jobs:
         if: steps.queue-check.outputs.superseded != 'true'
         id: post-build-queue-check
         run: |
-          if [ "${GITHUB_REF}" = "refs/heads/main" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; }; then
+          if [ "$PIN_REVISION" != "true" ] && [ "${GITHUB_REF}" = "refs/heads/main" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; }; then
             git fetch origin main --depth=1
             remote_main=$(git rev-parse origin/main)
             if [ "$remote_main" != "$GITHUB_SHA" ]; then
@@ -94,6 +100,8 @@ jobs:
             fi
           fi
           echo "superseded=false" >> "$GITHUB_OUTPUT"
+        env:
+          PIN_REVISION: ${{ inputs.pin_revision }}
       - name: Archive fresh build outputs
         if: steps.queue-check.outputs.superseded != 'true' && steps.post-build-queue-check.outputs.superseded != 'true'
         id: archive

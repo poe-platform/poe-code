@@ -16,6 +16,10 @@ on:
         description: Ignore restored Turbo results to measure cold test execution
         type: boolean
         default: false
+      pin_revision:
+        description: Finish this explicitly selected revision even if main advances
+        type: boolean
+        default: false
 permissions:
   actions: read
   contents: write
@@ -139,6 +143,7 @@ jobs:
     with:
       build_only: ${{ inputs.build_only || false }}
       cold_cache: ${{ inputs.cold_cache || false }}
+      pin_revision: ${{ github.event_name == 'workflow_dispatch' && inputs.pin_revision || false }}
     concurrency:
       queue: max
       group: release-validation-${{ github.ref }}-${{ inputs.build_only && 'build-only' || 'full' }}

@@ -50,7 +50,8 @@ export class SubscriptionManager {
         this.#entries.set(id, entry);
       }
     });
-    entry.timer = setTimeout(() => { reject(new Error("MCP subscription acknowledgement timed out")); cancel(); }, this.#layer.requestTimeoutMs);
+    if (this.#layer.requestTimeoutMs !== Infinity)
+      entry.timer = setTimeout(() => { reject(new Error("MCP subscription acknowledgement timed out")); cancel(); }, this.#layer.requestTimeoutMs);
     const abort = () => { reject(options.signal.reason); cancel(); };
     options.signal?.addEventListener("abort", abort, { once: true });
     if (options.signal?.aborted) abort();

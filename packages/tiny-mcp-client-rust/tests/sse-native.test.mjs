@@ -29,6 +29,9 @@ test("native SSE bounds lines, metadata and accumulated data with reference diag
   compare([":ping\n".repeat(1024), "data: 12345678\n\n".repeat(128)], 16);
   compare(["id: unlimited\ndata: one\n", "data: two\n\n"], Infinity);
 });
+test("explicit unlimited SSE events retain Unicode and cursor across chunks", () => {
+  compare(["id: retained\ndata: ", "世界\ud83e", "\udd8a\n\n"], Infinity);
+});
 test("seeded UTF16 event streams preserve filtering, raw values and cursor across arbitrary chunks", () => {
   let seed = 0x64ee3a10;
   const random = () => { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return seed >>> 0; };

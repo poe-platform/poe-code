@@ -22,7 +22,7 @@ are bounded, and missing capabilities or handlers reject before callbacks run.
 One deadline covers wire requests, input callbacks and continuation rounds. Finite
 timers above 2147483647 milliseconds are rejected. `requestTimeoutMs: Infinity`
 disables the default request deadline; per-request `timeoutMs: null` or `Infinity`
-is also unlimited. Explicit cancellation remains available.
+is also unlimited. Explicit cancellation remains available. Unlimited defaults also disable subscription acknowledgement timers.
 
 ```ts
 import { parseJsonRpcMessage } from "tiny-mcp-client-rust";

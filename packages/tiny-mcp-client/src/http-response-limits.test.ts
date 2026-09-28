@@ -167,3 +167,26 @@ it.each(["application/json", "text/event-stream"])("reads %s with an unlimited b
     await transport.closed;
   }
 });
+
+it.each(["application/json", "text/event-stream"])("reads an unlimited %s response and releases its reader", async contentType => {
+  let body: ReadableStream<Uint8Array> | undefined;
+  const result = { text: "世界".repeat(100) };
+  const transport = new HttpTransport({ url: "https://mcp.invalid/unlimited", maxResponseBytes: Infinity,
+    fetch: async (_url, init) => {
+      const request = JSON.parse(String(init?.body));
+      const json = JSON.stringify({ jsonrpc: "2.0", id: request.id, result });
+      const bytes = new TextEncoder().encode(contentType === "application/json" ? json : `data: ${json}\n\n`);
+      body = new ReadableStream({ start(controller) {
+        controller.enqueue(bytes.subarray(0, 32));
+        controller.enqueue(bytes.subarray(32));
+        controller.close();
+      } });
+      return new Response(body, { headers: { "Content-Type": contentType, "Content-Length": String(bytes.length) } });
+    } });
+  const layer = new JsonRpcMessageLayer(transport.readable, transport.writable);
+  void transport.closed.then(({ reason }) => layer.dispose(reason));
+  try {
+    await expect(layer.sendRequest("tools/list", {})).resolves.toEqual(result);
+    expect(body?.locked).toBe(false);
+  } finally { layer.dispose(); transport.dispose(); await transport.closed; }
+});

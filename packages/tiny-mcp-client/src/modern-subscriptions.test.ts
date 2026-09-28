@@ -55,6 +55,20 @@ async function fixture(options: Partial<McpClientOptions> = {}, acknowledge = tr
 const settle = () => new Promise<void>((resolve) => setImmediate(resolve));
 
 describe("modern client subscriptions", () => {
+  it("keeps an unlimited acknowledgement wait cancellable without a timer", async () => {
+    const { client, requests } = await fixture({ requestTimeoutMs: Infinity }, false);
+    const timer = vi.spyOn(globalThis, "setTimeout");
+    const controller = new AbortController();
+    const reason = new Error("cancel acknowledgement");
+    try {
+      const outcome = client.listenNotifications({ toolsListChanged: true }, { signal: controller.signal }).catch(error => error);
+      await settle();
+      expect(requests).toHaveLength(1);
+      expect(timer).not.toHaveBeenCalled();
+      controller.abort(reason);
+      expect(await outcome).toBe(reason);
+    } finally { controller.abort(reason); timer.mockRestore(); }
+  });
   it("automatically listens for configured list-change callbacks and correlates notifications", async () => {
     const changed = vi.fn();
     const { requests, send } = await fixture({ onToolsChanged: changed });

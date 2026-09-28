@@ -163,7 +163,7 @@ export class SubscriptionManager {
         }
       }
     );
-    const timer = setTimeout(() => {
+    const timer = this.layer.requestTimeoutMs === Infinity ? undefined : setTimeout(() => {
       reject(new Error("MCP subscription acknowledgement timed out"));
       cancel();
     }, this.layer.requestTimeoutMs);

@@ -74,3 +74,21 @@ it("initializes HTTP with an unlimited deadline without creating a timer", async
     await transport.closed;
   }
 });
+
+it("keeps unlimited HTTP initialization cancellable without scheduling a deadline", async () => {
+  const started = Promise.withResolvers<void>();
+  const controller = new AbortController();
+  const reason = new Error("cancel initialization");
+  const timer = vi.spyOn(AbortSignal, "timeout");
+  const transport = new HttpTransport({ url: "https://mcp.invalid/unlimited", fetch: async () => {
+    started.resolve();
+    return new Promise<Response>(() => {});
+  } });
+  try {
+    const outcome = transport.completeInitialization({ timeoutMs: Infinity, signal: controller.signal }).catch(error => error);
+    await Promise.race([started.promise, outcome.then(error => { throw error; })]);
+    controller.abort(reason);
+    expect(await outcome).toBe(reason);
+    expect(timer).not.toHaveBeenCalled();
+  } finally { timer.mockRestore(); transport.dispose(); await transport.closed; }
+});

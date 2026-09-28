@@ -22,12 +22,11 @@ test("borrowed forms preserve the parent signal without cancellation resources",
   const internalErrors: unknown[] = [];
   const shell = new Shell({ fs: new MemoryFileSystem(), onInternalError(error) { internalErrors.push(error); } });
   const seen: AbortSignal[] = [];
-  const scopeSignals = new WeakSet<AbortSignal>();
-  const scopeSignal = Object.getOwnPropertyDescriptor(InvocationScope.prototype, "signal")!.get!;
-  testContext.mock.getter(InvocationScope.prototype, "signal", function (this: InvocationScope) {
-    const signal: AbortSignal = scopeSignal.call(this);
-    scopeSignals.add(signal);
-    return signal;
+  let ownedChildren = 0;
+  const addChildOwner = InvocationScope.prototype.addChildOwner;
+  testContext.mock.method(InvocationScope.prototype, "addChildOwner", function (this: InvocationScope, ...args: Parameters<InvocationScope["addChildOwner"]>) {
+    ownedChildren++;
+    return addChildOwner.apply(this, args);
   });
   let ownedBindings = 0;
   const bind = RuntimeCancellationState.prototype.bind;
@@ -38,42 +37,29 @@ test("borrowed forms preserve the parent signal without cancellation resources",
   shell.register({ name: "leaf", execute(context) { seen.push(context.signal); return { exitCode: 3 }; } });
   shell.register({ name: "driver", async execute(context) {
     const baseline = getEventListeners(context.signal, "abort").length;
-    const native = globalThis.AbortController;
     const local = new AbortController();
-    const created: AbortController[] = [];
-    globalThis.AbortController = new Proxy(native, {
-      construct(target, args, receiver) {
-        const controller: AbortController = Reflect.construct(target, args, receiver);
-        created.push(controller);
-        return controller;
-      },
-    });
-    try {
-      for (const invoke of [
-        () => context.invoke!("leaf", []),
-        () => context.invoke!("leaf", [], undefined),
-        () => context.invoke!("leaf", [], {}),
-        () => context.invoke!("leaf", [], { signal: undefined }),
-      ]) {
-        created.length = 0;
-        assert.equal((await invoke()).exitCode, 3);
-        // Ordinary invocation scopes own controllers independently of cancellation links.
-        assert.ok(created.every(controller => scopeSignals.has(controller.signal)), "borrowed invocations must not allocate cancellation controllers");
-        assert.equal(ownedBindings, 0);
-        assert.equal(getEventListeners(context.signal, "abort").length, baseline);
-        assert.equal(context.signal.aborted, false);
-      }
-      assert.equal(getEventListeners(context.signal, "abort").length, baseline);
-      assert.ok(seen.every(signal => signal === context.signal));
-      created.length = 0;
-      assert.equal((await context.invoke!("leaf", [], { signal: local.signal })).exitCode, 3);
-      assert.ok(created.some(controller => !scopeSignals.has(controller.signal)), "an owned signal must exercise the cancellation controller observer");
-      assert.equal(ownedBindings, 1, "an owned signal must exercise the cancellation record observer");
-      assert.notEqual(seen.at(-1), context.signal);
-      assert.equal(getEventListeners(local.signal, "abort").length, 0);
+    for (const invoke of [
+      () => context.invoke!("leaf", []),
+      () => context.invoke!("leaf", [], undefined),
+      () => context.invoke!("leaf", [], {}),
+      () => context.invoke!("leaf", [], { signal: undefined }),
+    ]) {
+      assert.equal((await invoke()).exitCode, 3);
+      // Native adapters for managed scope signals are separate from cancellation ownership.
+      assert.equal(ownedChildren, 0, "borrowed invocations must not enroll cancellation owners");
+      assert.equal(ownedBindings, 0);
       assert.equal(getEventListeners(context.signal, "abort").length, baseline);
       assert.equal(context.signal.aborted, false);
-    } finally { globalThis.AbortController = native; }
+    }
+    assert.equal(getEventListeners(context.signal, "abort").length, baseline);
+    assert.ok(seen.every(signal => signal === context.signal));
+    assert.equal((await context.invoke!("leaf", [], { signal: local.signal })).exitCode, 3);
+    assert.equal(ownedChildren, 1, "an owned signal must exercise the cancellation owner observer");
+    assert.equal(ownedBindings, 1, "an owned signal must exercise the cancellation record observer");
+    assert.notEqual(seen.at(-1), context.signal);
+    assert.equal(getEventListeners(local.signal, "abort").length, 0);
+    assert.equal(getEventListeners(context.signal, "abort").length, baseline);
+    assert.equal(context.signal.aborted, false);
     return { exitCode: 0 };
   } });
   try {

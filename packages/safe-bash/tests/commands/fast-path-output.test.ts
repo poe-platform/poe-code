@@ -223,6 +223,7 @@ for (const asynchronous of [false, true]) {
     const shell = new Shell({ fs }).use(searchCommands());
     const failure = new Error("sink failed after accepting directory output");
     const write = Capture.prototype.write;
+    const writeSync = Capture.prototype.writeSync;
     const writeRange = Capture.prototype.writeRangeSync;
     let writes = 0;
     const outputCaptures = new Set<Capture>();
@@ -234,7 +235,15 @@ for (const asynchronous of [false, true]) {
       writeRange.call(this, bytes, len);
       throw failure;
     });
+    if (!asynchronous) t.mock.method(Capture.prototype, "writeSync", function (this: Capture, bytes: Uint8Array) {
+      if (outputCaptures.size === 0) outputCaptures.add(this);
+      if (!outputCaptures.has(this)) return writeSync.call(this, bytes);
+      writes++;
+      writeSync.call(this, bytes);
+      throw failure;
+    });
     if (asynchronous) t.mock.method(Capture.prototype, "write", async function (this: Capture, bytes: Uint8Array) {
+      if (outputCaptures.size === 0) outputCaptures.add(this);
       if (!outputCaptures.has(this)) return write.call(this, bytes);
       writes++;
       await write.call(this, bytes);
@@ -275,10 +284,21 @@ test("jq propagates a sink failure without replaying already published output", 
     await shell.exec("jq -c . /data");
     const failure = new Error("sink failed after accepting output");
     const writeRange = Capture.prototype.writeRangeSync;
+    const writeSync = Capture.prototype.writeSync;
     let writes = 0;
+    const outputCaptures = new Set<Capture>();
     t.mock.method(Capture.prototype, "writeRangeSync", function (this: Capture, bytes: Uint8Array, len: number) {
+      if (outputCaptures.size === 0) outputCaptures.add(this);
+      if (!outputCaptures.has(this)) return writeRange.call(this, bytes, len);
       writes++;
       writeRange.call(this, bytes, len);
+      throw failure;
+    });
+    t.mock.method(Capture.prototype, "writeSync", function (this: Capture, bytes: Uint8Array) {
+      if (outputCaptures.size === 0) outputCaptures.add(this);
+      if (!outputCaptures.has(this)) return writeSync.call(this, bytes);
+      writes++;
+      writeSync.call(this, bytes);
       throw failure;
     });
     const result = await shell.exec("jq -c . /data");

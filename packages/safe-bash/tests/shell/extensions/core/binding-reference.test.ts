@@ -6,7 +6,6 @@ import type { ShellValue } from "../../../../src/contracts/value.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { arraysExtension } from "../../../../src/shell/extensions/arrays/index.js";
 import type { ShellExtensionContext } from "../../../../src/shell/extensions.js";
-import { IndexedBinding } from "../../../../src/shell/arrays/bindings.js";
 import { ArrayFailure } from "../../../../src/shell/arrays/ledger.js";
 import { InvocationScope } from "../../../../src/shell/cleanup.js";
 import { Runtime } from "../../../../src/shell/runtime.js";
@@ -346,13 +345,15 @@ test("reentrant close joins publication already admitted before provider work st
   let closed = false;
   const shell = setup(async command => {
     reference = await prepare(command, "values[1]");
-    const original = IndexedBinding.prototype.copy;
-    const copying = context.mock.method(IndexedBinding.prototype, "copy", async function (this: IndexedBinding, signal: AbortSignal) {
+    const original = Runtime.prototype.arrayAssignment;
+    // The reference has enrolled this operation before invoking its publication provider.
+    // Publication may revise an exclusive binding without copying it.
+    const publication = context.mock.method(Runtime.prototype, "arrayAssignment", async function (this: Runtime, ...args: Parameters<Runtime["arrayAssignment"]>) {
       closing = reference!.close();
       void closing.then(() => { closed = true; });
       resolve.entered!();
       await gate;
-      return original.call(this, signal);
+      return original.apply(this, args);
     });
     const operation = reference.assignInteger(7);
     try {
@@ -362,7 +363,7 @@ test("reentrant close joins publication already admitted before provider work st
       await assert.rejects(reference.unbindName(), /closed/u);
     } finally { resolve.gate!(); }
     try { await operation; await closing; }
-    finally { copying.mock.restore(); }
+    finally { publication.mock.restore(); }
     assert.equal(command.bindings.get("values", 1), "7");
     return 0;
   });

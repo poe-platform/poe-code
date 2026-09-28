@@ -2787,7 +2787,8 @@ type SyncLoopStep = {
   readonly discardSuffix?: string | undefined;
   readonly listOperator?: "&&" | "||" | undefined;
   readonly arithStmt?: ArithmeticProgram | undefined;
-  readonly ifBranches?: readonly { condCmd: Extract<Command, { kind: "arithmetic" }>; cond: ArithmeticProgram; condLine: number; steps: readonly SyncLoopStep[] }[] | undefined;
+  readonly condStmt?: ConditionalExpression | undefined;
+  readonly ifBranches?: readonly { condCmd: Extract<Command, { kind: "arithmetic" | "conditional" }>; cond?: ArithmeticProgram | undefined; condExpr?: ConditionalExpression | undefined; condLine: number; steps: readonly SyncLoopStep[] }[] | undefined;
   readonly elseSteps?: readonly SyncLoopStep[] | undefined;
   readonly value: Word | undefined;
   readonly targetWord: Word | undefined;
@@ -11813,6 +11814,21 @@ export class Runtime {
         const pipeline = list.pipelines[p]!;
         if (pipeline.negate || pipeline.commands.length !== 1) return false;
         const cmd = pipeline.commands[0]!;
+        const canSyncLoopCondCmd = (c: Extract<Command, { kind: "conditional" }>): boolean => {
+          if (c.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(c.expression, 0, rawState)) return false;
+          const checkLeaf = (e: ConditionalExpression): boolean => {
+            if (e.kind === "nonempty") return this.isPureSyncValueWord(e.operand, rawState);
+            if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v" || (syncConditionalFileUnaryOps.has(e.operator) && this._isMemoryBackingFs && this.canFastMemoryRedirect && this.budget.limits.maxFileSystemOperations >= 1000 && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0))) && this.isPureSyncValueWord(e.operand, rawState);
+            if (e.kind === "binary") {
+              if (e.operator === "=~") return false;
+              return this.isPureSyncValueWord(e.left, rawState) && (e.operator === "==" || e.operator === "=" || e.operator === "!=" ? this.canSyncPatternWordParts(e.right, rawState) : this.isPureSyncValueWord(e.right, rawState));
+            }
+            if (e.kind === "not") return checkLeaf(e.operand);
+            if (e.kind === "and" || e.kind === "or") return checkLeaf(e.left) && checkLeaf(e.right);
+            return false;
+          };
+          return checkLeaf(c.expression);
+        };
         if (cmd.kind === "arithmetic") {
           if (
             cmd.redirects.length === 0 &&
@@ -11825,6 +11841,10 @@ export class Runtime {
           }
           return false;
         }
+        if (cmd.kind === "conditional") {
+          if (canSyncLoopCondCmd(cmd)) continue;
+          return false;
+        }
         if (cmd.kind === "if") {
           if (cmd.redirects.length !== 0 || cmd.branches.length === 0) return false;
           let ifOk = true;
@@ -11832,9 +11852,16 @@ export class Runtime {
             const br = cmd.branches[bi]!;
             if (br.condition.lists.length !== 1 || br.condition.lists[0]!.terminator || br.condition.lists[0]!.pipelines.length !== 1) { ifOk = false; break; }
             const bp = br.condition.lists[0]!.pipelines[0]!;
-            if (bp.negate || bp.commands.length !== 1 || bp.commands[0]!.kind !== "arithmetic") { ifOk = false; break; }
+            if (bp.negate || bp.commands.length !== 1) { ifOk = false; break; }
             const bc = bp.commands[0]!;
-            if (bc.redirects.length !== 0 || bc.expression.error || !isSafeSmiProgram(bc.expression) || bc.expression.hasSubscript || !this.canSyncArithmeticWithoutFault(bc.expression.tree, rawState, bc.line ?? 1)) { ifOk = false; break; }
+            if (bc.kind === "arithmetic") {
+              if (bc.redirects.length !== 0 || bc.expression.error || !isSafeSmiProgram(bc.expression) || bc.expression.hasSubscript || !this.canSyncArithmeticWithoutFault(bc.expression.tree, rawState, bc.line ?? 1)) { ifOk = false; break; }
+            } else if (bc.kind === "conditional") {
+              if (!canSyncLoopCondCmd(bc)) { ifOk = false; break; }
+            } else {
+              ifOk = false;
+              break;
+            }
             if (!this.canSyncLoopBody(br.body, rawState, io)) { ifOk = false; break; }
           }
           if (ifOk && cmd.otherwise && !this.canSyncLoopBody(cmd.otherwise, rawState, io)) ifOk = false;
@@ -12070,16 +12097,30 @@ export class Runtime {
             });
             continue;
           }
+          if (rawCmd.kind === "conditional") {
+            bodyAssignments.push({
+              cmd: rawCmd as unknown as Extract<Command, { kind: "simple" }>,
+              listOperator,
+              name: undefined,
+              value: undefined,
+              condStmt: rawCmd.expression,
+              targetWord: undefined,
+              append: false,
+              line,
+            });
+            continue;
+          }
           if (rawCmd.kind === "if") {
-            const branches: { condCmd: Extract<Command, { kind: "arithmetic" }>; cond: ArithmeticProgram; condLine: number; steps: readonly SyncLoopStep[] }[] = [];
+            const branches: { condCmd: Extract<Command, { kind: "arithmetic" | "conditional" }>; cond?: ArithmeticProgram | undefined; condExpr?: ConditionalExpression | undefined; condLine: number; steps: readonly SyncLoopStep[] }[] = [];
             for (let bi = 0; bi < rawCmd.branches.length; bi++) {
               const br = rawCmd.branches[bi]!;
-              const bc = br.condition.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "arithmetic" }>;
+              const bc = br.condition.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "arithmetic" | "conditional" }>;
               const sub = buildScript(br.body);
               redirectCount += sub.redirectCount;
               branches.push({
                 condCmd: bc,
-                cond: bc.expression,
+                cond: bc.kind === "arithmetic" ? bc.expression : undefined,
+                condExpr: bc.kind === "conditional" ? bc.expression : undefined,
                 condLine: io.diagnosticCommandLines?.get(bc) ?? (bc.line ?? line) + (io.diagnosticOffset ?? 0),
                 steps: sub.steps,
               });
@@ -12340,7 +12381,7 @@ export class Runtime {
           if (st.arithStmt?.hasMutation && arithTreeMutatesVar(st.arithStmt.tree, inductionName)) return true;
           if (st.ifBranches) {
             for (const br of st.ifBranches) {
-              if (br.cond.hasMutation && arithTreeMutatesVar(br.cond.tree, inductionName)) return true;
+              if (br.cond?.hasMutation && arithTreeMutatesVar(br.cond.tree, inductionName)) return true;
               if (br.steps.some(stepMutatesInduction)) return true;
             }
           }
@@ -12392,7 +12433,7 @@ export class Runtime {
         }
       }
       const arithNamesList = [...arithNames];
-      const hasAnyArrayAssign = bodyAssignments.some(s => s.listOperator !== undefined || s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.ifBranches !== undefined || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
+      const hasAnyArrayAssign = bodyAssignments.some(s => s.listOperator !== undefined || s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.condStmt !== undefined || s.ifBranches !== undefined || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
       // Complex expansions can read or write names inside selectors, defaults,
       // patterns and substring expressions. Keep every assignment in iteration
       // order unless the shallow dependency checks below can see all reads.
@@ -13097,6 +13138,12 @@ export class Runtime {
         } else if (step.ifBranches !== undefined) {
           this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
           continue;
+        } else if (step.condStmt !== undefined) {
+          const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
+          lastArg = "";
+          lastValueWord = undefined;
+          rawState.status = cStatus;
+          continue;
         } else if (step.arithStmt !== undefined) {
           const nonZero = this.syncShellArithmeticNonZero(step.arithStmt, rawState, step.line);
           lastArg = "";
@@ -13182,9 +13229,11 @@ export class Runtime {
       const br = step.ifBranches![bi]!;
       lastCondCmd = br.condCmd as unknown as Extract<Command, { kind: "simple" }>;
       this.budget.tick();
-      const nonZero = this.syncShellArithmeticNonZero(br.cond, rawState, br.condLine);
-      rawState.status = nonZero ? 0 : 1;
-      if (nonZero) {
+      const condOk = br.condExpr !== undefined
+        ? (this.tryEvalConditionalSync(br.condExpr, rawState, monitor, arrayStore(rawState), io, br.condLine) ?? 1) === 0
+        : this.syncShellArithmeticNonZero(br.cond!, rawState, br.condLine);
+      rawState.status = condOk ? 0 : 1;
+      if (condOk) {
         chosen = br.steps;
         break;
       }
@@ -13215,6 +13264,12 @@ export class Runtime {
       this.budget.tick();
       if (step.ifBranches !== undefined) {
         this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
+        onUpdate({ lastCmd, lastArg });
+        continue;
+      } else if (step.condStmt !== undefined) {
+        const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
+        lastArg = "";
+        rawState.status = cStatus;
         onUpdate({ lastCmd, lastArg });
         continue;
       } else if (step.arithStmt !== undefined) {
@@ -13286,6 +13341,12 @@ export class Runtime {
           lastValueWord = step.value;
         } else if (step.ifBranches !== undefined) {
           this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          continue;
+        } else if (step.condStmt !== undefined) {
+          const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
+          lastArg = "";
+          lastValueWord = undefined;
+          rawState.status = cStatus;
           continue;
         } else if (step.arrayAssign !== undefined) {
           this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);

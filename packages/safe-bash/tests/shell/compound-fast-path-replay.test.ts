@@ -1281,3 +1281,32 @@ test("trySyncLoop preserves && / || list short-circuit semantics and accelerates
     await shell.dispose();
   }
 });
+
+test("trySyncLoop accelerates [[ ... ]] conditional statements and if/elif [[ ... ]] branches (Wave 79)", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) {
+    shell.commands.register(command, { replace: true });
+  }
+  try {
+    const t0 = performance.now();
+    const res = await shell.exec([
+      "v=ok",
+      "s1=0; s2=0; s3=0",
+      "for ((i = 0; i < 1200; i++)); do",
+      "  if [[ $i == *0 ]]; then",
+      "    ((s1 += 1))",
+      "  elif [[ -n $v ]]; then",
+      "    ((s2 += 1))",
+      "  fi",
+      "  [[ $i == *5 ]] && ((s3 += 1))",
+      "done",
+      "printf \"%d|%d|%d\\n\" \"$s1\" \"$s2\" \"$s3\"",
+    ].join("\n"));
+    const elapsed = performance.now() - t0;
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "120|1080|120\n");
+    assert.ok(elapsed < 1000, "Expected < 1000ms, got " + elapsed.toFixed(1) + "ms");
+  } finally {
+    await shell.dispose();
+  }
+});

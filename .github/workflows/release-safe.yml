@@ -192,12 +192,16 @@ jobs:
           env -i PATH= HOME="$CONSUMER" "$NODE_EXECUTABLE" safe-packages-diff3.mjs
           "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --strict --exactOptionalPropertyTypes --noUncheckedIndexedAccess --module NodeNext --moduleResolution NodeNext --target ES2023 --typeRoots "$GITHUB_WORKSPACE/node_modules/@types" --types node safe-packages-private-command-types.mts safe-packages-registration-types.mts safe-packages-fold-types.mts safe-packages-diff3-types.mts
           for PROFILE in browser workerd; do
-            "$GITHUB_WORKSPACE/node_modules/.bin/esbuild" safe-packages-publication-boundary.mjs --bundle --platform=browser --conditions="$PROFILE" --format=cjs --outfile=private-realm.cjs
+            "$GITHUB_WORKSPACE/node_modules/.bin/esbuild" safe-packages-publication-boundary.mjs --bundle --platform=browser --conditions="$PROFILE" --loader:.wasm=copy --format=cjs --outfile=private-realm.cjs
             env -i PATH= HOME="$CONSUMER" "$NODE_EXECUTABLE" --input-type=module <<'NODE'
           import { readFileSync } from "node:fs";
           import { createContext, runInContext } from "node:vm";
-          const realm = createContext({ TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TypeError, TransformStream, ReadableStream, WritableStream, AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance });
-          await runInContext(`(async () => { const module = { exports: {} }; ${readFileSync("private-realm.cjs", "utf8")}; await module.exports.verification; })()`, realm);
+          const loadWasm = specifier => {
+            if (typeof specifier !== "string" || !specifier.startsWith("./") || specifier.slice(2).includes("/") || !specifier.endsWith(".wasm")) throw new Error("Unexpected runtime import: " + String(specifier));
+            return new WebAssembly.Module(readFileSync(specifier));
+          };
+          const realm = createContext({ TextEncoder, TextDecoder, atob, btoa, Uint8Array, ArrayBuffer, TypeError, TransformStream, ReadableStream, WritableStream, AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance, loadWasm });
+          await runInContext(`(async (require) => { const module = { exports: {} }; ${readFileSync("private-realm.cjs", "utf8")}; await module.exports.verification; })(loadWasm)`, realm);
           NODE
           done
           node safe-packages-smoke.mjs

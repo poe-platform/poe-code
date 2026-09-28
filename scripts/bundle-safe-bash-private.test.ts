@@ -95,3 +95,20 @@ it("keeps workspace subpath imports external in portable private command builds"
   const recipe = resolvePrivateCommandBuild("/repo", { [name]: profile }, [{ dir: name, pkg }], { alias: {}, external: ["@poe-platform/safe-fs"], portable: true });
   expect(recipe?.external).toEqual(["@poe-platform/safe-fs", "#git-wasm"]);
 });
+
+it.each([false, true])("preserves private conditional imports for consumers (portable=%s)", async portable => {
+  const name = "safe-bash-command-example";
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable };
+  const pkg = {
+    name, ...profile, private: true, type: "module",
+    imports: { "#command-runtime-regression": { workerd: "./dist/worker.js", default: "./dist/node.js" } },
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  };
+  const recipe = resolvePrivateCommandBuild(process.cwd(), { [name]: profile }, [{ dir: name, pkg }], { alias: {}, external: [], portable });
+  const result = await build({
+    ...recipe, entryPoints: undefined, outdir: undefined, outfile: "/memory/command.js",
+    splitting: false, inject: [],
+    stdin: { contents: 'export { runtime } from "#command-runtime-regression";', resolveDir: process.cwd() },
+  });
+  expect(result.outputFiles.find(file => file.path.endsWith(".js"))!.text).toContain('from "#command-runtime-regression"');
+});

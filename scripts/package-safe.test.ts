@@ -1932,3 +1932,62 @@ it.each([false, true])("keeps copied private command assets inside built package
     }
   }
 });
+
+it.each([false, true])("preserves canonical filesystem identity from linked command outputs (portable=%s)", async portable => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-example";
+  const directory = "/repo/packages/" + name;
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable };
+  volume.mkdirSync(directory + "/dist", { recursive: true });
+  volume.writeFileSync(directory + "/package.json", JSON.stringify({
+    name, ...profile, private: true, type: "module",
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  for (const suffix of ["js", "d.ts"]) {
+    volume.writeFileSync(directory + "/dist/index." + suffix, 'export { FsError } from "../../safe-fs/dist/core.js";');
+  }
+  volume.writeFileSync("/repo/packages/safe-fs/package.json", JSON.stringify({
+    name: "@poe-code/safe-fs",
+    exports: {
+      ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
+      "./core": { types: "./dist/core.d.ts", import: "./dist/core.js" },
+    },
+  }));
+  volume.writeFileSync("/repo/packages/safe-fs/dist/core.js", "export class FsError extends Error {}");
+  volume.writeFileSync("/repo/packages/safe-fs/dist/core.d.ts", "export declare class FsError extends Error {}");
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces = { [name]: profile };
+  manifest.exports["./commands/example"] = { types: "./dist/commands/example/index.d.ts", import: "./dist/commands/example/index.js" };
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.mkdirSync("/repo/packages/safe-bash/dist/commands/example", { recursive: true });
+  for (const suffix of ["js", "d.ts"]) {
+    volume.writeFileSync("/repo/packages/safe-bash/dist/commands/example/index." + suffix, 'export { FsError } from "' + name + '";');
+  }
+  await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (settings: BuildOptions) => {
+    if (settings.outdir !== "/repo/packages") return options.bundle(settings);
+    return build({ ...settings, inject: [], plugins: [...(settings.plugins ?? []), {
+      name: "memory-linked-runtime",
+      setup(builder) {
+        builder.onResolve({ filter: /.*/ }, args => ({ path: path.resolve(args.resolveDir, args.path), namespace: "linked" }));
+        builder.onLoad({ filter: /.*/, namespace: "linked" }, args => ({
+          contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path),
+        }));
+      },
+    }] });
+  } });
+  const consumer = await build({
+    stdin: { contents: volume.readFileSync("/output/safe-bash/dist/" + name + "/index.js", "utf8").toString(), resolveDir: "/output" },
+    bundle: true, platform: "browser", format: "cjs", write: false,
+    plugins: [{
+      name: "canonical-filesystem-consumer",
+      setup(builder) {
+        builder.onResolve({ filter: /^@poe-platform\/safe-fs\/core$/ }, () => ({ path: "canonical", namespace: "consumer" }));
+        builder.onLoad({ filter: /.*/, namespace: "consumer" }, () => ({ contents: "export const FsError = globalThis.canonicalFsError;" }));
+      },
+    }],
+  });
+  class CanonicalFsError extends Error {}
+  const context = { canonicalFsError: CanonicalFsError, module: { exports: {} as { FsError?: unknown } } };
+  runInContext(consumer.outputFiles[0]!.text, createContext(context));
+  expect(context.module.exports.FsError).toBe(CanonicalFsError);
+});

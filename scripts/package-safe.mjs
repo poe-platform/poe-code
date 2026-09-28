@@ -240,6 +240,24 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
   };
   const results = [];
   const fsManifest = workspaces.find(workspace => workspace.dir === "safe-fs").pkg;
+  const canonicalFileSystemSpecifier = target => {
+    if (!target.startsWith(path.join(rootDir, "packages/safe-fs/dist") + path.sep)) return undefined;
+    const runtime = target.endsWith(".d.ts") ? target.slice(0, -5) + ".js" : target;
+    const route = Object.entries(fsManifest.exports).find(([, value]) =>
+      typeof value.import === "string" && path.resolve(rootDir, "packages/safe-fs", value.import) === runtime);
+    if (!route) throw new Error("Unexported canonical filesystem reference: " + target);
+    return "@poe-platform/safe-fs" + (route[0] === "." ? "" : route[0].slice(1));
+  };
+  const canonicalFileSystemImports = {
+    name: "canonical-filesystem-imports",
+    setup(builder) {
+      builder.onResolve({ filter: /.*/ }, args => {
+        if (!args.path.startsWith(".") && !path.isAbsolute(args.path)) return undefined;
+        const specifier = canonicalFileSystemSpecifier(path.resolve(args.resolveDir, args.path));
+        return specifier ? { path: specifier, external: true } : undefined;
+      });
+    },
+  };
   const optional = Object.values(workspaces.find(workspace => workspace.dir === "safe-bash").pkg.exports).some(value => value?.import?.startsWith("./dist/opt-in/"))
     ? await prepareOptionalPackage({ rootDir, files, workspaces, excluded }) : undefined;
   const nativeAssets = await exists(path.join(rootDir, "packages/safe-fs/native/assets.json"))
@@ -323,7 +341,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       }
       recipes.push(...resolveCommandExportBuilds(rootDir, source, root, workspaces, { alias, external }));
       for (const recipe of recipes) {
-        const result = await bundle(recipe);
+        const result = await bundle({ ...recipe, plugins: [canonicalFileSystemImports, ...(recipe.plugins ?? [])] });
         for (const output of result.outputFiles) {
           bundled.set(output.path, output.contents);
           pending.push(output.path);
@@ -566,12 +584,10 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             return publicName;
           }
           let target = path.resolve(path.dirname(filename), publicName);
-          if (name !== "safe-fs" && target.startsWith(path.join(rootDir, "packages/safe-fs/dist") + path.sep)) {
-            const runtime = target.endsWith(".d.ts") ? target.slice(0, -5) + ".js" : target;
-            const route = Object.entries(fsManifest.exports).find(([, value]) => path.resolve(rootDir, "packages/safe-fs", value.import) === runtime);
-            if (!route) throw new Error(`Unexported canonical filesystem reference: ${specifier}`);
+          const filesystemSpecifier = name === "safe-fs" ? undefined : canonicalFileSystemSpecifier(target);
+          if (filesystemSpecifier) {
             addDependency("@poe-platform/safe-fs");
-            return "@poe-platform/safe-fs" + (route[0] === "." ? "" : route[0].slice(1));
+            return filesystemSpecifier;
           }
           if (declaration && target.endsWith(".js")) target = target.slice(0, -3) + ".d.ts";
           pending.push(target);

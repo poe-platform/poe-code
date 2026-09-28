@@ -1078,3 +1078,91 @@ dual_fixture_test!(cli_update_index_add_and_remove, cli_update_index_add_and_rem
     assert_eq!(r_rm.exit_code, 0);
     assert!(git_rust::commands::worktree::list_files(&f.fs, &f.gitdir, None).unwrap().is_empty());
 });
+
+
+dual_fixture_test!(cli_rebase_replays_commits_onto_upstream, cli_rebase_replays_commits_onto_upstream_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "-b", "base-branch", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "base-only.txt"]), "base content\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "base-only.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "base commit"]);
+
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "-b", "topic-branch", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "topic-only.txt"]), "topic content\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "topic-only.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "topic commit"]);
+
+    let r = execute_git_cli(&f.fs, &f.dir, &["rebase", "base-branch"]);
+    assert_eq!(r.exit_code, 0);
+    assert!(r.stdout.contains("Successfully rebased"));
+    assert!(f.fs.exists(&join(&[&f.dir, "base-only.txt"])));
+    assert!(f.fs.exists(&join(&[&f.dir, "topic-only.txt"])));
+});
+
+dual_fixture_test!(cli_reflog_shows_head_history, cli_reflog_shows_head_history_sub, "test-log", |f| {
+    let r = execute_git_cli(&f.fs, &f.dir, &["reflog", "show", "HEAD"]);
+    assert_eq!(r.exit_code, 0);
+    assert!(r.stdout.contains("HEAD@{0}:"));
+});
+
+dual_fixture_test!(cli_format_patch_and_apply_and_am, cli_format_patch_and_apply_and_am_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    let base_oid = resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap();
+
+    f.fs.write_str(&join(&[&f.dir, "patched.txt"]), "hello patch world\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "patched.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "add patched file"]);
+
+    let r_fp = execute_git_cli(&f.fs, &f.dir, &["format-patch", "-1"]);
+    assert_eq!(r_fp.exit_code, 0);
+    let patch_file = r_fp.stdout.trim().to_string();
+    assert!(patch_file.ends_with(".patch"));
+
+    execute_git_cli(&f.fs, &f.dir, &["reset", "--hard", &base_oid]);
+    assert!(!f.fs.exists(&join(&[&f.dir, "patched.txt"])));
+
+    let r_check = execute_git_cli(&f.fs, &f.dir, &["apply", "--check", &patch_file]);
+    assert_eq!(r_check.exit_code, 0);
+
+    let r_am = execute_git_cli(&f.fs, &f.dir, &["am", &patch_file]);
+    assert_eq!(r_am.exit_code, 0);
+    assert!(r_am.stdout.contains("Applying: add patched file"));
+    assert_eq!(f.fs.read_str(&join(&[&f.dir, "patched.txt"])).unwrap(), "hello patch world\n");
+});
+
+dual_fixture_test!(cli_archive_list_and_output_tar, cli_archive_list_and_output_tar_sub, "test-checkout", |f| {
+    let r_list = execute_git_cli(&f.fs, &f.dir, &["archive", "--list"]);
+    assert_eq!(r_list.exit_code, 0);
+    assert!(r_list.stdout.contains("tar"));
+
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    let r_arch = execute_git_cli(&f.fs, &f.dir, &["archive", "--prefix=release/", "-o", "release.tar", "HEAD"]);
+    assert_eq!(r_arch.exit_code, 0);
+    let tar_bytes = f.fs.read(&join(&[&f.dir, "release.tar"])).unwrap();
+    assert!(tar_bytes.len() >= 1024);
+    assert_eq!(&tar_bytes[257..262], b"ustar");
+});
+
+dual_fixture_test!(cli_submodule_and_worktree_and_maintenance, cli_submodule_and_worktree_and_maintenance_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+
+    let r_sub = execute_git_cli(&f.fs, &f.dir, &["submodule", "add", "https://example.com/sub.git", "vendor/sub"]);
+    assert_eq!(r_sub.exit_code, 0);
+    assert!(f.fs.read_str(&join(&[&f.dir, ".gitmodules"])).unwrap().contains("vendor/sub"));
+
+    let r_wt_add = execute_git_cli(&f.fs, &f.dir, &["worktree", "add", "wt-feature", "feature-wt"]);
+    assert_eq!(r_wt_add.exit_code, 0);
+    let r_wt_list = execute_git_cli(&f.fs, &f.dir, &["worktree", "list"]);
+    assert_eq!(r_wt_list.exit_code, 0);
+    assert!(r_wt_list.stdout.contains("wt-feature"));
+
+    let r_fsck = execute_git_cli(&f.fs, &f.dir, &["fsck"]);
+    assert_eq!(r_fsck.exit_code, 0);
+    assert!(r_fsck.stdout.contains("Checking object directories: 100%"));
+
+    let r_gc = execute_git_cli(&f.fs, &f.dir, &["gc"]);
+    assert_eq!(r_gc.exit_code, 0);
+
+    let r_co = execute_git_cli(&f.fs, &f.dir, &["count-objects", "-v"]);
+    assert_eq!(r_co.exit_code, 0);
+    assert!(r_co.stdout.contains("count:"));
+});

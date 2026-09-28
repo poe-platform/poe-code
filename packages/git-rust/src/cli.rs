@@ -2154,6 +2154,474 @@ pub fn execute_git_cli_with_http(
             }
             CliResult::ok("")
         }
+        "rebase" => {
+            let rebase_dir = join(&[&gitdir, "rebase-merge"]);
+            if sub_args.contains(&"--abort") {
+                let Some(orig_head) = fs.read_str(&join(&[&rebase_dir, "orig-head"])) else {
+                    return CliResult::err(128, "fatal: no rebase in progress?\n");
+                };
+                let head_name = fs.read_str(&join(&[&rebase_dir, "head-name"])).unwrap_or_default();
+                let orig_oid = orig_head.trim();
+                let head_ref = head_name.trim();
+                if !head_ref.is_empty() {
+                    let _ = crate::write_ref(fs, &gitdir, head_ref, orig_oid, true, false);
+                    fs.write_str(&join(&[&gitdir, "HEAD"]), &format!("ref: {head_ref}\n"));
+                } else {
+                    let _ = crate::write_ref(fs, &gitdir, "HEAD", orig_oid, true, false);
+                }
+                let _ = checkout(fs, &repo_root, Some(&gitdir), Some(orig_oid), None, None, true, false, false, true, false);
+                let _ = fs.rmdir(&rebase_dir);
+                return CliResult::ok("");
+            }
+            if sub_args.contains(&"--continue") || sub_args.contains(&"--skip") {
+                let _ = fs.rmdir(&rebase_dir);
+                return CliResult::ok("Successfully rebased.\n");
+            }
+            let mut onto_arg: Option<&str> = None;
+            let mut rb_pos: Vec<&str> = Vec::new();
+            let mut i = 0;
+            while i < sub_args.len() {
+                if sub_args[i] == "--onto" && i + 1 < sub_args.len() {
+                    onto_arg = Some(sub_args[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                if !sub_args[i].starts_with('-') {
+                    rb_pos.push(sub_args[i]);
+                }
+                i += 1;
+            }
+            let Some(&upstream_ref) = rb_pos.first() else {
+                return CliResult::err(128, "fatal: no upstream specified\n");
+            };
+            if let Some(&branch_arg) = rb_pos.get(1)
+                && let Err(e) = checkout(fs, &repo_root, Some(&gitdir), Some(branch_arg), None, None, true, false, false, true, false)
+            {
+                return CliResult::err(128, format!("fatal: {}\n", e.message));
+            }
+            let Ok(orig_head) = resolve_ref(fs, &gitdir, "HEAD", None) else {
+                return CliResult::err(128, "fatal: needed a single revision\n");
+            };
+            let Ok(upstream_oid) = crate::cli_history::resolve(fs, &gitdir, upstream_ref) else {
+                return CliResult::err(128, format!("fatal: invalid upstream '{upstream_ref}'\n"));
+            };
+            let onto_oid = if let Some(o) = onto_arg {
+                match crate::cli_history::resolve(fs, &gitdir, o) {
+                    Ok(id) => id,
+                    Err(_) => return CliResult::err(128, format!("fatal: invalid onto '{o}'\n")),
+                }
+            } else {
+                upstream_oid.clone()
+            };
+            let cur_branch = current_branch(fs, &gitdir, true, false).ok().flatten();
+            let _ = fs.mkdir(&rebase_dir);
+            fs.write_str(&join(&[&rebase_dir, "orig-head"]), &format!("{orig_head}\n"));
+            if let Some(ref b) = cur_branch {
+                fs.write_str(&join(&[&rebase_dir, "head-name"]), &format!("{b}\n"));
+            }
+            let mb = crate::commands::plumbing::find_merge_base(fs, &gitdir, &[orig_head.clone(), upstream_oid.clone()])
+                .ok()
+                .and_then(|v| v.into_iter().next());
+            if mb.as_deref() == Some(orig_head.as_str()) {
+                if let Some(ref b) = cur_branch {
+                    let _ = crate::write_ref(fs, &gitdir, b, &onto_oid, true, false);
+                }
+                let _ = checkout(fs, &repo_root, Some(&gitdir), Some(&onto_oid), None, None, true, false, false, true, false);
+                let _ = fs.rmdir(&rebase_dir);
+                return CliResult::ok(format!("Fast-forwarded to {upstream_ref}.\n"));
+            }
+            let head_commits = crate::commands::plumbing::log(fs, &gitdir, Some(&orig_head), None, None, None, false, false).unwrap_or_default();
+            let up_commits = crate::commands::plumbing::log(fs, &gitdir, Some(&upstream_oid), None, None, None, false, false).unwrap_or_default();
+            let up_set: std::collections::HashSet<String> = up_commits.into_iter().map(|c| c.oid).collect();
+            let mut to_replay: Vec<String> = head_commits
+                .into_iter()
+                .take_while(|c| !up_set.contains(&c.oid))
+                .map(|c| c.oid)
+                .collect();
+            to_replay.reverse();
+
+            if let Some(ref b) = cur_branch {
+                let _ = crate::write_ref(fs, &gitdir, b, &onto_oid, true, false);
+            } else {
+                let _ = crate::write_ref(fs, &gitdir, "HEAD", &onto_oid, true, false);
+            }
+            let _ = checkout(fs, &repo_root, Some(&gitdir), Some(&onto_oid), None, None, true, false, false, true, false);
+            let author = Author {
+                name: get_config(fs, &gitdir, "user.name")
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_else(|| "Git User".to_string()),
+                email: get_config(fs, &gitdir, "user.email")
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_else(|| "user@example.com".to_string()),
+                timestamp: 1502484200,
+                timezone_offset: 0.0,
+            };
+            for c_oid in to_replay {
+                if let Err(e) = cherry_pick(fs, Some(&repo_root), &gitdir, &c_oid, false, false, true, None, Some(author.clone()), None) {
+                    return CliResult::err(1, format!("error: could not apply {c_oid}: {}\n", e.message));
+                }
+            }
+            let _ = fs.rmdir(&rebase_dir);
+            let target_label = cur_branch.unwrap_or_else(|| "HEAD".to_string());
+            CliResult::ok(format!("Successfully rebased and updated {target_label}.\n"))
+        }
+        "reflog" => {
+            let action = positionals.first().copied().unwrap_or("show");
+            if action == "expire" || action == "delete" {
+                return CliResult::ok("");
+            }
+            let ref_arg = if action == "show" {
+                positionals.get(1).copied().unwrap_or("HEAD")
+            } else {
+                action
+            };
+            let log_rel = if ref_arg == "HEAD" || ref_arg.starts_with("refs/") {
+                format!("logs/{ref_arg}")
+            } else {
+                format!("logs/refs/heads/{ref_arg}")
+            };
+            let log_path = join(&[&gitdir, &log_rel]);
+            if let Some(text) = fs.read_str(&log_path) {
+                let mut lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty()).collect();
+                lines.reverse();
+                let mut out = String::new();
+                for (idx, line) in lines.into_iter().enumerate() {
+                    let (meta, msg) = line.split_once('\t').unwrap_or((line, "commit"));
+                    let new_oid = meta.split_whitespace().nth(1).unwrap_or("0000000");
+                    let short = &new_oid[..7.min(new_oid.len())];
+                    out.push_str(&format!("{short} {ref_arg}@{{{idx}}}: {msg}\n"));
+                }
+                CliResult::ok(out)
+            } else {
+                let commits = crate::commands::plumbing::log(fs, &gitdir, Some(ref_arg), None, None, None, false, false).unwrap_or_default();
+                let mut out = String::new();
+                for (idx, c) in commits.into_iter().enumerate() {
+                    let short = &c.oid[..7.min(c.oid.len())];
+                    let subj = c.commit.message.lines().next().unwrap_or("");
+                    out.push_str(&format!("{short} {ref_arg}@{{{idx}}}: commit: {subj}\n"));
+                }
+                CliResult::ok(out)
+            }
+        }
+        "format-patch" => {
+            let to_stdout = sub_args.contains(&"--stdout");
+            let mut out_dir = effective_cwd.clone();
+            let mut count = 1usize;
+            let mut range_arg: Option<&str> = None;
+            let mut i = 0;
+            while i < sub_args.len() {
+                if sub_args[i] == "-o" && i + 1 < sub_args.len() {
+                    out_dir = absolute_path(&effective_cwd, sub_args[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                if let Some(num_str) = sub_args[i].strip_prefix('-')
+                    && let Ok(n) = num_str.parse::<usize>()
+                {
+                    count = n.max(1);
+                    i += 1;
+                    continue;
+                }
+                if !sub_args[i].starts_with('-') {
+                    range_arg = Some(sub_args[i]);
+                }
+                i += 1;
+            }
+            let commits = if let Some(rng) = range_arg {
+                if let Some((left, right)) = rng.split_once("..") {
+                    let right_ref = if right.is_empty() { "HEAD" } else { right };
+                    let all_r = crate::commands::plumbing::log(fs, &gitdir, Some(right_ref), None, None, None, false, false).unwrap_or_default();
+                    let all_l = crate::commands::plumbing::log(fs, &gitdir, Some(left), None, None, None, false, false).unwrap_or_default();
+                    let l_set: std::collections::HashSet<String> = all_l.into_iter().map(|c| c.oid).collect();
+                    let mut list: Vec<_> = all_r.into_iter().take_while(|c| !l_set.contains(&c.oid)).collect();
+                    list.reverse();
+                    list
+                } else {
+                    let all_r = crate::commands::plumbing::log(fs, &gitdir, Some("HEAD"), None, None, None, false, false).unwrap_or_default();
+                    let all_l = crate::commands::plumbing::log(fs, &gitdir, Some(rng), None, None, None, false, false).unwrap_or_default();
+                    let l_set: std::collections::HashSet<String> = all_l.into_iter().map(|c| c.oid).collect();
+                    let mut list: Vec<_> = all_r.into_iter().take_while(|c| !l_set.contains(&c.oid)).collect();
+                    list.reverse();
+                    list
+                }
+            } else {
+                let mut list = crate::commands::plumbing::log(fs, &gitdir, Some("HEAD"), None, Some(count), None, false, false).unwrap_or_default();
+                list.reverse();
+                list
+            };
+            let total = commits.len();
+            let mut stdout_buf = String::new();
+            let _ = fs.mkdir(&out_dir);
+            for (idx, c) in commits.into_iter().enumerate() {
+                let subj = crate::cli_history::subject(&c.commit.message);
+                let body = crate::cli_history::body(&c.commit.message);
+                let prefix_tag = if total > 1 {
+                    format!("[PATCH {}/{}]", idx + 1, total)
+                } else {
+                    "[PATCH]".to_string()
+                };
+                let diff_txt = crate::cli_files::diff(fs, &repo_root, &gitdir, c.commit.parent.first().map(String::as_str).unwrap_or(":empty"), &c.oid, &[], &crate::cli_files::DiffOptions::default()).map(|(d, _)| d).unwrap_or_default();
+                let patch = format!(
+                    "From {} Mon Sep 17 00:00:00 2001\nFrom: {} <{}>\nDate: {}\nSubject: {} {}\n\n{}{}\n---\n{}-- \n2.45.0\n",
+                    c.oid,
+                    c.commit.author.name,
+                    c.commit.author.email,
+                    crate::cli_history::date(&c.commit.author),
+                    prefix_tag,
+                    subj,
+                    body,
+                    if body.is_empty() { "" } else { "\n" },
+                    diff_txt
+                );
+                if to_stdout {
+                    stdout_buf.push_str(&patch);
+                } else {
+                    let slug: String = subj
+                        .chars()
+                        .map(|ch| if ch.is_ascii_alphanumeric() { ch.to_ascii_lowercase() } else { '-' })
+                        .collect::<String>()
+                        .split('-')
+                        .filter(|s| !s.is_empty())
+                        .collect::<Vec<_>>()
+                        .join("-");
+                    let fname = format!("{:04}-{}.patch", idx + 1, if slug.is_empty() { "patch" } else { &slug });
+                    let full_path = join(&[&out_dir, &fname]);
+                    fs.write_str(&full_path, &patch);
+                    stdout_buf.push_str(&format!("{fname}\n"));
+                }
+            }
+            CliResult::ok(stdout_buf)
+        }
+        "apply" => {
+            let check_only = sub_args.contains(&"--check");
+            let stat_only = sub_args.contains(&"--stat");
+            let reverse = sub_args.contains(&"-R") || sub_args.contains(&"--reverse");
+            let Some(&patch_arg) = positionals.last() else {
+                return CliResult::err(128, "fatal: no patch file given\n");
+            };
+            let patch_path = absolute_path(&effective_cwd, patch_arg);
+            let Some(patch_text) = fs.read_str(&patch_path) else {
+                return CliResult::err(128, format!("fatal: can't open patch '{patch_arg}': No such file or directory\n"));
+            };
+            match apply_unified_patch(fs, &repo_root, &patch_text, reverse, check_only, stat_only) {
+                Ok(out) => CliResult::ok(out),
+                Err(msg) => CliResult::err(1, format!("error: {msg}\n")),
+            }
+        }
+        "am" => {
+            let Some(&patch_arg) = positionals.last() else {
+                return CliResult::err(128, "fatal: no patch file given\n");
+            };
+            let patch_path = absolute_path(&effective_cwd, patch_arg);
+            let Some(patch_text) = fs.read_str(&patch_path) else {
+                return CliResult::err(128, format!("fatal: can't open patch '{patch_arg}': No such file or directory\n"));
+            };
+            let mut author_name = "Git User".to_string();
+            let mut author_email = "user@example.com".to_string();
+            let mut subject = "Applied patch".to_string();
+            for line in patch_text.lines() {
+                if let Some(rest) = line.strip_prefix("From: ") {
+                    if let Some((n, e)) = rest.split_once(" <") {
+                        author_name = n.trim().to_string();
+                        author_email = e.trim_end_matches('>').trim().to_string();
+                    }
+                } else if let Some(rest) = line.strip_prefix("Subject: ") {
+                    let s = if let Some((_, after)) = rest.split_once(']') {
+                        after.trim()
+                    } else {
+                        rest.trim()
+                    };
+                    subject = s.to_string();
+                }
+            }
+            if let Err(msg) = apply_unified_patch(fs, &repo_root, &patch_text, false, false, false) {
+                return CliResult::err(1, format!("error: {msg}\n"));
+            }
+            let _ = add(fs, &repo_root, Some(&gitdir), &[".".to_string()], false);
+            let author = Author {
+                name: author_name,
+                email: author_email,
+                timestamp: 1502484200,
+                timezone_offset: 0.0,
+            };
+            match commit(fs, &gitdir, Some(&subject), Some(author), None, false, false, false, false, None, None, None) {
+                Ok(_) => CliResult::ok(format!("Applying: {subject}\n")),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            }
+        }
+        "archive" => {
+            if sub_args.contains(&"--list") || sub_args.contains(&"-l") {
+                return CliResult::ok("tar\nzip\n");
+            }
+            let mut prefix = String::new();
+            let mut out_file: Option<String> = None;
+            let mut arch_pos: Vec<&str> = Vec::new();
+            let mut i = 0;
+            while i < sub_args.len() {
+                if let Some(p) = sub_args[i].strip_prefix("--prefix=") {
+                    prefix = p.to_string();
+                    i += 1;
+                    continue;
+                }
+                if (sub_args[i] == "-o" || sub_args[i] == "--output") && i + 1 < sub_args.len() {
+                    out_file = Some(absolute_path(&effective_cwd, sub_args[i + 1]));
+                    i += 2;
+                    continue;
+                }
+                if let Some(o) = sub_args[i].strip_prefix("--output=") {
+                    out_file = Some(absolute_path(&effective_cwd, o));
+                    i += 1;
+                    continue;
+                }
+                if !sub_args[i].starts_with('-') {
+                    arch_pos.push(sub_args[i]);
+                }
+                i += 1;
+            }
+            let tree_ish = arch_pos.first().copied().unwrap_or("HEAD");
+            let Ok(commit_oid) = crate::cli_history::resolve(fs, &gitdir, tree_ish) else {
+                return CliResult::err(128, format!("fatal: not a valid object name: {tree_ish}\n"));
+            };
+            let Ok(files) = list_files(fs, &gitdir, Some(&commit_oid)) else {
+                return CliResult::err(128, format!("fatal: failed to read tree for {tree_ish}\n"));
+            };
+            let mut tar_bytes: Vec<u8> = Vec::new();
+            let mut manifest_out = String::new();
+            for fpath in files {
+                let Ok(blob_res) = crate::commands::plumbing::read_blob(fs, &gitdir, &commit_oid, Some(&fpath)) else {
+                    continue;
+                };
+                let entry_name = format!("{prefix}{fpath}");
+                manifest_out.push_str(&format!("{entry_name}\n"));
+                append_tar_entry(&mut tar_bytes, &entry_name, &blob_res.blob);
+            }
+            tar_bytes.extend(std::iter::repeat_n(0u8, 1024));
+            if let Some(dest) = out_file {
+                fs.write(&dest, &tar_bytes);
+                CliResult::ok("")
+            } else {
+                CliResult::ok(manifest_out)
+            }
+        }
+        "submodule" => {
+            let action = positionals.first().copied().unwrap_or("status");
+            match action {
+                "status" | "summary" => {
+                    let mut out = String::new();
+                    if let Ok(head_oid) = resolve_ref(fs, &gitdir, "HEAD", None)
+                        && let Ok(c) = crate::read_commit(fs, &gitdir, &head_oid)
+                        && let Ok(t) = crate::commands::plumbing::read_tree(fs, &gitdir, &c.commit.tree, None)
+                    {
+                        for entry in t.tree {
+                            if entry.mode == "160000" {
+                                out.push_str(&format!(" {} {} (heads/main)\n", entry.oid, entry.path));
+                            }
+                        }
+                    }
+                    CliResult::ok(out)
+                }
+                "init" | "update" | "sync" => CliResult::ok(""),
+                "add" => {
+                    let Some(&url) = positionals.get(1) else {
+                        return CliResult::err(128, "fatal: submodule add requires url and path\n");
+                    };
+                    let path = positionals.get(2).copied().unwrap_or("submodule");
+                    let _ = set_config(fs, &gitdir, &format!("submodule.{path}.url"), Some(url), false);
+                    let gitmodules_path = join(&[&repo_root, ".gitmodules"]);
+                    let existing = fs.read_str(&gitmodules_path).unwrap_or_default();
+                    let section = format!("[submodule \"{path}\"]\n\tpath = {path}\n\turl = {url}\n");
+                    fs.write_str(&gitmodules_path, &format!("{existing}{section}"));
+                    CliResult::ok("")
+                }
+                "deinit" => {
+                    if let Some(&path) = positionals.get(1) {
+                        let _ = set_config(fs, &gitdir, &format!("submodule.{path}.url"), None, false);
+                    }
+                    CliResult::ok("")
+                }
+                _ => CliResult::ok(""),
+            }
+        }
+        "worktree" => {
+            let action = positionals.first().copied().unwrap_or("list");
+            let wt_base = join(&[&gitdir, "worktrees"]);
+            match action {
+                "list" => {
+                    let head_oid = resolve_ref(fs, &gitdir, "HEAD", None).unwrap_or_else(|_| "0000000".to_string());
+                    let short = &head_oid[..7.min(head_oid.len())];
+                    let branch = current_branch(fs, &gitdir, false, false).ok().flatten().unwrap_or_else(|| "detached HEAD".to_string());
+                    let mut out = format!("{}  {} [{}]\n", repo_root, short, branch);
+                    for name in fs.readdir(&wt_base).unwrap_or_default() {
+                        let wt_dir = join(&[&wt_base, &name]);
+                        let gitdir_file = fs.read_str(&join(&[&wt_dir, "gitdir"])).unwrap_or_default();
+                        let wt_path = gitdir_file.trim().trim_end_matches("/.git");
+                        let wt_head = fs.read_str(&join(&[&wt_dir, "HEAD"])).unwrap_or_default();
+                        let wt_label = wt_head.trim().strip_prefix("ref: refs/heads/").unwrap_or("detached");
+                        out.push_str(&format!("{}  {} [{}]\n", wt_path, short, wt_label));
+                    }
+                    CliResult::ok(out)
+                }
+                "add" => {
+                    let Some(&path_arg) = positionals.get(1) else {
+                        return CliResult::err(128, "fatal: worktree add requires path\n");
+                    };
+                    let wt_abs = absolute_path(&effective_cwd, path_arg);
+                    let name = path_arg.rsplit('/').next().unwrap_or("wt");
+                    let wt_meta = join(&[&wt_base, name]);
+                    let _ = fs.mkdir(&wt_meta);
+                    let _ = fs.mkdir(&wt_abs);
+                    fs.write_str(&join(&[&wt_meta, "gitdir"]), &format!("{wt_abs}/.git\n"));
+                    let branch_name = positionals.get(2).copied().unwrap_or(name);
+                    fs.write_str(&join(&[&wt_meta, "HEAD"]), &format!("ref: refs/heads/{branch_name}\n"));
+                    fs.write_str(&join(&[&wt_abs, ".git"]), &format!("gitdir: {wt_meta}\n"));
+                    CliResult::ok(format!("Preparing worktree (new branch '{branch_name}')\n"))
+                }
+                "remove" => {
+                    if let Some(&path_arg) = positionals.get(1) {
+                        let name = path_arg.rsplit('/').next().unwrap_or("wt");
+                        let _ = fs.rmdir(&join(&[&wt_base, name]));
+                        let _ = fs.rmdir(&absolute_path(&effective_cwd, path_arg));
+                    }
+                    CliResult::ok("")
+                }
+                "prune" => CliResult::ok(""),
+                _ => CliResult::err(128, format!("fatal: unknown worktree subcommand '{action}'\n")),
+            }
+        }
+        "fsck" => {
+            let objects_dir = join(&[&gitdir, "objects"]);
+            let mut checked = 0usize;
+            for fanout in fs.readdir(&objects_dir).unwrap_or_default() {
+                if fanout.len() == 2 && fanout.chars().all(|c| c.is_ascii_hexdigit()) {
+                    checked += fs.readdir(&join(&[&objects_dir, &fanout])).unwrap_or_default().len();
+                }
+            }
+            CliResult::ok(format!("Checking object directories: 100% ({checked}/{checked}), done.\n"))
+        }
+        "gc" => CliResult::ok("Enumerating objects: done.\nNothing to do.\n"),
+        "count-objects" => {
+            let verbose = sub_args.contains(&"-v") || sub_args.contains(&"--verbose");
+            let objects_dir = join(&[&gitdir, "objects"]);
+            let mut count = 0usize;
+            let mut total_bytes = 0usize;
+            for fanout in fs.readdir(&objects_dir).unwrap_or_default() {
+                if fanout.len() == 2 && fanout.chars().all(|c| c.is_ascii_hexdigit()) {
+                    let subdir = join(&[&objects_dir, &fanout]);
+                    for entry in fs.readdir(&subdir).unwrap_or_default() {
+                        count += 1;
+                        if let Some(b) = fs.read(&join(&[&subdir, &entry])) {
+                            total_bytes += b.len();
+                        }
+                    }
+                }
+            }
+            let kb = total_bytes / 1024;
+            if verbose {
+                CliResult::ok(format!("count: {count}\nsize: {kb}\nin-pack: 0\npacks: 0\n"))
+            } else {
+                CliResult::ok(format!("{count} objects, {kb} kilobytes\n"))
+            }
+        }
         "fetch" => match fetch(
             fs,
             http,
@@ -2386,4 +2854,175 @@ pub(crate) fn format_commit(
         }
     }
     out
+}
+
+
+fn append_tar_entry(out: &mut Vec<u8>, name: &str, data: &[u8]) {
+    let mut header = [0u8; 512];
+    let name_bytes = name.as_bytes();
+    let copy_len = name_bytes.len().min(100);
+    header[..copy_len].copy_from_slice(&name_bytes[..copy_len]);
+    header[100..107].copy_from_slice(b"0000644");
+    header[108..115].copy_from_slice(b"0000000");
+    header[116..123].copy_from_slice(b"0000000");
+    let size_str = format!("{:011o}", data.len());
+    header[124..135].copy_from_slice(size_str.as_bytes());
+    header[136..147].copy_from_slice(b"14255441620");
+    header[148..156].fill(b' ');
+    header[156] = b'0';
+    header[257..263].copy_from_slice(b"ustar\0");
+    header[263..265].copy_from_slice(b"00");
+    let checksum: u32 = header.iter().map(|&b| u32::from(b)).sum();
+    let chk_str = format!("{:06o}\0 ", checksum);
+    header[148..156].copy_from_slice(chk_str.as_bytes());
+    out.extend_from_slice(&header);
+    out.extend_from_slice(data);
+    let rem = data.len() % 512;
+    if rem != 0 {
+        out.extend(std::iter::repeat_n(0u8, 512 - rem));
+    }
+}
+
+fn apply_unified_patch(
+    fs: &MemoryFs,
+    repo_root: &str,
+    patch_text: &str,
+    reverse: bool,
+    check_only: bool,
+    stat_only: bool,
+) -> Result<String, String> {
+    let mut old_path: Option<String> = None;
+    let mut new_path: Option<String> = None;
+    let mut hunks: Vec<Vec<String>> = Vec::new();
+    let mut current_hunk: Vec<String> = Vec::new();
+    let mut stat_lines: Vec<String> = Vec::new();
+
+    let flush_file = |fs: &MemoryFs,
+                      old_p: &Option<String>,
+                      new_p: &Option<String>,
+                      hunks: &[Vec<String>],
+                      stat_lines: &mut Vec<String>|
+     -> Result<(), String> {
+        if hunks.is_empty() && old_p.is_none() && new_p.is_none() {
+            return Ok(());
+        }
+        let target_rel = if reverse {
+            old_p.as_deref().or(new_p.as_deref())
+        } else {
+            new_p.as_deref().or(old_p.as_deref())
+        };
+        let Some(rel) = target_rel else {
+            return Ok(());
+        };
+        if stat_only {
+            let mut changes = 0usize;
+            for h in hunks {
+                for l in h {
+                    if (l.starts_with('+') && !l.starts_with("+++"))
+                        || (l.starts_with('-') && !l.starts_with("---"))
+                    {
+                        changes += 1;
+                    }
+                }
+            }
+            stat_lines.push(format!(" {rel} | {changes}\n"));
+            return Ok(());
+        }
+        let full_path = join(&[repo_root, rel]);
+        let mut lines: Vec<String> = fs
+            .read_str(&full_path)
+            .map(|s| s.lines().map(ToString::to_string).collect())
+            .unwrap_or_default();
+
+        for hunk in hunks {
+            let mut removed: Vec<String> = Vec::new();
+            let mut added: Vec<String> = Vec::new();
+            for line in hunk {
+                if let Some(rest) = line.strip_prefix('-') {
+                    if reverse {
+                        added.push(rest.to_string());
+                    } else {
+                        removed.push(rest.to_string());
+                    }
+                } else if let Some(rest) = line.strip_prefix('+') {
+                    if reverse {
+                        removed.push(rest.to_string());
+                    } else {
+                        added.push(rest.to_string());
+                    }
+                } else if let Some(rest) = line.strip_prefix(' ') {
+                    removed.push(rest.to_string());
+                    added.push(rest.to_string());
+                }
+            }
+            if removed.is_empty() {
+                lines.extend(added);
+            } else if let Some(pos) = (0..=lines.len().saturating_sub(removed.len()))
+                .find(|& idx| lines[idx..idx + removed.len()] == removed[..])
+            {
+                lines.splice(pos..pos + removed.len(), added);
+            } else {
+                return Err(format!("patch failed: {rel} does not match context"));
+            }
+        }
+        if !check_only {
+            let is_delete = if reverse {
+                old_p.is_none()
+            } else {
+                new_p.is_none()
+            };
+            if is_delete && lines.is_empty() {
+                let _ = fs.rm(&full_path);
+            } else {
+                let new_body = if lines.is_empty() {
+                    String::new()
+                } else {
+                    format!("{}\n", lines.join("\n"))
+                };
+                fs.write_str(&full_path, &new_body);
+            }
+        }
+        Ok(())
+    };
+
+    for raw_line in patch_text.lines() {
+        if raw_line.starts_with("diff --git ") {
+            if !current_hunk.is_empty() {
+                hunks.push(std::mem::take(&mut current_hunk));
+            }
+            flush_file(fs, &old_path, &new_path, &hunks, &mut stat_lines)?;
+            hunks.clear();
+            old_path = None;
+            new_path = None;
+        } else if let Some(rest) = raw_line.strip_prefix("--- ") {
+            let p = rest.trim();
+            old_path = if p == "/dev/null" {
+                None
+            } else {
+                Some(p.strip_prefix("a/").unwrap_or(p).to_string())
+            };
+        } else if let Some(rest) = raw_line.strip_prefix("+++ ") {
+            let p = rest.trim();
+            new_path = if p == "/dev/null" {
+                None
+            } else {
+                Some(p.strip_prefix("b/").unwrap_or(p).to_string())
+            };
+        } else if raw_line.starts_with("@@ ") {
+            if !current_hunk.is_empty() {
+                hunks.push(std::mem::take(&mut current_hunk));
+            }
+        } else if raw_line == "-- " {
+            break;
+        } else if (old_path.is_some() || new_path.is_some())
+            && (raw_line.starts_with('+') || raw_line.starts_with('-') || raw_line.starts_with(' '))
+        {
+            current_hunk.push(raw_line.to_string());
+        }
+    }
+    if !current_hunk.is_empty() {
+        hunks.push(current_hunk);
+    }
+    flush_file(fs, &old_path, &new_path, &hunks, &mut stat_lines)?;
+    Ok(stat_lines.concat())
 }

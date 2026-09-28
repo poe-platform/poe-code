@@ -1,5 +1,9 @@
 import { expect, it } from "vitest";
-import { createDos2unixCommand, createUnix2dosCommand } from "safe-bash-command-dos2unix";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { createContext, runInContext } from "node:vm";
+import { build } from "esbuild";
+import { createDos2unixCommand, createUnix2dosCommand, createDos2unixCommands, dos2unixCommands } from "safe-bash-command-dos2unix";
 import { LineEndingError } from "safe-bash-line-ending-engine";
 import { createCommandArguments, CommandArgumentIdentityError } from "safe-bash-contracts";
 import { writeFileOutput, filesystemOutputBudgets } from "safe-bash-contracts/filesystem-output-budget";
@@ -13,6 +17,45 @@ import { yieldTurn as compatibleYield } from "../packages/safe-bash/src/contract
 import { createManagedControlController as compatibleController } from "../packages/safe-bash/src/fs/creation-mask.js";
 import { Shell } from "../packages/safe-bash/src/shell/index.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+
+it("retains factory exports when public browser entries share an external command runtime", async () => {
+  const adapter = fileURLToPath(new URL("../packages/safe-bash/src/commands/line-endings/index.ts", import.meta.url));
+  const runtime = { createDos2unixCommand, createUnix2dosCommand, createDos2unixCommands, dos2unixCommands };
+  const outputs = await build({
+    entryPoints: { commands: adapter, aggregate: "aggregate-fixture" },
+    outdir: "/memory", bundle: true, splitting: true, write: false, format: "esm", platform: "browser",
+    external: ["safe-bash-command-dos2unix"],
+    plugins: [{ name: "aggregate-fixture", setup(builder) {
+      builder.onResolve({ filter: /^aggregate-fixture$/ }, () => ({ path: "aggregate", namespace: "fixture" }));
+      builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({
+        contents: `import * as api from ${JSON.stringify(adapter)}; export { api };`, resolveDir: path.dirname(adapter),
+      }));
+    } }],
+  });
+  const modules = new Map(outputs.outputFiles.map(output => [output.path, output.text]));
+  const consumer = await build({
+    stdin: {
+      contents: `import { createDos2unixCommand, createUnix2dosCommand, createDos2unixCommands, dos2unixCommands, createLineEndingCommands, lineEndingCommands } from "/memory/commands.js";
+import { api } from "/memory/aggregate.js";
+export const names = [createDos2unixCommand().name, createUnix2dosCommand().name];
+export const same = createDos2unixCommand === api.createDos2unixCommand && createUnix2dosCommand === api.createUnix2dosCommand && createDos2unixCommands === createLineEndingCommands && dos2unixCommands === lineEndingCommands;`,
+      resolveDir: "/memory",
+    },
+    bundle: true, write: false, format: "cjs", platform: "browser", external: ["safe-bash-command-dos2unix"],
+    plugins: [{ name: "memory-public-entries", setup(builder) {
+      builder.onResolve({ filter: /^[./]/ }, args => ({ path: path.resolve(args.resolveDir, args.path), namespace: "memory" }));
+      builder.onLoad({ filter: /.*/, namespace: "memory" }, args => ({
+        contents: modules.get(args.path), resolveDir: path.dirname(args.path),
+      }));
+    } }],
+  });
+  const sandbox = createContext({ require(specifier: string) {
+    expect(specifier).toBe("safe-bash-command-dos2unix");
+    return runtime;
+  } });
+  const result = runInContext(`(() => { const module = { exports: {} }; ${consumer.outputFiles[0]!.text}; return module.exports; })()`, sandbox);
+  expect(result).toEqual({ names: ["dos2unix", "unix2dos"], same: true });
+});
 
 it("shares the private implementation, diagnostics and file output accounting with Safe Bash", () => {
   expect(publicDos2unix).toBe(createDos2unixCommand);

@@ -334,7 +334,8 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
     const dateSystem = attr(children(calculation, "null-date")[0], "date-value")?.startsWith("1904") ? "1904" : "1900";
     const unsupportedRecords: UnsupportedRecord[] = [];
     const styles = readStyles(styleRoots, pkg.charge);
-    for (const r of styleRoots) for (const node of r.children) if (["styles", "automatic-styles", "master-styles", "font-face-decls", "font-decls"].includes(node.localName)) unsupportedRecords.push(record(node));
+    for (const r of styleRoots) for (const node of r.children) if (["styles", "automatic-styles", "master-styles", "font-face-decls", "font-decls"].includes(node.localName))
+      unsupportedRecords.push(record(node, { packagePart: r === preparseRoot ? "content.xml" : "styles.xml" }));
     if (manifest) unsupportedRecords.push(record(manifest));
     for (const name of ["meta.xml", "settings.xml"]) if (pkg.entries.has(name)) unsupportedRecords.push(record(await pkg.document(name)));
     const resources = new Set<string>();
@@ -765,7 +766,10 @@ export function createOdfWriter(profile: "strict" | "extended") {
       if (record.source === "Gnumeric_OpenCalc:openoffice" && node) {
         if (["automatic-styles", "font-face-decls", "styles", "master-styles"].includes(record.kind)) {
           const content = odfChildren(node).map(n => xml.retained(n)).join("");
-          if (record.kind === "automatic-styles") automatic += content;
+          if (record.kind === "automatic-styles") {
+            if (v?.packagePart === "styles.xml") pageLayouts += content;
+            else automatic += content;
+          }
           else if (record.kind === "master-styles") masters += content;
           else if (record.kind === "font-face-decls") fontFaces += content;
           else styleBody += content;

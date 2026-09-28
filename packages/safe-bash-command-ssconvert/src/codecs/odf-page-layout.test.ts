@@ -52,3 +52,31 @@ it.each(["strict", "extended"] as const)("retains content page layouts and print
     expect(diagnostics).toEqual([]);
   }
 });
+
+it.each(["strict", "extended"] as const)("keeps original automatic styles in their package parts through %s cycles", async profile => {
+  const bytes = await fixture({ mimetype: "application/vnd.oasis.opendocument.spreadsheet",
+    "content.xml": content('<table:calculation-settings table:automatic-find-labels="false"/>' +
+      '<table:table table:name="S" table:style-name="native-table"/>',
+    '<style:style style:name="native-table" style:family="table" style:master-page-name="native-master"/>'),
+    "styles.xml": `<office:document-styles xmlns:office="${office}" xmlns:style="${style}" ` +
+      'xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0">' +
+      '<office:automatic-styles>' + nativeLayout + '</office:automatic-styles>' +
+      '<office:master-styles><style:master-page style:name="native-master" style:page-layout-name="native-layout"/>' +
+      '</office:master-styles></office:document-styles>' });
+  const diagnostics: string[] = [], ctx = { ...context, async diagnostic(d: { code: string }) { diagnostics.push(d.code); } };
+  let book = await readOdf(bytes, ctx);
+  for (let cycle = 0; cycle < 3; cycle++) {
+    expect(print(book)).toEqual({ orientation: "landscape", left: "11" });
+    const output = await createOdfWriter(profile)(book, [], ctx);
+    const { parts } = await unpackOdf(output);
+    expect(parts.get("content.xml")).not.toContain('style:name="native-layout"');
+    expect(parts.get("content.xml")).toContain('style:name="native-table"');
+    expect(parts.get("styles.xml")).toContain('style:name="native-layout"');
+    expect(parts.get("styles.xml")).toContain('fo:min-height="12pt"');
+    expect(parts.get("styles.xml")).toContain('fo:min-height="13pt"');
+    expect(parts.get("styles.xml")).toContain('style:page-layout-name="native-layout"');
+    expect(parts.get("styles.xml")).not.toContain('style:name="native-table"');
+    book = await readOdf(output, ctx);
+  }
+  expect(diagnostics).toEqual([]);
+});

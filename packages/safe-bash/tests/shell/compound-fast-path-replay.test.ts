@@ -837,3 +837,126 @@ for (const predicate of ["[", "test"]) {
     }
   }
 }
+
+test("matches bash for Wave 65 sync mapfile/readarray <<<, array/assoc element unset, and export/unset in loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  try {
+    const script = [
+      "declare -a arr=()",
+      "declare -A map=()",
+      "total=0",
+      "for ((i = 0; i < 90; i++)); do",
+      "  mapfile -t lines <<< \"alpha_${i}",
+      "beta_${i}",
+      "gamma_${i}\"",
+      "  readarray -t <<< \"10_${i}",
+      "20_${i}\"",
+      "  (( total += ${#lines[@]} + ${#MAPFILE[@]} ))",
+      "  arr[i]=\"v_$i\"",
+      "  map[\"k_$i\"]=\"m_$i\"",
+      "  if (( i % 2 == 0 )); then",
+      "    unset \"arr[$i]\"",
+      "    unset \"map[k_$i]\"",
+      "  elif (( i % 3 == 0 )); then",
+      "    unset 'arr[i]'",
+      "  fi",
+      "  export EXP_VAR=\"val_$i\"",
+      "  tmp_var=\"$i\"",
+      "  unset tmp_var",
+      "done",
+      "printf \"%s|%s|%s|%s|%s|%s|%s\\n\" \"$total\" \"${lines[1]}\" \"${MAPFILE[1]}\" \"${#arr[@]}\" \"${#map[@]}\" \"$EXP_VAR\" \"${tmp_var:-unset}\"",
+    ].join("\n");
+
+    const actual = await shell.exec(script);
+    assert.equal(actual.exitCode, 0);
+    assert.equal(actual.stderr, "");
+    assert.equal(actual.stdout, "450|beta_89|20_89|30|45|val_89|unset\n");
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("matches bash for Wave 66 sync printf -v associative/indexed array elements, printf -v array members, and $(pwd)/pwd -L in loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  try {
+    const script = [
+      "declare -a arr=()",
+      "declare -A map=()",
+      "items=(alpha beta gamma)",
+      "for ((i = 0; i < 90; i++)); do",
+      "  printf -v 'arr[i]' \"item_%03d\" \"$i\"",
+      "  printf -v \"map[k_$i]\" \"%s:%d\" \"val\" \"$i\"",
+      "  printf -v joined \"%s,\" \"${items[@]}\"",
+      "  cur=\"$(pwd)\"",
+      "  pwd -L >/dev/null",
+      "done",
+      "printf \"%s|%s|%s|%s\\n\" \"${arr[89]}\" \"${map[k_89]}\" \"$joined\" \"$cur\"",
+    ].join("\n");
+
+    const actual = await shell.exec(script);
+    assert.equal(actual.exitCode, 0);
+    assert.equal(actual.stderr, "");
+    assert.equal(actual.stdout, "item_089|val:89|alpha,beta,gamma,|/\n");
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("matches bash for Wave 67 sync command -v, type -t, >/dev/null redirects, and pure substitutions in [[ ]] conditionals in loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  try {
+    const script = [
+      "my_helper() { :; }",
+      "total=0",
+      "missing=0",
+      "for ((i = 0; i < 90; i++)); do",
+      "  if command -v my_helper >/dev/null && [[ $(type -t my_helper) == \"function\" && $(command -v printf) == \"printf\" && $(type -t for) == \"keyword\" ]]; then",
+      "    total=$((total + 1))",
+      "  fi",
+      "  if ! command -v no_such_cmd_xyz >/dev/null; then",
+      "    missing=$((missing + 1))",
+      "  fi",
+      "done",
+      "printf \"%s|%s|%s|%s\\n\" \"$total\" \"$missing\" \"$(type -t my_helper)\" \"$(command -v printf)\"",
+    ].join("\n");
+
+    const actual = await shell.exec(script);
+    assert.equal(actual.exitCode, 0);
+    assert.equal(actual.stderr, "");
+    assert.equal(actual.stdout, "90|90|function|printf\n");
+  } finally {
+    await shell.dispose();
+  }
+});
+
+
+test("matches bash for Wave 68 sync file unary predicates (-e, -f, -d, -s, -L) in [[ ]] and [ / test inside loops", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work/sub", { recursive: true });
+  await fs.writeFile("/work/sub/data.txt", new TextEncoder().encode("hello"));
+  await fs.writeFile("/work/sub/empty.txt", new Uint8Array(0));
+  await fs.symlink("/work/sub/data.txt", "/work/sub/link.txt");
+  const shell = new Shell({ fs });
+  for (const command of [...basicCommands(), ...predicateCommands()]) shell.commands.register(command);
+  try {
+    const script = [
+      "total=0",
+      "for ((i = 0; i < 90; i++)); do",
+      "  if [ -d /work/sub -a -f /work/sub/data.txt -a ! -f /work/sub/missing.txt -a -s /work/sub/data.txt -a ! -s /work/sub/empty.txt ] && [[ -e /work/sub && -L /work/sub/link.txt && ! -e /work/sub/nope ]]; then",
+      "    total=$((total + 1))",
+      "  fi",
+      "done",
+      "printf \"%s\\n\" \"$total\"",
+    ].join("\n");
+
+    const actual = await shell.exec(script);
+    assert.equal(actual.exitCode, 0);
+    assert.equal(actual.stderr, "");
+    assert.equal(actual.stdout, "90\n");
+  } finally {
+    await shell.dispose();
+  }
+});

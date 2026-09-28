@@ -692,3 +692,42 @@ test("wave 104 sync loop: tr -cd/-cs, sed y///, grep -n/-F, awk NR/$(NF-1)/lengt
     await shell.dispose();
   }
 });
+
+test("Wave 105: trySyncLoop supports jq // fallback, comma outputs, select(...), cut --output-delimiter, tr <<< var, and preserves mutated jq errors", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createStructuredCommands } = await import("../../src/commands/structured/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([...createStandardCommands(), ...createStructuredCommands()]),
+  });
+  try {
+    const script = [
+      "json='{\"host\":\"db.internal\",\"items\":[{\"id\":10,\"active\":true},{\"id\":20,\"active\":false}]}'",
+      "raw=\"a-1_b-2!\"",
+      "line=\"u:v:w:x\"",
+      "out=\"\"",
+      "for ((i=1; i<=20; i++)); do",
+      "  h=\$(jq -r \".host, (.port // 5432)\" <<< \"\$json\")",
+      "  act=\$(jq -r \".items[] | select(.active == true) | .id\" <<< \"\$json\")",
+      "  t=\$(tr -cd \"0-9_\" <<< \"\$raw\")",
+      "  c=\$(cut -d: -f1,3,4 --output-delimiter=\"|\" <<< \"\$line\")",
+      "  out=\"\$h/\$act/\$t/\$c\"",
+      "done",
+      "printf \"%s\\n\" \"\$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "db.internal\n5432/10/1_2/u|w|x\n");
+
+    const mutatedErr = await shell.exec([
+      "for payload in '{\"a\":1}' 'not-json'; do",
+      "  val=\$(jq -r \".a\" <<< \"\$payload\")",
+      "  printf \"%d:%s\\n\" \"\$?\" \"\$val\"",
+      "done",
+    ].join("\n"));
+    assert.equal(mutatedErr.stdout, "0:1\n5:\n");
+    assert.notEqual(mutatedErr.stderr, "");
+  } finally {
+    await shell.dispose();
+  }
+});

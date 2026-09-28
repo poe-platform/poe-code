@@ -11825,7 +11825,7 @@ export class Runtime {
         }
         // These evaluators can decline based on runtime input. Loop execution
         // has no continuation for a declined substitution after earlier effects.
-        if (w0Plain === "tac" || w0Plain === "nl" || w0Plain === "jq" || w0Plain === "tr" || w0Plain === "base64" && cmd.words.length > 1) return false;
+        if (w0Plain === "tac" || w0Plain === "nl" || (w0Plain === "base64" && cmd.words.length > 1)) return false;
         if (w0Plain === "pwd") {
           if (p.commands.length === 1 && (cmd.words.length === 1 || (cmd.words.length === 2 && (cmd.words[1]?.plain === "-L" || cmd.words[1]?.plain === "--logical"))) && !rawState.functions.has("pwd") && !rawState.extensions?.builtins.has("pwd")) continue;
           return false;
@@ -11858,10 +11858,10 @@ export class Runtime {
           w0Plain === "uniq" ||
           w0Plain === "tr" ||
           (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl"));
-        const def = w0Plain ? (this.commands.get(w0Plain) ?? ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl") ? this.getExternalCommand(w0Plain) : undefined)) : undefined;
+        const def = w0Plain ? (this.commands.get(w0Plain) ?? ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "jq") ? this.getExternalCommand(w0Plain) : undefined)) : undefined;
         if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || !def || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
         if ((hasSingleStdinRedir || hasSingleHereStringRedir) && !isFileCommand) return false;
-        if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : (w0Plain === "seq" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl") ? (!builtInDirectContextExecutors.has(def.execute) && customRegisteredCommands.has(def.execute)) : !builtInDirectContextExecutors.has(def.execute)) return false;
+        if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : (w0Plain === "seq" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "jq") ? (!builtInDirectContextExecutors.has(def.execute) && customRegisteredCommands.has(def.execute)) : !builtInDirectContextExecutors.has(def.execute)) return false;
         if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
         if (isFileCommand) {
           if (w0Plain === "tr" && !hasSingleStdinRedir && !hasSingleHereStringRedir) return false;
@@ -11903,9 +11903,9 @@ export class Runtime {
             } else if (w0Plain === "awk") {
               if (plainOps.length !== opCount || this.evalSyncAwk([], plainOps) === undefined) return false;
             } else if (w0Plain === "jq") {
-              // jq may fail on a later iteration with a different input type.
-              // Normal execution must preserve its diagnostics and substitution status.
-              return false;
+              if (plainOps.length !== opCount) return false;
+              const jqIn = this.extractLoopInvariantJqInput(cmd, hasSingleStdinRedir, hasSingleHereStringRedir, rawState);
+              if (jqIn === undefined || this.evalSyncJq(jqIn, plainOps) === undefined) return false;
             } else if (w0Plain === "wc") {
               if (opCount !== 1 || (op0 !== "-l" && op0 !== "-c" && op0 !== "-w" && op0 !== "-m" && op0 !== "-L")) return false;
             } else if (w0Plain === "sort") {
@@ -11971,8 +11971,8 @@ export class Runtime {
             const sName = sCmd.words[0]!.plain;
             // Range-aware tr and Buffer-free 76-col base64 are handled in pipeline stages.
             if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "rev" && sName !== "awk" && sName !== "grep" && sName !== "jq" && sName !== "base64" && sName !== "tac" && sName !== "nl")) return false;
-            const sDef = this.commands.get(sName) ?? ((sName === "rev" || sName === "tac" || sName === "nl") ? this.getExternalCommand(sName) : undefined);
-            if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "rev" && sName !== "tac" && sName !== "nl" && !builtInDirectContextExecutors.has(sDef.execute)) ) return false;
+            const sDef = this.commands.get(sName) ?? ((sName === "rev" || sName === "tac" || sName === "nl" || sName === "jq") ? this.getExternalCommand(sName) : undefined);
+            if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "jq" && !builtInDirectContextExecutors.has(sDef.execute)) ) return false;
             if (rawState.functions.has(sName) || rawState.extensions?.builtins.has(sName)) return false;
             const sArgWords = sCmd.words.slice(1);
             const sPlainArgs: string[] = [];
@@ -12004,7 +12004,9 @@ export class Runtime {
             } else if (sName === "tr") {
               if (this.evalSyncTr("", sPlainArgs) === undefined) return false;
             } else if (sName === "jq") {
-              return false;
+              if (p.commands.length !== 2 || sIdx !== 1) return false;
+              const jqIn = this.extractLoopInvariantJqInput(cmd, hasSingleStdinRedir, hasSingleHereStringRedir, rawState);
+              if (jqIn === undefined || this.evalSyncJq(jqIn, sPlainArgs) === undefined) return false;
             } else if (sName === "base64") {
               if (sPlainArgs.length !== 0) return false;
             } else if (sName === "tac" || sName === "nl") {
@@ -13302,12 +13304,21 @@ export class Runtime {
           ? whilePrintfInd
           : (forPrintfInd && this.canSyncPrintfInductionBody(command.body, rawState, forPrintfInd) ? forPrintfInd : undefined));
     const prevActivePrintfInd = this._activePrintfInductionName;
+    const prevActiveLoopScript = this._activeLoopBodyScript;
+    const prevActiveLoopCond = this._activeLoopCondScript;
+    const prevActiveLoopVar = this._activeLoopVarName;
     this._activePrintfInductionName = printfInductionName;
+    this._activeLoopBodyScript = command.body;
+    this._activeLoopCondScript = command.kind === "while" ? command.condition : undefined;
+    this._activeLoopVarName = command.kind === "for" ? command.name : (printfInductionName ?? whilePrintfInd);
     let bodySyncOk = false;
     try {
       bodySyncOk = !(guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) && this.canSyncLoopBody(command.body, rawState, io, false, printfInductionName);
     } finally {
       this._activePrintfInductionName = prevActivePrintfInd;
+      this._activeLoopBodyScript = prevActiveLoopScript;
+      this._activeLoopCondScript = prevActiveLoopCond;
+      this._activeLoopVarName = prevActiveLoopVar;
     }
     if (!bodySyncOk) {
       (command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop = true;
@@ -14541,6 +14552,131 @@ export class Runtime {
     return pos <= 128 ? fastRedirectScratchViews[pos]! : fastRedirectScratchBytes.subarray(0, pos);
   }
   private _activePrintfInductionName: string | undefined = undefined;
+  private _activeLoopBodyScript: Script | undefined = undefined;
+  private _activeLoopCondScript: Script | undefined = undefined;
+  private _activeLoopVarName: string | undefined = undefined;
+  private isVarUnmutatedInScript(varName: string, script: Script): boolean {
+    for (const list of script.lists) {
+      for (const pipeline of list.pipelines) {
+        for (const cmd of pipeline.commands) {
+          if (cmd.kind === "arithmetic") {
+            if (cmd.expression.hasMutation && cmd.expression.source.includes(varName)) return false;
+            continue;
+          }
+          if (cmd.kind === "if") {
+            for (const br of cmd.branches) {
+              if (!this.isVarUnmutatedInScript(varName, br.condition) || !this.isVarUnmutatedInScript(varName, br.body)) return false;
+            }
+            if (cmd.otherwise && !this.isVarUnmutatedInScript(varName, cmd.otherwise)) return false;
+            continue;
+          }
+          if (cmd.kind === "case") {
+            for (const cl of cmd.clauses) {
+              if (!this.isVarUnmutatedInScript(varName, cl.body)) return false;
+            }
+            continue;
+          }
+          if (cmd.kind === "for") {
+            if (cmd.name === varName || !this.isVarUnmutatedInScript(varName, cmd.body)) return false;
+            continue;
+          }
+          if (cmd.kind === "arithmetic-for") {
+            if (cmd.expressions.some(e => e && e.hasMutation && e.source.includes(varName)) || !this.isVarUnmutatedInScript(varName, cmd.body)) return false;
+            continue;
+          }
+          if (cmd.kind === "while") {
+            if (!this.isVarUnmutatedInScript(varName, cmd.condition) || !this.isVarUnmutatedInScript(varName, cmd.body)) return false;
+            continue;
+          }
+          if (cmd.kind === "group" || cmd.kind === "subshell") {
+            if (!this.isVarUnmutatedInScript(varName, cmd.body)) return false;
+            continue;
+          }
+          if (cmd.kind !== "simple") return false;
+          for (const w of cmd.words) {
+            const arrAss = getArrayAssignment(w);
+            if (arrAss && arrAss.name === varName) return false;
+            const p0 = w.parts[0];
+            if (p0?.kind === "text" && !p0.quoted && (p0.value.startsWith(varName + "=") || p0.value.startsWith(varName + "+=") || p0.value.startsWith(varName + "["))) return false;
+          }
+          const w0 = cmd.words[0]?.plain;
+          if (w0 === "read" || w0 === "unset" || w0 === "declare" || w0 === "typeset" || w0 === "local" || w0 === "export" || w0 === "mapfile" || w0 === "readarray") {
+            if (w0 === "read" && varName === "REPLY") return false;
+            if (cmd.words.slice(1).some(w => (w.plain ?? "").includes(varName))) return false;
+          }
+          if (w0 === "printf" && cmd.words[1]?.plain === "-v" && (cmd.words[2]?.plain ?? "").startsWith(varName)) return false;
+          for (const w of [...cmd.words, ...cmd.redirects.map(r => r.target)]) {
+            for (const pt of w.parts) {
+              if (pt.kind === "arithmetic" && pt.expression.hasMutation && pt.expression.source.includes(varName)) return false;
+              if (pt.kind === "substitution" && !this.isVarUnmutatedInScript(varName, pt.script)) return false;
+            }
+          }
+        }
+      }
+    }
+    return true;
+  }
+  private isVarUnmutatedInActiveLoop(varName: string): boolean {
+    if (varName === this._activeLoopVarName || varName === this._activePrintfInductionName) return false;
+    if (this._activeLoopCondScript && !this.isVarUnmutatedInScript(varName, this._activeLoopCondScript)) return false;
+    if (this._activeLoopBodyScript && !this.isVarUnmutatedInScript(varName, this._activeLoopBodyScript)) return false;
+    return true;
+  }
+  private extractLoopInvariantJqInput(cmd: Extract<Command, { kind: "simple" }>, hasSingleStdinRedir: boolean, hasSingleHereStringRedir: boolean, rawState: State): string | undefined {
+    const w0 = cmd.words[0]?.plain;
+    const resolveInvariantWord = (w: Word): string | undefined => {
+      if (w.plain !== undefined) return w.plain;
+      if (w.parts.length > 0 && w.parts.every(pt => pt.kind === "text")) return w.parts.map(pt => pt.value).join("");
+      if (w.parts.length === 1 && w.parts[0]!.kind === "variable") {
+        const vp = w.parts[0]!;
+        if (!vp.indirect && !vp.operator && !vp.substring && !vp.transform && !vp.length && !vp.prefixNames && getArraySelector(vp) === undefined && this.isVarUnmutatedInActiveLoop(vp.name)) {
+          const val = rawState.variables[vp.name];
+          if (typeof val === "string") return val;
+        }
+      }
+      return undefined;
+    };
+    if (w0 === "jq") {
+      if (hasSingleHereStringRedir) {
+        const resolved = resolveInvariantWord(cmd.redirects[0]!.target);
+        return resolved !== undefined ? resolved.trim() : undefined;
+      }
+      if (this._fileWrites?.size || this._outputFiles?.size) return undefined;
+      const fPlain = hasSingleStdinRedir ? cmd.redirects[0]!.target.plain : cmd.words[cmd.words.length - 1]?.plain;
+      if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return undefined;
+      const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain), false);
+      if (!vCheck || vCheck.byteLength > 16384 || vCheck.includes(0)) return undefined;
+      return sharedSyncPipeDecoder.decode(vCheck).trim();
+    }
+    if (w0 === "cat") {
+      if (hasSingleHereStringRedir) {
+        const resolved = resolveInvariantWord(cmd.redirects[0]!.target);
+        return resolved !== undefined ? resolved.trim() : undefined;
+      }
+      if (this._fileWrites?.size || this._outputFiles?.size) return undefined;
+      const fPlain = hasSingleStdinRedir ? cmd.redirects[0]!.target.plain : cmd.words[1]?.plain;
+      if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return undefined;
+      const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain), false);
+      if (!vCheck || vCheck.byteLength > 16384 || vCheck.includes(0)) return undefined;
+      return sharedSyncPipeDecoder.decode(vCheck).trim();
+    }
+    if (w0 === "echo" && cmd.words.length === 2) {
+      const resolved = resolveInvariantWord(cmd.words[1]!);
+      if (resolved !== undefined && !resolved.startsWith("-")) return resolved.trim();
+      return undefined;
+    }
+    if (w0 === "printf" && cmd.words.length >= 2) {
+      const args: string[] = [];
+      for (let i = 1; i < cmd.words.length; i++) {
+        const r = resolveInvariantWord(cmd.words[i]!);
+        if (r === undefined) return undefined;
+        args.push(r);
+      }
+      const formatted = tryFastPrintf(args);
+      return formatted !== undefined ? formatted.trim() : undefined;
+    }
+    return undefined;
+  }
   private canSyncPrintfInductionBody(script: Script, rawState: State, inductionName?: string): boolean {
     for (const list of script.lists) for (const pipeline of list.pipelines) for (const command of pipeline.commands) {
       if (command.kind === "arithmetic") {
@@ -22481,9 +22617,7 @@ export class Runtime {
     }
     const sets = opArgs.slice(idx);
     if (flagC) {
-      for (let i = 0; i < input.length; i++) {
-        if (input.charCodeAt(i) >= 128) return undefined;
-      }
+      if (sets.some(s => { for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) >= 128) return true; return false; })) return undefined;
       if (flagD && !flagS && sets.length === 1) {
         const arr = this.expandSyncTrCharArray(sets[0]!);
         if (!arr) return undefined;
@@ -22502,14 +22636,29 @@ export class Runtime {
         const keepSet = new Set(arr1);
         const repl = arr2[arr2.length - 1]!;
         const sqSet = flagS ? new Set(arr2) : undefined;
+        let hasNonAscii = false;
+        for (let i = 0; i < input.length; i++) {
+          if (input.charCodeAt(i) >= 128) { hasNonAscii = true; break; }
+        }
         let out = "";
         let prev = "";
-        for (let i = 0; i < input.length; i++) {
-          const rawCh = input[i]!;
-          const ch = keepSet.has(rawCh) ? rawCh : repl;
-          if (sqSet && sqSet.has(ch) && ch === prev) continue;
-          out += ch;
-          prev = ch;
+        if (hasNonAscii) {
+          const bytes = fastSharedTextEncoder.encode(input);
+          for (let i = 0; i < bytes.length; i++) {
+            const rawCh = String.fromCharCode(bytes[i]!);
+            const ch = keepSet.has(rawCh) ? rawCh : repl;
+            if (sqSet && sqSet.has(ch) && ch === prev) continue;
+            out += ch;
+            prev = ch;
+          }
+        } else {
+          for (let i = 0; i < input.length; i++) {
+            const rawCh = input[i]!;
+            const ch = keepSet.has(rawCh) ? rawCh : repl;
+            if (sqSet && sqSet.has(ch) && ch === prev) continue;
+            out += ch;
+            prev = ch;
+          }
         }
         return out;
       }
@@ -22570,6 +22719,122 @@ export class Runtime {
     return undefined;
   }
 
+  private evalSyncJqPathOps(item: unknown, expr: string): unknown[] | undefined {
+    let st = expr.trim();
+    while (st.startsWith("(") && st.endsWith(")")) st = st.slice(1, -1).trim();
+    const altIdx = st.indexOf("//");
+    if (altIdx !== -1) {
+      const lhs = st.slice(0, altIdx).trim();
+      const rhs = st.slice(altIdx + 2).trim();
+      const lVals = this.evalSyncJqPathOps(item, lhs);
+      if (lVals === undefined) return undefined;
+      const truthy = lVals.filter(v => v !== null && v !== undefined && v !== false);
+      if (truthy.length > 0) return truthy;
+      if (rhs.startsWith(".") || rhs === "length" || rhs === "keys" || rhs === "keys[]") {
+        return this.evalSyncJqPathOps(item, rhs);
+      }
+      try {
+        return [JSON.parse(rhs)];
+      } catch {
+        return undefined;
+      }
+    }
+    if (st === ".") return [item];
+    if (st === "length") {
+      if (item === null || item === undefined) return [0];
+      if (typeof item === "string") return [Array.from(item).length];
+      if (typeof item === "number") return [Math.abs(item)];
+      if (Array.isArray(item)) return [item.length];
+      if (typeof item === "object") return [Object.keys(item).length];
+      return undefined;
+    }
+    if (st === "keys") {
+      if (Array.isArray(item)) return [item.map((_, idx) => idx)];
+      if (item && typeof item === "object") return [Object.keys(item).sort()];
+      return undefined;
+    }
+    if (st === "keys[]") {
+      if (Array.isArray(item)) return item.map((_, idx) => idx);
+      if (item && typeof item === "object") return Object.keys(item).sort();
+      return undefined;
+    }
+    const selM = /^select\(\s*(\.[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?:(==|!=|>=|<=|>|<)\s*(.+))?\s*\)$/.exec(st);
+    if (selM) {
+      const fVals = this.evalSyncJqPathOps(item, selM[1]!);
+      if (!fVals || fVals.length !== 1) return undefined;
+      const lv = fVals[0];
+      if (!selM[2]) {
+        return lv !== null && lv !== undefined && lv !== false ? [item] : [];
+      }
+      let rv: unknown;
+      try {
+        rv = JSON.parse(selM[3]!.trim());
+      } catch {
+        return undefined;
+      }
+      const op = selM[2]!;
+      let ok = false;
+      if (op === "==") ok = lv === rv;
+      else if (op === "!=") ok = lv !== rv;
+      else if (typeof lv === "number" && typeof rv === "number") {
+        if (op === ">") ok = lv > rv;
+        else if (op === ">=") ok = lv >= rv;
+        else if (op === "<") ok = lv < rv;
+        else if (op === "<=") ok = lv <= rv;
+      } else return undefined;
+      return ok ? [item] : [];
+    }
+    if (!st.startsWith(".")) return undefined;
+    let rest = st.slice(1);
+    const ops: Array<{ kind: "prop"; key: string } | { kind: "index"; idx: number } | { kind: "iter" }> = [];
+    while (rest.length > 0) {
+      if (rest.startsWith(".")) rest = rest.slice(1);
+      const propM = /^([a-zA-Z_][a-zA-Z0-9_]*)/.exec(rest);
+      if (propM) {
+        ops.push({ kind: "prop", key: propM[1]! });
+        rest = rest.slice(propM[1]!.length);
+        continue;
+      }
+      if (rest.startsWith("[]")) {
+        ops.push({ kind: "iter" });
+        rest = rest.slice(2);
+        continue;
+      }
+      const idxM = /^\[(-?[0-9]+)\]/.exec(rest);
+      if (idxM) {
+        ops.push({ kind: "index", idx: Number(idxM[1]!) });
+        rest = rest.slice(idxM[0]!.length);
+        continue;
+      }
+      return undefined;
+    }
+    let cur: unknown[] = [item];
+    for (const op of ops) {
+      const next: unknown[] = [];
+      for (const it of cur) {
+        if (op.kind === "prop") {
+          if (it === null || it === undefined) next.push(null);
+          else if (typeof it === "object" && !Array.isArray(it)) next.push(Object.hasOwn(it, op.key) ? (it as Record<string, unknown>)[op.key] ?? null : null);
+          else return undefined;
+        } else if (op.kind === "index") {
+          if (it === null || it === undefined) next.push(null);
+          else if (Array.isArray(it)) {
+            const i = op.idx < 0 ? it.length + op.idx : op.idx;
+            next.push(i >= 0 && i < it.length ? it[i] : null);
+          } else return undefined;
+        } else if (op.kind === "iter") {
+          if (Array.isArray(it)) {
+            for (const el of it) next.push(el);
+          } else if (it && typeof it === "object") {
+            for (const k of Object.keys(it)) next.push((it as Record<string, unknown>)[k]);
+          } else return undefined;
+        }
+      }
+      cur = next;
+    }
+    return cur;
+  }
+
   private evalSyncJq(input: string, opArgs: readonly string[]): string[] | undefined {
     let rawOut = false;
     let compactOut = false;
@@ -22582,93 +22847,33 @@ export class Runtime {
       filter = opArgs[1]!;
     }
     if (!filter) return undefined;
-    const stages = filter.split("|").map(s => s.trim());
-    const compiledStages: Array<Array<{ kind: "prop"; key: string } | { kind: "index"; idx: number } | { kind: "iter" } | { kind: "length" } | { kind: "keys" }>> = [];
-    for (const st of stages) {
-      if (st === ".") {
-        compiledStages.push([]);
-        continue;
-      }
-      if (st === "length") {
-        compiledStages.push([{ kind: "length" }]);
-        continue;
-      }
-      if (st === "keys") {
-        compiledStages.push([{ kind: "keys" }]);
-        continue;
-      }
-      if (st === "keys[]") {
-        compiledStages.push([{ kind: "keys" }, { kind: "iter" }]);
-        continue;
-      }
-      if (!st.startsWith(".")) return undefined;
-      let rest = st.slice(1);
-      const ops: Array<{ kind: "prop"; key: string } | { kind: "index"; idx: number } | { kind: "iter" } | { kind: "length" } | { kind: "keys" }> = [];
-      while (rest.length > 0) {
-        if (rest.startsWith(".")) rest = rest.slice(1);
-        const propM = /^([a-zA-Z_][a-zA-Z0-9_]*)/.exec(rest);
-        if (propM) {
-          ops.push({ kind: "prop", key: propM[1]! });
-          rest = rest.slice(propM[1]!.length);
-          continue;
+    let current: unknown[] = [];
+    try {
+      current = [JSON.parse(input)];
+    } catch {
+      if (!input.includes("\n")) return undefined;
+      try {
+        for (const line of input.split("\n")) {
+          const t = line.trim();
+          if (t.length > 0) current.push(JSON.parse(t));
         }
-        if (rest.startsWith("[]")) {
-          ops.push({ kind: "iter" });
-          rest = rest.slice(2);
-          continue;
-        }
-        const idxM = /^\[(-?[0-9]+)\]/.exec(rest);
-        if (idxM) {
-          ops.push({ kind: "index", idx: Number(idxM[1]!) });
-          rest = rest.slice(idxM[0]!.length);
-          continue;
-        }
+        if (current.length === 0) return undefined;
+      } catch {
         return undefined;
       }
-      compiledStages.push(ops);
     }
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(input);
-    } catch {
-      return undefined;
-    }
-    let current: unknown[] = [parsed];
-    for (const ops of compiledStages) {
-      for (const op of ops) {
-        const next: unknown[] = [];
-        for (const item of current) {
-          if (op.kind === "prop") {
-            if (item === null || item === undefined) next.push(null);
-            else if (typeof item === "object" && !Array.isArray(item)) next.push(Object.hasOwn(item, op.key) ? (item as Record<string, unknown>)[op.key] ?? null : null);
-            else return undefined;
-          } else if (op.kind === "index") {
-            if (item === null || item === undefined) next.push(null);
-            else if (Array.isArray(item)) {
-              const i = op.idx < 0 ? item.length + op.idx : op.idx;
-              next.push(i >= 0 && i < item.length ? item[i] : null);
-            } else return undefined;
-          } else if (op.kind === "iter") {
-            if (Array.isArray(item)) {
-              for (const el of item) next.push(el);
-            } else if (item && typeof item === "object") {
-              for (const k of Object.keys(item)) next.push((item as Record<string, unknown>)[k]);
-            } else return undefined;
-          } else if (op.kind === "length") {
-            if (item === null || item === undefined) next.push(0);
-            else if (typeof item === "string") next.push(Array.from(item).length);
-            else if (typeof item === "number") next.push(Math.abs(item));
-            else if (Array.isArray(item)) next.push(item.length);
-            else if (typeof item === "object") next.push(Object.keys(item).length);
-            else return undefined;
-          } else if (op.kind === "keys") {
-            if (Array.isArray(item)) next.push(item.map((_, idx) => idx));
-            else if (item && typeof item === "object") next.push(Object.keys(item).sort());
-            else return undefined;
-          }
+    const stages = filter.split("|").map(s => s.trim());
+    for (const st of stages) {
+      const commaParts = st.startsWith("select(") ? [st] : st.split(",").map(s => s.trim());
+      const next: unknown[] = [];
+      for (const item of current) {
+        for (const part of commaParts) {
+          const res = this.evalSyncJqPathOps(item, part);
+          if (res === undefined) return undefined;
+          for (const v of res) next.push(v);
         }
-        current = next;
       }
+      current = next;
     }
     return current.map(val => (rawOut && typeof val === "string" ? val : JSON.stringify(val ?? null, null, compactOut ? undefined : 2)));
   }
@@ -22773,10 +22978,18 @@ export class Runtime {
   private evalSyncCut(rawLines: readonly string[], opArgs: readonly string[], byteLocaleMode: boolean): string[] | undefined {
     const norm: string[] = [];
     let suppressNoDelim = false;
+    let outDelim: string | undefined;
     for (let ci = 0; ci < opArgs.length; ci++) {
       const ca = opArgs[ci]!;
       if (ca === "-s" || ca === "--only-delimited") {
         suppressNoDelim = true;
+      } else if (ca.startsWith("--output-delimiter=")) {
+        outDelim = ca.slice("--output-delimiter=".length);
+        if (outDelim.length === 0 || outDelim.includes("\0")) return undefined;
+      } else if (ca === "--output-delimiter") {
+        if (ci + 1 >= opArgs.length) return undefined;
+        outDelim = opArgs[++ci]!;
+        if (outDelim.length === 0 || outDelim.includes("\0")) return undefined;
       } else if (ca.startsWith("-sd") || ca.startsWith("-ds")) {
         suppressNoDelim = true;
         const rest = ca.slice(3);
@@ -22789,7 +23002,7 @@ export class Runtime {
         norm.push(ca);
       }
     }
-    if (!suppressNoDelim && norm.length === 1 && norm[0]!.startsWith("-c")) {
+    if (!suppressNoDelim && outDelim === undefined && norm.length === 1 && norm[0]!.startsWith("-c")) {
       if (byteLocaleMode) return undefined;
       const picker = this.parseSyncCutSpec(norm[0]!.slice(2));
       if (!picker) return undefined;
@@ -22814,6 +23027,7 @@ export class Runtime {
     if (!fArg || !fArg.startsWith("-f")) return undefined;
     const picker = this.parseSyncCutSpec(fArg.slice(2));
     if (!picker) return undefined;
+    const joinDelim = outDelim ?? delim;
     const out: string[] = [];
     for (let li = 0; li < rawLines.length; li++) {
       const l = rawLines[li]!;
@@ -22823,7 +23037,7 @@ export class Runtime {
       }
       const parts = l.split(delim);
       const idxs = picker(parts.length);
-      out.push(idxs.map(i => parts[i]!).join(delim));
+      out.push(idxs.map(i => parts[i]!).join(joinDelim));
     }
     return out;
   }
@@ -23402,7 +23616,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && sName !== "tac" && !builtInDirectContextExecutors.has(extDef.execute))  || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "jq" && !builtInDirectContextExecutors.has(extDef.execute))  || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -23440,8 +23654,9 @@ export class Runtime {
         } else if (sName === "grep") {
           if (this.evalSyncGrep([], sArgs, Boolean(rawState.errexit)) === undefined) return undefined;
         } else if (sName === "jq") {
-          // Input-dependent jq failures cannot be represented by this shortcut.
-          return undefined;
+          if (sArgs.length === 0 || sArgs.length > 2) return undefined;
+          if (sArgs.length === 1 && sArgs[0]!.startsWith("-")) return undefined;
+          if (sArgs.length === 2 && !["-r", "--raw-output", "-c", "--compact-output", "-rc", "-cr"].includes(sArgs[0]!)) return undefined;
         } else if (sName === "base64") {
           if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-d" && sArgs[0] !== "--decode")) return undefined;
         } else if (sName === "tac" || sName === "nl") {

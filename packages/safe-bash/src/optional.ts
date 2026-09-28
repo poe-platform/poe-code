@@ -10,7 +10,7 @@ export type { ShufCommandsOptions, ShufLimits } from "./commands/shuf/index.js";
 export { createTruncateCommand, createTruncateCommands, truncateCommands } from "./commands/truncate/index.js";
 export type { TruncateCommandsOptions } from "./commands/truncate/index.js";
 export { createInstallCommand, createInstallCommands, installCommands } from "./commands/install/index.js";
-export type { InstallCommandsOptions, InstallModeRequest, InstallContextRequest } from "safe-bash-command-install/options";
+export type { InstallCommandsOptions, InstallModeRequest, InstallContextRequest } from "./commands/install/index.js";
 export { createMikeYqCommand as createYqCommand, createMikeYqCommands as createYqCommands, mikeYqCommands as yqCommands } from "./commands/yq/mike.js";
 export type { MikeYqOptions as YqCommandsOptions } from "./commands/yq/mike.js";
 export type { MikeLimits as YqLimits } from "./commands/yq/native-work.js";

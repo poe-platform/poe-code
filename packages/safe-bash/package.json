@@ -640,16 +640,16 @@
       "import": "./dist/commands/gh/index.js"
     },
     "./commands/cmp": {
-      "types": "./dist/commands/cmp/index.d.ts",
-      "import": "./dist/commands/cmp/index.js"
+      "types": "./dist/opt-in/entrypoints/cmp.d.ts",
+      "import": "./dist/opt-in/entrypoints/cmp.js"
     },
     "./commands/install": {
-      "types": "./dist/commands/install/index.d.ts",
-      "import": "./dist/commands/install/index.js"
+      "types": "./dist/opt-in/entrypoints/install.d.ts",
+      "import": "./dist/opt-in/entrypoints/install.js"
     },
     "./commands/truncate": {
-      "types": "./dist/commands/truncate/index.d.ts",
-      "import": "./dist/commands/truncate/index.js"
+      "types": "./dist/opt-in/entrypoints/truncate.d.ts",
+      "import": "./dist/opt-in/entrypoints/truncate.js"
     },
     "./commands/xan": {
       "types": "./dist/commands/xan/index.d.ts",
@@ -766,6 +766,18 @@
     "./commands/sha256sum": {
       "types": "./dist/commands/sha256sum/index.d.ts",
       "import": "./dist/commands/sha256sum/index.js"
+    },
+    "./commands/dd": {
+      "types": "./dist/opt-in/entrypoints/dd.d.ts",
+      "import": "./dist/opt-in/entrypoints/dd.js"
+    },
+    "./commands/shuf": {
+      "types": "./dist/opt-in/entrypoints/shuf.d.ts",
+      "import": "./dist/opt-in/entrypoints/shuf.js"
+    },
+    "./commands/yes": {
+      "types": "./dist/opt-in/entrypoints/yes.d.ts",
+      "import": "./dist/opt-in/entrypoints/yes.js"
     }
   },
   "files": [
@@ -1474,7 +1486,20 @@
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
           },
-          "portable": true
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/shuf/index.js",
+            "./args": "./dist/commands/shuf/args.js",
+            "./creation-mask": "./dist/commands/shuf/creation-mask.js",
+            "./filesystem-descriptor": "./dist/commands/shuf/filesystem-descriptor.js",
+            "./filesystem-output": "./dist/commands/shuf/filesystem-output.js",
+            "./index": "./dist/commands/shuf/index.js",
+            "./input": "./dist/commands/shuf/input.js",
+            "./options": "./dist/commands/shuf/options.js",
+            "./random": "./dist/commands/shuf/random.js",
+            "./shuf": "./dist/commands/shuf/shuf.js",
+            "./usage": "./dist/commands/shuf/usage.js"
+          }
         },
         "safe-bash-command-yes": {
           "version": "0.0.1",
@@ -1483,7 +1508,11 @@
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
           },
-          "portable": true
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/yes/index.js",
+            "./index": "./dist/commands/yes/index.js"
+          }
         },
         "safe-bash-command-dd": {
           "version": "0.0.1",
@@ -1492,7 +1521,18 @@
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
           },
-          "portable": true
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/dd/index.js",
+            "./conversions": "./dist/commands/dd/conversions.js",
+            "./creation-mask": "./dist/commands/dd/creation-mask.js",
+            "./filesystem-descriptor": "./dist/commands/dd/filesystem-descriptor.js",
+            "./filesystem-output": "./dist/commands/dd/filesystem-output.js",
+            "./index": "./dist/commands/dd/index.js",
+            "./io": "./dist/commands/dd/io.js",
+            "./options": "./dist/commands/dd/options.js",
+            "./report": "./dist/commands/dd/report.js"
+          }
         },
         "safe-bash-command-numfmt": {
           "version": "0.0.1",
@@ -1729,7 +1769,14 @@
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
           },
-          "portable": true
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/cmp/index.js",
+            "./compare": "./dist/commands/cmp/compare.js",
+            "./index": "./dist/commands/cmp/index.js",
+            "./io": "./dist/commands/cmp/io.js",
+            "./options": "./dist/commands/cmp/options.js"
+          }
         },
         "safe-bash-command-column": {
           "version": "0.0.1",
@@ -1845,7 +1892,14 @@
             "@poe-code/safe-fs": "*",
             "safe-bash-command-io-engine": "*"
           },
-          "portable": true
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/install/index.js",
+            "./arguments": "./dist/commands/install/arguments.js",
+            "./index": "./dist/commands/install/index.js",
+            "./mode": "./dist/commands/install/mode.js",
+            "./options": "./dist/commands/install/options.js"
+          }
         },
         "safe-bash-command-pr": {
           "version": "0.0.1",
@@ -1897,7 +1951,12 @@
             "@poe-code/safe-fs": "*",
             "safe-bash-command-io-engine": "*"
           },
-          "portable": true
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/truncate/index.js",
+            "./arguments": "./dist/commands/truncate/arguments.js",
+            "./index": "./dist/commands/truncate/index.js"
+          }
         },
         "safe-bash-command-tsort": {
           "version": "0.0.1",

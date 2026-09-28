@@ -61,11 +61,15 @@ describe(`nested tracked carrier; strict=${strict}; kind=${kind}; route=${route}
   const source = new TextDecoder().decode(after.get("word/document.xml"));
   expect(source).toContain(retained);
   const parser = new SaxesParser({ xmlns: true });
+  const namespaces: Record<string, string>[] = [];
+  // Resolve deep carrier prefixes without scanning every ancestor for each tag.
+  parser.on("opentagstart", tag => { Object.assign(tag.ns, namespaces.at(-1)); });
   const owners: { uri: string; local: string }[] = [];
   const revisions: { kind: string; id: string; author: string; date: string; text: string; bold: string | null; italic: string | null }[] = [];
   let current: typeof revisions[number] | undefined;
   let paragraphCount = 0;
   parser.on("opentag", tag => {
+    namespaces.push(tag.ns);
     if (tag.uri === word && tag.local === "p") paragraphCount++;
     if (tag.uri === word && (tag.local === "ins" || tag.local === "del")) {
       expect(owners.some(node => node.uri === word && node.local === "p")).toBe(true);
@@ -85,7 +89,7 @@ describe(`nested tracked carrier; strict=${strict}; kind=${kind}; route=${route}
     owners.push({ uri: tag.uri, local: tag.local });
   });
   parser.on("text", value => { if (current && owners.at(-1)?.uri === word && ["t", "delText"].includes(owners.at(-1)!.local)) current.text += value; });
-  parser.on("closetag", tag => { owners.pop(); if (tag.uri === word && ["ins", "del"].includes(tag.local)) current = undefined; });
+  parser.on("closetag", tag => { namespaces.pop(); owners.pop(); if (tag.uri === word && ["ins", "del"].includes(tag.local)) current = undefined; });
   parser.write(source).close();
   expect(paragraphCount).toBe(1);
   expect(revisions).toEqual([

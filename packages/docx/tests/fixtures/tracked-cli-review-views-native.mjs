@@ -1,5 +1,7 @@
 import { Volume } from "memfs";
 import * as api from "docx";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 
 // Keep package imports on a native main thread; every request owns fresh state.
 export async function run(request) {
@@ -19,8 +21,6 @@ export async function run(request) {
   const ops = { version: 1, operations: [{ operation: "text.replace", arguments: arguments_ }] };
   try {
     if (request.phase.startsWith("decision-")) {
-      const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
-      const { docxCommands } = await import("@poe-platform/safe-bash/commands/docx");
       const fs = new MemoryFileSystem();
       await fs.writeFile("/input", input);
       const retained = new TextEncoder().encode("Retained forced destination");
@@ -37,8 +37,6 @@ export async function run(request) {
       } finally { await shell.dispose(); }
     }
     if (request.phase !== "edit") {
-      const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
-      const { docxCommands } = await import("@poe-platform/safe-bash/commands/docx");
       const fs = new MemoryFileSystem();
       await fs.writeFile("/input", input);
       const saved = input.slice();
@@ -55,8 +53,6 @@ export async function run(request) {
     if (request.route === "sdk") await api.replaceDocumentText(input, { ...arguments_, output: "-" }, context);
     else if (request.route === "sdk-batch") await api.executeDocumentBatch(input, ops, { output: "-" }, context);
     else {
-      const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
-      const { docxCommands } = await import("@poe-platform/safe-bash/commands/docx");
       const fs = new MemoryFileSystem();
       await fs.writeFile("/input", input);
       const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits, documentLimits }) }));

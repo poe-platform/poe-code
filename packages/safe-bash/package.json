@@ -402,7 +402,17 @@
             "@poe-code/safe-fs": "*",
             "@poe-code/git-rust": "*"
           },
-          "portable": true
+          "portable": true,
+          "assets": [
+            "./dist/git_rust.wasm"
+          ],
+          "imports": {
+            "#git-wasm": {
+              "types": "./src/runtime.ts",
+              "workerd": "./dist/runtime.workerd.js",
+              "default": "./dist/runtime.js"
+            }
+          }
         },
         "safe-bash-command-sqlite3": {
           "version": "0.0.1",

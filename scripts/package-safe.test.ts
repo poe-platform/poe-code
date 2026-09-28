@@ -2325,3 +2325,38 @@ it("carries declared Buffer initialization into generated chunks while pruning u
   expect(manifest.sideEffects).not.toContain("./dist/safe-bash/chunks/facade.js");
   expect(manifest.sideEffects).not.toContain("./dist/safe-bash/core.browser.js");
 });
+
+it("ships Git's workerd runtime, conditional imports, and exact WASM asset", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-git";
+  const directory = "/repo/packages/" + name;
+  const source = JSON.parse(readFileSync(new URL("../packages/safe-bash-command-git/package.json", import.meta.url), "utf8"));
+  volume.mkdirSync(directory + "/dist", { recursive: true });
+  volume.writeFileSync(directory + "/package.json", JSON.stringify(source));
+  volume.writeFileSync(directory + "/LICENSE", "Fixture license\n");
+  volume.writeFileSync(directory + "/dist/index.js", 'export { gitModule } from "#git-wasm";');
+  volume.writeFileSync(directory + "/dist/index.d.ts", 'export { gitModule } from "#git-wasm";');
+  for (const runtime of ["runtime", "runtime.workerd"]) {
+    const contents = readFileSync(new URL("../packages/safe-bash-command-git/src/" + runtime + ".ts", import.meta.url), "utf8");
+    volume.writeFileSync(directory + "/dist/" + runtime + ".js", ts.transpileModule(contents, {
+      compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
+    }).outputText);
+    volume.writeFileSync(directory + "/dist/" + runtime + ".d.ts", "export declare function gitModule(): WebAssembly.Module;");
+  }
+  const wasm = Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]);
+  volume.writeFileSync(directory + "/dist/git_rust.wasm", wasm);
+  volume.writeFileSync(directory + "/dist/wasm.generated.js", "export function wasmBytes() { return Uint8Array.of(0,97,115,109,1,0,0,0); }");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/git/index." + suffix, 'export * from "safe-bash-command-git";');
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const shipped = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8"));
+  expect(shipped.imports["#git-wasm"]).toEqual({
+    types: "./dist/safe-bash-command-git/runtime.d.ts",
+    workerd: "./dist/safe-bash-command-git/runtime.workerd.js",
+    default: "./dist/safe-bash-command-git/runtime.js",
+  });
+  const artifact = "/output/safe-bash/dist/" + name;
+  expect(volume.readFileSync(artifact + "/git_rust.wasm")).toEqual(wasm);
+  expect(volume.readFileSync(artifact + "/runtime.workerd.js", "utf8")).toContain('./git_rust.wasm');
+  expect(WebAssembly.validate(volume.readFileSync(artifact + "/git_rust.wasm"))).toBe(true);
+
+});

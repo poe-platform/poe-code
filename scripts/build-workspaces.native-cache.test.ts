@@ -12,7 +12,7 @@ import { runCiBashShard } from "./run-ci-bash-shard.mjs";
 function fixture() {
   const files = {
     "package.json": JSON.stringify({ name: "root", workspaces: ["packages/*"], scripts: { "test:unit": "node unit.mjs" } }),
-    "turbo.json": JSON.stringify({ tasks: { build: { dependsOn: ["^build"] }, "test:unit": {} } }),
+    "turbo.json": JSON.stringify({ tasks: { build: { dependsOn: ["^build"], outputs: ["dist/**"] }, "test:unit": {} } }),
     "packages/alpha/package.json": JSON.stringify({ name: "alpha", scripts: { "test:unit": "cd ../.. && vitest run packages/alpha/src --pool=forks" } }),
     "packages/alpha/src/unit.test.ts": "export {};",
     "packages/beta/package.json": JSON.stringify({ name: "beta", scripts: { "test:unit": "vitest run --config vitest.config.ts" } }),
@@ -76,8 +76,10 @@ describe("native Vitest workspace result cache", () => {
       name: "sample-rust",
       scripts: { "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test" }
     }), { flag: "w" });
+    state.fileSystem.mkdirSync("/repo/packages/sample-rust/bindings", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/sample-rust/bindings/Cargo.toml", "[package]\nname = \"sample\"\n", { flag: "w" });
     state.fileSystem.writeFileSync("/repo/packages/sample-rust/src/lib.rs", "pub fn ok() {}");
-    state.cacheFiles.push("packages/sample-rust/package.json", "packages/sample-rust/src/lib.rs");
+    state.cacheFiles.push("packages/sample-rust/package.json", "packages/sample-rust/bindings/Cargo.toml", "packages/sample-rust/src/lib.rs");
     const first = await testWorkspaces("/repo", { ...state, workspaces: ["sample-rust"] });
     expect(first).toMatchObject({ unitCacheHits: 0, unitCacheMisses: 1 });
     const second = await testWorkspaces("/repo", { ...state, workspaces: ["sample-rust"] });
@@ -85,14 +87,16 @@ describe("native Vitest workspace result cache", () => {
   });
   it("caches *-rust cargo.mjs build outputs in prepareBuildCache", async () => {
     const state = fixture();
-    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({ tasks: { build: { dependsOn: ["^build"], outputs: ["dist/**"] }, "test:unit": {} } }));
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({ tasks: { build: { dependsOn: ["^build"], outputs: ["dist/**"] }, "test:unit": {} } }), { flag: "w" });
     state.fileSystem.mkdirSync("/repo/packages/sample-rust/src", { recursive: true });
     state.fileSystem.writeFileSync("/repo/packages/sample-rust/package.json", JSON.stringify({
       name: "sample-rust",
       scripts: { build: "node ../mcp-protocol-rust/scripts/cargo.mjs build" }
     }), { flag: "w" });
+    state.fileSystem.mkdirSync("/repo/packages/sample-rust/bindings", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/sample-rust/bindings/Cargo.toml", "[package]\nname = \"sample\"\n", { flag: "w" });
     state.fileSystem.writeFileSync("/repo/packages/sample-rust/src/lib.rs", "pub fn ok() {}");
-    state.cacheFiles.push("packages/sample-rust/package.json", "packages/sample-rust/src/lib.rs");
+    state.cacheFiles.push("packages/sample-rust/package.json", "packages/sample-rust/bindings/Cargo.toml", "packages/sample-rust/src/lib.rs");
     const buildSpawn = vi.fn(() => {
       state.fileSystem.mkdirSync("/repo/packages/sample-rust/dist", { recursive: true });
       state.fileSystem.writeFileSync("/repo/packages/sample-rust/dist/index.js", "export const ok = true;");

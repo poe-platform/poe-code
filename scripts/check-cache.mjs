@@ -232,7 +232,10 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     const event = stage.event ?? "build";
     const scripts = stage.manifest.scripts ?? {};
     const settings = { ...plan.configuration.tasks.build, ...plan.configuration.tasks[stage.name + "#build"] };
-    return settings.cache !== false && event === "build" && commands.has(scripts[event])
+    const hasDistOutput = !scripts[event]?.includes("cargo.mjs build")
+      || scripts[event].includes("prepare-host.mjs")
+      || fileSystem.existsSync(path.join(plan.root, stage.path, "bindings/Cargo.toml"));
+    return settings.cache !== false && event === "build" && commands.has(scripts[event]) && hasDistOutput
       && !scripts["pre" + event] && !scripts["post" + event] && settings.outputs?.length
       && settings.outputs.every(pattern => pattern === "dist/**");
   });
@@ -401,7 +404,9 @@ export function createCheckCache({
           records.push({ path: relative, mode: stat.mode & 0o777, bytes: fileSystem.readFileSync(absolute).toString("base64") });
         }
       };
-      for (const relative of outputRoots(patterns)) visit(relative);
+      for (const relative of outputRoots(patterns)) {
+        if (fileSystem.existsSync(path.join(root, relative))) visit(relative);
+      }
       return records;
     },
     restore(root, patterns, records) {

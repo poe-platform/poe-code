@@ -17096,7 +17096,7 @@ export class Runtime {
       setArraySelector(resolved, { kind: "element", index: { decimal: shellValueText(value), word: { offset: word.offset, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } } });
       return resolved;
     }
-    const maximum = binding?.maximum ?? (state.variables[part.name] === undefined ? -1 : 0);
+    const maximum = binding?.maximum ?? (part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? (state.functionNames?.length ?? 0) - 1 : state.variables[part.name] === undefined ? -1 : 0);
     const index = await this.arrayIndex(binding, selector.index, state, io, store.owner, false, maximum);
     const resolved = { ...part };
     copyArraySelector(part, resolved);
@@ -19358,7 +19358,9 @@ export class Runtime {
             ? await this.arrayIndex(binding, selector.index, state, partIO, requireArrays(state).owner)
             : numericIndex(selector.index, 4294967295);
           if (index === undefined && !binding?.associative) throw new ArrayFailure("index outside 0..4294967295");
-          value = binding ? index === undefined ? undefined : binding.getValue(index) : index === 0 ? value : undefined;
+          value = binding ? index === undefined ? undefined : binding.getValue(index)
+            : part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? (index === undefined ? undefined : state.functionNames?.[index])
+            : index === 0 ? value : undefined;
         }
         const missing = value === undefined || (part.operator!.startsWith(":") && shellValueByteLength(value) === 0);
         if (part.operator!.endsWith("+") ? !missing : missing) {
@@ -19629,7 +19631,8 @@ export class Runtime {
         const source = shellValueText(concatShellValues(fields, io[valueScope]));
         return this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);};
       offset = await evaluate(substring.offset);
-      if (offset < 0n) offset += BigInt((binding?.maximum ?? (state.variables[name] === undefined ? -1 : 0)) + 1);
+      const maximum = binding?.maximum ?? (name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? (state.functionNames?.length ?? 0) - 1 : state.variables[name] === undefined ? -1 : 0);
+      if (offset < 0n) offset += BigInt(maximum + 1);
       if (substring.length) {
         count = await evaluate(substring.length);
         if (count < 0n) throw new ExpansionFailure("substring expression < 0", io.diagnosticLine);
@@ -19640,7 +19643,7 @@ export class Runtime {
     if (!binding) {
       if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined) {
         const stack = state.functionNames ?? [];
-        const start = offset < 0n ? Math.max(0, stack.length + Number(offset)) : Number(offset);
+        const start = Number(offset);
         const end = count === undefined ? stack.length : start + Number(count);
         const sliced = stack.slice(start, end);
         return keys ? sliced.map((_v, idx) => String(start + idx)) : sliced;

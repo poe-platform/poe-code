@@ -4923,9 +4923,9 @@ export class Runtime {
     }
     return false;
   }
-  async arrayAssignment(assignment: ArrayAssignment, state: State, io: IO, declaration?: "readonly", origin: "assignment" | "declaration" | "extension" = "assignment", associative?: boolean): Promise<void> {
-    if (origin !== "extension" && this.tryFastArrayAssignmentSync(assignment, state, io, io.diagnosticLine, declaration, associative, false)) return;
-    if (!declaration && origin !== "extension") {
+  async arrayAssignment(assignment: ArrayAssignment, state: State, io: IO, declaration?: "readonly", origin: "assignment" | "declaration" = "assignment", associative?: boolean, skipSyncFastPath = false): Promise<void> {
+    if (!skipSyncFastPath && this.tryFastArrayAssignmentSync(assignment, state, io, io.diagnosticLine, declaration, associative, false)) return;
+    if (!declaration && !skipSyncFastPath) {
       const m = stateMonitor(state);
       const ck = m?.store?.owner.ledger.checkpoint(this.signal, 8);
       if (ck) await ck;
@@ -5268,7 +5268,7 @@ export class Runtime {
               else {
                 const index = literalIndex(subscript, name.length + 1);
                 await this.arrayAssignment({
-                  kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: String(value), quoted: true }] }, }, state, io, undefined, "extension");
+                  kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: String(value), quoted: true }] }, }, state, io, undefined, "assignment", undefined, true);
               }
               return Object.freeze({ ok: true, value: undefined });
             }), close, });

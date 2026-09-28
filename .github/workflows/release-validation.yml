@@ -25,7 +25,7 @@ jobs:
       contents: read
     outputs:
       archive-sha256: ${{ steps.archive.outputs.sha256 }}
-      superseded: ${{ steps.queue-check.outputs.superseded }}
+      superseded: ${{ steps.post-build-queue-check.outputs.superseded || steps.queue-check.outputs.superseded }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -69,14 +69,29 @@ jobs:
         env:
           POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
         run: npm run build
-      - name: Archive fresh build outputs
+      - name: Re-check release queue position after build
         if: steps.queue-check.outputs.superseded != 'true'
+        id: post-build-queue-check
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            git fetch origin main --depth=1
+            remote_main=$(git rev-parse origin/main)
+            if [ "$remote_main" != "$GITHUB_SHA" ]; then
+              echo "::notice::Validation $GITHUB_SHA superseded during build by newer commit on origin/main ($remote_main); saving build cache and coalescing into newer queued release."
+              echo "Validation $GITHUB_SHA superseded during build by newer commit on origin/main ($remote_main); saving build cache and coalescing into newer queued release." >> "$GITHUB_STEP_SUMMARY"
+              echo "superseded=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "superseded=false" >> "$GITHUB_OUTPUT"
+      - name: Archive fresh build outputs
+        if: steps.queue-check.outputs.superseded != 'true' && steps.post-build-queue-check.outputs.superseded != 'true'
         id: archive
         run: |
           tar -cf "$RUNNER_TEMP/build.tar" dist packages/*/dist packages/safe-js/src/intl-data/dist
           echo "sha256=$(sha256sum "$RUNNER_TEMP/build.tar" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v7.0.1
-        if: steps.queue-check.outputs.superseded != 'true'
+        if: steps.queue-check.outputs.superseded != 'true' && steps.post-build-queue-check.outputs.superseded != 'true'
         with:
           name: build-${{ github.sha }}
           path: ${{ runner.temp }}/build.tar

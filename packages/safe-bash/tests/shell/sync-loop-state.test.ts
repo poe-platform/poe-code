@@ -472,3 +472,37 @@ test("wave 97 sync loop: ${var@Q} quoting transform with spaces, quotes, and con
     await shell.dispose();
   }
 });
+
+test("wave 98 sync loop: cut ranges, sed custom delimiters/anchors, grep -E alternation, and awk literal concat", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const commands = new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+  try {
+    const script = [
+      's_cut="a:b:c:d"',
+      's_sed="a/b/a"',
+      's_anc="foobar"',
+      's_awk="foo:bar:baz"',
+      "s_grep=$'cat\\ndog\\nbat'",
+      "for ((i=1; i<=10; i++)); do",
+      '  c1=$(cut -c1-3 <<< "$s_cut")',
+      '  c2=$(cut -d: -f2- <<< "$s_cut")',
+      '  c3=$(cut -d: -f1-2 <<< "$s_cut")',
+      '  c4=$(cut -d: -f-2 <<< "$s_cut")',
+      '  d1=$(sed "s#a#b#g" <<< "$s_sed")',
+      '  d2=$(sed "s/^foo/baz/" <<< "$s_anc")',
+      '  d3=$(sed "s/bar$/qux/" <<< "$s_anc")',
+      '  a1=$(awk -F: \'{print $1 ":" $2}\' <<< "$s_awk")',
+      '  g1=$(grep -E "cat|bat" <<< "$s_grep")',
+      '  p1=$(printf "%s\\n" "$s_sed" | sed "s#a#b#g" | cut -d/ -f1-2)',
+      "done",
+      'printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\\n" "$c1" "$c2" "$c3" "$c4" "$d1" "$d2" "$d3" "$a1" "${g1//$' + "'\\n'" + '/,}" "$p1"',
+    ].join("\n");
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "a:b|b:c:d|a:b|a:b|b/b/b|bazbar|fooqux|foo:bar|cat,bat|b/b\n");
+  } finally {
+    await shell.dispose();
+  }
+});

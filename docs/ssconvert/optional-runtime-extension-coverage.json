@@ -793,7 +793,7 @@
       },
       "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
       "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
-      "status": "native activation verified; functional parity and remaining capability qualification unresolved",
+      "status": "native activation and selected formula cohort qualified; broader lifecycle, custom references and final artifacts unresolved",
       "nativeFallback": false,
       "enabledPluginIds": [
         "GOffice_plot_barcol",
@@ -1749,15 +1749,15 @@
     },
     {
       "capability": "PY_BITAND",
-      "status": "implemented; oracle unresolved",
+      "status": "implemented; activated Linux sample controls qualified, broader qualification open",
       "implementation": "pythonSampleFunctions; delegates to shared Gnumeric BITAND",
-      "oracle": "unmeasured in matching activated optional profile"
+      "oracle": "Five PY_BITAND controls are included in the authenticated 946-row Linux Python sample cohort. At 6339f613ab111769051f144eda127f36ff3baf6d, source SDK and runCommand reproduce the exact CSV and both loader warning occurrences. See gap-resolution.json#reference.pythonActivatedLinux.currentSourceReplay. Final compiled/installed artifacts and wider profiles remain open."
     },
     {
       "capability": "PY_CAPWORDS",
-      "status": "implemented declared Unicode16; wider native and exact optional profiles unresolved",
-      "implementation": "pythonSampleFunctions; frozen Unicode16 whitespace/title/lower/sigma plus native typed split exceptions and C-string NUL boundaries; invalid native byte acquisition remains a portable refusal",
-      "oracle": "153scalar controls match activatedPython3.12/3.14;10488Unicode16 contexts and12arrayfields match public surfaces;139Unicode15 differences retained. See capwords-native-loader-gap-proof.json and capwords-cstring-gap-proof.json; inheritedHOME/user-plugin closure and14exact optionalLinuxprofiles remain open.",
+      "status": "implemented versioned Unicode rules; selected activated Linux cohort qualified, broader qualification open",
+      "implementation": "createPythonSampleFunctions explicitly selects frozen Unicode 15.0/15.1/16.0, default 16.0; typed split exceptions and C-string NUL boundaries are preserved. Invalid native byte acquisition remains a portable refusal.",
+      "oracle": "153 controls in the authenticated Linux Python sample cohort match current source SDK/runCommand with Unicode 15.1. Prior Unicode 16/context/browser evidence and the 139 version differences remain in gap-resolution.json#reference.pythonUnicodeProfiles. Complete applicable capability/environment closure across the eight declared profiles and final artifacts remain open.",
       "history": [
         {
           "status": "partial ASCII implementation; Unicode and oracle unresolved",
@@ -1770,7 +1770,7 @@
       "capability": "PY_PRINTF",
       "status": "scalar/array and stable RangeRef prefixes implemented; address-bearing and exact optional profiles unresolved",
       "implementation": "bounded Python percent-format interpreter, native exception/result conversion and precision<=22 RangeRef prefixes; address digits remain explicitly refused",
-      "oracle": "784scalar/array cases and18precision-bounded RangeRef cases match activatedPython3.12.13/3.14.7 andSDK/Shell/replay/browser/worker. See python-printf-gap-proof.json and python-printf-range-prefix-gap-proof.json; wider native diagnostics/environment and exact optionalLinuxprofiles remain open.",
+      "oracle": "784 scalar/array cases in the authenticated Linux Python sample cohort match current source SDK/runCommand with Unicode 15.1, including exact warning multiplicity. Prior 18 precision-limited RangeRef controls remain recorded in python-printf-range-prefix-gap-proof.json. Address-bearing representations, custom reference services and final artifacts remain open.",
       "history": [
         {
           "status": "unresolved",
@@ -2630,50 +2630,26 @@
     "scratchCleanup": "Only explicitly task-created out logs/control/screenshot directory removed after durable reduction; authenticated pre-existing source/oracle artifacts and other workers logs retained."
   },
   "currentCapwordsVerification": {
-    "date": "2026-09-22",
-    "status": "partial; activated scalar/Unicode16/array qualification delivered, bridge and exact profiles open",
-    "proof": "docs/ssconvert/capwords-native-loader-gap-proof.json",
-    "candidateCommit": "ec3212c77da89120e8ca585bd94461a45483cbbc",
-    "implementation": "Frozen Unicode16 JS capitalization; native typed split exceptions preserved",
-    "passes": {
-      "focused": {
-        "passed": 17,
-        "exitCode": 0
-      },
-      "maintained": {
-        "files": 352,
-        "tests": 13284,
-        "exitCode": 0
-      },
-      "lintProductionTestPublicConsumerTypes": {
-        "exitCode": 0
-      },
-      "selectedBuild": {
-        "exitCode": 0
-      },
-      "safeBashOptionalSourceIntegration": {
-        "passed": 1,
-        "exitCode": 0
-      }
-    },
+    "date": "2026-09-27",
+    "status": "selected activated Linux cohort matches current source; full family remains open",
+    "candidateCommit": "6339f613ab111769051f144eda127f36ff3baf6d",
+    "implementation": "Explicit Unicode 15.1 profile in this replay; product also implements frozen 15.0 and 16.0 profiles.",
     "native": {
-      "scalar153": "exact on Python3.12.13 and3.14.7",
-      "unicode10488": "exact on Python3.14.7/Unicode16",
-      "validArrays": 3,
-      "sdkShellBrowserWorkerReplay": "exact"
+      "profileId": "gnumeric-1.12.61-optional-python-samples",
+      "workflowRun": 35869837124,
+      "artifactId": 10755265947,
+      "identitySha256": "b1aabef0adc3ba4640d9d2c466663bf4f26fee91c4cbd824f86b5137bfa16fa8",
+      "capwordsCases": 153,
+      "totalCohortRows": 946
     },
+    "replay": "Source SDK and source runCommand match all 37,015 CSV bytes, both warning occurrences and unchanged input. See gap-resolution.json#reference.pythonActivatedLinux.currentSourceReplay.",
     "unverified": [
-      "All 14 exact optional Linux profiles and complete environment/plugin/runtime closure",
-      "Wider native workbook byte/result acquisition and diagnostic profiles",
-      "Versioned Unicode profiles: 139 wide Unicode 15 differences retained",
-      "Remaining optional functions/services, other ledger families, final frozen/packed/installed/registry qualification and publication"
+      "Broader capability/environment lifecycle across eight activation profiles and fourteen capability obligations.",
+      "Wider native workbook byte/result acquisition, malformed-host and custom reference services.",
+      "Final rebased compiled/packed/installed/registry consumers and containing publication."
     ],
-    "delivery": {
-      "localCommit": "ec3212c77da89120e8ca585bd94461a45483cbbc",
-      "remoteMain": "commit ancestry verified on origin/main",
-      "publication": "Not yet verified;35811017099 cancelled, older containing35809183777 has failed Bash shards; registry17.0.34 historical gitHead ec51e54b9"
-    },
-    "cstringProof": "docs/ssconvert/capwords-cstring-gap-proof.json"
+    "priorUnicodeAndBrowserEvidence": "gap-resolution.json#reference.pythonUnicodeProfiles",
+    "delivery": "This source replay does not qualify final built or published artifacts."
   },
   "capwordsVerificationHistory": [
     {
@@ -2785,6 +2761,13 @@
           "sha256": "896cf0bb11dbff517b153f0b21a941a004eb4a18d577b986733f14f5ce02df93"
         }
       ]
+    },
+    {
+      "date": "2026-09-22",
+      "candidateCommit": "ec3212c77da89120e8ca585bd94461a45483cbbc",
+      "scope": "Prior Unicode 16/native/browser/build qualification retained in Git history; not a current artifact claim.",
+      "sourceRevision": "6339f613ab111769051f144eda127f36ff3baf6d",
+      "sourcePath": "docs/ssconvert/optional-runtime-extension-coverage.json#currentCapwordsVerification"
     }
   ]
 }

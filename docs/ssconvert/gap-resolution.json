@@ -656,6 +656,23 @@
         "evidence": "docs/ssconvert/python-loader-diagnostics-native.json",
         "nativeRun": 36211475728,
         "result": "Ten native probes establish per-cell warnings during load and again on forced recalculation. The shared load stage now matches native CSV and diagnostic occurrence counts through compiled SDK and Shell. It handles manual-mode dirty cells before updates and leaves raw readWorkbook unchanged; the final automatic stage does not queue clean volatile formulas. Browser/worker Unicode 15.1 output and guards remain qualified after the repair. Remote delivery is tracked separately."
+      },
+      "currentSourceReplay": {
+        "candidate": "6339f613ab111769051f144eda127f36ff3baf6d",
+        "artifactId": 10755265947,
+        "artifactSha256": "13ac4dbb92d51ea9c91e3950f588c7cd9487963538ae1a0556d96bc68a080421",
+        "identitySha256": "b1aabef0adc3ba4640d9d2c466663bf4f26fee91c4cbd824f86b5137bfa16fa8",
+        "profileBinding": "Captured and current Python profile match optional plugin directories, environment, enabled IDs, source build directories and configure arguments. Native input/output bytes match the authenticated identity receipt.",
+        "scope": {
+          "rows": 946,
+          "PY_PRINTF": 784,
+          "PY_CAPWORDS": 153,
+          "PY_BITAND": 5,
+          "absentNamespaceControls": 4
+        },
+        "result": "Source SDK and source runCommand with Unicode 15.1 match all 37,015 CSV bytes (SHA256 36760e4949bbaef1628a2db6f7b6f1c990e48db8ab67f0e8bb3d8e4acea98e68). Both emit two loader warnings, matching native occurrence count; CLI decoration remains intentionally portable. Input unchanged and engines disposed.",
+        "receipt": "out/ssconvert-release-investigation/python-profile-audit/source-replay.json",
+        "remaining": "Final compiled/installed/registry artifacts, broader lifecycle and custom reference services remain open. Register corrected: PY_BITAND is measured, and eight activation profiles cover fourteen capability obligations."
       }
     },
     "biffLibreOffice": {

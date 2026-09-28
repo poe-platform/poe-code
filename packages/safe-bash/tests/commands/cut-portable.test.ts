@@ -41,9 +41,11 @@ before(async () => {
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, performance, crypto: globalThis.crypto,
   });
+  assert.equal(runInContext("typeof Buffer", sandbox), "undefined");
   sandbox.canonical = runInContext(`(function(){ const module = { exports: {} }; ${filesystem.outputFiles![0]!.text}; return module.exports; })()`, sandbox);
   browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "poe-code/safe-fs/core") throw new Error(name); return canonical; }; ${compiled.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as BrowserShell;
-  assert.equal(runInContext("typeof Buffer + ':' + typeof process", sandbox), "undefined:undefined");
+  assert.equal(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox), "function:undefined:undefined");
+  assert.equal(runInContext("Buffer.from('é').toString('hex')", sandbox), "c3a9");
   assert.ok(Object.keys(bundle.metafile!.inputs).some(input => input.endsWith("node_modules/buffer/index.js")));
 });
 

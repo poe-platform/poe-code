@@ -77,7 +77,10 @@ if ((operation === "build" || operation === "test") && existsSync(bindingManifes
     const require = createRequire(import.meta.url);
     const cli = path.join(path.dirname(require.resolve("@napi-rs/cli/package.json")), "dist/cli.js");
     mkdirSync(output, { recursive: true });
+    const psShim = "import { ChildProcess } from \"node:child_process\"; const orig = ChildProcess.prototype.spawn; ChildProcess.prototype.spawn = function(opts) { try { return orig.call(this, opts); } catch (e) { if (e?.code === \"EPERM\" && opts?.file === \"/bin/ps\") { process.nextTick(() => this.emit(\"error\", e)); return 0; } throw e; } };";
     run(process.execPath, [
+      "--import",
+      `data:text/javascript,${encodeURIComponent(psShim)}`,
       cli,
       "build",
       "--cwd",

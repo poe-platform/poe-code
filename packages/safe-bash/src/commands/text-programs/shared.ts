@@ -7,7 +7,7 @@ import { writeDiagnostic } from "../../escaping.js";
 import { Budget, ProgramError } from "safe-bash-regex-engine/text/budget";
 export { Budget, ProgramError, type TextProgramOptions } from "safe-bash-regex-engine/text/budget";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
-import { RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../internal.js";
+import { builtInDirectContextExecutors, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../internal.js";
 import { inputRequirements } from "../portable-requirements.js";
 import { requiredFileInput } from "../search/requirements.js";
 
@@ -259,7 +259,7 @@ function finishCommandAsync(name: string, context: CommandContext, res: Promise<
 }
 
 export function command(name: string, run: (context: CommandContext) => number | Promise<number>): CommandDefinition {
-  return {
+  const definition: CommandDefinition = {
     name,
     execute(context) {
       context.signal.throwIfAborted();
@@ -274,4 +274,6 @@ export function command(name: string, run: (context: CommandContext) => number |
       }
     },
   };
+  builtInDirectContextExecutors.add(definition.execute);
+  return definition;
 }

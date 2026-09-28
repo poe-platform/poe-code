@@ -2781,6 +2781,10 @@ type SyncLoopStep = {
   readonly name: string | undefined;
   readonly arrayAssign?: ArrayAssignment | undefined;
   readonly isStdoutEcho?: boolean | undefined;
+  readonly printfVArgs?: readonly Word[] | undefined;
+  readonly isDiscardDevNull?: boolean | undefined;
+  readonly discardWords?: readonly Word[] | undefined;
+  readonly discardSuffix?: string | undefined;
   readonly value: Word | undefined;
   readonly targetWord: Word | undefined;
   readonly targetDirPrefix?: string | undefined;
@@ -7387,7 +7391,7 @@ export class Runtime {
       return undefined;
     }
     const command = pipeline.commands[0]!;
-    if ( (command.kind !== "simple" && command.kind !== "function" && command.kind !== "arithmetic" && command.kind !== "conditional" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group") || command.redirects.length > 1) {
+    if ( (command.kind !== "simple" && command.kind !== "function" && command.kind !== "arithmetic" && command.kind !== "conditional" && command.kind !== "arithmetic-for" && command.kind !== "for" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group") || command.redirects.length > 1) {
       (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
       return undefined;
     }
@@ -11647,8 +11651,9 @@ export class Runtime {
         if (!def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : w0Plain === "seq" ? (customRegisteredCommands.has(def.execute) || customRegisteredRegistries.has(this.commands)) : !builtInDirectContextExecutors.has(def.execute))) return false;
         if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
         if (w0Plain === "printf") {
-          const fmtP = cmd.words[1]?.plain;
-          if (fmtP === undefined || fmtP.startsWith("-") || !/^(?:[^%]|%%|%[-0]*\d*[sdxXou]|%s\\n)*$/.test(fmtP)) return false;
+          const fmtW = cmd.words[1];
+          const fmtP = fmtW?.plain ?? (fmtW?.parts.length === 1 && fmtW.parts[0]!.kind === "text" ? fmtW.parts[0]!.value : undefined);
+          if (fmtP === undefined || fmtP.startsWith("-") || !/^(?:[^%]|%%|%[-0]*\d*(?:\.\d+)?[sdxXouc]|\\n)*$/.test(fmtP)) return false;
         } else if (w0Plain === "echo") {
           if (cmd.words.length > 1 && (cmd.words[1]!.plain === undefined ? cmd.words[1]!.parts[0]?.kind === "text" && cmd.words[1]!.parts[0]!.value.startsWith("-") : cmd.words[1]!.plain!.startsWith("-"))) return false;
         } else if (w0Plain === "dirname") {
@@ -11730,6 +11735,34 @@ export class Runtime {
         const cmd = pipeline.commands[0]!;
         if (cmd.kind !== "simple") return false;
         if (cmd.redirects.length === 1) {
+          const r0Check = cmd.redirects[0]!;
+          const w0DevPlain = cmd.words[0]!.plain;
+          if (
+            r0Check.descriptor === 1 &&
+            !r0Check.move &&
+            !r0Check.document &&
+            (r0Check.operator === ">" || r0Check.operator === ">>") &&
+            r0Check.target.plain === "/dev/null" &&
+            this.budget.canRedirect1 &&
+            w0DevPlain !== undefined &&
+            (w0DevPlain === "pwd" || w0DevPlain === "dirname" || w0DevPlain === "basename" || w0DevPlain === "echo") &&
+            !hasShellFunction(rawState, w0DevPlain) &&
+            !rawState.extensions?.builtins.has(w0DevPlain) &&
+            (w0DevPlain === "pwd" || this.commands.has(w0DevPlain))
+          ) {
+            const devWordOk = (w: Word): boolean =>
+              this.isPureSyncValueWord(w, rawState) &&
+              w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)));
+            const devShapeOk =
+              (w0DevPlain === "pwd" && cmd.words.length === 1) ||
+              ((w0DevPlain === "dirname" || w0DevPlain === "echo") && cmd.words.length === 2 && !cmd.words[1]!.plain?.startsWith("-") && devWordOk(cmd.words[1]!)) ||
+              (w0DevPlain === "basename" && (
+                (cmd.words.length === 2 && !cmd.words[1]!.plain?.startsWith("-") && devWordOk(cmd.words[1]!)) ||
+                (cmd.words.length === 3 && !cmd.words[1]!.plain?.startsWith("-") && devWordOk(cmd.words[1]!) && devWordOk(cmd.words[2]!)) ||
+                (cmd.words.length === 4 && cmd.words[1]!.plain === "-s" && cmd.words[2]!.plain !== undefined && !cmd.words[3]!.plain?.startsWith("-") && devWordOk(cmd.words[3]!))
+              ));
+            if (devShapeOk) continue;
+          }
           if ( cmd.words.length !== 2 || !this.budget.canRedirect1 || (this._fileWrites !== undefined && this._fileWrites.size !== 0) || (this._outputFiles !== undefined && this._outputFiles.size !== 0) || !this.canFastMemoryRedirect) {
             return false;
           }
@@ -11763,6 +11796,42 @@ export class Runtime {
             return false;
           }
           continue;
+        }
+        if (
+          cmd.redirects.length === 0 &&
+          cmd.words.length >= 4 &&
+          cmd.words[0]!.plain === "printf" &&
+          cmd.words[1]!.plain === "-v"
+        ) {
+          const printfDef = this.commands.get("printf");
+          const vName = cmd.words[2]!.plain;
+          const fmtWord = cmd.words[3]!;
+          const fmtPlain = fmtWord.plain ?? (fmtWord.parts.length === 1 && fmtWord.parts[0]!.kind === "text" ? fmtWord.parts[0]!.value : undefined);
+          if (
+            !hasShellFunction(rawState, "printf") &&
+            !rawState.extensions?.builtins.has("printf") &&
+            printfDef?.execute === printfCommand.execute &&
+            !hasActiveVariableAttributes(rawState) &&
+            !hasUnpreparedLocals(rawState) &&
+            vName !== undefined &&
+            isShellIdentifier(vName) &&
+            !controlNames.has(vName) &&
+            vName !== "OPTIND" &&
+            !rawState.readonlyVariables?.has(vName) &&
+            !rawState.variableAttributes?.get(vName) &&
+            !store?.get(vName) &&
+            !stateMonitor(rawState)?.hasOverlay(vName) &&
+            fmtPlain !== undefined &&
+            !fmtPlain.startsWith("-") &&
+            /^(?:[^%]|%%|%[-0]*\d*(?:\.\d+)?[sdxXouc])*$/.test(fmtPlain) &&
+            cmd.words.slice(3).every(w =>
+              this.isPureSyncValueWord(w, rawState) &&
+              w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))
+            )
+          ) {
+            continue;
+          }
+          return false;
         }
         if (cmd.redirects.length !== 0 || cmd.words.length !== 1) return false;
         const w0 = cmd.words[0]!;
@@ -11879,7 +11948,21 @@ export class Runtime {
         const cmd = list.pipelines[p]!.commands[0] as Extract<Command, { kind: "simple" }>;
         const w0 = cmd.words[0]!;
         const line = io.diagnosticCommandLines?.get(cmd) ?? (cmd.line ?? 1) + (io.diagnosticOffset ?? 0);
-        if (cmd.redirects.length === 1) {
+        if (cmd.redirects.length === 1 && cmd.redirects[0]!.target.plain === "/dev/null") {
+          redirectCount++;
+          const isBaseS = w0.plain === "basename" && cmd.words.length === 4 && cmd.words[1]!.plain === "-s";
+          bodyAssignments.push({
+            cmd,
+            name: undefined,
+            value: undefined,
+            isDiscardDevNull: true,
+            discardWords: isBaseS ? [cmd.words[3]!] : cmd.words.slice(1),
+            discardSuffix: isBaseS ? cmd.words[2]!.plain : undefined,
+            targetWord: undefined,
+            append: false,
+            line,
+          });
+        } else if (cmd.redirects.length === 1) {
           redirectCount++;
           const r0 = cmd.redirects[0]!;
           let targetDirPrefix: string | undefined;
@@ -11899,6 +11982,8 @@ export class Runtime {
             cmd, name: undefined, value: cmd.words[1]!, targetWord: r0.target, targetDirPrefix, targetNamePrefix, append: r0.operator === ">>", line, });
         } else if (cmd.words.length === 2 && w0.plain === "echo") {
           bodyAssignments.push({ cmd, name: undefined, value: cmd.words[1]!, isStdoutEcho: true, targetWord: undefined, append: false, line });
+        } else if (cmd.words.length >= 4 && w0.plain === "printf" && cmd.words[1]!.plain === "-v") {
+          bodyAssignments.push({ cmd, name: cmd.words[2]!.plain!, value: undefined, printfVArgs: cmd.words.slice(3), targetWord: undefined, append: false, line });
         } else {
           const arrAssign = getArrayAssignment(w0);
           const assignment = !arrAssign ? this.assignment(w0) : undefined;
@@ -12119,7 +12204,7 @@ export class Runtime {
         }
       }
       const arithNamesList = [...arithNames];
-      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined || s.isStdoutEcho === true || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
+      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
       // Complex expansions can read or write names inside selectors, defaults,
       // patterns and substring expressions. Keep every assignment in iteration
       // order unless the shallow dependency checks below can see all reads.
@@ -12171,6 +12256,7 @@ export class Runtime {
       }
       const {
         e0, e1, e2, iterations, inductionName, startVal, limitVal, isLe, arithNamesList, intSteps, allIntStepsReady, hasSubIntStep, hasDeferredSteps, deferredMask, touchedIntNamesList, } = plan;
+      if (store?.get(inductionName) || rawState.readonlyVariables?.has(inductionName) || rawState.variableAttributes?.get(inductionName)) return undefined;
       if (arithNamesList.length > 0) {
         for (let a = 0; a < arithNamesList.length; a++) {
           const refName = arithNamesList[a]!;
@@ -12740,6 +12826,40 @@ export class Runtime {
           this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
           lastArg = "";
           lastValueWord = undefined;
+        } else if (step.printfVArgs !== undefined && step.name !== undefined) {
+          const pWords = step.printfVArgs;
+          const pArgs: string[] = [];
+          for (let pw = 0; pw < pWords.length; pw++) {
+            pArgs.push(this.fastValueWord(pWords[pw]!, rawState, io, false, false, false, false, 0, step.line) as string);
+          }
+          const formatted = tryFastPrintf(pArgs) ?? "";
+          rawState.variables[step.name] = formatted;
+          touched.add(step.name);
+          lastArg = pArgs[pArgs.length - 1]!;
+          lastValueWord = undefined;
+        } else if (step.isDiscardDevNull && step.discardWords !== undefined) {
+          this.budget.fileSystemOperation();
+          const dw = step.discardWords;
+          const cmdName = step.cmd.words[0]!.plain!;
+          let evalFirst = "";
+          let evalLast = cmdName;
+          for (let wi = 0; wi < dw.length; wi++) {
+            const v = this.fastValueWord(dw[wi]!, rawState, io, false, false, false, false, 0, step.line) as string;
+            if (wi === 0) evalFirst = v;
+            evalLast = v;
+          }
+          let outChars = 0;
+          if (cmdName === "pwd") outChars = (rawState.variables.PWD ?? rawState.cwd).length + 1;
+          else if (cmdName === "echo") outChars = evalFirst.length + 1;
+          else if (cmdName === "dirname") outChars = dirname(evalFirst).length + 1;
+          else if (cmdName === "basename") {
+            const sfx = step.discardSuffix !== undefined ? step.discardSuffix : (dw.length === 2 ? evalLast : undefined);
+            const baseStr = /^\/+$/u.test(evalFirst) ? "/" : basename(evalFirst);
+            outChars = (sfx && baseStr !== sfx && baseStr.endsWith(sfx) ? baseStr.length - sfx.length : baseStr.length) + 1;
+          }
+          this.budget.bytes += outChars;
+          lastArg = step.discardSuffix !== undefined ? evalLast : (dw.length > 0 ? evalLast : cmdName);
+          lastValueWord = undefined;
         } else if (step.name !== undefined && step.value !== undefined) {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           if (step.append) {
@@ -12799,6 +12919,44 @@ export class Runtime {
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
           lastValueWord = step.value;
+        } else if (step.arrayAssign !== undefined) {
+          this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
+          lastArg = "";
+          lastValueWord = undefined;
+        } else if (step.printfVArgs !== undefined && step.name !== undefined) {
+          const pWords = step.printfVArgs;
+          const pArgs: string[] = [];
+          for (let pw = 0; pw < pWords.length; pw++) {
+            pArgs.push(this.fastValueWord(pWords[pw]!, rawState, io, false, false, false, false, 0, step.line) as string);
+          }
+          const formatted = tryFastPrintf(pArgs) ?? "";
+          rawState.variables[step.name] = formatted;
+          touched.add(step.name);
+          lastArg = pArgs[pArgs.length - 1]!;
+          lastValueWord = undefined;
+        } else if (step.isDiscardDevNull && step.discardWords !== undefined) {
+          this.budget.fileSystemOperation();
+          const dw = step.discardWords;
+          const cmdName = step.cmd.words[0]!.plain!;
+          let evalFirst = "";
+          let evalLast = cmdName;
+          for (let wi = 0; wi < dw.length; wi++) {
+            const v = this.fastValueWord(dw[wi]!, rawState, io, false, false, false, false, 0, step.line) as string;
+            if (wi === 0) evalFirst = v;
+            evalLast = v;
+          }
+          let outChars = 0;
+          if (cmdName === "pwd") outChars = (rawState.variables.PWD ?? rawState.cwd).length + 1;
+          else if (cmdName === "echo") outChars = evalFirst.length + 1;
+          else if (cmdName === "dirname") outChars = dirname(evalFirst).length + 1;
+          else if (cmdName === "basename") {
+            const sfx = step.discardSuffix !== undefined ? step.discardSuffix : (dw.length === 2 ? evalLast : undefined);
+            const baseStr = /^\/+$/u.test(evalFirst) ? "/" : basename(evalFirst);
+            outChars = (sfx && baseStr !== sfx && baseStr.endsWith(sfx) ? baseStr.length - sfx.length : baseStr.length) + 1;
+          }
+          this.budget.bytes += outChars;
+          lastArg = step.discardSuffix !== undefined ? evalLast : (dw.length > 0 ? evalLast : cmdName);
+          lastValueWord = undefined;
         } else if (step.name !== undefined && step.value !== undefined) {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           if (step.append) {
@@ -19622,6 +19780,11 @@ export class Runtime {
           );
           const isInlineSort = firstName === "sort" && !byteLocale(rawState.variables) && (stageArgs.length === 0 || (stageArgs.length === 1 && stageArgs[0] === "-r"));
           const isInlineUniq = firstName === "uniq" && (stageArgs.length === 0 || (stageArgs.length === 1 && (stageArgs[0] === "-d" || stageArgs[0] === "-u")));
+          const inlineSedMatch = firstName === "sed"
+            ? /^s\/([a-zA-Z0-9_ :;,-]+)\/([a-zA-Z0-9_ :;,./-]*)\/(g?)$/.exec(
+                stageArgs.length === 1 ? stageArgs[0]! : (stageArgs.length === 2 && stageArgs[0] === "-e" ? stageArgs[1]! : ""),
+              )
+            : null;
           if (
             firstName === "rev" ||
             firstName === "head" ||
@@ -19631,7 +19794,8 @@ export class Runtime {
             isInlineCutField ||
             isInlineTr ||
             isInlineSort ||
-            isInlineUniq
+            isInlineUniq ||
+            inlineSedMatch !== null
           ) {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith("\n") ? inStr.slice(0, -1).split("\n") : inStr.split("\n"));
@@ -19711,9 +19875,14 @@ export class Runtime {
                 }
                 uIdx = uEnd;
               }
+            } else if (inlineSedMatch !== null) {
+              const pat = inlineSedMatch[1]!;
+              const rep = inlineSedMatch[2]!;
+              const isGlobal = inlineSedMatch[3] === "g";
+              outLines = rawLines.map(l => (isGlobal ? l.split(pat).join(rep) : l.replace(pat, () => rep)));
             }
             // These filters preserve the terminator of the final selected input line.
-            const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev";
+            const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev" || firstName === "sed";
             const terminated = !preservesTerminator || inStr.endsWith("\n") || firstName === "head" && outLines.length < rawLines.length;
             const outStr = outLines.length > 0 ? outLines.join("\n") + (terminated ? "\n" : "") : "";
             const outByteLen = outStr.length * 3 > 127 ? shellValueByteLength(outStr) : outStr.length;

@@ -1,3 +1,4 @@
+import { sedCommand } from "../../src/commands/text-programs/sed.js";
 import { createStreamFormatCommands } from "../../src/commands/stream-format/index.js";
 import { predicateCommands } from "../../src/commands/predicates.js";
 import assert from "node:assert/strict";
@@ -1011,6 +1012,38 @@ test("matches bash for Wave 70 sync cut -d/-f separated args, inline tr/sort/uni
     assert.equal(actual.exitCode, 0);
     assert.equal(actual.stderr, "");
     assert.equal(actual.stdout, "BETA_89|a|z\n");
+  } finally {
+    await shell.dispose();
+  }
+
+});
+
+test("matches bash for Wave 71 printf -v, >/dev/null discarded commands, and inline sed pipeline substitutions in trySyncLoop", async () => {
+  const shell = new Shell({
+    fs: createMemoryFileSystem(),
+    limits: {
+      maxCommands: 50_000,
+      maxLoopIterations: 50_000,
+      maxFileSystemOperations: 50_000,
+    },
+  });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands(), ...createStreamFormatCommands(), sedCommand()]) shell.commands.register(command);
+  try {
+    const t0 = performance.now();
+    const res = await shell.exec([
+      "for ((i = 1; i <= 1200; i++)); do",
+      "  printf -v tag \"item_%04d_foo_foo\" \"$i\"",
+      "  cleaned=\$(printf \"%s\\n\" \"$tag\" | sed \"s/foo/bar/g\" | sed -e \"s/item_/tag_/\")",
+      "  pwd >/dev/null",
+      "  dirname \"/workspace/src/\$cleaned.ts\" >/dev/null",
+      "  basename -s .ts \"/workspace/src/\$cleaned.ts\" >/dev/null",
+      "done",
+      "printf \"%s:%s\\n\" \"$cleaned\" \"$_\"",
+    ].join("\n"));
+    const elapsed = performance.now() - t0;
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "tag_1200_bar_bar:/workspace/src/tag_1200_bar_bar.ts\n");
+    assert.ok(elapsed < 1000, `Expected < 1000ms, got ${elapsed.toFixed(1)}ms`);
   } finally {
     await shell.dispose();
   }

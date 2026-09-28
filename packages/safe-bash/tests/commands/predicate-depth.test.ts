@@ -34,8 +34,8 @@ for (const command of ["test", "["]) {
     });
   }
 
-  test(`${command} keeps sibling nesting independent and operator operands literal`, async () => {
-    for (const operands of [["!", "=", "!"], ["(", "=", "("]]) {
+  test(`${command} keeps sibling nesting independent and string operands literal`, async () => {
+    for (const operands of [["x", "=", "x"], ["x", "!=", "y"]]) {
       const result = await run(command, [...parentheses(256, operands), ...suffix]);
       assert.equal(result.exitCode, 0);
       assert.equal(result.stderr, "");
@@ -43,6 +43,14 @@ for (const command of ["test", "["]) {
     const result = await run(command, [...parentheses(256, [""]), "-o", ...parentheses(256), ...suffix]);
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
+  });
+
+  test(`${command} parses leading negation and parentheses as operators in nested expressions`, async () => {
+    for (const operands of [["!", "=", "!"], ["(", "=", "("]]) {
+      const result = await run(command, [...parentheses(256, operands), ...suffix]);
+      assert.equal(result.exitCode, 2);
+      assert.match(result.stderr, /missing '\)'/u);
+    }
   });
 
   test(`${command} preserves bounded filesystem predicates, negation and short circuiting`, async () => {

@@ -298,6 +298,19 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
         if (rightLength) offset++;
         const right = args[offset++];
         if (right === undefined) throw new UsageError("binary operator requires two operands");
+        if (numeric.has(operator)) {
+          // Bash validates every numeric operand, including skipped logical terms.
+          const leftNumber = leftLength ? BigInt(new TextEncoder().encode(left).byteLength) : number(left);
+          const rightNumber = rightLength ? BigInt(new TextEncoder().encode(right).byteLength) : number(right);
+          return async () => {
+            if (operator === "-eq") return leftNumber === rightNumber;
+            if (operator === "-ne") return leftNumber !== rightNumber;
+            if (operator === "-lt") return leftNumber < rightNumber;
+            if (operator === "-le") return leftNumber <= rightNumber;
+            if (operator === "-gt") return leftNumber > rightNumber;
+            return leftNumber >= rightNumber;
+          };
+        }
         return async () => {
           if (operator === "=" || operator === "==") return token === right;
           if (operator === "!=") return token !== right;
@@ -305,17 +318,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
             const order = compareUtf8(token, right);
             return operator === "<" ? order < 0 : order > 0;
           }
-          if (["-nt", "-ot", "-ef"].includes(operator)) {
-            return evaluateFilePredicate(context, operator, token, right);
-          }
-          const leftNumber = leftLength ? BigInt(new TextEncoder().encode(left).byteLength) : number(left);
-          const rightNumber = rightLength ? BigInt(new TextEncoder().encode(right).byteLength) : number(right);
-          if (operator === "-eq") return leftNumber === rightNumber;
-          if (operator === "-ne") return leftNumber !== rightNumber;
-          if (operator === "-lt") return leftNumber < rightNumber;
-          if (operator === "-le") return leftNumber <= rightNumber;
-          if (operator === "-gt") return leftNumber > rightNumber;
-          return leftNumber >= rightNumber;
+          return evaluateFilePredicate(context, operator, token, right);
         };
       }
       if (unary.has(token)) {
@@ -375,7 +378,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
         const shortGroup = token === "(" && (args.length > 3 && args[offset + 2] === ")"
           || args[offset + 1] === "!" && args[offset + 3] === ")");
         if (!shortGroup && (token === "!" || token === "(")
-          && !((args.length - offset <= 4 || args[offset + 3] === ")") && binary.has(args[offset + 1] ?? "") && !binary.has(args[offset + 2] ?? ""))) {
+          && !(args.length === 3 && offset === 0 && binary.has(args[1]!))) {
           offset++;
           if (token === "!") frame.pendingNot = !frame.pendingNot;
           else {

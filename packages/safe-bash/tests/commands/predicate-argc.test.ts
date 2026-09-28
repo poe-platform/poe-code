@@ -30,6 +30,44 @@ const cases: readonly (readonly [readonly string[], number])[] = [
 ];
 
 for (const command of ["test", "["]) {
+  test(`${command} applies recursive negation grammar throughout compound expressions`, async () => {
+    const expressions = [
+      ["x", "-a", "!", "!=", "x"],
+      ["y", "=", "y", "-o", "!", "=", "!"],
+      ["(", "!", "!=", "x", ")"],
+      ["(", "!", "=", "!", ")", "-a", "x"],
+    ];
+    const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]) });
+    try {
+      for (const args of expressions) {
+        const result = await run(command, command === "[" ? [...args, "]"] : args, { commands: predicateCommands() });
+        assert.equal(result.exitCode, 2, JSON.stringify(args));
+        assert.notEqual(result.stderr, "", JSON.stringify(args));
+        const source = `${command} ${args.map(arg => `'${arg}'`).join(" ")}${command === "[" ? " ]" : ""}`;
+        const invoked = await shell.exec(source);
+        assert.equal(invoked.exitCode, 2, source);
+        assert.notEqual(invoked.stderr, "", source);
+      }
+    } finally { await shell.dispose(); }
+  });
+
+  test(`${command} validates signed 64-bit operands even after decisive logical terms`, async () => {
+    for (const value of ["-9223372036854775809", "9223372036854775808", "+99999999999999999999999"]) {
+      for (const prefix of [["1", "-eq", "1", "-o"], ["1", "-eq", "2", "-a"]]) {
+        const args = [...prefix, "2", "-eq", value, ...(command === "[" ? ["]"] : [])];
+        const result = await run(command, args, { commands: predicateCommands() });
+        assert.equal(result.exitCode, 2, JSON.stringify(args));
+        assert.match(result.stderr, /integer expression expected/u);
+      }
+    }
+    for (const value of ["-9223372036854775808", "9223372036854775807"]) {
+      const args = [value, "-eq", value, ...(command === "[" ? ["]"] : [])];
+      const result = await run(command, args, { commands: predicateCommands() });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+    }
+  });
+
   test(`${command} preserves argc semantics through shell quoting and status expansion`, async () => {
     const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]) });
     try {

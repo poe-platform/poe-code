@@ -220,6 +220,44 @@ const knownPostbuildHooks = new Set([
   "node scripts/smoke-built-exports.mjs"
 ]);
 
+function stageBuildOutputPatterns(stage, configuredOutputs = ["dist/**"]) {
+  const patterns = new Set(configuredOutputs);
+  const buildScript = stage.manifest.scripts?.build ?? "";
+  if (buildScript.includes("scripts/numberformat-data.mjs")) {
+    patterns.add("src/intl-data/dist/**");
+  }
+  if (buildScript.includes("scripts/build-browser-run-code-guest.ts")) {
+    patterns.add("src/browser-run-code-guest.generated.js");
+  }
+  if (buildScript.includes("scripts/build-wasm.mjs")) {
+    patterns.add("src/wasm.generated.ts");
+  }
+  return [...patterns];
+}
+
+function normalizeCachedBuildOutputs(patterns, outputs) {
+  if (!Array.isArray(outputs)) return null;
+  let normalized = outputs;
+  if (
+    patterns.includes("src/intl-data/dist/**") &&
+    !normalized.some(entry => entry.path?.startsWith("src/intl-data/dist/"))
+  ) {
+    const mirrored = normalized
+      .filter(entry => entry.path?.startsWith("dist/intl-data/dist/"))
+      .map(entry => ({ ...entry, path: entry.path.slice("dist/".length) }));
+    if (mirrored.length > 0) {
+      normalized = [...normalized, ...mirrored];
+    }
+  }
+  for (const pattern of patterns.slice(1)) {
+    const hasMatch = pattern.endsWith("/**")
+      ? normalized.some(entry => entry.path?.startsWith(pattern.slice(0, -2)))
+      : normalized.some(entry => entry.path === pattern);
+    if (!hasMatch) return null;
+  }
+  return normalized;
+}
+
 export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, environment, fileSystem = fs }) {
   const commands = new Set([
     "tsc",
@@ -278,7 +316,7 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     const cacheable = settings.cache !== false && event === "build" && commands.has(scripts[event]) && hasDistOutput
       && !scripts["pre" + event] && (!scripts["post" + event] || knownPostbuildHooks.has(scripts["post" + event])) && settings.outputs?.length
       && settings.outputs.every(pattern => pattern === "dist/**" || pattern === "src/intl-data/dist/**");
-    if (cacheable) outputs.set(stage.name, settings.outputs);
+    if (cacheable) outputs.set(stage.name, stageBuildOutputPatterns(stage, settings.outputs));
     return cacheable;
   });
   const started = performance.now();
@@ -291,9 +329,11 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     restore(stage) {
       if (!fingerprints.has(stage.name)) return false;
       const record = store.read(taskCacheKey(fingerprints.get(stage.name), "build"));
-      if (record?.success && Array.isArray(record.outputs)) {
+      const patterns = outputs.get(stage.name);
+      const normalizedOutputs = record?.success ? normalizeCachedBuildOutputs(patterns, record.outputs) : null;
+      if (normalizedOutputs) {
         try {
-          store.restore(path.join(plan.root, stage.path), outputs.get(stage.name), record.outputs);
+          store.restore(path.join(plan.root, stage.path), patterns, normalizedOutputs);
           stats.cacheHits++;
           return true;
         } catch (error) {
@@ -458,11 +498,11 @@ export function createCheckCache({
       }
     }
   };
-  const outputRoots = patterns => patterns.map(pattern => {
-    assert.ok(pattern.endsWith("/**"), "Unsupported cached output pattern");
-    const root = pattern.slice(0, -3);
+  const outputSpecs = patterns => patterns.map(pattern => {
+    const isDirectory = pattern.endsWith("/**");
+    const root = isDirectory ? pattern.slice(0, -3) : pattern;
     assert.ok(root && !path.isAbsolute(root) && root.split("/").every(segment => segment && segment !== "." && segment !== ".."), "Invalid output root");
-    return root;
+    return { root, isDirectory };
   });
   return {
     read(key) {
@@ -496,18 +536,19 @@ export function createCheckCache({
           records.push({ path: relative, mode: stat.mode & 0o777, bytes: fileSystem.readFileSync(absolute).toString("base64") });
         }
       };
-      for (const relative of outputRoots(patterns)) {
+      for (const { root: relative } of outputSpecs(patterns)) {
         if (fileSystem.existsSync(path.join(root, relative))) visit(relative);
       }
       return records;
     },
     restore(root, patterns, records) {
-      const roots = outputRoots(patterns);
+      const specs = outputSpecs(patterns);
+      const roots = specs.map(spec => spec.root);
       assert.ok(Array.isArray(records), "Invalid cached outputs");
       const paths = new Set();
       for (const record of records) {
         assert.ok(typeof record.path === "string" && !path.isAbsolute(record.path) && record.path.split("/").every(segment => segment && segment !== "." && segment !== "..")
-          && roots.some(relative => record.path.startsWith(relative + "/")) && !paths.has(record.path), "Invalid cached output path");
+          && specs.some(spec => spec.isDirectory ? record.path.startsWith(spec.root + "/") : record.path === spec.root) && !paths.has(record.path), "Invalid cached output path");
         assert.ok(typeof record.bytes === "string" && Number.isInteger(record.mode) && record.mode >= 0 && record.mode <= 0o777, "Invalid cached output record");
         paths.add(record.path);
       }
@@ -521,7 +562,7 @@ export function createCheckCache({
         }
       }
       const remaining = new Map(records.map(record => [record.path, record]));
-      const directories = new Set(roots);
+      const directories = new Set(specs.filter(spec => spec.isDirectory).map(spec => spec.root));
       for (const record of records) {
         let parent = path.posix.dirname(record.path);
         while (parent !== ".") { directories.add(parent); parent = path.posix.dirname(parent); }

@@ -163,4 +163,33 @@ describe("workspace build caching", () => {
     expect(cache.read(warmKey)?.success).toBe(true);
     expect(cache.read(coldKey)).toBeNull();
   });
+
+  it("captures and restores generated src/intl-data/dist artifacts for safe-js builds", async () => {
+    const state = fixture();
+    const safeJsBuildScript = "node ../../scripts/guard-package-dist.mjs && node scripts/numberformat-data.mjs && rm -rf dist && tsc && node scripts/numberformat-data.mjs --copy && node ../../scripts/set-bin-executable.mjs";
+    state.fileSystem.writeFileSync(
+      "/repo/packages/beta/package.json",
+      JSON.stringify({ name: "beta", scripts: { build: safeJsBuildScript } })
+    );
+    const originalSpawn = state.spawn;
+    const spawn = vi.fn((command, args, options) => {
+      if (args.includes("--workspace=packages/beta")) {
+        state.fileSystem.mkdirSync("/repo/packages/beta/src/intl-data/dist", { recursive: true });
+        state.fileSystem.writeFileSync("/repo/packages/beta/src/intl-data/dist/numberformat-engine.js", "export const NumberFormat = {};");
+        state.fileSystem.mkdirSync("/repo/packages/beta/dist/intl-data/dist", { recursive: true });
+        state.fileSystem.writeFileSync("/repo/packages/beta/dist/intl-data/dist/numberformat-engine.js", "export const NumberFormat = {};");
+      }
+      return originalSpawn(command, args, options);
+    });
+    await buildWorkspaces(state.root, { ...state, spawn });
+    expect(spawn).toHaveBeenCalledTimes(2);
+    state.fileSystem.rmSync("/repo/packages/beta/dist", { recursive: true, force: true });
+    state.fileSystem.rmSync("/repo/packages/beta/src/intl-data", { recursive: true, force: true });
+    const result = await buildWorkspaces(state.root, { ...state, spawn });
+    expect(spawn).toHaveBeenCalledTimes(2);
+    expect(result).toMatchObject({ builds: 2, cacheHits: 2 });
+    expect(
+      state.fileSystem.readFileSync("/repo/packages/beta/src/intl-data/dist/numberformat-engine.js", "utf8")
+    ).toBe("export const NumberFormat = {};");
+  });
 });

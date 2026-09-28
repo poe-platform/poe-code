@@ -50,7 +50,7 @@ fn snapshot(fs: &MemoryFs, root: &str, gitdir: &str, source: &str) -> Result<Sna
         .collect()
 }
 
-#[derive(Default)]
+#[derive(Clone, Copy, Default)]
 pub(crate) enum DiffMode {
     #[default]
     Patch,
@@ -396,7 +396,14 @@ fn patch(a: &str, b: &str, context: usize) -> String {
     out
 }
 
-pub fn show(fs: &MemoryFs, root: &str, gitdir: &str, target: &str) -> Result<String, GitError> {
+pub fn show(
+    fs: &MemoryFs,
+    root: &str,
+    gitdir: &str,
+    target: &str,
+    output: &crate::cli_history::HistoryOutput<'_>,
+    paths: &[String],
+) -> Result<String, GitError> {
     let mut oid = crate::cli_history::resolve(fs, gitdir, target)?;
     let mut out = String::new();
     while crate::_read_object(fs, gitdir, &oid, "content")?.obj_type == "tag" {
@@ -438,29 +445,15 @@ pub fn show(fs: &MemoryFs, root: &str, gitdir: &str, target: &str) -> Result<Str
         }
         _ => {}
     }
-    let commit = read_commit(fs, gitdir, &oid)?.commit;
-    out.push_str(&format!(
-        "commit {oid}\nAuthor: {} <{}>\n\n    {}\n\n",
-        commit.author.name,
-        commit.author.email,
-        commit.message.trim()
-    ));
-    out.push_str(
-        &diff(
-            fs,
-            root,
-            gitdir,
-            commit
-                .parent
-                .first()
-                .map(String::as_str)
-                .unwrap_or(":empty"),
-            &oid,
-            &[],
-            &DiffOptions::default(),
-        )?
-        .0,
-    );
+    let commit = read_commit(fs, gitdir, &oid)?;
+    out.push_str(&crate::cli_history::render_history(
+        fs,
+        root,
+        gitdir,
+        &[commit],
+        output,
+        paths,
+    )?);
     Ok(out)
 }
 

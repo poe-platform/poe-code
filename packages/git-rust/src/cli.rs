@@ -195,6 +195,7 @@ pub fn execute_git_cli_with_http(
             let mut short = false;
             let mut branch = false;
             let mut untracked = true;
+            let mut all_untracked = false;
             let mut paths = Vec::new();
             let mut separator = false;
             for &arg in sub_args {
@@ -206,12 +207,14 @@ pub fn execute_git_cli_with_http(
                         "--short" | "--porcelain" | "--porcelain=v1" => short = true,
                         "--branch" => branch = true,
                         "-uno" | "--untracked-files=no" => untracked = false,
-                        "-u"
-                        | "-uall"
-                        | "-unormal"
-                        | "--untracked-files"
-                        | "--untracked-files=all"
-                        | "--untracked-files=normal" => untracked = true,
+                        "-u" | "-uall" | "--untracked-files" | "--untracked-files=all" => {
+                            untracked = true;
+                            all_untracked = true;
+                        }
+                        "-unormal" | "--untracked-files=normal" => {
+                            untracked = true;
+                            all_untracked = false;
+                        }
                         a if a.starts_with('-')
                             && !a.starts_with("--")
                             && a[1..].chars().all(|c| c == 's' || c == 'b') =>
@@ -226,18 +229,45 @@ pub fn execute_git_cli_with_http(
                     }
                 }
             }
-            match status_matrix(
-                fs,
-                &repo_root,
-                Some(&gitdir),
-                None,
-                if paths.is_empty() { None } else { Some(&paths) },
-            ) {
+            match status_matrix(fs, &repo_root, Some(&gitdir), None, None) {
                 Ok(rows) => {
-                    let rows: Vec<_> = rows
-                        .into_iter()
-                        .filter(|(_, h, _, s)| untracked || *h != 0 || *s != 0)
+                    let tracked: std::collections::BTreeSet<_> = rows
+                        .iter()
+                        .filter(|(_, h, _, s)| *h != 0 || *s != 0)
+                        .flat_map(|(path, _, _, _)| {
+                            path.match_indices('/')
+                                .map(|(i, _)| path[..i + 1].to_string())
+                        })
                         .collect();
+                    let mut seen = std::collections::BTreeSet::new();
+                    let mut rows: Vec<_> = rows
+                        .into_iter()
+                        .filter(|(p, h, _, s)| {
+                            (untracked || *h != 0 || *s != 0)
+                                && crate::cli_history::matches_path(p, &paths)
+                        })
+                        .map(|(mut p, h, w, s)| {
+                            if h == 0
+                                && s == 0
+                                && !all_untracked
+                                && let Some((i, _)) = p.match_indices('/').find(|(i, _)| {
+                                    let dir = &p[..i + 1];
+                                    !tracked.contains(dir)
+                                        && (paths.is_empty()
+                                            || paths.iter().any(|spec| {
+                                                spec == "."
+                                                    || dir.trim_end_matches('/') == spec
+                                                    || dir.starts_with(&format!("{spec}/"))
+                                            }))
+                                })
+                            {
+                                p.truncate(i + 1);
+                            }
+                            (p, h, w, s)
+                        })
+                        .filter(|(p, _, _, _)| seen.insert(p.clone()))
+                        .collect();
+                    rows.sort_by_key(|(_, h, _, s)| *h == 0 && *s == 0);
                     if short {
                         let mut out = String::new();
                         if branch {
@@ -488,7 +518,9 @@ pub fn execute_git_cli_with_http(
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }
-        "log" => crate::cli_history::execute(fs, &repo_root, &gitdir, &effective_cwd, sub_args),
+        "log" => {
+            crate::cli_history::execute(fs, &repo_root, &gitdir, &effective_cwd, sub_args, false)
+        }
         "branch" => {
             let mut remote = false;
             let mut all = false;
@@ -786,12 +818,16 @@ pub fn execute_git_cli_with_http(
                         Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                     };
                 }
-                "show" => crate::cli_files::show(
-                    fs,
-                    &repo_root,
-                    &gitdir,
-                    positionals.first().copied().unwrap_or("HEAD"),
-                ),
+                "show" => {
+                    return crate::cli_history::execute(
+                        fs,
+                        &repo_root,
+                        &gitdir,
+                        &effective_cwd,
+                        sub_args,
+                        true,
+                    );
+                }
                 "restore" => {
                     let mut source = None;
                     let mut paths = Vec::new();

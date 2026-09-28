@@ -183,16 +183,98 @@ fn touches_paths(
     Ok(true)
 }
 
+pub(crate) struct HistoryOutput<'a> {
+    pub format: &'a str,
+    pub abbrev: bool,
+    pub modes: Vec<crate::cli_files::DiffMode>,
+    pub no_patch: bool,
+}
+
+pub(crate) fn render_history(
+    fs: &MemoryFs,
+    root: &str,
+    gitdir: &str,
+    commits: &[ReadCommitResult],
+    output: &HistoryOutput<'_>,
+    paths: &[String],
+) -> Result<String, GitError> {
+    let mut out = String::new();
+    for (i, c) in commits.iter().enumerate() {
+        if i > 0
+            && (matches!(output.format, "short" | "medium" | "full")
+                || output.format.starts_with("format:"))
+        {
+            out.push('\n');
+        }
+        out.push_str(&render(
+            std::slice::from_ref(c),
+            output.format,
+            output.abbrev,
+        ));
+        for (mode_index, mode) in output.modes.iter().enumerate() {
+            if output.no_patch {
+                break;
+            }
+            let options = crate::cli_files::DiffOptions {
+                mode: *mode,
+                ..Default::default()
+            };
+            let diff = crate::cli_files::diff(
+                fs,
+                root,
+                gitdir,
+                c.commit
+                    .parent
+                    .first()
+                    .map(String::as_str)
+                    .unwrap_or(":empty"),
+                &c.oid,
+                paths,
+                &options,
+            )?
+            .0;
+            if !diff.is_empty() {
+                if !out.ends_with('\n') {
+                    out.push('\n');
+                }
+                let oneline = matches!(output.format, "oneline" | "%h %s");
+                if mode_index == 0
+                    && !oneline
+                    && matches!(mode, crate::cli_files::DiffMode::Stat)
+                    && output
+                        .modes
+                        .iter()
+                        .any(|m| matches!(m, crate::cli_files::DiffMode::Patch))
+                {
+                    out.push_str("---\n");
+                } else if mode_index > 0 || !oneline {
+                    out.push('\n');
+                }
+                out.push_str(&diff);
+            }
+        }
+    }
+    Ok(out)
+}
+
 pub(crate) fn execute(
     fs: &MemoryFs,
     root: &str,
     gitdir: &str,
     cwd: &str,
     args: &[&str],
+    show: bool,
 ) -> CliResult {
     let mut depth = None;
     let mut revision = "HEAD";
-    let mut format = "medium";
+    let mut output = HistoryOutput {
+        format: "medium",
+        abbrev: false,
+        modes: Vec::new(),
+        no_patch: false,
+    };
+    let mut reverse = false;
+    let mut patch = None;
     let mut paths = Vec::new();
     let mut separator = false;
     let mut i = 0;
@@ -203,18 +285,19 @@ pub(crate) fn execute(
         } else if arg == "--" {
             separator = true;
         } else if arg == "--oneline" {
-            format = "%h %s";
+            output.format = "%h %s";
+            output.abbrev = true;
         } else if matches!(arg, "--format" | "--pretty") {
             i += 1;
             let Some(value) = args.get(i) else {
                 return CliResult::err(129, "error: missing format\n");
             };
-            format = value;
+            output.format = value;
         } else if let Some(value) = arg
             .strip_prefix("--format=")
             .or_else(|| arg.strip_prefix("--pretty="))
         {
-            format = value;
+            output.format = value;
         } else if arg == "-n"
             || arg == "--max-count"
             || arg.starts_with("--max-count=")
@@ -235,6 +318,21 @@ pub(crate) fn execute(
                 return CliResult::err(129, "error: invalid maximum commit count\n");
             };
             depth = Some(count);
+        } else if arg == "--reverse" {
+            reverse = true;
+        } else if arg == "--abbrev-commit" {
+            output.abbrev = true;
+        } else if matches!(arg, "-s" | "--no-patch") {
+            output.no_patch = true;
+        } else if matches!(arg, "-p" | "--patch") {
+            patch = Some(true);
+            output.no_patch = false;
+        } else if matches!(arg, "--name-only" | "--name-status" | "--stat") {
+            output.modes.push(match arg {
+                "--name-only" => crate::cli_files::DiffMode::Names,
+                "--name-status" => crate::cli_files::DiffMode::Status,
+                _ => crate::cli_files::DiffMode::Stat,
+            });
         } else if arg.starts_with('-') {
             return CliResult::err(129, format!("error: unknown option '{arg}'\n"));
         } else if paths.is_empty() && (arg.contains("..") || resolve(fs, gitdir, arg).is_ok()) {
@@ -253,6 +351,21 @@ pub(crate) fn execute(
     }
     if depth == Some(0) {
         return CliResult::ok("");
+    }
+    let names_only = output.modes.iter().any(|m| {
+        matches!(
+            m,
+            crate::cli_files::DiffMode::Names | crate::cli_files::DiffMode::Status
+        )
+    });
+    if !names_only && patch.unwrap_or(show && output.modes.is_empty()) {
+        output.modes.push(crate::cli_files::DiffMode::Patch);
+    }
+    if show {
+        return match crate::cli_files::show(fs, root, gitdir, revision, &output, &paths) {
+            Ok(out) => CliResult::ok(out),
+            Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+        };
     }
     let result = (|| {
         let history = |rev: &str| {
@@ -318,7 +431,10 @@ pub(crate) fn execute(
                 selected.push(c);
             }
         }
-        Ok::<_, GitError>(render(&selected, format))
+        if reverse {
+            selected.reverse();
+        }
+        render_history(fs, root, gitdir, &selected, &output, &paths)
     })();
     match result {
         Ok(out) => CliResult::ok(out),
@@ -326,7 +442,7 @@ pub(crate) fn execute(
     }
 }
 
-fn render(commits: &[ReadCommitResult], format: &str) -> String {
+fn render(commits: &[ReadCommitResult], format: &str, abbrev: bool) -> String {
     let mut out = String::new();
     let preset = matches!(format, "oneline" | "short" | "medium" | "full");
     for (i, c) in commits.iter().enumerate() {
@@ -334,7 +450,7 @@ fn render(commits: &[ReadCommitResult], format: &str) -> String {
             if format == "oneline" {
                 out.push_str(&format!(
                     "{} {}\n",
-                    c.oid,
+                    if abbrev { &c.oid[..7] } else { &c.oid },
                     c.commit.message.lines().next().unwrap_or("")
                 ));
                 continue;
@@ -344,7 +460,9 @@ fn render(commits: &[ReadCommitResult], format: &str) -> String {
             }
             out.push_str(&format!(
                 "commit {}\nAuthor: {} <{}>\n",
-                c.oid, c.commit.author.name, c.commit.author.email
+                if abbrev { &c.oid[..7] } else { &c.oid },
+                c.commit.author.name,
+                c.commit.author.email
             ));
             if format == "medium" {
                 out.push_str(&format!("Date:   {}\n", date(&c.commit.author)));

@@ -1154,3 +1154,35 @@ test("trySyncLoop accelerates memory-file cat|grep|cut pipelines and single-comm
     await shell.dispose();
   }
 });
+
+test("trySyncLoop accelerates grep/sed/cut/wc/sort file operands and < file stdin redirects (Wave 75)", async () => {
+  const memFs = createMemoryFileSystem();
+  await memFs.mkdir("/tmp");
+  const shell = new Shell({ fs: memFs });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands(), ...createTextProgramCommands(), ...grepCommands(), ...createStructuredCommands()]) {
+    shell.commands.register(command, { replace: true });
+  }
+  try {
+    await shell.exec("printf \"alpha:10\\nbeta:20\\ngamma:30\\n\" > /tmp/config.txt");
+    const t0 = performance.now();
+    const res = await shell.exec([
+      "for ((i = 1; i <= 1200; i++)); do",
+      "  gVal=$(grep beta /tmp/config.txt)",
+      "  gcVal=$(grep -c beta /tmp/config.txt)",
+      "  cutVal=$(cut -d: -f2 /tmp/config.txt)",
+      "  sedVal=$(sed \"s/beta/BETA/g\" /tmp/config.txt)",
+      "  wclRedirect=$(wc -l < /tmp/config.txt)",
+      "  wclFile=$(wc -l /tmp/config.txt)",
+      "  sortVal=$(sort -r /tmp/config.txt)",
+      "  trVal=$(tr a-z A-Z < /tmp/config.txt)",
+      "done",
+      "printf \"%s|%s|%s|%s|%s|%s|%s\\n\" \"$gVal\" \"$gcVal\" \"${cutVal//$'\\n'/,}\" \"$wclRedirect\" \"$wclFile\" \"${sortVal%%$'\\n'*}\" \"${trVal%%$'\\n'*}\"",
+    ].join("\n"));
+    const elapsed = performance.now() - t0;
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "beta:20|1|10,20,30|3|3 /tmp/config.txt|gamma:30|ALPHA:10\n");
+    assert.ok(elapsed < 1000, "Expected < 1000ms, got " + elapsed.toFixed(1) + "ms");
+  } finally {
+    await shell.dispose();
+  }
+});

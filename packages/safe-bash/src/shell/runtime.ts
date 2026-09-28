@@ -11607,7 +11607,15 @@ export class Runtime {
         const p = list.pipelines[0]!;
         if (p.negate || p.commands.length < 1 || p.commands.length > 5) return false;
         let cmd = p.commands[0]!;
-        if (cmd.kind !== "simple" || cmd.redirects.length > 0 || cmd.words.length === 0) return false;
+        const hasSingleStdinRedir =
+          cmd.kind === "simple" &&
+          cmd.redirects.length === 1 &&
+          cmd.redirects[0]!.operator === "<" &&
+          cmd.redirects[0]!.fd === undefined &&
+          cmd.redirects[0]!.target.plain !== undefined &&
+          !cmd.redirects[0]!.target.plain.startsWith("-") &&
+          cmd.redirects[0]!.target.plain !== "/dev/stdin";
+        if (cmd.kind !== "simple" || (cmd.redirects.length > 0 && !hasSingleStdinRedir) || cmd.words.length === 0) return false;
         let w0Plain = cmd.words[0]!.plain;
         if (p.commands.length === 1 && w0Plain !== undefined && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !rawState.extensions?.builtins.has(w0Plain)) {
           const fnBody = rawState.functions.get(w0Plain)!;
@@ -11649,21 +11657,41 @@ export class Runtime {
           }
           return false;
         }
-        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && w0Plain !== "cat" && w0Plain !== "head" && w0Plain !== "tail" && w0Plain !== "jq" && w0Plain !== "awk") || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
+        const isFileCommand =
+          w0Plain === "cat" ||
+          w0Plain === "head" ||
+          w0Plain === "tail" ||
+          w0Plain === "jq" ||
+          w0Plain === "awk" ||
+          w0Plain === "grep" ||
+          w0Plain === "sed" ||
+          w0Plain === "cut" ||
+          w0Plain === "wc" ||
+          w0Plain === "sort" ||
+          w0Plain === "tr";
+        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
+        if (hasSingleStdinRedir && !isFileCommand) return false;
         const def = this.commands.get(w0Plain);
         if (!def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : w0Plain === "seq" ? (customRegisteredCommands.has(def.execute) || customRegisteredRegistries.has(this.commands)) : !builtInDirectContextExecutors.has(def.execute))) return false;
         if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
-        if (w0Plain === "cat" || w0Plain === "head" || w0Plain === "tail" || w0Plain === "jq" || w0Plain === "awk") {
-          const fPlain = cmd.words[cmd.words.length - 1]?.plain;
+        if (isFileCommand) {
+          if (w0Plain === "tr" && !hasSingleStdinRedir) return false;
+          if (w0Plain === "grep" && rawState.errexit) return false;
+          const fPlain = hasSingleStdinRedir ? cmd.redirects[0]!.target.plain : cmd.words[cmd.words.length - 1]?.plain;
           if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return false;
           const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain));
           if (!vCheck || vCheck.byteLength > 16384 || vCheck.includes(0)) return false;
+          const opCount = hasSingleStdinRedir ? cmd.words.length - 1 : cmd.words.length - 2;
           if (w0Plain === "cat") {
-            if (cmd.words.length !== 2) return false;
-          } else if (w0Plain === "head" || w0Plain === "tail") {
-            if (p.commands.length !== 1 || (cmd.words.length !== 2 && cmd.words.length !== 3 && cmd.words.length !== 4)) return false;
-          } else if (w0Plain === "jq" || w0Plain === "awk") {
-            if (p.commands.length !== 1 || (cmd.words.length !== 3 && cmd.words.length !== 4)) return false;
+            if (opCount !== 0) return false;
+          } else {
+            if (p.commands.length !== 1) return false;
+            if ((w0Plain === "head" || w0Plain === "tail") && opCount > 2) return false;
+            if ((w0Plain === "jq" || w0Plain === "awk" || w0Plain === "grep" || w0Plain === "sed") && (opCount < 1 || opCount > 3)) return false;
+            if (w0Plain === "cut" && (opCount < 1 || opCount > 4)) return false;
+            if (w0Plain === "wc" && opCount !== 1) return false;
+            if (w0Plain === "sort" && (opCount > 1 || byteLocale(rawState.variables))) return false;
+            if (w0Plain === "tr" && opCount !== 2) return false;
           }
         }
         if (w0Plain === "printf") {
@@ -19746,12 +19774,19 @@ export class Runtime {
         return undefined;
       }
       const cmd0 = pipeline.commands[0]!;
-      if (cmd0.kind !== "simple" || cmd0.redirects.length !== 0) return undefined;
+      const cmd0StdinRedir =
+        cmd0.kind === "simple" &&
+        cmd0.redirects.length === 1 &&
+        cmd0.redirects[0]!.operator === "<" &&
+        cmd0.redirects[0]!.fd === undefined &&
+        cmd0.redirects[0]!.target.plain !== undefined;
+      if (cmd0.kind !== "simple" || (cmd0.redirects.length !== 0 && !cmd0StdinRedir)) return undefined;
       const w0Plain0 = cmd0.words[0]?.plain;
       if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat") || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
-      if (w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
+      if (cmd0StdinRedir && (w0Plain0 !== "cat" || cmd0.words.length !== 1)) return undefined;
+      if (!cmd0StdinRedir && w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
       const def0 = this.commands.get(w0Plain0);
       if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : w0Plain0 === "cat" ? !builtInDirectContextExecutors.has(def0.execute) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
@@ -19863,8 +19898,9 @@ export class Runtime {
           }
         }
       } else if (w0Plain0 === "cat") {
-        if (subArgs0.length === 1 && !subArgs0[0]!.startsWith("-") && subArgs0[0] !== "/dev/stdin") {
-          const view = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, subArgs0[0]!));
+        const catTarget = cmd0StdinRedir ? cmd0.redirects[0]!.target.plain! : subArgs0[0];
+        if (catTarget && !catTarget.startsWith("-") && catTarget !== "/dev/stdin") {
+          const view = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, catTarget));
           if (view && view.byteLength <= 16384 && !view.includes(0)) {
             stage0Formatted = sharedSyncPipeDecoder.decode(view);
           }
@@ -20256,40 +20292,66 @@ export class Runtime {
         }
       }
     }
-    if (cmd.kind !== "simple" || cmd.redirects.length > 0 || cmd.words.length === 0) return undefined;
+    const hasSingleStdinRedir =
+      cmd.kind === "simple" &&
+      cmd.redirects.length === 1 &&
+      cmd.redirects[0]!.operator === "<" &&
+      cmd.redirects[0]!.fd === undefined &&
+      this.isPureArgWord(cmd.redirects[0]!.target, rawState);
+    if (cmd.kind !== "simple" || (cmd.redirects.length > 0 && !hasSingleStdinRedir) || cmd.words.length === 0) return undefined;
     let w0Plain = cmd.words[0]!.plain;
     if (!w0Plain || rawState.extensions?.builtins.has(w0Plain)) return undefined;
-    if ((w0Plain === "cat" || w0Plain === "head" || w0Plain === "tail" || w0Plain === "jq" || w0Plain === "awk") && !hasShellFunction(rawState, w0Plain) && this.commands.has(w0Plain)) {
-      const fArgs: string[] = [];
+    const isSingleFileTool =
+      w0Plain === "cat" ||
+      w0Plain === "head" ||
+      w0Plain === "tail" ||
+      w0Plain === "jq" ||
+      w0Plain === "awk" ||
+      w0Plain === "grep" ||
+      w0Plain === "sed" ||
+      w0Plain === "cut" ||
+      w0Plain === "wc" ||
+      w0Plain === "sort" ||
+      w0Plain === "tr";
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && this.commands.has(w0Plain)) {
+      const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {
         if (!this.isPureArgWord(cmd.words[i]!, rawState)) { fOk = false; break; }
         const val = this.fastValueWord(cmd.words[i]!, state, io, true, false, false, true, undefined, part.line);
         if (typeof val !== "string") { fOk = false; break; }
-        fArgs.push(val);
+        allArgs.push(val);
       }
-      if (fOk && fArgs.length >= 1) {
-        const fileArg = fArgs[fArgs.length - 1]!;
+      let redirTarget: string | undefined;
+      if (fOk && hasSingleStdinRedir) {
+        const rv = this.fastValueWord(cmd.redirects[0]!.target, state, io, true, false, false, true, undefined, part.line);
+        if (typeof rv === "string") redirTarget = rv;
+        else fOk = false;
+      }
+      if (fOk && (hasSingleStdinRedir || allArgs.length >= 1)) {
+        const fileArg = hasSingleStdinRedir ? redirTarget! : allArgs[allArgs.length - 1]!;
+        const opArgs = hasSingleStdinRedir ? allArgs : allArgs.slice(0, -1);
         if (!fileArg.startsWith("-") && fileArg !== "/dev/stdin") {
           const view = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fileArg));
           if (view && view.byteLength <= 16384 && !view.includes(0)) {
             const fileStr = sharedSyncPipeDecoder.decode(view);
+            const rawLines = fileStr.endsWith("\n") ? fileStr.slice(0, -1).split("\n") : (fileStr.length === 0 ? [] : fileStr.split("\n"));
             let fileRes: string | undefined;
-            if (w0Plain === "cat" && fArgs.length === 1) {
+            let exitStatus = 0;
+            if (w0Plain === "cat" && opArgs.length === 0) {
               fileRes = fileStr;
-            } else if ((w0Plain === "head" || w0Plain === "tail") && fArgs.length <= 3) {
-              let count: number | undefined = fArgs.length === 1 ? 10 : undefined;
-              if (fArgs.length === 2 && fArgs[0]!.startsWith("-n") && /^[0-9]{1,5}$/.test(fArgs[0]!.slice(2))) count = Number(fArgs[0]!.slice(2));
-              else if (fArgs.length === 2 && /^-[0-9]{1,5}$/.test(fArgs[0]!)) count = Number(fArgs[0]!.slice(1));
-              else if (fArgs.length === 3 && fArgs[0] === "-n" && /^[0-9]{1,5}$/.test(fArgs[1]!)) count = Number(fArgs[1]!);
+            } else if ((w0Plain === "head" || w0Plain === "tail") && opArgs.length <= 2) {
+              let count: number | undefined = opArgs.length === 0 ? 10 : undefined;
+              if (opArgs.length === 1 && opArgs[0]!.startsWith("-n") && /^[0-9]{1,5}$/.test(opArgs[0]!.slice(2))) count = Number(opArgs[0]!.slice(2));
+              else if (opArgs.length === 1 && /^-[0-9]{1,5}$/.test(opArgs[0]!)) count = Number(opArgs[0]!.slice(1));
+              else if (opArgs.length === 2 && opArgs[0] === "-n" && /^[0-9]{1,5}$/.test(opArgs[1]!)) count = Number(opArgs[1]!);
               if (count !== undefined) {
-                const rawLines = fileStr.endsWith("\n") ? fileStr.slice(0, -1).split("\n") : (fileStr.length === 0 ? [] : fileStr.split("\n"));
                 const sliced = w0Plain === "head" ? rawLines.slice(0, count) : (count === 0 ? [] : rawLines.slice(-count));
                 fileRes = sliced.join("\n");
               }
-            } else if (w0Plain === "jq" && (fArgs.length === 2 || fArgs.length === 3)) {
-              const rawMode = fArgs.length === 3 && (fArgs[0] === "-r" || fArgs[0] === "--raw-output");
-              const jqFilter = fArgs.length === 2 ? fArgs[0]! : (rawMode ? fArgs[1]! : "");
+            } else if (w0Plain === "jq" && (opArgs.length === 1 || opArgs.length === 2)) {
+              const rawMode = opArgs.length === 2 && (opArgs[0] === "-r" || opArgs[0] === "--raw-output");
+              const jqFilter = opArgs.length === 1 ? opArgs[0]! : (rawMode ? opArgs[1]! : "");
               if (/^\.[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(jqFilter)) {
                 try {
                   let cur: unknown = JSON.parse(fileStr.trim());
@@ -20308,18 +20370,18 @@ export class Runtime {
                   }
                 } catch {}
               }
-            } else if (w0Plain === "awk" && (fArgs.length === 2 || fArgs.length === 3)) {
+            } else if (w0Plain === "awk" && (opArgs.length >= 1 && opArgs.length <= 3)) {
+              const normAwk = opArgs.length === 3 && opArgs[0] === "-F" ? ["-F" + opArgs[1]!, opArgs[2]!] : opArgs;
               let awkSep: string | undefined;
               let awkProg: string | undefined;
-              if (fArgs.length === 2) awkProg = fArgs[0]!;
-              else if (fArgs.length === 3 && fArgs[0]!.length === 3 && fArgs[0]!.startsWith("-F") && fArgs[0]![2] !== "\\") {
-                awkSep = fArgs[0]!.slice(2);
-                awkProg = fArgs[1]!;
+              if (normAwk.length === 1) awkProg = normAwk[0]!;
+              else if (normAwk.length === 2 && normAwk[0]!.length === 3 && normAwk[0]!.startsWith("-F") && normAwk[0]![2] !== "\\") {
+                awkSep = normAwk[0]!.slice(2);
+                awkProg = normAwk[1]!;
               }
               const awkM = awkProg ? /^\s*\{\s*print(?:\s+(\$(?:[0-9]+|NF)(?:\s*,\s*\$(?:[0-9]+|NF))*))?\s*;?\s*\}\s*$/.exec(awkProg) : null;
               if (awkM) {
                 const toks = awkM[1] ? awkM[1].split(",").map(t => t.trim().slice(1)) : ["0"];
-                const rawLines = fileStr.endsWith("\n") ? fileStr.slice(0, -1).split("\n") : (fileStr.length === 0 ? [] : fileStr.split("\n"));
                 const outLines: string[] = [];
                 for (let li = 0; li < rawLines.length; li++) {
                   const l = rawLines[li]!;
@@ -20337,6 +20399,88 @@ export class Runtime {
                 }
                 fileRes = outLines.join("\n");
               }
+            } else if (w0Plain === "grep" && !rawState.errexit && (opArgs.length === 1 || opArgs.length === 2)) {
+              const mode = opArgs.length === 2 ? opArgs[0]! : "";
+              const pat = opArgs[opArgs.length - 1]!;
+              if ((opArgs.length === 1 || mode === "-v" || mode === "-i" || mode === "-c" || mode === "-F") && /^[a-zA-Z0-9_ :;,/-]+$/.test(pat)) {
+                const needle = mode === "-i" ? pat.toLowerCase() : pat;
+                const matched: string[] = [];
+                for (let li = 0; li < rawLines.length; li++) {
+                  const l = rawLines[li]!;
+                  const hay = mode === "-i" ? l.toLowerCase() : l;
+                  const ok = hay.includes(needle);
+                  if (mode === "-v" ? !ok : ok) matched.push(l);
+                }
+                exitStatus = matched.length > 0 ? 0 : 1;
+                fileRes = mode === "-c" ? String(matched.length) : matched.join("\n");
+              }
+            } else if (w0Plain === "sed" && (opArgs.length === 1 || (opArgs.length === 2 && opArgs[0] === "-e"))) {
+              const sedExpr = opArgs[opArgs.length - 1]!;
+              const sedM = /^s\/([a-zA-Z0-9_ :;,-]+)\/([a-zA-Z0-9_ :;,./-]*)\/(g?)$/.exec(sedExpr);
+              if (sedM) {
+                const pat = sedM[1]!;
+                const rep = sedM[2]!;
+                const isGlobal = sedM[3] === "g";
+                fileRes = rawLines.map(l => (isGlobal ? l.split(pat).join(rep) : l.replace(pat, () => rep))).join("\n");
+              }
+            } else if (w0Plain === "cut" && opArgs.length >= 1 && opArgs.length <= 4) {
+              const normCut: string[] = [];
+              for (let ci = 0; ci < opArgs.length; ci++) {
+                const ca = opArgs[ci]!;
+                if ((ca === "-d" || ca === "-f") && ci + 1 < opArgs.length) normCut.push(ca + opArgs[++ci]!);
+                else normCut.push(ca);
+              }
+              if (normCut.length === 2 && normCut[0] === "-c" && /^[1-9][0-9]*-[1-9][0-9]*$/.test(normCut[1]!)) {
+                const [cStart, cEnd] = normCut[1]!.split("-").map(Number);
+                fileRes = rawLines.map(l => Array.from(l).slice(cStart! - 1, cEnd!).join("")).join("\n");
+              } else {
+                const delim = normCut.length === 2 && normCut[0]!.length === 3 && normCut[0]!.startsWith("-d") ? normCut[0]![2]! : (normCut.length === 1 ? "\t" : undefined);
+                const fSpec = normCut.length === 2 ? normCut[1] : normCut[0];
+                if (delim !== undefined && fSpec && fSpec.startsWith("-f") && /^[1-9][0-9]*(?:,[1-9][0-9]*)*$/.test(fSpec.slice(2))) {
+                  const fIdxs = fSpec.slice(2).split(",").map(s => Number(s) - 1);
+                  fileRes = rawLines.map(l => {
+                    if (!l.includes(delim)) return l;
+                    const parts = l.split(delim);
+                    return fIdxs.map(idx => (idx < parts.length ? parts[idx]! : "")).join(delim);
+                  }).join("\n");
+                }
+              }
+            } else if (w0Plain === "wc" && opArgs.length === 1 && (opArgs[0] === "-l" || opArgs[0] === "-c" || opArgs[0] === "-w")) {
+              let count = 0;
+              if (opArgs[0] === "-l") {
+                for (let k = 0; k < view.byteLength; k++) if (view[k] === 10) count++;
+              } else if (opArgs[0] === "-c") {
+                count = view.byteLength;
+              } else {
+                const trimmed = fileStr.trim();
+                count = trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
+              }
+              fileRes = hasSingleStdinRedir ? String(count) : `${count} ${fileArg}`;
+            } else if (w0Plain === "sort" && !byteLocale(rawState.variables) && (opArgs.length === 0 || (opArgs.length === 1 && opArgs[0] === "-r"))) {
+              const revSort = opArgs[0] === "-r";
+              fileRes = [...rawLines].sort((a, b) => (a < b ? (revSort ? 1 : -1) : a > b ? (revSort ? -1 : 1) : 0)).join("\n");
+            } else if (w0Plain === "tr" && hasSingleStdinRedir && opArgs.length === 2) {
+              if (opArgs[0] === "a-z" && opArgs[1] === "A-Z") fileRes = fileStr.toUpperCase();
+              else if (opArgs[0] === "A-Z" && opArgs[1] === "a-z") fileRes = fileStr.toLowerCase();
+              else if (opArgs[0] === "-d" && /^[a-zA-Z0-9_ :;,./-]+$/.test(opArgs[1]!)) {
+                const delSet = new Set(opArgs[1]!.split(""));
+                let out = "";
+                for (let ci = 0; ci < fileStr.length; ci++) {
+                  const ch = fileStr[ci]!;
+                  if (!delSet.has(ch)) out += ch;
+                }
+                fileRes = out;
+              } else if (opArgs[0] === "-s" && opArgs[1]!.length === 1) {
+                const sq = opArgs[1]!;
+                let out = "";
+                let prevSq = false;
+                for (let ci = 0; ci < fileStr.length; ci++) {
+                  const ch = fileStr[ci]!;
+                  if (ch === sq) { if (!prevSq) { out += ch; prevSq = true; } }
+                  else { out += ch; prevSq = false; }
+                }
+                fileRes = out;
+              }
             }
             if (fileRes !== undefined) {
               let end = fileRes.length;
@@ -20347,8 +20491,8 @@ export class Runtime {
               if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
               this.budget.bytes = nextTotalBytes;
               this.budget.tick(w0Plain === "cat" ? 2 : 3);
-              rawState.substitutionStatus = 0;
-              rawState.status = 0;
+              rawState.substitutionStatus = exitStatus;
+              rawState.status = exitStatus;
               return fileRes;
             }
           }

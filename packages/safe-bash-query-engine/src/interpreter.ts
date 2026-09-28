@@ -1104,8 +1104,7 @@ export class Interpreter {
       for await (const value of this.run(args[0]!, input)) {
         const found = await indices(input, value, budget);
         if (name === "indices") yield found;
-        else if (name === "index") yield found.length > 0 ? found[0]! : null;
-        else yield found.length > 0 ? found[found.length - 1]! : null;
+        else yield indexValue(found, name === "index" ? 0 : -1);
       }
       return;
     }

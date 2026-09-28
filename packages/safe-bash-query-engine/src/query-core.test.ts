@@ -21,3 +21,15 @@ test("query cancellation preserves the original falsey reason", async () => {
   await assert.rejects(session.run(null).next(), reason => reason === false);
   await session.close();
 });
+
+for (const filter of ['index("x")', 'rindex("x")']) {
+  test(`${filter} preserves null input`, async () => {
+    const session = createYqQuerySession({ signal: new AbortController().signal });
+    session.compileOnce(filter);
+    try {
+      const values = [];
+      for await (const value of session.run(null)) values.push(value);
+      assert.deepEqual(values, [null]);
+    } finally { await session.close(); }
+  });
+}

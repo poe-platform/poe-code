@@ -271,3 +271,15 @@ string transport as native recalculation qualification.
     escape `#`/`?` within the fragment and preserve external URLs. Retained
     native marks keep their name/sheet case while their escaping is normalized.
     Keep rename/remap and native click-through navigation as separate checks.
+
+21. Rename and remap sheets carrying internal links in Gnumeric style regions,
+    cell styles and retained ODF paragraphs. Include native local-name marks,
+    absolute sheet addresses, case differences, detached sheets and names with
+    apostrophes, `%`, `#` and `?`. Independently decode compiled SDK and command
+    exports in both ODF profiles. Require updated targets, unchanged input bytes,
+    external URLs, mixed text and spans. Force paragraph regeneration while
+    retaining ODF link regions. Check foreign namespaces, malformed targets,
+    identity-only remaps, finite work and cancellation. Verify public singular,
+    plural and plugin factories with no arguments and an argument payload above
+    1 MiB; an explicit 1 MiB limit must still refuse. Keep native GUI navigation
+    and containing publication separate from ZIP/XML verification.

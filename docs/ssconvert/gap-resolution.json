@@ -2459,8 +2459,17 @@
         },
         "implementation": "Decode percent escapes one UTF-8 character at a time like Calc WithCharset: literal percent signs survive, invalid octets remain uppercase escapes, valid neighbors continue decoding and decoded percents are not decoded twice. Exported and retained native local-name marks escape hash/question-mark fragment characters while preserving target identity and case. External URL payloads stay passive.",
         "validation": "Thirteen original fragment cases and two retained-native-mark cases failed before their fixes. Final five-file cohort: 147 tests pass; maintained package lint/types and selected build pass. Ten compiled SDK/command exports independently yield 60 correct targets across Gnumeric, strict/extended retained ODF and regenerated labels. No diagnostics; input bytes unchanged; command transcript screenshot inspected.",
-        "remaining": "Issue #3688 remains open for hyperlink rename/remap and current command-export/default verification. Native navigation and registry/publication qualification remain open under #1748.",
+        "remaining": "Fragment repair delivered in 90535f2a04; current rename/remap and command/default qualification follows below. Native navigation and registry/publication qualification remain open under #1748.",
         "receipts": "out/ssconvert-hyperlink-lifecycle/{sources,fragment-input,fragment-proof,fragment-cleanup}.json"
+      },
+      "renameRemap": {
+        "issue": 3688,
+        "implementation": "Sheet rename/remap rewrites recognized internal Gnumeric style-region, cell/axis-style and retained ODF paragraph links, including native local-name marks. Grammar-aware targets use the existing Calc fragment conversion. Namespace/schema guards preserve foreign, external, malformed and unrelated payloads. Iterative XML traversal preserves mixed text/child indexes; work/depth/cancellation checks apply. Detached sheet links and target name remapping are included; identity-only remaps preserve spellings.",
+        "validation": "Four valid original lifecycle cases failed before repair. Focused four-file cohort: 97 tests pass, including 19 lifecycle/guard cases; maintained package lint, source/test/consumer types and selected build pass. Existing command plugin/resource cohort: 23 tests pass. Two independently authored Gnumeric/ODF inputs through compiled SDK registry writers and command factories yield 16 packages and 48 independently decoded correct targets. Retained mixed text/spans, external URLs and input bytes survive. Command verification transcript screenshot inspected. Three adjacent conversion/sheet lifecycle files pass 56 additional tests.",
+        "commandDefaults": "Compiled public package exports singular/plural/plugin factories with zero-argument invocation, plus options/limits declarations. Thin Safe Bash adapter identity verified by maintained tests. Default argumentBytes is Infinity: >1 MiB argument payload succeeds, explicit 1 MiB limit refuses. Existing implementation verified without a code change.",
+        "probeCorrections": "Independent harness uses the declared EngineConfig environment/codecs and public registry writers for rewritten snapshots; writeWorkbook correctly refuses a snapshot not owned by its engine. ODF regenerated-label tests retain link style regions while discarding only original paragraphs.",
+        "remaining": "Actual native GUI navigation and broader installed/registry/publication qualification remain open under #1748; no family closure.",
+        "receipts": "out/ssconvert-hyperlink-lifecycle/rename-{inputs,exports,proof,cleanup}.json"
       }
     },
     "odfCrossSheetLabelRanges": {

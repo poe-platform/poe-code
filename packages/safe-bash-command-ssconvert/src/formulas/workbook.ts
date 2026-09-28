@@ -8,6 +8,7 @@ import { quoteFormulaString } from "./serialization.js";
 import { gnumericGrammar } from "./conventions.js";
 import { rewriteReferences, visitFormula } from "./rewriting.js";
 import { chartDataTypes } from "../objects/data.js";
+import { rewriteWorkbookHyperlinks } from "../workbook/hyperlinks.js";
 
 export function rewriteWorkbook(book: Workbook, context: CapabilityContext, rewrite: (document: FormulaDocument, namedExpression: boolean) => string): Workbook {
   let work = 0;
@@ -61,14 +62,14 @@ export function renameWorkbookSheet(book: Workbook, sheetId: string, name: strin
   if (!sheet || !name || name.includes("\0") || book.sheets.some(s => s.id !== sheetId && foldSheetName(s.name) === foldSheetName(name)))
     throw new SsconvertError("invalid-request", "Invalid sheet rename");
   if (sheet.name === name) return book;
-  const renamed = rewriteWorkbook(book, context, document => {
+  const renamed = rewriteWorkbookHyperlinks(rewriteWorkbook(book, context, document => {
     const spellings = new Map<string, string>();
     visitFormula(document.root, node => {
       const names = node.kind === "reference" ? [node.first.sheet, node.last?.sheet] : node.kind === "name" ? [node.sheet] : [];
       for (const spelling of names) if (spelling !== undefined && foldSheetName(spelling) === foldSheetName(sheet.name)) spellings.set(spelling, name);
     });
     return rewriteReferences(document, { sheets: spellings, signal: context.signal });
-  });
+  }), new Map([[foldSheetName(sheet.name), name]]), context);
   return snapshotWorkbook({ ...renamed, sheets: renamed.sheets.map(s => s.id === sheetId ? { ...s, name } : s),
     ...(renamed.names ? { names: renamed.names.map(entry => entry.sheet === sheetId && entry.name === "Sheet_Title"
       ? { ...entry, expression: quoteFormulaString(name, '"', gnumericGrammar) } : entry) } : {})
@@ -79,15 +80,15 @@ export function renameWorkbookSheet(book: Workbook, sheetId: string, name: strin
 export function remapWorkbookSheets(book: Workbook, mapping: ReadonlyMap<string, { id: string; name: string }>, context: CapabilityContext): Workbook {
   context.signal.throwIfAborted();
   book = snapshotWorkbook(book, context.limits);
-  const names = new Map(book.sheets.map(sheet => [foldSheetName(sheet.name), mapping.get(sheet.id)?.name ?? sheet.name]));
-  const rewritten = rewriteWorkbook(book, context, document => {
+  const names = new Map([...book.sheets, ...book.detachedSheets ?? []].map(sheet => [foldSheetName(sheet.name), mapping.get(sheet.id)?.name ?? sheet.name]));
+  const rewritten = rewriteWorkbookHyperlinks(rewriteWorkbook(book, context, document => {
     const spellings = new Map<string, string>();
     visitFormula(document.root, node => {
       const refs = node.kind === "reference" ? [node.first.sheet, node.last?.sheet] : node.kind === "name" ? [node.sheet] : [];
       for (const spelling of refs) if (spelling !== undefined && names.has(foldSheetName(spelling))) spellings.set(spelling, names.get(foldSheetName(spelling))!);
     });
     return rewriteReferences(document, { sheets: spellings, signal: context.signal });
-  });
+  }), names, context);
   const id = (value: string) => mapping.get(value)?.id ?? value;
   const renamedTitles = new Map(book.sheets.flatMap(sheet => {
     const target = mapping.get(sheet.id);

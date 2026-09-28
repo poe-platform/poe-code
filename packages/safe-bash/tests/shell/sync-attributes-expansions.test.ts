@@ -30,7 +30,7 @@ for (const loop of ["for i in 1 2", "for ((i=1;i<=2;i++))"]) {
       ["star joins fields", "pre_1=a; pre_2=b; IFS=:", 'printf "<%s>" "${!pre*}"', "<pre_1:pre_2>"],
     ]) {
       test(`prefix ${name}, ${loop}, finite=${limits !== undefined}`, async () => {
-        const { shell } = setup({ commands: new CommandRegistry(basicCommands()), limits });
+        const { shell } = setup({ commands: new CommandRegistry(basicCommands()), ...(limits === undefined ? {} : { limits }) });
         try {
           const result = await shell.exec(`${setupSource}; ${loop}; do echo "iter=$i"; ${body}; echo; done`);
           const outputs = expected!.split("|");

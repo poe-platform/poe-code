@@ -1217,7 +1217,9 @@ class DiscardCommandFailure extends CommandFailure {
   constructor(readonly variableName: string, status: number, readonly origin: "assignment" | "declaration") { super(`${variableName}: readonly variable`, status); }
 }
 class ParameterExpansionFailure extends ExpansionFailure {}
-class NounsetFailure extends ExpansionFailure {}
+class NounsetFailure extends ExpansionFailure {
+  constructor(message: string, line?: number, readonly status = 1) { super(message, line); }
+}
 class NounsetDiagnosticFailure extends Flow {
   constructor(readonly reason: unknown) { super("exit", 1); }
 }
@@ -3868,6 +3870,9 @@ export class Runtime {
       const evaluate = (input: ShellValue): Promise<bigint> => this.shellArithmetic(prepareArithmetic(shellValueText(input) || "0", this.budget.parsing), state, io);
       try { value = String(await evaluate(value) + (previous === undefined ? 0n : await evaluate(previous))); }
       catch (error) {
+        // Bash reports fatal integer assignment nounset as 127 in the parent shell,
+        // while child execution environments retain status 1.
+        if (error instanceof NounsetFailure) throw new NounsetFailure(error.message, error.line, state.isolated ? 1 : 127);
         if (error instanceof PublicDiagnostic) throw new ExpansionFailure(error.message);
         throw error;
       }
@@ -13609,7 +13614,7 @@ export class Runtime {
           diagnosticFailure = new NounsetDiagnosticFailure(reason);
           throw diagnosticFailure;
         }
-        throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1, "exit", 1, undefined, true);
+        throw completedExit(error instanceof NounsetFailure ? error.status : state.isolated ? 1 : 127, "exit", 1, undefined, true);
       }
       if (error instanceof ArrayFailure) await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? publicMessage}\n`);
       else {

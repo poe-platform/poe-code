@@ -13,8 +13,6 @@ const executeNative = nativeRepeatTemplate(
   new URL("../tests/fixtures/revision-decision-native.mjs", import.meta.url)
 );
 
-const executeNative = nativeRepeatTemplate(new URL("../tests/fixtures/revision-decision-native.mjs", import.meta.url));
-
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
 for (const codec of ["utf8", "utf16le", "utf16be"] as const)
 for (const depth of [32, 8192]) for (const action of ["accept", "reject"] as const)

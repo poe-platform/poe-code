@@ -499,7 +499,11 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             return specifier;
           }
           if (specifier.startsWith("#")) {
-            const owner = workspaces.find(workspace => filename.startsWith(path.join(rootDir, "packages", workspace.dir) + path.sep));
+            const directOwner = workspaces.find(workspace => filename.startsWith(path.join(rootDir, "packages", workspace.dir) + path.sep));
+            const owner = directOwner?.pkg.imports?.[specifier] !== undefined
+              ? directOwner
+              : workspaces.find(workspace => workspace.pkg.imports?.[specifier] !== undefined
+                && Object.hasOwn(source.poeCode?.integration?.privateWorkspaces ?? {}, workspace.pkg.name));
             const mapping = owner?.pkg.imports?.[specifier];
             if (mapping !== undefined) {
               const target = importTarget(mapping, false, owner.dir);

@@ -9,6 +9,7 @@ const portableEnvironment = { process: "undefined", "process.env.FENGARICONF": "
 
 export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alias, external, portable = false }) {
   const entryPoints = {};
+  const subpathImports = new Set();
   for (const [name, profile] of Object.entries(profiles)) {
     if (portable ? profile.portable !== true : profile.portable === true || !name.startsWith("safe-bash-command-")) continue;
     const workspace = workspaces.find(({ pkg }) => pkg.name === name);
@@ -25,6 +26,7 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
         Object.keys(pkg.optionalDependencies ?? {}).length) {
       throw new Error("Qualified private workspace profile mismatch: " + name);
     }
+    for (const key of Object.keys(pkg.imports ?? {})) subpathImports.add(key);
     for (const [route, target] of Object.entries(pkg.exports ?? {})) {
       if (Object.hasOwn(profile.optionalModules ?? {}, route)) continue;
       // This recipe prepares ESM import entries only. Other runtime profiles
@@ -45,7 +47,7 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
   }
   if (!Object.keys(entryPoints).length) return undefined;
   return {
-    absWorkingDir: rootDir, entryPoints, alias, external,
+    absWorkingDir: rootDir, entryPoints, alias, external: subpathImports.size ? [...new Set([...(external ?? []), ...subpathImports])] : external,
     outdir: path.join(rootDir, "packages"), allowOverwrite: true,
     bundle: true, splitting: true, chunkNames: "safe-bash/dist/command-chunks/[name]-[hash]",
     assetNames: "safe-bash/dist/command-assets/[name]-[hash]",

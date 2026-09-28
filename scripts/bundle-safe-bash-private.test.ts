@@ -60,3 +60,15 @@ it("keeps copied WASM assets inside a package dist directory", async () => {
   expect(asset).toBeDefined();
   expect(relative("/repo", asset!.path).split(sep).slice(0, 3)).toEqual(["packages", "safe-bash", "dist"]);
 });
+
+it("keeps workspace subpath imports external in portable private command builds", () => {
+  const name = "safe-bash-command-git";
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable: true };
+  const pkg = {
+    name, version: "0.0.1", dependencies: {}, devDependencies: {}, private: true, type: "module",
+    imports: { "#git-wasm": { types: "./src/runtime.ts", workerd: "./dist/runtime.workerd.js", default: "./dist/runtime.js" } },
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  };
+  const recipe = resolvePrivateCommandBuild("/repo", { [name]: profile }, [{ dir: name, pkg }], { alias: {}, external: ["@poe-platform/safe-fs"], portable: true });
+  expect(recipe?.external).toEqual(["@poe-platform/safe-fs", "#git-wasm"]);
+});

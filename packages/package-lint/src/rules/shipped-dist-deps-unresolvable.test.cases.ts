@@ -79,4 +79,38 @@ describe("shipped-dist-deps-unresolvable", () => {
       }
     });
   });
+
+  it("passes when a root export dist file imports a root subpath import (#git-wasm) whose runtime targets are packed", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({
+        name: "root",
+        exports: {
+          "./safe-bash": {
+            browser: "./packages/safe-bash/dist/core.browser.js",
+            default: "./dist/safe-bash.js"
+          }
+        },
+        imports: {
+          "#git-wasm": {
+            workerd: "./packages/safe-bash-command-git/dist/runtime.workerd.js",
+            default: "./packages/safe-bash-command-git/dist/runtime.js"
+          }
+        },
+        files: [
+          "dist",
+          "packages/safe-bash/dist",
+          "packages/safe-bash-command-git/dist"
+        ]
+      }),
+      "/repo/dist/safe-bash.js": "export {};\n",
+      "/repo/packages/safe-bash/dist/core.browser.js":
+        "import { loadGit } from \"#git-wasm\";\nexport { loadGit };\n",
+      "/repo/packages/safe-bash-command-git/dist/runtime.workerd.js":
+        "export const loadGit = () => {};\n",
+      "/repo/packages/safe-bash-command-git/dist/runtime.js":
+        "export const loadGit = () => {};\n"
+    });
+
+    expect(shippedDistDepsUnresolvable.run(model)).toHaveLength(0);
+  });
 });

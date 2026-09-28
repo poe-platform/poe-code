@@ -12,11 +12,41 @@ function shippedPackageNames(model: WorkspaceModel): Set<string> {
   return names;
 }
 
+function collectRuntimeTargets(entry: unknown, targets: string[] = []): string[] {
+  if (typeof entry === "string") {
+    targets.push(entry);
+  } else if (entry && typeof entry === "object" && !Array.isArray(entry)) {
+    for (const [key, value] of Object.entries(entry)) {
+      if (key === "types") continue;
+      collectRuntimeTargets(value, targets);
+    }
+  }
+  return targets;
+}
+
 function rootRuntimeDependencies(model: WorkspaceModel): Set<string> {
-  return new Set([
+  const deps = new Set([
     ...Object.keys(model.root.dependencies),
     ...Object.keys(model.root.optionalDependencies)
   ]);
+  const imports = model.root.imports;
+  if (imports && typeof imports === "object" && !Array.isArray(imports)) {
+    const rootPacked = model.packageFiles?.get(".")?.files;
+    for (const [specifier, value] of Object.entries(imports)) {
+      if (!specifier.startsWith("#")) continue;
+      const targets = collectRuntimeTargets(value);
+      if (
+        targets.length > 0 &&
+        targets.every((target) => {
+          const normalized = target.startsWith("./") ? target.slice(2) : target;
+          return !rootPacked || rootPacked.size === 0 || rootPacked.has(normalized);
+        })
+      ) {
+        deps.add(specifier);
+      }
+    }
+  }
+  return deps;
 }
 
 function entryPointLabel(entry: WorkspaceModel["rootEntryPoints"][number]): string {

@@ -9270,19 +9270,11 @@ export class Runtime {
               if ( formatted !== undefined && formatted.length <= this.budget.limits.maxExpansionBytes && (formatted.length * 3 <= this.budget.limits.maxExpansionBytes || shellValueByteLength(formatted) <= this.budget.limits.maxExpansionBytes)) {
                 let wroteTarget = true;
                 if (isSubTarget) {
-                  let subKey = targetSpec.slice(openBr + 1, -1);
-                  const existingArr = store?.get(targetVar);
-                  if (!existingArr?.associative && !/^(?:0|[1-9][0-9]{0,8})$/.test(subKey)) {
-                    const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
-                    const directIdx = resolveSimpleArithOperand(subKey.trim(), rawState, monitor, store, syncTouched);
-                    if (directIdx !== undefined && directIdx >= 0) subKey = String(directIdx);
-                    else {
-                      const exprIdx = tryEvalSimpleExpandedArith(subKey.trim(), rawState, monitor, store, syncTouched);
-                      if (exprIdx !== undefined && Number(exprIdx) >= 0) subKey = exprIdx;
-                      else wroteTarget = false;
-                    }
-                  }
-                  if (wroteTarget && !this.tryFastArraySubscriptWriteSync(rawState, targetVar, subKey, formatted)) wroteTarget = false;
+                  wroteTarget = this.tryFastArrayAssignmentSync({
+                    kind: "element", name: targetVar, append: false,
+                    index: stringIndex(targetSpec.slice(openBr + 1, -1), this.budget.parsing),
+                    value: { offset: 0, parts: [{ kind: "text", value: formatted, quoted: true }] },
+                  }, rawState, io, diagnosticLine);
                 } else if (this._syncArithRawWriteOnly && this._syncArithTouched) {
                   rawState.variables[targetVar] = formatted;
                   this._syncArithTouched.add(targetVar);
@@ -10986,30 +10978,11 @@ export class Runtime {
             fastSubScratchArgs.length = 0;
             if (formatted !== undefined && formatted.length <= this.budget.limits.maxExpansionBytes) {
               if (isArrayTarget) {
-                const arrStore = monitor.store ?? requireArrays(rawState);
-                let curB = arrStore.get(arrName!);
-                let writeKey: string | undefined;
-                if (curB?.associative) {
-                  writeKey = subExpr!;
-                } else {
-                  const idxNum = /^(?:0|[1-9][0-9]{0,8})$/.test(subExpr!) ? Number(subExpr!) : resolveSimpleArithOperand(subExpr!, rawState, monitor, arrStore, this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
-                  if (idxNum !== undefined && idxNum >= 0 && idxNum <= 2147483647) {
-                    if (!curB && !hasUnpreparedLocal(rawState, arrName!) && rawState.variables[arrName!] === undefined && !arrStore.watches.has(arrName!) && !monitor.hasOverlay(arrName!)) {
-                      const created = IndexedBinding.create(arrStore.owner, false);
-                      const prepared = arrStore.prepareExistingName(arrName!, shellValueByteLength(arrName!), arrStore.owner, this.signal);
-                      if (prepared) {
-                        const initTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-                        arrStore.publish(arrName!, created, initTickets, prepared, false, arrStore.owner);
-                        monitor.epoch = initTickets.epoch;
-                        curB = created;
-                      } else void created.release();
-                    }
-                    if (curB && !curB.associative) writeKey = String(idxNum);
-                  }
-                }
-                if (writeKey === undefined || !this.tryFastArraySubscriptWriteSync(rawState, arrName!, writeKey, formatted)) {
-                  return undefined;
-                }
+                if (!this.tryFastArrayAssignmentSync({
+                  kind: "element", name: arrName!, append: false,
+                  index: stringIndex(subExpr!, this.budget.parsing),
+                  value: { offset: 0, parts: [{ kind: "text", value: formatted, quoted: true }] },
+                }, rawState, io, diagnosticLine)) return undefined;
               }
               if (isPlainTargetId && isArrayTarget && rawState.allexport) rawState.exported.add(arrName!);
               const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
@@ -12992,12 +12965,14 @@ export class Runtime {
       else runYieldCheckpoint(this.signal);
     }
     this.signal.throwIfAborted();
-    if ( this.middleware.length === 0 && command.kind === "simple" && command.redirects.length === 0 && !fileShortcut && !terminal && !hasActiveVariableAttributes(state)) {
+    if (command.kind === "simple") {
       const _pendingFnList = ((stateMonitor(state)?.raw ?? state) as { _syncPendingFunctionResumes?: Array<Parameters<Runtime["dispatchFastFunction"]>[5]> })._syncPendingFunctionResumes;
       if ((_pendingFnList?.length ?? 0) > 0 && command.words[0]?.plain === _pendingFnList![_pendingFnList!.length - 1]!.name) {
         const pending = _pendingFnList!.pop()!;
         return await this.dispatchFastFunction(pending!.name, pending!.body, [], state, originalIO, pending);
       }
+    }
+    if ( this.middleware.length === 0 && command.kind === "simple" && command.redirects.length === 0 && !fileShortcut && !terminal && !hasActiveVariableAttributes(state)) {
       if (command.words.length === 1) {
         const w0 = command.words[0]!;
         const w0Plain = w0.plain;

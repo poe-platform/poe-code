@@ -751,7 +751,9 @@ dual_fixture_test!(merge_three_way_no_update_branch_leaves_ref_unchanged, merge_
         timezone_offset: -0.0,
     };
     let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, true, false, None, Some(author), None).unwrap();
-    assert!(m.merge_commit);
+    assert!(!m.merge_commit);
+    assert!(m.oid.is_none());
+    assert!(m.tree.is_some());
     assert_eq!(resolve_ref(&f.fs, &f.gitdir, "a", None).unwrap(), orig_a);
 });
 

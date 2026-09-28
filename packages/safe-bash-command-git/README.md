@@ -20,6 +20,8 @@ await shell.exec('git init -b main; git add .; git commit -m "Initial commit"');
 
 `createGitCommand()`, `createGitCommands()` and `gitCommands()` accept no arguments. Optional `limits` bound filesystem entries, file/path bytes, depth, HTTP requests and HTTP bytes. Every limit defaults to `Infinity` (disabled); set a positive safe integer to enable a budget. The filesystem is imported as a snapshot per invocation; changed entries are published even when Git reports a conflict or other nonzero exit. A failed request parser or input/output budget check publishes no filesystem changes. Adapter publication failures may leave partial writes, as with ordinary filesystem operations; serialize commands that mutate the same repository.
 
+Pipelines and redirects supply standard input to `mktree`, `mktag`, `stripspace`, `hash-object --stdin`, `apply`, and `commit -F -`. Binary stdin is preserved; `limits.maxBytes` also bounds stdin bytes.
+
 Network operations require an explicit `http(request)` callback returning `{status, headers, body}`. The callback receives URL, method, headers, byte body and cancellation signal. Hosts control authentication, redirects and network policy. No ambient credentials or network access are used.
 
 Workers bundlers should enable the `workerd` condition and import `.wasm` files as modules. An already imported `WebAssembly.Module` can also be supplied as `wasmModule`. The workspace build installs the Rust `wasm32-unknown-unknown` target for the stable rustup toolchain and builds with that same toolchain, regardless of other Cargo installations in `PATH`.

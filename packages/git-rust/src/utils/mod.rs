@@ -527,9 +527,7 @@ pub fn is_valid_ref(name: &str, onelevel: bool) -> bool {
     if name.contains("..") || name.contains("//") || name.contains("@{") {
         return false;
     }
-    if !onelevel && !name.contains('/') && name != "HEAD" && name != "FETCH_HEAD" && name != "MERGE_HEAD" && name != "ORIG_HEAD" {
-        // Note: branch/tag names checked with onelevel=true allow single segment
-    }
+    if !onelevel && !name.contains('/') { return false; }
     for ch in name.chars() {
         if ch.is_control() || matches!(ch, ' ' | '~' | '^' | ':' | '?' | '*' | '[' | '\\') {
             return false;

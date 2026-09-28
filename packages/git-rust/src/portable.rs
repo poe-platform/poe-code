@@ -1,6 +1,6 @@
 //! Portable request/response boundary used by the safe-fs WebAssembly adapter.
 use crate::http::{GitHttpRequest, GitHttpResponse, HttpClient};
-use crate::{GitError, MemoryFs, execute_git_cli_with_http};
+use crate::{GitError, MemoryFs, execute_git_cli_with_input};
 use mcp_protocol_rust::json::{self, Value};
 
 fn string(value: &Value) -> Result<String, GitError> {
@@ -148,7 +148,8 @@ pub fn execute_portable(input: &[u8]) -> Result<Vec<u8>, GitError> {
         cursor: std::sync::Mutex::new(0),
         pending: std::sync::Mutex::new(None),
     };
-    let result = execute_git_cli_with_http(&fs, &cwd, &args, &http);
+    let stdin = request.get("stdin").map(bytes).transpose()?.unwrap_or_default();
+    let result = execute_git_cli_with_input(&fs, &cwd, &args, &http, &stdin);
     let pending_request = http.pending.lock().unwrap().take().unwrap_or(Value::Null);
     let mut output = Vec::new();
     let mut pending = vec!["/".to_string()];

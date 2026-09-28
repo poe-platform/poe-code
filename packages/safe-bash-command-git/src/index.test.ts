@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import { MemoryFileSystem } from '@poe-code/safe-fs/core';
 import { createGitCommand, createGitCommands, gitCommands } from './index.js';
@@ -185,4 +186,30 @@ test('archive bytes and linked worktree state survive the WASM filesystem bounda
   const topic = text(await run(['rev-parse', 'HEAD'], '/topic'));
   assert.notEqual(topic, main);
   assert.equal(text(await run(['rev-parse', 'topic'])), topic);
+});
+
+test('stdin reaches Git plumbing and commit messages without changing bytes', async () => {
+  const fs=new MemoryFileSystem(); await fs.mkdir('/repo',{recursive:true});
+  const command=createGitCommand();
+  const run=async(args:string[], input:Uint8Array=new Uint8Array())=>{
+    let stdout='',stderr='';
+    const result=await command.execute({command:'git',args,cwd:'/repo',env:{},fs,signal:new AbortController().signal,
+      stdin:(async function*(){yield input.slice(0,1);yield input.slice(1);})(),
+      stdout:{write(b:Uint8Array){stdout+=new TextDecoder().decode(b);}},stderr:{write(b:Uint8Array){stderr+=new TextDecoder().decode(b);}}} as CommandContext);
+    assert.equal(result.exitCode,0,stderr); return stdout;
+  };
+  const bytes=(s:string)=>new TextEncoder().encode(s);
+  await run(['init','-b','main']);
+  assert.equal(await run(['stripspace'],bytes('  foo  \n')),'  foo\n');
+  const oid=(await run(['hash-object','-w','--stdin'],new Uint8Array([0,255,10]))).trim();
+  await fs.writeFile('/repo/a',bytes('one\n')); await run(['add','.']); await run(['commit','-F','-'],bytes('from stdin\n'));
+  assert.match(await run(['log','-1','--format=%B']),/from stdin/u);
+  const tree=await run(['ls-tree','HEAD']); const treeOid=(await run(['mktree'],bytes(tree))).trim();
+  assert.equal(await run(['ls-tree',treeOid]),tree);
+  await run(['apply'],bytes('diff --git a/a b/a\n--- a/a\n+++ b/a\n@@ -1 +1 @@\n-one\n+two\n'));
+  assert.equal(new TextDecoder().decode(await fs.readFile('/repo/a')),'two\n');
+  assert.equal(oid,createHash('sha1').update(new Uint8Array([98,108,111,98,32,51,0,0,255,10])).digest('hex'));
+  const head=(await run(['rev-parse','HEAD'])).trim();
+  const tag=await run(['mktag'],bytes(`object ${head}\ntype commit\ntag v1\ntagger A <a@example.com> 1502484200 +0000\n\nmessage\n`));
+  assert.equal(tag.trim().length,40);
 });

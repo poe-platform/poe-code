@@ -984,6 +984,10 @@ pub fn merge(
         .map(|s| s.to_string())
         .unwrap_or_else(|| format!("Merge branch '{their_name}' into {our_name}\n"));
 
+    if no_update_branch {
+        return Ok(MergeReport { oid: None, already_merged: false, fast_forward: false, merge_commit: false, tree: Some(merged_tree_oid) });
+    }
+
     let merge_commit_oid = commit(
         fs,
         &gdir,
@@ -1163,6 +1167,10 @@ pub(crate) fn merge_trees_3way(
         && let Some(d) = dir {
             GitIndexManager::acquire(fs, gitdir, |index| {
                 index.clear();
+                let kept: std::collections::BTreeSet<_> = final_entries.iter().map(|(path, _)| path).collect();
+                for path in our_map.keys() {
+                    if !kept.contains(path) { let _ = fs.unlink(&join(&[d, path])); }
+                }
                 for (path, entry) in &final_entries {
                     let full = join(&[d, path]);
                     let blob = read_blob(fs, gitdir, &entry.oid, None)?.blob;

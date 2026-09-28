@@ -67,6 +67,13 @@ pub fn execute_git_cli_with_http(
     args: &[&str],
     http: &dyn HttpClient,
 ) -> CliResult {
+    execute_git_cli_with_input(fs, cwd, args, http, &[])
+}
+
+pub fn execute_git_cli_with_input(
+    fs: &MemoryFs, cwd: &str, args: &[&str], http: &dyn HttpClient, stdin: &[u8],
+) -> CliResult {
+    let stdin_text = String::from_utf8_lossy(stdin);
     let _replacement_scope = crate::storage::ReplacementScope::new(!args.contains(&"--no-replace-objects"));
     let mut filtered: Vec<&str> = Vec::new();
     let mut effective_cwd = cwd.to_string();
@@ -661,7 +668,7 @@ pub fn execute_git_cli_with_http(
                 }
             }
             if let Some(f_arg) = msg_file
-                && let Some(text) = fs.read_str(&absolute_path(&effective_cwd, f_arg))
+                && let Some(text) = if f_arg == "-" { Some(stdin_text.to_string()) } else { fs.read_str(&absolute_path(&effective_cwd, f_arg)) }
             {
                 msgs.push(text.trim_end_matches('\n').to_string());
             }
@@ -1740,6 +1747,7 @@ pub fn execute_git_cli_with_http(
                 timestamp: 1502484200,
                 timezone_offset: 0.0,
             };
+            let default_message = format!("Merge branch '{target_ref}' into {}\n", current_branch(fs, &gitdir, false, false).ok().flatten().unwrap_or_else(|| "HEAD".to_string()));
             match merge(
                 fs,
                 Some(&repo_root),
@@ -1751,7 +1759,7 @@ pub fn execute_git_cli_with_http(
                 false,
                 squash || no_commit,
                 false,
-                message,
+                Some(message.unwrap_or(&default_message)),
                 Some(author),
                 None,
             ) {
@@ -2292,12 +2300,16 @@ pub fn execute_git_cli_with_http(
         }
         "hash-object" => {
             let write_flag = sub_args.contains(&"-w");
-            let Some(&file_arg) = sub_args.iter().find(|a| !a.starts_with('-')) else {
-                return CliResult::err(128, "fatal: missing file\n");
-            };
-            let full = absolute_path(&effective_cwd, file_arg);
-            let Some(bytes) = fs.read(&full) else {
-                return CliResult::err(128, format!("fatal: Cannot open '{file_arg}'\n"));
+            let bytes = if sub_args.contains(&"--stdin") {
+                stdin.to_vec()
+            } else {
+                let Some(&file_arg) = sub_args.iter().find(|a| !a.starts_with('-')) else {
+                    return CliResult::err(128, "fatal: missing file\n");
+                };
+                let Some(bytes) = fs.read(&absolute_path(&effective_cwd, file_arg)) else {
+                    return CliResult::err(128, format!("fatal: Cannot open '{file_arg}'\n"));
+                };
+                bytes
             };
             if write_flag {
                 match write_blob(fs, &gitdir, &bytes) {
@@ -2419,7 +2431,7 @@ pub fn execute_git_cli_with_http(
         }
         "pack-refs" => {
             let pack_all = sub_args.contains(&"--all");
-            let mut lines = Vec::new();
+            let mut refs = crate::models::GitPackedRefs::from(&fs.read_str(&join(&[&gitdir, "packed-refs"])).unwrap_or_default()).refs;
             let prefixes = if pack_all {
                 vec!["refs/heads", "refs/tags", "refs/remotes"]
             } else {
@@ -2429,10 +2441,16 @@ pub fn execute_git_cli_with_http(
                 for r in crate::GitRefManager::list_refs(fs, &gitdir, prefix) {
                     let full_ref = format!("{prefix}/{r}");
                     if let Ok(oid) = resolve_ref(fs, &gitdir, &full_ref, None) {
-                        lines.push(format!("{oid} {full_ref}"));
+                        refs.insert(full_ref, oid);
                     }
                 }
             }
+            let lines: Vec<_> = refs.iter().filter(|(name, _)| !name.ends_with("^{}"))
+                .map(|(name, oid)| {
+                    let mut line = format!("{oid} {name}");
+                    if let Some(peeled) = refs.get(&format!("{name}^{{}}")) { line.push_str(&format!("\n^{peeled}")); }
+                    line
+                }).collect();
             let content = if lines.is_empty() {
                 String::new()
             } else {
@@ -2443,7 +2461,8 @@ pub fn execute_git_cli_with_http(
         }
         "mktree" => {
             let mut entries = Vec::new();
-            for line in positionals {
+            let input = if stdin.is_empty() { positionals.join("\n") } else { stdin_text.to_string() };
+            for line in input.lines() {
                 if let Some((meta, path)) = line.split_once('\t') {
                     let parts: Vec<&str> = meta.split_whitespace().collect();
                     if parts.len() >= 3 {
@@ -3300,13 +3319,12 @@ pub fn execute_git_cli_with_http(
             let check_only = sub_args.contains(&"--check");
             let stat_only = sub_args.contains(&"--stat");
             let reverse = sub_args.contains(&"-R") || sub_args.contains(&"--reverse");
-            let Some(&patch_arg) = positionals.last() else {
-                return CliResult::err(128, "fatal: no patch file given\n");
-            };
-            let patch_path = absolute_path(&effective_cwd, patch_arg);
-            let Some(patch_text) = fs.read_str(&patch_path) else {
-                return CliResult::err(128, format!("fatal: can't open patch '{patch_arg}': No such file or directory\n"));
-            };
+            let patch_text = if let Some(&patch_arg) = positionals.last().filter(|arg| **arg != "-") {
+                let Some(text) = fs.read_str(&absolute_path(&effective_cwd, patch_arg)) else {
+                    return CliResult::err(128, format!("fatal: can't open patch '{patch_arg}'\n"));
+                };
+                text
+            } else { stdin_text.to_string() };
             match apply_unified_patch(fs, &repo_root, &patch_text, reverse, check_only, stat_only) {
                 Ok(patch) => CliResult::ok(patch.output),
                 Err(msg) => CliResult::err(1, format!("error: {msg}\n")),
@@ -4123,24 +4141,27 @@ pub fn execute_git_cli_with_http(
         "check-ref-format" => {
             let branch_mode = sub_args.contains(&"--branch");
             let onelevel = sub_args.contains(&"--allow-onelevel") || branch_mode;
-            let normalize = sub_args.contains(&"--normalize") || branch_mode;
+            let normalize = sub_args.contains(&"--normalize");
             let Some(&raw_ref) = positionals.first() else {
                 return CliResult::err(129, "usage: git check-ref-format [options] <refname>\n");
             };
-            let resolved_prev = if branch_mode && (raw_ref == "@{-1}" || raw_ref == "-") {
+            let resolved_prev = if branch_mode && raw_ref == "@{-1}" {
                 crate::cli_history::previous_branch(fs, &gitdir, 1)
             } else {
                 None
             };
             let ref_str = resolved_prev.as_deref().unwrap_or(raw_ref);
-            let clean = ref_str.trim_matches('/');
+            if branch_mode && (ref_str.starts_with('-') || ref_str.starts_with('/')) { return CliResult::err(1, ""); }
+            let clean = if normalize && !ref_str.ends_with('/') {
+                ref_str.trim_start_matches('/').split('/').filter(|s| !s.is_empty()).collect::<Vec<_>>().join("/")
+            } else { ref_str.to_string() };
             let check_target = if branch_mode && !clean.starts_with("refs/") {
                 format!("refs/heads/{clean}")
             } else {
                 clean.to_string()
             };
             if crate::utils::is_valid_ref(&check_target, onelevel) {
-                if normalize {
+                if normalize || branch_mode {
                     let printed = if branch_mode {
                         check_target.strip_prefix("refs/heads/").unwrap_or(&check_target)
                     } else {
@@ -4192,6 +4213,8 @@ pub fn execute_git_cli_with_http(
                 for token in parts {
                     if let Some(rest) = token.strip_prefix('-') {
                         kv.push((rest.to_string(), "unset".to_string()));
+                    } else if let Some(rest) = token.strip_prefix('!') {
+                        kv.push((rest.to_string(), "unspecified".to_string()));
                     } else if let Some((k, v)) = token.split_once('=') {
                         kv.push((k.to_string(), v.to_string()));
                     } else {
@@ -4201,14 +4224,9 @@ pub fn execute_git_cli_with_http(
                 rules.push((pat.to_string(), kv));
             }
             let matches_glob = |pat: &str, path: &str| -> bool {
-                let fname = path.rsplit('/').next().unwrap_or(path);
-                if pat == "*" || pat == path || pat == fname {
-                    return true;
-                }
-                if let Some(ext) = pat.strip_prefix("*.") {
-                    return fname.ends_with(&format!(".{ext}"));
-                }
-                false
+                let candidate = if pat.contains('/') { path } else { path.rsplit('/').next().unwrap_or(path) };
+                glob::Pattern::new(pat.trim_start_matches('/')).is_ok_and(|p| p.matches_with(candidate,
+                    glob::MatchOptions { require_literal_separator: true, ..Default::default() }))
             };
             let mut out = String::new();
             for f in files {
@@ -4222,6 +4240,7 @@ pub fn execute_git_cli_with_http(
                 }
                 if all_attrs {
                     for (k, v) in resolved {
+                        if v == "unspecified" { continue; }
                         out.push_str(&format!("{f}: {k}: {v}\n"));
                     }
                 } else {
@@ -4236,7 +4255,7 @@ pub fn execute_git_cli_with_http(
         "stripspace" => {
             let strip_comments = sub_args.contains(&"-s") || sub_args.contains(&"--strip-comments");
             let comment_lines = sub_args.contains(&"-c") || sub_args.contains(&"--comment-lines");
-            let input = positionals.join("\n");
+            let input = if stdin.is_empty() { positionals.join("\n") } else { stdin_text.to_string() };
             let mut out_lines = Vec::new();
             let mut prev_blank = true;
             for line in input.lines() {
@@ -4317,11 +4336,16 @@ pub fn execute_git_cli_with_http(
             CliResult::ok(out)
         }
         "mktag" => {
-            let Some(&raw_content) = positionals.first() else {
-                return CliResult::err(129, "usage: git mktag <tag-content>\n");
-            };
-            if !raw_content.contains("object ") || !raw_content.contains("type ") || !raw_content.contains("tag ") {
-                return CliResult::err(128, "fatal: char0: could not verify tag format\n");
+            let raw_content = if stdin.is_empty() { positionals.first().copied().unwrap_or("") } else { &stdin_text };
+            let mut headers = raw_content.lines();
+            let object = headers.next().and_then(|s| s.strip_prefix("object "));
+            let kind = headers.next().and_then(|s| s.strip_prefix("type "));
+            let tag = headers.next().and_then(|s| s.strip_prefix("tag "));
+            let tagger = headers.next().and_then(|s| s.strip_prefix("tagger "));
+            if object.is_none() || kind.is_none() || tag.is_none_or(str::is_empty) || tagger.is_none_or(str::is_empty)
+                || headers.next() != Some("")
+                || !object.zip(kind).is_some_and(|(oid, kind)| crate::_read_object(fs, &gitdir, oid, "content").is_ok_and(|obj| obj.obj_type == kind)) {
+                return CliResult::err(128, "fatal: could not verify tag format or target object\n");
             }
             match crate::_write_object(
                 fs,

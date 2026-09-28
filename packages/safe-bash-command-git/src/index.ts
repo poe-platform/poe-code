@@ -1,4 +1,4 @@
-import { commandRuntimeIdentity, writeBytes, type CommandDefinition, type VirtualShellPlugin } from 'safe-bash-contracts';
+import { commandRuntimeIdentity, readBytes, writeBytes, type CommandDefinition, type VirtualShellPlugin } from 'safe-bash-contracts';
 import type { FileSystem } from '@poe-code/safe-fs/core';
 import { gitModule } from '#git-wasm';
 
@@ -74,6 +74,16 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
   for(const [name,value] of Object.entries(limits)) if(value!==Infinity && (!Number.isSafeInteger(value) || value<1)) throw new Error(`${name} must be a positive safe integer or Infinity`);
   return {name:'git',runtimeIdentity:commandRuntimeIdentity,description:'Git repositories in the virtual filesystem',async execute(context) {
     try {
+      const chunks:Uint8Array[]=[];
+      let stdinSize=0;
+      for await (const chunk of readBytes(context.stdin,context.signal)) {
+        stdinSize+=chunk.length;
+        if(stdinSize>limits.maxBytes) throw new Error("Git stdin byte limit exceeded");
+        chunks.push(chunk);
+      }
+      const stdin=new Uint8Array(stdinSize);
+      let offset=0;
+      for(const chunk of chunks) { stdin.set(chunk,offset); offset+=chunk.length; }
       const before=await snapshot(context.fs,limits,context.signal);
       const module=options.wasmModule ?? gitModule();
       const exports=new WebAssembly.Instance(module).exports as GitExports;
@@ -82,7 +92,7 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
       let result:Result;
       for(;;) {
         context.signal.throwIfAborted();
-        const input=encoder.encode(JSON.stringify({cwd:context.cwd,args:context.args,entries:before,responses}));
+        const input=encoder.encode(JSON.stringify({cwd:context.cwd,args:context.args,entries:before,responses,stdin:encode(stdin)}));
         const ptr=exports.git_alloc(input.length);
         try {
           new Uint8Array(exports.memory.buffer,ptr,input.length).set(input);

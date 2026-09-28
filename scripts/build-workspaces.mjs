@@ -607,8 +607,12 @@ export async function buildWorkspaces(rootDirectory, options = {}) {
     buildCache = prepareBuildCache(plan, selected.stages, { cacheStore, cacheFiles, environment, fileSystem });
   }
   const started = performance.now();
-  const completed = await executeStages(selected, { environment, spawn, host, concurrency, dependencyOrder: true, taskCache: buildCache });
-  buildCache?.flush();
+  let completed;
+  try {
+    completed = await executeStages(selected, { environment, spawn, host, concurrency, dependencyOrder: true, taskCache: buildCache });
+  } finally {
+    buildCache?.flush();
+  }
   return { workspaces: plan.workspaces.length, builds: completed, edges: plan.edges.length, layers: plan.layers.length, noBuild: selected.noBuild, manifestless: plan.manifestless,
     ...(buildCache ? { cache: "SHARED", ...buildCache.stats, executionMs: Math.round(performance.now() - started) } : {}) };
 }
@@ -658,15 +662,22 @@ export async function testWorkspaces(rootDirectory, options = {}) {
     buildCache = prepareBuildCache(plan, plan.buildStages, { cacheStore, cacheFiles, environment: childEnvironment, fileSystem });
   }
   const started = performance.now();
-  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency: Math.min(concurrency, 2), dependencyOrder: true, taskCache: buildCache });
-  buildCache?.flush();
+  let builds;
+  try {
+    builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency: Math.min(concurrency, 2), dependencyOrder: true, taskCache: buildCache });
+  } finally {
+    buildCache?.flush();
+  }
   let unitCache;
   if (caching && testStages.some(stage => stage.path !== null && stage.event === "test:unit")) {
     const { prepareNativeUnitCache } = await import("./check-cache.mjs");
     unitCache = prepareNativeUnitCache(plan, testStages, { cacheStore, cacheFiles, environment: childEnvironment, fileSystem });
   }
-  await executeStages({ ...plan, stages: testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments, taskCache: unitCache });
-  unitCache?.flush();
+  try {
+    await executeStages({ ...plan, stages: testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments, taskCache: unitCache });
+  } finally {
+    unitCache?.flush();
+  }
   return { workspaces: plan.workspaces.length, builds, tests: plan.testStages.length, concurrency, cache: caching ? "SHARED" : "UNCACHED", ...(unitCache ? unitCache.stats : {}), excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless, ...(testFiles === undefined ? {} : { testFiles: plan.testFiles }), ...(plan.selectedWorkspaces === undefined ? {} : { selectedWorkspaces: plan.selectedWorkspaces }),
     ...(buildCache ? { ...buildCache.stats, executionMs: Math.round(performance.now() - started) } : {}) };
 }

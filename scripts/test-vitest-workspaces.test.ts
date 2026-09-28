@@ -306,6 +306,22 @@ describe("batched shared Vitest execution", () => {
     expect(runBatch).toHaveBeenLastCalledWith("/repo", [rootFile.moduleId]);
   });
 
+  it("caches completed earlier workspace batches when a later batch fails", async () => {
+    const { fileSystem } = fixture();
+    const cacheStore = createCheckCache({ directory: "/cache", fileSystem });
+    const fingerprints = new Map([["alpha", "a".repeat(64)], ["beta", "b".repeat(64)]]);
+    const first = contexts();
+    const runBatch = vi.fn(async (_root, files) => {
+      if (files.includes(betaFile.moduleId)) throw new Error("beta batch failed");
+      return files;
+    });
+    await expect(runSharedVitest("/repo", phases, { cacheStore, fingerprints, runBatch, batchSize: 1 })).rejects.toThrow("beta batch failed");
+    const second = contexts();
+    runBatch.mockImplementation(async (_root, files) => files);
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints, runBatch });
+    expect(runBatch).toHaveBeenLastCalledWith("/repo", [rootFile.moduleId, betaFile.moduleId]);
+  });
+
   it("does not cache a batch after failed execution or cleanup", async () => {
     const { fileSystem } = fixture();
     const cacheStore = createCheckCache({ directory: "/cache", fileSystem });

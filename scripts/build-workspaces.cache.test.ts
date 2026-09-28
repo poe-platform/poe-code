@@ -99,4 +99,24 @@ describe("workspace build caching", () => {
     await buildWorkspaces(state.root, state);
     expect(state.spawn).toHaveBeenCalledTimes(3);
   });
+
+  it("flushes completed prerequisite build artifacts when a downstream workspace fails", async () => {
+    const state = fixture();
+    let failAlpha = true;
+    const originalSpawn = state.spawn;
+    const spawn = vi.fn((command, args, options) => {
+      if (failAlpha && args.includes("--workspace=packages/alpha")) {
+        const child = new EventEmitter();
+        queueMicrotask(() => child.emit("close", 1, null));
+        return child;
+      }
+      return originalSpawn(command, args, options);
+    });
+    await expect(buildWorkspaces(state.root, { ...state, spawn })).rejects.toThrow();
+    expect(spawn).toHaveBeenCalledTimes(2);
+    failAlpha = false;
+    const result = await buildWorkspaces(state.root, { ...state, spawn });
+    expect(spawn).toHaveBeenCalledTimes(3);
+    expect(result).toMatchObject({ builds: 2, cacheHits: 1, cacheMisses: 1 });
+  });
 });

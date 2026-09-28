@@ -127,7 +127,9 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
     const queue = groups.filter(group => !group.cached).flatMap(group => group.specifications);
     if (queue.length) {
       const completed = new Set();
-      for (let offset = 0; offset < queue.length; offset += batchSize) {
+      let queueCompleted = false;
+      try {
+        for (let offset = 0; offset < queue.length; offset += batchSize) {
         let batch = queue.slice(offset, offset + batchSize);
         if (runBatch) {
           if (!offset) {
@@ -163,10 +165,13 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
         if (result.unhandledErrors.length || result.testModules.some(module => !module.ok()) || process.exitCode) {
           throw new Error("Shared unit tests failed; see failed file reports above");
         }
-        for (const module of result.testModules) completed.add(module.moduleId);
-      }
-      for (const group of groups) if (group.key && !group.cached && group.specifications.every(specification => completed.has(specification.moduleId))) {
-        pendingRecords.push({ name: group.phase.name, selectors: group.phase.selectors, key: group.key, value: { success: true, files: group.files } });
+          for (const module of result.testModules) completed.add(module.moduleId);
+        }
+        queueCompleted = true;
+      } finally {
+        for (const group of groups) if (group.key && !group.cached && (group.specifications.length > 0 || queueCompleted) && group.specifications.every(specification => completed.has(specification.moduleId))) {
+          pendingRecords.push({ name: group.phase.name, selectors: group.phase.selectors, key: group.key, value: { success: true, files: group.files } });
+        }
       }
     }
   } catch (error) {
@@ -180,9 +185,7 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
       else process.env[name] = value;
     }
   }
-  if (failures.length > 1) throw new AggregateError(failures, "Shared unit tests and cleanup failed");
-  if (failures.length) throw failures[0];
-  if (pendingRecords.length) {
+  if (pendingRecords.length && failures.length <= 1) {
     const started = performance.now();
     const current = revalidateFingerprints ? revalidateFingerprints() : fingerprints;
     if (revalidateFingerprints) cacheStats.fingerprintMs += Math.round(performance.now() - started);
@@ -191,6 +194,8 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
       if (current.has(record.name) && taskCacheKey(current.get(record.name), "test:unit", record.selectors) === record.key) cacheStore.write(record.key, record.value);
     }
   }
+  if (failures.length > 1) throw new AggregateError(failures, "Shared unit tests and cleanup failed");
+  if (failures.length) throw failures[0];
   if (cacheStore) console.log(JSON.stringify({ unitCache: "SHARED", ...cacheStats }));
 }
 

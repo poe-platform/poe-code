@@ -17835,7 +17835,16 @@ export class Runtime {
     this.signal.throwIfAborted();
     let out = "";
     for (let i = 0; i < word.parts.length; i++) {
-      let part = word.parts[i]!;
+      let resolvedPart = word.parts[i]!;
+      if (resolvedPart.kind === "variable" && rawState.variableAttributes?.get(resolvedPart.name)?.includes("n")) {
+        if (resolvedPart.indirect) return undefined;
+        const resolvedName = resolveSyncNameref(rawState, resolvedPart.name);
+        if (resolvedName === resolvedPart.name) return undefined;
+        const origSel = getArraySelector(resolvedPart);
+        resolvedPart = { ...resolvedPart, name: resolvedName };
+        if (origSel) setArraySelector(resolvedPart, origSel);
+      }
+      const part = resolvedPart;
       if (part.kind === "text") {
         if (part.byteValue || invokedValues.has(part)) return undefined;
         // Arithmetic replay must preserve the protection on an escaped dollar.
@@ -17847,14 +17856,6 @@ export class Runtime {
         }
         out += part.value;
       } else if (part.kind === "variable") {
-        if (rawState.variableAttributes?.get(part.name)?.includes("n")) {
-          if (part.indirect) return undefined;
-          const resolvedName = resolveSyncNameref(rawState, part.name);
-          if (resolvedName === part.name) return undefined;
-          const origSel = getArraySelector(part);
-          part = { ...part, name: resolvedName };
-          if (origSel) setArraySelector(part, origSel);
-        }
         if (split && !part.quoted && (rawVars.IFS !== undefined && rawVars.IFS !== " \t\n")) return undefined;
         if ( !part.indirect && !part.prefixNames && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined && (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))) {
           let val: ShellValue | undefined;

@@ -241,3 +241,17 @@ it.each(["(?i)", "(?-i)", "(?^)", "(?x)", "(?xx)"])(
         .toEqual({ kind: "string", value: "X" });
   }
 );
+
+// Independent Perl byte-mode substitution results, including escaped endpoints.
+it.each([
+  ["0AaBC_[]", "[0-A]", "XXXBC_[]"],
+  ["0AaBC_[]", "[\\x30-\\x41]", "XXXBC_[]"],
+  ["Zz_aA", "[Z-_]", "XXXaA"],
+  ["Zz_aA", "[\\x5a-\\x5f]", "XXXaA"],
+  ["Zz_aA", "[Z-a]", "XXXXX"],
+  ["Zz_aA", "[^Z-a]", "Zz_aA"],
+  ["aAbBzZ_", "[A-Z]", "XXXXXX_"],
+  ["aAbBzZ_", "[a-z]", "XXXXXX_"],
+])("folds class members without expanding endpoints %j %j", (input, range, output) => {
+  expect(calculate(expression([input, "(?i)" + range, "X"]))).toEqual({ kind: "string", value: output });
+});

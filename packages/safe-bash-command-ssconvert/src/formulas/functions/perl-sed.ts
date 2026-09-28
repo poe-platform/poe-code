@@ -188,7 +188,12 @@ function compile(pattern: string, host: FunctionHost): Node {
         const right = take();
         if (left.kind !== "char" || right.kind !== "char" || left.byte === undefined || right.byte === undefined) return unsupported();
         const low = left.byte, high = right.byte; if (low > high) return unsupported();
-        tests.push(node({ kind: "char", test: (byte: number) => byte >= low && byte <= high || mode.insensitive && fold(byte) >= fold(low) && fold(byte) <= fold(high) }));
+        tests.push(node({ kind: "char", test: (byte: number) => {
+          if (byte >= low && byte <= high) return true;
+          if (!mode.insensitive) return false;
+          const alternate = byte >= 65 && byte <= 90 ? byte + 32 : byte >= 97 && byte <= 122 ? byte - 32 : byte;
+          return alternate >= low && alternate <= high;
+        } }));
       } else tests.push(left);
       ignoreClassSpace();
     }

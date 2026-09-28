@@ -1,6 +1,7 @@
 import "./safe-packages-shell.mjs";
 import { verification as selectedSpreadsheetVerification } from "./safe-packages-ssconvert-scoped.mjs";
 await selectedSpreadsheetVerification;
+import "./safe-packages-command-errors.mjs";
 import "./safe-packages-pandoc.mjs";
 import "./safe-packages-command-exports.mjs";
 import { createGitCommand, createGitCommands, gitCommands } from "@poe-platform/safe-bash";

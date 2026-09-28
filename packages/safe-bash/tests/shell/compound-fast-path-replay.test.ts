@@ -1434,3 +1434,35 @@ test("matches bash for Wave 82 array subscript mutations in ((...)) and multi-wo
   }
   assert.equal(res.stdout, "11249:11227:200:400:600:180300\n");
 });
+
+test("sync loop Wave 83: printf stdout/redirect, echo arithmetic/variables, and redirected while/for loops match bash", async () => {
+  const memFs = createMemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const shell = new Shell({ fs: memFs });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands()]) shell.commands.register(command);
+  const script = [
+    "for ((i = 1; i <= 50; i++)); do",
+    "  printf \"%04d:%.2s:%x\\n\" \"$i\" \"abcdef\" \"$((i * 3))\" >> /tmp/w83_a.txt",
+    "done",
+    "sum=0",
+    "for ((i = 1; i <= 50; i++)); do",
+    "  ((sum += i))",
+    "  printf \"%03d:%d\\n\" \"$i\" \"$sum\"",
+    "done > /tmp/w83_b.txt",
+    "k=0",
+    "while ((k < 50)); do",
+    "  ((k++))",
+    "  printf \"%03d:%d\\n\" \"$k\" \"$((k * 2))\"",
+    "done > /tmp/w83_c.txt",
+    "for x in alpha -n -e omega; do",
+    "  echo \"$x\"",
+    "done > /tmp/w83_d.txt",
+    "wc -l < /tmp/w83_a.txt",
+    "wc -l < /tmp/w83_b.txt",
+    "wc -l < /tmp/w83_c.txt",
+    "cat /tmp/w83_d.txt",
+  ].join("\n");
+  const res = await shell.exec(script);
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stdout, "50\n50\n50\nalpha\n\nomega\n");
+});

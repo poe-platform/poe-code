@@ -308,10 +308,23 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
         if (width > 128) return undefined;
         cur++;
       }
+      let precision = -1;
+      if (format.charCodeAt(cur) === 46) {
+        cur++;
+        precision = 0;
+        while (cur < format.length) {
+          const dc = format.charCodeAt(cur);
+          if (dc < 48 || dc > 57) break;
+          precision = precision * 10 + (dc - 48);
+          if (precision > 128) return undefined;
+          cur++;
+        }
+      }
       const conv = format.charCodeAt(cur);
       if (conv === 115 && !zeroPad) {
-        const val = args[argument++] ?? "";
-        if (val.includes("\0")) return undefined;
+        const rawVal = args[argument++] ?? "";
+        if (rawVal.includes("\0")) return undefined;
+        const val = precision >= 0 ? rawVal.slice(0, precision) : rawVal;
         if (width > val.length) {
           const pad = " ".repeat(width - val.length);
           result += leftAlign ? val + pad : pad + val;
@@ -322,8 +335,9 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
         continue;
       }
       if (conv === 100 || conv === 105) {
-        const val = args[argument++] ?? "0";
-        if (val.length === 0 || val.length > 15) return undefined;
+        const rawVal = args[argument++] ?? "0";
+        const val = rawVal.length === 0 ? "0" : rawVal;
+        if (val.length > 15) return undefined;
         const first = val.charCodeAt(0);
         let start = 0;
         if (first === 45 || first === 43) {
@@ -335,7 +349,13 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
           const d = val.charCodeAt(i);
           if (d < 48 || d > 57) return undefined;
         }
-        const numStr = first === 43 ? val.slice(1) : val;
+        let numStr = first === 43 ? val.slice(1) : val;
+        if (precision >= 0) {
+          zeroPad = false;
+          if (precision === 0 && numStr === "0") numStr = "";
+          else if (numStr.charCodeAt(0) === 45) numStr = "-" + numStr.slice(1).padStart(precision, "0");
+          else numStr = numStr.padStart(precision, "0");
+        }
         if (width > numStr.length) {
           const padLen = width - numStr.length;
           if (leftAlign) {
@@ -356,8 +376,9 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
         continue;
       }
       if (conv === 120 || conv === 88 || conv === 111 || conv === 117) {
-        const val = args[argument++] ?? "0";
-        if (val.length === 0 || val.length > 15) return undefined;
+        const rawVal = args[argument++] ?? "0";
+        const val = rawVal.length === 0 ? "0" : rawVal;
+        if (val.length > 15) return undefined;
         if (val.length > 1 && val.charCodeAt(0) === 48) return undefined;
         for (let i = 0; i < val.length; i++) {
           const d = val.charCodeAt(i);
@@ -365,7 +386,11 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
         }
         const n = Number(val);
         if (!Number.isSafeInteger(n) || n < 0) return undefined;
-        const numStr = conv === 120 ? n.toString(16) : conv === 88 ? n.toString(16).toUpperCase() : conv === 111 ? n.toString(8) : String(n);
+        let numStr = conv === 120 ? n.toString(16) : conv === 88 ? n.toString(16).toUpperCase() : conv === 111 ? n.toString(8) : String(n);
+        if (precision >= 0) {
+          zeroPad = false;
+          numStr = precision === 0 && n === 0 ? "" : numStr.padStart(precision, "0");
+        }
         if (width > numStr.length) {
           const padLen = width - numStr.length;
           if (leftAlign) {

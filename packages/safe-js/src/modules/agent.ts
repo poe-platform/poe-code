@@ -1,4 +1,4 @@
-import { AsyncLocalStorage } from "#safe-js-platform";
+import { AsyncLocalStorage, hostCwd } from "#safe-js-platform";
 
 import { supportsSpawnMode } from "@poe-code/agent-spawn/configs";
 import {
@@ -456,7 +456,7 @@ function runObservedSpawn(
 
 function readCurrentWorkingDirectory(): string {
   try {
-    return process.cwd();
+    return hostCwd();
   } catch (error) {
     throw new Error(`Unable to resolve current working directory: ${formatSpawnError(error)}`);
   }

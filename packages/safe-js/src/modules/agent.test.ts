@@ -5,6 +5,7 @@ import {
   makeAgentModule,
   runWithSpawnUsageAccumulator
 } from "./agent.js";
+import * as platform from "#safe-js-platform";
 import type { OtelSink } from "../observability/otel.js";
 
 describe("makeAgentModule", () => {
@@ -1222,7 +1223,7 @@ describe("makeAgentModule", () => {
   });
 
   it("reports a controlled error when spawn default cwd cannot be resolved", async () => {
-    const cwd = vi.spyOn(process, "cwd").mockImplementation(() => {
+    const cwd = vi.spyOn(platform, "hostCwd").mockImplementation(() => {
       throw Object.assign(new Error("uv_cwd"), { code: "ENOENT" });
     });
     const agent = makeAgentModule(

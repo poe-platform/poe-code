@@ -30,7 +30,7 @@ export function makeEnvModule(input: readonly string[] | EnvModuleOptions): EnvM
     get(name) {
       const variable = readEnvName(name, "Environment variable name");
       if (!allowedNames.has(variable)) throw new EnvAccessError(variable);
-      return readEnvValue(values ?? process.env, variable);
+      return readEnvValue(values ?? (typeof process !== "undefined" ? process.env ?? {} : {}), variable);
     }
   };
 }

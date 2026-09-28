@@ -55,7 +55,9 @@ try {
     data: { startRow: 0, endRow: 0, startColumn: 1, endColumn: 255 } };
   const labelled: Workbook = { ...original, automaticLabelLookup: true,
     sheets: [{ ...original.sheets[0]!, labelRanges: [labels] }] };
-  await engine.writeWorkbook(labelled, { kind: "stream", sink: { async write() {} } },
+  const owned = await engine.readWorkbook({ kind: "stream", source: [await createXlsxWriter("2008")(labelled, [], context)] },
+    { importType: "Gnumeric_Excel:xlsx" }, context);
+  await engine.writeWorkbook(owned, { kind: "stream", sink: { async write() {} } },
     { exportType: "Gnumeric_Excel:excel_biff8" }, context);
 }
 finally { await engine.dispose(); }
@@ -88,3 +90,32 @@ const unicodeVersion: PythonUnicodeVersion = "15.1.0";
 const pythonConfig: EngineConfig = { ...config, runtimeFunctions: createPythonSampleFunctions({ unicodeVersion }) };
 if (rootPythonFunctions !== createPythonSampleFunctions || !pythonConfig.runtimeFunctions?.PY_CAPWORDS)
   throw new Error("Invalid public Python Unicode profile consumer");
+
+// Exercise the distributed SDK (both subpaths), including source timezone names.
+const { createEngine: rootCreateEngine } = await import("poe-code/ssconvert");
+if (rootCreateEngine !== createEngine) throw new Error("Public ssconvert subpaths diverged");
+for (const [timezone, winter, summer] of [
+  ["UTC", "2026-01-20 12:34UTC", "2026-09-20 12:34UTC"],
+  ["America/Los_Angeles", "2026-01-20 04:34PST", "2026-09-20 05:34PDT"],
+  ["Asia/Kolkata", "2026-01-20 18:04IST", "2026-09-20 18:04IST"],
+  ["Europe/Warsaw", "2026-01-20 13:34CET", "2026-09-20 14:34CEST"]
+] as const) {
+  for (const [time, expected] of [[1768912440000, winter], [1789907640000, summer]] as const) {
+    const glossary: Workbook = { sheets: [{ id: "g", name: "Glossary", cells: [
+      { row: 0, column: 0, value: { kind: "string", value: "Term" } },
+      { row: 1, column: 0, value: { kind: "string", value: "word" } }
+    ] }] };
+    const chunks: Uint8Array[] = [];
+    const glossaryEngine = rootCreateEngine({ codecs: [], environment: { ...context.environment, timezone },
+      limits: context.limits, clock: { now: () => time } });
+    try {
+      const ownedGlossary = await glossaryEngine.readWorkbook({ kind: "stream", source: [await createXlsxWriter("2008")(glossary, [], context)] },
+        { importType: "Gnumeric_Excel:xlsx" }, context);
+      await glossaryEngine.writeWorkbook(ownedGlossary, { kind: "stream", sink: { async write(bytes) { chunks.push(bytes); } } },
+        { exportType: "Gnumeric_GnomeGlossary:po" }, context);
+      const text = new TextDecoder().decode(new Uint8Array(chunks.flatMap(chunk => [...chunk])));
+      if (!text.includes(`"POT-Creation-Date: ${expected}\\n"`))
+        throw new Error(`Public glossary timestamp failed: ${timezone} ${time}`);
+    } finally { await glossaryEngine.dispose(); }
+  }
+}

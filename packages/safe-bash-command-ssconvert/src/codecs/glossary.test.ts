@@ -27,3 +27,27 @@ it("refuses missing glossary sheets rather than exporting generic tables", async
   expect(writer).toBeTypeOf("function");
   await expect(writer!(book, [], context)).rejects.toMatchObject({ message: "Could not find Gnome Glossary sheet" });
 });
+
+// Exact gnome_glossary.py strftime expression, captured independently with TZ
+// per subprocess. Header parity does not qualify the unavailable native plugin.
+it.each([
+  [1768912440000, "America/Los_Angeles", "2026-01-20 04:34PST"],
+  [1789907640000, "America/Los_Angeles", "2026-09-20 05:34PDT"],
+  [1768912440000, "Asia/Kolkata", "2026-01-20 18:04IST"],
+  [1789907640000, "Asia/Kolkata", "2026-09-20 18:04IST"],
+  [1768912440000, "UTC", "2026-01-20 12:34UTC"],
+  [1789907640000, "UTC", "2026-09-20 12:34UTC"],
+  [1768912440000, "Europe/Warsaw", "2026-01-20 13:34CET"],
+  [1789907640000, "Europe/Warsaw", "2026-09-20 14:34CEST"],
+])("preserves source timezone names for %s in %s", async (time, timezone, expected) => {
+  const volume = Volume.fromJSON({ "/input.gnumeric": source });
+  const engine = createEngine({ codecs: [], environment: { ...context.environment, timezone }, limits: context.limits,
+    clock: { now: () => time }, filesystem: {
+      async read(uri) { return [new Uint8Array(volume.readFileSync(uri) as Uint8Array)]; },
+      async write(uri, bytes) { volume.writeFileSync(uri, bytes); }
+    } });
+  try {
+    await engine.convert({ input: { kind: "resource", uri: "/input.gnumeric" }, destination: { kind: "resource", uri: "/fr.po" }, exportType: "Gnumeric_GnomeGlossary:po" }, { signal: context.signal });
+    expect(volume.readFileSync("/fr.po", "utf8")).toContain(`"POT-Creation-Date: ${expected}\\n"`);
+  } finally { await engine.dispose(); }
+});

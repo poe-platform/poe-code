@@ -160,3 +160,10 @@ The workspace entrypoint exports `ssconvertCommands()` for plugin registration,
 `SsconvertCommandsOptions` object; existing factory names remain available.
 The command supports streaming and buffered virtual filesystems and honors
 `limits.inputBytes` on both paths.
+
+Gnome Glossary PO timestamps use the injected `clock.now()` and explicit
+`environment.timezone`, with source TZif abbreviations (`PST`/`PDT`, `IST`,
+`CET`/`CEST`, `UTC`). Supported zones are `America/Los_Angeles`, `Asia/Kolkata`,
+`Europe/Warsaw`, and `UTC`, for UTC instants from 1970 through 2037. Other zone
+names, aliases, and dates return `capability-denied`. Rules are pinned to tzdb
+2026b; header parity does not qualify the full native Python glossary plugin.

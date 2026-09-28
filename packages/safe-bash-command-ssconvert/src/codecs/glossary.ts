@@ -1,3 +1,4 @@
+import { glossaryTimestamp } from "./glossary-timestamp.js";
 import type { Codec } from "./types.js";
 import { SsconvertError } from "../contracts.js";
 import { documentOutput, documentSheet } from "./document-export.js";
@@ -25,10 +26,7 @@ export const writeGlossary: NonNullable<Codec["write"]> = async (book, _options,
   let languageColumn = Math.max(2, glossary.extent.endColumn + 1);
   for (let col = 2; col <= glossary.extent.endColumn; col++) if (valueAt(0, col).toLowerCase() === lang) { languageColumn = col; break; }
   const time = context.clock.now(); context.signal.throwIfAborted();
-  if (!Number.isFinite(time)) throw new SsconvertError("invalid-request", "Invalid ssconvert glossary clock");
-  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: context.environment.timezone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZoneName: "short" }).formatToParts(time);
-  const part = (name: Intl.DateTimeFormatPartTypes) => parts.find(p => p.type === name)?.value ?? "";
-  const date = `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}${part("timeZoneName")}`;
+  const date = glossaryTimestamp(time, context.environment.timezone, out.tick);
   out.put('# SOME DESCRIPTIVE TITLE.\n# Copyright (C) YEAR Free Software Foundation, Inc.\n# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.\n#\n#, fuzzy\nmsgid ""\nmsgstr ""\n"Project-Id-Version: Gnome Glossary\\n"\n');
   out.put(`"POT-Creation-Date: ${date}\\n"\n`);
   out.put('"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"\n"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"\n');

@@ -386,6 +386,8 @@
     "packages/safe-bash-command-ssconvert/src/encoding/transliteration-tables.ts",
     "packages/safe-bash-command-ssconvert/src/encoding/target-transliteration-tables.ts",
     "packages/safe-bash-command-ssconvert/src/encoding/ucs2-transliteration-tables.ts",
+    "packages/safe-bash-command-ssconvert/src/codecs/glossary-timezones-NOTICE.md",
+    "packages/safe-bash-command-ssconvert/src/codecs/glossary-timezones.ts",
     "packages/safe-bash-command-ssconvert/src/codecs/html-NOTICE.md",
     "packages/safe-bash-command-ssconvert/src/codecs/legacy-binary-NOTICE.md",
     "packages/safe-bash-command-ssconvert/src/rendering/print/NOTICE.md",

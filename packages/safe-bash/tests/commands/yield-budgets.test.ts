@@ -30,18 +30,22 @@ for (const [name, factory] of factories.filter(([name]) => !quantumNames.has(nam
     const controller = new AbortController();
     const context = { args: [], signal: controller.signal, stdout: { async write() {} } } as unknown as CommandContext;
     const tick = factory(context);
+    // Line-ending conversion permits a host turn at its first work checkpoint.
+    const initialTurns = name === "line endings" ? 1 : 0;
+    await tick();
+    assert.equal(turns, initialTurns);
     for (let index = 0; index < 10; index++) await tick();
-    assert.equal(turns, 0);
+    assert.equal(turns, initialTurns);
     now = 26;
     await tick();
-    assert.equal(turns, 1);
+    assert.equal(turns, initialTurns + 1);
     // Register before creating child signals so inheritance is exercised.
     let checkpoints = 0;
     registerYieldCheckpoint(controller.signal, () => { checkpoints++; });
     const checkpointTick = factory(context);
     await checkpointTick();
     assert.equal(checkpoints, 1);
-    assert.equal(turns, 2);
+    assert.equal(turns, initialTurns + 2);
   });
 }
 

@@ -1397,3 +1397,43 @@ test("matches bash for Wave 81 array slice/keys for-loops, unquoted $var for-loo
   }
   assert.equal(res.stdout, "180300:150250:180300:360900:360600:outer_keep\n");
 });
+
+test("matches bash for Wave 82 array subscript mutations in ((...)) and multi-word for-loop headers in trySyncLoop", async () => {
+  const shell = new Shell({
+    fs: createMemoryFileSystem(),
+    limits: {
+      maxCommands: 60_000,
+      maxLoopIterations: 60_000,
+      maxFileSystemOperations: 50_000,
+    },
+  });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands()]) shell.commands.register(command);
+  const script = [
+    "counts=({1..16})",
+    "for ((i = 0; i < 600; i++)); do",
+    "  ((counts[i % 16] += i))",
+    "done",
+    "declare -A freq=([alpha]=0 [beta]=0 [gamma]=0)",
+    "for ((i = 0; i < 600; i++)); do",
+    "  case $((i % 3)) in",
+    "    0) ((freq[alpha]++)) ;;",
+    "    1) ((freq[beta] += 2)) ;;",
+    "    2) ((freq[gamma] += 3)) ;;",
+    "  esac",
+    "done",
+    "a1=({1..300})",
+    "a2=({301..600})",
+    "sum=0",
+    "for x in \"${a1[@]}\" \"${a2[@]}\"; do",
+    "  ((sum += x))",
+    "done",
+    "echo \"${counts[0]}:${counts[15]}:${freq[alpha]}:${freq[beta]}:${freq[gamma]}:$sum\"",
+  ].join("\n");
+  const res = await shell.exec(script);
+  assert.equal(res.exitCode, 0);
+  const bashRes = spawnSync("bash", ["-c", script], { encoding: "utf8" });
+  if (bashRes.status === 0 && bashRes.stderr === "") {
+    assert.equal(res.stdout, bashRes.stdout);
+  }
+  assert.equal(res.stdout, "11249:11227:200:400:600:180300\n");
+});

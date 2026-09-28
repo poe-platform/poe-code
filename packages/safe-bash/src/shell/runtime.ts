@@ -11647,8 +11647,7 @@ export class Runtime {
           this.isPureSyncValueWord(cmd.redirects[0]!.target, rawState);
         if (cmd.kind !== "simple" || (cmd.redirects.length > 0 && !hasSingleStdinRedir && !hasSingleHereStringRedir) || cmd.words.length === 0) return false;
         let w0Plain = cmd.words[0]!.plain;
-        // These tools need their complete range/encoding implementations.
-        if (w0Plain === "tr" || w0Plain === "base64") return false;
+        // Range-aware tr and Buffer-free 76-col base64 are handled below.
         if (p.commands.length === 1 && w0Plain !== undefined && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !rawState.extensions?.builtins.has(w0Plain)) {
           const fnBody = rawState.functions.get(w0Plain)!;
           if (
@@ -11760,7 +11759,7 @@ export class Runtime {
             const sCmd = p.commands[sIdx]!;
             if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return false;
             const sName = sCmd.words[0]!.plain;
-            if (sName === "tr" || sName === "base64") return false;
+            // Range-aware tr and Buffer-free 76-col base64 are handled in pipeline stages.
             if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "rev" && sName !== "awk" && sName !== "grep" && sName !== "jq" && sName !== "base64" && sName !== "tac" && sName !== "nl")) return false;
             const sDef = this.commands.get(sName);
             if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "rev" && sName !== "tac" && !builtInDirectContextExecutors.has(sDef.execute))) return false;
@@ -12910,14 +12909,56 @@ export class Runtime {
       if (store) store.epoch = restEpoch;
       return loopStatus;
     }
-    if ( !isShellIdentifier(command.name) || command.name === "OPTIND" || command.name.includes("[") || store?.get(command.name) || command.words?.length !== 1 || rawState.braceexpand === false) {
+    if ( !isShellIdentifier(command.name) || command.name === "OPTIND" || command.name.includes("[") || store?.get(command.name) || !command.words || command.words.length === 0 || command.words.length > 64 || rawState.braceexpand === false) {
       return undefined;
     }
     const activeValScope = io[valueScope];
-    let fastLoopWords = activeValScope
-      ? this.expandBraceRangeWithScope(command.words[0]!, activeValScope)
-      : tryFastExpandBraceRange(command.words[0]!, this.budget, undefined);
-    const isStaticBraceWords = Boolean(fastLoopWords);
+    let fastLoopWords = command.words.length === 1
+      ? (activeValScope
+        ? this.expandBraceRangeWithScope(command.words[0]!, activeValScope)
+        : tryFastExpandBraceRange(command.words[0]!, this.budget, undefined))
+      : undefined;
+    let isStaticBraceWords = Boolean(fastLoopWords);
+    if (!fastLoopWords && !activeValScope && command.words.length > 1) {
+      const combined: string[] = [];
+      let allWordsOk = true;
+      let allStaticBrace = true;
+      for (let wi = 0; wi < command.words.length; wi++) {
+        const cw = command.words[wi]!;
+        const br = tryFastExpandBraceRange(cw, this.budget, undefined);
+        if (br) {
+          for (let k = 0; k < br.length; k++) combined.push(br[k]!);
+          if (combined.length > 1500) { allWordsOk = false; break; }
+          continue;
+        }
+        allStaticBrace = false;
+        const arrM = this.tryExpandSyncArrayMembersWord(cw, rawState, io, diagnosticLine);
+        if (arrM && !monitor.hasOverlay(cw.parts[0]?.kind === "variable" ? cw.parts[0].name : (cw.parts[1]?.kind === "variable" ? cw.parts[1].name : ""))) {
+          for (let k = 0; k < arrM.length; k++) {
+            const s = arrM[k]!;
+            for (let c = 0; c < s.length; c++) if (s.charCodeAt(c) >= 128) { allWordsOk = false; break; }
+            if (!allWordsOk) break;
+            combined.push(s);
+          }
+          if (!allWordsOk || combined.length > 1500) { allWordsOk = false; break; }
+          continue;
+        }
+        if (cw.plain !== undefined && cw.parts.length === 1 && cw.parts[0]!.kind === "text" && !cw.parts[0]!.byteValue && (cw.parts[0]!.quoted || (!cw.parts[0]!.value.includes("{") && !cw.parts[0]!.value.startsWith("~") && !hasGlobOrEscape(cw.parts[0]!.value, true)))) {
+          const s = cw.plain;
+          for (let c = 0; c < s.length; c++) if (s.charCodeAt(c) >= 128) { allWordsOk = false; break; }
+          if (!allWordsOk) break;
+          combined.push(s);
+          if (combined.length > 1500) { allWordsOk = false; break; }
+          continue;
+        }
+        allWordsOk = false;
+        break;
+      }
+      if (allWordsOk) {
+        fastLoopWords = combined;
+        isStaticBraceWords = allStaticBrace;
+      }
+    }
     const w0For = command.words[0]!;
     const p0 = w0For.parts.length === 1 ? w0For.parts[0] : (w0For.parts.length === 2 && w0For.parts[0]!.kind === "text" && w0For.parts[0]!.value === "" ? w0For.parts[1] : undefined);
     if (!fastLoopWords && !activeValScope && p0) {
@@ -13414,6 +13455,19 @@ export class Runtime {
           touched.add(step.name);
           lastArg = "";
           lastValueWord = undefined;
+        } else if (step.isStdoutEcho && step.value !== undefined) {
+          const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
+          const bytes = fastSharedTextEncoder.encode(val + "\n");
+          if (budgetedSinks.get(io.stdout)?.budget !== this.budget) {
+            if (bytes.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+            this.budget.bytes += bytes.byteLength;
+          }
+          const writeSync = syncSinks.get(io.stdout);
+          if (writeSync) writeSync(bytes);
+          else if (io.stdout instanceof BudgetedPipeStageSink && io.stdout.canWriteSync()) io.stdout.writeSync(bytes);
+          else void io.stdout.write(bytes);
+          lastArg = val;
+          lastValueWord = undefined;
         } else {
           lastArg = step.cmd.words[0]!.plain!;
           lastValueWord = undefined;
@@ -13437,28 +13491,32 @@ export class Runtime {
   private _syncLoopFnCheckDepth = 0;
   private _lastSyncLoopRawState: State | undefined = undefined;
   private canSyncReadOnlyArraySubscripts(tree: ArithmeticProgram["tree"], rawState: State): boolean {
-    if (!tree) return false;
+    if (!tree || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity) return false;
     const store = arrayStore(rawState);
-    if (!store) return false;
+    const monitor = stateMonitor(rawState);
+    if (!store || !monitor) return false;
     const check = (node: NonNullable<ArithmeticProgram["tree"]>): boolean => {
       switch (node.kind) {
         case "literal":
           return true;
         case "name": {
           if (node.subscript === undefined) return true;
+          if (hasUnpreparedLocal(rawState, node.name) || rawState.readonlyVariables?.has(node.name) || rawState.variableAttributes?.get(node.name) || rawState.exported.has(node.name) || controlNames.has(node.name) || store.watches.has(node.name) || monitor.hasOverlay(node.name)) return false;
           const b = store.get(node.name);
-          if (!b || b.values.size > 2000 || !/^(?:0|[1-9][0-9]{0,6}|\$?[a-zA-Z_][a-zA-Z0-9_]*)$/.test(node.subscript)) return false;
+          if (!b || b.references !== 1 || b.values.size > 2000) return false;
+          const subOk = b.associative
+            ? (/^\$[a-zA-Z_][a-zA-Z_0-9]*$/.test(node.subscript) || /^[a-zA-Z0-9_.\-/:@]+$/.test(node.subscript))
+            : (/^(?:0|[1-9][0-9]{0,6}|\$?[a-zA-Z_][a-zA-Z0-9_]*)$/.test(node.subscript) || /^\s*[a-zA-Z_][a-zA-Z_0-9]*\s*(?:[+*]\s*(?:0|[1-9][0-9]{0,6})|[/%]\s*[1-9][0-9]{0,6})\s*$/.test(node.subscript));
+          if (!subOk) return false;
           for (const [, slot] of b.values) {
             const sv = slot.text.shellValue;
-            if (typeof sv !== "string" || !/^-?(?:0|[1-9][0-9]{0,12})$/.test(sv)) return false;
+            if (typeof sv !== "string" || (sv !== "" && !/^-?(?:0|[1-9][0-9]{0,12})$/.test(sv))) return false;
           }
           return true;
         }
         case "unary":
-          if ((node.operator === "++" || node.operator === "--") && node.operand.kind === "name" && node.operand.subscript !== undefined) return false;
           return check(node.operand);
         case "binary":
-          if (node.operator.endsWith("=") && node.operator !== "==" && node.operator !== "!=" && node.operator !== "<=" && node.operator !== ">=" && node.left.kind === "name" && node.left.subscript !== undefined) return false;
           return check(node.left) && check(node.right);
         case "conditional":
           return check(node.condition) && check(node.yes) && check(node.no);
@@ -13867,6 +13925,19 @@ export class Runtime {
           } else rawState.variables[step.name] = val;
           touched.add(step.name);
           lastArg = "";
+          lastValueWord = undefined;
+        } else if (step.isStdoutEcho && step.value !== undefined) {
+          const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
+          const bytes = fastSharedTextEncoder.encode(val + "\n");
+          if (budgetedSinks.get(io.stdout)?.budget !== this.budget) {
+            if (bytes.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+            this.budget.bytes += bytes.byteLength;
+          }
+          const writeSync = syncSinks.get(io.stdout);
+          if (writeSync) writeSync(bytes);
+          else if (io.stdout instanceof BudgetedPipeStageSink && io.stdout.canWriteSync()) io.stdout.writeSync(bytes);
+          else void io.stdout.write(bytes);
+          lastArg = val;
           lastValueWord = undefined;
         } else {
           lastArg = step.cmd.words[0]!.plain!;
@@ -20480,9 +20551,41 @@ export class Runtime {
     if (out.length * 3 > maxBytesSmi && shellValueByteLength(out) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
     return out;
   }
+  private expandSyncTrCharSet(spec: string): Set<string> {
+    const out = new Set<string>();
+    for (let i = 0; i < spec.length; i++) {
+      if (i + 2 < spec.length && spec[i + 1] === "-") {
+        const start = spec.charCodeAt(i);
+        const end = spec.charCodeAt(i + 2);
+        if (start <= end && end - start <= 256) {
+          for (let c = start; c <= end; c++) out.add(String.fromCharCode(c));
+          i += 2;
+          continue;
+        }
+      }
+      out.add(spec[i]!);
+    }
+    return out;
+  }
+  private syncBase64Encode(bytes: Uint8Array): string {
+    let bin = "";
+    for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]!);
+    const raw = globalThis.btoa(bin);
+    if (raw.length <= 76) return raw;
+    const chunks: string[] = [];
+    for (let i = 0; i < raw.length; i += 76) chunks.push(raw.slice(i, i + 76));
+    return chunks.join("\n");
+  }
+  private syncBase64Decode(b64: string): string {
+    const clean = b64.replace(/\s+/g, "");
+    const bin = globalThis.atob(clean);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return sharedSyncPipeDecoder.decode(bytes);
+  }
   private tryReadMemoryFileViewSync(path: string): Uint8Array | undefined {
-    // Finite budgets must use the ordinary read path, including admission probes.
-    if (!this.canFastMemoryRedirect || !this.budget.hasInfiniteFsOps || !this.budget.canFileSystemOperation()) return undefined;
+    // Small finite budgets must use the ordinary read path, including admission probes.
+    if (!this.canFastMemoryRedirect || this.budget.limits.maxFileSystemOperations < 1000 || !this.budget.canFileSystemOperation()) return undefined;
     if (!this._isMemoryBackingFs || !this.backingFs || this.backingFs.capabilitiesFor !== undefined || (this._fileWrites !== undefined && this._fileWrites.size > 0)) return undefined;
     try {
       const mem = this.backingFs as unknown as {
@@ -20548,7 +20651,7 @@ export class Runtime {
     if (list.terminator || list.pipelines.length !== 1) return undefined;
     const pipeline = list.pipelines[0]!;
     if (pipeline.negate) return undefined;
-    if (pipeline.commands.some(command => command.kind === "simple" && (command.words[0]?.plain === "tr" || command.words[0]?.plain === "base64"))) return undefined;
+    // Range-aware tr and Buffer-free 76-col base64 are supported below.
     if (pipeline.commands.length >= 2 && pipeline.commands.length <= 5) {
       if (
         syncPurePipelineSlotInUse ||
@@ -20830,7 +20933,7 @@ export class Runtime {
                 }
                 transformed = out;
               } else if (stageArgs[0] === "-d") {
-                const delSet = new Set(stageArgs[1]!.split(""));
+                const delSet = this.expandSyncTrCharSet(stageArgs[1]!);
                 let out = "";
                 for (let ci = 0; ci < inStr.length; ci++) {
                   const ch = inStr[ci]!;
@@ -20926,13 +21029,12 @@ export class Runtime {
               }
             } else if (isInlineBase64) {
               if (stageArgs.length === 0) {
-                const b64 = Buffer.from(inStr, "utf8").toString("base64");
-                outLines = [];
-                for (let bi = 0; bi < b64.length; bi += 76) outLines.push(b64.slice(bi, bi + 76));
+                const b64Wrapped = this.syncBase64Encode(fastSharedTextEncoder.encode(inStr));
+                outLines = b64Wrapped.length === 0 ? [] : b64Wrapped.split("\n");
               } else {
                 const cleaned = inStr.replace(/[ \t\r\n]+/g, "");
                 if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
-                const decoded = Buffer.from(cleaned, "base64");
+                const decoded = fastSharedTextEncoder.encode(this.syncBase64Decode(cleaned));
                 if (decoded.includes(0) || decoded.byteLength > nextBuf.byteLength) return undefined;
                 const nextTotalBytes = this.budget.bytes + decoded.byteLength;
                 if (nextTotalBytes > this.budget.maxOutputBytesSmi && decoded.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
@@ -21278,7 +21380,7 @@ export class Runtime {
               if (opArgs[0] === "a-z" && opArgs[1] === "A-Z") fileRes = fileStr.toUpperCase();
               else if (opArgs[0] === "A-Z" && opArgs[1] === "a-z") fileRes = fileStr.toLowerCase();
               else if (opArgs[0] === "-d" && /^[a-zA-Z0-9_ :;,./-]+$/.test(opArgs[1]!)) {
-                const delSet = new Set(opArgs[1]!.split(""));
+                const delSet = this.expandSyncTrCharSet(opArgs[1]!);
                 let out = "";
                 for (let ci = 0; ci < fileStr.length; ci++) {
                   const ch = fileStr[ci]!;
@@ -21297,8 +21399,8 @@ export class Runtime {
                 fileRes = out;
               }
             } else if (hasSingleHereStringRedir && w0Plain === "base64" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "--decode")))) {
-              if (opArgs.length === 0) fileRes = Buffer.from(view).toString("base64");
-              else fileRes = Buffer.from(fileStr.replace(/\s+/g, ""), "base64").toString("utf8");
+              if (opArgs.length === 0) fileRes = this.syncBase64Encode(view);
+              else fileRes = this.syncBase64Decode(fileStr);
             } else if (hasSingleHereStringRedir && w0Plain === "rev" && opArgs.length === 0) {
               fileRes = rawLines.map(l => Array.from(l).reverse().join("")).join("\n");
             } else if (hasSingleHereStringRedir && w0Plain === "tac" && opArgs.length === 0) {

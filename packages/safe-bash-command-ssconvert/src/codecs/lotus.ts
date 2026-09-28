@@ -329,6 +329,10 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
           case "VLOOKUP": case "HLOOKUP":
             if (operands.length === 3) operands[2] = `(${operands[2]}+1)`;
             break;
+          case "DSUM": case "DAVG": case "DCNT": case "DMIN":
+          case "DMAX": case "DVAR": case "DSTD": case "DPURECOUNT":
+            if (operands.length > 1) operands[1] = `(${operands[1]}+1)`;
+            break;
           case "INDEX":
             if (operands.length === 3) {
               const [, column, row] = operands;

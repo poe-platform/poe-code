@@ -1203,7 +1203,7 @@
         "implementation": "Use the resolved wk1_year_func marker for the 1900 subtraction in both function tables.",
         "validation": "Three original failures for 1900/1999/2024 now pass; 427 tests in 21 Lotus files, package lint/types and selected build pass.",
         "publicQualification": "12 compiled SDK/command outputs across both XLSX editions independently retain YEAR(DATE(...))-1900 and fresh 0/99/124. Six Calc readbacks retain live formulas and values.",
-        "remaining": "Database field offsets and optional INDEX sheet argument in #3478 remain open. No family closure."
+        "remaining": "Optional INDEX sheet offset in #3478 and broader Works qualification remain open. Database field offsets are now recorded under lotusDatabaseFields. No family closure."
       }
     },
     "lotusSymphonyReferences": {
@@ -2955,6 +2955,24 @@
         "validation": "36 newly failing regressions plus four passing boundary controls; all 424 tests in 21 Lotus files pass. Maintained package lint, source/test/consumer types and selected build pass.",
         "publicQualification": "56 compiled SDK/command --recalc outputs across both XLSX editions; independently parsed formulas, types and fresh values match. 12 numeric boundary/mask outputs also retain live formulas and 0/42 through Calc 26.8.0.3. Error-output application qualification remains #4053."
       }
+    },
+    "lotusDatabaseFields": {
+      "issue": 3478,
+      "status": "implemented requested zero-based numeric database field offsets",
+      "functions": [
+        "DSUM",
+        "DAVG",
+        "DCNT",
+        "DMIN",
+        "DMAX",
+        "DVAR",
+        "DSTD",
+        "DPURECOUNT"
+      ],
+      "sourceDifference": "Gnumeric lotus-formula.c at 325ef79a19580959afaee9cf01cb8ea15f0177b0 lines 114-120 and 221 binds these functions to wk1_std_func without the requested field conversion. libwps 0.4.14-2 WKS4Spreadsheet.cpp similarly forwards database operands. The explicit #3478 requirement takes precedence; this does not claim native Lotus importer parity. Resolved function identity handles both direct and named tokens.",
+      "validation": "24 original failures across WK1 direct, WK3 direct and modern named functions now pass. All 451 tests in 22 Lotus files pass, as do package lint/types and selected build.",
+      "publicQualification": "12 compiled SDK/command outputs across both XLSX editions independently preserve 96 translated formula/value pairs. Six Calc readbacks preserve all 48 fresh numeric results and live formulas. Direct opcode 243 retains its existing encountered-opcode diagnostic.",
+      "remaining": "Optional INDEX sheet offset in #3478 and broader native Lotus input/format qualification remain open. No family closure."
     }
   },
   "cases": [

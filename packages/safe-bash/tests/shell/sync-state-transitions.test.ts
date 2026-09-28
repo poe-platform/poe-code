@@ -143,7 +143,7 @@ test("local += append clears outer variable unless already local or prefixed, an
       declare -a arr=("a$i" "b$i")
       declare -A map=([k1]="v$i" [k2]="w$i")
       declare s+="x"
-      (( acc += ${#arr[1]} + ${#map[k2]} + ${#s} ))
+      (( acc += \${#arr[1]} + \${#map[k2]} + \${#s} ))
     done
     echo "acc:$acc:s:$s"
   `);
@@ -151,6 +151,6 @@ test("local += append clears outer variable unless already local or prefixed, an
   assert.equal(res.stderr, "");
   assert.equal(
     res.stdout,
-    "f1:sub\nafter_f1:global\nf2:locsub\nafter_f2:global\nf3:prefsub\nafter_f3:global\nacc:312:s:globalxxxxxxxxxxxxxxx\n"
+    "f1:sub\nafter_f1:global\nf2:locsub\nafter_f2:global\nf3:prefsub\nafter_f3:global\nacc:282:s:globalxxxxxxxxxxxxxxx\n"
   );
 });

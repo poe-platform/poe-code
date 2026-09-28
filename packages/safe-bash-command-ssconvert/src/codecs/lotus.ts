@@ -311,7 +311,7 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
         if (args < 0) { if (at >= bytes.length) break; args = b.u8(at++); }
       }
       const operands: string[] = []; for (let i = 0; i < args; i++) operands.unshift(await pop());
-      let subtract = 0;
+      let subtract = info?.[3] === "wk1_year_func" ? 1900 : 0;
       if (functions === lotusFunctions) {
         // LibreOffice LotusToSc::DoFunc translates Lotus's zero-based positions.
         // Use the resolved function so named opcodes follow the same conventions.
@@ -337,7 +337,6 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
             }
             break;
           case "STRING": operands.push("TRUE()"); break;
-          case "YEAR": subtract = 1900; break;
           case "ROUNDUP": case "ROUNDDOWN":
             if (operands.length === 3) operands.pop();
             break;

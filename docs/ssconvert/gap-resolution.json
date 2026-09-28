@@ -1179,7 +1179,7 @@
       "remaining": "Lookup/INDEX and financial argument conversions, Works semantics and independent application qualification remain open; no Lotus family closure."
     },
     "lotusYearSemantics": {
-      "status": "implemented for direct/named Lotus YEAR; other function conversions and Works qualification open",
+      "status": "implemented for direct/named Lotus YEAR and requested Works YEAR marker conversion; broader qualification open",
       "sources": [
         {
           "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotform.cxx",
@@ -1196,7 +1196,15 @@
       ],
       "validation": "Four failing regressions cover BOF 0x0404, 0x1000 and 0x1002 plus the named YEAR token. All 171 tests in thirteen Lotus files pass, with maintained package lint/types and selected build.",
       "publicReadback": "Compiled public command --recalc XLSX export and SDK readback preserve =(year(date(124,1,1))-1900) and value 124 for legacy direct and modern named YEAR; exit 0, empty stderr, 4085/4074 bytes. The serializer normalizes function spelling to lowercase. In-memory fixtures only.",
-      "remaining": "Further function argument/index conversions, Works semantics and independent application qualification remain open. This repairs Lotus semantics beyond Gnumeric's stub, not native parser parity."
+      "remaining": "Further function argument/index conversions, Works semantics and independent application qualification remain open. This repairs Lotus semantics beyond Gnumeric's stub, not native parser parity.",
+      "works": {
+        "issue": 3478,
+        "sourceDifference": "The existing Works YEAR declaration uses wk1_year_func. Applying that declared hook is explicitly required by #3478. libwps WKS4Spreadsheet.cpp 0.4.14-2 declares ordinary Year and does not subtract 1900; native Works input parity is not claimed.",
+        "implementation": "Use the resolved wk1_year_func marker for the 1900 subtraction in both function tables.",
+        "validation": "Three original failures for 1900/1999/2024 now pass; 427 tests in 21 Lotus files, package lint/types and selected build pass.",
+        "publicQualification": "12 compiled SDK/command outputs across both XLSX editions independently retain YEAR(DATE(...))-1900 and fresh 0/99/124. Six Calc readbacks retain live formulas and values.",
+        "remaining": "Database field offsets and optional INDEX sheet argument in #3478 remain open. No family closure."
+      }
     },
     "lotusSymphonyReferences": {
       "status": "implemented source-defined DOS Symphony BOF 0x0405 references",

@@ -43,3 +43,12 @@ it("applies the source-defined relative row wrap and rejects negative targets", 
     expect(negative.sheets[0]!.cells[1]!.formula).toBe("=#REF!");
   }
 });
+
+it.each([1900, 1999, 2024])("decodes Windows Works YEAR(%i) as years since 1900", async year => {
+  // #3478 requires the declared wk1_year_func conversion in Works as well.
+  // libwps preserves YEAR directly; this is an explicit compatibility change.
+  const tokens = [5, ...word(year), 5, ...word(1), 5, ...word(1), 54, 62];
+  const book = await readLotus(input(tokens), context);
+  expect(book.sheets[0]!.cells[1]!.formula).toBe(`=(YEAR(DATE(${year},1,1))-1900)`);
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[1]!.value).toEqual({ kind: "number", value: year - 1900 });
+});

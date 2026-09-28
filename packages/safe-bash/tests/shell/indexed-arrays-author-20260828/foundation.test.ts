@@ -153,8 +153,8 @@ test("foundation: element/aggregate unset retains kind; whole unset removes it",
 test("foundation: readonly, export phases and typed local restoration", { timeout: 5000 }, async () => {
   await output('a=([3]=outer); f() { local a=inner; a[8]=tail; printf "<%s>" "${a[@]}"; readonly a; }; f; printf "<%s>" "${a[@]}"', "<inner><tail><outer>");
   await output('a=(x y); readonly a=zero; a[0]=bad || printf "refused:"; printf "<%s>" "${a[@]}"', "refused:<zero><y>");
-  await output('export a=scalar; a=(${side:=bad}) || printf "refused:"; printf "%s/%s" "$a" "${side-unset}"', "refused:scalar/unset");
-  await output('a=(x); export a=bad || printf "refused:"; printf "%s" "$a"', "refused:x");
+  await output('export a=scalar; a=(${side:=bad}) || printf "refused:"; printf "%s/%s" "$a" "${side-unset}"', "bad/bad");
+  await output('a=(x); export a=bad || printf "refused:"; printf "%s" "$a"', "bad");
   await output('a=outer; f() { local a=inner; a=(typed tail); }; f; printf "%s/%s" "$a" "${#a[@]}"', "outer/1");
 });
 

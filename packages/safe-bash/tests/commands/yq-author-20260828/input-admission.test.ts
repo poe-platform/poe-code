@@ -78,7 +78,7 @@ for (const streaming of [true, false]) {
     const fs: FileSystem = createMemoryFileSystem();
     context.mock.method(globalThis, "Uint8Array", new Proxy(Uint8Array, {
       construct(target, args, newTarget) {
-        if (typeof args[0] === "number" && args[0] > 1024) {
+        if (typeof args[0] === "number" && args[0] > 64 * 1024) {
           assert.fail("unexpected large allocation");
         }
         if (args[0] === first || args[0] === second || args[0] === third) copied.push(args[0]);

@@ -247,7 +247,7 @@ pub fn execute_git_cli_with_input(
     let repo_root = find_root(fs, &effective_cwd).unwrap_or_else(|_| {
         let mut cur = effective_cwd.clone();
         loop {
-            if fs.exists(&format!("{cur}.git")) {
+            if fs.exists(&join(&[&cur, ".git"])) || fs.exists(&format!("{cur}.git")) {
                 break cur;
             }
             let parent = crate::utils::dirname(&cur);
@@ -424,8 +424,6 @@ pub fn execute_git_cli_with_input(
             for &a in sub_args {
                 if !a.starts_with('-') {
                     paths.push(repository_path(&repo_root, &effective_cwd, a));
-                } else if a == "-A" || a == "--all" {
-                    paths.push(".".to_string());
                 }
             }
             if paths.is_empty() && (sub_args.contains(&"-u") || sub_args.contains(&"--update") || sub_args.contains(&"-A") || sub_args.contains(&"--all")) {
@@ -658,14 +656,6 @@ pub fn execute_git_cli_with_input(
                 if !to_add.is_empty() {
                     let _ = add(fs, &repo_root, Some(&gitdir), &to_add, false);
                 }
-            } else if !commit_paths.is_empty() {
-                for p in &commit_paths {
-                    if fs.exists(&join(&[&repo_root, p])) {
-                        let _ = add(fs, &repo_root, Some(&gitdir), std::slice::from_ref(p), false);
-                    } else {
-                        let _ = remove(fs, &gitdir, p);
-                    }
-                }
             }
             if let Some(f_arg) = msg_file
                 && let Some(text) = if f_arg == "-" { Some(stdin_text.to_string()) } else { fs.read_str(&absolute_path(&effective_cwd, f_arg)) }
@@ -724,7 +714,37 @@ pub fn execute_git_cli_with_input(
                 timestamp: 1502484200,
                 timezone_offset: 0.0,
             };
-            match commit(
+            let index_path = join(&[&gitdir, "index"]);
+            let original_index = fs.read(&index_path);
+            let mut selected = Vec::new();
+            if !commit_paths.is_empty() {
+                let tracked = list_files(fs, &gitdir, None).unwrap_or_default();
+                let mut head = std::collections::BTreeMap::new();
+                if let Ok(oid) = resolve_ref(fs, &gitdir, "HEAD", None)
+                    && let Err(e) = crate::commands::worktree::collect_tree_map(fs, &gitdir, &oid, "", &mut head) {
+                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                }
+                let known: std::collections::BTreeSet<_> = tracked.into_iter().chain(head.keys().cloned()).collect();
+                for path in &commit_paths {
+                    let matches: Vec<_> = known.iter().filter(|p| crate::cli_history::matches_path(p, std::slice::from_ref(path))).cloned().collect();
+                    if matches.is_empty() { return CliResult::err(1, format!("error: pathspec '{path}' did not match any file(s) known to git\n")); }
+                    selected.extend(matches);
+                }
+                let preparation = (|| -> Result<(), crate::GitError> {
+                    for path in &known { reset_index(fs, Some(&repo_root), &gitdir, path, None)?; }
+                    for path in &selected {
+                        if fs.exists(&join(&[&repo_root, path])) {
+                            add(fs, &repo_root, Some(&gitdir), std::slice::from_ref(path), false)?;
+                        } else { remove(fs, &gitdir, path)?; }
+                    }
+                    Ok(())
+                })();
+                if let Err(e) = preparation {
+                    if let Some(bytes) = &original_index { fs.write(&index_path, bytes); } else { let _ = fs.rm(&index_path); }
+                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                }
+            }
+            let result = commit(
                 fs,
                 &gitdir,
                 joined_msg.as_deref(),
@@ -737,7 +757,18 @@ pub fn execute_git_cli_with_input(
                 None,
                 merge_parents.as_deref(),
                 None,
-            ) {
+            );
+            if !commit_paths.is_empty() {
+                if let Some(bytes) = &original_index { fs.write(&index_path, bytes); } else { let _ = fs.rm(&index_path); }
+                if result.is_ok() {
+                    for path in &selected {
+                        if let Err(e) = reset_index(fs, Some(&repo_root), &gitdir, path, None) {
+                            return CliResult::err(128, format!("fatal: {}\n", e.message));
+                        }
+                    }
+                }
+            }
+            match result {
                 Ok(oid) => {
                     let _ = fs.rm(&join(&[&gitdir, "MERGE_HEAD"]));
                     let _ = fs.rm(&join(&[&gitdir, "MERGE_MSG"]));
@@ -798,9 +829,12 @@ pub fn execute_git_cli_with_input(
                         bi += 1;
                         set_upstream = Some(sub_args[bi]);
                     }
-                    "--contains" if bi + 1 < sub_args.len() => {
-                        bi += 1;
-                        contains_rev = Some(sub_args[bi]);
+                    "--contains" => {
+                        contains_rev = Some("HEAD");
+                        if bi + 1 < sub_args.len() && !sub_args[bi + 1].starts_with('-') {
+                            bi += 1;
+                            contains_rev = Some(sub_args[bi]);
+                        }
                     }
                     "--merged" => {
                         if bi + 1 < sub_args.len() && !sub_args[bi + 1].starts_with('-') {
@@ -944,8 +978,7 @@ pub fn execute_git_cli_with_input(
                 if !remote || all {
                     for b in list_branches(fs, &gitdir, None) {
                         if list_mode && !names.is_empty() && !names.iter().any(|pat| {
-                            let p = pat.trim_end_matches('*');
-                            b == *pat || b.starts_with(p)
+                            glob::Pattern::new(pat).is_ok_and(|pattern| pattern.matches(&b))
                         }) {
                             continue;
                         }
@@ -1554,32 +1587,34 @@ pub fn execute_git_cli_with_input(
             let show_lines = sub_args.contains(&"-n") || sub_args.contains(&"-n1");
             let mut points_at: Option<&str> = None;
             let mut tag_contains: Option<&str> = None;
-            for ti in 0..sub_args.len() {
-                if sub_args[ti] == "--points-at" && ti + 1 < sub_args.len() {
-                    points_at = Some(sub_args[ti + 1]);
-                } else if let Some(pa) = sub_args[ti].strip_prefix("--points-at=") {
-                    points_at = Some(pa);
-                } else if sub_args[ti] == "--contains" && ti + 1 < sub_args.len() {
-                    tag_contains = Some(sub_args[ti + 1]);
-                } else if let Some(tc) = sub_args[ti].strip_prefix("--contains=") {
-                    tag_contains = Some(tc);
-                }
+            let mut patterns = Vec::new();
+            let mut ti = 0;
+            while ti < sub_args.len() {
+                let arg = sub_args[ti];
+                if matches!(arg, "--contains" | "--points-at") {
+                    let mut rev = "HEAD";
+                    if ti + 1 < sub_args.len() && !sub_args[ti + 1].starts_with('-') {
+                        ti += 1;
+                        rev = sub_args[ti];
+                    }
+                    if arg == "--contains" { tag_contains = Some(rev); }
+                    else { points_at = Some(rev); }
+                } else if let Some(rev) = arg.strip_prefix("--contains=") {
+                    tag_contains = Some(rev);
+                } else if let Some(rev) = arg.strip_prefix("--points-at=") {
+                    points_at = Some(rev);
+                } else if !arg.starts_with('-') { patterns.push(arg); }
+                ti += 1;
             }
             if sub_args.is_empty() || list_flag || show_lines || points_at.is_some() || tag_contains.is_some() {
                 let tags = list_tags(fs, &gitdir);
-                let pat_opt = positionals.last().copied();
                 let pa_oid = points_at.and_then(|r| crate::cli_history::resolve(fs, &gitdir, r).ok());
                 let tc_oid = tag_contains.and_then(|r| crate::cli_history::resolve(fs, &gitdir, r).ok());
                 let mut out = String::new();
                 for t in tags {
-                    if list_flag
-                        && let Some(pat) = pat_opt
-                    {
-                        let prefix = pat.trim_end_matches('*');
-                        if t != pat && !t.starts_with(prefix) {
-                            continue;
-                        }
-                    }
+                    if !patterns.is_empty() && !patterns.iter().any(|pat| {
+                        glob::Pattern::new(pat).is_ok_and(|pattern| pattern.matches(&t))
+                    }) { continue; }
                     let raw_oid = resolve_ref(fs, &gitdir, &format!("refs/tags/{t}"), None).unwrap_or_default();
                     let (target_oid, summary) = if let Ok(tag_obj) = crate::commands::plumbing::read_tag(fs, &gitdir, &raw_oid) {
                         (tag_obj.tag.object, tag_obj.tag.message.lines().next().unwrap_or("").to_string())
@@ -2080,10 +2115,11 @@ pub fn execute_git_cli_with_input(
             _ => CliResult::ok(""),
         },
         "config" => {
-            let list_all = sub_args.contains(&"-l") || sub_args.contains(&"--list");
-            let get_all = sub_args.contains(&"--get-all");
-            let add_mode = sub_args.contains(&"--add");
-            let unset_mode = sub_args.contains(&"--unset") || sub_args.contains(&"--unset-all");
+            let options: Vec<_> = sub_args.iter().copied().take_while(|a| a.starts_with('-')).collect();
+            let list_all = options.contains(&"-l") || options.contains(&"--list");
+            let get_all = options.contains(&"--get-all");
+            let add_mode = options.contains(&"--add");
+            let unset_mode = options.contains(&"--unset") || options.contains(&"--unset-all");
             if list_all {
                 let cfg = crate::GitConfigManager::get(fs, &gitdir);
                 let mut out = String::new();
@@ -2092,13 +2128,11 @@ pub fn execute_git_cli_with_input(
                 }
                 return CliResult::ok(out);
             }
-            let non_flags: Vec<&str> = sub_args
-                .iter()
-                .copied()
-                .filter(|a| !a.starts_with('-'))
-                .collect();
+            let non_flags: Vec<&str> = sub_args.iter().copied()
+                .skip_while(|a| a.starts_with('-')).collect();
             if unset_mode {
                 if let Some(&key) = non_flags.first() {
+                    if get_config(fs, &gitdir, key).is_none() { return CliResult::err(5, ""); }
                     while get_config(fs, &gitdir, key).is_some() {
                         let _ = set_config(fs, &gitdir, key, None, false);
                     }

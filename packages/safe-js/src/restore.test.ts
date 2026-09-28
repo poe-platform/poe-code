@@ -70,7 +70,7 @@ describe("restore", () => {
 
   it.each([
     [{ heap: { "1": { kind: "mystery" } } }, "unknownTag"],
-    [{ extra: "x".repeat(1_000_001) }, "budgetExceeded"]
+    [{ extra: Symbol("unsupported") }, "invalidType"]
   ])("valid scalar state does not bypass payload validation: case %#", (payload, code) => {
     const snapshot = { version: 1, sourceHash: hashSource("1"), clock: { next: 0 }, random: { seed: 1, state: 1 }, ...payload };
     expect(() => restore(snapshot, { source: "1" })).toThrow(expect.objectContaining({ name: "SnapshotValidationError", code }));

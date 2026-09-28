@@ -49,7 +49,7 @@ test("active input cancellation during inline substitution has a hard process de
   const code = `
     import assert from 'node:assert/strict';
     import { setup } from './tests/shell/helpers.ts';
-    for (const redirect of ['<<EOF\\n$(read -r value)\\nEOF\\n', '<<<"$(read -r value)"\\n']) {
+    for (const redirect of ['<<EOF\\n$(read -r value)\\nEOF\\n', '<<<"$(read -r value)"\\n'].flatMap(value => ['pass ' + value, 'V=child pass ' + value])) {
       const { shell, fs } = setup();
       const controller = new AbortController();
       const reason = new Error('cancel active inline read');
@@ -64,7 +64,7 @@ test("active input cancellation during inline substitution has a hard process de
         },
         async return() { returned++; return { done: true }; },
       }; } };
-      await assert.rejects(shell.exec('pass ' + redirect + 'say bad >marker', { stdin, signal: controller.signal }), error => error === reason);
+      await assert.rejects(shell.exec(redirect + 'say bad >marker', { stdin, signal: controller.signal }), error => error === reason);
       rejectRead(new Error('late read rejection'));
       await new Promise(resolve => setImmediate(resolve));
       assert.equal(reads, 1);

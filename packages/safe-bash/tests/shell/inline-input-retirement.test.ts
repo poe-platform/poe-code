@@ -158,7 +158,7 @@ test("heredoc prefixes and expansion side effects retain their snapshot timing",
   const { shell } = fixture();
   const result = await shell.exec('V=parent; V=child cat <<EOF\n$V ${NEW:=made}\nEOF\nsay "$V:${NEW-unset}"');
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "child made\nparent:unset\n");
+  assert.equal(result.stdout, "parent made\nparent:unset\n");
 });
 
 test("quoted and skipped heredocs do not evaluate their operands", async () => {

@@ -13558,7 +13558,7 @@ export class Runtime {
           previous.set(assignment.name, saved);
           const existingArray = arrayStore(state)?.get(assignment.name);
           const canSkipTypedScalarOverlay = !existingArray && words[0] === "read" && !state.functions.has("read") && !state.extensions?.builtins.has("read") && !words.some(w => w.startsWith("-a") || (w.startsWith("-") && !w.startsWith("--") && w.includes("a")));
-          if (words.length && !canSkipTypedScalarOverlay && (guestArrays(state) || (assignment.name === "PIPESTATUS" && existingArray))) {
+          if (words.length && !canSkipTypedScalarOverlay && (guestArrays(state) || existingArray)) {
             const store = requireArrays(state);
             await this.prepareVariable(state, assignment.name, saved, !existingArray);
             if (existingArray) {
@@ -13579,15 +13579,25 @@ export class Runtime {
         overlayOpen = true;
       }
       if (inlineInput || (state.profile === "sh" || !words.length) && assignments.some(assignment => state.readonlyVariables?.has(assignment.name))) await assign();
-      if (inlineInput && (functionCommand || words[0] === "read" && !state.extensions?.builtins.has("read")) && previous?.size) {
+      if (inlineInput && previous?.size) {
         if (stateMonitor(state)?.lazyPipeStatus !== undefined) stateMonitor(state)!.activate(true);
         const redirectState = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
         const variables = redirectState.variables;
         const redirectAssignments = new Map<string, ShellValue>();
         for (const [name, saved] of previous) {
           redirectAssignments.set(name, stateMonitor(state)!.values.get(name, state.variables[name]!));
+          if (saved.exported) redirectState.exported.add(name);
+          else redirectState.exported.delete(name);
           if (saved.value === undefined) delete variables[name];
           else publishVariable(redirectState, name, saved.heldValue?.value ?? saved.value);
+          const binding = typedSavedVariables.get(saved)?.binding;
+          if (binding) {
+            const store = requireArrays(redirectState);
+            const prepared = await store.prepareName(name, store.owner, this.signal);
+            const tickets = store.tickets(name);
+            try { await store.publish(name, binding.retain(), tickets, prepared); }
+            finally { tickets.release(); }
+          }
         }
         redirectState.redirectAssignments = redirectAssignments;
         const savedIndex = previous.get("OPTIND");
@@ -13603,7 +13613,7 @@ export class Runtime {
         }
         const epoch = stateMonitor(state)?.epoch;
         try {
-          io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, false, true, false, command.line ?? 1);
+          io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, isolatedInlineInput, !isolatedInlineInput, false, command.line ?? 1);
           if (parentStore && stateMonitor(state)!.epoch !== epoch) throw new ArrayFailure("stale state snapshot");
         } finally {
           try {
@@ -13622,6 +13632,12 @@ export class Runtime {
             if (!previous.has(name)) publishVariable(state, name, stateMonitor(redirectState)!.values.get(name, value));
           }
           for (const [name, saved] of previous) {
+            const typed = typedSavedVariables.get(saved);
+            const binding = arrayStore(redirectState)?.get(name);
+            if (typed && binding !== typed.binding) {
+              typedSavedVariables.set(saved, { ...typed, binding: binding?.retain() });
+              await typed.binding?.release();
+            }
             saved.value = variables[name];
             const value = stateMonitor(redirectState)!.values.get(name, saved.value ?? "");
             const held = saved.value === undefined ? undefined : stateMonitor(state)!.values.scope.hold(value);

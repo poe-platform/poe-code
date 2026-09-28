@@ -208,3 +208,70 @@ for (const name of ["fd-writer", "wc"]) for (const registration of ["shell", "re
     assert.equal((await fs.stat("/out")).size, 0);
   });
 }
+
+for (const maxExpansionBytes of [undefined, 4096]) {
+  for (const [name, redirect, expected] of [
+    ["unquoted here-string", '<<<${arr[*]}', 'a:b:c'],
+    ["quoted here-string", '<<<"${arr[*]}"', 'a:b:c'],
+    ["expanded here-document", '<<EOF\n${arr[*]}\nEOF', 'a:b:c'],
+    ["literal here-document", "<<'EOF'\n${arr[*]}\nEOF", '${arr[*]}'],
+  ] as const) {
+    test(`temporary IFS outside ${name}, expansion limit=${maxExpansionBytes}`, async t => {
+      const { shell } = setup(maxExpansionBytes === undefined ? {} : { limits: { maxExpansionBytes } });
+      t.after(() => shell.dispose());
+      shell.use(standardCommands());
+      const result = await shell.exec(`arr=(a b c); IFS=:; IFS= read -r x ${redirect}\nprintf '<%s>' "$x"; printf '|%s' "$IFS"`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, `<${expected}>|:`);
+      assert.equal(result.stderr, "");
+    });
+  }
+}
+
+for (const maxExpansionBytes of [undefined, 4096]) {
+  for (const command of ['pass', 'eval "pass"', 'f']) {
+    for (const redirect of ['<<<"${arr[*]}"', '<<EOF\n${arr[*]}\nEOF']) {
+      test(`temporary assignments outside ${command} ${redirect}, expansion limit=${maxExpansionBytes}`, async t => {
+        const { shell } = setup(maxExpansionBytes === undefined ? {} : { limits: { maxExpansionBytes } });
+        t.after(() => shell.dispose());
+        const result = await shell.exec(`arr=(a b c); IFS=:; f(){ pass; }; IFS= ${command} ${redirect}\nsay "$IFS"`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, 'a:b:c\n:\n');
+        assert.equal(result.stderr, "");
+      });
+    }
+  }
+}
+
+for (const [name, source, expected] of [
+  ['input path', 'file=outer; say input >outer; file=inner read -r x <"$file"; say "$x:$file"', 'input:outer\n'],
+  ['output path', 'file=outer; file=inner say output >"$file"; pass <outer; say "$file"', 'output\nouter\n'],
+  ['assignment-only output path', 'file=outer; file=inner >"$file"; say "$file"; [[ -f outer ]]', 'inner\n'],
+  ['command substitution receives prefix', 'V=outer; V=child read -r x <<<"$(say "$V")"; say "$x:$V"', 'child:outer\n'],
+  ['assignment only', 'V=outer; V=inner <<<"${V:=made}"; say "$V"', 'inner\n'],
+  ['builtin receives temporary IFS', 'IFS=:; IFS= read -r x <<<"a:b"; say "$x:$IFS"', 'a:b::\n'],
+  ['redirection assignment effect', 'unset V; V=child read -r x <<<"${V:=made}"; say "$x:$V"', 'made:made\n'],
+  ['array assignment effect', 'arr=(1); arr=child read -r x <<<"$((arr[1]=2))"; say "$x:${arr[*]}"', '2:1 2\n'],
+  ['array binding outside prefix', 'arr=(a b c); IFS=:; arr=child read -r x <<<"${arr[*]}"; say "$x:${arr[*]}"', 'a:b:c:a:b:c\n'],
+] as const) {
+  test(`redirection assignment boundary: ${name}`, async t => {
+    const { shell } = setup({ limits: { maxExpansionBytes: 4096 } });
+    t.after(() => shell.dispose());
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+  });
+}
+
+for (const redirect of ['<<<"${arr[*]}"', '<<EOF\n${arr[*]}\nEOF']) {
+  test(`redirection retains raw IFS and saved array bytes: ${redirect}`, async t => {
+    const { shell } = setup({ limits: { maxExpansionBytes: 4096 } });
+    shell.use(standardCommands());
+    t.after(() => shell.dispose());
+    const result = await shell.exec(`arr=($'\\377' b); IFS=$'\\376'; IFS= arr=child read -r x ${redirect}\nprintf '%s|%s' "$x" "\${arr[*]}"`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual([...result.stdoutBytes], [255, 254, 98, 124, 255, 254, 98]);
+    assert.equal(result.stderr, "");
+  });
+}

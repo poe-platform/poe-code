@@ -14569,8 +14569,8 @@ export class Runtime {
           (
             part.operator === undefined ||
             ((part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") &&
-              part.argument !== undefined &&
-              part.argument.parts.every(p => p.kind === "text"))
+              part.alternate !== undefined &&
+              part.alternate.parts.every(p => p.kind === "text"))
           )
         ) continue;
         if (part.kind === "arithmetic" && !part.expression.error && !part.expression.hasMutation && !part.expression.hasSubscript && isSafeSmiProgram(part.expression) && /^[a-zA-Z0-9_ +*-]+$/.test(part.expression.source)) continue;

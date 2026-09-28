@@ -13614,7 +13614,7 @@ export class Runtime {
             if (!isShellIdentifier(lName) || controlNames.has(lName) || lName === "OPTIND" || store?.get(lName) || rawState.readonlyVariables?.has(lName) || rawState.variableAttributes?.get(lName) || monitor?.hasOverlay(lName)) return undefined;
             const prefixText = p0.value.slice(eqIdx + 1);
             const valParts = prefixText.length > 0 ? [{ ...p0, value: prefixText }, ...lw.parts.slice(1)] : lw.parts.slice(1);
-            const valWord: Word = { parts: valParts.length > 0 ? valParts : [{ kind: "text", value: "", quoted: true }], plain: lw.parts.length === 1 && p0.quoted ? prefixText : undefined };
+            const valWord: Word = { offset: lw.offset, parts: valParts.length > 0 ? valParts : [{ kind: "text", value: "", quoted: true }], ...(lw.parts.length === 1 && p0.quoted ? { plain: prefixText } : {}) };
             if (!this.isPureSyncValueWord(valWord, rawState)) return undefined;
             locals.push({ name: lName, valueWord: valWord, isFirstInCmd: wi === 1 });
           } else if (lw.plain !== undefined && isShellIdentifier(lw.plain)) {

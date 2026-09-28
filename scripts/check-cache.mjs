@@ -256,6 +256,8 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
     "node scripts/build.mjs",
     "tsc --noEmit && npm run build:site",
+    "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
+    "node --import tsx scripts/generate-gh-workflows.ts && tsc && node --import tsx scripts/build-assets.ts",
     "node ../../scripts/guard-package-dist.mjs && rm -rf dist/opt-in && node scripts/integration-inputs.mjs && node scripts/build.mjs",
     "node ../../scripts/guard-package-dist.mjs && node scripts/numberformat-data.mjs && rm -rf dist && tsc && node scripts/numberformat-data.mjs --copy && node ../../scripts/set-bin-executable.mjs",
     "node ../../scripts/guard-package-dist.mjs && tsc && node -e \"require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')\"",

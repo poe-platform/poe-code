@@ -10,7 +10,7 @@
 
 use git_rust::commands::plumbing::{branch, init, read_blob, read_commit, set_config};
 use git_rust::commands::worktree::{
-    abort_merge, add, checkout, cherry_pick, commit, merge, stash, status,
+    abort_merge, add, checkout, cherry_pick, commit, merge, remove, stash, status,
 };
 use git_rust::errors::ErrorCode;
 use git_rust::fixtures::{make_fixture, make_fixture_as_submodule};
@@ -327,14 +327,22 @@ dual_fixture_test!(abort_merge_preserves_untracked_files_in_worktree, abort_merg
 // ============================================================================
 // 4. test-cherryPick + submodule
 // ============================================================================
-dual_fixture_test!(cherry_pick_root_commit_errors, cherry_pick_root_commit_errors_sub, "test-empty", |f| {
+dual_fixture_test!(cherry_pick_root_commit_applies, cherry_pick_root_commit_applies_sub, "test-empty", |f| {
     init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, None).unwrap();
     let author = Author { name: "Test".into(), email: "t@e.com".into(), timestamp: 1600000000, timezone_offset: 0.0 };
     f.fs.write_str(&join(&[&f.dir, "file.txt"]), "base\n");
     add(&f.fs, &f.dir, Some(&f.gitdir), &["file.txt".to_string()], false).unwrap();
-    let root_oid = commit(&f.fs, &f.gitdir, Some("base\n"), Some(author), None, false, false, false, false, None, None, None).unwrap();
-    let err = cherry_pick(&f.fs, Some(&f.dir), &f.gitdir, &root_oid, false, false, true, None, None, None).unwrap_err();
-    assert_eq!(err.code, ErrorCode::CherryPickRootCommitError);
+    let root_oid = commit(&f.fs, &f.gitdir, Some("base\n"), Some(author.clone()), None, false, false, false, false, None, None, None).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "other.txt"]), "other\n");
+    f.fs.unlink(&join(&[&f.dir, "file.txt"])).unwrap();
+    remove(&f.fs, &f.gitdir, "file.txt").unwrap();
+    add(&f.fs, &f.dir, Some(&f.gitdir), &["other.txt".to_string()], false).unwrap();
+    let before = commit(&f.fs, &f.gitdir, Some("replace file\n"), Some(author.clone()), None, false, false, false, false, None, None, None).unwrap();
+    let picked = cherry_pick(&f.fs, Some(&f.dir), &f.gitdir, &root_oid, false, false, true, None, Some(author), None).unwrap();
+    assert_eq!(resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap(), picked);
+    assert_eq!(read_commit(&f.fs, &f.gitdir, &picked).unwrap().commit.parent, vec![before]);
+    assert_eq!(f.fs.read_str(&join(&[&f.dir, "file.txt"])).unwrap(), "base\n");
+    assert_eq!(f.fs.read_str(&join(&[&f.dir, "other.txt"])).unwrap(), "other\n");
 });
 
 dual_fixture_test!(cherry_pick_dry_run_does_not_update_head, cherry_pick_dry_run_does_not_update_head_sub, "test-empty", |f| {
@@ -551,8 +559,10 @@ dual_fixture_test!(cherry_pick_no_update_branch_creates_commit_without_moving_he
     let master_oid = commit(&f.fs, &f.gitdir, Some("master\n"), Some(author), None, false, false, false, false, None, None, None).unwrap();
 
     let picked_oid = cherry_pick(&f.fs, Some(&f.dir), &f.gitdir, &feature_oid, true, false, true, None, None, None).unwrap();
-    assert_ne!(picked_oid, master_oid);
+    assert_eq!(picked_oid, master_oid);
     assert_eq!(resolve_ref(&f.fs, &f.gitdir, "HEAD", None).unwrap(), master_oid);
+    assert_eq!(f.fs.read_str(&join(&[&f.dir, "feature.txt"])).unwrap(), "feature
+");
 });
 
 dual_fixture_test!(stash_push_default_message_when_none_provided, stash_push_default_message_when_none_provided_sub, "test-stash", |f| {

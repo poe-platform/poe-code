@@ -1366,16 +1366,13 @@ pub fn cherry_pick(
 ) -> Result<String, GitError> {
     let gdir = discover_gitdir(fs, gitdir);
     let cp_commit = read_commit(fs, &gdir, oid)?;
-    if cp_commit.commit.parent.is_empty() {
-        return Err(GitError::cherry_pick_root_commit(oid));
-    }
     if cp_commit.commit.parent.len() > 1 {
         return Err(GitError::cherry_pick_merge_commit(
             oid,
             cp_commit.commit.parent.len(),
         ));
     }
-    let parent_oid = &cp_commit.commit.parent[0];
+    let parent_oid = cp_commit.commit.parent.first().map(String::as_str);
     let head_oid = GitRefManager::resolve(fs, &gdir, "HEAD", None)?;
 
     // No-commit picks apply to the current index, including earlier picks and staged changes.
@@ -1395,7 +1392,7 @@ pub fn cherry_pick(
         dir,
         &gdir,
         &our_tree,
-        Some(parent_oid),
+        parent_oid,
         oid,
         "HEAD",
         "parent",
@@ -1411,6 +1408,10 @@ pub fn cherry_pick(
             Vec::new(),
             Vec::new(),
         ));
+    }
+
+    if no_update_branch {
+        return Ok(head_oid);
     }
 
     let final_msg = message.unwrap_or(&cp_commit.commit.message);

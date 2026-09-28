@@ -325,3 +325,53 @@ test("assign-default parameter expansions (: \"${x:=default}\"), mapfile -t <<< 
     await shell.dispose();
   }
 });
+
+test("array slice/concat assignments, for-in array slices, local -n scalar/array namerefs, printf -v array elements, and declare -g in sync loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  for (const command of textCommands()) shell.commands.register(command);
+  try {
+    const result = await shell.exec(
+      [
+        "arr=(a b c d e f g h); sum_a=0",
+        "for ((i = 0; i < 40; i++)); do",
+        "  off=$((i % 5))",
+        "  sub=(\"${arr[@]:off:3}\")",
+        "  sum_a=$((sum_a + ${#sub[@]} + ${#sub[0]}))",
+        "done",
+        "printf \"slice:%d:%s\\n\" \"$sum_a\" \"${sub[*]}\";",
+        "nums=(10 20 30 40 50 60 70 80); sum_b=0",
+        "for ((i = 0; i < 40; i++)); do",
+        "  off=$((i % 5))",
+        "  for x in \"${nums[@]:off:3}\"; do sum_b=$((sum_b + x)); done",
+        "done",
+        "printf \"for_slice:%d\\n\" \"$sum_b\";",
+        "a=(1 2 3); b=(4 5 6); sum_c=0",
+        "for ((i = 0; i < 40; i++)); do",
+        "  c=(\"${a[@]}\" \"${b[@]}\")",
+        "  sum_c=$((sum_c + ${#c[@]} + ${c[4]}))",
+        "done",
+        "printf \"concat:%d\\n\" \"$sum_c\";",
+        "bump() { local -n target=\"$1\"; target=$((target + $2)); }",
+        "push_item() { local -n ref=\"$1\"; ref+=(\"$2\"); }",
+        "set_glob() { declare -g GVAR=\"val_$1\"; }",
+        "counter=0; items=(); fmt_arr=()",
+        "for ((i = 0; i < 40; i++)); do",
+        "  bump counter \"$i\"",
+        "  push_item items \"$i\"",
+        "  printf -v \"fmt_arr[$i]\" \"item_%04d\" \"$i\"",
+        "  set_glob \"$i\"",
+        "done",
+        "printf \"nameref:%d:%d:%s:%s:%s\\n\" \"$counter\" \"${#items[@]}\" \"${items[39]}\" \"${fmt_arr[39]}\" \"$GVAR\""
+      ].join("\n")
+    );
+    assert.equal(
+      result.stdout,
+      "slice:160:e f g\nfor_slice:4800\nconcat:440\nnameref:780:40:39:item_0039:val_39\n"
+    );
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally {
+    await shell.dispose();
+  }
+});

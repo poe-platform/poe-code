@@ -2757,7 +2757,7 @@
     {
       "id": "perl-date",
       "status": "open",
-      "currentFinding": "Source-derived signed years and astronomical eras are delivered. Issue #3951 additionally removes local Date TimeClip corruption at accepted clock limits. Authenticated activated Linux Gnumeric Perl captures now match current compiled SDK and Shell for 92 cases across five zones, including BCE/year zero, rollover/leap day, DST and both clock extrema. Broader signatures/coercion, locales, arrays/errors, other runtime profiles and installed/registry qualification remain open."
+      "currentFinding": "Source-derived signed years, astronomical eras and clock-limit TimeClip repair are delivered. Authenticated activated Linux captures match final compiled and installed root/scoped SDK/Shell at d492e1ddd5 for all 92 cases across five zones, including BCE/year zero, rollover/leap day, DST and both clock extrema. The installed Node, Chrome page/Worker and workerd profiles also match. Broader signatures/coercion, locales, arrays/errors, other native runtime profiles and registry qualification remain open."
     },
     {
       "id": "perl-sed",
@@ -2842,7 +2842,7 @@
     {
       "id": "public-packed-artifacts",
       "status": "open",
-      "currentFinding": "Earlier isolated root/scoped artifacts pass the recorded NodeNext, SDK/command/Shell, raw-byte, output-budget, cancellation, native comment/label and browser/Worker profiles in delivery.currentIntegration.installed. They predate the latest evaluator/shell integration changes. Refresh compiled and installed consumers from the final tree, then qualify the containing registry artifacts; wider service qualification remains open."
+      "currentFinding": "Final normal-build root/scoped tarballs at d492e1ddd5 pass strict NodeNext, Node SDK/Shell, Chrome page/module Worker and real workerd qualification, including budget/cancellation/cleanup/raw-byte contracts and 92 native date comparisons per SDK/Shell profile. Final browser bundle identity is verified against inspected Chrome execution. Oversized project source maps and stale root chunks are removed. Containing registry artifacts, later incoming runtime commits and wider native/service qualification remain open; see delivery.currentIntegration.repairedArtifacts."
     }
   ],
   "delivery": {
@@ -2853,7 +2853,14 @@
       "00f924d3ac9e8d90b4e00182330d7bd03baee8b8",
       "acabc3e2b68f8d84c7b3f04af523d135464f2b8e",
       "f5ff899d4edabc51735e07f7f45cdcfa257e465e",
-      "a25767518ccad4ba1d616b564385b4fe1bf84472"
+      "a25767518ccad4ba1d616b564385b4fe1bf84472",
+      "cb260dbede70a43a4d2256a54bcc708a1fb4c899",
+      "a45ace092fa2a02bbf9775d7212644a9bd118626",
+      "2dd0d480656d1f5e32a2b5f976d06756f0fb4eaf",
+      "141bccbf4d40d0522baa8a790f0da87f27a90941",
+      "412ec9125db36f8af806ea38ea63a9c818f582ec",
+      "2cf739239d4102eac01d528a56073e58b657a80c",
+      "d492e1ddd503d32d4de2ecf90e4eb4f9cbfeb18e"
     ],
     "verifiedPublication": {
       "version": "17.0.35",
@@ -2863,11 +2870,11 @@
       "containsRecentCommits": false
     },
     "currentIntegration": {
-      "state": "Partial changes delivered; scoped installed Node/browser/Worker checks pass; full tests and root artifact refresh pending",
-      "localHead": "a25767518ccad4ba1d616b564385b4fe1bf84472",
+      "state": "Normal build and final installed Node/browser/Worker/workerd checks pass at d492e1ddd5; full maintained tests and containing publication remain pending",
+      "localHead": "d492e1ddd503d32d4de2ecf90e4eb4f9cbfeb18e",
       "runtime": "Preserved upstream page-break axes, raw bounds and flags, first-page numbering, shared-runtime package imports and portable source exports. Worksheet-setting retention now publishes generated page breaks after settings. Public shared runtimes remain separate from workspace rebuild output; the maintained shared-runtime recipe accepts the explicit publication directory. Native credential conversion retains iterative conversion and cleanup. Upstream unlimited response/deadline implementations remain in place, with native and TypeScript subscription acknowledgement timers disabled for explicit Infinity.",
-      "checks": "At a25767518c, all 473 spreadsheet test files / 25,696 tests and package source/test/browser/Node typechecks pass. Root ESLint passes after f5ff899d4e removes two shadowed redirect branches; 348 compound-loop and 167 byte/substitution controls pass, with four authenticated GNU Bash 5.2.37 controls. The full maintained npm test has rebuilt dependencies and passed its first two 250-file batches (5,207 and 37,027 tests); the remaining declared workspace tasks are still running. Earlier browser raw-file substitution failures are fixed, but no complete final full-run pass is claimed.",
-      "remaining": "Complete the clean root build and full maintained tests, refresh actual packed Node/browser/Worker consumers and verify containing registry publication. All 19 families remain open.",
+      "checks": "At d492e1ddd5, all 474 spreadsheet files / 25,708 tests plus the maintained native-asset hooks pass. All 597 packaging/policy checks pass. Root ESLint passes; changed policy files pass focused lint after the final repair. Normal npm run build completes 179 declared workspace builds, schema generation, TypeScript and bundling. The separate full npm test remains fixed at a25767518c and has completed 9 batches: 2,249 files / 325,068 passing tests; remaining declared tasks are still running. One skipped file/test and five todo tests are excluded from the passing totals.",
+      "remaining": "Complete the full maintained test run and verify a containing registry publication. Later unrelated shell commits are not covered by the d492e1ddd5 artifact qualification. All 19 families retain their remaining semantic/native qualification scope.",
       "installed": {
         "sourceTree": "38b1859c896721f3ddaf11d7233941d1cffb928b",
         "version": "0.0.0-ssconvert-current.d6b6a11148",
@@ -2918,9 +2925,10 @@
         "finding": "A shared stress-audit node_modules symlink repeatedly redirected workspace links to another checkout, breaking builds. npm ci restored all 180 local workspace links; latest root build started after validating them. Another worker owns installation isolation; no permanent repair claimed."
       },
       "rootBuild": {
+        "sourceTree": "d492e1ddd503d32d4de2ecf90e4eb4f9cbfeb18e",
         "result": "npm run build passed",
-        "log": "out/ssconvert-release-investigation/current-root-build.log",
-        "scope": "All 180 declared workspaces traversed, 179 builds, followed by root schemas/TypeScript/bundles. Subsequent full-test prerequisites rebuilt the clock and redirect repairs; refresh root bundles before root tarball qualification."
+        "log": "out/ssconvert-release-investigation/root-policy-confirmation-build.log",
+        "scope": "180 workspaces traversed; 179 declared builds, then root schemas, TypeScript and bundles. The Python workspace has no declared build and is not counted as a pass."
       },
       "redirectRepair": {
         "issue": 3952,
@@ -2950,10 +2958,90 @@
           {
             "files": 250,
             "tests": 37027
+          },
+          {
+            "files": 250,
+            "tests": 98005
+          },
+          {
+            "files": 250,
+            "tests": 47018
+          },
+          {
+            "files": 250,
+            "tests": 81588
+          },
+          {
+            "files": 250,
+            "tests": 37478
+          },
+          {
+            "files": 250,
+            "tests": 4222
+          },
+          {
+            "files": 249,
+            "tests": 7147,
+            "skippedFiles": 1,
+            "skippedTests": 1
+          },
+          {
+            "files": 250,
+            "tests": 7376,
+            "todoTests": 5
           }
         ],
         "sharedFilesScheduled": 3290,
         "log": "out/ssconvert-release-investigation/current-full-test.log"
+      },
+      "repairedArtifacts": {
+        "sourceTree": "d492e1ddd503d32d4de2ecf90e4eb4f9cbfeb18e",
+        "scopedVersion": "0.0.0-ssconvert-current.d492e1ddd5",
+        "repairs": "Root conditional Git runtime selection is preserved; canonical publication checks follow exact platform path type imports and no longer require disposable debug maps. Package file collection handles maintained literal exclusions through one implementation. Upstream map removal, companion declarations, Pandoc await and shell assignment repairs are retained.",
+        "resolvedIssues": [
+          3962,
+          3964,
+          3966,
+          3970,
+          3971,
+          3972
+        ],
+        "checks": "Actual root/scoped tarballs installed outside the checkout as physical packages. Four strict NodeNext profiles and Node execution pass. Chrome page and module Worker pass for each package; final rebuilt browser bundles are byte-identical to those inspected in Chrome, with 368 root / 567 scoped inputs and no external imports. Real workerd passes both profiles without nodejs_compat and uses one actual CompiledWasm module each. Root Git init/add/commit/branch executes in Node, Chrome and workerd.",
+        "contracts": "Each of eight runtime profiles passes SDK/Shell conversions, edited XLSX-to-CSV, raw argument ownership, exact 21-byte output admission, original budget-refusal and false cancellation identity, preserved destinations and cleanup. Each matches all 92 activated native PERL_DATE cases through both SDK and Shell (1,472 total exact comparisons).",
+        "packaging": {
+          "root": {
+            "size": 36583987,
+            "unpackedSize": 168108717,
+            "integrity": "sha512-ESSqZl7vcVQ23yTwiGqjuwYPf6ZZFuF/+mf4kL8e8La2jJhoevPp6fvngZJ9AQzD/WqEF6/dXdFIJhYqtKrmtQ==",
+            "entryCount": 7083,
+            "debugMapBytes": 4820
+          },
+          "safe-bash": {
+            "size": 19111085,
+            "unpackedSize": 84713627,
+            "integrity": "sha512-rNC5ydYaX5wye3RbsWURt1N4eU0q2xzc0Wvq2z9AMPfCV99YxXmnRoUXr6BMwdyKCRatmEFOuKcOQW9ouNbiPQ==",
+            "entryCount": 2497,
+            "debugMapBytes": 0
+          },
+          "safe-fs": {
+            "size": 239410,
+            "unpackedSize": 1237071,
+            "integrity": "sha512-tS/t7NqPsndU78+H6XMKGiDSSObcxxx73CubPvHELHjF34HvspXgZofT6GJhxQgMJQup1bi/pSN+I3LOPIvbQQ==",
+            "entryCount": 196,
+            "debugMapBytes": 0
+          },
+          "safe-js": {
+            "size": 2123646,
+            "unpackedSize": 10353416,
+            "integrity": "sha512-/4x6ZuYDnOOXc8qGeDGagjTS5nAI7pqLqAzj/4sH8mMn0a5oXxw7yhtxfiFQmDMuUlgGmRQZILgwXEwWKGzcsQ==",
+            "entryCount": 378,
+            "debugMapBytes": 0
+          }
+        },
+        "sizeFinding": "Normal build removes 24 stale root chunks left by intermediate bundle-stage retries. Final root is 36,583,987 packed / 168,108,717 unpacked bytes versus 76,495,096 / 368,345,634 before repair. Project debug maps and all scoped debug maps are absent; two bundled sprintf-js maps total 4,820 bytes.",
+        "receipts": "out/ssconvert-release-investigation/final-pack-summary.json; final-artifact-delta.json; final-browser-identity.json; repaired-browser-results.json; final-workerd-result.json; final-root-node.json; final-scoped-node.json",
+        "cleanup": "Browsers, dedicated Workers, workerd instances and owned loopback server closed. Removed 1,052,177,453 bytes of consumed tarballs, staging, installed node_modules, browser bundles, inventories and screenshots; small receipts and consumer inputs remain. Unrelated edits retain checksum e1c46a9cfb0e8b40c06888a5702affe58cbdc4a7de4b3c5213fd9e37aae7b4af.",
+        "publication": "Remote main contains all listed repairs. Registry remains poe-code 17.0.35 at a8a8a7efbc7c29daf9e6e6071d3520e774a3b7f2; no containing publication verified. Follow release run 36463194259 and later containing successors."
       }
     }
   },

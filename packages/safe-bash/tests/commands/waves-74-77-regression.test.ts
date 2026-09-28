@@ -151,3 +151,73 @@ test("Wave 87: unquoted $(seq)/$(cat) for-loops, [[ =~ ]] + BASH_REMATCH[1], and
     await shell.dispose();
   }
 });
+
+test("Wave 88: nested for over $var/$(seq)/multi-word, local/declare/export, and shift in (($# > 0)) in trySyncLoop", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of createStandardCommands()) registry.register(cmd);
+  for (const cmd of createByteCommands()) registry.register(cmd);
+  for (const cmd of createStreamFormatCommands()) registry.register(cmd);
+  const shell = new Shell({ fs, commands: registry });
+
+  const r1 = await shell.exec(`
+    rows="r1 r2 r3 r4"
+    cols="c1 c2 c3"
+    acc=""
+    for r in $rows; do
+      for c in $cols; do
+        acc+="\${r}_\${c},"
+      done
+    done
+    echo "$acc"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "r1_c1,r1_c2,r1_c3,r2_c1,r2_c2,r2_c3,r3_c1,r3_c2,r3_c3,r4_c1,r4_c2,r4_c3,\n");
+
+  const r2 = await shell.exec(`
+    sum=0
+    for r in $(seq 1 5); do
+      for c in $(seq 1 4); do
+        for k in 10 20; do
+          ((sum += r * c + k))
+        done
+      done
+    done
+    echo "$sum"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "900\n");
+
+  const r3 = await shell.exec(`
+    sq=999
+    f() {
+      local sum=0
+      for ((i=1; i<=10; i++)); do
+        local sq=$((i * i))
+        declare step=1
+        export EXP_LAST="v_$i"
+        printf -v fmt "%02d" "$i"
+        ((sum += sq + step))
+      done
+      echo "$sum:$sq:$fmt:$EXP_LAST"
+    }
+    f
+    echo "outer:$sq:$EXP_LAST"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "395:100:10:v_10\nouter:999:v_10\n");
+
+  const r4 = await shell.exec(`
+    set -- $(seq 1 20)
+    sum=0
+    while (($# > 0)); do
+      if (($1 % 2 == 0)); then
+        ((sum += $1))
+      fi
+      shift
+    done
+    echo "$sum:$#"
+  `);
+  assert.equal(r4.exitCode, 0);
+  assert.equal(r4.stdout, "110:0\n");
+});

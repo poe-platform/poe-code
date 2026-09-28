@@ -35,7 +35,7 @@ it("uses prepared Pandoc adapters in the standalone browser shell build", async 
       expect(name).toBe("poe-code/safe-fs/core");
       return filesystem;
     }
-  });
+  }, { contextCodeGeneration: { strings: false, wasm: false } });
   expect(module.exports.createPandocCommand().name).toBe("pandoc");
   const filter = module.exports.createLuaFilterCapability(async () => new TextEncoder().encode(
     'function Str(el) el.text = string.upper(el.text); return el end'

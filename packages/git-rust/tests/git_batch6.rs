@@ -1380,3 +1380,21 @@ dual_fixture_test!(cli_rev_parse_introspection_and_ref_lists, cli_rev_parse_intr
     assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--absolute-git-dir"]).stdout.trim(), git_rust::discover_gitdir(&f.fs, &f.gitdir));
     assert!(!execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--branches"]).stdout.trim().is_empty());
 });
+
+
+dual_fixture_test!(cli_commit_am_multiple_m_file_author_and_add_all, cli_commit_am_multiple_m_file_author_and_add_all_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "auto-staged via -am\n");
+    let r_am = execute_git_cli(&f.fs, &f.dir, &["commit", "-am", "feat: auto stage README", "-m", "Body paragraph", "--author=Custom Dev <dev@example.com>"]);
+    assert_eq!(r_am.exit_code, 0);
+
+    let r_show = execute_git_cli(&f.fs, &f.dir, &["show", "-s", "HEAD"]);
+    assert!(r_show.stdout.contains("Custom Dev <dev@example.com>"));
+    assert!(r_show.stdout.contains("Body paragraph"));
+
+    f.fs.write_str(&join(&[&f.dir, "brand-new.txt"]), "added with -A\n");
+    f.fs.write_str(&join(&[&f.dir, "commit-msg.txt"]), "chore: commit from file\n");
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["add", "-A"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["commit", "-F", "commit-msg.txt"]).exit_code, 0);
+    assert!(execute_git_cli(&f.fs, &f.dir, &["log", "-1", "--oneline"]).stdout.contains("chore: commit from file"));
+});

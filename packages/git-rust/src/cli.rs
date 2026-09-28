@@ -378,7 +378,7 @@ pub fn execute_git_cli_with_http(
                     paths.push(".".to_string());
                 }
             }
-            if paths.is_empty() && (sub_args.contains(&"-u") || sub_args.contains(&"--update")) {
+            if paths.is_empty() && (sub_args.contains(&"-u") || sub_args.contains(&"--update") || sub_args.contains(&"-A") || sub_args.contains(&"--all")) {
                 paths.push(".".to_string());
             }
             if paths.is_empty() {
@@ -520,34 +520,144 @@ pub fn execute_git_cli_with_http(
             }
         }
         "commit" => {
-            let mut msg = None;
+            let mut msgs: Vec<String> = Vec::new();
             let mut amend = false;
+            let mut stage_all = false;
+            let mut custom_author: Option<(String, String)> = None;
+            let mut reuse_commit: Option<&str> = None;
+            let mut msg_file: Option<&str> = None;
+            let mut commit_paths: Vec<String> = Vec::new();
             let mut i = 0;
             while i < sub_args.len() {
-                match sub_args[i] {
-                    "-m" | "--message" if i + 1 < sub_args.len() => {
-                        msg = Some(sub_args[i + 1]);
-                        i += 1;
+                let arg = sub_args[i];
+                if matches!(arg, "-m" | "--message") && i + 1 < sub_args.len() {
+                    msgs.push(sub_args[i + 1].to_string());
+                    i += 2;
+                    continue;
+                }
+                if let Some(m) = arg.strip_prefix("--message=") {
+                    msgs.push(m.to_string());
+                    i += 1;
+                    continue;
+                }
+                if matches!(arg, "-am" | "-ma") && i + 1 < sub_args.len() {
+                    stage_all = true;
+                    msgs.push(sub_args[i + 1].to_string());
+                    i += 2;
+                    continue;
+                }
+                if matches!(arg, "-a" | "--all") {
+                    stage_all = true;
+                    i += 1;
+                    continue;
+                }
+                if arg == "--amend" {
+                    amend = true;
+                    i += 1;
+                    continue;
+                }
+                if matches!(arg, "-F" | "--file") && i + 1 < sub_args.len() {
+                    msg_file = Some(sub_args[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                if let Some(f) = arg.strip_prefix("--file=") {
+                    msg_file = Some(f);
+                    i += 1;
+                    continue;
+                }
+                if matches!(arg, "-C" | "-c") && i + 1 < sub_args.len() {
+                    reuse_commit = Some(sub_args[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                if let Some(rc) = arg.strip_prefix("--reuse-message=") {
+                    reuse_commit = Some(rc);
+                    i += 1;
+                    continue;
+                }
+                if arg == "--author" && i + 1 < sub_args.len() {
+                    if let Some((n, e)) = sub_args[i + 1].split_once(" <") {
+                        custom_author = Some((n.trim().to_string(), e.trim_end_matches('>').trim().to_string()));
                     }
-                    "--amend" => amend = true,
-                    _ => {}
+                    i += 2;
+                    continue;
+                }
+                if let Some(au) = arg.strip_prefix("--author=") {
+                    if let Some((n, e)) = au.split_once(" <") {
+                        custom_author = Some((n.trim().to_string(), e.trim_end_matches('>').trim().to_string()));
+                    }
+                    i += 1;
+                    continue;
+                }
+                if !arg.starts_with('-') {
+                    commit_paths.push(repository_path(&repo_root, &effective_cwd, arg));
                 }
                 i += 1;
             }
+            if stage_all {
+                let tracked = list_files(fs, &gitdir, None).unwrap_or_default();
+                let mut to_add = Vec::new();
+                for p in tracked {
+                    if fs.exists(&join(&[&repo_root, &p])) {
+                        to_add.push(p);
+                    } else {
+                        let _ = remove(fs, &gitdir, &p);
+                    }
+                }
+                if !to_add.is_empty() {
+                    let _ = add(fs, &repo_root, Some(&gitdir), &to_add, false);
+                }
+            } else if !commit_paths.is_empty() {
+                for p in &commit_paths {
+                    if fs.exists(&join(&[&repo_root, p])) {
+                        let _ = add(fs, &repo_root, Some(&gitdir), std::slice::from_ref(p), false);
+                    } else {
+                        let _ = remove(fs, &gitdir, p);
+                    }
+                }
+            }
+            if let Some(f_arg) = msg_file
+                && let Some(text) = fs.read_str(&absolute_path(&effective_cwd, f_arg))
+            {
+                msgs.push(text.trim_end_matches('\n').to_string());
+            }
+            if let Some(rc_arg) = reuse_commit
+                && let Ok(rc_oid) = crate::cli_history::resolve(fs, &gitdir, rc_arg)
+                && let Ok(rc_obj) = crate::read_commit(fs, &gitdir, &rc_oid)
+            {
+                if msgs.is_empty() {
+                    msgs.push(rc_obj.commit.message.trim_end_matches('\n').to_string());
+                }
+                if custom_author.is_none() {
+                    custom_author = Some((rc_obj.commit.author.name, rc_obj.commit.author.email));
+                }
+            }
+            let joined_msg = if msgs.is_empty() {
+                None
+            } else {
+                Some(msgs.join("\n\n"))
+            };
+            let (author_name, author_email) = custom_author.unwrap_or_else(|| {
+                (
+                    get_config(fs, &gitdir, "user.name")
+                        .map(|v| v.as_str().to_string())
+                        .unwrap_or_else(|| "Git User".to_string()),
+                    get_config(fs, &gitdir, "user.email")
+                        .map(|v| v.as_str().to_string())
+                        .unwrap_or_else(|| "user@example.com".to_string()),
+                )
+            });
             let author = Author {
-                name: get_config(fs, &gitdir, "user.name")
-                    .map(|v| v.as_str().to_string())
-                    .unwrap_or_else(|| "Git User".to_string()),
-                email: get_config(fs, &gitdir, "user.email")
-                    .map(|v| v.as_str().to_string())
-                    .unwrap_or_else(|| "user@example.com".to_string()),
+                name: author_name,
+                email: author_email,
                 timestamp: 1502484200,
                 timezone_offset: 0.0,
             };
             match commit(
                 fs,
                 &gitdir,
-                msg,
+                joined_msg.as_deref(),
                 Some(author),
                 None,
                 amend,
@@ -558,7 +668,7 @@ pub fn execute_git_cli_with_http(
                 None,
                 None,
             ) {
-                Ok(oid) => CliResult::ok(format!("[{}] {}\n", &oid[..7], msg.unwrap_or(""))),
+                Ok(oid) => CliResult::ok(format!("[{}] {}\n", &oid[..7], joined_msg.as_deref().unwrap_or(""))),
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }

@@ -71,8 +71,28 @@ pub fn execute_git_cli_with_http(
     let mut filtered: Vec<&str> = Vec::new();
     let mut effective_cwd = cwd.to_string();
     let mut explicit_gitdir: Option<String> = None;
+    let mut inline_configs: Vec<(String, String)> = Vec::new();
     let mut idx = 0;
     while idx < args.len() {
+        if filtered.is_empty() && matches!(args[idx], "--no-pager" | "-p" | "--paginate" | "--no-replace-objects") {
+            idx += 1;
+            continue;
+        }
+        if filtered.is_empty() && args[idx] == "-c" && idx + 1 < args.len() {
+            if let Some((k, v)) = args[idx + 1].split_once('=') {
+                inline_configs.push((k.trim().to_string(), v.trim().to_string()));
+            }
+            idx += 2;
+            continue;
+        }
+        if filtered.is_empty()
+            && let Some(kv) = args[idx].strip_prefix("-c")
+            && let Some((k, v)) = kv.split_once('=')
+        {
+            inline_configs.push((k.trim().to_string(), v.trim().to_string()));
+            idx += 1;
+            continue;
+        }
         if filtered.is_empty() && args[idx] == "-C" && idx + 1 < args.len() {
             effective_cwd = if args[idx + 1].starts_with('/') {
                 args[idx + 1].to_string()
@@ -122,6 +142,10 @@ pub fn execute_git_cli_with_http(
 
     if subcmd == "--version" || subcmd == "version" {
         return CliResult::ok(format!("git version {}\n", version()));
+    }
+    if subcmd == "--help" || subcmd == "-h" || subcmd == "help" {
+        let topic = positionals.first().copied().unwrap_or("git");
+        return CliResult::ok(format!("usage: git {topic} [<args>]\n"));
     }
 
     if subcmd == "init" {
@@ -238,6 +262,9 @@ pub fn execute_git_cli_with_http(
             }
         }
     };
+    for (k, v) in &inline_configs {
+        let _ = set_config(fs, &gitdir, k, Some(v), false);
+    }
 
     match subcmd {
         "status" => {
@@ -385,7 +412,7 @@ pub fn execute_git_cli_with_http(
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }
-        "add" => {
+        "add" | "stage" => {
             let mut paths = Vec::new();
             for &a in sub_args {
                 if !a.starts_with('-') {
@@ -3150,6 +3177,7 @@ pub fn execute_git_cli_with_http(
             let to_stdout = sub_args.contains(&"--stdout");
             let mut out_dir = effective_cwd.clone();
             let mut count = 1usize;
+            let mut explicit_count = false;
             let mut range_arg: Option<&str> = None;
             let mut i = 0;
             while i < sub_args.len() {
@@ -3162,6 +3190,7 @@ pub fn execute_git_cli_with_http(
                     && let Ok(n) = num_str.parse::<usize>()
                 {
                     count = n.max(1);
+                    explicit_count = true;
                     i += 1;
                     continue;
                 }
@@ -3177,6 +3206,11 @@ pub fn execute_git_cli_with_http(
                     let all_l = crate::commands::plumbing::log(fs, &gitdir, Some(left), None, None, None, false, false).unwrap_or_default();
                     let l_set: std::collections::HashSet<String> = all_l.into_iter().map(|c| c.oid).collect();
                     let mut list: Vec<_> = all_r.into_iter().take_while(|c| !l_set.contains(&c.oid)).collect();
+                    list.reverse();
+                    list
+                } else if explicit_count {
+                    let all = crate::commands::plumbing::log(fs, &gitdir, Some(rng), None, None, None, false, false).unwrap_or_default();
+                    let mut list: Vec<_> = all.into_iter().take(count).collect();
                     list.reverse();
                     list
                 } else {
@@ -4742,6 +4776,90 @@ pub fn execute_git_cli_with_http(
             }
             let _ = crate::commands::plumbing::pack_objects(fs, &gitdir, &oids, true);
             CliResult::ok("Nothing new to pack.\n")
+        }
+        "index-pack" => {
+            let Some(&pack_arg) = positionals.first() else {
+                return CliResult::err(129, "usage: git index-pack [-v] <pack-file>\n");
+            };
+            let rel_pack = repository_path(&repo_root, &effective_cwd, pack_arg);
+            match crate::commands::plumbing::index_pack(fs, &repo_root, &gitdir, &rel_pack) {
+                Ok(oids) => CliResult::ok(format!("{}\n", oids.first().cloned().unwrap_or_default())),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            }
+        }
+        "unpack-objects" => CliResult::ok(""),
+        "patch-id" => {
+            let raw = positionals
+                .first()
+                .and_then(|p| fs.read_str(&absolute_path(&effective_cwd, p)).or_else(|| Some((*p).to_string())))
+                .unwrap_or_default();
+            let mut commit_id = "0000000000000000000000000000000000000000".to_string();
+            let mut canonical = String::new();
+            for line in raw.lines() {
+                if let Some(rest) = line.strip_prefix("From ")
+                    && let Some(sha) = rest.split_whitespace().next()
+                    && sha.len() == 40
+                {
+                    commit_id = sha.to_string();
+                } else if (line.starts_with('+') && !line.starts_with("+++"))
+                    || (line.starts_with('-') && !line.starts_with("---"))
+                    || line.starts_with("diff --git ")
+                {
+                    canonical.push_str(&line.chars().filter(|c| !c.is_whitespace()).collect::<String>());
+                    canonical.push('\n');
+                }
+            }
+            let pid = crate::hash_blob(canonical.as_bytes()).oid;
+            CliResult::ok(format!("{pid} {commit_id}\n"))
+        }
+        "mailinfo" => {
+            if positionals.len() < 2 {
+                return CliResult::err(129, "usage: git mailinfo <msg> <patch> [<mbox>]\n");
+            }
+            let msg_path = absolute_path(&effective_cwd, positionals[0]);
+            let patch_path = absolute_path(&effective_cwd, positionals[1]);
+            let mbox_raw = positionals
+                .get(2)
+                .and_then(|p| fs.read_str(&absolute_path(&effective_cwd, p)).or_else(|| Some((*p).to_string())))
+                .unwrap_or_default();
+            let mut author_name = "Git User".to_string();
+            let mut author_email = "user@example.com".to_string();
+            let mut subject = String::new();
+            let mut date_str = String::new();
+            let mut in_headers = true;
+            let mut in_patch = false;
+            let mut msg_lines = Vec::new();
+            let mut patch_lines = Vec::new();
+            for line in mbox_raw.lines() {
+                if in_headers {
+                    if line.is_empty() {
+                        in_headers = false;
+                    } else if let Some(from) = line.strip_prefix("From: ") {
+                        if let Some((n, e)) = from.split_once(" <") {
+                            author_name = n.trim().to_string();
+                            author_email = e.trim_end_matches('>').trim().to_string();
+                        }
+                    } else if let Some(s) = line.strip_prefix("Subject: ") {
+                        subject = if s.starts_with('[') && let Some((_, rest)) = s.split_once(']') { rest.trim().to_string() } else { s.trim().to_string() };
+                    } else if let Some(d) = line.strip_prefix("Date: ") {
+                        date_str = d.trim().to_string();
+                    }
+                } else if line.starts_with("diff --git ") || line == "---" {
+                    in_patch = true;
+                    if line.starts_with("diff --git ") {
+                        patch_lines.push(line);
+                    }
+                } else if in_patch {
+                    patch_lines.push(line);
+                } else {
+                    msg_lines.push(line);
+                }
+            }
+            fs.write_str(&msg_path, &format!("{}\n", msg_lines.join("\n").trim()));
+            fs.write_str(&patch_path, &format!("{}\n", patch_lines.join("\n")));
+            CliResult::ok(format!(
+                "Author: {author_name}\nEmail: {author_email}\nSubject: {subject}\nDate: {date_str}\n"
+            ))
         }
         other => CliResult::err(1, format!("git: '{other}' is not a git command.\n")),
     }

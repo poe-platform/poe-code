@@ -1641,3 +1641,36 @@ dual_fixture_test!(cli_show_ref_verify_checkout_index_verify_commit_prune_and_re
     assert!(r_prune.stdout.contains(dangling_oid));
     assert_eq!(execute_git_cli(&f.fs, &f.dir, &["repack", "-a", "-d"]).exit_code, 0);
 });
+
+
+dual_fixture_test!(cli_global_c_config_no_pager_stage_patch_id_and_mailinfo, cli_global_c_config_no_pager_stage_patch_id_and_mailinfo_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+
+    // 1. Global -c key=value and --no-pager and git stage
+    f.fs.write_str(&join(&[&f.dir, "staged-via-alias.txt"]), "staged\n");
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["--no-pager", "stage", "staged-via-alias.txt"]).exit_code, 0);
+    assert_eq!(
+        execute_git_cli(
+            &f.fs,
+            &f.dir,
+            &["-c", "user.name=Inline Bot", "-c", "user.email=bot@example.com", "commit", "-m", "feat: inline author"]
+        )
+        .exit_code,
+        0
+    );
+    let r_log = execute_git_cli(&f.fs, &f.dir, &["--no-pager", "log", "-1"]);
+    assert!(r_log.stdout.contains("Inline Bot <bot@example.com>"));
+
+    // 2. patch-id
+    let r_fp = execute_git_cli(&f.fs, &f.dir, &["format-patch", "-1", "--stdout", "HEAD"]);
+    let r_pid1 = execute_git_cli(&f.fs, &f.dir, &["patch-id", &r_fp.stdout]);
+    let r_pid2 = execute_git_cli(&f.fs, &f.dir, &["patch-id", &r_fp.stdout]);
+    assert_eq!(r_pid1.exit_code, 0);
+    assert_eq!(r_pid1.stdout, r_pid2.stdout);
+
+    // 3. mailinfo
+    let r_mi = execute_git_cli(&f.fs, &f.dir, &["mailinfo", "msg.out", "patch.out", &r_fp.stdout]);
+    assert_eq!(r_mi.exit_code, 0);
+    assert!(r_mi.stdout.contains("Author: Inline Bot") && r_mi.stdout.contains("Subject: feat: inline author"));
+    assert!(f.fs.exists(&join(&[&f.dir, "patch.out"])));
+});

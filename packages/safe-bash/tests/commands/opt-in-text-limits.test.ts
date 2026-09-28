@@ -90,9 +90,10 @@ test("sed accepts more than the former instruction count and enforces an explici
   assert.equal(limited.exitCode, 2);
 });
 
-test("text regex compilation retains its depth bound while awk field budgets are opt-in", async () => {
+test("text regex compilation and awk field budgets are opt-in", async () => {
   assert.doesNotThrow(() => new Pattern("(".repeat(64) + "x" + ")".repeat(64)));
-  assert.throws(() => new Pattern("(".repeat(65) + "x" + ")".repeat(65)), /regular expression depth limit exceeded/);
+  assert.doesNotThrow(() => new Pattern("(".repeat(65) + "x" + ")".repeat(65)));
+  assert.throws(() => new Pattern("(".repeat(65) + "x" + ")".repeat(65), true, false, "sed", "", { maxPatternInstructions: 130 }), /regular expression program limit exceeded/);
   assert.doesNotThrow(() => new Pattern("x{1001}"));
   const result = await run("awk", ['BEGIN { NF=100001; print NF }'], { commands: createTextProgramCommands() });
   assert.equal(result.exitCode, 0, result.stderr);

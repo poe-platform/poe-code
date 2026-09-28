@@ -18,9 +18,11 @@ test("oversized regex programs are rejected before emitting any instruction", ()
     return push.apply(this, items);
   };
   try {
-    for (const source of ["a{700000}", "(a{200}){200}", "a{0,700000}", "a{700000,}", "(a|b){10000}", "(){9007199254740991}"]) {
+    for (const source of ["a{700000}", "(a{200}){200}", "a{0,700000}", "a{700000,}", "(a|b){10000}"]) {
       assert.throws(() => new Pattern(source, true, false, "sed", "", { maxPatternInstructions: 16384 }), error => error instanceof ProgramError && error.message === "regular expression program limit exceeded", source);
     }
+    assert.throws(() => new Pattern("(){9007199254740991}", true, false, "sed", "", { maxPatternInstructions: 16384 }),
+      { message: "regular expression program size is not representable" });
   } finally { Array.prototype.push = push; }
   assert.equal(emitted, 0);
 });
@@ -73,10 +75,10 @@ test("jq preflight preserves assertion costs and skips enormous zero-instruction
   assert.deepEqual(await new Pattern("(?=a{2})a+?", true, false, "jq").find("aa", work), { start: 0, end: 1, groups: ["a"] });
 });
 
-test("regex tree limits bound parsing before projection", () => {
-  assert.throws(() => new Pattern("a".repeat(8193)), { message: "regular expression source limit exceeded" });
-  assert.throws(() => new Pattern("(".repeat(65) + "a" + ")".repeat(65)), { message: "regular expression depth limit exceeded" });
-  assert.doesNotThrow(() => new Pattern("(".repeat(64) + "a" + ")".repeat(64)));
+test("regex tree projection honors caller instruction limits", () => {
+  assert.throws(() => new Pattern("a".repeat(8193), true, false, "sed", "", { maxPatternInstructions: 8193 }), { message: "regular expression program limit exceeded" });
+  assert.throws(() => new Pattern("(".repeat(65) + "a" + ")".repeat(65), true, false, "sed", "", { maxPatternInstructions: 130 }), { message: "regular expression program limit exceeded" });
+  assert.doesNotThrow(() => new Pattern("(".repeat(64) + "a" + ")".repeat(64), true, false, "sed", "", { maxPatternInstructions: 130 }));
 });
 
 test("empty alternatives checkpoint their emitted branch instructions", async () => {

@@ -121,6 +121,7 @@ impl Default for VfsState {
 #[derive(Debug, Clone, Default)]
 pub struct MemoryFs {
     state: Arc<RwLock<VfsState>>,
+    pub(crate) pack_cache: crate::storage::pack_cache::PackCache,
 }
 
 impl MemoryFs {
@@ -132,6 +133,7 @@ impl MemoryFs {
         let st = self.state.read().unwrap().clone();
         Self {
             state: Arc::new(RwLock::new(st)),
+            pack_cache: Default::default(),
         }
     }
 

@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::sync::{Arc, RwLock};
 
 use crate::errors::GitError;
 use crate::models::git_object::{GitObject, UnwrappedObject};
@@ -13,7 +14,7 @@ pub struct GitPackIndex {
     pub offsets: BTreeMap<String, usize>,
     pub packfile_sha: String,
     pub pack: Option<Vec<u8>>,
-    offset_cache: BTreeMap<usize, UnwrappedObject>,
+    offset_cache: Arc<RwLock<BTreeMap<usize, UnwrappedObject>>>,
 }
 
 impl GitPackIndex {
@@ -67,7 +68,7 @@ impl GitPackIndex {
             offsets,
             packfile_sha,
             pack: None,
-            offset_cache: BTreeMap::new(),
+            offset_cache: Default::default(),
         }))
     }
 
@@ -98,7 +99,7 @@ impl GitPackIndex {
                 offsets: BTreeMap::new(),
                 packfile_sha,
                 pack: Some(pack.to_vec()),
-                offset_cache: BTreeMap::new(),
+                offset_cache: Default::default(),
             });
         }
 
@@ -151,7 +152,7 @@ impl GitPackIndex {
             offsets: BTreeMap::new(),
             packfile_sha,
             pack: Some(pack.to_vec()),
-            offset_cache: BTreeMap::new(),
+            offset_cache: Default::default(),
         };
 
         // Pass 1 & 2 (handles forward or backward ref-deltas in thin packs)
@@ -187,10 +188,12 @@ impl GitPackIndex {
     }
 
     pub fn load(&mut self, pack: Vec<u8>) {
+        self.offset_cache = Default::default();
         self.pack = Some(pack);
     }
 
     pub fn unload(&mut self) {
+        self.offset_cache = Default::default();
         self.pack = None;
     }
 
@@ -224,12 +227,12 @@ impl GitPackIndex {
         Ok(out)
     }
 
-    pub fn read(&mut self, oid: &str) -> Result<UnwrappedObject, GitError> {
+    pub fn read(&self, oid: &str) -> Result<UnwrappedObject, GitError> {
         self.read_with_external::<fn(&str) -> Result<UnwrappedObject, GitError>>(oid, None)
     }
 
     pub fn read_with_external<F>(
-        &mut self,
+        &self,
         oid: &str,
         external_ref_delta: Option<&F>,
     ) -> Result<UnwrappedObject, GitError>
@@ -248,14 +251,14 @@ impl GitPackIndex {
     }
 
     pub fn read_slice<F>(
-        &mut self,
+        &self,
         start: usize,
         external_ref_delta: Option<&F>,
     ) -> Result<UnwrappedObject, GitError>
     where
         F: Fn(&str) -> Result<UnwrappedObject, GitError>,
     {
-        if let Some(cached) = self.offset_cache.get(&start) {
+        if let Some(cached) = self.offset_cache.read().unwrap().get(&start) {
             return Ok(cached.clone());
         }
         let pack = self.pack.as_ref().ok_or_else(|| {
@@ -345,7 +348,7 @@ impl GitPackIndex {
             }
         };
 
-        self.offset_cache.insert(start, result.clone());
+        self.offset_cache.write().unwrap().insert(start, result.clone());
         Ok(result)
     }
 }

@@ -569,7 +569,7 @@ dual_test!(git_pack_index_from_pack_2, git_pack_index_from_pack_2_sub, "test-Git
 dual_test!(git_pack_index_read_undeltified, git_pack_index_read_undeltified_sub, "test-GitPackIndex", {
     let env = make_fixture("test-GitPackIndex");
     let pack = env.fs.read(&format!("{}/objects/pack/pack-1a1e70d2f116e8cb0cb42d26019e5c7d0eb01888.pack", env.gitdir)).unwrap();
-    let mut idx = GitPackIndex::from_pack::<fn(&str) -> Result<_, _>>(&pack, None).unwrap();
+    let idx = GitPackIndex::from_pack::<fn(&str) -> Result<_, _>>(&pack, None).unwrap();
     let obj = idx.read("0b8faa11b353db846b40eb064dfb299816542a46").unwrap();
     assert_eq!(obj.object_type, "commit");
 });
@@ -577,7 +577,7 @@ dual_test!(git_pack_index_read_undeltified, git_pack_index_read_undeltified_sub,
 dual_test!(git_pack_index_read_ofs_delta, git_pack_index_read_ofs_delta_sub, "test-GitPackIndex", {
     let env = make_fixture("test-GitPackIndex");
     let pack = env.fs.read(&format!("{}/objects/pack/pack-1a1e70d2f116e8cb0cb42d26019e5c7d0eb01888.pack", env.gitdir)).unwrap();
-    let mut idx = GitPackIndex::from_pack::<fn(&str) -> Result<_, _>>(&pack, None).unwrap();
+    let idx = GitPackIndex::from_pack::<fn(&str) -> Result<_, _>>(&pack, None).unwrap();
     let obj = idx.read("5f1f014326b1d7e8079d00b87fa7a9913bd91324").unwrap();
     assert!(!obj.object.is_empty());
 });

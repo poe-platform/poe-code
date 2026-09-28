@@ -1,4 +1,6 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
+
+pub(crate) mod pack_cache;
 
 use crate::errors::GitError;
 use crate::fs::{discover_gitdir, MemoryFs};
@@ -98,82 +100,58 @@ pub fn read_object_packed(
     oid: &str,
 ) -> Result<Option<ReadObjectResult>, GitError> {
     let pack_dir = join(&[gitdir, "objects/pack"]);
-    if let Ok(entries) = fs.readdir(&pack_dir) {
-        let mut idx_files: Vec<String> = entries
-            .into_iter()
-            .filter(|name| name.ends_with(".idx"))
-            .collect();
-        idx_files.sort();
-        for idx_name in idx_files {
-            let idx_path = join(&[&pack_dir, &idx_name]);
-            let Some(idx_bytes) = fs.read(&idx_path) else {
-                continue;
-            };
-            let Some(mut idx) = GitPackIndex::from_idx(&idx_bytes)? else {
-                continue;
-            };
-            if idx.offsets.contains_key(oid) {
-                let pack_name = idx_name.trim_end_matches(".idx").to_string() + ".pack";
-                let pack_path = join(&[&pack_dir, &pack_name]);
-                let Some(pack_bytes) = fs.read(&pack_path) else {
-                    return Err(GitError::internal(&format!(
-                        "Could not read packfile at {pack_path}. The file may be missing, corrupted, or too large to read into memory."
-                    )));
-                };
-                let expected_sha = idx.packfile_sha.clone();
-                let body_end = pack_bytes.len().saturating_sub(20);
-                let trailer_sha = crate::utils::to_hex(&pack_bytes[body_end..]);
-                if trailer_sha != expected_sha {
-                    return Err(GitError::internal(&format!(
-                        "Packfile trailer mismatch: expected {expected_sha}, got {trailer_sha}. The packfile may be corrupted."
-                    )));
-                }
-                let payload_sha = shasum(&pack_bytes[..body_end]);
-                if payload_sha != expected_sha {
-                    return Err(GitError::internal(&format!(
-                        "Packfile payload corrupted: calculated {payload_sha} but expected {expected_sha}. The packfile may have been tampered with."
-                    )));
-                }
-                idx.load(pack_bytes);
-                let get_ext = |ext_oid: &str| -> Result<UnwrappedObject, GitError> {
-                    let r = _read_object(fs, gitdir, ext_oid, "content")?;
-                    Ok(UnwrappedObject {
-                        object_type: r.obj_type,
-                        object: r.object,
-                    })
-                };
-                let res = idx.read_with_external(oid, Some(&get_ext))?;
-                return Ok(Some(ReadObjectResult {
-                    oid: oid.to_string(),
-                    obj_type: res.object_type,
-                    format: "content".to_string(),
-                    object: res.object,
-                    parsed: None,
-                    source: Some(format!("objects/pack/{pack_name}")),
-                }));
-            }
+    let entries: BTreeSet<_> = fs
+        .readdir(&pack_dir)
+        .unwrap_or_default()
+        .into_iter()
+        .collect();
+    // Indexed archives come first. Only archives without an index need a full scan.
+    let mut names: Vec<_> = entries
+        .iter()
+        .filter_map(|name| name.strip_suffix(".idx").map(|base| format!("{base}.pack")))
+        .collect();
+    names.extend(
+        entries
+            .iter()
+            .filter(|name| {
+                name.ends_with(".pack")
+                    && !entries.contains(&(name.trim_end_matches(".pack").to_string() + ".idx"))
+            })
+            .cloned(),
+    );
+    fs.pack_cache
+        .retain(&pack_dir, &names.iter().cloned().collect());
+    for name in names {
+        let path = join(&[&pack_dir, &name]);
+        let Some(index) = fs.pack_cache.index(fs, gitdir, &path, false)? else {
+            continue;
+        };
+        if !index.offsets.contains_key(oid) {
+            continue;
         }
-    }
-    let mut packs = load_pack_indexes(fs, gitdir)?;
-    let get_ext = |ext_oid: &str| -> Result<UnwrappedObject, GitError> {
-        let r = _read_object(fs, gitdir, ext_oid, "content")?;
-        Ok(UnwrappedObject {
-            object_type: r.obj_type,
-            object: r.object,
-        })
-    };
-    for (source, pack) in &mut packs {
-        if pack.offsets.contains_key(oid) {
-            let res = pack.read_with_external(oid, Some(&get_ext))?;
-            return Ok(Some(ReadObjectResult {
-                oid: oid.to_string(),
-                obj_type: res.object_type,
-                format: "content".to_string(),
-                object: res.object,
-                parsed: None,
-                source: Some(source.clone()),
-            }));
-        }
+        let index = if index.pack.is_some() {
+            index
+        } else {
+            fs.pack_cache
+                .index(fs, gitdir, &path, true)?
+                .ok_or_else(|| GitError::not_found(&path))?
+        };
+        let external = |ext_oid: &str| -> Result<UnwrappedObject, GitError> {
+            let object = _read_object(fs, gitdir, ext_oid, "content")?;
+            Ok(UnwrappedObject {
+                object_type: object.obj_type,
+                object: object.object,
+            })
+        };
+        let object = index.read_with_external(oid, Some(&external))?;
+        return Ok(Some(ReadObjectResult {
+            oid: oid.to_string(),
+            obj_type: object.object_type,
+            format: "content".to_string(),
+            object: object.object,
+            parsed: None,
+            source: Some(format!("objects/pack/{name}")),
+        }));
     }
     Ok(None)
 }

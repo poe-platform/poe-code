@@ -7,6 +7,13 @@ import { CommandRegistry } from "../../src/contracts/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
 
 const cases = [
+  ['zero-iteration existing target', 'x=preserve_me; for ((j=5;j<2;j++)); do x=$((j+1)); done; echo "j=$j x=$x"', 'j=5 x=preserve_me\n'],
+  ['zero-iteration unset target', 'unset x; for ((j=5;j<2;j++)); do x=$((j+1)); done; echo "j=$j x=${x-UNSET}"', 'j=5 x=UNSET\n'],
+  ['zero-iteration unset reference', 'unset x; for ((j=5;j<2;j++)); do x=$((x+1)); done; echo "j=$j x=${x-UNSET}"', 'j=5 x=UNSET\n'],
+  ['zero-iteration last argument', 'echo sentinel >/dev/null; for ((j=5;j<2;j++)); do x=$((j+1)); done; echo "$_:$?"', 'sentinel:0\n'],
+  ['zero-iteration allexport', 'x=7; set -a; for ((j=2;j<2;j++)); do x=$((j+1)); done; set +a; declare -p x j', 'declare -- x="7"\ndeclare -x j="2"\n'],
+  ['zero-iteration deferred target', 'x=preserve_me; for ((j=5;j<=2;j++)); do x="value_$j"; done; echo "j=$j x=$x"', 'j=5 x=preserve_me\n'],
+  ['zero-iteration substitution target', 'x=preserve_me; for ((j=5;j<2;j++)); do x=$(echo $((j+1))); done; echo "j=$j x=$x"', 'j=5 x=preserve_me\n'],
   ['getopts diagnostics', 'OPTERR=0; run_opts() { local OPTIND=1 opt; while getopts "ab:" opt "$@"; do total=$((total+1)); done; }; total=0; for ((i=0;i<3;i++)); do if ((i==2)); then run_opts -a -x; else run_opts -a -b val; fi; done; echo "total=$total"', 'total=6\n'],
   ['getopts missing argument', 'OPTERR=0; total=0; f() { local OPTIND=1 opt; while getopts "ab:" opt "$@"; do total=$((total+1)); done; }; for ((i=0;i<3;i++)); do if ((i==2)); then f -a -b; else f -a -b val; fi; done; echo "$total"', '6\n'],
   ['getopts slice', 'set -- -x -a; getopts ":ab" opt "${@:2}"; echo "opt=$opt OPTARG=$OPTARG"', 'opt=a OPTARG=\n'],
@@ -18,6 +25,12 @@ const cases = [
 ] as const;
 for (const [name, source, expected] of cases) {
   test(`sync loops preserve ${name}`, async () => {
+    if (name.startsWith('zero-iteration')) {
+      const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+      assert.equal(native.status, 0, native.stderr);
+      assert.equal(native.stderr, "");
+      assert.equal(native.stdout, expected);
+    }
     const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
     try {
       const result = await shell.exec(source);

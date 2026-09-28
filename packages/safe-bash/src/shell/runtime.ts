@@ -12199,7 +12199,8 @@ export class Runtime {
       try {
         let lastInductionVal: string | undefined;
         const intBudgetSnapshot = this.budget.parsing.snapshot();
-        let canUseIntRegisters = allIntStepsReady && (!hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) && !this.budget.hasCpuLimit && this.budget.maxExpansionFieldsSmi >= 1 && this.budget.maxExpansionBytesSmi >= 32 && !store?.get(inductionName) && inductionName !== "LINENO" && inductionName !== "_" && inductionName !== "FUNCNAME";
+        // Empty loops must evaluate the header without publishing unexecuted body registers or command state.
+        let canUseIntRegisters = iterations > 0 && allIntStepsReady && (!hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) && !this.budget.hasCpuLimit && this.budget.maxExpansionFieldsSmi >= 1 && this.budget.maxExpansionBytesSmi >= 32 && !store?.get(inductionName) && inductionName !== "LINENO" && inductionName !== "_" && inductionName !== "FUNCNAME";
         if (canUseIntRegisters && arithNamesList.length > 0) {
           for (let a = 0; a < arithNamesList.length; a++) {
             const refName = arithNamesList[a]!;

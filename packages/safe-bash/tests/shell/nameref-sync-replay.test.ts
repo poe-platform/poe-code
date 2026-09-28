@@ -6,6 +6,9 @@ import { basicCommands } from "../../src/commands/basic.js";
 for (const [label, source, stdout] of [
   ["quoted prefix names", 'pre_1=a; pre_2=b; for i in 1 2; do echo "iter=$i"; echo "${!pre@}"; done', "iter=1\npre_1 pre_2\niter=2\npre_1 pre_2\n"],
   ["prefix names as function arguments", 'pre_1=a; pre_2=b; f(){ echo "$#:$1:$2"; }; for i in 1 2; do echo "iter=$i"; f "${!pre@}"; done', "iter=1\n2:pre_1:pre_2\niter=2\n2:pre_1:pre_2\n"],
+  ["prefix names created during function-call loop", 'pre_1=a; f(){ echo "$#:$1:$2"; }; for i in 1 2; do echo "iter=$i"; f "${!pre@}"; pre_2=b; done', "iter=1\n1:pre_1:\niter=2\n2:pre_1:pre_2\n"],
+  ["empty prefix names as function arguments", 'f(){ echo "$#:$1:$2"; }; for i in 1 2; do echo "iter=$i"; f "${!absent_prefix_@}"; done', "iter=1\n0::\niter=2\n0::\n"],
+  ["quoted star prefix names as scalar function argument", 'pre_1=a; pre_2=b; IFS=:; f(){ echo "$#:$1:$2"; }; for i in 1 2; do echo "iter=$i"; f "${!pre*}"; done', "iter=1\n1:pre_1:pre_2:\niter=2\n1:pre_1:pre_2:\n"],
   ["prefix names with changing IFS", 'pre_1=a; pre_2=b; for i in 1 2; do echo "iter=$i"; IFS=; echo ${!pre@}; done', "iter=1\npre_1 pre_2\niter=2\npre_1 pre_2\n"],
   ["nested prefix names", 'pre_1=a; pre_2=b; for i in 1 2; do echo "iter=$i"; echo "${missing:-${!pre@}}"; done', "iter=1\npre_1 pre_2\niter=2\npre_1 pre_2\n"],
   ["local nameref with dynamic target", 'arr=(a b); f(){ local -n ref="$1"; echo "ref=$ref"; }; for i in arr "arr[@]"; do echo "iter=$i"; f "$i"; done', "iter=arr\nref=a\niter=arr[@]\nref=a b\n"],

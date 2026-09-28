@@ -11598,7 +11598,7 @@ export class Runtime {
       if (part.kind === "variable") {
         // These expansions can require multiple fields or asynchronous quoting
         // as loop state changes. Decide before the loop produces any effects.
-        if (this._syncLoopFnCheckDepth > 0 && (part.substring || getArraySelector(part)?.kind === "element")) return false;
+        if (this._syncLoopFnCheckDepth > 0 && (part.prefixNames === "@" || part.substring || getArraySelector(part)?.kind === "element")) return false;
         if (part.prefixNames !== undefined) {
           // Adjacent text requires multiple fields; scalar loop steps cannot
           // represent their first/last-field attachment.

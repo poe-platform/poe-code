@@ -200,7 +200,7 @@ describe("standalone package publish metadata", () => {
     const rootPackage = readPackageJson("package.json");
     expect(rootPackage.exports?.["./ssconvert"]).toEqual({
       types: "./packages/safe-bash-command-ssconvert/dist/index.d.ts",
-      import: "./dist/ssconvert/index.js"
+      import: "./packages/safe-bash-command-ssconvert/dist/index.js"
     });
     expect(rootPackage.files).toContain("packages/safe-bash-command-ssconvert/dist");
   });

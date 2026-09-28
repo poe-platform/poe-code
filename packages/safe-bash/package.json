@@ -1447,7 +1447,8 @@
           },
           "assets": [
             "./dist/LICENSE"
-          ]
+          ],
+          "portable": true
         },
         "safe-bash-line-ending-engine": {
           "version": "0.0.1",

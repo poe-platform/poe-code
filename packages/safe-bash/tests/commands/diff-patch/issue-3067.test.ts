@@ -3,15 +3,18 @@ import test from "node:test";
 import { registerYieldCheckpoint } from "../../../src/contracts/yield.js";
 import { run, replacement } from "./helpers.js";
 
-test("diff alignment charges integer comparisons and avoids excessive host turns", async () => {
+test("diff alignment bounds host turns by work quanta with a frozen clock", async t => {
+  t.mock.method(performance, "now", () => 0);
+  t.mock.method(Date, "now", () => 0);
+  const maxWork = 150_000;
   const signal = new AbortController().signal;
   let turns = 0;
   registerYieldCheckpoint(signal, () => { turns++; });
   const files = Object.fromEntries(["left", "right"].map(name => [name,
     Array.from({ length: 200 }, (_, index) => `${name}:${index}:` + "x".repeat(80) + "\n").join("")]));
-  const result = await run("diff", ["left", "right"], { files, signal, options: { maxWork: 150_000 } });
+  const result = await run("diff", ["left", "right"], { files, signal, options: { maxWork } });
   assert.equal(result.exitCode, 1, result.stderr);
-  assert.ok(turns <= 10, `${turns} host turns`);
+  assert.ok(turns > 1 && turns <= Math.floor(maxWork / 4096), `${turns} host turns`);
   assert.ok(result.stdout.includes("1,200c1,200"));
 });
 

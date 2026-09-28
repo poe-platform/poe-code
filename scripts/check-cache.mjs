@@ -266,6 +266,7 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     "node ../../scripts/guard-package-dist.mjs && tsc && node -e \"require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')\"",
     "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:@poe-platform/safe-bash --outfile=dist/index.js && rollup dist/index.d.ts --file dist/index.d.ts --format es --external @poe-platform/safe-bash/contracts --plugin dts={respectExternal:true}"
   ]);
+  const outputs = new Map();
   const eligible = stages.filter(stage => {
     const event = stage.event ?? "build";
     const scripts = stage.manifest.scripts ?? {};
@@ -274,9 +275,11 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
       || scripts[event].includes("prepare-host.mjs")
       || scripts[event].includes("fs.mkdirSync('dist'")
       || fileSystem.existsSync(path.join(plan.root, stage.path, "bindings/Cargo.toml"));
-    return settings.cache !== false && event === "build" && commands.has(scripts[event]) && hasDistOutput
+    const cacheable = settings.cache !== false && event === "build" && commands.has(scripts[event]) && hasDistOutput
       && !scripts["pre" + event] && (!scripts["post" + event] || knownPostbuildHooks.has(scripts["post" + event])) && settings.outputs?.length
-      && settings.outputs.every(pattern => pattern === "dist/**");
+      && settings.outputs.every(pattern => pattern === "dist/**" || pattern === "src/intl-data/dist/**");
+    if (cacheable) outputs.set(stage.name, settings.outputs);
+    return cacheable;
   });
   const started = performance.now();
   const fingerprints = eligible.length ? createTaskFingerprints(plan, { fileSystem, files: cacheFiles, environment, event: "build", selected: eligible.map(stage => stage.name) }) : new Map();
@@ -290,7 +293,7 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
       const record = store.read(taskCacheKey(fingerprints.get(stage.name), "build"));
       if (record?.success && Array.isArray(record.outputs)) {
         try {
-          store.restore(path.join(plan.root, stage.path), ["dist/**"], record.outputs);
+          store.restore(path.join(plan.root, stage.path), outputs.get(stage.name), record.outputs);
           stats.cacheHits++;
           return true;
         } catch (error) {
@@ -303,7 +306,7 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     save(stage, durationMs) {
       if (!fingerprints.has(stage.name)) return;
       pending.push({ stage, value: {
-        success: true, durationMs, outputs: store.capture(path.join(plan.root, stage.path), ["dist/**"])
+        success: true, durationMs, outputs: store.capture(path.join(plan.root, stage.path), outputs.get(stage.name))
       } });
     },
     flush() {

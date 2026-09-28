@@ -69,6 +69,31 @@ describe("workspace build caching", () => {
     expect(state.spawn).toHaveBeenCalledTimes(6);
   });
 
+  it("restores generated Intl source artifacts alongside compiled output in a clean checkout", async () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({ tasks: {
+      build: { dependsOn: ["^build"], outputs: ["dist/**"] },
+      "beta#build": { dependsOn: ["^build"], outputs: ["dist/**", "src/intl-data/dist/**"] }
+    } }));
+    const originalSpawn = state.spawn;
+    const spawn = vi.fn((...args) => {
+      if (args[1].includes("--workspace=packages/beta")) {
+        state.fileSystem.mkdirSync("/repo/packages/beta/src/intl-data/dist", { recursive: true });
+        state.fileSystem.writeFileSync("/repo/packages/beta/src/intl-data/dist/numberformat.js", "generated locale data");
+      }
+      return originalSpawn(...args);
+    });
+    await buildWorkspaces(state.root, { ...state, spawn });
+    state.fileSystem.rmSync("/repo/packages/beta/dist", { recursive: true });
+    state.fileSystem.rmSync("/repo/packages/beta/src/intl-data/dist", { recursive: true });
+    const result = await buildWorkspaces(state.root, { ...state, spawn });
+    expect(spawn).toHaveBeenCalledTimes(2);
+    expect(result).toMatchObject({ cacheHits: 2 });
+    expect(state.fileSystem.readFileSync("/repo/packages/beta/dist/index.js", "utf8")).toBe("built packages/beta");
+    expect(state.fileSystem.readFileSync("/repo/packages/beta/src/intl-data/dist/numberformat.js", "utf8")).toBe("generated locale data");
+    expect(state.fileSystem.readFileSync("/repo/packages/beta/src/index.ts", "utf8")).toBe("beta");
+  });
+
   it("does not publish a build cache entry when its inputs change during execution", async () => {
     const state = fixture();
     const originalSpawn = state.spawn;

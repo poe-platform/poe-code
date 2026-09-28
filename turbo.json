@@ -154,6 +154,15 @@
         "^build"
       ]
     },
+    "@poe-code/safe-js#build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        "src/intl-data/dist/**"
+      ]
+    },
     "@poe-code/safe-js#test:unit": {
       "dependsOn": [
         "build"

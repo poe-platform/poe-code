@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createContext, runInContext } from "node:vm";
 import path from "node:path";
-import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
+import { resolveBrowserShellBuild, resolvePrivateCommandBuild } from "./bundle-safe-bash.mjs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
@@ -1691,4 +1691,37 @@ it('ships xmllint and its shared XML engine through the established XML export',
   expect(checkpoint).toHaveBeenCalledTimes(1);
   controller.abort(reason);
   expect(() => budget.tick()).toThrow(reason);
+});
+
+
+it.each([false, true])("keeps copied private command assets inside built package directories (portable=%s)", async portable => {
+  const name = "safe-bash-command-asset-fixture";
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable };
+  const recipe = resolvePrivateCommandBuild("/repo", { [name]: profile }, [{ dir: name, pkg: {
+    name, ...profile, private: true, type: "module",
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  } }], { alias: {}, external: [], portable });
+  const result = await build({ ...recipe, inject: [], metafile: true, plugins: [{
+    name: "in-memory-private-assets",
+    setup(builder) {
+      builder.onResolve({ filter: /.*/ }, args => ({
+        path: args.path.endsWith(".wasm") ? "/repo/engine.wasm" : "/repo/entry.js", namespace: "fixture",
+      }));
+      builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => args.path.endsWith(".wasm")
+        ? { contents: Uint8Array.of(0, 97, 115, 109, 1, 0, 0, 0), loader: "copy" }
+        : { contents: 'import engine from "./engine.wasm"; export { engine };', loader: "js" });
+    },
+  }] });
+  const outputs = new Set(result.outputFiles!.map(output => output.path));
+  expect([...outputs].some(filename => filename.endsWith(".wasm"))).toBe(true);
+  for (const filename of outputs) {
+    const parts = path.relative("/repo", filename).split(path.sep);
+    expect(parts[0]).toBe("packages");
+    expect(parts[2]).toBe("dist");
+  }
+  for (const output of Object.values(result.metafile!.outputs)) {
+    for (const edge of output.imports.filter(edge => !edge.external)) {
+      expect(outputs.has(path.resolve("/repo", edge.path))).toBe(true);
+    }
+  }
 });

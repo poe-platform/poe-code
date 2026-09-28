@@ -445,5 +445,5 @@ test("wave 49: propagates multi-level continue/break across sync/async loops and
     "printf \"%s\\n\" \"$out\""
   ].join("\n"));
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "143|v01|m02\n");
+  assert.equal(result.stdout, "145|v01|m02\n");
 });

@@ -111,6 +111,17 @@ test("replacement exact logical capacity remains available", async () => {
   await assert.rejects(async () => await substitute("aa", new Pattern("a"), "&".repeat(33), createBudget(10000, 64), true), error => error instanceof ProgramError && error.message === "text buffer limit exceeded");
 });
 
+test("repeated capture appends preserve exact replacement capacity", async () => {
+  const text = "a".repeat(128);
+  const replacement = "&".repeat(8);
+  assert.deepEqual(await substitute(text, new Pattern("a"), replacement, createBudget(100000, 1024), true), {
+    text: "a".repeat(1024), count: 128,
+  });
+  await assert.rejects(substitute(text, new Pattern("a"), replacement, createBudget(100000, 1023), true), {
+    message: "text buffer limit exceeded",
+  });
+});
+
 test("awk literal replacement backslashes retain exact logical capacity", async () => {
   const replacement = String.raw`\n`.repeat(32);
   const result = await substitute("x", new Pattern("x"), replacement, createBudget(10000, 64), false, 1, "awk");
@@ -128,10 +139,10 @@ test("replacement segment and finalization capacities are independently bounded"
   const budget = createBudget(10000, 1025);
   const buffer = new ReplacementBuffer(budget);
   const capacities: number[] = [];
-  const originalSubarray = Uint16Array.prototype.subarray;
+  const originalSubarray = Uint8Array.prototype.subarray;
   const originalClear = buffer.clear;
   let releasedBeforeConversion = false;
-  context.mock.method(Uint16Array.prototype, "subarray", function (this: Uint16Array, begin?: number, end?: number) {
+  context.mock.method(Uint8Array.prototype, "subarray", function (this: Uint8Array, begin?: number, end?: number) {
     capacities.push(this.length);
     return originalSubarray.call(this, begin, end);
   });
@@ -147,28 +158,28 @@ test("replacement segment and finalization capacities are independently bounded"
 
 test("replacement scratch does not retain a pooled backing store beyond its capacity", async context => {
   let byteLength = 0;
-  const originalSubarray = Uint16Array.prototype.subarray;
-  context.mock.method(Uint16Array.prototype, "subarray", function (this: Uint16Array, begin?: number, end?: number) {
+  const originalSubarray = Uint8Array.prototype.subarray;
+  context.mock.method(Uint8Array.prototype, "subarray", function (this: Uint8Array, begin?: number, end?: number) {
     byteLength = this.buffer.byteLength;
     return originalSubarray.call(this, begin, end);
   });
   const buffer = new ReplacementBuffer(createBudget(1000, 64));
   await buffer.append("x".repeat(64));
   assert.equal((await buffer.finish()).length, 64);
-  assert.equal(byteLength, 64 * Uint16Array.BYTES_PER_ELEMENT);
+  assert.equal(byteLength, 64);
 });
 
 for (const size of [4, 1025]) {
   test(`replacement builder charges actual copy and conversion work at size ${size}`, async context => {
-    const cost = size === 4 ? 9 : 3077;
+    const cost = size === 4 ? 13 : 4102;
     const buffer = new ReplacementBuffer(createBudget(cost, size));
     await buffer.append("x".repeat(size));
     assert.equal((await buffer.finish()).length, size);
     const limited = new ReplacementBuffer(createBudget(cost - 1, size));
     await limited.append("x".repeat(size));
-    const allocate = context.mock.method(Buffer, "allocUnsafeSlow");
+    const convert = context.mock.method(String, "fromCharCode");
     await assert.rejects(limited.finish(), { message: "execution step limit exceeded" });
-    assert.equal(allocate.mock.calls.length, 0);
+    assert.equal(convert.mock.calls.length, 0);
     limited.clear();
     assert.equal(limited.remaining, size);
   });
@@ -180,7 +191,7 @@ for (const reason of [0, false, "", null]) {
     const budget = createBudget(10000, 64, controller.signal);
     const buffer = new ReplacementBuffer(budget);
     await buffer.append("abcd");
-    const convert = context.mock.method(Buffer.prototype, "toString");
+    const convert = context.mock.method(String, "fromCharCode");
     context.mock.method(budget, "checkpoint", async () => { queueMicrotask(() => controller.abort(reason)); });
     try {
       await assert.rejects(buffer.finish(), error => error === reason);

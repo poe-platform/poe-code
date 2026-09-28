@@ -1,10 +1,9 @@
 import { Budget, ProgramError } from "./budget.js";
 
 export class ReplacementBuffer {
-  #segments: Uint16Array[] = [];
+  #segments: (Uint8Array | Uint16Array)[] = [];
   #size = 0;
   #allocated = 0;
-  #tailUsed = 0;
   #unboundedText = "";
 
   constructor(readonly budget: Budget) {}
@@ -34,20 +33,24 @@ export class ReplacementBuffer {
     let offset = start;
     while (offset < end) {
       await this.budget.checkpoint();
-      let tail = this.#segments.at(-1);
-      const available = tail ? tail.length - this.#tailUsed : 0;
-      const capacity = Math.min(1024, this.budget.maxBufferBytes - this.#allocated);
-      const length = Math.min(end - offset, available || capacity);
-      this.budget.step(length);
-      if (!available) {
+      this.budget.step();
+      const width = source.charCodeAt(offset) <= 255 ? 1 : 2;
+      let length = 1;
+      while (length < 1024 && offset + length < end) {
         this.budget.step();
-        tail = new Uint16Array(capacity);
-        this.#segments.push(tail);
-        this.#allocated += capacity;
-        this.#tailUsed = 0;
+        if ((source.charCodeAt(offset + length) <= 255 ? 1 : 2) !== width) break;
+        length++;
       }
-      for (let index = 0; index < length; index++) tail![this.#tailUsed + index] = source.charCodeAt(offset + index);
-      this.#tailUsed += length;
+      // Exact width runs avoid reserving unused bytes when Latin1 and wide
+      // UTF-16 units alternate. Wide units, including lone surrogates, cost two
+      // backing bytes even though admit()/remaining count logical units.
+      const bytes = length * width;
+      if (bytes > this.budget.maxBufferBytes - this.#allocated) throw new ProgramError("text buffer limit exceeded");
+      this.budget.step(length + 1);
+      const segment = width === 1 ? new Uint8Array(length) : new Uint16Array(length);
+      for (let index = 0; index < length; index++) segment[index] = source.charCodeAt(offset + index);
+      this.#segments.push(segment);
+      this.#allocated += segment.byteLength;
       this.#size += length;
       offset += length;
     }
@@ -90,7 +93,6 @@ export class ReplacementBuffer {
     this.#segments = [];
     this.#size = 0;
     this.#allocated = 0;
-    this.#tailUsed = 0;
     this.#unboundedText = "";
   }
 }

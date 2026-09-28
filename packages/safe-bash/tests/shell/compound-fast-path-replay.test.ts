@@ -735,6 +735,54 @@ test("matches bash for Wave 64 sync nested =~ inside compound [[ ... ]], arithme
     await shell.dispose();
   }
 });
+for (const [setup, sibling] of [
+  ['b="1+2+3"', '$b -eq 6'],
+  ['shopt -s nocasematch', 'ABC == abc'],
+  ['LC_ALL=C', 'abc == a*'],
+  ['', '-e /dev/null'],
+  ['arr=(yes); index="1-1"', '-v arr[index]'],
+]) {
+  for (const condition of [
+    `\${BASH_REMATCH[1]} =~ ^([a-z])([a-z]+)$ && ${sibling}`,
+    `(\${BASH_REMATCH[1]} =~ ^([a-z])([a-z]+)$ && ${sibling}) || false`,
+  ]) {
+    test(`nested regex preserves captures across sibling fallback: ${setup} ${condition}`, async context => {
+      const shell = new Shell({ fs: createMemoryFileSystem() });
+      context.after(() => shell.dispose());
+      for (const command of basicCommands()) shell.register(command);
+      const actual = await shell.exec(`[[ prev =~ ^(prev)$ ]]; ${setup || ':'}; [[ ${condition} ]]; echo "status=$? r1=\${BASH_REMATCH[1]} r2=\${BASH_REMATCH[2]}"`);
+      assert.equal(actual.stdout, 'status=0 r1=p r2=rev\n');
+      assert.equal(actual.stderr, '');
+      assert.equal(actual.exitCode, 0);
+    });
+  }
+}
+
+for (const [setup, read, expected] of [
+  ['', 'IFS=/ read -r dir _ <<< "pkg/sub"', 'pkg'],
+  ['', 'IFS= read -r dir <<< "$val"', 'ascii_3'],
+  ['', 'IFS= read dir <<< "$val"', 'ascii_3'],
+  ['declare -l dir', 'IFS=/ read -r dir sub <<< "PKG/MOD"', 'pkg'],
+  ['declare -u dir', 'IFS=/ read -r dir sub <<< "pkg/mod"', 'PKG'],
+  ['declare -l IFS', 'IFS=/ read -r dir sub <<< "pkg/mod"', 'pkg'],
+  ['declare -u IFS', 'IFS=/ read -r dir sub <<< "pkg/mod"', 'pkg'],
+  ['declare -i IFS', 'IFS= read -r dir <<< "pkg"', 'pkg'],
+  ['', 'IFS= read -r <<< "$val"; dir=$REPLY', 'ascii_3'],
+  ['', 'IFS=/ read -ra fields <<< "$val"; dir=${fields[0]}', 'ascii_3'],
+]) {
+  for (const value of ['café', 'a\nb', 'a\\b']) {
+    test(`here-string read does not replay iterations: ${setup} ${read} ${JSON.stringify(value)}`, async context => {
+      const shell = new Shell({ fs: createMemoryFileSystem() });
+      context.after(() => shell.dispose());
+      for (const command of basicCommands()) shell.register(command);
+      const actual = await shell.exec(`${setup || ':'}; cnt=0; for ((k=0; k<4; k++)); do cnt=$((cnt+1)); if ((k==2)); then val="$badval"; else val="ascii_$k"; fi; ${read}; done; echo "$cnt:$dir"`, { env: { badval: value } });
+      assert.equal(actual.stdout, `4:${expected}\n`);
+      assert.equal(actual.stderr, '');
+      assert.equal(actual.exitCode, 0);
+    });
+  }
+}
+
 for (const predicate of ["[", "test"]) {
   for (const body of [
     'empty=""; P -n $empty END',

@@ -7461,41 +7461,9 @@ export class Runtime {
           return this.canSyncCommandCompound({ ...command, redirects: [] }, rawState, depth, loopDepth);
         }
       }
-      if ( command.kind === "simple" && command.redirects.length === 1 && command.redirects[0]!.operator === "<<<" && !command.redirects[0]!.move && !command.redirects[0]!.document && (command.redirects[0]!.descriptor === undefined || command.redirects[0]!.descriptor === 0) && command.words.length >= 2 && this.isPureSyncValueWord(command.redirects[0]!.target, rawState) && !command.redirects[0]!.target.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{")) && !command.redirects[0]!.target.parts.some(part => part.kind === "substitution")) {
-        const w0 = command.words[0]!;
-        const w0Plain = w0.plain;
-        const isIfsRead = command.words[1]?.plain === "read" && w0.parts.length === 1 && w0.parts[0]!.kind === "text" && /^IFS=[: ,;|\t./_=-]?$/.test(w0.parts[0]!.value) && !rawState.readonlyVariables?.has("IFS") && !stateMonitor(rawState)?.store?.get("IFS");
-        const isPlainRead = w0Plain === "read";
-        if ( (isPlainRead || isIfsRead) && !hasShellFunction(rawState, "read") && !rawState.extensions?.builtins.has("read")) {
-          let idx = isPlainRead ? 1 : 2;
-          let hasReadArray = false;
-          while (idx < command.words.length) {
-            const wp = command.words[idx]?.plain;
-            if (wp === "-r" || wp === "-s" || wp === "-rs" || wp === "-sr") { idx++; continue; }
-            if (wp === "-a" || wp === "-ra" || wp === "-ar") { hasReadArray = true; idx++; break; }
-            break;
-          }
-          const st = stateMonitor(rawState)?.store;
-          if (hasReadArray) {
-            const arrVp = idx === command.words.length - 1 ? command.words[idx]?.plain : undefined;
-            if (arrVp && isShellIdentifier(arrVp) && arrVp !== "OPTIND" && arrVp !== "PIPESTATUS" && !rawState.readonlyVariables?.has(arrVp) && !st?.get(arrVp)?.associative) return true;
-          } else if (idx === command.words.length) {
-            if (!rawState.readonlyVariables?.has("REPLY") && !st?.get("REPLY") && !rawState.variableAttributes?.get("REPLY")) return true;
-          } else if (idx < command.words.length) {
-            let allValidVars = true;
-            for (let k = idx; k < command.words.length; k++) {
-              const vp = command.words[k]!.plain;
-              if (!vp || !isShellIdentifier(vp) || vp === "OPTIND" || vp === "PIPESTATUS" || rawState.readonlyVariables?.has(vp) || st?.get(vp)) {
-                allValidVars = false;
-                break;
-              }
-            }
-            if (allValidVars) return true;
-          }
-        }
-        // mapfile can require the asynchronous path as its input or binding
-        // changes. Never speculate across a loop that has already made writes.
-      }
+      // Here-string reads can require fallback as input bytes or variable
+      // attributes change. Execute them individually, never speculate across
+      // an enclosing compound that has already made writes.
       return false;
     }
     if (command.kind === "function") {
@@ -8201,7 +8169,9 @@ export class Runtime {
     if (expr.kind === "unary") return (expr.operator === "-n" || expr.operator === "-z" || expr.operator === "-v" || syncConditionalFileUnaryOps.has(expr.operator)) && !Runtime.wordMayMutate(expr.operand);
     if (expr.kind === "binary") {
       if (Runtime.wordMayMutate(expr.left) || Runtime.wordMayMutate(expr.right)) return false;
-      if (expr.operator === "=~") return this.extractSimpleErePattern(expr.right) !== undefined;
+      // Matching publishes BASH_REMATCH. A sibling may still require fallback,
+      // so only a standalone match can be attempted without replaying writes.
+      if (expr.operator === "=~") return depth === 0 && this.extractSimpleErePattern(expr.right) !== undefined;
       if (expr.operator === "==" || expr.operator === "=" || expr.operator === "!=") {
         if (expr.right.parts.length > 0 && expr.right.parts.every(p => p.quoted)) return true;
         if (expr.right.parts.length > 0 && expr.right.parts.every((p, idx) =>
@@ -8297,6 +8267,7 @@ export class Runtime {
     }
     if (expr.kind === "binary") {
       if (expr.operator === "=~") {
+        if (depth !== 0) return undefined;
         if (!this.extractSimpleErePattern(expr.right)) return undefined;
         let subject: ShellValue | undefined;
         try {

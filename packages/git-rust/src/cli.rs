@@ -686,8 +686,13 @@ pub fn execute_git_cli_with_http(
                             let left = if left.is_empty() { "HEAD" } else { left };
                             let right = if right.is_empty() { "HEAD" } else { right };
                             let range = (|| {
-                                let a = crate::cli_history::resolve(fs, &gitdir, left)?;
-                                let b = crate::cli_history::resolve(fs, &gitdir, right)?;
+                                let resolve = if arg.contains("...") {
+                                    crate::cli_history::resolve_commit
+                                } else {
+                                    crate::cli_history::resolve
+                                };
+                                let a = resolve(fs, &gitdir, left)?;
+                                let b = resolve(fs, &gitdir, right)?;
                                 let a = if arg.contains("...") {
                                     crate::commands::plumbing::find_merge_base(
                                         fs,

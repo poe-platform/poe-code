@@ -1,21 +1,22 @@
-import { spawn } from "node:child_process";
-import { expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
+import { prepareNativeModelScript } from "../tests/fixtures/native-model.js";
+
+let native: Awaited<ReturnType<Awaited<ReturnType<typeof prepareNativeModelScript>>>> | undefined;
+beforeAll(async () => {
+  const startNative = await prepareNativeModelScript(`
+try { await exerciseStoryInheritance(request.strict, request.count); console.log(JSON.stringify({ok:true})); }
+catch(error) { console.log(JSON.stringify({ok:false,error:String(error),stack:error.stack})); }`,
+    `import { exerciseStoryInheritance } from "../tests/fixtures/story-inheritance-depth-public.js";`);
+  native = await startNative();
+});
+afterEach(async () => {
+  if (native) expect(JSON.parse(await native.run({ cleanup: true }, new AbortController().signal))).toEqual({ cleaned: true });
+});
+afterAll(async () => { await native?.dispose(); });
 
 for (const strict of [false, true]) for (const count of [32, 4096])
-it(`native public story inherits through ${count} sections; strict=${strict}`, async () => {
-  const stdout = await new Promise<string>((resolve, reject) => {
-    const child = spawn(process.execPath, ["--import", "tsx", "--input-type=module", "-e",
-      `import { exerciseStoryInheritance } from './packages/docx/tests/fixtures/story-inheritance-depth-public.ts';
-       let input=''; for await (const bytes of process.stdin) input+=bytes;
-       const {strict,count}=JSON.parse(input);
-       try { await exerciseStoryInheritance(strict,count); console.log(JSON.stringify({ok:true})); }
-       catch(error) { console.log(JSON.stringify({ok:false,error:String(error),stack:error.stack})); }`], { stdio: ["pipe", "pipe", "pipe"] });
-    let output = "", stderr = "";
-    child.stdout.on("data", bytes => { output += String(bytes); });
-    child.stderr.on("data", bytes => { stderr += String(bytes); });
-    child.on("error", reject); child.on("close", code => code === 0 ? resolve(output) : reject(new Error(stderr)));
-    child.stdin.end(JSON.stringify({strict,count}));
-  });
+it(`native public story inherits through ${count} sections; strict=${strict}`, async ({ signal }) => {
+  const stdout = await native!.run({ strict, count }, signal);
   const result = JSON.parse(stdout);
   expect(result, result.stack).toEqual({ok:true});
 });

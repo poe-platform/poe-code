@@ -311,3 +311,54 @@ describe("original execution-context fixtures", () => {
     expect(() => bounded.progress("second", 0)).toThrowError(/references/);
   });
 });
+
+for (const clock of [0, 123]) {
+  it(`permits repeated host turns with a frozen clock at ${clock}`, async () => {
+    const spy = vi.spyOn(performance, "now").mockReturnValue(clock);
+    try {
+      const context = createExecutionContext("convert");
+      for (let quantum = 0; quantum < 3; quantum++) {
+        let observed = false;
+        const pending = new Promise<void>(resolve => setImmediate(() => { observed = true; resolve(); }));
+        await context.cooperate(8192);
+        const yielded = observed;
+        await pending;
+        expect(yielded).toBe(true);
+      }
+    } finally { spy.mockRestore(); }
+  });
+}
+
+it("invokes the signal checkpoint even with a custom yield capability", async () => {
+  const { registerYieldCheckpoint } = await import("safe-bash-contracts/yield");
+  const controller = new AbortController();
+  const checkpoint = vi.fn();
+  registerYieldCheckpoint(controller.signal, checkpoint);
+  const context = createExecutionContext("convert", { signal: controller.signal, yield: immediate });
+  await context.cooperate(256);
+  expect(checkpoint).toHaveBeenCalledOnce();
+});
+
+it("observes timer cancellation after earlier quanta in a timer-only host", async () => {
+  vi.spyOn(performance, "now").mockReturnValue(0);
+  vi.stubGlobal("setImmediate", undefined);
+  try {
+    const controller = new AbortController();
+    const context = createExecutionContext("convert", { signal: controller.signal });
+    await context.cooperate(8192);
+    await context.cooperate(8192);
+    const timer = setTimeout(() => controller.abort(), 0);
+    try { await expect(context.cooperate(8192)).rejects.toMatchObject({ code: "E_CANCELLED" }); }
+    finally { clearTimeout(timer); }
+  } finally { vi.restoreAllMocks(); vi.unstubAllGlobals(); }
+});
+
+it("polls a signal checkpoint without a custom yield capability", async () => {
+  const { registerYieldCheckpoint } = await import("safe-bash-contracts/yield");
+  const controller = new AbortController();
+  const checkpoint = vi.fn(() => controller.abort());
+  registerYieldCheckpoint(controller.signal, checkpoint);
+  const context = createExecutionContext("convert", { signal: controller.signal });
+  await expect(context.cooperate(256)).rejects.toMatchObject({ code: "E_CANCELLED" });
+  expect(checkpoint).toHaveBeenCalledOnce();
+});

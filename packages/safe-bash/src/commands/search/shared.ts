@@ -1,7 +1,7 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
 import { isSyncResolved } from "../../fs/creation-mask.js";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { reusableBatchRows, trustedInputRows } from "../regex-execution/protocol.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { SearchError, type SearchOptions } from "./options.js";
@@ -37,7 +37,6 @@ export class Limits {
   files = 0;
   private ticks = 0;
   hasExtYield: boolean;
-  private lastYieldMs = 0;
   private stopped: AbortController | undefined;
   private _signal: AbortSignal | undefined;
   private outBuf: Uint8Array | null = null;
@@ -99,7 +98,6 @@ export class Limits {
     this.outputBytes = 0;
     this.files = 0;
     this.ticks = 0;
-    this.lastYieldMs = 0;
     this.stopped = undefined;
     this._signal = undefined;
     this.outPos = 0;
@@ -142,17 +140,7 @@ export class Limits {
       return undefined;
     }
     if ((++this.ticks & 2047) === 0) {
-      const now = monotonicNow();
-      if (this.lastYieldMs === 0) {
-        this.lastYieldMs = now;
-        return undefined;
-      }
-      if (now - this.lastYieldMs >= 25) {
-        this.lastYieldMs = now;
-        return yieldTurn(this.context.signal).then(() => {
-          this.lastYieldMs = monotonicNow();
-        });
-      }
+      return yieldTurn(this.context.signal);
     }
     return undefined;
   }

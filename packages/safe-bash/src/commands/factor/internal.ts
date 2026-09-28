@@ -1,6 +1,6 @@
 import { getCommandArguments, type CommandContext } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 
 export interface FactorLimits {
@@ -72,8 +72,6 @@ export function quote(value: string, budget: Budget, suffixLength: number): stri
 export class Budget {
   private work = 0;
   private checkpoint = 0;
-  private checkpointCount = 0;
-  private lastYieldMs = monotonicNow();
   private retained = 0;
   private input = 0;
   private numbers = 0;
@@ -106,15 +104,7 @@ export class Budget {
     if (this.signalAborted || (this.pollSignal && this.signal.aborted)) this.signal.throwIfAborted();
     if (this.work - this.checkpoint < 1024) return;
     this.checkpoint = this.work;
-    const count = ++this.checkpointCount;
-    if (hasYieldCheckpoint(this.signal)) return runYieldCheckpoint(this.signal);
-    const now = monotonicNow();
-    if (count === 1 || now - this.lastYieldMs >= 16) {
-      this.lastYieldMs = now;
-      return yieldTurn(this.signal).then(() => {
-        this.lastYieldMs = monotonicNow();
-      });
-    }
+    return yieldTurn(this.signal);
   }
   retain(amount: number): void {
     this.check(this.retained + amount, this.limits.maxBufferedBytes, "buffered bytes");

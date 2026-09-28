@@ -1,3 +1,4 @@
+import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { PandocError } from "./errors.js";
 import type {
   AdapterContext,
@@ -69,8 +70,6 @@ export class ExecutionContext implements AdapterContext {
   private outputStarted = false;
   private pendingOutput = false;
   sinceYield = 0;
-  private yieldedOnce = false;
-  private lastYieldMs = 0;
 
   constructor(
     readonly operation: Operation,
@@ -186,16 +185,9 @@ export class ExecutionContext implements AdapterContext {
 
   cooperateFast(units = 1): Promise<void> | void {
     this.checkpoint(units);
-    if (this.sinceYield >= 256) {
-      if (this.context.yield !== undefined) {
-        return this.cooperateSlow();
-      }
-      const now = performance.now();
-      if (!this.yieldedOnce || now - this.lastYieldMs >= 16) {
-        return this.cooperateSlow();
-      }
-      this.sinceYield = 0;
-    }
+    // Host checkpoints need prompt polling; standalone conversions use a larger CPU quantum.
+    const quantum = this.context.yield !== undefined || hasYieldCheckpoint(this.signal) ? 256 : 8192;
+    if (this.sinceYield >= quantum) return this.cooperateSlow();
   }
 
   async cooperate(units = 1): Promise<void> {
@@ -206,21 +198,10 @@ export class ExecutionContext implements AdapterContext {
   private async cooperateSlow(): Promise<void> {
     this.sinceYield = 0;
     if (this.context.yield !== undefined) {
+      runYieldCheckpoint(this.signal);
       await this.call(this.context.yield);
     } else {
-      const now = performance.now();
-      if (!this.yieldedOnce || now - this.lastYieldMs >= 16) {
-        this.yieldedOnce = true;
-        this.lastYieldMs = now;
-        const imm = (globalThis as { setImmediate?: (cb: () => void) => void }).setImmediate;
-        await this.call(
-          () =>
-            new Promise<void>((resolve) =>
-              typeof imm === "function" ? imm(resolve) : setTimeout(resolve, 0)
-            )
-        );
-        this.lastYieldMs = performance.now();
-      }
+      await this.call(() => yieldTurn(this.signal));
     }
     this.checkpoint(0);
   }

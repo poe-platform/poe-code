@@ -1,6 +1,6 @@
 import { FsError, getCommandArguments, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 import type { RegexExecutionOptions } from "../regex-execution/portable.js";
 import type { BoundedRegexProvider } from "../regex-execution/provider.js";
@@ -96,8 +96,6 @@ export class Budget {
   private readonly buffers = new Map<object, number>();
   private work = 0;
   private checkpoint = 0;
-  private checkpointCount = 0;
-  private lastYieldMs = monotonicNow();
   private diagnostics = 0;
   private output = 0;
   private signalAborted = false;
@@ -141,15 +139,7 @@ export class Budget {
     this.charge();
     if (this.work - this.checkpoint < 4096) return;
     this.checkpoint = this.work;
-    const count = ++this.checkpointCount;
-    if (hasYieldCheckpoint(this.context.signal)) return runYieldCheckpoint(this.context.signal);
-    const now = monotonicNow();
-    if (count === 1 || now - this.lastYieldMs >= 16) {
-      this.lastYieldMs = now;
-      return yieldTurn(this.context.signal).then(() => {
-        this.lastYieldMs = monotonicNow();
-      });
-    }
+    return yieldTurn(this.context.signal);
   }
   arguments(): string[] {
     this.check(this.context.args.length, this.limits.maxArguments, "argument count");

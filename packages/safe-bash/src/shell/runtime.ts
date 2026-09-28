@@ -12816,13 +12816,15 @@ export class Runtime {
         (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
         return undefined;
       }
+      const startLiteral = e0.tree.right.kind === "literal" ? e0.tree.right.value : undefined;
+      const limitLiteral = e1.tree.right.kind === "literal" ? e1.tree.right.value : undefined;
       const isSimpleLiteralAsc =
-        e0.tree.right.kind === "literal" && e0.tree.right.value >= 0n && e0.tree.right.value <= 2000n &&
+        startLiteral !== undefined && startLiteral >= 0n && startLiteral <= 2000n &&
         (e1.tree.operator === "<" || e1.tree.operator === "<=") &&
-        e1.tree.right.kind === "literal" && e1.tree.right.value >= 0n && e1.tree.right.value <= 2000n &&
+        limitLiteral !== undefined && limitLiteral >= 0n && limitLiteral <= 2000n &&
         e2.tree.kind === "unary" && e2.tree.operator === "++";
       const iterations = isSimpleLiteralAsc
-        ? Math.max(0, Number((e1.tree.right as { value: bigint }).value - (e0.tree.right as { value: bigint }).value) + (e1.tree.operator === "<=" ? 1 : 0))
+        ? Math.max(0, Number(limitLiteral - startLiteral) + (e1.tree.operator === "<=" ? 1 : 0))
         : 0;
       if (iterations * bodyAssignments.length > 24000) {
         (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;

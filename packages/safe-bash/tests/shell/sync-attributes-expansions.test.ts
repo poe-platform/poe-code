@@ -20,6 +20,28 @@ const cases: readonly [string, string, string][] = [
   ["unquoted star prefix", 'pre_1=a; pre_2=b; for i in 1 2; do echo "iter=$i"; echo ${!pre*}; done', "iter=1\npre_1 pre_2\niter=2\npre_1 pre_2\n"],
   ["unquoted at prefix", 'pre_1=a; pre_2=b; for i in 1 2; do echo "iter=$i"; echo ${!pre@}; done', "iter=1\npre_1 pre_2\niter=2\npre_1 pre_2\n"],
 ];
+for (const loop of ["for i in 1 2", "for ((i=1;i<=2;i++))"]) {
+  for (const limits of [undefined, { maxExpansionFields: 1000, maxExpansionBytes: 10000 }]) {
+    for (const [name, setupSource, body, expected] of [
+      ["separate fields", "pre_1=a; pre_2=b", 'printf "<%s>" "${!pre@}"', "<pre_1><pre_2>"],
+      ["no matches", "other=a", 'printf "<%s>" "${!missing@}" tail', "<tail>"],
+      ["changing matches", "pre_1=a", 'printf "<%s>" "${!pre@}"; pre_2=b', "<pre_1>|<pre_1><pre_2>"],
+      ["printf variable", "pre_1=a; pre_2=b", 'printf -v out "<%s>" "${!pre@}"; echo -n "$out"', "<pre_1><pre_2>"],
+      ["star joins fields", "pre_1=a; pre_2=b; IFS=:", 'printf "<%s>" "${!pre*}"', "<pre_1:pre_2>"],
+    ]) {
+      test(`prefix ${name}, ${loop}, finite=${limits !== undefined}`, async () => {
+        const { shell } = setup({ commands: new CommandRegistry(basicCommands()), limits });
+        try {
+          const result = await shell.exec(`${setupSource}; ${loop}; do echo "iter=$i"; ${body}; echo; done`);
+          const outputs = expected!.split("|");
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, `iter=1\n${outputs[0]}\niter=2\n${outputs[1] ?? outputs[0]}\n`);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
 for (const op of ["Q", "U", "L", "u"]) {
   for (const value of ["hello\tworld", "hello\nworld", "hello\u0001world", "héllo", "hello world", ""]) {
     for (const quoted of [true, false]) {

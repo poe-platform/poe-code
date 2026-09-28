@@ -4813,11 +4813,11 @@ export class Runtime {
     if ( !monitor || !store || store.watches.has(name) || monitor.hasOverlay(name) || (current && (current.references !== 1 || (associative !== undefined && current.associative !== associative))) || (!current && rawState.variables[name] !== undefined)) {
       return false;
     }
-    const ensureBinding = (isAssoc: boolean, clearRecycled = false): IndexedBinding | undefined => {
+    const ensureBinding = (isAssoc: boolean): IndexedBinding | undefined => {
       if (current) return current.associative === isAssoc ? current : undefined;
       try {
         const initTicketsRec = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-        const recycled = store.takeRecycled(name, isAssoc, clearRecycled, initTicketsRec);
+        const recycled = store.takeRecycled(name, isAssoc, initTicketsRec);
         if (recycled) {
           monitor.epoch = initTicketsRec.epoch;
           current = recycled;
@@ -4862,7 +4862,7 @@ export class Runtime {
           keepIds.add(id);
           pairs.push({ key: kSrc, id, val });
         }
-        const target = ensureBinding(true, assignment.append);
+        const target = ensureBinding(true);
         if (!target) return false;
         try {
           if (!assignment.append && target.values.size > 0) {
@@ -4925,7 +4925,7 @@ export class Runtime {
           if (bLen > this.budget.limits.maxExpansionBytes) return false;
           items.push({ explicitIdx, val, bLen });
         }
-        const target = ensureBinding(false, assignment.append);
+        const target = ensureBinding(false);
         if (!target) return false;
         let nextIndex = assignment.append ? target.maximum + 1 : 0;
         const resolved: Array<{ idx: number; val: string; bLen: number }> = [];
@@ -9378,7 +9378,7 @@ export class Runtime {
             let existingArrayBinding = arrStore.get(arrayTarget);
             if (!existingArrayBinding && rawState.variables[arrayTarget] === undefined && !arrStore.watches.has(arrayTarget) && !monitor.hasOverlay(arrayTarget)) {
               const recTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-              const recBinding = arrStore.takeRecycled(arrayTarget, false, true, recTickets);
+              const recBinding = arrStore.takeRecycled(arrayTarget, false, recTickets);
               if (recBinding) {
                 monitor.epoch = recTickets.epoch;
                 existingArrayBinding = recBinding;
@@ -9573,7 +9573,7 @@ export class Runtime {
                     const arrStore = monitor.store ?? requireArrays(rawState);
                     if (!existingArrayBinding && rawState.variables[arrayTarget] === undefined && !arrStore.watches.has(arrayTarget) && !monitor.hasOverlay(arrayTarget)) {
                       const recTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-                      const recBinding = arrStore.takeRecycled(arrayTarget, false, true, recTickets);
+                      const recBinding = arrStore.takeRecycled(arrayTarget, false, recTickets);
                       if (recBinding) {
                         monitor.epoch = recTickets.epoch;
                         existingArrayBinding = recBinding;
@@ -10023,7 +10023,7 @@ export class Runtime {
                 let eb = arrStore.get(an);
                 if (!eb) {
                   const recTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-                  const recBinding = arrStore.takeRecycled(an, wantAssoc, true, recTickets);
+                  const recBinding = arrStore.takeRecycled(an, wantAssoc, recTickets);
                   if (recBinding) {
                     monitor.epoch = recTickets.epoch;
                     eb = recBinding;

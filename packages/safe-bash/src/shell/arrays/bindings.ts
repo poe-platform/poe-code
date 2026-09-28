@@ -542,7 +542,7 @@ export class BindingStore {
     void previous.binding.release();
   }
 
-  takeRecycled(name: string, associative: boolean, clearValues: boolean, tickets: Tickets): IndexedBinding | undefined {
+  takeRecycled(name: string, associative: boolean, tickets: Tickets): IndexedBinding | undefined {
     const rec = (this.recycledBindings ??= new Map()).get(name);
     if (!rec) return undefined;
     (this.recycledBindings ??= new Map()).delete(name);
@@ -552,10 +552,12 @@ export class BindingStore {
       void rec.binding.release();
       return undefined;
     }
-    if (clearValues && rec.binding.values.size > 0) {
+    // A recycled binding belongs to an unset variable; only its storage is reusable.
+    if (rec.binding.values.size > 0) {
       for (const k of rec.binding.values.keys()) rec.binding.remove(k);
-      rec.binding.maximum = -1;
     }
+    rec.binding.maximum = -1;
+    rec.binding.assigned = false;
     this.bindings.set(name, rec);
     this.changed(tickets, name);
     return rec.binding;

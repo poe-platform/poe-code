@@ -4893,13 +4893,9 @@ export class Runtime {
       if (p0.substring || sel0.kind !== "members" || p0.keys) return false;
       return this.canSyncArrayMemberOperator(p0, rawState);
     }
-    if (p0.substring) {
-      if (sel0.kind !== "members" || p0.keys) return false;
-      const b = stateMonitor(rawState)?.store?.get(resolveSyncNameref(rawState, p0.name));
-      if (b && b.associative) return false;
-      if (!this.isPureSyncValueWord(p0.substring.offset, rawState)) return false;
-      if (p0.substring.length && !this.isPureSyncValueWord(p0.substring.length, rawState)) return false;
-    }
+    // Slice arithmetic can stop being evaluable after an earlier iteration.
+    // Use normal execution from the start, before any loop effects are published.
+    if (p0.substring) return false;
     return true;
   }
 
@@ -4919,9 +4915,9 @@ export class Runtime {
     const activeStore = monitor?.store ?? arrayStore(rawState);
     const resolvedName = resolveSyncNameref(rawState, p0.name);
     const b = activeStore?.get(resolvedName);
+    const dynamicEntries = this.presenceArrayEntries(rawState, resolvedName);
     if (p0.substring) {
       if (sel0.kind !== "members" || p0.keys || (b && b.associative)) return undefined;
-      if (b && b.maximum >= 4096) return undefined;
       const evalSliceInt = (sw: Word): number | undefined => {
         if (sw.parts.length === 0) return 0;
         let expanded: ShellValue | undefined;
@@ -4948,6 +4944,10 @@ export class Runtime {
         if (lenNum === undefined || lenNum < 0) return undefined;
         maxCount = lenNum;
       }
+      if (dynamicEntries) {
+        const startIdx = offNum < 0 ? dynamicEntries.length + offNum : offNum;
+        return startIdx < 0 ? [] : dynamicEntries.slice(startIdx, startIdx + maxCount);
+      }
       if (!b) {
         const sv = rawState.variables[resolvedName];
         if (sv === undefined) return [];
@@ -4961,9 +4961,10 @@ export class Runtime {
       const startIdx = offNum < 0 ? b.maximum + 1 + offNum : offNum;
       if (startIdx < 0) return [];
       const out: string[] = [];
-      for (let k = startIdx; k <= b.maximum && out.length < maxCount; k++) {
-        const slot = b.values.get(k);
-        if (!slot) continue;
+      for (const k of [...b.values.keys()].sort((left, right) => left - right)) {
+        if (k < startIdx) continue;
+        if (out.length >= maxCount) break;
+        const slot = b.values.get(k)!;
         const v = slot.text.shellValue;
         if (typeof v !== "string") return undefined;
         out.push(v);
@@ -4972,12 +4973,11 @@ export class Runtime {
     }
     const isKeys = sel0.kind === "keys" || p0.keys === true;
     let out: string[];
-    if (b) {
-      if (b.maximum >= 4096) return undefined;
+    if (dynamicEntries) out = isKeys ? dynamicEntries.map((_, index) => String(index)) : [...dynamicEntries];
+    else if (b) {
       out = [];
-      for (let k = 0; k <= b.maximum; k++) {
-        const slot = b.values.get(k);
-        if (!slot) continue;
+      for (const k of [...b.values.keys()].sort((left, right) => left - right)) {
+        const slot = b.values.get(k)!;
         const v = isKeys ? (b.associative ? b.keys.get(b.keyByIndex.get(k)!)?.text.shellValue : String(k)) : slot.text.shellValue;
         if (typeof v !== "string") return undefined;
         out.push(v);
@@ -7669,6 +7669,8 @@ export class Runtime {
         if (flagPlain === "-a" || flagPlain === "-A") return false;
         const isNamerefDecl = flagPlain === "-n" && (rawState.locals.length > 0 || depth > 0) && command.words.length >= 3;
         const isGlobalDecl = flagPlain === "-g" && (w0Plain === "declare" || w0Plain === "typeset") && command.words.length >= 3;
+        // A preceding local may hide the global by the time this command runs.
+        if (isGlobalDecl) return false;
         const isAttrDecl = (flagPlain === "-i" || flagPlain === "-l" || flagPlain === "-u") && command.words.length >= 3;
         let allValidLocal = true;
         for (let idx = (isNamerefDecl || isGlobalDecl || isAttrDecl) ? 2 : 1; idx < command.words.length; idx++) {
@@ -7846,6 +7848,7 @@ export class Runtime {
     const nonIntScalarVars = new Set<string>();
     const arrayVars = new Set<string>();
     const localArrayVars = new Set<string>();
+    const namerefVars = new Set<string>();
     let hasShift = false;
     let hasDynamicArith = false;
     const arithSourceChunks: string[] = [];
@@ -7921,6 +7924,7 @@ export class Runtime {
                       if (wp0 === "local" || d > 0) localArrayVars.add(nm);
                     } else if (isNameref) {
                       localArrayVars.add(nm);
+                      namerefVars.add(nm);
                     } else {
                       scalarVars.add(nm);
                       const pv = asg?.value.plain;
@@ -7960,6 +7964,9 @@ export class Runtime {
       return true;
     };
     for (const sc of scripts) if (!visitScript(sc, 0)) return false;
+    // Plain locals cannot be approved using the attributes from before a
+    // nested function creates a nameref with the same name.
+    for (const name of namerefVars) if (scalarVars.has(name)) return false;
     if (hasShift && hasDynamicArith && posHasExpr) return false;
     for (const v of arrayVars) {
       if (scalarVars.has(v) || (!localArrayVars.has(v) && !st?.get(v) && rawState.variables[v] !== undefined)) return false;
@@ -16807,6 +16814,19 @@ export class Runtime {
         const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\+?=(.*))?$/su.exec(arg);
         if (!match) { await this.diagnostic(context, `${command}: \`${arg}': not a valid identifier`); status = 1; continue; }
         const name = match[1]!;
+        // A global hidden by locals lives in the oldest frame's saved binding.
+        // Temporarily expose it so declarations use the same attributes, array
+        // ownership and assignment rules as an unshadowed global.
+        const globalFrame = command === "declare" && enabled.has("g") ? state.locals.find(frame => frame.has(name)) : undefined;
+        let visibleLocal: SavedVariable | undefined;
+        if (globalFrame) {
+          visibleLocal = saveVariable(state, name);
+          await this.prepareVariable(state, name, visibleLocal);
+          const global = globalFrame.get(name)!;
+          await restoreVariable(state, name, global);
+          if (global.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+        }
+        try {
         const syntax = context[declarationArrays]?.get(declarationOffset + declarationIndex);
         const compound = syntax?.name === name ? syntax : undefined;
         const reference = match[2] ?? state.variables[name];
@@ -17025,6 +17045,18 @@ export class Runtime {
         const previous = assignments.get(name);
         if (previous && locals?.get(name) !== previous) previous.heldValue?.release();
         assignments.delete(name);
+        } finally {
+          if (globalFrame && visibleLocal) {
+            try {
+              const global = saveVariable(state, name);
+              await this.prepareVariable(state, name, global);
+              globalFrame.set(name, global);
+            } finally {
+              await restoreVariable(state, name, visibleLocal);
+              if (visibleLocal.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+            }
+          }
+        }
       }
       return status;
     }
@@ -18915,7 +18947,7 @@ export class Runtime {
     this.signal.throwIfAborted();
     const parameterDepth = io.parameterDepth ?? 0;
     if (parameterDepth > 0 && rawState.depth + parameterDepth + 1 > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
-    if ( rawState.noexec || hasActiveExtensions(rawState) || rawState.extensions?.checkpoints.length || hasActiveVariableAttributes(rawState) || (guestArrays(state) && (guestArrays(state)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || rawState.redirectAssignments?.size) {
+    if ( rawState.noexec || hasActiveExtensions(rawState) || rawState.extensions?.checkpoints.length || hasNonNamerefAttributes(rawState) || (guestArrays(state) && (guestArrays(state)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) || rawState.redirectAssignments?.size) {
       return undefined;
     }
     if (((this.budget.commands + 1) & 127) === 0) {

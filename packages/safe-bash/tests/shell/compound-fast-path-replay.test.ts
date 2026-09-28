@@ -7,6 +7,42 @@ import { textCommands } from "../../src/commands/text.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { streamCommands } from "../../src/commands/streams.js";
 
+const syncAssignmentCases = [
+  ["dynamic function and directory arrays", 'f() { for i in 1 2; do local -a fn=("${FUNCNAME[@]}"); local -a ds=("${DIRSTACK[@]}"); echo "i=$i fn=${fn[*]} ds=${ds[*]}"; done; }; f', "i=1 fn=f ds=/tmp\ni=2 fn=f ds=/tmp\n"],
+  ["dynamic array keys and slices", 'f() { for i in 1 2; do fn=("${FUNCNAME[@]}"); fk=("${!FUNCNAME[@]}"); fs=("${FUNCNAME[@]:0:1}"); ds=("${DIRSTACK[@]}"); dk=("${!DIRSTACK[@]}"); echo "$i:${fn[*]}:${fk[*]}:${fs[*]}:${ds[*]}:${dk[*]}"; done; }; f', "1:f:0:f:/tmp:0\n2:f:0:f:/tmp:0\n"],
+  ["sparse array copy and keys", 'arr=([5000]=tail); for i in 1 2; do echo iter=$i; copy=("${arr[@]}"); keys=("${!arr[@]}"); echo "${copy[*]}:${keys[*]}"; done', "iter=1\ntail:5000\niter=2\ntail:5000\n"],
+  ["array becomes sparse inside loop", 'arr=(head); for i in 1 2; do echo iter=$i; arr=([0]=head [4096]=tail); copy=("${arr[@]}"); echo "${copy[*]}"; done', "iter=1\nhead tail\niter=2\nhead tail\n"],
+  ["sparse negative slice", 'arr=([0]=head [4096]=tail); for i in 1 2; do echo iter=$i; slice=("${arr[@]: -1:1}"); echo "${slice[*]}"; done', "iter=1\ntail\niter=2\ntail\n"],
+  ["parenthesized slice offset and length", 'arr=(a b c); for i in 1 2; do echo iter=$i; slice=("${arr[@]:(i-1):(1+1)}"); echo "${slice[*]}"; done', "iter=1\na b\niter=2\nb c\n"],
+  ["slice operand changes to arithmetic expression", 'arr=(a b c); n=0; for i in 1 2; do echo iter=$i; slice=("${arr[@]:n:1}"); echo "${slice[*]}"; n="1+1"; done', "iter=1\na\niter=2\nc\n"],
+  ["nested nameref restoration with batched arithmetic", 'y=0; inner() { local -n ref=y; ref=99; }; outer() { local x=10; local -n ref=x; inner; ref=500; echo "i=$i x=$x y=$y ref=$ref"; }; for i in 1 2; do (( i += 0 )); outer; done', "i=1 x=500 y=99 ref=500\ni=2 x=500 y=99 ref=500\n"],
+  ["nameref pure substitution", 'x=hello; f() { local -n ref=x; out=$(echo "$ref"); }; for i in 1 2; do echo iter=$i; f; echo "$out"; done', "iter=1\nhello\niter=2\nhello\n"],
+  ["nameref printf assignment", 'x=hello; f() { local -n ref=x; printf -v out %s "$ref"; }; for i in 1 2; do echo iter=$i; f; echo "$out"; done', "iter=1\nhello\niter=2\nhello\n"],
+  ["printf writes through scalar nameref", 'x=old; f() { local -n ref=x; printf -v ref %s new; echo "$x:$ref"; }; for i in 1 2; do echo iter=$i; f; done', "iter=1\nnew:new\niter=2\nnew:new\n"],
+  ["printf writes through array nameref", 'x=(old tail); f() { local -n ref=x; printf -v ref[1] %s new; echo "${x[*]}:${ref[*]}"; }; for i in 1 2; do echo iter=$i; f; done', "iter=1\nold new:old new\niter=2\nold new:old new\n"],
+  ["global declaration behind a local shadow", 'x=global1; f() { local x=local1; declare -g x=global2; echo "$x"; }; for i in 1 2; do echo iter=$i; f; echo "$x"; done', "iter=1\nlocal1\nglobal2\niter=2\nlocal1\nglobal2\n"],
+  ["global declaration behind nested shadows", 'x=global; inner() { local x=inner; typeset -g x+=tail; echo "$x"; }; outer() { local x=outer; inner; echo "$x"; }; outer; echo "$x"', "inner\nouter\nglobaltail\n"],
+  ["global indexed declaration behind array shadow", 'x=(global tail); f() { local -a x=(local); declare -ga x+=(added); echo "${x[*]}"; }; f; echo "${x[*]}"', "local\nglobal tail added\n"],
+  ["global integer declaration retains global attributes", 'declare -i x=10; f() { local x=local; declare -g x+=2; echo "$x"; }; f; echo "$x"', "local\n12\n"],
+  ["plain local shadows outer nameref", 'x=10; inner() { local ref=99; echo "$ref"; }; outer() { local -n ref=x; inner; ref=500; echo "$x:$ref"; }; for i in 1 2; do echo iter=$i; outer; done', "iter=1\n99\n500:500\niter=2\n99\n500:500\n"],
+] as const;
+
+for (const [name, source, expected] of syncAssignmentCases) {
+  for (const limits of [{}, { maxExpansionBytes: 65536 }]) {
+    test(`sync assignment preserves effects: ${name}, limits ${JSON.stringify(limits)}`, async context => {
+      const fs = createMemoryFileSystem();
+      await fs.mkdir("/tmp", { recursive: true });
+      const shell = new Shell({ fs, cwd: "/tmp", limits });
+      for (const command of basicCommands()) shell.register(command);
+      context.after(() => shell.dispose());
+      const result = await shell.exec(source);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, expected);
+    });
+  }
+}
+
 for (const match of [
   '[[ $s == "$pfx"* ]]',
   '[[ $s == a\\** ]]',

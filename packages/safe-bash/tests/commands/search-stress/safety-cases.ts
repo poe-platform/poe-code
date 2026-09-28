@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createNodeRegexProvider } from "../../../src/node.js";
+import { createNodeRegexProvider } from "../../../src/commands/regex-execution/client.js";
 import { setTimeout as delay } from "node:timers/promises";
 import { createSearchCommands } from "../../../src/commands/search/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

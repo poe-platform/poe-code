@@ -107,7 +107,8 @@ terminal effect. Other `-u` descriptors require the optional read extension.
 `export -n NAME` removes a variable's export attribute while keeping its value;
 `export -f NAME` passes a defined function to virtual child shells, and `export -fn NAME`
 stops passing it. `export -p` prints reusable variable declarations; `export -fp` lists
-exported functions.
+exported functions. Arrays can carry an export attribute, but their elements are
+not included in child command environments.
 `declare` supports integer (`-i`), ASCII case conversion (`-l`/`-u`), scalar
 name references (`-n`), exports (`-x`), readonly (`-r`), arrays (`-a`/`-A`),
 global declarations (`-g`), inherited locals (`-I`), declaration printing (`-p`),

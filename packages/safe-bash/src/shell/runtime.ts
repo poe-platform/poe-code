@@ -5361,7 +5361,6 @@ export class Runtime {
     if (state.readonlyVariables?.has(name) && arrayStore(state)?.get(name)?.associative) { await this.diagnostic(io, `${name}: readonly variable`); throw completedExit(1); }
     this.assertArrayWritable(state, name, origin);
     if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
-    if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
     const store = requireArrays(state);
     const operation = ArrayOwner.create(store.owner.ledger, store.owner);
     const holding = store.owner.hold();
@@ -7757,7 +7756,7 @@ export class Runtime {
           const isPrintfV = command.words[1]?.plain === "-v";
           // Array writes can need asynchronous arithmetic or binding creation as
           // the loop changes state. Reject them before any loop effects occur.
-          if (isPrintfV && (command.words.length < 4 || w2Plain === undefined || !isShellIdentifier(w2Plain) || controlNames.has(w2Plain) || rawState.variableAttributes?.get(w2Plain))) return false;
+          if (isPrintfV && (hasActiveVariableAttributes(rawState) || command.words.length < 4 || w2Plain === undefined || !isShellIdentifier(w2Plain) || controlNames.has(w2Plain))) return false;
           const fmtIdx = isPrintfV ? 3 : 1;
           const fmtWord = command.words[fmtIdx];
           const fmtPlain = fmtWord?.plain ?? (fmtWord?.parts.length === 1 && fmtWord.parts[0]!.kind === "text" ? fmtWord.parts[0]!.value : undefined);
@@ -8084,7 +8083,7 @@ export class Runtime {
     }
     for (const v of scalarVars) {
       const target = resolveSyncNameref(rawState, v);
-      if (st?.get(v) || rawState.variableAttributes?.get(target)?.includes("i")) return false;
+      if (st?.get(v) || rawState.variableAttributes?.get(v) || rawState.variableAttributes?.get(target)) return false;
     }
     if (nonIntScalarVars.size > 0 && arithSourceChunks.length > 0) {
       const joined = arithSourceChunks.join(" ");
@@ -9218,13 +9217,11 @@ export class Runtime {
       if ( this.budget.limits.maxExpansionFields === Infinity && command.words.length >= 4 && w0Plain === "printf" && command.words[1]?.plain === "-v" && command.redirects.length === 0 && canMutatePipeStatus && (!pipeline.negate || ignored || !rawState.errexit) && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf")) {
         const def = this.commands.get("printf");
         if (def && def.execute === printfCommand.execute && command.words.length <= this.budget.maxExpansionFieldsSmi && this.arePureArgWords(command.words, rawState)) {
-          let targetSpec: ShellValue | undefined = command.words[2]?.plain;
-          if (targetSpec === undefined) {
-            try {
-              targetSpec = this.fastValueWord(command.words[2]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
-            } catch {
-              targetSpec = undefined;
-            }
+          let targetSpec: ShellValue | undefined;
+          try {
+            targetSpec = this.fastValueWord(command.words[2]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+          } catch {
+            targetSpec = undefined;
           }
           if (typeof targetSpec === "string") {
             const openBr = targetSpec.indexOf("[");
@@ -10085,13 +10082,11 @@ export class Runtime {
           const ops: Array<{ kind: "assoc"; arrName: string; binding: IndexedBinding; subStr: string; rawArg: string } | { kind: "indexed"; arrName: string; binding: IndexedBinding; unsetIdx: number; rawArg: string } | { kind: "scalar"; targetName: string }> = [];
           for (let ui = uStart; ui < command.words.length; ui++) {
             const wu = command.words[ui]!;
-            let tExpanded = wu.plain ?? (wu.parts.length === 1 && wu.parts[0]!.kind === "text" ? wu.parts[0]!.value : undefined);
-            if (tExpanded === undefined) {
-              try {
-                const fv = this.fastValueWord(wu, rawState, io, false, false, false, false, undefined, diagnosticLine);
-                if (typeof fv === "string") tExpanded = fv;
-              } catch {}
-            }
+            let tExpanded: string | undefined;
+            try {
+              const fv = this.fastValueWord(wu, rawState, io, true, false, false, true, undefined, diagnosticLine);
+              if (typeof fv === "string") tExpanded = fv;
+            } catch {}
             if (tExpanded === undefined) { allArrOk = false; break; }
             const bracket = tExpanded.indexOf("[");
             if (bracket > 0 && tExpanded.endsWith("]")) {
@@ -10922,15 +10917,13 @@ export class Runtime {
       }
       if ( w0Plain === "printf" && command.words.length >= 4 && command.words[1]?.plain === "-v" && this.budget.limits.maxExpansionFields === Infinity && this.writeVariable === Runtime.prototype.writeVariable && !rawState.externalInvocation && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf") && !rawState.readonlyVariables?.size && !hasActiveVariableAttributes(rawState) && !hasActiveExtensions(rawState) && canMutatePipeStatus) {
         const w2 = command.words[2]!;
-        let targetSpec = w2.plain;
-        if (targetSpec === undefined) {
-          try {
-            const tv = this.fastValueWord(w2, rawState, io, false, false, false, false, undefined, diagnosticLine);
-            if (typeof tv === "string") targetSpec = tv;
-          } catch {
-            this.signal.throwIfAborted();
-            return undefined;
-          }
+        let targetSpec: string | undefined;
+        try {
+          const tv = this.fastValueWord(w2, rawState, io, true, false, false, true, undefined, diagnosticLine);
+          if (typeof tv === "string") targetSpec = tv;
+        } catch {
+          this.signal.throwIfAborted();
+          return undefined;
         }
         const def = this.commands.get("printf");
         const isPlainTargetId = targetSpec !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(targetSpec) && targetSpec !== "OPTIND" && targetSpec !== "PIPESTATUS";
@@ -16944,9 +16937,6 @@ export class Runtime {
           const provenance = readonlySyntax && (command === "readonly" || command === "local" && indexedLocal) ? `${command}: ` : "";
           await this.diagnostic(context, `${provenance}${name}: readonly variable`); status = 1; continue;
         }
-        if (arrayStore(state)?.get(name) && (command === "export" || enabled.has("x"))) {
-          await this.diagnostic(context, "indexed array: indexed binding cannot be exported"); status = 1; continue;
-        }
         if (command === "readonly" && readonlySyntax && (indexedReadonly || match[2]?.startsWith("("))) {
           const assigned = match[2] !== undefined ? assignedValue() : undefined;
           if (match[2]?.startsWith("(")) {
@@ -16970,7 +16960,6 @@ export class Runtime {
         }
         if ((localDeclaration || command === "declare") && (indexedLocal || compound)) {
           if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
-          if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
           const existingLocal = locals?.get(name);
           const saved = !locals || existingLocal ? undefined : assignments.get(name) ?? saveVariable(state, name);
           let operation: ArrayOwner | undefined;
@@ -17050,6 +17039,8 @@ export class Runtime {
             await cleanup(() => holding?.release());
           }
           if (primaryPresent) throw primary;
+          if (enabled.has("x")) state.exported.add(name);
+          if (disabled.has("x")) state.exported.delete(name);
           if (enabled.has("r")) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
           continue;
         }

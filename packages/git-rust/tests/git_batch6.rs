@@ -994,3 +994,87 @@ dual_fixture_test!(cli_restore_staged_unstages_index_entry, cli_restore_staged_u
     assert_eq!(r.exit_code, 0);
     assert_eq!(execute_git_cli(&f.fs, &f.dir, &["diff", "--cached", "--quiet"]).exit_code, 0);
 });
+
+
+dual_fixture_test!(cli_describe_tags_and_always, cli_describe_tags_and_always_sub, "test-log", |f| {
+    let r_always = execute_git_cli(&f.fs, &f.dir, &["describe", "--always", "--abbrev=8"]);
+    assert_eq!(r_always.exit_code, 0);
+    assert_eq!(r_always.stdout.trim().len(), 8);
+
+    execute_git_cli(&f.fs, &f.dir, &["tag", "v1.0.0", "HEAD~1"]);
+    let r_tags = execute_git_cli(&f.fs, &f.dir, &["describe", "--tags"]);
+    assert_eq!(r_tags.exit_code, 0);
+    assert!(r_tags.stdout.trim().starts_with("v1.0.0-1-g"));
+});
+
+dual_fixture_test!(cli_shortlog_summary_and_numbered, cli_shortlog_summary_and_numbered_sub, "test-log", |f| {
+    let r = execute_git_cli(&f.fs, &f.dir, &["shortlog", "-sn", "-e"]);
+    assert_eq!(r.exit_code, 0);
+    assert!(!r.stdout.trim().is_empty() && r.stdout.contains("<"));
+});
+
+dual_fixture_test!(cli_grep_pattern_and_flags, cli_grep_pattern_and_flags_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "Hello Rust Git\nSecond line\n");
+    let r = execute_git_cli(&f.fs, &f.dir, &["grep", "-n", "-i", "rust git"]);
+    assert_eq!(r.exit_code, 0);
+    assert_eq!(r.stdout.trim(), "README.md:1:Hello Rust Git");
+
+    let r_files = execute_git_cli(&f.fs, &f.dir, &["grep", "-l", "Second"]);
+    assert_eq!(r_files.exit_code, 0);
+    assert_eq!(r_files.stdout.trim(), "README.md");
+});
+
+dual_fixture_test!(cli_blame_lines_and_range, cli_blame_lines_and_range_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "line one\nline two\nline three\n");
+    let r = execute_git_cli(&f.fs, &f.dir, &["blame", "-L", "2,3", "README.md"]);
+    assert_eq!(r.exit_code, 0);
+    let lines: Vec<&str> = r.stdout.lines().collect();
+    assert_eq!(lines.len(), 2);
+    assert!(lines[0].contains("2) line two"));
+    assert!(lines[1].contains("3) line three"));
+});
+
+dual_fixture_test!(cli_revert_commit_and_no_commit, cli_revert_commit_and_no_commit_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "reverted.txt"]), "temporary file\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "reverted.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "add temporary file"]);
+    assert!(f.fs.exists(&join(&[&f.dir, "reverted.txt"])));
+
+    let r = execute_git_cli(&f.fs, &f.dir, &["revert", "HEAD"]);
+    assert_eq!(r.exit_code, 0);
+    assert!(r.stdout.contains("Revert \"add temporary file\""));
+    assert!(!f.fs.exists(&join(&[&f.dir, "reverted.txt"])));
+});
+
+dual_fixture_test!(cli_notes_add_show_list_remove, cli_notes_add_show_list_remove_sub, "test-log", |f| {
+    let r_add = execute_git_cli(&f.fs, &f.dir, &["notes", "add", "-m", "benchmark verified", "HEAD"]);
+    assert_eq!(r_add.exit_code, 0);
+
+    let r_show = execute_git_cli(&f.fs, &f.dir, &["notes", "show", "HEAD"]);
+    assert_eq!(r_show.exit_code, 0);
+    assert_eq!(r_show.stdout.trim(), "benchmark verified");
+
+    let r_list = execute_git_cli(&f.fs, &f.dir, &["notes", "list"]);
+    assert_eq!(r_list.exit_code, 0);
+    assert!(!r_list.stdout.trim().is_empty());
+
+    let r_rm = execute_git_cli(&f.fs, &f.dir, &["notes", "remove", "HEAD"]);
+    assert_eq!(r_rm.exit_code, 0);
+    assert_ne!(execute_git_cli(&f.fs, &f.dir, &["notes", "show", "HEAD"]).exit_code, 0);
+});
+
+dual_fixture_test!(cli_update_index_add_and_remove, cli_update_index_add_and_remove_sub, "test-init", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, Some("main")).unwrap();
+    f.fs.write_str(&join(&[&f.dir, "tracked.txt"]), "hello\n");
+    let r_add = execute_git_cli(&f.fs, &f.dir, &["update-index", "--add", "tracked.txt"]);
+    assert_eq!(r_add.exit_code, 0);
+    assert_eq!(git_rust::commands::worktree::list_files(&f.fs, &f.gitdir, None).unwrap(), vec!["tracked.txt"]);
+
+    let _ = f.fs.rm(&join(&[&f.dir, "tracked.txt"]));
+    let r_rm = execute_git_cli(&f.fs, &f.dir, &["update-index", "--remove", "tracked.txt"]);
+    assert_eq!(r_rm.exit_code, 0);
+    assert!(git_rust::commands::worktree::list_files(&f.fs, &f.gitdir, None).unwrap().is_empty());
+});

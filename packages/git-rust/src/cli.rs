@@ -1805,6 +1805,355 @@ pub fn execute_git_cli_with_http(
                 CliResult::ok(matched.into_iter().map(|p| format!("{p}\n")).collect::<String>())
             }
         }
+        "describe" => {
+            let allow_lightweight = sub_args.contains(&"--tags");
+            let always = sub_args.contains(&"--always");
+            let exact_match = sub_args.contains(&"--exact-match");
+            let mut abbrev = 7usize;
+            for &arg in sub_args {
+                if let Some(val) = arg.strip_prefix("--abbrev=")
+                    && let Ok(n) = val.parse::<usize>()
+                {
+                    abbrev = n.clamp(4, 40);
+                }
+            }
+            let target = positionals.last().copied().unwrap_or("HEAD");
+            let Ok(commits) = crate::commands::plumbing::log(fs, &gitdir, Some(target), None, None, None, false, false) else {
+                return CliResult::err(128, format!("fatal: Not a valid object name {target}\n"));
+            };
+            if commits.is_empty() {
+                return CliResult::err(128, "fatal: No names found, cannot describe anything.\n");
+            }
+            let head_oid = &commits[0].oid;
+            let mut tag_map: std::collections::BTreeMap<String, String> = std::collections::BTreeMap::new();
+            for t in list_tags(fs, &gitdir) {
+                let full_ref = format!("refs/tags/{t}");
+                if let Ok(raw_oid) = resolve_ref(fs, &gitdir, &full_ref, None) {
+                    if let Ok(tag_obj) = crate::commands::plumbing::read_tag(fs, &gitdir, &raw_oid) {
+                        tag_map.entry(tag_obj.tag.object).or_insert(t);
+                    } else if allow_lightweight {
+                        tag_map.entry(raw_oid).or_insert(t);
+                    }
+                }
+            }
+            for (dist, c) in commits.iter().enumerate() {
+                if let Some(tag_name) = tag_map.get(&c.oid) {
+                    if dist == 0 {
+                        return CliResult::ok(format!("{tag_name}\n"));
+                    } else if !exact_match {
+                        let short = &head_oid[..abbrev.min(head_oid.len())];
+                        return CliResult::ok(format!("{tag_name}-{dist}-g{short}\n"));
+                    }
+                }
+                if exact_match && dist == 0 {
+                    break;
+                }
+            }
+            if always && !exact_match {
+                let short = &head_oid[..abbrev.min(head_oid.len())];
+                CliResult::ok(format!("{short}\n"))
+            } else {
+                CliResult::err(128, "fatal: No names found, cannot describe anything.\n")
+            }
+        }
+        "shortlog" => {
+            let summary = sub_args.contains(&"-s") || sub_args.contains(&"--summary") || sub_args.contains(&"-sn") || sub_args.contains(&"-ns");
+            let numbered = sub_args.contains(&"-n") || sub_args.contains(&"--numbered") || sub_args.contains(&"-sn") || sub_args.contains(&"-ns");
+            let show_email = sub_args.contains(&"-e") || sub_args.contains(&"--email");
+            let rev = positionals.last().copied().unwrap_or("HEAD");
+            let Ok(commits) = crate::commands::plumbing::log(fs, &gitdir, Some(rev), None, None, None, false, false) else {
+                return CliResult::err(128, format!("fatal: bad revision '{rev}'\n"));
+            };
+            let mut groups: std::collections::BTreeMap<String, Vec<String>> = std::collections::BTreeMap::new();
+            for c in commits {
+                let key = if show_email {
+                    format!("{} <{}>", c.commit.author.name, c.commit.author.email)
+                } else {
+                    c.commit.author.name.clone()
+                };
+                let subj = c.commit.message.lines().next().unwrap_or("").trim().to_string();
+                groups.entry(key).or_default().push(subj);
+            }
+            let mut list: Vec<(String, Vec<String>)> = groups.into_iter().collect();
+            if numbered {
+                list.sort_by(|a, b| b.1.len().cmp(&a.1.len()).then_with(|| a.0.cmp(&b.0)));
+            }
+            let mut out = String::new();
+            for (author, subjects) in list {
+                if summary {
+                    out.push_str(&format!("{:>6}\t{}\n", subjects.len(), author));
+                } else {
+                    out.push_str(&format!("{} ({}):\n", author, subjects.len()));
+                    for s in subjects {
+                        out.push_str(&format!("      {s}\n"));
+                    }
+                    out.push('\n');
+                }
+            }
+            CliResult::ok(out)
+        }
+        "grep" => {
+            let line_num = sub_args.contains(&"-n") || sub_args.contains(&"--line-number");
+            let ignore_case = sub_args.contains(&"-i") || sub_args.contains(&"--ignore-case");
+            let files_only = sub_args.contains(&"-l") || sub_args.contains(&"--files-with-matches");
+            let count_only = sub_args.contains(&"-c") || sub_args.contains(&"--count");
+            let Some(&pattern) = positionals.first() else {
+                return CliResult::err(128, "fatal: no pattern given\n");
+            };
+            let path_filters: Vec<&str> = positionals.iter().skip(1).copied().collect();
+            let tracked = list_files(fs, &gitdir, None).unwrap_or_default();
+            let pat_cmp = if ignore_case { pattern.to_lowercase() } else { pattern.to_string() };
+            let mut out = String::new();
+            let mut matched_any = false;
+            for file in tracked {
+                if !path_filters.is_empty() && !path_filters.iter().any(|pf| file == *pf || file.starts_with(&format!("{pf}/"))) {
+                    continue;
+                }
+                let Some(content) = fs.read_str(&join(&[&repo_root, &file])) else {
+                    continue;
+                };
+                let mut file_matches = 0usize;
+                for (idx, line) in content.lines().enumerate() {
+                    let hay = if ignore_case { line.to_lowercase() } else { line.to_string() };
+                    if hay.contains(&pat_cmp) {
+                        matched_any = true;
+                        file_matches += 1;
+                        if !files_only && !count_only {
+                            if line_num {
+                                out.push_str(&format!("{}:{}:{}\n", file, idx + 1, line));
+                            } else {
+                                out.push_str(&format!("{}:{}\n", file, line));
+                            }
+                        }
+                    }
+                }
+                if file_matches > 0 {
+                    if files_only {
+                        out.push_str(&format!("{file}\n"));
+                    } else if count_only {
+                        out.push_str(&format!("{file}:{file_matches}\n"));
+                    }
+                }
+            }
+            if matched_any {
+                CliResult::ok(out)
+            } else {
+                CliResult::err(1, "")
+            }
+        }
+        "blame" => {
+            let long_rev = sub_args.contains(&"-l");
+            let mut range: Option<(usize, usize)> = None;
+            let mut blame_pos: Vec<&str> = Vec::new();
+            let mut i = 0;
+            while i < sub_args.len() {
+                if sub_args[i] == "-L" && i + 1 < sub_args.len() {
+                    if let Some((s, e)) = sub_args[i + 1].split_once(',')
+                        && let (Ok(start), Ok(end)) = (s.parse::<usize>(), e.parse::<usize>())
+                    {
+                        range = Some((start, end));
+                    }
+                    i += 2;
+                    continue;
+                }
+                if !sub_args[i].starts_with('-') {
+                    blame_pos.push(sub_args[i]);
+                }
+                i += 1;
+            }
+            let Some(&filepath_arg) = blame_pos.last() else {
+                return CliResult::err(128, "fatal: missing file path\n");
+            };
+            let rel_path = repository_path(&repo_root, &effective_cwd, filepath_arg);
+            let Some(current_content) = fs.read_str(&join(&[&repo_root, &rel_path])) else {
+                return CliResult::err(128, format!("fatal: no such path '{rel_path}' in HEAD\n"));
+            };
+            let commits = crate::commands::plumbing::log(fs, &gitdir, Some("HEAD"), Some(&rel_path), None, None, false, true).unwrap_or_default();
+            let fallback_commit = commits.first();
+            let mut out = String::new();
+            for (idx, line) in current_content.lines().enumerate() {
+                let line_no = idx + 1;
+                if let Some((start, end)) = range
+                    && (line_no < start || line_no > end)
+                {
+                    continue;
+                }
+                let mut chosen = fallback_commit;
+                for c in commits.iter().rev() {
+                    if let Ok(blob_res) = crate::commands::plumbing::read_blob(fs, &gitdir, &c.oid, Some(&rel_path))
+                        && let Ok(text) = String::from_utf8(blob_res.blob)
+                        && text.lines().any(|l| l == line)
+                    {
+                        chosen = Some(c);
+                        break;
+                    }
+                }
+                if let Some(c) = chosen {
+                    let rev_str = if long_rev { &c.oid[..] } else { &c.oid[..8.min(c.oid.len())] };
+                    out.push_str(&format!(
+                        "{} ({} {} {:>3}) {}\n",
+                        rev_str, c.commit.author.name, c.commit.author.timestamp, line_no, line
+                    ));
+                }
+            }
+            CliResult::ok(out)
+        }
+        "revert" => {
+            let no_commit = sub_args.contains(&"-n") || sub_args.contains(&"--no-commit");
+            let Some(&target_rev) = positionals.last() else {
+                return CliResult::err(128, "fatal: revert requires a commit\n");
+            };
+            let Ok(commit_oid) = crate::cli_history::resolve_commit(fs, &gitdir, target_rev) else {
+                return CliResult::err(128, format!("fatal: bad revision '{target_rev}'\n"));
+            };
+            let Ok(target_commit) = crate::commands::plumbing::read_commit(fs, &gitdir, &commit_oid) else {
+                return CliResult::err(128, format!("fatal: could not read commit {commit_oid}\n"));
+            };
+            let Some(parent_oid) = target_commit.commit.parent.first().cloned() else {
+                return CliResult::err(128, "fatal: cannot revert a root commit\n");
+            };
+            let mut commit_map = std::collections::BTreeMap::new();
+            let mut parent_map = std::collections::BTreeMap::new();
+            let _ = crate::commands::worktree::collect_tree_map(fs, &gitdir, &commit_oid, "", &mut commit_map);
+            let _ = crate::commands::worktree::collect_tree_map(fs, &gitdir, &parent_oid, "", &mut parent_map);
+
+            let mut touched: Vec<String> = Vec::new();
+            for (path, c_entry) in &commit_map {
+                if !parent_map.contains_key(path) {
+                    let _ = fs.unlink(&join(&[&repo_root, path]));
+                    let _ = remove(fs, &gitdir, path);
+                } else if let Some(p_entry) = parent_map.get(path)
+                    && p_entry.oid != c_entry.oid
+                    && let Ok(blob_res) = crate::commands::plumbing::read_blob(fs, &gitdir, &p_entry.oid, None)
+                {
+                    fs.write(&join(&[&repo_root, path]), &blob_res.blob);
+                    touched.push(path.clone());
+                }
+            }
+            for (path, p_entry) in &parent_map {
+                if !commit_map.contains_key(path)
+                    && let Ok(blob_res) = crate::commands::plumbing::read_blob(fs, &gitdir, &p_entry.oid, None)
+                {
+                    fs.write(&join(&[&repo_root, path]), &blob_res.blob);
+                    touched.push(path.clone());
+                }
+            }
+            if !touched.is_empty() {
+                let _ = add(fs, &repo_root, Some(&gitdir), &touched, true);
+            }
+            if no_commit {
+                CliResult::ok("")
+            } else {
+                let author = Author {
+                    name: get_config(fs, &gitdir, "user.name")
+                        .map(|v| v.as_str().to_string())
+                        .unwrap_or_else(|| "Git User".to_string()),
+                    email: get_config(fs, &gitdir, "user.email")
+                        .map(|v| v.as_str().to_string())
+                        .unwrap_or_else(|| "user@example.com".to_string()),
+                    timestamp: 1502484200,
+                    timezone_offset: 0.0,
+                };
+                let subj = target_commit.commit.message.lines().next().unwrap_or("commit");
+                let revert_msg = format!("Revert \"{subj}\"\n\nThis reverts commit {commit_oid}.\n");
+                match commit(fs, &gitdir, Some(&revert_msg), Some(author), None, false, false, false, false, None, None, None) {
+                    Ok(new_oid) => CliResult::ok(format!("[revert {}] Revert \"{subj}\"\n", &new_oid[..7])),
+                    Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                }
+            }
+        }
+        "notes" => {
+            let mut note_ref = "refs/notes/commits";
+            let mut msg: Option<&str> = None;
+            let force = sub_args.contains(&"-f") || sub_args.contains(&"--force");
+            let mut notes_pos: Vec<&str> = Vec::new();
+            let mut i = 0;
+            while i < sub_args.len() {
+                if sub_args[i] == "--ref" && i + 1 < sub_args.len() {
+                    note_ref = sub_args[i + 1];
+                    i += 2;
+                    continue;
+                }
+                if (sub_args[i] == "-m" || sub_args[i] == "--message") && i + 1 < sub_args.len() {
+                    msg = Some(sub_args[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                if !sub_args[i].starts_with('-') {
+                    notes_pos.push(sub_args[i]);
+                }
+                i += 1;
+            }
+            let action = notes_pos.first().copied().unwrap_or("list");
+            let target_rev = notes_pos.get(1).copied().unwrap_or("HEAD");
+            let author = Author {
+                name: get_config(fs, &gitdir, "user.name")
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_else(|| "Git User".to_string()),
+                email: get_config(fs, &gitdir, "user.email")
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_else(|| "user@example.com".to_string()),
+                timestamp: 1502484200,
+                timezone_offset: 0.0,
+            };
+            match action {
+                "list" => match crate::commands::plumbing::list_notes(fs, &gitdir, Some(note_ref)) {
+                    Ok(notes) => CliResult::ok(notes.into_iter().map(|n| format!("{} {}\n", n.note, n.target)).collect::<String>()),
+                    Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                },
+                "add" => {
+                    let Ok(oid) = crate::cli_history::resolve(fs, &gitdir, target_rev) else {
+                        return CliResult::err(128, format!("fatal: Failed to resolve '{target_rev}'\n"));
+                    };
+                    let body = msg.unwrap_or("");
+                    match crate::commands::plumbing::add_note(fs, &gitdir, Some(note_ref), &oid, body.as_bytes(), force, author.clone(), Some(author)) {
+                        Ok(_) => CliResult::ok(""),
+                        Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                    }
+                }
+                "show" => {
+                    let Ok(oid) = crate::cli_history::resolve(fs, &gitdir, target_rev) else {
+                        return CliResult::err(128, format!("fatal: Failed to resolve '{target_rev}'\n"));
+                    };
+                    match crate::commands::plumbing::read_note(fs, &gitdir, Some(note_ref), &oid) {
+                        Ok(bytes) => CliResult::ok(format!("{}\n", String::from_utf8_lossy(&bytes).trim_end())),
+                        Err(e) => CliResult::err(1, format!("error: {}\n", e.message)),
+                    }
+                }
+                "remove" => {
+                    let Ok(oid) = crate::cli_history::resolve(fs, &gitdir, target_rev) else {
+                        return CliResult::err(128, format!("fatal: Failed to resolve '{target_rev}'\n"));
+                    };
+                    match crate::commands::plumbing::remove_note(fs, &gitdir, Some(note_ref), &oid, author.clone(), Some(author)) {
+                        Ok(_) => CliResult::ok(""),
+                        Err(e) => CliResult::err(1, format!("error: {}\n", e.message)),
+                    }
+                }
+                _ => CliResult::err(128, format!("fatal: Unknown notes subcommand '{action}'\n")),
+            }
+        }
+        "update-index" => {
+            let add_flag = sub_args.contains(&"--add");
+            let remove_flag = sub_args.contains(&"--remove") || sub_args.contains(&"--force-remove");
+            let force_flag = sub_args.contains(&"--force-remove");
+            for &file_arg in &positionals {
+                let rel = repository_path(&repo_root, &effective_cwd, file_arg);
+                if let Err(e) = crate::commands::worktree::update_index(
+                    fs,
+                    &repo_root,
+                    &gitdir,
+                    &rel,
+                    None,
+                    None,
+                    add_flag,
+                    remove_flag,
+                    force_flag,
+                ) {
+                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                }
+            }
+            CliResult::ok("")
+        }
         "fetch" => match fetch(
             fs,
             http,

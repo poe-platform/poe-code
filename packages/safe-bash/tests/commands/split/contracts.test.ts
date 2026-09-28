@@ -498,7 +498,9 @@ test("blocked iterator abort closes asynchronously without waiting forever", asy
   assert.equal(closed, true);
 });
 
-test("CPU scanning yields for timer cancellation on a large line", async () => {
+test("CPU scanning yields for scheduled cancellation on a large line", async t => {
+  let elapsed = 0;
+  t.mock.method(globalThis.performance, "now", () => elapsed += 20);
   const controller = new AbortController();
   const reason = new Error("timer abort");
   const fs = createMemoryFileSystem();
@@ -507,8 +509,8 @@ test("CPU scanning yields for timer cancellation on a large line", async () => {
     for await (const chunk of source) await fs.appendFile(path, chunk, options);
   } });
   const operation = run(["-l1"], Buffer.alloc(8 * 1024 * 1024, 65), {}, { fs: sink, signal: controller.signal });
-  const timer = setTimeout(() => controller.abort(reason), 0);
-  try { await assert.rejects(operation, error => error === reason); } finally { clearTimeout(timer); }
+  const timer = setImmediate(() => controller.abort(reason));
+  try { await assert.rejects(operation, error => error === reason); } finally { clearImmediate(timer); }
   const entries = await files(fs);
   if (entries.xaa) assert.ok(entries.xaa.length < 16 * 1024 * 1024);
 });

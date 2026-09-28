@@ -146,6 +146,7 @@ export class NativeWork {
     const iterator = await this.acquire(() => start()[Symbol.asyncIterator](), async value => { await value.return?.(); });
     const chunks: Uint8Array[] = [];
     let size = 0;
+    let chunksSinceYield = 0;
     while (true) {
       this.assertOpen();
       const next = await this.track(Promise.resolve(iterator.next()));
@@ -154,7 +155,16 @@ export class NativeWork {
       if (!(next.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
       this.input(next.value.byteLength);
       if (next.value.byteLength) { const copy = new Uint8Array(next.value); chunks.push(copy); size += copy.length; }
-      { const t = this.tick(); if (t) await t; }
+      const checkpoint = this.tick();
+      chunksSinceYield++;
+      if (checkpoint) {
+        await checkpoint;
+        chunksSinceYield = 0;
+      } else if (chunksSinceYield >= 1024) {
+        await yieldTurn(this.signal);
+        chunksSinceYield = 0;
+        this.assertOpen();
+      }
     }
     const result = new Uint8Array(size);
     let offset = 0;

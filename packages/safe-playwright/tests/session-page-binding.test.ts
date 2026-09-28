@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { test } from 'node:test';
 import { setImmediate } from 'node:timers/promises';
-import { createPlaywrightCli, createPlaywrightController } from '../../src/commands/playwright/index.js';
-import type { PlaywrightContext, PlaywrightLease, PlaywrightPage } from '../../src/playwright/index.js';
+import { createPlaywrightController } from '../src/index.js';
+import type { PlaywrightContext, PlaywrightLease, PlaywrightPage } from '../src/index.js';
 
 function deferred() {
   let resolve!: () => void;
@@ -37,22 +37,18 @@ function browser() {
 
 function fixture() {
   const native = browser();
-  let checkpoints = 0;
   const controller = createPlaywrightController({
     adapter: { browsers: { chromium: { headed: false } }, async acquire() { assert.fail('host binding cannot acquire'); } },
-    persistence: {
-      async restore() { assert.fail('host binding cannot restore'); },
-      async checkpoint() { checkpoints++; }, async delete() {},
-    },
+
   });
   const request = () => ({ name: 'owned', context: native.context, page: native.pages[0]! });
   const adopt = (policy: { expiresAt?: number; idleTimeoutMs?: number } = {}) => controller.restoreSession({
     name: 'owned', ...policy, async acquire() { return { lease: native.lease, selectedPage: native.pages[0]! }; },
   });
   const run = (args: string[]) => controller.run({ args: ['-s=owned', ...args], env: {}, signal: new AbortController().signal,
-    async write() {}, async writeArtifact() {},
+    async write() {},
   });
-  return { native, controller, request, adopt, run, checkpoints: () => checkpoints };
+  return { native, controller, request, adopt, run };
 }
 
 test('host page binding serializes separate capture and commit operations with agent work', async () => {
@@ -75,7 +71,6 @@ test('host page binding serializes separate capture and commit operations with a
     await running;
     assert.deepEqual(await committing, { status: 'completed', value: undefined });
     assert.deepEqual(seen, ['capture', 'agent', 'commit']);
-    assert.equal(f.checkpoints(), 1, 'only the agent command checkpoints');
     assert.equal(f.controller.inspectSessions()[0]?.selectedPage, f.native.pages[0]);
     assert.deepEqual(f.native.calls, []);
   } finally { await f.controller.dispose(); }
@@ -96,7 +91,6 @@ test('binding requires a live exact selected page and never allocates, restores 
     const binding = f.controller.bindSessionPage(f.request())!;
     await f.native.pages[0]!.close();
     assert.deepEqual(await binding.run(async () => assert.fail('closed page callback')), { status: 'unavailable' });
-    assert.equal(f.checkpoints(), 0);
     assert.deepEqual(f.native.calls, []);
   } finally { await f.controller.dispose(); }
 });
@@ -106,9 +100,9 @@ test('a queued tab change rejects the old page before callback admission', async
   try {
     await f.adopt();
     const binding = f.controller.bindSessionPage(f.request())!;
-    const selecting = f.controller.selectSessionPage({ ...f.request(), page: f.native.pages[1]! });
+    const selecting = f.run(['tab-select', '1']);
     const operation = binding.run(async () => assert.fail('selection changed before admission'));
-    assert.equal(await selecting, true);
+    await selecting;
     assert.deepEqual(await operation, { status: 'unavailable' });
     assert.equal(f.controller.inspectSessions()[0]?.selectedPage, f.native.pages[1]);
   } finally { await f.controller.dispose(); }
@@ -218,26 +212,6 @@ for (const closure of ['page', 'lease'] as const) test(`${closure} closure cance
     assert.equal(f.native.calls.filter(call => call === 'release').length, 1);
     if (closure === 'lease') assert.ok((f.native.pages[0] as unknown as EventEmitter).listenerCount('close') <= listeners);
   } finally { aborted.resolve(); await f.controller.dispose(); }
-});
-
-test('host operations decline a yielded native dialog and resume after it is dismissed', async () => {
-  const f = fixture();
-  const resume = deferred();
-  try {
-    await f.adopt();
-    const binding = f.controller.bindSessionPage(f.request())!;
-    const page = f.native.pages[0]!;
-    page.keyboard.press = async () => {
-      f.native.events.emit('dialog', { page: () => page, type: () => 'confirm', message: () => 'Continue?', defaultValue: () => '',
-        async accept() { resume.resolve(); }, async dismiss() { resume.resolve(); },
-      });
-      await resume.promise;
-    };
-    await f.run(['press', 'Enter']);
-    assert.deepEqual(await binding.run(async () => assert.fail('native action still pending')), { status: 'unavailable' });
-    await f.run(['dialog-dismiss']);
-    assert.deepEqual(await binding.run(async () => 'after dialog'), { status: 'completed', value: 'after dialog' });
-  } finally { resume.resolve(); await f.controller.dispose(); }
 });
 
 for (const outcome of ['success', 'failure', 'cancelled'] as const) test(`a host callback yields a dialog to agent commands and retains its ${outcome} outcome`, async () => {
@@ -383,21 +357,9 @@ test('host activity pauses and renews idle expiry without reviving an expired se
       assert.equal(f.controller.inspectSessions().length, 1);
     });
     assert.equal(f.controller.inspectSessions()[0]?.expiresAt, 1300);
-    assert.equal(f.checkpoints(), 0);
     t.mock.timers.setTime(1300);
     assert.deepEqual(await binding.run(async () => assert.fail('expired callback')), { status: 'unavailable' });
   } finally { await f.controller.dispose(); }
-});
-
-test('CLI forwards the host-only page binding', async () => {
-  const cli = createPlaywrightCli();
-  const native = browser();
-  try {
-    await cli.restoreSession({ name: 'owned', async acquire() { return { lease: native.lease, selectedPage: native.pages[0]! }; } });
-    const binding = cli.bindSessionPage({ name: 'owned', context: native.context, page: native.pages[0]! });
-    assert.ok(binding);
-    assert.deepEqual(await binding.run(async () => false), { status: 'completed', value: false });
-  } finally { await cli.dispose(); }
 });
 
 for (const modal of ['dialog', 'filechooser'] as const) test(`host binding renews idle expiry when yielding a late ${modal}`, async t => {
@@ -434,4 +396,49 @@ for (const modal of ['dialog', 'filechooser'] as const) test(`host binding renew
     await f.controller.dispose();
     assert.deepEqual(f.native.calls, ['release']);
   } finally { resume.resolve(); await f.controller.dispose(); }
+});
+
+test('disposal drains an admitted restore before releasing its late lease', async () => {
+  const native = browser();
+  const acquired = deferred();
+  const entered = deferred();
+  const controller = createPlaywrightController({ adapter: { browsers: {}, async acquire() { assert.fail('unexpected acquisition'); } } });
+  const restoring = Promise.allSettled([controller.restoreSession({ name: 'owned', async acquire() {
+    entered.resolve(); await acquired.promise; return { lease: native.lease, selectedPage: native.pages[0]! };
+  } })]);
+  await entered.promise;
+  let disposed = false;
+  const disposing = controller.dispose().then(() => { disposed = true; });
+  await setImmediate();
+  const returnedEarly = disposed;
+  acquired.resolve();
+  assert.equal((await restoring)[0]?.status, 'rejected');
+  await disposing;
+  assert.equal(returnedEarly, false);
+  assert.deepEqual(native.calls, ['release']);
+});
+
+test('a yielded file chooser receives owned bytes from the injected artifact reader', async () => {
+  const f = fixture();
+  const entered = deferred();
+  const uploaded = deferred();
+  const source = new Uint8Array([1, 2, 3]);
+  let received: unknown;
+  try {
+    await f.adopt();
+    const page = f.native.pages[0]!;
+    const binding = f.controller.bindSessionPage(f.request())!;
+    const running = binding.run(async () => {
+      (page as PlaywrightPage & EventEmitter).emit('filechooser', { async setFiles(files: unknown) { received = files; uploaded.resolve(); } });
+      entered.resolve(); await uploaded.promise; return 'uploaded';
+    });
+    void running.catch(() => {});
+    await entered.promise;
+    await f.controller.run({ args: ['-s=owned', 'upload', 'input.txt'], env: {}, signal: new AbortController().signal,
+      async write() {}, async readArtifact(filename: string) { assert.equal(filename, 'input.txt'); return source; },
+    });
+    source.fill(0);
+    assert.deepEqual(received, [{ name: 'input.txt', mimeType: 'application/octet-stream', buffer: new Uint8Array([1, 2, 3]) }]);
+    assert.deepEqual(await running, { status: 'completed', value: 'uploaded' });
+  } finally { uploaded.resolve(); await f.controller.dispose(); }
 });

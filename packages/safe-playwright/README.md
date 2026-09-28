@@ -25,6 +25,16 @@ Snapshots have no byte limit. Legacy `limits.maxSnapshotBytes` values are ignore
 
 `billing` is unsupported and rejected. Invocations provide `args`, `env`, `signal`,
 `write(text)` and optional `writeArtifact(bytes, filename)` and `registerCleanup`.
+Hosts can attach an existing lease with `restoreSession({ name, acquire, expiresAt, idleTimeoutMs })`
+and inspect its selected page with `inspectSessions()`. `bindSessionPage({ name, context, page })`
+returns a binding only for that exact live selected page. Its `run(async ({ signal, check }) => ...)`
+serializes host work with session commands and rejects page or lease loss. Native dialogs yield
+only the command queue, allowing `dialog-accept [text]` or `dialog-dismiss` to handle them.
+Idle expiry pauses during queued work and gets a fresh deadline when the queue yields and
+when the callback completes; abandoned modal work can still expire. `upload <filename>`
+handles a yielded file chooser using the invocation’s injected `readArtifact(filename, maxBytes)`
+reader, bounded by `limits.maxArtifactBytes`; it never reads host files implicitly.
+
 Hosts must dispose the controller and retain responsibility for browser ownership.
 
 ## Environment variables

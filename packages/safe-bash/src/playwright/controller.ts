@@ -521,11 +521,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 if (page.on && page.off) { observing = true; page.on('close', closed); }
                 check();
                 const value = await callback({ signal, check });
-                check();
-                if (paused) {
+                if (paused && session.state === 'open') {
                   session.expiresAt = Date.now() + session.idleTimeoutMs!;
                   if (!session.idlePaused) scheduleExpiry(session);
                 }
+                check();
                 return { status: 'completed' as const, value };
               } catch (error) {
                 callerSignal?.throwIfAborted();
@@ -546,6 +546,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           } finally {
             unsubscribe();
             if (paused) {
+              if (session.state === 'open') session.expiresAt = Date.now() + session.idleTimeoutMs!;
               delete session.idlePaused;
               scheduleExpiry(session);
             }

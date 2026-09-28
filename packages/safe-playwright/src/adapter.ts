@@ -26,8 +26,8 @@ export interface PlaywrightFrame {
 
 export interface PlaywrightPage {
   frames?(): PlaywrightFrame[];
-  on?(event: 'framenavigated' | 'close', listener: (frame?: PlaywrightFrame) => void): unknown;
-  off?(event: 'framenavigated' | 'close', listener: (frame?: PlaywrightFrame) => void): unknown;
+  on?(event: 'framenavigated' | 'close' | 'filechooser', listener: (...args: any[]) => void): unknown;
+  off?(event: 'framenavigated' | 'close' | 'filechooser', listener: (...args: any[]) => void): unknown;
   goto(url: string, options?: { timeout?: number }): Promise<unknown>;
   url(): string;
   locator(selector: string): PlaywrightLocator;
@@ -40,8 +40,8 @@ export interface PlaywrightContext {
   newPage(): Promise<PlaywrightPage>;
   pages(): PlaywrightPage[];
   close(): Promise<void>;
-  on(event: "close", listener: () => void): unknown;
-  off(event: "close", listener: () => void): unknown;
+  on(event: "close" | "dialog", listener: (...args: any[]) => void): unknown;
+  off(event: "close" | "dialog", listener: (...args: any[]) => void): unknown;
 }
 
 export interface PlaywrightBrowser {

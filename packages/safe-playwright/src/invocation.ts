@@ -8,10 +8,11 @@ export interface PlaywrightInvocation {
   write(text: string): Promise<void>;
   /** Byte destination: optional guest filename, resolved by the injected VFS. */
   readonly writeArtifact?: ((bytes: Uint8Array, filename?: string) => Promise<void>) | undefined;
+  readonly readArtifact?: ((filename: string, maxBytes: number) => Promise<Uint8Array>) | undefined;
   readonly registerCleanup?: ((cleanup: () => Promise<void>) => void) | undefined;
 }
 export type ParsedInvocation = {
-  command: 'open' | 'goto' | 'list' | 'close' | 'close-all' | 'snapshot' | 'click' | 'fill' | 'press' | 'screenshot' | 'tab-list' | 'tab-new' | 'tab-select' | 'tab-close';
+  command: 'upload' | 'dialog-accept' | 'dialog-dismiss' | 'open' | 'goto' | 'list' | 'close' | 'close-all' | 'snapshot' | 'click' | 'fill' | 'press' | 'screenshot' | 'tab-list' | 'tab-new' | 'tab-select' | 'tab-close';
   session: string;
   browser: BrowserEngine;
   headless: boolean;
@@ -62,7 +63,7 @@ export function parseInvocation(invocation: PlaywrightInvocation, adapter: Playw
   if (positional[0] === 'tab') positional.splice(0, 2, `tab-${positional[1] ?? ''}`);
   const command = positional[0] as ParsedInvocation['command'];
   const arity: Record<ParsedInvocation['command'], readonly [number, number]> = {
-    open: [1, 2], goto: [2, 2], list: [1, 1], close: [1, 1], 'close-all': [1, 1], snapshot: [1, 1], click: [2, 2], fill: [3, 3], press: [2, 2], screenshot: [1, 1], 'tab-list': [1, 1], 'tab-new': [1, 2], 'tab-select': [2, 2], 'tab-close': [1, 2],
+    upload: [2, 2], 'dialog-accept': [1, 2], 'dialog-dismiss': [1, 1], open: [1, 2], goto: [2, 2], list: [1, 1], close: [1, 1], 'close-all': [1, 1], snapshot: [1, 1], click: [2, 2], fill: [3, 3], press: [2, 2], screenshot: [1, 1], 'tab-list': [1, 1], 'tab-new': [1, 2], 'tab-select': [2, 2], 'tab-close': [1, 2],
   };
   if (!Object.hasOwn(arity, command)) throw new Error(`Unsupported command in qualified subset: ${command ?? ''}`);
   const [min, max] = arity[command];
@@ -92,7 +93,8 @@ export function parseInvocation(invocation: PlaywrightInvocation, adapter: Playw
   }
   const ref = command === 'click' || command === 'fill' ? positional[1] : undefined;
   if (ref !== undefined && (ref[0] !== 'e' || ref.length < 2 || [...ref.slice(1)].some(char => !'0123456789'.includes(char)))) throw new Error('Action requires a snapshot ref');
-  const value = command === 'fill' ? positional[2] : command === 'press' ? positional[1] : undefined;
+  const value = command === 'fill' ? positional[2] : command === 'press' || command === 'dialog-accept' || command === 'upload' ? positional[1] : undefined;
+  if (command === 'upload' && (!value || value.includes('\0') || !invocation.readArtifact)) throw new Error('Upload requires a filename and injected artifact reader');
   if (command === 'press' && !value) throw new Error('Missing press key');
   const tabValue = command === 'tab-select' || command === 'tab-close' ? positional[1] : undefined;
   const tab = tabValue === undefined ? undefined : Number(tabValue);

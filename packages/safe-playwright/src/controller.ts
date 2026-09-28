@@ -1,4 +1,4 @@
-import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage, PlaywrightFrame } from './adapter.js';
+import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage, PlaywrightFrame, PlaywrightContext } from './adapter.js';
 import { createSnapshotEngine, SnapshotLimitError } from './snapshot.js';
 import { parseInvocation, type PlaywrightInvocation } from './invocation.js';
 
@@ -12,6 +12,27 @@ export interface PlaywrightControllerOptions {
   readonly billing?: never;
 }
 export type PlaywrightSessionState = 'acquiring' | 'open' | 'closing' | 'closed';
+export interface PlaywrightSessionRenewOptions {
+  readonly name: string;
+  readonly context: PlaywrightContext;
+}
+export interface PlaywrightSessionSelectOptions extends PlaywrightSessionRenewOptions {
+  readonly page: PlaywrightPage;
+  readonly signal?: AbortSignal;
+}
+export interface PlaywrightSessionPageBinding {
+  /** Each call enters the session command queue separately. Never await another
+   * queued controller operation or human permission from inside the callback. */
+  run<T>(operation: (scope: { readonly signal: AbortSignal; readonly check: () => void }) => Promise<T>,
+    options?: { readonly signal?: AbortSignal }): Promise<{ readonly status: 'unavailable' } | { readonly status: 'completed'; readonly value: T }>;
+}
+export interface PlaywrightSessionRestoreOptions {
+  readonly name: string;
+  readonly expiresAt?: number;
+  readonly idleTimeoutMs?: number;
+  readonly signal?: AbortSignal;
+  acquire(options: { readonly signal: AbortSignal }): Promise<{ readonly lease: PlaywrightLease; readonly selectedPage?: PlaywrightPage }>;
+}
 interface Session {
   readonly name: string;
   readonly generation: number;
@@ -19,6 +40,15 @@ interface Session {
   lease?: PlaywrightLease;
   page?: PlaywrightPage;
   pages?: PlaywrightPage[];
+  retirement: AbortController;
+  pendingActions?: Set<Promise<void>>;
+  idlePaused?: boolean;
+  expiresAt?: number;
+  idleTimeoutMs?: number;
+  expiryTimer?: ReturnType<typeof setTimeout>;
+  modal?: { accept?(value?: string): Promise<void>; dismiss?(): Promise<void>; setFiles?(files: readonly { name: string; mimeType: string; buffer: Uint8Array }[]): Promise<void> };
+  modalListeners?: Set<() => void>;
+  detachModal?: () => void;
   readonly snapshot: ReturnType<typeof createSnapshotEngine>;
   detachPage?: () => void;
   unsubscribe?: () => void;
@@ -46,8 +76,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
   const release = (session: Session): Promise<void> => {
     if (session.releasing) return session.releasing;
     session.state = 'closing';
+    clearTimeout(session.expiryTimer);
     session.releasing = Promise.resolve().then(async () => {
       try {
+        await Promise.all([...session.pendingActions ?? []]);
+        session.detachModal?.();
         session.detachPage?.();
         const results = await Promise.allSettled([session.snapshot.invalidate(), Promise.resolve().then(() => session.lease?.release())]);
         const errors = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
@@ -61,6 +94,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
       }
     });
     // Notifications and abort handlers cannot throw unhandled rejections.
+    session.retirement.abort(new Error('Live Playwright session is no longer available'));
     void session.releasing.catch(() => {});
     return session.releasing;
   };
@@ -71,12 +105,162 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
     void tail.then(() => { if (tails.get(name) === tail) tails.delete(name); });
     return operation;
   };
+  const validatePlaywrightSessionName = (name: string) => {
+    if (!name || name.length > 128 || [...name].some(character => !'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-'.includes(character))) throw new TypeError('Invalid Playwright session name');
+  };
+  const scheduleExpiry = (session: Session) => {
+    clearTimeout(session.expiryTimer);
+    if (session.state !== 'open' || session.idlePaused || session.expiresAt === undefined) return;
+    session.expiryTimer = setTimeout(() => {
+      if (session.state !== 'open' || session.idlePaused) return;
+      if (session.expiresAt! > Date.now()) scheduleExpiry(session);
+      else void release(session).catch(() => {});
+    }, Math.max(0, session.expiresAt - Date.now()));
+    session.expiryTimer.unref?.();
+  };
+  const observeModals = (session: Session, page: PlaywrightPage) => {
+    session.detachModal?.();
+    const context = session.lease!.context;
+    const dialog = (value: NonNullable<Session['modal']> & { page(): PlaywrightPage }) => {
+      if (value.page() !== page) return;
+      session.modal = value;
+      for (const listener of session.modalListeners ?? []) listener();
+    };
+    const filechooser = (value: NonNullable<Session['modal']>) => {
+      session.modal = value;
+      for (const listener of session.modalListeners ?? []) listener();
+    };
+    context.on('dialog', dialog);
+    page.on?.('filechooser', filechooser);
+    session.detachModal = () => { context.off('dialog', dialog); page.off?.('filechooser', filechooser); };
+  };
+  const restoreSession = async (request: PlaywrightSessionRestoreOptions) => {
+    const operation = enqueue(request.name, async () => {
+      validatePlaywrightSessionName(request.name);
+      const signal = request.signal ? AbortSignal.any([request.signal, lifetime.signal]) : lifetime.signal;
+      signal.throwIfAborted();
+      for (const value of [request.expiresAt, request.idleTimeoutMs]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) throw new RangeError('Invalid session expiry');
+      if (request.expiresAt !== undefined && request.expiresAt <= Date.now()) throw new Error('Session expired');
+      const previous = sessions.get(request.name);
+      if (previous && previous.state !== 'closed') throw new Error(`Session already ${previous.state}: ${request.name}`);
+      if (previous?.releasing) await previous.releasing;
+      if ([...sessions.values()].filter(session => session.state !== 'closed').length >= maxSessions) throw new Error('Playwright session capacity exceeded');
+      const session: Session = { name: request.name, generation: ++generation, state: 'acquiring', retirement: new AbortController(),
+        snapshot: createSnapshotEngine({ maxSnapshotRefs }, () => `e${++refSequence}`), ...(request.expiresAt === undefined ? {} : { expiresAt: request.expiresAt }),
+        ...(request.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: request.idleTimeoutMs }) };
+      sessions.set(request.name, session);
+      try {
+        const acquired = await request.acquire({ signal });
+        if (session.releasing) {
+          await session.releasing;
+          await acquired.lease.release();
+          throw new Error('Session closed');
+        }
+        session.lease = acquired.lease;
+        signal.throwIfAborted();
+        if (session.releasing) throw new Error('Session closed');
+        session.unsubscribe = session.lease.onClosed(() => { void release(session).catch(() => {}); });
+        const page = acquired.selectedPage ?? session.lease.context.pages()[0];
+        if (!page || !session.lease.context.pages().includes(page)) throw new Error('Selected page unavailable');
+        await selectPage(session, page, () => { signal.throwIfAborted(); if (session.releasing) throw new Error('Session closed'); });
+        session.pages = [...session.lease.context.pages()];
+        session.state = 'open';
+        scheduleExpiry(session);
+        return true;
+      } catch (error) { await release(session); throw error; }
+    });
+    work.add(operation);
+    try { return await operation; }
+    finally { work.delete(operation); }
+  };
+  const bindSessionPage = (request: Omit<PlaywrightSessionSelectOptions, 'signal'>): PlaywrightSessionPageBinding | undefined => {
+    const { name, context, page } = request;
+    validatePlaywrightSessionName(name);
+    const session = sessions.get(name);
+    if (!session) return undefined;
+    const available = () => !lifetime.signal.aborted && sessions.get(name) === session
+      && session.state === 'open' && !session.releasing
+      && session.lease?.context === context && session.page === page && context.pages().includes(page)
+      && (session.idlePaused || session.expiresAt === undefined || session.expiresAt > Date.now());
+    if (!available()) return undefined;
+    return Object.freeze({
+      async run<T>(callback: (scope: { readonly signal: AbortSignal; readonly check: () => void }) => Promise<T>,
+        request: { readonly signal?: AbortSignal } = {}): Promise<{ readonly status: 'unavailable' } | { readonly status: 'completed'; readonly value: T }> {
+        const callerSignal = request.signal;
+        callerSignal?.throwIfAborted();
+        if (!available()) return { status: 'unavailable' };
+        const pageClosed = new AbortController();
+        const signal = AbortSignal.any([...(callerSignal ? [callerSignal] : []), lifetime.signal, session.retirement.signal, pageClosed.signal]);
+        const check = () => {
+          callerSignal?.throwIfAborted();
+          signal.throwIfAborted();
+          if (!available()) throw new Error('Bound live Playwright session or page is no longer available');
+        };
+        const queued = enqueue(name, async () => {
+          callerSignal?.throwIfAborted();
+          signal.throwIfAborted();
+          // A native action can outlive its queue entry while a modal is open.
+          // Decline host work rather than overlapping or waiting for human input.
+          if (!available() || session.pendingActions?.size || session.modal) return { status: 'unavailable' as const };
+          const paused = !!session.idleTimeoutMs;
+          if (paused) { session.idlePaused = true; clearTimeout(session.expiryTimer); }
+          const closed = () => { pageClosed.abort(new Error('Bound live Playwright page is no longer available')); };
+          let observing = false;
+          let yielded!: () => void;
+          const modal = new Promise<void>(resolve => { yielded = resolve; });
+          const notifyModal = () => { if (session.modal) yielded(); };
+          (session.modalListeners ??= new Set()).add(notifyModal);
+          try {
+            const pending = Promise.resolve().then(async () => {
+              try {
+                if (page.on && page.off) { observing = true; page.on('close', closed); }
+                check();
+                const value = await callback({ signal, check });
+                if (paused && session.state === 'open') {
+                  session.expiresAt = Date.now() + session.idleTimeoutMs!;
+                  if (!session.idlePaused) scheduleExpiry(session);
+                }
+                check();
+                return { status: 'completed' as const, value };
+              } catch (error) {
+                callerSignal?.throwIfAborted();
+                signal.throwIfAborted();
+                throw error;
+              } finally {
+                if (observing) page.off!('close', closed);
+              }
+            });
+            const settled = pending.then(() => {}, () => {});
+            (session.pendingActions ??= new Set()).add(settled);
+            void settled.then(() => { session.pendingActions!.delete(settled); });
+            // A dialog raised by the callback needs a later agent command. Yield
+            // only the queue; the caller and disposal still await native work.
+            if (session.modal) yielded();
+            await Promise.race([settled, modal]);
+            return { pending };
+          } finally {
+            session.modalListeners!.delete(notifyModal);
+            if (paused) {
+              if (session.state === 'open') session.expiresAt = Date.now() + session.idleTimeoutMs!;
+              delete session.idlePaused;
+              scheduleExpiry(session);
+            }
+          }
+        });
+        const operation = queued.then(async result => 'pending' in result ? result.pending : result);
+        work.add(operation);
+        try { return await operation; }
+        finally { work.delete(operation); }
+      },
+    });
+  };
   const selectPage = async (session: Session, page: PlaywrightPage, check: () => void) => {
     check();
     session.detachPage?.();
     await session.snapshot.invalidate();
     check();
     session.page = page;
+    observeModals(session, page);
     if (page.on && page.off) {
       const invalidate = () => { void session.snapshot.invalidate().catch(() => {}); };
       const navigated = (frame?: PlaywrightFrame) => { void session.snapshot.invalidate(frame).catch(() => {}); };
@@ -145,6 +329,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
         return;
       }
       await enqueue(parsed.session, async () => {
+        let paused: Session | undefined;
         try {
           check();
           if (parsed.command === 'close') {
@@ -163,7 +348,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
             // claim this slot during retirement's asynchronous boundary.
             const occupied = [...sessions.values()].filter(s => s.state !== 'closed').length;
             if (occupied >= maxSessions) throw new Error('Playwright session capacity exceeded');
-            active = { name: parsed.session, generation: ++generation, state: 'acquiring', snapshot: createSnapshotEngine({ maxSnapshotRefs }, () => `e${++refSequence}`) };
+            active = { name: parsed.session, generation: ++generation, state: 'acquiring', retirement: new AbortController(), snapshot: createSnapshotEngine({ maxSnapshotRefs }, () => `e${++refSequence}`) };
             sessions.set(parsed.session, active);
             const session = active;
             session.lease = await options.adapter.acquire({ acquisitionId: `playwright-${session.generation}`, session: session.name, browser: parsed.browser, headless: parsed.headless, signal: local.signal });
@@ -191,6 +376,30 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
             const session = sessions.get(parsed.session);
             if (!session || session.state !== 'open') throw new Error(`Session closed: ${parsed.session}; reopen explicitly`);
             active = session;
+            retained = true;
+            if (!session.idlePaused && session.expiresAt !== undefined && session.expiresAt <= Date.now()) throw new Error('Session expired');
+            if (session.idleTimeoutMs) { paused = session; session.idlePaused = true; clearTimeout(session.expiryTimer); }
+            if (parsed.command === 'upload') {
+              const modal = session.modal;
+              if (!modal?.setFiles) throw new Error('No file chooser is open');
+              const bytes = await invocation.readArtifact!(parsed.value!, maxArtifactBytes);
+              checkSession(session);
+              if (bytes.byteLength > maxArtifactBytes) throw new Error('Artifact byte limit exceeded');
+              await modal.setFiles([{ name: parsed.value!.split('/').at(-1)!, mimeType: 'application/octet-stream', buffer: new Uint8Array(bytes) }]);
+              if (session.modal === modal) delete session.modal;
+              checkSession(session);
+              return;
+            }
+            if (parsed.command === 'dialog-accept' || parsed.command === 'dialog-dismiss') {
+              const modal = session.modal;
+              if (!modal || !modal.dismiss || !modal.accept) throw new Error('No dialog is open');
+              if (parsed.command === 'dialog-accept') await modal.accept(parsed.value);
+              else await modal.dismiss();
+              if (session.modal === modal) delete session.modal;
+              checkSession(session);
+              return;
+            }
+            if (session.pendingActions?.size || session.modal) throw new Error('Live Playwright session has pending modal work');
             if (parsed.command === 'goto') {
               if (!session.page) { retained = true; throw new Error('Selected tab closed; select a tab explicitly'); }
               await session.snapshot.invalidate();
@@ -294,6 +503,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
         } finally {
           // Retirement is part of the session queue. Keep its rejection for
           // shared invocation cleanup so both execution and cleanup causes survive.
+          if (paused) {
+            if (paused.state === 'open') paused.expiresAt = Date.now() + paused.idleTimeoutMs!;
+            delete paused.idlePaused;
+            scheduleExpiry(paused);
+          }
           if (active && !retained) await release(active).catch(() => {});
         }
       });
@@ -328,5 +542,6 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
     lifetime.abort(new Error('Playwright controller is disposed'));
     return disposal;
   };
-  return { run, dispose };
+  const inspectSessions = () => [...sessions.values()].filter(session => session.state === 'open' && (session.idlePaused || session.expiresAt === undefined || session.expiresAt > Date.now())).map(session => ({ name: session.name, context: session.lease!.context, selectedPage: session.page, expiresAt: session.expiresAt, idleTimeoutMs: session.idleTimeoutMs }));
+  return { run, dispose, restoreSession, bindSessionPage, inspectSessions };
 }

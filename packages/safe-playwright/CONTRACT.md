@@ -18,6 +18,8 @@ provider-specific command branches or implicit native/ambient browser sources.
 | `snapshot` | Optional `--filename=<guest-path>`; otherwise text stdout |
 | `click` | Required snapshot ref, such as `e2` |
 | `fill` | Required snapshot ref and literal value (including empty string) |
+| `dialog-accept` / `dialog-dismiss` | Accept with optional prompt text, or dismiss the selected page’s yielded dialog |
+| `upload` | One filename read through injected `readArtifact(filename, maxBytes)` and copied into the yielded file chooser |
 | `press` | Required keyboard key/chord; applies to the selected page |
 | `screenshot` | Optional `--filename=<guest-path.png\|jpg\|jpeg>`, `--full-page`; otherwise PNG bytes stdout |
 | `tab-list` / `tab list` | Lists zero-based indices, selection, JSON-escaped URLs |
@@ -73,14 +75,19 @@ Omitted limits are unlimited, including when other limits are configured. Explic
 | `actionTimeoutMs` | Unlimited | Uses Playwright timeout `0` when omitted; explicit values are passed to navigation, ref actions and screenshots; keyboard press has no public timeout option |
 | `maxTabs` | Unlimited | Before commanded tab creation |
 | `maxSnapshotRefs` | Unlimited | Acquired handles before publication |
-| `maxArtifactBytes` | Unlimited | Screenshot / snapshot artifact bytes before copy or write |
+| `maxArtifactBytes` | Unlimited | Screenshot / snapshot / upload artifact bytes before copy or write |
 
 Snapshots have no byte limit; legacy `maxSnapshotBytes` values are ignored.
 
 The library materializes screenshot bytes and each frame's handle array before
 these limits can inspect them; these are output/retention limits, not browser
 memory or transport quotas. Cleanup errors remain visible. Session operations
-serialize; sessions can operate independently. Cancellation/registered invocation
+serialize; sessions can operate independently. `restoreSession` attaches a host-supplied
+lease and optional idle deadline. `bindSessionPage` binds its exact live selected page
+and queues each host callback separately. Dialogs and file choosers yield only that
+queue: callback completion and disposal still await host work. Queued activity pauses
+idle expiry; yielding and callback completion renew the idle deadline. An abandoned
+modal can expire normally, aborting its callback and retiring its lease. Cancellation/registered invocation
 cleanup drains owned work and retires an active session; cleanup after successful
 transfer preserves it. Disposal drains sessions and acquired handles. The host
 retains responsibility for browser ownership, partial acquisition, remote loss,

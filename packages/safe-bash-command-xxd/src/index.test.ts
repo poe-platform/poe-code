@@ -59,3 +59,68 @@ for (const value of [-1, NaN, -Infinity, 1.5]) {
     assert.throws(() => createXxdCommand({ limits: { maxInputBytes: value } }), RangeError);
   });
 }
+
+
+async function runParity(args: string[], input = new Uint8Array(), fs = createMemoryFileSystem()) {
+  const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+  const result = await createXxdCommand().execute({
+    command: "xxd", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+    stdin: (async function* () { yield input; })(),
+    stdout: { write: async bytes => { stdout.push(bytes.slice()); } },
+    stderr: { write: async bytes => { stderr.push(bytes.slice()); } },
+    signal: new AbortController().signal,
+  });
+  assert.equal(result.exitCode, 0, Buffer.concat(stderr).toString());
+  return Buffer.concat(stdout).toString();
+}
+
+test("xxd writes output operands and reverses them", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/in", new TextEncoder().encode("hello world"));
+  assert.equal(await runParity(["in", "out.hex"], undefined, fs), "");
+  assert.equal(await runParity(["-r", "out.hex", "rt.bin"], undefined, fs), "");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/rt.bin")), "hello world");
+});
+
+test("xxd seeks relative to EOF", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/in", new TextEncoder().encode("0123456789"));
+  for (const seek of ["-5", "+-5"]) {
+    assert.equal(await runParity(["-p", "-s", seek, "in"], undefined, fs), "3536373839\n");
+  }
+});
+
+test("xxd reverses sparse addresses with seek", async () => {
+  const input = new TextEncoder().encode("00000004: 4142\n00000008: 43\n");
+  assert.equal(await runParity(["-r", "-s", "2"], input), "\0\0\0\0\0\0AB\0\0C");
+});
+
+test("xxd autoskips runs of zero rows and capitalizes include identifiers", async () => {
+  assert.equal((await runParity(["-a"], new Uint8Array(64))).split("\n")[1], "*");
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/in.bin", new Uint8Array([65]));
+  assert.match(await runParity(["-i", "-capitalize", "in.bin"], undefined, fs), /IN_BIN\[\].*IN_BIN_LEN/s);
+});
+
+import { execFileSync } from "node:child_process";
+
+test("xxd autoskip matches native at end-of-input and before nonzero data", async () => {
+  for (const size of [16, 32, 48, 64, 80]) {
+    for (const suffix of [[], [65]]) {
+      const input = Uint8Array.from([...new Uint8Array(size), ...suffix]);
+      assert.equal(await runParity(["-autoskip"], input), execFileSync("/usr/bin/xxd", ["-a"], { input }).toString());
+    }
+  }
+});
+
+test("xxd reverse accepts nonzero starts and negative seek offsets", async () => {
+  const input = new TextEncoder().encode("00000004: 4142\n");
+  assert.equal(await runParity(["-r"], input), "\0\0\0\0AB");
+  assert.equal(await runParity(["-r", "-s", "-4"], input), "AB");
+});
+
+test("xxd reverses autoskip dumps", async () => {
+  const bytes = new Uint8Array(64);
+  const dump = await runParity(["-a"], bytes);
+  assert.equal(await runParity(["-r"], new TextEncoder().encode(dump)), Buffer.from(bytes).toString());
+});

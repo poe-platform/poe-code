@@ -1,3 +1,4 @@
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import { isAbsolutePath, validatePath } from "@poe-code/safe-fs/core";
 import {
   CommandArgumentIdentityError,
@@ -335,7 +336,7 @@ async function reversePlain(context: CommandContext, files: readonly string[], m
   }
 }
 
-async function reverseNormal(context: CommandContext, files: readonly string[], columns: number, maxInputBytes: number): Promise<void> {
+async function reverseNormal(context: CommandContext, files: readonly string[], columns: number, maxInputBytes: number, seek: number): Promise<void> {
   let line = "";
   let offset = 0;
   const outBuf = new Uint8Array(8192);
@@ -350,13 +351,13 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
     }
   };
   const rowScratch = new Uint8Array(Math.max(columns, 256));
-  const parseLineBytesInto = (buf: Uint8Array, startPos: number, endPos: number): number => {
+  const parseLineBytesInto = async (buf: Uint8Array, startPos: number, endPos: number): Promise<number> => {
     let nonSpace = false;
     for (let i = startPos; i < endPos; i++) {
       const c = buf[i]!;
       if (c !== 32 && !(c >= 9 && c <= 13)) { nonSpace = true; break; }
     }
-    if (!nonSpace) return 0;
+    if (!nonSpace || (endPos - startPos === 1 && buf[startPos] === 42)) return 0;
     const colonAbs = buf.indexOf(58, startPos);
     const colon = colonAbs >= 0 && colonAbs < endPos ? colonAbs - startPos : -1;
     if (colon < 1 || colon > 14) throw new PublicDiagnostic("invalid input: expected hexadecimal address and colon");
@@ -366,7 +367,15 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
       if (digit < 0) throw new PublicDiagnostic("invalid input: expected hexadecimal address and colon");
       address = address * 16 + digit;
     }
-    if (!Number.isSafeInteger(address) || address !== offset) throw new PublicDiagnostic("invalid input: reverse requires contiguous addresses starting at zero");
+    address = addOffset(address, seek);
+    if (address < offset) throw new PublicDiagnostic("invalid input: cannot seek backwards on output stream");
+    await flushOut();
+    while (offset < address) {
+      const length = Math.min(blockSize, address - offset);
+      await output(context, new Uint8Array(length));
+      offset += length;
+      await yieldTurn(context.signal);
+    }
     let count = 0;
     let high = -1;
     let spaces = 0;
@@ -401,13 +410,13 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
       }
       let count = 0;
       if (line.length === 0) {
-        count = parseLineBytesInto(chunk, start, nl);
+        count = await parseLineBytesInto(chunk, start, nl);
       } else {
         for (let i = start; i < nl; i++) line += String.fromCharCode(chunk[i]!);
         const lineBytes = new Uint8Array(line.length);
         for (let i = 0; i < line.length; i++) lineBytes[i] = line.charCodeAt(i);
         line = "";
-        count = parseLineBytesInto(lineBytes, 0, lineBytes.length);
+        count = await parseLineBytesInto(lineBytes, 0, lineBytes.length);
       }
       start = nl + 1;
       if (count > 0) {
@@ -422,7 +431,7 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
   if (line) {
     const lineBytes = new Uint8Array(line.length);
     for (let i = 0; i < line.length; i++) lineBytes[i] = line.charCodeAt(i);
-    const count = parseLineBytesInto(lineBytes, 0, lineBytes.length);
+    const count = await parseLineBytesInto(lineBytes, 0, lineBytes.length);
     if (count > 0) {
       if (outUsed + count > outBuf.length) await flushOut();
       outBuf.set(rowScratch.subarray(0, count), outUsed);
@@ -466,6 +475,8 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       "-bits": "-b",
       "-include": "-i",
       "-name": "-n",
+      "-autoskip": "-a",
+      "-capitalize": "-C",
     };
     let ended = false;
     const args = context.args.map(argument => {
@@ -473,10 +484,19 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       if (argument === "--") ended = true;
       return aliases[argument] ?? argument;
     });
-    const parsed = parseOptions(args, "prdubiec:g:l:s:o:n:");
+    const parsed = parseOptions(args, "aCprdubiec:g:l:s:o:n:");
     requireOperands(parsed.operands, 0, 2);
     if (parsed.operands[1] !== undefined && parsed.operands[1] !== "-") {
-      throw new UsageError("output-file operands are not supported; output is stdout only");
+      const original = context;
+      const path = pathOf(context, parsed.operands[1]);
+      let started = false;
+      context = { ...original, stdout: { async write(bytes) {
+        await writeFileOutput(original, bytes, data => started
+          ? original.fs.appendFile(path, data, { signal: original.signal })
+          : original.fs.writeFile(path, data, { signal: original.signal }));
+        started = true;
+      } } };
+      await writeBytes(context.stdout, new Uint8Array(), context.signal);
     }
     const files = parsed.operands.slice(0, 1);
     const plain = parsed.flags.has("p");
@@ -510,19 +530,28 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
     if (littleEndian && group && !Number.isInteger(Math.log2(group))) {
       throw new UsageError("number of octets per group must be a power of 2 with -e");
     }
-    const skip = validatedOption(parsed, "s", text => numeric(text.startsWith("+") && text.length > 1 ? text.slice(1) : text), 0);
+    let skip = validatedOption(parsed, "s", text => {
+      const relative = text.startsWith("+") ? text.slice(1) : text;
+      return relative.startsWith("-") ? -numeric(relative.slice(1)) : numeric(relative);
+    }, 0);
     const count = validatedOption(parsed, "l", numeric, Infinity);
     const displacement = validatedOption(parsed, "o", numeric, 0);
-    if (reverse && ["s", "l", "o", "d"].some(flag => parsed.flags.has(flag))) {
+    if (reverse && ["l", "o", "d"].some(flag => parsed.flags.has(flag))) {
       throw new UsageError("reverse does not support seek, length, displacement, or decimal addresses");
     }
     if (reverse) {
       if (plain) await reversePlain(context, files, maxInputBytes);
-      else await reverseNormal(context, files, columns, maxInputBytes);
+      else await reverseNormal(context, files, columns, maxInputBytes, skip);
       return { exitCode: 0 };
     }
+    const input = sources(context, files, maxInputBytes);
+    if (skip < 0) {
+      if (!files[0] || files[0] === "-") throw new UsageError("negative seek requires an input file");
+      const size = (await context.fs.stat(pathOf(context, files[0]), { signal: context.signal })).size;
+      skip = Math.max(0, size + skip);
+    }
     let offset = addOffset(skip, displacement);
-    const source = range(sources(context, files, maxInputBytes), skip, count);
+    const source = range(input, skip, count);
     let any = false;
     let includeLength = 0;
     let includeRow = "";
@@ -535,6 +564,7 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       }
       if (identifier[0] && identifier[0] >= "0" && identifier[0] <= "9") identifier = "__" + identifier;
     }
+    if (parsed.flags.has("C")) identifier = identifier.toUpperCase();
     const upper = parsed.flags.has("u");
     const hexTable = upper ? HEX_UPPER : HEX_LOWER;
     const byteTable = binary ? BIN_TABLE : hexTable;
@@ -559,6 +589,14 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
     };
     if (include && includeName !== undefined) await writeOut(`unsigned char ${identifier}[] = {\n`);
     const rowWidth = plain && !columns ? 4096 : columns;
+    let zeroRun = 0;
+    let zeroSecond = "", zeroLast = "";
+    const finishZeros = (atEnd: boolean) => {
+      if (zeroRun >= (atEnd ? 4 : 3)) outBuf += "*\n" + (atEnd ? zeroLast : "");
+      else if (zeroRun === 3) outBuf += zeroSecond + zeroLast;
+      else if (zeroRun === 2) outBuf += zeroLast;
+      zeroRun = 0;
+    };
     for await (const batch of rows(source, rowWidth)) {
       any = true;
       for (let rowStart = 0; rowStart < batch.length; rowStart += rowWidth) {
@@ -571,7 +609,7 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
           if (!flushedFirst && outBuf || outBuf.length >= 16384) await flushOut();
           continue;
         }
-        if (!plain && !littleEndian && !binary && columns === 16 && group === 2 && row.length === 16) {
+        if (!parsed.flags.has("a") && !plain && !littleEndian && !binary && columns === 16 && group === 2 && row.length === 16) {
           const b0 = row[0]!, b1 = row[1]!, b2 = row[2]!, b3 = row[3]!;
           const b4 = row[4]!, b5 = row[5]!, b6 = row[6]!, b7 = row[7]!;
           const b8 = row[8]!, b9 = row[9]!, b10 = row[10]!, b11 = row[11]!;
@@ -601,15 +639,25 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
         if (plain) outBuf += data + (columns ? "\n" : "");
         else {
           const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
-          outBuf += `${address}: ${data.padEnd(width)}  ${ascii}\n`;
+          const formatted = `${address}: ${data.padEnd(width)}  ${ascii}\n`;
+          if (parsed.flags.has("a") && row.length === columns && row.every(byte => byte === 0)) {
+            if (zeroRun === 0) outBuf += formatted;
+            if (zeroRun === 1) zeroSecond = formatted;
+            zeroRun++;
+            zeroLast = formatted;
+          } else {
+            finishZeros(false);
+            outBuf += formatted;
+          }
         }
         offset = addOffset(offset, row.length);
         if (!flushedFirst || outBuf.length >= 16384) await flushOut();
       }
     }
+    finishZeros(true);
     if (include) {
       if (includeRow) await writeOut(includeRow + "\n");
-      if (includeName !== undefined) await writeOut(`};\nunsigned int ${identifier}_len = ${includeLength};\n`);
+      if (includeName !== undefined) await writeOut(`};\nunsigned int ${identifier}${parsed.flags.has("C") ? "_LEN" : "_len"} = ${includeLength};\n`);
     }
     if (plain && !columns && any) await writeOut("\n");
     if (outBuf) await output(context, outBuf);

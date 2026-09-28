@@ -1427,3 +1427,51 @@ dual_fixture_test!(cli_branch_verbose_contains_merged_upstream_and_tag_filters, 
     let r_tag_pa = execute_git_cli(&f.fs, &f.dir, &["tag", "--points-at", "HEAD"]);
     assert_eq!(r_tag_pa.stdout.trim(), "v1.0.0\nv2.0.0");
 });
+
+
+dual_fixture_test!(cli_diff_stats_checkout_dash_stash_show_branch_and_merge_flags, cli_diff_stats_checkout_dash_stash_show_branch_and_merge_flags_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "-b", "feature-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "updated line 1\nupdated line 2\n");
+
+    // 1. diff --shortstat, --numstat, --dirstat, --word-diff, -R
+    let r_shortstat = execute_git_cli(&f.fs, &f.dir, &["diff", "--shortstat"]);
+    assert_eq!(r_shortstat.exit_code, 0);
+    assert!(r_shortstat.stdout.contains("1 file changed") && r_shortstat.stdout.contains("insertion"));
+
+    let r_numstat = execute_git_cli(&f.fs, &f.dir, &["diff", "--numstat"]);
+    assert_eq!(r_numstat.exit_code, 0);
+    assert!(r_numstat.stdout.contains("README.md"));
+
+    let r_dirstat = execute_git_cli(&f.fs, &f.dir, &["diff", "--dirstat"]);
+    assert_eq!(r_dirstat.exit_code, 0);
+    assert!(r_dirstat.stdout.contains("100.0% /"));
+
+    let r_word_diff = execute_git_cli(&f.fs, &f.dir, &["diff", "--word-diff"]);
+    assert_eq!(r_word_diff.exit_code, 0);
+    assert!(r_word_diff.stdout.contains("{+updated line 1+}"));
+
+    // 2. stash push, stash show, stash show -p, stash branch
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["stash", "push", "-m", "wip-readme"]).exit_code, 0);
+    let r_stash_show = execute_git_cli(&f.fs, &f.dir, &["stash", "show", "-p"]);
+    assert_eq!(r_stash_show.exit_code, 0);
+    assert!(r_stash_show.stdout.contains("+updated line 1"));
+
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["stash", "branch", "from-stash"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--abbrev-ref", "HEAD"]).stdout.trim(), "from-stash");
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["commit", "-am", "feat: commit from stash"]).exit_code, 0);
+
+    // 3. checkout - / switch - and @{-1}
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["checkout", "-"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--abbrev-ref", "HEAD"]).stdout.trim(), "from-stash");
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["switch", "-"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--abbrev-ref", "HEAD"]).stdout.trim(), "test-branch");
+
+    // 4. merge --squash and merge --no-ff
+    let r_squash = execute_git_cli(&f.fs, &f.dir, &["merge", "--squash", "from-stash"]);
+    assert_eq!(r_squash.exit_code, 0);
+    assert!(r_squash.stdout.contains("Squash commit"));
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["commit"]).exit_code, 0);
+    assert!(execute_git_cli(&f.fs, &f.dir, &["log", "-1"]).stdout.contains("Squashed commit"));
+});

@@ -57,12 +57,17 @@ pub(crate) enum DiffMode {
     Names,
     Status,
     Stat,
+    ShortStat,
+    NumStat,
+    DirStat,
+    WordDiff,
 }
 pub(crate) struct DiffOptions {
     pub mode: DiffMode,
     pub context: usize,
     pub quiet: bool,
     pub exit_code: bool,
+    pub reverse: bool,
 }
 impl Default for DiffOptions {
     fn default() -> Self {
@@ -71,6 +76,7 @@ impl Default for DiffOptions {
             context: 3,
             quiet: false,
             exit_code: false,
+            reverse: false,
         }
     }
 }
@@ -84,6 +90,7 @@ pub fn diff(
     paths: &[String],
     options: &DiffOptions,
 ) -> Result<(String, bool), GitError> {
+    let (before, after) = if options.reverse { (after, before) } else { (before, after) };
     let old = snapshot(fs, root, gitdir, before)?;
     let new = snapshot(fs, root, gitdir, after)?;
     let names: BTreeSet<_> = old.keys().chain(new.keys()).collect();
@@ -121,7 +128,10 @@ pub fn diff(
         }
         let left = old.get(p).map(|(_, b)| b.as_slice()).unwrap_or_default();
         let right = new.get(p).map(|(_, b)| b.as_slice()).unwrap_or_default();
-        if matches!(options.mode, DiffMode::Stat) {
+        if matches!(
+            options.mode,
+            DiffMode::Stat | DiffMode::ShortStat | DiffMode::NumStat | DiffMode::DirStat
+        ) {
             let binary = left.contains(&0) || right.contains(&0);
             let (added, deleted) = if binary {
                 (0, 0)
@@ -169,7 +179,60 @@ pub fn diff(
                 "/dev/null".into()
             }
         ));
-        out.push_str(&patch(&a, &b, options.context));
+        if matches!(options.mode, DiffMode::WordDiff) {
+            for (ol, nl) in a.lines().zip(b.lines()) {
+                if ol == nl {
+                    out.push_str(&format!(" {ol}\n"));
+                } else {
+                    out.push_str(&format!("[-{ol}-]{{+{nl}+}}\n"));
+                }
+            }
+            for ol in a.lines().skip(b.lines().count()) {
+                out.push_str(&format!("[-{ol}-]\n"));
+            }
+            for nl in b.lines().skip(a.lines().count()) {
+                out.push_str(&format!("{{+{nl}+}}\n"));
+            }
+        } else {
+            out.push_str(&patch(&a, &b, options.context));
+        }
+    }
+    if matches!(options.mode, DiffMode::NumStat) {
+        for (path, a, d, binary, _, _) in &stats {
+            if *binary {
+                out.push_str(&format!("-\t-\t{path}\n"));
+            } else {
+                out.push_str(&format!("{a}\t{d}\t{path}\n"));
+            }
+        }
+    } else if matches!(options.mode, DiffMode::ShortStat) && !stats.is_empty() {
+        let added: usize = stats.iter().map(|s| s.1).sum();
+        let deleted: usize = stats.iter().map(|s| s.2).sum();
+        out.push_str(&format!(
+            " {} file{} changed",
+            stats.len(),
+            if stats.len() == 1 { "" } else { "s" }
+        ));
+        if added > 0 {
+            out.push_str(&format!(", {added} insertion{}(+)", if added == 1 { "" } else { "s" }));
+        }
+        if deleted > 0 {
+            out.push_str(&format!(", {deleted} deletion{}(-)", if deleted == 1 { "" } else { "s" }));
+        }
+        out.push('\n');
+    } else if matches!(options.mode, DiffMode::DirStat) && !stats.is_empty() {
+        let mut dir_totals: BTreeMap<String, usize> = BTreeMap::new();
+        let mut grand_total = 0usize;
+        for (path, a, d, _, _, _) in &stats {
+            let dir = path.split_once('/').map(|(d, _)| format!("{d}/")).unwrap_or_else(|| "/".to_string());
+            let delta = (*a + *d).max(1);
+            *dir_totals.entry(dir).or_insert(0) += delta;
+            grand_total += delta;
+        }
+        for (dir, total) in dir_totals {
+            let pct = (total as f64 * 100.0) / (grand_total.max(1) as f64);
+            out.push_str(&format!("  {pct:4.1}% {dir}\n"));
+        }
     }
     if matches!(options.mode, DiffMode::Stat) && !stats.is_empty() {
         let width = stats.iter().map(|s| s.0.len()).max().unwrap_or(0);

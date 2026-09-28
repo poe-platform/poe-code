@@ -49,6 +49,11 @@ pub(crate) fn resolve(fs: &MemoryFs, gitdir: &str, revision: &str) -> Result<Str
                 .unwrap_or_else(|| format!("refs/heads/{branch_short}"));
             let remote_branch = merge_ref.strip_prefix("refs/heads/").unwrap_or(&branch_short);
             resolve_ref(fs, gitdir, &format!("refs/remotes/{remote}/{remote_branch}"), None)?
+        } else if let Some(neg) = inner.strip_prefix('-')
+            && let Ok(nth_prev) = neg.parse::<usize>()
+        {
+            let prev = previous_branch(fs, gitdir, nth_prev).ok_or_else(|| GitError::not_found(revision))?;
+            resolve_ref(fs, gitdir, &prev, None).or_else(|_| expand_oid(fs, gitdir, &prev))?
         } else if let Ok(nth) = inner.parse::<usize>() {
             let log_rel = if rname == "HEAD" || rname.starts_with("refs/") {
                 format!("logs/{rname}")
@@ -753,4 +758,25 @@ pub(crate) fn date(author: &crate::utils::Author) -> String {
         offset.abs() / 60,
         offset.abs() % 60
     )
+}
+
+
+pub(crate) fn previous_branch(fs: &MemoryFs, gitdir: &str, nth: usize) -> Option<String> {
+    if nth == 0 {
+        return None;
+    }
+    let log_path = format!("{gitdir}/logs/HEAD");
+    let text = fs.read_str(&log_path)?;
+    let mut found = 0usize;
+    for line in text.lines().rev() {
+        if let Some((_, msg)) = line.split_once("\tcheckout: moving from ")
+            && let Some((from, _)) = msg.split_once(" to ")
+        {
+            found += 1;
+            if found == nth {
+                return Some(from.trim().to_string());
+            }
+        }
+    }
+    None
 }

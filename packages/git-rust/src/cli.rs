@@ -633,10 +633,30 @@ pub fn execute_git_cli_with_http(
                     custom_author = Some((rc_obj.commit.author.name, rc_obj.commit.author.email));
                 }
             }
+            if msgs.is_empty() {
+                if let Some(m) = fs.read_str(&join(&[&gitdir, "MERGE_MSG"])) {
+                    msgs.push(m.trim_end_matches('\n').to_string());
+                } else if let Some(m) = fs.read_str(&join(&[&gitdir, "SQUASH_MSG"])) {
+                    msgs.push(m.trim_end_matches('\n').to_string());
+                }
+            }
             let joined_msg = if msgs.is_empty() {
                 None
             } else {
                 Some(msgs.join("\n\n"))
+            };
+            let merge_parents = if !amend
+                && let Some(mh) = fs.read_str(&join(&[&gitdir, "MERGE_HEAD"]))
+                && let Ok(head_oid) = resolve_ref(fs, &gitdir, "HEAD", None)
+            {
+                let mh_oid = mh.trim().to_string();
+                if !mh_oid.is_empty() {
+                    Some(vec![head_oid, mh_oid])
+                } else {
+                    None
+                }
+            } else {
+                None
             };
             let (author_name, author_email) = custom_author.unwrap_or_else(|| {
                 (
@@ -665,10 +685,16 @@ pub fn execute_git_cli_with_http(
                 false,
                 false,
                 None,
-                None,
+                merge_parents.as_deref(),
                 None,
             ) {
-                Ok(oid) => CliResult::ok(format!("[{}] {}\n", &oid[..7], joined_msg.as_deref().unwrap_or(""))),
+                Ok(oid) => {
+                    let _ = fs.rm(&join(&[&gitdir, "MERGE_HEAD"]));
+                    let _ = fs.rm(&join(&[&gitdir, "MERGE_MSG"]));
+                    let _ = fs.rm(&join(&[&gitdir, "MERGE_MODE"]));
+                    let _ = fs.rm(&join(&[&gitdir, "SQUASH_MSG"]));
+                    CliResult::ok(format!("[{}] {}\n", &oid[..7], joined_msg.as_deref().unwrap_or("")))
+                }
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }
@@ -958,6 +984,26 @@ pub fn execute_git_cli_with_http(
                             }
                             "--stat" => {
                                 options.mode = crate::cli_files::DiffMode::Stat;
+                                continue;
+                            }
+                            "--shortstat" => {
+                                options.mode = crate::cli_files::DiffMode::ShortStat;
+                                continue;
+                            }
+                            "--numstat" => {
+                                options.mode = crate::cli_files::DiffMode::NumStat;
+                                continue;
+                            }
+                            "--dirstat" => {
+                                options.mode = crate::cli_files::DiffMode::DirStat;
+                                continue;
+                            }
+                            "--word-diff" | "--color-words" => {
+                                options.mode = crate::cli_files::DiffMode::WordDiff;
+                                continue;
+                            }
+                            "-R" => {
+                                options.reverse = true;
                                 continue;
                             }
                             "-q" | "--quiet" => {
@@ -1273,7 +1319,7 @@ pub fn execute_git_cli_with_http(
                     }
                     reset_branch = matches!(arg, "-B" | "-C");
                     orphan = arg == "--orphan";
-                } else if !arg.starts_with('-') {
+                } else if !arg.starts_with('-') || arg == "-" {
                     positionals.push(arg);
                 }
             }
@@ -1323,9 +1369,27 @@ pub fn execute_git_cli_with_http(
                 }
             }
             let force = sub_args.contains(&"-f") || sub_args.contains(&"--force");
-            let Some(&ref_target) = positionals.first() else {
+            let Some(&raw_ref_target) = positionals.first() else {
                 return CliResult::err(128, "fatal: missing branch or commit argument\n");
             };
+            let prev_resolved: Option<String> = if raw_ref_target == "-" || raw_ref_target == "@{-1}" {
+                crate::cli_history::previous_branch(fs, &gitdir, 1)
+            } else {
+                None
+            };
+            let ref_target: &str = match prev_resolved.as_deref() {
+                Some(p) => p,
+                None if raw_ref_target == "-" => {
+                    return CliResult::err(128, "fatal: invalid reference: @{-1}\n");
+                }
+                None => raw_ref_target,
+            };
+            let old_head_name = current_branch(fs, &gitdir, false, false)
+                .ok()
+                .flatten()
+                .or_else(|| resolve_ref(fs, &gitdir, "HEAD", None).ok())
+                .unwrap_or_else(|| "HEAD".to_string());
+            let old_head_oid = resolve_ref(fs, &gitdir, "HEAD", None).unwrap_or_else(|_| "0".repeat(40));
             let start = if create_new {
                 if !crate::is_valid_ref(ref_target, true) {
                     return CliResult::err(
@@ -1422,6 +1486,14 @@ pub fn execute_git_cli_with_http(
                             return CliResult::err(128, format!("fatal: {}\n", e.message));
                         }
                     }
+                    let new_head_oid = resolve_ref(fs, &gitdir, "HEAD", None).unwrap_or_else(|_| old_head_oid.clone());
+                    let head_log_path = join(&[&gitdir, "logs", "HEAD"]);
+                    let _ = fs.mkdir(&join(&[&gitdir, "logs"]));
+                    let mut existing_log = fs.read_str(&head_log_path).unwrap_or_default();
+                    existing_log.push_str(&format!(
+                        "{old_head_oid} {new_head_oid} Git User <user@example.com> 1502484200 +0000\tcheckout: moving from {old_head_name} to {ref_target}\n"
+                    ));
+                    fs.write_str(&head_log_path, &existing_log);
                     CliResult::ok(format!("Switched to branch '{ref_target}'\n"))
                 }
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
@@ -1595,17 +1667,26 @@ pub fn execute_git_cli_with_http(
                     .or_else(|| arg.strip_prefix("-m"))
                 {
                     message = Some(value);
-                } else if !arg.starts_with('-') && target.is_none() {
+                } else if (!arg.starts_with('-') || arg == "-") && target.is_none() {
                     target = Some(arg);
                 }
             }
-            let Some(theirs) = target else {
+            let Some(raw_target) = target else {
                 return CliResult::err(128, "fatal: No commit specified\n");
             };
-            let theirs = match crate::cli_history::resolve_commit(fs, &gitdir, theirs) {
+            let resolved_prev = if raw_target == "-" {
+                crate::cli_history::previous_branch(fs, &gitdir, 1)
+            } else {
+                None
+            };
+            let target_ref = resolved_prev.as_deref().unwrap_or(raw_target);
+            let theirs = match crate::cli_history::resolve_commit(fs, &gitdir, target_ref) {
                 Ok(oid) => oid,
                 Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
             };
+            let squash = sub_args.contains(&"--squash");
+            let no_commit = sub_args.contains(&"--no-commit");
+            let no_ff = sub_args.contains(&"--no-ff");
             let author = Author {
                 name: get_config(fs, &gitdir, "user.name")
                     .map(|v| v.as_str().to_string())
@@ -1622,16 +1703,40 @@ pub fn execute_git_cli_with_http(
                 &gitdir,
                 None,
                 &theirs,
-                true,
+                !no_ff && !squash && !no_commit,
                 sub_args.contains(&"--ff-only"),
                 false,
-                false,
+                squash || no_commit,
                 false,
                 message,
                 Some(author),
                 None,
             ) {
                 Ok(r) => {
+                    if squash {
+                        fs.write_str(
+                            &join(&[&gitdir, "SQUASH_MSG"]),
+                            &format!("Squashed commit of the following:\n\ncommit {theirs}\n"),
+                        );
+                        return CliResult::ok(
+                            "Squash commit -- not updating HEAD\nAutomatic merge went well; stopped before committing as requested\n"
+                                .to_string(),
+                        );
+                    }
+                    if no_commit {
+                        fs.write_str(&join(&[&gitdir, "MERGE_HEAD"]), &format!("{theirs}\n"));
+                        fs.write_str(
+                            &join(&[&gitdir, "MERGE_MSG"]),
+                            &format!(
+                                "{}\n",
+                                message.unwrap_or(&format!("Merge branch '{target_ref}'"))
+                            ),
+                        );
+                        return CliResult::ok(
+                            "Automatic merge went well; stopped before committing as requested\n"
+                                .to_string(),
+                        );
+                    }
                     if r.fast_forward {
                         let _ = checkout(
                             fs,
@@ -1704,6 +1809,102 @@ pub fn execute_git_cli_with_http(
             CliResult::ok(out)
         }
         "stash" => {
+            if get_config(fs, &gitdir, "user.name").is_none() {
+                let _ = set_config(fs, &gitdir, "user.name", Some("Git User"), false);
+            }
+            if get_config(fs, &gitdir, "user.email").is_none() {
+                let _ = set_config(fs, &gitdir, "user.email", Some("user@example.com"), false);
+            }
+            let mut ref_idx = 0usize;
+            for arg in sub_args {
+                if let Some(rest) = arg.strip_prefix("stash@{")
+                    && let Some(idx_str) = rest.strip_suffix('}')
+                    && let Ok(idx) = idx_str.parse::<usize>()
+                {
+                    ref_idx = idx;
+                }
+            }
+            if sub_args.first().copied() == Some("show") {
+                let stash_rev = format!("stash@{{{ref_idx}}}");
+                let Ok(stash_oid) = crate::cli_history::resolve(fs, &gitdir, &stash_rev)
+                    .or_else(|_| resolve_ref(fs, &gitdir, "refs/stash", None))
+                else {
+                    return CliResult::err(1, "No stash entries found.\n");
+                };
+                let Ok(c) = crate::read_commit(fs, &gitdir, &stash_oid) else {
+                    return CliResult::err(1, "Invalid stash commit.\n");
+                };
+                let parent_oid = c.commit.parent.first().cloned().unwrap_or_else(|| ":empty".to_string());
+                let patch_mode = sub_args.contains(&"-p") || sub_args.contains(&"--patch");
+                let diff_opts = crate::cli_files::DiffOptions {
+                    mode: if patch_mode {
+                        crate::cli_files::DiffMode::Patch
+                    } else {
+                        crate::cli_files::DiffMode::Stat
+                    },
+                    ..Default::default()
+                };
+                return match crate::cli_files::diff(
+                    fs,
+                    &repo_root,
+                    &gitdir,
+                    &parent_oid,
+                    &stash_oid,
+                    &[],
+                    &diff_opts,
+                ) {
+                    Ok((out, _)) => CliResult::ok(out),
+                    Err(e) => CliResult::err(1, format!("error: {}\n", e.message)),
+                };
+            }
+            if sub_args.first().copied() == Some("branch") {
+                let Some(&new_branch) = sub_args.get(1) else {
+                    return CliResult::err(129, "usage: git stash branch <branchname> [<stash>]\n");
+                };
+                let stash_rev = format!("stash@{{{ref_idx}}}");
+                let Ok(stash_oid) = crate::cli_history::resolve(fs, &gitdir, &stash_rev)
+                    .or_else(|_| resolve_ref(fs, &gitdir, "refs/stash", None))
+                else {
+                    return CliResult::err(1, "No stash entries found.\n");
+                };
+                let Ok(c) = crate::read_commit(fs, &gitdir, &stash_oid) else {
+                    return CliResult::err(1, "Invalid stash commit.\n");
+                };
+                let old_head_name = current_branch(fs, &gitdir, false, false)
+                    .ok()
+                    .flatten()
+                    .unwrap_or_else(|| "HEAD".to_string());
+                let old_head_oid = resolve_ref(fs, &gitdir, "HEAD", None).unwrap_or_else(|_| "0".repeat(40));
+                let base_oid = c.commit.parent.first().map(|s| s.as_str());
+                if let Err(e) = branch(fs, &gitdir, new_branch, base_oid, true, false) {
+                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                }
+                let new_head_oid = resolve_ref(fs, &gitdir, "HEAD", None).unwrap_or_else(|_| old_head_oid.clone());
+                let head_log_path = join(&[&gitdir, "logs", "HEAD"]);
+                let _ = fs.mkdir(&join(&[&gitdir, "logs"]));
+                let mut existing_log = fs.read_str(&head_log_path).unwrap_or_default();
+                existing_log.push_str(&format!(
+                    "{old_head_oid} {new_head_oid} Git User <user@example.com> 1502484200 +0000\tcheckout: moving from {old_head_name} to {new_branch}\n"
+                ));
+                fs.write_str(&head_log_path, &existing_log);
+                let _ = checkout(
+                    fs,
+                    &repo_root,
+                    Some(&gitdir),
+                    Some(new_branch),
+                    None,
+                    None,
+                    false,
+                    false,
+                    false,
+                    true,
+                    true,
+                );
+                return match stash(fs, &repo_root, Some(&gitdir), Some("pop"), None, ref_idx) {
+                    Ok(_) => CliResult::ok(format!("Switched to a new branch '{new_branch}'\n")),
+                    Err(e) => CliResult::err(1, format!("error: {}\n", e.message)),
+                };
+            }
             let op = match sub_args.first().copied() {
                 None | Some("push") => Some("push"),
                 Some("pop") => Some("pop"),
@@ -1722,7 +1923,7 @@ pub fn execute_git_cli_with_http(
                 }
                 i += 1;
             }
-            match stash(fs, &repo_root, Some(&gitdir), op, msg, 0) {
+            match stash(fs, &repo_root, Some(&gitdir), op, msg, ref_idx) {
                 Ok(Some(out)) => CliResult::ok(format!("{out}\n")),
                 Ok(None) => CliResult::ok(""),
                 Err(e) => CliResult::err(1, format!("error: {}\n", e.message)),

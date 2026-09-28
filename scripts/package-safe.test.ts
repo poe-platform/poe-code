@@ -6,7 +6,7 @@ import { resolveBrowserShellBuild, resolvePrivateCommandBuild } from "./bundle-s
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
-import { build, type BuildOptions, type Plugin } from "esbuild";
+import { build, transformSync, type BuildOptions, type Plugin } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));

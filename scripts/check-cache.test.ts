@@ -60,7 +60,7 @@ describe("content-addressed check cache", () => {
     expect(key({ runtime: "different-node" })).not.toBe(before);
     expect(key({ environment: { TZ: "UTC" } })).not.toBe(before);
     expect(key({ environment: { PWD: "/elsewhere", npm_package_name: "different" } })).toBe(before);
-    expect(key({ environment: { GITHUB_RUN_ID: "new-run", GITHUB_SHA: "new-head", RUNNER_TRACKING_ID: "new-process", CODEX_THREAD_ID: "new-session" } })).toBe(before);
+    expect(key({ environment: { GITHUB_RUN_ID: "new-run", GITHUB_SHA: "new-head", RUNNER_TRACKING_ID: "new-process", CODEX_THREAD_ID: "new-session", INVOCATION_ID: "vm-uuid-1", JOURNAL_STREAM: "8:99999", SYSTEMD_EXEC_PID: "1234", TMUX_PANE: "%2", SSH_CONNECTION: "1.2.3.4" } })).toBe(before);
     state.fileSystem.writeFileSync("/repo/tests/setup.ts", "new setup");
     expect(key()).not.toBe(before);
     state.fileSystem.writeFileSync("/repo/tests/setup.ts", "setup");

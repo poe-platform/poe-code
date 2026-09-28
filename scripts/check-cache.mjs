@@ -47,11 +47,12 @@ export function createTaskFingerprints(plan, {
   runtime = { versions: process.versions, platform: process.platform, arch: process.arch },
   event = "test:unit"
 } = {}) {
-  const volatile = new Set(["PWD", "OLDPWD", "INIT_CWD", "SHLVL", "_", "TMPDIR", "TEMP", "TMP", "TEST", "VITEST", "NODE_UNIQUE_ID", "VITEST_WORKER_ID", "VITEST_POOL_ID", "POE_CHECK_CACHE", "POE_CHECK_CACHE_DIR", "TURBO_FORCE"]);
+  const relevantNames = new Set(event === "build"
+    ? ["NODE_ENV", "NODE_OPTIONS", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]
+    : ["PATH", "TZ", "LANG", "LC_ALL", "LC_CTYPE", "NODE_ENV", "NODE_OPTIONS", "CI", "GITHUB_ACTIONS", "FORCE_COLOR", "NO_COLOR", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]);
+  const relevantPrefixes = ["SAFE_BASH_", "SAFEJS_", "POE_CODE_"];
   const relevantEnvironment = Object.entries(environment).filter(([name, value]) => value !== undefined
-    && !volatile.has(name) && !name.startsWith("npm_") && !name.startsWith("CODEX_")
-    && !name.startsWith("RUNNER_") && !name.startsWith("ACTIONS_")
-    && (!name.startsWith("GITHUB_") || name === "GITHUB_ACTIONS")).map(([name, value]) => [name, name === "PATH" ? value.split(path.delimiter).map(entry => {
+    && (relevantNames.has(name) || relevantPrefixes.some(prefix => name.startsWith(prefix)))).map(([name, value]) => [name, name === "PATH" ? value.split(path.delimiter).filter(entry => !entry.includes("/.bun/bin")).map(entry => {
       const relative = path.relative(plan.root, entry);
       return !relative.startsWith("..") && !path.isAbsolute(relative) && entry.endsWith(path.join("node_modules", ".bin"))
         ? "$CHECKOUT/" + relative.split(path.sep).join("/") : entry;

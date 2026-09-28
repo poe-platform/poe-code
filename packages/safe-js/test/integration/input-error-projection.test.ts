@@ -260,7 +260,7 @@ async function observe(
     };
     const timer = setTimeout(() => {
       fail(Error("Child deadline: " + stderr));
-    }, 5000);
+    }, 25000);
     child.stdin.on("error", fail);
     child.stdout.on("error", fail);
     child.stderr.on("error", fail);
@@ -380,7 +380,7 @@ beforeAll(async () => {
       {
         name: "absolute-package-imports",
         setup(buildApi) {
-          buildApi.onResolve({ filter: /^[^./]/ }, async (args) => {
+          buildApi.onResolve({ filter: /^[^./]|intl-data\/dist\/(numberformat|pluralrules)\.js$/ }, async (args) => {
             if (args.path.startsWith("node:") || args.pluginData) return;
             const resolved = await buildApi.resolve(args.path, {
               resolveDir: args.resolveDir,

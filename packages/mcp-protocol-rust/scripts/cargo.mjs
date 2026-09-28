@@ -48,7 +48,9 @@ function run(command, args) {
   }
 }
 
-for (const args of commands[operation]) run("cargo", args);
+if (operation !== "build" || !existsSync(bindingManifest)) {
+  for (const args of commands[operation]) run("cargo", args);
+}
 
 if ((operation === "build" || operation === "test") && existsSync(bindingManifest)) {
   const output = path.join(packageDirectory, "dist");

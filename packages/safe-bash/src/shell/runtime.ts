@@ -3216,7 +3216,6 @@ function fastStringHexIdentity(str: string): string {
   }
   return bytesToHex(fastSharedTextEncoder.encode(str));
 }
-const letProgramCache = new Map<string, { prog: ArithmeticProgram; unitsCharged: number }>();
 const syncConditionalFileUnaryOps = new Set(["-e", "-a", "-f", "-d", "-s", "-L", "-h", "-r", "-w", "-x"]);
 interface CachedSingleEvalUnit {
   readonly script: Script;
@@ -7150,6 +7149,7 @@ export class Runtime {
       if (command.words.length >= 2 && command.words.length <= 16) {
         if (
           w0Plain === "unset" &&
+          rawState.locals.length === 0 &&
           !hasShellFunction(rawState, "unset") &&
           !rawState.extensions?.builtins.has("unset")
         ) {
@@ -7190,24 +7190,6 @@ export class Runtime {
                 allOk = false;
                 break;
               }
-            }
-          }
-          if (allOk) return true;
-        }
-        if (
-          w0Plain === "let" &&
-          !rawState.nounset &&
-          !rawState.readonlyVariables?.size &&
-          !rawState.errexit &&
-          !hasShellFunction(rawState, "let") &&
-          !rawState.extensions?.builtins.has("let")
-        ) {
-          let allOk = true;
-          for (let li = 1; li < command.words.length; li++) {
-            const wl = command.words[li]!;
-            if (!((wl.plain && !wl.plain.startsWith("-")) || this.isPureSyncValueWord(wl, rawState))) {
-              allOk = false;
-              break;
             }
           }
           if (allOk) return true;
@@ -9255,7 +9237,7 @@ export class Runtime {
       if (
         command.words.length >= 2 &&
         command.words.length <= 16 &&
-        (w0Plain === "unset" || w0Plain === "export" || w0Plain === "let") &&
+        (w0Plain === "unset" || w0Plain === "export") &&
         canMutatePipeStatus &&
         !pipeline.negate &&
         rawState.locals.length === 0 &&
@@ -9367,64 +9349,6 @@ export class Runtime {
             monitor.epoch = restEpoch;
             if (store) store.epoch = restEpoch;
             return 0;
-          }
-        } else if (w0Plain === "let" && !rawState.nounset && !rawState.readonlyVariables?.size && (!ignored ? !rawState.errexit : true)) {
-          let allOk = true;
-          const exprs: Array<{ exprStr: string; prog: ArithmeticProgram }> = [];
-          for (let li = 1; li < command.words.length; li++) {
-            const wl = command.words[li]!;
-            let exprStr: ShellValue | undefined;
-            try {
-              exprStr = wl.plain ?? this.fastValueWord(wl, rawState, io, true, false, false, true, undefined, diagnosticLine);
-            } catch {
-              exprStr = undefined;
-            }
-            if (typeof exprStr !== "string" || exprStr.length === 0 || exprStr.length > 128 || exprStr.startsWith("-")) {
-              allOk = false;
-              break;
-            }
-            const cachedLet = letProgramCache.get(exprStr);
-            let prog: ArithmeticProgram;
-            if (cachedLet) {
-              this.budget.parsing.admit(cachedLet.unitsCharged);
-              prog = cachedLet.prog;
-            } else {
-              const beforeUnits = this.budget.parsing.admittedUnits;
-              prog = prepareArithmetic(exprStr, this.budget.parsing);
-              const unitsCharged = this.budget.parsing.admittedUnits - beforeUnits;
-              if (letProgramCache.size >= 256) letProgramCache.clear();
-              letProgramCache.set(exprStr, { prog, unitsCharged });
-            }
-            if (prog.error || prog.hasSubscript || arithTreeTouchesArray(prog.tree, store) || (guestArrays(rawState) && !isSafeSmiProgram(prog))) {
-              allOk = false;
-              break;
-            }
-            exprs.push({ exprStr, prog });
-          }
-          if (allOk && exprs.length > 0) {
-            let lastNonZero: boolean | undefined;
-            for (let ei = 0; ei < exprs.length; ei++) {
-              const snap = this.budget.parsing.snapshot();
-              try {
-                lastNonZero = this.syncShellArithmeticNonZero(exprs[ei]!.prog, rawState, diagnosticLine);
-              } catch {
-                this.budget.parsing.restore(snap);
-                this.signal.throwIfAborted();
-                lastNonZero = undefined;
-                break;
-              }
-            }
-            if (lastNonZero !== undefined && (lastNonZero || ignored || !rawState.errexit)) {
-              if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
-              const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
-              this.budget.tick();
-              rawState.substitutionStatus = 0;
-              if (rawState.variables._ !== undefined) delete rawState.variables._;
-              rawState.lastArgument = exprs[exprs.length - 1]!.exprStr;
-              if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-              const finalStatus = lastNonZero ? 0 : 1;
-              return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, finalStatus, restEpoch);
-            }
           }
         }
       }
@@ -17253,7 +17177,7 @@ export class Runtime {
             if (
               !part.length &&
               (!part.substring || (!isKeys && !arrayBinding.associative && part.operator === undefined)) &&
-              ((selector.separator === "*" && (!isKeys ? (!split || part.quoted) : part.quoted)) || (selector.separator === "@" && !split && part.quoted)) &&
+              ((selector.separator === "*" && (!isKeys ? (!split || part.quoted) : part.quoted)) || (selector.separator === "@" && !split && part.quoted && assignmentStart !== undefined)) &&
               this.budget.limits.maxExpansionBytes === Infinity &&
               arrayBinding.maximum < 2048 &&
               (rawState.depth + (io.parameterDepth ?? 0)) < 60

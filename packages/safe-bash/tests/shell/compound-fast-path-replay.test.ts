@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 import { Shell } from "../../src/shell/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { textCommands } from "../../src/commands/text.js";
@@ -124,3 +125,81 @@ for (const [body, expected] of bodies) {
     }
   }
 }
+
+for (const [expansion, expected] of [
+  ['"${arr[@]}"', "3\n<one>\n<two>\n<three>\n"],
+  ['"${arr[@]:1:2}"', "2\n<two>\n<three>\n"],
+  ['"${arr[@]#t}"', "3\n<one>\n<wo>\n<hree>\n"],
+  ['"${empty[@]}"', "0\n<>\n"],
+  ['pre"${arr[@]}"post', "3\n<preone>\n<two>\n<threepost>\n"],
+] as const) {
+  for (const setup of ["", "set -f;"]) {
+    test(`compound array preserves fields: ${setup} ${expansion}`, async context => {
+      const shell = new Shell({ fs: createMemoryFileSystem() });
+      for (const command of basicCommands()) shell.commands.register(command);
+      context.after(() => shell.dispose());
+      const script = `${setup} arr=(one two three); empty=(); b=(${expansion}); echo "\${#b[@]}"; printf '<%s>\\n' "\${b[@]}"`;
+      const bash = spawnSync("/bin/bash", ["-c", script], { encoding: "utf8" });
+      assert.equal(bash.status, 0);
+      const result = await shell.exec(script);
+      assert.equal(bash.stdout, expected);
+      assert.equal(result.stdout, expected);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    });
+  }
+}
+
+for (const expression of ['"a += 1" "b = 1 / z"', '"a += 1" "b = (a += 1, 1 / z)"', '"a += 1" "z = 0" "b = 1 / z"']) {
+  test(`let fault preserves mutations exactly once: ${expression}`, async context => {
+    const shell = new Shell({ fs: createMemoryFileSystem() });
+    for (const command of basicCommands()) shell.commands.register(command);
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`z=0; a=0; let ${expression} || true; echo "a=$a"`);
+    assert.equal(result.stdout, expression.includes("b = (a") ? "a=2\n" : "a=1\n");
+    assert.match(result.stderr, /let:.*division by 0/);
+    assert.equal(result.exitCode, 0);
+  });
+}
+
+for (const builtin of ['let "x = i + 1"', 'unset u1 u2', 'let "x = i + 1"; unset u1 u2']) {
+  test(`function loop does not replay ${builtin}`, async context => {
+    const shell = new Shell({ fs: createMemoryFileSystem() });
+    for (const command of basicCommands()) shell.commands.register(command);
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`f() { local u1=one u2=two; for i in 1 2; do echo "iter:$i"; ${builtin}; echo "after:$i"; done; }; f`);
+    assert.equal(result.stdout, "iter:1\nafter:1\niter:2\nafter:2\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  });
+}
+
+for (const script of [
+  'arr=(one two three); x="${arr[@]}"; echo "<$x>"',
+  'arr=(one two three); case "${arr[@]}" in "one two three") echo match;; esac',
+  'arr=(one two three); [[ "${arr[@]}" == "one two three" ]]; echo "$?"',
+  'arr=(one two three); read -r x <<< "${arr[@]}"; echo "<$x>"',
+  'a=0; let "a += 1" "b = a + 2"; echo "$? $a $b"; let "a = 0"; echo "$? $a"',
+]) {
+  test(`scalar expansion and successful let match Bash: ${script}`, async context => {
+    const shell = new Shell({ fs: createMemoryFileSystem() });
+    for (const command of basicCommands()) shell.commands.register(command);
+    context.after(() => shell.dispose());
+    const bash = spawnSync("/bin/bash", ["-c", script], { encoding: "utf8" });
+    const result = await shell.exec(script);
+    assert.equal(result.stdout, bash.stdout);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, bash.status);
+  });
+}
+
+test("compound array fallback does not replay a loop", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  context.after(() => shell.dispose());
+  const script = 'arr=(one two three); for i in 1 2; do echo "iter:$i"; b=("${arr[@]}"); echo "${#b[@]}"; done';
+  const result = await shell.exec(script);
+  assert.equal(result.stdout, "iter:1\n3\niter:2\n3\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});

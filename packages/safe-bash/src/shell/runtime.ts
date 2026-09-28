@@ -4646,7 +4646,7 @@ export class Runtime {
         if (error instanceof ArrayFailure) return undefined;
         throw error;
       }};
-    if (assignment.kind === "compound" && assignment.entries.length <= 32) {
+    if (assignment.kind === "compound" && assignment.entries.length <= 32 && !assignment.entries.some(entry => entry.append)) {
       const isAssoc = Boolean(associative ?? current?.associative);
       if (isAssoc) {
         const pairs: Array<{ key: string; id: string; val: string }> = [];
@@ -7108,6 +7108,7 @@ export class Runtime {
           if (arrayAssign.kind === "compound") {
             const isAssoc = Boolean(st?.get(arrayAssign.name)?.associative);
             return ( arrayAssign.entries.length <= 32 && arrayAssign.entries.every(e => {
+              if (e.append) return false;
               if (isAssoc) {
                 const kSrc = e.index ? (e.index.source ?? e.index.decimal) : "";
                 return kSrc.length > 0 && !/[$\x60\\"']/.test(kSrc) && isNoBraceSyncAssignWord(e.value);
@@ -7211,6 +7212,7 @@ export class Runtime {
           if (aa && aa.kind === "compound") {
             if (!isShellIdentifier(aa.name) || rawState.readonlyVariables?.has(aa.name) || rawState.exported.has(aa.name) || (st?.get(aa.name) && st.get(aa.name)!.associative !== wantAssoc) || (!st?.get(aa.name) && rawState.variables[aa.name] !== undefined)) return false;
             return aa.entries.length <= 32 && aa.entries.every(e => {
+              if (e.append) return false;
               if (wantAssoc) {
                 const kSrc = e.index ? (e.index.source ?? e.index.decimal) : "";
                 return kSrc.length > 0 && !/[$\x60\\"']/.test(kSrc) && isNoBraceSyncAssignWord(e.value);

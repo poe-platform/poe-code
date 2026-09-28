@@ -11902,7 +11902,9 @@ export class Runtime {
             } else if (w0Plain === "awk") {
               if (plainOps.length !== opCount || this.evalSyncAwk([], plainOps) === undefined) return false;
             } else if (w0Plain === "jq") {
-              if (plainOps.length !== opCount || this.evalSyncJq("null", plainOps) === undefined) return false;
+              // jq may fail on a later iteration with a different input type.
+              // Normal execution must preserve its diagnostics and substitution status.
+              return false;
             } else if (w0Plain === "wc") {
               if (opCount !== 1 || (op0 !== "-l" && op0 !== "-c" && op0 !== "-w" && op0 !== "-m" && op0 !== "-L")) return false;
             } else if (w0Plain === "sort") {
@@ -22444,11 +22446,13 @@ export class Runtime {
 
   private evalSyncJq(input: string, opArgs: readonly string[]): string[] | undefined {
     let rawOut = false;
+    let compactOut = false;
     let filter: string | undefined;
     if (opArgs.length === 1 && !opArgs[0]!.startsWith("-")) {
       filter = opArgs[0]!;
     } else if (opArgs.length === 2 && (opArgs[0] === "-r" || opArgs[0] === "--raw-output" || opArgs[0] === "-c" || opArgs[0] === "--compact-output" || opArgs[0] === "-rc" || opArgs[0] === "-cr")) {
-      rawOut = opArgs[0]!.includes("r");
+      rawOut = ["-r", "-rc", "-cr", "--raw-output"].includes(opArgs[0]!);
+      compactOut = ["-c", "-rc", "-cr", "--compact-output"].includes(opArgs[0]!);
       filter = opArgs[1]!;
     }
     if (!filter) return undefined;
@@ -22526,7 +22530,9 @@ export class Runtime {
             } else return undefined;
           } else if (op.kind === "length") {
             if (item === null || item === undefined) next.push(0);
-            else if (typeof item === "string" || Array.isArray(item)) next.push(item.length);
+            else if (typeof item === "string") next.push(Array.from(item).length);
+            else if (typeof item === "number") next.push(Math.abs(item));
+            else if (Array.isArray(item)) next.push(item.length);
             else if (typeof item === "object") next.push(Object.keys(item).length);
             else return undefined;
           } else if (op.kind === "keys") {
@@ -22538,7 +22544,7 @@ export class Runtime {
         current = next;
       }
     }
-    return current.map(val => (rawOut && typeof val === "string" ? val : JSON.stringify(val ?? null)));
+    return current.map(val => (rawOut && typeof val === "string" ? val : JSON.stringify(val ?? null, null, compactOut ? undefined : 2)));
   }
   private evalSyncDirname(args: readonly string[]): string | undefined {
     let idx = 0;
@@ -22734,6 +22740,8 @@ export class Runtime {
       const startSpec = addrCmdM[1];
       const endSpec = addrCmdM[2];
       const patSpec = addrCmdM[3];
+      // The literal matcher cannot interpret BRE wildcards.
+      if (patSpec?.includes(".")) return undefined;
       const matchLine = (l: string, idx1: number, total: number): boolean => {
         if (patSpec !== undefined) {
           const aStart = patSpec.startsWith("^");
@@ -22748,7 +22756,7 @@ export class Runtime {
         const sNum = startSpec === "$" ? total : Number(startSpec!);
         if (endSpec === undefined) return idx1 === sNum;
         const eNum = endSpec === "$" ? total : Number(endSpec);
-        return idx1 >= sNum && idx1 <= eNum;
+        return idx1 >= sNum && idx1 <= Math.max(sNum, eNum);
       };
       const out: string[] = [];
       for (let i = 0; i < rawLines.length; i++) {
@@ -23164,7 +23172,8 @@ export class Runtime {
         } else if (sName === "grep") {
           if (this.evalSyncGrep([], sArgs, Boolean(rawState.errexit)) === undefined) return undefined;
         } else if (sName === "jq") {
-          if (this.evalSyncJq("null", sArgs) === undefined) return undefined;
+          // Input-dependent jq failures cannot be represented by this shortcut.
+          return undefined;
         } else if (sName === "base64") {
           if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-d" && sArgs[0] !== "--decode")) return undefined;
         } else if (sName === "tac" || sName === "nl") {

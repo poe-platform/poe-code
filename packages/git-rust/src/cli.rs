@@ -2239,10 +2239,158 @@ pub fn execute_git_cli_with_http(
                 CliResult::ok(format!("{}\n", res.oid))
             }
         }
-        "ls-files" => match list_files(fs, &gitdir, None) {
-            Ok(files) => CliResult::ok(files.join("\n") + if files.is_empty() { "" } else { "\n" }),
-            Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
-        },
+        "ls-files" => {
+            let stage_mode = sub_args.contains(&"-s") || sub_args.contains(&"--stage");
+            let others_mode = sub_args.contains(&"-o") || sub_args.contains(&"--others");
+            let exclude_std = sub_args.contains(&"--exclude-standard");
+            let modified_mode = sub_args.contains(&"-m") || sub_args.contains(&"--modified");
+            let deleted_mode = sub_args.contains(&"-d") || sub_args.contains(&"--deleted");
+            let nul_term = sub_args.contains(&"-z");
+            let sep_ch = if nul_term { '\0' } else { '\n' };
+            let filter_paths: Vec<String> = positionals
+                .iter()
+                .map(|arg| repository_path(&repo_root, &effective_cwd, arg))
+                .collect();
+            if stage_mode {
+                let entries = crate::GitIndexManager::acquire(fs, &gitdir, |index| {
+                    Ok(index.entries_flat())
+                })
+                .unwrap_or_default();
+                let mut out = String::new();
+                for e in entries {
+                    if !filter_paths.is_empty()
+                        && !crate::cli_history::matches_path(&e.path, &filter_paths)
+                    {
+                        continue;
+                    }
+                    out.push_str(&format!(
+                        "{:06o} {} {}\t{}{sep_ch}",
+                        e.mode, e.oid, e.flags.stage, e.path
+                    ));
+                }
+                return CliResult::ok(out);
+            }
+            if others_mode || modified_mode || deleted_mode {
+                let matrix = status_matrix(fs, &repo_root, Some(&gitdir), None, None).unwrap_or_default();
+                let mut out = String::new();
+                for (path, _h, w, st) in matrix {
+                    if !filter_paths.is_empty()
+                        && !crate::cli_history::matches_path(&path, &filter_paths)
+                    {
+                        continue;
+                    }
+                    let include = (others_mode && st == 0 && w == 2 && (!exclude_std || !crate::is_ignored(fs, &repo_root, Some(&gitdir), &path)))
+                        || (modified_mode && st != 0 && w == 2)
+                        || (deleted_mode && st != 0 && w == 0);
+                    if include {
+                        out.push_str(&format!("{path}{sep_ch}"));
+                    }
+                }
+                return CliResult::ok(out);
+            }
+            match list_files(fs, &gitdir, None) {
+                Ok(files) => {
+                    let mut out = String::new();
+                    for f in files {
+                        if !filter_paths.is_empty()
+                            && !crate::cli_history::matches_path(&f, &filter_paths)
+                        {
+                            continue;
+                        }
+                        out.push_str(&format!("{f}{sep_ch}"));
+                    }
+                    CliResult::ok(out)
+                }
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            }
+        }
+        "diff-tree" | "diff-index" | "diff-files" => {
+            let mut options = crate::cli_files::DiffOptions {
+                mode: if sub_args.contains(&"-p") || sub_args.contains(&"--patch") {
+                    crate::cli_files::DiffMode::Patch
+                } else if sub_args.contains(&"--name-only") {
+                    crate::cli_files::DiffMode::Names
+                } else {
+                    crate::cli_files::DiffMode::Status
+                },
+                ..Default::default()
+            };
+            if sub_args.contains(&"-q") || sub_args.contains(&"--quiet") {
+                options.quiet = true;
+            }
+            let (before, after) = match subcmd {
+                "diff-files" => (":index".to_string(), ":worktree".to_string()),
+                "diff-index" => {
+                    let rev = positionals.first().copied().unwrap_or("HEAD");
+                    let cached = sub_args.contains(&"--cached");
+                    (rev.to_string(), if cached { ":index".to_string() } else { ":worktree".to_string() })
+                }
+                _ => {
+                    if positionals.len() >= 2 {
+                        (positionals[0].to_string(), positionals[1].to_string())
+                    } else if let Some(&rev) = positionals.first() {
+                        let Ok(oid) = crate::cli_history::resolve_commit(fs, &gitdir, rev) else {
+                            return CliResult::err(128, format!("fatal: bad revision '{rev}'\n"));
+                        };
+                        let parent = crate::read_commit(fs, &gitdir, &oid)
+                            .ok()
+                            .and_then(|c| c.commit.parent.first().cloned()).filter(|p| crate::read_commit(fs, &gitdir, p).is_ok())
+                            .unwrap_or_else(|| ":empty".to_string());
+                        (parent, oid)
+                    } else {
+                        return CliResult::err(129, "usage: git diff-tree <tree-ish> [<tree-ish>]\n");
+                    }
+                }
+            };
+            match crate::cli_files::diff(fs, &repo_root, &gitdir, &before, &after, &[], &options) {
+                Ok((out, _)) => CliResult::ok(out),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            }
+        }
+        "pack-refs" => {
+            let pack_all = sub_args.contains(&"--all");
+            let mut lines = Vec::new();
+            let prefixes = if pack_all {
+                vec!["refs/heads", "refs/tags", "refs/remotes"]
+            } else {
+                vec!["refs/tags"]
+            };
+            for prefix in prefixes {
+                for r in crate::GitRefManager::list_refs(fs, &gitdir, prefix) {
+                    let full_ref = format!("{prefix}/{r}");
+                    if let Ok(oid) = resolve_ref(fs, &gitdir, &full_ref, None) {
+                        lines.push(format!("{oid} {full_ref}"));
+                    }
+                }
+            }
+            let content = if lines.is_empty() {
+                String::new()
+            } else {
+                format!("# pack-refs with: peeled fully-peeled sorted \n{}\n", lines.join("\n"))
+            };
+            fs.write_str(&join(&[&gitdir, "packed-refs"]), &content);
+            CliResult::ok("")
+        }
+        "mktree" => {
+            let mut entries = Vec::new();
+            for line in positionals {
+                if let Some((meta, path)) = line.split_once('\t') {
+                    let parts: Vec<&str> = meta.split_whitespace().collect();
+                    if parts.len() >= 3 {
+                        entries.push(crate::models::TreeEntry {
+                            mode: parts[0].to_string(),
+                            entry_type: parts[1].to_string(),
+                            oid: parts[2].to_string(),
+                            path: path.to_string(),
+                        });
+                    }
+                }
+            }
+            match crate::commands::plumbing::write_tree(fs, &gitdir, &entries) {
+                Ok(oid) => CliResult::ok(format!("{oid}\n")),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            }
+        }
         "ls-tree" => {
             let name_only = sub_args.contains(&"--name-only");
             let recursive = sub_args.contains(&"-r");

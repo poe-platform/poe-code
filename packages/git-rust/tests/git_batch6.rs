@@ -1475,3 +1475,36 @@ dual_fixture_test!(cli_diff_stats_checkout_dash_stash_show_branch_and_merge_flag
     assert_eq!(execute_git_cli(&f.fs, &f.dir, &["commit"]).exit_code, 0);
     assert!(execute_git_cli(&f.fs, &f.dir, &["log", "-1"]).stdout.contains("Squashed commit"));
 });
+
+
+dual_fixture_test!(cli_ls_files_modes_diff_plumbing_pack_refs_and_mktree, cli_ls_files_modes_diff_plumbing_pack_refs_and_mktree_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+
+    // 1. ls-files -s / --stage
+    let r_stage = execute_git_cli(&f.fs, &f.dir, &["ls-files", "-s"]);
+    assert_eq!(r_stage.exit_code, 0);
+    assert!(r_stage.stdout.contains("100644 ") && r_stage.stdout.contains("\tREADME.md"));
+
+    // 2. ls-files -o (untracked) and -m (modified)
+    f.fs.write_str(&join(&[&f.dir, "untracked-file.txt"]), "untracked\n");
+    f.fs.write_str(&join(&[&f.dir, "README.md"]), "modified content\n");
+    let r_others = execute_git_cli(&f.fs, &f.dir, &["ls-files", "-o"]);
+    assert!(r_others.stdout.contains("untracked-file.txt"));
+    let r_mod = execute_git_cli(&f.fs, &f.dir, &["ls-files", "-m"]);
+    assert_eq!(r_mod.stdout.trim(), "README.md");
+
+    // 3. diff-files, diff-index, diff-tree
+    let r_df = execute_git_cli(&f.fs, &f.dir, &["diff-files", "--name-only"]);
+    assert_eq!(r_df.stdout.trim(), "README.md");
+    let r_di = execute_git_cli(&f.fs, &f.dir, &["diff-index", "--name-status", "HEAD"]);
+    assert!(r_di.stdout.contains("M\tREADME.md"));
+    let r_dt = execute_git_cli(&f.fs, &f.dir, &["diff-tree", "--name-only", "HEAD"]);
+    assert_eq!(r_dt.exit_code, 0);
+
+    // 4. pack-refs --all and mktree
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["pack-refs", "--all"]).exit_code, 0);
+    let blob_oid = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "HEAD:README.md"]).stdout.trim().to_string();
+    let r_mktree = execute_git_cli(&f.fs, &f.dir, &["mktree", &format!("100644 blob {blob_oid}\thello.txt")]);
+    assert_eq!(r_mktree.exit_code, 0);
+    assert_eq!(r_mktree.stdout.trim().len(), 40);
+});

@@ -1,6 +1,6 @@
 import { validateGuestHeapSource } from "./snapshot/guest-heap-source.js";
 import { hashParsedAst, hashSource } from "./parse/hash.js";
-import type { CompileOwner } from "./interp/budget.js";
+import { SandboxError, type CompileOwner } from "./interp/budget.js";
 import { replaceErrorStack } from "./error/shape.js";
 import { SnapshotValidationError, validateDumpEnvelope, validateRuntimeSnapshotDescriptors } from "./snapshot/validation.js";
 import { inMemoryRunSnapshots, serializeSafeJSSnapshot } from "./snapshot/dump-format.js";
@@ -77,7 +77,7 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
       ? parseModule(options.source, "<input>", owner)
       : parseExecutableModule(options.source, "<input>", owner, options.importSpecifiers), owner); }
     catch (error) {
-      if (error instanceof SnapshotValidationError) throw error;
+      if (error instanceof SnapshotValidationError || error instanceof SandboxError) throw error;
       throw new SnapshotValidationError("invalidValue", "$.heap", String(error));
     }
   }

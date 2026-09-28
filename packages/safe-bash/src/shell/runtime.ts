@@ -2013,7 +2013,7 @@ function hasNonNamerefAttributes(state: State): boolean {
   const attrs = state.variableAttributes;
   if (!attrs || attrs.size === 0) return false;
   for (const [k, val] of attrs.entries()) {
-    if (val.length === 0) continue;
+    if (val.length === 0 || val === "i" || val === "l" || val === "u") continue;
     if (val !== "n") return true;
     const ref = state.variables[k];
     if (!ref || !isShellIdentifier(ref) || ref === k || attrs.get(ref)) return true;
@@ -3147,8 +3147,8 @@ function tryCompileTrimGlobToRegex(pat: string, op: "#" | "##" | "%" | "%%", ext
 const SIMPLE_ARITH_CMP_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*(<=|>=|==|!=|<|>)\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
 const SIMPLE_SCALAR_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12}))(?:\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})))?\s*$/;
 const readArrayScratchFields: string[] = [];
-const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|\$[1-9]|\$\{[a-zA-Z_][a-zA-Z_0-9]*\}|\$?[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*/%])\s*(-?(?:0|[1-9][0-9]{0,12})|\$[1-9]|\$\{[a-zA-Z_][a-zA-Z_0-9]*\}|\$?[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
-const SIMPLE_ARITH_OPERAND_RE = /^(?:-?(?:0|[1-9][0-9]{0,12})|\$[1-9]|\$\{[a-zA-Z_][a-zA-Z_0-9]*\}|\$?[a-zA-Z_][a-zA-Z_0-9]*)$/;
+const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|\$[1-9]|\$\{[a-zA-Z_][a-zA-Z_0-9]*\}|\$?[a-zA-Z_][a-zA-Z_0-9]*(?:\[[a-zA-Z0-9_.\-/:@]+\])?)\s*([+\-*/%])\s*(-?(?:0|[1-9][0-9]{0,12})|\$[1-9]|\$\{[a-zA-Z_][a-zA-Z_0-9]*\}|\$?[a-zA-Z_][a-zA-Z_0-9]*(?:\[[a-zA-Z0-9_.\-/:@]+\])?)\s*$/;
+const SIMPLE_ARITH_OPERAND_RE = /^(?:-?(?:0|[1-9][0-9]{0,12})|\$[1-9]|\$\{[a-zA-Z_][a-zA-Z_0-9]*\}|\$?[a-zA-Z_][a-zA-Z_0-9]*(?:\[[a-zA-Z0-9_.\-/:@]+\])?)$/;
 function resolveSimpleArithOperand(tok: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>, syncTouched?: Set<string>): number | undefined {
   if (!SIMPLE_ARITH_OPERAND_RE.test(tok)) return undefined;
   const c0 = tok.charCodeAt(0);
@@ -3164,6 +3164,29 @@ function resolveSimpleArithOperand(tok: string, rawState: State, monitor: Return
     }
     tok = c1 === 123 ? tok.slice(2, -1) : tok.slice(1);
   }
+  const br = tok.indexOf("[");
+  if (br > 0) {
+    const arrName = resolveSyncNameref(rawState, tok.slice(0, br));
+    const sub = tok.slice(br + 1, -1);
+    if (rawState.nounset || monitor?.hasOverlay(arrName) || activeArrayStore?.watches.has(arrName)) return undefined;
+    const binding = activeArrayStore?.get(arrName);
+    if (!binding) return undefined;
+    let elemVal: ShellValue | undefined;
+    if (binding.associative) {
+      if (sub.length === 0 || sub.length > 128) return undefined;
+      const existingKey = binding.keys.get(fastStringHexIdentity(sub));
+      elemVal = existingKey !== undefined ? binding.getValue(existingKey.index) : undefined;
+    } else {
+      let subIdx: number | undefined;
+      if (/^(?:0|[1-9][0-9]{0,8})$/.test(sub)) subIdx = Number(sub);
+      else if (/^[a-zA-Z_][a-zA-Z_0-9]*$/.test(sub)) subIdx = resolveSimpleArithOperand(sub, rawState, monitor, activeArrayStore, syncTouched);
+      if (subIdx === undefined || subIdx < 0 || subIdx > 2147483647) return undefined;
+      elemVal = binding.getValue(subIdx);
+    }
+    if (elemVal === undefined || elemVal === "") return 0;
+    if (typeof elemVal !== "string" || !/^-?(?:0|[1-9][0-9]{0,12})$/.test(elemVal)) return undefined;
+    return Number(elemVal);
+  }
   tok = resolveSyncNameref(rawState, tok);
   if (rawState.nounset || activeArrayStore?.bindings.has(tok) || monitor?.hasOverlay(tok) || activeArrayStore?.watches.has(tok)) return undefined;
   const raw = rawState.variables[tok];
@@ -3171,6 +3194,34 @@ function resolveSimpleArithOperand(tok: string, rawState: State, monitor: Return
   const v = syncTouched?.has(tok) ? raw : (monitor?.values.get(tok, raw) ?? raw);
   if (typeof v !== "string" || !/^-?(?:0|[1-9][0-9]{0,12})$/.test(v)) return undefined;
   return Number(v);
+}
+function evalSyncIntAttrExpr(expr: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>, syncTouched?: Set<string>): number | undefined {
+  const t = expr.trim();
+  if (t.length === 0) return 0;
+  const d = resolveSimpleArithOperand(t, rawState, monitor, activeArrayStore, syncTouched);
+  if (d !== undefined) return d;
+  const e = tryEvalSimpleExpandedArith(t, rawState, monitor, activeArrayStore, syncTouched);
+  if (e !== undefined) return Number(e);
+  return undefined;
+}
+function applySyncScalarAttributes(attr: string | undefined, assigned: string, curStr: string | undefined, append: boolean, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>, syncTouched?: Set<string>): string | undefined {
+  if (!attr || attr.length === 0) return append ? (curStr ?? "") + assigned : assigned;
+  if (attr === "l" || attr === "u") {
+    const combined = append ? (curStr ?? "") + assigned : assigned;
+    for (let k = 0; k < combined.length; k++) {
+      if (combined.charCodeAt(k) >= 128) return undefined;
+    }
+    return attr === "l" ? combined.toLowerCase() : combined.toUpperCase();
+  }
+  if (attr === "i") {
+    const rhsNum = evalSyncIntAttrExpr(assigned, rawState, monitor, activeArrayStore, syncTouched);
+    if (rhsNum === undefined) return undefined;
+    if (!append) return String(rhsNum);
+    const lhsNum = evalSyncIntAttrExpr(curStr ?? "0", rawState, monitor, activeArrayStore, syncTouched);
+    if (lhsNum === undefined || !Number.isSafeInteger(lhsNum + rhsNum)) return undefined;
+    return String(lhsNum + rhsNum);
+  }
+  return undefined;
 }
 const SIMPLE_ADDSUB_CHAIN_RE = /^\s*(?:-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)(?:\s+[+\-]\s+(?:-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)){2,6}\s*$/;
 function tryEvalSimpleExpandedArith(src: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>, syncTouched?: Set<string>): string | undefined {
@@ -3969,7 +4020,7 @@ export class Runtime {
         }
         if (arrayStore(st)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
         const raw = stateMonitor(st)?.raw ?? st;
-        if (raw.variableAttributes?.get(reference)) throw new ArrayFailure("attribute in sync arithmetic");
+        const refAttr = raw.variableAttributes?.get(reference); if (refAttr && refAttr !== "i" && refAttr !== "l" && refAttr !== "u") throw new ArrayFailure("attribute in sync arithmetic");
         if (raw.readonlyVariables?.has(reference)) throw new PublicDiagnostic(`${reference}: readonly variable`);
         publishVariable(st, reference, value);
         if (raw.allexport) st.exported.add(reference);
@@ -4322,13 +4373,23 @@ export class Runtime {
     if (bracket < 0) return entries ? entries[0] !== undefined : this.variable(state, base) !== undefined;
     const selector = name.slice(bracket + 1, -1);
     if (binding?.associative) {
-      if (selector.length === 0 || selector.length > 4096 || [...selector].some(character => "$`\\\"'".includes(character))) return undefined;
+      if (selector.length === 0 || selector.length > 4096 || /[$`\\"']/u.test(selector)) return undefined;
       const key = binding.keys.get(fastStringHexIdentity(selector));
       return key !== undefined && binding.getValue(key.index) !== undefined;
     }
     if (selector === "@" || selector === "*") return entries ? entries.length > 0 : binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
-    if (selector.length === 0 || selector.length > 9 || [...selector].some(character => !"0123456789".includes(character)) || selector.length > 1 && selector[0] === "0") return undefined;
-    const index = Number(selector);
+    let index: number | undefined;
+    if (/^(?:0|[1-9][0-9]{0,8})$/.test(selector)) {
+      index = Number(selector);
+    } else if (!entries && binding) {
+      const mon = stateMonitor(state);
+      const rawSt = mon ? mon.raw : state;
+      const st = mon?.store ?? arrayStore(state);
+      const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
+      index = evalSyncIntAttrExpr(selector, rawSt, mon, st, syncTouched);
+      if (index !== undefined && index < 0) index = binding.maximum + 1 + index;
+    }
+    if (index === undefined || index < 0 || index > 2147483647) return undefined;
     return entries ? entries[index] !== undefined : binding ? binding.getValue(index) !== undefined : index === 0 && this.variable(state, base) !== undefined;
   }
   private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {
@@ -7439,15 +7500,18 @@ export class Runtime {
         !rawState.extensions?.builtins.has(w0Plain)
       ) {
         // Array locals require the typed declaration and restoration lifecycle.
-        if (command.words[1]?.plain === "-a" || command.words[1]?.plain === "-A") return false;
-        const isNamerefDecl = command.words[1]?.plain === "-n" && (rawState.locals.length > 0 || depth > 0) && command.words.length >= 3;
-        const isGlobalDecl = command.words[1]?.plain === "-g" && (w0Plain === "declare" || w0Plain === "typeset") && command.words.length >= 3;
+        const flagPlain = command.words[1]?.plain;
+        if (flagPlain === "-a" || flagPlain === "-A") return false;
+        const isNamerefDecl = flagPlain === "-n" && (rawState.locals.length > 0 || depth > 0) && command.words.length >= 3;
+        const isGlobalDecl = flagPlain === "-g" && (w0Plain === "declare" || w0Plain === "typeset") && command.words.length >= 3;
+        const isAttrDecl = (flagPlain === "-i" || flagPlain === "-l" || flagPlain === "-u") && command.words.length >= 3;
         let allValidLocal = true;
-        for (let idx = (isNamerefDecl || isGlobalDecl) ? 2 : 1; idx < command.words.length; idx++) {
+        for (let idx = (isNamerefDecl || isGlobalDecl || isAttrDecl) ? 2 : 1; idx < command.words.length; idx++) {
           const wArg = command.words[idx]!;
           const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
           if (assignment) {
-            if ( (!isNamerefDecl && rawState.variableAttributes?.get(assignment.name)) || (assignment.name === "OPTIND" && (assignment.append || rawState.variableAttributes?.get("OPTIND"))) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || !isNoBraceSyncAssignWord(assignment.value)) {
+            const curAttr = rawState.variableAttributes?.get(assignment.name);
+            if ( (!isNamerefDecl && curAttr && curAttr !== "i" && curAttr !== "l" && curAttr !== "u") || (assignment.name === "OPTIND" && (assignment.append || curAttr)) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || !isNoBraceSyncAssignWord(assignment.value)) {
               allValidLocal = false;
               break;
             }
@@ -7466,29 +7530,38 @@ export class Runtime {
       if (w0Plain === "getopts") return false;
 
       if ( w0Plain === "echo" && !hasShellFunction(rawState, "echo") && !rawState.extensions?.builtins.has("echo")) {
-        const w1Plain = command.words[1]?.plain;
-        if (w1Plain === undefined || !w1Plain.startsWith("-") || w1Plain === "-n" || w1Plain === "-e" || w1Plain === "-ne" || w1Plain === "-en") if (command.words.slice(1).every(isNoBraceSyncWord)) return true;
+        const echoDef = this.commands.get("echo");
+        if (echoDef && defaultEchoExecutors.has(echoDef.execute)) {
+          const w1Plain = command.words[1]?.plain;
+          if (w1Plain === undefined || !w1Plain.startsWith("-") || w1Plain === "-n" || w1Plain === "-e" || w1Plain === "-ne" || w1Plain === "-en") if (command.words.slice(1).every(isNoBraceSyncWord)) return true;
+        }
       }
       if ( w0Plain === "printf" && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf")) {
-        const w2 = command.words[2];
-        const w2Plain = w2?.plain ?? (w2?.parts.length === 1 && w2.parts[0]!.kind === "text" ? w2.parts[0]!.value : undefined);
-        const isPrintfV = command.words.length >= 4 && command.words[1]?.plain === "-v" && w2 !== undefined && (
-          (w2Plain !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*(?:\[[^\]$\x60"']+\])?$/.test(w2Plain) && !w2Plain.startsWith("OPTIND") && !w2Plain.startsWith("PIPESTATUS")) ||
-          (w2.parts[0]?.kind === "text" && /^[a-zA-Z_][a-zA-Z_0-9]*\[/.test(w2.parts[0].value) && w2.parts[w2.parts.length - 1]?.kind === "text" && (w2.parts[w2.parts.length - 1] as { value: string }).value.endsWith("]") && isNoBraceSyncWord(w2))
-        );
-        const fmtIdx = isPrintfV ? 3 : 1;
-        const fmtWord = command.words[fmtIdx];
-        const fmtPlain = fmtWord?.plain ?? (fmtWord?.parts.length === 1 && fmtWord.parts[0]!.kind === "text" ? fmtWord.parts[0]!.value : undefined);
-        if ( fmtPlain !== undefined && !fmtPlain.startsWith("-") && /^(?:[^%]|%%|%[-0]*\d*(?:\.\d+)?[sdxXouc])*$/.test(fmtPlain) && command.words.slice(fmtIdx + 1).every(isNoBraceSyncWord)) {
-          return true;
+        const printfDef = this.commands.get("printf");
+        if (printfDef && printfDef.execute === printfCommand.execute) {
+          const w2 = command.words[2];
+          const w2Plain = w2?.plain ?? (w2?.parts.length === 1 && w2.parts[0]!.kind === "text" ? w2.parts[0]!.value : undefined);
+          const isPrintfV = command.words.length >= 4 && command.words[1]?.plain === "-v" && w2 !== undefined && (
+            (w2Plain !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*(?:\[[^\]$\x60"']+\])?$/.test(w2Plain) && !w2Plain.startsWith("OPTIND") && !w2Plain.startsWith("PIPESTATUS")) ||
+            (w2.parts[0]?.kind === "text" && /^[a-zA-Z_][a-zA-Z_0-9]*\[/.test(w2.parts[0].value) && w2.parts[w2.parts.length - 1]?.kind === "text" && (w2.parts[w2.parts.length - 1] as { value: string }).value.endsWith("]") && isNoBraceSyncWord(w2))
+          );
+          const fmtIdx = isPrintfV ? 3 : 1;
+          const fmtWord = command.words[fmtIdx];
+          const fmtPlain = fmtWord?.plain ?? (fmtWord?.parts.length === 1 && fmtWord.parts[0]!.kind === "text" ? fmtWord.parts[0]!.value : undefined);
+          if ( fmtPlain !== undefined && !fmtPlain.startsWith("-") && /^(?:[^%]|%%|%[-0]*\d*(?:\.\d+)?[sdxXouc])*$/.test(fmtPlain) && command.words.slice(fmtIdx + 1).every(isNoBraceSyncWord)) {
+            return true;
+          }
         }
       }
       if ( command.words.length >= 3 && (w0Plain === "[" || w0Plain === "test") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
-        const isBracket = w0Plain === "[";
-        const argCount = isBracket ? command.words.length - 2 : command.words.length - 1;
-        if ((!isBracket || command.words[command.words.length - 1]?.plain === "]") && command.words.slice(1).every(isNoBraceSyncWord)) {
-          if (argCount === 2 && (command.words[1]?.plain === "-z" || command.words[1]?.plain === "-n")) return true;
-          if (argCount === 3 && (command.words[2]?.plain === "=" || command.words[2]?.plain === "==" || command.words[2]?.plain === "!=")) return true;
+        const predDef = this.commands.get(w0Plain);
+        if (predDef && defaultPredicateExecutors.has(predDef.execute)) {
+          const isBracket = w0Plain === "[";
+          const argCount = isBracket ? command.words.length - 2 : command.words.length - 1;
+          if ((!isBracket || command.words[command.words.length - 1]?.plain === "]") && command.words.slice(1).every(isNoBraceSyncWord)) {
+            if (argCount === 2 && (command.words[1]?.plain === "-z" || command.words[1]?.plain === "-n")) return true;
+            if (argCount === 3 && (command.words[2]?.plain === "=" || command.words[2]?.plain === "==" || command.words[2]?.plain === "!=")) return true;
+          }
         }
       }
       if (w0Plain !== undefined && rawState.functions.has(w0Plain) && command.words.slice(1).every(isNoBraceSyncWord)) {
@@ -7653,10 +7726,12 @@ export class Runtime {
                 }
               }
             } else if (wp0 === "local" || wp0 === "declare" || wp0 === "typeset") {
-              const isArrDecl = c.words[1]?.plain === "-a" || c.words[1]?.plain === "-A";
-              const isNameref = c.words[1]?.plain === "-n";
-              const isGlobal = c.words[1]?.plain === "-g";
-              for (let k = (isArrDecl || isNameref || isGlobal) ? 2 : 1; k < c.words.length; k++) {
+              const f1 = c.words[1]?.plain;
+              const isArrDecl = f1 === "-a" || f1 === "-A";
+              const isNameref = f1 === "-n";
+              const isGlobal = f1 === "-g";
+              const isAttrDecl = f1 === "-i" || f1 === "-l" || f1 === "-u";
+              for (let k = (isArrDecl || isNameref || isGlobal || isAttrDecl) ? 2 : 1; k < c.words.length; k++) {
                 const wk = c.words[k]!;
                 const aa = getArrayAssignment(wk);
                 if (aa) {
@@ -8380,7 +8455,7 @@ export class Runtime {
       if (command.kind === "while" || command.kind === "until") {
         this.budget.tick();
         let lastStatus = 0;
-        const enableBatchRawWrite = !this._syncArithRawWriteOnly && !hasActiveExtensions(rawState) && !hasActiveVariableAttributes(rawState) && !rawState.readonlyVariables?.size && !rawState.allexport;
+        const enableBatchRawWrite = !this._syncArithRawWriteOnly && !hasActiveExtensions(rawState) && !hasNonNamerefAttributes(rawState) && !rawState.readonlyVariables?.size && !rawState.allexport;
         const batchTouched = enableBatchRawWrite ? new Set<string>() : undefined;
         if (enableBatchRawWrite) {
           this._syncArithRawWriteOnly = true;
@@ -8451,7 +8526,7 @@ export class Runtime {
           return undefined;
         }
         this.budget.tick();
-        const enableBatchRawWrite = !this._syncArithRawWriteOnly && !hasActiveExtensions(rawState) && !hasActiveVariableAttributes(rawState) && !rawState.readonlyVariables?.size && !rawState.allexport;
+        const enableBatchRawWrite = !this._syncArithRawWriteOnly && !hasActiveExtensions(rawState) && !hasNonNamerefAttributes(rawState) && !rawState.readonlyVariables?.size && !rawState.allexport;
         const batchTouched = enableBatchRawWrite ? new Set<string>() : undefined;
         if (enableBatchRawWrite) {
           this._syncArithRawWriteOnly = true;
@@ -8568,7 +8643,7 @@ export class Runtime {
         if (!items || items.length > 4096) return undefined;
         this.budget.tick();
         let lastStatus = 0;
-        const enableBatchRawWrite = !this._syncArithRawWriteOnly && !hasActiveExtensions(rawState) && !hasActiveVariableAttributes(rawState) && !rawState.readonlyVariables?.size && !rawState.allexport;
+        const enableBatchRawWrite = !this._syncArithRawWriteOnly && !hasActiveExtensions(rawState) && !hasNonNamerefAttributes(rawState) && !rawState.readonlyVariables?.size && !rawState.allexport;
         const batchTouched = enableBatchRawWrite ? new Set<string>() : undefined;
         if (enableBatchRawWrite) {
           this._syncArithRawWriteOnly = true;
@@ -8976,11 +9051,14 @@ export class Runtime {
         return finalStatus;
       }
       let finalAssigned = fastAssigned;
-      if (assignment.append) {
+      const targetAttr = rawState.variableAttributes?.get(targetAssignName);
+      if (assignment.append || targetAttr) {
         const curRaw = rawState.variables[targetAssignName];
-        const curStr = curRaw === undefined ? "" : (monitor.values.get(targetAssignName, curRaw) ?? curRaw);
+        const curStr = curRaw === undefined ? "" : ((this._syncArithRawWriteOnly && this._syncArithTouched?.has(targetAssignName)) ? curRaw : (monitor.values.get(targetAssignName, curRaw) ?? curRaw));
         if (typeof curStr !== "string") return undefined;
-        finalAssigned = curStr + finalAssigned;
+        const transformed = applySyncScalarAttributes(targetAttr, fastAssigned, curStr, assignment.append, rawState, monitor, store, this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
+        if (transformed === undefined) return undefined;
+        finalAssigned = transformed;
         if (finalAssigned.length > this.budget.limits.maxExpansionBytes || (finalAssigned.length * 3 > this.budget.limits.maxExpansionBytes && shellValueByteLength(finalAssigned) > this.budget.limits.maxExpansionBytes)) return undefined;
       }
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
@@ -10051,15 +10129,19 @@ export class Runtime {
           }
           return undefined;
         }
-        const isNamerefDecl = command.words[1]?.plain === "-n" && rawState.locals.length > 0 && command.words.length >= 3;
-        const isGlobalDecl = command.words[1]?.plain === "-g" && (w0Plain === "declare" || w0Plain === "typeset") && command.words.length >= 3;
+        const flagPlain = command.words[1]?.plain;
+        const isNamerefDecl = flagPlain === "-n" && rawState.locals.length > 0 && command.words.length >= 3;
+        const isGlobalDecl = flagPlain === "-g" && (w0Plain === "declare" || w0Plain === "typeset") && command.words.length >= 3;
+        const isAttrDecl = (flagPlain === "-i" || flagPlain === "-l" || flagPlain === "-u") && command.words.length >= 3;
+        const declAttr = isAttrDecl ? flagPlain!.slice(1) : undefined;
         const parsedLocals: Array<{ name: string; val: string | undefined; append: boolean; lastArg: string }> = [];
         let allValidLocal = true;
-        for (let idx = (isNamerefDecl || isGlobalDecl) ? 2 : 1; idx < command.words.length; idx++) {
+        for (let idx = (isNamerefDecl || isGlobalDecl || isAttrDecl) ? 2 : 1; idx < command.words.length; idx++) {
           const wArg = command.words[idx]!;
           const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
           if (assignment) {
-            if ( (!isNamerefDecl && rawState.variableAttributes?.get(assignment.name)) || (assignment.name === "OPTIND" && (assignment.append || rawState.variableAttributes?.get("OPTIND"))) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name)) {
+            const curAttr = rawState.variableAttributes?.get(assignment.name);
+            if ( (!isNamerefDecl && curAttr && curAttr !== "i" && curAttr !== "l" && curAttr !== "u") || (assignment.name === "OPTIND" && (assignment.append || curAttr)) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name)) {
               allValidLocal = false;
               break;
             }
@@ -10108,33 +10190,44 @@ export class Runtime {
           }
         }
         if (allValidLocal && parsedLocals.length > 0) {
-          if ((rawState.locals.length === 0 || isGlobalDecl) && parsedLocals.some(item => item.val === undefined && !rawState.variableAttributes?.has(item.name))) return undefined;
+          if ((rawState.locals.length === 0 || isGlobalDecl) && !declAttr && parsedLocals.some(item => item.val === undefined && !rawState.variableAttributes?.has(item.name))) return undefined;
           const locals = (!isGlobalDecl && rawState.locals.length > 0) ? rawState.locals[rawState.locals.length - 1]! : undefined;
+          const computedVals: Array<string | undefined> = [];
+          for (let idx = 0; idx < parsedLocals.length; idx++) {
+            const item = parsedLocals[idx]!;
+            if (item.val !== undefined) {
+              const isNewLocal = locals ? !locals.has(item.name) : false;
+              const effAttr = isNamerefDecl ? undefined : (declAttr ?? (isNewLocal ? undefined : rawState.variableAttributes?.get(item.name)));
+              const curRaw = (item.append || effAttr === "i") && !isNewLocal ? rawState.variables[item.name] : undefined;
+              const curStr = curRaw === undefined ? "" : ((this._syncArithRawWriteOnly && this._syncArithTouched?.has(item.name)) ? curRaw : (monitor.values.get(item.name, curRaw) ?? curRaw));
+              if (typeof curStr !== "string") return undefined;
+              const transformed = applySyncScalarAttributes(effAttr, item.val, curStr, item.append, rawState, monitor, store, this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
+              if (transformed === undefined) return undefined;
+              computedVals.push(transformed);
+            } else {
+              computedVals.push(undefined);
+            }
+          }
           const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
           this.budget.tick();
           rawState.substitutionStatus = 0;
           if (rawState.variables._ !== undefined) delete rawState.variables._;
           for (let idx = 0; idx < parsedLocals.length; idx++) {
             const item = parsedLocals[idx]!;
+            const finalVal = computedVals[idx];
             const isNewLocal = locals ? !locals.has(item.name) : false;
             if (locals && isNewLocal) {
               if (this._syncArithRawWriteOnly && this._syncArithTouched) {
                 const curVal = this._syncArithTouched.has(item.name)
                   ? rawState.variables[item.name]
                   : (rawState.variables[item.name] === undefined ? undefined : (monitor.values.get(item.name, rawState.variables[item.name]!) ?? rawState.variables[item.name]));
-                locals.set(item.name, { attributes: undefined, value: typeof curVal === "string" ? curVal : undefined, exported: rawState.exported.has(item.name), readOnly: false, ...(item.name === "OPTIND" ? { getopts: cloneGetoptsBinding(rawState) } : {}) });
+                locals.set(item.name, { attributes: rawState.variableAttributes?.get(item.name), value: typeof curVal === "string" ? curVal : undefined, exported: rawState.exported.has(item.name), readOnly: false, ...(item.name === "OPTIND" ? { getopts: cloneGetoptsBinding(rawState) } : {}) });
               } else locals.set(item.name, saveVariable(state, item.name));
               delete rawState.variables[item.name];
               if (this._syncArithRawWriteOnly && this._syncArithTouched) this._syncArithTouched.add(item.name);
               else monitor.values.invalidate(item.name);
             }
-            if (item.val !== undefined) {
-              const prevVal = item.append
-                ? (this._syncArithRawWriteOnly && this._syncArithTouched?.has(item.name)
-                  ? (rawState.variables[item.name] ?? "")
-                  : (monitor.values.get(item.name, rawState.variables[item.name] ?? "") ?? rawState.variables[item.name] ?? ""))
-                : "";
-              const finalVal = item.append ? `${prevVal}${item.val}` : item.val;
+            if (finalVal !== undefined) {
               if (this._syncArithRawWriteOnly && this._syncArithTouched) {
                 rawState.variables[item.name] = finalVal;
                 this._syncArithTouched.add(item.name);
@@ -10148,11 +10241,18 @@ export class Runtime {
               if (isNamerefDecl) {
                 rawState.variableAttributes ??= new Map();
                 rawState.variableAttributes.set(item.name, "n");
+              } else if (declAttr) {
+                rawState.variableAttributes ??= new Map();
+                rawState.variableAttributes.set(item.name, declAttr);
               } else if (isNewLocal && rawState.variableAttributes?.has(item.name)) rawState.variableAttributes.delete(item.name);
             } else {
               if (item.name === "OPTIND") this.syncGetopts(rawState);
               if (!locals) {
-                if (!rawState.variableAttributes?.has(item.name)) { rawState.variableAttributes ??= new Map(); rawState.variableAttributes.set(item.name, ""); }
+                if (declAttr) { rawState.variableAttributes ??= new Map(); rawState.variableAttributes.set(item.name, declAttr); }
+                else if (!rawState.variableAttributes?.has(item.name)) { rawState.variableAttributes ??= new Map(); rawState.variableAttributes.set(item.name, ""); }
+              } else if (declAttr) {
+                rawState.variableAttributes ??= new Map();
+                rawState.variableAttributes.set(item.name, declAttr);
               } else if (isNewLocal && rawState.variableAttributes?.has(item.name)) {
                 rawState.variableAttributes.delete(item.name);
               }
@@ -10756,7 +10856,7 @@ export class Runtime {
           if (rawState.nounset && part.name >= "1" && part.name <= "9" && rawState.positional[part.name.charCodeAt(0) - 49] === undefined) return false;
           continue;
         }
-        if ( part.prefixNames || part.specialParameter || part.transform || part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK" || !isShellIdentifier(part.name)) {
+        if ( part.prefixNames || part.specialParameter || (part.transform !== undefined && ((part.transform !== "U" && part.transform !== "L" && part.transform !== "u" && part.transform !== "Q") || part.indirect || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || rawState.nounset || this.budget.limits.maxExpansionBytes !== Infinity)) || part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK" || !isShellIdentifier(part.name)) {
           return false;
         }
         if (part.indirect) {
@@ -10996,7 +11096,7 @@ export class Runtime {
           return false;
         }
         const assignment = this.assignment(w0);
-        if ( !assignment || (assignment.append && this.budget.limits.maxExpansionBytes !== Infinity) || assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name) || !this.isPureSyncValueWord(assignment.value, rawState)) {
+        if ( !assignment || (assignment.append && this.budget.limits.maxExpansionBytes !== Infinity) || assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || rawState.variableAttributes?.get(assignment.name) || store?.get(assignment.name) || !this.isPureSyncValueWord(assignment.value, rawState)) {
           return false;
         }
       }
@@ -17889,7 +17989,44 @@ export class Runtime {
           out += targetVal;
           continue;
         }
-        if (part.indirect || part.prefixNames || part.specialParameter || part.transform) return undefined;
+        if (part.transform !== undefined) {
+          if (part.indirect || part.prefixNames || part.specialParameter || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || (part.transform !== "U" && part.transform !== "L" && part.transform !== "u" && part.transform !== "Q") || this.budget.limits.maxExpansionBytes !== Infinity || !isShellIdentifier(part.name) || activeArrayStore?.get(part.name) || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK") {
+            return undefined;
+          }
+          const raw = rawVars[part.name];
+          this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
+          if (raw === undefined) {
+            if (split && !part.quoted) return undefined;
+            continue;
+          }
+          const val = this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw);
+          if (typeof val !== "string") return undefined;
+          let transformed: string;
+          if (part.transform === "Q") {
+            for (let k = 0; k < val.length; k++) {
+              const c = val.charCodeAt(k);
+              if (c < 32 || c >= 127) return undefined;
+            }
+            transformed = "'" + (val.includes("'") ? val.split("'").join("'\\''") : val) + "'";
+          } else {
+            for (let k = 0; k < val.length; k++) {
+              if (val.charCodeAt(k) >= 128) return undefined;
+            }
+            transformed = part.transform === "U"
+              ? val.toUpperCase()
+              : part.transform === "L"
+                ? val.toLowerCase()
+                : val.length === 0
+                  ? ""
+                  : val[0]!.toUpperCase() + val.slice(1);
+          }
+          if (split && !part.quoted) {
+            if (transformed.length === 0 || transformed.includes(" ") || transformed.includes("\t") || transformed.includes("\n") || (!rawState.noglob && hasGlobOrEscape(transformed, !!rawState.extglob))) return undefined;
+          }
+          out += transformed;
+          continue;
+        }
+        if (part.indirect || part.prefixNames || part.specialParameter) return undefined;
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK") return undefined;
         if (!isShellIdentifier(part.name)) return undefined;
         const selector = getArraySelector(part);

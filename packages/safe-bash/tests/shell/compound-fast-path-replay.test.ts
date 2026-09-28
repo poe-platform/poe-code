@@ -375,3 +375,67 @@ test("array slice/concat assignments, for-in array slices, local -n scalar/array
     await shell.dispose();
   }
 });
+
+test("local/declare -i -l -u, @U/@L/@u/@Q transforms, associative subscript arithmetic, [[ -v arr[i] ]], and unregistered [ guard", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  context.after(() => shell.dispose());
+
+  const script = [
+    "add_int() {",
+    "  local -i a=\"$1\" b=\"$2\"",
+    "  a+=b",
+    "  res=$((res + a))",
+    "}",
+    "norm_case() {",
+    "  local -l low=\"$1\"",
+    "  local -u up=\"$1\"",
+    "  out=\"$low:$up\"",
+    "}",
+    "res=0",
+    "declare -i gtotal=0",
+    "declare -l glow",
+    "declare -u gup",
+    "declare -a arr=([1]=10 [3]=30 [5]=50)",
+    "declare -A map=([a]=10 [b]=20 [c]=30)",
+    "map_sum=0",
+    "vhits=0",
+    "for ((i=0; i<6; i++)); do",
+    "  add_int \"$i\" 4",
+    "  gtotal+=i",
+    "  norm_case \"AbC_$i\"",
+    "  glow=\"XyZ_$i\"",
+    "  gup=\"XyZ_$i\"",
+    "  s=\"it's_val_$i\"",
+    "  t_u=\"${s@U}\"",
+    "  t_l=\"${s@L}\"",
+    "  t_c=\"${s@u}\"",
+    "  t_q=\"${s@Q}\"",
+    "  for k in \"${!map[@]}\"; do",
+    "    map_sum=$((map_sum + map[$k]))",
+    "  done",
+    "  if [[ -v \"arr[i]\" ]]; then",
+    "    vhits=$((vhits + 1))",
+    "  fi",
+    "done",
+    "echo \"res=$res gtotal=$gtotal out=$out glow=$glow gup=$gup\"",
+    "echo \"transforms=$t_u|$t_l|$t_c|$t_q\"",
+    "echo \"map_sum=$map_sum vhits=$vhits a=${a-<unset>} low=${low-<unset>} up=${up-<unset>}\"",
+  ].join("\n");
+
+  const res = await shell.exec(script);
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stderr, "");
+  assert.equal(
+    res.stdout,
+    [
+      "res=39 gtotal=15 out=abc_5:ABC_5 glow=xyz_5 gup=XYZ_5",
+      "transforms=IT'S_VAL_5|it's_val_5|It's_val_5|'it'\\''s_val_5'",
+      "map_sum=360 vhits=3 a=<unset> low=<unset> up=<unset>",
+      "",
+    ].join("\n"),
+  );
+
+  const noPredRes = await shell.exec('for i in 1 2; do echo "iter:$i"; [ -z "" ]; done');
+  assert.equal(noPredRes.stdout, "iter:1\niter:2\n");
+});

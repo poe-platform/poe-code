@@ -10,10 +10,18 @@ for (const [name, source, expected] of [
   ["Unicode nonzero array element", 'arr=([2]="😀x"); for ((i=0;i<10;i++)); do read -r -N 1 a <<< "${arr[2]}"; s="${arr[2]}"; len="${#s}"; done; printf "%s|%s\\n" "$a" "$len"', "😀|2\n"],
   ["sparse duplicate-index replacement", 'arr=([1]=STALE_ONE [2]=old_two); arr=([0]=x [2]=y [2]=z); printf "%s|%s\\n" "${!arr[*]}" "${arr[*]}"', "0 2|x z\n"],
   ["sparse replacement in loop", 'arr=([1]=STALE_ONE [2]=old_two); for ((i=0;i<10;i++)); do arr=([0]=x [2]=y [2]=z); done; printf "%s|%s\\n" "${!arr[*]}" "${arr[*]}"', "0 2|x z\n"],
-  ...["-N 5 -n 2", "-N5 -n2", "-n 2 -N 3", "-n2 -N3"].flatMap(options => [false, true].map(loop => [
+  // GNU Bash 5.2 keeps exact mode once -N appears, while the last count wins.
+  ...[
+    ["-N 5 -n 2", "<a\n>\n"],
+    ["-N5 -n2", "<a\n>\n"],
+    ["-n 2 -N 3", "<a\nb>\n"],
+    ["-n2 -N3", "<a\nb>\n"],
+    ["-n 2", "<a>\n"],
+    ["-N 5 -n 1", "<a>\n"],
+  ].flatMap(([options, expected]) => [false, true].map(loop => [
     `read option order ${options}, loop=${loop}`,
     `s=$'a\\nb'; ${loop ? 'for ((i=0;i<10;i++)); do' : ''} read -r ${options} a <<< "$s"; ${loop ? 'done;' : ''} printf '<%s>\\n' "$a"`,
-    options.startsWith("-N") ? "<a\n>\n" : "<a\nb>\n",
+    expected,
   ])),
   ...[false, true].map(loop => [
     `associative tilde keys, loop=${loop}`,

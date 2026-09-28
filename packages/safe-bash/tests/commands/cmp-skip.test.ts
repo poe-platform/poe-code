@@ -19,7 +19,7 @@ for (const retainedOnly of [false, true]) test(`cmp unequal shared regular-file 
   let position = -1;
   shell.register({ ...comparator, name: "compare", async execute(context) {
     assert.equal(context.stdinInput?.stat?.type, "file");
-    assert.equal(typeof context.stdinInput?.seek, retainedOnly ? "function" : "undefined");
+    assert.equal(typeof context.stdinInput?.seek, "function");
     const result = await comparator.execute(context);
     position = context.stdinInput!.position;
     return result;

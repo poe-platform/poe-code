@@ -277,3 +277,27 @@ test("wave 91 sync loop parity: associative array element append map[k]+=v", asy
     await refShell.dispose();
   }
 });
+
+for (const [label, source] of [
+  [
+    "read -r -d : and while IFS= read -r -d : here-strings in sync loop",
+    "s=\"a:b:c:\"; out=; while IFS= read -r -d : tok; do out+=\"[$tok]\"; done <<< \"$s\"; r2=; for x in \"k1:v1\" \"k2:v2\" \"no_colon\"; do read -r -d : k <<< \"$x\"; r2+=\"$k/$?;\"; done; printf '%s|%s\\n' \"$out\" \"$r2\"",
+  ],
+  [
+    "while ((i < n && j > 0)) compound arithmetic condition and trim with BASH_REMATCH",
+    "i=0; j=6; sum=0; while ((i < 6 && j > 0)); do ((sum += i + j)); ((i++)); ((j--)); done; rest=\"a12b34c56\"; rsum=0; while [[ \"$rest\" =~ ([0-9]+) ]]; do ((rsum += BASH_REMATCH[1])); rest=\"${rest#*${BASH_REMATCH[1]}}\"; done; printf '%d|%d|%s\\n' \"$sum\" \"$rsum\" \"$rest\"",
+  ],
+] as const) {
+  test(`wave 92 sync loop parity: ${label}`, async () => {
+    const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(bash.status, 0, bash.stderr);
+    const commands = new CommandRegistry([...basicCommands(), ...predicateCommands()]);
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, bash.status, result.stderr);
+      assert.equal(result.stderr, bash.stderr);
+      assert.equal(result.stdout, bash.stdout);
+    } finally { await shell.dispose(); }
+  });
+}

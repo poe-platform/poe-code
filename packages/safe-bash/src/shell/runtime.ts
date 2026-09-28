@@ -2801,6 +2801,7 @@ type SyncLoopStep = {
     readonly varNames: readonly string[];
     readonly arrayTarget?: string | undefined;
     readonly isMapfile?: boolean | undefined;
+    readonly delimChar?: string | undefined;
     readonly isBareReply: boolean;
     readonly inputWord: Word;
   } | undefined;
@@ -3574,7 +3575,16 @@ export class Runtime {
     if (!cCollation(collation) || !(cCollation(characters) || utf8Locale(characters))) return undefined;
     const patWithCache = pat as { text: string; literal: boolean; _fastAnchoredRe?: RegExp | null };
     if (patWithCache._fastAnchoredRe === undefined) {
-      let caretOk = pat.text.startsWith("^") && pat.text.endsWith("$") && !pat.text.slice(0, -1).includes("$");
+      const bothAnchored = pat.text.startsWith("^") && pat.text.endsWith("$") && !pat.text.slice(0, -1).includes("$");
+      const safeUnanchored =
+        !bothAnchored &&
+        !pat.text.includes(".") &&
+        !pat.text.includes("|") &&
+        !pat.text.includes("?") &&
+        (!pat.text.includes("$") || pat.text.endsWith("$") && !pat.text.slice(0, -1).includes("$")) &&
+        /^[\^a-zA-Z0-9_\-/:@()\[\]+,;= $]+$/.test(pat.text) &&
+        /^(?:\^?[a-zA-Z0-9_\-/:@,;= ]*\(?\[[\^a-zA-Z0-9_\-/:@,;= ]+\]\+\)?(?:[:=,;/ ]\(?\[[\^a-zA-Z0-9_\-/:@,;= ]+\]\+\)?)?\$?)$/.test(pat.text);
+      let caretOk = bothAnchored || safeUnanchored;
       if (caretOk) {
         for (let i = 1; i < pat.text.length; i++) {
           if (pat.text.charCodeAt(i) === 94 && pat.text.charCodeAt(i - 1) !== 91) {
@@ -3585,7 +3595,7 @@ export class Runtime {
       }
       if (
         caretOk &&
-        /^\^[\^a-zA-Z0-9_.\-/:@()\[\]+?*,;=| ]+\$$/.test(pat.text) &&
+        /^[\^a-zA-Z0-9_.\-/:@()\[\]+?*,;=| $]+$/.test(pat.text) &&
         !pat.text.includes("[:") &&
         !pat.text.includes("[.") &&
         !pat.text.includes("[=") &&
@@ -11610,7 +11620,7 @@ export class Runtime {
             if (!part.alternate || part.alternate.parts.length === 0) return false;
             const q0 = part.alternate.parts[0]!.quoted;
             const trimOp = part.operator;
-            if (!part.alternate.parts.every(p => p.quoted === q0 && ( (p.kind === "text" && !p.byteValue && (p.quoted || !hasGlobOrEscape(p.value, !!rawState.extglob) || (part.alternate!.parts.length === 1 && Boolean(tryCompileTrimGlobToRegex(p.value, trimOp, !!rawState.extglob))))) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
+            if (!part.alternate.parts.every((p, idx) => p.quoted === q0 && ( (p.kind === "text" && !p.byteValue && (p.quoted || !hasGlobOrEscape(p.value, !!rawState.extglob) || (idx === 0 && (trimOp === "#" || trimOp === "##") && p.value === "*") || (idx === part.alternate!.parts.length - 1 && (trimOp === "%" || trimOp === "%%") && p.value === "*") || (part.alternate!.parts.length === 1 && Boolean(tryCompileTrimGlobToRegex(p.value, trimOp, !!rawState.extglob))))) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && (getArraySelector(p) === undefined || (p.name === "BASH_REMATCH" && getArraySelector(p)?.kind === "element" && /^[0-9]{1,2}$/.test((getArraySelector(p) as { index: { decimal: string } }).index.decimal))) && isShellIdentifier(p.name))
             ))) {
               return false;
             }
@@ -12153,6 +12163,7 @@ export class Runtime {
     let argIdx = wIdx + 1;
     let rawMode = false;
     let arrayTarget: string | undefined;
+    let delimChar: string | undefined;
     if (isMapfile) {
       rawMode = true;
       arrayTarget = cmd.words[2]?.plain ?? "MAPFILE";
@@ -12168,6 +12179,12 @@ export class Runtime {
         if (p === "-r") {
           rawMode = true;
           argIdx++;
+        } else if (p === "-d" || p === "-rd") {
+          if (p === "-rd") rawMode = true;
+          const dPlain = cmd.words[argIdx + 1]?.plain;
+          if (dPlain === undefined || dPlain.length !== 1 || dPlain.charCodeAt(0) === 0 || dPlain.charCodeAt(0) >= 128) return undefined;
+          delimChar = dPlain;
+          argIdx += 2;
         } else if (p === "-ra" || p === "-ar" || p === "-a") {
           if (p.includes("r")) rawMode = true;
           if (argIdx + 1 >= cmd.words.length || !cmd.words[argIdx + 1]!.plain) return undefined;
@@ -12181,7 +12198,7 @@ export class Runtime {
           return undefined;
         }
       }
-      if (!rawMode) return undefined;
+      if (!rawMode || (delimChar !== undefined && arrayTarget !== undefined)) return undefined;
     }
     const monitor = stateMonitor(rawState);
     const store = monitor?.store;
@@ -12241,7 +12258,7 @@ export class Runtime {
       if (rawState.readonlyVariables?.has("REPLY") || rawState.variableAttributes?.get("REPLY") || store?.get("REPLY") || monitor?.hasOverlay("REPLY")) return undefined;
       varNames.push("REPLY");
     }
-    return { ifsWord, varNames, isBareReply, inputWord: r0.target };
+    return { ifsWord, varNames, isBareReply, inputWord: r0.target, ...(delimChar !== undefined ? { delimChar } : {}) };
   }
   private canSyncLoopBody(script: Script, rawState: State, io?: IO, nested = false, printfInductionName?: string): boolean {
     if (script.lists.length === 0) return false;
@@ -13496,7 +13513,7 @@ export class Runtime {
       const condCmd = cp.commands[0]!;
       let whileArithProg: ArithmeticProgram | undefined;
       let whileCondExpr: ConditionalExpression | undefined;
-      let whileReadSpec: { ifsAssign: ReturnType<Runtime["assignment"]>; varNames: string[]; isBareReply: boolean; readCmd: Extract<Command, { kind: "simple" }> } | undefined;
+      let whileReadSpec: { ifsAssign: ReturnType<Runtime["assignment"]>; varNames: string[]; isBareReply: boolean; readCmd: Extract<Command, { kind: "simple" }>; delimChar?: string } | undefined;
       let whileGetoptsSpec: { optstring: string; optVar: string; scanArgs: readonly string[]; getoptsCmd: Extract<Command, { kind: "simple" }>; cmdLastArg: string } | undefined;
       if (syncReadInputText !== undefined) {
         if (command.kind !== "while" || condCmd.kind !== "simple" || condCmd.redirects.length !== 0 || condCmd.words.length === 0) return undefined;
@@ -13512,9 +13529,23 @@ export class Runtime {
         if (condCmd.words[readWordIdx]?.plain !== "read" || hasShellFunction(rawState, "read") || rawState.extensions?.builtins.has("read")) return undefined;
         let varStartIdx = readWordIdx + 1;
         let isRaw = false;
-        if (condCmd.words[varStartIdx]?.plain === "-r") {
-          isRaw = true;
-          varStartIdx++;
+        let delimChar: string | undefined;
+        while (varStartIdx < condCmd.words.length) {
+          const optP = condCmd.words[varStartIdx]?.plain;
+          if (!optP || !optP.startsWith("-") || optP === "-") break;
+          if (optP === "--") { varStartIdx++; break; }
+          if (optP === "-r") {
+            isRaw = true;
+            varStartIdx++;
+          } else if (optP === "-d" || optP === "-rd") {
+            if (optP === "-rd") isRaw = true;
+            const dPlain = condCmd.words[varStartIdx + 1]?.plain;
+            if (dPlain === undefined || dPlain.length !== 1 || dPlain.charCodeAt(0) === 0 || dPlain.charCodeAt(0) >= 128) return undefined;
+            delimChar = dPlain;
+            varStartIdx += 2;
+          } else {
+            return undefined;
+          }
         }
         if (!isRaw && syncReadInputText.includes("\\")) return undefined;
         const varNames: string[] = [];
@@ -13532,15 +13563,11 @@ export class Runtime {
           }
         }
         if (varNames.length === 0 || varNames.length > 16) return undefined;
-        whileReadSpec = { ifsAssign, varNames, isBareReply, readCmd: condCmd };
+        whileReadSpec = { ifsAssign, varNames, isBareReply, readCmd: condCmd, delimChar };
       } else if (condCmd.kind === "arithmetic") {
         if (condCmd.redirects.length !== 0) return undefined;
         if (!condCmd.expression.error) {
           if (!isSafeSmiProgram(condCmd.expression) || condCmd.expression.hasSubscript || !this.canSyncArithmeticWithoutFault(condCmd.expression.tree, rawState, condCmd.line ?? 1)) return undefined;
-          const condTree = condCmd.expression.tree;
-          const isValidBinaryCond = condTree?.kind === "binary" && (condTree.operator === "<" || condTree.operator === "<=" || condTree.operator === ">" || condTree.operator === ">=" || condTree.operator === "!=" || condTree.operator === "==");
-          const isValidUnaryCond = condTree?.kind === "unary" && (condTree.operator === "++" || condTree.operator === "--") && condTree.operand.kind === "name";
-          if (!isValidBinaryCond && !isValidUnaryCond) return undefined;
         } else if (!this.canSyncErrorArithmeticStmt(condCmd.expression, rawState)) {
           return undefined;
         }
@@ -13714,6 +13741,7 @@ export class Runtime {
               touched.add(vn);
             }
           };
+          const readDelim = whileReadSpec.delimChar ?? "\n";
           const textLen = syncReadInputText.length;
           let cursor = 0;
           while (true) {
@@ -13731,7 +13759,7 @@ export class Runtime {
               lastArg = rLastArg;
               break;
             }
-            const nlIdx = syncReadInputText.indexOf("\n", cursor);
+            const nlIdx = syncReadInputText.indexOf(readDelim, cursor);
             if (nlIdx === -1) {
               const partialLine = syncReadInputText.slice(cursor);
               cursor = textLen;
@@ -14597,12 +14625,14 @@ export class Runtime {
         if (step.readHereString !== undefined) {
           const rs = step.readHereString;
           const rawInput = this.fastValueWord(rs.inputWord, rawState, io, false, false, false, false, 0, step.line) as string;
-          const nlIdx = rs.isMapfile ? -1 : rawInput.indexOf("\n");
-          const lineStr = nlIdx === -1 ? rawInput : rawInput.slice(0, nlIdx);
+          const delim = rs.delimChar ?? "\n";
+          const fullInput = delim === "\n" ? rawInput : rawInput + "\n";
+          const nlIdx = rs.isMapfile ? -1 : fullInput.indexOf(delim);
+          const lineStr = nlIdx === -1 ? fullInput : fullInput.slice(0, nlIdx);
           const ifsStr = rs.ifsWord !== undefined ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string) : (rawState.variables.IFS ?? " \t\n");
           this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor, rs.isMapfile);
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          rawState.status = 0;
+          rawState.status = (!rs.isMapfile && delim !== "\n" && nlIdx === -1) ? 1 : 0;
           continue;
         }
         if (deferredMask & (1 << b)) {
@@ -15135,12 +15165,14 @@ export class Runtime {
       if (step.readHereString !== undefined) {
         const rs = step.readHereString;
         const rawInput = this.fastValueWord(rs.inputWord, rawState, io, false, false, false, false, 0, step.line) as string;
-        const nlIdx = rs.isMapfile ? -1 : rawInput.indexOf("\n");
-        const lineStr = nlIdx === -1 ? rawInput : rawInput.slice(0, nlIdx);
+        const delim = rs.delimChar ?? "\n";
+        const fullInput = delim === "\n" ? rawInput : rawInput + "\n";
+        const nlIdx = rs.isMapfile ? -1 : fullInput.indexOf(delim);
+        const lineStr = nlIdx === -1 ? fullInput : fullInput.slice(0, nlIdx);
         const ifsStr = rs.ifsWord !== undefined ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string) : (rawState.variables.IFS ?? " \t\n");
         this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor, rs.isMapfile);
         lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-        rawState.status = 0;
+        rawState.status = (!rs.isMapfile && delim !== "\n" && nlIdx === -1) ? 1 : 0;
         onUpdate({ lastCmd, lastArg });
         continue;
       }
@@ -15301,12 +15333,14 @@ export class Runtime {
         if (step.readHereString !== undefined) {
           const rs = step.readHereString;
           const rawInput = this.fastValueWord(rs.inputWord, rawState, io, false, false, false, false, 0, step.line) as string;
-          const nlIdx = rs.isMapfile ? -1 : rawInput.indexOf("\n");
-          const lineStr = nlIdx === -1 ? rawInput : rawInput.slice(0, nlIdx);
+          const delim = rs.delimChar ?? "\n";
+          const fullInput = delim === "\n" ? rawInput : rawInput + "\n";
+          const nlIdx = rs.isMapfile ? -1 : fullInput.indexOf(delim);
+          const lineStr = nlIdx === -1 ? fullInput : fullInput.slice(0, nlIdx);
           const ifsStr = rs.ifsWord !== undefined ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string) : (rawState.variables.IFS ?? " \t\n");
           this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor, rs.isMapfile);
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          rawState.status = 0;
+          rawState.status = (!rs.isMapfile && delim !== "\n" && nlIdx === -1) ? 1 : 0;
           continue;
         }
         if (step.coalesceNext) {
@@ -21858,7 +21892,7 @@ export class Runtime {
             out += replaced;
             continue;
           }
-          if ( (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") && part.alternate && part.alternate.parts.length >= 1 && part.alternate.parts.every(p => p.quoted === patternQuoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))))) {
+          if ( (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") && part.alternate && part.alternate.parts.length >= 1 && part.alternate.parts.every(p => p.quoted === patternQuoted && ((p.kind === "text" && !p.byteValue) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && (getArraySelector(p) === undefined || (p.name === "BASH_REMATCH" && getArraySelector(p)?.kind === "element" && /^[0-9]{1,2}$/.test((getArraySelector(p) as { index: { decimal: string } }).index.decimal))) && isShellIdentifier(p.name))))) {
             const patQuoted = part.alternate.parts[0]!.quoted;
             const pat = (part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text")
               ? part.alternate.parts[0]!.value

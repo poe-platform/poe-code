@@ -38,6 +38,7 @@ import { admitNativePromiseProperties as admitCoreProperties } from "@poe-platfo
 import { createNodeFsBridge } from "@poe-platform/safe-fs/node/filesystem";
 import { createNodeFsBridge as legacyNodeBridge } from "@poe-platform/safe-fs/node";
 import { FsError, createDeviceFileSystem, createMemoryFileSystem, createReadOnlyFileSystem } from "@poe-platform/safe-fs";
+import { posixPath as corePosixPath } from "@poe-platform/safe-fs/core";
 import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs";
 import { FsError as CoreFsError } from "@poe-platform/safe-js/fs/core";
 import { FsError as NodeFsError } from "@poe-platform/safe-js/fs/node";
@@ -57,7 +58,11 @@ const promiseResult = await run("const keys = Object.getOwnPropertySymbols(input
 assert.equal(promiseResult.ok, true);
 assert.deepEqual(promiseResult.returnValue, [1, true, true]);
 await verifyNullDeviceView({ createMemoryFileSystem, createDeviceFileSystem });
-for (const paths of [posixPath, nodeEntry.posixPath, contractPath, indexedPath, directPath]) {
+for (const paths of [posixPath, nodeEntry.posixPath]) {
+  assert.equal(paths, corePosixPath);
+  assert.equal(paths.join("/a", "..", "b"), "/b");
+}
+for (const paths of [contractPath, indexedPath, directPath]) {
   assert.equal(paths, posix);
   assert.equal(paths.sep, "/");
   assert.equal(paths.delimiter, ":");

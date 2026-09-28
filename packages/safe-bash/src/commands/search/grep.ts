@@ -7,7 +7,7 @@ import { chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from ".
 import { EreLedger } from "../regex-execution/ere/limits.js";
 import { validateUtf8 } from "../regex-execution/utf8.js";
 import { FsError, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
-import { RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, outputRange, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO, UsageError, value, type Line } from "../internal.js";
+import { builtInDirectContextExecutors, RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, outputRange, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO, UsageError, value, type Line } from "../internal.js";
 import { RecordBuffer } from "../record-buffer.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { inProcessRegexProviders, trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
@@ -1048,7 +1048,7 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
   const maxPatternCount = limits.maxPatterns ?? Infinity;
   const bufferLimit = limits.maxPatternBytes ?? Infinity;
   const canFastAscii = inProcessRegexProviders.has(executor.provider);
-  return [{
+  const defs: CommandDefinition[] = [{
     name: "grep",
     filesystemRequirements: grepRequirements,
     execute: context => {
@@ -1086,6 +1086,8 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
       return executeGrepSlow(context, executor, limits, maxPatternCount, bufferLimit);
     },
   }];
+  builtInDirectContextExecutors.add(defs[0]!.execute);
+  return defs;
 }
 
 function executeGrepSlow(

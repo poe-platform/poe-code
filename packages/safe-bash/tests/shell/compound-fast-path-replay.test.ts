@@ -1,3 +1,5 @@
+import { createTextProgramCommands } from "../../src/commands/text-programs/index.js";
+import { grepCommands } from "../../src/commands/grep.js";
 import { sedCommand } from "../../src/commands/text-programs/sed.js";
 import { createStreamFormatCommands } from "../../src/commands/stream-format/index.js";
 import { predicateCommands } from "../../src/commands/predicates.js";
@@ -1043,6 +1045,39 @@ test("matches bash for Wave 71 printf -v, >/dev/null discarded commands, and inl
     const elapsed = performance.now() - t0;
     assert.equal(res.exitCode, 0, res.stderr);
     assert.equal(res.stdout, "tag_1200_bar_bar:/workspace/src/tag_1200_bar_bar.ts\n");
+    assert.ok(elapsed < 1000, `Expected < 1000ms, got ${elapsed.toFixed(1)}ms`);
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("matches bash for Wave 72 inline awk, grep, and tr -s pipeline substitutions in trySyncLoop", async () => {
+  const shell = new Shell({
+    fs: createMemoryFileSystem(),
+    limits: {
+      maxCommands: 50_000,
+      maxLoopIterations: 50_000,
+      maxFileSystemOperations: 50_000,
+    },
+  });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands(), ...createStreamFormatCommands(), ...createTextProgramCommands(), ...grepCommands()]) {
+    shell.commands.register(command, { replace: true });
+  }
+  try {
+    const t0 = performance.now();
+    const res = await shell.exec([
+      "for ((i = 1; i <= 1200; i++)); do",
+      "  g1=\$(printf \"alpha_%d\\nbeta_%d\\n\" \"$i\" \"$i\" | grep \"beta\")",
+      "  g2=\$(printf \"alpha_%d\\nbeta_%d\\n\" \"$i\" \"$i\" | grep -v \"alpha\")",
+      "  gc=\$(printf \"alpha_%d\\nbeta_%d\\n\" \"$i\" \"$i\" | grep -c \"beta\")",
+      "  a1=\$(printf \"k_%d   val_%d   last_%d\\n\" \"$i\" \"$i\" \"$i\" | tr -s \" \" | awk \"{print \\\$2, \\\$NF}\")",
+      "  a2=\$(printf \"k_%d:colon_%d:end\\n\" \"$i\" \"$i\" | awk -F: \"{print \\\$2}\")",
+      "done",
+      "printf \"%s|%s|%s|%s|%s\\n\" \"$g1\" \"$g2\" \"$gc\" \"$a1\" \"$a2\"",
+    ].join("\n"));
+    const elapsed = performance.now() - t0;
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "beta_1200|beta_1200|1|val_1200 last_1200|colon_1200\n");
     assert.ok(elapsed < 1000, `Expected < 1000ms, got ${elapsed.toFixed(1)}ms`);
   } finally {
     await shell.dispose();

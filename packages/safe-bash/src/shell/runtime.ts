@@ -11683,7 +11683,7 @@ export class Runtime {
             const sCmd = p.commands[sIdx]!;
             if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return false;
             const sName = sCmd.words[0]!.plain;
-            if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "rev")) return false;
+            if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "rev" && sName !== "awk" && sName !== "grep")) return false;
             const sDef = this.commands.get(sName);
             if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "rev" && !builtInDirectContextExecutors.has(sDef.execute))) return false;
             if (rawState.functions.has(sName) || rawState.extensions?.builtins.has(sName)) return false;
@@ -11716,6 +11716,18 @@ export class Runtime {
               const vc2 = normCut.length === 2 && ((normCut[0]!.length === 3 && normCut[0]!.startsWith("-d") && normCut[1]!.length >= 3 && normCut[1]!.startsWith("-f")) || (normCut[0] === "-c" && /^[1-9][0-9]*-[1-9][0-9]*$/.test(normCut[1]!)));
               const vc1 = normCut.length === 1 && normCut[0]!.length >= 3 && normCut[0]!.startsWith("-f");
               if (!vc1 && !vc2) return false;
+            }
+            if (sName === "awk") {
+              const normAwk = sPlainArgs.length === 3 && sPlainArgs[0] === "-F" ? ["-F" + sPlainArgs[1]!, sPlainArgs[2]!] : sPlainArgs;
+              const awkSepOk = normAwk.length === 1 || (normAwk.length === 2 && normAwk[0]!.length === 3 && normAwk[0]!.startsWith("-F") && normAwk[0]![2] !== "\\");
+              const awkProg = normAwk[normAwk.length - 1] ?? "";
+              if (!awkSepOk || !/^\s*\{\s*print(?:\s+(\$(?:[0-9]+|NF)(?:\s*,\s*\$(?:[0-9]+|NF))*))?\s*;?\s*\}\s*$/.test(awkProg)) return false;
+            }
+            if (sName === "grep") {
+              const grepOk =
+                (sPlainArgs.length === 1 && /^[a-zA-Z0-9_ :;,/-]+$/.test(sPlainArgs[0]!)) ||
+                (sPlainArgs.length === 2 && (sPlainArgs[0] === "-v" || sPlainArgs[0] === "-i" || sPlainArgs[0] === "-c" || sPlainArgs[0] === "-F") && /^[a-zA-Z0-9_ :;,/-]+$/.test(sPlainArgs[1]!));
+              if (!grepOk) return false;
             }
           }
         }
@@ -19708,6 +19720,18 @@ export class Runtime {
           if (!validSed1 && !validSed2) return undefined;
         } else if (sName === "rev") {
           if (sArgs.length !== 0) return undefined;
+        } else if (sName === "awk") {
+          if (sArgs.length === 3 && sArgs[0] === "-F") {
+            sArgs.splice(0, 2, "-F" + sArgs[1]!);
+          }
+          const awkSepOk = sArgs.length === 1 || (sArgs.length === 2 && sArgs[0]!.length === 3 && sArgs[0]!.startsWith("-F") && sArgs[0]![2] !== "\\");
+          const awkProg = sArgs[sArgs.length - 1] ?? "";
+          if (!awkSepOk || !/^\s*\{\s*print(?:\s+(\$(?:[0-9]+|NF)(?:\s*,\s*\$(?:[0-9]+|NF))*))?\s*;?\s*\}\s*$/.test(awkProg)) return undefined;
+        } else if (sName === "grep") {
+          const grepOk =
+            (sArgs.length === 1 && /^[a-zA-Z0-9_ :;,/-]+$/.test(sArgs[0]!)) ||
+            (sArgs.length === 2 && (sArgs[0] === "-v" || sArgs[0] === "-i" || sArgs[0] === "-c" || sArgs[0] === "-F") && /^[a-zA-Z0-9_ :;,/-]+$/.test(sArgs[1]!));
+          if (!grepOk) return undefined;
         } else {
           return undefined;
         }
@@ -19768,8 +19792,11 @@ export class Runtime {
           const isInlineTr = firstName === "tr" && stageArgs.length === 2 && (
             (stageArgs[0] === "a-z" && stageArgs[1] === "A-Z") ||
             (stageArgs[0] === "A-Z" && stageArgs[1] === "a-z") ||
-            (stageArgs[0] === "-d" && /^[a-zA-Z0-9_ :;,./-]+$/.test(stageArgs[1]!))
+            (stageArgs[0] === "-d" && /^[a-zA-Z0-9_ :;,./-]+$/.test(stageArgs[1]!)) ||
+            (stageArgs[0] === "-s" && stageArgs[1]!.length === 1)
           );
+          const isInlineAwk = firstName === "awk";
+          const isInlineGrep = firstName === "grep";
           const isInlineSort = firstName === "sort" && !byteLocale(rawState.variables) && (stageArgs.length === 0 || (stageArgs.length === 1 && stageArgs[0] === "-r"));
           const isInlineUniq = firstName === "uniq" && (stageArgs.length === 0 || (stageArgs.length === 1 && (stageArgs[0] === "-d" || stageArgs[0] === "-u")));
           const inlineSedMatch = firstName === "sed"
@@ -19787,7 +19814,9 @@ export class Runtime {
             isInlineTr ||
             isInlineSort ||
             isInlineUniq ||
-            inlineSedMatch !== null
+            inlineSedMatch !== null ||
+            isInlineAwk ||
+            isInlineGrep
           ) {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith("\n") ? inStr.slice(0, -1).split("\n") : inStr.split("\n"));
@@ -19833,6 +19862,20 @@ export class Runtime {
                 transformed = inStr.replace(/[a-z]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 32));
               } else if (stageArgs[0] === "A-Z" && stageArgs[1] === "a-z") {
                 transformed = inStr.replace(/[A-Z]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 32));
+              } else if (stageArgs[0] === "-s") {
+                const sq = stageArgs[1]!;
+                let out = "";
+                let prevSq = false;
+                for (let ci = 0; ci < inStr.length; ci++) {
+                  const ch = inStr[ci]!;
+                  if (ch === sq) {
+                    if (!prevSq) { out += ch; prevSq = true; }
+                  } else {
+                    out += ch;
+                    prevSq = false;
+                  }
+                }
+                transformed = out;
               } else if (stageArgs[0] === "-d") {
                 const delSet = new Set(stageArgs[1]!.split(""));
                 let out = "";
@@ -19872,6 +19915,50 @@ export class Runtime {
               const rep = inlineSedMatch[2]!;
               const isGlobal = inlineSedMatch[3] === "g";
               outLines = rawLines.map(l => (isGlobal ? l.split(pat).join(rep) : l.replace(pat, () => rep)));
+            } else if (isInlineAwk) {
+              const awkSep = stageArgs.length === 2 ? stageArgs[0]!.slice(2) : undefined;
+              const awkProg = stageArgs[stageArgs.length - 1]!;
+              const awkM = /^\s*\{\s*print(?:\s+(\$(?:[0-9]+|NF)(?:\s*,\s*\$(?:[0-9]+|NF))*))?\s*;?\s*\}\s*$/.exec(awkProg);
+              if (!awkM) return undefined;
+              const toks = awkM[1] ? awkM[1].split(",").map(t => t.trim().slice(1)) : ["0"];
+              outLines = [];
+              for (let li = 0; li < rawLines.length; li++) {
+                const l = rawLines[li]!;
+                if (toks.length === 1 && toks[0] === "0") {
+                  outLines.push(l);
+                  continue;
+                }
+                let fields: string[];
+                if (awkSep === undefined || awkSep === " ") {
+                  const tr = l.replace(/^[ \t]+|[ \t]+$/g, "");
+                  fields = tr.length === 0 ? [] : tr.split(/[ \t]+/);
+                } else {
+                  fields = l.length === 0 ? [] : l.split(awkSep);
+                }
+                const vals: string[] = [];
+                for (let ti = 0; ti < toks.length; ti++) {
+                  const tk = toks[ti]!;
+                  if (tk === "0") vals.push(l);
+                  else if (tk === "NF") vals.push(fields.length > 0 ? fields[fields.length - 1]! : "");
+                  else {
+                    const idx = Number(tk);
+                    vals.push(idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
+                  }
+                }
+                outLines.push(vals.join(" "));
+              }
+            } else if (isInlineGrep) {
+              const gMode = stageArgs.length === 2 ? stageArgs[0]! : "";
+              const gPat = stageArgs[stageArgs.length - 1]!;
+              const gPatLower = gMode === "-i" ? gPat.toLowerCase() : gPat;
+              const matched: string[] = [];
+              for (let li = 0; li < rawLines.length; li++) {
+                const l = rawLines[li]!;
+                const hit = gMode === "-i" ? l.toLowerCase().includes(gPatLower) : l.includes(gPat);
+                if (gMode === "-v" ? !hit : hit) matched.push(l);
+              }
+              if (matched.length === 0) return undefined;
+              outLines = gMode === "-c" ? [String(matched.length)] : matched;
             }
             // These filters preserve the terminator of the final selected input line.
             const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev" || firstName === "sed";

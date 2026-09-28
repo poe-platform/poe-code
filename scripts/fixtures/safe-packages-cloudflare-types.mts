@@ -28,7 +28,7 @@ const persistence: PlaywrightSessionPersistence = {
   async checkpoint(session, signal) { await host.save(session.name, await checkpointBrowserProfile(session, limits, signal), signal); },
   async delete(name, signal) { await host.remove(name, signal); },
 };
-const onSnapshot: PlaywrightSnapshotHook = async <TSnapshot>(request: PlaywrightSnapshotHookContext<TSnapshot>): Promise<TSnapshot> => {
+const onSnapshot: PlaywrightSnapshotHook = async <TSnapshot,>(request: PlaywrightSnapshotHookContext<TSnapshot>): Promise<TSnapshot> => {
   const navigation: PlaywrightNavigationSummary | undefined = getPlaywrightMainFrameNavigation(request.context, request.page);
   const status: number | undefined = navigation?.status;
   const headers: Readonly<Record<string, string>> | undefined = request.navigation?.headers;

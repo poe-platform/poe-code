@@ -13738,7 +13738,7 @@ export class Runtime {
   }
   private runSyncArithForFallback( e0: ArithmeticProgram, e1: ArithmeticProgram, e2: ArithmeticProgram, inductionName: string, hasDeferredSteps: boolean, deferredMask: number, bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, diagnosticLine: number, ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string; lastInductionVal: string | undefined } {
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
-    let lastArg = rawState.lastArgument;
+    let lastArg = rawState.lastArgument ?? "";
     let lastValueWord: Word | undefined;
     let lastInductionVal: string | undefined;
     let lastArgInductionVal: string | undefined;
@@ -14275,7 +14275,7 @@ export class Runtime {
     onUpdate: (v: { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string }) => void,
   ): void {
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
-    let lastArg = rawState.lastArgument;
+    let lastArg = rawState.lastArgument ?? "";
     for (let b = 0; b < steps.length; b++) {
       const step = steps[b]!;
       if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
@@ -14402,7 +14402,7 @@ export class Runtime {
   }
   private runSyncForFallback( varName: string, fastLoopWords: readonly string[], bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string } {
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
-    let lastArg = rawState.lastArgument;
+    let lastArg = rawState.lastArgument ?? "";
     let lastValueWord: Word | undefined;
     let loopTurn = 0;
     for (let idx = 0; idx < fastLoopWords.length; idx++) {

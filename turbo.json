@@ -391,6 +391,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "terminal-png-mcp-rust#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

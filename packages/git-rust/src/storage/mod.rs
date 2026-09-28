@@ -97,6 +97,63 @@ pub fn read_object_packed(
     gitdir: &str,
     oid: &str,
 ) -> Result<Option<ReadObjectResult>, GitError> {
+    let pack_dir = join(&[gitdir, "objects/pack"]);
+    if let Ok(entries) = fs.readdir(&pack_dir) {
+        let mut idx_files: Vec<String> = entries
+            .into_iter()
+            .filter(|name| name.ends_with(".idx"))
+            .collect();
+        idx_files.sort();
+        for idx_name in idx_files {
+            let idx_path = join(&[&pack_dir, &idx_name]);
+            let Some(idx_bytes) = fs.read(&idx_path) else {
+                continue;
+            };
+            let Some(mut idx) = GitPackIndex::from_idx(&idx_bytes)? else {
+                continue;
+            };
+            if idx.offsets.contains_key(oid) {
+                let pack_name = idx_name.trim_end_matches(".idx").to_string() + ".pack";
+                let pack_path = join(&[&pack_dir, &pack_name]);
+                let Some(pack_bytes) = fs.read(&pack_path) else {
+                    return Err(GitError::internal(&format!(
+                        "Could not read packfile at {pack_path}. The file may be missing, corrupted, or too large to read into memory."
+                    )));
+                };
+                let expected_sha = idx.packfile_sha.clone();
+                let body_end = pack_bytes.len().saturating_sub(20);
+                let trailer_sha = crate::utils::to_hex(&pack_bytes[body_end..]);
+                if trailer_sha != expected_sha {
+                    return Err(GitError::internal(&format!(
+                        "Packfile trailer mismatch: expected {expected_sha}, got {trailer_sha}. The packfile may be corrupted."
+                    )));
+                }
+                let payload_sha = shasum(&pack_bytes[..body_end]);
+                if payload_sha != expected_sha {
+                    return Err(GitError::internal(&format!(
+                        "Packfile payload corrupted: calculated {payload_sha} but expected {expected_sha}. The packfile may have been tampered with."
+                    )));
+                }
+                idx.load(pack_bytes);
+                let get_ext = |ext_oid: &str| -> Result<UnwrappedObject, GitError> {
+                    let r = _read_object(fs, gitdir, ext_oid, "content")?;
+                    Ok(UnwrappedObject {
+                        object_type: r.obj_type,
+                        object: r.object,
+                    })
+                };
+                let res = idx.read_with_external(oid, Some(&get_ext))?;
+                return Ok(Some(ReadObjectResult {
+                    oid: oid.to_string(),
+                    obj_type: res.object_type,
+                    format: "content".to_string(),
+                    object: res.object,
+                    parsed: None,
+                    source: Some(format!("objects/pack/{pack_name}")),
+                }));
+            }
+        }
+    }
     let mut packs = load_pack_indexes(fs, gitdir)?;
     let get_ext = |ext_oid: &str| -> Result<UnwrappedObject, GitError> {
         let r = _read_object(fs, gitdir, ext_oid, "content")?;

@@ -255,6 +255,9 @@ pub fn write_upload_pack_request(req: &UploadPackRequest) -> Vec<u8> {
     for oid in &req.exclude {
         out.extend_from_slice(&GitPktLine::encode_str(&format!("deepen-not {oid}\n")));
     }
+    if req.relative {
+        out.extend_from_slice(&GitPktLine::encode_str("deepen-relative\n"));
+    }
     out.extend_from_slice(&GitPktLine::flush());
     for oid in &req.haves {
         out.extend_from_slice(&GitPktLine::encode_str(&format!("have {oid}\n")));

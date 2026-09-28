@@ -780,3 +780,98 @@ fn lcs_indices(a: &[&str], b: &[&str]) -> Vec<(usize, usize)> {
     }
     pairs
 }
+use crate::commands::get_config;
+use crate::fs::MemoryFs;
+use crate::models::CommitObject;
+
+impl From<Author> for PartialAuthor {
+    fn from(a: Author) -> Self {
+        Self {
+            name: Some(a.name),
+            email: Some(a.email),
+            timestamp: Some(a.timestamp),
+            timezone_offset: Some(a.timezone_offset),
+        }
+    }
+}
+
+pub fn normalize_author_object(
+    fs: &MemoryFs,
+    gitdir: &str,
+    author: Option<&PartialAuthor>,
+    commit: Option<&CommitObject>,
+) -> Option<Author> {
+    let default_name = get_config(fs, gitdir, "user.name").map(|v| v.as_str());
+    let default_email = get_config(fs, gitdir, "user.email")
+        .map(|v| v.as_str())
+        .unwrap_or_default();
+    let default_timestamp = 1720000000i64;
+    let default_tz = 0.0f64;
+
+    let name = author
+        .and_then(|a| a.name.clone())
+        .or_else(|| commit.map(|c| c.author.name.clone()))
+        .or(default_name)?;
+    let email = author
+        .and_then(|a| a.email.clone())
+        .or_else(|| commit.map(|c| c.author.email.clone()))
+        .unwrap_or(default_email);
+    let timestamp = author
+        .and_then(|a| a.timestamp)
+        .or_else(|| commit.map(|c| c.author.timestamp))
+        .unwrap_or(default_timestamp);
+    let timezone_offset = author
+        .and_then(|a| a.timezone_offset)
+        .or_else(|| commit.map(|c| c.author.timezone_offset))
+        .unwrap_or(default_tz);
+
+    Some(Author {
+        name,
+        email,
+        timestamp,
+        timezone_offset,
+    })
+}
+
+pub fn normalize_committer_object(
+    fs: &MemoryFs,
+    gitdir: &str,
+    author: Option<&PartialAuthor>,
+    committer: Option<&PartialAuthor>,
+    commit: Option<&CommitObject>,
+) -> Option<Author> {
+    let default_name = get_config(fs, gitdir, "user.name").map(|v| v.as_str());
+    let default_email = get_config(fs, gitdir, "user.email")
+        .map(|v| v.as_str())
+        .unwrap_or_default();
+    let default_timestamp = 1720000000i64;
+    let default_tz = 0.0f64;
+
+    let name = committer
+        .and_then(|c| c.name.clone())
+        .or_else(|| author.and_then(|a| a.name.clone()))
+        .or_else(|| commit.map(|c| c.committer.name.clone()))
+        .or(default_name)?;
+    let email = committer
+        .and_then(|c| c.email.clone())
+        .or_else(|| author.and_then(|a| a.email.clone()))
+        .or_else(|| commit.map(|c| c.committer.email.clone()))
+        .unwrap_or(default_email);
+    let timestamp = committer
+        .and_then(|c| c.timestamp)
+        .or_else(|| author.and_then(|a| a.timestamp))
+        .or_else(|| commit.map(|c| c.committer.timestamp))
+        .unwrap_or(default_timestamp);
+    let timezone_offset = committer
+        .and_then(|c| c.timezone_offset)
+        .or_else(|| author.and_then(|a| a.timezone_offset))
+        .or_else(|| commit.map(|c| c.committer.timezone_offset))
+        .unwrap_or(default_tz);
+
+    Some(Author {
+        name,
+        email,
+        timestamp,
+        timezone_offset,
+    })
+}

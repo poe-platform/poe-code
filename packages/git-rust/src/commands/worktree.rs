@@ -227,9 +227,10 @@ pub fn status_matrix(
     let mut rows = Vec::new();
     for path in all_paths {
         if let Some(filters) = filepaths {
-            let matched = filters
-                .iter()
-                .any(|f| f.is_empty() || f == "." || path == *f || path.starts_with(&format!("{f}/")));
+            let matched = filters.iter().any(|f| {
+                let fc = f.trim_end_matches('/');
+                fc.is_empty() || fc == "." || path == fc || path.starts_with(&format!("{fc}/"))
+            });
             if !matched {
                 continue;
             }

@@ -149,24 +149,30 @@ pub fn read_blob(
     filepath: Option<&str>,
 ) -> Result<ReadBlobResult, GitError> {
     let gdir = discover_gitdir(fs, gitdir);
-    let resolved_oid = if let Some(fp) = filepath {
+    let mut resolved_oid = if let Some(fp) = filepath {
         resolve_filepath(fs, &gdir, oid, fp)?
     } else {
         oid.to_string()
     };
-    let res = _read_object(fs, &gdir, &resolved_oid, "content")?;
-    if res.obj_type != "blob" {
-        return Err(GitError::object_type(
-            &resolved_oid,
-            &res.obj_type,
-            "blob",
-            filepath,
-        ));
+    loop {
+        let res = _read_object(fs, &gdir, &resolved_oid, "content")?;
+        if res.obj_type == "tag" {
+            resolved_oid = GitAnnotatedTag::from_bytes(&res.object).parse().object;
+            continue;
+        }
+        if res.obj_type != "blob" {
+            return Err(GitError::object_type(
+                &resolved_oid,
+                &res.obj_type,
+                "blob",
+                filepath,
+            ));
+        }
+        return Ok(ReadBlobResult {
+            oid: resolved_oid,
+            blob: res.object,
+        });
     }
-    Ok(ReadBlobResult {
-        oid: resolved_oid,
-        blob: res.object,
-    })
 }
 
 pub fn write_blob(fs: &MemoryFs, gitdir: &str, blob: &[u8]) -> Result<String, GitError> {

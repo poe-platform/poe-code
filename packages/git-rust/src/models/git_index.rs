@@ -34,6 +34,7 @@ pub struct IndexEntry {
 pub struct GitIndex {
     entries: BTreeMap<String, IndexEntry>,
     unmerged_paths: BTreeSet<String>,
+    dirty: bool,
 }
 
 impl GitIndex {
@@ -41,12 +42,35 @@ impl GitIndex {
         Self::default()
     }
 
+    pub fn is_dirty(&self) -> bool {
+        self.dirty
+    }
+
+    pub fn clear_dirty(&mut self) {
+        self.dirty = false;
+    }
+
     pub fn from_buffer(buffer: &[u8]) -> Result<Self, GitError> {
         if buffer.is_empty() {
-            return Ok(Self::new());
+            return Err(GitError::internal("Index file is empty (.git/index)"));
         }
-        if buffer.len() < 12 || &buffer[0..4] != b"DIRC" {
-            return Err(GitError::internal("Invalid dircache magic header"));
+        let magic_len = buffer.len().min(4);
+        let magic = String::from_utf8_lossy(&buffer[0..magic_len]).into_owned();
+        if magic != "DIRC" {
+            return Err(GitError::internal(&format!(
+                "Invalid dircache magic file number: {magic}"
+            )));
+        }
+        let body_end = buffer.len().saturating_sub(20);
+        let sha_computed = to_hex(&shasum_bytes(&buffer[..body_end]));
+        let sha_claimed = to_hex(&buffer[body_end..]);
+        if sha_claimed != sha_computed {
+            return Err(GitError::internal(&format!(
+                "Invalid checksum in GitIndex buffer: expected {sha_claimed} but saw {sha_computed}"
+            )));
+        }
+        if buffer.len() < 12 {
+            return Err(GitError::internal("Truncated dircache header"));
         }
         let version = u32::from_be_bytes([buffer[4], buffer[5], buffer[6], buffer[7]]);
         if version != 2 && version != 3 {
@@ -137,6 +161,7 @@ impl GitIndex {
             index.add_entry(entry);
         }
 
+        index.dirty = false;
         Ok(index)
     }
 
@@ -239,16 +264,24 @@ impl GitIndex {
             self.unmerged_paths.remove(filepath);
         }
         self.add_entry(entry);
+        self.dirty = true;
     }
 
     pub fn delete(&mut self, filepath: &str) {
-        self.entries.remove(filepath);
+        if self.entries.contains_key(filepath) {
+            self.entries.remove(filepath);
+        } else {
+            let prefix = format!("{filepath}/");
+            self.entries.retain(|k, _| !k.starts_with(&prefix));
+        }
         self.unmerged_paths.remove(filepath);
+        self.dirty = true;
     }
 
     pub fn clear(&mut self) {
         self.entries.clear();
         self.unmerged_paths.clear();
+        self.dirty = true;
     }
 
     pub fn render(&self) -> String {

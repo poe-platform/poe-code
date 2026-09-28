@@ -526,9 +526,10 @@ impl GitIndexManager {
         };
         
         let res = f(&mut index)?;
-        {
+        if index.is_dirty() {
             let buf = index.to_object()?;
             fs.write(&index_path, &buf);
+            index.clear_dirty();
         }
         Ok(res)
     }

@@ -163,7 +163,8 @@ pub fn validate_tree_entry_name(path: &str) -> Result<(), GitError> {
             && matches!(s.as_bytes()[4], b'1'..=b'9')
     };
 
-    if path.contains('\\')
+    if path.is_empty()
+        || path.contains('\\')
         || path.contains('/')
         || hfs_clean == "."
         || hfs_clean == ".."

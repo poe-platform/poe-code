@@ -134,7 +134,6 @@ export type { UnrtfLimits } from "./commands/unrtf/index.js";
 export type { WkhtmltopdfLimits } from "./commands/wkhtmltopdf/index.js";
 
 export type { XzLimits } from "./commands/xz/index.js";
-export { createFfprobeCommand } from "./commands/ffmpeg/index.js";
 export { createConvertCommand, createMogrifyCommand, createCompositeCommand, createMontageCommand, createIdentifyCommand, createCompareCommand } from "./commands/imagemagick/index.js";
 export { createPdfuniteCommand, createPdfseparateCommand, createPdffontsCommand, createPdfdetachCommand, createPdftocairoCommand } from "./commands/pdfinfo/index.js";
 export { createLibreofficeCommand } from "./commands/soffice/index.js";

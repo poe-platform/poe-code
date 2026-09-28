@@ -1267,3 +1267,47 @@ dual_fixture_test!(cli_reflog_selectors_and_upstream_shorthand, cli_reflog_selec
     assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "@{u}"]).stdout.trim(), oid1);
     assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "test-branch@{upstream}"]).stdout.trim(), oid1);
 });
+
+
+dual_fixture_test!(cli_reset_reflog_recovery_and_for_each_ref, cli_reset_reflog_recovery_and_for_each_ref_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "recover.txt"]), "precious work\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "recover.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "precious commit"]);
+    let tip_oid = execute_git_cli(&f.fs, &f.dir, &["rev-parse", "HEAD"]).stdout.trim().to_string();
+
+    execute_git_cli(&f.fs, &f.dir, &["reset", "--hard", "HEAD~1"]);
+    assert!(!f.fs.exists(&join(&[&f.dir, "recover.txt"])));
+
+    execute_git_cli(&f.fs, &f.dir, &["reset", "--hard", "HEAD@{1}"]);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "HEAD"]).stdout.trim(), tip_oid);
+    assert!(f.fs.exists(&join(&[&f.dir, "recover.txt"])));
+
+    let r_fer = execute_git_cli(&f.fs, &f.dir, &["for-each-ref", "--format=%(refname:short) %(objecttype) %(subject)", "refs/heads/test-branch"]);
+    assert_eq!(r_fer.exit_code, 0);
+    assert_eq!(r_fer.stdout.trim(), "test-branch commit precious commit");
+});
+
+dual_fixture_test!(cli_cherry_range_diff_sparse_checkout_and_replace, cli_cherry_range_diff_sparse_checkout_and_replace_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    f.fs.write_str(&join(&[&f.dir, "cherry-file.txt"]), "unique patch\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "cherry-file.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "unique cherry commit"]);
+
+    let r_cherry = execute_git_cli(&f.fs, &f.dir, &["cherry", "-v", "HEAD~1", "HEAD"]);
+    assert_eq!(r_cherry.exit_code, 0);
+    assert!(r_cherry.stdout.contains("+ ") && r_cherry.stdout.contains("unique cherry commit"));
+
+    let r_rd = execute_git_cli(&f.fs, &f.dir, &["range-diff", "HEAD~1..HEAD", "HEAD~1..HEAD"]);
+    assert_eq!(r_rd.exit_code, 0);
+    assert!(r_rd.stdout.contains(" = ") && r_rd.stdout.contains("unique cherry commit"));
+
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["sparse-checkout", "set", "src", "docs"]).exit_code, 0);
+    let r_sc = execute_git_cli(&f.fs, &f.dir, &["sparse-checkout", "list"]);
+    assert_eq!(r_sc.stdout.trim(), "src\ndocs");
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["sparse-checkout", "disable"]).exit_code, 0);
+
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["replace", "HEAD~1", "HEAD"]).exit_code, 0);
+    assert!(!execute_git_cli(&f.fs, &f.dir, &["replace", "-l"]).stdout.trim().is_empty());
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["replace", "-d", "HEAD~1"]).exit_code, 0);
+});

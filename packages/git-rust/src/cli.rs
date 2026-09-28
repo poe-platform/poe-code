@@ -2938,6 +2938,242 @@ pub fn execute_git_cli_with_http(
             }
             CliResult::ok(out)
         }
+        "for-each-ref" => {
+            let mut fmt_str: Option<&str> = None;
+            let mut max_count: Option<usize> = None;
+            let mut sort_desc = false;
+            let mut patterns: Vec<&str> = Vec::new();
+            let mut i = 0;
+            while i < sub_args.len() {
+                if let Some(f) = sub_args[i].strip_prefix("--format=") {
+                    fmt_str = Some(f);
+                    i += 1;
+                    continue;
+                }
+                if sub_args[i] == "--format" && i + 1 < sub_args.len() {
+                    fmt_str = Some(sub_args[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                if let Some(c) = sub_args[i].strip_prefix("--count=")
+                    && let Ok(n) = c.parse::<usize>()
+                {
+                    max_count = Some(n);
+                    i += 1;
+                    continue;
+                }
+                if let Some(s) = sub_args[i].strip_prefix("--sort=") {
+                    sort_desc = s.starts_with('-');
+                    i += 1;
+                    continue;
+                }
+                if !sub_args[i].starts_with('-') {
+                    patterns.push(sub_args[i]);
+                }
+                i += 1;
+            }
+            let mut all_refs: Vec<String> = Vec::new();
+            for prefix in ["refs/heads", "refs/tags", "refs/remotes"] {
+                for r in crate::list_refs(fs, &gitdir, prefix) {
+                    all_refs.push(format!("{prefix}/{r}"));
+                }
+            }
+            all_refs.sort();
+            all_refs.dedup();
+            if sort_desc {
+                all_refs.reverse();
+            }
+            let mut out = String::new();
+            let mut emitted = 0usize;
+            for full_ref in all_refs {
+                if !patterns.is_empty() && !patterns.iter().any(|p| full_ref == *p || full_ref.starts_with(&format!("{p}/"))) {
+                    continue;
+                }
+                let Ok(oid) = resolve_ref(fs, &gitdir, &full_ref, None) else {
+                    continue;
+                };
+                let (obj_type, subject) = if let Ok(tag_obj) = crate::commands::plumbing::read_tag(fs, &gitdir, &oid) {
+                    ("tag", tag_obj.tag.message.lines().next().unwrap_or("").to_string())
+                } else if let Ok(c) = crate::read_commit(fs, &gitdir, &oid) {
+                    ("commit", crate::cli_history::subject(&c.commit.message))
+                } else {
+                    ("commit", String::new())
+                };
+                let short_ref = full_ref
+                    .strip_prefix("refs/heads/")
+                    .or_else(|| full_ref.strip_prefix("refs/tags/"))
+                    .or_else(|| full_ref.strip_prefix("refs/remotes/"))
+                    .unwrap_or(&full_ref);
+                let short_oid = &oid[..7.min(oid.len())];
+                if let Some(f) = fmt_str {
+                    let rendered = f
+                        .replace("%(refname)", &full_ref)
+                        .replace("%(refname:short)", short_ref)
+                        .replace("%(objectname)", &oid)
+                        .replace("%(objectname:short)", short_oid)
+                        .replace("%(objecttype)", obj_type)
+                        .replace("%(subject)", &subject)
+                        .replace("%(contents:subject)", &subject);
+                    out.push_str(&format!("{rendered}\n"));
+                } else {
+                    out.push_str(&format!("{oid} {obj_type}\t{full_ref}\n"));
+                }
+                emitted += 1;
+                if let Some(limit) = max_count
+                    && emitted >= limit
+                {
+                    break;
+                }
+            }
+            CliResult::ok(out)
+        }
+        "cherry" => {
+            let verbose = sub_args.contains(&"-v");
+            let upstream = positionals.first().copied().unwrap_or("HEAD~1");
+            let head = positionals.get(1).copied().unwrap_or("HEAD");
+            let head_commits = crate::commands::plumbing::log(fs, &gitdir, Some(head), None, None, None, false, false).unwrap_or_default();
+            let up_commits = crate::commands::plumbing::log(fs, &gitdir, Some(upstream), None, None, None, false, false).unwrap_or_default();
+            let up_oid_set: std::collections::HashSet<String> = up_commits.iter().map(|c| c.oid.clone()).collect();
+            let up_subj_set: std::collections::HashSet<String> = up_commits
+                .iter()
+                .map(|c| crate::cli_history::subject(&c.commit.message))
+                .collect();
+            let mut branch_only: Vec<_> = head_commits.into_iter().take_while(|c| !up_oid_set.contains(&c.oid)).collect();
+            branch_only.reverse();
+            let mut out = String::new();
+            for c in branch_only {
+                let subj = crate::cli_history::subject(&c.commit.message);
+                let sign = if up_subj_set.contains(&subj) { '-' } else { '+' };
+                if verbose {
+                    out.push_str(&format!("{sign} {} {subj}\n", c.oid));
+                } else {
+                    out.push_str(&format!("{sign} {}\n", c.oid));
+                }
+            }
+            CliResult::ok(out)
+        }
+        "range-diff" => {
+            let r1 = positionals.first().copied().unwrap_or("HEAD~1..HEAD");
+            let r2 = positionals.get(1).copied().unwrap_or(r1);
+            let parse_rng = |rng: &str| -> Vec<crate::commands::plumbing::ReadCommitResult> {
+                if let Some((l, r)) = rng.split_once("..") {
+                    let all_r = crate::commands::plumbing::log(fs, &gitdir, Some(r), None, None, None, false, false).unwrap_or_default();
+                    let all_l = crate::commands::plumbing::log(fs, &gitdir, Some(l), None, None, None, false, false).unwrap_or_default();
+                    let l_set: std::collections::HashSet<String> = all_l.into_iter().map(|c| c.oid).collect();
+                    let mut list: Vec<_> = all_r.into_iter().take_while(|c| !l_set.contains(&c.oid)).collect();
+                    list.reverse();
+                    list
+                } else {
+                    crate::commands::plumbing::log(fs, &gitdir, Some(rng), None, Some(1), None, false, false).unwrap_or_default()
+                }
+            };
+            let left_list = parse_rng(r1);
+            let right_list = parse_rng(r2);
+            let max_len = left_list.len().max(right_list.len());
+            let mut out = String::new();
+            for idx in 0..max_len {
+                match (left_list.get(idx), right_list.get(idx)) {
+                    (Some(lc), Some(rc)) => {
+                        let l_subj = crate::cli_history::subject(&lc.commit.message);
+                        let r_subj = crate::cli_history::subject(&rc.commit.message);
+                        let rel = if l_subj == r_subj { '=' } else { '!' };
+                        out.push_str(&format!(
+                            "{}:  {} {} {}:  {} {}\n",
+                            idx + 1,
+                            &lc.oid[..7.min(lc.oid.len())],
+                            rel,
+                            idx + 1,
+                            &rc.oid[..7.min(rc.oid.len())],
+                            r_subj
+                        ));
+                    }
+                    (Some(lc), None) => {
+                        out.push_str(&format!(
+                            "{}:  {} < -:  ------- {}\n",
+                            idx + 1,
+                            &lc.oid[..7.min(lc.oid.len())],
+                            crate::cli_history::subject(&lc.commit.message)
+                        ));
+                    }
+                    (None, Some(rc)) => {
+                        out.push_str(&format!(
+                            "-:  ------- > {}:  {} {}\n",
+                            idx + 1,
+                            &rc.oid[..7.min(rc.oid.len())],
+                            crate::cli_history::subject(&rc.commit.message)
+                        ));
+                    }
+                    (None, None) => {}
+                }
+            }
+            CliResult::ok(out)
+        }
+        "sparse-checkout" => {
+            let action = positionals.first().copied().unwrap_or("list");
+            let sparse_file = join(&[&gitdir, "info/sparse-checkout"]);
+            let _ = fs.mkdir(&join(&[&gitdir, "info"]));
+            match action {
+                "init" => {
+                    let _ = set_config(fs, &gitdir, "core.sparseCheckout", Some("true"), false);
+                    if !fs.exists(&sparse_file) {
+                        fs.write_str(&sparse_file, "/*\n!/*/\n");
+                    }
+                    CliResult::ok("")
+                }
+                "set" => {
+                    let _ = set_config(fs, &gitdir, "core.sparseCheckout", Some("true"), false);
+                    let dirs: Vec<&str> = positionals.iter().skip(1).copied().collect();
+                    let body = dirs.into_iter().map(|d| format!("{d}\n")).collect::<String>();
+                    fs.write_str(&sparse_file, &body);
+                    CliResult::ok("")
+                }
+                "add" => {
+                    let existing = fs.read_str(&sparse_file).unwrap_or_default();
+                    let extra: String = positionals.iter().skip(1).map(|d| format!("{d}\n")).collect();
+                    fs.write_str(&sparse_file, &format!("{existing}{extra}"));
+                    CliResult::ok("")
+                }
+                "list" => CliResult::ok(fs.read_str(&sparse_file).unwrap_or_default()),
+                "disable" => {
+                    let _ = set_config(fs, &gitdir, "core.sparseCheckout", Some("false"), false);
+                    let _ = fs.rm(&sparse_file);
+                    CliResult::ok("")
+                }
+                _ => CliResult::err(128, format!("fatal: unknown sparse-checkout subcommand '{action}'\n")),
+            }
+        }
+        "replace" => {
+            let delete_mode = sub_args.contains(&"-d") || sub_args.contains(&"--delete");
+            let list_mode = sub_args.contains(&"-l") || sub_args.contains(&"--list") || (positionals.is_empty() && !delete_mode);
+            if list_mode {
+                let mut out = String::new();
+                for r in crate::list_refs(fs, &gitdir, "refs/replace") {
+                    out.push_str(&format!("{r}\n"));
+                }
+                return CliResult::ok(out);
+            }
+            if delete_mode {
+                let Some(&obj_arg) = positionals.first() else {
+                    return CliResult::err(128, "fatal: replace --delete requires object\n");
+                };
+                let Ok(oid) = crate::cli_history::resolve(fs, &gitdir, obj_arg) else {
+                    return CliResult::err(128, format!("fatal: not a valid object name: {obj_arg}\n"));
+                };
+                let _ = crate::delete_ref(fs, &gitdir, &format!("refs/replace/{oid}"));
+                return CliResult::ok("");
+            }
+            let (Some(&obj_arg), Some(&repl_arg)) = (positionals.first(), positionals.get(1)) else {
+                return CliResult::err(128, "fatal: replace requires object and replacement\n");
+            };
+            let (Ok(obj_oid), Ok(repl_oid)) = (
+                crate::cli_history::resolve(fs, &gitdir, obj_arg),
+                crate::cli_history::resolve(fs, &gitdir, repl_arg),
+            ) else {
+                return CliResult::err(128, "fatal: invalid object or replacement\n");
+            };
+            let _ = crate::write_ref(fs, &gitdir, &format!("refs/replace/{obj_oid}"), &repl_oid, true, false);
+            CliResult::ok("")
+        }
         "fetch" => match fetch(
             fs,
             http,
@@ -3099,8 +3335,21 @@ fn reset_repository(
             Ok(())
         })?;
     }
+    let old_oid = resolve_ref(fs, gitdir, "HEAD", None)
+        .unwrap_or_else(|_| "0000000000000000000000000000000000000000".to_string());
     let head = fs.read_str(&join(&[gitdir, "HEAD"])).unwrap_or_default();
     let ref_name = head.trim().strip_prefix("ref: ").unwrap_or("HEAD");
+    let entry_line = format!(
+        "{old_oid} {oid} Git User <user@example.com> 1502484200 +0000\treset: moving to {target}\n"
+    );
+    let head_log = join(&[gitdir, "logs/HEAD"]);
+    let prev_head_log = fs.read_str(&head_log).unwrap_or_default();
+    fs.write_str(&head_log, &format!("{prev_head_log}{entry_line}"));
+    if ref_name != "HEAD" {
+        let ref_log = join(&[gitdir, "logs", ref_name]);
+        let prev_ref_log = fs.read_str(&ref_log).unwrap_or_default();
+        fs.write_str(&ref_log, &format!("{prev_ref_log}{entry_line}"));
+    }
     crate::GitRefManager::write_ref(fs, gitdir, ref_name, &oid)
 }
 

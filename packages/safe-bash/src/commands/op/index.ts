@@ -87,7 +87,7 @@ export function createOpCommand(options: OpCommandsOptions): CommandDefinition {
 }
 
 export function opCommands(options: OpCommandsOptions): VirtualShellPlugin {
-  const definition = createOpCommand(options);
+  const [definition] = createOpCommands(options);
   const replace = options.replace ?? false;
   return {
     name: "op-commands",
@@ -96,4 +96,8 @@ export function opCommands(options: OpCommandsOptions): VirtualShellPlugin {
       host.commands.register(definition, { replace });
     },
   };
+}
+
+export function createOpCommands(options: OpCommandsOptions): readonly [CommandDefinition] {
+  return [createOpCommand(options)];
 }

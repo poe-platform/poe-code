@@ -1,7 +1,31 @@
 import path from "node:path";
+import { createRequire } from "node:module";
 import * as fileSystem from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
 import { rewriteModuleSpecifiers } from "./package-safe.mjs";
+
+// Portable consumers cannot select ambient Node filesystem/process capabilities.
+const resolveDependency = createRequire(import.meta.url).resolve;
+const portableEnvironment = { process: "undefined", "process.env.FENGARICONF": "undefined" };
+
+// Fengari's string/table libraries import the full library loader only for an
+// assertion helper. Keep those internal edges on the VM's assertion module.
+const portableLuaLibraries = {
+  name: "portable-lua-libraries",
+  setup(builder) {
+    builder.onResolve({ filter: /.*/ }, args => {
+      if (args.path.startsWith("fengari/src/")) return { path: resolveDependency(args.path, { paths: [args.resolveDir] }) };
+      const owner = path.dirname(path.dirname(args.importer));
+      if (args.path === "fengari" && path.basename(owner) === "safe-bash-command-pandoc") {
+        return { path: path.join(owner, "src/fengari-portable.ts") };
+      }
+      if (args.path !== "./lualib.js" || !["lstrlib.js", "ltablib.js"].includes(path.basename(args.importer))) return;
+      const directory = path.dirname(args.importer);
+      if (path.basename(directory) !== "src" || path.basename(path.dirname(directory)) !== "fengari") return;
+      return { path: path.join(directory, "llimits.js") };
+    });
+  },
+};
 
 export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alias, external, portable = false }) {
   const entryPoints = {};
@@ -47,7 +71,7 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
     assetNames: "safe-bash/dist/command-assets/[name]-[hash]",
     loader: { ".wasm": "copy" },
     platform: portable ? "browser" : "node", format: "esm", target: portable ? "es2022" : "node22", sourcemap: true, write: false,
-    ...(portable ? { conditions: ["workerd", "worker", "browser"], inject: [path.join(rootDir, "packages/safe-bash/browser/buffer.mjs")] } : {}),
+    ...(portable ? { define: portableEnvironment, plugins: [portableLuaLibraries], conditions: ["workerd", "worker", "browser"], inject: [path.join(rootDir, "packages/safe-bash/browser/buffer.mjs")] } : {}),
   };
 }
 
@@ -126,6 +150,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
     "@poe-code/safe-fs": "poe-code/safe-fs",
     "@poe-code/safe-fs/contracts/errors": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/contracts/object": "poe-code/safe-fs/core",
+    "@poe-code/safe-fs/xml": "poe-code/safe-fs/core",
   };
   // Aliases resolve before external admission. Leaving a source alias for a
   // canonical package embeds a second runtime identity in the browser bundle.
@@ -134,6 +159,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
   }
   return {
     absWorkingDir: rootDir,
+    loader: { ".wasm": "copy" },
     entryPoints: {
       "commands/media/index.browser": path.join(directory, "src/commands/media/index.ts"),
       "commands/docx/index.browser": path.join(directory, "src/commands/docx/index.ts"),
@@ -161,6 +187,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
     chunkNames: "chunks/[name]-[hash]",
     bundle: true,
     platform: "browser",
+    define: portableEnvironment,
     conditions: ["workerd", "worker", "browser"],
     format: "esm",
     target: "es2022",
@@ -170,7 +197,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
     external: [...new Set(["poe-code/safe-fs/core", ...external])],
     alias: aliases,
     inject: [platform],
-    plugins: [{
+    plugins: [portableLuaLibraries, {
       name: "portable-shell-capabilities",
       setup(builder) {
         builder.onResolve({ filter: /^safe-bash-contracts(?:\/|$)/ }, args => {

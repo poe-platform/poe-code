@@ -21,6 +21,8 @@
   "sideEffects": [
     "./dist/portable-buffer.js",
     "./src/portable-buffer.ts",
+    "./src/commands/ssconvert/index.ts",
+    "./dist/commands/ssconvert/index.js",
     "./dist/worker/entry.js",
     "./src/worker/entry.ts"
   ],
@@ -816,7 +818,8 @@
             "@poe-code/safe-fs": "*"
           },
           "devDependencies": {},
-          "publicAlias": "@poe-platform/safe-bash/contracts"
+          "publicAlias": "@poe-platform/safe-bash/contracts",
+          "portable": true
         },
         "safe-bash-command-wkhtmltopdf": {
           "version": "0.0.1",
@@ -904,7 +907,8 @@
         "safe-bash-csv-engine": {
           "version": "0.0.1",
           "dependencies": {},
-          "devDependencies": {}
+          "devDependencies": {},
+          "portable": true
         },
         "safe-bash-command-mmdc": {
           "version": "0.0.1",
@@ -1018,7 +1022,8 @@
           },
           "assets": [
             "./dist/index.d.ts"
-          ]
+          ],
+          "portable": true
         },
         "safe-bash-command-yq": {
           "version": "0.0.1",
@@ -1152,7 +1157,8 @@
             "./dist/native/generated/xz.d.mts",
             "./dist/native/generated/zstd.mjs",
             "./dist/native/generated/zstd.d.mts"
-          ]
+          ],
+          "portable": true
         },
         "safe-bash-command-xz": {
           "version": "0.0.1",
@@ -1380,7 +1386,8 @@
           },
           "devDependencies": {
             "safe-bash-contracts": "*"
-          }
+          },
+          "portable": true
         },
         "safe-bash-command-pandoc": {
           "version": "0.0.1",
@@ -1401,8 +1408,10 @@
             "safe-bash-command-ssconvert": "*"
           },
           "devDependencies": {
-            "safe-bash-contracts": "*"
-          }
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
         }
       }
     }

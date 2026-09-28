@@ -18,6 +18,10 @@
     "./citeproc-filters": {
       "types": "./dist/citeproc-filters.d.ts",
       "import": "./dist/citeproc-filters.js"
+    },
+    "./command": {
+      "types": "./dist/command.d.ts",
+      "import": "./dist/command.js"
     }
   },
   "files": [
@@ -54,6 +58,7 @@
     "safe-bash-command-ssconvert": "*"
   },
   "devDependencies": {
-    "safe-bash-contracts": "*"
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*"
   }
 }

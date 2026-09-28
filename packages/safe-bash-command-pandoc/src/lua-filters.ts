@@ -229,7 +229,6 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
       if (!(source instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Lua scripts must be bytes");
       context.charge("inputBytes", source.byteLength);
       context.charge("retainedBytes", source.byteLength);
-      const {lua, lauxlib, lualib, to_luastring} = await import("fengari");
       context.checkpoint();
       const state = lauxlib.luaL_newstate();
       const fail = (code: "E_IO" | "E_AST" | "E_UNSUPPORTED_FEATURE", message: string): never => {

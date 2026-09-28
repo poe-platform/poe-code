@@ -1,10 +1,8 @@
 export * from "./core.js";
 export { Shell } from "./shell/node.js";
 export type { WorkerShellOptions, WorkerModule } from "./worker/host.js";
-export { createSsconvertCommand, createSsconvertCommands, ssconvertCommands, type SsconvertCommandsOptions } from "./commands/ssconvert/index.js";
 export { posix as posixPath } from "node:path";
 export * from "./commands/network/index.js";
-export * from "./commands/op/index.js";
 export * from "./commands/node/index.js";
 export { createNodeCommand, createNodeCommands, nodeCommands, type NodeCommandsOptions } from "./commands/node/index.js";
 export * from "./fs/real/index.js";

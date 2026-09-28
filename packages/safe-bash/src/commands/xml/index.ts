@@ -154,3 +154,4 @@ export function xmlCommands(options: XmlCommandsOptions = {}): VirtualShellPlugi
     }
   };
 }
+export type XmllintCommandsOptions = XmlCommandsOptions;

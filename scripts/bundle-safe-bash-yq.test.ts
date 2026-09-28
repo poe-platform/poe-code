@@ -29,11 +29,12 @@ it.each(["browser", "workerd"])("runs public optional YQ staged writes with port
   const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
   const options = resolveBrowserShellBuild(root);
   const consumer = await build({
-    ...options, entryPoints: undefined, outdir: undefined, sourcemap: false, splitting: false,
+    ...options, loader: {".wasm": "binary"}, entryPoints: undefined, outdir: undefined, sourcemap: false, splitting: false,
     conditions: [condition], external: [], format: "cjs",
     alias: { ...options.alias,
       "@poe-code/safe-fs": path.join(root, "packages/safe-fs/src/core.ts"),
       "@poe-code/safe-fs/core": path.join(root, "packages/safe-fs/src/core.ts"),
+      "@poe-code/safe-fs/xml": path.join(root, "packages/safe-fs/src/core.ts"),
       "poe-code/safe-fs/core": path.join(root, "packages/safe-fs/src/core.ts"),
     },
     stdin: { resolveDir: root, contents: `

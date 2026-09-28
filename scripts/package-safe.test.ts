@@ -1631,7 +1631,7 @@ it.each(["@poe-code/safe-fs/core", "poe-code/safe-fs/core", "@poe-platform/safe-
     .find(settings => Object.hasOwn(settings.entryPoints ?? {}, "core.browser"))!;
   expect(browser).toBeDefined();
   const result = await build({
-    ...browser, absWorkingDir: process.cwd(), entryPoints: undefined, outdir: undefined,
+    ...browser, loader: {".wasm": "binary"}, absWorkingDir: process.cwd(), entryPoints: undefined, outdir: undefined,
     sourcemap: false, splitting: false, inject: [],
     stdin: { contents: `export { FsError } from ${JSON.stringify(specifier)};`, resolveDir: process.cwd() },
   });

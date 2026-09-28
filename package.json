@@ -502,7 +502,11 @@
     "@formatjs/intl-numberformat": "9.4.0",
     "@formatjs/intl-pluralrules": "6.3.13",
     "@petamoriken/float16": "^3.9.3",
-    "temporal-polyfill": "1.0.4"
+    "temporal-polyfill": "1.0.4",
+    "citeproc": "2.4.63",
+    "entities": "^6.0.1",
+    "fengari": "^0.1.5",
+    "parse5": "7.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

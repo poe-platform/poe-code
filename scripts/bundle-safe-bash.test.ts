@@ -60,7 +60,9 @@ async function bundlePublicConsumer(contents: string) {
           path: path.resolve(path.dirname(args.importer), args.path), namespace: "built-shell",
         }));
         builder.onLoad({ filter: /.*/, namespace: "built-shell" }, args => ({
-          contents: artifacts.readFileSync(args.path, "utf8").toString(), loader: "js",
+          contents: args.path.endsWith(".wasm")
+            ? `export default new WebAssembly.Module(Uint8Array.from(${JSON.stringify([...artifacts.readFileSync(args.path) as Uint8Array])}));`
+            : artifacts.readFileSync(args.path, "utf8").toString(), loader: "js",
         }));
       },
     }],
@@ -280,7 +282,7 @@ beforeAll(async () => {
 });
 
 beforeAll(async () => {
-  for (const output of portableBuild.outputFiles!.filter(output => output.path.endsWith(".js"))) {
+  for (const output of portableBuild.outputFiles!) {
     artifacts.mkdirSync(path.dirname(output.path), { recursive: true });
     artifacts.writeFileSync(output.path, output.contents);
   }

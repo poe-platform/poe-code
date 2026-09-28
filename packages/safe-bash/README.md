@@ -51,6 +51,8 @@ an existing host Buffer is preserved. Workers do not need `nodejs_compat` for th
 
 ## Supported features and commands
 
+All private command plugins are available from `@poe-platform/safe-bash/core` in portable browser and workerd environments. Each command exposes its plugin, `create<Name>Commands`, `create<Name>Command`, and `<Name>CommandsOptions`; factories construct commands without registering them.
+
 ### Shell syntax
 
 - Quoting and escapes, variables and positional arguments (including

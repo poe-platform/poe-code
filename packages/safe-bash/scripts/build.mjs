@@ -436,7 +436,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         assert.equal(manifest.devDependencies["safe-bash-command-pandoc"], "*", "Pandoc SDK build dependency must be the local workspace");
         const exports = { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } };
         const packageExports = {
-          "safe-bash-command-pandoc": { ...exports, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } },
+          "safe-bash-command-pandoc": { ...exports, "./command": { types: "./dist/command.d.ts", import: "./dist/command.js" }, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } },
           pdf: exports,
           "pdf-ast": exports,
         };

@@ -46,3 +46,12 @@ declare module "fengari" {
     luaopen_string(state: State): number;
   };
 }
+
+declare module "fengari/src/lua.js" { const api: typeof import("fengari").lua; export default api; }
+declare module "fengari/src/lauxlib.js" { const api: typeof import("fengari").lauxlib; export default api; }
+declare module "fengari/src/fengaricore.js" { export {to_luastring, to_jsstring} from "fengari"; }
+declare module "fengari/src/lbaselib.js" { const api: Pick<typeof import("fengari").lualib, "luaopen_base">; export default api; }
+declare module "fengari/src/lstrlib.js" { const api: Pick<typeof import("fengari").lualib, "luaopen_string">; export default api; }
+declare module "fengari/src/ltablib.js" { const api: Pick<typeof import("fengari").lualib, "luaopen_table">; export default api; }
+declare module "fengari/src/lmathlib.js" { const api: Pick<typeof import("fengari").lualib, "luaopen_math">; export default api; }
+declare module "fengari/src/lutf8lib.js" { const api: Pick<typeof import("fengari").lualib, "luaopen_utf8">; export default api; }

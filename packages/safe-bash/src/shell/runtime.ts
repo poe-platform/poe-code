@@ -23080,11 +23080,11 @@ export class Runtime {
     }
     if (subExprs.length === 0) return undefined;
     type SedAddrFn = (l: string, idx1: number, total: number) => boolean;
-    type SedStep =
-      | { addr?: SedAddrFn; kind: "d" }
-      | { addr?: SedAddrFn; kind: "p" }
-      | { addr?: SedAddrFn; kind: "y"; map: Map<string, string> }
-      | { addr?: SedAddrFn; kind: "s"; anchorStart: boolean; anchorEnd: boolean; core: string; rep: string; global: boolean };
+    type SedStep = { addr: SedAddrFn | undefined } & (
+      | { kind: "d" }
+      | { kind: "p" }
+      | { kind: "y"; map: Map<string, string> }
+      | { kind: "s"; anchorStart: boolean; anchorEnd: boolean; core: string; rep: string; global: boolean });
     const steps: SedStep[] = [];
     for (const rawE of subExprs) {
       let rest = rawE;

@@ -17992,6 +17992,8 @@ export class Runtime {
           if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-c" && sArgs[0] !== "-d" && sArgs[0] !== "-u" && sArgs[0] !== "-i")) return undefined;
         } else if (sName === "sort") {
           if (sArgs.length > 1 || (sArgs.length === 1 && !/^-[rnu]{1,3}$/.test(sArgs[0]!))) return undefined;
+          // Numeric sorting uses the command's exact decimal-prefix comparison.
+          if (sArgs[0]?.includes("n")) return undefined;
         } else if (sName === "head" || sName === "tail") {
           if (sArgs.length !== 2 || sArgs[0] !== "-n" || !/^[0-9]+$/.test(sArgs[1]!)) return undefined;
         } else if (sName === "wc") {
@@ -18004,6 +18006,8 @@ export class Runtime {
           const validGrep1 = sArgs.length === 1 && !sArgs[0]!.startsWith("-") && !sArgs[0]!.includes("\\");
           const validGrep2 = sArgs.length === 2 && /^-[EFvico]+$/.test(sArgs[0]!) && !(sArgs[0]!.includes("o") && (sArgs[0]!.includes("v") || sArgs[0]!.includes("c"))) && !sArgs[1]!.startsWith("-") && (sArgs[0]!.includes("E") || sArgs[0]!.includes("F") || !sArgs[1]!.includes("\\"));
           if (!validGrep1 && !validGrep2) return undefined;
+          // The command parser owns POSIX bracket expressions; JS RegExp does not.
+          if (!(sArgs.length === 2 && sArgs[0]!.includes("F")) && sArgs[sArgs.length - 1]!.includes("[:")) return undefined;
         } else if (sName === "awk") {
           let awkProg: string | undefined;
           if (sArgs.length === 1) awkProg = sArgs[0];
@@ -18048,6 +18052,9 @@ export class Runtime {
       if (stage0ByteLen > sharedSyncPipeBuf0.byteLength) return undefined;
       const nextBytes0 = this.budget.bytes + stage0ByteLen;
       if (nextBytes0 > this.budget.maxOutputBytesSmi && stage0ByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+      const previousBytes = this.budget.bytes;
+      const previousCommands = this.budget.commands;
+      let completed = false;
       this.budget.bytes = nextBytes0;
       syncPurePipelineSlotInUse = true;
       this.budget.enterPipelineStages(n);
@@ -18100,31 +18107,17 @@ export class Runtime {
               }
             } else if (firstName === "sort") {
               const flags = stageArgs[0]!;
-              const isNum = flags.includes("n");
               const isRev = flags.includes("r");
               const isUniq = flags.includes("u");
               const sorted = rawLines.slice().sort((a, b) => {
-                let cmp = 0;
-                if (isNum) {
-                  const na = Number.parseFloat(a.trimStart());
-                  const nb = Number.parseFloat(b.trimStart());
-                  const va = Number.isNaN(na) ? 0 : na;
-                  const vb = Number.isNaN(nb) ? 0 : nb;
-                  cmp = va < vb ? -1 : va > vb ? 1 : (isUniq ? 0 : (a < b ? -1 : a > b ? 1 : 0));
-                } else {
-                  cmp = a < b ? -1 : a > b ? 1 : 0;
-                }
+                const cmp = a < b ? -1 : a > b ? 1 : 0;
                 return isRev ? -cmp : cmp;});
               if (isUniq && sorted.length > 1) {
                 outLines.push(sorted[0]!);
                 for (let k = 1; k < sorted.length; k++) {
                   const prevL = outLines[outLines.length - 1]!;
                   const curL = sorted[k]!;
-                  if (isNum) {
-                    const na = Number.parseFloat(prevL.trimStart());
-                    const nb = Number.parseFloat(curL.trimStart());
-                    if ((Number.isNaN(na) ? 0 : na) !== (Number.isNaN(nb) ? 0 : nb)) outLines.push(curL);
-                  } else if (curL !== prevL) outLines.push(curL);
+                  if (curL !== prevL) outLines.push(curL);
                 }
               } else outLines = sorted;
             } else if (firstName === "grep") {
@@ -18183,7 +18176,7 @@ export class Runtime {
                 return t === "NF" ? ("NF" as const) : Number(t);});
               for (let k = 0; k < rawLines.length; k++) {
                 const line = rawLines[k]!;
-                const cols = sep !== undefined ? line.split(sep) : (line.trim().length === 0 ? [] : line.trim().split(/[ \t]+/));
+                const cols = sep !== undefined && sep !== " " ? line.split(sep) : (line.trim().length === 0 ? [] : line.trim().split(/[ \t]+/));
                 if (fieldSpecs.length === 1) {
                   const f = fieldSpecs[0]!;
                   outLines.push(f === 0 ? line : f === "NF" ? (cols.length > 0 ? cols[cols.length - 1]! : "") : (cols[f - 1] ?? ""));
@@ -18242,7 +18235,13 @@ export class Runtime {
           prevBuf = nextBuf;
           prevLen = sharedSyncPipeWriter.used;
         }
+        completed = true;
       } finally {
+        // Speculative stages are replayed by normal execution on any bailout.
+        if (!completed) {
+          this.budget.bytes = previousBytes;
+          this.budget.commands = previousCommands;
+        }
         if (context) context.releaseDirectStage();
         sharedSyncPipeWriter.budget = undefined!;
         sharedSyncPipeWriter.signal = undefined!;

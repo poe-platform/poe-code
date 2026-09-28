@@ -4,6 +4,39 @@ import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { Shell } from "../../src/shell/shell.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { Capture } from "../../src/shell/runtime.js";
+import { textProgramCommands } from "../../src/commands/text-programs/index.js";
+
+for (const [pipeline, expected] of [
+  [String.raw`printf 'abc\n123\n' | grep -E '[[:digit:]]+'`, "123"],
+  [String.raw`printf '123\nabc\n' | grep -E '[[:alpha:]]+'`, "abc"],
+  [String.raw`printf '1e5\n2\nInfinity\n1\nNaN\n' | sort -n`, "Infinity\nNaN\n1\n1e5\n2"],
+  [String.raw`printf '1e5\n2\nInfinity\n1\n' | sort -nu`, "Infinity\n1e5\n2"],
+  [String.raw`printf '  a   b  \n\ta\tb\t\n' | awk -F ' ' '{print $1, $2}'`, "a b\na b"],
+] as const) test(`pure substitution matches normal execution: ${pipeline}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands());
+  context.after(() => shell.dispose());
+  const direct = await shell.exec(pipeline);
+  assert.equal(direct.stdout, expected + "\n");
+  const substitution = await shell.exec(`echo "$(${pipeline})"`);
+  assert.equal(substitution.stdout, direct.stdout);
+  assert.equal(substitution.exitCode, 0);
+});
+
+for (const limits of [{ maxCommands: 3 }, { maxOutputBytes: 80 }]) test(`pure substitution bailout charges only fallback: ${JSON.stringify(limits)}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), limits }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(String.raw`echo "$(printf 'abcdefghijklmnopqrst\n' | grep -E '[')"`);
+  assert.equal(result.stdout, "\n");
+  assert.match(result.stderr, /grep:/);
+});
+
+test("later-stage bailout restores intermediate charges", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), limits: { maxCommands: 4, maxOutputBytes: 110 } }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(String.raw`echo "$(printf 'abcdefghijklmnopqrst\n' | head -n 1 | grep -E '[')"`);
+  assert.equal(result.stdout, "\n");
+  assert.match(result.stderr, /grep:/);
+});
 
 test("pipeline stages execute once even when their result is asynchronous", async () => {
   const fs = new MemoryFileSystem();

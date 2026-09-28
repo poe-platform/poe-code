@@ -1591,6 +1591,8 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     delete manifest.devDependencies["safe-bash-command-csvkit"];
     // This synthetic S3 fixture has no spreadsheet sources or public peer entry.
     delete manifest.devDependencies["@poe-code/ssconvert"];
+    // This synthetic S3 fixture has no PDF SDK sources or declaration dependency.
+    delete manifest.devDependencies["@poe-code/pdf"];
     // Its synthetic S3 sources do not import private command contracts or implementations.
     for (const name of Object.keys(manifest.poeCode?.integration?.privateWorkspaces ?? {})) {
       delete manifest.devDependencies[name];

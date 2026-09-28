@@ -22703,10 +22703,6 @@ export class Runtime {
   }
 
   private evalSyncSed(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
-    if (opArgs.length === 4 && opArgs[0] === "-e" && opArgs[2] === "-e") {
-      const r1 = this.evalSyncSed(rawLines, [opArgs[1]!]);
-      return r1 === undefined ? undefined : this.evalSyncSed(r1, [opArgs[3]!]);
-    }
     let quiet = false;
     let expr: string | undefined;
     if (opArgs.length === 1 && !opArgs[0]!.startsWith("-")) {
@@ -22721,18 +22717,9 @@ export class Runtime {
       expr = opArgs[2]!;
     }
     if (!expr) return undefined;
-    if (!quiet && expr.includes(";") && !expr.startsWith("s;")) {
-      const subExprs = expr.split(";").map(s => s.trim()).filter(Boolean);
-      if (subExprs.length >= 2 && subExprs.length <= 4) {
-        let cur: readonly string[] = rawLines;
-        for (const se of subExprs) {
-          const next = this.evalSyncSed(cur, [se]);
-          if (next === undefined) return undefined;
-          cur = next;
-        }
-        return [...cur];
-      }
-    }
+    // Multiple expressions share one input-line cycle; whole-array passes would
+    // renumber addressed lines after deletion. Let the full evaluator run them.
+    if (expr.includes(";") && !expr.startsWith("s;")) return undefined;
     const addrCmdM = /^(?:([1-9][0-9]{0,4}|\$)(?:,([1-9][0-9]{0,4}|\$))?|\/(\^?[a-zA-Z0-9_ :;,.-]+\$?)\/)([dp])$/.exec(expr);
     if (addrCmdM) {
       const cmdChar = addrCmdM[4]!;
@@ -22801,6 +22788,9 @@ export class Runtime {
       } else {
         const branches = isExt ? pat.split("|") : [pat];
         if (branches.every(b => b.length > 0 && /^[a-zA-Z0-9_ :;,/-]+$/.test(b))) {
+          // Only literal alternatives are admitted here. Prefer the longest at
+          // each leftmost position, as required by POSIX ERE matching.
+          branches.sort((a, b) => b.length - a.length);
           re = new RegExp(branches.join("|"), "g");
         }
       }
@@ -23660,6 +23650,7 @@ export class Runtime {
             } else if (hasSingleHereStringRedir && w0Plain === "tac" && opArgs.length === 0) {
               fileRes = [...rawLines].reverse().join("\n");
             } else if (hasSingleHereStringRedir && w0Plain === "nl" && opArgs.length === 0) {
+              if (rawLines.some(l => l === "\\:" || l === "\\:\\:" || l === "\\:\\:\\:")) return undefined;
               let lineNo = 0;
               fileRes = rawLines.map(l => l.length === 0 ? "       " : `${String(++lineNo).padStart(6, " ")}\t${l}`).join("\n");
             }

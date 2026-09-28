@@ -3310,6 +3310,7 @@ export class Runtime {
   }> = [];
   private _syncPendingEvalResume: { script: Script; listIndex: number; pipelineIndex: number } | undefined;
   declare private _syncArithRefs: ArithmeticReferences | undefined;
+  private _syncReadOnlyArithRefs: ArithmeticReferences | undefined;
   constructor( fs: FileSystem, commands: CommandRegistry, middleware: readonly Middleware[], budget: Budget, signal: AbortSignal = budget.signal, fileWrites: Map<string, Promise<void>> | undefined = undefined, outputFiles: Map<string, OutputFile> | undefined = undefined, commandSignal: AbortSignal = signal, cancellation: CancellationBoundary, cancellationState: RuntimeCancellationState, cancellationOwner: CancellationAdmissionOwner | undefined, cancellationDepth: number, cancellationMaxDepth: number, outcomeFrame: RuntimeOutcomeFrame | undefined = undefined, inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs, ) {
     this.commands = commands;
     this.middleware = middleware;
@@ -3847,7 +3848,7 @@ export class Runtime {
   private get syncArithRefs(): ArithmeticReferences {
     return this._syncArithRefs ??= this.createSyncArithRefs();
   }
-  private createSyncArithRefs(): ArithmeticReferences {
+  private createSyncArithRefs(readOnly = false): ArithmeticReferences {
     return {
       isSync: true, resolve: (variable, subscript) => {
         this.signal.throwIfAborted();
@@ -3928,6 +3929,8 @@ export class Runtime {
         if (value !== undefined && stMon && (!this._syncArithRawWriteOnly || !this._syncArithTouched?.has(reference))) return shellValueText(stMon.values.get(reference, value));
         return value;
       }, write: (reference, value) => {
+        // Speculative word expansion must reject even mutations hidden in variable values.
+        if (readOnly) throw new ArrayFailure("mutation in speculative arithmetic");
         if (reference.startsWith("[idx]")) {
           const colon = reference.indexOf(":", 5);
           const name = reference.slice(5, colon);
@@ -3991,7 +3994,7 @@ export class Runtime {
     this._syncArithRawVars = raw.variables;
     this._syncArithLine = line;
     try {
-      return evaluateArithmeticSyncString(program, this.syncArithRefs, this.budget.parsing);
+      return evaluateArithmeticSyncString(program, this._syncReadOnlyArithRefs ??= this.createSyncArithRefs(true), this.budget.parsing);
     } finally {
       this._syncArithState = prevState;
       this._syncArithRawVars = prevVars;
@@ -17707,9 +17710,7 @@ export class Runtime {
             out += converted;
             continue;
           }
-          if ( (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+" || part.operator === "=" || part.operator === ":=") && part.alternate && !rawState.nounset && part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) {
-            const isAssignOp = part.operator === "=" || part.operator === ":=";
-            if (isAssignOp && (!monitor || rawState.readonlyVariables?.has(part.name) || activeArrayStore?.get(part.name) || hasActiveVariableAttributes(rawState) || part.name === "OPTIND" || part.name === "PIPESTATUS")) return undefined;
+          if ( (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") && part.alternate && !rawState.nounset && part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) {
             const raw = rawVars[part.name];
             const cur = raw === undefined ? undefined : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
             if (cur !== undefined && typeof cur !== "string") return undefined;
@@ -17722,18 +17723,10 @@ export class Runtime {
                 resolvedScalar = altVal;
               } else resolvedScalar = "";
             } else {
-              const isMissing = cur === undefined || ((part.operator === ":-" || part.operator === ":=") && cur === "");
+              const isMissing = cur === undefined || (part.operator === ":-" && cur === "");
               if (isMissing) {
                 const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
                 if (typeof altVal !== "string") return undefined;
-                if (isAssignOp) {
-                  if (altVal.length > this.budget.limits.maxExpansionBytes || shellValueByteLength(altVal) > this.budget.limits.maxExpansionBytes) return undefined;
-                  if (this._syncArithRawWriteOnly) {
-                    rawVars[part.name] = altVal;
-                    this._syncArithTouched?.add(part.name);
-                  } else monitor!.publishStringVariable(part.name, altVal);
-                  if (rawState.allexport) monitor!.proxy.exported.add(part.name);
-                }
                 resolvedScalar = altVal;
               } else resolvedScalar = cur!;
             }
@@ -17789,7 +17782,7 @@ export class Runtime {
             this.budget.parsing.restore(snapParse);
           }
         }
-        if (expr.error || ((guestArrays(state) || expr.hasSubscript) && !isSafeSmiProgram(expr)) || (expr.hasMutation && (word.parts.length > 1 || expr.hasSubscript || arithTreeTouchesArray(expr.tree, activeArrayStore)))) return undefined;
+        if (expr.error || expr.hasMutation || ((guestArrays(state) || expr.hasSubscript) && !isSafeSmiProgram(expr))) return undefined;
         const snap = this.budget.parsing.snapshot();
         try {
           out += this.syncShellArithmeticString(expr, state, line);

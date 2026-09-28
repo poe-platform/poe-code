@@ -559,6 +559,7 @@ function assertSource7Discovery(files) {
     "tests/shell/invoke.test.ts",
     "tests/shell/filesystem-native-signal.test.ts",
     "tests/shell/value-state.test.ts",
+    "tests/shell/speculative-expansion.test.ts",
     "tests/shell/concurrent-local-scopes.test.ts",
     "tests/shell/env-split-host.test.ts",
     "tests/shell/array-ifs-empty-fields.test.ts",

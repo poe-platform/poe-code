@@ -34,7 +34,7 @@ function result(workbook: Workbook) {
   return recalculateWorkbook(workbook, context, true).sheets[0]!.cells.find(cell => cell.formula)!.value;
 }
 
-it.each([["of:=SUM('Sales':[.B5])", 24], ["of:=SUM(('Sales'):[.B5])", 50]] as const)(
+it.each([["of:=SUM('Sales':[.B5])", 33], ["of:=SUM(('Sales'):[.B5])", 50]] as const)(
   "preserves range-label grouping and fresh value for %s", (source, expected) => {
     const input = parse(source, book(source), true);
     const internal = serializeExpression(input, gnumericGrammar, false, true);
@@ -56,7 +56,7 @@ it.each(["strict", "extended"] as const)("roundtrips %s mixed relative-sheet and
   expect(xml).toContain("of:=SUM('Sales':[.B5])+['Other'.B2]");
   expect(xml).not.toContain("@column");
   const reopened = await readOdf(bytes, context);
-  expect(result(reopened)).toEqual({ kind: "number", value: 44 });
+  expect(result(reopened)).toEqual({ kind: "number", value: 53 });
   const cell = reopened.sheets[0]!.cells.find(cell => cell.formula)!;
   const document = parseExpression(cell.formula!, { workbook: reopened, position: { ...position, sheet: reopened.sheets[0]!.id } });
   if (!document.ok) throw new Error(document.diagnostic.message);
@@ -70,7 +70,7 @@ it.each(["strict", "extended"] as const)("roundtrips %s mixed relative-sheet and
   } : sheet) };
   const renamedBytes = await createOdfWriter(profile)(renamed, [], context);
   expect((await unpackOdf(renamedBytes)).parts.get("content.xml")).toContain("SUM('New Sales':[.B5])");
-  expect(result(await readOdf(renamedBytes, context))).toEqual({ kind: "number", value: 44 });
+  expect(result(await readOdf(renamedBytes, context))).toEqual({ kind: "number", value: 53 });
 });
 
 it("keeps native OpenFormula strict about internal anchors and deleted intersections", () => {
@@ -101,13 +101,13 @@ it("preserves local label identity while ordinary named sheets remain relative a
 it.each(["strict", "extended"] as const)("preserves a %s mixed named expression at its base position", async profile => {
   const source = "of:=SUM('Sales':[.B5])+[Other.B2]";
   const original = { ...book("=Total"), names: [{ name: "Total", expression: source, position }] };
-  expect(result(original)).toEqual({ kind: "number", value: 44 });
+  expect(result(original)).toEqual({ kind: "number", value: 53 });
   const bytes = await createOdfWriter(profile)(original, [], context);
   const xml = (await unpackOdf(bytes)).parts.get("content.xml")!;
   expect(xml).toContain('table:expression="of:=SUM(\'Sales\':[.B5])+[\'Other\'.B2]"');
   const reopened = await readOdf(bytes, context);
   expect(reopened.names?.[0]?.expression).toContain("@column.odf.quoted:");
-  expect(result(reopened)).toEqual({ kind: "number", value: 44 });
+  expect(result(reopened)).toEqual({ kind: "number", value: 53 });
 });
 
 it.each(["strict", "extended"] as const)("preserves a %s mixed array formula and its second result", async profile => {
@@ -121,7 +121,7 @@ it.each(["strict", "extended"] as const)("preserves a %s mixed array formula and
   const reopened = await readOdf(await createOdfWriter(profile)(array, [], context), context);
   const calculated = recalculateWorkbook(reopened, context, true);
   expect(calculated.sheets[0]!.cells.filter(cell => cell.row === position.row && cell.column >= position.column).map(cell => cell.value))
-    .toEqual([{ kind: "number", value: 44 }, { kind: "number", value: 68 }]);
+    .toEqual([{ kind: "number", value: 53 }, { kind: "number", value: 86 }]);
   expect(reopened.sheets[0]!.formulaGroups?.[0]?.expression).toContain("@column.odf.quoted:");
 });
 
@@ -132,7 +132,7 @@ it.each(["strict", "extended"] as const)("keeps a %s remote label fixed beside o
   ] }, { ...original.sheets[0]!, cells: original.sheets[0]!.cells.filter(cell => !cell.formula) }, original.sheets[1]!] };
   const bytes = await createOdfWriter(profile)(remote, [], context);
   const reopened = await readOdf(bytes, context);
-  expect(result(reopened)).toEqual({ kind: "number", value: 44 });
+  expect(result(reopened)).toEqual({ kind: "number", value: 53 });
   const cell = reopened.sheets[0]!.cells.find(cell => cell.formula)!;
   const parsed = parseExpression(cell.formula!, { position: { ...position, sheet: reopened.sheets[0]!.id }, workbook: reopened });
   if (!parsed.ok) throw new Error(parsed.diagnostic.message);

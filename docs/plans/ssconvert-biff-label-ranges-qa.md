@@ -102,8 +102,8 @@ Keep source inputs, generated workbooks, screenshots and command captures under
     parentheses prevent it. Use independent ODF with Sales at B1, B2:B6 values
     2/7/11/13/17, Other.B2=20, a declared B2:B6 label pair and formula H4.
     Compare `SUM('Sales':[.B5])+[Other.B2]` with its parenthesized-label form.
-    Signed Calc 26.8 returns 53 and 70 respectively; current product results
-    44 and 70 expose an unresolved ungrouped mismatch. Repeat both ODF editions,
+    Signed Calc 26.8 returns 53 and 70 respectively; require both product values
+    too. The ungrouped case originally returned 44 before its repair. Repeat both ODF editions,
     compiled SDK/command routes and a label rename, replacing output caches with
     999 before native recalculation. Check original inputs directly in Calc too.
     Grouped formulas retain label identity; Calc normalizes the ungrouped formula

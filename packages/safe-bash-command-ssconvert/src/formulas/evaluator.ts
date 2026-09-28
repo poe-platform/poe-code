@@ -117,11 +117,11 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     return { kind: "matrix", rows: rows.map((row, index) =>
       row.map((_: unknown, column: number) => admitted[index * columns + column]!.value)) };
   }
-  function reference(node: Extract<FormulaNode, { kind: "reference" }>, position: ParsePosition): Value {
+  function reference(node: Extract<FormulaNode, { kind: "reference" }>, position: ParsePosition, labelAnchor = false): Value {
     if (node.label) {
       if (activeCell) dynamicCells.add(activeCell);
-      const value = resolveLabelReference(book, node, position, read, tick);
-      if (value.kind === "range" && node.label.kind !== "radical" && node.label.semantics === "openformula" && !node.label.scalar)
+      const value = resolveLabelReference(book, node, position, read, tick, labelAnchor);
+      if (!labelAnchor && value.kind === "range" && node.label.kind !== "radical" && node.label.semantics === "openformula" && !node.label.scalar)
         scalarLabels.set(value, { node: { ...node, label: { ...node.label, scalar: true } }, position });
       trackRange(value); return value;
     }
@@ -216,7 +216,15 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
         return array && (v.kind === "range" || v.kind === "matrix") ? { kind: "matrix", rows: matrix(v).rows.map(row => row.map(apply)) } : apply(scalar(v, position));
       }
       if (node.kind === "binary") {
-        const a = evaluate(node.left, position, array, names, node.op === "union" ? wantReference : true);
+        let a: Value;
+        if (node.op === ":" && node.left.kind === "reference" && node.left.label && node.left.label.kind !== "radical" &&
+          node.left.label.semantics === "openformula" && node.right.kind === "reference" && !node.right.label &&
+          !node.right.last && node.right.first.row && node.right.first.column && node.right.first.workbook === undefined) {
+          // Calc merges a textual label's anchor with a following ordinary cell
+          // during tokenization, before selecting the label's data range. Keep
+          // the original AST for serialization, dependencies and copy/move.
+          a = reference(node.left, position, true);
+        } else a = evaluate(node.left, position, array, names, node.op === "union" ? wantReference : true);
         if (node.op === "union") {
           const b = evaluate(node.right, position, array, names, wantReference);
           if (wantReference) return { kind: "set", values: [a, b] };

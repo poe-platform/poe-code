@@ -7,7 +7,7 @@ import { error } from "./values.js";
 /** Calc GetRefColRowNames / ScColRowNameAuto, using this workbook's grid bounds.
  * The stored anchor stays unchanged when the inferred data region changes. */
 export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode, { kind: "reference" }>, position: ParsePosition,
-  read: (sheet: Sheet, row: number, column: number) => CellValue, tick: () => void): Value {
+  read: (sheet: Sheet, row: number, column: number) => CellValue, tick: () => void, anchorOnly = false): Value {
   const { label, ...reference } = node;
   const anchor = localReferenceRange(book, reference, position);
   if (!label || !anchor || anchor.sheets.length !== 1 || node.last) return error("#REF!");
@@ -18,6 +18,7 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
     const value = node.first[axis];
     if (!value || value.value + (value.relative ? position[axis] : 0) !== coordinate) return error("#REF!");
   }
+  if (anchorOnly) return { kind: "range", ...anchor };
   if (label.kind === "radical") {
     for (const member of label.preceding ?? []) {
       tick(); const selected = localReferenceRange(book, member, position);

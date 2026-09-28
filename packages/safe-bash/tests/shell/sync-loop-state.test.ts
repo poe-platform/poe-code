@@ -350,3 +350,28 @@ for (const [label, source] of [
     } finally { await shell.dispose(); }
   });
 }
+
+for (const [label, source] of [
+  [
+    "$(uniq <<< $s), $(uniq -d <<< $s), and $(uniq -u <<< $s) in sync loop",
+    "printf -v s \"a\\na\\nb\\nc\\nc\"; for ((i=1; i<=10; i++)); do u1=$(uniq <<< \"$s\"); u2=$(uniq -d <<< \"$s\"); u3=$(uniq -u <<< \"$s\"); done; printf \"%s|%s|%s\\n\" \"$u1\" \"$u2\" \"$u3\"",
+  ],
+  [
+    "unset arr[i] unquoted and unset \"arr[$i]\" quoted array element unsets in sync loop",
+    "arr=(); for ((i=0; i<20; i++)); do arr[i]=\"v$i\"; done; for ((i=0; i<10; i+=2)); do unset arr[i]; done; for ((i=10; i<20; i+=2)); do unset \"arr[$i]\"; done; printf \"%d|%s|%s|%s\\n\" \"${#arr[@]}\" \"${arr[1]}\" \"${arr[2]-unset}\" \"${arr[12]-unset}\"",
+  ],
+] as const) {
+  test(`wave 95 sync loop parity: ${label}`, async () => {
+    const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(bash.status, 0, bash.stderr);
+    const { createStandardCommands } = await import("../../src/commands/index.js");
+    const commands = new CommandRegistry(createStandardCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, bash.status, result.stderr);
+      assert.equal(result.stderr, bash.stderr);
+      assert.equal(result.stdout, bash.stdout);
+    } finally { await shell.dispose(); }
+  });
+}

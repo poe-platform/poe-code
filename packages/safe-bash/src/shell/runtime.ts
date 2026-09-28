@@ -10545,10 +10545,11 @@ export class Runtime {
           const ops: Array<{ kind: "assoc"; arrName: string; binding: IndexedBinding; subStr: string; rawArg: string } | { kind: "indexed"; arrName: string; binding: IndexedBinding; unsetIdx: number; rawArg: string } | { kind: "scalar"; targetName: string }> = [];
           for (let ui = uStart; ui < command.words.length; ui++) {
             const wu = command.words[ui]!;
+            const canSkipGlobUnset = Boolean(wu.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0));
             let tExpanded: string | undefined;
             try {
-              const fv = this.fastValueWord(wu, rawState, io, true, false, false, true, undefined, diagnosticLine);
-              if (typeof fv === "string") tExpanded = fv;
+              const fv = this.fastValueWord(wu, rawState, io, !canSkipGlobUnset, false, false, true, undefined, diagnosticLine);
+              if (typeof fv === "string" && (!canSkipGlobUnset || (!fv.includes(" ") && !fv.includes("\t") && !fv.includes("\n")))) tExpanded = fv;
             } catch {}
             if (tExpanded === undefined) { allArrOk = false; break; }
             const bracket = tExpanded.indexOf("[");
@@ -11815,6 +11816,7 @@ export class Runtime {
           w0Plain === "cut" ||
           w0Plain === "wc" ||
           w0Plain === "sort" ||
+          w0Plain === "uniq" ||
           w0Plain === "tr" ||
           (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl"));
         if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || !this.commands.has(w0Plain) || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
@@ -11840,7 +11842,7 @@ export class Runtime {
             if ((w0Plain === "jq" || w0Plain === "awk" || w0Plain === "grep" || w0Plain === "sed") && (opCount < 1 || opCount > 3)) return false;
             if (w0Plain === "cut" && (opCount < 1 || opCount > 4)) return false;
             if (w0Plain === "wc" && opCount !== 1) return false;
-            if ((w0Plain === "sort" || w0Plain === "base64") && (opCount > 1 || (w0Plain === "sort" && byteLocale(rawState.variables)))) return false;
+            if ((w0Plain === "sort" || w0Plain === "uniq" || w0Plain === "base64") && (opCount > 1 || (w0Plain === "sort" && byteLocale(rawState.variables)))) return false;
             if (w0Plain === "tr" && opCount !== 2) return false;
           }
         }
@@ -11993,6 +11995,51 @@ export class Runtime {
     }
     return undefined;
   }
+  private execSyncUnsetStep(step: SyncLoopStep, rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>): string {
+    const uVars = step.unsetVars!;
+    const store = monitor.store;
+    let lastExpanded = "";
+    for (let ui = 0; ui < uVars.length; ui++) {
+      const uvn = uVars[ui]!;
+      if (uvn.charCodeAt(0) === 64) {
+        const wIdx = Number(uvn.slice(1));
+        const wu = step.cmd.words[wIdx]!;
+        const tExpanded = this.fastValueWord(wu, rawState, io, false, false, false, false, 0, step.line) as string;
+        lastExpanded = tExpanded;
+        const bracket = tExpanded.indexOf("[");
+        if (bracket > 0 && tExpanded.endsWith("]") && store) {
+          const arrName = tExpanded.slice(0, bracket);
+          const subStr = tExpanded.slice(bracket + 1, -1);
+          const binding = store.get(arrName);
+          if (binding) {
+            if (binding.associative) {
+              const id = fastStringHexIdentity(subStr);
+              const existingKey = binding.keys.get(id);
+              if (existingKey !== undefined) {
+                binding.remove(existingKey.index);
+                store.changed(monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets), arrName);
+              }
+            } else {
+              const idxNum = /^(?:0|[1-9][0-9]{0,8})$/.test(subStr)
+                ? Number(subStr)
+                : resolveSimpleArithOperand(subStr, rawState, monitor, store, this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
+              const resolvedIdx = idxNum !== undefined ? (idxNum >= 0 ? idxNum : binding.maximum + 1 + idxNum) : undefined;
+              if (resolvedIdx !== undefined && resolvedIdx >= 0 && binding.values.has(resolvedIdx)) {
+                binding.remove(resolvedIdx);
+                store.changed(monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets), arrName);
+              }
+            }
+          }
+        }
+      } else {
+        delete rawState.variables[uvn];
+        monitor.proxy.exported.delete(uvn);
+        touched.add(uvn);
+        lastExpanded = uvn;
+      }
+    }
+    return lastExpanded;
+  }
   private extractSyncUnsetVars(cmd: Extract<Command, { kind: "simple" }>, rawState: State): readonly string[] | undefined {
     if (this._syncLoopFnCheckDepth > 0 || cmd.redirects.length !== 0 || cmd.words.length < 2 || cmd.words.length > 16 || cmd.words[0]!.plain !== "unset") return undefined;
     if (hasShellFunction(rawState, "unset") || rawState.extensions?.builtins.has("unset") || hasActiveVariableAttributes(rawState)) return undefined;
@@ -12009,6 +12056,28 @@ export class Runtime {
       // on a later iteration. Let the full builtin handle that distinction.
       if (vn && startIdx === 1 && hasShellFunction(rawState, vn)) return undefined;
       if (!vn || vn.startsWith("-") || !isShellIdentifier(vn) || controlNames.has(vn) || vn === "OPTIND" || rawState.readonlyVariables?.has(vn) || rawState.variableAttributes?.get(vn) || store?.get(vn) || stateMonitor(rawState)?.hasOverlay(vn) || rawState.locals.some(f => f.has(vn))) {
+        const wu = cmd.words[i]!;
+        const p0 = wu.parts[0];
+        const pLast = wu.parts[wu.parts.length - 1];
+        const m = p0?.kind === "text" ? /^([a-zA-Z_][a-zA-Z0-9_]*)\[/.exec(p0.value) : undefined;
+        const arrName = m?.[1];
+        const b = arrName ? store?.get(arrName) : undefined;
+        if (
+          arrName &&
+          b &&
+          b.references === 1 &&
+          !store!.watches.has(arrName) &&
+          !rawState.readonlyVariables?.has(arrName) &&
+          !hasUnpreparedLocal(rawState, arrName) &&
+          !stateMonitor(rawState)?.hasOverlay(arrName) &&
+          pLast?.kind === "text" &&
+          pLast.value.endsWith("]") &&
+          this.isPureSyncValueWord(wu, rawState) &&
+          (p0!.quoted || rawState.noglob || (!rawState.nullglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0))
+        ) {
+          vars.push(`@${i}`);
+          continue;
+        }
         return undefined;
       }
       vars.push(vn);
@@ -14766,13 +14835,7 @@ export class Runtime {
           break;
         }
         if (step.unsetVars !== undefined) {
-          for (let ui = 0; ui < step.unsetVars.length; ui++) {
-            const uvn = step.unsetVars[ui]!;
-            delete rawState.variables[uvn];
-            monitor.proxy.exported.delete(uvn);
-            touched.add(uvn);
-          }
-          lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
+          lastArg = this.execSyncUnsetStep(step, rawState, io, monitor, touched);
           rawState.status = 0;
           continue;
         }
@@ -15303,13 +15366,7 @@ export class Runtime {
         break;
       }
       if (step.unsetVars !== undefined) {
-        for (let ui = 0; ui < step.unsetVars.length; ui++) {
-          const uvn = step.unsetVars[ui]!;
-          delete rawState.variables[uvn];
-          monitor.proxy.exported.delete(uvn);
-          touched.add(uvn);
-        }
-        lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
+        lastArg = this.execSyncUnsetStep(step, rawState, io, monitor, touched);
         rawState.status = 0;
         onUpdate({ lastCmd, lastArg });
         continue;
@@ -15474,13 +15531,7 @@ export class Runtime {
           break;
         }
         if (step.unsetVars !== undefined) {
-          for (let ui = 0; ui < step.unsetVars.length; ui++) {
-            const uvn = step.unsetVars[ui]!;
-            delete rawState.variables[uvn];
-            monitor.proxy.exported.delete(uvn);
-            touched.add(uvn);
-          }
-          lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
+          lastArg = this.execSyncUnsetStep(step, rawState, io, monitor, touched);
           rawState.status = 0;
           continue;
         }
@@ -22590,7 +22641,7 @@ export class Runtime {
           const isInlineTac = firstName === "tac";
           const isInlineNl = firstName === "nl";
           const isInlineSort = firstName === "sort" && !byteLocale(rawState.variables) && (stageArgs.length === 0 || (stageArgs.length === 1 && stageArgs[0] === "-r"));
-          const isInlineUniq = firstName === "uniq" && (stageArgs.length === 0 || (stageArgs.length === 1 && (stageArgs[0] === "-d" || stageArgs[0] === "-u")));
+          const isInlineUniq = firstName === "uniq" && (stageArgs.length === 0 || (stageArgs.length === 1 && (stageArgs[0] === "-d" || stageArgs[0] === "-u" || stageArgs[0] === "-c")));
           const inlineSedMatch = firstName === "sed"
             ? /^s\/([a-zA-Z0-9_ :;,-]+)\/([a-zA-Z0-9_ :;,./-]*)\/(g?)$/.exec(
                 stageArgs.length === 1 ? stageArgs[0]! : (stageArgs.length === 2 && stageArgs[0] === "-e" ? stageArgs[1]! : ""),
@@ -22706,7 +22757,7 @@ export class Runtime {
                 while (uEnd < rawLines.length && rawLines[uEnd] === rawLines[uIdx]) uEnd++;
                 const count = uEnd - uIdx;
                 if (mode === "-d" ? count > 1 : mode === "-u" ? count === 1 : true) {
-                  outLines.push(rawLines[uIdx]!);
+                  outLines.push(mode === "-c" ? `${String(count).padStart(7, " ")} ${rawLines[uIdx]!}` : rawLines[uIdx]!);
                 }
                 uIdx = uEnd;
               }
@@ -23026,6 +23077,7 @@ export class Runtime {
       w0Plain === "cut" ||
       w0Plain === "wc" ||
       w0Plain === "sort" ||
+      w0Plain === "uniq" ||
       w0Plain === "tr" ||
       (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl"));
     if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && this.commands.has(w0Plain)) {
@@ -23182,6 +23234,20 @@ export class Runtime {
             } else if (w0Plain === "sort" && !byteLocale(rawState.variables) && (opArgs.length === 0 || (opArgs.length === 1 && opArgs[0] === "-r"))) {
               const revSort = opArgs[0] === "-r";
               fileRes = [...rawLines].sort((a, b) => (a < b ? (revSort ? 1 : -1) : a > b ? (revSort ? -1 : 1) : 0)).join("\n");
+            } else if (w0Plain === "uniq" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "-u" || opArgs[0] === "-c")))) {
+              const mode = opArgs[0];
+              const outLines: string[] = [];
+              let uIdx = 0;
+              while (uIdx < rawLines.length) {
+                let uEnd = uIdx + 1;
+                while (uEnd < rawLines.length && rawLines[uEnd] === rawLines[uIdx]) uEnd++;
+                const count = uEnd - uIdx;
+                if (mode === "-d" ? count > 1 : mode === "-u" ? count === 1 : true) {
+                  outLines.push(mode === "-c" ? `${String(count).padStart(7, " ")} ${rawLines[uIdx]!}` : rawLines[uIdx]!);
+                }
+                uIdx = uEnd;
+              }
+              fileRes = outLines.join("\n");
             } else if (w0Plain === "tr" && (hasSingleStdinRedir || hasSingleHereStringRedir) && opArgs.length === 2) {
               if (opArgs[0] === "a-z" && opArgs[1] === "A-Z") fileRes = fileStr.toUpperCase();
               else if (opArgs[0] === "A-Z" && opArgs[1] === "a-z") fileRes = fileStr.toLowerCase();

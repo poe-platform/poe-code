@@ -731,3 +731,36 @@ test("Wave 105: trySyncLoop supports jq // fallback, comma outputs, select(...),
     await shell.dispose();
   }
 });
+
+test("Wave 106: trySyncLoop supports awk BEGIN{OFS}/END accumulators, sed multi-step line/range cycle (1d; $d; -n 2p), sort -f, and uniq -i", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]),
+  });
+  try {
+    const script = [
+      "rows=$\x27a 10\\nb 25\\nc 15\x27",
+      "csv=$\x27hdr\\nrow1\\nrow2\\ntrailer\x27",
+      "words=$\x27Banana\\napple\\nCherry\x27",
+      "dups=$\x27Foo\\nfoo\\nFOO\\nBar\\nbar\x27",
+      "out=\"\"",
+      "for ((i=1; i<=20; i++)); do",
+      "  sum=$(awk \x27{s+=$2} END{print s}\x27 <<< \"$rows\")",
+      "  ofs=$(awk \x27BEGIN{OFS=\":\"} NR==2{print $2, $1}\x27 <<< \"$rows\")",
+      "  body=$(sed \x271d; $d; s/row/R/\x27 <<< \"$csv\")",
+      "  p2=$(sed -n \x272p\x27 <<< \"$csv\")",
+      "  sf=$(sort -f <<< \"$words\")",
+      "  ui=$(uniq -i <<< \"$dups\")",
+      "  out=\"$sum/$ofs/${body//$\x27\\n\x27/,}/$p2/${sf//$\x27\\n\x27/,}/${ui//$\x27\\n\x27/,}\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "50/25:b/R1,R2/row1/apple,Banana,Cherry/Foo,Bar\n");
+  } finally {
+    await shell.dispose();
+  }
+});

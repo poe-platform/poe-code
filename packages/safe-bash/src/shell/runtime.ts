@@ -11911,7 +11911,7 @@ export class Runtime {
             } else if (w0Plain === "sort") {
               if (plainOps.length !== opCount || this.evalSyncSort([], plainOps, byteLocale(rawState.variables)) === undefined) return false;
             } else if (w0Plain === "uniq") {
-              if (opCount > 1 || (opCount === 1 && op0 !== "-d" && op0 !== "-u" && op0 !== "-c")) return false;
+              if (opCount > 1 || (opCount === 1 && op0 !== "-d" && op0 !== "-u" && op0 !== "-c" && op0 !== "-i")) return false;
             } else if (w0Plain === "base64") {
               if (opCount > 1 || (opCount === 1 && op0 !== "-d" && op0 !== "--decode")) return false;
             } else if (w0Plain === "tr") {
@@ -11987,7 +11987,7 @@ export class Runtime {
             if (sName === "sort") {
               if (this.evalSyncSort([], sPlainArgs, byteLocale(rawState.variables)) === undefined) return false;
             } else if (sName === "uniq") {
-              if (sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-d" && sPlainArgs[0] !== "-u" && sPlainArgs[0] !== "-c")) return false;
+              if (sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-d" && sPlainArgs[0] !== "-u" && sPlainArgs[0] !== "-c" && sPlainArgs[0] !== "-i")) return false;
             } else if (sName === "wc") {
               if (sPlainArgs.length !== 1 || (sPlainArgs[0] !== "-l" && sPlainArgs[0] !== "-c" && sPlainArgs[0] !== "-w" && sPlainArgs[0] !== "-m" && sPlainArgs[0] !== "-L")) return false;
             } else if (sName === "head" || sName === "tail") {
@@ -23070,17 +23070,23 @@ export class Runtime {
       }
     }
     if (subExprs.length === 0) return undefined;
-    if (subExprs.length === 1) {
-      const expr = subExprs[0]!;
-      const addrCmdM = /^(?:([1-9][0-9]{0,4}|\$)(?:,([1-9][0-9]{0,4}|\$))?|\/(\^?[a-zA-Z0-9_ :;,.-]+\$?)\/)([dp])$/.exec(expr);
-      if (addrCmdM) {
-        const cmdChar = addrCmdM[4]!;
-        if ((quiet && cmdChar !== "p") || (!quiet && cmdChar !== "d")) return undefined;
-        const startSpec = addrCmdM[1];
-        const endSpec = addrCmdM[2];
-        const patSpec = addrCmdM[3];
-        if (patSpec?.includes(".")) return undefined;
-        const matchLine = (l: string, idx1: number, total: number): boolean => {
+    type SedAddrFn = (l: string, idx1: number, total: number) => boolean;
+    type SedStep =
+      | { addr?: SedAddrFn; kind: "d" }
+      | { addr?: SedAddrFn; kind: "p" }
+      | { addr?: SedAddrFn; kind: "y"; map: Map<string, string> }
+      | { addr?: SedAddrFn; kind: "s"; anchorStart: boolean; anchorEnd: boolean; core: string; rep: string; global: boolean };
+    const steps: SedStep[] = [];
+    for (const rawE of subExprs) {
+      let rest = rawE;
+      let addr: SedAddrFn | undefined;
+      const addrM = /^(?:([1-9][0-9]{0,4}|\$)(?:,([1-9][0-9]{0,4}|\$))?|\/(\^?[a-zA-Z0-9_ :;,=-]+\$?)\/)\s*/.exec(rest);
+      if (addrM) {
+        const startSpec = addrM[1];
+        const endSpec = addrM[2];
+        const patSpec = addrM[3];
+        rest = rest.slice(addrM[0]!.length);
+        addr = (l: string, idx1: number, total: number): boolean => {
           if (patSpec !== undefined) {
             const aStart = patSpec.startsWith("^");
             const c1 = aStart ? patSpec.slice(1) : patSpec;
@@ -23096,58 +23102,88 @@ export class Runtime {
           const eNum = endSpec === "$" ? total : Number(endSpec);
           return idx1 >= sNum && idx1 <= Math.max(sNum, eNum);
         };
-        const out: string[] = [];
-        for (let i = 0; i < rawLines.length; i++) {
-          const hit = matchLine(rawLines[i]!, i + 1, rawLines.length);
-          if (cmdChar === "p" && hit) out.push(rawLines[i]!);
-          else if (cmdChar === "d" && !hit) out.push(rawLines[i]!);
-        }
-        return out;
       }
-    }
-    if (quiet) return undefined;
-    // Multiple expressions are admitted only when every step is an unaddressed s/// or y/// transform.
-    let currentLines = [...rawLines];
-    for (const expr of subExprs) {
-      if (expr.startsWith("y") && expr.length >= 4) {
-        const delim = expr[1]!;
+      if (rest === "d") {
+        steps.push({ addr, kind: "d" });
+        continue;
+      }
+      if (rest === "p") {
+        steps.push({ addr, kind: "p" });
+        continue;
+      }
+      if (rest.startsWith("y") && rest.length >= 4) {
+        const delim = rest[1]!;
         if (!"/#|:@,;%!".includes(delim)) return undefined;
-        const parts = expr.slice(2).split(delim);
+        const parts = rest.slice(2).split(delim);
         if (parts.length !== 3 || parts[2] !== "") return undefined;
-        const src = parts[0]!;
-        const dst = parts[1]!;
-        if (src.includes("\\") || dst.includes("\\")) return undefined;
-        const srcChars = Array.from(src);
-        const dstChars = Array.from(dst);
+        const srcStr = parts[0]!;
+        const dstStr = parts[1]!;
+        if (srcStr.includes("\\") || dstStr.includes("\\")) return undefined;
+        const srcChars = Array.from(srcStr);
+        const dstChars = Array.from(dstStr);
         if (srcChars.length !== dstChars.length) return undefined;
         const map = new Map<string, string>();
         for (let i = 0; i < srcChars.length; i++) {
           if (!map.has(srcChars[i]!)) map.set(srcChars[i]!, dstChars[i]!);
         }
-        currentLines = currentLines.map(l => Array.from(l).map(c => map.get(c) ?? c).join(""));
+        steps.push({ addr, kind: "y", map });
         continue;
       }
-      if (!expr.startsWith("s") || expr.length < 4) return undefined;
-      const delim = expr[1]!;
-      if (!"/#|:@,;%!".includes(delim)) return undefined;
-      const parts = expr.slice(2).split(delim);
-      if (parts.length !== 3) return undefined;
-      const [pat, rep, flags] = parts as [string, string, string];
-      if ((flags !== "" && flags !== "g") || /[&\\\n]/.test(rep)) return undefined;
-      const anchorStart = pat.startsWith("^");
-      const core1 = anchorStart ? pat.slice(1) : pat;
-      const anchorEnd = core1.endsWith("$");
-      const core = anchorEnd ? core1.slice(0, -1) : core1;
-      if (core.length === 0 || !/^[a-zA-Z0-9_ :;,/-]+$/.test(core)) return undefined;
-      const isGlobal = flags === "g";
-      currentLines = currentLines.map(l => {
-        if (anchorStart && anchorEnd) return l === core ? rep : l;
-        if (anchorStart) return l.startsWith(core) ? rep + l.slice(core.length) : l;
-        if (anchorEnd) return l.endsWith(core) ? l.slice(0, l.length - core.length) + rep : l;
-        return isGlobal ? l.split(core).join(rep) : l.replace(core, () => rep);
-      });
+      if (rest.startsWith("s") && rest.length >= 4) {
+        const delim = rest[1]!;
+        if (!"/#|:@,;%!".includes(delim)) return undefined;
+        const parts = rest.slice(2).split(delim);
+        if (parts.length !== 3) return undefined;
+        const [pat, rep, flags] = parts as [string, string, string];
+        if ((flags !== "" && flags !== "g") || /[&\\\n]/.test(rep)) return undefined;
+        const anchorStart = pat.startsWith("^");
+        const core1 = anchorStart ? pat.slice(1) : pat;
+        const anchorEnd = core1.endsWith("$");
+        const core = anchorEnd ? core1.slice(0, -1) : core1;
+        if (core.length === 0 && !anchorStart && !anchorEnd) return undefined;
+        if (!/^[a-zA-Z0-9_ :;,=-]*$/.test(core)) return undefined;
+        steps.push({ addr, kind: "s", anchorStart, anchorEnd, core, rep, global: flags === "g" });
+        continue;
+      }
+      return undefined;
     }
-    return currentLines;
+    const out: string[] = [];
+    const total = rawLines.length;
+    for (let i = 0; i < total; i++) {
+      let l = rawLines[i]!;
+      const idx1 = i + 1;
+      let deleted = false;
+      for (let si = 0; si < steps.length; si++) {
+        const st = steps[si]!;
+        if (st.addr && !st.addr(l, idx1, total)) continue;
+        if (st.kind === "d") {
+          deleted = true;
+          break;
+        }
+        if (st.kind === "p") {
+          out.push(l);
+          continue;
+        }
+        if (st.kind === "y") {
+          l = Array.from(l).map(c => st.map.get(c) ?? c).join("");
+          continue;
+        }
+        if (st.anchorStart && st.anchorEnd) {
+          if (l === st.core) l = st.rep;
+        } else if (st.anchorStart) {
+          if (l.startsWith(st.core)) l = st.rep + l.slice(st.core.length);
+        } else if (st.anchorEnd) {
+          if (l.endsWith(st.core)) l = l.slice(0, l.length - st.core.length) + st.rep;
+        } else if (st.global) {
+          l = l.split(st.core).join(st.rep);
+        } else {
+          const pos = l.indexOf(st.core);
+          if (pos !== -1) l = l.slice(0, pos) + st.rep + l.slice(pos + st.core.length);
+        }
+      }
+      if (!deleted && !quiet) out.push(l);
+    }
+    return out;
   }
 
   private evalSyncGrep(rawLines: readonly string[], opArgs: readonly string[], errexit: boolean): { lines: string[]; status: number } | undefined {
@@ -23245,8 +23281,55 @@ export class Runtime {
       awkProg = norm[1]!;
     }
     if (!awkProg) return undefined;
+    let ofs = " ";
+    let progRest = awkProg.trim();
+    const beginFsM = /^BEGIN\s*\{([^}]*)\}\s*/.exec(progRest);
+    let initVarName: string | undefined;
+    let initVarVal = 0;
+    if (beginFsM) {
+      const bStmts = beginFsM[1]!.split(";").map(s => s.trim()).filter(Boolean);
+      for (const bs of bStmts) {
+        const ofsM = /^OFS\s*=\s*"([^"\\]*)"$/.exec(bs);
+        if (ofsM) { ofs = ofsM[1]!; continue; }
+        const fsM = /^FS\s*=\s*"([^"\\])"$/.exec(bs);
+        if (fsM) { awkSep = fsM[1]!; continue; }
+        const numInitM = /^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(-?[0-9]+(?:\.[0-9]+)?)$/.exec(bs);
+        if (numInitM) { initVarName = numInitM[1]!; initVarVal = Number(numInitM[2]!); continue; }
+        return undefined;
+      }
+      progRest = progRest.slice(beginFsM[0]!.length).trim();
+    }
+    const sumEndM = /^\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+=|-=)\s*(?:\$([0-9]+|NF)|(-?[0-9]+(?:\.[0-9]+)?))\s*;?\s*\}\s*END\s*\{\s*print\s+\1\s*;?\s*\}$/.exec(progRest);
+    if (sumEndM) {
+      const varName = sumEndM[1]!;
+      if (initVarName !== undefined && initVarName !== varName) return undefined;
+      const op = sumEndM[2]!;
+      const fTok = sumEndM[3];
+      const constVal = sumEndM[4] !== undefined ? Number(sumEndM[4]) : undefined;
+      let acc = initVarVal;
+      let touched = initVarName === varName;
+      for (let li = 0; li < rawLines.length; li++) {
+        const l = rawLines[li]!;
+        const fields = awkSep === undefined || awkSep === " "
+          ? l.split(/[ \t]+/).filter(Boolean)
+          : (l.length === 0 ? [] : l.split(awkSep));
+        let delta = 0;
+        if (constVal !== undefined) {
+          delta = constVal;
+        } else {
+          const idx = fTok === "NF" ? fields.length : Number(fTok!);
+          const rawField = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
+          const n = /^[ \t]*([+-]?(?:\d+(?:\.\d*)?|\.\d+))/.exec(rawField);
+          delta = n ? Number(n[1]!) : 0;
+        }
+        acc = op === "+=" ? acc + delta : acc - delta;
+        touched = true;
+      }
+      return [touched ? String(acc) : ""];
+    }
+    if (initVarName !== undefined) return undefined;
     const itemPat = `(?:\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|"[^"$\\\\]*")`;
-    const awkM = new RegExp(`^\\s*(?:(NR|NF)\\s*(==|!=|>=|<=|>|<)\\s*([0-9]+)\\s*)?\\{\\s*print(?:\\s+(${itemPat}(?:\\s*,?\\s*${itemPat})*))?\\s*;?\\s*\\}\\s*$`).exec(awkProg);
+    const awkM = new RegExp(`^\\s*(?:(NR|NF)\\s*(==|!=|>=|<=|>|<)\\s*([0-9]+)\\s*)?\\{\\s*print(?:\\s+(${itemPat}(?:\\s*,?\\s*${itemPat})*))?\\s*;?\\s*\\}\\s*$`).exec(progRest);
     if (!awkM) return undefined;
     const condVar = awkM[1] as "NR" | "NF" | undefined;
     const condOp = awkM[2];
@@ -23270,7 +23353,7 @@ export class Runtime {
         else if (m[0].startsWith("length")) parts.push({ kind: "length", token: m[3] ?? "0" });
         else if (m[4] !== undefined) parts.push({ kind: "var", name: m[4] as "NR" | "NF" });
         else if (m[5] !== undefined) parts.push({ kind: "lit", text: m[5]! });
-        else if (m[6] !== undefined) parts.push({ kind: "lit", text: " " });
+        else if (m[6] !== undefined) parts.push({ kind: "lit", text: ofs });
       }
     }
     const outLines: string[] = [];
@@ -23371,14 +23454,16 @@ export class Runtime {
     let rev = false;
     let num = false;
     let uniq = false;
+    let fold = false;
     let sep: string | undefined;
     let keySpec: string | undefined;
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (/^-[run]+$/.test(a)) {
+      if (/^-[runf]+$/.test(a)) {
         if (a.includes("r")) rev = true;
         if (a.includes("n")) num = true;
         if (a.includes("u")) uniq = true;
+        if (a.includes("f")) fold = true;
       } else if (a === "-t" && i + 1 < opArgs.length && opArgs[i + 1]!.length === 1) {
         sep = opArgs[++i]!;
       } else if (a.startsWith("-t") && a.length === 3) {
@@ -23397,8 +23482,9 @@ export class Runtime {
     let endField: number | undefined;
     let keyNum = num;
     let keyRev = rev;
+    let keyFold = fold;
     if (keySpec !== undefined) {
-      const km = /^([1-9][0-9]{0,2})(?:,([1-9][0-9]{0,2}))?([nr]*)$/.exec(keySpec);
+      const km = /^([1-9][0-9]{0,2})(?:,([1-9][0-9]{0,2}))?([nrf]*)$/.exec(keySpec);
       if (!km) return undefined;
       startField = Number(km[1]!);
       endField = km[2] !== undefined ? Number(km[2]!) : undefined;
@@ -23406,12 +23492,17 @@ export class Runtime {
       const kf = km[3] ?? "";
       if (kf.includes("n")) keyNum = true;
       if (kf.includes("r")) keyRev = true;
+      if (kf.includes("f")) keyFold = true;
     }
     const extractKey = (l: string): string => {
-      if (keySpec === undefined) return l;
-      const fields = sep !== undefined ? l.split(sep) : l.trimStart().split(/\s+/);
-      const slice = endField !== undefined ? fields.slice(startField - 1, endField) : fields.slice(startField - 1);
-      return slice.join(sep ?? " ");
+      const raw = keySpec === undefined
+        ? l
+        : (() => {
+            const fields = sep !== undefined ? l.split(sep) : l.trimStart().split(/\s+/);
+            const slice = endField !== undefined ? fields.slice(startField - 1, endField) : fields.slice(startField - 1);
+            return slice.join(sep ?? " ");
+          })();
+      return keyFold ? raw.toUpperCase() : raw;
     };
     const parseNum = (s: string): number => {
       const m = /^[ \t]*(-?(?:\d+(?:\.\d*)?|\.\d+))/.exec(s);
@@ -23427,12 +23518,23 @@ export class Runtime {
       } else if (ka !== kb) {
         return ka < kb ? (keyRev ? 1 : -1) : (keyRev ? -1 : 1);
       }
+      if (uniq) return 0;
+      const fa = fold ? a.toUpperCase() : a;
+      const fb = fold ? b.toUpperCase() : b;
+      if (fa !== fb) return fa < fb ? (rev ? 1 : -1) : (rev ? -1 : 1);
       return a < b ? (rev ? 1 : -1) : a > b ? (rev ? -1 : 1) : 0;
     });
     if (!uniq) return sorted;
     const dedup: string[] = [];
     for (let i = 0; i < sorted.length; i++) {
-      if (i === 0 || sorted[i] !== sorted[i - 1]) dedup.push(sorted[i]!);
+      if (i === 0) {
+        dedup.push(sorted[i]!);
+      } else {
+        const ka = extractKey(sorted[i]!);
+        const kb = extractKey(sorted[i - 1]!);
+        const same = keyNum ? parseNum(ka) === parseNum(kb) : ka === kb;
+        if (!same) dedup.push(sorted[i]!);
+      }
     }
     return dedup;
   }
@@ -23738,7 +23840,7 @@ export class Runtime {
           const isInlineTac = firstName === "tac";
           const isInlineNl = firstName === "nl";
           const isInlineSort = firstName === "sort" && !byteLocale(rawState.variables);
-          const isInlineUniq = firstName === "uniq" && (stageArgs.length === 0 || (stageArgs.length === 1 && (stageArgs[0] === "-d" || stageArgs[0] === "-u" || stageArgs[0] === "-c")));
+          const isInlineUniq = firstName === "uniq" && (stageArgs.length === 0 || (stageArgs.length === 1 && (stageArgs[0] === "-d" || stageArgs[0] === "-u" || stageArgs[0] === "-c" || stageArgs[0] === "-i")));
           const inlineSedMatch = firstName === "sed";
           if (
             firstName === "rev" ||
@@ -23824,7 +23926,7 @@ export class Runtime {
               let uIdx = 0;
               while (uIdx < rawLines.length) {
                 let uEnd = uIdx + 1;
-                while (uEnd < rawLines.length && rawLines[uEnd] === rawLines[uIdx]) uEnd++;
+                while (uEnd < rawLines.length && (mode === "-i" ? rawLines[uEnd]!.toLowerCase() === rawLines[uIdx]!.toLowerCase() : rawLines[uEnd] === rawLines[uIdx])) uEnd++;
                 const count = uEnd - uIdx;
                 if (mode === "-d" ? count > 1 : mode === "-u" ? count === 1 : true) {
                   outLines.push(mode === "-c" ? `${String(count).padStart(7, " ")} ${rawLines[uIdx]!}` : rawLines[uIdx]!);
@@ -24135,13 +24237,13 @@ export class Runtime {
             } else if (w0Plain === "sort" && !byteLocale(rawState.variables)) {
               const sortRes = this.evalSyncSort(rawLines, opArgs, false);
               if (sortRes !== undefined) fileRes = renderLines(sortRes);
-            } else if (w0Plain === "uniq" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "-u" || opArgs[0] === "-c")))) {
+            } else if (w0Plain === "uniq" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "-u" || opArgs[0] === "-c" || opArgs[0] === "-i")))) {
               const mode = opArgs[0];
               const outLines: string[] = [];
               let uIdx = 0;
               while (uIdx < rawLines.length) {
                 let uEnd = uIdx + 1;
-                while (uEnd < rawLines.length && rawLines[uEnd] === rawLines[uIdx]) uEnd++;
+                while (uEnd < rawLines.length && (mode === "-i" ? rawLines[uEnd]!.toLowerCase() === rawLines[uIdx]!.toLowerCase() : rawLines[uEnd] === rawLines[uIdx])) uEnd++;
                 const count = uEnd - uIdx;
                 if (mode === "-d" ? count > 1 : mode === "-u" ? count === 1 : true) {
                   outLines.push(mode === "-c" ? `${String(count).padStart(7, " ")} ${rawLines[uIdx]!}` : rawLines[uIdx]!);

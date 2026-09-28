@@ -466,7 +466,7 @@ pub fn show(
     target: &str,
     output: &crate::cli_history::HistoryOutput<'_>,
     paths: &[String],
-) -> Result<String, GitError> {
+) -> Result<Vec<u8>, GitError> {
     let mut oid = crate::cli_history::resolve(fs, gitdir, target)?;
     let mut out = String::new();
     while crate::_read_object(fs, gitdir, &oid, "content")?.obj_type == "tag" {
@@ -490,10 +490,9 @@ pub fn show(
         .as_str()
     {
         "blob" => {
-            out.push_str(&String::from_utf8_lossy(
-                &read_blob(fs, gitdir, &oid, None)?.blob,
-            ));
-            return Ok(out);
+            let mut bytes = out.into_bytes();
+            bytes.extend(read_blob(fs, gitdir, &oid, None)?.blob);
+            return Ok(bytes);
         }
         "tree" => {
             out.push_str(&format!("tree {target}\n\n"));
@@ -504,7 +503,7 @@ pub fn show(
                 }
                 out.push('\n');
             }
-            return Ok(out);
+            return Ok(out.into_bytes());
         }
         _ => {}
     }
@@ -517,7 +516,7 @@ pub fn show(
         output,
         paths,
     )?);
-    Ok(out)
+    Ok(out.into_bytes())
 }
 
 pub fn restore(

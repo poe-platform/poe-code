@@ -68,7 +68,7 @@ test('Git works with the Shell default device filesystem', async () => {
   assert.equal((await memory.stat('/repo/.git')).type,'directory');
 });
 
-test('cat-file preserves binary object bytes', async () => {
+test('cat-file and show preserve binary object bytes', async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir('/repo', {recursive:true});
   const command = createGitCommand();
@@ -87,6 +87,10 @@ test('cat-file preserves binary object bytes', async () => {
   await fs.writeFile('/repo/binary',binary);
   const oid = new TextDecoder().decode(await run(['hash-object','-w','binary'])).trim();
   assert.deepEqual(await run(['cat-file','-p',oid]),binary);
+  assert.deepEqual(await run(['show',oid]),binary);
+  await run(['add','.']);
+  await run(['commit','-m','binary']);
+  assert.deepEqual(await run(['show','HEAD:binary']),binary);
 });
 
 test("extended porcelain and plumbing commands work over safe-fs WASM", async () => {

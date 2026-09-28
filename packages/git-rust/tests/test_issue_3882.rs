@@ -139,3 +139,50 @@ fn cherry_pick_multiple_commits_with_and_without_commit() {
         }
     }
 }
+
+#[test]
+fn detached_head_and_revision_expressions_match_git() {
+    let (fs, oid) = repo();
+    fs.write_str("/repo/next", "next");
+    run(&fs, &["add", "."]);
+    run(&fs, &["commit", "-m", "next"]);
+    for rev in ["HEAD~1", "HEAD^", "main~1", &oid] {
+        assert_eq!(run(&fs, &["rev-parse", "--abbrev-ref", rev]), "");
+        assert_eq!(run(&fs, &["rev-parse", "--symbolic-full-name", rev]), "");
+    }
+    assert_eq!(
+        execute_git_cli(&fs, "/repo", &["rev-parse", "--abbrev-ref", "HEAD~9"]).exit_code,
+        128
+    );
+    run(&fs, &["checkout", "--detach", "HEAD"]);
+    assert_eq!(
+        run(&fs, &["rev-parse", "--symbolic-full-name", "HEAD"]),
+        "HEAD\n"
+    );
+    assert_eq!(run(&fs, &["rev-parse", "--abbrev-ref", "HEAD"]), "HEAD\n");
+}
+#[test]
+fn show_preserves_binary_blob_bytes_including_tagged_blobs() {
+    let (fs, _) = repo();
+    let bytes = vec![0, 128, 255, 10, 195, 40];
+    fs.write("/repo/binary.bin", &bytes);
+    run(&fs, &["add", "."]);
+    run(&fs, &["commit", "-m", "binary"]);
+    let oid = run(&fs, &["rev-parse", "HEAD:binary.bin"]);
+    run(
+        &fs,
+        &["tag", "-a", "binary-tag", oid.trim(), "-m", "binary tag"],
+    );
+    for rev in ["HEAD:binary.bin", oid.trim(), "binary-tag"] {
+        let result = execute_git_cli(&fs, "/repo", &["show", rev]);
+        assert_eq!(result.exit_code, 0);
+        let raw = result
+            .stdout_bytes
+            .unwrap_or_else(|| result.stdout.into_bytes());
+        if rev == "binary-tag" {
+            assert!(raw.ends_with(&bytes));
+        } else {
+            assert_eq!(raw, bytes);
+        }
+    }
+}

@@ -510,7 +510,7 @@ pub(crate) fn execute(
     }
     if show {
         return match crate::cli_files::show(fs, root, gitdir, revision, &output, &paths) {
-            Ok(out) => CliResult::ok(out),
+            Ok(out) => CliResult::ok_bytes(out),
             Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
         };
     }

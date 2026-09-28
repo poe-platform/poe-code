@@ -22,7 +22,7 @@ export async function runCommand(
   operation.signal.throwIfAborted();
   let argumentBytes = 0;
   try {
-    const maximum = engine.limits.argumentBytes ?? 1024 * 1024;
+    const maximum = engine.limits.argumentBytes ?? Infinity;
     if (argv.length > maximum) throw new SsconvertError("resource-limit", "ssconvert arguments limit exceeded");
     for (const argument of argv) {
       if (typeof argument === "string") {
@@ -56,7 +56,7 @@ export async function runCommand(
     for (const character of text) {
       const code = character.codePointAt(0)!;
       outputBytes += code < 128 ? 1 : code < 2048 ? 2 : code < 65536 ? 3 : 4;
-      if (outputBytes > (engine.limits.commandOutputBytes ?? 1024 * 1024))
+      if (outputBytes > (engine.limits.commandOutputBytes ?? Infinity))
         throw new SsconvertError("resource-limit", "ssconvert output bytes limit exceeded");
     }
     return encoder.encode(text);
@@ -66,7 +66,7 @@ export async function runCommand(
       if (parsed.stdout) await operation.stdout.write(encodeOutput(parsed.stdout));
       if (parsed.stderr) {
         if (parsed.stderrBytes) {
-          if (parsed.stderrBytes.byteLength > (engine.limits.commandOutputBytes ?? 1024 * 1024) - outputBytes)
+          if (parsed.stderrBytes.byteLength > (engine.limits.commandOutputBytes ?? Infinity) - outputBytes)
             throw new SsconvertError("resource-limit", "ssconvert output bytes limit exceeded");
           outputBytes += parsed.stderrBytes.byteLength;
           await report(parsed.stderrBytes);
@@ -79,7 +79,7 @@ export async function runCommand(
       const services = parsed.action === "list-image-formats" ? imageFormats :
         [...engine.listServices(parsed.action === "list-importers" ? "read" : "write")]
           .filter((service) => !service.interactiveOnly).sort(compareServiceIds);
-      const maximum = engine.limits.commandOutputBytes ?? 1024 * 1024;
+      const maximum = engine.limits.commandOutputBytes ?? Infinity;
       if (services.length > maximum) throw new SsconvertError("resource-limit", "ssconvert output bytes limit exceeded");
       function textLength(text: string, ascii: boolean): number {
         let length = 0;

@@ -1,7 +1,7 @@
 import { DEFAULT_SHEET_SIZE, type CellRange, type CellValue, type Workbook } from "../../workbook.js";
 import { parseExpression } from "../../formulas/parser.js";
 import { rewriteReferences } from "../../formulas/rewriting.js";
-import type { FormulaDocument, FormulaNode, ParsePosition } from "../../formulas/ast.js";
+import type { FormulaDocument, FormulaNode, FormulaParseOptions, ParsePosition } from "../../formulas/ast.js";
 import { foldSheetName } from "../case-fold.js";
 
 export type Expression =
@@ -17,13 +17,13 @@ const documents = new WeakMap<Expression, FormulaDocument>();
 
 /** Resolve the shared syntax tree for the bounded workbook evaluator. */
 export function parseFormula(text: string, book: Workbook, sheet: string, onName?: (name: string, sheet?: string) => void,
-  position: ParsePosition = { sheet, row: 0, column: 0 }): Expression | undefined {
+  position: ParsePosition = { sheet, row: 0, column: 0 }, budgets: Pick<FormulaParseOptions, "maximumLength" | "maximumNodes" | "signal"> = {}): Expression | undefined {
   const resolve = (name?: string) => name === undefined ? book.sheets.find(s => s.id === sheet) :
     [...book.sheets, ...book.detachedSheets ?? []].find(s => foldSheetName(s.name) === foldSheetName(name));
   const unresolved = {};
   let parsed;
   try {
-    parsed = parseExpression(text, { position, workbook: book, ...(onName ? { onName: (name: string, sheetName?: string) => {
+    parsed = parseExpression(text, { ...budgets, position, workbook: book, ...(onName ? { onName: (name: string, sheetName?: string) => {
       const target = resolve(sheetName);
       if (!target) throw unresolved;
       onName(name, sheetName === undefined ? undefined : target.id);

@@ -182,7 +182,7 @@ export function snapshotRecords<T>(records: T, limits: RuntimeLimits): T {
   const { nodeLimit, textLimit } = ownershipBudgets(limits);
   const ancestors = new Set<object>();
   function copy(value: unknown, depth = 0): unknown {
-    if (depth > 128)
+    if (depth > nodeLimit)
       throw new SsconvertError("resource-limit", "ssconvert workbook depth limit exceeded");
     if (++nodes > nodeLimit)
       throw new SsconvertError("resource-limit", "ssconvert workbook nodes limit exceeded");

@@ -1,6 +1,6 @@
 import { SsconvertError, type CapabilityContext, type Diagnostic } from "../contracts.js";
 import type { Workbook } from "../workbook.js";
-import { recalculateWorkbook } from "./evaluator.js";
+import { recalculateWorkbook } from "./recalculation.js";
 import type { FormulaRecalculationOptions } from "../formulas.js";
 
 /** Synchronous calculation notices settle in order before any export or failure. */
@@ -8,7 +8,7 @@ export async function recalculateWithDiagnostics(book: Workbook, context: Capabi
   const notices: Diagnostic[] = [];
   let bytes = 0;
   try {
-    return recalculateWorkbook(book, context, options, diagnostic => {
+    return await recalculateWorkbook(book, context, options, diagnostic => {
       bytes += new TextEncoder().encode(diagnostic.message).byteLength + 1;
       if (bytes > context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert diagnostic bytes limit exceeded");
       notices.push(diagnostic);

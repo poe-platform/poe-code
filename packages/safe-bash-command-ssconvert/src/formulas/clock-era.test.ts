@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { createEngine, runCommand, recalculateWorkbook, perlSampleFunctions, type CapabilityContext, type Codec } from "safe-bash-command-ssconvert";
+import { createEngine, runCommand, recalculateWorkbookSync as recalculateWorkbook, perlSampleFunctions, type CapabilityContext, type Codec } from "safe-bash-command-ssconvert";
 
 function calculate(formula: string, epoch: number, timezone: string) {
   const context: CapabilityContext = {

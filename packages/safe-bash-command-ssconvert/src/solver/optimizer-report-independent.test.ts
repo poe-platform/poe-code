@@ -86,7 +86,7 @@ it('admits the complete linear coefficient matrices before evaluating their firs
   const model = { ...parsed, constraints: Array.from({ length: 20 }, () => parsed.constraints[0]!), variables: Array.from({ length: 10 }, (_, row) => ({ sheet: 's', row, column: 0 })), domains: Array<'continuous'>(10).fill('continuous') };
   const limited = { ...context, limits: { ...context.limits, workbookWork: 500 } };
   const program = new SolverProgram(input, model, limited, new SolverBudget(limited, 100, 30));
-  const evaluate = vi.spyOn(program, 'apply');
+  const evaluate = vi.spyOn(program, 'applySteps');
   expect(() => program.linearize()).toThrow('ssconvert workbook work limit exceeded');
   expect(evaluate).not.toHaveBeenCalled();
 });
@@ -97,7 +97,7 @@ it('admits the nonlinear direction matrix before evaluating any candidate', () =
   const model = { ...parsed, constraints: [], modelType: 'nonlinear' as const, variables: Array.from({ length: 100 }, (_, row) => ({ sheet: 's', row, column: 0 })), domains: Array<'continuous'>(100).fill('continuous') };
   const limited = { ...context, limits: { ...context.limits, workbookWork: 2000 } };
   const program = new SolverProgram(input, model, limited, new SolverBudget(limited, 100, 30));
-  const evaluate = vi.spyOn(program, 'apply');
+  const evaluate = vi.spyOn(program, 'applySteps');
   expect(() => solveNonlinear(program)).toThrow('ssconvert workbook work limit exceeded');
   expect(evaluate).toHaveBeenCalledTimes(1);
 });

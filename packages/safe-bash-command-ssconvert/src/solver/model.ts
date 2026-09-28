@@ -7,7 +7,7 @@ import { quoteNativeSheet } from '../formulas/serialization.js';
 import { parseExpression } from '../formulas/parser.js';
 import { localReferenceRange } from '../formulas/local-references.js';
 import type { CalculationRange } from '../formulas/dependencies.js';
-import { recalculateWorkbook } from '../formulas/evaluator.js';
+import { recalculateWorkbookSteps } from '../formulas/evaluator.js';
 export type SolverModelType = 'linear' | 'quadratic' | 'nonlinear' | 'unknown';
 export interface SolverAddress { readonly sheet: string; readonly row: number; readonly column: number }
 export type SolverRelation = 1 | 2 | 4 | 8 | 16;
@@ -119,7 +119,7 @@ export function loadSolverParameters(book: Workbook, context: CapabilityContext)
     modelType: modelType === 0 ? 'linear' : modelType === 1 ? 'quadratic' : modelType === 2 ? 'nonlinear' : 'unknown',
     options: { maximumIterations, maximumTimeSeconds: integer(a.MaxTime) ?? 60, nonnegative: booleanOption(a.NonNeg, true), discrete, automaticScaling: booleanOption(a.AutoScale), programReport: booleanOption(a.ProgramR), sensitivityReport: booleanOption(a.SensitivityR), gradientOrder: 10, scenarioName: 'Optimal', addScenario: false } };
 }
-export function validateSolverParameters(book: Workbook, model: SolverParameters, context: CapabilityContext): string | undefined {
+export function* validateSolverParametersSteps(book: Workbook, model: SolverParameters, context: CapabilityContext): Generator<void, string | undefined> {
   context.signal.throwIfAborted();
   const cell = (b: Workbook, v: SolverAddress) => b.sheets.find(s => s.id === v.sheet)?.cells.find(c => c.row === v.row && c.column === v.column);
   const name = (v: SolverAddress) => `${v.sheet === model.sheet ? '' : `${quoteNativeSheet(book.sheets.find(s => s.id === v.sheet)!.name)}!`}${formatA1(v.row, v.column)}`;
@@ -128,7 +128,7 @@ export function validateSolverParameters(book: Workbook, model: SolverParameters
   const targetExpression = target?.formula ?? book.sheets.find(s => s.id === address.sheet)?.formulaGroups?.find(g =>
     address.row >= g.range.startRow && address.row <= g.range.endRow && address.column >= g.range.startColumn && address.column <= g.range.endColumn)?.expression;
   if (!targetExpression) return `Target cell, ${name(model.target)}, must contain a formula that evaluates to a number`;
-  const calculated = recalculateWorkbook(book, context, true);
+  const calculated = yield* recalculateWorkbookSteps(book, context, true);
   if (cell(calculated, model.target)?.value.kind !== 'number') return `Target cell, ${name(model.target)}, must contain a formula that evaluates to a number`;
   if (!model.inputs) return 'Invalid solver input range';
   for (const v of model.variables) { context.signal.throwIfAborted(); if (cell(calculated, v)?.formula) return `Input cell ${name(v)} contains a formula`; }
@@ -144,4 +144,12 @@ export function validateSolverParameters(book: Workbook, model: SolverParameters
 /** Registry order is explicit; functional saved choices need not match model type. */
 export function selectSolverAlgorithm(model: SolverParameters, registry: readonly SolverAlgorithm[], savedId?: string): SolverAlgorithm | undefined {
   return registry.find(a => a.id === savedId && a.available) ?? registry.find(a => a.available && a.modelType === model.modelType);
+}
+
+/** Synchronous admission for callers that inspect saved solver models directly. */
+export function validateSolverParameters(...args: Parameters<typeof validateSolverParametersSteps>): string | undefined {
+  const steps = validateSolverParametersSteps(...args);
+  let result = steps.next();
+  while (!result.done) result = steps.next();
+  return result.value;
 }

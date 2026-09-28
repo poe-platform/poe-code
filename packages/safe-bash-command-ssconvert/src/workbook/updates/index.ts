@@ -35,7 +35,10 @@ export function setCellText(book: Workbook, range: CellRange, text: string, cont
     if (!knownNames.has(`\0${name.toUpperCase()}`) && !knownNames.has(`${target}\0${name.toUpperCase()}`)) {
       knownNames.add(`${scope ?? ""}\0${name.toUpperCase()}`); names.push({ name, expression: "#NAME?", ...(scope === undefined ? {} : { sheet: scope }) });
     }
-  }, { sheet: sheet.id, row: range.startRow, column: range.startColumn }) : undefined;
+  }, { sheet: sheet.id, row: range.startRow, column: range.startColumn }, {
+    signal: context.signal, maximumLength: context.limits.inputBytes,
+    maximumNodes: context.limits.workbookWork ?? context.limits.inputBytes + context.limits.cells * 32
+  }) : undefined;
   const cells = [...sheet.cells], positions = new Map(cells.map((cell, index) => [`${cell.row}:${cell.column}`, index]));
   for (let row = range.startRow; row <= range.endRow; row++) {
     context.signal.throwIfAborted();

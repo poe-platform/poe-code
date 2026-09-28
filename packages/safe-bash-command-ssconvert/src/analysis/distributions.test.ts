@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
-import { createEngine, runCommand, renameWorkbookSheet, moveWorkbookSheet, recalculateWorkbook, type Workbook, type Codec, type CapabilityContext } from "../index.js";
+import { createEngine, runCommand, renameWorkbookSheet, moveWorkbookSheet, recalculateWorkbookSync as recalculateWorkbook, type Workbook, type Codec, type CapabilityContext } from "../index.js";
 
 export async function distribution(tool: string, properties: string[] = [], rows: (number | string)[][] = [[1,2],[2,4],[3,6],[4,8]]) {
   const volume = Volume.fromJSON({ "/input.fixture": "original" });

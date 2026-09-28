@@ -1,6 +1,6 @@
 import { SsconvertError, type CapabilityContext } from '../contracts.js';
 import { snapshotWorkbook, type Workbook, type CellValue } from '../workbook.js';
-import { recalculateWorkbook } from '../formulas/evaluator.js';
+import { recalculateWorkbookSteps } from '../formulas/evaluator.js';
 import { parseExpression } from '../formulas/parser.js';
 import { localReferenceRange } from '../formulas/local-references.js';
 import type { SolverAddress, SolverParameters, SolverRelation } from './model.js';
@@ -44,8 +44,9 @@ export class SolverProgram {
     for (let i = 0; i < model.variables.length; i++) if (model.domains[i] !== 'continuous') { this.lower[i] = Math.ceil(this.lower[i]!); this.upper[i] = Math.floor(this.upper[i]!); }
   }
   cell(book: Workbook, address: SolverAddress) { return book.sheets.find(s => s.id === address.sheet)?.cells.find(c => c.row === address.row && c.column === address.column); }
-  apply(solution: readonly number[] | undefined): Workbook {
+  *applySteps(solution: readonly number[] | undefined): Generator<void, Workbook> {
     this.budget.tick(this.book.sheets.reduce((n, s) => n + s.cells.length, 0) + this.model.variables.length);
+    if (this.budget.shouldYield()) yield;
     const values = new Map(this.model.variables.map((v, i) => [addressKey(v), solution?.[i]]));
     const changed: Workbook = { ...this.book, sheets: this.book.sheets.map(s => {
       const cells = new Map(s.cells.map(c => [`${c.row}:${c.column}`, c]));
@@ -56,7 +57,13 @@ export class SolverProgram {
       }
       return { ...s, cells: [...cells.values()] };
     }) };
-    return recalculateWorkbook(changed, this.context, true);
+    return yield* recalculateWorkbookSteps(changed, this.context, true);
+  }
+  apply(solution: readonly number[] | undefined): Workbook {
+    const steps = this.applySteps(solution);
+    let result = steps.next();
+    while (!result.done) result = steps.next();
+    return result.value;
   }
   value(book: Workbook, address: SolverAddress | number | undefined): number {
     this.budget.tick();
@@ -73,7 +80,7 @@ export class SolverProgram {
     }
     return true;
   }
-  linearize(): { rows: LinearRow[]; objective: number[] } {
+  *linearizeSteps(): Generator<void, { rows: LinearRow[]; objective: number[] }> {
     const n = this.model.variables.length;
     this.budget.tick(this.parts.length + n);
     let addressCount = 1, rowCount = 0;
@@ -81,9 +88,10 @@ export class SolverProgram {
     for (const domain of this.model.domains) { if (domain === 'binary') rowCount++; if (this.model.options.nonnegative || domain === 'binary') rowCount++; }
     // Admit columns, affine rows and output coefficients before any evaluation.
     this.budget.tick(n * (addressCount * 2 + rowCount) + addressCount * 2 + n);
+    if (this.budget.shouldYield()) yield;
     const origin = this.lower.map((lo, i) => lo === this.upper[i] ? lo : lo <= 0 && this.upper[i]! >= 0 ? 0 : Number.isFinite(lo) ? lo : this.upper[i]!);
     if (origin.some(v => !Number.isFinite(v))) throw new SsconvertError('invalid-request', 'Target cell did not evaluate to a number.');
-    const baseline = this.apply(origin);
+    const baseline = yield* this.applySteps(origin);
     const addresses = [this.model.target!, ...this.parts.filter(p => p.relation < 8).flatMap(p => [p.lhs, p.rhs])];
     const constants = addresses.map(a => this.value(baseline, a));
     const columns: number[][] = [];
@@ -93,7 +101,8 @@ export class SolverProgram {
       const dx = end - start;
       if (!(dx > 0)) { columns.push(addresses.map(() => 0)); continue; }
       const coords = [...origin]; coords[i] = end;
-      const evaluated = this.apply(coords);
+      const evaluated = yield* this.applySteps(coords);
+      if (this.budget.shouldYield()) yield;
       columns.push(addresses.map((a, j) => (this.value(evaluated, a) - constants[j]!) / dx));
     }
     const affine = addresses.map((_, j) => ({ coefficients: columns.map(c => c[j]!), constant: constants[j]! - columns.reduce((sum, c, i) => sum + c[j]! * origin[i]!, 0) }));
@@ -112,5 +121,11 @@ export class SolverProgram {
       if (this.model.options.nonnegative || this.model.domains[i] === 'binary') rows.push({ coefficients: coefficients.map(v => -v), upper: 0 });
     }
     return { rows, objective: affine[0]!.coefficients.map(v => this.model.objective === 'minimize' ? -v : v) };
+  }
+  linearize(): { rows: LinearRow[]; objective: number[] } {
+    const steps = this.linearizeSteps();
+    let result = steps.next();
+    while (!result.done) result = steps.next();
+    return result.value;
   }
 }

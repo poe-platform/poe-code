@@ -3,7 +3,7 @@
 import type { SolverProgram } from './program.js';
 import { newtonImprove, polishObjective } from './newton.js';
 export interface NonlinearResult { readonly solution: readonly number[]; readonly limited: boolean }
-export function solveNonlinear(program: SolverProgram): NonlinearResult | string {
+export function* solveNonlinearSteps(program: SolverProgram): Generator<void, NonlinearResult | string> {
   const { model, budget } = program, n = model.variables.length;
   if (program.parts.some(p => p.relation === 4)) return 'This solver does not handle equality constraints.';
   for (let i = 0; i < n; i++) {
@@ -11,7 +11,7 @@ export function solveNonlinear(program: SolverProgram): NonlinearResult | string
     if (program.lower[i] === program.upper[i]) return 'This solver does not handle equality constraints.';
   }
   let x = model.variables.map(v => program.value(program.book, v));
-  let book = program.apply(x);
+  let book = yield* program.applySteps(x);
   if (!program.feasible(book, x)) return 'The initial values do not satisfy the constraints.';
   const sign = model.objective === 'maximize' ? -1 : 1;
   let y = sign * program.value(book, model.target);
@@ -20,6 +20,7 @@ export function solveNonlinear(program: SolverProgram): NonlinearResult | string
   let iteration = 0;
   let phase: 'search' | 'polish' | 'complete' = 'search';
   for (;;) {
+    if (budget.shouldYield()) yield;
     if (!budget.step()) return { solution: x, limited: true };
     // A released compound iterator reports progress while it still has a child
     // to try, including a stationary search and the following polish attempt.
@@ -42,9 +43,10 @@ export function solveNonlinear(program: SolverProgram): NonlinearResult | string
     for (let safety = 0; done < n && safety <= n * 53; safety++) {
       for (let i = 0; i < n; i++) {
         budget.tick(n);
+        if (budget.shouldYield()) yield;
         if (state[i] === 2) continue;
         const candidate = x.map((v, j) => v + distances[i]! * directions[i]![j]!);
-        book = program.apply(candidate);
+        book = yield* program.applySteps(candidate);
         const value = sign * program.value(book, model.target);
         if (Number.isFinite(value) && value <= y && program.feasible(book, candidate)) {
           if (value < y) { x = candidate; y = value; displacement[i] = displacement[i]! + distances[i]!; progress = true; }
@@ -61,7 +63,7 @@ export function solveNonlinear(program: SolverProgram): NonlinearResult | string
       budget.tick();
       if (!Number.isFinite(boundary) || x[i] === boundary || Math.abs(x[i]! - boundary) > 2 ** -16 * Math.max(1, Math.abs(x[i]!), Math.abs(boundary))) continue;
       const candidate = [...x]; candidate[i] = boundary;
-      book = program.apply(candidate);
+      book = yield* program.applySteps(candidate);
       const value = sign * program.value(book, model.target);
       if (Number.isFinite(value) && value < y && program.feasible(book, candidate)) { x = candidate; y = value; progress = true; }
     }
@@ -79,4 +81,11 @@ export function solveNonlinear(program: SolverProgram): NonlinearResult | string
     const norm = Math.sqrt(squares[0]!);
     if (norm !== 0 && Number.isFinite(norm)) directions[0] = accumulated[0]!.map(v => v / norm);
   }
+}
+
+export function solveNonlinear(...args: Parameters<typeof solveNonlinearSteps>): NonlinearResult | string {
+  const steps = solveNonlinearSteps(...args);
+  let result = steps.next();
+  while (!result.done) result = steps.next();
+  return result.value;
 }

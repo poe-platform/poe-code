@@ -89,7 +89,7 @@ describe("independent cell-update stress", () => {
   });
   it("rejects flat formulas before recursive AST work exhausts the host stack", () => {
     expect(() => setCellText(book, range, "=" + Array(100_000).fill("1").join("+"), context()))
-      .toThrowError(new SsconvertError("resource-limit", "ssconvert formula depth limit exceeded"));
+      .toThrowError(new SsconvertError("resource-limit", "ssconvert formula length limit exceeded"));
   });
   it("preserves abort reason identity and leaves source cells unchanged", () => {
     const controller = new AbortController(), reason = { cancelled: true };

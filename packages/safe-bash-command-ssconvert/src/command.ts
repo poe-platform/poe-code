@@ -148,7 +148,7 @@ export function createSsconvertCommand(options: SsconvertCommandsOptions = {}): 
             }
           })
         });
-        const maximumArguments = binding.limits.argumentBytes ?? 1024 * 1024;
+        const maximumArguments = binding.limits.argumentBytes ?? Infinity;
         const values = context.argumentValues?.values ?? context.args;
         let argumentBytes = 0;
         let refusal: string | undefined;

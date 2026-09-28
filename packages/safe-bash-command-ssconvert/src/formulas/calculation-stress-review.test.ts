@@ -12,12 +12,12 @@ const context: CapabilityContext = {
   own() {}
 };
 
-it("refuses combined named-expression and syntax dependency depth with a typed limit", () => {
+it("admits combined named-expression and syntax depth within the configured work budget", () => {
   const input: Workbook = {
     sheets: [{ id: "s", name: "Sheet1", cells: [{ row: 0, column: 0, formula: "=name_0", value: { kind: "number", value: 7 }, cachedResult: { kind: "number", value: 7 }, formulaDirty: false }] }],
     names: Array.from({ length: 110 }, (_, index) => ({ name: `name_${index}`, expression: "=" + "(".repeat(80) + (index === 109 ? "7" : `name_${index + 1}`) + ")".repeat(80) }))
   };
-  expect(() => recalculateWorkbook(input, context)).toThrow("ssconvert formula dependency depth limit exceeded");
+  expect(recalculateWorkbook(input, context).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 7 });
   expect(input.sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 7 });
 });
 
@@ -179,10 +179,10 @@ it("preserves cross-realm host refusal identity without publishing partial resul
   expect(input.sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 9 });
 });
 
-it("bounds named dependencies during sparse cell-update admission", () => {
+it("admits long named dependencies during sparse cell-update admission", () => {
   const input: Workbook = { sheets: [{ id: "s", name: "Sheet1", cells: [{ row: 0, column: 0, formula: "=name_0", value: { kind: "number", value: 7 }, cachedResult: { kind: "number", value: 7 }, formulaDirty: false }] }],
     names: Array.from({ length: 140 }, (_, index) => ({ name: `name_${index}`, expression: index === 139 ? "=B1" : `=name_${index + 1}` })) };
-  expect(() => setCellText(input, { sheet: "s", startRow: 0, endRow: 0, startColumn: 1, endColumn: 1 }, "8", context)).toThrow("ssconvert formula dependency depth limit exceeded");
+  expect(setCellText(input, { sheet: "s", startRow: 0, endRow: 0, startColumn: 1, endColumn: 1 }, "8", context).sheets[0]!.cells).toHaveLength(2);
   expect(input.sheets[0]!.cells).toHaveLength(1);
   expect(input.sheets[0]!.cells[0]!.cachedResult).toEqual({ kind: "number", value: 7 });
 });

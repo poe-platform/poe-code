@@ -1,3 +1,4 @@
+import { WORK_QUANTUM } from "../cooperative.js";
 import { functionDescriptors } from "./function-descriptors.js";
 import { snapshotRuntimeFunctions } from "./runtime-functions.js";
 import { SsconvertError, type CapabilityContext, type Diagnostic } from "../contracts.js";
@@ -20,15 +21,16 @@ import { matchNumber } from "./functions/text.js";
 import { gnumericGrammar, sylkGrammar } from "./conventions.js";
 
 /** A calculation run owns its indexes, traversal state and caches. No host I/O. */
-export function recalculateWorkbook(input: Workbook, context: CapabilityContext, options: boolean | FormulaRecalculationOptions = false, onDiagnostic?: (diagnostic: Diagnostic) => void,
+export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityContext, options: boolean | FormulaRecalculationOptions = false, onDiagnostic?: (diagnostic: Diagnostic) => void,
   cellEvaluation?: { readonly changed?: ParsePosition; readonly target: ParsePosition | readonly ParsePosition[] | null;
-    readonly tick?: () => void; readonly onCycle?: () => void }): Workbook {
+    readonly tick?: () => void; readonly onCycle?: () => void }): Generator<void, Workbook> {
   context.signal.throwIfAborted();
   const force = typeof options === "boolean" ? options : options.force;
   if (context.runtimeFunctions !== undefined) context = { ...context, runtimeFunctions: snapshotRuntimeFunctions(context.runtimeFunctions) };
   input = snapshotWorkbook(input, context.limits);
   if (!force && !cellEvaluation && input.calculationMode === "manual" && !(typeof options === "object" && options.ignoreCalculationMode)) return input;
   const maximumWork = context.limits.workbookWork ?? context.limits.cells * 32 + context.limits.inputBytes;
+  let checkpoint = 0;
   let work = 0, depth = 0, iterationRoot: Cell | undefined;
   const tick = () => {
     context.signal.throwIfAborted();
@@ -88,6 +90,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     if (group) arrayKeys.set(cell, `${sheet.id}:${group.id}`);
     const root = parse(cell.formula, { sheet: sheet.id, row: group?.range.startRow ?? cell.row, column: group?.range.startColumn ?? cell.column }, cell.arrayStringLiterals);
     expressions.set(cell, root);
+    if (work - checkpoint >= WORK_QUANTUM) { checkpoint = work; yield; }
   }
   function read(sheet: Sheet, row: number, column: number): CellValue {
     tick(); const cell = indexes.get(sheet)?.get(`${row}:${column}`);
@@ -134,7 +137,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
   }
   function indirectRange(node: FormulaNode, position: ParsePosition, names: Set<object>, depth = 0): Value {
     tick();
-    if (depth > 128) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
+    if (depth > maximumWork) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
     if (node.kind === "reference") return reference(node, position);
     if (node.kind === "parentheses") return indirectRange(node.child, position, names, depth + 1);
     if (node.kind !== "name" || node.workbook !== undefined && node.workbook !== "") return error("#REF!");
@@ -188,7 +191,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
   }
   function evaluate(node: FormulaNode, position: ParsePosition, array = false, names = new Set<object>(), wantReference = true): Value {
     tick();
-    if (++depth > 128) { depth--; throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded"); }
+    if (++depth > maximumWork) { depth--; throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded"); }
     try {
       if (node.kind === "literal") return node.value;
       if (node.kind === "omitted") return blank;
@@ -476,7 +479,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
       cleared.add(cell);
       return currentValues.get(cell) ?? cell.cachedResult ?? cell.value;
     }
-    if (visiting.size >= 128) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
+    if (visiting.size >= maximumWork) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
     visiting.add(cell);
     const previousCell = activeCell;
     activeCell = cell;
@@ -533,7 +536,10 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
       const cell = sheet && indexes.get(sheet)?.get(`${target.row}:${target.column}`);
       if (cell && sheet) calculate(cell, sheet);
     }
-  } else for (const sheet of book.sheets) for (const cell of sheet.cells) calculate(cell, sheet);
+  } else for (const sheet of book.sheets) for (const cell of sheet.cells) {
+    calculate(cell, sheet);
+    if (work - checkpoint >= WORK_QUANTUM) { checkpoint = work; yield; }
+  }
   const dependencies = [...book.dependencies ?? []].filter(dependency => !dependency.dynamic || !book.sheets.some(sheet => sheet.id === dependency.dependent.sheet && sheet.cells.some(cell =>
     results.has(cell) && pending.has(cell) && cell.row >= dependency.dependent.startRow && cell.row <= dependency.dependent.endRow && cell.column >= dependency.dependent.startColumn && cell.column <= dependency.dependent.endColumn)));
   for (const sheet of book.sheets) for (const cell of sheet.cells) if (dynamicCells.has(cell)) {
@@ -554,4 +560,12 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     const { displayedText: ignoredDisplayedText, ...retained } = cell;
     return { ...retained, value: result, cachedResult: result, formulaDirty: false };
   }) })) }, context.limits);
+}
+
+/** Synchronous evaluator for numerical callbacks that require immediate values. */
+export function recalculateWorkbook(...args: Parameters<typeof recalculateWorkbookSteps>): Workbook {
+  const steps = recalculateWorkbookSteps(...args);
+  let result = steps.next();
+  while (!result.done) result = steps.next();
+  return result.value;
 }

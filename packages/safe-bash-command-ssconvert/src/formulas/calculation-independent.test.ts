@@ -61,10 +61,10 @@ it("admits sparse TABLE input references as temporary blank cells", () => {
   expect(output.sheets[0]!.cells.find(cell => cell.row === 1 && cell.column === 1)!.value).toEqual(n(5));
 });
 
-it("bounds acyclic named-expression graph traversal even for clean cached formulas", () => {
+it("admits long acyclic named-expression graphs for clean cached formulas", () => {
   const input: Workbook = { ...book([{ row: 0, column: 0, formula: "=name_0", value: n(7), cachedResult: n(7), formulaDirty: false }]),
     names: Array.from({ length: 140 }, (_, index) => ({ name: `name_${index}`, expression: index === 139 ? "=7" : `=name_${index + 1}` })) };
-  expect(() => recalculateWorkbook(input, context)).toThrow("ssconvert formula dependency depth limit exceeded");
+  expect(recalculateWorkbook(input, context).sheets[0]!.cells[0]!.value).toEqual(n(7));
 });
 
 it("preserves the workbook-work refusal diagnostic", () => {
@@ -90,9 +90,9 @@ it("propagates named volatility through clean caches and dependent formulas", ()
   expect(draws).toBe(1);
 });
 
-it("uses bounded dependency depth for long cell chains without altering imported cache", () => {
+it("calculates long cell chains without altering imported cache", () => {
   const input = book(Array.from({ length: 140 }, (_, row) => ({ row, column: 0, formula: row === 139 ? "=1" : `=A${row + 2}`, formulaDirty: true, value: n(9) })));
-  expect(() => recalculateWorkbook(input, context)).toThrow("ssconvert formula dependency depth limit exceeded");
+  expect(recalculateWorkbook(input, context).sheets[0]!.cells[0]!.value).toEqual(n(1));
   expect(input.sheets[0]!.cells[0]!.value).toEqual(n(9));
 });
 

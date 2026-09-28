@@ -54,11 +54,11 @@ it("round trips rewritten chart dimensions using the actual engine and injected 
 });
 
 import type { ImportedValue, Sheet } from "../workbook.js";
-it("bounds nested object traversal and observes cancellation before projection", () => {
+it("admits deeply nested object metadata and observes explicit budgets and cancellation", () => {
   let data: ImportedValue = { name: "SheetObjectImage", namespace: "http://www.gnumeric.org/v10.dtd", text: "", attributes: [], children: [] };
   for (let depth = 0; depth < 130; depth++) data = { name: "Objects", namespace: "http://www.gnumeric.org/v10.dtd", text: "", attributes: [], children: [data] };
   const sheet: Sheet = { id: "S", name: "S", cells: [], unsupportedRecords: [{ source: "Gnumeric_XmlIO:sax", kind: "Objects", disposition: "retained", data }] };
-  expect(() => sheetObjects(sheet, context)).toThrow("ssconvert object depth limit exceeded");
+  expect(sheetObjects(sheet, context)).toEqual([]);
   expect(() => sheetObjects(sheet, { ...context, limits: { ...context.limits, workbookWork: 5 } })).toThrow("ssconvert workbook work limit exceeded");
   const controller = new AbortController();
   const reason = new Error("original cancellation");

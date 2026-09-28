@@ -1,6 +1,5 @@
 import type { Cell, NamedExpression, Sheet, Workbook } from "../workbook.js";
 import type { FormulaNode, ParsePosition } from "./ast.js";
-import { SsconvertError } from "../contracts.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 import { parseExpression } from "./parser.js";
 import { parseNamedExpression } from "./named-expressions.js";
@@ -52,7 +51,6 @@ export function buildDependencyGraph(
   // Construct only statically known ranges. Never evaluate functions or acquire host authority.
   function staticScalar(node: FormulaNode | undefined, position: ParsePosition, depth = 0): CellValue | undefined {
     tick();
-    if (depth > 128) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
     if (node?.kind === "literal") return node.value;
     if (node?.kind === "parentheses") return staticScalar(node.child, position, depth + 1);
     if (node?.kind === "reference") {
@@ -73,7 +71,6 @@ export function buildDependencyGraph(
   }
   function staticRanges(node: FormulaNode, position: ParsePosition, names: Set<NamedExpression>, depth: number): readonly CalculationRange[] {
     tick();
-    if (depth > 128) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
     if (node.kind === "reference") { const value = resolve(node, position); return value ? [value] : []; }
     if (node.kind === "parentheses") return staticRanges(node.child, position, names, depth + 1);
     if (node.kind === "name") {
@@ -121,7 +118,6 @@ export function buildDependencyGraph(
     const pending = [{ node: root, position, names, depth: 1 }];
     while (pending.length) {
       const { node, position, names, depth } = pending.pop()!;
-      if (depth > 128) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
       tick();
       if (node.kind === "call" && ["RAND", "NOW", "TODAY"].includes(node.name) || node.kind === "reference" && node.label && node.label.kind !== "radical") volatile.add(cell);
       if (node.kind === "reference") {

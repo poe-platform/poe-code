@@ -3537,11 +3537,23 @@ export class Runtime {
     const pat = this.extractSimpleErePattern(pattern);
     if (!pat) return undefined;
     const monitor = stateMonitor(state);
-    const existingStore = monitor?.store;
-    const existingRematch = existingStore?.get("BASH_REMATCH");
-    if ( !monitor || !existingStore || !existingRematch || existingRematch.associative || existingRematch.references !== 1 || existingStore.watches.has("BASH_REMATCH") || monitor.hasOverlay("BASH_REMATCH") || state.readonlyVariables?.has("BASH_REMATCH") || state.exported.has("BASH_REMATCH") || (!ignoreYield && hasYieldCheckpoint(this.signal))) {
+    if (!monitor || monitor.hasOverlay("BASH_REMATCH") || state.readonlyVariables?.has("BASH_REMATCH") || state.exported.has("BASH_REMATCH") || (!ignoreYield && hasYieldCheckpoint(this.signal))) {
       return undefined;
     }
+    const existingStore = monitor.store ?? (this.budget.limits.maxExpansionBytes === Infinity && this.budget.limits.maxExpansionFields === Infinity ? requireArrays(state) : undefined);
+    if (!existingStore || existingStore.watches.has("BASH_REMATCH")) return undefined;
+    let existingRematch = existingStore.get("BASH_REMATCH");
+    if (!existingRematch) {
+      if (state.variables.BASH_REMATCH !== undefined) return undefined;
+      const created = IndexedBinding.create(existingStore.owner, false);
+      const prepared = existingStore.prepareExistingName("BASH_REMATCH", 12, existingStore.owner, this.signal);
+      if (!prepared) { void created.release(); return undefined; }
+      const initTickets = existingStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+      existingStore.publish("BASH_REMATCH", created, initTickets, prepared, false, existingStore.owner);
+      monitor.epoch = initTickets.epoch;
+      existingRematch = created;
+    }
+    if (existingRematch.associative || existingRematch.references !== 1) return undefined;
     const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
     const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
     if (![collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) return undefined;
@@ -7525,14 +7537,14 @@ export class Runtime {
       if ( command.kind === "simple" && command.redirects.length === 1 && command.redirects[0]!.operator === "<<<" && !command.redirects[0]!.move && !command.redirects[0]!.document && (command.redirects[0]!.descriptor === undefined || command.redirects[0]!.descriptor === 0) && command.words.length >= 2 && this.isPureSyncValueWord(command.redirects[0]!.target, rawState) && !command.redirects[0]!.target.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{")) && !command.redirects[0]!.target.parts.some(part => part.kind === "substitution")) {
         const w0 = command.words[0]!;
         const w0Plain = w0.plain;
-        const isIfsRead = command.words[1]?.plain === "read" && w0.parts.length === 1 && w0.parts[0]!.kind === "text" && /^IFS=[: ,;|\t-]$/.test(w0.parts[0]!.value) && !rawState.readonlyVariables?.has("IFS") && !stateMonitor(rawState)?.store?.get("IFS");
+        const isIfsRead = command.words[1]?.plain === "read" && w0.parts.length === 1 && w0.parts[0]!.kind === "text" && /^IFS=[: ,;|\t./_=-]?$/.test(w0.parts[0]!.value) && !rawState.readonlyVariables?.has("IFS") && !stateMonitor(rawState)?.store?.get("IFS");
         const isPlainRead = w0Plain === "read";
         if ( (isPlainRead || isIfsRead) && !hasShellFunction(rawState, "read") && !rawState.extensions?.builtins.has("read")) {
           let idx = isPlainRead ? 1 : 2;
           let hasReadArray = false;
           while (idx < command.words.length) {
             const wp = command.words[idx]?.plain;
-            if (wp === "-r") { idx++; continue; }
+            if (wp === "-r" || wp === "-s" || wp === "-rs" || wp === "-sr") { idx++; continue; }
             if (wp === "-a" || wp === "-ra" || wp === "-ar") { hasReadArray = true; idx++; break; }
             break;
           }
@@ -7540,6 +7552,8 @@ export class Runtime {
           if (hasReadArray) {
             const arrVp = idx === command.words.length - 1 ? command.words[idx]?.plain : undefined;
             if (arrVp && isShellIdentifier(arrVp) && arrVp !== "OPTIND" && arrVp !== "PIPESTATUS" && !rawState.readonlyVariables?.has(arrVp) && !st?.get(arrVp)?.associative) return true;
+          } else if (idx === command.words.length) {
+            if (!rawState.readonlyVariables?.has("REPLY") && !st?.get("REPLY") && !rawState.variableAttributes?.get("REPLY")) return true;
           } else if (idx < command.words.length) {
             let allValidVars = true;
             for (let k = idx; k < command.words.length; k++) {
@@ -8194,16 +8208,18 @@ export class Runtime {
               scalarVars.add("OPTARG");
               nonIntScalarVars.add("OPTARG");
             } else if (wp0 === "read" || (c.words[1]?.plain === "read")) {
-              for (let k = 1; k < c.words.length; k++) {
+              let foundTarget = false;
+              for (let k = (wp0 === "read" ? 1 : 2); k < c.words.length; k++) {
                 const vp = c.words[k]?.plain;
                 if (vp?.startsWith("-") && vp.includes("a")) {
                   const optionEnd = vp.indexOf("a") + 1;
                   const target = vp.slice(optionEnd) || c.words[++k]?.plain;
-                  if (target && isShellIdentifier(target)) arrayVars.add(target);
+                  if (target && isShellIdentifier(target)) { arrayVars.add(target); foundTarget = true; }
                   break;
                 }
-                if (vp && isShellIdentifier(vp)) { scalarVars.add(vp); nonIntScalarVars.add(vp); }
+                if (vp && !vp.startsWith("-") && isShellIdentifier(vp)) { scalarVars.add(vp); nonIntScalarVars.add(vp); foundTarget = true; }
               }
+              if (!foundTarget) { scalarVars.add("REPLY"); nonIntScalarVars.add("REPLY"); }
             }
           }
         }
@@ -8258,7 +8274,7 @@ export class Runtime {
     if (expr.kind === "unary") return (expr.operator === "-n" || expr.operator === "-z" || expr.operator === "-v" || syncConditionalFileUnaryOps.has(expr.operator)) && !Runtime.wordMayMutate(expr.operand);
     if (expr.kind === "binary") {
       if (Runtime.wordMayMutate(expr.left) || Runtime.wordMayMutate(expr.right)) return false;
-      if (expr.operator === "=~") return depth === 0 && this.extractSimpleErePattern(expr.right) !== undefined;
+      if (expr.operator === "=~") return this.extractSimpleErePattern(expr.right) !== undefined;
       if (expr.operator === "==" || expr.operator === "=" || expr.operator === "!=") {
         if (expr.right.parts.length > 0 && expr.right.parts.every(p => p.quoted)) return true;
         if (expr.right.parts.length > 0 && expr.right.parts.every((p, idx) =>
@@ -8353,7 +8369,7 @@ export class Runtime {
     }
     if (expr.kind === "binary") {
       if (expr.operator === "=~") {
-        if (depth !== 0 || !this.extractSimpleErePattern(expr.right)) return undefined;
+        if (!this.extractSimpleErePattern(expr.right)) return undefined;
         let subject: ShellValue | undefined;
         try {
           subject = this.fastValueWord(expr.left, rawState, io, false, false, false, false, undefined, diagnosticLine);
@@ -8407,9 +8423,20 @@ export class Runtime {
           return undefined;
         }
         if (typeof right !== "string") return undefined;
-        const lNum = resolveSimpleArithOperand(left.trim() || "0", rawState, monitor, store);
+        const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
+        const lTrim = left.trim() || "0";
+        let lNum = resolveSimpleArithOperand(lTrim, rawState, monitor, store, syncTouched);
+        if (lNum === undefined) {
+          const lExpr = tryEvalSimpleExpandedArith(lTrim, rawState, monitor, store, syncTouched);
+          if (lExpr !== undefined) lNum = Number(lExpr);
+        }
         if (lNum === undefined) return undefined;
-        const rNum = resolveSimpleArithOperand(right.trim() || "0", rawState, monitor, store);
+        const rTrim = right.trim() || "0";
+        let rNum = resolveSimpleArithOperand(rTrim, rawState, monitor, store, syncTouched);
+        if (rNum === undefined) {
+          const rExpr = tryEvalSimpleExpandedArith(rTrim, rawState, monitor, store, syncTouched);
+          if (rExpr !== undefined) rNum = Number(rExpr);
+        }
         if (rNum === undefined) return undefined;
         let ok: boolean;
         switch (expr.operator) {
@@ -8588,7 +8615,9 @@ export class Runtime {
       const activeStore = monitor.store;
       const activeExisting = activeStore?.get("PIPESTATUS");
       if (!activeExisting) {
-        if (activeStore) if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined; else {
+        if (activeStore) {
+          if (monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined;
+        } else {
           monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         }
@@ -9496,7 +9525,9 @@ export class Runtime {
         const activeStore = monitor.store;
         const activeExisting = activeStore?.get("PIPESTATUS");
         if (!activeExisting) {
-          if (activeStore) if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined; else {
+          if (activeStore) {
+            if (monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
+          } else {
             monitor.lazyPipeStatus = singleStatusZero;
             monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
           }
@@ -9548,7 +9579,7 @@ export class Runtime {
         const activeExisting = activeStore?.get("PIPESTATUS");
         if (!activeExisting) {
           if (activeStore) {
-            if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
+            if (monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
           } else {
             monitor.lazyPipeStatus = singleStatusZero;
             monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
@@ -10391,7 +10422,12 @@ export class Runtime {
                       if (error instanceof ArrayFailure) return undefined;
                       throw error;
                     }
-                  } else if (varCount === 0) monitor.publishStringVariable("REPLY", lineStr); else {
+                  } else if (varCount === 0) {
+                    if (this._syncArithRawWriteOnly && this._syncArithTouched) {
+                      rawState.variables.REPLY = lineStr;
+                      this._syncArithTouched.add("REPLY");
+                    } else monitor.publishStringVariable("REPLY", lineStr);
+                  } else {
                     const isSep = (c: number): boolean => {
                       for (let i = 0; i < ifs.length; i++) {
                         if (ifs.charCodeAt(i) === c) return true;
@@ -10932,7 +10968,7 @@ export class Runtime {
           }
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
-            if (store) { if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined; } else {
+            if (store) { if (monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined; } else {
               monitor.lazyPipeStatus = singleStatusZero;
               monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             }
@@ -11125,7 +11161,7 @@ export class Runtime {
             const activeExisting = activeStore?.get("PIPESTATUS");
             if (!activeExisting) {
               if (activeStore) {
-                if (publishPipelineStatus(rawState, exitStatus === 0 ? singleStatusZero : exitStatus === 1 ? singleStatusOne : [exitStatus], this.signal, scope)) return undefined;
+                if (monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, exitStatus === 0 ? singleStatusZero : exitStatus === 1 ? singleStatusOne : [exitStatus], this.signal, scope)) return undefined;
               } else {
                 monitor.lazyPipeStatus = exitStatus === 0 ? singleStatusZero : exitStatus === 1 ? singleStatusOne : [exitStatus];
                 monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
@@ -11187,7 +11223,7 @@ export class Runtime {
                 const activeExisting = activeStore?.get("PIPESTATUS");
                 if (!activeExisting) {
                   if (activeStore) {
-                    if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
+                    if (monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
                   } else {
                     monitor.lazyPipeStatus = singleStatusZero;
                     monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
@@ -11232,7 +11268,7 @@ export class Runtime {
                     const activeExisting = activeStore?.get("PIPESTATUS");
                     if (!activeExisting) {
                       if (activeStore) {
-                        if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
+                        if (monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
                       } else {
                         monitor.lazyPipeStatus = singleStatusZero;
                         monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
@@ -11418,7 +11454,7 @@ export class Runtime {
               const activeExisting = activeStore?.get("PIPESTATUS");
               if (!activeExisting) {
                 if (activeStore) {
-                  if (publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
+                  if (monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, singleStatusZero, this.signal, scope)) return undefined;
                 } else {
                   monitor.lazyPipeStatus = singleStatusZero;
                   monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);

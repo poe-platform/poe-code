@@ -702,3 +702,36 @@ test("matches bash for Wave 63 sync POSIX [ / test numeric, negated, and compoun
     await shell.dispose();
   }
 });
+
+test("matches bash for Wave 64 sync nested =~ inside compound [[ ... ]], arithmetic expression operands in [[ -eq/-lt ]], and IFS=/IFS=. read <<< in loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  try {
+    const script = [
+      "i=0",
+      "acc=0",
+      "for ((k = 0; k < 150; k++)); do",
+      "  if [[ i+1 -eq 75 || (i%3 -eq 0 && ! (\"v$i\" =~ ^v1[0-9]+$)) ]]; then",
+      "    acc=$((acc + i))",
+      "  fi",
+      "  i=$((i + 1))",
+      "done",
+      "out=\"\"",
+      "for ((k = 0; k < 60; k++)); do",
+      "  IFS= read -r <<< \"  keep_spaces_$k  \"",
+      "  raw=\"$REPLY\"",
+      "  IFS=/ read -r dir sub file <<< \"pkg/mod_$((k % 4))/index.ts\"",
+      "  IFS=. read -r stem ext <<< \"$file\"",
+      "  out=\"$raw|$dir|$sub|$stem|$ext\"",
+      "done",
+      "printf \"%s|%s\\n\" \"$acc\" \"$out\"",
+    ].join("\n");
+
+    const actual = await shell.exec(script);
+    assert.equal(actual.exitCode, 0);
+    assert.equal(actual.stderr, "");
+    assert.equal(actual.stdout, "1712|  keep_spaces_59  |pkg|mod_3|index|ts\n");
+  } finally {
+    await shell.dispose();
+  }
+});

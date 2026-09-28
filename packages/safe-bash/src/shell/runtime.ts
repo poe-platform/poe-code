@@ -8335,6 +8335,7 @@ export class Runtime {
   }
   private tryEvalConditionalSync( expr: ConditionalExpression, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, io: IO, diagnosticLine: number, depth = 0, ): number | undefined {
     if (depth > 8) return undefined;
+    if (io.nameExpansionContext !== "conditional") io = { ...io, nameExpansionContext: "conditional" };
     if (expr.kind === "nonempty") {
       let val: ShellValue | undefined;
       try {
@@ -11659,7 +11660,7 @@ export class Runtime {
           } else if (part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") {
             if (part.alternate && part.alternate.parts.length > 0) return false;
           } else if (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+" || part.operator === "=" || part.operator === ":=") {
-            if (!part.alternate || !part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) return false;
+            if (!part.alternate || !part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring && p.prefixNames !== "@"))) return false;
             if ((part.operator === "=" || part.operator === ":=") && (!isShellIdentifier(part.name) || part.name === "OPTIND" || part.name === "PIPESTATUS" || part.name === "_" || rawState.readonlyVariables?.has(part.name) || rawState.variableAttributes?.get(part.name) || stateMonitor(rawState)?.store?.get(part.name))) return false;
           } else if (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") {
             if (!part.alternate || part.alternate.parts.length === 0) return false;
@@ -18699,6 +18700,8 @@ export class Runtime {
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
     if (pattern || word.parts.length === 0 || (rawState.depth + (io.parameterDepth ?? 0)) >= 32 || hasNonNamerefAttributes(rawState)) return undefined;
+    // An alternate may splice several fields. Refuse before earlier arithmetic can run.
+    if (word.parts.some(part => part.kind === "variable" && defaultParameterOperators.includes(part.operator ?? "") && part.alternate?.parts.some(p => p.kind === "variable" && p.prefixNames === "@"))) return undefined;
     if (guestArrays(state) && word.parts.some(part => part.kind === "arithmetic" && !part.expression.error && !isSafeSmiProgram(part.expression))) return undefined;
     const activeArrayStore = arrayStore(state);
     const rawVars = rawState.variables;
@@ -18854,7 +18857,8 @@ export class Runtime {
           const pNames = this.collectSyncPrefixNames(part.name, rawState);
           if (!pNames) return undefined;
           const ifs = rawVars.IFS ?? " ";
-          const sep = (part.prefixNames === "@" && hereDocument) ? " " : (ifs.length ? ifs[0]! : "");
+          const sep = io.nameExpansionContext === "document" || io.nameExpansionContext === "conditional" && part.prefixNames === "@"
+            ? " " : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
           const joined = pNames.join(sep);
           if (split && !part.quoted) {
             if (joined.length === 0 || joined.includes(" ") || joined.includes("\t") || joined.includes("\n") || (!rawState.noglob && hasGlobOrEscape(joined, !!rawState.extglob))) return undefined;

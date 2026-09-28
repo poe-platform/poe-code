@@ -873,3 +873,37 @@ test("Wave 108: trySyncLoop supports sed whitespace/digit regexes and /i flag, a
     await shell.dispose();
   }
 });
+
+test("Wave 109: trySyncLoop supports tr octal escapes and -t, awk toupper/tolower/substr, jq add/min/max/unique/reverse/first/last/to_entries, and grep -m", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const { createStructuredCommands } = await import("../../src/commands/structured/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands(), ...createStructuredCommands()]),
+  });
+  try {
+    const script = [
+      "s=\"hello world 123\"",
+      "row=\"hello_world SERVICE_A\"",
+      "json=\x27{\"nums\":[10,5,20,5],\"tags\":[\"b\",\"a\",\"b\"]}\x27",
+      "log=$\x27hit_1\\nskip\\nhit_2\\nhit_3\x27",
+      "out=\"\"",
+      "for ((i=1; i<=20; i++)); do",
+      "  t1=$(tr \x27\\040\x27 \x27_\x27 <<< \"$s\")",
+      "  t2=$(tr -t \x27a-z0-9\x27 \x27A-Z\x27 <<< \"$t1\")",
+      "  aw=$(awk \x27{print toupper($1), tolower($2), substr($1, 1, 5)}\x27 <<< \"$row\")",
+      "  js=$(jq -r \x27.nums | add, min, max, first, last\x27 <<< \"$json\")",
+      "  ju=$(jq -c \x27.tags | unique, reverse\x27 <<< \"$json\")",
+      "  gm=$(grep -m2 \"hit\" <<< \"$log\")",
+      "  out=\"$t2|$aw|${js//$\x27\\n\x27/,}|${ju//$\x27\\n\x27/,}|${gm//$\x27\\n\x27/,}\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "HELLO_WORLD_123|HELLO_WORLD service_a hello|40,5,20,10,5|[\"a\",\"b\"],[\"b\",\"a\",\"b\"]|hit_1,hit_2\n");
+  } finally {
+    await shell.dispose();
+  }
+});

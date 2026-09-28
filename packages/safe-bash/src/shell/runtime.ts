@@ -22583,7 +22583,15 @@ export class Runtime {
         else if (next === "t") out.push("\t");
         else if (next === "r") out.push("\r");
         else if (next === "\\") out.push("\\");
-        else return undefined;
+        else if (next >= "0" && next <= "7") {
+          let oct = next;
+          while (oct.length < 3 && i + 1 < spec.length && spec[i + 1]! >= "0" && spec[i + 1]! <= "7") {
+            oct += spec[++i]!;
+          }
+          const code = parseInt(oct, 8);
+          if (code <= 0 || code >= 128) return undefined;
+          out.push(String.fromCharCode(code));
+        } else return undefined;
         continue;
       }
       if (i + 2 < spec.length && spec[i + 1] === "-" && spec[i + 2] !== "\\") {
@@ -22606,19 +22614,22 @@ export class Runtime {
     let flagC = false;
     let flagD = false;
     let flagS = false;
+    let flagT = false;
     while (idx < opArgs.length) {
       const a = opArgs[idx]!;
       if (a === "--") { idx++; break; }
       if (!a.startsWith("-") || a === "-") break;
-      if (!/^-[cCds]+$/.test(a)) return undefined;
+      if (!/^-[cCdst]+$/.test(a)) return undefined;
       for (let k = 1; k < a.length; k++) {
         const ch = a[k]!;
         if (ch === "c" || ch === "C") flagC = true;
         else if (ch === "d") flagD = true;
         else if (ch === "s") flagS = true;
+        else if (ch === "t") flagT = true;
       }
       idx++;
     }
+    if (flagT && flagC) return undefined;
     const sets = opArgs.slice(idx);
     if (flagC) {
       if (sets.some(s => { for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) >= 128) return true; return false; })) return undefined;
@@ -22686,7 +22697,7 @@ export class Runtime {
       return undefined;
     }
     if (!flagD && !flagS && sets.length === 2) {
-      return this.translateSyncTr(input, sets[0]!, sets[1]!);
+      return this.translateSyncTr(input, sets[0]!, sets[1]!, flagT);
     }
     if (flagD && !flagS && sets.length === 1) {
       const arr = this.expandSyncTrCharArray(sets[0]!);
@@ -22715,7 +22726,7 @@ export class Runtime {
     }
     if (sets.length === 2 && (flagS || flagD)) {
       const stage1 = !flagD
-        ? this.translateSyncTr(input, sets[0]!, sets[1]!)
+        ? this.translateSyncTr(input, sets[0]!, sets[1]!, flagT)
         : this.evalSyncTr(input, ["-d", sets[0]!]);
       if (stage1 === undefined) return undefined;
       return this.evalSyncTr(stage1, ["-s", sets[1]!]);
@@ -22764,6 +22775,55 @@ export class Runtime {
     }
     if (st === "values") {
       return item === null || item === undefined ? [] : [item];
+    }
+    if (st === "first") {
+      return Array.isArray(item) ? [item.length > 0 ? item[0] : null] : undefined;
+    }
+    if (st === "last") {
+      return Array.isArray(item) ? [item.length > 0 ? item[item.length - 1] : null] : undefined;
+    }
+    if (st === "reverse") {
+      return Array.isArray(item) ? [[...item].reverse()] : undefined;
+    }
+    if (st === "unique") {
+      if (!Array.isArray(item)) return undefined;
+      if (item.every(x => typeof x === "string" || typeof x === "number" || typeof x === "boolean" || x === null)) {
+        const u = Array.from(new Set(item));
+        u.sort((a, b) => {
+          if (typeof a === "number" && typeof b === "number") return a - b;
+          const sa = String(a);
+          const sb = String(b);
+          return sa < sb ? -1 : sa > sb ? 1 : 0;
+        });
+        return [u];
+      }
+      return undefined;
+    }
+    if (st === "add") {
+      if (!Array.isArray(item)) return undefined;
+      if (item.length === 0) return [null];
+      if (item.every(x => typeof x === "number")) return [(item as number[]).reduce((a, b) => a + b, 0)];
+      if (item.every(x => typeof x === "string")) return [(item as string[]).join("")];
+      if (item.every(x => Array.isArray(x))) return [(item as unknown[][]).flat()];
+      return undefined;
+    }
+    if (st === "min" || st === "max") {
+      if (!Array.isArray(item)) return undefined;
+      if (item.length === 0) return [null];
+      if (item.every(x => typeof x === "number")) {
+        return [st === "min" ? Math.min(...(item as number[])) : Math.max(...(item as number[]))];
+      }
+      if (item.every(x => typeof x === "string")) {
+        const sorted = [...(item as string[])].sort();
+        return [st === "min" ? sorted[0] : sorted[sorted.length - 1]];
+      }
+      return undefined;
+    }
+    if (st === "to_entries") {
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        return [Object.entries(item as Record<string, unknown>).map(([key, value]) => ({ key, value }))];
+      }
+      return undefined;
     }
     const hasM = /^has\(\s*"([^"\\]+)"\s*\)$/.exec(st);
     if (hasM) {
@@ -23245,6 +23305,7 @@ export class Runtime {
   private evalSyncGrep(rawLines: readonly string[], opArgs: readonly string[], errexit: boolean): { lines: string[]; status: number } | undefined {
     if (errexit || opArgs.length < 1 || opArgs.length > 8) return undefined;
     let mode = "";
+    let maxCount = Infinity;
     const rawPatterns: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
@@ -23253,6 +23314,13 @@ export class Runtime {
         rawPatterns.push(opArgs[++i]!);
       } else if (a.startsWith("-e") && a.length > 2) {
         rawPatterns.push(a.slice(2));
+      } else if (a === "-m") {
+        if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,5}$/.test(opArgs[i + 1]!)) return undefined;
+        maxCount = Number(opArgs[++i]!);
+      } else if (a.startsWith("-m") && /^[1-9][0-9]{0,5}$/.test(a.slice(2))) {
+        maxCount = Number(a.slice(2));
+      } else if (a.startsWith("--max-count=") && /^[1-9][0-9]{0,5}$/.test(a.slice(12))) {
+        maxCount = Number(a.slice(12));
       } else if (a.startsWith("-") && a !== "-" && a !== "--" && rawPatterns.length === 0 && i < opArgs.length - 1) {
         mode += a.slice(1);
       } else if (!a.startsWith("-") && rawPatterns.length === 0 && i === opArgs.length - 1) {
@@ -23351,7 +23419,10 @@ export class Runtime {
                 : hay.includes(b.needle);
         if (ok) { hit = true; break; }
       }
-      if (isInvert ? !hit : hit) matched.push(isLineNumber ? `${li + 1}:${l}` : l);
+      if (isInvert ? !hit : hit) {
+        matched.push(isLineNumber ? `${li + 1}:${l}` : l);
+        if (matched.length >= maxCount) break;
+      }
     }
     return {
       lines: isCount ? [String(matched.length)] : matched,
@@ -23487,7 +23558,7 @@ export class Runtime {
         progRest = progRest.slice(cmpCondM[0]!.length).trim();
       }
     }
-    const itemPat = `(?:\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|[a-zA-Z_][a-zA-Z0-9_]*|"[^"$\\\\]*")`;
+    const itemPat = `(?:(?:toupper|tolower)\\(\\$(?:[0-9]+|NF)\\)|substr\\(\\$(?:[0-9]+|NF)\\s*,\\s*[0-9]+(?:\\s*,\\s*[0-9]+)?\\)|\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|[a-zA-Z_][a-zA-Z0-9_]*|"[^"$\\\\]*")`;
     const awkM = new RegExp(`^\\{\\s*print(?:\\s+(${itemPat}(?:\\s*,?\\s*${itemPat})*))?\\s*;?\\s*\\}\\s*$`).exec(progRest);
     if (!awkM) return undefined;
     const exprBody = awkM[1]?.trim();
@@ -23495,26 +23566,30 @@ export class Runtime {
       | { kind: "field"; token: string }
       | { kind: "nf_minus"; offset: number }
       | { kind: "length"; token: string }
+      | { kind: "case"; fn: "upper" | "lower"; token: string }
+      | { kind: "substr"; token: string; start: number; len: number | undefined }
       | { kind: "var"; name: "NR" | "NF" }
       | { kind: "lit"; text: string }
     > = [];
     if (!exprBody) {
       parts.push({ kind: "field", token: "0" });
     } else {
-      const tokenRe = /\$\(NF\s*-\s*([0-9]+)\)|\$([0-9]+|NF)|length(?:\(\$([0-9]+|NF)\))?|(NR|NF)|"([^"$\\]*)"|([a-zA-Z_][a-zA-Z0-9_]*)|(,)/g;
+      const tokenRe = /(toupper|tolower)\(\$([0-9]+|NF)\)|substr\(\$([0-9]+|NF)\s*,\s*([0-9]+)(?:\s*,\s*([0-9]+))?\)|\$\(NF\s*-\s*([0-9]+)\)|\$([0-9]+|NF)|length(?:\(\$([0-9]+|NF)\))?|(NR|NF)|"([^"$\\]*)"|([a-zA-Z_][a-zA-Z0-9_]*)|(,)/g;
       let m: RegExpExecArray | null;
       while ((m = tokenRe.exec(exprBody)) !== null) {
-        if (m[1] !== undefined) parts.push({ kind: "nf_minus", offset: Number(m[1]!) });
-        else if (m[2] !== undefined) parts.push({ kind: "field", token: m[2]! });
-        else if (m[0].startsWith("length")) parts.push({ kind: "length", token: m[3] ?? "0" });
-        else if (m[4] !== undefined) parts.push({ kind: "var", name: m[4] as "NR" | "NF" });
-        else if (m[5] !== undefined) parts.push({ kind: "lit", text: m[5]! });
-        else if (m[6] !== undefined) {
-          const uv = userVars.get(m[6]!);
+        if (m[1] !== undefined) parts.push({ kind: "case", fn: m[1] === "toupper" ? "upper" : "lower", token: m[2]! });
+        else if (m[3] !== undefined) parts.push({ kind: "substr", token: m[3]!, start: Number(m[4]!), len: m[5] !== undefined ? Number(m[5]!) : undefined });
+        else if (m[6] !== undefined) parts.push({ kind: "nf_minus", offset: Number(m[6]!) });
+        else if (m[7] !== undefined) parts.push({ kind: "field", token: m[7]! });
+        else if (m[0].startsWith("length")) parts.push({ kind: "length", token: m[8] ?? "0" });
+        else if (m[9] !== undefined) parts.push({ kind: "var", name: m[9] as "NR" | "NF" });
+        else if (m[10] !== undefined) parts.push({ kind: "lit", text: m[10]! });
+        else if (m[11] !== undefined) {
+          const uv = userVars.get(m[11]!);
           if (uv === undefined) return undefined;
           parts.push({ kind: "lit", text: uv });
         }
-        else if (m[7] !== undefined) parts.push({ kind: "lit", text: ofs });
+        else if (m[12] !== undefined) parts.push({ kind: "lit", text: ofs });
       }
     }
     const outLines: string[] = [];
@@ -23536,6 +23611,16 @@ export class Runtime {
         else if (p.kind === "nf_minus") {
           const idx = fields.length - p.offset;
           out += idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
+        } else if (p.kind === "case") {
+          const idx = p.token === "NF" ? fields.length : Number(p.token);
+          const s = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
+          out += p.fn === "upper" ? s.toUpperCase() : s.toLowerCase();
+        } else if (p.kind === "substr") {
+          const idx = p.token === "NF" ? fields.length : Number(p.token);
+          const s = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
+          const chars = Array.from(s);
+          const s0 = Math.max(0, p.start - 1);
+          out += (p.len !== undefined ? chars.slice(s0, s0 + Math.max(0, p.len)) : chars.slice(s0)).join("");
         } else if (p.kind === "length") {
           const idx = p.token === "NF" ? fields.length : Number(p.token);
           const s = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
@@ -23694,16 +23779,18 @@ export class Runtime {
     return this.evalSyncSort(rawLines, flag !== undefined ? [flag] : [], false) ?? [...rawLines];
   }
 
-  private translateSyncTr(input: string, set1Spec: string, set2Spec: string): string | undefined {
+  private translateSyncTr(input: string, set1Spec: string, set2Spec: string, truncateSet1 = false): string | undefined {
     if ((set1Spec === "a-z" || set1Spec === "[:lower:]") && (set2Spec === "A-Z" || set2Spec === "[:upper:]")) {
       return input.replace(/[a-z]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 32));
     }
     if ((set1Spec === "A-Z" || set1Spec === "[:upper:]") && (set2Spec === "a-z" || set2Spec === "[:lower:]")) {
       return input.replace(/[A-Z]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 32));
     }
-    const s1 = this.expandSyncTrCharArray(set1Spec);
+    const rawS1 = this.expandSyncTrCharArray(set1Spec);
     const s2 = this.expandSyncTrCharArray(set2Spec);
-    if (!s1 || !s2 || s1.length === 0 || s2.length === 0) return undefined;
+    if (!rawS1 || !s2 || rawS1.length === 0 || s2.length === 0) return undefined;
+    const s1 = truncateSet1 ? rawS1.slice(0, s2.length) : rawS1;
+    if (s1.length === 0) return input;
     if (s1.length === 1 && s2.length === 1) return input.split(s1[0]!).join(s2[0]!);
     const map = new Map<string, string>();
     for (let i = 0; i < s1.length; i++) {

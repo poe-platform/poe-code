@@ -218,18 +218,16 @@ pub fn read_commit(
     oid: &str,
 ) -> Result<ReadCommitResult, GitError> {
     let gdir = discover_gitdir(fs, gitdir);
-    let res = _read_object(fs, &gdir, oid, "content")?;
-    let actual_oid = if res.obj_type == "tag" {
-        let tag = GitAnnotatedTag::from_bytes(&res.object).parse();
-        tag.object
-    } else {
-        oid.to_string()
-    };
-    let obj = if actual_oid != oid {
-        _read_object(fs, &gdir, &actual_oid, "content")?
-    } else {
-        res
-    };
+    let mut actual_oid = oid.to_string();
+    let mut obj = _read_object(fs, &gdir, &actual_oid, "content")?;
+    let mut visited = BTreeSet::new();
+    while obj.obj_type == "tag" {
+        if !visited.insert(actual_oid.clone()) {
+            return Err(GitError::not_found(oid));
+        }
+        actual_oid = GitAnnotatedTag::from_bytes(&obj.object).parse().object;
+        obj = _read_object(fs, &gdir, &actual_oid, "content")?;
+    }
     if obj.obj_type != "commit" {
         return Err(GitError::object_type(&actual_oid, &obj.obj_type, "commit", None));
     }

@@ -8369,7 +8369,7 @@ export class Runtime {
     if (scope.hasFailures || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxParseUnits !== Infinity) return undefined;
     // Caller cancellation needs the async loop path. Refuse before redirects
     // spend admission budgets or create effects that fallback would repeat.
-    if (this.budget._hasExternalSignal && (command.kind === "while" || command.kind === "until" || command.kind === "for" || command.kind === "arithmetic-for")) return undefined;
+    if (this.budget._hasExternalSignal && (command.kind === "for" || command.kind === "arithmetic-for")) return undefined;
     const monitor = stateMonitor(state) ?? stateMonitor(trackState(state, this.budget, scope));
     if (!monitor) return undefined;
     const rawState = monitor.raw;

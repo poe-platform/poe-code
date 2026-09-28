@@ -43,6 +43,34 @@ for (const [source, stdout] of [
   });
 }
 
+for (const ifs of [":", ""]) for (const expression of ['${a[*]}', '"${a[*]}"', '${a[@]}', '"${a[@]}"', '"${!a[@]}"']) {
+  for (const route of ["assignment", "here-string"]) {
+    const source = `a=([2]=x [10]=y); IFS='${ifs}'; ` + (route === "assignment"
+      ? `value=${expression}; printf '%s|%s' "$value" "$IFS"`
+      : `IFS= read -r value <<<${expression}; printf '%s|%s' "$value" "$IFS"`);
+    const expected = expression === '"${!a[@]}"' ? `2${ifs || " "}10`
+      : expression.includes("[*]") ? `x${ifs}y` : "x y";
+    test(`scalar ${route} joins ${expression} with IFS=${JSON.stringify(ifs)}`, async () => {
+      for (const bounded of [false, true]) {
+        const result = await run(source, bounded);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, `${expected}|${ifs}`, `bounded=${bounded}`);
+      }
+    });
+  }
+}
+
+for (const expression of ['"${a[*]}"', '"${!a[@]}"']) test(`read prefix preserves raw IFS for ${expression}`, async () => {
+  for (const bounded of [false, true]) {
+    const result = await run(`a=([2]=x [10]=y); IFS=$'\\xff'; IFS= read -r value <<<${expression}; printf '%s|%s' "$value" "$IFS"`, bounded);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    const expected = expression.includes("!") ? [50, 255, 49, 48, 124, 255] : [120, 255, 121, 124, 255];
+    assert.deepEqual([...result.stdoutBytes], expected, `bounded=${bounded}`);
+  }
+});
+
 for (const stage of ['head -n 1', 'tail -n 1', 'rev']) {
   for (const [flag, count] of [['-c', '3'], ['-l', '0']] as const) {
     test(`${stage} preserves an unterminated line before wc ${flag}`, async () => {

@@ -11725,7 +11725,8 @@ export class Runtime {
             }
             return false;
           }
-          if (cmd.body.lists.length === 1 && !cmd.body.lists[0]!.terminator && cmd.body.lists[0]!.pipelines.every(pl => pl.commands.length === 1 && pl.commands[0]!.kind === "simple" && pl.commands[0]!.redirects.length === 0 && (pl.commands[0]!.words[0]?.plain === "echo" ? this.isSyncEchoCallOk(pl.commands[0]!, rawState) : (pl.commands[0]!.words[0]?.plain === "printf" && pl.commands[0]!.words[1]?.plain !== "-v" && this.isSyncPrintfCallOk(pl.commands[0]!, 1, rawState, cmd.kind === "for" ? cmd.name : /^([a-zA-Z_][a-zA-Z_0-9]*)\s*=/.exec(cmd.expressions[0]!.source.trim())?.[1]))))) {
+          const loopVar = cmd.kind === "for" ? cmd.name : /^([a-zA-Z_][a-zA-Z_0-9]*)\s*=/.exec(cmd.expressions[0]!.source.trim())?.[1];
+          if (cmd.body.lists.length === 1 && !cmd.body.lists[0]!.terminator && cmd.body.lists[0]!.pipelines.every(pl => pl.commands.length === 1 && pl.commands[0]!.kind === "simple" && pl.commands[0]!.redirects.length === 0 && (pl.commands[0]!.words[0]?.plain === "echo" ? this.isSyncEchoCallOk(pl.commands[0]!, rawState) : (pl.commands[0]!.words[0]?.plain === "printf" && pl.commands[0]!.words[1]?.plain !== "-v" && this.isSyncPrintfCallOk(pl.commands[0]!, 1, rawState, loopVar))))) {
             continue;
           }
           return false;

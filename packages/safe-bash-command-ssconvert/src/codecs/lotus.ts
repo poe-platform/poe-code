@@ -13,6 +13,7 @@ import { quoteFormulaString, serializeExpression } from "../formulas/serializati
 import { parseExpression } from "../formulas/parser.js";
 import type { FormulaNode, ReferenceEndpoint } from "../formulas/ast.js";
 import { biffDbcsTables } from "../encoding/biff-dbcs-tables.js";
+import { singleByteTables } from "../encoding/tables.js";
 
 export function probeLotus(bytes: Uint8Array, context: CapabilityContext): boolean {
   context.signal.throwIfAborted();
@@ -24,6 +25,14 @@ export function probeLotus(bytes: Uint8Array, context: CapabilityContext): boole
     ([0x404, 0x405, 0x406].includes(version) ? length === 2 : [0x1002, 0x1003, 0x1004, 0x1005].includes(version) && length >= 19);
 }
 const lmbcsDoubleByteCodepages: Readonly<Record<number, number>> = { 0x10: 932, 0x11: 949, 0x12: 950, 0x13: 936 };
+
+function decodeSheetName(bytes: Uint8Array): string {
+  const zero = bytes.indexOf(0);
+  return Array.from(zero < 0 ? bytes : bytes.subarray(0, zero), byte => {
+    const character = singleByteTables["windows-1252"]![byte]!;
+    return character === "\uffff" ? String.fromCharCode(byte) : character;
+  }).join("");
+}
 
 async function lmbcs(bytes: Uint8Array, group: number, context: CapabilityContext): Promise<string> {
   let text = "";
@@ -438,8 +447,7 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
       else {
         // LibreOffice OP_SheetName123: two ignored bytes, a sheet index and
         // a bounded C string. libwps defaults this record to Windows Western.
-        const nameBytes = data.bytes.subarray(4), zero = nameBytes.indexOf(0);
-        const name = new TextDecoder("windows-1252").decode(zero < 0 ? nameBytes : nameBytes.subarray(0, zero));
+        const name = decodeSheetName(data.bytes.subarray(4));
         if (name) sheet(data.u16(2)).name = name;
       }
       continue;
@@ -615,8 +623,7 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
           if (length < 5) await warn(`Record with type 0x1b has wrong length ${length}.`);
           else {
             // libwps readSheetName1B uses the full index and bounded C string.
-            const nameBytes = data.bytes.subarray(4), zero = nameBytes.indexOf(0);
-            const name = new TextDecoder("windows-1252").decode(zero < 0 ? nameBytes : nameBytes.subarray(0, zero));
+            const name = decodeSheetName(data.bytes.subarray(4));
             if (name) sheet(data.u16(2)).name = name;
           }
         } else if (subtype === 0xfa1) {

@@ -22,6 +22,11 @@ it.each([0x1003, 0x1004, 0x1005])("imports indexed .123 sheet names for version 
   expect(book.sheets.map(sheet => sheet.cells)).toEqual([[], []]);
 });
 
+it.each([["0x23", sheetName], ["STYLE", styleSheetName]] as const)("decodes %s Windows Western punctuation and preserves unmapped control bytes", async (_kind, nameRecord) => {
+  const book = await readLotus(file(0x1003, nameRecord(0, Array.from({ length: 32 }, (_, i) => 0x80 + i))), context);
+  expect(book.sheets[0]!.name).toBe("€\u0081‚ƒ„…†‡ˆ‰Š‹Œ\u008dŽ\u008f\u0090‘’“”•–—˜™š›œ\u009džŸ");
+});
+
 it.each([["0x23", sheetName], ["STYLE", styleSheetName]] as const)("uses the final %s sheet name in an earlier direct formula and named range", async (_kind, nameRecord) => {
   const name = record(9, [0, 0, 78, ...Array<number>(15).fill(0), 0, 0, 1, 0, 0, 0, 1, 0]);
   const formula = record(40, [0, 0, 0, 1, ...Array<number>(8).fill(0), 1, 0, 0, 0, 1, 0, 3]);

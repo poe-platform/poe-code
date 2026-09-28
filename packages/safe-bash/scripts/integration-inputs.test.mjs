@@ -964,6 +964,8 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/structured/whole-value-admission.test.ts"));
   assert.ok(files.includes("tests/plugins/portable-agent.test.ts"));
   assert.ok(files.includes("tests/plugins/portable-default-agent.test.ts"));
+  assert.ok(files.includes("tests/plugins/portable-buffer.test.ts"));
+  assert.ok(files.includes("tests/shell/portable-buffer.test.ts"));
   assert.ok(files.includes("tests/plugins/default-executor-refactor.test.ts"));
   assert.ok(files.includes("tests/commands/bytes/checksums/portable.test.ts"));
   assert.ok(files.includes("tests/commands/portable-random.test.ts"));

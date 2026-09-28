@@ -16267,7 +16267,7 @@ export class Runtime {
       if (terminated || !chunk.byteLength) return;
       const nul = chunk.indexOf(0);
       const bytes = nul < 0 ? chunk : chunk.subarray(0, nul);
-      if (bytes.byteLength) { if (bytes.every(b => b < 128)) { allocation.reserve(bytes.byteLength * 2 + 32, 1); const str = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1"); if (typeof chunks[chunks.length - 1] === "string") chunks[chunks.length - 1] = (chunks[chunks.length - 1] as string) + str; else chunks.push(str); } else chunks.push(shellValueFromBytes(bytes, allocation)); }
+      if (bytes.byteLength) { if (bytes.every(b => b < 128)) { allocation.reserve(bytes.byteLength * 2 + 32, 1); const str = latin1Text(bytes); if (typeof chunks[chunks.length - 1] === "string") chunks[chunks.length - 1] = (chunks[chunks.length - 1] as string) + str; else chunks.push(str); } else chunks.push(shellValueFromBytes(bytes, allocation)); }
       terminated = nul >= 0;
     } };
     try {

@@ -19,6 +19,8 @@
     }
   },
   "sideEffects": [
+    "./dist/portable-buffer.js",
+    "./src/portable-buffer.ts",
     "./dist/worker/entry.js",
     "./src/worker/entry.ts"
   ],

@@ -39,13 +39,14 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
+          filter: blob:none
           persist-credentials: false
       - name: Check release queue position and publication state
         id: queue-check
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin main
+          git fetch --filter=blob:none origin main
           if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
             echo "Commit $GITHUB_SHA is not an ancestor of origin/main." >&2
             exit 1
@@ -53,7 +54,7 @@ jobs:
           publication_ref=refs/heads/safe-publication
           remote_head=$(git ls-remote --heads origin "$publication_ref" | cut -f1)
           if [ -n "$remote_head" ]; then
-            git fetch origin "$publication_ref"
+            git fetch --filter=blob:none origin "$publication_ref"
             if [ "$remote_head" = "$GITHUB_SHA" ] || git merge-base --is-ancestor "$GITHUB_SHA" "$remote_head"; then
               echo "::notice::Safe-bash publication already completed at or beyond $GITHUB_SHA ($remote_head); skipping."
               echo "Safe-bash publication already completed at or beyond $GITHUB_SHA ($remote_head); skipping." >> "$GITHUB_STEP_SUMMARY"

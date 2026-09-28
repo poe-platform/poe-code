@@ -70,12 +70,12 @@ jobs:
           gh auth setup-git
           # This ref only advances to same-run validated main commits. It is never forced.
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          git fetch origin main
+          git fetch --filter=blob:none origin main
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
           publication_ref=refs/heads/stable-publication
           remote_head=$(git ls-remote --heads origin "$publication_ref" | cut -f1)
           if [ -n "$remote_head" ]; then
-            git fetch origin "$publication_ref"
+            git fetch --filter=blob:none origin "$publication_ref"
             if [ "$remote_head" != "$GITHUB_SHA" ] && git merge-base --is-ancestor "$GITHUB_SHA" "$remote_head"; then
               echo "::notice::Publication superseded by validated commit $remote_head; this run did not publish."
               echo "Publication superseded by validated commit $remote_head; this run did not publish." >> "$GITHUB_STEP_SUMMARY"

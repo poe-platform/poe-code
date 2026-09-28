@@ -2036,3 +2036,20 @@ it.each([false, true])("preserves canonical filesystem identity from linked comm
   runInContext(consumer.outputFiles[0]!.text, createContext(context));
   expect(context.module.exports.FsError).toBe(CanonicalFsError);
 });
+
+it("preserves xmllint factories when the XML browser adapter shares a chunk", async () => {
+  const fixture = createFsFromVolume(Volume.fromJSON({
+    "/browser/xml.ts": readFileSync(new URL("../packages/safe-bash/src/commands/xml/index.ts", import.meta.url), "utf8"),
+    "/browser/core.ts": 'export { xmlCommands } from "./xml.ts";',
+  }));
+  const result = await build({ entryPoints: { xml: "/browser/xml.ts", core: "/browser/core.ts" }, outdir: "/output", bundle: true, splitting: true, write: false, format: "esm",
+    external: ["safe-bash-command-xmllint", "safe-bash-command-xq"],
+    plugins: [{ name: "xml-memory", setup(builder) {
+      builder.onResolve({ filter: /^\// }, args => ({ path: args.path, namespace: "memory" }));
+      builder.onResolve({ filter: /^\.\//, namespace: "memory" }, args => ({ path: path.posix.resolve(args.resolveDir, args.path), namespace: "memory" }));
+      builder.onLoad({ filter: /.*/, namespace: "memory" }, args => ({ contents: fixture.readFileSync(args.path, "utf8").toString(), loader: "ts", resolveDir: path.posix.dirname(args.path) }));
+    } }],
+  });
+  const output = result.outputFiles.find(file => file.path === "/output/xml.js")!.text;
+  for (const name of ["createXmllintCommand", "createXmllintCommands", "xmllintCommands"]) expect(output).toContain(name);
+});

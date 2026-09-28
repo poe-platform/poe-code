@@ -1,4 +1,5 @@
 export * from "safe-bash-command-xmllint";
+export { createXmllintCommand, createXmllintCommands, xmllintCommands } from "safe-bash-command-xmllint";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createXmllintCommand } from "safe-bash-command-xmllint";
 import { createXqCommand } from "safe-bash-command-xq";

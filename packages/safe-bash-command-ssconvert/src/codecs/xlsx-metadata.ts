@@ -52,6 +52,12 @@ export function readXlsxMetadata(sheet: XmlElement, comments?: XmlElement): read
       return value === undefined ? [] : [gnode(name, { Points: gnumericNumber(numeric(value, 0) * 72, false, 4), PrefUnit: "mm" })];
     })));
     if (setup) {
+      const useFirstPage = attribute(setup, "useFirstPageNumber");
+      if (useFirstPage === "1" || useFirstPage === "true") {
+        const firstPage = numeric(attribute(setup, "firstPageNumber"), 1);
+        if (!Number.isInteger(firstPage)) throw new SsconvertError("io", "E Invalid XLSX: invalid first page number");
+        print.push(gnode("first_page_number", { value: Math.max(0, Math.min(9999, firstPage)) }));
+      }
       const fit = element(element(sheet, "sheetPr"), "pageSetUpPr");
       print.push(attribute(fit, "fitToPage") === "1" || attribute(fit, "fitToPage") === "true"
         ? gnode("Scale", { type: "fit", rows: numeric(attribute(setup, "fitToHeight"), 1), cols: numeric(attribute(setup, "fitToWidth"), 1) })

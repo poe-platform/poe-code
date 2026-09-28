@@ -28,6 +28,8 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
   styles: ReturnType<typeof createXlsxStyles>, charge: (amount?: number) => void) {
   const records = (sheet.unsupportedRecords ?? []).map(record => ({ record, node: metadataNode(record.data, charge) }));
   const pi = records.find(r => r.record.kind === "PrintInformation")?.node;
+  const rawSetup = records.find(r => r.record.kind === "pageSetup" && r.node?.namespace === namespace)?.node;
+  const firstPage = child(pi, "first_page_number")?.attributes.value;
   const scale = child(pi, "Scale"), margins = child(pi, "Margins");
   const fitToPage = ["fit", "size_fit"].includes(scale?.attributes.type ?? "");
   const marginAttrs: Record<string, number> = { left: 1, right: 1, top: 120 / 72, bottom: 120 / 72, header: 1, footer: 1 };
@@ -44,7 +46,8 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
     draft: Number(child(pi, "draft")?.attributes.value ?? 0), errors: errors[child(pi, "errors")?.attributes.PrintErrorsAs ?? ""] ?? "displayed",
     fitToHeight: fitToPage ? Number(scale?.attributes.rows ?? 0) : 0, fitToWidth: fitToPage ? Number(scale?.attributes.cols ?? 0) : 0,
     orientation: child(pi, "orientation")?.text ?? "portrait", pageOrder: child(pi, "order")?.text === "r_then_d" ? "overThenDown" : "downThenOver",
-    paperSize: child(pi, "paper")?.text === "na_letter" ? 1 : 9, scale: Number(scale?.attributes.percentage ?? 100), useFirstPageNumber: 0 }) +
+    paperSize: child(pi, "paper")?.text === "na_letter" ? 1 : 9, scale: Number(scale?.attributes.percentage ?? 100), firstPageNumber: rawSetup?.attributes.firstPageNumber ?? firstPage,
+    useFirstPageNumber: rawSetup?.attributes.useFirstPageNumber ?? (Number(firstPage ?? 0) ? 1 : 0) }) +
     xml("headerFooter", {}, xml("oddHeader", {}, escapeXlsx(header(child(pi, "Header"), "&C&A"))) + xml("oddFooter", {}, escapeXlsx(header(child(pi, "Footer"), "&CPage &P"))));
   for (const [gnm, name, max] of [["vPageBreaks", "rowBreaks", 16383], ["hPageBreaks", "colBreaks", 1048575]] as const) {
     const breaks = child(pi, gnm); if (breaks) print += xml(name, { count: breaks.children.length }, breaks.children.map(b => xml("brk", {

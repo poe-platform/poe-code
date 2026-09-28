@@ -39,6 +39,7 @@ export function sheetPrintSettings(sheet: Sheet, context: CapabilityContext) {
     return { name: data.name, text: data.text, attributes, children };
   };
   const margins = { top: 120, bottom: 120, left: 72, right: 72 };
+  let firstPageNumber: number | undefined;
   let headerPoints = 72, footerPoints = 72, paper: string | undefined;
   let orientation: PrintLayoutRequest["orientation"] = "portrait";
   let scale: PrintLayoutRequest["scale"] = { kind: "percentage", x: 100, y: 100 };
@@ -67,6 +68,10 @@ export function sheetPrintSettings(sheet: Sheet, context: CapabilityContext) {
           else if (margin.name === "header") headerPoints = value;
           else if (margin.name === "footer") footerPoints = value;
         }
+      } else if (node.name === "first_page_number") {
+        const value = number("value", 0);
+        if (!Number.isInteger(value) || value < 0 || value > 9999) unsupported("invalid first page number");
+        firstPageNumber = value || undefined;
       } else if (node.name === "paper") paper = node.text;
       else if (node.name === "orientation") orientation = node.text === "landscape" ? "landscape" : "portrait";
       else if (node.name === "Scale") {
@@ -114,5 +119,5 @@ export function sheetPrintSettings(sheet: Sheet, context: CapabilityContext) {
       } else if (!["PrintUnit", "print_range", "print-to-uri"].includes(node.name)) unsupported(node.name);
     }
   }
-  return { rowBreaks, columnBreaks, margins, headerPoints, footerPoints, header, footer, paper, orientation, scale, centerHorizontally, centerVertically, acrossThenDown, doNotPrint };
+  return { firstPageNumber, rowBreaks, columnBreaks, margins, headerPoints, footerPoints, header, footer, paper, orientation, scale, centerHorizontally, centerVertically, acrossThenDown, doNotPrint };
 }

@@ -257,7 +257,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       objects: { object: SheetObject; rectangle: ReturnType<typeof rectangleFor> }[];
       layout: ReturnType<typeof layoutPrintPages>;
     }[] = [];
-    let pageCount = 0;
+    let pageCount = 0, nextPageNumber = 1;
     for (const sheet of book.sheets) {
       tick();
       if (chosen && !chosen.includes(sheet.id) || sheet.visibility && sheet.visibility !== "visible") continue;
@@ -290,7 +290,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         area = { startRow: 0, startColumn: 0, endRow: Math.max(area.endRow, endRow), endColumn: Math.max(area.endColumn, endColumn) };
       }
       if (area.endRow < area.startRow || area.endColumn < area.startColumn) continue;
-      const layout = layoutPrintPages({ area, startPage: pageCount + 1, defaultRowPoints: typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75,
+      const startPage = print.firstPageNumber ?? nextPageNumber;
+      const layout = layoutPrintPages({ area, startPage, defaultRowPoints: typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75,
         defaultColumnPoints: typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48,
         ...(sheet.rows ? { rows: sheet.rows } : {}), ...(sheet.columns ? { columns: sheet.columns } : {}),
         paper: { widthPoints: paper[0], heightPoints: paper[1] }, margins: print.margins,
@@ -298,6 +299,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         orientation: print.orientation, scale: print.scale, centerHorizontally: print.centerHorizontally,
         centerVertically: print.centerVertically, acrossThenDown: print.acrossThenDown }, context);
       tick(layout.pages.length);
+      nextPageNumber = startPage + layout.pages.length;
       pageCount += layout.pages.length;
       if (!Number.isSafeInteger(pageCount)) throw new SsconvertError("resource-limit", "ssconvert PDF page count limit exceeded");
       printedSheets.push({ sheet, print, positions, objects, layout });

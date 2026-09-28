@@ -683,6 +683,8 @@ it.each([false, true])("admits asset-only contract owners against the full priva
         if (!filename.endsWith(".ts") || filename.endsWith(".test.ts") || filename === "fixtures.ts") continue;
         const source = readFileSync(path.join(directory, "src", filename), "utf8");
         const compilerOptions = { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 };
+        volume.mkdirSync(path.dirname(`/repo/packages/${name}/src/${filename}`), { recursive: true });
+        volume.writeFileSync(`/repo/packages/${name}/src/${filename}`, source);
         volume.mkdirSync(path.dirname(`/repo/packages/${name}/dist/${filename}`), { recursive: true });
         const distJs = path.join(directory, "dist", `${filename.slice(0, -3)}.js`);
         if (existsSync(distJs)) volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, readFileSync(distJs, "utf8"));
@@ -772,18 +774,11 @@ it.each([false, true])("admits asset-only contract owners against the full priva
           const target = pkg.exports[key] ?? pkg.exports["./contracts/*"];
           filename = `/output/${name}/` + (target.browser ?? target.import).replace("*", route.slice(1).join("/"));
         } else filename = path.resolve(args.resolveDir, specifier);
-        if (builder.initialOptions.outdir === "/repo/packages" && filename.includes("/src/")) {
-          filename = filename.replace("/src/", "/dist/");
-          if (filename.endsWith(".ts")) filename = filename.slice(0, -3) + ".js";
-        }
-        if (!filename.startsWith("/output/") && filename !== "/repo/packages/safe-bash/browser/buffer.mjs" && !privatePackages.some(name => filename.startsWith(`/repo/packages/${name}/dist/`))) throw new Error("Outside isolated consumer: " + filename);
+        if (filename.endsWith(".js") && volume.existsSync(filename.slice(0, -3) + ".ts")) filename = filename.slice(0, -3) + ".ts";
+        if (!filename.startsWith("/output/") && filename !== "/repo/packages/safe-bash/browser/buffer.mjs" && !privatePackages.some(name => filename.startsWith(`/repo/packages/${name}/dist/`) || filename.startsWith(`/repo/packages/${name}/src/`))) throw new Error("Outside isolated consumer: " + filename);
         return { path: path.normalize(filename), namespace: "packed" };
       });
-      builder.onLoad({ filter: /.*/, namespace: "packed" }, args => ({
-        contents: volume.readFileSync(args.path) as Buffer,
-        loader: args.path.endsWith(".wasm") ? "dataurl" : "js",
-        resolveDir: path.dirname(args.path),
-      }));
+      builder.onLoad({ filter: /.*/, namespace: "packed" }, args => ({ contents: volume.readFileSync(args.path) as Buffer, loader: args.path.endsWith(".wasm") ? "dataurl" : args.path.endsWith(".ts") ? "ts" : "js", resolveDir: path.dirname(args.path) }));
     } };
 
   // Package the prepared source graph in a separate setup stage.

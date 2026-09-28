@@ -2792,6 +2792,13 @@
           "probeCorrections": "Bare require checked an esbuild lexical shim; corrected to globalThis. Shell constructor expects CommandRegistry, so commands registered through Shell.register. Neither probe mistake is a product defect.",
           "cleanup": "Workers terminated; browser and loopback servers closed; screenshot inspected then removed. Only console error was missing favicon.ico."
         }
+      },
+      "arrayStarReference": {
+        "source": "https://ftp.gnu.org/gnu/bash/bash-5.2.37.tar.gz",
+        "sha256": "9599b22ecd1d5787ad7d3b7bf0c59f312b3396d1e281175dd1f8a4014da621ff",
+        "finding": "subst.c:7458-7464 forces quoted array-all expansion on assignment RHS; arrayfunc.c:1549-1556 uses string_list_dollar_star for star, joining with IFS. The earlier local space-join repair followed historical macOS Bash 3.2. Incoming ff8b0c2f79 correctly targets GNU Bash 5.2.37. Reconcile both default and bounded paths against that source on rebase; do not preserve the historical fast-path change as current parity.",
+        "remaining": "Modern scalar/key joining remains tracked in #3779 and integration #3360. No runtime correction or modern-native execution is claimed here.",
+        "receipt": "out/ssconvert-release-investigation/bash-array-star-source/source.json"
       }
     }
   },

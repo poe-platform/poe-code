@@ -411,10 +411,10 @@ export function createCheckCache({
         if (entry.name === preserveName || keptBytes + entry.size <= targetDirectoryBytes) {
           keptBytes += entry.size;
         } else {
-          try { fileSystem.rmSync(entry.full, { force: true }); } catch {}
+          try { fileSystem.rmSync(entry.full, { force: true }); } catch { /* Pruning is best effort; retain entries that cannot be removed. */ }
         }
       }
-    } catch {}
+    } catch { /* Cache enumeration failures must not prevent writing a fresh entry. */ }
   };
   const writeTo = (key, value, baseDirectory) => {
     const destination = filename(key, baseDirectory);

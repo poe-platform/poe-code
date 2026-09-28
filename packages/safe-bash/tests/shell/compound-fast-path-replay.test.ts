@@ -572,3 +572,54 @@ for (const [operator, expected] of [["/?/X", "Xa"], ["#?", "a"], ["%?", "🙂"]]
     } finally { await shell.dispose(); }
   });
 }
+test("sync loop set -- positional updates, case ;& and ;;& terminators, let builtin, and indirect array element expansion match Bash", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  for (const command of textCommands()) shell.commands.register(command, { replace: true });
+  try {
+    const script = [
+      "step() {",
+      "  set -- 1 1",
+      "  for ((i = 0; i < 40; i++)); do",
+      "    set -- \"$2\" \"$(( ($1 + $2) % 1000 ))\"",
+      "  done",
+      "  printf \"%s:%s\\n\" \"$1\" \"$2\"",
+      "}",
+      "step",
+      "arr=(x y)",
+      "for ((i = 0; i < 12; i++)); do",
+      "  set -- \"${arr[@]}\" \"$i\"",
+      "done",
+      "printf \"%s:%s:%s:%s\\n\" \"$#\" \"$1\" \"$2\" \"$3\"",
+      "acc=0",
+      "for ((i = 0; i < 15; i++)); do",
+      "  case \"$((i % 3))\" in",
+      "    0) ((acc += 1)) ;&",
+      "    1) ((acc += 2)) ;;&",
+      "    [012]) ((acc += 4)) ;;",
+      "  esac",
+      "done",
+      "printf \"case=%s\\n\" \"$acc\"",
+      "lacc=0",
+      "for ((i = 0; i < 20; i++)); do",
+      "  let \"lacc += i\" \"lacc += 2\"",
+      "done",
+      "printf \"let=%s\\n\" \"$lacc\"",
+      "nums=(10 20 30 40)",
+      "declare -A map=([k0]=5 [k1]=6)",
+      "isum=0",
+      "for ((i = 0; i < 16; i++)); do",
+      "  r1=\"nums[$((i % 4))]\"",
+      "  r2=\"map[k$((i % 2))]\"",
+      "  isum=$((isum + ${!r1} + ${!r2}))",
+      "done",
+      "printf \"ind=%s\\n\" \"$isum\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0);
+    assert.equal(res.stderr, "");
+    assert.equal(res.stdout, "141:296\n3:x:y:11\ncase=85\nlet=230\nind=488\n");
+  } finally {
+    await shell.dispose();
+  }
+});

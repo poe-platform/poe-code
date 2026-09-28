@@ -428,12 +428,12 @@ dual_fixture_test!(walk_populates_type_mode_oid_content, walk_populates_type_mod
                 assert_eq!(w.content(), Some(&b"Hello\n"[..]));
                 assert_eq!(t.oid(), Some("e965047ad7c57865823c7d992b1d046ea66edf78"));
                 assert_eq!(s.oid(), Some("e965047ad7c57865823c7d992b1d046ea66edf78"));
-                return Ok(Some(filepath.to_string()));
+                return Ok(Some(Some(filepath.to_string())));
             }
-            Ok(None)
+            Ok(Some(None))
         },
     )
-    .unwrap();
+    .unwrap().into_iter().flatten().collect::<Vec<_>>();
     assert_eq!(res, vec!["a.txt".to_string()]);
 });
 
@@ -443,11 +443,11 @@ dual_fixture_test!(walk_autocrlf_and_symlinks, walk_autocrlf_and_symlinks_sub, "
     f.fs.write_str(&join(&[&f.dir, "a.txt"]), "Hello\r\nagain");
     let oids = walk(&f.fs, Some(&f.dir), &f.gitdir, &[WORKDIR()], |filepath, entries| {
         if filepath == "a.txt" {
-            return Ok(entries[0].as_ref().and_then(|e| e.oid().map(|s| s.to_string())));
+            return Ok(Some(entries[0].as_ref().and_then(|e| e.oid().map(|s| s.to_string()))));
         }
-        Ok(None)
+        Ok(Some(None))
     })
-    .unwrap();
+    .unwrap().into_iter().flatten().collect::<Vec<_>>();
     assert_eq!(oids, vec!["e855bd8b67cc7ee321e4dec1b9e5b17e13aec8e1".to_string()]);
 
     // Symlink target content
@@ -455,11 +455,11 @@ dual_fixture_test!(walk_autocrlf_and_symlinks, walk_autocrlf_and_symlinks_sub, "
     let broken = walk(&f.fs, Some(&f.dir), &f.gitdir, &[WORKDIR()], |filepath, entries| {
         if filepath == "broken-link.txt" {
             let e = entries[0].as_ref().unwrap();
-            return Ok(Some((e.mode().unwrap(), String::from_utf8_lossy(e.content().unwrap()).to_string())));
+            return Ok(Some(Some((e.mode().unwrap(), String::from_utf8_lossy(e.content().unwrap()).to_string()))));
         }
-        Ok(None)
+        Ok(Some(None))
     })
-    .unwrap();
+    .unwrap().into_iter().flatten().collect::<Vec<_>>();
     assert_eq!(broken, vec![(0o120000, "non-existent-file.txt".to_string())]);
 });
 
@@ -1098,13 +1098,13 @@ dual_fixture_test!(walk_autocrlf_respected_when_gitconfig_changes, walk_autocrlf
     f.fs.write_str(&join(&[&f.dir, "crlf.txt"]), "line1\r\nline2\r\n");
     set_config(&f.fs, &f.gitdir, "core.autocrlf", Some("false"), false).unwrap();
     let oid_false = walk(&f.fs, Some(&f.dir), &f.gitdir, &[WORKDIR()], |p, es| {
-        if p == "crlf.txt" { Ok(Some(es[0].as_ref().unwrap().oid().unwrap_or_default().to_string())) } else { Ok(None) }
-    }).unwrap()[0].clone();
+        if p == "crlf.txt" { Ok(Some(Some(es[0].as_ref().unwrap().oid().unwrap_or_default().to_string()))) } else { Ok(Some(None)) }
+    }).unwrap().into_iter().flatten().collect::<Vec<_>>()[0].clone();
 
     set_config(&f.fs, &f.gitdir, "core.autocrlf", Some("true"), false).unwrap();
     let oid_true = walk(&f.fs, Some(&f.dir), &f.gitdir, &[WORKDIR()], |p, es| {
-        if p == "crlf.txt" { Ok(Some(es[0].as_ref().unwrap().oid().unwrap_or_default().to_string())) } else { Ok(None) }
-    }).unwrap()[0].clone();
+        if p == "crlf.txt" { Ok(Some(Some(es[0].as_ref().unwrap().oid().unwrap_or_default().to_string()))) } else { Ok(Some(None)) }
+    }).unwrap().into_iter().flatten().collect::<Vec<_>>()[0].clone();
     assert_ne!(oid_false, oid_true);
 });
 
@@ -1114,11 +1114,11 @@ dual_fixture_test!(walk_symlink_content_and_nonexistent_target, walk_symlink_con
     let link_data = walk(&f.fs, Some(&f.dir), &f.gitdir, &[WORKDIR()], |p, es| {
         if p == "broken-link" {
             let e = es[0].as_ref().unwrap();
-            Ok(Some((e.oid().unwrap_or_default().to_string(), e.content().map(|b| b.to_vec()).unwrap_or_default())))
+            Ok(Some(Some((e.oid().unwrap_or_default().to_string(), e.content().map(|b| b.to_vec()).unwrap_or_default()))))
         } else {
-            Ok(None)
+            Ok(Some(None))
         }
-    }).unwrap();
+    }).unwrap().into_iter().flatten().collect::<Vec<_>>();
     assert_eq!(link_data.len(), 1);
     assert_eq!(link_data[0].1, b"nonexistent-target.txt");
 });
@@ -1128,8 +1128,8 @@ dual_fixture_test!(walk_symlink_content_matches_git_target_bytes, walk_symlink_c
     f.fs.write_str(&join(&[&f.dir, "real.txt"]), "real file body");
     let _ = f.fs.writelink(&join(&[&f.dir, "sym.txt"]), b"real.txt");
     let sym_bytes = walk(&f.fs, Some(&f.dir), &f.gitdir, &[WORKDIR()], |p, es| {
-        if p == "sym.txt" { Ok(Some(es[0].as_ref().unwrap().content().map(|b| b.to_vec()).unwrap_or_default())) } else { Ok(None) }
-    }).unwrap();
+        if p == "sym.txt" { Ok(Some(Some(es[0].as_ref().unwrap().content().map(|b| b.to_vec()).unwrap_or_default()))) } else { Ok(Some(None)) }
+    }).unwrap().into_iter().flatten().collect::<Vec<_>>();
     assert_eq!(sym_bytes[0], b"real.txt");
 });
 

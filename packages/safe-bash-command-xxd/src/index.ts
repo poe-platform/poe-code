@@ -315,7 +315,18 @@ function hexDigit(byte: number): number {
   return -1;
 }
 
-async function reversePlain(context: CommandContext, files: readonly string[], maxInputBytes: number): Promise<void> {
+async function padToAddress(context: CommandContext, start: number, address: number): Promise<void> {
+  if (!Number.isSafeInteger(address) || address < start) throw new PublicDiagnostic("invalid input: cannot seek backwards on output stream");
+  while (start < address) {
+    const length = Math.min(blockSize, address - start);
+    await output(context, new Uint8Array(length));
+    start += length;
+    await yieldTurn(context.signal);
+  }
+}
+
+async function reversePlain(context: CommandContext, files: readonly string[], maxInputBytes: number, seek: number): Promise<void> {
+  await padToAddress(context, 0, seek);
   let high = -1;
   for await (const chunk of sources(context, files, maxInputBytes)) {
     const pending: number[] = [];
@@ -368,14 +379,9 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
       address = address * 16 + digit;
     }
     address = addOffset(address, seek);
-    if (address < offset) throw new PublicDiagnostic("invalid input: cannot seek backwards on output stream");
     await flushOut();
-    while (offset < address) {
-      const length = Math.min(blockSize, address - offset);
-      await output(context, new Uint8Array(length));
-      offset += length;
-      await yieldTurn(context.signal);
-    }
+    await padToAddress(context, offset, address);
+    offset = address;
     let count = 0;
     let high = -1;
     let spaces = 0;
@@ -540,7 +546,7 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       throw new UsageError("reverse does not support seek, length, displacement, or decimal addresses");
     }
     if (reverse) {
-      if (plain) await reversePlain(context, files, maxInputBytes);
+      if (plain) await reversePlain(context, files, maxInputBytes, skip);
       else await reverseNormal(context, files, columns, maxInputBytes, skip);
       return { exitCode: 0 };
     }

@@ -20636,7 +20636,7 @@ export class Runtime {
           if (flag === "r") { raw = true; continue; }
           if (flag === "s") continue;
           if (flag !== "n" && flag !== "N" && flag !== "d" && flag !== "a" && flag !== "p" && flag !== "u") { invalid = true; break; }
-          if (flag === "n" || flag === "N") exact = flag === "N";
+          if (flag === "N") exact = true;
           const value = option.slice(index + 1) || names.shift();
           if (value === undefined) invalid = true;
           else if (flag === "p") { /* Consume the prompt without terminal output. */ } else if (flag === "u") {

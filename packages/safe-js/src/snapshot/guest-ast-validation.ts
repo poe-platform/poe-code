@@ -1,3 +1,9 @@
+export function isConstructibleGuestFunction(origin: Record<string, unknown>, record: Record<string, unknown>): boolean {
+  return origin.type !== "ArrowFunctionExpression" && !origin.generator &&
+    !(origin.type === "FunctionExpression" && origin.method === true) && !origin.async &&
+    !(record.environment as Record<string, unknown> | undefined)?.classInitializer;
+}
+
 function privateAssignmentName(value: unknown): string | undefined {
   if (value === null || typeof value !== "object") return undefined;
   let node = value as Record<string, unknown>;

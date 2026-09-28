@@ -6,7 +6,8 @@ import { wellKnownSymbols } from "../interp/symbols.js";
 import { types } from "#safe-js-platform";
 import type { Budget, CompileOwner } from "../interp/budget.js";
 import { createModuleSource, createDynamicSource, createEvalSource, type DynamicSource, type EvalSourceContext } from "../parse/dynamic-source.js";
-import type { ParseResult } from "../parse/parser.js";
+import { parseExecutableModule, type ParseResult } from "../parse/parser.js";
+import { validateGuestHeapSource } from "./guest-heap-source.js";
 import { ParseError } from "../parse/format-error.js";
 import { DUMP_FORMAT_VERSION, EXECUTION_SEMANTICS, inMemoryRunSnapshots } from "./dump-format.js";
 import { validateTypedArrayStorage } from "./typed-array.js";
@@ -20,7 +21,7 @@ import { getIntrinsicIdentity } from "../interp/intrinsics.js";
 import { isSandboxModuleNamespace } from "../interp/module-namespace.js";
 import { isSandboxClosure, snapshotRuntimeGetters } from "../interp/values.js";
 import { validateGuestHeapNode, validateGuestHeapGraphs } from "./guest-heap-validation.js";
-import { validateGuestFunctionAst } from "./guest-ast-validation.js";
+import { isConstructibleGuestFunction, validateGuestFunctionAst } from "./guest-ast-validation.js";
 import { validateTemplateObjects } from "./template-validation.js";
 
 const TAGGED_VALUE_KINDS = new Set([
@@ -97,7 +98,7 @@ export function validateSnapshotData(value: unknown): void {
 
 export function validateDumpEnvelope(
   snapshot: unknown,
-  options: { resume?: boolean } = {}
+  options: { resume?: boolean; source?: string } = {}
 ): asserts snapshot is Record<string, unknown> {
   const limits = limitsFromBudget();
   const root = requireRecord(snapshot, "$");
@@ -145,6 +146,10 @@ export function validateDumpEnvelope(
   validateGenericValue(root, "$", 0, state);
   validateRunSnapshotState(root, state);
   validateDumpHeap(root, state);
+  if (options.source !== undefined && root.heap !== undefined) {
+    try { validateGuestHeapSource(root.heap as Record<string, unknown>, parseExecutableModule(options.source)); }
+    catch (error) { fail("invalidValue", "$.heap", String(error)); }
+  }
 }
 
 function validateDumpHeap(root: Record<string, unknown>, state: ValidationState): void {
@@ -540,6 +545,7 @@ export function validateInterpreterSnapshot(
       }
     }
   }
+  const constructibility = new Map<string, boolean>();
   for (const [key, value] of Object.entries(heap)) {
     const record = value as Record<string, unknown>;
     if (record.kind === "guest-function" || record.kind === "guest-class" || record.kind === "guest-generator") {
@@ -547,10 +553,15 @@ export function validateInterpreterSnapshot(
         : dynamicSources.get((record.dynamicSource as {id: number}).id)!.nodes;
       const id = requireNodeId(record.astNodeId, `$.heap${formatKey(key)}.astNodeId`, nodes);
       const node = nodes.get(id);
-      try { validateGuestFunctionAst(record, node); }
+      try {
+        validateGuestFunctionAst(record, node);
+        if (record.kind === "guest-function") constructibility.set(key, isConstructibleGuestFunction(node as unknown as Record<string, unknown>, record));
+      }
       catch (error) { fail("invalidValue", `$.heap${formatKey(key)}`, String(error)); }
     }
   }
+  try { validateGuestHeapGraphs(heap, constructibility); }
+  catch (error) { fail("invalidValue", "$.heap", String(error)); }
   try { validateTemplateObjects(heap, nodeById.values(), dynamicSources); }
   catch (error) { fail("invalidValue", "$.heap", String(error)); }
 }

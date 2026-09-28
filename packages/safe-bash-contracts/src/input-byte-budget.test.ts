@@ -31,3 +31,24 @@ test("input budget yields under frozen clocks and observes timer aborts", async 
     else Reflect.deleteProperty(performance, "now");
   }
 });
+
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createCommandArguments } from "./command.js";
+
+test("command input budgeting never overrides methods on a scoped filesystem proxy", async () => {
+  const memory = createMemoryFileSystem();
+  await memory.writeFile("/in", new Uint8Array([65]));
+  const fs = new Proxy(memory, {
+    set(target, property, value) { return Reflect.set(target, property, value, target); },
+  });
+  const originalRead = fs.readFile;
+  await new InputByteBudget(1).run({
+    command: "probe", args: createCommandArguments([]).args, cwd: "/", env: {}, fs,
+    stdin: (async function* () {})(), stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    signal: new AbortController().signal,
+  }, async limited => {
+    assert.equal(fs.readFile, originalRead);
+    assert.deepEqual(await limited.fs.readFile("/in"), new Uint8Array([65]));
+    return { exitCode: 0 };
+  });
+});

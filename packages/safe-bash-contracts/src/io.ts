@@ -1018,17 +1018,17 @@ export class InputByteBudget {
     const limited = {
       ...context,
       stdin: this.read(context.stdin, context.signal),
-      fs: Object.assign(Object.create(fs), {
-        readFile: async (...args: Parameters<typeof fs.readFile>) => {
+      fs: Object.create(fs, {
+        readFile: { value: async (...args: Parameters<typeof fs.readFile>) => {
           this.assertOpen();
           const bytes = await fs.readFile(...args);
           this.charge(bytes.byteLength);
           return bytes;
-        },
-        ...(fs.readStream ? { readStream: (...args: Parameters<NonNullable<typeof fs.readStream>>) => {
+        } },
+        ...(fs.readStream ? { readStream: { value: (...args: Parameters<NonNullable<typeof fs.readStream>>) => {
           this.assertOpen();
           return this.read(fs.readStream!(...args), context.signal);
-        } } : {}),
+        } } } : {}),
       }),
       inputBudget: {
         maxBytes: Math.min(this.maximum, context.inputBudget?.maxBytes ?? Infinity),

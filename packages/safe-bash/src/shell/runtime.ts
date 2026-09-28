@@ -2807,12 +2807,6 @@ let lastPurePipeSlice1 = "";
 let lastPurePipeRegistry: unknown;
 const lastPurePipeOutBuf = new Uint8Array(256);
 let lastPurePipeOutLen = 0;
-let lastPureFindPipeAst: unknown;
-let lastPureFindDirSize = -1;
-let lastPureFindFirstKey = "";
-let lastPureFindLastKey = "";
-const lastPureFindOutBuf = new Uint8Array(64);
-let lastPureFindOutLen = 0;
 function finishSyncPurePipelineAsync( resPromise: CommandResult | Promise<CommandResult>, budget: Budget, n: number, negate: boolean, rawState: State, ): Promise<{ exitCode: number; terminated: boolean }> {
   return Promise.resolve(resPromise).then(res => {
     budget.leavePipelineStages(n);
@@ -6223,21 +6217,14 @@ export class Runtime {
       return undefined;
     }
     const umask = rawState.umask ?? 0o022;
-    let skippedMkdirDeadRm = false;
     if (leadingMkdirUnit !== undefined && leadingMkdirPaths !== undefined) {
       if ((umask & 0o300) !== 0 || (this._outputFiles !== undefined && this._outputFiles.size > 0) || hasShellFunction(rawState, "mkdir") || rawState.extensions?.builtins.has("mkdir")) return undefined;
       const mkdirDef = this.commands.get("mkdir");
       if (!mkdirDef || !defaultMkdirExecutors.has(mkdirDef.execute)) return undefined;
-      const cachedRm = (firstCc as { _cachedRmTarget?: string | null })._cachedRmTarget;
       const dirMode = 0o777 & ~umask;
       try {
         for (let mi = 0; mi < leadingMkdirPaths.length; mi++) {
           const mp = leadingMkdirPaths[mi]!;
-          if (cachedRm && mp === cachedRm && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, mp) === undefined) {
-            skippedMkdirDeadRm = true;
-            this.budget.fileSystemOperation();
-            continue;
-          }
           if (!tryMkdirMemorySync(this.backingFs, mp, true, dirMode, this.commandSignal, firstCc.dirPrefix.startsWith(mp) && firstCc.dirPrefix.length === mp.length + 1 ? firstCc.dirPrefix : undefined)) return undefined;
           this.budget.fileSystemOperation();
         }
@@ -6268,7 +6255,8 @@ export class Runtime {
       writeMemoryFilesInDirBatchFast(firstFn: string, d: string, fns: readonly string[], hashes: Int32Array, payloads: readonly Uint8Array[], totalNameBytes: number, payloadBytesSum: number, m: number): void;};
     let deadRmTarget: string | undefined;
     let deadRmTargetLen = 0;
-    if (mem.symlinkCount === 0 && curLocale === false) {
+    const rmDef = this.commands.get("rm");
+    if (mem.symlinkCount === 0 && curLocale === false && rmDef && defaultRmExecutors.has(rmDef.execute) && !hasShellFunction(rawState, "rm") && !rawState.extensions?.builtins.has("rm")) {
       const cachedCc = firstCc as { _cachedRmTarget?: string | null; _cachedScanCount?: number };
       let target = cachedCc._cachedRmTarget;
       let scanCount = cachedCc._cachedScanCount ?? 0;
@@ -6294,7 +6282,7 @@ export class Runtime {
         cachedCc._cachedRmTarget = target;
         cachedCc._cachedScanCount = scanCount;
       }
-      if (target !== null && this.budget.commands + scanCount + 1 <= this.budget.maxCommandsSmi && (skippedMkdirDeadRm || tryGetMemoryDirectoryEntryNamesSync(this.backingFs, target)?.size === 0)) {
+      if (target !== null && this.budget.commands + scanCount + 1 <= this.budget.maxCommandsSmi && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, target)?.size === 0) {
         deadRmTarget = target;
         deadRmTargetLen = target.length;
       }
@@ -6397,14 +6385,11 @@ export class Runtime {
       const rmUnit = cur.nextCached;
       const rmCmd0 = rmUnit.unit.script.lists[0]?.pipelines[0]?.commands[0];
       if (rmDef && defaultRmExecutors.has(rmDef.execute) && rmCmd0 && rmCmd0.kind === "simple" && rmCmd0.words[0]?.plain === "rm" && rmCmd0.words[2]?.plain === deadRmTarget) {
-        let rmOk = skippedMkdirDeadRm;
-        if (!rmOk) {
-          try {
-            rmOk = tryRmRfMemorySync(this.backingFs, deadRmTarget, this.commandSignal);
-          } catch {
-            this.signal.throwIfAborted();
-            rmOk = false;
-          }
+        let rmOk = false;
+        try {
+          rmOk = tryRmRfMemorySync(this.backingFs, deadRmTarget, this.commandSignal);
+        } catch {
+          this.signal.throwIfAborted();
         }
         if (rmOk) {
           this.budget.parsing.admit(rmUnit.unitsCharged);
@@ -6412,30 +6397,6 @@ export class Runtime {
           (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations++;
           lastArg = deadRmTarget;
           cur = rmUnit;
-          const findUnit = cur.nextCached;
-          if ( findUnit !== undefined && findUnit.unit.next >= sourceLength && findUnit.locale === false && (!findUnit.unit.script.warnings || findUnit.unit.script.warnings.length === 0) && findUnit.unit.script.lists.length === 1 && findUnit.unit.script.lists[0]!.pipelines.length === 1 && findUnit.unit.script.lists[0]!.pipelines[0] === lastPureFindPipeAst && Date.now === defaultDateNow && io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write && !hasShellFunction(rawState, "find") && !hasShellFunction(rawState, "wc") && !rawState.extensions?.builtins.has("find") && !rawState.extensions?.builtins.has("wc") && this.budget.commands + 2 <= this.budget.maxCommandsSmi) {
-            const dirPath = (firstCc as { _dirPath?: string })._dirPath ?? ((firstCc as { _dirPath?: string })._dirPath = firstCc.dirPrefix.slice(0, -1));
-            const de = tryGetMemoryDirectoryEntryNamesSync(this.backingFs, dirPath) as { readonly size: number; readonly _next?: number; readonly _keys?: string[] } | undefined;
-            if ( de !== undefined && de.size === lastPureFindDirSize && de._next === de.size && de._keys !== undefined && de._keys[0] === lastPureFindFirstKey && de._keys[lastPureFindDirSize - 1] === lastPureFindLastKey) {
-              this.budget.parsing.admit(findUnit.unitsCharged);
-              this.budget.enterPipelineStages(2);
-              this.budget.commands += 2;
-              this.budget.fileSystemOperation();
-              io.stdout.writeRangeSync(lastPureFindOutBuf, lastPureFindOutLen);
-              this.budget.leavePipelineStages(2);
-              const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
-              rawState.substitutionStatus = 0;
-              if (rawState.variables._ !== undefined) delete rawState.variables._;
-              rawState.lastArgument = lastArg;
-              if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-              monitor.lazyPipeStatus = ZERO_PIPE_STATUSES[2]!;
-              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-              rawState.status = 0;
-              monitor.epoch = restEpoch;
-              if (store) store.epoch = restEpoch;
-              return findUnit;
-            }
-          }
         }
       }
     }
@@ -6574,30 +6535,24 @@ export class Runtime {
     if ( wordCount > this.budget.maxExpansionFieldsSmi || wordCount * 16 > this.budget.maxExpansionBytesSmi || this.budget.commands + totalCmds >= this.budget.maxCommandsSmi || this.budget.iterations + wordCount >= this.budget.maxLoopIterationsSmi) {
       return undefined;
     }
-    for (let i = 0; i < plan.initAssigns.length; i++) {
-      const a = plan.initAssigns[i]!;
-      rawState.variables[a.name] = a.strVal;
-    }
+    // A failed speculative loop must leave shell values and their monitor untouched.
+    const finalValues = new Map<string, string>();
+    for (const assignment of plan.initAssigns) finalValues.set(assignment.name, assignment.strVal);
     const regNames = forPlan.regNames;
     for (let r = 1; r < regNames.length; r++) {
       const refName = regNames[r]!;
-      const parsed = fastSafeInt(rawState.variables[refName], this.budget.parsing);
+      const parsed = fastSafeInt(finalValues.get(refName) ?? rawState.variables[refName], this.budget.parsing);
       if (parsed === undefined) return undefined;
       sharedLoopIntRegs[r] = parsed | 0;
     }
     const { ok } = runIntForLoop(forPlan.fastLoopWords, forPlan.bodyStepCount, forPlan.intSteps, this.budget.parsing);
     if (!ok) return undefined;
-    for (let r = 0; r < regNames.length; r++) {
-      rawState.variables[regNames[r]!] = intToStr(sharedLoopIntRegs[r]!);
-    }
-    for (let i = 0; i < publishNames.length; i++) {
-      const varName = publishNames[i]!;
-      const finalVal = rawState.variables[varName];
-      if (finalVal !== undefined) monitor.publishStringVariable(varName, finalVal);
-    }
+    for (let r = 0; r < regNames.length; r++) finalValues.set(regNames[r]!, intToStr(sharedLoopIntRegs[r]!));
     let lastArg = "";
     if (plan.echoVar !== undefined) {
-      const echoVal = rawState.variables[plan.echoVar] ?? "";
+      const echoVal = finalValues.get(plan.echoVar) ?? rawState.variables[plan.echoVar] ?? "";
+      const ifs = finalValues.get("IFS") ?? rawState.variables.IFS;
+      if (ifs !== undefined && ifs !== " \t\n") return undefined;
       if (echoVal.startsWith("-") || echoVal.includes("\0")) return undefined;
       const encoded = encodeRedirectTextWithNewlineToScratch(echoVal);
       if (!encoded) return undefined;
@@ -6606,6 +6561,11 @@ export class Runtime {
       if (!fastSyncSink!.writeSync(encoded)) return undefined;
       this.budget.bytes += bLen;
       lastArg = echoVal;
+    }
+    for (const [name, value] of finalValues) rawState.variables[name] = value;
+    for (const name of publishNames) {
+      const value = finalValues.get(name);
+      if (value !== undefined) monitor.publishStringVariable(name, value);
     }
     this.budget.iterations += wordCount;
     this.budget.commands += totalCmds;
@@ -7022,7 +6982,6 @@ export class Runtime {
     }
     const n = pipeline.commands.length;
     let firstStageRootSourceRef: Uint8Array | undefined;
-    let firstStageFindDirEntries: { readonly size: number; readonly _next?: number; readonly _keys?: string[] } | undefined;
     for (let i = 0; i < n; i++) {
       const cmd = pipeline.commands[i]! as Extract<Command, { kind: "simple" }>;
       const name = cmd.words[0]!.plain!;
@@ -7054,14 +7013,10 @@ export class Runtime {
           }
         } else if (name === "find") {
           if (stageArgs.length !== 3 || stageArgs[1] !== "-name" || stageArgs[0]!.startsWith("-") || stageArgs[0]!.startsWith("/dev")) return undefined;
-          if (stageArgs[0]!.charCodeAt(0) === 47 && stageArgs[0]!.indexOf("/", 1) === -1) {
-            const slice1 = (cmd as { _cachedSlice1?: string })._cachedSlice1 ?? ((cmd as { _cachedSlice1?: string })._cachedSlice1 = stageArgs[0]!.slice(1));
-            const rootEntry = (backing as unknown as { root?: { entries?: Map<string, { type: string }> } }).root?.entries?.get(slice1);
-            if (!rootEntry || rootEntry.type !== "directory") return undefined;
-          } else if (n === 2 && stageArgs[0]!.charCodeAt(0) === 47) {
-            const de = tryGetMemoryDirectoryEntryNamesSync(backing, stageArgs[0]!) as { readonly size: number; readonly _next?: number; readonly _keys?: string[] } | undefined;
-            if (de && de.size >= 32 && de._next === de.size && de._keys) firstStageFindDirEntries = de;
-          }
+          // Recursive traversal can suspend; the synchronous pipeline context is borrowed.
+          const entries = tryGetMemoryDirectoryEntryNamesSync(backing, stageArgs[0]!);
+          if (!entries) return undefined;
+          for (const entry of entries.values()) if (entry.type !== "file") return undefined;
         } else if (name === "sed") {
           if (stageArgs.length !== 2 || stageArgs[0]!.startsWith("-") || stageArgs[0] === "-" || stageArgs[1] === "-" || stageArgs[1]!.startsWith("-") || stageArgs[1]!.startsWith("/dev")) return undefined;
         } else return undefined;
@@ -7080,22 +7035,6 @@ export class Runtime {
           if (stageArgs.length !== 1 || (stageArgs[0] !== "-l" && stageArgs[0] !== "-c")) return undefined;
         } else return undefined;
       }
-    }
-    if ( n === 2 && pipeline === lastPureFindPipeAst && firstStageFindDirEntries !== undefined && firstStageFindDirEntries.size === lastPureFindDirSize && firstStageFindDirEntries._keys![0] === lastPureFindFirstKey && firstStageFindDirEntries._keys![lastPureFindDirSize - 1] === lastPureFindLastKey && Date.now === defaultDateNow) {
-      this.budget.enterPipelineStages(2);
-      this.budget.commands += 2;
-      try {
-        this.budget.fileSystemOperation();
-        (io.stdout as Capture).writeRangeSync(lastPureFindOutBuf, lastPureFindOutLen);
-      } finally {
-        this.budget.leavePipelineStages(2);
-      }
-      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
-      monitor.lazyPipeStatus = ZERO_PIPE_STATUSES[2]!;
-      monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-      rawState.status = 0;
-      monitor.epoch = restEpoch;
-      return SYNC_UNIT_ZERO;
     }
     if ( n >= 3 && pipeline === lastPurePipeAst && firstStageRootSourceRef !== undefined && lastPurePipeSrcRefs.has(firstStageRootSourceRef) && Date.now === defaultDateNow) {
       this.budget.enterPipelineStages(n);
@@ -7188,18 +7127,6 @@ export class Runtime {
         lastPurePipeSlice1 = ((pipeline.commands[0]! as { _cachedSlice1?: string })._cachedSlice1) ?? "";
         lastPurePipeRegistry = this.commands;
         lastPurePipeSrcRefs.add(firstStageRootSourceRef);
-      }
-    }
-    if ( n === 2 && statuses === undefined && firstStageFindDirEntries !== undefined && io.stderr.length === 0 && io.stdout.length <= 64 && Date.now === defaultDateNow) {
-      const scratch = (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k;
-      if (scratch) {
-        const outLen = io.stdout.length;
-        for (let bi = 0; bi < outLen; bi++) lastPureFindOutBuf[bi] = scratch[bi]!;
-        lastPureFindOutLen = outLen;
-        lastPureFindPipeAst = pipeline;
-        lastPureFindDirSize = firstStageFindDirEntries.size;
-        lastPureFindFirstKey = firstStageFindDirEntries._keys![0]!;
-        lastPureFindLastKey = firstStageFindDirEntries._keys![firstStageFindDirEntries.size - 1]!;
       }
     }
     const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;

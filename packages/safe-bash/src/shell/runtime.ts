@@ -7225,7 +7225,7 @@ export class Runtime {
       if (command.words.length >= 2 && command.words.length <= 16) {
         if (
           w0Plain === "unset" &&
-          rawState.locals.length === 0 &&
+          depth === 0 && rawState.locals.length === 0 &&
           !hasShellFunction(rawState, "unset") &&
           !rawState.extensions?.builtins.has("unset")
         ) {

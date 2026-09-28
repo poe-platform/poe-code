@@ -7432,13 +7432,14 @@ export class Runtime {
       if (command.redirects.length === 1) {
         const r0 = command.redirects[0]!;
         const rOp = r0.operator;
+        const isDevNullOut = (r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (rOp === ">" || rOp === ">>" || rOp === ">|") && r0.target.plain === "/dev/null" && (w0Plain === "pwd" || w0Plain === "command" || w0Plain === "type" || w0Plain === "dirname" || w0Plain === "basename");
         const isReadCmd = w0Plain === "read" || w0Plain === "mapfile" || w0Plain === "readarray" || (command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS="));
-        if (w0Plain !== "echo" && w0Plain !== "printf" && !(isReadCmd && rOp === "<<<")) {
+        if (w0Plain !== "echo" && w0Plain !== "printf" && !isDevNullOut && !(isReadCmd && rOp === "<<<")) {
           (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
           return undefined;
         }
       } else if (wordsLen >= 2) {
-        if ( w0Plain !== ":" && w0Plain !== "true" && w0Plain !== "false" && w0Plain !== "getopts" && w0Plain !== "echo" && w0Plain !== "printf" && w0Plain !== "[" && w0Plain !== "test" && w0Plain !== "mkdir" && w0Plain !== "rm" && w0Plain !== "local" && w0Plain !== "declare" && w0Plain !== "typeset" && w0Plain !== "return" && w0Plain !== "break" && w0Plain !== "continue" && w0Plain !== "shift" && w0Plain !== "read" && w0Plain !== "eval" && w0Plain !== "unset" && w0Plain !== "export" && w0Plain !== "let" && w0Plain !== "set" && w0Plain !== "pwd" && w0Plain !== "command" && w0Plain !== "type" && !(command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS=")) && !(w0Plain !== undefined && state.functions.has(w0Plain))) {
+        if ( w0Plain !== ":" && w0Plain !== "true" && w0Plain !== "false" && w0Plain !== "getopts" && w0Plain !== "echo" && w0Plain !== "printf" && w0Plain !== "[" && w0Plain !== "test" && w0Plain !== "mkdir" && w0Plain !== "rm" && w0Plain !== "local" && w0Plain !== "declare" && w0Plain !== "typeset" && w0Plain !== "return" && w0Plain !== "break" && w0Plain !== "continue" && w0Plain !== "shift" && w0Plain !== "read" && w0Plain !== "eval" && w0Plain !== "unset" && w0Plain !== "export" && w0Plain !== "let" && w0Plain !== "set" && w0Plain !== "pwd" && w0Plain !== "command" && w0Plain !== "type" && w0Plain !== "dirname" && w0Plain !== "basename" && !(command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS=")) && !(w0Plain !== undefined && state.functions.has(w0Plain))) {
           return undefined;
         }
       } else if ( w0Plain !== "echo" && w0Plain !== "printf" && w0Plain !== "pwd" && w0Plain !== ":" && w0Plain !== "true" && w0Plain !== "false" && w0Plain !== "return" && w0Plain !== "break" && w0Plain !== "continue" && w0Plain !== "shift" && w0Plain !== "eval" && !(w0Plain !== undefined && state.functions.has(w0Plain)) && !(w0.parts[0]?.kind === "text" && w0.parts[0].value.includes("=")) && !getArrayAssignment(w0)) {
@@ -7459,7 +7460,7 @@ export class Runtime {
       if (command.kind === "simple" && command.redirects.length === 1 && (this.sourceFs !== this.backingFs || this._isMemoryBackingFs) && !rawState.noclobber && this.budget.limits.maxRedirects >= 1 && this.budget.limits.maxFileSystemOperations >= 1000 && this.canFastMemoryRedirect) {
         const r0 = command.redirects[0]!;
         const w0p = command.words[0]?.plain;
-        if ((w0p === "echo" || w0p === "printf" || w0p === "pwd" || w0p === "command" || w0p === "type") && (r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">>" || r0.operator === ">|") && r0.target.plain === "/dev/null") {
+        if ((w0p === "echo" || w0p === "printf" || w0p === "pwd" || w0p === "command" || w0p === "type" || w0p === "dirname" || w0p === "basename") && (r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">>" || r0.operator === ">|") && r0.target.plain === "/dev/null") {
           return this.canSyncCommandCompound({ ...command, redirects: [] }, rawState, depth, loopDepth);
         }
       }
@@ -7821,6 +7822,13 @@ export class Runtime {
       }
       if ( w0Plain === "pwd" && (command.words.length === 1 || (command.words.length === 2 && (command.words[1]?.plain === "-L" || command.words[1]?.plain === "--logical"))) && !hasShellFunction(rawState, "pwd") && !rawState.extensions?.builtins.has("pwd")) {
         return true;
+      }
+      if ((w0Plain === "dirname" || w0Plain === "basename") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
+        const def = this.commands.get(w0Plain);
+        if (def && builtInDirectContextExecutors.has(def.execute) && !customRegisteredCommands.has(def.execute)) {
+          if (w0Plain === "dirname" && command.words.length === 2 && isNoBraceSyncWord(command.words[1]!)) return true;
+          if (w0Plain === "basename" && (command.words.length === 2 || command.words.length === 3 || (command.words.length === 4 && command.words[1]?.plain === "-s")) && command.words.slice(1).every(isNoBraceSyncWord)) return true;
+        }
       }
       if (
         ((w0Plain === "command" && command.words[1]?.plain === "-v") || (w0Plain === "type" && command.words[1]?.plain === "-t")) &&
@@ -8603,7 +8611,7 @@ export class Runtime {
       const name = command.words[0]?.plain;
       const redirect = command.redirects[0]!;
       if (
-        (name === "echo" || name === "printf" || name === "pwd" || name === "command" || name === "type") && !hasShellFunction(rawState, name) && this.arePureArgWords(command.words, rawState) &&
+        (name === "echo" || name === "printf" || name === "pwd" || name === "command" || name === "type" || name === "dirname" || name === "basename") && !hasShellFunction(rawState, name) && this.arePureArgWords(command.words, rawState) &&
         (redirect.descriptor === undefined || redirect.descriptor === 1) && !redirect.move && !redirect.document &&
         (redirect.operator === ">" || redirect.operator === ">>" || redirect.operator === ">|") &&
         redirect.target.plain === "/dev/null" && (this.sourceFs !== this.backingFs || this._isMemoryBackingFs) && !rawState.noclobber &&
@@ -9839,6 +9847,75 @@ export class Runtime {
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
             const finalStatus = pipeline.negate ? 1 : 0;
             return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, finalStatus, restEpoch);
+          }
+        }
+      }
+      if ((w0Plain === "dirname" || w0Plain === "basename") && command.redirects.length === 0 && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain) && (!io.descriptors || io.descriptors.get(1)?.output === io.stdout) && (canMutatePipeStatus || elem0!.text.shellValue === "0") && (!pipeline.negate || ignored || !rawState.errexit)) {
+        const def = this.commands.get(w0Plain);
+        const fastSyncSink = (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) ? io.stdout : undefined;
+        const fastPipeSink = !fastSyncSink && io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync() ? io.stdout : undefined;
+        const syncOut = (fastSyncSink || fastPipeSink) ? undefined : syncSinks.get(io.stdout);
+        if (def && builtInDirectContextExecutors.has(def.execute) && !customRegisteredCommands.has(def.execute) && (fastSyncSink || fastPipeSink || syncOut)) {
+          let outText: string | undefined;
+          let lastArg = w0Plain;
+          try {
+            if (w0Plain === "dirname" && command.words.length === 2) {
+              const wVal = this.fastValueWord(command.words[1]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+              if (typeof wVal === "string" && !wVal.startsWith("-") && !wVal.includes("\0")) {
+                lastArg = wVal;
+                const parent = dirname(wVal);
+                let pEnd = parent.length;
+                while (pEnd > 1 && parent[pEnd - 1] === "/") pEnd--;
+                outText = parent.slice(0, pEnd);
+              }
+            } else if (w0Plain === "basename" && (command.words.length === 2 || command.words.length === 3 || (command.words.length === 4 && command.words[1]?.plain === "-s"))) {
+              const isFlagS = command.words.length === 4 && command.words[1]?.plain === "-s";
+              const pathWord = isFlagS ? command.words[3]! : command.words[1]!;
+              const suffixWord = isFlagS ? command.words[2]! : (command.words.length === 3 ? command.words[2]! : undefined);
+              const wVal1 = this.fastValueWord(pathWord, rawState, io, true, false, false, true, undefined, diagnosticLine);
+              if (typeof wVal1 === "string" && !wVal1.startsWith("-") && !wVal1.includes("\0")) {
+                let wVal2: string | undefined;
+                let suffixOk = true;
+                if (suffixWord !== undefined) {
+                  const v2 = this.fastValueWord(suffixWord, rawState, io, true, false, false, true, undefined, diagnosticLine);
+                  if (typeof v2 === "string" && !v2.includes("\0")) wVal2 = v2;
+                  else suffixOk = false;
+                }
+                if (suffixOk) {
+                  lastArg = isFlagS ? wVal1 : (wVal2 ?? wVal1);
+                  let res = /^\/+$/u.test(wVal1) ? "/" : basename(wVal1);
+                  if (wVal2 && res !== wVal2 && res.endsWith(wVal2)) res = res.slice(0, -wVal2.length);
+                  outText = res;
+                }
+              }
+            }
+          } catch {
+            outText = undefined;
+          }
+          if (outText !== undefined) {
+            const encoded = encodeRedirectTextWithNewlineToScratch(outText) ?? fastSharedTextEncoder.encode(`${outText}\n`);
+            const byteLength = encoded.byteLength;
+            if (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
+              if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
+              const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+              this.budget.tick();
+              if (fastSyncSink) {
+                if (fastSyncSink.budget !== this.budget) this.budget.bytes += byteLength;
+                fastSyncSink.writeSync(encoded);
+              } else if (fastPipeSink) {
+                if (fastPipeSink.budget !== this.budget) this.budget.bytes += byteLength;
+                fastPipeSink.writeSync(encoded);
+              } else {
+                if (budgetedSinks.get(io.stdout)?.budget !== this.budget) this.budget.bytes += byteLength;
+                syncOut!(encoded);
+              }
+              rawState.substitutionStatus = 0;
+              if (rawState.variables._ !== undefined) delete rawState.variables._;
+              rawState.lastArgument = lastArg;
+              if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+              const finalStatus = pipeline.negate ? 1 : 0;
+              return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, finalStatus, restEpoch);
+            }
           }
         }
       }
@@ -11615,10 +11692,22 @@ export class Runtime {
             if (!allPlainStageArgs) return false;
             if (sName === "sort" && (sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-r"))) return false;
             if (sName === "wc" && (sPlainArgs.length !== 1 || (sPlainArgs[0] !== "-l" && sPlainArgs[0] !== "-c" && sPlainArgs[0] !== "-w"))) return false;
-            if ((sName === "head" || sName === "tail") && (sPlainArgs.length !== 2 || sPlainArgs[0] !== "-n" || !/^[0-9]+$/.test(sPlainArgs[1]!))) return false;
+            if (sName === "head" || sName === "tail") {
+              const okHT = (sPlainArgs.length === 2 && sPlainArgs[0] === "-n" && /^[0-9]+$/.test(sPlainArgs[1]!)) || (sPlainArgs.length === 1 && /^-(?:n)?[0-9]+$/.test(sPlainArgs[0]!));
+              if (!okHT) return false;
+            }
             if (sName === "cut") {
-              const vc2 = sPlainArgs.length === 2 && ((sPlainArgs[0]!.length === 3 && sPlainArgs[0]!.startsWith("-d") && sPlainArgs[1]!.length >= 3 && sPlainArgs[1]!.startsWith("-f")) || (sPlainArgs[0] === "-c" && /^[1-9][0-9]*-[1-9][0-9]*$/.test(sPlainArgs[1]!)));
-              const vc1 = sPlainArgs.length === 1 && sPlainArgs[0]!.length >= 3 && sPlainArgs[0]!.startsWith("-f");
+              const normCut: string[] = [];
+              for (let ci = 0; ci < sPlainArgs.length; ci++) {
+                const ca = sPlainArgs[ci]!;
+                if ((ca === "-d" || ca === "-f") && ci + 1 < sPlainArgs.length) {
+                  normCut.push(ca + sPlainArgs[++ci]!);
+                } else {
+                  normCut.push(ca);
+                }
+              }
+              const vc2 = normCut.length === 2 && ((normCut[0]!.length === 3 && normCut[0]!.startsWith("-d") && normCut[1]!.length >= 3 && normCut[1]!.startsWith("-f")) || (normCut[0] === "-c" && /^[1-9][0-9]*-[1-9][0-9]*$/.test(normCut[1]!)));
+              const vc1 = normCut.length === 1 && normCut[0]!.length >= 3 && normCut[0]!.startsWith("-f");
               if (!vc1 && !vc2) return false;
             }
           }
@@ -19427,6 +19516,17 @@ export class Runtime {
           sArgs.push(v);
         }
         if (sName === "cut") {
+          const normCut: string[] = [];
+          for (let ci = 0; ci < sArgs.length; ci++) {
+            const ca = sArgs[ci]!;
+            if ((ca === "-d" || ca === "-f") && ci + 1 < sArgs.length) {
+              normCut.push(ca + sArgs[++ci]!);
+            } else {
+              normCut.push(ca);
+            }
+          }
+          sArgs.length = 0;
+          for (let ci = 0; ci < normCut.length; ci++) sArgs.push(normCut[ci]!);
           const validCut2 = sArgs.length === 2 && ((sArgs[0]!.length === 3 && sArgs[0]!.startsWith("-d") && sArgs[1]!.length >= 3 && sArgs[1]!.startsWith("-f")) || (sArgs[0] === "-c" && /^[1-9][0-9]*-[1-9][0-9]*$/.test(sArgs[1]!)));
           const validCut1 = sArgs.length === 1 && sArgs[0]!.length >= 3 && sArgs[0]!.startsWith("-f");
           if (!validCut2 && !validCut1) return undefined;
@@ -19444,6 +19544,11 @@ export class Runtime {
         } else if (sName === "sort") {
           if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-r")) return undefined;
         } else if (sName === "head" || sName === "tail") {
+          if (sArgs.length === 1 && /^-(?:n)?[0-9]+$/.test(sArgs[0]!)) {
+            const numStr = sArgs[0]!.startsWith("-n") ? sArgs[0]!.slice(2) : sArgs[0]!.slice(1);
+            sArgs.length = 0;
+            sArgs.push("-n", numStr);
+          }
           if (sArgs.length !== 2 || sArgs[0] !== "-n" || !/^[0-9]+$/.test(sArgs[1]!)) return undefined;
         } else if (sName === "wc") {
           if (sArgs.length !== 1 || (sArgs[0] !== "-l" && sArgs[0] !== "-c" && sArgs[0] !== "-w")) return undefined;
@@ -19506,12 +19611,27 @@ export class Runtime {
           const extDef = stageDefs[index - 1]!;
           const stageArgs = stageArgsList[index - 1]!;
           const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
+          const isInlineCutField = firstName === "cut" && (
+            (stageArgs.length === 1 && /^-[f][1-9][0-9]*(?:,[1-9][0-9]*)*$/.test(stageArgs[0]!)) ||
+            (stageArgs.length === 2 && stageArgs[0]!.length === 3 && stageArgs[0]!.startsWith("-d") && /^-[f][1-9][0-9]*(?:,[1-9][0-9]*)*$/.test(stageArgs[1]!))
+          );
+          const isInlineTr = firstName === "tr" && stageArgs.length === 2 && (
+            (stageArgs[0] === "a-z" && stageArgs[1] === "A-Z") ||
+            (stageArgs[0] === "A-Z" && stageArgs[1] === "a-z") ||
+            (stageArgs[0] === "-d" && /^[a-zA-Z0-9_ :;,./-]+$/.test(stageArgs[1]!))
+          );
+          const isInlineSort = firstName === "sort" && !byteLocale(rawState.variables) && (stageArgs.length === 0 || (stageArgs.length === 1 && stageArgs[0] === "-r"));
+          const isInlineUniq = firstName === "uniq" && (stageArgs.length === 0 || (stageArgs.length === 1 && (stageArgs[0] === "-d" || stageArgs[0] === "-u")));
           if (
             firstName === "rev" ||
             firstName === "head" ||
             firstName === "tail" ||
             firstName === "wc" ||
-            (firstName === "cut" && stageArgs.length === 2 && stageArgs[0] === "-c")
+            (firstName === "cut" && stageArgs.length === 2 && stageArgs[0] === "-c") ||
+            isInlineCutField ||
+            isInlineTr ||
+            isInlineSort ||
+            isInlineUniq
           ) {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith("\n") ? inStr.slice(0, -1).split("\n") : inStr.split("\n"));
@@ -19523,7 +19643,7 @@ export class Runtime {
             } else if (firstName === "tail") {
               const nTail = Number(stageArgs[1]!);
               outLines = nTail === 0 ? [] : rawLines.slice(-nTail);
-            } else if (firstName === "cut") {
+            } else if (firstName === "cut" && stageArgs[0] === "-c") {
               const [cStart, cEnd] = stageArgs[1]!.split("-").map(Number);
               outLines = rawLines.map(l => Array.from(l).slice(cStart! - 1, cEnd!).join(""));
             } else if (firstName === "wc") {
@@ -19536,6 +19656,60 @@ export class Runtime {
                 outLines = [String(trimmed.length === 0 ? 0 : trimmed.split(/[ \t\n\r\f\v]+/).length)];
               } else {
                 outLines = [String(prevLen)];
+              }
+            } else if (isInlineCutField) {
+              const delim = stageArgs.length === 2 ? stageArgs[0]![2]! : "\t";
+              const fSpec = (stageArgs.length === 2 ? stageArgs[1]! : stageArgs[0]!).slice(2);
+              const fIndices = Array.from(new Set(fSpec.split(",").map(Number))).sort((a, b) => a - b);
+              outLines = rawLines.map(l => {
+                if (!l.includes(delim)) return l;
+                const parts = l.split(delim);
+                const picked: string[] = [];
+                for (let fi = 0; fi < fIndices.length; fi++) {
+                  const idx = fIndices[fi]! - 1;
+                  if (idx >= 0 && idx < parts.length) picked.push(parts[idx]!);
+                }
+                return picked.join(delim);
+              });
+            } else if (isInlineTr) {
+              let transformed = inStr;
+              if (stageArgs[0] === "a-z" && stageArgs[1] === "A-Z") {
+                transformed = inStr.replace(/[a-z]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 32));
+              } else if (stageArgs[0] === "A-Z" && stageArgs[1] === "a-z") {
+                transformed = inStr.replace(/[A-Z]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 32));
+              } else if (stageArgs[0] === "-d") {
+                const delSet = new Set(stageArgs[1]!.split(""));
+                let out = "";
+                for (let ci = 0; ci < inStr.length; ci++) {
+                  const ch = inStr[ci]!;
+                  if (!delSet.has(ch)) out += ch;
+                }
+                transformed = out;
+              }
+              const outByteLen = transformed.length * 3 > 127 ? shellValueByteLength(transformed) : transformed.length;
+              if (outByteLen > nextBuf.byteLength) return undefined;
+              const nextTotalBytes = this.budget.bytes + outByteLen;
+              if (nextTotalBytes > this.budget.maxOutputBytesSmi && outByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+              this.budget.bytes = nextTotalBytes;
+              const written = transformed.length === 0 ? 0 : fastSharedTextEncoder.encodeInto(transformed, nextBuf).written;
+              prevBuf = nextBuf;
+              prevLen = written;
+              continue;
+            } else if (isInlineSort) {
+              const revSort = stageArgs[0] === "-r";
+              outLines = [...rawLines].sort((a, b) => (a < b ? (revSort ? 1 : -1) : a > b ? (revSort ? -1 : 1) : 0));
+            } else if (isInlineUniq) {
+              const mode = stageArgs[0];
+              outLines = [];
+              let uIdx = 0;
+              while (uIdx < rawLines.length) {
+                let uEnd = uIdx + 1;
+                while (uEnd < rawLines.length && rawLines[uEnd] === rawLines[uIdx]) uEnd++;
+                const count = uEnd - uIdx;
+                if (mode === "-d" ? count > 1 : mode === "-u" ? count === 1 : true) {
+                  outLines.push(rawLines[uIdx]!);
+                }
+                uIdx = uEnd;
               }
             }
             // These filters preserve the terminator of the final selected input line.

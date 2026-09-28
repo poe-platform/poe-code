@@ -990,3 +990,28 @@ test("matches bash for Wave 69 sync single-command function substitutions, basen
     await shell.dispose();
   }
 });
+
+
+test("matches bash for Wave 70 sync cut -d/-f separated args, inline tr/sort/uniq/head/tail pipeline substitutions, and direct basename/dirname in loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands()]) shell.commands.register(command);
+  try {
+    const script = [
+      "for ((i = 0; i < 90; i++)); do",
+      "  f2=\"$(printf \"%s:%s:%s\\n\" \"alpha\" \"beta_$i\" \"gamma\" | cut -d : -f 2 | tr \"a-z\" \"A-Z\")\"",
+      "  top=\"$(printf \"z\\na\\nz\\nb\\n\" | sort | uniq | head -n1)\"",
+      "  bot=\"$(printf \"z\\na\\nz\\nb\\n\" | sort -r | uniq -d | tail -n1)\"",
+      "  basename -s .ts \"/src/pkg/item_${i}.ts\" >/dev/null",
+      "  dirname \"/src/pkg/item_${i}.ts\" >/dev/null",
+      "done",
+      "printf \"%s|%s|%s\\n\" \"$f2\" \"$top\" \"$bot\"",
+    ].join("\n");
+
+    const actual = await shell.exec(script);
+    assert.equal(actual.exitCode, 0);
+    assert.equal(actual.stderr, "");
+    assert.equal(actual.stdout, "BETA_89|a|z\n");
+  } finally {
+    await shell.dispose();
+  }
+});

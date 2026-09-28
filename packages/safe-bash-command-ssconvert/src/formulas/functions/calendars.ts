@@ -45,8 +45,8 @@ export const calendarFunctions: Readonly<Record<string, FunctionImplementation>>
   ...Object.fromEntries(Object.entries({ EASTERSUNDAY: 0, ASCENSIONTHURSDAY: 39, ASHWEDNESDAY: -46, GOODFRIDAY: -2, PENTECOSTSUNDAY: 49 }).map(([name, diff]) => [name, ((a, h) => {
     let year: number;
     if (a[0] === undefined) {
-      const today = localNow(h); year = today.getUTCFullYear();
-      if (dateSerial(easter(year), h) + diff < Math.floor(dateSerial(today, h))) year++;
+      const today = localNow(h); year = today.year;
+      if (dateSerial(easter(year), h) + diff < Math.floor(dateSerial(today.time, h))) year++;
     } else { year = Math.trunc(numberArg(a, 0, h)); if (year >= 0 && year <= 29) year += 2000; else if (year <= 99 && year >= 30) year += 1900; }
     if (year < 1582 || year > 9956) return error("#NUM!");
     let serial = dateSerial(easter(year), h) + diff;
@@ -54,23 +54,31 @@ export const calendarFunctions: Readonly<Record<string, FunctionImplementation>>
     return numericResult(serial);
   }) satisfies FunctionImplementation])),
   ...Object.fromEntries(["HDATE", "HDATE_HEB", "HDATE_DAY", "HDATE_MONTH", "HDATE_YEAR", "HDATE_JULIAN", "DATE2HDATE", "DATE2HDATE_HEB", "DATE2JULIAN"].map(name => [name, ((a, h) => {
-    let date: Date;
+    let year: number, julian: number;
     if (name.startsWith("DATE2")) {
-      const value = a[0] === undefined ? localNow(h) : serialDate(numberArg(a, 0, h), h);
-      if (!value) return error("#NUM!"); date = gregorian(value.getUTCFullYear(), value.getUTCMonth() + 1, value.getUTCDate());
+      if (a[0] === undefined) {
+        const value = localNow(h); year = value.year;
+        julian = Math.floor(value.time / 86400000) + 2440588;
+      } else {
+        const value = serialDate(numberArg(a, 0, h), h);
+        if (!value) return error("#NUM!"); year = value.getUTCFullYear();
+        julian = Math.floor(value.getTime() / 86400000) + 2440588;
+      }
     } else {
       const defaults = a.some(v => v === undefined) || a.length < 3 ? localNow(h) : undefined;
-      const year = Math.trunc(numberArg(a, 0, h, defaults?.getUTCFullYear())), month = Math.trunc(numberArg(a, 1, h, defaults ? defaults.getUTCMonth() + 1 : 0)), day = Math.trunc(numberArg(a, 2, h, defaults?.getUTCDate()));
+      year = Math.trunc(numberArg(a, 0, h, defaults?.year));
+      const month = Math.trunc(numberArg(a, 1, h, defaults?.month ?? 0)), day = Math.trunc(numberArg(a, 2, h, defaults?.day));
       if (name === "HDATE_JULIAN") {
         const shift = Math.trunc((month - 14) / 12);
         return numericResult(Math.trunc(1461 * (year + 4800 + shift) / 4) + Math.trunc(367 * (month - 2 - 12 * shift) / 12) - Math.trunc(3 * Math.trunc((year + 4900 + shift) / 100) / 4) + day - 32075);
       }
       if (year <= 0 || month < 1 || month > 12 || day < 1 || day > (year >= 3000 && month === 6 ? 59 : 31)) return error("#VALUE!");
-      date = gregorian(year, month, day);
+      const date = gregorian(year, month, day);
+      julian = date.getTime() / 86400000 + 2440588;
+      year = date.getUTCFullYear();
     }
-    const julian = date.getTime() / 86400000 + 2440588;
     if (name === "DATE2JULIAN" || name === "HDATE_JULIAN") return numericResult(julian);
-    const hd = hebrewDate(julian, date.getUTCFullYear());
+    const hd = hebrewDate(julian, year);
     if (name === "HDATE_DAY") return numericResult(hd.day);
     if (name === "HDATE_MONTH") return numericResult(hd.month);
     if (name === "HDATE_YEAR") return numericResult(hd.year);

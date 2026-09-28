@@ -16,10 +16,11 @@ export function serialDate(serial: number, host: Pick<FunctionHost, "book">): Da
   const date = new Date((day - (mac ? 24107 : day < 60 ? 25568 : 25569)) * DAY);
   return date.getUTCFullYear() >= 1 && date.getUTCFullYear() <= 65535 ? date : undefined;
 }
-export function dateSerial(date: Date, host: Pick<FunctionHost, "book">): number {
-  const whole = gregorian(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate()).getTime();
+export function dateSerial(date: Date | number, host: Pick<FunctionHost, "book">): number {
+  const time = typeof date === "number" ? date : date.getTime();
+  const whole = Math.floor(time / DAY) * DAY;
   const raw = whole / DAY;
-  return raw + (host.book.dateSystem === "1904" ? 24107 : raw < -25508 ? 25568 : 25569) + (date.getTime() - whole) / DAY;
+  return raw + (host.book.dateSystem === "1904" ? 24107 : raw < -25508 ? 25568 : 25569) + (time - whole) / DAY;
 }
 export function shiftMonths(date: Date, months: number, eom = false): Date {
   const shifted = gregorian(date.getUTCFullYear(), date.getUTCMonth() + 1 + months, 1);
@@ -63,15 +64,24 @@ export function yearFraction(from: Date, to: Date, basis: number): number {
   else denominator = 365 + Number(leapYear(y1) && from.getUTCMonth() < 2 || leapYear(y2) && (to.getUTCMonth() > 1 || to.getUTCMonth() === 1 && to.getUTCDate() >= 29));
   return days / denominator;
 }
-export function localNow(host: FunctionHost): Date {
+interface LocalDate {
+  readonly year: number;
+  readonly month: number;
+  readonly day: number;
+  readonly time: number;
+}
+export function localNow(host: FunctionHost): LocalDate {
   if (!host.context.clock) throw new SsconvertError("capability-denied", "ssconvert time functions require an explicit clock");
   const now = host.context.clock.now(); host.tick();
   if (!Number.isFinite(now) || Math.abs(now) > 8640000000000000)
     throw new SsconvertError("invalid-request", "Invalid ssconvert clock result");
   return zonedDate(now, host);
 }
-function zonedDate(now: number, host: FunctionHost): Date {
-  if (host.context.environment.timezone === "UTC") return new Date(now);
+function zonedDate(now: number, host: FunctionHost): LocalDate {
+  const instant = new Date(now);
+  if (host.context.environment.timezone === "UTC") return {
+    year: instant.getUTCFullYear(), month: instant.getUTCMonth() + 1, day: instant.getUTCDate(), time: instant.getTime()
+  };
   let parts: Intl.DateTimeFormatPart[];
   try {
     parts = new Intl.DateTimeFormat("en-US", { timeZone: host.context.environment.timezone, era: "short", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric", hourCycle: "h23" }).formatToParts(now);
@@ -79,7 +89,13 @@ function zonedDate(now: number, host: FunctionHost): Date {
   const part = (type: string) => Number(parts.find(item => item.type === type)?.value);
   // Intl uses era years; JavaScript dates use astronomical years (1 BC is year 0).
   const year = parts.find(item => item.type === "era")?.value === "BC" ? 1 - part("year") : part("year");
-  const date = gregorian(year, part("month"), part("day")); date.setUTCHours(part("hour"), part("minute"), part("second"), ((now % 1000) + 1000) % 1000); return date;
+  const month = part("month"), day = part("day");
+  // Local wall time may lie outside Date's instant range. Gregorian calendars
+  // repeat every 400 years (146097 days), so only materialize the in-range era.
+  const era = Math.floor(year / 400);
+  const whole = gregorian(year - era * 400, month, day).getTime() + era * 146097 * DAY;
+  const time = whole + ((part("hour") * 60 + part("minute")) * 60 + part("second")) * 1000 + instant.getUTCMilliseconds();
+  return { year, month, day, time };
 }
 function isoWeek(date: Date): number {
   const thursday = new Date(date); thursday.setUTCDate(date.getUTCDate() + 3 - (date.getUTCDay() + 6) % 7);
@@ -98,19 +114,19 @@ export const dateFunctions: Readonly<Record<string, FunctionImplementation>> = {
   TIMEVALUE: (a, h) => { const n = numberArg(a, 0, h); return numericResult(n - Math.trunc(n)); },
   TIME: (a, h) => { const hour = numberArg(a, 0, h) % 24, minute = numberArg(a, 1, h), second = numberArg(a, 2, h); const n = (hour * 3600 + minute * 60 + second) / 86400; return hour < 0 || minute < 0 || second < 0 ? error("#NUM!") : numericResult(n - Math.floor(n)); },
   "ODF.TIME": (a, h) => numericResult((numberArg(a, 0, h) * 3600 + numberArg(a, 1, h) * 60 + numberArg(a, 2, h)) / 86400),
-  NOW: (_a, h) => numericResult(dateSerial(localNow(h), h)),
-  TODAY: (_a, h) => numericResult(Math.floor(dateSerial(localNow(h), h))),
+  NOW: (_a, h) => numericResult(dateSerial(localNow(h).time, h)),
+  TODAY: (_a, h) => numericResult(Math.floor(dateSerial(localNow(h).time, h))),
   UNIX2DATE: (a, h) => {
     const n = numberArg(a, 0, h), whole = Math.trunc(n);
     if (!Number.isFinite(n) || Math.abs(n) > 8640000000000) return error("#VALUE!");
-    return numericResult(dateSerial(zonedDate(whole * 1000, h), h) + (n - whole) / 86400);
+    return numericResult(dateSerial(zonedDate(whole * 1000, h).time, h) + (n - whole) / 86400);
   },
   DATE2UNIX: (a, h) => {
     const n = numberArg(a, 0, h), d = serialDate(Math.trunc(n), h);
     if (!d) return error("#VALUE!");
     const wall = d.getTime(); let epoch = wall;
     for (let i = 0; i < 4; i++) {
-      h.tick(); const difference = wall - zonedDate(epoch, h).getTime();
+      h.tick(); const difference = wall - zonedDate(epoch, h).time;
       if (!difference) break;
       epoch += difference;
     }

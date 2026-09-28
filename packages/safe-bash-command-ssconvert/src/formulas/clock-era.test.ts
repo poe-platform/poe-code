@@ -34,6 +34,16 @@ for (const formula of ["=NOW()", "=TODAY()", "UNIX2DATE"]) {
   });
 }
 it.each([
+  [8640000000000000, "Asia/Tokyo", "2757600913", 100025569 + 9 / 24, 102440588],
+  [-8640000000000000, "America/Los_Angeles", "-2718210419", -99974432 - 28378 / 86400, -97559413]
+] as const)("preserves local calendar fields beyond Date TimeClip at %s in %s", (epoch, timezone, expected, serial, julian) => {
+  expect(calculate("=PERL_DATE()", epoch, timezone)).toEqual({ kind: "string", value: expected });
+  expect(calculate("=NOW()", epoch, timezone)).toEqual({ kind: "number", value: serial });
+  expect(calculate("=TODAY()", epoch, timezone)).toEqual({ kind: "number", value: Math.floor(serial) });
+  expect(calculate(`=UNIX2DATE(${epoch / 1000})`, epoch, timezone)).toEqual({ kind: "number", value: serial });
+  expect(calculate("=DATE2JULIAN()", epoch, timezone)).toEqual({ kind: "number", value: julian });
+});
+it.each([
   ["2024-03-10T07:30:00Z", "20240309", "2024-03-09T23:30:00Z"],
   ["2024-03-10T10:30:00Z", "20240310", "2024-03-10T03:30:00Z"],
   ["2024-11-03T08:30:00Z", "20241103", "2024-11-03T01:30:00Z"],
@@ -47,7 +57,11 @@ it.each([
     .toEqual(calculate("=NOW()", Date.parse(local!), "UTC"));
 });
 
-it("delivers era-correct dates through SDK conversion and the command with injected capabilities", async () => {
+it.each([
+  [-62184456000000, "Etc/UTC", "-0010615"],
+  [8640000000000000, "Asia/Tokyo", "2757600913"],
+  [-8640000000000000, "America/Los_Angeles", "-2718210419"]
+] as const)("delivers the local date at %s in %s through SDK and command conversion", async (epoch, timezone, expected) => {
   const codec: Codec = {
     id: "era-fixture", description: "In-memory era fixture", extensions: ["era"],
     probeContent: () => true,
@@ -55,14 +69,14 @@ it("delivers era-correct dates through SDK conversion and the command with injec
       { row: 0, column: 0, formula: "=PERL_DATE()", formulaDirty: true, value: { kind: "blank" } }
     ] }] }; },
     async write(book) {
-      expect(book.sheets[0]!.cells[0]!.value).toEqual({ kind: "string", value: "-0010615" });
-      return new TextEncoder().encode("-0010615");
+      expect(book.sheets[0]!.cells[0]!.value).toEqual({ kind: "string", value: expected });
+      return new TextEncoder().encode(expected);
     }
   };
   const outputs: Uint8Array[] = [];
   const engine = createEngine({ codecs: [codec], runtimeFunctions: perlSampleFunctions,
-    environment: { env: {}, locale: "C", timezone: "Etc/UTC" },
-    clock: { now: () => -62184456000000 },
+    environment: { env: {}, locale: "C", timezone },
+    clock: { now: () => epoch },
     filesystem: { async read() { return [new Uint8Array([1])]; }, async write(_uri, bytes) { outputs.push(bytes); } }
   });
   const signal = new AbortController().signal;
@@ -72,7 +86,7 @@ it("delivers era-correct dates through SDK conversion and the command with injec
     expect(result.exitCode).toBe(0);
     expect(await runCommand(["--recalc", "input.era", "output.era"], engine, {
       signal, stdout: { async write() {} }, stderr: { async write() {} }
-    })).toMatchObject({ exitCode: 0, diagnostics: [], usage: { outputBytes: 8 } });
-    expect(outputs.map(bytes => new TextDecoder().decode(bytes))).toEqual(["-0010615", "-0010615"]);
+    })).toMatchObject({ exitCode: 0, diagnostics: [], usage: { outputBytes: expected.length } });
+    expect(outputs.map(bytes => new TextDecoder().decode(bytes))).toEqual([expected, expected]);
   } finally { await engine.dispose(); }
 });

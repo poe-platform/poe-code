@@ -189,14 +189,15 @@ Dispatch `Provision Linux ssconvert reference` with profile
 Authenticate the artifact identity, activated Perl plugin, recovered workbook,
 native binary, timezone files and each clock interposer before comparison.
 The two existing frozen-date controls must remain present. The additional
-16 instants run in UTC, Los Angeles, Etc/UTC and Warsaw, covering signed years,
-year zero, the Unix epoch, year rollover, leap day and both DST transitions.
+18 instants run in UTC, Los Angeles, Etc/UTC, Warsaw and Tokyo, covering signed
+years, year zero, the Unix epoch, year rollover, leap day, both DST transitions
+and the accepted minimum/maximum clock instants.
 The interposer affects only this supplemental capture; it does not qualify
 the baseline runtime environment or replace the native Perl implementation.
 
 Replay the recovered workbook through current compiled and isolated installed
 SDK and Shell exports with the exact injected clock, timezone and Perl provider.
-Compare complete CSV bytes and diagnostics for all 66 captures, including the
+Compare complete CSV bytes and diagnostics for all 92 captures, including the
 existing arithmetic and substitution controls in each workbook. Preserve input,
 output-budget, cancellation and cleanup checks. Record any mismatch with its
 clock and timezone; do not substitute host Perl component checks for the

@@ -12298,11 +12298,22 @@
         "label": "warsaw-autumn-after",
         "iso": "2024-10-27T01:00:00Z",
         "clockUnixSeconds": 1729990800
+      },
+      {
+        "label": "minimum-clock",
+        "iso": "-271821-04-20T00:00:00.000Z",
+        "clockUnixSeconds": -8640000000000
+      },
+      {
+        "label": "maximum-clock",
+        "iso": "+275760-09-13T00:00:00.000Z",
+        "clockUnixSeconds": 8640000000000
       }
     ],
     "additionalTimezones": [
       "Etc/UTC",
-      "Europe/Warsaw"
+      "Europe/Warsaw",
+      "Asia/Tokyo"
     ]
   },
   "captureRetention": {

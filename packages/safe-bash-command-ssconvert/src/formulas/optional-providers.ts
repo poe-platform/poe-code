@@ -18,9 +18,9 @@ export const perlSampleFunctions: RuntimeFunctions = snapshotRuntimeFunctions({
   PERL_SED: { signature: "sss", implementation: perlSed },
   PERL_DATE: { signature: "", implementation(_args, host) {
     const date = localNow(host);
-    const year = date.getUTCFullYear();
+    const year = date.year;
     const formattedYear = year < 0 ? `-${String(-year).padStart(3, "0")}` : String(year).padStart(4, "0");
-    return boundedText(`${formattedYear}${String(date.getUTCMonth() + 1).padStart(2, "0")}${String(date.getUTCDate()).padStart(2, "0")}`, host);
+    return boundedText(`${formattedYear}${String(date.month).padStart(2, "0")}${String(date.day).padStart(2, "0")}`, host);
   } }
 });
 

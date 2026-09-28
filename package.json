@@ -731,6 +731,14 @@
     "#git-wasm": {
       "workerd": "./packages/safe-bash-command-git/dist/runtime.workerd.js",
       "default": "./packages/safe-bash-command-git/dist/runtime.js"
+    },
+    "#safe-fs-platform-path": {
+      "types": {
+        "workerd": "./packages/safe-fs/dist/platform/browser-path.d.ts",
+        "browser": "./packages/safe-fs/dist/platform/browser-path.d.ts",
+        "default": "./packages/safe-fs/dist/platform/node-path.d.ts"
+      },
+      "default": null
     }
   }
 }

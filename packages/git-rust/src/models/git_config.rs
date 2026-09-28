@@ -98,6 +98,14 @@ impl GitConfig {
         Self { parsed_config }
     }
 
+    pub fn list_entries(&self) -> Vec<(String, String)> {
+        self.parsed_config
+            .iter()
+            .filter(|l| !l.is_section && l.name.is_some())
+            .map(|l| (l.path.clone(), l.value.clone().unwrap_or_default()))
+            .collect()
+    }
+
     pub fn get(&self, path: &str) -> Option<ConfigValue> {
         self.get_all(path).into_iter().last()
     }

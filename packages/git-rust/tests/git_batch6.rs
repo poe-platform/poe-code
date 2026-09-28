@@ -1345,3 +1345,38 @@ dual_fixture_test!(cli_log_author_grep_skip_no_merges_first_parent_all_and_follo
     assert_eq!(r_all.exit_code, 0);
     assert!(!r_all.stdout.trim().is_empty());
 });
+
+
+dual_fixture_test!(cli_remote_get_set_rename_show_and_config_flags, cli_remote_get_set_rename_show_and_config_flags_sub, "test-init", |f| {
+    init(&f.fs, Some(&f.dir), Some(&f.gitdir), false, Some("main")).unwrap();
+    execute_git_cli(&f.fs, &f.dir, &["remote", "add", "origin", "https://example.com/orig.git"]);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["remote", "get-url", "origin"]).stdout.trim(), "https://example.com/orig.git");
+
+    execute_git_cli(&f.fs, &f.dir, &["remote", "set-url", "origin", "https://example.com/updated.git"]);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["remote", "get-url", "origin"]).stdout.trim(), "https://example.com/updated.git");
+
+    execute_git_cli(&f.fs, &f.dir, &["remote", "rename", "origin", "upstream"]);
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["remote", "get-url", "upstream"]).stdout.trim(), "https://example.com/updated.git");
+    assert!(execute_git_cli(&f.fs, &f.dir, &["remote", "show", "upstream"]).stdout.contains("Fetch URL: https://example.com/updated.git"));
+
+    execute_git_cli(&f.fs, &f.dir, &["config", "--add", "custom.item", "first"]);
+    execute_git_cli(&f.fs, &f.dir, &["config", "--add", "custom.item", "second"]);
+    let r_all = execute_git_cli(&f.fs, &f.dir, &["config", "--get-all", "custom.item"]);
+    assert_eq!(r_all.stdout.lines().collect::<Vec<_>>(), vec!["first", "second"]);
+
+    assert!(execute_git_cli(&f.fs, &f.dir, &["config", "--list"]).stdout.contains("custom.item=first"));
+    execute_git_cli(&f.fs, &f.dir, &["config", "--unset", "custom.item"]);
+    assert_ne!(execute_git_cli(&f.fs, &f.dir, &["config", "custom.item"]).exit_code, 0);
+});
+
+dual_fixture_test!(cli_rev_parse_introspection_and_ref_lists, cli_rev_parse_introspection_and_ref_lists_sub, "test-checkout", |f| {
+    let sub_cwd = join(&[&f.dir, "sub/nested"]);
+    let _ = git_rust::mkdirp(|p| f.fs.mkdir(p), &sub_cwd, 3);
+
+    assert_eq!(execute_git_cli(&f.fs, &sub_cwd, &["rev-parse", "--show-prefix"]).stdout.trim(), "sub/nested/");
+    assert_eq!(execute_git_cli(&f.fs, &sub_cwd, &["rev-parse", "--show-cdup"]).stdout.trim(), "../../");
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--is-bare-repository"]).stdout.trim(), "false");
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--is-inside-git-dir"]).stdout.trim(), "false");
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--absolute-git-dir"]).stdout.trim(), git_rust::discover_gitdir(&f.fs, &f.gitdir));
+    assert!(!execute_git_cli(&f.fs, &f.dir, &["rev-parse", "--branches"]).stdout.trim().is_empty());
+});

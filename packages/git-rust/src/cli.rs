@@ -208,7 +208,19 @@ pub fn execute_git_cli_with_http(
         };
     }
 
-    let repo_root = find_root(fs, &effective_cwd).unwrap_or_else(|_| effective_cwd.clone());
+    let repo_root = find_root(fs, &effective_cwd).unwrap_or_else(|_| {
+        let mut cur = effective_cwd.clone();
+        loop {
+            if fs.exists(&format!("{cur}.git")) {
+                break cur;
+            }
+            let parent = crate::utils::dirname(&cur);
+            if parent == cur {
+                break effective_cwd.clone();
+            }
+            cur = parent;
+        }
+    });
     let gitdir = match explicit_gitdir {
         Some(g) => discover_gitdir(fs, &g),
         None => {
@@ -1419,11 +1431,12 @@ pub fn execute_git_cli_with_http(
             }
         }
         "remote" => match sub_args.first().copied() {
-            None | Some("-v") => {
+            None | Some("-v") | Some("--verbose") => {
                 let remotes = list_remotes(fs, &gitdir);
+                let verbose = sub_args.contains(&"-v") || sub_args.contains(&"--verbose");
                 let mut out = String::new();
                 for r in remotes {
-                    if sub_args.contains(&"-v") {
+                    if verbose {
                         out.push_str(&format!(
                             "{}\t{} (fetch)\n{}\t{} (push)\n",
                             r.remote, r.url, r.remote, r.url
@@ -1434,33 +1447,105 @@ pub fn execute_git_cli_with_http(
                 }
                 CliResult::ok(out)
             }
-            Some("add") if sub_args.len() >= 3 => {
-                match add_remote(fs, &gitdir, sub_args[1], sub_args[2], false) {
+            Some("add") if positionals.len() >= 3 => {
+                let force = sub_args.contains(&"-f") || sub_args.contains(&"--force");
+                match add_remote(fs, &gitdir, positionals[1], positionals[2], force) {
                     Ok(()) => CliResult::ok(""),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
             }
-            Some("remove") | Some("rm") if sub_args.len() >= 2 => {
-                match delete_remote(fs, &gitdir, sub_args[1]) {
+            Some("remove") | Some("rm") if positionals.len() >= 2 => {
+                match delete_remote(fs, &gitdir, positionals[1]) {
                     Ok(()) => CliResult::ok(""),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
+            }
+            Some("get-url") if positionals.len() >= 2 => {
+                let name = positionals[1];
+                match get_config(fs, &gitdir, &format!("remote.{name}.url")) {
+                    Some(v) => CliResult::ok(format!("{}\n", v.as_str())),
+                    None => CliResult::err(2, format!("error: No such remote '{name}'\n")),
+                }
+            }
+            Some("set-url") if positionals.len() >= 3 => {
+                let name = positionals[1];
+                let new_url = positionals[2];
+                match set_config(fs, &gitdir, &format!("remote.{name}.url"), Some(new_url), false) {
+                    Ok(()) => CliResult::ok(""),
+                    Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                }
+            }
+            Some("rename") if positionals.len() >= 3 => {
+                let old_name = positionals[1];
+                let new_name = positionals[2];
+                let Some(url_val) = get_config(fs, &gitdir, &format!("remote.{old_name}.url")) else {
+                    return CliResult::err(2, format!("error: No such remote: '{old_name}'\n"));
+                };
+                let _ = add_remote(fs, &gitdir, new_name, &url_val.as_str(), true);
+                let _ = delete_remote(fs, &gitdir, old_name);
+                for r in crate::list_refs(fs, &gitdir, &format!("refs/remotes/{old_name}")) {
+                    if let Ok(oid) = resolve_ref(fs, &gitdir, &format!("refs/remotes/{old_name}/{r}"), None) {
+                        let _ = crate::write_ref(fs, &gitdir, &format!("refs/remotes/{new_name}/{r}"), &oid, true, false);
+                        let _ = crate::delete_ref(fs, &gitdir, &format!("refs/remotes/{old_name}/{r}"));
+                    }
+                }
+                CliResult::ok("")
+            }
+            Some("show") if positionals.len() >= 2 => {
+                let name = positionals[1];
+                let url = get_config(fs, &gitdir, &format!("remote.{name}.url"))
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_default();
+                CliResult::ok(format!(
+                    "* remote {name}\n  Fetch URL: {url}\n  Push  URL: {url}\n  HEAD branch: main\n"
+                ))
             }
             _ => CliResult::ok(""),
         },
         "config" => {
+            let list_all = sub_args.contains(&"-l") || sub_args.contains(&"--list");
+            let get_all = sub_args.contains(&"--get-all");
+            let add_mode = sub_args.contains(&"--add");
+            let unset_mode = sub_args.contains(&"--unset") || sub_args.contains(&"--unset-all");
+            if list_all {
+                let cfg = crate::GitConfigManager::get(fs, &gitdir);
+                let mut out = String::new();
+                for (key, val) in cfg.list_entries() {
+                    out.push_str(&format!("{key}={val}\n"));
+                }
+                return CliResult::ok(out);
+            }
             let non_flags: Vec<&str> = sub_args
                 .iter()
                 .copied()
                 .filter(|a| !a.starts_with('-'))
                 .collect();
+            if unset_mode {
+                if let Some(&key) = non_flags.first() {
+                    while get_config(fs, &gitdir, key).is_some() {
+                        let _ = set_config(fs, &gitdir, key, None, false);
+                    }
+                    return CliResult::ok("");
+                }
+                return CliResult::err(1, "");
+            }
+            if get_all {
+                if let Some(&key) = non_flags.first() {
+                    let vals = crate::commands::plumbing::get_config_all(fs, &gitdir, key);
+                    if vals.is_empty() {
+                        return CliResult::err(1, "");
+                    }
+                    return CliResult::ok(vals.into_iter().map(|v| format!("{}\n", v.as_str())).collect::<String>());
+                }
+                return CliResult::err(1, "");
+            }
             if non_flags.len() == 1 {
                 match get_config(fs, &gitdir, non_flags[0]) {
                     Some(v) => CliResult::ok(format!("{}\n", v.as_str())),
                     None => CliResult::err(1, ""),
                 }
             } else if non_flags.len() >= 2 {
-                match set_config(fs, &gitdir, non_flags[0], Some(non_flags[1]), false) {
+                match set_config(fs, &gitdir, non_flags[0], Some(non_flags[1]), add_mode) {
                     Ok(()) => CliResult::ok(""),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
@@ -1490,6 +1575,63 @@ pub fn execute_git_cli_with_http(
             }
             if sub_args.contains(&"--is-inside-work-tree") {
                 return CliResult::ok(format!("{}\n", fs.exists(&gitdir)));
+            }
+            if sub_args.contains(&"--absolute-git-dir") || sub_args.contains(&"--git-common-dir") {
+                return CliResult::ok(format!("{gitdir}\n"));
+            }
+            if sub_args.contains(&"--is-bare-repository") {
+                let bare = get_config(fs, &gitdir, "core.bare")
+                    .map(|v| v.as_str() == "true")
+                    .unwrap_or(repo_root == gitdir);
+                return CliResult::ok(format!("{bare}\n"));
+            }
+            if sub_args.contains(&"--is-inside-git-dir") {
+                let inside = effective_cwd == gitdir || effective_cwd.starts_with(&format!("{gitdir}/"));
+                return CliResult::ok(format!("{inside}\n"));
+            }
+            if sub_args.contains(&"--show-prefix") {
+                let prefix = effective_cwd
+                    .strip_prefix(&repo_root)
+                    .map(|s| s.trim_start_matches('/'))
+                    .unwrap_or("");
+                if prefix.is_empty() {
+                    return CliResult::ok("\n");
+                }
+                return CliResult::ok(format!("{prefix}/\n"));
+            }
+            if sub_args.contains(&"--show-cdup") {
+                let prefix = effective_cwd
+                    .strip_prefix(&repo_root)
+                    .map(|s| s.trim_start_matches('/'))
+                    .unwrap_or("");
+                if prefix.is_empty() {
+                    return CliResult::ok("\n");
+                }
+                let depth_cnt = prefix.split('/').filter(|s| !s.is_empty()).count();
+                return CliResult::ok(format!("{}\n", "../".repeat(depth_cnt)));
+            }
+            if sub_args.contains(&"--all") || sub_args.contains(&"--branches") || sub_args.contains(&"--tags") || sub_args.contains(&"--remotes") {
+                let mut oids = Vec::new();
+                let mut prefixes = Vec::new();
+                if sub_args.contains(&"--all") || sub_args.contains(&"--branches") {
+                    prefixes.push("refs/heads");
+                }
+                if sub_args.contains(&"--all") || sub_args.contains(&"--tags") {
+                    prefixes.push("refs/tags");
+                }
+                if sub_args.contains(&"--all") || sub_args.contains(&"--remotes") {
+                    prefixes.push("refs/remotes");
+                }
+                for p in prefixes {
+                    for r in crate::list_refs(fs, &gitdir, p) {
+                        if let Ok(oid) = resolve_ref(fs, &gitdir, &format!("{p}/{r}"), None) {
+                            oids.push(oid);
+                        }
+                    }
+                }
+                oids.sort();
+                oids.dedup();
+                return CliResult::ok(oids.into_iter().map(|o| format!("{o}\n")).collect::<String>());
             }
             if positionals.is_empty() {
                 return CliResult::err(128, "fatal: missing revision\n");

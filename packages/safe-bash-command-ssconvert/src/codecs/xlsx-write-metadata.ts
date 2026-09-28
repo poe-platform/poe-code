@@ -49,10 +49,6 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
     paperSize: child(pi, "paper")?.text === "na_letter" ? 1 : 9, scale: Number(scale?.attributes.percentage ?? 100), firstPageNumber: rawSetup?.attributes.firstPageNumber ?? firstPage,
     useFirstPageNumber: rawSetup?.attributes.useFirstPageNumber ?? (Number(firstPage ?? 0) ? 1 : 0) }) +
     xml("headerFooter", {}, xml("oddHeader", {}, escapeXlsx(header(child(pi, "Header"), "&C&A"))) + xml("oddFooter", {}, escapeXlsx(header(child(pi, "Footer"), "&CPage &P"))));
-  for (const [gnm, name, max] of [["vPageBreaks", "rowBreaks", 16383], ["hPageBreaks", "colBreaks", 1048575]] as const) {
-    const breaks = child(pi, gnm); if (breaks) print += xml(name, { count: breaks.children.length }, breaks.children.map(b => xml("brk", {
-      id: Number(b.attributes.pos), max, man: b.attributes.type === "manual" ? 1 : undefined, pt: b.attributes.type === "data-slice" ? 1 : undefined })).join(""));
-  }
   let filters = "", rules = "";
   const parts: { name: string; content: string; type: string; relation: string }[] = [];
   const handled = new Set(["PrintInformation", "SheetLayout", "Styles"]);
@@ -62,6 +58,39 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
       throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XLSX metadata namespace or relationship");
     return xml(node.name, node.attributes, escapeXlsx(node.text) + node.children.map(render).join(""));
   };
+  // Horizontal lines divide rows; vertical lines divide columns. Gnumeric's
+  // XLSX importer reverses these despite its XML and print consumers' semantics.
+  for (const [gnm, name, max] of [["hPageBreaks", "rowBreaks", 16383], ["vPageBreaks", "colBreaks", 1048575]] as const) {
+    handled.add(name);
+    const breaks = child(pi, gnm);
+    if (!breaks) continue;
+    const raw = records.find(r => r.record.kind === name && r.node?.namespace === namespace)?.node;
+    const original = raw?.children.filter(n => { charge(); return n.name === "brk"; });
+    const retained = new Map<string, MetadataNode | undefined>();
+    for (const source of original ?? []) {
+      charge();
+      const type = source.attributes.pt === "1" ? "data-slice" : source.attributes.man === "1" ? "manual" : "auto";
+      const key = `${Number(source.attributes.id ?? 0)}:${type}`;
+      // An edited list cannot identify which duplicate owns source-only bounds.
+      retained.set(key, retained.has(key) ? undefined : source);
+    }
+    const unchanged = original?.length === breaks.children.length && breaks.children.every((b, index) => {
+      charge();
+      const source = original[index]!;
+      const type = source.attributes.pt === "1" ? "data-slice" : source.attributes.man === "1" ? "manual" : "auto";
+      return b.name === "break" && Number(b.attributes.pos) === Number(source.attributes.id ?? 0) && b.attributes.type === type;
+    });
+    // Bounds and explicit flag spellings are source-only metadata. Retain them
+    // only while their normalized projection matches the caller's current edits.
+    if (raw && unchanged) print += render(raw);
+    else print += xml(name, { count: breaks.children.length }, breaks.children.map(b => {
+      charge();
+      const source = retained.get(`${Number(b.attributes.pos)}:${b.attributes.type}`);
+      return source ? render(source) : xml("brk", {
+        id: Number(b.attributes.pos), max, man: b.attributes.type === "manual" ? 1 : undefined,
+        pt: b.attributes.type === "data-slice" ? 1 : undefined });
+    }).join(""));
+  }
   const rawFilter = records.find(r => r.record.kind === "autoFilter")?.node;
   if (rawFilter) filters = render(rawFilter);
   else {

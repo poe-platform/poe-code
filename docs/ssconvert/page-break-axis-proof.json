@@ -1,0 +1,128 @@
+{
+  "issue": 3892,
+  "scope": "Row/column page-break axes and retained XLSX bounds; broader rendering family remains open under #1748.",
+  "sources": {
+    "calc": {
+      "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+      "baseUrl": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/oox/",
+      "evidence": "worksheetfragment.cxx:448-453,728-736 passes true for rowBreaks, false for colBreaks; worksheethelper.cxx:673-680 selects getRow for true and getColumn for false."
+    },
+    "gnumeric": {
+      "version": "1.12.61",
+      "url": "https://download.gnome.org/sources/gnumeric/1.12/gnumeric-1.12.61.tar.xz",
+      "evidence": "XML hPageBreaks is_vert=false, vPageBreaks=true. print-info.c assigns h/v accordingly; print.c:1085-1095 consumes v for columns and h for rows. BIFF reader assigns horizontal=false, vertical=true; writer emits horizontal/vertical records from the same semantic axes.",
+      "discrepancy": "Gnumeric XLSX rowBreaks passes true and colBreaks false. This inherited source inconsistency is deliberately corrected; Gnumeric XLSX roundtrip is not used as a correctness oracle."
+    },
+    "sha256": {
+      "calc-worksheetfragment.cxx": "153961549896253aa1a6f28f8aefb45823c830a119a524f5e995286032417459",
+      "calc-worksheethelper.cxx": "1f773758eea0fb11851e6cfb3c619b03a6c1129cae7e37d9f504e989829a1a48",
+      "gnumeric-print.c": "fee11181a89822062f3dac39fde3734e554338fae5237e0ce9e96114882da71b",
+      "gnumeric-print-info.c": "ff970d578a151d5e7a76ed962cb3e9159383c6a992cd9ce85d2c0d998a349e11",
+      "gnumeric-xml-sax-read.c": "05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3",
+      "gnumeric-xlsx-read.c": "1f67172ac852954f1f74dbd34afce5f00233e7f8b0fafbfe9f9cf8d0308413b9",
+      "gnumeric-biff-read.c": "fba376ae47e276e9209800415a44e1060cc775745d3bdd8b400770d0c0f49216",
+      "gnumeric-biff-write.c": "771526dcbc11e619594b2174603887b0557f849e6154e7905177bd25432d276a"
+    }
+  },
+  "regressions": {
+    "file": "packages/safe-bash-command-ssconvert/src/codecs/xlsx-page-breaks.test.ts",
+    "originalFailure": "Both original in-memory XLSX package inputs produced one PDF page instead of two. Untouched bounds/manual flags were lost on XLSX export.",
+    "transports": [
+      "Gnumeric XML",
+      "XLSX 2006",
+      "XLSX 2008",
+      "BIFF7",
+      "BIFF8"
+    ],
+    "preservation": [
+      "Untouched bounds, explicit flags and container attributes",
+      "Explicit position/type edits",
+      "Removal without resurrecting source records",
+      "Untouched siblings when another break changes"
+    ],
+    "admission": [
+      "Ascending admission before automatic-break removal",
+      "Manual",
+      "Automatic",
+      "Data-slice",
+      "Outside printed extent"
+    ],
+    "resources": [
+      "Cancellation",
+      "Workbook work budget"
+    ]
+  },
+  "pdfQualification": {
+    "input": "Independent original XLSX packages: four cells down one column or across one row; break id=2, man=1, Letter paper. No native-generated fixture dependency.",
+    "observedBy": [
+      "PDFDocument page boxes",
+      "PDFPage drawText page grouping",
+      "Apple PDFKit extracted text and raster screenshots (manual inspection)"
+    ],
+    "row": {
+      "pages": [
+        [
+          612,
+          792
+        ],
+        [
+          612,
+          792
+        ]
+      ],
+      "text": [
+        [
+          "cell0",
+          "cell1"
+        ],
+        [
+          "cell2",
+          "cell3"
+        ]
+      ],
+      "geometry": "Vertical cell placement on each page"
+    },
+    "column": {
+      "pages": [
+        [
+          612,
+          792
+        ],
+        [
+          612,
+          792
+        ]
+      ],
+      "text": [
+        [
+          "cell0",
+          "cell1"
+        ],
+        [
+          "cell2",
+          "cell3"
+        ]
+      ],
+      "geometry": "Horizontal cell placement on each page"
+    },
+    "sourceAuthority": "Authenticated pinned Calc import source establishes the row/column semantics.",
+    "nativeApplication": "Installed Calc launch stalled before dyld startup; no native Calc PDF comparison is claimed. Qualification uses authenticated Calc source plus actual generated PDF geometry.",
+    "limitations": "XLSX/BIFF export materializes styles outside this axis repair; their normalized break transport is qualified separately from original-package/XML PDF rendering."
+  },
+  "odfInspection": {
+    "files": [
+      "src/codecs/odf.ts",
+      "src/codecs/odf-metadata.ts",
+      "src/codecs/odf-write.ts",
+      "src/codecs/odf-schema.ts"
+    ],
+    "result": "No normalized PrintInformation page-break import/export exists in the ODF transport. soft-page-break is schema-recognized without projection. No ODF axis inversion or new ODF page-break support is claimed."
+  },
+  "verification": {
+    "build": "npm run build:workspaces -- --workspace=safe-bash-command-ssconvert: passed",
+    "tests": "npm run test --workspace=safe-bash-command-ssconvert -- --maxWorkers=4: 465 files, 25347 tests passed",
+    "focused": "xlsx-page-breaks.test.ts and pdf-page-breaks.test.ts: 16 tests passed on final typed fixtures",
+    "lint": "npm run lint --workspace=safe-bash-command-ssconvert: ESLint and production/test/consumer TypeScript checks passed",
+    "cliVisualImpact": "No CLI output changes. Actual PDF page screenshots were manually inspected."
+  }
+}

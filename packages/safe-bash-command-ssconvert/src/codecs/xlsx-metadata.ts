@@ -81,7 +81,7 @@ export function readXlsxMetadata(sheet: XmlElement, comments?: XmlElement): read
     for (const [source, target] of [["oddHeader", "Header"], ["oddFooter", "Footer"]] as const) {
       const value = element(hf, source); if (value) print.push(gnode(target, header(value.text)));
     }
-    for (const [source, name] of [[rowBreaks, "vPageBreaks"], [colBreaks, "hPageBreaks"]] as const) if (source) {
+    for (const [source, name] of [[rowBreaks, "hPageBreaks"], [colBreaks, "vPageBreaks"]] as const) if (source) {
       const breaks = source.children.filter(c => c.localName === "brk").map(node => gnode("break", {
         pos: numeric(attribute(node, "id"), 0), type: attribute(node, "pt") === "1" ? "data-slice" : attribute(node, "man") === "1" ? "manual" : "auto" }));
       print.push(gnode(name, { count: breaks.length }, breaks));

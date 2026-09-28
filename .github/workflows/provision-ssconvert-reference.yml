@@ -320,21 +320,31 @@ jobs:
           clock_control = None
           control = json.loads(language_fixture_path.read_text())['frozenDateControl']
           if control['profileId'] == profile['id']:
-              assert type(control['clockUnixSeconds']) is int and -(1 << 63) < control['clockUnixSeconds'] < (1 << 63)
-              hook_source = root / 'frozen-time.c'
-              hook_binary = root / 'frozen-time.so'
-              hook_source.write_text("#include <time.h>\ntime_t time(time_t *target) {\n  const time_t frozen = 1709166600;\n  if (target) *target = frozen;\n  return frozen;\n}\n".replace('1709166600', str(control['clockUnixSeconds'])))
-              with (root / 'frozen-time-compile.log').open('wb') as log:
-                  subprocess.run(['cc', '-shared', '-fPIC', str(hook_source), '-o', str(hook_binary)], env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
               path = root / 'frozen-date.gnumeric'
               path.write_bytes(bytes.fromhex(control['inputHex']))
               assert hashlib.sha256(path.read_bytes()).hexdigest() == control['inputSha256']
-              zones = []
-              for index, zone in enumerate(control['supplementalEnvironments']):
-                  zone_file = pathlib.Path('/usr/share/zoneinfo') / zone['timezone']
-                  zones.append(dict(timezone=zone['timezone'], fileSha256=hashlib.sha256(zone_file.read_bytes()).hexdigest()))
-                  capture('frozen-date-' + str(index), [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'], dict(env, TZ=zone['timezone'], LD_PRELOAD=str(hook_binary.resolve())))
-              clock_control = dict(clockUnixSeconds=control['clockUnixSeconds'], inputSha256=control['inputSha256'], hookSourceSha256=hashlib.sha256(hook_source.read_bytes()).hexdigest(), hookBinarySha256=hashlib.sha256(hook_binary.read_bytes()).hexdigest(), timezoneFiles=zones, policy=control['policy'])
+              clocks = [dict(label='baseline', clockUnixSeconds=control['clockUnixSeconds']), *control.get('additionalClocks', [])]
+              assert len({clock['label'] for clock in clocks}) == len(clocks)
+              clock_receipts = []
+              for clock_index, clock in enumerate(clocks):
+                  epoch = clock['clockUnixSeconds']
+                  assert type(epoch) is int and -(1 << 63) < epoch < (1 << 63)
+                  hook_source = root / ('frozen-time-' + str(clock_index) + '.c')
+                  hook_binary = root / ('frozen-time-' + str(clock_index) + '.so')
+                  hook_source.write_text('#include <time.h>\ntime_t time(time_t *target) {\n  const time_t frozen = ' + str(epoch) + 'LL;\n  if (target) *target = frozen;\n  return frozen;\n}\n')
+                  with (root / ('frozen-time-' + str(clock_index) + '-compile.log')).open('wb') as log:
+                      subprocess.run(['cc', '-shared', '-fPIC', str(hook_source), '-o', str(hook_binary)], env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
+                  zones = []
+                  zone_names = [zone['timezone'] for zone in control['supplementalEnvironments']]
+                  if clock_index:
+                      zone_names.extend(control.get('additionalTimezones', []))
+                  for zone_index, timezone in enumerate(zone_names):
+                      zone_file = pathlib.Path('/usr/share/zoneinfo') / timezone
+                      label = ('frozen-date-' if not clock_index else 'frozen-date-' + clock['label'] + '-') + str(zone_index)
+                      zones.append(dict(label=label, timezone=timezone, fileSha256=hashlib.sha256(zone_file.read_bytes()).hexdigest()))
+                      capture(label, [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'], dict(env, TZ=timezone, LD_PRELOAD=str(hook_binary.resolve())))
+                  clock_receipts.append(dict(label=clock['label'], clockUnixSeconds=epoch, hookSourceSha256=hashlib.sha256(hook_source.read_bytes()).hexdigest(), hookBinarySha256=hashlib.sha256(hook_binary.read_bytes()).hexdigest(), timezoneFiles=zones))
+              clock_control = dict(**clock_receipts[0], inputSha256=control['inputSha256'], policy=control['policy'], additionalClocks=clock_receipts[1:])
           service_path = root / 'linux-optional-service-native-probes.json'
           external_programs = []
           for program in json.loads(service_path.read_text()).get('externalPrograms', []):

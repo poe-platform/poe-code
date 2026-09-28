@@ -12217,7 +12217,93 @@
         "expectedHex": "32303234303232382c33392c6164630a"
       }
     ],
-    "policy": "QA-only Linux time() interposition for this additional capture; native source/sample/Perl library unchanged. Bind hook source/binary and timezone file identities; the overridden env is a supplemental control, not the exact baseline profile."
+    "policy": "QA-only Linux time() interposition for this additional capture; native source/sample/Perl library unchanged. Bind hook source/binary and timezone file identities; the overridden env is a supplemental control, not the exact baseline profile.",
+    "additionalClocks": [
+      {
+        "label": "bce-wide",
+        "iso": "-001234-06-15T12:00:00Z",
+        "clockUnixSeconds": -101094177600
+      },
+      {
+        "label": "bce",
+        "iso": "-000001-06-15T12:00:00Z",
+        "clockUnixSeconds": -62184456000
+      },
+      {
+        "label": "year-zero",
+        "iso": "0000-06-15T12:00:00Z",
+        "clockUnixSeconds": -62152833600
+      },
+      {
+        "label": "year-one",
+        "iso": "0001-06-15T12:00:00Z",
+        "clockUnixSeconds": -62121297600
+      },
+      {
+        "label": "year-99",
+        "iso": "0099-06-15T12:00:00Z",
+        "clockUnixSeconds": -59028696000
+      },
+      {
+        "label": "unix-epoch",
+        "iso": "1970-01-01T00:00:00Z",
+        "clockUnixSeconds": 0
+      },
+      {
+        "label": "year-rollover",
+        "iso": "2024-01-01T00:00:00Z",
+        "clockUnixSeconds": 1704067200
+      },
+      {
+        "label": "leap-day",
+        "iso": "2024-02-29T00:00:00Z",
+        "clockUnixSeconds": 1709164800
+      },
+      {
+        "label": "la-spring-before",
+        "iso": "2024-03-10T09:59:59Z",
+        "clockUnixSeconds": 1710064799
+      },
+      {
+        "label": "la-spring-after",
+        "iso": "2024-03-10T10:00:00Z",
+        "clockUnixSeconds": 1710064800
+      },
+      {
+        "label": "la-autumn-before",
+        "iso": "2024-11-03T08:59:59Z",
+        "clockUnixSeconds": 1730624399
+      },
+      {
+        "label": "la-autumn-after",
+        "iso": "2024-11-03T09:00:00Z",
+        "clockUnixSeconds": 1730624400
+      },
+      {
+        "label": "warsaw-spring-before",
+        "iso": "2024-03-31T00:59:59Z",
+        "clockUnixSeconds": 1711846799
+      },
+      {
+        "label": "warsaw-spring-after",
+        "iso": "2024-03-31T01:00:00Z",
+        "clockUnixSeconds": 1711846800
+      },
+      {
+        "label": "warsaw-autumn-before",
+        "iso": "2024-10-27T00:59:59Z",
+        "clockUnixSeconds": 1729990799
+      },
+      {
+        "label": "warsaw-autumn-after",
+        "iso": "2024-10-27T01:00:00Z",
+        "clockUnixSeconds": 1729990800
+      }
+    ],
+    "additionalTimezones": [
+      "Etc/UTC",
+      "Europe/Warsaw"
+    ]
   },
   "captureRetention": {
     "disposition": "Raw captures removed at user request; retained findings are historical and do not qualify a newer candidate.",

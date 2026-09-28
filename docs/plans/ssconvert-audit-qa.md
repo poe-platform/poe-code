@@ -182,6 +182,28 @@ as distinct categories. Preserve activation diagnostics and failed builds.
 Third-party scope is an explicit capability/interface gate, not a finite source
 census. No ambient host plugin discovery, credentials or native fallback.
 
+## qa-perl-date-boundaries
+
+Dispatch `Provision Linux ssconvert reference` with profile
+`gnumeric-1.12.61-optional-perl-samples` from the delivered workflow revision.
+Authenticate the artifact identity, activated Perl plugin, recovered workbook,
+native binary, timezone files and each clock interposer before comparison.
+The two existing frozen-date controls must remain present. The additional
+16 instants run in UTC, Los Angeles, Etc/UTC and Warsaw, covering signed years,
+year zero, the Unix epoch, year rollover, leap day and both DST transitions.
+The interposer affects only this supplemental capture; it does not qualify
+the baseline runtime environment or replace the native Perl implementation.
+
+Replay the recovered workbook through current compiled and isolated installed
+SDK and Shell exports with the exact injected clock, timezone and Perl provider.
+Compare complete CSV bytes and diagnostics for all 66 captures, including the
+existing arithmetic and substitution controls in each workbook. Preserve input,
+output-budget, cancellation and cleanup checks. Record any mismatch with its
+clock and timezone; do not substitute host Perl component checks for the
+activated plugin. Reduce the receipts into the gap ledger and purge owned raw
+captures after use. Other signatures, errors, locales, arrays and date domains
+remain separately qualified obligations.
+
 ## qa-upstream-family
 
 For every `upstreamTests` entry, read its driver and shared `GnumericTest.pm`

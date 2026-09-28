@@ -13941,7 +13941,6 @@ export class Runtime {
             touched.add(uvn);
           }
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          lastValueWord = undefined;
           rawState.status = 0;
           continue;
         }
@@ -14608,7 +14607,6 @@ export class Runtime {
             touched.add(uvn);
           }
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          lastValueWord = undefined;
           rawState.status = 0;
           continue;
         }

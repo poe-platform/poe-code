@@ -2842,15 +2842,21 @@
     },
     "engineFactoryDefaults": {
       "issue": 2460,
-      "status": "SDK omitted/partial options repaired; English locale aliases remain open",
+      "status": "SDK defaults and requested English runtime locale aliases implemented and locally qualified",
       "implementation": "Public EngineOptions allows omitted codecs and partial environment. createEngine() defaults built-in codecs, C locale, UTC timezone and empty injected env; existing cwd precedence, explicit capabilities, limits and environment snapshots remain intact. Command option types accept the same partial environment.",
       "validation": "Seven original tests failed before repair; 47 focused engine/cwd/budget tests pass. Maintained package lint and source/test/Node/browser consumer types pass; selected build passes. Three compiled SDK CSV-to-XLSX conversions with omitted/empty/partial options read back exact values without diagnostics. README examples and public type consumer updated.",
-      "remaining": "Issue #2460 remains open for en_US/en_US.UTF-8/en_US.utf8 runtime locale acceptance. glibc 2.41 SUPPORTED declares en_US as ISO-8859-1 and en_US.UTF-8 as UTF-8; these must not be treated as identical converter charsets. Full release/registry qualification remains open under #1748.",
+      "remaining": "Containing registry publication and broader optional/native locale profiles remain open under #1748.",
       "source": {
         "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.41/localedata/SUPPORTED",
         "sha256": "92b5030fd20f64c6fec5430d9d89b65801df104878b208df6742479fdd5f6c05"
       },
-      "receipt": "out/ssconvert-hyperlink-lifecycle/engine-defaults-proof.json"
+      "receipt": "out/ssconvert-hyperlink-lifecycle/engine-defaults-proof.json",
+      "englishLocales": {
+        "implementation": "Admit en_US, en_US.UTF-8 and en_US.utf8 through runtime category/export selection and English formatting. Preserve category precedence and unknown-category refusal. An empty converter charset uses ISO-8859-1 for bare en_US and UTF-8 for its UTF-8 aliases. The pinned glibc sources show both en_US and C.UTF-8 use neutral/combining transliteration with U003F default missing; existing captured non-C tables are reused.",
+        "validation": "Seven original English-locale cases failed before repair. Four focused files pass 99 tests; maintained package lint, source/test/Node/browser consumer types and selected build pass. Six compiled SDK/command CSV-to-XLSX exports independently decoded with Python preserve cafe-accent text and 12.5 values with no diagnostics. Three compiled converter checks distinguish exact Latin-1/UTF-8 bytes.",
+        "qualification": "Locale definitions are source-qualified against glibc 2.41. No new native glibc execution is claimed; broader context-sensitive transliteration and unsupported locale profiles remain separate.",
+        "receipts": "out/ssconvert-hyperlink-lifecycle/english-{sources,exports,proof,cleanup}.json"
+      }
     }
   },
   "cases": [

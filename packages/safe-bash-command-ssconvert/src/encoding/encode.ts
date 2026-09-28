@@ -17,7 +17,9 @@ export function encodeText(text: string, charset: string, transliterate: boolean
   const suffixTransliteration = parts.length > 1 && parts.slice(1).every(part => part.toLowerCase() === "translit");
   if (suffixTransliteration) transliterate = true;
   const base = suffixTransliteration ? parts[0]! : charset;
-  const name = base === "" ? (converterLocale(context.environment) === "C" ? "ascii" : "utf-8") : encodingName(base);
+  const locale = base === "" ? converterLocale(context.environment) : undefined;
+  // glibc's bare en_US profile uses ISO-8859-1; the UTF-8 aliases stay distinct.
+  const name = base === "" ? locale === "C" ? "ascii" : locale === "en_US" ? "iso-8859-1" : "utf-8" : encodingName(base);
   const admit = (length: number) => {
     context.signal.throwIfAborted();
     if (length > context.limits.outputBytes)

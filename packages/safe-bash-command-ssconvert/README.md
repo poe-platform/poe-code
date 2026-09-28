@@ -72,7 +72,7 @@ Safe Bash provides a separate,
 opt-in `ssconvertCommands` plugin using the same engine. Import it from
 `poe-code/ssconvert` or `poe-code/safe-bash`. `ssconvertCommands()`,
 `createSsconvertCommands()`, `createSsconvertCommand()` and SDK `createEngine()` use the built-in formats with locale `C` and
-timezone `UTC`; options can add codecs, capabilities and resource limits. Formula source length, node count and quoted-label lookup work default to `Infinity`; callers can set `maximumLength` and `maximumNodes` when parsing formulas.
+timezone `UTC`; options can add codecs, capabilities and resource limits. Injected locale settings also accept `en_US`, `en_US.UTF-8` and `en_US.utf8`. When a text converter's charset is empty, bare `en_US` selects ISO-8859-1 and the UTF-8 variants select UTF-8. Formula source length, node count and quoted-label lookup work default to `Infinity`; callers can set `maximumLength` and `maximumNodes` when parsing formulas.
 It verifies logical `PWD` aliases through the supplied filesystem before using
 them for resource paths and diagnostics. SDK hosts can call
 `resolveVfsCwd(actualCwd, env.PWD, filesystem, signal)` and bind the result with

@@ -23,7 +23,7 @@ const german: FormattingLocaleProfile = Object.freeze({ decimal: ",", thousand: 
   shortWeekdays: Object.freeze(["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"]) });
 /** Explicit captured profiles; no host locale or Intl lookup. */
 export function formattingLocale(name: string): FormattingLocaleProfile {
-  if (["C", "POSIX", "C.UTF-8", "C.utf8", "en_US", "en_US.UTF-8"].includes(name)) return english;
+  if (["C", "POSIX", "C.UTF-8", "C.utf8", "en_US", "en_US.UTF-8", "en_US.utf8"].includes(name)) return english;
   if (["de_DE", "de_DE.UTF-8", "de_DE.utf8"].includes(name)) return german;
   throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: uncaptured format locale");
 }

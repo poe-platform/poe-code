@@ -22,6 +22,7 @@ import { signalName } from "../../src/commands/timeout/signal.js";
 import type * as Host from "../../src/optional-host.js";
 import type * as Extensions from "../../src/shell/extensions.js";
 import type * as Input from "../../src/shell/input.js";
+import type * as Trap from "../../src/shell/trap.js";
 
 type Same<Left, Right> = (<Value>() => Value extends Left ? 1 : 2) extends (<Value>() => Value extends Right ? 1 : 2) ? true : false;
 type HostTypes = [
@@ -31,7 +32,7 @@ type HostTypes = [
   Host.ShellExtensionBuiltin, Host.ShellExtensionEvent, Host.PreparedShellChild,
   Host.ShellChildPreparation, Host.ShellListTerminatorContext, Host.ShellListTerminatorHook,
   Host.ShellSpecialParameterHook, Host.ShellBindingResult<string>, Host.ShellExecutionCheckpoint,
-  Host.RawRecord, Host.ReadLine,
+  Host.RawRecord, Host.ReadLine, Host.TrapExtensionOptions, Host.TrapSignalHost,
 ];
 type CoreTypes = [
   Extensions.ShellExtension, Extensions.ShellBindingReference, Extensions.ShellExtensionContext,
@@ -40,7 +41,7 @@ type CoreTypes = [
   Extensions.ShellExtensionBuiltin, Extensions.ShellExtensionEvent, Extensions.PreparedShellChild,
   Extensions.ShellChildPreparation, Extensions.ShellListTerminatorContext, Extensions.ShellListTerminatorHook,
   Extensions.ShellSpecialParameterHook, Extensions.ShellBindingResult<string>, Extensions.ShellExecutionCheckpoint,
-  Input.RawRecord, Input.ReadLine,
+  Input.RawRecord, Input.ReadLine, Trap.TrapExtensionOptions, Trap.TrapSignalHost,
 ];
 
 for (const profile of [
@@ -57,7 +58,7 @@ for (const profile of [
   assert.equal(Object.hasOwn(manifest.exports, profile.key.replace("optional-host", "optional")), false);
 });
 
-test("optional host re-exports exactly twenty-five canonical helpers and twenty canonical types", async () => {
+test("optional host re-exports exactly twenty-five canonical helpers and twenty-two canonical types", async () => {
   const host = await import("../../src/optional-host.js");
   const expected = { latin1Text, codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, jobsExtension, signalName, utf8ByteLength, utf8Encoder, utf8Decoder, encodeBase64, decodeBase64, compareBytes };
   assert.deepEqual(Object.keys(host).sort(), Object.keys(expected).sort());

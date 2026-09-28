@@ -75,6 +75,7 @@ export const gnumericChildren: Readonly<Record<string, readonly string[]>> = {
     "draft",
     "errors",
     "even_if_only_styles",
+    "first_page_number",
     "grid",
     "hPageBreaks",
     "hcenter",
@@ -275,6 +276,9 @@ export const gnumericAttributes: Readonly<Record<string, readonly string[]>> = {
     "value"
   ],
   "do_not_print": [
+    "value"
+  ],
+  "first_page_number": [
     "value"
   ],
   "print_range": [

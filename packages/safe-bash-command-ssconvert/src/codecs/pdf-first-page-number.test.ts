@@ -5,6 +5,7 @@ import { createZipCodec } from "@poe-code/office-package";
 import { suppliedDefaultFont } from "@poe-code/pdf";
 import { createEngine, runCommand } from "../index.js";
 import { createXlsxWriter, readXlsx } from "./xlsx.js";
+import { readGnumeric } from "./gnumeric.js";
 import { writePdf } from "./pdf.js";
 import { pdfText } from "./pdf-text.test-support.js";
 import { metadataNode } from "./xlsx-write-support.js";
@@ -95,9 +96,28 @@ it("resets separately imported sheets even when their explicit settings match", 
 });
 it.each([
   [{ useFirstPageNumber: "1" }, 1],
-  [{ firstPageNumber: "0", useFirstPageNumber: "1" }, 1],
-  [{ firstPageNumber: "10000", useFirstPageNumber: "1" }, 9999]
-] as const)("normalizes Calc first-page defaults and bounds: %j", async (setup, first) => {
+  [{ firstPageNumber: "0", useFirstPageNumber: "1" }, 0],
+  [{ firstPageNumber: "10000", useFirstPageNumber: "1" }, 10000],
+  [{ firstPageNumber: "4294967295", useFirstPageNumber: "1" }, 4294967295]
+] as const)("preserves explicit XLSX first-page numbers: %j", async (setup, first) => {
   const result = await fields(await writePdf(await readXlsx(await fixture([setup]), context), [], context));
   expect(result.header).toEqual([`Header ${first} of 1`]);
+});
+
+it.each([0, 10000, 4294967295])("exports Gnumeric first page %s as enabled XLSX numbering", async first => {
+  const source = `<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd" Version="14"><g:Sheets><g:Sheet Rows="65536" Cols="256"><g:Name>S</g:Name><g:PrintInformation><g:first_page_number value="${first}"/><g:Footer Left="" Middle="Footer &amp;[PAGE] of &amp;[PAGES]" Right=""/></g:PrintInformation><g:Cells><g:Cell Row="0" Col="0" ValueType="40">42</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>`;
+  const book = await readGnumeric(new TextEncoder().encode(source), context);
+  const roundtrip = await readXlsx(await createXlsxWriter("2006")(book, [], context), context);
+  const setup = metadataNode(roundtrip.sheets[0]!.unsupportedRecords!.find(r => r.kind === "pageSetup")!.data)!;
+  expect(setup.attributes).toMatchObject({ firstPageNumber: String(first), useFirstPageNumber: "1" });
+  expect((await fields(await writePdf(book, [], context))).footer).toEqual([`Footer ${first} of 1`]);
+});
+it("continues numbering from a zero-numbered cover page", async () => {
+  const book = await readXlsx(await fixture([{ firstPageNumber: "0", useFirstPageNumber: "1" }, {}]), context);
+  expect((await fields(await writePdf(book, [], context))).header).toEqual(["Header 0 of 2", "Header 1 of 2"]);
+});
+
+it.each(["-1", "1.5", "4294967296", "9007199254740992"])("rejects XLSX first page outside unsigned integer bounds (%s)", async first => {
+  await expect(readXlsx(await fixture([{ firstPageNumber: first, useFirstPageNumber: "1" }]), context))
+    .rejects.toMatchObject({ code: "io" });
 });

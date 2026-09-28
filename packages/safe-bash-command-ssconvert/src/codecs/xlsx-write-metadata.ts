@@ -47,7 +47,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
     fitToHeight: fitToPage ? Number(scale?.attributes.rows ?? 0) : 0, fitToWidth: fitToPage ? Number(scale?.attributes.cols ?? 0) : 0,
     orientation: child(pi, "orientation")?.text ?? "portrait", pageOrder: child(pi, "order")?.text === "r_then_d" ? "overThenDown" : "downThenOver",
     paperSize: child(pi, "paper")?.text === "na_letter" ? 1 : 9, scale: Number(scale?.attributes.percentage ?? 100), firstPageNumber: rawSetup?.attributes.firstPageNumber ?? firstPage,
-    useFirstPageNumber: rawSetup?.attributes.useFirstPageNumber ?? (Number(firstPage ?? 0) ? 1 : 0) }) +
+    useFirstPageNumber: rawSetup?.attributes.useFirstPageNumber ?? (firstPage === undefined ? 0 : 1) }) +
     xml("headerFooter", {}, xml("oddHeader", {}, escapeXlsx(header(child(pi, "Header"), "&C&A"))) + xml("oddFooter", {}, escapeXlsx(header(child(pi, "Footer"), "&CPage &P"))));
   let filters = "", rules = "";
   const parts: { name: string; content: string; type: string; relation: string }[] = [];

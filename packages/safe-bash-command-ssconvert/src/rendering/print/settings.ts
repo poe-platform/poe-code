@@ -70,8 +70,8 @@ export function sheetPrintSettings(sheet: Sheet, context: CapabilityContext) {
         }
       } else if (node.name === "first_page_number") {
         const value = number("value", 0);
-        if (!Number.isInteger(value) || value < 0 || value > 9999) unsupported("invalid first page number");
-        firstPageNumber = value || undefined;
+        if (!Number.isInteger(value) || value < 0 || value > 0xffffffff) unsupported("invalid first page number");
+        firstPageNumber = value;
       } else if (node.name === "paper") paper = node.text;
       else if (node.name === "orientation") orientation = node.text === "landscape" ? "landscape" : "portrait";
       else if (node.name === "Scale") {

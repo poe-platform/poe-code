@@ -10,6 +10,12 @@ import {
   sourceFixture
 } from "./run.integration-helper.js";
 
+vi.mock("node:fs/promises", async () => {
+  const { createRunMemoryFileSystem } = await import("../../testing/run-memory.js");
+  const memory = createRunMemoryFileSystem();
+  return { ...memory, default: memory };
+});
+
 const mockedAgentSpawn = vi.hoisted(() => ({
   spawnMock: undefined as ReturnType<typeof createSpawnMock> | undefined,
   spawnStreaming: vi.fn()
@@ -449,7 +455,13 @@ describe("runEval lifecycle evidence", () => {
   it("persists an error result when final artifact writing fails", async () => {
     const outDir = await createRunOutDir();
     mockedEvaluation.judgeRun.mockImplementationOnce(async (input: { traceJsonPath: string }) => {
-      await mkdir(path.join(path.dirname(input.traceJsonPath), "judge.json"));
+      const judgePath = path.join(path.dirname(input.traceJsonPath), "judge.json");
+      const files = await import("node:fs/promises");
+      const rename = files.rename;
+      vi.spyOn(files, "rename").mockImplementation(async (source, destination) => {
+        if (destination === judgePath) throw new Error("judge artifact rename denied");
+        return rename(source, destination);
+      });
       return { completeness: 5, mean: 5 };
     });
 

@@ -1186,3 +1186,42 @@ test("trySyncLoop accelerates grep/sed/cut/wc/sort file operands and < file stdi
     await shell.dispose();
   }
 });
+
+test("trySyncLoop accelerates while/until ((...)) loops and nested if/elif/else ((...)) branches (Wave 76)", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) {
+    shell.commands.register(command, { replace: true });
+  }
+  try {
+    const t0 = performance.now();
+    const res = await shell.exec([
+      "i=0; wsum=0",
+      "while ((i < 1200)); do",
+      "  if ((i % 3 == 0)); then",
+      "    ((wsum += 2))",
+      "  elif ((i % 3 == 1)); then",
+      "    ((wsum += 1))",
+      "  else",
+      "    ((wsum += 0))",
+      "  fi",
+      "  ((i++))",
+      "done",
+      "j=0; usum=0",
+      "until ((j >= 1200)); do",
+      "  ((usum += j))",
+      "  ((j++))",
+      "done",
+      "fsum=0",
+      "for ((k = 0; k < 1200; k++)); do",
+      "  if ((k % 2 == 0)); then ((fsum += k)); else ((fsum += 1)); fi",
+      "done",
+      "printf \"%d|%d|%d\\n\" \"$wsum\" \"$usum\" \"$fsum\"",
+    ].join("\n"));
+    const elapsed = performance.now() - t0;
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "1200|719400|360000\n");
+    assert.ok(elapsed < 1000, "Expected < 1000ms, got " + elapsed.toFixed(1) + "ms");
+  } finally {
+    await shell.dispose();
+  }
+});

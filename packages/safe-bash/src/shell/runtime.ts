@@ -2786,6 +2786,8 @@ type SyncLoopStep = {
   readonly discardWords?: readonly Word[] | undefined;
   readonly discardSuffix?: string | undefined;
   readonly arithStmt?: ArithmeticProgram | undefined;
+  readonly ifBranches?: readonly { condCmd: Extract<Command, { kind: "arithmetic" }>; cond: ArithmeticProgram; condLine: number; steps: readonly SyncLoopStep[] }[] | undefined;
+  readonly elseSteps?: readonly SyncLoopStep[] | undefined;
   readonly value: Word | undefined;
   readonly targetWord: Word | undefined;
   readonly targetDirPrefix?: string | undefined;
@@ -8864,7 +8866,7 @@ export class Runtime {
       }
       return undefined;
     }
-    if (command.kind === "arithmetic-for" || command.kind === "for") {
+    if (command.kind === "arithmetic-for" || command.kind === "for" || command.kind === "while" || command.kind === "until") {
       if (command.redirects.length === 1) {
         const r0 = command.redirects[0]!;
         const loopMode = 0o666 & ~(rawState.umask ?? 0o022);
@@ -11803,15 +11805,26 @@ export class Runtime {
             !cmd.expression.error &&
             isSafeSmiProgram(cmd.expression) &&
             !cmd.expression.hasSubscript &&
-            !cmd.expression.source.includes("/") &&
-            !cmd.expression.source.includes("%") &&
-            !cmd.expression.source.includes("<<") &&
-            !cmd.expression.source.includes(">>") &&
-            !cmd.expression.source.includes("**") &&
             this.canSyncArithmeticWithoutFault(cmd.expression.tree, rawState, cmd.line ?? 1)
           ) {
             continue;
           }
+          return false;
+        }
+        if (cmd.kind === "if") {
+          if (cmd.redirects.length !== 0 || cmd.branches.length === 0) return false;
+          let ifOk = true;
+          for (let bi = 0; bi < cmd.branches.length; bi++) {
+            const br = cmd.branches[bi]!;
+            if (br.condition.lists.length !== 1 || br.condition.lists[0]!.terminator || br.condition.lists[0]!.pipelines.length !== 1) { ifOk = false; break; }
+            const bp = br.condition.lists[0]!.pipelines[0]!;
+            if (bp.negate || bp.commands.length !== 1 || bp.commands[0]!.kind !== "arithmetic") { ifOk = false; break; }
+            const bc = bp.commands[0]!;
+            if (bc.redirects.length !== 0 || bc.expression.error || !isSafeSmiProgram(bc.expression) || bc.expression.hasSubscript || !this.canSyncArithmeticWithoutFault(bc.expression.tree, rawState, bc.line ?? 1)) { ifOk = false; break; }
+            if (!this.canSyncLoopBody(br.body, rawState, io)) { ifOk = false; break; }
+          }
+          if (ifOk && cmd.otherwise && !this.canSyncLoopBody(cmd.otherwise, rawState, io)) ifOk = false;
+          if (ifOk) continue;
           return false;
         }
         if (cmd.kind !== "simple") return false;
@@ -12015,31 +12028,64 @@ export class Runtime {
     intLoopStepCache.set(step.cmd, null);
     return undefined;
   }
-  private buildSyncLoopBody( command: Extract<Command, { kind: "arithmetic-for" | "for" }>, io: IO, ): { steps: SyncLoopStep[]; redirectCount: number } {
+  private buildSyncLoopBody( command: Extract<Command, { kind: "arithmetic-for" | "for" | "while" | "until" }>, io: IO, ): { steps: SyncLoopStep[]; redirectCount: number } {
     const canCache = !io.diagnosticCommandLines && !io.diagnosticOffset;
     if (canCache) {
       const cached = (command as { _cachedSyncLoopBody?: { steps: SyncLoopStep[]; redirectCount: number } })._cachedSyncLoopBody;
       if (cached) return cached;
     }
-    const bodyAssignments: SyncLoopStep[] = [];
-    let redirectCount = 0;
-    for (let l = 0; l < command.body.lists.length; l++) {
-      const list = command.body.lists[l]!;
-      for (let p = 0; p < list.pipelines.length; p++) {
-        const rawCmd = list.pipelines[p]!.commands[0]!;
-        const line = io.diagnosticCommandLines?.get(rawCmd) ?? (rawCmd.line ?? 1) + (io.diagnosticOffset ?? 0);
-        if (rawCmd.kind === "arithmetic") {
-          bodyAssignments.push({
-            cmd: rawCmd as unknown as Extract<Command, { kind: "simple" }>,
-            name: undefined,
-            value: undefined,
-            arithStmt: rawCmd.expression,
-            targetWord: undefined,
-            append: false,
-            line,
-          });
-          continue;
-        }
+    const buildScript = (script: Script): { steps: SyncLoopStep[]; redirectCount: number } => {
+      const bodyAssignments: SyncLoopStep[] = [];
+      let redirectCount = 0;
+      for (let l = 0; l < script.lists.length; l++) {
+        const list = script.lists[l]!;
+        for (let p = 0; p < list.pipelines.length; p++) {
+          const rawCmd = list.pipelines[p]!.commands[0]!;
+          const line = io.diagnosticCommandLines?.get(rawCmd) ?? (rawCmd.line ?? 1) + (io.diagnosticOffset ?? 0);
+          if (rawCmd.kind === "arithmetic") {
+            bodyAssignments.push({
+              cmd: rawCmd as unknown as Extract<Command, { kind: "simple" }>,
+              name: undefined,
+              value: undefined,
+              arithStmt: rawCmd.expression,
+              targetWord: undefined,
+              append: false,
+              line,
+            });
+            continue;
+          }
+          if (rawCmd.kind === "if") {
+            const branches: { condCmd: Extract<Command, { kind: "arithmetic" }>; cond: ArithmeticProgram; condLine: number; steps: readonly SyncLoopStep[] }[] = [];
+            for (let bi = 0; bi < rawCmd.branches.length; bi++) {
+              const br = rawCmd.branches[bi]!;
+              const bc = br.condition.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "arithmetic" }>;
+              const sub = buildScript(br.body);
+              redirectCount += sub.redirectCount;
+              branches.push({
+                condCmd: bc,
+                cond: bc.expression,
+                condLine: io.diagnosticCommandLines?.get(bc) ?? (bc.line ?? line) + (io.diagnosticOffset ?? 0),
+                steps: sub.steps,
+              });
+            }
+            let elseSteps: readonly SyncLoopStep[] | undefined;
+            if (rawCmd.otherwise) {
+              const subElse = buildScript(rawCmd.otherwise);
+              redirectCount += subElse.redirectCount;
+              elseSteps = subElse.steps;
+            }
+            bodyAssignments.push({
+              cmd: rawCmd as unknown as Extract<Command, { kind: "simple" }>,
+              name: undefined,
+              value: undefined,
+              ifBranches: branches,
+              elseSteps,
+              targetWord: undefined,
+              append: false,
+              line,
+            });
+            continue;
+          }
         const cmd = rawCmd as Extract<Command, { kind: "simple" }>;
         const w0 = cmd.words[0]!;
         if (cmd.redirects.length === 1 && cmd.redirects[0]!.target.plain === "/dev/null") {
@@ -12085,15 +12131,17 @@ export class Runtime {
         }
       }
     }
-    for (let b = 0; b + 1 < bodyAssignments.length; b++) {
-      const curr = bodyAssignments[b]!;
-      const next = bodyAssignments[b + 1]!;
-      if ( curr.targetWord !== undefined && curr.value !== undefined && !curr.append && next.targetWord !== undefined && next.value !== undefined && next.append && sameRedirectTargetWord(curr.targetWord, next.targetWord)) {
-        curr.coalesceNext = true;
-        b++;
+      for (let b = 0; b + 1 < bodyAssignments.length; b++) {
+        const curr = bodyAssignments[b]!;
+        const next = bodyAssignments[b + 1]!;
+        if ( curr.targetWord !== undefined && curr.value !== undefined && !curr.append && next.targetWord !== undefined && next.value !== undefined && next.append && sameRedirectTargetWord(curr.targetWord, next.targetWord)) {
+          curr.coalesceNext = true;
+          b++;
+        }
       }
-    }
-    const res = { steps: bodyAssignments, redirectCount };
+      return { steps: bodyAssignments, redirectCount };
+    };
+    const res = buildScript(command.body);
     if (canCache) {
       (command as { _cachedSyncLoopBody?: { steps: SyncLoopStep[]; redirectCount: number } })._cachedSyncLoopBody = res;
     }
@@ -12170,7 +12218,7 @@ export class Runtime {
     if (store) store.epoch = restEpoch;
     return 0;
   }
-  private trySyncLoop( command: Extract<Command, { kind: "arithmetic-for" | "for" }>, pipeline: Pipeline, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>, elem0: { text: { shellValue: ShellValue } } | undefined, canMutatePipeStatus: boolean, io: IO, diagnosticLine: number, allowRedirect = false, ): number | undefined {
+  private trySyncLoop( command: Extract<Command, { kind: "arithmetic-for" | "for" | "while" | "until" }>, pipeline: Pipeline, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>, elem0: { text: { shellValue: ShellValue } } | undefined, canMutatePipeStatus: boolean, io: IO, diagnosticLine: number, allowRedirect = false, ): number | undefined {
     // Substitution callers also need to refuse before effects when status
     // publication requires array admission. Cleanup cannot start async fallback.
     if (store && !existing) return undefined;
@@ -12253,7 +12301,35 @@ export class Runtime {
       for (let b = 0; b < bodyAssignments.length; b++) {
         intSteps[b] = undefined;
         const step = bodyAssignments[b]!;
-        if (step.name === inductionName) {
+        const arithTreeMutatesVar = (node: ArithmeticProgram["tree"], vName: string): boolean => {
+          if (!node) return false;
+          switch (node.kind) {
+            case "literal":
+            case "name":
+              return false;
+            case "unary":
+              if ((node.operator === "++" || node.operator === "--") && node.operand.kind === "name" && node.operand.name === vName) return true;
+              return arithTreeMutatesVar(node.operand, vName);
+            case "binary":
+              if (node.operator.endsWith("=") && node.operator !== "==" && node.operator !== "!=" && node.operator !== "<=" && node.operator !== ">=" && node.left.kind === "name" && node.left.name === vName) return true;
+              return arithTreeMutatesVar(node.left, vName) || arithTreeMutatesVar(node.right, vName);
+            case "conditional":
+              return arithTreeMutatesVar(node.condition, vName) || arithTreeMutatesVar(node.yes, vName) || arithTreeMutatesVar(node.no, vName);
+          }
+        };
+        const stepMutatesInduction = (st: SyncLoopStep): boolean => {
+          if (st.name === inductionName) return true;
+          if (st.arithStmt?.hasMutation && arithTreeMutatesVar(st.arithStmt.tree, inductionName)) return true;
+          if (st.ifBranches) {
+            for (const br of st.ifBranches) {
+              if (br.cond.hasMutation && arithTreeMutatesVar(br.cond.tree, inductionName)) return true;
+              if (br.steps.some(stepMutatesInduction)) return true;
+            }
+          }
+          if (st.elseSteps?.some(stepMutatesInduction)) return true;
+          return false;
+        };
+        if (stepMutatesInduction(step)) {
           (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
           return undefined;
         }
@@ -12298,7 +12374,7 @@ export class Runtime {
         }
       }
       const arithNamesList = [...arithNames];
-      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
+      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.ifBranches !== undefined || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
       // Complex expansions can read or write names inside selectors, defaults,
       // patterns and substring expressions. Keep every assignment in iteration
       // order unless the shallow dependency checks below can see all reads.
@@ -12524,6 +12600,68 @@ export class Runtime {
       monitor.epoch = restEpoch;
       if (store) store.epoch = restEpoch;
       return 0;
+    }
+    if (command.kind === "while" || command.kind === "until") {
+      if (allowRedirect || redirectCount > 0 || command.condition.lists.length !== 1 || command.condition.lists[0]!.terminator || command.condition.lists[0]!.pipelines.length !== 1) return undefined;
+      const cp = command.condition.lists[0]!.pipelines[0]!;
+      if (cp.negate || cp.commands.length !== 1 || cp.commands[0]!.kind !== "arithmetic") return undefined;
+      const condCmd = cp.commands[0]!;
+      if (condCmd.redirects.length !== 0 || condCmd.expression.error || !isSafeSmiProgram(condCmd.expression) || condCmd.expression.hasSubscript || !this.canSyncArithmeticWithoutFault(condCmd.expression.tree, rawState, condCmd.line ?? 1)) return undefined;
+      const condTree = condCmd.expression.tree;
+      if (!condTree || condTree.kind !== "binary" || (condTree.operator !== "<" && condTree.operator !== "<=" && condTree.operator !== ">" && condTree.operator !== ">=" && condTree.operator !== "!=" && condTree.operator !== "==")) return undefined;
+      if ((this.budget.commands + 2500 * (bodyAssignments.length + 1)) >= this.budget.limits.maxCommands || (this.budget.iterations + 2500) >= this.budget.limits.maxLoopIterations) return undefined;
+      monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets);
+      this.budget.tick();
+      rawState.loopDepth++;
+      const prevRawWrite = this._syncArithRawWriteOnly;
+      const prevTouched = this._syncArithTouched;
+      this._syncArithRawWriteOnly = true;
+      this._syncArithTouched = touched;
+      const condLine = io.diagnosticCommandLines?.get(condCmd) ?? (condCmd.line ?? diagnosticLine) + (io.diagnosticOffset ?? 0);
+      let loopStatus = 0;
+      let iterCount = 0;
+      try {
+        while (true) {
+          this.budget.tick();
+          const condNonZero = this.syncShellArithmeticNonZero(condCmd.expression, rawState, condLine);
+          if (condNonZero !== (command.kind === "while")) break;
+          if (++iterCount > 2400) break;
+          this.budget.loop();
+          if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
+          this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; loopStatus = rawState.status; });
+        }
+      } finally {
+        this._syncArithRawWriteOnly = prevRawWrite;
+        this._syncArithTouched = prevTouched;
+        rawState.loopDepth--;
+        for (const varName of touched) {
+          const finalVal = rawState.variables[varName];
+          if (finalVal !== undefined) {
+            monitor.publishStringVariable(varName, finalVal);
+            if (rawState.allexport) monitor.proxy.exported.add(varName);
+          }
+        }
+      }
+      if (lastCmd) {
+        if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(lastCmd));
+        rawState.substitutionStatus = 0;
+        if (rawState.variables._ !== undefined && !touched.has("_")) delete rawState.variables._;
+        rawState.lastArgument = lastArg;
+        if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+        const statusStr = loopStatus === 0 ? "0" : String(loopStatus);
+        if (!existing) {
+          monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : [statusStr];
+          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+        } else {
+          this.setSyncPipeStatusCell(existing!, statusStr);
+          store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+        }
+      }
+      rawState.status = loopStatus;
+      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+      monitor.epoch = restEpoch;
+      if (store) store.epoch = restEpoch;
+      return loopStatus;
     }
     if ( !isShellIdentifier(command.name) || command.name === "OPTIND" || command.name.includes("[") || store?.get(command.name) || command.words?.length !== 1 || rawState.braceexpand === false) {
       return undefined;
@@ -12937,6 +13075,9 @@ export class Runtime {
           this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
           lastArg = "";
           lastValueWord = undefined;
+        } else if (step.ifBranches !== undefined) {
+          this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          continue;
         } else if (step.arithStmt !== undefined) {
           const nonZero = this.syncShellArithmeticNonZero(step.arithStmt, rawState, step.line);
           lastArg = "";
@@ -13007,6 +13148,92 @@ export class Runtime {
     }
     return { lastCmd, lastArg, lastInductionVal };
   }
+  private execSyncIfStep(
+    step: SyncLoopStep,
+    rawState: State,
+    io: IO,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    touched: Set<string>,
+    mode: number,
+    onUpdate: (v: { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string }) => void,
+  ): void {
+    let chosen: readonly SyncLoopStep[] | undefined;
+    let lastCondCmd: Extract<Command, { kind: "simple" }> | undefined;
+    for (let bi = 0; bi < step.ifBranches!.length; bi++) {
+      const br = step.ifBranches![bi]!;
+      lastCondCmd = br.condCmd as unknown as Extract<Command, { kind: "simple" }>;
+      this.budget.tick();
+      const nonZero = this.syncShellArithmeticNonZero(br.cond, rawState, br.condLine);
+      rawState.status = nonZero ? 0 : 1;
+      if (nonZero) {
+        chosen = br.steps;
+        break;
+      }
+    }
+    if (!chosen) chosen = step.elseSteps;
+    if (!chosen) {
+      rawState.status = 0;
+      onUpdate({ lastCmd: lastCondCmd, lastArg: "" });
+    } else {
+      this.execSyncLoopSteps(chosen, rawState, io, monitor, touched, mode, onUpdate);
+    }
+  }
+  private execSyncLoopSteps(
+    steps: readonly SyncLoopStep[],
+    rawState: State,
+    io: IO,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    touched: Set<string>,
+    mode: number,
+    onUpdate: (v: { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string }) => void,
+  ): void {
+    let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
+    let lastArg = "";
+    for (let b = 0; b < steps.length; b++) {
+      const step = steps[b]!;
+      lastCmd = step.cmd;
+      this.budget.tick();
+      if (step.ifBranches !== undefined) {
+        this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
+        onUpdate({ lastCmd, lastArg });
+        continue;
+      } else if (step.arithStmt !== undefined) {
+        const nonZero = this.syncShellArithmeticNonZero(step.arithStmt, rawState, step.line);
+        lastArg = "";
+        rawState.status = nonZero ? 0 : 1;
+        onUpdate({ lastCmd, lastArg });
+        continue;
+      } else if (step.arrayAssign !== undefined) {
+        this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
+        lastArg = "";
+      } else if (step.printfVArgs !== undefined && step.name !== undefined) {
+        const pWords = step.printfVArgs;
+        const pArgs: string[] = [];
+        for (let pw = 0; pw < pWords.length; pw++) {
+          pArgs.push(this.fastValueWord(pWords[pw]!, rawState, io, false, false, false, false, 0, step.line) as string);
+        }
+        rawState.variables[step.name] = tryFastPrintf(pArgs) ?? "";
+        touched.add(step.name);
+        lastArg = pArgs[pArgs.length - 1]!;
+      } else if (step.name !== undefined && step.value !== undefined) {
+        const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
+        if (step.append) {
+          const curRaw = rawState.variables[step.name];
+          const curStr = curRaw === undefined ? "" : (touched.has(step.name) ? curRaw : (monitor.values.get(step.name, curRaw) ?? curRaw));
+          rawState.variables[step.name] = (typeof curStr === "string" ? curStr : "") + val;
+        } else rawState.variables[step.name] = val;
+        touched.add(step.name);
+        lastArg = "";
+      } else if (step.isStdoutEcho && step.value !== undefined) {
+        const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
+        const bytes = fastSharedTextEncoder.encode(val + "\n");
+        (io.stdout as { write: (b: Uint8Array) => void }).write(bytes);
+        lastArg = val;
+      }
+      rawState.status = 0;
+      onUpdate({ lastCmd, lastArg });
+    }
+  }
   private runSyncForFallback( varName: string, fastLoopWords: readonly string[], bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string } {
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = "";
@@ -13036,6 +13263,9 @@ export class Runtime {
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
           lastValueWord = step.value;
+        } else if (step.ifBranches !== undefined) {
+          this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          continue;
         } else if (step.arrayAssign !== undefined) {
           this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
           lastArg = "";

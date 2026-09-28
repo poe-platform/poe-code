@@ -20576,12 +20576,12 @@ export class Runtime {
     for (let i = 0; i < raw.length; i += 76) chunks.push(raw.slice(i, i + 76));
     return chunks.join("\n");
   }
-  private syncBase64Decode(b64: string): string {
+  private syncBase64DecodeBytes(b64: string): Uint8Array {
     const clean = b64.replace(/\s+/g, "");
     const bin = globalThis.atob(clean);
     const bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    return sharedSyncPipeDecoder.decode(bytes);
+    return bytes;
   }
   private tryReadMemoryFileViewSync(path: string): Uint8Array | undefined {
     // Small finite budgets must use the ordinary read path, including admission probes.
@@ -21029,12 +21029,12 @@ export class Runtime {
               }
             } else if (isInlineBase64) {
               if (stageArgs.length === 0) {
-                const b64Wrapped = this.syncBase64Encode(fastSharedTextEncoder.encode(inStr));
+                const b64Wrapped = this.syncBase64Encode(prevBuf.subarray(0, prevLen));
                 outLines = b64Wrapped.length === 0 ? [] : b64Wrapped.split("\n");
               } else {
                 const cleaned = inStr.replace(/[ \t\r\n]+/g, "");
                 if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
-                const decoded = fastSharedTextEncoder.encode(this.syncBase64Decode(cleaned));
+                const decoded = this.syncBase64DecodeBytes(cleaned);
                 if (decoded.includes(0) || decoded.byteLength > nextBuf.byteLength) return undefined;
                 const nextTotalBytes = this.budget.bytes + decoded.byteLength;
                 if (nextTotalBytes > this.budget.maxOutputBytesSmi && decoded.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
@@ -21400,7 +21400,7 @@ export class Runtime {
               }
             } else if (hasSingleHereStringRedir && w0Plain === "base64" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "--decode")))) {
               if (opArgs.length === 0) fileRes = this.syncBase64Encode(view);
-              else fileRes = this.syncBase64Decode(fileStr);
+              else fileRes = sharedSyncPipeDecoder.decode(this.syncBase64DecodeBytes(fileStr));
             } else if (hasSingleHereStringRedir && w0Plain === "rev" && opArgs.length === 0) {
               fileRes = rawLines.map(l => Array.from(l).reverse().join("")).join("\n");
             } else if (hasSingleHereStringRedir && w0Plain === "tac" && opArgs.length === 0) {

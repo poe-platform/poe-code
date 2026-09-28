@@ -8714,7 +8714,7 @@ export class Runtime {
     }
     if (command.words.length >= 1) {
       const w0Plain = command.words[0]!.plain;
-      if ( command.words.length >= 4 && w0Plain === "printf" && command.words[1]?.plain === "-v" && command.redirects.length === 0 && canMutatePipeStatus && (!pipeline.negate || ignored || !rawState.errexit) && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf")) {
+      if ( this.budget.limits.maxExpansionFields === Infinity && command.words.length >= 4 && w0Plain === "printf" && command.words[1]?.plain === "-v" && command.redirects.length === 0 && canMutatePipeStatus && (!pipeline.negate || ignored || !rawState.errexit) && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf")) {
         const targetVar = command.words[2]?.plain;
         const def = this.commands.get("printf");
         if ( targetVar && isShellIdentifier(targetVar) && targetVar !== "OPTIND" && targetVar !== "PIPESTATUS" && targetVar !== "_" && !rawState.readonlyVariables?.has(targetVar) && !store?.get(targetVar) && !monitor.hasOverlay(targetVar) && def && def.execute === printfCommand.execute && command.words.length <= this.budget.maxExpansionFieldsSmi && this.arePureArgWords(command.words, rawState)) {
@@ -15348,7 +15348,7 @@ export class Runtime {
       if (terminated || !chunk.byteLength) return;
       const nul = chunk.indexOf(0);
       const bytes = nul < 0 ? chunk : chunk.subarray(0, nul);
-      if (bytes.byteLength) { if (bytes.every(b => b < 128)) { const str = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1"); if (typeof chunks[chunks.length - 1] === "string") chunks[chunks.length - 1] = (chunks[chunks.length - 1] as string) + str; else chunks.push(str); } else chunks.push(shellValueFromBytes(bytes, allocation)); }
+      if (bytes.byteLength) { if (bytes.every(b => b < 128)) { allocation.reserve(bytes.byteLength * 2 + 32, 1); const str = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1"); if (typeof chunks[chunks.length - 1] === "string") chunks[chunks.length - 1] = (chunks[chunks.length - 1] as string) + str; else chunks.push(str); } else chunks.push(shellValueFromBytes(bytes, allocation)); }
       terminated = nul >= 0;
     } };
     try {

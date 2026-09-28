@@ -1336,6 +1336,8 @@ describe("scoped safe package artifacts", () => {
       return filename === omitted || filename.startsWith(omitted + "/");
     })).map(([filename, contents]) => [filename.replace(prefix + "dist/", "/output/safe-bash/dist/safe-bash/"), contents]));
     Object.assign(expected, {
+      "/output/safe-bash/dist/safe-bash-command-git/LICENSE": data["/repo/packages/safe-bash-command-git/LICENSE"],
+      "/output/safe-bash/dist/safe-bash-command-git/git_rust.wasm": data["/repo/packages/safe-bash-command-git/dist/git_rust.wasm"],
       "/output/safe-bash/dist/safe-bash-command-fold/LICENSE": data["/repo/packages/safe-bash-command-fold/LICENSE"],
       "/output/safe-bash/dist/safe-bash-command-fold/COPYING": data["/repo/packages/safe-bash-command-fold/dist/COPYING"],
       "/output/safe-bash/dist/safe-bash-command-fold/COPYING.LESSER": data["/repo/packages/safe-bash-command-fold/dist/COPYING.LESSER"],
@@ -1352,6 +1354,7 @@ describe("scoped safe package artifacts", () => {
       expected["/output/safe-bash/dist/safe-bash-compression-engine/native/" + asset] = data["/repo/packages/safe-bash-compression-engine/dist/native/" + asset]!;
     }
     for (const [name, entries] of [
+      ["safe-bash-command-git", ["index"]],
       ["safe-bash-command-fold", ["index", "family"]],
       ["safe-bash-command-dos2unix", ["index"]],
       ["safe-bash-compression-engine", [

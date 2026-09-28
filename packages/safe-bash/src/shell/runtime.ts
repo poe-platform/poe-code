@@ -7540,12 +7540,8 @@ export class Runtime {
         if (assignment && rawState.variableAttributes?.get(resolveSyncNameref(rawState, assignment.name))?.includes("i")) return false;
         return Boolean( assignment && (resolveSyncNameref(rawState, assignment.name) !== "OPTIND" || (!assignment.append && !rawState.variableAttributes?.get("OPTIND") && isCanonicalOptindWord(assignment.value))) && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") && !rawState.readonlyVariables?.has(assignment.name) && (!st?.get(assignment.name) || (!assignment.append && !hasUnpreparedLocal(rawState, assignment.name) && !rawState.exported.has(assignment.name))) && isNoBraceSyncAssignWord(assignment.value), );
       }
-      if (w0Plain !== undefined && command.words.length <= 64 && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !hasActiveExtensions(rawState)) {
-        const fnBody = rawState.functions.get(w0Plain)!;
-        if (fnBody.kind === "group" && fnBody.redirects.length === 0 && command.words.slice(1).every(isNoBraceSyncWord)) {
-          return this.canSyncScriptCompound(fnBody.body, rawState, depth + 1, 0);
-        }
-      }
+      // Shell functions execute asynchronously and cannot be speculated in compounds.
+      if (w0Plain !== undefined && hasShellFunction(rawState, w0Plain)) return false;
       if (w0Plain === "eval" && command.words.length === 2 && command.words[1]?.plain !== undefined && command.words[1].plain.length <= 4096 && !hasShellFunction(rawState, "eval") && !rawState.extensions?.builtins.has("eval") && isDefaultShellSyntax(rawState.extensions?.syntax)) {
         try {
           const cachedUnit = getOrParseSingleEvalUnit(command.words[1].plain, byteLocale(rawState.variables), this.budget.parsing);
@@ -8767,7 +8763,10 @@ export class Runtime {
         (command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop = true;
       }
     }
-    if (command.kind === "group" || command.kind === "if" || command.kind === "case" || command.kind === "while" || command.kind === "until" || command.kind === "for" || command.kind === "arithmetic-for") {
+    if (command.kind === "while" || command.kind === "until" || command.kind === "for" || command.kind === "arithmetic-for") return undefined;
+    // Loops use the specialized fast path above or the async executor.
+    // Generic speculation cannot restart a partially executed loop safely.
+    if (command.kind === "group" || command.kind === "if" || command.kind === "case") {
       if ( command.redirects.length !== 0 || pipeline.negate || !canMutatePipeStatus || (!ignored && rawState.errexit) || rawState.nounset || rawState.readonlyVariables?.size || hasYieldCheckpoint(this.signal) || (this._syncReturnDepth === 0 && (((this.budget.commands + 32) & 8191) < 32 || !this.canSyncCommandCompound(command, rawState, 0, rawState.loopDepth)))) {
         return undefined;
       }
@@ -8816,279 +8815,6 @@ export class Runtime {
         }
         rawState.status = 0;
         return 0;
-      }
-      if (command.kind === "while" || command.kind === "until") {
-        this.budget.tick();
-        let lastStatus = 0;
-        const enableBatchRawWrite = !this._syncArithRawWriteOnly && !hasActiveExtensions(rawState) && !hasNonNamerefAttributes(rawState) && !rawState.readonlyVariables?.size && !rawState.allexport;
-        const batchTouched = enableBatchRawWrite ? new Set<string>() : undefined;
-        const batchFastPos = enableBatchRawWrite && this._fastSubPositional === undefined && (!gArrays || gArrays.watches.size === 0) && this.budget.limits.maxExpansionBytes === Infinity;
-        const loopInitPos = batchFastPos ? rawState.positional : undefined;
-        if (enableBatchRawWrite) {
-          this._syncArithRawWriteOnly = true;
-          this._syncArithTouched = batchTouched;
-          if (batchFastPos) this._fastSubPositional = loopInitPos;
-        }
-        rawState.loopDepth++;
-        this._syncReturnDepth++;
-        try {
-          let iter = 0;
-          while (true) {
-            if (++iter > 4096) return undefined;
-            if ((iter & 127) === 0) {
-              if (hasYieldCheckpoint(this.signal)) return undefined;
-              runYieldCheckpoint(this.signal);
-            }
-            const condRes = this.trySyncScript(command.condition, state, io, true);
-            if (typeof condRes !== "number") return undefined;
-            if (this._syncPendingReturnStatus !== undefined) return this._syncPendingReturnStatus;
-            if (this._syncPendingBreak > 0) {
-              this._syncPendingBreak--;
-              lastStatus = 0;
-              break;
-            }
-            if (this._syncPendingContinue > 0) {
-              this._syncPendingContinue--;
-              lastStatus = 0;
-              if (this._syncPendingContinue > 0) break;
-              continue;
-            }
-            const keepGoing = command.kind === "while" ? condRes === 0 : condRes !== 0;
-            if (!keepGoing) break;
-            this.budget.loop();
-            const bodyRes = this.trySyncScript(command.body, state, io, ignored);
-            if (typeof bodyRes !== "number") return undefined;
-            lastStatus = bodyRes;
-            if (this._syncPendingReturnStatus !== undefined) return this._syncPendingReturnStatus;
-            if (this._syncPendingBreak > 0) {
-              this._syncPendingBreak--;
-              lastStatus = 0;
-              break;
-            }
-            if (this._syncPendingContinue > 0) {
-              this._syncPendingContinue--;
-              lastStatus = 0;
-              if (this._syncPendingContinue > 0) break;
-              continue;
-            }
-          }
-        } finally {
-          this._syncReturnDepth--;
-          rawState.loopDepth--;
-          if (enableBatchRawWrite && batchTouched) {
-            this._syncArithRawWriteOnly = false;
-            this._syncArithTouched = undefined;
-            if (batchFastPos) {
-              const finalFastPos = this._fastSubPositional;
-              this._fastSubPositional = undefined;
-              if (finalFastPos !== undefined && finalFastPos !== loopInitPos) {
-                this.replacePositionals(state, finalFastPos, () => { rawState.positional = finalFastPos as string[]; });
-              }
-            }
-            for (const vName of batchTouched) {
-              const vVal = rawState.variables[vName];
-              if (typeof vVal === "string") monitor.publishStringVariable(vName, vVal);
-              else if (vVal === undefined) delete monitor.proxy.variables[vName];
-            }
-          }
-        }
-        rawState.status = lastStatus;
-        return lastStatus;
-      }
-      if (command.kind === "arithmetic-for") {
-        const [e0, e1, e2] = command.expressions;
-        if ((e0 && !this.canSyncArithmeticWithoutFault(e0.tree, rawState, diagnosticLine)) || (e1 && !this.canSyncArithmeticWithoutFault(e1.tree, rawState, diagnosticLine)) || (e2 && !this.canSyncArithmeticWithoutFault(e2.tree, rawState, diagnosticLine))) {
-          return undefined;
-        }
-        this.budget.tick();
-        const enableBatchRawWrite = !this._syncArithRawWriteOnly && !hasActiveExtensions(rawState) && !hasNonNamerefAttributes(rawState) && !rawState.readonlyVariables?.size && !rawState.allexport;
-        const batchTouched = enableBatchRawWrite ? new Set<string>() : undefined;
-        const batchFastPos = enableBatchRawWrite && this._fastSubPositional === undefined && (!gArrays || gArrays.watches.size === 0) && this.budget.limits.maxExpansionBytes === Infinity;
-        const loopInitPos = batchFastPos ? rawState.positional : undefined;
-        if (enableBatchRawWrite) {
-          this._syncArithRawWriteOnly = true;
-          this._syncArithTouched = batchTouched;
-          if (batchFastPos) this._fastSubPositional = loopInitPos;
-        }
-        let lastStatus = 0;
-        rawState.loopDepth++;
-        this._syncReturnDepth++;
-        try {
-          if (e0) this.syncShellArithmeticNonZero(e0, rawState, diagnosticLine);
-          let iter = 0;
-          while (true) {
-            if (++iter > 4096) return undefined;
-            if ((iter & 127) === 0) {
-              if (hasYieldCheckpoint(this.signal)) return undefined;
-              runYieldCheckpoint(this.signal);
-            }
-            if (e1) {
-              if (!this.canSyncArithmeticWithoutFault(e1.tree, rawState, diagnosticLine)) return undefined;
-              if (!this.syncShellArithmeticNonZero(e1, rawState, diagnosticLine)) break;
-            }
-            this.budget.loop();
-            const bodyRes = this.trySyncScript(command.body, state, io, ignored);
-            if (typeof bodyRes !== "number") return undefined;
-            lastStatus = bodyRes;
-            if (this._syncPendingReturnStatus !== undefined) return this._syncPendingReturnStatus;
-            if (this._syncPendingBreak > 0) {
-              this._syncPendingBreak--;
-              lastStatus = 0;
-              break;
-            }
-            if (this._syncPendingContinue > 0) {
-              this._syncPendingContinue--;
-              lastStatus = 0;
-              if (this._syncPendingContinue > 0) break;
-            }
-            if (e2) {
-              if (!this.canSyncArithmeticWithoutFault(e2.tree, rawState, diagnosticLine)) return undefined;
-              this.syncShellArithmeticNonZero(e2, rawState, diagnosticLine);
-            }
-          }
-        } finally {
-          this._syncReturnDepth--;
-          rawState.loopDepth--;
-          if (enableBatchRawWrite && batchTouched) {
-            this._syncArithRawWriteOnly = false;
-            this._syncArithTouched = undefined;
-            if (batchFastPos) {
-              const finalFastPos = this._fastSubPositional;
-              this._fastSubPositional = undefined;
-              if (finalFastPos !== undefined && finalFastPos !== loopInitPos) {
-                this.replacePositionals(state, finalFastPos, () => { rawState.positional = finalFastPos as string[]; });
-              }
-            }
-            for (const vName of batchTouched) {
-              const vVal = rawState.variables[vName];
-              if (typeof vVal === "string") monitor.publishStringVariable(vName, vVal);
-              else if (vVal === undefined) delete monitor.proxy.variables[vName];
-            }
-          }
-        }
-        rawState.status = lastStatus;
-        return lastStatus;
-      }
-      if (command.kind === "for") {
-        let items: string[] | undefined;
-        if (!command.words) {
-          const pos = this._fastSubPositional ?? rawState.positional;
-          items = pos.slice();
-        } else if (command.words.length === 1) {
-          const w0 = command.words[0]!;
-          items = this.tryExpandSyncArrayMembersWord(w0, rawState, io, diagnosticLine);
-          const p0 = items ? undefined : (w0.parts.length === 1 ? w0.parts[0] : (w0.parts.length === 2 && w0.parts[0]!.kind === "text" && w0.parts[0]!.value === "" ? w0.parts[1] : undefined));
-          const sel0 = p0?.kind === "variable" ? getArraySelector(p0) : undefined;
-          if (p0?.kind === "variable" && p0.quoted && !p0.substring && (sel0?.kind === "members" || sel0?.kind === "keys") && sel0.separator === "@") {
-            const b = monitor.store?.get(p0.name);
-            items = [];
-            if (b) {
-              if (b.maximum >= 4096) return undefined;
-              const isKeys = sel0.kind === "keys" || p0.keys === true;
-              for (let k = 0; k <= b.maximum; k++) {
-                if (!b.values.has(k)) continue;
-                const v = isKeys ? (b.associative ? b.keys.get(b.keyByIndex.get(k)!)?.text.shellValue : String(k)) : b.getValue(k);
-                if (typeof v !== "string") return undefined;
-                items.push(v);
-              }
-            } else if (!sel0 || sel0.kind === "members") {
-              const sv = rawState.variables[p0.name];
-              if (sv !== undefined) {
-                const mv = monitor.values.get(p0.name, sv) ?? sv;
-                if (typeof mv !== "string") return undefined;
-                items.push(mv);
-              }
-            } else if (rawState.variables[p0.name] !== undefined) {
-              items.push("0");
-            }
-          } else if (p0?.kind === "text" && !p0.quoted && /^\{-?\d+\.\.-?\d+(?:\.\.-?\d+)?\}$/.test(p0.value)) {
-            const br = tryFastExpandBraceRange(w0, this.budget);
-            if (!br || br.length > 4096) return undefined;
-            items = br as string[];
-          }
-        }
-        if (!items && command.words) {
-          items = [];
-          for (let i = 0; i < command.words.length; i++) {
-            const expandedArr = this.tryExpandSyncArrayMembersWord(command.words[i]!, rawState, io, diagnosticLine);
-            if (expandedArr !== undefined) {
-              for (let mIdx = 0; mIdx < expandedArr.length; mIdx++) items.push(expandedArr[mIdx]!);
-              continue;
-            }
-            let fv: ShellValue | undefined;
-            try {
-              fv = this.fastValueWord(command.words[i]!, rawState, io, false, false, false, false, undefined, diagnosticLine);
-            } catch {
-              return undefined;
-            }
-            if (typeof fv !== "string") return undefined;
-            items.push(fv);
-          }
-        }
-        if (!items || items.length > 4096) return undefined;
-        this.budget.tick();
-        let lastStatus = 0;
-        const enableBatchRawWrite = !this._syncArithRawWriteOnly && !hasActiveExtensions(rawState) && !hasNonNamerefAttributes(rawState) && !rawState.readonlyVariables?.size && !rawState.allexport;
-        const batchTouched = enableBatchRawWrite ? new Set<string>() : undefined;
-        const batchFastPos = enableBatchRawWrite && this._fastSubPositional === undefined && (!gArrays || gArrays.watches.size === 0) && this.budget.limits.maxExpansionBytes === Infinity;
-        const loopInitPos = batchFastPos ? rawState.positional : undefined;
-        if (enableBatchRawWrite) {
-          this._syncArithRawWriteOnly = true;
-          this._syncArithTouched = batchTouched;
-          if (batchFastPos) this._fastSubPositional = loopInitPos;
-        }
-        rawState.loopDepth++;
-        this._syncReturnDepth++;
-        try {
-          for (let idx = 0; idx < items.length; idx++) {
-            if ((idx & 127) === 127) {
-              if (hasYieldCheckpoint(this.signal)) return undefined;
-              runYieldCheckpoint(this.signal);
-            }
-            this.budget.loop();
-            if (this._syncArithRawWriteOnly && this._syncArithTouched) {
-              rawState.variables[command.name] = items[idx]!;
-              this._syncArithTouched.add(command.name);
-            } else monitor.publishStringVariable(command.name, items[idx]!);
-            if (rawState.allexport) rawState.exported.add(command.name);
-            const bodyRes = this.trySyncScript(command.body, state, io, ignored);
-            if (typeof bodyRes !== "number") return undefined;
-            lastStatus = bodyRes;
-            if (this._syncPendingReturnStatus !== undefined) return this._syncPendingReturnStatus;
-            if (this._syncPendingBreak > 0) {
-              this._syncPendingBreak--;
-              lastStatus = 0;
-              break;
-            }
-            if (this._syncPendingContinue > 0) {
-              this._syncPendingContinue--;
-              lastStatus = 0;
-              if (this._syncPendingContinue > 0) break;
-              continue;
-            }
-          }
-        } finally {
-          this._syncReturnDepth--;
-          rawState.loopDepth--;
-          if (enableBatchRawWrite && batchTouched) {
-            this._syncArithRawWriteOnly = false;
-            this._syncArithTouched = undefined;
-            if (batchFastPos) {
-              const finalFastPos = this._fastSubPositional;
-              this._fastSubPositional = undefined;
-              if (finalFastPos !== undefined && finalFastPos !== loopInitPos) {
-                this.replacePositionals(state, finalFastPos, () => { rawState.positional = finalFastPos as string[]; });
-              }
-            }
-            for (const vName of batchTouched) {
-              const vVal = rawState.variables[vName];
-              if (typeof vVal === "string") monitor.publishStringVariable(vName, vVal);
-              else if (vVal === undefined) delete monitor.proxy.variables[vName];
-            }
-          }
-        }
-        rawState.status = lastStatus;
-        return lastStatus;
       }
       let fastSubject: ShellValue | undefined;
       try {
@@ -12797,7 +12523,9 @@ export class Runtime {
       for (let index = firstIndex; index < list.pipelines.length; index++) {
         if (state.noexec) throw new Flow("discard", 0);
         const operator = index > 0 ? list.operators[index - 1] : undefined;
-        if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
+        const resumingEnteredPipeline = skipFirstSync && listIndex === startListIndex && index === startPipelineIndex;
+        // The sync executor already selected this RHS before nested commands changed status.
+        if (!resumingEnteredPipeline && ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0))) continue;
         const pipeline = list.pipelines[index]!;
         const ignored = io.execution?.ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
         const syncStatus = (skipFirstSync && listIndex === startListIndex && index === startPipelineIndex)
@@ -19382,88 +19110,6 @@ export class Runtime {
     }
     return true;
   }
-  private canSyncPureFunctionBody(script: Script, rawState: State, localVars: Set<string> = new Set()): boolean {
-    if (script.lists.length === 0) return false;
-    for (let l = 0; l < script.lists.length; l++) {
-      const list = script.lists[l]!;
-      if (list.terminator) return false;
-      for (let p = 0; p < list.pipelines.length; p++) {
-        const pipe = list.pipelines[p]!;
-        if (pipe.negate || pipe.commands.length !== 1) return false;
-        const c = pipe.commands[0]!;
-        if (c.redirects.length !== 0) return false;
-        if (c.kind === "conditional") {
-          if (!this.canSyncConditional(c.expression)) return false;
-          continue;
-        }
-        if (c.kind === "if") {
-          for (let cl = 0; cl < c.branches.length; cl++) {
-            if (!this.canSyncPureFunctionBody(c.branches[cl]!.condition, rawState, localVars)) return false;
-            if (!this.canSyncPureFunctionBody(c.branches[cl]!.body, rawState, localVars)) return false;
-          }
-          if (c.otherwise && !this.canSyncPureFunctionBody(c.otherwise, rawState, localVars)) return false;
-          continue;
-        }
-        if (c.kind === "case") {
-          if (rawState.nocasematch || rawState.extglob) return false;
-          for (let cl = 0; cl < c.clauses.length; cl++) {
-            const clause = c.clauses[cl]!;
-            if (clause.terminator !== ";;" && clause.terminator !== "esac") return false;
-            if (!this.canSyncPureFunctionBody(clause.body, rawState, localVars)) return false;
-          }
-          continue;
-        }
-        if (c.kind === "while" || c.kind === "until") return false;
-        if (c.kind === "arithmetic") {
-          if (/[+]{2}|--|<<|>>|(?<![<>!=])=(?!=)/.test(c.expression.source)) return false;
-          continue;
-        }
-        if (c.kind === "simple") {
-          if (c.words.length === 0) return false;
-          const w0p = c.words[0]!.plain;
-          if (!w0p || rawState.extensions?.builtins.has(w0p)) {
-            if (c.words.length === 1 && !getArrayAssignment(c.words[0]!)) {
-              const assign = this.assignment(c.words[0]!);
-              if (assign && localVars.has(assign.name)) continue;
-            }
-            return false;
-          }
-          if (w0p === "echo" || w0p === "printf") {
-            const def = this.commands.get(w0p);
-            if (hasShellFunction(rawState, w0p) || !def || (w0p === "printf" ? def.execute !== printfCommand.execute : !defaultEchoExecutors.has(def.execute))) return false;
-            if (w0p === "printf" && c.words[1]?.plain === "-v") {
-              const target = c.words[2]?.plain;
-              if (!target || !localVars.has(target)) return false;
-            }
-            continue;
-          }
-          if (w0p === "[" || w0p === "test" || w0p === ":" || w0p === "true" || w0p === "false") {
-            if (hasShellFunction(rawState, w0p)) return false;
-            continue;
-          }
-          if (w0p === "return" && c.words.length <= 2) {
-            if (hasShellFunction(rawState, "return")) return false;
-            continue;
-          }
-          if (w0p === "local" && c.words.length >= 2 && c.words.length <= 16) {
-            if (hasShellFunction(rawState, "local")) return false;
-            for (let idx = 1; idx < c.words.length; idx++) {
-              const wArg = c.words[idx]!;
-              const assign = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
-              if (assign) {
-                if (assign.name.includes("[") || rawState.readonlyVariables?.has(assign.name)) return false;
-                localVars.add(assign.name);
-              } else if (wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && !rawState.readonlyVariables?.has(wArg.plain)) localVars.add(wArg.plain); else return false;
-            }
-            continue;
-          }
-          return false;
-        }
-        return false;
-      }
-    }
-    return true;
-  }
   private tryFastPureSubstitution(part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
     if (this.middleware.length > 0) return undefined;
     if (rawState.depth >= this.budget.maxSubstitutionDepthSmi && rawState.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
@@ -19847,30 +19493,6 @@ export class Runtime {
         }
       }
     }
-    if ( (cmd.kind === "case" || cmd.kind === "if") && cmd.redirects.length === 0 && !rawState.errexit && !rawState.nounset && rawState.depth + 1 < 24 && (this.budget.commands + 64) < this.budget.limits.maxCommands && this.canSyncPureFunctionBody(part.script, rawState)) {
-      const prevStatus = rawState.status;
-      const cap = new Capture(this.budget, this.signal);
-      const { descriptors: ignoredDescriptors, ...restIO } = io;
-      const subIO: IO = { ...restIO, stdout: cap };
-      rawState.depth++;
-      let syncStatus: number | { listIndex: number; pipelineIndex: number };
-      try {
-        syncStatus = this.trySyncScript(part.script, state, subIO, false);
-      } finally {
-        rawState.depth--;
-      }
-      if (typeof syncStatus !== "number") {
-        rawState.status = prevStatus;
-        return undefined;
-      }
-      rawState.substitutionStatus = syncStatus;
-      rawState.status = syncStatus;
-      const rawBytes = cap.bytes();
-      const val = sharedSyncPipeDecoder.decode(rawBytes);
-      let end = val.length;
-      while (end > 0 && val.charCodeAt(end - 1) === 10) end--;
-      return end === val.length ? val : val.slice(0, end);
-    }
     if (cmd.kind !== "simple" || cmd.redirects.length > 0 || cmd.words.length === 0) return undefined;
     let w0Plain = cmd.words[0]!.plain;
     if (!w0Plain || rawState.extensions?.builtins.has(w0Plain)) return undefined;
@@ -19893,52 +19515,9 @@ export class Runtime {
         cmd = fnBody.body.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "simple" }>;
         w0Plain = cmd.words[0]!.plain!;
       } else {
-        if ( rawState.depth + 1 >= 24 || rawState.functionDepth + 1 >= 24 || rawState.errexit || rawState.nounset || (this.budget.commands + 64) >= this.budget.limits.maxCommands || rawState.functionDepth + 1 >= this.budget.limits.maxSubstitutionDepth || !this.canSyncPureFunctionBody(fnBody.body, rawState)) {
-          return undefined;
-        }
-        const prevPos = rawState.positional;
-        const prevFastPos = this._fastSubPositional;
-        const prevStatus = rawState.status;
-        const frameLocals = new Map<string, SavedVariable>();
-        rawState.positional = fnPositional;
-        this._fastSubPositional = fnPositional;
-        rawState.locals.push(frameLocals);
-        rawState.depth++;
-        rawState.functionDepth++;
-        this.budget.tick();
-        const cap = new Capture(this.budget, this.signal);
-        const { descriptors: ignoredDescriptors, ...restIO } = io;
-        const subIO: IO = { ...restIO, stdout: cap };
-        let syncStatus: number | { listIndex: number; pipelineIndex: number };
-        const savedPendingRet = this._syncPendingReturnStatus;
-        this._syncPendingReturnStatus = undefined;
-        this._syncReturnDepth++;
-        try {
-          syncStatus = this.trySyncScript(fnBody.body, state, subIO, false);
-          if (this._syncPendingReturnStatus !== undefined) syncStatus = this._syncPendingReturnStatus;
-        } finally {
-          this._syncPendingReturnStatus = savedPendingRet;
-          this._syncReturnDepth--;
-          for (const [k, saved] of frameLocals) {
-            if (!tryRestoreVariableSync(state, k, saved)) void restoreVariable(state, k, saved);
-          }
-          rawState.locals.pop();
-          rawState.positional = prevPos;
-          this._fastSubPositional = prevFastPos;
-          rawState.functionDepth--;
-          rawState.depth--;
-        }
-        if (typeof syncStatus !== "number") {
-          rawState.status = prevStatus;
-          return undefined;
-        }
-        rawState.substitutionStatus = syncStatus;
-        rawState.status = syncStatus;
-        const rawBytes = cap.bytes();
-        const val = sharedSyncPipeDecoder.decode(rawBytes);
-        let end = val.length;
-        while (end > 0 && val.charCodeAt(end - 1) === 10) end--;
-        return end === val.length ? val : val.slice(0, end);
+        // Complex bodies can mutate shared state or suspend after output.
+        // Use the normal isolated substitution state from the outset.
+        return undefined;
       }
     }
     if (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq") return undefined;

@@ -439,3 +439,36 @@ test("local/declare -i -l -u, @U/@L/@u/@Q transforms, associative subscript arit
   const noPredRes = await shell.exec('for i in 1 2; do echo "iter:$i"; [ -z "" ]; done');
   assert.equal(noPredRes.stdout, "iter:1\niter:2\n");
 });
+
+test("array member operators (${a[@]%.txt}, ${b[@]^^}, ${c[@]/A/X}) and prefix expansions (${!CFG_*}, ${!CFG_@}) in sync loops", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  context.after(() => shell.dispose());
+
+  const script = [
+    "a=(alpha.txt beta.txt gamma.txt delta.txt)",
+    "CFG_HOST=localhost",
+    "CFG_PORT=8080",
+    "CFG_MODE=prod",
+    "cnt=0",
+    "pcnt=0",
+    "for ((i=0; i<6; i++)); do",
+    "  b=(\"${a[@]%.txt}\")",
+    "  c=(\"${b[@]^^}\")",
+    "  d=(\"${c[@]/A/X}\")",
+    "  for x in \"${a[@]%.txt}\"; do",
+    "    cnt=$((cnt + ${#x}))",
+    "  done",
+    "  all=\"${!CFG_*}\"",
+    "  for v in \"${!CFG_@}\"; do",
+    "    pcnt=$((pcnt + ${#v}))",
+    "  done",
+    "done",
+    "echo \"d=${d[*]} cnt=$cnt all=$all pcnt=$pcnt\"",
+  ].join("\n");
+
+  const res = await shell.exec(script);
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stderr, "");
+  assert.equal(res.stdout, "d=XLPHA BETX GXMMA DELTX cnt=114 all=CFG_HOST CFG_MODE CFG_PORT pcnt=144\n");
+});

@@ -4743,13 +4743,143 @@ export class Runtime {
       }
     }
   }
+  private collectSyncPrefixNames(prefix: string, rawState: State): string[] | undefined {
+    if (this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity) return undefined;
+    const store = stateMonitor(rawState)?.store ?? arrayStore(rawState);
+    const names: string[] = [];
+    const seen = new Set<string>();
+    const consider = (name: string, assigned: boolean): void => {
+      if (!assigned || !name.startsWith(prefix) || seen.has(name) || !isShellIdentifier(name)) return;
+      seen.add(name);
+      names.push(name);
+    };
+    consider("DIRSTACK", true);
+    if (rawState.functionNames?.length) consider("FUNCNAME", true);
+    for (const name in rawState.variables) {
+      if (Object.hasOwn(rawState.variables, name)) consider(name, rawState.variables[name] !== undefined);
+    }
+    if (store) {
+      for (const [name, entry] of store.bindings) consider(name, entry.binding.assigned);
+    }
+    for (let i = 0; i < rawState.locals.length; i++) {
+      const frame = rawState.locals[i]!;
+      for (const [name, saved] of frame) {
+        consider(name, saved.value !== undefined || typedSavedVariables.get(saved)?.binding?.assigned === true);
+      }
+    }
+    names.sort();
+    return names;
+  }
+
+  private canSyncArrayMemberOperator(p0: Extract<WordPart, { kind: "variable" }>, rawState: State): boolean {
+    if (p0.operator === undefined) return true;
+    if (this.budget.limits.maxExpansionBytes !== Infinity || rawState.nocasematch || byteLocale(rawState.variables)) return false;
+    if (p0.operator === "^" || p0.operator === "^^" || p0.operator === "," || p0.operator === ",,") {
+      return !p0.alternate || p0.alternate.parts.length === 0;
+    }
+    if (p0.operator === "#" || p0.operator === "##" || p0.operator === "%" || p0.operator === "%%") {
+      if (!p0.alternate || p0.alternate.parts.length !== 1 || p0.alternate.parts[0]!.kind !== "text") return false;
+      const tp = p0.alternate.parts[0]!;
+      return Boolean(tp.quoted || !hasGlobOrEscape(tp.value, !!rawState.extglob) || tryCompileTrimGlobToRegex(tp.value, p0.operator, !!rawState.extglob));
+    }
+    if (p0.operator === "/" || p0.operator === "//" || p0.operator === "/#" || p0.operator === "/%") {
+      if (!p0.alternate || p0.alternate.parts.length !== 1 || p0.alternate.parts[0]!.kind !== "text" || p0.alternate.parts[0]!.value.length === 0) return false;
+      const tp = p0.alternate.parts[0]!;
+      if (!tp.quoted && hasGlobOrEscape(tp.value, !!rawState.extglob) && !tryCompileFixedGlobToRegex(tp.value, p0.operator, !!rawState.extglob)) return false;
+      if (p0.replacement && p0.replacement.parts.length > 0) {
+        if (p0.replacement.parts.length !== 1 || p0.replacement.parts[0]!.kind !== "text") return false;
+        const rv = p0.replacement.parts[0]!.value;
+        if (rv.includes("&") || rv.includes("\\") || (!p0.replacement.parts[0]!.quoted && rv.startsWith("~"))) return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private applySyncArrayMemberOperator(members: string[], p0: Extract<WordPart, { kind: "variable" }>, rawState: State): string[] | undefined {
+    const op = p0.operator;
+    if (op === undefined) return members;
+    for (let i = 0; i < members.length; i++) {
+      const m = members[i]!;
+      for (let k = 0; k < m.length; k++) {
+        if (m.charCodeAt(k) >= 128) return undefined;
+      }
+    }
+    if (op === "^" || op === "^^" || op === "," || op === ",,") {
+      for (let i = 0; i < members.length; i++) {
+        const m = members[i]!;
+        members[i] = m.length === 0 ? "" : op === "^^" ? m.toUpperCase() : op === ",," ? m.toLowerCase() : op === "^" ? m[0]!.toUpperCase() + m.slice(1) : m[0]!.toLowerCase() + m.slice(1);
+      }
+      return members;
+    }
+    const tp = p0.alternate?.parts[0];
+    if (!tp || tp.kind !== "text") return undefined;
+    const pat = tp.value;
+    for (let k = 0; k < pat.length; k++) {
+      if (pat.charCodeAt(k) >= 128) return undefined;
+    }
+    if (op === "#" || op === "##" || op === "%" || op === "%%") {
+      const isPrefixTrim = op === "#" || op === "##";
+      if (!tp.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
+        const trimRe = tryCompileTrimGlobToRegex(pat, op, !!rawState.extglob);
+        if (!trimRe) return undefined;
+        for (let i = 0; i < members.length; i++) {
+          const m = members[i]!;
+          const match = trimRe.exec(m);
+          if (match) members[i] = isPrefixTrim ? m.slice(match[1]!.length) : m.slice(0, m.length - match[1]!.length);
+        }
+      } else {
+        for (let i = 0; i < members.length; i++) {
+          const m = members[i]!;
+          members[i] = isPrefixTrim ? (m.startsWith(pat) ? m.slice(pat.length) : m) : (m.endsWith(pat) ? m.slice(0, m.length - pat.length) : m);
+        }
+      }
+      return members;
+    }
+    if (op === "/" || op === "//" || op === "/#" || op === "/%") {
+      const rep = (p0.replacement && p0.replacement.parts.length === 1 && p0.replacement.parts[0]!.kind === "text") ? p0.replacement.parts[0]!.value : "";
+      for (let k = 0; k < rep.length; k++) {
+        if (rep.charCodeAt(k) >= 128) return undefined;
+      }
+      if (!tp.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
+        const repRe = tryCompileFixedGlobToRegex(pat, op, !!rawState.extglob);
+        if (!repRe) return undefined;
+        for (let i = 0; i < members.length; i++) {
+          members[i] = members[i]!.replace(repRe, () => rep);
+        }
+      } else {
+        for (let i = 0; i < members.length; i++) {
+          const m = members[i]!;
+          if (op === "//") members[i] = m.includes(pat) ? m.split(pat).join(rep) : m;
+          else if (op === "/") {
+            const idx = m.indexOf(pat);
+            if (idx !== -1) members[i] = m.slice(0, idx) + rep + m.slice(idx + pat.length);
+          } else if (op === "/#") {
+            if (m.startsWith(pat)) members[i] = rep + m.slice(pat.length);
+          } else if (m.endsWith(pat)) {
+            members[i] = m.slice(0, m.length - pat.length) + rep;
+          }
+        }
+      }
+      return members;
+    }
+    return undefined;
+  }
+
   private canSyncArrayMembersWord(w: Word, rawState: State): boolean {
     if (rawState.nounset) return false;
     const p0 = w.parts.length === 1 ? w.parts[0] : (w.parts.length === 2 && w.parts[0]!.kind === "text" && w.parts[0]!.value === "" ? w.parts[1] : undefined);
     if (!p0) return false;
-    if (p0.kind !== "variable" || !p0.quoted || p0.indirect || p0.prefixNames || p0.length || p0.transform || p0.operator !== undefined) return false;
+    if (p0.kind !== "variable" || !p0.quoted || p0.indirect || p0.length || p0.transform) return false;
+    if (p0.prefixNames !== undefined) {
+      return p0.prefixNames === "@" && !p0.substring && p0.operator === undefined && this.budget.limits.maxExpansionFields === Infinity && this.budget.limits.maxExpansionBytes === Infinity;
+    }
     const sel0 = getArraySelector(p0);
     if (!sel0 || (sel0.kind !== "members" && sel0.kind !== "keys") || sel0.separator !== "@") return false;
+    if (p0.operator !== undefined) {
+      if (p0.substring || sel0.kind !== "members" || p0.keys) return false;
+      return this.canSyncArrayMemberOperator(p0, rawState);
+    }
     if (p0.substring) {
       if (sel0.kind !== "members" || p0.keys) return false;
       const b = stateMonitor(rawState)?.store?.get(resolveSyncNameref(rawState, p0.name));
@@ -4764,9 +4894,14 @@ export class Runtime {
     if (rawState.nounset) return undefined;
     const p0 = w.parts.length === 1 ? w.parts[0] : (w.parts.length === 2 && w.parts[0]!.kind === "text" && w.parts[0]!.value === "" ? w.parts[1] : undefined);
     if (!p0) return undefined;
-    if (p0.kind !== "variable" || !p0.quoted || p0.indirect || p0.prefixNames || p0.length || p0.transform || p0.operator !== undefined) return undefined;
+    if (p0.kind !== "variable" || !p0.quoted || p0.indirect || p0.length || p0.transform) return undefined;
+    if (p0.prefixNames !== undefined) {
+      if (p0.prefixNames !== "@" || p0.substring || p0.operator !== undefined) return undefined;
+      return this.collectSyncPrefixNames(p0.name, rawState);
+    }
     const sel0 = getArraySelector(p0);
     if (!sel0 || (sel0.kind !== "members" && sel0.kind !== "keys") || sel0.separator !== "@") return undefined;
+    if (p0.operator !== undefined && (p0.substring || sel0.kind !== "members" || p0.keys || !this.canSyncArrayMemberOperator(p0, rawState))) return undefined;
     const monitor = stateMonitor(rawState);
     const activeStore = monitor?.store ?? arrayStore(rawState);
     const resolvedName = resolveSyncNameref(rawState, p0.name);
@@ -4823,9 +4958,10 @@ export class Runtime {
       return out;
     }
     const isKeys = sel0.kind === "keys" || p0.keys === true;
+    let out: string[];
     if (b) {
       if (b.maximum >= 4096) return undefined;
-      const out: string[] = [];
+      out = [];
       for (let k = 0; k <= b.maximum; k++) {
         const slot = b.values.get(k);
         if (!slot) continue;
@@ -4833,14 +4969,17 @@ export class Runtime {
         if (typeof v !== "string") return undefined;
         out.push(v);
       }
-      return out;
+    } else {
+      const sv = rawState.variables[resolvedName];
+      if (sv === undefined) out = [];
+      else if (isKeys) out = ["0"];
+      else {
+        const mv = (this._syncArithRawWriteOnly && this._syncArithTouched?.has(resolvedName)) ? sv : (monitor?.values.get(resolvedName, sv) ?? sv);
+        if (typeof mv !== "string") return undefined;
+        out = [mv];
+      }
     }
-    const sv = rawState.variables[resolvedName];
-    if (sv === undefined) return [];
-    if (isKeys) return ["0"];
-    const mv = (this._syncArithRawWriteOnly && this._syncArithTouched?.has(resolvedName)) ? sv : (monitor?.values.get(resolvedName, sv) ?? sv);
-    if (typeof mv !== "string") return undefined;
-    return [mv];
+    return p0.operator !== undefined ? this.applySyncArrayMemberOperator(out, p0, rawState) : out;
   }
 
   private tryFastArrayAssignmentSync(assignment: ArrayAssignment, state: State, io: IO, diagnosticLine?: number, declaration?: "readonly", associative?: boolean, ignoreYield = false): boolean {
@@ -10856,7 +10995,11 @@ export class Runtime {
           if (rawState.nounset && part.name >= "1" && part.name <= "9" && rawState.positional[part.name.charCodeAt(0) - 49] === undefined) return false;
           continue;
         }
-        if ( part.prefixNames || part.specialParameter || (part.transform !== undefined && ((part.transform !== "U" && part.transform !== "L" && part.transform !== "u" && part.transform !== "Q") || part.indirect || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || rawState.nounset || this.budget.limits.maxExpansionBytes !== Infinity)) || part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK" || !isShellIdentifier(part.name)) {
+        if (part.prefixNames !== undefined) {
+          if (part.indirect || part.length || part.substring || part.transform !== undefined || part.operator !== undefined || getArraySelector(part) !== undefined || rawState.nounset || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || !isShellIdentifier(part.name)) return false;
+          continue;
+        }
+        if ( part.specialParameter || (part.transform !== undefined && ((part.transform !== "U" && part.transform !== "L" && part.transform !== "u" && part.transform !== "Q") || part.indirect || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || rawState.nounset || this.budget.limits.maxExpansionBytes !== Infinity)) || part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK" || !isShellIdentifier(part.name)) {
           return false;
         }
         if (part.indirect) {
@@ -18026,7 +18169,20 @@ export class Runtime {
           out += transformed;
           continue;
         }
-        if (part.indirect || part.prefixNames || part.specialParameter) return undefined;
+        if (part.prefixNames !== undefined) {
+          if (part.indirect || part.specialParameter || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || !isShellIdentifier(part.name)) return undefined;
+          const pNames = this.collectSyncPrefixNames(part.name, rawState);
+          if (!pNames) return undefined;
+          const ifs = rawVars.IFS ?? " ";
+          const sep = (part.prefixNames === "@" && hereDocument) ? " " : (ifs.length ? ifs[0]! : "");
+          const joined = pNames.join(sep);
+          if (split && !part.quoted) {
+            if (joined.length === 0 || joined.includes(" ") || joined.includes("\t") || joined.includes("\n") || (!rawState.noglob && hasGlobOrEscape(joined, !!rawState.extglob))) return undefined;
+          }
+          out += joined;
+          continue;
+        }
+        if (part.indirect || part.specialParameter) return undefined;
         if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK") return undefined;
         if (!isShellIdentifier(part.name)) return undefined;
         const selector = getArraySelector(part);

@@ -12680,6 +12680,7 @@ export class Runtime {
       this._syncArithRawWriteOnly = true;
       this._syncArithTouched = touched;
       let usedFastIntPath = false;
+      let loopStatus = 0;
       try {
         let lastInductionVal: string | undefined;
         const intBudgetSnapshot = this.budget.parsing.snapshot();
@@ -12759,6 +12760,7 @@ export class Runtime {
           this.budget.parsing.restore(intBudgetSnapshot);
           regNames.length = 0;
           const fb = this.runSyncArithForFallback( e0, e1, e2, inductionName, hasDeferredSteps, deferredMask, bodyAssignments, rawState, io, monitor, touched, mode, diagnosticLine, );
+          loopStatus = fb.lastCmd ? rawState.status : 0;
           lastCmd = fb.lastCmd;
           lastArg = fb.lastArg;
           lastInductionVal = fb.lastInductionVal;
@@ -12818,18 +12820,18 @@ export class Runtime {
         rawState.lastArgument = lastArg;
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
         if (!existing) {
-          monitor.lazyPipeStatus = singleStatusZero;
+          monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : [loopStatus];
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
-          this.setSyncPipeStatusCell(existing!, "0");
+          this.setSyncPipeStatusCell(existing!, String(loopStatus));
           store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
       }
-      rawState.status = 0;
+      rawState.status = loopStatus;
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       monitor.epoch = restEpoch;
       if (store) store.epoch = restEpoch;
-      return 0;
+      return loopStatus;
     }
     if (command.kind === "while" || command.kind === "until") {
       if (allowRedirect || redirectCount > 0 || command.condition.lists.length !== 1 || command.condition.lists[0]!.terminator || command.condition.lists[0]!.pipelines.length !== 1) return undefined;
@@ -13074,6 +13076,7 @@ export class Runtime {
       (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan = forPlan;
     }
     let usedFastIntFor = false;
+    let loopStatus = 0;
     try {
       const intBudgetSnapshot = this.budget.parsing.snapshot();
       let canUseIntRegisters = forPlan.allIntStepsReady && (!forPlan.hasSubIntStep || (this.middleware.length === 0 && rawState.depth < this.budget.maxSubstitutionDepthSmi)) && !this.budget.hasCpuLimit && this.budget.maxExpansionFieldsSmi >= 1 && this.budget.maxExpansionBytesSmi >= 32 && command.name !== "LINENO" && command.name !== "_" && command.name !== "FUNCNAME";
@@ -13143,6 +13146,7 @@ export class Runtime {
         this.budget.parsing.restore(intBudgetSnapshot);
         regNames.length = 0;
         const fb = this.runSyncForFallback( command.name, fastLoopWords, bodyAssignments, rawState, io, monitor, touched, mode, );
+        loopStatus = fastLoopWords.length === 0 ? 0 : rawState.status;
         lastCmd = fb.lastCmd;
         lastArg = fb.lastArg;
       }
@@ -13182,19 +13186,19 @@ export class Runtime {
         rawState.lastArgument = lastArg;
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
         if (!existing) {
-          monitor.lazyPipeStatus = singleStatusZero;
+          monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : [loopStatus];
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
-          this.setSyncPipeStatusCell(existing!, "0");
+          this.setSyncPipeStatusCell(existing!, String(loopStatus));
           store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
       }
     }
-    rawState.status = 0;
+    rawState.status = loopStatus;
     const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
     monitor.epoch = restEpoch;
     if (store) store.epoch = restEpoch;
-    return 0;
+    return loopStatus;
   }
   private evalSyncRedirectWord( word: Word, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, ): string {
     this.signal.throwIfAborted();

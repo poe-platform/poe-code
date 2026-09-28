@@ -116,29 +116,29 @@ test("Wave 87: unquoted $(seq)/$(cat) for-loops, [[ =~ ]] + BASH_REMATCH[1], and
   const source = `
     mkdir -p /tmp
     sum1=0
-    for i in \$(seq 1 30); do
+    for i in $(seq 1 30); do
       ((sum1 += i))
     done
     sum2=0
-    for j in \$(seq 2 3 40); do
+    for j in $(seq 2 3 40); do
       ((sum2 += j))
     done
     printf "%s\\n" 10 20 30 40 50 > /tmp/w87_nums.txt
     sum3=0
-    for x in \$(cat /tmp/w87_nums.txt); do
+    for x in $(cat /tmp/w87_nums.txt); do
       ((sum3 += x))
     done
     rm -f /tmp/w87_nums.txt
     rmatch_sum=0
     for ((k = 0; k < 15; k++)); do
-      w="key_\$((k * 4))"
-      if [[ \$w =~ ^key_([0-9]+)\$ ]]; then
+      w="key_$((k * 4))"
+      if [[ $w =~ ^key_([0-9]+)$ ]]; then
         ((rmatch_sum += BASH_REMATCH[1]))
       fi
-      tmp="val_\$k"
+      tmp="val_$k"
       unset tmp
     done
-    echo "W87:\$sum1:\$sum2:\$sum3:\$rmatch_sum:\${tmp:-UNSET}:\${BASH_REMATCH[1]}"
+    echo "W87:$sum1:$sum2:$sum3:$rmatch_sum:\${tmp:-UNSET}:\${BASH_REMATCH[1]}"
   `;
   const oracle = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
   assert.equal(oracle.status, 0, oracle.stderr);

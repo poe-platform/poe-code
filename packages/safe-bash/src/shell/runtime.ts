@@ -3564,6 +3564,47 @@ export class Runtime {
     (pattern as { _cachedSimpleEre?: { text: string; literal: boolean } | null })._cachedSimpleEre = res;
     return res;
   }
+  private getFastAnchoredEreRegex(pattern: Word, state: State): RegExp | undefined {
+    const pat = this.extractSimpleErePattern(pattern);
+    if (!pat || pat.literal || state.nocasematch || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxExpansionFields !== Infinity) {
+      return undefined;
+    }
+    const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
+    const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
+    if (!cCollation(collation) || !(cCollation(characters) || utf8Locale(characters))) return undefined;
+    const patWithCache = pat as { text: string; literal: boolean; _fastAnchoredRe?: RegExp | null };
+    if (patWithCache._fastAnchoredRe === undefined) {
+      let caretOk = pat.text.startsWith("^") && pat.text.endsWith("$") && !pat.text.slice(0, -1).includes("$");
+      if (caretOk) {
+        for (let i = 1; i < pat.text.length; i++) {
+          if (pat.text.charCodeAt(i) === 94 && pat.text.charCodeAt(i - 1) !== 91) {
+            caretOk = false;
+            break;
+          }
+        }
+      }
+      if (
+        caretOk &&
+        /^\^[\^a-zA-Z0-9_.\-/:@()\[\]+?*,;=| ]+\$$/.test(pat.text) &&
+        !pat.text.includes("[:") &&
+        !pat.text.includes("[.") &&
+        !pat.text.includes("[=") &&
+        !pat.text.includes("()") &&
+        !pat.text.includes("[]") &&
+        !pat.text.includes("][") &&
+        !/\([^)]*[*+?][^)]*\)[*+?]/.test(pat.text)
+      ) {
+        try {
+          patWithCache._fastAnchoredRe = new RegExp(pat.text, "s");
+        } catch {
+          patWithCache._fastAnchoredRe = null;
+        }
+      } else {
+        patWithCache._fastAnchoredRe = null;
+      }
+    }
+    return patWithCache._fastAnchoredRe ?? undefined;
+  }
   private trySyncEre(subject: string, pattern: Word, state: State, ignoreYield = false): number | undefined {
     const pat = this.extractSimpleErePattern(pattern);
     if (!pat) return undefined;
@@ -3589,26 +3630,16 @@ export class Runtime {
     const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
     if (![collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) return undefined;
     let fastMatchValues: string[] | null | undefined;
-    if ( !pat.literal && !state.nocasematch && this.budget.limits.maxExpansionBytes === Infinity && this.budget.limits.maxExpansionFields === Infinity && cCollation(collation)) {
-      const patWithCache = pat as { text: string; literal: boolean; _fastAnchoredRe?: RegExp | null };
-      if (patWithCache._fastAnchoredRe === undefined) {
-        if ( pat.text.startsWith("^") && pat.text.endsWith("$") && /^[\^a-zA-Z0-9_.\-/:@()\[\]+?]+\$/.test(pat.text) && !pat.text.includes("[:") && !pat.text.includes("[.") && !pat.text.includes("[=") && !pat.text.includes(")(") && !pat.text.includes("][")) {
-          try {
-            patWithCache._fastAnchoredRe = new RegExp(pat.text);
-          } catch {
-            patWithCache._fastAnchoredRe = null;
-          }
-        } else patWithCache._fastAnchoredRe = null;
+    const fastAnchoredRe = this.getFastAnchoredEreRegex(pattern, state);
+    if (fastAnchoredRe) {
+      let asciiSubj = true;
+      for (let i = 0; i < subject.length; i++) {
+        const c = subject.charCodeAt(i);
+        if (c === 0 || c >= 128) { asciiSubj = false; break; }
       }
-      if (patWithCache._fastAnchoredRe) {
-        let asciiSubj = true;
-        for (let i = 0; i < subject.length; i++) {
-          if (subject.charCodeAt(i) >= 128) { asciiSubj = false; break; }
-        }
-        if (asciiSubj) {
-          const m = patWithCache._fastAnchoredRe.exec(subject);
-          fastMatchValues = m ? Array.from(m, g => g ?? "") : null;
-        }
+      if (asciiSubj) {
+        const m = fastAnchoredRe.exec(subject);
+        fastMatchValues = m ? Array.from(m, g => g ?? "") : null;
       }
     }
     let status: number;
@@ -8442,7 +8473,7 @@ export class Runtime {
           return undefined;
         }
         if (typeof subject !== "string") return undefined;
-        return this.trySyncEre(subject, expr.right, rawState);
+        return this.trySyncEre(subject, expr.right, rawState, this._syncArithRawWriteOnly);
       }
       if (expr.operator === "==" || expr.operator === "=" || expr.operator === "!=") {
         if (rawState.nocasematch || byteLocale(rawState.variables)) return undefined;
@@ -12228,7 +12259,7 @@ export class Runtime {
             if (e.kind === "nonempty") return this.isPureSyncValueWord(e.operand, rawState);
             if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v" || (syncConditionalFileUnaryOps.has(e.operator) && this._isMemoryBackingFs && this.canFastMemoryRedirect && this.budget.limits.maxFileSystemOperations >= 1000 && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0))) && this.isPureSyncValueWord(e.operand, rawState);
             if (e.kind === "binary") {
-              if (e.operator === "=~") return this.isPureSyncValueWord(e.left, rawState) && this.extractSimpleErePattern(e.right) !== undefined;
+              if (e.operator === "=~") return this.isPureSyncValueWord(e.left, rawState) && this.getFastAnchoredEreRegex(e.right, rawState) !== undefined && !rawState.readonlyVariables?.has("BASH_REMATCH") && !rawState.exported.has("BASH_REMATCH") && !stateMonitor(rawState)?.hasOverlay("BASH_REMATCH") && !(store ?? requireArrays(rawState))?.watches.has("BASH_REMATCH");
               return this.isPureSyncValueWord(e.left, rawState) && (e.operator === "==" || e.operator === "=" || e.operator === "!=" ? this.canSyncPatternWordParts(e.right, rawState) : this.isPureSyncValueWord(e.right, rawState));
             }
             if (e.kind === "not") return checkLeaf(e.operand);
@@ -12482,7 +12513,7 @@ export class Runtime {
           let curArr = store?.get(arrAssign.name);
           if (
             !curArr &&
-            arrAssign.kind === "compound" &&
+            (arrAssign.kind === "compound" || arrAssign.kind === "element") &&
             this.budget.limits.maxExpansionBytes === Infinity &&
             this.budget.limits.maxExpansionFields === Infinity &&
             isShellIdentifier(arrAssign.name) &&
@@ -12533,9 +12564,10 @@ export class Runtime {
             if (allEntriesOk) continue;
             return false;
           }
-          if (arrAssign.kind === "element" && !arrAssign.append && curArr.associative) {
-            if (!this.isPureSyncValueWord(arrAssign.value, rawState)) return false;
-            continue;
+          if (arrAssign.kind === "element" && (!arrAssign.append || this.budget.limits.maxExpansionBytes === Infinity) && curArr.associative) {
+            const kSrc = arrAssign.index.source ?? arrAssign.index.decimal;
+            if (kSrc.trim().length > 0 && !kSrc.includes("`") && !kSrc.includes("$(") && this.isPureSyncValueWord(arrAssign.value, rawState)) continue;
+            return false;
           }
           if (arrAssign.kind === "element" && !curArr.associative) {
             const subSrc = (arrAssign.index.source ?? arrAssign.index.decimal).trim();
@@ -13029,6 +13061,15 @@ export class Runtime {
       (command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop = true;
       return undefined;
     }
+    if (!store && monitor.store) {
+      store = monitor.store;
+      if (this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, singleStatusZero, this.signal, io[invocationScope])) {
+        return undefined;
+      }
+      existing = store.get("PIPESTATUS");
+      elem0 = existing?.values.get(0);
+      if (!existing || !elem0) return undefined;
+    }
     for (const v of Object.values(rawState.variables)) {
       if (typeof v === "string") {
         for (let k = 0; k < v.length; k++) {
@@ -13505,8 +13546,29 @@ export class Runtime {
         }
         whileArithProg = condCmd.expression;
       } else if (condCmd.kind === "conditional") {
-        if (condCmd.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(condCmd.expression, 0, rawState) || condCmd.expression.kind !== "binary") return undefined;
-        if (!this.isPureSyncValueWord(condCmd.expression.left, rawState) || !this.isPureSyncValueWord(condCmd.expression.right, rawState)) return undefined;
+        if (condCmd.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(condCmd.expression, 0, rawState)) return undefined;
+        const checkWhileCond = (e: ConditionalExpression, depth: number): boolean => {
+          if (e.kind === "nonempty") return this.isPureSyncValueWord(e.operand, rawState);
+          if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v") && this.isPureSyncValueWord(e.operand, rawState);
+          if (e.kind === "binary") {
+            if (e.operator === "=~") {
+              return (
+                depth === 0 &&
+                this.isPureSyncValueWord(e.left, rawState) &&
+                this.getFastAnchoredEreRegex(e.right, rawState) !== undefined &&
+                !rawState.readonlyVariables?.has("BASH_REMATCH") &&
+                !rawState.exported.has("BASH_REMATCH") &&
+                !monitor.hasOverlay("BASH_REMATCH") &&
+                !(store ?? requireArrays(rawState))?.watches.has("BASH_REMATCH")
+              );
+            }
+            return this.isPureSyncValueWord(e.left, rawState) && (e.operator === "==" || e.operator === "=" || e.operator === "!=" ? this.canSyncPatternWordParts(e.right, rawState) : this.isPureSyncValueWord(e.right, rawState));
+          }
+          if (e.kind === "not") return checkWhileCond(e.operand, depth + 1);
+          if (e.kind === "and" || e.kind === "or") return checkWhileCond(e.left, depth + 1) && checkWhileCond(e.right, depth + 1);
+          return false;
+        };
+        if (!checkWhileCond(condCmd.expression, 0)) return undefined;
         whileCondExpr = condCmd.expression;
       } else if (condCmd.kind === "simple") {
         if (
@@ -13585,11 +13647,20 @@ export class Runtime {
           whileGetoptsSpec = { optstring, optVar, scanArgs, getoptsCmd: condCmd, cmdLastArg };
         } else {
           const bExpr = this.extractPosixBracketCondExpr(condCmd, rawState, true, command.body);
-          if (!bExpr || bExpr.kind !== "binary") return undefined;
+          if (!bExpr || (bExpr.kind !== "binary" && bExpr.kind !== "unary")) return undefined;
           whileCondExpr = bExpr;
         }
       } else {
         return undefined;
+      }
+      if (!store && monitor.store) {
+        store = monitor.store;
+        if (this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, singleStatusZero, this.signal, io[invocationScope])) {
+          return undefined;
+        }
+        existing = store.get("PIPESTATUS");
+        elem0 = existing?.values.get(0);
+        if (!existing || !elem0) return undefined;
       }
       monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets);
       this.budget.tick();

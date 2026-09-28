@@ -5,6 +5,7 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
+import { predicateCommands } from "../../src/commands/predicates.js";
 
 const cases = [
   ['assign default loop fallback', 'sp="hello world"; for ((i=0;i<2;i++)); do unset a; echo "${a:-was_unset}" "${a:=now_set}" $sp; done; echo "$a"', 'was_unset now_set hello world\nwas_unset now_set hello world\nnow_set\n'],
@@ -222,6 +223,54 @@ test("wave 90 sync loop parity: mapfile -t and readarray -t here-string inside s
     assert.equal(fastRes.exitCode, 0, fastRes.stderr);
     assert.equal(fastRes.stderr, "");
     assert.equal(fastRes.stdout, "r1_0:r1_2:3:m1_b:2;r2_0:r2_2:3:m2_b:2;r3_0:r3_2:3:m3_b:2;\n");
+    assert.equal(fastRes.stdout, refRes.stdout);
+  } finally {
+    await fastShell.dispose();
+    await refShell.dispose();
+  }
+});
+
+for (const [label, source] of [
+  [
+    "while [[ =~ ]] anchored ERE with comma, star, and BASH_REMATCH captures",
+    "rest=\"10,20,30,\"; sum=0; while [[ \"$rest\" =~ ^([0-9]+),(.*)$ ]]; do ((sum += BASH_REMATCH[1])); rest=\"${BASH_REMATCH[2]}\"; done; printf '%d|%s\\n' \"$sum\" \"$rest\"",
+  ],
+  [
+    "while [[ =~ ]] unanchored ERE fallback preserves BASH_REMATCH",
+    "rest=\"a1b2c3\"; sum=0; while [[ \"$rest\" =~ ([0-9]) ]]; do ((sum += BASH_REMATCH[1])); rest=\"${rest#*${BASH_REMATCH[1]}}\"; done; printf '%d|%s\\n' \"$sum\" \"$rest\"",
+  ],
+  [
+    "while [[ -n ]] and while [ -n ] unary string predicates",
+    "s=\"abcd\"; o1=; while [[ -n \"$s\" ]]; do o1+=\"${s:0:1}.\"; s=\"${s:1}\"; done; t=\"xyz\"; o2=; while [ -n \"$t\" ]; do o2+=\"${t:0:1}.\"; t=\"${t:1}\"; done; printf '%s|%s\\n' \"$o1\" \"$o2\"",
+  ],
+  [
+    "unset indexed array element assignment uarr[i]=v in loop",
+    "unset uarr; for ((i=0; i<4; i++)); do uarr[i]=\"v_$i\"; uarr[i]+=\":$((i*2))\"; done; printf '%s|%d\\n' \"${uarr[*]}\" \"${#uarr[@]}\"",
+  ],
+] as const) {
+  test(`wave 91 sync loop parity: ${label}`, async () => {
+    const bash = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(bash.status, 0, bash.stderr);
+    const commands = new CommandRegistry([...basicCommands(), ...predicateCommands()]);
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, bash.status, result.stderr);
+      assert.equal(result.stderr, bash.stderr);
+      assert.equal(result.stdout, bash.stdout);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("wave 91 sync loop parity: associative array element append map[k]+=v", async () => {
+  const source = "declare -A m; for k in a b a c b a; do m[$k]+=\"x\"; done; printf '%s|%s|%s\\n' \"${m[a]}\" \"${m[b]}\" \"${m[c]}\"";
+  const fastShell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+  const refShell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()), limits: { maxExpansionBytes: 65536 } });
+  try {
+    const [fastRes, refRes] = await Promise.all([fastShell.exec(source), refShell.exec(source)]);
+    assert.equal(fastRes.exitCode, 0, fastRes.stderr);
+    assert.equal(fastRes.stderr, "");
+    assert.equal(fastRes.stdout, "xxx|xx|x\n");
     assert.equal(fastRes.stdout, refRes.stdout);
   } finally {
     await fastShell.dispose();

@@ -53,7 +53,7 @@ for (const maxExpansionBytes of [undefined, 65536]) {
       const expected = [
         ["a", "X", "c"].join(separator), ["a", "X", "c"].join(separator), ["a", "X", "c"].join(separator),
         ["A", "B", "C"].join(separator), ["", "b", "c"].join(separator), ["A", "B", "C"].join(separator),
-        "a b c", "a b c", "a X c", "a X c", ["a", "b", "c"].join(separator), ["a", "b", "c"].join(separator),
+        "a b c", "a b c", "a X c", ["a", "X", "c"].join(separator || " "), ["a", "b", "c"].join(separator), ["a", "b", "c"].join(separator),
         ["a", "X", "c"].join(separator), "a X c",
       ].map(value => `<${value}>\n`).join("");
       assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from(expected, "latin1"));

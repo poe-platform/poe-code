@@ -109,8 +109,11 @@ for (const bounded of [false, true]) {
     ['${arr[*]^^}', 'PAX:PBX:PCX'],
     ['${arr[*]:1:2}', 'pbx:pcx'],
     ['${arr[@]#p}', 'ax:bx:cx'],
+    ['"${arr[@]#p}"', 'ax:bx:cx'],
+    ['"${arr[@]%x}"', 'pa:pb:pc'],
     ['${arr[@]/p/X}', 'Xax Xbx Xcx'],
     ['"${arr[@]/p/X}"', 'Xax:Xbx:Xcx'],
+    ['"${arr[@]^^}"', 'PAX:PBX:PCX'],
     ['"${arr[@]:1:2}"', 'pbx:pcx'],
     ['${arr[@]@U}', 'PAX:PBX:PCX'],
   ] as const) {
@@ -126,6 +129,35 @@ for (const bounded of [false, true]) {
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
     assert.deepEqual([...result.stdoutBytes], [255, 254, 254, 98]);
+  });
+}
+
+// GNU Bash 5.2.37 distinguishes modifier and slice joining from plain scalar $@.
+for (const [operand, colon, empty] of [
+  ['${@#p}', 'ax:bx:cx', 'ax bx cx'],
+  ['"${@#p}"', 'ax:bx:cx', 'ax bx cx'],
+  ['${@/p/X}', 'Xax Xbx Xcx', 'Xax Xbx Xcx'],
+  ['"${@/p/X}"', 'Xax:Xbx:Xcx', 'Xax Xbx Xcx'],
+  ['${@^^}', 'PAX PBX PCX', 'PAX PBX PCX'],
+  ['"${@^^}"', 'PAX:PBX:PCX', 'PAX PBX PCX'],
+  ['${@@U}', 'PAX:PBX:PCX', 'PAX PBX PCX'],
+  ['"${@@U}"', 'PAX:PBX:PCX', 'PAX PBX PCX'],
+  ['${@:1:2}', 'pax pbx', 'pax pbx'],
+  ['"${@:1:2}"', 'pax:pbx', 'pax pbx'],
+  ['${*#p}', 'ax:bx:cx', 'axbxcx'],
+  ['"${*#p}"', 'ax:bx:cx', 'axbxcx'],
+  ['${*/p/X}', 'Xax:Xbx:Xcx', 'XaxXbxXcx'],
+  ['"${*/p/X}"', 'Xax:Xbx:Xcx', 'XaxXbxXcx'],
+  ['${*^^}', 'PAX:PBX:PCX', 'PAXPBXPCX'],
+  ['${*@U}', 'PAX:PBX:PCX', 'PAXPBXPCX'],
+] as const) {
+  test(`positional scalar modifier joining: ${operand}`, async () => {
+    for (const [ifs, expected] of [[":", colon], ["", empty]] as const) for (const bounded of [false, true]) {
+      const result = await run(`set -- pax pbx pcx; IFS='${ifs}'; x=${operand}; printf '<%s>' "$x"`, bounded);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `<${expected}>`, `IFS=${JSON.stringify(ifs)}, bounded=${bounded}`);
+    }
   });
 }
 

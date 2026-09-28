@@ -19156,7 +19156,7 @@ export class Runtime {
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
         const members = selector ? await this.arrayMembers(part.name, state, io, part.keys) : this.positionalValues(state);
         // GNU Bash passes assignment flags for replacement/case operators, but not pattern removal or transforms.
-        const space = selector?.kind === "members" ? selector.separator === "@" && (state.variables.IFS === "" || !split && !part.quoted && !part.transform && !["#", "##", "%", "%%"].includes(part.operator ?? "")) : !split && part.name === "@";
+        const space = (selector?.kind === "members" ? selector.separator === "@" : part.name === "@") && (state.variables.IFS === "" || !split && !part.quoted && !part.transform && !["#", "##", "%", "%%"].includes(part.operator ?? ""));
         const separator = space ? " " : this.ifsSeparator(state, io);
         const fragments: ShellValue[] = [];
         let bytes = 0;
@@ -19503,7 +19503,7 @@ export class Runtime {
     }
     if (part.substring && (part.name === "@" || part.name === "*")) {
       const values = await this.positionalSlice(part, state, io);
-      const separator = part.name === "@" && !split || hereString && (part.name === "@" || !part.quoted) ? " " : this.ifsSeparator(state, io);
+      const separator = part.name === "@" && (state.variables.IFS === "" || !split && !part.quoted) || hereString && !part.quoted ? " " : this.ifsSeparator(state, io);
       return concatShellValues(values.flatMap((entry, index) => index ? [separator, entry] : [entry]), io[valueScope]);
     }
     const namerefName = part.indirect && state.variableAttributes?.get(part.name)?.includes("n");
@@ -20057,7 +20057,7 @@ export class Runtime {
               }
               const ifsVal = monitor?.values.get("IFS", rawVars.IFS ?? " ") ?? rawVars.IFS ?? " ";
               if (validElemOp && typeof ifsVal === "string" && (ifsVal.length === 0 || ifsVal.charCodeAt(0) < 128)) {
-                const sep = (selector.separator as string) === "@" && (!isKeys || ifsVal.length === 0) ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
+                const sep = (selector.separator as string) === "@" && (ifsVal.length === 0 || !isKeys && part.operator === undefined && !part.substring) ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
                 const parameterLine = part.line ?? overrideDiagnosticLine;
                 const evalSliceInt = (w: Word): number | undefined => {
                   if (w.parts.length === 0) return 0;

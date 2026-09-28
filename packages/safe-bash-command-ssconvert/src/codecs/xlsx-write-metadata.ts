@@ -63,7 +63,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
   for (const [gnm, name, max] of [["hPageBreaks", "rowBreaks", 16383], ["vPageBreaks", "colBreaks", 1048575]] as const) {
     handled.add(name);
     const breaks = child(pi, gnm);
-    if (!breaks) continue;
+    if (!breaks || breaks.children.length === 0) continue;
     const raw = records.find(r => r.record.kind === name && r.node?.namespace === namespace)?.node;
     const original = raw?.children.filter(n => { charge(); return n.name === "brk"; });
     const retained = new Map<string, MetadataNode | undefined>();

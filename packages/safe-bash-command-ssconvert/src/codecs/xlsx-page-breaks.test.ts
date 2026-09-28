@@ -163,3 +163,21 @@ it.each(["manual", "data-slice"])("retains true-spelled %s bounds after sibling 
   }) }] };
   expect(await sheetXml(edited)).toContain(`<brk id="1" min="2" max="3" ${flags}/>`);
 });
+
+it.each(["row", "col"] as const)("omits cleared %s break containers with retained raw metadata", async axis => {
+  const book = await readXlsx(await fixture(axis), context);
+  const records = book.sheets[0]!.unsupportedRecords!;
+  const print = metadataNode(records.find(r => r.kind === "PrintInformation")!.data)!;
+  const name = axis === "row" ? "hPageBreaks" : "vPageBreaks";
+  const edited = { ...book, sheets: [{ ...book.sheets[0]!, unsupportedRecords: records.map(r => r.kind !== "PrintInformation" ? r : {
+    ...r, data: imported({ ...print, children: print.children.map(n => n.name !== name ? n : { ...n, attributes: { count: "0" }, children: [] }) })
+  }) }] };
+  expect(await sheetXml(edited)).not.toContain(`<${axis}Breaks`);
+});
+
+it("omits empty Gnumeric page-break containers on both axes", async () => {
+  const book = await readGnumeric(new TextEncoder().encode('<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:PrintInformation><g:hPageBreaks count="0"/><g:vPageBreaks count="0"/></g:PrintInformation><g:Cells><g:Cell Row="0" Col="0" ValueType="60">cell</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>'), context);
+  const output = await sheetXml(book);
+  expect(output).not.toContain("<rowBreaks");
+  expect(output).not.toContain("<colBreaks");
+});

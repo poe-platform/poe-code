@@ -9,7 +9,8 @@ separate native QA profile are recorded in
 - Lotus source authors include Michael Meeks, Stephen Wood, Morten Welinder
   and Jody Goldberg (`plugins/lotus-123/lotus.c`, `lotus-formula.c`, including
   the Works V3 reader, metadata/style tables and RLDB handling).
-- Lotus external-variable syntax and op7/op8 fallback semantics were checked
+- Lotus external-variable syntax, op7/op8 fallback semantics and bounded
+  STYLE sheet-name records were checked
   against libwps 0.4.14-2 `src/lib/LotusSpreadsheet.cpp`, available under
   LGPL-2.1-or-later (alternatively MPL-2.0); major contributors include Andrew
   Ziem, Marc Maurer and Fridrich Strba. SHA-256:

@@ -2722,6 +2722,17 @@
         "out/ssconvert-release-investigation/perl-extrema-compiled.json"
       ]
     },
+    "lotusStyleSheetNames": {
+      "status": "implemented STYLE 0x1b/0x36b0 index, string bounds and Western decoding; broader encoding/native profiles remain open",
+      "source": "libwps 0.4.14-2 LotusSpreadsheet.cpp:3259-3297 (SHA256 fcfe58ee8430ce43222e76c01aa4f436731722c5b171d801698a9a0a2496a6e5), Lotus.cpp:1731-1733 dispatch and 108-114 default encoding; source URLs are listed in lotusModernSheetNames. libwps_tools_win.cpp:6422-6434 maps CP1252 byte 0x80 to U+20AC.",
+      "finding": "The importer read only eight index bits, discarded the final name byte even without NUL, rejected valid one-byte names, decoded Western bytes as UTF-8 and replaced existing names with empty strings. It now reads the full index, bounds the C string by record end, uses Windows-1252, retains empty replacements and charges malformed records before diagnostics.",
+      "validation": "Six new regressions fail before repair. All 353 tests in 19 Lotus files pass, including late formula/named-range binding, sheet/operation limits and diagnostic cancellation. Maintained package lint, source/test/consumer types and five-build workspace closure pass.",
+      "public": "A 180-byte .123 converts through the compiled package SDK and runCommand into identical 5739-byte XLSX files. Independent XML readback finds names A, AB, Café€ and values 11/12/13. No diagnostics; command input and destination-only filesystem are preserved. Calc rereads both exported XLSX files with all names and values intact.",
+      "native": "Calc 26.8.0.3 WPS_Lotus_Calc:CP1252 independently retains unterminated A/AB, ignores the empty replacement and retains Café, but drops the euro byte. Automatic import uses CP437 and yields CafΘ; explicit internal Lotus:ANSI ignores STYLE names. These are recorded discrepancies, not complete native parity. Initial BOF max-sheet zero admitted only one sheet; source Lotus.cpp:705-709 corrected payload offset 10 to 2.",
+      "encodingSource": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77 writerperfect/source/calc/MSWorksCalcImportFilter.cxx:203-242 (SHA256 1def05d40de50da6a33ba7c2567dc1ace5ff04277ee270c95e92910c47d84f95) accepts explicit FilterOptions and otherwise overrides libwps default with CP437 for Lotus.",
+      "receipts": "out/ssconvert-lotus-style-current/{comparison,public-proof}.json; out/ssconvert-lotus-current/style-sheet-names-{red,green,neighbors,final-lint,build}.log",
+      "remaining": "Native euro-byte discrepancy, explicit wider encoding selection, other Lotus metadata/record profiles, installed registry artifact qualification and containing release publication. All 19 families remain open."
+    },
     "lotusModernSheetNames": {
       "status": "implemented record 0x23 for versions 0x1003/0x1004/0x1005; broader profiles remain open",
       "sources": [

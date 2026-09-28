@@ -611,11 +611,13 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
       else {
         const subtype = data.u16(0);
         if (subtype === 0x36b0) {
-          if (length <= 5) await warn(`Record with type 0x1b has wrong length ${length}.`);
+          consumeOperation();
+          if (length < 5) await warn(`Record with type 0x1b has wrong length ${length}.`);
           else {
-            consumeOperation();
-            const nameBytes = data.bytes.subarray(4, length - 1), zero = nameBytes.indexOf(0);
-            sheet(data.u8(2)).name = new TextDecoder().decode(zero < 0 ? nameBytes : nameBytes.subarray(0, zero));
+            // libwps readSheetName1B uses the full index and bounded C string.
+            const nameBytes = data.bytes.subarray(4), zero = nameBytes.indexOf(0);
+            const name = new TextDecoder("windows-1252").decode(zero < 0 ? nameBytes : nameBytes.subarray(0, zero));
+            if (name) sheet(data.u16(2)).name = name;
           }
         } else if (subtype === 0xfa1) {
           if (length < 24) await warn(`Record with type 0x1b has wrong length ${length}.`);

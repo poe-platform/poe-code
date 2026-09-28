@@ -12,7 +12,7 @@ In-memory-capable Git engine and CLI dispatcher in pure Rust, with a portable We
 | **Worktree & Index** | `status`, `status_matrix`, `is_ignored`, `list_files`, `add`, `remove`, `reset_index`, `update_index`, `checkout`, `commit` |
 | **History, Merge & Stash** | `log`, `is_descendent`, `find_merge_base`, `merge`, `fast_forward`, `abort_merge`, `cherry_pick`, `stash`, `add_note`, `read_note`, `remove_note`, `list_notes` |
 | **Remotes & Smart HTTP** | `add_remote`, `delete_remote`, `list_remotes`, `get_remote_info`, `get_remote_info2`, `list_server_refs`, `fetch`, `clone`, `pull`, `push` |
-| **`safe-bash` CLI** | `execute_git_cli(&MemoryFs, cwd, args)` (`git init`, `status`, `add`, `rm`, `mv`, `diff`, `show`, `reset`, `restore`, `commit`, `log`, `branch`, `checkout`, `tag`, `merge`, `cherry-pick`, `stash`, `remote`, `config`, `rev-parse`, `cat-file`, `hash-object`, `ls-files`, `clone`, `fetch`, `pull`, `push`) |
+| **`safe-bash` CLI** | `execute_git_cli(&MemoryFs, cwd, args)` (`git init`, `status`, `add`, `rm`, `mv`, `clean`, `diff`, `show`, `reset`, `restore`, `commit`, `log`, `shortlog`, `describe`, `grep`, `blame`, `branch`, `switch`, `checkout`, `tag`, `merge`, `rebase`, `cherry-pick`, `revert`, `stash`, `notes`, `reflog`, `format-patch`, `apply`, `am`, `archive`, `submodule`, `worktree`, `remote`, `config`, `rev-parse`, `rev-list`, `ls-files`, `ls-tree`, `show-ref`, `symbolic-ref`, `update-ref`, `update-index`, `merge-base`, `check-ignore`, `cat-file`, `hash-object`, `fsck`, `gc`, `count-objects`, `clone`, `fetch`, `pull`, `push`) |
 
 ## Quick Start
 

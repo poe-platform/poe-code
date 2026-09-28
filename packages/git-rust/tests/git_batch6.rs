@@ -1166,3 +1166,54 @@ dual_fixture_test!(cli_submodule_and_worktree_and_maintenance, cli_submodule_and
     assert_eq!(r_co.exit_code, 0);
     assert!(r_co.stdout.contains("count:"));
 });
+
+
+dual_fixture_test!(cli_bisect_finds_midpoint_and_resets, cli_bisect_finds_midpoint_and_resets_sub, "test-log", |f| {
+    let r_start = execute_git_cli(&f.fs, &f.dir, &["bisect", "start", "HEAD", "HEAD~3"]);
+    assert_eq!(r_start.exit_code, 0);
+    assert!(r_start.stdout.contains("Bisecting:"));
+
+    let r_log = execute_git_cli(&f.fs, &f.dir, &["bisect", "log"]);
+    assert_eq!(r_log.exit_code, 0);
+    assert!(r_log.stdout.contains("git bisect start"));
+
+    let r_reset = execute_git_cli(&f.fs, &f.dir, &["bisect", "reset"]);
+    assert_eq!(r_reset.exit_code, 0);
+});
+
+dual_fixture_test!(cli_bundle_create_verify_list_heads_and_unbundle, cli_bundle_create_verify_list_heads_and_unbundle_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    let r_create = execute_git_cli(&f.fs, &f.dir, &["bundle", "create", "repo.bundle", "test-branch"]);
+    assert_eq!(r_create.exit_code, 0);
+
+    let r_verify = execute_git_cli(&f.fs, &f.dir, &["bundle", "verify", "repo.bundle"]);
+    assert_eq!(r_verify.exit_code, 0);
+    assert!(r_verify.stdout.contains("is okay"));
+
+    let r_heads = execute_git_cli(&f.fs, &f.dir, &["bundle", "list-heads", "repo.bundle"]);
+    assert_eq!(r_heads.exit_code, 0);
+    assert!(r_heads.stdout.contains("refs/heads/test-branch"));
+});
+
+dual_fixture_test!(cli_write_tree_commit_tree_read_tree_var_and_name_rev, cli_write_tree_commit_tree_read_tree_var_and_name_rev_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    let r_wt = execute_git_cli(&f.fs, &f.dir, &["write-tree"]);
+    assert_eq!(r_wt.exit_code, 0);
+    let tree_oid = r_wt.stdout.trim().to_string();
+    assert_eq!(tree_oid.len(), 40);
+
+    let r_ct = execute_git_cli(&f.fs, &f.dir, &["commit-tree", &tree_oid, "-p", "HEAD", "-m", "plumbing commit"]);
+    assert_eq!(r_ct.exit_code, 0);
+    assert_eq!(r_ct.stdout.trim().len(), 40);
+
+    let r_rt = execute_git_cli(&f.fs, &f.dir, &["read-tree", &tree_oid]);
+    assert_eq!(r_rt.exit_code, 0);
+
+    let r_var = execute_git_cli(&f.fs, &f.dir, &["var", "GIT_AUTHOR_IDENT"]);
+    assert_eq!(r_var.exit_code, 0);
+    assert!(r_var.stdout.contains("<"));
+
+    let r_nr = execute_git_cli(&f.fs, &f.dir, &["name-rev", "--name-only", "HEAD"]);
+    assert_eq!(r_nr.exit_code, 0);
+    assert_eq!(r_nr.stdout.trim(), "test-branch");
+});

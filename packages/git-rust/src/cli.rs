@@ -2622,6 +2622,334 @@ pub fn execute_git_cli_with_http(
                 CliResult::ok(format!("{count} objects, {kb} kilobytes\n"))
             }
         }
+        "bisect" => {
+            let action = positionals.first().copied().unwrap_or("status");
+            let bisect_start_file = join(&[&gitdir, "BISECT_START"]);
+            let bisect_log_file = join(&[&gitdir, "BISECT_LOG"]);
+            let bisect_refs_dir = join(&[&gitdir, "refs/bisect"]);
+            let step_bisect = |fs: &MemoryFs, repo_root: &str, gitdir: &str| -> CliResult {
+                let bad_oid = fs.read_str(&join(&[gitdir, "refs/bisect/bad"])).map(|s| s.trim().to_string());
+                let mut good_oids: Vec<String> = Vec::new();
+                for entry in fs.readdir(&join(&[gitdir, "refs/bisect"])).unwrap_or_default() {
+                    if entry.starts_with("good-")
+                        && let Some(oid) = fs.read_str(&join(&[gitdir, "refs/bisect", &entry]))
+                    {
+                        good_oids.push(oid.trim().to_string());
+                    }
+                }
+                let (Some(bad), false) = (bad_oid, good_oids.is_empty()) else {
+                    return CliResult::ok("");
+                };
+                let bad_commits = crate::commands::plumbing::log(fs, gitdir, Some(&bad), None, None, None, false, false).unwrap_or_default();
+                let mut good_set: std::collections::HashSet<String> = std::collections::HashSet::new();
+                for g in &good_oids {
+                    for c in crate::commands::plumbing::log(fs, gitdir, Some(g), None, None, None, false, false).unwrap_or_default() {
+                        good_set.insert(c.oid);
+                    }
+                }
+                let candidates: Vec<_> = bad_commits.into_iter().filter(|c| !good_set.contains(&c.oid)).collect();
+                if candidates.len() <= 1 {
+                    let first_bad = candidates.first().map(|c| c.oid.as_str()).unwrap_or(&bad);
+                    return CliResult::ok(format!("{first_bad} is the first bad commit\n"));
+                }
+                let mid = &candidates[candidates.len() / 2];
+                let _ = checkout(fs, repo_root, Some(gitdir), Some(&mid.oid), None, None, true, false, false, true, false);
+                let left = (candidates.len() - 1) / 2;
+                let subj = mid.commit.message.lines().next().unwrap_or("");
+                CliResult::ok(format!(
+                    "Bisecting: {} revisions left to test after this\n[{}] {}\n",
+                    left,
+                    &mid.oid[..7.min(mid.oid.len())],
+                    subj
+                ))
+            };
+            match action {
+                "start" => {
+                    let orig = current_branch(fs, &gitdir, false, false)
+                        .ok()
+                        .flatten()
+                        .or_else(|| resolve_ref(fs, &gitdir, "HEAD", None).ok())
+                        .unwrap_or_else(|| "HEAD".to_string());
+                    fs.write_str(&bisect_start_file, &format!("{orig}\n"));
+                    fs.write_str(&bisect_log_file, "# git bisect log\ngit bisect start\n");
+                    let _ = fs.mkdir(&bisect_refs_dir);
+                    if let Some(&bad_arg) = positionals.get(1)
+                        && let Ok(oid) = crate::cli_history::resolve(fs, &gitdir, bad_arg)
+                    {
+                        fs.write_str(&join(&[&bisect_refs_dir, "bad"]), &format!("{oid}\n"));
+                    }
+                    if let Some(&good_arg) = positionals.get(2)
+                        && let Ok(oid) = crate::cli_history::resolve(fs, &gitdir, good_arg)
+                    {
+                        fs.write_str(&join(&[&bisect_refs_dir, &format!("good-{oid}")]), &format!("{oid}\n"));
+                    }
+                    step_bisect(fs, &repo_root, &gitdir)
+                }
+                "bad" => {
+                    let rev = positionals.get(1).copied().unwrap_or("HEAD");
+                    let Ok(oid) = crate::cli_history::resolve(fs, &gitdir, rev) else {
+                        return CliResult::err(128, format!("fatal: Bad rev input: {rev}\n"));
+                    };
+                    let _ = fs.mkdir(&bisect_refs_dir);
+                    fs.write_str(&join(&[&bisect_refs_dir, "bad"]), &format!("{oid}\n"));
+                    let log_prev = fs.read_str(&bisect_log_file).unwrap_or_default();
+                    fs.write_str(&bisect_log_file, &format!("{log_prev}git bisect bad {oid}\n"));
+                    step_bisect(fs, &repo_root, &gitdir)
+                }
+                "good" => {
+                    let rev = positionals.get(1).copied().unwrap_or("HEAD");
+                    let Ok(oid) = crate::cli_history::resolve(fs, &gitdir, rev) else {
+                        return CliResult::err(128, format!("fatal: Bad rev input: {rev}\n"));
+                    };
+                    let _ = fs.mkdir(&bisect_refs_dir);
+                    fs.write_str(&join(&[&bisect_refs_dir, &format!("good-{oid}")]), &format!("{oid}\n"));
+                    let log_prev = fs.read_str(&bisect_log_file).unwrap_or_default();
+                    fs.write_str(&bisect_log_file, &format!("{log_prev}git bisect good {oid}\n"));
+                    step_bisect(fs, &repo_root, &gitdir)
+                }
+                "reset" => {
+                    let target = positionals
+                        .get(1)
+                        .map(|s| (*s).to_string())
+                        .or_else(|| fs.read_str(&bisect_start_file).map(|s| s.trim().to_string()))
+                        .unwrap_or_else(|| "HEAD".to_string());
+                    let _ = checkout(fs, &repo_root, Some(&gitdir), Some(&target), None, None, true, false, false, true, false);
+                    let _ = fs.rm(&bisect_start_file);
+                    let _ = fs.rm(&bisect_log_file);
+                    let _ = fs.rmdir(&bisect_refs_dir);
+                    CliResult::ok(format!("Previous HEAD position was reset to {target}\n"))
+                }
+                "log" => CliResult::ok(fs.read_str(&bisect_log_file).unwrap_or_default()),
+                _ => CliResult::ok(""),
+            }
+        }
+        "bundle" => {
+            let action = positionals.first().copied().unwrap_or("verify");
+            let Some(&bundle_arg) = positionals.get(1) else {
+                return CliResult::err(128, "fatal: bundle file required\n");
+            };
+            let bundle_path = absolute_path(&effective_cwd, bundle_arg);
+            match action {
+                "create" => {
+                    let ref_arg = positionals.get(2).copied().unwrap_or("HEAD");
+                    let Ok(head_oid) = crate::cli_history::resolve(fs, &gitdir, ref_arg) else {
+                        return CliResult::err(128, format!("fatal: bad revision '{ref_arg}'\n"));
+                    };
+                    let full_ref = if ref_arg == "HEAD" {
+                        "HEAD".to_string()
+                    } else if ref_arg.starts_with("refs/") {
+                        ref_arg.to_string()
+                    } else {
+                        format!("refs/heads/{ref_arg}")
+                    };
+                    let commits = crate::commands::plumbing::log(fs, &gitdir, Some(&head_oid), None, None, None, false, false).unwrap_or_default();
+                    let mut oids: Vec<String> = Vec::new();
+                    for c in &commits {
+                        oids.push(c.oid.clone());
+                        oids.push(c.commit.tree.clone());
+                        if let Ok(t) = crate::commands::plumbing::read_tree(fs, &gitdir, &c.commit.tree, None) {
+                            for entry in t.tree {
+                                oids.push(entry.oid);
+                            }
+                        }
+                    }
+                    let Ok(pack_res) = crate::commands::plumbing::pack_objects(fs, &gitdir, &oids, false) else {
+                        return CliResult::err(128, "fatal: failed to pack objects for bundle\n");
+                    };
+                    let mut bytes = format!("# v2 git bundle\n{head_oid} {full_ref}\n\n").into_bytes();
+                    if let Some(pack_data) = pack_res.packfile {
+                        bytes.extend_from_slice(&pack_data);
+                    }
+                    fs.write(&bundle_path, &bytes);
+                    CliResult::ok("")
+                }
+                "verify" => {
+                    let Some(data) = fs.read(&bundle_path) else {
+                        return CliResult::err(128, format!("fatal: '{bundle_arg}' does not exist\n"));
+                    };
+                    if !data.starts_with(b"# v2 git bundle\n") {
+                        return CliResult::err(128, "fatal: not a v2 git bundle\n");
+                    }
+                    CliResult::ok(format!("{bundle_arg} is okay\n"))
+                }
+                "list-heads" | "unbundle" => {
+                    let Some(data) = fs.read(&bundle_path) else {
+                        return CliResult::err(128, format!("fatal: '{bundle_arg}' does not exist\n"));
+                    };
+                    let Some(sep_pos) = data.windows(2).position(|w| w == b"\n\n") else {
+                        return CliResult::err(128, "fatal: malformed bundle header\n");
+                    };
+                    let header_str = String::from_utf8_lossy(&data[..sep_pos]);
+                    let mut heads_out = String::new();
+                    for line in header_str.lines().skip(1) {
+                        if !line.starts_with('-') && !line.trim().is_empty() {
+                            heads_out.push_str(&format!("{line}\n"));
+                        }
+                    }
+                    if action == "unbundle" {
+                        let pack_slice = &data[sep_pos + 2..];
+                        if pack_slice.starts_with(b"PACK") {
+                            let pack_dir = join(&[&gitdir, "objects/pack"]);
+                            let _ = fs.mkdir(&pack_dir);
+                            let rel_pack = ".git/objects/pack/bundle-import.pack";
+                            fs.write(&join(&[&repo_root, rel_pack]), pack_slice);
+                            let _ = crate::commands::plumbing::index_pack(fs, &repo_root, &gitdir, rel_pack);
+                        }
+                    }
+                    CliResult::ok(heads_out)
+                }
+                _ => CliResult::err(128, format!("fatal: unknown bundle subcommand '{action}'\n")),
+            }
+        }
+        "write-tree" => {
+            let Ok(index_entries) = crate::GitIndexManager::acquire(fs, &gitdir, |idx| Ok(idx.entries())) else {
+                return CliResult::err(128, "fatal: unable to read index\n");
+            };
+            let entries: Vec<crate::models::TreeEntry> = index_entries
+                .into_iter()
+                .filter(|e| !e.path.contains('/'))
+                .map(|e| crate::models::TreeEntry {
+                    mode: format!("{:06o}", e.mode),
+                    path: e.path,
+                    oid: e.oid,
+                    entry_type: if e.mode == 0o160000 { "commit".to_string() } else { "blob".to_string() },
+                })
+                .collect();
+            match crate::commands::plumbing::write_tree(fs, &gitdir, &entries) {
+                Ok(oid) => CliResult::ok(format!("{oid}\n")),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            }
+        }
+        "read-tree" => {
+            let Some(&tree_arg) = positionals.last() else {
+                return CliResult::err(128, "fatal: tree-ish required\n");
+            };
+            let Ok(oid) = crate::cli_history::resolve(fs, &gitdir, tree_arg) else {
+                return CliResult::err(128, format!("fatal: not a valid object name {tree_arg}\n"));
+            };
+            let tree_oid = if let Ok(c) = crate::read_commit(fs, &gitdir, &oid) {
+                c.commit.tree
+            } else {
+                oid
+            };
+            let Ok(tree_res) = crate::commands::plumbing::read_tree(fs, &gitdir, &tree_oid, None) else {
+                return CliResult::err(128, format!("fatal: failed to read tree {tree_oid}\n"));
+            };
+            let _ = crate::GitIndexManager::acquire(fs, &gitdir, |idx| {
+                idx.clear();
+                for entry in tree_res.tree {
+                    if entry.entry_type != "tree" {
+                        idx.insert(&entry.path, None, &entry.oid, 0);
+                    }
+                }
+                Ok(())
+            });
+            CliResult::ok("")
+        }
+        "commit-tree" => {
+            let mut parents: Vec<String> = Vec::new();
+            let mut msg = "commit-tree".to_string();
+            let mut ct_pos: Vec<&str> = Vec::new();
+            let mut i = 0;
+            while i < sub_args.len() {
+                if sub_args[i] == "-p" && i + 1 < sub_args.len() {
+                    if let Ok(p_oid) = crate::cli_history::resolve(fs, &gitdir, sub_args[i + 1]) {
+                        parents.push(p_oid);
+                    }
+                    i += 2;
+                    continue;
+                }
+                if sub_args[i] == "-m" && i + 1 < sub_args.len() {
+                    msg = format!("{}\n", sub_args[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                if !sub_args[i].starts_with('-') {
+                    ct_pos.push(sub_args[i]);
+                }
+                i += 1;
+            }
+            let Some(&tree_arg) = ct_pos.first() else {
+                return CliResult::err(128, "fatal: missing tree argument\n");
+            };
+            let author = Author {
+                name: get_config(fs, &gitdir, "user.name")
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_else(|| "Git User".to_string()),
+                email: get_config(fs, &gitdir, "user.email")
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_else(|| "user@example.com".to_string()),
+                timestamp: 1502484200,
+                timezone_offset: 0.0,
+            };
+            let commit_obj = crate::models::CommitObject {
+                message: msg,
+                tree: tree_arg.to_string(),
+                parent: parents,
+                author: author.clone(),
+                committer: author,
+                gpgsig: None,
+            };
+            match crate::commands::plumbing::write_commit(fs, &gitdir, &commit_obj) {
+                Ok(oid) => CliResult::ok(format!("{oid}\n")),
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            }
+        }
+        "var" => {
+            let name = get_config(fs, &gitdir, "user.name")
+                .map(|v| v.as_str().to_string())
+                .unwrap_or_else(|| "Git User".to_string());
+            let email = get_config(fs, &gitdir, "user.email")
+                .map(|v| v.as_str().to_string())
+                .unwrap_or_else(|| "user@example.com".to_string());
+            let ident = format!("{name} <{email}> 1502484200 +0000");
+            match positionals.first().copied() {
+                Some("GIT_AUTHOR_IDENT") | Some("GIT_COMMITTER_IDENT") => CliResult::ok(format!("{ident}\n")),
+                Some("GIT_DEFAULT_BRANCH") => CliResult::ok("main\n"),
+                _ => CliResult::ok(format!("GIT_AUTHOR_IDENT={ident}\nGIT_COMMITTER_IDENT={ident}\nGIT_DEFAULT_BRANCH=main\n")),
+            }
+        }
+        "name-rev" => {
+            let name_only = sub_args.contains(&"--name-only");
+            let mut out = String::new();
+            let branches = list_branches(fs, &gitdir, None);
+            let tags = list_tags(fs, &gitdir);
+            for &rev in &positionals {
+                let Ok(target_oid) = crate::cli_history::resolve(fs, &gitdir, rev) else {
+                    continue;
+                };
+                let mut matched_label = "undefined".to_string();
+                for b in &branches {
+                    if let Ok(b_oid) = resolve_ref(fs, &gitdir, &format!("refs/heads/{b}"), None) {
+                        if b_oid == target_oid {
+                            matched_label = b.clone();
+                            break;
+                        }
+                        let commits = crate::commands::plumbing::log(fs, &gitdir, Some(&b_oid), None, None, None, false, false).unwrap_or_default();
+                        if let Some(dist) = commits.iter().position(|c| c.oid == target_oid) {
+                            matched_label = format!("{b}~{dist}");
+                            break;
+                        }
+                    }
+                }
+                if matched_label == "undefined" {
+                    for t in &tags {
+                        if let Ok(t_oid) = resolve_ref(fs, &gitdir, &format!("refs/tags/{t}"), None)
+                            && t_oid == target_oid
+                        {
+                            matched_label = format!("tags/{t}");
+                            break;
+                        }
+                    }
+                }
+                if name_only {
+                    out.push_str(&format!("{matched_label}\n"));
+                } else {
+                    out.push_str(&format!("{rev} {matched_label}\n"));
+                }
+            }
+            CliResult::ok(out)
+        }
         "fetch" => match fetch(
             fs,
             http,

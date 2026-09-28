@@ -28,7 +28,7 @@ import { createSandboxTemporalPlainYearMonth, temporalPlainYearMonthFields, type
 let intrinsicKinds: Map<string, { callable: boolean; constructible: boolean }> | undefined;
 
 const objectKinds = ["object", "array", "map", "set", "float32array", "typedarray", "arraybuffer", "sharedarraybuffer", "dataview",
-  "boxed", "date", "regex-object", "module-namespace", "raw-json", "guest-proxy", "guest-proxy-revoker",
+  "arguments", "boxed", "date", "regex-object", "module-namespace", "raw-json", "guest-proxy", "guest-proxy-revoker",
   "module-function", "async-generator-handler", "async-function-handler", "async-cleanup-handler", "thenable-resolver",
   "aggregate-handler", "adoption-resolver", "capability-executor", "intrinsic", "bound-function", "promise-resolver",
   "pending-promise", "promise-reaction", "guest-function", "guest-class", "guest-generator", "mapped-arguments",

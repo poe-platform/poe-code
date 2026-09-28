@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
@@ -87,3 +88,42 @@ test("ordinary for loop substitutions cross a pre-existing command checkpoint", 
     assert.equal(result.exitCode, 0);
   } finally { await shell.dispose(); }
 });
+
+for (const [name, values, command] of [
+  ["printf hex escape", "1 2", 'printf "%s\\x41\\n" "$p"'],
+  ["printf zero padding", "1 2", 'printf "%05s\\n" "$p"'],
+  ["printf invalid integer", "1x 2x", 'printf "%d\\n" "$p"'],
+  ["printf large width", "1 2", 'printf "%129s\\n" "$p"'],
+  ["printf non-ASCII width", "é 界", 'printf "%5s\\n" "$p"'],
+  ["echo dynamic option", "hi -n", 'echo "$p"'],
+  ["echo dynamic escape option", "hi -e", 'echo "$p" "a\\nb"'],
+  ["echo empty prefix", "hi -n", 'echo """$p"'],
+  ["echo safe prefix", "hi -n", 'echo "item_$p"'],
+]) {
+  for (const suffix of ["", " | head -n 10"]) {
+    for (const assignment of ['out+=$(COMMAND)', 'out=$(COMMAND)']) {
+      test(`loop substitution ${name}${suffix}: ${assignment}`, async () => {
+        const source = `out=""; for p in ${values}; do ${assignment.replace("COMMAND", command + suffix)}; done; printf '[%s]\\n' "$out"`;
+        const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+        assert.equal(oracle.error, undefined);
+        const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...streamCommands()]) });
+        try {
+          const result = await shell.exec(source);
+          if (name.startsWith("printf")) {
+            // macOS Bash 3.2 differs from modern printf for zero-padded strings
+            // and partially converted numbers. Compare with ordinary execution.
+            const reference = await shell.exec(`out=""; ${values.split(" ").map(value => `p='${value}'; ${assignment.replace("COMMAND", command + suffix)}`).join("; ")}; printf '[%s]\\n' "$out"`);
+            assert.equal(result.stdout, reference.stdout);
+            assert.equal(result.stderr, reference.stderr);
+            assert.equal(result.exitCode, reference.exitCode);
+            assert.ok(!result.stdout.includes("undefined"));
+          } else {
+            assert.equal(result.stdout, oracle.stdout);
+            assert.equal(result.stderr, oracle.stderr);
+            assert.equal(result.exitCode, oracle.status);
+          }
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}

@@ -11922,7 +11922,13 @@ export class Runtime {
         if (w0Plain === "printf") {
           if (!this.isSyncPrintfCallOk(cmd, 1, rawState, this._activePrintfInductionName)) return false;
         } else if (w0Plain === "echo") {
-          if (cmd.words.length > 1 && (cmd.words[1]!.plain === undefined ? cmd.words[1]!.parts[0]?.kind === "text" && cmd.words[1]!.parts[0]!.value.startsWith("-") : cmd.words[1]!.plain!.startsWith("-"))) return false;
+          const firstArg = cmd.words[1];
+          if (firstArg) {
+            const prefix = firstArg.parts.find(part => part.kind !== "text" || part.value.length > 0);
+            // Substitution execution rejects options, including those that appear
+            // only on later iterations. Require a stable non-option prefix.
+            if (prefix?.kind !== "text" || prefix.value.startsWith("-")) return false;
+          }
         } else if (w0Plain === "dirname" || w0Plain === "basename") {
           const simArgs: string[] = [];
           let seenDoubleDash = false;

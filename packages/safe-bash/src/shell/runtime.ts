@@ -7419,9 +7419,8 @@ export class Runtime {
       if (command.redirects.length === 1) {
         const r0 = command.redirects[0]!;
         const rOp = r0.operator;
-        const isDevNull = (r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (rOp === ">" || rOp === ">>" || rOp === ">|") && r0.target.plain === "/dev/null";
         const isReadCmd = w0Plain === "read" || w0Plain === "mapfile" || w0Plain === "readarray" || (command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS="));
-        if (!isDevNull && w0Plain !== "echo" && w0Plain !== "printf" && !(isReadCmd && rOp === "<<<")) {
+        if (w0Plain !== "echo" && w0Plain !== "printf" && !(isReadCmd && rOp === "<<<")) {
           (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
           return undefined;
         }
@@ -7439,12 +7438,8 @@ export class Runtime {
     if (this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxParseUnits !== Infinity) return false;
     if (depth > 6) return false;
     if (command.redirects.length !== 0) {
-      if (command.redirects.length === 1 && this.sourceFs !== this.backingFs && !rawState.noclobber && this.budget.limits.maxRedirects >= 1 && this.budget.limits.maxFileSystemOperations >= 1000 && this.canFastMemoryRedirect) {
-        const r0 = command.redirects[0]!;
-        if ((r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">>" || r0.operator === ">|") && r0.target.plain === "/dev/null") {
-          return this.canSyncCommandCompound({ ...command, redirects: [] }, rawState, depth, loopDepth);
-        }
-      }
+      // Keep redirected compounds on the descriptor path. Stripping redirects
+      // into a clone loses fallback cursors and can spend admission twice.
       // Here-string reads can require fallback as input bytes or variable
       // attributes change. Execute them individually, never speculate across
       // an enclosing compound that has already made writes.
@@ -8434,19 +8429,27 @@ export class Runtime {
     if (existing && !elem0) return undefined;
     const canMutatePipeStatus = !existing || (existing.references === 1 && elem0!.text.references === 1);
     const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? io.substitutionDiagnosticLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
-    if (command.redirects.length === 1) {
-      const r0 = command.redirects[0]!;
-      if ((r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">>" || r0.operator === ">|") && r0.target.plain === "/dev/null") {
-        if (this.sourceFs === this.backingFs || rawState.noclobber || !this.budget.canRedirect1 || !this.budget.canFileSystemOperation() || !this.canFastMemoryRedirect || (this._fileWrites !== undefined && this._fileWrites.size !== 0) || (this._outputFiles !== undefined && this._outputFiles.size !== 0)) {
-          return undefined;
-        }
-        this.budget.fileSystemOperation();
-        const devNullCapture = new Capture();
-        devNullCapture.budget = this.budget;
-        devNullCapture.signal = this.signal;
-        const { descriptors: ignoredDescriptors, ...ioRest } = io;
-        io = { ...ioRest, stdout: devNullCapture };
-        command = { ...command, redirects: [] };
+    if (command.kind === "simple" && command.redirects.length === 1) {
+      const name = command.words[0]?.plain;
+      const redirect = command.redirects[0]!;
+      if (
+        (name === "echo" || name === "printf") && !hasShellFunction(rawState, name) && this.arePureArgWords(command.words, rawState) &&
+        (redirect.descriptor === undefined || redirect.descriptor === 1) && !redirect.move && !redirect.document &&
+        (redirect.operator === ">" || redirect.operator === ">>" || redirect.operator === ">|") &&
+        redirect.target.plain === "/dev/null" && this.sourceFs !== this.backingFs && !rawState.noclobber &&
+        this.budget.canRedirect1 && this.budget.canFileSystemOperation() && this.canFastMemoryRedirect &&
+        (this._fileWrites === undefined || this._fileWrites.size === 0) &&
+        (this._outputFiles === undefined || this._outputFiles.size === 0)
+      ) {
+        const capture = new Capture();
+        capture.budget = this.budget;
+        capture.signal = this.signal;
+        const { descriptors: ignoredDescriptors, ...rest } = io;
+        const status = this.executeSyncPipelineBody(pipeline, { ...command, redirects: [] }, state, { ...rest, stdout: capture }, ignored);
+        // These output builtins do no filesystem work. Charge the discarded
+        // redirect only after completion; fallback opens it through descriptors.
+        if (status !== undefined) this.budget.fileSystemOperation();
+        return status;
       }
     }
     if (command.kind === "conditional") {

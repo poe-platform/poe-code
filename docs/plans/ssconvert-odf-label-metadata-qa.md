@@ -94,6 +94,14 @@ string transport as native recalculation qualification.
    its identity-preserving transport remains open. Use the compiled SDK/command,
    independent CSV inspection and a captured command screenshot before delivery.
 
+   Check automatic-label self-exclusion (#3646) on both axes: place a SUM
+   immediately above or below values 10 and 20, with stale formula cache 999.
+   Require 30, and #REF! for a same-axis scalar label expression. For row-label
+   inference add adjacent vertical text below the label. Export both profiles
+   through compiled SDK and command, independently inspect XML, poison only the
+   caches and recalculate in Calc. Compare original native inputs too; never
+   count successful cached-value transport as a self-exclusion pass.
+
 10. Read OpenFormula sections 5.2 and 5.10.6 and Calc's automatic-intersection
     lowering before changing `!!`. Use a Python ZIP/XML fixture declaring Sales
     at B1 as a column label for B2:B6 and West at A3 as a row label for B3:D3.

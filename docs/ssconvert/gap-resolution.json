@@ -2474,11 +2474,21 @@
       },
       "automaticSelfExclusion": {
         "issue": 3646,
-        "status": "implemented and locally qualified; delivery pending",
+        "status": "implemented, delivered on remote main and qualified through current compiled/native profiles",
         "source": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77 compiler.cxx GetRefColRowNames, followed by OpenFormula 5.10.5 contiguous-cell rules.",
         "implementation": "Automatic labels exclude the same-axis formula before expanding aggregates and reject scalar self-references. Adjacent formulas are skipped; later formulas stop the range. Final-grid exclusion cannot clamp back to the formula cell.",
         "validation": "33 original regressions failed; all 39 cases pass. Twenty-four compiled SDK/command exports from independent ODF inputs retain native labels and fresh 30 or #REF! results, verified with Python XML. Applied cohort: 871 checks in 34 files, package lint and selected build pass.",
-        "remaining": "Remote delivery, publication and native application readback. No family closed."
+        "remaining": "Installed registry artifacts, containing publication and wider native profiles remain open under #1748. No family closed.",
+        "delivery": {
+          "commit": "ba048afa64920424d87cf22ac2eafdd905964b21",
+          "verifiedRemoteMain": "6c88f10fd974cb93b889bb3fbcc00196262e5af2"
+        },
+        "compiledNativeRefresh": {
+          "runtime": "LibreOffice 26.8.0.3",
+          "validation": "109 current tests across four focused files pass. Twenty-four compiled SDK/command strict/extended ODF outputs cover both axes, totals above/below data and scalar self-references. Independent XML verifies live formulas and fresh 30/#REF! values. After caches are replaced with 999, native Calc recomputes every output and six original independent inputs to the same values. Zero diagnostics, unchanged input bytes.",
+          "scope": "Current workspace compiled public entry, not installed registry composition. Headless application recalculation; no new screenshot/navigation claim.",
+          "receipts": "out/ssconvert-self-exclusion-current/{inputs,exports,native-proof,cleanup}.json"
+        }
       },
       "nativeCalc": {
         "revision": "bce0998afefdbc355585ca324285661a2170ba77",

@@ -13459,19 +13459,6 @@ export class Runtime {
           touched.add(step.name);
           lastArg = "";
           lastValueWord = undefined;
-        } else if (step.isStdoutEcho && step.value !== undefined) {
-          const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
-          const bytes = fastSharedTextEncoder.encode(val + "\n");
-          if (budgetedSinks.get(io.stdout)?.budget !== this.budget) {
-            if (bytes.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
-            this.budget.bytes += bytes.byteLength;
-          }
-          const writeSync = syncSinks.get(io.stdout);
-          if (writeSync) writeSync(bytes);
-          else if (io.stdout instanceof BudgetedPipeStageSink && io.stdout.canWriteSync()) io.stdout.writeSync(bytes);
-          else void io.stdout.write(bytes);
-          lastArg = val;
-          lastValueWord = undefined;
         } else {
           lastArg = step.cmd.words[0]!.plain!;
           lastValueWord = undefined;

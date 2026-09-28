@@ -623,3 +623,36 @@ test("sync loop set -- positional updates, case ;& and ;;& terminators, let buil
     await shell.dispose();
   }
 });
+
+test("matches bash for Wave 62 sync builtin/command prefixes, printf/echo with array member expansions, and array element substring slicing in loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  try {
+    const script = [
+      "printf() { echo \"shadow\"; }",
+      "echo() { :; }",
+      "arr=(alpha_beta gamma_delta epsilon_zeta)",
+      "declare -A map=([k0]=hello_world [k1]=foo_bar_baz [k2]=qux_quux_corge)",
+      "out=\"\"",
+      "for ((i = 0; i < 60; i++)); do",
+      "  idx=$((i % 3))",
+      "  k=\"k${idx}\"",
+      "  s1=${arr[idx]:2:5}",
+      "  s2=${map[$k]:1:4}",
+      "  s3=${arr[idx]: -4:3}",
+      "  a=(\"$s1\" \"$s2\" \"$s3\")",
+      "  builtin printf -v line \"%s|%s|%s\" \"${a[@]}\"",
+      "  command printf -v line2 \"[%s]\" \"${a[@]:1:2}\"",
+      "  out=\"${out}${line}${line2};\"",
+      "done",
+      "command echo \"${#out}:${out:0:90}\"",
+    ].join("\n");
+
+    const actual = await shell.exec(script);
+    assert.equal(actual.exitCode, 0);
+    assert.equal(actual.stderr, "");
+    assert.equal(actual.stdout, "1560:pha_b|ello|bet[ello][bet];mma_d|oo_b|elt[oo_b][elt];silon|ux_q|zet[ux_q][zet];pha_b|ello|b\n");
+  } finally {
+    await shell.dispose();
+  }
+});

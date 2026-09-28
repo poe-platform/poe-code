@@ -7452,6 +7452,39 @@ export class Runtime {
       (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
       return undefined;
     }
+    if (command.kind === "simple" && command.words.length >= 2) {
+      const p0 = command.words[0]!.plain;
+      if (
+        (p0 === "builtin" || p0 === "command") &&
+        !hasShellFunction(stateMonitor(state)?.raw ?? state, p0) &&
+        !(stateMonitor(state)?.raw ?? state).extensions?.builtins.has(p0)
+      ) {
+        const subIdx = command.words[1]?.plain === "--" ? 2 : 1;
+        const subPlain = command.words[subIdx]?.plain;
+        if (
+          subPlain !== undefined &&
+          !subPlain.startsWith("-") &&
+          subPlain !== "eval" &&
+          subPlain !== "source" &&
+          subPlain !== "." &&
+          subPlain !== "command" &&
+          subPlain !== "builtin" &&
+          !(stateMonitor(state)?.raw ?? state).extensions?.builtins.has(subPlain) &&
+          (p0 === "builtin" ? shellBuiltinNames.has(subPlain) : (shellBuiltinNames.has(subPlain) || this.commands.has(subPlain)))
+        ) {
+          const rawSt = stateMonitor(state)?.raw ?? state;
+          const savedFn = rawSt.functions.get(subPlain);
+          if (savedFn !== undefined) rawSt.functions.delete(subPlain);
+          try {
+            const unwrappedCmd: Extract<Command, { kind: "simple" }> = { ...command, words: command.words.slice(subIdx) };
+            const unwrappedPipe: Pipeline = { ...pipeline, commands: [unwrappedCmd] };
+            return this.trySyncPipeline(unwrappedPipe, state, io, ignored);
+          } finally {
+            if (savedFn !== undefined) rawSt.functions.set(subPlain, savedFn);
+          }
+        }
+      }
+    }
     if (command.kind === "simple") {
       const wordsLen = command.words.length;
       if (wordsLen === 0) {
@@ -7531,6 +7564,34 @@ export class Runtime {
       if (command.words.length === 0) return false;
       const w0 = command.words[0]!;
       const w0Plain = w0.plain;
+      if (
+        command.words.length >= 2 &&
+        (w0Plain === "builtin" || w0Plain === "command") &&
+        !hasShellFunction(rawState, w0Plain) &&
+        !rawState.extensions?.builtins.has(w0Plain)
+      ) {
+        const subIdx = command.words[1]?.plain === "--" ? 2 : 1;
+        const subPlain = command.words[subIdx]?.plain;
+        if (
+          subPlain !== undefined &&
+          !subPlain.startsWith("-") &&
+          subPlain !== "eval" &&
+          subPlain !== "source" &&
+          subPlain !== "." &&
+          subPlain !== "command" &&
+          subPlain !== "builtin" &&
+          !rawState.extensions?.builtins.has(subPlain) &&
+          (w0Plain === "builtin" ? shellBuiltinNames.has(subPlain) : (shellBuiltinNames.has(subPlain) || this.commands.has(subPlain)))
+        ) {
+          const savedFn = rawState.functions.get(subPlain);
+          if (savedFn !== undefined) rawState.functions.delete(subPlain);
+          try {
+            return this.canSyncCommandCompound({ ...command, words: command.words.slice(subIdx) }, rawState, depth, loopDepth);
+          } finally {
+            if (savedFn !== undefined) rawState.functions.set(subPlain, savedFn);
+          }
+        }
+      }
       const isNoBraceSyncAssignWord = (w: Word) =>
         this.isPureSyncValueWord(w, rawState, true) && !w.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{"));
       const isCanonicalOptindWord = (w: Word) =>
@@ -7795,7 +7856,9 @@ export class Runtime {
         const echoDef = this.commands.get("echo");
         if (echoDef && defaultEchoExecutors.has(echoDef.execute)) {
           const w1Plain = command.words[1]?.plain;
-          if (w1Plain === undefined || !w1Plain.startsWith("-") || w1Plain === "-n" || w1Plain === "-e" || w1Plain === "-ne" || w1Plain === "-en") if (command.words.slice(1).every(isNoBraceSyncWord)) return true;
+          if (w1Plain === undefined || !w1Plain.startsWith("-") || w1Plain === "-n" || w1Plain === "-e" || w1Plain === "-ne" || w1Plain === "-en") {
+            if (command.words.slice(1).every(w => isNoBraceSyncWord(w) || this.canSyncArrayMembersWord(w, rawState))) return true;
+          }
         }
       }
       if ( w0Plain === "printf" && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf")) {
@@ -7810,7 +7873,7 @@ export class Runtime {
           const fmtIdx = isPrintfV ? 3 : 1;
           const fmtWord = command.words[fmtIdx];
           const fmtPlain = fmtWord?.plain ?? (fmtWord?.parts.length === 1 && fmtWord.parts[0]!.kind === "text" ? fmtWord.parts[0]!.value : undefined);
-          if ( fmtPlain !== undefined && !fmtPlain.startsWith("-") && /^(?:[^%]|%%|%[-0]*\d*(?:\.\d+)?[sdxXouc])*$/.test(fmtPlain) && command.words.slice(fmtIdx + 1).every(isNoBraceSyncWord)) {
+          if ( fmtPlain !== undefined && !fmtPlain.startsWith("-") && /^(?:[^%]|%%|%[-0]*\d*(?:\.\d+)?[sdxXouc])*$/.test(fmtPlain) && command.words.slice(fmtIdx + 1).every(w => isNoBraceSyncWord(w) || this.canSyncArrayMembersWord(w, rawState))) {
             return true;
           }
         }
@@ -7979,28 +8042,35 @@ export class Runtime {
           } else if (c.kind === "for" || c.kind === "arithmetic-for") {
             if (!visitScript(c.body, d + 1)) return false;
           } else if (c.kind === "simple" && c.words.length > 0) {
-            const w0 = c.words[0]!;
+            let effWords = c.words;
+            const rawP0 = effWords[0]!.plain;
+            if ((rawP0 === "builtin" || rawP0 === "command") && effWords.length >= 2) {
+              const sIdx = effWords[1]?.plain === "--" ? 2 : 1;
+              if (sIdx < effWords.length) effWords = effWords.slice(sIdx);
+            }
+            const cEff = effWords === c.words ? c : { ...c, words: effWords };
+            const w0 = cEff.words[0]!;
             const wp0 = w0.plain;
             for (const redirect of c.redirects) collectInputAssignments(redirect.target);
             if (wp0 === "shift") hasShift = true;
-            else if (wp0 === "set" && c.words[1]?.plain === "--") {
+            else if (wp0 === "set" && cEff.words[1]?.plain === "--") {
               hasShift = true;
-              for (let si = 2; si < c.words.length; si++) {
-                const sw = c.words[si]!;
+              for (let si = 2; si < cEff.words.length; si++) {
+                const sw = cEff.words[si]!;
                 if (sw.plain === undefined || /[+*/%-]/.test(sw.plain)) hasDynamicArith = true;
               }
             } else if (wp0 === "let") {
-              const letStart = c.words[1]?.plain === "--" ? 2 : 1;
-              for (let li = letStart; li < c.words.length; li++) {
-                const lw = c.words[li]!;
+              const letStart = cEff.words[1]?.plain === "--" ? 2 : 1;
+              for (let li = letStart; li < cEff.words.length; li++) {
+                const lw = cEff.words[li]!;
                 if (lw.plain !== undefined) arithSourceChunks.push(lw.plain);
                 else hasDynamicArith = true;
               }
             }
-            else if (wp0 && rawState.functions.has(wp0)) {
+            else if (wp0 && rawP0 !== "builtin" && rawP0 !== "command" && rawState.functions.has(wp0)) {
               const fb = rawState.functions.get(wp0)!;
               if (fb.kind === "group" && !visitScript(fb.body, d + 1)) return false;
-            } else if (c.words.length === 1) {
+            } else if (cEff.words.length === 1) {
               const aa = getArrayAssignment(w0);
               if (aa) arrayVars.add(aa.name);
               else {
@@ -8012,7 +8082,7 @@ export class Runtime {
                 }
               }
             } else if (wp0 === "local" || wp0 === "declare" || wp0 === "typeset") {
-              const f1 = c.words[1]?.plain;
+              const f1 = cEff.words[1]?.plain;
               const isArrDecl = f1 === "-a" || f1 === "-A";
               const isNameref = f1 === "-n";
               const isGlobal = f1 === "-g";
@@ -8020,8 +8090,8 @@ export class Runtime {
               // Integer assignments can require full arithmetic evaluation as
               // loop values change. Decline before any loop effects are published.
               if (f1 === "-i") return false;
-              for (let k = (isArrDecl || isNameref || isGlobal || isAttrDecl) ? 2 : 1; k < c.words.length; k++) {
-                const wk = c.words[k]!;
+              for (let k = (isArrDecl || isNameref || isGlobal || isAttrDecl) ? 2 : 1; k < cEff.words.length; k++) {
+                const wk = cEff.words[k]!;
                 const aa = getArrayAssignment(wk);
                 if (aa) {
                   arrayVars.add(aa.name);
@@ -9846,7 +9916,7 @@ export class Runtime {
             : undefined;
         const syncOut = (fastSyncSink || fastPipeSink) ? undefined : syncSinks.get(io.stdout);
         const def = (fastSyncSink || fastPipeSink || syncOut) ? this.commands.get(w0Plain) : undefined;
-        if ( (fastSyncSink || fastPipeSink || syncOut) && def && (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) && command.words.length <= this.budget.maxExpansionFieldsSmi && this.arePureArgWords(command.words, rawState) && (canMutatePipeStatus || elem0!.text.shellValue === "0") && (!pipeline.negate || ignored || !rawState.errexit)) {
+        if ( (fastSyncSink || fastPipeSink || syncOut) && def && (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) && command.words.length <= this.budget.maxExpansionFieldsSmi && (this.arePureArgWords(command.words, rawState) || command.words.every((w, idx) => idx === 0 ? this.isPureArgWord(w, rawState) : (this.isPureArgWord(w, rawState) || this.canSyncArrayMembersWord(w, rawState)))) && (canMutatePipeStatus || elem0!.text.shellValue === "0") && (!pipeline.negate || ignored || !rawState.errexit)) {
           if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
           let formatted: string | undefined;
           let preEncoded: Uint8Array | undefined;
@@ -9854,7 +9924,7 @@ export class Runtime {
           try {
             if (w0Plain === "echo" && command.words.length === 1) {
               formatted = "\n";
-            } else if (w0Plain === "echo" && command.words.length === 2) {
+            } else if (w0Plain === "echo" && command.words.length === 2 && !this.canSyncArrayMembersWord(command.words[1]!, rawState)) {
               const arg0 = this.fastValueWord(command.words[1]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
               if (typeof arg0 === "string" && !arg0.startsWith("-") && !arg0.includes("\0")) {
                 preEncoded = encodeRedirectTextWithNewlineToScratch(arg0);
@@ -9865,7 +9935,17 @@ export class Runtime {
               fastSubScratchArgs.length = 0;
               let allStrings = true;
               for (let i = 1; i < command.words.length; i++) {
-                const v = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+                const wi = command.words[i]!;
+                if ((w0Plain === "echo" || i > 1) && this.canSyncArrayMembersWord(wi, rawState)) {
+                  const members = this.tryExpandSyncArrayMembersWord(wi, rawState, io, diagnosticLine);
+                  if (!members) {
+                    allStrings = false;
+                    break;
+                  }
+                  for (let mi = 0; mi < members.length; mi++) fastSubScratchArgs.push(members[mi]!);
+                  continue;
+                }
+                const v = this.fastValueWord(wi, rawState, io, true, false, false, true, undefined, diagnosticLine);
                 if (typeof v !== "string") {
                   allStrings = false;
                   break;
@@ -11198,7 +11278,17 @@ export class Runtime {
           let allStrings = true;
           try {
             for (let i = 3; i < command.words.length; i++) {
-              const v = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+              const wi = command.words[i]!;
+              if (i > 3 && this.canSyncArrayMembersWord(wi, rawState)) {
+                const members = this.tryExpandSyncArrayMembersWord(wi, rawState, io, diagnosticLine);
+                if (!members) {
+                  allStrings = false;
+                  break;
+                }
+                for (let mi = 0; mi < members.length; mi++) fastSubScratchArgs.push(members[mi]!);
+                continue;
+              }
+              const v = this.fastValueWord(wi, rawState, io, true, false, false, true, undefined, diagnosticLine);
               if (typeof v !== "string") {
                 allStrings = false;
                 break;
@@ -11247,7 +11337,12 @@ export class Runtime {
               if (rawState.variables._ !== undefined) delete rawState.variables._;
               rawState.lastArgument = lastPrintfArg;
               if (isScalarTarget) {
-                monitor.publishStringVariable(targetSpec!, formatted);
+                if (this._syncArithRawWriteOnly && this._syncArithTouched) {
+                  rawState.variables[targetSpec!] = formatted;
+                  this._syncArithTouched.add(targetSpec!);
+                } else {
+                  monitor.publishStringVariable(targetSpec!, formatted);
+                }
                 if (rawState.allexport) monitor.proxy.exported.add(targetSpec!);
               }
               if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
@@ -11423,8 +11518,19 @@ export class Runtime {
             }
             return false;
           }
-          if (part.substring) return false;
           if (sel.kind === "element") {
+            if (part.substring) {
+              if (
+                part.length ||
+                part.operator !== undefined ||
+                this.budget.limits.maxExpansionBytes !== Infinity ||
+                !part.substring.offset.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)) ||
+                (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)))
+              ) {
+                return false;
+              }
+              continue;
+            }
             if (part.operator === undefined) continue;
             if ((part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") && part.alternate && !part.length) continue;
             if ((part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") && (!part.alternate || part.alternate.parts.length === 0) && !part.length) continue;
@@ -18797,7 +18903,6 @@ export class Runtime {
             }
             return undefined;
           }
-          if (part.substring) return undefined;
           if (selector.kind === "element") {
             const cachedSub = selector.index as { _cachedWord?: Word; _cachedSyntax?: unknown };
             let subWord = selector.index.word ?? (cachedSub._cachedSyntax === rawState.extensions?.syntax ? cachedSub._cachedWord : undefined);
@@ -18837,6 +18942,45 @@ export class Runtime {
               elemVal = arrayBinding.getValue(subIdx);
             }
             if (elemVal !== undefined && typeof elemVal !== "string") return undefined;
+            if (part.substring) {
+              if (part.length || part.operator !== undefined || this.budget.limits.maxExpansionBytes !== Infinity) return undefined;
+              const s = elemVal ?? "";
+              for (let k = 0; k < s.length; k++) if (s.charCodeAt(k) >= 128) return undefined;
+              const parameterLine = part.line ?? overrideDiagnosticLine;
+              const evalSubSliceInt = (w: Word): number | undefined => {
+                if (w.parts.length === 0) return 0;
+                const expanded = this.fastValueWord(w, rawState, io, false, false, false, false, undefined, parameterLine);
+                if (typeof expanded !== "string") return undefined;
+                const trimmed = expanded.trim();
+                if (trimmed.length === 0) return 0;
+                const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
+                const directOp = resolveSimpleArithOperand(trimmed, rawState, monitor, activeArrayStore, syncTouched);
+                if (directOp !== undefined) return directOp;
+                const simpleExpr = tryEvalSimpleExpandedArith(trimmed, rawState, monitor, activeArrayStore, syncTouched);
+                if (simpleExpr !== undefined) return Number(simpleExpr);
+                return undefined;
+              };
+              const offNum = evalSubSliceInt(part.substring.offset);
+              if (offNum === undefined) return undefined;
+              const actualStart = offNum < 0 ? s.length + offNum : offNum;
+              let subOut: string;
+              if (actualStart < 0 || actualStart > s.length) {
+                subOut = "";
+              } else if (!part.substring.length) {
+                subOut = s.slice(actualStart);
+              } else {
+                const lenNum = evalSubSliceInt(part.substring.length);
+                if (lenNum === undefined) return undefined;
+                const actualEnd = lenNum < 0 ? s.length + lenNum : actualStart + lenNum;
+                if (actualEnd < actualStart) return undefined;
+                subOut = s.slice(actualStart, Math.min(s.length, actualEnd));
+              }
+              if (split && !part.quoted) {
+                if (subOut.length === 0 || subOut.includes(" ") || subOut.includes("\t") || subOut.includes("\n") || (!rawState.noglob && hasGlobOrEscape(subOut, !!rawState.extglob))) return undefined;
+              }
+              out += subOut;
+              continue;
+            }
             if (part.length) {
               if (part.operator !== undefined) return undefined;
               const s = elemVal ?? "";

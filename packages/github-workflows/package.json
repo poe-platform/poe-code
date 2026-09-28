@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsx scripts/generate-gh-workflows.ts && tsc && tsx scripts/build-assets.ts",
+    "build": "node --import tsx scripts/generate-gh-workflows.ts && tsc && node --import tsx scripts/build-assets.ts",
     "generate:gh-workflows": "tsx scripts/generate-gh-workflows.ts",
     "lint:mcp-sdk-deps": "cd ../.. && tsx packages/github-workflows/scripts/assert-mcp-sdk-dev-deps.ts",
     "test": "cd ../.. && vitest run packages/github-workflows/src",

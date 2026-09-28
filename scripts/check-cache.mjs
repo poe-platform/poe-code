@@ -118,8 +118,8 @@ export function createTaskFingerprints(plan, {
       }
     }
     else if ((event === "build"
-      ? ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "scripts/guard-package-dist.mjs", "scripts/check-cache.mjs", "scripts/build-workspaces.mjs"]
-      : ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "vitest.config.ts", "vitest.root.config.ts", "tests/setup.ts", "tests/test-env.ts", "scripts/guard-package-dist.mjs", "scripts/check-cache.mjs", "scripts/build-workspaces.mjs", "scripts/test-vitest-workspaces.mjs", "scripts/workspace-test-ownership.mjs", "scripts/run-vitest-batch.mjs", "scripts/vitest-batch-worker.mjs", "scripts/vitest-immediate-reporter.mjs", "packages/mcp-protocol-rust/scripts/cargo.mjs"]
+      ? ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "scripts/guard-package-dist.mjs", "scripts/build-workspaces.mjs", "scripts/bundle-safe-bash.mjs", "scripts/package-safe.mjs", "scripts/publish-bundle.mjs", "scripts/set-bin-executable.mjs"]
+      : ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "vitest.config.ts", "vitest.root.config.ts", "tests/setup.ts", "tests/test-env.ts", "scripts/guard-package-dist.mjs", "scripts/build-workspaces.mjs", "scripts/test-vitest-workspaces.mjs", "scripts/workspace-test-ownership.mjs", "scripts/run-vitest-batch.mjs", "scripts/vitest-batch-worker.mjs", "scripts/vitest-immediate-reporter.mjs", "packages/mcp-protocol-rust/scripts/cargo.mjs"]
     ).includes(file)) common.update(read(file));
   }
   const importedPackages = (file, visited = new Set(), rootInputs) => {
@@ -214,6 +214,12 @@ export function taskCacheKey(fingerprint, event, args = []) {
   return createHash("sha256").update(JSON.stringify({ fingerprint, event, args })).digest("hex");
 }
 
+const knownPostbuildHooks = new Set([
+  "node scripts/build-optional-cli.mjs",
+  "node --test scripts/built-imports.test.mjs",
+  "node scripts/smoke-built-exports.mjs"
+]);
+
 export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, environment, fileSystem = fs }) {
   const commands = new Set([
     "tsc",
@@ -249,6 +255,9 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     "node scripts/generate-inventories.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
     "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
     "node scripts/build.mjs",
+    "tsc --noEmit && npm run build:site",
+    "node ../../scripts/guard-package-dist.mjs && rm -rf dist/opt-in && node scripts/integration-inputs.mjs && node scripts/build.mjs",
+    "node ../../scripts/guard-package-dist.mjs && node scripts/numberformat-data.mjs && rm -rf dist && tsc && node scripts/numberformat-data.mjs --copy && node ../../scripts/set-bin-executable.mjs",
     "node ../../scripts/guard-package-dist.mjs && tsc && node -e \"require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')\"",
     "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:@poe-platform/safe-bash --outfile=dist/index.js && rollup dist/index.d.ts --file dist/index.d.ts --format es --external @poe-platform/safe-bash/contracts --plugin dts={respectExternal:true}"
   ]);
@@ -261,7 +270,7 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
       || scripts[event].includes("fs.mkdirSync('dist'")
       || fileSystem.existsSync(path.join(plan.root, stage.path, "bindings/Cargo.toml"));
     return settings.cache !== false && event === "build" && commands.has(scripts[event]) && hasDistOutput
-      && !scripts["pre" + event] && !scripts["post" + event] && settings.outputs?.length
+      && !scripts["pre" + event] && (!scripts["post" + event] || knownPostbuildHooks.has(scripts["post" + event])) && settings.outputs?.length
       && settings.outputs.every(pattern => pattern === "dist/**");
   });
   const started = performance.now();

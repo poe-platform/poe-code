@@ -1,3 +1,4 @@
+import { predicateCommands } from "../../src/commands/predicates.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
@@ -652,6 +653,51 @@ test("matches bash for Wave 62 sync builtin/command prefixes, printf/echo with a
     assert.equal(actual.exitCode, 0);
     assert.equal(actual.stderr, "");
     assert.equal(actual.stdout, "1560:pha_b|ello|bet[ello][bet];mma_d|oo_b|elt[oo_b][elt];silon|ux_q|zet[ux_q][zet];pha_b|ello|b\n");
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("matches bash for Wave 63 sync POSIX [ / test numeric, negated, and compound -a/-o predicates and multi-step array element operator loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  for (const command of predicateCommands()) shell.commands.register(command);
+  try {
+    const script = [
+      "i=0",
+      "acc=0",
+      "s=\"hello\"",
+      "while [ \"$i\" -lt 120 ]; do",
+      "  if [ \"$((i % 2))\" -eq 0 ] && [ -n \"$s\" ]; then",
+      "    acc=$((acc + i))",
+      "  elif test \"$i\" -gt 50 -a \"$s\" = \"hello\"; then",
+      "    acc=$((acc + 1))",
+      "  fi",
+      "  if [ ! \"$((i % 5))\" -eq 0 ]; then",
+      "    acc=$((acc + 2))",
+      "  fi",
+      "  i=$((i + 1))",
+      "done",
+      "arr=(\"pre_alpha_suf\" \"pre_beta_suf\" \"\")",
+      "declare -A map=([k0]=\"foo-bar-baz\" [k1]=\"qux-quux\")",
+      "out=\"\"",
+      "for ((j = 0; j < 120; j++)); do",
+      "  idx=$((j % 3))",
+      "  k=\"k$((j % 2))\"",
+      "  a=${arr[idx]#pre_}",
+      "  b=${a%_suf}",
+      "  c=${b:-empty}",
+      "  d=${c^^}",
+      "  m=${map[$k]//-/_}",
+      "  out=\"${d}:${m}\"",
+      "done",
+      "printf \"%s|%s\\n\" \"$acc\" \"$out\"",
+    ].join("\n");
+
+    const actual = await shell.exec(script);
+    assert.equal(actual.exitCode, 0);
+    assert.equal(actual.stderr, "");
+    assert.equal(actual.stdout, "3767|EMPTY:qux_quux\n");
   } finally {
     await shell.dispose();
   }

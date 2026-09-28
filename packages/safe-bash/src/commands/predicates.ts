@@ -86,6 +86,8 @@ export function tryFastPredicate(
     }
     if (op === "=" || op === "==") return a0 === a2 ? 0 : 1;
     if (op === "!=") return a0 !== a2 ? 0 : 1;
+    if (op === "-a") return (a0 !== "" && a2 !== "") ? 0 : 1;
+    if (op === "-o") return (a0 !== "" || a2 !== "") ? 0 : 1;
     if (numeric.has(op)) {
       const leftNum = parseSafeIntegerFast(a0);
       const rightNum = parseSafeIntegerFast(a2);
@@ -101,7 +103,11 @@ export function tryFastPredicate(
       }
     }
   }
-  if (rawLen >= 5 && rawLen <= 16) {
+  if (rawLen === 4 && rawArgs[offset] === "!") {
+    const inner = tryFastPredicate("test", rawArgs.slice(0, offset + 4), offset + 1, fileUnaryEval);
+    if (inner !== undefined) return inner === 0 ? 1 : 0;
+  }
+  if (rawLen >= 4 && rawLen <= 16) {
     let cursor = offset;
     const end = offset + rawLen;
     const evalPrimary = (): boolean | undefined => {

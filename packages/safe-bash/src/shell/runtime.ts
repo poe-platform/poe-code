@@ -7878,14 +7878,80 @@ export class Runtime {
           }
         }
       }
-      if ( command.words.length >= 3 && (w0Plain === "[" || w0Plain === "test") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
+      if ( command.words.length >= 1 && (w0Plain === "[" || w0Plain === "test") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
         const predDef = this.commands.get(w0Plain);
         if (predDef && defaultPredicateExecutors.has(predDef.execute)) {
           const isBracket = w0Plain === "[";
           const argCount = isBracket ? command.words.length - 2 : command.words.length - 1;
-          if ((!isBracket || command.words[command.words.length - 1]?.plain === "]") && command.words.slice(1).every(isNoBraceSyncWord)) {
-            if (argCount === 2 && (command.words[1]?.plain === "-z" || command.words[1]?.plain === "-n")) return true;
-            if (argCount === 3 && (command.words[2]?.plain === "=" || command.words[2]?.plain === "==" || command.words[2]?.plain === "!=")) return true;
+          if (argCount >= 0 && argCount <= 16 && (!isBracket || command.words[command.words.length - 1]?.plain === "]") && command.words.slice(1, isBracket ? command.words.length - 1 : command.words.length).every(isNoBraceSyncWord)) {
+            const isGuaranteedIntWord = (w: Word | undefined): boolean => {
+              if (!w) return false;
+              if (w.plain !== undefined) return /^[ \t]*[+-]?[0-9]{1,15}[ \t]*$/.test(w.plain);
+              const nonEmpty = w.parts.filter(p => !(p.kind === "text" && p.value === ""));
+              if (nonEmpty.length !== 1) return false;
+              const p0 = nonEmpty[0]!;
+              if (p0.kind === "arithmetic") return true;
+              if (p0.kind === "variable") {
+                if (p0.length && !p0.substring && p0.operator === undefined) return true;
+                if (!p0.indirect && !p0.prefixNames && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined) {
+                  if (p0.name === "?" || p0.name === "#") return true;
+                  const curVal = rawState.variables[p0.name];
+                  if (curVal !== undefined && /^[ \t]*[+-]?[0-9]{1,15}[ \t]*$/.test(curVal)) return true;
+                }
+              }
+              return false;
+            };
+            const isFastNumOp = (op: string | undefined) => op === "-eq" || op === "-ne" || op === "-lt" || op === "-le" || op === "-gt" || op === "-ge";
+            if (argCount === 0 || argCount === 1) return true;
+            if (argCount === 2) {
+              const op1 = command.words[1]?.plain;
+              if (op1 === "-z" || op1 === "-n" || op1 === "!") return true;
+            }
+            if (argCount === 3) {
+              const op1 = command.words[1]?.plain;
+              const op2 = command.words[2]?.plain;
+              if (op2 === "=" || op2 === "==" || op2 === "!=" || op2 === "-a" || op2 === "-o") return true;
+              if (isFastNumOp(op2) && isGuaranteedIntWord(command.words[1]) && isGuaranteedIntWord(command.words[3])) return true;
+              if (op1 === "!" && (op2 === "-z" || op2 === "-n")) return true;
+            }
+            if (argCount === 4 && command.words[1]?.plain === "!") {
+              const op3 = command.words[3]?.plain;
+              if (op3 === "=" || op3 === "==" || op3 === "!=" || op3 === "-a" || op3 === "-o") return true;
+              if (isFastNumOp(op3) && isGuaranteedIntWord(command.words[2]) && isGuaranteedIntWord(command.words[4])) return true;
+            }
+            if (argCount >= 5) {
+              let c = 1;
+              const end = 1 + argCount;
+              let ok = true;
+              while (c < end) {
+                while (c < end && command.words[c]?.plain === "!") c++;
+                if (c >= end) { ok = false; break; }
+                const wFirst = command.words[c]!;
+                const pFirst = wFirst.plain;
+                if (pFirst === "(" || pFirst === ")") { ok = false; break; }
+                const pNext = c + 1 < end ? command.words[c + 1]?.plain : undefined;
+                if (pNext === "=" || pNext === "==" || pNext === "!=") {
+                  if (c + 2 >= end) { ok = false; break; }
+                  c += 3;
+                } else if (isFastNumOp(pNext)) {
+                  if (c + 2 >= end || !isGuaranteedIntWord(wFirst) || !isGuaranteedIntWord(command.words[c + 2])) { ok = false; break; }
+                  c += 3;
+                } else if (pFirst === "-z" || pFirst === "-n") {
+                  if (c + 1 >= end) { ok = false; break; }
+                  c += 2;
+                } else {
+                  ok = false;
+                  break;
+                }
+                if (c < end) {
+                  const conj = command.words[c]?.plain;
+                  if (conj !== "-a" && conj !== "-o") { ok = false; break; }
+                  c++;
+                  if (c >= end) { ok = false; break; }
+                }
+              }
+              if (ok && c === end) return true;
+            }
           }
         }
       }
@@ -11239,7 +11305,9 @@ export class Runtime {
           rawState.lastArgument = lastPredArg;
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
-            if (store) if (publishPipelineStatus(rawState, fastPred === 0 ? singleStatusZero : fastPred === 1 ? singleStatusOne : [fastPred], this.signal, scope)) return undefined; else {
+            if (store) {
+              if (monitor.internalOwner().ledger.checkpoint(this.signal, 0) || publishPipelineStatus(rawState, fastPred === 0 ? singleStatusZero : fastPred === 1 ? singleStatusOne : [fastPred], this.signal, scope)) return undefined;
+            } else {
               monitor.lazyPipeStatus = fastPred === 0 ? singleStatusZero : fastPred === 1 ? singleStatusOne : [fastPred];
               monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             }
@@ -12003,7 +12071,7 @@ export class Runtime {
         return undefined;
       }
       const iterations = Math.max(0, Number(e1.tree.right.value - e0.tree.right.value) + (e1.tree.operator === "<=" ? 1 : 0));
-      if (iterations * bodyAssignments.length > 8000) {
+      if (iterations * bodyAssignments.length > 24000) {
         (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
         return undefined;
       }

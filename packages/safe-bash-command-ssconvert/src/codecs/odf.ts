@@ -946,9 +946,11 @@ export function createOdfWriter(profile: "strict" | "extended") {
               if (value.kind === "error" && !cell.formula) { a["table:formula"] = "of:=" + value.value; if (extended) a["gnm:error-value"] = value.value; }
             }
             xml.charge(originalParagraphs.size);
-            const renderedText = cell.displayedText ?? await renderCellText(cell, book, context), rendered = xml.text(renderedText), paragraph = originalParagraphs.get(key) ??
+            const renderedText = cell.displayedText ?? await renderCellText(cell, book, context), paragraph = originalParagraphs.get(key) ??
               [...originalParagraphs.values()].find(p => row >= p.range.startRow && row <= p.range.endRow && start >= p.range.startColumn && start <= p.range.endColumn);
             const link = meta?.link ?? links.get(key);
+            // Calc's URL field collects character data, ignoring whitespace child elements.
+            const rendered = link ? xml.escape(renderedText) : xml.text(renderedText);
             content += paragraph?.text === renderedText ? paragraph.xml : e("text:p", {}, link ? e("text:a", link, rendered) : rendered);
           }
           const next = !cell && !merge && meta ? Math.min(meta.range.endColumn + 1, stops.find(s => s > start) ?? meta.range.endColumn + 1) : start + 1;

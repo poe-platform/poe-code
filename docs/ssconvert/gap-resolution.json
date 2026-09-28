@@ -2335,6 +2335,15 @@
       },
       "remaining": "Native application evaluation of conditional formatting and validation remains unqualified. This repair does not close the format family or the 19-family goal."
     },
+    "odfHyperlinkLabelCharacters": {
+      "status": "generated hyperlink labels preserve native whitespace; retained rich paragraphs and navigation remain open",
+      "source": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77 sc/source/filter/xml/celltextparacontext.cxx:250-290, SHA256 67099a3250c3962feea8769bc2efea7354ae030146ede2a445bb64cf3080eb49. ScXMLCellFieldURLContext only accumulates character data; unlike paragraph/span contexts, it has no text:s/tab/line-break child handlers. Gnumeric GNUMERIC_1_12_61 openoffice-read.c:1803-1814 and 1936-1939 appends supplied character data directly.",
+      "finding": "Actual Calc GUI imports displayed OpenData instead of Open Data. Generated ODF wrapped xml.text output inside text:a, so its whitespace elements were ignored by the native URL field. Hyperlink labels now use the bounded XML character-data encoder, preserving literal spaces and numeric character references for tabs/newlines/CR; ordinary paragraphs keep their existing whitespace elements.",
+      "validation": "Four corrected original memory cases fail before repair; 31 neighboring checks pass. All 130 tests in four ODF files pass after repair, covering both ODF profiles and style-region/cell-only paths. Package lint, source/test/consumer types and selected workspace build pass. An initial assertion also mismatched harmless href quoting/attribute order and was corrected before the recorded red run.",
+      "native": "Compiled SDK and runCommand each export strict/extended ODF. Calc 26.8.0.3 independently reads all 32 label observations exactly: single/repeated/leading/trailing spaces, tab, LF, CR, Unicode and XML delimiters. Native GUI screenshot and accessibility values show repaired labels and the intact percent-encoded local target.",
+      "receipts": "out/ssconvert-odf-navigation-current/labels-native-proof.json; label-{red-corrected,green,neighbors,lint,build}.log. GUI before/after inspected through CUA; native CSV comparison preserves newline characters.",
+      "remaining": "Actual local-name navigation was not completed: native pointer actions returned windowNotFoundAtPosition, and Calc renamed the backslash-containing sheet to Sheet5. Unchanged retained hyperlink paragraphs may contain native-unsupported whitespace/rich children and require separate preservation work. Other applications, installed artifacts and containing publication remain open; no family closure."
+    },
     "odfHyperlinkTargets": {
       "sources": [
         {

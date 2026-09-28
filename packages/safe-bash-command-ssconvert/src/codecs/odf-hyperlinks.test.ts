@@ -4,6 +4,30 @@ import { createOdfWriter, readOdf } from "./odf.js";
 import { context, unpackOdf } from "./odf-write.test.js";
 import { odfAttributes, odfChildren, odfObject } from "./odf-write-support.js";
 
+// Calc's ScXMLCellFieldURLContext collects character data, but has no child
+// contexts for text:s, text:tab or text:line-break inside the URL field.
+it.each([
+  ["Open Data", "Open Data"],
+  ["  Open  Data  ", "  Open  Data  "],
+  ["Open\tData\nnext\rline", "Open&#9;Data&#10;next&#13;line"],
+  ['Café & <Data> "now"', "Café &amp; &lt;Data&gt; &quot;now&quot;"]
+])("exports hyperlink display text as character data: %j", async (label, encoded) => {
+  const input = '<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:Styles>' +
+    '<g:StyleRegion startRow="0" endRow="0" startCol="0" endCol="0"><g:Style><g:HyperLink type="GnmHLinkCurWB" target="S!A2"/></g:Style></g:StyleRegion>' +
+    '</g:Styles><g:Cells><g:Cell Row="0" Col="0" ValueType="60">original</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>';
+  const original = await readGnumeric(new TextEncoder().encode(input), context);
+  for (const profile of ["strict", "extended"] as const) for (const regions of [true, false]) {
+    const book = { ...original, sheets: original.sheets.map(s => ({ ...s,
+      ...(regions ? {} : { unsupportedRecords: [] }),
+      cells: s.cells.map(c => ({ ...c, value: { kind: "string" as const, value: label } })) })) };
+    const bytes = await createOdfWriter(profile)(book, [], context);
+    const xml = (await unpackOdf(bytes)).parts.get("content.xml")!;
+    expect(xml).toContain(`>${encoded}</text:a>`);
+    const reopened = await readOdf(bytes, context);
+    expect(reopened.sheets[0]!.cells[0]!.value).toEqual({ kind: "string", value: label });
+  }
+});
+
 it.each([
   ["'Bang!'!$A$1:$B$2", "#'Bang!'.$A$1:$B$2"],
   ["'O\\'Brien'!A1", "#'O''Brien'.A1"],

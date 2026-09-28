@@ -508,3 +508,16 @@ test("array member operators (${a[@]%.txt}, ${b[@]^^}, ${c[@]/A/X}) and prefix e
   assert.equal(res.stderr, "");
   assert.equal(res.stdout, "d=XLPHA BETX GXMMA DELTX cnt=114 all=CFG_HOST CFG_MODE CFG_PORT pcnt=144\n");
 });
+
+for (const [name, source, expected] of [
+  ["leading literal closing bracket", 's1="]a"; s2="ba]"; for i in 1 2; do echo "r1=${s1/[]a]/X} r2=${s2/[!]a]/X} r3=${s2/[^]a]/X}"; done', "r1=Xa r2=Xa] r3=Xa]\nr1=Xa r2=Xa] r3=Xa]\n"],
+] as const) test(`sync loops preserve effects and values: ${name}`, async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: "C.UTF-8" } });
+  for (const command of basicCommands()) shell.commands.register(command);
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});

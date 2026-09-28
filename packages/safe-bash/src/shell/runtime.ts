@@ -3064,6 +3064,8 @@ function tryCompileFixedGlobToRegex(pat: string, op: string, extglob: boolean): 
       }
       let inner = pat.slice(i + 1, j);
       if (inner.startsWith("!")) inner = "^" + inner.slice(1);
+      const memberStart = inner.startsWith("^") ? 1 : 0;
+      if (inner[memberStart] === "]") inner = inner.slice(0, memberStart) + "\\]" + inner.slice(memberStart + 1);
       reSrc += "[" + inner + "]";
       i = j;
     } else if (".^$+()|{}".includes(ch)) {

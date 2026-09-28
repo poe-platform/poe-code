@@ -2792,7 +2792,8 @@ type SyncLoopStep = {
   readonly caseSubject?: Word | undefined;
   readonly caseClauses?: readonly { patterns: readonly string[]; steps: readonly SyncLoopStep[] }[] | undefined;
   readonly fnCall?: { readonly name: string; readonly argWords: readonly Word[]; readonly locals: readonly { readonly name: string; readonly valueWord?: Word | undefined; readonly isFirstInCmd: boolean }[]; readonly steps: readonly SyncLoopStep[] } | undefined;
-  readonly nestedLoop?: { readonly loopCmd: Extract<Command, { kind: "arithmetic-for" | "for" | "while" | "until" }>; readonly inductionName?: string | undefined; readonly braceWords?: readonly string[] | undefined; readonly condCmd?: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }> | undefined; readonly condArith?: ArithmeticProgram | undefined; readonly condExpr?: ConditionalExpression | undefined; readonly condLine: number; readonly steps: readonly SyncLoopStep[] } | undefined;
+  readonly loopAction?: "break" | "continue" | undefined;
+  readonly nestedLoop?: { readonly loopCmd: Extract<Command, { kind: "arithmetic-for" | "for" | "while" | "until" }>; readonly inductionName?: string | undefined; readonly braceWords?: readonly string[] | undefined; readonly arrayWord?: Word | undefined; readonly condCmd?: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }> | undefined; readonly condArith?: ArithmeticProgram | undefined; readonly condExpr?: ConditionalExpression | undefined; readonly condLine: number; readonly steps: readonly SyncLoopStep[] } | undefined;
   readonly elseSteps?: readonly SyncLoopStep[] | undefined;
   readonly value: Word | undefined;
   readonly targetWord: Word | undefined;
@@ -12062,9 +12063,9 @@ export class Runtime {
               !rawState.variableAttributes?.get(cmd.name) &&
               !store?.get(cmd.name) &&
               !stateMonitor(rawState)?.hasOverlay(cmd.name) &&
-              rawState.braceexpand !== false &&
               cmd.words?.length === 1 &&
-              tryFastExpandBraceRange(cmd.words[0]!, this.budget, undefined) !== undefined &&
+              ((rawState.braceexpand !== false && tryFastExpandBraceRange(cmd.words[0]!, this.budget, undefined) !== undefined) ||
+                this.tryExpandSyncArrayMembersWord(cmd.words[0]!, rawState, io, cmd.line ?? 1) !== undefined) &&
               this.canSyncLoopBody(cmd.body, rawState, io, true)
             ) {
               continue;
@@ -12203,6 +12204,16 @@ export class Runtime {
           return false;
         }
         if (cmd.redirects.length === 0 && cmd.words.length >= 1 && cmd.words.length <= 16 && this.extractSyncLoopFnSpec(cmd, rawState, io) !== undefined) {
+          continue;
+        }
+        if (
+          this._syncLoopFnCheckDepth === 0 &&
+          cmd.redirects.length === 0 &&
+          (cmd.words[0]?.plain === "break" || cmd.words[0]?.plain === "continue") &&
+          !rawState.functions.has(cmd.words[0]!.plain!) &&
+          !rawState.extensions?.builtins.has(cmd.words[0]!.plain!) &&
+          (cmd.words.length === 1 || (cmd.words.length === 2 && cmd.words[1]?.plain === "1"))
+        ) {
           continue;
         }
         if (cmd.redirects.length !== 0 || cmd.words.length !== 1) return false;
@@ -12409,7 +12420,7 @@ export class Runtime {
               const e0Tree = rawCmd.expressions[0]!.tree;
               if (e0Tree?.kind === "binary" && e0Tree.left.kind === "name") inductionName = e0Tree.left.name;
             } else if (rawCmd.kind === "for") {
-              braceWords = tryFastExpandBraceRange(rawCmd.words![0]!, this.budget, undefined) ?? [];
+              braceWords = rawState.braceexpand !== false ? tryFastExpandBraceRange(rawCmd.words![0]!, this.budget, undefined) : undefined;
             } else {
               const bc = rawCmd.condition.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }>;
               condCmd = bc;
@@ -12426,6 +12437,7 @@ export class Runtime {
                 loopCmd: rawCmd,
                 inductionName,
                 braceWords,
+                arrayWord: rawCmd.kind === "for" && !braceWords ? rawCmd.words![0]! : undefined,
                 condCmd,
                 condArith,
                 condExpr,
@@ -12502,6 +12514,19 @@ export class Runtime {
           }
         const cmd = rawCmd as Extract<Command, { kind: "simple" }>;
         const w0 = cmd.words[0]!;
+        if (cmd.redirects.length === 0 && (w0.plain === "break" || w0.plain === "continue")) {
+          bodyAssignments.push({
+            cmd,
+            listOperator,
+            name: undefined,
+            value: undefined,
+            loopAction: w0.plain,
+            targetWord: undefined,
+            append: false,
+            line,
+          });
+          continue;
+        }
         if (cmd.redirects.length === 1 && cmd.redirects[0]!.target.plain === "/dev/null") {
           redirectCount++;
           const isBaseS = w0.plain === "basename" && cmd.words.length === 4 && cmd.words[1]!.plain === "-s";
@@ -12814,7 +12839,8 @@ export class Runtime {
         }
       }
       const arithNamesList = [...arithNames];
-      const hasAnyArrayAssign = bodyAssignments.some(s => s.listOperator !== undefined || s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.condStmt !== undefined || s.ifBranches !== undefined || s.caseClauses !== undefined || s.fnCall !== undefined || s.nestedLoop !== undefined || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
+      const stepHasLoopAction = (st: SyncLoopStep): boolean => st.loopAction !== undefined || Boolean(st.ifBranches?.some(br => br.steps.some(stepHasLoopAction))) || Boolean(st.elseSteps?.some(stepHasLoopAction)) || Boolean(st.caseClauses?.some(cl => cl.steps.some(stepHasLoopAction)));
+      const hasAnyArrayAssign = bodyAssignments.some(s => s.listOperator !== undefined || s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.condStmt !== undefined || s.ifBranches !== undefined || s.caseClauses !== undefined || s.fnCall !== undefined || s.nestedLoop !== undefined || stepHasLoopAction(s) || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
       // Complex expansions can read or write names inside selectors, defaults,
       // patterns and substring expressions. Keep every assignment in iteration
       // order unless the shallow dependency checks below can see all reads.
@@ -13189,6 +13215,11 @@ export class Runtime {
             this.budget.loop();
             if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
             this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; loopStatus = rawState.status; });
+            if (this._syncLoopAction !== undefined) {
+              const act = this._syncLoopAction;
+              this._syncLoopAction = undefined;
+              if (act === "break") break;
+            }
           }
         } else {
           while (true) {
@@ -13201,6 +13232,11 @@ export class Runtime {
             this.budget.loop();
             if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
             this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; loopStatus = rawState.status; });
+            if (this._syncLoopAction !== undefined) {
+              const act = this._syncLoopAction;
+              this._syncLoopAction = undefined;
+              if (act === "break") break;
+            }
           }
         }
       } finally {
@@ -13247,7 +13283,7 @@ export class Runtime {
         : tryFastExpandBraceRange(command.words[0]!, this.budget, undefined))
       : undefined;
     let isStaticBraceWords = Boolean(fastLoopWords);
-    if (!fastLoopWords && !activeValScope && command.words.length > 1) {
+    if (!fastLoopWords && command.words.length > 1) {
       const combined: string[] = [];
       let allWordsOk = true;
       let allStaticBrace = true;
@@ -13289,7 +13325,7 @@ export class Runtime {
     }
     const w0For = command.words[0]!;
     const p0 = w0For.parts.length === 1 ? w0For.parts[0] : (w0For.parts.length === 2 && w0For.parts[0]!.kind === "text" && w0For.parts[0]!.value === "" ? w0For.parts[1] : undefined);
-    if (!fastLoopWords && !activeValScope && p0) {
+    if (!fastLoopWords && p0) {
       const arrMembers = this.tryExpandSyncArrayMembersWord(command.words[0]!, rawState, io, diagnosticLine);
       if (arrMembers && arrMembers.length <= 1500 && !monitor.hasOverlay(p0.kind === "variable" ? p0.name : "")) {
         let asciiOk = true;
@@ -13659,6 +13695,7 @@ export class Runtime {
     return val + "\n";
   }
   private _syncStdoutBatch = "";
+  private _syncLoopAction: "break" | "continue" | undefined = undefined;
   private flushSyncStdoutBatch(io: IO): void {
     if (this._syncStdoutBatch.length === 0) return;
     const chunk = fastSharedTextEncoder.encode(this._syncStdoutBatch);
@@ -13734,8 +13771,15 @@ export class Runtime {
       for (let b = 0; b < bodyAssignments.length; b++) {
         const step = bodyAssignments[b]!;
         if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
-        if (step.caseClauses === undefined && step.ifBranches === undefined) lastCmd = step.cmd;
+        if (step.caseClauses === undefined && step.ifBranches === undefined && step.nestedLoop === undefined) lastCmd = step.cmd;
         this.budget.tick();
+        if (step.loopAction !== undefined) {
+          lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
+          lastValueWord = undefined;
+          rawState.status = 0;
+          this._syncLoopAction = step.loopAction;
+          break;
+        }
         if (deferredMask & (1 << b)) {
           lastArg = "";
           lastValueWord = undefined;
@@ -13793,10 +13837,12 @@ export class Runtime {
         } else if (step.caseClauses !== undefined) {
           flushStdoutEchoBatch();
           this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          if (this._syncLoopAction !== undefined) break;
           continue;
         } else if (step.ifBranches !== undefined) {
           flushStdoutEchoBatch();
           this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          if (this._syncLoopAction !== undefined) break;
           continue;
         } else if (step.condStmt !== undefined) {
           const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
@@ -13865,6 +13911,11 @@ export class Runtime {
         rawState.status = 0;
       }
       if (lastValueWord !== undefined) lastArgInductionVal = rawState.variables[inductionName];
+      if (this._syncLoopAction !== undefined) {
+        const act = this._syncLoopAction;
+        this._syncLoopAction = undefined;
+        if (act === "break") break;
+      }
       this.syncShellArithmeticNonZero(e2, rawState, diagnosticLine);
     }
     flushStdoutEchoBatch();
@@ -14110,10 +14161,15 @@ export class Runtime {
           this.budget.loop();
           if ((++turn & 127) === 0) runYieldCheckpoint(this.signal);
           this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, updateInner);
+          if (this._syncLoopAction !== undefined) {
+            const act = this._syncLoopAction;
+            this._syncLoopAction = undefined;
+            if (act === "break") break;
+          }
           this.syncShellArithmeticNonZero(e2, rawState, nl.condLine);
         }
       } else if (lc.kind === "for") {
-        const words = nl.braceWords!;
+        const words = nl.braceWords ?? (nl.arrayWord ? this.tryExpandSyncArrayMembersWord(nl.arrayWord, rawState, io, nl.condLine) : undefined) ?? [];
         touched.add(lc.name);
         let turn = 0;
         for (let i = 0; i < words.length; i++) {
@@ -14121,6 +14177,11 @@ export class Runtime {
           if ((++turn & 127) === 0) runYieldCheckpoint(this.signal);
           rawState.variables[lc.name] = words[i]!;
           this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, updateInner);
+          if (this._syncLoopAction !== undefined) {
+            const act = this._syncLoopAction;
+            this._syncLoopAction = undefined;
+            if (act === "break") break;
+          }
         }
       } else {
         let turn = 0;
@@ -14133,6 +14194,11 @@ export class Runtime {
           this.budget.loop();
           if ((++turn & 127) === 0) runYieldCheckpoint(this.signal);
           this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, updateInner);
+          if (this._syncLoopAction !== undefined) {
+            const act = this._syncLoopAction;
+            this._syncLoopAction = undefined;
+            if (act === "break") break;
+          }
         }
       }
     } finally {
@@ -14215,6 +14281,13 @@ export class Runtime {
       if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
       if (step.caseClauses === undefined && step.ifBranches === undefined && step.nestedLoop === undefined) lastCmd = step.cmd;
       this.budget.tick();
+      if (step.loopAction !== undefined) {
+        lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
+        rawState.status = 0;
+        this._syncLoopAction = step.loopAction;
+        onUpdate({ lastCmd, lastArg });
+        break;
+      }
       if (step.nestedLoop !== undefined) {
         this.execSyncNestedLoopStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; onUpdate(v); });
         continue;
@@ -14223,9 +14296,11 @@ export class Runtime {
         continue;
       } else if (step.caseClauses !== undefined) {
         this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; onUpdate(v); });
+        if (this._syncLoopAction !== undefined) break;
         continue;
       } else if (step.ifBranches !== undefined) {
         this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; onUpdate(v); });
+        if (this._syncLoopAction !== undefined) break;
         continue;
       } else if (step.condStmt !== undefined) {
         const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
@@ -14337,8 +14412,15 @@ export class Runtime {
       for (let b = 0; b < bodyAssignments.length; b++) {
         const step = bodyAssignments[b]!;
         if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
-        if (step.caseClauses === undefined && step.ifBranches === undefined) lastCmd = step.cmd;
+        if (step.caseClauses === undefined && step.ifBranches === undefined && step.nestedLoop === undefined) lastCmd = step.cmd;
         this.budget.tick();
+        if (step.loopAction !== undefined) {
+          lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
+          lastValueWord = undefined;
+          rawState.status = 0;
+          this._syncLoopAction = step.loopAction;
+          break;
+        }
         if (step.coalesceNext) {
           const nextStep = bodyAssignments[++b]!;
           this.budget.tick();
@@ -14381,9 +14463,11 @@ export class Runtime {
           continue;
         } else if (step.caseClauses !== undefined) {
           this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          if (this._syncLoopAction !== undefined) break;
           continue;
         } else if (step.ifBranches !== undefined) {
           this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; lastValueWord = undefined; });
+          if (this._syncLoopAction !== undefined) break;
           continue;
         } else if (step.condStmt !== undefined) {
           const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
@@ -14460,6 +14544,11 @@ export class Runtime {
           lastValueWord = undefined;
         }
         rawState.status = 0;
+      }
+      if (this._syncLoopAction !== undefined) {
+        const act = this._syncLoopAction;
+        this._syncLoopAction = undefined;
+        if (act === "break") break;
       }
     }
     this.flushSyncStdoutBatch(io);

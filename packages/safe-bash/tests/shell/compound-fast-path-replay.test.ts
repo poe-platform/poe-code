@@ -1510,3 +1510,54 @@ test("Wave 84: nested loops, while read < file / <<< here-string, indexed array 
   assert.equal(res.stdout, oracle.stdout);
   await shell.dispose();
 });
+
+test("Wave 85: break/continue in loops, while read with continue, and nested array for-loops in trySyncLoop match /bin/bash", async () => {
+  const memFs = createMemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const shell = new Shell({
+    fs: memFs,
+    limits: { maxCommands: 100_000, maxLoopIterations: 100_000, maxFileSystemOperations: 100_000 },
+  });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands(), ...predicateCommands()]) {
+    shell.commands.register(command, { replace: true });
+  }
+  const script = [
+    'sum1=0',
+    'for ((i = 0; i < 100; i++)); do',
+    '  if ((i % 2 == 0)); then continue; fi',
+    '  if ((i > 75)); then break; fi',
+    '  ((sum1 += i))',
+    'done',
+    'st1="$?|$i|$sum1"',
+    'sum2=0',
+    'for ((j = 0; j < 100; j++)); do',
+    '  ((j % 3 == 0)) && continue',
+    '  ((j > 60)) && break',
+    '  ((sum2 += j))',
+    'done',
+    'st2="$?|$j|$sum2"',
+    'for ((k = 1; k <= 40; k++)); do',
+    '  if ((k % 4 == 0)); then echo "# skip $k"; else echo "item:$k"; fi',
+    'done > /tmp/w85_conf.txt',
+    'confSum=0',
+    'while IFS=: read -r tag val; do',
+    '  [[ $tag == "#"* ]] && continue',
+    '  ((val > 30)) && break',
+    '  ((confSum += val))',
+    'done < /tmp/w85_conf.txt',
+    'a=({1..12}); b=({1..10}); gridSum=0',
+    'for x in "${a[@]}"; do',
+    '  for y in "${b[@]}"; do',
+    '    ((y == 5)) && continue',
+    '    ((y > 8)) && break',
+    '    ((gridSum += x * y))',
+    '  done',
+    'done',
+    'printf "%s|%s|%d|%d\n" "$st1" "$st2" "$confSum" "$gridSum"',
+  ].join("\n");
+  const res = await shell.exec(script);
+  const oracle = spawnSync("/bin/bash", ["-c", script], { encoding: "utf8" });
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(res.stdout, oracle.stdout);
+  await shell.dispose();
+});

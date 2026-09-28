@@ -63,3 +63,62 @@ for (const source of ["probe", "/probe-script"]) {
     assert.equal(result.exitCode, 0);
   });
 }
+
+for (const form of ["conditional", "unquoted conditional", "test", "bracket"] as const) {
+  for (const key of ["a$b", '"quoted"', "'quoted'", "a\\b", "$(probe)", "`probe`", "a]b", "é", "x".repeat(4097) + "$(probe)"]) {
+    test(`${form} -v preserves literal associative key ${JSON.stringify(key.slice(0, 40))}`, async context => {
+      const shell = new Shell({ fs: new MemoryFileSystem() });
+      context.after(() => shell.dispose());
+      for (const command of predicateCommands()) shell.commands.register(command);
+      let executions = 0;
+      shell.commands.register({ name: "probe", async execute() {
+        executions++;
+        return { exitCode: 0 };
+      } });
+      const operand = form === "unquoted conditional" ? "map[$key]" : '"map[$key]"';
+      const predicate = form === "conditional" || form === "unquoted conditional" ? `[[ -v ${operand} ]]`
+        : form === "test" ? `test -v ${operand}` : `[ -v ${operand} ]`;
+      const quotedKey = "'" + key.split("'").join("'\\''") + "'";
+      const result = await shell.exec(`declare -A map; key=${quotedKey}; map["$key"]=""; ${predicate}`);
+      assert.equal(executions, 0, "presence checks must not execute syntax inside the key");
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      const missing = await shell.exec(`unset map; declare -A map; key=${quotedKey}; ${predicate}`);
+      assert.equal(executions, 0);
+      assert.equal(missing.stderr, "");
+      assert.equal(missing.exitCode, 1);
+    });
+  }
+}
+
+for (const form of ["conditional", "test", "bracket"] as const) {
+  for (const selector of ["arr[]", "arr[-5]", "arr[4294967296]"]) {
+    test(`${form} -v rejects invalid indexed subscript ${selector} without an internal error`, async context => {
+      const shell = new Shell({ fs: new MemoryFileSystem() });
+      context.after(() => shell.dispose());
+      for (const command of predicateCommands()) shell.commands.register(command);
+      const predicate = form === "conditional" ? `[[ -v "${selector}" ]]`
+        : form === "test" ? `test -v "${selector}"` : `[ -v "${selector}" ]`;
+      const result = await shell.exec(`arr=(a b); ${predicate}`);
+      assert.match(result.stderr, /indexed array: (bad array subscript|index outside 0[.][.]4294967295)/u);
+      assert.doesNotMatch(result.stderr, /internal error/u);
+      assert.equal(result.exitCode, 1);
+    });
+  }
+}
+
+for (const form of ["conditional", "test", "bracket"] as const) {
+  for (const target of ["map", "map[$key]"]) {
+    test(`${form} -v preserves nameref target ${target}`, async context => {
+      const shell = new Shell({ fs: new MemoryFileSystem() });
+      context.after(() => shell.dispose());
+      for (const command of predicateCommands()) shell.commands.register(command);
+      const operand = target === "map" ? '"ref[$key]"' : "ref";
+      const predicate = form === "conditional" ? `[[ -v ${operand} ]]`
+        : form === "test" ? `test -v ${operand}` : `[ -v ${operand} ]`;
+      const result = await shell.exec(`declare -A map; key='a$b'; map["$key"]=value; declare -n ref='${target}'; ${predicate}`);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    });
+  }
+}

@@ -4344,6 +4344,7 @@ export class Runtime {
   private async variablePresent(state: State, name: string, io: IO): Promise<boolean> {
     const simple = this.tryVariablePresentSync(state, name);
     if (simple !== undefined) return simple;
+    const suppliedSubscript = name.includes("[");
     name = this.referenceName(state, name);
     const bracket = name.indexOf("[");
     const base = bracket < 0 ? name : name.slice(0, bracket);
@@ -4352,10 +4353,19 @@ export class Runtime {
     const selector = name.slice(bracket + 1, -1);
     const entries = this.presenceArrayEntries(state, resolved);
     const store = requireArrays(state);
-    const index = await this.arrayIndex(binding, { decimal: selector, source: selector }, state, io, store.owner, false, entries ? entries.length - 1 : binding?.maximum ?? (this.variable(state, base) === undefined ? -1 : 0));
-    if (entries) return index !== undefined && entries[index] !== undefined;
-    return index !== undefined && (binding ? binding.getValue(index) !== undefined
-      : index === 0 && this.variable(state, base) !== undefined);
+    try {
+      // Supplied associative selectors have already undergone word expansion.
+      // Only a subscript introduced by a nameref still needs expansion.
+      const index = binding?.associative && suppliedSubscript
+        ? await binding.keyIndex(selector, store.owner, this.signal)
+        : await this.arrayIndex(binding, { decimal: selector, source: selector }, state, io, store.owner, false, entries ? entries.length - 1 : binding?.maximum ?? (this.variable(state, base) === undefined ? -1 : 0));
+      if (entries) return index !== undefined && entries[index] !== undefined;
+      return index !== undefined && (binding ? binding.getValue(index) !== undefined
+        : index === 0 && this.variable(state, base) !== undefined);
+    } catch (error) {
+      if (error instanceof ArrayFailure) throw new PublicDiagnostic(error.message);
+      throw error;
+    }
   }
   private presenceArrayEntries(state: State, name: string): readonly string[] | undefined {
     if (name === "DIRSTACK") return [state.cwd, ...state.directoryStack?.entries ?? []];
@@ -4363,6 +4373,7 @@ export class Runtime {
     return undefined;
   }
   private tryVariablePresentSync(state: State, name: string): boolean | undefined {
+    const suppliedSubscript = name.includes("[");
     name = this.referenceName(state, name);
     const bracket = name.indexOf("[");
     const base = bracket < 0 ? name : name.slice(0, bracket);
@@ -4373,10 +4384,12 @@ export class Runtime {
     if (bracket < 0) return entries ? entries[0] !== undefined : this.variable(state, base) !== undefined;
     const selector = name.slice(bracket + 1, -1);
     if (binding?.associative) {
-      if (selector.length === 0 || selector.length > 4096 || /[$`\\"']/u.test(selector)) return undefined;
+      if (!suppliedSubscript || selector.length > 4096) return undefined;
+      if (selector.length === 0) return false;
       const key = binding.keys.get(fastStringHexIdentity(selector));
       return key !== undefined && binding.getValue(key.index) !== undefined;
     }
+    if (selector.length === 0) return undefined;
     if (selector === "@" || selector === "*") return entries ? entries.length > 0 : binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
     let index: number | undefined;
     if (/^(?:0|[1-9][0-9]{0,8})$/.test(selector)) {

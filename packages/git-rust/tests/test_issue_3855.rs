@@ -129,3 +129,25 @@ fn annotated_tags_are_peeled_only_for_commit_consumers() {
         assert_eq!(ok(&fs, &["rev-parse", "v2"]), tag);
     }
 }
+#[test]
+fn at_sign_is_head_with_ancestry_and_path_operators() {
+    let fs = repo();
+    for (alias, revision) in [
+        ("@", "HEAD"),
+        ("@~1", "HEAD~1"),
+        ("@^", "HEAD^"),
+        ("@:a.txt", "HEAD:a.txt"),
+    ] {
+        assert_eq!(
+            ok(&fs, &["rev-parse", alias]),
+            ok(&fs, &["rev-parse", revision])
+        );
+    }
+    assert_eq!(ok(&fs, &["show", "@:a.txt"]), "a2\n");
+    let head = ok(&fs, &["rev-parse", "HEAD"]);
+    ok(&fs, &["checkout", "@~1", "--", "a.txt"]);
+    assert_eq!(fs.read_str("/repo/a.txt").unwrap(), "a1\n");
+    assert_eq!(ok(&fs, &["rev-parse", "HEAD"]), head);
+    ok(&fs, &["checkout", "-f", "@"]);
+    assert_eq!(ok(&fs, &["rev-parse", "HEAD"]), head);
+}

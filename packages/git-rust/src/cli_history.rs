@@ -29,8 +29,9 @@ pub(crate) fn resolve(fs: &MemoryFs, gitdir: &str, revision: &str) -> Result<Str
         return crate::resolve_filepath(fs, gitdir, &resolve(fs, gitdir, rev)?, path);
     }
     let split = revision.find(['~', '^']).unwrap_or(revision.len());
-    let mut oid = resolve_ref(fs, gitdir, &revision[..split], None)
-        .or_else(|_| expand_oid(fs, gitdir, &revision[..split]))?;
+    let base = &revision[..split];
+    let base = if base == "@" { "HEAD" } else { base };
+    let mut oid = resolve_ref(fs, gitdir, base, None).or_else(|_| expand_oid(fs, gitdir, base))?;
     let mut suffix = &revision[split..];
     while !suffix.is_empty() {
         let operator = suffix.as_bytes()[0];

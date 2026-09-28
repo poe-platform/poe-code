@@ -13,6 +13,7 @@ import { prepareUtf8EreSubject } from "../../src/commands/regex-execution/ere/ma
 import { parseTomlDocument } from "../../src/commands/yq/toml.js";
 import { YqLedger } from "../../src/commands/yq/accounting.js";
 import { Decimal, numberText } from "../../src/commands/structured/numbers.js";
+import { utf8ByteLength, utf8Encoder, utf8Decoder, encodeBase64, decodeBase64, compareBytes } from "../../src/commands/structured/bytes.js";
 import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { portableTrapExtension } from "../../src/shell/trap.js";
@@ -48,14 +49,17 @@ for (const profile of [
 ]) test(`optional host follows the ${profile.name} package boundary`, async () => {
   const manifest = JSON.parse(await readFile(profile.url, "utf8")) as { exports: Record<string, unknown> };
   assert.deepEqual(manifest.exports[profile.key], profile.name === "root" ? undefined : {
-    types: `${profile.prefix}/optional-host.d.ts`, import: `${profile.prefix}/optional-host.js`,
+    types: `${profile.prefix}/optional-host.d.ts`,
+    workerd: `${profile.prefix}/optional-host.browser.js`,
+    browser: `${profile.prefix}/optional-host.browser.js`,
+    import: `${profile.prefix}/optional-host.js`,
   });
   assert.equal(Object.hasOwn(manifest.exports, profile.key.replace("optional-host", "optional")), false);
 });
 
-test("optional host re-exports exactly nineteen canonical helpers and twenty canonical types", async () => {
+test("optional host re-exports exactly twenty-five canonical helpers and twenty canonical types", async () => {
   const host = await import("../../src/optional-host.js");
-  const expected = { latin1Text, codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, jobsExtension, signalName };
+  const expected = { latin1Text, codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, jobsExtension, signalName, utf8ByteLength, utf8Encoder, utf8Decoder, encodeBase64, decodeBase64, compareBytes };
   assert.deepEqual(Object.keys(host).sort(), Object.keys(expected).sort());
   for (const name of Object.keys(expected) as (keyof typeof expected)[]) {
     assert.equal(host[name], expected[name], name);

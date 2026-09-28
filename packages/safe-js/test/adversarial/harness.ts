@@ -6,7 +6,7 @@ import { parseRegex } from "../../src/interp/regex/parse.js";
 import { lint } from "../../src/lint.js";
 import { parse } from "../../src/parse.js";
 import { run } from "../../src/run.js";
-import { SnapshotBudgetError } from "../../src/graph-depth.js";
+import { assertSnapshotGraphDepth, SnapshotBudgetError } from "../../src/graph-depth.js";
 import { dump } from "../../src/dump.js";
 import { adversarialFailure } from "./report.js";
 
@@ -233,8 +233,10 @@ async function assertSnapshotDepthIsTyped(): Promise<void> {
     value.next = next;
     value = next;
   }
+  // Serialization defaults to unlimited depth; qualify the explicit bound too.
+  await dump({ snapshot } as never);
   try {
-    await dump({ snapshot } as never);
+    assertSnapshotGraphDepth(snapshot, "$", 1_024);
     throw new Error("deep snapshot was accepted");
   } catch (error) {
     if (!(error instanceof SnapshotBudgetError)) {

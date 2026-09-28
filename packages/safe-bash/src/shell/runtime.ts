@@ -8020,6 +8020,7 @@ export class Runtime {
       return undefined;
     }
     if (command.kind === "arithmetic-for" || command.kind === "for") {
+      if (this.budget._hasExternalSignal) return undefined;
       if (command.redirects.length === 1) {
         const r0 = command.redirects[0]!;
         const loopMode = 0o666 & ~(rawState.umask ?? 0o022);
@@ -12455,13 +12456,12 @@ export class Runtime {
             ? tryFastExpandBraceRange(command.words[0]!, this.budget, io[valueScope] ? (b, o) => io[valueScope]!.reserve(b, o) : undefined)
             : undefined;
           const values = fastLoopWords ?? (command.words ? await this.valueWords(command.words, state, io) : this.positionalValues(state));
-          const bodyIgnoreErrexit = Boolean(io.execution?.ignoreErrexit);
           const canFastAssignLoopVar = isShellIdentifier(command.name) && command.name !== "OPTIND" && !command.name.includes("[") && !rawLoopState.readonlyVariables?.has(command.name) && !hasActiveVariableAttributes(rawLoopState) && !guestArrays(rawLoopState) && !arrayStore(rawLoopState)?.get(command.name);
           let loopTurn = 0;
           for (const value of values) {
             this.budget.loop();
             if ((++loopTurn & 127) === 0) {
-              if (hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
+              if (this.budget._hasExternalSignal || hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
               else runYieldCheckpoint(this.signal);
             }
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
@@ -12477,17 +12477,6 @@ export class Runtime {
               const description = `for ${command.name} in ${command.words?.map(word => word.spelling ?? word.plain ?? "").join(" ") ?? '"$@"'}`;
               if (!rawLoopState.extensions?.eventDepth) publishCommandSpelling(state, description);
               if (await this.extensionEvent("command", state, io, state.status, description)) continue;
-            }
-            if (!rawLoopState.extensions?.checkpoints.length) {
-              const syncBody = this.trySyncScript(command.body, rawLoopState, io, bodyIgnoreErrexit);
-              if (typeof syncBody === "number") {
-                status = syncBody;
-                continue;
-              }
-              const result = await this.loopBody(command.body, state, io, syncBody.listIndex, syncBody.pipelineIndex);
-              status = result.status;
-              if (result.stop) break;
-              continue;
             }
             const result = await this.loopBody(command.body, state, io);
             status = result.status;
@@ -12518,7 +12507,6 @@ export class Runtime {
             return evaluate(program);};
           const initOrPromise = evaluateSyncNonZero(command.expressions[0]);
           if ((typeof initOrPromise === "boolean" ? initOrPromise : await initOrPromise) === undefined) return { status: 1, io, diagnosticFailure };
-          const bodyIgnoreErrexit = Boolean(io.execution?.ignoreErrexit);
           let loopTurn = 0;
           const arithMonitor = stateMonitor(state);
           const enableArithForBatch = !this._syncArithRawWriteOnly && Boolean(arithMonitor) && !hasActiveExtensions(rawArithState) && !hasActiveVariableAttributes(rawArithState) && !rawArithState.readonlyVariables?.size && !rawArithState.allexport;
@@ -12531,7 +12519,7 @@ export class Runtime {
             while (true) {
               this.budget.loop();
               if ((++loopTurn & 127) === 0) {
-                if (hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
+                if (this.budget._hasExternalSignal || hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
                 else runYieldCheckpoint(this.signal);
               }
               const condOrPromise = evaluateSyncNonZero(command.expressions[1]);
@@ -12542,18 +12530,9 @@ export class Runtime {
                 if (condition === undefined) return { status: 1, io, diagnosticFailure };
                 if (condition === 0n) break;
               }
-              if (!rawArithState.extensions?.checkpoints.length) {
-                const syncBody = this.trySyncScript(command.body, rawArithState, io, bodyIgnoreErrexit);
-                if (typeof syncBody === "number") status = syncBody; else {
-                  const result = await this.loopBody(command.body, state, io, syncBody.listIndex, syncBody.pipelineIndex);
-                  status = result.status;
-                  if (result.stop) break;
-                }
-              } else {
-                const result = await this.loopBody(command.body, state, io);
-                status = result.status;
-                if (result.stop) break;
-              }
+              const result = await this.loopBody(command.body, state, io);
+              status = result.status;
+              if (result.stop) break;
               const stepOrPromise = evaluateSyncNonZero(command.expressions[2]);
               if ((typeof stepOrPromise === "boolean" ? stepOrPromise : await stepOrPromise) === undefined) { status = 1; break; }
             }

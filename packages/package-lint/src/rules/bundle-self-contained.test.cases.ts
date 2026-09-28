@@ -87,6 +87,13 @@ describe("bundle-self-contained", () => {
     expect(bundleSelfContained.run(model, parseMetafile(metafile))).toEqual([]);
   });
 
+  it.each(["unpacked", "not emitted"])("accepts disposable debug maps being %s", async scenario => {
+    const { model, metafile, chunk } = await canonicalFixture();
+    model.packageFiles.get(".")!.files.delete(`${chunk}.map`);
+    if (scenario === "not emitted") delete metafile.canonicalBundle.metafile.outputs[`${chunk}.map`];
+    expect(bundleSelfContained.run(model, parseMetafile(metafile))).toEqual([]);
+  });
+
   it.each(["complete", "missing-types", "provider-omits-types"])(
     "checks canonical declarations through the CLI packlist path: %s",
     async (scenario) => {
@@ -136,7 +143,6 @@ describe("bundle-self-contained", () => {
     "undeclared-root",
     "wrong-source",
     "missing-chunk",
-    "missing-map",
     "unpacked-chunk",
     "unpacked-types",
     "duplicate-runtime",
@@ -145,7 +151,6 @@ describe("bundle-self-contained", () => {
     "packed-runtime",
     "extra-export-condition",
     "missing-source-input",
-    "missing-map-metadata",
     "absolute-canonical-edge",
     "missing-other-declared-root"
   ])("rejects canonical packaging defect: %s", async (defect) => {
@@ -162,7 +167,6 @@ describe("bundle-self-contained", () => {
     if (defect === "wrong-source")
       metafile.canonicalBundle.metafile.outputs[entry].entryPoint = "src/not-fs.ts";
     if (defect === "missing-chunk") delete metafile.canonicalBundle.metafile.outputs[chunk];
-    if (defect === "missing-map") model.packageFiles.get(".")!.files.delete(`${chunk}.map`);
     if (defect === "unpacked-chunk") model.packageFiles.get(".")!.files.delete(chunk);
     if (defect === "unpacked-types") model.packageFiles.get(".")!.files.delete(types);
     if (defect === "duplicate-runtime") metafile.inputs[source] = {};
@@ -177,8 +181,6 @@ describe("bundle-self-contained", () => {
     if (defect === "extra-export-condition")
       Object.assign(exported["./safe-fs"], { require: "./duplicate.cjs" });
     if (defect === "missing-source-input") delete metafile.canonicalBundle.metafile.inputs[source];
-    if (defect === "missing-map-metadata")
-      delete metafile.canonicalBundle.metafile.outputs[`${chunk}.map`];
     if (defect === "absolute-canonical-edge")
       metafile.canonicalBundle.metafile.outputs[entry].imports = [{ path: "/tmp/fs.js" }];
     if (defect === "missing-other-declared-root")

@@ -4738,7 +4738,7 @@ export class Runtime {
           if (bLen > this.budget.limits.maxExpansionBytes) return false;
           items.push({ explicitIdx, val, bLen });
         }
-        const target = ensureBinding(false, assignment.append || assignment.kind === "element");
+        const target = ensureBinding(false, assignment.append);
         if (!target) return false;
         let nextIndex = assignment.append ? target.maximum + 1 : 0;
         const resolved: Array<{ idx: number; val: string; bLen: number }> = [];

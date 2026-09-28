@@ -516,7 +516,7 @@ export class BindingStore {
     } catch (error) { token.release(); throw error; }
   }
 
-  readonly recycledBindings = new Map<string, { binding: IndexedBinding; name: OwnedText; admission: Admission }>();
+  recycledBindings = new Map<string, { binding: IndexedBinding; name: OwnedText; admission: Admission }>();
 
   releaseRecycled(name: string): void {
     const rec = (this.recycledBindings ??= new Map()).get(name);

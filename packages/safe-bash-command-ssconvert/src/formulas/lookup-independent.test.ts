@@ -18,7 +18,9 @@ function calculate(formula: string): CellValue {
   ] }] };
   return recalculateWorkbook(book, context).sheets[0]!.cells.find(cell => cell.row === 4 && cell.column === 4)!.value;
 }
-// Source-backed expectations; native differential QA is separate and unmeasured.
+// Source-backed expectations except INDEX reference-area selection: #3478
+// requires working areas to represent Lotus sheet selection without CHOOSE
+// arity limits. This intentionally supersedes Gnumeric's scalar SET behavior.
 it.each<[string, CellValue]>([
   ['=ADDRESS(1,1,1,TRUE,"A1B")', s("A1B!$A$1")],
   ['=ADDRESS(1,1,1,TRUE,"A1")', s("'A1'!$A$1")],
@@ -35,9 +37,9 @@ it.each<[string, CellValue]>([
   ['=HYPERLINK("url","label")', s("label")], ["=HYPERLINK()", e("#N/A")],
   ['=INDIRECT("A2")', n(8)], ['=INDIRECT("bogus")', e("#REF!")],
   ["=INDEX(A1:A2,2)", n(8)], ["=ROW(INDEX(A1:A2,2))", n(2)],
-  ["=INDEX((A1,A2),1,1,2)", e("#REF!")],
+  ["=INDEX((A1,A2),1,1,2)", n(8)],
   ["=INDEX(A1)", e("#REF!")], ["=INDEX(A1:A1)", n(4)],
-  ["=INDEX((A1:A1,A2:A2),1,1,2)", e("#REF!")],
+  ["=INDEX((A1:A1,A2:A2),1,1,2)", n(8)],
   ['=XMATCH("STRASSE",{"Straße"},0)', n(1)], ["=INDEX({7,8})", n(7)], ["=INDEX({7},0)", e("#REF!")],
   ["=LOOKUP(2,{1,2;7,8})", n(8)], ["=LOOKUP(0,{1,2})", e("#N/A")],
   ["=MATCH(2,{1;2;2},1)", n(3)], ["=MATCH(2,{2;2;2},-1)", n(2)],
@@ -122,4 +124,27 @@ it.each<[string, CellValue]>([
     { row: 4, column: 4, formula, value: n(99), formulaDirty: true }
   ] }] };
   expect(recalculateWorkbook(book, context).sheets[0]!.cells[2]!.value).toEqual(expected);
+});
+
+
+it.each<[string, CellValue]>([
+  ["=INDEX((A1:A2,A1:A2),2,1,2)", n(8)],
+  ["=ROW(INDEX((A1:A1,A2:A2),1,1,2))", n(2)],
+  ["=INDEX((A1,(A2,A1:A2)),2,1,3)", n(8)],
+  ["=INDEX((Missing!A1,A2),1,1,2)", n(8)],
+  ["=INDEX((A1,A2),1,1,3)", e("#REF!")],
+  ["=INDEX((A1,A2),1,1,0)", e("#REF!")],
+])("selects references from INDEX area sets: %s", (formula, expected) => {
+  expect(calculate(formula)).toEqual(expected);
+});
+
+it("evaluates an INDEX area selector exactly once", () => {
+  let calls = 0;
+  const book: Workbook = { sheets: [{ id: "s", name: "Sheet1", cells: [
+    { row: 0, column: 0, value: n(4) }, { row: 1, column: 0, value: n(8) },
+    { row: 0, column: 1, value: n(999), formula: "=INDEX((A1,A2),1,1,1+INT(RAND()*2))" }
+  ] }] };
+  const result = recalculateWorkbook(book, { ...context, random: { next: () => { calls++; return calls === 1 ? 0.75 : 0; } } }, true);
+  expect(result.sheets[0]!.cells.find(c => c.column === 1)!.value).toEqual(n(8));
+  expect(calls).toBe(1);
 });

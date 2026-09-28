@@ -166,6 +166,9 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
   consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions, names?: ReadonlyMap<string, LotusNamedRange>, legacyReferenceLayout?: "wk1" | "wk2" | "works3" | "symphony"): Promise<string> {
   const b = new Binary(bytes), stack: string[] = [], modern = format !== "wk1";
   const relativeReferences = new Map<string, Extract<FormulaNode, { kind: "reference" }>>();
+  // Fixed sheet spans can be projected into standard single-sheet areas.
+  // Keep relative sheet spans intact for the existing AST relocation path.
+  const indexRanges = new Map<string, { firstSheet: number; lastSheet: number; first: string; last: string }>();
   let at = 0;
   const pop = async () => {
     if (stack.length) return stack.pop()!;
@@ -247,7 +250,13 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
           const name = `LOTUS_SHEET_REFERENCE_${relativeReferences.size}`;
           relativeReferences.set(name, { kind: "reference", start: 0, end: 0, first, ...(last ? { last } : {}) });
           stack.push(name);
-        } else stack.push(rangeReference(newRef(at + 1, flags & 7, crossSheet), op === 2 ? newRef(at + 5, flags >> 3 & 7, crossSheet) : undefined));
+        } else {
+          const source = rangeReference(newRef(at + 1, flags & 7, crossSheet), op === 2 ? newRef(at + 5, flags >> 3 & 7, crossSheet) : undefined);
+          stack.push(source);
+          if (crossSheet) indexRanges.set(source, { firstSheet: b.u8(at + 3), lastSheet: b.u8(at + 7),
+            first: ref(b.u16(at + 1), b.u8(at + 4), !!(flags & 2), !!(flags & 1)),
+            last: ref(b.u16(at + 5), b.u8(at + 8), !!(flags & 16), !!(flags & 8)) });
+        }
       } else stack.push(rangeReference(oldRef(at), op === 2 ? oldRef(at + 4) : undefined));
       at += length;
     } else if (op === 5) {
@@ -283,7 +292,11 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
           (point.sheet === sheetIndex && !crossSheet ? "" : quoteFormulaString(sheetName(point.sheet), "'", gnumericGrammar) + "!") +
           ref(point.row, point.column, op === 7, op === 7);
         const single = range.first.row === range.last.row && range.first.column === range.last.column && range.first.sheet === range.last.sheet;
-        stack.push(endpoint(range.first) + (single ? "" : ":" + endpoint(range.last)));
+        const source = endpoint(range.first) + (single ? "" : ":" + endpoint(range.last));
+        stack.push(source);
+        if (crossSheet) indexRanges.set(source, { firstSheet: range.first.sheet, lastSheet: range.last.sheet,
+          first: ref(range.first.row, range.first.column, op === 7, op === 7),
+          last: ref(range.last.row, range.last.column, op === 7, op === 7) });
       }
     } else if (modern && op >= 9 && op <= 11) {
       const length = op === 9 ? 4 : op === 10 ? 5 : 11;
@@ -339,6 +352,15 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
               operands[1] = `(${row}+1)`;
               operands[2] = `(${column}+1)`;
               if (operands.length === 4) operands[3] = `(${operands[3]}+1)`;
+              const span = indexRanges.get(operands[0]!);
+              if (span) {
+                const choices: string[] = [];
+                for (let index = Math.min(span.firstSheet, span.lastSheet); index <= Math.max(span.firstSheet, span.lastSheet); index++) {
+                  consumeOperation();
+                  choices.push(quoteFormulaString(sheetName(index), "'", gnumericGrammar) + "!" + span.first + ":" + span.last);
+                }
+                operands[0] = `(${choices.join(",")})`;
+              }
             }
             break;
           case "STRING": operands.push("TRUE()"); break;

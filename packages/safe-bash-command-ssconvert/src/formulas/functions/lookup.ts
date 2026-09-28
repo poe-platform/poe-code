@@ -229,19 +229,27 @@ export const lookupSpecialForms: Readonly<Record<string, SpecialForm>> = {
   INDEX: (args, host) => {
     if (!args.length || args.length > 4) return error("#VALUE!");
     let source = args[0]!; while (source.kind === "parentheses") source = source.child;
-    // gnumeric_index permits arrays but does not request direct-cell references.
-    let value = host.evaluate(source, false); if (value.kind === "error") return value;
+    // Preserve each reference area for Lotus's sheet-selection lowering.
+    // Ordinary and named sources retain their existing scalar/array semantics.
+    const areaSet = source.kind === "binary" && source.op === "union";
+    let value = host.evaluate(source, areaSet); if (value.kind === "error") return value;
     const offsets: number[] = [0, 0, 0];
     for (let index = 1; index < args.length; index++) {
       const cell = host.scalar(host.evaluate(args[index]!, false)); if (cell.kind === "error") return cell;
       const n = numeric(cell); if (n === undefined) return error("#VALUE!"); offsets[index - 1] = Math.trunc(n) - 1;
     }
     // Only a syntactic SET selects by area; a named SET remains a column array.
-    if (source.kind === "binary" && source.op === "union") {
-      if (value.kind === "matrix") {
-        if (offsets[2]! < 0 || offsets[2]! >= value.rows.length) return error("#REF!");
-        value = value.rows[offsets[2]!]![0]!;
-      } else return error("#REF!");
+    if (areaSet) {
+      const areas: Value[] = [], pending: Value[] = [value];
+      while (pending.length) {
+        host.tick();
+        const area = pending.pop()!;
+        if (area.kind === "set") for (let index = area.values.length - 1; index >= 0; index--) pending.push(area.values[index]!);
+        else areas.push(area);
+      }
+      if (offsets[2]! < 0 || offsets[2]! >= areas.length) return error("#REF!");
+      value = areas[offsets[2]!]!;
+      if (value.kind === "error") return value;
     } else if (offsets[2] !== 0) return error("#REF!");
     const row = offsets[0]!, column = offsets[1]!, dims = dimensions(value);
     if (row < 0 || column < 0 || row >= dims.height || column >= dims.width) return error("#REF!");

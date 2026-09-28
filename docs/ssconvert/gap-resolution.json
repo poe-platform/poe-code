@@ -966,7 +966,7 @@
       }
     },
     "lotusLookupSemantics": {
-      "status": "implemented direct/named three-argument lookup and four-argument INDEX offset conversion; multi-sheet INDEX remains open",
+      "status": "implemented fixed sheet-span INDEX selection and direct/named offset conversion; relative spans remain open",
       "source": {
         "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotform.cxx",
         "sha256": "1a6b859a76fe0ac7d7485b0b298996125a19ecfc4b170fcbeccd9ca0a00b2794",
@@ -975,7 +975,7 @@
       },
       "validation": "Nine original regressions failed. All 239 tests in thirteen Lotus files, maintained package lint/types and selected build pass.",
       "publicReadback": "Compiled command --recalc XLSX and SDK readback preserve INDEX/VLOOKUP/HLOOKUP results 10/20/20 and translated formulas across BOF 0x0404 direct, 0x1000 direct and 0x1002 named. Inputs 163/183/240 bytes, outputs 4159/4147/4147 bytes; exit 0, empty stderr. Fixtures remain in memory.",
-      "remaining": "Other arities, named aliases, relative sheets, range flag packing, Works semantics and independent application qualification remain open.",
+      "remaining": "Relative sheet spans and their relocation, computed source spans, native negative-offset error distinctions and wider qualification remain open.",
       "fourArguments": {
         "issue": 3478,
         "implementation": "Apply row/column swap and zero-based increments when INDEX has four operands, including incrementing its sheet offset. Single-sheet ranges accept offset zero.",
@@ -984,6 +984,18 @@
         "publicQualification": "12 compiled SDK/command outputs across both XLSX editions independently preserve 36 formulas and values: offset 0 selects 10, offsets 1/-1 return #REF!.",
         "nativeQualification": "Six Calc readbacks preserve all formulas and match 12 valid/positive-out-of-range results. Six negative-offset cases yield #VALUE! in Calc versus #REF! in the current Gnumeric-style evaluator; this difference is unresolved, not passing qualification.",
         "remaining": "A fourth argument on a multi-sheet range still needs selection semantics and transport qualification. #3478 stays open."
+      },
+      "sheetSelection": {
+        "issue": 3478,
+        "implementation": "Fixed direct and named Lotus sheet spans lower to a standard INDEX reference-area list in workbook order. INDEX preserves references in syntactic area sets and evaluates the selector once. No CHOOSE arity limit or repeated selector evaluation. Relative sheet spans retain their original AST path and are not claimed complete.",
+        "source": {
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/fn-lookup/functions.c",
+          "sha256": "cdf3ee4fec97f91cea2f853386d8b4b4f83147ab3803d22c603ca6a7f363a917"
+        },
+        "sourceDifference": "Gnumeric gnumeric_index lines 1631-1719 scalarizes syntactic SET values and retains both sheets of a 3D reference. Requested Lotus sheet selection requires reference areas; corresponding old tests expecting #REF! for valid areas were updated explicitly. Named SET sources retain their existing array semantics.",
+        "validation": "10 original Lotus failures and 7 original reference-area failures repaired. Full maintained ssconvert package test passes 485 files / 26030 tests plus the two HarfBuzz node tests. Package lint, source/test/consumer types and selected build pass. Coverage includes direct/named functions, imported named ranges, live selectors, reversed spans, references returned to ROW, selector evaluation count and the complete 256-sheet span with operation accounting.",
+        "publicQualification": "28 compiled SDK/command outputs across both XLSX editions independently retain selected numeric values and area expressions. Seven Calc 26.8.0.3 readbacks retain live formulas and values, including the 256-sheet boundary. An intermediate CHOOSE projection failed that native boundary and was replaced before delivery.",
+        "remaining": "Relative sheet-span selection/relocation, computed span sources, native negative-offset error differences and wider format qualification remain open; #3478 and all 19 families stay open."
       }
     },
     "lotusNamedAddinAudit": {

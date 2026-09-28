@@ -718,7 +718,7 @@ test("resolution validation receives the full trace and late diagnostics remain 
     const stdout = [], phases = [];
     const raw = trace + (status === 0 ? "" : diagnostic);
     const compile = new Script(`(${declaration.initializer.getText(source)})`).runInNewContext({
-      root, compiler: "/tsc", historicalCompiler: "/historical-models",
+      root, compiler: "/tsc", historicalCompiler: "/historical-models", compilerTimeout: 180000, sourceDependencies: false,
       report: { phases }, console: { log() {} },
       process: { execPath: "/node", env: {}, stdout: { write: value => stdout.push(value) }, stderr: { write() {} } },
       spawnSync: () => ({ status, signal: null, stdout: raw, stderr: "" }),

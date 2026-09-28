@@ -2794,11 +2794,12 @@ type SyncLoopStep = {
   readonly fnCall?: { readonly name: string; readonly argWords: readonly Word[]; readonly locals: readonly { readonly name: string; readonly valueWord?: Word | undefined; readonly isFirstInCmd: boolean }[]; readonly steps: readonly SyncLoopStep[] } | undefined;
   readonly loopAction?: "break" | "continue" | undefined;
   readonly unsetVars?: readonly string[] | undefined;
-  readonly localDecl?: { readonly kind: "local" | "declare" | "export"; readonly items: readonly { readonly name: string; readonly value?: Word | undefined; readonly append: boolean }[] } | undefined;
+  readonly localDecl?: { readonly kind: "local" | "declare" | "export"; readonly attr?: "u" | "l" | "i" | undefined; readonly items: readonly { readonly name: string; readonly value?: Word | undefined; readonly append: boolean }[] } | undefined;
   readonly shiftCount?: number | undefined;
   readonly readHereString?: {
     readonly ifsWord?: Word | undefined;
     readonly varNames: readonly string[];
+    readonly arrayTarget?: string | undefined;
     readonly isBareReply: boolean;
     readonly inputWord: Word;
   } | undefined;
@@ -11967,15 +11968,23 @@ export class Runtime {
     }
     return undefined;
   }
-  private extractSyncLocalDeclStep(cmd: Extract<Command, { kind: "simple" }>, rawState: State): { readonly kind: "local" | "declare" | "export"; readonly items: readonly { readonly name: string; readonly value?: Word | undefined; readonly append: boolean }[] } | undefined {
+  private extractSyncLocalDeclStep(cmd: Extract<Command, { kind: "simple" }>, rawState: State): { readonly kind: "local" | "declare" | "export"; readonly attr?: "u" | "l" | "i" | undefined; readonly items: readonly { readonly name: string; readonly value?: Word | undefined; readonly append: boolean }[] } | undefined {
     if (this._syncLoopFnCheckDepth > 0 || cmd.redirects.length !== 0 || cmd.words.length < 2 || cmd.words.length > 16) return undefined;
     const w0Plain = cmd.words[0]!.plain;
     if (w0Plain !== "local" && w0Plain !== "declare" && w0Plain !== "typeset" && w0Plain !== "export") return undefined;
     if (hasShellFunction(rawState, w0Plain) || rawState.extensions?.builtins.has(w0Plain) || hasActiveVariableAttributes(rawState)) return undefined;
     if (w0Plain === "local" && rawState.locals.length === 0) return undefined;
+    let startIdx = 1;
+    let attr: "u" | "l" | "i" | undefined;
+    const w1Plain = cmd.words[1]?.plain;
+    if (w0Plain !== "export" && (w1Plain === "-u" || w1Plain === "-l" || w1Plain === "-i")) {
+      if (cmd.words.length < 3) return undefined;
+      attr = w1Plain.slice(1) as "u" | "l" | "i";
+      startIdx = 2;
+    }
     const store = stateMonitor(rawState)?.store;
     const items: { readonly name: string; readonly value?: Word | undefined; readonly append: boolean }[] = [];
-    for (let i = 1; i < cmd.words.length; i++) {
+    for (let i = startIdx; i < cmd.words.length; i++) {
       const wArg = cmd.words[i]!;
       const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
       if (assignment) {
@@ -12009,10 +12018,16 @@ export class Runtime {
         return undefined;
       }
     }
-    return { kind: w0Plain === "export" ? "export" : w0Plain === "local" ? "local" : "declare", items };
+    return { kind: w0Plain === "export" ? "export" : w0Plain === "local" ? "local" : "declare", attr, items };
+  }
+  private isQuotedAtWord(w: Word): boolean {
+    const p0 = w.parts.length === 1 ? w.parts[0] : (w.parts.length === 2 && w.parts[0]!.kind === "text" && w.parts[0]!.value === "" ? w.parts[1] : undefined);
+    return Boolean(p0 && p0.kind === "variable" && p0.name === "@" && p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined);
   }
   private canSyncNestedForWords(words: readonly Word[] | undefined, rawState: State, io: IO | undefined, line: number): boolean {
-    if (!words || words.length === 0 || words.length > 64) return false;
+    if (words === undefined) return true;
+    if (words.length === 0 || words.length > 64) return false;
+    if (words.length === 1 && this.isQuotedAtWord(words[0]!)) return true;
     const store = stateMonitor(rawState)?.store;
     if (words.length === 1) {
       const w0 = words[0]!;
@@ -12046,7 +12061,10 @@ export class Runtime {
     }
     return true;
   }
-  private evalSyncNestedForWords(words: readonly Word[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, line: number): readonly string[] {
+  private evalSyncNestedForWords(words: readonly Word[] | undefined, rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, line: number): readonly string[] {
+    if (words === undefined || (words.length === 1 && this.isQuotedAtWord(words[0]!))) {
+      return (this._fastSubPositional ?? rawState.positional).slice();
+    }
     if (words.length === 1) {
       const w0 = words[0]!;
       const arrMembers = this.tryExpandSyncArrayMembersWord(w0, rawState, io, line);
@@ -12138,23 +12156,84 @@ export class Runtime {
     }
     let argIdx = wIdx + 1;
     let rawMode = false;
-    if (argIdx < cmd.words.length && cmd.words[argIdx]!.plain === "-r") {
-      rawMode = true;
-      argIdx++;
+    let arrayTarget: string | undefined;
+    while (argIdx < cmd.words.length) {
+      const p = cmd.words[argIdx]!.plain;
+      if (!p || !p.startsWith("-") || p === "-") break;
+      if (p === "--") { argIdx++; break; }
+      if (p === "-r") {
+        rawMode = true;
+        argIdx++;
+      } else if (p === "-ra" || p === "-ar" || p === "-a") {
+        if (p.includes("r")) rawMode = true;
+        if (argIdx + 1 >= cmd.words.length || !cmd.words[argIdx + 1]!.plain) return undefined;
+        arrayTarget = cmd.words[argIdx + 1]!.plain!;
+        argIdx += 2;
+      } else if (p.startsWith("-ra") && p.length > 3) {
+        rawMode = true;
+        arrayTarget = p.slice(3);
+        argIdx++;
+      } else {
+        return undefined;
+      }
     }
     if (!rawMode) return undefined;
-    const store = stateMonitor(rawState)?.store;
+    const monitor = stateMonitor(rawState);
+    const store = monitor?.store;
+    if (arrayTarget !== undefined) {
+      if (
+        argIdx !== cmd.words.length ||
+        this.budget.limits.maxExpansionBytes !== Infinity ||
+        this.budget.limits.maxExpansionFields !== Infinity ||
+        hasUnpreparedLocal(rawState, arrayTarget) ||
+        !isShellIdentifier(arrayTarget) ||
+        controlNames.has(arrayTarget) ||
+        arrayTarget === "OPTIND" ||
+        rawState.readonlyVariables?.has(arrayTarget) ||
+        rawState.exported.has(arrayTarget) ||
+        rawState.variableAttributes?.get(arrayTarget) ||
+        monitor?.hasOverlay(arrayTarget)
+      ) {
+        return undefined;
+      }
+      const arrStore = store ?? requireArrays(rawState);
+      let existingArr = arrStore.get(arrayTarget);
+      if (existingArr && (existingArr.associative || existingArr.references !== 1 || arrStore.watches.has(arrayTarget))) return undefined;
+      if (!existingArr && !arrStore.watches.has(arrayTarget)) {
+        const recTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+        const recBinding = arrStore.takeRecycled(arrayTarget, false, recTickets);
+        if (recBinding) {
+          if (monitor) monitor.epoch = recTickets.epoch;
+          existingArr = recBinding;
+        } else {
+          try {
+            const created = IndexedBinding.create(arrStore.owner, false);
+            const prepared = arrStore.prepareExistingName(arrayTarget, shellValueByteLength(arrayTarget), arrStore.owner, this.signal);
+            if (prepared) {
+              const initTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+              arrStore.publish(arrayTarget, created, initTickets, prepared, false, arrStore.owner);
+              if (monitor) monitor.epoch = initTickets.epoch;
+              existingArr = created;
+            } else {
+              void created.release();
+            }
+          } catch {}
+        }
+      }
+      if (!existingArr) return undefined;
+      return { ifsWord, varNames: [], arrayTarget, isBareReply: false, inputWord: r0.target };
+    }
     const varNames: string[] = [];
     for (let i = argIdx; i < cmd.words.length; i++) {
       const vn = cmd.words[i]!.plain;
-      if (!vn || vn.startsWith("-") || !isShellIdentifier(vn) || controlNames.has(vn) || vn === "OPTIND" || rawState.readonlyVariables?.has(vn) || rawState.variableAttributes?.get(vn) || store?.get(vn) || stateMonitor(rawState)?.hasOverlay(vn)) {
+      if (!vn || vn.startsWith("-") || !isShellIdentifier(vn) || controlNames.has(vn) || vn === "OPTIND" || rawState.readonlyVariables?.has(vn) || rawState.variableAttributes?.get(vn) || store?.get(vn) || monitor?.hasOverlay(vn)) {
         return undefined;
       }
       varNames.push(vn);
     }
     const isBareReply = varNames.length === 0;
     if (isBareReply) {
-      if (rawState.readonlyVariables?.has("REPLY") || rawState.variableAttributes?.get("REPLY") || store?.get("REPLY") || stateMonitor(rawState)?.hasOverlay("REPLY")) return undefined;
+      if (rawState.readonlyVariables?.has("REPLY") || rawState.variableAttributes?.get("REPLY") || store?.get("REPLY") || monitor?.hasOverlay("REPLY")) return undefined;
       varNames.push("REPLY");
     }
     return { ifsWord, varNames, isBareReply, inputWord: r0.target };
@@ -13384,7 +13463,9 @@ export class Runtime {
         if (!condCmd.expression.error) {
           if (!isSafeSmiProgram(condCmd.expression) || condCmd.expression.hasSubscript || !this.canSyncArithmeticWithoutFault(condCmd.expression.tree, rawState, condCmd.line ?? 1)) return undefined;
           const condTree = condCmd.expression.tree;
-          if (!condTree || condTree.kind !== "binary" || (condTree.operator !== "<" && condTree.operator !== "<=" && condTree.operator !== ">" && condTree.operator !== ">=" && condTree.operator !== "!=" && condTree.operator !== "==")) return undefined;
+          const isValidBinaryCond = condTree?.kind === "binary" && (condTree.operator === "<" || condTree.operator === "<=" || condTree.operator === ">" || condTree.operator === ">=" || condTree.operator === "!=" || condTree.operator === "==");
+          const isValidUnaryCond = condTree?.kind === "unary" && (condTree.operator === "++" || condTree.operator === "--") && condTree.operand.kind === "name";
+          if (!isValidBinaryCond && !isValidUnaryCond) return undefined;
         } else if (!this.canSyncErrorArithmeticStmt(condCmd.expression, rawState)) {
           return undefined;
         }
@@ -13551,17 +13632,30 @@ export class Runtime {
       if (store) store.epoch = restEpoch;
       return loopStatus;
     }
-    if ( !isShellIdentifier(command.name) || command.name === "OPTIND" || command.name.includes("[") || store?.get(command.name) || !command.words || command.words.length === 0 || command.words.length > 64 || rawState.braceexpand === false) {
+    if ( !isShellIdentifier(command.name) || command.name === "OPTIND" || command.name.includes("[") || store?.get(command.name) || (command.words && (command.words.length === 0 || command.words.length > 64)) || rawState.braceexpand === false) {
       return undefined;
     }
     const activeValScope = io[valueScope];
-    let fastLoopWords = command.words.length === 1
-      ? (activeValScope
+    let fastLoopWords: readonly string[] | undefined;
+    if (!command.words || (command.words.length === 1 && this.isQuotedAtWord(command.words[0]!))) {
+      const posWords = (this._fastSubPositional ?? rawState.positional).slice();
+      if (posWords.length <= 1500) {
+        let asciiOk = true;
+        for (let i = 0; i < posWords.length; i++) {
+          const w = posWords[i]!;
+          for (let j = 0; j < w.length; j++) if (w.charCodeAt(j) >= 128) { asciiOk = false; break; }
+          if (!asciiOk) break;
+        }
+        if (asciiOk) fastLoopWords = posWords;
+      }
+      if (!fastLoopWords) return undefined;
+    } else if (command.words.length === 1) {
+      fastLoopWords = activeValScope
         ? this.expandBraceRangeWithScope(command.words[0]!, activeValScope)
-        : tryFastExpandBraceRange(command.words[0]!, this.budget, undefined))
-      : undefined;
+        : tryFastExpandBraceRange(command.words[0]!, this.budget, undefined);
+    }
     let isStaticBraceWords = Boolean(fastLoopWords);
-    if (!fastLoopWords && command.words.length > 1) {
+    if (!fastLoopWords && command.words && command.words.length > 1) {
       const combined: string[] = [];
       let allWordsOk = true;
       let allStaticBrace = true;
@@ -13601,9 +13695,9 @@ export class Runtime {
         isStaticBraceWords = allStaticBrace;
       }
     }
-    const w0For = command.words[0]!;
-    const p0 = w0For.parts.length === 1 ? w0For.parts[0] : (w0For.parts.length === 2 && w0For.parts[0]!.kind === "text" && w0For.parts[0]!.value === "" ? w0For.parts[1] : undefined);
-    if (!fastLoopWords && p0) {
+    const w0For = command.words?.[0];
+    const p0 = w0For ? (w0For.parts.length === 1 ? w0For.parts[0] : (w0For.parts.length === 2 && w0For.parts[0]!.kind === "text" && w0For.parts[0]!.value === "" ? w0For.parts[1] : undefined)) : undefined;
+    if (!fastLoopWords && p0 && command.words) {
       const arrMembers = this.tryExpandSyncArrayMembersWord(command.words[0]!, rawState, io, diagnosticLine);
       if (arrMembers && arrMembers.length <= 1500 && !monitor.hasOverlay(p0.kind === "variable" ? p0.name : "")) {
         let asciiOk = true;
@@ -13959,7 +14053,59 @@ export class Runtime {
     if (!p0 || p0.kind !== "text" || p0.value.length === 0 || p0.value.startsWith("-")) return false;
     return w.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.indirect && !p.prefixNames && !p.length && !p.substring && p.operator === undefined && getArraySelector(p) === undefined));
   }
-  private splitSyncReadLine(lineStr: string, ifsStr: string, varNames: readonly string[], isBareReply: boolean, rawState: State, touched: Set<string>): void {
+  private splitSyncReadLine(lineStr: string, ifsStr: string, varNames: readonly string[], isBareReply: boolean, rawState: State, touched: Set<string>, arrayTarget?: string, monitor?: NonNullable<ReturnType<typeof stateMonitor>>): void {
+    if (arrayTarget !== undefined && monitor !== undefined) {
+      const arrStore = monitor.store ?? requireArrays(rawState);
+      const existingArrayBinding = arrStore.get(arrayTarget);
+      if (!existingArrayBinding) return;
+      const isSep = (c: number): boolean => {
+        for (let i = 0; i < ifsStr.length; i++) if (ifsStr.charCodeAt(i) === c) return true;
+        return false;
+      };
+      const isWhite = (c: number): boolean => (c === 32 || c === 9 || c === 10) && isSep(c);
+      let end = lineStr.length;
+      while (end > 0 && isWhite(lineStr.charCodeAt(end - 1))) end--;
+      let pos = 0;
+      while (pos < end && isWhite(lineStr.charCodeAt(pos))) pos++;
+      readArrayScratchFields.length = 0;
+      while (pos < end) {
+        const start = pos;
+        while (pos < end && !isSep(lineStr.charCodeAt(pos))) pos++;
+        const fieldEnd = pos;
+        while (pos < end && isWhite(lineStr.charCodeAt(pos))) pos++;
+        if (pos < end && isSep(lineStr.charCodeAt(pos))) pos++;
+        while (pos < end && isWhite(lineStr.charCodeAt(pos))) pos++;
+        readArrayScratchFields.push(lineStr.slice(start, fieldEnd));
+      }
+      const fieldLen = readArrayScratchFields.length;
+      const tickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 + fieldLen * 4 });
+      if (existingArrayBinding.values.size !== fieldLen || existingArrayBinding.maximum !== fieldLen - 1) {
+        for (const k of [...existingArrayBinding.values.keys()]) {
+          if (k >= fieldLen) existingArrayBinding.remove(k);
+        }
+        existingArrayBinding.maximum = fieldLen - 1;
+      }
+      for (let idx = 0; idx < fieldLen; idx++) {
+        const val = readArrayScratchFields[idx]!;
+        const byteLen = val.length;
+        const slot = existingArrayBinding.values.get(idx);
+        if (slot && slot.text.references === 1 && slot.text.bytes === byteLen) {
+          existingArrayBinding.owner.chargeWork(byteLen);
+          slot.text.shellValue = val;
+        } else {
+          existingArrayBinding.owner.chargeWork(byteLen);
+          const token = new OwnedText(val, byteLen, existingArrayBinding.owner.reserve({ payload: byteLen, metadata: 32, work: 4 }));
+          existingArrayBinding.insert(idx, token);
+        }
+      }
+      readArrayScratchFields.length = 0;
+      delete rawState.variables[arrayTarget];
+      monitor.values.invalidate(arrayTarget);
+      monitor.epoch = tickets.epoch;
+      existingArrayBinding.assigned = true;
+      arrStore.revise(arrayTarget, existingArrayBinding, tickets);
+      return;
+    }
     if (isBareReply) {
       rawState.variables.REPLY = lineStr;
       touched.add("REPLY");
@@ -14022,8 +14168,15 @@ export class Runtime {
         touched.add(item.name);
       }
       if (item.value !== undefined) {
-        const val = this.fastValueWord(item.value, rawState, io, false, false, false, rawState.braceexpand !== false, 0, line) as string;
-        if (item.append) {
+        let val = this.fastValueWord(item.value, rawState, io, false, false, false, rawState.braceexpand !== false, 0, line) as string;
+        if (decl.attr === "u") val = val.toUpperCase();
+        else if (decl.attr === "l") val = val.toLowerCase();
+        else if (decl.attr === "i") {
+          const curRaw = item.append ? rawState.variables[item.name] : undefined;
+          const curStr = curRaw === undefined ? "" : (touched.has(item.name) ? curRaw : (monitor.values.get(item.name, curRaw) ?? curRaw));
+          val = applySyncScalarAttributes("i", val, typeof curStr === "string" ? curStr : "", item.append, rawState, monitor, arrayStore(rawState), touched) ?? "0";
+        }
+        if (item.append && decl.attr !== "i") {
           const curRaw = rawState.variables[item.name];
           const curStr = curRaw === undefined ? "" : (touched.has(item.name) ? curRaw : (monitor.values.get(item.name, curRaw) ?? curRaw));
           rawState.variables[item.name] = (typeof curStr === "string" ? curStr : "") + val;
@@ -14035,6 +14188,9 @@ export class Runtime {
       } else {
         lastArg = item.name;
       }
+      if (decl.attr !== undefined) {
+        (this._syncPendingVarAttrs ??= new Map()).set(item.name, decl.attr);
+      }
       if (decl.kind === "export") {
         rawState.exported.add(item.name);
       }
@@ -14042,11 +14198,19 @@ export class Runtime {
     return lastArg;
   }
   private _syncTouchedPositionals = false;
+  private _syncPendingVarAttrs: Map<string, string> | undefined = undefined;
   private flushSyncPositionals(rawState: State): void {
     if (this._syncTouchedPositionals) {
       this._syncTouchedPositionals = false;
       this._fastSubPositional = undefined;
       this.replacePositionals(rawState, rawState.positional);
+    }
+    if (this._syncPendingVarAttrs && this._syncPendingVarAttrs.size > 0) {
+      rawState.variableAttributes ??= new Map();
+      for (const [k, v] of this._syncPendingVarAttrs) {
+        rawState.variableAttributes.set(k, v);
+      }
+      this._syncPendingVarAttrs.clear();
     }
   }
   private execSyncShiftStep(shiftCount: number, cmd: Extract<Command, { kind: "simple" }>, rawState: State): { status: number; lastArg: string } {
@@ -14200,7 +14364,7 @@ export class Runtime {
           const nlIdx = rawInput.indexOf("\n");
           const lineStr = nlIdx === -1 ? rawInput : rawInput.slice(0, nlIdx);
           const ifsStr = rs.ifsWord !== undefined ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string) : (rawState.variables.IFS ?? " \t\n");
-          this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched);
+          this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor);
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
           rawState.status = 0;
           continue;
@@ -14738,7 +14902,7 @@ export class Runtime {
         const nlIdx = rawInput.indexOf("\n");
         const lineStr = nlIdx === -1 ? rawInput : rawInput.slice(0, nlIdx);
         const ifsStr = rs.ifsWord !== undefined ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string) : (rawState.variables.IFS ?? " \t\n");
-        this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched);
+        this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor);
         lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
         rawState.status = 0;
         onUpdate({ lastCmd, lastArg });
@@ -14903,7 +15067,7 @@ export class Runtime {
           const nlIdx = rawInput.indexOf("\n");
           const lineStr = nlIdx === -1 ? rawInput : rawInput.slice(0, nlIdx);
           const ifsStr = rs.ifsWord !== undefined ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string) : (rawState.variables.IFS ?? " \t\n");
-          this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched);
+          this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor);
           lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
           rawState.status = 0;
           continue;

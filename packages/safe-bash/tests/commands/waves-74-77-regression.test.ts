@@ -221,3 +221,69 @@ test("Wave 88: nested for over $var/$(seq)/multi-word, local/declare/export, and
   assert.equal(r4.exitCode, 0);
   assert.equal(r4.stdout, "110:0\n");
 });
+
+test("Wave 89: for x in \"$@\"/implicit \"$@\", read -ra <<<, declare -u/-l/-i, and while ((i++ < N)) in trySyncLoop", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of createStandardCommands()) registry.register(cmd);
+  for (const cmd of createByteCommands()) registry.register(cmd);
+  for (const cmd of createStreamFormatCommands()) registry.register(cmd);
+  const shell = new Shell({ fs, commands: registry });
+
+  const r1 = await shell.exec(`
+    set -- $(seq 1 50)
+    s1=0
+    for x in "$@"; do
+      ((s1 += x))
+    done
+    s2=0
+    for y; do
+      ((s2 += y))
+    done
+    echo "$s1:$s2"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "1275:1275\n");
+
+  const r2 = await shell.exec(`
+    sum=0
+    firsts=""
+    for ((i=1; i<=10; i++)); do
+      IFS=: read -ra parts <<< "k_$i:$((i*2)):$((i*3))"
+      ((sum += parts[1] + parts[2]))
+      firsts+="\${parts[0]},"
+    done
+    echo "$sum:$firsts"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "275:k_1,k_2,k_3,k_4,k_5,k_6,k_7,k_8,k_9,k_10,\n");
+
+  const r3 = await shell.exec(`
+    acc=""
+    for ((i=1; i<=4; i++)); do
+      declare -u up="ab_$i"
+      declare -l lo="CD_$i"
+      declare -i num="i * 10"
+      acc+="\${up}:\${lo}:\${num};"
+    done
+    echo "$acc"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "AB_1:cd_1:10;AB_2:cd_2:20;AB_3:cd_3:30;AB_4:cd_4:40;\n");
+
+  const r4 = await shell.exec(`
+    i=0
+    sum=0
+    while ((i++ < 20)); do
+      ((sum += i))
+    done
+    n=5
+    cnt=0
+    while ((n--)); do
+      ((cnt++))
+    done
+    echo "$sum:$i:$cnt:$n"
+  `);
+  assert.equal(r4.exitCode, 0);
+  assert.equal(r4.stdout, "210:21:5:-1\n");
+});

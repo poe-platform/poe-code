@@ -406,6 +406,17 @@ function canEvalSafeSmiTree(node: Arithmetic, depth = 0): boolean {
       node.operator === "&" || node.operator === "|" || node.operator === "^" ||
       node.operator === "&&" || node.operator === "||"
     ) {
+      if (
+        depth === 0 &&
+        node.left.kind === "unary" &&
+        (node.left.operator === "++" || node.left.operator === "--") &&
+        node.left.operand.kind === "name" &&
+        node.left.operand.subscript === undefined &&
+        node.right.kind === "literal" &&
+        canEvalSafeSmiTree(node.right, depth + 1)
+      ) {
+        return true;
+      }
       return canEvalSafeSmiTree(node.left, depth + 1) && canEvalSafeSmiTree(node.right, depth + 1);
     }
     if (node.operator === "/" || node.operator === "%") {

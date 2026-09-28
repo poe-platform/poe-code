@@ -14,6 +14,8 @@ import {
 import type {
   ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware, } from "../contracts/index.js";
 import { createBcCommands } from "../commands/bc/index.js";
+import { createStreamInspectionCommands } from "../commands/stream-inspection/index.js";
+import { createStreamFormatCommands } from "../commands/stream-format/index.js";
 import { createSpongeCommands } from "../commands/sponge/index.js";
 import { createFdCommands } from "../commands/fd/index.js";
 import { createLessCommands } from "../commands/less/index.js";
@@ -2711,7 +2713,7 @@ function hasGlobOrEscape(text: string, extglob = false): boolean {
 let nextProcessSubstitutionId = 0;
 let defaultRuntimeMuscleMemoryMap: ReadonlyMap<string, CommandDefinition> | undefined;
 function getRuntimeMuscleMemoryCommand(name: string): CommandDefinition | undefined {
-  defaultRuntimeMuscleMemoryMap ??= new Map([...createBcCommands(), ...createSpongeCommands(), ...createFdCommands(), ...createLessCommands(), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands()].map(cmd => [cmd.name, cmd]));
+  defaultRuntimeMuscleMemoryMap ??= new Map([...createStreamFormatCommands(), ...createStreamInspectionCommands(), ...createBcCommands(), ...createSpongeCommands(), ...createFdCommands(), ...createLessCommands(), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands()].map(cmd => [cmd.name, cmd]));
   return defaultRuntimeMuscleMemoryMap.get(name);
 }
 const fastSubScratchArgs: string[] = [];
@@ -11851,7 +11853,7 @@ export class Runtime {
         const def = w0Plain ? (this.commands.get(w0Plain) ?? ((w0Plain === "rev" || w0Plain === "tac") ? this.getExternalCommand(w0Plain) : undefined)) : undefined;
         if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || !def || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
         if ((hasSingleStdinRedir || hasSingleHereStringRedir) && !isFileCommand) return false;
-        if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : (w0Plain === "seq" || w0Plain === "rev" || w0Plain === "tac") ? (!builtInDirectContextExecutors.has(def.execute) && (customRegisteredCommands.has(def.execute) || customRegisteredRegistries.has(this.commands))) : !builtInDirectContextExecutors.has(def.execute)) return false;
+        if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : (w0Plain === "seq" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl") ? (!builtInDirectContextExecutors.has(def.execute) && customRegisteredCommands.has(def.execute)) : !builtInDirectContextExecutors.has(def.execute)) return false;
         if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
         if (isFileCommand) {
           if (w0Plain === "tr" && !hasSingleStdinRedir && !hasSingleHereStringRedir) return false;
@@ -11934,67 +11936,57 @@ export class Runtime {
         }
         if (p.commands.length >= 2) {
           if ((w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "seq" && w0Plain !== "cat" && !hasSingleHereStringRedir) || syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || rawState.errexit || rawState.nounset) return false;
-          if (w0Plain === "printf" && !this.isSyncPrintfCallOk(cmd, 1, rawState)) return false;
+          if (w0Plain === "printf") {
+            const fmtW0 = cmd.words[1];
+            const fmtP0 = fmtW0?.plain ?? (fmtW0?.parts.length === 1 && fmtW0.parts[0]!.kind === "text" ? fmtW0.parts[0]!.value : undefined);
+            const isStringOnlyPrintf = fmtP0 !== undefined && !fmtP0.startsWith("-") && /^(?:[^%]|%%|%[-0]*\d*(?:\.\d+)?s|\\n)*$/.test(fmtP0);
+            if (!isStringOnlyPrintf && !this.isSyncPrintfCallOk(cmd, 1, rawState)) return false;
+          }
           for (let sIdx = 1; sIdx < p.commands.length; sIdx++) {
             const sCmd = p.commands[sIdx]!;
             if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return false;
             const sName = sCmd.words[0]!.plain;
             // Range-aware tr and Buffer-free 76-col base64 are handled in pipeline stages.
             if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "rev" && sName !== "awk" && sName !== "grep" && sName !== "jq" && sName !== "base64" && sName !== "tac" && sName !== "nl")) return false;
-            const sDef = this.commands.get(sName);
-            if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "rev" && sName !== "tac" && !builtInDirectContextExecutors.has(sDef.execute))) return false;
+            const sDef = this.commands.get(sName) ?? ((sName === "rev" || sName === "tac" || sName === "nl") ? this.getExternalCommand(sName) : undefined);
+            if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "rev" && sName !== "tac" && sName !== "nl" && !builtInDirectContextExecutors.has(sDef.execute)) ) return false;
             if (rawState.functions.has(sName) || rawState.extensions?.builtins.has(sName)) return false;
             const sArgWords = sCmd.words.slice(1);
             const sPlainArgs: string[] = [];
             let allPlainStageArgs = true;
             for (let k = 0; k < sArgWords.length; k++) {
               const sw = sArgWords[k]!;
-              const sp = sw.plain ?? (sw.parts.length === 1 && sw.parts[0]!.kind === "text" ? sw.parts[0]!.value : undefined);
+              const sp = sw.plain ?? (sw.parts.length > 0 && sw.parts.every(pt => pt.kind === "text") ? sw.parts.map(pt => pt.value).join("") : undefined);
               if (sp === undefined) { allPlainStageArgs = false; break; }
               sPlainArgs.push(sp);
             }
             if (!allPlainStageArgs) return false;
-            if (sName === "sort" && (sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-r"))) return false;
-            if (sName === "wc" && (sPlainArgs.length !== 1 || (sPlainArgs[0] !== "-l" && sPlainArgs[0] !== "-c" && sPlainArgs[0] !== "-w"))) return false;
-            if (sName === "head" || sName === "tail") {
-              const okHT = (sPlainArgs.length === 2 && sPlainArgs[0] === "-n" && /^[0-9]+$/.test(sPlainArgs[1]!)) || (sPlainArgs.length === 1 && /^-(?:n)?[0-9]+$/.test(sPlainArgs[0]!));
+            if (sName === "sort") {
+              if (byteLocale(rawState.variables) || sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-r" && sPlainArgs[0] !== "-u" && sPlainArgs[0] !== "-n" && sPlainArgs[0] !== "-rn" && sPlainArgs[0] !== "-nr" && sPlainArgs[0] !== "-ru" && sPlainArgs[0] !== "-ur")) return false;
+            } else if (sName === "uniq") {
+              if (sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-d" && sPlainArgs[0] !== "-u" && sPlainArgs[0] !== "-c")) return false;
+            } else if (sName === "wc") {
+              if (sPlainArgs.length !== 1 || (sPlainArgs[0] !== "-l" && sPlainArgs[0] !== "-c" && sPlainArgs[0] !== "-w")) return false;
+            } else if (sName === "head" || sName === "tail") {
+              const okHT = sPlainArgs.length === 0 || (sPlainArgs.length === 1 && /^-(?:n|c)?[0-9]{1,5}$/.test(sPlainArgs[0]!)) || (sPlainArgs.length === 2 && (sPlainArgs[0] === "-n" || sPlainArgs[0] === "-c") && /^[0-9]{1,5}$/.test(sPlainArgs[1]!));
               if (!okHT) return false;
-            }
-            if (sName === "cut") {
-              const normCut: string[] = [];
-              for (let ci = 0; ci < sPlainArgs.length; ci++) {
-                const ca = sPlainArgs[ci]!;
-                if ((ca === "-d" || ca === "-f") && ci + 1 < sPlainArgs.length) {
-                  normCut.push(ca + sPlainArgs[++ci]!);
-                } else {
-                  normCut.push(ca);
-                }
-              }
-              const vc2 = normCut.length === 2 && ((normCut[0]!.length === 3 && normCut[0]!.startsWith("-d") && normCut[1]!.length >= 3 && normCut[1]!.startsWith("-f")) || (normCut[0] === "-c" && /^[1-9][0-9]*-[1-9][0-9]*$/.test(normCut[1]!)));
-              const vc1 = normCut.length === 1 && normCut[0]!.length >= 3 && normCut[0]!.startsWith("-f");
-              if (!vc1 && !vc2) return false;
-            }
-            if (sName === "awk") {
-              const normAwk = sPlainArgs.length === 3 && sPlainArgs[0] === "-F" ? ["-F" + sPlainArgs[1]!, sPlainArgs[2]!] : sPlainArgs;
-              const awkSepOk = normAwk.length === 1 || (normAwk.length === 2 && normAwk[0]!.length === 3 && normAwk[0]!.startsWith("-F") && normAwk[0]![2] !== "\\");
-              const awkProg = normAwk[normAwk.length - 1] ?? "";
-              if (!awkSepOk || !/^\s*\{\s*print(?:\s+(\$(?:[0-9]+|NF)(?:\s*,\s*\$(?:[0-9]+|NF))*))?\s*;?\s*\}\s*$/.test(awkProg)) return false;
-            }
-            if (sName === "grep") {
-              const grepOk =
-                (sPlainArgs.length === 1 && !sPlainArgs[0]!.startsWith("-") && /^[a-zA-Z0-9_ :;,/-]+$/.test(sPlainArgs[0]!)) ||
-                (sPlainArgs.length === 2 && (sPlainArgs[0] === "-v" || sPlainArgs[0] === "-i" || sPlainArgs[0] === "-c" || sPlainArgs[0] === "-F") && /^[a-zA-Z0-9_ :;,/-]+$/.test(sPlainArgs[1]!));
-              if (!grepOk) return false;
-            }
-            if (sName === "jq") {
-              // JSON types are runtime inputs: the speculative evaluator may
-              // refuse array indexing and must leave diagnostics to jq.
+            } else if (sName === "cut") {
+              if (this.evalSyncCut([], sPlainArgs, byteLocale(rawState.variables)) === undefined) return false;
+            } else if (sName === "sed") {
+              if (this.evalSyncSed([], sPlainArgs) === undefined) return false;
+            } else if (sName === "awk") {
+              if (this.evalSyncAwk([], sPlainArgs) === undefined) return false;
+            } else if (sName === "grep") {
+              if (this.evalSyncGrep([], sPlainArgs, Boolean(rawState.errexit)) === undefined) return false;
+            } else if (sName === "tr") {
+              if (this.evalSyncTr("", sPlainArgs) === undefined) return false;
+            } else if (sName === "jq") {
               return false;
-            }
-            if (sName === "base64") {
+            } else if (sName === "base64") {
               if (sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-d" && sPlainArgs[0] !== "--decode")) return false;
+            } else if (sName === "rev" || sName === "tac" || sName === "nl") {
+              if (sPlainArgs.length !== 0) return false;
             }
-            if ((sName === "tac" || sName === "nl") && sPlainArgs.length !== 0) return false;
           }
         }
         continue;
@@ -23013,7 +23005,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && sName !== "tac" && !builtInDirectContextExecutors.has(extDef.execute)) || ((sName === "rev" || sName === "tac") && customRegisteredRegistries.has(this.commands)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && !builtInDirectContextExecutors.has(extDef.execute))  || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {

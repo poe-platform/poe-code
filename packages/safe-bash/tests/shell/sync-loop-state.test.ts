@@ -540,3 +540,35 @@ test("wave 99 sync loop: POSIX tr classes, jq array/iter/length/keys filters, se
     await shell.dispose();
   }
 });
+
+test("wave 100 sync loop: multi-stage pipeline sort -u, head -c, cut ranges, awk concat, grep -E, rev, and unsupported sed regex fallback", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const commands = new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+  try {
+    const script = [
+      's_abc="abcdef"',
+      's_col="a:b:c:d"',
+      's_awk="foo:bar:baz"',
+      "s_sort=$'b\\na\\nb'",
+      "s_grep=$'cat\\ndog\\nbat'",
+      's_re="abc123"',
+      "for ((i=1; i<=10; i++)); do",
+      '  p_sort=$(printf "%s\\n" "$s_sort" | sort -u)',
+      '  p_head=$(printf "%s\\n" "$s_abc" | head -c 3)',
+      '  p_cut=$(printf "%s\\n" "$s_col" | cut -d: -f2-)',
+      '  p_awk=$(printf "%s\\n" "$s_awk" | awk -F: \'{print $1 ":" $2}\')',
+      '  p_grep=$(printf "%s\\n" "$s_grep" | grep -E "cat|bat")',
+      '  p_rev=$(printf "%s\\n" "$s_abc" | rev)',
+      '  p_sed=$(printf "%s\\n" "$s_re" | sed "s/[a-z]/X/g")',
+      "done",
+      'printf "%s|%s|%s|%s|%s|%s|%s\\n" "${p_sort//$' + "'\\n'" + '/,}" "$p_head" "$p_cut" "$p_awk" "${p_grep//$' + "'\\n'" + '/,}" "$p_rev" "$p_sed"',
+    ].join("\n");
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "a,b|abc|b:c:d|foo:bar|cat,bat|fedcba|XXX123\n");
+  } finally {
+    await shell.dispose();
+  }
+});

@@ -763,3 +763,26 @@ test("BRE translation preserves live cancellation and a subsequent worker sessio
   try { assert.deepEqual(await recovered.run(grep(["a+b"], { extended: false }), [row("a+b", true)]), [[{ start: 0, end: 3 }]]); }
   finally { await recovered.close(); await executor.dispose(); }
 });
+
+test("cached bounded ERE batches preserve frozen-clock host turns", async context => {
+  context.mock.method(performance, "now", () => 0);
+  context.mock.method(Date, "now", () => 0);
+  const executor = new RegexExecutor(createBoundedRegexProvider());
+  const session = executor.open(new AbortController().signal);
+  try {
+    const descriptor = grep(["([ab]+)c"]);
+    assert.deepEqual(await session.run(descriptor, [row("abc")]), [[{ start: 0, end: 3 }]]);
+    let turns = 0;
+    let host = setImmediate(function observe() {
+      turns++;
+      host = setImmediate(observe);
+    });
+    context.after(() => clearImmediate(host));
+    const result = await session.run(descriptor, [row("a".repeat(20000) + "c")]);
+    assert.deepEqual(result, [[{ start: 0, end: 20001 }]]);
+    assert.ok(turns >= 2, `observed ${turns} host turns`);
+  } finally {
+    await session.close();
+    await executor.dispose();
+  }
+});

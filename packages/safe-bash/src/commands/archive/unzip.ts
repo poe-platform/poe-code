@@ -1,3 +1,4 @@
+import { byteLength, concatBytes, encodeBytes } from "../../byte-encoding.js";
 import { dirname, collectBytes, readBytes, resolvePath, writeBytes, type CommandContext, type CommandDefinition, type FileStat } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { createOutputOperation, type OutputOperation } from "../../contracts/output.js";
@@ -19,7 +20,7 @@ function filtered(name: string): string {
 }
 
 function padded(name: string): string {
-  return name + " ".repeat(Math.max(0, 22 - Buffer.byteLength(name)));
+  return name + " ".repeat(Math.max(0, 22 - byteLength(name)));
 }
 
 function date(entry: ZipEntry): string {
@@ -262,7 +263,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           }
           if (entry.symlink) {
             if (actual > limits.maxPathBytes) fail("symlink target byte limit exceeded");
-            const target = text(Buffer.concat(chunks));
+            const target = text(concatBytes(chunks));
             await extraction.target(root, path, target);
             if (!context.fs.symlink || context.fs.capabilities.symlinks === false) fail("filesystem does not support symlinks");
             links.push({ path, shown, target, existing, parent, entry });
@@ -306,7 +307,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
     } catch (error) {
       original.signal.throwIfAborted();
       const message = display(publicDiagnosticMessage(error, original.onInternalError).slice(0, limits.maxDiagnosticBytes));
-      await writeBytes(original.stderr, Buffer.from(`unzip: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), original.signal);
+      await writeBytes(original.stderr, encodeBytes(`unzip: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), original.signal);
       return { exitCode: 2 };
     } finally { await close(); }
   } };

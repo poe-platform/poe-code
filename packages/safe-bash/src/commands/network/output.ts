@@ -1,3 +1,4 @@
+import { byteLength, encodeBytes } from "../../byte-encoding.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { openFileOutput } from "../../contracts/filesystem-output.js";
 import { outputFailure } from "../../contracts/io.js";
@@ -15,9 +16,9 @@ export function responseHeaders(response: HttpResponse, maxBytes: number): Uint8
   for (const [name, value] of response.headers) {
     if (!/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(name) || /[\r\n\0]/.test(value)) throw new CurlError(56, "Invalid HTTP response header");
     text += `${name}: ${value}\r\n`;
-    if (Buffer.byteLength(text, "latin1") > maxBytes) throw new CurlError(63, "Response headers exceed host byte limit");
+    if (byteLength(text, "latin1") > maxBytes) throw new CurlError(63, "Response headers exceed host byte limit");
   }
-  return new Uint8Array(Buffer.from(`${text}\r\n`, "latin1"));
+  return new Uint8Array(encodeBytes(`${text}\r\n`, "latin1"));
 }
 
 export async function writeOutput(context: CommandContext, path: string | undefined, source: ByteSource, signal: AbortSignal, append = false, preserveEmpty = false): Promise<void> {
@@ -70,7 +71,7 @@ export function writeOutFormat(format: string, values: Readonly<Record<string, s
   const sizes = new Map<string, number>();
   const append = (text: string): void => {
     let size = sizes.get(text);
-    if (size === undefined) { size = Buffer.byteLength(text); sizes.set(text, size); }
+    if (size === undefined) { size = byteLength(text); sizes.set(text, size); }
     if (size > maxBytes - bytes) throw new CurlError(63, "Write-out exceeds host buffer limit");
     bytes += size;
     result += text;

@@ -1,3 +1,4 @@
+import { encodeBytes } from "../byte-encoding.js";
 import { type CommandContext, type FileStat } from "../contracts/index.js";
 import { shellValueBytes, type ShellValue } from "../contracts/value.js";
 import { yieldTurn } from "../contracts/yield.js";
@@ -42,7 +43,7 @@ export class FindFormatBudget {
       let end = Math.min(text.length, offset + 1024);
       if (end < text.length && text.charCodeAt(end - 1) >= 0xd800 && text.charCodeAt(end - 1) <= 0xdbff) end--;
       const part = text.slice(offset, end);
-      await this.write(Buffer.from(part));
+      await this.write(encodeBytes(part));
       offset = end;
     }
   }

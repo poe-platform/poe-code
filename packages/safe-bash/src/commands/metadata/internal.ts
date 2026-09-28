@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, writeBytes, type CommandContext, type CommandDefinition, type CommandHandler, type FileType } from "../../contracts/index.js";
 import { diagnostic } from "../internal.js";
@@ -33,7 +34,7 @@ export class MetadataBudget {
   private outputBytes = 0;
   get remainingEntries(): number { return this.limits.maxEntries - this.entries; }
   constructor(readonly context: CommandContext, readonly limits: MetadataLimits) {
-    if (context.args.reduce((size, argument) => size + Buffer.byteLength(argument), 0) > limits.maxArgumentBytes) throw new FsError("EFBIG", { message: "metadata argument limit exceeded" });
+    if (context.args.reduce((size, argument) => size + byteLength(argument), 0) > limits.maxArgumentBytes) throw new FsError("EFBIG", { message: "metadata argument limit exceeded" });
   }
   async step(depth = 0): Promise<void> {
     this.context.signal.throwIfAborted();

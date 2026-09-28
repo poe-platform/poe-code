@@ -1,3 +1,4 @@
+import { compareByteArrays, decodeBytes, encodeBytes, equalBytes, indexOfBytes } from "../byte-encoding.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { createBufferedOutput, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import { RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, outputRange, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
@@ -255,11 +256,11 @@ class CutOutput {
   }
 }
 
-function cutFieldBoundary(record: Buffer, separator: Uint8Array, start: number, work: SortWork): number | Promise<number> {
+function cutFieldBoundary(record: Uint8Array, separator: Uint8Array, start: number, work: SortWork): number | Promise<number> {
   if (record.length - start <= 4096) {
     const found = separator.length === 1
       ? record.indexOf(separator[0]!, start)
-      : record.indexOf(separator, start);
+      : indexOfBytes(record, separator, start);
     const charged = found < 0 ? record.length - start : found - start + separator.length;
     const checkpoint = work.charge(charged);
     return checkpoint ? checkpoint.then(() => found) : found;
@@ -267,10 +268,10 @@ function cutFieldBoundary(record: Buffer, separator: Uint8Array, start: number, 
   return cutFieldBoundarySlow(record, separator, start, work);
 }
 
-async function cutFieldBoundarySlow(record: Buffer, separator: Uint8Array, start: number, work: SortWork): Promise<number> {
+async function cutFieldBoundarySlow(record: Uint8Array, separator: Uint8Array, start: number, work: SortWork): Promise<number> {
   for (let offset = start; offset < record.length; offset += 4096) {
     const window = record.subarray(offset, Math.min(record.length, offset + 4096 + separator.length - 1));
-    const found = window.indexOf(separator);
+    const found = indexOfBytes(window, separator);
     const checkpoint = work.charge(found < 0 ? Math.min(4096, window.length) : found + separator.length);
     if (checkpoint) await checkpoint;
     if (found >= 0) return offset + found;
@@ -302,7 +303,7 @@ async function compareSortBytesLargeAsync(left: Uint8Array, right: Uint8Array, l
     const end = Math.min(offset + 1024, length);
     const checkpoint = work.charge(2 * (end - offset));
     if (checkpoint) await checkpoint;
-    const compared = Buffer.compare(left.subarray(offset, end), right.subarray(offset, end));
+    const compared = compareByteArrays(left.subarray(offset, end), right.subarray(offset, end));
     if (compared) return compared;
   }
   return left.length - right.length;
@@ -343,7 +344,6 @@ async function admitTextOutput(context: CommandContext, destination: string | un
     await context.fs.capabilitiesFor(pathOf(context, destination), { signal: context.signal }));
 }
 
-function compareBytes(left: Uint8Array, right: Uint8Array): number { return Buffer.compare(left, right); }
 function fold(bytes: Uint8Array): Uint8Array { return bytes.map(byte => byte >= 97 && byte <= 122 ? byte - 32 : byte); }
 
 interface NumericValue { whole: string; fraction: string; negative: boolean; suffixRank: number }
@@ -512,7 +512,7 @@ async function generalNumericValue(bytes: Uint8Array, work: SortWork): Promise<{
     if (checkpoint) await checkpoint;
     start++;
   }
-  const text = Buffer.from(bytes.subarray(start)).toString("latin1");
+  const text = decodeBytes(encodeBytes(bytes.subarray(start)), "latin1");
   const lower = text.toLowerCase();
   const unsigned = lower[0] === "+" || lower[0] === "-" ? lower.slice(1) : lower;
   if (unsigned.startsWith("nan")) return { rank: 1, value: 0 };
@@ -550,7 +550,7 @@ async function monthValue(bytes: Uint8Array, work: SortWork): Promise<number> {
     if (checkpoint) await checkpoint;
     offset++;
   }
-  const name = Buffer.from(bytes.subarray(offset, offset + 3)).toString("latin1").toUpperCase();
+  const name = decodeBytes(encodeBytes(bytes.subarray(offset, offset + 3)), "latin1").toUpperCase();
   return ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"].indexOf(name) + 1;
 }
 
@@ -722,13 +722,13 @@ const sharedSortInScratch = new Uint8Array(65536);
 let sharedSortInUse = false;
 const sharedSortOutScratch = new Uint8Array(65536);
 let lastSort: {
-  readonly input: Buffer;
+  readonly input: Uint8Array;
   readonly output: Uint8Array;
   readonly direction: number;
   readonly maxLineLength: number;
 } | undefined;
 const cachedCutOutBuffer = new Uint8Array(32768);
-let lastCutInBuf: Buffer | undefined;
+let lastCutInBuf: Uint8Array | undefined;
 let lastCutSep = -1;
 let lastCutField = -1;
 let lastCutMaxLineLen = 0;
@@ -1797,7 +1797,7 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
       if (delimiter.length !== 0 && delimiter.length !== (delimiter.codePointAt(0)! > 0xffff ? 2 : 1)) throw new UsageError("delimiter must be a single character");
       const outputDelimiter = value(parsed, "output-delimiter");
       const recordDelimiter = parsed.flags.has("z") ? 0 : 10;
-      const separator = delimiter.length === 0 ? Buffer.of(0) : Buffer.from(encoder.encode(delimiter));
+      const separator = delimiter.length === 0 ? Uint8Array.of(0) : encodeBytes(encoder.encode(delimiter));
       const outputDelimiterBytes = outputDelimiter === undefined ? separator : outputDelimiter.length === 0 ? Uint8Array.of(0) : encoder.encode(outputDelimiter);
       const writer = new CutOutput(context, work);
       let exitCode = 0;
@@ -1930,7 +1930,7 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
                 return included !== complement ? cursor : -1;
               };
               if (mode === "f") {
-                const record = Buffer.from(lineBytes.buffer, lineBytes.byteOffset, lineBytes.byteLength);
+                const record = encodeBytes(lineBytes.buffer, lineBytes.byteOffset, lineBytes.byteLength);
                 const b0 = cutFieldBoundary(record, separator, 0, work);
                 let boundary = typeof b0 === "number" ? b0 : await b0;
                 if (boundary < 0) {
@@ -2182,7 +2182,7 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
     const processLine = (lineBytes: Uint8Array) => {
       context.signal.throwIfAborted();
       const currentKey = key(lineBytes);
-      if (previousKey && compareBytes(previousKey, currentKey) === 0) {
+      if (previousKey && compareByteArrays(previousKey, currentKey) === 0) {
         count++;
         if (expanded && !onlyUnique) {
           if (allRepeated && count === 2) {
@@ -2283,7 +2283,7 @@ export function textCommands(): CommandDefinition[] {
               firstChunkLen === cached.input.byteLength &&
               direction === cached.direction &&
               cached.maxLineLength <= bufferLimit &&
-              cached.input.equals(rawFirst)
+              equalBytes(cached.input, rawFirst)
             ) {
               let res2Fast: IteratorResult<Uint8Array> | undefined;
               try {
@@ -2391,7 +2391,7 @@ export function textCommands(): CommandDefinition[] {
                   }
                   if (firstChunkLen >= 256 && used <= 32768) {
                     lastSort = {
-                      input: Buffer.from(firstChunk.subarray(0, firstChunkLen)),
+                      input: encodeBytes(firstChunk.subarray(0, firstChunkLen)),
                       output: outBuf.slice(0, used),
                       direction,
                       maxLineLength: maxSortLine,
@@ -2657,7 +2657,7 @@ export function textCommands(): CommandDefinition[] {
                     sepByte === lastCutSep &&
                     targetField === lastCutField &&
                     lastCutMaxLineLen <= bufferLimit &&
-                    lastCutInBuf.equals(chunk)
+                    equalBytes(lastCutInBuf, chunk)
                   ) {
                     context.signal.throwIfAborted();
                     if (lastCutOutUsed === 0) return RESOLVED_EXIT_ZERO;
@@ -2725,7 +2725,7 @@ export function textCommands(): CommandDefinition[] {
                     start = offset + 1;
                   }
                   if (fieldMask === 0 && chunk.length >= 256 && outUsed <= 32768) {
-                    lastCutInBuf = Buffer.from(chunk);
+                    lastCutInBuf = encodeBytes(chunk);
                     lastCutSep = sepByte;
                     lastCutField = targetField;
                     lastCutMaxLineLen = maxCutLine;

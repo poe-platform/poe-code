@@ -1,3 +1,4 @@
+import { decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { latin1Bytes, latin1Text } from "../../byte-encoding.js";
 import { shellValueByteLength } from "../../contracts/value.js";
 const textDecoder = new TextDecoder("utf-8", { ignoreBOM: true });
@@ -2024,7 +2025,7 @@ export class AwkRuntime {
         if (file === undefined && !this.sawFile && !this.defaultUsed) { file = "-"; this.defaultUsed = true; }
         if (file === undefined) return undefined;
         this.set("FILENAME", string(file)); this.set("FNR", numeric(0));
-        this.mainReader = new Reader(input(this.context, Buffer.from(file, "latin1").toString("utf8")), this.budget, this.retention);
+        this.mainReader = new Reader(input(this.context, decodeBytes(encodeBytes(file, "latin1"), "utf8")), this.budget, this.retention);
       }
       const record = await this.mainReader.read(this.varText("RS"));
       if (record === undefined) { await this.mainReader.close(); this.mainReader = undefined; continue; }
@@ -2055,7 +2056,7 @@ export class AwkRuntime {
       if (this.fnrNum !== 0 || this.fnrDirty || this.variables.get("FNR") !== SCALAR_ZERO) {
         this.set("FNR", SCALAR_ZERO);
       }
-      const utf8File = isAsciiText(next) ? next : Buffer.from(next, "latin1").toString("utf8");
+      const utf8File = isAsciiText(next) ? next : decodeBytes(encodeBytes(next, "latin1"), "utf8");
       if (utf8File !== "-") {
         const fastMem = (this.context as {
           _fastMemoryBackingFs?: Parameters<typeof tryReadMemoryFileViewSync>[0] & { capabilitiesFor?: unknown };

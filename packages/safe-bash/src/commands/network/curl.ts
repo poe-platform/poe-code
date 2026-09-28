@@ -1,3 +1,4 @@
+import { byteLength, decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { scheduleNetworkDeadline } from "./deadline.js";
 import { collectNetworkBytes as collectBytes } from "./shared.js";
 import { normalizePath, posixPath as posix } from "../../contracts/path.js";
@@ -56,7 +57,7 @@ function requestHeaders(args: CurlArguments, contentType: string | undefined, us
   }
   if (scoped && args.etag !== undefined) defaults.push(["If-None-Match", args.etag]);
   if (args.range !== undefined) defaults.push(["Range", `bytes=${args.range}`]);
-  if (scoped && user !== undefined) defaults.push(["Authorization", `Basic ${Buffer.from(user).toString("base64")}`]);
+  if (scoped && user !== undefined) defaults.push(["Authorization", `Basic ${decodeBytes(encodeBytes(user), "base64")}`]);
   if (scoped && args.bearer !== undefined) {
     if (/[\r\n\0]/.test(args.bearer)) throw new CurlError(2, "Invalid bearer token");
     defaults.push(["Authorization", `Bearer ${args.bearer}`]);
@@ -65,7 +66,7 @@ function requestHeaders(args: CurlArguments, contentType: string | undefined, us
   const names = new Set(custom.map(([name]) => name.toLowerCase()));
   const result = [...defaults.filter(([name]) => !names.has(name.toLowerCase())),
     ...custom.filter((entry): entry is [string, string] => entry[1] !== null)];
-  if (result.reduce((size, [name, value]) => size + Buffer.byteLength(name + value) + 4, 0) > maxBytes) {
+  if (result.reduce((size, [name, value]) => size + byteLength(name + value) + 4, 0) > maxBytes) {
     throw new CurlError(63, "Request headers exceed host byte limit");
   }
   return result;
@@ -140,7 +141,7 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
       let args: CurlArguments;
       let expanded: (ExpandedUrl & { destination?: { output?: string; remoteName: boolean } })[];
       try {
-        if (context.args.reduce((size, value) => size + Buffer.byteLength(value), 0) > limits.maxBufferBytes) throw new CurlError(2, "Arguments exceed host buffer limit");
+        if (context.args.reduce((size, value) => size + byteLength(value), 0) > limits.maxBufferBytes) throw new CurlError(2, "Arguments exceed host buffer limit");
         args = await withSignal(() => profile.parse({ ...context, signal: parsingSignal }, limits), parsingSignal);
         parsingSignal.throwIfAborted();
         if (performance.now() - started >= limits.maxTotalTimeMs) throw new CurlError(28, "Operation timed out");
@@ -250,7 +251,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         bytes = new Uint8Array();
       }
       if (bytes.length > limits.maxBufferBytes) throw new CurlError(63, "ETag file exceeds host buffer limit");
-      const text = Buffer.from(bytes).toString("latin1");
+      const text = decodeBytes(encodeBytes(bytes), "latin1");
       args.etag = text.split("\r").join("").split("\n").join("") || '""';
       validateRequestHeader("If-None-Match", args.etag);
     }
@@ -271,7 +272,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         const bytes = format === "@-"
           ? await collectBytes(borrowed, { signal, maxBytes: limits.maxBufferBytes })
           : await withSignal(() => context.fs.readFile(pathOf(context, format!.slice(1)), { signal, ...(Number.isFinite(limits.maxBufferBytes) ? { maxBytes: limits.maxBufferBytes } : {}) }), signal);
-        format = Buffer.from(bytes).toString("utf8");
+        format = decodeBytes(encodeBytes(bytes), "utf8");
       } catch { signal.throwIfAborted(); throw new CurlError(26, "Failed reading write-out format"); }
     }
     if (format !== undefined) { writeOutFormat(format, values, limits.maxBufferBytes); formatReady = true; }
@@ -401,7 +402,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         }
         if (args.etagSave !== undefined) {
           const tag = header(response.headers, "etag");
-          const bytes = tag === undefined ? new Uint8Array() : new Uint8Array(Buffer.from(`${tag}\n`, "latin1"));
+          const bytes = tag === undefined ? new Uint8Array() : new Uint8Array(encodeBytes(`${tag}\n`, "latin1"));
           if (args.etagSave === "-") await publish(bytes);
           else await writeOutput(context, args.etagSave, toByteSource(bytes), signal);
         }

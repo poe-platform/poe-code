@@ -1,3 +1,4 @@
+import { byteLength } from "../../../byte-encoding.js";
 import { shellValueFromBytes } from "../../../contracts/value.js";
 import { createCommandArguments, toByteSource, type ByteSink } from "../../../contracts/index.js";
 import { Budget, fail } from "../internal.js";
@@ -47,11 +48,11 @@ export async function testZipCommand(scope: ZipScope, command: readonly string[]
     for (const word of virtualCommand.slice(1)) {
       let placeholders = 0;
       for (let index = 0; index + 1 < word.length; index++) if (word[index] === "{" && word[index + 1] === "}") { placeholders++; index++; }
-      const size = Buffer.byteLength(word) + placeholders * (Buffer.byteLength(path) - 2) + 1;
+      const size = byteLength(word) + placeholders * (byteLength(path) - 2) + 1;
       if (size > limits.maxArgumentBytes - argumentBytes) fail("ZIP test-command argument byte limit exceeded");
       argumentBytes += size;
     }
-    if (!placeholders && Buffer.byteLength(path) + 1 > limits.maxArgumentBytes - argumentBytes) fail("ZIP test-command argument byte limit exceeded");
+    if (!placeholders && byteLength(path) + 1 > limits.maxArgumentBytes - argumentBytes) fail("ZIP test-command argument byte limit exceeded");
     const args = virtualCommand.slice(1).map(word => word.split("{}").join(path));
     if (!placeholders) args.push(path);
     const values = createCommandArguments(command === undefined && password !== undefined ? ["-P", shellValueFromBytes(password), ...args] : args);

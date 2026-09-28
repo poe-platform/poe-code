@@ -1,3 +1,4 @@
+import { concatBytes } from "../../../byte-encoding.js";
 import { dirname, isPathWithin, readBytes, resolvePath, type ByteSource, type CommandContext, type FileStat, type FileStaging, type FileStagingEntry } from "../../../contracts/index.js";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { checkPath, display, fail, hasIdentity, sameIdentity, type ArchiveLimits } from "../internal.js";
@@ -191,7 +192,7 @@ export class Extraction {
     try {
       if (!isPathWithin(root, path)) fail("extraction path escapes root");
       await this.directory(dirname(path), false, ancestors);
-      const content = target === undefined ? { type: "file" as const, data: Buffer.concat(chunks) } : { type: "symlink" as const, target };
+      const content = target === undefined ? { type: "file" as const, data: concatBytes(chunks) } : { type: "symlink" as const, target };
       for (let attempt = 0; attempt < this.limits.maxMembers; attempt++) {
         const temporary = resolvePath(dirname(path), `.unzip-${++this.serial}`);
         checkPath(temporary, this.limits);

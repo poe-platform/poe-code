@@ -1,3 +1,4 @@
+import { decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { dirname, resolvePath } from "../../contracts/path.js";
 import { SafeJsCommandLimitError, type SafeJsCommandLimits, type SafeJsRunOptions } from "../safejs/types.js";
 
@@ -148,7 +149,7 @@ export async function nodeSourceLocation(source: string, filename: string, cwd: 
         if (comma < 0) throw new Error("invalid source map data URI");
         const header = reference.slice(0, comma);
         const payload = reference.slice(comma + 1);
-        json = header.endsWith(";base64") ? Buffer.from(payload, "base64").toString("utf8") : decodeURIComponent(payload);
+        json = header.endsWith(";base64") ? decodeBytes(encodeBytes(payload, "base64"), "utf8") : decodeURIComponent(payload);
       } else {
         // Never fetch remote maps or escape the caller's explicit VFS through host paths.
         if (reference.includes(":") || reference.startsWith("//")) throw new Error("unsupported source map URL");

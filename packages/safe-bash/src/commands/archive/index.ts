@@ -1,4 +1,5 @@
 import { ungzip as gunzipSync, inflateRaw as inflateRawSync } from "pako";
+import { encodeBytes } from "../../byte-encoding.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { builtInDirectContextExecutors } from "../internal.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
@@ -40,7 +41,7 @@ export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandD
     try {
       const parsed = await parseOptions(context, limits);
       if (parsed === "help") {
-        await writeBytes(context.stdout, Buffer.from(`Usage: tar [OPTION]... [FILE]...
+        await writeBytes(context.stdout, encodeBytes(`Usage: tar [OPTION]... [FILE]...
 Create, read or modify USTAR/PAX archives in the virtual filesystem.
 
   -c, --create             Create an archive
@@ -140,7 +141,7 @@ Examples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C dir
       controller.abort(error);
       original.signal.throwIfAborted();
       const message = escapeText(display((publicDiagnosticMessage(error, original.onInternalError)).slice(0, 1024)), "diagnostic");
-      await writeBytes(original.stderr, Buffer.from(`tar: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), original.signal);
+      await writeBytes(original.stderr, encodeBytes(`tar: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), original.signal);
       return { exitCode: 2 };
     } finally { controller.abort(new Error("tar command finished")); }
   } };

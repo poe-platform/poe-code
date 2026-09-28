@@ -1,3 +1,4 @@
+import { decodeBytes, encodeBytes, equalBytes } from "../../byte-encoding.js";
 import { collectBytes, resolvePath, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { createArchive, manifest } from "./create.js";
 import { readArchive } from "./extract.js";
@@ -49,7 +50,7 @@ export async function compareArchive(context: CommandContext, options: TarOption
       try {
         for await (const chunk of reader.body(entry.size)) {
           const bytes = await actual.exact(chunk.length);
-          if (!Buffer.from(chunk).equals(bytes)) equal = false;
+          if (!equalBytes(encodeBytes(chunk), bytes)) equal = false;
         }
         if (await actual.take(1)) equal = false;
       } finally { await actual.close(); }
@@ -81,7 +82,7 @@ export async function mutateArchive(context: CommandContext, options: TarOptions
   const scan = async (inputPath: string, deleting: boolean) => {
     const data = await collectBytes(fileSource(context, inputPath, budget.limits), { ...(Number.isFinite(budget.limits.maxArchiveBytes) ? { maxBytes: budget.limits.maxArchiveBytes } : {}), signal: context.signal });
     const prefix = data.subarray(0, 6);
-    if ((prefix[0] === 31 && prefix[1] === 139) || Buffer.from(prefix.subarray(0, 3)).toString() === "BZh" || [253, 55, 122, 88, 90, 0].every((value, index) => prefix[index] === value)) fail("cannot modify compressed archives");
+    if ((prefix[0] === 31 && prefix[1] === 139) || decodeBytes(encodeBytes(prefix.subarray(0, 3))) === "BZh" || [253, 55, 122, 88, 90, 0].every((value, index) => prefix[index] === value)) fail("cannot modify compressed archives");
     await readArchive(context, (async function* () { yield data; })(), deleting ? options : { ...options, mode: "t", operands: [], excludes: [] }, budget, {
       rejectGlobal: true,
       async member(entry, reader, selected, _root, start) {

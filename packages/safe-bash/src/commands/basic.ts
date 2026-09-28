@@ -1,3 +1,4 @@
+import { byteLength } from "../byte-encoding.js";
 import { writeDiagnostic } from "../escaping.js";
 import { FsError, getCommandArguments, type CommandContext, type CommandDefinition, type CommandHandler, type CommandResult } from "../contracts/index.js";
 import { define, escapeBytes, options, output, requireOperands, UsageError } from "./internal.js";
@@ -487,7 +488,7 @@ export function tryFastPrintf(args: readonly string[], allowNull = false): strin
               valByteLen = val.length;
             }
           } else if (precision < 0) {
-            valByteLen = utf8Encoder.encode(rawVal).byteLength;
+            valByteLen = byteLength(rawVal, "utf8");
           } else {
             return undefined;
           }

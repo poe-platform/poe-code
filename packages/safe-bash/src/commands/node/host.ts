@@ -1,3 +1,4 @@
+import { byteLength, concatBytes } from "../../byte-encoding.js";
 import { posix } from "node:path";
 import { yieldTurn } from "../../contracts/yield.js";
 import { escapeText } from "../../escaping.js";
@@ -41,7 +42,7 @@ export function readNodeHostRequest(value: unknown, limits: NodeLimits = nodeLim
   if (sequence === 0) throw new NodeProfileError("request sequence");
   let bytes = 0;
   for (const field of ["op", "authority", "path", "flag", "moduleKey"] as const) {
-    if (item[field] !== null) { const entry = text(item[field], field === "path" ? limits.pathBytes : limits.metadataBytes, "request metadata"); bytes += Buffer.byteLength(entry); }
+    if (item[field] !== null) { const entry = text(item[field], field === "path" ? limits.pathBytes : limits.metadataBytes, "request metadata"); bytes += byteLength(entry); }
   }
   if (bytes > limits.metadataBytes) throw new NodeProfileError("request metadata");
   if (item.text !== null) text(item.text, limits.operationBytes, "request payload");
@@ -121,7 +122,7 @@ export class NodeHost {
         releases.push(this.owner.ledger.reserve("stdin-" + this.#pulls, fragment.byteLength));
         pieces.push(fragment.slice()); offset += fragment.byteLength;
       }
-      return Buffer.concat(pieces);
+      return concatBytes(pieces);
     } finally { this.#stdinActive = false; for (const release of releases) release(); }
   }
   async source(filename: string | null): Promise<string> {
@@ -197,7 +198,7 @@ export class NodeHost {
       } finally { bytes = undefined; }
     }
     const payload = item.text!;
-    const size = Buffer.byteLength(payload);
+    const size = byteLength(payload);
     if (item.op === "writeText") {
       if (!this.grants.dataWrite) return deny();
       if (size > this.limits.writeBytes - this.#written) throw new NodeProfileError("write bytes");
@@ -234,7 +235,7 @@ export class NodeHost {
   async diagnostic(value: string): Promise<void> {
     if (!this.grants.stderrWrite) return;
     const escaped = escapeText(value, "diagnostic");
-    const count = Buffer.byteLength(escaped);
+    const count = byteLength(escaped);
     if (count > this.limits.outputBytes - this.#output) throw new NodeProfileError("diagnostic output bytes");
     this.#output += count;
     await this.write(this.owner.context.stderr, escaped);
@@ -246,7 +247,7 @@ export class NodeHost {
     let release: (() => void) | undefined;
     let resultRelease: (() => void) | undefined;
     try {
-      release = this.owner.ledger.reserve("operation-" + item.sequence, Buffer.byteLength(JSON.stringify(item)) * 6);
+      release = this.owner.ledger.reserve("operation-" + item.sequence, byteLength(JSON.stringify(item)) * 6);
       let result: NodeHostResponse;
       let failure: NodeReason | undefined;
       try { result = await this.#perform(item); }
@@ -261,7 +262,7 @@ export class NodeHost {
         failure = { present: true, value: actual };
         result = response(item.sequence, "fsError", null, null, descriptor);
       }
-      resultRelease = this.owner.ledger.reserve("result-" + item.sequence, Buffer.byteLength(JSON.stringify(result)) * 2);
+      resultRelease = this.owner.ledger.reserve("result-" + item.sequence, byteLength(JSON.stringify(result)) * 2);
       const acquiredRequest = release;
       const acquiredResult = resultRelease;
       this.#pending = { sequence: item.sequence, response: result, failure, release: () => { acquiredRequest(); acquiredResult(); } };

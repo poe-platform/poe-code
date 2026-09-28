@@ -1,3 +1,4 @@
+import { byteLength, decodeBytes, encodeBytes } from "../../../byte-encoding.js";
 import { getCommandArguments, readBytes, type ByteSource, type CommandContext } from "../../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../../contracts/value.js";
 import { yieldTurn } from "../../../contracts/yield.js";
@@ -9,7 +10,7 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
   const passwordArguments = new Set<number>();
   let bytes = 0;
   for (const argument of args) {
-    bytes += Buffer.byteLength(argument) + 1;
+    bytes += byteLength(argument) + 1;
     if (bytes > limits.maxArgumentBytes) fail("argument byte limit exceeded");
     if (argument.includes("\0")) fail("NUL in argument");
   }
@@ -56,7 +57,7 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
           if (value === undefined) fail("password option requires a value");
           passwordArguments.add(index);
           const raw = rawArguments?.bytes(index);
-          password = raw ? new Uint8Array(raw.subarray(attached ? offset + 1 : 0)) : Buffer.from(value);
+          password = raw ? new Uint8Array(raw.subarray(attached ? offset + 1 : 0)) : encodeBytes(value);
           break;
         } else if (flag === "Z" && index === 0 && offset === 1) zipinfo = true;
         else if (flag === "1" && zipinfo) names = true;
@@ -240,7 +241,7 @@ export class Answers {
       answer.push(byte);
       if (byte === 10) break;
     }
-    return answer.length ? Buffer.from(answer).toString("utf8") : undefined;
+    return answer.length ? decodeBytes(encodeBytes(answer), "utf8") : undefined;
   }
   async close(): Promise<void> { await this.iterator.return?.(); }
 }

@@ -1,3 +1,4 @@
+import { concatBytes, encodeBytes } from "../../../byte-encoding.js";
 import { readBytes, type ByteSource } from "../../../contracts/index.js";
 import { yieldTurn } from "../../../contracts/yield.js";
 import { fail, type ArchiveLimits } from "../internal.js";
@@ -52,10 +53,10 @@ export async function readZipComment(source: ByteSource | ZipCommentInput, limit
       const text = line.at(-1) === 10 ? line.subarray(0, -1) : line;
       const separator = length || !text.length ? 2 : 0;
       if (text.length + separator > Math.min(limits.maxTextBytes, 65535) - length) fail("ZIP archive comment byte limit exceeded");
-      if (separator) parts.push(Buffer.from("\r\n"));
+      if (separator) parts.push(encodeBytes("\r\n"));
       if (text.length) parts.push(text);
       length += separator + text.length;
     }
-    return Buffer.concat(parts, length);
+    return concatBytes(parts, length);
   } finally { await input.iterator.return?.(); }
 }

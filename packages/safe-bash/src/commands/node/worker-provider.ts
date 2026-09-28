@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { Worker } from "node:worker_threads";
 import { types } from "node:util";
 import { acquire, channel, decodeMetadata, encodeMetadata, phases, publish, stop, type NodeChannel, type NodeFrame } from "./channel.js";
@@ -147,7 +148,7 @@ class WorkerSession {
     this.#event("request", request.sequence);
     this.#result = await this.services.request(request);
     this.#incoming = undefined;
-    const total = this.#result.text === null ? 0 : Buffer.byteLength(this.#result.text);
+    const total = this.#result.text === null ? 0 : byteLength(this.#result.text);
     this.#reserve("response", 65536 + total * 16);
     this.#outgoing = this.#result.text === null ? empty : new TextEncoder().encode(this.#result.text);
     this.#copied = 0;
@@ -200,8 +201,8 @@ class WorkerSession {
     const result = new Promise<NodeCompletion>((resolve, reject) => { this.#resolve = resolve; this.#reject = reject; });
     try {
       this.services.signal.throwIfAborted();
-      const contextBytes = Buffer.byteLength(JSON.stringify({ cwd: this.request.cwd, filename: this.request.filename, argv: this.request.argv, env: this.request.env }));
-      this.#baseRelease = this.services.reserve("worker-static", this.limits.sabBytes + 65536 + 2 * (Buffer.byteLength(this.request.program) + Buffer.byteLength(this.request.source) + contextBytes));
+      const contextBytes = byteLength(JSON.stringify({ cwd: this.request.cwd, filename: this.request.filename, argv: this.request.argv, env: this.request.env }));
+      this.#baseRelease = this.services.reserve("worker-static", this.limits.sabBytes + 65536 + 2 * (byteLength(this.request.program) + byteLength(this.request.source) + contextBytes));
       const sab = new SharedArrayBuffer(this.limits.sabBytes); this.#channel = channel(sab, this.limits);
       this.#exited = new Promise<void>(resolve => { this.#exit = resolve; });
       this.#acquisitionAttempted = true;

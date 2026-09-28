@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { Budget, ToolError, integer } from "./shared.js";
 import { decodeHeaderPath, isEpochHeader } from "./patch-path.js";
 
@@ -150,7 +151,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
   const result: string[] = [];
   let resultBytes = 0;
   const append = (line: string) => {
-    resultBytes += Buffer.byteLength(line);
+    resultBytes += byteLength(line);
     if (resultBytes > budget.limits.maxOutputBytes) throw new ToolError("output byte limit exceeded");
     result.push(line);
   };

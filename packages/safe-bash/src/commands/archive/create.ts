@@ -1,3 +1,4 @@
+import { compareByteArrays, encodeBytes, equalBytes } from "../../byte-encoding.js";
 import { dirname, readBytes, resolvePath, type ByteSource, type CommandContext, type FileStat } from "../../contracts/index.js";
 import { escapeText } from "../../escaping.js";
 import { encodeEntry, type Entry } from "./format.js";
@@ -110,17 +111,17 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
       const children = await operation(context, () => context.fs.readdir(path, { signal: context.signal,
         ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) }));
       if (children.length > budget.limits.maxMembers - budget.members) fail("member/header limit exceeded");
-      if (options.sort === "name") children.sort((a, b) => Buffer.compare(Buffer.from(a.name), Buffer.from(b.name)));
+      if (options.sort === "name") children.sort((a, b) => compareByteArrays(encodeBytes(a.name), encodeBytes(b.name)));
       let cache = false;
       if (options.excludeCaches && children.some(child => child.name === "CACHEDIR.TAG")) {
         const tag = resolvePath(canonical, "CACHEDIR.TAG");
         const tagStat = await operation(context, () => context.fs.stat(tag, { signal: context.signal }));
         if (tagStat.type === "file") {
-          const signature = Buffer.from("Signature: 8a477f597d28d172789f06886806bc55");
+          const signature = encodeBytes("Signature: 8a477f597d28d172789f06886806bc55");
           let offset = 0;
           for await (const chunk of readBytes(fileSource(context, tag, budget.limits), context.signal)) {
             const length = Math.min(chunk.length, signature.length - offset);
-            if (!Buffer.from(chunk.subarray(0, length)).equals(signature.subarray(offset, offset + length))) break;
+            if (!equalBytes(encodeBytes(chunk.subarray(0, length)), signature.subarray(offset, offset + length))) break;
             offset += length;
             if (offset === signature.length) { cache = true; break; }
           }

@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { retainFileSystemCleanup, dirname, isPathWithin, resolvePath } from "@poe-code/safe-fs/core";
 import { collectBytes, writeBytes, type FileStaging, type FileStagingEntry, type ByteSource, type CommandContext, type FileStat } from "../../contracts/index.js";
 import { applyPax, numberField, parseHeader, parsePax, type ReadEntry } from "./format.js";
@@ -332,7 +333,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
             for (const [key, value] of values) global.set(key, value);
           } else { for (const [key, value] of values) local.set(key, value); pending = true; }
           for (const state of [global, local]) {
-            if ([...state].reduce((size, [key, value]) => size + Buffer.byteLength(key) + Buffer.byteLength(value), 0) > budget.limits.maxPaxBytes) fail("PAX state byte limit exceeded");
+            if ([...state].reduce((size, [key, value]) => size + byteLength(key) + byteLength(value), 0) > budget.limits.maxPaxBytes) fail("PAX state byte limit exceeded");
           }
         } else {
           if (payload.length === 0 || payload.at(-1) !== 0) fail("invalid GNU long-name record");

@@ -1,3 +1,4 @@
+import { concatBytes, encodeBytes, indexOfBytes } from "../../byte-encoding.js";
 import { createNodePythonWorker } from './node.js';
 import type { PythonWorkerEndpoint } from './index.js';
 import { encodePythonReply } from './reply.js';
@@ -15,7 +16,7 @@ export async function runDockerPythonExecutor(options: DockerPythonRunnerOptions
   if (runtimeModuleURL.protocol !== 'file:') throw new TypeError('The isolated Python runtime must be present in its immutable image');
   const input = process.stdin;
   const output = process.stdout;
-  let buffered = Buffer.alloc(0);
+  let buffered: Uint8Array = new Uint8Array(0);
   let limit = 16777216;
   let endpoint: PythonWorkerEndpoint | undefined;
   let unsubscribe: (() => void) | undefined;
@@ -37,7 +38,7 @@ export async function runDockerPythonExecutor(options: DockerPythonRunnerOptions
     await endpoint?.terminate();
   });
   const write = (value: unknown): Promise<void> => new Promise((resolve, reject) => {
-    try { output.write(Buffer.concat([encodePythonReply(value, limit), Buffer.from('\n')]), error => error ? reject(error) : resolve()); }
+    try { output.write(concatBytes([encodePythonReply(value, limit), encodeBytes('\n')]), error => error ? reject(error) : resolve()); }
     catch (error) { reject(error); }
   });
   const receive = (frame: any) => {
@@ -75,16 +76,16 @@ export async function runDockerPythonExecutor(options: DockerPythonRunnerOptions
     }, fail);
     endpoint.postMessage({ ...frame, shared });
   };
-  const data = (chunk: Buffer) => {
+  const data = (chunk: Uint8Array) => {
     if (finished) return;
     try {
       if (buffered.length + chunk.length > limit + 1) throw new PythonFailure('transport-unavailable');
-      buffered = Buffer.concat([buffered, chunk]);
+      buffered = concatBytes([buffered, chunk]);
       let end: number;
-      while (!finished && (end = buffered.indexOf(10)) >= 0) {
+      while (!finished && (end = indexOfBytes(buffered, 10)) >= 0) {
         if (end > limit) throw new PythonFailure('transport-unavailable');
         const frame = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(buffered.subarray(0, end)));
-        buffered = Buffer.from(buffered.subarray(end + 1));
+        buffered = encodeBytes(buffered.subarray(end + 1));
         receive(frame);
       }
       if (buffered.length > limit) throw new PythonFailure('transport-unavailable');

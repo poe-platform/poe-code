@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { resolvePath } from "../../contracts/path.js";
 import { SafeJsCommandLimitError } from "../safejs/types.js";
 
@@ -15,7 +16,7 @@ export async function nodeEnvironment(
       if (file.optional && typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") continue;
       throw error;
     }
-    remainingBytes -= Buffer.byteLength(source);
+    remainingBytes -= byteLength(source);
     if (remainingBytes < 0) throw new SafeJsCommandLimitError("maxSourceBytes");
     let index = 0;
     const nextLine = (): void => { while (index < source.length && source[index] !== "\n") index++; index++; };

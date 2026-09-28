@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { NodeProfileError, NodeUsageError, nodeLimits, type NodeLimits, type NodeSelector } from "./types.js";
 import { tokenizeNodeSource, type NodeToken } from "./admission.js";
 
@@ -162,7 +163,7 @@ class Lowerer {
       let fragment: string;
       if (typeof item === "string") fragment = item;
       else fragment = this.available(item) ? item.name : item.query ? "undefined" : "__vnodeRules.unbound(" + quote(item.name) + ")";
-      bytes += Buffer.byteLength(fragment); if (bytes > this.limits.sourceBytes) throw new NodeProfileError("lowered source bytes"); chunks.push(fragment);
+      bytes += byteLength(fragment); if (bytes > this.limits.sourceBytes) throw new NodeProfileError("lowered source bytes"); chunks.push(fragment);
     }
     return chunks.join("");
   }

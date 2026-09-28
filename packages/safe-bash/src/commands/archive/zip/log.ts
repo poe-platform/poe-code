@@ -1,3 +1,4 @@
+import { concatBytes, decodeBytes, encodeBytes, indexOfBytes } from "../../../byte-encoding.js";
 import { dirname, writeBytes, type ByteSink, type FileStat } from "../../../contracts/index.js";
 import { writeFileOutput } from "../../../contracts/filesystem-output.js";
 import { checkPath, hasIdentity, sameIdentity, vfsPath } from "../internal.js";
@@ -96,27 +97,27 @@ export class ZipLog {
   sink(destination: ByteSink, quiet = false): ByteSink {
     const { context, limits } = this.scope;
     return { write: async chunk => {
-      if (!this.failed && (this.info || Buffer.from(chunk).toString().includes("warning:") || Buffer.from(chunk).toString().includes("error:") || destination === context.stderr)) {
+      if (!this.failed && (this.info || decodeBytes(encodeBytes(chunk)).includes("warning:") || decodeBytes(encodeBytes(chunk)).includes("error:") || destination === context.stderr)) {
         try {
-          const input = Buffer.from(chunk);
+          const input = encodeBytes(chunk);
           const secret = this.password;
           const fragments: Uint8Array[] = [];
           let start = 0;
           let size = 0;
           if (secret?.length) {
             for (;;) {
-              const offset = input.indexOf(secret, start);
+              const offset = indexOfBytes(input, secret, start);
               if (offset < 0) break;
               size += offset - start + 10;
               if (size > limits.maxTextBytes - this.bytes) throw new Error("log byte limit");
-              fragments.push(input.subarray(start, offset), Buffer.from("[redacted]"));
+              fragments.push(input.subarray(start, offset), encodeBytes("[redacted]"));
               start = offset + secret.length;
             }
           }
           size += input.length - start;
           if (size > limits.maxTextBytes - this.bytes) throw new Error("log byte limit");
           fragments.push(input.subarray(start));
-          const redacted = fragments.length === 1 ? input : Buffer.concat(fragments, size);
+          const redacted = fragments.length === 1 ? input : concatBytes(fragments, size);
           if (redacted.length > limits.maxTextBytes - this.bytes) throw new Error("log byte limit");
           if (this.started) await this.write(redacted);
           else this.pending.push(Uint8Array.from(redacted));
@@ -127,7 +128,7 @@ export class ZipLog {
           throw new ZipFailure(11, "Error writing to a file", "ZIP log write failed or exceeded its byte limit");
         }
       }
-      const message = Buffer.from(chunk).toString();
+      const message = decodeBytes(encodeBytes(chunk));
       if (!quiet || message.includes("zip error:") || message.startsWith("zip:")) await writeBytes(destination, chunk, context.signal);
     } };
   }

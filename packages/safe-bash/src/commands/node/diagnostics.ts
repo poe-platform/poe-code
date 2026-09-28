@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { types } from "node:util";
 import { nodeLimits, type NodeLimits, type NodeObservation, type NodeReason } from "./types.js";
 
@@ -16,7 +17,7 @@ export function observeNodeFailure(reason: unknown, limits: NodeLimits = nodeLim
         if (!Object.hasOwn(descriptor, "value")) { fault = true; continue; }
         const value: unknown = descriptor.value;
         if (typeof value !== "string") continue;
-        if (value.length > limits.errorBytes || Buffer.byteLength(value) > limits.errorBytes) { fault = true; continue; }
+        if (value.length > limits.errorBytes || byteLength(value) > limits.errorBytes) { fault = true; continue; }
         fields[key] = value;
       }
     } else if (types.isProxy(reason)) fault = true;

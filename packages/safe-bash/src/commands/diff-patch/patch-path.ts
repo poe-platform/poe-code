@@ -1,3 +1,4 @@
+import { encodeBytes } from "../../byte-encoding.js";
 import { ToolError } from "./shared.js";
 
 export function decodeHeaderPath(value: string): string {
@@ -27,7 +28,7 @@ export function decodeHeaderPath(value: string): string {
     } else {
       const point = value.codePointAt(index - 1)!;
       const literal = String.fromCodePoint(point);
-      bytes.push(...Buffer.from(literal));
+      bytes.push(...encodeBytes(literal));
       index += literal.length - 1;
     }
   }

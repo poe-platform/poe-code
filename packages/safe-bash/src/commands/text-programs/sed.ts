@@ -1,3 +1,4 @@
+import { decodeBytes, encodeBytes, writeEncodedBytes } from "../../byte-encoding.js";
 import type { FileSystem } from "@poe-code/safe-fs";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { FsError, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
@@ -239,7 +240,7 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
     horizontal();
     const start = offset;
     while (offset < source.length && source[offset] !== "\n") offset++;
-    const file = Buffer.from(source.slice(start, offset), "latin1").toString("utf8");
+    const file = decodeBytes(encodeBytes(source.slice(start, offset), "latin1"), "utf8");
     if (!file || file.includes("\0")) throw new ProgramError("file command requires a nonempty filename without NUL");
     return file;
   };
@@ -363,7 +364,7 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
         const end = chunk.indexOf(0, start);
         const stop = end < 0 ? chunk.byteLength : end;
         if (pending.length + stop - start > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-        pending += Buffer.from(chunk.subarray(start, stop)).toString("latin1");
+        pending += decodeBytes(encodeBytes(chunk.subarray(start, stop)), "latin1");
         if (end < 0) break;
         yield { text: pending, terminated: true, file, fileIndex };
         pending = "";
@@ -376,7 +377,7 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
 
 const STDOUT_CAP = 65536;
 const STDOUT_FLUSH = 60000;
-let sharedSedStdoutBuf: Buffer | undefined;
+let sharedSedStdoutBuf: Uint8Array | undefined;
 let sharedSedStdoutBufInUse = false;
 let lastSedPairProgram: readonly Instruction[] | undefined;
 let lastSedPairBatch: unknown;
@@ -499,12 +500,12 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     : undefined;
   const canReuseStdoutBuf = !(context.stdout as { isPipeStage?: boolean }).isPipeStage;
   let usingSharedStdoutBuf = false;
-  let stdoutBuf: Buffer | undefined;
+  let stdoutBuf: Uint8Array | undefined;
   if (canReuseStdoutBuf && !sharedSedStdoutBufInUse) {
     sharedSedStdoutBufInUse = true;
     usingSharedStdoutBuf = true;
     if (!sharedSedStdoutBuf) {
-      sharedSedStdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+      sharedSedStdoutBuf = new Uint8Array(STDOUT_CAP);
     }
     stdoutBuf = sharedSedStdoutBuf;
   }
@@ -514,21 +515,21 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     const tLen = text.length;
     if (tLen === 0) return;
     if (!stdoutBuf) {
-      stdoutBuf = Buffer.allocUnsafe(Math.max(STDOUT_CAP, tLen + 1));
+      stdoutBuf = new Uint8Array(Math.max(STDOUT_CAP, tLen + 1));
     } else if (stdoutLen + tLen > stdoutBuf.length) {
-      const grown = Buffer.allocUnsafe(Math.max(stdoutBuf.length * 2, stdoutLen + tLen + 1));
-      stdoutBuf.copy(grown, 0, 0, stdoutLen);
+      const grown = new Uint8Array(Math.max(stdoutBuf.length * 2, stdoutLen + tLen + 1));
+      grown.set(stdoutBuf.subarray(0, stdoutLen), 0);
       stdoutBuf = grown;
     }
-    stdoutBuf.write(text, stdoutLen, tLen, "latin1");
+    writeEncodedBytes(stdoutBuf, text, stdoutLen, tLen, "latin1");
     stdoutLen += tLen;
   };
   const appendStdoutSep = (): void => {
     if (!stdoutBuf) {
-      stdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+      stdoutBuf = new Uint8Array(STDOUT_CAP);
     } else if (stdoutLen + 1 > stdoutBuf.length) {
-      const grown = Buffer.allocUnsafe(stdoutBuf.length * 2);
-      stdoutBuf.copy(grown, 0, 0, stdoutLen);
+      const grown = new Uint8Array(stdoutBuf.length * 2);
+      grown.set(stdoutBuf.subarray(0, stdoutLen), 0);
       stdoutBuf = grown;
     }
     stdoutBuf[stdoutLen++] = sepCode;
@@ -543,7 +544,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
         stdoutSync.writeSync(chunk);
         return undefined;
       }
-      return writeBytes(context.stdout, Buffer.from(chunk), context.signal);
+      return writeBytes(context.stdout, encodeBytes(chunk), context.signal);
     }
     return undefined;
   };
@@ -778,7 +779,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
                     record.terminated &&
                     !outputState.stdoutUnterminated
                   ) {
-                    if (!stdoutBuf) stdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+                    if (!stdoutBuf) stdoutBuf = new Uint8Array(STDOUT_CAP);
                     const newPosOrPromise = trySubstitutePairToBufferSync(
                       pattern,
                       expression,
@@ -817,7 +818,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
                           if (batchIndex === 0 && currentBatch.firstLinePrefix) break;
                           const lStart = batchIndex === 0 ? 0 : batchEnds[batchIndex - 1]! + 1;
                           const lEnd = batchEnds[batchIndex]!;
-                          if (!stdoutBuf) stdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+                          if (!stdoutBuf) stdoutBuf = new Uint8Array(STDOUT_CAP);
                           const nextPosOrPromise = trySubstitutePairToBufferSync(
                             batchText,
                             expression,
@@ -950,12 +951,12 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "y": {
             // Interpreter strings contain one Latin-1 code unit per input byte.
             budget.step(pattern.length);
-            const translated = Buffer.allocUnsafe(pattern.length);
+            const translated = new Uint8Array(pattern.length);
             for (let index = 0; index < pattern.length; index++) {
               if (index % 256 === 0) await budget.checkpointSync();
               translated[index] = (instruction.translation!.get(pattern[index]!) ?? pattern[index]!).charCodeAt(0);
             }
-            pattern = translated.toString("latin1");
+            pattern = decodeBytes(translated, "latin1");
             break;
           }
           case "b": pc = instruction.jump!; continue;
@@ -1010,7 +1011,7 @@ function runSedPairBatchLoopSync(
   g2: boolean,
   o2: number,
   budget: Budget,
-  stdoutBuf: Buffer,
+  stdoutBuf: Uint8Array,
 ): number {
   return trySubstitutePairBatchToBufferSync(
     batchText, batchEnds, endsLen, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf, 10, STDOUT_FLUSH,
@@ -1076,14 +1077,14 @@ function tryExecutePairFastSync(
   }
   budget.step();
   let usingSharedStdoutBuf = false;
-  let stdoutBuf: Buffer;
+  let stdoutBuf: Uint8Array;
   if (!sharedSedStdoutBufInUse) {
     sharedSedStdoutBufInUse = true;
     usingSharedStdoutBuf = true;
-    if (!sharedSedStdoutBuf) sharedSedStdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+    if (!sharedSedStdoutBuf) sharedSedStdoutBuf = new Uint8Array(STDOUT_CAP);
     stdoutBuf = sharedSedStdoutBuf;
   } else {
-    stdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+    stdoutBuf = new Uint8Array(STDOUT_CAP);
   }
   const batchText = cachedBatch.text;
   const batchEnds = cachedBatch.ends;
@@ -1183,7 +1184,7 @@ function tryExecuteSimpleSedStdinSync(rawProg: string, context: CommandContext, 
       pCheck.catch(() => {});
       return undefined;
     }
-    const text = Buffer.from(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).toString("latin1");
+    const text = decodeBytes(encodeBytes(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength), "latin1");
     if (text.length === 0) {
       budget.step(1);
       return 0;
@@ -1205,7 +1206,7 @@ function tryExecuteSimpleSedStdinSync(rawProg: string, context: CommandContext, 
     }
     const outText = lines.join("\n") + (hasTrailingNewline ? "\n" : "");
     budget.check(outText);
-    const outBytes = Buffer.from(outText, "latin1");
+    const outBytes = encodeBytes(outText, "latin1");
     if (!stdoutSync.writeSync(outBytes)) return undefined;
     return 0;
   } catch {
@@ -1400,7 +1401,7 @@ async function executeSedGeneral(
       for (const target of targets) {
         const result = await editInPlace(context, target, inPlace, budget, async stdin => {
           let rewritten = "";
-          const child = Object.assign(Object.create(Object.getPrototypeOf(context)), context, { stdin, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + Buffer.from(chunk).toString("latin1")); } } }) as CommandContext;
+          const child = Object.assign(Object.create(Object.getPrototypeOf(context)), context, { stdin, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + decodeBytes(encodeBytes(chunk), "latin1")); } } }) as CommandContext;
           outputState.stdoutUnterminated = false;
           const result = await execute(program, child, ["-"], quiet, budget, separator, outputState, lineLength);
           return { result, data: bytes(rewritten) };

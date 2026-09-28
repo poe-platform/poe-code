@@ -1,3 +1,4 @@
+import { byteLength, decodeBytes, encodeBytes, isByteEncoding } from "../../byte-encoding.js";
 import { commandLimits } from "../safejs/options.js";
 import type { SafeJsModule } from "../safejs/types.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
@@ -73,28 +74,28 @@ export function bufferBindings<Budget>(options: NodeSafeJsCommandOptions<Budget>
   };
   const encoding = (value: unknown): BufferEncoding => {
     if (value === undefined || value === "") return "utf8";
-    if (typeof value !== "string" || !Buffer.isEncoding(value)) throw new TypeError("Unknown Buffer encoding");
+    if (typeof value !== "string" || !isByteEncoding(value)) throw new TypeError("Unknown Buffer encoding");
     return value as BufferEncoding;
   };
   return {
     encode: declare((value: unknown, selected: unknown) => {
       if (typeof value !== "string") throw new TypeError("Buffer input must be a string");
       const codec = encoding(selected);
-      if (Buffer.byteLength(value, codec) > limits.arrayLength) exceeded("arrayLength");
-      return Array.from(Buffer.from(value, codec));
+      if (byteLength(value, codec) > limits.arrayLength) exceeded("arrayLength");
+      return Array.from(encodeBytes(value, codec));
     }, "read-side-effect"),
     decode: declare((value: unknown, selected: unknown) => {
       if (!Array.isArray(value)) throw new TypeError("Buffer bytes must be an array");
       if (value.length > limits.arrayLength) exceeded("arrayLength");
       if (!value.every(byte => typeof byte === "number" && Number.isInteger(byte) && byte >= 0 && byte <= 255)) throw new TypeError("Invalid Buffer byte");
-      const result = Buffer.from(value).toString(encoding(selected));
+      const result = decodeBytes(encodeBytes(value), encoding(selected));
       if (result.length > limits.stringLength) exceeded("stringLength");
       return result;
     }, "read-side-effect"),
-    isEncoding: declare((value: unknown) => typeof value === "string" && Buffer.isEncoding(value), "read-side-effect"),
+    isEncoding: declare((value: unknown) => typeof value === "string" && isByteEncoding(value), "read-side-effect"),
     byteLength: declare((value: unknown, selected: unknown) => {
       if (typeof value !== "string") throw new TypeError("Buffer input must be a string");
-      return Buffer.byteLength(value, typeof selected === "string" && Buffer.isEncoding(selected) ? selected : "utf8");
+      return byteLength(value, typeof selected === "string" && isByteEncoding(selected) ? selected : "utf8");
     }, "read-side-effect"),
   };
 }

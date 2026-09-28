@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { record } from "../../integrations/safejs/values.js";
 import { SafeJsCommandLimitError } from "./types.js";
 
@@ -7,14 +8,14 @@ class Text {
   private readonly active = new Set<object>();
   constructor(private readonly limit: number, private readonly fail: (error: unknown) => void) {}
   append(value: string): void {
-    if (Buffer.byteLength(value) > this.limit - this.size) {
+    if (byteLength(value) > this.limit - this.size) {
       const error = new SafeJsCommandLimitError("maxOutputBytes"); this.fail(error); throw error;
     }
-    this.size += Buffer.byteLength(value);
+    this.size += byteLength(value);
     this.parts.push(value);
   }
   private quoted(value: string): void {
-    if (Buffer.byteLength(value) + 2 > this.limit - this.size) {
+    if (byteLength(value) + 2 > this.limit - this.size) {
       const error = new SafeJsCommandLimitError("maxOutputBytes"); this.fail(error); throw error;
     }
     this.append(JSON.stringify(value));

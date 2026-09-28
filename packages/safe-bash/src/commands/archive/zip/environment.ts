@@ -1,3 +1,4 @@
+import { byteLength, decodeBytes, encodeBytes } from "../../../byte-encoding.js";
 import { fail, type ArchiveLimits } from "../internal.js";
 
 function whitespace(character: string | undefined): boolean {
@@ -9,16 +10,16 @@ export function zipEnvironmentArguments(env: Readonly<Record<string, string>>, a
   let selectedBytes = 0;
   for (const key of ["ZIPOPT", "ZIP_OPTS"]) {
     const candidate = env[key] ?? "";
-    if (Buffer.byteLength(candidate) > limits.maxArgumentBytes) fail("environment argument byte limit exceeded");
+    if (byteLength(candidate) > limits.maxArgumentBytes) fail("environment argument byte limit exceeded");
     let start = 0;
     while (whitespace(candidate[start])) start++;
-    if (start < candidate.length) { value = candidate.slice(start); selectedBytes = Buffer.byteLength(candidate); break; }
+    if (start < candidate.length) { value = candidate.slice(start); selectedBytes = byteLength(candidate); break; }
   }
   if (!value) return argv;
-  if (value.includes("\0") || Buffer.from(value).toString("utf8") !== value) fail("invalid environment argument text");
+  if (value.includes("\0") || decodeBytes(encodeBytes(value), "utf8") !== value) fail("invalid environment argument text");
   let bytes = selectedBytes;
   for (const argument of argv) {
-    bytes += Buffer.byteLength(argument);
+    bytes += byteLength(argument);
     if (bytes > limits.maxArgumentBytes) fail("argument byte limit exceeded");
   }
   const defaults: string[] = [];

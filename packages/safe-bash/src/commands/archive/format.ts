@@ -1,3 +1,4 @@
+import { byteLength, concatBytes, decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { checkPath, fail, text, type ArchiveLimits } from "./internal.js";
 
 export interface Entry {
@@ -35,7 +36,7 @@ export function numberField(header: Uint8Array, offset: number, width: number, s
     for (const byte of bytes.subarray(1)) value = value * 256n + BigInt(byte);
     if (bytes[0]! & 0x40) value -= 1n << BigInt(width * 8 - 1);
   } else {
-    const digits = Buffer.from(bytes).toString("latin1").replace(/^[ \0]+|[ \0]+$/gu, "");
+    const digits = decodeBytes(encodeBytes(bytes), "latin1").replace(/^[ \0]+|[ \0]+$/gu, "");
     if (digits && !/^[0-7]+$/u.test(digits)) fail("invalid octal numeric field");
     value = digits ? BigInt(`0o${digits}`) : 0n;
   }
@@ -56,7 +57,7 @@ export function parseHeader(header: Uint8Array): Header {
   let actual = 0;
   for (let offset = 0; offset < 512; offset++) actual += offset >= 148 && offset < 156 ? 32 : header[offset]!;
   if (actual !== expected) fail("header checksum mismatch");
-  const magic = Buffer.from(header.subarray(257, 265)).toString("latin1");
+  const magic = decodeBytes(encodeBytes(header.subarray(257, 265)), "latin1");
   const posix = magic === "ustar\0" + "00";
   if (!posix && magic !== "ustar  \0") fail("unsupported archive format (expected USTAR, PAX, or GNU basic headers)");
   const entry: Header = {
@@ -73,14 +74,14 @@ export function parseHeader(header: Uint8Array): Header {
 
 function octal(header: Uint8Array, offset: number, width: number, value: number): void {
   if (!Number.isSafeInteger(value) || value < 0 || value.toString(8).length >= width) fail("number does not fit USTAR field");
-  header.set(Buffer.from(value.toString(8).padStart(width - 1, "0")), offset);
+  header.set(encodeBytes(value.toString(8).padStart(width - 1, "0")), offset);
 }
 
 function splitName(name: string): [string, string] | undefined {
   if (!/^[\x01-\x7f]*$/u.test(name)) return undefined;
-  if (Buffer.byteLength(name) <= 100) return [name, ""];
+  if (byteLength(name) <= 100) return [name, ""];
   for (let offset = name.length - 2; offset > 0; offset--) {
-    if (name[offset] === "/" && Buffer.byteLength(name.slice(0, offset)) <= 155 && Buffer.byteLength(name.slice(offset + 1)) <= 100) {
+    if (name[offset] === "/" && byteLength(name.slice(0, offset)) <= 155 && byteLength(name.slice(offset + 1)) <= 100) {
       return [name.slice(offset + 1), name.slice(0, offset)];
     }
   }
@@ -90,10 +91,10 @@ function splitName(name: string): [string, string] | undefined {
 export function headerBytes(entry: Entry): Uint8Array {
   const split = splitName(entry.name);
   if (!split) fail("name does not fit USTAR header");
-  if (Buffer.byteLength(entry.linkname) > 100) fail("link does not fit USTAR header");
+  if (byteLength(entry.linkname) > 100) fail("link does not fit USTAR header");
   const header = new Uint8Array(512);
-  header.set(Buffer.from(split[0]), 0);
-  header.set(Buffer.from(split[1]), 345);
+  header.set(encodeBytes(split[0]), 0);
+  header.set(encodeBytes(split[1]), 345);
   octal(header, 100, 8, entry.mode);
   octal(header, 108, 8, entry.uid);
   octal(header, 116, 8, entry.gid);
@@ -101,21 +102,21 @@ export function headerBytes(entry: Entry): Uint8Array {
   octal(header, 136, 12, entry.mtime);
   header.fill(32, 148, 156);
   header[156] = entry.type.charCodeAt(0);
-  header.set(Buffer.from(entry.linkname), 157);
-  header.set(Buffer.from("ustar\0" + "00"), 257);
+  header.set(encodeBytes(entry.linkname), 157);
+  header.set(encodeBytes("ustar\0" + "00"), 257);
   octal(header, 329, 8, 0);
   octal(header, 337, 8, 0);
   const checksum = header.reduce((sum, byte) => sum + byte, 0);
-  header.set(Buffer.from(`${checksum.toString(8).padStart(6, "0")}\0 `), 148);
+  header.set(encodeBytes(`${checksum.toString(8).padStart(6, "0")}\0 `), 148);
   return header;
 }
 
 export function paxRecord(key: string, value: string): Uint8Array {
   const payload = ` ${key}=${value}\n`;
-  const bytes = Buffer.byteLength(payload);
+  const bytes = byteLength(payload);
   let size = bytes + 1;
   while (size !== bytes + String(size).length) size = bytes + String(size).length;
-  return Buffer.from(`${size}${payload}`);
+  return encodeBytes(`${size}${payload}`);
 }
 
 export function encodeEntry(entry: Entry, limits: ArchiveLimits): Uint8Array[] {
@@ -125,7 +126,7 @@ export function encodeEntry(entry: Entry, limits: ArchiveLimits): Uint8Array[] {
   if (!Number.isFinite(entry.mtime) || Math.abs(entry.mtime * 1000) > 8.64e15) fail("invalid source mtime");
   const records: Uint8Array[] = [];
   if (!splitName(base.name)) { records.push(paxRecord("path", base.name)); base.name = "PaxEntry"; }
-  if (Buffer.byteLength(base.linkname) > 100 || /[^\x01-\x7f]/u.test(base.linkname)) {
+  if (byteLength(base.linkname) > 100 || /[^\x01-\x7f]/u.test(base.linkname)) {
     records.push(paxRecord("linkpath", base.linkname)); base.linkname = "PaxLink";
   }
   for (const key of ["uid", "gid", "size", "mtime"] as const) {
@@ -141,7 +142,7 @@ export function encodeEntry(entry: Entry, limits: ArchiveLimits): Uint8Array[] {
     records.push(paxRecord("atime", decimalTime(entry.atime)));
   }
   if (!records.length) return [headerBytes(base)];
-  const payload = Buffer.concat(records);
+  const payload = concatBytes(records);
   if (payload.length > limits.maxPaxBytes) fail("PAX header byte limit exceeded");
   const extension = headerBytes({ ...base, name: "PaxHeader", linkname: "", type: "x", size: payload.length, mode: 0o644 });
   return [extension, payload, new Uint8Array((512 - payload.length % 512) % 512), headerBytes(base)];
@@ -161,7 +162,7 @@ export function parsePax(payload: Uint8Array): Map<string, string> {
   while (offset < payload.length) {
     let space = offset;
     while (space < payload.length && payload[space] !== 32 && space - offset < 16) space++;
-    const digits = Buffer.from(payload.subarray(offset, space)).toString("latin1");
+    const digits = decodeBytes(encodeBytes(payload.subarray(offset, space)), "latin1");
     if (!/^[1-9][0-9]*$/u.test(digits) || payload[space] !== 32) fail("invalid PAX record length");
     const size = Number(digits);
     if (!Number.isSafeInteger(size) || size <= space - offset + 3 || size > payload.length - offset || payload[offset + size - 1] !== 10) fail("invalid PAX record framing");

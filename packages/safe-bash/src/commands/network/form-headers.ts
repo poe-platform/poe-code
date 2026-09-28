@@ -1,3 +1,4 @@
+import { decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { CurlError } from "./types.js";
 
 export function validatePartHeader(header: string): string {
@@ -19,7 +20,7 @@ export function validatePartHeader(header: string): string {
 
 export function filePartHeaders(bytes: Uint8Array): string[] {
   const headers: string[] = [];
-  for (let line of Buffer.from(bytes).toString("utf8").split("\n")) {
+  for (let line of decodeBytes(encodeBytes(bytes), "utf8").split("\n")) {
     if (line.endsWith("\r")) line = line.slice(0, -1);
     if (!line || line.startsWith("#")) continue;
     if ((line.startsWith(" ") || line.startsWith("\t")) && headers.length) {

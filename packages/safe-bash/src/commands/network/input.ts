@@ -1,3 +1,4 @@
+import { byteLength, decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { collectNetworkBytes as collectBytes } from "./shared.js";
 import { type CommandContext } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
@@ -53,22 +54,22 @@ function variableName(name: string): boolean {
 
 /** Resolve explicit config, variable and -H/--header @VFS-file or @- inputs in option order. */
 export async function parseCurlInput(context: CommandContext, limits: NetworkLimits): Promise<CurlArguments> {
-  const variables = new Map<string, Buffer>();
+  const variables = new Map<string, Uint8Array>();
   const output: string[] = [];
   let inputBytes = 0;
   let outputBytes = 0;
   let optionCount = 0;
   const admit = (value: string): string => {
-    inputBytes += Buffer.byteLength(value);
+    inputBytes += byteLength(value);
     if (inputBytes > limits.maxBufferBytes) throw new CurlError(2, "Curl input exceeds host buffer limit");
     return value;
   };
   const append = (value: string): void => {
-    outputBytes += Buffer.byteLength(value);
+    outputBytes += byteLength(value);
     if (outputBytes > limits.maxBufferBytes) throw new CurlError(2, "Expanded arguments exceed host buffer limit");
     output.push(value);
   };
-  const read = async (file: string): Promise<Buffer> => {
+  const read = async (file: string): Promise<Uint8Array> => {
     try {
       const maxBytes = limits.maxBufferBytes - inputBytes;
       const bytes = file === "-" ? await collectBytes(context.stdin, { signal: context.signal, maxBytes })
@@ -76,7 +77,7 @@ export async function parseCurlInput(context: CommandContext, limits: NetworkLim
       context.signal.throwIfAborted();
       inputBytes += bytes.length;
       if (inputBytes > limits.maxBufferBytes) throw new CurlError(2, "Curl input exceeds host buffer limit");
-      return Buffer.from(bytes);
+      return encodeBytes(bytes);
     } catch (error) {
       context.signal.throwIfAborted();
       if (error instanceof CurlError) throw error;
@@ -88,7 +89,7 @@ export async function parseCurlInput(context: CommandContext, limits: NetworkLim
     let size = 0;
     let offset = 0;
     const appendPiece = (piece: string): void => {
-      size += Buffer.byteLength(piece);
+      size += byteLength(piece);
       if (size > limits.maxBufferBytes) throw new CurlError(2, "Variable expansion exceeds host buffer limit");
       result += piece;
     };
@@ -100,7 +101,7 @@ export async function parseCurlInput(context: CommandContext, limits: NetworkLim
       if (end < 0) { appendPiece(value.slice(start)); break; }
       const [name, ...functions] = value.slice(start + 2, end).split(":");
       if (!variableName(name!)) throw new CurlError(2, "Invalid expansion variable");
-      let bytes = variables.get(name!) ?? Buffer.alloc(0);
+      let bytes = variables.get(name!) ?? new Uint8Array(0);
       for (const functionName of functions) {
         const requireSpace = (length: number): void => {
           if (length > limits.maxBufferBytes) throw new CurlError(2, "Variable transformation exceeds host buffer limit");
@@ -114,7 +115,7 @@ export async function parseCurlInput(context: CommandContext, limits: NetworkLim
           }
           case "json": {
             requireSpace(bytes.length * 6);
-            bytes = Buffer.from(JSON.stringify(new TextDecoder("utf-8", { fatal: true }).decode(bytes)).slice(1, -1)); break;
+            bytes = encodeBytes(JSON.stringify(new TextDecoder("utf-8", { fatal: true }).decode(bytes)).slice(1, -1)); break;
           }
           case "url": {
             requireSpace(bytes.length * 3);
@@ -124,9 +125,9 @@ export async function parseCurlInput(context: CommandContext, limits: NetworkLim
               encoded += "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~".includes(character)
                 ? character : `%${byte.toString(16).toUpperCase().padStart(2, "0")}`;
             }
-            bytes = Buffer.from(encoded); break;
+            bytes = encodeBytes(encoded); break;
           }
-          case "b64": requireSpace(Math.ceil(bytes.length / 3) * 4); bytes = Buffer.from(bytes.toString("base64")); break;
+          case "b64": requireSpace(Math.ceil(bytes.length / 3) * 4); bytes = encodeBytes(decodeBytes(bytes, "base64")); break;
           default: throw new CurlError(2, "Unsupported variable expansion function");
         }
       }
@@ -147,12 +148,12 @@ export async function parseCurlInput(context: CommandContext, limits: NetworkLim
     if (delimiter < 0 || at >= 0 && at < delimiter) delimiter = at;
     const name = delimiter < 0 ? spec : spec.slice(0, delimiter);
     if (!variableName(name)) throw new CurlError(2, "Invalid variable name");
-    let content: Buffer | undefined = fromEnv && context.env[name] !== undefined ? Buffer.from(admit(context.env[name]!)) : undefined;
+    let content: Uint8Array | undefined = fromEnv && context.env[name] !== undefined ? encodeBytes(admit(context.env[name]!)) : undefined;
     if (content === undefined) {
       if (delimiter < 0) {
         if (fromEnv) throw new CurlError(2, "Required environment variable is unset");
-        content = Buffer.alloc(0);
-      } else content = spec[delimiter] === "@" ? await read(spec.slice(delimiter + 1)) : Buffer.from(admit(spec.slice(delimiter + 1)));
+        content = new Uint8Array(0);
+      } else content = spec[delimiter] === "@" ? await read(spec.slice(delimiter + 1)) : encodeBytes(admit(spec.slice(delimiter + 1)));
     }
     variables.set(name, content);
   };
@@ -174,10 +175,10 @@ export async function parseCurlInput(context: CommandContext, limits: NetworkLim
         const value = attached ?? args[++index];
         if (value === undefined) throw new CurlError(2, "Option requires an argument");
         const resolved = expanded ? expand(value) : value;
-        if (base === "config") await visit(configArguments((await read(resolved)).toString("utf8")), depth + 1);
+        if (base === "config") await visit(configArguments(decodeBytes((await read(resolved)), "utf8")), depth + 1);
         else if (base === "variable") await define(resolved);
         else if (base === "header" && resolved.startsWith("@")) {
-          const text = (await read(resolved.slice(1))).toString("utf8");
+          const text = decodeBytes((await read(resolved.slice(1))), "utf8");
           for (const raw of text.split("\n")) {
             context.signal.throwIfAborted();
             const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;

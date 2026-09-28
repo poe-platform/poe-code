@@ -1,3 +1,4 @@
+import { concatBytes } from "./bytes.js";
 import { once } from "node:events";
 import { request as httpRequest } from "node:http";
 import type { ClientRequest, IncomingMessage, RequestOptions } from "node:http";
@@ -172,6 +173,6 @@ export async function collect(response: WireResponse, maximum: number, expected?
   let count = 0;
   try {
     for await (const chunk of limitedBody(response, maximum, expected)) { chunks.push(chunk); count += chunk.length; }
-    return Buffer.concat(chunks, count);
+    return concatBytes(chunks, count);
   } finally { response.close(); }
 }

@@ -1,3 +1,4 @@
+import { byteLength, encodeBytes } from "../../byte-encoding.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
 import { toByteSource, writeBytes, type CommandDefinition } from "../../contracts/index.js";
 import { writeDiagnostic } from "../../escaping.js";
@@ -88,10 +89,10 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
     catch (error) { await diagnose(publicDiagnosticMessage(error, context.onInternalError)); return { exitCode: 2 }; }
     context.signal.throwIfAborted();
     if (parsed.output !== undefined) {
-      if (Buffer.byteLength(parsed.output) > limits.maxOutputBytes) { await diagnose("SafeJS command limit exceeded: maxOutputBytes"); return { exitCode: 124 }; }
-      await writeBytes(context.stdout, Buffer.from(parsed.output), context.signal); return { exitCode: 0 };
+      if (byteLength(parsed.output) > limits.maxOutputBytes) { await diagnose("SafeJS command limit exceeded: maxOutputBytes"); return { exitCode: 124 }; }
+      await writeBytes(context.stdout, encodeBytes(parsed.output), context.signal); return { exitCode: 0 };
     }
-    if (parsed.help) { await writeBytes(context.stdout, Buffer.from(dialect.help), context.signal); return { exitCode: 0 }; }
+    if (parsed.help) { await writeBytes(context.stdout, encodeBytes(dialect.help), context.signal); return { exitCode: 0 }; }
     if (!runtime) { await diagnose("runtime not installed; inject run, createBudget, makeFsModule and declareHostOperation"); return { exitCode: 127 }; }
     const controller = new AbortController();
     const signal = AbortSignal.any([context.signal, controller.signal]);
@@ -123,8 +124,8 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
           : toByteSource(await withSignal(signal, () => context.fs.readFile(filename, { signal, ...Number.isFinite(limits.maxSourceBytes) ? { maxBytes: limits.maxSourceBytes } : {} })));
         const reader = new GuestInput(bytes, limits.maxSourceBytes, signal, fail, "maxSourceBytes");
         try { source = await reader.readText(); } finally { await reader.close(); }
-      } else if (Buffer.byteLength(source) > limits.maxSourceBytes) throw new SafeJsCommandLimitError("maxSourceBytes");
-      const sourceBytes = Buffer.byteLength(source);
+      } else if (byteLength(source) > limits.maxSourceBytes) throw new SafeJsCommandLimitError("maxSourceBytes");
+      const sourceBytes = byteLength(source);
       if (source.startsWith("\uFEFF")) source = source.slice(1);
       source = dialect.transformSource?.(source, { ...parsed, file: filename }) ?? source;
       if (parsed.check) {

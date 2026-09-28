@@ -1,3 +1,4 @@
+import { encodeBytes } from "../../byte-encoding.js";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { dirname, FsError, isFsError, type CommandContext, type FileStat, type FileSystem, type FileStaging, type FileStagingEntry } from "../../contracts/index.js";
 import { host, ToolError } from "./shared.js";
@@ -60,7 +61,7 @@ export class PatchPublication {
         context.signal.throwIfAborted();
         if (closed) throw new ToolError("patch publication is closed");
         staging = await context.fs.createStagedFile!(`${dirname(path)}/.patch-${globalThis.crypto.randomUUID()}`, "file", {
-          type: "file", data: Buffer.from(text),
+          type: "file", data: encodeBytes(text),
         }, { parent, signal: context.signal, ...(mode === undefined ? {} : { mode }),
           ...(mtimeMs === undefined ? {} : { atimeMs: mtimeMs, mtimeMs }) });
         context.signal.throwIfAborted();

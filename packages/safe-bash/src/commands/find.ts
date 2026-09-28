@@ -1,3 +1,4 @@
+import { byteLength, writeEncodedBytes } from "../byte-encoding.js";
 import { tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import { modeChange } from "./metadata/chmod.js";
 import { PublicDiagnostic } from "../diagnostics.js";
@@ -57,7 +58,7 @@ function writeUtf8(buf: Uint8Array, pos: number, s: string): number {
   const len = s.length;
   for (let i = 0; i < len; i++) {
     const c = s.charCodeAt(i);
-    if (c >= 0x80) return Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength).write(s, pos, "utf8");
+    if (c >= 0x80) return writeEncodedBytes(buf, s, pos, "utf8");
     buf[pos + i] = c;
   }
   return len;
@@ -492,7 +493,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         };
         flushes.push(flush);
         return async entry => {
-          const size = Buffer.byteLength(entry.display) + 1;
+          const size = byteLength(entry.display) + 1;
           if (pending.length >= 1000 || bytes + size > 65536) await flush();
           pending.push(entry.display); bytes += size; return true;
         };
@@ -560,7 +561,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     }
     const useSharedPrintBuf = !sharedFindPrintBufInUse;
     if (useSharedPrintBuf) sharedFindPrintBufInUse = true;
-    const printBuf = useSharedPrintBuf ? sharedFindPrintBuf : Buffer.allocUnsafe(8192);
+    const printBuf = useSharedPrintBuf ? sharedFindPrintBuf : new Uint8Array(8192);
     let printPos = 0;
     const flushPrintBuffer = (): Promise<void> | undefined => {
       if (printPos === 0) return undefined;

@@ -1,3 +1,4 @@
+import { encodeBytes } from "../../byte-encoding.js";
 import { ToolError, type Budget } from "./shared.js";
 import type { Edit } from "./diff-format.js";
 
@@ -26,7 +27,7 @@ export function quoteDiffName(name: string): string {
   if (!needsQuotes) return name;
   const escapes: Readonly<Record<number, string>> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 34: '\\"', 92: "\\\\" };
   let quoted = '"';
-  for (const byte of Buffer.from(name)) {
+  for (const byte of encodeBytes(name)) {
     quoted += escapes[byte] ?? (byte >= 32 && byte <= 127 ? String.fromCharCode(byte) : `\\${byte.toString(8).padStart(3, "0")}`);
   }
   return quoted + '"';

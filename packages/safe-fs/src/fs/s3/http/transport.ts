@@ -1,3 +1,4 @@
+import { concatBytes } from "./bytes.js";
 import type { IncomingMessage } from "node:http";
 import { isIP } from "node:net";
 import { S3ServiceError } from "../transport.js";
@@ -268,7 +269,7 @@ export function createS3HttpTransport(options: S3HttpTransportOptions): S3Transp
       scope.signal.throwIfAborted();
       const metadata = directive === "REPLACE" ? replacementMetadata : output.Metadata;
       const headers = { ...metadataHeaders(metadata), ...destinationCondition };
-      const response = await exchange("PUT", destination.Bucket, destination.Key, headers, [], Buffer.concat(chunks, count), operationOptions);
+      const response = await exchange("PUT", destination.Bucket, destination.Key, headers, [], concatBytes(chunks, count), operationOptions);
       try {
         if (response.message.statusCode !== 200) malformed("unexpected COPY fallback PUT status");
         await collect(response, maxXml);
@@ -298,7 +299,7 @@ export function createS3HttpTransport(options: S3HttpTransportOptions): S3Transp
       const chunks: Uint8Array[] = [];
       let count = 0;
       for await (const chunk of response.Body) { chunks.push(chunk); count += chunk.length; }
-      return { ...response, Body: Buffer.concat(chunks, count) };
+      return { ...response, Body: concatBytes(chunks, count) };
     },
     getObjectStream: get,
     async putObject(input, requestOptions) {

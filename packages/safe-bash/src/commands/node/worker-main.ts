@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { parentPort, workerData } from "node:worker_threads";
 import { acquire, channel, decodeMetadata, encodeMetadata, phases, publish, stopped, waitReply, type NodeFrame } from "./channel.js";
 import { publishNodeObservation } from "./diagnostics.js";
@@ -54,7 +55,7 @@ const transportBridge: NodeBridge = function (op, authority, path, flag, body, m
   }
   if (pending || sequence !== delivered || ++sequence > limits.operations) throw new NodeProfileError("Worker request sequence");
   if (body !== null) text(body, limits.operationBytes, "Worker upload bytes");
-  const total = body === null ? 0 : Buffer.byteLength(body);
+  const total = body === null ? 0 : byteLength(body);
   const requestMetadata = encodeMetadata({ sequence, op, authority, path, flag, moduleKey, hasText: body !== null, total }, limits);
   let metadataOffset = 0;
   let reply: NodeFrame;

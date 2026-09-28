@@ -1,3 +1,4 @@
+import { encodeBytes, equalBytes } from "../byte-encoding.js";
 import { hasYieldCheckpoint } from "../contracts/yield.js";
 const SMALL_WC_COUNT_LINES: readonly string[] = Array.from({ length: 129 }, (_, i) => `${i}\n`);
 const SINGLE_STDIN_OPERAND: readonly string[] = ["-"];
@@ -22,7 +23,7 @@ function isSyncResolved(promise: unknown): boolean {
 
 let sharedTrOutBuffer = new Uint8Array(64 * 1024);
 const cachedTrOutBuffer = new Uint8Array(32768);
-let lastTrInBuf: Buffer | undefined;
+let lastTrInBuf: Uint8Array | undefined;
 let lastTrMapping: Uint8Array | undefined;
 let sharedTrOutInUse = false;
 interface TrCompiledConfig {
@@ -923,7 +924,7 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
                 lastTrInBuf !== undefined &&
                 chunk.length === lastTrInBuf.byteLength &&
                 mapping === lastTrMapping &&
-                lastTrInBuf.equals(chunk)
+                equalBytes(lastTrInBuf, chunk)
               ) {
                 const p = outputRange(context, cachedTrOutBuffer, chunk.length);
                 if (!isSyncResolved(p)) {
@@ -934,7 +935,7 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
               }
               for (let index = 0; index < chunk.length; index++) buf[index] = mapping[chunk[index]!]!;
               if (useShared && chunk.length >= 256 && chunk.length <= 32768) {
-                lastTrInBuf = Buffer.from(chunk);
+                lastTrInBuf = encodeBytes(chunk);
                 lastTrMapping = mapping;
                 cachedTrOutBuffer.set(buf.subarray(0, chunk.length));
               }

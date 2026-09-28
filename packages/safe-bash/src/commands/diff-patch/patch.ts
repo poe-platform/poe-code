@@ -1,3 +1,4 @@
+import { encodeBytes } from "../../byte-encoding.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { FsError, dirname, resolvePath, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { Budget, ToolError, definition, host, inspect, integer, type DiffPatchOptions } from "./shared.js";
@@ -314,7 +315,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     if (!text) return;
     budget.output(text);
     if (options.atomic) messages.push(text);
-    else await writeBytes(context.stdout, Buffer.from(text), context.signal);
+    else await writeBytes(context.stdout, encodeBytes(text), context.signal);
   };
   const applySection = async (authorizedPatch: AuthorizedPatch) => {
     const sourcePatch = authorizedPatch.patch;
@@ -481,7 +482,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
   }
   if (!options.dryRun) await pruneDirectories(parents, budget);
   if (options.verbose) await status("done\n");
-  if (options.atomic && (!options.quiet || messages.length)) await writeBytes(context.stdout, Buffer.from(messages.join("")), context.signal);
+  if (options.atomic && (!options.quiet || messages.length)) await writeBytes(context.stdout, encodeBytes(messages.join("")), context.signal);
   if (progress?.error) throw progress.error;
   return exitCode;
 }

@@ -1,3 +1,4 @@
+import { byteLength, concatBytes, decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
 import { monotonicNow, yieldTurn } from "../../contracts/yield.js";
@@ -128,7 +129,7 @@ export class Budget {
         : await host(this.context, () => this.context.fs.readFile(path, { signal: this.context.signal, ...(Number.isFinite(remaining) ? { maxBytes: remaining } : {}) }));
     this.inputBytes += bytes.byteLength;
     if (this.inputBytes > this.limits.maxInputBytes) throw new ToolError("input byte limit exceeded");
-    return encoding === "latin1" ? Buffer.from(bytes).toString("latin1") : this.text(bytes);
+    return encoding === "latin1" ? decodeBytes(encodeBytes(bytes), "latin1") : this.text(bytes);
   }
 
   async readDiff(path: string, encoding: "utf8" | "latin1" = "utf8"): Promise<string> {
@@ -171,9 +172,9 @@ export class Budget {
       const after = await handle.stat({ signal });
       if (!sameIdentity(after, stat) || after.size !== stat.size || after.revision !== stat.revision)
         throw new ToolError("diff input changed while reading");
-      const bytes = Buffer.concat(chunks, position);
+      const bytes = concatBytes(chunks, position);
       this.inputBytes += position;
-      return encoding === "latin1" ? bytes.toString("latin1") : this.text(bytes);
+      return encoding === "latin1" ? decodeBytes(bytes, "latin1") : this.text(bytes);
     } finally { await handle.close(); }
   }
 
@@ -186,7 +187,7 @@ export class Budget {
   }
 
   output(text: string, encoding: "utf8" | "latin1" = "utf8"): void {
-    this.outputBytes += Buffer.byteLength(text, encoding);
+    this.outputBytes += byteLength(text, encoding);
     if (this.outputBytes > this.limits.maxOutputBytes) throw new ToolError("output byte limit exceeded");
   }
 

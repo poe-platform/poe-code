@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { CurlError, type NetworkLimits } from "./types.js";
 
 export interface ExpandedUrl { readonly url: string; readonly captures: readonly string[] }
@@ -39,7 +40,7 @@ export function expandUrls(urls: readonly string[], globoff: boolean, limits: Ne
   for (const input of urls) {
     let expanded: ExpandedUrl[] = [{ url: "", captures: [] }];
     const append = (suffix: string) => {
-      const retained = expanded.reduce((total, item) => total + Buffer.byteLength(item.url) + Buffer.byteLength(suffix) + item.captures.reduce((size, value) => size + Buffer.byteLength(value), 0), bytes);
+      const retained = expanded.reduce((total, item) => total + byteLength(item.url) + byteLength(suffix) + item.captures.reduce((size, value) => size + byteLength(value), 0), bytes);
       if (retained > limits.maxBufferBytes) throw new CurlError(2, "Expanded URLs exceed host buffer limit");
       charge(retained - bytes);
       expanded = expanded.map(item => ({ ...item, url: item.url + suffix }));
@@ -65,14 +66,14 @@ export function expandUrls(urls: readonly string[], globoff: boolean, limits: Ne
       if ([...content].some(value => "{}[]".includes(value))) throw new CurlError(3, "Nested URL globs are unsupported");
       const maximum = Math.floor((limits.maxUrls - result.length) / expanded.length);
       const admit = (count: number, valueBytes: number) => {
-        const prefixBytes = expanded.reduce((total, item) => total + Buffer.byteLength(item.url) + item.captures.reduce((size, capture) => size + Buffer.byteLength(capture), 0), 0);
+        const prefixBytes = expanded.reduce((total, item) => total + byteLength(item.url) + item.captures.reduce((size, capture) => size + byteLength(capture), 0), 0);
         const retained = count * prefixBytes + expanded.length * valueBytes * 2;
         if (retained + bytes > limits.maxBufferBytes) throw new CurlError(2, "Expanded URLs exceed host buffer limit");
         charge(retained);
       };
       const values = char === "{" ? content.split(",") : range(content, maximum, admit);
       if (values.length > maximum) throw new CurlError(2, "URL count exceeds host limit");
-      if (char === "{") admit(values.length, values.reduce((total, value) => total + Buffer.byteLength(value), 0));
+      if (char === "{") admit(values.length, values.reduce((total, value) => total + byteLength(value), 0));
       const next: ExpandedUrl[] = [];
       for (const item of expanded) for (const value of values) {
         next.push({ url: item.url + value, captures: [...item.captures, value] });
@@ -80,7 +81,7 @@ export function expandUrls(urls: readonly string[], globoff: boolean, limits: Ne
       expanded = next; index = close + 1;
     }
     for (const item of expanded) {
-      bytes += Buffer.byteLength(item.url) + item.captures.reduce((total, value) => total + Buffer.byteLength(value), 0);
+      bytes += byteLength(item.url) + item.captures.reduce((total, value) => total + byteLength(value), 0);
       if (bytes > limits.maxBufferBytes) throw new CurlError(2, "Expanded URLs exceed host buffer limit");
       if (result.length >= limits.maxUrls) throw new CurlError(2, "URL count exceeds host limit");
       result.push(item);

@@ -1,3 +1,4 @@
+import { byteLength, concatBytes } from "../../byte-encoding.js";
 import { zipGrowRecords } from "./zip/grow.js";
 import { zip64Directory, zip64Fields, zipDiskOffset, zipDiskRecord, stripZip64, zip64Extra, zip64Member, zipEnd, zipDescriptor, type ZipDisks } from "./zip/zip64.js";
 import { crcTable } from "./zip/crc.js";
@@ -77,7 +78,7 @@ function admit(limits: ArchiveLimits, signal: AbortSignal): number {
 
 function pathBytes(name: string, limits: ArchiveLimits): Uint8Array {
   if (name.length > Math.min(limits.maxPathBytes, 65535)) fail("ZIP path byte limit exceeded");
-  number(Buffer.byteLength(name), Math.min(limits.maxPathBytes, limits.maxArchiveBytes, 65535), "path byte");
+  number(byteLength(name), Math.min(limits.maxPathBytes, limits.maxArchiveBytes, 65535), "path byte");
   const bytes = encoder.encode(name);
   if (!name || text(bytes) !== name || name.includes("\0")) fail("ZIP invalid or unsafe path");
   number(bytes.length, Math.min(limits.maxPathBytes, 65535), "path byte");
@@ -586,7 +587,7 @@ export function setZipEntryComment(entry: ZipEntry, comment: Uint8Array, limits:
       field.set(name, 9);
       fields.push(field);
     }
-    const rebuilt = Buffer.concat(fields);
+    const rebuilt = concatBytes(fields);
     number(rebuilt.length, Math.min(limits.maxPaxBytes, 65535), "extra field");
     metadata.push(rebuilt);
   }

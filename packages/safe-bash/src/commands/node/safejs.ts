@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { dirname, resolvePath } from "../../contracts/path.js";
 import type { CommandDefinition } from "../../contracts/command.js";
 import type { VirtualShellPlugin } from "../../contracts/plugin.js";
@@ -153,7 +154,7 @@ ${selected.check ? body : `eval(${JSON.stringify(body)});`}
       let remainingSourceBytes = limits.maxSourceBytes - lifecycle.sourceBytes;
       const env = await nodeEnvironment(selected.envFiles ?? [], command.env as Record<string, string>, command.cwd as string, async (path, maxBytes) => {
         const value = await lifecycle.readSource(path, maxBytes);
-        remainingSourceBytes -= Buffer.byteLength(value);
+        remainingSourceBytes -= byteLength(value);
         return value;
       }, lifecycle.signal, remainingSourceBytes);
       const directory = selected.inputType === "module" || selected.source === undefined && selected.file.endsWith(".mjs")
@@ -206,7 +207,7 @@ ${selected.check ? body : `eval(${JSON.stringify(body)});`}
           __safeBashModuleRead: options.runtime.declareHostOperation(async (path: unknown) => {
             if (typeof path !== "string") throw new TypeError("module path must be a string");
             const value = await lifecycle.readSource(path, remainingSourceBytes);
-            remainingSourceBytes -= Buffer.byteLength(value);
+            remainingSourceBytes -= byteLength(value);
             if (remainingSourceBytes < 0) {
               const error = new SafeJsCommandLimitError("maxSourceBytes");
               lifecycle.fail(error);

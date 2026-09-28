@@ -1,3 +1,4 @@
+import { byteLength, concatBytes, decodeBytes, encodeBytes, indexOfBytes } from "../../byte-encoding.js";
 import http from 'node:http';
 import { randomUUID } from 'node:crypto';
 import type { Duplex } from 'node:stream';
@@ -50,21 +51,21 @@ export async function createDockerPythonExecutorPool(options: DockerPythonExecut
   const request = (method: string, path: string, body?: unknown): Promise<{ status: number; value: any }> => new Promise((resolve, reject) => {
     const payload = body === undefined ? undefined : JSON.stringify(body);
     const control = http.request({ socketPath: configuration.socketPath, method, path: '/v1.45' + path,
-      headers: payload === undefined ? {} : { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+      headers: payload === undefined ? {} : { 'Content-Type': 'application/json', 'Content-Length': byteLength(payload) },
     }, response => {
-      const chunks: Buffer[] = [];
+      const chunks: Uint8Array[] = [];
       let size = 0;
       response.on('data', chunk => {
         size += chunk.length;
         if (size > 1048576) { control.destroy(new DockerControlFailure()); return; }
-        chunks.push(Buffer.from(chunk));
+        chunks.push(encodeBytes(chunk));
       });
       response.once('error', () => reject(new DockerControlFailure()));
       response.once('aborted', () => reject(new DockerControlFailure()));
       response.once('end', () => {
         const status = response.statusCode ?? 0;
         try {
-          const value = size ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : undefined;
+          const value = size ? JSON.parse(decodeBytes(concatBytes(chunks), 'utf8')) : undefined;
           resolve({ status, value });
         } catch { reject(new DockerControlFailure(status)); }
       });
@@ -113,7 +114,7 @@ export async function createDockerPythonExecutorPool(options: DockerPythonExecut
       catch { reject(new PythonFailure('transport-unavailable')); return; }
       if (startup) admitted = true;
       try {
-        socket.write(Buffer.concat([bytes, Buffer.from('\n')]), error => {
+        socket.write(concatBytes([bytes, encodeBytes('\n')]), error => {
           if (error || retired || settled) {
             admitted = false;
             const failure = new PythonFailure('transport-unavailable');
@@ -177,15 +178,15 @@ export async function createDockerPythonExecutorPool(options: DockerPythonExecut
       control.once('upgrade', (_response, stream, head) => {
         socket = stream;
         stream.setTimeout?.(0);
-        let buffered = Buffer.alloc(0);
-        let line = Buffer.alloc(0);
+        let buffered: Uint8Array = new Uint8Array(0);
+        let line: Uint8Array = new Uint8Array(0);
         let stderrBytes = 0;
-        const receive = (chunk: Buffer) => {
+        const receive = (chunk: Uint8Array) => {
           if (retired || settled) return;
           if (buffered.length + chunk.length > configuration.maxFrameBytes + 65544) { fail(new PythonFailure('transport-unavailable')); return; }
-          buffered = Buffer.concat([buffered, chunk]);
+          buffered = concatBytes([buffered, chunk]);
           while (buffered.length >= 8 && !settled && !retired) {
-            const length = buffered.readUInt32BE(4);
+            const length = new DataView(buffered.buffer, buffered.byteOffset, buffered.byteLength).getUint32(4);
             if (length > configuration.maxFrameBytes || ![1, 2].includes(buffered[0]!) || buffered[1] || buffered[2] || buffered[3]) { fail(new PythonFailure('transport-unavailable')); return; }
             if (buffered.length < 8 + length) return;
             const output = buffered.subarray(8, 8 + length);
@@ -194,15 +195,15 @@ export async function createDockerPythonExecutorPool(options: DockerPythonExecut
               if (stderrBytes > configuration.maxFrameBytes) { fail(new PythonFailure('transport-unavailable')); return; }
             } else {
               if (line.length + output.length > configuration.maxFrameBytes) { fail(new PythonFailure('transport-unavailable')); return; }
-              line = Buffer.concat([line, output]);
+              line = concatBytes([line, output]);
               let end: number;
-              while ((end = line.indexOf(10)) >= 0 && !settled && !retired) {
+              while ((end = indexOfBytes(line, 10)) >= 0 && !settled && !retired) {
                 try { message(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(line.subarray(0, end)))); }
                 catch { fail(new PythonFailure('transport-unavailable')); }
-                line = Buffer.from(line.subarray(end + 1));
+                line = encodeBytes(line.subarray(end + 1));
               }
             }
-            buffered = Buffer.from(buffered.subarray(8 + length));
+            buffered = encodeBytes(buffered.subarray(8 + length));
           }
         };
         stream.on('data', receive);

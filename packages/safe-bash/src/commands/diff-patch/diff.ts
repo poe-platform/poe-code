@@ -1,3 +1,4 @@
+import { byteLength, concatBytes, decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { basename, createCommandArguments, isFsError, toByteSource, writeBytes, type CommandContext, type FileStat } from "../../contracts/index.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
@@ -122,7 +123,7 @@ async function exclusionPatterns(options: DiffFlags, budget: Budget): Promise<Pa
     const remaining = budget.limits.maxExcludePatternBytes - patternBytes;
     if (end - start > remaining) throw new ToolError("exclusion pattern byte limit exceeded");
     const sourcePattern = source.slice(start, end);
-    const bytes = Buffer.byteLength(sourcePattern);
+    const bytes = byteLength(sourcePattern);
     if (bytes > remaining) throw new ToolError("exclusion pattern byte limit exceeded");
     patternBytes += bytes;
     exclusions.push(globPattern(sourcePattern, ignoreCase));
@@ -152,9 +153,9 @@ function childPath(directory: string, name: string): string {
 async function run(context: CommandContext, budget: Budget): Promise<number> {
   const options = flags(context.args);
   const exclusions = await exclusionPatterns(options, budget);
-  const pieces: Buffer[] = [];
+  const pieces: Uint8Array[] = [];
   let encoding: "utf8" | "latin1" = "utf8";
-  const append = (text: string) => { budget.output(text, encoding); pieces.push(Buffer.from(text, encoding)); };
+  const append = (text: string) => { budget.output(text, encoding); pieces.push(encodeBytes(text, encoding)); };
   let different = false;
   let trouble = false;
   let stdin: string | undefined;
@@ -267,7 +268,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
           budget.step();
           if (!entry.name || entry.name === "." || entry.name === ".." || /[\/\\\0\r\n\t]/u.test(entry.name)) throw new ToolError("unsafe directory entry name");
           let excluded = false;
-          const byteName = exclusions.length ? Buffer.from(entry.name).toString("latin1") : entry.name;
+          const byteName = exclusions.length ? decodeBytes(encodeBytes(entry.name), "latin1") : entry.name;
           for (const pattern of exclusions) if (await pattern.find(byteName, budget)) { excluded = true; break; }
           if (excluded) continue;
           const folded = key(entry.name);
@@ -316,7 +317,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     };
     const oldBytes = await read(left, leftStat);
     const newBytes = await read(right, rightStat);
-    const label = (name: string) => encoding === "latin1" ? Buffer.from(name).toString("latin1") : name;
+    const label = (name: string) => encoding === "latin1" ? decodeBytes(encodeBytes(name), "latin1") : name;
     const reportSame = () => { if (options.reportSame) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`); };
     if (options.format === "ed" && (options.text || !oldBytes.includes("\0") && !newBytes.includes("\0"))) {
       for (const [path, text] of [[left, oldBytes], [right, newBytes]] as const) {
@@ -338,8 +339,8 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     if (!options.text) {
       const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
       try {
-        const oldDecoded = decoder.decode(Buffer.from(oldBytes, "latin1"));
-        const newDecoded = decoder.decode(Buffer.from(newBytes, "latin1"));
+        const oldDecoded = decoder.decode(encodeBytes(oldBytes, "latin1"));
+        const newDecoded = decoder.decode(encodeBytes(newBytes, "latin1"));
         oldText = oldDecoded; newText = newDecoded;
         encoding = "utf8";
       } catch { /* Latin-1 maps each input byte to one code unit without replacement. */ }
@@ -393,7 +394,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     }
     if (!changed) reportSame();
   }
-  const output = Buffer.concat(pieces);
+  const output = concatBytes(pieces);
   if (options.paginate && output.length) {
     const title = ["diff", ...context.args].join(" ");
     const argumentValues = createCommandArguments(["-f", "-h", title]);
@@ -403,13 +404,13 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       stdout: { async write(chunk) { pages.push(chunk.slice()); } },
     });
     if (result.exitCode) return 2;
-    await writeBytes(context.stdout, Buffer.concat(pages), context.signal);
+    await writeBytes(context.stdout, concatBytes(pages), context.signal);
   } else await writeBytes(context.stdout, output, context.signal);
   return trouble ? 2 : different ? 1 : 0;
 }
 
 function globPattern(source: string, ignoreCase: boolean): Pattern {
-  source = Buffer.from(source).toString("latin1");
+  source = decodeBytes(encodeBytes(source), "latin1");
   let result = "^";
   const oppositeCase = (character: string) => !ignoreCase ? ""
     : character >= "A" && character <= "Z" ? character.toLowerCase()

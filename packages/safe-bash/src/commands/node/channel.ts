@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { NodeProfileError, nodeLimits, type NodeLimits } from "./types.js";
 import { integer } from "./values.js";
 
@@ -32,7 +33,7 @@ export function waitReply(channelValue: NodeChannel): void {
 }
 export function encodeMetadata(value: unknown, limits: NodeLimits = nodeLimits): Uint8Array {
   const encoded = JSON.stringify(value);
-  if (encoded.length > limits.metadataBytes || Buffer.byteLength(encoded) > limits.metadataBytes) throw new NodeProfileError("wire metadata");
+  if (encoded.length > limits.metadataBytes || byteLength(encoded) > limits.metadataBytes) throw new NodeProfileError("wire metadata");
   return new TextEncoder().encode(encoded);
 }
 export function decodeMetadata(bytes: Uint8Array, limits: NodeLimits = nodeLimits): unknown { if (bytes.byteLength > limits.metadataBytes) throw new NodeProfileError("wire metadata"); return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)) as unknown; }

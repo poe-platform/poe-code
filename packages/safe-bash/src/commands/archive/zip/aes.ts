@@ -29,7 +29,7 @@ export function aesParameters(aes: ZipAes): { keyBytes: number; saltBytes: numbe
   return { keyBytes: aes.strength / 8, saltBytes: aes.strength / 16 };
 }
 
-function keys(password: Uint8Array, salt: Uint8Array, aes: ZipAes, signal: AbortSignal): Buffer {
+function keys(password: Uint8Array, salt: Uint8Array, aes: ZipAes, signal: AbortSignal): Uint8Array {
   signal.throwIfAborted();
   const { keyBytes } = aesParameters(aes);
   // A fixed 1000-iteration native call introduces no asynchronous resource to
@@ -70,7 +70,7 @@ export async function encryptAesPayload(source: ByteSource, encryption: ZipEncry
   const aes = { ...encryption.aes };
   const password = new Uint8Array(encryption.password);
   let plaintext: Uint8Array | undefined;
-  let derived: Buffer | undefined;
+  let derived: Uint8Array | undefined;
   try {
     plaintext = await collectBytes(source, { ...(Number.isFinite(maxBytes) ? { maxBytes } : {}), signal });
     let supplied: Uint8Array;
@@ -105,7 +105,7 @@ export async function decryptAesPayload(wire: Uint8Array, password: Uint8Array, 
   // Copy before asynchronous KDF work; callers cannot mutate authenticated bytes.
   const owned = new Uint8Array(wire);
   const secret = new Uint8Array(password);
-  let derived: Buffer | undefined;
+  let derived: Uint8Array | undefined;
   try {
     derived = keys(secret, owned.subarray(0, saltBytes), aes, signal);
     if (!primitives.timingSafeEqual(derived.subarray(keyBytes * 2), owned.subarray(saltBytes, saltBytes + 2))) fail("ZIP incorrect password");

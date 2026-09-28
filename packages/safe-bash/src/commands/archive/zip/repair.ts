@@ -1,3 +1,4 @@
+import { concatBytes } from "../../../byte-encoding.js";
 import { yieldTurn } from "../../../contracts/yield.js";
 import { fail, type ArchiveLimits } from "../internal.js";
 import { decodeZipEntry, readZipArchive, type ZipArchive, type ZipEntry } from "../zip-format.js";
@@ -160,7 +161,7 @@ export async function repairZip(bytes: Uint8Array, mode: "F" | "FF", limits: Arc
         } else fields.push(centralExtra.subarray(offset, next));
         offset = next;
       }
-      centralExtra = new Uint8Array(Buffer.concat(fields));
+      centralExtra = new Uint8Array(concatBytes(fields));
     } catch {
       signal.throwIfAborted();
       partial = true;

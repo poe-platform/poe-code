@@ -1,3 +1,4 @@
+import { byteLength, concatBytes, encodeBytes } from "../../byte-encoding.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { readBytes, writeBytes, type ByteSink, type ByteSource } from "../../contracts/index.js";
 import { SafeJsCommandLimitError } from "./types.js";
@@ -45,7 +46,7 @@ export class GuestInput {
     return this.serialize(async () => {
       const pieces: Uint8Array[] = [];
       for (;;) { const chunk = await this.take(chunkSize); if (!chunk) break; pieces.push(chunk); }
-      return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(Buffer.concat(pieces));
+      return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(concatBytes(pieces));
     });
   }
   async close(): Promise<void> { await this.iterator.return(undefined); }
@@ -72,10 +73,10 @@ export class GuestOutput {
   }
   text(value: unknown, stderr = false): Promise<void> {
     if (typeof value !== "string") throw new TypeError("stdio text output requires a string");
-    if (Buffer.byteLength(value) > this.limit - this.produced) {
+    if (byteLength(value) > this.limit - this.produced) {
       const error = new SafeJsCommandLimitError("maxOutputBytes"); this.fail(error); throw error;
     }
-    return this.enqueue(Buffer.from(value), stderr ? this.stderr : this.stdout);
+    return this.enqueue(encodeBytes(value), stderr ? this.stderr : this.stdout);
   }
   bytes(value: unknown, stderr = false): Promise<void> {
     if (!Array.isArray(value) || value.length > chunkSize) throw new TypeError("stdio byte output requires an array of at most 65536 bytes");

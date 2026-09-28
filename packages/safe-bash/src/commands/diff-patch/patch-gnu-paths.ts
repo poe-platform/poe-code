@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { FsError, basename, dirname, isFsError, resolvePath, type FileStat } from "../../contracts/index.js";
 import { safeTarget } from "./patch-path.js";
@@ -144,7 +145,7 @@ export async function authorizeOutputs(paths: readonly (string | undefined)[], t
 }
 
 function rank(name: string): readonly number[] {
-  return [name.split("/").length, Buffer.byteLength(name.split("/").at(-1)!), Buffer.byteLength(name)];
+  return [name.split("/").length, byteLength(name.split("/").at(-1)!), byteLength(name)];
 }
 
 export async function candidateStat(path: string, budget: Budget): Promise<FileStat | undefined> {

@@ -1,3 +1,4 @@
+import { encodeBytes } from "../../byte-encoding.js";
 import type { TarOptions } from "./options.js";
 
 export function quoteName(name: string, style: TarOptions["quotingStyle"]): string {
@@ -9,7 +10,7 @@ export function quoteName(name: string, style: TarOptions["quotingStyle"]): stri
     if (escape !== undefined) result += escape;
     else if ((style === "c" && character === '"') || character === "\\") result += `\\${character}`;
     else if (character.charCodeAt(0) < 32 || (character.charCodeAt(0) >= 127 && character.charCodeAt(0) <= 159) || character === "\u2028" || character === "\u2029") {
-      for (const byte of Buffer.from(character)) result += `\\${byte.toString(8).padStart(3, "0")}`;
+      for (const byte of encodeBytes(character)) result += `\\${byte.toString(8).padStart(3, "0")}`;
     }
     else result += character;
   }

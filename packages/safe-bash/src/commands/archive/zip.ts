@@ -1,3 +1,4 @@
+import { byteLength, encodeBytes } from "../../byte-encoding.js";
 import { zipDosName } from "./zip/names.js";
 import { readZipSfx } from "./zip/sfx.js";
 import { adjustZipSfx, repairZip } from "./zip/repair.js";
@@ -107,7 +108,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits, defaults?: ArchiveC
   if (args.length > limits.maxArgumentBytes) fail("argument count limit exceeded");
   let bytes = 0;
   for (const argument of args) {
-    const size = Buffer.byteLength(argument);
+    const size = byteLength(argument);
     if (size > limits.maxArgumentBytes - bytes) fail("argument byte limit exceeded");
     bytes += size;
   }
@@ -263,7 +264,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits, defaults?: ArchiveC
           passwordArguments.add(rawIndex);
           const raw = rawArguments?.bytes(rawIndex);
           const prefix = attached ? original.startsWith("--") ? original.indexOf("=") + 1 : offset + 1 + (original[offset + 1] === "=" ? 1 : 0) : 0;
-          password = raw ? new Uint8Array(raw.subarray(prefix)) : Buffer.from(value);
+          password = raw ? new Uint8Array(raw.subarray(prefix)) : encodeBytes(value);
           if (password.includes(0)) fail("ZIP invalid password bytes");
           if (!password.length) throw new ZipFailure(16, "Invalid command arguments", "zero length password not allowed");
           encrypt = true;
@@ -828,8 +829,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
           else if (symlink) {
             if (!context.fs.readlink) fail("filesystem does not support reading symbolic links");
             const target = await scope.operation(() => context.fs.readlink!(path, { signal: context.signal }));
-            if (Buffer.byteLength(target) > stat.size) fail(`source changed while reading: ${source}`);
-            bytes = Buffer.from(target);
+            if (byteLength(target) > stat.size) fail(`source changed while reading: ${source}`);
+            bytes = encodeBytes(target);
           } else {
             try { bytes = await collectBytes(scope.input(path, false, stat), { maxBytes: stat.size, signal: context.signal }); }
             catch (error) {
@@ -933,7 +934,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
   let progressBytes = 0;
   const queue = (message: string) => {
     if (parsed.quiet) return;
-    const size = Buffer.byteLength(message);
+    const size = byteLength(message);
     if (size > limits.maxTextBytes - budget.textBytes - progressBytes) fail("text output limit exceeded");
     progressBytes += size;
     progress.push(message);
@@ -1197,14 +1198,14 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
       }
       if (error instanceof ZipFailure) {
         const diagnostic = `\nzip error: ${error.label} (${zipPublicText(error.message)})\n`;
-        if (log?.failed) await writeBytes(context.stderr, Buffer.from(diagnostic).subarray(0, limits.maxDiagnosticBytes), context.signal);
+        if (log?.failed) await writeBytes(context.stderr, encodeBytes(diagnostic).subarray(0, limits.maxDiagnosticBytes), context.signal);
         else await budget.output(diagnostic);
         return { exitCode: error.status };
       }
       if (log?.failed) budget = new Budget(context, limits);
       const detail = display(publicDiagnosticMessage(error, context.onInternalError).slice(0, 1024));
       const message = escapeText(error instanceof ZipHostFailure ? detail : zipPublicText(detail), "diagnostic");
-      await writeBytes(log && !log.failed ? log.sink(context.stderr) : context.stderr, Buffer.from(`zip: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), context.signal);
+      await writeBytes(log && !log.failed ? log.sink(context.stderr) : context.stderr, encodeBytes(`zip: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), context.signal);
       return { exitCode: 2 };
     } finally {
       try { await scope.close(); }

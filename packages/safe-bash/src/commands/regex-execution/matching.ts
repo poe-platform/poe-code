@@ -1,3 +1,4 @@
+import { decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { PublicDiagnostic } from "../../public-diagnostic.js";
 import { isAscii } from "node:buffer";
 import { matchRangeLimits, type Descriptor, type GrepDescriptor, type SearchDescriptor, type Match, type Row } from "./protocol.js";
@@ -21,7 +22,7 @@ function decode(bytes: Uint8Array): { text: string; offsets: number[]; invalid: 
       }
       if (consumed < length) length = 0;
     }
-    const character = length ? Buffer.from(bytes.subarray(offset, offset + length)).toString("utf8") : "\ufffd";
+    const character = length ? decodeBytes(encodeBytes(bytes.subarray(offset, offset + length)), "utf8") : "\ufffd";
     if (!length) invalid.push(text.length);
     offsets.push(offset);
     if (character.length === 2) offsets.push(offset);
@@ -79,7 +80,7 @@ class SearchMatcher {
       if (length > matchRangeLimits.perRow) throw new SearchError("matches per line limit exceeded");
       return Array.from({ length }, (_value, offset) => ({ start: offset, end: offset }));
     }
-    const { text, offsets, invalid } = isAscii(bytes) ? { text: Buffer.from(bytes).toString("ascii"), offsets: undefined, invalid: [] } : decode(bytes);
+    const { text, offsets, invalid } = isAscii(bytes) ? { text: decodeBytes(encodeBytes(bytes), "ascii"), offsets: undefined, invalid: [] } : decode(bytes);
     const matches: Match[] = [];
     let previousEnd = -1;
     let fragmentStart = 0;
@@ -148,7 +149,7 @@ function grepMatcher(args: GrepDescriptor): (bytes: Uint8Array, all: boolean) =>
     }
   });
   return (bytes, all) => {
-    const text = Buffer.from(bytes).toString("latin1");
+    const text = decodeBytes(encodeBytes(bytes), "latin1");
     const ranges: Match[] = [];
     for (const matcher of matchers) {
       matcher.lastIndex = 0;
@@ -222,7 +223,7 @@ function globMatcher(source: string, insensitive: boolean, literalUnclosedClass:
   try { regex = new RegExp(`${anchored ? "^" : "(?:^|/)"}${globSource(source, literalUnclosedClass)}$`, insensitive ? "ui" : "u"); }
   catch (error) { if (!(error instanceof SyntaxError) && !(error instanceof PublicDiagnostic)) throw error; throw new SearchError(`invalid glob: ${error.message}`); }
   return row => {
-    const path = Buffer.from(row.bytes).toString("utf16le");
+    const path = decodeBytes(encodeBytes(row.bytes), "utf16le");
     if ((!directory || row.directory) && regex.test(path)) return [{ start: 0, end: 0 }];
     if (row.ancestors !== false) {
       let slash = path.lastIndexOf("/");

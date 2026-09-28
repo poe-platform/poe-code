@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { types } from "node:util";
 import { NodeProfileError, NodeUsageError, nodeLimits, type NodeLimits, type NodeGrants } from "./types.js";
 
@@ -28,7 +29,7 @@ export function record(value: unknown, keys: readonly string[], optional: readon
 }
 export function text(value: unknown, maximum: number, label: string): string {
   if (typeof value !== "string") throw new TypeError("node protocol: " + label);
-  if (value.length > maximum || Buffer.byteLength(value) > maximum) throw new NodeProfileError(label);
+  if (value.length > maximum || byteLength(value) > maximum) throw new NodeProfileError(label);
   return value;
 }
 export function integer(value: unknown, maximum: number, label: string): number {
@@ -47,7 +48,7 @@ export function strings(value: unknown, maximum: number, bytes: number): string[
     const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
     if (!descriptor || !Object.hasOwn(descriptor, "value")) throw new TypeError("node protocol: array hole/accessor");
     const entry = text(descriptor.value, remaining, "array bytes");
-    remaining -= Buffer.byteLength(entry);
+    remaining -= byteLength(entry);
     result.push(entry);
   }
   return result;
@@ -69,12 +70,12 @@ export function environment(value: unknown, limits: NodeLimits = nodeLimits): Re
     if (typeof key !== "string") throw new TypeError("node environment key");
     const name = text(key, remaining, "environment key");
     if (name.includes("\0") || name.includes("=")) throw new NodeUsageError("invalid environment key");
-    remaining -= Buffer.byteLength(name);
+    remaining -= byteLength(name);
     const descriptor = Object.getOwnPropertyDescriptor(value, key);
     if (!descriptor || !Object.hasOwn(descriptor, "value")) throw new TypeError("node environment accessor");
     const entry = text(descriptor.value, remaining, "environment bytes");
     if (entry.includes("\0")) throw new NodeUsageError("invalid environment value");
-    remaining -= Buffer.byteLength(entry);
+    remaining -= byteLength(entry);
     result[name] = entry;
   }
   return Object.freeze(result);

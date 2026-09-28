@@ -1,3 +1,4 @@
+import { encodeBytes } from "../../byte-encoding.js";
 import { scheduleNetworkDeadline } from "./deadline.js";
 import { curlRequestTarget } from "./url.js";
 import { request as httpRequest, validateHeaderName, validateHeaderValue, type ClientRequest } from "node:http";
@@ -11,7 +12,7 @@ import { withSignal } from "./shared.js";
 import { privateHostname } from "./private-address.js";
 
 export interface NodeHttpTransportOptions {
-  readonly ca?: string | Buffer | readonly (string | Buffer)[];
+  readonly ca?: string | Uint8Array | readonly (string | Uint8Array)[];
   readonly maxHeaderBytes?: number;
   readonly resolveAddress?: (hostname: string, signal: AbortSignal) => Promise<{ address: string; family: 4 | 6 }>;
 }
@@ -23,7 +24,7 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
   const resolveAddress = options.resolveAddress ?? (async (hostname: string) => lookup(hostname, { all: false }));
   const transport: HttpTransport = async input => {
     input.signal.throwIfAborted();
-    const requestCa = input.ca === undefined ? ca : Buffer.from(input.ca);
+    const requestCa = input.ca === undefined ? ca : encodeBytes(input.ca);
     if (input.httpVersion !== undefined && input.httpVersion !== "1.1") throw new CurlError(2, "Transport cannot enforce requested HTTP version");
     if (input.ignoreContentLength) throw new CurlError(2, "Transport cannot enforce ignored Content-Length");
     const url = new URL(input.url);
@@ -98,7 +99,7 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
         path: curlRequestTarget(input.url),
         headers: pinned && headers.host?.length === 1 ? { ...headers, host: headers.host[0]! } : headers,
         signal, maxHeaderSize: Number.isFinite(maxHeaderSize) ? maxHeaderSize : Number.MAX_SAFE_INTEGER, agent: false,
-        ...(requestCa === undefined ? {} : { ca: requestCa as string | Buffer | (string | Buffer)[] }),
+        ...(requestCa === undefined ? {} : { ca: requestCa as NonNullable<import("node:https").RequestOptions["ca"]> }),
         ...(input.ca === undefined ? {} : { rejectUnauthorized: true }),
         ...pinned,
         ...(pinned && url.protocol === "https:" ? {
@@ -115,7 +116,7 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
           try {
             for await (const chunk of response) {
               input.signal.throwIfAborted();
-              yield new Uint8Array(chunk as Buffer);
+              yield new Uint8Array(chunk as Uint8Array);
             }
           } finally { response.destroy(); await dispose(); }
         })();

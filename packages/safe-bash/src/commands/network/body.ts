@@ -1,3 +1,4 @@
+import { decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { collectNetworkBytes as collectBytes } from "./shared.js";
 import { randomBytes } from "#safe-bash-network-platform";
 import { posixPath as posix } from "../../contracts/path.js";
@@ -193,7 +194,7 @@ async function* transfer(source: ByteSource, encoder: string | undefined, signal
       if (encoder === "base64") {
         while (pending.length - consumed >= 57) {
           if (column) output += "\r\n";
-          output += Buffer.from(pending.slice(consumed, consumed + 57)).toString("base64");
+          output += decodeBytes(encodeBytes(pending.slice(consumed, consumed + 57)), "base64");
           consumed += 57; column = 76;
         }
       } else {
@@ -208,7 +209,7 @@ async function* transfer(source: ByteSource, encoder: string | undefined, signal
   signal.throwIfAborted();
   if (encoder === "base64" && pending.length) {
     if (column) output += "\r\n";
-    output += Buffer.from(pending).toString("base64");
+    output += decodeBytes(encodeBytes(pending), "base64");
   } else if (encoder === "quoted-printable") {
     for (let i = 0; i < pending.length;)
       i += quotedByte(pending[i]!, pending[i + 1], pending[i + 2]);
@@ -263,7 +264,7 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
         }
       }
       const overridden = new Set(headers.map(header => header.slice(0, header.indexOf(":")).toLowerCase()));
-      const defaults = Buffer.from(part.bytes).toString("utf8").split("\r\n");
+      const defaults = decodeBytes(encodeBytes(part.bytes), "utf8").split("\r\n");
       const preamble = defaults.filter((line, index) => index === 0 ||
         (line && !overridden.has(line.slice(0, line.indexOf(":")).toLowerCase())));
       yield encode([...preamble, ...headers, "", ""].join("\r\n"));
@@ -332,7 +333,7 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
 }
 
 export async function queryData(body: RequestBody, signal: AbortSignal, limits: NetworkLimits): Promise<string> {
-  try { return Buffer.from(await collectBytes(body.open(signal), { signal, maxBytes: limits.maxBufferBytes })).toString("utf8"); }
+  try { return decodeBytes(encodeBytes(await collectBytes(body.open(signal), { signal, maxBytes: limits.maxBufferBytes })), "utf8"); }
   catch (error) {
     signal.throwIfAborted();
     if (error instanceof CurlError) throw error;

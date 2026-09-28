@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { Budget, ToolError, integer } from "./shared.js";
 import { parseUnified, parseUnifiedSection, type FilePatch, type PatchLine } from "./unified.js";
 import { decodeHeaderPath } from "./patch-path.js";
@@ -202,7 +203,7 @@ export async function parsePatch(text: string, budget: Budget, format: PatchForm
       } else {
         if (detected === "context") reader.index = start;
         const converted = detected === "normal" ? await normal(reader, target ?? indexPath) : await context(reader);
-        convertedBytes += Buffer.byteLength(converted);
+        convertedBytes += byteLength(converted);
         if (convertedBytes > budget.limits.maxInputBytes * 2 + 16_384) throw new ToolError("converted patch byte limit exceeded");
         patches.push(...(await parseUnified(converted, budget)).map(patch => ({ ...patch, format: detected,
           ...(indexPath === undefined ? {} : { indexPath }),

@@ -1,3 +1,4 @@
+import { byteLength } from "../../byte-encoding.js";
 import { posix } from "node:path";
 import type { CommandContext, CommandDefinition, CommandResult } from "../../contracts/command.js";
 import type { VirtualShellPlugin } from "../../contracts/plugin.js";
@@ -87,13 +88,13 @@ export function createNodeCommand<Budget = unknown>(options: NodeCommandOptions<
       };
       try {
         owner.open();
-        hold = owner.ledger.reserve("source-context-diagnostics", Buffer.byteLength(JSON.stringify({ args: context.args, env: context.env, cwd: context.cwd })) * 4);
+        hold = owner.ledger.reserve("source-context-diagnostics", byteLength(JSON.stringify({ args: context.args, env: context.env, cwd: context.cwd })) * 4);
         const selected = invocation(context.args, context.cwd, limits);
         const env = environment(context.env, limits);
         const argv = Object.freeze(selected.argv);
-        let contextBytes = Buffer.byteLength(context.cwd) + Buffer.byteLength(selected.filename);
-        for (const argument of argv) { if (argument.includes("\0")) throw new NodeUsageError("NUL in argument"); contextBytes += Buffer.byteLength(argument); }
-        for (const [name, value] of Object.entries(env)) contextBytes += Buffer.byteLength(name) + Buffer.byteLength(value);
+        let contextBytes = byteLength(context.cwd) + byteLength(selected.filename);
+        for (const argument of argv) { if (argument.includes("\0")) throw new NodeUsageError("NUL in argument"); contextBytes += byteLength(argument); }
+        for (const [name, value] of Object.entries(env)) contextBytes += byteLength(name) + byteLength(value);
         if (contextBytes > limits.contextBytes) throw new NodeProfileError("context bytes/entries");
         const cwd = text(context.cwd, limits.pathBytes, "cwd");
         host = new NodeHost(owner, allowed, cwd, selected.selector === "file" ? posix.dirname(selected.filename) : cwd);
@@ -108,7 +109,7 @@ export function createNodeCommand<Budget = unknown>(options: NodeCommandOptions<
         try { admitSource(source, selected.selector === "print", limits); } finally { parseRelease(); }
         owner.check();
         const program = buildNodeProgram(source, selected.selector, limits);
-        programHold = owner.ledger.reserve("source-program", 2 * (Buffer.byteLength(source) + Buffer.byteLength(program)));
+        programHold = owner.ledger.reserve("source-program", 2 * (byteLength(source) + byteLength(program)));
         request = Object.freeze({ profile: NODE_PROFILE, selector: selected.selector, source, program, filename: selected.filename, cwd, argv, env, grants: allowed, limits: configuredLimits });
         const sessionHost = (): NodeHost => {
           if (!owner.started || !host) { const error = new NodeProfileError("inactive provider session"); owner.failure(error, "profile"); throw error; }

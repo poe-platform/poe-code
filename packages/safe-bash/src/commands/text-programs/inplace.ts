@@ -1,3 +1,4 @@
+import { decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { dirname, FsError, type ByteSource, type CommandContext, type FileStat, type FileSystem, type FileStaging, type FileStagingEntry } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
@@ -119,7 +120,7 @@ export async function editInPlace<Result>(context: CommandContext, target: Targe
       let original = "";
       for await (const chunk of source()) {
         budget.step();
-        original = budget.check(original + Buffer.from(chunk).toString("latin1"));
+        original = budget.check(original + decodeBytes(encodeBytes(chunk), "latin1"));
         await budget.checkpoint();
       }
       // Backups preserve the existing copy semantics: only rewritten output

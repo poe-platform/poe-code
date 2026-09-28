@@ -1,3 +1,4 @@
+import { byteLength, encodeBytes } from "../../byte-encoding.js";
 import { collectBytes, type CommandContext } from "../../contracts/index.js";
 import { checkPath, fail, operation, smallFile, text, vfsPath, type ArchiveLimits } from "./internal.js";
 import { parseTransform, type NameTransform } from "./transform.js";
@@ -32,7 +33,7 @@ export interface TarOptions {
 }
 
 export async function parseOptions(context: CommandContext, limits: ArchiveLimits): Promise<TarOptions | "help"> {
-  if (context.args.reduce((total, argument) => total + Buffer.byteLength(argument), 0) > limits.maxArgumentBytes) fail("argument byte limit exceeded");
+  if (context.args.reduce((total, argument) => total + byteLength(argument), 0) > limits.maxArgumentBytes) fail("argument byte limit exceeded");
   let mode: TarOptions["mode"] | undefined;
   let archive = "-";
   let compression: TarOptions["compression"];
@@ -270,7 +271,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
 }
 
 function unquoteFileName(name: string): string {
-  const input = Buffer.from(name);
+  const input = encodeBytes(name);
   const output: number[] = [];
   const escapes: Record<string, number> = { a: 7, b: 8, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92 };
   for (let index = 0; index < input.length; index++) {

@@ -99,7 +99,7 @@ for (const [name, values, command] of [
   ["echo dynamic escape option", "hi -e", 'echo "$p" "a\\nb"'],
   ["echo empty prefix", "hi -n", 'echo """$p"'],
   ["echo safe prefix", "hi -n", 'echo "item_$p"'],
-]) {
+] as const) {
   for (const suffix of ["", " | head -n 10"]) {
     for (const assignment of ['out+=$(COMMAND)', 'out=$(COMMAND)']) {
       test(`loop substitution ${name}${suffix}: ${assignment}`, async () => {

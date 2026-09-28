@@ -1,7 +1,19 @@
-import * as nodeModule from "node:module";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { Worker } from "node:worker_threads";
+import { build } from "esbuild";
 import type { BudgetOptions } from "../../src/interp/budget.js";
+
+// Compile current source once, before any conformance execution deadline starts.
+// Each agent still receives a fresh worker, realm, budget, and message queue.
+const bundled = await build({
+  entryPoints: [fileURLToPath(new URL("./agent-worker.ts", import.meta.url))],
+  alias: {
+    "#safe-js-platform": fileURLToPath(new URL("../../src/platform/node.ts", import.meta.url)),
+    "#safe-js-atomic-wait": fileURLToPath(new URL("../../src/platform/atomic-wait-node.ts", import.meta.url))
+  },
+  bundle: true, platform: "node", format: "esm", write: false
+});
+const workerEntry = new URL(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0]!.contents).toString("base64")}`);
 
 export type AgentHost = {
   start?(source: string): Promise<void>;
@@ -28,11 +40,8 @@ export class Test262Agents implements AgentHost {
   async start(source: string): Promise<void> {
     if (this.closed) throw new Error("Test262 agents are disposed");
     if (this.failure) throw this.failure;
-    const require = nodeModule.createRequire(import.meta.url);
-    const canRegister = typeof nodeModule.register === "function";
-    const entry = new URL(canRegister ? "./agent-worker-bootstrap.mjs" : "./agent-worker.ts", import.meta.url);
-    const worker = new Worker(entry, {
-      execArgv: canRegister ? [] : ["--loader", pathToFileURL(require.resolve("tsx")).href],
+    const worker = new Worker(workerEntry, {
+      execArgv: [],
       workerData: { source, budget: this.budget }
     });
     let ready!: Pending;

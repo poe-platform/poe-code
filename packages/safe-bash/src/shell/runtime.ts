@@ -13856,23 +13856,7 @@ export class Runtime {
       if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
       lastCmd = step.cmd;
       this.budget.tick();
-      if (step.coalesceNext) {
-        const nextStep = steps[++b]!;
-        this.budget.tick();
-        const encoded = this.encodeSyncRedirectWordsToScratch(step.value!, nextStep.value!, rawState, io);
-        this.writeSyncRedirectStep(step, encoded, false, mode, rawState, io);
-        this.budget.fileSystemOperation();
-        this.budget.fileSystemOperation();
-        this.budget.bytes += encoded.byteLength;
-        lastCmd = nextStep.cmd;
-        lastArg = this.evalSyncRedirectWord(nextStep.value!, rawState, io);
-      } else if (step.targetWord !== undefined && step.value !== undefined) {
-        const encoded = this.encodeSyncRedirectWordsToScratch(step.value, undefined, rawState, io);
-        this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
-        this.budget.fileSystemOperation();
-        this.budget.bytes += encoded.byteLength;
-        lastArg = this.evalSyncRedirectWord(step.value, rawState, io);
-      } else if (step.fnCall !== undefined) {
+      if (step.fnCall !== undefined) {
         this.execSyncFnStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
         onUpdate({ lastCmd, lastArg });
         continue;

@@ -10,6 +10,9 @@ it("exports the same Pandoc factories from both public entrypoints", () => {
     expect(entry).toHaveProperty("createPandocCommands", command.createPandocCommands);
     expect(entry).toHaveProperty("pandocCommands", command.pandocCommands);
   }
+  expect(typeof command.convert).toBe("function");
+  expect(typeof command.createFormatRegistry).toBe("function");
+  expect(typeof command.createLuaFilterCapability).toBe("function");
 });
 
 it("registers Pandoc explicitly through the SDK and preserves caller budgets", async () => {

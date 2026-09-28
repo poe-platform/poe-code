@@ -7280,17 +7280,8 @@ export class Runtime {
             if (allValidVars) return true;
           }
         }
-        if (
-          (w0Plain === "mapfile" || w0Plain === "readarray") &&
-          (command.words.length === 2 || command.words.length === 3) &&
-          command.words[1]?.plain === "-t" &&
-          !hasShellFunction(rawState, w0Plain) &&
-          !rawState.extensions?.builtins.has(w0Plain)
-        ) {
-          const arrVp = command.words[2]?.plain ?? "MAPFILE";
-          const st = stateMonitor(rawState)?.store;
-          if (isShellIdentifier(arrVp) && arrVp !== "OPTIND" && arrVp !== "PIPESTATUS" && !rawState.readonlyVariables?.has(arrVp) && !st?.get(arrVp)?.associative) return true;
-        }
+        // mapfile can require the asynchronous path as its input or binding
+        // changes. Never speculate across a loop that has already made writes.
       }
       return false;
     }
@@ -7479,12 +7470,10 @@ export class Runtime {
       if ( (w0Plain === ":" || w0Plain === "true" || w0Plain === "false") && command.words.length <= 16 && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain) && command.words.slice(1).every(isNoBraceSyncWord)) {
         return true;
       }
-      if ( command.words.length >= 3 && command.words.length <= 16 && w0Plain === "getopts" && !hasShellFunction(rawState, "getopts") && !rawState.extensions?.builtins.has("getopts")) {
-        const optVar = command.words[2]?.plain;
-        if ( optVar && isShellIdentifier(optVar) && optVar !== "OPTIND" && optVar !== "PIPESTATUS" && optVar !== "_" && !rawState.readonlyVariables?.has(optVar) && !rawState.readonlyVariables?.has("OPTIND") && !rawState.readonlyVariables?.has("OPTARG") && isNoBraceSyncWord(command.words[1]!) && (command.words.length === 3 || (command.words.length === 4 && (() => { const ne = command.words[3]!.parts.filter(p => !(p.kind === "text" && p.value === "")); return ne.length === 1 && ne[0]!.kind === "variable" && ne[0]!.name === "@" && ne[0]!.quoted; })()) || command.words.slice(3).every(isNoBraceSyncWord))) {
-          return true;
-        }
-      }
+      // The scanner may require diagnostics or exceed its synchronous bounds.
+      // Falling back after an earlier loop iteration would replay its effects.
+      if (w0Plain === "getopts") return false;
+
       if ( w0Plain === "echo" && !hasShellFunction(rawState, "echo") && !rawState.extensions?.builtins.has("echo")) {
         const w1Plain = command.words[1]?.plain;
         if (w1Plain === undefined || !w1Plain.startsWith("-") || w1Plain === "-n" || w1Plain === "-e" || w1Plain === "-ne" || w1Plain === "-en") if (command.words.slice(1).every(isNoBraceSyncWord)) return true;
@@ -9142,7 +9131,7 @@ export class Runtime {
             if (typeof optstring === "string") {
               if (command.words.length === 3) {
                 scanArgs = this._fastSubPositional ?? rawState.positional;
-              } else if (command.words.length === 4 && (() => { const ne = command.words[3]!.parts.filter(p => !(p.kind === "text" && p.value === "")); return ne.length === 1 && ne[0]!.kind === "variable" && ne[0]!.name === "@" && ne[0]!.quoted; })()) {
+              } else if (command.words.length === 4 && (() => { const ne = command.words[3]!.parts.filter(p => !(p.kind === "text" && p.value === "")); return ne.length === 1 && ne[0]!.kind === "variable" && ne[0]!.name === "@" && ne[0]!.quoted && !ne[0]!.length && !ne[0]!.substring && !ne[0]!.operator && !ne[0]!.transform && !ne[0]!.indirect && !ne[0]!.prefixNames && getArraySelector(ne[0]!) === undefined; })()) {
                 scanArgs = this._fastSubPositional ?? rawState.positional;
                 if (scanArgs.length > 0) lastArg = scanArgs[scanArgs.length - 1]!;
               } else {
@@ -9160,7 +9149,7 @@ export class Runtime {
           } catch {
             scanArgs = undefined;
           }
-          if (typeof optstring === "string" && scanArgs !== undefined) {
+          if (typeof optstring === "string" && optstring.startsWith(":") && scanArgs !== undefined) {
             rawState.getopts ??= cloneGetoptsBinding(rawState);
             const res = scanGetoptsSync(rawState.getopts.cursor, optstring, scanArgs);
             if (res !== undefined) {
@@ -10001,6 +9990,7 @@ export class Runtime {
               if (isLocalScope) {
                 let existingLocal = currentFrame!.get(an);
                 if (!existingLocal) {
+                  if (this._syncArithRawWriteOnly && this._syncArithTouched?.has(an)) monitor.values.invalidate(an);
                   existingLocal = saveVariable(state, an);
                   syncLocalArrayVariables.add(existingLocal);
                   currentFrame!.set(an, existingLocal);
@@ -10128,7 +10118,7 @@ export class Runtime {
                 const curVal = this._syncArithTouched.has(item.name)
                   ? rawState.variables[item.name]
                   : (rawState.variables[item.name] === undefined ? undefined : (monitor.values.get(item.name, rawState.variables[item.name]!) ?? rawState.variables[item.name]));
-                locals.set(item.name, { attributes: undefined, value: typeof curVal === "string" ? curVal : undefined, exported: false, readOnly: false, ...(item.name === "OPTIND" ? { getopts: cloneGetoptsBinding(rawState) } : {}) });
+                locals.set(item.name, { attributes: undefined, value: typeof curVal === "string" ? curVal : undefined, exported: rawState.exported.has(item.name), readOnly: false, ...(item.name === "OPTIND" ? { getopts: cloneGetoptsBinding(rawState) } : {}) });
               } else locals.set(item.name, saveVariable(state, item.name));
               delete rawState.variables[item.name];
               if (this._syncArithRawWriteOnly && this._syncArithTouched) this._syncArithTouched.add(item.name);

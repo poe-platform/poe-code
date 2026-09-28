@@ -11805,7 +11805,7 @@ export class Runtime {
             }
             if (sName === "grep") {
               const grepOk =
-                (sPlainArgs.length === 1 && /^[a-zA-Z0-9_ :;,/-]+$/.test(sPlainArgs[0]!)) ||
+                (sPlainArgs.length === 1 && !sPlainArgs[0]!.startsWith("-") && /^[a-zA-Z0-9_ :;,/-]+$/.test(sPlainArgs[0]!)) ||
                 (sPlainArgs.length === 2 && (sPlainArgs[0] === "-v" || sPlainArgs[0] === "-i" || sPlainArgs[0] === "-c" || sPlainArgs[0] === "-F") && /^[a-zA-Z0-9_ :;,/-]+$/.test(sPlainArgs[1]!));
               if (!grepOk) return false;
             }
@@ -13300,11 +13300,17 @@ export class Runtime {
         if (!canUseIntRegisters) {
           this.budget.parsing.restore(intBudgetSnapshot);
           regNames.length = 0;
-          const fb = this.runSyncArithForFallback( e0, e1, e2, inductionName, hasDeferredSteps, deferredMask, bodyAssignments, rawState, io, monitor, touched, mode, diagnosticLine, );
-          loopStatus = rawState.status;
-          lastCmd = fb.lastCmd;
-          lastArg = fb.lastArg;
-          lastInductionVal = fb.lastInductionVal;
+          // Keep checkpoint fallback outside the already admitted synchronous loop.
+          this._syncReturnDepth++;
+          try {
+            const fb = this.runSyncArithForFallback( e0, e1, e2, inductionName, hasDeferredSteps, deferredMask, bodyAssignments, rawState, io, monitor, touched, mode, diagnosticLine, );
+            loopStatus = rawState.status;
+            lastCmd = fb.lastCmd;
+            lastArg = fb.lastArg;
+            lastInductionVal = fb.lastInductionVal;
+          } finally {
+            this._syncReturnDepth--;
+          }
         }
         if (hasDeferredSteps && lastInductionVal !== undefined) {
           const finalInductionVal = rawState.variables[inductionName];
@@ -13843,10 +13849,16 @@ export class Runtime {
         if (fastLoopWords.length > 0) touched.add(command.name);
         this.budget.parsing.restore(intBudgetSnapshot);
         regNames.length = 0;
-        const fb = this.runSyncForFallback( command.name, fastLoopWords, bodyAssignments, rawState, io, monitor, touched, mode, );
-        loopStatus = fastLoopWords.length === 0 ? 0 : rawState.status;
-        lastCmd = fb.lastCmd;
-        lastArg = fb.lastArg;
+        // Keep checkpoint fallback outside the already admitted synchronous loop.
+        this._syncReturnDepth++;
+        try {
+          const fb = this.runSyncForFallback( command.name, fastLoopWords, bodyAssignments, rawState, io, monitor, touched, mode, );
+          loopStatus = fastLoopWords.length === 0 ? 0 : rawState.status;
+          lastCmd = fb.lastCmd;
+          lastArg = fb.lastArg;
+        } finally {
+          this._syncReturnDepth--;
+        }
       }
     } finally {
       this.flushSyncStdoutBatch(io);
@@ -21982,7 +21994,7 @@ export class Runtime {
           if (!awkSepOk || !/^\s*\{\s*print(?:\s+(\$(?:[0-9]+|NF)(?:\s*,\s*\$(?:[0-9]+|NF))*))?\s*;?\s*\}\s*$/.test(awkProg)) return undefined;
         } else if (sName === "grep") {
           const grepOk =
-            (sArgs.length === 1 && /^[a-zA-Z0-9_ :;,/-]+$/.test(sArgs[0]!)) ||
+            (sArgs.length === 1 && !sArgs[0]!.startsWith("-") && /^[a-zA-Z0-9_ :;,/-]+$/.test(sArgs[0]!)) ||
             (sArgs.length === 2 && (sArgs[0] === "-v" || sArgs[0] === "-i" || sArgs[0] === "-c" || sArgs[0] === "-F") && /^[a-zA-Z0-9_ :;,/-]+$/.test(sArgs[1]!));
           if (!grepOk) return undefined;
         } else if (sName === "jq") {
@@ -22042,6 +22054,8 @@ export class Runtime {
       const previousBytes = this.budget.bytes;
       const previousCommands = this.budget.commands;
       let completed = false;
+      let stageStatus = 0;
+      let failureStatus = 0;
       this.budget.bytes = nextBytes0;
       syncPurePipelineSlotInUse = true;
       this.budget.enterPipelineStages(n);
@@ -22052,10 +22066,11 @@ export class Runtime {
       let prevLen = fastSharedTextEncoder.encodeInto(stage0Formatted, sharedSyncPipeBuf0).written;
       try {
         for (let sIdx = 0; sIdx < stageNames.length; sIdx++) {
+          stageStatus = 0;
           const index = sIdx + 1;
           const firstName = stageNames[sIdx]!;
           const extDef = stageDefs[sIdx]!;
-          const stageArgs = stageArgsList[sIdx]!
+          const stageArgs = stageArgsList[sIdx]!;
           const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
           const isInlineCutField = firstName === "cut" && (
             (stageArgs.length === 1 && /^-[f][1-9][0-9]*(?:,[1-9][0-9]*)*$/.test(stageArgs[0]!)) ||
@@ -22237,7 +22252,8 @@ export class Runtime {
                 const hit = gMode === "-i" ? l.toLowerCase().includes(gPatLower) : l.includes(gPat);
                 if (gMode === "-v" ? !hit : hit) matched.push(l);
               }
-              if (matched.length === 0) return undefined;
+              stageStatus = matched.length === 0 ? 1 : 0;
+              if (stageStatus !== 0) failureStatus = stageStatus;
               outLines = gMode === "-c" ? [String(matched.length)] : matched;
             } else if (isInlineTac) {
               if (inStr.length > 0 && !inStr.endsWith("\n")) return undefined;
@@ -22360,8 +22376,9 @@ export class Runtime {
         this.budget.leavePipelineStages(n);
       }
       const outStr = sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
-      rawState.substitutionStatus = 0;
-      rawState.status = 0;
+      const status = rawState.pipefail ? failureStatus : stageStatus;
+      rawState.substitutionStatus = status;
+      rawState.status = status;
       let end = outStr.length;
       while (end > 0 && outStr.charCodeAt(end - 1) === 10) end--;
       return end === outStr.length ? outStr : outStr.slice(0, end);

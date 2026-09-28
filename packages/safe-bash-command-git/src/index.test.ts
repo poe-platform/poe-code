@@ -144,3 +144,45 @@ test("extended porcelain and plumbing commands work over safe-fs WASM", async ()
   assert.match(await run(["fsck"]), /Checking object directories: 100%/u);
   assert.match(await run(["count-objects", "-v"]), /count:/u);
 });
+
+test('archive bytes and linked worktree state survive the WASM filesystem boundary', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/repo', { recursive: true });
+  const command = createGitCommand();
+  const run = async (args: string[], cwd = '/repo') => {
+    const chunks: Uint8Array[] = [];
+    let stderr = '';
+    const result = await command.execute({ command: 'git', args, cwd, env: {}, fs,
+      signal: new AbortController().signal, stdin: (async function*(){})(),
+      stdout: { write(bytes: Uint8Array) { chunks.push(bytes.slice()); } },
+      stderr: { write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as CommandContext);
+    assert.equal(result.exitCode, 0, stderr);
+    const output = new Uint8Array(chunks.reduce((size, chunk) => size + chunk.length, 0));
+    let offset = 0;
+    for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.length; }
+    return output;
+  };
+  const text = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
+  await run(['init', '-b', 'main']);
+  await fs.mkdir('/repo/nested', { recursive: true });
+  await fs.writeFile('/repo/nested/data', new Uint8Array([0, 255, 128, 10]));
+  await run(['add', '.']);
+  await run(['commit', '-m', 'binary']);
+  const main = text(await run(['rev-parse', 'HEAD']));
+  const archive = await run(['archive', 'HEAD']);
+  await run(['archive', 'HEAD', '-o', '/output.tar']);
+  assert.deepEqual(archive, await fs.readFile('/output.tar'));
+  assert.equal(text(archive.slice(257, 262)), 'ustar');
+  assert.deepEqual(archive.slice(512, 516), new Uint8Array([0, 255, 128, 10]));
+  await run(['worktree', 'add', '/topic']);
+  assert.deepEqual(await fs.readFile('/topic/nested/data'), new Uint8Array([0, 255, 128, 10]));
+  assert.equal(text(await run(['rev-parse', 'HEAD'], '/topic')), main);
+  await fs.writeFile('/topic/nested/data', new Uint8Array([1, 2, 3]));
+  await run(['add', '.'], '/topic');
+  await run(['commit', '-m', 'topic'], '/topic');
+  assert.equal(text(await run(['rev-parse', 'HEAD'])), main);
+  const topic = text(await run(['rev-parse', 'HEAD'], '/topic'));
+  assert.notEqual(topic, main);
+  assert.equal(text(await run(['rev-parse', 'topic'])), topic);
+});

@@ -2801,34 +2801,34 @@ pub fn execute_git_cli_with_http(
             let Some(parent_oid) = target_commit.commit.parent.first().cloned() else {
                 return CliResult::err(128, "fatal: cannot revert a root commit\n");
             };
-            let mut commit_map = std::collections::BTreeMap::new();
-            let mut parent_map = std::collections::BTreeMap::new();
-            let _ = crate::commands::worktree::collect_tree_map(fs, &gitdir, &commit_oid, "", &mut commit_map);
-            let _ = crate::commands::worktree::collect_tree_map(fs, &gitdir, &parent_oid, "", &mut parent_map);
-
-            let mut touched: Vec<String> = Vec::new();
-            for (path, c_entry) in &commit_map {
-                if !parent_map.contains_key(path) {
-                    let _ = fs.unlink(&join(&[&repo_root, path]));
-                    let _ = remove(fs, &gitdir, path);
-                } else if let Some(p_entry) = parent_map.get(path)
-                    && p_entry.oid != c_entry.oid
-                    && let Ok(blob_res) = crate::commands::plumbing::read_blob(fs, &gitdir, &p_entry.oid, None)
-                {
-                    fs.write(&join(&[&repo_root, path]), &blob_res.blob);
-                    touched.push(path.clone());
+            let head_oid = match resolve_ref(fs, &gitdir, "HEAD", None) {
+                Ok(oid) => oid,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            };
+            let index_tree = match crate::GitIndexManager::acquire(fs, &gitdir, |index| {
+                crate::commands::worktree::construct_index_tree(fs, &gitdir, index, false)
+            }) {
+                Ok(tree) => tree,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            };
+            if !no_commit {
+                match crate::read_commit(fs, &gitdir, &head_oid) {
+                    Ok(head) if head.commit.tree == index_tree => {},
+                    Ok(_) => return CliResult::err(1, "error: your index contains uncommitted changes\n"),
+                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
             }
-            for (path, p_entry) in &parent_map {
-                if !commit_map.contains_key(path)
-                    && let Ok(blob_res) = crate::commands::plumbing::read_blob(fs, &gitdir, &p_entry.oid, None)
-                {
-                    fs.write(&join(&[&repo_root, path]), &blob_res.blob);
-                    touched.push(path.clone());
-                }
-            }
-            if !touched.is_empty() {
-                let _ = add(fs, &repo_root, Some(&gitdir), &touched, true);
+            let our_tree = if no_commit { index_tree } else { head_oid };
+            let merged_tree = match crate::commands::worktree::merge_trees_3way(
+                fs, None, &gitdir, &our_tree, Some(&commit_oid), &parent_oid,
+                "HEAD", &commit_oid, &parent_oid, true, false,
+            ) {
+                Ok((tree, conflicts)) if conflicts.is_empty() => tree,
+                Ok((_, conflicts)) => return CliResult::err(1, format!("error: revert conflicts in {}\n", conflicts.join(", "))),
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            };
+            if let Err(e) = checkout(fs, &repo_root, Some(&gitdir), Some(&merged_tree), None, None, false, true, false, false, false) {
+                return CliResult::err(128, format!("fatal: {}\n", e.message));
             }
             if no_commit {
                 CliResult::ok("")
@@ -3193,7 +3193,7 @@ pub fn execute_git_cli_with_http(
                 return CliResult::err(128, format!("fatal: can't open patch '{patch_arg}': No such file or directory\n"));
             };
             match apply_unified_patch(fs, &repo_root, &patch_text, reverse, check_only, stat_only) {
-                Ok(out) => CliResult::ok(out),
+                Ok(patch) => CliResult::ok(patch.output),
                 Err(msg) => CliResult::err(1, format!("error: {msg}\n")),
             }
         }
@@ -3205,39 +3205,63 @@ pub fn execute_git_cli_with_http(
             let Some(patch_text) = fs.read_str(&patch_path) else {
                 return CliResult::err(128, format!("fatal: can't open patch '{patch_arg}': No such file or directory\n"));
             };
-            let mut author_name = "Git User".to_string();
-            let mut author_email = "user@example.com".to_string();
-            let mut subject = "Applied patch".to_string();
-            for line in patch_text.lines() {
-                if let Some(rest) = line.strip_prefix("From: ") {
-                    if let Some((n, e)) = rest.split_once(" <") {
-                        author_name = n.trim().to_string();
-                        author_email = e.trim_end_matches('>').trim().to_string();
-                    }
-                } else if let Some(rest) = line.strip_prefix("Subject: ") {
-                    let s = if let Some((_, after)) = rest.split_once(']') {
-                        after.trim()
-                    } else {
-                        rest.trim()
-                    };
-                    subject = s.to_string();
+            let mut mails = Vec::new();
+            let mut current = String::new();
+            for line in patch_text.split_inclusive('\n') {
+                if line.starts_with("From ") && line.contains(" Mon Sep 17 00:00:00 2001") && !current.is_empty() {
+                    mails.push(std::mem::take(&mut current));
                 }
+                current.push_str(line);
             }
-            if let Err(msg) = apply_unified_patch(fs, &repo_root, &patch_text, false, false, false) {
-                return CliResult::err(1, format!("error: {msg}\n"));
+            if !current.is_empty() { mails.push(current); }
+            let mut out = String::new();
+            for mail in mails {
+                let mut author_name = "Git User".to_string();
+                let mut author_email = "user@example.com".to_string();
+                let mut subject = String::new();
+                let mut body = Vec::new();
+                let mut headers = true;
+                for line in mail.lines() {
+                    if headers {
+                        if line.is_empty() { headers = false; }
+                        else if let Some(rest) = line.strip_prefix("From: ") {
+                            if let Some((n, e)) = rest.rsplit_once(" <") {
+                                author_name = n.trim().to_string();
+                                author_email = e.trim_end_matches('>').trim().to_string();
+                            }
+                        } else if let Some(rest) = line.strip_prefix("Subject: ") {
+                            subject = if rest.starts_with("[PATCH") {
+                                rest.split_once(']').map(|(_, tail)| tail.trim()).unwrap_or(rest).to_string()
+                            } else { rest.to_string() };
+                        } else if line.starts_with(' ') || line.starts_with('\t') {
+                            subject.push(' '); subject.push_str(line.trim());
+                        }
+                    } else if line == "---" || line.starts_with("diff --git ") { break; }
+                    else { body.push(line); }
+                }
+                let body = body.join("\n");
+                let message = if body.trim().is_empty() { subject.clone() }
+                    else { format!("{subject}\n\n{}", body.trim()) };
+                let patch = match apply_unified_patch(fs, &repo_root, &mail, false, false, false) {
+                    Ok(patch) => patch,
+                    Err(msg) => return CliResult::err(1, format!("error: {msg}\n")),
+                };
+                if patch.paths.is_empty() { return CliResult::err(1, "error: patch contains no file changes\n"); }
+                for path in patch.paths {
+                    let result = if fs.exists(&join(&[&repo_root, &path])) {
+                        add(fs, &repo_root, Some(&gitdir), &[path], false)
+                    } else { remove(fs, &gitdir, &path) };
+                    if let Err(e) = result { return CliResult::err(128, format!("fatal: {}\n", e.message)); }
+                }
+                let author = Author { name: author_name, email: author_email, timestamp: 1502484200, timezone_offset: 0.0 };
+                if let Err(e) = commit(fs, &gitdir, Some(&message), Some(author), None, false, false, false, false, None, None, None) {
+                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                }
+                out.push_str(&format!("Applying: {subject}\n"));
             }
-            let _ = add(fs, &repo_root, Some(&gitdir), &[".".to_string()], false);
-            let author = Author {
-                name: author_name,
-                email: author_email,
-                timestamp: 1502484200,
-                timezone_offset: 0.0,
-            };
-            match commit(fs, &gitdir, Some(&subject), Some(author), None, false, false, false, false, None, None, None) {
-                Ok(_) => CliResult::ok(format!("Applying: {subject}\n")),
-                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
-            }
+            CliResult::ok(out)
         }
+
         "archive" => {
             if sub_args.contains(&"--list") || sub_args.contains(&"-l") {
                 return CliResult::ok("tar\nzip\n");
@@ -3275,13 +3299,11 @@ pub fn execute_git_cli_with_http(
                 return CliResult::err(128, format!("fatal: failed to read tree for {tree_ish}\n"));
             };
             let mut tar_bytes: Vec<u8> = Vec::new();
-            let mut manifest_out = String::new();
             for fpath in files {
                 let Ok(blob_res) = crate::commands::plumbing::read_blob(fs, &gitdir, &commit_oid, Some(&fpath)) else {
                     continue;
                 };
                 let entry_name = format!("{prefix}{fpath}");
-                manifest_out.push_str(&format!("{entry_name}\n"));
                 append_tar_entry(&mut tar_bytes, &entry_name, &blob_res.blob);
             }
             tar_bytes.extend(std::iter::repeat_n(0u8, 1024));
@@ -3289,7 +3311,7 @@ pub fn execute_git_cli_with_http(
                 fs.write(&dest, &tar_bytes);
                 CliResult::ok("")
             } else {
-                CliResult::ok(manifest_out)
+                CliResult::ok_bytes(tar_bytes)
             }
         }
         "submodule" => {
@@ -3346,7 +3368,8 @@ pub fn execute_git_cli_with_http(
                         let wt_path = gitdir_file.trim().trim_end_matches("/.git");
                         let wt_head = fs.read_str(&join(&[&wt_dir, "HEAD"])).unwrap_or_default();
                         let wt_label = wt_head.trim().strip_prefix("ref: refs/heads/").unwrap_or("detached");
-                        out.push_str(&format!("{}  {} [{}]\n", wt_path, short, wt_label));
+                        let wt_oid = resolve_ref(fs, &wt_dir, "HEAD", None).unwrap_or_else(|_| "0000000".to_string());
+                        out.push_str(&format!("{}  {} [{}]\n", wt_path, &wt_oid[..7.min(wt_oid.len())], wt_label));
                     }
                     CliResult::ok(out)
                 }
@@ -3355,14 +3378,40 @@ pub fn execute_git_cli_with_http(
                         return CliResult::err(128, "fatal: worktree add requires path\n");
                     };
                     let wt_abs = absolute_path(&effective_cwd, path_arg);
-                    let name = path_arg.rsplit('/').next().unwrap_or("wt");
+                    let name = wt_abs.rsplit('/').next().unwrap_or("wt");
+                    if fs.exists(&wt_abs) && !fs.readdir(&wt_abs).unwrap_or_default().is_empty() {
+                        return CliResult::err(128, format!("fatal: '{wt_abs}' already exists and is not empty\n"));
+                    }
+                    let branch_name = positionals.get(2).copied().unwrap_or(name);
+                    let branch_ref = format!("refs/heads/{branch_name}");
+                    let oid = match resolve_ref(fs, &gitdir, branch_name, None) {
+                        Ok(oid) => oid,
+                        Err(_) if positionals.get(2).is_none() => {
+                            match resolve_ref(fs, &gitdir, "HEAD", None).and_then(|oid| {
+                                crate::write_ref(fs, &gitdir, &branch_ref, &oid, false, false)?; Ok(oid)
+                            }) {
+                                Ok(oid) => oid,
+                                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                            }
+                        }
+                        Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                    };
                     let wt_meta = join(&[&wt_base, name]);
+                    if fs.exists(&wt_meta) { return CliResult::err(128, "fatal: worktree is already registered\n"); }
                     let _ = fs.mkdir(&wt_meta);
                     let _ = fs.mkdir(&wt_abs);
+                    fs.write_str(&join(&[&wt_meta, "commondir"]), &format!("{gitdir}\n"));
+                    for shared in ["objects", "refs", "config", "packed-refs"] {
+                        if let Err(e) = fs.symlink(&join(&[&gitdir, shared]), &join(&[&wt_meta, shared])) {
+                            return CliResult::err(128, format!("fatal: {}\n", e.message));
+                        }
+                    }
                     fs.write_str(&join(&[&wt_meta, "gitdir"]), &format!("{wt_abs}/.git\n"));
-                    let branch_name = positionals.get(2).copied().unwrap_or(name);
-                    fs.write_str(&join(&[&wt_meta, "HEAD"]), &format!("ref: refs/heads/{branch_name}\n"));
+                    fs.write_str(&join(&[&wt_meta, "HEAD"]), &format!("ref: {branch_ref}\n"));
                     fs.write_str(&join(&[&wt_abs, ".git"]), &format!("gitdir: {wt_meta}\n"));
+                    if let Err(e) = checkout(fs, &wt_abs, Some(&wt_meta), Some(&oid), None, None, false, true, false, true, false) {
+                        return CliResult::err(128, format!("fatal: {}\n", e.message));
+                    }
                     CliResult::ok(format!("Preparing worktree (new branch '{branch_name}')\n"))
                 }
                 "remove" => {
@@ -3614,13 +3663,22 @@ pub fn execute_git_cli_with_http(
             if let Err(e) = crate::commands::worktree::collect_tree_map(fs, &gitdir, &tree_oid, "", &mut flat_map) {
                 return CliResult::err(128, format!("fatal: {}\n", e.message));
             }
-            let _ = crate::GitIndexManager::acquire(fs, &gitdir, |idx| {
+            if let Err(e) = crate::GitIndexManager::acquire(fs, &gitdir, |idx| {
                 idx.clear();
                 for (path, entry) in flat_map {
-                    idx.insert(&path, None, &entry.oid, 0);
+                    let stat = crate::fs::FileStat {
+                        kind: crate::fs::NodeKind::File,
+                        mode: u32::from_str_radix(&entry.mode, 8)
+                            .map_err(|_| crate::GitError::internal("invalid tree mode"))?,
+                        size: 0, ino: 0, dev: 0, uid: 0, gid: 0,
+                        ctime_seconds: 0, ctime_nanoseconds: 0, mtime_seconds: 0, mtime_nanoseconds: 0,
+                    };
+                    idx.insert(&path, Some(&stat), &entry.oid, 0);
                 }
                 Ok(())
-            });
+            }) {
+                return CliResult::err(128, format!("fatal: {}\n", e.message));
+            }
             CliResult::ok("")
         }
         "commit-tree" => {
@@ -4237,6 +4295,11 @@ fn append_tar_entry(out: &mut Vec<u8>, name: &str, data: &[u8]) {
     }
 }
 
+struct AppliedPatch {
+    output: String,
+    paths: std::collections::BTreeSet<String>,
+}
+
 fn apply_unified_patch(
     fs: &MemoryFs,
     repo_root: &str,
@@ -4244,7 +4307,8 @@ fn apply_unified_patch(
     reverse: bool,
     check_only: bool,
     stat_only: bool,
-) -> Result<String, String> {
+) -> Result<AppliedPatch, String> {
+    let mut paths = std::collections::BTreeSet::new();
     let mut old_path: Option<String> = None;
     let mut new_path: Option<String> = None;
     let mut hunks: Vec<Vec<String>> = Vec::new();
@@ -4255,7 +4319,8 @@ fn apply_unified_patch(
                       old_p: &Option<String>,
                       new_p: &Option<String>,
                       hunks: &[Vec<String>],
-                      stat_lines: &mut Vec<String>|
+                      stat_lines: &mut Vec<String>,
+                      paths: &mut std::collections::BTreeSet<String>|
      -> Result<(), String> {
         if hunks.is_empty() && old_p.is_none() && new_p.is_none() {
             return Ok(());
@@ -4268,6 +4333,7 @@ fn apply_unified_patch(
         let Some(rel) = target_rel else {
             return Ok(());
         };
+        for path in old_p.iter().chain(new_p.iter()) { paths.insert(path.clone()); }
         if stat_only {
             let mut changes = 0usize;
             for h in hunks {
@@ -4344,7 +4410,7 @@ fn apply_unified_patch(
             if !current_hunk.is_empty() {
                 hunks.push(std::mem::take(&mut current_hunk));
             }
-            flush_file(fs, &old_path, &new_path, &hunks, &mut stat_lines)?;
+            flush_file(fs, &old_path, &new_path, &hunks, &mut stat_lines, &mut paths)?;
             hunks.clear();
             old_path = None;
             new_path = None;
@@ -4377,6 +4443,6 @@ fn apply_unified_patch(
     if !current_hunk.is_empty() {
         hunks.push(current_hunk);
     }
-    flush_file(fs, &old_path, &new_path, &hunks, &mut stat_lines)?;
-    Ok(stat_lines.concat())
+    flush_file(fs, &old_path, &new_path, &hunks, &mut stat_lines, &mut paths)?;
+    Ok(AppliedPatch { output: stat_lines.concat(), paths })
 }

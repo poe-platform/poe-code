@@ -239,8 +239,8 @@ dual_fixture_test!(merge_three_way_clean_branches_a_and_b, merge_three_way_clean
     let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), None).unwrap();
     assert!(m.merge_commit);
     assert!(!m.fast_forward);
-    assert_eq!(m.oid.as_deref(), Some("0e247301ad28fb64dcf58642fd6c51a099611112"));
-    assert_eq!(m.tree.as_deref(), Some("5708c7e22ebfbf8d13413fc255b8ff422227dc1e"));
+    assert_eq!(m.oid.as_deref(), Some("7150b24425e03cb67a72b020ba77b7d64f229d89"));
+    assert_eq!(m.tree.as_deref(), Some("4c8e50ecdb824a4c887910f9c901497144b768b7"));
 });
 
 dual_fixture_test!(merge_three_way_clean_with_custom_message, merge_three_way_clean_with_custom_message_sub, "test-merge", |f| {

@@ -1149,7 +1149,7 @@ dual_fixture_test!(cli_submodule_and_worktree_and_maintenance, cli_submodule_and
     assert_eq!(r_sub.exit_code, 0);
     assert!(f.fs.read_str(&join(&[&f.dir, ".gitmodules"])).unwrap().contains("vendor/sub"));
 
-    let r_wt_add = execute_git_cli(&f.fs, &f.dir, &["worktree", "add", "wt-feature", "feature-wt"]);
+    let r_wt_add = execute_git_cli(&f.fs, &f.dir, &["worktree", "add", "wt-feature"]);
     assert_eq!(r_wt_add.exit_code, 0);
     let r_wt_list = execute_git_cli(&f.fs, &f.dir, &["worktree", "list"]);
     assert_eq!(r_wt_list.exit_code, 0);

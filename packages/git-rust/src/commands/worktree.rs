@@ -1005,7 +1005,7 @@ pub fn merge(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn merge_trees_3way(
+pub(crate) fn merge_trees_3way(
     fs: &MemoryFs,
     dir: Option<&str>,
     gitdir: &str,
@@ -1074,8 +1074,8 @@ fn merge_trees_3way(
                         let b_str = String::from_utf8_lossy(&b_bytes);
                         let t_str = String::from_utf8_lossy(&t_bytes);
                         let merged = merge_file(
-                            [our_label, base_label, their_label],
-                            [o_str.as_ref(), b_str.as_ref(), t_str.as_ref()],
+                            [base_label, our_label, their_label],
+                            [b_str.as_ref(), o_str.as_ref(), t_str.as_ref()],
                         );
                         if merged.clean_merge {
                             let merged_oid = _write_object(

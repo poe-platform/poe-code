@@ -1,3 +1,4 @@
+import { isFsError } from "safe-bash-contracts/errors";
 import {
   commandRuntimeIdentity,
   writeText,
@@ -94,19 +95,21 @@ async function loadVfsAccounts(context: CommandContext, maxBytes: number): Promi
   let groupText = "";
   try {
     const bytes = await context.fs.readFile("/etc/passwd", { signal: context.signal });
-    if (bytes.byteLength <= maxBytes) {
-      passwdText = new TextDecoder().decode(bytes);
-    }
-  } catch {
-    // ignore missing /etc/passwd
+    context.signal.throwIfAborted();
+    if (bytes.byteLength > maxBytes) throw new RangeError("/etc/passwd exceeds size limit");
+    passwdText = new TextDecoder().decode(bytes);
+  } catch (error) {
+    context.signal.throwIfAborted();
+    if (!isFsError(error, "ENOENT")) throw error;
   }
   try {
     const bytes = await context.fs.readFile("/etc/group", { signal: context.signal });
-    if (bytes.byteLength <= maxBytes) {
-      groupText = new TextDecoder().decode(bytes);
-    }
-  } catch {
-    // ignore missing /etc/group
+    context.signal.throwIfAborted();
+    if (bytes.byteLength > maxBytes) throw new RangeError("/etc/group exceeds size limit");
+    groupText = new TextDecoder().decode(bytes);
+  } catch (error) {
+    context.signal.throwIfAborted();
+    if (!isFsError(error, "ENOENT")) throw error;
   }
   if (!passwdText) return result;
 
@@ -390,7 +393,15 @@ export function createIdCommand(options: IdCommandsOptions = {}): CommandDefinit
         return { exitCode: 1 };
       }
 
-      const vfsAccounts = await loadVfsAccounts(context, limits.maxPasswdBytes);
+      let vfsAccounts: IdUserAccount[];
+      try {
+        vfsAccounts = await loadVfsAccounts(context, limits.maxPasswdBytes);
+      } catch (error) {
+        context.signal.throwIfAborted();
+        if (!(error instanceof RangeError)) throw error;
+        await writeText(context.stderr, `id: ${error.message}\n`);
+        return { exitCode: 1 };
+      }
       const { current, directory } = buildBuiltinAccounts(context, options);
       const allAccounts = [...vfsAccounts, ...directory];
 

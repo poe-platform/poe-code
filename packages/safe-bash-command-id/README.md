@@ -23,3 +23,5 @@ const res = await shell.exec("id -un"); // "sandbox\n"
 ```
 
 Resource limits are disabled (`Infinity`) by default. Pass `limits` to the command factory or plugin to enforce bounds; omitted limits remain disabled.
+
+The `maxPasswdBytes` quota applies to both `/etc/passwd` and `/etc/group`. Oversized files fail with a diagnostic; missing files use fallback accounts and cancellation propagates.

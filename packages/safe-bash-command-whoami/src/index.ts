@@ -1,3 +1,4 @@
+import { isFsError } from "safe-bash-contracts/errors";
 import {
   commandRuntimeIdentity,
   writeText,
@@ -51,19 +52,20 @@ Packaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)
 async function resolvePasswdUser(context: CommandContext, euid: number, maxBytes: number): Promise<string | undefined> {
   try {
     const bytes = await context.fs.readFile("/etc/passwd", { signal: context.signal });
-    if (bytes.byteLength <= maxBytes) {
-      const text = new TextDecoder().decode(bytes);
-      for (const line of text.split("\n")) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith("#")) continue;
-        const parts = trimmed.split(":");
-        if (parts.length >= 3 && Number(parts[2]) === euid) {
-          return parts[0]!;
-        }
+    context.signal.throwIfAborted();
+    if (bytes.byteLength > maxBytes) throw new RangeError("/etc/passwd exceeds size limit");
+    const text = new TextDecoder().decode(bytes);
+    for (const line of text.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const parts = trimmed.split(":");
+      if (parts.length >= 3 && Number(parts[2]) === euid) {
+        return parts[0]!;
       }
     }
-  } catch {
-    // ignore
+  } catch (error) {
+    context.signal.throwIfAborted();
+    if (!isFsError(error, "ENOENT")) throw error;
   }
   return undefined;
 }
@@ -116,7 +118,14 @@ export function createWhoamiCommand(options: WhoamiCommandsOptions = {}): Comman
       const euid = options.euid ?? options.uid ?? (rawEuid !== undefined && /^\d+$/.test(rawEuid) ? Number(rawEuid) : undefined);
       let username: string | undefined;
       if (euid !== undefined) {
-        username = await resolvePasswdUser(context, euid, limits.maxPasswdBytes);
+        try {
+          username = await resolvePasswdUser(context, euid, limits.maxPasswdBytes);
+        } catch (error) {
+          context.signal.throwIfAborted();
+          if (!(error instanceof RangeError)) throw error;
+          await writeText(context.stderr, `whoami: ${error.message}\n`);
+          return { exitCode: 1 };
+        }
         if (!username) {
           if (euid === 0) username = "root";
           else if (euid === 65534) username = "nobody";

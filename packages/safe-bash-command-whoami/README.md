@@ -21,3 +21,5 @@ const res = await shell.exec("whoami");
 ```
 
 Resource limits are disabled (`Infinity`) by default. Pass `limits` to the command factory or plugin to enforce bounds; omitted limits remain disabled.
+
+The `maxPasswdBytes` quota applies when resolving an effective user ID from `/etc/passwd`. Oversized files fail with a diagnostic; missing files use fallback names and cancellation propagates.

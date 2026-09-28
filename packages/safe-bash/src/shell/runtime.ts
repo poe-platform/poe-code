@@ -22604,6 +22604,8 @@ export class Runtime {
   }
   private expandSyncTrCharArray(spec: string): string[] | undefined {
     if (spec.length === 0) return undefined;
+    // Escaped endpoints need the tr parser before range expansion.
+    if (spec.includes("\\") && spec.includes("-")) return undefined;
     const posixClasses: Record<string, string> = {
       "[:lower:]": "abcdefghijklmnopqrstuvwxyz",
       "[:upper:]": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -22839,20 +22841,8 @@ export class Runtime {
     if (st === "reverse") {
       return Array.isArray(item) ? [[...item].reverse()] : undefined;
     }
-    if (st === "unique") {
-      if (!Array.isArray(item)) return undefined;
-      if (item.every(x => typeof x === "string" || typeof x === "number" || typeof x === "boolean" || x === null)) {
-        const u = Array.from(new Set(item));
-        u.sort((a, b) => {
-          if (typeof a === "number" && typeof b === "number") return a - b;
-          const sa = String(a);
-          const sb = String(b);
-          return sa < sb ? -1 : sa > sb ? 1 : 0;
-        });
-        return [u];
-      }
-      return undefined;
-    }
+    // Use the jq engine for its complete type ordering and equality semantics.
+    if (st === "unique") return undefined;
     if (st === "add") {
       if (!Array.isArray(item)) return undefined;
       if (item.length === 0) return [null];
@@ -23458,19 +23448,26 @@ export class Runtime {
         }
         let matchedOnce = false;
         let matchIdx = 0;
+        let previousEnd = -1;
         l = l.replace(st.re, (matched: string, ...groups: unknown[]) => {
+          const offset = groups[groups.length - 2] as number;
+          if (matched.length === 0 && offset === previousEnd) return "";
+          previousEnd = offset + matched.length;
           matchIdx++;
           if (st.nth > 0 && matchIdx !== st.nth) return matched;
           matchedOnce = true;
-          let r = st.rep;
-          if (r.includes("&")) r = r.split("&").join(matched);
-          if (r.includes("\\")) {
-            r = r.replace(/\\([1-9])/g, (_, d: string) => {
-              const g = groups[Number(d) - 1];
-              return typeof g === "string" ? g : "";
-            });
+          // Expand only replacement tokens; inserted match bytes are literal.
+          let replacement = "";
+          for (let ri = 0; ri < st.rep.length; ri++) {
+            const c = st.rep[ri]!;
+            if (c === "&") replacement += matched;
+            else if (c === "\\" && ri + 1 < st.rep.length) {
+              const next = st.rep[++ri]!;
+              const group = next >= "1" && next <= "9" ? groups[Number(next) - 1] : next;
+              replacement += typeof group === "string" ? group : "";
+            } else replacement += c;
           }
-          return r;
+          return replacement;
         });
         if (matchedOnce && st.printOnMatch) out.push(l);
       }
@@ -23702,8 +23699,10 @@ export class Runtime {
       const op = sumEndM[2]!;
       const fTok = sumEndM[3];
       const constVal = sumEndM[4] !== undefined ? Number(sumEndM[4]) : undefined;
-      let acc = initVarVal;
-      let touched = initVarName === varName;
+      const initial = userVars.get(varName);
+      if (initial !== undefined && !Number.isFinite(Number(initial))) return undefined;
+      let acc = initVarName === varName ? initVarVal : Number(initial ?? 0);
+      let touched = initVarName === varName || initial !== undefined;
       for (let li = 0; li < rawLines.length; li++) {
         const l = rawLines[li]!;
         const fields = awkSep === undefined || awkSep === " "
@@ -23828,7 +23827,7 @@ export class Runtime {
       if (rowPred && !rowPred(l, fields, li + 1)) continue;
       if (subRe) {
         if (subTarget === "0") {
-          l = l.replace(subRe, subRep);
+          l = l.replace(subRe, matched => subRep.split("&").join(matched));
           fields = awkSep === undefined || awkSep === " "
             ? l.split(/[ \t]+/).filter(Boolean)
             : (l.length === 0 ? [] : l.split(awkSep));
@@ -23836,7 +23835,7 @@ export class Runtime {
           const tIdx = subTarget === "NF" ? fields.length : Number(subTarget);
           if (tIdx >= 1 && tIdx <= fields.length) {
             fields = [...fields];
-            fields[tIdx - 1] = fields[tIdx - 1]!.replace(subRe, subRep);
+            fields[tIdx - 1] = fields[tIdx - 1]!.replace(subRe, matched => subRep.split("&").join(matched));
             l = fields.join(ofs);
           }
         }
@@ -24046,6 +24045,7 @@ export class Runtime {
         return undefined;
       }
     }
+    if (ver || keySpec?.includes("V")) return undefined;
     let startField = 1;
     let endField: number | undefined;
     let keyNum = num;

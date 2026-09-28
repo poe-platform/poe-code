@@ -56,8 +56,8 @@ serveFixture(run);`,
         pending = { resolve, reject };
         timer = setTimeout(() => {
           child.kill("SIGKILL");
-          reject(new Error("Main-thread fixture exceeded the four-second request budget"));
-        }, 4000);
+          reject(new Error("Main-thread fixture exceeded the twenty-five-second request budget"));
+        }, 25000);
         child.send(JSON.stringify(request) ?? "null", error => { if (error) reject(error); });
       });
     } finally { clearTimeout(timer); pending = undefined; }

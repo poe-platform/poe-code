@@ -668,10 +668,13 @@ export class ArrayOwner {
       const checkpoint = this.ledger.checkpoint();
       if (checkpoint) return this._drainAsync(checkpoint);
     }
+    let drained = 0;
     while (this._head) {
       this._head.release();
-      const checkpoint = this.ledger.checkpoint();
-      if (checkpoint) return this._drainAsync(checkpoint);
+      if ((++drained & 63) === 0) {
+        const checkpoint = this.ledger.checkpoint(undefined, 64);
+        if (checkpoint) return this._drainAsync(checkpoint);
+      }
     }
     this._finishDrain();
     return undefined;

@@ -516,7 +516,53 @@ export class BindingStore {
     } catch (error) { token.release(); throw error; }
   }
 
+  readonly recycledBindings = new Map<string, { binding: IndexedBinding; name: OwnedText; admission: Admission }>();
+
+  releaseRecycled(name: string): void {
+    const rec = (this.recycledBindings ??= new Map()).get(name);
+    if (!rec) return;
+    (this.recycledBindings ??= new Map()).delete(name);
+    rec.admission.release();
+    rec.name.release();
+    void rec.binding.release();
+  }
+
+  stashRecycled(name: string, tickets: Tickets): void {
+    const previous = this.bindings.get(name);
+    this.bindings.delete(name);
+    this.changed(tickets, name);
+    if (!previous) return;
+    if (previous.binding.references === 1 && previous.binding.values.size <= 32 && (this.recycledBindings ??= new Map()).size < 16) {
+      this.releaseRecycled(name);
+      (this.recycledBindings ??= new Map()).set(name, previous);
+      return;
+    }
+    previous.admission.release();
+    previous.name.release();
+    void previous.binding.release();
+  }
+
+  takeRecycled(name: string, associative: boolean, clearValues: boolean, tickets: Tickets): IndexedBinding | undefined {
+    const rec = (this.recycledBindings ??= new Map()).get(name);
+    if (!rec) return undefined;
+    (this.recycledBindings ??= new Map()).delete(name);
+    if (rec.binding.associative !== associative || rec.binding.references !== 1) {
+      rec.admission.release();
+      rec.name.release();
+      void rec.binding.release();
+      return undefined;
+    }
+    if (clearValues && rec.binding.values.size > 0) {
+      for (const k of rec.binding.values.keys()) rec.binding.remove(k);
+      rec.binding.maximum = -1;
+    }
+    this.bindings.set(name, rec);
+    this.changed(tickets, name);
+    return rec.binding;
+  }
+
   publish(name: string, binding: IndexedBinding, tickets: Tickets, prepared?: { readonly name: OwnedText; readonly admission: Admission }, restoring = false, owner = this.owner): Promise<void> | undefined {
+    this.releaseRecycled(name);
     const previous = this.bindings.get(name);
     const displaced = previous?.binding;
     if (previous) previous.binding = binding;
@@ -526,8 +572,13 @@ export class BindingStore {
       owner.adopt(prepared.admission, restoring);
       const entry = { binding, name: prepared.name, admission: prepared.admission };
       prepared.admission.cleanup = () => {
-        if (this.bindings.get(name) !== entry) return;
-        this.bindings.delete(name);
+        if (this.bindings.get(name) === entry) {
+          this.bindings.delete(name);
+        } else if ((this.recycledBindings ??= new Map()).get(name) === entry) {
+          (this.recycledBindings ??= new Map()).delete(name);
+        } else {
+          return;
+        }
         entry.name.release();
         void entry.binding.release();
       };
@@ -547,6 +598,7 @@ export class BindingStore {
   }
 
   remove(name: string, tickets: Tickets): Promise<void> | undefined {
+    this.releaseRecycled(name);
     const previous = this.bindings.get(name);
     this.bindings.delete(name);
     this.changed(tickets, name);

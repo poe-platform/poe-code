@@ -55,7 +55,7 @@ export function publishPipelineStatus(
       const s = statuses[i]!;
       if (!Number.isSafeInteger(s) || s < 0 || s > 255) throw new TypeError("Invalid PIPESTATUS completion");
     }
-    if (target === "indexed") {
+    if (target === "indexed" && monitor.store?.get(name)) {
       const store = monitor.store;
       const existing = store?.get(name);
       const owner = monitor.internalOwner();

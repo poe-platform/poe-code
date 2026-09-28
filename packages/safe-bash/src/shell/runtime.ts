@@ -925,6 +925,7 @@ interface TypedSavedVariable {
   readonly scalarLegacy: boolean;
 }
 const typedSavedVariables = new WeakMap<SavedVariable, TypedSavedVariable>();
+const syncLocalArrayVariables = new WeakSet<SavedVariable>();
 const valueScope = Symbol("shell value allocation scope");
 const invokedValues = new WeakMap<WordPart, ShellValue>();
 const functionDiagnostics = new WeakMap<Command, Readonly<{ offset: number; lines?: ReadonlyMap<Command, number> }>>();
@@ -1989,7 +1990,14 @@ function saveVariable(state: State, name: string): SavedVariable {
 }
 function hasUnpreparedLocals(state: State): boolean {
   for (const frame of state.locals) for (const saved of frame.values()) {
-    if (!typedSavedVariables.has(saved)) return true;
+    if (!typedSavedVariables.has(saved) && !syncLocalArrayVariables.has(saved)) return true;
+  }
+  return false;
+}
+function hasUnpreparedLocal(state: State, name: string): boolean {
+  for (const frame of state.locals) {
+    const saved = frame.get(name);
+    if (saved && !typedSavedVariables.has(saved) && !syncLocalArrayVariables.has(saved)) return true;
   }
   return false;
 }
@@ -2018,6 +2026,14 @@ function tryRestoreVariableSync(state: State, name: string, saved: SavedVariable
   if (typedSavedVariables.has(saved)) return false;
   try {
     const monitor = stateMonitor(state);
+    if (syncLocalArrayVariables.delete(saved) || monitor?.store?.get(name)) {
+      const arrStore = monitor?.store;
+      if (arrStore?.get(name)) {
+        const rmTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+        arrStore.stashRecycled(name, rmTickets);
+        monitor!.epoch = rmTickets.epoch;
+      }
+    }
     if (saved.attributes !== undefined) {
       state.variableAttributes ??= new Map();
       state.variableAttributes.set(name, saved.attributes);
@@ -3120,12 +3136,23 @@ function tryCompileTrimGlobToRegex(pat: string, op: "#" | "##" | "%" | "%%", ext
 const SIMPLE_ARITH_CMP_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*(<=|>=|==|!=|<|>)\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
 const SIMPLE_SCALAR_MUT_RE = /^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*(\+=|-=|=)\s*(-?(?:0|[1-9][0-9]{0,12}))(?:\s*([+\-*])\s*(-?(?:0|[1-9][0-9]{0,12})))?\s*$/;
 const readArrayScratchFields: string[] = [];
-const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*/%])\s*(-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
-const SIMPLE_ARITH_OPERAND_RE = /^(?:-?(?:0|[1-9][0-9]{0,12})|[a-zA-Z_][a-zA-Z_0-9]*)$/;
+const SIMPLE_EXPANDED_ARITH_RE = /^\s*(-?(?:0|[1-9][0-9]{0,12})|\$[1-9]|\$\{[a-zA-Z_][a-zA-Z_0-9]*\}|\$?[a-zA-Z_][a-zA-Z_0-9]*)\s*([+\-*/%])\s*(-?(?:0|[1-9][0-9]{0,12})|\$[1-9]|\$\{[a-zA-Z_][a-zA-Z_0-9]*\}|\$?[a-zA-Z_][a-zA-Z_0-9]*)\s*$/;
+const SIMPLE_ARITH_OPERAND_RE = /^(?:-?(?:0|[1-9][0-9]{0,12})|\$[1-9]|\$\{[a-zA-Z_][a-zA-Z_0-9]*\}|\$?[a-zA-Z_][a-zA-Z_0-9]*)$/;
 function resolveSimpleArithOperand(tok: string, rawState: State, monitor: ReturnType<typeof stateMonitor>, activeArrayStore: ReturnType<typeof arrayStore>, syncTouched?: Set<string>): number | undefined {
   if (!SIMPLE_ARITH_OPERAND_RE.test(tok)) return undefined;
   const c0 = tok.charCodeAt(0);
   if ((c0 >= 48 && c0 <= 57) || c0 === 45) return Number(tok);
+  if (c0 === 36) {
+    const c1 = tok.charCodeAt(1);
+    if (tok.length === 2 && c1 >= 49 && c1 <= 57) {
+      if (rawState.nounset && c1 - 49 >= rawState.positional.length) return undefined;
+      const pVal = rawState.positional[c1 - 49];
+      if (pVal === undefined || pVal === "") return 0;
+      if (typeof pVal !== "string" || !/^-?(?:0|[1-9][0-9]{0,12})$/.test(pVal)) return undefined;
+      return Number(pVal);
+    }
+    tok = c1 === 123 ? tok.slice(2, -1) : tok.slice(1);
+  }
   if (rawState.nounset || activeArrayStore?.bindings.has(tok) || monitor?.hasOverlay(tok) || activeArrayStore?.watches.has(tok)) return undefined;
   const raw = rawState.variables[tok];
   if (raw === undefined || raw === "") return 0;
@@ -4284,7 +4311,7 @@ export class Runtime {
   async prepareArrayObservers(state: State, owner: ArrayOwner): Promise<void> {
     owner.reserve({ metadata: 128, work: 6 });
     for (const frame of state.locals) for (const [name, saved] of frame) {
-      if (!typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved);
+      if (!typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved, syncLocalArrayVariables.has(saved));
       await owner.ledger.checkpoint(this.signal);
     }
     for (const frame of stateMonitor(state)!.overlayFrames()) for (const [name, record] of frame) {
@@ -4470,7 +4497,7 @@ export class Runtime {
     return binding.keyIndex(resolvedValue, owner, this.signal, create);
   }
   private tryFastArraySubscriptWriteSync(state: State, name: string, sub: string, val: string): boolean {
-    if (hasUnpreparedLocals(state)) return false;
+    if (hasUnpreparedLocal(state, name)) return false;
     this._syncArithTouched?.delete(name);
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
@@ -4595,8 +4622,8 @@ export class Runtime {
     if (!ignoreYield && hasYieldCheckpoint(this.signal)) return false;
     if (declaration) return false;
     // Array writes must prepare scope observers before creating or mutating bindings.
-    if (hasUnpreparedLocals(state)) return false;
     const name = assignment.name;
+    if (hasUnpreparedLocal(state, name)) return false;
     this._syncArithTouched?.delete(name);
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
@@ -4604,14 +4631,21 @@ export class Runtime {
       return false;
     }
     // Cold activation belongs to normal command handling, which maps array refusals.
-    const store = monitor?.store;
+    const store = monitor?.store ?? (monitor && !(this.budget as { _arraySession?: { hasActiveLedger?: boolean } })._arraySession?.hasActiveLedger ? requireArrays(rawState) : undefined);
     let current = store?.get(name);
     if ( !monitor || !store || store.watches.has(name) || monitor.hasOverlay(name) || (current && (current.references !== 1 || (associative !== undefined && current.associative !== associative))) || (!current && rawState.variables[name] !== undefined)) {
       return false;
     }
-    const ensureBinding = (isAssoc: boolean): IndexedBinding | undefined => {
+    const ensureBinding = (isAssoc: boolean, clearRecycled = false): IndexedBinding | undefined => {
       if (current) return current.associative === isAssoc ? current : undefined;
       try {
+        const initTicketsRec = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+        const recycled = store.takeRecycled(name, isAssoc, clearRecycled, initTicketsRec);
+        if (recycled) {
+          monitor.epoch = initTicketsRec.epoch;
+          current = recycled;
+          return recycled;
+        }
         const created = IndexedBinding.create(store.owner, isAssoc);
         const nameByteLen = shellValueByteLength(name);
         const prepared = store.prepareExistingName(name, nameByteLen, store.owner, this.signal);
@@ -4651,11 +4685,11 @@ export class Runtime {
           keepIds.add(id);
           pairs.push({ key: kSrc, id, val });
         }
-        const target = ensureBinding(true);
+        const target = ensureBinding(true, assignment.append);
         if (!target) return false;
         try {
           if (!assignment.append && target.values.size > 0) {
-            for (const [id, ek] of Array.from(target.keys.entries())) {
+            for (const [id, ek] of target.keys.entries()) {
               if (!keepIds.has(id)) target.remove(ek.index);
             }
           }
@@ -4701,7 +4735,7 @@ export class Runtime {
           if (bLen > this.budget.limits.maxExpansionBytes) return false;
           items.push({ explicitIdx, val, bLen });
         }
-        const target = ensureBinding(false);
+        const target = ensureBinding(false, assignment.append || assignment.kind === "element");
         if (!target) return false;
         let nextIndex = assignment.append ? target.maximum + 1 : 0;
         const resolved: Array<{ idx: number; val: string; bLen: number }> = [];
@@ -4716,12 +4750,14 @@ export class Runtime {
         }
         try {
           if (!assignment.append && target.values.size > 0) {
-            for (const k of Array.from(target.values.keys())) {
-              if (!keepIndices.has(k)) target.remove(k);
+            if (!(target.values.size === keepIndices.size && target.maximum === resolved.length - 1)) {
+              for (const k of target.values.keys()) {
+                if (!keepIndices.has(k)) target.remove(k);
+              }
+              let newMax = -1;
+              for (const k of target.values.keys()) { if (k > newMax) newMax = k; }
+              target.maximum = newMax;
             }
-            let newMax = -1;
-            for (const k of target.values.keys()) { if (k > newMax) newMax = k; }
-            target.maximum = newMax;
           }
           for (let i = 0; i < resolved.length; i++) {
             const { idx, val, bLen } = resolved[i]!;
@@ -4791,9 +4827,9 @@ export class Runtime {
       const cachedIdx = assignment.index as { _cachedWord?: Word; _cachedSyntax?: unknown };
       let word = assignment.index.word ?? (cachedIdx._cachedSyntax === rawState.extensions?.syntax ? cachedIdx._cachedWord : undefined);
       if (!word) {
-        if (byteLocale(rawState.variables) || rawState.depth !== 0) return false;
+        if (byteLocale(rawState.variables) || rawState.depth >= 24) return false;
         try {
-          word = parseArraySubscript(assignment.index.source ?? assignment.index.decimal, this.budget.parsing, false, 0, false, rawState.extensions?.syntax);
+          word = parseArraySubscript(assignment.index.source ?? assignment.index.decimal, this.budget.parsing, false, rawState.depth, false, rawState.extensions?.syntax);
           cachedIdx._cachedWord = word;
           cachedIdx._cachedSyntax = rawState.extensions?.syntax;
         } catch {
@@ -7077,12 +7113,11 @@ export class Runtime {
           const fnBody = rawState.functions.get(w0Plain)!;
           return fnBody.kind === "group" && fnBody.redirects.length === 0 && this.canSyncScriptCompound(fnBody.body, rawState, depth + 1);
         }
-        const st = stateMonitor(rawState)?.store;
+        const st = stateMonitor(rawState)?.store ?? (stateMonitor(rawState) && !(this.budget as { _arraySession?: { hasActiveLedger?: boolean } })._arraySession?.hasActiveLedger ? requireArrays(rawState) : undefined);
         const arrayAssign = getArrayAssignment(w0);
         if (arrayAssign) {
-          // Refuse the whole compound before any prefix executes on a cold store.
           if (!st) return false;
-          if ( rawState.readonlyVariables?.has(arrayAssign.name) || rawState.exported.has(arrayAssign.name) || rawState.variableAttributes?.get(arrayAssign.name) || controlNames.has(arrayAssign.name) || (!st?.get(arrayAssign.name) && rawState.variables[arrayAssign.name] !== undefined)) {
+          if ( rawState.readonlyVariables?.has(arrayAssign.name) || rawState.exported.has(arrayAssign.name) || rawState.variableAttributes?.get(arrayAssign.name) || controlNames.has(arrayAssign.name) || (depth === 0 && rawState.locals.length === 0 && !st?.get(arrayAssign.name) && rawState.variables[arrayAssign.name] !== undefined)) {
             return false;
           }
           if (arrayAssign.kind === "compound") {
@@ -7103,7 +7138,7 @@ export class Runtime {
           return isNoBraceSyncAssignWord(arrayAssign.value);
         }
         const assignment = this.assignment(w0);
-        return Boolean( assignment && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") && !rawState.readonlyVariables?.has(assignment.name) && (!st?.get(assignment.name) || (!assignment.append && !hasUnpreparedLocals(rawState) && !rawState.exported.has(assignment.name))) && isNoBraceSyncAssignWord(assignment.value), );
+        return Boolean( assignment && assignment.name !== "OPTIND" && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") && !rawState.readonlyVariables?.has(assignment.name) && (!st?.get(assignment.name) || (!assignment.append && !hasUnpreparedLocal(rawState, assignment.name) && !rawState.exported.has(assignment.name))) && isNoBraceSyncAssignWord(assignment.value), );
       }
       if (w0Plain !== undefined && command.words.length <= 64 && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !hasActiveExtensions(rawState)) {
         const fnBody = rawState.functions.get(w0Plain)!;
@@ -7179,18 +7214,19 @@ export class Runtime {
       if (
         command.words.length >= 3 &&
         command.words.length <= 16 &&
-        (w0Plain === "declare" || w0Plain === "typeset") &&
-        rawState.locals.length === 0 &&
+        w0Plain !== undefined &&
+        (w0Plain === "local" ? (rawState.locals.length > 0 || depth > 0) : (w0Plain === "declare" || w0Plain === "typeset")) &&
         (command.words[1]?.plain === "-a" || command.words[1]?.plain === "-A") &&
         !hasShellFunction(rawState, w0Plain) &&
         !rawState.extensions?.builtins.has(w0Plain)
       ) {
         const wantAssoc = command.words[1]!.plain === "-A";
         const st = stateMonitor(rawState)?.store;
+        const isFuncScope = rawState.locals.length > 0 || depth > 0;
         if (command.words.slice(2).every(w => {
           const aa = getArrayAssignment(w);
           if (aa && aa.kind === "compound") {
-            if (!isShellIdentifier(aa.name) || rawState.readonlyVariables?.has(aa.name) || rawState.exported.has(aa.name) || (st?.get(aa.name) && st.get(aa.name)!.associative !== wantAssoc) || (!st?.get(aa.name) && rawState.variables[aa.name] !== undefined)) return false;
+            if (!isShellIdentifier(aa.name) || rawState.readonlyVariables?.has(aa.name) || rawState.exported.has(aa.name) || (st?.get(aa.name) && st.get(aa.name)!.associative !== wantAssoc) || (!isFuncScope && !st?.get(aa.name) && rawState.variables[aa.name] !== undefined)) return false;
             return aa.entries.length <= 32 && aa.entries.every(e => {
               if (e.append) return false;
               if (wantAssoc) {
@@ -7345,6 +7381,7 @@ export class Runtime {
     const scalarVars = new Set<string>();
     const nonIntScalarVars = new Set<string>();
     const arrayVars = new Set<string>();
+    const localArrayVars = new Set<string>();
     let hasShift = false;
     let hasDynamicArith = false;
     const arithSourceChunks: string[] = [];
@@ -7395,12 +7432,17 @@ export class Runtime {
               for (let k = isArrDecl ? 2 : 1; k < c.words.length; k++) {
                 const wk = c.words[k]!;
                 const aa = getArrayAssignment(wk);
-                if (aa) arrayVars.add(aa.name);
-                else {
+                if (aa) {
+                  arrayVars.add(aa.name);
+                  if (isArrDecl && (wp0 === "local" || d > 0)) localArrayVars.add(aa.name);
+                } else {
                   const asg = this.assignment(wk);
                   const nm = asg ? asg.name : wk.plain;
                   if (nm) {
-                    if (isArrDecl) arrayVars.add(nm);
+                    if (isArrDecl) {
+                      arrayVars.add(nm);
+                      if (wp0 === "local" || d > 0) localArrayVars.add(nm);
+                    }
                     else {
                       scalarVars.add(nm);
                       const pv = asg?.value.plain;
@@ -7428,7 +7470,7 @@ export class Runtime {
     for (const sc of scripts) if (!visitScript(sc, 0)) return false;
     if (hasShift && hasDynamicArith && posHasExpr) return false;
     for (const v of arrayVars) {
-      if (scalarVars.has(v) || (!st?.get(v) && rawState.variables[v] !== undefined)) return false;
+      if (scalarVars.has(v) || (!localArrayVars.has(v) && !st?.get(v) && rawState.variables[v] !== undefined)) return false;
     }
     for (const v of scalarVars) {
       if (st?.get(v)) return false;
@@ -7700,7 +7742,7 @@ export class Runtime {
     if (!existing) {
       if (store) { if (publishPipelineStatus(rawState, finalStatus === 0 ? singleStatusZero : singleStatusOne, this.signal, scope)) return undefined; } else { monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne; monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets); }
     } else {
-      elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
+      (elem0 ?? existing.values.get(0))!.text.shellValue = finalStatus === 0 ? "0" : "1";
       store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
     }
     rawState.status = finalStatus;
@@ -7728,10 +7770,26 @@ export class Runtime {
     if (io.descriptors && (io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed)) return undefined;
     if (rawState.readonlyVariables?.has("PIPESTATUS")) return undefined;
     const store = monitor.store;
-    const existing = store?.get("PIPESTATUS");
-    // A missing array-backed status needs asynchronous admission. Bail out
-    // before executing the command rather than starting a discarded promise.
-    if (store && !existing) return undefined;
+    let existing = store?.get("PIPESTATUS");
+    if (store && !existing) {
+      const initTarget = pipelineStatusTarget(rawState);
+      if (
+        !(this.budget as { _arraySession?: { hasActiveLedger?: boolean } })._arraySession?.hasActiveLedger &&
+        (initTarget === "indexed" || initTarget === "absent") &&
+        !store.watches.has("PIPESTATUS") &&
+        !monitor.hasOverlay("PIPESTATUS") &&
+        !store.owner.ledger.checkpoint(this.signal, 0)
+      ) {
+        try {
+          if (!publishPipelineStatus(rawState, monitor.lazyPipeStatus ?? singleStatusZero, this.signal, scope)) {
+            existing = store.get("PIPESTATUS");
+          }
+        } catch {
+          return undefined;
+        }
+      }
+      if (!existing) return undefined;
+    }
     const psTarget = existing ? "indexed" : pipelineStatusTarget(rawState);
     if (psTarget !== "indexed" && psTarget !== "absent") return undefined;
     if (store?.watches.has("PIPESTATUS") || monitor.hasOverlay("PIPESTATUS")) return undefined;
@@ -8578,7 +8636,7 @@ export class Runtime {
         assignment.name.includes("[") ||
         (hasSubPart && !this.isPureSyncValueWord(assignment.value, rawState)) ||
         rawState.readonlyVariables?.has(assignment.name) ||
-        (existingArrAssign && (assignment.append || hasUnpreparedLocals(rawState) || rawState.exported.has(assignment.name)))
+        (existingArrAssign && (assignment.append || hasUnpreparedLocal(rawState, assignment.name) || rawState.exported.has(assignment.name)))
       ) {
         return undefined;
       }
@@ -8956,7 +9014,7 @@ export class Runtime {
                 for (let i = readWordIdx; i < command.words.length; i++) {
                   const vn = command.words[i]!.plain;
                   const existingReadArr = vn ? store?.get(vn) : undefined;
-                  if ( !vn || !isShellIdentifier(vn) || rawState.readonlyVariables?.has(vn) || (existingReadArr && (hasUnpreparedLocals(rawState) || rawState.exported.has(vn) || existingReadArr.references !== 1 || store!.watches.has(vn) || monitor.hasOverlay(vn))) || rawState.variableAttributes?.get(vn) || vn === "OPTIND" || vn === "PIPESTATUS" || vn === "_") {
+                  if ( !vn || !isShellIdentifier(vn) || rawState.readonlyVariables?.has(vn) || (existingReadArr && (hasUnpreparedLocal(rawState, vn) || rawState.exported.has(vn) || existingReadArr.references !== 1 || store!.watches.has(vn) || monitor.hasOverlay(vn))) || rawState.variableAttributes?.get(vn) || vn === "OPTIND" || vn === "PIPESTATUS" || vn === "_") {
                     simpleRead = false;
                     break;
                   }
@@ -9236,7 +9294,8 @@ export class Runtime {
             const targets: string[] = [];
             for (let ui = uStart; ui < command.words.length; ui++) {
               const targetName = command.words[ui]!.plain;
-              if (targetName && isShellIdentifier(targetName) && !targetName.startsWith("-") && !rawState.readonlyVariables?.has(targetName) && !store?.get(targetName) && !rawState.functions.has(targetName) && !monitor.hasOverlay(targetName) && targetName !== "OPTIND" && targetName !== "PIPESTATUS" && targetName !== "_" && targetName !== "IFS" && targetName !== "PATH") {
+              const existingTargetArr = targetName ? store?.get(targetName) : undefined;
+              if (targetName && isShellIdentifier(targetName) && !targetName.startsWith("-") && !rawState.readonlyVariables?.has(targetName) && (!existingTargetArr || (existingTargetArr.references === 1 && !store!.watches.has(targetName) && !hasUnpreparedLocal(rawState, targetName))) && !rawState.functions.has(targetName) && !monitor.hasOverlay(targetName) && targetName !== "OPTIND" && targetName !== "PIPESTATUS" && targetName !== "_" && targetName !== "IFS" && targetName !== "PATH") {
                 targets.push(targetName);
               } else {
                 allOk = false;
@@ -9247,6 +9306,11 @@ export class Runtime {
               if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
               for (let ti = 0; ti < targets.length; ti++) {
                 const targetName = targets[ti]!;
+                if (store?.get(targetName)) {
+                  const rmTickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+                  store.stashRecycled(targetName, rmTickets);
+                  monitor.epoch = rmTickets.epoch;
+                }
                 delete rawState.variables[targetName];
                 rawState.exported.delete(targetName);
                 monitor.values.invalidate(targetName);
@@ -9347,9 +9411,11 @@ export class Runtime {
         canMutatePipeStatus
       ) {
         if ((command.words[1]?.plain === "-a" || command.words[1]?.plain === "-A")) {
-          if (rawState.locals.length > 0 || command.words.length < 3) return undefined;
+          if (command.words.length < 3) return undefined;
           const wantAssoc = command.words[1]!.plain === "-A";
           const arrStore = monitor.store ?? requireArrays(rawState);
+          const isLocalScope = rawState.locals.length > 0;
+          const currentFrame = isLocalScope ? rawState.locals[rawState.locals.length - 1]! : undefined;
           const items: Array<{ an: string; aa: ArrayAssignment | undefined }> = [];
           let okLocalArr = true;
           for (let idx = 2; idx < command.words.length; idx++) {
@@ -9358,33 +9424,84 @@ export class Runtime {
             const an = aa ? aa.name : wArg.plain;
             if ((aa && aa.kind !== "compound") || !an || !isShellIdentifier(an) || rawState.readonlyVariables?.has(an) || rawState.exported.has(an) || rawState.variableAttributes?.get(an) || controlNames.has(an)) { okLocalArr = false; break; }
             const eb = arrStore.get(an);
-            if ((eb && (eb.associative !== wantAssoc || eb.references !== 1 || arrStore.watches.has(an) || monitor.hasOverlay(an))) || (!eb && rawState.variables[an] !== undefined)) { okLocalArr = false; break; }
+            if (isLocalScope) {
+              for (let fi = 0; fi < rawState.locals.length - 1; fi++) {
+                const s = rawState.locals[fi]!.get(an);
+                if (s && !typedSavedVariables.has(s) && !syncLocalArrayVariables.has(s)) { okLocalArr = false; break; }
+              }
+              if (!okLocalArr) break;
+              const existingLocal = currentFrame!.get(an);
+              if (existingLocal) {
+                if (typedSavedVariables.has(existingLocal)) { okLocalArr = false; break; }
+                if (eb && (!syncLocalArrayVariables.has(existingLocal) || eb.associative !== wantAssoc || eb.references !== 1 || arrStore.watches.has(an) || monitor.hasOverlay(an))) { okLocalArr = false; break; }
+              } else {
+                if (eb || arrStore.watches.has(an) || monitor.hasOverlay(an)) { okLocalArr = false; break; }
+              }
+            } else {
+              if ((eb && (eb.associative !== wantAssoc || eb.references !== 1 || arrStore.watches.has(an) || monitor.hasOverlay(an))) || (!eb && rawState.variables[an] !== undefined)) { okLocalArr = false; break; }
+            }
             items.push({ an, aa });
           }
           if (okLocalArr && items.length > 0) {
             for (let idx = 0; idx < items.length; idx++) {
               const { an, aa } = items[idx]!;
+              let newlySaved: SavedVariable | undefined;
+              if (isLocalScope) {
+                let existingLocal = currentFrame!.get(an);
+                if (!existingLocal) {
+                  existingLocal = saveVariable(state, an);
+                  syncLocalArrayVariables.add(existingLocal);
+                  currentFrame!.set(an, existingLocal);
+                  newlySaved = existingLocal;
+                  if (rawState.variables[an] !== undefined) delete monitor.proxy.variables[an];
+                } else if (!syncLocalArrayVariables.has(existingLocal)) {
+                  syncLocalArrayVariables.add(existingLocal);
+                  if (rawState.variables[an] !== undefined) delete monitor.proxy.variables[an];
+                }
+              }
               if (aa) {
-                if (!this.tryFastArrayAssignmentSync(aa, state, io, diagnosticLine, undefined, wantAssoc)) return undefined;
+                if (!this.tryFastArrayAssignmentSync(aa, state, io, diagnosticLine, undefined, wantAssoc)) {
+                  if (newlySaved) {
+                    tryRestoreVariableSync(state, an, newlySaved);
+                    currentFrame!.delete(an);
+                  }
+                  return undefined;
+                }
               } else {
                 let eb = arrStore.get(an);
                 if (!eb) {
+                  const recTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+                  const recBinding = arrStore.takeRecycled(an, wantAssoc, true, recTickets);
+                  if (recBinding) {
+                    monitor.epoch = recTickets.epoch;
+                    eb = recBinding;
+                  } else {
                   const created = IndexedBinding.create(arrStore.owner, wantAssoc);
                   const prepared = arrStore.prepareExistingName(an, shellValueByteLength(an), arrStore.owner, this.signal);
-                  if (!prepared) { void created.release(); return undefined; }
+                  if (!prepared) {
+                    void created.release();
+                    if (newlySaved) {
+                      tryRestoreVariableSync(state, an, newlySaved);
+                      currentFrame!.delete(an);
+                    }
+                    return undefined;
+                  }
                   const initTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
                   arrStore.publish(an, created, initTickets, prepared, false, arrStore.owner);
                   monitor.epoch = initTickets.epoch;
                   eb = created;
+                  }
                 }
               }
             }
+            if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
+            const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
             rawState.substitutionStatus = 0;
             if (rawState.variables._ !== undefined) delete rawState.variables._;
             rawState.lastArgument = items[items.length - 1]!.an;
-            rawState.status = 0;
-            return 0;
+            if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+            return this.finishSyncPipeStatus(rawState, monitor, monitor.store, monitor.store?.get("PIPESTATUS"), elem0, scope, 0, restEpoch);
           }
           return undefined;
         }
@@ -9547,7 +9664,7 @@ export class Runtime {
               const savedPos = rawState.positional;
               rawState.positional = fnArgs;
               try {
-                canSyncFn = this.canSyncScriptCompound(fnBody.body, rawState, 0);
+                canSyncFn = this.canSyncScriptCompound(fnBody.body, rawState, 1);
               } finally {
                 rawState.positional = savedPos;
               }
@@ -9630,7 +9747,7 @@ export class Runtime {
                 rawState.locals.pop();
                 rawState.functionNames?.shift();
                 for (const [k, previous] of locals) {
-                  if (this._syncArithRawWriteOnly && this._syncArithTouched && !previous.heldValue && !previous.attributes && !previous.exported && !previous.readOnly && k !== "OPTIND") {
+                  if (this._syncArithRawWriteOnly && this._syncArithTouched && !syncLocalArrayVariables.has(previous) && !previous.heldValue && !previous.attributes && !previous.exported && !previous.readOnly && k !== "OPTIND") {
                     if (previous.value === undefined) delete rawState.variables[k];
                     else rawState.variables[k] = shellValueText(previous.value);
                     this._syncArithTouched.add(k);
@@ -10138,7 +10255,11 @@ export class Runtime {
       }
       if (part.kind === "arithmetic") {
         const names = new Set<string>();
-        if (!collectPureReadOnlySmiNames(part.expression, names)) return false;
+        if (!collectPureReadOnlySmiNames(part.expression, names)) {
+          if (rawState.nounset) return false;
+          const em = SIMPLE_EXPANDED_ARITH_RE.exec(part.source);
+          if (!em || ((em[2] === "/" || em[2] === "%") && !(em[3] && /^[1-9][0-9]*$/.test(em[3])))) return false;
+        }
         continue;
       }
       if (part.kind === "substitution") {
@@ -17144,6 +17265,10 @@ export class Runtime {
         const selector = getArraySelector(part);
         const arrayBinding = activeArrayStore?.get(part.name);
         if (selector !== undefined || arrayBinding !== undefined) {
+          if (!arrayBinding && selector !== undefined && (selector.kind === "members" || selector.kind === "keys") && !part.substring && part.length && part.operator === undefined && !rawState.nounset && !activeArrayStore?.watches.has(part.name) && !monitor?.hasOverlay(part.name) && part.name !== "FUNCNAME" && part.name !== "PIPESTATUS" && part.name !== "DIRSTACK" && part.name !== "BASH_REMATCH") {
+            out += rawVars[part.name] === undefined ? "0" : "1";
+            continue;
+          }
           if ( selector === undefined || !arrayBinding || rawState.nounset || activeArrayStore!.watches.has(part.name) || monitor?.hasOverlay(part.name) || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt) {
             return undefined;
           }
@@ -17284,9 +17409,9 @@ export class Runtime {
             const cachedSub = selector.index as { _cachedWord?: Word; _cachedSyntax?: unknown };
             let subWord = selector.index.word ?? (cachedSub._cachedSyntax === rawState.extensions?.syntax ? cachedSub._cachedWord : undefined);
             if (!subWord) {
-              if (byteLocale(rawVars) || rawState.depth !== 0) return undefined;
+              if (byteLocale(rawVars) || rawState.depth >= 24) return undefined;
               try {
-                subWord = parseArraySubscript(selector.index.source ?? selector.index.decimal, this.budget.parsing, false, 0, false, rawState.extensions?.syntax);
+                subWord = parseArraySubscript(selector.index.source ?? selector.index.decimal, this.budget.parsing, false, rawState.depth, false, rawState.extensions?.syntax);
                 cachedSub._cachedWord = subWord;
                 cachedSub._cachedSyntax = rawState.extensions?.syntax;
               } catch {
@@ -17636,7 +17761,7 @@ export class Runtime {
           const canCacheWord = !byteLocale(rawVars) && (rawState.depth + (io.parameterDepth ?? 0)) < 32;
           const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown; _cachedArithUnits?: number };
           let expWord = canCacheWord && cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
-          if (expWord !== undefined) if (cachedExpr._cachedArithUnits) this.budget.parsing.admit(cachedExpr._cachedArithUnits); else {
+          if (expWord !== undefined) { if (cachedExpr._cachedArithUnits) this.budget.parsing.admit(cachedExpr._cachedArithUnits); } else {
             const beforeUnits = this.budget.parsing.admittedUnits;
             try {
               expWord = parseArithmeticExpansion( expr.source, this.budget.parsing, byteLocale(rawVars), rawState.depth + (io.parameterDepth ?? 0), line, rawState.extensions?.syntax, );
@@ -18259,7 +18384,7 @@ export class Runtime {
           this._syncPendingReturnStatus = savedPendingRet;
           this._syncReturnDepth--;
           for (const [k, saved] of frameLocals) {
-            restoreVariable(state, k, saved);
+            if (!tryRestoreVariableSync(state, k, saved)) void restoreVariable(state, k, saved);
           }
           rawState.locals.pop();
           rawState.positional = prevPos;

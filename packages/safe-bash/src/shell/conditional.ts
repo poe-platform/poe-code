@@ -156,9 +156,18 @@ async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "u
     return node.operator === "!=" ? !match : match;
   }
   if (node.operator === "<" || node.operator === ">") {
-    cLocale(context);
     await charge(context, shellValueByteLength(left) + shellValueByteLength(right));
-    const order = compareUtf8(left, right);
+    let order: number;
+    if (cCollation(context.locale)) {
+      order = compareUtf8(left, right);
+    } else {
+      if (!utf8Locale(context.locale)) unsupported("collation locale");
+      const locale = context.locale.split(".")[0]!.split("_").join("-");
+      try {
+        if (Intl.Collator.supportedLocalesOf([locale]).length === 0) unsupported("collation locale");
+        order = new Intl.Collator(locale).compare(left, right);
+      } catch { unsupported("collation locale"); }
+    }
     return node.operator === "<" ? order < 0 : order > 0;
   }
   await charge(context, left.length + right.length);

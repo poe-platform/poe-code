@@ -67,7 +67,8 @@ All private command plugins are available from `@poe-platform/safe-bash/core` in
 - `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
   groups `{ …; }`, subshells `( … )` (including adjacent nested subshells),
   `[[ … ]]` (including file age/identity, special-file, mode and nameref
-  predicates; literal/glob and ASCII ERE comparisons also accept UTF-8 locales,
+  predicates; ordering uses byte comparison in C/POSIX and host Intl collation
+  in supported UTF-8 locales. Literal/glob and ASCII ERE comparisons also accept UTF-8 locales,
   with ranges limited to C/POSIX collation, including C.UTF-8), arithmetic commands `(( … ))`, and indexed arrays with arithmetic
   and relative negative element indices, including `declare -a`, `local -a`,
   and `readonly -a` array literals. Arithmetic array operands such as `a[i]`

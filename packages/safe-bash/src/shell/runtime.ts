@@ -8164,7 +8164,7 @@ export class Runtime {
       }
     }
     if (command.kind === "conditional") {
-      if (rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(command.expression, 0, rawState)) return false;
+      if (rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(command.expression, 0, rawState, true)) return false;
       const checkCondNoFile = (e: ConditionalExpression): boolean => {
         if (e.kind === "nonempty") return this.isPureSyncValueWord(e.operand, rawState);
         if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v" || (syncConditionalFileUnaryOps.has(e.operator) && this._isMemoryBackingFs && this.canFastMemoryRedirect && this.budget.limits.maxFileSystemOperations >= 1000 && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0))) && this.isPureSyncValueWord(e.operand, rawState);
@@ -8431,8 +8431,13 @@ export class Runtime {
     }
     return false;
   }
-  private canSyncConditional(expr: ConditionalExpression, depth = 0, rawState?: State): boolean {
+  private canSyncConditional(expr: ConditionalExpression, depth = 0, rawState?: State, requireTotal = false): boolean {
     if (depth > 8) return false;
+    // Loops and pure substitutions cannot replay after an unsupported result.
+    // These operators depend on arithmetic, filesystem or collation state that
+    // the speculative synchronous evaluator does not fully support.
+    if (requireTotal && ((expr.kind === "unary" && syncConditionalFileUnaryOps.has(expr.operator)) ||
+      (expr.kind === "binary" && expr.operator !== "==" && expr.operator !== "=" && expr.operator !== "!=" && expr.operator !== "=~"))) return false;
     const okWord = (w: Word): boolean => !Runtime.wordMayMutate(w) || (rawState !== undefined && this.isPureSyncValueWord(w, rawState));
     if (expr.kind === "nonempty") return okWord(expr.operand);
     if (expr.kind === "unary") return (expr.operator === "-n" || expr.operator === "-z" || expr.operator === "-v" || syncConditionalFileUnaryOps.has(expr.operator)) && okWord(expr.operand);
@@ -8450,8 +8455,8 @@ export class Runtime {
       }
       return ( expr.operator === "<" || expr.operator === ">" || expr.operator === "-eq" || expr.operator === "-ne" || expr.operator === "-lt" || expr.operator === "-le" || expr.operator === "-gt" || expr.operator === "-ge");
     }
-    if (expr.kind === "not") return this.canSyncConditional(expr.operand, depth + 1, rawState);
-    if (expr.kind === "and" || expr.kind === "or") return this.canSyncConditional(expr.left, depth + 1, rawState) && this.canSyncConditional(expr.right, depth + 1, rawState);
+    if (expr.kind === "not") return this.canSyncConditional(expr.operand, depth + 1, rawState, requireTotal);
+    if (expr.kind === "and" || expr.kind === "or") return this.canSyncConditional(expr.left, depth + 1, rawState, requireTotal) && this.canSyncConditional(expr.right, depth + 1, rawState, requireTotal);
     return false;
   }
   private tryEvalFastMemoryFileUnary(op: string, rawVal: string, rawState: State): boolean | undefined {
@@ -12424,7 +12429,7 @@ export class Runtime {
         if (bc.kind === "arithmetic") {
           if (bc.redirects.length !== 0 || bc.expression.error || bc.expression.hasMutation || bc.expression.hasSubscript || !isSafeSmiProgram(bc.expression) || !this.canSyncArithmeticWithoutFault(bc.expression.tree, rawState, bc.line ?? 1)) return false;
         } else if (bc.kind === "conditional") {
-          if (bc.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(bc.expression, 0, rawState)) return false;
+          if (bc.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(bc.expression, 0, rawState, true)) return false;
           if (bc.expression.kind === "binary" && bc.expression.operator === "=~") return false;
         } else if (!this.extractPosixBracketCondExpr(bc, rawState, true, br.body)) {
           return false;
@@ -12454,7 +12459,7 @@ export class Runtime {
         if (pipeline.negate || pipeline.commands.length !== 1) return false;
         const cmd = pipeline.commands[0]!;
         const canSyncLoopCondCmd = (c: Extract<Command, { kind: "conditional" }>): boolean => {
-          if (c.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(c.expression, 0, rawState)) return false;
+          if (c.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(c.expression, 0, rawState, true)) return false;
           const checkLeaf = (e: ConditionalExpression): boolean => {
             if (e.kind === "nonempty") return this.isPureSyncValueWord(e.operand, rawState);
             if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v" || (syncConditionalFileUnaryOps.has(e.operator) && this._isMemoryBackingFs && this.canFastMemoryRedirect && this.budget.limits.maxFileSystemOperations >= 1000 && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0))) && this.isPureSyncValueWord(e.operand, rawState);
@@ -13786,7 +13791,7 @@ export class Runtime {
         }
         whileArithProg = condCmd.expression;
       } else if (condCmd.kind === "conditional") {
-        if (condCmd.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(condCmd.expression, 0, rawState)) return undefined;
+        if (condCmd.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(condCmd.expression, 0, rawState, true)) return undefined;
         const checkWhileCond = (e: ConditionalExpression, depth: number): boolean => {
           if (e.kind === "nonempty") return this.isPureSyncValueWord(e.operand, rawState);
           if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v") && this.isPureSyncValueWord(e.operand, rawState);

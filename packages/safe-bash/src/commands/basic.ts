@@ -353,7 +353,7 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
           const d = val.charCodeAt(i);
           if (d < 48 || d > 57) return undefined;
         }
-        let numStr = first === 43 ? val.slice(1) : val;
+        let numStr = val === "-0" ? "0" : first === 43 ? val.slice(1) : val;
         if (precision >= 0) {
           zeroPad = false;
           if (precision === 0 && numStr === "0") numStr = "";

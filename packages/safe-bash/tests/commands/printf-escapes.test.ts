@@ -73,3 +73,11 @@ test("printf converts owned bytes without decoding character or quote output", a
     } finally { await shell.dispose(); }
   }
 });
+
+test("printf normalizes signed integer zero outside loops", async t => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+  t.after(() => shell.dispose());
+  const result = await shell.exec('printf "[%d][%i][%.0d][%.0i][%04d]\\n" "-0" "-0" "-0" "-0" "-0"');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "[0][0][][][0000]\n");
+});

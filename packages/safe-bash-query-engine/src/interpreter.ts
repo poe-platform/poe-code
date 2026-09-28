@@ -1100,8 +1100,36 @@ export class Interpreter {
       }
       return;
     }
-    if (name === "indices") {
-      for await (const value of this.run(args[0]!, input)) yield await indices(input, value, budget);
+    if (name === "indices" || name === "index" || name === "rindex") {
+      for await (const value of this.run(args[0]!, input)) {
+        const found = await indices(input, value, budget);
+        if (name === "indices") yield found;
+        else if (name === "index") yield found.length > 0 ? found[0]! : null;
+        else yield found.length > 0 ? found[found.length - 1]! : null;
+      }
+      return;
+    }
+    if (name === "floor" || name === "ceil" || name === "round" || name === "abs") {
+      if (!isNumber(input)) throw new JqError(`${describe(input, budget)} cannot be ${name}ed`);
+      budget.step();
+      const n = numberValue(input);
+      yield name === "floor" ? Math.floor(n) : name === "ceil" ? Math.ceil(n) : name === "round" ? Math.round(n) : Math.abs(n);
+      return;
+    }
+    if (name === "implode") {
+      if (!Array.isArray(input)) throw new JqError("implode input must be an array");
+      let out = "";
+      for (let i = 0; i < input.length; i++) {
+        { const _p = budget.tickSync(); if (_p) await _p; }
+        const el = input[i];
+        const cp = isNumber(el) ? numberValue(el) : NaN;
+        if (!Number.isInteger(cp) || cp < 0 || cp > 0x10ffff) {
+          throw new JqError("implode elements must be Unicode codepoints");
+        }
+        out += String.fromCodePoint(cp);
+      }
+      budget.value(out);
+      yield out;
       return;
     }
     if (["startswith", "endswith", "ltrimstr", "rtrimstr"].includes(name)) {

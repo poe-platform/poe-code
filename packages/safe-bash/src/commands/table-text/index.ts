@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createPasteCommand } from "./paste.js";
 import { createCommCommand } from "./comm.js";
@@ -7,7 +8,9 @@ export type { TableTextCommandsOptions, TableTextLimits } from "./internal.js";
 
 export function createTableTextCommands(options: TableTextCommandsOptions = {}): readonly CommandDefinition[] {
   settings(options);
-  return [createPasteCommand(options), createCommCommand(options), createJoinCommand(options)];
+  const defs = [createPasteCommand(options), createCommCommand(options), createJoinCommand(options)];
+  for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
+  return defs;
 }
 
 export function tableTextCommands(options: TableTextCommandsOptions = {}): VirtualShellPlugin {

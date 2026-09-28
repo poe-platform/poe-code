@@ -1078,3 +1078,47 @@ test("sync loop wave 114: jq flatten/sort/sort_by/unique_by/group_by/any/all/not
     await shell.dispose();
   }
 });
+
+test("sync loop wave 115: paste -sd/-d cols, jq floor/ceil/round/abs/index/rindex/transpose/multi-stage pipeline, and awk int/ternary", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const { createStructuredCommands } = await import("../../src/commands/structured/index.js");
+  const { createTableTextCommands } = await import("../../src/commands/table-text/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([
+      ...createStandardCommands(),
+      ...createTextProgramCommands(),
+      ...createStructuredCommands(),
+      ...createTableTextCommands(),
+    ]),
+  });
+  try {
+    const script = [
+      "lines=$'a\\nb\\nc\\nd'",
+      "j='{\"nums\":[1.2,2.8,-3.5],\"str\":\"ab_cd_ab\",\"mat\":[[1,2],[3,4]],\"tags\":[\"beta\",\"alpha\",\"beta\"]}'",
+      "rows=$'alice 85.7\\nbob 42.3\\ncarol 50.0'",
+      "out=\"\"",
+      "for ((i=1; i<=10; i++)); do",
+      "  p1=$(paste -sd \",\" <<< \"$lines\")",
+      "  p2=$(paste -s -d \":;\" <<< \"$lines\")",
+      "  p3=$(echo \"$lines\" | paste -d \"|\" - - | tr \"\\n\" \";\")",
+      "  m1=$(jq -c \"[(.nums[0] | floor), (.nums[1] | ceil), (.nums[1] | round), (.nums[2] | abs)]\" <<< \"$j\")",
+      "  m2=$(jq -c '[.str | index(\"ab\"), rindex(\"ab\"), utf8bytelength]' <<< \"$j\")",
+      "  m3=$(jq -c \".mat | transpose\" <<< \"$j\")",
+      "  m4=$(echo \"$j\" | jq -r \".tags[]\" | sort -u | paste -sd \",\")",
+      "  a1=$(awk '{ print $1, int($2), $2 >= 50 ? \"PASS\" : \"FAIL\" }' <<< \"$rows\" | paste -sd \";\")",
+      "  out=\"$p1|$p2|$p3|$m1|$m2|$m3|$m4|$a1\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout,
+      "a,b,c,d|a:b;c:d|a|b;c|d;|[1,3,3,3.5]|[0,6,8]|[[1,3],[2,4]]|alpha,beta|alice 85 PASS;bob 42 FAIL;carol 50 PASS\n"
+    );
+  } finally {
+    await shell.dispose();
+  }
+});

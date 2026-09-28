@@ -13074,7 +13074,9 @@ export class Runtime {
           }
         };
         const stepMutatesInduction = (st: SyncLoopStep): boolean => {
-          if (st.name === inductionName || st.readHereString?.varNames.includes(inductionName) || st.unsetVars?.includes(inductionName) || st.localDecl?.items.some(it => it.name === inductionName)) return true;
+          // Integer declarations evaluate arithmetic strings, which can mutate
+          // any variable. Array reads can also replace the scalar counter.
+          if (st.name === inductionName || st.readHereString?.varNames.includes(inductionName) || st.readHereString?.arrayTarget === inductionName || st.unsetVars?.includes(inductionName) || st.localDecl?.attr === "i" || st.localDecl?.items.some(it => it.name === inductionName)) return true;
           if (st.arithStmt?.hasMutation && arithTreeMutatesVar(st.arithStmt.tree, inductionName)) return true;
           if (st.printfVArgs?.some(w => w.parts.some(p => p.kind === "arithmetic" && p.expression.hasMutation && arithTreeMutatesVar(p.expression.tree, inductionName)))) return true;
           if (st.arithStmt?.error && new RegExp("\\b" + inductionName + "\\b").test(st.arithStmt.source)) return true;

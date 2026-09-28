@@ -221,6 +221,11 @@ for (const source of [
   'for ((i=1;i<=2;i++)); do echo before; read -r i <<< 1000000000000000; printf "[%d]\\n" "$i"; done; echo finished',
   'for ((REPLY=1;REPLY<=2;REPLY++)); do echo before; read -r <<< 0x10; printf "[%d]\\n" "$REPLY"; done; echo finished',
   'start=1000000000000000; limit=1000000000000002; for ((i=start;i<limit;i++)); do echo before; printf "[%d]\\n" "$i"; done; echo finished',
+  'for ((i=1;i<=2;i++)); do echo before; declare i=0x10; printf "[%d]\\n" "$i"; done; echo finished',
+  'for ((i=1;i<=2;i++)); do echo before; export x=ok i=1000000000000000; printf "[%d]\\n" "$i"; done; echo finished',
+  'for ((i=1;i<=2;i++)); do echo before; declare -i n="i=1000000000000000"; printf "[%d]\\n" "$i"; done; echo finished',
+  'n="i=1000000000000000"; for ((i=1;i<=2;i++)); do echo before; declare -i x="$n"; printf "[%d]\\n" "$i"; done; echo finished',
+  'for ((i=1;i<=2;i++)); do echo before; read -ra i <<< 1000000000000000; printf "[%d]\\n" "$i"; done; echo finished',
 ]) {
   test(`printf loop admission preserves values, effects, and status: ${source}`, async t => {
     const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });

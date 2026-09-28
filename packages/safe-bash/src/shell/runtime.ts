@@ -11522,9 +11522,31 @@ export class Runtime {
         if (list.terminator || list.pipelines.length !== 1) return false;
         const p = list.pipelines[0]!;
         if (p.negate || p.commands.length < 1 || p.commands.length > 5) return false;
-        const cmd = p.commands[0]!;
+        let cmd = p.commands[0]!;
         if (cmd.kind !== "simple" || cmd.redirects.length > 0 || cmd.words.length === 0) return false;
-        const w0Plain = cmd.words[0]!.plain;
+        let w0Plain = cmd.words[0]!.plain;
+        if (p.commands.length === 1 && w0Plain !== undefined && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !rawState.extensions?.builtins.has(w0Plain)) {
+          const fnBody = rawState.functions.get(w0Plain)!;
+          if (
+            fnBody.kind === "group" &&
+            fnBody.redirects.length === 0 &&
+            fnBody.body.lists.length === 1 &&
+            !fnBody.body.lists[0]!.terminator &&
+            fnBody.body.lists[0]!.pipelines.length === 1 &&
+            !fnBody.body.lists[0]!.pipelines[0]!.negate &&
+            fnBody.body.lists[0]!.pipelines[0]!.commands.length === 1 &&
+            fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.kind === "simple" &&
+            fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.redirects.length === 0 &&
+            cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))
+          ) {
+            const innerCmd = fnBody.body.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "simple" }>;
+            const innerW0 = innerCmd.words[0]?.plain;
+            if (innerW0 && !rawState.functions.has(innerW0) && !rawState.extensions?.builtins.has(innerW0)) {
+              cmd = innerCmd;
+              w0Plain = innerW0;
+            }
+          }
+        }
         if (w0Plain === "pwd") {
           if (p.commands.length === 1 && (cmd.words.length === 1 || (cmd.words.length === 2 && (cmd.words[1]?.plain === "-L" || cmd.words[1]?.plain === "--logical"))) && !rawState.functions.has("pwd") && !rawState.extensions?.builtins.has("pwd")) continue;
           return false;
@@ -11555,9 +11577,21 @@ export class Runtime {
         } else if (w0Plain === "dirname") {
           if (cmd.words.length !== 2) return false;
         } else if (w0Plain === "basename") {
-          if (cmd.words.length !== 2 && cmd.words.length !== 3) return false;
+          if (cmd.words.length !== 2 && cmd.words.length !== 3 && !(cmd.words.length === 4 && cmd.words[1]?.plain === "-s")) return false;
         } else if (w0Plain === "seq") {
-          if (cmd.words.length < 2 || cmd.words.length > 4 || !cmd.words.slice(1).every(w => w.plain !== undefined && /^-?[0-9]{1,7}$/.test(w.plain!))) return false;
+          const isSeqIntWord = (w: Word): boolean => {
+            if (w.plain !== undefined) return /^-?[0-9]{1,7}$/.test(w.plain);
+            if (w.parts.length === 1) {
+              const p0 = w.parts[0]!;
+              if (p0.kind === "arithmetic") return true;
+              if (p0.kind === "variable" && !p0.indirect && !p0.prefixNames && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined) {
+                const cur = rawState.variables[p0.name];
+                return cur !== undefined && /^-?[0-9]{1,7}$/.test(cur);
+              }
+            }
+            return false;
+          };
+          if (cmd.words.length < 2 || cmd.words.length > 4 || !cmd.words.slice(1).every(isSeqIntWord)) return false;
         }
         if (p.commands.length >= 2) {
           if ((w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "seq") || syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || rawState.errexit || rawState.nounset) return false;
@@ -19638,7 +19672,8 @@ export class Runtime {
         if (typeof argVal !== "string") return undefined;
         fnPositional.push(argVal);
       }
-      const isSingleEchoOrPrintf = fnBody.body.lists.length === 1 && !fnBody.body.lists[0]!.terminator && fnBody.body.lists[0]!.pipelines.length === 1 && !fnBody.body.lists[0]!.pipelines[0]!.negate && fnBody.body.lists[0]!.pipelines[0]!.commands.length === 1 && fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.kind === "simple" && fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.redirects.length === 0 && (fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]?.plain === "echo" || fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]?.plain === "printf") && !rawState.functions.has(fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]!.plain!) && !rawState.extensions?.builtins.has(fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]!.plain!);
+      const innerW0 = fnBody.body.lists[0]?.pipelines[0]?.commands[0]?.kind === "simple" ? fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.words[0]?.plain : undefined;
+      const isSingleEchoOrPrintf = fnBody.body.lists.length === 1 && !fnBody.body.lists[0]!.terminator && fnBody.body.lists[0]!.pipelines.length === 1 && !fnBody.body.lists[0]!.pipelines[0]!.negate && fnBody.body.lists[0]!.pipelines[0]!.commands.length === 1 && fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.kind === "simple" && fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.redirects.length === 0 && (innerW0 === "echo" || innerW0 === "printf" || innerW0 === "dirname" || innerW0 === "basename" || innerW0 === "pwd" || innerW0 === "command" || innerW0 === "type" || innerW0 === "seq") && !rawState.functions.has(innerW0!) && !rawState.extensions?.builtins.has(innerW0!);
       if (isSingleEchoOrPrintf) {
         cmd = fnBody.body.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "simple" }>;
         w0Plain = cmd.words[0]!.plain!;
@@ -19710,12 +19745,15 @@ export class Runtime {
       rawState.status = 0;
       return res;
     }
-    if (w0Plain === "basename" && (cmd.words.length === 2 || cmd.words.length === 3)) {
-      const wVal1 = this.fastValueWord(cmd.words[1]!, state, io, true, false, false, true, undefined, part.line);
+    if (w0Plain === "basename" && (cmd.words.length === 2 || cmd.words.length === 3 || (cmd.words.length === 4 && cmd.words[1]?.plain === "-s"))) {
+      const isFlagS = cmd.words.length === 4 && cmd.words[1]?.plain === "-s";
+      const pathWord = isFlagS ? cmd.words[3]! : cmd.words[1]!;
+      const suffixWord = isFlagS ? cmd.words[2]! : (cmd.words.length === 3 ? cmd.words[2]! : undefined);
+      const wVal1 = this.fastValueWord(pathWord, state, io, true, false, false, true, undefined, part.line);
       if (typeof wVal1 !== "string" || wVal1.startsWith("-") || wVal1.includes("\0")) return undefined;
       let wVal2: string | undefined;
-      if (cmd.words.length === 3) {
-        const v2 = this.fastValueWord(cmd.words[2]!, state, io, true, false, false, true, undefined, part.line);
+      if (suffixWord !== undefined) {
+        const v2 = this.fastValueWord(suffixWord, state, io, true, false, false, true, undefined, part.line);
         if (typeof v2 !== "string" || v2.includes("\0")) return undefined;
         wVal2 = v2;
       }

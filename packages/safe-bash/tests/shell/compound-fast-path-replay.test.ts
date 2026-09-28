@@ -1,3 +1,4 @@
+import { createStreamFormatCommands } from "../../src/commands/stream-format/index.js";
 import { predicateCommands } from "../../src/commands/predicates.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -956,6 +957,35 @@ test("matches bash for Wave 68 sync file unary predicates (-e, -f, -d, -s, -L) i
     assert.equal(actual.exitCode, 0);
     assert.equal(actual.stderr, "");
     assert.equal(actual.stdout, "90\n");
+  } finally {
+    await shell.dispose();
+  }
+});
+
+
+test("matches bash for Wave 69 sync single-command function substitutions, basename -s, and variable/arithmetic seq bounds in loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of [...basicCommands(), ...streamCommands(), ...createStreamFormatCommands()]) shell.commands.register(command);
+  try {
+    const script = [
+      "fmt_tag() { printf \"%s#%03d\\n\" \"$1\" \"$2\"; }",
+      "get_base() { basename -s .ts \"$1\"; }",
+      "get_dir() { dirname \"$1\"; }",
+      "limit=3",
+      "for ((i = 0; i < 90; i++)); do",
+      "  tag=\"$(fmt_tag \"pkg\" \"$i\")\"",
+      "  stem=\"$(basename -s .ts \"/src/mod_${i}.ts\")\"",
+      "  b2=\"$(get_base \"/app/item_${i}.ts\")\"",
+      "  d2=\"$(get_dir \"/app/sub/item_${i}.ts\")\"",
+      "  s=\"$(seq 1 \"$limit\")\"",
+      "done",
+      "printf \"%s|%s|%s|%s|%s\\n\" \"$tag\" \"$stem\" \"$b2\" \"$d2\" \"${s//$'\\n'/,}\"",
+    ].join("\n");
+
+    const actual = await shell.exec(script);
+    assert.equal(actual.exitCode, 0);
+    assert.equal(actual.stderr, "");
+    assert.equal(actual.stdout, "pkg#089|mod_89|item_89|/app/sub|1,2,3\n");
   } finally {
     await shell.dispose();
   }

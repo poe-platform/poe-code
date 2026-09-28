@@ -14,6 +14,11 @@ const cases = [
   ["grep -Eo 'a|ab'", "ab\\n", "ab"],
   ["grep -oE 'a|ab|abc'", "abcab\\n", "abc\nab"],
   ["grep -Eo 'b|ab'", "ab\\n", "ab"],
+  ["grep -Eo 'a|ab+'", "abbb\\n", "abbb"],
+  ["grep -Eo '(a|ab)'", "ab\\n", "ab"],
+  ["grep -Eo 'a+|a+b'", "aab\\n", "aab"],
+  ["grep -Eio 'a|AB'", "aB\\n", "aB"],
+  ["grep -Eno 'a|ab'", "x\\nab\\n", "2:ab"],
 ] as const;
 
 for (const [command, input, expected] of cases) {

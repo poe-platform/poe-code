@@ -23713,7 +23713,10 @@ export class Runtime {
       const pat = rawPatterns[0]!;
       const reFlags = isCaseInsensitive ? "gi" : "g";
       let re: RegExp | undefined;
-      if (isExtended && /^[a-zA-Z0-9_ :;,=.+*?|()^\-[\]]+$/.test(pat) && !/\([^)]*[+*][^)]*\)[+*?]/.test(pat)) {
+      // JS alternatives are ordered; only literal alternatives below can be
+      // sorted to implement grep's leftmost-longest choice. Other alternatives
+      // use the command's POSIX matcher through the normal fallback.
+      if (isExtended && !pat.includes("|") && /^[a-zA-Z0-9_ :;,=.+*?()^\-[\]]+$/.test(pat) && !/\([^)]*[+*][^)]*\)[+*?]/.test(pat)) {
         try { re = new RegExp(pat, reFlags); } catch { re = undefined; }
       } else {
         const branches = isExtended ? pat.split("|") : [pat];

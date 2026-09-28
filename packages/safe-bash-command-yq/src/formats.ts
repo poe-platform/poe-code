@@ -122,7 +122,9 @@ export async function decodeFormat(text: string, filename: string, fileIndex: nu
     if (format === "csv" || format === "tsv") value = await table(text, format === "csv" ? "," : "\t", yaml, work);
     else if (format === "base64") {
       const clean = text.split("\n").join("").split("\r").join("");
-      const data = Uint8Array.from(atob(clean), character => character.charCodeAt(0));
+      let data: Uint8Array;
+      try { data = Uint8Array.from(atob(clean), character => character.charCodeAt(0)); }
+      catch { throw new MikeError("invalid base64 input"); }
       if (encodeBase64(data) !== clean) throw new MikeError("invalid base64 input");
       value = new TextDecoder("utf-8", { fatal: true }).decode(data);
     } else if (format === "uri") value = decodeURIComponent(text.split("+").join(" "));

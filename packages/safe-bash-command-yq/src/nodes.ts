@@ -210,7 +210,7 @@ async function decodeJsonDocument(source: string, filename: string, yaml: YamlMo
         let value: string;
         try { value = JSON.parse(source.slice(start, offset)) as string; } catch { return fail(); }
         if (utf8ByteLength(value) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
-        return new TextDecoder().decode(utf8Encoder.encode(value));
+        return new TextDecoder("utf-8", { ignoreBOM: true }).decode(utf8Encoder.encode(value));
       }
       if (!escaped && character === "\\") escaped = true;
       else escaped = false;

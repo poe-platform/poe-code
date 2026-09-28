@@ -5,7 +5,7 @@ import { toByteSource, type CommandContext } from "safe-bash-contracts";
 import { createMikeYqCommand } from "./mike.js";
 import { createYqCommand } from "./index.js";
 
-for (const [command, args, input, expected] of [
+for (const [command, args, input, expected, diagnostic = ""] of [
   [createYqCommand, ["-o", "json", "-r", ".b"], "a: 1\nb: héllo😀\n", "héllo😀\n"],
   [createYqCommand, ["-o", "json", "-c", ".[]"], "[1, 2, 3, 4]\n", "1\n2\n3\n4\n"],
   [createYqCommand, ["-p", "toml", "-o", "json", "-r", ".b"], 'b = "héllo"\n', "héllo\n"],
@@ -13,6 +13,8 @@ for (const [command, args, input, expected] of [
   [createMikeYqCommand, ["-o", "base64", "."], '"héllo😀"', "aMOpbGxv8J+YgA=="],
   [createMikeYqCommand, ["-o", "json", "-I", "0", "sort"], '["é", "z", "😀", "a"]', '["a","z","é","😀"]\n'],
   [createMikeYqCommand, ["-o", "json", "-I", "0", '.[] | select(. == "hé*")'], '["héllo", "other"]', '"héllo"\n'],
+  [createMikeYqCommand, ["-p", "json", "-o", "json", "-I", "0", "."], '"\\uFEFFhello"', '"\uFEFFhello"\n'],
+  [createMikeYqCommand, ["-p", "base64", "-o", "json", "."], "@@@", "", "Error: invalid base64 input\n"],
 ] as const) test(`yq runs without Buffer: ${args.join(" ")}`, async () => {
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
   const context: CommandContext = {
@@ -26,7 +28,7 @@ for (const [command, args, input, expected] of [
   try { globalThis.Buffer = undefined as never; result = await command().execute(context); }
   finally { globalThis.Buffer = saved; }
   const decode = (chunks: Uint8Array[]) => chunks.map(chunk => new TextDecoder().decode(chunk)).join("");
-  assert.equal(decode(stderr), "");
-  assert.equal(result.exitCode, 0);
+  assert.equal(decode(stderr), diagnostic);
+  assert.equal(result.exitCode, diagnostic ? 1 : 0);
   assert.equal(decode(stdout), expected);
 });

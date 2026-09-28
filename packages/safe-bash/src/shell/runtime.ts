@@ -8718,9 +8718,6 @@ export class Runtime {
       // general loop executor takes ownership of iteration state.
       return this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
     }
-    if (command.kind === "while" || command.kind === "until" || command.kind === "for" || command.kind === "arithmetic-for") return undefined;
-    // Loops use the specialized fast path above or the async executor.
-    // Generic speculation cannot restart a partially executed loop safely.
     if (command.kind === "group" || command.kind === "if" || command.kind === "case") {
       if ( command.redirects.length !== 0 || pipeline.negate || !canMutatePipeStatus || (!ignored && rawState.errexit) || rawState.nounset || rawState.readonlyVariables?.size || hasYieldCheckpoint(this.signal) || (this._syncReturnDepth === 0 && (((this.budget.commands + 32) & 8191) < 32 || !this.canSyncCommandCompound(command, rawState, 0, rawState.loopDepth)))) {
         return undefined;
@@ -8814,7 +8811,7 @@ export class Runtime {
               const bodyRes = this.trySyncScript(clause.body, state, io, ignored);
               if (typeof bodyRes !== "number") return undefined;
               status = bodyRes;
-              if (this._syncPendingReturnStatus !== undefined || this._syncPendingBreak > 0 || this._syncPendingContinue > 0) {
+              if (this._syncPendingReturnStatus !== undefined) {
                 rawState.status = status;
                 return status;
               }

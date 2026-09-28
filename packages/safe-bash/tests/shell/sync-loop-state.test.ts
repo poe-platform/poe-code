@@ -659,3 +659,36 @@ test("wave 103 sync loop: printf and printf -v with dynamic %s variables, parame
     await shell.dispose();
   }
 });
+
+test("wave 104 sync loop: tr -cd/-cs, sed y///, grep -n/-F, awk NR/$(NF-1)/length, tail -n +K, head -n -K, and sort -k", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const commands = new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+  try {
+    const script = [
+      "s_tr=\"id=42,x=7\"",
+      "s_sed=\"abc123\"",
+      "s_awk=\"a b c d\"",
+      "s_rows=$'r1\\nr2\\nr3'",
+      "s_grep=$'a.b\\naXb'",
+      "s_sort=$'b:2\\na:1\\nc:3'",
+      "for ((i=0; i<10; i++)); do",
+      "  tc=$(tr -cd '0-9,' <<< \"$s_tr\")",
+      "  sy=$(sed 'y/abc/XYZ/' <<< \"$s_sed\")",
+      "  aw=$(awk '{print $(NF-1), $NF, length($0)}' <<< \"$s_awk\")",
+      "  ar=$(awk 'NR==2{print $1}' <<< \"$s_rows\")",
+      "  gf=$(grep -Fn 'a.b' <<< \"$s_grep\")",
+      "  sk=$(sort -t: -k2,2n <<< \"$s_sort\")",
+      "  tl=$(tail -n +2 <<< \"$s_rows\")",
+      "  hd=$(head -n -1 <<< \"$s_rows\")",
+      "done",
+      "printf \"%s|%s|%s|%s|%s|%s|%s|%s\\n\" \"$tc\" \"$sy\" \"$aw\" \"$ar\" \"$gf\" \"${sk//$'\\n'/,}\" \"${tl//$'\\n'/,}\" \"${hd//$'\\n'/,}\"",
+    ].join("\n");
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "42,7|XYZ123|c d 7|r2|1:a.b|a:1,b:2,c:3|r2,r3|r1,r2\n");
+  } finally {
+    await shell.dispose();
+  }
+});

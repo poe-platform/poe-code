@@ -507,6 +507,34 @@
       ],
       "poe-code/safe-bash/contracts/*": [
         "../safe-bash-contracts/src/*.ts"
+      ],
+      "safe-bash-command-dos2unix": [
+        "../safe-bash-command-dos2unix/src/index.ts"
+      ],
+      "safe-bash-command-dos2unix/*": [
+        "../safe-bash-command-dos2unix/src/*.ts",
+        "../safe-bash-command-dos2unix/src/*"
+      ],
+      "safe-bash-command-mdq": [
+        "../safe-bash-command-mdq/src/index.ts"
+      ],
+      "safe-bash-command-mdq/*": [
+        "../safe-bash-command-mdq/src/*.ts",
+        "../safe-bash-command-mdq/src/*"
+      ],
+      "safe-bash-line-ending-engine": [
+        "../safe-bash-line-ending-engine/src/index.ts"
+      ],
+      "safe-bash-line-ending-engine/*": [
+        "../safe-bash-line-ending-engine/src/*.ts",
+        "../safe-bash-line-ending-engine/src/*"
+      ],
+      "safe-bash-markdown-engine": [
+        "../safe-bash-markdown-engine/src/index.ts"
+      ],
+      "safe-bash-markdown-engine/*": [
+        "../safe-bash-markdown-engine/src/*.ts",
+        "../safe-bash-markdown-engine/src/*"
       ]
     },
     "baseUrl": "."

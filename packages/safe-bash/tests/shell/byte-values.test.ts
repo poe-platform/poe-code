@@ -710,3 +710,47 @@ for (const [id, source, stdoutHex] of [
     assert.equal(result.stderr, id === "16-substitution-nul-warning" ? "shell: line 1: warning: command substitution: ignored null byte in input\n" : "");
   });
 }
+
+// File substitutions must preserve bytes through both inline and saved scripts.
+for (const expression of ["cat /raw", "cat </raw", "</raw", "cat /raw | tr A B", "cat </raw | tr A B"]) {
+  for (const saved of [false, true]) {
+    for (const [name, payload] of [
+      ["invalid UTF-8", Uint8Array.of(65, 128, 255, 10, 10)],
+      ["UTF-8 and BOM", Uint8Array.of(239, 187, 191, 65, 195, 169, 10, 10)],
+      ["NUL and newline cleanup", Uint8Array.of(65, 0, 128, 10, 0, 10)],
+      ["ASCII", Uint8Array.of(65, 90, 10, 10)],
+    ] as const) test(`file substitution ${expression}: ${name}, saved=${saved}`, async () => {
+      const fs = new MemoryFileSystem();
+      const shell = new Shell({ fs }).use(standardCommands());
+      await fs.writeFile("/raw", payload);
+      const script = `value=$(${expression}); printf '%s' "$value"`;
+      const expected = payload.filter(byte => byte !== 0);
+      let end = expected.length;
+      while (end && expected[end - 1] === 10) end--;
+      if (expression.includes("tr A B")) {
+        for (let i = 0; i < end; i++) if (expected[i] === 65) expected[i] = 66;
+      }
+      try {
+        if (saved) await fs.writeFile("/check.sh", new TextEncoder().encode(script));
+        const result = await shell.exec(saved ? "sh /check.sh" : script);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.deepEqual(result.stdoutBytes, expected.subarray(0, end));
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const expression of ["cat /raw", "cat </raw", "</raw", "cat /raw | tr A B"]) {
+  test(`binary file substitution keeps output admission: ${expression}`, async () => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(standardCommands());
+    await fs.writeFile("/raw", Uint8Array.of(128, 255, 10));
+    try {
+      await assert.rejects(shell.exec(`value=$(${expression})`, { limits: { maxOutputBytes: 1 } }),
+        error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+      const result = await shell.exec(`printf '%s' "$(${expression})"`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, Uint8Array.of(128, 255));
+    } finally { await shell.dispose(); }
+  });
+}

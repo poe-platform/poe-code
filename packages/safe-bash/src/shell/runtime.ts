@@ -7851,6 +7851,14 @@ export class Runtime {
     const arithSourceChunks: string[] = [];
     const st = stateMonitor(rawState)?.store;
     const posHasExpr = rawState.positional.some(p => /[+*/%-]/.test(p));
+    // Input assignments can become unsupported scalar expansions after an array conversion.
+    const collectInputAssignments = (word: Word): void => {
+      for (const part of word.parts) {
+        if (part.kind !== "variable") continue;
+        if (part.operator === "=" || part.operator === ":=") scalarVars.add(part.name);
+        if (part.alternate) collectInputAssignments(part.alternate);
+      }
+    };
     const visitScript = (sc: Script, d: number): boolean => {
       if (d > 6) return false;
       for (const l of sc.lists) {
@@ -7876,6 +7884,7 @@ export class Runtime {
           } else if (c.kind === "simple" && c.words.length > 0) {
             const w0 = c.words[0]!;
             const wp0 = w0.plain;
+            for (const redirect of c.redirects) collectInputAssignments(redirect.target);
             if (wp0 === "shift") hasShift = true;
             else if (wp0 && rawState.functions.has(wp0)) {
               const fb = rawState.functions.get(wp0)!;
@@ -7936,6 +7945,12 @@ export class Runtime {
             } else if (wp0 === "read" || (c.words[1]?.plain === "read")) {
               for (let k = 1; k < c.words.length; k++) {
                 const vp = c.words[k]?.plain;
+                if (vp?.startsWith("-") && vp.includes("a")) {
+                  const optionEnd = vp.indexOf("a") + 1;
+                  const target = vp.slice(optionEnd) || c.words[++k]?.plain;
+                  if (target && isShellIdentifier(target)) arrayVars.add(target);
+                  break;
+                }
                 if (vp && isShellIdentifier(vp)) { scalarVars.add(vp); nonIntScalarVars.add(vp); }
               }
             }
@@ -9614,7 +9629,7 @@ export class Runtime {
           ) {
             const arrStore = monitor.store ?? requireArrays(rawState);
             let existingArrayBinding = arrStore.get(arrayTarget);
-            if (!existingArrayBinding && rawState.variables[arrayTarget] === undefined && !arrStore.watches.has(arrayTarget) && !monitor.hasOverlay(arrayTarget)) {
+            if (!existingArrayBinding && !arrStore.watches.has(arrayTarget) && !monitor.hasOverlay(arrayTarget)) {
               const recTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
               const recBinding = arrStore.takeRecycled(arrayTarget, false, recTickets);
               if (recBinding) {
@@ -9663,6 +9678,7 @@ export class Runtime {
                 delete rawState.variables[arrayTarget];
                 monitor.values.invalidate(arrayTarget);
                 monitor.epoch = tickets.epoch;
+                existingArrayBinding.assigned = true;
                 arrStore.revise(arrayTarget, existingArrayBinding, tickets);
                 const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
                 this.budget.tick();
@@ -9764,7 +9780,7 @@ export class Runtime {
                   const arrStore = monitor.store ?? requireArrays(rawState);
                   existingArrayBinding = arrStore.get(arrayTarget);
                   if (
-                    (existingArrayBinding ? existingArrayBinding.associative || existingArrayBinding.references !== 1 : rawState.variables[arrayTarget] !== undefined) ||
+                    (existingArrayBinding && (existingArrayBinding.associative || existingArrayBinding.references !== 1)) ||
                     arrStore.watches.has(arrayTarget) ||
                     monitor.hasOverlay(arrayTarget)
                   ) {
@@ -9806,10 +9822,12 @@ export class Runtime {
                   }
                 } else lineStr = (io.stdin as ShellInput).tryReadSimpleRawAsciiLineSync(readDelim, raw);
                 if (lineStr !== undefined) {
-                  // Expand/read the input before publishing the destination array.
-                  if (arrayTarget !== undefined && !existingArrayBinding) {
+                  // Expansion can initialize or replace the destination binding.
+                  if (arrayTarget !== undefined) {
                     const arrStore = monitor.store ?? requireArrays(rawState);
-                    if (!existingArrayBinding && rawState.variables[arrayTarget] === undefined && !arrStore.watches.has(arrayTarget) && !monitor.hasOverlay(arrayTarget)) {
+                    existingArrayBinding = arrStore.get(arrayTarget);
+                    if ((existingArrayBinding && (existingArrayBinding.associative || existingArrayBinding.references !== 1)) || arrStore.watches.has(arrayTarget) || monitor.hasOverlay(arrayTarget)) return undefined;
+                    if (!existingArrayBinding && !arrStore.watches.has(arrayTarget) && !monitor.hasOverlay(arrayTarget)) {
                       const recTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
                       const recBinding = arrStore.takeRecycled(arrayTarget, false, recTickets);
                       if (recBinding) {
@@ -9878,6 +9896,7 @@ export class Runtime {
                       }
                       readArrayScratchFields.length = 0;
                       delete rawState.variables[arrayTarget];
+                      monitor.values.invalidate(arrayTarget);
                       monitor.epoch = tickets.epoch;
                       existingArrayBinding.assigned = true;
                       activeArrStore.revise(arrayTarget, existingArrayBinding, tickets);

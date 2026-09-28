@@ -139,3 +139,45 @@ test('shell operations work without host Buffer or path globals', async () => {
     if (path) Object.defineProperty(globalThis, 'path', path);
   }
 });
+
+for (const command of ["read -a", "mapfile -t", "readarray -t"]) {
+  for (const initial of ["arr=scalar", "unset arr"]) {
+    for (const loop of ["for ((i=0;i<2;i++))", "while ((n<2))", "until ((n>=2))"]) {
+      test(`${command} converts ${initial} once per ${loop} iteration`, async () => {
+        const input = initial === "arr=scalar" ? "a b" : "${x:=init} ${arr:=hello world}";
+        const source = `${initial}; unset x; n=0; ${loop}; do n=$((n+1)); ${command} arr <<< "${input}"; done; echo "n=$n x=$x arr=(\${arr[*]})"`;
+        const expected = initial === "arr=scalar" ? "n=2 x= arr=(a b)\n" : command === "read -a" ? "n=2 x=init arr=(init init)\n" : "n=2 x=init arr=(init init hello world)\n";
+        const result = await run(source);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, expected);
+      });
+    }
+  }
+}
+
+for (const values of ["1 2", ""]) {
+  for (const local of [false, true]) {
+    test(`recycled ${local ? "local" : "global"} array (${values}) is unassigned`, async () => {
+      const source = local
+        ? `f() { local -a arr=(${values}); }; g() { local -a arr; echo "prefix:<\${!arr*}> at:<\${!arr@}>"; }; f; g`
+        : `for ((i=0;i<1;i++)); do arr=(${values}); unset arr; declare -a arr; done; echo "prefix:<\${!arr*}> at:<\${!arr@}>"`;
+      const result = await run(source);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "prefix:<> at:<>\n");
+    });
+  }
+}
+
+for (const command of ["read -a", "mapfile -t", "readarray -t"]) {
+  test(`${command} replaces cached scalar values and marks an empty result assigned`, async () => {
+    for (const bounded of [false, true]) {
+      const source = `arr=scalar; cached=$arr; ${command} arr <<< ""; echo "cached=$cached value=<$arr> prefix=<\${!arr*}> at=<\${!arr@}>"`;
+      const result = await run(source, bounded);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "cached=scalar value=<> prefix=<arr> at=<arr>\n");
+    }
+  });
+}

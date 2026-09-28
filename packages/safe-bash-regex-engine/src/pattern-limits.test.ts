@@ -65,3 +65,13 @@ test('caller budgets enforce source, depth and instructions on reused patterns',
   await assert.rejects(nested.find('a', new Budget(context, { maxPatternSource: 2 })), /source limit/u);
   assert.throws(() => new Pattern('a{20000}', true, false, 'sed', '', { maxPatternInstructions: 19000 }), /program limit/u);
 });
+
+test('Rust patterns retain nesting depth for each caller budget', async () => {
+  const context = { signal: new AbortController().signal } as CommandContext;
+  const nested = new Pattern('('.repeat(65) + 'a' + ')'.repeat(65), true, false, 'rust');
+  await nested.prepare(new Budget(context, {}));
+  await assert.rejects(nested.find('a', new Budget(context, { maxPatternDepth: 64 })), /depth limit/u);
+  assert.throws(() => new Pattern('((a))', true, false, 'rust', '', { maxPatternDepth: 1 }), /depth limit/u);
+  assert.throws(() => new Pattern('abc', true, false, 'rust', '', { maxPatternSource: 2 }), /source limit/u);
+  assert.doesNotThrow(() => new Pattern('a'.repeat(8193), true, false, 'rust'));
+});

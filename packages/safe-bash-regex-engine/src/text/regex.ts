@@ -426,6 +426,7 @@ export class Pattern {
     if (dialect === "rust") {
       const parsed = parseRustPattern(source, ignoreCase, limits.maxPatternDepth), counts = instructionCounts(parsed.root);
       if (!Number.isSafeInteger(counts.get(parsed.root)! + 1) || counts.get(parsed.root)! + 1 > maximumInstructions) throw new ProgramError(`${prefix}regular expression program limit exceeded`);
+      this.patternDepth = parsed.depth;
       this.instructionCount = counts.get(parsed.root)! + 1;
       this.groupCount = parsed.groupCount;
       for (const [name, index] of parsed.groupNames) this.groupNames.set(name, index);

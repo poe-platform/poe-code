@@ -64,11 +64,11 @@ test("the jq dialect retains ASCII classes and final-newline anchors", async () 
   assert.equal((await new Pattern("a$", true, false, "jq").find("a\n", budget))?.groups[0], "a");
 });
 
-test("Rust regex parsing bounds source, nesting and instruction expansion", () => {
-  assert.throws(() => new Pattern("a".repeat(8193), true, false, "rust"), /source limit/u);
-  assert.throws(() => new Pattern("(".repeat(65) + "a" + ")".repeat(65), true, false, "rust"), /depth limit/u);
-  assert.throws(() => new Pattern("(?:a{1024}){1024}", true, false, "rust"), /program limit/u);
-  assert.throws(() => new Pattern("(?:(?(a)a{1000}|b{1000})){1000}", true, false, "rust"), /program limit/u);
+test("Rust regex parsing honors explicit source, nesting and instruction limits", () => {
+  assert.throws(() => new Pattern("a".repeat(8193), true, false, "rust", "", { maxPatternSource: 8192 }), /source limit/u);
+  assert.throws(() => new Pattern("(".repeat(65) + "a" + ")".repeat(65), true, false, "rust", "", { maxPatternDepth: 64 }), /depth limit/u);
+  assert.throws(() => new Pattern("(?:a{1024}){1024}", true, false, "rust", "", { maxPatternInstructions: 16384 }), /program limit/u);
+  assert.throws(() => new Pattern("(?:(?(a)a{1000}|b{1000})){1000}", true, false, "rust", "", { maxPatternInstructions: 16384 }), /program limit/u);
 });
 
 test("Rust regex backtracking and lookbehind charge the bounded VM", async () => {

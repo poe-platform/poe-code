@@ -156,6 +156,18 @@ function record(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function packedRuntimeImport(target: unknown, packedFiles: ReadonlySet<string>): boolean {
+  if (typeof target === "string") {
+    if (!target.startsWith("./") || target.endsWith(".d.ts") ||
+        ![".js", ".mjs", ".cjs", ".wasm"].some(extension => target.endsWith(extension)) ||
+        ["\\", "*", "?", "#", "%"].some(character => target.includes(character))) return false;
+    const filename = target.slice(2);
+    return filename.split("/").every(part => part && part !== "." && part !== "..") && packedFiles.has(filename);
+  }
+  const conditions = Object.entries(record(target)).filter(([condition]) => condition !== "types");
+  return conditions.length > 0 && conditions.every(([, value]) => packedRuntimeImport(value, packedFiles));
+}
+
 function packageName(specifier: string): string | undefined {
   if (
     !specifier ||
@@ -204,6 +216,9 @@ export function findBundleIssues(
   ]);
   for (const specifier of [...imports].sort()) {
     if (publicationNodeBuiltins.has(specifier)) continue;
+    // Native filesystem imports retain their authenticated closure check below.
+    if (specifier.startsWith("#") && specifier !== "#safe-fs-native-seek" && Object.hasOwn(record(manifest.imports), specifier) &&
+        packedRuntimeImport(record(manifest.imports)[specifier], packedFiles)) continue;
     if ((specifier.startsWith("./") || specifier.startsWith("../")) && outputs.every(([filename, output]) => {
       if (!(output.imports ?? []).some(edge => edge.external && edge.path === specifier)) return true;
       const target = path.posix.normalize(path.posix.join(path.posix.dirname(filename), specifier));

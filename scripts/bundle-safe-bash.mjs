@@ -92,7 +92,7 @@ export function resolveBrowserOpBuild(rootDir) {
   };
 }
 
-export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } = {}) {
+export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], imports = {} } = {}) {
   const directory = path.join(rootDir, "packages/safe-bash");
   const platform = path.join(directory, "browser/platform.mjs");
   const transport = path.join(directory, "src/commands/regex-execution/ere/transport/root.js");
@@ -155,7 +155,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
     sourcemap: true,
     metafile: true,
     write: false,
-    external: [...new Set(["poe-code/safe-fs/core", ...external])],
+    external: [...new Set(["poe-code/safe-fs/core", ...external, ...Object.keys(imports)])],
     alias: aliases,
     inject: [platform],
     plugins: [portableLuaLibraries, {

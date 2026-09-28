@@ -5,6 +5,23 @@ import { build } from "esbuild";
 import { runInNewContext } from "node:vm";
 import path from "node:path";
 
+it("keeps root conditional runtimes unresolved until browser or workerd consumption", async () => {
+  const options = resolveBrowserShellBuild(process.cwd(), {
+    imports: { "#git-wasm": {
+      workerd: "./packages/safe-bash-command-git/dist/runtime.workerd.js",
+      default: "./packages/safe-bash-command-git/dist/runtime.js"
+    } }
+  });
+  const result = await build({ ...options, entryPoints: undefined, outdir: undefined,
+    outfile: "/memory/consumer.js", splitting: false, inject: [],
+    stdin: { contents: 'export { gitModule } from "#git-wasm";',
+      resolveDir: path.join(process.cwd(), "packages/safe-bash-command-git") }
+  });
+  expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports))
+    .toEqual([{ path: "#git-wasm", kind: "import-statement", external: true }]);
+  expect(Object.keys(result.metafile!.inputs)).toEqual(["<stdin>"]);
+});
+
 it.each([false, true])("keeps copied private runtime assets inside a publishable workspace (portable=%s)", async portable => {
   const name = "safe-bash-command-example";
   const profile = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable };

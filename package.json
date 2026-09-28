@@ -727,6 +727,10 @@
       "workerd": null,
       "browser": null,
       "default": "./packages/safe-js/dist/native/fs-seek/loader.mjs"
+    },
+    "#git-wasm": {
+      "workerd": "./packages/safe-bash-command-git/dist/runtime.workerd.js",
+      "default": "./packages/safe-bash-command-git/dist/runtime.js"
     }
   }
 }

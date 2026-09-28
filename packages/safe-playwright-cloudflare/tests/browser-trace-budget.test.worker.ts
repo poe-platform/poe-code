@@ -1,3 +1,4 @@
+import { RealFileSystem } from "@poe-code/safe-fs/fs/real";
 import assert from "node:assert/strict";
 import { access, mkdtemp, readFile, rm } from "node:fs/promises";
 import type { BrowserContext, BrowserWorker, Route } from "@cloudflare/playwright";
@@ -7,7 +8,7 @@ import { createCloudflarePlaywrightAdapter } from "../src/index.js";
 export default { async fetch(_request: Request, env: { BROWSER: BrowserWorker }) {
   const signal = new AbortController().signal;
   const lease = await createCloudflarePlaywrightAdapter(env.BROWSER, undefined, undefined, {
-    traceCapture: "archive", traceLimits: { maxBytes: 256 * 1024, maxFiles: 512, maxArchiveBytes: 64 * 1024 },
+    traceCapture: "archive", artifactFileSystem: new RealFileSystem({ root: "/" }), traceLimits: { maxBytes: 256 * 1024, maxFiles: 512, maxArchiveBytes: 64 * 1024 },
   }).acquire({ acquisitionId: "trace-budget", session: "trace-budget", browser: "chromium", headless: true, signal });
   const context = lease.context as unknown as BrowserContext;
   const directory = await mkdtemp("/tmp/trace-budget-fixture-");

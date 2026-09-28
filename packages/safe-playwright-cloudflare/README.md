@@ -77,8 +77,11 @@ reads the completed file through one retained handle, and always removes the
 directory. Its artifact byte limit bounds the completed compressed output.
 To also bound retention while recording, supply the fourth argument's
 `traceLimits: { maxBytes: 16 * 1024 * 1024, maxFiles: 1024,
-maxArchiveBytes: 16 * 1024 * 1024 }`. All three values must be finite positive
-integers. Omitting `traceLimits` preserves the existing provider behavior.
+maxArchiveBytes: 16 * 1024 * 1024 }`. All three values accept positive
+integers or `Infinity`. Each omitted trace limit defaults to `Infinity`.
+Trace budgeting requires `artifactFileSystem` to access the provider’s trace
+files; use a filesystem backed by the same storage as the native recorder.
+Omitting `traceLimits` preserves the existing provider behavior.
 `maxBytes` admits raw trace files, queued replacement versions, and retained
 call-stack, request, and page-metadata records. `maxFiles` bounds those retained
 files and records, including individual stack calls, pending requests, and pages; it is not

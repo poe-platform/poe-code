@@ -1,5 +1,5 @@
-import { Buffer } from "node:buffer";
-import { mkdtemp, rm } from "node:fs/promises";
+import { frameByteLength } from "./browser-run-code-budget.js";
+import type { FileSystem } from "@poe-code/safe-fs/core";
 import type { BrowserContext } from "@cloudflare/playwright";
 import { PlaywrightResourceLimitError } from "@poe-platform/safe-bash/playwright";
 import { serializeTraceStacks, writeTraceArchive, type TraceArchiveEntry, type TraceCallData, type TraceLimits } from "./browser-trace-archive.js";
@@ -85,10 +85,11 @@ interface OwnedRecord { reservation: Reservation; guard: ReturnType<typeof guard
 interface DispatcherGuard { recordings: Map<string, Recording>; stacks: Map<string, Recording> }
 const dispatchers = new WeakMap<LocalUtils, DispatcherGuard>();
 
-export function validateTraceLimits(limits: TraceLimits): TraceLimits {
+export function validateTraceLimits(limits: TraceLimits = {}): Readonly<Required<TraceLimits>> {
+  const resolved = { maxBytes: limits.maxBytes ?? Infinity, maxFiles: limits.maxFiles ?? Infinity, maxArchiveBytes: limits.maxArchiveBytes ?? Infinity };
   for (const key of ["maxBytes", "maxFiles", "maxArchiveBytes"] as const)
-    if (!Number.isSafeInteger(limits[key]) || limits[key] < 1) throw new TypeError(`Invalid Cloudflare trace ${key} limit`);
-  return Object.freeze({ ...limits });
+    if (resolved[key] !== Infinity && (!Number.isSafeInteger(resolved[key]) || resolved[key] < 1)) throw new TypeError(`Invalid Cloudflare trace ${key} limit`);
+  return Object.freeze(resolved);
 }
 
 class Recording {
@@ -112,7 +113,7 @@ class Recording {
   private readonly stopErrors = new Set<unknown>();
   failure?: Error;
 
-  constructor(readonly native: NativeRecorder, readonly directory: string, readonly limits: TraceLimits, readonly local: LocalUtils, readonly dispatcher: DispatcherGuard) {
+  constructor(readonly native: NativeRecorder, readonly directory: string, readonly limits: Required<TraceLimits>, readonly fs: FileSystem, readonly local: LocalUtils, readonly dispatcher: DispatcherGuard) {
     const writer = native._fs;
     this.syncNative = writer.syncAndGetError.bind(writer);
     const mkdir = writer.mkdir.bind(writer), write = writer.writeFile.bind(writer);
@@ -120,10 +121,10 @@ class Recording {
     writer.mkdir = path => { if (this.accepting && (path === directory || this.owned(path))) mkdir(path); };
     writer.writeFile = (path, content, skipIfExists) => {
       if (!this.accepting || skipIfExists && this.files.has(path)) return;
-      if (this.admitFile(path, Buffer.byteLength(content))) write(path, content, false);
+      if (this.admitFile(path, typeof content === "string" ? frameByteLength(content) : content.byteLength)) write(path, content, false);
     };
     writer.appendFile = (path, text, flush) => {
-      if (text && this.admitFile(path, Buffer.byteLength(text), true)) append(path, text, flush);
+      if (text && this.admitFile(path, frameByteLength(text), true)) append(path, text, flush);
     };
     writer.copyFile = (from, to) => {
       if (!this.accepting) return;
@@ -328,7 +329,7 @@ class Recording {
       if (this.exportingStacks.has(previous)) throw new Error("Cannot replace browser trace stacks during export");
       this.dropStacks(file, previous);
     }
-    const initial = this.reserve(Buffer.byteLength('{"files":[],"stacks":[]}'));
+    const initial = this.reserve(frameByteLength('{"files":[],"stacks":[]}'));
     if (!initial) { this.throwIfFailed(); throw new Error("Browser trace recording is closed"); }
     const session: StackSession = { callStacks: [], file, writer: Promise.resolve(), live: false };
     const owned: OwnedStacks = { session, reservations: [initial], live, dirty: false };
@@ -382,7 +383,7 @@ class Recording {
       const error = await this.native._fs.syncAndGetError();
       if (error) throw error;
       const calls = stack?.session.callStacks ?? [];
-      await writeTraceArchive({ ...params, calls, includeSources: !!params.includeSources, limits: this.limits, signal: this.signal.signal,
+      await writeTraceArchive({ ...params, calls, includeSources: !!params.includeSources, limits: this.limits, fs: this.fs, signal: this.signal.signal,
         admitInput: (path, size, source) => {
           if (source) {
             const reservation = this.reserve(size);
@@ -426,7 +427,7 @@ class Recording {
       if (nativeError) errors.push(nativeError);
       for (const id of this.stacks.keys()) await this.discardStacks(id);
       this.dispatcher.recordings.delete(this.directory);
-      await rm(this.directory, { recursive: true, force: true });
+      await this.fs.rm(this.directory, { recursive: true, force: true });
       for (const record of [...this.pending.values(), ...this.pageRecords]) record.guard.stop();
       for (const entry of this.requestRecords.keys()) this.dropRequest(entry);
       this.files.clear(); this.retired.length = 0; this.pending.clear(); this.pageRecords.clear();
@@ -459,7 +460,7 @@ function prepareDispatcher(local: LocalUtils): DispatcherGuard {
 
 /** Private bridge qualified only against @cloudflare/playwright 1.3.6. A new
  * recorder owns every callback, dedup set, queue and pathname for one recording. */
-export function prepareBrowserTraceBudget(context: BrowserContext, limits: TraceLimits): { check(signal: AbortSignal): Promise<void>; release(): Promise<void> } {
+export function prepareBrowserTraceBudget(context: BrowserContext, limits: Required<TraceLimits>, fs: FileSystem | undefined): { check(signal: AbortSignal): Promise<void>; release(): Promise<void> } {
   const client = context.tracing as unknown as ClientTracing;
   const connection = client._connection;
   const native = connection?.toImpl(client) as NativeRecorder | undefined;
@@ -515,6 +516,7 @@ export function prepareBrowserTraceBudget(context: BrowserContext, limits: Trace
   native.resetForReuse = async () => { await active?.dispose(); await snapshotter?.resetForReuse(); active = undefined; };
   native.deleteTmpTracesDir = async () => { await active?.dispose(); };
   client.start = options => {
+    if (!fs) return Promise.reject(new Error("Browser trace filesystem unavailable"));
     if (released) return Promise.reject(new Error("Browser trace context is closed"));
     if (starting) return Promise.reject(new Error("Browser tracing is already starting"));
     if (active?.native._state && !active.failure) return sourceStart(options);
@@ -522,14 +524,15 @@ export function prepareBrowserTraceBudget(context: BrowserContext, limits: Trace
     startWork = (async () => { try {
       if (active?.failure) client._resetStackCounter?.();
       await active?.dispose();
-      const directory = await mkdtemp("/tmp/playwright-artifacts-");
-      if (released) { await rm(directory, { recursive: true, force: true }); throw new Error("Browser trace context is closed"); }
+      const directory = `/tmp/playwright-artifacts-${crypto.randomUUID()}`;
+      await fs.mkdir(directory, { mode: 0o700 });
+      if (released) { await fs.rm(directory, { recursive: true, force: true }); throw new Error("Browser trace context is closed"); }
       try {
         const recorder = new Recorder(native._context, directory);
         if (snapshotter) { recorder._snapshotter = snapshotter; snapshotter._delegate = recorder; }
-        active = new Recording(recorder, directory, limits, local, dispatcher);
+        active = new Recording(recorder, directory, limits, fs, local, dispatcher);
       }
-      catch (error) { await rm(directory, { recursive: true, force: true }); throw error; }
+      catch (error) { await fs.rm(directory, { recursive: true, force: true }); throw error; }
       dispatcher.recordings.set(directory, active);
       client._tracesDir = directory;
       try { await sourceStart(options); active.throwIfFailed(); }

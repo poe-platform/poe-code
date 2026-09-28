@@ -49,3 +49,18 @@ it.each(['toBase64', 'buffer'])('prepares independent upload bytes accepted by t
   prepared[1] = 33;
   expect(original[1]).toBe(128);
 });
+
+it('prepares portable upload bytes when no Buffer exists at adapter creation', async () => {
+  vi.stubGlobal('Buffer', undefined);
+  try {
+    const adapter = createCloudflarePlaywrightAdapter({} as never);
+    const resource = await adapter.acquire({ signal: new AbortController().signal } as never) as unknown as {
+      prepareFileBytes(bytes: Uint8Array): Uint8Array;
+    };
+    const original = Uint8Array.of(0, 128, 255);
+    const prepared = resource.prepareFileBytes(original);
+    original[0] = 42;
+    expect(Array.from(prepared)).toEqual([0, 128, 255]);
+    expect(prepared).toBeInstanceOf(Uint8Array);
+  } finally { vi.unstubAllGlobals(); }
+});

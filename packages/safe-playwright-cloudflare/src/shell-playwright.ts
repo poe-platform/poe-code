@@ -1,4 +1,3 @@
-import { Buffer } from "node:buffer";
 import type { FileSystem } from "@poe-code/safe-fs/core";
 import type {
 	Browser,
@@ -45,6 +44,7 @@ export function createCloudflarePlaywrightAdapter(
   runtime?: BrowserCodeRuntime,
   limits: { maxStorageBytes?: number; artifactFileSystem?: FileSystem; traceCapture?: "live" | "archive"; traceLimits?: TraceLimits } = {},
 ): PlaywrightAdapter {
+  const nativeBuffer = globalThis.Buffer;
   if (limits.maxStorageBytes !== undefined && limits.maxStorageBytes !== Infinity && (!Number.isSafeInteger(limits.maxStorageBytes) || limits.maxStorageBytes < 1)) throw new TypeError('Invalid Cloudflare storage byte limit');
 	const maxStorageBytes = limits.maxStorageBytes ?? Infinity;
  const artifactFileSystem = limits.artifactFileSystem;
@@ -67,7 +67,7 @@ export function createCloudflarePlaywrightAdapter(
 					captureSnapshotJSON: captureBrowserSnapshotJSON,
           captureSnapshotReferences: captureBrowserSnapshotReferences,
 					browser: publicBrowser(resource.browser, resource.prepareSnapshots, context => {
-            if (traceLimits) traces.set(context, prepareBrowserTraceBudget(context, traceLimits));
+            if (traceLimits) traces.set(context, prepareBrowserTraceBudget(context, traceLimits, artifactFileSystem));
           }),
 					captureArtifact: (produce, options) => captureBrowserArtifact(produce, options, artifactFileSystem),
 					...(limits.traceCapture === "archive" ? {} : { captureTrace: (context, options) => captureBrowserTrace(context, options, artifactFileSystem) }),
@@ -84,8 +84,9 @@ export function createCloudflarePlaywrightAdapter(
 							"Cloudflare Browser Run does not support download artifact retrieval",
 						);
 					},
-					// The provider validates Buffer payloads; import its constructor explicitly.
-					prepareFileBytes: (bytes: Uint8Array) => Buffer.from(bytes),
+					// Native SDK uploads require its ambient Buffer; portable callers receive
+					// independent Uint8Array bytes without importing any Node builtin.
+					prepareFileBytes: (bytes: Uint8Array) => nativeBuffer ? nativeBuffer.from(bytes) : bytes.slice(),
 					interrupt: resource.interrupt,
 					async release() {
             const results = await Promise.allSettled([...traces.values()].map(trace => trace.release()));

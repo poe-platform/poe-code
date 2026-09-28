@@ -1,14 +1,11 @@
-import { Buffer } from "node:buffer";
-import { createHash } from "node:crypto";
-import { mkdir, open, rm, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { dirname, type FileSystem } from "@poe-code/safe-fs/core";
 import { createZipCodec, type ZipEntry, type ZipLimits } from "@poe-code/office-package/zip";
 import { PlaywrightResourceLimitError } from "@poe-platform/safe-bash/playwright";
 
 export interface TraceLimits {
-  readonly maxBytes: number;
-  readonly maxFiles: number;
-  readonly maxArchiveBytes: number;
+  readonly maxBytes?: number;
+  readonly maxFiles?: number;
+  readonly maxArchiveBytes?: number;
 }
 export interface TraceCallData {
   id: number;
@@ -41,11 +38,12 @@ export async function writeTraceArchive(options: {
   zipFile: string;
   calls: readonly TraceCallData[];
   includeSources: boolean;
-  limits: TraceLimits;
+  limits: Required<TraceLimits>;
+  fs: FileSystem;
   signal: AbortSignal;
   admitInput(path: string, size: number, source: boolean): void;
 }): Promise<void> {
-  const { limits, signal } = options;
+  const { limits, signal, fs } = options;
   const codec = createZipCodec();
   const zipLimits: ZipLimits = {
     maxArchiveBytes: limits.maxArchiveBytes, maxEntryBytes: limits.maxBytes,
@@ -67,14 +65,22 @@ export async function writeTraceArchive(options: {
   const addFile = async (entry: TraceArchiveEntry, source: boolean) => {
     signal.throwIfAborted();
     let file;
-    try { file = await open(entry.value, "r"); }
+    try {
+      const metadata = await fs.lstat(entry.value, { signal });
+      if (metadata.type !== "file") {
+        if (source) return;
+        throw new Error("Native trace must be a regular file");
+      }
+      if (!fs.openReadFile) throw new Error("Browser trace retained reads unavailable");
+      file = await fs.openReadFile(entry.value, { signal });
+    }
     catch (error) {
-      if (source && (error as NodeJS.ErrnoException).code === "ENOENT") return;
+      if (source && (error as { code?: string }).code === "ENOENT") return;
       throw error;
     }
     try {
-      const metadata = await file.stat();
-      if (!metadata.isFile()) {
+      const metadata = await file.stat({ signal });
+      if (metadata.type !== "file") {
         if (source) return;
         throw new Error("Native trace must be a regular file");
       }
@@ -84,30 +90,35 @@ export async function writeTraceArchive(options: {
       let offset = 0;
       while (offset < bytes.length) {
         signal.throwIfAborted();
-        const { bytesRead } = await file.read(bytes, offset, Math.min(65536, bytes.length - offset), offset);
-        if (!bytesRead) throw new Error("Native trace file truncated during export");
-        offset += bytesRead;
+        const chunk = await file.read(offset, Math.min(65536, bytes.length - offset), { signal });
+        if (!chunk.byteLength) throw new Error("Native trace file truncated during export");
+        bytes.set(chunk, offset);
+        offset += chunk.byteLength;
       }
-      await add(entry.name, bytes, metadata.mtime);
+      await add(entry.name, bytes, new Date(metadata.mtimeMs));
     } finally { await file.close(); }
   };
   let writing = false;
   try {
     for (const entry of options.entries) await addFile(entry, false);
-    if (options.calls.length) await add("trace.stacks", Buffer.from(serializeTraceStacks(options.calls)), new Date());
+    if (options.calls.length) await add("trace.stacks", new TextEncoder().encode(serializeTraceStacks(options.calls)), new Date());
     if (options.includeSources) {
       const sources = new Set(options.calls.flatMap(call => call.stack?.map(frame => frame.file) ?? []));
-      for (const value of sources) await addFile({ name: `resources/src@${createHash("sha1").update(value).digest("hex")}.txt`, value }, true);
+      for (const value of sources) {
+        const digest = new Uint8Array(await crypto.subtle.digest("SHA-1", new TextEncoder().encode(value)));
+        const hash = Array.from(digest, byte => byte.toString(16).padStart(2, "0")).join("");
+        await addFile({ name: `resources/src@${hash}.txt`, value }, true);
+      }
     }
     const bytes = await codec.writeZipArchive({ entries, comment: new Uint8Array() }, zipLimits, signal);
     signal.throwIfAborted();
-    await mkdir(dirname(options.zipFile), { recursive: true });
+    await fs.mkdir(dirname(options.zipFile), { recursive: true, signal });
     signal.throwIfAborted();
     writing = true;
-    await writeFile(options.zipFile, bytes);
+    await fs.writeFile(options.zipFile, bytes, { signal });
     signal.throwIfAborted();
   } catch (error) {
-    if (writing) await rm(options.zipFile, { force: true });
+    if (writing) await fs.rm(options.zipFile, { force: true });
     if (error instanceof Error && error.name === "CodecError" && error.message.includes("limit"))
       throw new PlaywrightResourceLimitError("Browser trace archive byte or file limit exceeded");
     throw error;

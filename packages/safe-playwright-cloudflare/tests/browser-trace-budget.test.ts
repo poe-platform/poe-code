@@ -1,3 +1,4 @@
+import type { TraceLimits } from "../src/browser-trace-budget.js";
 import { beforeEach, expect, test, vi } from "vitest";
 import { EventEmitter } from "node:events";
 import * as fsPromises from "node:fs/promises";
@@ -21,11 +22,11 @@ vi.mock("../src/browser-code-executor.js", () => ({ createBrowserCodeExecutor: (
 vi.mock("../src/browser-codegen.js", () => ({ generateBrowserActionCode() {} }));
 beforeEach(() => { vol.reset(); vol.mkdirSync("/tmp", { recursive: true }); });
 
-async function acquire(limits = { maxBytes: 1024, maxFiles: 32, maxArchiveBytes: 1024 }) {
+async function acquire(limits: TraceLimits = { maxBytes: 1024, maxFiles: 32, maxArchiveBytes: 1024 }) {
   const fixture = providerFixture();
   state.resource = fixture.resource;
   createCloudflarePlaywrightAdapter({} as Parameters<typeof createCloudflarePlaywrightAdapter>[0], undefined, undefined,
-    { traceCapture: "archive", traceLimits: limits } as Parameters<typeof createCloudflarePlaywrightAdapter>[3]);
+    { traceCapture: "archive", traceLimits: limits, artifactFileSystem: new RealFileSystem({ root: "/" }) } as Parameters<typeof createCloudflarePlaywrightAdapter>[3]);
   const options = vi.mocked(createPlaywrightAdapter).mock.calls.at(-1)![0];
   const resource = await options.chromium!.acquireBrowser!({ signal: new AbortController().signal });
   await resource.browser.newContext();
@@ -442,4 +443,15 @@ test("a native start failure after allocation cleans its recording and permits a
     start.mockRestore();
     await f.resource.release();
   }
+});
+
+test.each([{}, { maxFiles: 32 }, { maxBytes: Infinity, maxFiles: Infinity, maxArchiveBytes: Infinity }])("records and archives with optional unlimited trace limits %j", async limits => {
+  const f = await acquire(limits);
+  try {
+    await f.context.tracing.start();
+    f.recorders.at(-1)!._appendResource("body", new Uint8Array(2048));
+    await f.check();
+    await f.context.tracing.stop({ path: "/tmp/unlimited.zip" });
+    expect(vol.existsSync("/tmp/unlimited.zip")).toBe(true);
+  } finally { await f.resource.release(); }
 });

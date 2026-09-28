@@ -31,3 +31,8 @@ test("invalid Cloudflare trace modes reject before creating an adapter", () => {
     .toThrow("Invalid Cloudflare trace capture mode");
   expect(createPlaywrightAdapter).not.toHaveBeenCalled();
 });
+
+
+test("partial and unlimited trace configuration can be created before a filesystem is supplied", () => {
+  expect(() => createCloudflarePlaywrightAdapter(undefined, undefined, undefined, { traceLimits: { maxArchiveBytes: Infinity } })).not.toThrow();
+});

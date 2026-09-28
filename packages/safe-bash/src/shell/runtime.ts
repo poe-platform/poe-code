@@ -22982,11 +22982,14 @@ export class Runtime {
   private evalSyncCut(rawLines: readonly string[], opArgs: readonly string[], byteLocaleMode: boolean): string[] | undefined {
     const norm: string[] = [];
     let suppressNoDelim = false;
+    let isComplement = false;
     let outDelim: string | undefined;
     for (let ci = 0; ci < opArgs.length; ci++) {
       const ca = opArgs[ci]!;
       if (ca === "-s" || ca === "--only-delimited") {
         suppressNoDelim = true;
+      } else if (ca === "--complement") {
+        isComplement = true;
       } else if (ca.startsWith("--output-delimiter=")) {
         outDelim = ca.slice("--output-delimiter=".length);
         if (outDelim.length === 0 || outDelim.includes("\0")) return undefined;
@@ -23008,8 +23011,9 @@ export class Runtime {
     }
     if (!suppressNoDelim && outDelim === undefined && norm.length === 1 && norm[0]!.startsWith("-c")) {
       if (byteLocaleMode) return undefined;
-      const picker = this.parseSyncCutSpec(norm[0]!.slice(2));
-      if (!picker) return undefined;
+      const basePicker = this.parseSyncCutSpec(norm[0]!.slice(2));
+      if (!basePicker) return undefined;
+      const picker = isComplement ? (len: number) => { const s = new Set(basePicker(len)); const r: number[] = []; for (let i = 0; i < len; i++) if (!s.has(i)) r.push(i); return r; } : basePicker;
       return rawLines.map(l => {
         const chars = Array.from(l);
         const idxs = picker(chars.length);
@@ -23029,8 +23033,9 @@ export class Runtime {
       }
     }
     if (!fArg || !fArg.startsWith("-f")) return undefined;
-    const picker = this.parseSyncCutSpec(fArg.slice(2));
-    if (!picker) return undefined;
+    const basePicker = this.parseSyncCutSpec(fArg.slice(2));
+    if (!basePicker) return undefined;
+    const picker = isComplement ? (len: number) => { const s = new Set(basePicker(len)); const r: number[] = []; for (let i = 0; i < len; i++) if (!s.has(i)) r.push(i); return r; } : basePicker;
     const joinDelim = outDelim ?? delim;
     const out: string[] = [];
     for (let li = 0; li < rawLines.length; li++) {
@@ -23139,14 +23144,15 @@ export class Runtime {
         const parts = rest.slice(2).split(delim);
         if (parts.length !== 3) return undefined;
         const [pat, rep, flags] = parts as [string, string, string];
-        if ((flags !== "" && flags !== "g") || /[&\\\n]/.test(rep)) return undefined;
+        if ((flags !== "" && flags !== "g") || /[\\\n]/.test(rep)) return undefined;
         const anchorStart = pat.startsWith("^");
         const core1 = anchorStart ? pat.slice(1) : pat;
         const anchorEnd = core1.endsWith("$");
         const core = anchorEnd ? core1.slice(0, -1) : core1;
         if (core.length === 0 && !anchorStart && !anchorEnd) return undefined;
         if (!/^[a-zA-Z0-9_ :;,=-]*$/.test(core)) return undefined;
-        steps.push({ addr, kind: "s", anchorStart, anchorEnd, core, rep, global: flags === "g" });
+        const effRep = rep.includes("&") ? rep.split("&").join(core) : rep;
+        steps.push({ addr, kind: "s", anchorStart, anchorEnd, core, rep: effRep, global: flags === "g" });
         continue;
       }
       return undefined;
@@ -23191,17 +23197,28 @@ export class Runtime {
   }
 
   private evalSyncGrep(rawLines: readonly string[], opArgs: readonly string[], errexit: boolean): { lines: string[]; status: number } | undefined {
-    if (errexit || opArgs.length < 1 || opArgs.length > 3) return undefined;
+    if (errexit || opArgs.length < 1 || opArgs.length > 8) return undefined;
     let mode = "";
-    for (let i = 0; i < opArgs.length - 1; i++) {
+    const rawPatterns: string[] = [];
+    for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (!a.startsWith("-") || a === "-" || a === "--") return undefined;
-      mode += a.slice(1);
+      if (a === "-e") {
+        if (i + 1 >= opArgs.length) return undefined;
+        rawPatterns.push(opArgs[++i]!);
+      } else if (a.startsWith("-e") && a.length > 2) {
+        rawPatterns.push(a.slice(2));
+      } else if (a.startsWith("-") && a !== "-" && a !== "--" && rawPatterns.length === 0 && i < opArgs.length - 1) {
+        mode += a.slice(1);
+      } else if (!a.startsWith("-") && rawPatterns.length === 0 && i === opArgs.length - 1) {
+        rawPatterns.push(a);
+      } else {
+        return undefined;
+      }
     }
-    const pat = opArgs[opArgs.length - 1]!;
-    if (pat.startsWith("-") || !/^[vicFEonx]*$/.test(mode)) return undefined;
+    if (rawPatterns.length === 0 || !/^[vicFEonxw]*$/.test(mode)) return undefined;
     const isLineNumber = mode.includes("n");
     const isLineRegexp = mode.includes("x");
+    const isWordRegexp = mode.includes("w");
     const isCaseInsensitive = mode.includes("i");
     const isInvert = mode.includes("v");
     const isCount = mode.includes("c");
@@ -23210,7 +23227,8 @@ export class Runtime {
     const isOnlyMatching = mode.includes("o");
     if (isCount && (isLineNumber || isOnlyMatching)) return undefined;
     if (isOnlyMatching) {
-      if (isInvert || isCaseInsensitive || isLineRegexp || isFixed) return undefined;
+      if (rawPatterns.length !== 1 || isInvert || isCaseInsensitive || isLineRegexp || isWordRegexp || isFixed) return undefined;
+      const pat = rawPatterns[0]!;
       let re: RegExp | undefined;
       if (isExtended && (pat === "[0-9]+" || pat === "[a-z]+" || pat === "[A-Z]+" || pat === "[a-zA-Z]+" || pat === "[a-zA-Z0-9_]+")) {
         re = new RegExp(pat, "g");
@@ -23234,7 +23252,12 @@ export class Runtime {
       return { lines: out, status: out.length > 0 ? 0 : 1 };
     }
     if (isExtended && isFixed) return undefined;
-    const branches = isFixed ? pat.split("\n") : (isExtended ? pat.split("|") : [pat]);
+    const branches: string[] = [];
+    for (const rp of rawPatterns) {
+      for (const b of (isFixed ? rp.split("\n") : (isExtended ? rp.split("|") : [rp]))) {
+        branches.push(b);
+      }
+    }
     const compiledBranches: Array<{ anchorStart: boolean; anchorEnd: boolean; needle: string }> = [];
     for (const br of branches) {
       if (br.length === 0) return undefined;
@@ -23250,6 +23273,20 @@ export class Runtime {
         compiledBranches.push({ anchorStart, anchorEnd, needle: isCaseInsensitive ? core.toLowerCase() : core });
       }
     }
+    const isWordChar = (ch: string | undefined): boolean => ch !== undefined && /^[a-zA-Z0-9_]$/.test(ch);
+    const hasWordMatch = (hay: string, needle: string, aStart: boolean, aEnd: boolean): boolean => {
+      if (aStart && aEnd) return hay === needle;
+      if (aStart) return hay.startsWith(needle) && !isWordChar(hay[needle.length]);
+      if (aEnd) return hay.endsWith(needle) && !isWordChar(hay[hay.length - needle.length - 1]);
+      let from = 0;
+      while (from <= hay.length - needle.length) {
+        const idx = hay.indexOf(needle, from);
+        if (idx === -1) return false;
+        if (!isWordChar(hay[idx - 1]) && !isWordChar(hay[idx + needle.length])) return true;
+        from = idx + 1;
+      }
+      return false;
+    };
     const matched: string[] = [];
     for (let li = 0; li < rawLines.length; li++) {
       const l = rawLines[li]!;
@@ -23257,13 +23294,15 @@ export class Runtime {
       let hit = false;
       for (let bi = 0; bi < compiledBranches.length; bi++) {
         const b = compiledBranches[bi]!;
-        const ok = b.anchorStart && b.anchorEnd
-          ? hay === b.needle
-          : b.anchorStart
-            ? hay.startsWith(b.needle)
-            : b.anchorEnd
-              ? hay.endsWith(b.needle)
-              : hay.includes(b.needle);
+        const ok = isWordRegexp
+          ? hasWordMatch(hay, b.needle, b.anchorStart, b.anchorEnd)
+          : b.anchorStart && b.anchorEnd
+            ? hay === b.needle
+            : b.anchorStart
+              ? hay.startsWith(b.needle)
+              : b.anchorEnd
+                ? hay.endsWith(b.needle)
+                : hay.includes(b.needle);
         if (ok) { hit = true; break; }
       }
       if (isInvert ? !hit : hit) matched.push(isLineNumber ? `${li + 1}:${l}` : l);
@@ -23332,13 +23371,48 @@ export class Runtime {
       return [touched ? String(acc) : ""];
     }
     if (initVarName !== undefined) return undefined;
+    let rowPred: ((l: string, fields: readonly string[], nr: number) => boolean) | undefined;
+    const patCondM = /^\/(\^?[a-zA-Z0-9_ :;,=-]+\$?)\/\s*/.exec(progRest);
+    if (patCondM) {
+      const pSpec = patCondM[1]!;
+      const aS = pSpec.startsWith("^");
+      const c1 = aS ? pSpec.slice(1) : pSpec;
+      const aE = c1.endsWith("$");
+      const core = aE ? c1.slice(0, -1) : c1;
+      rowPred = (l: string) => aS && aE ? l === core : aS ? l.startsWith(core) : aE ? l.endsWith(core) : l.includes(core);
+      progRest = progRest.slice(patCondM[0]!.length).trim();
+    } else {
+      const cmpCondM = /^(?:(NR|NF)|\$([0-9]+|NF))\s*(==|!=|>=|<=|>|<)\s*(?:"([^"\\]*)"|(-?[0-9]+(?:\.[0-9]+)?))\s*/.exec(progRest);
+      if (cmpCondM) {
+        const nrNf = cmpCondM[1] as "NR" | "NF" | undefined;
+        const fTok = cmpCondM[2];
+        const op = cmpCondM[3]!;
+        const strRhs = cmpCondM[4];
+        const numRhs = cmpCondM[5] !== undefined ? Number(cmpCondM[5]) : undefined;
+        if (strRhs !== undefined && op !== "==" && op !== "!=") return undefined;
+        rowPred = (l: string, fields: readonly string[], nr: number) => {
+          let rawVal: string | number;
+          if (nrNf !== undefined) rawVal = nrNf === "NR" ? nr : fields.length;
+          else {
+            const idx = fTok === "NF" ? fields.length : Number(fTok!);
+            rawVal = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
+          }
+          if (strRhs !== undefined) {
+            const s = String(rawVal);
+            return op === "==" ? s === strRhs : s !== strRhs;
+          }
+          const lhsNum = typeof rawVal === "number" ? rawVal : Number(rawVal);
+          if (Number.isNaN(lhsNum)) return false;
+          const r = numRhs!;
+          return op === "==" ? lhsNum === r : op === "!=" ? lhsNum !== r : op === ">=" ? lhsNum >= r : op === "<=" ? lhsNum <= r : op === ">" ? lhsNum > r : lhsNum < r;
+        };
+        progRest = progRest.slice(cmpCondM[0]!.length).trim();
+      }
+    }
     const itemPat = `(?:\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|"[^"$\\\\]*")`;
-    const awkM = new RegExp(`^\\s*(?:(NR|NF)\\s*(==|!=|>=|<=|>|<)\\s*([0-9]+)\\s*)?\\{\\s*print(?:\\s+(${itemPat}(?:\\s*,?\\s*${itemPat})*))?\\s*;?\\s*\\}\\s*$`).exec(progRest);
+    const awkM = new RegExp(`^\\{\\s*print(?:\\s+(${itemPat}(?:\\s*,?\\s*${itemPat})*))?\\s*;?\\s*\\}\\s*$`).exec(progRest);
     if (!awkM) return undefined;
-    const condVar = awkM[1] as "NR" | "NF" | undefined;
-    const condOp = awkM[2];
-    const condVal = awkM[3] !== undefined ? Number(awkM[3]) : 0;
-    const exprBody = awkM[4]?.trim();
+    const exprBody = awkM[1]?.trim();
     const parts: Array<
       | { kind: "field"; token: string }
       | { kind: "nf_minus"; offset: number }
@@ -23366,17 +23440,7 @@ export class Runtime {
       const fields = awkSep === undefined || awkSep === " "
         ? l.split(/[ \t]+/).filter(Boolean)
         : (l.length === 0 ? [] : l.split(awkSep));
-      if (condVar !== undefined) {
-        const lhs = condVar === "NR" ? li + 1 : fields.length;
-        const ok =
-          condOp === "==" ? lhs === condVal :
-          condOp === "!=" ? lhs !== condVal :
-          condOp === ">=" ? lhs >= condVal :
-          condOp === "<=" ? lhs <= condVal :
-          condOp === ">" ? lhs > condVal :
-          lhs < condVal;
-        if (!ok) continue;
-      }
+      if (rowPred && !rowPred(l, fields, li + 1)) continue;
       if (parts.length === 1 && parts[0]!.kind === "field" && parts[0]!.token === "0") {
         outLines.push(l);
         continue;

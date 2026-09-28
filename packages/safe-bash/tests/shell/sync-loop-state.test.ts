@@ -804,3 +804,37 @@ for (const locale of ["C", "C.UTF-8"]) {
     });
   }
 }
+
+test("Wave 107: trySyncLoop supports awk /pat/ and $k conditions, grep -w and multi -e, cut --complement, and sed & replacement", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]),
+  });
+  try {
+    const script = [
+      "rows=$\x27ok app 150\\nskip db 200\\nok cache 50\\nERR net 500\x27",
+      "log=$\x27foo bar\\nfoobar baz\\nWARN disk\\nERROR cpu\x27",
+      "line=\"id:secret:role:team\"",
+      "txt=\"item_1 and item_2\"",
+      "out=\"\"",
+      "for ((i=1; i<=20; i++)); do",
+      "  a1=$(awk \x27$1 == \"ok\" {print $2}\x27 <<< \"$rows\")",
+      "  a2=$(awk \x27$3 >= 150 {print $2}\x27 <<< \"$rows\")",
+      "  a3=$(awk \x27/^ERR/ {print $3}\x27 <<< \"$rows\")",
+      "  gw=$(grep -w \"foo\" <<< \"$log\")",
+      "  ge=$(grep -e \"WARN\" -e \"ERROR\" <<< \"$log\")",
+      "  cc=$(cut -d: -f2 --complement <<< \"$line\")",
+      "  sa=$(sed \x27s/item/[&]/g\x27 <<< \"$txt\")",
+      "  out=\"${a1//$\x27\\n\x27/,}|${a2//$\x27\\n\x27/,}|$a3|$gw|${ge//$\x27\\n\x27/,}|$cc|$sa\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "app,cache|app,db,net|500|foo bar|WARN disk,ERROR cpu|id:role:team|[item]_1 and [item]_2\n");
+  } finally {
+    await shell.dispose();
+  }
+});

@@ -592,11 +592,12 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
         }
         owner.assertOpen(context.signal);
         const iterator = session.run(document);
-        const outBatch = new Uint8Array(16384);
+        const firstBatchedResult = emitted + 2;
+        let outBatch: Uint8Array | undefined;
         let outBatchUsed = 0;
         const flushOutBatch = async (): Promise<void> => {
           if (outBatchUsed > 0) {
-            const slice = outBatch.subarray(0, outBatchUsed);
+            const slice = outBatch!.subarray(0, outBatchUsed);
             outBatchUsed = 0;
             await writeOperation(stdoutOperation(), slice, owner, context.signal);
           }
@@ -659,7 +660,7 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
               throw failure;
             }
             owner.assertOpen(context.signal);
-            if (emitted < 2 || outputBytes >= 8192) {
+            if (emitted < firstBatchedResult || outputBytes >= 8192) {
               await flushOutBatch();
               const output = new Uint8Array(outputBytes);
               let offset = 0;
@@ -669,10 +670,11 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
               owner.assertOpen(context.signal);
               await writeOperation(stdoutOperation(), output, owner, context.signal);
             } else {
-              if (outBatchUsed + outputBytes > outBatch.byteLength) await flushOutBatch();
-              if (separator !== "") outBatchUsed += utf8Encoder.encodeInto(separator, outBatch.subarray(outBatchUsed)).written;
-              outBatchUsed += utf8Encoder.encodeInto(encoded, outBatch.subarray(outBatchUsed)).written;
-              outBatch[outBatchUsed++] = 0x0a;
+              const batch = outBatch ??= new Uint8Array(16384);
+              if (outBatchUsed + outputBytes > batch.byteLength) await flushOutBatch();
+              if (separator !== "") outBatchUsed += utf8Encoder.encodeInto(separator, batch.subarray(outBatchUsed)).written;
+              outBatchUsed += utf8Encoder.encodeInto(encoded, batch.subarray(outBatchUsed)).written;
+              batch[outBatchUsed++] = 0x0a;
             }
             emitted++;
           }

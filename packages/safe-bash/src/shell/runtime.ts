@@ -12773,7 +12773,11 @@ export class Runtime {
           }
           return false;
         }
-        if (this.extractSyncUnsetVars(cmd, rawState) !== undefined || this.extractSyncLocalDeclStep(cmd, rawState) !== undefined || this.extractSyncShiftCount(cmd, rawState) !== undefined) {
+        const declaration = this.extractSyncLocalDeclStep(cmd, rawState);
+        // Later steps were admitted against the current attributes, so a
+        // declaration that changes them must use normal command evaluation.
+        if (declaration?.attr) return false;
+        if (this.extractSyncUnsetVars(cmd, rawState) !== undefined || declaration !== undefined || this.extractSyncShiftCount(cmd, rawState) !== undefined) {
           continue;
         }
         if (cmd.redirects.length === 0 && cmd.words.length >= 1 && cmd.words.length <= 16 && this.extractSyncLoopFnSpec(cmd, rawState, io) !== undefined) {

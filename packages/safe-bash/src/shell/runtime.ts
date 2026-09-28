@@ -11925,6 +11925,8 @@ export class Runtime {
               if (opCount > 1 || (opCount === 1 && op0 !== "-d" && op0 !== "--decode")) return false;
             } else if (w0Plain === "tr") {
               if (plainOps.length !== opCount || this.evalSyncTr("", plainOps) === undefined) return false;
+            } else if (w0Plain === "nl") {
+              if (plainOps.length !== opCount || this.evalSyncNl([], plainOps) === undefined) return false;
             }
           }
         }
@@ -12021,8 +12023,10 @@ export class Runtime {
               if (jqIn === undefined || this.evalSyncJq(jqIn, sPlainArgs) === undefined) return false;
             } else if (sName === "base64") {
               if (sPlainArgs.length !== 0) return false;
-            } else if (sName === "tac" || sName === "nl") {
-              return false;
+            } else if (sName === "tac") {
+              if (sPlainArgs.length !== 0 || (w0Plain !== "echo" && !hasSingleHereStringRedir)) return false;
+            } else if (sName === "nl") {
+              if ((w0Plain !== "echo" && !hasSingleHereStringRedir) || this.evalSyncNl([], sPlainArgs) === undefined) return false;
             } else if (sName === "rev") {
               if (sPlainArgs.length !== 0) return false;
             }
@@ -24010,10 +24014,83 @@ export class Runtime {
     return 0;
   }
 
+  private evalSyncNl(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+    let bodyStyle: "a" | "t" | "n" = "t";
+    let format: "ln" | "rn" | "rz" = "rn";
+    let width = 6;
+    let sep = "\t";
+    let start = 1;
+    let inc = 1;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if ((a === "-b" || a === "--body-numbering") && i + 1 < opArgs.length) {
+        const v = opArgs[++i]!;
+        if (v !== "a" && v !== "t" && v !== "n") return undefined;
+        bodyStyle = v;
+      } else if (a === "-ba" || a === "-bt" || a === "-bn") {
+        bodyStyle = a[2] as "a" | "t" | "n";
+      } else if ((a === "-n" || a === "--number-format") && i + 1 < opArgs.length) {
+        const v = opArgs[++i]!;
+        if (v !== "ln" && v !== "rn" && v !== "rz") return undefined;
+        format = v;
+      } else if (a === "-nln" || a === "-nrn" || a === "-nrz") {
+        format = a.slice(2) as "ln" | "rn" | "rz";
+      } else if ((a === "-w" || a === "--number-width") && i + 1 < opArgs.length && /^[1-9][0-9]{0,2}$/.test(opArgs[i + 1]!)) {
+        width = Number(opArgs[++i]!);
+      } else if (/^-w[1-9][0-9]{0,2}$/.test(a)) {
+        width = Number(a.slice(2));
+      } else if ((a === "-s" || a === "--number-separator") && i + 1 < opArgs.length) {
+        sep = opArgs[++i]!;
+      } else if (a.startsWith("-s") && a.length > 2) {
+        sep = a.slice(2);
+      } else if ((a === "-v" || a === "--starting-line-number") && i + 1 < opArgs.length && /^-?[0-9]{1,9}$/.test(opArgs[i + 1]!)) {
+        start = Number(opArgs[++i]!);
+      } else if (/^-v-?[0-9]{1,9}$/.test(a)) {
+        start = Number(a.slice(2));
+      } else if ((a === "-i" || a === "--line-increment") && i + 1 < opArgs.length && /^-?[0-9]{1,9}$/.test(opArgs[i + 1]!)) {
+        inc = Number(opArgs[++i]!);
+      } else if (/^-i-?[0-9]{1,9}$/.test(a)) {
+        inc = Number(a.slice(2));
+      } else {
+        return undefined;
+      }
+    }
+    const out: string[] = [];
+    let curStyle: "a" | "t" | "n" = bodyStyle;
+    let num = start;
+    const unnumberedPrefix = " ".repeat(width + sep.length);
+    for (let i = 0; i < rawLines.length; i++) {
+      const l = rawLines[i]!;
+      if (l === "\\:" || l === "\\:\\:" || l === "\\:\\:\\:") {
+        curStyle = l === "\\:\\:" ? bodyStyle : "n";
+        num = start;
+        out.push("");
+        continue;
+      }
+      const numbered = curStyle === "a" || (curStyle === "t" && l.length > 0);
+      if (!numbered) {
+        out.push(l.length === 0 && sep === "\t" ? " ".repeat(width + 1) : unnumberedPrefix + l);
+        continue;
+      }
+      const label = String(num);
+      const pad = Math.max(0, width - label.length);
+      let prefix: string;
+      if (format === "ln") prefix = label + " ".repeat(pad);
+      else if (format === "rz") prefix = num < 0 ? "-" + "0".repeat(pad) + label.slice(1) : "0".repeat(pad) + label;
+      else prefix = " ".repeat(pad) + label;
+      out.push(prefix + sep + l);
+      num += inc;
+    }
+    return out;
+  }
+
   private evalSyncSort(rawLines: readonly string[], opArgs: readonly string[], isByteLocale: boolean): string[] | undefined {
     if (isByteLocale) return undefined;
     let rev = false;
     let num = false;
+    let human = false;
+    let month = false;
+    let dict = false;
     let uniq = false;
     let fold = false;
     let blanks = false;
@@ -24023,18 +24100,33 @@ export class Runtime {
     let keySpec: string | undefined;
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (/^-[runfbsV]+$/.test(a)) {
+      if (/^-[runfbsVhMd]+$/.test(a)) {
         if (a.includes("r")) rev = true;
         if (a.includes("n")) num = true;
+        if (a.includes("h")) human = true;
+        if (a.includes("M")) month = true;
+        if (a.includes("d")) dict = true;
         if (a.includes("u")) uniq = true;
         if (a.includes("f")) fold = true;
         if (a.includes("b")) blanks = true;
         if (a.includes("s")) stable = true;
         if (a.includes("V")) ver = true;
-      } else if (a === "-t" && i + 1 < opArgs.length && opArgs[i + 1]!.length === 1) {
+      } else if (a === "--reverse") rev = true;
+      else if (a === "--numeric-sort") num = true;
+      else if (a === "--human-numeric-sort") human = true;
+      else if (a === "--month-sort") month = true;
+      else if (a === "--dictionary-order") dict = true;
+      else if (a === "--unique") uniq = true;
+      else if (a === "--ignore-case") fold = true;
+      else if (a === "--ignore-leading-blanks") blanks = true;
+      else if (a === "--stable") stable = true;
+      else if (a === "--version-sort") ver = true;
+      else if (a === "-t" && i + 1 < opArgs.length && opArgs[i + 1]!.length === 1) {
         sep = opArgs[++i]!;
       } else if (a.startsWith("-t") && a.length === 3) {
         sep = a[2]!;
+      } else if (a.startsWith("--field-separator=") && a.length === 19) {
+        sep = a[18]!;
       } else if (a === "-k" && i + 1 < opArgs.length) {
         if (keySpec !== undefined) return undefined;
         keySpec = opArgs[++i]!;
@@ -24049,18 +24141,24 @@ export class Runtime {
     let startField = 1;
     let endField: number | undefined;
     let keyNum = num;
+    let keyHuman = human;
+    let keyMonth = month;
+    let keyDict = dict;
     let keyRev = rev;
     let keyFold = fold;
     let keyBlanks = blanks;
     let keyVer = ver;
     if (keySpec !== undefined) {
-      const km = /^([1-9][0-9]{0,2})(?:,([1-9][0-9]{0,2}))?([nrbfV]*)$/.exec(keySpec);
+      const km = /^([1-9][0-9]{0,2})(?:,([1-9][0-9]{0,2}))?([nrbfVhMd]*)$/.exec(keySpec);
       if (!km) return undefined;
       startField = Number(km[1]!);
       endField = km[2] !== undefined ? Number(km[2]!) : undefined;
       if (endField !== undefined && endField < startField) return undefined;
       const kf = km[3] ?? "";
       if (kf.includes("n")) keyNum = true;
+      if (kf.includes("h")) keyHuman = true;
+      if (kf.includes("M")) keyMonth = true;
+      if (kf.includes("d")) keyDict = true;
       if (kf.includes("r")) keyRev = true;
       if (kf.includes("f")) keyFold = true;
       if (kf.includes("b")) keyBlanks = true;
@@ -24075,16 +24173,46 @@ export class Runtime {
             return slice.join(sep ?? " ");
           })();
       if (keyBlanks) raw = raw.replace(/^[ \t]+/, "");
+      if (keyDict) raw = raw.replace(/[^a-zA-Z0-9 \t]+/g, "");
       return keyFold ? raw.toUpperCase() : raw;
     };
     const parseNum = (s: string): number => {
       const m = /^[ \t]*(-?(?:\d+(?:\.\d*)?|\.\d+))/.exec(s);
       return m ? Number(m[1]!) : 0;
     };
+    const compareHuman = (sa: string, sb: string): number => {
+      const parseH = (s: string): { sign: number; unit: number; val: number } => {
+        const m = /^[ \t]*(-?(?:\d+(?:\.\d*)?|\.\d+))([KMGTPEZYkmgtpezy])?/.exec(s);
+        if (!m) return { sign: 0, unit: 0, val: 0 };
+        const val = Number(m[1]!);
+        if (val === 0) return { sign: 0, unit: 0, val: 0 };
+        const uChar = m[2] ? m[2].toUpperCase() : "";
+        const unit = uChar === "" ? 0 : "KMGTPEZY".indexOf(uChar) + 1;
+        return { sign: val < 0 ? -1 : 1, unit, val };
+      };
+      const ha = parseH(sa);
+      const hb = parseH(sb);
+      if (ha.sign !== hb.sign) return ha.sign - hb.sign;
+      if (ha.unit !== hb.unit) return ha.sign < 0 ? hb.unit - ha.unit : ha.unit - hb.unit;
+      return ha.val - hb.val;
+    };
+    const parseMonth = (s: string): number => {
+      const m = /^[ \t]*([a-zA-Z]{3})/.exec(s);
+      if (!m) return 0;
+      const idx = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"].indexOf(m[1]!.toUpperCase());
+      return idx === -1 ? 0 : idx + 1;
+    };
     const sorted = [...rawLines].sort((a, b) => {
       const ka = extractKey(a);
       const kb = extractKey(b);
-      if (keyNum) {
+      if (keyHuman) {
+        const hc = compareHuman(ka, kb);
+        if (hc !== 0) return keyRev ? -hc : hc;
+      } else if (keyMonth) {
+        const ma = parseMonth(ka);
+        const mb = parseMonth(kb);
+        if (ma !== mb) return keyRev ? mb - ma : ma - mb;
+      } else if (keyNum) {
         const na = parseNum(ka);
         const nb = parseNum(kb);
         if (na !== nb) return keyRev ? nb - na : na - nb;
@@ -24108,7 +24236,7 @@ export class Runtime {
       } else {
         const ka = extractKey(sorted[i]!);
         const kb = extractKey(sorted[i - 1]!);
-        const same = keyNum ? parseNum(ka) === parseNum(kb) : keyVer ? this.compareSyncVersion(ka, kb) === 0 : ka === kb;
+        const same = keyHuman ? compareHuman(ka, kb) === 0 : keyMonth ? parseMonth(ka) === parseMonth(kb) : keyNum ? parseNum(ka) === parseNum(kb) : keyVer ? this.compareSyncVersion(ka, kb) === 0 : ka === kb;
         if (!same) dedup.push(sorted[i]!);
       }
     }
@@ -24369,7 +24497,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "jq" && !builtInDirectContextExecutors.has(extDef.execute))  || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "jq" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -24414,8 +24542,10 @@ export class Runtime {
           if (sArgs.length === 2 && !["-r", "--raw-output", "-c", "--compact-output", "-rc", "-cr"].includes(sArgs[0]!)) return undefined;
         } else if (sName === "base64") {
           if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-d" && sArgs[0] !== "--decode")) return undefined;
-        } else if (sName === "tac" || sName === "nl") {
+        } else if (sName === "tac") {
           if (sArgs.length !== 0) return undefined;
+        } else if (sName === "nl") {
+          if (this.evalSyncNl([], sArgs) === undefined) return undefined;
         } else {
           return undefined;
         }
@@ -24597,14 +24727,9 @@ export class Runtime {
               if (inStr.length > 0 && !inStr.endsWith("\n")) return undefined;
               outLines = [...rawLines].reverse();
             } else if (isInlineNl) {
-              outLines = [];
-              let nlNum = 1;
-              for (let li = 0; li < rawLines.length; li++) {
-                const l = rawLines[li]!;
-                if (l === "\\:" || l === "\\:\\:" || l === "\\:\\:\\:") return undefined;
-                if (l.length === 0) outLines.push("       ");
-                else outLines.push(String(nlNum++).padStart(6, " ") + "\t" + l);
-              }
+              const nlRes = this.evalSyncNl(rawLines, stageArgs);
+              if (nlRes === undefined) return undefined;
+              outLines = nlRes;
             } else if (isInlineBase64) {
               if (stageArgs.length === 0) {
                 const b64Wrapped = this.syncBase64Encode(prevBuf.subarray(0, prevLen));
@@ -24906,10 +25031,9 @@ export class Runtime {
               fileRes = renderLines(rawLines.map(l => Array.from(l).reverse().join("")));
             } else if (hasSingleHereStringRedir && w0Plain === "tac" && opArgs.length === 0) {
               fileRes = renderLines([...rawLines].reverse());
-            } else if (hasSingleHereStringRedir && w0Plain === "nl" && opArgs.length === 0) {
-              if (rawLines.some(l => l === "\\:" || l === "\\:\\:" || l === "\\:\\:\\:")) return undefined;
-              let lineNo = 0;
-              fileRes = renderLines(rawLines.map(l => l.length === 0 ? "       " : `${String(++lineNo).padStart(6, " ")}\t${l}`));
+            } else if (hasSingleHereStringRedir && w0Plain === "nl") {
+              const nlRes = this.evalSyncNl(rawLines, opArgs);
+              if (nlRes !== undefined) fileRes = renderLines(nlRes);
             }
             if (fileRes !== undefined) {
               // Charge emitted bytes before substitution removes trailing newlines.

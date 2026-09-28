@@ -1009,3 +1009,35 @@ test("Wave 112: trySyncLoop supports sed q/=/!neg/nth s///2, grep -E regexes/-Ei
     await shell.dispose();
   }
 });
+
+test("Wave 113: trySyncLoop supports sort -h/-M/-d/long flags, nl -ba/-n/-w/-s/-v/-i, and pipeline tac/nl", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]),
+  });
+  try {
+    const script = [
+      "sizes=$'2G\\n500M\\n10K\\n1T'",
+      "months=$'Mar\\nJan\\nDec\\nFeb'",
+      "lines=$'first\\n\\nthird'",
+      "out=\"\"",
+      "for ((i=1; i<=20; i++)); do",
+      "  sh=$(sort -h <<< \"$sizes\")",
+      "  sm=$(sort -M <<< \"$months\")",
+      "  sl=$(sort --reverse --numeric-sort <<< $'10\\n2\\n30')",
+      "  n1=$(nl -ba -w 3 -s \": \" <<< \"$lines\")",
+      "  n2=$(nl -n rz -w 4 -s \"|\" <<< $'alpha\\nbeta')",
+      "  t1=$(echo \"$lines\" | tac)",
+      "  out=\"${sh//$'\\n'/,}|${sm//$'\\n'/,}|${sl//$'\\n'/,}|${n1//$'\\n'/,}|${n2//$'\\n'/,}|${t1//$'\\n'/,}\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "10K,500M,2G,1T|Jan,Feb,Mar,Dec|30,10,2|  1: first,  2: ,  3: third|0001|alpha,0002|beta|third,,first\n");
+  } finally {
+    await shell.dispose();
+  }
+});

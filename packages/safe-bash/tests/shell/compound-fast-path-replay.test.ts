@@ -1255,3 +1255,29 @@ test("trySyncLoop accelerates <<< here-string substitutions for cut/jq/tr/sed/aw
     await shell.dispose();
   }
 });
+
+test("trySyncLoop preserves && / || list short-circuit semantics and accelerates multi-stage <<< pipelines (Wave 78)", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands(), ...createTextProgramCommands(), ...grepCommands(), ...createStructuredCommands()]) {
+    shell.commands.register(command, { replace: true });
+  }
+  try {
+    const t0 = performance.now();
+    const res = await shell.exec([
+      "s=\"alpha:99:ok\"",
+      "evenSum=0",
+      "for ((i = 0; i < 1200; i++)); do",
+      "  ((i % 2 == 0)) && ((evenSum += i))",
+      "  p1=$(cat <<< \"$s\" | cut -d: -f2)",
+      "  p2=$(tr a-z A-Z <<< \"$s\" | cut -d: -f1)",
+      "done",
+      "printf \"%d|%s|%s\\n\" \"$evenSum\" \"$p1\" \"$p2\"",
+    ].join("\n"));
+    const elapsed = performance.now() - t0;
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "359400|99|ALPHA\n");
+    assert.ok(elapsed < 1000, "Expected < 1000ms, got " + elapsed.toFixed(1) + "ms");
+  } finally {
+    await shell.dispose();
+  }
+});

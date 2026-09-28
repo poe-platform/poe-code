@@ -2785,6 +2785,7 @@ type SyncLoopStep = {
   readonly isDiscardDevNull?: boolean | undefined;
   readonly discardWords?: readonly Word[] | undefined;
   readonly discardSuffix?: string | undefined;
+  readonly listOperator?: "&&" | "||" | undefined;
   readonly arithStmt?: ArithmeticProgram | undefined;
   readonly ifBranches?: readonly { condCmd: Extract<Command, { kind: "arithmetic" }>; cond: ArithmeticProgram; condLine: number; steps: readonly SyncLoopStep[] }[] | undefined;
   readonly elseSteps?: readonly SyncLoopStep[] | undefined;
@@ -11621,7 +11622,6 @@ export class Runtime {
           cmd.redirects[0]!.target.plain !== "/dev/stdin";
         const hasSingleHereStringRedir =
           cmd.kind === "simple" &&
-          p.commands.length === 1 &&
           cmd.redirects.length === 1 &&
           cmd.redirects[0]!.operator === "<<<" &&
           (cmd.redirects[0]!.descriptor === undefined || cmd.redirects[0]!.descriptor === 0) &&
@@ -11701,7 +11701,7 @@ export class Runtime {
           if (w0Plain === "cat" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl") {
             if (opCount !== 0) return false;
           } else {
-            if (p.commands.length !== 1) return false;
+            if (p.commands.length !== 1 && !hasSingleHereStringRedir) return false;
             if ((w0Plain === "head" || w0Plain === "tail") && opCount > 2) return false;
             if ((w0Plain === "jq" || w0Plain === "awk" || w0Plain === "grep" || w0Plain === "sed") && (opCount < 1 || opCount > 3)) return false;
             if (w0Plain === "cut" && (opCount < 1 || opCount > 4)) return false;
@@ -11736,7 +11736,7 @@ export class Runtime {
           if (cmd.words.length < 2 || cmd.words.length > 4 || !cmd.words.slice(1).every(isSeqIntWord)) return false;
         }
         if (p.commands.length >= 2) {
-          if ((w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "seq" && w0Plain !== "cat") || syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || rawState.errexit || rawState.nounset) return false;
+          if ((w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "seq" && w0Plain !== "cat" && !hasSingleHereStringRedir) || syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || rawState.errexit || rawState.nounset) return false;
           for (let sIdx = 1; sIdx < p.commands.length; sIdx++) {
             const sCmd = p.commands[sIdx]!;
             if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return false;
@@ -11980,7 +11980,7 @@ export class Runtime {
       readonly targetWord: Word | undefined;
       readonly append?: boolean;
     }, rawState: State, ): IntLoopStep | undefined {
-    if (step.targetWord !== undefined || step.name === undefined || step.value === undefined || step.append) return undefined;
+    if (step.listOperator !== undefined || step.targetWord !== undefined || step.name === undefined || step.value === undefined || step.append) return undefined;
     const cached = intLoopStepCache.get(step.cmd);
     if (cached !== undefined) {
       if (cached === null) return undefined;
@@ -12054,11 +12054,13 @@ export class Runtime {
       for (let l = 0; l < script.lists.length; l++) {
         const list = script.lists[l]!;
         for (let p = 0; p < list.pipelines.length; p++) {
+          const listOperator = p > 0 ? list.operators[p - 1] : undefined;
           const rawCmd = list.pipelines[p]!.commands[0]!;
           const line = io.diagnosticCommandLines?.get(rawCmd) ?? (rawCmd.line ?? 1) + (io.diagnosticOffset ?? 0);
           if (rawCmd.kind === "arithmetic") {
             bodyAssignments.push({
               cmd: rawCmd as unknown as Extract<Command, { kind: "simple" }>,
+              listOperator,
               name: undefined,
               value: undefined,
               arithStmt: rawCmd.expression,
@@ -12090,6 +12092,7 @@ export class Runtime {
             }
             bodyAssignments.push({
               cmd: rawCmd as unknown as Extract<Command, { kind: "simple" }>,
+              listOperator,
               name: undefined,
               value: undefined,
               ifBranches: branches,
@@ -12107,6 +12110,7 @@ export class Runtime {
           const isBaseS = w0.plain === "basename" && cmd.words.length === 4 && cmd.words[1]!.plain === "-s";
           bodyAssignments.push({
             cmd,
+            listOperator,
             name: undefined,
             value: undefined,
             isDiscardDevNull: true,
@@ -12133,15 +12137,15 @@ export class Runtime {
             }
           }
           bodyAssignments.push({
-            cmd, name: undefined, value: cmd.words[1]!, targetWord: r0.target, targetDirPrefix, targetNamePrefix, append: r0.operator === ">>", line, });
+            cmd, listOperator, name: undefined, value: cmd.words[1]!, targetWord: r0.target, targetDirPrefix, targetNamePrefix, append: r0.operator === ">>", line, });
         } else if (cmd.words.length === 2 && w0.plain === "echo") {
-          bodyAssignments.push({ cmd, name: undefined, value: cmd.words[1]!, isStdoutEcho: true, targetWord: undefined, append: false, line });
+          bodyAssignments.push({ cmd, listOperator, name: undefined, value: cmd.words[1]!, isStdoutEcho: true, targetWord: undefined, append: false, line });
         } else if (cmd.words.length >= 4 && w0.plain === "printf" && cmd.words[1]!.plain === "-v") {
-          bodyAssignments.push({ cmd, name: cmd.words[2]!.plain!, value: undefined, printfVArgs: cmd.words.slice(3), targetWord: undefined, append: false, line });
+          bodyAssignments.push({ cmd, listOperator, name: cmd.words[2]!.plain!, value: undefined, printfVArgs: cmd.words.slice(3), targetWord: undefined, append: false, line });
         } else {
           const arrAssign = getArrayAssignment(w0);
           const assignment = !arrAssign ? this.assignment(w0) : undefined;
-          bodyAssignments.push({ cmd, name: assignment?.name, value: assignment?.value ?? (arrAssign?.kind === "element" ? arrAssign.value : arrAssign?.entries[0]?.value), arrayAssign: arrAssign, targetWord: undefined, append: assignment?.append ?? false, line });
+          bodyAssignments.push({ cmd, listOperator, name: assignment?.name, value: assignment?.value ?? (arrAssign?.kind === "element" ? arrAssign.value : arrAssign?.entries[0]?.value), arrayAssign: arrAssign, targetWord: undefined, append: assignment?.append ?? false, line });
         }
       }
     }
@@ -12388,7 +12392,7 @@ export class Runtime {
         }
       }
       const arithNamesList = [...arithNames];
-      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.ifBranches !== undefined || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
+      const hasAnyArrayAssign = bodyAssignments.some(s => s.listOperator !== undefined || s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.ifBranches !== undefined || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
       // Complex expansions can read or write names inside selectors, defaults,
       // patterns and substring expressions. Keep every assignment in iteration
       // order unless the shallow dependency checks below can see all reads.
@@ -13055,6 +13059,7 @@ export class Runtime {
       if (hasDeferredSteps) lastInductionVal = rawState.variables[inductionName];
       for (let b = 0; b < bodyAssignments.length; b++) {
         const step = bodyAssignments[b]!;
+        if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
         lastCmd = step.cmd;
         this.budget.tick();
         if (deferredMask & (1 << b)) {
@@ -13205,6 +13210,7 @@ export class Runtime {
     let lastArg = "";
     for (let b = 0; b < steps.length; b++) {
       const step = steps[b]!;
+      if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
       lastCmd = step.cmd;
       this.budget.tick();
       if (step.ifBranches !== undefined) {
@@ -13259,6 +13265,7 @@ export class Runtime {
       rawState.variables[varName] = fastLoopWords[idx]!;
       for (let b = 0; b < bodyAssignments.length; b++) {
         const step = bodyAssignments[b]!;
+        if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
         lastCmd = step.cmd;
         this.budget.tick();
         if (step.coalesceNext) {
@@ -20022,25 +20029,33 @@ export class Runtime {
         cmd0.kind === "simple" &&
         cmd0.redirects.length === 1 &&
         cmd0.redirects[0]!.operator === "<" &&
-        cmd0.redirects[0]!.fd === undefined &&
+        (cmd0.redirects[0]!.descriptor === undefined || cmd0.redirects[0]!.descriptor === 0) &&
         cmd0.redirects[0]!.target.plain !== undefined;
-      if (cmd0.kind !== "simple" || (cmd0.redirects.length !== 0 && !cmd0StdinRedir)) return undefined;
+      const cmd0HereStringRedir =
+        cmd0.kind === "simple" &&
+        cmd0.redirects.length === 1 &&
+        cmd0.redirects[0]!.operator === "<<<" &&
+        (cmd0.redirects[0]!.descriptor === undefined || cmd0.redirects[0]!.descriptor === 0) &&
+        this.isPureSyncValueWord(cmd0.redirects[0]!.target, rawState);
+      if (cmd0.kind !== "simple" || (cmd0.redirects.length !== 0 && !cmd0StdinRedir && !cmd0HereStringRedir)) return undefined;
       const w0Plain0 = cmd0.words[0]?.plain;
-      if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat") || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
+      if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0HereStringRedir) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
       if (cmd0StdinRedir && (w0Plain0 !== "cat" || cmd0.words.length !== 1)) return undefined;
-      if (!cmd0StdinRedir && w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
+      if (cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 1) return undefined;
+      if (!cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
       const def0 = this.commands.get(w0Plain0);
-      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : w0Plain0 === "cat" ? !builtInDirectContextExecutors.has(def0.execute) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
+      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
       const n = pipeline.commands.length;
       const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
       const stageNames: string[] = [];
       const stageArgsList: string[][] = [];
-      for (let i = 1; i < n; i++) {
+      const startStageIdx = cmd0HereStringRedir && w0Plain0 !== "cat" ? 0 : 1;
+      for (let i = startStageIdx; i < n; i++) {
         const sCmd = pipeline.commands[i]!;
-        if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return undefined;
+        if (sCmd.kind !== "simple" || (i > 0 ? sCmd.redirects.length !== 0 : !cmd0HereStringRedir) || sCmd.words.length === 0) return undefined;
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
@@ -20128,7 +20143,10 @@ export class Runtime {
         subArgs0.push(val);
       }
       let stage0Formatted: string | undefined;
-      if (w0Plain0 === "printf") {
+      if (cmd0HereStringRedir) {
+        const hv = this.fastValueWord(cmd0.redirects[0]!.target, state, io, false, false, false, false, undefined, part.line);
+        if (typeof hv === "string" && hv.length <= 16384 && !hv.includes("\0")) stage0Formatted = hv + "\n";
+      } else if (w0Plain0 === "printf") {
         stage0Formatted = tryFastPrintf(subArgs0);
       } else if (w0Plain0 === "seq") {
         if (subArgs0.length >= 1 && subArgs0.length <= 3 && subArgs0.every(a => /^-?[0-9]{1,7}$/.test(a))) {
@@ -20170,10 +20188,11 @@ export class Runtime {
       let prevBuf = sharedSyncPipeBuf0;
       let prevLen = fastSharedTextEncoder.encodeInto(stage0Formatted, sharedSyncPipeBuf0).written;
       try {
-        for (let index = 1; index < n; index++) {
-          const firstName = stageNames[index - 1]!;
-          const extDef = stageDefs[index - 1]!;
-          const stageArgs = stageArgsList[index - 1]!;
+        for (let sIdx = 0; sIdx < stageNames.length; sIdx++) {
+          const index = sIdx + 1;
+          const firstName = stageNames[sIdx]!;
+          const extDef = stageDefs[sIdx]!;
+          const stageArgs = stageArgsList[sIdx]!
           const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
           const isInlineCutField = firstName === "cut" && (
             (stageArgs.length === 1 && /^-[f][1-9][0-9]*(?:,[1-9][0-9]*)*$/.test(stageArgs[0]!)) ||

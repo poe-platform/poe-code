@@ -65,7 +65,7 @@ export { createYesCommand, createYesCommands, yesCommands, type YesCommandOption
 export { createDdCommand, createDdCommands, ddCommands, type DdFileHandle, type DdFileOpener, type DdFileRequest, type DdCommandsOptions, type DdLimits, type DdOptions } from "./dd.js";
 export { createNumfmtCommand, createNumfmtCommands, numfmtCommands, type NumfmtCommandsOptions, type NumfmtLimits, type NumfmtOptions } from "./commands/numfmt/index.js";
 export { createEnvsubstCommand, createEnvsubstCommands, envsubstCommands, type EnvsubstCommandsOptions, type EnvsubstLimits, type EnvsubstOptions } from "./commands/envsubst/index.js";
-export { createCalCommand, createCalCommands, calCommands, type CalCommandsOptions, type CalLimits, type CalOptions } from "./commands/cal/index.js";
+export { createCalCommand, createNcalCommand, createCalCommands, calCommands, type CalCommandsOptions, type CalLimits, type CalOptions } from "./commands/cal/index.js";
 export { createPathchkCommand, createPathchkCommands, pathchkCommands, type PathchkCommandsOptions, type PathchkLimits, type PathchkOptions } from "./commands/pathchk/index.js";
 export { createGetconfCommand, createGetconfCommands, getconfCommands, type GetconfCommandsOptions, type GetconfLimits, type GetconfOptions } from "./commands/getconf/index.js";
 export { createSha512sumCommand, createSha512sumCommands, sha512sumCommands, type Sha512sumCommandsOptions, type Sha512sumLimits, type Sha512sumOptions } from "./commands/sha512sum/index.js";

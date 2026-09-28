@@ -127,28 +127,35 @@ test("awk admits preserved backslashes before allocating replacement bytes", asy
 test("replacement segment and finalization capacities are independently bounded", async context => {
   const budget = createBudget(10000, 1025);
   const buffer = new ReplacementBuffer(budget);
-  const allocate = context.mock.method(Buffer, "allocUnsafeSlow");
-  const original = Buffer.prototype.toString;
+  const capacities: number[] = [];
+  const originalSubarray = Uint16Array.prototype.subarray;
+  const originalClear = buffer.clear;
   let releasedBeforeConversion = false;
-  context.mock.method(Buffer.prototype, "toString", function (this: Buffer, encoding?: BufferEncoding, start?: number, end?: number) {
-    if (encoding === "latin1" && this.length === 1025) releasedBeforeConversion = buffer.remaining === 1025;
-    return original.call(this, encoding, start, end);
+  context.mock.method(Uint16Array.prototype, "subarray", function (this: Uint16Array, begin?: number, end?: number) {
+    capacities.push(this.length);
+    return originalSubarray.call(this, begin, end);
+  });
+  context.mock.method(buffer, "clear", function (this: ReplacementBuffer) {
+    originalClear.call(this);
+    releasedBeforeConversion = buffer.remaining === 1025;
   });
   await buffer.append("x".repeat(1025));
   assert.equal(await buffer.finish(), "x".repeat(1025));
-  assert.deepEqual(allocate.mock.calls.map(call => call.arguments[0]), [1024, 1, 1025]);
+  assert.deepEqual(capacities, [1024, 1]);
   assert.equal(releasedBeforeConversion, true);
 });
 
 test("replacement scratch does not retain a pooled backing store beyond its capacity", async context => {
-  const allocate = context.mock.method(Buffer, "allocUnsafeSlow");
+  let byteLength = 0;
+  const originalSubarray = Uint16Array.prototype.subarray;
+  context.mock.method(Uint16Array.prototype, "subarray", function (this: Uint16Array, begin?: number, end?: number) {
+    byteLength = this.buffer.byteLength;
+    return originalSubarray.call(this, begin, end);
+  });
   const buffer = new ReplacementBuffer(createBudget(1000, 64));
   await buffer.append("x".repeat(64));
-  assert.equal(allocate.mock.calls.length, 1);
-  const allocated = allocate.mock.calls[0]?.result;
-  assert.ok(allocated);
-  assert.equal(allocated.buffer.byteLength, 64);
   assert.equal((await buffer.finish()).length, 64);
+  assert.equal(byteLength, 64 * Uint16Array.BYTES_PER_ELEMENT);
 });
 
 for (const size of [4, 1025]) {

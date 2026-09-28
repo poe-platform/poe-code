@@ -51,6 +51,7 @@ export class LineEndingError extends PublicDiagnostic {
 export class Budget {
   private work = 0;
   private quantum = 0;
+  private checkpointCount = 0;
   private lastYield = monotonicNow();
   private memory = 0;
   private input = 0;
@@ -86,7 +87,7 @@ export class Budget {
     this.quantum += amount;
     if (this.quantum < 1024) return;
     this.quantum = 0;
-    if (!hasYieldCheckpoint(this.caller) && monotonicNow() - this.lastYield < 25) {
+    if (++this.checkpointCount > 1 && !hasYieldCheckpoint(this.caller) && monotonicNow() - this.lastYield < 25) {
       runYieldCheckpoint(this.caller);
       this.assertOpen();
       return;

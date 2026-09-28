@@ -32,7 +32,7 @@ test("text regex compilation retains documented host storage bounds independentl
   assert.doesNotThrow(() => new Pattern("(".repeat(64) + "a" + ")".repeat(64), true));
   assert.throws(() => new Pattern("(".repeat(65) + "a" + ")".repeat(65), true), /regular expression depth limit exceeded/);
   assert.doesNotThrow(() => new Pattern("a{16383}", true));
-  assert.throws(() => new Pattern("a{16384}", true), /regular expression program limit exceeded/);
+  assert.throws(() => new Pattern("a{16384}", true, false, "sed", "", { maxPatternInstructions: 16384 }), /regular expression program limit exceeded/);
 });
 
 test("ERE compilation admits patterns beyond former grammar caps", async () => {

@@ -7663,7 +7663,7 @@ export class Runtime {
               const uArg = wu.plain ?? (wu.parts.length === 1 && wu.parts[0]!.kind === "text" ? wu.parts[0]!.value : undefined);
               if (uArg !== undefined) {
                 const br = uArg.indexOf("[");
-                if (br > 0 && uArg.endsWith("]") && (wu.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && !rawState.failglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.length === 0))) {
+                if (br > 0 && uArg.endsWith("]") && (wu.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0))) {
                   const arrName = uArg.slice(0, br);
                   const subStr = uArg.slice(br + 1, -1);
                   const b = isShellIdentifier(arrName) ? st?.get(arrName) : undefined;
@@ -7880,7 +7880,7 @@ export class Runtime {
             let targetOk = false;
             if (w2Plain !== undefined) {
               const br = w2Plain.indexOf("[");
-              if (br > 0 && w2Plain.endsWith("]") && (w2?.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && !rawState.failglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.length === 0))) {
+              if (br > 0 && w2Plain.endsWith("]") && (w2?.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0))) {
                 const arrName = w2Plain.slice(0, br);
                 const subStr = w2Plain.slice(br + 1, -1);
                 const b = isShellIdentifier(arrName) ? st?.get(arrName) : undefined;
@@ -9428,7 +9428,7 @@ export class Runtime {
       if ( this.budget.limits.maxExpansionFields === Infinity && command.words.length >= 4 && w0Plain === "printf" && command.words[1]?.plain === "-v" && command.redirects.length === 0 && canMutatePipeStatus && (!pipeline.negate || ignored || !rawState.errexit) && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf")) {
         const def = this.commands.get("printf");
         if (def && def.execute === printfCommand.execute && command.words.length <= this.budget.maxExpansionFieldsSmi && (this.arePureArgWords(command.words, rawState) || command.words.every((w, idx) => idx < 4 ? this.isPureArgWord(w, rawState) : (this.isPureArgWord(w, rawState) || this.canSyncArrayMembersWord(w, rawState))))) {
-          let targetSpec: ShellValue | undefined = command.words[2]?.plain !== undefined && (rawState.noglob || !hasGlobOrEscape(command.words[2]!.plain, !!rawState.extglob) || (!rawState.nullglob && !rawState.failglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.length === 0)) ? command.words[2]!.plain : undefined;
+          let targetSpec: ShellValue | undefined = command.words[2]?.plain !== undefined && (rawState.noglob || !hasGlobOrEscape(command.words[2]!.plain, !!rawState.extglob) || (!rawState.nullglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0)) ? command.words[2]!.plain : undefined;
           if (targetSpec === undefined) {
             try {
               targetSpec = this.fastValueWord(command.words[2]!, rawState, io, true, false, false, true, undefined, diagnosticLine);

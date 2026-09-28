@@ -35,7 +35,7 @@ export function createTerminalPngMcpServer() {
     "render_terminal_png",
     "Renders ANSI terminal output as a PNG image",
     schema,
-    async ({ ansiText, padding, window }) => {
+    async ({ ansiText, padding, window }: RenderTerminalPngArgs) => {
       const buffer = await renderTerminalPng(ansiText, { padding, window });
       return Image.fromBytes(buffer, "image/png");
     }

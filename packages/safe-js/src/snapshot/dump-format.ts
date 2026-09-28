@@ -73,6 +73,7 @@ type DumpState = {
   heapIds: Map<object | symbol, number>;
   serializedHeapIds: Set<number>;
   guestValues: Set<object>;
+  pendingGuests: Array<{ value: object; path: string; id: number }>;
 };
 
 type ContainerStat = {
@@ -138,7 +139,8 @@ function createDumpFile(snapshot: DumpableSnapshot): Record<string, DumpValue> {
     float32Buffers: new WeakMap(),
     heap: {},
     ...indexHeapContainers(snapshot),
-    serializedHeapIds: new Set()
+    serializedHeapIds: new Set(),
+    pendingGuests: []
   };
   const dumped: Record<string, DumpValue> = {
     version: DUMP_FORMAT_VERSION,
@@ -154,6 +156,20 @@ function createDumpFile(snapshot: DumpableSnapshot): Record<string, DumpValue> {
     if (serialized !== SKIP_VALUE) {
       dumped[key] = serialized;
     }
+  }
+
+  // Allocate references before capturing their nodes; target chains and cycles
+  // extend this worklist instead of nesting encoder calls.
+  while (state.pendingGuests.length > 0) {
+    const { value, path, id } = state.pendingGuests.pop()!;
+    const node = captureGuestHeapNode(value, entry => {
+      if (entry === undefined) return { kind: "undefined" };
+      const serialized = serializeDumpValue(entry, `${path}.<guest>`, state);
+      if (serialized === SKIP_VALUE) throw new TypeError(`Unsupported guest graph value at ${path}.`);
+      return serialized;
+    });
+    if (node === undefined) throw new TypeError(`Missing guest heap node at ${path}.`);
+    state.heap[String(id)] = node;
   }
 
   if (Object.keys(state.heap).length > 0) {
@@ -197,14 +213,7 @@ function serializeDumpValue(
     const id = state.heapIds.get(value)!;
     if (!state.serializedHeapIds.has(id)) {
       state.serializedHeapIds.add(id);
-      const node = captureGuestHeapNode(value, entry => {
-        if (entry === undefined) return { kind: "undefined" };
-        const serialized = serializeDumpValue(entry, `${path}.<guest>`, state);
-        if (serialized === SKIP_VALUE) throw new TypeError(`Unsupported guest graph value at ${path}.`);
-        return serialized;
-      });
-      if (node === undefined) throw new TypeError(`Missing guest heap node at ${path}.`);
-      state.heap[String(id)] = node;
+      state.pendingGuests.push({ value, path, id });
     }
     return { kind: "ref", id };
   }
@@ -441,94 +450,100 @@ function collectContainerStats(
   trustedRunReplay: boolean,
   depth = 0
 ): void {
-  if (value === null || typeof value !== "object") {
-    return;
-  }
-
-  assertSnapshotDataDepth(depth, "<snapshot-heap>");
-
-  let stat = stats.get(value);
-  if (stat === undefined) {
-    stat = {
-      count: 0,
-      cyclic: false,
-      expanded: false
-    };
-    stats.set(value, stat);
-  }
-
-  stat.count += 1;
-
-  if (ancestors.has(value)) {
-    stat.cyclic = true;
-    return;
-  }
-
-  if (stat.expanded) {
-    return;
-  }
-
-  stat.expanded = true;
-  ancestors.add(value);
-
-  const guestEntries: unknown[] = [];
-  const driver = trustedRunReplay ? asyncGeneratorDrivers.get(value) : undefined;
-  if (driver !== undefined && driver.requests.some(request => requiresPromiseReplay(request.capability.promise)))
-    throw new SnapshotNotReadyError("Cannot snapshot an async generator with a replay-only request.");
-  const cleanup = trustedRunReplay ? asyncCleanupStates.get(value) : undefined;
-  if (cleanup !== undefined && requiresPromiseReplay(cleanup.capability.promise))
-    throw new SnapshotNotReadyError("Cannot snapshot async cleanup with a replay-only result.");
-  const replayPromise = isSandboxPromise(value) ? value
-    : isPromiseResolvingFunction(value) ? promiseResolvingFunctions.get(value)?.promise : undefined;
-  const replayMetadata = trustedRunReplay && replayPromise !== undefined && requiresPromiseReplay(replayPromise);
-  if (isSandboxDataView(value)) guestEntries.push(dataViewBuffer(value));
-  if (isNumericTypedArray(value)) guestEntries.push(typedArrayStorage(value).buffer);
-  const guest = isSandboxDataView(value)
-    ? { kind: "dataview", state: captureDataViewState(value, entry => { guestEntries.push(entry); return null; }) }
-    : isNumericTypedArray(value)
-    ? { kind: "typedarray", state: captureTypedArrayState(value, entry => { guestEntries.push(entry); return null; }) }
-    : isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value)
-    ? { kind: "arraybuffer", state: captureArrayBufferState(value, entry => { guestEntries.push(entry); return null; }) }
-    : replayMetadata
-    ? undefined
-    : captureGuestHeapNode(value, entry => { guestEntries.push(entry); return null; });
-  if (guest !== undefined) {
-    if (!isSandboxArrayBuffer(value) && !isSandboxSharedArrayBuffer(value) && !isSandboxDataView(value) && !isNumericTypedArray(value)) guestValues.add(value);
-    for (const entry of guestEntries) {
-      collectContainerStats(entry, stats, ancestors, guestValues, trustedRunReplay, depth + 1);
-      if (entry !== null && typeof entry === "object") stats.get(entry)!.forceHeap = true;
+  const pending: Array<{ value: unknown; depth: number; exiting?: boolean; forceHeap?: boolean }> = [{ value, depth }];
+  while (pending.length > 0) {
+    const frame = pending.pop()!;
+    const { value, depth } = frame;
+    if (frame.exiting) {
+      ancestors.delete(value as object);
+      continue;
     }
-    ancestors.delete(value);
-    return;
-  }
-  for (const entry of guestEntries) collectContainerStats(entry, stats, ancestors, guestValues, trustedRunReplay, depth + 1);
-  if (!Array.isArray(value) && !isPlainObject(value) && !isNumericTypedArray(value) && !isSandboxDate(value)) {
-    ancestors.delete(value);
-    return;
-  }
+    if (value === null || typeof value !== "object") {
+      continue;
+    }
 
-  const entries = isSandboxRegex(value)
-    ? Reflect.ownKeys(getRegexProperties(value)).flatMap(key => {
-      const descriptor = Object.getOwnPropertyDescriptor(getRegexProperties(value), key)!;
-      return "value" in descriptor ? [descriptor.value] : [];
-    })
-    : isSandboxDate(value)
-    ? dateDataProperties(value).flatMap(([key, descriptor]) => typeof key === "string" ? [descriptor.value] : [])
-    : isSandboxBox(value)
-    ? boxedDataProperties(value).map(([, descriptor]) => descriptor.value)
-    : isSandboxArguments(value)
-    ? getSandboxArgumentEntries(value).map(([, entry]) => entry)
-    : getEnumerableDataValues(value);
-  for (const entry of entries) {
-    collectContainerStats(entry, stats, ancestors, guestValues, trustedRunReplay, depth + 1);
-  }
-  for (const key of ownSerializableSymbolKeys(value)) {
-    const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
-    if ("value" in descriptor)
-      collectContainerStats(descriptor.value, stats, ancestors, guestValues, trustedRunReplay, depth + 1);
-  }
+    assertSnapshotDataDepth(depth, "<snapshot-heap>");
 
-  ancestors.delete(value);
+    let stat = stats.get(value);
+    if (stat === undefined) {
+      stat = {
+        count: 0,
+        cyclic: false,
+        expanded: false
+      };
+      stats.set(value, stat);
+    }
+
+    if (frame.forceHeap) stat.forceHeap = true;
+    stat.count += 1;
+
+    if (ancestors.has(value)) {
+      stat.cyclic = true;
+      continue;
+    }
+
+    if (stat.expanded) {
+      continue;
+    }
+
+    stat.expanded = true;
+    ancestors.add(value);
+    pending.push({ value, depth, exiting: true });
+
+    const guestEntries: unknown[] = [];
+    const driver = trustedRunReplay ? asyncGeneratorDrivers.get(value) : undefined;
+    if (driver !== undefined && driver.requests.some(request => requiresPromiseReplay(request.capability.promise)))
+      throw new SnapshotNotReadyError("Cannot snapshot an async generator with a replay-only request.");
+    const cleanup = trustedRunReplay ? asyncCleanupStates.get(value) : undefined;
+    if (cleanup !== undefined && requiresPromiseReplay(cleanup.capability.promise))
+      throw new SnapshotNotReadyError("Cannot snapshot async cleanup with a replay-only result.");
+    const replayPromise = isSandboxPromise(value) ? value
+      : isPromiseResolvingFunction(value) ? promiseResolvingFunctions.get(value)?.promise : undefined;
+    const replayMetadata = trustedRunReplay && replayPromise !== undefined && requiresPromiseReplay(replayPromise);
+    if (isSandboxDataView(value)) guestEntries.push(dataViewBuffer(value));
+    if (isNumericTypedArray(value)) guestEntries.push(typedArrayStorage(value).buffer);
+    const guest = isSandboxDataView(value)
+      ? { kind: "dataview", state: captureDataViewState(value, entry => { guestEntries.push(entry); return null; }) }
+      : isNumericTypedArray(value)
+      ? { kind: "typedarray", state: captureTypedArrayState(value, entry => { guestEntries.push(entry); return null; }) }
+      : isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value)
+      ? { kind: "arraybuffer", state: captureArrayBufferState(value, entry => { guestEntries.push(entry); return null; }) }
+      : replayMetadata
+      ? undefined
+      : captureGuestHeapNode(value, entry => { guestEntries.push(entry); return null; });
+    if (guest !== undefined) {
+      if (!isSandboxArrayBuffer(value) && !isSandboxSharedArrayBuffer(value) && !isSandboxDataView(value) && !isNumericTypedArray(value)) guestValues.add(value);
+      for (const entry of guestEntries) {
+        pending.push({ value: entry, depth: depth + 1, forceHeap: true });
+      }
+      continue;
+    }
+    for (const entry of guestEntries) pending.push({ value: entry, depth: depth + 1 });
+    if (!Array.isArray(value) && !isPlainObject(value) && !isNumericTypedArray(value) && !isSandboxDate(value)) {
+      continue;
+    }
+
+    const entries = isSandboxRegex(value)
+      ? Reflect.ownKeys(getRegexProperties(value)).flatMap(key => {
+        const descriptor = Object.getOwnPropertyDescriptor(getRegexProperties(value), key)!;
+        return "value" in descriptor ? [descriptor.value] : [];
+      })
+      : isSandboxDate(value)
+      ? dateDataProperties(value).flatMap(([key, descriptor]) => typeof key === "string" ? [descriptor.value] : [])
+      : isSandboxBox(value)
+      ? boxedDataProperties(value).map(([, descriptor]) => descriptor.value)
+      : isSandboxArguments(value)
+      ? getSandboxArgumentEntries(value).map(([, entry]) => entry)
+      : getEnumerableDataValues(value);
+    for (const entry of entries) {
+      pending.push({ value: entry, depth: depth + 1 });
+    }
+    for (const key of ownSerializableSymbolKeys(value)) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+      if ("value" in descriptor)
+        pending.push({ value: descriptor.value, depth: depth + 1 });
+    }
+  }
 }
 
 function isPlainObject(value: object): value is Record<string, unknown> {

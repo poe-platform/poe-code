@@ -18,6 +18,13 @@ const scripts = [
   'a=0; b="foo bar"; (( a++, x = b )); echo "a=$a"',
   'a=0; b="c[2]=4"; ((a++,x=b)); echo "$a:${c[2]}"',
   'a=0; b="c[2]++"; ((a++,x=b)); echo "$a:${c[2]}"',
+  'a=0; b="a++"; ((a++,x=b)); echo "$a:$x"',
+  'a=0; b="a++"; echo "$((a++,x=b)):$a"',
+  'a=0; b=94906266; ((a++,x=b)); echo "$a:$x"',
+  'a=0; b=0; c="a++"; ((a++,b++,x=c)); echo "$a:$b:$x"',
+  'a=0; b="b"; ((a++,x=b)); echo "$a"',
+  'a=0; b="c"; c="b"; ((a++,x=b)); echo "$a"',
+  'for n in 1 2; do a=0; b="c[2]=4"; ((a++,x=b)); echo "$a:${c[2]}"; done',
   'a=0; b="c[2]=4"; echo "$((a++,x=b)):$a:${c[2]}"',
   'a=0; ((x=$((a++)) << 1)); echo "$a:$x"',
   'set -a; one=42; (( anum = $one )); declare -p anum',
@@ -31,10 +38,12 @@ const scripts = [
   '[ 1 -eq 1 -a 2 -eq 99999999999999999999999 ]',
   '[ 1 -eq 1 -a 2 -eq -9223372036854775809 ]',
 ];
-for (const script of scripts) test(`issue 3763 Bash parity: ${script}`, async () => {
+for (const script of scripts) test(`issue 3763 Bash parity: ${script}`, async context => {
   const { shell } = setup();
+  context.after(() => shell.dispose());
   for (const command of [...basicCommands(), ...predicateCommands()]) shell.commands.register(command);
   const expected = spawnSync('/bin/bash', ['--noprofile', '--norc', '-c', script], { encoding: 'utf8', env: { PATH: '/usr/bin:/bin', LC_ALL: 'C' } });
+  assert.ifError(expected.error);
   const actual = await shell.exec(script);
   assert.equal(actual.stdout, expected.stdout);
   assert.equal(actual.exitCode, expected.status);

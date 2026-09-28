@@ -393,9 +393,9 @@ function canEvalSafeSmiTree(node: Arithmetic, depth = 0): boolean {
     return false;
   }
   if (node.kind === "binary") {
-    if (node.operator === "," && depth === 0) {
-      return canEvalSafeSmiTree(node.left, 0) && canEvalSafeSmiTree(node.right, 0);
-    }
+    // A comma can publish a mutation before a later operand needs the general
+    // evaluator. Keep the whole sequence there so fallback cannot replay writes.
+    if (node.operator === ",") return false;
     if ((node.operator === "=" || node.operator === "+=" || node.operator === "-=" || node.operator === "*=") && depth === 0) {
       return node.left.kind === "name" && canEvalSafeSmiTree(node.left, depth + 1) && canEvalSafeSmiTree(node.right, depth + 1);
     }
@@ -441,11 +441,6 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
     return undefined;
   }
   if (node.kind === "binary") {
-    if (node.operator === ",") {
-      const l = evalSafeSmi(node.left, refs, budget);
-      if (l === undefined) return undefined;
-      return evalSafeSmi(node.right, refs, budget);
-    }
     if (node.operator === "=") {
       const r = evalSafeSmi(node.right, refs, budget);
       if (r === undefined || r < -94906265 || r > 94906265) return undefined;

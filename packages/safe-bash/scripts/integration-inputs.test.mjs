@@ -51,7 +51,9 @@ test("issue 3813 Bash parity regressions remain in active discovery", () => {
 
 test("compound fast-path replay regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
-  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/compound-fast-path-replay.test.ts"));
+  const active = discoverTests(root, loadBoundaries(root));
+  assert.ok(active.includes("tests/shell/compound-fast-path-replay.test.ts"));
+  assert.ok(active.includes("tests/shell/issue-3763.test.ts"));
 });
 
 test("portable network platform regression remains in active discovery", () => {

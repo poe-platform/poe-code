@@ -4179,7 +4179,7 @@ export class Runtime {
         if (allDigits) return true;
         if (depth < 8 && text.length <= 64 && !text.includes("/") && !text.includes("%") && !text.includes("<<") && !text.includes(">>") && !text.includes("**")) {
           const subProg = prepareArithmetic(text, this.budget.parsing);
-          return !subProg.error && isSafeSmiProgram(subProg) && this.canSyncArithmeticWithoutFault(subProg.tree, state, line);
+          return !subProg.error && isSafeSmiProgram(subProg) && this.canSyncArithmeticWithoutFault(subProg.tree, state, line, depth + 1);
         }
         return false;
       }
@@ -4188,8 +4188,8 @@ export class Runtime {
       case "conditional": return this.canSyncArithmeticOperands(tree.condition, state, line, depth + 1) && this.canSyncArithmeticOperands(tree.yes, state, line, depth + 1) && this.canSyncArithmeticOperands(tree.no, state, line, depth + 1);
     }
   }
-  private canSyncArithmeticWithoutFault(tree: ArithmeticProgram["tree"], state: State, line?: number): boolean {
-    if (!tree || !this.canSyncArithmeticOperands(tree, state, line)) return false;
+  private canSyncArithmeticWithoutFault(tree: ArithmeticProgram["tree"], state: State, line?: number, depth = 0): boolean {
+    if (!tree || !this.canSyncArithmeticOperands(tree, state, line, depth)) return false;
     const checkNoFault = (node: NonNullable<ArithmeticProgram["tree"]>): boolean => {
       switch (node.kind) {
         case "literal":

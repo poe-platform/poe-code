@@ -87,6 +87,81 @@ test("invalid octal assignment remains fatal while integer declarations succeed"
   assert.equal(integer.stderr, "");
 });
 
+
+for (const [name, source, expected] of [
+  [
+    "octal integer",
+    "OPTIND=010; say \"$OPTIND\"",
+    "8\n"
+  ],
+  [
+    "spaced octal integer",
+    "OPTIND=\" 010 \"; say \"$OPTIND\"",
+    "8\n"
+  ],
+  [
+    "unset octal text",
+    "unset OPTIND; OPTIND=010; say \"$OPTIND\"",
+    "010\n"
+  ],
+  [
+    "unset invalid octal text",
+    "unset OPTIND; OPTIND=08; say \"$OPTIND\"",
+    "08\n"
+  ],
+  [
+    "local octal text",
+    "f(){ local OPTIND=010; say \"$OPTIND\"; }; f",
+    "010\n"
+  ],
+  [
+    "local invalid octal text",
+    "f(){ local OPTIND=08; say \"$OPTIND\"; }; f",
+    "08\n"
+  ],
+  [
+    "local decimal loses integer binding",
+    "f(){ local OPTIND=1; OPTIND=\"1+1\"; say \"$OPTIND\"; }; f; OPTIND=\"1+1\"; say \"$OPTIND\"",
+    "1+1\n2\n"
+  ],
+  [
+    "declared octal integer",
+    "declare OPTIND=010; say \"$OPTIND\"",
+    "8\n"
+  ],
+  [
+    "canonical decimal integer",
+    "OPTIND=2; say \"$OPTIND\"",
+    "2\n"
+  ],
+  [
+    "function-loop prefix once",
+    "f(){ for i in 1 2; do echo \"before:$i\"; OPTIND=010; echo \"$OPTIND\"; done; }; f",
+    "before:1\n8\nbefore:2\n8\n"
+  ],
+  [
+    "prospective nameref loop prefix once",
+    "f(){ for i in 1 2; do echo \"before:$i\"; local -n ref=OPTIND; ref=010; echo \"$OPTIND\"; done; }; f",
+    "before:1\n8\nbefore:2\n8\n"
+  ]
+] as const) {
+  test(`OPTIND assignment spelling and binding: ${name}`, async () => {
+    const { shell } = runtimeSetup();
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+  });
+}
+
+test("invalid octal global declaration remains fatal", async () => {
+  const { shell } = runtimeSetup();
+  const result = await shell.exec("declare OPTIND=08; say unreachable");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /08: arithmetic syntax error/u);
+});
+
 test("fresh defaults preserve inherited export bits while clones do not initialize", async () => {
   const { shell } = runtimeSetup();
   assert.equal((await shell.exec('say "$OPTIND:$OPTERR"; envget OPTIND OPTERR; getopts a opt -a')).stdout, "1:1\n<unset>|<unset>");

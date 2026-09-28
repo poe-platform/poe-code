@@ -7511,6 +7511,8 @@ export class Runtime {
       const w0Plain = w0.plain;
       const isNoBraceSyncAssignWord = (w: Word) =>
         this.isPureSyncValueWord(w, rawState, true) && !w.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{"));
+      const isCanonicalOptindWord = (w: Word) =>
+        rawState.getopts?.integer !== false && w.parts.length === 1 && w.parts[0]!.kind === "text" && /^(?:0|[1-9][0-9]{0,5})$/.test(w.parts[0]!.value);
       const isNoBraceSyncWord = (w: Word) =>
         this.isPureSyncValueWord(w, rawState, false) && !w.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{")) && !w.parts.some(part => part.kind === "substitution");
       if (command.words.length === 1) {
@@ -7550,7 +7552,7 @@ export class Runtime {
           return isNoBraceSyncAssignWord(arrayAssign.value);
         }
         const assignment = this.assignment(w0);
-        return Boolean( assignment && (assignment.name !== "OPTIND" || (!assignment.append && !rawState.variableAttributes?.get("OPTIND"))) && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") && !rawState.readonlyVariables?.has(assignment.name) && (!st?.get(assignment.name) || (!assignment.append && !hasUnpreparedLocal(rawState, assignment.name) && !rawState.exported.has(assignment.name))) && isNoBraceSyncAssignWord(assignment.value), );
+        return Boolean( assignment && (resolveSyncNameref(rawState, assignment.name) !== "OPTIND" || (!assignment.append && !rawState.variableAttributes?.get("OPTIND") && isCanonicalOptindWord(assignment.value))) && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") && !rawState.readonlyVariables?.has(assignment.name) && (!st?.get(assignment.name) || (!assignment.append && !hasUnpreparedLocal(rawState, assignment.name) && !rawState.exported.has(assignment.name))) && isNoBraceSyncAssignWord(assignment.value), );
       }
       if (w0Plain !== undefined && command.words.length <= 64 && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !hasActiveExtensions(rawState)) {
         const fnBody = rawState.functions.get(w0Plain)!;
@@ -7677,12 +7679,16 @@ export class Runtime {
           const wArg = command.words[idx]!;
           const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
           if (assignment) {
-            const curAttr = rawState.variableAttributes?.get(assignment.name);
-            if ( (!isNamerefDecl && curAttr && curAttr !== "i" && curAttr !== "l" && curAttr !== "u") || (assignment.name === "OPTIND" && (assignment.append || curAttr)) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || !isNoBraceSyncAssignWord(assignment.value)) {
+            if (isNamerefDecl && (assignment.value.parts.length !== 1 || assignment.value.parts[0]!.kind !== "text" || resolveSyncNameref(rawState, assignment.value.parts[0]!.value) === "OPTIND")) {
               allValidLocal = false;
               break;
             }
-          } else if (!wArg.plain || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) || (wArg.plain === "OPTIND" && rawState.variableAttributes?.get("OPTIND")) || wArg.plain === "PIPESTATUS") {
+            const curAttr = rawState.variableAttributes?.get(assignment.name);
+            if ( (!isNamerefDecl && curAttr && curAttr !== "i" && curAttr !== "l" && curAttr !== "u") || (assignment.name === "OPTIND" && (assignment.append || curAttr || (!isGlobalDecl && (rawState.locals.length > 0 || depth > 0)) || !isCanonicalOptindWord(assignment.value))) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || !isNoBraceSyncAssignWord(assignment.value)) {
+              allValidLocal = false;
+              break;
+            }
+          } else if (!wArg.plain || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) || wArg.plain === "OPTIND" || wArg.plain === "PIPESTATUS") {
             allValidLocal = false;
             break;
           }
@@ -9189,7 +9195,7 @@ export class Runtime {
       const hasSubPart = assignment.value.parts.some(part => part.kind === "substitution");
       const existingArrAssign = store?.get(targetAssignName);
       if (
-        (targetAssignName === "OPTIND" && (assignment.append || rawState.variableAttributes?.get("OPTIND"))) ||
+        (targetAssignName === "OPTIND" && (assignment.append || rawState.variableAttributes?.get("OPTIND") || rawState.getopts?.integer === false)) ||
         targetAssignName === "PIPESTATUS" ||
         targetAssignName.includes("[") ||
         (hasSubPart && !this.isPureSyncValueWord(assignment.value, rawState)) ||
@@ -9207,9 +9213,7 @@ export class Runtime {
       }
       if (typeof fastAssigned !== "string") return undefined;
       if (targetAssignName === "OPTIND") {
-        const trimmedOptind = fastAssigned.trim();
-        if (!/^[0-9]{1,6}$/.test(trimmedOptind)) return undefined;
-        fastAssigned = String(Number(trimmedOptind));
+        if (!/^(?:0|[1-9][0-9]{0,5})$/.test(fastAssigned)) return undefined;
       }
       if (existingArrAssign) {
         if (!this.tryFastArraySubscriptWriteSync(rawState, targetAssignName, "0", fastAssigned)) return undefined;
@@ -10333,7 +10337,7 @@ export class Runtime {
           const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
           if (assignment) {
             const curAttr = rawState.variableAttributes?.get(assignment.name);
-            if ( (!isNamerefDecl && curAttr && curAttr !== "i" && curAttr !== "l" && curAttr !== "u") || (assignment.name === "OPTIND" && (assignment.append || curAttr)) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name)) {
+            if ( (!isNamerefDecl && curAttr && curAttr !== "i" && curAttr !== "l" && curAttr !== "u") || (assignment.name === "OPTIND" && (assignment.append || curAttr || (!isGlobalDecl && rawState.locals.length > 0) || rawState.getopts?.integer === false)) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name)) {
               allValidLocal = false;
               break;
             }
@@ -10348,15 +10352,13 @@ export class Runtime {
               break;
             }
             if (assignment.name === "OPTIND") {
-              const trimmedOptind = fastAssigned.trim();
-              if (!/^[0-9]{1,6}$/.test(trimmedOptind)) {
+              if (!/^(?:0|[1-9][0-9]{0,5})$/.test(fastAssigned)) {
                 allValidLocal = false;
                 break;
               }
-              fastAssigned = String(Number(trimmedOptind));
             }
             parsedLocals.push({ name: assignment.name, val: fastAssigned, append: assignment.append, lastArg: `${assignment.name}=${fastAssigned}` });
-          } else if ( wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && !rawState.variableAttributes?.get(wArg.plain)?.includes("n") && (wArg.plain !== "OPTIND" || !rawState.variableAttributes?.get("OPTIND")) && wArg.plain !== "PIPESTATUS" && !rawState.readonlyVariables?.has(wArg.plain) && !store?.get(wArg.plain)) {
+          } else if ( wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && !rawState.variableAttributes?.get(wArg.plain)?.includes("n") && wArg.plain !== "OPTIND" && wArg.plain !== "PIPESTATUS" && !rawState.readonlyVariables?.has(wArg.plain) && !store?.get(wArg.plain)) {
             parsedLocals.push({ name: wArg.plain, val: undefined, append: false, lastArg: wArg.plain });
           } else {
             allValidLocal = false;

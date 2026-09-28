@@ -2453,7 +2453,31 @@ pub fn execute_git_cli_with_http(
             let heads_only = sub_args.contains(&"--heads");
             let tags_only = sub_args.contains(&"--tags");
             let hash_only = sub_args.contains(&"-s") || sub_args.contains(&"--hash");
+            let verify_mode = sub_args.contains(&"--verify");
+            let quiet = sub_args.contains(&"-q") || sub_args.contains(&"--quiet");
+            let deref = sub_args.contains(&"-d") || sub_args.contains(&"--dereference");
+            if verify_mode {
+                let mut out = String::new();
+                for &r in &positionals {
+                    let exists = r == "HEAD" || (r.starts_with("refs/") && crate::GitRefManager::exists(fs, &gitdir, r));
+                    let Ok(oid) = resolve_ref(fs, &gitdir, r, None) else {
+                        return CliResult::err(1, if quiet { String::new() } else { format!("fatal: '{r}' - not a valid ref\n") });
+                    };
+                    if !exists {
+                        return CliResult::err(1, if quiet { String::new() } else { format!("fatal: '{r}' - not a valid ref\n") });
+                    }
+                    if !quiet {
+                        if hash_only {
+                            out.push_str(&format!("{oid}\n"));
+                        } else {
+                            out.push_str(&format!("{oid} {r}\n"));
+                        }
+                    }
+                }
+                return CliResult::ok(out);
+            }
             let mut out = String::new();
+            let mut matched = false;
             for prefix in ["refs/heads", "refs/tags", "refs/remotes"] {
                 if heads_only && prefix != "refs/heads" {
                     continue;
@@ -2463,16 +2487,30 @@ pub fn execute_git_cli_with_http(
                 }
                 for r in crate::list_refs(fs, &gitdir, prefix) {
                     let full_ref = format!("{prefix}/{r}");
+                    if !positionals.is_empty()
+                        && !positionals.iter().any(|pat| full_ref == *pat || full_ref.ends_with(&format!("/{pat}")))
+                    {
+                        continue;
+                    }
                     if let Ok(oid) = resolve_ref(fs, &gitdir, &full_ref, None) {
-                        if hash_only {
-                            out.push_str(&format!("{oid}\n"));
-                        } else {
-                            out.push_str(&format!("{oid} {full_ref}\n"));
+                        matched = true;
+                        if !quiet {
+                            if hash_only {
+                                out.push_str(&format!("{oid}\n"));
+                            } else {
+                                out.push_str(&format!("{oid} {full_ref}\n"));
+                            }
+                            if deref
+                                && let Ok(tag_obj) = crate::read_tag(fs, &gitdir, &oid)
+                            {
+                                out.push_str(&format!("{} {full_ref}^{{}}
+", tag_obj.tag.object));
+                            }
                         }
                     }
                 }
             }
-            if out.is_empty() {
+            if !matched {
                 CliResult::err(1, "")
             } else {
                 CliResult::ok(out)
@@ -4688,6 +4726,116 @@ pub fn execute_git_cli_with_http(
             } else {
                 CliResult::ok(format!("{}\n", items.join("  ")))
             }
+        }
+        "checkout-index" => {
+            let all = sub_args.contains(&"-a") || sub_args.contains(&"--all");
+            let force = sub_args.contains(&"-f") || sub_args.contains(&"--force");
+            let mut prefix = String::new();
+            for arg in sub_args {
+                if let Some(p) = arg.strip_prefix("--prefix=") {
+                    prefix = p.to_string();
+                }
+            }
+            let entries = crate::GitIndexManager::acquire(fs, &gitdir, |idx| Ok(idx.entries())).unwrap_or_default();
+            for e in entries {
+                let selected = all || positionals.iter().any(|p| *p == e.path);
+                if !selected {
+                    continue;
+                }
+                let rel_dest = format!("{prefix}{}", e.path);
+                let full_dest = join(&[&repo_root, &rel_dest]);
+                if fs.exists(&full_dest) && !force {
+                    continue;
+                }
+                if let Ok(blob) = crate::read_blob(fs, &gitdir, &e.oid, None) {
+                    fs.write_with_mode(&full_dest, &blob.blob, e.mode);
+                }
+            }
+            CliResult::ok("")
+        }
+        "verify-commit" => {
+            let Some(&rev) = positionals.first() else {
+                return CliResult::err(129, "usage: git verify-commit <commit>...\n");
+            };
+            let Ok(oid) = crate::cli_history::resolve_commit(fs, &gitdir, rev) else {
+                return CliResult::err(1, format!("error: commit {rev} not found\n"));
+            };
+            let Ok(c) = crate::read_commit(fs, &gitdir, &oid) else {
+                return CliResult::err(1, format!("error: commit {rev} not found\n"));
+            };
+            if let Some(sig) = c.commit.gpgsig {
+                CliResult::ok(format!("Good signature: {}\n", sig.lines().next().unwrap_or("PGP")))
+            } else {
+                CliResult::err(1, "no signature found\n")
+            }
+        }
+        "verify-tag" => {
+            let Some(&tag_name) = positionals.first() else {
+                return CliResult::err(129, "usage: git verify-tag <tag>...\n");
+            };
+            let Ok(oid) = resolve_ref(fs, &gitdir, &format!("refs/tags/{tag_name}"), None)
+                .or_else(|_| crate::cli_history::resolve(fs, &gitdir, tag_name))
+            else {
+                return CliResult::err(1, format!("error: tag '{tag_name}' not found.\n"));
+            };
+            if let Ok(t) = crate::read_tag(fs, &gitdir, &oid)
+                && t.tag.gpgsig.is_some()
+            {
+                CliResult::ok("Good signature\n")
+            } else {
+                CliResult::err(1, "no signature found\n")
+            }
+        }
+        "prune" => {
+            let dry_run = sub_args.contains(&"-n") || sub_args.contains(&"--dry-run");
+            let verbose = sub_args.contains(&"-v") || sub_args.contains(&"--verbose") || dry_run;
+            let mut reachable = std::collections::HashSet::new();
+            for prefix in ["refs/heads", "refs/tags", "refs/remotes"] {
+                for r in crate::list_refs(fs, &gitdir, prefix) {
+                    if let Ok(oid) = resolve_ref(fs, &gitdir, &format!("{prefix}/{r}"), None) {
+                        reachable.insert(oid.clone());
+                        if let Ok(commits) = crate::commands::plumbing::log(fs, &gitdir, Some(&oid), None, None, None, false, false) {
+                            for c in commits {
+                                reachable.insert(c.commit.tree.clone());
+                                reachable.insert(c.oid);
+                            }
+                        }
+                    }
+                }
+            }
+            let obj_dir = join(&[&gitdir, "objects"]);
+            let mut out = String::new();
+            for fanout in fs.readdir(&obj_dir).unwrap_or_default() {
+                if fanout.len() == 2 && fanout.bytes().all(|b| b.is_ascii_hexdigit()) {
+                    let sub = join(&[&obj_dir, &fanout]);
+                    for rest in fs.readdir(&sub).unwrap_or_default() {
+                        let oid = format!("{fanout}{rest}");
+                        if !reachable.contains(&oid) {
+                            if verbose {
+                                out.push_str(&format!("{oid} blob\n"));
+                            }
+                            if !dry_run {
+                                let _ = fs.rm(&join(&[&sub, &rest]));
+                            }
+                        }
+                    }
+                }
+            }
+            CliResult::ok(out)
+        }
+        "repack" => {
+            let mut oids = Vec::new();
+            for prefix in ["refs/heads", "refs/tags"] {
+                for r in crate::list_refs(fs, &gitdir, prefix) {
+                    if let Ok(oid) = resolve_ref(fs, &gitdir, &format!("{prefix}/{r}"), None)
+                        && !oids.contains(&oid)
+                    {
+                        oids.push(oid);
+                    }
+                }
+            }
+            let _ = crate::commands::plumbing::pack_objects(fs, &gitdir, &oids, true);
+            CliResult::ok("Nothing new to pack.\n")
         }
         other => CliResult::err(1, format!("git: '{other}' is not a git command.\n")),
     }

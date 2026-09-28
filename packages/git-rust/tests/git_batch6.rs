@@ -1613,3 +1613,31 @@ dual_fixture_test!(cli_merge_tree_merge_file_fmt_merge_msg_rerere_trailers_and_c
     let r_col = execute_git_cli(&f.fs, &f.dir, &["column", "alpha\nbeta\ngamma"]);
     assert_eq!(r_col.stdout, "alpha  beta  gamma\n");
 });
+
+
+dual_fixture_test!(cli_show_ref_verify_checkout_index_verify_commit_prune_and_repack, cli_show_ref_verify_checkout_index_verify_commit_prune_and_repack_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+
+    // 1. show-ref --verify and -d
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["show-ref", "--verify", "refs/heads/test-branch"]).exit_code, 0);
+    assert_ne!(execute_git_cli(&f.fs, &f.dir, &["show-ref", "--verify", "-q", "refs/heads/nonexistent"]).exit_code, 0);
+    execute_git_cli(&f.fs, &f.dir, &["tag", "-a", "v4.0.0", "-m", "Annotated v4", "HEAD"]);
+    let r_deref = execute_git_cli(&f.fs, &f.dir, &["show-ref", "-d", "v4.0.0"]);
+    assert!(r_deref.stdout.contains("refs/tags/v4.0.0^{}"));
+
+    // 2. checkout-index --all --prefix=export/
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["checkout-index", "-a", "-f", "--prefix=export/"]).exit_code, 0);
+    assert!(f.fs.exists(&join(&[&f.dir, "export/README.md"])));
+
+    // 3. verify-commit and verify-tag (unsigned returns 1)
+    let r_vc = execute_git_cli(&f.fs, &f.dir, &["verify-commit", "HEAD"]); assert_eq!(r_vc.exit_code, 0); assert!(r_vc.stdout.contains("Good signature"));
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["verify-tag", "v4.0.0"]).exit_code, 1);
+
+    // 4. prune -n and repack -a -d
+    let r_hash = execute_git_cli(&f.fs, &f.dir, &["hash-object", "-w", "--stdin", "dangling-blob-content"]);
+    let dangling_oid = r_hash.stdout.trim();
+    let r_prune = execute_git_cli(&f.fs, &f.dir, &["prune", "-n"]);
+    assert_eq!(r_prune.exit_code, 0);
+    assert!(r_prune.stdout.contains(dangling_oid));
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["repack", "-a", "-d"]).exit_code, 0);
+});

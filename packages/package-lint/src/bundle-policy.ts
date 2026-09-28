@@ -104,6 +104,14 @@ export const canonicalFsTypeImports = {
       default: `./${canonicalFsProfiles.node.types}`
     },
     default: null
+  },
+  "#safe-fs-platform-path": {
+    types: {
+      workerd: "./packages/safe-fs/dist/platform/browser-path.d.ts",
+      browser: "./packages/safe-fs/dist/platform/browser-path.d.ts",
+      default: "./packages/safe-fs/dist/platform/node-path.d.ts"
+    },
+    default: null
   }
 };
 
@@ -443,7 +451,12 @@ export function findBundleIssues(
         continue;
       }
       for (const edge of edges) {
-        if (edge === "#safe-fs-platform") typeQueue.push(settings.types);
+        if (Object.hasOwn(canonicalFsTypeImports, edge)) {
+          const expected = canonicalFsTypeImports[edge as keyof typeof canonicalFsTypeImports];
+          if (JSON.stringify(record(manifest.imports)[edge]) !== JSON.stringify(expected))
+            fail("invalid-canonical-type-import");
+          else typeQueue.push(expected.types[profile === "browser" ? "browser" : "default"].slice(2));
+        }
         else if (nativeValid && edge === native.specifier) {
           if (profile === "browser") fail("external-canonical-types");
         }

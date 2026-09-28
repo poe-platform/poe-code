@@ -12801,6 +12801,7 @@ export class Runtime {
       const indName0 = e0?.tree?.kind === "binary" && e0.tree.operator === "=" && e0.tree.left.kind === "name" ? e0.tree.left.name : undefined;
       if (
         !indName0 || !e0 || !e1 || !e2 ||
+        e0.tree?.kind !== "binary" || e0.tree.left.kind !== "name" ||
         e0.error || e0.hasSubscript || !isSafeSmiProgram(e0) ||
         e1.error || e1.hasSubscript || !isSafeSmiProgram(e1) ||
         e2.error || e2.hasSubscript || !isSafeSmiProgram(e2) ||
@@ -12821,7 +12822,7 @@ export class Runtime {
         e1.tree.right.kind === "literal" && e1.tree.right.value >= 0n && e1.tree.right.value <= 2000n &&
         e2.tree.kind === "unary" && e2.tree.operator === "++";
       const iterations = isSimpleLiteralAsc
-        ? Math.max(0, Number(e1.tree.right.value - e0.tree.right.value) + (e1.tree.operator === "<=" ? 1 : 0))
+        ? Math.max(0, Number((e1.tree.right as { value: bigint }).value - (e0.tree.right as { value: bigint }).value) + (e1.tree.operator === "<=" ? 1 : 0))
         : 0;
       if (iterations * bodyAssignments.length > 24000) {
         (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;

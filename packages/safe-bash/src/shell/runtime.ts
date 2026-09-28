@@ -2081,6 +2081,7 @@ function tryRestoreVariableSync(state: State, name: string, saved: SavedVariable
   return true;
 }
 async function restoreVariable(state: State, name: string, saved: SavedVariable): Promise<void> {
+  if (tryRestoreVariableSync(state, name, saved)) return;
   try {
   if (saved.attributes !== undefined) { state.variableAttributes ??= new Map(); state.variableAttributes.set(name, saved.attributes); } else state.variableAttributes?.delete(name);
   const restoreScalar = (): void => {
@@ -2090,38 +2091,28 @@ async function restoreVariable(state: State, name: string, saved: SavedVariable)
       store.restoreHeld(name, saved.heldValue, () => { state.variables[name] = saved.value!; });
       delete saved.heldValue;
     } else publishVariable(state, name, saved.value);};
-  const typed = typedSavedVariables.get(saved);
-  if (typed) {
-    typedSavedVariables.delete(saved);
-    const store = requireArrays(state);
-    let released: Promise<void> | undefined;
-    stateMonitor(state)!.publish(typed.tickets, name, () => {
-      if (typed.binding) {
-        delete state.variables[name];
-        released = store.publish(name, typed.binding, typed.tickets, typed.prepared, true);
-      } else {
-        released = store.remove(name, typed.tickets);
-        restoreScalar();
-      }
-      if (saved.exported) state.exported.add(name);
-      else state.exported.delete(name);
-      if (!typed.scalarLegacy || name === "OPTIND") {
-        if (saved.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); } else state.readonlyVariables?.delete(name);
-      }
-      if (name === "OPTIND" && saved.getopts) state.getopts = saved.getopts;});
-    typed.watch.close();
-    await released;
-    await typed.owner.close();
-    return;
-  }
-  restoreScalar();
-  if (saved.exported) state.exported.add(name);
-  else state.exported.delete(name);
-  if (name === "OPTIND" && saved.getopts) {
-    state.getopts = { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) };
-    if (!saved.readOnly) state.readonlyVariables?.delete(name);
-    else { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
-  }
+  const typed = typedSavedVariables.get(saved)!;
+  typedSavedVariables.delete(saved);
+  const store = requireArrays(state);
+  let released: Promise<void> | undefined;
+  stateMonitor(state)!.publish(typed.tickets, name, () => {
+    if (typed.binding) {
+      delete state.variables[name];
+      released = store.publish(name, typed.binding, typed.tickets, typed.prepared, true);
+    } else {
+      released = store.remove(name, typed.tickets);
+      restoreScalar();
+    }
+    if (saved.exported) state.exported.add(name);
+    else state.exported.delete(name);
+    if (!typed.scalarLegacy || name === "OPTIND") {
+      if (saved.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); } else state.readonlyVariables?.delete(name);
+    }
+    if (name === "OPTIND" && saved.getopts) state.getopts = saved.getopts;});
+  typed.watch.close();
+  await released;
+  await typed.owner.close();
+
   } finally { saved.heldValue?.release(); delete saved.heldValue; }
 }
 function isShellIdentifier(name: string): boolean {

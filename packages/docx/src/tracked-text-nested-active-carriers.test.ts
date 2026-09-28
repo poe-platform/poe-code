@@ -1,9 +1,24 @@
-import { spawn } from "node:child_process";
+import { prepareNativeModelScript } from "../tests/fixtures/native-model.js";
 import { Volume } from "memfs";
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import * as api from "./index.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
+
+let native: Awaited<ReturnType<Awaited<ReturnType<typeof prepareNativeModelScript>>>> | undefined;
+beforeAll(async () => {
+  const startNative = await prepareNativeModelScript(`const input=new Uint8Array(Buffer.from(request.input,'base64')),memory=Volume.fromJSON({'/output':''}),sink={async write(bytes){memory.appendFileSync('/output',bytes);}},limits=request.limits,signal=new AbortController().signal,budget=()=>new api.DocumentBudget({xmlDepth:16384,retainedBytes:2**31,work:2**31},signal),context={limits,signal,budget:budget(),encoding:{order:'input',compression:'store'},stdout:sink},arguments_={find:'Coast',with:'Shore',all:true,bold:false,italic:true,trackChanges:true,author:'',timestamp:'2026-01-02T03:04:06Z'},ops={version:1,operations:[{operation:'text.replace',arguments:arguments_}]};
+try{if(request.phase!=='edit'){const data=await api.extractDocumentText(input,{limits,signal,budget:budget()},{view:request.phase==='baseline'?'final':request.phase});console.log(JSON.stringify({ok:true,text:data.text,outputBytes:memory.statSync('/output').size}));}else{if(request.route==='sdk')await api.replaceDocumentText(input,{...arguments_,output:'-'},context);else if(request.route==='sdk-batch')await api.executeDocumentBatch(input,ops,{output:'-'},context);else{const {Shell,MemoryFileSystem}=await import('@poe-platform/safe-bash');const {docxCommands}=await import('@poe-platform/safe-bash/commands/docx');const fs=new MemoryFileSystem();await fs.writeFile('/input',input);const shell=new Shell({fs}).use(docxCommands({engine:api.createDocxInspectionCommandEngine({limits,documentLimits:{xmlDepth:16384,retainedBytes:2**31,work:2**31}})}));try{const command=request.route==='cli'?"docx text replace /input --find Coast --with Shore --all --bold false --italic true --track-changes --author '' --timestamp 2026-01-02T03:04:06Z --output /output --json":'docx batch /input --ops-json '+JSON.stringify(JSON.stringify(ops))+' --output /output --json';const result=await shell.exec(command);if(result.exitCode!==0){const failure=new Error(result.stdout+result.stderr);failure.code=JSON.parse(result.stdout).errors[0].code;throw failure;}memory.writeFileSync('/output',await fs.readFile('/output'));if(Buffer.compare(Buffer.from(await fs.readFile('/input')),Buffer.from(input)))throw new Error('Input changed');}finally{await shell.dispose();}}
+const output=new Uint8Array(memory.readFileSync('/output'));console.log(JSON.stringify({ok:true,output:Buffer.from(output).toString('base64')}));}}catch(error){console.log(JSON.stringify({ok:false,error:String(error),code:error.code??null,stack:error.stack,outputBytes:memory.statSync('/output').size}));}`,
+    `import {Volume} from 'memfs';import * as api from 'docx';
+await import('@poe-platform/safe-bash');
+await import('@poe-platform/safe-bash/commands/docx');`);
+  native = await startNative();
+});
+afterEach(async () => {
+  if (native) expect(JSON.parse(await native.run({ cleanup: true }, new AbortController().signal))).toEqual({ cleaned: true });
+});
+afterAll(async () => { await native?.dispose(); });
 
 const generated = new Map<string, Uint8Array>();
 
@@ -27,22 +42,10 @@ describe(`nested tracked carrier; strict=${strict}; route=${route}; carrier=${ca
     fixture = { input: new Uint8Array(memory.readFileSync("/input") as Buffer), memory, parts };
   });
   for (const phase of ["edit", "preservation", "baseline", "original", "final"])
-  it(`tracked partial replacement retains nested active native carriers; strict=${strict}; route=${route}; carrier=${carrier}; depth=${depth}; phase=${phase}`, async () => {
+  it(`tracked partial replacement retains nested active native carriers; strict=${strict}; route=${route}; carrier=${carrier}; depth=${depth}; phase=${phase}`, async ({ signal }) => {
   const { memory } = fixture;
-  const script = `import {Volume} from 'memfs';import * as api from 'docx';
-let data='';for await(const bytes of process.stdin)data+=bytes;const request=JSON.parse(data),input=new Uint8Array(Buffer.from(request.input,'base64')),memory=Volume.fromJSON({'/output':''}),sink={async write(bytes){memory.appendFileSync('/output',bytes);}},limits=request.limits,signal=new AbortController().signal,budget=()=>new api.DocumentBudget({xmlDepth:16384,retainedBytes:2**31,work:2**31},signal),context={limits,signal,budget:budget(),encoding:{order:'input',compression:'store'},stdout:sink},arguments_={find:'Coast',with:'Shore',all:true,bold:false,italic:true,trackChanges:true,author:'',timestamp:'2026-01-02T03:04:06Z'},ops={version:1,operations:[{operation:'text.replace',arguments:arguments_}]};
-try{if(request.phase!=='edit'){const data=await api.extractDocumentText(input,{limits,signal,budget:budget()},{view:request.phase==='baseline'?'final':request.phase});console.log(JSON.stringify({ok:true,text:data.text,outputBytes:memory.statSync('/output').size}));}else{if(request.route==='sdk')await api.replaceDocumentText(input,{...arguments_,output:'-'},context);else if(request.route==='sdk-batch')await api.executeDocumentBatch(input,ops,{output:'-'},context);else{const {Shell,MemoryFileSystem}=await import('@poe-platform/safe-bash');const {docxCommands}=await import('@poe-platform/safe-bash/commands/docx');const fs=new MemoryFileSystem();await fs.writeFile('/input',input);const shell=new Shell({fs}).use(docxCommands({engine:api.createDocxInspectionCommandEngine({limits,documentLimits:{xmlDepth:16384,retainedBytes:2**31,work:2**31}})}));try{const command=request.route==='cli'?"docx text replace /input --find Coast --with Shore --all --bold false --italic true --track-changes --author '' --timestamp 2026-01-02T03:04:06Z --output /output --json":'docx batch /input --ops-json '+JSON.stringify(JSON.stringify(ops))+' --output /output --json';const result=await shell.exec(command);if(result.exitCode!==0){const failure=new Error(result.stdout+result.stderr);failure.code=JSON.parse(result.stdout).errors[0].code;throw failure;}memory.writeFileSync('/output',await fs.readFile('/output'));if(Buffer.compare(Buffer.from(await fs.readFile('/input')),Buffer.from(input)))throw new Error('Input changed');}finally{await shell.dispose();}}
-const output=new Uint8Array(memory.readFileSync('/output'));console.log(JSON.stringify({ok:true,output:Buffer.from(output).toString('base64')}));}}catch(error){console.log(JSON.stringify({ok:false,error:String(error),code:error.code??null,stack:error.stack,outputBytes:memory.statSync('/output').size}));}`;
   if (phase === "preservation" || phase === "original" || phase === "final") expect(generated.has(key), "The independently asserted edit must have produced its candidate.").toBe(true);
-  const result = phase === "preservation" ? JSON.stringify({ ok: true, output: Buffer.from(generated.get(key)!).toString("base64") }) : await new Promise<string>((resolve, reject) => {
-    const child = spawn(process.execPath, ["--input-type=module", "-e", script], { stdio: ["pipe", "pipe", "pipe"] });
-    let stdout = "", stderr = "";
-    child.stdout.on("data", bytes => { stdout += String(bytes); });
-    child.stderr.on("data", bytes => { stderr += String(bytes); });
-    child.on("error", reject);
-    child.on("close", status => { if (status !== 0) reject(new Error(stderr)); else resolve(stdout); });
-    child.stdin.end(JSON.stringify({ input: Buffer.from(phase === "original" || phase === "final" ? generated.get(key)! : fixture.input).toString("base64"), limits, route, phase }));
-  });
+  const result = phase === "preservation" ? JSON.stringify({ ok: true, output: Buffer.from(generated.get(key)!).toString("base64") }) : await native!.run({ input: Buffer.from(phase === "original" || phase === "final" ? generated.get(key)! : fixture.input).toString("base64"), limits, route, phase }, signal);
   const response = JSON.parse(result) as { ok: boolean; output: string; text: string; outputBytes: number; error?: string; stack?: string };
   expect(response, response.stack ?? response.error).toMatchObject({ ok: true });
   if (phase !== "edit" && phase !== "preservation") {

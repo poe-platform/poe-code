@@ -55,6 +55,19 @@ describe("loadPackageFileView", () => {
 });
 
 describe("createNpmPacklistProvider", () => {
+  it("applies file exclusions to the complete package inventory", async () => {
+    const fs = memLintFs({
+      "/repo/package.json": JSON.stringify({ files: ["dist", "!dist/corpus", "!**/*.js.map"] }),
+      "/repo/dist/index.js": "export {};",
+      "/repo/dist/index.js.map": "{}",
+      "/repo/dist/corpus/example.txt": "fixture",
+      "/repo/dist/corpus-tools/index.js": "export {};"
+    });
+    expect(await createNpmPacklistProvider(fs).listPackageFiles("/repo", ".")).toEqual(
+      new Set(["dist/index.js", "dist/corpus-tools/index.js"])
+    );
+  });
+
   it("expands real declaration globs without packaging runtime or source-map files", async () => {
     const fs = memLintFs({
       "/repo/package.json": JSON.stringify({ files: ["dist", "packages/safe-fs/dist/**/*.d.ts"] }),

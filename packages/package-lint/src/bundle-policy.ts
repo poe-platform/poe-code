@@ -567,6 +567,18 @@ export async function collectPackageFiles(
       excludedSuffixes.push(entry.slice("!**/*".length));
       continue;
     }
+    if (entry.startsWith("!")) {
+      const pattern = entry.slice(1);
+      if (!pattern || pattern.startsWith("/") || pattern.split("/").some(part => !part || part === "." || part === "..") ||
+        ["*", "?", "[", "]", "{", "}", "!", "\\"].some(character => pattern.includes(character))) {
+        throw new Error(`Unsupported package files entry: ${entry}`);
+      }
+      for (const filename of packed) {
+        if (filename === pattern || filename.startsWith(pattern + "/"))
+          packed.delete(filename);
+      }
+      continue;
+    }
     const declarationsOnly = entry.endsWith("/**/*.d.ts");
     const directory = declarationsOnly ? entry.slice(0, -"/**/*.d.ts".length) : entry;
     const components = directory.split("/");

@@ -13544,7 +13544,6 @@ export class Runtime {
           }
           try {
             while (true) {
-              this.budget.loop();
               if ((++loopTurn & 127) === 0) {
                 if (this.budget._hasExternalSignal || hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
                 else runYieldCheckpoint(this.signal);
@@ -13557,6 +13556,7 @@ export class Runtime {
                 if (condition === undefined) return { status: 1, io, diagnosticFailure };
                 if (condition === 0n) break;
               }
+              this.budget.loop();
               const result = await this.loopBody(command.body, state, io);
               status = result.status;
               if (result.stop) break;
@@ -13622,7 +13622,6 @@ export class Runtime {
           const conditionIO = io.execution?.ignoreErrexit ? io : { ...io, execution: { ignoreErrexit: true } };
           let loopTurn = 0;
           while (true) {
-            this.budget.loop();
             if ((++loopTurn & 127) === 0) {
               if (this.budget._hasExternalSignal || hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
               else runYieldCheckpoint(this.signal);
@@ -13637,6 +13636,7 @@ export class Runtime {
               continue;
             }
             if ((condition === 0) !== (command.kind === "while")) break;
+            this.budget.loop();
             const result = await this.loopBody(command.body, state, io);
             status = result.status;
             if (result.stop) break;

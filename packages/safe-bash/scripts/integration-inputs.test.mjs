@@ -614,6 +614,7 @@ function assertSource7Discovery(files) {
     "tests/shell/indirect-parameter.test.ts",
     "tests/shell/select.test.ts",
     "tests/shell/arithmetic-for.test.ts",
+    "tests/shell/fast-path-isolation.test.ts",
     "tests/shell/loop-count.test.ts",
     "tests/shell/shift-count.test.ts",
     "tests/shell/exit-return-status.test.ts",

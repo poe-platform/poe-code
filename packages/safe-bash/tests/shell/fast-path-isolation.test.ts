@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { test } from "node:test";
 import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { Shell } from "../../src/shell/shell.js";
@@ -110,3 +111,62 @@ test("shell source admission works without global Buffer", async () => {
     assert.equal(result.stderr, "");
   } finally { globalThis.Buffer = original; }
 });
+
+for (const [header, setup] of [
+  ['while [[ -z $called ]]', 'unset called'],
+  ['until [[ -n $called ]]', 'unset called'],
+  ['for i in 1 2', ''],
+  ['for ((i=0;i<2;i++))', ''],
+] as const) {
+  test(`sync loop resumes function and restores its frame: ${header}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`
+      printf -v big '%9000s' a
+      set -- topA topB
+      f() { local lv=local; echo "pre:$1:$lv"; x=$(echo "$big" | grep a); echo "post:$1:$lv"; }
+      ${setup}
+      { ${header}; do called=1; echo "iter:$i"; f argA argB; echo "tail:$i"; done; }
+      echo "global:$1:$2:$lv:\${FUNCNAME[*]}"
+      f again
+      echo "final:$1:$2:$lv:\${FUNCNAME[*]}"
+    `);
+    const indices = header.startsWith('for i') ? ['1', '2'] : header.startsWith('for ((') ? ['0', '1'] : [''];
+    assert.equal(result.stderr, '');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, indices.map(i => `iter:${i}\npre:argA:local\npost:argA:local\ntail:${i}\n`).join('') +
+      'global:topA:topB::\npre:again:local\npost:again:local\nfinal:topA:topB::\n');
+  });
+}
+
+for (const [name, source] of [
+  ['condition cursor', 'i=0; c=0; while ((c+=1)); x=$(echo "$big" | grep a); ((i<2)); do echo "$i:$c"; ((i+=1)); done; echo "end:$i:$c"'],
+  ['until condition cursor', 'i=0; c=0; until ((c+=1)); x=$(echo "$big" | grep a); ((i>=2)); do echo "$i:$c"; ((i+=1)); done; echo "end:$i:$c"'],
+  ['frozen for list and changed induction value', 'items="a b"; for i in $items; do items=z; i=changed; echo prefix; x=$(echo "$big" | grep a); echo "$i"; done'],
+  ['nested body cursor', 'for i in 1 2; do for j in a b; do echo "$i:$j"; x=$(echo "$big" | grep a); echo tail; done; echo outer; done'],
+  ['continue after fallback', 'for ((i=0;i<2;i++)); do echo "$i"; x=$(echo "$big" | grep a); continue; echo wrong; done; echo "end:$i"'],
+  ['break after fallback', 'for i in 1 2; do echo "$i"; x=$(echo "$big" | grep a); break; echo wrong; done'],
+  ['arithmetic step fallback', 'step=1; for ((i=0;i<2;i+=step)); do echo "$i"; step="1+0"; done; echo "end:$i"'],
+  ['arithmetic condition fallback', 'stop=2; for ((i=0;i<stop;i++)); do echo "$i"; stop="1+1"; done; echo "end:$i"'],
+  ['arithmetic iteration handoff', 'count=0; for ((i=0;i<4100;i++)); do ((count+=1)); done; echo "$count:$i"'],
+  ['while iteration handoff', 'i=0; count=0; while ((i++<4100)); do ((count+=1)); done; echo "$count:$i"'],
+] as const) test(`sync loop handoff matches Bash: ${name}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const script = `printf -v big '%9000s' a; { ${source}; }`;
+  const expected = execFileSync('/bin/bash', ['-c', script], { encoding: 'utf8' });
+  const result = await shell.exec(script);
+  assert.equal(result.stderr, '');
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, expected);
+});
+
+for (const header of ['while ((i<1000))', 'for ((i=0;i<1000;))']) {
+  test(`sync fallback keeps the loop iteration budget: ${header}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), limits: { maxLoopIterations: 1000 } }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`printf -v big '%9000s' a; i=0; { ${header}; do ((i++)); if ((i==500)); then x=$(echo "$big" | grep a); fi; :; done; echo "$i"; }`);
+    assert.equal(result.stderr, '');
+    assert.equal(result.stdout, '1000\n');
+  });
+}

@@ -13,6 +13,26 @@ async function run(source: string, bounded = false) {
 }
 
 for (const [source, stdout] of [
+  ['arr=global_scalar; f() { local arr; printf -v "arr[0]" "%s" local_elem; echo "in:<${arr[0]}>"; }; f; echo "out:<$arr>"; declare -p arr', 'in:<local_elem>\nout:<global_scalar>\ndeclare -- arr="global_scalar"\n'],
+  ['unset arr; f() { local arr; printf -v "arr[0]" "%s" local_elem; }; f; echo "prefix:<${!arr*}>"; arr=scalar; declare -p arr', 'prefix:<>\ndeclare -- arr="scalar"\n'],
+  ['unset arr; { read -a arr <<< "$((1/0))"; } 2>/dev/null || true; echo "prefix:<${!arr*}>"; arr=scalar; declare -p arr', 'prefix:<>\ndeclare -- arr="scalar"\n'],
+  ['unset arr; read -a arr <<< "${!arr*}"; echo "len:<${#arr[@]}> prefix:<${!arr*}>"', 'len:<0> prefix:<arr>\n'],
+  ['unset arr; read -a arr <<< ""; echo "prefix:<${!arr*}> at:<${!arr@}>"; declare -p arr', 'prefix:<arr> at:<arr>\ndeclare -a arr=()\n'],
+  ['unset arr; read -a arr <<< "   "; echo "prefix:<${!arr*}> at:<${!arr@}>"; declare -p arr', 'prefix:<arr> at:<arr>\ndeclare -a arr=()\n'],
+  ['declare -a arr; read -a arr <<< ""; echo "prefix:<${!arr*}> at:<${!arr@}>"', 'prefix:<arr> at:<arr>\n'],
+  ['arr=(old values); read -a arr <<< ""; echo "len:<${#arr[@]}> prefix:<${!arr*}>"', 'len:<0> prefix:<arr>\n'],
+] as const) {
+  test(source, async () => {
+    for (const bounded of [false, true]) for (const script of [source, `for _ in 1; do ${source}; done`]) {
+      const result = await run(script, bounded);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, stdout, `bounded=${bounded}, script=${script}`);
+    }
+  });
+}
+
+for (const [source, stdout] of [
   ['echo $(dirname /a/b); echo $(basename /a/b.txt .txt)', '/a\nb\n'],
   ['f() { local arr; arr=(1 2); }; for _ in 1; do f; done; echo "len=${#arr[@]} val=${arr[@]}"', 'len=0 val=\n'],
   ['f() { local arr; arr[0]=99; }; for _ in 1; do f; done; echo "len=${#arr[@]} val=${arr[@]}"', 'len=0 val=\n'],
@@ -38,7 +58,7 @@ for (const [source, stdout] of [
       const result = await run(source, bounded);
       assert.equal(result.exitCode, 0);
       assert.equal(result.stderr, "");
-      assert.equal(result.stdout, stdout);
+      assert.equal(result.stdout, stdout, `bounded=${bounded}`);
     }
   });
 }

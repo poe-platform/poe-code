@@ -5474,6 +5474,8 @@ export class Runtime {
               if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
               if (!watch.valid()) throw new ArrayFailure("binding changed during writer admission");
               prepared.validate();
+              // Clearing an indexed destination is an assignment even without elements.
+              if (clear) prepared.binding.assigned = true;
               let retirement: Promise<void> | undefined;
               monitor.publish(prepared.tickets, name, () => {
                 delete state.variables[name];
@@ -9324,30 +9326,8 @@ export class Runtime {
                 } else {
                   const arrStore = monitor.store ?? requireArrays(rawState);
                   existingArrayBinding = arrStore.get(arrayTarget);
-                  if (!existingArrayBinding && rawState.variables[arrayTarget] === undefined && !arrStore.watches.has(arrayTarget) && !monitor.hasOverlay(arrayTarget)) {
-                    const recTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-                    const recBinding = arrStore.takeRecycled(arrayTarget, false, true, recTickets);
-                    if (recBinding) {
-                      monitor.epoch = recTickets.epoch;
-                      existingArrayBinding = recBinding;
-                    } else try {
-                      const created = IndexedBinding.create(arrStore.owner, false);
-                      const nameByteLen = shellValueByteLength(arrayTarget);
-                      const prepared = arrStore.prepareExistingName(arrayTarget, nameByteLen, arrStore.owner, this.signal);
-                      if (prepared) {
-                        const initTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-                        arrStore.publish(arrayTarget, created, initTickets, prepared, false, arrStore.owner);
-                        monitor.epoch = initTickets.epoch;
-                        existingArrayBinding = created;
-                      } else {
-                        void created.release();
-                      }
-                    } catch {}
-                  }
                   if (
-                    !existingArrayBinding ||
-                    existingArrayBinding.associative ||
-                    existingArrayBinding.references !== 1 ||
+                    (existingArrayBinding ? existingArrayBinding.associative || existingArrayBinding.references !== 1 : rawState.variables[arrayTarget] !== undefined) ||
                     arrStore.watches.has(arrayTarget) ||
                     monitor.hasOverlay(arrayTarget)
                   ) {
@@ -9389,6 +9369,31 @@ export class Runtime {
                   }
                 } else lineStr = (io.stdin as ShellInput).tryReadSimpleRawAsciiLineSync(readDelim, raw);
                 if (lineStr !== undefined) {
+                  // Expand/read the input before publishing the destination array.
+                  if (arrayTarget !== undefined && !existingArrayBinding) {
+                    const arrStore = monitor.store ?? requireArrays(rawState);
+                    if (!existingArrayBinding && rawState.variables[arrayTarget] === undefined && !arrStore.watches.has(arrayTarget) && !monitor.hasOverlay(arrayTarget)) {
+                      const recTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+                      const recBinding = arrStore.takeRecycled(arrayTarget, false, true, recTickets);
+                      if (recBinding) {
+                        monitor.epoch = recTickets.epoch;
+                        existingArrayBinding = recBinding;
+                      } else try {
+                        const created = IndexedBinding.create(arrStore.owner, false);
+                        const nameByteLen = shellValueByteLength(arrayTarget);
+                        const prepared = arrStore.prepareExistingName(arrayTarget, nameByteLen, arrStore.owner, this.signal);
+                        if (prepared) {
+                          const initTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+                          arrStore.publish(arrayTarget, created, initTickets, prepared, false, arrStore.owner);
+                          monitor.epoch = initTickets.epoch;
+                          existingArrayBinding = created;
+                        } else {
+                          void created.release();
+                        }
+                      } catch {}
+                    }
+                    if (!existingArrayBinding) return undefined;
+                  }
                   if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
                   if (arrayTarget !== undefined && existingArrayBinding) {
                     const isSep = (c: number): boolean => {
@@ -9437,6 +9442,7 @@ export class Runtime {
                       readArrayScratchFields.length = 0;
                       delete rawState.variables[arrayTarget];
                       monitor.epoch = tickets.epoch;
+                      existingArrayBinding.assigned = true;
                       activeArrStore.revise(arrayTarget, existingArrayBinding, tickets);
                     } catch (error) {
                       readArrayScratchFields.length = 0;
@@ -10373,7 +10379,7 @@ export class Runtime {
                 } else {
                   const idxNum = /^(?:0|[1-9][0-9]{0,8})$/.test(subExpr!) ? Number(subExpr!) : resolveSimpleArithOperand(subExpr!, rawState, monitor, arrStore, this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
                   if (idxNum !== undefined && idxNum >= 0 && idxNum <= 2147483647) {
-                    if (!curB && rawState.variables[arrName!] === undefined && !arrStore.watches.has(arrName!) && !monitor.hasOverlay(arrName!)) {
+                    if (!curB && !hasUnpreparedLocal(rawState, arrName!) && rawState.variables[arrName!] === undefined && !arrStore.watches.has(arrName!) && !monitor.hasOverlay(arrName!)) {
                       const created = IndexedBinding.create(arrStore.owner, false);
                       const prepared = arrStore.prepareExistingName(arrName!, shellValueByteLength(arrName!), arrStore.owner, this.signal);
                       if (prepared) {

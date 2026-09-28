@@ -1,4 +1,5 @@
-import { getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandInvoker, type VirtualShellPlugin } from "../../contracts/index.js";
+import { FsError, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandInvoker, type VirtualShellPlugin } from "../../contracts/index.js";
+import { shellValueByteLength } from "../../contracts/value.js";
 import { parseDuration } from "./duration.js";
 import { parseSignal } from "./signal.js";
 import { createDeadline, defaultSchedulerBinding, type SchedulerBinding } from "./scheduler.js";
@@ -9,7 +10,15 @@ export interface TimeoutScheduler {
   clearTimeout(handle: unknown): void;
 }
 
+export interface TimeoutLimits {
+  readonly maxArguments: number;
+  readonly maxArgumentBytes: number;
+  /** Bytes emitted by timeout itself; child output uses the child's budgets. */
+  readonly maxOutputBytes: number;
+}
+
 export interface TimeoutCommandOptions {
+  readonly limits?: Partial<TimeoutLimits> | undefined;
   /** Trusted host binding responsible for signalling, hard escalation and child cleanup. */
   readonly killAfterPolicy?: KillAfterPolicy | undefined;
   readonly invoke?: CommandInvoker | undefined;
@@ -30,6 +39,7 @@ export interface TimeoutCommandsOptions extends TimeoutCommandOptions {
 }
 
 interface Settings {
+  readonly limits: TimeoutLimits;
   readonly killAfterPolicy: KillAfterPolicy | undefined;
   readonly invoke: CommandInvoker | undefined;
   readonly scheduler: SchedulerBinding;
@@ -60,6 +70,13 @@ function optionsObject(value: unknown): Record<PropertyKey, unknown> | undefined
 
 function settings(value: unknown, includeReplace: boolean): Settings {
   const options = optionsObject(value);
+  const configuredLimits = optionsObject(options?.limits);
+  const limits: TimeoutLimits = {
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxOutputBytes: Infinity, ...configuredLimits,
+  };
+  for (const [name, limit] of Object.entries(limits)) {
+    if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError(`Invalid timeout limit: ${name}`);
+  }
   const killAfterPolicy = options?.killAfterPolicy;
   if (killAfterPolicy !== undefined && typeof killAfterPolicy !== "function") throw new TypeError("Timeout killAfterPolicy must be a function");
   const invokeValue = options?.invoke;
@@ -85,8 +102,8 @@ function settings(value: unknown, includeReplace: boolean): Settings {
   }
   const maximum = options?.maxTimerMilliseconds;
   if (maximum !== undefined && typeof maximum !== "number") throw new TypeError("Timeout maxTimerMilliseconds must be a number");
-  if (maximum !== undefined && (!Number.isInteger(maximum) || maximum < 1 || maximum > 2147483647)) {
-    throw new RangeError("Timeout maxTimerMilliseconds must be an integer from 1 through 2147483647");
+  if (maximum !== undefined && maximum !== Infinity && (!Number.isInteger(maximum) || maximum < 1 || maximum > 2147483647)) {
+    throw new RangeError("Timeout maxTimerMilliseconds must be an integer from 1 through 2147483647 or Infinity");
   }
   let replace = false;
   if (includeReplace) {
@@ -94,10 +111,11 @@ function settings(value: unknown, includeReplace: boolean): Settings {
     if (configured !== undefined && typeof configured !== "boolean") throw new TypeError("Timeout replace must be a boolean");
     replace = configured ?? false;
   }
-  return { invoke, killAfterPolicy: killAfterPolicy as KillAfterPolicy | undefined, scheduler: binding, maxTimerMilliseconds: maximum ?? 2147483647, replace };
+  return { limits, invoke, killAfterPolicy: killAfterPolicy as KillAfterPolicy | undefined, scheduler: binding, maxTimerMilliseconds: maximum ?? 2147483647, replace };
 }
 
-async function status(context: CommandContext, bytes: Uint8Array, exitCode: number, stdout = false): Promise<{ exitCode: number }> {
+async function status(configuration: Settings, context: CommandContext, bytes: Uint8Array, exitCode: number, stdout = false): Promise<{ exitCode: number }> {
+  if (bytes.length > configuration.limits.maxOutputBytes) throw new FsError("EFBIG", { message: "timeout output limit exceeded" });
   await writeBytes(stdout ? context.stdout : context.stderr, bytes, context.signal);
   return { exitCode };
 }
@@ -115,7 +133,16 @@ function definition(configuration: Settings): CommandDefinition {
     name: "timeout",
     description: "Run a virtual command with a cooperative time limit",
     async execute(context: CommandContext) {
+      context.signal.throwIfAborted();
       const originalArgs = context.args;
+      if (originalArgs.length > configuration.limits.maxArguments) throw new FsError("EFBIG", { message: "timeout argument count limit exceeded" });
+      const suppliedValues = "argumentValues" in context ? context.argumentValues : undefined;
+      const ownedArguments = suppliedValues === undefined ? undefined : getCommandArguments(context);
+      let argumentBytes = 0;
+      for (const argument of ownedArguments?.values ?? originalArgs) {
+        argumentBytes += shellValueByteLength(argument);
+        if (argumentBytes > configuration.limits.maxArgumentBytes) throw new FsError("EFBIG", { message: "timeout argument limit exceeded" });
+      }
       let offset = 0;
       let preserveStatus = false;
       let verbose = false;
@@ -128,27 +155,27 @@ function definition(configuration: Settings): CommandDefinition {
           offset++;
           break;
         }
-        if (token === "--help") return status(context, records.help, 0, true);
-        if (token === "--version") return status(context, records.version, 0, true);
+        if (token === "--help") return status(configuration, context, records.help, 0, true);
+        if (token === "--version") return status(configuration, context, records.version, 0, true);
         if (token === "-" || !token.startsWith("-")) break;
         if (token === "--verbose") { verbose = true; offset++; continue; }
         if (token === "--foreground") { foreground = true; offset++; continue; }
         if (token === "--preserve-status") { preserveStatus = true; offset++; continue; }
         if (token === "--kill-after" || token.startsWith("--kill-after=")) {
           const duration = token === "--kill-after" ? originalArgs[++offset] : token.slice(13);
-          if (duration === undefined) return status(context, records.missingDuration, 125);
+          if (duration === undefined) return status(configuration, context, records.missingDuration, 125);
           const killAfter = parseDuration(duration);
-          if (killAfter.kind === "invalid") return status(context, records.invalidDuration, 125);
-          if (killAfter.kind === "overflow") return status(context, records.durationOverflow, 125);
+          if (killAfter.kind === "invalid") return status(configuration, context, records.invalidDuration, 125);
+          if (killAfter.kind === "overflow") return status(configuration, context, records.durationOverflow, 125);
           killAfterMilliseconds = killAfter.milliseconds;
           offset++;
           continue;
         }
         if (token === "--signal" || token.startsWith("--signal=")) {
           const signalToken = token === "--signal" ? originalArgs[++offset] : token.slice(9);
-          if (signalToken === undefined) return status(context, records.invalidSignal, 125);
+          if (signalToken === undefined) return status(configuration, context, records.invalidSignal, 125);
           const parsedSignal = parseSignal(signalToken);
-          if (parsedSignal === undefined) return status(context, records.invalidSignal, 125);
+          if (parsedSignal === undefined) return status(configuration, context, records.invalidSignal, 125);
           signalNumber = parsedSignal;
           offset++;
           continue;
@@ -162,38 +189,36 @@ function definition(configuration: Settings): CommandDefinition {
             if (flag === "p") { preserveStatus = true; position++; continue; }
             if (flag === "k") {
               const duration = token.slice(position + 1) || originalArgs[++offset];
-              if (duration === undefined) return status(context, records.missingDuration, 125);
+              if (duration === undefined) return status(configuration, context, records.missingDuration, 125);
               const killAfter = parseDuration(duration);
-              if (killAfter.kind === "invalid") return status(context, records.invalidDuration, 125);
-              if (killAfter.kind === "overflow") return status(context, records.durationOverflow, 125);
+              if (killAfter.kind === "invalid") return status(configuration, context, records.invalidDuration, 125);
+              if (killAfter.kind === "overflow") return status(configuration, context, records.durationOverflow, 125);
               killAfterMilliseconds = killAfter.milliseconds;
               break;
             }
             if (flag === "s") {
               const signalToken = token.slice(position + 1) || originalArgs[++offset];
-              if (signalToken === undefined) return status(context, records.invalidSignal, 125);
+              if (signalToken === undefined) return status(configuration, context, records.invalidSignal, 125);
               const parsedSignal = parseSignal(signalToken);
-              if (parsedSignal === undefined) return status(context, records.invalidSignal, 125);
+              if (parsedSignal === undefined) return status(configuration, context, records.invalidSignal, 125);
               signalNumber = parsedSignal;
               break;
             }
-            return status(context, records.invalidOption, 125);
+            return status(configuration, context, records.invalidOption, 125);
           }
           offset++;
           continue;
         }
-        return status(context, records.invalidOption, 125);
+        return status(configuration, context, records.invalidOption, 125);
       }
       const durationToken = originalArgs[offset];
-      if (durationToken === undefined) return status(context, records.missingDuration, 125);
+      if (durationToken === undefined) return status(configuration, context, records.missingDuration, 125);
       const parsed = parseDuration(durationToken);
-      if (parsed.kind === "invalid") return status(context, records.invalidDuration, 125);
-      if (parsed.kind === "overflow") return status(context, records.durationOverflow, 125);
+      if (parsed.kind === "invalid") return status(configuration, context, records.invalidDuration, 125);
+      if (parsed.kind === "overflow") return status(configuration, context, records.durationOverflow, 125);
       const command = originalArgs[offset + 1];
-      if (command === undefined) return status(context, records.missingCommand, 125);
-      const suppliedValues = "argumentValues" in context ? context.argumentValues : undefined;
-      const argumentValues = suppliedValues === undefined ? undefined
-        : getCommandArguments({ args: originalArgs, argumentValues: suppliedValues }).slice(offset + 2);
+      if (command === undefined) return status(configuration, context, records.missingCommand, 125);
+      const argumentValues = ownedArguments?.slice(offset + 2);
       const args = argumentValues?.args ?? Object.freeze(originalArgs.slice(offset + 2));
       const streams = {
         ...(argumentValues === undefined ? {} : { argumentValues }),
@@ -205,7 +230,7 @@ function definition(configuration: Settings): CommandDefinition {
       const killAfterPolicy = configuration.killAfterPolicy ?? context.capabilities?.timeoutKillAfterPolicy as KillAfterPolicy | undefined;
       if (killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && parsed.milliseconds !== 0 && parsed.milliseconds !== Infinity) {
         context.signal.throwIfAborted();
-        if (typeof killAfterPolicy !== "function") return status(context, records.escalationUnavailable, 125);
+        if (typeof killAfterPolicy !== "function") return status(configuration, context, records.escalationUnavailable, 125);
         let result: { readonly exitCode: number };
         try {
           result = await killAfterPolicy(context, command, args, { signal: context.signal, ...streams }, Object.freeze({
@@ -222,7 +247,7 @@ function definition(configuration: Settings): CommandDefinition {
       }
       const selected = childInvoker(context, configuration.invoke);
       if (parsed.milliseconds === 0 || parsed.milliseconds === Infinity) {
-        if (selected === undefined) return status(context, records.invokeUnavailable, 125);
+        if (selected === undefined) return status(configuration, context, records.invokeUnavailable, 125);
         context.signal.throwIfAborted();
         let result: { readonly exitCode: number };
         try {
@@ -235,7 +260,7 @@ function definition(configuration: Settings): CommandDefinition {
         return result;
       }
 
-      if (selected === undefined) return status(context, records.invokeUnavailable, 125);
+      if (selected === undefined) return status(configuration, context, records.invokeUnavailable, 125);
 
       context.signal.throwIfAborted();
       const deadline = createDeadline(configuration.scheduler, parsed.milliseconds, configuration.maxTimerMilliseconds, signalNumber !== 0);
@@ -251,7 +276,7 @@ function definition(configuration: Settings): CommandDefinition {
         }
         context.signal.throwIfAborted();
         if (retirementFailed) throw retirementFailure;
-        return status(context, records.timerSetupFailed, 125);
+        return status(configuration, context, records.timerSetupFailed, 125);
       }
 
       let returned = false;
@@ -274,10 +299,10 @@ function definition(configuration: Settings): CommandDefinition {
       if (!returned && invocationFailure !== deadline.deadlineReason && invocationFailure !== deadline.timerFailureReason) throw invocationFailure;
       if (retirementFailed) throw retirementFailure;
       if (verbose && deadline.expired) {
-        await writeBytes(context.stderr, encoder.encode(`timeout: cooperative deadline expired for command ‘${command}’\n`), context.signal);
+        await status(configuration, context, encoder.encode(`timeout: cooperative deadline expired for command ‘${command}’\n`), 0);
       }
       if (!returned && invocationFailure === deadline.deadlineReason) return { exitCode: signalNumber === 9 || preserveStatus ? 128 + signalNumber : 124 };
-      if (deadline.signal.aborted && deadline.signal.reason === deadline.timerFailureReason) return status(context, records.timerSetupFailed, 125);
+      if (deadline.signal.aborted && deadline.signal.reason === deadline.timerFailureReason) return status(configuration, context, records.timerSetupFailed, 125);
       if (deadline.expired && (!preserveStatus || signalNumber === 9)) return { exitCode: signalNumber === 9 ? 137 : 124 };
       return result!;
     },

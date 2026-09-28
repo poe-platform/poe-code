@@ -626,6 +626,10 @@ nested command dispatch, and `regex` worker limits. Per-family options are
 `text`, `structured`, `search`, `diffPatch`, `metadata`, `archive`, `tableText`,
 `streamInspection`, `streamFormat`, `split`, `timeEnv`, `tree`, `file`, `column`,
 `htmlToMarkdown`, `du`, `expr`, `which`, `timeout`, and `applyPatch`.
+`timeout.limits` bounds argument count, argument bytes, and timeout's own output
+through `maxArguments`, `maxArgumentBytes`, and `maxOutputBytes`.
+`timeEnv.maxTimerMilliseconds` and `timeout.maxTimerMilliseconds` accept `Infinity`;
+host timer calls remain capped at 2147483647 ms and progress with frozen clocks.
 Use the [typed options and linked family interfaces](src/plugins/index.ts) for
 their individual limits and hooks, including clocks and schedulers. Family budgets
 are separate from shell counters; `limits.commandLimits.archive` supplies

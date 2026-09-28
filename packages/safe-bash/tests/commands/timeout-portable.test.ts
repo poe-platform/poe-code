@@ -167,7 +167,7 @@ test("timeout scheduler browser graph has no Node clock or timer dependency", as
   now = 25;
   active.get(2)!();
   assert.equal(deadline.signal.reason, deadline.deadlineReason);
-  assert.deepEqual(delays, [10, 10, 5]);
+  assert.deepEqual(delays, [10, 10, 2]);
   const retirement = deadline.retire();
   assert.equal(deadline.retire(), retirement);
   await retirement;

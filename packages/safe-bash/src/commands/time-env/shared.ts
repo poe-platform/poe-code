@@ -39,8 +39,8 @@ export function settings(options: TimeEnvCommandsOptions): Settings {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid time-env limit: ${name}`);
   }
   const maxTimerMilliseconds = options.maxTimerMilliseconds ?? 2147483647;
-  if (!Number.isInteger(maxTimerMilliseconds) || maxTimerMilliseconds < 1 || maxTimerMilliseconds > 2147483647) {
-    throw new RangeError("maxTimerMilliseconds must be between1 and2147483647");
+  if (maxTimerMilliseconds !== Infinity && (!Number.isInteger(maxTimerMilliseconds) || maxTimerMilliseconds < 1 || maxTimerMilliseconds > 2147483647)) {
+    throw new RangeError("maxTimerMilliseconds must be between 1 and 2147483647 or Infinity");
   }
   const scheduler: SleepScheduler = options.scheduler ?? {
     now: () => performance.now(),

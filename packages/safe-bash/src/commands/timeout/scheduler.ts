@@ -8,9 +8,9 @@ export interface SchedulerBinding {
 }
 export const defaultSchedulerBinding: SchedulerBinding = Object.freeze({
   receiver: globalThis,
-  now: globalThis.performance.now.bind(globalThis.performance),
-  setTimeout: globalThis.setTimeout.bind(globalThis),
-  clearTimeout: globalThis.clearTimeout.bind(globalThis) as TimeoutScheduler["clearTimeout"],
+  now: () => globalThis.performance.now(),
+  setTimeout: (callback: () => void, milliseconds: number) => globalThis.setTimeout(callback, milliseconds),
+  clearTimeout: (handle: unknown) => globalThis.clearTimeout(handle as ReturnType<typeof setTimeout>),
 });
 
 export interface Deadline {
@@ -39,6 +39,7 @@ export function createDeadline(binding: SchedulerBinding, duration: number, maxi
   let expired = false;
   let remaining = duration;
   let previous = 0;
+  let step = 0;
   let handle: unknown;
   let handleLive = false;
   let cleanupFailed = false;
@@ -70,8 +71,8 @@ export function createDeadline(binding: SchedulerBinding, duration: number, maxi
   };
 
   const arm = (): void => {
-    const milliseconds = Math.min(maximumChunk, Math.max(1, Math.ceil(remaining)));
-    handle = Reflect.apply(binding.setTimeout, binding.receiver, [wake, milliseconds]);
+    step = Math.min(2147483647, maximumChunk, Math.max(1, Math.ceil(remaining)));
+    handle = Reflect.apply(binding.setTimeout, binding.receiver, [wake, step]);
     handleLive = true;
   };
 
@@ -83,7 +84,7 @@ export function createDeadline(binding: SchedulerBinding, duration: number, maxi
       failTimer();
       return;
     }
-    remaining -= sample - previous;
+    remaining -= Math.max(step, sample - previous);
     previous = sample;
     if (remaining <= 0) {
       admissionOpen = false;

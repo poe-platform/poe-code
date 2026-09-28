@@ -35,6 +35,7 @@ test("factory surface validates containers and exact property order", () => {
   });
   createTimeoutCommands(options);
   assert.deepEqual(reads, [
+    "options.limits",
     "options.killAfterPolicy",
     "options.invoke",
     "options.scheduler",
@@ -47,7 +48,7 @@ test("factory surface validates containers and exact property order", () => {
   assert.throws(() => createTimeoutCommand({ invoke: 1 } as never), TypeError);
   assert.throws(() => createTimeoutCommand({ scheduler: {} } as never), TypeError);
   assert.throws(() => createTimeoutCommand({ maxTimerMilliseconds: "1" } as never), TypeError);
-  for (const value of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, 2147483648]) {
+  for (const value of [0, -1, 1.5, Number.NaN, Number.NEGATIVE_INFINITY, 2147483648]) {
     assert.throws(() => createTimeoutCommand({ maxTimerMilliseconds: value }), RangeError);
   }
   assert.throws(() => createTimeoutCommands({ replace: 1 } as never), TypeError);

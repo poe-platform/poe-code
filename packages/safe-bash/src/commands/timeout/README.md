@@ -2,7 +2,7 @@
 
 This internal leaf module defines a cooperative `timeout` wrapper around one
 literal `CommandContext.invoke` call. It exports `createTimeoutCommand`,
-`createTimeoutCommands`, `timeoutCommands`, and their three timeout option and
+`createTimeoutCommands`, `timeoutCommands`, `TimeoutLimits`, and timeout option and
 scheduler interfaces. The command is available in the default agent command
 aggregate and through the package's `commands/timeout` subpath.
 
@@ -25,7 +25,14 @@ and positive numeric overflow to infinity also create no deadline resources and
 preserve child output and status. NaN and negative infinity are rejected.
 Finite positive durations use one opaque timer handle at a time, clear a
 completed chunk before rearming, and retain the final handle through cooperative
-child cleanup.
+child cleanup. Timer callbacks advance by at least their scheduled interval,
+so frozen host clocks still complete deadlines. Default clock and timer functions
+are resolved when used, allowing host overrides installed after import.
+`maxTimerMilliseconds` accepts `Infinity`; each host timer is capped at
+2147483647 milliseconds. `options.limits` accepts `maxArguments`,
+`maxArgumentBytes`, and `maxOutputBytes` (positive safe integers or `Infinity`,
+which is the default). Output limits cover timeout's own diagnostics, help and
+version output; child commands retain their own budgets.
 
 `-v` and `--verbose` preserve child output and status when no deadline expires.
 On expiry they report the cooperative deadline to stderr after child cleanup;
@@ -34,7 +41,7 @@ silent and disable the deadline, including in verbose mode.
 
 The deadline is cooperative. The invoked host must honor the supplied signal
 and settle after its child cleanup. An ignored signal, blocked event loop,
-uncooperative host task, stalled clock, or nonsettling cleanup can prevent
+uncooperative host task or nonsettling cleanup can prevent
 settlement. This module makes no native process, process-group, hard-preemption,
 or arbitrary host-error provenance claim.
 

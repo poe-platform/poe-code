@@ -78,7 +78,8 @@ function delay(milliseconds: number, signal: AbortSignal, configuration: Setting
     let handle: unknown;
     let armed = false;
     let settled = false;
-    let started: number | undefined;
+    let remaining = milliseconds;
+    let step = 0;
     let previous: number | undefined;
     const finish = (failed: boolean, reason?: unknown): void => {
       if (settled) return;
@@ -98,12 +99,11 @@ function delay(milliseconds: number, signal: AbortSignal, configuration: Setting
         if (!Number.isFinite(now) || Math.abs(now) > Number.MAX_SAFE_INTEGER || (previous !== undefined && now < previous)) {
           throw new RangeError("sleep scheduler must supply finite monotonic milliseconds");
         }
-        started ??= now;
+        if (previous !== undefined) remaining -= Math.max(step, now - previous);
         previous = now;
-        const remaining = milliseconds - (now - started);
         if (remaining <= 0) { finish(false); return; }
-        const timer = scheduler.setTimeout(() => { armed = false; schedule(); },
-          Math.min(configuration.maxTimerMilliseconds, Math.max(1, Math.ceil(remaining))));
+        step = Math.min(2147483647, configuration.maxTimerMilliseconds, Math.max(1, Math.ceil(remaining)));
+        const timer = scheduler.setTimeout(() => { armed = false; schedule(); }, step);
         if (settled) scheduler.clearTimeout(timer);
         else { handle = timer; armed = true; }
       } catch (error) { finish(true, error); }

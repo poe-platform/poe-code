@@ -28,9 +28,9 @@ test("sleep never finishes early and chunks intervals above timer range", async 
   const scheduler = new Timers();
   const result = run("sleep", ["2147483.65"], { scheduler });
   assert.deepEqual(scheduler.scheduled, [2147483647]);
-  scheduler.tick(2147483646);
-  assert.deepEqual(scheduler.scheduled, [2147483647, 4]);
-  scheduler.tick(4);
+  scheduler.tick(2147483647);
+  assert.deepEqual(scheduler.scheduled, [2147483647, 3]);
+  scheduler.tick(3);
   assert.equal((await result).exitCode, 0);
   assert.equal(scheduler.pending.size, 0);
 });

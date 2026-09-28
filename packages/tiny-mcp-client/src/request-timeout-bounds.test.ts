@@ -92,3 +92,20 @@ it("keeps unlimited HTTP initialization cancellable without scheduling a deadlin
     expect(timer).not.toHaveBeenCalled();
   } finally { timer.mockRestore(); transport.dispose(); await transport.closed; }
 });
+
+it("uses no timer for a per-request unlimited deadline and releases cancellation", async () => {
+  const input = new PassThrough(), output = new PassThrough();
+  const layer = new JsonRpcMessageLayer(input, output, 10);
+  const timer = vi.spyOn(globalThis, "setTimeout");
+  try {
+    const controller = new AbortController();
+    const pending = layer.sendRequest("tools/list", {}, { timeoutMs: Infinity, signal: controller.signal });
+    const rejected = expect(pending).rejects.toThrow("unlimited cancelled");
+    controller.abort(new Error("unlimited cancelled"));
+    await rejected;
+    expect(timer).not.toHaveBeenCalled();
+    const next = layer.sendRequest("tools/list", {}, { timeoutMs: Infinity });
+    input.write('{"jsonrpc":"2.0","id":2,"result":{}}\n');
+    await expect(next).resolves.toEqual({});
+  } finally { timer.mockRestore(); layer.dispose(); input.destroy(); output.destroy(); }
+});

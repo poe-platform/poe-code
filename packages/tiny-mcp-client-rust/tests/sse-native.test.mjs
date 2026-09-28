@@ -65,3 +65,7 @@ test("size failures retire partial data before accepting the next frame", () => 
  for(let n=0;n<32;n++) assert.deepEqual(parser.push("data: ok\n\n"),[{data:"ok"}]);
  assert.equal(parser.lastEventId,"saved");
 });
+
+test("explicit unlimited SSE budgets preserve framing and cursors", () => {
+  compare(["id: unlimited\ndata: " + "🦊".repeat(1024), "\n\n"], Infinity);
+});

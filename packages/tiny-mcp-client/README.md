@@ -42,6 +42,7 @@ notifications remain available while that call is pending.
 
 Set `requestTimeoutMs` on `McpClient` or `timeoutMs` on individual requests.
 Use `Infinity` to disable a deadline while retaining caller cancellation.
+`requestTimeoutMs: Infinity` also disables subscription acknowledgement deadlines.
 Finite numeric deadlines must be nonnegative and no greater than
 2,147,483,647 ms; oversized values fail before a request is sent. Individual
 JSON-RPC requests also accept `timeoutMs: null` to disable their timer.

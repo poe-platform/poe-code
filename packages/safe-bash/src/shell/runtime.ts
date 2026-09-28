@@ -12433,6 +12433,7 @@ export class Runtime {
       const w = cmd.words[i]!;
       const p0 = w.parts[0];
       if (!p0 || !this.isPureSyncValueWord(w, rawState)) return false;
+      if (w.parts.some(part => part.kind === "substitution" || (part.kind === "text" && !part.quoted && part.value.includes("~")))) return false;
       if (p0.kind === "text" && !p0.quoted && p0.value.startsWith("~")) return false;
       if (inOptions) {
         const literal = w.parts.reduce<string | undefined>((text, part) => text !== undefined && part.kind === "text" ? text + part.value : undefined, "");

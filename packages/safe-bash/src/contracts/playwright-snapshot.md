@@ -1,5 +1,22 @@
 # Adapter snapshots
 
+Hosts can pass `onSnapshot` to `createPlaywrightController` or `createPlaywrightCli`
+to process snapshots before output. The hook receives the command, actual capture
+format (`yaml` or `json`), context, page, initial snapshot, command cancellation
+signal, and any retained main-frame navigation URL, status and response headers.
+`getPlaywrightMainFrameNavigation(context, page)` also exposes that metadata through
+the `/playwright` entrypoint in O(1), without browser I/O. Metadata is absent before
+observation or after request history is cleared, evicted, or disposed; status and
+headers are absent until a response is observed. Request headers are not returned.
+
+The hook returns the snapshot to publish. Its `recapture()` uses the same format,
+capture options and cancellation signal without calling the hook again. Page URL
+and title are read after the hook, so resolving an interstitial also refreshes page
+metadata. JSON snapshot output retains its existing snapshot-only shape. Hooks run
+inside the session command queue: use `recapture()`, never await another queued
+controller command. Await recaptures inside the hook; recapture calls after the
+hook completes are rejected. Honor the signal in host work; hook errors fail the command.
+
 Snapshots retain candidate DOM nodes in a browser-side capsule. Only
 status, count, node identities and rendered text cross the transport; actions unwrap the retained
 node for a ref, not a fresh name-based locator. Renaming or duplicate names do not

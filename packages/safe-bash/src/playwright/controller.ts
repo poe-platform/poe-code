@@ -11,7 +11,7 @@ import { capabilityArtifactName } from './capability-result.js';
 import { isPlaywrightSnapshotRef, resolvePlaywrightTarget } from './targets.js';
 import type { PlaywrightElementHandle, PlaywrightFrame, PlaywrightStorageState } from './adapter.js';
 import { capturePlaywrightTargetScreenshot } from './target-screenshot.js';
-import { flushPlaywrightConsole, observePlaywrightCapabilities } from './capability-events.js';
+import { flushPlaywrightConsole, getPlaywrightMainFrameNavigation, observePlaywrightCapabilities, type PlaywrightNavigationSummary } from './capability-events.js';
 import { getPlaywrightModal, observePlaywrightModals, onPlaywrightModal } from './modal-capabilities.js';
 import { findPlaywrightSnapshot } from './find.js';
 import { collectPlaywrightDownloads, observePlaywrightDownloads } from './download-capabilities.js';
@@ -28,10 +28,25 @@ import { PlaywrightCheckpointError, PlaywrightStorageReadError, type PlaywrightC
 import { resolvePath } from '../contracts/path.js';
 import { parsePlaywrightOperationOutcome, type PlaywrightOperationOutcome, type PlaywrightRecoveryResult } from './recovery.js';
 
+export interface PlaywrightSnapshotHookContext<TSnapshot> {
+  readonly command: string;
+  readonly format: 'yaml' | 'json';
+  readonly context: PlaywrightContext;
+  readonly page: PlaywrightPage;
+  readonly snapshot: TSnapshot;
+  readonly navigation?: PlaywrightNavigationSummary;
+  readonly signal: AbortSignal;
+  recapture(): Promise<TSnapshot>;
+}
+
+export type PlaywrightSnapshotHook = <TSnapshot>(request: PlaywrightSnapshotHookContext<TSnapshot>) => Promise<TSnapshot>;
+
 export interface PlaywrightControllerOptions {
   /** Clock for fallback operation receipts, retained for at most 24 hours across 16 aliases. */
   readonly operationClock?: () => number;
   readonly adapter?: PlaywrightAdapter;
+  /** Runs inside the command queue after capture. Recapture does not invoke the hook again. */
+  readonly onSnapshot?: PlaywrightSnapshotHook;
   readonly abilities?: PlaywrightAbilities;
   readonly persistence?: PlaywrightSessionPersistence;
   /** Opt in only when this controller and persistence are bound to one authenticated owner. */
@@ -155,7 +170,8 @@ interface Session {
 export function createPlaywrightController(options: PlaywrightControllerOptions = {}) {
   if (!options || typeof options !== 'object') throw new TypeError('Invalid Playwright configuration');
   if (options.adapter !== undefined && (!options.adapter || typeof options.adapter.acquire !== 'function')) throw new TypeError('An injected Playwright adapter is required');
-  if (Object.keys(options).some(key => !['adapter', 'abilities', 'limits', 'billing', 'persistence', 'namedSessionAttachment', 'operationClock'].includes(key))) throw new TypeError('Unsupported Playwright configuration');
+  if (Object.keys(options).some(key => !['adapter', 'abilities', 'limits', 'billing', 'persistence', 'namedSessionAttachment', 'operationClock', 'onSnapshot'].includes(key))) throw new TypeError('Unsupported Playwright configuration');
+  if (options.onSnapshot !== undefined && typeof options.onSnapshot !== 'function') throw new TypeError('Invalid Playwright snapshot hook');
   if (options.operationClock !== undefined && typeof options.operationClock !== 'function') throw new TypeError('Invalid Playwright operation clock');
   if (options.namedSessionAttachment !== undefined && typeof options.namedSessionAttachment !== 'boolean') throw new TypeError('Invalid named session attachment capability');
   if (options.persistence && ['restore', 'checkpoint', 'delete'].some(key => typeof Reflect.get(options.persistence!, key) !== 'function')) throw new TypeError('Invalid Playwright persistence');
@@ -879,10 +895,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         const consoleLink = await flushPlaywrightConsole(session.lease!.context, page, { ...(session.configuration ? { configuration: session.configuration } : {}), writeArtifact });
         if (consoleLink) sections.push({ title: 'Events', content: `- New console entries: ${consoleLink}` });
       }
-      if (parsed.command !== 'snapshot' || !parsed.json) {
-        const title = await page.title?.();
-        sections.push({ title: 'Page', content: `- Page URL: ${page.url()}${title === undefined ? '' : `\n- Page Title: ${title}`}` });
-      }
+      const pageSectionIndex = sections.length;
       if (snapshot !== 'none' && (page.frames || page.ariaSnapshot || page._snapshotForAI || page.ariaSnapshotJSON || session.lease?.captureSnapshotJSON)) {
         const snapshotOptions: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureReferences?: import('./adapter.js').PlaywrightSnapshotReferenceCapture } = { timeout: sessionSnapshotTimeout(session), ...(session.configuration?.snapshot?.boxes === undefined ? {} : { boxes: session.configuration.snapshot.boxes }), ...(session.lease?.captureSnapshotReferences ? { captureReferences: session.lease.captureSnapshotReferences } : {}) };
         if (parsed.command === 'snapshot') {
@@ -894,16 +907,35 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           if (parsed.options.boxes) snapshotOptions.boxes = true;
           if (parsed.args[0]) snapshotOptions.root = await resolveTarget(session, parsed.args[0]);
         }
+        const captureWithHook = async <TSnapshot>(format: 'yaml' | 'json', capture: () => Promise<TSnapshot>): Promise<TSnapshot> => {
+          let active = true;
+          const recapture = async () => {
+            if (!active) throw new Error('Playwright snapshot hook has completed');
+            check();
+            const value = await capture();
+            check();
+            return value;
+          };
+          try {
+            const initial = await recapture();
+            if (!options.onSnapshot) return initial;
+            const navigation = getPlaywrightMainFrameNavigation(session.lease!.context, page);
+            const result = await options.onSnapshot({ command: parsed.command, format, context: session.lease!.context, page,
+              snapshot: initial, ...(navigation ? { navigation } : {}), signal: local.signal, recapture });
+            check();
+            return result;
+          } finally { active = false; }
+        };
         retained = false;
         if (parsed.command === 'snapshot' && parsed.json && filename === undefined) {
-          const tree = await session.snapshot.captureJSON(page, local.signal, { ...snapshotOptions, ...(session.lease?.captureSnapshotJSON ? { captureJSON: session.lease.captureSnapshotJSON } : {}) });
+          const tree = await captureWithHook('json', () => session.snapshot.captureJSON(page, local.signal, { ...snapshotOptions, ...(session.lease?.captureSnapshotJSON ? { captureJSON: session.lease.captureSnapshotJSON } : {}) }));
           check();
           retained = parsed.command === 'snapshot';
           sections.push({ title: 'Snapshot', content: { json: tree as unknown as import('./response.js').PlaywrightJsonValue }, codeframe: 'json' });
           return { sections };
         }
         retained = false;
-        const text = await session.snapshot.capture(page, local.signal, snapshotOptions);
+        const text = await captureWithHook('yaml', () => session.snapshot.capture(page, local.signal, snapshotOptions));
         check();
         retained = parsed.command === 'snapshot';
         if (filename !== undefined || snapshot === 'file' && invocation.writeArtifact) {
@@ -914,6 +946,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           await writeArtifact(bytes, target);
           sections.push({ title: 'Snapshot', content: `- [Snapshot](${target})` });
         } else sections.push({ title: 'Snapshot', content: text.trimEnd(), codeframe: 'yaml' });
+      }
+      if (parsed.command !== 'snapshot' || !parsed.json) {
+        const title = await page.title?.();
+        check();
+        sections.splice(pageSectionIndex, 0, { title: 'Page', content: `- Page URL: ${page.url()}${title === undefined ? '' : `\n- Page Title: ${title}`}` });
       }
       return { sections };
     };

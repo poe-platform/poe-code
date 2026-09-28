@@ -6,7 +6,7 @@ import { capabilityArtifact, capabilityArtifactName, capabilityResult, numeric, 
 import type { PlaywrightSessionConfiguration } from './session-configuration.js';
 
 interface RequestRecord {
-  index: number; native: PlaywrightNetworkRequest; url: string; method: string; type: string; headers: Record<string, string>;
+  index: number; native: PlaywrightNetworkRequest; url: string; method: string; type: string; headers: Record<string, string>; mainFrameNavigation: boolean;
   response?: { native: PlaywrightNetworkResponse; status: number; statusText: string; headers: Record<string, string> };
 }
 interface ConsoleRecord { index: number; type: string; text: string; location: string; generation: number; timestamp: number }
@@ -17,6 +17,19 @@ interface PageEvents {
 }
 interface EventState { pages: WeakMap<object, PageEvents>; failure?: Error; maxBytes: number; maxArtifactBytes: number; forget(record: object): void }
 const states = new WeakMap<PlaywrightContext, EventState>();
+
+export interface PlaywrightNavigationSummary {
+  readonly url: string;
+  readonly status?: number;
+  readonly headers?: Readonly<Record<string, string>>;
+}
+
+/** Read retained navigation metadata without browser I/O; absent after eviction or cleanup. */
+export function getPlaywrightMainFrameNavigation(context: PlaywrightContext, page: PlaywrightPage): PlaywrightNavigationSummary | undefined {
+  const record = states.get(context)?.pages.get(pageIdentity(page))?.requests[0];
+  if (!record?.mainFrameNavigation) return undefined;
+  return { url: record.url, ...(record.response ? { status: record.response.status, headers: record.response.headers } : {}) };
+}
 
 // A host may wrap Page navigation methods while native events retain the raw Page.
 // Playwright's main frame remains stable across those wrappers and navigations.
@@ -59,11 +72,12 @@ export function observePlaywrightCapabilities(context: PlaywrightContext, regist
     try { frame = native.frame(); } catch { return; } // Worker-only requests have no selected page.
     const page = frame.page();
     const events = pageEvents(page);
-    if (native.isNavigationRequest() && frame.parentFrame() === null) {
+    const mainFrameNavigation = native.isNavigationRequest() && frame.parentFrame() === null;
+    if (mainFrameNavigation) {
       for (const record of [...events.requests]) forget(record);
       events.nextRequestIndex = 0; events.generation++; events.startedAt = Date.now(); delete events.log; events.consoleCursor = events.nextConsoleIndex;
     }
-    const record: RequestRecord = { index: ++events.nextRequestIndex, native, url: native.url(), method: native.method(), type: native.resourceType(), headers: { ...native.headers() } };
+    const record: RequestRecord = { index: ++events.nextRequestIndex, native, url: native.url(), method: native.method(), type: native.resourceType(), headers: { ...native.headers() }, mainFrameNavigation };
     requests.set(native, record);
     events.requests.push(record);
     // Keep native body access lazy: copying postData here turns uploads into a
@@ -75,7 +89,7 @@ export function observePlaywrightCapabilities(context: PlaywrightContext, regist
   const onResponse = (native: PlaywrightNetworkResponse) => observe(() => {
     const record = requests.get(native.request());
     if (!record) return;
-    const response = { native, status: native.status(), statusText: native.statusText(), headers: { ...native.headers() } };
+    const response = { native, status: native.status(), statusText: native.statusText(), headers: Object.freeze({ ...native.headers() }) };
     record.response = response;
     const retained = history.get(record)!;
     retain(record, retained.bytes + byteLength(JSON.stringify({ status: response.status, statusText: response.statusText, headers: response.headers })), retained.evict);

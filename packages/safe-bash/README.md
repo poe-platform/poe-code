@@ -595,6 +595,11 @@ Hosts accepting direct browser activity can call `renewSession({ name, context }
 to renew that exact retained session's idle deadline without browser commands.
 Browser snapshots have no byte limit, including automatic snapshots after
 navigation. Legacy `maxSnapshotBytes` settings are ignored.
+Pass `onSnapshot` to `createPlaywrightCli` or `createPlaywrightController` to inspect
+navigation response headers and call `recapture()` before publishing YAML or JSON.
+Page URL and title reflect changes made by the hook. The `/playwright` entrypoint
+also exports `getPlaywrightMainFrameNavigation(context, page)` for passive metadata
+reads. See the [snapshot hook contract](src/contracts/playwright-snapshot.md).
 `playwright-cli --help` and `playwright-cli show --help` report dashboard
 availability. Without a host dashboard ability, interactive local browser login is unavailable;
 use the authentication flow supplied by the host application.

@@ -4,6 +4,8 @@ import {
   createPlaywrightCli, parseBrowserProfile, encodeBrowserProfile,
   checkpointBrowserProfile, restoreBrowserProfile,
   type PlaywrightAdapter, type PlaywrightSessionPersistence,
+  getPlaywrightMainFrameNavigation, type PlaywrightNavigationSummary,
+  type PlaywrightSnapshotHook, type PlaywrightSnapshotHookContext,
 } from '@poe-platform/safe-bash/playwright';
 
 declare const binding: BrowserWorker;
@@ -26,4 +28,13 @@ const persistence: PlaywrightSessionPersistence = {
   async checkpoint(session, signal) { await host.save(session.name, await checkpointBrowserProfile(session, limits, signal), signal); },
   async delete(name, signal) { await host.remove(name, signal); },
 };
-createPlaywrightCli({adapter, persistence, namedSessionAttachment: true, limits: {maxSessions: 2, maxTabs: 8}});
+const onSnapshot: PlaywrightSnapshotHook = async <TSnapshot>(request: PlaywrightSnapshotHookContext<TSnapshot>): Promise<TSnapshot> => {
+  const navigation: PlaywrightNavigationSummary | undefined = getPlaywrightMainFrameNavigation(request.context, request.page);
+  const status: number | undefined = navigation?.status;
+  const headers: Readonly<Record<string, string>> | undefined = request.navigation?.headers;
+  const format: 'yaml' | 'json' = request.format;
+  request.signal.throwIfAborted();
+  void status; void headers; void format;
+  return request.recapture();
+};
+createPlaywrightCli({adapter, persistence, onSnapshot, namedSessionAttachment: true, limits: {maxSessions: 2, maxTabs: 8}});

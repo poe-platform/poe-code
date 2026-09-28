@@ -2,6 +2,7 @@ export * from './adapter.js';
 export { parseBrowserProfile, encodeBrowserProfile, restoreBrowserProfile, checkpointBrowserProfile, type BrowserProfile, type BrowserProfileLimits, type BrowserProfileContext } from './profile.js';
 export * from './billing.js';
 export * from './controller.js';
+export { getPlaywrightMainFrameNavigation, type PlaywrightNavigationSummary } from './capability-events.js';
 export { parsePlaywrightOperationOutcome, type PlaywrightRecoveryResult, type PlaywrightOperationOutcome } from './recovery.js';
 export * from './catalog.js';
 export * from './network-policy.js';

@@ -4721,7 +4721,6 @@ export class Runtime {
         for (let i = 0; i < assignment.entries.length; i++) {
           const entry = assignment.entries[i]!;
           if (!entry.index || entry.append) return false;
-          if (rawState.braceexpand !== false && entry.value.parts.some(p => !p.quoted && p.kind === "text" && p.value.includes("{"))) return false;
           const kSrc = entry.index.source ?? entry.index.decimal;
           if (kSrc.length === 0 || kSrc.length > 4096 || /[$\x60\\"']/.test(kSrc)) return false;
           let val: ShellValue | undefined = "";

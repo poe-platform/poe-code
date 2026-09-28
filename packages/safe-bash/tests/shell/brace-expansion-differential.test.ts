@@ -60,6 +60,8 @@ const cases = [
   ["associative compound brace keys stay literal", "declare -A m; m=([{a,b}]=x); printf '<%s>\\n' \"${!m[@]}\" \"${m[@]}\""],
   ["associative compound brace keys preserve loop effects", "declare -A m; f(){ for i in 1 2; do printf '<%s>\\n' \"before:$i\"; m=([{single}]=x); printf '<%s>\\n' \"after:$i\"; done; }; f"],
   ["indexed compound braces preserve loop effects", "f(){ for i in 1 2; do printf '<%s>\\n' \"before:$i\"; values=([2]={a,b}); printf '<%s>\\n' \"after:$i\" \"${values[@]}\"; done; }; f"],
+  ["associative compound brace values stay literal", "declare -A m; m=([key]={a,b}); printf '<%s>\\n' \"${!m[@]}\" \"${m[@]}\""],
+  ["associative compound brace values preserve loop effects", "declare -A m; f(){ for i in 1 2; do printf '<%s>\\n' \"before:$i\"; m=([key]={a,b}); printf '<%s>\\n' \"after:$i\" \"${!m[@]}\" \"${m[@]}\"; done; }; f"],
   ["conditional operands do not brace expand", String.raw`[[ {a,b} == '{a,b}' ]]; printf '%s\n' "$?"; case '{a,b}' in {a,b}) printf 'matched\n';; *) printf 'missed\n';; esac`],
   ["here strings do not brace expand", String.raw`cat <<< {a,b}`],
   ["heredocs do not brace expand", "cat <<'END'\n{a,b} {1..3}\nEND\n"],
@@ -82,6 +84,8 @@ const cases = [
 // The original oracle was GNU Bash 5.0.17; see docs/plans/bugfix-637-brace-expansion.md.
 // These contracts retain stepped/padded ranges and lexical replay on older hosts.
 const modernContracts = new Map<string, readonly string[]>([
+  ["associative compound brace values stay literal", ["key", "{a,b}"]],
+  ["associative compound brace values preserve loop effects", ["before:1", "after:1", "key", "{a,b}", "before:2", "after:2", "key", "{a,b}"]],
   ["associative compound brace keys stay literal", ["{a,b}", "x"]],
   ["associative compound brace keys preserve loop effects", ["before:1", "after:1", "before:2", "after:2"]],
   ["ascending descending and stepped numbers", ["1", "3", "5", "5", "3", "1", "-3", "-1", "1", "3", "3", "1", "-1", "-3"]],

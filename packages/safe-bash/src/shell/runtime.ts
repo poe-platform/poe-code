@@ -2794,7 +2794,7 @@ type SyncLoopStep = {
   readonly fnCall?: { readonly name: string; readonly argWords: readonly Word[]; readonly locals: readonly { readonly name: string; readonly valueWord?: Word | undefined; readonly isFirstInCmd: boolean }[]; readonly steps: readonly SyncLoopStep[] } | undefined;
   readonly loopAction?: "break" | "continue" | undefined;
   readonly unsetVars?: readonly string[] | undefined;
-  readonly localDecl?: { readonly kind: "local" | "declare" | "export"; readonly attr?: "u" | "l" | "i" | undefined; readonly items: readonly { readonly name: string; readonly value?: Word | undefined; readonly append: boolean }[] } | undefined;
+  readonly localDecl?: { readonly kind: "local" | "declare" | "export"; readonly items: readonly { readonly name: string; readonly value?: Word | undefined; readonly append: boolean }[] } | undefined;
   readonly shiftCount?: number | undefined;
   readonly readHereString?: {
     readonly ifsWord?: Word | undefined;
@@ -12156,7 +12156,7 @@ export class Runtime {
     }
     return undefined;
   }
-  private extractSyncLocalDeclStep(cmd: Extract<Command, { kind: "simple" }>, rawState: State): { readonly kind: "local" | "declare" | "export"; readonly attr?: "u" | "l" | "i" | undefined; readonly items: readonly { readonly name: string; readonly value?: Word | undefined; readonly append: boolean }[] } | undefined {
+  private extractSyncLocalDeclStep(cmd: Extract<Command, { kind: "simple" }>, rawState: State): { readonly kind: "local" | "declare" | "export"; readonly items: readonly { readonly name: string; readonly value?: Word | undefined; readonly append: boolean }[] } | undefined {
     if (this._syncLoopFnCheckDepth > 0 || cmd.redirects.length !== 0 || cmd.words.length < 2 || cmd.words.length > 16) return undefined;
     const w0Plain = cmd.words[0]!.plain;
     if (w0Plain !== "local" && w0Plain !== "declare" && w0Plain !== "typeset" && w0Plain !== "export") return undefined;
@@ -12422,30 +12422,9 @@ export class Runtime {
         return undefined;
       }
       const arrStore = store ?? requireArrays(rawState);
-      let existingArr = arrStore.get(arrayTarget);
-      if (existingArr && (existingArr.associative || existingArr.references !== 1 || arrStore.watches.has(arrayTarget))) return undefined;
-      if (!existingArr && !arrStore.watches.has(arrayTarget)) {
-        const recTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-        const recBinding = arrStore.takeRecycled(arrayTarget, false, recTickets);
-        if (recBinding) {
-          if (monitor) monitor.epoch = recTickets.epoch;
-          existingArr = recBinding;
-        } else {
-          try {
-            const created = IndexedBinding.create(arrStore.owner, false);
-            const prepared = arrStore.prepareExistingName(arrayTarget, shellValueByteLength(arrayTarget), arrStore.owner, this.signal);
-            if (prepared) {
-              const initTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-              arrStore.publish(arrayTarget, created, initTickets, prepared, false, arrStore.owner);
-              if (monitor) monitor.epoch = initTickets.epoch;
-              existingArr = created;
-            } else {
-              void created.release();
-            }
-          } catch {}
-        }
-      }
-      if (!existingArr) return undefined;
+      // Planning must not publish bindings: the read may never execute.
+      const existingArr = arrStore.get(arrayTarget);
+      if (!existingArr || existingArr.associative || existingArr.references !== 1 || arrStore.watches.has(arrayTarget)) return undefined;
       return { ifsWord, varNames: [], arrayTarget, ...(isMapfile ? { isMapfile: true } : {}), isBareReply: false, inputWord: r0.target };
     }
     const varNames: string[] = [];
@@ -12753,9 +12732,6 @@ export class Runtime {
           return false;
         }
         const declaration = this.extractSyncLocalDeclStep(cmd, rawState);
-        // Later steps were admitted against the current attributes, so a
-        // declaration that changes them must use normal command evaluation.
-        if (declaration?.attr) return false;
         if (this.extractSyncUnsetVars(cmd, rawState) !== undefined || declaration !== undefined || this.extractSyncShiftCount(cmd, rawState) !== undefined) {
           continue;
         }
@@ -13257,6 +13233,7 @@ export class Runtime {
     return 0;
   }
   private trySyncLoop( command: Extract<Command, { kind: "arithmetic-for" | "for" | "while" | "until" }>, pipeline: Pipeline, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>, elem0: { text: { shellValue: ShellValue } } | undefined, canMutatePipeStatus: boolean, io: IO, diagnosticLine: number, syncReadInputText?: string, ): number | undefined {
+    if (!syncSinks.get(io.stderr)) return undefined;
     // Substitution callers also need to refuse before effects when status
     // publication requires array admission. Cleanup cannot start async fallback.
     if (store && !existing) {
@@ -13438,7 +13415,7 @@ export class Runtime {
         const stepMutatesInduction = (st: SyncLoopStep): boolean => {
           // Integer declarations evaluate arithmetic strings, which can mutate
           // any variable. Array reads can also replace the scalar counter.
-          if (st.name === inductionName || st.readHereString?.varNames.includes(inductionName) || st.readHereString?.arrayTarget === inductionName || st.unsetVars?.includes(inductionName) || st.localDecl?.attr === "i" || st.localDecl?.items.some(it => it.name === inductionName)) return true;
+          if (st.name === inductionName || st.readHereString?.varNames.includes(inductionName) || st.readHereString?.arrayTarget === inductionName || st.unsetVars?.includes(inductionName) || st.localDecl?.items.some(it => it.name === inductionName)) return true;
           if (st.arithStmt?.hasMutation && arithTreeMutatesVar(st.arithStmt.tree, inductionName)) return true;
           if (st.printfVArgs?.some(w => w.parts.some(p => p.kind === "arithmetic" && p.expression.hasMutation && arithTreeMutatesVar(p.expression.tree, inductionName)))) return true;
           if (st.arithStmt?.error && new RegExp("\\b" + inductionName + "\\b").test(st.arithStmt.source)) return true;
@@ -14759,15 +14736,8 @@ export class Runtime {
         touched.add(item.name);
       }
       if (item.value !== undefined) {
-        let val = this.fastValueWord(item.value, rawState, io, false, false, false, rawState.braceexpand !== false, 0, line) as string;
-        if (decl.attr === "u") val = val.toUpperCase();
-        else if (decl.attr === "l") val = val.toLowerCase();
-        else if (decl.attr === "i") {
-          const curRaw = item.append ? rawState.variables[item.name] : undefined;
-          const curStr = curRaw === undefined ? "" : (touched.has(item.name) ? curRaw : (monitor.values.get(item.name, curRaw) ?? curRaw));
-          val = applySyncScalarAttributes("i", val, typeof curStr === "string" ? curStr : "", item.append, rawState, monitor, arrayStore(rawState), touched) ?? "0";
-        }
-        if (item.append && decl.attr !== "i") {
+        const val = this.fastValueWord(item.value, rawState, io, false, false, false, rawState.braceexpand !== false, 0, line) as string;
+        if (item.append) {
           const curRaw = rawState.variables[item.name];
           const curStr = curRaw === undefined ? "" : (touched.has(item.name) ? curRaw : (monitor.values.get(item.name, curRaw) ?? curRaw));
           rawState.variables[item.name] = (typeof curStr === "string" ? curStr : "") + val;
@@ -14779,9 +14749,6 @@ export class Runtime {
       } else {
         lastArg = item.name;
       }
-      if (decl.attr !== undefined) {
-        (this._syncPendingVarAttrs ??= new Map()).set(item.name, decl.attr);
-      }
       if (decl.kind === "export") {
         rawState.exported.add(item.name);
       }
@@ -14789,21 +14756,14 @@ export class Runtime {
     return lastArg;
   }
   private _syncTouchedPositionals = false;
-  private _syncPendingVarAttrs: Map<string, string> | undefined = undefined;
   private flushSyncPositionals(rawState: State): void {
     if (this._syncTouchedPositionals) {
       this._syncTouchedPositionals = false;
       this._fastSubPositional = undefined;
       this.replacePositionals(rawState, rawState.positional);
     }
-    if (this._syncPendingVarAttrs && this._syncPendingVarAttrs.size > 0) {
-      rawState.variableAttributes ??= new Map();
-      for (const [k, v] of this._syncPendingVarAttrs) {
-        rawState.variableAttributes.set(k, v);
-      }
-      this._syncPendingVarAttrs.clear();
-    }
   }
+
   private execSyncShiftStep(shiftCount: number, cmd: Extract<Command, { kind: "simple" }>, rawState: State): { status: number; lastArg: string } {
     const activePos = this._fastSubPositional ?? rawState.positional;
     const lastArg = cmd.words.length === 2 ? cmd.words[1]!.plain! : "shift";
@@ -15122,45 +15082,55 @@ export class Runtime {
       return false;
     }
   }
-  private evalSyncLoopArithStmt(expr: ArithmeticProgram, rawState: State, io: IO, touched: Set<string>, line: number): boolean {
-    if (!expr.error) return this.syncShellArithmeticNonZero(expr, rawState, line);
-    const cachedExpr = expr as { _cachedArithWord?: Word | null };
-    const expWord = cachedExpr._cachedArithWord ?? parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
-    cachedExpr._cachedArithWord = expWord;
-    const fastSrc = this.fastValueWord(expWord, rawState, io, false, false, true, false, 0, line) as string;
-    const scalarMutMatch = fastSrc.length <= 64 ? SIMPLE_SCALAR_MUT_RE.exec(fastSrc) : null;
-    if (scalarMutMatch) {
-      const varName = resolveSyncNameref(rawState, scalarMutMatch[1]!);
-      const binOp = scalarMutMatch[2]!;
-      const rhs1 = Number(scalarMutMatch[3]!);
-      const rhsOp = scalarMutMatch[4];
-      const rhs2 = scalarMutMatch[5] !== undefined ? Number(scalarMutMatch[5]) : 0;
-      const rhsNum = rhsOp === "+" ? rhs1 + rhs2 : rhsOp === "-" ? rhs1 - rhs2 : rhsOp === "*" ? rhs1 * rhs2 : rhs1;
-      const curVal = rawState.variables[varName] ?? "0";
-      if (curVal === "" || /^-?(?:0|[1-9][0-9]{0,12})$/.test(curVal)) {
-        const curNum = curVal === "" ? 0 : Number(curVal);
-        const nextNum = binOp === "=" ? rhsNum : binOp === "+=" ? curNum + rhsNum : curNum - rhsNum;
-        if (Number.isSafeInteger(nextNum)) {
-          this.budget.parsing.admit(4);
-          rawState.variables[varName] = intToStr(nextNum);
-          touched.add(varName);
-          return nextNum !== 0;
+  private evalSyncLoopArithStmt(expr: ArithmeticProgram, rawState: State, io: IO, touched: Set<string>, line: number): boolean | undefined {
+    try {
+      if (!expr.error) return this.syncShellArithmeticNonZero(expr, rawState, line);
+      const cachedExpr = expr as { _cachedArithWord?: Word | null };
+      const expWord = cachedExpr._cachedArithWord ?? parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
+      cachedExpr._cachedArithWord = expWord;
+      const fastSrc = this.fastValueWord(expWord, rawState, io, false, false, true, false, 0, line) as string;
+      const scalarMutMatch = fastSrc.length <= 64 ? SIMPLE_SCALAR_MUT_RE.exec(fastSrc) : null;
+      if (scalarMutMatch) {
+        const varName = resolveSyncNameref(rawState, scalarMutMatch[1]!);
+        const binOp = scalarMutMatch[2]!;
+        const rhs1 = Number(scalarMutMatch[3]!);
+        const rhsOp = scalarMutMatch[4];
+        const rhs2 = scalarMutMatch[5] !== undefined ? Number(scalarMutMatch[5]) : 0;
+        const rhsNum = rhsOp === "+" ? rhs1 + rhs2 : rhsOp === "-" ? rhs1 - rhs2 : rhsOp === "*" ? rhs1 * rhs2 : rhs1;
+        const curVal = rawState.variables[varName] ?? "0";
+        if (curVal === "" || /^-?(?:0|[1-9][0-9]{0,12})$/.test(curVal)) {
+          const curNum = curVal === "" ? 0 : Number(curVal);
+          const nextNum = binOp === "=" ? rhsNum : binOp === "+=" ? curNum + rhsNum : curNum - rhsNum;
+          if (Number.isSafeInteger(nextNum)) {
+            this.budget.parsing.admit(4);
+            rawState.variables[varName] = intToStr(nextNum);
+            touched.add(varName);
+            return nextNum !== 0;
+          }
         }
       }
-    }
-    const binCmpMatch = fastSrc.length <= 64 ? /^\s*(-?(?:0|[1-9][0-9]{0,12}))\s*(==|!=|<|<=|>|>=)\s*(-?(?:0|[1-9][0-9]{0,12}))\s*$/.exec(fastSrc) : null;
-    if (binCmpMatch) {
-      const lhs = Number(binCmpMatch[1]!);
-      const op = binCmpMatch[2]!;
-      const rhs = Number(binCmpMatch[3]!);
-      if (Number.isSafeInteger(lhs) && Number.isSafeInteger(rhs)) {
-        this.budget.parsing.admit(4);
-        return op === ">" ? lhs > rhs : op === ">=" ? lhs >= rhs : op === "<" ? lhs < rhs : op === "<=" ? lhs <= rhs : op === "==" ? lhs === rhs : lhs !== rhs;
+      const binCmpMatch = fastSrc.length <= 64 ? /^\s*(-?(?:0|[1-9][0-9]{0,12}))\s*(==|!=|<|<=|>|>=)\s*(-?(?:0|[1-9][0-9]{0,12}))\s*$/.exec(fastSrc) : null;
+      if (binCmpMatch) {
+        const lhs = Number(binCmpMatch[1]!);
+        const op = binCmpMatch[2]!;
+        const rhs = Number(binCmpMatch[3]!);
+        if (Number.isSafeInteger(lhs) && Number.isSafeInteger(rhs)) {
+          this.budget.parsing.admit(4);
+          return op === ">" ? lhs > rhs : op === ">=" ? lhs >= rhs : op === "<" ? lhs < rhs : op === "<=" ? lhs <= rhs : op === "==" ? lhs === rhs : lhs !== rhs;
+        }
       }
+      const dynProg = prepareArithmetic(fastSrc, this.budget.parsing);
+      return this.syncShellArithmeticNonZero(dynProg, rawState, line);
+    } catch (error) {
+      if (!(error instanceof PublicDiagnostic)) throw error;
+      const write = syncSinks.get(io.stderr);
+      if (!write) throw error;
+      write(fastSharedTextEncoder.encode(`${io.scriptName ?? "shell"}: line ${line}: ((: ${error.message}\n`));
+      rawState.status = 1;
+      return undefined;
     }
-    const dynProg = prepareArithmetic(fastSrc, this.budget.parsing);
-    return this.syncShellArithmeticNonZero(dynProg, rawState, line);
   }
+
   private extractSyncLoopFnSpec(cmd: Extract<Command, { kind: "simple" }>, rawState: State, io: IO | undefined): { name: string; locals: { name: string; valueWord?: Word | undefined; isFirstInCmd: boolean }[]; restScript: Script } | undefined {
     if (this._syncLoopFnCheckDepth > 0 || (rawState.locals && rawState.locals.length > 0)) return undefined;
     const w0Plain = cmd.words[0]!.plain;
@@ -23369,7 +23339,7 @@ export class Runtime {
           const bc = br.condition.lists[0]!.pipelines[0]!.commands[0]!;
           let condOk = false;
           if (bc.kind === "arithmetic") {
-            condOk = this.evalSyncLoopArithStmt(bc.expression, rawState, io, this._syncArithTouched ?? new Set(), bc.line ?? part.line);
+            condOk = this.evalSyncLoopArithStmt(bc.expression, rawState, io, this._syncArithTouched ?? new Set(), bc.line ?? part.line) === true;
           } else if (bc.kind === "conditional") {
             const st = this.tryEvalConditionalSync(bc.expression, rawState, monitor, arrayStore(rawState), io, bc.line ?? part.line);
             if (st === undefined) return undefined;

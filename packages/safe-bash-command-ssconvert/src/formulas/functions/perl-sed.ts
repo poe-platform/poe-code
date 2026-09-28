@@ -4,7 +4,7 @@ import { byteTextArg } from "./common.js";
 import { byteStringValue } from "../../encoding/byte-value.js";
 import type { FunctionHost, Value } from "./types.js";
 
-type Flags = { insensitive: boolean; multiline: boolean; dotall: boolean; extended: boolean };
+type Flags = { insensitive: boolean; multiline: boolean; dotall: boolean; extended: 0 | 1 | 2 };
 type Node = { kind: "char"; test: (byte: number) => boolean }
   | { kind: "anchor"; test: (source: string, position: number) => boolean }
   | { kind: "sequence"; nodes: Node[] }
@@ -25,7 +25,7 @@ function compile(pattern: string, host: FunctionHost): Node {
   let at = 0, depth = 0, nodes = 0, captures = 0;
   const references: number[] = [];
   const names = new Map<string, number[]>(), namedReferences: { name: string; indices: number[] }[] = [];
-  const flags: Flags = { insensitive: false, multiline: false, dotall: false, extended: false };
+  const flags: Flags = { insensitive: false, multiline: false, dotall: false, extended: 0 };
   const node = <T extends Node>(value: T): T => {
     host.tick();
     if (++nodes > (host.context.limits.workbookNodes ?? host.context.limits.inputBytes))
@@ -52,7 +52,7 @@ function compile(pattern: string, host: FunctionHost): Node {
     while (at < pattern.length) {
       host.tick();
       const byte = pattern.charCodeAt(at);
-      if (" \t\r\n\f".includes(pattern[at]!)) at++;
+      if (" \t\r\n\f\v".includes(pattern[at]!) || byte === 133) at++;
       else if (byte === 35) { while (at < pattern.length && pattern[at] !== "\n") { host.tick(); at++; } }
       else break;
     }
@@ -142,6 +142,11 @@ function compile(pattern: string, host: FunctionHost): Node {
     return literal(char.charCodeAt(0), mode);
   }
   function characterClass(mode: Flags): Node {
+    const ignoreClassSpace = () => {
+      if (mode.extended !== 2) return;
+      while (pattern[at] === " " || pattern[at] === "\t") { host.tick(); at++; }
+    };
+    ignoreClassSpace();
     const inverse = pattern[at] === "^"; if (inverse) at++;
     const tests: Node[] = []; let first = true;
     const take = (): Node => {
@@ -170,15 +175,22 @@ function compile(pattern: string, host: FunctionHost): Node {
       if (pattern[at] === "[" && (pattern[at + 1] === "." || pattern[at + 1] === "=")) return unsupported();
       return pattern[at] === "\\" ? (at++, escaped(mode, true)) : literal(pattern.charCodeAt(at++), mode);
     };
+    ignoreClassSpace();
     while (at < pattern.length && (first || pattern[at] !== "]")) {
       host.tick(); first = false;
-      const start = at, left = take();
-      if (pattern[at] === "-" && pattern[at + 1] !== "]" && at + 1 < pattern.length) {
-        at++; const end = at, right = take();
-        if (at - end !== 1 || end - start !== 2 || left.kind !== "char" || right.kind !== "char") return unsupported();
+      const start = at, left = take(), leftEnd = at;
+      ignoreClassSpace();
+      if (pattern[at] === "-") {
+        at++;
+        ignoreClassSpace();
+        if (pattern[at] === "]") { tests.push(left, literal(45, mode)); break; }
+        if (at === pattern.length) return unsupported();
+        const end = at, right = take();
+        if (at - end !== 1 || leftEnd - start !== 1 || left.kind !== "char" || right.kind !== "char") return unsupported();
         const low = pattern.charCodeAt(start), high = pattern.charCodeAt(end); if (low > high) return unsupported();
         tests.push(node({ kind: "char", test: (byte: number) => byte >= low && byte <= high || mode.insensitive && fold(byte) >= fold(low) && fold(byte) <= fold(high) }));
       } else tests.push(left);
+      ignoreClassSpace();
     }
     if (!tests.length || pattern[at++] !== "]") return unsupported();
     return node({ kind: "char", test: (byte: number) => {
@@ -210,19 +222,32 @@ function compile(pattern: string, host: FunctionHost): Node {
         return namedReference(name, mode);
       }
       else {
-        let disabled = false, found = false;
+        const reset = pattern[at] === "^";
+        if (reset) {
+          at++;
+          Object.assign(mode, { insensitive: false, multiline: false, dotall: false, extended: 0 });
+        }
+        let disabled = false, found = reset, xCount = 0, aCount = 0, dCount = 0;
         while (at < pattern.length && "imsxad-".includes(pattern[at]!)) {
           host.tick(); const flag = pattern[at++];
-          if (flag === "-") { if (disabled) return unsupported(); disabled = true; continue; }
+          if (flag === "-") {
+            if (disabled || reset) return unsupported("embedded modifier grammar");
+            disabled = true; found = true; continue;
+          }
           found = true;
+          if (flag === "a" || flag === "d") {
+            if (disabled || reset && flag === "d") return unsupported("embedded modifier grammar");
+            if (flag === "a") aCount++; else dCount++;
+            if (aCount > 2 || dCount > 1 || aCount && dCount) return unsupported("embedded modifier grammar");
+          }
           if (flag === "i") mode.insensitive = !disabled;
           if (flag === "m") mode.multiline = !disabled;
           if (flag === "s") mode.dotall = !disabled;
-          if (flag === "x") mode.extended = !disabled;
+          if (flag === "x") mode.extended = disabled ? 0 : ++xCount > 1 ? 2 : 1;
         }
         if (!found) return unsupported();
         if (pattern[at] === ")") { at++; depth--; return node({ kind: "sequence", nodes: [] }); }
-        if (pattern[at++] !== ":") return unsupported();
+        if (pattern[at++] !== ":") return unsupported("embedded modifier grammar");
       }
     }
     const inner = alternative(mode); if (pattern[at++] !== ")") return unsupported(); depth--;
@@ -269,7 +294,7 @@ function compile(pattern: string, host: FunctionHost): Node {
       else if (char === "(") {
         // Bare flag groups change the enclosing scope; scoped groups inherit a copy.
         let end = at + 1;
-        if (pattern[at] === "?") while (end < pattern.length && "imsxad-".includes(pattern[end]!)) { host.tick(); end++; }
+        if (pattern[at] === "?") while (end < pattern.length && "imsxad-^".includes(pattern[end]!)) { host.tick(); end++; }
         const bare = pattern[at] === "?" && end > at + 1 && pattern[end] === ")";
         value = group(bare ? mode : { ...mode });
       } else if (char === ".") { const dotall = mode.dotall; value = node({ kind: "char", test: (byte: number) => dotall || byte !== 10 }); }

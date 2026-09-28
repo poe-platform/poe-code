@@ -129,3 +129,55 @@ it.each(perlSedEscapeCases)("matches native escape and possessive state $id", ve
 it.each(perlSedInvalidEscapeByteCases)("preserves native escape byte result $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "byte-string", value: vector.outputHex });
 });
+
+
+// Checked against Gnumeric 1.12.61's unmodified func_perl_sed on Perl 5.34.1.
+// Sample SHA256: 73bfafc72fe65a516eed8708395738a0fbfc11f607321a08bddd456ca572fe71.
+// Scalar component controls; this does not qualify Gnumeric plugin activation.
+const modifierCases = [
+  [" a", "(?xx)[ a]", " X"],
+  [" a", "(?xx:[ a])", " X"],
+  ["\ta", "(?xx)[\ta]", "\tX"],
+  ["ab", "(?x)a\vb", "X"],
+  ["ab", "(?xx)a\vb", "X"],
+  [" a", "(?x)[ a]", "XX"],
+  [" a", "(?xx)[\\ a]", "XX"],
+  ["\na", "(?xx)[\na]", "XX"],
+  ["\va", "(?xx)[\va]", "XX"],
+  [" a", "(?xx)(?-x)[ a]", "XX"],
+  [" a", "(?xx)(?x)[ a]", "XX"],
+  [" a", "(?xx)(?^:[ a])", "XX"],
+  [" a", "(?xx)(?^xx:[ a])", " X"],
+  ["a a", "(?xx:[ a]) [ a]", "X"],
+  ["a a", "(?xx)[ a](?-x: )[ a]", "X"],
+  [" a", "(?xx)[ a - c ]", " X"],
+  ["ab", "(?xx)[a b]+", "X"],
+  [" a", "(?xx)[\\x20a]", "XX"],
+  [" a", "(?xxx)[ a]", " X"],
+  ["a b", "(?xx)a\\ b", "X"],
+  ["a#b", "(?xx)a\\#b", "X"],
+  [" a", "(?xx)[ ^a]", "Xa"],
+  ["Aa", "(?i)(?^:a)", "AX"],
+  [" a", "(?xx)(?^)[ a]", "XX"],
+  [" a", "(?xx)[ a- ]", " X"],
+  ["a", "(?a:a)", "X"],
+  ["a", "(?aa:a)", "X"],
+  ["a", "(?d:a)", "X"],
+  ["a", "(?a)(?d:a)", "X"],
+  ["a", "(?-:a)", "X"],
+] as const;
+it.each(modifierCases)("matches Perl embedded modifier semantics %j %j", (input, pattern, output) => {
+  expect(calculate(expression([input, pattern, "X"]))).toEqual({ kind: "string", value: output });
+});
+it.each(["(?ad)a", "(?da)a", "(?-d:a)", "(?-a:a)", "(?aaa:a)", "(?dd:a)", "(?aiaa:a)", "(?^d:a)", "(?^i-x:a)"])(
+  "diagnoses malformed embedded modifiers %s", pattern => {
+    expect(() => calculate(expression(["a", pattern, "X"]))).toThrow("PERL_SED embedded modifier");
+  }
+);
+
+it("ignores raw-byte next-line pattern whitespace in extended modes", () => {
+  const host = { context, tick() {}, scalar(value: CellValue) { return value; } } as unknown as FunctionHost;
+  for (const prefix of ["283f7829", "283f787829"])
+    expect(perlSed([{ kind: "string", value: "ab" }, { kind: "byte-string", value: prefix + "618562" }, { kind: "string", value: "X" }], host))
+      .toEqual({ kind: "string", value: "X" });
+});

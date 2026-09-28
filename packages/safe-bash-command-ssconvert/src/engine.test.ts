@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Volume } from "memfs";
 import { solverRecord, constraintRecord } from "./codecs/mps.js";
-import { createEngine, createResourceIO, runCommand, type EngineConfig, type Codec } from "./index.js";
+import { createEngine, createResourceIO, runCommand, perlSampleFunctions, type EngineConfig, type Codec } from "./index.js";
 
 const encode = (text: string) => new TextEncoder().encode(text);
 const decode = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
@@ -241,4 +241,29 @@ describe("shared ssconvert engine contracts", () => {
     ).rejects.toMatchObject({ code: "resource-limit" });
     expect(volume.existsSync("/large.fixture")).toBe(false);
   });
+});
+
+it("shares PERL_SED extended modifiers through public SDK and command consumers", async () => {
+  const source = '<Workbook xmlns="http://www.gnumeric.org/v10.dtd"><Sheets><Sheet><Name>Sheet</Name><Cells><Cell Row="0" Col="0">=PERL_SED(" a","(?xx)[ a]","X")</Cell></Cells></Sheet></Sheets></Workbook>';
+  const { config, volume } = fixture();
+  volume.writeFileSync("/input.xml", source);
+  const engine = createEngine({ ...config, codecs: [], runtimeFunctions: perlSampleFunctions,
+    limits: { inputBytes: 100000, outputBytes: 100000, cells: 100, sheets: 3, operations: 1000 },
+    filesystem: createResourceIO({ cwd: "/", filesystem: config.filesystem! }) });
+  const chunks: Uint8Array[] = [], errors: string[] = [];
+  const sink = { async write(bytes: Uint8Array) { chunks.push(new Uint8Array(bytes)); } };
+  const signal = new AbortController().signal;
+  try {
+    const sdk = await engine.convert({ input: { kind: "stream", filename: "input.xml", source: [encode(source)] },
+      exportType: "Gnumeric_stf:stf_csv", destination: { kind: "stream", sink } }, { signal });
+    expect(sdk.exitCode).toBe(0);
+    expect(sdk.diagnostics).toEqual([]);
+    expect(decode(Buffer.concat(chunks))).toBe('" X"\n');
+    chunks.length = 0;
+    const command = await runCommand(["-T", "Gnumeric_stf:stf_csv", "/input.xml", "fd://1"], engine,
+      { signal, stdout: sink, stderr: { async write(bytes) { errors.push(decode(bytes)); } } });
+    expect(command.exitCode).toBe(0);
+    expect(errors).toEqual([]);
+    expect(decode(Buffer.concat(chunks))).toBe('" X"\n');
+  } finally { await engine.dispose(); }
 });

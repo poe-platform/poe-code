@@ -32,7 +32,7 @@ for (const name of approved) test(`${name} aggregate collision is atomic and rep
   assert.throws(() => agentCommands().setup(target), new RegExp(`already registered: ${name}`, "u"));
   assert.deepEqual(target.commands.list(), [original, custom]);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 111);
+  assert.equal(target.commands.list().length, 112);
   assert.equal(target.commands.get("custom"), before[1]);
   assert.notEqual(target.commands.get(name), before[0]);
 });

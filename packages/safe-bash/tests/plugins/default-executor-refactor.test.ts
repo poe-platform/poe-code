@@ -185,7 +185,7 @@ test("aggregate replacement, collision and eager limits retain atomic registrati
   const custom = commands.get("custom");
   const replacement = agentCommands({ replace: true });
   await replacement.setup(host);
-  assert.equal(commands.list().length, 111);
+  assert.equal(commands.list().length, 112);
   assert.equal(commands.get("custom"), custom);
   await replacement.dispose?.();
   assert.throws(() => replacement.setup(host), /disposed/u);

@@ -35,7 +35,7 @@ test("expr aggregate collision preflight and top-level replacement preserve cust
   assert.throws(() => agentCommands(nested).setup(target), /already registered: expr/u);
   assert.deepEqual(target.commands.list(), [original, custom]);
   await agentCommands({ ...nested, replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 111); assert.equal(target.commands.get("custom"), registeredCustom); assert.notEqual(target.commands.get("expr"), registeredExpr);
+  assert.equal(target.commands.list().length, 112); assert.equal(target.commands.get("custom"), registeredCustom); assert.notEqual(target.commands.get("expr"), registeredExpr);
 });
 
 test("unknown nested expr regex is ignored with and without global regex", () => {

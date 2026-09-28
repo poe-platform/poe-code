@@ -160,7 +160,7 @@ test("portable registration is atomic and replacement preserves unrelated comman
   const custom = commands.get("custom");
   const replacement = agentCommands({ regexExecutor: browser.createBoundedRegexProvider(), replace: true });
   await replacement.setup(host);
-  assert.equal(commands.list().length, 111);
+  assert.equal(commands.list().length, 112);
   assert.equal(commands.get("custom"), custom);
   await replacement.dispose?.();
   assert.throws(() => replacement.setup(host), /disposed/);

@@ -1571,3 +1571,45 @@ dual_fixture_test!(cli_status_ignored_ls_remote_whatchanged_and_request_pull, cl
     assert_eq!(r_rp.exit_code, 0);
     assert!(r_rp.stdout.contains("The following changes since commit") && r_rp.stdout.contains("feat: update readme for pr"));
 });
+
+
+dual_fixture_test!(cli_merge_tree_merge_file_fmt_merge_msg_rerere_trailers_and_column, cli_merge_tree_merge_file_fmt_merge_msg_rerere_trailers_and_column_sub, "test-checkout", |f| {
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "-b", "branch-a"]);
+    f.fs.write_str(&join(&[&f.dir, "only-a.txt"]), "from branch a\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "only-a.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "feat: add only-a"]);
+
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "test-branch"]);
+    execute_git_cli(&f.fs, &f.dir, &["checkout", "-b", "branch-b"]);
+    f.fs.write_str(&join(&[&f.dir, "only-b.txt"]), "from branch b\n");
+    execute_git_cli(&f.fs, &f.dir, &["add", "only-b.txt"]);
+    execute_git_cli(&f.fs, &f.dir, &["commit", "-m", "feat: add only-b"]);
+
+    // 1. merge-tree --write-tree
+    let r_mt = execute_git_cli(&f.fs, &f.dir, &["merge-tree", "--write-tree", "branch-a", "branch-b"]);
+    assert_eq!(r_mt.exit_code, 0);
+    let merged_tree_oid = r_mt.stdout.trim();
+    assert_eq!(merged_tree_oid.len(), 40);
+    let r_ls = execute_git_cli(&f.fs, &f.dir, &["ls-tree", "--name-only", merged_tree_oid]);
+    assert!(r_ls.stdout.contains("only-a.txt") && r_ls.stdout.contains("only-b.txt"));
+
+    // 2. merge-file -p
+    f.fs.write_str(&join(&[&f.dir, "base.txt"]), "line1\nline2\nline3\n");
+    f.fs.write_str(&join(&[&f.dir, "ours.txt"]), "line1-ours\nline2\nline3\n");
+    f.fs.write_str(&join(&[&f.dir, "theirs.txt"]), "line1\nline2\nline3-theirs\n");
+    let r_mf = execute_git_cli(&f.fs, &f.dir, &["merge-file", "-p", "ours.txt", "base.txt", "theirs.txt"]);
+    assert_eq!(r_mf.exit_code, 0);
+    assert_eq!(r_mf.stdout, "line1-ours\nline2\nline3-theirs\n");
+
+    // 3. fmt-merge-msg and rerere
+    let r_fmm = execute_git_cli(&f.fs, &f.dir, &["fmt-merge-msg", "branch-a"]);
+    assert_eq!(r_fmm.stdout, "Merge branch 'branch-a'\n");
+    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["rerere", "status"]).exit_code, 0);
+
+    // 4. interpret-trailers and column
+    let r_it = execute_git_cli(&f.fs, &f.dir, &["interpret-trailers", "--trailer", "Signed-off-by: Alice <alice@example.com>", "feat: add feature"]);
+    assert_eq!(r_it.stdout, "feat: add feature\n\nSigned-off-by: Alice <alice@example.com>\n");
+    let r_col = execute_git_cli(&f.fs, &f.dir, &["column", "alpha\nbeta\ngamma"]);
+    assert_eq!(r_col.stdout, "alpha  beta  gamma\n");
+});

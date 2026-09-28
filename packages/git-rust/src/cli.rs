@@ -4486,6 +4486,209 @@ pub fn execute_git_cli_with_http(
             }
             CliResult::ok(out)
         }
+        "merge-tree" => {
+            let write_tree_mode = sub_args.contains(&"--write-tree");
+            let (base_oid, our_oid, their_oid) = if write_tree_mode && positionals.len() >= 2 {
+                let Ok(o_oid) = crate::cli_history::resolve_commit(fs, &gitdir, positionals[0]) else {
+                    return CliResult::err(128, format!("fatal: not a valid commit '{}'\n", positionals[0]));
+                };
+                let Ok(t_oid) = crate::cli_history::resolve_commit(fs, &gitdir, positionals[1]) else {
+                    return CliResult::err(128, format!("fatal: not a valid commit '{}'\n", positionals[1]));
+                };
+                let b_oid = crate::commands::plumbing::find_merge_base(fs, &gitdir, &[o_oid.clone(), t_oid.clone()])
+                    .ok()
+                    .and_then(|v| v.into_iter().next());
+                (b_oid, o_oid, t_oid)
+            } else if positionals.len() >= 3 {
+                let b_oid = crate::cli_history::resolve_commit(fs, &gitdir, positionals[0]).ok();
+                let Ok(o_oid) = crate::cli_history::resolve_commit(fs, &gitdir, positionals[1]) else {
+                    return CliResult::err(128, format!("fatal: not a valid commit '{}'\n", positionals[1]));
+                };
+                let Ok(t_oid) = crate::cli_history::resolve_commit(fs, &gitdir, positionals[2]) else {
+                    return CliResult::err(128, format!("fatal: not a valid commit '{}'\n", positionals[2]));
+                };
+                (b_oid, o_oid, t_oid)
+            } else {
+                return CliResult::err(129, "usage: git merge-tree [--write-tree] [<base-tree>] <branch1> <branch2>\n");
+            };
+            match crate::commands::worktree::merge_trees_3way(
+                fs,
+                None,
+                &gitdir,
+                &our_oid,
+                base_oid.as_deref(),
+                &their_oid,
+                "ours",
+                "base",
+                "theirs",
+                false,
+                false,
+            ) {
+                Ok((tree_oid, conflicts)) => {
+                    let mut out = format!("{tree_oid}\n");
+                    for c in &conflicts {
+                        out.push_str(&format!("CONFLICT (content): Merge conflict in {c}\n"));
+                    }
+                    let mut res = CliResult::ok(out);
+                    if !conflicts.is_empty() {
+                        res.exit_code = 1;
+                    }
+                    res
+                }
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            }
+        }
+        "merge-file" => {
+            let to_stdout = sub_args.contains(&"-p") || sub_args.contains(&"--stdout");
+            let mut labels: Vec<&str> = Vec::new();
+            let mut files: Vec<&str> = Vec::new();
+            let mut i = 0;
+            while i < sub_args.len() {
+                if sub_args[i] == "-L" && i + 1 < sub_args.len() {
+                    labels.push(sub_args[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                if let Some(lbl) = sub_args[i].strip_prefix("-L")
+                    && !lbl.is_empty()
+                {
+                    labels.push(lbl);
+                    i += 1;
+                    continue;
+                }
+                if !sub_args[i].starts_with('-') {
+                    files.push(sub_args[i]);
+                }
+                i += 1;
+            }
+            if files.len() < 3 {
+                return CliResult::err(129, "usage: git merge-file [-p] [-L <name>] <current-file> <base-file> <other-file>\n");
+            }
+            let cur_path = absolute_path(&effective_cwd, files[0]);
+            let base_path = absolute_path(&effective_cwd, files[1]);
+            let other_path = absolute_path(&effective_cwd, files[2]);
+            let cur_str = fs.read_str(&cur_path).unwrap_or_default();
+            let base_str = fs.read_str(&base_path).unwrap_or_default();
+            let other_str = fs.read_str(&other_path).unwrap_or_default();
+            let our_lbl = labels.first().copied().unwrap_or(files[0]);
+            let base_lbl = labels.get(1).copied().unwrap_or(files[1]);
+            let their_lbl = labels.get(2).copied().unwrap_or(files[2]);
+            let merged = crate::utils::merge_file([base_lbl, our_lbl, their_lbl], [&base_str, &cur_str, &other_str]);
+            if to_stdout {
+                let mut res = CliResult::ok(merged.merged_text);
+                if !merged.clean_merge {
+                    res.exit_code = 1;
+                }
+                res
+            } else {
+                fs.write_str(&cur_path, &merged.merged_text);
+                let mut res = CliResult::ok("");
+                if !merged.clean_merge {
+                    res.exit_code = 1;
+                }
+                res
+            }
+        }
+        "fmt-merge-msg" => {
+            let mut custom_msg: Option<&str> = None;
+            for i in 0..sub_args.len() {
+                if (sub_args[i] == "-m" || sub_args[i] == "--message") && i + 1 < sub_args.len() {
+                    custom_msg = Some(sub_args[i + 1]);
+                }
+            }
+            let target = positionals.first().copied().unwrap_or("FETCH_HEAD");
+            let msg = if let Some(m) = custom_msg {
+                format!("{m}\n")
+            } else {
+                format!("Merge branch '{target}'\n")
+            };
+            CliResult::ok(msg)
+        }
+        "rerere" => {
+            let action = positionals.first().copied().unwrap_or("status");
+            let rr_dir = join(&[&gitdir, "rr-cache"]);
+            let _ = fs.mkdir(&rr_dir);
+            if action == "clear" || action == "forget" {
+                let _ = fs.rmdir(&rr_dir);
+                let _ = fs.mkdir(&rr_dir);
+                return CliResult::ok("");
+            }
+            let unmerged = crate::GitIndexManager::acquire(fs, &gitdir, |idx| Ok(idx.unmerged_paths())).unwrap_or_default();
+            let mut out = String::new();
+            for p in unmerged {
+                out.push_str(&format!("{p}\n"));
+            }
+            CliResult::ok(out)
+        }
+        "interpret-trailers" => {
+            let parse_only = sub_args.contains(&"--parse");
+            let mut add_trailers: Vec<&str> = Vec::new();
+            let mut msg_arg: Option<&str> = None;
+            let mut i = 0;
+            while i < sub_args.len() {
+                if sub_args[i] == "--trailer" && i + 1 < sub_args.len() {
+                    add_trailers.push(sub_args[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                if let Some(t) = sub_args[i].strip_prefix("--trailer=") {
+                    add_trailers.push(t);
+                    i += 1;
+                    continue;
+                }
+                if !sub_args[i].starts_with('-') {
+                    msg_arg = Some(sub_args[i]);
+                }
+                i += 1;
+            }
+            let raw_input = msg_arg
+                .and_then(|p| fs.read_str(&absolute_path(&effective_cwd, p)).or_else(|| Some(p.to_string())))
+                .unwrap_or_default();
+            if parse_only {
+                let mut out = String::new();
+                for line in raw_input.lines() {
+                    if let Some((k, v)) = line.split_once(": ")
+                        && !k.contains(' ')
+                    {
+                        out.push_str(&format!("{k}: {v}\n"));
+                    }
+                }
+                return CliResult::ok(out);
+            }
+            let mut body = raw_input.trim_end_matches('\n').to_string();
+            if !add_trailers.is_empty() {
+                let has_existing_trailer = body.contains("\n\n")
+                    && body
+                        .lines()
+                        .last()
+                        .is_some_and(|l| l.split_once(": ").is_some_and(|(k, _)| !k.contains(' ')));
+                if !has_existing_trailer && !body.is_empty() {
+                    body.push('\n');
+                }
+                for t in add_trailers {
+                    if !body.is_empty() {
+                        body.push('\n');
+                    }
+                    let normalized = if t.contains(": ") {
+                        t.to_string()
+                    } else if let Some((k, v)) = t.split_once('=') {
+                        format!("{k}: {v}")
+                    } else {
+                        t.to_string()
+                    };
+                    body.push_str(&normalized);
+                }
+            }
+            CliResult::ok(format!("{body}\n"))
+        }
+        "column" => {
+            let items: Vec<&str> = positionals.iter().flat_map(|s| s.lines()).map(str::trim).filter(|s| !s.is_empty()).collect();
+            if items.is_empty() {
+                CliResult::ok("")
+            } else {
+                CliResult::ok(format!("{}\n", items.join("  ")))
+            }
+        }
         other => CliResult::err(1, format!("git: '{other}' is not a git command.\n")),
     }
 }

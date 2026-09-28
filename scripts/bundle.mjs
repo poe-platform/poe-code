@@ -11,7 +11,7 @@ import { collectPackageFiles, findBundleIssues, canonicalFs, canonicalFsRoutes, 
 import { rewriteWorkspaceDts } from "./rewrite-workspace-dts.mjs";
 import { resolveCanonicalFsBuilds } from "./bundle-fs.mjs";
 import { readBuiltNativeAssets, copyNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
-import { resolveBrowserShellBuild, resolveBrowserYqBuild } from "./bundle-safe-bash.mjs";
+import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { resolveSpreadsheetSdkBuilds } from "./bundle-spreadsheets.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -156,12 +156,6 @@ await publishBundleOutputs(browserShellBuild, {
   outdir: browserShellOptions.outdir, entryPoints: Object.values(browserShellOptions.entryPoints), workingDirectory: rootDir,
 });
 consumerBuilds.push(browserShellBuild);
-const browserYqOptions = resolveBrowserYqBuild(rootDir);
-const browserYqBuild = await esbuild.build(browserYqOptions);
-await publishBundleOutputs(browserYqBuild, {
-  outdir: browserYqOptions.outdir, entryPoints: Object.values(browserYqOptions.entryPoints), workingDirectory: rootDir,
-});
-consumerBuilds.push(browserYqBuild);
 
 consumerBuilds.push(
   await esbuild.build({

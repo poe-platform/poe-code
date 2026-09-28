@@ -110,21 +110,6 @@ export function resolveBrowserOpBuild(rootDir) {
   };
 }
 
-export function resolveBrowserYqBuild(rootDir, { alias = {}, external = [] } = {}) {
-  const directory = path.join(rootDir, "packages/safe-bash");
-  return {
-    absWorkingDir: rootDir,
-    entryPoints: { index: path.join(directory, "src/yq.browser.ts") },
-    outdir: path.join(directory, "dist/yq-browser"),
-    bundle: true, splitting: true, chunkNames: "chunks/[name]-[hash]",
-    platform: "browser", conditions: ["workerd", "worker", "browser"],
-    format: "esm", target: "es2022", sourcemap: true, metafile: true, write: false,
-    alias: { ...(!external.includes("safe-bash-contracts") ? { "safe-bash-contracts": path.join(rootDir, "packages/safe-bash-contracts/src") } : {}), "@poe-code/safe-fs": "poe-code/safe-fs", ...alias },
-    external: [...new Set(["poe-code/safe-fs/core", ...external.filter(name => !name.startsWith("safe-bash-") || name === "safe-bash-contracts")])],
-    inject: [path.join(directory, "browser/buffer.mjs")],
-  };
-}
-
 export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } = {}) {
   const directory = path.join(rootDir, "packages/safe-bash");
   const platform = path.join(directory, "browser/platform.mjs");
@@ -162,6 +147,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
       "commands/llm/index.browser": path.join(directory, "src/commands/llm/index.ts"),
       "commands/llm/providers/index.browser": path.join(directory, "src/commands/llm/providers/index.ts"),
       "core.browser": path.join(directory, "src/core.browser.ts"),
+      "yq-browser/index": path.join(directory, "src/yq.browser.ts"),
       "jobs.browser": path.join(directory, "src/jobs.ts"),
       "optional-host.browser": path.join(directory, "src/optional-host.ts"),
       "commands/xml/index.browser": path.join(directory, "src/commands/xml/index.ts"),
@@ -220,15 +206,12 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
 export async function buildBrowserShellOutputs(rootDir, { alias = {}, external = [], files } = {}) {
   const esbuild = await import("esbuild");
   const { publishBundleOutputs } = await import("./publish-bundle.mjs");
-  let shell;
-  for (const options of [resolveBrowserShellBuild(rootDir, { alias, external }), resolveBrowserYqBuild(rootDir, { alias, external })]) {
-    const result = await esbuild.build(options);
-    await publishBundleOutputs(
-      result,
-      { outdir: options.outdir, entryPoints: Object.values(options.entryPoints), workingDirectory: rootDir },
-      files
-    );
-    shell ??= result;
-  }
-  return shell;
+  const options = resolveBrowserShellBuild(rootDir, { alias, external });
+  const result = await esbuild.build(options);
+  await publishBundleOutputs(
+    result,
+    { outdir: options.outdir, entryPoints: Object.values(options.entryPoints), workingDirectory: rootDir },
+    files
+  );
+  return result;
 }

@@ -375,6 +375,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
     "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
+    "yq-browser/index": path.join(root, "packages/safe-bash/src/yq.browser.ts"),
     "jobs.browser": path.join(root, "packages/safe-bash/src/jobs.ts"),
     "optional-host.browser": path.join(root, "packages/safe-bash/src/optional-host.ts"),
     "commands/xml/index.browser": path.join(root, "packages/safe-bash/src/commands/xml/index.ts"),

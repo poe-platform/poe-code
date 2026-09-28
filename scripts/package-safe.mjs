@@ -7,7 +7,7 @@ import semver from "semver";
 import glob from "fast-glob";
 import ts from "typescript";
 import { build } from "esbuild";
-import { resolveBrowserShellBuild, resolveBrowserYqBuild, resolvePrivateCommandBuild } from "./bundle-safe-bash.mjs";
+import { resolveBrowserShellBuild, resolvePrivateCommandBuild } from "./bundle-safe-bash.mjs";
 import { resolveBundleGraph } from "./bundle-graph.mjs";
 import { resolveCommandExportBuilds } from "./safe-command-publication.mjs";
 import { copyNativeAssets, nativeImportMapping, readBuiltNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
@@ -312,7 +312,6 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
           alias: { ...browser.alias, "@poe-code/safe-fs": "@poe-platform/safe-fs", "poe-code/safe-fs": "@poe-platform/safe-fs" },
         });
       }
-      if (source.exports["./yq"]?.browser) recipes.push(resolveBrowserYqBuild(rootDir, { alias, external }));
       recipes.push(...resolveCommandExportBuilds(rootDir, source, root, workspaces, { alias, external }));
       for (const recipe of recipes) {
         const result = await bundle(recipe);

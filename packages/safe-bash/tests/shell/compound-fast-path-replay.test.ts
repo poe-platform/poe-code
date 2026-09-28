@@ -261,4 +261,67 @@ test("comma arithmetic in while loops, associative key iteration arithmetic, mod
   } finally {
     await shell.dispose();
   }
+
+});
+
+test("assign-default parameter expansions (: \"${x:=default}\"), mapfile -t <<< here-strings, and getopts with local OPTIND=1 in sync loops", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  for (const command of textCommands()) shell.commands.register(command);
+  try {
+    const result = await shell.exec(
+      [
+        'parse_cfg() {',
+        '  local val="$1"',
+        '  : "${val:=fallback_$2}"',
+        '  local empty=""',
+        '  local unset_var',
+        '  : "${empty=keep_empty}" "${unset_var=set_unset}"',
+        '  OUT="$val|$empty|$unset_var"',
+        '}',
+        'acc=0',
+        'for ((i = 0; i < 40; i++)); do',
+        '  if (( i % 2 == 0 )); then',
+        '    parse_cfg "" "$i"',
+        '  else',
+        '    parse_cfg "explicit_$i" "$i"',
+        '  fi',
+        '  acc=$((acc + ${#OUT}))',
+        'done',
+        'printf "cfg:%d:%s\n" "$acc" "$OUT"',
+        'text=$\'alpha\nbeta\ngamma\ndelta\'',
+        'total=0',
+        'for ((i = 0; i < 40; i++)); do',
+        '  mapfile -t lines <<< "$text"',
+        '  total=$((total + ${#lines[@]} + ${#lines[1]} + ${#lines[3]}))',
+        'done',
+        'readarray -t single <<< "solo_line"',
+        'printf "mapfile:%d:%s:%d:%s\n" "$total" "${lines[2]}" "${#single[@]}" "${single[0]}"',
+        'run_opts() {',
+        '  local OPTIND=1 opt a=0 b=""',
+        '  while getopts ":ab:" opt "$@"; do',
+        '    case "$opt" in',
+        '      a) a=$((a + 1)) ;;',
+        '      b) b="$OPTARG" ;;',
+        '    esac',
+        '  done',
+        '  REPLY="$a:$b:$OPTIND"',
+        '}',
+        'opt_total=0',
+        'for ((i = 0; i < 40; i++)); do',
+        '  run_opts -a -b "val_$i" -a rest',
+        '  opt_total=$((opt_total + ${#REPLY}))',
+        'done',
+        'printf "opts:%d:%s\n" "$opt_total" "$REPLY"'
+      ].join("\n")
+    );
+    assert.equal(
+      result.stdout,
+      "cfg:870:explicit_39||set_unset\nmapfile:520:gamma:1:solo_line\nopts:390:2:val_39:5\n"
+    );
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally {
+    await shell.dispose();
+  }
 });

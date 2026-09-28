@@ -276,3 +276,67 @@ export async function scanGetopts(state: GetoptsState, optstring: string, input:
   }
   return finish("option", option, { kind: "unset" }, null);
 }
+
+const syncSpecScratch = new Int8Array(128);
+
+export function scanGetoptsSync(state: GetoptsState, optstring: string, args: readonly string[]): GetoptsScanResult | undefined {
+  if (!record(state) || typeof state.index !== "number" || !Number.isSafeInteger(state.index) || state.index < 0 || args.length > 1024 || optstring.length > 256) return undefined;
+  for (let i = 0; i < optstring.length; i++) {
+    const c = optstring.charCodeAt(i);
+    if (c === 0 || c > 127) return undefined;
+  }
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (a.length > 4096 || a.includes("\0")) return undefined;
+  }
+  const silent = optstring.charCodeAt(0) === 58;
+  syncSpecScratch.fill(-1);
+  for (let position = silent ? 1 : 0; position < optstring.length; position++) {
+    const code = optstring.charCodeAt(position);
+    if (code !== 58 && code !== 63 && syncSpecScratch[code] === -1) syncSpecScratch[code] = Number(optstring.charCodeAt(position + 1) === 58);
+  }
+  let index = state.index || 1;
+  let active = state.index === 0 ? undefined : state.active;
+  if (index > args.length) {
+    index = args.length + 1;
+    return { state: { index }, kind: "end", status: 1, option: "?", optind: index, argument: { kind: "unset" }, diagnostic: null };
+  }
+  if (active && (args[active.argument] === undefined || active.offset >= args[active.argument]!.length)) active = undefined;
+  if (!active) {
+    const token = args[index - 1]!;
+    if (token.length < 2 || token.charCodeAt(0) !== 45) {
+      return { state: { index }, kind: "end", status: 1, option: "?", optind: index, argument: { kind: "unset" }, diagnostic: null };
+    }
+    if (token === "--") {
+      index++;
+      return { state: { index }, kind: "end", status: 1, option: "?", optind: index, argument: { kind: "unset" }, diagnostic: null };
+    }
+    active = { argument: index - 1, offset: 1 };
+  }
+  const token = args[active.argument]!;
+  const option = token[active.offset]!;
+  const code = option.charCodeAt(0);
+  if (code > 127) return undefined;
+  const offset = active.offset + 1;
+  const attached = offset < token.length;
+  active = attached ? { argument: active.argument, offset } : undefined;
+  if (!attached) index++;
+  if (syncSpecScratch[code] === -1) {
+    if (!silent) return undefined;
+    return { state: active === undefined ? { index } : { index, active }, kind: "unknown-option", status: 0, option: "?", optind: index, argument: { kind: "set", value: option }, diagnostic: null };
+  }
+  if (syncSpecScratch[code] === 1) {
+    if (attached) {
+      index++;
+      return { state: { index }, kind: "option", status: 0, option, optind: index, argument: { kind: "set", value: token.slice(offset) }, diagnostic: null };
+    }
+    if (index <= args.length) {
+      const value = args[index - 1]!;
+      index++;
+      return { state: active === undefined ? { index } : { index, active }, kind: "option", status: 0, option, optind: index, argument: { kind: "set", value }, diagnostic: null };
+    }
+    if (!silent) return undefined;
+    return { state: active === undefined ? { index } : { index, active }, kind: "missing-argument", status: 0, option: ":", optind: index, argument: { kind: "set", value: option }, diagnostic: null };
+  }
+  return { state: active === undefined ? { index } : { index, active }, kind: "option", status: 0, option, optind: index, argument: { kind: "unset" }, diagnostic: null };
+}

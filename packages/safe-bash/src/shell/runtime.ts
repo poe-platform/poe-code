@@ -54,7 +54,7 @@ import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { MemoryFileSystem, isCleanAbsolutePath, retargetScopedFileSystem, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryRmRfMemorySync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/core";
-import { collectPureReadOnlySmiNames, compilePureSmiProgram, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs, type ArithmeticProgram, type ArithmeticReferences, type CompiledSmiExpr } from "./arithmetic.js";
+import { collectPureReadOnlySmiNames, compilePureSmiProgram, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs, type Arithmetic, type ArithmeticProgram, type ArithmeticReferences, type CompiledSmiExpr } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
 import { expandTildes } from "./tilde-expansion.js";
@@ -13297,7 +13297,14 @@ export class Runtime {
     const condition = command.kind === "arithmetic-for" ? command.expressions[1]?.tree : undefined;
     const increment = command.kind === "arithmetic-for" ? command.expressions[2]?.tree : undefined;
     const whileCondCmd = command.kind === "while" && command.condition.lists.length === 1 && command.condition.lists[0]!.pipelines.length === 1 ? command.condition.lists[0]!.pipelines[0]!.commands[0] : undefined;
-    const whilePrintfInd = whileCondCmd?.kind === "arithmetic" && !whileCondCmd.expression.error && whileCondCmd.expression.tree?.kind === "binary" && (whileCondCmd.expression.tree.left.kind === "name" ? whileCondCmd.expression.tree.left.name : (whileCondCmd.expression.tree.left.kind === "unary" && whileCondCmd.expression.tree.left.operand.kind === "name" ? whileCondCmd.expression.tree.left.operand.name : undefined));
+    const whileTree = whileCondCmd?.kind === "arithmetic" && !whileCondCmd.expression.error ? whileCondCmd.expression.tree : undefined;
+    const whileName = whileTree?.kind === "binary" && (whileTree.operator === "<" || whileTree.operator === "<=") &&
+      whileTree.left.kind === "name" && whileTree.right.kind === "literal" &&
+      whileTree.right.value >= 0n && whileTree.right.value <= 2000n ? whileTree.left.name : undefined;
+    const whileValue = whileName === undefined ? undefined : rawState.variables[whileName];
+    const whileStart = typeof whileValue === "string" ? Number(whileValue) : NaN;
+    const whilePrintfInd = Number.isInteger(whileStart) && whileStart >= 0 && whileStart <= 2000 &&
+      String(whileStart) === whileValue ? whileName : undefined;
     const forPrintfInd = command.kind === "for" && command.words?.length === 1 && /^\{[0-9]{1,4}\.\.[0-9]{1,4}(?:\.\.[1-9][0-9]{0,2})?\}$/.test(command.words[0]!.plain ?? "") ? command.name : undefined;
     const printfInductionName =
       initializer?.kind === "binary" && initializer.operator === "=" && initializer.left.kind === "name" &&
@@ -14707,12 +14714,12 @@ export class Runtime {
   private canSyncPrintfInductionBody(script: Script, rawState: State, inductionName?: string): boolean {
     for (const list of script.lists) for (const pipeline of list.pipelines) for (const command of pipeline.commands) {
       if (command.kind === "arithmetic") {
-        if (command.redirects.length === 0 && !command.expression.error && !command.expression.hasSubscript && isSafeSmiProgram(command.expression) && command.expression.tree?.kind === "unary" && (command.expression.tree.operator === "++" || command.expression.tree.operator === "--") && command.expression.tree.operand.kind === "name") continue;
+        if (command.redirects.length === 0 && !command.expression.error && !command.expression.hasSubscript && isSafeSmiProgram(command.expression) && command.expression.tree?.kind === "unary" && (command.expression.tree.operator === "++" || (command.expression.tree.operator === "--" && command.expression.tree.operand.kind === "name" && command.expression.tree.operand.name !== inductionName)) && command.expression.tree.operand.kind === "name") continue;
         return false;
       }
       if (command.kind !== "simple" || hasShellFunction(rawState, command.words[0]?.plain ?? "") || command.words.some(word => getArrayAssignment(word) !== undefined)) return false;
       const w0 = command.words[0]?.plain;
-      if (w0 === "declare" || w0 === "typeset" || w0 === "local" || w0 === "export" || w0 === "unset" || w0 === "mapfile" || w0 === "readarray") return false;
+      if (w0 === "let" || w0 === "declare" || w0 === "typeset" || w0 === "local" || w0 === "export" || w0 === "unset" || w0 === "mapfile" || w0 === "readarray") return false;
       if (inductionName !== undefined) {
         if (command.words.some(w => {
           const p0 = w.parts[0];
@@ -14747,6 +14754,20 @@ export class Runtime {
     const printfDef = this.commands.get("printf");
     if (hasShellFunction(rawState, "printf") || rawState.extensions?.builtins.has("printf") || printfDef?.execute !== printfCommand.execute) return false;
     const effInductionName = inductionName ?? this._activePrintfInductionName;
+    // Prove unsigned arithmetic stays non-negative and within the Smi evaluator's
+    // range. Names are matched as AST nodes, never as substrings of other names.
+    const unsignedUpperBound = (tree: Arithmetic | undefined): bigint | undefined => {
+      if (!tree) return undefined;
+      let bound: bigint | undefined;
+      if (tree.kind === "literal") bound = tree.value;
+      else if (tree.kind === "name" && tree.name === effInductionName && tree.subscript === undefined) bound = 2147483647n;
+      else if (tree.kind === "binary" && (tree.operator === "+" || tree.operator === "*")) {
+        const left = unsignedUpperBound(tree.left);
+        const right = unsignedUpperBound(tree.right);
+        if (left !== undefined && right !== undefined) bound = tree.operator === "+" ? left + right : left * right;
+      }
+      return bound !== undefined && bound >= 0n && bound <= 2147483647n ? bound : undefined;
+    };
     const fmtWordIdx = cmd.words[argStartIdx]?.plain === "--" ? argStartIdx + 1 : argStartIdx;
     if (fmtWordIdx >= cmd.words.length) return false;
     const fmtWord = cmd.words[fmtWordIdx]!;
@@ -14794,7 +14815,7 @@ export class Runtime {
           isSafeSmiProgram(part.expression) &&
           /^[a-zA-Z0-9_ +*-]+$/.test(part.expression.source) &&
           this.canSyncArithmeticWithoutFault(part.expression.tree, rawState, cmd.line ?? 1) &&
-          (spec === "d" || (effInductionName !== undefined && /^[0-9 +*]+$/.test(part.expression.source.replaceAll(effInductionName, "0"))))
+          (spec === "d" || unsignedUpperBound(part.expression.tree) !== undefined)
         ) {
           args.push("0");
           continue;

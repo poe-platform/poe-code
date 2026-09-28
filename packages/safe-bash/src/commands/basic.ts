@@ -9,6 +9,8 @@ import { parsePrintfFloat } from "./printf-float.js";
 import { printfDecimal } from "./printf-decimal.js";
 import { parsePrintfDirective } from "./printf-format.js";
 
+const utf8Encoder = new TextEncoder();
+
 export const defaultEchoExecutors = new WeakSet<CommandHandler>();
 
 export function basicCommands(): CommandDefinition[] {
@@ -377,7 +379,7 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
               valByteLen = val.length;
             }
           } else if (precision < 0) {
-            valByteLen = Buffer.byteLength(rawVal, "utf8");
+            valByteLen = utf8Encoder.encode(rawVal).byteLength;
           } else {
             return undefined;
           }

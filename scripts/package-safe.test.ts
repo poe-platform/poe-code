@@ -563,16 +563,20 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.writeFileSync("/repo/packages/safe-bash/dist/commands/mdq/index.browser.js", 'export * from "./index.js";');
     const plugin: Plugin = { name: "isolated-packed-files", setup(builder: import("esbuild").PluginBuild) {
       builder.onResolve({ filter: /.*/ }, args => {
-        if (builder.initialOptions.external?.some(name => args.path === name || args.path.startsWith(name + "/"))) return { path: args.path, external: true };
-        if (args.path.startsWith("node:")) throw new Error("Node dependency in portable command consumer: " + args.path);
+        const alias = Object.entries(builder.initialOptions.alias ?? {})
+          .filter(([name]) => args.path === name || args.path.startsWith(name + "/"))
+          .sort(([left], [right]) => right.length - left.length)[0];
+        const specifier = alias ? alias[1] + args.path.slice(alias[0].length) : args.path;
+        if (builder.initialOptions.external?.some(name => specifier === name || specifier.startsWith(name + "/"))) return { path: specifier, external: true };
+        if (specifier.startsWith("node:")) throw new Error("Node dependency in portable command consumer: " + specifier);
         let filename;
-        if (args.path.startsWith("@poe-platform/")) {
-          const [name, ...route] = args.path.slice("@poe-platform/".length).split("/");
+        if (specifier.startsWith("@poe-platform/")) {
+          const [name, ...route] = specifier.slice("@poe-platform/".length).split("/");
           const pkg = JSON.parse(volume.readFileSync(`/output/${name}/package.json`, "utf8").toString());
           const key = route.length ? "./" + route.join("/") : ".";
           const target = pkg.exports[key] ?? pkg.exports["./contracts/*"];
           filename = `/output/${name}/` + (target.browser ?? target.import).replace("*", route.slice(1).join("/"));
-        } else filename = path.resolve(args.resolveDir, args.path);
+        } else filename = path.resolve(args.resolveDir, specifier);
         if (!filename.startsWith("/output/") && filename !== "/repo/packages/safe-bash/browser/buffer.mjs" && !privatePackages.some(name => filename.startsWith(`/repo/packages/${name}/dist/`))) throw new Error("Outside isolated consumer: " + filename);
         return { path: path.normalize(filename), namespace: "packed" };
       });
@@ -687,27 +691,30 @@ it("retains admitted private declarations even when public signatures erase the 
   expect(shipped.exports).not.toHaveProperty("./safe-bash-fixture-engine");
 });
 
-it.each(["wkhtmltopdf", "xz", "pandoc"])("packs %s and contract modules into one canonical relative graph", async command => {
+it.each([["wkhtmltopdf", "index"], ["xz", "index"], ["pandoc", "command"]])("packs %s and contract modules into one canonical relative graph", async (command, entry) => {
   const commandName = `safe-bash-command-${command}`;
+  const commandSpecifier = commandName + (entry === "index" ? "" : "/" + entry);
   const commandManifest = JSON.parse(readFileSync(new URL(`../packages/${commandName}/package.json`, import.meta.url), "utf8"));
   expect(commandManifest.private).toBe(true);
+  expect(commandManifest.exports[entry === "index" ? "." : "./" + entry]).toEqual({ types: `./dist/${entry}.d.ts`, import: `./dist/${entry}.js` });
   expect(bashManifest.poeCode.integration.privateWorkspaces[commandName]).toBeDefined();
   const facade = ts.createSourceFile("index.ts", readFileSync(new URL(`../packages/safe-bash/src/commands/${command}/index.ts`, import.meta.url), "utf8"), ts.ScriptTarget.Latest, true);
   expect(facade.statements.some(statement => ts.isExportDeclaration(statement)
-    && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === commandName)).toBe(true);
+    && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === commandSpecifier)).toBe(true);
   const { volume, options } = optionalLeftovers();
   for (const [name, dependencies, devDependencies] of [
     ["safe-bash-contracts", {}, {}],
     [commandName, {}, { "safe-bash-contracts": "*" }],
   ] as const) {
+    const entryName = name === commandName ? entry : "index";
     volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
     volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
       name, version: "0.0.1", private: true, type: "module", dependencies, devDependencies,
-      exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+      exports: { [entryName === "index" ? "." : "./" + entryName]: { types: `./dist/${entryName}.d.ts`, import: `./dist/${entryName}.js` } },
     }));
-    volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, name === "safe-bash-contracts"
+    volume.writeFileSync(`/repo/packages/${name}/dist/${entryName}.d.ts`, name === "safe-bash-contracts"
       ? "export declare const identity: object;" : 'export { identity } from "safe-bash-contracts";');
-    volume.writeFileSync(`/repo/packages/${name}/dist/index.js`, name === "safe-bash-contracts"
+    volume.writeFileSync(`/repo/packages/${name}/dist/${entryName}.js`, name === "safe-bash-contracts"
       ? "export const identity = {};" : 'export { identity } from "safe-bash-contracts";');
   }
   const manifest = structuredClone(bashManifest);
@@ -718,14 +725,14 @@ it.each(["wkhtmltopdf", "xz", "pandoc"])("packs %s and contract modules into one
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
   volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { identity } from "safe-bash-contracts";');
   volume.writeFileSync("/repo/packages/safe-bash/dist/index.d.ts", 'export { identity } from "safe-bash-contracts";');
-  volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${command}/index.js`, `export * from "${commandName}";`);
-  volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${command}/index.d.ts`, `export * from "${commandName}";`);
+  volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${command}/index.js`, `export * from "${commandSpecifier}";`);
+  volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${command}/index.d.ts`, `export * from "${commandSpecifier}";`);
   await packageSafeLibraries({ ...options, outDir: "/output" });
   const read = (path: string) => volume.readFileSync("/output/safe-bash/dist/" + path, "utf8");
   expect(read("safe-bash/index.js")).toContain('"../safe-bash-contracts/index.js"');
-  expect(read(`safe-bash/commands/${command}/index.js`)).toContain(`"../../../${commandName}/index.js"`);
-  expect(read(`${commandName}/index.js`)).toContain('"../safe-bash-contracts/index.js"');
-  expect(read(`${commandName}/index.d.ts`)).toContain('"../safe-bash-contracts/index.js"');
+  expect(read(`safe-bash/commands/${command}/index.js`)).toContain(`"../../../${commandName}/${entry}.js"`);
+  expect(read(`${commandName}/${entry}.js`)).toContain('"../safe-bash-contracts/index.js"');
+  expect(read(`${commandName}/${entry}.d.ts`)).toContain('"../safe-bash-contracts/index.js"');
   const shipped = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
   expect(shipped.dependencies).toEqual({});
   expect(shipped.exports[`./commands/${command}`]).toEqual({
@@ -1759,7 +1766,7 @@ it("keeps canonical private owners external in the packed browser recipe", async
     "safe-bash-command-pandoc/lua-filters", "safe-bash-command-pandoc/citeproc-filters",
   ];
   const result = await build({
-    ...browser, absWorkingDir: process.cwd(), entryPoints: undefined, outdir: undefined,
+    ...browser, absWorkingDir: process.cwd(), entryPoints: undefined,
     sourcemap: false, splitting: false, inject: [], plugins: [],
     stdin: { contents: specifiers.map(specifier => `export * from ${JSON.stringify(specifier)};`).join("\n"), resolveDir: process.cwd() },
   });

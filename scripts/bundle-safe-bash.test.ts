@@ -349,7 +349,7 @@ it("preserves explicitly external private owners before applying browser source 
   const external = ["safe-bash-contracts", "safe-bash-command-op", "safe-bash-command-pandoc"];
   const options = resolveBrowserShellBuild(root, { alias: { "safe-bash-contracts/command": "/unowned/command.ts" }, external });
   const result = await build({
-    ...options, entryPoints: undefined, outdir: undefined, splitting: false, sourcemap: false, inject: [],
+    ...options, entryPoints: undefined, splitting: false, sourcemap: false, inject: [],
     stdin: { contents: [
       'export { commandRuntimeIdentity } from "safe-bash-contracts/command";',
       'export * from "safe-bash-command-op";',

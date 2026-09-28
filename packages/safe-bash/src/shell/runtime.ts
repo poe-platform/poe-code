@@ -7481,7 +7481,7 @@ export class Runtime {
       // Here-string reads can require fallback as input bytes or variable
       // attributes change. Execute them individually, never speculate across
       // an enclosing compound that has already made writes.
-      if (command.kind === "simple" && command.redirects.length === 1 && (this.sourceFs !== this.backingFs || this._isMemoryBackingFs) && !rawState.noclobber && this.budget.limits.maxRedirects >= 1 && this.budget.limits.maxFileSystemOperations >= 1000 && this.canFastMemoryRedirect) {
+      if (command.kind === "simple" && command.redirects.length === 1 && this.sourceFs !== this.backingFs && !rawState.noclobber && this.budget.limits.maxRedirects >= 1 && this.budget.limits.maxFileSystemOperations >= 1000 && this.canFastMemoryRedirect) {
         const r0 = command.redirects[0]!;
         const w0p = command.words[0]?.plain;
         if ((w0p === "echo" || w0p === "printf" || w0p === "pwd" || w0p === "command" || w0p === "type" || w0p === "dirname" || w0p === "basename") && (r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">>" || r0.operator === ">|") && r0.target.plain === "/dev/null") {
@@ -7663,7 +7663,7 @@ export class Runtime {
               const uArg = wu.plain ?? (wu.parts.length === 1 && wu.parts[0]!.kind === "text" ? wu.parts[0]!.value : undefined);
               if (uArg !== undefined) {
                 const br = uArg.indexOf("[");
-                if (br > 0 && uArg.endsWith("]")) {
+                if (br > 0 && uArg.endsWith("]") && (wu.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && !rawState.failglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.length === 0))) {
                   const arrName = uArg.slice(0, br);
                   const subStr = uArg.slice(br + 1, -1);
                   const b = isShellIdentifier(arrName) ? st?.get(arrName) : undefined;
@@ -7880,7 +7880,7 @@ export class Runtime {
             let targetOk = false;
             if (w2Plain !== undefined) {
               const br = w2Plain.indexOf("[");
-              if (br > 0 && w2Plain.endsWith("]")) {
+              if (br > 0 && w2Plain.endsWith("]") && (w2?.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && !rawState.failglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.length === 0))) {
                 const arrName = w2Plain.slice(0, br);
                 const subStr = w2Plain.slice(br + 1, -1);
                 const b = isShellIdentifier(arrName) ? st?.get(arrName) : undefined;
@@ -8638,7 +8638,7 @@ export class Runtime {
         (name === "echo" || name === "printf" || name === "pwd" || name === "command" || name === "type" || name === "dirname" || name === "basename") && !hasShellFunction(rawState, name) && this.arePureArgWords(command.words, rawState) &&
         (redirect.descriptor === undefined || redirect.descriptor === 1) && !redirect.move && !redirect.document &&
         (redirect.operator === ">" || redirect.operator === ">>" || redirect.operator === ">|") &&
-        redirect.target.plain === "/dev/null" && (this.sourceFs !== this.backingFs || this._isMemoryBackingFs) && !rawState.noclobber &&
+        redirect.target.plain === "/dev/null" && this.sourceFs !== this.backingFs && !rawState.noclobber &&
         this.budget.canRedirect1 && this.budget.canFileSystemOperation() && this.canFastMemoryRedirect &&
         (this._fileWrites === undefined || this._fileWrites.size === 0) &&
         (this._outputFiles === undefined || this._outputFiles.size === 0)
@@ -9428,7 +9428,7 @@ export class Runtime {
       if ( this.budget.limits.maxExpansionFields === Infinity && command.words.length >= 4 && w0Plain === "printf" && command.words[1]?.plain === "-v" && command.redirects.length === 0 && canMutatePipeStatus && (!pipeline.negate || ignored || !rawState.errexit) && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf")) {
         const def = this.commands.get("printf");
         if (def && def.execute === printfCommand.execute && command.words.length <= this.budget.maxExpansionFieldsSmi && (this.arePureArgWords(command.words, rawState) || command.words.every((w, idx) => idx < 4 ? this.isPureArgWord(w, rawState) : (this.isPureArgWord(w, rawState) || this.canSyncArrayMembersWord(w, rawState))))) {
-          let targetSpec: ShellValue | undefined = command.words[2]?.plain;
+          let targetSpec: ShellValue | undefined = command.words[2]?.plain !== undefined && (rawState.noglob || !hasGlobOrEscape(command.words[2]!.plain, !!rawState.extglob) || (!rawState.nullglob && !rawState.failglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.length === 0)) ? command.words[2]!.plain : undefined;
           if (targetSpec === undefined) {
             try {
               targetSpec = this.fastValueWord(command.words[2]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
@@ -11712,7 +11712,7 @@ export class Runtime {
           if (!hasSingleHereStringRedir) {
             const fPlain = hasSingleStdinRedir ? cmd.redirects[0]!.target.plain : cmd.words[cmd.words.length - 1]?.plain;
             if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return false;
-            const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain));
+            const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain), false);
             if (!vCheck || vCheck.byteLength > 16384 || vCheck.includes(0)) return false;
           }
           const opCount = (hasSingleStdinRedir || hasSingleHereStringRedir) ? cmd.words.length - 1 : cmd.words.length - 2;
@@ -11971,6 +11971,7 @@ export class Runtime {
             !r0Check.document &&
             (r0Check.operator === ">" || r0Check.operator === ">>") &&
             r0Check.target.plain === "/dev/null" &&
+            this.sourceFs !== this.backingFs &&
             this.budget.canRedirect1 &&
             w0DevPlain !== undefined &&
             (w0DevPlain === "pwd" || w0DevPlain === "dirname" || w0DevPlain === "basename" || w0DevPlain === "echo") &&
@@ -20574,7 +20575,7 @@ export class Runtime {
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return bytes;
   }
-  private tryReadMemoryFileViewSync(path: string): Uint8Array | undefined {
+  private tryReadMemoryFileViewSync(path: string, charge = true): Uint8Array | undefined {
     // Small finite budgets must use the ordinary read path, including admission probes.
     if (!this.canFastMemoryRedirect || this.budget.limits.maxFileSystemOperations < 1000 || !this.budget.canFileSystemOperation()) return undefined;
     if (!this._isMemoryBackingFs || !this.backingFs || this.backingFs.capabilitiesFor !== undefined || (this._fileWrites !== undefined && this._fileWrites.size > 0)) return undefined;
@@ -20585,8 +20586,14 @@ export class Runtime {
       };
       const node = mem.file(path, "readFile");
       mem.permission(node, 4, "readFile", path);
-      this.budget.fileSystemOperation();
-      return node.data;
+      const data = node.data;
+      if (data.byteLength > 16384) return undefined;
+      for (let i = 0; i < data.byteLength; i++) {
+        const b = data[i]!;
+        if (b === 0 || b >= 128) return undefined;
+      }
+      if (charge) this.budget.fileSystemOperation();
+      return data;
     } catch {
       return undefined;
     }

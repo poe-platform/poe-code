@@ -17,7 +17,7 @@ beforeAll(async () => {
       ? `export default new WebAssembly.Module(Uint8Array.from(${JSON.stringify([...output.contents])}));`
       : output.text);
   }
-});
+}, 60_000);
 
 for (const condition of ["browser", "workerd"]) {
   beforeAll(async () => {

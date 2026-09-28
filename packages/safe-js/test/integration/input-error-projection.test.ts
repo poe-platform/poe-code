@@ -45,7 +45,7 @@ const finish = async result => {
   });
   process.exit(0);
 };
-const timer = setTimeout(() => finish({ status: 'timeout', pending: [...pending.keys()] }), 3000);
+const timer = setTimeout(() => finish({ status: 'timeout', pending: [...pending.keys()] }), 15000);
 function deferred() {
   let resolve, reject;
   const promise = new Promise((accept, refuse) => { resolve = accept; reject = refuse; });

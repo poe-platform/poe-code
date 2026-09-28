@@ -299,7 +299,7 @@
       "tests/commands/cmp-adversarial.test.ts": "ce6f295b9544d08e96249dd8f523c05db9446a16e0a305afee7f87e102fe6446"
     },
     "tests/commands/cmp-skip.test.ts": {
-      "tests/commands/cmp-skip.test.ts": "ebb8f8e67e9702519c5c5f8966fef2f82ab92cb38929a035795cc94e03b951d2",
+      "tests/commands/cmp-skip.test.ts": "82bfb9f0f23e09b79194296d6de588949d78d3b5e7beee4325757511b28503fd",
       "tests/commands/helpers.ts": "942d5faa1cf77ea2dc5bec0cad2480bc3f7dd978842c489f1a9bd5087fb030ed"
     },
     "tests/commands/column-stress/owned-regressions.test.ts": {

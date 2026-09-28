@@ -402,6 +402,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       const dependency = specifier.startsWith("@") ? specifier.split("/").slice(0, 2).join("/") : specifier.split("/")[0];
       if (dependency === `@poe-platform/${name}`) return;
       if (companionPeers.has(dependency)) return;
+      if (name === "safe-bash" && optional && dependency === "yaml") return;
       if (dependency === "@poe-platform/safe-js" || dependency === "@poe-platform/safe-fs") { dependencies[dependency] = version; return; }
       if (dependency === "poe-code" || privateNames.has(dependency)) throw new Error(`Private or CLI dependency leaked: ${specifier}`);
       const range = ranges[dependency];

@@ -94,3 +94,19 @@ Keep source inputs, generated workbooks, screenshots and command captures under
     must fail before replacing a destination; inspect actual CLI diagnostics.
     Continue inferred multiple-cell ColS/ColSV, applicable older row forms,
     native readback and remaining transport requirements separately.
+
+17. For native OpenFormula label/range mixtures, inspect both compiler.cxx's
+    tokenization call to MergeRangeReference and token.cxx's extendRangeReference
+    before applying GetRefColRowNames. The earlier merge accepts a label anchor
+    by its single-reference type; a following ordinary cell triggers it, while
+    parentheses prevent it. Use independent ODF with Sales at B1, B2:B6 values
+    2/7/11/13/17, Other.B2=20, a declared B2:B6 label pair and formula H4.
+    Compare `SUM('Sales':[.B5])+[Other.B2]` with its parenthesized-label form.
+    Signed Calc 26.8 returns 53 and 70 respectively; current product results
+    44 and 70 expose an unresolved ungrouped mismatch. Repeat both ODF editions,
+    compiled SDK/command routes and a label rename, replacing output caches with
+    999 before native recalculation. Check original inputs directly in Calc too.
+    Grouped formulas retain label identity; Calc normalizes the ungrouped formula
+    to a plain B$1:B5 range. Keep that identity loss distinct from the value
+    mismatch. Extend source-derived coverage to operand order, ordinary range
+    operands, named/array contexts and copy/move before claiming this case fixed.

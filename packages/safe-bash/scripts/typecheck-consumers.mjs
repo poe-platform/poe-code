@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { createRequire } from "node:module";
 import ts from "typescript";
@@ -89,6 +89,17 @@ export async function stageStandaloneConsumerPackage(root, temporary) {
   const candidateManifest = JSON.parse(readFileSync(join(candidate, "package.json"), "utf8"));
   const filesystemManifest = JSON.parse(readFileSync(join(filesystemRoot, "package.json"), "utf8"));
   assert.equal(candidateManifest.dependencies[filesystem.name], filesystemManifest.version, "standalone filesystem dependency must match its artifact");
+  // Match installed consumer resolution for declared external dependencies.
+  // Candidate and filesystem declarations retain their separately staged bindings.
+  const dependencies = new Set([...Object.keys(candidateManifest.dependencies ?? {}), ...Object.keys(filesystemManifest.dependencies ?? {})]);
+  for (const name of dependencies) {
+    if (name === binding.name || name === filesystem.name) continue;
+    const installed = realpathSync(resolve(root, "../../node_modules", name));
+    assert.equal(JSON.parse(readFileSync(join(installed, "package.json"), "utf8")).name, name, "consumer dependency must match its declared package");
+    const destination = join(temporary, "node_modules", name);
+    mkdirSync(dirname(destination), { recursive: true });
+    symlinkSync(installed, destination, "dir");
+  }
   binding.publicAliases = ["virtual-bash"];
   binding.filesystem = { ...filesystem, directory: filesystemRoot, version: filesystemManifest.version,
     publicAliases: ["poe-code/safe-fs", "@poe-code/safe-fs"], publicEntries: new Map(), privateEntries: new Map() };

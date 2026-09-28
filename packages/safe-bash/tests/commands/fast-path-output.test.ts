@@ -1,3 +1,6 @@
+import { standardCommands } from "../../src/commands/index.js";
+import { streamFormatCommands } from "../../src/commands/stream-format/index.js";
+import { createEncodingCommands } from "../../src/commands/bytes/encoding/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
@@ -341,3 +344,65 @@ test("cold awk 10000-line workload transitions across checkpointSync without dup
     await shell.dispose();
   }
 });
+
+for (const sample of [
+  { command: "cut -d: -f3,1,3,5", input: "a:b:c", expected: "a:c" },
+  { command: "cut -d: -f5,6", input: "a:b:c", expected: "" },
+  { command: "tr a-z A-Z", input: "héllo ß", expected: "HéLLO ß", stdin: true },
+  { command: "tr A-Z a-z", input: "HÉLLO İ", expected: "hÉllo İ", stdin: true },
+  ...["\v", "\f", "\r", "\u00a0"].map(separator => ({ command: "awk '{print $1}'", input: `a${separator}b`, expected: `a${separator}b` })),
+  { command: "awk -F ' ' '{print $1}'", input: " \ta\vb\t ", expected: "a\vb" },
+  { command: "awk -F: '{print $NF}'", input: "", expected: "" },
+  { command: "wc -w", input: "a\u00a0b", expected: "1", stdin: true },
+  { command: "wc -w", input: "a\tb\vc\fd\re", expected: "5", stdin: true },
+  { command: "nl", input: "a\n\\:\nb", expected: "     1\ta\n\n       b", stdin: true },
+  { command: "nl", input: "a\n\\:\\:\nb", expected: "     1\ta\n\n     1\tb", stdin: true },
+  { command: "nl", input: "a\n\\:\\:\\:\nb", expected: "     1\ta\n\n       b", stdin: true },
+  { command: "base64 -d", input: "YQBi", expected: "ab", stdin: true },
+  { command: "base64 --decode", input: "YWI=", expected: "ab", stdin: true },
+]) {
+  for (const source of ["here-string", "file"]) {
+    test(`single substitution ${sample.command} with ${JSON.stringify(sample.input)} from ${source}`, async t => {
+      const fs = new MemoryFileSystem();
+      const shell = new Shell({ fs, env: { LC_ALL: "C" } }).use(standardCommands()).use(textProgramCommands()).use(streamFormatCommands());
+      for (const command of createEncodingCommands()) shell.commands.register(command);
+      t.after(() => shell.dispose());
+      await fs.writeFile("/input", new TextEncoder().encode(sample.input + "\n"));
+      const quoted = "'" + sample.input.replaceAll("'", "'\\''") + "'";
+      const invocation = source === "here-string" ? `${sample.command} <<< ${quoted}` : `${sample.command} ${sample.stdin ? "< " : ""}/input`;
+      for (let warm = 0; warm < 2; warm++) {
+        const result = await shell.exec(`x=$(${invocation}); printf '%s' "$x"`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, sample.expected);
+      }
+    });
+  }
+}
+
+for (const input of ["!", "A", "====", "YWI=!"]) {
+  test(`invalid base64 substitution reports command failure for ${input}`, async t => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    for (const command of createEncodingCommands()) shell.commands.register(command);
+    t.after(() => shell.dispose());
+    const result = await shell.exec(`x=$(base64 -d <<< '${input}')`);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /base64:/);
+    assert.doesNotMatch(result.stderr, /internal error/);
+  });
+}
+
+
+const wordCountEnvironments: Readonly<Record<string, string>>[] = [
+  { LC_ALL: "C" }, { LC_ALL: "C.UTF-8" }, { LC_ALL: "C.UTF-8", POSIXLY_CORRECT: "1" },
+];
+for (const env of wordCountEnvironments) {
+  test(`word-count substitution preserves locale ${JSON.stringify(env)}`, async t => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), env }).use(standardCommands());
+    t.after(() => shell.dispose());
+    const ordinary = await shell.exec("printf 'a b\\n' | wc -w");
+    const substituted = await shell.exec("x=$(wc -w <<< 'a b'); printf '%s\\n' \"$x\"");
+    assert.equal(substituted.exitCode, ordinary.exitCode);
+    assert.equal(substituted.stdout, ordinary.stdout);
+    assert.equal(substituted.stderr, ordinary.stderr);
+  });
+}

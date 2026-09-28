@@ -11663,53 +11663,11 @@ export class Runtime {
           // command. A late fallback would replay effects already performed.
           return false;
         }
-        const sel = getArraySelector(part);
-        if (sel !== undefined) {
-          if (rawState.nounset) return false;
-          if (sel.kind === "members" || sel.kind === "keys") {
-            if (part.operator !== undefined) {
-              if (
-                sel.kind === "members" &&
-                !part.keys &&
-                !part.length &&
-                !part.substring &&
-                part.quoted &&
-                (sel.separator === "*" || (allowAt && sel.separator === "@")) &&
-                this.budget.limits.maxExpansionBytes === Infinity &&
-                !rawState.nocasematch
-              ) {
-                if ((part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text" && (!hasGlobOrEscape(part.alternate.parts[0]!.value, true) || (!part.alternate.parts[0]!.quoted && Boolean(tryCompileTrimGlobToRegex(part.alternate.parts[0]!.value, part.operator, !!rawState.extglob))))) continue;
-                if ((part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text" && part.alternate.parts[0]!.value.length > 0 && (!hasGlobOrEscape(part.alternate.parts[0]!.value, true) || (!part.alternate.parts[0]!.quoted && Boolean(tryCompileFixedGlobToRegex(part.alternate.parts[0]!.value, part.operator, !!rawState.extglob)))) && (!part.replacement || part.replacement.parts.length === 0 || (part.replacement.parts.length === 1 && part.replacement.parts[0]!.kind === "text" && !part.replacement.parts[0]!.value.includes("&") && !part.replacement.parts[0]!.value.includes("\\") && !part.replacement.parts[0]!.value.startsWith("~")))) continue;
-                if ((part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") && (!part.alternate || part.alternate.parts.length === 0)) continue;
-              }
-              return false;
-            }
-            if (part.length) {
-              if (part.substring) return false;
-              continue;
-            }
-            if ( part.quoted && (sel.separator === "*" || (allowAt && sel.separator === "@")) && this.budget.limits.maxExpansionBytes === Infinity && (!part.substring || ( sel.kind === "members" && part.substring.offset.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)) && (!part.substring.length || part.substring.length.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)))
-              ))) {
-              continue;
-            }
-            return false;
-          }
-          if (sel.kind === "element") {
-            if (part.substring) {
-              // Bindings, indices and character widths can change each
-              // iteration. The limited element slicer may then need fallback;
-              // do not speculate after earlier compound effects have run.
-              return false;
-            }
-            if (part.operator === undefined) continue;
-            if ((part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") && part.alternate && !part.length) continue;
-            if ((part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") && (!part.alternate || part.alternate.parts.length === 0) && !part.length) continue;
-            if (!part.length && !rawState.nocasematch && this.budget.limits.maxExpansionBytes === Infinity) {
-              if ((part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text" && !hasGlobOrEscape(part.alternate.parts[0]!.value, true)) continue;
-              if ((part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") && part.alternate && part.alternate.parts.length === 1 && part.alternate.parts[0]!.kind === "text" && part.alternate.parts[0]!.value.length > 0 && !hasGlobOrEscape(part.alternate.parts[0]!.value, true) && (!part.replacement || part.replacement.parts.length === 0 || (part.replacement.parts.length === 1 && part.replacement.parts[0]!.kind === "text" && !part.replacement.parts[0]!.value.includes("&") && !part.replacement.parts[0]!.value.includes("\\") && !part.replacement.parts[0]!.value.startsWith("~")))) continue;
-            }
-            return false;
-          }
+        if (getArraySelector(part) !== undefined) {
+          // A loop can change the binding or subscript after preflight. The
+          // limited fast evaluator may then return undefined, after earlier
+          // effects have already run. Use normal expansion for selectors and
+          // their alternates rather than risking corruption or replay.
           return false;
         }
         if (part.length || part.substring || part.operator !== undefined) {

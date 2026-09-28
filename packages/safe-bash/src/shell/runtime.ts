@@ -14458,6 +14458,7 @@ export class Runtime {
           this.budget.bytes += outChars;
           lastArg = step.discardSuffix !== undefined ? evalLast : (dw.length > 0 ? evalLast : cmdName);
         } else if (step.name !== undefined && step.value !== undefined) {
+          rawState.substitutionStatus = 0;
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           if (step.append) {
             const curRaw = rawState.variables[step.name];
@@ -14469,7 +14470,7 @@ export class Runtime {
         } else {
           lastArg = step.cmd.words[0]!.plain!;
         }
-        rawState.status = 0;
+        rawState.status = step.name !== undefined && step.value !== undefined ? rawState.substitutionStatus : 0;
       }
       if (this._syncLoopAction !== undefined) {
         const act = this._syncLoopAction;
@@ -14980,6 +14981,7 @@ export class Runtime {
         this.budget.bytes += outChars;
         lastArg = step.discardSuffix !== undefined ? evalLast : (dw.length > 0 ? evalLast : cmdName);
       } else if (step.name !== undefined && step.value !== undefined) {
+        rawState.substitutionStatus = 0;
         const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
         if (step.append) {
           const curRaw = rawState.variables[step.name];
@@ -14999,7 +15001,7 @@ export class Runtime {
       } else {
         lastArg = step.cmd.words[0]!.plain!;
       }
-      rawState.status = 0;
+      rawState.status = step.name !== undefined && step.value !== undefined ? rawState.substitutionStatus : 0;
       onUpdate({ lastCmd, lastArg });
     }
   }
@@ -15143,6 +15145,7 @@ export class Runtime {
           this.budget.bytes += outChars;
           lastArg = step.discardSuffix !== undefined ? evalLast : (dw.length > 0 ? evalLast : cmdName);
         } else if (step.name !== undefined && step.value !== undefined) {
+          rawState.substitutionStatus = 0;
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           if (step.append) {
             const curRaw = rawState.variables[step.name];
@@ -15162,7 +15165,7 @@ export class Runtime {
         } else {
           lastArg = step.cmd.words[0]!.plain!;
         }
-        rawState.status = 0;
+        rawState.status = step.name !== undefined && step.value !== undefined ? rawState.substitutionStatus : 0;
       }
       if (this._syncLoopAction !== undefined) {
         const act = this._syncLoopAction;

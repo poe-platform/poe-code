@@ -383,7 +383,7 @@ fn render(commits: &[ReadCommitResult], format: &str) -> String {
 }
 
 // Civil date conversion uses integer arithmetic so native and WASM builds agree.
-fn date(author: &crate::utils::Author) -> String {
+pub(crate) fn date(author: &crate::utils::Author) -> String {
     let offset = -(author.timezone_offset as i64);
     let seconds = author.timestamp + offset * 60;
     let days = seconds.div_euclid(86400);

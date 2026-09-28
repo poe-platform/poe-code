@@ -34,3 +34,28 @@ fn symmetric_diff_peels_annotated_tags_on_either_side() {
     }
 }
 
+#[test]
+fn show_annotated_tags_displays_metadata_and_peeled_commit_oid() {
+    let fs = repo();
+    let commit = ok(&fs, &["rev-parse", "v1^{}"]);
+    let tag = ok(&fs, &["rev-parse", "v1"]);
+    let shown = ok(&fs, &["show", "v1"]);
+    assert!(
+        shown.starts_with("tag v1\nTagger: Tester <t@example.com>\nDate:   "),
+        "{shown}"
+    );
+    assert!(
+        shown.contains(&format!("\n\ntag v1\n\ncommit {}\n", commit.trim())),
+        "{shown}"
+    );
+    assert!(!shown.contains(&format!("commit {}", tag.trim())));
+    assert!(shown.contains("+v1\n"));
+    ok(&fs, &["tag", "-a", "nested", "-m", "outer", "v1"]);
+    let nested = ok(&fs, &["show", "nested"]);
+    assert!(nested.starts_with("tag nested\nTagger:"));
+    assert!(nested.contains("\n\nouter\n\ntag v1\n"));
+    assert!(nested.ends_with(&ok(&fs, &["show", "v1^{}"])));
+    ok(&fs, &["tag", "light", "v1^{}"]);
+    assert_eq!(ok(&fs, &["show", "light"]), ok(&fs, &["show", "v1^{}"]));
+}
+

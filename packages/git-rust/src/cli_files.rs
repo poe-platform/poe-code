@@ -397,17 +397,34 @@ fn patch(a: &str, b: &str, context: usize) -> String {
 }
 
 pub fn show(fs: &MemoryFs, root: &str, gitdir: &str, target: &str) -> Result<String, GitError> {
-    let oid = crate::cli_history::resolve(fs, gitdir, target)?;
+    let mut oid = crate::cli_history::resolve(fs, gitdir, target)?;
     if target.contains(':') {
         return Ok(String::from_utf8_lossy(&read_blob(fs, gitdir, &oid, None)?.blob).to_string());
     }
+    let mut out = String::new();
+    while crate::_read_object(fs, gitdir, &oid, "content")?.obj_type == "tag" {
+        let tag = crate::read_tag(fs, gitdir, &oid)?.tag;
+        out.push_str(&format!(
+            "tag {}\nTagger: {} <{}>\nDate:   {}\n\n{}\n\n",
+            tag.tag,
+            tag.tagger.name,
+            tag.tagger.email,
+            crate::cli_history::date(&tag.tagger),
+            tag.message
+        ));
+        if let Some(signature) = tag.gpgsig {
+            out.push_str(&signature);
+            out.push('\n');
+        }
+        oid = tag.object;
+    }
     let commit = read_commit(fs, gitdir, &oid)?.commit;
-    let mut out = format!(
+    out.push_str(&format!(
         "commit {oid}\nAuthor: {} <{}>\n\n    {}\n\n",
         commit.author.name,
         commit.author.email,
         commit.message.trim()
-    );
+    ));
     out.push_str(
         &diff(
             fs,

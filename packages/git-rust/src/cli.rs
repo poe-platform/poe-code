@@ -1133,8 +1133,12 @@ pub fn execute_git_cli_with_http(
                         messages.join("\n\n")
                     };
                     let tagger = Author {
-                        name: "Git User".to_string(),
-                        email: "user@example.com".to_string(),
+                        name: get_config(fs, &gitdir, "user.name")
+                            .map(|v| v.as_str().to_string())
+                            .unwrap_or_else(|| "Git User".to_string()),
+                        email: get_config(fs, &gitdir, "user.email")
+                            .map(|v| v.as_str().to_string())
+                            .unwrap_or_else(|| "user@example.com".to_string()),
                         timestamp: 1502484200,
                         timezone_offset: 0.0,
                     };

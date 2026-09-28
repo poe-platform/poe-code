@@ -2998,6 +2998,15 @@ export class SqliteDatabase {
       }
     }
 
+    const targetBindings = this.tableBindings(tbl, undefined, alias);
+    const upsertBindings = { ...targetBindings };
+    for (const column of tbl.columns) upsertBindings[`excluded.${column.name}`] = null;
+    for (const assignment of upsertSetPairs) {
+      this.validateColumns({ kind: "column", name: assignment.col }, targetBindings, positionalParams, cteScope);
+      this.validateColumns(assignment.expr, upsertBindings, positionalParams, cteScope);
+    }
+    this.validateColumns(upsertWhere, upsertBindings, positionalParams, cteScope);
+
     let insertedCount = 0;
     const affectedRows: TableRow[] = [];
 
@@ -5317,7 +5326,10 @@ export class SqliteDatabase {
       this.preparing = true;
       this.outerRows.push(scope);
       try {
-        this.executeStatement(subquery.kind === "subquery" ? subquery.sql : subquery.subquerySql, positionalParams, cteScope);
+        const result = this.executeStatement(subquery.kind === "subquery" ? subquery.sql : subquery.subquerySql, positionalParams, cteScope);
+        if (!(subquery.kind === "subquery" && subquery.exists) && result && result.columns.length !== 1) {
+          throw new Error(`sub-select returns ${result.columns.length} columns - expected 1`);
+        }
       } finally {
         this.outerRows.pop();
         this.preparing = preparing;
@@ -5485,6 +5497,7 @@ export class SqliteDatabase {
         } finally {
           this.outerRows.pop();
         }
+        if (res.columns.length !== 1) throw new Error(`sub-select returns ${res.columns.length} columns - expected 1`);
         if (v === null) {
           return res.rows.length === 0 ? (expr.not ? 1 : 0) : null;
         }
@@ -5533,6 +5546,7 @@ export class SqliteDatabase {
           const has = res.rows.length > 0;
           return (expr.notExists ? !has : has) ? 1 : 0;
         }
+        if (res.columns.length !== 1) throw new Error(`sub-select returns ${res.columns.length} columns - expected 1`);
         return res.rows[0]?.[0] ?? null;
       }
       case "func": {

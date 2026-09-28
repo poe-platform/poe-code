@@ -245,3 +245,39 @@ test("set and window keys equate integer and real numbers while distinguishing t
   assert.equal(db.exec("SELECT 1 UNION SELECT 1.0 UNION SELECT '1'")[0]!.rows.length, 2);
   assert.deepEqual(db.exec("WITH t(a) AS (SELECT 1 UNION ALL SELECT 1.0) SELECT COUNT(DISTINCT a) FROM t")[0]!.rows, [[1]]);
 });
+
+for (const initial of ["", "INSERT INTO t VALUES (1, 2)"]) {
+  for (const clause of ["SET b = missing", "SET missing = 1", "SET b = excluded.missing", "SET b = 1 WHERE missing", "SET b = (SELECT missing)"]) {
+    test(`prepares UPSERT before any write: ${initial}; ${clause}`, () => {
+      const db = new SqliteDatabase();
+      db.exec("CREATE TABLE t(a INT PRIMARY KEY, b INT)");
+      if (initial) db.exec(initial);
+      const before = db.exec("SELECT * FROM t")[0]!.rows;
+      assert.throws(() => db.exec(`INSERT INTO t VALUES (2, 3) ON CONFLICT(a) DO UPDATE ${clause}`), /no such column/);
+      assert.deepEqual(db.exec("SELECT * FROM t")[0]!.rows, before);
+    });
+  }
+  for (const sql of [
+    "SELECT (SELECT 1, 2) FROM t",
+    "INSERT INTO t VALUES (2, (SELECT 1, 2))",
+    "SELECT * FROM t WHERE a IN (SELECT 1, 2)",
+    "SELECT * FROM t WHERE a NOT IN (SELECT 1, 2 WHERE 0)",
+    "UPDATE t SET b = (SELECT 1, 2) WHERE 0",
+    "DELETE FROM t WHERE a IN (SELECT 1, 2)",
+    "INSERT INTO t VALUES (2, 3) ON CONFLICT(a) DO UPDATE SET b = (SELECT 1, 2)",
+  ]) {
+    test(`prepares scalar subquery arity: ${initial}; ${sql}`, () => {
+      const db = new SqliteDatabase();
+      db.exec("CREATE TABLE t(a INT PRIMARY KEY, b INT)");
+      if (initial) db.exec(initial);
+      assert.throws(() => db.exec(sql), /sub-select returns 2 columns - expected 1/);
+    });
+  }
+}
+
+test("valid UPSERT bindings and multi-column EXISTS remain supported", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(a INT PRIMARY KEY, b INT); INSERT INTO t VALUES (1, 2)");
+  db.exec("INSERT INTO t AS u VALUES (1, 3) ON CONFLICT(a) DO UPDATE SET b = u.b + excluded.b WHERE excluded.a = u.a");
+  assert.deepEqual(db.exec("SELECT b, EXISTS(SELECT 1, 2), (SELECT b FROM t) FROM t WHERE a IN (SELECT a FROM t)")[0]!.rows, [[5, 1, 5]]);
+});

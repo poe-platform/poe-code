@@ -111,7 +111,7 @@ it("runs injected llm providers and binary pipelines through the browser command
   expect(requests[1]).toMatchObject({ model: "voice", prompt: "a fox\n" });
 });
 
-it("runs both reference llm transports without Node globals in a browser consumer", async () => {
+it("runs both reference llm transports without a Node runtime in a browser consumer", async () => {
   const result = await createBrowserProbes().runReferenceLlm();
   expect(result.audio).toMatchObject({ exitCode: 0, stdout: "/wCA\n", stderr: "" });
   expect(result.image).toMatchObject({ exitCode: 0, stdout: "iVBORw==\n", stderr: "" });
@@ -300,7 +300,7 @@ beforeAll(async () => {
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
     URL, FormData, Blob, Response, btoa, atob,
   });
-  expect(runInContext("typeof Buffer", sandbox)).toBe("undefined");
+  expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", sandbox)).toBe("undefined:undefined:undefined");
   filesystem = runInContext(`(function(){ const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as CoreFs;
   sandbox.canonical = filesystem;
   browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${compiled}; return module.exports; })()`, sandbox) as BrowserShell;
@@ -310,6 +310,7 @@ beforeAll(async () => {
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate + ':' + typeof require", sandbox)).toBe("function:undefined:undefined:undefined");
   expect(runInContext("Buffer.from('é').toString('hex')", sandbox)).toBe("c3a9");
   expect(runInContext("Buffer.prototype.utf8Slice.call(new Uint8Array([195, 169]), 0, 2)", sandbox)).toBe("é");
+  expect(runInContext("Buffer", sandbox)).not.toBe(Buffer);
 });
 
 beforeAll(async () => {

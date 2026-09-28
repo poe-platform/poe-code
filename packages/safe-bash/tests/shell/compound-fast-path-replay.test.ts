@@ -511,6 +511,11 @@ test("array member operators (${a[@]%.txt}, ${b[@]^^}, ${c[@]/A/X}) and prefix e
 
 for (const [name, source, expected] of [
   ["leading literal closing bracket", 's1="]a"; s2="ba]"; for i in 1 2; do echo "r1=${s1/[]a]/X} r2=${s2/[!]a]/X} r3=${s2/[^]a]/X}"; done', "r1=Xa r2=Xa] r3=Xa]\nr1=Xa r2=Xa] r3=Xa]\n"],
+  ["integer expression", 'declare -i n=0; for i in 1 2; do echo "iter=$i"; n="(i+1)*2"; done; echo "$n"', "iter=1\niter=2\n6\n"],
+  ["integer append", 'declare -i n=0; for i in 1 2; do echo "iter=$i"; n+="(i+1)*2"; done; echo "$n"', "iter=1\niter=2\n10\n"],
+  ["integer declaration in loop", 'for i in 1 2; do echo "iter=$i"; declare -i n="(i+1)*2"; done; echo "$n"', "iter=1\niter=2\n6\n"],
+  ["upper attribute UTF-8", 'declare -u u; for i in 1 2; do echo "iter=$i"; u="café"; done; echo "$u"', "iter=1\niter=2\nCAFé\n"],
+  ["lower attribute UTF-8 append", 'declare -l u; for i in 1 2; do echo "iter=$i"; u+="CAFÉ"; done; echo "$u"', "iter=1\niter=2\ncafÉcafÉ\n"],
 ] as const) test(`sync loops preserve effects and values: ${name}`, async () => {
   const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: "C.UTF-8" } });
   for (const command of basicCommands()) shell.commands.register(command);
@@ -538,6 +543,22 @@ for (const operator of ["^", "^^", ",", ",,", "#a", "##a*", "%a", "%%*a", "/a/X"
     } finally { await shell.dispose(); }
   });
 }
+
+for (const loop of [
+  'for i in 1 2; do BODY; done',
+  'for ((i=1; i<=2; i++)); do BODY; done',
+  'i=1; while ((i<=2)); do BODY; ((i++)); done',
+]) test(`integer attributes choose the normal executor before effects: ${loop}`, async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of basicCommands()) shell.commands.register(command);
+  try {
+    const source = 'declare -i n=0; f(){ echo "iter=$i"; n="(i+1)*2"; }; ' + loop.replace("BODY", "f") + '; echo "$n"';
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, "iter=1\niter=2\n6\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
 
 for (const [operator, expected] of [["/?/X", "Xa"], ["#?", "a"], ["%?", "🙂"]]) {
   test(`UTF-8 array glob ${operator} matches complete characters`, async () => {

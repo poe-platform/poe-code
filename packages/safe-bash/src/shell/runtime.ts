@@ -3210,10 +3210,15 @@ function applySyncScalarAttributes(attr: string | undefined, assigned: string, c
   if (!attr || attr.length === 0) return append ? (curStr ?? "") + assigned : assigned;
   if (attr === "l" || attr === "u") {
     const combined = append ? (curStr ?? "") + assigned : assigned;
+    // Scalar case attributes change ASCII bytes, preserving UTF-8 bytes.
+    let result = "";
     for (let k = 0; k < combined.length; k++) {
-      if (combined.charCodeAt(k) >= 128) return undefined;
+      const code = combined.charCodeAt(k);
+      result += attr === "l" && code >= 65 && code <= 90 ? String.fromCharCode(code + 32)
+        : attr === "u" && code >= 97 && code <= 122 ? String.fromCharCode(code - 32)
+        : combined[k]!;
     }
-    return attr === "l" ? combined.toLowerCase() : combined.toUpperCase();
+    return result;
   }
   if (attr === "i") {
     const rhsNum = evalSyncIntAttrExpr(assigned, rawState, monitor, activeArrayStore, syncTouched);
@@ -7546,6 +7551,7 @@ export class Runtime {
           return isNoBraceSyncAssignWord(arrayAssign.value);
         }
         const assignment = this.assignment(w0);
+        if (assignment && rawState.variableAttributes?.get(resolveSyncNameref(rawState, assignment.name))?.includes("i")) return false;
         return Boolean( assignment && (resolveSyncNameref(rawState, assignment.name) !== "OPTIND" || (!assignment.append && !rawState.variableAttributes?.get("OPTIND") && isCanonicalOptindWord(assignment.value))) && assignment.name !== "PIPESTATUS" && !assignment.name.includes("[") && !rawState.readonlyVariables?.has(assignment.name) && (!st?.get(assignment.name) || (!assignment.append && !hasUnpreparedLocal(rawState, assignment.name) && !rawState.exported.has(assignment.name))) && isNoBraceSyncAssignWord(assignment.value), );
       }
       if (w0Plain !== undefined && command.words.length <= 64 && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !hasActiveExtensions(rawState)) {
@@ -7662,7 +7668,8 @@ export class Runtime {
       ) {
         // Array locals require the typed declaration and restoration lifecycle.
         const flagPlain = command.words[1]?.plain;
-        if (flagPlain === "-a" || flagPlain === "-A") return false;
+        // Integer attribute expressions may exceed the limited fast evaluator.
+        if (flagPlain === "-a" || flagPlain === "-A" || flagPlain === "-i") return false;
         const isNamerefDecl = flagPlain === "-n" && (rawState.locals.length > 0 || depth > 0) && command.words.length >= 3;
         const isGlobalDecl = flagPlain === "-g" && (w0Plain === "declare" || w0Plain === "typeset") && command.words.length >= 3;
         // A preceding local may hide the global by the time this command runs.
@@ -7678,7 +7685,8 @@ export class Runtime {
               allValidLocal = false;
               break;
             }
-            const curAttr = rawState.variableAttributes?.get(assignment.name);
+            const curAttr = rawState.variableAttributes?.get(resolveSyncNameref(rawState, assignment.name));
+            if (curAttr?.includes("i")) return false;
             if ( (!isNamerefDecl && curAttr && curAttr !== "i" && curAttr !== "l" && curAttr !== "u") || (assignment.name === "OPTIND" && (assignment.append || curAttr || (!isGlobalDecl && (rawState.locals.length > 0 || depth > 0)) || !isCanonicalOptindWord(assignment.value))) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || !isNoBraceSyncAssignWord(assignment.value)) {
               allValidLocal = false;
               break;
@@ -7910,6 +7918,9 @@ export class Runtime {
               const isNameref = f1 === "-n";
               const isGlobal = f1 === "-g";
               const isAttrDecl = f1 === "-i" || f1 === "-l" || f1 === "-u";
+              // Integer assignments can require full arithmetic evaluation as
+              // loop values change. Decline before any loop effects are published.
+              if (f1 === "-i") return false;
               for (let k = (isArrDecl || isNameref || isGlobal || isAttrDecl) ? 2 : 1; k < c.words.length; k++) {
                 const wk = c.words[k]!;
                 const aa = getArrayAssignment(wk);
@@ -7973,7 +7984,8 @@ export class Runtime {
       if (scalarVars.has(v) || (!localArrayVars.has(v) && !st?.get(v) && rawState.variables[v] !== undefined)) return false;
     }
     for (const v of scalarVars) {
-      if (st?.get(v)) return false;
+      const target = resolveSyncNameref(rawState, v);
+      if (st?.get(v) || rawState.variableAttributes?.get(target)?.includes("i")) return false;
     }
     if (nonIntScalarVars.size > 0 && arithSourceChunks.length > 0) {
       const joined = arithSourceChunks.join(" ");

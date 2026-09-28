@@ -1225,3 +1225,33 @@ test("trySyncLoop accelerates while/until ((...)) loops and nested if/elif/else 
     await shell.dispose();
   }
 });
+
+test("trySyncLoop accelerates <<< here-string substitutions for cut/jq/tr/sed/awk/wc/base64/rev (Wave 77)", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands(), ...createStreamFormatCommands(), ...createTextProgramCommands(), ...grepCommands(), ...createStructuredCommands(), ...createEncodingCommands()]) {
+    shell.commands.register(command, { replace: true });
+  }
+  try {
+    const t0 = performance.now();
+    const res = await shell.exec([
+      "s=\"alpha:20:ok\"",
+      "j=\"{\\\"v\\\":\\\"fast\\\"}\"",
+      "for ((i = 1; i <= 1200; i++)); do",
+      "  cVal=$(cut -d: -f2 <<< \"$s\")",
+      "  jVal=$(jq -r .v <<< \"$j\")",
+      "  tVal=$(tr a-z A-Z <<< \"$s\")",
+      "  sVal=$(sed \"s/alpha/ALPHA/g\" <<< \"$s\")",
+      "  aVal=$(awk -F: \"{print \\$3}\" <<< \"$s\")",
+      "  wVal=$(wc -c <<< \"$jVal\")",
+      "  rVal=$(rev <<< \"$jVal\")",
+      "done",
+      "printf \"%s|%s|%s|%s|%s|%s|%s\\n\" \"$cVal\" \"$jVal\" \"$tVal\" \"$sVal\" \"$aVal\" \"$wVal\" \"$rVal\"",
+    ].join("\n"));
+    const elapsed = performance.now() - t0;
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "20|fast|ALPHA:20:OK|ALPHA:20:ok|ok|5|tsaf\n");
+    assert.ok(elapsed < 1000, "Expected < 1000ms, got " + elapsed.toFixed(1) + "ms");
+  } finally {
+    await shell.dispose();
+  }
+});

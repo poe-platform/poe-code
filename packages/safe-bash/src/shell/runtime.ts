@@ -11613,11 +11613,22 @@ export class Runtime {
           cmd.kind === "simple" &&
           cmd.redirects.length === 1 &&
           cmd.redirects[0]!.operator === "<" &&
-          cmd.redirects[0]!.fd === undefined &&
+          (cmd.redirects[0]!.descriptor === undefined || cmd.redirects[0]!.descriptor === 0) &&
+          !cmd.redirects[0]!.move &&
+          !cmd.redirects[0]!.document &&
           cmd.redirects[0]!.target.plain !== undefined &&
           !cmd.redirects[0]!.target.plain.startsWith("-") &&
           cmd.redirects[0]!.target.plain !== "/dev/stdin";
-        if (cmd.kind !== "simple" || (cmd.redirects.length > 0 && !hasSingleStdinRedir) || cmd.words.length === 0) return false;
+        const hasSingleHereStringRedir =
+          cmd.kind === "simple" &&
+          p.commands.length === 1 &&
+          cmd.redirects.length === 1 &&
+          cmd.redirects[0]!.operator === "<<<" &&
+          (cmd.redirects[0]!.descriptor === undefined || cmd.redirects[0]!.descriptor === 0) &&
+          !cmd.redirects[0]!.move &&
+          !cmd.redirects[0]!.document &&
+          this.isPureSyncValueWord(cmd.redirects[0]!.target, rawState);
+        if (cmd.kind !== "simple" || (cmd.redirects.length > 0 && !hasSingleStdinRedir && !hasSingleHereStringRedir) || cmd.words.length === 0) return false;
         let w0Plain = cmd.words[0]!.plain;
         if (p.commands.length === 1 && w0Plain !== undefined && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !rawState.extensions?.builtins.has(w0Plain)) {
           const fnBody = rawState.functions.get(w0Plain)!;
@@ -11670,21 +11681,24 @@ export class Runtime {
           w0Plain === "cut" ||
           w0Plain === "wc" ||
           w0Plain === "sort" ||
-          w0Plain === "tr";
+          w0Plain === "tr" ||
+          (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl"));
         if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
-        if (hasSingleStdinRedir && !isFileCommand) return false;
+        if ((hasSingleStdinRedir || hasSingleHereStringRedir) && !isFileCommand) return false;
         const def = this.commands.get(w0Plain);
         if (!def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : w0Plain === "seq" ? (customRegisteredCommands.has(def.execute) || customRegisteredRegistries.has(this.commands)) : !builtInDirectContextExecutors.has(def.execute))) return false;
         if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
         if (isFileCommand) {
-          if (w0Plain === "tr" && !hasSingleStdinRedir) return false;
+          if (w0Plain === "tr" && !hasSingleStdinRedir && !hasSingleHereStringRedir) return false;
           if (w0Plain === "grep" && rawState.errexit) return false;
-          const fPlain = hasSingleStdinRedir ? cmd.redirects[0]!.target.plain : cmd.words[cmd.words.length - 1]?.plain;
-          if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return false;
-          const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain));
-          if (!vCheck || vCheck.byteLength > 16384 || vCheck.includes(0)) return false;
-          const opCount = hasSingleStdinRedir ? cmd.words.length - 1 : cmd.words.length - 2;
-          if (w0Plain === "cat") {
+          if (!hasSingleHereStringRedir) {
+            const fPlain = hasSingleStdinRedir ? cmd.redirects[0]!.target.plain : cmd.words[cmd.words.length - 1]?.plain;
+            if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return false;
+            const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain));
+            if (!vCheck || vCheck.byteLength > 16384 || vCheck.includes(0)) return false;
+          }
+          const opCount = (hasSingleStdinRedir || hasSingleHereStringRedir) ? cmd.words.length - 1 : cmd.words.length - 2;
+          if (w0Plain === "cat" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl") {
             if (opCount !== 0) return false;
           } else {
             if (p.commands.length !== 1) return false;
@@ -11692,7 +11706,7 @@ export class Runtime {
             if ((w0Plain === "jq" || w0Plain === "awk" || w0Plain === "grep" || w0Plain === "sed") && (opCount < 1 || opCount > 3)) return false;
             if (w0Plain === "cut" && (opCount < 1 || opCount > 4)) return false;
             if (w0Plain === "wc" && opCount !== 1) return false;
-            if (w0Plain === "sort" && (opCount > 1 || byteLocale(rawState.variables))) return false;
+            if ((w0Plain === "sort" || w0Plain === "base64") && (opCount > 1 || (w0Plain === "sort" && byteLocale(rawState.variables)))) return false;
             if (w0Plain === "tr" && opCount !== 2) return false;
           }
         }
@@ -20526,9 +20540,19 @@ export class Runtime {
       cmd.kind === "simple" &&
       cmd.redirects.length === 1 &&
       cmd.redirects[0]!.operator === "<" &&
-      cmd.redirects[0]!.fd === undefined &&
+      (cmd.redirects[0]!.descriptor === undefined || cmd.redirects[0]!.descriptor === 0) &&
+      !cmd.redirects[0]!.move &&
+      !cmd.redirects[0]!.document &&
       this.isPureArgWord(cmd.redirects[0]!.target, rawState);
-    if (cmd.kind !== "simple" || (cmd.redirects.length > 0 && !hasSingleStdinRedir) || cmd.words.length === 0) return undefined;
+    const hasSingleHereStringRedir =
+      cmd.kind === "simple" &&
+      cmd.redirects.length === 1 &&
+      cmd.redirects[0]!.operator === "<<<" &&
+      (cmd.redirects[0]!.descriptor === undefined || cmd.redirects[0]!.descriptor === 0) &&
+      !cmd.redirects[0]!.move &&
+      !cmd.redirects[0]!.document &&
+      this.isPureSyncValueWord(cmd.redirects[0]!.target, rawState);
+    if (cmd.kind !== "simple" || (cmd.redirects.length > 0 && !hasSingleStdinRedir && !hasSingleHereStringRedir) || cmd.words.length === 0) return undefined;
     let w0Plain = cmd.words[0]!.plain;
     if (!w0Plain || rawState.extensions?.builtins.has(w0Plain)) return undefined;
     const isSingleFileTool =
@@ -20542,7 +20566,8 @@ export class Runtime {
       w0Plain === "cut" ||
       w0Plain === "wc" ||
       w0Plain === "sort" ||
-      w0Plain === "tr";
+      w0Plain === "tr" ||
+      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl"));
     if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && this.commands.has(w0Plain)) {
       const allArgs: string[] = [];
       let fOk = true;
@@ -20553,18 +20578,23 @@ export class Runtime {
         allArgs.push(val);
       }
       let redirTarget: string | undefined;
+      let hereStrVal: string | undefined;
       if (fOk && hasSingleStdinRedir) {
         const rv = this.fastValueWord(cmd.redirects[0]!.target, state, io, true, false, false, true, undefined, part.line);
         if (typeof rv === "string") redirTarget = rv;
         else fOk = false;
+      } else if (fOk && hasSingleHereStringRedir) {
+        const hv = this.fastValueWord(cmd.redirects[0]!.target, state, io, false, false, false, false, undefined, part.line);
+        if (typeof hv === "string" && hv.length <= 16384 && !hv.includes("\0")) hereStrVal = hv + "\n";
+        else fOk = false;
       }
-      if (fOk && (hasSingleStdinRedir || allArgs.length >= 1)) {
-        const fileArg = hasSingleStdinRedir ? redirTarget! : allArgs[allArgs.length - 1]!;
-        const opArgs = hasSingleStdinRedir ? allArgs : allArgs.slice(0, -1);
-        if (!fileArg.startsWith("-") && fileArg !== "/dev/stdin") {
-          const view = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fileArg));
+      if (fOk && (hasSingleStdinRedir || hasSingleHereStringRedir || allArgs.length >= 1)) {
+        const fileArg = hasSingleStdinRedir ? redirTarget! : (hasSingleHereStringRedir ? "" : allArgs[allArgs.length - 1]!);
+        const opArgs = (hasSingleStdinRedir || hasSingleHereStringRedir) ? allArgs : allArgs.slice(0, -1);
+        if (hasSingleHereStringRedir || (!fileArg.startsWith("-") && fileArg !== "/dev/stdin")) {
+          const view = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fileArg));
           if (view && view.byteLength <= 16384 && !view.includes(0)) {
-            const fileStr = sharedSyncPipeDecoder.decode(view);
+            const fileStr = hasSingleHereStringRedir ? hereStrVal! : sharedSyncPipeDecoder.decode(view);
             const rawLines = fileStr.endsWith("\n") ? fileStr.slice(0, -1).split("\n") : (fileStr.length === 0 ? [] : fileStr.split("\n"));
             let fileRes: string | undefined;
             let exitStatus = 0;
@@ -20685,11 +20715,11 @@ export class Runtime {
                 const trimmed = fileStr.trim();
                 count = trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
               }
-              fileRes = hasSingleStdinRedir ? String(count) : `${count} ${fileArg}`;
+              fileRes = (hasSingleStdinRedir || hasSingleHereStringRedir) ? String(count) : `${count} ${fileArg}`;
             } else if (w0Plain === "sort" && !byteLocale(rawState.variables) && (opArgs.length === 0 || (opArgs.length === 1 && opArgs[0] === "-r"))) {
               const revSort = opArgs[0] === "-r";
               fileRes = [...rawLines].sort((a, b) => (a < b ? (revSort ? 1 : -1) : a > b ? (revSort ? -1 : 1) : 0)).join("\n");
-            } else if (w0Plain === "tr" && hasSingleStdinRedir && opArgs.length === 2) {
+            } else if (w0Plain === "tr" && (hasSingleStdinRedir || hasSingleHereStringRedir) && opArgs.length === 2) {
               if (opArgs[0] === "a-z" && opArgs[1] === "A-Z") fileRes = fileStr.toUpperCase();
               else if (opArgs[0] === "A-Z" && opArgs[1] === "a-z") fileRes = fileStr.toLowerCase();
               else if (opArgs[0] === "-d" && /^[a-zA-Z0-9_ :;,./-]+$/.test(opArgs[1]!)) {
@@ -20711,6 +20741,16 @@ export class Runtime {
                 }
                 fileRes = out;
               }
+            } else if (hasSingleHereStringRedir && w0Plain === "base64" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "--decode")))) {
+              if (opArgs.length === 0) fileRes = Buffer.from(view).toString("base64");
+              else fileRes = Buffer.from(fileStr.replace(/\s+/g, ""), "base64").toString("utf8");
+            } else if (hasSingleHereStringRedir && w0Plain === "rev" && opArgs.length === 0) {
+              fileRes = rawLines.map(l => Array.from(l).reverse().join("")).join("\n");
+            } else if (hasSingleHereStringRedir && w0Plain === "tac" && opArgs.length === 0) {
+              fileRes = [...rawLines].reverse().join("\n");
+            } else if (hasSingleHereStringRedir && w0Plain === "nl" && opArgs.length === 0) {
+              let lineNo = 0;
+              fileRes = rawLines.map(l => l.length === 0 ? "" : `${String(++lineNo).padStart(6, " ")}\t${l}`).join("\n");
             }
             if (fileRes !== undefined) {
               let end = fileRes.length;

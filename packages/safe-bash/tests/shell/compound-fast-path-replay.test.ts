@@ -1310,3 +1310,34 @@ test("trySyncLoop accelerates [[ ... ]] conditional statements and if/elif [[ ..
     await shell.dispose();
   }
 });
+
+test("trySyncLoop accelerates while [[ ... ]], POSIX [ ... ] / test ... conditions, and case blocks (Wave 80)", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  for (const command of [...basicCommands(), ...predicateCommands()]) {
+    shell.commands.register(command, { replace: true });
+  }
+  try {
+    const t0 = performance.now();
+    const res = await shell.exec([
+      "i=0; wsum=0",
+      "while [[ $i -lt 1200 ]]; do ((wsum += i)); ((i++)); done",
+      "j=0; bsum=0",
+      "while [ \"$j\" -lt 1200 ]; do ((bsum += j)); ((j++)); done",
+      "csum=0; psum=0",
+      "for ((k = 0; k < 1200; k++)); do",
+      "  if [ \"$k\" -lt 600 ]; then ((psum += 1)); fi",
+      "  case $k in",
+      "    *0) ((csum += 2));;",
+      "    *) ((csum += 1));;",
+      "  esac",
+      "done",
+      "printf \"%d|%d|%d|%d\\n\" \"$wsum\" \"$bsum\" \"$psum\" \"$csum\"",
+    ].join("\n"));
+    const elapsed = performance.now() - t0;
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "719400|719400|600|1320\n");
+    assert.ok(elapsed < 1000, "Expected < 1000ms, got " + elapsed.toFixed(1) + "ms");
+  } finally {
+    await shell.dispose();
+  }
+});

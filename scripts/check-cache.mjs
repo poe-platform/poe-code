@@ -321,7 +321,9 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
 
 const knownPretestHooks = new Set([
   "npm run typecheck:public",
-  "node scripts/numberformat-data.mjs && npm run typecheck:fs"
+  "node scripts/numberformat-data.mjs && npm run typecheck:fs",
+  "node --import tsx scripts/build-browser-run-code-guest.ts",
+  "npm run build"
 ]);
 
 export function prepareNativeUnitCache(plan, stages, { cacheStore, cacheFiles, environment, fileSystem = fs }) {

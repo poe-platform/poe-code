@@ -84,6 +84,17 @@ describe("native Vitest workspace result cache", () => {
     expect(first).toMatchObject({ unitCacheHits: 0, unitCacheMisses: 1 });
     const second = await testWorkspaces("/repo", { ...state, workspaces: ["sample-rust"] });
     expect(second).toMatchObject({ unitCacheHits: 1, unitCacheMisses: 0 });
+    state.fileSystem.mkdirSync("/repo/packages/hooked/src", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/hooked/package.json", JSON.stringify({
+      name: "hooked",
+      scripts: { "pretest:unit": "npm run build", "test:unit": "cd ../.. && vitest run packages/hooked/src --pool=forks" }
+    }), { flag: "w" });
+    state.fileSystem.writeFileSync("/repo/packages/hooked/src/unit.test.ts", "export {};");
+    state.cacheFiles.push("packages/hooked/package.json", "packages/hooked/src/unit.test.ts");
+    const hookFirst = await testWorkspaces("/repo", { ...state, workspaces: ["hooked"] });
+    expect(hookFirst).toMatchObject({ unitCacheHits: 0, unitCacheMisses: 1 });
+    const hookSecond = await testWorkspaces("/repo", { ...state, workspaces: ["hooked"] });
+    expect(hookSecond).toMatchObject({ unitCacheHits: 1, unitCacheMisses: 0 });
   });
   it("caches *-rust cargo.mjs build outputs in prepareBuildCache", async () => {
     const state = fixture();

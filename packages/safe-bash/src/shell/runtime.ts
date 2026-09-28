@@ -18202,6 +18202,7 @@ export class Runtime {
           continue;
         }
         if (part.prefixNames !== undefined) {
+          if (split && part.prefixNames === "@" && (part.quoted || rawVars.IFS === "")) return undefined;
           if (part.indirect || part.specialParameter || part.length || part.substring || part.operator !== undefined || getArraySelector(part) !== undefined || !isShellIdentifier(part.name)) return undefined;
           const pNames = this.collectSyncPrefixNames(part.name, rawState);
           if (!pNames) return undefined;

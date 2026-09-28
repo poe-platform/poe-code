@@ -291,6 +291,7 @@ describe("standalone package publish metadata", () => {
       expect(root.exports?.[`./safe-bash/commands/python/${host}`]).toBeUndefined();
       expect(standalone.exports?.[`./commands/python/${host}`]).toEqual({
         types: `./dist/commands/python/${host}.d.ts`,
+        workerd: null,
         browser: null,
         import: `./dist/commands/python/${host}.js`
       });

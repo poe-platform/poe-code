@@ -43,13 +43,15 @@ test("F22 default captured Node clock returns early child status through direct 
   assert.equal(activeTimeouts(), before);
 });
 
-test("custom receiver snapshot, one-handle chunks, cancellation, and cleanup remain unchanged", async () => {
+test("custom receiver snapshot, one-handle chunks, cancellation, and cleanup with timer progress", async () => {
   const scheduler = new ManualScheduler();
   const childClose = gate();
   let admitted!: () => void;
   const childAdmitted = new Promise<void>(resolve => { admitted = resolve; });
   let observedReason: unknown;
-  const capture = captureContext(["2s", "child"], {
+  // Current timers credit at least the scheduled interval for slow/frozen clocks.
+  // The historical 2s cohort remains selected by Git commit in validate-repair.mjs.
+  const capture = captureContext(["2.5s", "child"], {
     invoke: async (_command, _args, options) => {
       admitted();
       const signal = options!.signal!;

@@ -23,4 +23,15 @@ it("selects the portable collector with opt-in limits using the workerd conditio
   await expect(runInContext(`collector.collectBytes((async function* () {
     yield new Uint8Array(17);
   })(), { maxBytes: 16 })`, context)).rejects.toMatchObject({ code: "EFBIG" });
+  const unlimitedLength = await runInContext(`collector.collectBytes((async function* () {
+    yield new Uint8Array(17 * 1024 * 1024);
+  })(), { maxBytes: 64 * 1024 * 1024 }).then(bytes => bytes.length)`, context);
+  expect(unlimitedLength).toBe(17 * 1024 * 1024);
+  await expect(runInContext(`collector.collectBytes((async function* () {
+    yield new Uint8Array(9);
+  })(), { maxMemoryBytes: 16 })`, context)).rejects.toMatchObject({ code: "EFBIG" });
+  const result = await runInContext(`collector.collectBytes((async function* () {
+    yield new Uint8Array(8);
+  })(), { maxMemoryBytes: 16 })`, context) as Uint8Array;
+  expect(result.length).toBe(8);
 });

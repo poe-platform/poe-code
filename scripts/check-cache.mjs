@@ -230,7 +230,10 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     "node ../../scripts/guard-package-dist.mjs && tsc",
     "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json",
     "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json",
+    "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc",
     "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc -p tsconfig.json",
+    "node ../../scripts/guard-package-dist.mjs && node --import tsx scripts/build-browser-run-code-guest.ts && tsc -p tsconfig.json",
+    "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --outfile=dist/index.js && esbuild src/portable.ts --bundle --platform=browser --format=esm --target=es2022 --outfile=dist/portable.js && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --outfile=dist/index.browser.js && tsc -p tsconfig.browser.json",
     "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs",
     "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs",
     "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-assets.mjs",
@@ -374,7 +377,9 @@ export function prepareNativeUnitCache(plan, stages, { cacheStore, cacheFiles, e
 export function createCheckCache({
   directory = checkCacheDirectory(),
   fileSystem = fs,
-  fallbackDirectory = fileSystem === fs ? path.resolve(os.tmpdir(), "poe-code", "checks-v1") : undefined
+  fallbackDirectory = fileSystem === fs ? path.resolve(os.tmpdir(), "poe-code", "checks-v1") : undefined,
+  maxDirectoryBytes = 300 * 1024 * 1024,
+  targetDirectoryBytes = 200 * 1024 * 1024
 } = {}) {
   let writableDirectory = directory;
   const filename = (key, baseDirectory = directory) => {
@@ -383,19 +388,54 @@ export function createCheckCache({
   };
   const readFrom = (key, baseDirectory) => {
     try {
-      return JSON.parse(gunzipSync(fileSystem.readFileSync(filename(key, baseDirectory)), { maxOutputLength: 128 * 1024 * 1024 }).toString("utf8"));
+      return JSON.parse(gunzipSync(fileSystem.readFileSync(filename(key, baseDirectory)), { maxOutputLength: 512 * 1024 * 1024 }).toString("utf8"));
     } catch (error) {
       if (error.code === "EACCES" || error.code === "EPERM") throw error;
       return null;
     }
   };
+  const pruneDirectory = (baseDirectory, preserveName) => {
+    try {
+      const entries = fileSystem.readdirSync(baseDirectory)
+        .filter(name => name.endsWith(".json.gz"))
+        .map((name, order) => {
+          const full = path.join(baseDirectory, name);
+          const stat = fileSystem.statSync(full);
+          return { name, full, size: stat.size ?? 0, mtimeMs: stat.mtimeMs ?? 0, order };
+        });
+      const totalBytes = entries.reduce((sum, entry) => sum + entry.size, 0);
+      if (totalBytes <= maxDirectoryBytes) return;
+      entries.sort((a, b) => (a.name === preserveName ? -1 : b.name === preserveName ? 1 : b.mtimeMs - a.mtimeMs || b.order - a.order));
+      let keptBytes = 0;
+      for (const entry of entries) {
+        if (entry.name === preserveName || keptBytes + entry.size <= targetDirectoryBytes) {
+          keptBytes += entry.size;
+        } else {
+          try { fileSystem.rmSync(entry.full, { force: true }); } catch {}
+        }
+      }
+    } catch {}
+  };
   const writeTo = (key, value, baseDirectory) => {
     const destination = filename(key, baseDirectory);
     fileSystem.mkdirSync(baseDirectory, { recursive: true });
+    const compressed = gzipSync(Buffer.from(JSON.stringify(value)));
     const temporary = destination + "." + randomUUID() + ".tmp";
     try {
-      fileSystem.writeFileSync(temporary, gzipSync(Buffer.from(JSON.stringify(value))), { flag: "wx", mode: 0o600 });
+      try {
+        fileSystem.writeFileSync(temporary, compressed, { flag: "wx", mode: 0o600 });
+      } catch (error) {
+        if (error?.code === "ENOSPC") {
+          pruneDirectory(baseDirectory, path.basename(destination));
+          fileSystem.writeFileSync(temporary, compressed, { flag: "wx", mode: 0o600 });
+        } else {
+          throw error;
+        }
+      }
       fileSystem.renameSync(temporary, destination);
+      if (compressed.length > 1024 * 1024 || maxDirectoryBytes < 300 * 1024 * 1024) {
+        pruneDirectory(baseDirectory, path.basename(destination));
+      }
     } finally {
       try { fileSystem.rmSync(temporary, { force: true }); } catch {
         // Best-effort cleanup must not replace a write or rename failure.

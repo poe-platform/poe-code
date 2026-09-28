@@ -119,4 +119,20 @@ describe("workspace build caching", () => {
     expect(spawn).toHaveBeenCalledTimes(3);
     expect(result).toMatchObject({ builds: 2, cacheHits: 1, cacheMisses: 1 });
   });
+  it("reads cached build payloads larger than 128MB uncompressed and prunes oldest entries when exceeding maxDirectoryBytes", () => {
+    const state = fixture();
+    const cache = createCheckCache({
+      directory: "/repo/.cache/checks-v1",
+      fileSystem: state.fileSystem,
+      maxDirectoryBytes: 200_000,
+      targetDirectoryBytes: 150_000
+    });
+    const oldKey = "a".repeat(64);
+    const newKey = "b".repeat(64);
+    cache.write(oldKey, { success: true, payload: "x".repeat(140 * 1024 * 1024) });
+    expect(cache.read(oldKey)?.success).toBe(true);
+    cache.write(newKey, { success: true, payload: "y".repeat(140 * 1024 * 1024) });
+    expect(cache.read(newKey)?.success).toBe(true);
+    expect(cache.read(oldKey)).toBeNull();
+  });
 });

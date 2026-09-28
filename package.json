@@ -459,6 +459,8 @@
     "packages/safe-bash-line-ending-engine/dist",
     "packages/safe-bash-command-pandoc/dist",
     "packages/safe-bash-command-pandoc/LICENSE",
+    "packages/mp4-ast/dist/**/*.d.ts",
+    "packages/pdf/dist/**/*.d.ts",
     "!**/*.js.map",
     "!**/*.mjs.map",
     "!**/*.cjs.map",
@@ -737,6 +739,14 @@
         "workerd": "./packages/safe-fs/dist/platform/browser-path.d.ts",
         "browser": "./packages/safe-fs/dist/platform/browser-path.d.ts",
         "default": "./packages/safe-fs/dist/platform/node-path.d.ts"
+      },
+      "default": null
+    },
+    "#safe-js-platform": {
+      "types": {
+        "workerd": "./packages/safe-js/dist/platform/workerd.d.ts",
+        "browser": "./packages/safe-js/dist/platform/workerd.d.ts",
+        "default": "./packages/safe-js/dist/platform/node.d.ts"
       },
       "default": null
     }

@@ -935,7 +935,7 @@ class Parser {
     this.functionScopes.add(this.scopes[0]!);
     const openings: number[] = [];
     for (let index = 0; index < tokens.length; index++) {
-      const token = tokens[index]!;
+      const token = this.readToken(index)!;
       if (token.type !== "punctuator") continue;
       if (token.value === "(") openings.push(index);
       else if (token.value === ")" && openings.length > 0)
@@ -3711,7 +3711,7 @@ class Parser {
       // to the ordinary expression parser.
       while (this.currentToken().value === "(") {
         const close = this.closingParentheses.get(this.index);
-        const suffix = close === undefined ? undefined : this.tokens[close + 1];
+        const suffix = close === undefined ? undefined : this.readToken(close + 1);
         if (suffix?.type !== "punctuator" || (suffix.value !== ")" && suffix.value !== "?")) break;
         starts.push(this.expectPunctuator("("));
       }

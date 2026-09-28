@@ -4,7 +4,11 @@ import { CompactSourcePositions } from "./compact-spans.js";
 import { compactTokenReader } from "./compact-tokens.js";
 import * as tokenizer from "./tokenizer.js";
 
-it("reads compiler tokens without converting parser indices to property keys", () => {
+it.each([
+  "export const alpha = beta;",
+  "export const alpha = ((beta) => beta);",
+  "export const alpha = ((beta));"
+])("reads compiler tokens without converting parser indices to property keys: %s", source => {
   const tokenizeCompact = tokenizer.tokenizeCompact;
   let parsing = false;
   const tokenize = vi.spyOn(tokenizer, "tokenizeCompact").mockImplementation((...args) => {
@@ -22,7 +26,7 @@ it("reads compiler tokens without converting parser indices to property keys", (
   });
   let result;
   try {
-    result = parseSourceModule("export const alpha = beta;", "entry", undefined, {
+    result = parseSourceModule(source, "entry", undefined, {
       sharedPositions: true, compactAst: true
     });
   } finally {

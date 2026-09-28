@@ -12065,7 +12065,7 @@ export class Runtime {
               !stateMonitor(rawState)?.hasOverlay(cmd.name) &&
               cmd.words?.length === 1 &&
               ((rawState.braceexpand !== false && tryFastExpandBraceRange(cmd.words[0]!, this.budget, undefined) !== undefined) ||
-                this.tryExpandSyncArrayMembersWord(cmd.words[0]!, rawState, io, cmd.line ?? 1) !== undefined) &&
+                (io !== undefined && this.tryExpandSyncArrayMembersWord(cmd.words[0]!, rawState, io, cmd.line ?? 1) !== undefined)) &&
               this.canSyncLoopBody(cmd.body, rawState, io, true)
             ) {
               continue;
@@ -13924,7 +13924,7 @@ export class Runtime {
       const postInd = rawState.variables[inductionName];
       if (lastArgInductionVal === undefined) delete rawState.variables[inductionName];
       else rawState.variables[inductionName] = lastArgInductionVal;
-      lastArg = this.evalSyncRedirectWord(lastValueWord, rawState, io);
+      lastArg = this.evalSyncRedirectWord(lastValueWord, rawState, io) ?? "";
       if (postInd === undefined) delete rawState.variables[inductionName];
       else rawState.variables[inductionName] = postInd;
     }
@@ -14552,7 +14552,7 @@ export class Runtime {
       }
     }
     this.flushSyncStdoutBatch(io);
-    if (lastValueWord !== undefined) lastArg = this.evalSyncRedirectWord(lastValueWord, rawState, io);
+    if (lastValueWord !== undefined) lastArg = this.evalSyncRedirectWord(lastValueWord, rawState, io) ?? "";
     return { lastCmd, lastArg };
   }
   async script(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0, skipFirstSync = false): Promise<number> {

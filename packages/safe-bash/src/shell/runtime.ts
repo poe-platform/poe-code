@@ -7707,10 +7707,10 @@ export class Runtime {
         if (printfDef && printfDef.execute === printfCommand.execute) {
           const w2 = command.words[2];
           const w2Plain = w2?.plain ?? (w2?.parts.length === 1 && w2.parts[0]!.kind === "text" ? w2.parts[0]!.value : undefined);
-          const isPrintfV = command.words.length >= 4 && command.words[1]?.plain === "-v" && w2 !== undefined && (
-            (w2Plain !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*(?:\[[^\]$\x60"']+\])?$/.test(w2Plain) && !w2Plain.startsWith("OPTIND") && !w2Plain.startsWith("PIPESTATUS")) ||
-            (w2.parts[0]?.kind === "text" && /^[a-zA-Z_][a-zA-Z_0-9]*\[/.test(w2.parts[0].value) && w2.parts[w2.parts.length - 1]?.kind === "text" && (w2.parts[w2.parts.length - 1] as { value: string }).value.endsWith("]") && isNoBraceSyncWord(w2))
-          );
+          const isPrintfV = command.words[1]?.plain === "-v";
+          // Array writes can need asynchronous arithmetic or binding creation as
+          // the loop changes state. Reject them before any loop effects occur.
+          if (isPrintfV && (command.words.length < 4 || w2Plain === undefined || !isShellIdentifier(w2Plain) || controlNames.has(w2Plain))) return false;
           const fmtIdx = isPrintfV ? 3 : 1;
           const fmtWord = command.words[fmtIdx];
           const fmtPlain = fmtWord?.plain ?? (fmtWord?.parts.length === 1 && fmtWord.parts[0]!.kind === "text" ? fmtWord.parts[0]!.value : undefined);

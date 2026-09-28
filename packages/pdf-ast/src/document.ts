@@ -1,3 +1,7 @@
+import { drainWork } from "./work.js";
+import { parseCosDocumentSteps } from "./cos/parser.js";
+import { serializeCosDocumentSteps } from "./cos/writer.js";
+import { encryptCosDocumentSteps } from "./cos/security.js";
 import {
   cosArray,
   cosDict,
@@ -29,7 +33,7 @@ import {
 import { applyPredictor, decodeFlate } from "./cos/filters.js";
 import { discardUnreachableObjects } from "./cos/garbage-collection.js";
 import { parseCosDocument, type ParseCosOptions, type ParsedCosDocument } from "./cos/parser.js";
-import { encryptCosDocument, type EncryptPdfOptions } from "./cos/security.js";
+import { type EncryptPdfOptions } from "./cos/security.js";
 import { appendIncrementalRevision, serializeCosDocument } from "./cos/writer.js";
 import { getDocumentFormFields, setDocumentFormField, type PdfFormFieldInfo } from "./edit/forms.js";
 import { pruneUnusedXObjects } from "./edit/resources.js";
@@ -114,13 +118,20 @@ export class PdfDocument {
     return new PdfDocument(parseCosDocument(rawBytes));
   }
 
-  static load(bytes: Uint8Array, options?: ParseCosOptions): PdfDocument {
+  static *loadSteps(bytes: Uint8Array, options?: ParseCosOptions): Generator<void, PdfDocument, void> {
+    yield;
+
+
     return new PdfDocument(
-      parseCosDocument(bytes, {
+      (yield* parseCosDocumentSteps(bytes, {
         ...options,
         recovery: options?.recovery ?? "repair",
-      })
+      }))
     );
+  }
+
+  static load(bytes: Uint8Array, options?: ParseCosOptions): PdfDocument {
+    return drainWork(PdfDocument.loadSteps(bytes, options));
   }
 
   private rebuildPagesList(): void {
@@ -221,10 +232,21 @@ export class PdfDocument {
     this.syncPageTree();
   }
 
-  copyPagesFrom(sourceDoc: PdfDocument, indices: readonly number[]): PdfPage[] {
+  *copyPagesFromSteps(sourceDoc: PdfDocument, indices: readonly number[]): Generator<void, PdfPage[], void> {
+    function* cloneItems(items: readonly PdfCosNode[]): Generator<void, PdfCosNode[], void> {
+      const result: PdfCosNode[] = [];
+      for (const item of items) result.push(yield* cloneNode(item));
+      return result;
+    }
+
+    yield;
+    let work = 0;
+
     const memo = new Map<number, PdfCosRef>();
     const sourcePageObjNums = new Set<number>();
     for (let i = 0; i < sourceDoc.getPageCount(); i++) {
+      if (++work % 16 === 0) yield;
+
       sourcePageObjNums.add(sourceDoc.getPage(i).ref.objectNumber);
     }
 
@@ -232,13 +254,17 @@ export class PdfDocument {
     // while retaining shared indirect resources below the page.
     const targetPageRefs: PdfCosRef[] = [];
     for (const idx of indices) {
+      if (++work % 16 === 0) yield;
+
       const srcPage = sourceDoc.getPage(idx);
       const pageRef = this.cos.allocateObject({ kind: "null" });
       targetPageRefs.push(pageRef);
       memo.set(srcPage.ref.objectNumber, pageRef);
     }
 
-    const cloneNode = (node: PdfCosNode): PdfCosNode => {
+    const cloneNode = function* (this: PdfDocument, node: PdfCosNode): Generator<void, PdfCosNode, void> {
+      if (++work % 16 === 0) yield;
+
       if (node.kind === "ref") {
         const existing = memo.get(node.objectNumber);
         if (existing) return existing;
@@ -250,12 +276,12 @@ export class PdfDocument {
         // Reserve object number first to handle cycles (e.g. Parent pointers)
         const placeholderRef = this.cos.allocateObject({ kind: "null" });
         memo.set(node.objectNumber, placeholderRef);
-        const clonedTarget = cloneNode(target);
+        const clonedTarget = (yield* cloneNode(target));
         this.cos.setObject(placeholderRef.objectNumber, clonedTarget, 0);
         return placeholderRef;
       }
       if (node.kind === "array") {
-        return cosArray(node.items.map(cloneNode));
+        return cosArray(yield* cloneItems(node.items));
       }
       if (node.kind === "dict") {
         const typeEntry = dictGet(node, "Type");
@@ -267,13 +293,13 @@ export class PdfDocument {
           if (isPageTreeNode && entry.key.decoded === "Parent") continue;
           newEntries.push({
             key: { ...entry.key },
-            value: cloneNode(entry.value),
+            value: (yield* cloneNode(entry.value)),
           });
         }
         return { kind: "dict", entries: newEntries };
       }
       if (node.kind === "stream") {
-        const clonedDict = cloneNode(node.dict) as PdfCosDict;
+        const clonedDict = (yield* cloneNode(node.dict)) as PdfCosDict;
         return {
           kind: "stream",
           dict: clonedDict,
@@ -282,12 +308,13 @@ export class PdfDocument {
         };
       }
       return node;
-    };
+    }.bind(this);
 
     const copiedPages: PdfPage[] = [];
     for (const [position, idx] of indices.entries()) {
+      if (++work % 16 === 0) yield;
       const srcPage = sourceDoc.getPage(idx);
-      const clonedPageDict = cloneNode(srcPage.pageDict) as PdfCosDict;
+      const clonedPageDict = (yield* cloneNode(srcPage.pageDict)) as PdfCosDict;
       const size = srcPage.getSize();
       if (!dictGet(clonedPageDict, "MediaBox")) {
         dictSet(
@@ -297,13 +324,15 @@ export class PdfDocument {
         );
       }
       if (!dictGet(clonedPageDict, "Resources")) {
-        dictSet(clonedPageDict, "Resources", cloneNode(srcPage.getResourcesDict()));
+        dictSet(clonedPageDict, "Resources", (yield* cloneNode(srcPage.getResourcesDict())));
       }
       if (!dictGet(clonedPageDict, "Rotate") && srcPage.getRotation() !== 0) {
         dictSet(clonedPageDict, "Rotate", cosNumber(srcPage.getRotation()));
       }
       const inheritedBoxKeys = ["CropBox", "BleedBox", "TrimBox", "ArtBox"] as const;
       for (const boxKey of inheritedBoxKeys) {
+        if (++work % 16 === 0) yield;
+
         if (!dictGet(clonedPageDict, boxKey)) {
           const boxVal =
             boxKey === "CropBox"
@@ -359,8 +388,10 @@ export class PdfDocument {
 
       const clonedRootFieldRefs: PdfCosRef[] = [];
       for (const item of srcFieldsArr.items) {
+        if (++work % 16 === 0) yield;
+
         if (!hasClonedDescendant(item)) continue;
-        const cloned = cloneNode(item);
+        const cloned = (yield* cloneNode(item));
         if (cloned.kind === "ref") {
           const clonedDict = this.cos.resolveDict(cloned);
           const kidsArr = clonedDict ? this.cos.resolveArray(dictGet(clonedDict, "Kids")) : undefined;
@@ -395,6 +426,8 @@ export class PdfDocument {
             dstFields.items.filter((x): x is PdfCosRef => x.kind === "ref").map(x => x.objectNumber)
           );
           for (const fRef of clonedRootFieldRefs) {
+            if (++work % 16 === 0) yield;
+
             if (!existingNums.has(fRef.objectNumber)) {
               dstFields.items.push(fRef);
               existingNums.add(fRef.objectNumber);
@@ -402,11 +435,11 @@ export class PdfDocument {
           }
           const srcDr = dictGet(srcAcroForm!, "DR");
           if (srcDr && !dictGet(dstAcroForm, "DR")) {
-            dictSet(dstAcroForm, "DR", cloneNode(srcDr));
+            dictSet(dstAcroForm, "DR", (yield* cloneNode(srcDr)));
           }
           const srcDa = dictGet(srcAcroForm!, "DA");
           if (srcDa && !dictGet(dstAcroForm, "DA")) {
-            dictSet(dstAcroForm, "DA", cloneNode(srcDa));
+            dictSet(dstAcroForm, "DA", (yield* cloneNode(srcDa)));
           }
         }
       }
@@ -416,12 +449,16 @@ export class PdfDocument {
     if (srcOcProps) {
       const dstCatalog = this.cos.resolveDict(this.cos.rootRef);
       if (dstCatalog && !dictGet(dstCatalog, "OCProperties")) {
-        dictSet(dstCatalog, "OCProperties", cloneNode(srcOcProps));
+        dictSet(dstCatalog, "OCProperties", (yield* cloneNode(srcOcProps)));
       }
     }
 
     this.syncPageTree();
     return copiedPages;
+  }
+
+  copyPagesFrom(sourceDoc: PdfDocument, indices: readonly number[]): PdfPage[] {
+    return drainWork(this.copyPagesFromSteps(sourceDoc, indices));
   }
 
   embedStandardFont(fontName: Standard14FontName): PdfFontHandle {
@@ -647,14 +684,17 @@ export class PdfDocument {
     return buildSemanticAstFromPages(extractedPages, tablesByPage, displayLists);
   }
 
-  save(options: SavePdfOptions = {}): Uint8Array {
+  *saveSteps(options: SavePdfOptions = {}): Generator<void, Uint8Array, void> {
+    yield;
+
+
     this.syncPageTree();
     if (this.cos.requiresFullRewrite) {
       pruneUnusedXObjects(this.cos, this.pages);
       discardUnreachableObjects(this.cos);
     }
     if (options.encrypt) {
-      return encryptCosDocument(this.cos, options.encrypt);
+      return (yield* encryptCosDocumentSteps(this.cos, options.encrypt));
     }
     const allObjects: PdfIndirectObject[] = [...this.cos.objects.values()].sort(
       (a, b) => a.objectNumber - b.objectNumber
@@ -662,7 +702,7 @@ export class PdfDocument {
     if (options.incremental && !this.cos.requiresFullRewrite && this.cos.bytes.length > 0) {
       return appendIncrementalRevision(this.cos.bytes, this.cos, allObjects);
     }
-    return serializeCosDocument({
+    return (yield* serializeCosDocumentSteps({
       objects: allObjects,
       rootRef: this.cos.rootRef,
       infoRef: this.cos.infoRef,
@@ -671,7 +711,11 @@ export class PdfDocument {
       normalizeContent: options.normalizeContent,
       objectStreams: options.objectStreams,
       linearize: options.linearize,
-    });
+    }));
+  }
+
+  save(options: SavePdfOptions = {}): Uint8Array {
+    return drainWork(this.saveSteps(options));
   }
 }
 

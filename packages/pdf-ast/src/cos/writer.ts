@@ -1,3 +1,4 @@
+import { drainWork } from "../work.js";
 import {
   cosArray,
   cosDict,
@@ -160,7 +161,11 @@ export function concatByteArrays(chunks: readonly Uint8Array[]): Uint8Array {
   return out;
 }
 
-export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
+export function* serializeCosDocumentSteps(options: SerializeCosOptions): Generator<void, Uint8Array, void> {
+  yield;
+
+  let work = 0;
+
   const maxOutputBytes = options.maxOutputBytes ?? Infinity;
   const maxObjects = options.maxObjects ?? Infinity;
   const sorted = [...options.objects].sort((a, b) => a.objectNumber - b.objectNumber);
@@ -187,6 +192,8 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
     const packable: PdfIndirectObject[] = [];
     const direct: PdfIndirectObject[] = [];
     for (const obj of sorted) {
+      if (++work % 16 === 0) yield;
+
       const isLinearized = obj.value.kind === "dict" && dictGet(obj.value, "Linearized") !== undefined;
       if (obj.value.kind !== "stream" && obj.generationNumber === 0 && !isLinearized) {
         packable.push(obj);
@@ -201,6 +208,8 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
       const headerPairs: string[] = [];
       let relOffset = 0;
       for (const pObj of packable) {
+        if (++work % 16 === 0) yield;
+
         headerPairs.push(`${pObj.objectNumber} ${relOffset}`);
         const bBytes = serializeCosNodeBytes(pObj.value);
         const nl = textEncoder.encode("\n");
@@ -226,6 +235,8 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
       ];
       const directOffsets = new Map<number, { offset: number; generation: number }>();
       for (const dObj of allDirect) {
+        if (++work % 16 === 0) yield;
+
         directOffsets.set(dObj.objectNumber, { offset, generation: dObj.generationNumber });
         const prefix = textEncoder.encode(`${dObj.objectNumber} ${dObj.generationNumber} obj\n`);
         const body = serializeCosNodeBytes(dObj.value);
@@ -235,6 +246,8 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
       }
       const compressedMap = new Map<number, number>();
       for (let idx = 0; idx < packable.length; idx++) {
+        if (++work % 16 === 0) yield;
+
         compressedMap.set(packable[idx]!.objectNumber, idx);
       }
       const xrefOffset = offset;
@@ -252,6 +265,8 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
       };
       writeEntry7(0, 0, 0, 65535);
       for (let i = 1; i < size; i++) {
+        if (++work % 16 === 0) yield;
+
         if (i === xrefStmNum) {
           writeEntry7(i, 1, xrefOffset, 0);
         } else if (compressedMap.has(i)) {
@@ -332,6 +347,8 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
     let pageCount = 0;
     let firstPageObjNum = options.rootRef.objectNumber;
     for (const o of sorted) {
+      if (++work % 16 === 0) yield;
+
       if (o.value.kind === "dict") {
         const t = dictGet(o.value, "Type");
         if (t?.kind === "name" && t.decoded === "Page") {
@@ -384,6 +401,8 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
   const objectOffsets = new Map<number, { offset: number; generation: number }>();
 
   for (const obj of sorted) {
+    if (++work % 16 === 0) yield;
+
     objectOffsets.set(obj.objectNumber, { offset, generation: obj.generationNumber });
     let value = obj.value;
     if (options.normalizeContent && value.kind === "stream" && value.decodedBytes) {
@@ -412,6 +431,8 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
   const size = maxObjectNumber + 1;
   let xrefText = `xref\n0 ${size}\n0000000000 65535 f \n`;
   for (let i = 1; i < size; i++) {
+    if (++work % 16 === 0) yield;
+
     const entry = objectOffsets.get(i);
     if (entry) {
       xrefText += `${String(entry.offset).padStart(10, "0")} ${String(entry.generation).padStart(5, "0")} n \n`;
@@ -457,6 +478,8 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
     let endFirstPage = xrefOffset;
     const sortedOffsets = [...objectOffsets.entries()].sort((a, b) => a[1].offset - b[1].offset);
     for (let i = 0; i < sortedOffsets.length; i++) {
+      if (++work % 16 === 0) yield;
+
       const [objNum, info] = sortedOffsets[i]!;
       const nextOff = sortedOffsets[i + 1]?.[1].offset ?? xrefOffset;
       if (objNum === hintObjAfter.objectNumber) {
@@ -488,6 +511,10 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
     }
   }
   return fullBytes;
+}
+
+export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
+  return drainWork(serializeCosDocumentSteps(options));
 }
 
 export function appendIncrementalRevision(

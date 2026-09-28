@@ -1,3 +1,4 @@
+import { drainWork } from "../work.js";
 import { CipherTransformFactory, Dict, Name, Stream, PDF17, PDF20, saslPrep } from "../vendor/pdfjs-fonts.mjs";
 import { bytesToString, stringToBytes } from "../bytes.js";
 import {
@@ -27,7 +28,7 @@ import { PdfError } from "../errors.js";
 import type { ParsedCosDocument } from "./parser.js";
 import { decodeStreamObject } from "./filters.js";
 import { assertDecodedByteBudget } from "./limits.js";
-import { serializeCosDocument } from "./writer.js";
+import { serializeCosDocumentSteps } from "./writer.js";
 
 const PADDING_32 = Uint8Array.from([
   0x28, 0xbf, 0x4e, 0x5e, 0x4e, 0x75, 0x8a, 0x41,
@@ -270,60 +271,35 @@ export function encryptPdfBuffer(
   return rc4Transform(objKey, plaintext);
 }
 
-function transformNodeStringsAndStreams(
+function* transformNodeStringsAndStreamsSteps(
   node: PdfCosNode,
   transform: (bytes: Uint8Array) => Uint8Array,
   transformStream?: (stream: PdfCosStream) => PdfCosStream
-): PdfCosNode {
+): Generator<void, PdfCosNode, void> {
+  yield;
   switch (node.kind) {
-    case "string":
-      return {
-        kind: "string",
-        format: "hex",
-        bytes: transform(node.bytes),
-      };
-    case "array":
-      return {
-        kind: "array",
-        items: node.items.map(item => transformNodeStringsAndStreams(item, transform, transformStream)),
-      };
+    case "string": return { kind: "string", format: "hex", bytes: transform(node.bytes) };
+    case "array": {
+      const items: PdfCosNode[] = [];
+      for (const item of node.items) items.push(yield* transformNodeStringsAndStreamsSteps(item, transform, transformStream));
+      return { kind: "array", items };
+    }
     case "dict": {
-      const type = dictGet(node, "Type");
-      const fieldType = dictGet(node, "FT");
-      const byteRange = dictGet(node, "ByteRange");
-      const signature = (type?.kind === "name" && type.decoded === "Sig") ||
-        (fieldType?.kind === "name" && fieldType.decoded === "Sig") ||
-        (byteRange?.kind === "array" && dictGet(node, "Filter")?.kind === "name");
-      return {
-        kind: "dict",
-        entries: node.entries.map(e => ({
-          key: e.key,
-          value: signature && e.key.decoded === "Contents" ? e.value : transformNodeStringsAndStreams(e.value, transform, transformStream),
-        })),
-      };
+      const type = dictGet(node, "Type"), fieldType = dictGet(node, "FT"), byteRange = dictGet(node, "ByteRange");
+      const signature = (type?.kind === "name" && type.decoded === "Sig") || (fieldType?.kind === "name" && fieldType.decoded === "Sig") || (byteRange?.kind === "array" && dictGet(node, "Filter")?.kind === "name");
+      const entries: PdfCosDict["entries"] = [];
+      for (const e of node.entries) entries.push({ key: e.key, value: signature && e.key.decoded === "Contents" ? e.value : yield* transformNodeStringsAndStreamsSteps(e.value, transform, transformStream) });
+      return { kind: "dict", entries };
     }
     case "stream": {
       const type = dictGet(node.dict, "Type");
       if (type?.kind === "name" && type.decoded === "XRef") return node;
       const stream = transformStream ? transformStream(node) : { ...node, rawBytes: transform(node.rawBytes) };
-      const updatedDict: PdfCosDict = {
-        kind: "dict",
-        entries: stream.dict.entries.map(e => ({
-          key: e.key,
-          value:
-            e.key.decoded === "Length"
-              ? cosNumber(stream.rawBytes.length)
-              : transformNodeStringsAndStreams(e.value, transform, transformStream),
-        })),
-      };
-      return {
-        kind: "stream",
-        dict: updatedDict,
-        rawBytes: stream.rawBytes,
-      };
+      const entries: PdfCosDict["entries"] = [];
+      for (const e of stream.dict.entries) entries.push({ key: e.key, value: e.key.decoded === "Length" ? cosNumber(stream.rawBytes.length) : yield* transformNodeStringsAndStreamsSteps(e.value, transform, transformStream) });
+      return { kind: "stream", dict: { kind: "dict", entries }, rawBytes: stream.rawBytes };
     }
-    default:
-      return node;
+    default: return node;
   }
 }
 
@@ -392,7 +368,9 @@ function createR6Encryption(userPassword: string, ownerPassword: string, pMask: 
   }) };
 }
 
-export function encryptCosDocument(doc: ParsedCosDocument, options: EncryptPdfOptions = {}): Uint8Array {
+export function* encryptCosDocumentSteps(doc: ParsedCosDocument, options: EncryptPdfOptions = {}): Generator<void, Uint8Array, void> {
+  yield;
+
   const userPassword = options.userPassword ?? "";
   const ownerPassword = options.ownerPassword ?? userPassword;
   const revision = options.revision ?? 6;
@@ -412,19 +390,23 @@ export function encryptCosDocument(doc: ParsedCosDocument, options: EncryptPdfOp
   const encryptObjNum = maxObjNum + 1;
   const encryptedObjects: PdfIndirectObject[] = [];
   for (const obj of doc.objects.values()) {
-    const transformed = transformNodeStringsAndStreams(obj.value, plain =>
+    yield;
+
+    const transformed = (yield* transformNodeStringsAndStreamsSteps(obj.value, plain =>
       encryptPdfBuffer(state, obj.objectNumber, obj.generationNumber, plain)
-    );
+    ));
     encryptedObjects.push({ objectNumber: obj.objectNumber, generationNumber: obj.generationNumber, value: transformed });
   }
   encryptedObjects.push({ objectNumber: encryptObjNum, generationNumber: 0, value: encryptDict });
-  return serializeCosDocument({
+  return (yield* serializeCosDocumentSteps({
     objects: encryptedObjects, rootRef: doc.rootRef, infoRef: doc.infoRef,
     encryptRef: cosRef(encryptObjNum),
     idArray: cosArray([cosHexString(idBytes), cosHexString(idBytes)]),
     version: revision === 6 ? "2.0" : Number.parseFloat(doc.version) < 1.4 ? "1.4" : doc.version,
-  });
+  }));
 }
+export function encryptCosDocument(doc: ParsedCosDocument, options: EncryptPdfOptions = {}): Uint8Array { return drainWork(encryptCosDocumentSteps(doc, options)); }
+
 
 // PDF.js Parser.makeStream/filter: explicit Crypt suppresses StmF and is
 // evaluated at its declared position. Preserve all remaining encoded filters.
@@ -475,22 +457,28 @@ function decryptStream(
   return { kind: "stream", dict, rawBytes: bytes };
 }
 
-export function decryptCosDocument(doc: ParsedCosDocument, state: PdfEncryptionState): void {
+export function* decryptCosDocumentSteps(doc: ParsedCosDocument, state: PdfEncryptionState): Generator<void, void, void> {
+  yield;
+
   const encryptObjNum = doc.encryptRef?.objectNumber;
   const handler = securityHandlers.get(state);
   for (const [num, obj] of doc.objects.entries()) {
+    yield;
+
     if (num === encryptObjNum || handler?.plaintextObjects.has(num)) continue;
     if (obj.value.kind === "stream") {
       const type = doc.resolve(dictGet(obj.value.dict, "Type"));
       if (type?.kind === "name" && (type.decoded === "XRef" || (type.decoded === "Metadata" && !state.encryptMetadata))) continue;
     }
     const transform = handler?.factory.createCipherTransform(obj.objectNumber, obj.generationNumber);
-    const decrypted = transformNodeStringsAndStreams(obj.value,
+    const decrypted = (yield* transformNodeStringsAndStreamsSteps(obj.value,
       cipher => decryptPdfBuffer(state, obj.objectNumber, obj.generationNumber, cipher),
       transform ? stream => decryptStream(doc, stream, transform) : undefined
-    );
+    ));
     doc.objects.set(num, { objectNumber: obj.objectNumber, generationNumber: obj.generationNumber, value: decrypted, span: obj.span });
   }
 }
+export function decryptCosDocument(doc: ParsedCosDocument, state: PdfEncryptionState): void { return drainWork(decryptCosDocumentSteps(doc, state)); }
+
 
 export const authenticateStandardEncryption = derivePdfEncryptionKey;

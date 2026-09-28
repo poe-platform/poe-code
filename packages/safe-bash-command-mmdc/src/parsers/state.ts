@@ -1,3 +1,4 @@
+import { drainWork } from "../work.js";
 import {
   MermaidError,
   type DocumentEdge,
@@ -99,10 +100,14 @@ function parseStateDeclaration(
   };
 }
 
-export function parseStateDiagram(
+export function* parseStateDiagramSteps(
   statements: readonly ScannedStatement[],
   budget: MermaidBudget
-): MermaidDocument {
+): Generator<void, MermaidDocument, void> {
+  yield;
+
+  let work = 0;
+
   let direction: FlowDirection = "TD";
   const nodes = new Map<string, DocumentNode>();
   const groups = new Map<string, DocumentGroup>();
@@ -206,6 +211,8 @@ export function parseStateDiagram(
   } | null = null;
 
   for (let sIdx = 1; sIdx < statements.length; sIdx++) {
+    if (++work % 256 === 0) yield;
+
     const stmt = statements[sIdx]!;
     const text = stmt.text;
     const span: MermaidSourceSpan = {
@@ -352,6 +359,8 @@ export function parseStateDiagram(
     let arrowPos = -1;
     let q: string | null = null;
     for (let i = 0; i <= text.length - 3; i++) {
+      if (++work % 256 === 0) yield;
+
       const c = text[i]!;
       if (q !== null) {
         if (c === q && text[i - 1] !== "\\") q = null;
@@ -503,11 +512,15 @@ export function parseStateDiagram(
   };
 
   for (const gid of groups.keys()) {
+    if (++work % 256 === 0) yield;
+
     const entryLeaf = findGroupEntryLeaf(gid);
     const exitLeaf = findGroupExitLeaf(gid);
     if (entryLeaf && exitLeaf) {
       nodes.delete(gid);
       for (let i = 0; i < edges.length; i++) {
+        if (++work % 256 === 0) yield;
+
         const e = edges[i]!;
         const newFrom = e.from === gid ? exitLeaf : e.from;
         const newTo = e.to === gid ? entryLeaf : e.to;
@@ -516,6 +529,8 @@ export function parseStateDiagram(
         }
       }
       for (let i = 0; i < notes.length; i++) {
+        if (++work % 256 === 0) yield;
+
         const n = notes[i]!;
         if (n.targetIds.includes(gid)) {
           notes[i] = {
@@ -535,4 +550,8 @@ export function parseStateDiagram(
     edges,
     notes
   };
+}
+
+export function parseStateDiagram(statements: readonly ScannedStatement[], budget: MermaidBudget): MermaidDocument {
+  return drainWork(parseStateDiagramSteps(statements, budget));
 }

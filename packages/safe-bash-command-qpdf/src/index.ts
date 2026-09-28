@@ -11,10 +11,10 @@ import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import {
   PdfDocument,
-  parseCosDocument,
-  serializeCosDocument,
-  encryptCosDocument,
-  generateDocumentFormAppearances,
+  parseCosDocumentSteps,
+  serializeCosDocumentSteps,
+  encryptCosDocumentSteps,
+  generateDocumentFormAppearancesSteps,
   resolveDestinationPageIndex,
   decodePdfString,
   cosDict,
@@ -1183,7 +1183,7 @@ function* executeQpdfCli(
       return { exitCode: 0, stdout: "", stderr: "" };
     }
     try {
-      parseCosDocument(raw, { password });
+      (yield* parseCosDocumentSteps(raw, { password }));
       return { exitCode: 3, stdout: "", stderr: "" };
     } catch {
       return { exitCode: 0, stdout: "", stderr: "" };
@@ -1211,25 +1211,25 @@ function* executeQpdfCli(
         if (!rootRef) {
           return { exitCode: 2, stdout: "", stderr: `qpdf: ${inputFile}: missing trailer /Root\n` };
         }
-        const rebuiltBytes = serializeCosDocument({
+        const rebuiltBytes = (yield* serializeCosDocumentSteps({
           objects: [...objectsMap.values()],
           rootRef,
           infoRef,
-        });
-        baseDoc = PdfDocument.load(rebuiltBytes);
+        }));
+        baseDoc = (yield* PdfDocument.loadSteps(rebuiltBytes));
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         return { exitCode: 2, stdout: "", stderr: `qpdf: ${inputFile}: ${msg}\n` };
       }
     } else {
       try {
-        baseDoc = PdfDocument.load(raw, password !== undefined ? { password } : {});
+        baseDoc = (yield* PdfDocument.loadSteps(raw, password !== undefined ? { password } : {}));
       } catch {
         try {
-          baseDoc = PdfDocument.load(raw, {
+          baseDoc = (yield* PdfDocument.loadSteps(raw, {
             ...(password !== undefined ? { password } : {}),
             recovery: "repair"
-          });
+          }));
           repairedWarning = true;
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
@@ -1255,12 +1255,12 @@ function* executeQpdfCli(
         return { exitCode: 2, stdout: "", stderr: `qpdf: ${jsonPath}: ${msg}\n` };
       }
     }
-    const updatedBytes = serializeCosDocument({
+    const updatedBytes = (yield* serializeCosDocumentSteps({
       objects: [...baseDoc.cos.objects.values()],
       rootRef: baseDoc.cos.rootRef,
       infoRef: baseDoc.cos.infoRef,
-    });
-    baseDoc = PdfDocument.load(updatedBytes);
+    }));
+    baseDoc = (yield* PdfDocument.loadSteps(updatedBytes));
   }
 
   // Inspection modes
@@ -1586,7 +1586,7 @@ function* executeQpdfCli(
         return { exitCode: 2, stdout: "", stderr: `qpdf: cannot open ${spec.file}\n` };
       }
       const srcPw = spec.password ?? password;
-      const srcDoc = PdfDocument.load(srcBytes, srcPw !== undefined ? { password: srcPw } : {});
+      const srcDoc = (yield* PdfDocument.loadSteps(srcBytes, srcPw !== undefined ? { password: srcPw } : {}));
       const pageNumbers = parseQpdfPageRange(spec.range, srcDoc.getPageCount());
       loadedSpecs.push({ doc: srcDoc, indices: pageNumbers.map((p) => p - 1) });
     }
@@ -1600,7 +1600,7 @@ function* executeQpdfCli(
           const cur = cursors[s]!;
           if (cur < item.indices.length) {
             const slice = item.indices.slice(cur, cur + collateCount);
-            mergedDoc.copyPagesFrom(item.doc, slice);
+            (yield* mergedDoc.copyPagesFromSteps(item.doc, slice));
             cursors[s] = cur + slice.length;
             if (cursors[s]! < item.indices.length) remaining = true;
           }
@@ -1608,7 +1608,7 @@ function* executeQpdfCli(
       }
     } else {
       for (const item of loadedSpecs) {
-        mergedDoc.copyPagesFrom(item.doc, item.indices);
+        (yield* mergedDoc.copyPagesFromSteps(item.doc, item.indices));
       }
     }
     workingDoc = mergedDoc;
@@ -1640,7 +1640,7 @@ function* executeQpdfCli(
       return { exitCode: 2, stdout: "", stderr: `qpdf: cannot open ${stamp.file}\n` };
     }
     const stampPw = stamp.password ?? password;
-    const stampDoc = PdfDocument.load(stampBytes, stampPw !== undefined ? { password: stampPw } : {});
+    const stampDoc = (yield* PdfDocument.loadSteps(stampBytes, stampPw !== undefined ? { password: stampPw } : {}));
     const fromPages = parseQpdfPageRange(stamp.fromRange, stampDoc.getPageCount());
     const toPages = parseQpdfPageRange(stamp.toRange, workingDoc.getPageCount());
     const repeatPages = stamp.repeatRange
@@ -2222,7 +2222,7 @@ function* executeQpdfCli(
 
   // Apply --remove-info, --remove-metadata, --remove-structure, --remove-acroform
   if (generateAppearances && !removeAcroform) {
-    generateDocumentFormAppearances(workingDoc.cos);
+    (yield* generateDocumentFormAppearancesSteps(workingDoc.cos));
   }
   if (removeInfo || removeMetadata || removeStructure || removeAcroform) {
     const rootDict = asDict(workingDoc.cos.resolve(workingDoc.cos.rootRef));
@@ -2260,7 +2260,7 @@ function* executeQpdfCli(
     if (!srcBytes) {
       return { exitCode: 2, stdout: "", stderr: `qpdf: cannot open ${copySpec.file}\n` };
     }
-    const srcDoc = PdfDocument.load(srcBytes, copySpec.password ? { password: copySpec.password } : {});
+    const srcDoc = (yield* PdfDocument.loadSteps(srcBytes, copySpec.password ? { password: copySpec.password } : {}));
     const srcRoot = asDict(srcDoc.cos.resolve(srcDoc.cos.rootRef));
     const srcNames = srcRoot ? asDict(srcDoc.cos.resolve(dictGet(srcRoot, "Names"))) : undefined;
     const srcEf = srcNames ? asDict(srcDoc.cos.resolve(dictGet(srcNames, "EmbeddedFiles"))) : undefined;
@@ -2508,13 +2508,13 @@ function* executeQpdfCli(
       if (wMeta.keywords) subDoc.setKeywords(wMeta.keywords);
       const indices: number[] = [];
       for (let k = startIdx; k <= endIdx; k++) indices.push(k);
-      subDoc.copyPagesFrom(workingDoc, indices);
+      (yield* subDoc.copyPagesFromSteps(workingDoc, indices));
       const sPad = String(startIdx + 1).padStart(padLen, "0");
       const ePad = String(endIdx + 1).padStart(padLen, "0");
       const suffix = splitPagesGroup === 1 ? sPad : `${sPad}-${ePad}`;
       const formattedSpec = formatSplitSpec(finalTarget, startIdx + 1, endIdx + 1);
       const splitName = formattedSpec ?? `${baseStem}-${suffix}.pdf`;
-      files.set(splitName, subDoc.save({ normalizeContent: qdf }));
+      files.set(splitName, (yield* subDoc.saveSteps({ normalizeContent: qdf })));
     }
     return { exitCode: 0, stdout: "", stderr: "" };
   }
@@ -2524,14 +2524,14 @@ function* executeQpdfCli(
     normalizeContentFlag !== undefined
       ? normalizeContentFlag
       : qdf || streamDataMode === "uncompress";
-  let outBytes = workingDoc.save({
+  let outBytes = (yield* workingDoc.saveSteps({
     normalizeContent: shouldNormalizeContent,
     objectStreams: objectStreamsMode
-  });
+  }));
 
   if (encryptConfig && !decrypt) {
-    const parsedOut = parseCosDocument(outBytes);
-    outBytes = encryptCosDocument(parsedOut, {
+    const parsedOut = (yield* parseCosDocumentSteps(outBytes));
+    outBytes = (yield* encryptCosDocumentSteps(parsedOut, {
       userPassword: encryptConfig.userPassword,
       ownerPassword: encryptConfig.ownerPassword,
       permissions: {
@@ -2540,16 +2540,16 @@ function* executeQpdfCli(
         copy: encryptConfig.copy,
         addNotes: encryptConfig.addNotes
       }
-    });
+    }));
   } else if (decrypt && workingDoc.cos.encryption) {
     // Strip encryption state and reserialize clean objects
     workingDoc.cos.encryptRef = undefined;
     workingDoc.cos.encryption = undefined;
-    outBytes = serializeCosDocument({
+    outBytes = (yield* serializeCosDocumentSteps({
       objects: [...workingDoc.cos.objects.values()],
       rootRef: workingDoc.cos.rootRef,
       infoRef: workingDoc.cos.infoRef
-    });
+    }));
   }
 
   files.set(finalTarget, outBytes);

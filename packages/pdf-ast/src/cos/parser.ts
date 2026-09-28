@@ -1,3 +1,4 @@
+import { drainWork } from "../work.js";
 import { assertDecodedByteBudget } from "./limits.js";
 import {
   decodePdfString,
@@ -16,7 +17,7 @@ import {
 import { PdfError } from "../errors.js";
 import { decodeStreamObject } from "./filters.js";
 import { CosByteLexer, type CosToken } from "./lexer.js";
-import { authenticateStandardEncryption, decryptCosDocument } from "./security.js";
+import { authenticateStandardEncryption, decryptCosDocumentSteps } from "./security.js";
 
 export interface ParseCosOptions {
   readonly password?: string | undefined;
@@ -156,12 +157,17 @@ export class ParsedCosDocument {
   }
 }
 
-function parseNodeFromLexer(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: number, repair = false): PdfCosNode | undefined {
+function* parseNodeFromLexerSteps(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: number, repair = false): Generator<void, PdfCosNode | undefined, void> {
+  yield;
+  let work = 0;
+
   type Container =
     | { kind: "array"; start: number; items: PdfCosNode[] }
     | { kind: "dict"; start: number; entries: PdfDictEntry[]; key?: PdfDictEntry["key"] };
   const stack: Container[] = [];
   while (true) {
+      if (++work % 16 === 0) yield;
+
     const tok = lexer.nextToken();
     const parent = stack.at(-1);
     if (!tok) {
@@ -382,7 +388,9 @@ function parseHeaderVersion(bytes: Uint8Array): string {
   return head.slice(idx + 5, idx + 8);
 }
 
-function parseObjectAtOffset(bytes: Uint8Array, offset: number, maxRecursionDepth: number, repair = false): PdfIndirectObject {
+function* parseObjectAtOffsetSteps(bytes: Uint8Array, offset: number, maxRecursionDepth: number, repair = false): Generator<void, PdfIndirectObject, void> {
+  yield;
+
   const lexer = new CosByteLexer(bytes, offset);
   const objNumTok = lexer.nextToken();
   const genNumTok = lexer.nextToken();
@@ -395,7 +403,7 @@ function parseObjectAtOffset(bytes: Uint8Array, offset: number, maxRecursionDept
   ) {
     throw new PdfError("E_PARSE", `Malformed indirect object header at byte offset ${offset}`);
   }
-  const value = parseNodeFromLexer(lexer, bytes, maxRecursionDepth, repair);
+  const value = (yield* parseNodeFromLexerSteps(lexer, bytes, maxRecursionDepth, repair));
   if (!value) {
     throw new PdfError("E_PARSE", `Empty indirect object ${objNumTok.value} at offset ${offset}`);
   }
@@ -407,7 +415,10 @@ function parseObjectAtOffset(bytes: Uint8Array, offset: number, maxRecursionDept
   };
 }
 
-function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number, maxRecursionDepth: number, maxObjects: number): PdfRevision {
+function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number, maxRecursionDepth: number, maxObjects: number): Generator<void, PdfRevision, void> {
+  yield;
+  let work = 0;
+
   if (xrefOffset < 0 || xrefOffset >= bytes.length) {
     throw new PdfError("E_PARSE", `Invalid xref offset: ${xrefOffset}`);
   }
@@ -420,6 +431,8 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
   if (firstTok.kind === "keyword" && firstTok.value === "xref") {
     const entries = new Map<number, PdfXRefEntry>();
     while (true) {
+      if (++work % 16 === 0) yield;
+
       const saved = lexer.offset;
       const tok = lexer.nextToken();
       if (!tok) {
@@ -443,6 +456,8 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
       }
       if (count > maxObjects + 1) throw new PdfError("E_LIMIT", "PDF object count limit exceeded while reading xref entries");
       for (let i = 0; i < count; i++) {
+      if (++work % 16 === 0) yield;
+
         const offTok = lexer.nextToken();
         const genTok = lexer.nextToken();
         const flagTok = lexer.nextToken();
@@ -468,7 +483,7 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
         if (entries.size > maxObjects + 1) throw new PdfError("E_LIMIT", "PDF object count limit exceeded while reading xref entries");
       }
     }
-    const trailerNode = parseNodeFromLexer(lexer, bytes, maxRecursionDepth);
+    const trailerNode = (yield* parseNodeFromLexerSteps(lexer, bytes, maxRecursionDepth));
     if (!trailerNode || trailerNode.kind !== "dict") {
       throw new PdfError("E_PARSE", "Missing trailer dictionary after xref table");
     }
@@ -482,7 +497,7 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
   }
 
   // Cross-reference stream (PDF 1.5+)
-  const xrefObj = parseObjectAtOffset(bytes, xrefOffset, maxRecursionDepth);
+  const xrefObj = (yield* parseObjectAtOffsetSteps(bytes, xrefOffset, maxRecursionDepth));
   if (xrefObj.value.kind !== "stream") {
     throw new PdfError("E_PARSE", `Expected xref table or XRef stream at offset ${xrefOffset}`);
   }
@@ -506,6 +521,8 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
   if (indexArray) {
     if (indexArray.kind !== "array" || indexArray.items.length % 2 !== 0) throw new PdfError("E_PARSE", "Invalid XRef range fields");
     for (let i = 0; i < indexArray.items.length; i += 2) {
+      if (++work % 16 === 0) yield;
+
       const first = indexArray.items[i];
       const count = indexArray.items[i + 1];
       if (first?.kind !== "number" || count?.kind !== "number" || !Number.isSafeInteger(first.value) || first.value < 0 || !Number.isSafeInteger(count.value) || count.value < 0 || !Number.isSafeInteger(first.value + count.value)) {
@@ -531,9 +548,13 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
   };
 
   for (const [startObj, count] of subsections) {
+      if (++work % 16 === 0) yield;
+
     if (count > (decoded.length - pos) / stride) throw new PdfError("E_PARSE", "Truncated XRef stream");
     if (count > maxObjects + 1) throw new PdfError("E_LIMIT", "PDF object count limit exceeded while reading xref entries");
     for (let i = 0; i < count; i++) {
+      if (++work % 16 === 0) yield;
+
       const objNum = startObj + i;
       const field0 = w0 > 0 ? readInt(w0) : 1;
       const field1 = readInt(w1);
@@ -583,17 +604,24 @@ function isAsciiDigit(ch: number): boolean {
   return ch >= 0x30 && ch <= 0x39;
 }
 
-function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxRecursionDepth: number): {
+function* repairScanCosDocumentSteps(bytes: Uint8Array, maxObjects: number, maxRecursionDepth: number): Generator<void, {
   objects: Map<number, PdfIndirectObject>;
   trailers: PdfCosDict[];
-} {
+}, void> {
+  yield;
+  let work = 0;
+
   const objects = new Map<number, PdfIndirectObject>();
   const trailers: PdfCosDict[] = [];
   let pos = 0;
   while (pos < bytes.length) {
+      if (++work % 16 === 0) yield;
+
     // Like PDF.js XRef.indexObjects, retain trailers before trying ObjStm
     // decoding: their Encrypt/ID entries are needed to decrypt those streams.
     while (pos < bytes.length && !isAsciiDigit(bytes[pos]!)) {
+      if (++work % 16 === 0) yield;
+
       if (bytes[pos] === 0x25) {
         while (pos < bytes.length && bytes[pos] !== 0x0a && bytes[pos] !== 0x0d) pos++;
         continue;
@@ -603,7 +631,7 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxRecursi
         try {
           const token = lexer.nextToken();
           if (token?.kind === "keyword" && token.value === "trailer") {
-            const trailer = parseNodeFromLexer(lexer, bytes, maxRecursionDepth, true);
+            const trailer = (yield* parseNodeFromLexerSteps(lexer, bytes, maxRecursionDepth, true));
             if (trailer?.kind === "dict") trailers.push(trailer);
             pos = lexer.offset;
             continue;
@@ -642,7 +670,7 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxRecursi
     ) {
       pos += 3;
       try {
-        const parsed = parseObjectAtOffset(bytes, headerStart, maxRecursionDepth, true);
+        const parsed = (yield* parseObjectAtOffsetSteps(bytes, headerStart, maxRecursionDepth, true));
         objects.set(parsed.objectNumber, parsed);
         if (parsed.value.kind === "stream") {
           const type = dictGet(parsed.value.dict, "Type");
@@ -662,14 +690,21 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxRecursi
   return { objects, trailers };
 }
 
-function unpackRecoveredObjects(objects: Map<number, PdfIndirectObject>, maxObjects: number, maxDecompressedBytes: number, maxRecursionDepth: number): void {
+function* unpackRecoveredObjectsSteps(objects: Map<number, PdfIndirectObject>, maxObjects: number, maxDecompressedBytes: number, maxRecursionDepth: number): Generator<void, void, void> {
+  yield;
+  let work = 0;
+
   // Unpack any discovered /Type /ObjStm compressed object streams so Catalog/Info inside ObjStm can be recovered
   for (const obj of [...objects.values()]) {
+      if (++work % 16 === 0) yield;
+
     if (obj.value.kind === "stream") {
       const t = dictGet(obj.value.dict, "Type");
       if (t?.kind === "name" && t.decoded === "ObjStm") {
         try {
-          for (const [unpackedNum, unpackedVal] of unpackObjectStream(obj.value, maxDecompressedBytes, maxRecursionDepth, true).entries()) {
+          for (const [unpackedNum, unpackedVal] of (yield* unpackObjectStreamSteps(obj.value, maxDecompressedBytes, maxRecursionDepth, true)).entries()) {
+      if (++work % 16 === 0) yield;
+
             if (!objects.has(unpackedNum)) {
               objects.set(unpackedNum, {
                 objectNumber: unpackedNum,
@@ -710,12 +745,15 @@ function recoveredReferences(objects: Map<number, PdfIndirectObject>): { rootRef
   return { ...(rootRef ? { rootRef } : {}), ...(infoRef ? { infoRef } : {}) };
 }
 
-function unpackObjectStream(
+function* unpackObjectStreamSteps(
   streamObj: PdfCosStream,
   maxDecompressedBytes: number,
   maxRecursionDepth: number,
   repair = false
-): Map<number, PdfCosNode> {
+): Generator<void, Map<number, PdfCosNode>, void> {
+  yield;
+  let work = 0;
+
   const nNode = dictGet(streamObj.dict, "N");
   const firstNode = dictGet(streamObj.dict, "First");
   if (nNode?.kind !== "number" || firstNode?.kind !== "number") {
@@ -725,6 +763,8 @@ function unpackObjectStream(
   const headerLexer = new CosByteLexer(decoded, 0);
   const pairs: Array<{ objectNumber: number; relativeOffset: number }> = [];
   for (let i = 0; i < nNode.value; i++) {
+      if (++work % 16 === 0) yield;
+
     const numTok = headerLexer.nextToken();
     const offTok = headerLexer.nextToken();
     if (numTok?.kind === "number" && offTok?.kind === "number") {
@@ -733,9 +773,11 @@ function unpackObjectStream(
   }
   const result = new Map<number, PdfCosNode>();
   for (const pair of pairs) {
+      if (++work % 16 === 0) yield;
+
     try {
       const valLexer = new CosByteLexer(decoded, firstNode.value + pair.relativeOffset);
-      const node = parseNodeFromLexer(valLexer, decoded, maxRecursionDepth, repair);
+      const node = (yield* parseNodeFromLexerSteps(valLexer, decoded, maxRecursionDepth, repair));
       if (node) {
         result.set(pair.objectNumber, node);
       }
@@ -747,7 +789,10 @@ function unpackObjectStream(
   return result;
 }
 
-export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {}): ParsedCosDocument {
+export function* parseCosDocumentSteps(bytes: Uint8Array, options: ParseCosOptions = {}): Generator<void, ParsedCosDocument, void> {
+  yield;
+  let work = 0;
+
   const version = parseHeaderVersion(bytes);
   const recovery = options.recovery ?? "strict";
   const maxObjects = options.maxObjects ?? Infinity;
@@ -784,10 +829,14 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
         let currentXrefOffset: number | undefined = offsetTok.value;
         const visitedOffsets = new Set<number>();
         while (currentXrefOffset !== undefined && !visitedOffsets.has(currentXrefOffset)) {
+      if (++work % 16 === 0) yield;
+
           visitedOffsets.add(currentXrefOffset);
-          const rev = parseXrefRevisionAt(bytes, currentXrefOffset, maxDecompressedBytes, maxRecursionDepth, maxObjects);
+          const rev: PdfRevision = (yield* parseXrefRevisionAtSteps(bytes, currentXrefOffset, maxDecompressedBytes, maxRecursionDepth, maxObjects));
           revisions.push(rev);
           for (const [num, entry] of rev.entries.entries()) {
+      if (++work % 16 === 0) yield;
+
             if (!mergedXref.has(num)) {
               mergedXref.set(num, entry);
               if (mergedXref.size > maxObjects + 1) throw new PdfError("E_LIMIT", "PDF object count limit exceeded while reading xref entries");
@@ -822,8 +871,10 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
   if (!useRepair && rootRef) {
     try {
       for (const [objNum, entry] of mergedXref.entries()) {
+      if (++work % 16 === 0) yield;
+
         if (entry.type !== "uncompressed") continue;
-        const parsed = parseObjectAtOffset(bytes, entry.offset ?? 0, maxRecursionDepth, recovery === "repair");
+        const parsed = (yield* parseObjectAtOffsetSteps(bytes, entry.offset ?? 0, maxRecursionDepth, recovery === "repair"));
         // PDF.js fetchUncompressed validates both identifiers before using the
         // object. Bad offsets can otherwise silently substitute another object.
         if (parsed.objectNumber !== objNum || parsed.generationNumber !== (entry.generationNumber ?? 0)) {
@@ -843,7 +894,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
       throw new PdfError("E_PARSE", "PDF trailer missing /Root reference");
     }
     useRepair = true;
-    const scanned = repairScanCosDocument(bytes, maxObjects, maxRecursionDepth);
+    const scanned = (yield* repairScanCosDocumentSteps(bytes, maxObjects, maxRecursionDepth));
     objects = scanned.objects;
     revisions.length = 0;
     mergedXref.clear();
@@ -882,7 +933,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
     encryptRef = encrypt?.kind === "ref" ? encrypt : undefined;
     idArray = id?.kind === "array" ? id : undefined;
     // Without any trailer, an unencrypted catalog may itself be compressed.
-    if (!rootRef && !encryptNode) unpackRecoveredObjects(objects, maxObjects, maxDecompressedBytes, maxRecursionDepth);
+    if (!rootRef && !encryptNode) (yield* unpackRecoveredObjectsSteps(objects, maxObjects, maxDecompressedBytes, maxRecursionDepth));
     const fallback = recoveredReferences(objects);
     rootRef ??= fallback.rootRef;
     infoRef ??= fallback.infoRef;
@@ -919,23 +970,25 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
       maxRecursionDepth,
     });
     doc.encryption = encState;
-    decryptCosDocument(doc, encState);
+    yield* decryptCosDocumentSteps(doc, encState);
   }
 
   if (useRepair) {
-    unpackRecoveredObjects(objects, maxObjects, maxDecompressedBytes, maxRecursionDepth);
+    (yield* unpackRecoveredObjectsSteps(objects, maxObjects, maxDecompressedBytes, maxRecursionDepth));
     doc.infoRef ??= recoveredReferences(objects).infoRef;
   }
 
   // Unpack compressed objects from /ObjStm streams after decryption
   const objStmCache = new Map<number, Map<number, PdfCosNode>>();
   for (const [objNum, entry] of mergedXref.entries()) {
+      if (++work % 16 === 0) yield;
+
     if (entry.type === "compressed" && entry.objectStreamNumber !== undefined) {
       let unpacked = objStmCache.get(entry.objectStreamNumber);
       if (!unpacked) {
         const stmObj = objects.get(entry.objectStreamNumber)?.value;
         if (stmObj?.kind === "stream") {
-          unpacked = unpackObjectStream(stmObj, maxDecompressedBytes, maxRecursionDepth, recovery === "repair");
+          unpacked = (yield* unpackObjectStreamSteps(stmObj, maxDecompressedBytes, maxRecursionDepth, recovery === "repair"));
           objStmCache.set(entry.objectStreamNumber, unpacked);
         }
       }
@@ -953,3 +1006,4 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
 
   return doc;
 }
+export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {}): ParsedCosDocument { return drainWork(parseCosDocumentSteps(bytes, options)); }

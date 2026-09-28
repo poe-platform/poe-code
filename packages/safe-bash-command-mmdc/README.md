@@ -62,6 +62,8 @@ cat schema.mmd | mmdc -i - -o - -e png -t dark > schema.png
 
 ### 3. Programmatic TypeScript SDK
 
+Use `renderMermaidSvgAsync` or `renderMermaidPngAsync` with the same options for cooperative rendering in Workers. Pass an `AbortSignal` to cancel parsing, layout, pixel rendering, or PNG encoding between bounded work batches. The synchronous render helpers remain available.
+
 ```ts
 import {
   parseMermaid,

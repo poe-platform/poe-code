@@ -2,6 +2,8 @@
 
 Pure TypeScript multimedia container and bitstream AST engine for MP4 (`ISOBMFF`), QuickTime (`MOV`), Fragmented MP4 (`fMP4`), Matroska (`MKV`), WebM (`WebM`), MPEG-TS (`.ts`), AVI (`.avi`), FLV (`.flv`), YUV4MPEG2 (`.y4m`), ADTS AAC (`.aac`), WAV, MP3, FLAC, OGG, GIF, and Image sequences.
 
+For cooperative hosts, `muxMp4Steps` and `sliceMp4Steps` return generators that pause between track/sample batches. Yield to your host event loop and check cancellation before resuming; their final values match the synchronous APIs.
+
 ## Features
 
 - **Lossless MP4 / Multi-Container Merging (`concatMp4`)**: Concatenates multiple videos at the sample/packet level without pixel re-encoding, automatically handling multi-entry `stsd` codec tables (`sample_description_index = 1, 2, ...`) and aligning video/audio durations at segment boundaries.

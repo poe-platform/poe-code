@@ -1,3 +1,4 @@
+import { drainWork } from "./work.js";
 import { MermaidBudget, MermaidError } from "./contracts.js";
 
 const PNG_SIGNATURE = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -14,25 +15,45 @@ const CRC_TABLE = (() => {
   return table;
 })();
 
-export function crc32(typeBytes: Uint8Array, dataBytes: Uint8Array): number {
+export function* crc32Steps(typeBytes: Uint8Array, dataBytes: Uint8Array): Generator<void, number, void> {
+  yield;
+
+  let work = 0;
+
   let c = 0xffffffff;
   for (let i = 0; i < typeBytes.length; i++) {
+    if (++work % 16384 === 0) yield;
+
     c = CRC_TABLE[(c ^ typeBytes[i]!) & 0xff]! ^ (c >>> 8);
   }
   for (let i = 0; i < dataBytes.length; i++) {
+    if (++work % 16384 === 0) yield;
+
     c = CRC_TABLE[(c ^ dataBytes[i]!) & 0xff]! ^ (c >>> 8);
   }
   return (c ^ 0xffffffff) >>> 0;
 }
 
-export function adler32(data: Uint8Array): number {
+export function crc32(typeBytes: Uint8Array, dataBytes: Uint8Array): number {
+  return drainWork(crc32Steps(typeBytes, dataBytes));
+}
+
+export function* adler32Steps(data: Uint8Array): Generator<void, number, void> {
+  yield;
+
+  let work = 0;
+
   let s1 = 1;
   let s2 = 0;
   const len = data.length;
   let i = 0;
   while (i < len) {
+    if (++work % 16384 === 0) yield;
+
     const end = Math.min(i + 5552, len);
     while (i < end) {
+      if (++work % 16384 === 0) yield;
+
       s1 += data[i++]!;
       s2 += s1;
     }
@@ -40,6 +61,10 @@ export function adler32(data: Uint8Array): number {
     s2 %= 65521;
   }
   return ((s2 << 16) | s1) >>> 0;
+}
+
+export function adler32(data: Uint8Array): number {
+  return drainWork(adler32Steps(data));
 }
 
 class BitWriter {
@@ -140,7 +165,11 @@ function writeFixedMatch(writer: BitWriter, length: number, distCode: number): v
 }
 
 // RFC 1950/1951 zlib + Fixed-Huffman RLE/LZ77 compressor
-function compressZlibDeflate(raw: Uint8Array): Uint8Array {
+function* compressZlibDeflateSteps(raw: Uint8Array): Generator<void, Uint8Array, void> {
+  yield;
+
+  let work = 0;
+
   const writer = new BitWriter(Math.max(512, Math.floor(raw.length / 4)));
   // Zlib header: CMF=0x78 (deflate, 32K window), FLG=0x01 (check bits)
   writer.writeByteAligned(0x78);
@@ -153,12 +182,16 @@ function compressZlibDeflate(raw: Uint8Array): Uint8Array {
   let i = 0;
   const n = raw.length;
   while (i < n) {
+    if (++work % 16384 === 0) yield;
+
     // Check distance=1 match (repeated byte run, e.g. 0x00 runs after PNG Sub filter)
     if (i >= 1 && raw[i] === raw[i - 1]) {
       let runLen = 1;
       const maxLen = Math.min(258, n - i);
       const target = raw[i]!;
       while (runLen < maxLen && raw[i + runLen] === target) {
+        if (++work % 16384 === 0) yield;
+
         runLen++;
       }
       if (runLen >= 3) {
@@ -172,6 +205,8 @@ function compressZlibDeflate(raw: Uint8Array): Uint8Array {
       let runLen = 3;
       const maxLen = Math.min(258, n - i);
       while (runLen < maxLen && raw[i + runLen] === raw[i + runLen - 4]) {
+        if (++work % 16384 === 0) yield;
+
         runLen++;
       }
       if (runLen >= 4) {
@@ -188,7 +223,7 @@ function compressZlibDeflate(raw: Uint8Array): Uint8Array {
   writeFixedLiteral(writer, 256);
   writer.flushBits();
 
-  const adler = adler32(raw);
+  const adler = (yield* adler32Steps(raw));
   writer.writeByteAligned((adler >>> 24) & 0xff);
   writer.writeByteAligned((adler >>> 16) & 0xff);
   writer.writeByteAligned((adler >>> 8) & 0xff);
@@ -197,7 +232,11 @@ function compressZlibDeflate(raw: Uint8Array): Uint8Array {
   return writer.toUint8Array();
 }
 
-function makeChunk(type: string, data: Uint8Array): Uint8Array {
+function* makeChunkSteps(type: string, data: Uint8Array): Generator<void, Uint8Array, void> {
+  yield;
+
+
+
   const typeBytes = new Uint8Array(4);
   for (let i = 0; i < 4; i++) typeBytes[i] = type.charCodeAt(i);
   const out = new Uint8Array(12 + data.length);
@@ -205,16 +244,20 @@ function makeChunk(type: string, data: Uint8Array): Uint8Array {
   view.setUint32(0, data.length);
   out.set(typeBytes, 4);
   out.set(data, 8);
-  view.setUint32(8 + data.length, crc32(typeBytes, data));
+  view.setUint32(8 + data.length, (yield* crc32Steps(typeBytes, data)));
   return out;
 }
 
-export function encodeRgbaToPng(
+export function* encodeRgbaToPngSteps(
   rgba: Uint8Array,
   width: number,
   height: number,
   budget?: MermaidBudget
-): Uint8Array {
+): Generator<void, Uint8Array, void> {
+  yield;
+
+  let work = 0;
+
   if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0) {
     throw new MermaidError("E_ARGUMENT", "PNG dimensions must be positive integers");
   }
@@ -228,17 +271,21 @@ export function encodeRgbaToPng(
 
   // Filter 1 (Sub) turns horizontal solid-color scanlines into zeros
   for (let y = 0; y < height; y++) {
+    if (++work % 16384 === 0) yield;
+
     budget?.chargeWork(width);
     const srcRow = y * rowStride;
     const dstRow = y * (rowStride + 1);
     filtered[dstRow] = 1; // Filter type 1: Sub
     for (let x = 0; x < rowStride; x++) {
+      if (++work % 16384 === 0) yield;
+
       const left = x >= 4 ? rgba[srcRow + x - 4]! : 0;
       filtered[dstRow + 1 + x] = (rgba[srcRow + x]! - left) & 0xff;
     }
   }
 
-  const compressed = compressZlibDeflate(filtered);
+  const compressed = (yield* compressZlibDeflateSteps(filtered));
 
   const ihdr = new Uint8Array(13);
   const ihdrView = new DataView(ihdr.buffer);
@@ -250,9 +297,9 @@ export function encodeRgbaToPng(
   ihdr[11] = 0; // filter 0
   ihdr[12] = 0; // interlace 0
 
-  const ihdrChunk = makeChunk("IHDR", ihdr);
-  const idatChunk = makeChunk("IDAT", compressed);
-  const iendChunk = makeChunk("IEND", new Uint8Array(0));
+  const ihdrChunk = (yield* makeChunkSteps("IHDR", ihdr));
+  const idatChunk = (yield* makeChunkSteps("IDAT", compressed));
+  const iendChunk = (yield* makeChunkSteps("IEND", new Uint8Array(0)));
 
   const totalLen = PNG_SIGNATURE.length + ihdrChunk.length + idatChunk.length + iendChunk.length;
   budget?.chargeOutputBytes(totalLen);
@@ -268,6 +315,10 @@ export function encodeRgbaToPng(
   png.set(iendChunk, offset);
 
   return png;
+}
+
+export function encodeRgbaToPng(rgba: Uint8Array, width: number, height: number, budget?: MermaidBudget): Uint8Array {
+  return drainWork(encodeRgbaToPngSteps(rgba, width, height, budget));
 }
 
 // Minimal RFC 1950/1951 inflate decoder for PNG verification in unit tests

@@ -1,4 +1,10 @@
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { inheritYieldCheckpoint } from "safe-bash-contracts/yield";
+import { drainWork, runWork } from "./work.js";
+import { parseMermaidSteps } from "./parser.js";
+import { layoutMermaidSteps } from "./layout.js";
+import { rasterizeSceneSteps } from "./raster.js";
+import { encodeRgbaToPngSteps } from "./png.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -34,10 +40,6 @@ import {
   type MmdcSettings
 } from "./contracts.js";
 import { verifySceneGeometry } from "./geometry.js";
-import { layoutMermaid } from "./layout.js";
-import { parseMermaid } from "./parser.js";
-import { encodeRgbaToPng } from "./png.js";
-import { rasterizeScene } from "./raster.js";
 import { serializeSceneToSvgSteps } from "./svg.js";
 import { resolveMermaidTheme } from "./theme.js";
 
@@ -273,10 +275,14 @@ function resolveRenderOptions(options?: MermaidPngRenderOptions): MermaidPngRend
   };
 }
 
-function* renderMermaidSvgSteps(
+export function* renderMermaidSvgSteps(
   source: string,
   options?: MermaidRenderOptions
-): Generator<void, MermaidSvgResult> {
+): Generator<void, MermaidSvgResult, void> {
+  yield;
+
+
+
   options = resolveRenderOptions(options);
   const hostCeiling = options?.settings?.limits
     ? admitMermaidLimits(options.settings.limits, defaultMermaidLimits)
@@ -284,7 +290,7 @@ function* renderMermaidSvgSteps(
   const limits = admitMermaidLimits(options?.limits, hostCeiling);
   const budget = options?.budget ?? new MermaidBudget(limits, options?.signal);
 
-  const doc = parseMermaid(source, { budget, limits, signal: options?.signal });
+  const doc = (yield* parseMermaidSteps(source, { budget, limits, signal: options?.signal }));
   const mergedDoc =
     options?.title !== undefined || options?.description !== undefined
       ? {
@@ -294,7 +300,7 @@ function* renderMermaidSvgSteps(
         }
       : doc;
 
-  const scene = layoutMermaid(mergedDoc, { ...options, backgroundColor: options?.backgroundColor ?? "white", budget, limits });
+  const scene = (yield* layoutMermaidSteps(mergedDoc, { ...options, backgroundColor: options?.backgroundColor ?? "white", budget, limits }));
   const check = verifySceneGeometry(scene);
   if (!check.ok) {
     throw new MermaidError(
@@ -315,16 +321,17 @@ function* renderMermaidSvgSteps(
 }
 
 export function renderMermaidSvg(source: string, options?: MermaidRenderOptions): MermaidSvgResult {
-  const steps = renderMermaidSvgSteps(source, options);
-  let step = steps.next();
-  while (!step.done) step = steps.next();
-  return step.value;
+  return drainWork(renderMermaidSvgSteps(source, options));
 }
 
-export function renderMermaidPng(
+export function* renderMermaidPngSteps(
   source: string,
   options?: MermaidPngRenderOptions
-): MermaidPngResult {
+): Generator<void, MermaidPngResult, void> {
+  yield;
+
+
+
   options = resolveRenderOptions(options);
   const hostCeiling = options?.settings?.limits
     ? admitMermaidLimits(options.settings.limits, defaultMermaidLimits)
@@ -332,7 +339,7 @@ export function renderMermaidPng(
   const limits = admitMermaidLimits(options?.limits, hostCeiling);
   const budget = options?.budget ?? new MermaidBudget(limits, options?.signal);
 
-  const doc = parseMermaid(source, { budget, limits, signal: options?.signal });
+  const doc = (yield* parseMermaidSteps(source, { budget, limits, signal: options?.signal }));
   const mergedDoc =
     options?.title !== undefined || options?.description !== undefined
       ? {
@@ -342,7 +349,7 @@ export function renderMermaidPng(
         }
       : doc;
 
-  const scene = layoutMermaid(mergedDoc, { ...options, backgroundColor: options?.backgroundColor ?? "white", budget, limits });
+  const scene = (yield* layoutMermaidSteps(mergedDoc, { ...options, backgroundColor: options?.backgroundColor ?? "white", budget, limits }));
   const check = verifySceneGeometry(scene);
   if (!check.ok) {
     throw new MermaidError(
@@ -352,8 +359,8 @@ export function renderMermaidPng(
   }
 
   const scale = options?.scale ?? 1;
-  const raster = rasterizeScene(scene, { scale, budget });
-  const png = encodeRgbaToPng(raster.rgba, raster.width, raster.height, budget);
+  const raster = (yield* rasterizeSceneSteps(scene, { scale, budget }));
+  const png = (yield* encodeRgbaToPngSteps(raster.rgba, raster.width, raster.height, budget));
 
   return {
     png,
@@ -364,6 +371,10 @@ export function renderMermaidPng(
     family: scene.family,
     accounting: budget.snapshot()
   };
+}
+
+export function renderMermaidPng(source: string, options?: MermaidPngRenderOptions): MermaidPngResult {
+  return drainWork(renderMermaidPngSteps(source, options));
 }
 
 async function readVfsBytes(
@@ -433,6 +444,7 @@ export async function runMmdc(
   const hostLimits = admitMermaidLimits(snapSettings.limits, defaultMermaidLimits);
   const controller = new AbortController();
   const signal = controller.signal;
+  inheritYieldCheckpoint(context.signal, signal);
   const onContextAbort = (): void => controller.abort(context.signal.reason);
   const budget = new MermaidBudget(hostLimits, signal);
 
@@ -675,19 +687,13 @@ export async function runMmdc(
 
     let outputBytes: Uint8Array;
     if (parsedArgs.outputFormat === "svg") {
-      const steps = renderMermaidSvgSteps(sourceText, renderOptions);
-      let step = steps.next();
-      while (!step.done) {
-        await yieldTurn(signal);
-        signal.throwIfAborted();
-        step = steps.next();
-      }
-      outputBytes = encoder.encode(step.value.svg);
+      const res = await renderMermaidSvgAsync(sourceText, renderOptions);
+      outputBytes = encoder.encode(res.svg);
     } else {
       await yieldTurn(signal);
       signal.throwIfAborted();
       budget.check();
-      const res = renderMermaidPng(sourceText, renderOptions);
+      const res = await renderMermaidPngAsync(sourceText, renderOptions);
       outputBytes = res.png;
     }
 
@@ -783,4 +789,12 @@ export type MmdcCommandsOptions = MmdcSettings;
 
 export function createMmdcCommands(options: MmdcCommandsOptions = {}): readonly CommandDefinition[] {
   return Object.freeze([createMmdcCommand(options)]);
+}
+
+export async function renderMermaidPngAsync(source: string, options?: MermaidPngRenderOptions): Promise<MermaidPngResult> {
+  return await runWork(renderMermaidPngSteps(source, options), options?.signal);
+}
+
+export async function renderMermaidSvgAsync(source: string, options?: MermaidRenderOptions): Promise<MermaidSvgResult> {
+  return await runWork(renderMermaidSvgSteps(source, options), options?.signal);
 }

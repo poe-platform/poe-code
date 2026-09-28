@@ -1,3 +1,4 @@
+import { drainWork } from "./work.js";
 import {
   MermaidBudget,
   MermaidError,
@@ -96,7 +97,7 @@ function sdfDiamond(
   return rawDist - cornerR * 0.35;
 }
 
-function drawShadow(
+function* drawShadowSteps(
   rgba: Uint8Array,
   frameW: number,
   frameH: number,
@@ -108,7 +109,11 @@ function drawShadow(
   isDiamond: boolean,
   shadowColor: RgbaColor,
   scale: number
-): void {
+): Generator<void, void, void> {
+  yield;
+
+  let work = 0;
+
   if (shadowColor.a <= 0) return;
   const dy = 1.6 * scale;
   const blur = 3.5 * scale;
@@ -124,7 +129,11 @@ function drawShadow(
   const maxY = Math.min(frameH - 1, Math.ceil(cy + halfH + blur + 2));
 
   for (let py = minY; py <= maxY; py++) {
+    if (++work % 4096 === 0) yield;
+
     for (let px = minX; px <= maxX; px++) {
+      if (++work % 4096 === 0) yield;
+
       const dist = isDiamond
         ? sdfDiamond(px + 0.5, py + 0.5, cx, cy, halfW, halfH, rScaled)
         : sdfRoundedRect(px + 0.5, py + 0.5, cx, cy, halfW, halfH, rScaled);
@@ -137,7 +146,7 @@ function drawShadow(
   }
 }
 
-function drawRoundedShape(
+function* drawRoundedShapeSteps(
   rgba: Uint8Array,
   frameW: number,
   frameH: number,
@@ -154,7 +163,11 @@ function drawRoundedShape(
   strokeWidth: number,
   dashed: boolean,
   scale: number
-): void {
+): Generator<void, void, void> {
+  yield;
+
+  let work = 0;
+
   const cx = (x + w / 2) * scale;
   const cy = (y + h / 2) * scale;
   const halfW = (w / 2) * scale;
@@ -169,7 +182,11 @@ function drawRoundedShape(
   const maxY = Math.min(frameH - 1, Math.ceil(cy + halfH + halfStroke + 2));
 
   for (let py = minY; py <= maxY; py++) {
+    if (++work % 4096 === 0) yield;
+
     for (let px = minX; px <= maxX; px++) {
+      if (++work % 4096 === 0) yield;
+
       const centerDist = isDiamond
         ? sdfDiamond(px + 0.5, py + 0.5, cx, cy, halfW, halfH, rScaled)
         : sdfRoundedRect(px + 0.5, py + 0.5, cx, cy, halfW, halfH, rScaled);
@@ -195,9 +212,13 @@ function drawRoundedShape(
       let strokeCount = 0;
 
       for (let sy = 0; sy < 4; sy++) {
+        if (++work % 4096 === 0) yield;
+
         const sampleY = py + SUB_OFFSETS[sy]!;
         const inHeader = headerFill !== undefined && sampleY <= headerCutY;
         for (let sx = 0; sx < 4; sx++) {
+          if (++work % 4096 === 0) yield;
+
           const sampleX = px + SUB_OFFSETS[sx]!;
           const d = isDiamond
             ? sdfDiamond(sampleX, sampleY, cx, cy, halfW, halfH, rScaled)
@@ -276,7 +297,7 @@ function flattenSegments(segments: readonly PathSegment[], scale: number): reado
   return pts;
 }
 
-function drawPolyline4x4(
+function* drawPolyline4x4Steps(
   rgba: Uint8Array,
   frameW: number,
   frameH: number,
@@ -285,7 +306,11 @@ function drawPolyline4x4(
   strokeWidthPx: number,
   dashed: boolean,
   scale: number
-): void {
+): Generator<void, void, void> {
+  yield;
+
+  let work = 0;
+
   if (pts.length < 2) return;
   const radius = strokeWidthPx / 2;
   const radiusSq = radius * radius;
@@ -300,6 +325,8 @@ function drawPolyline4x4(
   let maxY = pts[0]!.y;
 
   for (let i = 1; i < pts.length; i++) {
+    if (++work % 4096 === 0) yield;
+
     const p0 = pts[i - 1]!;
     const p1 = pts[i]!;
     cumLen.push(cumLen[i - 1]! + Math.hypot(p1.x - p0.x, p1.y - p0.y));
@@ -320,10 +347,16 @@ function drawPolyline4x4(
   if (boxW <= 0 || boxH <= 0) return;
 
   for (let py = y0; py <= y1; py++) {
+    if (++work % 4096 === 0) yield;
+
     for (let px = x0; px <= x1; px++) {
+      if (++work % 4096 === 0) yield;
+
       // Quick coarse reject against all segments
       let minCenterDistSq = Infinity;
       for (let i = 0; i < pts.length - 1; i++) {
+        if (++work % 4096 === 0) yield;
+
         const a = pts[i]!;
         const b = pts[i + 1]!;
         const d = distToSegmentSq(px + 0.5, py + 0.5, a.x, a.y, b.x, b.y);
@@ -333,11 +366,17 @@ function drawPolyline4x4(
 
       let hits = 0;
       for (let sy = 0; sy < 4; sy++) {
+        if (++work % 4096 === 0) yield;
+
         const sampleY = py + SUB_OFFSETS[sy]!;
         for (let sx = 0; sx < 4; sx++) {
+          if (++work % 4096 === 0) yield;
+
           const sampleX = px + SUB_OFFSETS[sx]!;
           let inside = false;
           for (let i = 0; i < pts.length - 1; i++) {
+            if (++work % 4096 === 0) yield;
+
             const a = pts[i]!;
             const b = pts[i + 1]!;
             const res = distToSegmentSq(sampleX, sampleY, a.x, a.y, b.x, b.y);
@@ -378,7 +417,7 @@ function pointInPolygon(px: number, py: number, poly: readonly Point[]): boolean
   return inside;
 }
 
-function drawPolygon4x4(
+function* drawPolygon4x4Steps(
   rgba: Uint8Array,
   frameW: number,
   frameH: number,
@@ -386,12 +425,18 @@ function drawPolygon4x4(
   fill: RgbaColor | undefined,
   stroke: RgbaColor | undefined,
   strokeWidthPx: number
-): void {
+): Generator<void, void, void> {
+  yield;
+
+  let work = 0;
+
   let minX = Infinity;
   let maxX = -Infinity;
   let minY = Infinity;
   let maxY = -Infinity;
   for (const p of poly) {
+    if (++work % 4096 === 0) yield;
+
     if (p.x < minX) minX = p.x;
     if (p.x > maxX) maxX = p.x;
     if (p.y < minY) minY = p.y;
@@ -404,18 +449,28 @@ function drawPolygon4x4(
   const y1 = Math.min(frameH - 1, Math.ceil(maxY + halfStroke + 2));
 
   for (let py = y0; py <= y1; py++) {
+    if (++work % 4096 === 0) yield;
+
     for (let px = x0; px <= x1; px++) {
+      if (++work % 4096 === 0) yield;
+
       let fillHits = 0;
       let strokeHits = 0;
       for (let sy = 0; sy < 4; sy++) {
+        if (++work % 4096 === 0) yield;
+
         const sampleY = py + SUB_OFFSETS[sy]!;
         for (let sx = 0; sx < 4; sx++) {
+          if (++work % 4096 === 0) yield;
+
           const sampleX = px + SUB_OFFSETS[sx]!;
           if (fill && pointInPolygon(sampleX, sampleY, poly)) {
             fillHits++;
           }
           if (stroke && halfStroke > 0) {
             for (let i = 0; i < poly.length; i++) {
+              if (++work % 4096 === 0) yield;
+
               const a = poly[i]!;
               const b = poly[(i + 1) % poly.length]!;
               if (
@@ -436,13 +491,17 @@ function drawPolygon4x4(
   }
 }
 
-function drawMarker4x4(
+function* drawMarker4x4Steps(
   rgba: Uint8Array,
   frameW: number,
   frameH: number,
   marker: SceneMarker | undefined,
   scale: number
-): void {
+): Generator<void, void, void> {
+  yield;
+
+
+
   if (!marker || marker.kind === "none") return;
   const cos = Math.cos(marker.angleRadians);
   const sin = Math.sin(marker.angleRadians);
@@ -460,16 +519,16 @@ function drawMarker4x4(
   if (marker.kind === "arrow") {
     // Sleek swept-back concave dart: tip at (0,0), wings at (-9, -3.5) and (-9, 3.5), inner notch at (-6.8, 0)
     const dart = [xform(-9, -3.5), xform(0, 0), xform(-9, 3.5), xform(-6.8, 0)];
-    drawPolygon4x4(rgba, frameW, frameH, dart, fillColor, strokeColor, 0.9 * scale);
+    (yield* drawPolygon4x4Steps(rgba, frameW, frameH, dart, fillColor, strokeColor, 0.9 * scale));
   } else if (marker.kind === "umlHollowTriangle") {
     const tri = [xform(-10, -4), xform(0, 0), xform(-10, 4)];
-    drawPolygon4x4(rgba, frameW, frameH, tri, fillColor, strokeColor, 1.5 * scale);
+    (yield* drawPolygon4x4Steps(rgba, frameW, frameH, tri, fillColor, strokeColor, 1.5 * scale));
   } else if (marker.kind === "umlComposition" || marker.kind === "umlAggregation") {
     const dia = [xform(-12, 0), xform(-6, -3.5), xform(0, 0), xform(-6, 3.5)];
     const fill = marker.kind === "umlComposition" ? strokeColor : fillColor;
-    drawPolygon4x4(rgba, frameW, frameH, dia, fill, strokeColor, 1.4 * scale);
+    (yield* drawPolygon4x4Steps(rgba, frameW, frameH, dia, fill, strokeColor, 1.4 * scale));
   } else if (marker.kind === "openArrow") {
-    drawPolyline4x4(
+    (yield* drawPolyline4x4Steps(
       rgba,
       frameW,
       frameH,
@@ -478,9 +537,9 @@ function drawMarker4x4(
       1.5 * scale,
       false,
       scale
-    );
+    ));
   } else if (marker.kind === "cross") {
-    drawPolyline4x4(
+    (yield* drawPolyline4x4Steps(
       rgba,
       frameW,
       frameH,
@@ -489,8 +548,8 @@ function drawMarker4x4(
       1.75 * scale,
       false,
       scale
-    );
-    drawPolyline4x4(
+    ));
+    (yield* drawPolyline4x4Steps(
       rgba,
       frameW,
       frameH,
@@ -499,9 +558,9 @@ function drawMarker4x4(
       1.75 * scale,
       false,
       scale
-    );
+    ));
   } else if (marker.kind === "erExactlyOne") {
-    drawPolyline4x4(
+    (yield* drawPolyline4x4Steps(
       rgba,
       frameW,
       frameH,
@@ -510,8 +569,8 @@ function drawMarker4x4(
       1.5 * scale,
       false,
       scale
-    );
-    drawPolyline4x4(
+    ));
+    (yield* drawPolyline4x4Steps(
       rgba,
       frameW,
       frameH,
@@ -520,9 +579,9 @@ function drawMarker4x4(
       1.5 * scale,
       false,
       scale
-    );
+    ));
   } else if (marker.kind === "erZeroOrOne") {
-    drawPolyline4x4(
+    (yield* drawPolyline4x4Steps(
       rgba,
       frameW,
       frameH,
@@ -531,9 +590,9 @@ function drawMarker4x4(
       1.5 * scale,
       false,
       scale
-    );
+    ));
     const c = xform(-10, 0);
-    drawRoundedShape(
+    (yield* drawRoundedShapeSteps(
       rgba,
       frameW,
       frameH,
@@ -550,9 +609,9 @@ function drawMarker4x4(
       1.5,
       false,
       scale
-    );
+    ));
   } else if (marker.kind === "erOneOrMore") {
-    drawPolyline4x4(
+    (yield* drawPolyline4x4Steps(
       rgba,
       frameW,
       frameH,
@@ -561,8 +620,8 @@ function drawMarker4x4(
       1.5 * scale,
       false,
       scale
-    );
-    drawPolyline4x4(
+    ));
+    (yield* drawPolyline4x4Steps(
       rgba,
       frameW,
       frameH,
@@ -571,9 +630,9 @@ function drawMarker4x4(
       1.5 * scale,
       false,
       scale
-    );
+    ));
   } else if (marker.kind === "erZeroOrMore") {
-    drawPolyline4x4(
+    (yield* drawPolyline4x4Steps(
       rgba,
       frameW,
       frameH,
@@ -582,9 +641,9 @@ function drawMarker4x4(
       1.5 * scale,
       false,
       scale
-    );
+    ));
     const c = xform(-12, 0);
-    drawRoundedShape(
+    (yield* drawRoundedShapeSteps(
       rgba,
       frameW,
       frameH,
@@ -601,7 +660,7 @@ function drawMarker4x4(
       1.5,
       false,
       scale
-    );
+    ));
   }
 }
 
@@ -673,13 +732,17 @@ function flattenGlyphContour(
 
 const TEXT_SUB_OFFSETS = [0.0625, 0.1875, 0.3125, 0.4375, 0.5625, 0.6875, 0.8125, 0.9375] as const;
 
-function drawTextLine4x4(
+function* drawTextLine4x4Steps(
   rgba: Uint8Array,
   frameW: number,
   frameH: number,
   line: SceneTextLine,
   scale: number
-): void {
+): Generator<void, void, void> {
+  yield;
+
+  let work = 0;
+
   if (!line.text) return;
   const color = parseCssColor(line.color);
   const unitsPerEm = getEmbeddedFont().unitsPerEm;
@@ -696,6 +759,8 @@ function drawTextLine4x4(
 
   let cursorX = startX;
   for (const symbol of line.text) {
+    if (++work % 4096 === 0) yield;
+
     const cp = symbol.codePointAt(0)!;
     const glyph = getGlyphOutline(cp, line.fontFamily, line.fontWeight);
     if (glyph.contours.length > 0) {
@@ -722,12 +787,20 @@ function drawTextLine4x4(
 
       // 8x8 non-zero winding subpixel scanline rasterizer per pixel row
       for (let py = minY; py <= maxY; py++) {
+        if (++work % 4096 === 0) yield;
+
         const rowHits = new Uint8Array(maxX - minX + 1);
         for (let sy = 0; sy < 8; sy++) {
+          if (++work % 4096 === 0) yield;
+
           const sampleY = py + TEXT_SUB_OFFSETS[sy]!;
           const crossings: { x: number; dir: number }[] = [];
           for (const poly of polygons) {
+            if (++work % 4096 === 0) yield;
+
             for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+              if (++work % 4096 === 0) yield;
+
               const p1 = poly[j]!;
               const p2 = poly[i]!;
               if ((p1.y <= sampleY && p2.y > sampleY) || (p2.y <= sampleY && p1.y > sampleY)) {
@@ -743,6 +816,8 @@ function drawTextLine4x4(
           let winding = 0;
           let spanStart = 0;
           for (const c of crossings) {
+            if (++work % 4096 === 0) yield;
+
             const prevWinding = winding;
             winding += c.dir;
             if (prevWinding === 0 && winding !== 0) {
@@ -753,7 +828,11 @@ function drawTextLine4x4(
               const pxStart = Math.max(minX, Math.floor(segLeft));
               const pxEnd = Math.min(maxX, Math.ceil(segRight));
               for (let px = pxStart; px <= pxEnd; px++) {
+                if (++work % 4096 === 0) yield;
+
                 for (let sx = 0; sx < 8; sx++) {
+                  if (++work % 4096 === 0) yield;
+
                   const sampleX = px + TEXT_SUB_OFFSETS[sx]!;
                   if (sampleX >= segLeft && sampleX <= segRight) {
                     rowHits[px - minX]!++;
@@ -765,6 +844,8 @@ function drawTextLine4x4(
         }
 
         for (let px = minX; px <= maxX; px++) {
+          if (++work % 4096 === 0) yield;
+
           const hits = rowHits[px - minX]!;
           if (hits > 0) {
             const coverage = Math.pow(Math.min(1, hits / 64), 0.72);
@@ -782,14 +863,18 @@ function drawTextLine4x4(
   }
 }
 
-function drawPill4x4(
+function* drawPill4x4Steps(
   rgba: Uint8Array,
   frameW: number,
   frameH: number,
   pill: SceneLabelPill,
   scale: number
-): void {
-  drawRoundedShape(
+): Generator<void, void, void> {
+  yield;
+
+  let work = 0;
+
+  (yield* drawRoundedShapeSteps(
     rgba,
     frameW,
     frameH,
@@ -806,25 +891,31 @@ function drawPill4x4(
     1,
     false,
     scale
-  );
+  ));
   for (const line of pill.lines) {
-    drawTextLine4x4(rgba, frameW, frameH, line, scale);
+    if (++work % 4096 === 0) yield;
+
+    (yield* drawTextLine4x4Steps(rgba, frameW, frameH, line, scale));
   }
 }
 
-function drawNode4x4(
+function* drawNode4x4Steps(
   rgba: Uint8Array,
   frameW: number,
   frameH: number,
   node: SceneNode,
   shadowColor: RgbaColor,
   scale: number
-): void {
+): Generator<void, void, void> {
+  yield;
+
+  let work = 0;
+
   const fill = parseCssColor(node.fill);
   const stroke = parseCssColor(node.stroke);
 
   if (node.shape === "stateStart") {
-    drawRoundedShape(
+    (yield* drawRoundedShapeSteps(
       rgba,
       frameW,
       frameH,
@@ -841,12 +932,12 @@ function drawNode4x4(
       1.5,
       false,
       scale
-    );
+    ));
     return;
   }
 
   if (node.shape === "stateEnd") {
-    drawRoundedShape(
+    (yield* drawRoundedShapeSteps(
       rgba,
       frameW,
       frameH,
@@ -863,8 +954,8 @@ function drawNode4x4(
       1.5,
       false,
       scale
-    );
-    drawRoundedShape(
+    ));
+    (yield* drawRoundedShapeSteps(
       rgba,
       frameW,
       frameH,
@@ -881,13 +972,13 @@ function drawNode4x4(
       1,
       false,
       scale
-    );
+    ));
     return;
   }
 
   const isDiamond = node.shape === "diamond";
   if (node.shadow && node.shape !== "cylinder") {
-    drawShadow(
+    (yield* drawShadowSteps(
       rgba,
       frameW,
       frameH,
@@ -899,7 +990,7 @@ function drawNode4x4(
       isDiamond,
       shadowColor,
       scale
-    );
+    ));
   }
 
   if (node.shape === "hexagon") {
@@ -917,7 +1008,7 @@ function drawNode4x4(
       { x: x + inset, y: y + h },
       { x, y: cy }
     ];
-    drawPolygon4x4(rgba, frameW, frameH, hexPts, fill, stroke, node.strokeWidth * scale);
+    (yield* drawPolygon4x4Steps(rgba, frameW, frameH, hexPts, fill, stroke, node.strokeWidth * scale));
   } else if (node.shape === "cylinder") {
     const x = node.x;
     const y = node.y;
@@ -927,6 +1018,8 @@ function drawNode4x4(
     const steps = 32;
     const cylOuterPts: Point[] = [];
     for (let s = 0; s <= steps; s++) {
+      if (++work % 4096 === 0) yield;
+
       const theta = Math.PI * (s / steps);
       cylOuterPts.push({
         x: (x + (w / 2) * (1 - Math.cos(theta))) * scale,
@@ -934,13 +1027,15 @@ function drawNode4x4(
       });
     }
     for (let s = 0; s <= steps; s++) {
+      if (++work % 4096 === 0) yield;
+
       const theta = Math.PI * (s / steps);
       cylOuterPts.push({
         x: (x + (w / 2) * (1 + Math.cos(theta))) * scale,
         y: (y + h - ry + ry * Math.sin(theta)) * scale
       });
     }
-    drawPolygon4x4(rgba, frameW, frameH, cylOuterPts, fill, stroke, node.strokeWidth * scale);
+    (yield* drawPolygon4x4Steps(rgba, frameW, frameH, cylOuterPts, fill, stroke, node.strokeWidth * scale));
 
     const isDarkBody = fill.r < 128;
     const lidFill: RgbaColor = isDarkBody
@@ -948,15 +1043,17 @@ function drawNode4x4(
       : { r: Math.max(0, fill.r - 24), g: Math.max(0, fill.g - 14), b: Math.max(0, fill.b - 4), a: fill.a };
     const lidPts: Point[] = [];
     for (let s = 0; s <= steps; s++) {
+      if (++work % 4096 === 0) yield;
+
       const theta = (Math.PI * 2 * s) / steps;
       lidPts.push({
         x: (x + w / 2 + (w / 2) * Math.cos(theta)) * scale,
         y: (y + ry + ry * Math.sin(theta)) * scale
       });
     }
-    drawPolygon4x4(rgba, frameW, frameH, lidPts, lidFill, stroke, node.strokeWidth * scale);
+    (yield* drawPolygon4x4Steps(rgba, frameW, frameH, lidPts, lidFill, stroke, node.strokeWidth * scale));
   } else {
-    drawRoundedShape(
+    (yield* drawRoundedShapeSteps(
       rgba,
       frameW,
       frameH,
@@ -973,11 +1070,13 @@ function drawNode4x4(
       node.strokeWidth,
       false,
       scale
-    );
+    ));
   }
 
   for (const div of node.dividers) {
-    drawPolyline4x4(
+    if (++work % 4096 === 0) yield;
+
+    (yield* drawPolyline4x4Steps(
       rgba,
       frameW,
       frameH,
@@ -989,11 +1088,13 @@ function drawNode4x4(
       (node.shape === "subroutine" ? 1.5 : 1) * scale,
       false,
       scale
-    );
+    ));
   }
 
   for (const badge of node.badges) {
-    drawRoundedShape(
+    if (++work % 4096 === 0) yield;
+
+    (yield* drawRoundedShapeSteps(
       rgba,
       frameW,
       frameH,
@@ -1010,19 +1111,25 @@ function drawNode4x4(
       1,
       false,
       scale
-    );
-    drawTextLine4x4(rgba, frameW, frameH, badge.text, scale);
+    ));
+    (yield* drawTextLine4x4Steps(rgba, frameW, frameH, badge.text, scale));
   }
 
   for (const line of node.lines) {
-    drawTextLine4x4(rgba, frameW, frameH, line, scale);
+    if (++work % 4096 === 0) yield;
+
+    (yield* drawTextLine4x4Steps(rgba, frameW, frameH, line, scale));
   }
 }
 
-export function rasterizeScene(
+export function* rasterizeSceneSteps(
   scene: MermaidScene,
   options?: RasterOptions
-): RasterFrame {
+): Generator<void, RasterFrame, void> {
+  yield;
+
+  let work = 0;
+
   const userScale = options?.scale ?? 2;
   if (!Number.isFinite(userScale) || userScale <= 0) {
     throw new MermaidError("E_ARGUMENT", "Raster scale factor must be a positive finite number");
@@ -1038,6 +1145,8 @@ export function rasterizeScene(
   const bg = parseCssColor(scene.backgroundColor);
   if (bg.a > 0) {
     for (let i = 0; i < totalPixels * 4; i += 4) {
+      if (++work % 4096 === 0) yield;
+
       rgba[i] = bg.r;
       rgba[i + 1] = bg.g;
       rgba[i + 2] = bg.b;
@@ -1053,7 +1162,9 @@ export function rasterizeScene(
 
   // 2. Lifelines
   for (const life of scene.lifelines) {
-    drawPolyline4x4(
+    if (++work % 4096 === 0) yield;
+
+    (yield* drawPolyline4x4Steps(
       rgba,
       width,
       height,
@@ -1065,13 +1176,15 @@ export function rasterizeScene(
       1.25 * effectiveScale,
       true,
       effectiveScale
-    );
+    ));
   }
 
   // 1. Groups
   for (const group of scene.groups) {
+    if (++work % 4096 === 0) yield;
+
     options?.budget?.chargeWork(32);
-    drawRoundedShape(
+    (yield* drawRoundedShapeSteps(
       rgba,
       width,
       height,
@@ -1088,8 +1201,8 @@ export function rasterizeScene(
       group.strokeWidth,
       group.dashed === true,
       effectiveScale
-    );
-    drawPolyline4x4(
+    ));
+    (yield* drawPolyline4x4Steps(
       rgba,
       width,
       height,
@@ -1104,12 +1217,14 @@ export function rasterizeScene(
       1 * effectiveScale,
       false,
       effectiveScale
-    );
-    drawTextLine4x4(rgba, width, height, group.label, effectiveScale);
+    ));
+    (yield* drawTextLine4x4Steps(rgba, width, height, group.label, effectiveScale));
 
     if (group.sectionDividers) {
       for (const div of group.sectionDividers) {
-        drawPolyline4x4(
+        if (++work % 4096 === 0) yield;
+
+        (yield* drawPolyline4x4Steps(
           rgba,
           width,
           height,
@@ -1121,11 +1236,11 @@ export function rasterizeScene(
           1 * effectiveScale,
           true,
           effectiveScale
-        );
+        ));
         if (div.label) {
           const padX = 6;
           const pillW = Math.ceil(div.label.width + padX * 2);
-          drawRoundedShape(
+          (yield* drawRoundedShapeSteps(
             rgba,
             width,
             height,
@@ -1142,8 +1257,8 @@ export function rasterizeScene(
             0.75,
             false,
             effectiveScale
-          );
-          drawTextLine4x4(rgba, width, height, div.label, effectiveScale);
+          ));
+          (yield* drawTextLine4x4Steps(rgba, width, height, div.label, effectiveScale));
         }
       }
     }
@@ -1151,7 +1266,9 @@ export function rasterizeScene(
 
   // 3. Activations
   for (const act of scene.activations) {
-    drawRoundedShape(
+    if (++work % 4096 === 0) yield;
+
+    (yield* drawRoundedShapeSteps(
       rgba,
       width,
       height,
@@ -1168,13 +1285,15 @@ export function rasterizeScene(
       1.25,
       false,
       effectiveScale
-    );
+    ));
   }
 
   // 3b. Re-paint sequenceBlock header strips over lifelines and activations so LOOP/ALT/OPT headers stay crisp
   for (const g of scene.groups) {
+    if (++work % 4096 === 0) yield;
+
     if (g.kind === "sequenceBlock" && g.headerFill && g.headerHeight) {
-      drawRoundedShape(
+      (yield* drawRoundedShapeSteps(
         rgba,
         width,
         height,
@@ -1191,22 +1310,26 @@ export function rasterizeScene(
         1,
         false,
         effectiveScale
-      );
-      drawTextLine4x4(rgba, width, height, g.label, effectiveScale);
+      ));
+      (yield* drawTextLine4x4Steps(rgba, width, height, g.label, effectiveScale));
     }
   }
 
   // 4. Nodes (drawn before edges/markers, matching SVG layer order so node shadows don't darken edges and arrowheads aren't clipped)
   for (const node of scene.nodes) {
+    if (++work % 4096 === 0) yield;
+
     options?.budget?.chargeWork(64);
-    drawNode4x4(rgba, width, height, node, shadowColor, effectiveScale);
+    (yield* drawNode4x4Steps(rgba, width, height, node, shadowColor, effectiveScale));
   }
 
   // 5. Edges & markers
   for (const edge of scene.edges) {
+    if (++work % 4096 === 0) yield;
+
     options?.budget?.chargeWork(32);
     const polyPts = flattenSegments(edge.segments, effectiveScale);
-    drawPolyline4x4(
+    (yield* drawPolyline4x4Steps(
       rgba,
       width,
       height,
@@ -1215,24 +1338,28 @@ export function rasterizeScene(
       edge.strokeWidth * effectiveScale,
       edge.lineStyle === "dotted",
       effectiveScale
-    );
-    drawMarker4x4(rgba, width, height, edge.startMarker, effectiveScale);
-    drawMarker4x4(rgba, width, height, edge.endMarker, effectiveScale);
+    ));
+    (yield* drawMarker4x4Steps(rgba, width, height, edge.startMarker, effectiveScale));
+    (yield* drawMarker4x4Steps(rgba, width, height, edge.endMarker, effectiveScale));
   }
 
   // 6. Edge label pills
   for (const edge of scene.edges) {
-    if (edge.labelPill) drawPill4x4(rgba, width, height, edge.labelPill, effectiveScale);
+    if (++work % 4096 === 0) yield;
+
+    if (edge.labelPill) (yield* drawPill4x4Steps(rgba, width, height, edge.labelPill, effectiveScale));
     if (edge.sourceLabelPill)
-      drawPill4x4(rgba, width, height, edge.sourceLabelPill, effectiveScale);
+      (yield* drawPill4x4Steps(rgba, width, height, edge.sourceLabelPill, effectiveScale));
     if (edge.targetLabelPill)
-      drawPill4x4(rgba, width, height, edge.targetLabelPill, effectiveScale);
+      (yield* drawPill4x4Steps(rgba, width, height, edge.targetLabelPill, effectiveScale));
   }
 
   // 7. Notes
   for (const note of scene.notes) {
+    if (++work % 4096 === 0) yield;
+
     if (note.shadow) {
-      drawShadow(
+      (yield* drawShadowSteps(
         rgba,
         width,
         height,
@@ -1244,9 +1371,9 @@ export function rasterizeScene(
         false,
         shadowColor,
         effectiveScale
-      );
+      ));
     }
-    drawRoundedShape(
+    (yield* drawRoundedShapeSteps(
       rgba,
       width,
       height,
@@ -1263,9 +1390,11 @@ export function rasterizeScene(
       1.25,
       false,
       effectiveScale
-    );
+    ));
     for (const line of note.lines) {
-      drawTextLine4x4(rgba, width, height, line, effectiveScale);
+      if (++work % 4096 === 0) yield;
+
+      (yield* drawTextLine4x4Steps(rgba, width, height, line, effectiveScale));
     }
   }
 
@@ -1275,4 +1404,8 @@ export function rasterizeScene(
     height,
     scale: userScale
   };
+}
+
+export function rasterizeScene(scene: MermaidScene, options?: RasterOptions): RasterFrame {
+  return drainWork(rasterizeSceneSteps(scene, options));
 }

@@ -1,3 +1,4 @@
+import { drainWork } from "../work.js";
 import type {
   DocumentEdge,
   FlowDirection,
@@ -547,18 +548,24 @@ function detourAroundBlockingNodes(
   return pts;
 }
 
-export function routeGraphEdges(
+export function* routeGraphEdgesSteps(
   edges: readonly DocumentEdge[],
   nodes: readonly SceneNode[],
   groups: readonly SceneGroup[],
   direction: FlowDirection,
   theme: MermaidThemeTokens,
   nodeRanks: ReadonlyMap<string, number>
-): readonly SceneEdge[] {
+): Generator<void, readonly SceneEdge[], void> {
+  yield;
+
+  let work = 0;
+
   const nodeById = new Map(nodes.map((n) => [n.id, n]));
   const groupById = new Map(groups.map((g) => [g.id, g]));
   const hasInternalOutgoing = new Set<string>();
   for (const e of edges) {
+    if (++work % 256 === 0) yield;
+
     if (e.from === e.to) continue;
     const u = nodeById.get(e.from);
     const v = nodeById.get(e.to);
@@ -592,11 +599,15 @@ export function routeGraphEdges(
 
   const outDegree = new Map<string, number>();
   for (const edge of edges) {
+    if (++work % 256 === 0) yield;
+
     if (edge.from === edge.to) continue;
     outDegree.set(edge.from, (outDegree.get(edge.from) ?? 0) + 1);
   }
   const pairTotals = new Map<string, number>();
   for (const edge of edges) {
+    if (++work % 256 === 0) yield;
+
     if (edge.from === edge.to) continue;
     const pairKey =
       edge.from < edge.to ? `${edge.from}::${edge.to}` : `${edge.to}::${edge.from}`;
@@ -608,6 +619,8 @@ export function routeGraphEdges(
   let bypassCounter = 0;
 
   for (const edge of edges) {
+    if (++work % 256 === 0) yield;
+
     const src = nodeById.get(edge.from);
     const dst = nodeById.get(edge.to);
     if (!src || !dst) continue;
@@ -685,6 +698,8 @@ export function routeGraphEdges(
   const assignedOffsets = new Map<string, number>();
   const assignedLanes = new Map<string, { index: number; count: number }>();
   for (const [, requests] of faceBuckets) {
+    if (++work % 256 === 0) yield;
+
     requests.sort((a, b) => a.sortKey - b.sortKey);
     const count = requests.length;
     const hasParallel = requests.some((r) => (edgeMeta.get(r.edgeId)?.pairTotal ?? 1) > 1);
@@ -696,6 +711,8 @@ export function routeGraphEdges(
     const spacing = Math.min(hasParallel ? 42 : isSelfLoopFace ? 44 : 16,
       count > 1 ? Math.max(0, halfBreadth - allowance) * 2 / (count - 1) : 16);
     for (let i = 0; i < count; i++) {
+      if (++work % 256 === 0) yield;
+
       const offset = (i - (count - 1) / 2) * spacing;
       assignedOffsets.set(`${requests[i]!.edgeId}:${requests[i]!.endpoint}`, offset);
       assignedLanes.set(`${requests[i]!.edgeId}:${requests[i]!.endpoint}`, { index: i, count });
@@ -707,12 +724,16 @@ export function routeGraphEdges(
   let minTop = Infinity;
   let maxBottom = 0;
   for (const n of nodes) {
+    if (++work % 256 === 0) yield;
+
     if (n.x + n.width > maxRight) maxRight = n.x + n.width;
     if (n.x < minLeft) minLeft = n.x;
     if (n.y < minTop) minTop = n.y;
     if (n.y + n.height > maxBottom) maxBottom = n.y + n.height;
   }
   for (const g of groups) {
+    if (++work % 256 === 0) yield;
+
     if (g.x + g.width > maxRight) maxRight = g.x + g.width;
     if (g.x < minLeft) minLeft = g.x;
     if (g.y < minTop) minTop = g.y;
@@ -732,6 +753,8 @@ export function routeGraphEdges(
   const sceneEdges: SceneEdge[] = [];
 
   for (const edge of edges) {
+    if (++work % 256 === 0) yield;
+
     const src = nodeById.get(edge.from);
     const dst = nodeById.get(edge.to);
     const meta = edgeMeta.get(edge.id);
@@ -1117,11 +1140,17 @@ export function routeGraphEdges(
   }
 
   for (const draft of routedDrafts) {
+    if (++work % 256 === 0) yield;
+
     const { edge, built, startMarker, endMarker, srcAttach, dstAttach } = draft;
     const otherEdgeSegments: Rect[] = [];
     for (const other of routedDrafts) {
+      if (++work % 256 === 0) yield;
+
       if (other.edge.id === edge.id) continue;
       for (let k = 0; k + 1 < other.built.points.length; k++) {
+        if (++work % 256 === 0) yield;
+
         const a = other.built.points[k]!;
         const b = other.built.points[k + 1]!;
         otherEdgeSegments.push({
@@ -1187,4 +1216,8 @@ export function routeGraphEdges(
   }
 
   return sceneEdges;
+}
+
+export function routeGraphEdges(edges: readonly DocumentEdge[], nodes: readonly SceneNode[], groups: readonly SceneGroup[], direction: FlowDirection, theme: MermaidThemeTokens, nodeRanks: ReadonlyMap<string, number>): readonly SceneEdge[] {
+  return drainWork(routeGraphEdgesSteps(edges, nodes, groups, direction, theme, nodeRanks));
 }

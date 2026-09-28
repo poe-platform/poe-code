@@ -1,3 +1,4 @@
+import { drainWork } from "./work.js";
 import {
   MermaidBudget,
   MermaidError,
@@ -95,10 +96,14 @@ export function unquoteText(raw: string): string {
   return trimmed;
 }
 
-export function scanStatements(
+export function* scanStatementsSteps(
   rawSource: string,
   budget: MermaidBudget
-): readonly ScannedStatement[] {
+): Generator<void, readonly ScannedStatement[], void> {
+  yield;
+
+  let work = 0;
+
   if (typeof rawSource !== "string") {
     throw new MermaidError("E_SYNTAX", "Diagram source must be a string");
   }
@@ -117,6 +122,8 @@ export function scanStatements(
   let firstLine = 1;
   let firstCol = 1;
   while (firstNonWs < source.length && isAsciiWhitespace(source[firstNonWs]!)) {
+    if (++work % 256 === 0) yield;
+
     if (source[firstNonWs] === "\n") {
       firstLine++;
       firstCol = 1;
@@ -178,6 +185,8 @@ export function scanStatements(
   };
 
   while (i < source.length) {
+    if (++work % 256 === 0) yield;
+
     budget.chargeWork(1);
     const ch = source[i]!;
 
@@ -221,6 +230,8 @@ export function scanStatements(
       }
       // Skip to end of line
       while (i < source.length && source[i] !== "\n" && source[i] !== "\r") {
+        if (++work % 256 === 0) yield;
+
         i++;
         col++;
       }
@@ -303,4 +314,8 @@ export function scanStatements(
   }
 
   return statements;
+}
+
+export function scanStatements(rawSource: string, budget: MermaidBudget): readonly ScannedStatement[] {
+  return drainWork(scanStatementsSteps(rawSource, budget));
 }

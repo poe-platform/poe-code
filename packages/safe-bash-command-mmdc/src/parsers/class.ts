@@ -1,3 +1,4 @@
+import { drainWork } from "../work.js";
 import {
   MermaidError,
   type CompartmentMember,
@@ -214,10 +215,14 @@ function findClassRelation(text: string): {
   return null;
 }
 
-export function parseClassDiagram(
+export function* parseClassDiagramSteps(
   statements: readonly ScannedStatement[],
   budget: MermaidBudget
-): MermaidDocument {
+): Generator<void, MermaidDocument, void> {
+  yield;
+
+  let work = 0;
+
   let direction: FlowDirection = "TD";
   const classes = new Map<string, MutableClassState>();
   const groups = new Map<string, DocumentGroup>();
@@ -264,6 +269,8 @@ export function parseClassDiagram(
   };
 
   for (let sIdx = 1; sIdx < statements.length; sIdx++) {
+    if (++work % 256 === 0) yield;
+
     const stmt = statements[sIdx]!;
     const text = stmt.text;
     const span: MermaidSourceSpan = {
@@ -455,4 +462,8 @@ export function parseClassDiagram(
     edges,
     notes
   };
+}
+
+export function parseClassDiagram(statements: readonly ScannedStatement[], budget: MermaidBudget): MermaidDocument {
+  return drainWork(parseClassDiagramSteps(statements, budget));
 }

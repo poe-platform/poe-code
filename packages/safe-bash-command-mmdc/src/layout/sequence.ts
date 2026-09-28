@@ -1,3 +1,4 @@
+import { drainWork } from "../work.js";
 import {
   admitMermaidLimits,
   MermaidBudget,
@@ -27,10 +28,14 @@ function snap8(v: number): number {
   return Math.ceil(v / 8) * 8;
 }
 
-export function layoutSequenceDocument(
+export function* layoutSequenceDocumentSteps(
   document: MermaidDocument,
   options?: MermaidLayoutOptions
-): MermaidScene {
+): Generator<void, MermaidScene, void> {
+  yield;
+
+  let work = 0;
+
   const limits = admitMermaidLimits(options?.limits, admitMermaidLimits(options?.settings?.limits));
   const budget = options?.budget ?? new MermaidBudget(limits, options?.signal);
   const { tokens: theme, backgroundColor } = resolveMermaidTheme(options);
@@ -76,6 +81,8 @@ export function layoutSequenceDocument(
   // Compute participant X centers with pairwise constraints
   const xCenters = new Array<number>(pCount).fill(0);
   for (let i = 1; i < pCount; i++) {
+    if (++work % 256 === 0) yield;
+
     const prevW = cardSizes[i - 1]!.width;
     const currW = cardSizes[i]!.width;
     xCenters[i] = xCenters[i - 1]! + prevW / 2 + currW / 2 + 56;
@@ -83,6 +90,8 @@ export function layoutSequenceDocument(
 
   // Enforce pairwise message label and self-loop spacing
   for (let pass = 0; pass < 3; pass++) {
+    if (++work % 256 === 0) yield;
+
     document.edges.forEach((edge, idx) => {
       const iFrom = pIndexById.get(edge.from) ?? 0;
       const iTo = pIndexById.get(edge.to) ?? 0;
@@ -150,6 +159,8 @@ export function layoutSequenceDocument(
     { minStep: number; maxStep: number; elseBranchStarts: Map<number, string> }
   >();
   for (const g of document.groups) {
+    if (++work % 256 === 0) yield;
+
     const allSteps: number[] = [];
     const elseBranchStarts = new Map<number, string>();
     if (g.branches) {
@@ -189,16 +200,22 @@ export function layoutSequenceDocument(
   });
 
   for (let s = 0; s < totalSteps; s++) {
+    if (++work % 256 === 0) yield;
+
     // Opening blocks before step s (from outer to inner)
     const openingGroups = document.groups
       .filter((g) => groupStepRange.get(g.id)?.minStep === s)
       .sort((a, b) => (groupDepth.get(a.id) ?? 0) - (groupDepth.get(b.id) ?? 0));
     for (let k = 0; k < openingGroups.length; k++) {
+      if (++work % 256 === 0) yield;
+
       cursorY += 42;
     }
 
     // Else dividers before step s
     for (const g of document.groups) {
+      if (++work % 256 === 0) yield;
+
       const range = groupStepRange.get(g.id);
       const elseLabel = range?.elseBranchStarts.get(s);
       if (elseLabel !== undefined) {
@@ -243,6 +260,8 @@ export function layoutSequenceDocument(
       (g) => groupStepRange.get(g.id)?.maxStep === s
     );
     for (let k = 0; k < closingGroups.length; k++) {
+      if (++work % 256 === 0) yield;
+
       cursorY += 20;
     }
   }
@@ -261,15 +280,21 @@ export function layoutSequenceDocument(
     // Group activation events by sequenceIndex
     const eventsByStep = new Map<number, typeof document.activations[number][]>();
     for (const ev of document.activations) {
+      if (++work % 256 === 0) yield;
+
       const list = eventsByStep.get(ev.sequenceIndex) ?? [];
       list.push(ev);
       eventsByStep.set(ev.sequenceIndex, list);
     }
 
     for (let s = 0; s < Math.max(1, totalSteps); s++) {
+      if (++work % 256 === 0) yield;
+
       const evs = eventsByStep.get(s) ?? [];
       const yAtStep = stepArrowY[s] ?? topCardY + maxHeaderCardH + 20;
       for (const ev of evs) {
+        if (++work % 256 === 0) yield;
+
         const stack = openActivations.get(ev.participantId) ?? [];
         if (ev.action === "activate") {
           stack.push({ startY: yAtStep, depth: stack.length });
@@ -295,9 +320,13 @@ export function layoutSequenceDocument(
 
     // Close any remaining open activations before bottom footer cards
     for (const [pid, stack] of openActivations.entries()) {
+      if (++work % 256 === 0) yield;
+
       const pIdx = pIndexById.get(pid) ?? 0;
       const cx = xCenters[pIdx]!;
       while (stack.length > 0) {
+        if (++work % 256 === 0) yield;
+
         const popped = stack.pop()!;
         const barX = cx - 5 + popped.depth * 4;
         const endY = Math.max(popped.startY + 20, bottomCardY - 14);
@@ -557,11 +586,15 @@ export function layoutSequenceDocument(
   const builtGroupById = new Map<string, SceneGroup>();
 
   for (const g of sortedGroupsInnerFirst) {
+    if (++work % 256 === 0) yield;
+
     const range = groupStepRange.get(g.id);
     if (!range) continue;
     let gxMin = Infinity;
     let gxMax = -Infinity;
     for (let s = range.minStep; s <= range.maxStep; s++) {
+      if (++work % 256 === 0) yield;
+
       gxMin = Math.min(gxMin, stepMinX[s]!);
       gxMax = Math.max(gxMax, stepMaxX[s]!);
     }
@@ -575,6 +608,8 @@ export function layoutSequenceDocument(
 
     // Expand to enclose any child sequence blocks with >= 18px margin
     for (const child of document.groups) {
+      if (++work % 256 === 0) yield;
+
       if (child.parentId === g.id) {
         const childScene = builtGroupById.get(child.id);
         if (childScene) {
@@ -715,6 +750,8 @@ export function layoutSequenceDocument(
   for (const g of builtGroupById.values()) includeRect(g.x, g.y, g.width, g.height);
   for (const note of rawNotes) includeRect(note.x, note.y, note.width, note.height);
   for (const e of rawEdges) {
+    if (++work % 256 === 0) yield;
+
     if (e.labelPill) includeRect(e.labelPill.x, e.labelPill.y, e.labelPill.width, e.labelPill.height);
     for (const pt of e.points) includeRect(pt.x, pt.y, 0, 0);
   }
@@ -848,4 +885,8 @@ export function layoutSequenceDocument(
     nodes,
     notes
   };
+}
+
+export function layoutSequenceDocument(document: MermaidDocument, options?: MermaidLayoutOptions): MermaidScene {
+  return drainWork(layoutSequenceDocumentSteps(document, options));
 }

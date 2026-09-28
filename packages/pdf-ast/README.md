@@ -151,3 +151,5 @@ including repaired files and compressed object streams.
 `maxDecompressedBytes` bounds each decoded stream and image RGBA buffer, including
 masks and codec header dimensions. It is a per-buffer limit, not a total document
 memory limit; codec working memory can exceed the final pixel buffer size.
+
+For cooperative hosts, `PdfDocument.loadSteps`, `doc.saveSteps`, and `doc.copyPagesFromSteps` return generators that pause between bounded object/page batches. Yield to your host event loop between steps and check cancellation before resuming; the final generator value matches the synchronous method.

@@ -1,3 +1,4 @@
+import { drainWork } from "../work.js";
 import {
   MermaidError,
   type CompartmentMember,
@@ -94,10 +95,14 @@ function parseAttributeLine(raw: string, stmt: ScannedStatement): CompartmentMem
   };
 }
 
-export function parseErDiagram(
+export function* parseErDiagramSteps(
   statements: readonly ScannedStatement[],
   budget: MermaidBudget
-): MermaidDocument {
+): Generator<void, MermaidDocument, void> {
+  yield;
+
+  let work = 0;
+
   let direction: FlowDirection = "TB";
   const entities = new Map<string, MutableErEntity>();
   const edges: DocumentEdge[] = [];
@@ -126,6 +131,8 @@ export function parseErDiagram(
   let activeEntity: MutableErEntity | undefined;
 
   for (let i = 1; i < statements.length; i++) {
+    if (++work % 256 === 0) yield;
+
     const stmt = statements[i]!;
     const text = stmt.text.trim();
     const span: MermaidSourceSpan = {
@@ -243,4 +250,8 @@ export function parseErDiagram(
     groups: [],
     notes: []
   };
+}
+
+export function parseErDiagram(statements: readonly ScannedStatement[], budget: MermaidBudget): MermaidDocument {
+  return drainWork(parseErDiagramSteps(statements, budget));
 }

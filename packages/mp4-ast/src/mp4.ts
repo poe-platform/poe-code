@@ -1,3 +1,4 @@
+import { drainWork } from "./work.js";
 import {
   BinaryReader,
   BinaryWriter,
@@ -2038,7 +2039,11 @@ export function concatMp4(
 /**
  * Slice/trim an MP4/MediaDocument between `startSeconds` and `endSeconds` (or `durationSeconds`).
  */
-export function sliceMp4(doc: MediaDocument, options: SliceMediaOptions = {}): Mp4Document {
+export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = {}): Generator<void, Mp4Document, void> {
+  yield;
+
+  let work = 0;
+
   const startSec = Math.max(0, options.startSeconds ?? 0);
   const endSec =
     options.endSeconds !== undefined
@@ -2051,6 +2056,8 @@ export function sliceMp4(doc: MediaDocument, options: SliceMediaOptions = {}): M
   const slicedTracks: MediaTrack[] = [];
 
   for (const track of doc.tracks) {
+    if (++work % 256 === 0) yield;
+
     const materialized = materializeTrackSamples(track);
     const ts = track.timescale || 1000;
     const startTick = Math.round(startSec * ts);
@@ -2059,6 +2066,8 @@ export function sliceMp4(doc: MediaDocument, options: SliceMediaOptions = {}): M
     // Find first sample covering or after startTick
     let firstIdx = materialized.samples.length;
     for (let i = 0; i < materialized.samples.length; i++) {
+      if (++work % 256 === 0) yield;
+
       const s = materialized.samples[i]!;
       if (s.dts + s.duration > startTick) {
         firstIdx = i;
@@ -2070,6 +2079,8 @@ export function sliceMp4(doc: MediaDocument, options: SliceMediaOptions = {}): M
     let keyframeIdx = firstIdx;
     if (options.useEditList && track.type === "video") {
       for (let i = firstIdx; i >= 0; i--) {
+        if (++work % 256 === 0) yield;
+
         if (materialized.samples[i]!.isKeyframe) {
           keyframeIdx = i;
           break;
@@ -2077,6 +2088,8 @@ export function sliceMp4(doc: MediaDocument, options: SliceMediaOptions = {}): M
       }
     } else if (track.type === "video" && !materialized.samples[firstIdx]?.isKeyframe) {
       for (let i = firstIdx; i >= 0; i--) {
+        if (++work % 256 === 0) yield;
+
         if (materialized.samples[i]!.isKeyframe) {
           keyframeIdx = i;
           break;
@@ -2090,6 +2103,8 @@ export function sliceMp4(doc: MediaDocument, options: SliceMediaOptions = {}): M
     let runningDts = 0;
 
     for (let i = actualStartIdx; i < materialized.samples.length; i++) {
+      if (++work % 256 === 0) yield;
+
       const s = materialized.samples[i]!;
       if (s.dts >= endTick && slicedSamples.length > 0) break;
       const clippedDuration =
@@ -2139,6 +2154,8 @@ export function sliceMp4(doc: MediaDocument, options: SliceMediaOptions = {}): M
 
   let maxSeconds = 0;
   for (const t of slicedTracks) {
+    if (++work % 256 === 0) yield;
+
     const sec = t.duration / Math.max(1, t.timescale);
     if (sec > maxSeconds) maxSeconds = sec;
   }
@@ -2151,16 +2168,28 @@ export function sliceMp4(doc: MediaDocument, options: SliceMediaOptions = {}): M
   };
 }
 
+export function sliceMp4(doc: MediaDocument, options: SliceMediaOptions = {}): Mp4Document {
+  return drainWork(sliceMp4Steps(doc, options));
+}
+
 /**
  * Mux tracks from one or more MediaDocuments into a single MediaDocument.
  */
-export function muxMp4(
+export function* muxMp4Steps(
   sources: readonly MediaDocument[],
   options: MuxMediaOptions = {}
-): Mp4Document {
+): Generator<void, Mp4Document, void> {
+  yield;
+
+  let work = 0;
+
   const collectedTracks: MediaTrack[] = [];
   for (const src of sources) {
+    if (++work % 256 === 0) yield;
+
     for (const trk of src.tracks) {
+      if (++work % 256 === 0) yield;
+
       if (options.stripAudio && trk.type === "audio") continue;
       if (options.stripVideo && trk.type === "video") continue;
       if (options.stripSubtitles && trk.type === "subtitle") continue;
@@ -2192,14 +2221,20 @@ export function muxMp4(
     );
   } else {
     for (const t of collectedTracks) {
+      if (++work % 256 === 0) yield;
+
       const sec = t.duration / Math.max(1, t.timescale);
       if (sec > targetDurationSec) targetDurationSec = sec;
     }
   }
 
-  const finalTracks = options.shortest
-    ? collectedTracks.map((t) => sliceMp4({ ...base, tracks: [t] }, { startSeconds: 0, endSeconds: targetDurationSec }).tracks[0]!)
-    : collectedTracks;
+  const finalTracks: MediaTrack[] = [];
+  for (const track of collectedTracks) {
+    yield;
+    finalTracks.push(options.shortest
+      ? (yield* sliceMp4Steps({ ...base, tracks: [track] }, { startSeconds: 0, endSeconds: targetDurationSec })).tracks[0]!
+      : track);
+  }
 
   return {
     ...base,
@@ -2210,6 +2245,10 @@ export function muxMp4(
     chapters: sources.flatMap((src) => src.chapters ?? []),
     metadata: Object.assign({}, ...sources.map((src) => src.metadata), options.metadata ?? {})
   };
+}
+
+export function muxMp4(sources: readonly MediaDocument[], options: MuxMediaOptions = {}): Mp4Document {
+  return drainWork(muxMp4Steps(sources, options));
 }
 
 const CODEC_LONG_NAMES: Record<string, string> = {

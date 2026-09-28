@@ -1,3 +1,4 @@
+import { drainWork } from "../work.js";
 import {
   MermaidError,
   type DocumentEdge,
@@ -137,10 +138,14 @@ function findSequenceArrow(text: string): {
   return crossCandidate;
 }
 
-export function parseSequenceDiagram(
+export function* parseSequenceDiagramSteps(
   statements: readonly ScannedStatement[],
   budget: MermaidBudget
-): MermaidDocument {
+): Generator<void, MermaidDocument, void> {
+  yield;
+
+  let work = 0;
+
   const nodes = new Map<string, DocumentNode>();
   const groups: DocumentGroup[] = [];
   const edges: DocumentEdge[] = [];
@@ -193,6 +198,8 @@ export function parseSequenceDiagram(
   };
 
   for (let sIdx = 1; sIdx < statements.length; sIdx++) {
+    if (++work % 256 === 0) yield;
+
     const stmt = statements[sIdx]!;
     const text = stmt.text;
     const span: MermaidSourceSpan = {
@@ -222,6 +229,8 @@ export function parseSequenceDiagram(
       let asIndex = -1;
       let q: string | null = null;
       for (let i = 0; i <= rest.length - 4; i++) {
+        if (++work % 256 === 0) yield;
+
         const c = rest[i]!;
         if (q !== null) {
           if (c === q && rest[i - 1] !== "\\") q = null;
@@ -427,4 +436,8 @@ export function parseSequenceDiagram(
     notes,
     activations
   };
+}
+
+export function parseSequenceDiagram(statements: readonly ScannedStatement[], budget: MermaidBudget): MermaidDocument {
+  return drainWork(parseSequenceDiagramSteps(statements, budget));
 }

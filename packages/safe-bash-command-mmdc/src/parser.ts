@@ -1,3 +1,10 @@
+import { drainWork } from "./work.js";
+import { scanStatementsSteps } from "./scanner.js";
+import { parseFlowchartSteps } from "./parsers/flowchart.js";
+import { parseSequenceDiagramSteps } from "./parsers/sequence.js";
+import { parseStateDiagramSteps } from "./parsers/state.js";
+import { parseClassDiagramSteps } from "./parsers/class.js";
+import { parseErDiagramSteps } from "./parsers/er.js";
 import {
   admitMermaidLimits,
   MermaidBudget,
@@ -5,38 +12,42 @@ import {
   type MermaidDocument,
   type MermaidParseOptions
 } from "./contracts.js";
-import { parseFlowchart } from "./parsers/flowchart.js";
-import { parseSequenceDiagram } from "./parsers/sequence.js";
-import { parseStateDiagram } from "./parsers/state.js";
-import { parseClassDiagram } from "./parsers/class.js";
-import { parseErDiagram } from "./parsers/er.js";
-import { readWord } from "./parser-utils.js";
-import { scanStatements } from "./scanner.js";
 
-export function parseMermaid(
+
+
+
+
+import { readWord } from "./parser-utils.js";
+
+
+export function* parseMermaidSteps(
   source: string,
   options?: MermaidParseOptions
-): MermaidDocument {
+): Generator<void, MermaidDocument, void> {
+  yield;
+
+
+
   const limits = admitMermaidLimits(options?.limits);
   const budget = options?.budget ?? new MermaidBudget(limits, options?.signal);
-  const statements = scanStatements(source, budget);
+  const statements = (yield* scanStatementsSteps(source, budget));
   const first = statements[0]!;
   const headWord = readWord(first.text, 0).word;
 
   if (headWord === "flowchart" || headWord === "graph") {
-    return parseFlowchart(statements, budget);
+    return (yield* parseFlowchartSteps(statements, budget));
   }
   if (headWord === "sequenceDiagram") {
-    return parseSequenceDiagram(statements, budget);
+    return (yield* parseSequenceDiagramSteps(statements, budget));
   }
   if (headWord === "stateDiagram-v2" || headWord === "stateDiagram") {
-    return parseStateDiagram(statements, budget);
+    return (yield* parseStateDiagramSteps(statements, budget));
   }
   if (headWord === "classDiagram") {
-    return parseClassDiagram(statements, budget);
+    return (yield* parseClassDiagramSteps(statements, budget));
   }
   if (headWord === "erDiagram") {
-    return parseErDiagram(statements, budget);
+    return (yield* parseErDiagramSteps(statements, budget));
   }
 
   throw new MermaidError(
@@ -51,4 +62,8 @@ export function parseMermaid(
       }
     }
   );
+}
+
+export function parseMermaid(source: string, options?: MermaidParseOptions): MermaidDocument {
+  return drainWork(parseMermaidSteps(source, options));
 }

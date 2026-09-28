@@ -1,3 +1,5 @@
+
+import { drainWork } from "../work.js";
 import {
   cosArray,
   cosBool,
@@ -55,7 +57,7 @@ function resolveInheritedFieldEntry(
   return undefined;
 }
 
-function collectFieldDicts(
+function* collectFieldDictsSteps(
   doc: ParsedCosDocument,
   node: PdfCosNode | undefined,
   prefix = "",
@@ -63,8 +65,13 @@ function collectFieldDicts(
   parentFt = "",
   parentFf = 0,
   parentQ = 0,
-  parentMaxLen?: number
-): CollectedFieldEntry[] {
+  parentMaxLen?: number,
+  yieldState: { work: number } = { work: 0 }
+): Generator<void, CollectedFieldEntry[], void> {
+  if (++yieldState.work % 256 === 0) yield;
+
+
+
   const dict = doc.resolveDict(node);
   if (!dict) return out;
   const tNode = doc.resolve(dictGet(dict, "T"));
@@ -104,7 +111,9 @@ function collectFieldDicts(
       return out;
     }
     for (const kid of kidsArr.items) {
-      collectFieldDicts(doc, kid, fullName, out, currentFt, currentFf, currentQ, currentMaxLen);
+    if (++yieldState.work % 16 === 0) yield;
+
+      (yield* collectFieldDictsSteps(doc, kid, fullName, out, currentFt, currentFf, currentQ, currentMaxLen, yieldState));
     }
   } else if (fullName) {
     out.push({
@@ -617,7 +626,11 @@ export function setDocumentFormField(
   fieldsArr.items.push(fieldRef);
 }
 
-export function generateDocumentFormAppearances(doc: ParsedCosDocument): void {
+export function* generateDocumentFormAppearancesSteps(doc: ParsedCosDocument): Generator<void, void, void> {
+  yield;
+
+  let work = 0;
+
   const catalog = doc.resolveDict(doc.rootRef);
   if (!catalog) return;
   const acroForm = doc.resolveDict(dictGet(catalog, "AcroForm"));
@@ -628,9 +641,13 @@ export function generateDocumentFormAppearances(doc: ParsedCosDocument): void {
   if (fieldsArr) {
     const all: CollectedFieldEntry[] = [];
     for (const item of fieldsArr.items) {
-      collectFieldDicts(doc, item, "", all);
+      if (++work % 16 === 0) yield;
+
+      (yield* collectFieldDictsSteps(doc, item, "", all));
     }
     for (const entry of all) {
+      if (++work % 16 === 0) yield;
+
       const ftNode = doc.resolve(dictGet(entry.dict, "FT"));
       const ft = entry.inheritedFt || (ftNode?.kind === "name" ? ftNode.decoded : "");
       const vNode = doc.resolve(dictGet(entry.dict, "V"));
@@ -691,6 +708,8 @@ export function generateDocumentFormAppearances(doc: ParsedCosDocument): void {
           const optArr = doc.resolveArray(dictGet(entry.dict, "Opt"));
           if (optArr) {
             for (const optItem of optArr.items) {
+              if (++work % 16 === 0) yield;
+
               const resolvedOpt = doc.resolve(optItem);
               if (resolvedOpt?.kind === "array" && resolvedOpt.items.length >= 2) {
                 const expNode = doc.resolve(resolvedOpt.items[0]);
@@ -719,6 +738,8 @@ export function generateDocumentFormAppearances(doc: ParsedCosDocument): void {
         const kidsArr = doc.resolveArray(dictGet(entry.dict, "Kids"));
         if (kidsArr) {
           for (const kid of kidsArr.items) {
+            if (++work % 16 === 0) yield;
+
             const kidDict = doc.resolveDict(kid);
             if (kidDict && !dictGet(kidDict, "T")) {
               synthesizeTextAppearanceStream(
@@ -737,6 +758,10 @@ export function generateDocumentFormAppearances(doc: ParsedCosDocument): void {
     }
   }
   dictSet(acroForm, "NeedAppearances", cosBool(false));
+}
+
+export function generateDocumentFormAppearances(doc: ParsedCosDocument): void {
+  return drainWork(generateDocumentFormAppearancesSteps(doc));
 }
 
 function decodeXmlEntities(text: string): string {
@@ -1375,4 +1400,8 @@ export function flattenDocumentFormFields(doc: ParsedCosDocument): void {
     dictSet(acroForm, "Fields", cosArray([]));
     dictSet(acroForm, "NeedAppearances", cosBool(false));
   }
+}
+
+function collectFieldDicts(doc: ParsedCosDocument, node: PdfCosNode | undefined, prefix = "", out: CollectedFieldEntry[] = [], parentFt = "", parentFf = 0, parentQ = 0, parentMaxLen?: number): void {
+  drainWork(collectFieldDictsSteps(doc, node, prefix, out, parentFt, parentFf, parentQ, parentMaxLen));
 }

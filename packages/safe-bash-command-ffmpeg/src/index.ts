@@ -41,6 +41,8 @@ import {
   MediaBudgetTracker,
   MediaLimitExceededError,
   muxMp4,
+  muxMp4Steps,
+  type MuxMediaOptions,
   parseMp4,
   sliceMp4,
   type MediaAstPlugin,
@@ -211,18 +213,12 @@ function makeRgbaImg(width: number, height: number, data: Uint8Array): RgbaImage
   };
 }
 
-function parseLavfiSource(spec: string, budget: MediaBudgetTracker, durationOverride?: number): MediaDocument {
-  const steps = lavfiSteps(spec, budget, durationOverride);
-  let step = steps.next();
-  while (!step.done) step = steps.next();
-  return step.value;
-}
-
 function* lavfiSteps(
   spec: string,
   budget: MediaBudgetTracker,
   durationOverride?: number
 ): Generator<void, MediaDocument> {
+  let work = 0;
   // Examples:
   // color=c=red:s=320x240:r=25:d=2
   // testsrc=size=160x120:rate=10:duration=1
@@ -233,6 +229,8 @@ function* lavfiSteps(
   const argsPart = eqIdx >= 0 ? spec.slice(eqIdx + 1) : "";
   const kv: Record<string, string> = {};
   for (const part of argsPart.split(":")) {
+    if (++work % 1024 === 0) yield;
+
     const kIdx = part.indexOf("=");
     if (kIdx >= 0) {
       kv[part.slice(0, kIdx).trim().toLowerCase()] = part.slice(kIdx + 1).trim();
@@ -262,6 +260,7 @@ function* lavfiSteps(
       channelData.push(arr);
     }
 
+    yield;
     const mp4Bytes = createSyntheticMp4({
       width: 16,
       height: 16,
@@ -303,6 +302,8 @@ function* lavfiSteps(
     for (let y = 0; y < height; y++) {
       if (y % 16 === 0) yield;
       for (let x = 0; x < width; x++) {
+        if (++work % 1024 === 0) yield;
+
         const idx = (y * width + x) * 4;
         if (filterName.startsWith("testsrc") || filterName === "smptebars") {
           const bar = Math.floor((x / Math.max(1, width)) * 7);
@@ -338,6 +339,7 @@ function* lavfiSteps(
     });
   }
 
+  yield;
   const mp4Bytes = createSyntheticMp4({
     width,
     height,
@@ -355,10 +357,13 @@ function* lavfiSteps(
   };
 }
 
-function ensureDecodedFrames(
+async function ensureDecodedFrames(
   track: MediaTrack,
-  budget: MediaBudgetTracker
-): MediaVideoFrame[] {
+  budget: MediaBudgetTracker,
+  signal?: AbortSignal
+): Promise<MediaVideoFrame[]> {
+
+
   if (track.decodedVideoFrames && track.decodedVideoFrames.length > 0) {
     return [...track.decodedVideoFrames];
   }
@@ -367,7 +372,9 @@ function ensureDecodedFrames(
   const ts = track.timescale || 90000;
   const lengthSize = (track.codecDescriptions[0]?.avcC?.lengthSizeMinusOne ?? 3) + 1;
 
-  return track.samples.map((s) => {
+  return await mapWork(track.samples, async (s) => {
+
+
     budget.recordFrame(width, height);
     return {
       width,
@@ -377,7 +384,7 @@ function ensureDecodedFrames(
       durationSeconds: s.duration / ts,
       keyframe: s.isKeyframe
     };
-  });
+  }, signal);
 }
 
 function evalScaleDim(expr: string, iw: number, ih: number): number {
@@ -440,7 +447,7 @@ const GLYPH_5X7: Record<string, readonly number[]> = {
   "?": [0x0e, 0x11, 0x01, 0x02, 0x04, 0x00, 0x04]
 };
 
-function renderBitmapTextToRgba(
+async function renderBitmapTextToRgba(
   rgba: Uint8Array,
   width: number,
   height: number,
@@ -452,8 +459,11 @@ function renderBitmapTextToRgba(
     fontColor?: [number, number, number, number];
     drawBox?: boolean;
     boxColor?: [number, number, number, number];
-  } = {}
-): Uint8Array {
+  } = {},
+  signal?: AbortSignal
+): Promise<Uint8Array> {
+  let work = 0;
+
   const out = new Uint8Array(rgba);
   const scale = Math.max(1, Math.round((opts.fontSize ?? 12) / 8));
   const charW = 6 * scale;
@@ -488,7 +498,11 @@ function renderBitmapTextToRgba(
     const bg = opts.boxColor ?? [0, 0, 0, 180];
     const pad = 2 * scale;
     for (let y = Math.max(0, startY - pad); y < Math.min(height, startY + textH + pad); y++) {
+      if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
       for (let x = Math.max(0, startX - pad); x < Math.min(width, startX + textW + pad); x++) {
+        if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
         const idx = (y * width + x) * 4;
         const alpha = bg[3] / 255;
         out[idx] = Math.round(bg[0] * alpha + out[idx]! * (1 - alpha));
@@ -500,19 +514,31 @@ function renderBitmapTextToRgba(
   }
 
   for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+    if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
     const line = lines[lineIdx]!.toUpperCase();
     const lineY = startY + lineIdx * charH;
     for (let cIdx = 0; cIdx < line.length; cIdx++) {
+      if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
       const ch = line[cIdx]!;
       const rows = GLYPH_5X7[ch] ?? GLYPH_5X7["?"];
       if (!rows) continue;
       const charX = startX + cIdx * charW;
       for (let r = 0; r < 7; r++) {
+        if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
         const mask = rows[r]!;
         for (let col = 0; col < 5; col++) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
           if ((mask & (1 << (4 - col))) === 0) continue;
           for (let sy = 0; sy < scale; sy++) {
+            if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
             for (let sx = 0; sx < scale; sx++) {
+              if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
               const px = charX + col * scale + sx;
               const py = lineY + r * scale + sy;
               if (px >= 0 && px < width && py >= 0 && py < height) {
@@ -532,12 +558,15 @@ function renderBitmapTextToRgba(
   return out;
 }
 
-function applyVideoFilterChain(
+async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
   budget: MediaBudgetTracker,
-  subtitleCues?: readonly { startSec: number; endSec: number; text: string }[]
-): MediaVideoFrame[] {
+  subtitleCues?: readonly { startSec: number; endSec: number; text: string }[],
+  signal?: AbortSignal
+): Promise<MediaVideoFrame[]> {
+  let work = 0;
+
   let current = frames;
   if (current.length === 0) return current;
 
@@ -547,6 +576,8 @@ function applyVideoFilterChain(
     .filter(Boolean);
 
   for (const filterSpec of filters) {
+    if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
     budget.checkCpu();
     const eqIdx = filterSpec.indexOf("=");
     const name = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim().toLowerCase();
@@ -554,6 +585,8 @@ function applyVideoFilterChain(
     const positional = argStr.split(":");
     const named: Record<string, string> = {};
     for (const part of positional) {
+      if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
       const kIdx = part.indexOf("=");
       if (kIdx >= 0) {
         named[part.slice(0, kIdx).trim().toLowerCase()] = part.slice(kIdx + 1).trim();
@@ -577,7 +610,9 @@ function applyVideoFilterChain(
       targetW = Math.max(2, targetW);
       targetH = Math.max(2, targetH);
 
-      current = current.map((f) => {
+      current = await mapWork(current, async (f) => {
+
+
         budget.recordFrame(targetW, targetH);
         const resized = resizeImage(makeRgbaImg(f.width, f.height, f.data), {
           width: targetW,
@@ -595,7 +630,7 @@ function applyVideoFilterChain(
           height: resized.height,
           data: resized.data
         };
-      });
+      }, signal);
     } else if (name === "crop") {
       const iw = current[0]!.width;
       const ih = current[0]!.height;
@@ -609,7 +644,9 @@ function applyVideoFilterChain(
         0,
         Math.min(ih - ch, parseInt(named.y ?? positional[3] ?? String(Math.floor((ih - ch) / 2)), 10) || 0)
       );
-      current = current.map((f) => {
+      current = await mapWork(current, async (f) => {
+
+
         const cropped = extractImage(makeRgbaImg(f.width, f.height, f.data), {
           left: cx,
           top: cy,
@@ -622,7 +659,7 @@ function applyVideoFilterChain(
           height: cropped.height,
           data: cropped.data
         };
-      });
+      }, signal);
     } else if (name === "pad") {
       const iw = current[0]!.width;
       const ih = current[0]!.height;
@@ -631,7 +668,9 @@ function applyVideoFilterChain(
       const px = Math.max(0, Math.min(pw - iw, parseInt(named.x ?? positional[2] ?? "0", 10) || 0));
       const py = Math.max(0, Math.min(ph - ih, parseInt(named.y ?? positional[3] ?? "0", 10) || 0));
       const col = parseColorRgba(named.color ?? positional[4] ?? "black");
-      current = current.map((f) => {
+      current = await mapWork(current, async (f) => {
+
+
         const padded = extendImage(makeRgbaImg(f.width, f.height, f.data), {
           left: px,
           top: py,
@@ -646,21 +685,27 @@ function applyVideoFilterChain(
           height: padded.height,
           data: padded.data
         };
-      });
+      }, signal);
     } else if (name === "hflip") {
-      current = current.map((f) => {
+      current = await mapWork(current, async (f) => {
+
+
         const out = flopImage(makeRgbaImg(f.width, f.height, f.data));
         return { ...f, data: out.data };
-      });
+      }, signal);
     } else if (name === "vflip") {
-      current = current.map((f) => {
+      current = await mapWork(current, async (f) => {
+
+
         const out = flipImage(makeRgbaImg(f.width, f.height, f.data));
         return { ...f, data: out.data };
-      });
+      }, signal);
     } else if (name === "transpose" || name === "rotate") {
       const dir = named.dir ?? positional[0] ?? "1";
       const angle = name === "transpose" ? (dir === "2" ? 270 : 90) : 90;
-      current = current.map((f) => {
+      current = await mapWork(current, async (f) => {
+
+
         const out = rotateImage(makeRgbaImg(f.width, f.height, f.data), angle);
         return {
           ...f,
@@ -668,23 +713,29 @@ function applyVideoFilterChain(
           height: out.height,
           data: out.data
         };
-      });
+      }, signal);
     } else if (name === "negate") {
-      current = current.map((f) => {
+      current = await mapWork(current, async (f) => {
+
+
         const out = negateImage(makeRgbaImg(f.width, f.height, f.data));
         return { ...f, data: out.data };
-      });
+      }, signal);
     } else if (name === "format" && argStr.includes("gray")) {
-      current = current.map((f) => {
+      current = await mapWork(current, async (f) => {
+
+
         const out = grayscaleImage(makeRgbaImg(f.width, f.height, f.data));
         return { ...f, data: out.data };
-      });
+      }, signal);
     } else if (name === "fps") {
       const targetFps = parseFloat(named.fps ?? positional[0] ?? "25") || 25;
       const totalDuration = current.reduce((acc, f) => acc + f.durationSeconds, 0) || 1;
       const targetCount = Math.max(1, Math.round(totalDuration * targetFps));
       const resampled: MediaVideoFrame[] = [];
       for (let i = 0; i < targetCount; i++) {
+        if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
         const srcIdx = Math.min(
           current.length - 1,
           Math.floor((i / targetCount) * current.length)
@@ -711,41 +762,45 @@ function applyVideoFilterChain(
       const fontColor = parseColorRgba(named.fontcolor ?? "white");
       const drawBox = named.box === "1" || named.box === "true";
       const boxColor = parseColorRgba(named.boxcolor ?? "black");
-      current = current.map((f, fIdx) => {
+      current = await mapWork(current, async (f, fIdx) => {
+
+
         const expanded = rawText
           .replace(/%\{frame_num\}/g, String(fIdx))
           .replace(/%\{n\}/g, String(fIdx))
           .replace(/%\{pts\}/g, f.ptsSeconds.toFixed(2));
         return {
           ...f,
-          data: renderBitmapTextToRgba(f.data, f.width, f.height, expanded, {
+          data: await renderBitmapTextToRgba(f.data, f.width, f.height, expanded, {
             xExpr: named.x ?? "4",
             yExpr: named.y ?? "4",
             fontSize,
             fontColor,
             drawBox,
             boxColor
-          })
+          }, signal)
         };
-      });
+      }, signal);
     } else if (name === "subtitles") {
       const cues = subtitleCues ?? [];
-      current = current.map((f) => {
+      current = await mapWork(current, async (f) => {
+
+
         const active = cues.filter((c) => f.ptsSeconds >= c.startSec && f.ptsSeconds <= c.endSec);
         if (active.length === 0) return f;
         const cueStr = active.map((c) => c.text).join("\n");
         return {
           ...f,
-          data: renderBitmapTextToRgba(f.data, f.width, f.height, cueStr, {
+          data: await renderBitmapTextToRgba(f.data, f.width, f.height, cueStr, {
             xExpr: "(w-text_w)/2",
             yExpr: "h-text_h-4",
             fontSize: 10,
             fontColor: [255, 255, 255, 255],
             drawBox: true,
             boxColor: [0, 0, 0, 180]
-          })
+          }, signal)
         };
-      });
+      }, signal);
     } else if (name === "tile") {
       const layoutStr = (named.layout ?? positional[0] ?? "2x2").toLowerCase();
       const [colsStr, rowsStr] = layoutStr.split("x");
@@ -756,6 +811,8 @@ function applyVideoFilterChain(
       const perTile = cols * rows;
       const tiledFrames: MediaVideoFrame[] = [];
       for (let base = 0; base < current.length; base += perTile) {
+        if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
         const batch = current.slice(base, base + perTile);
         const fw = batch[0]?.width ?? 64;
         const fh = batch[0]?.height ?? 64;
@@ -764,12 +821,16 @@ function applyVideoFilterChain(
         const canvas = new Uint8Array(outW * outH * 4);
         for (let i = 3; i < canvas.byteLength; i += 4) canvas[i] = 255;
         for (let k = 0; k < batch.length; k++) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
           const tileFrame = batch[k]!;
           const c = k % cols;
           const r = Math.floor(k / cols);
           const ox = margin + c * (fw + padding);
           const oy = margin + r * (fh + padding);
           for (let y = 0; y < Math.min(fh, tileFrame.height); y++) {
+            if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
             const srcRow = tileFrame.data.subarray(y * tileFrame.width * 4, (y + 1) * tileFrame.width * 4);
             canvas.set(srcRow.subarray(0, fw * 4), ((oy + y) * outW + ox) * 4);
           }
@@ -805,11 +866,13 @@ function applyVideoFilterChain(
     } else if (name === "reverse") {
       const totalDur = current.reduce((acc, f) => acc + f.durationSeconds, 0);
       let cursor = 0;
-      current = [...current].reverse().map((f) => {
+      current = await mapWork([...current].reverse(), async (f) => {
+
+
         const out = { ...f, ptsSeconds: cursor };
         cursor += f.durationSeconds;
         return out;
-      });
+      }, signal);
       void totalDur;
     } else if (name === "setpts") {
       const expr = (named.expr ?? positional[0] ?? "PTS").toUpperCase();
@@ -821,22 +884,30 @@ function applyVideoFilterChain(
           ? 1 / (parseFloat(divMatch[1]!) || 1)
           : 1;
       let cursor = 0;
-      current = current.map((f) => {
+      current = await mapWork(current, async (f) => {
+
+
         const dur = Math.max(0.001, f.durationSeconds * factor);
         const out = { ...f, ptsSeconds: cursor, durationSeconds: dur };
         cursor += dur;
         return out;
-      });
+      }, signal);
     } else if (name === "drawbox") {
       const bx = parseInt(named.x ?? positional[0] ?? "0", 10) || 0;
       const by = parseInt(named.y ?? positional[1] ?? "0", 10) || 0;
       const bw = parseInt(named.w ?? named.width ?? positional[2] ?? "16", 10) || 16;
       const bh = parseInt(named.h ?? named.height ?? positional[3] ?? "16", 10) || 16;
       const col = parseColorRgba(named.color ?? named.c ?? positional[4] ?? "red");
-      current = current.map((f) => {
+      current = await mapWork(current, async (f) => {
+  let work = 0;
+
         const nextData = new Uint8Array(f.data);
         for (let y = Math.max(0, by); y < Math.min(f.height, by + bh); y++) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
           for (let x = Math.max(0, bx); x < Math.min(f.width, bx + bw); x++) {
+            if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+
             const idx = (y * f.width + x) * 4;
             nextData[idx] = col[0];
             nextData[idx + 1] = col[1];
@@ -845,7 +916,7 @@ function applyVideoFilterChain(
           }
         }
         return { ...f, data: nextData };
-      });
+      }, signal);
     }
   }
 
@@ -1365,13 +1436,9 @@ export function evalSyncFfmpeg(
     for (const inp of inputs) {
       let doc: MediaDocument;
       if (inp.format === "lavfi") {
-        doc = parseLavfiSource(
-          inp.path,
-          budget,
-          inp.durationSeconds !== undefined
-            ? (inp.startSeconds ?? 0) + inp.durationSeconds
-            : inp.endSeconds ?? (outputDuration !== undefined ? (inp.startSeconds ?? 0) + (outputSs ?? 0) + outputDuration : outputTo !== undefined ? (inp.startSeconds ?? 0) + outputTo : undefined),
-        );
+        // Undefined declines the shell's synchronous optimization; the async
+        // command runs lavfiSteps and yields between sample/pixel batches.
+        return undefined;
       } else {
         const rawBytes = inp.path === "-" || inp.path === "pipe:" || inp.path === "pipe:0" ? inBytes : readFileSync?.(inp.path);
         if (!rawBytes || rawBytes.byteLength > 262144) return undefined;
@@ -1399,18 +1466,8 @@ export function evalSyncFfmpeg(
     }
     if (outputFps && videoCodec !== "copy") vfFilters.push(`fps=${outputFps}`);
     if (vfFilters.length > 0) {
-      const combinedChain = vfFilters.join(",");
-      if (combinedChain.includes("subtitles=")) return undefined;
-      workingDoc = {
-        ...workingDoc,
-        tracks: workingDoc.tracks.map((t) => {
-          if (t.type !== "video") return t;
-          const decoded = ensureDecodedFrames(t, budget);
-          const filtered = applyVideoFilterChain(decoded, combinedChain, budget);
-          const first = filtered[0];
-          return { ...t, width: first?.width ?? t.width, height: first?.height ?? t.height, samples: [], decodedVideoFrames: filtered };
-        }),
-      };
+      // Filtering needs the cooperative async command, not a sync shortcut.
+      return undefined;
     }
     if (maxVideoFrames !== undefined) {
       workingDoc = {
@@ -1443,7 +1500,8 @@ export function evalSyncFfmpeg(
     if (/%0?\d*d/.test(outputTarget)) {
       const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
       const vTrack = workingDoc.tracks.find((t) => t.type === "video");
-      const frames = vTrack ? ensureDecodedFrames(vTrack, budget) : [];
+      if (vTrack && !vTrack.decodedVideoFrames) return undefined;
+      const frames = vTrack?.decodedVideoFrames ?? [];
       const limit = maxVideoFrames ? Math.min(frames.length, maxVideoFrames) : frames.length;
       const imgFmt: ImageFormat = outExt === "jpg" || outExt === "jpeg" ? "jpeg" : outExt === "webp" ? "webp" : outExt === "gif" ? "gif" : outExt === "bmp" ? "bmp" : outExt === "ppm" ? "ppm" : "png";
       for (let idx = 0; idx < limit; idx++) {
@@ -2141,13 +2199,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               throw new Error(`${filePath}: No matching image sequence files found`);
             }
             const first = frames[0]!;
-            const synthBytes = createSyntheticMp4({
+            const synthBytes = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), createSyntheticMp4({
               width: first.width,
               height: first.height,
               fps,
               frameCount: frames.length,
               includeAudio: false
-            });
+            }));
             const base = parseMp4(synthBytes);
             return {
               ...base,
@@ -2287,14 +2345,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               };
             }
           } else if (filterComplex.includes("xfade") && loadedDocs.length >= 2) {
-            const f0 = ensureDecodedFrames(
+            const f0 = await ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
               budget
-            );
-            const f1 = ensureDecodedFrames(
+            , context.signal);
+            const f1 = await ensureDecodedFrames(
               loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
               budget
-            );
+            , context.signal);
             const durMatch = /duration=([0-9.]+)/.exec(filterComplex);
             const offMatch = /offset=([0-9.]+)/.exec(filterComplex);
             const fadeDur = parseFloat(durMatch?.[1] ?? "0.5") || 0.5;
@@ -2343,14 +2401,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               )
             };
           } else if (filterComplex.includes("vstack") && loadedDocs.length >= 2) {
-            const f0 = ensureDecodedFrames(
+            const f0 = await ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
               budget
-            );
-            const f1 = ensureDecodedFrames(
+            , context.signal);
+            const f1 = await ensureDecodedFrames(
               loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
               budget
-            );
+            , context.signal);
             const count = Math.min(f0.length, f1.length);
             const stacked: MediaVideoFrame[] = [];
             for (let i = 0; i < count; i++) {
@@ -2389,14 +2447,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               )
             };
           } else if (filterComplex.includes("hstack") && loadedDocs.length >= 2) {
-            const f0 = ensureDecodedFrames(
+            const f0 = await ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
               budget
-            );
-            const f1 = ensureDecodedFrames(
+            , context.signal);
+            const f1 = await ensureDecodedFrames(
               loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
               budget
-            );
+            , context.signal);
             const count = Math.min(f0.length, f1.length);
             const stacked: MediaVideoFrame[] = [];
             for (let i = 0; i < count; i++) {
@@ -2435,14 +2493,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               )
             };
           } else if (filterComplex.includes("overlay") && loadedDocs.length >= 2) {
-            const f0 = ensureDecodedFrames(
+            const f0 = await ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
               budget
-            );
-            const f1 = ensureDecodedFrames(
+            , context.signal);
+            const f1 = await ensureDecodedFrames(
               loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
               budget
-            );
+            , context.signal);
             const overlayMatch = /overlay(?:=(\d+):(\d+))?/.exec(filterComplex);
             const ox = parseInt(overlayMatch?.[1] ?? "0", 10) || 0;
             const oy = parseInt(overlayMatch?.[2] ?? "0", 10) || 0;
@@ -2471,7 +2529,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               )
             };
           } else {
-            workingDoc = muxMp4(loadedDocs, { shortest });
+            workingDoc = await muxMp4Cooperatively(loadedDocs, { shortest }, context.signal);
             const cleanedComplex = filterComplex.replace(/\[[^\]]+\]/g, "").trim();
             if (cleanedComplex) vfFilters.push(cleanedComplex);
           }
@@ -2517,18 +2575,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             return true;
           });
 
-          workingDoc = muxMp4(
+          workingDoc = await muxMp4Cooperatively(
             [{ ...loadedDocs[0]!, tracks: filteredTracks }],
             { stripAudio, stripVideo, stripSubtitles, shortest, rotation }
-          );
+          , context.signal);
         } else {
-          workingDoc = muxMp4(loadedDocs, {
+          workingDoc = await muxMp4Cooperatively(loadedDocs, {
             stripAudio,
             stripVideo,
             stripSubtitles,
             shortest,
             rotation
-          });
+          }, context.signal);
         }
 
         // Apply output-level time slicing (`-ss`, `-to`, `-t`)
@@ -2578,10 +2636,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           }
           workingDoc = {
             ...workingDoc,
-            tracks: workingDoc.tracks.map((t) => {
+            tracks: await mapWork(workingDoc.tracks, async (t) => {
+
+
               if (t.type !== "video") return t;
-              const decoded = ensureDecodedFrames(t, budget);
-              const filtered = applyVideoFilterChain(decoded, combinedChain, budget, loadedSubtitleCues);
+              const decoded = await ensureDecodedFrames(t, budget, context.signal);
+              const filtered = await applyVideoFilterChain(decoded, combinedChain, budget, loadedSubtitleCues, context.signal);
               const first = filtered[0];
               return {
                 ...t,
@@ -2590,7 +2650,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 samples: [],
                 decodedVideoFrames: filtered
               };
-            })
+            }, context.signal)
           };
         }
 
@@ -2625,7 +2685,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         if ((audioRate !== undefined || audioChannels !== undefined || afFilters.length > 0) && audioCodec !== "copy") {
           workingDoc = {
             ...workingDoc,
-            tracks: workingDoc.tracks.map((t) => {
+            tracks: await mapWork(workingDoc.tracks, async (t) => {
+  let work = 0;
+
               if (t.type !== "audio") return t;
               const origRate = t.decodedAudio?.sampleRate ?? t.codecDescriptions[0]?.sampleRate ?? t.timescale ?? 44100;
               const origCh = t.decodedAudio?.channels ?? t.codecDescriptions[0]?.channels ?? 2;
@@ -2636,7 +2698,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               let tempoFactor = 1.0;
               let reverseAudio = false;
               for (const af of afFilters) {
+                if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+
                 for (const item of af.split(",")) {
+                  if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+
                   const trimmed = item.trim();
                   if (trimmed.startsWith("volume=")) {
                     const volSpec = trimmed.slice("volume=".length).trim();
@@ -2654,15 +2720,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const targetSamples = Math.max(1, Math.round((durSec / tempoFactor) * targetRate));
               const newChannelData: Float32Array[] = [];
               for (let c = 0; c < targetCh; c++) {
+                if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+
                 const dst = new Float32Array(targetSamples);
                 const srcCh = t.decodedAudio?.channelData[Math.min(c, (t.decodedAudio.channelData.length || 1) - 1)];
                 if (srcCh && srcCh.length > 0) {
                   for (let i = 0; i < targetSamples; i++) {
+                    if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+
                     const srcIdx = Math.min(srcCh.length - 1, Math.floor((i / targetSamples) * srcCh.length));
                     dst[i] = Math.max(-1, Math.min(1, srcCh[srcIdx]! * volFactor));
                   }
                 } else {
                   for (let i = 0; i < targetSamples; i++) {
+                    if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+
                     dst[i] = Math.sin((2 * Math.PI * 440 * i) / targetRate) * 0.2 * volFactor;
                   }
                 }
@@ -2689,7 +2761,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   channelData: newChannelData
                 }
               };
-            })
+            }, context.signal)
           };
         }
 
@@ -2785,7 +2857,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             throw new Error(`Unsupported output format for '${outputTarget}' (AST not registered)`);
           }
           const vTrack = workingDoc.tracks.find((t) => t.type === "video");
-          const frames = vTrack ? ensureDecodedFrames(vTrack, budget) : [];
+          const frames = vTrack ? await ensureDecodedFrames(vTrack, budget, context.signal) : [];
           const limit = maxVideoFrames ? Math.min(frames.length, maxVideoFrames) : frames.length;
           const imgFmt: ImageFormat =
             outExt === "jpg" || outExt === "jpeg" ? "jpeg" :
@@ -2801,9 +2873,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return String(idx + (outputStartNumber ?? 1)).padStart(padLen, "0");
             });
             const fullOutPath = resolvePath(context.cwd, fileName);
-            const encoded = encodeImage(makeRgbaImg(f.width, f.height, f.data), {
+            const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), encodeImage(makeRgbaImg(f.width, f.height, f.data), {
               format: imgFmt
-            }).data;
+            })).data;
             budget.checkOutputBytes(encoded.byteLength);
             await writeFileOutput(context, encoded, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
           }
@@ -2883,4 +2955,27 @@ export function ffmpegCommands(options: FfmpegCommandsOptions = {}): VirtualShel
       }
     }
   };
+}
+
+async function mapWork<T, R>(items: readonly T[], transform: (item: T, index: number) => R | Promise<R>, signal?: AbortSignal): Promise<R[]> {
+  const result: R[] = [];
+  for (let index = 0; index < items.length; index++) {
+    await yieldTurn(signal);
+    signal?.throwIfAborted();
+    result.push(await transform(items[index]!, index));
+  }
+  return result;
+}
+
+async function muxMp4Cooperatively(sources: readonly MediaDocument[], options: MuxMediaOptions, signal?: AbortSignal): Promise<MediaDocument> {
+  const work = muxMp4Steps(sources, options);
+  try {
+    let step = work.next();
+    while (!step.done) {
+      await yieldTurn(signal);
+      signal?.throwIfAborted();
+      step = work.next();
+    }
+    return step.value;
+  } finally { work.return(undefined as unknown as MediaDocument); }
 }

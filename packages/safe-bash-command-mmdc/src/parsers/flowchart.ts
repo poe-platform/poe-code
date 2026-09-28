@@ -1,3 +1,4 @@
+import { drainWork } from "../work.js";
 import {
   MermaidBudget,
   MermaidError,
@@ -339,10 +340,14 @@ function tryParseEdgeOp(
   };
 }
 
-export function parseFlowchart(
+export function* parseFlowchartSteps(
   statements: readonly ScannedStatement[],
   budget: MermaidBudget
-): MermaidDocument {
+): Generator<void, MermaidDocument, void> {
+  yield;
+
+  let work = 0;
+
   const headerStmt = statements[0]!;
   const headerText = headerStmt.text;
   const firstWord = readWord(headerText, 0);
@@ -421,6 +426,8 @@ export function parseFlowchart(
   };
 
   for (let sIdx = 1; sIdx < statements.length; sIdx++) {
+    if (++work % 256 === 0) yield;
+
     const stmt = statements[sIdx]!;
     const text = stmt.text;
     const span: MermaidSourceSpan = {
@@ -530,6 +537,8 @@ export function parseFlowchart(
     let cursor = skipWs(text, firstGroup.nextPos);
 
     while (cursor < text.length) {
+      if (++work % 256 === 0) yield;
+
       const edgeOp = tryParseEdgeOp(text, cursor, stmt, budget);
       if (!edgeOp) {
         throw new MermaidError(
@@ -548,7 +557,11 @@ export function parseFlowchart(
       for (const n of rightGroup.nodes) upsertNode(n);
 
       for (const src of leftNodes) {
+        if (++work % 256 === 0) yield;
+
         for (const dst of rightGroup.nodes) {
+          if (++work % 256 === 0) yield;
+
           budget.chargeEdges(1);
           edges.push({
             id: `edge_${edges.length + 1}`,
@@ -586,4 +599,8 @@ export function parseFlowchart(
     edges,
     notes: []
   };
+}
+
+export function parseFlowchart(statements: readonly ScannedStatement[], budget: MermaidBudget): MermaidDocument {
+  return drainWork(parseFlowchartSteps(statements, budget));
 }

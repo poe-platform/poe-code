@@ -1,3 +1,5 @@
+import { drainWork } from "../work.js";
+import { routeGraphEdgesSteps } from "./routing.js";
 import {
   admitMermaidLimits,
   MermaidBudget,
@@ -21,7 +23,7 @@ import {
 import { rectsIntersect, snapTo8 } from "../geometry.js";
 import { measureLineWidth, measureTextBlock } from "../text.js";
 import { resolveMermaidTheme } from "../theme.js";
-import { routeGraphEdges } from "./routing.js";
+
 
 interface SizedNode {
   readonly doc: DocumentNode;
@@ -458,10 +460,14 @@ function shiftEdge(edge: SceneEdge, dx: number, dy: number): SceneEdge {
   };
 }
 
-export function layoutGraphDocument(
+export function* layoutGraphDocumentSteps(
   document: MermaidDocument,
   options?: MermaidLayoutOptions
-): MermaidScene {
+): Generator<void, MermaidScene, void> {
+  yield;
+
+  let work = 0;
+
   const limits = admitMermaidLimits(options?.limits, options?.settings?.limits
     ? admitMermaidLimits(options.settings.limits)
     : undefined);
@@ -473,6 +479,8 @@ export function layoutGraphDocument(
   const outgoingDegree = new Map<string, number>();
   const pairSeen = new Map<string, number>();
   for (const e of document.edges) {
+    if (++work % 256 === 0) yield;
+
     if (e.from === e.to) continue;
     incomingDegree.set(e.to, (incomingDegree.get(e.to) ?? 0) + 1);
     outgoingDegree.set(e.from, (outgoingDegree.get(e.from) ?? 0) + 1);
@@ -512,6 +520,8 @@ export function layoutGraphDocument(
   const backEdgeSet = new Set<string>();
 
   for (const edge of document.edges) {
+    if (++work % 256 === 0) yield;
+
     if (edge.from === edge.to) continue;
     adj.get(edge.from)?.push(edge.to);
   }
@@ -531,10 +541,14 @@ export function layoutGraphDocument(
   };
 
   for (const n of document.nodes) {
+    if (++work % 256 === 0) yield;
+
     if (!visited.has(n.id)) dfs(n.id);
   }
 
   for (const edge of document.edges) {
+    if (++work % 256 === 0) yield;
+
     if (edge.from === edge.to) continue;
     if (backEdgeSet.has(`${edge.from}->${edge.to}`)) continue;
     forwardEdges.push({ from: edge.from, to: edge.to, label: edge.label });
@@ -545,8 +559,12 @@ export function layoutGraphDocument(
 
   const maxIterations = Math.max(1, document.nodes.length + 2);
   for (let iter = 0; iter < maxIterations; iter++) {
+    if (++work % 256 === 0) yield;
+
     let changed = false;
     for (const fe of forwardEdges) {
+      if (++work % 256 === 0) yield;
+
       budget.chargeWork(1);
       const rU = rawRank.get(fe.from) ?? 0;
       const rV = rawRank.get(fe.to) ?? 0;
@@ -561,10 +579,16 @@ export function layoutGraphDocument(
   // Ensure that if an external node u (outside group G) has a forward edge into any node inside group G,
   // all nodes inside group G have rank >= rank(u) + 1 so G never visually swallows its predecessor u.
   for (let pass = 0; pass < 3; pass++) {
+    if (++work % 256 === 0) yield;
+
     let adjusted = false;
     for (const gid of groupById.keys()) {
+      if (++work % 256 === 0) yield;
+
       let maxPredRank = -1;
       for (const fe of forwardEdges) {
+        if (++work % 256 === 0) yield;
+
         const srcNode = document.nodes.find((n) => n.id === fe.from);
         const dstNode = document.nodes.find((n) => n.id === fe.to);
         if (!srcNode || !dstNode) continue;
@@ -578,6 +602,8 @@ export function layoutGraphDocument(
       if (maxPredRank >= 0) {
         let minInternalRank = Infinity;
         for (const n of document.nodes) {
+          if (++work % 256 === 0) yield;
+
           if (getGroupAncestors(n.groupId, groupById).includes(gid)) {
             const rN = rawRank.get(n.id) ?? 0;
             if (rN < minInternalRank) minInternalRank = rN;
@@ -586,6 +612,8 @@ export function layoutGraphDocument(
         if (minInternalRank <= maxPredRank) {
           const delta = maxPredRank + 1 - minInternalRank;
           for (const n of document.nodes) {
+            if (++work % 256 === 0) yield;
+
             if (getGroupAncestors(n.groupId, groupById).includes(gid)) {
               rawRank.set(n.id, (rawRank.get(n.id) ?? 0) + delta);
             }
@@ -596,8 +624,12 @@ export function layoutGraphDocument(
     }
     if (adjusted) {
       for (let iter = 0; iter < maxIterations; iter++) {
+        if (++work % 256 === 0) yield;
+
         let changed = false;
         for (const fe of forwardEdges) {
+          if (++work % 256 === 0) yield;
+
           const rU = rawRank.get(fe.from) ?? 0;
           const rV = rawRank.get(fe.to) ?? 0;
           if (rV < rU + 1) {
@@ -612,6 +644,8 @@ export function layoutGraphDocument(
 
   let maxRank = 0;
   for (const r of rawRank.values()) {
+    if (++work % 256 === 0) yield;
+
     if (r > maxRank) maxRank = r;
   }
 
@@ -619,12 +653,16 @@ export function layoutGraphDocument(
   const isHorizontal = document.direction === "LR" || document.direction === "RL";
   const nodeRanks = new Map<string, number>();
   for (const [id, r] of rawRank) {
+    if (++work % 256 === 0) yield;
+
     nodeRanks.set(id, isReverse ? maxRank - r : r);
   }
 
   // Group nodes by rank
   const rankLayers: SizedNode[][] = Array.from({ length: maxRank + 1 }, () => []);
   for (const sNode of sizedNodes) {
+    if (++work % 256 === 0) yield;
+
     const r = nodeRanks.get(sNode.doc.id) ?? 0;
     rankLayers[r]!.push(sNode);
   }
@@ -632,6 +670,8 @@ export function layoutGraphDocument(
   // Order nodes within each rank so subgraphs stay contiguous
   const sourceIndex = new Map(document.nodes.map((n, i) => [n.id, i]));
   for (const layer of rankLayers) {
+    if (++work % 256 === 0) yield;
+
     layer.sort((a, b) => {
       const ancA = getGroupAncestors(a.doc.groupId, groupById);
       const ancB = getGroupAncestors(b.doc.groupId, groupById);
@@ -649,8 +689,12 @@ export function layoutGraphDocument(
   const groupMinRank = new Map<string, number>();
   const groupMaxRank = new Map<string, number>();
   for (const sNode of sizedNodes) {
+    if (++work % 256 === 0) yield;
+
     const r = nodeRanks.get(sNode.doc.id) ?? 0;
     for (const gid of getGroupAncestors(sNode.doc.groupId, groupById)) {
+      if (++work % 256 === 0) yield;
+
       groupMinRank.set(gid, Math.min(groupMinRank.get(gid) ?? Infinity, r));
       groupMaxRank.set(gid, Math.max(groupMaxRank.get(gid) ?? -Infinity, r));
     }
@@ -671,12 +715,16 @@ export function layoutGraphDocument(
   }[] = [];
 
   for (let r = 0; r <= maxRank; r++) {
+    if (++work % 256 === 0) yield;
+
     const layer = rankLayers[r]!;
     let offset = 0;
     let maxPrimarySize = 0;
     const items: { readonly node: SizedNode; readonly offset: number }[] = [];
 
     for (let i = 0; i < layer.length; i++) {
+      if (++work % 256 === 0) yield;
+
       const curr = layer[i]!;
       if (i > 0) {
         const prev = layer[i - 1]!;
@@ -689,6 +737,8 @@ export function layoutGraphDocument(
         let diamondSpreadBonus = 0;
         if (r > 0 && layer.length >= 2) {
           for (const prevNode of rankLayers[r - 1] ?? []) {
+            if (++work % 256 === 0) yield;
+
             if (prevNode.doc.shape === "diamond") {
               const diaSpan = isHorizontal ? prevNode.height : prevNode.width;
               const prevChildBreadth = isHorizontal ? prev.height : prev.width;
@@ -714,9 +764,13 @@ export function layoutGraphDocument(
   const maxTransverseBreadth = Math.max(200, ...layerSpans.map((l) => l.totalBreadth));
 
   for (let r = 0; r <= maxRank; r++) {
+    if (++work % 256 === 0) yield;
+
     // Add top header margin if any groups open at rank r
     let openingGroups = 0;
     for (const [, minR] of groupMinRank) {
+      if (++work % 256 === 0) yield;
+
       if (minR === r) openingGroups++;
     }
     if (r === 0 && openingGroups > 0) {
@@ -727,6 +781,8 @@ export function layoutGraphDocument(
     const transverseStart = Math.round((maxTransverseBreadth - span.totalBreadth) / 2) + 80;
 
     for (const item of span.items) {
+      if (++work % 256 === 0) yield;
+
       const primaryPos = Math.round(
         primaryCursor + (span.maxPrimarySize - (isHorizontal ? item.node.width : item.node.height)) / 2
       );
@@ -742,15 +798,21 @@ export function layoutGraphDocument(
       let closingNext = 0;
       let openingNext = 0;
       for (const [, maxR] of groupMaxRank) {
+        if (++work % 256 === 0) yield;
+
         if (maxR === r) closingNext++;
       }
       for (const [, minR] of groupMinRank) {
+        if (++work % 256 === 0) yield;
+
         if (minR === r + 1) openingNext++;
       }
 
       // Check if any edge crossing between r and r+1 carries a label
       let maxLabelAllowance = 0;
       for (const edge of document.edges) {
+        if (++work % 256 === 0) yield;
+
         const rA = nodeRanks.get(edge.from) ?? 0;
         const rB = nodeRanks.get(edge.to) ?? 0;
         if (Math.min(rA, rB) <= r && Math.max(rA, rB) >= r + 1) {
@@ -797,12 +859,16 @@ export function layoutGraphDocument(
   const sizedById = new Map(sizedNodes.map((s) => [s.doc.id, s]));
 
   for (let sweep = 0; sweep < 6; sweep++) {
+    if (++work % 256 === 0) yield;
+
     const rankOrder =
       sweep % 2 === 0
         ? Array.from({ length: maxRank + 1 }, (_, i) => i)
         : Array.from({ length: maxRank + 1 }, (_, i) => maxRank - i);
 
     for (const r of rankOrder) {
+      if (++work % 256 === 0) yield;
+
       const layer = rankLayers[r]!;
       if (layer.length === 0) continue;
 
@@ -834,6 +900,8 @@ export function layoutGraphDocument(
       // Enforce non-overlapping transverse order and minimum gaps within rank r
       const minGaps: number[] = [];
       for (let i = 1; i < layer.length; i++) {
+        if (++work % 256 === 0) yield;
+
         const prev = layer[i - 1]!;
         const curr = layer[i]!;
         const ancPrev = new Set(getGroupAncestors(prev.doc.groupId, groupById));
@@ -851,6 +919,8 @@ export function layoutGraphDocument(
 
       // Forward constraint pass
       for (let i = 1; i < layer.length; i++) {
+        if (++work % 256 === 0) yield;
+
         const minAllowed = desiredCenters[i - 1]! + minGaps[i - 1]!;
         if (desiredCenters[i]! < minAllowed) {
           desiredCenters[i] = minAllowed;
@@ -861,10 +931,14 @@ export function layoutGraphDocument(
         desiredCenters.reduce((acc, v) => acc + v, 0) / desiredCenters.length;
       const centerShift = Math.round(meanBefore - meanAfter);
       for (let i = 0; i < desiredCenters.length; i++) {
+        if (++work % 256 === 0) yield;
+
         desiredCenters[i] = desiredCenters[i]! + centerShift;
       }
 
       for (let i = 0; i < layer.length; i++) {
+        if (++work % 256 === 0) yield;
+
         setTransverseCenter(layer[i]!.doc.id, layer[i]!, desiredCenters[i]!);
       }
     }
@@ -873,6 +947,8 @@ export function layoutGraphDocument(
   // Spine alignment pass: keep consecutive single-node ranks on a shared spine axis, while letting single-node ranks connected to a specific branch node align directly under/over that branch node
   const spineAxis = Math.round(maxTransverseBreadth / 2) + 80;
   for (let r = 0; r <= maxRank; r++) {
+    if (++work % 256 === 0) yield;
+
     const layer = rankLayers[r]!;
     if (layer.length > 1) {
       // Check if one node in this layer connects both to a single-node previous rank and a single-node next rank (spine continuation)
@@ -890,17 +966,23 @@ export function layoutGraphDocument(
         const currentAnchorCenter = getTransverseCenter(layer[anchorIdx]!.doc.id, layer[anchorIdx]!);
         const delta = spineAxis - currentAnchorCenter;
         for (const item of layer) {
+          if (++work % 256 === 0) yield;
+
           setTransverseCenter(item.doc.id, item, getTransverseCenter(item.doc.id, item) + delta);
         }
       }
     }
   }
   for (let r = 0; r <= maxRank; r++) {
+    if (++work % 256 === 0) yield;
+
     const layer = rankLayers[r]!;
     if (layer.length === 1) {
       const onlyNode = layer[0]!;
       const adjNeighbors: SizedNode[] = [];
       for (const e of document.edges) {
+        if (++work % 256 === 0) yield;
+
         if (e.from === e.to) continue;
         const otherId = e.from === onlyNode.doc.id ? e.to : e.to === onlyNode.doc.id ? e.from : undefined;
         if (!otherId) continue;
@@ -936,6 +1018,8 @@ export function layoutGraphDocument(
 
   const builtGroupById = new Map<string, SceneGroup>();
   for (const { doc: g } of groupsWithDepth) {
+    if (++work % 256 === 0) yield;
+
     const directNodes = rawSceneNodes.filter((n) => n.groupId === g.id);
     const directSubgroups = document.groups
       .filter((child) => child.parentId === g.id)
@@ -948,12 +1032,16 @@ export function layoutGraphDocument(
     let maxY = -Infinity;
 
     for (const n of directNodes) {
+      if (++work % 256 === 0) yield;
+
       if (n.x < minX) minX = n.x;
       if (n.y < minY) minY = n.y;
       if (n.x + n.width > maxX) maxX = n.x + n.width;
       if (n.y + n.height > maxY) maxY = n.y + n.height;
     }
     for (const sg of directSubgroups) {
+      if (++work % 256 === 0) yield;
+
       if (sg.x < minX) minX = sg.x;
       if (sg.y < minY) minY = sg.y;
       if (sg.x + sg.width > maxX) maxX = sg.x + sg.width;
@@ -1032,10 +1120,16 @@ export function layoutGraphDocument(
     return isAncestorGroup(rootGroupId, nodeGroupId);
   };
   for (let pass = 0; pass < 4; pass++) {
+    if (++work % 256 === 0) yield;
+
     let shifted = false;
     for (let i = 0; i < orderedGroups.length; i++) {
+      if (++work % 256 === 0) yield;
+
       const g1 = orderedGroups[i]!;
       for (let j = i + 1; j < orderedGroups.length; j++) {
+        if (++work % 256 === 0) yield;
+
         const g2 = orderedGroups[j]!;
         if (isAncestorGroup(g1.id, g2.id) || isAncestorGroup(g2.id, g1.id)) continue;
         if (rectsIntersect(g1, g2, 24)) {
@@ -1045,6 +1139,8 @@ export function layoutGraphDocument(
           if (dx > 0) {
             shifted = true;
             for (let k = 0; k < rawSceneNodes.length; k++) {
+              if (++work % 256 === 0) yield;
+
               const n = rawSceneNodes[k]!;
               if (isNodeInGroupSubtree(n.groupId, shiftRight.id)) {
                 rawSceneNodes[k] = {
@@ -1061,6 +1157,8 @@ export function layoutGraphDocument(
               }
             }
             for (let k = 0; k < orderedGroups.length; k++) {
+              if (++work % 256 === 0) yield;
+
               const gk = orderedGroups[k]!;
               if (gk.id === shiftRight.id || isAncestorGroup(shiftRight.id, gk.id)) {
                 orderedGroups[k] = {
@@ -1078,22 +1176,28 @@ export function layoutGraphDocument(
   }
 
   // Route edges
-  const rawEdges = routeGraphEdges(
+  const rawEdges = (yield* routeGraphEdgesSteps(
     document.edges,
     rawSceneNodes,
     orderedGroups,
     document.direction,
     theme,
     nodeRanks
-  );
+  ));
 
   // Ensure no vertical edge segment crosses a group's header title text
   for (let gi = 0; gi < orderedGroups.length; gi++) {
+    if (++work % 256 === 0) yield;
+
     const g = orderedGroups[gi]!;
     let lx = g.label.x;
     const lw = g.label.width;
     for (const edge of rawEdges) {
+      if (++work % 256 === 0) yield;
+
       for (let k = 0; k + 1 < edge.points.length; k++) {
+        if (++work % 256 === 0) yield;
+
         const p1 = edge.points[k]!;
         const p2 = edge.points[k + 1]!;
         if (Math.abs(p1.x - p2.x) < 1.5) {
@@ -1114,6 +1218,8 @@ export function layoutGraphDocument(
   // Place notes next to target nodes without overlapping any node or group header
   const rawNotes: SceneNote[] = [];
   for (const note of document.notes) {
+    if (++work % 256 === 0) yield;
+
     const measured = measureTextBlock(note.text, {
       maxWidth: theme.wrappingWidth,
       fontSize: theme.secondaryFontSize,
@@ -1158,6 +1264,8 @@ export function layoutGraphDocument(
       return false;
     };
     while (noteCollides(nx, ny)) {
+      if (++work % 256 === 0) yield;
+
       nx += stepDir;
     }
     rawNotes.push({
@@ -1201,6 +1309,8 @@ export function layoutGraphDocument(
   for (const g of orderedGroups) includeRect(g.x, g.y, g.width, g.height);
   for (const note of rawNotes) includeRect(note.x, note.y, note.width, note.height);
   for (const e of rawEdges) {
+    if (++work % 256 === 0) yield;
+
     for (const pt of e.points) includeRect(pt.x - 4, pt.y - 4, 8, 8);
     if (e.labelPill) includeRect(e.labelPill.x, e.labelPill.y, e.labelPill.width, e.labelPill.height);
     if (e.sourceLabelPill)
@@ -1288,4 +1398,8 @@ export function layoutGraphDocument(
     nodes: finalNodes,
     notes: finalNotes
   };
+}
+
+export function layoutGraphDocument(document: MermaidDocument, options?: MermaidLayoutOptions): MermaidScene {
+  return drainWork(layoutGraphDocumentSteps(document, options));
 }

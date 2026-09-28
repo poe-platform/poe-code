@@ -735,3 +735,40 @@ test("matches bash for Wave 64 sync nested =~ inside compound [[ ... ]], arithme
     await shell.dispose();
   }
 });
+for (const predicate of ["[", "test"]) {
+  for (const body of [
+    'empty=""; P -n $empty END',
+    's="a b"; P -n $s END',
+    's="*"; P -n $s END',
+    'P -n * END',
+    'x=abc; P ! "$x" -eq 0 END || true',
+    'x=1000000000000000; P "$x" -eq 0 -o 1 -eq 1 END || true',
+    'x="a b"; P $x = a END',
+    'x=1000000000000000; P "$x" -eq 0 END || true',
+    'x=abc; P "$x" -eq 0 END || true',
+    'P "$((1000000000000000))" -eq 0 END || true',
+    'P "$((1<<50))" -eq 0 END || true',
+    'P "               1" -eq 1 END || true',
+    'declare -n ref=x',
+    'typeset -n ref=x',
+    'local -n ref=target; P 1 -eq 1 END',
+    'local -n ref; P 1 -eq 1 END',
+  ]) {
+    for (const loop of ['for _ in 1 2', 'while [ "$i" -lt 2 ]', 'for ((j=0; j<2; j++))']) {
+      test(`predicate and nameref loop effects: ${predicate}, ${body}, ${loop}`, async context => {
+        const expanded = body.replace('P ', `${predicate} `).replace(' END', predicate === '[' ? ' ]' : '');
+        const setup = body.includes('ref=target') ? 'declare -i target=0;' : '';
+        const run = `${loop}; do i=$((i+1)); ${expanded}; done`;
+        const source = `x=1; ${setup} i=0; ${body.startsWith('local ') ? `f() { ${run}; }; f` : run}; echo "i=$i ref=$ref"`;
+        const shell = new Shell({ fs: createMemoryFileSystem() });
+        context.after(() => shell.dispose());
+        for (const command of basicCommands()) shell.register(command);
+        for (const command of predicateCommands()) shell.register(command);
+        const actual = await shell.exec(source);
+        assert.equal(actual.stdout, `i=2 ref=${body.startsWith('declare ') || body.startsWith('typeset ') ? '1' : ''}\n`);
+        assert.equal(actual.exitCode, 0);
+        assert.equal(actual.stderr.length > 0, body.includes('x=abc') || body.includes('P $x = a') || body.includes('s="a b"'));
+      });
+    }
+  }
+}

@@ -7830,24 +7830,23 @@ export class Runtime {
         const flagPlain = command.words[1]?.plain;
         // Integer attribute expressions may exceed the limited fast evaluator.
         if (flagPlain === "-a" || flagPlain === "-A" || flagPlain === "-i") return false;
-        const isNamerefDecl = flagPlain === "-n" && (rawState.locals.length > 0 || depth > 0) && command.words.length >= 3;
+        // Namerefs can introduce bindings that the fast word evaluator cannot
+        // resolve (including unbound refs and targets with attributes). Decline
+        // before a compound command publishes any effects.
+        if (flagPlain === "-n") return false;
         const isGlobalDecl = flagPlain === "-g" && (w0Plain === "declare" || w0Plain === "typeset") && command.words.length >= 3;
         // A preceding local may hide the global by the time this command runs.
         if (isGlobalDecl) return false;
         const isAttrDecl = (flagPlain === "-i" || flagPlain === "-l" || flagPlain === "-u") && command.words.length >= 3;
         if (isAttrDecl && (rawState.locals.length > 0 || depth > 0)) return false;
         let allValidLocal = true;
-        for (let idx = (isNamerefDecl || isGlobalDecl || isAttrDecl) ? 2 : 1; idx < command.words.length; idx++) {
+        for (let idx = (isGlobalDecl || isAttrDecl) ? 2 : 1; idx < command.words.length; idx++) {
           const wArg = command.words[idx]!;
           const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
           if (assignment) {
-            if (isNamerefDecl && (assignment.value.parts.length !== 1 || assignment.value.parts[0]!.kind !== "text" || resolveSyncNameref(rawState, assignment.value.parts[0]!.value) === "OPTIND")) {
-              allValidLocal = false;
-              break;
-            }
             const curAttr = rawState.variableAttributes?.get(resolveSyncNameref(rawState, assignment.name));
             if (curAttr?.includes("i")) return false;
-            if ( (!isNamerefDecl && curAttr && curAttr !== "i" && curAttr !== "l" && curAttr !== "u") || (assignment.name === "OPTIND" && (assignment.append || curAttr || (!isGlobalDecl && (rawState.locals.length > 0 || depth > 0)) || !isCanonicalOptindWord(assignment.value))) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || !isNoBraceSyncAssignWord(assignment.value)) {
+            if ( (curAttr && curAttr !== "i" && curAttr !== "l" && curAttr !== "u") || (assignment.name === "OPTIND" && (assignment.append || curAttr || (!isGlobalDecl && (rawState.locals.length > 0 || depth > 0)) || !isCanonicalOptindWord(assignment.value))) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || !isNoBraceSyncAssignWord(assignment.value)) {
               allValidLocal = false;
               break;
             }
@@ -7897,21 +7896,22 @@ export class Runtime {
         if (predDef && defaultPredicateExecutors.has(predDef.execute)) {
           const isBracket = w0Plain === "[";
           const argCount = isBracket ? command.words.length - 2 : command.words.length - 1;
-          if (argCount >= 0 && argCount <= 16 && (!isBracket || command.words[command.words.length - 1]?.plain === "]") && command.words.slice(1, isBracket ? command.words.length - 1 : command.words.length).every(isNoBraceSyncWord)) {
+          if (argCount >= 0 && argCount <= 16 && (!isBracket || command.words[command.words.length - 1]?.plain === "]") && command.words.slice(1, isBracket ? command.words.length - 1 : command.words.length).every(word =>
+            isNoBraceSyncWord(word) && word.parts.every(part =>
+              part.quoted || (part.kind === "text" && !hasGlobOrEscape(part.value, true) && !part.value.startsWith("~"))
+            )
+          )) {
             const isGuaranteedIntWord = (w: Word | undefined): boolean => {
               if (!w) return false;
-              if (w.plain !== undefined) return /^[ \t]*[+-]?[0-9]{1,15}[ \t]*$/.test(w.plain);
               const nonEmpty = w.parts.filter(p => !(p.kind === "text" && p.value === ""));
               if (nonEmpty.length !== 1) return false;
               const p0 = nonEmpty[0]!;
-              if (p0.kind === "arithmetic") return true;
-              if (p0.kind === "variable") {
-                if (p0.length && !p0.substring && p0.operator === undefined) return true;
-                if (!p0.indirect && !p0.prefixNames && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined) {
-                  if (p0.name === "?" || p0.name === "#") return true;
-                  const curVal = rawState.variables[p0.name];
-                  if (curVal !== undefined && /^[ \t]*[+-]?[0-9]{1,15}[ \t]*$/.test(curVal)) return true;
-                }
+              // Use the executor's actual bounds, including signs and padding.
+              if (p0.kind === "text") return tryFastPredicate("test", [p0.value, "-eq", "0"]) !== undefined;
+              // Ordinary variables and arithmetic expansions can grow beyond
+              // those bounds or become invalid after earlier loop statements.
+              if (p0.kind === "variable" && !p0.indirect && !p0.prefixNames && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined) {
+                return !!p0.length || p0.name === "?" || p0.name === "#";
               }
               return false;
             };

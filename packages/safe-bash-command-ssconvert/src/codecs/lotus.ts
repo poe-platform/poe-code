@@ -209,6 +209,10 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
     const target = b.u8(p + 2), name = sheetName(target);
     return (target === sheetIndex && !qualifySheet ? "" : quoteFormulaString(name, "'", gnumericGrammar) + "!") + ref(b.u16(p), b.u8(p + 3), !!(flags & 2), !!(flags & 1));
   };
+  const rangeReference = (first: string, last?: string) => {
+    if (first.endsWith("#REF!") || last?.endsWith("#REF!")) return "#REF!";
+    return first + (last === undefined ? "" : ":" + last);
+  };
   while (at < bytes.length) {
     context.signal.throwIfAborted();
     const op = b.u8(at++);
@@ -242,8 +246,8 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
           const name = `LOTUS_SHEET_REFERENCE_${relativeReferences.size}`;
           relativeReferences.set(name, { kind: "reference", start: 0, end: 0, first, ...(last ? { last } : {}) });
           stack.push(name);
-        } else stack.push(newRef(at + 1, flags & 7, crossSheet) + (op === 2 ? `:${newRef(at + 5, flags >> 3 & 7, crossSheet)}` : ""));
-      } else stack.push(oldRef(at) + (op === 2 ? `:${oldRef(at + 4)}` : ""));
+        } else stack.push(rangeReference(newRef(at + 1, flags & 7, crossSheet), op === 2 ? newRef(at + 5, flags >> 3 & 7, crossSheet) : undefined));
+      } else stack.push(rangeReference(oldRef(at), op === 2 ? oldRef(at + 4) : undefined));
       at += length;
     } else if (op === 5) {
       const length = format === "123" ? 4 : 2;

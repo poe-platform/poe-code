@@ -2924,6 +2924,20 @@
         "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{style-pool-source,identity-compiled-proof,identity-independent-proof,identity-native-proof,identity-cleanup}.json",
         "scope": "Completes the generated table/layout/master duplication requirement of 3633; it does not establish deduplication or full semantics for every cell/region/font/print record."
       }
+    },
+    "lotusInvalidRanges": {
+      "status": "range collapse implemented; bounds, masks and native XLSX error readback remain open",
+      "issues": [
+        3470,
+        3529
+      ],
+      "implementation": "Any invalid textual range endpoint collapses to one #REF! literal before expression parsing, for legacy and modern reference composition. Relative-sheet AST substitution is unchanged.",
+      "validation": "24 original failures across WK1, WK2, Symphony and Windows Works now pass. 384 tests in 20 Lotus files plus package lint, source/test/consumer types and selected build pass.",
+      "publicQualification": "32 compiled SDK/command --recalc outputs across both XLSX editions preserve bare #REF! and SUM(#REF!), with error caches independently verified from package XML.",
+      "nativeQualification": "FAILED: LibreOffice 26.8.0.3 changes all eight XLSX2 output formulas to #ref! / SUM(#ref!) and cached #NAME?. Controls without defined names or iteration fail too; 1/0 retains #DIV/0!. This is an unresolved output interoperability finding, not a passing native check.",
+      "source": "Pinned LibreOffice compiler.cxx bce0998afefdbc355585ca324285661a2170ba77 lines 1583-1590 explicitly writes plain #REF! for deleted OOXML references; SHA256 84dfe1e52b8b632d8fd9d687d64857c779283bb3de660063664b916c7d458e83. Native cause remains under investigation.",
+      "remaining": "Upper bounds and Works/Symphony absolute masks are not delivered yet. Neither issue nor any family is closed.",
+      "nativeIssue": 4053
     }
   },
   "cases": [

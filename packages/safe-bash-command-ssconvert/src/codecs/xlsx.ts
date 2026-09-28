@@ -1,4 +1,5 @@
 import { createZipCodec, CodecError, type ZipLimits, type ZipEntry } from "@poe-code/office-package";
+import { expandIndexSheetAreas } from "../formulas/index-sheet-areas.js";
 import { parseXmlSteps, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { parseA1, formatA1, snapshotWorkbook, type Cell, type CellValue, type Workbook, type Sheet, type Range, type RichTextRun,
@@ -648,7 +649,7 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
           if (cell.formula && (!array || cell.row === array.range.startRow && cell.column === array.range.startColumn))
             body += xml("f", { ...(array ? { t: "array", ref: rangeText(array.range) } : {}),
               ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals, true, cell.formula) },
-              escapeXlsx(exportXlsxFormula(cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals)));
+              escapeXlsx(exportXlsxFormula(book, cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals)));
           if (value.kind === "string") {
             if ((stringCounts.get(stringKey) ?? 0) > 1) {
               type = "s"; let id = sharedIds.get(stringKey);
@@ -674,7 +675,7 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
         tabSelected: index === active ? 1 : undefined };
       for (const [gnm, xlsx, invert] of [["DisplayFormulas", "showFormulas", false], ["HideZero", "showZeros", true], ["HideGrid", "showGridLines", true], ["HideColHeader", "showRowColHeaders", true], ["DisplayOutlines", "showOutlineSymbols", false], ["RTL_Layout", "rightToLeft", false]] as const)
         if (view[gnm] !== undefined) viewAttrs[xlsx] = (invert ? !Number(view[gnm]) : !!Number(view[gnm])) ? 1 : 0;
-      const metadata = await writeXlsxSheetMetadata(sheet, index + 1, xml, context, namespace, exportXlsxFormula, styles, charge);
+      const metadata = await writeXlsxSheetMetadata(sheet, index + 1, xml, context, namespace, exportXlsxFormula.bind(null, book), styles, charge);
       let cols = "", nextColumn = 0;
       for (const c of [...sheet.columns ?? []].sort((a, b) => a.index - b.index)) {
         const importedColumn = metadataNode(c.style?.gnumeric, charge);
@@ -736,7 +737,7 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
       const sheet = book.sheets[index < 0 ? 0 : index]; if (!sheet) continue;
       names += xml("definedName", { name: ["Print_Area", "Sheet_Title"].includes(name.name) ? "_xlnm." + name.name : name.name,
         localSheetId: index < 0 ? undefined : index, ...formulaSemanticsAttributes(name.arrayStringLiterals, true, name.expression, name.position ? { ...name.position, sheet: book.sheets.find(s => s.id === name.position!.sheet)?.name ?? name.position.sheet } : undefined) },
-        escapeXlsx(exportXlsxFormula(name.expression, sheet, name.position?.row ?? 0, name.position?.column ?? 0, context, name.arrayStringLiterals)));
+        escapeXlsx(exportXlsxFormula(book, name.expression, sheet, name.position?.row ?? 0, name.position?.column ?? 0, context, name.arrayStringLiterals)));
     }
     for (const [index, sheet] of book.sheets.entries()) {
       for (const [name, expression] of [["Sheet_Title", '"' + sheet.name.split('"').join('""') + '"'], ["Print_Area", "#REF!"]])
@@ -797,12 +798,18 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
     catch (error) { context.signal.throwIfAborted(); if (error instanceof CodecError && error.code === "resource-limit") limit("output package"); throw error; }
   };
 }
-function exportXlsxFormula(source: string, sheet: Sheet, row: number, column: number, context: CapabilityContext, arrayStringLiterals = false): string {
+function exportXlsxFormula(book: Workbook, source: string, sheet: Sheet, row: number, column: number, context: CapabilityContext, arrayStringLiterals = false): string {
   const position = { sheet: sheet.id, row, column };
+  let work = 0;
+  const onWork = () => {
+    context.signal.throwIfAborted();
+    if (++work > (context.limits.workbookNodes ?? Infinity))
+      throw new SsconvertError("resource-limit", "ssconvert XLSX formula node limit exceeded");
+  };
   const parsed = parseExpression(source.startsWith("=") || source.startsWith("of:=") ? source : "=" + source, { position, arrayStringLiterals,
-    signal: context.signal, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
+    workbook: book, signal: context.signal, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
     maximumNodes: context.limits.workbookNodes ?? Infinity });
   if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: unparsed XLSX formula");
-  const result = serializeExpression(parsed.document, excelGrammar, false, true, { relativeSheets: "fixed" });
+  const result = serializeExpression(expandIndexSheetAreas(parsed.document, onWork), excelGrammar, false, true, { relativeSheets: "fixed" });
   return result.startsWith("=") ? result.slice(1) : result;
 }

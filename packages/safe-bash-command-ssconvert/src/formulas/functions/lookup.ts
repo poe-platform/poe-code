@@ -250,6 +250,11 @@ export const lookupSpecialForms: Readonly<Record<string, SpecialForm>> = {
       if (offsets[2]! < 0 || offsets[2]! >= areas.length) return error("#REF!");
       value = areas[offsets[2]!]!;
       if (value.kind === "error") return value;
+    } else if (value.kind === "range" && value.sheets.length > 1) {
+      // Retain the original span until evaluation so relative sheet endpoints
+      // keep their meaning when an imported Lotus formula is copied.
+      if (offsets[2]! < 0 || offsets[2]! >= value.sheets.length) return error("#REF!");
+      value = { ...value, sheets: [value.sheets[offsets[2]!]!] };
     } else if (offsets[2] !== 0) return error("#REF!");
     const row = offsets[0]!, column = offsets[1]!, dims = dimensions(value);
     if (row < 0 || column < 0 || row >= dims.height || column >= dims.width) return error("#REF!");

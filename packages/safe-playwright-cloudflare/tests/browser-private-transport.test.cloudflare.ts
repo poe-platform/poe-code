@@ -107,13 +107,25 @@ test("native creation replies within the control budget retain privacy on existi
 	}
 });
 
-test.each([undefined, 37])("unknown identity still fails closed at its configured deadline (%s)", (timeoutMs) => {
+test.each([undefined, Infinity])("unlimited creation deadlines schedule no timeout (%s)", (creationTimeoutMs) => {
+	const timeout = vi.spyOn(AbortSignal, "timeout");
+	try {
+		const privacy = coordinator({ creationTimeoutMs });
+		const creation = privacy.beginCreation();
+		expect(timeout).not.toHaveBeenCalled();
+		expect(() => creation.commit("private-without-deadline")).not.toThrow();
+	} finally {
+		vi.restoreAllMocks();
+	}
+});
+
+test.each([10000, 37])("unknown identity still fails closed at its configured deadline (%s)", (timeoutMs) => {
 	const deadline = new AbortController();
 	const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(deadline.signal);
 	try {
 		const privacy = coordinator({ creationTimeoutMs: timeoutMs }, true);
 		const creation = privacy.beginCreation();
-		expect(timeout).toHaveBeenCalledWith(timeoutMs ?? 10000);
+		expect(timeout).toHaveBeenCalledWith(timeoutMs);
 		deadline.abort();
 		expect(() => creation.commit("late-private")).toThrow("identity timed out");
 		expect(() => privacy.beginCreation()).toThrow("identity timed out");
@@ -461,7 +473,7 @@ test("trusted retirement before local delivery frees capacity and seeds recent r
 });
 
 test("rejects dense 5 MiB protocol JSON frames before JSON.parse (#617)", async () => {
-	const privacy = coordinator(undefined, true);
+	const privacy = coordinator({ maxGraphNodes: 100_000 }, true);
 	const peer = client(privacy);
 	const denseItems = Array.from({ length: 1_750_001 }, () => "{}").join(",");
 	const denseFrame = `{"method":"Runtime.consoleAPICalled","params":{"items":[${denseItems}]}}`;

@@ -3623,6 +3623,8 @@ export class Runtime {
       }
       if (
         caretOk &&
+        !pat.text.includes("|") &&
+        !/[*+?][*+?]/.test(pat.text) &&
         /^[\^a-zA-Z0-9_.\-/:@()\[\]+?*,;=| $]+$/.test(pat.text) &&
         !pat.text.includes("[:") &&
         !pat.text.includes("[.") &&
@@ -12770,44 +12772,10 @@ export class Runtime {
         if (arrAssign) {
           if (this._syncLoopFnCheckDepth > 0) return false;
           if (hasUnpreparedLocals(rawState)) return false;
-          let curArr = store?.get(arrAssign.name);
-          if (
-            !curArr &&
-            (arrAssign.kind === "compound" || arrAssign.kind === "element") &&
-            this.budget.limits.maxExpansionBytes === Infinity &&
-            this.budget.limits.maxExpansionFields === Infinity &&
-            isShellIdentifier(arrAssign.name) &&
-            rawState.variables[arrAssign.name] === undefined &&
-            !rawState.readonlyVariables?.has(arrAssign.name) &&
-            !rawState.exported.has(arrAssign.name) &&
-            !rawState.variableAttributes?.get(arrAssign.name) &&
-            !controlNames.has(arrAssign.name) &&
-            !stateMonitor(rawState)?.hasOverlay(arrAssign.name)
-          ) {
-            const monitor = stateMonitor(rawState);
-            const arrStore = monitor?.store ?? (monitor ? requireArrays(rawState) : undefined);
-            if (arrStore && !arrStore.watches.has(arrAssign.name)) {
-              const recTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-              const recBinding = arrStore.takeRecycled(arrAssign.name, false, recTickets);
-              if (recBinding) {
-                if (monitor) monitor.epoch = recTickets.epoch;
-                curArr = recBinding;
-              } else {
-                try {
-                  const created = IndexedBinding.create(arrStore.owner, false);
-                  const prepared = arrStore.prepareExistingName(arrAssign.name, shellValueByteLength(arrAssign.name), arrStore.owner, this.signal);
-                  if (prepared) {
-                    const initTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-                    arrStore.publish(arrAssign.name, created, initTickets, prepared, false, arrStore.owner);
-                    if (monitor) monitor.epoch = initTickets.epoch;
-                    curArr = created;
-                  } else {
-                    void created.release();
-                  }
-                } catch {}
-              }
-            }
-          }
+          // Eligibility checks must not create bindings: the loop may never run.
+          // Element subscripts need the normal arithmetic and relative-index evaluator.
+          if (arrAssign.kind === "element") return false;
+          const curArr = store?.get(arrAssign.name);
           const activeArrStore = store ?? stateMonitor(rawState)?.store;
           if ( !curArr || curArr.references !== 1 || activeArrStore?.watches.has(arrAssign.name) || rawState.readonlyVariables?.has(arrAssign.name) || rawState.exported.has(arrAssign.name) || controlNames.has(arrAssign.name)) {
             return false;
@@ -12843,18 +12811,6 @@ export class Runtime {
               }
             }
             if (allEntriesOk) continue;
-            return false;
-          }
-          if (arrAssign.kind === "element" && (!arrAssign.append || this.budget.limits.maxExpansionBytes === Infinity) && curArr.associative) {
-            const kSrc = arrAssign.index.source ?? arrAssign.index.decimal;
-            if (kSrc.trim().length > 0 && !kSrc.includes("`") && !kSrc.includes("$(") && this.isPureSyncValueWord(arrAssign.value, rawState)) continue;
-            return false;
-          }
-          if (arrAssign.kind === "element" && !curArr.associative) {
-            const subSrc = (arrAssign.index.source ?? arrAssign.index.decimal).trim();
-            if (subSrc.length > 0 && subSrc.length <= 64 && /^[$a-zA-Z0-9_ +*-]+$/.test(subSrc) && !subSrc.includes("/") && !subSrc.includes("%") && !subSrc.includes("=") && !subSrc.includes("++") && !subSrc.includes("--") && this.isPureSyncValueWord(arrAssign.value, rawState)) {
-              continue;
-            }
             return false;
           }
           return false;
@@ -15001,7 +14957,9 @@ export class Runtime {
           this.writeSyncStdoutText(formatted, io);
           lastArg = pLastArg;
         } else if (step.arrayAssign !== undefined) {
-          this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
+          if (!this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true)) {
+            throw new Error("Synchronous loop array assignment was not executable");
+          }
           lastArg = "";
         } else if (step.caseClauses !== undefined) {
           this.flushSyncStdoutBatch(io);
@@ -15540,7 +15498,9 @@ export class Runtime {
         this.budget.bytes += encoded.byteLength;
         lastArg = pLastArg;
       } else if (step.arrayAssign !== undefined) {
-        this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
+        if (!this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true)) {
+          throw new Error("Synchronous loop array assignment was not executable");
+        }
         lastArg = "";
       } else if (step.printfVArgs !== undefined && step.name !== undefined) {
         const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
@@ -15687,7 +15647,9 @@ export class Runtime {
           rawState.status = cStatus;
           continue;
         } else if (step.arrayAssign !== undefined) {
-          this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
+          if (!this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true)) {
+            throw new Error("Synchronous loop array assignment was not executable");
+          }
           lastArg = "";
         } else if (step.arithStmt !== undefined) {
           const nonZero = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line);

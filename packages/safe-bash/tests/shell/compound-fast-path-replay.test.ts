@@ -1,3 +1,6 @@
+import { createStreamInspectionCommands } from "../../src/commands/stream-inspection/index.js";
+import { createStructuredCommands } from "../../src/commands/structured/index.js";
+import { createEncodingCommands } from "../../src/commands/bytes/encoding/index.js";
 import { createTextProgramCommands } from "../../src/commands/text-programs/index.js";
 import { grepCommands } from "../../src/commands/grep.js";
 import { sedCommand } from "../../src/commands/text-programs/sed.js";
@@ -1078,6 +1081,45 @@ test("matches bash for Wave 72 inline awk, grep, and tr -s pipeline substitution
     const elapsed = performance.now() - t0;
     assert.equal(res.exitCode, 0, res.stderr);
     assert.equal(res.stdout, "beta_1200|beta_1200|1|val_1200 last_1200|colon_1200\n");
+    assert.ok(elapsed < 1000, `Expected < 1000ms, got ${elapsed.toFixed(1)}ms`);
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("matches bash for Wave 73 inline jq, base64, tac, nl, ((...)) arithmetic statements, and array/seq for-in headers in trySyncLoop", async () => {
+  const shell = new Shell({
+    fs: createMemoryFileSystem(),
+    limits: {
+      maxCommands: 50_000,
+      maxLoopIterations: 50_000,
+      maxFileSystemOperations: 50_000,
+    },
+  });
+  for (const command of [...basicCommands(), ...streamCommands(), ...textCommands(), ...createStreamFormatCommands(), ...createStreamInspectionCommands(), ...createTextProgramCommands(), ...grepCommands(), ...createStructuredCommands(), ...createEncodingCommands()]) {
+    shell.commands.register(command, { replace: true });
+  }
+  try {
+    const t0 = performance.now();
+    const res = await shell.exec([
+      "sum=0",
+      "for ((i = 1; i <= 1200; i++)); do",
+      "  ((sum += i))",
+      "  jv=\$(printf \"{\\\"name\\\":\\\"item_%d\\\",\\\"n\\\":%d}\\n\" \"$i\" \"$i\" | jq -r \".name\")",
+      "  b64=\$(printf \"%s\" \"$jv\" | base64 | base64 -d)",
+      "  top=\$(printf \"a_%d\\nb_%d\\nc_%d\\n\" \"$i\" \"$i\" \"$i\" | tac | head -n1)",
+      "  numbered=\$(printf \"x_%d\\n\" \"$i\" | nl)",
+      "done",
+      "arr=(10 20 30)",
+      "asum=0",
+      "for x in \"\${arr[@]}\"; do",
+      "  ((asum += x))",
+      "done",
+      "printf \"%d|%s|%s|%s|%d\\n\" \"$sum\" \"$b64\" \"$top\" \"$numbered\" \"$asum\"",
+    ].join("\n"));
+    const elapsed = performance.now() - t0;
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "720600|item_1200|c_1200|     1\tx_1200|60\n");
     assert.ok(elapsed < 1000, `Expected < 1000ms, got ${elapsed.toFixed(1)}ms`);
   } finally {
     await shell.dispose();

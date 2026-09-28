@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createTacCommand } from "./tac.js";
 import { createExpandCommand } from "./expand.js";
@@ -8,7 +9,9 @@ export type { StreamInspectionCommandsOptions, StreamInspectionLimits } from "./
 
 export function createStreamInspectionCommands(options: StreamInspectionCommandsOptions = {}): readonly CommandDefinition[] {
   const limits = settings(options);
-  return [createTacCommand(limits), createExpandCommand(limits), createFoldCommand(limits), createStringsCommand(limits)];
+  const defs = [createTacCommand(limits), createExpandCommand(limits), createFoldCommand(limits), createStringsCommand(limits)];
+  for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
+  return defs;
 }
 
 export function streamInspectionCommands(options: StreamInspectionCommandsOptions = {}): VirtualShellPlugin {

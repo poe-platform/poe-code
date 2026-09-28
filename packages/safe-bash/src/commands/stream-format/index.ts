@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createSeqCommand } from "./seq.js";
 import { createNlCommand } from "./nl.js";
@@ -8,7 +9,9 @@ export type { StreamFormatCommandsOptions, StreamFormatLimits } from "./shared.j
 
 export function createStreamFormatCommands(options: StreamFormatCommandsOptions = {}): readonly CommandDefinition[] {
   const limits = settings(options);
-  return [createSeqCommand(limits), createNlCommand(limits), createRevCommand(limits), createUnexpandCommand(limits)];
+  const defs = [createSeqCommand(limits), createNlCommand(limits), createRevCommand(limits), createUnexpandCommand(limits)];
+  for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
+  return defs;
 }
 
 export function streamFormatCommands(options: StreamFormatCommandsOptions = {}): VirtualShellPlugin {

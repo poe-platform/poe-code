@@ -2785,6 +2785,7 @@ type SyncLoopStep = {
   readonly isDiscardDevNull?: boolean | undefined;
   readonly discardWords?: readonly Word[] | undefined;
   readonly discardSuffix?: string | undefined;
+  readonly arithStmt?: ArithmeticProgram | undefined;
   readonly value: Word | undefined;
   readonly targetWord: Word | undefined;
   readonly targetDirPrefix?: string | undefined;
@@ -11683,9 +11684,9 @@ export class Runtime {
             const sCmd = p.commands[sIdx]!;
             if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return false;
             const sName = sCmd.words[0]!.plain;
-            if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "rev" && sName !== "awk" && sName !== "grep")) return false;
+            if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "rev" && sName !== "awk" && sName !== "grep" && sName !== "jq" && sName !== "base64" && sName !== "tac" && sName !== "nl")) return false;
             const sDef = this.commands.get(sName);
-            if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "rev" && !builtInDirectContextExecutors.has(sDef.execute))) return false;
+            if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "rev" && sName !== "tac" && !builtInDirectContextExecutors.has(sDef.execute))) return false;
             if (rawState.functions.has(sName) || rawState.extensions?.builtins.has(sName)) return false;
             const sArgWords = sCmd.words.slice(1);
             const sPlainArgs: string[] = [];
@@ -11729,6 +11730,14 @@ export class Runtime {
                 (sPlainArgs.length === 2 && (sPlainArgs[0] === "-v" || sPlainArgs[0] === "-i" || sPlainArgs[0] === "-c" || sPlainArgs[0] === "-F") && /^[a-zA-Z0-9_ :;,/-]+$/.test(sPlainArgs[1]!));
               if (!grepOk) return false;
             }
+            if (sName === "jq") {
+              const jqFilter = sPlainArgs.length === 1 ? sPlainArgs[0] : (sPlainArgs.length === 2 && (sPlainArgs[0] === "-r" || sPlainArgs[0] === "--raw-output") ? sPlainArgs[1] : undefined);
+              if (!jqFilter || !/^\.[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(jqFilter)) return false;
+            }
+            if (sName === "base64") {
+              if (sPlainArgs.length > 1 || (sPlainArgs.length === 1 && sPlainArgs[0] !== "-d" && sPlainArgs[0] !== "--decode")) return false;
+            }
+            if ((sName === "tac" || sName === "nl") && sPlainArgs.length !== 0) return false;
           }
         }
         continue;
@@ -11747,6 +11756,23 @@ export class Runtime {
         const pipeline = list.pipelines[p]!;
         if (pipeline.negate || pipeline.commands.length !== 1) return false;
         const cmd = pipeline.commands[0]!;
+        if (cmd.kind === "arithmetic") {
+          if (
+            cmd.redirects.length === 0 &&
+            !cmd.expression.error &&
+            isSafeSmiProgram(cmd.expression) &&
+            !cmd.expression.hasSubscript &&
+            !cmd.expression.source.includes("/") &&
+            !cmd.expression.source.includes("%") &&
+            !cmd.expression.source.includes("<<") &&
+            !cmd.expression.source.includes(">>") &&
+            !cmd.expression.source.includes("**") &&
+            this.canSyncArithmeticWithoutFault(cmd.expression.tree, rawState, cmd.line ?? 1)
+          ) {
+            continue;
+          }
+          return false;
+        }
         if (cmd.kind !== "simple") return false;
         if (cmd.redirects.length === 1) {
           const r0Check = cmd.redirects[0]!;
@@ -11959,9 +11985,22 @@ export class Runtime {
     for (let l = 0; l < command.body.lists.length; l++) {
       const list = command.body.lists[l]!;
       for (let p = 0; p < list.pipelines.length; p++) {
-        const cmd = list.pipelines[p]!.commands[0] as Extract<Command, { kind: "simple" }>;
+        const rawCmd = list.pipelines[p]!.commands[0]!;
+        const line = io.diagnosticCommandLines?.get(rawCmd) ?? (rawCmd.line ?? 1) + (io.diagnosticOffset ?? 0);
+        if (rawCmd.kind === "arithmetic") {
+          bodyAssignments.push({
+            cmd: rawCmd as unknown as Extract<Command, { kind: "simple" }>,
+            name: undefined,
+            value: undefined,
+            arithStmt: rawCmd.expression,
+            targetWord: undefined,
+            append: false,
+            line,
+          });
+          continue;
+        }
+        const cmd = rawCmd as Extract<Command, { kind: "simple" }>;
         const w0 = cmd.words[0]!;
-        const line = io.diagnosticCommandLines?.get(cmd) ?? (cmd.line ?? 1) + (io.diagnosticOffset ?? 0);
         if (cmd.redirects.length === 1 && cmd.redirects[0]!.target.plain === "/dev/null") {
           redirectCount++;
           const isBaseS = w0.plain === "basename" && cmd.words.length === 4 && cmd.words[1]!.plain === "-s";
@@ -12218,7 +12257,7 @@ export class Runtime {
         }
       }
       const arithNamesList = [...arithNames];
-      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
+      const hasAnyArrayAssign = bodyAssignments.some(s => s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
       // Complex expansions can read or write names inside selectors, defaults,
       // patterns and substring expressions. Keep every assignment in iteration
       // order unless the shallow dependency checks below can see all reads.
@@ -12449,9 +12488,26 @@ export class Runtime {
       return undefined;
     }
     const activeValScope = io[valueScope];
-    const fastLoopWords = activeValScope
+    let fastLoopWords = activeValScope
       ? this.expandBraceRangeWithScope(command.words[0]!, activeValScope)
       : tryFastExpandBraceRange(command.words[0]!, this.budget, undefined);
+    if (!fastLoopWords && !activeValScope && command.words[0]!.parts.length === 1) {
+      const p0 = command.words[0]!.parts[0]!;
+      if (p0.kind === "variable" && p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0)?.kind === "all") {
+        const arrB = store?.get(p0.name);
+        if (arrB && !arrB.associative && arrB.values.size <= 1500 && !monitor.hasOverlay(p0.name)) {
+          const elems: string[] = [];
+          for (const [, cell] of arrB.values) elems.push(shellValueText(cell.text.shellValue));
+          fastLoopWords = elems;
+        }
+      } else if (p0.kind === "substitution" && !p0.quoted && rawState.variables.IFS === undefined && !rawState.noglob && this.isPureSyncValueWord(command.words[0]!, rawState)) {
+        const subText = this.tryFastPureSubstitution(p0, rawState, rawState, io);
+        if (typeof subText === "string" && subText.length <= 16384 && /^[0-9 \t\n-]*$/.test(subText)) {
+          const splitWords = subText.trim().length === 0 ? [] : subText.trim().split(/[ \t\n]+/);
+          if (splitWords.length <= 1500) fastLoopWords = splitWords;
+        }
+      }
+    }
     const braceReservation = activeValScope ? this._lastBraceReservation : undefined;
     if (activeValScope) this._lastBraceReservation = undefined;
     if ( !fastLoopWords || fastLoopWords.length > 1500 || fastLoopWords.length * bodyAssignments.length > 1600 || (this.budget.commands + fastLoopWords.length * 4) >= this.budget.limits.maxCommands || (this.budget.iterations + fastLoopWords.length) >= this.budget.limits.maxLoopIterations || (redirectCount > 0 && (this.budget.fileSystemOperations + fastLoopWords.length * redirectCount) >= this.budget.limits.maxFileSystemOperations)) {
@@ -12840,6 +12896,12 @@ export class Runtime {
           this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
           lastArg = "";
           lastValueWord = undefined;
+        } else if (step.arithStmt !== undefined) {
+          const nonZero = this.syncShellArithmeticNonZero(step.arithStmt, rawState, step.line);
+          lastArg = "";
+          lastValueWord = undefined;
+          rawState.status = nonZero ? 0 : 1;
+          continue;
         } else if (step.printfVArgs !== undefined && step.name !== undefined) {
           const pWords = step.printfVArgs;
           const pArgs: string[] = [];
@@ -12937,6 +12999,12 @@ export class Runtime {
           this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true);
           lastArg = "";
           lastValueWord = undefined;
+        } else if (step.arithStmt !== undefined) {
+          const nonZero = this.syncShellArithmeticNonZero(step.arithStmt, rawState, step.line);
+          lastArg = "";
+          lastValueWord = undefined;
+          rawState.status = nonZero ? 0 : 1;
+          continue;
         } else if (step.printfVArgs !== undefined && step.name !== undefined) {
           const pWords = step.printfVArgs;
           const pArgs: string[] = [];
@@ -19669,7 +19737,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && !builtInDirectContextExecutors.has(extDef.execute)) || (sName === "rev" && customRegisteredRegistries.has(this.commands)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && !builtInDirectContextExecutors.has(extDef.execute)) || ((sName === "rev" || sName === "tac") && customRegisteredRegistries.has(this.commands)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -19732,6 +19800,13 @@ export class Runtime {
             (sArgs.length === 1 && /^[a-zA-Z0-9_ :;,/-]+$/.test(sArgs[0]!)) ||
             (sArgs.length === 2 && (sArgs[0] === "-v" || sArgs[0] === "-i" || sArgs[0] === "-c" || sArgs[0] === "-F") && /^[a-zA-Z0-9_ :;,/-]+$/.test(sArgs[1]!));
           if (!grepOk) return undefined;
+        } else if (sName === "jq") {
+          const jqFilter = sArgs.length === 1 ? sArgs[0] : (sArgs.length === 2 && (sArgs[0] === "-r" || sArgs[0] === "--raw-output") ? sArgs[1] : undefined);
+          if (!jqFilter || !/^\.[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(jqFilter)) return undefined;
+        } else if (sName === "base64") {
+          if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-d" && sArgs[0] !== "--decode")) return undefined;
+        } else if (sName === "tac" || sName === "nl") {
+          if (sArgs.length !== 0) return undefined;
         } else {
           return undefined;
         }
@@ -19797,6 +19872,10 @@ export class Runtime {
           );
           const isInlineAwk = firstName === "awk";
           const isInlineGrep = firstName === "grep";
+          const isInlineJq = firstName === "jq";
+          const isInlineBase64 = firstName === "base64";
+          const isInlineTac = firstName === "tac";
+          const isInlineNl = firstName === "nl";
           const isInlineSort = firstName === "sort" && !byteLocale(rawState.variables) && (stageArgs.length === 0 || (stageArgs.length === 1 && stageArgs[0] === "-r"));
           const isInlineUniq = firstName === "uniq" && (stageArgs.length === 0 || (stageArgs.length === 1 && (stageArgs[0] === "-d" || stageArgs[0] === "-u")));
           const inlineSedMatch = firstName === "sed"
@@ -19816,7 +19895,11 @@ export class Runtime {
             isInlineUniq ||
             inlineSedMatch !== null ||
             isInlineAwk ||
-            isInlineGrep
+            isInlineGrep ||
+            isInlineJq ||
+            isInlineBase64 ||
+            isInlineTac ||
+            isInlineNl
           ) {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith("\n") ? inStr.slice(0, -1).split("\n") : inStr.split("\n"));
@@ -19959,6 +20042,67 @@ export class Runtime {
               }
               if (matched.length === 0) return undefined;
               outLines = gMode === "-c" ? [String(matched.length)] : matched;
+            } else if (isInlineTac) {
+              if (inStr.length > 0 && !inStr.endsWith("\n")) return undefined;
+              outLines = [...rawLines].reverse();
+            } else if (isInlineNl) {
+              outLines = [];
+              let nlNum = 1;
+              for (let li = 0; li < rawLines.length; li++) {
+                const l = rawLines[li]!;
+                if (l === "\\:" || l === "\\:\\:" || l === "\\:\\:\\:") return undefined;
+                if (l.length === 0) outLines.push("       ");
+                else outLines.push(String(nlNum++).padStart(6, " ") + "\t" + l);
+              }
+            } else if (isInlineBase64) {
+              if (stageArgs.length === 0) {
+                const b64 = Buffer.from(inStr, "utf8").toString("base64");
+                outLines = [];
+                for (let bi = 0; bi < b64.length; bi += 76) outLines.push(b64.slice(bi, bi + 76));
+              } else {
+                const cleaned = inStr.replace(/[ \t\r\n]+/g, "");
+                if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
+                const decoded = Buffer.from(cleaned, "base64");
+                if (decoded.includes(0) || decoded.byteLength > nextBuf.byteLength) return undefined;
+                const nextTotalBytes = this.budget.bytes + decoded.byteLength;
+                if (nextTotalBytes > this.budget.maxOutputBytesSmi && decoded.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+                this.budget.bytes = nextTotalBytes;
+                nextBuf.set(decoded, 0);
+                prevBuf = nextBuf;
+                prevLen = decoded.byteLength;
+                continue;
+              }
+            } else if (isInlineJq) {
+              const rawOut = stageArgs.length === 2;
+              const filter = stageArgs[stageArgs.length - 1]!;
+              const trimmedJson = inStr.trim();
+              if (!trimmedJson.startsWith("{") || trimmedJson.includes("\n")) return undefined;
+              let parsedObj: unknown;
+              try {
+                parsedObj = JSON.parse(trimmedJson);
+              } catch {
+                return undefined;
+              }
+              if (!parsedObj || typeof parsedObj !== "object" || Array.isArray(parsedObj)) return undefined;
+              const keys = filter.slice(1).split(".");
+              let cur: unknown = parsedObj;
+              for (let ki = 0; ki < keys.length; ki++) {
+                if (cur === null || cur === undefined || typeof cur !== "object") { cur = undefined; break; }
+                cur = (cur as Record<string, unknown>)[keys[ki]!];
+              }
+              if (cur !== null && cur !== undefined && typeof cur === "object") return undefined;
+              if (rawOut) {
+                if (typeof cur === "string") {
+                  if (cur.includes("\n")) return undefined;
+                  outLines = [cur];
+                } else if (typeof cur === "number" || typeof cur === "boolean") {
+                  outLines = [String(cur)];
+                } else {
+                  outLines = ["null"];
+                }
+              } else {
+                outLines = [JSON.stringify(cur ?? null)];
+              }
             }
             // These filters preserve the terminator of the final selected input line.
             const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev" || firstName === "sed";

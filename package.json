@@ -458,7 +458,13 @@
     "packages/safe-bash-command-dos2unix/dist",
     "packages/safe-bash-line-ending-engine/dist",
     "packages/safe-bash-command-pandoc/dist",
-    "packages/safe-bash-command-pandoc/LICENSE"
+    "packages/safe-bash-command-pandoc/LICENSE",
+    "!**/*.js.map",
+    "!**/*.mjs.map",
+    "!**/*.cjs.map",
+    "!**/*.d.ts.map",
+    "!**/*.d.mts.map",
+    "!**/*.d.cts.map"
   ],
   "engines": {
     "node": ">=18.18"

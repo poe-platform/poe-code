@@ -306,10 +306,10 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       const alias = Object.fromEntries(Object.entries(graph.alias).map(([specifier, target]) => [specifier, publicSpecifier(specifier) !== specifier ? publicSpecifier(specifier) : target]));
       const entryPoints = Object.fromEntries(Object.entries(source.exports).filter(([key]) => key !== "./workerd").map(([key, target]) => [key === "." ? "index" : key.slice(2), path.join(packageDir, "src", target.import.slice("./dist/".length, -3) + ".ts")]));
       const external = [...graph.external, "@poe-platform/safe-fs"];
-      const result = await bundle({ absWorkingDir: rootDir, entryPoints, alias, external, bundle: true, splitting: true, platform: "node", target: "node18.18", format: "esm", outdir: path.join(packageDir, "dist"), chunkNames: "chunks/[name]-[hash]", sourcemap: true, write: false });
+      const result = await bundle({ absWorkingDir: rootDir, entryPoints, alias, external, bundle: true, splitting: true, platform: "node", target: "node18.18", format: "esm", outdir: path.join(packageDir, "dist"), chunkNames: "chunks/[name]-[hash]", sourcemap: false, write: false });
       for (const output of result.outputFiles) bundled.set(output.path, output.contents);
       if (source.exports["./workerd"]) {
-        const workerd = await bundle(resolveWorkerdRuntimeBuild(rootDir, { alias, external }));
+        const workerd = await bundle({ ...resolveWorkerdRuntimeBuild(rootDir, { alias, external }), sourcemap: false });
         for (const output of workerd.outputFiles) bundled.set(output.path, output.contents);
       }
     }
@@ -341,7 +341,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       }
       recipes.push(...resolveCommandExportBuilds(rootDir, source, root, workspaces, { alias, external }));
       for (const recipe of recipes) {
-        const result = await bundle({ ...recipe, plugins: [canonicalFileSystemImports, ...(recipe.plugins ?? [])] });
+        const result = await bundle({ ...recipe, sourcemap: false, plugins: [canonicalFileSystemImports, ...(recipe.plugins ?? [])] });
         for (const output of result.outputFiles) {
           bundled.set(output.path, output.contents);
           pending.push(output.path);
@@ -507,7 +507,6 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         bundled.set(license, await files.readFile(path.join(yamlRoot, "LICENSE")));
         pending.push(license);
       }
-      if (!excluded(filename + ".map") && (bundled.has(filename + ".map") || await exists(filename + ".map"))) pending.push(filename + ".map");
       const destination = path.join(directory, artifactPath(rootDir, filename));
       let contents = bundled.has(filename) ? Buffer.from(bundled.get(filename)) : await files.readFile(filename);
       if (filename.endsWith(".js") || filename.endsWith(".mjs") || filename.endsWith(".ts")) {

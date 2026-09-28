@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { FsError } from "safe-bash-contracts/errors";
 import { Shell, agentCommands, createMemoryFileSystem, writeText } from "../../dist/index.js";
 
 const scenario = process.argv[2];
@@ -21,7 +22,14 @@ for (const [command, expected, expectedCalls, missingStats] of [
   const stat = fs.stat.bind(fs);
   fs.stat = async (path, options) => {
     if (path === "/missing") missingStatCalls++;
-    return stat(path, options);
+    try {
+      return await stat(path, options);
+    } catch (err) {
+      if (err && typeof err === "object" && "code" in err && !(err instanceof FsError)) {
+        throw new FsError(err.code, { syscall: err.syscall, path: err.path, dest: err.dest });
+      }
+      throw err;
+    }
   };
   const shell = new Shell({ fs, cwd: "/work", env: { PATH: "" } }).use(agentCommands());
   const calls = [];

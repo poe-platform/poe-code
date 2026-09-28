@@ -66,7 +66,7 @@ test("csvkit collision preflight leaves the complete host registry untouched for
   for (const name of names) {
     const shell = new Shell({ fs: new MemoryFileSystem() });
     try {
-      shell.commands.register({ name, fallback: true, execute: async () => ({ exitCode: 19 }) });
+      shell.commands.register({ name, execute: async () => ({ exitCode: 19 }) });
       const before = shell.commands.list();
       if (name === "csvcut" || name === "csvgrep") {
         csvkitCommands(bindings).setup(shell);

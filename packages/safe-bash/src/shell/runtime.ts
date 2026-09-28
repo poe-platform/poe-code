@@ -23706,6 +23706,10 @@ export class Runtime {
     const isExtended = mode.includes("E");
     const isFixed = mode.includes("F");
     const isOnlyMatching = mode.includes("o");
+    // POSIX bracket classes, collating symbols and equivalence classes have
+    // different meanings in JS RegExp. Let the command matcher parse them.
+    if (isExtended && !isFixed && rawPatterns.some(pattern =>
+      pattern.includes("[:") || pattern.includes("[.") || pattern.includes("[="))) return undefined;
     if (isCount && (isLineNumber || isOnlyMatching || beforeCtx > 0 || afterCtx > 0)) return undefined;
     if (isOnlyMatching && (beforeCtx > 0 || afterCtx > 0)) return undefined;
     if (isOnlyMatching) {

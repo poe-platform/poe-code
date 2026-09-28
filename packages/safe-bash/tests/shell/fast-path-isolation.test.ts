@@ -10,6 +10,10 @@ import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 for (const [pipeline, expected] of [
   [String.raw`printf 'abc\n123\n' | grep -E '[[:digit:]]+'`, "123"],
   [String.raw`printf '123\nabc\n' | grep -E '[[:alpha:]]+'`, "abc"],
+  [String.raw`printf 'x12y34\n' | grep -Eo '[[:digit:]]+'`, "12\n34"],
+  [String.raw`printf '123\nAbC\n' | grep -En '[[:alpha:]]+'`, "2:AbC"],
+  [String.raw`printf '123\nabc\n' | grep -E '[[:digit:]]+|[[:alpha:]]+'`, "123\nabc"],
+  [String.raw`printf '123\n[[:digit:]]\n' | grep -F '[[:digit:]]'`, "[[:digit:]]"],
   [String.raw`printf '1e5\n2\nInfinity\n1\nNaN\n' | sort -n`, "Infinity\nNaN\n1\n1e5\n2"],
   [String.raw`printf '1e5\n2\nInfinity\n1\n' | sort -nu`, "Infinity\n1e5\n2"],
   [String.raw`printf '  a   b  \n\ta\tb\t\n' | awk -F ' ' '{print $1, $2}'`, "a b\na b"],

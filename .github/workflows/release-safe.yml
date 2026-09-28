@@ -13,6 +13,7 @@ on:
       - "packages/safe-bash-command-*/**"
       - "packages/safe-playwright/**"
       - "packages/safe-playwright-cloudflare/**"
+      - "packages/package-lint/**"
       - "scripts/package-safe.mjs"
       - "scripts/fixtures/safe-packages-*"
       - "scripts/verify-safe-publication.mjs"

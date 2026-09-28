@@ -22069,6 +22069,9 @@ export class Runtime {
         return undefined;
       }
     }
+    const prevFastSubPos = this._fastSubPositional;
+    if (fnPositional !== undefined) this._fastSubPositional = fnPositional;
+    try {
     if (((w0Plain === "command" && cmd.words[1]?.plain === "-v") || (w0Plain === "type" && cmd.words[1]?.plain === "-t")) && cmd.words.length === 3 && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain) && this.isPureArgWord(cmd.words[2]!, rawState)) {
       const targetName = cmd.words[2]!.plain ?? this.fastValueWord(cmd.words[2]!, state, io, true, false, false, true, undefined, part.line);
       const disc = typeof targetName === "string" ? this.tryResolveSyncDiscovery(w0Plain === "command" ? "name" : "kind", targetName, rawState) : undefined;
@@ -22107,9 +22110,6 @@ export class Runtime {
     if ((w0Plain === "dirname" || w0Plain === "basename") && (!builtInDirectContextExecutors.has(def.execute) || customRegisteredCommands.has(def.execute))) return undefined;
     if (w0Plain === "seq" && (customRegisteredCommands.has(def.execute) || customRegisteredRegistries.has(this.commands))) return undefined;
     if (cmd.words.length > this.budget.maxExpansionFieldsSmi && cmd.words.length > this.budget.limits.maxExpansionFields) return undefined;
-    const prevFastSubPos = this._fastSubPositional;
-    if (fnPositional !== undefined) this._fastSubPositional = fnPositional;
-    try {
     for (let i = 0; i < cmd.words.length; i++) {
       if (!this.isPureArgWord(cmd.words[i]!, rawState)) return undefined;
     }

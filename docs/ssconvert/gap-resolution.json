@@ -2663,6 +2663,31 @@
         "out/ssconvert-release-investigation/perl-date-era-repro.json",
         "out/ssconvert-release-investigation/date-era-alias-repro.json"
       ]
+    },
+    "xlsxPageBreakAxes": {
+      "status": "validated defect; hey-boss #3892 remains with its assigned worker",
+      "source": "Calc bce0998afefdbc355585ca324285661a2170ba77 worksheetfragment.cxx/worksheethelper.cxx: rowBreaks select row IsStartOfNewPage. Gnumeric GNUMERIC_1_12_61 XML/print source maps hPageBreaks to rows and vPageBreaks to columns; its XLSX importer reverses those axes.",
+      "evidence": "Actual XLSX metadata importer and PDF settings projection produce columnBreaks=[2] from rowBreaks/brk id=2 and rowBreaks=[2] from colBreaks/brk id=2: two mismatches. Gnumeric XLSX roundtrip alone cannot establish correctness because its importer contains the same discrepancy.",
+      "remaining": "Repair and independently qualify all affected transports, pagination and public interfaces; no fix or delivery claimed.",
+      "receipts": [
+        "out/ssconvert-release-investigation/page-break-source-review.json",
+        "out/ssconvert-release-investigation/page-break-repro.json"
+      ]
+    },
+    "xlsxFirstPageNumber": {
+      "status": "validated defect; hey-boss #3896 open",
+      "source": {
+        "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+        "path": "sc/source/filter/oox/pagesettings.cxx",
+        "sha256": "5cd1782cafdc7574611b3bfba072079434b9f7b308a2dc3d61c1a9162b4439ec"
+      },
+      "evidence": "Original memory XLSX firstPageNumber=7/useFirstPageNumber=1 with footer &CPage &P renders Page 1. Disabled control also renders Page 1; both PDFs have SHA256 522977f1ef67cff24356ee648aa89250c49b7006569f996778434ee44cb23e6a. Decoded embedded ToUnicode mappings establish the text; an initial raw ASCII hex search was invalid and is not evidence.",
+      "cause": "XLSX normalized PrintInformation and print settings omit the fields; PDF always starts at pageCount+1 although layout already accepts startPage. Calc imports the enabled first number into PROP_FirstPageNumber, bounded 0..9999.",
+      "remaining": "Original regressions, SDK/command parity, multiple pages/sheets, physical total-page count, independent native visual proof, budgets/cancellation and remote delivery. No native execution or resolution claimed.",
+      "receipts": [
+        "out/ssconvert-release-investigation/first-page-number-repro.json",
+        "out/ssconvert-release-investigation/calc-print-options-source.json"
+      ]
     }
   },
   "cases": [
@@ -2801,12 +2826,12 @@
       "containsRecentCommits": false
     },
     "currentIntegration": {
-      "state": "rebased; compiler integration repair committed; final full gate and delivery pending",
-      "onto": "dc7684d70c6e6dc5ccd9e728c59ff20d98cd9330",
-      "localHead": "efa23c45edb1f87459108a038922c85c00c69d81",
-      "runtime": "Public runtime separation, exact UTF-8 substitution accounting and unlimited retained-text invalidation survive the rebase. Incoming key/read, dynamic parameter, compound assignment, loop effects, nameref and bundling repairs are retained. Scalar modifier and quoted-slice separators agree across ordinary and optimized paths. Expansion callbacks capture the resolved variable parameter so TypeScript retains its narrowed type after nameref resolution.",
-      "checks": "At b144b7ea15, 656 focused runtime tests pass; 17 native brace subtests skipped by the hardcoded macOS Bash3.2 oracle separately match authenticated GNU Bash5.2.37, and all224 retained scalar comparisons match. The refreshed root build exposed four TS2339 errors introduced by mutable nameref resolution. Repair efa23c45ed passes205 focused tests without skips, the maintained76-workspace Safe Bash build closure, guarded ESLint and fresh root type checks. Full Safe Bash source/test types and26 current consumer groups also pass, including expected negative controls and completed staging cleanup. Final root build, full npm test and current installed consumers remain pending. The earlier stopped whole-repository run is not a full gate pass.",
-      "remaining": "Complete final maintained checks and refreshed compiled/installed consumers, then push, verify remote main and monitor containing publication. All19 gap families remain open.",
+      "state": "root build, lint and focused checks pass; native MCP unlimited-setting repair committed; rebase and full gate pending",
+      "onto": "10ad01b78ef58d0199d3789f7b90f7ccff338cd7",
+      "localHead": "ba0a09c85109c14ec8fcf54106a47d7fe1facaaf",
+      "runtime": "Public runtime separation and source-qualified scalar joining survive rebase. Retained incoming parameterLine capture and compiler narrowing repairs; skipped only our duplicate narrowing commit. Lifecycle artifact tests now use the existing in-memory filesystem with explicit rename-failure injection, retaining all assertions and timeouts.",
+      "checks": "At ba0a09c851 the normal root build, guarded root ESLint, workflow lint and fresh root types pass. Focused shell checks pass 589 with 18 explicit native skips; the exact authenticated GNU profile separately passes 54/54 with zero skips. Agent-eval passes 404 tests after its fixture repair. Full maintained npm test ended with two failures in tiny-mcp-client-rust: explicit Infinity HTTP response bytes and default request deadline are rejected. Repair is tracked in #3901. Safe Bash typecheck completed with one TS2345 tuple error; upstream ef82d607eb repairs that exact declaration. All 26 current consumer groups passed and typecheck staging cleanup completed. No full-unit success or integrated upstream repair is claimed. Repair b96c872f1b adds explicit-unlimited HTTP/SSE and deadline behavior, including subscription acknowledgement timers. Seven focused Rust regressions failed before repair; final Rust reference suite passes 437 tests, native checks and types pass, TypeScript suite passes 753 tests, and Rust/repository lint pass. Full integrated gate must be rerun.",
+      "remaining": "Integrate pinned incoming deltas and the existing tuple repair, rerun the maintained gate using shared cache, verify refreshed installed artifacts, then push and verify remote main and containing publication. All 19 families remain open.",
       "installed": {
         "sourceTree": "38b1859c896721f3ddaf11d7233941d1cffb928b",
         "version": "0.0.0-ssconvert-current.d6b6a11148",
@@ -2844,7 +2869,7 @@
           "receipt": "out/ssconvert-release-investigation/integrated-scalar-native.json"
         }
       },
-      "previousChecks": "Historical build, installed-artifact and stopped-run details remain in a6e214d21c:docs/ssconvert/gap-resolution.json and compact ignored receipts. The a6e214d21c root build, ssconvert package lint/types and workflow lint passed before the latest rebase; historical success does not certify the final integration."
+      "previousChecks": "Earlier installed results retained here concern source tree 38b1859c896721f3ddaf11d7233941d1cffb928b. They are historical and do not qualify current artifacts. Rebase receipts retain the two conflict decisions and preservation of unrelated edits."
     }
   },
   "history": {

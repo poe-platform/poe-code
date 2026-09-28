@@ -907,7 +907,6 @@ class Parser {
   private readonly closingParentheses = new Map<number, number>();
   private allowIn = true;
   private breakableDepth = 0;
-  private conditionalExpressionDepth = 0;
   private readonly conditionalDepths = new WeakMap<object, number>();
   private ifStatementDepth = 0;
   private loopDepth = 0;
@@ -929,7 +928,8 @@ class Parser {
     private lexicalContext: LexicalParseContext = { ...ordinaryFunctionContext, newTarget: false },
     private readonly allowImportMeta = true,
     private readonly moduleSyntax?: SourceModuleSyntax,
-    private readonly importSpecifiers?: ReadonlySet<string>
+    private readonly importSpecifiers?: ReadonlySet<string>,
+    private conditionalExpressionDepth = 0
   ) {
     this.readToken = compactTokenReader(tokens) ?? (index => tokens[index]);
     this.functionScopes.add(this.scopes[0]!);
@@ -3670,6 +3670,9 @@ class Parser {
             allowMalformedEscapes: false,
             functionContext: this.functionContext,
             lexicalContext: this.lexicalContext,
+            allowImportMeta: this.allowImportMeta,
+            importSpecifiers: this.importSpecifiers,
+            conditionalExpressionDepth: this.conditionalExpressionDepth,
             source: this.source
           },
           this.compilation
@@ -3829,6 +3832,9 @@ class Parser {
         allowMalformedEscapes: true,
         functionContext: this.functionContext,
         lexicalContext: this.lexicalContext,
+        allowImportMeta: this.allowImportMeta,
+        importSpecifiers: this.importSpecifiers,
+        conditionalExpressionDepth: this.conditionalExpressionDepth,
         source: this.source
       },
       this.compilation
@@ -5370,6 +5376,9 @@ function createTemplateLiteral(
     allowMalformedEscapes: boolean;
     functionContext: FunctionParseContext;
     lexicalContext: LexicalParseContext;
+    allowImportMeta: boolean;
+    importSpecifiers?: ReadonlySet<string>;
+    conditionalExpressionDepth: number;
     source: string;
   },
   compilation?: CompileScope
@@ -5388,7 +5397,10 @@ function createTemplateLiteral(
         options.functionContext,
         options.lexicalContext,
         options.source,
-        compilation
+        compilation,
+        options.allowImportMeta,
+        options.importSpecifiers,
+        options.conditionalExpressionDepth
       )
     );
     quasiStart = expressionEnd + 1;
@@ -5743,7 +5755,10 @@ function parseEmbeddedExpression(
   functionContext: FunctionParseContext,
   lexicalContext: LexicalParseContext,
   fullSource: string,
-  compilation?: CompileScope
+  compilation: CompileScope | undefined,
+  allowImportMeta: boolean,
+  importSpecifiers: ReadonlySet<string> | undefined,
+  conditionalExpressionDepth: number
 ): Expression {
   const tokens = tokenize(source, {
     allowRegexLiterals: true, allowLegacyNumbers: lexicalContext.grammar?.strict === false,
@@ -5754,7 +5769,10 @@ function parseEmbeddedExpression(
     start: rebasePosition(token.start, base),
     end: rebasePosition(token.end, base)
   }));
-  return new Parser(tokens, fullSource, compilation, functionContext, lexicalContext).parseExpressionOnly();
+  return new Parser(
+    tokens, fullSource, compilation, functionContext, lexicalContext,
+    allowImportMeta, undefined, importSpecifiers, conditionalExpressionDepth
+  ).parseExpressionOnly();
 }
 
 export function findRegexLiteral(node: unknown): RegexLiteral | undefined {

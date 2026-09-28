@@ -4283,7 +4283,7 @@ export class Runtime {
             if (number < 0n || number > 2147483647n) throw new ArrayFailure("index outside 0..2147483647");
             index = Number(number);
           }
-          return JSON.stringify([name, index ?? null, key]);
+          return JSON.stringify([name, index ?? null, key, subscript === undefined]);
         })();
       }, read: reference => {
         this.signal.throwIfAborted();
@@ -4294,11 +4294,12 @@ export class Runtime {
         if (state.nounset && value === undefined) throw new NounsetFailure(`${name}[${key ?? index}]: unbound variable`, io.diagnosticLine);
         if (value !== undefined && shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
         return value;
-      }, write: (reference, value) => {
+      }, write: async (reference, value) => {
         if (!reference.startsWith("[")) { resolvedVariables[reference] = value; return; }
-        const [name, index, key] = JSON.parse(reference) as [string, number | null, string?];
-        return this.arrayAssignment({
+        const [name, index, key, scalar] = JSON.parse(reference) as [string, number | null, string | null, boolean];
+        await this.arrayAssignment({
           kind: "element", name, append: false, index: { decimal: String(index ?? 0), ...(key == null ? {} : { word: { offset: 0, parts: [{ kind: "text", value: key, quoted: true }] } }) }, value: { offset: 0, parts: [{ kind: "text", value, quoted: true }] }, }, state, io);
+        if (scalar && state.allexport) state.exported.add(name);
       }, };
     return evaluateArithmeticReferences(program, references, this.budget.parsing);
   }
@@ -4638,6 +4639,7 @@ export class Runtime {
       stateMonitor(state)!.publish(tickets, name, () => {
         supersede();
         released = store.publish(name, staged!, tickets);
+        if (state.allexport) state.exported.add(name);
         if (freeze) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }});
       staged = undefined;
       watch.close();
@@ -17668,10 +17670,6 @@ export class Runtime {
             try {
               const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
               shadow = IndexedBinding.create(store.owner);
-              if (match[2] !== undefined) {
-                const token = await textToken(shadow.owner, assignedValue(), this.signal);
-                try { shadow.insert(0, token); } catch (error) { token.release(); throw error; }
-              }
               this.signal.throwIfAborted();
               if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
               if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
@@ -17682,10 +17680,7 @@ export class Runtime {
               shadow = undefined;
               await released;
             } finally { try { await shadow?.release(); await operation.close(); } finally { holding.release(); } }
-            assignments.delete(name);
-            continue;
-          }
-          if (guestArrays(state)) await this.prepareVariable(state, name, saved);
+          } else if (guestArrays(state)) await this.prepareVariable(state, name, saved);
           locals!.set(name, saved);
           if (!enabled.has("I")) state.variableAttributes?.delete(name);
           if (!assignments.has(name) && (match[2] === undefined || append) && !enabled.has("I")) {
@@ -17704,10 +17699,7 @@ export class Runtime {
         if (command === "declare" || command === "local") this.declareAttributes(state, attributeName, enabled, disabled);
         if (match[2] !== undefined && arrayStore(state)?.get(name)) {
           await this.arrayZero(state, name, context, async () => assignedValue(), append, command === "readonly");
-          assignments.delete(name);
-          continue;
-        }
-        if (match[2] !== undefined) {
+        } else if (match[2] !== undefined) {
           if ((command === "declare" || command === "local") && enabled.has("n")) publishVariable(state, name, assignedValue());
           else {
             let value = assignedValue();

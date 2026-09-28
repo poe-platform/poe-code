@@ -50,7 +50,8 @@ export async function publishBundleOutputs(
       return [];
     });
   const stale = new Set(unreachable);
-  for (const entry of previousChunks) {
+  const hasChunks = [...outputs.keys()].some(filename => path.dirname(filename) === chunkDirectory);
+  if (hasChunks) for (const entry of previousChunks) {
     if (!entry.isDirectory() && (entry.name.endsWith(".js") || entry.name.endsWith(".js.map"))) {
       const filename = path.join(chunkDirectory, entry.name);
       if (!outputs.has(filename)) stale.add(filename);

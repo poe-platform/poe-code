@@ -8,7 +8,7 @@ import semver from "semver";
 import glob from "fast-glob";
 import ts from "typescript";
 import { build } from "esbuild";
-import { resolveBrowserShellBuild, resolvePrivateCommandBuild } from "./bundle-safe-bash.mjs";
+import { resolveBrowserShellBuild, resolvePrivateCommandBuild, resolvePortableBufferBuild } from "./bundle-safe-bash.mjs";
 import { resolveBundleGraph } from "./bundle-graph.mjs";
 import { resolveCommandExportBuilds } from "./safe-command-publication.mjs";
 import { copyNativeAssets, nativeImportMapping, readBuiltNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
@@ -351,6 +351,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         });
       }
       recipes.push(...resolveCommandExportBuilds(rootDir, source, root, workspaces, { alias, external }));
+      if (source.sideEffects?.includes("./dist/portable-buffer.js")) recipes.push(resolvePortableBufferBuild(rootDir));
       const runtimeExports = new Map();
       for (const recipe of recipes) {
         const result = await bundle({ ...recipe, metafile: true, sourcemap: false, plugins: [privateExportStarsPlugin(runtimeExports, files, path.join(packageDir, "src")), canonicalFileSystemImports, ...(recipe.plugins ?? [])] });

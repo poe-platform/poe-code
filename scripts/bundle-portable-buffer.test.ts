@@ -1,0 +1,37 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { createContext, runInContext } from "node:vm";
+import { build } from "esbuild";
+import { expect, it } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import { findUnreachableBundleOutputs } from "./bundle-graph.mjs";
+import { buildBrowserShellOutputs, resolveBrowserShellBuild, resolvePortableBufferBuild } from "./bundle-safe-bash.mjs";
+
+it("emits a self-contained portable bootstrap for production consumers", async () => {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const result = await build({ ...resolvePortableBufferBuild(root), sourcemap: false });
+  expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
+  const script = result.outputFiles!.find(output => output.path.endsWith("/portable-buffer.js"))!.text;
+  const sandbox = createContext({ TextEncoder, TextDecoder, Uint8Array });
+  runInContext(script, sandbox);
+  expect(runInContext('Buffer.from("héllo").toString("hex")', sandbox)).toBe("68c3a96c6c6f");
+  expect(runInContext('Buffer.prototype.utf8Slice.call(new TextEncoder().encode("héllo"), 1, 3)', sandbox)).toBe("é");
+  const native = createContext({ TextEncoder, TextDecoder, Uint8Array, Buffer });
+  runInContext(script, native);
+  expect(native.Buffer).toBe(Buffer);
+});
+
+it("preserves browser chunks when publishing the standalone bootstrap", async () => {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const volume = new Volume();
+  volume.mkdirSync(path.join(root, "packages/safe-bash"), { recursive: true });
+  const result = await buildBrowserShellOutputs(root, { files: createFsFromVolume(volume).promises });
+  const unreachable = new Set(findUnreachableBundleOutputs(result.metafile, Object.values(resolveBrowserShellBuild(root).entryPoints), root).map(f => path.resolve(root, f)));
+  for (const output of result.outputFiles) {
+    if (!unreachable.has(path.resolve(root, output.path))) expect(volume.existsSync(output.path), output.path).toBe(true);
+  }
+  const script = volume.readFileSync(path.join(root, "packages/safe-bash/dist/portable-buffer.js"), "utf8").toString();
+  const realm = createContext({ TextEncoder, TextDecoder, Uint8Array });
+  runInContext(script, realm);
+  expect(runInContext('Buffer.from("é").toString("hex")', realm)).toBe("c3a9");
+});

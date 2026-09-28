@@ -1,3 +1,4 @@
+import "../../portable-buffer.js";
 import { registerDefaultExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createPrintenvCommand } from "./printenv.js";

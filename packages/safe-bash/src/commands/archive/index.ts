@@ -1,3 +1,4 @@
+import "../../portable-buffer.js";
 import { ungzip as gunzipSync, inflateRaw as inflateRawSync } from "pako";
 import { encodeBytes } from "../../byte-encoding.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";

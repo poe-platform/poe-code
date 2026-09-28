@@ -1,3 +1,4 @@
+import "../../portable-buffer.js";
 import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createPasteCommand } from "./paste.js";

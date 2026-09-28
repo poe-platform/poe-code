@@ -1,3 +1,4 @@
+import "../../portable-buffer.js";
 import { PythonFileSystem, PythonStatTranslator, type FileStat } from '@poe-code/safe-fs/core';
 import type { CommandContext, CommandDefinition, VirtualShellPlugin } from '../../contracts/index.js';
 import { validateExitCode } from '../../contracts/command.js';

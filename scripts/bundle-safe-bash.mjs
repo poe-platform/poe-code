@@ -102,6 +102,17 @@ export function resolveBrowserOpBuild(rootDir) {
   };
 }
 
+export function resolvePortableBufferBuild(rootDir) {
+  const directory = path.join(rootDir, "packages/safe-bash");
+  return {
+    absWorkingDir: rootDir,
+    entryPoints: { "portable-buffer": path.join(directory, "src/portable-buffer.ts") },
+    outdir: path.join(directory, "dist"),
+    bundle: true, platform: "browser", format: "esm", target: "es2022",
+    sourcemap: true, metafile: true, write: false,
+  };
+}
+
 export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], imports = {} } = {}) {
   const directory = path.join(rootDir, "packages/safe-bash");
   const platform = path.join(directory, "browser/platform.mjs");
@@ -207,12 +218,15 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
 export async function buildBrowserShellOutputs(rootDir, { alias = {}, external = [], files } = {}) {
   const esbuild = await import("esbuild");
   const { publishBundleOutputs } = await import("./publish-bundle.mjs");
-  const options = resolveBrowserShellBuild(rootDir, { alias, external });
-  const result = await esbuild.build(options);
-  await publishBundleOutputs(
-    result,
-    { outdir: options.outdir, entryPoints: Object.values(options.entryPoints), workingDirectory: rootDir },
-    files
-  );
-  return result;
+  let shell;
+  for (const options of [resolveBrowserShellBuild(rootDir, { alias, external }), resolvePortableBufferBuild(rootDir)]) {
+    const result = await esbuild.build(options);
+    await publishBundleOutputs(
+      result,
+      { outdir: options.outdir, entryPoints: Object.values(options.entryPoints), workingDirectory: rootDir },
+      files
+    );
+    if (Object.hasOwn(options.entryPoints, "core.browser")) shell = result;
+  }
+  return shell;
 }

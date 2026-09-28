@@ -2889,7 +2889,7 @@
       "validation": "Nine failing original memory cases precede the fix; 86 focused checks, package lint/source/test/consumer types and selected build pass. Eight compiled SDK/command exports across both ODF profiles preserve counts 25/7 with A1 edited to 8, zero diagnostics and unchanged inputs.",
       "native": "Calc 26.8.0.3 preserves all eight outputs and two independently authored original controls. Disabled status is omitted on native export and compared using its source-defined default; exact counts/tolerance and cell values pass. Headless only; no rendering claim.",
       "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{iteration-source,compiled-proof,native-proof,cleanup}.json",
-      "remaining": "Issue 3633 style stream identity/duplicates and label addressing remain open; broader calculation and format qualification and publication stay under 1748."
+      "remaining": "The iteration requirement is implemented and qualified; related label addressing and automatic-style identity repairs are recorded in odfLabelAddressing and odfAutomaticStyleParts. Broader calculation/format qualification and publication stay under 1748."
     },
     "odfLabelAddressing": {
       "issue": 3633,
@@ -2899,14 +2899,22 @@
       "validation": "Two valid case-binding regressions and two absolute-output regressions fail before their fixes; 160 focused tests plus package lint/source/test/consumer types and selected build pass. A first malformed case fixture used replacement-string suffix interpolation; corrected before validating the case failures.",
       "compiledNative": "Eight compiled SDK/command outputs across both editions retain distinct Labels/O'Brien identities and absolute declarations with no diagnostics/input mutation. Independent original plus eight outputs, all with stale 999 caches, recalculate in Calc 26.8.0.3 to 5 or 15 after editing the former gap. Native retains live SUM and exact range geometry while omitting dollar markers and repeating endpoint sheet names.",
       "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{label-sources,label-compiled-proof,label-native-proof,label-cleanup}.json",
-      "remaining": "Issue 3633 automatic-style part migration and duplicate styles remain open; full Unicode/native label profiles, installed registry composition and publication stay under 1748."
+      "remaining": "The reported case-binding and absolute-coordinate requirements are implemented and qualified. Related stream/identity repairs are recorded in odfAutomaticStyleParts. Full Unicode/native label profiles, installed registry composition and publication stay under 1748."
     },
     "odfAutomaticStyleParts": {
       "issue": 3633,
       "implementation": "Retain packagePart provenance on imported workbook style records. Export styles.xml automatic styles to styles.xml, preserving content.xml automatic styles in content.xml. Older snapshots without provenance retain the prior content fallback.",
       "validation": "Both original memory cases fail before repair. 94 focused tests, package lint/source/test/consumer types and selected build pass. Twelve compiled SDK/command exports across both ODF editions and three cycles preserve independently authored native page-layout attributes/header/footer children exactly in styles.xml; A1 edit remains 8, input bytes unchanged, no diagnostics.",
       "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{style-compiled-proof,style-independent-proof,style-cleanup}.json",
-      "remaining": "Generated ta0/pl0/mp0 definitions still accumulate across cycles (independently observed 1/2/3 ta0 copies). Issue 3633 remains open. This qualifies retained style transport, not every active generated print property or native rendering/publication."
+      "remaining": "Original package-part retention is qualified separately above. Generated table/layout/master identity reuse and native readback are recorded in styleIdentity; broader active print properties, cell/region style fidelity and registry publication stay under 1748.",
+      "styleIdentity": {
+        "source": "LibreOffice bce0998a xmlaustp.cxx:331-365 exposes family/parent/property-based automatic-style lookup and named registration. Current product source previously appended fixed taN/plN/mpN definitions without looking at retained identities.",
+        "implementation": "Index retained definitions by part/container/element/family/name, retaining the last definition of duplicate identities. Reuse matching generated table/layout/master definitions and allocate noncolliding names for distinct properties. Preserve original named definitions and their package parts.",
+        "validation": "Four original cycle/name-collision cases failed before repair. The 28-file ODF cohort passes 1123 tests; the final identity file passes 39 including two added old-duplicate controls. Package lint/source/test/consumer types and selected build pass. Twenty-four compiled SDK/command outputs across both editions, collision/duplicate inputs and three cycles retain stable unique identities, exact original definitions, correct active layouts, A1=8, no diagnostics and unchanged inputs.",
+        "native": "Calc 26.8.0.3 reopens eight final compiled outputs and two independent original controls. Active landscape/portrait and 17pt/23pt margins match their respective native controls; edited outputs retain A1=8 versus original 7. No GUI/rendering or registry claim.",
+        "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{style-pool-source,identity-compiled-proof,identity-independent-proof,identity-native-proof,identity-cleanup}.json",
+        "scope": "Completes the generated table/layout/master duplication requirement of 3633; it does not establish deduplication or full semantics for every cell/region/font/print record."
+      }
     }
   },
   "cases": [

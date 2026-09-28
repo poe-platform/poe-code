@@ -127,8 +127,8 @@ export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: 
   return { register, styles };
 }
 
-export function odfPrintStyles(records: readonly ImportedValue[], index: number, xml: ReturnType<typeof createOdfXml>, extended: boolean) {
-  const e = xml.element, properties: Record<string,string|number|undefined> = { "style:print": "charts drawings objects" };
+export function odfPrintProperties(records: readonly ImportedValue[], xml: ReturnType<typeof createOdfXml>, extended: boolean) {
+  const properties: Record<string,string|number|undefined> = { "style:print": "charts drawings objects" };
   for (const source of records) for (const n of odfChildren(source)) {
     xml.charge(); const v = odfObject(n), a = odfAttributes(n);
     if (v?.name === "orientation" && typeof v.text === "string") properties["style:print-orientation"] = v.text;
@@ -143,6 +143,5 @@ export function odfPrintStyles(records: readonly ImportedValue[], index: number,
       } else if (a.percentage) properties["style:scale-to"] = a.percentage + "%";
     }
   }
-  return { layout: e("style:page-layout", { "style:name": "pl" + index }, e("style:page-layout-properties", properties)),
-    master: e("style:master-page", { "style:name": "mp" + index, "style:page-layout-name": "pl" + index }) };
+  return properties;
 }

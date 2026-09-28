@@ -21,7 +21,8 @@ import { createOdfXml, odfObject, odfAttributes, odfChildren, odfNamespaces, odf
 import { encryptOdfParts, odfEncryptionProfiles, type OdfEncryptionProfile } from "./odf-encrypted-write.js";
 import { exportOptionPairs } from "../cli/export-options.js";
 import { renderCellText } from "../formatting/cell-text.js";
-import { createOdfStyles, odfPrintStyles } from "./odf-write-styles.js";
+import { createOdfStyles, odfPrintProperties } from "./odf-write-styles.js";
+import { createOdfStyleDefinitions } from "./odf-style-definitions.js";
 import { odfWriterFunctionNames } from "./odf-function-names.js";
 import { writeOdfRegion } from "./odf-write-regions.js";
 import type { FormulaNode } from "../formulas/ast.js";
@@ -760,30 +761,24 @@ export function createOdfWriter(profile: "strict" | "extended") {
     e("table:null-date", { "table:date-value": book.dateSystem === "1904" ? "1904-1-1" : "1899-12-30", "table:value-type": "date" }) +
       e("table:iteration", { "table:status": iteration?.enabled ? "enable" : "disable", "table:steps": iteration?.maximum ?? 100,
         "table:maximum-difference": iteration?.tolerance ?? 0.001 }));
-    let automatic = "", masters = "", styleBody = "", fontFaces = "", pageLayouts = "", spreadsheet = "", validations = "", databaseRanges = "";
+    const definitions = createOdfStyleDefinitions(book, xml);
+    let automatic = "", spreadsheet = "", validations = "", databaseRanges = "";
     for (const record of book.unsupportedRecords ?? []) {
       xml.charge(); const v = odfObject(record.data), node = odfObject(v?.xml);
       if (record.source === "Gnumeric_OpenCalc:openoffice" && node) {
-        if (["automatic-styles", "font-face-decls", "styles", "master-styles"].includes(record.kind)) {
-          const content = odfChildren(node).map(n => xml.retained(n)).join("");
-          if (record.kind === "automatic-styles") {
-            if (v?.packagePart === "styles.xml") pageLayouts += content;
-            else automatic += content;
-          }
-          else if (record.kind === "master-styles") masters += content;
-          else if (record.kind === "font-face-decls") fontFaces += content;
-          else styleBody += content;
-        } else if (record.kind === "content-validations") validations += odfChildren(node).map(n => xml.retained(n)).join("");
+        if (record.kind === "content-validations") validations += odfChildren(node).map(n => xml.retained(n)).join("");
         else if (record.kind === "database-ranges") databaseRanges += xml.retained(node);
       }
     }
     for (const [index, sheet] of book.sheets.entries()) {
-      xml.charge(); const sheetStyle = "ta" + index;
+      xml.charge();
       const view = odfObject(sheet.view?.gnumeric) ?? {}, properties = odfChildren(sheet.view?.odf).find(n => odfObject(n)?.name === "table-properties");
       const originalProperties = odfAttributes(properties, odfNamespaces.gnm);
-      const print = odfPrintStyles((sheet.unsupportedRecords ?? []).filter(r => r.kind === "PrintInformation").flatMap(r => r.data ? [r.data] : []), index, xml, extended);
-      pageLayouts += print.layout; masters += print.master;
-      automatic += e("style:style", { "style:name": sheetStyle, "style:family": "table", "style:master-page-name": "mp" + index }, e("style:table-properties", {
+      const print = odfPrintProperties((sheet.unsupportedRecords ?? []).filter(r => r.kind === "PrintInformation").flatMap(r => r.data ? [r.data] : []), xml, extended);
+      const layoutName = definitions.register("stylesAutomatic", "style:page-layout", "pl" + index, {}, e("style:page-layout-properties", print));
+      const masterName = definitions.register("masters", "style:master-page", "mp" + index, { "style:page-layout-name": layoutName });
+      const sheetStyle = definitions.register("contentAutomatic", "style:style", "ta" + index,
+        { "style:family": "table", "style:master-page-name": masterName }, e("style:table-properties", {
         "table:display": sheet.visibility && sheet.visibility !== "visible" ? "false" : "true", "style:writing-mode": Number(view.RTL_Layout ?? 0) ? "rl-tb" : "lr-tb",
         ...(extended ? { "gnm:display-formulas": String(Boolean(Number(view.DisplayFormulas ?? 0))), "gnm:display-col-header": String(!Number(view.HideColHeader ?? 0)),
           "gnm:display-row-header": String(!Number(view.HideRowHeader ?? 0)), "gnm:tab-color": originalProperties["tab-color"], "gnm:tab-text-color": originalProperties["tab-text-color"] } : {}) }));
@@ -993,8 +988,8 @@ export function createOdfWriter(profile: "strict" | "extended") {
     if (wrapped) context.own(() => { for (const bytes of parts.values()) bytes.fill(0); });
     function part(name: string, value: string) { parts.set(name, encoder.encode(value)); }
     part("mimetype", "application/vnd.oasis.opendocument.spreadsheet");
-    part("content.xml", xml.document("office:document-content", e("office:scripts") + e("office:font-face-decls") + e("office:automatic-styles", {}, automatic + cellStyles.styles.join("")) + e("office:body", {}, e("office:spreadsheet", {}, spreadsheet))));
-    part("styles.xml", xml.document("office:document-styles", e("office:font-face-decls", {}, fontFaces) + e("office:styles", {}, styleBody) + e("office:automatic-styles", {}, pageLayouts) + e("office:master-styles", {}, masters)));
+    part("content.xml", xml.document("office:document-content", e("office:scripts") + e("office:font-face-decls") + e("office:automatic-styles", {}, definitions.render("contentAutomatic") + automatic + cellStyles.styles.join("")) + e("office:body", {}, e("office:spreadsheet", {}, spreadsheet))));
+    part("styles.xml", xml.document("office:document-styles", e("office:font-face-decls", {}, definitions.render("fonts")) + e("office:styles", {}, definitions.render("styles")) + e("office:automatic-styles", {}, definitions.render("stylesAutomatic")) + e("office:master-styles", {}, definitions.render("masters"))));
     part("meta.xml", xml.document("office:document-meta", e("office:meta", {}, e("meta:generator", {}, "Gnumeric/1.12.61"))));
     part("settings.xml", xml.document("office:document-settings", e("office:settings", {}, e("config:config-item-set", { "config:name": "gnm:settings" },
       e("config:config-item", { "config:name": "gnm:has_foreign", "config:type": "boolean" }, String(extended)) +

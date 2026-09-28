@@ -3,7 +3,7 @@ import { commandRuntimeIdentity } from "safe-bash-contracts/command";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { assertCountedFileOutput, openFileOutput, writeFileOutputCounted } from "safe-bash-contracts/filesystem-output";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { builtInDirectContextExecutors, isDefaultCommandOptions, codeOf, output, pathOf, syncCommandEvaluators } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors, isDefaultCommandOptions, codeOf, output, pathOf, syncCommandEvaluators } from "safe-bash-io-engine/internal";
 import { compareCopyIdentity, compareObservedEntries } from "safe-bash-contracts/filesystem-identity";
 import { helpText, parseArguments, type InstallArguments } from "./arguments.js";
 import { parseMode, type InstallMode } from "./mode.js";

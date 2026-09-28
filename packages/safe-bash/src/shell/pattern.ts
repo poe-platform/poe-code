@@ -1,1 +1,1 @@
-export * from "safe-bash-command-io-engine/shell/pattern";
+export * from "safe-bash-io-engine/shell/pattern";

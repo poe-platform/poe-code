@@ -1,6 +1,6 @@
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { FsError } from "safe-bash-contracts";
-import { input as fileInput, lines, pathOf } from "safe-bash-command-io-engine/internal";
+import { input as fileInput, lines, pathOf } from "safe-bash-io-engine/internal";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { TimeZone, millisecondsInstant, parseDate } from "safe-bash-calendar-engine/time-env/calendar";
 import { formatDate } from "safe-bash-calendar-engine/time-env/format";

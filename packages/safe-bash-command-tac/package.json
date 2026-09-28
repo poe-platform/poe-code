@@ -37,8 +37,8 @@
     "@poe-code/safe-fs": "*",
     "safe-bash-text-stream-engine": "*",
     "safe-bash-byte-engine": "*",
-    "safe-bash-command-io-engine": "*",
     "safe-bash-command-expr": "*",
-    "safe-bash-regex-engine": "*"
+    "safe-bash-regex-engine": "*",
+    "safe-bash-io-engine": "*"
   }
 }

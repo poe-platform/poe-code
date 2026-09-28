@@ -1,3 +1,4 @@
+import type { CommandDefinition } from "safe-bash-contracts";
 import { command, CommandFailure, defaultSleepScheduler, emit, type Settings } from "safe-bash-calendar-engine/time-env/shared";
 
 function duration(arguments_: readonly string[]): number {
@@ -117,7 +118,7 @@ function delay(milliseconds: number, signal: AbortSignal, configuration: Setting
   });
 }
 
-export function createSleepWithSettings(configuration: Settings) {
+export function createSleepWithSettings(configuration: Settings): CommandDefinition {
   return command("sleep", configuration, async context => {
     let informational: string | undefined;
     let operands = context.args;

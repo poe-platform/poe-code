@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import type { XmlElement } from "@poe-code/safe-fs/core";
 import type { CommandDefinition } from "safe-bash-contracts";
 import { resolveXmlQueryLimits, type XmlCommandsOptions } from "safe-bash-xml-engine/limits";
@@ -8,7 +8,7 @@ import { readXmlInput } from "safe-bash-xml-engine/io";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
-import { pathOf } from "safe-bash-command-io-engine/internal";
+import { pathOf } from "safe-bash-io-engine/internal";
 import { interruptible } from "safe-bash-query-engine/limits";
 import { XmlBudget, XmlQueryError, XmlQueryLimitError, type XmlQueryLimits } from "safe-bash-xml-engine/limits";
 import { executeJq } from "safe-bash-command-jq/jq";

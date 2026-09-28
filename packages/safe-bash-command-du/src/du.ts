@@ -1,12 +1,12 @@
 import { FsError, createOutputOperation, type CommandDefinition, type DirectoryEntry, type FileStat, type OutputOperation } from "safe-bash-contracts";
-import { pathOf } from "safe-bash-command-io-engine/internal";
+import { pathOf } from "safe-bash-io-engine/internal";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { parse, helpText, type Arguments } from "./arguments.js";
 import { Budget, DuLimitError } from "./budget.js";
 import { formatSize } from "./format.js";
 import { settings, type DuCommandsOptions } from "./options.js";
 import { excluded } from "./exclude.js";
-import { gnuInformation } from "safe-bash-command-io-engine/gnu-information";
+import { gnuInformation } from "safe-bash-io-engine/gnu-information";
 
 interface Amount { readonly bytes: number; readonly complete: boolean; readonly directory?: boolean }
 

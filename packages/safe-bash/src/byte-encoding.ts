@@ -1,1 +1,1 @@
-export * from "safe-bash-command-io-engine/byte-encoding";
+export * from "safe-bash-io-engine/byte-encoding";

@@ -1,4 +1,4 @@
-import { equalBytes, latin1Text } from "safe-bash-command-io-engine/byte-encoding";
+import { equalBytes, latin1Text } from "safe-bash-io-engine/byte-encoding";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements } from "safe-bash-contracts/command-requirements";
@@ -7,13 +7,13 @@ import { chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from "s
 import { EreLedger } from "safe-bash-regex-engine/ere/limits";
 import { validateUtf8 } from "safe-bash-regex-engine/utf8";
 import { FsError, type ByteSource, type CommandDefinition } from "safe-bash-contracts";
-import { builtInDirectContextExecutors, RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, outputRange, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO, UsageError, value, type Line } from "safe-bash-command-io-engine/internal";
-import { RecordBuffer } from "safe-bash-command-io-engine/record-buffer";
+import { builtInDirectContextExecutors, RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, outputRange, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO, UsageError, value, type Line } from "safe-bash-io-engine/internal";
+import { RecordBuffer } from "safe-bash-io-engine/record-buffer";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "safe-bash-regex-engine/execution/portable";
 import { inProcessRegexProviders, trustedInputRows, type GrepDescriptor } from "safe-bash-regex-engine/execution/protocol";
 import { prepareErgonomicRegex, type ErgonomicVmMatcher } from "./ergonomic-regex.js";
 import { SearchError } from "./options.js";
-import { grepRequirements, requiredFileInput } from "safe-bash-command-io-engine/commands/search/requirements";
+import { grepRequirements, requiredFileInput } from "safe-bash-io-engine/commands/search/requirements";
 import { grepFiles } from "./grep-files.js";
 
 const SINGLE_FILE_OPERAND: readonly string[] = ["file"];

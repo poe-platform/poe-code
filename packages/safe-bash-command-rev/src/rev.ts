@@ -1,6 +1,6 @@
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import type { CommandDefinition } from "safe-bash-contracts";
-import { diagnostic, options, UsageError } from "safe-bash-command-io-engine/internal";
+import { diagnostic, options, UsageError } from "safe-bash-io-engine/internal";
 import { command, records, type Session, type StreamFormatLimits } from "safe-bash-text-stream-engine/stream-format/shared";
 
 async function validPrefix(bytes: Uint8Array, session: Session): Promise<number> {

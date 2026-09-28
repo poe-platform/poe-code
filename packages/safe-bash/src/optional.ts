@@ -87,3 +87,8 @@ export type { XmllintLimits } from "./commands/xml/index.js";
 
 export { createXanCommand, createXanCommands, xanCommands } from "./commands/xan/index.js";
 export type { XanCommandsOptions, XanLimits } from "./commands/xan/index.js";
+
+export { createGrepCommand, createGrepCommands, grepCommands } from "./commands/grep/index.js";
+export type { GrepCommandsOptions, GrepLimits } from "./commands/grep/index.js";
+export { createJqCommand, createJqCommands, jqCommands } from "./commands/jq/index.js";
+export type { JqCommandsOptions, JqLimits } from "./commands/jq/index.js";

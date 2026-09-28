@@ -25,12 +25,14 @@ const commands = await Promise.all(entries.map(async entry => ({
 
 describe.each(commands)("$name public command contract", ({ name, api }) => {
   const stem = name.slice("safe-bash-command-".length);
-  const title = stem[0]!.toUpperCase() + stem.slice(1);
+  const words = stem.split("-");
+  const title = words.map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
+  const pluginName = title[0]!.toLowerCase() + title.slice(1);
 
   it("creates a default command, its collection, and a matching plugin without options", async () => {
     const single: CommandDefinition = api[`create${title}Command`]();
     const collection: readonly CommandDefinition[] = api[`create${title}Commands`]();
-    const plugin: VirtualShellPlugin = api[`${stem}Commands`]();
+    const plugin: VirtualShellPlugin = api[`${pluginName}Commands`]();
     expect(single.name).not.toBe("");
     expect(single.execute).toBeTypeOf("function");
     expect(collection.length).toBeGreaterThan(0);
@@ -40,7 +42,7 @@ describe.each(commands)("$name public command contract", ({ name, api }) => {
     for (const options of [undefined, {}, { replace: true }]) {
       const registry = new CommandRegistry();
       const register = vi.spyOn(registry, "register");
-      await (options === undefined ? plugin : api[`${stem}Commands`](options)).setup({
+      await (options === undefined ? plugin : api[`${pluginName}Commands`](options)).setup({
         commands: registry,
         use: vi.fn(),
         registerFileSystem: vi.fn()

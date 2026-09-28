@@ -1,4 +1,4 @@
-import { registerDefaultExecutor } from "safe-bash-command-io-engine/internal";
+import { registerDefaultExecutor } from "safe-bash-io-engine/internal";
 import { commandRuntimeIdentity, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { compare } from "./compare.js";
 import { errorText, InputError, inputDiagnostic, Session } from "./io.js";

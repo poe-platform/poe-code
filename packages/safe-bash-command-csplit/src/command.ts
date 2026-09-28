@@ -1,5 +1,5 @@
 import { FsError, type CommandDefinition } from "safe-bash-contracts";
-import { builtInDirectContextExecutors, isDefaultCommandOptions, syncCommandEvaluators } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors, isDefaultCommandOptions, syncCommandEvaluators } from "safe-bash-io-engine/internal";
 import { integer } from "./options.js";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { RegexExecutor, withRegexSession } from "safe-bash-regex-engine/execution/portable";

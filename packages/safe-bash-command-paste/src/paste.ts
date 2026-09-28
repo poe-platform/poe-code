@@ -1,5 +1,5 @@
 import type { CommandDefinition } from "safe-bash-contracts";
-import { diagnostic } from "safe-bash-command-io-engine/internal";
+import { diagnostic } from "safe-bash-io-engine/internal";
 import { argument, Budget, command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 function delimiters(text: string): readonly Uint8Array[] {

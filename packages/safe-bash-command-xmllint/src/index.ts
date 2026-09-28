@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import { readXmlInput, type XmlCommandRuntime } from "safe-bash-xml-engine/io";
 import { parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";

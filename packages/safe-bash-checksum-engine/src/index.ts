@@ -7,7 +7,7 @@ import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import { FsError, readBytes, toByteSource, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
-import { codeOf, define, diagnostic, encoder, options, output, pathOf, UsageError, value } from "safe-bash-command-io-engine/internal";
+import { codeOf, define, diagnostic, encoder, options, output, pathOf, UsageError, value } from "safe-bash-io-engine/internal";
 import { ByteInputBudget } from "safe-bash-byte-input-engine/index";
 
 const blockBytes = 64 * 1024;

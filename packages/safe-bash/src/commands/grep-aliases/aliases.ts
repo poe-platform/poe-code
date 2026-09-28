@@ -1,1 +1,1 @@
-export * from "safe-bash-command-io-engine/commands/grep-aliases/aliases";
+export * from "safe-bash-io-engine/commands/grep-aliases/aliases";

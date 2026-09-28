@@ -1,4 +1,4 @@
-import { registerDefaultExecutor, registerDefaultExecutors } from "safe-bash-command-io-engine/internal";
+import { registerDefaultExecutor, registerDefaultExecutors } from "safe-bash-io-engine/internal";
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
 import type { WhichCommandsOptions } from "./options.js";
 import { createWhichCommand } from "./which.js";

@@ -1,6 +1,6 @@
 import { dirname, FsError, joinPath, type CommandContext } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { codeOf } from "safe-bash-command-io-engine/internal";
+import { codeOf } from "safe-bash-io-engine/internal";
 
 export async function canonicalizeReadlinkMissing(context: CommandContext, path: string): Promise<string> {
   const pending: (string | { readonly link: string })[] = path.split("/").reverse();

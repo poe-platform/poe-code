@@ -1,8 +1,8 @@
 import { bytesFrom } from "safe-bash-byte-engine";
 import { assertCommandRequirements, type CommandContext } from "safe-bash-contracts";
-import { diagnostic, lines, pathOf, UsageError, value, type ParsedOptions } from "safe-bash-command-io-engine/internal";
-import { matchesPattern } from "safe-bash-command-io-engine/shell/pattern";
-import { grepRequirements, requiredFileInput } from "safe-bash-command-io-engine/commands/search/requirements";
+import { diagnostic, lines, pathOf, UsageError, value, type ParsedOptions } from "safe-bash-io-engine/internal";
+import { matchesPattern } from "safe-bash-io-engine/shell/pattern";
+import { grepRequirements, requiredFileInput } from "safe-bash-io-engine/commands/search/requirements";
 
 const bufferLimit = Infinity;
 

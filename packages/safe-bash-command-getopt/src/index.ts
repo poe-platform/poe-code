@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
 import { createGetoptCommand as createRawGetoptCommand } from "./command.js";
 import type { GetoptCommandsOptions } from "./internal.js";

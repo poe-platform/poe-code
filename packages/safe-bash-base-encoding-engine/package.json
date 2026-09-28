@@ -40,6 +40,6 @@
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
     "safe-bash-byte-input-engine": "*",
-    "safe-bash-command-io-engine": "*"
+    "safe-bash-io-engine": "*"
   }
 }

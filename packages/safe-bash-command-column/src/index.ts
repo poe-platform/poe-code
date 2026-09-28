@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
 import { createColumnCommand } from "./column.js";
 import type { ColumnCommandsOptions } from "./options.js";

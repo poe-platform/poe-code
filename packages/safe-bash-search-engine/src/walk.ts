@@ -6,7 +6,7 @@ import { RegexExecutionError, type RegexSession } from "safe-bash-regex-engine/e
 import { Glob, ignoreRules, matchGlobs, type IgnoreRule } from "./glob.js";
 import { SearchError, type Arguments } from "./options.js";
 import { Limits, pathFor } from "./shared.js";
-import { assertPathRequirements, searchRequirements } from "safe-bash-command-io-engine/commands/search/requirements";
+import { assertPathRequirements, searchRequirements } from "safe-bash-io-engine/commands/search/requirements";
 import { defaultFileTypes } from "./file-types.js";
 
 export interface FileTarget {

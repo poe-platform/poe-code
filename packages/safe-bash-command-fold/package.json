@@ -1,11 +1,13 @@
 {
-  "name": "safe-bash-command-fold",
-  "version": "0.0.1",
-  "private": true,
   "license": "MIT AND LGPL-2.1-or-later",
-  "type": "module",
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && cp LICENSE COPYING COPYING.LESSER dist/ && cp src/width-data.ts dist/width-data.ts",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -16,24 +18,22 @@
       "import": "./dist/family.js"
     }
   },
+  "name": "safe-bash-command-fold",
+  "devDependencies": {
+    "safe-bash-io-engine": "*",
+    "safe-bash-contracts": "*",
+    "safe-bash-text-stream-engine": "*",
+    "safe-bash-command-fold": "*"
+  },
+  "version": "0.0.1",
+  "type": "module",
+  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "LICENSE",
     "COPYING",
     "COPYING.LESSER"
   ],
-  "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc && cp LICENSE COPYING COPYING.LESSER dist/ && cp src/width-data.ts dist/width-data.ts",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
-    "lint": "eslint src && npm run typecheck",
-    "test": "node --import tsx --test src/*.test.ts",
-    "test:unit": "node --import tsx --test src/*.test.ts"
-  },
   "dependencies": {},
-  "devDependencies": {
-    "safe-bash-contracts": "*",
-    "safe-bash-command-io-engine": "*",
-    "safe-bash-text-stream-engine": "*",
-    "safe-bash-command-fold": "*"
-  }
+  "private": true
 }

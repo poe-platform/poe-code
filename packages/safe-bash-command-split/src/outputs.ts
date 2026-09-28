@@ -1,5 +1,5 @@
 import { FsError, isFsError, type CommandContext, type FileStat, type WriteFileOptions } from "safe-bash-contracts";
-import { pathOf } from "safe-bash-command-io-engine/internal";
+import { pathOf } from "safe-bash-io-engine/internal";
 import { Budget, interruptible } from "./io.js";
 
 interface Entry { readonly path: string; readonly stat: FileStat }

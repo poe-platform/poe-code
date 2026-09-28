@@ -1,6 +1,6 @@
 import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
 import { FsError, readBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
-import { pathOf } from "safe-bash-command-io-engine/internal";
+import { pathOf } from "safe-bash-io-engine/internal";
 import type { SplitLimits } from "./options.js";
 
 const splitSignalWaiters = new WeakMap<AbortSignal, Set<() => void>>();

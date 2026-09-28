@@ -33,7 +33,7 @@
     "safe-bash-contracts": "*",
     "safe-bash-xml-engine": "*",
     "safe-bash-query-engine": "*",
-    "safe-bash-command-io-engine": "*",
-    "safe-bash-command-jq": "*"
+    "safe-bash-command-jq": "*",
+    "safe-bash-io-engine": "*"
   }
 }

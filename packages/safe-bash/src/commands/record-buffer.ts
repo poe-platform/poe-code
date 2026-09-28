@@ -1,1 +1,1 @@
-export * from "safe-bash-command-io-engine/record-buffer";
+export * from "safe-bash-io-engine/record-buffer";

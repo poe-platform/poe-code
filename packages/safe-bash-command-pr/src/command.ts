@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import { FsError, type CommandDefinition } from "safe-bash-contracts";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";

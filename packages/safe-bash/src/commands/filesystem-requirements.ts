@@ -1,1 +1,1 @@
-export * from "safe-bash-command-io-engine/commands/filesystem-requirements";
+export * from "safe-bash-io-engine/commands/filesystem-requirements";

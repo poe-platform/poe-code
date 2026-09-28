@@ -1,5 +1,5 @@
 import type { CommandDefinition } from "safe-bash-contracts";
-import { integer, UsageError } from "safe-bash-command-io-engine/internal";
+import { integer, UsageError } from "safe-bash-io-engine/internal";
 import { numericOptions } from "safe-bash-text-stream-engine/stream-inspection/numeric-options";
 import { ByteOutput, command, type Session, type StreamFormatLimits } from "safe-bash-text-stream-engine/stream-format/shared";
 

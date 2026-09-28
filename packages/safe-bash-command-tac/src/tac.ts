@@ -1,6 +1,6 @@
 import { bytesFrom } from "safe-bash-byte-engine";
 import { FsError, getCommandArguments, type CommandDefinition } from "safe-bash-contracts";
-import { options } from "safe-bash-command-io-engine/internal";
+import { options } from "safe-bash-io-engine/internal";
 import { command, type StreamInspectionLimits } from "safe-bash-text-stream-engine/stream-inspection/shared";
 import { reverseEmacsSteps } from "safe-bash-command-expr/bre-engine";
 import { ExprMatchError, exprMatchCeilings } from "safe-bash-regex-engine/execution/protocol";

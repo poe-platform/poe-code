@@ -1,1 +1,1 @@
-export * from "safe-bash-command-io-engine/commands/env-split";
+export * from "safe-bash-io-engine/commands/env-split";

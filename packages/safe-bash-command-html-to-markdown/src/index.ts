@@ -1,5 +1,5 @@
 import { bytesFrom } from "safe-bash-byte-engine";
-import { builtInDirectContextExecutors } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { createOutputOperation, writeBytes, type CommandDefinition, type OutputOperation, type VirtualShellPlugin } from "safe-bash-contracts";
 import { escapeText } from "safe-bash-contracts/escaping";

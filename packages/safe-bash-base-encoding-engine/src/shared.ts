@@ -1,7 +1,7 @@
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { FsError, type ByteSource, type CommandContext } from "safe-bash-contracts";
-import { pathOf, UsageError, type ParsedOptions } from "safe-bash-command-io-engine/internal";
+import { pathOf, UsageError, type ParsedOptions } from "safe-bash-io-engine/internal";
 import { ByteInputBudget } from "safe-bash-byte-input-engine/index";
 
 export const blockSize = 8192;

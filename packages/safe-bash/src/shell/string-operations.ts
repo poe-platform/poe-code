@@ -1,1 +1,1 @@
-export * from "safe-bash-command-io-engine/shell/string-operations";
+export * from "safe-bash-io-engine/shell/string-operations";

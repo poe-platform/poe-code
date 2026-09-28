@@ -32,6 +32,6 @@
     "safe-bash-contracts": "*",
     "safe-bash-search-engine": "*",
     "safe-bash-command-grep": "*",
-    "safe-bash-command-io-engine": "*"
+    "safe-bash-io-engine": "*"
   }
 }

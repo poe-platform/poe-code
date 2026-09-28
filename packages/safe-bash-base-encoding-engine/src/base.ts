@@ -1,6 +1,6 @@
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import type { CommandContext, CommandDefinition } from "safe-bash-contracts";
-import { define, integer, options, output, requireOperands } from "safe-bash-command-io-engine/internal";
+import { define, integer, options, output, requireOperands } from "safe-bash-io-engine/internal";
 import { sources, validatedOption } from "./shared.js";
 
 interface Alphabet {

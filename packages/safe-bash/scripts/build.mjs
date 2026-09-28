@@ -690,7 +690,26 @@ export async function buildPackage({ root = packageRoot, args = [], profile = "d
   if (opDeclarations && parsed.options.declaration && !emitted.emitSkipped) {
     for (const source of program.getSourceFiles()) {
       if (!source.isDeclarationFile || !below(opDeclarations, source.fileName)) continue;
-      host.writeFile(join(localOpDeclarations, relative(opDeclarations, source.fileName)), source.text, false);
+      let changed = false;
+      const canonicalImports = context => tree => {
+        const visit = node => {
+          if (ts.isStringLiteral(node) && node.text.startsWith(".") && (ts.isImportDeclaration(node.parent) || ts.isExportDeclaration(node.parent) || ts.isLiteralTypeNode(node.parent) && ts.isImportTypeNode(node.parent.parent))) {
+            const linked = resolve(dirname(source.fileName), node.text);
+            if (!below(opDeclarations, linked)) {
+              const entry = Object.entries(peerPaths).find(([, paths]) => paths.some(path => path === linked || path.endsWith(".d.ts") && path.slice(0, -5) + ".js" === linked));
+              assert.ok(entry, "relocated op import must resolve to an admitted declaration export");
+              changed = true;
+              return context.factory.createStringLiteral(entry[0]);
+            }
+          }
+          return ts.visitEachChild(node, visit, context);
+        };
+        return ts.visitNode(tree, visit);
+      };
+      const transformed = ts.transform(source, [canonicalImports]);
+      try {
+        host.writeFile(join(localOpDeclarations, relative(opDeclarations, source.fileName)), changed ? ts.createPrinter().printFile(transformed.transformed[0]) : source.text, false);
+      } finally { transformed.dispose(); }
     }
   }
   const allDiagnostics = ts.sortAndDeduplicateDiagnostics([...diagnostics, ...emitted.diagnostics]);

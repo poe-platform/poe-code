@@ -2,8 +2,8 @@ import { bytesFrom } from "safe-bash-byte-engine";
 import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { createBufferedOutput, FsError, getCommandArguments, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { shellValueByteLength } from "safe-bash-contracts/value";
-import { diagnostic, pathOf } from "safe-bash-command-io-engine/internal";
-import { gnuInformation } from "safe-bash-command-io-engine/gnu-information";
+import { diagnostic, pathOf } from "safe-bash-io-engine/internal";
+import { gnuInformation } from "safe-bash-io-engine/gnu-information";
 
 export interface StreamFormatLimits {
   readonly maxInputBytes: number;

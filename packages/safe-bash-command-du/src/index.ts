@@ -1,4 +1,4 @@
-import { registerDefaultExecutor, registerDefaultExecutors } from "safe-bash-command-io-engine/internal";
+import { registerDefaultExecutor, registerDefaultExecutors } from "safe-bash-io-engine/internal";
 import { blockSize, formatSize, type Format } from "./format.js";
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
 import { createDuCommand } from "./du.js";

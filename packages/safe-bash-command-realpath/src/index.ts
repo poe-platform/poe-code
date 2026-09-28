@@ -1,11 +1,11 @@
 import type { CommandDefinition, CommandHandler } from "safe-bash-contracts";
 import { tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import { basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath, type CommandContext, type FileStat, type FileSystem } from "safe-bash-contracts";
-import { codeOf, define, diagnostic, eachOperand, options, output, pathOf, requireOperands, UsageError } from "safe-bash-command-io-engine/internal";
-import { admitFilesystemModes } from "safe-bash-command-io-engine/commands/filesystem-requirements";
+import { codeOf, define, diagnostic, eachOperand, options, output, pathOf, requireOperands, UsageError } from "safe-bash-io-engine/internal";
+import { admitFilesystemModes } from "safe-bash-io-engine/commands/filesystem-requirements";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { canonicalizeReadlinkMissing } from "safe-bash-command-io-engine/commands/readlink-missing";
-import { canonicalizeExistingParent } from "safe-bash-command-io-engine/commands/canonicalize-existing-parent";
+import { canonicalizeReadlinkMissing } from "safe-bash-io-engine/commands/readlink-missing";
+import { canonicalizeExistingParent } from "safe-bash-io-engine/commands/canonicalize-existing-parent";
 import { getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 async function maybeStat(context: CommandContext, path: string, follow = true, allowNonDirectory = false): Promise<FileStat | undefined> {
   if (!allowNonDirectory && path !== "/" && path !== "/dev" && !path.startsWith("/dev/")) {

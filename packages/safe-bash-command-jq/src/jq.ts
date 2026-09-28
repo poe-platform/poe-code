@@ -3,8 +3,8 @@ import type { FileSystem } from "@poe-code/safe-fs";
 import { FsError, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { getLastReadMemoryFileSourceRef, tryReadMemoryFileViewSync, tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
 import { getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
-import { pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "safe-bash-command-io-engine/internal";
-import { createSyncSingleChunkByteSource } from "safe-bash-command-io-engine/commands/search/requirements";
+import { pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "safe-bash-io-engine/internal";
+import { createSyncSingleChunkByteSource } from "safe-bash-io-engine/commands/search/requirements";
 import { joinPath } from "safe-bash-contracts/path";
 import { escapeText, writeDiagnostic } from "safe-bash-contracts/escaping";
 import { Budget, copyObject, interruptible, JqHalt, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "safe-bash-query-engine/limits";
@@ -1023,6 +1023,6 @@ export function createJqCommand(options: StructuredCommandsOptions = {}): Comman
   return definition;
 }
 import { isSyncResolved } from "safe-bash-contracts/runtime-control";
-import { builtInDirectContextExecutors } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 
 export { createJqCommand as jqCommand };

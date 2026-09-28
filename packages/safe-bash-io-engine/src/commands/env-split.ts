@@ -2,7 +2,7 @@ import { utf8ByteLength } from "safe-bash-byte-engine";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { createCommandArguments, getCommandArguments, type CommandArguments } from "safe-bash-contracts/command";
 import { type ShellValue } from "safe-bash-contracts/value";
-import { decoder, encoder, UsageError, type ParsedOptions } from "safe-bash-command-io-engine/internal";
+import { decoder, encoder, UsageError, type ParsedOptions } from "safe-bash-io-engine/internal";
 
 export class EnvSplitError extends Error {}
 

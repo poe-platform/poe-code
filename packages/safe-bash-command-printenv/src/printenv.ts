@@ -1,7 +1,8 @@
+import type { CommandDefinition } from "safe-bash-contracts";
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { checkSize, command, CommandFailure, emit, ownEnvironment, timeEnvExecutorSettings, type Settings } from "safe-bash-calendar-engine/time-env/shared";
 
-export function createPrintenvWithSettings(configuration: Settings) {
+export function createPrintenvWithSettings(configuration: Settings): CommandDefinition {
   return command("printenv", configuration, async context => {
     let separator = "\n";
     let offset = 0;

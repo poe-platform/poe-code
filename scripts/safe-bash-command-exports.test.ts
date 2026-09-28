@@ -32,14 +32,25 @@ function exportedNames(file: string, visited = new Set<string>()): Set<string> {
   return names;
 }
 
-const core = exportedNames(resolve(root, "packages/safe-bash/src/core.ts"));
+const sdk = new Set([
+  ...exportedNames(resolve(root, "packages/safe-bash/src/core.ts")),
+  ...exportedNames(resolve(root, "packages/safe-bash/src/optional.ts")),
+]);
 describe("portable command API", () => {
   for (const [workspace, configuration] of commands) {
     const name = workspace.slice("safe-bash-command-".length);
-    const capitalized = name[0]!.toUpperCase() + name.slice(1);
-    it(`${name} exposes plugin, command factories and options from core`, () => {
+    const title = name.split("-").map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
+    const pluginName = title[0]!.toLowerCase() + title.slice(1);
+    it(`${name} exposes its portable public command contract`, () => {
+      const adapter = name === "xmllint" ? "xml" : name;
+      const source = resolve(root, `packages/safe-bash/src/commands/${adapter}/index.ts`);
+      const exported = new Set(sdk);
+      if (existsSync(source)) {
+        expect(metadata.exports).toHaveProperty(`./commands/${adapter}`);
+        for (const symbol of exportedNames(source)) exported.add(symbol);
+      }
       expect(configuration).toHaveProperty("portable", true);
-      for (const symbol of [`${name}Commands`, `create${capitalized}Commands`, `create${capitalized}Command`, `${capitalized}CommandsOptions`]) expect(core.has(symbol), symbol).toBe(true);
+      for (const symbol of [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`]) expect(exported.has(symbol), symbol).toBe(true);
     });
   }
   for (const name of ["safe-bash-contracts", "safe-bash-csv-engine", "safe-bash-xml-engine", "safe-bash-compression-engine"]) {

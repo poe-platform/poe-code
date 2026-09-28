@@ -1,4 +1,4 @@
-export { signalName } from "safe-bash-command-timeout/signal";
+export { signalName } from "./commands/timeout/index.js";
 export { latin1Text } from "./byte-encoding.js";
 export { jobsExtension } from "./shell/extensions/jobs/index.js";
 export {

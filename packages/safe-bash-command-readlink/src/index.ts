@@ -1,10 +1,10 @@
 import type { CommandDefinition, CommandHandler } from "safe-bash-contracts";
 import { FsError, type CommandContext } from "safe-bash-contracts";
-import { define, diagnostic, eachOperand, options, output, pathOf, requireOperands } from "safe-bash-command-io-engine/internal";
-import { admitFilesystemModes } from "safe-bash-command-io-engine/commands/filesystem-requirements";
+import { define, diagnostic, eachOperand, options, output, pathOf, requireOperands } from "safe-bash-io-engine/internal";
+import { admitFilesystemModes } from "safe-bash-io-engine/commands/filesystem-requirements";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
-import { canonicalizeReadlinkMissing } from "safe-bash-command-io-engine/commands/readlink-missing";
-import { canonicalizeExistingParent } from "safe-bash-command-io-engine/commands/canonicalize-existing-parent";
+import { canonicalizeReadlinkMissing } from "safe-bash-io-engine/commands/readlink-missing";
+import { canonicalizeExistingParent } from "safe-bash-io-engine/commands/canonicalize-existing-parent";
 function needCapability(context: CommandContext, capability: "symlink" | "link" | "readlink" | "utimes"): void {
   const declaration = { symlink: "symlinks", link: "hardlinks", readlink: "readlink", utimes: "timestamps" }[capability];
   if (!context.fs.capabilitiesFor && context.fs.capabilities[declaration] === false) throw new FsError("ENOTSUP", { syscall: capability });

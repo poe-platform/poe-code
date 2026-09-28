@@ -1,5 +1,5 @@
 import { dirname, FsError, type CommandContext } from "safe-bash-contracts";
-import { codeOf } from "safe-bash-command-io-engine/internal";
+import { codeOf } from "safe-bash-io-engine/internal";
 
 /** Resolve final symlinks while allowing their target to be created exclusively. */
 export async function touchTarget(context: CommandContext, path: string): Promise<string> {

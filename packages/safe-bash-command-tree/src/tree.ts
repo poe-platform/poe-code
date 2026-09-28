@@ -1,6 +1,6 @@
 import { compareBytes } from "safe-bash-byte-engine";
 import { FsError, resolvePath, type CommandDefinition, type FileStat } from "safe-bash-contracts";
-import { pathOf } from "safe-bash-command-io-engine/internal";
+import { pathOf } from "safe-bash-io-engine/internal";
 import { compareObservedEntries } from "safe-bash-contracts/filesystem-identity";
 import { parse, help, type Arguments } from "./arguments.js";
 import { escaped, escapedName, message, TreeLimitError, UsageError, WalkBudget } from "./io.js";

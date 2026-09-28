@@ -1,9 +1,9 @@
 import { latin1Text } from "safe-bash-byte-engine";
 import { bytesFrom, concatBytes, filledBytes, equalBytes } from "safe-bash-byte-engine";
 import { getCommandArguments, type CommandDefinition } from "safe-bash-contracts";
-import { integer, options, UsageError, value } from "safe-bash-command-io-engine/internal";
+import { integer, options, UsageError, value } from "safe-bash-io-engine/internal";
 import { Pattern } from "safe-bash-regex-engine/text/regex";
-import { Budget } from "safe-bash-command-io-engine/commands/text-programs/shared";
+import { Budget } from "safe-bash-io-engine/commands/text-programs/shared";
 import { command, forEachRecord, type Session, type StreamFormatLimits } from "safe-bash-text-stream-engine/stream-format/shared";
 
 type Style = "a" | "t" | "n" | Pattern;

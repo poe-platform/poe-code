@@ -2,8 +2,8 @@ import { utf8ByteLength, concatBytes } from "safe-bash-byte-engine";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler } from "safe-bash-contracts";
-import { diagnostic, pathOf } from "safe-bash-command-io-engine/internal";
-import { gnuInformation } from "safe-bash-command-io-engine/gnu-information";
+import { diagnostic, pathOf } from "safe-bash-io-engine/internal";
+import { gnuInformation } from "safe-bash-io-engine/gnu-information";
 
 export interface TableTextLimits {
   readonly maxInputBytes: number;

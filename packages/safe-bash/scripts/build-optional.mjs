@@ -298,9 +298,22 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
       let { specifier } = edge;
       if (privateInput && specifier.startsWith(".")) {
         const target = declaration ? declarationTarget(path.resolve(path.dirname(privateInput.source), specifier)) : path.resolve(path.dirname(privateInput.source), specifier);
-        const route = Object.entries(privateInput.owner.manifest.exports).find(([, pair]) => path.resolve(privateInput.owner.directory, declaration ? pair.types : pair.import) === target)?.[0];
-        if (!route) throw new Error(`Unexported private optional dependency: ${specifier}`);
-        specifier = privateInput.name + (route === "." ? "" : route.slice(1));
+        if (below(path.join(filesystem, "dist"), target)) {
+          const route = publicRoute(fsManifest, filesystem, target, declaration);
+          if (route === undefined) throw new Error(`Unexported private optional dependency: ${specifier}`);
+          specifier = "@poe-platform/safe-fs" + route;
+        } else {
+          const name = path.relative(path.join(root, "packages"), target).split(path.sep)[0];
+          if (!Object.hasOwn(profiles, name)) throw new Error(`Unexported private optional dependency: ${specifier}`);
+          const owner = implementation(name);
+          if (!below(path.join(owner.directory, "dist"), target)) throw new Error(`Unexported private optional dependency: ${specifier}`);
+          const route = Object.entries(owner.manifest.exports).find(([, pair]) => {
+            const relative = declaration ? pair.types : pair.import;
+            return typeof relative === "string" && path.resolve(owner.directory, relative) === target;
+          })?.[0];
+          if (!route) throw new Error(`Unexported private optional dependency: ${specifier}`);
+          specifier = name + (route === "." ? "" : route.slice(1));
+        }
       }
       let replacement = specifier;
       const privateTarget = privateReference(specifier, edge.names, declaration);

@@ -2,7 +2,7 @@ import { tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements, type CommandFileSystemRequirement } from "safe-bash-contracts/command-requirements";
 import { dirname, FsError, type CommandContext } from "safe-bash-contracts";
 import { getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
-import { codeOf } from "safe-bash-command-io-engine/internal";
+import { codeOf } from "safe-bash-io-engine/internal";
 
 export const filesystemCommandRequirements = {
   mkdir: [

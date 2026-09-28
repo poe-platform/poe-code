@@ -1,5 +1,5 @@
 import { readBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
-import { pathOf } from "safe-bash-command-io-engine/internal";
+import { pathOf } from "safe-bash-io-engine/internal";
 import type { Budget } from "./budget.js";
 import { Parser, type HtmlNode } from "./parser.js";
 

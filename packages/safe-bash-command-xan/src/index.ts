@@ -1,5 +1,5 @@
 import { utf8ByteLength } from "safe-bash-byte-engine";
-import { registerDefaultExecutor } from "safe-bash-command-io-engine/internal";
+import { registerDefaultExecutor } from "safe-bash-io-engine/internal";
 import type { CommandContext, CommandDefinition, CommandResult } from "safe-bash-contracts/command";
 import { escapeText } from "safe-bash-contracts/escaping";
 import { FsError } from "safe-bash-contracts/errors";

@@ -31,6 +31,6 @@
   "devDependencies": {
     "@poe-code/safe-fs": "*",
     "safe-bash-contracts": "*",
-    "safe-bash-command-io-engine": "*"
+    "safe-bash-io-engine": "*"
   }
 }

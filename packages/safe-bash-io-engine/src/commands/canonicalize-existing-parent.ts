@@ -1,6 +1,6 @@
 import { basename, dirname, FsError, joinPath, type CommandContext } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { codeOf } from "safe-bash-command-io-engine/internal";
+import { codeOf } from "safe-bash-io-engine/internal";
 
 export async function canonicalizeExistingParent(context: CommandContext, path: string): Promise<string> {
   try { return await context.fs.realpath(path, { signal: context.signal }); }

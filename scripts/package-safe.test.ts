@@ -587,8 +587,8 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.writeFileSync("/repo/packages/safe-fs/dist/core.js", fs.outputFiles[0]!.contents);
     // The command type fixture models only its external filesystem contracts;
     // complete published declarations are checked by the installed consumer.
-    volume.writeFileSync("/repo/packages/safe-fs/dist/core.d.ts", ['errors', 'filesystem', 'io'].map(name => `export * from "./contracts/${name}.js";`).join("\n"));
-    const declarationQueue = ["contracts/errors.ts", "contracts/filesystem.ts", "contracts/io.ts", "platform/browser.ts", "platform/node.ts"], declared = new Set<string>();
+    volume.writeFileSync("/repo/packages/safe-fs/dist/core.d.ts", ['errors', 'filesystem', 'io'].map(name => `export * from "./contracts/${name}.js";`).join("\n") + '\nexport { assertPathWithin, isPathWithin, normalizePath, relativePath, resolvePath, validatePath } from "./contracts/virtual-path.js";\nexport { basename, dirname, extname, isAbsolutePath, joinPath, posixPath } from "./contracts/portable-path.js";');
+    const declarationQueue = ["contracts/virtual-path.ts", "contracts/portable-path.ts", "contracts/errors.ts", "contracts/filesystem.ts", "contracts/io.ts", "platform/browser.ts", "platform/node.ts"], declared = new Set<string>();
     while (declarationQueue.length) {
       const relative = declarationQueue.pop()!;
       if (declared.has(relative)) continue;
@@ -1163,7 +1163,7 @@ describe("scoped safe package artifacts", () => {
       expected["/output/safe-bash/dist/safe-bash-compression-engine/native/" + asset] = data["/repo/packages/safe-bash-compression-engine/dist/native/" + asset]!;
     }
     for (const [name, entries] of [
-      ["safe-bash-command-fold", ["index"]],
+      ["safe-bash-command-fold", ["index", "family"]],
       ["safe-bash-command-dos2unix", ["index"]],
       ["safe-bash-compression-engine", [
         "index", "bounded-codec", "codec-loader", "codec", "crc", "errors", "file-operation", "files",
@@ -1171,7 +1171,7 @@ describe("scoped safe package artifacts", () => {
         "native/bz2", "native/types", "native/xz", "native/zstd",
       ]],
       ["safe-bash-line-ending-engine", ["index", "internal", "io", "stage", "convert", "encoding", "info"]],
-      ["safe-bash-xml-engine", ["document", "evaluate", "io", "limits", "query"]],
+      ["safe-bash-xml-engine", ["document", "evaluate", "io", "json", "limits", "query"]],
     ] as const) {
       for (const entry of entries) expected[`/output/safe-bash/dist/${name}/${entry}.d.ts`] = "export {};\n";
     }

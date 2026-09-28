@@ -1,5 +1,5 @@
 import type { CommandContext, CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
-import { builtInDirectContextExecutors, isDefaultCommandOptions, decoder, encoder, syncCommandEvaluators } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors, isDefaultCommandOptions, decoder, encoder, syncCommandEvaluators } from "safe-bash-io-engine/internal";
 import { execute } from "./apply.js";
 import { settings, type ApplyPatchCommandsOptions } from "./options.js";
 

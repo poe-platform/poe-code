@@ -1,1 +1,1 @@
-export * from "safe-bash-command-io-engine/commands/archive/internal";
+export * from "safe-bash-io-engine/commands/archive/internal";

@@ -15,13 +15,18 @@ const root = "/repo";
 const core = root + "/packages/safe-bash";
 const optional = core;
 
-it.each(["admitted", "drift", "source", "symlink", "alias"])("copies admitted private optional implementations while preserving public contracts: %s", async defect => {
+it.each(["admitted", "linked", "filesystem-link", "unqualified-link", "filesystem-hidden", "drift", "source", "symlink", "alias"])("copies admitted private optional implementations while preserving public contracts: %s", async defect => {
   const { volume, options } = fixture();
   const name = "safe-bash-command-fixture";
   const directory = root + "/packages/" + name;
+  const reference = defect === "linked" ? "../../safe-bash-contracts/dist/command.js"
+    : defect === "unqualified-link" ? "../../unadmitted/dist/command.js"
+    : defect === "filesystem-link" ? "../../safe-fs/dist/index.js"
+    : defect === "filesystem-hidden" ? "../../safe-fs/dist/hidden.js"
+    : "safe-bash-contracts/command";
   volume.mkdirSync(directory + "/dist", { recursive: true });
-  volume.writeFileSync(directory + "/dist/index.js", 'import { commandRuntimeIdentity } from "safe-bash-contracts/command"; export const yesCommands = () => commandRuntimeIdentity;\n');
-  volume.writeFileSync(directory + "/dist/index.d.ts", 'import type { CommandDefinition } from "safe-bash-contracts/command"; export declare function yesCommands(): CommandDefinition;\n');
+  volume.writeFileSync(directory + "/dist/index.js", `import { commandRuntimeIdentity } from "${reference}"; export const yesCommands = () => commandRuntimeIdentity;\n`);
+  volume.writeFileSync(directory + "/dist/index.d.ts", `import type { CommandDefinition } from "${reference}"; export declare function yesCommands(): CommandDefinition;\n`);
   volume.writeFileSync(directory + "/package.json", JSON.stringify({
     name, private: true, type: "module", version: defect === "drift" ? "0.0.2" : "0.0.1", dependencies: {}, devDependencies: {},
     exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
@@ -39,17 +44,21 @@ it.each(["admitted", "drift", "source", "symlink", "alias"])("copies admitted pr
   };
   manifest.poeCode.integration.privateWorkspaces["safe-bash-contracts"].publicAlias = defect === "alias" ? "@poe-platform/safe-bash/hidden" : "@poe-platform/safe-bash/contracts";
   volume.writeFileSync(core + "/package.json", JSON.stringify(manifest));
-  if (defect !== "admitted") await expect(buildOptionalPackage(options)).rejects.toThrow();
+  if (!["admitted", "linked", "filesystem-link"].includes(defect)) await expect(buildOptionalPackage(options)).rejects.toThrow();
   else {
     await expect(buildOptionalPackage(options)).resolves.toMatchObject({ status: 0 });
-    expect(volume.readFileSync(core + "/dist/opt-in/commands/yes/index.js", "utf8")).toContain('@poe-platform/safe-bash/contracts/command');
+    expect(volume.readFileSync(core + "/dist/opt-in/commands/yes/index.js", "utf8")).toContain(defect === "filesystem-link" ? '@poe-platform/safe-fs' : '@poe-platform/safe-bash/contracts/command');
     expect(volume.readFileSync(core + "/dist/opt-in/commands/yes/index.d.ts", "utf8")).not.toContain('safe-bash-contracts');
   }
 });
 
 function fixture() {
+  const manifest = structuredClone(bashManifest);
+  // This fixture models inline optional modules; private admission is exercised separately.
+  for (const profile of Object.values(manifest.poeCode.integration.privateWorkspaces) as { optionalModules?: unknown }[]) delete profile.optionalModules;
   const data: Record<string, string | Buffer> = {
-    [core + "/package.json"]: JSON.stringify({ ...bashManifest, exports: { ...bashManifest.exports, "./optional-host": { types: "./dist/optional-host.d.ts", import: "./dist/optional-host.js" } } }),
+    [root + "/packages/safe-bash-contracts/package.json"]: readFileSync(new URL("../packages/safe-bash-contracts/package.json", import.meta.url), "utf8"),
+    [core + "/package.json"]: JSON.stringify({ ...manifest, exports: { ...manifest.exports, "./optional-host": { types: "./dist/optional-host.d.ts", import: "./dist/optional-host.js" } } }),
     [root + "/packages/safe-fs/package.json"]: JSON.stringify(fsManifest),
     ...Object.fromEntries(Object.entries(configurations).map(([name, contents]) => [core + "/" + name, contents])),
     [core + "/src/optional.ts"]: "export {};\n",

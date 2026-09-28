@@ -1,4 +1,4 @@
-import { registerDefaultExecutor, registerDefaultExecutors } from "safe-bash-command-io-engine/internal";
+import { registerDefaultExecutor, registerDefaultExecutors } from "safe-bash-io-engine/internal";
 import { compareVersions } from "./sort.js";
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
 import { createTreeCommand } from "./tree.js";

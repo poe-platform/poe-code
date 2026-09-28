@@ -57,6 +57,6 @@
     "@poe-code/safe-fs": "*",
     "safe-bash-table-text-engine": "*",
     "safe-bash-byte-engine": "*",
-    "safe-bash-command-io-engine": "*"
+    "safe-bash-io-engine": "*"
   }
 }

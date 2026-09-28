@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors, syncCommandEvaluators } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "safe-bash-io-engine/internal";
 import { FsError, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandInvoker, type VirtualShellPlugin } from "safe-bash-contracts";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { parseDuration } from "./duration.js";
@@ -386,3 +386,4 @@ export function timeoutCommands(options?: TimeoutCommandsOptions): VirtualShellP
 }
 
 syncCommandEvaluators.evalSyncTimeout = evalSyncTimeout;
+export { signalName } from "./signal.js";

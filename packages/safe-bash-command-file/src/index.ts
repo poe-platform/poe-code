@@ -1,6 +1,6 @@
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { FsError, readBytes, toByteSource, type ByteSource, type CommandContext, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "safe-bash-contracts";
-import { pathOf, registerDefaultExecutor } from "safe-bash-command-io-engine/internal";
+import { pathOf, registerDefaultExecutor } from "safe-bash-io-engine/internal";
 import { classify, type Classification } from "./classify.js";
 import { limitMessage, FileFailure, FileLimitError, settings, SharedBudget, type FileCommandsOptions } from "./shared.js";
 

@@ -1,4 +1,4 @@
-import { registerDefaultExecutor } from "safe-bash-command-io-engine/internal";
+import { registerDefaultExecutor } from "safe-bash-io-engine/internal";
 import type { CommandDefinition } from "safe-bash-contracts/command";
 import { commandRuntimeIdentity, getCommandArguments } from "safe-bash-contracts/command";
 import { shellValueByteLength } from "safe-bash-contracts/value";

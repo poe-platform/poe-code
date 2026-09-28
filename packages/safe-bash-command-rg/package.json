@@ -38,6 +38,6 @@
     "@poe-code/safe-fs": "*",
     "safe-bash-byte-engine": "*",
     "safe-bash-regex-engine": "*",
-    "safe-bash-command-io-engine": "*"
+    "safe-bash-io-engine": "*"
   }
 }

@@ -1998,3 +1998,17 @@ for (const defect of ['none', 'declaration', 'runtime', 'source-import']) test(`
   }
   noHeldReads(owned);
 });
+
+test("relocated op declarations preserve linked canonical contract imports", async () => {
+  const contract = { type: "module", name: "safe-bash-contracts", version: "0.0.1", private: true, dependencies: {}, devDependencies: {}, exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } };
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", private: true, devDependencies: { "safe-bash-command-op": "*", "safe-bash-contracts": "*" }, poeCode: { integration: { privateWorkspaces: { "safe-bash-contracts": { version: "0.0.1", dependencies: {}, devDependencies: {} } } } } }),
+    "../safe-bash-contracts/package.json": JSON.stringify(contract),
+    "../safe-bash-contracts/dist/index.d.ts": "export interface Contract { name: string; }",
+    "../safe-bash-command-op/package.json": JSON.stringify({ name: "safe-bash-command-op", private: true, exports: { ".": { types: "./dist/index.d.ts" } } }),
+    "../safe-bash-command-op/dist/index.d.ts": 'export type { Contract } from "../../safe-bash-contracts/dist/index.js";',
+    "src/index.ts": 'export type { Contract } from "safe-bash-command-op";',
+  });
+  assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  assert.ok(owned.memory.readFileSync(root + "/dist/internal/op/index.d.ts", "utf8").includes('from "safe-bash-contracts"'));
+});

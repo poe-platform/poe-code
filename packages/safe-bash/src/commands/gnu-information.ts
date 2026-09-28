@@ -1,1 +1,1 @@
-export * from "safe-bash-command-io-engine/gnu-information";
+export * from "safe-bash-io-engine/gnu-information";

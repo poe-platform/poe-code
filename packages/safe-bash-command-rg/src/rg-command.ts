@@ -10,8 +10,8 @@ import { diagnostic, Limits, lineBatches, sharedOutBufGeneration, trySyncLineBat
 import { Walker, type FileTarget } from "safe-bash-search-engine/walk";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "safe-bash-regex-engine/execution/portable";
 import { inProcessRegexProviders } from "safe-bash-regex-engine/execution/protocol";
-import { assertPathRequirements, requiredFileInput, searchRequirements } from "safe-bash-command-io-engine/commands/search/requirements";
-import { RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "safe-bash-command-io-engine/internal";
+import { assertPathRequirements, requiredFileInput, searchRequirements } from "safe-bash-io-engine/commands/search/requirements";
+import { RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "safe-bash-io-engine/internal";
 
 const EMPTY_RG_LINES: readonly Line[] = Object.freeze([]);
 const EMPTY_PATTERNS: readonly string[] = Object.freeze([]);

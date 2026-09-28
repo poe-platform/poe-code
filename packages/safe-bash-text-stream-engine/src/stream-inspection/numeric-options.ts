@@ -1,4 +1,4 @@
-import { options, type ParsedOptions } from "safe-bash-command-io-engine/internal";
+import { options, type ParsedOptions } from "safe-bash-io-engine/internal";
 
 export function numericOptions(
   args: readonly string[], short: string, long: Readonly<Record<string, string | false>>, key?: string,

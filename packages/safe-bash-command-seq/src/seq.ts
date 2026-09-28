@@ -1,6 +1,6 @@
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import type { CommandDefinition } from "safe-bash-contracts";
-import { UsageError } from "safe-bash-command-io-engine/internal";
+import { UsageError } from "safe-bash-io-engine/internal";
 import { command, type Session, type StreamFormatLimits } from "safe-bash-text-stream-engine/stream-format/shared";
 
 interface Decimal { readonly coefficient: bigint; readonly scale: number; readonly precision: number; readonly negativeZero: boolean; readonly width: number }

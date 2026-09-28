@@ -6,7 +6,7 @@ import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "safe-bash-con
 import { reusableBatchRows, trustedInputRows } from "safe-bash-regex-engine/execution/protocol";
 import { readBytes, writeBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
 import { SearchError, type SearchOptions } from "./options.js";
-import { assertPathRequirements, searchRequirements } from "safe-bash-command-io-engine/commands/search/requirements";
+import { assertPathRequirements, searchRequirements } from "safe-bash-io-engine/commands/search/requirements";
 
 export function pathFor(context: CommandContext, path: string): string {
   if (!path || path.includes("\0")) throw new SearchError("invalid empty or NUL-containing path");

@@ -1,5 +1,5 @@
 import type { CommandDefinition } from "safe-bash-contracts";
-import { integer, UsageError, value } from "safe-bash-command-io-engine/internal";
+import { integer, UsageError, value } from "safe-bash-io-engine/internal";
 import { dataMode, stringRegions } from "safe-bash-text-stream-engine/stream-inspection/strings-object";
 import { numericOptions } from "safe-bash-text-stream-engine/stream-inspection/numeric-options";
 import { command, RecordBuffer, type StreamInspectionLimits } from "safe-bash-text-stream-engine/stream-inspection/shared";

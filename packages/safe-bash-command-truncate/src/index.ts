@@ -1,6 +1,6 @@
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { commandRuntimeIdentity, FsError, dirname, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandResult, type FileStat, type FileSystemCapabilities, type VirtualShellPlugin } from "safe-bash-contracts";
-import { builtInDirectContextExecutors, isDefaultCommandOptions, codeOf, pathOf, syncCommandEvaluators } from "safe-bash-command-io-engine/internal";
+import { builtInDirectContextExecutors, isDefaultCommandOptions, codeOf, pathOf, syncCommandEvaluators } from "safe-bash-io-engine/internal";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { argumentBytes, helpText, maximumSize, minimumSize, parseArguments, quote, TruncateError, type TruncateArguments } from "./arguments.js";
 

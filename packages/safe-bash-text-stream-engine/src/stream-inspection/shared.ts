@@ -1,8 +1,8 @@
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { createBufferedOutput, FsError, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
-import { diagnostic, pathOf } from "safe-bash-command-io-engine/internal";
-import { gnuInformation } from "safe-bash-command-io-engine/gnu-information";
+import { diagnostic, pathOf } from "safe-bash-io-engine/internal";
+import { gnuInformation } from "safe-bash-io-engine/gnu-information";
 
 export interface StreamInspectionLimits {
   readonly maxInputBytes: number;

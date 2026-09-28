@@ -2,8 +2,8 @@ import { shellValueByteLength } from "safe-bash-contracts/value";
 import type { CommandDefinition, CommandHandler } from "safe-bash-contracts";
 import { FsError, getCommandArguments } from "safe-bash-contracts";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
-import { define, output, pathOf, UsageError, value } from "safe-bash-command-io-engine/internal";
-import { EnvSplitError, parseEnvOptions, type EnvSplitLimits } from "safe-bash-command-io-engine/commands/env-split";
+import { define, output, pathOf, UsageError, value } from "safe-bash-io-engine/internal";
+import { EnvSplitError, parseEnvOptions, type EnvSplitLimits } from "safe-bash-io-engine/commands/env-split";
 import type { VirtualShellPlugin } from "safe-bash-contracts";
 export interface EnvLimits { readonly maxArgumentBytes: number; }
 export interface EnvCommandsOptions { readonly envSplitLimits?: EnvSplitLimits; readonly replace?: boolean; readonly execute?: CommandHandler; readonly limits?: Partial<EnvLimits>; }

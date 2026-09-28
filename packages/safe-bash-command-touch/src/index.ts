@@ -1,11 +1,11 @@
 import type { CommandDefinition, CommandHandler } from "safe-bash-contracts";
 import { tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import { basename, dirname, FsError, type CommandContext, type FileStat, type FileSystem } from "safe-bash-contracts";
-import { codeOf, define, eachOperand, options, pathOf, requireOperands, UsageError, value } from "safe-bash-command-io-engine/internal";
-import { admitFilesystemModes } from "safe-bash-command-io-engine/commands/filesystem-requirements";
+import { codeOf, define, eachOperand, options, pathOf, requireOperands, UsageError, value } from "safe-bash-io-engine/internal";
+import { admitFilesystemModes } from "safe-bash-io-engine/commands/filesystem-requirements";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
-import { touchTimes } from "safe-bash-command-io-engine/commands/touch-times";
-import { touchTarget } from "safe-bash-command-io-engine/commands/touch-target";
+import { touchTimes } from "safe-bash-io-engine/commands/touch-times";
+import { touchTarget } from "safe-bash-io-engine/commands/touch-target";
 import { getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 const TOUCH_LONG_OPTIONS = Object.freeze({ "no-create": "c", "no-dereference": "h", reference: "r", date: "d", time: "time:" } as const);
 async function preflightOperands(

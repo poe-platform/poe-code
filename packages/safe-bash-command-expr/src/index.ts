@@ -1,4 +1,4 @@
-import { registerDefaultExecutor } from "safe-bash-command-io-engine/internal";
+import { registerDefaultExecutor } from "safe-bash-io-engine/internal";
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
 import { RegexExecutor } from "safe-bash-regex-engine/execution/portable";
 import { createBoundedRegexProvider } from "safe-bash-regex-engine/execution/bounded-provider";

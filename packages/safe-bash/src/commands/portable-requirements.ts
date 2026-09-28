@@ -1,1 +1,1 @@
-export * from "safe-bash-command-io-engine/portable-requirements";
+export * from "safe-bash-io-engine/portable-requirements";

@@ -132,15 +132,7 @@ export class Budget {
       if (now - this.yieldTimes[0]! >= 25) return true;
       if (checkpoint) return this.steps - this.lastYieldSteps >= 1024;
     }
-    // Even fast finite workloads must eventually let host timers run.
-    if (this.steps - this.lastYieldSteps >= 65536) {
-      if (!checkTime && this.yieldTimes[0]! >= 0 && this.steps < 524288 && monotonicNow() - this.yieldTimes[0]! < 20) {
-        this.lastYieldSteps = this.steps;
-        return false;
-      }
-      return true;
-    }
-    return false;
+    return this.steps - this.lastYieldSteps >= 65536;
   }
   ensureFreshWindow(): Promise<void> | undefined {
     const now = monotonicNow();

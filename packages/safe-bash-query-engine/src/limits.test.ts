@@ -30,13 +30,13 @@ test("late checkpoint binding includes real time elapsed since reset", async () 
   assert.equal(budget.currentSteps, 0);
 });
 
-for (const start of [0, 2 ** 32 + 100]) test(`untracked yield admission preserves the clock window at ${start}`, context => {
+for (const start of [0, 2 ** 32 + 100]) test(`untracked work quantum remains due inside the clock window at ${start}`, context => {
   let now = start;
   context.mock.method(performance, "now", () => now);
   const budget = new Budget(resolveJqLimits(), new AbortController().signal);
   budget.step(65536);
   now += 19;
-  assert.equal(budget.needsYield(), false);
+  assert.equal(budget.needsYield(), true);
   budget.step(65536);
   now++;
   assert.equal(budget.needsYield(), true);
@@ -132,4 +132,22 @@ test("synchronous budget admission rejects exactly the first excess step", () =>
   assert.equal(budget.tickSync(), undefined);
   assert.equal(budget.tickSync(0), undefined);
   assert.throws(() => budget.tickSync(), JqLimitError);
+});
+
+test("query fast admission yields every quantum with a frozen clock", async context => {
+  context.mock.method(performance, "now", () => 0);
+  context.mock.method(Date, "now", () => 0);
+  const budget = new Budget(resolveJqLimits(), new AbortController().signal);
+  for (let quantum = 1; quantum <= 3; quantum++) {
+    budget.step(65536);
+    assert.equal(budget.needsYield(), true);
+    let observed = false;
+    const host = setImmediate(() => { observed = true; });
+    context.after(() => clearImmediate(host));
+    const pending = budget.tickSync(0);
+    assert.ok(pending instanceof Promise);
+    await pending;
+    assert.equal(observed, true);
+    assert.equal(budget.currentSteps, quantum * 65536);
+  }
 });

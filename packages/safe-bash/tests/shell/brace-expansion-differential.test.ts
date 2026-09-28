@@ -52,6 +52,14 @@ const cases = [
   ["compound array values expand", "values=({a,b} {01..03}); printf '<%s>\\n' \"${values[@]}\""],
   ["indexed array assignment remains scalar", "values[2]={a,b}; printf '<%s>\\n' \"${values[@]}\""],
   ["indexed compound entries become expanded ordinary values", "values=([2]={a,b} [5]={1..3}); printf '<%s>\\n' \"${values[@]}\""],
+  ["indexed compound append expands ordinary values", "values=(seed); values+=([2]={a,b}); printf '<%s>\\n' \"${values[@]}\""],
+  ["indexed compound mixed entries preserve lexical order", "values=([2]={a,b} tail [5]=last); printf '<%s>\\n' \"${values[@]}\""],
+  ["indexed compound quoted braces stay scalar", "values=([2]=\"{a,b}\" [5]='{1..3}'); printf '<%s>\\n' \"${values[@]}\""],
+  ["indexed compound disabled braces stay scalar", "set +B; values=([2]={a,b} [5]={1..3}); printf '<%s>\\n' \"${values[@]}\""],
+  ["indexed compound nonexpanding braces retain index", "values=([2]={single} [5]=last); printf '<%s>\\n' \"${!values[@]}\" \"${values[@]}\""],
+  ["associative compound brace keys stay literal", "declare -A m; m=([{a,b}]=x); printf '<%s>\\n' \"${!m[@]}\" \"${m[@]}\""],
+  ["associative compound brace keys preserve loop effects", "declare -A m; f(){ for i in 1 2; do printf '<%s>\\n' \"before:$i\"; m=([{single}]=x); printf '<%s>\\n' \"after:$i\"; done; }; f"],
+  ["indexed compound braces preserve loop effects", "f(){ for i in 1 2; do printf '<%s>\\n' \"before:$i\"; values=([2]={a,b}); printf '<%s>\\n' \"after:$i\" \"${values[@]}\"; done; }; f"],
   ["conditional operands do not brace expand", String.raw`[[ {a,b} == '{a,b}' ]]; printf '%s\n' "$?"; case '{a,b}' in {a,b}) printf 'matched\n';; *) printf 'missed\n';; esac`],
   ["here strings do not brace expand", String.raw`cat <<< {a,b}`],
   ["heredocs do not brace expand", "cat <<'END'\n{a,b} {1..3}\nEND\n"],
@@ -74,6 +82,8 @@ const cases = [
 // The original oracle was GNU Bash 5.0.17; see docs/plans/bugfix-637-brace-expansion.md.
 // These contracts retain stepped/padded ranges and lexical replay on older hosts.
 const modernContracts = new Map<string, readonly string[]>([
+  ["associative compound brace keys stay literal", ["{a,b}", "x"]],
+  ["associative compound brace keys preserve loop effects", ["before:1", "after:1", "before:2", "after:2"]],
   ["ascending descending and stepped numbers", ["1", "3", "5", "5", "3", "1", "-3", "-1", "1", "3", "3", "1", "-1", "-3"]],
   ["zero and negative steps", ["1", "2", "3", "1", "3", "5", "5", "3", "1"]],
   ["padding across signs", ["-03", "-01", "001", "003", "003", "002", "001", "000", "-01", "001", "002", "003", "0", "1", "2"]],

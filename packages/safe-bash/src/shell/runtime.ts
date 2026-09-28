@@ -4680,6 +4680,10 @@ export class Runtime {
     // Cold activation belongs to normal command handling, which maps array refusals.
     const store = monitor?.store ?? (monitor && (this.budget.limits.maxExpansionBytes === Infinity && this.budget.limits.maxExpansionFields === Infinity) ? requireArrays(rawState) : undefined);
     let current = store?.get(name);
+    if (assignment.kind === "compound" && !(associative ?? current?.associative) && state.braceexpand !== false && assignment.entries.some(entry => {
+      const original = compoundEntryWords.get(entry);
+      return entry.index !== undefined && original?.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"));
+    })) return false;
     if ( !monitor || !store || store.watches.has(name) || monitor.hasOverlay(name) || (current && (current.references !== 1 || (associative !== undefined && current.associative !== associative))) || (!current && rawState.variables[name] !== undefined)) {
       return false;
     }

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 import { ShellLimitError } from "../../src/shell/index.js";
 
@@ -38,6 +39,47 @@ for (const [script, expected] of cases) test(`GNU Bash 5.2.37 prefix-name expans
     assert.equal(result.stdout, expected.map(row => JSON.stringify(row)).join(""));
   } finally { await shell.dispose(); }
 });
+
+for (const [prefix, expression, redirect] of [
+  ["set -u;", "", ""],
+  ["", "-o noglob || ", ""],
+  ["", "", " 2>/dev/null"],
+] as const) for (const operand of ['${!ZZ@}', '"${!ZZ@}"', '${!ZZ*}', '"${!ZZ*}"']) {
+  test(`async conditional prefix names: ${prefix} ${expression} ${operand} ${redirect}`, async () => {
+    const { shell } = setup();
+    try {
+      await shell.exec("status 0");
+      const expected = operand.includes("@") ? "ZZa ZZb" : "ZZa:ZZb";
+      const result = await shell.exec(`${prefix} ZZb=2; ZZa=1; IFS=:; for i in 1 2; do [[ ${expression}${operand} == "${expected}" ]]${redirect}; args "$?"; done`);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, '["0"]'.repeat(2));
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const operator of ["@", "*"]) for (const substitution of [
+  'f',
+  'case "${!ZZOP}" in "ZZa:ZZb") echo colon;; "ZZa ZZb") echo space;; esac',
+  'if [[ "${!ZZ*}" == "ZZa:ZZb" ]]; then echo colon; else echo space; fi',
+]) for (const context of ["document", "conditional"]) {
+  test(`substitution resets ${context} prefix-name context: ${operator} ${substitution}`, async () => {
+    const { shell } = setup();
+    try {
+      for (const command of basicCommands()) shell.register(command);
+      await shell.exec("status 0");
+      const command = substitution.replaceAll("ZZOP", `ZZ${operator}`);
+      const expected = command === "f" ? "ZZa:ZZb" : "colon";
+      const body = context === "document"
+        ? `pass <<DOC\n$(${command})\nDOC\n`
+        : `[[ "$(${command})" == "${expected}" ]]; echo "$?";`;
+      const result = await shell.exec(`ZZb=2; ZZa=1; IFS=:; f() { local x="\${!ZZ${operator}}"; echo "$x"; }; for i in 1 2; do ${body} done`);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, (context === "document" ? `${expected}\n` : "0\n").repeat(2));
+    } finally { await shell.dispose(); }
+  });
+}
 
 for (const source of ["${!*}", "${!@}", "${!ZZ@:-x}"]) test(`unsupported indirect syntax remains refused: ${source}`, async () => {
   const { shell } = setup();

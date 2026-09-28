@@ -754,3 +754,16 @@ for (const expression of ["cat /raw", "cat </raw", "</raw", "cat /raw | tr A B"]
     } finally { await shell.dispose(); }
   });
 }
+
+for (const [format, value, expected] of [
+  ["%.1s", "é", Uint8Array.of(195)],
+  ["%4s", "é", Uint8Array.of(32, 32, 195, 169)],
+  ["%.3s", "🙂", Uint8Array.of(240, 159, 153)],
+] as const) test(`UTF-8 printf uses byte precision and padding: ${format}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  try {
+    const result = await shell.exec(`printf '${format}' '${value}'`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, expected);
+  } finally { await shell.dispose(); }
+});

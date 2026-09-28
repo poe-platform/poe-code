@@ -324,6 +324,10 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
       if (conv === 115 && !zeroPad) {
         const rawVal = args[argument++] ?? "";
         if (rawVal.includes("\0")) return undefined;
+        // String slicing and padding match byte semantics only for ASCII.
+        if (precision >= 0 || width > 0) {
+          for (let i = 0; i < rawVal.length; i++) if (rawVal.charCodeAt(i) >= 128) return undefined;
+        }
         const val = precision >= 0 ? rawVal.slice(0, precision) : rawVal;
         if (width > val.length) {
           const pad = " ".repeat(width - val.length);

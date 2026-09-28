@@ -52,6 +52,27 @@ it.each([false, true])("normalizes local-name marks in retained ODF text (nested
     expect(reopened.sheets[0]!.cells[0]!.value).toEqual(book.sheets[0]!.cells[0]!.value);
   }
 });
+it.each([false, true])("preserves retained hyperlink whitespace through native character data (nested=%s)", async nested => {
+  const link = '<tx:a xl:href="#Data.A1"><tx:s tx:c="2"/>Open<tx:s/>Data<tx:tab/>next<tx:line-break/>end<tx:s tx:c="2"/></tx:a>';
+  const paragraph = '<tx:p>before<tx:s/>' + (nested ? '<tx:span tx:style-name="Emphasis">' + link + '</tx:span>' : link) + '<tx:s/>after</tx:p>';
+  const body = '<t:table t:name="Links"><t:table-row><t:table-cell o:value-type="string">' + paragraph +
+    '</t:table-cell></t:table-row></t:table><t:table t:name="Data"/>';
+  const book = await readOdf(await fixture(body, { "content.xml": content(body,
+    '<s:style s:name="Emphasis" s:family="text"><s:text-properties f:font-weight="bold"/></s:style>') }), context);
+  expect(book.sheets[0]!.cells[0]!.value).toEqual({ kind: "string", value: "before   Open Data\tnext\nend   after" });
+  const before = JSON.stringify(book);
+  for (const profile of ["strict", "extended"] as const) {
+    const bytes = await createOdfWriter(profile)(book, [], context);
+    const xml = (await unpackOdf(bytes)).parts.get("content.xml")!;
+    expect(xml).toContain('<text:a xlink:href="#Data.A1">  Open Data&#9;next&#10;end  </text:a>');
+    expect(xml).toContain('before<text:s/>');
+    expect(xml).toContain('<text:s/>after');
+    if (nested) expect(xml).toContain('<text:span text:style-name="Emphasis">');
+    const reopened = await readOdf(bytes, context);
+    expect(reopened.sheets[0]!.cells[0]!.value).toEqual({ kind: "string", value: "before   Open Data\tnext\nend   after" });
+  }
+  expect(JSON.stringify(book)).toBe(before);
+});
 it("associates cached interior cells and implicit blank cells with their array group", async () => {
   const book = await readOdf(await fixture('<t:table t:name="S"><t:table-row><t:table-cell t:formula="of:=1" t:number-matrix-columns-spanned="2" t:number-matrix-rows-spanned="2" o:value="1"/><t:table-cell o:value="2"/></t:table-row><t:table-row><t:table-cell/><t:table-cell o:value="4"/></t:table-row></t:table>'), context);
   expect(book.sheets[0]!.cells.map(c => [c.row, c.column, c.formulaGroup, c.cachedResult])).toEqual([

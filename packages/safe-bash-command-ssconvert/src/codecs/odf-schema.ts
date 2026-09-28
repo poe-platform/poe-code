@@ -1,7 +1,7 @@
 // Reader states derived from Gnumeric 1.12.61 plugins/openoffice/openoffice-read.c
 // Archive SHA-256: 2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12
 // Native label-ranges added from LibreOffice sc/source/filter/xml/xmllabri.cxx;
-// content page-layouts follow ODF 1.2 office-automatic-styles.
+// Content page-layouts and hyperlink line breaks follow the ODF 1.2 schema.
 export const odfReaderStates: Readonly<Record<string, string>> = {
   opendoc_content_dtd: `START OFFICE OO_NS_OFFICE document-content
 OFFICE SCRIPT OO_NS_OFFICE scripts
@@ -113,6 +113,7 @@ TEXT_SPAN TEXT_LINE_BREAK OO_NS_TEXT line-break
 TEXT_SPAN TEXT_TAB OO_NS_TEXT tab
 TEXT_SPAN TEXT_ADDR OO_NS_TEXT a
 TEXT_ADDR TEXT_S OO_NS_TEXT s
+TEXT_ADDR TEXT_LINE_BREAK OO_NS_TEXT line-break
 TEXT_ADDR TEXT_TAB OO_NS_TEXT tab
 TEXT_ADDR TEXT_SPAN OO_NS_TEXT span
 CONTENT_VALIDATION HELP_MESSAGE OO_NS_TABLE help-message

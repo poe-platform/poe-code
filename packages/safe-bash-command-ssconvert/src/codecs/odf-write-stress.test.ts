@@ -112,6 +112,43 @@ it("preserves indexed retained mixed text order and rejects invalid child indice
   }
 });
 
+it("bounds retained hyperlink space expansion before allocation and validates counts", () => {
+  const spaces: Record<string, ImportedValue> = { name: "s", namespace: odfNamespaces.text!, attributes: [
+    { name: "c", namespace: odfNamespaces.text!, value: "100001" }
+  ] };
+  const source: ImportedValue = { name: "a", namespace: odfNamespaces.text!, attributes: [
+    { name: "href", namespace: odfNamespaces.xlink!, value: "#S.A1" }
+  ], children: [spaces] };
+  const normalize = (href: string) => href;
+  expect(() => createOdfXml(context, true).retained(source, 0, normalize)).toThrow("output bytes limit");
+  for (const count of ["-1", "1.5", "Infinity"]) {
+    spaces.attributes = [{ name: "c", namespace: odfNamespaces.text!, value: count }];
+    expect(() => createOdfXml(context, true).retained(source, 0, normalize)).toThrow("Invalid OpenDocument whitespace count");
+  }
+  spaces.attributes = [{ name: "c", namespace: odfNamespaces.text!, value: "1000" }];
+  expect(() => createOdfXml({ ...context, limits: { ...context.limits, workbookWork: 500 } }, true)
+    .retained(source, 0, normalize)).toThrow("work limit");
+  expect(createOdfXml(context, true).retained(source)).toContain('<text:s text:c="1000"/>');
+});
+
+it("preserves retained hyperlink whitespace defaults and additional semantics", () => {
+  const source: ImportedValue = { name: "a", namespace: odfNamespaces.text!, attributes: [
+    { name: "href", namespace: odfNamespaces.xlink!, value: "#S.A1" }
+  ], children: [
+    { name: "s", namespace: odfNamespaces.text! },
+    { name: "s", namespace: odfNamespaces.text!, attributes: [{ name: "c", namespace: odfNamespaces.text!, value: "0" }] },
+    { name: "tab", namespace: odfNamespaces.text! },
+    { name: "line-break", namespace: odfNamespaces.text! },
+    { name: "s", namespace: odfNamespaces.text!, attributes: [{ name: "id", namespace: odfNamespaces.xml!, value: "space" }] },
+    { name: "tab", namespace: odfNamespaces.text!, text: "kept" },
+    { name: "span", namespace: odfNamespaces.text!, children: [{ name: "s", namespace: odfNamespaces.text! }] }
+  ] };
+  const before = JSON.stringify(source);
+  expect(createOdfXml(context, true).retained(source, 0, href => href)).toBe(
+    '<text:a xlink:href="#S.A1"> &#9;&#10;<text:s xml:id="space"/><text:tab>kept</text:tab><text:span><text:s/></text:span></text:a>');
+  expect(JSON.stringify(source)).toBe(before);
+});
+
 it("cancels during an admitted export without mutating the workbook", async () => {
   const controller = new AbortController(), reason = { cancelled: "during-export" };
   const book: Workbook = { sheets: [{ id: "S", name: "S", cells: [

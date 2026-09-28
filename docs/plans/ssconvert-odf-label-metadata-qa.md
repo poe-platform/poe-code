@@ -193,6 +193,17 @@ string transport as native recalculation qualification.
     namespace and resource guards intact. Inspect the command transcript and
     purge the four generated packages after recording their observations.
 
+    For unchanged hyperlink labels, compare ODF 1.2 `text-a`/`paragraph-content`
+    with Calc's `ScXMLCellFieldURLContext`. Independently construct direct and
+    outer-bold-span hyperlinks containing leading/repeated/trailing `text:s`,
+    `text:tab` and `text:line-break`, with ordinary text before and after them.
+    Verify the import retains LF, then export through compiled SDK and command
+    in both ODF profiles. Require native CSV readback to preserve exact spaces,
+    tabs and line breaks, and independent XML inspection to retain outer styles.
+    Check zero/default counts, pre-allocation work/output bounds, additional
+    semantic attributes and input identity. Styled children inside hyperlinks
+    and actual navigation require separate native qualification.
+
 17. Inspect Calc `ScLabelRangesObj::addNew` and `GetRefColRowNames`: declared
     pairs retain the data sheet and project the label's physical column/row,
     without rectangle-offset mapping. Construct independent ODF column/row

@@ -71,7 +71,7 @@ pub fn execute_git_cli_with_http(
     let mut effective_cwd = cwd.to_string();
     let mut idx = 0;
     while idx < args.len() {
-        if args[idx] == "-C" && idx + 1 < args.len() {
+        if filtered.is_empty() && args[idx] == "-C" && idx + 1 < args.len() {
             effective_cwd = if args[idx + 1].starts_with('/') {
                 args[idx + 1].to_string()
             } else {
@@ -924,53 +924,84 @@ pub fn execute_git_cli_with_http(
                 .copied()
                 .filter(|arg| !arg.starts_with('-'))
                 .collect();
-            if subcmd == "checkout"
-                && !sub_args.contains(&"-b")
-                && positionals
-                    .first()
-                    .is_some_and(|arg| crate::cli_history::resolve(fs, &gitdir, arg).is_err())
-                && positionals.iter().all(|arg| {
-                    let path = repository_path(&repo_root, &effective_cwd, arg);
-                    crate::list_files(fs, &gitdir, None)
-                        .unwrap_or_default()
-                        .iter()
-                        .any(|tracked| {
-                            crate::cli_history::matches_path(tracked, std::slice::from_ref(&path))
-                        })
-                })
-            {
-                let paths: Vec<_> = positionals
-                    .iter()
-                    .map(|arg| repository_path(&repo_root, &effective_cwd, arg))
-                    .collect();
-                return match crate::cli_files::restore(
-                    fs, &repo_root, &gitdir, &paths, ":index", false, true,
-                ) {
-                    Ok(()) => CliResult::ok(""),
-                    Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+            let reset_branch = sub_args.contains(&"-B") || sub_args.contains(&"-C");
+            let create_new = reset_branch || sub_args.contains(&"-b") || sub_args.contains(&"-c");
+            if subcmd == "checkout" && !create_new && !positionals.is_empty() {
+                let source = crate::cli_history::resolve(fs, &gitdir, positionals[0]).ok();
+                let path_args = if source.is_some() {
+                    &positionals[1..]
+                } else {
+                    &positionals[..]
                 };
+                let tracked = list_files(fs, &gitdir, None).unwrap_or_default();
+                if !path_args.is_empty()
+                    && (source.is_some()
+                        || path_args.iter().all(|arg| {
+                            let path = repository_path(&repo_root, &effective_cwd, arg);
+                            tracked.iter().any(|tracked| {
+                                crate::cli_history::matches_path(
+                                    tracked,
+                                    std::slice::from_ref(&path),
+                                )
+                            })
+                        }))
+                {
+                    let paths: Vec<_> = path_args
+                        .iter()
+                        .map(|arg| repository_path(&repo_root, &effective_cwd, arg))
+                        .collect();
+                    return match crate::cli_files::restore(
+                        fs,
+                        &repo_root,
+                        &gitdir,
+                        &paths,
+                        source.as_deref().unwrap_or(":index"),
+                        source.is_some(),
+                        true,
+                    ) {
+                        Ok(()) => CliResult::ok(""),
+                        Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+                    };
+                }
             }
-            let create_new = sub_args.contains(&"-b") || sub_args.contains(&"-c");
             let force = sub_args.contains(&"-f") || sub_args.contains(&"--force");
             let Some(&ref_target) = positionals.first() else {
                 return CliResult::err(128, "fatal: missing branch or commit argument\n");
             };
-            let start = match positionals
-                .get(1)
-                .filter(|_| create_new)
-                .map(|rev| crate::cli_history::resolve(fs, &gitdir, rev))
-                .transpose()
-            {
-                Ok(oid) => oid,
-                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            let start = if create_new {
+                if !crate::is_valid_ref(ref_target, true) {
+                    return CliResult::err(
+                        128,
+                        format!("fatal: invalid branch name '{ref_target}'\n"),
+                    );
+                }
+                if !reset_branch
+                    && crate::GitRefManager::exists(
+                        fs,
+                        &gitdir,
+                        &format!("refs/heads/{ref_target}"),
+                    )
+                {
+                    return CliResult::err(
+                        128,
+                        format!("fatal: branch '{ref_target}' already exists\n"),
+                    );
+                }
+                match crate::cli_history::resolve(
+                    fs,
+                    &gitdir,
+                    positionals.get(1).copied().unwrap_or("HEAD"),
+                ) {
+                    Ok(oid) => Some(oid),
+                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                }
+            } else {
+                None
             };
-            if create_new
-                && let Err(e) = branch(fs, &gitdir, ref_target, start.as_deref(), false, false)
-            {
-                return CliResult::err(128, format!("fatal: {}\n", e.message));
-            }
             let resolved_target;
-            let checkout_target = if ref_target.contains(['~', '^']) {
+            let checkout_target = if let Some(start) = start.as_deref() {
+                start
+            } else if ref_target.contains(['~', '^']) {
                 match crate::cli_history::resolve(fs, &gitdir, ref_target) {
                     Ok(oid) => {
                         resolved_target = oid;
@@ -989,12 +1020,26 @@ pub fn execute_git_cli_with_http(
                 None,
                 None,
                 false,
-                false,
+                create_new,
                 false,
                 force,
                 true,
             ) {
-                Ok(()) => CliResult::ok(format!("Switched to branch '{ref_target}'\n")),
+                Ok(()) => {
+                    if create_new
+                        && let Err(e) = branch(
+                            fs,
+                            &gitdir,
+                            ref_target,
+                            start.as_deref(),
+                            true,
+                            reset_branch,
+                        )
+                    {
+                        return CliResult::err(128, format!("fatal: {}\n", e.message));
+                    }
+                    CliResult::ok(format!("Switched to branch '{ref_target}'\n"))
+                }
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }

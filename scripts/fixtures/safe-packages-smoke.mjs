@@ -20,7 +20,7 @@ await privateCommandVerification;
 import "./safe-packages-atomic.mjs";
 import "./safe-packages-diff3.mjs";
 import "./safe-packages-mkdir.mjs";
-import { posix } from "node:path";
+import { posixPath as posix } from "@poe-platform/safe-fs/core";
 import { posixPath as contractPath } from "@poe-platform/safe-bash/contracts";
 import { posixPath as indexedPath } from "@poe-platform/safe-bash/contracts/index";
 import { posixPath as directPath } from "@poe-platform/safe-bash/contracts/path";

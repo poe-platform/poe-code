@@ -23792,9 +23792,9 @@ export class Runtime {
         ia++;
         ib++;
       }
-      let sa = ia;
+      const sa = ia;
       while (ia < a.length && a[ia]! >= "0" && a[ia]! <= "9") ia++;
-      let sb = ib;
+      const sb = ib;
       while (ib < b.length && b[ib]! >= "0" && b[ib]! <= "9") ib++;
       if (sa < ia || sb < ib) {
         const na = BigInt(sa < ia ? a.slice(sa, ia) : "0");

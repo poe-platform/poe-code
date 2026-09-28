@@ -7,6 +7,13 @@ import { CommandRegistry } from "../../src/contracts/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
 
 const cases = [
+  ['assign default loop fallback', 'sp="hello world"; for ((i=0;i<2;i++)); do unset a; echo "${a:-was_unset}" "${a:=now_set}" $sp; done; echo "$a"', 'was_unset now_set hello world\nwas_unset now_set hello world\nnow_set\n'],
+  ['assign default function arguments', 'f() { printf "%s|" "$@"; echo; }; unset a; sp="hello world"; f "${a:-was_unset}" "${a:=now_set}" $sp; echo "$a"', 'was_unset|now_set|hello|world|\nnow_set\n'],
+  ['assign default split fallback', 'unset a; echo "${a:-was_unset}" ${a:=hello world}; echo "$a"', 'was_unset hello world\nhello world\n'],
+  ['assign default later argument fallback', 'unset a; sp="hello world"; echo "${a:-was_unset}" "${a:=now_set}" $sp; echo "$a"', 'was_unset now_set hello world\nnow_set\n'],
+  ['assign unset later argument fallback', 'unset a; sp="hello world"; printf "%s|" "${a-was_unset}" "${a=now_set}" $sp; echo; echo "$a"', 'was_unset|now_set|hello|world|\nnow_set\n'],
+  ['assign default same word fallback', 'unset a; sp="hello world"; echo "${a:-was_unset}" "${a:=now_set}"$sp; echo "$a"', 'was_unset now_sethello world\nnow_set\n'],
+
   ['zero-iteration existing target', 'x=preserve_me; for ((j=5;j<2;j++)); do x=$((j+1)); done; echo "j=$j x=$x"', 'j=5 x=preserve_me\n'],
   ['zero-iteration unset target', 'unset x; for ((j=5;j<2;j++)); do x=$((j+1)); done; echo "j=$j x=${x-UNSET}"', 'j=5 x=UNSET\n'],
   ['zero-iteration unset reference', 'unset x; for ((j=5;j<2;j++)); do x=$((x+1)); done; echo "j=$j x=${x-UNSET}"', 'j=5 x=UNSET\n'],
@@ -25,7 +32,7 @@ const cases = [
 ] as const;
 for (const [name, source, expected] of cases) {
   test(`sync loops preserve ${name}`, async () => {
-    if (name.startsWith('zero-iteration')) {
+    if (name.startsWith('zero-iteration') || name.startsWith('assign ')) {
       const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
       assert.equal(native.status, 0, native.stderr);
       assert.equal(native.stderr, "");

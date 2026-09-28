@@ -11548,9 +11548,8 @@ export class Runtime {
             }
           } else if (part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") {
             if (part.alternate && part.alternate.parts.length > 0) return false;
-          } else if (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+" || part.operator === "=" || part.operator === ":=") {
+          } else if (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") {
             if (!part.alternate || !part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring && p.prefixNames !== "@"))) return false;
-            if ((part.operator === "=" || part.operator === ":=") && (!isShellIdentifier(part.name) || part.name === "OPTIND" || part.name === "PIPESTATUS" || part.name === "_" || rawState.readonlyVariables?.has(part.name) || rawState.variableAttributes?.get(part.name) || stateMonitor(rawState)?.store?.get(part.name))) return false;
           } else if (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") {
             if (!part.alternate || part.alternate.parts.length === 0) return false;
             const q0 = part.alternate.parts[0]!.quoted;
@@ -19245,9 +19244,7 @@ export class Runtime {
             out += converted;
             continue;
           }
-          if ( (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+" || part.operator === "=" || part.operator === ":=") && part.alternate && !rawState.nounset && part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) {
-            const isAssignOp = part.operator === "=" || part.operator === ":=";
-            if (isAssignOp && (!isShellIdentifier(part.name) || part.name === "OPTIND" || part.name === "PIPESTATUS" || part.name === "_" || rawState.readonlyVariables?.has(part.name) || rawState.variableAttributes?.get(part.name) || activeArrayStore?.get(part.name) || monitor?.hasOverlay(part.name) || (i < word.parts.length - 1 && !this.isPureSyncValueWord({ offset: 0, parts: word.parts.slice(i + 1) }, rawState, false)))) return undefined;
+          if ( (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") && part.alternate && !rawState.nounset && part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) {
             const raw = rawVars[part.name];
             const cur = raw === undefined ? undefined : (this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw));
             if (cur !== undefined && typeof cur !== "string") return undefined;
@@ -19260,21 +19257,10 @@ export class Runtime {
                 resolvedScalar = altVal;
               } else resolvedScalar = "";
             } else {
-              const isMissing = cur === undefined || ((part.operator === ":-" || part.operator === ":=") && cur === "");
+              const isMissing = cur === undefined || (part.operator === ":-" && cur === "");
               if (isMissing) {
                 const altVal = this.fastValueWord(part.alternate, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
                 if (typeof altVal !== "string") return undefined;
-                if (isAssignOp) {
-                  if (this._syncArithRawWriteOnly && this._syncArithTouched) {
-                    rawState.variables[part.name] = altVal;
-                    this._syncArithTouched.add(part.name);
-                  } else if (monitor) {
-                    monitor.publishStringVariable(part.name, altVal);
-                  } else {
-                    rawState.variables[part.name] = altVal;
-                  }
-                  if (rawState.allexport) (monitor ? monitor.proxy.exported : rawState.exported).add(part.name);
-                }
                 resolvedScalar = altVal;
               } else resolvedScalar = cur!;
             }

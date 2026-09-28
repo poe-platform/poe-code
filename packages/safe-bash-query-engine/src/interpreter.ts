@@ -1112,7 +1112,7 @@ export class Interpreter {
       if (!isNumber(input)) throw new JqError(`${describe(input, budget)} cannot be ${name}ed`);
       budget.step();
       const n = numberValue(input);
-      yield name === "floor" ? Math.floor(n) : name === "ceil" ? Math.ceil(n) : name === "round" ? Math.round(n) : Math.abs(n);
+      yield name === "floor" ? Math.floor(n) : name === "ceil" ? Math.ceil(n) : name === "round" ? Math.sign(n) * Math.round(Math.abs(n)) : Math.abs(n);
       return;
     }
     if (name === "implode") {
@@ -1122,10 +1122,11 @@ export class Interpreter {
         { const _p = budget.tickSync(); if (_p) await _p; }
         const el = input[i];
         const cp = isNumber(el) ? numberValue(el) : NaN;
-        if (!Number.isInteger(cp) || cp < 0 || cp > 0x10ffff) {
+        if (!isNumber(el)) {
           throw new JqError("implode elements must be Unicode codepoints");
         }
-        out += String.fromCodePoint(cp);
+        const point = Math.trunc(cp);
+        out += String.fromCodePoint(!Number.isFinite(point) || point < 0 || point > 0x10ffff || (point >= 0xd800 && point <= 0xdfff) ? 0xfffd : point);
       }
       budget.value(out);
       yield out;

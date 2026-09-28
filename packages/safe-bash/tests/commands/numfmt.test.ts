@@ -8,6 +8,18 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { PublicDiagnostic } from "../../src/diagnostics.js";
 import { Shell } from "../../src/shell/index.js";
 
+const boundedLimits = {
+  maxArguments: 4096,
+  maxArgumentBytes: 65536,
+  maxFieldRanges: 4096,
+  maxSingleChunkBytes: 32 * 1024 * 1024,
+  maxEmptyChunks: 4096,
+  maxRecordBytes: 1024 * 1024,
+  maxInputBytes: 32 * 1024 * 1024,
+  maxOutputBytes: 32 * 1024 * 1024,
+  maxWork: 16 * 1024 * 1024,
+} as const;
+
 async function format(args: readonly string[], input: string | Uint8Array | ByteSource = "", overrides: Partial<CommandContext> = {}) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
@@ -18,7 +30,7 @@ async function format(args: readonly string[], input: string | Uint8Array | Byte
     stderr: { async write(bytes) { stderr.push(new Uint8Array(bytes)); } },
     signal: new AbortController().signal, ...overrides,
   };
-  const result = await numfmtCommand().execute(context);
+  const result = await numfmtCommand({ limits: boundedLimits }).execute(context);
   return { exitCode: result.exitCode, stdoutHex: Buffer.concat(stdout).toString("hex"), stderrHex: Buffer.concat(stderr).toString("hex") };
 }
 
@@ -351,7 +363,7 @@ test("numfmt no-Buffer plain argv and owned byte carriers retain portable admiss
         const carrier = raw ? createCommandArguments(args.map(argument => shellValueFromBytes(encoder.encode(argument)))) : undefined;
         let stdout = "";
         let stderr = "";
-        const result = await numfmtCommand().execute({ command: "numfmt", args: carrier?.args ?? args, ...(carrier ? { argumentValues: carrier } : {}), cwd: "/", env: { LC_ALL: "C" }, fs, signal: new AbortController().signal,
+        const result = await numfmtCommand({ limits: boundedLimits }).execute({ command: "numfmt", args: carrier?.args ?? args, ...(carrier ? { argumentValues: carrier } : {}), cwd: "/", env: { LC_ALL: "C" }, fs, signal: new AbortController().signal,
           stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(); } },
           stdout: { async write(bytes) { stdout += decoder.decode(bytes); } },
           stderr: { async write(bytes) { stderr += decoder.decode(bytes); } },

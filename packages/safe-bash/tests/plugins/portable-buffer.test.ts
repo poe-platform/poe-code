@@ -5,7 +5,17 @@ test("core imports and executes commands without a host Buffer", async () => {
   // Initialize Node's lazy web globals before simulating a non-Node host.
   new Request("https://example.test");
   const native = globalThis.Buffer;
-  Reflect.set(globalThis, "Buffer", undefined);
+  let installed: typeof globalThis.Buffer | undefined;
+  Object.defineProperty(globalThis, "Buffer", {
+    configurable: true,
+    get() {
+      if (installed !== undefined) return installed;
+      return new Error().stack?.includes("/tsx/dist/") ? native : undefined as unknown as typeof globalThis.Buffer;
+    },
+    set(value: typeof globalThis.Buffer) {
+      installed = value;
+    },
+  });
   try {
     const core = await import("../../src/core.js");
     const fs = new core.MemoryFileSystem();
@@ -47,5 +57,5 @@ test("core imports and executes commands without a host Buffer", async () => {
         assert.ok(result.stdout.includes("a.txt"));
       }
     } finally { await shell.dispose(); }
-  } finally { globalThis.Buffer = native; }
+  } finally { Object.defineProperty(globalThis, "Buffer", { configurable: true, writable: true, value: native }); }
 });

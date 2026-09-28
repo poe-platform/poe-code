@@ -4,7 +4,17 @@ import test from "node:test";
 test("standalone shell installs Buffer before evaluating runtime modules", async () => {
   new Request("https://example.test");
   const native = globalThis.Buffer;
-  Reflect.set(globalThis, "Buffer", undefined);
+  let installed: typeof globalThis.Buffer | undefined;
+  Object.defineProperty(globalThis, "Buffer", {
+    configurable: true,
+    get() {
+      if (installed !== undefined) return installed;
+      return new Error().stack?.includes("/tsx/dist/") ? native : undefined as unknown as typeof globalThis.Buffer;
+    },
+    set(value: typeof globalThis.Buffer) {
+      installed = value;
+    },
+  });
   try {
     const { Shell } = await import("../../src/shell/index.js");
     const { MemoryFileSystem } = await import("../../src/fs/memory/index.js");
@@ -44,7 +54,7 @@ test("standalone shell installs Buffer before evaluating runtime modules", async
     const borrowed = portable.prototype as unknown as { utf8Slice(this: Uint8Array, start: number, end: number): string };
     assert.equal(borrowed.utf8Slice.call(new TextEncoder().encode("héllo"), 1, 3), "é");
     assert.equal(borrowed.utf8Slice.call(new TextEncoder().encode("\uFEFFhello"), 0, 8), "\uFEFFhello");
-  } finally { globalThis.Buffer = native; }
+  } finally { Object.defineProperty(globalThis, "Buffer", { configurable: true, writable: true, value: native }); }
 });
 
 test("portable bootstrap preserves an existing native Buffer", async () => {

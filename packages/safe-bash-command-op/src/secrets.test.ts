@@ -146,7 +146,7 @@ describe("secret handlers", () => {
     let release!: () => void;
     let entered!: () => void;
     const writing = new Promise<void>(resolve => { entered = resolve; });
-    const writeFile = mock.fn(async (_path: string, _data: Uint8Array, _options?: { mode?: number; overwrite?: boolean }) => { entered(); await new Promise<void>(resolve => { release = resolve; }); });
+    const writeFile = mock.fn(async (_path: string, _data: Uint8Array, _options?: { mode?: number | undefined; overwrite?: boolean }) => { entered(); await new Promise<void>(resolve => { release = resolve; }); });
     test.context.writeFile = writeFile;
     const pending = test.call("read", [reference], { "out-file": "key", force: true });
     await writing;

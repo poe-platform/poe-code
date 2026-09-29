@@ -108,7 +108,7 @@ test("independent: execution cannot acquire uncached files or mutate cached bina
 
 test("independent: binary document output preserves exact bytes and approved file options", async () => {
   let backendCalls = 0;
-  const writes: { path: string; bytes: Uint8Array; mode?: number; overwrite?: boolean }[] = [];
+  const writes: { path: string; bytes: Uint8Array; mode?: number | undefined; overwrite?: boolean }[] = [];
   const binary = Buffer.from([0, 255, 128, 10]);
   const handler = createDocumentHandlers({ async execute() { backendCalls++; return binary; } })["document get"] as OpPreparedHandler;
   const outer = request("document", "get", ["synthetic"], { "out-file": "literal.bin", "file-mode": "0640", force: true, encoding: "gbk" });

@@ -3127,6 +3127,39 @@
         "out/ssconvert-odf-settings/rich-underline-native.json"
       ],
       "remaining": "Double-accounting import fidelity, wavy rendering and continuity across runs are unresolved. Calc readback establishes text and line-count properties, not pixel rendering. No installed release qualification or containing publication verified. All 19 families stay open."
+    },
+    "odfAccountingUnderlines": {
+      "status": "cell-style underline count and Gnumeric accounting placement delivered; broader style fidelity open",
+      "delivery": [
+        "5e91c556c36da762500a499642d39884ccac6fab",
+        "b5f6f09b2642d18f8497f999bf5b718bae9feab3"
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/openoffice/openoffice-write.c",
+          "lines": "1146-1158,1422-1438",
+          "finding": "Five underline kinds; extended accounting placement uses gnm:text-underline-placement=low. Native dash approximation is deliberately replaced with solid to preserve line count in Calc."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/openoffice/openoffice-read.c",
+          "lines": "6770-6779,6807-6831",
+          "finding": "Read low placement separately from type; explicit type none clears underline. Bold single lines map to double in the Gnumeric model."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/xmloff/source/style/undlihdl.cxx",
+          "lines": "113-164,194-255",
+          "finding": "The line style takes priority over double type. Dash has no double variant; solid single can become double."
+        }
+      ],
+      "implementation": "Write solid single/double, explicit none, auto width, font color and continuous mode. Extended profiles add the standard Gnumeric low-placement extension for accounting styles. Import distinguishes all five canonical values, explicit resets, bold widths and inherited fonts; foreign placement attributes do not override the extension namespace.",
+      "validation": "16 original failures precede the main fix; 1103 ODF tests in 26 files pass. Four failures precede the solid-line interoperability adjustment; 61 focused tests and maintained package lint/types/build pass after it.",
+      "native": "Compiled public engine exports and reopens both ODF profiles. Gnumeric 1.12.61 retains 0/1/2/3/4 in extended ODF and 0/1/2/1/2 in strict ODF, with empty stderr. Calc 26.8.0.3 preserves none/single/double/single/double on XLSX export for both profiles. The prior dashed profile independently failed the final double-line observation, explaining the solid-line choice.",
+      "receipts": [
+        "out/ssconvert-odf-settings/odf-underline-checks.json",
+        "out/ssconvert-odf-settings/odf-underline-solid-native.json",
+        "out/ssconvert-odf-settings/odf-underline-native.json"
+      ],
+      "remaining": "Strict ODF and readers ignoring the Gnumeric extension lose low accounting placement. Rich XLSX doubleAccounting import is separately unresolved. Native XML properties do not establish pixel rendering, installed-package qualification or registry publication. All 19 families remain open."
     }
   },
   "cases": [
@@ -3453,8 +3486,18 @@
       "scope": "Five atomic repairs: scalar FORMULA, auxiliary array elements, NAME, ARRAY groups and oversized BIFF8 array strings. Each push verified directly against remote main.",
       "checks": "Final 69-file BIFF cohort: 1742 tests. Maintained package lint, source/test/consumer types and selected workspace build pass. Native profiles and failures are recorded in reference.biffReferenceOperators.continuation.",
       "cleanup": "Generated workbooks, Calc profiles and logs removed after compact receipts; no generated binary committed.",
-      "release": "Pinned run 36503801565 at 5bb8e57c79 has passed build, checks, audit, cached unit and all four Bash shards; fresh native unit remains running. It excludes later ARRAY-group/oversized-string/scope fixes. The #4071 investigator confirms the earlier discovery tests passed and identifies unbounded native-process cleanup; a repair is under verification. No containing publication verified.",
+      "release": "Pinned run 36503801565 was canceled after fresh native unit cleanup stalled; its completed suites are not a full pass. Fleet repair 5329765f8b is verified on main. Full pinned run 36506462960 at 948c23eb1b is building with all BIFF repairs and bounded cleanup; it excludes the later underline fixes. No containing publication verified.",
       "remaining": "All 19 families stay open. Scoped BIFF7 Calc NAME scope issue #4075 is delivered in b58fabd556; Gnumeric scope/INDEX/continued-group/long-auxiliary-string interoperability and other family requirements remain open."
+    },
+    "underlineFidelity": {
+      "commits": [
+        "c870967468f8d822833545323a913df316ab51a7",
+        "5e91c556c36da762500a499642d39884ccac6fab",
+        "b5f6f09b2642d18f8497f999bf5b718bae9feab3"
+      ],
+      "remote": "Every code push independently verified against remote main. See reference.xlsxRichUnderlines and reference.odfAccountingUnderlines for source, tests and native qualification.",
+      "cleanup": "Generated spreadsheets, isolated Calc profiles and consumed logs removed; compact ignored receipts retained. No binaries committed.",
+      "release": "Containing publication remains unverified; latest containing release must follow the current pinned BIFF validation."
     }
   },
   "history": {

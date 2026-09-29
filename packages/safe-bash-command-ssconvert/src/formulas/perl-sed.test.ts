@@ -83,6 +83,45 @@ it.each(perlSedCaptureHoldouts)("matches independent capture holdout $id", vecto
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });
 
+// Native Perl 5.34.1 byte strings; perlre 5.36.0 conditional-expression grammar.
+it.each([
+  ["numbered", "ab c ac", "(a)?(?(1)b|c)", "X X aX"],
+  ["empty capture", "b c", "()(?(1)b|c)", "X c"],
+  ["empty else", "b ab", "(a)?(?(1)b)", "XbX XX"],
+  ["named angle", "ab c ac", "(?<pick>a)?(?(<pick>)b|c)", "X X aX"],
+  ["named quoted", "ab c ac", "(?<pick>a)?(?('pick')b|c)", "X X aX"],
+  ["duplicate name", "ax bx c", "(?:(?<pick>a)|(?<pick>b))?(?(<pick>)x|c)", "X X X"],
+  ["forward number", "ba aa", "(?(1)a|b)(a)", "X aa"],
+  ["forward name", "ba aa", "(?(<pick>)a|b)(?<pick>a)", "X aa"],
+  ["nested", "ab ad c ac", "(a)?(?(1)(b)?(?(2)c|d)|c)", "ab X X aX"],
+  ["exclusive branch", "ac c ab", "(a)(?(1)b|c)", "ac c X"],
+  ["backtracking", "ac c ab", "(a)?(?(1)b|ac)", "X c X"],
+  ["branch captures", "abb cc abcc", "(a)?(?(1)(b)|(c))\\2", "X cc abcc"],
+  ["repeated", "abcc cab aab", "(?:(a)?(?(1)b|c))+", "X X aX"],
+  ["inside lookbehind", "abx cx ax", "(a)?(?<=(?(1)b|c))x", "abx cX ax"],
+  ["prior assertion capture", "ab c", "(?=(a))?(?(1)ab|c)", "X X"],
+  ["scoped flags", "AB c", "(?i:(a)?(?(1)b|c))", "X X"],
+  ["lookahead", "ab c ac", "(?(?=a)ab|c)", "X X aX"],
+  ["negative lookahead", "ab c ac", "(?(?!a)c|ab)", "X X aX"],
+  ["lookbehind", "ab cb", "(?(?<=a)b|c)", "aX Xb"],
+  ["negative lookbehind", "ab cb", "(?(?<!a)c|b)", "aX Xb"],
+  ["assertion capture", "ab c", "(?(?=(a))\\1b|c)", "X X"],
+  ["exclusive assertion", "ac c ab", "(?(?=a)ab|ac)", "ac c X"]
+])("matches native conditional %s", (_label, source, pattern, expected) => {
+  expect(calculate(expression([source!, pattern!, "X"]))).toEqual({ kind: "string", value: expected });
+});
+it("keeps conditional replacements literal and malformed UTF-8 results lossless", () => {
+  expect(calculate(expression(["ab c", "(a)?(?(1)b|c)", "$1\\n"])))
+    .toEqual({ kind: "string", value: "$1\\n $1\\n" });
+  expect(calculate(expression(["é", "(\\xC3)(?(1)|.)", "X"])))
+    .toEqual({ kind: "byte-string", value: "58a9" });
+});
+it.each(["(?(0)a|b)", "(?(2)a|b)(a)", "(?(<absent>)a|b)", "(a)(?(1)b|c|d)",
+  "(a)?(?(-1)b|c)", "(?(+1)a|b)(a)", "(?<pick>a)?(?(pick)b|c)", "(?(?{1})a|b)"])
+  ("refuses unqualified conditional syntax %s", pattern => {
+    expect(() => calculate(expression(["ab", pattern, "X"]))).toThrow("PERL_SED");
+  });
+
 it.each(perlSedLookbehindCases)("matches independent fixed lookbehind $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });

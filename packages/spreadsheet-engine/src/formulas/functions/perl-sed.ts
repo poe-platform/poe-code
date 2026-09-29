@@ -13,6 +13,7 @@ type Node = { kind: "char"; byte?: number; test: (byte: number) => boolean }
   | { kind: "capture"; node: Node; index: number }
   | { kind: "atomic"; node: Node }
   | { kind: "reference"; indices: number[]; insensitive: boolean }
+  | { kind: "conditional"; condition: { kind: "participation"; indices: number[] } | { kind: "assertion"; node: Node }; yes: Node; no: Node }
   | { kind: "behind"; node: Node; negative: boolean; min: number; max: number }
   | { kind: "assert"; node: Node; negative: boolean };
 const unsupported = (feature = "pattern syntax or diagnostic"): never => { throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: PERL_SED ${feature}`); };
@@ -212,6 +213,30 @@ function compile(pattern: string, host: FunctionHost): Node {
       at++;
       if (pattern[at] === ":") at++;
       else if (pattern[at] === ">") { at++; atomic = true; }
+      else if (pattern[at] === "(") {
+        at++;
+        let condition: Extract<Node, { kind: "conditional" }>["condition"];
+        if (pattern[at] === "?" && (pattern[at + 1] === "=" || pattern[at + 1] === "!" ||
+          pattern[at + 1] === "<" && (pattern[at + 2] === "=" || pattern[at + 2] === "!"))) {
+          condition = { kind: "assertion", node: group({ ...mode }) };
+        } else {
+          const indices: number[] = [];
+          if (pattern[at] === "<" || pattern[at] === "'") {
+            const closing = pattern[at++] === "<" ? ">" : "'";
+            namedReferences.push({ name: identifier(closing), indices });
+          } else {
+            const index = integer(); if (index < 1) return unsupported();
+            references.push(index); indices.push(index);
+          }
+          if (pattern[at++] !== ")") return unsupported();
+          condition = { kind: "participation", indices };
+        }
+        const yes = sequence(mode);
+        const no = pattern[at] === "|" ? (at++, sequence(mode)) : node({ kind: "sequence", nodes: [] });
+        if (pattern[at++] !== ")") return unsupported();
+        depth--;
+        return node({ kind: "conditional", condition, yes, no });
+      }
       else if (pattern[at] === "=" || pattern[at] === "!") assertion = pattern[at++] === "!";
       else if (pattern[at] === "<" && (pattern[at + 1] === "=" || pattern[at + 1] === "!")) {
         at++; assertion = pattern[at++] === "!"; behind = true;
@@ -276,7 +301,9 @@ function compile(pattern: string, host: FunctionHost): Node {
       for (const child of value.nodes) { const width = widthRange(child); min += width.min; max += width.max; }
     } else {
       min = Infinity; max = 0;
-      for (const child of value.nodes) { const width = widthRange(child); min = Math.min(min, width.min); max = Math.max(max, width.max); }
+      for (const child of value.kind === "conditional" ? [value.yes, value.no] : value.nodes) {
+        const width = widthRange(child); min = Math.min(min, width.min); max = Math.max(max, width.max);
+      }
     }
     if (!Number.isFinite(max) || max > 255) return unsupported();
     return { min, max };
@@ -367,6 +394,18 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
       if (node.insensitive ? fold(left) !== fold(right) : left !== right) return;
     }
     yield { ...state, position: position + length };
+  } else if (node.kind === "conditional") {
+    let branch: MatchState | undefined;
+    if (node.condition.kind === "participation") {
+      for (const index of node.condition.indices) {
+        host.tick();
+        if (state.captures[index] !== undefined) { branch = state; break; }
+      }
+    } else {
+      const inner = match(node.condition.node, source, state, host), result = inner.next(); inner.return(undefined);
+      if (!result.done) branch = result.value;
+    }
+    yield* match(branch === undefined ? node.no : node.yes, source, branch ?? state, host);
   } else if (node.kind === "capture") {
     for (const result of match(node.node, source, state, host)) {
       const captures: (readonly [number, number] | undefined)[] = [];
@@ -413,6 +452,10 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
         if (child.kind === "capture") cleared.add(child.index);
         if (child.kind === "capture" || child.kind === "atomic" || child.kind === "repeat" || child.kind === "assert" || child.kind === "behind") nested.push(child.node);
         else if (child.kind === "sequence" || child.kind === "alternative") for (const descendant of child.nodes) { host.tick(); nested.push(descendant); }
+        else if (child.kind === "conditional") {
+          nested.push(child.yes, child.no);
+          if (child.condition.kind === "assertion") nested.push(child.condition.node);
+        }
       }
       if (cleared.size) {
         const captures: (readonly [number, number] | undefined)[] = [];

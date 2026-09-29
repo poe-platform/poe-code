@@ -355,7 +355,7 @@ pub fn fetch(
     };
 
     if crate::ssh::is_ssh_or_local_url(&resolved_url) {
-        return crate::ssh::ssh_fetch(
+        match crate::ssh::ssh_fetch(
             fs,
             dir,
             Some(&gdir),
@@ -364,7 +364,29 @@ pub fn fetch(
             ref_name,
             single_branch,
             tags,
-        );
+        ) {
+            Ok(res) => return Ok(res),
+            Err(e) => {
+                if e.code == crate::errors::ErrorCode::NotFoundError && let Some(https_url) = crate::ssh::translate_ssh_to_https(&resolved_url) {
+                    return fetch(
+                        fs,
+                        http,
+                        dir,
+                        Some(&gdir),
+                        Some(&https_url),
+                        Some(remote_name),
+                        ref_name,
+                        single_branch,
+                        tags,
+                        depth,
+                        prune,
+                        cors_proxy,
+                        headers,
+                    );
+                }
+                return Err(e);
+            }
+        }
     }
 
     let server_refs = list_server_refs(
@@ -713,7 +735,7 @@ pub fn push(
     };
 
     if crate::ssh::is_ssh_or_local_url(&resolved_url) {
-        return crate::ssh::ssh_push(
+        match crate::ssh::ssh_push(
             fs,
             dir,
             Some(&gdir),
@@ -723,7 +745,29 @@ pub fn push(
             remote_ref,
             force,
             delete,
-        );
+        ) {
+            Ok(res) => return Ok(res),
+            Err(e) => {
+                if e.code == crate::errors::ErrorCode::NotFoundError && let Some(https_url) = crate::ssh::translate_ssh_to_https(&resolved_url) {
+                    return push(
+                        fs,
+                        http,
+                        dir,
+                        Some(&gdir),
+                        ref_name,
+                        remote_ref,
+                        Some(remote_name),
+                        Some(&https_url),
+                        force,
+                        delete,
+                        cors_proxy,
+                        headers,
+                        on_message,
+                    );
+                }
+                return Err(e);
+            }
+        }
     }
 
     let local_ref = match ref_name {

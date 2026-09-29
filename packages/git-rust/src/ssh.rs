@@ -857,3 +857,13 @@ pub fn ssh_push(
         refs,
     })
 }
+
+
+pub fn translate_ssh_to_https(url: &str) -> Option<String> {
+    let ep = parse_ssh_url(url)?;
+    if ep.is_local_path {
+        return None;
+    }
+    let clean_path = ep.path.trim_start_matches('/');
+    Some(format!("https://{}/{clean_path}", ep.host))
+}

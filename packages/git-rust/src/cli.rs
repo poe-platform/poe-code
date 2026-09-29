@@ -4713,9 +4713,22 @@ pub fn execute_git_cli_with_input(
             if get_url {
                 return CliResult::ok(format!("{url}\n"));
             }
-            if crate::ssh::is_ssh_or_local_url(&url)
-                && let Ok(server_refs) = crate::ssh::ssh_list_server_refs(fs, Some(&repo_root), Some(&gitdir), &url)
-            {
+            let resolved_ls_refs = if crate::ssh::is_ssh_or_local_url(&url) {
+                crate::ssh::ssh_list_server_refs(fs, Some(&repo_root), Some(&gitdir), &url)
+                    .or_else(|e| {
+                        if e.code == crate::errors::ErrorCode::NotFoundError {
+                            let https_url = crate::ssh::translate_ssh_to_https(&url).unwrap_or_else(|| url.clone());
+                            crate::list_server_refs(http, &https_url, None, false, 1, None, true, true, None)
+                        } else {
+                            Err(e)
+                        }
+                    })
+            } else if url.starts_with("http://") || url.starts_with("https://") {
+                crate::list_server_refs(http, &url, None, false, 1, None, true, true, None)
+            } else {
+                Err(crate::GitError::url_parse(&url))
+            };
+            if let Ok(server_refs) = resolved_ls_refs {
                 let mut out = String::new();
                 for r in server_refs {
                     if heads_only && !r.r#ref.starts_with("refs/heads/") {

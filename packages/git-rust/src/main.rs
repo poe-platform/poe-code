@@ -12,7 +12,9 @@ use git_rust::errors::GitError;
 use git_rust::fs::{MemoryFs, NodeKind};
 use git_rust::http::{GitHttpRequest, GitHttpResponse, HttpClient};
 
-struct NativeCurlHttpClient;
+struct NativeCurlHttpClient {
+    connect_to: Vec<String>,
+}
 
 impl NativeCurlHttpClient {
     fn resolve_git_credentials(url: &str) -> Option<(String, String)> {
@@ -82,6 +84,9 @@ impl HttpClient for NativeCurlHttpClient {
             .arg("-o")
             .arg(&body_out_file);
 
+        for ct in &self.connect_to {
+            cmd.arg("--connect-to").arg(ct);
+        }
         for (k, v) in &req.headers {
             cmd.arg("-H").arg(format!("{k}: {v}"));
         }
@@ -393,7 +398,20 @@ fn main() {
 
     let arg_refs: Vec<&str> = raw_args.iter().map(String::as_str).collect();
     let cwd_str = host_cwd.to_string_lossy().to_string();
-    let http_client = NativeCurlHttpClient;
+    let mut connect_to = Vec::new();
+    for i in 0..raw_args.len() {
+        if raw_args[i] == "-c" && i + 1 < raw_args.len() {
+            if let Some((k, v)) = raw_args[i + 1].split_once('=')
+                && k.to_lowercase().ends_with(".connectto")
+            {
+                connect_to.push(v.to_string());
+            }
+        }
+    }
+    if let Ok(env_ct) = env::var("GIT_CURL_CONNECT_TO") {
+        connect_to.push(env_ct);
+    }
+    let http_client = NativeCurlHttpClient { connect_to };
     let res = execute_git_cli_with_input(
         &fs,
         &cwd_str,

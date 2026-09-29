@@ -19,8 +19,8 @@ passing notes are not current acceptance evidence.
 | Requirement | Current source/evidence | Remaining acceptance |
 | --- | --- | --- |
 | Bundled typed requests/responses/exceptions | Current `python/llm-module.ts`; deterministic Python API suites pass on resumed main | Installed tarball import verified; final rich-service artifact still required |
-| Discovery, prompt/system/messages/options, attachments, complete/stream | `createPythonLlmCapability` reuses the injected `LlmService`; Bash/Python request equivalence and rich request tests pass | Final installed shared-service artifact |
-| Defaults, prompt functions, transforms, composition and conversations | Deterministic suite passes; executable `llm-customize.py` added alongside the three existing scripts | Exact four-script replay in final installed shared-service artifact |
+| Discovery, prompt/system/messages/options, attachments, complete/stream | `createPythonLlmCapability` reuses the injected `LlmService`; Bash/Python request equivalence and rich request tests pass | Final independently installed artifact verified; qualifying publication still required |
+| Defaults, prompt functions, transforms, composition and conversations | Deterministic suite passes; executable `llm-customize.py` added alongside the three existing scripts | All four scripts pass the final installed shared-service artifact; persisted template/conversation parity remains |
 | Templates/schema/embeddings and shared-service parity | Actual shared schema/messages/embed routes implemented, embedding metadata owned and retained | Named templates, persisted conversations and remaining reference CLI workflows still require #1443; explicit rejection is not completion |
 | Provider/auth/billing ownership | Named data-only capability keeps host objects out of Python | Reuse authorized consumer service; hosted receipt |
 | Async iteration, early close, cancellation, exceptions and per-call limits | Current API tests and bridge sources | Installed tarball workerd gate passes cancellation/early close/binary events; final rich-service gate still required |
@@ -91,6 +91,39 @@ embedding metadata, cancellation and all four executable documentation scripts
 Maintained normal workspace build and repository-wide lint passed before the
 latest compatibility/chunking changes. Focused final ESLint passes. Serialized
 full `npm test` has passed 250 root files / 5,228 root tests and continues through
-workspace batches; no final full-unit success is claimed yet. Final independently
-installed candidate, remote-main delivery of these commits, published package
-provenance and compliant hosted consumer receipts remain pending.
+workspace batches; no final full-unit success is claimed yet. Final independently installed candidate now passes the actual runtime gate.
+Published package provenance, full-suite completion and compliant hosted consumer
+receipts remain pending. The interrupted full-unit run is not a passing receipt.
+
+## Verified delivery checkpoint
+
+The resumed commits are delivered to remote main through
+`acda6768b5a829b4421be40fdc7c87858db201c6`; a fresh fetch and ancestry check
+verify that delivery. After rebasing, the Python/LLM sources and integration
+fixture are unchanged from the qualified candidate. Equivalent packaging-walker,
+optional-fixture and lint corrections already delivered upstream were retained.
+
+Current maintained checks pass: normal `npm run build`, repository-wide
+`npm run lint`, selected Safe Bash `npm test` (704 runner checks, 19 API tests
+and root posttest), and maintained exact root packaging selection (202 tests
+plus root posttest). Evidence: `out/python-final-synchronized-build.log`,
+`out/python-current-full-lint.log`, `out/python-maintained-focused-unit.log`,
+`out/python-maintained-packaging-unit-current.log`. These focused checks do not
+prove the interrupted full-suite route completed.
+
+Fresh public safe-fs/safe-js/safe-bash tarballs, version
+`0.0.0-python-final-1445`, are installed without workspace symlinks under
+`out/python-final-consumer-current`. Actual Pyodide/workerd qualification passes
+2/2 tests in `out/python-final-installed-workerd.log`, including all four exact
+examples, canonical attachments, typed model options/messages/schema/embed,
+embedding metadata, bounded incremental binary events, partial timeout bytes,
+explicit environment replacement, cancellation and invocation retirement. The
+safe-bash tarball SHA-1 is `e0267cc1e8d236ad7c92e2e36d69a504e4f85bab`; npm pack
+receipts retain each artifact's full integrity metadata. This candidate receipt
+is distinct from published npm bytes. Published 0.1.753 contains the earlier
+bridge/shared service and still predates this final adapter.
+
+Issue 1445 remains open: full shared-service parity, final adapter publication,
+consumer adoption and compliant hosted authorization/billing/cleanup acceptance
+are not yet complete. No extra Worker deployment or release-barrier bypass is
+authorized by this checkpoint.

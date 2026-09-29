@@ -2,12 +2,12 @@ import { expect, it } from "vitest";
 import { PdfDocument, renderDisplayListToBitmap, renderDisplayListToSvg, parseTrueTypeFont, embedTrueTypeFontInCos, cosArray, cosName, cosNumber, cosStream, cosDict, dictGet, dictSet, type PdfCosNode } from "../index.js";
 
 // Existing in-memory triangle font from document.test.ts.
-function triangleFont(notdef = false) {
+function triangleFont(notdef = false, withCmap = true) {
   const buf = new ArrayBuffer(512);
   const dv = new DataView(buf);
   const u8 = new Uint8Array(buf);
   dv.setUint32(0, 0x00010000);
-  dv.setUint16(4, 7);
+  dv.setUint16(4, withCmap ? 7 : 6);
   const writeTag = (off: number, tag: string, tOff: number, tLen: number) => {
     for (let i = 0; i < 4; i++) u8[off + i] = tag.charCodeAt(i);
     dv.setUint32(off + 8, tOff);
@@ -69,11 +69,11 @@ function triangleFont(notdef = false) {
   return parseTrueTypeFont(u8);
 }
 
-function evaluate(cid: number, mapping: PdfCosNode | undefined, options: { unicode?: string; notdef?: boolean; encoding?: string; mappedCid?: number; byteLength?: number } = {}) {
-  const { unicode = "Z", notdef = false, encoding, mappedCid = cid, byteLength = 2 } = options;
+function evaluate(cid: number, mapping: PdfCosNode | undefined, options: { unicode?: string; notdef?: boolean; encoding?: string; mappedCid?: number; byteLength?: number; withCmap?: boolean } = {}) {
+  const { unicode = "Z", notdef = false, encoding, mappedCid = cid, byteLength = 2, withCmap = true } = options;
   const doc = PdfDocument.create();
   const page = doc.addPage([200, 100]);
-  const reference = embedTrueTypeFontInCos(doc.cos, triangleFont(notdef), new Map([[cid, unicode]]));
+  const reference = embedTrueTypeFontInCos(doc.cos, triangleFont(notdef, withCmap), new Map([[cid, unicode]]));
   const font = doc.cos.resolveDict(reference)!;
   if (encoding) {
     dictSet(font, "Encoding", doc.cos.allocateObject(cosStream(new TextEncoder().encode(encoding))));
@@ -94,6 +94,59 @@ it("selects the mapped glyph independently of its ToUnicode text", () => {
   const display = evaluate(2, cosStream(Uint8Array.of(0, 0, 0, 0, 0, 1)));
   expect(display.glyphs[0]!.unicode).toBe("Z");
   expect(display.glyphs[0]!.advanceWidth).toBeCloseTo(90);
+  expect(display.paths).toHaveLength(1);
+  expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
+});
+
+it.each([cosName("Identity"), cosStream(Uint8Array.of(0, 0, 0, 1))])("renders CID subsets without a cmap table: %s", mapping => {
+  const display = evaluate(1, mapping, { withCmap: false });
+  expect(display.glyphs[0]!.unicode).toBe("Z");
+  expect(display.paths).toHaveLength(1);
+  expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
+});
+
+it("retains glyph metrics and direct outlines when cmap is absent", () => {
+  const font = triangleFont(false, false);
+  expect(font.getAdvanceWidthUnits(1)).toBe(700);
+  expect(font.getGlyphOutlineByGid(1).length).toBeGreaterThan(0);
+});
+
+it.each(["truncated header", "wrong glyph count", "reserved index", "truncated name", "out of bounds", "version 3"])("retains CID geometry with unusable optional post names: %s", damage => {
+  const bytes = triangleFont().bytes, view = new DataView(bytes.buffer);
+  bytes.set(new TextEncoder().encode("post"), 108);
+  view.setUint32(116, damage === "out of bounds" ? 500 : 400);
+  view.setUint32(120, damage === "truncated header" ? 16 : 40);
+  view.setUint32(400, damage === "version 3" ? 0x00030000 : 0x00020000);
+  view.setUint16(432, damage === "wrong glyph count" ? 3 : 2);
+  view.setUint16(434, 0); view.setUint16(436, damage === "reserved index" ? 32768 : 258);
+  bytes[438] = damage === "truncated name" ? 10 : 1; bytes[439] = 65;
+  const font = parseTrueTypeFont(bytes);
+  expect(font.glyphNames).toEqual([]);
+  expect(font.getGlyphOutlineByGid(1).filter(segment => segment.kind === "line")).toHaveLength(2);
+});
+
+it.each([
+  { version: 2, index: 36, name: "A", differences: false },
+  { version: 2, index: 258, name: "triangle", differences: true },
+  { version: 1, index: 1, name: ".null", differences: true },
+])("uses post $version glyph names for a cmap-less simple font: $name", ({ version, index, name, differences }) => {
+  const bytes = triangleFont().bytes, view = new DataView(bytes.buffer);
+  bytes.set(new TextEncoder().encode("post"), 108); // Replace the cmap record.
+  view.setUint32(116, 400); view.setUint32(120, 39 + name.length);
+  view.setUint32(400, version * 65536);
+  view.setUint16(432, 2); view.setUint16(434, 0); view.setUint16(436, index);
+  bytes[438] = name.length; bytes.set(new TextEncoder().encode(name), 439);
+  const doc = PdfDocument.create(), page = doc.addPage([200, 100]);
+  const program = doc.cos.allocateObject(cosStream(bytes));
+  const encoding = differences ? cosDict({ BaseEncoding: cosName("WinAnsiEncoding"), Differences: cosArray([cosNumber(65), cosName(name)]) }) : cosName("WinAnsiEncoding");
+  const font = cosDict({ Type: cosName("Font"), Subtype: cosName("TrueType"), BaseFont: cosName("Triangle"), Encoding: encoding,
+    FirstChar: cosNumber(65), Widths: cosArray([cosNumber(700)]), FontDescriptor: cosDict({ FontFile2: program }),
+    ToUnicode: doc.cos.allocateObject(cosStream(new TextEncoder().encode("1 begincodespacerange <00> <ff> endcodespacerange 1 beginbfchar <41> <005a> endbfchar"))),
+  });
+  dictSet(page.pageDict, "Resources", cosDict({ Font: cosDict({ F1: doc.cos.allocateObject(font) }) }));
+  page.setRawContentStream("BT /F1 100 Tf 10 10 Td (A) Tj ET");
+  const display = PdfDocument.load(doc.save()).getPage(0).evaluateDisplayList();
+  expect(display.glyphs[0]!.unicode).toBe("Z");
   expect(display.paths).toHaveLength(1);
   expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
 });

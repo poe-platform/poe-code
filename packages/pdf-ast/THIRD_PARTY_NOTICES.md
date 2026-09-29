@@ -160,6 +160,13 @@ high byte. The local dense map preserves explicit zero entries and selects glyph
 zero for CIDs outside a supplied stream; Identity and omitted maps retain direct
 CID-to-GID selection. Unicode extraction mappings do not choose CID font shapes.
 
+Missing `cmap` tables are accepted following PDF.js `readCmapTable`.
+`src/fonts/truetype.ts` adapts `readPostScriptTable` for version 1/2 glyph names,
+using the upstream `MacStandardGlyphOrdering` table from `fonts_utils.js`.
+Simple fonts without `cmap` use PDF.js-style BaseEncoding/Differences lookup
+against those names. Synthetic tests verify CID and simple-font shapes separately
+from their ToUnicode labels. The same pinned revision and Apache-2.0 license apply.
+
 
 The CMap block parser and code reader are shared by ToUnicode and embedded Type0
 Encoding streams. Following PDF.js font mapping, source character codes select

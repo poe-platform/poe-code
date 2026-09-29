@@ -1,4 +1,4 @@
-import type { CMap } from "../vendor/pdfjs-fonts.mjs";
+import { getEncoding, type CMap } from "../vendor/pdfjs-fonts.mjs";
 import { parseEmbeddedType1Font } from "../fonts/type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "../fonts/cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "../fonts/standard-outlines.js";
@@ -65,6 +65,7 @@ interface ResolvedPageFont {
   readonly embeddedCff?: EmbeddedCffFont | undefined;
   readonly embeddedTrueType?: ParsedTrueTypeFont | undefined;
   readonly cidToGid?: Uint16Array | undefined;
+  readonly simpleToGid?: ReadonlyMap<number, number> | undefined;
   readonly standardOutlines?: StandardFontOutlines | undefined;
 }
 
@@ -191,6 +192,7 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
 
     let embeddedCff: EmbeddedCffFont | undefined;
     let embeddedTrueType: ParsedTrueTypeFont | undefined;
+    let simpleToGid: Map<number, number> | undefined;
     const fDescDirect = doc.resolveDict(dictGet(fObj, "FontDescriptor"));
     const descArrForTt = subtype === "Type0" ? doc.resolveArray(dictGet(fObj, "DescendantFonts")) : undefined;
     const cidDictForTt = descArrForTt && descArrForTt.items[0] ? doc.resolveDict(descArrForTt.items[0]) : undefined;
@@ -227,6 +229,17 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
           embeddedCff = parseEmbeddedCffFont(doc.decodeStream(program), baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined, glyphNames);
         } else {
           embeddedTrueType = parseTrueTypeFont(doc.decodeStream(program));
+          if (subtype !== "Type0" && !embeddedTrueType.hasCmap) {
+            // PDF.js recovers missing mappings from BaseEncoding/Differences
+            // and post names. ToUnicode describes text, not glyph selection.
+            simpleToGid = new Map();
+            const encoding = baseEncoding?.kind === "name" ? getEncoding(baseEncoding.decoded) : undefined;
+            for (let code = 0; code < 256; code++) {
+              const name = glyphNames.get(code) || encoding?.[code];
+              const gid = name ? embeddedTrueType.glyphNames.indexOf(name) : -1;
+              if (gid > 0) simpleToGid.set(code, gid);
+            }
+          }
         }
         for (const [code, unicode] of embeddedCff?.unicodeByCode ?? []) {
           if (!differences.has(code)) differences.set(code, unicode);
@@ -255,6 +268,7 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
       fontResources,
       embeddedTrueType,
       cidToGid,
+      simpleToGid,
       embeddedCff,
       standardOutlines,
     });
@@ -2114,15 +2128,27 @@ export function evaluateContentStreamToDisplayList(params: {
               } else if ((font?.embeddedTrueType || font?.embeddedCff || font?.standardOutlines) && st.textRenderMode !== 3) {
                 const cp = item.unicode ? item.unicode.codePointAt(0) : undefined;
                 const cidFont = font.subtype === "Type0" && font.embeddedTrueType;
-                if (cidFont) evaluatedType3 = true; // An empty mapped glyph must not fall back to standard text.
+                if (cidFont || font.simpleToGid) evaluatedType3 = true; // An empty mapped glyph must not fall back to standard text.
                 const glyphCode = item.cid ?? item.charCode;
                 const glyphId = font.cidToGid ? font.cidToGid[glyphCode] ?? 0 : glyphCode;
-                let glyphOutline = cidFont ? cidFont.getGlyphOutlineByGid(glyphId) : font.embeddedCff ? font.embeddedCff.getGlyphOutline(glyphCode) : cp !== undefined ? (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp) : [];
-                if (glyphOutline.length === 0 && font.embeddedTrueType && !cidFont) {
+                const simpleGid = font.simpleToGid?.get(item.charCode) ?? 0;
+                let glyphOutline: PdfPathSegment[] = [];
+                if (cidFont) {
+                  glyphOutline = cidFont.getGlyphOutlineByGid(glyphId);
+                } else if (font.simpleToGid && font.embeddedTrueType) {
+                  glyphOutline = font.embeddedTrueType.getGlyphOutlineByGid(simpleGid);
+                } else if (font.embeddedCff) {
+                  glyphOutline = font.embeddedCff.getGlyphOutline(glyphCode);
+                } else if (cp !== undefined) {
+                  glyphOutline = (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp);
+                }
+                if (glyphOutline.length === 0 && font.embeddedTrueType && !cidFont && !font.simpleToGid) {
                   glyphOutline = font.embeddedTrueType.getGlyphOutlineByGid(item.charCode);
                 }
                 if (!font.widths.has(item.charCode) && font.embeddedTrueType && !cidFont) {
-                  const ttAdv = cp !== undefined ? font.embeddedTrueType.getAdvanceWidth1000(cp) : undefined;
+                  const ttAdv = font.simpleToGid
+                    ? font.embeddedTrueType.getAdvanceWidthUnits(simpleGid) * 1000 / font.embeddedTrueType.unitsPerEm
+                    : cp !== undefined ? font.embeddedTrueType.getAdvanceWidth1000(cp) : undefined;
                   if (ttAdv !== undefined) advance1000 = ttAdv;
                 }
                 if (glyphOutline.length > 0) {

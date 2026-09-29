@@ -34,6 +34,7 @@ export const SymbolSetEncoding: string[];
 export const ZapfDingbatsEncoding: string[];
 export const DrawOPS: { moveTo: number; lineTo: number; curveTo: number; quadraticCurveTo: number; closePath: number };
 export const WinAnsiEncoding: string[];
+export const MacStandardGlyphOrdering: string[];
 export function getMetrics(): Record<string, number | (() => Record<string, number>)>;
 
 export function getEncoding(name: string): string[] | null;

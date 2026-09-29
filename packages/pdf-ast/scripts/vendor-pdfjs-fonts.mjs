@@ -16,6 +16,7 @@ const result = await build({
       'export { Type2Compiled } from "./src/core/font_renderer.js";',
       'export { Type1Font } from "./src/core/type1_font.js";',
       'export { Type1Parser } from "./src/core/type1_parser.js";',
+      'export { MacStandardGlyphOrdering } from "./src/core/fonts_utils.js";',
       'export { Stream, StringStream } from "./src/core/stream.js";',
       'export { getGlyphsUnicode, getDingbatsGlyphsUnicode } from "./src/core/glyphlist.js";',
       'export { SymbolSetEncoding, ZapfDingbatsEncoding, WinAnsiEncoding, getEncoding } from "./src/core/encodings.js";',

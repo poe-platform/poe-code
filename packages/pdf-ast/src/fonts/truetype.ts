@@ -1,4 +1,4 @@
-import { CFFParser, Stream } from "../vendor/pdfjs-fonts.mjs";
+import { CFFParser, MacStandardGlyphOrdering, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { createCffGlyphRenderer } from "./cff.js";
 import {
   cosArray,
@@ -26,6 +26,8 @@ export interface ParsedTrueTypeFont {
   readonly bbox: readonly [number, number, number, number];
   readonly numGlyphs: number;
   readonly isCff: boolean;
+  readonly hasCmap: boolean;
+  readonly glyphNames: readonly (string | undefined)[];
   getGlyphId(codePoint: number): number;
   getAdvanceWidthUnits(glyphId: number): number;
   getAdvanceWidth1000(codePoint: number): number;
@@ -45,6 +47,30 @@ function readI16(view: DataView, offset: number): number {
 
 function readU32(view: DataView, offset: number): number {
   return view.getUint32(offset, false);
+}
+
+// Adapted from PDF.js readPostScriptTable. Optional malformed names must not
+// prevent CID fonts from using their explicit glyph IDs.
+function readPostGlyphNames(bytes: Uint8Array, numGlyphs: number): (string | undefined)[] {
+  if (bytes.length < 32) return [];
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const version = readU32(view, 0);
+  if (version === 0x00010000) return MacStandardGlyphOrdering.slice(0, numGlyphs);
+  if (version !== 0x00020000 || bytes.length < 34 + numGlyphs * 2 || readU16(view, 32) !== numGlyphs) return [];
+  const indices: number[] = [];
+  for (let gid = 0; gid < numGlyphs; gid++) {
+    const index = readU16(view, 34 + gid * 2);
+    if (index >= 32768) return [];
+    indices.push(index);
+  }
+  const customNames: string[] = [];
+  for (let pos = 34 + numGlyphs * 2; pos < bytes.length;) {
+    const length = bytes[pos++]!;
+    if (pos + length > bytes.length) return [];
+    customNames.push(String.fromCharCode(...bytes.subarray(pos, pos + length)));
+    pos += length;
+  }
+  return indices.map(index => index < 258 ? MacStandardGlyphOrdering[index] : customNames[index - 258]);
 }
 
 export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
@@ -77,8 +103,8 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
   const maxp = tables.get("maxp");
   const hmtx = tables.get("hmtx");
   const cmap = tables.get("cmap");
-  if (!head || !hhea || !maxp || !hmtx || !cmap) {
-    throw new PdfError("E_PARSE", "TrueType font missing required tables (head/hhea/maxp/hmtx/cmap)");
+  if (!head || !hhea || !maxp || !hmtx) {
+    throw new PdfError("E_PARSE", "TrueType font missing required tables (head/hhea/maxp/hmtx)");
   }
 
   const unitsPerEm = Math.max(1, readU16(view, head.offset + 18));
@@ -92,6 +118,9 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
   const descenderRaw = readI16(view, hhea.offset + 6);
   const numOfLongHorMetrics = Math.max(1, readU16(view, hhea.offset + 34));
   const numGlyphs = Math.max(1, readU16(view, maxp.offset + 4));
+  const post = tables.get("post");
+  const glyphNames = post && post.offset + post.length <= bytes.length
+    ? readPostGlyphNames(bytes.subarray(post.offset, post.offset + post.length), numGlyphs) : [];
 
   const os2 = tables.get("OS/2");
   let capHeightRaw = Math.round(ascenderRaw * 0.7);
@@ -116,14 +145,15 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
   }
 
   const codePointToGlyph = new Map<number, number>();
-  const cmapNumTables = readU16(view, cmap.offset + 2);
+  const cmapOffset = cmap?.offset ?? 0;
+  const cmapNumTables = cmap ? readU16(view, cmapOffset + 2) : 0;
   let format4Offset = 0;
   let format12Offset = 0;
   for (let i = 0; i < cmapNumTables; i++) {
-    const rec = cmap.offset + 4 + i * 8;
+    const rec = cmapOffset + 4 + i * 8;
     if (rec + 8 > bytes.byteLength) break;
     const platformID = readU16(view, rec);
-    const subOffset = cmap.offset + readU32(view, rec + 4);
+    const subOffset = cmapOffset + readU32(view, rec + 4);
     if (subOffset + 4 > bytes.byteLength) continue;
     const fmt = readU16(view, subOffset);
     if (fmt === 12 && (platformID === 3 || platformID === 0)) {
@@ -436,6 +466,8 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
     bbox: [scale1000(xMin), scale1000(yMin), scale1000(xMax), scale1000(yMax)],
     numGlyphs,
     isCff: renderCffGlyph !== undefined,
+    hasCmap: cmap !== undefined,
+    glyphNames,
     getGlyphId(codePoint: number): number {
       return codePointToGlyph.get(codePoint) ?? 0;
     },

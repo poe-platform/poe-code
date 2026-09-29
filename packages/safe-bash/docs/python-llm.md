@@ -134,14 +134,26 @@ interpreter memory, provider buffers or billing. Configure host admission,
 serialized-message and stream limits through `capabilityLimits`. The host may
 set stricter application limits; it must report refusal rather than truncate.
 
-`createPythonLlmCapability(context, service, {maxStreamChunkBytes})` splits binary
-provider events without retaining the stream; the default chunk is 16 KiB. For a
-finite `capabilityLimits.maxMessageBytes`, choose chunks below one quarter of
-that budget, allowing additional room for the JSON event envelope. This accounts
-for byte-array JSON expansion. Byte order is preserved, early close releases the
-provider iterator, and terminal model/usage/metadata is emitted once after payload
-chunks. Buffered completion, embeddings and terminal metadata must independently
-fit the message budget; oversized results fail explicitly.
+`createPythonLlmCapability(context, service, options)` accepts host-owned
+`maxBufferedResponseBytes`, `maxBufferedEvents` and `maxMetadataBytes` ceilings.
+Configure finite limits before exposing the capability: guest requests can lower
+but cannot raise or omit host policy. Buffered admission counts the serialized
+result, including escaped text, numeric byte arrays and response metadata; empty
+events count toward the event ceiling without accumulating text fragments.
+Event and metadata ceilings default to the buffered ceiling, and all three are
+disabled (`Infinity`) when no host policy is configured.
+
+`maxStreamChunkBytes` splits both text and binary provider events without retaining
+the stream; the default chunk is 16 KiB. Text fragments preserve Unicode scalars;
+choose at least four bytes to accommodate every valid scalar. For a finite
+`capabilityLimits.maxMessageBytes`, choose chunks below one quarter of that budget,
+allowing additional room for the JSON event envelope and byte-array expansion.
+Byte and text order are preserved, early close releases the provider iterator,
+and terminal model/usage/metadata is emitted once after payload chunks.
+`maxMetadataBytes` measures terminal response data; reserve envelope headroom.
+Buffered ceilings are separate from cumulative streaming limits, so large results
+can stream incrementally into canonical files. Embeddings must independently fit
+the bridge message budget; oversized results fail explicitly.
 
 Exceptions include `LlmError(code, message)`, `CapabilityError`, `LimitError`,
 native `asyncio.CancelledError` and `asyncio.TimeoutError`. Invalid Python option

@@ -2,9 +2,10 @@ import type { XmlElement } from "@poe-code/safe-fs/xml";
 import { formatA1, type ImportedValue, type UnsupportedRecord } from "../workbook.js";
 import { parseExpression } from "../formulas/parser.js";
 import { odfGrammar } from "../formulas/conventions.js";
-import { SsconvertError } from "../contracts.js";
 import { translateOdfHyperlink } from "./odf-hyperlinks.js";
 import { readOdfScriptPosition } from "./odf-text-position.js";
+import { createOdfTextReader } from "./odf-rich-text.js";
+import { writeGnumericRichText } from "./gnumeric-rich-text.js";
 
 const urn = "urn:oasis:names:tc:opendocument:xmlns:";
 const ns = {
@@ -41,23 +42,14 @@ function distance(source: string | undefined): number | undefined {
   const unit = units[source.slice(-2)], value = Number(source.slice(0, -2));
   return unit && Number.isFinite(value) && value >= 0 ? value * unit : undefined;
 }
-function annotationText(node: XmlElement, charge: (n?: number) => void): string {
-  if (!node.content.length) return node.text;
-  let result = "";
-  for (const item of node.content) {
-    charge();
-    if (item.kind === "text" || item.kind === "cdata") result += item.text;
-    else if (item.kind === "element" && ns.text.includes(item.namespace)) {
-      if (item.localName === "s") {
-        const count = Number(attr(item, "c", "text") ?? "1");
-        if (!Number.isSafeInteger(count) || count < 0) throw new SsconvertError("io", "E Invalid OpenDocument: invalid text space count");
-        charge(count); result += " ".repeat(count);
-      } else if (item.localName === "tab" || item.localName === "tab-stop") result += "\t";
-      else if (item.localName === "line-break") result += "\n";
-      else if (item.localName === "span" || item.localName === "a") result += annotationText(item, charge);
-    }
-  }
-  return result;
+export function readOdfAnnotation(node: XmlElement, readText: ReturnType<typeof createOdfTextReader>): Record<string, string> {
+  const author = node.children.find(n => n.localName === "creator" && ns.dc.includes(n.namespace))?.text;
+  const text = readText(node);
+  // Preserve delimiter-bearing font names in the original annotation XML.
+  const representable = text.richText?.every(run => typeof run.attributes.family !== "string" ||
+    !run.attributes.family.includes(":") && !run.attributes.family.includes("]"));
+  return { ...(author === undefined ? {} : { Author: author }), Text: text.value,
+    ...(text.richText?.length && representable ? { TextFormat: writeGnumericRichText(text.richText) } : {}) };
 }
 /** Exportable style representation; source XML remains independently retained. */
 export function odfCellStyle(node: XmlElement, parent: ImportedValue | undefined, charge: (n?: number) => void): ImportedValue {
@@ -114,7 +106,7 @@ export function odfCellStyle(node: XmlElement, parent: ImportedValue | undefined
 
 /** Metadata effects use the same retained-record path as the other importers. */
 export function odfSheetMetadata(sheet: XmlElement, charge: (n?: number) => void, roots: readonly XmlElement[] = [],
-  sheetNames: readonly string[] = []): UnsupportedRecord[] {
+  sheetNames: readonly string[] = [], readText = createOdfTextReader(roots, charge)): UnsupportedRecord[] {
   const objects: ImportedValue[] = [], regions: ImportedValue[] = [], print: ImportedValue[] = []; let row = 0, column = 0;
   const repeat = (n: XmlElement, name: string) => Number(attr(n, name, "table") ?? "1");
   function rows(parent: XmlElement) {
@@ -131,10 +123,8 @@ export function odfSheetMetadata(sheet: XmlElement, charge: (n?: number) => void
         charge(); if (!ns.table.includes(c.namespace) || !["table-cell", "covered-table-cell"].includes(c.localName)) continue;
         const address = formatA1(row, column);
         for (const annotation of c.children.filter(n => n.localName === "annotation" && ns.office.includes(n.namespace))) {
-          const author = annotation.children.find(n => n.localName === "creator" && ns.dc.includes(n.namespace))?.text;
-          const text = annotation.children.filter(n => n.localName === "p" && ns.text.includes(n.namespace)).map(n => annotationText(n, charge)).join("\n");
           objects.push(gnode("CellComment", { ObjectBound: address, ObjectOffset: "1 0 1 0", Direction: 17, Print: 1,
-            ...(author ? { Author: author } : {}), Text: text }));
+            ...readOdfAnnotation(annotation, readText) }));
         }
         function links(n: XmlElement) {
           for (const child of n.children) {

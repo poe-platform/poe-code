@@ -88,7 +88,7 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
     flush(); return result;
   }
   const active = new Set<object>();
-  function retained(value: ImportedValue | undefined, depth = 0, hyperlink?: (href: string) => string, hyperlinkContent = false): string {
+  function retained(value: ImportedValue | undefined, depth = 0, hyperlink?: (href: string) => string, hyperlinkContent = false, contentOverride?: string): string {
     charge(); const v = odfObject(value); if (!v || typeof v.name !== "string" || typeof v.namespace !== "string") return "";
     if (depth > (context.limits.xmlDepth ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert OpenDocument metadata depth limit exceeded");
     if (active.has(v)) throw new SsconvertError("invalid-request", "Invalid cyclic OpenDocument metadata");
@@ -108,7 +108,7 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
         attributes["xlink:href"] = hyperlink(attributes["xlink:href"]);
       const children = odfChildren(v);
       const childHyperlinkContent = Boolean(hyperlink) && prefix === "text" && v.name === "a" && attributes["xlink:href"] !== undefined;
-      const content = Array.isArray(v.content) ? v.content.map(c => {
+      const content = contentOverride ?? (Array.isArray(v.content) ? v.content.map(c => {
         charge(); const item = odfObject(c);
         if (item?.kind === "text" && typeof item.text === "string") return escape(item.text);
         if (item?.kind !== "element") return "";
@@ -116,7 +116,7 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
         if (typeof item.index !== "number" || !Number.isSafeInteger(item.index) || item.index < 0 || item.index >= children.length)
           throw new SsconvertError("invalid-request", "Invalid OpenDocument metadata child index");
         return retained(children[item.index], depth + 1, hyperlink, childHyperlinkContent);
-      }).join("") : (typeof v.text === "string" ? escape(v.text) : "") + children.map(c => retained(c, depth + 1, hyperlink, childHyperlinkContent)).join("");
+      }).join("") : (typeof v.text === "string" ? escape(v.text) : "") + children.map(c => retained(c, depth + 1, hyperlink, childHyperlinkContent)).join(""));
       // Calc's URL field has no whitespace child contexts. Preserve ordinary
       // paragraph markup and children/attributes with additional semantics.
       if (hyperlinkContent && prefix === "text" && !content && !children.length) {

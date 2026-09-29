@@ -113,7 +113,7 @@ export function createOdfTextReader(roots: readonly XmlElement[], charge: (amoun
 }
 
 export function writeOdfRichText(value: string, runs: readonly RichTextRun[], xml: ReturnType<typeof createOdfXml>,
-  definitions: ReturnType<typeof createOdfStyleDefinitions>, extended: boolean, hyperlink?: OdfAttributes): string {
+  definitions: ReturnType<typeof createOdfStyleDefinitions>, extended: boolean, hyperlink?: OdfAttributes, inlineControls = true): string {
   let result = "";
   for (const { text, attributes: a } of richTextSegments(value, runs, xml.charge)) {
     const properties: Record<string, string> = {};
@@ -139,7 +139,7 @@ export function writeOdfRichText(value: string, runs: readonly RichTextRun[], xm
     }
     // Calc accepts controls as character data inside spans and URL fields,
     // but its specialized span context does not handle tab/line-break children.
-    const content = hyperlink ? xml.element("text:a", hyperlink, xml.escape(text)) : xml.text(text, true);
+    const content = hyperlink ? xml.element("text:a", hyperlink, xml.escape(text)) : xml.text(text, inlineControls);
     if (!Object.keys(properties).length) result += content;
     else {
       const name = definitions.register("contentAutomatic", "style:style", "rt", { "style:family": "text" }, xml.element("style:text-properties", properties));

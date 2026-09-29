@@ -185,6 +185,7 @@ export function evalSyncGpg(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   try {
     if (opArgs.includes("--version")) {
@@ -221,7 +222,7 @@ export function evalSyncGpg(
       else positionals.push(a);
     }
 
-    if (quickGenKey || importKeys || verify || outFile !== undefined || statusFd !== undefined) {
+    if (quickGenKey || importKeys || verify || statusFd !== undefined || (outFile !== undefined && outFile !== "-" && !writeFileSync)) {
       return undefined;
     }
 
@@ -247,7 +248,12 @@ export function evalSyncGpg(
 
     if (exportKeys) {
       const keys = loadKeyringSync();
-      return `-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n${bytesToBase64(syncGpgEncoder.encode(JSON.stringify(keys)), 64)}\n-----END PGP PUBLIC KEY BLOCK-----\n`;
+      const armor = `-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n${bytesToBase64(syncGpgEncoder.encode(JSON.stringify(keys)), 64)}\n-----END PGP PUBLIC KEY BLOCK-----\n`;
+      if (outFile && outFile !== "-") {
+        if (!writeFileSync || !writeFileSync(outFile, syncGpgEncoder.encode(armor))) return undefined;
+        return "";
+      }
+      return armor;
     }
 
     if (detachSign) {
@@ -301,7 +307,12 @@ export function evalSyncGpg(
       else packet.push(0xff, (body.length >>> 24) & 0xff, (body.length >>> 16) & 0xff, (body.length >>> 8) & 0xff, body.length & 0xff);
       packet.push(...body);
       const pktBytes = new Uint8Array(packet);
-      return `-----BEGIN PGP SIGNATURE-----\n\n${bytesToBase64(pktBytes, 64)}\n${pgpCrc24(pktBytes)}\n-----END PGP SIGNATURE-----\n`;
+      const armor = `-----BEGIN PGP SIGNATURE-----\n\n${bytesToBase64(pktBytes, 64)}\n${pgpCrc24(pktBytes)}\n-----END PGP SIGNATURE-----\n`;
+      if (outFile && outFile !== "-") {
+        if (!writeFileSync || !writeFileSync(outFile, syncGpgEncoder.encode(armor))) return undefined;
+        return "";
+      }
+      return armor;
     }
 
     return "gpg (GnuPG) 2.4.5 (safe-bash)\n";

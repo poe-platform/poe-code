@@ -11743,7 +11743,8 @@ export class Runtime {
       n === "soffice" || n === "libreoffice" || n === "mmdc" || n === "sips" || n === "qpdf" || n === "pdftk" ||
       n === "pdftotext" || n === "pdftohtml" || n === "pdfimages" || n === "pdfdetach" || n === "pdftoppm" ||
       n === "pdftocairo" || n === "sqlite3" || n === "openssl" || n === "tar" || n === "unzip" || n === "zip" || n === "dd" ||
-      n === "magick" || n === "convert" || n === "mogrify" || n === "composite" || n === "montage" || n === "compare" || n === "exiftool";
+      n === "magick" || n === "convert" || n === "mogrify" || n === "composite" || n === "montage" || n === "compare" || n === "exiftool" ||
+      n === "pandoc" || n === "wkhtmltopdf" || n === "gpg" || n === "ssh-keygen";
     const scanWordForMutatingSub = (w: Word): void => {
       for (const pt of w.parts) {
         if (pt.kind === "substitution") {
@@ -11900,7 +11901,7 @@ export class Runtime {
     if (usesInduction && indName !== undefined && savedIndVal === undefined) {
       rawState.variables[indName] = "1";
     }
-    if (this._activeSyncLoopHasFileMutations || p.commands.some(c => c.kind === "simple" && (c.words[0]?.plain === "mktemp" || c.words[0]?.plain === "shuf" || c.words[0]?.plain === "sponge" || c.words[0]?.plain === "truncate" || c.words[0]?.plain === "install" || c.words[0]?.plain === "apply_patch" || c.words[0]?.plain === "split" || c.words[0]?.plain === "csplit" || c.words[0]?.plain === "tee" || c.words[0]?.plain === "touch" || c.words[0]?.plain === "cp" || c.words[0]?.plain === "mv" || c.words[0]?.plain === "rmdir" || c.words[0]?.plain === "chmod" || c.words[0]?.plain === "patch" || c.words[0]?.plain === "mkdir" || c.words[0]?.plain === "rm" || c.words[0]?.plain === "ln" || c.words[0]?.plain === "soffice" || c.words[0]?.plain === "libreoffice" || c.words[0]?.plain === "mmdc" || c.words[0]?.plain === "sips" || c.words[0]?.plain === "qpdf" || c.words[0]?.plain === "pdftk" || c.words[0]?.plain === "pdftotext" || c.words[0]?.plain === "pdftohtml" || c.words[0]?.plain === "pdfimages" || c.words[0]?.plain === "pdfdetach" || c.words[0]?.plain === "pdftoppm" || c.words[0]?.plain === "pdftocairo" || c.words[0]?.plain === "sqlite3" || c.words[0]?.plain === "openssl" || c.words[0]?.plain === "tar" || c.words[0]?.plain === "unzip" || c.words[0]?.plain === "zip" || c.words[0]?.plain === "dd" || c.words[0]?.plain === "magick" || c.words[0]?.plain === "convert" || c.words[0]?.plain === "mogrify" || c.words[0]?.plain === "composite" || c.words[0]?.plain === "montage" || c.words[0]?.plain === "compare" || c.words[0]?.plain === "exiftool"))) {
+    if (this._activeSyncLoopHasFileMutations || p.commands.some(c => c.kind === "simple" && (c.words[0]?.plain === "mktemp" || c.words[0]?.plain === "shuf" || c.words[0]?.plain === "sponge" || c.words[0]?.plain === "truncate" || c.words[0]?.plain === "install" || c.words[0]?.plain === "apply_patch" || c.words[0]?.plain === "split" || c.words[0]?.plain === "csplit" || c.words[0]?.plain === "tee" || c.words[0]?.plain === "touch" || c.words[0]?.plain === "cp" || c.words[0]?.plain === "mv" || c.words[0]?.plain === "rmdir" || c.words[0]?.plain === "chmod" || c.words[0]?.plain === "patch" || c.words[0]?.plain === "mkdir" || c.words[0]?.plain === "rm" || c.words[0]?.plain === "ln" || c.words[0]?.plain === "soffice" || c.words[0]?.plain === "libreoffice" || c.words[0]?.plain === "mmdc" || c.words[0]?.plain === "sips" || c.words[0]?.plain === "qpdf" || c.words[0]?.plain === "pdftk" || c.words[0]?.plain === "pdftotext" || c.words[0]?.plain === "pdftohtml" || c.words[0]?.plain === "pdfimages" || c.words[0]?.plain === "pdfdetach" || c.words[0]?.plain === "pdftoppm" || c.words[0]?.plain === "pdftocairo" || c.words[0]?.plain === "sqlite3" || c.words[0]?.plain === "openssl" || c.words[0]?.plain === "tar" || c.words[0]?.plain === "unzip" || c.words[0]?.plain === "zip" || c.words[0]?.plain === "dd" || c.words[0]?.plain === "magick" || c.words[0]?.plain === "convert" || c.words[0]?.plain === "mogrify" || c.words[0]?.plain === "composite" || c.words[0]?.plain === "montage" || c.words[0]?.plain === "compare" || c.words[0]?.plain === "exiftool" || c.words[0]?.plain === "pandoc" || c.words[0]?.plain === "wkhtmltopdf" || c.words[0]?.plain === "gpg" || c.words[0]?.plain === "ssh-keygen"))) {
       usesInduction = true;
     }
     let res: string | undefined;
@@ -30710,11 +30711,11 @@ export class Runtime {
           : w0Plain === "sqlite3"
             ? syncCommandEvaluators.evalSyncSqlite3?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "gpg"
-            ? syncCommandEvaluators.evalSyncGpg?.(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncGpg?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "ssh"
             ? syncCommandEvaluators.evalSyncSsh?.(allArgs)
           : w0Plain === "ssh-keygen"
-            ? syncCommandEvaluators.evalSyncSshKeygen?.(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncSshKeygen?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, rawState.cwd)
           : w0Plain === "pdfinfo"
             ? syncCommandEvaluators.evalSyncPdfinfo?.(optInBytes, allArgs, readFile)
           : w0Plain === "pdftotext"
@@ -30750,13 +30751,13 @@ export class Runtime {
           : w0Plain === "mmdc"
             ? syncCommandEvaluators.evalSyncMmdc?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "pandoc"
-            ? syncCommandEvaluators.evalSyncPandoc?.(allArgs)
+            ? syncCommandEvaluators.evalSyncPandoc?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : (w0Plain === "soffice" || w0Plain === "libreoffice")
             ? syncCommandEvaluators.evalSyncSoffice?.(allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "ssconvert"
             ? syncCommandEvaluators.evalSyncSsconvert?.(this.getExternalCommand("ssconvert")!.execute, allArgs)
           : w0Plain === "wkhtmltopdf"
-            ? syncCommandEvaluators.evalSyncWkhtmltopdf?.(allArgs)
+            ? syncCommandEvaluators.evalSyncWkhtmltopdf?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "op"
             ? syncCommandEvaluators.evalSyncOp?.(this.getExternalCommand("op")!.execute, allArgs, rawState.variables)
           : w0Plain === "git"
@@ -31118,12 +31119,12 @@ export class Runtime {
               fileRes = syncCommandEvaluators.evalSyncSqlite3?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "gpg") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = syncCommandEvaluators.evalSyncGpg?.(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncGpg?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "ssh") {
               fileRes = syncCommandEvaluators.evalSyncSsh?.(opArgs);
             } else if (w0Plain === "ssh-keygen") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = syncCommandEvaluators.evalSyncSshKeygen?.(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncSshKeygen?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, rawState.cwd);
             } else if (w0Plain === "pdfinfo") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdfinfo?.(view, opArgs, readFile);
@@ -31174,14 +31175,16 @@ export class Runtime {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncMmdc?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "pandoc") {
-              fileRes = syncCommandEvaluators.evalSyncPandoc?.(opArgs);
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              fileRes = syncCommandEvaluators.evalSyncPandoc?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "soffice" || w0Plain === "libreoffice") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncSoffice?.(opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "ssconvert") {
               fileRes = syncCommandEvaluators.evalSyncSsconvert?.(this.getExternalCommand("ssconvert")!.execute, opArgs);
             } else if (w0Plain === "wkhtmltopdf") {
-              fileRes = syncCommandEvaluators.evalSyncWkhtmltopdf?.(opArgs);
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              fileRes = syncCommandEvaluators.evalSyncWkhtmltopdf?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "op") {
               fileRes = syncCommandEvaluators.evalSyncOp?.(this.getExternalCommand("op")!.execute, opArgs, rawState.variables);
             } else if (w0Plain === "git") {

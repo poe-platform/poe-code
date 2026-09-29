@@ -317,6 +317,8 @@ export function evalSyncSshKeygen(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
+  cwd = "/",
 ): string | undefined {
   try {
     let fileArg: string | undefined;
@@ -348,7 +350,19 @@ export function evalSyncSshKeygen(
       else if (!a.startsWith("-")) positionalFiles.push(a);
     }
 
-    if (removeHost !== undefined) return undefined;
+    if (removeHost !== undefined) {
+      if (!writeFileSync) return undefined;
+      const khRaw = fileArg ?? "/home/user/.ssh/known_hosts";
+      const khPath = khRaw.startsWith("/") ? khRaw : (cwd === "/" ? "/" + khRaw : cwd + "/" + khRaw);
+      const khBytes = readFileSync?.(khRaw) ?? new Uint8Array(0);
+      const khText = syncSshDecoder.decode(khBytes);
+      const remaining = khText
+        .split("\n")
+        .filter(l => l.trim().length === 0 || l.startsWith("#") || !l.split(/\s+/)[0]?.split(",").includes(removeHost!));
+      const outBytes = syncSshEncoder.encode(`${remaining.join("\n")}\n`);
+      if (!writeFileSync(khRaw, outBytes)) return undefined;
+      return `# Host ${removeHost} found: removed\n${khPath} updated.\n`;
+    }
 
     if (findHost !== undefined) {
       const khPath = fileArg ?? "/home/user/.ssh/known_hosts";
@@ -363,14 +377,16 @@ export function evalSyncSshKeygen(
 
     if (yAction !== undefined) {
       if (yAction === "sign") {
-        if (positionalFiles.length > 0) return undefined;
-        if (!inBytes || inBytes.byteLength > 65536) return undefined;
+        const targetFile = positionalFiles[0];
+        if (targetFile !== undefined && !writeFileSync) return undefined;
+        const payload = targetFile !== undefined ? readFileSync?.(targetFile) : inBytes;
+        if (!payload || payload.byteLength > 65536) return undefined;
         const keyPath = fileArg ?? "/home/user/.ssh/id_ed25519";
         const keyBytes = readFileSync?.(keyPath);
         if (!keyBytes) return undefined;
         const parsed = parseOpenSshEd25519PrivateKey(syncSshDecoder.decode(keyBytes));
         if (!parsed) return undefined;
-        const msgHash = sha512(inBytes);
+        const msgHash = sha512(payload);
         const toSign: number[] = [];
         for (const b of syncSshEncoder.encode("SSHSIG")) toSign.push(b);
         writeSshString(toSign, syncSshEncoder.encode(namespace));
@@ -389,7 +405,12 @@ export function evalSyncSshKeygen(
         writeSshString(outer, new Uint8Array(0));
         writeSshString(outer, syncSshEncoder.encode("sha512"));
         writeSshString(outer, new Uint8Array(sigBlob));
-        return `-----BEGIN SSH SIGNATURE-----\n${bytesToBase64(new Uint8Array(outer), 70)}\n-----END SSH SIGNATURE-----\n`;
+        const armor = `-----BEGIN SSH SIGNATURE-----\n${bytesToBase64(new Uint8Array(outer), 70)}\n-----END SSH SIGNATURE-----\n`;
+        if (targetFile !== undefined) {
+          if (!writeFileSync!(`${targetFile}.sig`, syncSshEncoder.encode(armor))) return undefined;
+          return `Signing file ${targetFile}\nWrite signature to ${targetFile}.sig\n`;
+        }
+        return armor;
       }
 
       if (yAction === "verify" || yAction === "check-novalidate" || yAction === "find-principals") {

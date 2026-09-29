@@ -16,6 +16,7 @@ export type { ResourceLimits, ResourceUsage, ResourceLease, ResourceOpen, Resour
 
 export {
   createPdfAstRenderer,
+  renderPdfAstSync,
   pdfAstRenderer,
   pdfAstRendererProfile,
   createPdfAstWkhtmltopdfCommand,

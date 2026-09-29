@@ -181,10 +181,10 @@ function extractLinks(html: string): { text: string; href: string }[] {
   return links;
 }
 
-async function parseHtmlDocument(rawHtml: string, replacements: readonly [string, string][], signal: AbortSignal): Promise<{
+function parseHtmlDocumentSync(rawHtml: string, replacements: readonly [string, string][], signal: AbortSignal): {
   title: string;
   blocks: HtmlBlock[];
-}> {
+} {
   let html = rawHtml;
   for (const [key, value] of replacements) {
     if (key) html = html.split(key).join(value);
@@ -206,7 +206,7 @@ async function parseHtmlDocument(rawHtml: string, replacements: readonly [string
   let work = 0;
   while ((match = tokenRegex.exec(bodyHtml)) !== null) {
     signal.throwIfAborted();
-    if (++work % 64 === 0) await yieldTurn(signal);
+    if (++work % 64 === 0) signal.throwIfAborted();
     const leadingText = stripTags(bodyHtml.slice(lastIndex, match.index));
     if (leadingText) {
       blocks.push({ kind: "paragraph", text: leadingText, links: extractLinks(bodyHtml.slice(lastIndex, match.index)) });
@@ -340,7 +340,7 @@ async function parseHtmlDocument(rawHtml: string, replacements: readonly [string
       }
     } else {
       if (/<(h[1-6]|p|pre|ul|ol|dl|table|svg|hr|img|blockquote|div|section|article)\b/i.test(inner)) {
-        const nested = await parseHtmlDocument(inner, [], signal);
+        const nested = parseHtmlDocumentSync(inner, [], signal);
         blocks.push(...nested.blocks);
       } else {
         const text = stripTags(inner);
@@ -400,12 +400,12 @@ function rgbColor(r: number, g: number, b: number, grayscale: boolean): PdfRgbCo
   return { r: lum, g: lum, b: lum };
 }
 
-async function layoutObjectPages(
+function layoutObjectPagesSync(
   blocks: readonly HtmlBlock[],
   box: ReturnType<typeof resolvePageBox>,
   settings: PageSettings,
   signal: AbortSignal
-): Promise<LaidOutPageSpec[]> {
+): LaidOutPageSpec[] {
   const pages: LaidOutPageSpec[] = [];
   let currentActions: DrawAction[] = [];
   const headerReserve = settings.header.left || settings.header.center || settings.header.right ? 24 : 0;
@@ -430,7 +430,7 @@ async function layoutObjectPages(
   let work = 0;
   for (const block of blocks) {
     signal.throwIfAborted();
-    if (++work % 64 === 0) await yieldTurn(signal);
+    if (++work % 64 === 0) signal.throwIfAborted();
     if (block.kind === "pagebreak") {
       flushPage();
       continue;
@@ -756,11 +756,213 @@ function substituteFurnitureTokens(
     .replace(/\[date\]/g, isoDate);
 }
 
+export function renderPdfAstSync(
+  request: Parameters<StaticRenderer["open"]>[0]
+): Uint8Array {
+  request.signal.throwIfAborted();
+  const { job, inputs, signal, limits } = request;
+  const decoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
+  const box = resolvePageBox(job.global);
+  const grayscale = job.global.colorMode === "grayscale";
+
+  const laidOutPerObject: LaidOutPageSpec[][] = [];
+  const objectMeta: { title: string; webpage: string; settings: PageSettings }[] = [];
+  let inferredDocumentTitle = job.global.documentTitle;
+
+  for (let i = 0; i < job.objects.length; i++) {
+    signal.throwIfAborted();
+    const obj = job.objects[i]!;
+    const htmlBytes = inputs[i] ?? new Uint8Array(0);
+    const htmlText = decoder.decode(htmlBytes);
+    const parsed = parseHtmlDocumentSync(htmlText, obj.settings.replacements, signal);
+    if (!inferredDocumentTitle && parsed.title) {
+      inferredDocumentTitle = parsed.title;
+    }
+    const pages = layoutObjectPagesSync(parsed.blocks, box, obj.settings, signal);
+    laidOutPerObject.push(pages);
+    objectMeta.push({
+      title: parsed.title || inferredDocumentTitle || "Document",
+      webpage: obj.input ?? "-",
+      settings: obj.settings,
+    });
+  }
+
+  const sequence = planPageSequence(
+    laidOutPerObject.map((pages, idx) => ({
+      physicalPages: pages.length,
+      pagesCount: job.objects[idx]!.settings.pagesCount,
+    })),
+    {
+      copies: job.global.copies,
+      collate: job.global.collate,
+      pageOffset: job.global.pageOffset,
+      limits: {
+        maxObjects: limits.parse.maxObjects,
+        maxPhysicalPages: Infinity,
+        maxWork: limits.resources.maxWork,
+      },
+      signal,
+    }
+  );
+
+  const doc = PdfDocument.create();
+  doc.setMetadata({
+    title: inferredDocumentTitle || "Document",
+    creator: "wkhtmltopdf (pdf-ast-static)",
+    producer: "@poe-code/pdf-ast",
+  });
+
+  for (const outPage of sequence.pages) {
+    signal.throwIfAborted();
+    const spec = laidOutPerObject[outPage.objectIndex]![outPage.pageIndex]!;
+    const meta = objectMeta[outPage.objectIndex]!;
+    const page = doc.addPage({ width: box.width, height: box.height });
+    for (const action of spec.actions) {
+      if (action.kind === "text") {
+        page.drawText(action.text, {
+          x: action.x,
+          y: action.y,
+          size: action.size,
+          font: action.font,
+          color: rgbColor(action.color[0], action.color[1], action.color[2], grayscale),
+        });
+      } else if (action.kind === "rect") {
+        page.drawRectangle({
+          x: action.x,
+          y: action.y,
+          width: action.width,
+          height: action.height,
+          ...(action.fill ? { fill: rgbColor(action.fill[0], action.fill[1], action.fill[2], grayscale) } : {}),
+          ...(action.stroke ? { stroke: rgbColor(action.stroke[0], action.stroke[1], action.stroke[2], grayscale), strokeWidth: action.strokeWidth ?? 0.5 } : {}),
+        });
+      } else if (action.kind === "line") {
+        page.drawLine({
+          x1: action.x1,
+          y1: action.y1,
+          x2: action.x2,
+          y2: action.y2,
+          stroke: rgbColor(action.color[0], action.color[1], action.color[2], grayscale),
+          strokeWidth: action.strokeWidth,
+        });
+      } else if (action.kind === "image") {
+        try {
+          const decoded = decodePng(action.pngBytes);
+          const embedded = doc.embedPng(decoded);
+          page.drawImage(embedded, {
+            x: action.x,
+            y: action.y,
+            width: action.width,
+            height: action.height,
+          });
+        } catch {
+          // Ignore malformed inline PNG
+        }
+      }
+    }
+    const tokens = {
+      page: outPage.page,
+      frompage: sequence.fromPage,
+      topage: sequence.toPage,
+      sitepage: outPage.sitePage,
+      sitepages: outPage.sitePages,
+      webpage: meta.webpage,
+      title: meta.title,
+      section: spec.section,
+      subsection: spec.subsection,
+    };
+    const header = meta.settings.header;
+    const footer = meta.settings.footer;
+    const headerY = box.height - Math.max(18, box.marginTop * 0.6);
+    if (header.left) {
+      page.drawText(substituteFurnitureTokens(header.left, tokens), {
+        x: box.marginLeft,
+        y: headerY,
+        size: Math.min(10, header.fontSize || 9),
+        font: "Helvetica",
+        color: rgbColor(0.35, 0.35, 0.38, grayscale),
+      });
+    }
+    if (header.center) {
+      const text = substituteFurnitureTokens(header.center, tokens);
+      page.drawText(text, {
+        x: Math.max(box.marginLeft, (box.width - text.length * 4.5) / 2),
+        y: headerY,
+        size: Math.min(10, header.fontSize || 9),
+        font: "Helvetica",
+        color: rgbColor(0.35, 0.35, 0.38, grayscale),
+      });
+    }
+    if (header.right) {
+      const text = substituteFurnitureTokens(header.right, tokens);
+      page.drawText(text, {
+        x: Math.max(box.marginLeft, box.width - box.marginRight - text.length * 4.8),
+        y: headerY,
+        size: Math.min(10, header.fontSize || 9),
+        font: "Helvetica",
+        color: rgbColor(0.35, 0.35, 0.38, grayscale),
+      });
+    }
+    if (header.line) {
+      page.drawLine({
+        x1: box.marginLeft,
+        y1: headerY - 4,
+        x2: box.width - box.marginRight,
+        y2: headerY - 4,
+        stroke: rgbColor(0.7, 0.7, 0.74, grayscale),
+        strokeWidth: 0.5,
+      });
+    }
+    const footerY = Math.max(12, box.marginBottom * 0.5);
+    if (footer.left) {
+      page.drawText(substituteFurnitureTokens(footer.left, tokens), {
+        x: box.marginLeft,
+        y: footerY,
+        size: Math.min(10, footer.fontSize || 9),
+        font: "Helvetica",
+        color: rgbColor(0.35, 0.35, 0.38, grayscale),
+      });
+    }
+    if (footer.center) {
+      const text = substituteFurnitureTokens(footer.center, tokens);
+      page.drawText(text, {
+        x: Math.max(box.marginLeft, (box.width - text.length * 4.5) / 2),
+        y: footerY,
+        size: Math.min(10, footer.fontSize || 9),
+        font: "Helvetica",
+        color: rgbColor(0.35, 0.35, 0.38, grayscale),
+      });
+    }
+    if (footer.right) {
+      const text = substituteFurnitureTokens(footer.right, tokens);
+      page.drawText(text, {
+        x: Math.max(box.marginLeft, box.width - box.marginRight - text.length * 4.8),
+        y: footerY,
+        size: Math.min(10, footer.fontSize || 9),
+        font: "Helvetica",
+        color: rgbColor(0.35, 0.35, 0.38, grayscale),
+      });
+    }
+    if (footer.line) {
+      page.drawLine({
+        x1: box.marginLeft,
+        y1: footerY + 11,
+        x2: box.width - box.marginRight,
+        y2: footerY + 11,
+        stroke: rgbColor(0.7, 0.7, 0.74, grayscale),
+        strokeWidth: 0.5,
+      });
+    }
+  }
+  return doc.save();
+}
+
 export function createPdfAstRenderer(): StaticRenderer {
   return Object.freeze({
     profile: pdfAstRendererProfile,
     async open(request: Parameters<StaticRenderer["open"]>[0]): Promise<RenderedDocument> {
-      request.signal.throwIfAborted();
+      await yieldTurn(request.signal);
+      const pdfBytes = renderPdfAstSync(request);
+      if (Boolean(false)) {
       const { job, inputs, signal, limits } = request;
       const decoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
       const box = resolvePageBox(job.global);
@@ -775,11 +977,11 @@ export function createPdfAstRenderer(): StaticRenderer {
         const obj = job.objects[i]!;
         const htmlBytes = inputs[i] ?? new Uint8Array(0);
         const htmlText = decoder.decode(htmlBytes);
-        const parsed = await parseHtmlDocument(htmlText, obj.settings.replacements, signal);
+        const parsed = parseHtmlDocumentSync(htmlText, obj.settings.replacements, signal);
         if (!inferredDocumentTitle && parsed.title) {
           inferredDocumentTitle = parsed.title;
         }
-        const pages = await layoutObjectPages(parsed.blocks, box, obj.settings, signal);
+        const pages = layoutObjectPagesSync(parsed.blocks, box, obj.settings, signal);
         laidOutPerObject.push(pages);
         objectMeta.push({
           title: parsed.title || inferredDocumentTitle || "Document",
@@ -914,8 +1116,7 @@ export function createPdfAstRenderer(): StaticRenderer {
         }
       }
 
-      const pdfBytes = doc.save();
-
+      }
       return {
         success: true,
         errorCode: 0,

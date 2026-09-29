@@ -3,6 +3,10 @@ import { timeoutCommands } from "../../src/commands/timeout/index.js";
 import { sofficeCommands } from "../../src/commands/soffice/index.js";
 import { imagemagickCommands } from "../../src/commands/imagemagick/index.js";
 import { exiftoolCommands } from "../../src/commands/exiftool/index.js";
+import { pandocCommands } from "../../src/commands/pandoc/index.js";
+import { wkhtmltopdfCommands } from "../../src/commands/wkhtmltopdf/index.js";
+import { gpgCommands } from "../../src/commands/gpg/index.js";
+import { sshCommands } from "../../src/commands/ssh/index.js";
 import { mmdcCommands } from "../../src/commands/mmdc/index.js";
 import { pdftotextCommands } from "../../src/commands/pdftotext/index.js";
 import { pdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
@@ -1883,5 +1887,39 @@ test("Wave 234: magick/convert/mogrify/composite/montage and exiftool tag writin
   assert.equal(
     res.stdout.trim(),
     "8x6|4x3|12x9|12x9|8x3|PNG:8x6|    1 image files updated|Ada|    1 image files created|Hello"
+  );
+});
+
+test("Wave 235: pandoc conversion/-o, wkhtmltopdf file output, gpg -o, and ssh-keygen -R/-Y sign file in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(pandocCommands())
+    .use(wkhtmltopdfCommands())
+    .use(pdftotextCommands())
+    .use(gpgCommands())
+    .use(sshCommands());
+  const res = await shell.exec(`
+    printf "# Wave 235 Heading\n\nParagraph body.\n" > /tmp/w235.md
+    p1=$(pandoc -f commonmark -t html /tmp/w235.md | tr -d "\n")
+    p2=$(pandoc /tmp/w235.md -o /tmp/w235.html && grep -o "Wave 235 Heading" /tmp/w235.html)
+    p3=$(pandoc /tmp/w235.md -o /tmp/w235.docx && pandoc /tmp/w235.docx -t plain | head -n 1)
+    wk1=$(wkhtmltopdf /tmp/w235.html /tmp/w235.pdf && head -c 5 /tmp/w235.pdf)
+    gpg --quick-generate-key "dev@example.com" >/dev/null 2>&1
+    g1=$(gpg --export -o /tmp/w235_pub.asc && head -n 1 /tmp/w235_pub.asc)
+    g2=$(gpg -u "dev@example.com" --detach-sign -o /tmp/w235.sig /tmp/w235.md && head -n 1 /tmp/w235.sig)
+    ssh-keygen -t ed25519 -f /tmp/w235_key -N "" -q >/dev/null
+    s1=$(ssh-keygen -Y sign -f /tmp/w235_key -n file /tmp/w235.md | head -n 1)
+    s2=$(head -n 1 /tmp/w235.md.sig)
+    printf "oldhost.local ssh-ed25519 AAAAC3\nnewhost.local ssh-ed25519 AAAAC3\n" > /tmp/w235_known
+    s3=$(ssh-keygen -R oldhost.local -f /tmp/w235_known | head -n 1)
+    s4=$(grep -c "newhost.local" /tmp/w235_known)
+    printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\\n" "\$p1" "\$p2" "\$p3" "\$wk1" "\$g1" "\$g2" "\$s1" "\$s2" "\$s3" "\$s4"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "<h1 id=\"wave-235-heading\">Wave 235 Heading</h1><p>Paragraph body.</p>|Wave 235 Heading|Wave 235 Heading|%PDF-|-----BEGIN PGP PUBLIC KEY BLOCK-----|-----BEGIN PGP SIGNATURE-----|Signing file /tmp/w235.md|-----BEGIN SSH SIGNATURE-----|# Host oldhost.local found: removed|1"
   );
 });

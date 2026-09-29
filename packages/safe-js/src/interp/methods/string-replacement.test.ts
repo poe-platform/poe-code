@@ -138,7 +138,7 @@ describe("replacement source regressions", () => {
       }
     }
   ])("$name", async ({ source, expected }) => {
-    const native = runInNewContext(`(function () { ${source} })()`, {}, { timeout: 100 });
+    const native = runInNewContext(`(function () { ${source} })()`, {});
     expect(native).toEqual(expected);
 
     const result = await run(source, { modules: {}, budget: new Budget({ maxSteps: 1000 }) });
@@ -173,7 +173,7 @@ describe("replacement source regressions", () => {
       "  { template: 'literal 🧪 é', view: { name: 'Ω' } }",
       "].map(fixture => buildPreview(fixture.template, fixture.view));"
     ].join("\n");
-    const native = runInNewContext(`(function () { ${source} })()`, {}, { timeout: 100 });
+    const native = runInNewContext(`(function () { ${source} })()`, {});
     expect(native[0]).toMatchObject({
       rendered: "🧪名称 / é!",
       annotated: "🧪[name:|$|{{name}}] / [missing:é|$|{{missing|é}}]!",

@@ -463,7 +463,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       if (id && formula && !shared.has(id)) shared.set(id, { formula, row, column, sheet: name, ...semantics });
       const stored = formula ? cached === undefined ? { kind: "blank" } as const : value(type, cached) : value(type, text);
       const valueFormat = attribute(item, "ValueFormat"); const runs = readGnumericRichText(valueFormat);
-      let style: ImportedValue | undefined; let format = valueFormat;
+      let style: ImportedValue | undefined; let format = runs ? undefined : valueFormat;
       for (const region of styles) {
         tick();
         const bounds = xmlRange(region); if (row < bounds.startRow || row > bounds.endRow || column < bounds.startColumn || column > bounds.endColumn) continue;

@@ -39,6 +39,18 @@ const cases = [
   ['mapfile later scalar', 'total=0; for ((i=0;i<3;i++)); do total=$((total+1)); if ((i==2)); then unset arr; arr=scalar; fi; mapfile -t arr <<< "$i"; done; echo "$total:${arr[0]}"', '3:2\n'],
   ['mapfile scalar', 'arr=scalar; total=0; for ((i=0;i<3;i++)); do total=$((total+1)); mapfile -t arr <<< "$i"; done; echo "$total:${arr[0]}"', '3:2\n'],
   ['mapfile growing input', 'text=x; total=0; for ((i=0;i<3;i++)); do total=$((total+1)); if ((i==2)); then for ((j=0;j<300;j++)); do text+=$\'\\n\'x; done; fi; mapfile -t arr <<< "$text"; done; echo "$total:${#arr[@]}"', '3:301\n'],
+  ["arithmetic exported unset", "x=old; for ((i=0;i<2;i++)); do unset x; export x; done; x=hello; declare -p x", "declare -x x=\"hello\"\n"],
+  ["while exported unset", "x=old; i=0; while ((i<2)); do unset x; export x; ((i++)); done; x=hello; declare -p x", "declare -x x=\"hello\"\n"],
+  ["arithmetic exported local", "export x=outer; f() { for ((i=0;i<2;i++)); do local x; done; x=inner; declare -p x; }; f; echo \"$x\"", "declare -x x=\"inner\"\nouter\n"],
+  ["while exported local", "export x=outer; f() { i=0; while ((i<2)); do local x; ((i++)); done; x=inner; declare -p x; }; f; echo \"$x\"", "declare -x x=\"inner\"\nouter\n"],
+  ["mid-loop IFS echo", "for i in 1 2; do IFS=2; echo $((121)); done", "1 1\n1 1\n"],
+  ["mid-loop IFS nested words", "for i in 1 2; do IFS=2; for j in $((121)); do echo \"[$j]\"; done; done", "[1]\n[1]\n[1]\n[1]\n"],
+  ["dynamic nested slice", "arr=(a b c); k=0; for i in 1 2; do k=\"0+1+0\"; for j in \"${arr[@]:$k:1}\"; do echo \"j=[$j]\"; done; done", "j=[b]\nj=[b]\n"],
+  ["locale nested members", "arr=(ax bx); for i in 1 2; do LC_ALL=C; for j in \"${arr[@]#a}\"; do echo \"j=[$j]\"; done; done", "j=[x]\nj=[bx]\nj=[x]\nj=[bx]\n"],
+  ["until exported unset", "x=old; i=0; until ((i>=2)); do unset x; export x; ((i++)); done; x=hello; declare -p x", "declare -x x=\"hello\"\n"],
+  ["until exported local", "export x=outer; f() { i=0; until ((i>=2)); do local x; ((i++)); done; x=inner; declare -p x; }; f; echo \"$x\"", "declare -x x=\"inner\"\nouter\n"],
+  ["nested plain array mutations", "arr=(a b); for i in 1 2; do arr=(x y); for j in \"${arr[@]}\"; do echo \"[$j]\"; done; done", "[x]\n[y]\n[x]\n[y]\n"],
+  ["nested constant slice", "arr=(a b c); for i in 1 2; do for j in \"${arr[@]:1:1}\"; do echo \"[$j]\"; done; done", "[b]\n[b]\n"],
 ] as const;
 for (const [name, source, expected] of cases) {
   test(`sync loops preserve ${name}`, async () => {
@@ -1253,5 +1265,22 @@ for (const [name, script, expected] of [
     const result = await shell.exec(script);
     assert.equal(result.stdout, expected);
     assert.equal(result.exitCode, 0);
+  });
+}
+
+for (const loop of ["for i in 1 2", "for ((i=0;i<2;i++))", "while ((i++<2))", "until ((i++>=2))"]) {
+  test(`nested negative slice length reports an expansion error in ${loop}`, async () => {
+    const source = `arr=(a b c); k=1; i=0; ${loop}; do k=-1; for j in "\${arr[@]:0:$k}"; do echo "j=[$j]"; done; done`;
+    const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(native.status, 1);
+    assert.equal(native.stdout, "");
+    assert.ok(native.stderr.includes("substring expression < 0"));
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, "");
+      assert.ok(result.stderr.includes("substring expression < 0"), result.stderr);
+    } finally { await shell.dispose(); }
   });
 }

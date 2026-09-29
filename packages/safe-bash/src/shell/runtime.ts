@@ -12029,6 +12029,9 @@ export class Runtime {
   private canSyncNestedForWords(words: readonly Word[] | undefined, rawState: State, io: IO | undefined, line: number): boolean {
     if (words === undefined) return true;
     if (words.length === 0 || words.length > 64) return false;
+    // Slice expressions and member transformations may stop being synchronous
+    // after body mutations. Preserve member expansion through the normal path.
+    if (words.some(w => w.parts.some(p => p.kind === "variable" && (p.substring || p.operator !== undefined || p.transform)))) return false;
     if (words.length === 1 && this.isQuotedAtWord(words[0]!)) return true;
     // Unquoted expansions need splitting and globbing against the state at
     // execution time. The loop body can change IFS or the expansion value.
@@ -12061,8 +12064,10 @@ export class Runtime {
     }
     if (words.length === 1) {
       const w0 = words[0]!;
-      const arrMembers = this.tryExpandSyncArrayMembersWord(w0, rawState, io, line);
-      if (arrMembers !== undefined) return arrMembers;
+      if (this.canSyncArrayMembersWord(w0, rawState)) {
+        // Member words must never degrade into a single joined scalar word.
+        return this.tryExpandSyncArrayMembersWord(w0, rawState, io, line)!;
+      }
       const p0 = w0.parts.length === 1 ? w0.parts[0] : (w0.parts.length === 2 && w0.parts[0]!.kind === "text" && w0.parts[0]!.value === "" ? w0.parts[1] : undefined);
       if (p0 && !p0.quoted && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob) {
         if (p0.kind === "variable" && !p0.indirect && !p0.prefixNames && !p0.length && !p0.transform && getArraySelector(p0) === undefined) {
@@ -12621,9 +12626,9 @@ export class Runtime {
           return false;
         }
         const assignment = this.assignment(w0);
-        // Eligibility is checked against the entry locale. Changing it can make
-        // otherwise pure expansions require the asynchronous byte-aware path.
-        if (assignment && (assignment.name === "LC_ALL" || assignment.name === "LC_CTYPE" || assignment.name === "LC_COLLATE" || assignment.name === "LANG")) return false;
+        // Eligibility uses the entry locale and IFS. Mutations can require
+        // field splitting or byte-aware expansion during a later iteration.
+        if (assignment && (assignment.name === "IFS" || assignment.name === "LC_ALL" || assignment.name === "LC_CTYPE" || assignment.name === "LC_COLLATE" || assignment.name === "LANG")) return false;
         if ( !assignment || (assignment.append && this.budget.limits.maxExpansionBytes !== Infinity) || assignment.name === "OPTIND" || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || rawState.variableAttributes?.get(assignment.name) || store?.get(assignment.name) || !this.isPureSyncValueWord(assignment.value, rawState)) {
           return false;
         }
@@ -13548,7 +13553,7 @@ export class Runtime {
               if (rawState.allexport) monitor.proxy.exported.add(varName);
             } else {
               monitor.values.invalidate(varName);
-              monitor.proxy.exported.delete(varName);
+              if (!rawState.exported.has(varName)) monitor.proxy.exported.delete(varName);
             }
           }
         }
@@ -13920,7 +13925,7 @@ export class Runtime {
             if (rawState.allexport) monitor.proxy.exported.add(varName);
           } else {
             monitor.values.invalidate(varName);
-            monitor.proxy.exported.delete(varName);
+            if (!rawState.exported.has(varName)) monitor.proxy.exported.delete(varName);
           }
         }
       }

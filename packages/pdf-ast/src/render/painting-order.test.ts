@@ -22,7 +22,7 @@ it.each(orders)("paints images, paths, and text in stream order: %s", order => {
   else if (order.endsWith("I")) expect(pixels.every(pixel => pixel[0] === 255 && pixel[1] === 0 && pixel[2] === 0)).toBe(true);
   else expect(pixels.some(pixel => pixel[1]! > 128 && pixel[0]! < 128)).toBe(true);
   const svg = renderDisplayListToSvg(display);
-  const positions: Record<string, number> = { I: svg.indexOf("<image "), P: svg.indexOf("<path "), T: svg.indexOf("<text ") };
+  const positions: Record<string, number> = { I: svg.indexOf("<image "), P: svg.indexOf("<path d="), T: svg.indexOf('aria-label="H"') };
   expect([...order].map(kind => positions[kind])).toEqual(Object.values(positions).sort((a, b) => a - b));
 });
 

@@ -188,6 +188,8 @@ export interface PdfRgbColor {
 }
 
 export interface PdfPlacedGlyph {
+  /** Glyph paint geometry, kept separate from page drawings for extraction. */
+  readonly outline?: PdfEvaluatedPath | undefined;
   readonly charCode: number;
   readonly unicode: string;
   readonly bbox: PdfRect;

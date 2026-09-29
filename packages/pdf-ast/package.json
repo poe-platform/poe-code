@@ -2,7 +2,7 @@
   "name": "@poe-code/pdf-ast",
   "version": "0.0.1",
   "private": true,
-  "license": "(MIT AND Apache-2.0)",
+  "license": "(MIT AND Apache-2.0 AND BSD-3-Clause)",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

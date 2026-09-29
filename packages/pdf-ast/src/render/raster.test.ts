@@ -127,7 +127,7 @@ describe("Netpbm encoders & PDF rasterization options", () => {
     expect(Array.from(rot90.data.subarray(4, 8))).toEqual([0, 0, 255, 255]);
   });
 
-  it("resolves inherited /CropBox from parent /Pages node and renders SVG <text> glyphs", () => {
+  it("resolves inherited /CropBox from parent /Pages node and renders SVG glyph outlines", () => {
     const doc = PdfDocument.create();
     const page = doc.addPage([612, 792]);
     page.drawText("A&B<C>", { x: 72, y: 700, fontSize: 14 });
@@ -145,7 +145,7 @@ describe("Netpbm encoders & PDF rasterization options", () => {
     expect(bmp.height).toBe(100);
 
     const svg = renderDisplayListToSvg(page.evaluateDisplayList());
-    expect(svg).toContain("<text");
+    expect(svg).toContain('<path aria-label="A"');
     expect(svg).toContain("&amp;");
     expect(svg).toContain("&lt;");
     expect(svg).toContain("&gt;");
@@ -420,10 +420,10 @@ describe("Netpbm encoders & PDF rasterization options", () => {
 
     // SVG and bitmap must not render visible glyphs for 3 Tr (HIDDEN)
     const svg = renderDisplayListToSvg(dl);
-    expect(svg).toContain(">R</text>");
-    expect(svg).toContain(">B</text>");
-    expect(svg).toContain(">S</text>");
-    expect(svg).not.toContain(">H</text>");
+    expect(svg).toContain('aria-label="R"');
+    expect(svg).toContain('aria-label="B"');
+    expect(svg).toContain('aria-label="S"');
+    expect(svg).not.toContain('aria-label="H"');
   });
 
   it("renders split parent/kid AcroForm widget values and custom /AP /N Form XObject appearance streams (unless hideAnnotations is set)", () => {
@@ -1342,7 +1342,7 @@ describe("Netpbm encoders & PDF rasterization options", () => {
     expect(bmp.data[idxButtCap + 2]).toBe(255);
   });
 
-  it("emits font-weight, font-style, and rotation transforms on SVG <text> elements in renderDisplayListToSvg", () => {
+  it("renders styled and rotated glyph contours in SVG without system fonts", () => {
     const doc = PdfDocument.create();
     const page = doc.addPage([200, 200]);
     page.drawText("B", { x: 20, y: 150, size: 16, font: "Helvetica-Bold" });
@@ -1350,8 +1350,12 @@ describe("Netpbm encoders & PDF rasterization options", () => {
     page.drawText("R", { x: 60, y: 100, size: 12, font: "Courier-BoldOblique", rotateRadians: Math.PI / 4 });
 
     const svg = renderDisplayListToSvg(page.evaluateDisplayList());
-    expect(svg).toContain(`font-weight="bold"`);
-    expect(svg).toContain(`font-style="italic"`);
-    expect(svg).toContain(`transform="rotate(-45 `);
+    expect(svg).toContain('aria-label="B"');
+    expect(svg).toContain('aria-label="I"');
+    expect(svg).toContain('aria-label="R"');
+    expect(svg).not.toContain("<text");
+    const glyphs = page.evaluateDisplayList().glyphs;
+    expect(glyphs.every(glyph => glyph.outline?.segments.length)).toBe(true);
+    expect(glyphs[2]!.matrix[1]).toBeCloseTo(Math.SQRT1_2, 5);
   });
 });

@@ -1,3 +1,4 @@
+import { getMetrics, WinAnsiEncoding, SymbolSetEncoding, ZapfDingbatsEncoding } from "../vendor/pdfjs-fonts.mjs";
 import { dictGet, type PdfCosArray, type PdfCosDict, type PdfCosNode } from "../ast.js";
 
 export type Standard14FontName =
@@ -282,60 +283,33 @@ export function encodeWinAnsiBytes(text: string): Uint8Array {
   return Uint8Array.from(out);
 }
 
-function buildProportionalWidths(isBold: boolean, isSerif: boolean): Record<number, number> {
-  const w: Record<number, number> = {};
-  const base = isBold ? 610 : 556;
-  for (let i = 32; i <= 255; i++) w[i] = base;
-  w[32] = 278; // space
-  const narrow = isBold ? 333 : 278;
-  for (const ch of "iIlj!|.,:;'`") {
-    w[ch.charCodeAt(0)] = narrow;
+function standardWidths(name: Standard14FontName): Record<number, number> {
+  const metrics = getMetrics()[name]!;
+  const widths: Record<number, number> = {};
+  const encoding = name === "Symbol" ? SymbolSetEncoding : name === "ZapfDingbats" ? ZapfDingbatsEncoding : WinAnsiEncoding;
+  const byGlyph = typeof metrics === "number" ? undefined : metrics();
+  for (let code = 0; code < 256; code++) {
+    const width = typeof metrics === "number" ? metrics : byGlyph?.[encoding[code]!];
+    if (width !== undefined) widths[code] = width;
   }
-  for (const ch of "()[]{}") {
-    w[ch.charCodeAt(0)] = isBold ? 389 : 333;
-  }
-  for (const ch of "ftrJ") {
-    w[ch.charCodeAt(0)] = isBold ? 389 : 333;
-  }
-  for (const ch of "mwMW") {
-    w[ch.charCodeAt(0)] = isBold ? 944 : 833;
-  }
-  for (const ch of "ABCDEFGHKLNOPQRSTUVXYZ") {
-    w[ch.charCodeAt(0)] = isSerif ? (isBold ? 722 : 667) : (isBold ? 722 : 667);
-  }
-  for (const ch of "0123456789") {
-    w[ch.charCodeAt(0)] = 556;
-  }
-  return w;
+  return widths;
 }
-
-function buildMonospaceWidths(): Record<number, number> {
-  const w: Record<number, number> = {};
-  for (let i = 0; i <= 255; i++) w[i] = 600;
-  return w;
-}
-
-const HELVETICA_REGULAR = buildProportionalWidths(false, false);
-const HELVETICA_BOLD = buildProportionalWidths(true, false);
-const TIMES_REGULAR = buildProportionalWidths(false, true);
-const TIMES_BOLD = buildProportionalWidths(true, true);
-const COURIER_WIDTHS = buildMonospaceWidths();
 
 export const STANDARD_14_FONTS: Readonly<Record<Standard14FontName, Standard14FontMetrics>> = {
-  Helvetica: { name: "Helvetica", ascender: 718, descender: -207, capHeight: 718, defaultWidth: 556, widthsByCode: HELVETICA_REGULAR },
-  "Helvetica-Bold": { name: "Helvetica-Bold", ascender: 718, descender: -207, capHeight: 718, defaultWidth: 610, widthsByCode: HELVETICA_BOLD },
-  "Helvetica-Oblique": { name: "Helvetica-Oblique", ascender: 718, descender: -207, capHeight: 718, defaultWidth: 556, widthsByCode: HELVETICA_REGULAR },
-  "Helvetica-BoldOblique": { name: "Helvetica-BoldOblique", ascender: 718, descender: -207, capHeight: 718, defaultWidth: 610, widthsByCode: HELVETICA_BOLD },
-  "Times-Roman": { name: "Times-Roman", ascender: 683, descender: -217, capHeight: 662, defaultWidth: 500, widthsByCode: TIMES_REGULAR },
-  "Times-Bold": { name: "Times-Bold", ascender: 683, descender: -217, capHeight: 676, defaultWidth: 556, widthsByCode: TIMES_BOLD },
-  "Times-Italic": { name: "Times-Italic", ascender: 683, descender: -217, capHeight: 653, defaultWidth: 500, widthsByCode: TIMES_REGULAR },
-  "Times-BoldItalic": { name: "Times-BoldItalic", ascender: 683, descender: -217, capHeight: 669, defaultWidth: 556, widthsByCode: TIMES_BOLD },
-  Courier: { name: "Courier", ascender: 629, descender: -157, capHeight: 562, defaultWidth: 600, widthsByCode: COURIER_WIDTHS },
-  "Courier-Bold": { name: "Courier-Bold", ascender: 629, descender: -157, capHeight: 562, defaultWidth: 600, widthsByCode: COURIER_WIDTHS },
-  "Courier-Oblique": { name: "Courier-Oblique", ascender: 629, descender: -157, capHeight: 562, defaultWidth: 600, widthsByCode: COURIER_WIDTHS },
-  "Courier-BoldOblique": { name: "Courier-BoldOblique", ascender: 629, descender: -157, capHeight: 562, defaultWidth: 600, widthsByCode: COURIER_WIDTHS },
-  Symbol: { name: "Symbol", ascender: 693, descender: -216, capHeight: 693, defaultWidth: 500, widthsByCode: HELVETICA_REGULAR },
-  ZapfDingbats: { name: "ZapfDingbats", ascender: 690, descender: -143, capHeight: 690, defaultWidth: 600, widthsByCode: COURIER_WIDTHS },
+  Helvetica: { name: "Helvetica", ascender: 718, descender: -207, capHeight: 718, defaultWidth: 556, widthsByCode: standardWidths("Helvetica") },
+  "Helvetica-Bold": { name: "Helvetica-Bold", ascender: 718, descender: -207, capHeight: 718, defaultWidth: 610, widthsByCode: standardWidths("Helvetica-Bold") },
+  "Helvetica-Oblique": { name: "Helvetica-Oblique", ascender: 718, descender: -207, capHeight: 718, defaultWidth: 556, widthsByCode: standardWidths("Helvetica-Oblique") },
+  "Helvetica-BoldOblique": { name: "Helvetica-BoldOblique", ascender: 718, descender: -207, capHeight: 718, defaultWidth: 610, widthsByCode: standardWidths("Helvetica-BoldOblique") },
+  "Times-Roman": { name: "Times-Roman", ascender: 683, descender: -217, capHeight: 662, defaultWidth: 500, widthsByCode: standardWidths("Times-Roman") },
+  "Times-Bold": { name: "Times-Bold", ascender: 683, descender: -217, capHeight: 676, defaultWidth: 556, widthsByCode: standardWidths("Times-Bold") },
+  "Times-Italic": { name: "Times-Italic", ascender: 683, descender: -217, capHeight: 653, defaultWidth: 500, widthsByCode: standardWidths("Times-Italic") },
+  "Times-BoldItalic": { name: "Times-BoldItalic", ascender: 683, descender: -217, capHeight: 669, defaultWidth: 556, widthsByCode: standardWidths("Times-BoldItalic") },
+  Courier: { name: "Courier", ascender: 629, descender: -157, capHeight: 562, defaultWidth: 600, widthsByCode: standardWidths("Courier") },
+  "Courier-Bold": { name: "Courier-Bold", ascender: 629, descender: -157, capHeight: 562, defaultWidth: 600, widthsByCode: standardWidths("Courier-Bold") },
+  "Courier-Oblique": { name: "Courier-Oblique", ascender: 629, descender: -157, capHeight: 562, defaultWidth: 600, widthsByCode: standardWidths("Courier-Oblique") },
+  "Courier-BoldOblique": { name: "Courier-BoldOblique", ascender: 629, descender: -157, capHeight: 562, defaultWidth: 600, widthsByCode: standardWidths("Courier-BoldOblique") },
+  Symbol: { name: "Symbol", ascender: 693, descender: -216, capHeight: 693, defaultWidth: 500, widthsByCode: standardWidths("Symbol") },
+  ZapfDingbats: { name: "ZapfDingbats", ascender: 690, descender: -143, capHeight: 690, defaultWidth: 600, widthsByCode: standardWidths("ZapfDingbats") },
 };
 
 function stripSubsetPrefix(name: string): string {

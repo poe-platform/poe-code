@@ -48,8 +48,14 @@ retain the removed content. Content still used on other pages remains intact;
 redact each occurrence that needs removal.
 
 `page.evaluateDisplayList().operations` exposes paints in content-stream order,
-including nested Forms, patterns, and glyph outlines. The `glyphs`, `paths`, and
+including nested Forms and patterns. Standard-font glyph outlines are attached
+to `glyph.outline`, keeping letters separate from page drawing paths. The `glyphs`, `paths`, and
 `images` arrays remain available for inspection and extraction.
+
+All 14 standard PDF fonts use bundled PDFium/Foxit outlines and PDF.js metrics.
+PNG and SVG preserve font styles without installed system fonts; SVG exports
+glyph paths with accessible labels. Unicode fallback covers characters present
+in the bundled standard, Symbol, and Dingbats fonts; embed a font for other scripts.
 
 JBIG2 decoding supports shared `/JBIG2Globals` dictionaries, arithmetic coding,
 and MMR regions. JPEG 2000 decoding handles JP2 containers, raw codestreams,

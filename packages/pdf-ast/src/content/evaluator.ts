@@ -1,3 +1,4 @@
+import { getStandardFontOutlines, type StandardFontOutlines } from "../fonts/standard-outlines.js";
 import { decodeInlineImageNodeToRgba, decodeXObjectImageToRgba } from "../extract/images.js";
 import {
   decodePdfString,
@@ -58,6 +59,7 @@ interface ResolvedPageFont {
   readonly charProcs?: PdfCosDict | undefined;
   readonly fontResources?: PdfCosDict | undefined;
   readonly embeddedTrueType?: ParsedTrueTypeFont | undefined;
+  readonly standardOutlines?: StandardFontOutlines | undefined;
 }
 
 function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: PdfCosDict | undefined): Map<string, ResolvedPageFont> {
@@ -193,6 +195,11 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
       }
     }
 
+    const standardOutlines = !embeddedTrueType && subtype !== "Type3" ? getStandardFontOutlines(baseFont) : undefined;
+    for (const [code, unicode] of standardOutlines?.defaultUnicode ?? []) {
+      if (!differences.has(code)) differences.set(code, unicode);
+    }
+
     fonts.set(fName, {
       name: fName,
       baseFont,
@@ -207,6 +214,7 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
       charProcs,
       fontResources,
       embeddedTrueType,
+      standardOutlines,
     });
   }
 
@@ -2014,6 +2022,7 @@ export function evaluateContentStreamToDisplayList(params: {
               const effectiveFontSize = st.fontSize * Math.hypot(totalMatrix[0], totalMatrix[1]);
               let advance1000 = item.advance1000;
               let evaluatedType3 = false;
+              let glyphPaint: PdfEvaluatedPath | undefined;
               if (font?.subtype === "Type3" && font.charProcs && params.cosDoc && depth < 8) {
                 const gName = font.glyphNames.get(item.charCode) ?? item.unicode;
                 const procNode = gName ? params.cosDoc.resolve(dictGet(font.charProcs, gName)) : undefined;
@@ -2049,13 +2058,13 @@ export function evaluateContentStreamToDisplayList(params: {
                     evaluatedType3 = true;
                   }
                 }
-              } else if (font?.embeddedTrueType && st.textRenderMode !== 3) {
+              } else if ((font?.embeddedTrueType || font?.standardOutlines) && st.textRenderMode !== 3) {
                 const cp = item.unicode ? item.unicode.codePointAt(0) : undefined;
-                let glyphOutline = cp !== undefined ? font.embeddedTrueType.getGlyphOutline(cp) : [];
-                if (glyphOutline.length === 0) {
+                let glyphOutline = cp !== undefined ? (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp) : [];
+                if (glyphOutline.length === 0 && font.embeddedTrueType) {
                   glyphOutline = font.embeddedTrueType.getGlyphOutlineByGid(item.charCode);
                 }
-                if (!font.widths.has(item.charCode)) {
+                if (!font.widths.has(item.charCode) && font.embeddedTrueType) {
                   const ttAdv = cp !== undefined ? font.embeddedTrueType.getAdvanceWidth1000(cp) : undefined;
                   if (ttAdv !== undefined) advance1000 = ttAdv;
                 }
@@ -2084,7 +2093,7 @@ export function evaluateContentStreamToDisplayList(params: {
                   const isFillGlyph = st.textRenderMode === 0 || st.textRenderMode === 2 || st.textRenderMode === 4 || st.textRenderMode === 6;
                   const isStrokeGlyph = st.textRenderMode === 1 || st.textRenderMode === 2 || st.textRenderMode === 5 || st.textRenderMode === 6;
                   const ctmScale = Math.max(1e-6, Math.hypot(st.ctm[0], st.ctm[1]));
-                  emit({ kind: "path", value: {
+                  const paint: PdfEvaluatedPath = {
                     segments: transformedGlyphSegs,
                     fillColor: isFillGlyph ? st.fillColor : undefined,
                     fillAlpha: isFillGlyph ? st.fillAlpha : undefined,
@@ -2094,8 +2103,10 @@ export function evaluateContentStreamToDisplayList(params: {
                     fillRule: "nonzero",
                     ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                     ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
-                  } });
-                  evaluatedType3 = true;
+                  };
+                  if (font.standardOutlines) glyphPaint = paint;
+                  else emit({ kind: "path", value: paint });
+                  evaluatedType3 = !font.standardOutlines;
                 }
               }
               const advUser = ((advance1000 * st.fontSize) / 1000 + st.charSpace + (item.unicode === " " ? st.wordSpace : 0)) * scaleH;
@@ -2105,6 +2116,7 @@ export function evaluateContentStreamToDisplayList(params: {
                 (advance1000 * effectiveFontSize) / 1000
               );
               emit({ kind: "glyph", value: {
+                ...(glyphPaint ? { outline: glyphPaint } : {}),
                 charCode: item.charCode,
                 unicode: item.unicode,
                 fontName: font?.baseFont ?? st.fontName,

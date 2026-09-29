@@ -1,7 +1,8 @@
+import { getStandardFontOutlines } from "../fonts/standard-outlines.js";
 import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
 import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
-import type { PdfDisplayList, PdfPaintOperation, PdfPathSegment, PdfRgbColor } from "../ast.js";
+import type { PdfDisplayList, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate } from "../cos/filters.js";
 
 export interface RgbaBitmap {
@@ -1149,67 +1150,32 @@ function fillEdgesScanline4x4(
   }
 }
 
-// Minimal clean vector stroke glyph outlines for rendering readable text on PNGs
-const VECTOR_GLYPH_STROKES: Readonly<Record<string, ReadonlyArray<readonly [number, number, number, number]>>> = {
-  A: [[0.1, 0, 0.5, 0.75], [0.5, 0.75, 0.9, 0], [0.24, 0.28, 0.76, 0.28]],
-  B: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.75, 0.75], [0.75, 0.75, 0.75, 0.4], [0.15, 0.4, 0.8, 0.4], [0.8, 0.4, 0.8, 0], [0.15, 0, 0.8, 0]],
-  C: [[0.85, 0.65, 0.2, 0.75], [0.2, 0.75, 0.15, 0.1], [0.15, 0.1, 0.85, 0.1]],
-  D: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.75, 0.6], [0.75, 0.6, 0.75, 0.15], [0.75, 0.15, 0.15, 0]],
-  E: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.85, 0.75], [0.15, 0.38, 0.72, 0.38], [0.15, 0, 0.85, 0]],
-  F: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.85, 0.75], [0.15, 0.38, 0.72, 0.38]],
-  G: [[0.85, 0.65, 0.2, 0.75], [0.2, 0.75, 0.15, 0.05], [0.15, 0.05, 0.85, 0.05], [0.85, 0.05, 0.85, 0.38], [0.5, 0.38, 0.85, 0.38]],
-  H: [[0.15, 0, 0.15, 0.75], [0.85, 0, 0.85, 0.75], [0.15, 0.38, 0.85, 0.38]],
-  I: [[0.5, 0, 0.5, 0.75], [0.25, 0.75, 0.75, 0.75], [0.25, 0, 0.75, 0]],
-  J: [[0.75, 0.75, 0.75, 0.15], [0.75, 0.15, 0.4, 0], [0.4, 0, 0.15, 0.2]],
-  K: [[0.15, 0, 0.15, 0.75], [0.85, 0.75, 0.15, 0.35], [0.35, 0.45, 0.85, 0]],
-  L: [[0.15, 0.75, 0.15, 0], [0.15, 0, 0.85, 0]],
-  M: [[0.1, 0, 0.1, 0.75], [0.1, 0.75, 0.5, 0.2], [0.5, 0.2, 0.9, 0.75], [0.9, 0.75, 0.9, 0]],
-  N: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.85, 0], [0.85, 0, 0.85, 0.75]],
-  O: [[0.15, 0.1, 0.15, 0.65], [0.15, 0.65, 0.85, 0.65], [0.85, 0.65, 0.85, 0.1], [0.85, 0.1, 0.15, 0.1]],
-  P: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.8, 0.75], [0.8, 0.75, 0.8, 0.38], [0.8, 0.38, 0.15, 0.38]],
-  Q: [[0.15, 0.1, 0.15, 0.65], [0.15, 0.65, 0.85, 0.65], [0.85, 0.65, 0.85, 0.1], [0.85, 0.1, 0.15, 0.1], [0.55, 0.25, 0.9, -0.05]],
-  R: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.8, 0.75], [0.8, 0.75, 0.8, 0.38], [0.8, 0.38, 0.15, 0.38], [0.45, 0.38, 0.85, 0]],
-  S: [[0.85, 0.68, 0.2, 0.72], [0.2, 0.72, 0.2, 0.4], [0.2, 0.4, 0.8, 0.35], [0.8, 0.35, 0.8, 0.05], [0.8, 0.05, 0.15, 0.05]],
-  T: [[0.5, 0, 0.5, 0.75], [0.1, 0.75, 0.9, 0.75]],
-  U: [[0.15, 0.75, 0.15, 0.1], [0.15, 0.1, 0.85, 0.1], [0.85, 0.1, 0.85, 0.75]],
-  V: [[0.1, 0.75, 0.5, 0], [0.5, 0, 0.9, 0.75]],
-  W: [[0.08, 0.75, 0.28, 0], [0.28, 0, 0.5, 0.5], [0.5, 0.5, 0.72, 0], [0.72, 0, 0.92, 0.75]],
-  X: [[0.15, 0.75, 0.85, 0], [0.85, 0.75, 0.15, 0]],
-  Y: [[0.15, 0.75, 0.5, 0.38], [0.85, 0.75, 0.5, 0.38], [0.5, 0.38, 0.5, 0]],
-  Z: [[0.15, 0.75, 0.85, 0.75], [0.85, 0.75, 0.15, 0], [0.15, 0, 0.85, 0]],
-  "0": [[0.18, 0.05, 0.18, 0.7], [0.18, 0.7, 0.82, 0.7], [0.82, 0.7, 0.82, 0.05], [0.82, 0.05, 0.18, 0.05], [0.22, 0.1, 0.78, 0.65]],
-  "1": [[0.25, 0.58, 0.5, 0.75], [0.5, 0.75, 0.5, 0], [0.22, 0, 0.78, 0]],
-  "2": [[0.18, 0.6, 0.5, 0.75], [0.5, 0.75, 0.82, 0.55], [0.82, 0.55, 0.15, 0], [0.15, 0, 0.85, 0]],
-  "3": [[0.18, 0.72, 0.8, 0.72], [0.8, 0.72, 0.45, 0.4], [0.45, 0.4, 0.82, 0.15], [0.82, 0.15, 0.18, 0.02]],
-  "4": [[0.7, 0, 0.7, 0.75], [0.7, 0.75, 0.15, 0.25], [0.15, 0.25, 0.88, 0.25]],
-  "5": [[0.82, 0.75, 0.2, 0.75], [0.2, 0.75, 0.2, 0.42], [0.2, 0.42, 0.8, 0.35], [0.8, 0.35, 0.75, 0.03], [0.75, 0.03, 0.18, 0.03]],
-  "6": [[0.78, 0.72, 0.2, 0.4], [0.2, 0.4, 0.2, 0.05], [0.2, 0.05, 0.8, 0.05], [0.8, 0.05, 0.8, 0.38], [0.8, 0.38, 0.2, 0.38]],
-  "7": [[0.15, 0.75, 0.85, 0.75], [0.85, 0.75, 0.35, 0]],
-  "8": [[0.2, 0.05, 0.8, 0.05], [0.8, 0.05, 0.8, 0.7], [0.8, 0.7, 0.2, 0.7], [0.2, 0.7, 0.2, 0.05], [0.2, 0.38, 0.8, 0.38]],
-  "9": [[0.8, 0.38, 0.2, 0.38], [0.2, 0.38, 0.2, 0.72], [0.2, 0.72, 0.8, 0.72], [0.8, 0.72, 0.8, 0.05], [0.8, 0.05, 0.25, 0.02]],
-  "-": [[0.2, 0.35, 0.8, 0.35]],
-  ".": [[0.45, 0, 0.55, 0.08]],
-  ":": [[0.45, 0.05, 0.55, 0.12], [0.45, 0.45, 0.55, 0.52]],
-  "/": [[0.2, 0, 0.8, 0.75]],
-  "%": [[0.2, 0, 0.8, 0.75], [0.2, 0.55, 0.35, 0.7], [0.65, 0.05, 0.8, 0.2]],
-  "$": [[0.5, -0.05, 0.5, 0.8], [0.8, 0.65, 0.2, 0.65], [0.2, 0.65, 0.2, 0.4], [0.2, 0.4, 0.8, 0.35], [0.8, 0.35, 0.8, 0.1], [0.8, 0.1, 0.2, 0.1]],
-  "[": [[0.65, 0.75, 0.3, 0.75], [0.3, 0.75, 0.3, 0], [0.3, 0, 0.65, 0]],
-  "]": [[0.35, 0.75, 0.7, 0.75], [0.7, 0.75, 0.7, 0], [0.7, 0, 0.35, 0]],
-  "(": [[0.65, 0.75, 0.35, 0.5], [0.35, 0.5, 0.35, 0.25], [0.35, 0.25, 0.65, 0]],
-  ")": [[0.35, 0.75, 0.65, 0.5], [0.65, 0.5, 0.65, 0.25], [0.65, 0.25, 0.35, 0]],
-  ",": [[0.5, 0.12, 0.45, 0], [0.45, 0, 0.35, -0.1]],
-  ";": [[0.45, 0.45, 0.55, 0.52], [0.5, 0.15, 0.38, -0.08]],
-  "&": [[0.75, 0.02, 0.22, 0.6], [0.22, 0.6, 0.5, 0.75], [0.5, 0.75, 0.68, 0.58], [0.68, 0.58, 0.18, 0.22], [0.18, 0.22, 0.45, 0.02], [0.45, 0.02, 0.82, 0.32]],
-  "'": [[0.5, 0.75, 0.45, 0.52]],
-  "\"": [[0.35, 0.75, 0.35, 0.52], [0.65, 0.75, 0.65, 0.52]],
-  "!": [[0.5, 0.75, 0.5, 0.2], [0.48, 0.06, 0.52, 0]],
-  "?": [[0.22, 0.6, 0.5, 0.75], [0.5, 0.75, 0.78, 0.58], [0.78, 0.58, 0.5, 0.35], [0.5, 0.35, 0.5, 0.2], [0.48, 0.06, 0.52, 0]],
-  "+": [[0.5, 0.12, 0.5, 0.62], [0.2, 0.37, 0.8, 0.37]],
-  "=": [[0.2, 0.48, 0.8, 0.48], [0.2, 0.26, 0.8, 0.26]],
-  "_": [[0.1, 0, 0.9, 0]],
-  "#": [[0.32, 0.05, 0.38, 0.72], [0.62, 0.05, 0.68, 0.72], [0.15, 0.5, 0.85, 0.5], [0.15, 0.26, 0.85, 0.26]],
-  "*": [[0.5, 0.15, 0.5, 0.65], [0.22, 0.25, 0.78, 0.55], [0.22, 0.55, 0.78, 0.25]],
-};
+function glyphPaint(glyph: PdfPlacedGlyph): PdfEvaluatedPath {
+  if (glyph.outline) return glyph.outline;
+  const cp = glyph.unicode.codePointAt(0);
+  const outline = cp === undefined ? [] : getStandardFontOutlines(glyph.fontName).getGlyphOutline(cp);
+  const [a, b, c, d, e, f] = glyph.matrix;
+  const fontSize = glyph.fontSize / (Math.hypot(a, b) || 1);
+  const point = (x: number, y: number): [number, number] => [fontSize * (a * x + c * y) + e, fontSize * (b * x + d * y) + f];
+  const segments: PdfPathSegment[] = outline.map(seg => {
+    if (seg.kind === "move" || seg.kind === "line") {
+      const [x, y] = point(seg.x, seg.y); return { kind: seg.kind, x, y };
+    }
+    if (seg.kind === "cubic") {
+      const [x1, y1] = point(seg.x1, seg.y1), [x2, y2] = point(seg.x2, seg.y2), [x, y] = point(seg.x, seg.y);
+      return { kind: "cubic", x1, y1, x2, y2, x, y };
+    }
+    return seg;
+  });
+  const mode = glyph.renderMode ?? 0;
+  return {
+    segments, strokeWidth: mode === 1 || mode === 2 ? 1 : 0,
+    ...(mode !== 1 ? { fillColor: glyph.color } : {}),
+    ...(mode === 1 || mode === 2 ? { strokeColor: glyph.color } : {}),
+    ...(glyph.clipRect ? { clipRect: glyph.clipRect } : {}),
+    ...(glyph.blendMode ? { blendMode: glyph.blendMode } : {}),
+  };
+}
 
 // Keep manually constructed legacy display lists renderable.
 function paintOperations(displayList: PdfDisplayList): readonly PdfPaintOperation[] {
@@ -1246,13 +1212,15 @@ export function renderDisplayListToBitmap(
 
   const aaVec = options.antialiasVector !== false;
   const aaTxt = options.antialiasText !== false;
-  for (const operation of paintOperations(displayList)) {
+  for (const original of paintOperations(displayList)) {
+    if (original.kind === "glyph" && (original.value.renderMode === 3 || !original.value.unicode.trim())) continue;
+    const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
     if (operation.kind === "path") {
       const path = operation.value;
       if (path.fillColor) {
         const edges = segmentsToScreenEdges(path.segments, displayList.height, scale, true);
         const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [path.clipRect[0] * scale, (displayList.height - path.clipRect[3]) * scale, path.clipRect[2] * scale, (displayList.height - path.clipRect[1]) * scale] : undefined;
-        fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, aaVec, path.blendMode);
+        fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode);
       }
       if (path.strokeColor) {
         const edges = segmentsToScreenEdges(path.segments, displayList.height, scale, false);
@@ -1272,7 +1240,7 @@ export function renderDisplayListToBitmap(
 
         for (const e of edges) {
           if (!dashArr || dashCycle <= 1e-4) {
-            drawAntiAliasedSegment(rgba, width, height, e.x0, e.y0, e.x1, e.y1, sw, path.strokeColor, strokeAlpha, path.lineCap ?? 0, aaVec, path.blendMode);
+            drawAntiAliasedSegment(rgba, width, height, e.x0, e.y0, e.x1, e.y1, sw, path.strokeColor, strokeAlpha, path.lineCap ?? 0, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode);
           } else {
             const dx = e.x1 - e.x0;
             const dy = e.y1 - e.y0;
@@ -1303,7 +1271,7 @@ export function renderDisplayListToBitmap(
                   path.strokeColor,
                   strokeAlpha,
                   path.lineCap ?? 0,
-                  aaVec,
+                  (original.kind === "glyph" ? aaTxt : aaVec),
                   path.blendMode
                 );
               }
@@ -1361,44 +1329,6 @@ export function renderDisplayListToBitmap(
             img.blendMode
           );
         }
-      }
-    } else {
-      const g = operation.value;
-      if (g.renderMode === 3) continue;
-      if (g.clipRect) {
-        const cx = (g.bbox[0] + g.bbox[2]) / 2;
-        const cy = (g.bbox[1] + g.bbox[3]) / 2;
-        if (cx < g.clipRect[0] || cx > g.clipRect[2] || cy < g.clipRect[1] || cy > g.clipRect[3]) {
-          continue;
-        }
-      }
-      const raw = g.unicode.trim();
-      if (!raw) continue;
-      const isLower = raw >= "a" && raw <= "z";
-      const ch = raw.toUpperCase();
-      const advW = Math.max(4, (g.bbox[2] - g.bbox[0]) * scale);
-      const gx0 = g.bbox[0] * scale + advW * 0.08;
-      const gyBase = (displayList.height - g.baselineY) * scale;
-      const gw = Math.max(3, advW * 0.72);
-      const gh = Math.max(5, g.fontSize * scale * (isLower ? 0.76 : 1.0));
-      const strokes = VECTOR_GLYPH_STROKES[ch] ?? [[0.2, 0.1, 0.8, 0.1], [0.8, 0.1, 0.8, 0.6], [0.8, 0.6, 0.2, 0.6], [0.2, 0.6, 0.2, 0.1]];
-      const sw = Math.max(1.1, g.fontSize * scale * 0.085);
-      for (const [sx0, sy0, sx1, sy1] of strokes) {
-        drawAntiAliasedSegment(
-          rgba,
-          width,
-          height,
-          gx0 + sx0 * gw,
-          gyBase - sy0 * gh,
-          gx0 + sx1 * gw,
-          gyBase - sy1 * gh,
-          sw,
-          g.color,
-          1,
-          0,
-          aaTxt,
-          g.blendMode
-        );
       }
     }
   }
@@ -1500,7 +1430,9 @@ export function renderDisplayListToSvg(
   if (!options.transparent) {
     parts.push(`  <rect x="${vbX}" y="${vbY}" width="${vbW}" height="${vbH}" fill="#ffffff"/>`);
   }
-  for (const operation of paintOperations(displayList)) {
+  for (const original of paintOperations(displayList)) {
+    if (original.kind === "glyph" && (original.value.renderMode === 3 || !original.value.unicode.trim())) continue;
+    const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
     if (operation.kind === "path") {
       const p = operation.value;
       const dParts: string[] = [];
@@ -1539,7 +1471,8 @@ export function renderDisplayListToSvg(
           p.miterLimit !== undefined && p.miterLimit !== 10 ? ` stroke-miterlimit="${p.miterLimit}"` : "";
         const dashArrayAttr = p.dashArray && p.dashArray.length > 0 ? ` stroke-dasharray="${p.dashArray.join(" ")}"` : "";
         const dashOffsetAttr = p.dashPhase ? ` stroke-dashoffset="${p.dashPhase}"` : "";
-        parts.push(`  <path d="${dParts.join(" ")}" fill="${fill}"${fillRuleAttr}${fillOpacityAttr} stroke="${stroke}"${strokeOpacityAttr}${strokeWidthAttr}${lineCapAttr}${lineJoinAttr}${miterLimitAttr}${dashArrayAttr}${dashOffsetAttr}/>`);
+        const labelAttr = original.kind === "glyph" ? ` aria-label="${escapeXmlText(original.value.unicode)}"` : "";
+        parts.push(`  <path${labelAttr} d="${dParts.join(" ")}" fill="${fill}"${fillRuleAttr}${fillOpacityAttr} stroke="${stroke}"${strokeOpacityAttr}${strokeWidthAttr}${lineCapAttr}${lineJoinAttr}${miterLimitAttr}${dashArrayAttr}${dashOffsetAttr}/>`);
       }
     } else if (operation.kind === "image") {
       const img = operation.value;
@@ -1555,26 +1488,6 @@ export function renderDisplayListToSvg(
       parts.push(
         `  <image width="1" height="1" preserveAspectRatio="none" transform="matrix(${a} ${-b} ${-c} ${d} ${svgTx} ${svgTy})" href="data:image/png;base64,${b64}"/>`
       );
-    } else {
-      const g = operation.value;
-      if (g.renderMode === 3) continue;
-      if (!g.unicode) continue;
-      const fill = `rgb(${Math.round(g.color.r * 255)},${Math.round(g.color.g * 255)},${Math.round(g.color.b * 255)})`;
-      const x = Number(g.bbox[0].toFixed(2));
-      const y = Number((displayList.height - g.baselineY).toFixed(2));
-      const fs = Number(g.fontSize.toFixed(2));
-      const lowerFont = g.fontName.toLowerCase();
-      const weightAttr = lowerFont.includes("bold") ? ` font-weight="bold"` : "";
-      const styleAttr = lowerFont.includes("italic") || lowerFont.includes("oblique") ? ` font-style="italic"` : "";
-      const [ma, mb] = g.matrix;
-      let rotAttr = "";
-      if (Math.abs(mb) > 1e-4 || ma < 0) {
-        const deg = Number(((-Math.atan2(mb, ma) * 180) / Math.PI).toFixed(2));
-        if (Math.abs(deg) > 1e-2) {
-          rotAttr = ` transform="rotate(${deg} ${x} ${y})"`;
-        }
-      }
-      parts.push(`  <text x="${x}" y="${y}" font-size="${fs}"${weightAttr}${styleAttr}${rotAttr} fill="${fill}">${escapeXmlText(g.unicode)}</text>`);
     }
   }
   parts.push("</svg>\n");

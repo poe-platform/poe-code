@@ -55,3 +55,34 @@ Upstream SHA-256: `257b89097a3266bcae8cd04d6faaec135a0774f6762b4476c44f0c76f8334
 Full license: `licenses/PDFJS-APACHE-2.0.txt`.
 Fixture provenance and independent reference pixels are documented in
 `src/fixtures/SOURCES.md`.
+
+# PDF.js font parsing, metrics, and path compilation
+
+`src/vendor/pdfjs-fonts.mjs` bundles PDF.js CFF parsing/compilation, Type 2 path
+compilation, encodings, Adobe glyph names, and standard-font metrics from revision
+`91041fb94d6744bc2a5bccd9aad28d617faa8195` (Mozilla Foundation, Apache-2.0).
+The only source adaptation exports the internal `Type2Compiled` class; local
+code converts its path commands to PDF AST segments without evaluating generated
+JavaScript. `src/fonts/pdfjs-cff.test.ts` ports eight cases from
+`test/unit/cff_parser_spec.js` to Vitest, retaining the Adobe CFF specification
+example bytes and the upstream expectations. The JavaScript bundle can be
+regenerated with `scripts/vendor-pdfjs-fonts.mjs <PDF.js checkout>`.
+
+# PDFium/Foxit standard fonts
+
+`src/fonts/standard-font-data.ts` contains base64-encoded, unmodified CFF font
+programs. Serif, fixed-width, Symbol, and Dingbats faces are the `Foxit*.pfb`
+files from the same PDF.js revision's `external/standard_fonts` directory.
+Despite their extension these are CFF programs, not Type 1 PFB containers.
+Sans faces are the byte arrays in `FoxitSans{,Bold,Italic,BoldItalic}.cpp` from
+PDFium revision `a84323421e94f484faca52dd9d027934eba42ab8`, directory
+`core/fxge/fontdata/chromefontdata`.
+
+Copyright 2014 The PDFium Authors. Original code copyright 2014 Foxit Software
+Inc. Licensed under the BSD terms in `licenses/PDFIUM-BSD.txt`.
+Sources: https://github.com/chromium/pdfium/tree/a84323421e94f484faca52dd9d027934eba42ab8/core/fxge/fontdata/chromefontdata
+and https://github.com/mozilla/pdf.js/tree/91041fb94d6744bc2a5bccd9aad28d617faa8195/external/standard_fonts
+
+Regenerate the portable font-data module using
+`scripts/generate-standard-font-data.mjs <PDF.js checkout> <directory containing FoxitSans*.cpp>`.
+No Liberation font files are included.

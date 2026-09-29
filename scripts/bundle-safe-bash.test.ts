@@ -408,8 +408,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
   const names = browser.createAgentCommands().map(command => command.name).sort();
   expect(names).toHaveLength(112);
   expect(names).toEqual([
-    "gh",
-    "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
+    "gh", "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
     "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
     "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
     "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",

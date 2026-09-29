@@ -30,6 +30,28 @@ export function odfChildren(value: ImportedValue | undefined): readonly Imported
   const source = odfObject(value)?.children; return Array.isArray(source) ? source : [];
 }
 
+/** OOo2Oasis moves legacy annotation attributes into DC/meta elements. */
+export function upgradeOdfAnnotation(node: Readonly<Record<string, ImportedValue>>, charge: (amount?: number) => void): Readonly<Record<string, ImportedValue>> {
+  const original = odfChildren(node); charge(original.length);
+  const attributes: ImportedValue[] = [], children = [...original];
+  for (const value of Array.isArray(node.attributes) ? node.attributes : []) {
+    charge(); const a = odfObject(value); if (!a) continue;
+    if (a.namespace === "http://openoffice.org/2000/office") {
+      // The canonical comment owns the author; preserve the two date fields.
+      if (a.name === "author") continue;
+      if (a.name === "create-date" || a.name === "create-date-string") {
+        const date = a.name === "create-date";
+        children.push({ name: date ? "date" : "date-string", namespace: odfNamespaces[date ? "dc" : "meta"]!,
+          attributes: [], children: [], text: a.value ?? "" });
+        continue;
+      }
+      attributes.push({ ...a, namespace: odfNamespaces.office! });
+    } else attributes.push(a.namespace === "http://www.w3.org/2000/svg" ? { ...a, namespace: odfNamespaces.svg! } : value);
+  }
+  return { ...node, namespace: odfNamespaces.office!, attributes, children,
+    content: children.map((_, index) => ({ kind: "element", index })) };
+}
+
 export function createOdfXml(context: CapabilityContext, extended: boolean) {
   let work = 0, nodes = 0;
   const encoder = new TextEncoder(), names = new Set<string>();

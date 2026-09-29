@@ -43,7 +43,7 @@ function distance(source: string | undefined): number | undefined {
   return unit && Number.isFinite(value) && value >= 0 ? value * unit : undefined;
 }
 export function readOdfAnnotation(node: XmlElement, readText: ReturnType<typeof createOdfTextReader>): Record<string, string> {
-  const author = node.children.find(n => n.localName === "creator" && ns.dc.includes(n.namespace))?.text;
+  const author = node.children.find(n => n.localName === "creator" && ns.dc.includes(n.namespace))?.text ?? attr(node, "author", "office");
   const text = readText(node);
   // Preserve delimiter-bearing font names in the original annotation XML.
   const representable = text.richText?.every(run => typeof run.attributes.family !== "string" ||

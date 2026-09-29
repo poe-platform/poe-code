@@ -24,6 +24,32 @@ async function source() {
     '<style:style style:name="Bold" style:family="text"><style:text-properties fo:font-weight="bold"/></style:style>') });
 }
 
+async function legacySource(author: string, text = '<text:p><text:span text:style-name="Bold">é😀</text:span></text:p>') {
+  return fixture({ mimetype: "application/vnd.sun.xml.calc", "content.xml":
+    '<office:document-content xmlns:office="http://openoffice.org/2000/office" xmlns:table="http://openoffice.org/2000/table" xmlns:text="http://openoffice.org/2000/text" xmlns:style="http://openoffice.org/2000/style" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:svg="http://www.w3.org/2000/svg">' +
+    '<office:automatic-styles><style:style style:name="Bold" style:family="text"><style:properties fo:font-weight="bold"/></style:style></office:automatic-styles>' +
+    '<office:body><table:table table:name="S"><table:table-row><table:table-cell>' +
+    `<office:annotation office:author="${author}" office:create-date="2026-01-01T00:00:00" office:create-date-string="New Year" office:display="true" svg:x="2cm" svg:y="3cm">` +
+    text + '</office:annotation>' +
+    '</table:table-cell></table:table-row></table:table></office:body></office:document-content>' });
+}
+
+for (const author of ["Ada", ""]) it(`imports legacy office:author ${JSON.stringify(author)} with comment formatting`, async () => {
+  expect(comment(await readOdf(await legacySource(author), context)).attributes).toMatchObject({
+    Author: author, Text: "é😀", TextFormat: "@[bold=1:0:6]"
+  });
+});
+
+it("reads nested legacy annotation spans and explicit whitespace", async () => {
+  const bytes = await legacySource("Ada", '<text:p><text:span text:style-name="Bold">é<text:span>😀<text:tab-stop/></text:span><text:line-break/><text:s text:c="2"/>z</text:span></text:p>');
+  expect(comment(await readOdf(bytes, context)).attributes).toMatchObject({ Author: "Ada", Text: "é😀\t\n  z", TextFormat: "@[bold=1:0:11]" });
+});
+
+it("lets an explicitly empty dc:creator override legacy office:author", async () => {
+  const bytes = await legacySource("Ada", '<dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/"/><text:p>note</text:p>');
+  expect(comment(await readOdf(bytes, context)).attributes).toMatchObject({ Author: "", Text: "note" });
+});
+
 // Calc xmlannoi.cxx delegates annotation children to its shape text context
 // and records character-style selections via AddContentStyle.
 it("imports annotation character styles and an explicitly empty author", async () => {
@@ -33,6 +59,19 @@ it("imports annotation character styles and an explicitly empty author", async (
 });
 
 for (const profile of ["strict", "extended"] as const) {
+  it(`upgrades legacy annotation author, dates, position and text into ${profile} ODF`, async () => {
+    const book = await readOdf(await legacySource("Ada"), context);
+    const output = await createOdfWriter(profile)(book, [], context);
+    const xml = (await unpackOdf(output)).parts.get("content.xml")!;
+    expect(comment(await readOdf(output, context)).attributes).toMatchObject({ Author: "Ada", Text: "é😀", TextFormat: "@[bold=1:0:6]" });
+    expect(xml).toContain('<dc:date>2026-01-01T00:00:00</dc:date>');
+    expect(xml).toContain('<meta:date-string>New Year</meta:date-string>');
+    expect(xml).toContain('office:display="true"');
+    expect(xml).toContain('svg:x="2cm"');
+    expect(xml).toContain('svg:y="3cm"');
+    expect(xml).not.toContain('office:author=');
+  });
+
   for (const author of ["Grace", "", undefined]) it(`preserves original annotation paragraphs when only author becomes ${String(author)} in ${profile} ODF`, async () => {
     const paragraphs = '<text:p><text:span text:style-name="Unrepresented">é😀</text:span></text:p><text:p>tail</text:p>';
     const bytes = await fixture({ mimetype: "application/vnd.oasis.opendocument.spreadsheet", "content.xml": content(

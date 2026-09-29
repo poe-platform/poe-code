@@ -17,7 +17,7 @@ import { converterLocale } from "../locale/runtime.js";
 import { odfReaderStates } from "./odf-schema.js";
 import { odfCellStyle, odfSheetMetadata, odfDatabaseRanges, readOdfAnnotation } from "./odf-metadata.js";
 import { readOdfLabelRanges } from "./odf-label-ranges.js";
-import { createOdfXml, odfObject, odfAttributes, odfChildren, odfNamespaces, odfEncryptionNamespace, type OdfAttributes } from "./odf-write-support.js";
+import { createOdfXml, odfObject, odfAttributes, odfChildren, odfNamespaces, odfEncryptionNamespace, upgradeOdfAnnotation, type OdfAttributes } from "./odf-write-support.js";
 import { encryptOdfParts, odfEncryptionProfiles, type OdfEncryptionProfile } from "./odf-encrypted-write.js";
 import { exportOptionPairs } from "../cli/export-options.js";
 import { renderCellText } from "../formatting/cell-text.js";
@@ -41,6 +41,7 @@ const namespaces: Readonly<Record<string, readonly string[]>> = {
   OO_NS_CHART: [urn + "chart:1.0", "http://openoffice.org/2000/chart"],
   OO_NS_CHART_OOO: ["http://openoffice.org/2010/chart"],
   OO_NS_DC: ["http://purl.org/dc/elements/1.1/"],
+  OO_NS_META: [urn + "meta:1.0", "http://openoffice.org/2000/meta"],
   OO_NS_SVG: [urn + "svg-compatible:1.0", "http://www.w3.org/2000/svg"],
   OO_NS_FORM: [urn + "form:1.0", "http://openoffice.org/2000/form"],
   OO_NS_SCRIPT: [urn + "script:1.0", "http://openoffice.org/2000/script"],
@@ -824,8 +825,9 @@ export function createOdfWriter(profile: "strict" | "extended") {
             const previous = originalParagraphs.get(key); originalParagraphs.set(key,{ text: v.sourceText, richText: v.sourceRichText ?? [],
               xml: (previous?.xml ?? "") + xml.retained(node, 0, href => translateOdfHyperlink(href, "normalize", xml.charge, sheetNames)), range: r });
           } else if (record.kind === "annotation" && namespaces.OO_NS_OFFICE!.includes(String(node.namespace))) {
+            const legacy = node.namespace !== odfNamespaces.office;
             let textSignature: string | undefined;
-            if (typeof v.sourceComment === "string") {
+            if (!legacy && typeof v.sourceComment === "string") {
               xml.charge(v.sourceComment.length);
               try {
                 const signature: unknown = JSON.parse(v.sourceComment);
@@ -833,7 +835,8 @@ export function createOdfWriter(profile: "strict" | "extended") {
               } catch { /* An invalid source marker cannot establish unchanged text. */ }
             }
             originalAnnotations.set(key,{ ...(typeof v.sourceComment === "string" ? { signature: v.sourceComment } : {}),
-              ...(textSignature === undefined ? {} : { textSignature }), xml: xml.retained(node), node });
+              ...(textSignature === undefined ? {} : { textSignature }), xml: legacy ? "" : xml.retained(node),
+              node: legacy ? upgradeOdfAnnotation(node, xml.charge) : node });
             if (!addresses.has(key)) {
               if (++count > context.limits.cells) limit("cells");
               addresses.set(key,{ row: v.row, column: v.column, value: { kind: "blank" } });
@@ -957,7 +960,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
           const annotation = annotations.get(key), originalAnnotation = originalAnnotations.get(key);
           const commentSignature = annotation ? JSON.stringify([annotation.Author ?? null, annotation.Text ?? "", annotation.TextFormat ?? null]) : undefined;
           xml.charge((commentSignature?.length ?? 0) + (originalAnnotation?.signature?.length ?? 0));
-          if (originalAnnotation && (originalAnnotation.signature === undefined || originalAnnotation.signature === commentSignature)) content += originalAnnotation.xml;
+          if (originalAnnotation?.xml && (originalAnnotation.signature === undefined || originalAnnotation.signature === commentSignature)) content += originalAnnotation.xml;
           else if (annotation) {
             const value = annotation.Text ?? "", textSignature = JSON.stringify([value, annotation.TextFormat ?? null]);
             xml.charge(textSignature.length);

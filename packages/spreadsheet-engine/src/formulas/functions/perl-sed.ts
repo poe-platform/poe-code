@@ -227,8 +227,9 @@ function compile(pattern: string, host: FunctionHost): Node {
             const closing = pattern[at++] === "<" ? ">" : "'";
             namedReferences.push({ name: identifier(closing), indices });
           } else {
-            const index = integer(); if (index < 1) return unsupported();
-            references.push(index); indices.push(index);
+            if (!(pattern[at]! >= "1" && pattern[at]! <= "9")) return unsupported();
+            const index = integer(); if (index > 0x7fffffff) return unsupported();
+            indices.push(index);
           }
           if (pattern[at++] !== ")") return unsupported();
           condition = { kind: "participation", indices };

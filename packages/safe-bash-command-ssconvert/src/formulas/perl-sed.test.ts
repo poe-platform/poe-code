@@ -116,10 +116,30 @@ it("keeps conditional replacements literal and malformed UTF-8 results lossless"
   expect(calculate(expression(["é", "(\\xC3)(?(1)|.)", "X"])))
     .toEqual({ kind: "byte-string", value: "58a9" });
 });
-it.each(["(?(0)a|b)", "(?(2)a|b)(a)", "(?(<absent>)a|b)", "(a)(?(1)b|c|d)",
+it.each(["(?(0)a|b)", "(?(<absent>)a|b)", "(a)(?(1)b|c|d)",
   "(a)?(?(-1)b|c)", "(?(+1)a|b)(a)", "(?<pick>a)?(?(pick)b|c)", "(?(?{1})a|b)"])
   ("refuses unqualified conditional syntax %s", pattern => {
     expect(() => calculate(expression(["ab", pattern, "X"]))).toThrow("PERL_SED");
+  });
+
+// regcomp.c emits GROUPP for any nonzero decimal condition through I32_MAX.
+it.each([
+  ["a b", "(?(1)a|b)", "a X"],
+  ["a b ab", "(?(2)a|b)(a)?", "a X aX"],
+  ["ba aa", "(?(2)a|b)(a)", "X aa"],
+  ["ac ad bc bd", "(?|(a)|(b))(?(2)c|d)", "ac X bc X"],
+  ["a b", "(?(2147483647)a|b)", "a X"],
+  ["ab", "(?(9)x)", "XaXbX"],
+  ["a b c", "(?(2)x|(?(3)a|b))", "a X c"]
+])("treats absent numeric conditional captures as false: %s %s", (source, pattern, expected) => {
+  expect(calculate(expression([source!, pattern!, "X"]))).toEqual({ kind: "string", value: expected });
+});
+it("keeps absent numeric conditional raw-byte results", () => {
+  expect(calculate(expression(["é", "(?(9)x|\\xC3)", "X"]))).toEqual({ kind: "byte-string", value: "58a9" });
+});
+it.each(["(a)?(?(01)b|c)", "(a)?(?(0001)b|c)", "(?(2147483648)a|b)"])
+  ("refuses native-invalid numeric conditional spelling %s", pattern => {
+    expect(() => calculate(expression(["ac c", pattern, "X"]))).toThrow("PERL_SED");
   });
 
 // Perl 5.34.1 regcomp.c resets each branch's capture index and retains its maximum.

@@ -808,6 +808,25 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
   }
 
   let objects = new Map<number, PdfIndirectObject>();
+  if (!useRepair && rootRef) {
+    try {
+      for (const [objNum, entry] of mergedXref.entries()) {
+        if (entry.type !== "uncompressed") continue;
+        const parsed = parseObjectAtOffset(bytes, entry.offset ?? 0, maxRecursionDepth, recovery === "repair");
+        // PDF.js fetchUncompressed validates both identifiers before using the
+        // object. Bad offsets can otherwise silently substitute another object.
+        if (parsed.objectNumber !== objNum || parsed.generationNumber !== (entry.generationNumber ?? 0)) {
+          throw new PdfError("E_PARSE", `Bad uncompressed XRef entry for object ${objNum}`);
+        }
+        objects.set(objNum, parsed);
+        if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
+      }
+    } catch (error) {
+      if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
+      if (recovery !== "repair") throw error;
+      useRepair = true;
+    }
+  }
   if (useRepair || !rootRef) {
     if (recovery !== "repair") {
       throw new PdfError("E_PARSE", "PDF trailer missing /Root reference");
@@ -857,14 +876,6 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
     rootRef ??= fallback.rootRef;
     infoRef ??= fallback.infoRef;
     if (!rootRef) throw new PdfError("E_PARSE", "Unable to repair PDF: no /Type /Catalog object found");
-  } else {
-    for (const [objNum, entry] of mergedXref.entries()) {
-      if (entry.type === "uncompressed") {
-        const parsed = parseObjectAtOffset(bytes, entry.offset ?? 0, maxRecursionDepth, recovery === "repair");
-        objects.set(objNum, parsed);
-        if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
-      }
-    }
   }
 
   const doc = new ParsedCosDocument({

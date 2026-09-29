@@ -175,3 +175,8 @@ trailer discovery before decryption. SHA-256:
 same pinned revision (Apache-2.0). Its damaged XRef stream exercises validation
 followed by full-file recovery of its one blank page. SHA-256:
 `38caddee94f73206adf4a329e17f7631a3aeb0d8d169fc7be4e34412c09600e2`.
+
+`pdfjs-issue9418.pdf` is the unchanged PDF.js `test/pdfs/issue9418.pdf` at the
+same pinned revision (Apache-2.0). Its damaged uncompressed xref entries require
+full-file recovery; pinned PDF.js independently recovers its one-page catalog.
+SHA-256: `bc0d5ec68433277d36aea4d80c3f8a97a85672b3ded52696118f69623f9a5114`.

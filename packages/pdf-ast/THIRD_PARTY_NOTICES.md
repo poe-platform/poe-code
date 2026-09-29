@@ -272,3 +272,8 @@ field-width, range, truncation, and entry-type checks. The zero-width regression
 fixture in `src/cos/xref-validation.test.ts` is ported unchanged from
 `test/unit/document_spec.js` at the same pinned revision. The adapter additionally
 checks safe integers and caller-specified object budgets before xref map growth.
+
+Uncompressed object loading also follows PDF.js `fetchUncompressed` by checking
+object number and generation against the xref entry. Recovery retries the file
+scan when an eager object read fails, preserving the common authentication and
+resource-limit path. The original issue9418 fixture is documented above.

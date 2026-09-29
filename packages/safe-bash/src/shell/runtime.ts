@@ -27289,7 +27289,7 @@ export class Runtime {
         const op = ops[pos++]!;
         const right = parseColon();
         if (right === undefined || !isInt(left) || !isInt(right)) return undefined;
-        const l = BigInt(left), r = BigInt(right);
+        const l: bigint = BigInt(left), r: bigint = BigInt(right);
         if ((op === "/" || op === "%") && r === 0n) return undefined;
         left = String(op === "*" ? l * r : op === "/" ? l / r : l % r);
       }
@@ -27302,7 +27302,7 @@ export class Runtime {
         const op = ops[pos++]!;
         const right = parseMul();
         if (right === undefined || !isInt(left) || !isInt(right)) return undefined;
-        const l = BigInt(left), r = BigInt(right);
+        const l: bigint = BigInt(left), r: bigint = BigInt(right);
         left = String(op === "+" ? l + r : l - r);
       }
       return left;
@@ -27316,7 +27316,7 @@ export class Runtime {
         if (right === undefined) return undefined;
         let ok: boolean;
         if (isInt(left) && isInt(right)) {
-          const l = BigInt(left), r = BigInt(right);
+          const l: bigint = BigInt(left), r: bigint = BigInt(right);
           ok = (op === "=" || op === "==") ? l === r : op === "!=" ? l !== r : op === "<" ? l < r : op === "<=" ? l <= r : op === ">" ? l > r : l >= r;
         } else {
           ok = (op === "=" || op === "==") ? left === right : op === "!=" ? left !== right : op === "<" ? left < right : op === "<=" ? left <= right : op === ">" ? left > right : left >= right;
@@ -28471,7 +28471,7 @@ export class Runtime {
         return undefined;
       }
     }
-    let fmtParsed: { prefix: string; zeroPad: boolean; leftAlign: boolean; width: number; prec?: number; suffix: string } | undefined;
+    let fmtParsed: { prefix: string; zeroPad: boolean; leftAlign: boolean; width: number; prec: number | undefined; suffix: string } | undefined;
     if (formatStr !== undefined) {
       const fm = /^([^%]*?)%([-0]*)(\d+)?(?:\.(\d+))?f([^%]*)$/.exec(formatStr);
       if (!fm) return undefined;

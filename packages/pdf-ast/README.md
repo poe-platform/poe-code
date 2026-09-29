@@ -54,7 +54,9 @@ including nested Forms, patterns, and glyph outlines. The `glyphs`, `paths`, and
 JBIG2 decoding supports shared `/JBIG2Globals` dictionaries, arithmetic coding,
 and MMR regions. JPEG 2000 decoding handles JP2 containers, raw codestreams,
 and multiple tiles; image dimensions come from the codestream. Decode failures
-raise errors instead of producing placeholder pixels.
+raise errors instead of producing placeholder pixels. Rendering and image extraction
+share these decoders, including inline images; extraction retains original encoded
+image bytes and JBIG2 globals for native-format export.
 
 Resource limits default to `Infinity`. Set `maxObjects`, `maxDecompressedBytes`,
 `maxRecursionDepth`, or save-time `maxOutputBytes` to enforce explicit budgets.

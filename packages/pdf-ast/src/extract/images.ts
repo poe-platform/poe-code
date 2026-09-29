@@ -12,8 +12,8 @@ import {
 import { multiplyMatrices } from "../content/evaluator.js";
 import { parseContentStream } from "../content/parser.js";
 import { evalShadingFunctionToComponents } from "../content/evaluator.js";
-import { decodePdfFilter, decodeStreamObject } from "../cos/filters.js";
-import type { ParsedCosDocument } from "../cos/parser.js";
+import { decodePdfFilter } from "../cos/filters.js";
+import { ParsedCosDocument } from "../cos/parser.js";
 import type { RgbaBitmap } from "../render/raster.js";
 
 export interface PdfExtractedImage {
@@ -1615,82 +1615,11 @@ export function decodeInlineImageNodeToRgba(
   activeRes: PdfCosDict | undefined,
   fillColor?: { readonly r: number; readonly g: number; readonly b: number; readonly alpha: number }
 ): DecodedDisplayImage {
-  const inlineIm = dictGet(dict, "IM") ?? dictGet(dict, "ImageMask");
-  const isInlineMask = inlineIm?.kind === "boolean" && inlineIm.value;
-  const wNode = dictGet(dict, "W") ?? dictGet(dict, "Width");
-  const hNode = dictGet(dict, "H") ?? dictGet(dict, "Height");
-  const bpcNode = dictGet(dict, "BPC") ?? dictGet(dict, "BitsPerComponent");
-  const csNode = dictGet(dict, "CS") ?? dictGet(dict, "ColorSpace");
-
-  const width = wNode?.kind === "number" ? Math.max(1, Math.round(wNode.value)) : 1;
-  const height = hNode?.kind === "number" ? Math.max(1, Math.round(hNode.value)) : 1;
-  const bitsPerComponent = bpcNode?.kind === "number" ? bpcNode.value : isInlineMask ? 1 : 8;
-  assertDecodedByteBudget(width * height * 4, doc?.maxDecompressedBytes);
-  const csInfo: ResolvedColorSpace =
-    csNode && doc
-      ? resolveColorSpaceInfo(doc, csNode, activeRes)
-      : isInlineMask
-        ? { colorSpace: "gray", components: 1 }
-        : csNode?.kind === "name" && (csNode.decoded === "G" || csNode.decoded === "DeviceGray")
-          ? { colorSpace: "gray", components: 1 }
-          : csNode?.kind === "name" && (csNode.decoded === "CMYK" || csNode.decoded === "DeviceCMYK")
-            ? { colorSpace: "cmyk", components: 4 }
-            : { colorSpace: "rgb", components: 3 };
-
-  const filters = doc ? extractStreamFilterList(doc, dict) : [];
-  if (!doc) {
-    const fNode = dictGet(dict, "F") ?? dictGet(dict, "Filter");
-    if (fNode?.kind === "name") filters.push(fNode.decoded);
-  }
-  const encoding = resolveEncodingKind(filters);
-  let decodedSamples = rawData;
-  if (encoding === "jpeg") {
-    decodedSamples = extractRawJpegFromStream(
-      doc ?? ({} as ParsedCosDocument),
-      { kind: "stream", dict, rawBytes: rawData },
-      filters
-    );
-  } else if (filters.length > 0) {
-    try {
-      decodedSamples = decodeStreamObject(
-        { kind: "stream", dict, rawBytes: rawData },
-        doc?.maxDecompressedBytes,
-        n => (doc ? doc.resolve(n) : n)
-      );
-    } catch (error) {
-      if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
-      // Keep raw bytes on filter error
-    }
-  }
-
-  const rgba =
-    encoding === "jpeg"
-      ? decodeJpegToRgba(decodedSamples, width, height, doc?.maxDecompressedBytes).data
-      : decodeSamplesToRgba(
-          decodedSamples,
-          width,
-          height,
-          bitsPerComponent,
-          csInfo,
-          undefined,
-          parseDecodePairs(doc, dict)
-        );
-
-  if (isInlineMask && fillColor) {
-    applyStencilFillColor(rgba, width, height, fillColor);
-  } else if (fillColor && fillColor.alpha < 1) {
-    for (let p = 0; p < width * height; p++) {
-      rgba[p * 4 + 3] = Math.round(rgba[p * 4 + 3]! * fillColor.alpha);
-    }
-  }
-
-  return {
-    width,
-    height,
-    bitsPerComponent,
-    colorSpace: csInfo.colorSpace,
-    rgba,
-  };
+  const context = doc ?? new ParsedCosDocument({
+    version: "1.7", bytes: new Uint8Array(), objects: new Map(), revisions: [],
+    rootRef: { kind: "ref", objectNumber: 0, generationNumber: 0 },
+  });
+  return decodeXObjectImageToRgba(context, { kind: "stream", dict, rawBytes: rawData }, activeRes, fillColor);
 }
 
 export function extractDocumentImages(
@@ -1724,23 +1653,16 @@ export function extractDocumentImages(
       activeRes: PdfCosDict | undefined
     ) => {
       const dict = xobjStream.dict;
-      const wNode = doc.resolve(dictGet(dict, "Width") ?? dictGet(dict, "W"));
-      const hNode = doc.resolve(dictGet(dict, "Height") ?? dictGet(dict, "H"));
-      const bpcNode = doc.resolve(dictGet(dict, "BitsPerComponent") ?? dictGet(dict, "BPC"));
       const interpNode = doc.resolve(dictGet(dict, "Interpolate") ?? dictGet(dict, "I"));
       const imageMaskNode = doc.resolve(dictGet(dict, "ImageMask") ?? dictGet(dict, "IM"));
       const isMask = imageMaskNode?.kind === "boolean" && imageMaskNode.value;
-
-      const width = wNode?.kind === "number" ? Math.max(1, Math.round(wNode.value)) : 1;
-      const height = hNode?.kind === "number" ? Math.max(1, Math.round(hNode.value)) : 1;
-      assertDecodedByteBudget(width * height * 4, doc.maxDecompressedBytes);
-      const bitsPerComponent = bpcNode?.kind === "number" ? bpcNode.value : isMask ? 1 : 8;
+      const { width, height, bitsPerComponent, rgba, colorSpace } = decodeXObjectImageToRgba(doc, xobjStream, activeRes);
       const interpolate = interpNode?.kind === "boolean" ? interpNode.value : false;
-
       const csNode = dictGet(dict, "ColorSpace") ?? dictGet(dict, "CS");
       const csInfo: ResolvedColorSpace = isMask
         ? { colorSpace: "gray", colorSpaceLabel: "-", components: 1 }
-        : resolveColorSpaceInfo(doc, csNode, activeRes);
+        : csNode ? resolveColorSpaceInfo(doc, csNode, activeRes)
+          : { colorSpace: colorSpace as ResolvedColorSpace["colorSpace"], components: colorSpace === "gray" ? 1 : colorSpace === "cmyk" ? 4 : 3 };
 
       const filters = extractStreamFilterList(doc, dict);
       const encoding = resolveEncodingKind(filters);
@@ -1755,7 +1677,7 @@ export function extractDocumentImages(
         const dpNode = dictGet(dict, "DecodeParms") ?? dictGet(dict, "DP");
         const dpArr = doc.resolveArray(dpNode);
         const dpDict = dpArr
-          ? dpArr.items.map(it => doc.resolveDict(it)).find((d): d is PdfCosDict => d !== undefined)
+          ? doc.resolveDict(dpArr.items[filters.findIndex(filter => resolveEncodingKind([filter]) === encoding)])
           : doc.resolveDict(dpNode);
         if (encoding === "jbig2" && dpDict) {
           const globalsStream = doc.resolve(dictGet(dpDict, "JBIG2Globals"));
@@ -1779,88 +1701,13 @@ export function extractDocumentImages(
           };
         }
       }
-      let rgba: Uint8Array;
-      let alphaSamples: Uint8Array | undefined;
-      const rawSmask = dictGet(dict, "SMask");
-      if (rawSmask?.kind === "ref") {
-        referencedImageKeysOnPage.add(`${rawSmask.objectNumber}:${rawSmask.generationNumber}`);
-      }
-      const rawMaskRef = dictGet(dict, "Mask");
-      if (rawMaskRef?.kind === "ref") {
-        referencedImageKeysOnPage.add(`${rawMaskRef.objectNumber}:${rawMaskRef.generationNumber}`);
-      }
-      const smaskNode = doc.resolve(rawSmask);
-      if (smaskNode?.kind === "stream") {
-        try {
-          alphaSamples = doc.decodeStream(smaskNode);
-        } catch (error) {
-          if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
-          alphaSamples = undefined;
+      for (const key of ["SMask", "Mask"]) {
+        const mask = dictGet(dict, key);
+        if (mask?.kind === "ref") {
+          referencedImageKeysOnPage.add(`${mask.objectNumber}:${mask.generationNumber}`);
         }
       }
-
-      if (encoding === "jpeg") {
-        rawJpegBytes = extractRawJpegFromStream(doc, xobjStream, filters);
-        rgba = decodeJpegToRgba(rawJpegBytes, width, height, doc.maxDecompressedBytes).data;
-        if (smaskNode?.kind === "stream") {
-          applySmaskStreamToRgba(doc, smaskNode, rgba, width, height, activeRes);
-        }
-        const maskResolvedJpg = doc.resolve(rawMaskRef);
-        if (maskResolvedJpg?.kind === "stream") {
-          applyExplicitMaskStreamToRgba(doc, maskResolvedJpg, rgba, width, height, activeRes);
-        }
-      } else {
-        let decodedSamples: Uint8Array;
-        try {
-          decodedSamples = doc.decodeStream(xobjStream);
-        } catch (error) {
-          if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
-          decodedSamples = xobjStream.rawBytes;
-        }
-        const decodePairs = parseDecodePairs(doc, dict);
-        rgba = decodeSamplesToRgba(decodedSamples, width, height, bitsPerComponent, csInfo, alphaSamples, decodePairs);
-        if (smaskNode?.kind === "stream") {
-          applySmaskStreamToRgba(doc, smaskNode, rgba, width, height, activeRes);
-        }
-
-        const rawMask = dictGet(dict, "Mask");
-        if (rawMask?.kind === "ref") {
-          referencedImageKeysOnPage.add(`${rawMask.objectNumber}:${rawMask.generationNumber}`);
-        }
-        const maskResolved = doc.resolve(rawMask);
-        if (maskResolved?.kind === "stream") {
-          applyExplicitMaskStreamToRgba(doc, maskResolved, rgba, width, height, activeRes);
-        }
-        // Apply /Mask [min0 max0 ...] color-key transparency
-        const maskArr = doc.resolveArray(rawMask);
-        if (maskArr && maskArr.items.length >= 2) {
-          const bounds = maskArr.items.map(it => {
-            const r = doc.resolve(it);
-            return r?.kind === "number" ? r.value : 0;
-          });
-          if (csInfo.colorSpace === "rgb" && bounds.length >= 6) {
-            for (let p = 0; p < width * height; p++) {
-              const r = rgba[p * 4]!;
-              const g = rgba[p * 4 + 1]!;
-              const b = rgba[p * 4 + 2]!;
-              if (
-                r >= bounds[0]! && r <= bounds[1]! &&
-                g >= bounds[2]! && g <= bounds[3]! &&
-                b >= bounds[4]! && b <= bounds[5]!
-              ) {
-                rgba[p * 4 + 3] = 0;
-              }
-            }
-          } else if (bounds.length >= 2) {
-            for (let p = 0; p < width * height; p++) {
-              const v = csInfo.colorSpace === "index" ? (decodedSamples[p] ?? 0) : rgba[p * 4]!;
-              if (v >= bounds[0]! && v <= bounds[1]!) {
-                rgba[p * 4 + 3] = 0;
-              }
-            }
-          }
-        }
-      }
+      if (encoding === "jpeg") rawJpegBytes = extractRawJpegFromStream(doc, xobjStream, filters);
 
       extracted.push({
         pageNumber,
@@ -1972,52 +1819,19 @@ export function extractDocumentImages(
             const dict = node.dict;
             const inlineIm = dictGet(dict, "IM") ?? dictGet(dict, "ImageMask");
             const isInlineMask = inlineIm?.kind === "boolean" && inlineIm.value;
-            const wNode = dictGet(dict, "W") ?? dictGet(dict, "Width");
-            const hNode = dictGet(dict, "H") ?? dictGet(dict, "Height");
-            const bpcNode = dictGet(dict, "BPC") ?? dictGet(dict, "BitsPerComponent");
             const interpNode = dictGet(dict, "I") ?? dictGet(dict, "Interpolate");
             const csNode = dictGet(dict, "CS") ?? dictGet(dict, "ColorSpace");
-
-            const width = wNode?.kind === "number" ? Math.max(1, Math.round(wNode.value)) : 1;
-            const height = hNode?.kind === "number" ? Math.max(1, Math.round(hNode.value)) : 1;
-            assertDecodedByteBudget(width * height * 4, doc.maxDecompressedBytes);
-            const bitsPerComponent =
-              bpcNode?.kind === "number" ? bpcNode.value : isInlineMask ? 1 : 8;
+            const { width, height, bitsPerComponent, rgba, colorSpace } = decodeInlineImageNodeToRgba(doc, dict, node.data, activeRes);
             const interpolate = interpNode?.kind === "boolean" ? interpNode.value : false;
-            const csInfo = csNode
-              ? resolveColorSpaceInfo(doc, csNode, activeRes)
-              : isInlineMask
-                ? { colorSpace: "gray" as const, colorSpaceLabel: "-" as const, components: 1 }
-                : { colorSpace: "rgb" as const, colorSpaceLabel: "rgb" as const, components: 3 };
+            const csInfo: ResolvedColorSpace = isInlineMask
+              ? { colorSpace: "gray", colorSpaceLabel: "-", components: 1 }
+              : csNode ? resolveColorSpaceInfo(doc, csNode, activeRes)
+                : { colorSpace: colorSpace as ResolvedColorSpace["colorSpace"], components: colorSpace === "gray" ? 1 : colorSpace === "cmyk" ? 4 : 3 };
             const filters = extractStreamFilterList(doc, dict);
             const encoding = resolveEncodingKind(filters);
             const { xPpi, yPpi } = computePpiFromCtm(width, height, currentCtm());
-
-            let decodedSamples = node.data;
-            if (encoding !== "jpeg" && filters.length > 0) {
-              try {
-                decodedSamples = decodeStreamObject(
-                  { kind: "stream", dict, rawBytes: node.data },
-                  doc.maxDecompressedBytes,
-                  n => doc.resolve(n)
-                );
-              } catch (error) {
-                if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
-                // Keep raw bytes on filter error
-              }
-            }
-            const rgba =
-              encoding === "jpeg"
-                ? decodeJpegToRgba(decodedSamples, width, height, doc.maxDecompressedBytes).data
-                : decodeSamplesToRgba(
-                    decodedSamples,
-                    width,
-                    height,
-                    bitsPerComponent,
-                    csInfo,
-                    undefined,
-                    parseDecodePairs(doc, dict)
-                  );
+            const encodedBytes = encoding === "image" ? undefined
+              : extractRawJpegFromStream(doc, { kind: "stream", dict, rawBytes: node.data }, filters);
             extracted.push({
               pageNumber,
               imageIndex: imageIndex++,
@@ -2036,7 +1850,8 @@ export function extractDocumentImages(
               yPpi,
               byteLength: node.data.byteLength,
               bitmap: { width, height, data: rgba },
-              ...(encoding === "jpeg" ? { rawJpegBytes: decodedSamples } : {}),
+              ...(encoding === "jpeg" ? { rawJpegBytes: encodedBytes } : {}),
+              ...(["jpx", "jbig2", "ccitt"].includes(encoding) ? { rawEncodedBytes: encodedBytes } : {}),
             });
             break;
           }

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   PdfDocument,
@@ -917,19 +918,21 @@ describe("extractDocumentImages", () => {
     const doc = PdfDocument.create();
     const page = doc.addPage({ width: 100, height: 100 });
 
+    const globals = new Uint8Array(readFileSync(new URL("../fixtures/jbig2-symbols.sym", import.meta.url)));
+    const payload = new Uint8Array(readFileSync(new URL("../fixtures/jbig2-symbols.0000", import.meta.url)));
     const jb2GlobalsRef = doc.cos.allocateObject(
-      cosStream(Uint8Array.from([0x00, 0x00, 0x00, 0x01, 0x00]), {
+      cosStream(globals, {
         dict: cosDict({}),
       })
     );
-    const hexJb2Payload = new TextEncoder().encode("0000000230>");
+    const hexJb2Payload = new TextEncoder().encode(Buffer.from(payload).toString("hex") + ">");
     const jb2ImgRef = doc.cos.allocateObject(
       cosStream(hexJb2Payload, {
         dict: cosDict({
           Type: cosName("XObject"),
           Subtype: cosName("Image"),
-          Width: cosNumber(4),
-          Height: cosNumber(4),
+          Width: cosNumber(64),
+          Height: cosNumber(32),
           BitsPerComponent: cosNumber(1),
           ColorSpace: cosName("DeviceGray"),
           Filter: cosArray([cosName("ASCIIHexDecode"), cosName("JBIG2Decode")]),
@@ -975,8 +978,8 @@ describe("extractDocumentImages", () => {
     const extracted = extractDocumentImages(doc.cos);
     expect(extracted).toHaveLength(2);
     expect(extracted[0]!.encoding).toBe("jbig2");
-    expect(extracted[0]!.rawEncodedBytes).toEqual(Uint8Array.from([0x00, 0x00, 0x00, 0x02, 0x30]));
-    expect(extracted[0]!.jbig2GlobalsBytes).toEqual(Uint8Array.from([0x00, 0x00, 0x00, 0x01, 0x00]));
+    expect(extracted[0]!.rawEncodedBytes).toEqual(payload);
+    expect(extracted[0]!.jbig2GlobalsBytes).toEqual(globals);
     expect(Array.from(extracted[1]!.bitmap.data.slice(0, 8))).toEqual([10, 20, 30, 255, 15, 25, 35, 255]);
   });
 });

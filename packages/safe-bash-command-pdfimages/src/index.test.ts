@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   PdfDocument,
@@ -17,6 +18,9 @@ import {
   pdfimagesPlugin,
   runPdfimagesCli,
 } from "./index.js";
+
+// Independently generated codec fixtures; provenance is in pdf-ast/src/fixtures/SOURCES.md.
+const codecFixture = (name: string): Uint8Array => new Uint8Array(readFileSync(new URL(`../../pdf-ast/src/fixtures/${name}`, import.meta.url)));
 
 function createMultiImagePdf(): Uint8Array {
   const doc = PdfDocument.create();
@@ -342,8 +346,8 @@ describe("safe-bash-command-pdfimages", () => {
     const doc = PdfDocument.create();
     const page = doc.addPage({ width: 100, height: 100 });
 
-    const jp2Payload = Uint8Array.from([0x00, 0x00, 0x00, 0x0c, 0x6a, 0x50, 0x20, 0x20]);
-    const jbig2Payload = Uint8Array.from([0x97, 0x4a, 0x42, 0x32, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const jp2Payload = codecFixture("rgb-lossless.jp2");
+    const jbig2Payload = codecFixture("jbig2-generic-stream.bin");
     const ccittPayload = Uint8Array.from([0x00, 0x10, 0x01, 0x00]);
 
     const jp2Ref = doc.cos.allocateObject(
@@ -352,8 +356,8 @@ describe("safe-bash-command-pdfimages", () => {
         dict: cosDict({
           Type: cosName("XObject"),
           Subtype: cosName("Image"),
-          Width: cosNumber(16),
-          Height: cosNumber(16),
+          Width: cosNumber(8),
+          Height: cosNumber(6),
           ColorSpace: cosName("DeviceRGB"),
           BitsPerComponent: cosNumber(8),
           Filter: cosName("JPXDecode"),
@@ -366,8 +370,8 @@ describe("safe-bash-command-pdfimages", () => {
         dict: cosDict({
           Type: cosName("XObject"),
           Subtype: cosName("Image"),
-          Width: cosNumber(32),
-          Height: cosNumber(24),
+          Width: cosNumber(64),
+          Height: cosNumber(32),
           ColorSpace: cosName("DeviceGray"),
           BitsPerComponent: cosNumber(1),
           Filter: cosName("JBIG2Decode"),
@@ -602,14 +606,14 @@ describe("safe-bash-command-pdfimages", () => {
       })
     );
 
-    const hexJp2 = new TextEncoder().encode("0000000C6A502020>");
+    const hexJp2 = new TextEncoder().encode(Buffer.from(codecFixture("rgb-lossless.jp2")).toString("hex") + ">");
     const jp2Ref = doc.cos.allocateObject(
       cosStream(hexJp2, {
         dict: cosDict({
           Type: cosName("XObject"),
           Subtype: cosName("Image"),
-          Width: cosNumber(4),
-          Height: cosNumber(4),
+          Width: cosNumber(8),
+          Height: cosNumber(6),
           BitsPerComponent: cosNumber(8),
           ColorSpace: cosName("DeviceRGB"),
           Filter: cosArray([cosName("ASCIIHexDecode"), cosName("JPXDecode")]),
@@ -625,7 +629,7 @@ describe("safe-bash-command-pdfimages", () => {
     const res = await runPdfimagesCli(["-ccitt", "-jp2", "chained.pdf", "ch"], files);
     expect(res.exitCode).toBe(0);
     expect(files.get("ch-000.ccitt")).toEqual(Uint8Array.from([0x1f, 0x3e]));
-    expect(files.get("ch-001.jp2")).toEqual(Uint8Array.from([0x00, 0x00, 0x00, 0x0c, 0x6a, 0x50, 0x20, 0x20]));
+    expect(files.get("ch-001.jp2")).toEqual(codecFixture("rgb-lossless.jp2"));
   });
 
   it("extracts .jb2e + .jb2g for JBIG2Decode with JBIG2Globals and includes .jb2g in -print-filenames", async () => {
@@ -646,17 +650,17 @@ describe("safe-bash-command-pdfimages", () => {
     );
 
     const jb2GlobalsRef = doc.cos.allocateObject(
-      cosStream(Uint8Array.from([0x00, 0x00, 0x00, 0x01, 0x00]), {
+      cosStream(codecFixture("jbig2-symbols.sym"), {
         dict: cosDict({}),
       })
     );
     const jb2Ref = doc.cos.allocateObject(
-      cosStream(Uint8Array.from([0x00, 0x00, 0x00, 0x02, 0x30]), {
+      cosStream(codecFixture("jbig2-symbols.0000"), {
         dict: cosDict({
           Type: cosName("XObject"),
           Subtype: cosName("Image"),
-          Width: cosNumber(4),
-          Height: cosNumber(4),
+          Width: cosNumber(64),
+          Height: cosNumber(32),
           BitsPerComponent: cosNumber(1),
           ColorSpace: cosName("DeviceGray"),
           Filter: cosName("JBIG2Decode"),
@@ -677,8 +681,8 @@ describe("safe-bash-command-pdfimages", () => {
     const ppmBytes = files.get("out-000.ppm");
     expect(ppmBytes).toBeDefined();
     expect(new TextDecoder().decode(ppmBytes!.subarray(0, 3))).toBe("P6\n");
-    expect(files.get("out-001.jb2e")).toEqual(Uint8Array.from([0x00, 0x00, 0x00, 0x02, 0x30]));
-    expect(files.get("out-001.jb2g")).toEqual(Uint8Array.from([0x00, 0x00, 0x00, 0x01, 0x00]));
+    expect(files.get("out-001.jb2e")).toEqual(codecFixture("jbig2-symbols.0000"));
+    expect(files.get("out-001.jb2g")).toEqual(codecFixture("jbig2-symbols.sym"));
     expect(defRes.stdout).toContain("out-001.jb2e");
     expect(defRes.stdout).toContain("out-001.jb2g");
   });
@@ -688,17 +692,17 @@ describe("safe-bash-command-pdfimages", () => {
     const page = doc.addPage({ width: 100, height: 100 });
 
     const jb2GlobalsRef = doc.cos.allocateObject(
-      cosStream(Uint8Array.from([0x00, 0x00, 0x00, 0x01, 0x00]), {
+      cosStream(codecFixture("jbig2-symbols.sym"), {
         dict: cosDict({}),
       })
     );
     const jb2Ref = doc.cos.allocateObject(
-      cosStream(new TextEncoder().encode("0000000230>"), {
+      cosStream(new TextEncoder().encode(Buffer.from(codecFixture("jbig2-symbols.0000")).toString("hex") + ">"), {
         dict: cosDict({
           Type: cosName("XObject"),
           Subtype: cosName("Image"),
-          Width: cosNumber(4),
-          Height: cosNumber(4),
+          Width: cosNumber(64),
+          Height: cosNumber(32),
           BitsPerComponent: cosNumber(1),
           ColorSpace: cosName("DeviceGray"),
           Filter: cosArray([cosName("ASCIIHexDecode"), cosName("JBIG2Decode")]),
@@ -718,7 +722,7 @@ describe("safe-bash-command-pdfimages", () => {
     const files = new Map<string, Uint8Array>([["multi-jb2.pdf", doc.save()]]);
     const res = await runPdfimagesCli(["-all", "-print-filenames", "multi-jb2.pdf", "out"], files);
     expect(res.exitCode).toBe(0);
-    expect(files.get("out-000.jb2e")).toEqual(Uint8Array.from([0x00, 0x00, 0x00, 0x02, 0x30]));
-    expect(files.get("out-000.jb2g")).toEqual(Uint8Array.from([0x00, 0x00, 0x00, 0x01, 0x00]));
+    expect(files.get("out-000.jb2e")).toEqual(codecFixture("jbig2-symbols.0000"));
+    expect(files.get("out-000.jb2g")).toEqual(codecFixture("jbig2-symbols.sym"));
   });
 });

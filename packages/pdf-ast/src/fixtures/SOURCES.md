@@ -26,7 +26,8 @@ and after resource cleanup.
 Mozilla PDF.js tag `v4.1.392`. They exercise JBIG2 symbol offsets and JPEG 2000
 arithmetic probability resets. Source: https://github.com/mozilla/pdf.js/tree/v4.1.392/test/pdfs
 Mozilla Foundation, Apache-2.0; see `../../licenses/PDFJS-APACHE-2.0.txt`.
-Expected RGBA hashes in `../extract/pdfjs-codecs.test.ts` were independently
+Expected RGBA hashes in `../extract/pdfjs-codecs.test.ts` and
+`../extract/image-extraction-codecs.test.ts` were independently
 obtained with PyMuPDF 1.28.2; no PyMuPDF source or tests are included.
 
 The other fixtures were created for this repository (MIT) with Pillow 12.3.0,

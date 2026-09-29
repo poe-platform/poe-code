@@ -76,6 +76,8 @@ import { outputFailure } from "../contracts/io.js";
 import { executionCommands } from "../commands/execution.js";
 import { defaultEchoExecutors, extractFastPrintfSpecifiers, formatPrintf, printfCommand, tryFastPrintf } from "../commands/basic.js";
 import { createFmtEngine, parseFmtArguments } from "../commands/fmt.js";
+import { evalSyncChecksum } from "../commands/bytes/checksums/index.js";
+import { evalSyncBase32 } from "../commands/bytes/encoding/base.js";
 import { defaultMkdirExecutors, defaultRmExecutors } from "../commands/filesystem.js";
 export const customRegisteredCommands = new WeakSet<object>();
 export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
@@ -26641,7 +26643,7 @@ export class Runtime {
       if (cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 1) return undefined;
       if (!cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
       const def0 = (w0Plain0 === "printf" || w0Plain0 === "echo" || w0Plain0 === "cat") ? this.commands.get(w0Plain0) : this.getExternalCommand(w0Plain0);
-      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && w0Plain0 !== "fmt" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
+      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && w0Plain0 !== "fmt" && w0Plain0 !== "md5sum" && w0Plain0 !== "sha1sum" && w0Plain0 !== "sha224sum" && w0Plain0 !== "sha256sum" && w0Plain0 !== "sha384sum" && w0Plain0 !== "sha512sum" && w0Plain0 !== "cksum" && w0Plain0 !== "base32" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
       const n = pipeline.commands.length;
       const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
@@ -26654,7 +26656,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "xxd" && sName !== "od" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "hexdump" && sName !== "hd" && sName !== "fmt" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "xxd" && sName !== "od" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "hexdump" && sName !== "hd" && sName !== "fmt" && sName !== "md5sum" && sName !== "sha1sum" && sName !== "sha224sum" && sName !== "sha256sum" && sName !== "sha384sum" && sName !== "sha512sum" && sName !== "cksum" && sName !== "base32" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -26737,6 +26739,10 @@ export class Runtime {
           if (this.evalSyncHexdump(new Uint8Array([97]), sArgs, sName === "hd") === undefined) return undefined;
         } else if (sName === "fmt") {
           if (this.evalSyncFmt(EMPTY_BYTES, sArgs) === undefined) return undefined;
+        } else if (sName === "md5sum" || sName === "sha1sum" || sName === "sha224sum" || sName === "sha256sum" || sName === "sha384sum" || sName === "sha512sum" || sName === "cksum") {
+          if (evalSyncChecksum(sName, EMPTY_BYTES, sArgs) === undefined) return undefined;
+        } else if (sName === "base32") {
+          if (evalSyncBase32(EMPTY_BYTES, sArgs) === undefined) return undefined;
         } else {
           return undefined;
         }
@@ -26850,6 +26856,14 @@ export class Runtime {
             firstName === "hexdump" ||
             firstName === "hd" ||
             firstName === "fmt" ||
+            firstName === "md5sum" ||
+            firstName === "sha1sum" ||
+            firstName === "sha224sum" ||
+            firstName === "sha256sum" ||
+            firstName === "sha384sum" ||
+            firstName === "sha512sum" ||
+            firstName === "cksum" ||
+            firstName === "base32" ||
             isInlineBase64 ||
             isInlineTac ||
             isInlineNl ||
@@ -27023,6 +27037,29 @@ export class Runtime {
               const tsRes = this.evalSyncTsort(rawLines, stageArgs, rawState.cwd);
               if (tsRes === undefined) return undefined;
               outLines = tsRes;
+            } else if (firstName === "base32") {
+              const b32Bytes = evalSyncBase32(prevBuf.subarray(0, prevLen), stageArgs);
+              if (b32Bytes === undefined) return undefined;
+              const nextTotalBytes = this.budget.bytes + b32Bytes.byteLength;
+              if (nextTotalBytes > this.budget.maxOutputBytesSmi && b32Bytes.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+              this.budget.bytes = nextTotalBytes;
+              if (b32Bytes.byteLength > nextBuf.byteLength) nextBuf = new Uint8Array(b32Bytes.byteLength);
+              nextBuf.set(b32Bytes, 0);
+              prevBuf = nextBuf;
+              prevLen = b32Bytes.byteLength;
+              continue;
+            } else if (firstName === "md5sum" || firstName === "sha1sum" || firstName === "sha224sum" || firstName === "sha256sum" || firstName === "sha384sum" || firstName === "sha512sum" || firstName === "cksum") {
+              const ckStr = evalSyncChecksum(firstName, prevBuf.subarray(0, prevLen), stageArgs);
+              if (ckStr === undefined) return undefined;
+              const encoded = fastSharedTextEncoder.encode(ckStr);
+              const nextTotalBytes = this.budget.bytes + encoded.byteLength;
+              if (nextTotalBytes > this.budget.maxOutputBytesSmi && encoded.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+              this.budget.bytes = nextTotalBytes;
+              if (encoded.byteLength > nextBuf.byteLength) nextBuf = new Uint8Array(encoded.byteLength);
+              nextBuf.set(encoded, 0);
+              prevBuf = nextBuf;
+              prevLen = encoded.byteLength;
+              continue;
             } else if (firstName === "envsubst" || firstName === "xxd" || firstName === "od" || firstName === "hexdump" || firstName === "hd" || firstName === "fmt") {
               const rawBytes = prevBuf.subarray(0, prevLen);
               const outStr = firstName === "envsubst"
@@ -27197,8 +27234,8 @@ export class Runtime {
       w0Plain === "sort" ||
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
-      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc";
-    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc") && Boolean(this.getExternalCommand(w0Plain))))) {
+      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32";
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {
@@ -27412,6 +27449,11 @@ export class Runtime {
               fileRes = this.evalSyncHexdump(view, opArgs, w0Plain === "hd");
             } else if (w0Plain === "fmt") {
               fileRes = this.evalSyncFmt(view, opArgs);
+            } else if (w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum") {
+              fileRes = evalSyncChecksum(w0Plain, view, opArgs);
+            } else if (w0Plain === "base32") {
+              const b32Out = evalSyncBase32(view, opArgs);
+              if (b32Out !== undefined) fileRes = sharedSyncPipeDecoder.decode(b32Out);
             } else if (w0Plain === "envsubst" && hasSingleHereStringRedir) {
               fileRes = this.evalSyncEnvsubst(fileStr, opArgs, rawState);
             } else if (hasSingleHereStringRedir && w0Plain === "column") {

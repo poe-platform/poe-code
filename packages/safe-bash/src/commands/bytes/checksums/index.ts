@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { yieldTurn } from "../../../contracts/yield.js";
 import { SM3 } from "./sm3.js";
 import { blake2b } from "@noble/hashes/blake2.js";
@@ -366,4 +367,38 @@ function command(name: string, algorithm: Algorithm, maxInputBytes: number): Com
 export function createChecksumCommands(options: ByteInputOptions = {}): readonly CommandDefinition[] {
   const maxInputBytes = resolveInputLimit(options);
   return [command("sha512sum", "sha512", maxInputBytes), command("sha384sum", "sha384", maxInputBytes), command("sha256sum", "sha256", maxInputBytes), command("sha224sum", "sha224", maxInputBytes), command("sha1sum", "sha1", maxInputBytes), command("md5sum", "md5", maxInputBytes), command("cksum", "crc", maxInputBytes)];
+}
+
+export function evalSyncChecksum(name: string, inBytes: Uint8Array, opArgs: readonly string[]): string | undefined {
+  if (inBytes.byteLength > 16384) return undefined;
+  if (name === "cksum") {
+    if (opArgs.length > 1 || (opArgs.length === 1 && opArgs[0] !== "-")) return undefined;
+    let crc = 0;
+    for (let i = 0; i < inBytes.byteLength; i++) {
+      crc = (crc << 8) ^ crcTable[((crc >>> 24) ^ inBytes[i]!) & 255]!;
+    }
+    for (let rem = BigInt(inBytes.byteLength); rem > 0n; rem >>= 8n) {
+      crc = (crc << 8) ^ crcTable[((crc >>> 24) ^ Number(rem & 255n)) & 255]!;
+    }
+    return `${(~crc) >>> 0} ${inBytes.byteLength}\n`;
+  }
+  const alg = name === "md5sum" ? "md5" : name === "sha1sum" ? "sha1" : name === "sha224sum" ? "sha224" : name === "sha256sum" ? "sha256" : name === "sha384sum" ? "sha384" : name === "sha512sum" ? "sha512" : undefined;
+  if (!alg) return undefined;
+  let binary = false;
+  let tag = false;
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (!ended && a === "--") { ended = true; continue; }
+    if (!ended && (a === "-b" || a === "--binary")) { binary = true; continue; }
+    if (!ended && (a === "-t" || a === "--text")) { binary = false; continue; }
+    if (!ended && a === "--tag") { tag = true; continue; }
+    if (!ended && a.startsWith("-") && a !== "-") return undefined;
+    operands.push(a);
+  }
+  if (operands.length > 1 || (operands.length === 1 && operands[0] !== "-")) return undefined;
+  const hex = createHash(alg).update(inBytes).digest("hex");
+  if (tag) return `${alg.toUpperCase()} (-) = ${hex}\n`;
+  return `${hex} ${binary ? "*" : " "}-\n`;
 }

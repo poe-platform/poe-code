@@ -140,3 +140,96 @@ export function createBaseCommand(name: "base64" | "base32", maxInputBytes: numb
     return { exitCode: 0 };
   });
 }
+
+export function evalSyncBase32(inBytes: Uint8Array, opArgs: readonly string[]): Uint8Array | undefined {
+  if (inBytes.byteLength > 16384) return undefined;
+  let isDecode = false;
+  let ignoreGarbage = false;
+  let wrap = 76;
+  let ended = false;
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (!ended && a === "--") { ended = true; continue; }
+    if (!ended && (a === "-d" || a === "--decode")) { isDecode = true; continue; }
+    if (!ended && (a === "-i" || a === "--ignore-garbage")) { ignoreGarbage = true; continue; }
+    if (!ended && (a === "-w" || a === "--wrap")) {
+      if (i + 1 >= opArgs.length || !/^[0-9]+$/.test(opArgs[i + 1]!)) return undefined;
+      wrap = Number(opArgs[++i]!);
+      continue;
+    }
+    if (!ended && a.startsWith("-w") && /^[0-9]+$/.test(a.slice(2))) {
+      wrap = Number(a.slice(2));
+      continue;
+    }
+    if (!ended && a.startsWith("--wrap=") && /^[0-9]+$/.test(a.slice(7))) {
+      wrap = Number(a.slice(7));
+      continue;
+    }
+    return undefined;
+  }
+  const alphabet = alphabets.base32;
+  if (!isDecode) {
+    let carry = 0, bits = 0, symbols = 0, column = 0;
+    const symbolBytes = alphabet.symbolBytes;
+    const aBits = alphabet.bits;
+    const aQuantum = alphabet.quantum;
+    const mask = (1 << aBits) - 1;
+    const out: number[] = [];
+    const emitByte = (byte: number): void => {
+      out.push(byte);
+      symbols = (symbols + 1) % aQuantum;
+      if (wrap && ++column === wrap) {
+        out.push(10);
+        column = 0;
+      }
+    };
+    for (let i = 0; i < inBytes.byteLength; i++) {
+      carry = (carry << 8) | inBytes[i]!;
+      bits += 8;
+      while (bits >= aBits) {
+        bits -= aBits;
+        emitByte(symbolBytes[(carry >> bits) & mask]!);
+      }
+      carry &= (1 << bits) - 1;
+    }
+    if (bits) emitByte(symbolBytes[carry << (aBits - bits)]!);
+    while (symbols) emitByte(61);
+    if (wrap && column) out.push(10);
+    return Uint8Array.from(out);
+  } else {
+    const lookup = new Int16Array(256).fill(-2);
+    for (let index = 0; index < alphabet.symbols.length; index++) lookup[alphabet.symbols.charCodeAt(index)] = index;
+    lookup[61] = -1;
+    const aQuantum = alphabet.quantum;
+    const quantum = new Int16Array(8);
+    let qLen = 0;
+    let lastByte: number | undefined;
+    const outBuf = new Uint8Array(inBytes.byteLength);
+    let outUsed = 0;
+    for (let i = 0; i < inBytes.byteLength; i++) {
+      const byte = inBytes[i]!;
+      const symbol = lookup[byte]!;
+      if (ignoreGarbage && symbol === -2) continue;
+      if (byte === 10) continue;
+      lastByte = byte;
+      quantum[qLen++] = symbol;
+      if (qLen === aQuantum) {
+        const res = decodeQuantumInto(quantum, qLen, alphabet, outBuf, outUsed);
+        if (!res.valid) return undefined;
+        outUsed = res.nextUsed;
+        qLen = 0;
+      }
+    }
+    if (qLen > 0) {
+      if (lastByte !== 61) while (qLen < aQuantum) quantum[qLen++] = -1;
+      const res = decodeQuantumInto(quantum, qLen, alphabet, outBuf, outUsed);
+      if (!res.valid) return undefined;
+      outUsed = res.nextUsed;
+    }
+    const sliced = outBuf.subarray(0, outUsed);
+    for (let i = 0; i < sliced.byteLength; i++) {
+      if (sliced[i] === 0 || sliced[i]! >= 128) return undefined;
+    }
+    return sliced;
+  }
+}

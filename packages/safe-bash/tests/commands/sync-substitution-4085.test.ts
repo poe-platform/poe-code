@@ -146,3 +146,36 @@ test("Wave 126: sync fmt, uname, id, whoami, hostname, and nproc in seq loops", 
     await shell.dispose();
   }
 });
+
+test("Wave 127: sync sha256sum, md5sum, sha1sum, sha512sum, cksum, and base32 in seq loops", async () => {
+  const { standardCommands } = await import("../../src/commands/index.js");
+  const { byteCommands } = await import("../../src/commands/bytes/index.js");
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(byteCommands());
+  try {
+    const rSha256 = await shell.exec("for i in $(seq 1 5); do out=$(printf \"item-$i\" | sha256sum | cut -d\" \" -f1); done; echo \"$out\"");
+    assert.equal(rSha256.exitCode, 0);
+    assert.equal(rSha256.stdout, "fd9c86032838eb5e65d0f4ad6eb3af2d114ed16f4b729043cab3e2b7483decc9\n");
+
+    const rMd5 = await shell.exec("for i in $(seq 1 5); do out=$(printf \"item-$i\" | md5sum | cut -d\" \" -f1); done; echo \"$out\"");
+    assert.equal(rMd5.exitCode, 0);
+    assert.equal(rMd5.stdout, "ad36abff56ce76a479dda134a3744c3b\n");
+
+    const rSha1 = await shell.exec("for i in $(seq 1 5); do out=$(printf \"item-$i\" | sha1sum | cut -d\" \" -f1); done; echo \"$out\"");
+    assert.equal(rSha1.exitCode, 0);
+    assert.equal(rSha1.stdout, "daf0ac810772422088dbb6b77b3b29a64028b5b9\n");
+
+    const rSha512 = await shell.exec("for i in $(seq 1 5); do out=$(printf \"item-$i\" | sha512sum | cut -d\" \" -f1); done; echo \"$out\"");
+    assert.equal(rSha512.exitCode, 0);
+    assert.equal(rSha512.stdout, "3552d85db804d10a0cdb2b4c32784798bd9b83ae77f43c83b6d74195a983b25990038dffc7670a82fb676697539e3e7fa68d774db36f5057ce0c8a22a769216d\n");
+
+    const rCksum = await shell.exec("for i in $(seq 1 5); do out=$(printf \"item-$i\" | cksum); done; echo \"$out\"");
+    assert.equal(rCksum.exitCode, 0);
+    assert.equal(rCksum.stdout, "2112230944 6\n");
+
+    const rBase32 = await shell.exec("for i in $(seq 1 5); do out=$(printf \"item-$i\" | base32 | base32 -d); done; echo \"$out\"");
+    assert.equal(rBase32.exitCode, 0);
+    assert.equal(rBase32.stdout, "item-5\n");
+  } finally {
+    await shell.dispose();
+  }
+});

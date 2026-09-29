@@ -59,6 +59,12 @@ it("imports annotation character styles and an explicitly empty author", async (
 });
 
 for (const profile of ["strict", "extended"] as const) {
+  it(`preserves native-representable closing brackets in annotation font names through ${profile} ODF`, async () => {
+    const format = "@[family=Font]Name:0:6]", book = commentBook("Ada", format);
+    const reopened = await readOdf(await createOdfWriter(profile)(book, [], context), context);
+    expect(comment(reopened).attributes.TextFormat).toBe(format);
+  });
+
   it(`upgrades legacy annotation author, dates, position and text into ${profile} ODF`, async () => {
     const book = await readOdf(await legacySource("Ada"), context);
     const output = await createOdfWriter(profile)(book, [], context);

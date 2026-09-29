@@ -9,8 +9,12 @@ export function readGnumericRichText(format: string | undefined, charge?: (amoun
   while (offset < format.length) {
     charge?.();
     if (format[offset] !== "[") return undefined;
-    const close = format.indexOf("]", offset), equal = format.indexOf("=", offset);
-    if (close < 0 || equal < offset || equal > close) return undefined;
+    const equal = format.indexOf("=", offset), range = format.indexOf(":", equal + 1);
+    if (equal < offset || range < equal) return undefined;
+    // Native markup permits ] in the value; only the bracket after its
+    // range delimiter closes the attribute (go_format_parse_markup).
+    const close = format.indexOf("]", range);
+    if (close < 0) return undefined;
     const key = format.slice(offset + 1, equal), parts = format.slice(equal + 1, close).split(":");
     if (parts.length !== 3) return undefined;
     const start = Number(parts[1]), end = Number(parts[2]);
@@ -27,7 +31,7 @@ export function writeGnumericRichText(runs: readonly RichTextRun[]): string {
   for (const run of runs) for (const [key, val] of Object.entries(run.attributes)) {
     if (!richAttributes.has(key) || typeof val !== "string" && typeof val !== "number")
       throw new SsconvertError("io", "E Invalid Gnumeric XML: unsupported rich text attribute");
-    if (String(val).includes(":") || String(val).includes("]"))
+    if (String(val).includes(":"))
       throw new SsconvertError("io", "E Invalid Gnumeric XML: invalid rich text attribute value");
     result += `[${key}=${val}:${run.start}:${run.end}]`;
   }

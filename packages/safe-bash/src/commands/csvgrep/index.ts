@@ -72,9 +72,9 @@ export function evalSyncCsvgrep(
       if (!fileBytes || fileBytes.byteLength > 16384) return undefined;
       sourceBytes = fileBytes;
     }
-    const parser = new CsvParser(options.dialect, budget);
+    const parser = new CsvParser(options.dialect ?? {}, budget);
     const rows = [...parser.push(sourceBytes), ...parser.end()];
-    const matcher = options.names ? undefined : createMatcher(options, undefined, budget);
+    const matcher = options.names ? undefined : createMatcher(options, new Set<string>(), budget);
     let headers: readonly string[] | undefined;
     let columns: readonly number[] = [];
     let out = "";

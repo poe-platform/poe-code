@@ -11806,13 +11806,7 @@ export class Runtime {
         if (w0Plain === "printf") {
           if (!this.isSyncPrintfCallOk(cmd, 1, rawState, this._activePrintfInductionName)) return false;
         } else if (w0Plain === "echo") {
-          const firstArg = cmd.words[1];
-          if (firstArg) {
-            const prefix = firstArg.parts.find(part => part.kind !== "text" || part.value.length > 0);
-            // Substitution execution rejects options, including those that appear
-            // only on later iterations. Require a stable non-option prefix.
-            if (prefix?.kind !== "text" || prefix.value.startsWith("-")) return false;
-          }
+          if (!this.isSyncSubEchoCallOk(cmd, rawState)) return false;
         } else if (w0Plain === "dirname" || w0Plain === "basename") {
           const simArgs: string[] = [];
           let seenDoubleDash = false;
@@ -12238,6 +12232,38 @@ export class Runtime {
     }
     return { ifsWord, varNames, isBareReply, inputWord: r0.target, ...(delimChar !== undefined ? { delimChar } : {}), ...(maxChars !== undefined ? { maxChars } : {}), ...(exactChars !== undefined ? { exactChars } : {}) };
   }
+  private canSyncLoopConditionalOperands(expression: ConditionalExpression, rawState: State, allowRegex = true): boolean {
+    const checkLeaf = (e: ConditionalExpression): boolean => {
+      if (e.kind === "nonempty") return this.isPureSyncValueWord(e.operand, rawState);
+      if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v" || (syncConditionalFileUnaryOps.has(e.operator) && this._isMemoryBackingFs && this.canFastMemoryRedirect && this.budget.limits.maxFileSystemOperations >= 1000 && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0))) && this.isPureSyncValueWord(e.operand, rawState);
+      if (e.kind === "binary") {
+        if (e.operator === "=~") {
+          if (!allowRegex) return false;
+          const patInfo = this.extractSimpleErePattern(e.right, rawState);
+          // A variable pattern can change through expansions or called functions.
+          if (patInfo?.isVar) return false;
+          return this.isPureSyncValueWord(e.left, rawState) && this.getFastAnchoredEreRegex(e.right, rawState) !== undefined && !rawState.readonlyVariables?.has("BASH_REMATCH") && !rawState.exported.has("BASH_REMATCH") && !stateMonitor(rawState)?.hasOverlay("BASH_REMATCH") && !(stateMonitor(rawState)?.store ?? requireArrays(rawState))?.watches.has("BASH_REMATCH");
+        }
+        // A synchronous loop cannot hand off an unsupported pattern mid-iteration.
+        return this.isPureSyncValueWord(e.left, rawState) && this.isPureSyncValueWord(e.right, rawState) && (!(e.operator === "==" || e.operator === "=" || e.operator === "!=") || (e.right.parts.length > 0 && e.right.parts.every(p => p.quoted)));
+      }
+      if (e.kind === "not") return checkLeaf(e.operand);
+      if (e.kind === "and" || e.kind === "or") return checkLeaf(e.left) && checkLeaf(e.right);
+      return false;
+    };
+    return checkLeaf(expression);
+  }
+  private isSyncSubEchoCallOk(cmd: Extract<Command, { kind: "simple" }>, rawState: State): boolean {
+    if (!this.isSyncEchoCallOk(cmd, rawState)) return false;
+    if (!cmd.words.slice(1).every(w => w.parts.length > 0 && w.parts.every(part =>
+      part.quoted || (part.kind === "text" && part.value.length > 0 && !part.value.includes(" ") && !part.value.includes("\t") && !part.value.includes("\n") && !part.value.includes("{") && !hasGlobOrEscape(part.value, true))
+    ))) return false;
+    const firstArg = cmd.words[1];
+    if (!firstArg) return true;
+    const prefix = firstArg.parts.find(part => part.kind !== "text" || part.value.length > 0);
+    // Substitution execution cannot resume when an option appears mid-loop.
+    return prefix?.kind === "text" && !prefix.value.startsWith("-");
+  }
   private isPureSyncSubIfOrCase(cmd: Extract<Command, { kind: "if" | "case" }>, rawState: State): boolean {
     if (cmd.redirects.length !== 0) return false;
     const isSimpleEchoOrPrintf = (s: Script): boolean => {
@@ -12247,7 +12273,7 @@ export class Runtime {
       const sc = pl.commands[0]!;
       if (sc.kind !== "simple" || sc.redirects.length !== 0 || sc.words.length === 0) return false;
       const w0 = sc.words[0]?.plain;
-      if (w0 === "echo") return this.isSyncEchoCallOk(sc, rawState);
+      if (w0 === "echo") return this.isSyncSubEchoCallOk(sc, rawState);
       if (w0 === "printf" && sc.words[1]?.plain !== "-v") return this.isSyncPrintfCallOk(sc, 1, rawState);
       return false;
     };
@@ -12261,9 +12287,10 @@ export class Runtime {
           if (bc.redirects.length !== 0 || bc.expression.error || bc.expression.hasMutation || bc.expression.hasSubscript || !isSafeSmiProgram(bc.expression) || !this.canSyncArithmeticWithoutFault(bc.expression.tree, rawState, bc.line ?? 1)) return false;
         } else if (bc.kind === "conditional") {
           if (bc.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(bc.expression, 0, rawState, true)) return false;
-          if (bc.expression.kind === "binary" && bc.expression.operator === "=~") return false;
-        } else if (!this.extractPosixBracketCondExpr(bc, rawState, true, br.body)) {
-          return false;
+          if (!this.canSyncLoopConditionalOperands(bc.expression, rawState, false)) return false;
+        } else {
+          const expression = this.extractPosixBracketCondExpr(bc, rawState, true, br.body);
+          if (!expression || !this.canSyncLoopConditionalOperands(expression, rawState, false)) return false;
         }
         if (!isSimpleEchoOrPrintf(br.body)) return false;
       }
@@ -12291,24 +12318,7 @@ export class Runtime {
         const cmd = pipeline.commands[0]!;
         const canSyncLoopCondCmd = (c: Extract<Command, { kind: "conditional" }>): boolean => {
           if (c.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(c.expression, 0, rawState, true)) return false;
-          const checkLeaf = (e: ConditionalExpression): boolean => {
-            if (e.kind === "nonempty") return this.isPureSyncValueWord(e.operand, rawState);
-            if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v" || (syncConditionalFileUnaryOps.has(e.operator) && this._isMemoryBackingFs && this.canFastMemoryRedirect && this.budget.limits.maxFileSystemOperations >= 1000 && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0))) && this.isPureSyncValueWord(e.operand, rawState);
-            if (e.kind === "binary") {
-              if (e.operator === "=~") {
-                const patInfo = this.extractSimpleErePattern(e.right, rawState);
-                // A variable pattern can change through expansions or called functions.
-                if (patInfo?.isVar) return false;
-                return this.isPureSyncValueWord(e.left, rawState) && this.getFastAnchoredEreRegex(e.right, rawState) !== undefined && !rawState.readonlyVariables?.has("BASH_REMATCH") && !rawState.exported.has("BASH_REMATCH") && !stateMonitor(rawState)?.hasOverlay("BASH_REMATCH") && !(store ?? requireArrays(rawState))?.watches.has("BASH_REMATCH");
-              }
-              // A synchronous loop cannot hand off an unsupported pattern mid-iteration.
-              return this.isPureSyncValueWord(e.left, rawState) && this.isPureSyncValueWord(e.right, rawState) && (!(e.operator === "==" || e.operator === "=" || e.operator === "!=") || (e.right.parts.length > 0 && e.right.parts.every(p => p.quoted)));
-            }
-            if (e.kind === "not") return checkLeaf(e.operand);
-            if (e.kind === "and" || e.kind === "or") return checkLeaf(e.left) && checkLeaf(e.right);
-            return false;
-          };
-          return checkLeaf(c.expression);
+          return this.canSyncLoopConditionalOperands(c.expression, rawState);
         };
         if (cmd.kind === "arithmetic") {
           if (cmd.redirects.length === 0) {

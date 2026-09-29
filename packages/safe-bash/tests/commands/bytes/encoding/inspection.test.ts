@@ -462,7 +462,7 @@ test("xxd: new mode aliases, byte range and invalid grouping", async () => {
     "00000000: FF00  ..\n00000002:   80  .\n");
 });
 
-for (const args of [["-S", "5"], ["-S5"], ["--strings=5"], ["-vS", "5"]]) test(`od: issue 928 string length ${args.join(" ")}`, async () => {
+for (const args of [["-S5"], ["--strings=5"], ["-vS5"]]) test(`od: issue 928 string length ${args.join(" ")}`, async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("abc\0defgh\0"));
   const shell = new Shell({ fs }).use(agentCommands());
@@ -471,6 +471,18 @@ for (const args of [["-S", "5"], ["-S5"], ["--strings=5"], ["-vS", "5"]]) test(`
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, "0000004 defgh\n");
+  } finally { await shell.dispose(); }
+});
+
+for (const option of ["-S", "-vS"]) test(`od: ${option} keeps a following number as a filename`, async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/5", Buffer.from("abc\0defgh\0"));
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    const result = await shell.exec(`od ${option} 5`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "0000000 abc\n0000004 defgh\n");
   } finally { await shell.dispose(); }
 });
 

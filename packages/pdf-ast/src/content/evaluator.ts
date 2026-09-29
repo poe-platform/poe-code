@@ -566,35 +566,56 @@ export function evalShadingFunctionToComponents(
     const decode = getNums("Decode", range);
     const nOut = Math.max(1, Math.floor((decode.length || range.length || 6) / 2));
     const mIn = Math.max(1, size.length);
-    let flatGridIndex = 0;
+    const streamBytes = doc.decodeStream(resolved);
+    // Adapted from PDF.js PDFFunction.constructSampled: interpolate the cube
+    // vertices, with the first input varying fastest. Only keep nonzero
+    // weights, so singleton axes and exact sample positions stay inexpensive.
+    let vertices: Array<{ index: number; weight: number }> = [{ index: 0, weight: 1 }];
     let stride = 1;
     for (let i = 0; i < mIn; i++) {
       const d0 = dom[i * 2] ?? 0;
       const d1 = dom[i * 2 + 1] ?? 1;
-      const sMax = Math.max(1, (size[i] ?? 2) - 1);
+      const sMax = Math.max(0, (size[i] ?? 2) - 1);
       const e0 = encode[i * 2] ?? 0;
       const e1 = encode[i * 2 + 1] ?? sMax;
       const x = Math.max(d0, Math.min(d1, inArr[i] ?? 0));
-      const u = Math.abs(d1 - d0) > 1e-8 ? (x - d0) / (d1 - d0) : 0;
-      const idx = Math.round(Math.max(0, Math.min(sMax, e0 + u * (e1 - e0))));
-      flatGridIndex += idx * stride;
+      const u = d1 === d0 ? 0 : (x - d0) / (d1 - d0);
+      const e = Math.max(0, Math.min(sMax, e0 + u * (e1 - e0)));
+      const low = Math.floor(e), fraction = e - low;
+      const next: typeof vertices = [];
+      for (const vertex of vertices) {
+        const index = vertex.index + low * stride;
+        // Missing samples contribute zero, as in the byte decoder below.
+        // Discard them early rather than expanding a malformed sparse grid.
+        if (index * nOut * bps < streamBytes.length * 8) next.push({ index, weight: vertex.weight * (1 - fraction) });
+        if (fraction && (index + stride) * nOut * bps < streamBytes.length * 8) {
+          next.push({ index: index + stride, weight: vertex.weight * fraction });
+        }
+      }
+      vertices = next;
       stride *= size[i] ?? 2;
     }
-    const streamBytes = doc.decodeStream(resolved);
-    const out: number[] = [];
-    const maxSample = bps === 16 ? 65535 : 255;
-    for (let j = 0; j < nOut; j++) {
-      const sampleIdx = flatGridIndex * nOut + j;
-      let rawVal = 0;
-      if (bps === 16) {
-        rawVal = ((streamBytes[sampleIdx * 2] ?? 0) << 8) | (streamBytes[sampleIdx * 2 + 1] ?? 0);
-      } else {
-        rawVal = streamBytes[sampleIdx] ?? 0;
+    const maxSample = 2 ** bps - 1;
+    const readSample = (index: number): number => {
+      let bitOffset = index * bps, remaining = bps, value = 0;
+      while (remaining > 0) {
+        const bitInByte = bitOffset % 8;
+        const take = Math.min(remaining, 8 - bitInByte);
+        const byte = streamBytes[Math.floor(bitOffset / 8)] ?? 0;
+        // Accumulate arithmetically: PDF permits unsigned 32-bit samples.
+        value = value * 2 ** take + ((byte >> (8 - bitInByte - take)) & ((1 << take) - 1));
+        bitOffset += take;
+        remaining -= take;
       }
-      const frac = rawVal / maxSample;
+      return value / maxSample;
+    };
+    const out: number[] = [];
+    for (let j = 0; j < nOut; j++) {
+      let value = 0;
+      for (const vertex of vertices) value += readSample(vertex.index * nOut + j) * vertex.weight;
       const dec0 = decode[j * 2] ?? 0;
       const dec1 = decode[j * 2 + 1] ?? 1;
-      out.push(dec0 + frac * (dec1 - dec0));
+      out.push(dec0 + value * (dec1 - dec0));
     }
     return clampRange(out);
   }

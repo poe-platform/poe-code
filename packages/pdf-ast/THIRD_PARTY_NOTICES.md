@@ -423,6 +423,14 @@ surfaces; SVG uses the vendored viewport transform. The unchanged PDF.js
 `bug852992_reduced.pdf` soft-mask fixture and memory-only offset-page tests cover
 this behavior in `src/render/media-box-origin.test.ts`.
 
+Sampled-function interpolation adapts PDF.js `PDFFunction.constructSampled`
+in `src/core/function.js`. The local evaluator reads the weighted neighboring
+samples directly, supports unsigned packed samples through 32 bits, and handles
+singleton axes without reading outside the table. Its degenerate-Domain test
+is ported from `test/unit/colorspace_spec.js` (AlternateCS), with assertions on
+the tint components before color conversion. The unchanged
+`bug852992_reduced.pdf` fixture also verifies the restored soft-mask fade.
+
 Malformed dictionary-key recovery follows PDF.js `Parser.getObj`, skipping
 stray non-Name tokens only in local repair mode. Damaged optional ToUnicode
 streams follow `PartialEvaluator.readToUnicode` error recovery while retaining

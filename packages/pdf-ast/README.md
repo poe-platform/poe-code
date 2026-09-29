@@ -92,6 +92,8 @@ visible bounds for applications choosing their own output size.
 Rendering also honors nonzero and negative MediaBox origins. Display-list
 `origin` metadata positions the page without changing extracted or edited PDF
 coordinates, including clipped artwork, shading, and soft masks.
+Sampled PDF functions interpolate gradients, soft masks, and tint colors across
+all input axes, including packed 1–32-bit samples and reversed encoding ranges.
 Bitmap strokes preserve joins, miter limits, caps and dash continuity, and apply
 opacity once across overlapping segments of the same stroke.
 Zero-length dashes preserve round and square dots in bitmap and SVG output,

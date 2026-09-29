@@ -1723,4 +1723,28 @@ test("Wave 228: tar -xvf -C directory extraction and unzip -t / unzip -qo -d ext
       "0:10:7,9,9,9,:===|sec1|:===|sec3|:a\nB:first|second|",
     );
   });
+
+  it("supports mkdir symbolic modes (-m u=rwx,go=rx), ln -sr relative symlinks, and rm -rv recursive verbose/symlink removal in sync command substitutions (Wave 230)", async () => {
+    const shell = createShell();
+    const res = await shell.exec(`
+      out=""
+      for i in 1 2; do
+        rm -rf /tmp/w230_tree /tmp/w230_symdir
+        mk_out=\$(mkdir -v -m u=rwx,g=rx,o= /tmp/w230_symdir && stat -c "%a" /tmp/w230_symdir)
+        mkdir -p /tmp/w230_tree/a/b /tmp/w230_tree/a/c
+        printf "target-data" > /tmp/w230_tree/a/b/file.txt
+        ln_out=\$(ln -srv /tmp/w230_tree/a/b/file.txt /tmp/w230_tree/a/c/link.txt)
+        rl_out=\$(readlink /tmp/w230_tree/a/c/link.txt)
+        rm_sym=\$(rm -v /tmp/w230_tree/a/c/link.txt)
+        rm_tree=\$(rm -rv /tmp/w230_tree/a | tr "\n" "|")
+        out="${mk_out}|${ln_out}|${rl_out}|${rm_sym}|${rm_tree}"
+      done
+      printf "%s\n" "\$out"
+    `);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout.trim(),
+      "mkdir: created directory '/tmp/w230_symdir'\n750|'/tmp/w230_tree/a/c/link.txt' -> '../b/file.txt'|../b/file.txt|removed '/tmp/w230_tree/a/c/link.txt'|removed '/tmp/w230_tree/a/b/file.txt'|removed '/tmp/w230_tree/a/b'|removed '/tmp/w230_tree/a/c'|removed '/tmp/w230_tree/a'|",
+    );
+  });
 });

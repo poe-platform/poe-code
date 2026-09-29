@@ -1175,8 +1175,36 @@ export function evalSyncMkdir(
   if (operands.length === 0) return undefined;
   let mode = 0o777 & ~umask;
   if (modeSpec !== undefined) {
-    if (!/^[0-7]{1,4}$/.test(modeSpec)) return undefined;
-    mode = Number.parseInt(modeSpec, 8);
+    if (/^[0-7]{1,4}$/.test(modeSpec)) {
+      mode = Number.parseInt(modeSpec, 8);
+    } else {
+      let cur = mode;
+      for (const clause of modeSpec.split(",")) {
+        const m = /^([ugoa]*)((?:[+=-][rwxXstugo]*)+)$/.exec(clause);
+        if (!m) return undefined;
+        const who = m[1]!;
+        const all = !who || who.includes("a");
+        const uMask = (all || who.includes("u") ? 0o4700 : 0) | (all || who.includes("g") ? 0o2070 : 0) | (all || who.includes("o") ? 0o1007 : 0);
+        for (const opMatch of m[2]!.matchAll(/([+=-])([rwxXstugo]*)/g)) {
+          const op = opMatch[1]!;
+          const perms = opMatch[2]!;
+          let bits = 0;
+          for (const ch of perms) {
+            if (ch === "r") bits |= 0o0444;
+            else if (ch === "w") bits |= 0o0222;
+            else if (ch === "x" || ch === "X") bits |= 0o0111;
+            else if (ch === "s") bits |= 0o6000;
+            else if (ch === "t") bits |= 0o1000;
+            else return undefined;
+          }
+          const masked = bits & (who ? uMask : (0o7000 | (0o0777 & ~umask)));
+          if (op === "+") cur |= masked;
+          else if (op === "-") cur &= ~masked;
+          else cur = (cur & ~uMask) | (bits & uMask);
+        }
+      }
+      mode = cur & 0o7777;
+    }
   }
   for (const dir of operands) {
     const st = statTypeSync(dir);
@@ -1259,25 +1287,33 @@ export function evalSyncRm(
     } else if (st === "directory") {
       const entries = listDirSync(f);
       const count = entries ? ("size" in entries ? entries.size : entries.length) : 1;
-      if (recursive) {
-        if (verbose && count > 0) return undefined;
-      } else if (dirFlag) {
-        if (count > 0) return undefined;
-      } else {
-        return undefined;
+      if (!recursive) {
+        if (!dirFlag || count > 0) return undefined;
       }
-    } else if (st !== "file") {
+    } else if (st !== "file" && st !== "symlink") {
       return undefined;
     }
   }
+  const collectRmVerbose = (p: string): string => {
+    let chunk = "";
+    const st = statTypeSync(p);
+    if (st === "directory" && recursive) {
+      const entries = listDirSync(p);
+      const names = entries ? (Array.isArray(entries) ? entries : [...entries.keys()]) : [];
+      for (const name of names) {
+        chunk += collectRmVerbose(p.endsWith("/") ? `${p}${name}` : `${p}/${name}`);
+      }
+    }
+    chunk += `removed '${p}'\n`;
+    return chunk;
+  };
   let out = "";
   for (const f of operands) {
     const st = statTypeSync(f);
     if (st === "missing") continue;
+    const verboseLines = verbose ? collectRmVerbose(f) : "";
     if (!rmSync(f)) return undefined;
-    if (verbose) {
-      out += `removed '${f}'\n`;
-    }
+    if (verbose) out += verboseLines;
   }
   return out;
 }
@@ -1295,6 +1331,7 @@ export function evalSyncLn(
   if (gnuInfo !== undefined) return gnuInfo;
   if (!statTypeSync || !rmSync || !linkSync) return undefined;
   let symbolic = false;
+  let relative = false;
   let force = false;
   let verbose = false;
   let noDeref = false;
@@ -1310,6 +1347,7 @@ export function evalSyncLn(
     }
     if (a === "--") { ended = true; continue; }
     if (a === "-s" || a === "--symbolic") { symbolic = true; continue; }
+    if (a === "-r" || a === "--relative") { relative = true; continue; }
     if (a === "-f" || a === "--force") { force = true; continue; }
     if (a === "-v" || a === "--verbose") { verbose = true; continue; }
     if (a === "-n" || a === "--no-dereference") { noDeref = true; continue; }
@@ -1324,6 +1362,7 @@ export function evalSyncLn(
       for (let j = 1; j < a.length; j++) {
         const ch = a[j]!;
         if (ch === "s") symbolic = true;
+        else if (ch === "r") relative = true;
         else if (ch === "f") force = true;
         else if (ch === "v") verbose = true;
         else if (ch === "n") noDeref = true;
@@ -1339,7 +1378,30 @@ export function evalSyncLn(
     }
     return undefined;
   }
-  if (noTargetDir && targetDir !== undefined) return undefined;
+  if ((noTargetDir && targetDir !== undefined) || (relative && !symbolic)) return undefined;
+  const normRel = (p: string): string[] => {
+    const outParts: string[] = [];
+    for (const seg of p.split("/")) {
+      if (!seg || seg === ".") continue;
+      if (seg === "..") {
+        if (outParts.length > 0 && outParts[outParts.length - 1] !== "..") outParts.pop();
+        else if (!p.startsWith("/")) outParts.push("..");
+      } else outParts.push(seg);
+    }
+    return outParts;
+  };
+  const computeRelTarget = (srcPath: string, dstPath: string): string | undefined => {
+    if (srcPath.startsWith("/") !== dstPath.startsWith("/")) return undefined;
+    const dstDir = dstPath.includes("/") ? dstPath.slice(0, dstPath.lastIndexOf("/")) || "/" : ".";
+    const fromParts = normRel(dstDir);
+    const toParts = normRel(srcPath);
+    if (fromParts.includes("..") || toParts.includes("..")) return undefined;
+    let common = 0;
+    while (common < fromParts.length && common < toParts.length && fromParts[common] === toParts[common]) common++;
+    const up = Array.from({ length: fromParts.length - common }, () => "..");
+    const rel = [...up, ...toParts.slice(common)].join("/");
+    return rel || ".";
+  };
   const pairs: [string, string][] = [];
   if (targetDir !== undefined) {
     if (operands.length === 0 || statTypeSync(targetDir) !== "directory") return undefined;
@@ -1377,6 +1439,12 @@ export function evalSyncLn(
   for (const [src, dst] of pairs) {
     if (!symbolic && statTypeSync(src) !== "file") return undefined;
     if (src === dst) return undefined;
+    let linkTarget = src;
+    if (relative) {
+      const rel = computeRelTarget(src, dst);
+      if (!rel) return undefined;
+      linkTarget = rel;
+    }
     const finalSt = statTypeSync(dst);
     if (finalSt === "file" || finalSt === "symlink") {
       if (!force) return undefined;
@@ -1384,8 +1452,8 @@ export function evalSyncLn(
     } else if (finalSt !== "missing") {
       return undefined;
     }
-    if (!linkSync(src, dst, symbolic)) return undefined;
-    if (verbose) out += `'${dst}' ${symbolic ? "->" : "=>"} '${src}'\n`;
+    if (!linkSync(linkTarget, dst, symbolic)) return undefined;
+    if (verbose) out += `'${dst}' ${symbolic ? "->" : "=>"} '${linkTarget}'\n`;
   }
   return out;
 }

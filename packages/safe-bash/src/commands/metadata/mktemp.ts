@@ -1,3 +1,4 @@
+const mktempEncoder = new TextEncoder();
 import { creationUmask } from "../../fs/creation-mask.js";
 import { randomInteger } from "../portable-random.js";
 import { FsError, validatePath } from "../../contracts/index.js";
@@ -52,7 +53,7 @@ function parse(args: readonly string[]) {
   validatePath(suffix ?? "");
   if (suffix?.includes("/") || suffix !== undefined && !template.endsWith("X")) throw new UsageError("suffix requires a template ending in X and cannot contain '/'");
   const name = template.slice(template.lastIndexOf("/") + 1);
-  if (name.length + (suffix?.length ?? 0) > 255 || Buffer.byteLength(name) + Buffer.byteLength(suffix ?? "") > 255) throw new FsError("ENAMETOOLONG", { path: template });
+  if (name.length + (suffix?.length ?? 0) > 255 || mktempEncoder.encode(name).byteLength + mktempEncoder.encode(suffix ?? "").byteLength > 255) throw new FsError("ENAMETOOLONG", { path: template });
   const end = name.lastIndexOf("X") + 1;
   let start = end;
   while (start > 0 && name[start - 1] === "X") start--;
@@ -84,6 +85,7 @@ export function evalSyncMktemp(
     const parent = (parsed.deprecatedTmpdir && env.TMPDIR) || parsed.tmpdir || env.TMPDIR || "/tmp";
     validatePath(parent);
     if (!statTypeSync) return undefined;
+    if (parsed.useTmpdir && !parsed.dryRun && statTypeSync(parent || ".") !== "directory") return undefined;
     for (let attempt = 0; attempt < 32; attempt++) {
       const random = sampleTemplateChars(parsed.count);
       const generated = `${parsed.prefix}${random}${parsed.tail}`;
@@ -125,7 +127,7 @@ export function createMktempCommand(configuration: MetadataCommandsOptions = {})
         const generated = `${parsed.prefix}${random}${parsed.tail}`;
         const display = parsed.useTmpdir ? `${parent.replace(/\/+$/u, "")}/${generated}` : generated;
         const path = pathOf(context, display);
-        if (Buffer.byteLength(display) + 1 > configured.limits.maxOutputBytes) throw new FsError("EFBIG", { message: "temporary pathname output exceeds limit" });
+        if (mktempEncoder.encode(display).byteLength + 1 > configured.limits.maxOutputBytes) throw new FsError("EFBIG", { message: "temporary pathname output exceeds limit" });
         if (parsed.dryRun) {
           try { await context.fs.lstat(path, { signal: context.signal }); continue; }
           catch (error) {

@@ -3,7 +3,8 @@ import { createZipCodec, type ZipLimits } from '@poe-code/office-package';
 import { defaultLimits, type InvocationContext } from './engine.js';
 import { in2csv } from './commands/in2csv.js';
 import { Runtime } from './runtime.js';
-import { readWorkbookIsoDates } from './operations/workbook-iso.js';
+import { readCachedXlsx } from '@poe-code/xlsx-ast';
+import { formatA1 } from '@poe-code/spreadsheet-ast';
 
 const limits: ZipLimits = {
   maxArchiveBytes: 1000000, maxEntryBytes: 1000000, maxTotalBytes: 1000000,
@@ -34,7 +35,16 @@ async function read(sheet: string, overrides: Partial<InvocationContext> = {}, n
     modified: new Date('2020-01-01T00:00:00Z'), mode: 0o100644, directory: false, symlink: false, compression: 'store'
   }, limits, new AbortController().signal));
   const runtime = new Runtime(context, in2csv, {});
-  try { return await readWorkbookIsoDates(runtime, { entries, comment: new Uint8Array() }, codec, { ...limits, chunkSize }, namesOnly); }
+  try {
+    const book = await readCachedXlsx({ archive: { entries, comment: new Uint8Array() }, codec,
+      limits: { ...limits, chunkSize, maxDepth: context.limits.maxNestingDepth }, signal: context.signal,
+      maxXmlNodes: context.limits.maxWork, work: runtime.step, retain: bytes => runtime.retain(bytes), namesOnly });
+    return new Map(book.sheets.flatMap(sheet => {
+      const dates = new Map(sheet.cells.flatMap(cell => cell.type === 'd' && typeof cell.value === 'string'
+        ? [[formatA1(cell.row, cell.column), cell.value] as const] : []));
+      return dates.size ? [[sheet.name, dates] as const] : [];
+    }));
+  }
   finally { await runtime.close(); }
 }
 
@@ -46,7 +56,7 @@ test('workbook XML preserves ISO text, namespace identity and implicit coordinat
 test('workbook XML enforces the invocation nesting limit', async () => {
   await expect(read(`<worksheet xmlns="${namespace}">${'<nested>'.repeat(8)}${'</nested>'.repeat(8)}</worksheet>`, {
     limits: { ...defaultLimits, maxNestingDepth: 6 }
-  })).rejects.toThrow('XLSX ISO metadata XML:');
+  })).rejects.toThrow('XML resource limit exceeded');
 });
 
 test('workbook XML refuses DTD declarations', async () => {

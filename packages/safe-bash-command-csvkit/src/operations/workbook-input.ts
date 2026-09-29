@@ -2,12 +2,12 @@ import { read, utils, CFB, SSF, set_cptable, type WorkBook } from '@e965/xlsx';
 import type { CsvkitWorkbook, CsvkitWorkbookCell } from '../workbook.js';
 import * as codepages from '@e965/xlsx/dist/cpexcel';
 import { createZipCodec, CodecError } from '@poe-code/office-package';
+import { readCachedXlsx, CachedXlsxError } from '@poe-code/xlsx-ast';
 import type { Runtime } from '../runtime.js';
 import { CsvkitBlocked, CsvkitDiagnostic } from '../errors.js';
 import { repr, integer } from '../cli/parser.js';
 import { decimalZeroes } from '../unicode-profile.js';
 import { nondecimalDigits } from './workbook-digit-profile.js';
-import { readWorkbookIsoDates } from './workbook-iso.js';
 import { inputTable, csvifiedRow } from './input-table.js';
 import { defaultHeaders, normalizeHeaders } from '../table/headers.js';
 import type { TypedTable } from '../table/index.js';
@@ -49,10 +49,39 @@ export class WorkbookInput {
         const zip = await codec.readZipArchive(bytes, limits, r.context.signal);
         for (const entry of zip.entries) for await (const ignoredChunk of codec.decodeZipEntry(entry, limits, r.context.signal)) { r.step(); }
         r.retain(zip.entries.reduce((sum, entry) => sum + entry.size, 0));
-        const isoDates = await readWorkbookIsoDates(r, zip, codec, limits, namesOnly);
+        const cached = await readCachedXlsx({ archive: zip, codec, limits, signal: r.context.signal,
+          maxXmlNodes: l.maxWork, work: r.step, retain: bytes => r.retain(bytes), namesOnly });
+        if (cached.sheets.length > l.maxArchiveMembers) throw new CsvkitBlocked('workbook sheet budget exceeded');
+        const sheets: Record<string, Record<string, unknown>> = Object.create(null);
+        const isoDates = new Map<string, ReadonlyMap<string, string>>();
+        for (const sheet of cached.sheets) {
+          r.step(); r.retain(128 + sheet.name.length * 2);
+          const cells: Record<string, unknown> = Object.create(null), dates = new Map<string, string>();
+          let maxRow = -1, maxColumn = -1;
+          for (const cell of sheet.cells) {
+            r.step(); r.retain(128);
+            const address = utils.encode_cell({ r: cell.row, c: cell.column });
+            maxRow = Math.max(maxRow, cell.row); maxColumn = Math.max(maxColumn, cell.column);
+            cells[address] = { t: cell.type, v: cell.value, z: cell.format, ...(cell.type === 'e' ? { w: String(cell.value) } : {}) };
+            if (cell.type === 'd' && typeof cell.value === 'string') dates.set(address, cell.value);
+          }
+          const reset = r.options.reset_dimensions || r.options.reset_dimensions === null && sheet.dimension === 'A1';
+          const range = !reset && sheet.dimension ? sheet.dimension : maxRow < 0 ? undefined : `A1:${utils.encode_cell({ r: maxRow, c: maxColumn })}`;
+          if (range !== undefined) cells['!ref'] = range;
+          sheets[sheet.name] = cells; isoDates.set(sheet.name, dates);
+        }
         if (!namesOnly) this.#isoDates = isoDates;
+        return { SheetNames: cached.sheets.map(sheet => sheet.name), Sheets: sheets,
+          Workbook: { WBProps: { date1904: cached.date1904 }, WBView: [{ activeTab: cached.activeTab }] } };
       } catch (failure) {
+        r.context.signal.throwIfAborted();
         if (failure instanceof CodecError) throw new CsvkitBlocked(`XLSX ZIP validation: ${failure.message}`);
+        if (failure instanceof CachedXlsxError) {
+          if (failure.code === 'missing-content-types') throw new CsvkitDiagnostic(`KeyError: "There is no item named '[Content_Types].xml' in the archive"`);
+          if (failure.code === 'missing-workbook') throw new CsvkitDiagnostic('OSError: File contains no valid workbook part');
+          throw new CsvkitBlocked(`in2csv xlsx parser: ${failure.message}`);
+        }
+        if (failure instanceof SyntaxError) throw new CsvkitBlocked(`XLSX ISO metadata XML: ${failure.message}`);
         throw failure;
       }
     } else if (!((bytes[0] === 208 && bytes[1] === 207) || (bytes[0] === 9 && [0, 2, 4, 8].includes(bytes[1]!)))) {
@@ -63,7 +92,7 @@ export class WorkbookInput {
     try {
       let readerBytes = bytes;
       let codepage: number | undefined;
-      if (this.format === 'xls' && !namesOnly && r.options.encoding_xls && !unicodeBiff(bytes)) {
+      if (!namesOnly && r.options.encoding_xls && !unicodeBiff(bytes)) {
         codepage = xlsCodepage(String(r.options.encoding_xls));
         const stream = workbookBiffStream(bytes);
         r.retain(stream.length);
@@ -81,12 +110,7 @@ export class WorkbookInput {
       }
       book = read(readerBytes, { type: 'array', cellDates: false, cellNF: true, cellFormula: false, sheetStubs: true,
         ...(namesOnly ? { bookSheets: true } : {}),
-        ...(codepage === undefined ? {} : { codepage }),
-        ...(this.format === 'xlsx' && r.options.reset_dimensions ? { nodim: true } : {}) });
-      if (!namesOnly && this.format === 'xlsx' && r.options.reset_dimensions === null && Object.values(book.Sheets).some(sheet => sheet['!ref'] === 'A1')) {
-        const expanded = read(bytes, { type: 'array', cellDates: false, cellNF: true, cellFormula: false, sheetStubs: true, nodim: true });
-        for (const name of book.SheetNames) if (book.Sheets[name]?.['!ref'] === 'A1') book.Sheets[name] = expanded.Sheets[name]!;
-      }
+        ...(codepage === undefined ? {} : { codepage }) });
     } catch (failure) {
       if (failure instanceof CsvkitDiagnostic) throw failure;
       throw new CsvkitBlocked(`in2csv ${this.format} parser: ${failure instanceof Error ? failure.message : String(failure)}`);

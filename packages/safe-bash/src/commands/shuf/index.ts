@@ -104,6 +104,9 @@ export function evalSyncShuf(
   } else if (rangeLow !== undefined) {
     size = rangeSize!;
   } else {
+    if (operands.length === 0 || operands[0] === "-") {
+      if (inBytes.byteLength === 0) return undefined;
+    }
     let srcBytes = inBytes;
     if (operands.length === 1 && operands[0] !== "-") {
       if (!readFileSync) return undefined;

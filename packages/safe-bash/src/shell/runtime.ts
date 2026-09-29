@@ -27525,13 +27525,8 @@ export class Runtime {
         }
       }
       if (fOk && (w0Plain === "dos2unix" || w0Plain === "unix2dos" || w0Plain === "iconv") && !hasSingleStdinRedir) {
-<<<<<<< Updated upstream
         const inBytes = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : undefined;
-        const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p));
-=======
-        const inBytes = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : EMPTY_BYTES;
         const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
->>>>>>> Stashed changes
         const convBytes = w0Plain === "iconv"
           ? evalSyncIconv(inBytes, allArgs, readFile)
           : evalSyncLineEndings(w0Plain, inBytes, allArgs, readFile);
@@ -27550,7 +27545,7 @@ export class Runtime {
           return convStr;
         }
       }
-      if (fOk && (w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown") && !hasSingleStdinRedir) {
+      if (fOk && (w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown") && !hasSingleStdinRedir && (hasSingleHereStringRedir || w0Plain === "shuf" || allArgs.some(a => a !== "-" && !a.startsWith("-")))) {
         const inBytes = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : EMPTY_BYTES;
         const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
         let csvOut = w0Plain === "csvcut"

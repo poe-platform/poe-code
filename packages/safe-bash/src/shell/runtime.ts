@@ -23475,6 +23475,8 @@ export class Runtime {
         const parts = rest.slice(2).split(delim);
         if (parts.length !== 3) return undefined;
         const [pat, rep, flags] = parts as [string, string, string];
+        // Capture validation (including unmatched input) belongs to sed's parser.
+        if (rep.includes("\\")) return undefined;
         if (!/^[giIp1-9]*$/.test(flags) || /\n|\\(?![1-9])/.test(rep)) return undefined;
         const nthDigits = flags.match(/[1-9]/g);
         if (nthDigits && (nthDigits.length > 1 || flags.includes("g"))) return undefined;
@@ -23489,7 +23491,8 @@ export class Runtime {
         if (core.length === 0 && !anchorStart && !anchorEnd) return undefined;
         // POSIX-only brackets and leftmost-longest alternatives belong to sed's matcher.
         if (core.includes("[:") || core.includes("[.") || core.includes("[=") ||
-            core.includes("[]") || core.includes("[^]") || isExtended && core.includes("|")) return undefined;
+            core.includes("[]") || core.includes("[^]") || core.includes("^") ||
+            (isExtended ? core.includes("|") : core.includes("\\|") || core.includes("[") && core.includes("\\"))) return undefined;
         let reSrc: string | undefined;
         if (/^[a-zA-Z0-9_ :;,=-]*$/.test(core)) {
           if (/\\[1-9]/.test(rep)) return undefined;
@@ -24025,6 +24028,9 @@ export class Runtime {
     // printf must consume typed values before OFMT string conversion and use
     // the complete formatter, including integer precision and exponent parsing.
     const splitCntVar = awkM[5];
+    // Assignment can shadow -v bindings or mutate fields and output separators.
+    // The canonical interpreter owns those variable and record-state effects.
+    if (splitCntVar !== undefined) return undefined;
     const splitFieldTok = awkM[6];
     const splitArrName = awkM[7];
     const splitSep = awkM[8];

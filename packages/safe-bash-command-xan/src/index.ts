@@ -116,3 +116,5 @@ export function xanCommands(options?: XanCommandsOptions): VirtualShellPlugin {
     for (const command of commands) host.commands.register(command, { replace });
   } };
 }
+
+export { evalSyncXan } from "./sync.js";

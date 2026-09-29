@@ -25,3 +25,12 @@ test("XML core adapter contains only public re-exports", async () => {
   const source = ts.createSourceFile("xml.ts", text, ts.ScriptTarget.Latest, true);
   assert.ok(source.statements.every(statement => ts.isExportDeclaration(statement)));
 });
+
+test("extracted command evaluators stay in their private owners", async () => {
+  const { default: ts } = await import("typescript");
+  const text = readFileSync(new URL("packages/safe-bash/src/shell/runtime.ts", root), "utf8");
+  const source = ts.createSourceFile("runtime.ts", text, ts.ScriptTarget.Latest, true);
+  for (const name of ["evalSyncDd", "evalSyncXan"]) {
+    assert.ok(!source.statements.some(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === name), `${name} must be imported from its command owner`);
+  }
+});

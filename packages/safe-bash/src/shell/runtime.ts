@@ -26199,7 +26199,7 @@ export class Runtime {
   }
 
   private evalSyncNl(rawLines: readonly string[], opArgs: readonly string[], cwd?: string): string[] | undefined {
-    type NlSecSpec = { style: "a" | "t" | "n" | "p"; re?: RegExp };
+    type NlSecSpec = { style: "a" | "t" | "n" };
     let headerSpec: NlSecSpec = { style: "n" };
     let bodySpec: NlSecSpec = { style: "t" };
     let footerSpec: NlSecSpec = { style: "n" };
@@ -26213,11 +26213,8 @@ export class Runtime {
     let hasFileOperand = false;
     const parseSecSpec = (v: string): NlSecSpec | undefined => {
       if (v === "a" || v === "t" || v === "n") return { style: v };
-      if (v.startsWith("p") && v.length > 1) {
-        const source = syncPosixRegexSource(v.slice(1));
-        if (source === undefined) return undefined;
-        try { return { style: "p", re: new RegExp(source) }; } catch { return undefined; }
-      }
+      // Pattern numbering uses the command's bounded, byte-oriented BRE engine.
+      // JavaScript RegExp cannot preserve that dialect or its execution limits.
       return undefined;
     };
     for (let i = 0; i < opArgs.length; i++) {
@@ -26321,7 +26318,7 @@ export class Runtime {
         }
       } else {
         blankCount = 0;
-        numbered = (curSpec.style === "t" && l.length > 0) || (curSpec.style === "p" && curSpec.re !== undefined && curSpec.re.test(l));
+        numbered = curSpec.style === "t" && l.length > 0;
       }
       if (!numbered) {
         out.push(l.length === 0 && sep === "\t" ? " ".repeat(width + 1) : unnumberedPrefix + l);

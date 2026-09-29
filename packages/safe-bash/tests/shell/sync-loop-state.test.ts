@@ -1509,3 +1509,39 @@ test("sync loop wave 121: comm (-12/-23/--output-delimiter/--total) and join (-t
     await shell.dispose();
   }
 });
+
+
+test("sync loop jq binary arithmetic/concat/with_entries, awk multi-statement assignments, and sed regex line addresses (Wave 122)", async () => {
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([
+      ...basicCommands(),
+      ...streamCommands(),
+      ...createTextProgramCommands(),
+      ...createStructuredCommands(),
+    ]),
+  });
+  try {
+    const script = [
+      "out=\"\"",
+      "for ((i=1; i<=8; i++)); do",
+      "  j_in=\"[{\\\"first\\\":\\\"Ada\\\",\\\"last\\\":\\\"Lovelace\\\",\\\"qty\\\":$i,\\\"price\\\":15}]\"",
+      "  j1=$(jq -c 'map({name: (.first + \" \" + .last), total: (.qty * .price), big: (.qty * .price >= 60)})' <<< \"$j_in\")",
+      "  j2=$(jq -c 'with_entries(.value |= . + 10)' <<< \"{\\\"a\\\":$i,\\\"b\\\":2}\")",
+      "  a1=$(awk '{ $2 = \"REDACTED\"; s = $3 + $4; print $1, $2, s }' <<< \"alice secret $i 20\")",
+      "  s1=$(sed -e '/^#/d' -e '/^[ \t]*$/d' <<< $'# comment\n   \nkey_'$i$'=val\n# tail')",
+      "  out=\"$j1|$j2|$a1|$s1\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout,
+      "[{\"name\":\"Ada Lovelace\",\"total\":120,\"big\":true}]|{\"a\":18,\"b\":12}|alice REDACTED 28|key_8=val\n"
+    );
+  } finally {
+    await shell.dispose();
+  }
+});

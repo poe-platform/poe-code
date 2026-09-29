@@ -38,7 +38,7 @@ export function splitSyncJqExpression(expression: string, separator: string): { 
       if (stack.length === 0 && i !== expression.length - 1) wrapped = false;
       continue;
     }
-    if (stack.length === 0 && expression.startsWith(separator, i)) {
+    if (stack.length === 0 && expression.startsWith(separator, i) && !(separator === "|" && expression[i + 1] === "=")) {
       parts.push(expression.slice(start, i).trim());
       i += separator.length - 1;
       start = i + 1;

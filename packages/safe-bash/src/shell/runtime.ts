@@ -22654,6 +22654,56 @@ export class Runtime {
     return undefined;
   }
 
+  private splitTopLevelJqOp(expr: string, mode: "cmp" | "add" | "mul"): { lhs: string; op: string; rhs: string } | undefined {
+    let depth = 0;
+    let inStr = false;
+    let bestIdx = -1;
+    let bestOp = "";
+    for (let i = 0; i < expr.length; i++) {
+      const ch = expr[i]!;
+      if (inStr) {
+        if (ch === "\\") { i++; continue; }
+        if (ch === "\"") inStr = false;
+        continue;
+      }
+      if (ch === "\"") { inStr = true; continue; }
+      if (ch === "(" || ch === "[" || ch === "{") { depth++; continue; }
+      if (ch === ")" || ch === "]" || ch === "}") { depth--; continue; }
+      if (depth !== 0) continue;
+      if (mode === "cmp") {
+        const two = expr.slice(i, i + 2);
+        if (two === "==" || two === "!=" || two === ">=" || two === "<=") {
+          return { lhs: expr.slice(0, i).trim(), op: two, rhs: expr.slice(i + 2).trim() };
+        }
+        if ((ch === ">" || ch === "<") && expr[i + 1] !== "=") {
+          return { lhs: expr.slice(0, i).trim(), op: ch, rhs: expr.slice(i + 1).trim() };
+        }
+      } else if (mode === "add") {
+        if ((ch === "+" || ch === "-") && expr[i + 1] !== "=") {
+          if (ch === "-" && i > 0 && /[eE]/.test(expr[i - 1]!) && i >= 2 && /[0-9]/.test(expr[i - 2]!)) continue;
+          const prev = expr.slice(0, i).trimEnd();
+          if (prev.length === 0 || /[|+\-*/%=<>!,(?:\[]$/.test(prev)) continue;
+          bestIdx = i;
+          bestOp = ch;
+        }
+      } else if (mode === "mul") {
+        if ((ch === "*" || ch === "/" || ch === "%") && expr[i + 1] !== "=") {
+          if (ch === "/" && (expr[i + 1] === "/" || expr[i - 1] === "/")) continue;
+          const prev = expr.slice(0, i).trimEnd();
+          if (prev.length === 0) continue;
+          bestIdx = i;
+          bestOp = ch;
+        }
+      }
+    }
+    if (bestIdx > 0 && bestOp) {
+      const lhs = expr.slice(0, bestIdx).trim();
+      const rhs = expr.slice(bestIdx + bestOp.length).trim();
+      if (lhs.length > 0 && rhs.length > 0) return { lhs, op: bestOp, rhs };
+    }
+    return undefined;
+  }
+
   private evalSyncJqPathOps(item: unknown, expr: string): unknown[] | undefined {
     let st = expr.trim();
     let pipeSplit = splitSyncJqExpression(st, "|");
@@ -22692,6 +22742,59 @@ export class Runtime {
       return truthy.length > 0 ? truthy : rVals;
     }
     if (st === ".") return [item];
+    if (st === "true") return [true];
+    if (st === "false") return [false];
+    if (st === "null") return [null];
+    if (/^-?[0-9]+(?:\.[0-9]+)?$/.test(st)) return [Number(st)];
+    const fieldUpdM = /^\.([a-zA-Z_][a-zA-Z0-9_]*)\s*(\|=|\+=|-=|\*=|=)\s*(.+)$/.exec(st);
+    if (fieldUpdM && item && typeof item === "object" && !Array.isArray(item)) {
+      const k = fieldUpdM[1]!;
+      const op = fieldUpdM[2]!;
+      const rhsExpr = fieldUpdM[3]!.trim();
+      const clone = { ...(item as Record<string, unknown>) };
+      const curVal = Object.hasOwn(clone, k) ? clone[k] ?? null : null;
+      if (op === "|=") {
+        const r = this.evalSyncJqPathOps(curVal, rhsExpr);
+        if (!r || r.length !== 1) return undefined;
+        clone[k] = r[0];
+        return [clone];
+      }
+      const r = this.evalSyncJqPathOps(item, rhsExpr);
+      if (!r || r.length !== 1) return undefined;
+      const rv = r[0];
+      if (op === "=") {
+        clone[k] = rv;
+        return [clone];
+      }
+      if (op === "+=") {
+        if (typeof curVal === "number" && typeof rv === "number") { clone[k] = curVal + rv; return [clone]; }
+        if (typeof curVal === "string" && typeof rv === "string") { clone[k] = curVal + rv; return [clone]; }
+        if (Array.isArray(curVal) && Array.isArray(rv)) { clone[k] = [...curVal, ...rv]; return [clone]; }
+        if (curVal === null) { clone[k] = rv; return [clone]; }
+        if (rv === null) { clone[k] = curVal; return [clone]; }
+        return undefined;
+      }
+      if (op === "-=" && typeof curVal === "number" && typeof rv === "number") { clone[k] = curVal - rv; return [clone]; }
+      if (op === "*=" && typeof curVal === "number" && typeof rv === "number") { clone[k] = curVal * rv; return [clone]; }
+      return undefined;
+    }
+    const withEntriesM = /^with_entries\(\s*(.+)\s*\)$/.exec(st);
+    if (withEntriesM && item && typeof item === "object" && !Array.isArray(item)) {
+      const subExpr = withEntriesM[1]!;
+      const outObj: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(item as Record<string, unknown>)) {
+        const subRes = this.evalSyncJqPathOps({ key, value }, subExpr);
+        if (!subRes) return undefined;
+        for (const el of subRes) {
+          if (!el || typeof el !== "object" || Array.isArray(el)) return undefined;
+          const rec = el as Record<string, unknown>;
+          const k = [rec.key, rec.Key, rec.name, rec.Name].find(v => v !== undefined && v !== null && v !== false);
+          if (typeof k !== "string") return undefined;
+          outObj[k] = Object.hasOwn(rec, "value") ? rec.value : (Object.hasOwn(rec, "Value") ? rec.Value : null);
+        }
+      }
+      return [outObj];
+    }
     const dotArithM = /^\.\s*([+*\/%-])\s*(-?[0-9]+(?:\.[0-9]+)?)$/.exec(st);
     if (dotArithM && typeof item === "number") {
       const op = dotArithM[1]!;
@@ -23060,6 +23163,41 @@ export class Runtime {
       }
       return [outStr];
     }
+    for (const mode of ["cmp", "add", "mul"] as const) {
+      const bin = this.splitTopLevelJqOp(st, mode);
+      if (!bin) continue;
+      const lVals = this.evalSyncJqPathOps(item, bin.lhs);
+      const rVals = this.evalSyncJqPathOps(item, bin.rhs);
+      if (!lVals || lVals.length !== 1 || !rVals || rVals.length !== 1) return undefined;
+      const lv = lVals[0];
+      const rv = rVals[0];
+      const op = bin.op;
+      if (mode === "cmp") {
+        if ((typeof lv === "object" && lv !== null) || (typeof rv === "object" && rv !== null)) return undefined;
+        if (op === "==") return [lv === rv];
+        if (op === "!=") return [lv !== rv];
+        if (typeof lv === "number" && typeof rv === "number") {
+          return [op === ">" ? lv > rv : op === ">=" ? lv >= rv : op === "<" ? lv < rv : lv <= rv];
+        }
+        return undefined;
+      }
+      if (op === "+") {
+        if (typeof lv === "number" && typeof rv === "number") return [lv + rv];
+        if (typeof lv === "string" && typeof rv === "string") return [lv + rv];
+        if (Array.isArray(lv) && Array.isArray(rv)) return [[...lv, ...rv]];
+        if (lv && typeof lv === "object" && !Array.isArray(lv) && rv && typeof rv === "object" && !Array.isArray(rv)) {
+          return [{ ...(lv as Record<string, unknown>), ...(rv as Record<string, unknown>) }];
+        }
+        if (lv === null) return [rv];
+        if (rv === null) return [lv];
+        return undefined;
+      }
+      if (op === "-" && typeof lv === "number" && typeof rv === "number") return [lv - rv];
+      if (op === "*" && typeof lv === "number" && typeof rv === "number") return [lv * rv];
+      if (op === "/" && typeof lv === "number" && typeof rv === "number") return rv !== 0 ? [lv / rv] : undefined;
+      if (op === "%" && typeof lv === "number" && typeof rv === "number") return rv !== 0 ? [Math.trunc(lv) % Math.trunc(rv)] : undefined;
+      return undefined;
+    }
     if (!st.startsWith(".")) return undefined;
     let rest = st.slice(1);
     const ops: Array<{ kind: "prop"; key: string } | { kind: "index"; idx: number } | { kind: "iter" }> = [];
@@ -23384,6 +23522,8 @@ export class Runtime {
       else if (a === "-e") {
         if (i + 1 >= opArgs.length) return undefined;
         rawExprs.push(opArgs[++i]!);
+      } else if (a.startsWith("-e") && a.length > 2) {
+        rawExprs.push(a.slice(2));
       } else if (!a.startsWith("-") && rawExprs.length === 0 && i === opArgs.length - 1) {
         rawExprs.push(a);
       } else {
@@ -23416,23 +23556,27 @@ export class Runtime {
       let rest = rawE;
       let addr: SedAddrFn | undefined;
       let negated = false;
-      const addrM = /^(?:([1-9][0-9]{0,4}|\$)(?:,([1-9][0-9]{0,4}|\$))?|\/(\^?[a-zA-Z0-9_ :;,=-]+\$?)\/)\s*/.exec(rest);
+      const addrM = /^(?:([1-9][0-9]{0,4}|\$)(?:,([1-9][0-9]{0,4}|\$))?|\/([^/\\]*(?:\\.[^/\\]*)*)\/)\s*/.exec(rest);
       if (addrM) {
         const startSpec = addrM[1];
         const endSpec = addrM[2];
         const patSpec = addrM[3];
         rest = rest.slice(addrM[0]!.length);
+        let addrRe: RegExp | undefined;
+        if (patSpec !== undefined) {
+          if (patSpec.length === 0 || patSpec.includes("[.") || patSpec.includes("[=") || /\\[1-9]/.test(patSpec)) return undefined;
+          const normPat = patSpec
+            .replace(/\[:space:\]/g, " \t")
+            .replace(/\[:digit:\]/g, "0-9")
+            .replace(/\[:alpha:\]/g, "a-zA-Z")
+            .replace(/\[:alnum:\]/g, "a-zA-Z0-9");
+          const jsPat = isExtended
+            ? normPat
+            : normPat.replace(/\\([+?()|])/g, "$1");
+          try { addrRe = new RegExp(jsPat); } catch { return undefined; }
+        }
         addr = (l: string, idx1: number, total: number): boolean => {
-          if (patSpec !== undefined) {
-            const aStart = patSpec.startsWith("^");
-            const c1 = aStart ? patSpec.slice(1) : patSpec;
-            const aEnd = c1.endsWith("$");
-            const core = aEnd ? c1.slice(0, -1) : c1;
-            if (aStart && aEnd) return l === core;
-            if (aStart) return l.startsWith(core);
-            if (aEnd) return l.endsWith(core);
-            return l.includes(core);
-          }
+          if (addrRe !== undefined) return addrRe.test(l);
           const sNum = startSpec === "$" ? total : Number(startSpec!);
           if (endSpec === undefined) return idx1 === sNum;
           const eNum = endSpec === "$" ? total : Number(endSpec);
@@ -24030,6 +24174,96 @@ export class Runtime {
       };
       progRest = progRest.slice(braceIdx).trim();
     }
+    type AwkPreAssign = {
+      targetKind: "field" | "var";
+      target: string;
+      rhs:
+        | { kind: "str"; text: string }
+        | { kind: "field"; token: string }
+        | { kind: "case"; fn: "upper" | "lower"; token: string }
+        | { kind: "arith"; tokens: string[] };
+    };
+    const preAssigns: AwkPreAssign[] = [];
+    const rowVarSet = new Set<string>();
+    if (progRest.startsWith("{") && progRest.endsWith("}") && progRest.includes(";")) {
+      const body = progRest.slice(1, -1).trim();
+      const stmts: string[] = [];
+      let curS = "";
+      let inQ = false;
+      let inR = false;
+      for (let i = 0; i < body.length; i++) {
+        const ch = body[i]!;
+        if (inQ) {
+          curS += ch;
+          if (ch === "\\" && i + 1 < body.length) curS += body[++i]!;
+          else if (ch === "\"") inQ = false;
+          continue;
+        }
+        if (inR) {
+          curS += ch;
+          if (ch === "\\" && i + 1 < body.length) curS += body[++i]!;
+          else if (ch === "/") inR = false;
+          continue;
+        }
+        if (ch === "\"") { inQ = true; curS += ch; continue; }
+        if (ch === "/") { inR = true; curS += ch; continue; }
+        if (ch === ";") {
+          if (curS.trim().length > 0) stmts.push(curS.trim());
+          curS = "";
+          continue;
+        }
+        curS += ch;
+      }
+      if (curS.trim().length > 0) stmts.push(curS.trim());
+      let consumed = 0;
+      while (consumed < stmts.length - 1) {
+        const s = stmts[consumed]!;
+        if (/^(?:g?sub|split|print|printf)\b/.test(s)) break;
+        const asgM = /^(?:\$([1-9][0-9]?|NF)|([a-zA-Z_][a-zA-Z0-9_]*))\s*=\s*(.+)$/.exec(s);
+        if (!asgM) break;
+        const fLhs = asgM[1];
+        const vLhs = asgM[2];
+        const rhsRaw = asgM[3]!.trim();
+        if (rhsRaw.startsWith("split(")) break;
+        if (vLhs !== undefined && ["NR", "NF", "FNR", "OFS", "FS", "ORS", "RS", "OFMT", "CONVFMT", "ARGC", "ARGIND", "FILENAME", "RSTART", "RLENGTH", "SUBSEP", "IGNORECASE", "FIELDWIDTHS", "FPAT", "BINMODE", "TEXTDOMAIN"].includes(vLhs)) {
+          return undefined;
+        }
+        let parsedRhs: AwkPreAssign["rhs"] | undefined;
+        const strM = /^"([^"$\\]*)"$/.exec(rhsRaw);
+        const fldM = /^\$([0-9]+|NF)$/.exec(rhsRaw);
+        const caseM = /^(toupper|tolower)\(\$([0-9]+|NF)\)$/.exec(rhsRaw);
+        if (strM) parsedRhs = { kind: "str", text: strM[1]! };
+        else if (fldM) parsedRhs = { kind: "field", token: fldM[1]! };
+        else if (caseM) parsedRhs = { kind: "case", fn: caseM[1] === "toupper" ? "upper" : "lower", token: caseM[2]! };
+        else {
+          const aToks = rhsRaw.split(/\s*([+*\/%-])\s*/);
+          let okA = aToks.length >= 1 && aToks.length % 2 === 1;
+          for (let ti = 0; okA && ti < aToks.length; ti += 2) {
+            const at = aToks[ti]!;
+            if (!at.startsWith("$") && at !== "NR" && at !== "NF" && !/^-?[0-9]+(?:\.[0-9]+)?$/.test(at) && !userVars.has(at) && !rowVarSet.has(at)) okA = false;
+          }
+          for (let ti = 1; okA && ti < aToks.length; ti += 2) {
+            if (aToks[ti] === "/" || aToks[ti] === "%") {
+              const div = Number(aToks[ti + 1]);
+              if (!Number.isFinite(div) || div === 0) okA = false;
+            }
+          }
+          if (okA) parsedRhs = { kind: "arith", tokens: aToks };
+        }
+        if (!parsedRhs) break;
+        if (vLhs !== undefined) {
+          rowVarSet.add(vLhs);
+          if (!userVars.has(vLhs)) userVars.set(vLhs, "0");
+          preAssigns.push({ targetKind: "var", target: vLhs, rhs: parsedRhs });
+        } else {
+          preAssigns.push({ targetKind: "field", target: fLhs!, rhs: parsedRhs });
+        }
+        consumed++;
+      }
+      if (consumed > 0) {
+        progRest = "{ " + stmts.slice(consumed).join("; ") + " }";
+      }
+    }
     const awkM = syncAwkPrintRe.exec(progRest);
     if (!awkM) return undefined;
     const subFn = awkM[1] as "sub" | "gsub" | undefined;
@@ -24069,6 +24303,7 @@ export class Runtime {
       | { kind: "var"; name: "NR" | "NF" }
       | { kind: "split_cnt" }
       | { kind: "split_el"; idx1: number }
+      | { kind: "row_var"; name: string }
       | { kind: "lit"; text: string }
     > = [];
     if (!exprBody) {
@@ -24119,6 +24354,8 @@ export class Runtime {
         else if (m[18] !== undefined) {
           if (splitCntVar && m[18] === splitCntVar) {
             parts.push({ kind: "split_cnt" });
+          } else if (rowVarSet.has(m[18]!)) {
+            parts.push({ kind: "row_var", name: m[18]! });
           } else {
             const uv = userVars.get(m[18]!);
             if (uv === undefined) return undefined;
@@ -24154,6 +24391,73 @@ export class Runtime {
           }
         }
       }
+      if (preAssigns.length > 0) {
+        for (let ai = 0; ai < preAssigns.length; ai++) {
+          const pa = preAssigns[ai]!;
+          let valStr = "";
+          if (pa.rhs.kind === "str") valStr = pa.rhs.text;
+          else if (pa.rhs.kind === "field") {
+            const idx = pa.rhs.token === "NF" ? fields.length : Number(pa.rhs.token);
+            valStr = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
+          } else if (pa.rhs.kind === "case") {
+            const idx = pa.rhs.token === "NF" ? fields.length : Number(pa.rhs.token);
+            const s = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
+            valStr = pa.rhs.fn === "upper" ? s.toUpperCase() : s.toLowerCase();
+          } else if (pa.rhs.kind === "arith") {
+            const vals: number[] = [];
+            const ops: string[] = [];
+            for (let ti = 0; ti < pa.rhs.tokens.length; ti++) {
+              const tk = pa.rhs.tokens[ti]!;
+              if (ti % 2 === 1) ops.push(tk);
+              else {
+                let v = 0;
+                if (tk === "NR") v = li + 1;
+                else if (tk === "NF") v = fields.length;
+                else if (tk.startsWith("$")) {
+                  const fSub = tk.slice(1);
+                  const idx = fSub === "NF" ? fields.length : Number(fSub);
+                  const rawF = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
+                  v = awkNumber(awkInputValue(rawF));
+                } else if (/^-?[0-9]+(?:\.[0-9]+)?$/.test(tk)) {
+                  v = Number(tk);
+                } else {
+                  v = awkNumber(awkInputValue(userVars.get(tk) ?? ""));
+                }
+                vals.push(v);
+              }
+            }
+            const addVals: number[] = [vals[0]!];
+            const addOps: string[] = [];
+            for (let oi = 0; oi < ops.length; oi++) {
+              const op = ops[oi]!;
+              const rhs = vals[oi + 1]!;
+              if (op === "*" || op === "/" || op === "%") {
+                if ((op === "/" || op === "%") && rhs === 0) return undefined;
+                const lhs = addVals.pop()!;
+                addVals.push(op === "*" ? lhs * rhs : op === "/" ? lhs / rhs : lhs % rhs);
+              } else {
+                addOps.push(op);
+                addVals.push(rhs);
+              }
+            }
+            let acc = addVals[0]!;
+            for (let oi = 0; oi < addOps.length; oi++) {
+              acc = addOps[oi] === "+" ? acc + addVals[oi + 1]! : acc - addVals[oi + 1]!;
+            }
+            valStr = awkValueText(awkNumeric(acc));
+          }
+          if (pa.targetKind === "var") {
+            userVars.set(pa.target, valStr);
+          } else {
+            const fIdx = pa.target === "NF" ? fields.length : Number(pa.target);
+            if (fIdx < 1 || fIdx > 128) return undefined;
+            fields = [...fields];
+            while (fields.length < fIdx) fields.push("");
+            fields[fIdx - 1] = valStr;
+            l = fields.join(ofs);
+          }
+        }
+      }
       if (parts.length === 1 && parts[0]!.kind === "field" && parts[0]!.token === "0") {
         outLines.push(l);
         continue;
@@ -24168,6 +24472,7 @@ export class Runtime {
       for (let pi = 0; pi < parts.length; pi++) {
         const p = parts[pi]!;
         if (p.kind === "lit") out += p.text;
+        else if (p.kind === "row_var") out += userVars.get(p.name) ?? "";
         else if (p.kind === "var") out += String(p.name === "NR" ? li + 1 : fields.length);
         else if (p.kind === "split_cnt") out += String(splitEls ? splitEls.length : 0);
         else if (p.kind === "split_el") out += splitEls && p.idx1 >= 1 && p.idx1 <= splitEls.length ? splitEls[p.idx1 - 1]! : "";

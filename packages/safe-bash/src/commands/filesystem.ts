@@ -1672,7 +1672,7 @@ export function evalSyncReadlink(
       else if (a === "--canonicalize-existing") mode = "e";
       else if (a === "--canonicalize-missing") mode = "m";
       else if (a === "--no-newline") noNewline = true;
-      else if (a === "--quiet" || a === "--silent" || a === "--verbose") {}
+      else if (a === "--quiet" || a === "--silent" || a === "--verbose") { /* Successful lookup has no diagnostic output. */ }
       else return undefined;
       continue;
     }
@@ -1683,7 +1683,7 @@ export function evalSyncReadlink(
         else if (ch === "e") mode = "e";
         else if (ch === "m") mode = "m";
         else if (ch === "n") noNewline = true;
-        else if (ch === "q" || ch === "s" || ch === "v") {}
+        else if (ch === "q" || ch === "s" || ch === "v") { /* Successful lookup has no diagnostic output. */ }
         else return undefined;
       }
       continue;
@@ -1731,7 +1731,7 @@ export function evalSyncRealpath(
       else if (a === "--canonicalize-missing") mode = "m";
       else if (a === "--strip" || a === "--no-symlinks") strip = true;
       else if (a === "--physical") strip = false;
-      else if (a === "--quiet") {}
+      else if (a === "--quiet") { /* Failed lookup delegates diagnostics to the command. */ }
       else return undefined;
       continue;
     }
@@ -1743,7 +1743,7 @@ export function evalSyncRealpath(
         else if (ch === "m") mode = "m";
         else if (ch === "s") strip = true;
         else if (ch === "P") strip = false;
-        else if (ch === "q") {}
+        else if (ch === "q") { /* Failed lookup delegates diagnostics to the command. */ }
         else return undefined;
       }
       continue;
@@ -1800,7 +1800,7 @@ export function evalSyncLs(
     if (!endOpts && a.startsWith("-") && a.length > 1) {
       for (let j = 1; j < a.length; j++) {
         const ch = a[j]!;
-        if (ch === "1") {}
+        if (ch === "1") { /* This path already emits one entry per line. */ }
         else if (ch === "a") hidden = "all";
         else if (ch === "A") hidden = "almost-all";
         else if (ch === "d") dirItself = true;

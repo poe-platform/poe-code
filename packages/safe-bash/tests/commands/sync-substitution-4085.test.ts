@@ -179,3 +179,44 @@ test("Wave 127: sync sha256sum, md5sum, sha1sum, sha512sum, cksum, and base32 in
     await shell.dispose();
   }
 });
+
+test("Wave 128: sync getconf, locale, csvcut, and csvgrep substitutions and pipelines", async () => {
+  const { createGetconfCommands } = await import("../../src/commands/getconf/index.js");
+  const { createLocaleCommands } = await import("../../src/commands/locale/index.js");
+  const { createCsvcutCommands } = await import("../../src/commands/csvcut/index.js");
+  const { createCsvgrepCommands } = await import("../../src/commands/csvgrep/index.js");
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp", { recursive: true });
+  await fs.writeFile(
+    "/tmp/users.csv",
+    new TextEncoder().encode("id,name,role,score\n1,alice,admin,98\n2,bob,user,75\n3,carol,admin,91\n4,dave,user,84\n")
+  );
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createGetconfCommands(),
+    ...createLocaleCommands(),
+    ...createCsvcutCommands(),
+    ...createCsvgrepCommands(),
+  ]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(getconf PAGE_SIZE):$(getconf _NPROCESSORS_ONLN):$(locale charmap):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "4096:4:UTF-8:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(csvgrep -c role -m admin /tmp/users.csv | csvcut -c name,score | tail -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "carol,91:80\n");
+});

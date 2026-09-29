@@ -78,6 +78,8 @@ import { defaultEchoExecutors, extractFastPrintfSpecifiers, formatPrintf, printf
 import { createFmtEngine, parseFmtArguments } from "../commands/fmt.js";
 import { evalSyncChecksum } from "../commands/bytes/checksums/index.js";
 import { evalSyncBase32 } from "../commands/bytes/encoding/base.js";
+import { evalSyncCsvcut } from "../commands/csvcut/index.js";
+import { evalSyncCsvgrep } from "../commands/csvgrep/index.js";
 import { defaultMkdirExecutors, defaultRmExecutors } from "../commands/filesystem.js";
 export const customRegisteredCommands = new WeakSet<object>();
 export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
@@ -11755,7 +11757,7 @@ export class Runtime {
         (cmd.redirects[0]!.descriptor === undefined || cmd.redirects[0]!.descriptor === 0) &&
         !cmd.redirects[0]!.move && !cmd.redirects[0]!.document && checkInvariantWord(cmd.redirects[0]!.target);
       const hasNoRedir = cmd.kind === "simple" && cmd.redirects.length === 0 &&
-        (cmd.words[0]?.plain === "expr" || cmd.words[0]?.plain === "numfmt" || cmd.words[0]?.plain === "paste" || cmd.words[0]?.plain === "nl" || cmd.words[0]?.plain === "comm" || cmd.words[0]?.plain === "join" || cmd.words[0]?.plain === "factor" || cmd.words[0]?.plain === "tsort" || cmd.words[0]?.plain === "envsubst" || cmd.words[0]?.plain === "uname" || cmd.words[0]?.plain === "id" || cmd.words[0]?.plain === "whoami" || cmd.words[0]?.plain === "hostname" || cmd.words[0]?.plain === "nproc");
+        (cmd.words[0]?.plain === "expr" || cmd.words[0]?.plain === "numfmt" || cmd.words[0]?.plain === "paste" || cmd.words[0]?.plain === "nl" || cmd.words[0]?.plain === "comm" || cmd.words[0]?.plain === "join" || cmd.words[0]?.plain === "factor" || cmd.words[0]?.plain === "tsort" || cmd.words[0]?.plain === "envsubst" || cmd.words[0]?.plain === "uname" || cmd.words[0]?.plain === "id" || cmd.words[0]?.plain === "whoami" || cmd.words[0]?.plain === "hostname" || cmd.words[0]?.plain === "nproc" || cmd.words[0]?.plain === "getconf" || cmd.words[0]?.plain === "locale" || cmd.words[0]?.plain === "csvcut" || cmd.words[0]?.plain === "csvgrep");
       if (cmd.kind !== "simple" || cmd.words.length === 0 || (!hasHere && !hasNoRedir)) {
         return false;
       }
@@ -11780,7 +11782,7 @@ export class Runtime {
         }
       }
     }
-    if (p.commands.some(c => c.kind === "simple" && (c.words[0]?.plain === "envsubst" || c.words[0]?.plain === "uname" || c.words[0]?.plain === "id" || c.words[0]?.plain === "whoami" || c.words[0]?.plain === "hostname" || c.words[0]?.plain === "nproc")) && (rawState.allexport || [...assigned].some(v => rawState.exported.has(v)))) {
+    if (p.commands.some(c => c.kind === "simple" && (c.words[0]?.plain === "envsubst" || c.words[0]?.plain === "uname" || c.words[0]?.plain === "id" || c.words[0]?.plain === "whoami" || c.words[0]?.plain === "hostname" || c.words[0]?.plain === "nproc" || c.words[0]?.plain === "locale")) && (rawState.allexport || [...assigned].some(v => rawState.exported.has(v)))) {
       return false;
     }
     const savedBytes = this.budget.bytes;
@@ -25792,6 +25794,138 @@ export class Runtime {
       if (opArgs.length === 0 || (opArgs.length === 1 && opArgs[0] === "--all")) return "4";
       return undefined;
     }
+    if (cmdName === "getconf") {
+      const GETCONF_TABLE: Readonly<Record<string, string>> = {
+        PATH: "/usr/local/bin:/usr/bin:/bin",
+        CS_PATH: "/usr/local/bin:/usr/bin:/bin",
+        ARG_MAX: "2097152",
+        _POSIX_ARG_MAX: "4096",
+        NAME_MAX: "255",
+        _POSIX_NAME_MAX: "14",
+        PATH_MAX: "4096",
+        _POSIX_PATH_MAX: "256",
+        PAGE_SIZE: "4096",
+        PAGESIZE: "4096",
+        _SC_PAGE_SIZE: "4096",
+        _SC_PAGESIZE: "4096",
+        NPROCESSORS_ONLN: "4",
+        _NPROCESSORS_ONLN: "4",
+        NPROCESSORS_CONF: "4",
+        _NPROCESSORS_CONF: "4",
+        CLK_TCK: "100",
+        OPEN_MAX: "1024",
+        _POSIX_OPEN_MAX: "20",
+        CHILD_MAX: "256",
+        _POSIX_CHILD_MAX: "25",
+        LINE_MAX: "2048",
+        _POSIX2_LINE_MAX: "2048",
+        PIPE_BUF: "4096",
+        _POSIX_PIPE_BUF: "512",
+        LINK_MAX: "65000",
+        _POSIX_LINK_MAX: "8",
+        MAX_CANON: "255",
+        _POSIX_MAX_CANON: "255",
+        MAX_INPUT: "255",
+        _POSIX_MAX_INPUT: "255",
+        FILESIZEBITS: "64",
+        SYMLINK_MAX: "4095",
+        SYMLOOP_MAX: "40",
+        _POSIX_SYMLOOP_MAX: "8",
+        HOST_NAME_MAX: "64",
+        _POSIX_HOST_NAME_MAX: "255",
+        LOGIN_NAME_MAX: "256",
+        _POSIX_LOGIN_NAME_MAX: "9",
+        NGROUPS_MAX: "65536",
+        _POSIX_NGROUPS_MAX: "8",
+        TZNAME_MAX: "6",
+        _POSIX_TZNAME_MAX: "6",
+        CHAR_BIT: "8",
+        WORD_BIT: "32",
+        LONG_BIT: "64",
+        INT_MAX: "2147483647",
+        INT_MIN: "-2147483648",
+        UINT_MAX: "4294967295",
+        LONG_MAX: "9223372036854775807",
+        ULONG_MAX: "18446744073709551615",
+        LLONG_MAX: "9223372036854775807",
+        ULLONG_MAX: "18446744073709551615",
+        SSIZE_MAX: "9223372036854775807",
+        POSIX_VERSION: "200809",
+        _POSIX_VERSION: "200809",
+        POSIX2_VERSION: "200809",
+        _POSIX2_VERSION: "200809",
+        XOPEN_VERSION: "700",
+        _XOPEN_VERSION: "700",
+        POSIX_V7_LP64_OFF64: "1",
+        POSIX_V6_LP64_OFF64: "1",
+        XBS5_LP64_OFF64: "1",
+        _POSIX_CHOWN_RESTRICTED: "1",
+        _POSIX_NO_TRUNC: "1",
+        _POSIX_VDISABLE: "0",
+        BC_BASE_MAX: "99",
+        BC_DIM_MAX: "2048",
+        BC_SCALE_MAX: "99",
+        BC_STRING_MAX: "1000",
+        COLL_WEIGHTS_MAX: "255",
+        EXPR_NEST_MAX: "32",
+        RE_DUP_MAX: "32767",
+        GNU_LIBC_VERSION: "glibc 2.39",
+        GNU_LIBPTHREAD_VERSION: "NPTL 2.39",
+        LFS_CFLAGS: "-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64",
+        LFS_LDFLAGS: "",
+        LFS_LIBS: "",
+      };
+      let allMode = false;
+      const operands: string[] = [];
+      let endOfOptions = false;
+      for (let i = 0; i < opArgs.length; i++) {
+        const arg = opArgs[i]!;
+        if (!endOfOptions && arg === "--") { endOfOptions = true; continue; }
+        if (!endOfOptions && (arg === "--help" || arg === "--version")) return undefined;
+        if (!endOfOptions && arg === "-a") { allMode = true; continue; }
+        if (!endOfOptions && arg === "-v") {
+          if (opArgs[++i] === undefined) return undefined;
+          continue;
+        }
+        if (!endOfOptions && arg.startsWith("-")) return undefined;
+        operands.push(arg);
+      }
+      if (allMode) {
+        if (operands.length !== 0 && !(operands.length === 1 && operands[0] === "/")) return undefined;
+        return Object.entries(GETCONF_TABLE).map(([k, v]) => `${k.padEnd(31, " ")}${v}`).join("\n");
+      }
+      if (operands.length !== 1 && !(operands.length === 2 && operands[1] === "/")) return undefined;
+      const varName = operands[0]!;
+      const normalized = varName.startsWith("_CS_") ? varName.slice(4) : varName.startsWith("_PC_") ? varName.slice(4) : varName;
+      return GETCONF_TABLE[varName] ?? GETCONF_TABLE[normalized];
+    }
+    if (cmdName === "locale") {
+      if (opArgs.length === 0) {
+        const lang = getEnv("LANG") ?? "C.UTF-8";
+        const lcAll = getEnv("LC_ALL");
+        const lines: string[] = [`LANG=${lang}`];
+        for (const cat of [
+          "LC_CTYPE", "LC_NUMERIC", "LC_TIME", "LC_COLLATE", "LC_MONETARY", "LC_MESSAGES",
+          "LC_PAPER", "LC_NAME", "LC_ADDRESS", "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION"
+        ]) {
+          if (lcAll) lines.push(`${cat}=${lcAll}`);
+          else if (getEnv(cat)) lines.push(`${cat}=${getEnv(cat)!}`);
+          else lines.push(`${cat}="${lang}"`);
+        }
+        lines.push(`LC_ALL=${lcAll ?? ""}`);
+        return lines.join("\n");
+      }
+      if (opArgs.length === 1) {
+        const a0 = opArgs[0]!;
+        if (a0 === "-a" || a0 === "--all-locales") return "C\nC.utf8\nC.UTF-8\nPOSIX\nen_US.utf8\nen_US.UTF-8\nUTF-8";
+        if (a0 === "-m" || a0 === "--charmaps") return "ANSI_X3.4-1968\nASCII\nISO-8859-1\nUTF-8";
+        if (a0 === "charmap") {
+          const ctype = getEnv("LC_ALL") || getEnv("LC_CTYPE") || getEnv("LANG") || "C.UTF-8";
+          return /utf-?8/i.test(ctype) ? "UTF-8" : "ANSI_X3.4-1968";
+        }
+      }
+      return undefined;
+    }
     return undefined;
   }
 
@@ -26635,7 +26769,7 @@ export class Runtime {
         this.isPureSyncValueWord(cmd0.redirects[0]!.target, rawState);
       if (cmd0.kind !== "simple" || (cmd0.redirects.length !== 0 && !cmd0StdinRedir && !cmd0HereStringRedir)) return undefined;
       const w0Plain0 = cmd0.words[0]?.plain;
-      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst");
+      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep");
       if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0HereStringRedir && !cmd0FileStage) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
@@ -26643,7 +26777,7 @@ export class Runtime {
       if (cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 1) return undefined;
       if (!cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
       const def0 = (w0Plain0 === "printf" || w0Plain0 === "echo" || w0Plain0 === "cat") ? this.commands.get(w0Plain0) : this.getExternalCommand(w0Plain0);
-      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && w0Plain0 !== "fmt" && w0Plain0 !== "md5sum" && w0Plain0 !== "sha1sum" && w0Plain0 !== "sha224sum" && w0Plain0 !== "sha256sum" && w0Plain0 !== "sha384sum" && w0Plain0 !== "sha512sum" && w0Plain0 !== "cksum" && w0Plain0 !== "base32" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
+      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && w0Plain0 !== "fmt" && w0Plain0 !== "md5sum" && w0Plain0 !== "sha1sum" && w0Plain0 !== "sha224sum" && w0Plain0 !== "sha256sum" && w0Plain0 !== "sha384sum" && w0Plain0 !== "sha512sum" && w0Plain0 !== "cksum" && w0Plain0 !== "base32" && w0Plain0 !== "csvcut" && w0Plain0 !== "csvgrep" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
       const n = pipeline.commands.length;
       const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
@@ -26656,7 +26790,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "xxd" && sName !== "od" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "hexdump" && sName !== "hd" && sName !== "fmt" && sName !== "md5sum" && sName !== "sha1sum" && sName !== "sha224sum" && sName !== "sha256sum" && sName !== "sha384sum" && sName !== "sha512sum" && sName !== "cksum" && sName !== "base32" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "xxd" && sName !== "od" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "hexdump" && sName !== "hd" && sName !== "fmt" && sName !== "md5sum" && sName !== "sha1sum" && sName !== "sha224sum" && sName !== "sha256sum" && sName !== "sha384sum" && sName !== "sha512sum" && sName !== "cksum" && sName !== "base32" && sName !== "csvcut" && sName !== "csvgrep" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -26743,6 +26877,8 @@ export class Runtime {
           if (evalSyncChecksum(sName, EMPTY_BYTES, sArgs) === undefined) return undefined;
         } else if (sName === "base32") {
           if (evalSyncBase32(EMPTY_BYTES, sArgs) === undefined) return undefined;
+        } else if (sName === "csvcut" || sName === "csvgrep") {
+          // Validated on stage bytes in loop
         } else {
           return undefined;
         }
@@ -26864,6 +27000,8 @@ export class Runtime {
             firstName === "sha512sum" ||
             firstName === "cksum" ||
             firstName === "base32" ||
+            firstName === "csvcut" ||
+            firstName === "csvgrep" ||
             isInlineBase64 ||
             isInlineTac ||
             isInlineNl ||
@@ -27060,17 +27198,22 @@ export class Runtime {
               prevBuf = nextBuf;
               prevLen = encoded.byteLength;
               continue;
-            } else if (firstName === "envsubst" || firstName === "xxd" || firstName === "od" || firstName === "hexdump" || firstName === "hd" || firstName === "fmt") {
+            } else if (firstName === "envsubst" || firstName === "xxd" || firstName === "od" || firstName === "hexdump" || firstName === "hd" || firstName === "fmt" || firstName === "csvcut" || firstName === "csvgrep") {
               const rawBytes = prevBuf.subarray(0, prevLen);
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p));
               const outStr = firstName === "envsubst"
                 ? this.evalSyncEnvsubst(inStr, stageArgs, rawState)
                 : firstName === "fmt"
                   ? this.evalSyncFmt(rawBytes, stageArgs)
-                  : firstName === "xxd"
-                    ? this.evalSyncXxd(rawBytes, stageArgs)
-                    : firstName === "od"
-                      ? this.evalSyncOd(rawBytes, stageArgs)
-                      : this.evalSyncHexdump(rawBytes, stageArgs, firstName === "hd");
+                  : firstName === "csvcut"
+                    ? evalSyncCsvcut(rawBytes, stageArgs, readFile)
+                    : firstName === "csvgrep"
+                      ? evalSyncCsvgrep(rawBytes, stageArgs, readFile)
+                      : firstName === "xxd"
+                        ? this.evalSyncXxd(rawBytes, stageArgs)
+                        : firstName === "od"
+                          ? this.evalSyncOd(rawBytes, stageArgs)
+                          : this.evalSyncHexdump(rawBytes, stageArgs, firstName === "hd");
               if (outStr === undefined) return undefined;
               const encoded = fastSharedTextEncoder.encode(outStr);
               const nextTotalBytes = this.budget.bytes + encoded.byteLength;
@@ -27234,8 +27377,8 @@ export class Runtime {
       w0Plain === "sort" ||
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
-      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32";
-    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32") && Boolean(this.getExternalCommand(w0Plain))))) {
+      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "getconf" || w0Plain === "locale" || w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32";
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "getconf" || w0Plain === "locale" || w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {
@@ -27255,7 +27398,7 @@ export class Runtime {
         if (typeof hv === "string" && hv.length <= 16384 && !hv.includes("\0")) hereStrVal = hv + "\n";
         else fOk = false;
       }
-      if (fOk && (w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc") && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
+      if (fOk && (w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "getconf" || w0Plain === "locale") && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
         const sysRes = this.evalSyncSysinfo(w0Plain, allArgs, rawState);
         if (sysRes !== undefined) {
           const outBytes = shellValueByteLength(sysRes) + 1;
@@ -27266,6 +27409,26 @@ export class Runtime {
           rawState.substitutionStatus = 0;
           rawState.status = 0;
           return sysRes;
+        }
+      }
+      if (fOk && (w0Plain === "csvcut" || w0Plain === "csvgrep") && !hasSingleStdinRedir) {
+        const inBytes = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : EMPTY_BYTES;
+        const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p));
+        let csvOut = w0Plain === "csvcut"
+          ? evalSyncCsvcut(inBytes, allArgs, readFile)
+          : evalSyncCsvgrep(inBytes, allArgs, readFile);
+        if (csvOut !== undefined) {
+          const outBytes = shellValueByteLength(csvOut);
+          let end = csvOut.length;
+          while (end > 0 && csvOut.charCodeAt(end - 1) === 10) end--;
+          if (end < csvOut.length) csvOut = csvOut.slice(0, end);
+          const nextTotalBytes = this.budget.bytes + outBytes;
+          if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+          this.budget.bytes = nextTotalBytes;
+          this.budget.tick();
+          rawState.substitutionStatus = 0;
+          rawState.status = 0;
+          return csvOut;
         }
       }
       if (fOk && w0Plain === "expr" && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
@@ -27454,6 +27617,10 @@ export class Runtime {
             } else if (w0Plain === "base32") {
               const b32Out = evalSyncBase32(view, opArgs);
               if (b32Out !== undefined) fileRes = sharedSyncPipeDecoder.decode(b32Out);
+            } else if (w0Plain === "csvcut") {
+              fileRes = evalSyncCsvcut(view, opArgs);
+            } else if (w0Plain === "csvgrep") {
+              fileRes = evalSyncCsvgrep(view, opArgs);
             } else if (w0Plain === "envsubst" && hasSingleHereStringRedir) {
               fileRes = this.evalSyncEnvsubst(fileStr, opArgs, rawState);
             } else if (hasSingleHereStringRedir && w0Plain === "column") {

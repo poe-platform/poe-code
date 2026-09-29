@@ -8,6 +8,17 @@ export {
   type CsvgrepCommandOptions,
   type CsvgrepResult
 } from "./command.js";
-export { CsvError, type CsvLimits, type CsvDialect } from "safe-bash-csv-engine";
+export { createMatcher, matchesRow, type MatchOptions } from "./match.js";
+export {
+  CsvBudget,
+  CsvError,
+  CsvParser,
+  generatedHeaders,
+  selectColumns,
+  serializeRow,
+  type CsvLimits,
+  type CsvDialect,
+  type CsvRow
+} from "safe-bash-csv-engine";
 
 export { createCsvgrepCommands, type CsvgrepCommandsOptions } from "./command.js";

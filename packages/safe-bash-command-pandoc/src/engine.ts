@@ -601,65 +601,14 @@ export async function convert(
   }
 }
 
+/** Synchronous shortcut probe. The adapter contract requires promises, so decline
+ * before invoking any reader; the caller can then await convert exactly once.
+ * Keep the published probe signature for existing Shell/SDK callers.
+ */
 export function convertSync(
-  inputs: readonly { readonly bytes: Uint8Array; readonly text?: string; readonly source?: string; readonly base?: string }[],
-  options: ConversionOptions,
-  context: ConversionContext = {}
+  ignoredInputs: readonly Input[],
+  ignoredOptions: ConversionOptions,
+  ignoredContext: ConversionContext = {}
 ): SerializedDocument | undefined {
-  if (
-    options.filters?.length ||
-    options.template !== undefined ||
-    options.metadataFiles?.length ||
-    options.pdfFonts?.length ||
-    options.extractMedia !== undefined ||
-    options.embedResources
-  ) {
-    return undefined;
-  }
-  const session = new Session("convert", context);
-  session.options(options);
-  const reader = session.registry.resolve(options.from, "read");
-  const writer = session.registry.resolve(options.to, "write");
-  if (!reader.reader || !writer.writer || reader.descriptor.name === "pptx" || writer.descriptor.name === "pptx") {
-    return undefined;
-  }
-  if (inputs.length > 1 && !reader.descriptor.operands) return undefined;
-  let readerInputs = inputs.map((inp) => ({
-    bytes: inp.bytes,
-    text: reader.descriptor.inputEncoding === "utf8" ? (inp.text ?? new TextDecoder("utf-8", { fatal: true }).decode(inp.bytes)) : undefined,
-    ...(inp.source === undefined ? {} : { source: inp.source }),
-    ...(inp.base === undefined ? {} : { base: inp.base }),
-  }));
-  if (reader.descriptor.operands === "join" && !session.fileScope && readerInputs.length) {
-    const parts = readerInputs.map((inp) => (inp.text!.endsWith("\n") ? inp.text! : inp.text! + "\n"));
-    const text = parts.join("\n");
-    const bytes = new TextEncoder().encode(text);
-    readerInputs = [{ text, bytes, ...(readerInputs[0]!.base === undefined ? {} : { base: readerInputs[0]!.base }) }];
-  }
-  const blocks: Document["blocks"][number][] = [];
-  const metadata: Record<string, MetaValue> = {};
-  const resources: Document["resources"][number][] = [];
-  const settings: { language?: string; direction?: "ltr" | "rtl" | "auto" } = {};
-  for (const input of readerInputs) {
-    const rawDoc = reader.reader.read(input, session, reader);
-    if (rawDoc instanceof Promise) return undefined;
-    for (const key of ["language", "direction"] as const) {
-      if (Object.hasOwn(rawDoc, key)) {
-        (settings as Record<string, unknown>)[key] = rawDoc[key];
-      }
-    }
-    blocks.push(...rawDoc.blocks);
-    resources.push(...rawDoc.resources);
-    Object.assign(metadata, rawDoc.metadata);
-  }
-  if (session.metadata) {
-    Object.assign(metadata, session.metadata);
-  }
-  const doc: Document = { blocks, metadata, resources, ...settings };
-  const serialized = writer.writer.write(doc, session, writer);
-  if (serialized instanceof Promise) return undefined;
-  if (serialized.diagnostics?.some((d) => d.severity === "error" || (session.failIfWarnings && d.severity === "warning"))) {
-    return undefined;
-  }
-  return serialized;
+  return undefined;
 }

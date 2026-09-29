@@ -219,15 +219,8 @@ async function* sources(context: CommandContext, operands: readonly string[], ma
       if (context.fs.readStream && context.fs.capabilities?.streamingRead !== false) {
         source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
       } else {
-        try {
-          const bytes = await context.fs.readFile(path, { signal: context.signal });
-          source = (async function* () { yield bytes; })();
-        } catch (error) {
-          if (!context.fs.readStream && error instanceof FsError && error.code === "ENOENT") {
-            throw new FsError("ENOTSUP", { path, syscall: "readStream", message: "encoding commands require a streaming-read filesystem" });
-          }
-          throw error;
-        }
+        const bytes = await context.fs.readFile(path, { signal: context.signal });
+        source = (async function* () { yield bytes; })();
       }
     }
     let slicesSinceYield = 0;

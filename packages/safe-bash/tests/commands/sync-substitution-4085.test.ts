@@ -1729,22 +1729,22 @@ test("sync substitution and pipeline fast path for tee, touch, cp, mv, rmdir, sl
     printf "line1\nline2\nline3\n" > /tmp/p_orig.txt
     printf -- "--- a/tmp/p_target.txt\n+++ b/tmp/p_target.txt\n@@ -1,3 +1,3 @@\n line1\n-line2\n+line2_patched\n line3\n" > /tmp/p.diff
     for ((i = 0; i < 150; i++)); do
-      t_out=\$(printf "hello" | tee /tmp/tee1.txt)
-      _ta=\$(printf "_world" | tee -a /tmp/tee1.txt)
-      _tc=\$(touch /tmp/touched.txt)
-      cp_out=\$(cp -v /tmp/p_orig.txt /tmp/p_copy.txt)
-      mv_out=\$(mv -v /tmp/p_copy.txt /tmp/p_target.txt)
-      _ch=\$(chmod 751 /tmp/p_target.txt)
-      p_out=\$(patch /tmp/p_target.txt /tmp/p.diff)
-      _sl=\$(sleep 0)
+      t_out=$(printf "hello" | tee /tmp/tee1.txt)
+      _ta=$(printf "_world" | tee -a /tmp/tee1.txt)
+      _tc=$(touch /tmp/touched.txt)
+      cp_out=$(cp -v /tmp/p_orig.txt /tmp/p_copy.txt)
+      mv_out=$(mv -v /tmp/p_copy.txt /tmp/p_target.txt)
+      _ch=$(chmod 751 /tmp/p_target.txt)
+      p_out=$(patch /tmp/p_target.txt /tmp/p.diff)
+      _sl=$(sleep 0)
       mkdir -p /tmp/empty_dir
-      rm_out=\$(rmdir -v /tmp/empty_dir)
+      rm_out=$(rmdir -v /tmp/empty_dir)
     done
-    tee_val=\$(cat /tmp/tee1.txt)
-    patched_val=\$(sed -n 2p /tmp/p_target.txt)
-    ch_mode=\$(stat -c %a /tmp/p_target.txt)
-    t_exists=\$(test -f /tmp/touched.txt && echo "yes")
-    printf "%s|%s|%s|%s|%s|%s|%s|%s|%s\n" "\$t_out" "\$tee_val" "\$cp_out" "\$mv_out" "\$p_out" "\$patched_val" "\$ch_mode" "\$rm_out" "\$t_exists"
+    tee_val=$(cat /tmp/tee1.txt)
+    patched_val=$(sed -n 2p /tmp/p_target.txt)
+    ch_mode=$(stat -c %a /tmp/p_target.txt)
+    t_exists=$(test -f /tmp/touched.txt && echo "yes")
+    printf "%s|%s|%s|%s|%s|%s|%s|%s|%s\n" "$t_out" "$tee_val" "$cp_out" "$mv_out" "$p_out" "$patched_val" "$ch_mode" "$rm_out" "$t_exists"
   `);
   const elapsed = performance.now() - start;
   assert.equal(res.exitCode, 0, res.stderr);
@@ -1766,23 +1766,23 @@ test("sync loop preflight dry-run and per-iteration dynamic execution for mktemp
   const start = performance.now();
   const res = await sh.exec(`
     for i in {1..5}; do
-      d=\$(mktemp -d /tmp/w162d.XXXXXX)
+      d=$(mktemp -d /tmp/w162d.XXXXXX)
     done
-    mk_count=\$(ls /tmp | grep "^w162d\\." | wc -l)
+    mk_count=$(ls /tmp | grep "^w162d\\." | wc -l)
 
     printf "" > /tmp/w162_acc.txt
     for i in {1..5}; do
-      _t=\$(printf "x" | tee -a /tmp/w162_acc.txt)
-      acc_len=\$(cat /tmp/w162_acc.txt | wc -c)
+      _t=$(printf "x" | tee -a /tmp/w162_acc.txt)
+      acc_len=$(cat /tmp/w162_acc.txt | wc -c)
     done
-    acc_val=\$(cat /tmp/w162_acc.txt)
+    acc_val=$(cat /tmp/w162_acc.txt)
 
     printf "payload\n" > /tmp/w162_once.txt
     for i in {1..1}; do
-      mv_msg=\$(mv -v /tmp/w162_once.txt /tmp/w162_moved.txt)
+      mv_msg=$(mv -v /tmp/w162_once.txt /tmp/w162_moved.txt)
     done
-    moved_val=\$(cat /tmp/w162_moved.txt)
-    printf "%s|%s|%s|%s|%s\n" "\$mk_count" "\$acc_val" "\$acc_len" "\$mv_msg" "\$moved_val"
+    moved_val=$(cat /tmp/w162_moved.txt)
+    printf "%s|%s|%s|%s|%s\n" "$mk_count" "$acc_val" "$acc_len" "$mv_msg" "$moved_val"
   `);
   const elapsed = performance.now() - start;
   assert.equal(res.exitCode, 0, res.stderr);
@@ -1804,17 +1804,17 @@ test("sync substitution and brace-loop admission for mkdir, rm, sha256sum, colum
     printf "hello" > /tmp/w163_hi.txt
     printf "20 + 22\n" > /tmp/w163_bc.txt
     for i in {1..150}; do
-      mk_msg=\$(mkdir -v /tmp/w163_dir)
-      rm_msg=\$(rm -dv /tmp/w163_dir)
-      _mp=\$(mkdir -p -m 750 /tmp/w163_nested/sub)
-      m_sub=\$(stat -c %a /tmp/w163_nested/sub)
-      _rr=\$(rm -rf /tmp/w163_nested)
-      s256=\$(sha256sum /tmp/w163_hi.txt)
-      col_out=\$(column -t /tmp/w163_tbl.txt | head -n 1)
-      xxd_out=\$(xxd -p /tmp/w163_hi.txt)
-      bc_out=\$(bc /tmp/w163_bc.txt)
+      mk_msg=$(mkdir -v /tmp/w163_dir)
+      rm_msg=$(rm -dv /tmp/w163_dir)
+      _mp=$(mkdir -p -m 750 /tmp/w163_nested/sub)
+      m_sub=$(stat -c %a /tmp/w163_nested/sub)
+      _rr=$(rm -rf /tmp/w163_nested)
+      s256=$(sha256sum /tmp/w163_hi.txt)
+      col_out=$(column -t /tmp/w163_tbl.txt | head -n 1)
+      xxd_out=$(xxd -p /tmp/w163_hi.txt)
+      bc_out=$(bc /tmp/w163_bc.txt)
     done
-    printf "%s|%s|%s|%s|%s|%s|%s\n" "\$mk_msg" "\$rm_msg" "\$m_sub" "\${s256%% *}" "\$col_out" "\$xxd_out" "\$bc_out"
+    printf "%s|%s|%s|%s|%s|%s|%s\n" "$mk_msg" "$rm_msg" "$m_sub" "\${s256%% *}" "$col_out" "$xxd_out" "$bc_out"
   `);
   const elapsed = performance.now() - start;
   assert.equal(res.exitCode, 0, res.stderr);

@@ -12,6 +12,7 @@ import {
 } from "@poe-code/pdf-ast";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { parseDocument } from "htmlparser2";
 import { Shell, createMemoryFileSystem } from "../../src/index.js";
 import { pdfinfoCommands } from "../../src/commands/pdfinfo/index.js";
 import { pdftoppmPlugin } from "../../src/commands/pdftoppm/index.js";
@@ -363,12 +364,22 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     const unpackedPayload = new TextDecoder().decode(await fs.readFile("/unpacked/attachment.txt"));
     assert.equal(unpackedPayload, "embedded-vfs-payload");
 
-    // 5. Render page 1 to SVG via pdftoppm -svg and verify <text> glyphs
+    // 5. Render page 1 with font outlines and preserved glyph labels.
     const svgRes = await shell.exec("pdftoppm -svg -f 1 -l 1 -singlefile /bundled.pdf /page1-vec");
     assert.equal(svgRes.exitCode, 0);
     const svgContent = new TextDecoder().decode(await fs.readFile("/page1-vec.svg"));
-    assert.match(svgContent, /<svg/);
-    assert.match(svgContent, /<text/);
+    const svg = parseDocument(svgContent, { xmlMode: true }).children.find(node => node.type === "tag" && node.name === "svg");
+    assert.ok(svg?.type === "tag");
+    assert.equal(svg.attribs.viewBox, "0 0 300 200");
+    const glyphs = svg.children.filter(node => node.type === "tag" && node.name === "path" && node.attribs["aria-label"] !== undefined);
+    assert.equal(glyphs.map(node => node.type === "tag" ? node.attribs["aria-label"] : "").join(""), "Packet Page 1");
+    for (const glyph of glyphs) {
+      assert.ok(glyph.type === "tag");
+      if (glyph.attribs["aria-label"]?.trim()) {
+        assert.ok(glyph.attribs.d?.startsWith("M "));
+        assert.equal(glyph.attribs.fill, "rgb(0,0,0)");
+      }
+    }
   });
 
   it("executes end-to-end TIFF rendering/extraction, SVG image embedding, -hide-annotations, and PDFtk XFA/CropBox pipelines", async () => {

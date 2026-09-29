@@ -1545,3 +1545,45 @@ test("sync loop jq binary arithmetic/concat/with_entries, awk multi-statement as
     await shell.dispose();
   }
 });
+
+
+test("sync loop paste multi-file/stdin, numfmt positional args + --round, and nl --*=... + -b pREGEX (Wave 123)", async () => {
+  const { createStreamFormatCommands } = await import("../../src/commands/stream-format/index.js");
+  const { createTableTextCommands } = await import("../../src/commands/table-text/index.js");
+  const { createNumfmtCommands } = await import("../../src/commands/numfmt/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([
+      ...basicCommands(),
+      ...streamCommands(),
+      ...createStreamFormatCommands(),
+      ...createTableTextCommands(),
+      ...createNumfmtCommands(),
+    ]),
+  });
+  try {
+    const script = [
+      "printf \"a\\nb\\nc\\n\" > /f1",
+      "printf \"1\\n2\\n3\\n\" > /f2",
+      "printf \"hdr\\nitem_a\\nitem_b\\n\" > /f_nl",
+      "out=\"\"",
+      "for ((i=1; i<=8; i++)); do",
+      "  p1=$(paste -d : /f1 /f2 | paste -sd \",\")",
+      "  p2=$(paste -d = - /f2 <<< $'x\\ny\\n'$i | paste -sd \",\")",
+      "  n1=$(numfmt --to=iec --suffix=B $((i * 1024)))",
+      "  n2=$(numfmt --from=iec --round=down 2.5K)",
+      "  nl1=$(nl --body-numbering=p^item --number-format=rz --number-width=3 --number-separator=: /f_nl | paste -sd \",\")",
+      "  out=\"$p1|$p2|$n1|$n2|$nl1\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout,
+      "a:1,b:2,c:3|x=1,y=2,8=3|8.0KB|2560|    hdr,001:item_a,002:item_b\n"
+    );
+  } finally {
+    await shell.dispose();
+  }
+});

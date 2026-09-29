@@ -24660,49 +24660,76 @@ export class Runtime {
     return 0;
   }
 
-  private evalSyncNl(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
-    let bodyStyle: "a" | "t" | "n" = "t";
+  private evalSyncNl(rawLines: readonly string[], opArgs: readonly string[], cwd?: string): string[] | undefined {
+    let bodyStyle: "a" | "t" | "n" | "p" = "t";
+    let bodyRe: RegExp | undefined;
     let format: "ln" | "rn" | "rz" = "rn";
     let width = 6;
     let sep = "\t";
     let start = 1;
     let inc = 1;
+    const setBodySpec = (v: string): boolean => {
+      if (v === "a" || v === "t" || v === "n") { bodyStyle = v; bodyRe = undefined; return true; }
+      if (v.startsWith("p") && v.length > 1) {
+        try { bodyRe = new RegExp(v.slice(1)); bodyStyle = "p"; return true; } catch { return false; }
+      }
+      return false;
+    };
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if ((a === "-b" || a === "--body-numbering") && i + 1 < opArgs.length) {
-        const v = opArgs[++i]!;
-        if (v !== "a" && v !== "t" && v !== "n") return undefined;
-        bodyStyle = v;
-      } else if (a === "-ba" || a === "-bt" || a === "-bn") {
-        bodyStyle = a[2] as "a" | "t" | "n";
+        if (!setBodySpec(opArgs[++i]!)) return undefined;
+      } else if (a.startsWith("--body-numbering=")) {
+        if (!setBodySpec(a.slice(17))) return undefined;
+      } else if (a.startsWith("-b") && a.length > 2) {
+        if (!setBodySpec(a.slice(2))) return undefined;
       } else if ((a === "-n" || a === "--number-format") && i + 1 < opArgs.length) {
         const v = opArgs[++i]!;
+        if (v !== "ln" && v !== "rn" && v !== "rz") return undefined;
+        format = v;
+      } else if (a.startsWith("--number-format=")) {
+        const v = a.slice(16);
         if (v !== "ln" && v !== "rn" && v !== "rz") return undefined;
         format = v;
       } else if (a === "-nln" || a === "-nrn" || a === "-nrz") {
         format = a.slice(2) as "ln" | "rn" | "rz";
       } else if ((a === "-w" || a === "--number-width") && i + 1 < opArgs.length && /^[1-9][0-9]{0,2}$/.test(opArgs[i + 1]!)) {
         width = Number(opArgs[++i]!);
+      } else if (/^--number-width=[1-9][0-9]{0,2}$/.test(a)) {
+        width = Number(a.slice(15));
       } else if (/^-w[1-9][0-9]{0,2}$/.test(a)) {
         width = Number(a.slice(2));
       } else if ((a === "-s" || a === "--number-separator") && i + 1 < opArgs.length) {
         sep = opArgs[++i]!;
+      } else if (a.startsWith("--number-separator=")) {
+        sep = a.slice(19);
       } else if (a.startsWith("-s") && a.length > 2) {
         sep = a.slice(2);
       } else if ((a === "-v" || a === "--starting-line-number") && i + 1 < opArgs.length && /^-?[0-9]{1,9}$/.test(opArgs[i + 1]!)) {
         start = Number(opArgs[++i]!);
+      } else if (/^--starting-line-number=-?[0-9]{1,9}$/.test(a)) {
+        start = Number(a.slice(23));
       } else if (/^-v-?[0-9]{1,9}$/.test(a)) {
         start = Number(a.slice(2));
       } else if ((a === "-i" || a === "--line-increment") && i + 1 < opArgs.length && /^-?[0-9]{1,9}$/.test(opArgs[i + 1]!)) {
         inc = Number(opArgs[++i]!);
+      } else if (/^--line-increment=-?[0-9]{1,9}$/.test(a)) {
+        inc = Number(a.slice(17));
       } else if (/^-i-?[0-9]{1,9}$/.test(a)) {
         inc = Number(a.slice(2));
+      } else if (!a.startsWith("-") && i === opArgs.length - 1) {
+        if (cwd === undefined) return [];
+        if (rawLines.length === 0) {
+          const fl = this.readSyncMemoryLines(resolvePath(cwd, a));
+          if (!fl) return undefined;
+          rawLines = fl;
+        }
       } else {
         return undefined;
       }
     }
     const out: string[] = [];
-    let curStyle: "a" | "t" | "n" = bodyStyle;
+    let curStyle: "a" | "t" | "n" | "p" = bodyStyle;
     let num = start;
     const unnumberedPrefix = " ".repeat(width + shellValueByteLength(sep));
     for (let i = 0; i < rawLines.length; i++) {
@@ -24713,7 +24740,7 @@ export class Runtime {
         out.push("");
         continue;
       }
-      const numbered = curStyle === "a" || (curStyle === "t" && l.length > 0);
+      const numbered = curStyle === "a" || (curStyle === "t" && l.length > 0) || (curStyle === "p" && bodyRe !== undefined && bodyRe.test(l));
       if (!numbered) {
         out.push(l.length === 0 && sep === "\t" ? " ".repeat(width + 1) : unnumberedPrefix + l);
         continue;
@@ -24730,7 +24757,7 @@ export class Runtime {
     return out;
   }
 
-  private evalSyncPaste(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+  private evalSyncPaste(rawLines: readonly string[], opArgs: readonly string[], cwd?: string): string[] | undefined {
     let serial = false;
     let delims: string[] = ["\t"];
     let literal = false;
@@ -24785,7 +24812,43 @@ export class Runtime {
       }
     }
     if (files.length === 0) files.push("-");
-    if (!files.every(f => f === "-")) return undefined;
+    if (!files.every(f => f === "-")) {
+      if (cwd === undefined) return rawLines.length === 0 ? [] : undefined;
+      const stdinCount = files.filter(f => f === "-").length;
+      if (stdinCount > 1) return undefined;
+      const streams: (readonly string[])[] = [];
+      for (const f of files) {
+        if (f === "-") {
+          streams.push(rawLines);
+        } else {
+          const fl = this.readSyncMemoryLines(resolvePath(cwd, f));
+          if (!fl) return undefined;
+          streams.push(fl);
+        }
+      }
+      if (serial) {
+        const out: string[] = [];
+        for (const colLines of streams) {
+          if (colLines.length === 0) continue;
+          let joined = colLines[0]!;
+          for (let i = 1; i < colLines.length; i++) {
+            joined += delims[(i - 1) % delims.length]! + colLines[i]!;
+          }
+          for (const seg of joined.split("\n")) out.push(seg);
+        }
+        return out;
+      }
+      const maxRows = streams.reduce((m, s) => Math.max(m, s.length), 0);
+      const out: string[] = [];
+      for (let r = 0; r < maxRows; r++) {
+        let row = streams[0]![r] ?? "";
+        for (let c = 1; c < streams.length; c++) {
+          row += delims[(c - 1) % delims.length]! + (streams[c]![r] ?? "");
+        }
+        out.push(row);
+      }
+      return out;
+    }
     if (serial) {
       if (files.length !== 1) return undefined;
       if (rawLines.length === 0) return [];
@@ -25305,8 +25368,16 @@ export class Runtime {
   private evalSyncNumfmt(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
     let fromScale: "none" | "iec" | "iec-i" | "si" | "auto" = "none";
     let toScale: "none" | "iec" | "iec-i" | "si" = "none";
+    let roundMode: "up" | "down" | "from-zero" | "towards-zero" | "nearest" = "from-zero";
     let padding = 0;
     let suffix = "";
+    const applyRound = (x: number): number => {
+      if (roundMode === "up") return Math.ceil(x - 1e-12);
+      if (roundMode === "down") return Math.floor(x + 1e-12);
+      if (roundMode === "towards-zero") return x >= 0 ? Math.floor(x + 1e-12) : -Math.floor(Math.abs(x) + 1e-12);
+      if (roundMode === "nearest") return Math.sign(x) * Math.round(Math.abs(x));
+      return x >= 0 ? Math.ceil(x - 1e-12) : -Math.ceil(Math.abs(x) - 1e-12);
+    };
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if (a.startsWith("--from=")) {
@@ -25316,6 +25387,10 @@ export class Runtime {
       } else if (a.startsWith("--to=")) {
         const v = a.slice(5);
         if (v === "none" || v === "iec" || v === "iec-i" || v === "si") toScale = v;
+        else return undefined;
+      } else if (a.startsWith("--round=")) {
+        const v = a.slice(8);
+        if (v === "up" || v === "down" || v === "from-zero" || v === "towards-zero" || v === "nearest") roundMode = v;
         else return undefined;
       } else if (a.startsWith("--padding=")) {
         const v = a.slice(10);
@@ -25355,7 +25430,7 @@ export class Runtime {
       } else if (fromScale === "iec-i") {
         // plain number ok
       }
-      val = val >= 0 ? Math.ceil(val - 1e-12) : -Math.ceil(Math.abs(val) - 1e-12);
+      val = applyRound(val);
       let rendered: string;
       if (toScale === "none") {
         rendered = String(Math.trunc(val));
@@ -25864,23 +25939,24 @@ export class Runtime {
         this.isPureSyncValueWord(cmd0.redirects[0]!.target, rawState);
       if (cmd0.kind !== "simple" || (cmd0.redirects.length !== 0 && !cmd0StdinRedir && !cmd0HereStringRedir)) return undefined;
       const w0Plain0 = cmd0.words[0]?.plain;
-      if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0HereStringRedir) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
+      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl");
+      if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0HereStringRedir && !cmd0FileStage) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
       if (cmd0StdinRedir && (w0Plain0 !== "cat" || cmd0.words.length !== 1)) return undefined;
       if (cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 1) return undefined;
       if (!cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
       const def0 = this.commands.get(w0Plain0);
-      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
+      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
       const n = pipeline.commands.length;
       const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
       const stageNames: string[] = [];
       const stageArgsList: string[][] = [];
-      const startStageIdx = cmd0HereStringRedir && w0Plain0 !== "cat" ? 0 : 1;
+      const startStageIdx = (cmd0HereStringRedir && w0Plain0 !== "cat") || cmd0FileStage ? 0 : 1;
       for (let i = startStageIdx; i < n; i++) {
         const sCmd = pipeline.commands[i]!;
-        if (sCmd.kind !== "simple" || (i > 0 ? sCmd.redirects.length !== 0 : !cmd0HereStringRedir) || sCmd.words.length === 0) return undefined;
+        if (sCmd.kind !== "simple" || (i > 0 ? sCmd.redirects.length !== 0 : (!cmd0HereStringRedir && !cmd0FileStage)) || sCmd.words.length === 0) return undefined;
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
@@ -25965,7 +26041,9 @@ export class Runtime {
         subArgs0.push(val);
       }
       let stage0Formatted: string | undefined;
-      if (cmd0HereStringRedir) {
+      if (cmd0FileStage) {
+        stage0Formatted = "";
+      } else if (cmd0HereStringRedir) {
         const hv = this.fastValueWord(cmd0.redirects[0]!.target, state, io, false, false, false, false, undefined, part.line);
         if (typeof hv === "string" && hv.length <= 16384 && !hv.includes("\0")) stage0Formatted = hv + "\n";
       } else if (w0Plain0 === "printf") {
@@ -26146,11 +26224,11 @@ export class Runtime {
                 outLines.splice(0, 2, outLines[0]! + outLines[1]!);
               }
             } else if (isInlineNl) {
-              const nlRes = this.evalSyncNl(rawLines, stageArgs);
+              const nlRes = this.evalSyncNl(rawLines, stageArgs, rawState.cwd);
               if (nlRes === undefined) return undefined;
               outLines = nlRes;
             } else if (isInlinePaste) {
-              const pasteRes = this.evalSyncPaste(rawLines, stageArgs);
+              const pasteRes = this.evalSyncPaste(rawLines, stageArgs, rawState.cwd);
               if (pasteRes === undefined) return undefined;
               outLines = pasteRes;
             } else if (isInlineNumfmt) {
@@ -26360,7 +26438,7 @@ export class Runtime {
       w0Plain === "sort" ||
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
-      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join";
+      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl";
     if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
@@ -26381,13 +26459,25 @@ export class Runtime {
         if (typeof hv === "string" && hv.length <= 16384 && !hv.includes("\0")) hereStrVal = hv + "\n";
         else fOk = false;
       }
-      if (fOk && (w0Plain === "comm" || w0Plain === "join") && !hasSingleStdinRedir) {
+      if (fOk && (w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || (w0Plain === "numfmt" && !hasSingleHereStringRedir)) && !hasSingleStdinRedir) {
         const stdinLines = hasSingleHereStringRedir
           ? (hereStrVal!.endsWith("\n") ? hereStrVal!.slice(0, -1).split("\n") : (hereStrVal!.length === 0 ? [] : hereStrVal!.split("\n")))
           : undefined;
-        const cjLines = w0Plain === "comm"
-          ? this.evalSyncComm(stdinLines, allArgs, rawState.cwd)
-          : this.evalSyncJoin(stdinLines, allArgs, rawState.cwd);
+        let cjLines: string[] | undefined;
+        if (w0Plain === "comm") cjLines = this.evalSyncComm(stdinLines, allArgs, rawState.cwd);
+        else if (w0Plain === "join") cjLines = this.evalSyncJoin(stdinLines, allArgs, rawState.cwd);
+        else if (w0Plain === "paste") cjLines = this.evalSyncPaste(stdinLines ?? [], allArgs, rawState.cwd);
+        else if (w0Plain === "numfmt") {
+          const optArgs: string[] = [];
+          const posArgs: string[] = [];
+          let lit = false;
+          for (const a of allArgs) {
+            if (lit || !a.startsWith("-") || /^-[0-9.]/.test(a)) posArgs.push(a);
+            else if (a === "--") lit = true;
+            else optArgs.push(a);
+          }
+          if (posArgs.length > 0) cjLines = this.evalSyncNumfmt(posArgs, optArgs);
+        }
         if (cjLines !== undefined) {
           let fileRes = cjLines.length === 0 ? "" : cjLines.join("\n") + "\n";
           const outBytes = shellValueByteLength(fileRes);
@@ -26511,11 +26601,11 @@ export class Runtime {
               fileRes = renderLines(rawLines.map(l => Array.from(l).reverse().join("")));
             } else if (hasSingleHereStringRedir && w0Plain === "tac" && opArgs.length === 0) {
               fileRes = renderLines([...rawLines].reverse());
-            } else if (hasSingleHereStringRedir && w0Plain === "nl") {
-              const nlRes = this.evalSyncNl(rawLines, opArgs);
+            } else if (w0Plain === "nl") {
+              const nlRes = this.evalSyncNl(rawLines, opArgs, rawState.cwd);
               if (nlRes !== undefined) fileRes = renderLines(nlRes);
             } else if (hasSingleHereStringRedir && w0Plain === "paste") {
-              const pasteRes = this.evalSyncPaste(rawLines, opArgs);
+              const pasteRes = this.evalSyncPaste(rawLines, opArgs, rawState.cwd);
               if (pasteRes !== undefined) fileRes = renderLines(pasteRes);
             } else if (hasSingleHereStringRedir && w0Plain === "numfmt") {
               const nmRes = this.evalSyncNumfmt(rawLines, opArgs);

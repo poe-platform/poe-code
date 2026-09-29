@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors } from "../internal.js";
 import {
   commandRuntimeIdentity, FsError, getCommandArguments, isFsError, writeBytes,
   type CommandContext, type CommandDefinition, type VirtualShellPlugin,
@@ -149,6 +150,8 @@ export function createYesCommand(options: YesCommandOptions = {}): CommandDefini
       } finally { cleanup(); }
     },
   });
+  if (options.maxRecordBytes === undefined && options.chunkBytes === undefined) builtInDirectContextExecutors.add(def.execute);
+  return def;
 }
 
 export function createYesCommands(options: YesCommandOptions = {}): readonly CommandDefinition[] {

@@ -293,3 +293,40 @@ test("Wave 130: sync htmlq, cal, and ncal substitutions and pipelines", async ()
   assert.equal(r2.exitCode, 0);
   assert.equal(r2.stdout, "   February 2024      :    February 2024     :80\n");
 });
+
+test("Wave 131: sync yes | head pipelines and xmllint --xpath substitutions", async () => {
+  const { createYesCommands } = await import("../../src/commands/yes/index.js");
+  const { createXmllintCommands } = await import("../../src/commands/xml/index.js");
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp", { recursive: true });
+  await fs.writeFile(
+    "/tmp/config.xml",
+    new TextEncoder().encode("<config><server id=\"main\" port=\"8080\"><host>localhost</host></server><server id=\"backup\" port=\"8081\"><host>replica</host></server></config>")
+  );
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createYesCommands(),
+    ...createXmllintCommands(),
+  ]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(yes "ok" | head -n 4 | tr "\n" "-"):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "ok-ok-ok-ok-:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(xmllint --xpath "string(/config/server[@id='main']/host)" /tmp/config.xml):$(xmllint --xpath "count(//server)" /tmp/config.xml):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "localhost:2:80\n");
+});

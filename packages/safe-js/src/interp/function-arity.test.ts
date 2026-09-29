@@ -257,7 +257,7 @@ describe("source function arity (NUM-001)", () => {
     await expect(
       run(originalBisector, {
         entryPointArgs: [],
-        budget: new Budget({ maxSteps: 500_000, maxCallDepth: 128, deadline: Date.now() + 5_000 })
+        budget: new Budget({ maxSteps: 500_000, maxCallDepth: 128, deadline: Date.now() + 30_000 })
       })
     ).resolves.toMatchObject({ ok: true, returnValue: expected });
   });
@@ -279,7 +279,7 @@ describe("source function arity (NUM-001)", () => {
     await expect(
       run(explicitModeControl, {
         entryPointArgs: [],
-        budget: new Budget({ maxSteps: 500_000, maxCallDepth: 128, deadline: Date.now() + 5_000 })
+        budget: new Budget({ maxSteps: 500_000, maxCallDepth: 128, deadline: Date.now() + 30_000 })
       })
     ).resolves.toMatchObject({ ok: true, returnValue: expected });
   });

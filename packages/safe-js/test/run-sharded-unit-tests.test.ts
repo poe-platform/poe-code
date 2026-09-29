@@ -122,6 +122,7 @@ describe("safe-js sharded unit test runner", () => {
     });
     expect(spawnCalls).toHaveLength(3);
     expect(spawnCalls[0].args).toContain("--no-isolate");
+    expect(spawnCalls[0].args).toContain("--testTimeout=30000");
     expect(spawnCalls[1].args).not.toContain("--no-isolate");
     expect(cacheStore.write).toHaveBeenCalledTimes(2);
 

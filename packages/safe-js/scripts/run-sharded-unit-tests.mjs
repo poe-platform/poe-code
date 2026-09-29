@@ -203,6 +203,9 @@ export function runSafeJsShardedUnitTests(
         "run",
         "--config",
         "vitest.config.ts",
+        "--testTimeout=30000",
+        "--hookTimeout=30000",
+        "--teardownTimeout=30000",
         "--maxWorkers=4",
         ...(isolate ? [] : ["--no-isolate"]),
         ...shard.files

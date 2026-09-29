@@ -24799,8 +24799,8 @@ export class Runtime {
                 for (let k = 0; k < inStr.length; k++) if (inStr.charCodeAt(k) === 10) nl++;
                 outLines = [String(nl)];
               } else if (stageArgs[0] === "-w") {
-                const trimmed = inStr.trim();
-                outLines = [String(trimmed.length === 0 ? 0 : trimmed.split(/[ \t\n\r\f\v]+/).length)];
+                if (!byteLocale(rawState.variables) && prevBuf.subarray(0, prevLen).some(byte => byte > 127)) return undefined;
+                outLines = [String(inStr.split(/[ \t\n\r\f\v]+/).filter(Boolean).length)];
               } else if (stageArgs[0] === "-m") {
                 outLines = [String(byteLocale(rawState.variables) ? prevLen : Array.from(inStr).length)];
               } else if (stageArgs[0] === "-L") {
@@ -25155,7 +25155,9 @@ export class Runtime {
             } else if (hasSingleHereStringRedir && w0Plain === "base64" && (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-d" || opArgs[0] === "--decode")))) {
               if (opArgs.length === 0) fileRes = this.syncBase64Encode(view) + "\n";
               else {
-                const decoded = this.syncBase64DecodeBytes(fileStr);
+                const cleaned = fileStr.replace(/[ \t\r\n]+/g, "");
+                if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
+                const decoded = this.syncBase64DecodeBytes(cleaned);
                 // Text-only substitutions cannot retain binary byte provenance.
                 if (decoded.some(byte => byte === 0 || byte >= 128)) return undefined;
                 fileRes = sharedSyncPipeDecoder.decode(decoded);

@@ -3715,6 +3715,15 @@
       "4c264d499eda94928133f5c1b2ee96f4faa84839",
       "b58fabd556f49fc22c6ff53b658aa113de03918f"
     ],
+    "playgroundReleaseRepair": {
+      "issue": 3360,
+      "commit": "54f660fdfc56d2c63b8b25009ff9ff330b37257a",
+      "delivery": "Verified on remote main. Full containing pin 36536622833 is queued; publication is not yet verified.",
+      "source": "The 96a2522d10 playground build exhausted a 4096 MB heap locally and in pinned run 36533708178. Upstream adf3b0a256 removes optional command imports from the core shell; dc674cd22f repairs the timeout duration discriminator. The additional kernel-asset prototype was discarded without being pushed.",
+      "repair": "Timeout's synchronous evaluator now delegates signal and kill-after options to normal validation, and delegates repeated echo options. Previously an invalid signal inside command substitution returned success instead of exit 125.",
+      "validation": "Two original timeout regressions fail before repair. All 16 focused timeout tests, guarded root lint, the maintained playground build at 4096 MB, and all 254 playground tests pass. Browser regex execution and invalid-signal exit 125 pass; screenshot inspected. Later independent PDF/XML and facade reexports were retained by rebase.",
+      "remaining": "Monitor the full containing release through actual publication and installed-package verification. These checks do not close the 19 ssconvert families."
+    },
     "verifiedPublication": {
       "version": "17.0.35",
       "gitHead": "a8a8a7efbc7c29daf9e6e6071d3520e774a3b7f2",

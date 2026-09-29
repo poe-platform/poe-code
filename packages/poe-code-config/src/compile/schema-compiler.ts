@@ -138,7 +138,8 @@ function createProject(): Project {
       moduleResolution: ts.ModuleResolutionKind.NodeNext,
       target: ts.ScriptTarget.ES2022
     },
-    skipAddingFilesFromTsConfig: true
+    skipAddingFilesFromTsConfig: true,
+    skipLoadingLibFiles: true
   });
 }
 

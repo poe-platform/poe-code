@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chunks, run } from "./helpers.js";
+import { Shell } from "../../src/shell/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { createStandardCommands } from "../../src/commands/index.js";
+import { CommandRegistry } from "../../src/contracts/index.js";
 
 for (const [args, stdin, expected] of [
   [["-d", "[:]"], "[a:b]\n", "ab\n"],
@@ -47,4 +51,41 @@ for (const args of [["[x*]", "a"], ["[x*0]", "a"], ["abc", "[x*08]"], ["abc", "[
     assert.equal(result.exitCode, 2);
     assert.ok(result.stderr.startsWith("tr: "));
   });
+}
+
+for (const [args, input, expected, status] of [
+  ["'é' 'x'", "é", "xx", 0],
+  ["-d 'é'", "aé", "a", 0],
+  ["-s 'é'", "éé", "éé", 0],
+  ["'a' 'é'", "a", "�", 0],
+  ["'0-9a-z' '[:digit:]'", "abc", "", 1],
+  ["-s '0-9a-z' '[:digit:]'", "abc", "", 1],
+  ["'0-9' '[:upper:]'", "123", "", 1],
+  ["'a[:lower:]' '[:upper:]'", "abc", "", 1],
+  ["'a-z' '[:upper:]'", "abc", "", 1],
+  ["'A-Z' '[:lower:]'", "ABC", "", 1],
+  ["'[:lower:]' '[:upper:]'", "abc", "ABC", 0],
+  ["'[:upper:]' '[:lower:]'", "ABC", "abc", 0],
+  ["'a[:lower:]' 'b[:upper:]'", "abc", "ABC", 0],
+  ["'a-z' 'A-Z'", "abc", "ABC", 0],
+] as const) {
+  for (const mode of ["substitution", "loop", "arithmetic-loop"] as const) {
+    test(`tr optimized ${mode}: ${args}`, async () => {
+      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+      try {
+        const pipeline = `printf '%s' '${input}' | tr ${args}`;
+        const direct = await shell.exec(pipeline);
+        assert.equal(direct.exitCode, status, direct.stderr);
+        assert.equal(direct.stdout, expected);
+        const assignment = `out=$(${pipeline}); status=$?`;
+        const body = mode === "substitution" ? assignment : `${mode === "loop" ? "for i in 1 2" : "for ((i=0;i<2;i++))"}; do ${assignment}; done`;
+        const result = await shell.exec(`${body}; printf '%s' "$out"; exit "$status"`);
+        assert.equal(result.exitCode, direct.exitCode, result.stderr);
+        assert.equal(result.stdout, direct.stdout);
+        assert.equal(result.stderr, direct.stderr.repeat(mode === "substitution" ? 1 : 2));
+      } finally {
+        await shell.dispose();
+      }
+    });
+  }
 }

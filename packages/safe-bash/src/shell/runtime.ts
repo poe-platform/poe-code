@@ -24393,6 +24393,10 @@ export class Runtime {
   }
 
   private translateSyncTr(input: string, set1Spec: string, set2Spec: string, truncateSet1 = false): string | undefined {
+    // Other string2 classes require the tr parser's class and alignment validation.
+    if (set2Spec.includes("[:") &&
+        !(set1Spec === "[:lower:]" && set2Spec === "[:upper:]") &&
+        !(set1Spec === "[:upper:]" && set2Spec === "[:lower:]")) return undefined;
     if ((set1Spec === "a-z" || set1Spec === "[:lower:]") && (set2Spec === "A-Z" || set2Spec === "[:upper:]")) {
       return input.replace(/[a-z]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 32));
     }

@@ -1,4 +1,4 @@
-import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import { SsconvertError } from "@poe-code/spreadsheet-engine/contracts";
 
 export function invalidBiff(message: string): never {
   throw new SsconvertError("io", `E Invalid Excel BIFF: ${message}`);
@@ -143,14 +143,25 @@ export function readCfb(bytes: Uint8Array, context: CfbReadContext): ReadonlyMap
 }
 
 export interface BiffRecord { readonly opcode: number; readonly offset: number; readonly data: Binary; }
-export function readBiffRecords(bytes: Uint8Array, context: CapabilityContext): BiffRecord[] {
+export interface BiffReadContext extends CfbReadContext {
+  readonly limits: CfbReadContext["limits"] & {
+    readonly workbookNodes?: number;
+    readonly workbookTextBytes?: number;
+  };
+}
+export function readBiffRecords(bytes: Uint8Array, context: BiffReadContext): BiffRecord[] {
+  context.signal.throwIfAborted();
+  if (bytes.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
   const binary = new Binary(bytes), records: BiffRecord[] = [];
   for (let offset = 0; offset < bytes.length;) {
-    context.signal.throwIfAborted(); binary.check(offset, 4);
+    context.signal.throwIfAborted(); context.work?.(); binary.check(offset, 4);
     const opcode = binary.u16(offset), length = binary.u16(offset + 2);
-    if (opcode === 0 && length === 0 && bytes.subarray(offset).every(byte => byte === 0)) break;
+    if (opcode === 0 && length === 0 && bytes.subarray(offset).every(byte => {
+      context.signal.throwIfAborted(); context.work?.(); return byte === 0;
+    })) break;
     if (records.length >= (context.limits.workbookNodes ?? context.limits.inputBytes))
       throw new SsconvertError("resource-limit", "ssconvert BIFF record limit exceeded");
+    context.retain?.(128);
     records.push({ opcode, offset, data: new Binary(binary.slice(offset + 4, length)) }); offset += length + 4;
   }
   return records;

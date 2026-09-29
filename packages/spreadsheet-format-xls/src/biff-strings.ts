@@ -1,7 +1,7 @@
-import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import { SsconvertError } from "@poe-code/spreadsheet-engine/contracts";
 import { singleByteTables } from "@poe-code/spreadsheet-engine/encoding/tables";
 import { biffDbcsTables } from "@poe-code/spreadsheet-engine/encoding/biff-dbcs-tables";
-import { Binary, invalidBiff } from "./biff-binary.js";
+import { Binary, invalidBiff, type BiffReadContext } from "./biff-binary.js";
 import type { RichTextRun } from "@poe-code/spreadsheet-ast";
 
 // Native gnm_xl_get_codepage accepts these exact spellings, not iconv's alias set.
@@ -43,18 +43,22 @@ export function biffDecode(bytes: Uint8Array, codepage: number): string {
 export class BiffStrings {
   private part = 0;
   private offset = 0;
-  constructor(private readonly parts: readonly Binary[], private readonly context: CapabilityContext,
+  constructor(private readonly parts: readonly Binary[], private readonly context: BiffReadContext,
     private readonly codepage: number) {}
   get consumedBytes(): number {
     return this.parts.slice(0, this.part).reduce((total, part) => total + part.bytes.length, 0) + this.offset;
   }
   private advance(): void {
     while (this.part < this.parts.length && this.offset === this.parts[this.part]!.bytes.length) {
+      this.context.signal.throwIfAborted(); this.context.work?.();
       this.part++; this.offset = 0;
     }
     if (this.part >= this.parts.length) invalidBiff("truncated string/CONTINUE");
   }
-  byte(): number { this.advance(); return this.parts[this.part]!.u8(this.offset++); }
+  byte(): number {
+    this.context.signal.throwIfAborted(); this.context.work?.();
+    this.advance(); return this.parts[this.part]!.u8(this.offset++);
+  }
   word(): number { const low = this.byte(); return low + this.byte() * 256; }
   dword(): number { const low = this.word(); return low + this.word() * 65536; }
   legacy(length: number): string {
@@ -66,6 +70,8 @@ export class BiffStrings {
     this.context.signal.throwIfAborted();
     if (length > (this.context.limits.workbookTextBytes ?? this.context.limits.inputBytes))
       throw new SsconvertError("resource-limit", "ssconvert BIFF string limit exceeded");
+    // Covers temporary byte/character arrays, decoded text and rich-run objects.
+    this.context.retain?.(length * 16);
   }
   unicode(length: number): { text: string; richText?: readonly RichTextRun[] } {
     this.admit(length * 3);
@@ -76,7 +82,7 @@ export class BiffStrings {
     this.admit(runCount * 4 + extensionLength);
     const characters: string[] = [];
     for (let i = 0; i < length; i++) {
-      this.context.signal.throwIfAborted();
+      this.context.signal.throwIfAborted(); this.context.work?.();
       if (this.offset === this.parts[this.part]!.bytes.length) {
         this.advance(); const width = this.byte(); if (width > 1) invalidBiff("invalid CONTINUE string width"); wide = !!width;
       }

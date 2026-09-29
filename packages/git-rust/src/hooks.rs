@@ -112,8 +112,22 @@ fn expand_vars(input: &str, env: &BTreeMap<String, String>, last_status: i32) ->
     let mut out = String::new();
     let chars: Vec<char> = input.chars().collect();
     let mut i = 0;
+    let mut in_single = false;
+    let mut in_double = false;
     while i < chars.len() {
-        if chars[i] == '$' && i + 1 < chars.len() {
+        let c = chars[i];
+        if c == '\\' && !in_single && i + 1 < chars.len() {
+            out.push(c);
+            out.push(chars[i + 1]);
+            i += 2;
+            continue;
+        }
+        if c == '\'' && !in_double {
+            in_single = !in_single;
+        } else if c == '"' && !in_single {
+            in_double = !in_double;
+        }
+        if !in_single && chars[i] == '$' && i + 1 < chars.len() {
             if chars[i + 1] == '?' {
                 out.push_str(&last_status.to_string());
                 i += 2;
@@ -151,6 +165,34 @@ fn expand_vars(input: &str, env: &BTreeMap<String, String>, last_status: i32) ->
         i += 1;
     }
     out
+}
+
+// Split shell statements before expansion so quoted and escaped separators stay literal.
+fn split_shell_statements(input: &str) -> Vec<&str> {
+    let mut statements = Vec::new();
+    let mut start = 0;
+    let mut quote = None;
+    let mut escaped = false;
+    for (offset, c) in input.char_indices() {
+        if escaped {
+            escaped = false;
+            continue;
+        }
+        if c == '\\' && quote != Some('\'') {
+            escaped = true;
+        } else if Some(c) == quote {
+            quote = None;
+        } else if quote.is_none() {
+            if c == '\'' || c == '"' {
+                quote = Some(c);
+            } else if c == ';' {
+                statements.push(&input[start..offset]);
+                start = offset + 1;
+            }
+        }
+    }
+    statements.push(&input[start..]);
+    statements
 }
 
 fn split_unquoted_redirection(s: &str) -> Option<(String, String, bool)> {
@@ -407,7 +449,7 @@ fn eval_script_lines(
                 stdout,
                 stderr,
             );
-            if code != 0 && env.contains_key("__EARLY_EXIT__") {
+            if env.contains_key("__EARLY_EXIT__") {
                 return code;
             }
             last_status = code;
@@ -473,7 +515,7 @@ fn eval_script_lines(
             continue;
         }
 
-        for sub_stmt in raw_line.split(';') {
+        for sub_stmt in split_shell_statements(raw_line) {
             let stmt = sub_stmt.trim();
             if stmt.is_empty() || stmt == "then" || stmt == "do" {
                 continue;

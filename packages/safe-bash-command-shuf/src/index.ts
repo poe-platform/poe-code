@@ -24,3 +24,5 @@ export function shufCommands(options: ShufCommandsOptions = {}): VirtualShellPlu
 
 export { settings, type ShufLimits, type ShufOptions } from "./options.js";
 export { RandomIntegers } from "./random.js";
+
+export { evalSyncShuf } from "./sync.js";

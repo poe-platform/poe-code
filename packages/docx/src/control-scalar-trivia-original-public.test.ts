@@ -8,8 +8,8 @@ import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";
 import { readPackage, assertPackageLinks } from "../tests/assertions.js";
 
-// XML fidelity does not depend on host task latency. The compiled runtime
-// continues to exercise real cooperative scheduling in every native case.
+// XML fidelity does not depend on host task latency. Both source and compiled
+// runtimes use the public scheduling port while retaining cancellation checks.
 vi.mock("@poe-code/office-package", async importOriginal => ({
   ...await importOriginal<typeof import("@poe-code/office-package")>(),
   yieldEventLoop: async () => {}
@@ -32,7 +32,7 @@ for (const route of ["sdk", "cli", "sdk-batch", "cli-batch"] as const)
 for (const operation of ["controls.set", "controls.repeat", "controls.bind", "template.apply"] as const)
 for (const scalar of scalars) for (const position of positions)
 it(`retains every legal XML comment and PI while filling scalar controls; strict=${strict}; kind=${kind}; codec=${codec}; runtime=${runtime}; route=${route}; operation=${operation}; scalar=${scalar.kind}; position=${position}`, async () => {
-  const product: typeof api = runtime === "native" ? native : api, context = { limits: textContext.limits, signal: textContext.signal, encoding: { order: "input", compression: "store" } as const };
+  const product: typeof api = runtime === "native" ? native : api, context = { limits: textContext.limits, signal: textContext.signal, budget: new product.DocumentBudget({}, textContext.signal, async signal => { signal.throwIfAborted(); }), encoding: { order: "input", compression: "store" } as const };
   const has = (name: typeof positions[number]) => position === name || position === "combined";
   const fonts = `<w:rFonts w:ascii="Old" w:hAnsi="Old">${has("fonts") ? marker("fonts") : ""}</w:rFonts>`;
   const run = `<w:r>${has("run") || position === "empty-run" ? marker("run-start") : ""}<w:rPr><w:b/>${fonts}</w:rPr>${position === "empty-run" ? "" : `<w:t>${has("text") ? marker("text-start") : ""}Old${has("text") ? marker("text-end") : ""}</w:t>`}${has("run") ? marker("run-end") : ""}</w:r>`;

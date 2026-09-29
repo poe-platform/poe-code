@@ -9,8 +9,8 @@ const native = await compiledPublicRuntime as unknown as typeof compiledTypes;
 import { textContext } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 
-// Binding and byte fidelity use the scheduling port without host task latency.
-// The external compiled runtime retains real scheduling and its public routes.
+// Binding and byte fidelity use the public scheduling port without host task
+// latency in both source and compiled runtimes, retaining cancellation checks.
 vi.mock("@poe-code/office-package", async importOriginal => ({
   ...await importOriginal<typeof import("@poe-code/office-package")>(),
   yieldEventLoop: async () => {}
@@ -66,7 +66,7 @@ for (const route of ["sdk", "native-sdk", "sdk-batch", "native-sdk-batch", "cli"
 for (const scenario of scenarios)
 it(`complete binding selector ${scenario.name}; strict=${strict}; kind=${kind}; codec=${codec}; route=${route}`, async () => {
   const product = route.startsWith("native") ? native : api;
-  const context = { limits: textContext.limits, signal: textContext.signal, encoding: { order: "input", compression: "store" } as const };
+  const context = { limits: textContext.limits, signal: textContext.signal, budget: new product.DocumentBudget({}, textContext.signal, async signal => { signal.throwIfAborted(); }), encoding: { order: "input", compression: "store" } as const };
   const w = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
   const r = strict ? "http://purl.oclc.org/ooxml/officeDocument/relationships" : "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
   const ds = strict ? "http://purl.oclc.org/ooxml/officeDocument/customXml" : "http://schemas.openxmlformats.org/officeDocument/2006/customXml";

@@ -739,6 +739,18 @@ function numberFormat(node: XmlElement, charge: (n?: number) => void): string {
 }
 
 /** Released savers share OpenFormula conventions, but only odf emits extensions. */
+/** XML durations require decimal components, including subnormal seconds. */
+function durationComponent(value: number): string {
+  const source = String(value), exponentAt = source.indexOf("e");
+  if (exponentAt < 0) return source;
+  const coefficient = source.slice(0, exponentAt), dot = coefficient.indexOf(".");
+  const digits = coefficient.replace(".", "");
+  const point = (dot < 0 ? coefficient.length : dot) + Number(source.slice(exponentAt + 1));
+  if (point <= 0) return "0." + "0".repeat(-point) + digits;
+  if (point >= digits.length) return digits + "0".repeat(point - digits.length);
+  return digits.slice(0, point) + "." + digits.slice(point);
+}
+
 export function createOdfWriter(profile: "strict" | "extended") {
   return async (book: Workbook, options: readonly string[], context: CapabilityContext): Promise<Uint8Array> => {
     context.signal.throwIfAborted();
@@ -1029,9 +1041,9 @@ export function createOdfWriter(profile: "strict" | "extended") {
                 a["office:value-type"] = "date";
                 const seconds = Math.round((value.value - Math.floor(value.value)) * 86400) % 86400;
                 a["office:date-value"] = date.toISOString().slice(0,10) + (value.value !== Math.floor(value.value) ? "T" + [Math.floor(seconds/3600), Math.floor(seconds/60)%60, seconds%60].map(n => String(n).padStart(2,"0")).join(":") : "");
-              } else if (style.kind === "time" && value.value >= 0) {
-                a["office:value-type"] = "time"; const seconds = Math.round(value.value * 86400);
-                a["office:time-value"] = `PT0${Math.floor(seconds/3600)}H${String(Math.floor(seconds/60)%60).padStart(2,"0")}M${String(seconds%60).padStart(2,"0")}S`;
+              } else if (style.kind === "time" && value.value >= 0 && Number.isFinite(value.value * 86400)) {
+                a["office:value-type"] = "time"; const seconds = value.value * 86400, remainder = seconds % 60;
+                a["office:time-value"] = `PT0${durationComponent(Math.floor(seconds/3600))}H${String(Math.floor(seconds/60)%60).padStart(2,"0")}M${remainder < 10 ? "0" : ""}${durationComponent(remainder)}S`;
               } else { a["office:value-type"] = "float"; a["office:value"] = value.value; }
             }
             else if (value.kind === "boolean") { a["office:value-type"] = "boolean"; a["office:boolean-value"] = String(value.value); }

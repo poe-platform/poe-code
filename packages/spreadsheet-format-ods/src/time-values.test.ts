@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { createZipCodec } from "@poe-code/office-package";
 import { defaultSsconvertLimits, type CapabilityContext } from "@poe-code/spreadsheet-engine";
-import { readOdf } from "./odf.js";
+import { readOdf, createOdfWriter } from "./odf.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" }, limits: defaultSsconvertLimits };
@@ -22,6 +22,22 @@ async function timeCell(value: string, legacy: boolean) {
   }
   const bytes = await codec.writeZipArchive({ entries, comment: new Uint8Array() }, limits, context.signal);
   return (await readOdf(bytes, context)).sheets[0]!.cells[0]!.value;
+}
+
+for (const profile of ["strict", "extended"] as const) {
+  it.each([0.125 / 86400, 3723.5 / 86400, 90000.5 / 86400, 0.000000125 / 86400,
+    59.9999999 / 86400, 86399.9999999 / 86400, 0, 25 / 24, -0.125 / 86400,
+    1e-300, Number.MIN_VALUE, 1e300, 1e305])(
+    `preserves a styled time value of %s days in ${profile} ODS output`, async value => {
+      const bytes = await createOdfWriter(profile)({ sheets: [{ id: "Times", name: "Times", cells: [{
+        row: 0, column: 0, value: { kind: "number", value }, format: "[h]:mm:ss.000", displayedText: "time"
+      }] }] }, [], context);
+      const cell = (await readOdf(bytes, context)).sheets[0]!.cells[0]!.value;
+      expect(cell.kind).toBe("number");
+      if (cell.kind !== "number") throw new Error("Expected a numeric time");
+      if (value !== 0) expect(cell.value).not.toBe(0);
+      expect(Math.abs(cell.value - value)).toBeLessThanOrEqual(Math.max(Number.MIN_VALUE, Math.abs(value) * Number.EPSILON * 2));
+    });
 }
 
 for (const legacy of [false, true]) {

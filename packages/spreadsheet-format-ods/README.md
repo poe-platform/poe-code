@@ -7,7 +7,10 @@ import as numeric day fractions, including fractional seconds, negative duration
 durations longer than 24 hours and abbreviated forms such as `PT30M` or `P1DT2H`.
 Days, hours, minutes and seconds have fixed meanings; calendar years and months
 remain unsupported. Invalid duration text retains the cell's fallback text.
-This includes valid forms that Gnumeric 1.12.61 imports as text. Named formulas
+Styled time exports preserve fractional seconds. Values too large for finite
+duration components remain numeric cells.
+The time support includes valid forms that Gnumeric 1.12.61 imports as text
+and preserves fractions that its ODS writer rounds. Named formulas
 resolve base-sheet names without regard to case, including quoted names.
 
 ```ts

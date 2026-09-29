@@ -45,6 +45,16 @@ fn test_standalone_git_rust_cli_binary_on_host_fs() {
             .success()
     );
 
+    // Global configuration may choose a different hooks directory on the host.
+    assert!(
+        Command::new(bin)
+            .current_dir(&work)
+            .args(["config", "core.hooksPath", ".git/hooks"])
+            .status()
+            .unwrap()
+            .success()
+    );
+
     fs::write(work.join("hello.txt"), "hello from git-rust\n").unwrap();
     fs::write(
         work.join(".git/hooks/pre-commit"),

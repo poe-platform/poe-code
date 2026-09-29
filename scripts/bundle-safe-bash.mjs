@@ -1,3 +1,6 @@
+import { build } from "esbuild";
+import { privateExportStarsPlugin } from "./private-export-stars.mjs";
+import { privateRuntimeExportResolver } from "./private-runtime-exports.mjs";
 import path from "node:path";
 import { canonicalXml } from "../packages/package-lint/dist/bundle-policy.js";
 import * as fileSystem from "node:fs/promises";
@@ -116,7 +119,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
   for (const specifier of Object.keys(aliases)) {
     if (external.some(name => specifier === name || specifier.startsWith(name + "/"))) delete aliases[specifier];
   }
-  return {
+  const options = {
     absWorkingDir: rootDir,
     loader: { ".wasm": "copy" },
     entryPoints: {
@@ -182,6 +185,12 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
       },
     }],
   };
+  if (external.length) {
+    const recipe = { ...options, plugins: [...options.plugins] };
+    options.plugins.unshift(privateExportStarsPlugin(new Map(), fileSystem, path.join(directory, "src"),
+      privateRuntimeExportResolver(rootDir, external, fileSystem, recipe, build)));
+  }
+  return options;
 }
 
 export async function buildBrowserShellOutputs(rootDir, { alias = {}, external = [], files } = {}) {

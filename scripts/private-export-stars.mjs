@@ -32,11 +32,22 @@ export function rewritePrivateExportStars(filename, text, exports) {
   return text;
 }
 
-export function privateExportStarsPlugin(exports, files, sourceRoot) {
+export function privateExportStarsPlugin(exports, files, sourceRoot, resolveExports) {
   return { name: "private-export-stars", setup(builder) {
     builder.onLoad({ filter: /\.[cm]?[jt]s$/, namespace: "file" }, async args => {
-      if (!exports.size || sourceRoot && !args.path.startsWith(sourceRoot + path.sep)) return undefined;
+      if ((!exports.size && !resolveExports) || sourceRoot && !args.path.startsWith(sourceRoot + path.sep)) return undefined;
       const text = (await files.readFile(args.path)).toString();
+      if (resolveExports) {
+        const source = ts.createSourceFile(args.path, text, ts.ScriptTarget.Latest, true);
+        for (const statement of source.statements) {
+          if (!ts.isExportDeclaration(statement) || statement.exportClause || statement.isTypeOnly || !statement.moduleSpecifier || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
+          const specifier = statement.moduleSpecifier.text;
+          if (!exports.has(specifier)) {
+            const names = await resolveExports(specifier);
+            if (names !== undefined) exports.set(specifier, names);
+          }
+        }
+      }
       const contents = rewritePrivateExportStars(args.path, text, exports);
       return contents === text ? undefined : { contents, loader: args.path.endsWith(".ts") ? "ts" : "js" };
     });

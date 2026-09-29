@@ -4,6 +4,7 @@ import {
   createPdfinfoCommand as createRawPdfinfoCommand,
   createPdfinfoCommands as createRawPdfinfoCommands,
   inspectPdfBytes,
+  runPdffontsCliSync,
   type PdfinfoCommandOptions,
   type PdfinfoCommandsOptions,
 } from "safe-bash-command-pdfinfo";
@@ -67,6 +68,32 @@ export function evalSyncPdfinfo(
       opArgs,
       target === "-" ? { isStdin: true, fileSize: 0 } : { fileSize: pdfBytes.byteLength },
     );
+    if (res.exitCode !== 0 || res.stderr) return undefined;
+    return res.stdout;
+  } catch {
+    return undefined;
+  }
+}
+
+export function evalSyncPdffonts(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    const files = new Map<string, Uint8Array>();
+    if (inBytes !== undefined) files.set("-", inBytes);
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a === "-f" || a === "-l" || a === "-upw" || a === "-opw") {
+        i++;
+      } else if (!a.startsWith("-") && a !== "-") {
+        const b = readFileSync?.(a);
+        if (!b || b.byteLength > 262144) return undefined;
+        files.set(a, b);
+      }
+    }
+    const res = runPdffontsCliSync(opArgs, files);
     if (res.exitCode !== 0 || res.stderr) return undefined;
     return res.stdout;
   } catch {

@@ -1,3 +1,5 @@
+import { createQpdfCommands } from "../../src/commands/qpdf/index.js";
+import { createPdftkCommands } from "../../src/commands/pdftk/index.js";
 import { createPdfinfoCommands } from "../../src/commands/pdfinfo/index.js";
 import { createPdftotextCommands } from "../../src/commands/pdftotext/index.js";
 import { createExiftoolCommands } from "../../src/commands/exiftool/index.js";
@@ -1080,4 +1082,39 @@ test("Wave 148: sync pdfinfo, pdftotext, and exiftool substitutions and pipeline
   assert.equal(r2.stdout, "Hello from PDF page one\n\n\f");
   assert.equal(r3.stdout, "Test Doc");
   assert.ok(elapsed < 1500, `Expected < 1500ms for 3x150 iterations, took ${elapsed.toFixed(1)}ms`);
+});
+
+test("Wave 149: sync pdffonts, pdftohtml, qpdf, and pdftk substitutions and pipelines", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createPdfinfoCommands(),
+    ...createPdftotextCommands(),
+    ...createQpdfCommands(),
+    ...createPdftkCommands(),
+  ]) {
+    registry.register(cmd);
+  }
+  const shell = new Shell({ fs, commands: registry });
+
+  const doc = PdfDocument.create();
+  doc.setTitle("Test Doc");
+  doc.setAuthor("Alice");
+  const page = doc.addPage([612, 792]);
+  page.drawText("Hello from PDF page one", { x: 72, y: 700, size: 12 });
+  await fs.writeFile("/sample.pdf", doc.save());
+
+  const t0 = performance.now();
+  const r1 = await shell.exec('for i in $(seq 1 150); do out=$(pdffonts /sample.pdf); done; printf "%s" "$out"');
+  const r2 = await shell.exec('for i in $(seq 1 150); do out=$(pdftohtml -stdout /sample.pdf); done; printf "%s" "$out"');
+  const r3 = await shell.exec('for i in $(seq 1 150); do out=$(qpdf --show-npages /sample.pdf); done; printf "%s" "$out"');
+  const r4 = await shell.exec('for i in $(seq 1 150); do out=$(pdftk /sample.pdf dump_data); done; printf "%s" "$out"');
+  const elapsed = performance.now() - t0;
+
+  assert.match(r1.stdout, /Helvetica/);
+  assert.match(r2.stdout, /Hello from PDF page one/);
+  assert.equal(r3.stdout, "1");
+  assert.match(r4.stdout, /NumberOfPages: 1/);
+  assert.ok(elapsed < 1000, `Expected < 1000ms for 4x150 iterations, took ${elapsed.toFixed(1)}ms`);
 });

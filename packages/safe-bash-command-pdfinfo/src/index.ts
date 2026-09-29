@@ -2081,6 +2081,13 @@ export async function runPdffontsCli(
   argv: readonly string[],
   files: Map<string, Uint8Array>
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  return runPdffontsCliSync(argv, files);
+}
+
+export function runPdffontsCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): { exitCode: number; stdout: string; stderr: string } {
   let firstPage = 1;
   let lastPage = 0;
   let password = "";

@@ -1000,6 +1000,13 @@ export async function runPdftohtmlCli(
   argv: readonly string[],
   files: Map<string, Uint8Array>
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  return runPdftohtmlCliSync(argv, files);
+}
+
+export function runPdftohtmlCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): { exitCode: number; stdout: string; stderr: string } {
   let xmlMode = false;
   let toStdout = false;
   let ignoreImages = false;

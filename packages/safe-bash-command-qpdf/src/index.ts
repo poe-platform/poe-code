@@ -620,6 +620,14 @@ export async function runQpdfCli(
   files: Map<string, Uint8Array>,
   readStdin?: () => Promise<void>
 ): Promise<QpdfCliResult> {
+  if (readStdin && argv.includes("-")) await readStdin();
+  return runQpdfCliSync(argv, files);
+}
+
+export function runQpdfCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): QpdfCliResult {
   let check = false;
   let showNpages = false;
   let showPages = false;
@@ -989,7 +997,7 @@ export async function runQpdfCli(
   const inputFile = emptyInput ? undefined : positional[0];
   const outputFile = emptyInput ? positional[0] : positional[1];
 
-  if (inputFile === "-" && readStdin) await readStdin();
+  // stdin populated by caller
 
   const loadBytes = (filePath: string): Uint8Array | undefined => {
     if (filePath === "." && inputFile) return files.get(inputFile);

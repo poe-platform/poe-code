@@ -1492,6 +1492,13 @@ export async function runPdftkCli(
   argv: readonly string[],
   files: Map<string, Uint8Array>
 ): Promise<PdftkCliResult> {
+  return runPdftkCliSync(argv, files);
+}
+
+export function runPdftkCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): PdftkCliResult {
   if (argv.length === 0 || argv.includes("--help") || argv.includes("-h")) {
     return {
       exitCode: 0,

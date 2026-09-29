@@ -4,6 +4,7 @@ import {
   createPdftotextCommand as createRawPdftotextCommand,
   createPdftotextCommands as createRawPdftotextCommands,
   extractPdfToTextBytes,
+  runPdftohtmlCliSync,
   type PdftotextCommandOptions,
   type PdftotextCommandsOptions,
 } from "safe-bash-command-pdftotext";
@@ -78,6 +79,38 @@ export function evalSyncPdftotext(
     const res = extractPdfToTextBytes(pdfBytes, opArgs);
     if (res.exitCode !== 0 || res.stderr || res.outputPath !== "-") return undefined;
     return res.output;
+  } catch {
+    return undefined;
+  }
+}
+
+export function evalSyncPdftohtml(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    const files = new Map<string, Uint8Array>();
+    if (inBytes !== undefined) files.set("-", inBytes);
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (["-f", "-l", "-zoom", "-fmt", "-enc", "-upw", "-opw"].includes(a)) {
+        i++;
+      } else if (!a.startsWith("-") && a !== "-") {
+        const b = readFileSync?.(a);
+        if (b) {
+          if (b.byteLength > 262144) return undefined;
+          files.set(a, b);
+        }
+      }
+    }
+    const snap = new Map(files);
+    const res = runPdftohtmlCliSync(opArgs, files);
+    if (res.exitCode !== 0 || res.stderr) return undefined;
+    for (const [k, v] of files.entries()) {
+      if (snap.get(k) !== v) return undefined;
+    }
+    return res.stdout;
   } catch {
     return undefined;
   }

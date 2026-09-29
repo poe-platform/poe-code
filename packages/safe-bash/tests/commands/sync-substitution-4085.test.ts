@@ -1370,12 +1370,17 @@ test("timeout sync evaluator admits parsed durations and defers options requirin
 test("timeout sync substitutions preserve child diagnostics and echo options", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createTimeoutCommands()]) });
   try {
-    for (const args of ["-s invalid 5 echo ready", "--signal=invalid 5 echo ready", "-k invalid 5 echo ready", "--kill-after=invalid 5 echo ready", "5 echo -n -n ready"]) {
+    for (const args of ["0 echo ready", "-s invalid 5 echo ready", "--signal=invalid 5 echo ready", "-k invalid 5 echo ready", "--kill-after=invalid 5 echo ready", "5 echo -n -n ready"]) {
       const direct = await shell.exec(`timeout ${args}`);
+      if (args === "0 echo ready") {
+        assert.equal(direct.exitCode, 0);
+        assert.equal(direct.stderr, "");
+        assert.equal(direct.stdout, "ready\n");
+      }
       const substitution = await shell.exec(`value="$(timeout ${args})"; status=$?; printf '%s' "$value"; exit "$status"`);
       assert.equal(substitution.exitCode, direct.exitCode, args);
       assert.equal(substitution.stderr, direct.stderr, args);
-      assert.equal(substitution.stdout, direct.stdout, args);
+      assert.equal(substitution.stdout, direct.stdout.replace(/\n+$/u, ""), args);
     }
   } finally {
     await shell.dispose();

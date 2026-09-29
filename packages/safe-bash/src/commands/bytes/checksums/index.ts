@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { yieldTurn } from "../../../contracts/yield.js";
 import { SM3 } from "./sm3.js";
 import { blake2b } from "@noble/hashes/blake2.js";
@@ -398,7 +397,7 @@ export function evalSyncChecksum(name: string, inBytes: Uint8Array, opArgs: read
     operands.push(a);
   }
   if (operands.length > 1 || (operands.length === 1 && operands[0] !== "-")) return undefined;
-  const hex = createHash(alg).update(inBytes).digest("hex");
+  const hex = bytesToHex(hashes[alg](inBytes));
   if (tag) return `${alg.toUpperCase()} (-) = ${hex}\n`;
   return `${hex} ${binary ? "*" : " "}-\n`;
 }

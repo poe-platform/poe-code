@@ -2,6 +2,7 @@ import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { ImportedValue, RichTextRun } from "../workbook.js";
 import { parseXmlSteps } from "@poe-code/safe-fs/xml";
 import { encodeXlsxString } from "./xlsx-strings.js";
+import { richTextSegments } from "./rich-text-runs.js";
 
 export type Attributes = Readonly<Record<string, string | number | undefined>>;
 export type ElementWriter = (name: string, attributes?: Attributes, content?: string) => string;
@@ -103,33 +104,12 @@ const richUnderlines: Readonly<Record<string, string>> = {
 
 export function writeRichString(value: string, runs: readonly RichTextRun[] | undefined, xml: ElementWriter, charge?: (amount?: number) => void,
   target: "cell" | "comment" = "cell"): string {
-  charge?.(value.length);
   const t = (text: string) => xml("t", text.trim() !== text ? { "xml:space": "preserve" } : {}, escapeXlsx(encodeXlsxString(text)));
-  if (!runs?.length) return t(value);
-  charge?.(runs.length);
-  const length = new TextEncoder().encode(value).length;
-  const points = [...new Set([0, length, ...runs.flatMap(run => [run.start, run.end])])].sort((a, b) => a - b);
-  // Offsets use UTF-8 byte lengths, but the original string owns its UTF-16
-  // units. Decoding byte slices strips BOMs and replaces isolated surrogates.
-  let byteOffset = 0, characterOffset = 0;
-  const characters = points.map(point => {
-    while (byteOffset < point && characterOffset < value.length) {
-      const code = value.codePointAt(characterOffset)!;
-      byteOffset += code < 128 ? 1 : code < 2048 ? 2 : code < 65536 ? 3 : 4;
-      characterOffset += code > 65535 ? 2 : 1;
-    }
-    if (byteOffset !== point) throw new SsconvertError("invalid-request", "Invalid rich text UTF-8 boundary");
-    return characterOffset;
-  });
+  if (!runs?.length) { charge?.(value.length); return t(value); }
   // Calc's XText comment path applies the first portion to the whole shape.
   // Keep it empty so every visible portion receives its own range formatting.
   let result = target === "comment" ? xml("r", {}, t("")) : "";
-  for (let i = 0; i + 1 < points.length; i++) {
-    charge?.(runs.length);
-    const start = points[i]!, end = points[i + 1]!; const attrs: Record<string, ImportedValue> = {};
-    for (const run of runs) if (run.start <= start && run.end >= end) {
-      charge?.(Object.keys(run.attributes).length); Object.assign(attrs, run.attributes);
-    }
+  for (const { text, attributes: attrs } of richTextSegments(value, runs, charge)) {
     let properties = "";
     for (const [key, name] of [["bold", "b"], ["italic", "i"], ["strikethrough", "strike"]] as const)
       if (attrs[key] !== undefined) properties += xml(name, { val: Number(attrs[key]) ? 1 : 0 });
@@ -142,7 +122,7 @@ export function writeRichString(value: string, runs: readonly RichTextRun[] | un
     if (attrs.subscript || attrs.superscript) properties += xml("vertAlign", { val: attrs.subscript ? "subscript" : "superscript" });
     // An empty rPr creates the default font in Calc instead of inheriting the
     // preceding comment portion. It adds no attributes to our canonical spans.
-    result += xml("r", {}, (properties || target === "comment" ? xml("rPr", {}, properties) : "") + t(value.slice(characters[i], characters[i + 1])));
+    result += xml("r", {}, (properties || target === "comment" ? xml("rPr", {}, properties) : "") + t(text));
   }
   return result;
 }

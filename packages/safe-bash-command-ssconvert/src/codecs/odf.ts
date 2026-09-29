@@ -27,6 +27,7 @@ import { odfWriterFunctionNames } from "./odf-function-names.js";
 import { writeOdfRegion } from "./odf-write-regions.js";
 import type { FormulaNode } from "../formulas/ast.js";
 import { serialDate } from "../formulas/functions/dates.js";
+import { createOdfTextReader, writeOdfRichText } from "./odf-rich-text.js";
 
 const urn = "urn:oasis:names:tc:opendocument:xmlns:";
 const namespaces: Readonly<Record<string, readonly string[]>> = {
@@ -335,6 +336,7 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
     const dateSystem = attr(children(calculation, "null-date")[0], "date-value")?.startsWith("1904") ? "1904" : "1900";
     const unsupportedRecords: UnsupportedRecord[] = [];
     const styles = readStyles(styleRoots, pkg.charge);
+    const readText = createOdfTextReader(styleRoots, pkg.charge);
     for (const r of styleRoots) for (const node of r.children) if (["styles", "automatic-styles", "master-styles", "font-face-decls", "font-decls"].includes(node.localName))
       unsupportedRecords.push(record(node, { packagePart: r === preparseRoot ? "content.xml" : "styles.xml" }));
     if (manifest) unsupportedRecords.push(record(manifest));
@@ -461,9 +463,14 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
             if (width > 1 || height > 1) { merges.push({ startRow: row, startColumn: cellColumn, endRow: row + height - 1, endColumn: cellColumn + width - 1 }); maxRow = Math.max(maxRow, row + height); maxColumn = Math.max(maxColumn, cellColumn + width); }
             const arrayWidth = integer(attr(c, "number-matrix-columns-spanned"), 0), arrayHeight = integer(attr(c, "number-matrix-rows-spanned"), 0);
             const validation = attr(c, "content-validation-name");
+            const rich = value?.kind === "string" ? readText(c) : undefined;
+            const richText = value?.kind === "string" && rich?.value === value.value ? rich.richText : undefined;
             for (const child of c.children) if (child.namespace !== text[0] && child.namespace !== text[1] || child.localName !== "p") retain(child, { row, column: cellColumn });
-            for (const paragraph of children(c, "p", text)) if (children(paragraph, "a", text).length || children(paragraph, "span", text).length)
-              retain(paragraph, { row, column: cellColumn, rows: count, columns: repeat, sourceText: paragraphs(c, pkg.charge) ?? "" });
+            const sourceParagraphs = children(c, "p", text);
+            if (sourceParagraphs.some(p => p.children.length || p.attributes.some(a => a.namespace !== "http://www.w3.org/2000/xmlns/")))
+              for (const paragraph of sourceParagraphs) retain(paragraph, {
+                row, column: cellColumn, rows: count, columns: repeat, sourceText: rich?.value ?? paragraphs(c, pkg.charge) ?? "",
+                sourceRichText: (richText ?? []).map(run => ({ start: run.start, end: run.end, attributes: run.attributes })) });
             if (validation) retain(c, { row, column: cellColumn, rows: count, columns: repeat, validation });
             if (value || expression) {
               const total = count * repeat;
@@ -477,6 +484,7 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
                 cells.push({ row: row + r, column: cellColumn + col, value: value ?? { kind: "blank" },
                   ...(first && expression ? { formula: expression, formulaDirty: true,
                     ...(value === undefined ? {} : { cachedResult: value }) } : {}),
+                  ...(richText?.length ? { richText } : {}),
                   ...(repeatedStyle?.format ? { format: repeatedStyle.format } : {}), ...(repeatedStyle ? { style: repeatedStyle.style } : {}) });
               }
               maxRow = Math.max(maxRow, row + count); maxColumn = Math.max(maxColumn, cellColumn + repeat);
@@ -788,7 +796,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
         if (++count > context.limits.cells) limit("cells");
         addresses.set(`${cell.row}:${cell.column}`, cell);
       }
-      const annotations = new Map<string,string>(), passive = new Map<string,string>(), originalParagraphs = new Map<string,{ text: string; xml: string; range: Range }>();
+      const annotations = new Map<string,string>(), passive = new Map<string,string>(), originalParagraphs = new Map<string,{ text: string; richText: ImportedValue; xml: string; range: Range }>();
       const cellMetadata: { range: Range; style?: string | undefined; validation?: string | undefined; link?: OdfAttributes | undefined }[] = [];
       const links = new Map<string,OdfAttributes>();
       for (const record of sheet.unsupportedRecords ?? []) {
@@ -806,7 +814,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
           } else if (record.kind === "p" && typeof v.sourceText === "string") {
             const rows = typeof v.rows === "number" ? v.rows : 1, columns = typeof v.columns === "number" ? v.columns : 1;
             const r = { startRow: v.row, startColumn: v.column, endRow: v.row + rows - 1, endColumn: v.column + columns - 1 }; range(r);
-            const previous = originalParagraphs.get(key); originalParagraphs.set(key,{ text: v.sourceText,
+            const previous = originalParagraphs.get(key); originalParagraphs.set(key,{ text: v.sourceText, richText: v.sourceRichText ?? [],
               xml: (previous?.xml ?? "") + xml.retained(node, 0, href => translateOdfHyperlink(href, "normalize", xml.charge, sheetNames)), range: r });
           } else {
             passive.set(key,(passive.get(key) ?? "") + xml.retained(node));
@@ -951,8 +959,15 @@ export function createOdfWriter(profile: "strict" | "extended") {
               [...originalParagraphs.values()].find(p => row >= p.range.startRow && row <= p.range.endRow && start >= p.range.startColumn && start <= p.range.endColumn);
             const link = meta?.link ?? links.get(key);
             // Calc's URL field collects character data, ignoring whitespace child elements.
-            const rendered = link ? xml.escape(renderedText) : xml.text(renderedText);
-            content += paragraph?.text === renderedText ? paragraph.xml : e("text:p", {}, link ? e("text:a", link, rendered) : rendered);
+            const richText = value.kind === "string" && renderedText === value.value ? cell.richText : undefined;
+            const originalRich = JSON.stringify(paragraph?.richText ?? []), currentRich = JSON.stringify(richText ?? []);
+            xml.charge(originalRich.length + currentRich.length);
+            if (paragraph?.text === renderedText && originalRich === currentRich) content += paragraph.xml;
+            else {
+              const rendered = richText?.length ? writeOdfRichText(renderedText, richText, xml, definitions, extended, link)
+                : link ? e("text:a", link, xml.escape(renderedText)) : xml.text(renderedText);
+              content += e("text:p", {}, rendered);
+            }
           }
           const next = !cell && !merge && meta ? Math.min(meta.range.endColumn + 1, stops.find(s => s > start) ?? meta.range.endColumn + 1) : start + 1;
           if (next - start > 1) a["table:number-columns-repeated"] = next - start;
@@ -988,7 +1003,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
     if (wrapped) context.own(() => { for (const bytes of parts.values()) bytes.fill(0); });
     function part(name: string, value: string) { parts.set(name, encoder.encode(value)); }
     part("mimetype", "application/vnd.oasis.opendocument.spreadsheet");
-    part("content.xml", xml.document("office:document-content", e("office:scripts") + e("office:font-face-decls") + e("office:automatic-styles", {}, definitions.render("contentAutomatic") + automatic + cellStyles.styles.join("")) + e("office:body", {}, e("office:spreadsheet", {}, spreadsheet))));
+    part("content.xml", xml.document("office:document-content", e("office:scripts") + e("office:font-face-decls", {}, definitions.render("fonts")) + e("office:automatic-styles", {}, definitions.render("contentAutomatic") + automatic + cellStyles.styles.join("")) + e("office:body", {}, e("office:spreadsheet", {}, spreadsheet))));
     part("styles.xml", xml.document("office:document-styles", e("office:font-face-decls", {}, definitions.render("fonts")) + e("office:styles", {}, definitions.render("styles")) + e("office:automatic-styles", {}, definitions.render("stylesAutomatic")) + e("office:master-styles", {}, definitions.render("masters"))));
     part("meta.xml", xml.document("office:document-meta", e("office:meta", {}, e("meta:generator", {}, "Gnumeric/1.12.61"))));
     part("settings.xml", xml.document("office:document-settings", e("office:settings", {}, e("config:config-item-set", { "config:name": "gnm:settings" },

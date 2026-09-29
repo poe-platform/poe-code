@@ -74,7 +74,7 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
       throw new SsconvertError("resource-limit", "ssconvert OpenDocument output bytes limit exceeded");
     return result;
   }
-  function text(value: string): string {
+  function text(value: string, inlineControls = false): string {
     charge(value.length); let result = "", plain = "";
     function flush() { result += escape(plain); plain = ""; }
     for (let i = 0; i < value.length; i++) {
@@ -82,7 +82,7 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
       if (c === " ") {
         flush(); let count = 1; while (value[i + 1] === " ") { i++; count++; }
         result += element("text:s", count > 1 ? { "text:c": count } : {});
-      } else if (c === "\t" || c === "\n") { flush(); result += element(c === "\t" ? "text:tab" : "text:line-break"); }
+      } else if (c === "\t" || c === "\n") { flush(); result += inlineControls ? escape(c) : element(c === "\t" ? "text:tab" : "text:line-break"); }
       else plain += c;
     }
     flush(); return result;

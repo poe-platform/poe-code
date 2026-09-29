@@ -23355,7 +23355,7 @@ export class Runtime {
     if (genSelM) {
       const condVals = this.evalSyncJqPathOps(item, genSelM[1]!);
       if (!condVals) return undefined;
-      return condVals.some(v => v !== null && v !== undefined && v !== false) ? [item] : [];
+      return condVals.filter(v => v !== null && v !== undefined && v !== false).map(() => item);
     }
     const delGenM = /^del\(\s*(.+)\s*\)$/.exec(st);
     if (delGenM && item && typeof item === "object") {
@@ -23375,6 +23375,8 @@ export class Runtime {
               const subClone = { ...(clone[k1] as Record<string, unknown>) };
               delete subClone[k2];
               clone[k1] = subClone;
+            } else if (clone[k1] !== null && clone[k1] !== undefined) {
+              return undefined;
             }
           }
           if (okDel) return [clone];
@@ -26646,7 +26648,7 @@ export class Runtime {
     const formatJoin = (key: string, r1: readonly string[] | undefined, r2: readonly string[] | undefined): string => {
       if (outSpec) {
         return outSpec.map(s => {
-          if (s.file === 0) return key;
+          if (s.file === 0) return key === "" ? emptyRep : key;
           const src = s.file === 1 ? r1 : r2;
           const val = src ? src[s.idx] : undefined;
           return val !== undefined && val !== "" ? val : emptyRep;
@@ -26869,7 +26871,7 @@ export class Runtime {
         }
       }
       if (sepChars || l.length > start) row.push(l.slice(start));
-      if (row.length === 0 && !emptyLines) continue;
+      if (row.length === 0) continue;
       if (row.length > maxCols) maxCols = row.length;
       rows.push(row);
     }

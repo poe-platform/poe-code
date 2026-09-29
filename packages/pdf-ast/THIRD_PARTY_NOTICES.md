@@ -229,6 +229,16 @@ headers and local contour assembly; it is not the full upstream generator.
 
 Source: https://github.com/chromium/pdfium/blob/a84323421e94f484faca52dd9d027934eba42ab8/third_party/agg23/agg_math_stroke.h
 
+Stroke preparation in `src/render/raster.ts` adapts PDF.js
+`CanvasGraphics.getScaleForStroking` and `rescaleAndStroke` from
+`src/display/canvas.js` at revision `91041fb94d6744bc2a5bccd9aad28d617faa8195`
+(Mozilla Foundation, Apache-2.0). It preserves paint-time user coordinates for
+width/dashes, applies the per-axis minimum device thickness, and uses PDF.js's
+larger-factor dash correction when the minimum rescales the axes differently.
+The TypeScript adaptation uses arrays rather than Canvas/DOMMatrix objects,
+shares preparation between bitmap and SVG, and suppresses singular strokes.
+Tests compare independent PDF.js pixels, including identical embedded CFF text.
+
 
 # SVG labels
 

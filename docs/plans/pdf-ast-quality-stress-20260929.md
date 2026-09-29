@@ -210,6 +210,27 @@ verification, atomic delivery, and publication monitoring.
 
 ## Completion evidence to collect
 
+- #4729: nine initial failures reproduced nonuniform stroke widths, shear,
+  dash timing and save/reopen output. Evaluated paths now retain a strokeMatrix
+  and user-coordinate width/dashes while path segments remain page coordinates.
+  Both renderers invert that transform for stroking; legacy paths without the
+  matrix remain supported. Two further failures drove minimum device thickness
+  and singular SVG suppression, using PDF.js getScaleForStroking/rescaleAndStroke.
+  Another regression preserves thinLineMode opacity for magnified strokes.
+  Sixteen cases cover these behaviors plus Form clipping and the exact embedded
+  Foxit CFF program; all 704 PDF tests, 120 consumers, lint/typecheck and selected
+  build pass. Nineteen synthetic comparisons verify bitmap and SVG: unequal
+  axes, reflection, dash timing/phase and fill+stroke now match PDF.js exactly;
+  shear/curves/caps have mean RGB error below 0.039/255. Tiny-axis strokes improve
+  from 2.342 to 0.00129/255 in bitmap. Embedded stroked text improves from 2.055 to
+  0.0891/255 (SVG 0.0755); the unembedded-font comparison uses different substitute
+  fonts and is not an exact-shape oracle. Six real files are unchanged except
+  0.000039/255 antialiasing variation in issue17069. Inspected
+  stroke-transform-comparison-final-{0,1}.png and stroke-transform-corpus-comparison.png.
+  Evidence: stroke-transforms-{red,all-tests-final,lint-final,build-final,
+  consumers-vitest,consumers-node}.log, stroke-transform-thin-{red,green}.log,
+  stroke-transform-thin-opacity-red.log, stroke-transform-errors.json.
+
 - #4627: twelve initial failures reproduced missing bitmap joins/miter limits,
   dash discontinuity and repeated alpha at segment overlaps. Ported PDFium AGG
   cap/join/arc math and contour traversal; the existing nonzero scanline filler

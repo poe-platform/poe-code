@@ -928,11 +928,12 @@ interface Edge {
   y1: number;
 }
 
-function segmentsToScreenPaths(segments: readonly PdfPathSegment[], pageHeight: number, scale: number): StrokeSubpath[] {
+function segmentsToScreenPaths(segments: readonly PdfPathSegment[], pageHeight: number, scale: number,
+  toScreen = (x: number, y: number): StrokePoint => [x * scale, (pageHeight - y) * scale]
+): StrokeSubpath[] {
   const paths: StrokeSubpath[] = [];
   let points: StrokePoint[] = [];
   let current: StrokePoint = [0, 0];
-  const toScreen = (x: number, y: number): StrokePoint => [x * scale, (pageHeight - y) * scale];
   for (const segment of segments) {
     if (segment.kind === "move") {
       if (points.length) paths.push({ points, closed: false });
@@ -966,6 +967,67 @@ function segmentsToScreenPaths(segments: readonly PdfPathSegment[], pageHeight: 
   }
   if (points.length) paths.push({ points, closed: false });
   return paths;
+}
+
+function inverseStrokeMatrix(matrix: NonNullable<PdfEvaluatedPath["strokeMatrix"]>): number[] | undefined {
+  const [a, b, c, d, e, f] = matrix;
+  const det = a * d - b * c;
+  if (!Number.isFinite(det) || det === 0) return undefined;
+  return [d / det, -b / det, -c / det, a / det, (c * f - d * e) / det, (b * e - a * f) / det];
+}
+
+// Adapted from PDF.js CanvasGraphics.getScaleForStroking/rescaleAndStroke.
+// See THIRD_PARTY_NOTICES.md (Mozilla Foundation, Apache-2.0).
+function prepareStroke(path: PdfEvaluatedPath, scale: number) {
+  const matrix: [number, number, number, number, number, number] = path.strokeMatrix
+    ? [...path.strokeMatrix] : [1, 0, 0, 1, 0, 0];
+  const [a, b, c, d] = matrix;
+  const area = Math.abs(a * d - b * c) * scale * scale;
+  if (!(area > 0) || !Number.isFinite(area)) return undefined;
+  const normX = Math.hypot(a, b) * scale, normY = Math.hypot(c, d) * scale;
+  let width = path.strokeWidth || 1;
+  const scaleX = path.strokeWidth === 0 ? normY / area : Math.max(1, normY / (width * area));
+  const scaleY = path.strokeWidth === 0 ? normX / area : Math.max(1, normX / (width * area));
+  let dashArray = path.dashArray, dashPhase = path.dashPhase ?? 0;
+  if (scaleX === scaleY) {
+    width *= scaleX;
+  } else {
+    matrix[0] *= scaleX;
+    matrix[1] *= scaleX;
+    matrix[2] *= scaleY;
+    matrix[3] *= scaleY;
+    if (dashArray?.length) {
+      // PDF.js uses the larger correction when minimum thickness changes the
+      // two axes differently. This also covers transformed zero-width lines.
+      const dashScale = Math.max(scaleX, scaleY);
+      dashArray = dashArray.map(value => value / dashScale);
+      dashPhase /= dashScale;
+    }
+  }
+  return { matrix, width, dashArray, dashPhase };
+}
+
+function strokeEdges(path: PdfEvaluatedPath, pageHeight: number, scale: number): Edge[] {
+  const stroke = prepareStroke(path, scale);
+  if (!stroke) return [];
+  const inverse = inverseStrokeMatrix(stroke.matrix);
+  if (!inverse) return [];
+  const [a, b, c, d, e, f] = stroke.matrix;
+  // The Frobenius norm bounds the largest device stretch, retaining AGG's
+  // device-pixel flatness for curves and round caps even under shear.
+  const strokeScale = scale * Math.hypot(a, b, c, d);
+  const project = (x: number, y: number): StrokePoint => [
+    (inverse[0]! * x + inverse[2]! * y + inverse[4]!) * strokeScale,
+    (inverse[1]! * x + inverse[3]! * y + inverse[5]!) * strokeScale,
+  ];
+  const toScreen = ([x, y]: StrokePoint): StrokePoint => [
+    (a * x / strokeScale + c * y / strokeScale + e) * scale,
+    (pageHeight - b * x / strokeScale - d * y / strokeScale - f) * scale,
+  ];
+  const contours = strokeOutlines(segmentsToScreenPaths(path.segments, pageHeight, scale, project),
+    stroke.width * strokeScale, path.lineCap ?? 0, path.lineJoin ?? 0, path.miterLimit ?? 10,
+    stroke.dashArray?.map(value => Math.max(0, value * strokeScale)), stroke.dashPhase * strokeScale);
+  return pathsToEdges(contours.map(points => ({ points: points.map(toScreen), closed: true })));
 }
 
 function pathsToEdges(paths: readonly StrokeSubpath[], closeSubpaths = false): Edge[] {
@@ -1226,14 +1288,10 @@ export function renderDisplayListToBitmap(
         fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask);
       }
       if (path.strokeColor) {
-        const rawSw = path.strokeWidth * scale;
-        const sw = Math.max(1, rawSw);
+        const rawSw = path.strokeWidth * scale * (path.strokeMatrix ? Math.hypot(path.strokeMatrix[0], path.strokeMatrix[1]) : 1);
         const strokeAlpha = options.thinLineMode === "shape" && rawSw < 1
           ? (path.strokeAlpha ?? 1) * Math.max(0.25, rawSw) : path.strokeAlpha ?? 1;
-        const contours = strokeOutlines(segmentsToScreenPaths(path.segments, displayList.height, scale),
-          sw, path.lineCap ?? 0, path.lineJoin ?? 0, path.miterLimit ?? 10,
-          path.dashArray?.map(value => Math.max(0, value * scale)), (path.dashPhase ?? 0) * scale);
-        const edges = pathsToEdges(contours.map(points => ({ points, closed: true })));
+        const edges = strokeEdges(path, displayList.height, scale);
         const clipScreen: [number, number, number, number] | undefined = path.clipRect
           ? [path.clipRect[0] * scale, (displayList.height - path.clipRect[3]) * scale, path.clipRect[2] * scale, (displayList.height - path.clipRect[1]) * scale] : undefined;
         fillEdgesScanline4x4(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
@@ -1390,17 +1448,21 @@ function svgImage(image: PdfEvaluatedImage, pageHeight: number): string {
   return `<image width="1" height="1" preserveAspectRatio="none" transform="matrix(${a} ${-b} ${-c} ${d} ${e + c} ${pageHeight - f - d})" href="data:image/png;base64,${btoa(chunks.join(""))}"/>`;
 }
 
-function svgPathData(segments: readonly PdfPathSegment[], height: number): string {
+function svgPathData(segments: readonly PdfPathSegment[], height: number, matrix?: readonly number[]): string {
   const dParts: string[] = [];
+  const point = (x: number, y: number) => matrix
+    ? `${matrix[0]! * x + matrix[2]! * y + matrix[4]!} ${height - matrix[1]! * x - matrix[3]! * y - matrix[5]!}`
+    : `${x} ${height - y}`;
   for (const seg of segments) {
     if (seg.kind === "move") {
-      dParts.push(`M ${seg.x} ${height - seg.y}`);
+      dParts.push(`M ${point(seg.x, seg.y)}`);
     } else if (seg.kind === "line") {
-      dParts.push(`L ${seg.x} ${height - seg.y}`);
+      dParts.push(`L ${point(seg.x, seg.y)}`);
     } else if (seg.kind === "cubic") {
-      dParts.push(`C ${seg.x1} ${height - seg.y1} ${seg.x2} ${height - seg.y2} ${seg.x} ${height - seg.y}`);
+      dParts.push(`C ${point(seg.x1, seg.y1)} ${point(seg.x2, seg.y2)} ${point(seg.x, seg.y)}`);
     } else if (seg.kind === "rect") {
-      dParts.push(`M ${seg.x} ${height - seg.y} h ${seg.width} v ${-seg.height} h ${-seg.width} Z`);
+      if (matrix) dParts.push(`M ${point(seg.x, seg.y)} L ${point(seg.x + seg.width, seg.y)} L ${point(seg.x + seg.width, seg.y + seg.height)} L ${point(seg.x, seg.y + seg.height)} Z`);
+      else dParts.push(`M ${seg.x} ${height - seg.y} h ${seg.width} v ${-seg.height} h ${-seg.width} Z`);
     } else if (seg.kind === "close") {
       dParts.push("Z");
     }
@@ -1494,31 +1556,37 @@ export function renderDisplayListToSvg(
         parts.push("</g>");
       } else if (operation.kind === "path") {
         const p = operation.value;
-        const pathData = svgPathData(p.segments, displayList.height);
+        const prepared = p.strokeColor ? prepareStroke(p, Math.max(scaleX, scaleY)) : undefined;
+        const matrix = prepared && (prepared.matrix[0] !== 1 || prepared.matrix[1] !== 0 || prepared.matrix[2] !== 0 || prepared.matrix[3] !== 1)
+          ? prepared.matrix : undefined;
+        const inverse = matrix ? inverseStrokeMatrix(matrix) : undefined;
+        const pathData = svgPathData(p.segments, inverse ? 0 : displayList.height, inverse);
+        const transformAttr = inverse && matrix
+          ? ` transform="matrix(${matrix[0]} ${-matrix[1]} ${-matrix[2]} ${matrix[3]} ${matrix[4]} ${displayList.height - matrix[5]})"` : "";
         if (pathData) {
           const fill = p.fillColor
             ? `rgb(${Math.round(p.fillColor.r * 255)},${Math.round(p.fillColor.g * 255)},${Math.round(p.fillColor.b * 255)})`
             : "none";
-          const stroke = p.strokeColor
+          const stroke = p.strokeColor && prepared
             ? `rgb(${Math.round(p.strokeColor.r * 255)},${Math.round(p.strokeColor.g * 255)},${Math.round(p.strokeColor.b * 255)})`
             : "none";
           const fillRuleAttr = p.fillRule === "evenodd" ? ` fill-rule="evenodd"` : "";
           const fillOpacityAttr = p.fillAlpha !== undefined && p.fillAlpha < 1 ? ` fill-opacity="${p.fillAlpha}"` : "";
           const strokeOpacityAttr = p.strokeAlpha !== undefined && p.strokeAlpha < 1 ? ` stroke-opacity="${p.strokeAlpha}"` : "";
           const strokeWidthAttr =
-            p.strokeWidth <= 0
+            p.strokeWidth <= 0 && !matrix && !p.dashArray?.length
               ? ` stroke-width="1" vector-effect="non-scaling-stroke"`
-              : ` stroke-width="${p.strokeWidth}"`;
+              : ` stroke-width="${prepared?.width ?? p.strokeWidth}"`;
           const lineCapAttr =
             p.lineCap === 1 ? ` stroke-linecap="round"` : p.lineCap === 2 ? ` stroke-linecap="square"` : "";
           const lineJoinAttr =
             p.lineJoin === 1 ? ` stroke-linejoin="round"` : p.lineJoin === 2 ? ` stroke-linejoin="bevel"` : "";
           const miterLimitAttr =
             p.miterLimit !== undefined && p.miterLimit !== 10 ? ` stroke-miterlimit="${p.miterLimit}"` : "";
-          const dashArrayAttr = p.dashArray && p.dashArray.length > 0 ? ` stroke-dasharray="${p.dashArray.join(" ")}"` : "";
-          const dashOffsetAttr = p.dashPhase ? ` stroke-dashoffset="${p.dashPhase}"` : "";
+          const dashArrayAttr = prepared?.dashArray?.length ? ` stroke-dasharray="${prepared.dashArray.join(" ")}"` : "";
+          const dashOffsetAttr = prepared?.dashPhase ? ` stroke-dashoffset="${prepared.dashPhase}"` : "";
           const labelAttr = original.kind === "glyph" ? ` aria-label="${escapeXmlText(original.value.unicode)}"` : "";
-          parts.push(`  <path${labelAttr} d="${pathData}" fill="${fill}"${fillRuleAttr}${fillOpacityAttr} stroke="${stroke}"${strokeOpacityAttr}${strokeWidthAttr}${lineCapAttr}${lineJoinAttr}${miterLimitAttr}${dashArrayAttr}${dashOffsetAttr}/>`);
+          parts.push(`  <path${labelAttr}${transformAttr} d="${pathData}" fill="${fill}"${fillRuleAttr}${fillOpacityAttr} stroke="${stroke}"${strokeOpacityAttr}${strokeWidthAttr}${lineCapAttr}${lineJoinAttr}${miterLimitAttr}${dashArrayAttr}${dashOffsetAttr}/>`);
         }
       } else if (operation.kind === "image") {
         parts.push(`  ${svgImage(operation.value, displayList.height)}`);

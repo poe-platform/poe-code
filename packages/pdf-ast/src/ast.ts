@@ -230,6 +230,8 @@ export interface PdfEvaluatedPath {
   readonly fillColor?: PdfRgbColor | undefined;
   readonly fillAlpha?: number | undefined;
   readonly strokeWidth: number;
+  /** Paint-time user-to-page transform for stroke width/dashes; segments remain in page coordinates. */
+  readonly strokeMatrix?: readonly [number, number, number, number, number, number] | undefined;
   readonly lineCap?: 0 | 1 | 2 | undefined;
   readonly lineJoin?: 0 | 1 | 2 | undefined;
   readonly miterLimit?: number | undefined;

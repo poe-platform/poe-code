@@ -1540,13 +1540,12 @@ export function evaluateContentStreamToDisplayList(params: {
     } else if (operator === "d") {
       const arrNode = ops[0]?.kind === "array" ? ops[0] : undefined;
       if (arrNode) {
-        const ctmScale = Math.max(1e-6, Math.hypot(st.ctm[0], st.ctm[1]));
         const nums = arrNode.items
-          .map((it) => (it.kind === "number" ? it.value * ctmScale : 0))
+          .map((it) => (it.kind === "number" ? it.value : 0))
           .filter((v) => v >= 0);
         const sum = nums.reduce((a, b) => a + b, 0);
         st.dashArray = sum > 0 ? nums : undefined;
-        st.dashPhase = num(1, 0) * ctmScale;
+        st.dashPhase = num(1, 0);
       } else {
         st.dashArray = undefined;
         st.dashPhase = undefined;
@@ -2134,15 +2133,14 @@ export function evaluateContentStreamToDisplayList(params: {
             break;
           }
           const fillRule = node.paint.includes("*") ? "evenodd" : "nonzero";
-          const ctmScale = Math.max(1e-6, Math.hypot(st.ctm[0], st.ctm[1]));
-          const scaledStrokeWidth = st.strokeWidth === 0 ? 0 : st.strokeWidth * ctmScale;
           emit({ kind: "path", value: {
             segments: transformedSegments,
             fillColor: isFill && !evaluatedFillPattern ? st.fillColor : undefined,
             fillAlpha: isFill && !evaluatedFillPattern ? st.fillAlpha : undefined,
             strokeColor: isStroke ? st.strokeColor : undefined,
             strokeAlpha: isStroke ? st.strokeAlpha : undefined,
-            strokeWidth: scaledStrokeWidth,
+            strokeWidth: st.strokeWidth,
+            ...(isStroke ? { strokeMatrix: [...st.ctm] as Matrix6 } : {}),
             ...(st.lineCap !== 0 ? { lineCap: st.lineCap } : {}),
             ...(st.lineJoin !== 0 ? { lineJoin: st.lineJoin } : {}),
             ...(st.miterLimit !== 10 ? { miterLimit: st.miterLimit } : {}),
@@ -2340,14 +2338,14 @@ export function evaluateContentStreamToDisplayList(params: {
                   if (st.textRenderMode >= 4 && st.textRenderMode <= 7) pendingTextClip.push(...transformedGlyphSegs);
                   const isFillGlyph = st.textRenderMode === 0 || st.textRenderMode === 2 || st.textRenderMode === 4 || st.textRenderMode === 6;
                   const isStrokeGlyph = st.textRenderMode === 1 || st.textRenderMode === 2 || st.textRenderMode === 5 || st.textRenderMode === 6;
-                  const ctmScale = Math.max(1e-6, Math.hypot(st.ctm[0], st.ctm[1]));
                   const paint: PdfEvaluatedPath = {
                     segments: transformedGlyphSegs,
                     fillColor: isFillGlyph ? st.fillColor : undefined,
                     fillAlpha: isFillGlyph ? st.fillAlpha : undefined,
                     strokeColor: isStrokeGlyph ? st.strokeColor : undefined,
                     strokeAlpha: isStrokeGlyph ? st.strokeAlpha : undefined,
-                    strokeWidth: isStrokeGlyph ? st.strokeWidth * ctmScale : 0,
+                    strokeWidth: isStrokeGlyph ? st.strokeWidth : 0,
+                    ...(isStrokeGlyph ? { strokeMatrix: [...st.ctm] as Matrix6 } : {}),
                     fillRule: "nonzero",
                     ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                     ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),

@@ -1056,3 +1056,31 @@ test("evaluates readlink -z/-qn, realpath -z/-L, printenv -0, and env -0/-u in s
     "/tmp/dir/target.txt:/tmp/dir/target.txt:|/tmp/dir/target.txt:/tmp/dir/target.txt:|/tmp/dir/target.txt:|1:2:|Y=8:X=9:|2:3:"
   );
 });
+
+test("evaluates iconv -o/multi-file/-sc, dos2unix -q/-qn/bundled flags, and xargs -0r/-0n1 in sync substitutions (Wave 208)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  await fs.writeFile("/tmp/ic1.txt", new TextEncoder().encode("café "));
+  await fs.writeFile("/tmp/ic2.txt", new TextEncoder().encode("naïve\n"));
+  await fs.writeFile("/tmp/d2u.txt", new TextEncoder().encode("l1\r\nl2\r\n"));
+  const shell = new Shell({ fs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(iconvCommands())
+    .use(dos2unixCommands());
+  const res = await shell.exec(`
+    for i in 1 2 3; do
+      ic1=\$(iconv -sc -f UTF-8 -t ASCII /tmp/ic1.txt /tmp/ic2.txt)
+      ic_empty=\$(iconv -f UTF-8 -t ASCII//IGNORE -o /tmp/ic_out.txt /tmp/ic1.txt /tmp/ic2.txt)
+      ic2=\$(cat /tmp/ic_out.txt)
+      d_empty=\$(dos2unix -qn /tmp/d2u.txt /tmp/d2u_out.txt)
+      d1=\$(cat -E /tmp/d2u_out.txt | tr "\\n" ":")
+      x1=\$(printf "a\\0b\\0c\\0" | xargs -0rn2 echo | tr "\\n" ":")
+    done
+    printf "%s|%s|%s|%s\\n" "\$ic1" "\$ic2" "\$d1" "\$x1"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "caf nave|caf nave|l1$:l2$:|a b:c:"
+  );
+});

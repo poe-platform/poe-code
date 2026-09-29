@@ -29214,10 +29214,10 @@ export class Runtime {
               const b32Bytes = firstName === "base32"
                 ? evalSyncBase32(rawSlice, stageArgs)
                 : firstName === "iconv"
-                  ? evalSyncIconv(sIdx === 0 && cmd0FileStage ? undefined : rawSlice, stageArgs, readFile)
+                  ? evalSyncIconv(sIdx === 0 && cmd0FileStage ? undefined : rawSlice, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : (firstName === "gzip" || firstName === "gunzip" || firstName === "zcat" || firstName === "unzstd" || firstName === "zstdcat" || firstName === "zstd" || firstName === "bzip2" || firstName === "bunzip2" || firstName === "bzcat" || firstName === "xz" || firstName === "unxz" || firstName === "xzcat" || firstName === "lzma" || firstName === "unlzma" || firstName === "lzcat")
                     ? evalSyncCompression(firstName, sIdx === 0 && cmd0FileStage ? undefined : rawSlice, stageArgs, readFile)
-                    : evalSyncLineEndings(firstName, sIdx === 0 && cmd0FileStage ? undefined : rawSlice, stageArgs, readFile);
+                    : evalSyncLineEndings(firstName, sIdx === 0 && cmd0FileStage ? undefined : rawSlice, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
               if (b32Bytes === undefined) return undefined;
               const nextTotalBytes = this.budget.bytes + b32Bytes.byteLength;
               if (nextTotalBytes > this.budget.maxOutputBytesSmi && b32Bytes.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
@@ -29686,11 +29686,12 @@ export class Runtime {
       if (fOk && (w0Plain === "dos2unix" || w0Plain === "unix2dos" || w0Plain === "iconv" || w0Plain === "gzip" || w0Plain === "gunzip" || w0Plain === "zcat" || w0Plain === "unzstd" || w0Plain === "zstdcat" || w0Plain === "zstd" || w0Plain === "bzip2" || w0Plain === "bunzip2" || w0Plain === "bzcat" || w0Plain === "xz" || w0Plain === "unxz" || w0Plain === "xzcat" || w0Plain === "lzma" || w0Plain === "unlzma" || w0Plain === "lzcat") && !hasSingleStdinRedir) {
         const inBytes = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : undefined;
         const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+        const writeFile = (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
         const convBytes = w0Plain === "iconv"
-          ? evalSyncIconv(inBytes, allArgs, readFile)
+          ? evalSyncIconv(inBytes, allArgs, readFile, writeFile)
           : (w0Plain === "gzip" || w0Plain === "gunzip" || w0Plain === "zcat" || w0Plain === "unzstd" || w0Plain === "zstdcat" || w0Plain === "zstd" || w0Plain === "bzip2" || w0Plain === "bunzip2" || w0Plain === "bzcat" || w0Plain === "xz" || w0Plain === "unxz" || w0Plain === "xzcat" || w0Plain === "lzma" || w0Plain === "unlzma" || w0Plain === "lzcat")
             ? evalSyncCompression(w0Plain, inBytes, allArgs, readFile)
-            : evalSyncLineEndings(w0Plain, inBytes, allArgs, readFile);
+            : evalSyncLineEndings(w0Plain, inBytes, allArgs, readFile, writeFile);
         if (convBytes !== undefined && !convBytes.includes(0)) {
           let convStr = sharedSyncPipeDecoder.decode(convBytes);
           const outBytes = convBytes.byteLength;

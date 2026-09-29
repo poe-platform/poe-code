@@ -496,6 +496,38 @@ export function evalSyncXargs(
         i++;
         continue;
       }
+      if (!a.startsWith("--") && a.length > 1) {
+        let ok = true;
+        for (let j = 1; j < a.length; j++) {
+          const ch = a[j]!;
+          if (ch === "r") noRunIfEmpty = true;
+          else if (ch === "0") delimChar = "\0";
+          else if (ch === "i") { replaceStr = "{}"; maxArgs = undefined; maxLines = undefined; }
+          else if (ch === "n") {
+            const rest = a.slice(j + 1);
+            const v = rest.length > 0 ? rest : opArgs[++i];
+            if (!v || !/^[1-9][0-9]*$/.test(v)) { ok = false; break; }
+            maxArgs = Number(v); replaceStr = undefined; maxLines = undefined;
+            break;
+          } else if (ch === "L") {
+            const rest = a.slice(j + 1);
+            const v = rest.length > 0 ? rest : opArgs[++i];
+            if (!v || !/^[1-9][0-9]*$/.test(v)) { ok = false; break; }
+            maxLines = Number(v); replaceStr = undefined; maxArgs = undefined;
+            break;
+          } else if (ch === "I") {
+            const rest = a.slice(j + 1);
+            const v = rest.length > 0 ? rest : opArgs[++i];
+            if (!v) { ok = false; break; }
+            replaceStr = v; maxArgs = undefined; maxLines = undefined;
+            break;
+          } else {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) { i++; continue; }
+      }
       return undefined;
     }
     const cmd = opArgs[i] ?? "echo";

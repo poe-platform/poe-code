@@ -33,9 +33,11 @@ export function evalSyncIconv(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): Uint8Array | undefined {
   let fromRaw: string | undefined;
   let toRaw: string | undefined;
+  let outputFile: string | undefined;
   let discard = false;
   let ended = false;
   const files: string[] = [];
@@ -45,12 +47,16 @@ export function evalSyncIconv(
     if (a === "--") { ended = true; continue; }
     if (a === "--silent" || a === "-s") continue;
     if (a === "-c") { discard = true; continue; }
+    if (a === "-sc" || a === "-cs") { discard = true; continue; }
     if (a.startsWith("--from-code=")) { fromRaw = a.slice(12); continue; }
     if (a === "--from-code" || a === "-f") { fromRaw = opArgs[++i]; if (!fromRaw) return undefined; continue; }
     if (a.startsWith("-f") && a.length > 2) { fromRaw = a.slice(2); continue; }
     if (a.startsWith("--to-code=")) { toRaw = a.slice(10); continue; }
     if (a === "--to-code" || a === "-t") { toRaw = opArgs[++i]; if (!toRaw) return undefined; continue; }
     if (a.startsWith("-t") && a.length > 2) { toRaw = a.slice(2); continue; }
+    if (a.startsWith("--output=")) { outputFile = a.slice(9); if (!outputFile) return undefined; continue; }
+    if (a === "--output" || a === "-o") { outputFile = opArgs[++i]; if (!outputFile) return undefined; continue; }
+    if (a.startsWith("-o") && a.length > 2) { outputFile = a.slice(2); continue; }
     return undefined;
   }
   if (!fromRaw || !toRaw) return undefined;
@@ -71,7 +77,27 @@ export function evalSyncIconv(
     if (!fBytes || fBytes.byteLength > 16384) return undefined;
     src = fBytes;
   } else if (files.length > 1) {
-    return undefined;
+    if (!readFileSync) return undefined;
+    const parts: Uint8Array[] = [];
+    let totalLen = 0;
+    let stdinUsed = false;
+    for (const f of files) {
+      let chunk: Uint8Array | undefined;
+      if (f === "-") {
+        if (stdinUsed || !inBytes) return undefined;
+        stdinUsed = true;
+        chunk = inBytes;
+      } else {
+        chunk = readFileSync(f);
+      }
+      if (!chunk || totalLen + chunk.byteLength > 16384) return undefined;
+      parts.push(chunk);
+      totalLen += chunk.byteLength;
+    }
+    const merged = new Uint8Array(totalLen);
+    let pos = 0;
+    for (const p of parts) { merged.set(p, pos); pos += p.byteLength; }
+    src = merged;
   }
   if (!src || src.byteLength > 16384) return undefined;
 
@@ -130,7 +156,12 @@ export function evalSyncIconv(
     }
     offset += count;
   }
+  const outArr = new Uint8Array(out);
+  if (outputFile !== undefined) {
+    if (!writeFileSync || !writeFileSync(outputFile, outArr)) return undefined;
+    return new Uint8Array(0);
+  }
   // Text-only shortcuts cannot retain binary ShellValue provenance.
   if (out.some(byte => byte === 0 || byte >= 128)) return undefined;
-  return new Uint8Array(out);
+  return outArr;
 }

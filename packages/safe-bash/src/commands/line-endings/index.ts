@@ -9,9 +9,12 @@ export function evalSyncLineEndings(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): Uint8Array | undefined {
   let force = false;
+  let quiet = false;
   let toStdout = false;
+  let newFileMode = false;
   let addEol = false;
   let newline = false;
   let endOfOptions = false;
@@ -19,17 +22,53 @@ export function evalSyncLineEndings(
   for (let i = 0; i < opArgs.length; i++) {
     const a = opArgs[i]!;
     if (!endOfOptions && a === "--") { endOfOptions = true; continue; }
-    if (!endOfOptions && a.startsWith("-")) {
-      if (a === "-q" || a === "--quiet") continue;
-      if (a === "-f" || a === "--force") { force = true; continue; }
-      if (a === "-O" || a === "--to-stdout") { toStdout = true; continue; }
-      if (a === "-e" || a === "--add-eol") { addEol = true; continue; }
-      if (a === "-l" || a === "--newline") { newline = true; continue; }
+    if (!endOfOptions && a.startsWith("--") && a.length > 2) {
+      if (a === "--quiet") { quiet = true; continue; }
+      if (a === "--force") { force = true; continue; }
+      if (a === "--to-stdout") { toStdout = true; continue; }
+      if (a === "--newfile") { newFileMode = true; continue; }
+      if (a === "--add-eol") { addEol = true; continue; }
+      if (a === "--no-add-eol") { addEol = false; continue; }
+      if (a === "--newline") { newline = true; continue; }
+      if (a === "--no-newline") { newline = false; continue; }
       return undefined;
+    }
+    if (!endOfOptions && a.startsWith("-") && a.length > 1) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "q") quiet = true;
+        else if (ch === "f") force = true;
+        else if (ch === "O") toStdout = true;
+        else if (ch === "n") newFileMode = true;
+        else if (ch === "e") addEol = true;
+        else if (ch === "E") addEol = false;
+        else if (ch === "l") newline = true;
+        else if (ch === "N") newline = false;
+        else return undefined;
+      }
+      continue;
     }
     files.push(a);
   }
-  if (files.length > 0 && !toStdout) return undefined;
+  if (files.length > 0 && !toStdout) {
+    if (!quiet || !readFileSync || !writeFileSync) return undefined;
+    if (newFileMode && files.length % 2 !== 0) return undefined;
+    const pairs: Array<[string, string]> = [];
+    if (newFileMode) {
+      for (let k = 0; k < files.length; k += 2) pairs.push([files[k]!, files[k + 1]!]);
+    } else {
+      for (const f of files) pairs.push([f, f]);
+    }
+    for (const [inPath, outPath] of pairs) {
+      if (inPath === "-" || outPath === "-") return undefined;
+      const b = readFileSync(inPath);
+      if (!b || b.byteLength > 16384) return undefined;
+      const subArgs = [force ? "-fO" : "-O", ...(addEol ? ["-e"] : []), ...(newline ? ["-l"] : [])];
+      const converted = evalSyncLineEndings(cmdName, b, subArgs);
+      if (!converted || !writeFileSync(outPath, converted)) return undefined;
+    }
+    return new Uint8Array(0);
+  }
   const chunks: Uint8Array[] = [];
   if (files.length === 0) {
     if (!inBytes || inBytes.byteLength > 16384) return undefined;

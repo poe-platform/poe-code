@@ -1768,7 +1768,7 @@ export function evaluateContentStreamToDisplayList(params: {
     // Forms paint directly, retaining inherited state. Group effects instead
     // apply once to the finished Form, after resetting its inner paint state.
     const compositeGroup = !maskGroup && groupType?.kind === "name" && groupType.decoded === "Transparency" &&
-      (isolated || st.fillAlpha !== 1 || !!st.softMask || (st.blendMode !== "Normal" && st.blendMode !== "Compatible"));
+      (isolated || st.fillAlpha !== 1 || !!st.softMask || (!!st.blendMode && st.blendMode !== "Normal" && st.blendMode !== "Compatible"));
     const formStreamBytes = params.cosDoc!.decodeStream(form);
     const formNodes = parseContentStream(formStreamBytes);
     const formResDict = params.cosDoc!.resolveDict(dictGet(form.dict, "Resources")) ?? activeResources;

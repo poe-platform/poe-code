@@ -6,7 +6,7 @@ import { renderDisplayListToSvg, type RgbaBitmap } from "./raster.js";
 
 const numbers = (values: number[]) => cosArray(values.map(value => cosNumber(value)));
 
-function groupPdf(options: { alpha?: number; blend?: string; inner?: string; backdrop?: string; isolated?: boolean; mask?: boolean; nested?: boolean; clip?: string } = {}) {
+function groupPdf(options: { alpha?: number; blend?: string | undefined; inner?: string; backdrop?: string; isolated?: boolean; mask?: boolean; nested?: boolean; clip?: string } = {}) {
   const doc = PdfDocument.create();
   const page = doc.addPage([80, 80]);
   const form = cosStream(new TextEncoder().encode(options.inner ?? "/Normal gs 1 0 0 rg 0 0 30 40 re f 10 0 30 40 re f"), { dict: cosDict({
@@ -18,7 +18,9 @@ function groupPdf(options: { alpha?: number; blend?: string; inner?: string; bac
       Half: cosDict({ ca: cosNumber(0.5) }),
     }) }),
   }) });
-  const groupState = cosDict({ ca: cosNumber(options.alpha ?? 0.5), CA: cosNumber(0.5), BM: cosName(options.blend ?? "Normal") });
+  const groupState = cosDict({ ca: cosNumber(options.alpha ?? 0.5), CA: cosNumber(0.5),
+    ...(options.blend ? { BM: cosName(options.blend) } : {}),
+  });
   if (options.mask) {
     const maskForm = cosStream(new TextEncoder().encode("0.5 g 0 0 40 40 re f"), { dict: cosDict({
       Type: cosName("XObject"), Subtype: cosName("Form"), BBox: numbers([0, 0, 40, 40]),
@@ -104,8 +106,8 @@ describe("non-isolated transparency Forms", () => {
     expect(pixel(bitmap, 30, 20)).toEqual([255, 255, 255, 255]);
   });
 
-  it("retains inherited stroke alpha on the ordinary direct-paint path", () => {
-    const page = groupPdf({ alpha: 1, inner: "1 0 0 RG 10 w 0 20 m 40 20 l S" });
+  it.each([undefined, "Normal", "Compatible"])("retains inherited stroke alpha with blend mode %s", blend => {
+    const page = groupPdf({ alpha: 1, blend, inner: "1 0 0 RG 10 w 0 20 m 40 20 l S" });
     expect(pixel(page.renderToBitmap({ scale: 1 }), 20, 20)).toEqual([255, 128, 128, 255]);
   });
 
@@ -117,8 +119,8 @@ describe("non-isolated transparency Forms", () => {
     expect(svg.indexOf('<rect')).toBeLessThan(svg.indexOf('<g style="isolation:isolate">'));
   });
 
-  it("blends ordinary non-isolated groups directly with the page backdrop", () => {
-    const bitmap = groupPdf({ alpha: 1, inner: "/Multiply gs 0.5 g 0 0 40 40 re f", backdrop: "0.8 0.4 0.2 rg 0 0 80 80 re f" }).renderToBitmap({ scale: 1 });
+  it.each([undefined, "Normal", "Compatible"])("blends ordinary groups directly with outer mode %s", blend => {
+    const bitmap = groupPdf({ alpha: 1, blend, inner: "/Multiply gs 0.5 g 0 0 40 40 re f", backdrop: "0.8 0.4 0.2 rg 0 0 80 80 re f" }).renderToBitmap({ scale: 1 });
     expect(pixel(bitmap, 20, 20)).toEqual([102, 51, 26, 255]);
   });
 

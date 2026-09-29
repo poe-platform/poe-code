@@ -6,7 +6,7 @@ const provider: LlmProvider = {
   name: "injected", models: [{ id: "text", aliases: ["short"] }],
   async *complete(request: LlmRequest) { yield request.prompt; },
 };
-const options: LlmCommandsOptions = { providers: [provider], defaultModel: "short", replace: false };
+const options = { providers: [provider], defaultModel: "short", replace: false } satisfies LlmCommandsOptions;
 const service: LlmService = createLlmService(options);
 const request: LlmServiceRequest = { prompt: "hello", attachments: [], options: { temperature: 0.5, store: false, user: null }, signal: new AbortController().signal };
 void service.complete(request);

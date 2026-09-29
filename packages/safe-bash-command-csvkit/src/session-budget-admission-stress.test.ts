@@ -60,6 +60,37 @@ test("batched rows preserve admitted prefix before output-budget refusal", async
   } finally { await f.runtime.close(); }
 });
 
+for (const maxOutputBytes of [Infinity, 100000]) test(`JSON strings reserve retained bytes before serialization (output=${maxOutputBytes})`, async () => {
+  const value = "x".repeat(1024);
+  const f = fixture({ limits: { ...defaultLimits, maxRetainedBytes: 64, maxOutputBytes } });
+  const stringify = vi.spyOn(JSON, "stringify");
+  try {
+    await assert.rejects(emit([value], f.runtime, null), /retained byte budget exceeded/);
+    assert.equal(stringify.mock.calls.some(call => call[0] === value), false);
+    assert.equal(Buffer.concat(f.output).toString(), "[");
+  } finally { stringify.mockRestore(); await f.runtime.close(); }
+});
+
+test("JSON string admission counts escaping and Unicode exactly for values and keys", async () => {
+  for (const value of ["plain", "\"\\\n\b\u0000", "é💠\ud800\udc00\ud800x\udc00"]) {
+    const encoded = JSON.stringify(value);
+    for (const key of [false, true]) {
+      const exact = encoded.length * 2 + (key ? 32 : 0);
+      for (const budget of [exact - 1, exact]) {
+        const f = fixture({ limits: { ...defaultLimits, maxRetainedBytes: budget } });
+        try {
+          const operation = emit(key ? new Map([[value, null]]) : value, f.runtime, null);
+          if (budget < exact) await assert.rejects(operation, /retained byte budget exceeded/);
+          else {
+            await operation;
+            assert.equal(Buffer.concat(f.output).toString(), key ? `{${encoded}: null}` : encoded);
+          }
+        } finally { await f.runtime.close(); }
+      }
+    }
+  }
+});
+
 test("batched rows preserve admitted prefix before later serialization refusal", async () => {
   const f = fixture();
   try {

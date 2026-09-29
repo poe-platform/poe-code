@@ -8,6 +8,23 @@ import { pythonValueText } from "../csv.js";
 
 export type JsonValue = string | number | boolean | null | { readonly token: string } | readonly JsonValue[] | ReadonlyMap<string, JsonValue>;
 
+function jsonString(value: string, runtime: Runtime): string {
+  if (runtime.context.limits.maxRetainedBytes !== Infinity) {
+    // Admit the unescaped string and quotes first, then extra escape code units,
+    // before JSON.stringify creates the retained serialization.
+    runtime.retain((value.length + 2) * 2);
+    for (let index = 0; index < value.length; index++) {
+      runtime.step();
+      const code = value.charCodeAt(index);
+      if (code === 34 || code === 92 || code >= 8 && code <= 10 || code === 12 || code === 13) runtime.retain(2);
+      else if (code < 32) runtime.retain(10);
+      else if (code >= 0xd800 && code <= 0xdbff && value.charCodeAt(index + 1) >= 0xdc00 && value.charCodeAt(index + 1) <= 0xdfff) index++;
+      else if (code >= 0xd800 && code <= 0xdfff) runtime.retain(10);
+    }
+  }
+  return JSON.stringify(value);
+}
+
 /** CPython repr(float): shortest digits, scientific thresholds and signed zero. */
 export function floatText(value: number): string {
   if (Number.isNaN(value)) return "NaN";
@@ -29,7 +46,7 @@ export async function emit(value: JsonValue, runtime: Runtime, indent: number | 
   if (runtime.context.limits.maxOutputBytes !== Infinity || runtime.context.limits.maxWork !== Infinity) {
     runtime.step();
     if (typeof value === "number") { await runtime.write(floatText(value)); return; }
-    if (value === null || typeof value === "string" || typeof value === "boolean") { await runtime.write(JSON.stringify(value)); return; }
+    if (value === null || typeof value === "string" || typeof value === "boolean") { await runtime.write(typeof value === "string" ? jsonString(value, runtime) : JSON.stringify(value)); return; }
     if ("token" in value) { await runtime.write(value.token); return; }
     const object = value instanceof Map;
     const size = object ? value.size : (value as readonly JsonValue[]).length;
@@ -40,7 +57,7 @@ export async function emit(value: JsonValue, runtime: Runtime, indent: number | 
     for (const [key, child] of entries) {
       if (index++) await runtime.write(indent === null ? ", " : ",");
       if (indent !== null) await runtime.write("\n" + " ".repeat(indent * (depth + 1)));
-      if (object) await runtime.write(JSON.stringify(key) + ": ");
+      if (object) await runtime.write(jsonString(key as string, runtime) + ": ");
       await emit(child, runtime, indent, depth + 1);
     }
     if (size && indent !== null) await runtime.write("\n" + " ".repeat(indent * depth));
@@ -58,7 +75,7 @@ export async function emit(value: JsonValue, runtime: Runtime, indent: number | 
   const visitSync = (cur: JsonValue, d: number): void => {
     runtime.step();
     if (typeof cur === "number") { buf += floatText(cur); return; }
-    if (cur === null || typeof cur === "string" || typeof cur === "boolean") { buf += JSON.stringify(cur); return; }
+    if (cur === null || typeof cur === "string" || typeof cur === "boolean") { buf += typeof cur === "string" ? jsonString(cur, runtime) : JSON.stringify(cur); return; }
     if ("token" in cur) { buf += cur.token; return; }
     if (cur instanceof Map) {
       runtime.retain(cur.size * 32);
@@ -68,7 +85,7 @@ export async function emit(value: JsonValue, runtime: Runtime, indent: number | 
       for (const [key, child] of cur.entries()) {
         if (index++) buf += indent === null ? ", " : ",";
         if (indent !== null) buf += childPad;
-        buf += JSON.stringify(key) + ": ";
+        buf += jsonString(key, runtime) + ": ";
         visitSync(child, d + 1);
       }
       if (cur.size && indent !== null) buf += "\n" + " ".repeat(indent * d);
@@ -97,7 +114,7 @@ export async function emit(value: JsonValue, runtime: Runtime, indent: number | 
       for (const [key, child] of cur.entries()) {
         if (index++) buf += indent === null ? ", " : ",";
         if (indent !== null) buf += childPad;
-        buf += JSON.stringify(key) + ": ";
+        buf += jsonString(key, runtime) + ": ";
         visitSync(child, d + 1);
         if (buf.length >= 32768) await flushIfNeeded();
       }

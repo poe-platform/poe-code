@@ -109,18 +109,20 @@ raw arguments, file budgets, cancellation and installed consumers before claimin
 extraction complete.
 
 PERL_SED capture/assertion conditions (`577d74b048`), branch-reset groups
-(`3e7fdf1615`) and numeric-condition semantics (`7b7d675077`) are on remote main.
+(`3e7fdf1615`), numeric-condition semantics (`7b7d675077`) and alphabetic
+lookaround/atomic spellings (`a1d80828a7`) are on remote main.
 Pinned Perl documentation/compiler source and standalone Perl 5.34.1 support
-the grammar changes. All 4,682 focused tests pass; compiled SDK/command checks
-match 56 native outputs across the three cohorts, including raw byte results.
-Initial conditions passed the compiled root export; later cohorts passed the
-compiled command package. Qualify all three through the containing root release,
-installed artifacts and activated Gnumeric loader. Wider grammar, Unicode and
+the grammar changes. All 4,705 focused tests pass; all four cohorts now match
+81 native outputs through the compiled root SDK/command, including raw bytes.
+The maintained root build passes 251 declared builds and its root suffix stages.
+Qualify all four through a containing release, installed artifacts and activated
+Gnumeric loader. Wider grammar, Unicode and
 diagnostics remain open. Release `36598284494` failed fresh units and Bash 1;
 its declaration/browser/archive fixture failures are repaired. Final archive
 controls pass 265 tests with one explicit-input qualification skip; the rebased
 browser/public/facade cohort passes 67 tests and root ESLint passes.
-The containing pin `36606002535` at `b00b184630` is pending; publication and
+Pin `36606002535` at `b00b184630` contains the first three repairs and is pending;
+the alphabetic-spelling repair was pushed afterward. Publication and
 installed artifact qualification remain unverified. Preserve the independently
 delivered root/scoped fixture separation `61baed7701`.
 

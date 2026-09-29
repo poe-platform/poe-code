@@ -1,3 +1,5 @@
+import { createGpgCommands } from "../../src/commands/gpg/index.js";
+import { createSshCommands } from "../../src/commands/ssh/index.js";
 import { createOpensslCommands } from "../../src/commands/openssl/index.js";
 import { createSqlite3Commands } from "../../src/commands/sqlite3/index.js";
 import { createDdCommands } from "../../src/commands/dd/index.js";
@@ -990,4 +992,30 @@ test("Wave 145: sync openssl and sqlite3 substitutions and pipelines", async () 
   assert.equal(r3.stdout, "bob");
   assert.equal(r4.stdout, '[{"id":2,"name":"beta"}]');
   assert.ok(elapsed < 800, `Expected < 800ms for 4x150 iterations, took ${elapsed.toFixed(1)}ms`);
+});
+
+test("Wave 146: sync gpg, ssh, and ssh-keygen substitutions and pipelines", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createGpgCommands(),
+    ...createSshCommands(),
+  ]) {
+    registry.register(cmd);
+  }
+  const shell = new Shell({ fs, commands: registry });
+
+  await shell.exec('gpg --quick-generate-key "Alice <alice@example.com>" && ssh-keygen -t ed25519 -C "alice@host" -f /home/user/.ssh/id_ed25519');
+
+  const t0 = performance.now();
+  const r1 = await shell.exec('for i in $(seq 1 150); do out=$(gpg --list-keys); done; printf "%s" "$out"');
+  const r2 = await shell.exec('for i in $(seq 1 150); do out=$(ssh -G -p 2222 deploy@prod.example.com); done; printf "%s" "$out"');
+  const r3 = await shell.exec('for i in $(seq 1 150); do out=$(ssh-keygen -l -f /home/user/.ssh/id_ed25519.pub); done; printf "%s" "$out"');
+  const elapsed = performance.now() - t0;
+
+  assert.match(r1.stdout, /Alice <alice@example.com>/);
+  assert.equal(r2.stdout, "user deploy\nhostname prod.example.com\nport 2222\nidentityfile /home/user/.ssh/id_ed25519");
+  assert.match(r3.stdout, /^256 SHA256:[A-Za-z0-9+/]+ alice@host \(ED25519\)$/);
+  assert.ok(elapsed < 800, `Expected < 800ms for 3x150 iterations, took ${elapsed.toFixed(1)}ms`);
 });

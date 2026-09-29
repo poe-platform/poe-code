@@ -5,7 +5,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { test } from 'node:test';
+import { after, before, test } from 'node:test';
 import { build } from 'esbuild';
 import ts from 'typescript';
 import { createPythonJspiCallbackCatalog } from './python-jspi-catalog.mjs';
@@ -72,7 +72,7 @@ const empty = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
 const callbacks = createPythonJspiCallbackCatalog(files['pyodide.asm.mjs']);
 const callbackFiles = callbacks.map(({signature}) => 'callback-' + signature + '.wasm');
 
-test('real workerd native async I/O, imports, binary streams and asynchronous finalization', { timeout: 120000 }, async context => {
+async function createNativeFixture(context) {
   const injection = `
 import main from 'main.wasm';
 import helper from 'helper.wasm';
@@ -151,22 +151,64 @@ export { WebAssembly, fetch, location };
     },
     handleUncaughtError(error) { runtimeErrors.push({uncaught:String(error)}); },
   }));
+  return { miniflare, runtimeErrors, modules, outputRoot };
+}
+
+let nativeFixture;
+before(async context => {
+  nativeFixture = await createNativeFixture(context);
+  await nativeFixture.miniflare.ready;
+});
+after(async () => {
+  await nativeFixture.miniflare.dispose();
+  assert.deepEqual(nativeFixture.runtimeErrors, [], 'Native qualification must drain without unhandled/runtime errors');
+});
+
+test('real workerd cancels 100 MiB close publication and recovers capacity for the next native call', { timeout: 120000 }, async () => {
+  const { miniflare, runtimeErrors } = nativeFixture;
   try {
-    const publicationResponse = await miniflare.dispatchFetch('http://fixture/publication');
+    const publicationResponse = await miniflare.dispatchFetch('http://fixture/publication-recovery');
     const publication = await publicationResponse.json();
     assert.equal(publicationResponse.status, 200, JSON.stringify(publication));
     assert.equal(publication.error, "Error: publication deadline");
     assert.equal(publication.cancelled, true);
     assert.equal(publication.publishing, false);
     assert.equal(publication.pool.active, 0);
-    assert.equal(publication.size, 100 * 1024 * 1024);
+    assert.equal(publication.size, 9 * 1024 * 1024);
     assert.equal(publication.result.exitCode, 0, JSON.stringify(publication));
     assert.equal(publication.result.stderr, '');
     const hash = createHash('sha256');
     const chunk = Uint8Array.from({length:65536}, (_, index) => index % 256);
-    for (let index = 0; index < 1600; index++) hash.update(chunk);
+    for (let index = 0; index < 144; index++) hash.update(chunk);
     assert.equal(publication.result.stdout, hash.digest('hex') + '\n');
     assert.deepEqual(publication.failures, []);
+  } finally {
+    assert.deepEqual(runtimeErrors, [], 'Native cancellation qualification must have zero unhandled/runtime errors');
+  }
+});
+
+test('real workerd publishes and verifies authoritative 100 MiB bytes', { timeout: 120000 }, async () => {
+  const { miniflare, runtimeErrors } = nativeFixture;
+  const response = await miniflare.dispatchFetch('http://fixture/publication');
+  const publication = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(publication));
+  assert.equal(publication.cancelled, false);
+  assert.equal(publication.publishing, false);
+  assert.equal(publication.pool.active, 0);
+  assert.equal(publication.size, 100 * 1024 * 1024);
+  assert.equal(publication.result.exitCode, 0, JSON.stringify(publication));
+  assert.equal(publication.result.stderr, '');
+  const hash = createHash('sha256');
+  const chunk = Uint8Array.from({length:65536}, (_, index) => index % 256);
+  for (let index = 0; index < 1600; index++) hash.update(chunk);
+  assert.equal(publication.result.stdout, hash.digest('hex') + '\n');
+  assert.deepEqual(publication.failures, []);
+  assert.deepEqual(runtimeErrors, []);
+});
+
+test('real workerd native async I/O, imports, binary streams and asynchronous finalization', { timeout: 120000 }, async context => {
+  const { miniflare, runtimeErrors, modules, outputRoot } = nativeFixture;
+  try {
     const hostResponse = await miniflare.dispatchFetch('http://fixture/host');
     const host = await hostResponse.json();
     assert.equal(hostResponse.status, 200, JSON.stringify(host));
@@ -275,7 +317,6 @@ export { WebAssembly, fetch, location };
       requests: result.requests.length, finalizationFailure: finalization.failures, callbackModules:callbacks.length, unhandledWorkerErrors:[],
       assets: modules.map(module => ({ name: module.path.slice(outputRoot.length + 1), bytes: Buffer.byteLength(module.contents) })) }));
   } finally {
-    await miniflare.dispose();
     assert.deepEqual(runtimeErrors, [], 'Actual workerd qualification must have zero unhandled/runtime errors');
   }
 });

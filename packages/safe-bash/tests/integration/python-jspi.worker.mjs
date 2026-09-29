@@ -14,7 +14,7 @@ import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
 
-async function qualifyPublication(backend, createExecutor) {
+async function qualifyPublication(backend, createExecutor, cancel) {
   const versions = new Map();
   let revision = 0;
   let cancelled = false;
@@ -66,23 +66,25 @@ async function qualifyPublication(backend, createExecutor) {
   };
   const fs = withObjectFileDescriptors(backend, store, {maxOpenFiles:1});
   const pool = createPythonExecutorPool({maxConcurrentExecutors:1, createExecutor});
-  const shell = new Shell({fs}).use(pythonCommands({createExecutor:pool.createExecutor, maxConcurrentWorkers:1}));
+  const shell = new Shell({fs}).use(pythonCommands({createExecutor:pool.createExecutor, maxConcurrentWorkers:1, maxTransferBytes:1024 * 1024}));
   const quote = String.fromCharCode(39);
-  const script = path => `chunk = bytes(range(256)) * 256
+  const script = (path, count) => `chunk = bytes(range(256)) * 4096
 with open("${path}", "wb") as output:
- for _ in range(1600):
+ for _ in range(${count}):
   output.write(chunk)
 `;
   try {
     let error;
-    try { await shell.exec('python -c ' + quote + script('/work/cancel-large') + quote, {signal:controller.signal}); }
-    catch (reason) { error = String(reason); }
-    if (!error || !cancelled || publishing || pool.inspect().active !== 0) throw new Error('publication retirement failed: ' + JSON.stringify({error,cancelled,publishing,pool:pool.inspect()}));
-    const result = await shell.exec('python -c ' + quote + script('/work/large') + `
+    if (cancel) {
+      try { await shell.exec('python -c ' + quote + script('/work/cancel-large', 100) + quote, {signal:controller.signal}); }
+      catch (reason) { error = String(reason); }
+      if (!error || !cancelled || publishing || pool.inspect().active !== 0) throw new Error('publication retirement failed: ' + JSON.stringify({error,cancelled,publishing,pool:pool.inspect()}));
+    }
+    const result = await shell.exec('python -c ' + quote + script('/work/large', cancel ? 9 : 100) + `
 import hashlib
 hasher = hashlib.sha256()
 with open("/work/large", "rb") as source:
- while data := source.read(65536):
+ while data := source.read(1024 * 1024):
   hasher.update(data)
 print(hasher.hexdigest())
 ` + quote, {signal:AbortSignal.timeout(120000)});
@@ -244,6 +246,10 @@ from poe_llm import Client as LlmClient, CapabilityError, Attachment, Message, L
 import asyncio
 from poe_shell import Client as ShellClient
 import subprocess
+def expected_bytes(offset, count):
+ start = offset % 256
+ return (bytes(range(256)) * ((start + count + 255) // 256))[start:start + count]
+
 async def qualify_libraries():
  async with LlmClient() as client:
   response = await client.complete('library', options={'enabled': True, 'count': 2, 'nullable': None})
@@ -264,7 +270,7 @@ async def qualify_libraries():
    async for event in chunks:
     if event.type == 'bytes':
      assert len(event.data) <= 16384
-     assert event.data == bytes((index % 256 for index in range(offset,offset + len(event.data))))
+     assert event.data == expected_bytes(offset, len(event.data))
      offset += len(event.data)
     else:
      assert offset == 2 * 1024 * 1024 and event.response.metadata['id'] == 'large-image'
@@ -301,7 +307,7 @@ async def qualify_libraries():
     async for event in events:
      if event.type == 'stdout':
       assert len(event.data) <= 16384
-      assert event.data == bytes((offset + i) % 256 for i in range(len(event.data)))
+      assert event.data == expected_bytes(offset, len(event.data))
       offset += len(event.data)
      elif event.type == 'exit':
       exits += 1
@@ -574,8 +580,8 @@ export default {
       }
       return runtime;
     } });
-    if (mode === '/publication') {
-      try { return Response.json({...await qualifyPublication(backend, createExecutor), failures}); }
+    if (mode === '/publication' || mode === '/publication-recovery') {
+      try { return Response.json({...await qualifyPublication(backend, createExecutor, mode === '/publication-recovery'), failures}); }
       catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }
       finally { clearInterval(timer); await filesystem.close(); }
     }

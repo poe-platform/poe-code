@@ -124,7 +124,7 @@ The following files are unmodified Mozilla PDF.js `test/pdfs` fixtures at revisi
 `cid_cff.pdf`, `cff_bluescale_small_zones.pdf`, and `text_clip_cff_cid.pdf`,
 prefixed locally with `pdfjs-`. They exercise CID CFF programs, FD dictionaries,
 fonts without usable ToUnicode mappings, and glyph clipping. The CFF tests
-validate font decoding/geometry; text clipping is qualified separately (#4134).
+validate font decoding/geometry; text clipping is qualified separately.
 
 | File | SHA-256 |
 | --- | --- |

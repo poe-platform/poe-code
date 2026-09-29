@@ -105,6 +105,7 @@ export function fileQuote(value: string): string {
 export class Budget {
   private work = 0;
   private checkpoint = 0;
+  private yieldChecks = 0;
   private lastYield = monotonicNow();
   private retained = 0;
   private input = 0;
@@ -137,7 +138,7 @@ export class Budget {
     this.assertSignalOpen();
     if (this.work - this.checkpoint < 4096) return;
     this.checkpoint = this.work;
-    if (!hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
+    if (++this.yieldChecks % 16 !== 0 && !hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
       runYieldCheckpoint(this.signal);
       this.assertSignalOpen();
       return;

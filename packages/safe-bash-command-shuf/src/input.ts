@@ -57,6 +57,7 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
   let used = 0;
   let scanned = 0;
   let lastYield = monotonicNow();
+  let yieldChecks = 0;
   for await (const rawChunk of source) {
     const chunk = Uint8Array.prototype.slice.call(rawChunk);
     let start = 0;
@@ -85,7 +86,7 @@ export async function* records(source: ByteSource, delimiter: number, limit: num
         }
       }
       if (++scanned % 8192 === 0) {
-        if (hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 25) {
+        if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 25) {
           await yieldTurn(signal); lastYield = monotonicNow();
         } else {
           runYieldCheckpoint(signal);
@@ -116,6 +117,7 @@ export async function readAllRecords(
   let scanned = 0;
   let totalBytes = 0;
   let lastYield = monotonicNow();
+  let yieldChecks = 0;
   for await (const rawChunk of source) {
     const chunk = Uint8Array.prototype.slice.call(rawChunk);
     let start = 0;
@@ -150,7 +152,7 @@ export async function readAllRecords(
       }
       if (++scanned % 8192 === 0) {
         const now = monotonicNow();
-        if (hasYieldCheckpoint(signal) || now - lastYield >= 16) {
+        if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(signal) || now - lastYield >= 16) {
           await yieldTurn(signal);
           lastYield = monotonicNow();
         } else {

@@ -32,6 +32,7 @@ export class Budget {
   private lines = 0;
   private work = 0;
   private nextYield = 4096;
+  private yieldChecks = 0;
   private nextYieldTime = monotonicNow() + 8;
   private files = 0;
   private hunks = 0;
@@ -75,7 +76,7 @@ export class Budget {
       const firstYield = this.nextYield === 4096;
       this.nextYield = this.work + 4096;
       const now = monotonicNow();
-      if (firstYield || now >= this.nextYieldTime) {
+      if (++this.yieldChecks % 16 === 0 || firstYield || now >= this.nextYieldTime) {
         this.nextYieldTime = now + 16;
         return yieldTurn(this.context.signal).then(() => {
           this.nextYieldTime = monotonicNow() + 16;

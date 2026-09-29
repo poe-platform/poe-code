@@ -27,6 +27,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
     description: "Write a random permutation of input records",
     async execute(context: CommandContext) {
       let lastYield = monotonicNow();
+      let yieldChecks = 0;
       let random: RandomIntegers | undefined;
       let output: FileOutput | undefined;
       let source: AsyncGenerator<Uint8Array> | undefined;
@@ -144,7 +145,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
               }
               seen++;
               if (seen % 1024n === 0n) {
-                if (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
+                if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
                   await yieldTurn(context.signal); lastYield = monotonicNow();
                 } else {
                   runYieldCheckpoint(context.signal);
@@ -172,7 +173,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
             swaps.set(chosen, swaps.get(index) ?? index);
             swaps.delete(index);
             if (index % 1024n === 1023n) {
-              if (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
+              if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
                 await yieldTurn(context.signal); lastYield = monotonicNow();
               } else {
                 runYieldCheckpoint(context.signal);
@@ -207,7 +208,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
           diagnostic = "write error";
           await sink.write(line);
           if (index % 256n === 255n) {
-            if (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
+            if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
               await yieldTurn(context.signal); lastYield = monotonicNow();
             } else {
               runYieldCheckpoint(context.signal);

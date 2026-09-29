@@ -36,6 +36,7 @@ export class Budget {
   private outputBytes = 0;
   private steps = 0;
   private untilYield = 65536;
+  private yieldChecks = 0;
   private lastYield = monotonicNow();
   constructor(readonly limits: SplitLimits, readonly signal: AbortSignal) {}
   check(value: number, maximum: number, label: string): void {
@@ -57,7 +58,7 @@ export class Budget {
     this.untilYield -= count;
     if (this.untilYield > 0) return;
     this.untilYield = 65536;
-    if (!hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 16) return;
+    if (++this.yieldChecks % 16 !== 0 && !hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 16) return;
     this.lastYield = monotonicNow();
     return yieldTurn(this.signal).catch(error => { this.signal.throwIfAborted(); throw error; }).then(() => {
       this.lastYield = monotonicNow();

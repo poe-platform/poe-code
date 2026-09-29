@@ -120,7 +120,7 @@ export class Budget {
 
   async fs<Result>(operation: () => Promise<Result>): Promise<Result> {
     this.step();
-    if (++this.operations % 64 === 0 && (this.operations === 64 || hasYieldCheckpoint(this.context.signal) || monotonicNow() - this.lastYield >= 16)) {
+    if (++this.operations % 64 === 0 && (this.operations === 64 || this.operations % 1024 === 0 || hasYieldCheckpoint(this.context.signal) || monotonicNow() - this.lastYield >= 16)) {
       await this.wait(() => new Promise<void>(resolve => {
         const timer = scheduleTurn(() => { this.timers.delete(timer); resolve(); });
         this.timers.add(timer);

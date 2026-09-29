@@ -648,6 +648,7 @@ class Converter {
   private autoPadding = false;
   private work = 0;
   private tickCount = 0;
+  private lastYieldWork = 0;
   private lastYield = monotonicNow();
   private signalAborted: boolean;
   private readonly pollSignal: boolean;
@@ -661,7 +662,7 @@ class Converter {
 
   canTickSync(maxTicks: number): boolean {
     if (this.pollSignal ? this.context.signal.aborted : this.signalAborted) return false;
-    if (this.work + maxTicks > this.limits.maxWork) return false;
+    if (this.work + maxTicks > this.limits.maxWork || this.work + maxTicks - this.lastYieldWork >= 16384) return false;
     if ((this.work % 1024) + maxTicks < 1024) return true;
     return this.tickCount >= 1 && !hasYieldCheckpoint(this.context.signal) && monotonicNow() - this.lastYield < 16;
   }
@@ -672,8 +673,9 @@ class Converter {
     if (this.work % 1024 < amount) {
       const count = ++this.tickCount;
       const now = monotonicNow();
-      if (count === 1 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
+      if (count === 1 || this.work - this.lastYieldWork >= 16384 || now - this.lastYield >= 16 || hasYieldCheckpoint(this.context.signal)) {
         this.lastYield = now;
+        this.lastYieldWork = this.work;
         return yieldTurn(this.context.signal).then(() => {
           this.lastYield = monotonicNow();
         });

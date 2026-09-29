@@ -63,6 +63,7 @@ export class SharedBudget {
   private steps = 0;
   private failureUnits = 64;
   private untilYield = 128;
+  private yieldChecks = 0;
   private lastYield = monotonicNow();
   private readonly controller = new AbortController();
   private timer: ReturnType<typeof setTimeout> | undefined;
@@ -105,8 +106,8 @@ export class SharedBudget {
     if (--this.untilYield <= 0) {
       this.untilYield = 128;
       const now = monotonicNow();
-      if (hasYieldCheckpoint(this.signal) || now - this.lastYield >= 16) {
-        await yieldTurn();
+      if (++this.yieldChecks % 16 === 0 || hasYieldCheckpoint(this.signal) || now - this.lastYield >= 16) {
+        await yieldTurn(this.signal);
         this.lastYield = monotonicNow();
       } else {
         runYieldCheckpoint(this.signal);
@@ -149,7 +150,7 @@ export class SharedBudget {
       untilYield -= character.length;
       if (untilYield <= 0) {
         untilYield = 4096;
-        await yieldTurn();
+        await yieldTurn(this.signal);
         this.checkTime();
       }
     }

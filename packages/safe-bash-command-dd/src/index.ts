@@ -230,9 +230,10 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
       let partialRecord = 0;
       let warned = false;
       let lastYieldTime = monotonicNow();
+      let yieldChecks = 0;
       const maybeYield = async (): Promise<void> => {
         context.signal.throwIfAborted();
-        if (hasYieldCheckpoint(context.signal) || monotonicNow() - lastYieldTime >= 16) {
+        if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(context.signal) || monotonicNow() - lastYieldTime >= 16) {
           await yieldTurn(context.signal);
           lastYieldTime = monotonicNow();
         }

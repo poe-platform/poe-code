@@ -53,7 +53,7 @@ export class Budget {
       this.sinceYield = 0;
       const count = ++this.checkpoints;
       const now = monotonicNow();
-      if (!this.hasExtYield && count > 1 && now - this.lastYieldTime < 16) {
+      if (!this.hasExtYield && count > 1 && count % 16 !== 0 && now - this.lastYieldTime < 16) {
         runYieldCheckpoint(this.context.signal);
         return;
       }

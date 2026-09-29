@@ -8,6 +8,7 @@ export interface StringWork {
   allocation?: ValueAllocation;
   steps?: number;
   lastYield?: number;
+  yieldChecks?: number;
 }
 
 export function stringCheckpoint(work: StringWork, units = 1): Promise<void> | undefined {
@@ -20,7 +21,8 @@ export function stringCheckpoint(work: StringWork, units = 1): Promise<void> | u
   const now = monotonicNow();
   const firstYield = work.lastYield === undefined;
   const lastYield = (work.lastYield ??= now);
-  if (firstYield || hasYieldCheckpoint(work.signal) || now - lastYield >= 1) {
+  work.yieldChecks = (work.yieldChecks ?? 0) + 1;
+  if (work.yieldChecks % 16 === 0 || firstYield || hasYieldCheckpoint(work.signal) || now - lastYield >= 1) {
     work.lastYield = now;
     return yieldTurn(work.signal).then(() => {
       work.lastYield = monotonicNow();

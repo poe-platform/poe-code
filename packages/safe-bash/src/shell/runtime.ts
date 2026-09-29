@@ -22618,9 +22618,15 @@ export class Runtime {
       "[:punct:]": "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
       "[:graph:]": "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
       "[:print:]": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+      "[:cntrl:]": Array.from({ length: 31 }, (_, k) => String.fromCharCode(k + 1)).join("") + "\x7f",
     };
     const out: string[] = [];
     for (let i = 0; i < spec.length; i++) {
+      if (spec[i] === "[" && spec[i + 1] === "=" && i + 4 < spec.length && spec[i + 3] === "=" && spec[i + 4] === "]") {
+        out.push(spec[i + 2]!);
+        i += 4;
+        continue;
+      }
       if (spec[i] === "[" && spec[i + 1] === ":") {
         const close = spec.indexOf(":]", i + 2);
         if (close === -1) return undefined;
@@ -23803,8 +23809,8 @@ export class Runtime {
     const nums: string[] = [];
     for (let i = 0; i < args.length; i++) {
       const a = args[i]!;
-      if (ended || !a.startsWith("-") || /^-[0-9]/.test(a)) {
-        if (!/^-?[0-9]{1,7}$/.test(a)) return undefined;
+      if (ended || !a.startsWith("-") || /^-[0-9.]/.test(a)) {
+        if (!/^-?[0-9]{1,7}(?:\.[0-9]{1,4})?$/.test(a)) return undefined;
         nums.push(a);
         continue;
       }
@@ -23841,36 +23847,63 @@ export class Runtime {
     if (nums.length < 1 || nums.length > 3 || (equalWidth && fmt !== undefined)) return undefined;
     if (sep.includes("\0") || (fmt !== undefined && fmt.includes("\0"))) return undefined;
     let fmtPrefix = "";
+    let fmtLeft = false;
     let fmtZeroPad = false;
     let fmtWidth = 0;
+    let fmtPrec: number | undefined;
+    let fmtSpec: "g" | "f" = "g";
     let fmtSuffix = "";
     if (fmt !== undefined) {
-      const m = /^([^%]*?)%(0?)([0-9]{0,2})g([^%]*)$/.exec(fmt);
+      const m = /^([^%]*?)%(-?)(0?)([0-9]{0,2})(?:\.([0-9]{1,2}))?([gf])([^%]*)$/.exec(fmt);
       if (!m) return undefined;
       fmtPrefix = m[1]!;
-      fmtZeroPad = m[2] === "0";
-      fmtWidth = m[3] ? Number(m[3]) : 0;
-      fmtSuffix = m[4]!;
+      fmtLeft = m[2] === "-";
+      fmtZeroPad = !fmtLeft && m[3] === "0";
+      fmtWidth = m[4] ? Number(m[4]) : 0;
+      fmtPrec = m[5] !== undefined ? Number(m[5]) : undefined;
+      fmtSpec = m[6] as "g" | "f";
+      if (fmtSpec === "g" && fmtPrec !== undefined) return undefined;
+      fmtSuffix = m[7]!;
     }
-    const first = nums.length === 1 ? 1 : Number(nums[0]!);
-    const incr = nums.length === 3 ? Number(nums[1]!) : 1;
-    const last = Number(nums[nums.length - 1]!);
-    if (incr === 0 || Math.abs((last - first) / incr) > 1024) return undefined;
-    const padWidth = equalWidth ? Math.max(nums[0] ? nums[0].length : 1, nums[nums.length - 1]!.length) : 0;
+    const fracLen = (s: string): number => {
+      const dot = s.indexOf(".");
+      return dot < 0 ? 0 : s.length - dot - 1;
+    };
+    const firstStr = nums.length === 1 ? "1" : nums[0]!;
+    const incrStr = nums.length === 3 ? nums[1]! : "1";
+    const lastStr = nums[nums.length - 1]!;
+    const scalePow = Math.max(fracLen(firstStr), fracLen(incrStr), fracLen(lastStr));
+    const outPrec = Math.max(fracLen(firstStr), fracLen(incrStr));
+    const scaleFactor = 10 ** scalePow;
+    const firstInt = Math.round(Number(firstStr) * scaleFactor);
+    const incrInt = Math.round(Number(incrStr) * scaleFactor);
+    const lastInt = Math.round(Number(lastStr) * scaleFactor);
+    if (incrInt === 0 || Math.abs((lastInt - firstInt) / incrInt) > 1024) return undefined;
+    const formatScaled = (valInt: number): string => {
+      const num = valInt / scaleFactor;
+      return outPrec > 0 ? num.toFixed(outPrec) : String(Math.round(num));
+    };
+    const padWidth = equalWidth ? Math.max(formatScaled(firstInt).length, formatScaled(lastInt).length) : 0;
     const seqLines: string[] = [];
-    for (let cur = first; incr > 0 ? cur <= last : cur >= last; cur += incr) {
+    for (let curInt = firstInt; incrInt > 0 ? curInt <= lastInt : curInt >= lastInt; curInt += incrInt) {
+      const cur = curInt / scaleFactor;
       if (fmt !== undefined) {
-        const body = cur < 0
-          ? "-" + String(Math.abs(cur)).padStart(Math.max(0, fmtWidth - 1), fmtZeroPad ? "0" : " ")
-          : String(cur).padStart(fmtWidth, fmtZeroPad ? "0" : " ");
+        const rawNum = fmtSpec === "f" ? cur.toFixed(fmtPrec ?? 6) : String(cur);
+        let body = rawNum;
+        if (fmtWidth > rawNum.length) {
+          if (fmtLeft) body = rawNum.padEnd(fmtWidth, " ");
+          else if (fmtZeroPad && rawNum.startsWith("-")) body = "-" + rawNum.slice(1).padStart(fmtWidth - 1, "0");
+          else body = rawNum.padStart(fmtWidth, fmtZeroPad ? "0" : " ");
+        }
         seqLines.push(fmtPrefix + body + fmtSuffix);
       } else if (equalWidth) {
-        const body = cur < 0
-          ? "-" + String(Math.abs(cur)).padStart(Math.max(0, padWidth - 1), "0")
-          : String(cur).padStart(padWidth, "0");
+        const raw = formatScaled(curInt);
+        const body = raw.startsWith("-")
+          ? "-" + raw.slice(1).padStart(Math.max(0, padWidth - 1), "0")
+          : raw.padStart(padWidth, "0");
         seqLines.push(body);
       } else {
-        seqLines.push(String(cur));
+        seqLines.push(formatScaled(curInt));
       }
     }
     return seqLines.length > 0 ? seqLines.join(sep) + "\n" : "";
@@ -23878,10 +23911,13 @@ export class Runtime {
 
   private evalSyncBase64(inBytes: Uint8Array, opArgs: readonly string[]): string | undefined {
     let decode = false;
+    let ignoreGarbage = false;
     let wrapCols = 76;
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if (a === "-d" || a === "--decode") { decode = true; continue; }
+      if (a === "-i" || a === "--ignore-garbage") { ignoreGarbage = true; continue; }
+      if (a === "-di" || a === "-id") { decode = true; ignoreGarbage = true; continue; }
       if (a === "-w") {
         if (i + 1 >= opArgs.length || !/^[0-9]{1,5}$/.test(opArgs[i + 1]!)) return undefined;
         wrapCols = Number(opArgs[++i]!);
@@ -23899,7 +23935,7 @@ export class Runtime {
     }
     if (decode) {
       const fileStr = sharedSyncPipeDecoder.decode(inBytes);
-      const cleaned = fileStr.replace(/[ \t\r\n]+/g, "");
+      const cleaned = ignoreGarbage ? fileStr.replace(/[^A-Za-z0-9+/=]+/g, "") : fileStr.replace(/[ \t\r\n]+/g, "");
       if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
       const decoded = this.syncBase64DecodeBytes(cleaned);
       if (decoded.some(byte => byte === 0 || byte >= 128)) return undefined;

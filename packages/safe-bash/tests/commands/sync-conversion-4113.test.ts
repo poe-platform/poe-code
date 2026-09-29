@@ -565,3 +565,23 @@ test("evaluates nl -h/-f/-p/-l, strings -t d/o/x, and expand/unexpand comma-sepa
     ", 1:hdr,, 2:body1,   , 3:, 4:body2,#      2 hello,      a world,#a   b   c#a\tb\tc\n",
   );
 });
+
+test("evaluates seq decimal stepping (0 0.5 2) and %.Nf formatting, base64 -d -i / -di ignore-garbage, and tr [=c=] equivalence classes in sync substitutions (Wave 188)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(byteCommands());
+  const r = await shell.exec(
+    [
+      "sq_dec=$(seq -s : 0 0.5 2)",
+      "sq_fmt=$(seq -s , -f \"%05.2f\" 1 0.5 2)",
+      "b64_ig=$(printf \"aGVs***bG8=\\n\" | base64 -di)",
+      "tr_eq=$(printf \"banana\" | tr '[=a=]' 'o')",
+      "printf \"%s#%s#%s#%s\\n\" \"$sq_dec\" \"$sq_fmt\" \"$b64_ig\" \"$tr_eq\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "0.0:0.5:1.0:1.5:2.0#01.00,01.50,02.00#hello#bonono\n",
+  );
+});

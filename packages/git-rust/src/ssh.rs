@@ -168,13 +168,6 @@ pub fn resolve_ssh_config(
         user_known_hosts_file: format!("{}/.ssh/known_hosts", crate::environment::home()),
     };
 
-    // Check core.sshCommand in git config first
-    if let Some(gd) = gitdir
-        && let Some(ssh_cmd_val) = GitConfigManager::get(fs, gd).get("core.sshCommand")
-    {
-        apply_ssh_command_flags(&ssh_cmd_val.as_str(), &mut cfg);
-    }
-
     // Candidate ssh config files in MemoryFs
     let mut config_paths = vec![
         format!("{}/.ssh/config", crate::environment::home()),
@@ -190,6 +183,13 @@ pub fn resolve_ssh_config(
             parse_ssh_config_text(&text, &endpoint.host, &mut cfg);
             break;
         }
+    }
+
+    // Command-line flags take precedence over host configuration.
+    if let Some(gd) = gitdir
+        && let Some(ssh_cmd_val) = GitConfigManager::get(fs, gd).get("core.sshCommand")
+    {
+        apply_ssh_command_flags(&ssh_cmd_val.as_str(), &mut cfg);
     }
 
     if let Some(command) = crate::environment::get("GIT_SSH_COMMAND") {

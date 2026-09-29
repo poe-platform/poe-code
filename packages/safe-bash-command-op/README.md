@@ -42,6 +42,10 @@ restrictive policy for sensitive operations.
 `createObjectBackend` from the same plugin subpath. Here `createOpCommand`
 is the fully composed shell adapter, not the internal low-level dispatcher.
 
+`OpLimits` exposes `maxInputBytes`. Set `limits: { maxInputBytes: 1048576 }`
+to bound buffered stdin before parsing or backend execution; omission defaults to
+`Infinity`.
+
 `OpCommandsOptions` extends the internal `OpCommandOptions` documented below:
 required `backend`, policy callbacks/mode, handlers, version and channel, plus
 `replace?` (default false), `authentication?`, `pluginScope?`,

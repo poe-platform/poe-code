@@ -853,3 +853,17 @@ test("JSON input has no implicit byte ceiling", async () => {
   assert.equal((await run.command.execute(run.context)).exitCode, 0, Buffer.concat(run.errors).toString());
   assert.deepEqual((run.requests[0] as { input: unknown }).input, { title: "Large" });
 });
+
+test("op rejects stdin over its configured input limit before backend execution", async () => {
+  const run = fixture(["item", "create"], { limits: { maxInputBytes: 2 } });
+  run.context.stdin = { async *[Symbol.asyncIterator]() { yield new TextEncoder().encode("abc"); } };
+  assert.deepEqual(await run.command.execute(run.context), { exitCode: 1 });
+  assert.equal(run.requests.length, 0);
+  assert.match(Buffer.concat(run.errors).toString(), /input exceeds maximum size of 2 bytes/);
+});
+
+test("op validates input limits", () => {
+  for (const maxInputBytes of [0, -1, 1.5, NaN, -Infinity]) {
+    assert.throws(() => createOpCommand({ limits: { maxInputBytes } }), RangeError);
+  }
+});

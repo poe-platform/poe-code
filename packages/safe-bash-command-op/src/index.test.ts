@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createOp, createObjectBackend, type OpCommandContext, type OpConfirmOverwrite, type OpSelectPlugin } from "./index.js";
+import { createOp, createObjectBackend, type OpLimits, type OpCommandContext, type OpConfirmOverwrite, type OpSelectPlugin } from "./index.js";
 
 test("root entry point exposes the plugin selection capability contract", async () => {
   const callback: OpSelectPlugin = (candidates, context) => {
@@ -234,4 +234,12 @@ test("item metadata commands do not reveal attachment bodies", async () => {
   const read = fixture(["read", "op://Private/Example/attachment"]);
   assert.equal((await command.execute(read.context)).exitCode, 0);
   assert.equal(Buffer.concat(read.output).toString(), "attachment-private-body\n");
+});
+
+test("root entry exposes enforceable OpLimits", async () => {
+  const limits: OpLimits = { maxInputBytes: 2 };
+  const run = fixture(["item", "create"]);
+  run.context.stdin = { async *[Symbol.asyncIterator]() { yield new TextEncoder().encode("abc"); } };
+  assert.equal((await createOp({ limits }).execute(run.context)).exitCode, 1);
+  assert.match(Buffer.concat(run.errors).toString(), /input exceeds maximum size of 2 bytes/);
 });

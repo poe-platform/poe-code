@@ -44,7 +44,12 @@ export interface OpCommandContext {
   writeFile?: (path: string, data: Uint8Array, options?: OpFileWriteOptions) => Promise<void | string>;
 }
 
+export interface OpLimits {
+  readonly maxInputBytes: number;
+}
+
 export interface OpCommandOptions {
+  readonly limits?: Partial<OpLimits>;
   backend?: OpBackend;
   version?: string;
   channel?: "stable" | "beta";
@@ -352,6 +357,8 @@ function approvalManifest(request: OpBackendRequest, requests: readonly OpBacken
 
 export function createOpCommand(options: OpCommandOptions = {}): { name: "op"; execute(context: OpCommandContext): Promise<{ exitCode: number }> } {
   const { backend = createObjectBackend(), authorize, approve, authorizeResolution, approveResolved, approvalMode = "resolved", version = "0.0.1", channel = "stable" } = options;
+  const inputLimits: OpLimits = { maxInputBytes: options.limits?.maxInputBytes ?? Infinity };
+  if (inputLimits.maxInputBytes !== Infinity && (!Number.isSafeInteger(inputLimits.maxInputBytes) || inputLimits.maxInputBytes < 1)) throw new RangeError("Invalid op limit: maxInputBytes");
   const handlers = { ...options.handlers };
   const planners = new Map(Object.entries(handlers).flatMap(([key, handler]) => typeof (handler as Partial<OpPreparedHandler>).prepare === "function" ? [[key, (handler as OpPreparedHandler).prepare.bind(handler)] as const] : []));
   return {
@@ -359,6 +366,15 @@ export function createOpCommand(options: OpCommandOptions = {}): { name: "op"; e
     async execute(callerContext) {
       const context: OpCommandContext = {
         ...callerContext,
+        stdin: { async *[Symbol.asyncIterator]() {
+          let bytes = 0;
+          for await (const chunk of callerContext.stdin) {
+            callerContext.signal.throwIfAborted();
+            bytes += chunk.byteLength;
+            if (bytes > inputLimits.maxInputBytes) throw new Error(`input exceeds maximum size of ${inputLimits.maxInputBytes} bytes`);
+            yield chunk;
+          }
+        } },
         binding: undefined,
         args: Object.freeze([...callerContext.args]),
         env: Object.freeze({ ...callerContext.env }),

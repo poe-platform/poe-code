@@ -14100,7 +14100,7 @@ export class Runtime {
       if (store) store.epoch = restEpoch;
       return loopStatus;
     }
-    if ( !isShellIdentifier(command.name) || command.name === "OPTIND" || command.name.includes("[") || store?.get(command.name) || (command.words && (command.words.length === 0 || command.words.length > 64)) || rawState.braceexpand === false) {
+    if ( !isShellIdentifier(command.name) || command.name === "OPTIND" || controlNames.has(command.name) || command.name === "LC_COLLATE" || command.name.includes("[") || store?.get(command.name) || (command.words && (command.words.length === 0 || command.words.length > 64)) || rawState.braceexpand === false) {
       return undefined;
     }
     const activeValScope = io[valueScope];
@@ -15270,6 +15270,9 @@ export class Runtime {
     return check(tree);
   }
   private canSyncErrorArithmeticStmt(expr: ArithmeticProgram, rawState: State): boolean {
+    // Expansion can introduce array, attributed, or control-variable references.
+    // Their reads and writes require the full arithmetic evaluator.
+    if (expr.source.includes("$")) return false;
     if (expr.source.includes("/") || expr.source.includes("%") || expr.source.includes("<<") || expr.source.includes(">>") || expr.source.includes("**") || expr.source.includes("[")) return false;
     try {
       const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };

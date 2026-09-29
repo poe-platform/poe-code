@@ -928,3 +928,147 @@ syncCommandEvaluators.evalSyncCp = evalSyncCp;
 syncCommandEvaluators.evalSyncMv = evalSyncMv;
 syncCommandEvaluators.evalSyncRmdir = evalSyncRmdir;
 syncCommandEvaluators.evalSyncSleep = evalSyncSleep;
+
+
+export function evalSyncMkdir(
+  opArgs: readonly string[],
+  umask: number,
+  statTypeSync?: (filePath: string) => string | undefined,
+  mkdirSync?: (filePath: string, recursive: boolean, mode: number) => boolean,
+): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal("mkdir", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  if (!statTypeSync || !mkdirSync) return undefined;
+  let parents = false;
+  let verbose = false;
+  let modeSpec: string | undefined;
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (ended || !a.startsWith("-") || a === "-") {
+      operands.push(a);
+      continue;
+    }
+    if (a === "--") { ended = true; continue; }
+    if (a === "-p" || a === "--parents") { parents = true; continue; }
+    if (a === "-v" || a === "--verbose") { verbose = true; continue; }
+    if (a === "-m" || a === "--mode") {
+      modeSpec = opArgs[++i];
+      if (modeSpec === undefined) return undefined;
+      continue;
+    }
+    if (a.startsWith("--mode=")) { modeSpec = a.slice(7); continue; }
+    if (a.startsWith("-m") && a.length > 2) { modeSpec = a.slice(2); continue; }
+    if (a.startsWith("-") && !a.startsWith("--")) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "p") parents = true;
+        else if (ch === "v") verbose = true;
+        else if (ch === "m") {
+          const rest = a.slice(j + 1);
+          modeSpec = rest || opArgs[++i];
+          if (modeSpec === undefined) return undefined;
+          break;
+        } else return undefined;
+      }
+      continue;
+    }
+    return undefined;
+  }
+  if (operands.length === 0) return undefined;
+  let mode = 0o777 & ~umask;
+  if (modeSpec !== undefined) {
+    if (!/^[0-7]{1,4}$/.test(modeSpec)) return undefined;
+    mode = Number.parseInt(modeSpec, 8);
+  }
+  if (verbose && parents) return undefined;
+  for (const dir of operands) {
+    const st = statTypeSync(dir);
+    if (parents) {
+      if (st !== "missing" && st !== "directory") return undefined;
+    } else {
+      if (st !== "missing") return undefined;
+    }
+  }
+  let out = "";
+  for (const dir of operands) {
+    const st = statTypeSync(dir);
+    if (parents && st === "directory") continue;
+    if (!mkdirSync(dir, parents, mode)) return undefined;
+    if (verbose) out += `mkdir: created directory '${dir}'\n`;
+  }
+  return out;
+}
+
+export function evalSyncRm(
+  opArgs: readonly string[],
+  statTypeSync?: (filePath: string) => string | undefined,
+  listDirSync?: (filePath: string) => readonly string[] | undefined,
+  rmSync?: (filePath: string) => boolean,
+): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal("rm", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  if (!statTypeSync || !listDirSync || !rmSync) return undefined;
+  let force = false;
+  let recursive = false;
+  let dirFlag = false;
+  let verbose = false;
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (ended || !a.startsWith("-") || a === "-") {
+      operands.push(a);
+      continue;
+    }
+    if (a === "--") { ended = true; continue; }
+    if (a === "-f" || a === "--force") { force = true; continue; }
+    if (a === "-r" || a === "-R" || a === "--recursive") { recursive = true; continue; }
+    if (a === "-d" || a === "--dir") { dirFlag = true; continue; }
+    if (a === "-v" || a === "--verbose") { verbose = true; continue; }
+    if (a.startsWith("-") && !a.startsWith("--")) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "f") force = true;
+        else if (ch === "r" || ch === "R") recursive = true;
+        else if (ch === "d") dirFlag = true;
+        else if (ch === "v") verbose = true;
+        else return undefined;
+      }
+      continue;
+    }
+    return undefined;
+  }
+  if (operands.length === 0) return force ? "" : undefined;
+  for (const f of operands) {
+    if (f === "/" || f === "." || f === ".." || f.endsWith("/.") || f.endsWith("/..")) return undefined;
+    const st = statTypeSync(f);
+    if (st === "missing") {
+      if (!force) return undefined;
+    } else if (st === "directory") {
+      if (recursive) {
+        if (verbose && (listDirSync(f)?.length ?? 1) > 0) return undefined;
+      } else if (dirFlag) {
+        if ((listDirSync(f)?.length ?? 1) > 0) return undefined;
+      } else {
+        return undefined;
+      }
+    } else if (st !== "file") {
+      return undefined;
+    }
+  }
+  let out = "";
+  for (const f of operands) {
+    const st = statTypeSync(f);
+    if (st === "missing") continue;
+    if (!rmSync(f)) return undefined;
+    if (verbose) {
+      out += `removed '${f}'\n`;
+    }
+  }
+  return out;
+}
+
+syncCommandEvaluators.evalSyncMkdir = evalSyncMkdir;
+syncCommandEvaluators.evalSyncRm = evalSyncRm;

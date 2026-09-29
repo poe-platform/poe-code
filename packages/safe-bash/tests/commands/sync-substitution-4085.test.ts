@@ -1789,3 +1789,38 @@ test("sync loop preflight dry-run and per-iteration dynamic execution for mktemp
   assert.equal(res.stdout, "5|xxxxx|5|renamed '/tmp/w162_once.txt' -> '/tmp/w162_moved.txt'|payload\n");
   assert.ok(elapsed < 1500, `Expected Wave 162 under 1500ms, took ${elapsed.toFixed(1)}ms`);
 });
+
+test("sync substitution and brace-loop admission for mkdir, rm, sha256sum, column, hexdump, fold, expand, fmt, xxd, od, and bc file operands (Wave 163)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp", { recursive: true });
+  const registry = new CommandRegistry();
+  for (const cmd of createAgentCommands({ muscleMemory: true })) {
+    registry.register(cmd, { replace: true });
+  }
+  const sh = new Shell({ fs, commands: registry });
+  const start = performance.now();
+  const res = await sh.exec(`
+    printf "a b\nc d\n" > /tmp/w163_tbl.txt
+    printf "hello" > /tmp/w163_hi.txt
+    printf "20 + 22\n" > /tmp/w163_bc.txt
+    for i in {1..150}; do
+      mk_msg=\$(mkdir -v /tmp/w163_dir)
+      rm_msg=\$(rm -dv /tmp/w163_dir)
+      _mp=\$(mkdir -p -m 750 /tmp/w163_nested/sub)
+      m_sub=\$(stat -c %a /tmp/w163_nested/sub)
+      _rr=\$(rm -rf /tmp/w163_nested)
+      s256=\$(sha256sum /tmp/w163_hi.txt)
+      col_out=\$(column -t /tmp/w163_tbl.txt | head -n 1)
+      xxd_out=\$(xxd -p /tmp/w163_hi.txt)
+      bc_out=\$(bc /tmp/w163_bc.txt)
+    done
+    printf "%s|%s|%s|%s|%s|%s|%s\n" "\$mk_msg" "\$rm_msg" "\$m_sub" "\${s256%% *}" "\$col_out" "\$xxd_out" "\$bc_out"
+  `);
+  const elapsed = performance.now() - start;
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "mkdir: created directory '/tmp/w163_dir'|removed '/tmp/w163_dir'|750|2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824|a  b|68656c6c6f|42\n"
+  );
+  assert.ok(elapsed < 2500, `Expected Wave 163 under 2500ms, took ${elapsed.toFixed(1)}ms`);
+});

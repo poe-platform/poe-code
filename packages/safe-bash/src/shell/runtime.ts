@@ -26396,7 +26396,13 @@ export class Runtime {
       }
       if (a === "--") { literal = true; continue; }
       if (a === "--nocheck-order") { noCheckOrder = true; continue; }
+      if (a === "--check-order") { noCheckOrder = false; continue; }
       if (a === "--total") { showTotal = true; continue; }
+      if (a === "--output-delimiter" && i + 1 < opArgs.length) {
+        outDelim = opArgs[++i]!;
+        if (outDelim.length === 0 || /[^\x09\x20-\x7e]/.test(outDelim)) return undefined;
+        continue;
+      }
       if (a.startsWith("--output-delimiter=")) {
         outDelim = a.slice(19);
         if (outDelim.length === 0 || /[^\x09\x20-\x7e]/.test(outDelim)) return undefined;
@@ -26452,6 +26458,7 @@ export class Runtime {
     let sep: string | undefined;
     let f1 = 0, f2 = 0;
     let unp1 = false, unp2 = false, paired = true;
+    let ignoreCase = false, headerMode = false, noCheckOrder = false;
     let emptyRep = "";
     let outSpec: Array<{ file: 0 | 1 | 2; idx: number }> | undefined;
     let literal = false;
@@ -26463,26 +26470,38 @@ export class Runtime {
         continue;
       }
       if (a === "--") { literal = true; continue; }
+      if (a === "-i" || a === "--ignore-case") { ignoreCase = true; continue; }
+      if (a === "--header") { headerMode = true; continue; }
+      if (a === "--nocheck-order") { noCheckOrder = true; continue; }
+      if (a === "--check-order") { noCheckOrder = false; continue; }
       if (a === "-t" || a.startsWith("-t")) {
         const v = a === "-t" ? opArgs[++i] : a.slice(2);
-        if (!v || v.length !== 1 || /[^\x20-\x7e]/.test(v)) return undefined;
+        if (!v || v.length !== 1 || /[^\x09\x20-\x7e]/.test(v)) return undefined;
         sep = v;
+      } else if (/^-(?:1|2|j)[1-9][0-9]{0,2}$/.test(a)) {
+        const idx = Number(a.slice(2)) - 1;
+        if (a[1] !== "2") f1 = idx;
+        if (a[1] !== "1") f2 = idx;
       } else if (a === "-1" || a === "-2" || a === "-j") {
         if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,2}$/.test(opArgs[i + 1]!)) return undefined;
         const idx = Number(opArgs[++i]!) - 1;
         if (a !== "-2") f1 = idx;
         if (a !== "-1") f2 = idx;
+      } else if (a === "-a1" || a === "-a2" || a === "-v1" || a === "-v2") {
+        if (a[2] === "1") unp1 = true; else unp2 = true;
+        if (a[1] === "v") paired = false;
       } else if (a === "-a" || a === "-v") {
         if (i + 1 >= opArgs.length || (opArgs[i + 1] !== "1" && opArgs[i + 1] !== "2")) return undefined;
         const side = opArgs[++i]!;
         if (side === "1") unp1 = true; else unp2 = true;
         if (a === "-v") paired = false;
-      } else if (a === "-e") {
-        if (i + 1 >= opArgs.length) return undefined;
-        emptyRep = opArgs[++i]!;
-      } else if (a === "-o") {
-        if (i + 1 >= opArgs.length) return undefined;
-        const parts = opArgs[++i]!.split(/[ ,]+/).filter(Boolean);
+      } else if (a === "-e" || (a.startsWith("-e") && a.length > 2)) {
+        if (a === "-e" && i + 1 >= opArgs.length) return undefined;
+        emptyRep = a === "-e" ? opArgs[++i]! : a.slice(2);
+      } else if (a === "-o" || (a.startsWith("-o") && a.length > 2)) {
+        const rawO = a === "-o" ? opArgs[++i] : a.slice(2);
+        if (!rawO) return undefined;
+        const parts = rawO.split(/[ ,]+/).filter(Boolean);
         if (parts.length === 0) return undefined;
         outSpec = [];
         for (const p of parts) {
@@ -26502,10 +26521,19 @@ export class Runtime {
     const raw2 = files[1] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[1]!));
     if (!raw1 || !raw2) return undefined;
     const splitRow = (line: string): string[] => sep !== undefined ? line.split(sep) : (line.trim().length === 0 ? [] : line.trim().split(/[ \t]+/));
-    const rows1 = raw1.map(l => { const fs = splitRow(l); return { fields: fs, key: fs[f1] ?? "" }; });
-    const rows2 = raw2.map(l => { const fs = splitRow(l); return { fields: fs, key: fs[f2] ?? "" }; });
-    for (let i = 1; i < rows1.length; i++) if (rows1[i]!.key < rows1[i - 1]!.key) return undefined;
-    for (let i = 1; i < rows2.length; i++) if (rows2[i]!.key < rows2[i - 1]!.key) return undefined;
+    const normKey = (k: string): string => ignoreCase ? k.toLowerCase() : k;
+    let rows1 = raw1.map(l => { const fs = splitRow(l); const k = fs[f1] ?? ""; return { fields: fs, key: k, cmpKey: normKey(k) }; });
+    let rows2 = raw2.map(l => { const fs = splitRow(l); const k = fs[f2] ?? ""; return { fields: fs, key: k, cmpKey: normKey(k) }; });
+    let headerRow: { r1: (typeof rows1)[0] | undefined; r2: (typeof rows2)[0] | undefined } | undefined;
+    if (headerMode && (rows1.length > 0 || rows2.length > 0)) {
+      headerRow = { r1: rows1[0], r2: rows2[0] };
+      rows1 = rows1.slice(1);
+      rows2 = rows2.slice(1);
+    }
+    if (!noCheckOrder) {
+      for (let i = 1; i < rows1.length; i++) if (rows1[i]!.cmpKey < rows1[i - 1]!.cmpKey) return undefined;
+      for (let i = 1; i < rows2.length; i++) if (rows2[i]!.cmpKey < rows2[i - 1]!.cmpKey) return undefined;
+    }
     const outSep = sep ?? " ";
     const formatJoin = (key: string, r1: readonly string[] | undefined, r2: readonly string[] | undefined): string => {
       if (outSpec) {
@@ -26522,24 +26550,27 @@ export class Runtime {
       return parts.join(outSep);
     };
     const out: string[] = [];
+    if (headerRow) {
+      out.push(formatJoin(headerRow.r1?.key ?? headerRow.r2?.key ?? "", headerRow.r1?.fields, headerRow.r2?.fields));
+    }
     let i = 0, j = 0;
     while (i < rows1.length && j < rows2.length) {
-      const k1 = rows1[i]!.key, k2 = rows2[j]!.key;
-      if (k1 < k2) {
-        if (unp1) out.push(formatJoin(k1, rows1[i]!.fields, undefined));
+      const ck1 = rows1[i]!.cmpKey, ck2 = rows2[j]!.cmpKey;
+      if (ck1 < ck2) {
+        if (unp1) out.push(formatJoin(rows1[i]!.key, rows1[i]!.fields, undefined));
         i++;
-      } else if (k1 > k2) {
-        if (unp2) out.push(formatJoin(k2, undefined, rows2[j]!.fields));
+      } else if (ck1 > ck2) {
+        if (unp2) out.push(formatJoin(rows2[j]!.key, undefined, rows2[j]!.fields));
         j++;
       } else {
         let iEnd = i + 1;
-        while (iEnd < rows1.length && rows1[iEnd]!.key === k1) iEnd++;
+        while (iEnd < rows1.length && rows1[iEnd]!.cmpKey === ck1) iEnd++;
         let jEnd = j + 1;
-        while (jEnd < rows2.length && rows2[jEnd]!.key === k2) jEnd++;
+        while (jEnd < rows2.length && rows2[jEnd]!.cmpKey === ck2) jEnd++;
         if (paired) {
           for (let ii = i; ii < iEnd; ii++) {
             for (let jj = j; jj < jEnd; jj++) {
-              out.push(formatJoin(k1, rows1[ii]!.fields, rows2[jj]!.fields));
+              out.push(formatJoin(rows1[ii]!.key, rows1[ii]!.fields, rows2[jj]!.fields));
             }
           }
         }
@@ -26634,6 +26665,12 @@ export class Runtime {
         headers = a.slice(2).split(",");
       } else if (a.startsWith("--table-columns=") && a.length > 16) {
         headers = a.slice(16).split(",");
+      } else if (a.startsWith("-ts") || a.startsWith("-st")) {
+        tableMode = true;
+        const rest = a.slice(3);
+        const sVal = rest.length > 0 ? rest : (i + 1 < opArgs.length ? opArgs[++i] : undefined);
+        if (!sVal) return undefined;
+        sepChars = new Set(Array.from(sVal));
       } else if (/^-[te]+$/.test(a)) {
         if (a.includes("t")) tableMode = true;
         if (a.includes("e")) emptyLines = true;
@@ -26643,14 +26680,14 @@ export class Runtime {
     }
     if (!tableMode || /[^\x20-\x7e]/.test(outSep)) return undefined;
     if (sepChars) {
-      for (const ch of sepChars) if (ch.length !== 1 || ch.charCodeAt(0) < 0x20 || ch.charCodeAt(0) >= 0x7f) return undefined;
+      for (const ch of sepChars) if (ch.length !== 1 || (ch !== "\t" && (ch.charCodeAt(0) < 0x20 || ch.charCodeAt(0) >= 0x7f))) return undefined;
     }
     if (headers && headers.some(h => !h || /[^\x20-\x7e]/.test(h))) return undefined;
     const rows: string[][] = [];
     let maxCols = headers ? headers.length : 0;
     for (let i = 0; i < rawLines.length; i++) {
       const l = rawLines[i]!;
-      if (/[^\x20-\x7e\t]/.test(l) || l.includes("\t")) return undefined;
+      if (/[^\x20-\x7e\t]/.test(l) || (l.includes("\t") && sepChars !== undefined && !sepChars.has("\t"))) return undefined;
       if (l.length === 0) {
         if (emptyLines) rows.push([]);
         continue;

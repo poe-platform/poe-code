@@ -502,3 +502,14 @@ test("evaluates sort --key=, combined -rnk/-nt:, start-field modifiers (-k 2n,2)
     "id_02:20,id_03:40,id_01:100,#id_01:100,id_03:40,id_02:20,#id_01:100,id_02:20,id_03:40,#ab:ef,12:56,#b#a:a::b::c:c:\n",
   );
 });
+test("evaluates join -i/--header/attached flags (-a1/-e0/-o...), comm --nocheck-order/--output-delimiter, and column -t with tabs and -ts: in sync substitutions (Wave 184)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(tableTextCommands()).use(columnCommands());
+  const r = await shell.exec("printf \"ID:Name\\na1:Alice\\nb2:Bob\\n\" > /tmp/j1.txt\nprintf \"ID:Score\\nA1:95\\nc3:80\\n\" > /tmp/j2.txt\nj_hdr=$(join -t: -i --header -a1 -e0 -o0,1.2,2.2 /tmp/j1.txt /tmp/j2.txt | tr '\\n' ',')\nc_del=$(comm --nocheck-order --output-delimiter : -3 /tmp/j1.txt /tmp/j2.txt | tr '\\n' ',')\ncol_tsv=$(printf \"name\\tscore\\nalice\\t95\\nbob\\t100\\n\" | column -t | tr '\\n' ',')\ncol_ts=$(column -ts: /tmp/j1.txt | tr '\\n' ',')\nprintf \"%s#%s#%s#%s\\n\" \"$j_hdr\" \"$c_del\" \"$col_tsv\" \"$col_ts\"");
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "ID:Name:Score,a1:Alice:95,b2:Bob:0,#ID:Name,:ID:Score,:A1:95,a1:Alice,b2:Bob,:c3:80,#name   score,alice  95,bob    100,#ID  Name,a1  Alice,b2  Bob,\n",
+  );
+});

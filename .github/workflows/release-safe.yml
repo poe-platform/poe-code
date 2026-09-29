@@ -23,6 +23,7 @@ on:
       - "packages/safe-playwright-cloudflare/**"
       - "packages/package-lint/**"
       - "scripts/package-safe.mjs"
+      - "scripts/bundle-safe-bash.mjs"
       - "scripts/fixtures/safe-packages-*"
       - "scripts/verify-safe-publication.mjs"
       - "scripts/verify-safe-cloudflare.mjs"
@@ -83,7 +84,7 @@ jobs:
               packages/safe-bash-contracts packages/safe-bash-csv-engine \
               packages/safe-playwright packages/safe-playwright-cloudflare \
               'packages/spreadsheet-*' \
-              scripts/package-safe.mjs scripts/fixtures/safe-packages-* scripts/verify-safe-publication.mjs scripts/verify-safe-cloudflare.mjs scripts/verify-safe-bash-profiles.mjs scripts/build-workspaces.mjs scripts/check-cache.mjs \
+              scripts/package-safe.mjs scripts/bundle-safe-bash.mjs scripts/fixtures/safe-packages-* scripts/verify-safe-publication.mjs scripts/verify-safe-cloudflare.mjs scripts/verify-safe-bash-profiles.mjs scripts/build-workspaces.mjs scripts/check-cache.mjs \
               .github/workflows/release-safe.yml || true)
             changed_cmds=$(git diff --name-only "$GITHUB_SHA" origin/main | grep -E "^packages/safe-bash-(command-|.*-engine/)" || true)
             if [ -n "$changed_later" ] || [ -n "$changed_cmds" ]; then
@@ -179,7 +180,7 @@ jobs:
               packages/safe-bash-contracts packages/safe-bash-csv-engine \
               packages/safe-playwright packages/safe-playwright-cloudflare \
               'packages/spreadsheet-*' \
-              scripts/package-safe.mjs scripts/fixtures/safe-packages-* scripts/verify-safe-publication.mjs scripts/verify-safe-cloudflare.mjs scripts/verify-safe-bash-profiles.mjs scripts/build-workspaces.mjs scripts/check-cache.mjs \
+              scripts/package-safe.mjs scripts/bundle-safe-bash.mjs scripts/fixtures/safe-packages-* scripts/verify-safe-publication.mjs scripts/verify-safe-cloudflare.mjs scripts/verify-safe-bash-profiles.mjs scripts/build-workspaces.mjs scripts/check-cache.mjs \
               .github/workflows/release-safe.yml || true)
             changed_cmds=$(git diff --name-only "$GITHUB_SHA" origin/main | grep -E "^packages/safe-bash-(command-|.*-engine/)" || true)
             if [ -n "$changed_later" ] || [ -n "$changed_cmds" ]; then

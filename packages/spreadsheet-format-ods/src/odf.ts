@@ -283,7 +283,8 @@ function typedValue(node: XmlElement, legacy: boolean, dateSystem: "1900" | "190
       const h = a.value.indexOf("H"), m = a.value.indexOf("M", h + 1), s = a.value.indexOf("S", m + 1);
       if (h < 2 || m < h || s < m) continue;
       const fields = [a.value.slice(2, h), a.value.slice(h + 1, m), a.value.slice(m + 1, s)].map(Number);
-      if (fields.every(n => Number.isInteger(n) && n >= 0)) return { kind: "number", value: (fields[0]! * 3600 + fields[1]! * 60 + fields[2]!) / 86400 };
+      if (fields.every((n, index) => Number.isFinite(n) && n >= 0 && (index === 2 || Number.isInteger(n))))
+        return { kind: "number", value: (fields[0]! * 3600 + fields[1]! * 60 + fields[2]!) / 86400 };
     }
   }
   const p = paragraphs(node, charge);

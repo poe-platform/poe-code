@@ -2,7 +2,9 @@
 
 Add ODS reading and writing to a spreadsheet engine without installing
 other file-format implementations. The module uses the shared spreadsheet AST
-and explicit resource, cancellation and host-capability contracts.
+and explicit resource, cancellation and host-capability contracts. Time values
+with fractional seconds import as numeric day fractions, including durations
+longer than 24 hours.
 
 ```ts
 import { createEngine } from "poe-code/ssconvert/core";

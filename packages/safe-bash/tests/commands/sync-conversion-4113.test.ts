@@ -545,3 +545,23 @@ test("evaluates numfmt --header/-d/--field/--from-unit/--to-unit, xxd -l/-s, and
     "NAME:SIZE,fileA:2.0K,fileB:1.0M,#2.0K#636465# 42 43 44\n",
   );
 });
+
+test("evaluates nl -h/-f/-p/-l, strings -t d/o/x, and expand/unexpand comma-separated tab-stop lists (-t 4,8,12) in sync substitutions (Wave 187)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands());
+  const r = await shell.exec(
+    [
+      "nl_sec=$(printf \"\\:\\:\\:\\nhdr\\n\\:\\:\\nbody1\\n\\n\\nbody2\\n\" | nl -h a -b a -l 2 -p -w 2 -s : | tr '\\n' ',')",
+      "str_hex=$(printf \"x\\nhello\\ny\\nworld\\n\" | strings -t x -n 4 | tr '\\n' ',')",
+      "exp_lst=$(printf \"a\\tb\\tc\\n\" | expand -t 4,8)",
+      "unexp_lst=$(printf \"a   b   c\\n\" | unexpand -t 4,8)",
+      "printf \"%s#%s#%s#%s\\n\" \"$nl_sec\" \"$str_hex\" \"$exp_lst\" \"$unexp_lst\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    ", 1:hdr,, 2:body1,   , 3:, 4:body2,#      2 hello,      a world,#a   b   c#a\tb\tc\n",
+  );
+});

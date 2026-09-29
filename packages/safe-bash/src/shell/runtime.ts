@@ -25832,28 +25832,52 @@ export class Runtime {
   }
 
   private evalSyncNl(rawLines: readonly string[], opArgs: readonly string[], cwd?: string): string[] | undefined {
-    let bodyStyle = "t" as "a" | "t" | "n" | "p";
-    let bodyRe = undefined as RegExp | undefined;
+    type NlSecSpec = { style: "a" | "t" | "n" | "p"; re?: RegExp };
+    let headerSpec: NlSecSpec = { style: "n" };
+    let bodySpec: NlSecSpec = { style: "t" };
+    let footerSpec: NlSecSpec = { style: "n" };
     let format: "ln" | "rn" | "rz" = "rn";
     let width = 6;
     let sep = "\t";
     let start = 1;
     let inc = 1;
-    const setBodySpec = (v: string): boolean => {
-      if (v === "a" || v === "t" || v === "n") { bodyStyle = v; bodyRe = undefined; return true; }
+    let noRenumber = false;
+    let joinBlanks = 1;
+    const parseSecSpec = (v: string): NlSecSpec | undefined => {
+      if (v === "a" || v === "t" || v === "n") return { style: v };
       if (v.startsWith("p") && v.length > 1) {
-        try { bodyRe = new RegExp(v.slice(1)); bodyStyle = "p"; return true; } catch { return false; }
+        try { return { style: "p", re: new RegExp(v.slice(1)) }; } catch { return undefined; }
       }
-      return false;
+      return undefined;
     };
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if ((a === "-b" || a === "--body-numbering") && i + 1 < opArgs.length) {
-        if (!setBodySpec(opArgs[++i]!)) return undefined;
+        const sp = parseSecSpec(opArgs[++i]!); if (!sp) return undefined; bodySpec = sp;
       } else if (a.startsWith("--body-numbering=")) {
-        if (!setBodySpec(a.slice(17))) return undefined;
+        const sp = parseSecSpec(a.slice(17)); if (!sp) return undefined; bodySpec = sp;
       } else if (a.startsWith("-b") && a.length > 2) {
-        if (!setBodySpec(a.slice(2))) return undefined;
+        const sp = parseSecSpec(a.slice(2)); if (!sp) return undefined; bodySpec = sp;
+      } else if ((a === "-h" || a === "--header-numbering") && i + 1 < opArgs.length) {
+        const sp = parseSecSpec(opArgs[++i]!); if (!sp) return undefined; headerSpec = sp;
+      } else if (a.startsWith("--header-numbering=")) {
+        const sp = parseSecSpec(a.slice(19)); if (!sp) return undefined; headerSpec = sp;
+      } else if (a.startsWith("-h") && a.length > 2) {
+        const sp = parseSecSpec(a.slice(2)); if (!sp) return undefined; headerSpec = sp;
+      } else if ((a === "-f" || a === "--footer-numbering") && i + 1 < opArgs.length) {
+        const sp = parseSecSpec(opArgs[++i]!); if (!sp) return undefined; footerSpec = sp;
+      } else if (a.startsWith("--footer-numbering=")) {
+        const sp = parseSecSpec(a.slice(19)); if (!sp) return undefined; footerSpec = sp;
+      } else if (a.startsWith("-f") && a.length > 2) {
+        const sp = parseSecSpec(a.slice(2)); if (!sp) return undefined; footerSpec = sp;
+      } else if (a === "-p" || a === "--no-renumber") {
+        noRenumber = true;
+      } else if ((a === "-l" || a === "--join-blank-lines") && i + 1 < opArgs.length && /^[1-9][0-9]{0,3}$/.test(opArgs[i + 1]!)) {
+        joinBlanks = Number(opArgs[++i]!);
+      } else if (/^--join-blank-lines=[1-9][0-9]{0,3}$/.test(a)) {
+        joinBlanks = Number(a.slice(19));
+      } else if (/^-l[1-9][0-9]{0,3}$/.test(a)) {
+        joinBlanks = Number(a.slice(2));
       } else if ((a === "-n" || a === "--number-format") && i + 1 < opArgs.length) {
         const v = opArgs[++i]!;
         if (v !== "ln" && v !== "rn" && v !== "rz") return undefined;
@@ -25898,18 +25922,35 @@ export class Runtime {
       }
     }
     const out: string[] = [];
-    let curStyle = bodyStyle as "a" | "t" | "n" | "p";
+    let curSpec = bodySpec;
     let num = start;
+    let blankCount = 0;
     const unnumberedPrefix = " ".repeat(width + shellValueByteLength(sep));
     for (let i = 0; i < rawLines.length; i++) {
       const l = rawLines[i]!;
       if (l === "\\:" || l === "\\:\\:" || l === "\\:\\:\\:") {
-        curStyle = (l === "\\:\\:" ? bodyStyle : "n") as "a" | "t" | "n" | "p";
-        num = start;
+        curSpec = l === "\\:\\:\\:" ? headerSpec : l === "\\:\\:" ? bodySpec : footerSpec;
+        if (!noRenumber) num = start;
+        blankCount = 0;
         out.push("");
         continue;
       }
-      const numbered = curStyle === "a" || (curStyle === "t" && l.length > 0) || (curStyle === "p" && bodyRe !== undefined && bodyRe.test(l));
+      let numbered = false;
+      if (curSpec.style === "a") {
+        if (l.length === 0) {
+          blankCount++;
+          if (blankCount >= joinBlanks) {
+            numbered = true;
+            blankCount = 0;
+          }
+        } else {
+          blankCount = 0;
+          numbered = true;
+        }
+      } else {
+        blankCount = 0;
+        numbered = (curSpec.style === "t" && l.length > 0) || (curSpec.style === "p" && curSpec.re !== undefined && curSpec.re.test(l));
+      }
       if (!numbered) {
         out.push(l.length === 0 && sep === "\t" ? " ".repeat(width + 1) : unnumberedPrefix + l);
         continue;
@@ -26261,10 +26302,21 @@ export class Runtime {
   private evalSyncStrings(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
     let minLen = 4;
     let sep: string | undefined;
+    let radix: "d" | "o" | "x" | undefined;
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if (a === "-a" || a === "--all") continue;
-      else if (a === "-n" || a === "--bytes") {
+      else if (a === "-o") radix = "o";
+      else if (a === "-t" || a === "--radix") {
+        if (i + 1 >= opArgs.length) return undefined;
+        const r = opArgs[++i]!;
+        if (r !== "d" && r !== "o" && r !== "x") return undefined;
+        radix = r;
+      } else if (a === "-td" || a === "-to" || a === "-tx") {
+        radix = a.slice(2) as "d" | "o" | "x";
+      } else if (a === "--radix=d" || a === "--radix=o" || a === "--radix=x") {
+        radix = a.slice(8) as "d" | "o" | "x";
+      } else if (a === "-n" || a === "--bytes") {
         if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,3}$/.test(opArgs[i + 1]!)) return undefined;
         minLen = Number(opArgs[++i]!);
       } else if (a.startsWith("-n") && /^[1-9][0-9]{0,3}$/.test(a.slice(2))) {
@@ -26288,17 +26340,25 @@ export class Runtime {
     const full = rawLines.join("\n");
     const runs: string[] = [];
     let cur = "";
+    let runStart = 0;
+    const pushRun = (): void => {
+      if (cur.length >= minLen) {
+        const loc = radix === undefined ? "" : `${runStart.toString(radix === "x" ? 16 : radix === "o" ? 8 : 10).padStart(7, " ")} `;
+        runs.push(loc + cur);
+      }
+      cur = "";
+    };
     for (let i = 0; i < full.length; i++) {
       const code = full.charCodeAt(i);
       if (code >= 128) return undefined;
       if (code === 9 || (code >= 32 && code <= 126)) {
+        if (cur.length === 0) runStart = i;
         cur += full[i]!;
       } else {
-        if (cur.length >= minLen) runs.push(cur);
-        cur = "";
+        pushRun();
       }
     }
-    if (cur.length >= minLen) runs.push(cur);
+    pushRun();
     if (sep !== undefined) return runs.length === 0 ? [] : [runs.join(sep)];
     return runs;
   }
@@ -26455,24 +26515,45 @@ export class Runtime {
     return out;
   }
 
+  private parseSyncTabList(spec: string): { tabStop: number; tabList?: number[] } | undefined {
+    if (/^[1-9][0-9]{0,2}$/.test(spec)) {
+      const n = Number(spec);
+      return n >= 1 && n <= 64 ? { tabStop: n } : undefined;
+    }
+    if (/^[1-9][0-9]{0,2}(?:,[1-9][0-9]{0,2})+$/.test(spec)) {
+      const list = spec.split(",").map(Number);
+      for (let i = 1; i < list.length; i++) {
+        if (list[i]! <= list[i - 1]! || list[i]! > 256) return undefined;
+      }
+      return { tabStop: 8, tabList: list };
+    }
+    return undefined;
+  }
+
   private evalSyncExpand(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
     let tabStop = 8;
+    let tabList: number[] | undefined;
     let initialOnly = false;
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if (a === "-i" || a === "--initial") initialOnly = true;
       else if (a === "-t" || a === "--tabs") {
-        if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,2}$/.test(opArgs[i + 1]!)) return undefined;
-        tabStop = Number(opArgs[++i]!);
-      } else if (a.startsWith("-t") && /^[1-9][0-9]{0,2}$/.test(a.slice(2))) {
-        tabStop = Number(a.slice(2));
-      } else if (a.startsWith("--tabs=") && /^[1-9][0-9]{0,2}$/.test(a.slice(7))) {
-        tabStop = Number(a.slice(7));
+        if (i + 1 >= opArgs.length) return undefined;
+        const parsed = this.parseSyncTabList(opArgs[++i]!);
+        if (!parsed) return undefined;
+        tabStop = parsed.tabStop; tabList = parsed.tabList;
+      } else if (a.startsWith("-t") && a.length > 2) {
+        const parsed = this.parseSyncTabList(a.slice(2));
+        if (!parsed) return undefined;
+        tabStop = parsed.tabStop; tabList = parsed.tabList;
+      } else if (a.startsWith("--tabs=")) {
+        const parsed = this.parseSyncTabList(a.slice(7));
+        if (!parsed) return undefined;
+        tabStop = parsed.tabStop; tabList = parsed.tabList;
       } else {
         return undefined;
       }
     }
-    if (tabStop < 1 || tabStop > 64) return undefined;
     const out: string[] = [];
     for (let i = 0; i < rawLines.length; i++) {
       const l = rawLines[i]!;
@@ -26484,7 +26565,13 @@ export class Runtime {
       for (let k = 0; k < l.length; k++) {
         const ch = l[k]!;
         if (ch === "\t" && (!initialOnly || initial)) {
-          const pad = tabStop - (col % tabStop);
+          let pad = 1;
+          if (tabList) {
+            const nextStop = tabList.find((s) => s > col);
+            pad = nextStop !== undefined ? nextStop - col : 1;
+          } else {
+            pad = tabStop - (col % tabStop);
+          }
           res += " ".repeat(pad);
           col += pad;
         } else {
@@ -26500,6 +26587,7 @@ export class Runtime {
 
   private evalSyncUnexpand(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
     let tabStop = 8;
+    let tabList: number[] | undefined;
     let flagA = false;
     let flagT = false;
     let firstOnly = false;
@@ -26508,20 +26596,32 @@ export class Runtime {
       if (a === "-a" || a === "--all") flagA = true;
       else if (a === "--first-only") firstOnly = true;
       else if (a === "-t" || a === "--tabs") {
-        if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,2}$/.test(opArgs[i + 1]!)) return undefined;
-        tabStop = Number(opArgs[++i]!);
+        if (i + 1 >= opArgs.length) return undefined;
+        const parsed = this.parseSyncTabList(opArgs[++i]!);
+        if (!parsed) return undefined;
+        tabStop = parsed.tabStop; tabList = parsed.tabList;
         flagT = true;
-      } else if (a.startsWith("-t") && /^[1-9][0-9]{0,2}$/.test(a.slice(2))) {
-        tabStop = Number(a.slice(2));
+      } else if (a.startsWith("-t") && a.length > 2) {
+        const parsed = this.parseSyncTabList(a.slice(2));
+        if (!parsed) return undefined;
+        tabStop = parsed.tabStop; tabList = parsed.tabList;
         flagT = true;
-      } else if (a.startsWith("--tabs=") && /^[1-9][0-9]{0,2}$/.test(a.slice(7))) {
-        tabStop = Number(a.slice(7));
+      } else if (a.startsWith("--tabs=")) {
+        const parsed = this.parseSyncTabList(a.slice(7));
+        if (!parsed) return undefined;
+        tabStop = parsed.tabStop; tabList = parsed.tabList;
         flagT = true;
       } else {
         return undefined;
       }
     }
-    if (tabStop < 1 || tabStop > 64) return undefined;
+    const nextStopFn = (pos: number): number => {
+      if (tabList) {
+        const ns = tabList.find((s) => s > pos);
+        return ns !== undefined ? ns : Infinity;
+      }
+      return pos + tabStop - (pos % tabStop);
+    };
     const all = !firstOnly && (flagA || flagT);
     const out: string[] = [];
     for (let i = 0; i < rawLines.length; i++) {
@@ -26535,7 +26635,7 @@ export class Runtime {
         let position = pendingStart;
         const convertSingle = initial || pendingCount > 1 || pendingTab;
         while (position < column) {
-          const stop = position + tabStop - (position % tabStop);
+          const stop = nextStopFn(position);
           if (stop <= column && (stop - position > 1 || convertSingle)) {
             res += "\t";
             position = stop;
@@ -26550,7 +26650,8 @@ export class Runtime {
       for (let k = 0; k < l.length; k++) {
         const ch = l[k]!;
         if (active && (ch === " " || ch === "\t")) {
-          const stop = column + tabStop - (column % tabStop);
+          const stop = nextStopFn(column);
+          if (ch === "\t" && !Number.isFinite(stop)) return undefined;
           if (!pendingCount) pendingStart = column;
           pendingCount++;
           pendingTab ||= ch === "\t";

@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { runNativeTests } from "./run-native-tests.mjs";
 import { createHash } from "node:crypto";
 import { accessSync, constants, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -196,9 +197,6 @@ if ((operation === "build" || operation === "test") && existsSync(bindingManifes
     copyFileSync(path.join(packageDirectory, "src/index.d.ts"), path.join(output, "index.d.ts"));
   }
   if (operation === "test") {
-    const tests = readdirSync(path.join(packageDirectory, "tests"))
-      .filter((name) => name.endsWith(".test.mjs"))
-      .map((name) => path.join("tests", name));
-    run(process.execPath, ["--test", ...tests]);
+    runNativeTests(packageDirectory);
   }
 }

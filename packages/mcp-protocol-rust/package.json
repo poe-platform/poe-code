@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/cargo.mjs build",
-    "test:unit": "node scripts/cargo.mjs test",
+    "test:unit": "node --test scripts/run-native-tests.test.mjs && node scripts/cargo.mjs test",
     "lint": "node scripts/cargo.mjs lint"
   },
   "repository": {
@@ -18,7 +18,8 @@
   "devDependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
     "@napi-rs/cli": "3.10.4",
-    "tiny-stdio-mcp-server": "^0.1.0"
+    "tiny-stdio-mcp-server": "^0.1.0",
+    "memfs": "4.56.10"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

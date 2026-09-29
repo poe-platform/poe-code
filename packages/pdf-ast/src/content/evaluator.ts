@@ -1682,12 +1682,13 @@ export function evaluateContentStreamToDisplayList(params: {
           const patArr = params.cosDoc.resolveArray(dArr.items[0]);
           const phaseNode = params.cosDoc.resolve(dArr.items[1]);
           if (patArr) {
-            st.dashArray = patArr.items
+            const dashArray = patArr.items
               .map(it => {
                 const r = params.cosDoc!.resolve(it);
                 return r?.kind === "number" ? r.value : 0;
               })
-              .filter(n => n > 0);
+              .filter(n => n >= 0);
+            st.dashArray = dashArray.some(value => value > 0) ? dashArray : undefined;
             st.dashPhase = phaseNode?.kind === "number" ? phaseNode.value : 0;
           }
         }

@@ -81,6 +81,8 @@ Bitmap, PNG, and SVG rendering honor page rotation; pixel crops use displayed
 coordinates after rotation.
 Bitmap strokes preserve joins, miter limits, caps and dash continuity, and apply
 opacity once across overlapping segments of the same stroke.
+Zero-length dashes preserve round and square dots in bitmap and SVG output,
+including patterns set through graphics-state dictionaries.
 Bitmap and SVG strokes retain unequal scaling and shear. Evaluated paths keep
 their segments in page coordinates; when `strokeMatrix` is present, stroke width
 and dash values are in that matrix's user coordinates. Paths without it retain

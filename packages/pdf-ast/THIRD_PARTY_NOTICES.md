@@ -222,6 +222,9 @@ permission terms. The adapter uses double-precision arrays, PDFium's
 `miter_join_revert` bevel fallback, and a one-million-vertex expansion limit.
 Local dash splitting preserves joins across vertices and closed seams, resets
 phase per subpath, and handles odd arrays and zero-length round dots.
+Square zero-length dashes follow PDF.js/Canvas user-axis squares. Dash stepping
+ignores a few ULPs of transformed endpoint residue; SVG reuses these contours for
+zero-length patterns so its endpoint behavior and opacity match PDF painting.
 `src/render/stroke-joins.test.ts` checks native cap/join vectors plus independent
 PDF.js pixels; Poppler also confirms the final zero-length dash is omitted.
 The native harness calls unchanged upstream math routines with minimal support

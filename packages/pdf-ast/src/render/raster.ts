@@ -1007,7 +1007,7 @@ function prepareStroke(path: PdfEvaluatedPath, scale: number) {
   return { matrix, width, dashArray, dashPhase };
 }
 
-function strokeEdges(path: PdfEvaluatedPath, pageHeight: number, scale: number): Edge[] {
+function strokeContours(path: PdfEvaluatedPath, pageHeight: number, scale: number): StrokePoint[][] {
   const stroke = prepareStroke(path, scale);
   if (!stroke) return [];
   const inverse = inverseStrokeMatrix(stroke.matrix);
@@ -1027,7 +1027,7 @@ function strokeEdges(path: PdfEvaluatedPath, pageHeight: number, scale: number):
   const contours = strokeOutlines(segmentsToScreenPaths(path.segments, pageHeight, scale, project),
     stroke.width * strokeScale, path.lineCap ?? 0, path.lineJoin ?? 0, path.miterLimit ?? 10,
     stroke.dashArray?.map(value => Math.max(0, value * strokeScale)), stroke.dashPhase * strokeScale);
-  return pathsToEdges(contours.map(points => ({ points: points.map(toScreen), closed: true })));
+  return contours.map(points => points.map(toScreen));
 }
 
 function pathsToEdges(paths: readonly StrokeSubpath[], closeSubpaths = false): Edge[] {
@@ -1291,7 +1291,7 @@ export function renderDisplayListToBitmap(
         const rawSw = path.strokeWidth * scale * (path.strokeMatrix ? Math.hypot(path.strokeMatrix[0], path.strokeMatrix[1]) : 1);
         const strokeAlpha = options.thinLineMode === "shape" && rawSw < 1
           ? (path.strokeAlpha ?? 1) * Math.max(0.25, rawSw) : path.strokeAlpha ?? 1;
-        const edges = strokeEdges(path, displayList.height, scale);
+        const edges = pathsToEdges(strokeContours(path, displayList.height, scale).map(points => ({ points, closed: true })));
         const clipScreen: [number, number, number, number] | undefined = path.clipRect
           ? [path.clipRect[0] * scale, (displayList.height - path.clipRect[3]) * scale, path.clipRect[2] * scale, (displayList.height - path.clipRect[1]) * scale] : undefined;
         fillEdgesScanline4x4(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
@@ -1557,6 +1557,9 @@ export function renderDisplayListToSvg(
       } else if (operation.kind === "path") {
         const p = operation.value;
         const prepared = p.strokeColor ? prepareStroke(p, Math.max(scaleX, scaleY)) : undefined;
+        // SVG's native zero-length dash endpoints differ from PDF. Reuse the
+        // PDF stroke contours, keeping the complete stroke as one vector fill.
+        const outlineStroke = prepared && p.dashArray?.includes(0);
         const matrix = prepared && (prepared.matrix[0] !== 1 || prepared.matrix[1] !== 0 || prepared.matrix[2] !== 0 || prepared.matrix[3] !== 1)
           ? prepared.matrix : undefined;
         const inverse = matrix ? inverseStrokeMatrix(matrix) : undefined;
@@ -1583,10 +1586,18 @@ export function renderDisplayListToSvg(
             p.lineJoin === 1 ? ` stroke-linejoin="round"` : p.lineJoin === 2 ? ` stroke-linejoin="bevel"` : "";
           const miterLimitAttr =
             p.miterLimit !== undefined && p.miterLimit !== 10 ? ` stroke-miterlimit="${p.miterLimit}"` : "";
-          const dashArrayAttr = prepared?.dashArray?.length ? ` stroke-dasharray="${prepared.dashArray.join(" ")}"` : "";
-          const dashOffsetAttr = prepared?.dashPhase ? ` stroke-dashoffset="${prepared.dashPhase}"` : "";
+          const dashArrayAttr = !outlineStroke && prepared?.dashArray?.length ? ` stroke-dasharray="${prepared.dashArray.join(" ")}"` : "";
+          const dashOffsetAttr = !outlineStroke && prepared?.dashPhase ? ` stroke-dashoffset="${prepared.dashPhase}"` : "";
           const labelAttr = original.kind === "glyph" ? ` aria-label="${escapeXmlText(original.value.unicode)}"` : "";
-          parts.push(`  <path${labelAttr}${transformAttr} d="${pathData}" fill="${fill}"${fillRuleAttr}${fillOpacityAttr} stroke="${stroke}"${strokeOpacityAttr}${strokeWidthAttr}${lineCapAttr}${lineJoinAttr}${miterLimitAttr}${dashArrayAttr}${dashOffsetAttr}/>`);
+          if (!outlineStroke || p.fillColor) {
+            parts.push(`  <path${labelAttr}${transformAttr} d="${pathData}" fill="${fill}"${fillRuleAttr}${fillOpacityAttr} stroke="${outlineStroke ? "none" : stroke}"${strokeOpacityAttr}${strokeWidthAttr}${lineCapAttr}${lineJoinAttr}${miterLimitAttr}${dashArrayAttr}${dashOffsetAttr}/>`);
+          }
+          if (outlineStroke) {
+            const outlineScale = Math.max(scaleX, scaleY);
+            const contours = strokeContours(p, displayList.height, outlineScale);
+            const outlineData = contours.map(points => points.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${x / outlineScale} ${y / outlineScale}`).join(" ") + " Z").join(" ");
+            if (outlineData) parts.push(`  <path${labelAttr} d="${outlineData}" fill="${stroke}" fill-opacity="${p.strokeAlpha ?? 1}"/>`);
+          }
         }
       } else if (operation.kind === "image") {
         parts.push(`  ${svgImage(operation.value, displayList.height)}`);

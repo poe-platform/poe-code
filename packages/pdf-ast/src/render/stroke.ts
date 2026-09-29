@@ -16,6 +16,8 @@ export type StrokePoint = readonly [number, number];
 export interface StrokeSubpath {
   readonly points: readonly StrokePoint[];
   readonly closed: boolean;
+  /** Distinguishes a dash dot from an explicitly degenerate input path. */
+  readonly zeroLengthDash?: boolean;
 }
 
 // Bounds both dash expansion and the generated outline for a single paint.
@@ -43,7 +45,7 @@ function dashSubpath(path: StrokeSubpath, pattern: readonly number[], phase: num
     while (remaining <= 0) {
       if (++steps > MAX_STROKE_VERTICES) throw new PdfError("E_LIMIT", "Stroke dash expansion exceeds the vertex limit");
       if (index % 2 === 0) {
-        if (pattern[index] === 0) result.push({ points: [point, point], closed: false });
+        if (pattern[index] === 0) result.push({ points: [point, point], closed: false, zeroLengthDash: true });
         flush();
       }
       index = (index + 1) % pattern.length;
@@ -58,7 +60,9 @@ function dashSubpath(path: StrokeSubpath, pattern: readonly number[], phase: num
       throw new PdfError("E_LIMIT", "Stroke dash expansion exceeds the vertex limit");
     }
     let distance = 0;
-    while (distance < length) {
+    // A transformed length and a sum of dash steps can differ by a few ULPs.
+    // Do not interpret that rounding residue as another terminal dash.
+    while (length - distance > 8 * Number.EPSILON * Math.max(1, length)) {
       const point: StrokePoint = [start[0] + dx * distance / length, start[1] + dy * distance / length];
       advance(point);
       const step = Math.min(remaining, length - distance);
@@ -179,7 +183,16 @@ export function strokeOutlines(
       let closed = subpath.closed;
       if (closed && points.length > 1 && Math.hypot(points[0]![0] - points[points.length - 1]![0], points[0]![1] - points[points.length - 1]![1]) <= 1e-14) points.pop();
       if (points.length < 3) closed = false;
-      if (points.length === 1 && subpath.points.length > 1 && cap === 1) {
+      if (points.length === 1 && cap === 2 && subpath.zeroLengthDash) {
+        contour = [];
+        // Canvas/PDF.js uses a user-axis square for a zero-length dash.
+        const [x, y] = points[0]!;
+        add(x - half, y - half);
+        add(x + half, y - half);
+        add(x + half, y + half);
+        add(x - half, y + half);
+        contours.push(contour);
+      } else if (points.length === 1 && subpath.points.length > 1 && cap === 1) {
         contour = [];
         const [x, y] = points[0]!;
         addCap([x, y], [x + 1, y]);

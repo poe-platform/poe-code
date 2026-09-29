@@ -1,4 +1,5 @@
 import { createFsFromVolume, Volume } from "memfs";
+import { spawnSync } from "node:child_process";
 import { describe, expect, it, vi } from "vitest";
 import {
   computeSafeJsShardKeys,
@@ -29,6 +30,15 @@ function createFixtureFs(extraFiles: Record<string, string> = {}) {
 }
 
 describe("safe-js sharded unit test runner", () => {
+  it("loads the CLI entrypoint in native Node without a TypeScript config loader", () => {
+    const entry = new URL("../scripts/run-sharded-unit-tests.mjs", import.meta.url).href;
+    const result = spawnSync(process.execPath, ["--input-type=module", "--eval", `await import(${JSON.stringify(entry)});`], {
+      encoding: "utf8", timeout: 5000, env: { ...process.env, NODE_OPTIONS: "" }
+    });
+    expect(result.error).toBeUndefined();
+    expect(result.status, result.stderr).toBe(0);
+  });
+
   it("partitions non-mocking files into non-isolated shards and mocking files into isolated shards", () => {
     const fileSystem = createFixtureFs();
     const files = [

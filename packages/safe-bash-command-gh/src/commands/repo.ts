@@ -915,6 +915,7 @@ export async function handleRepoCommand(
         jqFlag: getStringFlag(parsed, "jq"),
         templateFlag: getStringFlag(parsed, "template"),
         signal: context.signal,
+        maxOutputBytes: env.limits.maxOutputBytes,
       });
       if (formatted !== undefined) {
         await writeOut(formatted);
@@ -1004,7 +1005,7 @@ export async function handleRepoCommand(
     if (action === "list") {
       const list = [...repo.autolinks.values()];
       if (parsed.flags.has("json")) {
-        const out = await formatCommandOutput({ data: list, availableFields: ["id", "keyPrefix", "urlTemplate", "isAlphanumeric"], jsonFlag: getStringFlag(parsed, "json"), jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal });
+        const out = await formatCommandOutput({ data: list, availableFields: ["id", "keyPrefix", "urlTemplate", "isAlphanumeric"], jsonFlag: getStringFlag(parsed, "json"), jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal, maxOutputBytes: env.limits.maxOutputBytes });
         await writeOut(out ?? "");
         return 0;
       }
@@ -1035,7 +1036,7 @@ export async function handleRepoCommand(
         return 1;
       }
       if (parsed.flags.has("json")) {
-        const out = await formatCommandOutput({ data: item, availableFields: ["id", "keyPrefix", "urlTemplate", "isAlphanumeric"], jsonFlag: getStringFlag(parsed, "json"), jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal });
+        const out = await formatCommandOutput({ data: item, availableFields: ["id", "keyPrefix", "urlTemplate", "isAlphanumeric"], jsonFlag: getStringFlag(parsed, "json"), jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal, maxOutputBytes: env.limits.maxOutputBytes });
         await writeOut(out ?? "");
         return 0;
       }

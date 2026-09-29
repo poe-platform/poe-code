@@ -120,6 +120,7 @@ export async function handleGistCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -293,6 +294,7 @@ export async function handleSearchCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -326,6 +328,7 @@ export async function handleSearchCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -353,6 +356,7 @@ export async function handleSearchCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -384,6 +388,7 @@ export async function handleSearchCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -420,6 +425,7 @@ export async function handleSearchCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -464,6 +470,7 @@ export async function handleLabelCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -584,6 +591,7 @@ export async function handleSecretCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -682,6 +690,7 @@ export async function handleVariableCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -770,6 +779,7 @@ export async function handleCacheCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -825,6 +835,7 @@ export async function handleSshKeyCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -893,6 +904,7 @@ export async function handleGpgKeyCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -1371,7 +1383,7 @@ export async function handleProjectCommand(
     };
     backend.projects.set(num, proj);
     if (isJson) {
-      const out = await formatCommandOutput({ data: proj, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal });
+      const out = await formatCommandOutput({ data: proj, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal, maxOutputBytes: env.limits.maxOutputBytes });
       await writeOut(out ?? "");
       return 0;
     }
@@ -1382,7 +1394,7 @@ export async function handleProjectCommand(
   if (subcommand === "list") {
     const list = [...backend.projects.values()];
     if (isJson) {
-      const out = await formatCommandOutput({ data: { projects: list, totalCount: list.length }, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal });
+      const out = await formatCommandOutput({ data: { projects: list, totalCount: list.length }, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal, maxOutputBytes: env.limits.maxOutputBytes });
       await writeOut(out ?? "");
       return 0;
     }
@@ -1418,7 +1430,7 @@ export async function handleProjectCommand(
 
   if (subcommand === "view") {
     if (isJson) {
-      const out = await formatCommandOutput({ data: proj, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal });
+      const out = await formatCommandOutput({ data: proj, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal, maxOutputBytes: env.limits.maxOutputBytes });
       await writeOut(out ?? "");
       return 0;
     }
@@ -1445,7 +1457,7 @@ export async function handleProjectCommand(
   if (subcommand === "field-list") {
     const fields = [...proj.fields.values()];
     if (isJson) {
-      const out = await formatCommandOutput({ data: { fields, totalCount: fields.length }, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal });
+      const out = await formatCommandOutput({ data: { fields, totalCount: fields.length }, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal, maxOutputBytes: env.limits.maxOutputBytes });
       await writeOut(out ?? "");
       return 0;
     }
@@ -1483,7 +1495,7 @@ export async function handleProjectCommand(
     };
     proj.items.set(id, item);
     if (isJson) {
-      const out = await formatCommandOutput({ data: item, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal });
+      const out = await formatCommandOutput({ data: item, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal, maxOutputBytes: env.limits.maxOutputBytes });
       await writeOut(out ?? "");
       return 0;
     }
@@ -1493,7 +1505,7 @@ export async function handleProjectCommand(
   if (subcommand === "item-list") {
     const items = [...proj.items.values()];
     if (isJson) {
-      const out = await formatCommandOutput({ data: { items, totalCount: items.length }, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal });
+      const out = await formatCommandOutput({ data: { items, totalCount: items.length }, jsonFlag: "", jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal, maxOutputBytes: env.limits.maxOutputBytes });
       await writeOut(out ?? "");
       return 0;
     }
@@ -1639,7 +1651,7 @@ export async function handleCodespaceCommand(
   if (subcommand === "list") {
     const list = [...backend.codespaces.values()];
     if (parsed.flags.has("json")) {
-      const out = await formatCommandOutput({ data: list, availableFields: ["name", "displayName", "repository", "branch", "state", "machineName", "createdAt"], jsonFlag: getStringFlag(parsed, "json"), jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal });
+      const out = await formatCommandOutput({ data: list, availableFields: ["name", "displayName", "repository", "branch", "state", "machineName", "createdAt"], jsonFlag: getStringFlag(parsed, "json"), jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal, maxOutputBytes: env.limits.maxOutputBytes });
       await writeOut(out ?? "");
       return 0;
     }
@@ -1669,7 +1681,7 @@ export async function handleCodespaceCommand(
       return 1;
     }
     if (parsed.flags.has("json")) {
-      const out = await formatCommandOutput({ data: cs, availableFields: ["name", "displayName", "repository", "branch", "state", "machineName", "createdAt"], jsonFlag: getStringFlag(parsed, "json"), jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal });
+      const out = await formatCommandOutput({ data: cs, availableFields: ["name", "displayName", "repository", "branch", "state", "machineName", "createdAt"], jsonFlag: getStringFlag(parsed, "json"), jqFlag: getStringFlag(parsed, "jq"), templateFlag: getStringFlag(parsed, "template"), signal: context.signal, maxOutputBytes: env.limits.maxOutputBytes });
       await writeOut(out ?? "");
       return 0;
     }

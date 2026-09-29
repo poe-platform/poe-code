@@ -259,6 +259,7 @@ export async function handleReleaseCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -296,6 +297,7 @@ export async function handleReleaseCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -640,6 +642,7 @@ export async function handleRunCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);
@@ -808,6 +811,7 @@ export async function handleWorkflowCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);

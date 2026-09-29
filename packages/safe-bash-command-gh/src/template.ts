@@ -24,7 +24,7 @@ export async function evaluateJqExpression(
   data: unknown,
   expression: string,
   signal: AbortSignal,
-  maxOutputBytes = 32 * 1024 * 1024
+  maxOutputBytes = Infinity
 ): Promise<string> {
   const session = createYqQuerySession({ signal });
   session.compileOnce(expression);

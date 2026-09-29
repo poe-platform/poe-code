@@ -363,6 +363,7 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
             case "auth":
               return handleAuthCommand(
                 {
+                  limits,
                   context,
                   backend,
                   stdinText,

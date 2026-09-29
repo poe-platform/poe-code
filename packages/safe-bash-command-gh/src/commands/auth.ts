@@ -11,7 +11,7 @@ import type { GitHubBackend } from "../backend.js";
 import { decodeUtf8, encodeUtf8 } from "../crypto-ssh.js";
 import { findGitRoot } from "../git-vfs.js";
 import { formatCommandOutput } from "../template.js";
-import type { GhHostAuthEntry } from "../types.js";
+import type { GhHostAuthEntry, GhLimits } from "../types.js";
 
 function getGhConfigDir(context: CommandContext): string {
   if (context.env.GH_CONFIG_DIR) {
@@ -39,6 +39,7 @@ async function persistHostsConfig(context: CommandContext, backend: GitHubBacken
 }
 
 export interface AuthHandlerEnv {
+  readonly limits: GhLimits;
   readonly context: CommandContext;
   readonly backend: GitHubBackend;
   readonly stdinText: string;
@@ -202,6 +203,7 @@ export async function handleAuthCommand(
       jqFlag: getStringFlag(parsed, "jq"),
       templateFlag: getStringFlag(parsed, "template"),
       signal: context.signal,
+      maxOutputBytes: env.limits.maxOutputBytes,
     });
     if (formatted !== undefined) {
       await writeOut(formatted);

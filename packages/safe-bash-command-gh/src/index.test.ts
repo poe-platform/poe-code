@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createGitCommand } from "safe-bash-command-git";
+import { createYqQuerySession } from "safe-bash-query-engine";
 import type { CommandContext } from "safe-bash-contracts";
 import {
   createDefaultOpenSslProvider,
@@ -792,4 +793,28 @@ test("gh project, ruleset, org, extension, codespace, repo autolink, and built-i
   assert.equal(JSON.parse(csList.stdout)[0].name, csName);
   await run("gh", ["codespace", "stop", "-c", csName]);
   await run("gh", ["codespace", "delete", "-c", csName]);
+});
+
+test("release jq formatting receives the configured output limit", async (t) => {
+  const session = createYqQuerySession({ signal: new AbortController().signal });
+  const prototype = Object.getPrototypeOf(session.ownedWork) as typeof session.ownedWork;
+  const stringify = prototype.stringifyJson;
+  const caps: (number | undefined)[] = [];
+  t.mock.method(prototype, "stringifyJson", function (
+    this: typeof session.ownedWork,
+    ...args: Parameters<typeof stringify>
+  ) {
+    caps.push(args[1]?.maxBytes);
+    return stringify.apply(this, args);
+  });
+  await session.close();
+  const { run } = createTestHarness({ limits: { maxOutputBytes: 100 } });
+  await run("gh", ["release", "create", "v1", "-R", "octocat/Hello-World", "--notes", "x".repeat(200)]);
+  const result = await run("gh", ["release", "view", "v1", "-R", "octocat/Hello-World", "--json", "body", "--jq", ". | length"], { allowFailure: true });
+  // Serialization of the selected object must respect the configured query limit.
+  const bounded = await run("gh", ["release", "view", "v1", "-R", "octocat/Hello-World", "--json", "body", "--jq", "."], { allowFailure: true });
+  assert.equal(result.exitCode, 0);
+  assert.equal(bounded.exitCode, 1);
+  assert.ok(caps.length > 0);
+  assert.ok(caps.every((cap) => cap === 100));
 });

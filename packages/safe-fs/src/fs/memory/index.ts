@@ -60,6 +60,7 @@ class MemoryFileNode implements FileNode {
   declare byteLength: number;
   declare view: Uint8Array | undefined;
   declare allocation: MemoryAllocation;
+  // A fresh view of owned content identifies this write, never a caller buffer.
   declare sourceRef?: Uint8Array | undefined;
 
   constructor(mode: number, ino: number, now: number, byteLength: number, allocation: MemoryAllocation, view?: Uint8Array, sourceRef?: Uint8Array) {
@@ -1542,10 +1543,10 @@ export class MemoryFileSystem implements FileSystem {
             pooled.byteLength = length;
             pooled.view = view;
             pooled.allocation = allocation;
-            pooled.sourceRef = data;
+            pooled.sourceRef = pooled.data.subarray(0);
             return pooled;
           }
-          return new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view, data);
+          return new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view, (view ?? allocation.data).subarray(0, length));
         }, syscall, path);
       } catch (error) {
         allocation.release();
@@ -1730,9 +1731,9 @@ export class MemoryFileSystem implements FileSystem {
             node.byteLength = length;
             node.view = view;
             node.allocation = allocation;
-            node.sourceRef = data;
+            node.sourceRef = node.data.subarray(0);
           } else {
-            node = new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view, data);
+            node = new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view, (view ?? allocation.data).subarray(0, length));
           }
           const prevNlink = parent.cachedNlinkRev === parent.revision ? parent.cachedNlink : (parent.entries.size === 0 ? 2 : undefined);
           parent.entries.set(name, node);
@@ -1827,9 +1828,9 @@ export class MemoryFileSystem implements FileSystem {
           node.ctimeMs = now;
           node.birthtimeMs = now;
           node.byteLength = data.byteLength;
-          node.view = data;
+          node.view = new Uint8Array(data);
           node.allocation = DUMMY_POOL_ALLOCATION;
-          node.sourceRef = data;
+          node.sourceRef = node.data.subarray(0);
           const entryIdx = nextIdx++;
           keys[entryIdx] = name;
           vals[entryIdx] = node;
@@ -1883,9 +1884,9 @@ export class MemoryFileSystem implements FileSystem {
         node.ctimeMs = now;
         node.birthtimeMs = now;
         node.byteLength = length;
-        node.view = data;
+        node.view = new Uint8Array(data);
         node.allocation = DUMMY_POOL_ALLOCATION;
-        node.sourceRef = data;
+        node.sourceRef = node.data.subarray(0);
         const entryIdx = entries._next++;
         entries._table[lastFastMapMiss.slot] = entryIdx;
         entries._keys[entryIdx] = name;
@@ -1986,7 +1987,7 @@ export class MemoryFileSystem implements FileSystem {
           try {
             const now = fastWriteCachedNow;
             const fileMode = typeModes.file | mode;
-            const view = zeroCopyConst ? data : (capacity === length ? allocation.data : undefined);
+            const view = zeroCopyConst ? new Uint8Array(data) : (capacity === length ? allocation.data : undefined);
             let node: MemoryFileNode | undefined;
             if (sharedFileNodePoolLen > 0) {
               node = sharedFileNodePool[--sharedFileNodePoolLen]!;
@@ -2007,9 +2008,9 @@ export class MemoryFileSystem implements FileSystem {
               node.byteLength = length;
               node.view = view;
               node.allocation = allocation;
-              node.sourceRef = data;
+              node.sourceRef = node.data.subarray(0);
             } else {
-              node = new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view, data);
+              node = new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view, (view ?? allocation.data).subarray(0, length));
             }
             const prevNlink = parent.cachedNlinkRev === parent.revision ? parent.cachedNlink : (parent.entries.size === 0 ? 2 : undefined);
             parent.entries.set(name, node);

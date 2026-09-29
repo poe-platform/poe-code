@@ -2917,17 +2917,6 @@ let lastPurePipeSlice1 = "";
 let lastPurePipeRegistry: unknown;
 const lastPurePipeOutBuf = new Uint8Array(256);
 let lastPurePipeOutLen = 0;
-function finishSyncPurePipelineAsync( resPromise: CommandResult | Promise<CommandResult>, budget: Budget, n: number, negate: boolean, rawState: State, ): Promise<{ exitCode: number; terminated: boolean }> {
-  return Promise.resolve(resPromise).then(res => {
-    budget.leavePipelineStages(n);
-    const rawStatus = res.exitCode;
-    const finalStatus = negate ? Number(rawStatus === 0) : rawStatus;
-    rawState.status = finalStatus;
-    return { exitCode: finalStatus, terminated: false };
-  }, err => {
-    budget.leavePipelineStages(n);
-    throw err;});
-}
 function isSimpleAsciiGrepPattern(pat: string): boolean {
   const start = pat.length >= 2 && pat.charCodeAt(0) === 94 ? 1 : 0;
   if (start >= pat.length) return false;
@@ -7283,10 +7272,8 @@ export class Runtime {
     const scope = io[invocationScope];
     let statuses: number[] | undefined;
     let context = pooledSyncPipeContext;
-    try {
-      let prevBuf = sharedSyncPipeBuf0;
-      let prevLen = 0;
-      for (let index = 0; index < n; index++) {
+    const runStages = (start: number, prevBuf: Uint8Array, prevLen: number): void | Promise<void> => {
+      for (let index = start; index < n; index++) {
         const cmd = pipeline.commands[index]! as Extract<Command, { kind: "simple" }>;
         const firstName = cmd.words[0]!.plain!;
         const extDef = this.getExternalCommand(firstName)!;
@@ -7317,11 +7304,23 @@ export class Runtime {
         let resPromise: CommandResult | Promise<CommandResult>;
         try {
           resPromise = extDef.execute(context as unknown as ShellCommandContext);
+        } catch (error) {
+          scope.leaveWork();
+          throw error;
         } finally {
           this.budget.endPathLookupSuspension();
-          scope.leaveWork();
         }
-        if (resPromise !== RESOLVED_EXIT_ZERO && resPromise !== RESOLVED_EXIT_ONE) return finishSyncPurePipelineAsync(resPromise, this.budget, n, pipeline.negate, rawState);
+        if (resPromise !== RESOLVED_EXIT_ZERO && resPromise !== RESOLVED_EXIT_ONE) {
+          return Promise.resolve(resPromise).then(res => {
+            this.signal.throwIfAborted();
+            const status = validateExitCode(res.exitCode);
+            if (status !== 0) {
+              statuses ??= new Array<number>(n).fill(0);
+              statuses[index] = status;
+            }
+          }).finally(() => scope.leaveWork()).then(() => runStages(index + 1, nextBuf, sharedSyncPipeWriter.used));
+        }
+        scope.leaveWork();
         this.signal.throwIfAborted();
         if (resPromise !== RESOLVED_EXIT_ZERO) {
           statuses ??= new Array<number>(n).fill(0);
@@ -7330,43 +7329,55 @@ export class Runtime {
         prevBuf = nextBuf;
         prevLen = sharedSyncPipeWriter.used;
       }
-    } catch (err) {
-      this.budget.leavePipelineStages(n);
-      throw err;
-    } finally {
+    };
+    const release = () => {
       if (context) context.releaseDirectStage();
       sharedSyncPipeWriter.budget = undefined!;
       sharedSyncPipeWriter.signal = undefined!;
       sharedSyncPipeWriter.target = EMPTY_BYTES;
       sharedSyncPipeReader.reset(EMPTY_BYTES, 0);
       syncPurePipelineSlotInUse = false;
-    }
-    this.budget.leavePipelineStages(n);
-    if ( n >= 3 && statuses === undefined && firstStageRootSourceRef !== undefined && io.stderr.length === 0 && io.stdout.length <= 256 && Date.now === defaultDateNow) {
-      const scratch = (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k;
-      if (scratch) {
-        const outLen = io.stdout.length;
-        for (let bi = 0; bi < outLen; bi++) lastPurePipeOutBuf[bi] = scratch[bi]!;
-        lastPurePipeOutLen = outLen;
-        lastPurePipeAst = pipeline;
-        lastPurePipeSlice1 = ((pipeline.commands[0]! as { _cachedSlice1?: string })._cachedSlice1) ?? "";
-        lastPurePipeRegistry = this.commands;
-        lastPurePipeSrcRefs.add(firstStageRootSourceRef);
+      this.budget.leavePipelineStages(n);
+    };
+    const stdout = io.stdout;
+    const stderr = io.stderr;
+    const finish = (): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> => {
+      if ( n >= 3 && statuses === undefined && firstStageRootSourceRef !== undefined && stderr.length === 0 && stdout.length <= 256 && Date.now === defaultDateNow) {
+        const scratch = (stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k;
+        if (scratch) {
+          const outLen = stdout.length;
+          for (let bi = 0; bi < outLen; bi++) lastPurePipeOutBuf[bi] = scratch[bi]!;
+          lastPurePipeOutLen = outLen;
+          lastPurePipeAst = pipeline;
+          lastPurePipeSlice1 = ((pipeline.commands[0]! as { _cachedSlice1?: string })._cachedSlice1) ?? "";
+          lastPurePipeRegistry = this.commands;
+          lastPurePipeSrcRefs.add(firstStageRootSourceRef);
+        }
       }
+      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+      const finalStatuses = statuses ?? ZERO_PIPE_STATUSES[n] ?? new Array<number>(n).fill(0);
+      monitor.lazyPipeStatus = finalStatuses;
+      monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+      const rawStatus = statuses === undefined ? 0 : (rawState.pipefail ? statuses.findLast(s => s !== 0) ?? 0 : statuses[n - 1]!);
+      const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
+      rawState.status = finalStatus;
+      monitor.epoch = restEpoch;
+      if (rawStatus !== 0 && !pipeline.negate && !ignored && rawState.errexit) {
+        if (this.tryFinishShellSync(state)) return { exitCode: finalStatus, terminated: true };
+        return this.finishShell(state, io, finalStatus).then(exitCode => ({ exitCode, terminated: true }));
+      }
+      return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
+    };
+    let pending: void | Promise<void>;
+    try {
+      pending = runStages(0, sharedSyncPipeBuf0, 0);
+    } catch (error) {
+      release();
+      throw error;
     }
-    const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
-    const finalStatuses = statuses ?? ZERO_PIPE_STATUSES[n] ?? new Array<number>(n).fill(0);
-    monitor.lazyPipeStatus = finalStatuses;
-    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-    const rawStatus = statuses === undefined ? 0 : (rawState.pipefail ? statuses.findLast(s => s !== 0) ?? 0 : statuses[n - 1]!);
-    const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
-    rawState.status = finalStatus;
-    monitor.epoch = restEpoch;
-    if (rawStatus !== 0 && !pipeline.negate && !ignored && rawState.errexit) {
-      if (this.tryFinishShellSync(state)) return { exitCode: finalStatus, terminated: true };
-      return this.finishShell(state, io, finalStatus).then(exitCode => ({ exitCode, terminated: true }));
-    }
-    return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
+    if (pending) return pending.finally(release).then(() => finish());
+    release();
+    return finish();
   }
   private executeFastPurePipelineUnitSlow( pipeline: Pipeline, state: State, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, io: IO, ignored: boolean, ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
     const n = pipeline.commands.length;

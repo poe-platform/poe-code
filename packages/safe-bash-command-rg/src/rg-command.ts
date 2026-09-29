@@ -22,9 +22,7 @@ const defaultLimitsTick = Limits.prototype.tick;
 const sharedReadState: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffset: null, skipped: false };
 let srcRefSlotMap = new WeakMap<Uint8Array, number>();
 let srcRefCountMap = new WeakMap<Uint8Array, number>();
-let srcRefCacheLit0 = -1;
-let srcRefCacheLitLen = -1;
-let srcRefCacheLitLast = -1;
+let srcRefCacheLiteral = new Uint8Array(0);
 const defaultDateNowRg = Date.now;
 let lastRgTreePattern = "";
 let lastRgTreePath = "";
@@ -168,11 +166,8 @@ function trySearchFileSync(
       bytesSearched = view.length;
       const slot = totals.searches & 63;
       const srcRef = target.sourceRef;
-      const lastByte = lit[litLen - 1]!;
-      if (srcRefCacheLitLen !== litLen || srcRefCacheLit0 !== firstByte || srcRefCacheLitLast !== lastByte) {
-        srcRefCacheLitLen = litLen;
-        srcRefCacheLit0 = firstByte;
-        srcRefCacheLitLast = lastByte;
+      if (srcRefCacheLiteral.length !== litLen || !srcRefCacheLiteral.every((byte, index) => byte === lit[index])) {
+        srcRefCacheLiteral = new Uint8Array(lit);
         srcRefSlotMap = new WeakMap<Uint8Array, number>(); srcRefCountMap = new WeakMap<Uint8Array, number>();
       }
       if (srcRef !== undefined && srcRefSlotMap.get(srcRef) === slot && args.mode === "count") {

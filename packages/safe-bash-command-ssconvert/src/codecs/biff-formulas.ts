@@ -135,7 +135,11 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const length = data.u8(offset++); let text: string;
       if (context.revision >= 8) {
         const flags = data.u8(offset++); if (flags > 1) invalidBiff("invalid formula string flags");
-        text = flags ? new TextDecoder("utf-16le").decode(data.slice(offset, length * 2)) : biffDecode(data.slice(offset, length), 1200);
+        if (flags) {
+          data.check(offset, length * 2);
+          text = "";
+          for (let i = 0; i < length; i++) text += String.fromCharCode(data.u16(offset + i * 2));
+        } else text = biffDecode(data.slice(offset, length), 1200);
         offset += length * (flags ? 2 : 1);
       } else { text = biffDecode(data.slice(offset, length), context.codepage); offset += length; }
       push('"' + text.split('"').join('""') + '"', 99, text);

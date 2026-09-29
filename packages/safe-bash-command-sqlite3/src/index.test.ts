@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
-import { createSqlite3Command, createSqlite3Commands, settings } from "./index.js";
+import { createSqlite3Command, createSqlite3Commands, settings, type Sqlite3CommandsOptions } from "./index.js";
 
 test("sqlite3 factories cannot cross runtime registries", async () => {
   const foreign = await import(new URL("../../safe-bash-contracts/src/command.ts?sqlite3-foreign-runtime", import.meta.url).href) as typeof import("safe-bash-contracts");
@@ -16,7 +16,8 @@ test("sqlite3 factories cannot cross runtime registries", async () => {
 async function runSqlite3(
   fs: FileSystem,
   args: string[],
-  stdinText = ""
+  stdinText = "",
+  options: Sqlite3CommandsOptions = {}
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   const stdin = createBytePipe();
   if (stdinText) {
@@ -26,7 +27,7 @@ async function runSqlite3(
 
   const stdout = createBytePipe();
   const stderr = createBytePipe();
-  const cmd = createSqlite3Command();
+  const cmd = createSqlite3Command(options);
   const res = await cmd.execute({
     command: "sqlite3",
     args: createCommandArguments(args).args,
@@ -491,4 +492,110 @@ test("sqlite3 JSON output retains exact int64 numeric tokens", async () => {
   const result = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", "SELECT 9007199254740993 AS x, -9223372036854775808 AS y"]);
   assert.equal(result.code, 0, result.stderr);
   assert.equal(result.stdout.trim(), '[{"x":9007199254740993,"y":-9223372036854775808}]');
+});
+
+test("sqlite3 rejects invalid configured limits", () => {
+  for (const key of ["maxInputBytes", "maxOutputBytes", "maxRows"] as const) {
+    for (const value of [-1, NaN, -Infinity, 1.5]) {
+      assert.throws(() => createSqlite3Command({ limits: { [key]: value } }), RangeError);
+    }
+    assert.doesNotThrow(() => createSqlite3Command({ limits: { [key]: Infinity } }));
+    assert.doesNotThrow(() => createSqlite3Command({ limits: { [key]: 0 } }));
+  }
+});
+
+test("sqlite3 reports unknown dot commands and honors bail", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), ["-bail", ":memory:"], ".not_a_command\n.print unreachable");
+  assert.equal(result.code, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, 'Error: unknown command or invalid arguments:  "not_a_command". Enter ".help" for help\n');
+  assert.equal((await runSqlite3(createMemoryFileSystem(), [":memory:", ".help"])).code, 0);
+});
+
+test("sqlite3 counts UTF-8 input across stdin, SQL arguments and input files", async () => {
+  for (const source of ["stdin", "argument", "read", "init", "import", "database"] as const) {
+    const fs = createMemoryFileSystem();
+    const text = "SELECT 'é';";
+    await fs.writeFile("/input", new TextEncoder().encode(text));
+    const args = source === "argument" ? [":memory:", text]
+      : source === "read" ? [":memory:", ".read /input"]
+      : source === "init" ? ["-init", "/input", ":memory:"]
+      : source === "import" ? [":memory:", ".import /input t"]
+      : source === "database" ? ["/input"] : [":memory:"];
+    const result = await runSqlite3(fs, args, source === "stdin" ? text : "", { limits: { maxInputBytes: 1 } });
+    assert.equal(result.code, 1, source);
+    assert.match(result.stderr, /maxInputBytes/, source);
+  }
+  const exact = new TextEncoder().encode("SELECT 'é';").length;
+  assert.equal((await runSqlite3(createMemoryFileSystem(), [":memory:", "SELECT 'é';"], "", { limits: { maxInputBytes: exact } })).code, 0);
+});
+
+test("sqlite3 bounds cumulative output including UTF-8 and output files", async () => {
+  for (const destination of ["stdout", "output", "once"] as const) {
+    const fs = createMemoryFileSystem();
+    const args = [":memory:", ...(destination === "stdout" ? [] : [`.${destination} /result`]), "SELECT 'é';", "SELECT 'é';"];
+    const result = await runSqlite3(fs, args, "", { limits: { maxOutputBytes: 3 } });
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /maxOutputBytes/);
+    if (destination === "stdout") assert.equal(result.stdout, "é\n");
+    else assert.equal(new TextDecoder().decode(await fs.readFile("/result")), "é\n");
+  }
+});
+
+test("sqlite3 bounds result sets and table rows before persistence", async () => {
+  for (const sql of ["SELECT 1 UNION ALL SELECT 2;", "CREATE TABLE t(x); INSERT INTO t VALUES (1), (2);"]) {
+    const fs = createMemoryFileSystem();
+    const result = await runSqlite3(fs, ["/db", sql], "", { limits: { maxRows: 1 } });
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /maxRows/);
+    assert.equal(result.stdout, "");
+    await assert.rejects(fs.readFile("/db"));
+  }
+});
+
+test("sqlite3 applies output limit to serialized databases", async () => {
+  const fs = createMemoryFileSystem();
+  const result = await runSqlite3(fs, ["/db", "CREATE TABLE t(x);"], "", { limits: { maxOutputBytes: 1 } });
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /maxOutputBytes/);
+  await assert.rejects(fs.readFile("/db"));
+});
+
+
+test("sqlite3 enforces row budgets on imports, database reloads and injected engines", async () => {
+  const fs = createMemoryFileSystem();
+  const seed = await runSqlite3(fs, ["/seed.db", "CREATE TABLE t(x); INSERT INTO t VALUES (1),(2);"]);
+  assert.equal(seed.code, 0);
+  const loaded = await runSqlite3(fs, ["/seed.db"], "", { limits: { maxRows: 1 } });
+  assert.equal(loaded.code, 1);
+  assert.match(loaded.stderr, /maxRows/);
+  await fs.writeFile("/rows.csv", new TextEncoder().encode("x\n1\n2\n"));
+  const imported = await runSqlite3(fs, ["/import.db", ".import --csv /rows.csv t"], "", { limits: { maxRows: 1 } });
+  assert.equal(imported.code, 1);
+  assert.match(imported.stderr, /maxRows/);
+  await assert.rejects(fs.readFile("/import.db"));
+  const { SqliteDatabase } = await import("./engine.js");
+  const backing = new SqliteDatabase();
+  const injected = await runSqlite3(fs, [":memory:", "CREATE TABLE t(x); INSERT INTO t VALUES (1),(2);"], "", {
+    engine: { exec: (sql: string) => backing.exec(sql) }, limits: { maxRows: 1 }
+  });
+  assert.equal(injected.code, 1);
+  assert.match(injected.stderr, /maxRows/);
+});
+
+test("sqlite3 supports exact and zero budgets and counts repeated reads", async () => {
+  const fs = createMemoryFileSystem();
+  const empty = await runSqlite3(fs, [":memory:"], "", { limits: { maxInputBytes: 0, maxOutputBytes: 0, maxRows: 0 } });
+  assert.equal(empty.code, 0);
+  const zero = await runSqlite3(fs, [":memory:", "SELECT 1;"], "", { limits: { maxRows: 0 } });
+  assert.equal(zero.code, 1);
+  await fs.writeFile("/script", new TextEncoder().encode("SELECT 1;"));
+  const script = ".read /script\n.read /script";
+  const repeated = await runSqlite3(fs, [":memory:", script], "", { limits: { maxInputBytes: script.length + 9 } });
+  assert.equal(repeated.code, 1);
+  assert.equal(repeated.stdout, "1\n");
+  assert.match(repeated.stderr, /maxInputBytes/);
+  const quit = await runSqlite3(fs, ["/quit.db"], "CREATE TABLE t(x);\n.quit");
+  assert.equal(quit.code, 0);
+  assert.ok((await fs.readFile("/quit.db")).length > 0);
 });

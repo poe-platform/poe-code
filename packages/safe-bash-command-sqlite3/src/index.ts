@@ -127,11 +127,6 @@ async function vfsExists(fs: CommandContext["fs"], path: string): Promise<boolea
   }
 }
 
-async function vfsReadText(fs: CommandContext["fs"], path: string): Promise<string> {
-  const bytes = await fs.readFile(path);
-  return textDecoder.decode(bytes);
-}
-
 function resolveVfsPath(cwd: string, p: string): string {
   if (!p || p === ":memory:") {
     return ":memory:";
@@ -629,6 +624,12 @@ export const settings = {
 } as const;
 
 export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): CommandDefinition {
+  const limits = { ...settings.limits, ...options.limits };
+  for (const [name, value] of Object.entries(limits)) {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) {
+      throw new RangeError(`${name} must be a nonnegative safe integer or Infinity`);
+    }
+  }
   return {
     name: settings.commandName,
     runtimeIdentity: commandRuntimeIdentity,
@@ -653,6 +654,42 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       exitCode: 0
     };
 
+    let inputBytes = 0;
+    let outputBytes = 0;
+    let limitExceeded = false;
+    const enforceLimit = (name: keyof Sqlite3Limits, size: number) => {
+      if (size > limits[name]) {
+        limitExceeded = true;
+        state.exitRequested = true;
+        throw new RangeError(`${name} limit exceeded`);
+      }
+    };
+    const readInputFile = async (path: string): Promise<Uint8Array> => {
+      const remaining = limits.maxInputBytes - inputBytes;
+      enforceLimit("maxInputBytes", inputBytes + (await context.fs.stat(path)).size);
+      const bytes = await context.fs.readFile(path, { ...(remaining === Infinity ? {} : { maxBytes: remaining }), signal: context.signal });
+      inputBytes += bytes.byteLength;
+      enforceLimit("maxInputBytes", inputBytes);
+      return bytes;
+    };
+    const checkTableRows = (engine: SqliteEngineInstance) => {
+      let rows = 0;
+      for (const table of engine.tables?.values() ?? []) {
+        rows += table.rows.length;
+        enforceLimit("maxRows", rows);
+      }
+    };
+    const countOutput = (bytes: number) => {
+      enforceLimit("maxOutputBytes", outputBytes + bytes);
+      outputBytes += bytes;
+    };
+
+    const writeStdout = async (text: string) => {
+      countOutput(textEncoder.encode(text).byteLength);
+      await writeText(context.stdout, text);
+    };
+
+    try {
     const preCommands: string[] = [];
     let initFile: string | null = null;
     const positional: string[] = [];
@@ -666,15 +703,13 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         break;
       }
       if (arg === "-version" || arg === "--version") {
-        await writeText(
-          context.stdout,
+        await writeStdout(
           "3.45.0 2024-01-15 17:01:13 1066602b2b1976fe58b5150777cced894af17c803e068f5918390d6915b46e1d\n"
         );
         return { exitCode: 0 };
       }
       if (arg === "-help" || arg === "--help") {
-        await writeText(
-          context.stdout,
+        await writeStdout(
           "Usage: sqlite3 [OPTIONS] FILENAME [SQL]\nOptions:\n  -bail                stop after hitting an error\n  -batch               force batch I/O\n  -box                 set output mode to 'box'\n  -column              set output mode to 'column'\n  -cmd COMMAND         run \"COMMAND\" before reading stdin\n  -csv                 set output mode to 'csv'\n  -echo                print inputs before execution\n  -header              turn headers on\n  -noheader            turn headers off\n  -html                set output mode to HTML\n  -init FILENAME       read/process named file\n  -json                set output mode to 'json'\n  -line                set output mode to 'line'\n  -list                set output mode to 'list'\n  -markdown            set output mode to 'markdown'\n  -nullvalue TEXT      set text string for NULL values\n  -quote               set output mode to 'quote'\n  -readonly            open the database read-only\n  -separator SEP       set output column separator\n  -table               set output mode to 'table'\n  -tabs                set output mode to 'tabs'\n  -version             show SQLite version\n"
         );
         return { exitCode: 0 };
@@ -760,14 +795,30 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
     const db: SqliteEngineInstance = await createDbInstance(state.dbPath, state.readonly);
 
     const execSingleStmt = async (stmt: string): Promise<QueryResultSet | null> => {
+      let sets: QueryResultSet[] = [];
       if (typeof db.executeStatement === "function") {
-        return await db.executeStatement(stmt);
+        const result = await db.executeStatement(stmt);
+        if (result) sets = [result];
+      } else if (typeof db.exec === "function") {
+        sets = await db.exec(stmt);
       }
-      if (typeof db.exec === "function") {
-        const sets = await db.exec(stmt);
-        return sets[sets.length - 1] ?? null;
+      for (const result of sets) enforceLimit("maxRows", result.rows.length);
+      checkTableRows(db);
+      if (!db.tables && limits.maxRows !== Infinity) {
+        const query = async (sql: string): Promise<QueryResultSet | null> => {
+          if (db.executeStatement) return await db.executeStatement(sql);
+          const results = await db.exec?.(sql);
+          return results?.[results.length - 1] ?? null;
+        };
+        const tables = await query("SELECT name FROM sqlite_master WHERE type='table';");
+        let rows = 0;
+        for (const [name] of tables?.rows ?? []) {
+          const count = await query(`SELECT COUNT(*) FROM "${String(name).replaceAll('"', '""')}";`);
+          rows += Number(count?.rows[0]?.[0] ?? 0);
+          enforceLimit("maxRows", rows);
+        }
       }
-      return null;
+      return sets[sets.length - 1] ?? null;
     };
 
     const loadDbFromDisk = async (path: string) => {
@@ -776,12 +827,14 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       }
       try {
         if (await vfsExists(context.fs, path)) {
-          const bytes = await context.fs.readFile(path);
+          const bytes = await readInputFile(path);
           if (typeof db.loadFromBytes === "function") {
             await db.loadFromBytes(bytes);
+            checkTableRows(db);
           } else if (bytes.byteLength > 0) {
             const tempDb = new SqliteDatabase();
             tempDb.loadFromBytes(bytes);
+            checkTableRows(tempDb);
             for (const tbl of tempDb.tables.values()) {
               if (tbl.sql) {
                 await execSingleStmt(tbl.sql);
@@ -821,6 +874,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       }
       if (typeof db.serializeToBytes === "function") {
         const bytes = await db.serializeToBytes();
+        countOutput(bytes.byteLength);
         await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
       } else {
         const tempDb = new SqliteDatabase();
@@ -848,6 +902,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           }
         }
         const bytes = tempDb.serializeToBytes();
+        countOutput(bytes.byteLength);
         await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
       }
     };
@@ -864,17 +919,19 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         return;
       }
       if (state.onceFile) {
+        countOutput(textEncoder.encode(text).byteLength);
         const target = resolveVfsPath(context.cwd, state.onceFile);
         state.onceFile = null;
         await writeFileOutput(context, textEncoder.encode(text), data => context.fs.writeFile(target, data, { signal: context.signal }));
         return;
       }
       if (state.outputFile && state.outputFile !== "stdout") {
+        countOutput(textEncoder.encode(text).byteLength);
         const target = resolveVfsPath(context.cwd, state.outputFile);
         await writeFileOutput(context, textEncoder.encode(text), data => context.fs.appendFile(target, data, { signal: context.signal }));
         return;
       }
-      await writeText(context.stdout, text);
+      await writeStdout(text);
     };
 
     const executeDotCommand = async (line: string): Promise<void> => {
@@ -1189,7 +1246,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         const fileArg = parts[pIdx] ?? "";
         const tableArg = parts[pIdx + 1] ?? "";
         const filePath = resolveVfsPath(context.cwd, fileArg);
-        const content = await vfsReadText(context.fs, filePath);
+        const content = textDecoder.decode(await readInputFile(filePath));
         const sep = csvOverride || state.mode === "csv" ? (state.colSeparator === "|" ? "," : state.colSeparator) : state.colSeparator;
         const parsedRows = parseCsvContent(content, sep).slice(skipRows);
         if (parsedRows.length === 0) {
@@ -1232,8 +1289,8 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
 
       if (cmd === ".read") {
         const filePath = resolveVfsPath(context.cwd, parts[1] ?? "");
-        const script = await vfsReadText(context.fs, filePath);
-        await processScript(script);
+        const script = textDecoder.decode(await readInputFile(filePath));
+        await processScript(script, false);
         return;
       }
 
@@ -1310,7 +1367,9 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         await emitOutput(
           ".backup ?DB? FILE        Backup DB to FILE\n.bail on|off             Stop after hitting an error\n.databases               List names and files of attached databases\n.dump ?OBJECTS?          Render database content as SQL\n.exit ?CODE?             Exit this program\n.headers on|off          Turn display of headers on or off\n.import FILE TABLE       Import data from FILE into TABLE\n.indexes ?TABLE?         Show names of indexes\n.mode MODE               Set output mode\n.nullvalue STRING        Use STRING in place of NULL values\n.open ?OPTIONS? ?FILE?   Close existing database and reopen FILE\n.output ?FILE?           Send output to FILE or stdout\n.print STRING...         Print literal STRING\n.quit                    Exit this program\n.read FILE               Read input from FILE\n.schema ?PATTERN?        Show the CREATE statements matching PATTERN\n.separator COL ?ROW?     Change the column and row separators\n.show                    Show the current values for various settings\n.tables ?TABLE?          List names of tables\n"
         );
+        return;
       }
+      throw new Error(`unknown command or invalid arguments:  "${cmd.slice(1)}". Enter ".help" for help`);
     };
 
     const runSqlStatement = async (stmt: string): Promise<void> => {
@@ -1346,7 +1405,11 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       }
     };
 
-    const processScript = async (script: string): Promise<boolean> => {
+    const processScript = async (script: string, countInput = true): Promise<boolean> => {
+      if (countInput) {
+        inputBytes += textEncoder.encode(script).byteLength;
+        enforceLimit("maxInputBytes", inputBytes);
+      }
       // Process script mixing dot-commands (lines starting with '.') and SQL statements
       const lines = script.split(/\r?\n/);
       let sqlBuffer: string[] = [];
@@ -1409,8 +1472,8 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
 
     if (initFile) {
       try {
-        const initContent = await vfsReadText(context.fs, resolveVfsPath(context.cwd, initFile));
-        await processScript(initContent);
+        const initContent = textDecoder.decode(await readInputFile(resolveVfsPath(context.cwd, initFile)));
+        await processScript(initContent, false);
       } catch (err) {
         await writeText(context.stderr, `Error: cannot read init file "${initFile}": ${err instanceof Error ? err.message : String(err)}\n`);
         return { exitCode: 1 };
@@ -1418,6 +1481,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
     }
 
     for (const cmdStr of preCommands) {
+      if (state.exitRequested) break;
       const ok = await processScript(cmdStr);
       if (!ok || state.exitRequested) {
         break;
@@ -1433,19 +1497,32 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           }
         }
       } else {
-        const stdinBytes = await collectBytes(context.stdin, { signal: context.signal });
+        let stdinBytes: Uint8Array;
+        try {
+          stdinBytes = await collectBytes(context.stdin, { signal: context.signal, maxBytes: limits.maxInputBytes - inputBytes });
+        } catch (error) {
+          if (error instanceof Error && "code" in error && error.code === "EFBIG") {
+            enforceLimit("maxInputBytes", Infinity);
+          }
+          throw error;
+        }
+        inputBytes += stdinBytes.byteLength;
         if (stdinBytes.byteLength > 0) {
           const stdinText = textDecoder.decode(stdinBytes);
-          await processScript(stdinText);
+          await processScript(stdinText, false);
         }
       }
     }
 
-    if (state.dirty && state.dbPath !== ":memory:" && !state.readonly) {
+    if (!limitExceeded && state.dirty && state.dbPath !== ":memory:" && !state.readonly) {
       await saveDbToDisk(state.dbPath);
     }
 
-    return { exitCode: state.exitCode };
+    return { exitCode: limitExceeded ? 1 : state.exitCode };
+    } catch (error) {
+      await writeText(context.stderr, `Error: ${error instanceof Error ? error.message : String(error)}\n`);
+      return { exitCode: 1 };
+    }
     }
   };
 }

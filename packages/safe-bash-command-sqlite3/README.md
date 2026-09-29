@@ -23,3 +23,5 @@ await shell.exec(`
   sqlite3 -json /app.db "SELECT * FROM users;"
 `);
 ```
+
+Configure resource budgets through `createSqlite3Commands({ limits: { maxInputBytes, maxOutputBytes, maxRows } })` (also supported by the command factory and plugin). Limits accept nonnegative safe integers or `Infinity`, which is the default. Input and output bytes are cumulative per invocation, including UTF-8 SQL, stdin, input files, database loads, redirected output and database saves. `maxRows` bounds each query result set and the total stored table rows. Exceeding a limit fails the command and prevents automatic database persistence; unknown dot-commands also fail with an error.

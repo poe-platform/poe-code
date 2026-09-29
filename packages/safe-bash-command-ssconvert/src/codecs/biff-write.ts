@@ -220,7 +220,9 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
           const formula = arrayFormulas.get(group)!, data = new Uint8Array(14 + formula.tokens.length + formula.arrays.length), view = new DataView(data.buffer);
           view.setUint16(0, group.range.startRow, true); view.setUint16(2, Math.min(group.range.endRow, maxRows - 1), true);
           data[4] = group.range.startColumn; data[5] = Math.min(group.range.endColumn, 255); view.setUint16(12, formula.tokens.length, true);
-          data.set(formula.tokens, 14); data.set(formula.arrays, 14 + formula.tokens.length); output.record(0x221, data);
+          data.set(formula.tokens, 14); data.set(formula.arrays, 14 + formula.tokens.length);
+          output.continuedRecord(0x221, data, [14, ...formula.tokenBoundaries.map(offset => offset + 14),
+            ...formula.arrayBoundaries.map(offset => offset + 14 + formula.tokens.length)]);
         }
       }
       const cached = cell.cachedResult ?? cell.value;

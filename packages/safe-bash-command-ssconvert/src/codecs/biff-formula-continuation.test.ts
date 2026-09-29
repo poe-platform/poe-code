@@ -118,3 +118,22 @@ for (const revision of [7, 8] as const) for (const scope of [undefined, "s"]) {
     expect(recalculateWorkbook(edited, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 7 });
   });
 }
+
+for (const revision of [7, 8] as const) {
+  it.each([
+    [`=LEN("${"é€".repeat(3000)}")`, 6000],
+    [`=SUM({${Array.from({ length: 32 }, () => Array<number>(32).fill(1).join(",")).join(";")}})`, 1024]
+  ])(`continues BIFF${revision} ARRAY-group tokens and auxiliary values (%#)`, async (expression, expected) => {
+    const bytes = await createBiffWriter(revision)({ sheets: [{ id: "s", name: "S",
+      formulaGroups: [{ id: "a", kind: "array", expression,
+        range: { startRow: 0, endRow: 1, startColumn: 0, endColumn: 0 } }],
+      cells: [0, 1].map(row => ({ row, column: 0, formula: expression, formulaGroup: "a", value: { kind: "number", value: 999 } }))
+    }] }, [], context);
+    const reopened = await readBiff(bytes, context);
+    expect(reopened.sheets[0]!.formulaGroups).toHaveLength(1);
+    expect(reopened.sheets[0]!.formulaGroups![0]).toMatchObject({ kind: "array",
+      range: { startRow: 0, endRow: 1, startColumn: 0, endColumn: 0 } });
+    expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells.map(cell => cell.value))
+      .toEqual([0, 1].map(() => ({ kind: "number", value: expected })));
+  });
+}

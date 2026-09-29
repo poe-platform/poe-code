@@ -206,7 +206,7 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
   const openssl = createDefaultOpenSslProvider(options.openssl);
   const ssh = createDefaultSshProvider(options.ssh, backend.getActiveUser());
 
-  return {
+  const def: CommandDefinition = {
     name: "gh",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Work seamlessly with GitHub from the command line",
@@ -437,6 +437,187 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
       }
     },
   };
+  ghBackendByExecutor.set(def.execute, backend);
+  return def;
+}
+
+const ghBackendByExecutor = new WeakMap<CommandDefinition["execute"], GitHubBackend>();
+
+export function evalSyncGh(
+  execFn: CommandDefinition["execute"],
+  rawArgs: readonly string[],
+  env: Readonly<Record<string, string>>,
+): string | undefined {
+  const backend = ghBackendByExecutor.get(execFn);
+  if (!backend) return undefined;
+
+  let argsToRun: readonly string[] = rawArgs;
+  for (let depth = 0; depth <= 8; depth++) {
+    const { command, subArgs, version, help } = normalizeTopLevelArgs(argsToRun);
+    if (version || command === "version") return GH_VERSION_OUTPUT;
+    if (help || !command || command === "help") return GH_ROOT_HELP;
+    const aliasExpansion = backend.config.aliases[command];
+    if (aliasExpansion !== undefined) {
+      if (aliasExpansion.startsWith("!")) return undefined;
+      argsToRun = [...splitAliasExpansion(aliasExpansion), ...subArgs];
+      continue;
+    }
+
+    if (command === "completion") {
+      const shellIdx = subArgs.findIndex((a) => a === "-s" || a === "--shell");
+      const shellName = shellIdx !== -1 ? (subArgs[shellIdx + 1] ?? "bash") : "bash";
+      return `# ${shellName} completion for gh\ncomplete -W "pr repo issue api auth release run workflow gist search label secret variable cache ssh-key gpg-key attestation config alias status browse version" gh\n`;
+    }
+
+    if (command === "config") {
+      const sub = subArgs[0] ?? "list";
+      if (sub === "list" && subArgs.length <= 1) {
+        return [
+          `git_protocol=${backend.config.gitProtocol}`,
+          `editor=${backend.config.editor}`,
+          `prompt=${backend.config.prompt}`,
+          `pager=${backend.config.pager}`,
+          `http_unix_socket=${backend.config.httpUnixSocket}`,
+          `browser=${backend.config.browser}`,
+          "",
+        ].join("\n");
+      }
+      if (sub === "get" && subArgs.length === 2 && !subArgs[1]!.startsWith("-")) {
+        const key = subArgs[1]!;
+        const map: Record<string, keyof typeof backend.config> = {
+          git_protocol: "gitProtocol",
+          editor: "editor",
+          prompt: "prompt",
+          pager: "pager",
+          http_unix_socket: "httpUnixSocket",
+          browser: "browser",
+        };
+        const prop = map[key];
+        if (!prop) return undefined;
+        return `${String(backend.config[prop])}\n`;
+      }
+      return undefined;
+    }
+
+    if (command === "alias") {
+      const sub = subArgs[0] ?? "list";
+      if ((sub === "list" || sub === "ls") && subArgs.length <= 1) {
+        const entries = Object.entries(backend.config.aliases);
+        return entries.map(([k, v]) => `${k}: ${v}`).join("\n") + (entries.length > 0 ? "\n" : "");
+      }
+      return undefined;
+    }
+
+    if (command === "auth") {
+      const sub = subArgs[0];
+      const rest = subArgs.slice(1);
+      if (sub === "token" && rest.length === 0) {
+        const envToken = env.GH_TOKEN ?? env.GITHUB_TOKEN;
+        if (envToken) return `${envToken}\n`;
+        const entries = backend.config.hosts[backend.defaultHost] ?? [];
+        const active = entries.find((e) => e.active) ?? entries[0];
+        if (!active) return undefined;
+        return `${active.oauthToken}\n`;
+      }
+      if (sub === "status") {
+        let hostFilter: string | undefined;
+        let showToken = false;
+        let activeOnly = false;
+        for (let i = 0; i < rest.length; i++) {
+          const a = rest[i]!;
+          if (a === "-h" || a === "--hostname") hostFilter = rest[++i];
+          else if (a === "-t" || a === "--show-token") showToken = true;
+          else if (a === "-a" || a === "--active") activeOnly = true;
+          else return undefined;
+        }
+        const hosts = hostFilter ? [hostFilter] : Object.keys(backend.config.hosts);
+        const lines: string[] = [];
+        for (const host of hosts) {
+          const entries = (backend.config.hosts[host] ?? []).filter((e) => !activeOnly || e.active);
+          if (entries.length === 0) continue;
+          lines.push(host);
+          for (const entry of entries) {
+            const envToken = env.GH_TOKEN ?? env.GITHUB_TOKEN;
+            const effectiveToken = envToken ?? entry.oauthToken;
+            const maskedToken = showToken
+              ? effectiveToken
+              : `${effectiveToken.slice(0, 4)}${"*".repeat(Math.max(4, effectiveToken.length - 4))}`;
+            lines.push(
+              `  ✓ Logged in to ${host} account ${entry.user} (${envToken ? "GH_TOKEN" : "keyring"})`
+            );
+            lines.push(`  - Active account: ${entry.active}`);
+            lines.push(`  - Git operations protocol: ${entry.gitProtocol}`);
+            lines.push(`  - Token: ${maskedToken}`);
+            lines.push(`  - Token scopes: '${entry.scopes.join("', '")}'`);
+          }
+        }
+        if (lines.length === 0) return undefined;
+        return lines.join("\n") + "\n";
+      }
+      return undefined;
+    }
+
+    if (command === "repo" && subArgs[0] === "view") {
+      const rest = subArgs.slice(1);
+      let repoSpec: string | undefined;
+      let branch: string | undefined;
+      let jsonFields: string | undefined;
+      for (let i = 0; i < rest.length; i++) {
+        const a = rest[i]!;
+        if (a === "-b" || a === "--branch") branch = rest[++i];
+        else if (a === "-R" || a === "--repo") repoSpec = rest[++i];
+        else if (a === "--json") jsonFields = rest[++i];
+        else if (!a.startsWith("-") && repoSpec === undefined) repoSpec = a;
+        else return undefined;
+      }
+      if (!repoSpec) return undefined;
+      const slash = repoSpec.indexOf("/");
+      const owner = slash !== -1 ? repoSpec.slice(0, slash) : backend.getActiveUser();
+      const name = slash !== -1 ? repoSpec.slice(slash + 1) : repoSpec;
+      const repo = backend.repos.get(`${owner}/${name}`);
+      if (!repo) return undefined;
+      if (jsonFields !== undefined) {
+        const fields = jsonFields.split(",").map((f) => f.trim()).filter(Boolean);
+        const obj: Record<string, unknown> = {};
+        const full: Record<string, unknown> = {
+          id: `R_${repo.id}`,
+          name: repo.name,
+          nameWithOwner: repo.nameWithOwner,
+          description: repo.description,
+          url: repo.url,
+          sshUrl: repo.sshUrl,
+          isPrivate: repo.isPrivate,
+          isFork: repo.isFork,
+          isArchived: repo.isArchived,
+          visibility: repo.visibility,
+          defaultBranchRef: repo.defaultBranchRef,
+          owner: repo.owner,
+          stargazerCount: repo.stargazerCount,
+          forkCount: repo.forkCount,
+        };
+        for (const f of fields) {
+          if (!(f in full)) return undefined;
+          obj[f] = full[f];
+        }
+        return JSON.stringify(obj, null, 2) + "\n";
+      }
+      const targetBranch = branch ?? repo.defaultBranchRef.name;
+      const files = repo.branchFiles.get(targetBranch) ?? repo.branchFiles.get(repo.defaultBranchRef.name) ?? {};
+      const readme = files["README.md"] ?? files["readme.md"] ?? files["README"] ?? "No README provided.";
+      return [
+        `${repo.nameWithOwner}`,
+        repo.description || "No description provided",
+        "",
+        readme.trim(),
+        "",
+        `View this repository on GitHub: ${repo.url}`,
+        "",
+      ].join("\n");
+    }
+
+    return undefined;
+  }
+  return undefined;
 }
 
 export function createGhCommands(options: GhCommandsOptions = {}): readonly CommandDefinition[] {

@@ -3,8 +3,11 @@ import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/inde
 import {
   createPdfinfoCommand as createRawPdfinfoCommand,
   createPdfinfoCommands as createRawPdfinfoCommands,
+  createPdffontsCommand as createRawPdffontsCommand,
+  createPdfdetachCommand as createRawPdfdetachCommand,
   inspectPdfBytes,
   runPdffontsCliSync,
+  runPdfdetachCliSync,
   type PdfinfoCommandOptions,
   type PdfinfoCommandsOptions,
 } from "safe-bash-command-pdfinfo";
@@ -13,6 +16,18 @@ export * from "safe-bash-command-pdfinfo";
 
 export function createPdfinfoCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
   const def = createRawPdfinfoCommand(options);
+  builtInDirectContextExecutors.add(def.execute);
+  return def;
+}
+
+export function createPdffontsCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  const def = createRawPdffontsCommand(options);
+  builtInDirectContextExecutors.add(def.execute);
+  return def;
+}
+
+export function createPdfdetachCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  const def = createRawPdfdetachCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
@@ -94,6 +109,38 @@ export function evalSyncPdffonts(
       }
     }
     const res = runPdffontsCliSync(opArgs, files);
+    if (res.exitCode !== 0 || res.stderr) return undefined;
+    return res.stdout;
+  } catch {
+    return undefined;
+  }
+}
+
+export function evalSyncPdfdetach(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a === "-save" || a === "-savefile" || a === "-saveall" || a === "-o") {
+        return undefined;
+      }
+    }
+    const files = new Map<string, Uint8Array>();
+    if (inBytes !== undefined) files.set("-", inBytes);
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a === "-upw" || a === "-opw" || a === "-enc") {
+        i++;
+      } else if (!a.startsWith("-") && a !== "-") {
+        const b = readFileSync?.(a);
+        if (!b || b.byteLength > 262144) return undefined;
+        files.set(a, b);
+      }
+    }
+    const res = runPdfdetachCliSync(opArgs, files);
     if (res.exitCode !== 0 || res.stderr) return undefined;
     return res.stdout;
   } catch {

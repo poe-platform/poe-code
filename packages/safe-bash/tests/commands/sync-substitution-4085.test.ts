@@ -1,3 +1,5 @@
+import { createFfmpegCommands } from "../../src/commands/ffmpeg/index.js";
+import { createGhCommands } from "../../src/commands/gh/index.js";
 import { createSipsCommands } from "../../src/commands/sips/index.js";
 import { createImagemagickCommands } from "../../src/commands/imagemagick/index.js";
 import { createPdfimagesCommands } from "../../src/commands/pdfimages/index.js";
@@ -1155,4 +1157,38 @@ test("Wave 150: sync sips, identify, magick identify, and pdfimages substitution
   assert.ok(r3.stdout.startsWith("/icon.png PNG 16x12 "));
   assert.ok(r4.stdout.startsWith("page"));
   assert.ok(elapsed < 1000, `Expected < 1000ms for 4x150 iterations, took ${elapsed.toFixed(1)}ms`);
+});
+
+test("Wave 151: sync pdfdetach, ffprobe, ffmpeg, and gh substitutions and pipelines", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createPdfinfoCommands(),
+    ...createQpdfCommands(),
+    ...createFfmpegCommands(),
+    ...createGhCommands(),
+  ]) {
+    registry.register(cmd);
+  }
+  const shell = new Shell({ fs, commands: registry });
+
+    await shell.exec("ffmpeg -f lavfi -i color=c=blue:s=16x16:d=1 -c:v libx264 /sample.mp4");
+    const setupPdf = await shell.exec("qpdf --empty /empty.pdf");
+    assert.equal(setupPdf.exitCode, 0);
+
+    const t0 = performance.now();
+    const rDetach = await shell.exec('for i in $(seq 1 150); do n=$(pdfdetach -list /empty.pdf | head -n 1); done; printf "%s" "$n"');
+    const rProbe = await shell.exec('for i in $(seq 1 150); do fmt=$(ffprobe -v error -show_entries format=format_name -of default=noprint_wrappers=1:nokey=1 /sample.mp4); done; printf "%s" "$fmt"');
+    const rFfmpeg = await shell.exec('for i in $(seq 1 150); do ver=$(ffmpeg -version | head -n 1); done; printf "%s" "$ver"');
+    const rGh1 = await shell.exec('for i in $(seq 1 150); do proto=$(gh config get git_protocol); done; printf "%s" "$proto"');
+    const rGh2 = await shell.exec('for i in $(seq 1 150); do repo=$(gh repo view octocat/Hello-World --json nameWithOwner); done; printf "%s" "$repo"');
+    const elapsed = performance.now() - t0;
+
+    assert.equal(rDetach.stdout, "0 embedded files");
+    assert.match(rProbe.stdout, /mp4/);
+    assert.match(rFfmpeg.stdout, /ffmpeg version/);
+    assert.equal(rGh1.stdout, "https");
+    assert.equal(rGh2.stdout, '{\n  "nameWithOwner": "octocat/Hello-World"\n}');
+    assert.ok(elapsed < 1000, `Expected <1000ms for 5x150 iterations, got ${elapsed.toFixed(1)}ms`);
 });

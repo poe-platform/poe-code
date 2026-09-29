@@ -1188,9 +1188,169 @@ function formatFfprobeResult(
   return lines.join("\n") + (lines.length > 0 ? "\n" : "");
 }
 
+let defaultAstPluginsCache: readonly MediaAstPlugin[] | undefined;
+let defaultRegistryCache: ReturnType<typeof createMediaAstRegistry> | undefined;
+
+function getDefaultMediaRegistry(): { astPlugins: readonly MediaAstPlugin[]; registry: ReturnType<typeof createMediaAstRegistry> } {
+  if (!defaultAstPluginsCache || !defaultRegistryCache) {
+    defaultAstPluginsCache = allMediaAsts();
+    defaultRegistryCache = createMediaAstRegistry(defaultAstPluginsCache);
+  }
+  return { astPlugins: defaultAstPluginsCache, registry: defaultRegistryCache };
+}
+
+export function evalSyncFfmpeg(args: readonly string[]): string | undefined {
+  if (args.length === 0) return undefined;
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    if (
+      arg === "-version" ||
+      arg === "--version" ||
+      arg === "-h" ||
+      arg === "-help" ||
+      arg === "--help" ||
+      arg === "-formats" ||
+      arg === "-demuxers" ||
+      arg === "-muxers" ||
+      arg === "-codecs" ||
+      arg === "-decoders" ||
+      arg === "-encoders" ||
+      arg === "-protocols" ||
+      arg === "-filters"
+    ) {
+      return formatIntrospectionOutput(arg, getDefaultMediaRegistry().astPlugins);
+    }
+  }
+  return undefined;
+}
+
+export function evalSyncFfprobe(
+  inBytes: Uint8Array | undefined,
+  args: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  if (args.length === 0) return undefined;
+  const { astPlugins, registry } = getDefaultMediaRegistry();
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    if (
+      arg === "-version" ||
+      arg === "--version" ||
+      arg === "-h" ||
+      arg === "-help" ||
+      arg === "--help" ||
+      arg === "-formats" ||
+      arg === "-demuxers" ||
+      arg === "-muxers" ||
+      arg === "-codecs" ||
+      arg === "-decoders" ||
+      arg === "-encoders" ||
+      arg === "-protocols" ||
+      arg === "-filters"
+    ) {
+      return formatIntrospectionOutput(arg, astPlugins);
+    }
+  }
+
+  let printFormat = "default";
+  let showFormat = false;
+  let showStreams = false;
+  let showPackets = false;
+  let showFrames = false;
+  let showChapters = false;
+  let showPrograms = false;
+  let selectStreams: string | undefined;
+  let showEntries: string | undefined;
+  let countFrames = false;
+  let countPackets = false;
+  let explicitFormat: string | undefined;
+  let inputTarget: string | undefined;
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    if (arg === "-v" || arg === "-loglevel") {
+      i++;
+    } else if (arg === "-hide_banner") {
+      // no-op
+    } else if (arg === "-print_format" || arg === "-of") {
+      printFormat = args[++i] ?? "default";
+    } else if (arg === "-show_format") {
+      showFormat = true;
+    } else if (arg === "-show_streams") {
+      showStreams = true;
+    } else if (arg === "-show_packets") {
+      showPackets = true;
+    } else if (arg === "-show_frames") {
+      showFrames = true;
+    } else if (arg === "-show_chapters") {
+      showChapters = true;
+    } else if (arg === "-show_programs") {
+      showPrograms = true;
+    } else if (arg === "-count_frames") {
+      countFrames = true;
+    } else if (arg === "-count_packets") {
+      countPackets = true;
+    } else if (arg === "-select_streams") {
+      selectStreams = args[++i];
+    } else if (arg === "-show_entries") {
+      showEntries = args[++i];
+    } else if (arg === "-f") {
+      explicitFormat = args[++i];
+    } else if (arg === "-i") {
+      inputTarget = args[++i];
+    } else if (!arg.startsWith("-") || arg === "-") {
+      inputTarget = arg;
+    } else {
+      return undefined;
+    }
+  }
+
+  if (!showFormat && !showStreams && !showPackets && !showFrames && !showChapters && !showEntries) {
+    showFormat = true;
+    showStreams = true;
+  }
+
+  if (!inputTarget) return undefined;
+
+  try {
+    let bytes: Uint8Array | undefined;
+    if (inputTarget === "-" || inputTarget === "pipe:" || inputTarget === "pipe:0") {
+      bytes = inBytes;
+    } else {
+      bytes = readFileSync?.(inputTarget);
+    }
+    if (!bytes || bytes.byteLength > 262144) return undefined;
+    const budget = new MediaBudgetTracker();
+    budget.checkInputBytes(bytes.byteLength);
+    const plugin = registry.detect(bytes, inputTarget, explicitFormat);
+    if (!plugin || !plugin.canDemux) return undefined;
+    const probeResult = plugin.probe(bytes, {
+      filename: inputTarget,
+      budget,
+      showPackets,
+      showFrames,
+    });
+    return formatFfprobeResult(probeResult, {
+      printFormat,
+      showFormat,
+      showStreams,
+      showPackets,
+      showFrames,
+      showChapters,
+      showPrograms,
+      selectStreams,
+      showEntries,
+      countFrames,
+      countPackets,
+    });
+  } catch {
+    return undefined;
+  }
+}
+
 export function createFfprobeCommand(options: FfmpegCommandsOptions = {}): CommandDefinition {
-  const astPlugins = options.asts ?? allMediaAsts();
-  const registry = createMediaAstRegistry(astPlugins);
+  const astPlugins = options.asts ?? getDefaultMediaRegistry().astPlugins;
+  const registry = options.asts ? createMediaAstRegistry(astPlugins) : getDefaultMediaRegistry().registry;
 
   return {
     name: "ffprobe",

@@ -2438,10 +2438,10 @@ function collectEmbeddedAttachments(doc: PdfDocument): DetachedEmbeddedFile[] {
   return results;
 }
 
-export async function runPdfdetachCli(
+export function runPdfdetachCliSync(
   argv: readonly string[],
   files: Map<string, Uint8Array>
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+): { exitCode: number; stdout: string; stderr: string } {
   let listOnly = false;
   let saveNumber = 0;
   let saveFileName = "";
@@ -2545,6 +2545,13 @@ export async function runPdfdetachCli(
     }
   }
   return { exitCode: 0, stdout: "", stderr: "" };
+}
+
+export async function runPdfdetachCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  return runPdfdetachCliSync(argv, files);
 }
 
 const POPPLER_FILE_TOOL_VALUE_FLAGS = new Set([

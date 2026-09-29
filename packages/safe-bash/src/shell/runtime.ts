@@ -22296,6 +22296,12 @@ export class Runtime {
   }
 
   private evalSyncTr(input: string, opArgs: readonly string[]): string | undefined {
+    // Non-ASCII sets require the byte parser; reject them before running producers.
+    for (const value of opArgs) {
+      for (let i = 0; i < value.length; i++) {
+        if (value.charCodeAt(i) >= 128) return undefined;
+      }
+    }
     let idx = 0;
     let flagC = false;
     let flagD = false;
@@ -24076,7 +24082,10 @@ export class Runtime {
     const units = "KMGTPEZY";
     const out: string[] = [];
     for (let i = 0; i < rawLines.length; i++) {
-      const raw = rawLines[i]!.trim();
+      const line = rawLines[i]!;
+      const raw = line.trim();
+      // Preserve field whitespace and padding through the command implementation.
+      if (line !== raw) return undefined;
       if (raw.length === 0) { out.push(""); continue; }
       const m = /^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([KMGTPEZYkmgtpezy]i?)?$/.exec(raw);
       if (!m) return undefined;

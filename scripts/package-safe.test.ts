@@ -1056,6 +1056,33 @@ it('ships companion license notices as included archive files', async () => {
   expect(volume.readFileSync('/output/safe-bash/third-party/browser-companion/LICENSE.provider', 'utf8')).toBe('Full provider license');
 });
 
+it('publishes PDF vendor declaration dependencies and their full license notices', async () => {
+  const { volume, options } = optionalLeftovers();
+  const source = new URL('../packages/pdf-ast/', import.meta.url);
+  const directory = '/repo/packages/pdf-ast';
+  volume.mkdirSync(directory + '/dist/vendor', { recursive: true });
+  volume.writeFileSync(directory + '/package.json', readFileSync(new URL('package.json', source)));
+  volume.writeFileSync(directory + '/dist/index.js', 'export {};');
+  volume.writeFileSync(directory + '/dist/index.d.ts', 'export { CFFParser } from "./vendor/pdfjs-fonts.mjs";');
+  volume.writeFileSync(directory + '/dist/vendor/pdfjs-fonts.mjs', 'export class CFFParser {}');
+  volume.writeFileSync(directory + '/dist/vendor/pdfjs-fonts.d.mts', 'export declare class CFFParser {}');
+  const notices = ['THIRD_PARTY_NOTICES.md', 'licenses/PDFJS-APACHE-2.0.txt', 'licenses/PDFIUM-BSD.txt'];
+  for (const filename of notices) {
+    volume.mkdirSync(path.dirname(directory + '/' + filename), { recursive: true });
+    volume.writeFileSync(directory + '/' + filename, readFileSync(new URL(filename, source)));
+  }
+  await packageSafeLibraries({ ...options, outDir: '/output' });
+  for (const extension of ['.mjs', '.d.mts']) {
+    expect(volume.existsSync('/output/safe-bash/dist/pdf-ast/vendor/pdfjs-fonts' + extension)).toBe(true);
+  }
+  const manifest = JSON.parse(volume.readFileSync('/output/safe-bash/package.json', 'utf8').toString());
+  expect(manifest.files).toContain('third-party');
+  for (const filename of notices) {
+    expect(volume.readFileSync('/output/safe-bash/third-party/pdf-ast/' + filename))
+      .toEqual(readFileSync(new URL(filename, source)));
+  }
+});
+
 it("preserves conditional private imports and ships their runtime and declaration targets", async () => {
   const { volume, options } = optionalLeftovers();
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify({

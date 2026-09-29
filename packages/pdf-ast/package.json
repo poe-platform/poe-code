@@ -33,6 +33,13 @@
       "safe-bash": {
         "./pdf-ast": "."
       }
+    },
+    "safeLibraryNotices": {
+      "safe-bash": [
+        "./THIRD_PARTY_NOTICES.md",
+        "./licenses/PDFJS-APACHE-2.0.txt",
+        "./licenses/PDFIUM-BSD.txt"
+      ]
     }
   }
 }

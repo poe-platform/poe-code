@@ -359,8 +359,11 @@ class Client:
         return stream
 
     async def embed(self, inputs, *, model=None, options=None, timeout=None):
-        if isinstance(inputs, str) or not all(isinstance(value, str) for value in inputs):
-            raise TypeError("Embedding inputs must be a sequence of strings")
+        if isinstance(inputs, str):
+            raise TypeError("Embedding inputs must be an iterable of strings")
+        inputs = tuple(inputs)
+        if not all(isinstance(value, str) for value in inputs):
+            raise TypeError("Embedding inputs must be an iterable of strings")
         payload = {"model": model if model is not None else self._defaults["model"], "inputs": list(inputs),
                    "options": _options({**self._defaults["options"], **(options or {})})}
         payload["timeout"] = self._timeout if timeout is None else _timeout(timeout)

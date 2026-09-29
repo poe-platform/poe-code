@@ -39,6 +39,17 @@ class FakeBridge:
   return chunks()
 
 class LibraryTests(unittest.IsolatedAsyncioTestCase):
+ async def test_embedding_iterable_is_consumed_once_before_transport(self):
+  bridge = FakeBridge()
+  seen = []
+  def inputs():
+   seen.append('input')
+   yield 'input'
+  async with Client(bridge=bridge, model='provider/model') as client:
+   result = await client.embed(inputs())
+  self.assertEqual(seen, ['input'])
+  self.assertEqual(bridge.calls[-1][1]['inputs'], ['input'])
+  self.assertEqual(result.vectors, ((1.0, 0.25),))
  async def test_explicit_none_overrides_client_limit(self):
   bridge = FakeBridge()
   async with Client(bridge=bridge, model='provider/model', max_response_bytes=1) as client:

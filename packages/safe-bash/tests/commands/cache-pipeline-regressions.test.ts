@@ -85,3 +85,19 @@ test('async pipeline preserves pipefail, negation, and stage statuses', async ()
   assert.equal((await shell.exec('set -o pipefail; ' + pipeline)).exitCode, 1);
   assert.equal((await shell.exec('set -o pipefail; ! ' + pipeline)).exitCode, 0);
 });
+
+for (const asynchronous of [false, true]) {
+  test(`${asynchronous ? 'async' : 'sync'} matching pipelines retain negation on repeated runs`, async () => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs });
+    await shell.use(standardCommands(asynchronous ? { regexExecutor: createNodeRegexProvider() } : {}));
+    await fs.writeFile('/big.txt', enc.encode('key:value\n' + 'x'.repeat(1050) + '\n'));
+    for (let iteration = 0; iteration < 3; iteration++) {
+      await shell.exec('');
+      const result = await shell.exec('! grep key /big.txt | cut -d: -f2 | sort');
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, 'value\n');
+      assert.equal(result.stderr, '');
+    }
+  });
+}

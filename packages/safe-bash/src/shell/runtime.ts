@@ -7342,7 +7342,7 @@ export class Runtime {
     const stdout = io.stdout;
     const stderr = io.stderr;
     const finish = (): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> => {
-      if ( n >= 3 && statuses === undefined && firstStageRootSourceRef !== undefined && stderr.length === 0 && stdout.length <= 256 && Date.now === defaultDateNow) {
+      if ( n >= 3 && !pipeline.negate && statuses === undefined && firstStageRootSourceRef !== undefined && stderr.length === 0 && stdout.length <= 256 && Date.now === defaultDateNow) {
         const scratch = (stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k;
         if (scratch) {
           const outLen = stdout.length;

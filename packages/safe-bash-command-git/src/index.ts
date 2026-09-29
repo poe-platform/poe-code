@@ -10,8 +10,20 @@ interface Entry { path: string; kind: string; mode: number; data: string }
 interface Result { exitCode: number; stdout: string; stdoutBytes?: string | null; stderr: string; entries: Entry[] | null; request?: {url:string;method:string;headers:Record<string,string>;body:string} | null }
 interface GitExports { memory: { readonly buffer: ArrayBufferLike }; git_alloc(length:number):number; git_free(ptr:number,length:number):void; git_execute(ptr:number,length:number):number; git_output_len():number }
 const encoder=new TextEncoder(), decoder=new TextDecoder();
-function encode(bytes:Uint8Array):string { let s=''; for(const b of bytes) s+=b.toString(16).padStart(2,'0'); return s; }
-function decode(hex:string):Uint8Array { const bytes=new Uint8Array(hex.length/2); for(let i=0;i<bytes.length;i++) bytes[i]=Number.parseInt(hex.slice(i*2,i*2+2),16); return bytes; }
+function encode(bytes:Uint8Array):string { return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('hex'); }
+function decode(hex:string):Uint8Array { return new Uint8Array(Buffer.from(hex, 'hex')); }
+
+interface GitCommandMeta { readonly limits: GitLimits; readonly hasHttp: boolean; readonly wasmModule?: object }
+const gitCommandMeta = new WeakMap<CommandDefinition["execute"], GitCommandMeta>();
+let sharedDefaultExports: GitExports | undefined;
+function getDefaultGitExports(): GitExports {
+  if (!sharedDefaultExports) {
+    const mod = gitModule();
+    const wasm = (globalThis as unknown as { WebAssembly: { Instance: new (m: object) => { exports: GitExports } } }).WebAssembly;
+    sharedDefaultExports = new wasm.Instance(mod).exports;
+  }
+  return sharedDefaultExports;
+}
 
 async function snapshot(fs:FileSystem, limits:GitLimits, signal:AbortSignal):Promise<Entry[]> {
   const entries:Entry[]=[];
@@ -72,7 +84,7 @@ async function publish(fs:FileSystem, before:Entry[], after:Entry[], signal:Abor
 export function createGitCommand(options:GitCommandsOptions={}):CommandDefinition {
   const limits:GitLimits={maxEntries:Infinity,maxBytes:Infinity,maxDepth:Infinity,maxHttpRequests:Infinity,maxHttpBytes:Infinity,...options.limits};
   for(const [name,value] of Object.entries(limits)) if(value!==Infinity && (!Number.isSafeInteger(value) || value<1)) throw new Error(`${name} must be a positive safe integer or Infinity`);
-  return {name:'git',runtimeIdentity:commandRuntimeIdentity,description:'Git repositories in the virtual filesystem',async execute(context) {
+  const def: CommandDefinition = {name:'git',runtimeIdentity:commandRuntimeIdentity,description:'Git repositories in the virtual filesystem',async execute(context) {
     try {
       const chunks:Uint8Array[]=[];
       let stdinSize=0;
@@ -85,9 +97,7 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
       let offset=0;
       for(const chunk of chunks) { stdin.set(chunk,offset); offset+=chunk.length; }
       const before=await snapshot(context.fs,limits,context.signal);
-      const module=options.wasmModule ?? gitModule();
-      const wasm=(globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly;
-      const exports=new wasm.Instance(module).exports;
+      const exports = options.wasmModule ? new ((globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly.Instance)(options.wasmModule).exports : getDefaultGitExports();
       const responses: {status:number;headers:Readonly<Record<string,string>>;body:string}[]=[];
       let httpBytes=0;
       let result:Result;
@@ -131,9 +141,185 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
       return {exitCode:128};
     }
   }};
+  gitCommandMeta.set(def.execute, { limits, hasHttp: Boolean(options.http), wasmModule: options.wasmModule });
+  return def;
 }
 export function createGitCommands(options:GitCommandsOptions={}):readonly CommandDefinition[] { return [createGitCommand(options)]; }
 export function gitCommands(options:GitCommandsOptions={}):VirtualShellPlugin {
   const command=createGitCommand(options);
   return {name:'git-commands',setup(host){host.commands.register(command,{replace:options.replace ?? false});}};
+}
+
+export interface SyncGitNodeInfo {
+  readonly type: "file" | "directory" | "symlink";
+  readonly mode: number;
+  readonly target?: string;
+  readonly children?: ReadonlyArray<{ readonly name: string }>;
+}
+
+const READ_ONLY_GIT_SUBCOMMANDS = new Set([
+  "rev-parse",
+  "status",
+  "branch",
+  "log",
+  "diff",
+  "show",
+  "ls-files",
+  "ls-tree",
+  "cat-file",
+  "describe",
+  "tag",
+  "shortlog",
+  "blame",
+  "grep",
+  "name-rev",
+  "for-each-ref",
+  "show-ref",
+  "check-ignore",
+  "check-attr",
+  "var",
+  "version",
+  "help"
+]);
+
+const readOnlyGitResultCache = new Map<string, string>();
+
+function isReadOnlyGitArgs(args: readonly string[]): boolean {
+  if (args.length === 0) return false;
+  let i = 0;
+  while (i < args.length) {
+    const a = args[i]!;
+    if (a === "--version" || a === "-v" || a === "--help" || a === "-h") return true;
+    if (a === "-C" || a === "-c" || a === "--git-dir" || a === "--work-tree") {
+      i += 2;
+      continue;
+    }
+    if (a.startsWith("--git-dir=") || a.startsWith("--work-tree=") || a === "--no-pager" || a === "-p" || a === "--paginate" || a === "--bare") {
+      i++;
+      continue;
+    }
+    if (a.startsWith("-")) return false;
+    if (a === "config") {
+      return args.slice(i + 1).some(x => x === "--get" || x === "--get-all" || x === "--list" || x === "-l");
+    }
+    if (a === "hash-object") {
+      return !args.slice(i + 1).includes("-w");
+    }
+    if (a === "branch" || a === "tag") {
+      const rest = args.slice(i + 1);
+      if (rest.length === 0) return true;
+      if (rest.length === 1 && (rest[0] === "--show-current" || rest[0] === "-l" || rest[0] === "--list" || rest[0] === "-a" || rest[0] === "-r" || rest[0] === "-v" || rest[0] === "-vv")) return true;
+      return false;
+    }
+    return READ_ONLY_GIT_SUBCOMMANDS.has(a);
+  }
+  return false;
+}
+
+function entriesUnchanged(before: readonly Entry[], after: readonly Entry[] | null): boolean {
+  if (after === null) return true;
+  if (before.length !== after.length) return false;
+  const byPath = new Map<string, Entry>();
+  for (let i = 0; i < before.length; i++) {
+    const b = before[i]!;
+    byPath.set(b.path, b);
+  }
+  for (let i = 0; i < after.length; i++) {
+    const a = after[i]!;
+    const b = byPath.get(a.path);
+    if (!b || b.kind !== a.kind || (b.mode & 0o777) !== (a.mode & 0o777) || b.data !== a.data) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function evalSyncGit(
+  stdinBytes: Uint8Array | undefined,
+  args: readonly string[],
+  cwd: string,
+  inspectNode?: (path: string, follow: boolean) => SyncGitNodeInfo | undefined,
+  readFile?: (path: string) => Uint8Array | undefined,
+  executeFn?: CommandDefinition["execute"]
+): string | undefined {
+  if (executeFn) {
+    const meta = gitCommandMeta.get(executeFn);
+    if (meta) {
+      if (meta.hasHttp || meta.wasmModule) return undefined;
+      const l = meta.limits;
+      if (l.maxEntries !== Infinity || l.maxBytes !== Infinity || l.maxDepth !== Infinity || l.maxHttpRequests !== Infinity || l.maxHttpBytes !== Infinity) {
+        return undefined;
+      }
+    }
+  }
+  if (!isReadOnlyGitArgs(args)) return undefined;
+  if (args.length === 1 && (args[0] === "--version" || args[0] === "-v" || args[0] === "version")) {
+    return "git version 0.0.0-development\n";
+  }
+  if (!inspectNode || !readFile) return undefined;
+
+  const entries: Entry[] = [];
+  let totalBytes = 0;
+  const pending: Array<{ path: string; depth: number }> = [{ path: "/", depth: 0 }];
+  while (pending.length > 0) {
+    const { path, depth } = pending.pop()!;
+    if (depth > 32) return undefined;
+    const dirNode = inspectNode(path, false);
+    if (!dirNode || dirNode.type !== "directory" || !dirNode.children) return undefined;
+    for (let i = 0; i < dirNode.children.length; i++) {
+      const child = dirNode.children[i]!;
+      if (entries.length >= 512) return undefined;
+      const full = path === "/" ? `/${child.name}` : `${path}/${child.name}`;
+      const stat = inspectNode(full, false);
+      if (!stat) continue;
+      let bytes: Uint8Array;
+      if (stat.type === "directory") {
+        bytes = new Uint8Array(0);
+        pending.push({ path: full, depth: depth + 1 });
+      } else if (stat.type === "symlink") {
+        bytes = encoder.encode(stat.target ?? "");
+      } else if (stat.type === "file") {
+        const fb = readFile(full);
+        if (!fb) return undefined;
+        bytes = fb;
+      } else {
+        return undefined;
+      }
+      totalBytes += full.length + bytes.byteLength;
+      if (totalBytes > 2 * 1024 * 1024) return undefined;
+      entries.push({ path: full, kind: stat.type, mode: stat.mode, data: encode(bytes) });
+    }
+  }
+
+  entries.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+  const stdinHex = stdinBytes && stdinBytes.byteLength > 0 ? encode(stdinBytes) : "";
+  const inputJson = JSON.stringify({ cwd, args, entries, responses: [], stdin: stdinHex });
+  const cached = readOnlyGitResultCache.get(inputJson);
+  if (cached !== undefined) return cached;
+
+  try {
+    const exports = getDefaultGitExports();
+    const input = encoder.encode(inputJson);
+    const ptr = exports.git_alloc(input.length);
+    let result: Result;
+    try {
+      new Uint8Array(exports.memory.buffer, ptr, input.length).set(input);
+      const output = exports.git_execute(ptr, input.length);
+      const length = exports.git_output_len();
+      result = JSON.parse(decoder.decode(new Uint8Array(exports.memory.buffer, output, length))) as Result;
+    } finally {
+      exports.git_free(ptr, input.length);
+    }
+    if (result.exitCode !== 0 || result.stderr !== "" || result.request) return undefined;
+    if (!entriesUnchanged(entries, result.entries)) return undefined;
+    const outStr = typeof result.stdoutBytes === "string" ? decoder.decode(decode(result.stdoutBytes)) : result.stdout;
+    if (readOnlyGitResultCache.size >= 32) {
+      const oldest = readOnlyGitResultCache.keys().next().value;
+      if (oldest !== undefined) readOnlyGitResultCache.delete(oldest);
+    }
+    readOnlyGitResultCache.set(inputJson, outStr);
+    return outStr;
+  } catch {
+    return undefined;
+  }
 }

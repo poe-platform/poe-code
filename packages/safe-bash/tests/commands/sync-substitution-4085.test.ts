@@ -2,6 +2,8 @@ import { createSofficeCommands } from "../../src/commands/soffice/index.js";
 import { createSsconvertCommands } from "../../src/commands/ssconvert/index.js";
 import { createWkhtmltopdfCommands } from "../../src/commands/wkhtmltopdf/index.js";
 import { createOpCommands } from "../../src/commands/op/index.js";
+import { createGitCommands } from "../../src/commands/git/index.js";
+import { createArchiveCommands } from "../../src/commands/archive/index.js";
 import { createPdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
 import { createMmdcCommands } from "../../src/commands/mmdc/index.js";
 import { createPandocCommands } from "../../src/commands/pandoc/index.js";
@@ -1264,4 +1266,69 @@ test("Wave 153: sync soffice, libreoffice, ssconvert, wkhtmltopdf, and op substi
   assert.match(r4.stdout, /wkhtmltopdf/);
   assert.equal(r5.stdout, "2.30.0");
   assert.ok(elapsed < 1000, `Expected <1000ms for 5x150 iterations, got ${elapsed.toFixed(1)}ms`);
+});
+
+test("sync substitution and pipeline fast path for git, tar, unzip, and zip (Wave 154)", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createGitCommands(),
+    ...createArchiveCommands(),
+  ]) {
+    registry.register(cmd, { replace: true });
+  }
+  const shell = new Shell({ fs, commands: registry });
+
+  // Prepare git repo, tar archive, and zip archive in VFS
+  const setupRes = await shell.exec(`
+    mkdir -p /repo
+    cd /repo
+    git init -b main
+    git config user.name "Alice"
+    git config user.email "alice@example.com"
+    printf 'hello from git and archives\n' > /repo/hello.txt
+    printf 'second member line\n' > /repo/second.txt
+    git add hello.txt second.txt
+    git commit -m "initial commit"
+    tar -cf /archive.tar -C /repo hello.txt second.txt
+    zip -q /archive.zip /repo/hello.txt /repo/second.txt
+  `);
+  assert.equal(setupRes.exitCode, 0, setupRes.stderr);
+
+  const t0 = performance.now();
+  const res = await shell.exec(`
+    cd /repo
+    g_ver=""
+    g_branch=""
+    g_log=""
+    t_list=""
+    t_ext=""
+    u_names=""
+    u_pipe=""
+    z_ver=""
+    for i in $(seq 1 150); do
+      g_ver=$(git --version | head -n 1)
+      g_branch=$(git rev-parse --abbrev-ref HEAD)
+      g_log=$(git log -1 --oneline)
+      t_list=$(tar -tf /archive.tar | head -n 1)
+      t_ext=$(tar -xOf /archive.tar hello.txt)
+      u_names=$(unzip -Z1 /archive.zip | head -n 1)
+      u_pipe=$(unzip -p /archive.zip repo/hello.txt)
+      z_ver=$(zip -v | head -n 1)
+    done
+    printf '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n' "$g_ver" "$g_branch" "$g_log" "$t_list" "$t_ext" "$u_names" "$u_pipe" "$z_ver"
+  `);
+  const elapsed = performance.now() - t0;
+  assert.equal(res.exitCode, 0, res.stderr);
+  const lines = res.stdout.trim().split("\n");
+  assert.match(lines[0] ?? "", /^git version /);
+  assert.equal(lines[1], "main");
+  assert.match(lines[2] ?? "", /initial commit/);
+  assert.equal(lines[3], "hello.txt");
+  assert.equal(lines[4], "hello from git and archives");
+  assert.equal(lines[5], "repo/hello.txt");
+  assert.equal(lines[6], "hello from git and archives");
+  assert.match(lines[7] ?? "", /safe-bash zip/);
+  assert.ok(elapsed < 1500, `Expected < 1500ms for 8x150 iterations, took ${elapsed.toFixed(1)}ms`);
 });

@@ -401,3 +401,25 @@ test("evaluates tr long flags (--delete, --squeeze-repeats), [c*] repeat sets, a
     "abcd|x y z|id=##|a,a,c,c,|a,a,,c,c,\n"
   );
 });
+
+test("evaluates jq @tsv, @csv, @base64, @base64d, @uri, @sh, with_entries, and inline [...] array stages in sync substitutions and pipelines (Wave 177)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(structuredCommands());
+  const res = await shell.exec([
+    "printf '{\"items\":[{\"id\":1,\"name\":\"alice\"},{\"id\":2,\"name\":\"bob\"}],\"q\":\"a b&c\",\"msg\":\"hello\",\"cmd\":[\"echo\",\"hi there\"],\"meta\":{\"a\":10,\"b\":null,\"c\":20}}\n' > /tmp/doc.json",
+    "j_tsv=$(jq -r '.items[] | [.id, .name] | @tsv' /tmp/doc.json | tr '\\t\\n' ':,')",
+    "j_csv=$(jq -r '.items[] | [.id, .name] | @csv' /tmp/doc.json | tr '\\n' ';')",
+    "j_b64=$(jq -r '.msg | @base64' /tmp/doc.json)",
+    "j_b64d=$(jq -r '.msg | @base64 | @base64d' /tmp/doc.json)",
+    "j_uri=$(jq -r '.q | @uri' /tmp/doc.json)",
+    "j_sh=$(jq -r '.cmd | @sh' /tmp/doc.json)",
+    "j_we=$(jq -c '.meta | with_entries(select(.value != null))' /tmp/doc.json)",
+    "echo \"$j_tsv|$j_csv|$j_b64|$j_b64d|$j_uri|$j_sh|$j_we\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "1:alice,2:bob,|1,\"alice\";2,\"bob\";|aGVsbG8=|hello|a%20b%26c|'echo' 'hi there'|{\"a\":10,\"c\":20}\n"
+  );
+});

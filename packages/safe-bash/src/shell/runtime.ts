@@ -23478,6 +23478,52 @@ export class Runtime {
       }
       return undefined;
     }
+    if (st === "@text") return [typeof item === "string" ? item : JSON.stringify(item)];
+    if (st === "@json") return [JSON.stringify(item)];
+    if (st === "@uri") return typeof item === "string" ? [encodeURIComponent(item)] : undefined;
+    if (st === "@base64") {
+      return typeof item === "string" ? [this.syncBase64Encode(fastSharedTextEncoder.encode(item)).replace(/\n/g, "")] : undefined;
+    }
+    if (st === "@base64d") {
+      if (typeof item !== "string") return undefined;
+      const cleaned = item.replace(/[ \t\r\n]+/g, "");
+      if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
+      const dec = this.syncBase64DecodeBytes(cleaned);
+      if (dec.some(b => b === 0 || b >= 128)) return undefined;
+      return [sharedSyncPipeDecoder.decode(dec)];
+    }
+    if (st === "@sh") {
+      if (typeof item === "string") return ["'" + item.replace(/'/g, "'\\''") + "'"];
+      if (Array.isArray(item) && item.every(x => typeof x === "string" || typeof x === "number" || typeof x === "boolean")) {
+        return [item.map(x => typeof x === "string" ? "'" + x.replace(/'/g, "'\\''") + "'" : String(x)).join(" ")];
+      }
+      return undefined;
+    }
+    if (st === "@tsv") {
+      if (!Array.isArray(item) || !item.every(x => typeof x === "string" || typeof x === "number" || typeof x === "boolean" || x === null)) return undefined;
+      return [item.map(x => x === null ? "" : typeof x === "string" ? x.replace(/\\/g, "\\\\").replace(/\t/g, "\\t").replace(/\r/g, "\\r").replace(/\n/g, "\\n") : String(x)).join("\t")];
+    }
+    if (st === "@csv") {
+      if (!Array.isArray(item) || !item.every(x => typeof x === "string" || typeof x === "number" || typeof x === "boolean" || x === null)) return undefined;
+      return [item.map(x => x === null ? "" : typeof x === "string" ? "\"" + x.replace(/"/g, "\"\"") + "\"" : String(x)).join(",")];
+    }
+    const withEntM = /^with_entries\(\s*(.+)\s*\)$/.exec(st);
+    if (withEntM) {
+      return this.evalSyncJqPathOps(item, `to_entries | map(${withEntM[1]!}) | from_entries`);
+    }
+    if (st.startsWith("[") && st.endsWith("]") && !st.startsWith("[].[")) {
+      const innerArr = st.slice(1, -1).trim();
+      if (innerArr.length === 0) return [[]];
+      const elemSplit = splitSyncJqExpression(innerArr, ",");
+      if (!elemSplit) return undefined;
+      const outArr: unknown[] = [];
+      for (const elSpec of elemSplit.parts) {
+        const vals = this.evalSyncJqPathOps(item, elSpec.trim());
+        if (!vals) return undefined;
+        for (const v of vals) outArr.push(v);
+      }
+      return [outArr];
+    }
     if (st === "from_entries") {
       if (!Array.isArray(item)) return undefined;
       const obj: Record<string, unknown> = {};
@@ -23891,7 +23937,7 @@ export class Runtime {
     this._syncJqVars = vars.size > 0 ? vars : undefined;
     try {
     const trimmedFilter = filter.trim();
-    if (trimmedFilter.startsWith("[") && trimmedFilter.endsWith("]")) {
+    if (trimmedFilter.startsWith("[") && trimmedFilter.endsWith("]") && splitSyncJqExpression(trimmedFilter, "|")?.parts.length === 1) {
       const innerFilter = trimmedFilter.slice(1, -1).trim();
       const innerArgs = rawOut || compactOut ? [compactOut ? "-c" : "-r", innerFilter] : [innerFilter];
       const outArrays: unknown[] = [];

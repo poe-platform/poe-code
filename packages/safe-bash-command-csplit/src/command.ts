@@ -87,61 +87,157 @@ export function evalSyncCsplit(
       }
     }
   }
-  if (!writeFileSync || suffix !== undefined || operands.length < 2) return undefined;
+  if (!writeFileSync || operands.length < 2) return undefined;
+  let formatSuffix: (idx: number) => string = idx => String(idx).padStart(digits, "0");
+  if (suffix !== undefined) {
+    const m = /^([^%]*?)%(0?)(\d*)([diuoxX])([^%]*)$/.exec(suffix);
+    if (!m) return undefined;
+    const [, pre, zeroFlag, widthStr, conv, post] = m;
+    const w = widthStr ? Number(widthStr) : 0;
+    formatSuffix = idx => {
+      const raw = conv === "o" ? idx.toString(8) : conv === "x" ? idx.toString(16) : conv === "X" ? idx.toString(16).toUpperCase() : String(idx);
+      const padded = w > 0 ? raw.padStart(w, zeroFlag === "0" ? "0" : " ") : raw;
+      return `${pre}${padded}${post}`;
+    };
+  }
   const inputArg = operands[0]!;
   const src = inputArg === "-" ? (inBytes ?? new Uint8Array(0)) : readFileSync?.(inputArg);
   if (!src) return undefined;
   const lines: Uint8Array[] = [];
+  const lineStrings: string[] = [];
+  const lineDec = new TextDecoder("utf-8", { fatal: false });
   let lineStart = 0;
   for (let i = 0; i < src.length; i++) {
     if (src[i] === 10) {
-      lines.push(src.subarray(lineStart, i + 1));
+      const sub = src.subarray(lineStart, i + 1);
+      lines.push(sub);
+      lineStrings.push(lineDec.decode(src.subarray(lineStart, i)).replace(/\r$/, ""));
       lineStart = i + 1;
     }
   }
-  if (lineStart < src.length) lines.push(src.subarray(lineStart));
+  if (lineStart < src.length) {
+    const sub = src.subarray(lineStart);
+    lines.push(sub);
+    lineStrings.push(lineDec.decode(sub).replace(/\r$/, ""));
+  }
+  type SyncCsplitPat =
+    | { kind: "line"; line: number; repeat: number }
+    | { kind: "regex"; re: RegExp; offset: number; skip: boolean; repeat: number | "*" };
   const rawPatterns = operands.slice(1);
-  const parsedPatterns: { line: number; repeat: number }[] = [];
+  const parsedPatterns: SyncCsplitPat[] = [];
   let lastLine = 0;
   for (let i = 0; i < rawPatterns.length; i++) {
     const p = rawPatterns[i]!;
-    if (p.startsWith("/") || p.startsWith("%") || p.startsWith("{")) return undefined;
-    const ln = integer(p);
-    if (ln === undefined || ln <= BigInt(lastLine) || ln > BigInt(lines.length + 1)) return undefined;
-    lastLine = Number(ln);
-    let rep = 0;
+    if (p.startsWith("{")) return undefined;
+    let rep: number | "*" = 0;
     const nextArg = rawPatterns[i + 1];
     if (nextArg?.startsWith("{")) {
-      if (nextArg === "{*}" || !nextArg.endsWith("}")) return undefined;
-      const rc = integer(nextArg.slice(1, -1));
-      if (rc === undefined || rc > 1000n) return undefined;
-      rep = Number(rc);
+      if (!nextArg.endsWith("}")) return undefined;
+      if (nextArg === "{*}") {
+        rep = "*";
+      } else {
+        const rc = integer(nextArg.slice(1, -1));
+        if (rc === undefined || rc > 1000n) return undefined;
+        rep = Number(rc);
+      }
       i++;
     }
-    parsedPatterns.push({ line: Number(ln), repeat: rep });
+    if (p.startsWith("/") || p.startsWith("%")) {
+      const delim = p[0]!;
+      let closeIdx = -1;
+      for (let c = 1; c < p.length; c++) {
+        if (p[c] === "\\") { c++; continue; }
+        if (p[c] === delim) { closeIdx = c; break; }
+      }
+      if (closeIdx < 1) return undefined;
+      const rawRe = p.slice(1, closeIdx);
+      const offStr = p.slice(closeIdx + 1).trim();
+      let offset = 0;
+      if (offStr.length > 0) {
+        const offVal = integer(offStr, true);
+        if (offVal === undefined) return undefined;
+        offset = Number(offVal);
+      }
+      let jsReStr = rawRe
+        .replace(/\\([()+?|])/g, "$1")
+        .replace(/\[:alnum:\]/g, "0-9A-Za-z")
+        .replace(/\[:alpha:\]/g, "A-Za-z")
+        .replace(/\[:digit:\]/g, "0-9")
+        .replace(/\[:space:\]/g, "\\s");
+      let re: RegExp;
+      try { re = new RegExp(jsReStr, "u"); } catch { return undefined; }
+      parsedPatterns.push({ kind: "regex", re, offset, skip: delim === "%", repeat: rep });
+    } else {
+      if (rep === "*") return undefined;
+      const ln = integer(p);
+      if (ln === undefined || ln <= BigInt(lastLine) || ln > BigInt(lines.length + 1)) return undefined;
+      lastLine = Number(ln);
+      parsedPatterns.push({ kind: "line", line: Number(ln), repeat: rep });
+    }
   }
+  const mergeLines = (sliceLines: Uint8Array[]): Uint8Array => {
+    const sliceLen = sliceLines.reduce((sum, l) => sum + l.length, 0);
+    const mergedSlice = new Uint8Array(sliceLen);
+    let sliceOff = 0;
+    for (const l of sliceLines) {
+      mergedSlice.set(l, sliceOff);
+      sliceOff += l.length;
+    }
+    return mergedSlice;
+  };
   let nextIdx = 1;
   const pieces: Uint8Array[] = [];
   for (const pat of parsedPatterns) {
-    for (let r = 0; r <= pat.repeat; r++) {
-      const target = pat.line * (r + 1);
-      if (target > lines.length + 1 || nextIdx > lines.length) return undefined;
-      const sliceLines: Uint8Array[] = [];
-      while (nextIdx < target) {
-        sliceLines.push(lines[nextIdx - 1]!);
-        nextIdx++;
+    if (pat.kind === "line") {
+      for (let r = 0; r <= pat.repeat; r++) {
+        const target = pat.line * (r + 1);
+        if (target > lines.length + 1 || nextIdx > lines.length) return undefined;
+        const sliceLines: Uint8Array[] = [];
+        while (nextIdx < target) {
+          sliceLines.push(lines[nextIdx - 1]!);
+          nextIdx++;
+        }
+        pieces.push(mergeLines(sliceLines));
+        if (suppress) {
+          if (nextIdx > lines.length) return undefined;
+          nextIdx++;
+        }
       }
-      const sliceLen = sliceLines.reduce((sum, l) => sum + l.length, 0);
-      const mergedSlice = new Uint8Array(sliceLen);
-      let sliceOff = 0;
-      for (const l of sliceLines) {
-        mergedSlice.set(l, sliceOff);
-        sliceOff += l.length;
-      }
-      pieces.push(mergedSlice);
-      if (suppress) {
-        if (nextIdx > lines.length) return undefined;
-        nextIdx++;
+    } else {
+      const maxReps = pat.repeat === "*" ? lines.length + 1 : pat.repeat + 1;
+      for (let r = 0; r < maxReps; r++) {
+        let matchedLine = -1;
+        for (let searchIdx = nextIdx; searchIdx <= lines.length; searchIdx++) {
+          if (searchIdx === nextIdx && r === 0 && pat.offset === 0 && nextIdx === 1) {
+            // Can match line 1
+          }
+          if (pat.re.test(lineStrings[searchIdx - 1]!)) {
+            if (searchIdx + pat.offset >= nextIdx) {
+              matchedLine = searchIdx;
+              break;
+            }
+          }
+        }
+        if (matchedLine === -1) {
+          if (pat.repeat === "*") break;
+          return undefined;
+        }
+        const target = matchedLine + pat.offset;
+        if (target < nextIdx || target > lines.length + 1) return undefined;
+        const sliceLines: Uint8Array[] = [];
+        while (nextIdx < target) {
+          sliceLines.push(lines[nextIdx - 1]!);
+          nextIdx++;
+        }
+        if (!pat.skip) {
+          pieces.push(mergeLines(sliceLines));
+        }
+        if (suppress) {
+          if (nextIdx > lines.length) return undefined;
+          nextIdx++;
+        } else if (target === matchedLine && nextIdx === matchedLine && pat.repeat === "*") {
+          // Ensure progress when matching next chunk
+        }
       }
     }
   }
@@ -150,19 +246,12 @@ export function evalSyncCsplit(
     restLines.push(lines[nextIdx - 1]!);
     nextIdx++;
   }
-  const restLen = restLines.reduce((sum, l) => sum + l.length, 0);
-  const mergedRest = new Uint8Array(restLen);
-  let restOff = 0;
-  for (const l of restLines) {
-    mergedRest.set(l, restOff);
-    restOff += l.length;
-  }
-  pieces.push(mergedRest);
+  pieces.push(mergeLines(restLines));
   const sizes: number[] = [];
   let fileIdx = 0;
   for (const piece of pieces) {
     if (elide && piece.length === 0) continue;
-    const name = `${prefix}${String(fileIdx++).padStart(digits, "0")}`;
+    const name = `${prefix}${formatSuffix(fileIdx++)}`;
     if (!writeFileSync(name, piece)) return undefined;
     sizes.push(piece.length);
   }

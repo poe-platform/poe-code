@@ -1,3 +1,6 @@
+import { csplitCommands } from "../../src/commands/csplit/index.ts";
+import { lessCommands } from "../../src/commands/less/index.ts";
+import { fileCommands } from "../../src/commands/file/index.ts";
 import { archiveCommands } from "../../src/commands/archive/index.ts";
 import { splitCommands } from "../../src/commands/split/index.ts";
 import { prCommands } from "../../src/commands/pr/index.ts";
@@ -770,5 +773,28 @@ test("evaluates tar --exclude/--wildcards/--strip-components, unzip wildcards/-x
   assert.equal(
     r.stdout,
     "a.txt#tmp/w196/sub/a.txt#creating file '/tmp/w196_part_aa',creating file '/tmp/w196_part_ab',creating file '/tmp/w196_part_ac',#abcd\n",
+  );
+});
+
+test("evaluates csplit -b/regex patterns, less -p/-i/-n, and file -0/-f in sync substitutions (Wave 197)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(csplitCommands()).use(lessCommands()).use(fileCommands());
+  const r = await shell.exec(
+    [
+      "printf \"head\\n---\\nbody\\n\" > /tmp/w197.in",
+      "cs_res=$(csplit -f /tmp/w197_ -b \"%02d.txt\" /tmp/w197.in \"/^---$/\" | tr \"\\n\" \",\")",
+      "cs_p1=$(cat /tmp/w197_01.txt | tr \"\\n\" \":\")",
+      "printf \"line one\\nTARGET TWO\\nline three\\n\" > /tmp/w197.less",
+      "less_res=$(less -N -n -i -p \"target\" /tmp/w197.less | tr \"\\n\" \",\")",
+      "printf \"/tmp/w197.in\\n\" > /tmp/w197.list",
+      "file_res=$(file -b --mime-type -f /tmp/w197.list)",
+      "printf \"%s#%s#%s#%s\\n\" \"$cs_res\" \"$cs_p1\" \"$less_res\" \"$file_res\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "5,9,#---:body:#TARGET TWO,line three,#text/plain\n",
   );
 });

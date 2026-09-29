@@ -293,6 +293,7 @@ export function evalSyncLess(
 ): string | undefined {
   let lineNumbers = false;
   let squeezeBlank = false;
+  let ignoreCase = false;
   let startLine = 1;
   let startSearch: string | undefined;
   const files: string[] = [];
@@ -318,7 +319,12 @@ export function evalSyncLess(
     if (parsingFlags && arg.startsWith("--")) {
       if (arg === "--LINE-NUMBERS" || arg === "--line-numbers") lineNumbers = true;
       else if (arg === "--squeeze-blank-lines") squeezeBlank = true;
-      else if (arg === "--quit-if-one-screen" || arg === "--raw-control-chars" || arg === "--RAW-CONTROL-CHARS" || arg === "--no-init" || arg === "--chop-long-lines" || arg === "--ignore-case") {
+      else if (arg === "--ignore-case" || arg === "--IGNORE-CASE") ignoreCase = true;
+      else if (arg === "--pattern" || arg.startsWith("--pattern=")) {
+        const pat = arg === "--pattern" ? args[++i] : arg.slice(10);
+        if (pat === undefined) return undefined;
+        startSearch = pat;
+      } else if (arg === "--quit-if-one-screen" || arg === "--raw-control-chars" || arg === "--RAW-CONTROL-CHARS" || arg === "--no-init" || arg === "--chop-long-lines") {
         // pass-through
       } else {
         return undefined;
@@ -328,6 +334,16 @@ export function evalSyncLess(
     if (parsingFlags && arg.startsWith("-") && arg !== "-") {
       for (let j = 1; j < arg.length; j++) {
         const ch = arg[j]!;
+        if (ch === "p") {
+          startSearch = j < arg.length - 1 ? arg.slice(j + 1) : (args[++i] ?? "");
+          break;
+        }
+        if ("Pxz".includes(ch)) {
+          if (j === arg.length - 1 && i + 1 < args.length && !args[i + 1]!.startsWith("-")) i++;
+          break;
+        }
+        if (ch === "n") { lineNumbers = false; continue; }
+        if (ch === "i" || ch === "I") { ignoreCase = true; continue; }
         if (!SYNC_LESS_SIMPLE_FLAGS.has(ch) || ch === "V") return undefined;
         if (ch === "N") lineNumbers = true;
         else if (ch === "s") squeezeBlank = true;
@@ -360,8 +376,10 @@ export function evalSyncLess(
   let startIdx = Math.max(0, startLine - 1);
   if (startSearch) {
     let found = -1;
+    const needle = ignoreCase ? startSearch.toLowerCase() : startSearch;
     for (let idx = 0; idx < rawLines.length; idx++) {
-      if (rawLines[idx]!.includes(startSearch)) {
+      const hay = ignoreCase ? rawLines[idx]!.toLowerCase() : rawLines[idx]!;
+      if (hay.includes(needle)) {
         found = idx;
         break;
       }

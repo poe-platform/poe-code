@@ -307,6 +307,7 @@ export function evalSyncFile(
   let brief = false;
   let mimeType = false;
   let mimeEncoding = false;
+  let print0 = 0;
   let separator = ":";
   let options = true;
   const names: string[] = [];
@@ -323,11 +324,22 @@ export function evalSyncFile(
     const flags = long ? [eq < 0 ? arg : arg.slice(0, eq)] : Array.from(arg.slice(1), f => `-${f}`);
     for (let p = 0; p < flags.length; p++) {
       const flag = flags[p]!;
-      if (flag === "-F" || flag === "--separator") {
+      if (flag === "-F" || flag === "--separator" || flag === "-f" || flag === "--files-from") {
         const attached = long ? (eq < 0 ? undefined : arg.slice(eq + 1)) : (p + 1 < flags.length ? arg.slice(p + 2) : undefined);
         const val = attached ?? opArgs[++i];
         if (val === undefined || /[\x00-\x1f\x7f]/.test(val)) return undefined;
-        separator = val;
+        if (flag === "-F" || flag === "--separator") {
+          separator = val;
+        } else {
+          const listBytes = val === "-" ? inBytes : readFileSync?.(val);
+          if (!listBytes || listBytes.byteLength > 16384) return undefined;
+          const listText = new TextDecoder("utf-8", { fatal: false }).decode(listBytes);
+          const fromLines = listText.endsWith("\n") ? listText.slice(0, -1).split("\n") : (listText.length === 0 ? [] : listText.split("\n"));
+          for (const fn of fromLines) {
+            if (!fn || /[\x00-\x1f\x7f]/.test(fn)) return undefined;
+            names.push(fn);
+          }
+        }
         break;
       }
       if (long && eq >= 0) return undefined;
@@ -337,6 +349,7 @@ export function evalSyncFile(
         case "-i": case "--mime": mimeType = mimeEncoding = true; break;
         case "--mime-type": mimeType = true; break;
         case "--mime-encoding": mimeEncoding = true; break;
+        case "-0": case "--print0": print0 = Math.min(2, print0 + 1); break;
         default: return undefined;
       }
     }
@@ -368,8 +381,8 @@ export function evalSyncFile(
     const content = mimeType && mimeEncoding
       ? `${detected.mime}; charset=${detected.encoding}`
       : mimeType ? detected.mime : mimeEncoding ? detected.encoding : detected.description;
-    const label = brief ? "" : `${name === "-" ? "/dev/stdin" : name}${separator} `;
-    outLines.push(`${label}${content}`);
+    const label = brief ? "" : `${name === "-" ? "/dev/stdin" : name}${print0 ? "\0" : ""}${print0 >= 2 ? "" : `${separator} `}`;
+    outLines.push(`${label}${content}${print0 >= 2 ? "\0" : "\n"}`);
   }
-  return outLines.join("\n");
+  return outLines.join("");
 }

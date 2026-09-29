@@ -38,11 +38,8 @@ function createMultiImagePdf(): Uint8Array {
 
   // Page 2: JPEG image XObject (32x16)
   const p2 = doc.addPage([612, 792]);
-  const fakeJpeg = Uint8Array.from([
-    0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00,
-    0x00, 0xff, 0xd9,
-  ]);
-  const jpgStream = cosStream(fakeJpeg, {
+  const jpeg = encodeJpeg({ width: 32, height: 16, data: new Uint8Array(32 * 16 * 4).fill(180) });
+  const jpgStream = cosStream(jpeg, {
     dict: cosDict({
       Type: cosName("XObject"),
       Subtype: cosName("Image"),
@@ -105,6 +102,10 @@ describe("safe-bash-command-pdfimages", () => {
     expect(bmp0.data[0]).toBe(10);
     expect(bmp0.data[1]).toBe(120);
     expect(bmp0.data[2]).toBe(240);
+    const bmp1 = decodePng(files.get("img-001.png")!);
+    expect(bmp1.width).toBe(32);
+    expect(bmp1.height).toBe(16);
+    expect(Array.from(bmp1.data.slice(0, 4))).toEqual([180, 180, 180, 255]);
   });
 
   it("supports -j for raw JPEG extraction, -p page numbering, and -f/-l page ranges", async () => {
@@ -117,6 +118,7 @@ describe("safe-bash-command-pdfimages", () => {
     const jpg = files.get("fig-002-000.jpg")!;
     expect(jpg[0]).toBe(0xff);
     expect(jpg[1]).toBe(0xd8);
+    expect(jpg).toEqual(encodeJpeg({ width: 32, height: 16, data: new Uint8Array(32 * 16 * 4).fill(180) }));
   });
 
   it("protects against infinite recursion on circular Form XObjects", async () => {

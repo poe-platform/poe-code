@@ -50,7 +50,10 @@ it.each(["workspace", "root", "undeclared-root"])("admits only declared portable
   });
   expect(commandManifest.files).toEqual(["dist", "LICENSE"]);
   expect(commandManifest.scripts.test).toBe("node --import tsx --test src/*.test.ts");
-  expect(readFileSync(new URL("../packages/safe-bash/src/commands/ffmpeg/index.ts", import.meta.url), "utf8")).toBe(`export * from "${name}";\n`);
+  const adapter = ts.createSourceFile("ffmpeg.ts", readFileSync(new URL("../packages/safe-bash/src/commands/ffmpeg/index.ts", import.meta.url), "utf8"), ts.ScriptTarget.Latest);
+  expect(adapter.statements.some(statement => ts.isExportDeclaration(statement)
+    && statement.exportClause === undefined && statement.moduleSpecifier
+    && ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === name)).toBe(true);
   volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
   volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify(commandManifest));
   volume.writeFileSync(`/repo/packages/${name}/LICENSE`, "MIT\n");
@@ -563,7 +566,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       build({ ...portable, splitting: false, sourcemap: false, minify: true,
         entryPoints: undefined,
         stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors";', resolveDir: path.join(repository, "packages/safe-bash") },
-        outdir: "/repo/packages/safe-bash/dist",
+        outdir: undefined, outfile: "/repo/packages/safe-bash/dist/index.js",
       }),
       build({ entryPoints: [path.join(repository, "packages/safe-fs/src/core.ts")],
         bundle: true, write: false, platform: "browser", format: "esm", target: "es2022" }),
@@ -572,7 +575,10 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
     volume.mkdirSync("/repo/packages/safe-bash/browser", { recursive: true });
     volume.writeFileSync("/repo/packages/safe-bash/browser/buffer.mjs", buffer.outputFiles[0]!.contents);
-    volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", shell.outputFiles[0]!.contents);
+    for (const output of shell.outputFiles) {
+      volume.mkdirSync(path.dirname(output.path), { recursive: true });
+      volume.writeFileSync(output.path, output.contents);
+    }
     // Both public routes share this fixture's Shell; package its source graph once.
     volume.writeFileSync("/repo/packages/safe-bash/dist/core.browser.js", 'export * from "./index.js";');
     const fsManifest = JSON.parse(volume.readFileSync("/repo/packages/safe-fs/package.json", "utf8").toString());
@@ -628,7 +634,11 @@ it.each([false, true])("admits asset-only contract owners against the full priva
         if (!filename.startsWith("/output/") && filename !== "/repo/packages/safe-bash/browser/buffer.mjs" && !privatePackages.some(name => filename.startsWith(`/repo/packages/${name}/dist/`))) throw new Error("Outside isolated consumer: " + filename);
         return { path: path.normalize(filename), namespace: "packed" };
       });
-      builder.onLoad({ filter: /.*/, namespace: "packed" }, args => ({ contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path) }));
+      builder.onLoad({ filter: /.*/, namespace: "packed" }, args => ({
+        contents: volume.readFileSync(args.path) as Buffer,
+        loader: args.path.endsWith(".wasm") ? "dataurl" : "js",
+        resolveDir: path.dirname(args.path),
+      }));
     } };
 
   // Package the prepared source graph in a separate setup stage.

@@ -50,7 +50,18 @@ export { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-contr
 
 export { isDefaultCommandOptions, registerDefaultExecutor, registerDefaultExecutors } from "safe-bash-contracts/command";
 
+type SyncCsvEvaluator = (input: Uint8Array | undefined, args: readonly string[], readFile?: (path: string) => Uint8Array | undefined) => string | undefined;
+
 export interface SyncCommandEvaluators {
+  evalSyncCsvlook?: SyncCsvEvaluator;
+  evalSyncCsvjson?: SyncCsvEvaluator;
+  evalSyncCsvsort?: SyncCsvEvaluator;
+  evalSyncCsvformat?: SyncCsvEvaluator;
+  evalSyncCsvstat?: SyncCsvEvaluator;
+  evalSyncIn2csv?: SyncCsvEvaluator;
+  evalSyncCsvstack?: SyncCsvEvaluator;
+  evalSyncCsvjoin?: SyncCsvEvaluator;
+
   evalSyncOpenssl?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncSqlite3?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncGpg?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;

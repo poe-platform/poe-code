@@ -107,7 +107,6 @@ import { evalSyncTar, evalSyncUnzip, evalSyncZip } from "../commands/archive/ind
 import { evalSyncDd } from "safe-bash-command-dd";
 
 import { evalSyncEnv, evalSyncXargs } from "../commands/execution.js";
-import { evalSyncCsvlook, evalSyncCsvjson, evalSyncCsvsort, evalSyncCsvformat, evalSyncCsvstat, evalSyncIn2csv, evalSyncCsvstack, evalSyncCsvjoin } from "../commands/csvkit/index.js";
 import { evalSyncDiff } from "../commands/diff-patch/index.js";
 import { evalSyncXan } from "safe-bash-command-xan";
 import { evalSyncDate, evalSyncPrintenv } from "../commands/time-env/index.js";
@@ -30208,21 +30207,21 @@ export class Runtime {
                   : firstName === "find"
                     ? evalSyncFind(stageArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow), true)
                   : firstName === "csvlook"
-                    ? evalSyncCsvlook(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncCsvlook?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "csvjson"
-                    ? evalSyncCsvjson(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncCsvjson?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "csvsort"
-                    ? evalSyncCsvsort(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncCsvsort?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "csvformat"
-                    ? evalSyncCsvformat(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncCsvformat?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "csvstat"
-                    ? evalSyncCsvstat(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncCsvstat?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "in2csv"
-                    ? evalSyncIn2csv(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncIn2csv?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "csvstack"
-                    ? evalSyncCsvstack(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncCsvstack?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "csvjoin"
-                    ? evalSyncCsvjoin(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncCsvjoin?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "dd"
                     ? evalSyncDd(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, sIdx < stageNames.length - 1)
                   : firstName === "xargs"
@@ -30730,21 +30729,21 @@ export class Runtime {
           : w0Plain === "csvgrep"
             ? evalSyncCsvgrep(optInBytes, allArgs, readFile)
           : w0Plain === "csvlook"
-            ? evalSyncCsvlook(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncCsvlook?.(optInBytes, allArgs, readFile)
           : w0Plain === "csvjson"
-            ? evalSyncCsvjson(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncCsvjson?.(optInBytes, allArgs, readFile)
           : w0Plain === "csvsort"
-            ? evalSyncCsvsort(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncCsvsort?.(optInBytes, allArgs, readFile)
           : w0Plain === "csvformat"
-            ? evalSyncCsvformat(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncCsvformat?.(optInBytes, allArgs, readFile)
           : w0Plain === "csvstat"
-            ? evalSyncCsvstat(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncCsvstat?.(optInBytes, allArgs, readFile)
           : w0Plain === "in2csv"
-            ? evalSyncIn2csv(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncIn2csv?.(optInBytes, allArgs, readFile)
           : w0Plain === "csvstack"
-            ? evalSyncCsvstack(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncCsvstack?.(optInBytes, allArgs, readFile)
           : w0Plain === "csvjoin"
-            ? evalSyncCsvjoin(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncCsvjoin?.(optInBytes, allArgs, readFile)
           : w0Plain === "dd"
             ? evalSyncDd(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "xargs"
@@ -31130,23 +31129,23 @@ export class Runtime {
             } else if (w0Plain === "csvgrep") {
               fileRes = evalSyncCsvgrep(view, opArgs);
             } else if (w0Plain === "csvlook") {
-              fileRes = evalSyncCsvlook(view, opArgs);
+              fileRes = syncCommandEvaluators.evalSyncCsvlook?.(view, opArgs);
             } else if (w0Plain === "csvjson") {
-              fileRes = evalSyncCsvjson(view, opArgs);
+              fileRes = syncCommandEvaluators.evalSyncCsvjson?.(view, opArgs);
             } else if (w0Plain === "csvsort") {
-              fileRes = evalSyncCsvsort(view, opArgs);
+              fileRes = syncCommandEvaluators.evalSyncCsvsort?.(view, opArgs);
             } else if (w0Plain === "csvformat") {
-              fileRes = evalSyncCsvformat(view, opArgs);
+              fileRes = syncCommandEvaluators.evalSyncCsvformat?.(view, opArgs);
             } else if (w0Plain === "csvstat") {
-              fileRes = evalSyncCsvstat(view, opArgs);
+              fileRes = syncCommandEvaluators.evalSyncCsvstat?.(view, opArgs);
             } else if (w0Plain === "in2csv") {
-              fileRes = evalSyncIn2csv(view, opArgs);
+              fileRes = syncCommandEvaluators.evalSyncIn2csv?.(view, opArgs);
             } else if (w0Plain === "csvstack") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncCsvstack(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncCsvstack?.(view, opArgs, readFile);
             } else if (w0Plain === "csvjoin") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncCsvjoin(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncCsvjoin?.(view, opArgs, readFile);
             } else if (w0Plain === "dd") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };

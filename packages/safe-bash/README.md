@@ -51,6 +51,39 @@ an existing host Buffer is preserved. Workers do not need `nodejs_compat` for th
 
 ## Supported features and commands
 
+The root and `core` exports register optional spreadsheet, PDF, media, office,
+and Git commands from static metadata and load their implementations on first
+execution. `agentCommands()` keeps its existing default inventory. Select a
+single command or a family explicitly, or retain the full optional inventory:
+
+```ts
+import { optionalCommands } from "@poe-platform/safe-bash";
+
+shell.use(optionalCommands({ commands: ["pdftotext", "ffprobe"] }));
+// Alternatively: optionalCommands({ families: ["pdfinfo", "ssconvert"] })
+// Full profile: agentCommands() plus optionalCommands({ profile: "full" })
+```
+
+Existing root factories such as `ffmpegCommands()` and `createPdftotextCommand()`
+also defer loading. The advanced command subpaths retain their eager SDK and
+synchronous APIs. Selected ssconvert format factories remain supported through
+`configuration.ssconvert.formats`; no format adapter is replaced.
+Concurrent first calls share one code-load promise per family. Failed imports
+retry on the next call. Cancellation stops that caller's wait and prevents late
+dispatch; it does not cancel another caller's shared code import. Factories and
+execution contexts are invocation-local, and Git shares compiled Wasm code but
+creates separate mutable instances. Existing filesystem, streams, host bindings,
+limits and cleanup remain with the original command context. Configuration
+validation in deferred factories occurs at first execution.
+
+Static dynamic-import chunks and Wasm assets still count toward Cloudflare's
+total uncompressed upload size. Deferring evaluation reduces startup work;
+splitting files alone does not remove deployment bytes. The maintained
+`tests/integration/lazy-loading.test.mjs` qualifies source and installed profiles
+in workerd and reports cold runtime/setup, first use, repeat use and cleanup
+measurements. Python uses an injected asynchronous executor in this loader
+regression; LLM uses a synthetic provider, without external model calls.
+
 All private command plugins are available from `@poe-platform/safe-bash/core` in portable browser and workerd environments. Each command exposes its plugin, `create<Name>Commands`, `create<Name>Command`, `<Name>CommandsOptions`, and `<Name>Limits`; factories construct commands without registering them.
 
 ### Shell syntax

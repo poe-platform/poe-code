@@ -1,5 +1,5 @@
 import { readZipArchiveEntries } from "safe-bash-command-soffice";
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createCsvkitCommands as createRawCsvkitCommands,
@@ -1459,3 +1459,13 @@ export function evalSyncCsvjoin(
     return undefined;
   }
 }
+
+// Synchronous optimizations are enrolled only by the explicit CSV opt-in.
+syncCommandEvaluators.evalSyncCsvlook = evalSyncCsvlook;
+syncCommandEvaluators.evalSyncCsvjson = evalSyncCsvjson;
+syncCommandEvaluators.evalSyncCsvsort = evalSyncCsvsort;
+syncCommandEvaluators.evalSyncCsvformat = evalSyncCsvformat;
+syncCommandEvaluators.evalSyncCsvstat = evalSyncCsvstat;
+syncCommandEvaluators.evalSyncIn2csv = evalSyncIn2csv;
+syncCommandEvaluators.evalSyncCsvstack = evalSyncCsvstack;
+syncCommandEvaluators.evalSyncCsvjoin = evalSyncCsvjoin;

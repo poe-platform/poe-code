@@ -1555,3 +1555,39 @@ test("Wave 224: realpath/readlink physical symlink .. traversal, stat %U/%G/%m/-
     "/tmp/w224/sub/sibling.txt|/tmp/w224/sub/sibling.txt|/tmp/w224/sub/sibling.txt|root:root:/:666|tmpfs           256M /tmp"
   );
 });
+
+test("Wave 225: csvstat --median/--stdev/--max-precision, text --min/--max, and in2csv -s fixed-width schema in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp/w225", { recursive: true });
+  await memFs.writeFile(
+    "/tmp/w225/data.csv",
+    new TextEncoder().encode("name,score\ncharlie,10.25\nalice,20.5\nbob,30.125\n")
+  );
+  await memFs.writeFile(
+    "/tmp/w225/schema.csv",
+    new TextEncoder().encode("column,start,length\nid,1,3\nlabel,4,5\n")
+  );
+  await memFs.writeFile(
+    "/tmp/w225/fixed.txt",
+    new TextEncoder().encode("001alpha\n002beta \n")
+  );
+  const shell = new Shell({ fs: memFs, cwd: "/tmp/w225" })
+    .use(standardCommands())
+    .use(csvkitCommands());
+  const res = await shell.exec(`
+    for i in 1 2 3 4 5; do
+      med=$(csvstat -c score --median /tmp/w225/data.csv)
+      std=$(csvstat -c score --stdev /tmp/w225/data.csv)
+      prec=$(csvstat -c score --max-precision /tmp/w225/data.csv)
+      tmin=$(csvstat -c name --min /tmp/w225/data.csv)
+      tmax=$(csvstat -c name --max /tmp/w225/data.csv)
+      fcsv=$(in2csv -s /tmp/w225/schema.csv /tmp/w225/fixed.txt | tr "\n" ";")
+    done
+    printf "%s|%s|%s|%s|%s|%s\n" "$med" "$std" "$prec" "$tmin" "$tmax" "$fcsv"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "20.5|9.939|3|alice|charlie|id,label;001,alpha;002,beta;"
+  );
+});

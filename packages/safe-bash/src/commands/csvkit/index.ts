@@ -755,7 +755,7 @@ export function evalSyncCsvstat(
     let zeroBased = false;
     let noGrouping = false;
     let columnsSpec: string | null = null;
-    let metricOp: "type" | "nulls" | "nonnulls" | "unique" | "min" | "max" | "sum" | "mean" | "len" | undefined;
+    let metricOp: "type" | "nulls" | "nonnulls" | "unique" | "min" | "max" | "sum" | "mean" | "median" | "stdev" | "max_precision" | "len" | undefined;
     const filteredArgs: string[] = [];
     let posDone = false;
     for (let i = 0; i < opArgs.length; i++) {
@@ -766,8 +766,8 @@ export function evalSyncCsvstat(
         if (a === "-n" || a === "--names") { namesOnly = true; continue; }
         if (a === "--zero") { zeroBased = true; continue; }
         if (a === "-G" || a === "--no-grouping-separator") { noGrouping = true; continue; }
-        if (a === "-c" || a === "--columns" || a.startsWith("--columns=")) {
-          const v = a.startsWith("--columns=") ? a.slice(10) : opArgs[++i];
+        if (a === "-c" || a.startsWith("-c") || a === "--columns" || a.startsWith("--columns=")) {
+          const v = a.startsWith("--columns=") ? a.slice(10) : a.startsWith("-c=") ? a.slice(3) : a.length > 2 && a.startsWith("-c") ? a.slice(2) : opArgs[++i];
           if (!v) return undefined;
           columnsSpec = v;
           continue;
@@ -775,7 +775,8 @@ export function evalSyncCsvstat(
         const mMap: Record<string, typeof metricOp> = {
           "--type": "type", "--nulls": "nulls", "--non-nulls": "nonnulls",
           "--unique": "unique", "--min": "min", "--max": "max",
-          "--sum": "sum", "--mean": "mean", "--len": "len",
+          "--sum": "sum", "--mean": "mean", "--median": "median",
+          "--stdev": "stdev", "--max-precision": "max_precision", "--len": "len",
         };
         if (mMap[a]) {
           if (metricOp !== undefined) return undefined;
@@ -833,7 +834,16 @@ export function evalSyncCsvstat(
         let maxLen = 0;
         for (const v of nonNull) maxLen = Math.max(maxLen, Array.from(String(v)).length);
         valStr = fmtDec(Decimal.parse(String(maxLen)));
-      } else if ((metricOp === "min" || metricOp === "max" || metricOp === "sum" || metricOp === "mean") && colType === "Number") {
+      } else if ((metricOp === "min" || metricOp === "max") && colType !== "Number") {
+        if (nonNull.length > 0) {
+          const strs = nonNull.map(v => typeof v === "object" && v !== null && "value" in v ? String(v.value) : pythonValueText(v));
+          let best = strs[0]!;
+          for (let k = 1; k < strs.length; k++) {
+            if (metricOp === "min" ? strs[k]! < best : strs[k]! > best) best = strs[k]!;
+          }
+          valStr = best;
+        }
+      } else if ((metricOp === "min" || metricOp === "max" || metricOp === "sum" || metricOp === "mean" || metricOp === "median" || metricOp === "stdev" || metricOp === "max_precision") && colType === "Number") {
         if (nonNull.length > 0) {
           const decs = nonNull.map(v => Decimal.parse((v as { value: string }).value));
           if (metricOp === "min" || metricOp === "max") {
@@ -842,6 +852,28 @@ export function evalSyncCsvstat(
               if (metricOp === "min" ? decs[k]!.compare(best) < 0 : decs[k]!.compare(best) > 0) best = decs[k]!;
             }
             valStr = fmtDec(best);
+          } else if (metricOp === "max_precision") {
+            let maxP = 0;
+            for (const d of decs) {
+              const norm = d.normalized();
+              if (!norm.special && -norm.exponent > maxP) maxP = -norm.exponent;
+            }
+            valStr = fmtDec(Decimal.parse(String(maxP)));
+          } else if (metricOp === "median") {
+            const sorted = [...decs].sort((a, b) => a.compare(b));
+            const mid = Math.floor(sorted.length / 2);
+            const med = sorted.length % 2 === 1
+              ? sorted[mid]!
+              : sorted[mid - 1]!.add(sorted[mid]!).divide(Decimal.parse("2"));
+            valStr = fmtDec(med);
+          } else if (metricOp === "stdev") {
+            if (decs.length >= 2) {
+              const nums = decs.map(d => Number(d.toString()));
+              if (nums.some(n => !Number.isFinite(n))) return undefined;
+              const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
+              const variance = nums.reduce((acc, n) => acc + (n - mean) * (n - mean), 0) / (nums.length - 1);
+              valStr = fmtDec(Decimal.parse(String(Math.sqrt(variance))));
+            }
           } else {
             let sum = Decimal.parse("0");
             for (const d of decs) sum = sum.add(d);
@@ -868,6 +900,7 @@ export function evalSyncIn2csv(
   try {
     let formatSpec: string | undefined;
     let keySpec: string | undefined;
+    let schemaSpec: string | undefined;
     let namesOnly = false;
     const filteredArgs: string[] = [];
     let posDone = false;
@@ -886,6 +919,12 @@ export function evalSyncIn2csv(
           const v = a.startsWith("--key=") ? a.slice(6) : a.startsWith("-k=") ? a.slice(3) : a.length > 2 && a.startsWith("-k") ? a.slice(2) : opArgs[++i];
           if (!v) return undefined;
           keySpec = v;
+          continue;
+        }
+        if (a === "-s" || a.startsWith("-s") || a === "--schema" || a.startsWith("--schema=")) {
+          const v = a.startsWith("--schema=") ? a.slice(9) : a.startsWith("-s=") ? a.slice(3) : a.length > 2 && a.startsWith("-s") ? a.slice(2) : opArgs[++i];
+          if (!v) return undefined;
+          schemaSpec = v;
           continue;
         }
       }
@@ -907,7 +946,46 @@ export function evalSyncIn2csv(
       else if (lower.endsWith(".ndjson") || lower.endsWith(".jsonl")) fmt = "ndjson";
       else if (lower.endsWith(".csv") || lower.endsWith(".tsv")) fmt = "csv";
     }
+    if (!fmt && schemaSpec !== undefined) fmt = "fixed";
     if (!fmt && keySpec !== undefined) fmt = "json";
+    if (fmt === "fixed") {
+      if (!schemaSpec || !readFileSync) return undefined;
+      const schemaBytes = readFileSync(schemaSpec);
+      if (!schemaBytes || schemaBytes.byteLength > 16384) return undefined;
+      let schemaText = syncUtf8Decoder.decode(schemaBytes);
+      if (schemaText.charCodeAt(0) === 0xfeff) schemaText = schemaText.slice(1);
+      const schemaRows = readCsv(schemaText, { delimiter: ",", quotechar: "\"", doublequote: true });
+      if (schemaRows.length < 2) return undefined;
+      const sHead = schemaRows[0]!;
+      const colIdx = sHead.indexOf("column");
+      const startIdx = sHead.indexOf("start");
+      const lenIdx = sHead.indexOf("length");
+      if (colIdx < 0 || startIdx < 0 || lenIdx < 0) return undefined;
+      let oneBased: boolean | undefined;
+      const fields: { name: string; start: number; length: number }[] = [];
+      for (let r = 1; r < schemaRows.length; r++) {
+        const row = schemaRows[r]!;
+        if (row.length === 0 || (row.length === 1 && row[0] === "")) continue;
+        const stNum = Number(row[startIdx]);
+        const lnNum = Number(row[lenIdx]);
+        if (!Number.isSafeInteger(stNum) || !Number.isSafeInteger(lnNum) || stNum < 0 || lnNum < 0) return undefined;
+        oneBased ??= stNum === 1;
+        fields.push({ name: row[colIdx]!, start: stNum - (oneBased ? 1 : 0), length: lnNum });
+      }
+      let inText = syncUtf8Decoder.decode(sourceBytes);
+      if (inText.charCodeAt(0) === 0xfeff) inText = inText.slice(1);
+      const rawLines = inText.split(/\r?\n/);
+      if (rawLines.length > 0 && rawLines[rawLines.length - 1] === "") rawLines.pop();
+      const outDialect: CsvDialect = { delimiter: ",", quotechar: "\"", doublequote: true, lineterminator: "\n" };
+      let out = opts.addBom ? "\ufeff" : "";
+      out += writeCsvRow(fields.map(f => f.name), outDialect);
+      for (let idx = opts.skipLines; idx < rawLines.length; idx++) {
+        const chars = Array.from(rawLines[idx]!);
+        const cells = fields.map(f => chars.slice(f.start, f.start + f.length).join("").trim());
+        out += writeCsvRow(cells, outDialect);
+      }
+      return out;
+    }
     if (namesOnly) {
       if (fmt !== "json") return undefined;
       let text = syncUtf8Decoder.decode(sourceBytes);

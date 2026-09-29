@@ -159,3 +159,9 @@ above) when reading big-endian glyph IDs, including zero-padding an odd trailing
 high byte. The local dense map preserves explicit zero entries and selects glyph
 zero for CIDs outside a supplied stream; Identity and omitted maps retain direct
 CID-to-GID selection. Unicode extraction mappings do not choose CID font shapes.
+
+
+The CMap block parser and code reader are shared by ToUnicode and embedded Type0
+Encoding streams. Following PDF.js font mapping, source character codes select
+Unicode labels, while the Encoding CMap's CIDs select widths and embedded glyphs.
+The synchronous integration adds no browser or external CMap-fetch dependency.

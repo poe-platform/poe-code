@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
-import { PdfDocument, cosArray, cosDict, cosName, cosNumber, cosStream, dictSet, renderDisplayListToBitmap, renderDisplayListToSvg } from "../index.js";
+import { PdfDocument, cosArray, cosDict, cosName, cosNumber, cosStream, dictGet, dictSet, renderDisplayListToBitmap, renderDisplayListToSvg } from "../index.js";
 import { STANDARD_FONT_CFF_BASE64 } from "./standard-font-data.js";
 
 it.each(["cid_cff.pdf", "cff_bluescale_small_zones.pdf", "text_clip_cff_cid.pdf"])("evaluates embedded CID CFF from PDF.js %s", name => {
@@ -66,4 +66,20 @@ it("keeps embedded program bytes unchanged when PDF.js repairs a charstring", as
   const original = bytes.slice();
   parseEmbeddedCffFont(bytes, "WinAnsiEncoding", new Map());
   expect(bytes).toEqual(original);
+});
+
+it("selects an embedded CFF glyph through the font Encoding CMap", () => {
+  const doc = PdfDocument.load(readFileSync(new URL("../fixtures/pdfjs-text_clip_cff_cid.pdf", import.meta.url)));
+  const page = doc.getPage(0);
+  const resources = doc.cos.resolveDict(dictGet(page.pageDict, "Resources"))!;
+  const fonts = doc.cos.resolveDict(dictGet(resources, "Font"))!;
+  const font = doc.cos.resolveDict(dictGet(fonts, "F2"))!;
+  const source = "1 begincodespacerange <0000> <FFFF> endcodespacerange ";
+  dictSet(font, "Encoding", doc.cos.allocateObject(cosStream(new TextEncoder().encode(source + "1 begincidchar <0101> 68 endcidchar"))));
+  dictSet(font, "ToUnicode", doc.cos.allocateObject(cosStream(new TextEncoder().encode(source + "1 beginbfchar <0101> <005A> endbfchar"))));
+  page.setRawContentStream("BT /F2 20 Tf 10 10 Td <0101> Tj ET");
+  const display = PdfDocument.load(doc.save()).getPage(0).evaluateDisplayList();
+  expect(display.glyphs[0]!.charCode).toBe(257);
+  expect(display.glyphs[0]!.unicode).toBe("Z");
+  expect(display.glyphs[0]!.outline!.segments).toHaveLength(23);
 });

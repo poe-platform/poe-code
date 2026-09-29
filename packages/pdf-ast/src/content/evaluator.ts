@@ -1,3 +1,4 @@
+import type { CMap } from "../vendor/pdfjs-fonts.mjs";
 import { parseEmbeddedType1Font } from "../fonts/type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "../fonts/cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "../fonts/standard-outlines.js";
@@ -19,7 +20,7 @@ import {
   type PdfRgbColor,
 } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
-import { parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
+import { parseCharacterCMap, readCMapCodes, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "../fonts/truetype.js";
 import { parseContentStream } from "./parser.js";
 import {
@@ -53,6 +54,7 @@ interface ResolvedPageFont {
   readonly subtype: string;
   readonly isTwoByteCid: boolean;
   readonly cmap?: ParsedToUnicodeCMap | undefined;
+  readonly encodingCMap?: CMap | undefined;
   readonly differences: ReadonlyMap<number, string>;
   readonly glyphNames: ReadonlyMap<number, string>;
   readonly widths: ReadonlyMap<number, number>;
@@ -243,6 +245,7 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
       subtype,
       isTwoByteCid,
       cmap,
+      encodingCMap: subtype === "Type0" && encNode?.kind === "stream" ? parseCharacterCMap(doc.decodeStream(encNode)) : undefined,
       differences,
       glyphNames,
       widths,
@@ -1389,7 +1392,16 @@ export function evaluateContentStreamToDisplayList(params: {
   const decodeTokenGlyphs = (
     bytes: Uint8Array,
     font: ResolvedPageFont | undefined
-  ): Array<{ charCode: number; unicode: string; advance1000: number }> => {
+  ): Array<{ charCode: number; cid?: number; unicode: string; advance1000: number }> => {
+    if (font?.encodingCMap) {
+      const encoding = font.encodingCMap;
+      return readCMapCodes(encoding, bytes).map(charCode => {
+        const value = encoding.lookup(charCode);
+        const cid = typeof value === "number" ? value : 0;
+        const unicode = font.cmap?.map.get(charCode) ?? font.differences.get(cid) ?? (cid >= 0x20 && cid <= 0x10ffff ? String.fromCodePoint(cid) : "");
+        return { charCode, cid, unicode, advance1000: font.widths.get(cid) ?? font.defaultWidth };
+      });
+    }
     if (font?.cmap) {
       if (!font.isTwoByteCid) {
         const stdName = normalizeStandard14FontName(font.baseFont);
@@ -2101,8 +2113,9 @@ export function evaluateContentStreamToDisplayList(params: {
                 const cp = item.unicode ? item.unicode.codePointAt(0) : undefined;
                 const cidFont = font.subtype === "Type0" && font.embeddedTrueType;
                 if (cidFont) evaluatedType3 = true; // An empty mapped glyph must not fall back to standard text.
-                const glyphId = font.cidToGid ? font.cidToGid[item.charCode] ?? 0 : item.charCode;
-                let glyphOutline = cidFont ? cidFont.getGlyphOutlineByGid(glyphId) : font.embeddedCff ? font.embeddedCff.getGlyphOutline(item.charCode) : cp !== undefined ? (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp) : [];
+                const glyphCode = item.cid ?? item.charCode;
+                const glyphId = font.cidToGid ? font.cidToGid[glyphCode] ?? 0 : glyphCode;
+                let glyphOutline = cidFont ? cidFont.getGlyphOutlineByGid(glyphId) : font.embeddedCff ? font.embeddedCff.getGlyphOutline(glyphCode) : cp !== undefined ? (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp) : [];
                 if (glyphOutline.length === 0 && font.embeddedTrueType && !cidFont) {
                   glyphOutline = font.embeddedTrueType.getGlyphOutlineByGid(item.charCode);
                 }

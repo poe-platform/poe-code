@@ -59,7 +59,8 @@ PDF.js CFF decoding, including their encoding, CID selection, and font matrices.
 Embedded Type 1 (`/FontFile`) programs use PDF.js decryption and conversion,
 including PFB/hex containers, Differences, and composed accents. Embedded
 TrueType CID fonts select outlines through `/CIDToGIDMap`, independently of
-the Unicode labels used for extraction.
+the Unicode labels used for extraction. Embedded Type0 Encoding CMaps resolve
+source character codes to CIDs before width and TrueType/CFF glyph selection.
 ToUnicode maps decode mixed one- through four-byte character codes, including
 ligatures and supplementary Unicode characters.
 Glyph outlines render even when text has no usable Unicode mapping. Unicode fallback covers characters present

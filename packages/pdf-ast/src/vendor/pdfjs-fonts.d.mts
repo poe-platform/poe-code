@@ -71,6 +71,7 @@ export class CMap {
   numCodespaceRanges: number;
   addCodespaceRange(length: number, low: number, high: number): void;
   mapOne(source: number, target: number | string): void;
+  lookup(code: number): number | string | undefined;
   mapBfRange(low: number, high: number, destination: string): void;
   mapBfRangeToArray(low: number, high: number, destinations: Array<string | number>): void;
   mapCidRange(low: number, high: number, destination: number): void;

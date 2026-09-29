@@ -30,7 +30,7 @@ function decodeDestination(value: number | string): string {
   return decoded;
 }
 
-export function parseToUnicodeCMap(cmapBytes: Uint8Array): ParsedToUnicodeCMap {
+export function parseCharacterCMap(cmapBytes: Uint8Array): CMap {
   const lexer = new CosByteLexer(cmapBytes);
   const cmap = new CMap();
   let inferredLength = 1;
@@ -83,6 +83,24 @@ export function parseToUnicodeCMap(cmapBytes: Uint8Array): ParsedToUnicodeCMap {
   // Legacy callers often provide mapping blocks without a codespace declaration.
   // Preserve their fixed-width decoding, including zero-prefixed source codes.
   if (!cmap.numCodespaceRanges) cmap.addCodespaceRange(inferredLength, 0, 2 ** (8 * inferredLength) - 1);
+  return cmap;
+}
+
+export function readCMapCodes(cmap: CMap, bytes: Uint8Array): number[] {
+  const codes: number[] = [];
+  const input = bytesToString(bytes);
+  const result = { charcode: 0, length: 0 };
+  for (let offset = 0; offset < bytes.length;) {
+    cmap.readCharCode(input, offset, result);
+    if (offset + result.length > bytes.length) break;
+    codes.push(result.charcode);
+    offset += result.length;
+  }
+  return codes;
+}
+
+export function parseToUnicodeCMap(cmapBytes: Uint8Array): ParsedToUnicodeCMap {
+  const cmap = parseCharacterCMap(cmapBytes);
   const map = new Map<number, string>();
   cmap.forEach((code, value) => map.set(code, decodeDestination(value)));
   const isTwoByte = cmap.codespaceRanges.slice(1).some(ranges => ranges.length > 0);
@@ -90,18 +108,10 @@ export function parseToUnicodeCMap(cmapBytes: Uint8Array): ParsedToUnicodeCMap {
     map,
     isTwoByte,
     decodeBytes(bytes) {
-      const out: Array<{ charCode: number; unicode: string }> = [];
-      const input = bytesToString(bytes);
-      const result = { charcode: 0, length: 0 };
-      for (let offset = 0; offset < bytes.length;) {
-        cmap.readCharCode(input, offset, result);
-        if (offset + result.length > bytes.length) break;
-        const charCode = result.charcode;
-        const fallback = charCode >= 0x20 && charCode <= 0x10ffff ? String.fromCodePoint(charCode) : "";
-        out.push({ charCode, unicode: map.get(charCode) ?? fallback });
-        offset += result.length;
-      }
-      return out;
+      return readCMapCodes(cmap, bytes).map(charCode => ({
+        charCode,
+        unicode: map.get(charCode) ?? (charCode >= 0x20 && charCode <= 0x10ffff ? String.fromCodePoint(charCode) : ""),
+      }));
     },
   };
 }

@@ -69,17 +69,24 @@ function triangleFont(notdef = false) {
   return parseTrueTypeFont(u8);
 }
 
-function evaluate(cid: number, mapping: PdfCosNode | undefined, unicode = "Z", notdef = false) {
+function evaluate(cid: number, mapping: PdfCosNode | undefined, options: { unicode?: string; notdef?: boolean; encoding?: string; mappedCid?: number; byteLength?: number } = {}) {
+  const { unicode = "Z", notdef = false, encoding, mappedCid = cid, byteLength = 2 } = options;
   const doc = PdfDocument.create();
   const page = doc.addPage([200, 100]);
   const reference = embedTrueTypeFontInCos(doc.cos, triangleFont(notdef), new Map([[cid, unicode]]));
   const font = doc.cos.resolveDict(reference)!;
+  if (encoding) {
+    dictSet(font, "Encoding", doc.cos.allocateObject(cosStream(new TextEncoder().encode(encoding))));
+    const code = cid.toString(16).padStart(byteLength * 2, "0");
+    const destination = Array.from({ length: unicode.length }, (_, i) => unicode.charCodeAt(i).toString(16).padStart(4, "0")).join("");
+    dictSet(font, "ToUnicode", doc.cos.allocateObject(cosStream(new TextEncoder().encode(`1 begincodespacerange <${code}> <${code}> endcodespacerange 1 beginbfchar <${code}> <${destination}> endbfchar`))));
+  }
   const descendant = doc.cos.resolveDict(doc.cos.resolveArray(dictGet(font, "DescendantFonts"))!.items[0])!;
   if (mapping) dictSet(descendant, "CIDToGIDMap", mapping.kind === "stream" ? doc.cos.allocateObject(mapping) : mapping);
   else descendant.entries.splice(descendant.entries.findIndex(entry => entry.key.decoded === "CIDToGIDMap"), 1);
-  dictSet(descendant, "W", cosArray([cosNumber(cid), cosArray([cosNumber(900)])]));
+  dictSet(descendant, "W", cosArray([cosNumber(mappedCid), cosArray([cosNumber(900)])]));
   dictSet(page.pageDict, "Resources", cosDict({ Font: cosDict({ F1: reference }) }));
-  page.setRawContentStream(`BT /F1 100 Tf 10 10 Td <${cid.toString(16).padStart(4, "0")}> Tj ET`);
+  page.setRawContentStream(`BT /F1 100 Tf 10 10 Td <${cid.toString(16).padStart(byteLength * 2, "0")}> Tj ET`);
   return PdfDocument.load(doc.save()).getPage(0).evaluateDisplayList();
 }
 
@@ -92,13 +99,13 @@ it("selects the mapped glyph independently of its ToUnicode text", () => {
 });
 
 it("honors an explicit glyph zero mapping even when ToUnicode matches another glyph", () => {
-  const display = evaluate(1, cosStream(Uint8Array.of(0, 0, 0, 0)), "A");
+  const display = evaluate(1, cosStream(Uint8Array.of(0, 0, 0, 0)), { unicode: "A" });
   expect(display.glyphs[0]!.unicode).toBe("A");
   expect(display.paths).toHaveLength(0);
 });
 
 it("uses glyph zero when the CID is outside the mapping stream", () => {
-  expect(evaluate(1, cosStream(Uint8Array.of(0, 0)), "A").paths).toHaveLength(0);
+  expect(evaluate(1, cosStream(Uint8Array.of(0, 0)), { unicode: "A" }).paths).toHaveLength(0);
 });
 
 it.each([undefined, cosName("Identity")])("retains identity CID mapping when CIDToGIDMap is %s", mapping => {
@@ -106,12 +113,24 @@ it.each([undefined, cosName("Identity")])("retains identity CID mapping when CID
 });
 
 it("paints the embedded .notdef outline for an explicit glyph zero mapping", () => {
-  expect(evaluate(1, cosStream(Uint8Array.of(0, 0, 0, 0)), "Z", true).paths).toHaveLength(1);
+  expect(evaluate(1, cosStream(Uint8Array.of(0, 0, 0, 0)), { notdef: true }).paths).toHaveLength(1);
 });
 
 it("does not synthesize a fallback letter for an empty mapped glyph", () => {
-  const display = evaluate(1, cosStream(Uint8Array.of(0, 0, 0, 0)), "A");
+  const display = evaluate(1, cosStream(Uint8Array.of(0, 0, 0, 0)), { unicode: "A" });
   const bitmap = renderDisplayListToBitmap(display, { dpi: 72 });
   expect(bitmap.data.every(value => value === 255)).toBe(true);
   expect(renderDisplayListToSvg(display)).not.toContain("<path ");
+});
+
+it.each([1, 2, 3, 4])("uses an embedded %i-byte Encoding CMap for CID and width selection", byteLength => {
+  const source = 65;
+  const code = source.toString(16).padStart(byteLength * 2, "0");
+  const encoding = `begincmap /CMapType 1 def 1 begincodespacerange <${code}> <${code}> endcodespacerange 1 begincidchar <${code}> 2 endcidchar endcmap`;
+  const display = evaluate(source, cosStream(Uint8Array.of(0, 0, 0, 0, 0, 1)), { encoding, mappedCid: 2, byteLength });
+  expect(display.glyphs).toHaveLength(1);
+  expect(display.glyphs[0]!.charCode).toBe(source);
+  expect(display.glyphs[0]!.unicode).toBe("Z");
+  expect(display.glyphs[0]!.advanceWidth).toBeCloseTo(90);
+  expect(display.paths).toHaveLength(1);
 });

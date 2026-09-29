@@ -1,5 +1,5 @@
-import { createSsconvertCommand, createSsconvertCommands, ssconvertCommands } from "@poe-platform/safe-bash/ssconvert/commands";
-import { csvFormat } from "@poe-platform/safe-bash/ssconvert/formats/csv";
+import { createSsconvertCommand, createSsconvertCommands, ssconvertCommands } from "poe-code/ssconvert/commands";
+import { csvFormat } from "poe-code/ssconvert/formats/csv";
 import { createMemoryFileSystem } from "@poe-platform/safe-fs/core";
 
 export const verification = (async () => {

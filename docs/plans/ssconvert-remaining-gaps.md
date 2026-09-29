@@ -86,15 +86,18 @@ XML/XLSX/BIFF transport remains unfinished and refuses these tokens rather than
 silently dropping identity or relocation. Complete native copy/move qualification
 before closing this family. The ledger records focused and compiled evidence.
 
-The current release follow-up includes Pandoc registry lookup (`683adeb82b`) and
-public runtime ownership. A workspace rebuild deletes root-consumed filesystem
-runtime files in `packages/safe-js/dist` and restores bare workspace imports in
-public declarations (including `@poe-code/xml-ast`). Move public runtime and
-declaration ownership out of rebuildable workspace output; do not relax the
-consumer guard to accept leaking private imports. Verify compiled imports and
-strict consumers after the maintained workspace rebuild route.
+The release follow-up includes Pandoc registry lookup (`683adeb82b`), isolated
+public runtime (`56af2a197c`), root-owned declarations (`01fd535e84`) and Node-only
+codec types (`506dd331a7`). A fresh 24-workspace SafeJS rebuild preserves all
+1,513 public declaration files byte-for-byte and compiled SDK/CLI behavior.
+The maintained consumer route passes 26 public groups, six source groups and
+three rejection controls. Final integration retains upstream scoped runtime
+mapping and passes 228 packaging checks and root lint. Full build passed before
+the last upstream integration; this is not a frozen final-revision unit result.
+Verify containing publication and installed registry consumers before closing
+the artifact family. Keep the private-import rejection guard intact.
 
-Complete the standard singular/plural/plugin command exports in that package.
+The selected-format command exports are delivered in `e765e7c23d`.
 Keep file-output budget and cancellation ownership in `safe-bash-contracts`.
 The root SDK and Shell use the declared shared-workspace contracts runtime for
 both Node and browser profiles. Preserve that canonical identity through the

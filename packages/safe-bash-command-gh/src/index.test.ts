@@ -10,8 +10,23 @@ import {
   createGhCommand,
   createGhCommands,
   createGitHubBackend,
+  evalSyncGh,
   ghCommands,
 } from "./index.js";
+
+test("synchronous issue comments retain matching creation and update timestamps", () => {
+  const backend = createGitHubBackend({ defaultUser: "octocat" });
+  const command = createGhCommand({ backend });
+  const repo = backend.getOrCreateRepo("octocat", "comments");
+  assert.ok(evalSyncGh(command.execute, ["issue", "create", "-R", "octocat/comments", "-t", "Issue", "-b", "Body"], {}));
+  const number = [...repo.issues.keys()][0]!;
+  for (const args of [["comment", String(number), "--body", "Comment"], ["close", String(number), "--comment", "Closing"]]) {
+    assert.notEqual(evalSyncGh(command.execute, ["issue", ...args, "-R", "octocat/comments"], {}), undefined);
+    const comment = repo.issues.get(number)!.comments.at(-1)!;
+    assert.equal(typeof comment.createdAt, "string");
+    assert.equal(comment.updatedAt, comment.createdAt);
+  }
+});
 
 function createTestHarness(options: Parameters<typeof createGhCommand>[0] = {}) {
   const fs = new MemoryFileSystem();

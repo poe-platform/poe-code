@@ -1108,11 +1108,13 @@ export function evalSyncGh(
         }
         const comment = getStringFlag(parsed, "comment");
         if (comment) {
+          const timestamp = backend.isoNow();
           issue.comments.push({
             id: backend.nextId(),
             author: { login: backend.getActiveUser() },
             body: comment,
-            createdAt: backend.isoNow(),
+            createdAt: timestamp,
+            updatedAt: timestamp,
             url: `${issue.url}#issuecomment-${backend.nextId()}`,
           });
         }
@@ -1141,11 +1143,13 @@ export function evalSyncGh(
         } catch {
           return undefined;
         }
+        const timestamp = backend.isoNow();
         const commentObj = {
           id: backend.nextId(),
           author: { login: backend.getActiveUser() },
           body,
-          createdAt: backend.isoNow(),
+          createdAt: timestamp,
+          updatedAt: timestamp,
           url: `${issue.url}#issuecomment-${backend.nextId()}`,
         };
         issue.comments.push(commentObj);
@@ -1648,7 +1652,7 @@ export function evalSyncGh(
       } else {
         const host = getStringFlag(parsed, "hostname") ?? env.GH_HOST ?? backend.defaultHost;
         const baseUrl = host === "github.com" ? "https://api.github.com" : `https://${host}/api/v3`;
-        let fullUrl = /^https?:\/\//u.test(endpoint) ? endpoint : `${baseUrl}/${endpoint.replace(/^\/+/u, "")}`;
+        const fullUrl = /^https?:\/\//u.test(endpoint) ? endpoint : `${baseUrl}/${endpoint.replace(/^\/+/u, "")}`;
         const u = new URL(fullUrl);
         if (method === "GET") {
           for (const [k, v] of Object.entries(payload)) u.searchParams.set(k, String(v));

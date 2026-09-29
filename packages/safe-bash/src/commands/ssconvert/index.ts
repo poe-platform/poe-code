@@ -124,7 +124,7 @@ function parseSimpleXlsxRows(zipBytes: Uint8Array): string[][] | undefined {
   return rows;
 }
 
-function buildSimpleXlsx(rows: readonly (readonly string[])[]): Uint8Array {
+function buildSimpleXlsx(rows: readonly (readonly string[])[], sheetName = "Sheet1"): Uint8Array {
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const colName = (idx: number): string => {
@@ -159,7 +159,7 @@ function buildSimpleXlsx(rows: readonly (readonly string[])[]): Uint8Array {
       `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`
     ),
     "xl/workbook.xml": syncUtf8Encoder.encode(
-      `<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/></sheets></workbook>`
+      `<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheets><sheet name="${esc(sheetName)}" sheetId="1" r:id="rId1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/></sheets></workbook>`
     ),
     "xl/worksheets/sheet1.xml": syncUtf8Encoder.encode(
       `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>`
@@ -255,7 +255,8 @@ export function evalSyncSsconvert(
       return "";
     }
 
-    const xlsxBytes = buildSimpleXlsx(rows);
+    const sheetName = srcUri === "fd://0" ? "Sheet1" : (srcUri.split("/").pop() || "Sheet1");
+    const xlsxBytes = buildSimpleXlsx(rows, sheetName);
     if (!writeFileSync || !writeFileSync(dstUri, xlsxBytes)) return undefined;
     return "";
   } catch {

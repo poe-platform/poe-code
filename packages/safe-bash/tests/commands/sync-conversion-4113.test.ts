@@ -2025,3 +2025,47 @@ test("Wave 238: ssconvert CSV/TSV/XLSX conversion and op completion in sync subs
     "1:beta,20:2.30.0:item\n2:beta,40:2.30.0:item"
   );
 });
+
+test("Wave 239: in2csv xlsx/geojson conversion and dos2unix/unix2dos -c mac and BOM flags in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  for (const i of [1, 2]) {
+    await memFs.writeFile(
+      `/tmp/w239_${i}.geojson`,
+      new TextEncoder().encode(
+        JSON.stringify({
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              id: i,
+              properties: { name: `Site-${i}` },
+              geometry: { type: "Point", coordinates: [-97.7, 30.2] },
+            },
+          ],
+        })
+      )
+    );
+  }
+  const sh = new Shell({ fs: memFs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(ssconvertCommands())
+    .use(csvkitCommands())
+    .use(dos2unixCommands());
+  const r = await sh.exec([
+    "for i in 1 2; do",
+    "  printf \"city,pop\\nAustin,$((i * 100))\\n\" > /tmp/w239_$i.csv",
+    "  _s=$(ssconvert /tmp/w239_$i.csv /tmp/w239_$i.xlsx)",
+    "  sheets=$(in2csv -n /tmp/w239_$i.xlsx)",
+    "  xlsx_row=$(in2csv /tmp/w239_$i.xlsx | tail -n 1)",
+    "  geo_col=$(in2csv /tmp/w239_$i.geojson | csvcut -c name,type,longitude,latitude | tail -n 1)",
+    "  mac_txt=$(printf \"lineA\\rlineB\" | dos2unix -c mac | tr \"\\n\" \":\")",
+    "  echo \"$i:$sheets:$xlsx_row:$geo_col:$mac_txt\"",
+    "done"
+  ].join("\n"));
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout.trim(),
+    "1:w239_1.csv:Austin,100:Site-1,Point,-97.7,30.2:lineA:lineB\n2:w239_2.csv:Austin,200:Site-2,Point,-97.7,30.2:lineA:lineB"
+  );
+});

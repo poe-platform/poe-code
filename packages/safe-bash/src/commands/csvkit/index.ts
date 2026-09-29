@@ -1,3 +1,4 @@
+import { readZipArchiveEntries } from "safe-bash-command-soffice";
 import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
@@ -901,6 +902,7 @@ export function evalSyncIn2csv(
     let formatSpec: string | undefined;
     let keySpec: string | undefined;
     let schemaSpec: string | undefined;
+    let sheetSpec: string | undefined;
     let namesOnly = false;
     const filteredArgs: string[] = [];
     let posDone = false;
@@ -919,6 +921,12 @@ export function evalSyncIn2csv(
           const v = a.startsWith("--key=") ? a.slice(6) : a.startsWith("-k=") ? a.slice(3) : a.length > 2 && a.startsWith("-k") ? a.slice(2) : opArgs[++i];
           if (!v) return undefined;
           keySpec = v;
+          continue;
+        }
+        if (a === "--sheet" || a.startsWith("--sheet=")) {
+          const v = a.startsWith("--sheet=") ? a.slice(8) : opArgs[++i];
+          if (!v) return undefined;
+          sheetSpec = v;
           continue;
         }
         if (a === "-s" || a.startsWith("-s") || a === "--schema" || a.startsWith("--schema=")) {
@@ -942,12 +950,131 @@ export function evalSyncIn2csv(
     let fmt = formatSpec;
     if (!fmt && opts.filePath && opts.filePath !== "-") {
       const lower = opts.filePath.toLowerCase();
-      if (lower.endsWith(".json") || lower.endsWith(".js")) fmt = "json";
+      if (lower.endsWith(".geojson")) fmt = "geojson";
+      else if (lower.endsWith(".xlsx")) fmt = "xlsx";
+      else if (lower.endsWith(".json") || lower.endsWith(".js")) fmt = "json";
       else if (lower.endsWith(".ndjson") || lower.endsWith(".jsonl")) fmt = "ndjson";
       else if (lower.endsWith(".csv") || lower.endsWith(".tsv")) fmt = "csv";
     }
     if (!fmt && schemaSpec !== undefined) fmt = "fixed";
     if (!fmt && keySpec !== undefined) fmt = "json";
+    if (fmt === "geojson") {
+      if (namesOnly) return undefined;
+      let text = syncUtf8Decoder.decode(sourceBytes);
+      if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+      const doc = JSON.parse(text);
+      if (!doc || typeof doc !== "object" || Array.isArray(doc) || doc.type !== "FeatureCollection" || !Array.isArray(doc.features)) {
+        return undefined;
+      }
+      const propKeys: string[] = [];
+      const seenProps = new Set<string>();
+      for (const feat of doc.features) {
+        if (!feat || typeof feat !== "object" || Array.isArray(feat)) return undefined;
+        const props = feat.properties && typeof feat.properties === "object" && !Array.isArray(feat.properties) ? feat.properties : {};
+        for (const k of Object.keys(props)) {
+          if (!seenProps.has(k)) { seenProps.add(k); propKeys.push(k); }
+        }
+      }
+      const outDialect: CsvDialect = { delimiter: ",", quotechar: "\"", doublequote: true, lineterminator: "\n" };
+      let out = writeCsvRow(["id", ...propKeys, "geojson", "type", "longitude", "latitude"], outDialect);
+      for (const feat of doc.features) {
+        const props = feat.properties && typeof feat.properties === "object" && !Array.isArray(feat.properties) ? feat.properties : {};
+        const geom = feat.geometry && typeof feat.geometry === "object" && !Array.isArray(feat.geometry) ? feat.geometry : null;
+        const gType = geom ? String(geom.type ?? "") : "";
+        const coords = gType === "Point" && Array.isArray(geom?.coordinates) && geom.coordinates.length >= 2 ? geom.coordinates : undefined;
+        const fmtVal = (v: unknown, isProp = false): string => {
+          if (v === undefined || v === null) return "";
+          if (typeof v === "boolean") return v ? "True" : "False";
+          if (typeof v === "object") return isProp ? JSON.stringify(v) : "";
+          return String(v);
+        };
+        const geomJson = JSON.stringify(geom).replace(/":/g, '": ').replace(/,"/g, ', "');
+        const rowCells = [
+          fmtVal(feat.id),
+          ...propKeys.map((k) => fmtVal((props as Record<string, unknown>)[k], true)),
+          geomJson,
+          gType,
+          coords ? fmtVal(coords[0]) : "",
+          coords ? fmtVal(coords[1]) : "",
+        ];
+        out += writeCsvRow(rowCells, outDialect);
+      }
+      return out;
+    }
+    if (fmt === "xlsx") {
+      if (sourceBytes[0] !== 80 || sourceBytes[1] !== 75) return undefined;
+      const entries = readZipArchiveEntries(sourceBytes);
+      if (entries.has("EncryptionInfo") || entries.has("EncryptedPackage")) return undefined;
+      const wbXmlBytes = entries.get("xl/workbook.xml");
+      if (!wbXmlBytes) return undefined;
+      const wbXml = syncUtf8Decoder.decode(wbXmlBytes);
+      const sheetNames: string[] = [];
+      for (const m of wbXml.matchAll(/<sheet\b[^>]*\bname="([^"]+)"/g)) {
+        sheetNames.push(m[1]!);
+      }
+      if (sheetNames.length === 0) return undefined;
+      if (namesOnly) {
+        return sheetNames.map((n) => n + "\n").join("");
+      }
+      const targetIdx = sheetSpec ? sheetNames.indexOf(sheetSpec) : 0;
+      if (targetIdx < 0) return undefined;
+      const sheetBytes = entries.get(`xl/worksheets/sheet${targetIdx + 1}.xml`);
+      if (!sheetBytes) return undefined;
+      const sheetXml = syncUtf8Decoder.decode(sheetBytes);
+      if (/<f(?:\s|>)/u.test(sheetXml)) return undefined;
+      const sharedStrings: string[] = [];
+      const sstBytes = entries.get("xl/sharedStrings.xml");
+      if (sstBytes) {
+        const sstXml = syncUtf8Decoder.decode(sstBytes);
+        for (const si of sstXml.matchAll(/<si\b[\s\S]*?<\/si>/g)) {
+          const parts = [...si[0].matchAll(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g)].map((t) =>
+            (t[1] ?? "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&")
+          );
+          sharedStrings.push(parts.join(""));
+        }
+      }
+      const csvRows: string[][] = [];
+      for (const rm of sheetXml.matchAll(/<row\b[\s\S]*?<\/row>/g)) {
+        const cells: string[] = [];
+        for (const cm of rm[0].matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
+          const attrs = cm[1] ?? "";
+          const body = cm[2] ?? "";
+          const refM = /\br="([A-Z]+)\d+"/i.exec(attrs);
+          if (refM?.[1]) {
+            let col = 0;
+            for (const ch of refM[1].toUpperCase()) col = col * 26 + (ch.charCodeAt(0) - 64);
+            col -= 1;
+            while (cells.length < col) cells.push("");
+          }
+          if (cm[2] === undefined) { cells.push(""); continue; }
+          const tM = /\bt="([^"]+)"/.exec(attrs);
+          const cType = tM?.[1] ?? "n";
+          if (cType === "inlineStr") {
+            const tv = /<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/.exec(body);
+            cells.push((tv?.[1] ?? "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&"));
+          } else {
+            const vv = /<v>([\s\S]*?)<\/v>/.exec(body);
+            const raw = (vv?.[1] ?? "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
+            cells.push(cType === "s" ? (sharedStrings[Number.parseInt(raw, 10)] ?? "") : raw);
+          }
+        }
+        csvRows.push(cells);
+      }
+      const synthDialect: CsvDialect = { delimiter: ",", quotechar: "\"", doublequote: true, lineterminator: "\n" };
+      const synthCsv = csvRows.map((r) => writeCsvRow(r, synthDialect)).join("");
+      const synthBytes = new TextEncoder().encode(synthCsv);
+      const table = loadSyncTypedTable(synthBytes, { ...opts, filePath: "-" }, undefined);
+      if (!table) return undefined;
+      let out = opts.addBom ? "\ufeff" : "";
+      out += writeCsvRow(table.headers, synthDialect);
+      for (const row of table.rows) {
+        out += writeCsvRow(
+          row.map((v) => (v === null ? "" : typeof v === "object" && v.kind === "datetime" ? v.value.replace(" ", "T") : pythonValueText(v))),
+          synthDialect
+        );
+      }
+      return out;
+    }
     if (fmt === "fixed") {
       if (!schemaSpec || !readFileSync) return undefined;
       const schemaBytes = readFileSync(schemaSpec);

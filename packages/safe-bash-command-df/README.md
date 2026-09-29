@@ -2,7 +2,7 @@
 
 GNU-compatible disk and inode usage reporting for virtual filesystems.
 
-Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+Resource limits default to `Infinity`; configure finite quotas through command options when needed. `maxVisitedEntries` bounds the total entries counted across default mounts; exceeding it reports an error and exits with status 1 instead of printing partial usage. Files under `/tmp` contribute to the tmpfs mount, independently of root usage.
 
 Inspect filesystem capacity, used space, available blocks, and inode counts across mounted virtual filesystems with human-readable and custom column formatting.
 

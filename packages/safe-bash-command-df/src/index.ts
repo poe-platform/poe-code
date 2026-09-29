@@ -168,38 +168,39 @@ function formatHuman(bytes: number, base: 1000 | 1024): string {
 async function computeVfsUsage(
   context: CommandContext,
   rootPath: string,
-  maxEntries: number
-): Promise<{ usedBytes: number; usedInodes: number }> {
+  budget: { remaining: number },
+  mountTargets: readonly string[]
+): Promise<{ usedBytes: number; usedInodes: number } | undefined> {
+  if (budget.remaining < 1) return undefined;
+  budget.remaining--;
   let usedBytes = 4096;
   let usedInodes = 1;
-  let visited = 0;
   const queue: string[] = [rootPath];
-  while (queue.length > 0 && visited < maxEntries) {
-    const current = queue.shift()!;
-    visited++;
-    try {
-      const entries = await context.fs.readdir(current, { signal: context.signal });
-      for (const entry of entries) {
-        if (visited >= maxEntries) break;
-        visited++;
-        usedInodes++;
-        const child = current === "/" ? `/${entry.name}` : `${current}/${entry.name}`;
-        if (entry.type === "directory") {
-          usedBytes += 4096;
-          queue.push(child);
-        } else {
-          try {
-            const st = await context.fs.lstat(child, { signal: context.signal });
-            usedBytes += Math.max(0, Number(st.size ?? 0));
-          } catch {
-            // ignore
-          }
+  for (let index = 0; index < queue.length; index++) {
+    context.signal.throwIfAborted();
+    const current = queue[index]!;
+    // Read errors retain the synthetic mount's base allocation.
+    const entries = await context.fs.readdir(current, { signal: context.signal }).catch(() => []);
+    for (const entry of entries) {
+      const child = current === "/" ? `/${entry.name}` : `${current}/${entry.name}`;
+      if (mountTargets.includes(child)) continue;
+      if (budget.remaining < 1) return undefined;
+      budget.remaining--;
+      usedInodes++;
+      if (entry.type === "directory") {
+        usedBytes += 4096;
+        queue.push(child);
+      } else {
+        try {
+          const st = await context.fs.lstat(child, { signal: context.signal });
+          usedBytes += Math.max(0, Number(st.size ?? 0));
+        } catch {
+          // Unreadable entries still contribute an inode.
         }
       }
-    } catch {
-      // ignore
     }
   }
+  context.signal.throwIfAborted();
   return { usedBytes, usedInodes };
 }
 
@@ -415,7 +416,6 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
         }
       }
 
-      const usage = await computeVfsUsage(context, "/", limits.maxVisitedEntries);
       const rootTotalBytes = options.totalBytes ?? 1024 * 1024 * 1024; // 1 GiB
       const rootTotalInodes = options.totalInodes ?? 1048576;
 
@@ -425,18 +425,14 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
           fstype: "vfs",
           target: "/",
           totalBytes: rootTotalBytes,
-          usedBytes: Math.min(rootTotalBytes, usage.usedBytes),
           totalInodes: rootTotalInodes,
-          usedInodes: Math.min(rootTotalInodes, usage.usedInodes),
         },
         {
           source: "tmpfs",
           fstype: "tmpfs",
           target: "/tmp",
           totalBytes: 256 * 1024 * 1024,
-          usedBytes: 4096,
           totalInodes: 262144,
-          usedInodes: 1,
         },
         {
           source: "proc",
@@ -450,6 +446,24 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
         },
       ];
 
+      if (!options.mounts) {
+        const budget = { remaining: limits.maxVisitedEntries };
+        const mountTargets = defaultMounts.map(mount => mount.target);
+        for (let index = 0; index < defaultMounts.length; index++) {
+          const mount = defaultMounts[index]!;
+          if (mount.pseudo) continue;
+          const usage = await computeVfsUsage(context, mount.target, budget, mountTargets);
+          if (!usage) {
+            await writeText(context.stderr, "df: visited entry budget exceeded\n");
+            return { exitCode: 1 };
+          }
+          defaultMounts[index] = {
+            ...mount,
+            usedBytes: Math.min(mount.totalBytes, usage.usedBytes),
+            usedInodes: Math.min(mount.totalInodes, usage.usedInodes),
+          };
+        }
+      }
       const mountTable = options.mounts ?? defaultMounts;
       let exitCode = 0;
 

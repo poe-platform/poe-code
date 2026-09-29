@@ -15,14 +15,10 @@ function decode(hex:string):Uint8Array { const out=new Uint8Array(hex.length>>>1
 
 interface GitCommandMeta { readonly limits: GitLimits; readonly hasHttp: boolean; readonly wasmModule?: object | undefined }
 const gitCommandMeta = new WeakMap<CommandDefinition["execute"], GitCommandMeta>();
-let sharedDefaultExports: GitExports | undefined;
-function getDefaultGitExports(): GitExports {
-  if (!sharedDefaultExports) {
-    const mod = gitModule();
-    const wasm = (globalThis as unknown as { WebAssembly: { Instance: new (m: object) => { exports: GitExports } } }).WebAssembly;
-    sharedDefaultExports = new wasm.Instance(mod).exports;
-  }
-  return sharedDefaultExports;
+function createDefaultGitExports(): GitExports {
+  const module = gitModule();
+  const wasm = (globalThis as unknown as { WebAssembly: { Instance: new (module: object) => { exports: GitExports } } }).WebAssembly;
+  return new wasm.Instance(module).exports;
 }
 
 async function snapshot(fs:FileSystem, limits:GitLimits, signal:AbortSignal):Promise<Entry[]> {
@@ -88,7 +84,7 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
     try {
       let stdin: string | undefined;
       const before=await snapshot(context.fs,limits,context.signal);
-      const exports = options.wasmModule ? new ((globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly.Instance)(options.wasmModule).exports : getDefaultGitExports();
+      const exports = options.wasmModule ? new ((globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly.Instance)(options.wasmModule).exports : createDefaultGitExports();
       const responses: {status:number;headers:Readonly<Record<string,string>>;body:string}[]=[];
       let httpBytes=0;
       let result:Result;
@@ -317,7 +313,7 @@ export function evalSyncGit(
   if (cached !== undefined) return cached;
 
   try {
-    const exports = getDefaultGitExports();
+    const exports = createDefaultGitExports();
     const input = encoder.encode(inputJson);
     const ptr = exports.git_alloc(input.length);
     let result: Result;

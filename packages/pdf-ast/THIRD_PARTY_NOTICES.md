@@ -266,3 +266,9 @@ It retains the latest valid object bodies and checks the newest trailers first.
 `src/cos/repair-encryption.test.ts` covers the original issue15893 fixture and
 local integration cases, including encrypted object streams and direct Encrypt
 dictionaries. Source revision and Apache-2.0 license are the same as above.
+
+XRef stream validation in `src/cos/parser.ts` follows PDF.js `readXRefStream`
+field-width, range, truncation, and entry-type checks. The zero-width regression
+fixture in `src/cos/xref-validation.test.ts` is ported unchanged from
+`test/unit/document_spec.js` at the same pinned revision. The adapter additionally
+checks safe integers and caller-specified object budgets before xref map growth.

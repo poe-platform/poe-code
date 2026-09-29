@@ -397,7 +397,7 @@ function parseObjectAtOffset(bytes: Uint8Array, offset: number, maxRecursionDept
   };
 }
 
-function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number, maxRecursionDepth: number): PdfRevision {
+function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number, maxRecursionDepth: number, maxObjects: number): PdfRevision {
   if (xrefOffset < 0 || xrefOffset >= bytes.length) {
     throw new PdfError("E_PARSE", `Invalid xref offset: ${xrefOffset}`);
   }
@@ -428,6 +428,10 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
         throw new PdfError("E_PARSE", "Malformed xref subsection header");
       }
       const count = countTok.value;
+      if (!Number.isSafeInteger(startObj) || startObj < 0 || !Number.isSafeInteger(count) || count < 0 || !Number.isSafeInteger(startObj + count)) {
+        throw new PdfError("E_PARSE", "Invalid XRef range fields");
+      }
+      if (count > maxObjects + 1) throw new PdfError("E_LIMIT", "PDF object count limit exceeded while reading xref entries");
       for (let i = 0; i < count; i++) {
         const offTok = lexer.nextToken();
         const genTok = lexer.nextToken();
@@ -451,6 +455,7 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
             generationNumber: genTok.value,
           });
         }
+        if (entries.size > maxObjects + 1) throw new PdfError("E_LIMIT", "PDF object count limit exceeded while reading xref entries");
       }
     }
     const trailerNode = parseNodeFromLexer(lexer, bytes, maxRecursionDepth);
@@ -474,23 +479,29 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
   const dict = xrefObj.value.dict;
   const wArray = dictGet(dict, "W");
   const sizeNode = dictGet(dict, "Size");
-  if (wArray?.kind !== "array" || wArray.items.length < 3 || sizeNode?.kind !== "number") {
-    throw new PdfError("E_PARSE", "Invalid XRef stream dictionary: missing /W or /Size");
+  // PDF.js readXRefStream requires nonnegative integral field widths and at
+  // least one byte per entry, preventing a zero-width allocation loop.
+  if (wArray?.kind !== "array" || wArray.items.length !== 3 || !wArray.items.every(node => node.kind === "number" && Number.isSafeInteger(node.value) && node.value >= 0)) {
+    throw new PdfError("E_PARSE", "Invalid XRef entry fields length");
   }
-  const w0 = wArray.items[0]?.kind === "number" ? wArray.items[0].value : 0;
-  const w1 = wArray.items[1]?.kind === "number" ? wArray.items[1].value : 0;
-  const w2 = wArray.items[2]?.kind === "number" ? wArray.items[2].value : 0;
+  const [w0, w1, w2] = wArray.items.map(node => node.kind === "number" ? node.value : 0) as [number, number, number];
   const stride = w0 + w1 + w2;
+  if (!Number.isSafeInteger(stride) || stride === 0) throw new PdfError("E_PARSE", "Invalid XRef entry fields length");
+  if (sizeNode?.kind !== "number" || !Number.isSafeInteger(sizeNode.value) || sizeNode.value < 0) {
+    throw new PdfError("E_PARSE", "Invalid XRef stream Size");
+  }
 
   const indexArray = dictGet(dict, "Index");
   const subsections: Array<[number, number]> = [];
-  if (indexArray?.kind === "array" && indexArray.items.length >= 2) {
-    for (let i = 0; i + 1 < indexArray.items.length; i += 2) {
+  if (indexArray) {
+    if (indexArray.kind !== "array" || indexArray.items.length % 2 !== 0) throw new PdfError("E_PARSE", "Invalid XRef range fields");
+    for (let i = 0; i < indexArray.items.length; i += 2) {
       const first = indexArray.items[i];
       const count = indexArray.items[i + 1];
-      if (first?.kind === "number" && count?.kind === "number") {
-        subsections.push([first.value, count.value]);
+      if (first?.kind !== "number" || count?.kind !== "number" || !Number.isSafeInteger(first.value) || first.value < 0 || !Number.isSafeInteger(count.value) || count.value < 0 || !Number.isSafeInteger(first.value + count.value)) {
+        throw new PdfError("E_PARSE", "Invalid XRef range fields");
       }
+      subsections.push([first.value, count.value]);
     }
   } else {
     subsections.push([0, sizeNode.value]);
@@ -505,11 +516,14 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
     for (let i = 0; i < len; i++) {
       v = v * 256 + (decoded[pos++] ?? 0);
     }
+    if (!Number.isSafeInteger(v)) throw new PdfError("E_PARSE", "Invalid XRef field value");
     return v;
   };
 
   for (const [startObj, count] of subsections) {
-    for (let i = 0; i < count && pos + stride <= decoded.length; i++) {
+    if (count > (decoded.length - pos) / stride) throw new PdfError("E_PARSE", "Truncated XRef stream");
+    if (count > maxObjects + 1) throw new PdfError("E_LIMIT", "PDF object count limit exceeded while reading xref entries");
+    for (let i = 0; i < count; i++) {
       const objNum = startObj + i;
       const field0 = w0 > 0 ? readInt(w0) : 1;
       const field1 = readInt(w1);
@@ -535,7 +549,10 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
           objectStreamNumber: field1,
           indexInStream: field2,
         });
+      } else {
+        throw new PdfError("E_PARSE", `Invalid XRef entry type: ${field0}`);
       }
+      if (entries.size > maxObjects + 1) throw new PdfError("E_LIMIT", "PDF object count limit exceeded while reading xref entries");
     }
   }
 
@@ -757,11 +774,12 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
         const visitedOffsets = new Set<number>();
         while (currentXrefOffset !== undefined && !visitedOffsets.has(currentXrefOffset)) {
           visitedOffsets.add(currentXrefOffset);
-          const rev = parseXrefRevisionAt(bytes, currentXrefOffset, maxDecompressedBytes, maxRecursionDepth);
+          const rev = parseXrefRevisionAt(bytes, currentXrefOffset, maxDecompressedBytes, maxRecursionDepth, maxObjects);
           revisions.push(rev);
           for (const [num, entry] of rev.entries.entries()) {
             if (!mergedXref.has(num)) {
               mergedXref.set(num, entry);
+              if (mergedXref.size > maxObjects + 1) throw new PdfError("E_LIMIT", "PDF object count limit exceeded while reading xref entries");
             }
           }
           const r = dictGet(rev.trailer, "Root");

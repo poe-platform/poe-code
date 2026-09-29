@@ -170,3 +170,8 @@ at the same PDF.js revision (Apache-2.0). Its password is `test`. The plaintext
 revision followed by an encrypted revision and broken xref offsets exercises
 trailer discovery before decryption. SHA-256:
 `3c2815853e6fe5c34feb76bb14402cbc46bbd484ecd57b672fc03577d0458ee8`.
+
+`pdfjs-issue18986.pdf` is the unchanged PDF.js `test/pdfs/issue18986.pdf` at the
+same pinned revision (Apache-2.0). Its damaged XRef stream exercises validation
+followed by full-file recovery of its one blank page. SHA-256:
+`38caddee94f73206adf4a329e17f7631a3aeb0d8d169fc7be4e34412c09600e2`.

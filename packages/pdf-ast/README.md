@@ -88,6 +88,8 @@ chains resolve without recursive JavaScript calls.
 
 Resource limits default to `Infinity`. Set `maxObjects`, `maxDecompressedBytes`,
 `maxRecursionDepth`, or save-time `maxOutputBytes` to enforce explicit budgets.
+`maxObjects` also bounds cross-reference entries before object loading (with one
+additional slot for the reserved free object zero).
 The depth limit covers indirect-reference chains and nested COS arrays/dictionaries,
 including repaired files and compressed object streams.
 `maxDecompressedBytes` bounds each decoded stream and image RGBA buffer, including

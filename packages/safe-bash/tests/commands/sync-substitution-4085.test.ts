@@ -480,7 +480,7 @@ test("Wave 132: sync xq and yq substitutions and pipelines", async () => {
     printf "%s\n" "$out"
   `);
   assert.equal(r2.exitCode, 0);
-  assert.equal(r2.stdout, "safe-bash:9000:8080:80\n");
+  assert.equal(r2.stdout, '"safe-bash":9000:8080:80\n');
 });
 
 test("Wave 133: sync mdq, shuf, and html-to-markdown substitutions and pipelines", async () => {

@@ -935,7 +935,7 @@ test("evaluates xmllint --format/--c14n, xq --arg/-n, and yq -n/--arg/object-arr
   assert.equal(r.exitCode, 0, r.stderr);
   assert.equal(
     r.stdout,
-    "<?xml version=\"1.0\"?>|<root>|  <a>1</a>|</root>|#<root a=\"1\" b=\"2\"></root>#k=10#host: db,\n",
+    "<?xml version=\"1.0\"?>|<root>|  <a>1</a>|</root>|#<root a=\"1\" b=\"2\"></root>#k=10#\"host\": \"db\",\n",
   );
 });
 
@@ -1347,7 +1347,7 @@ EOF
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(
     res.stdout.trim(),
-    `["alpha","beta"]#a:|  b: 1|  c:|    - 2|    - 3#first step,second step,third step#third step`
+    `["alpha","beta"]#"a":|  "b": 1|  "c":|    - 2|    - 3#first step,second step,third step#third step`
   );
 });
 

@@ -69,6 +69,10 @@ function parseSimpleYamlScalar(raw: string): unknown {
 }
 
 function parseSimpleYamlOrToml(text: string, format: "yaml" | "toml"): unknown {
+  // Quoted hashes need the full YAML/TOML parser before comment removal.
+  for (const line of text.split("\n")) {
+    if (line.includes("#") && (line.includes('"') || line.includes("'"))) return undefined;
+  }
   const trimmed = text.trim();
   if (!trimmed) return undefined;
   if (format === "yaml" && (trimmed.startsWith("{") || trimmed.startsWith("["))) {
@@ -135,10 +139,10 @@ function parseSimpleYamlOrToml(text: string, format: "yaml" | "toml"): unknown {
           const key = rest.slice(0, colon).trim();
           const valRest = rest.slice(colon + 1).trim();
           if (!/^[A-Za-z0-9_.-]+$/.test(key)) return undefined;
-          const itemObj = {};
+          const itemObj: Record<string, unknown> = {};
           if (!valRest) {
-            if (idx < lines.length && lines[idx].indent > baseIndent + 2) {
-              const sub = parseBlock(lines[idx].indent);
+            if (idx < lines.length && lines[idx]!.indent > baseIndent + 2) {
+              const sub = parseBlock(lines[idx]!.indent);
               if (sub === undefined) return undefined;
               itemObj[key] = sub;
             } else {
@@ -150,8 +154,8 @@ function parseSimpleYamlOrToml(text: string, format: "yaml" | "toml"): unknown {
             itemObj[key] = parsedVal;
           }
           const propIndent = baseIndent + 2;
-          while (idx < lines.length && lines[idx].indent === propIndent && !lines[idx].text.startsWith("-")) {
-            const pl = lines[idx].text;
+          while (idx < lines.length && lines[idx]!.indent === propIndent && !lines[idx]!.text.startsWith("-")) {
+            const pl = lines[idx]!.text;
             const pColon = pl.indexOf(":");
             if (pColon <= 0) return undefined;
             const pKey = pl.slice(0, pColon).trim();
@@ -159,8 +163,8 @@ function parseSimpleYamlOrToml(text: string, format: "yaml" | "toml"): unknown {
             if (!/^[A-Za-z0-9_.-]+$/.test(pKey)) return undefined;
             idx++;
             if (!pRest) {
-              if (idx < lines.length && lines[idx].indent > propIndent) {
-                const sub = parseBlock(lines[idx].indent);
+              if (idx < lines.length && lines[idx]!.indent > propIndent) {
+                const sub = parseBlock(lines[idx]!.indent);
                 if (sub === undefined) return undefined;
                 itemObj[pKey] = sub;
               } else {
@@ -307,10 +311,12 @@ function formatYamlScalarSync(val: unknown): string | undefined {
   if (val === null) return "null";
   if (typeof val === "boolean" || typeof val === "number") return String(val);
   if (typeof val === "string") {
-    if (val === "" || /^(?:null|true|false|~|[+-]?[0-9])/i.test(val) || /[:#\[\]{}&*!|>%@`"\x27\n\r\t]/.test(val) || val.trim() !== val) {
-      return JSON.stringify(val);
+    // Defer escapes whose canonical YAML spelling differs from JSON.
+    for (const character of val) {
+      const point = character.codePointAt(0)!;
+      if (point === 0x1b || point === 0x7f || point >= 0x80 && point <= 0x9f || point === 0xfffe || point === 0xffff) return undefined;
     }
-    return val;
+    return JSON.stringify(val);
   }
   return undefined;
 }
@@ -337,13 +343,15 @@ function formatYamlNodeLinesSync(val: unknown, indent: string, out: string[]): b
         } else {
           for (let i = 0; i < entries.length; i++) {
             const [k, v] = entries[i]!;
+            const key = formatYamlScalarSync(k);
+            if (key === undefined) return false;
             const prefix = i === 0 ? `${indent}- ` : `${indent}  `;
             const sv = formatYamlScalarSync(v);
             if (sv !== undefined || (Array.isArray(v) && v.length === 0) || (v && typeof v === "object" && !Array.isArray(v) && Object.keys(v as Record<string, unknown>).length === 0)) {
               const emptyCol = Array.isArray(v) ? "[]" : (v && typeof v === "object" ? "{}" : sv!);
-              out.push(`${prefix}${k}: ${emptyCol}`);
+              out.push(`${prefix}${key}: ${emptyCol}`);
             } else {
-              out.push(`${prefix}${k}:`);
+              out.push(`${prefix}${key}:`);
               if (!formatYamlNodeLinesSync(v, `${indent}    `, out)) return false;
             }
           }
@@ -362,12 +370,14 @@ function formatYamlNodeLinesSync(val: unknown, indent: string, out: string[]): b
       return true;
     }
     for (const [k, v] of entries) {
+      const key = formatYamlScalarSync(k);
+      if (key === undefined) return false;
       const s = formatYamlScalarSync(v);
       if (s !== undefined || (Array.isArray(v) && v.length === 0) || (v && typeof v === "object" && !Array.isArray(v) && Object.keys(v as Record<string, unknown>).length === 0)) {
         const emptyCol = Array.isArray(v) ? "[]" : (v && typeof v === "object" ? "{}" : s!);
-        out.push(`${indent}${k}: ${emptyCol}`);
+        out.push(`${indent}${key}: ${emptyCol}`);
       } else {
-        out.push(`${indent}${k}:`);
+        out.push(`${indent}${key}:`);
         if (!formatYamlNodeLinesSync(v, `${indent}  `, out)) return false;
       }
     }
@@ -381,7 +391,9 @@ export function formatSyncYqYamlLines(jsonLines: readonly string[]): string | un
   for (const line of jsonLines) {
     let val: unknown;
     try { val = JSON.parse(line); } catch { return undefined; }
-    if (!formatYamlNodeLinesSync(val, "", out)) return undefined;
+    const document: string[] = [];
+    if (!formatYamlNodeLinesSync(val, "", document)) return undefined;
+    out.push(document.join("\n"));
   }
-  return out.join("\n") + "\n";
+  return out.length === 0 ? "" : out.join("\n---\n") + "\n";
 }

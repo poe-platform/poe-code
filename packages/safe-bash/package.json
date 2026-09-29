@@ -1428,7 +1428,15 @@
             "@poe-code/safe-fs": "*",
             "safe-bash-command-file": "*"
           },
-          "portable": true
+          "portable": true,
+          "peerDependencies": {
+            "yaml": "2.9.0"
+          },
+          "peerDependenciesMeta": {
+            "yaml": {
+              "optional": true
+            }
+          }
         }
       },
       "peerProfile": "checkout-root"

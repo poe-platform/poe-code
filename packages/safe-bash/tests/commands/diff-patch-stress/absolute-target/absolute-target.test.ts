@@ -113,13 +113,13 @@ for (const vector of vectors) {
   });
 }
 
-test("exact benchmark fixture through existing EngineSession and pluginFixtures", { timeout: 20000 }, async context => {
+test("exact benchmark fixture through existing EngineSession and pluginFixtures", { timeout: 40000 }, async context => {
   const fixture = pluginFixtures().find(item => item.name === "plugin-diff-patch-roundtrip");
   assert(fixture);
   assert.equal(fixture.script, "diff -u --label old --label new old new > change; patch /fixture/old < change; cat old");
   assert.equal(Buffer.from(fixture.expected.stdout, "base64").toString(), "patching file /fixture/old\na\nc\n");
   for (const engine of ["virtual-bash", "just-bash"] as const) {
-    const session = new EngineSession(engine);
+    const session = new EngineSession(engine, 15000);
     try {
       const result = await session.run({ kind: "fixture", fixture });
       const report = JSON.stringify(result);

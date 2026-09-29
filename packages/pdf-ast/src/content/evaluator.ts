@@ -1,4 +1,4 @@
-import { getEncoding, type CMap } from "../vendor/pdfjs-fonts.mjs";
+import { DeviceCmykCS, getEncoding, type CMap } from "../vendor/pdfjs-fonts.mjs";
 import { parseEmbeddedType1Font } from "../fonts/type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "../fonts/cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "../fonts/standard-outlines.js";
@@ -36,6 +36,7 @@ import {
 } from "../fonts/standard14.js";
 
 type Matrix6 = [number, number, number, number, number, number];
+const cmykColorSpace = new DeviceCmykCS();
 
 export function multiplyMatrices(m1: Matrix6, m2: Matrix6): Matrix6 {
   return [
@@ -671,8 +672,8 @@ function shadingComponentsToRgb(csName: string, comps: readonly number[]): [numb
     return [v, v, v];
   }
   if (csName === "DeviceCMYK" || csName === "CMYK" || comps.length >= 4) {
-    const cc = comps[0] ?? 0, cm = comps[1] ?? 0, cy = comps[2] ?? 0, ck = comps[3] ?? 0;
-    return [(1 - cc) * (1 - ck), (1 - cm) * (1 - kClamp(ck)), (1 - cy) * (1 - kClamp(ck))];
+    const rgb = cmykColorSpace.getRgb([comps[0] ?? 0, comps[1] ?? 0, comps[2] ?? 0, comps[3] ?? 0], 0);
+    return [rgb[0]! / 255, rgb[1]! / 255, rgb[2]! / 255];
   }
   return [comps[0] ?? 0, comps[1] ?? 0, comps[2] ?? 0];
 }
@@ -1618,12 +1619,10 @@ export function evaluateContentStreamToDisplayList(params: {
     } else if (operator === "RG" || operator === "SC" || operator === "SCN") {
       st.strokeColor = resolveScColorOperands(operator === "RG" ? "DeviceRGB" : st.strokeColorSpaceName, ops, activeResources);
     } else if (operator === "k") {
-      const c = num(0), m = num(1), y = num(2), k = num(3);
-      st.fillColor = { r: (1 - c) * (1 - k), g: (1 - m) * (1 - k), b: (1 - y) * (1 - k) };
+      st.fillColor = resolveScColorOperands("DeviceCMYK", ops, activeResources);
       st.fillPatternName = undefined;
     } else if (operator === "K") {
-      const c = num(0), m = num(1), y = num(2), k = num(3);
-      st.strokeColor = { r: (1 - c) * (1 - k), g: (1 - m) * (1 - k), b: (1 - y) * (1 - k) };
+      st.strokeColor = resolveScColorOperands("DeviceCMYK", ops, activeResources);
     } else if (operator === "gs" && params.cosDoc && activeResources && ops[0]?.kind === "name") {
       const extDict = params.cosDoc.resolveDict(dictGet(activeResources, "ExtGState"));
       const gsDict = extDict ? params.cosDoc.resolveDict(dictGet(extDict, ops[0].decoded)) : undefined;

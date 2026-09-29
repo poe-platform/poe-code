@@ -524,11 +524,11 @@ describe("Netpbm encoders & PDF rasterization options", () => {
     expect(bmp.data[leftIdx + 1]).toBe(204);
     expect(bmp.data[leftIdx + 2]).toBe(51);
 
-    // Right half (x=75, y=25): 4-operand CMYK scn (1, 0, 1, 0) -> pure green (0, 255, 0)
+    // Right half: PDF.js's CMYK (1, 0, 1, 0) reference is RGB (0, 171, 79).
     const rightIdx = (25 * bmp.width + 75) * 4;
     expect(bmp.data[rightIdx]).toBe(0);
-    expect(bmp.data[rightIdx + 1]).toBe(255);
-    expect(bmp.data[rightIdx + 2]).toBe(0);
+    expect(bmp.data[rightIdx + 1]).toBe(171);
+    expect(bmp.data[rightIdx + 2]).toBe(79);
   });
 
   it("enforces W / W* clipping paths across q..Q, renders 45-deg rotated re rectangles, and closes s/b/b* stroked paths", () => {

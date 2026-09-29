@@ -431,6 +431,12 @@ is ported from `test/unit/colorspace_spec.js` (AlternateCS), with assertions on
 the tint components before color conversion. The unchanged
 `bug852992_reduced.pdf` fixture also verifies the restored soft-mask fade.
 
+The vendor bundle includes unmodified PDF.js `DeviceCmykCS` from
+`src/core/colorspace.js`. Path, shading, and image color conversion use this
+class directly, including CMYK palette entries and alternate tint colors.
+`src/render/cmyk-colors.test.ts` ports the byte and floating-point reference
+vectors from PDF.js `test/unit/colorspace_spec.js`, through local PDF APIs.
+
 Malformed dictionary-key recovery follows PDF.js `Parser.getObj`, skipping
 stray non-Name tokens only in local repair mode. Damaged optional ToUnicode
 streams follow `PartialEvaluator.readToUnicode` error recovery while retaining

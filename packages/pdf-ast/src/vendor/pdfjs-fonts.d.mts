@@ -43,6 +43,9 @@ export const DrawOPS: { moveTo: number; lineTo: number; curveTo: number; quadrat
 export const WinAnsiEncoding: string[];
 export const MacStandardGlyphOrdering: string[];
 export function encodeToXmlString(value: string): string;
+export class DeviceCmykCS {
+  getRgb(src: ArrayLike<number>, srcOffset: number): Uint8ClampedArray;
+}
 export class PageViewport {
   constructor(options: { viewBox: number[]; userUnit: number; scale: number; rotation: number; offsetX?: number; offsetY?: number; dontFlip?: boolean });
   readonly width: number;

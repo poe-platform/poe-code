@@ -1,5 +1,6 @@
 import { assertDecodedByteBudget } from "../cos/limits.js";
 import { Jbig2Image, JpegImage, JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
+import { DeviceCmykCS } from "../vendor/pdfjs-fonts.mjs";
 import { PdfError } from "../errors.js";
 import {
   dictGet,
@@ -15,6 +16,7 @@ import { evalShadingFunctionToComponents } from "../content/evaluator.js";
 import { decodePdfFilter } from "../cos/filters.js";
 import { ParsedCosDocument } from "../cos/parser.js";
 import type { RgbaBitmap } from "../render/raster.js";
+const cmykColorSpace = new DeviceCmykCS();
 
 export interface PdfExtractedImage {
   readonly pageNumber: number;
@@ -582,9 +584,7 @@ function decodeSamplesToRgba(
           const m = outComps[1] ?? 0;
           const y = outComps[2] ?? 0;
           const k = outComps[3] ?? 0;
-          rgba[p * 4] = Math.round(Math.max(0, Math.min(1, (1 - c) * (1 - k))) * 255);
-          rgba[p * 4 + 1] = Math.round(Math.max(0, Math.min(1, (1 - m) * (1 - k))) * 255);
-          rgba[p * 4 + 2] = Math.round(Math.max(0, Math.min(1, (1 - y) * (1 - k))) * 255);
+          rgba.set(cmykColorSpace.getRgb([c, m, y, k], 0), p * 4);
         } else if (alt === "gray") {
           const gByte = Math.round(Math.max(0, Math.min(1, outComps[0] ?? 0)) * 255);
           rgba[p * 4] = gByte;
@@ -604,9 +604,7 @@ function decodeSamplesToRgba(
         const m = (c0[1] ?? 0) + w * ((c1[1] ?? 0) - (c0[1] ?? 0));
         const y = (c0[2] ?? 0) + w * ((c1[2] ?? 0) - (c0[2] ?? 0));
         const k = (c0[3] ?? 0) + w * ((c1[3] ?? 1) - (c0[3] ?? 0));
-        rgba[p * 4] = Math.round(Math.max(0, Math.min(1, (1 - c) * (1 - k))) * 255);
-        rgba[p * 4 + 1] = Math.round(Math.max(0, Math.min(1, (1 - m) * (1 - k))) * 255);
-        rgba[p * 4 + 2] = Math.round(Math.max(0, Math.min(1, (1 - y) * (1 - k))) * 255);
+        rgba.set(cmykColorSpace.getRgb([c, m, y, k], 0), p * 4);
       } else if (alt === "gray") {
         const gVal = (c0[0] ?? 1) + w * ((c1[0] ?? 0) - (c0[0] ?? 1));
         const gByte = Math.round(Math.max(0, Math.min(1, gVal)) * 255);
@@ -768,9 +766,7 @@ function decodeSamplesToRgba(
       const m = remapUnitSampleWithDecode((rawSamples[p * stride + chStep] ?? 0) / 255, 1, decodePairs);
       const y = remapUnitSampleWithDecode((rawSamples[p * stride + chStep * 2] ?? 0) / 255, 2, decodePairs);
       const k = remapUnitSampleWithDecode((rawSamples[p * stride + chStep * 3] ?? 0) / 255, 3, decodePairs);
-      rgba[p * 4] = Math.round((1 - c) * (1 - k) * 255);
-      rgba[p * 4 + 1] = Math.round((1 - m) * (1 - k) * 255);
-      rgba[p * 4 + 2] = Math.round((1 - y) * (1 - k) * 255);
+      rgba.set(cmykColorSpace.getRgb([c, m, y, k], 0), p * 4);
       rgba[p * 4 + 3] = 255;
     }
   } else if (csInfo.colorSpace === "index") {
@@ -808,9 +804,7 @@ function decodeSamplesToRgba(
             const m = pal[idx * 4 + 1]! / 255;
             const yel = pal[idx * 4 + 2]! / 255;
             const k = pal[idx * 4 + 3]! / 255;
-            rgba[p * 4] = Math.round((1 - c) * (1 - k) * 255);
-            rgba[p * 4 + 1] = Math.round((1 - m) * (1 - k) * 255);
-            rgba[p * 4 + 2] = Math.round((1 - yel) * (1 - k) * 255);
+            rgba.set(cmykColorSpace.getRgb([c, m, yel, k], 0), p * 4);
           } else {
             rgba[p * 4] = pal[idx * baseComp]!;
             rgba[p * 4 + 1] = pal[idx * baseComp + 1]!;

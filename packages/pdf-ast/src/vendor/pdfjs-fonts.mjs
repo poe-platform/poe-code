@@ -19321,12 +19321,500 @@ var PageViewport = class _PageViewport {
     return p;
   }
 };
+
+// src/core/colorspace.js
+function resizeRgbImage(src, dest, w1, h1, w2, h2, alpha01) {
+  const COMPONENTS = 3;
+  alpha01 = alpha01 !== 1 ? 0 : alpha01;
+  const xRatio = w1 / w2;
+  const yRatio = h1 / h2;
+  let newIndex = 0, oldIndex;
+  const xScaled = new Uint16Array(w2);
+  const w1Scanline = w1 * COMPONENTS;
+  for (let i = 0; i < w2; i++) {
+    xScaled[i] = Math.floor(i * xRatio) * COMPONENTS;
+  }
+  for (let i = 0; i < h2; i++) {
+    const py = Math.floor(i * yRatio) * w1Scanline;
+    for (let j = 0; j < w2; j++) {
+      oldIndex = py + xScaled[j];
+      dest[newIndex++] = src[oldIndex++];
+      dest[newIndex++] = src[oldIndex++];
+      dest[newIndex++] = src[oldIndex++];
+      newIndex += alpha01;
+    }
+  }
+}
+function isDefaultDecodeHelper(decode, expectedLen) {
+  if (!Array.isArray(decode)) {
+    return true;
+  }
+  const decodeLen = decode.length;
+  if (decodeLen < expectedLen) {
+    warn("Decode map length is too short.");
+    return true;
+  }
+  if (decodeLen > expectedLen) {
+    info("Truncating too long decode map.");
+    decode.length = expectedLen;
+  }
+  return false;
+}
+var ColorSpace = class _ColorSpace {
+  static #rgbBuf = new Uint8ClampedArray(3);
+  constructor(name, numComps) {
+    if ((typeof PDFJSDev === "undefined" || PDFJSDev.test("TESTING")) && this.constructor === _ColorSpace) {
+      unreachable("Cannot initialize ColorSpace.");
+    }
+    this.name = name;
+    this.numComps = numComps;
+  }
+  /**
+   * Converts the color value to the RGB color. The color components are
+   * located in the src array starting from the srcOffset. Returns the array
+   * of the rgb components, each value ranging from [0,255].
+   */
+  getRgb(src, srcOffset, output = new Uint8ClampedArray(3)) {
+    this.getRgbItem(src, srcOffset, output, 0);
+    return output;
+  }
+  getRgbHex(src, srcOffset) {
+    const buffer = this.getRgb(src, srcOffset, _ColorSpace.#rgbBuf);
+    return Util.makeHexColor(buffer[0], buffer[1], buffer[2]);
+  }
+  /**
+   * Converts the color value to the RGB color, similar to the getRgb method.
+   * The result placed into the dest array starting from the destOffset.
+   */
+  getRgbItem(src, srcOffset, dest, destOffset) {
+    unreachable("Should not call ColorSpace.getRgbItem");
+  }
+  /**
+   * Converts the specified number of the color values to the RGB colors.
+   * The colors are located in the src array starting from the srcOffset.
+   * The result is placed into the dest array starting from the destOffset.
+   * The src array items shall be in [0,2^bits) range, the dest array items
+   * will be in [0,255] range. alpha01 indicates how many alpha components
+   * there are in the dest array; it will be either 0 (RGB array) or 1 (RGBA
+   * array).
+   */
+  getRgbBuffer(src, srcOffset, count, dest, destOffset, bits, alpha01) {
+    unreachable("Should not call ColorSpace.getRgbBuffer");
+  }
+  /**
+   * Converts `count` unscaled colors to RGB, starting at `destOffset`.
+   * Components use the native color-space ranges expected by `getRgbItem`,
+   * and each output has a `3 + alpha01` byte stride.
+   * Subclasses may override this to batch expensive conversions.
+   */
+  getRgbItems(src, count, dest, destOffset, alpha01) {
+    const { numComps } = this;
+    for (let i = 0, srcOffset = 0; i < count; i++, srcOffset += numComps) {
+      this.getRgbItem(src, srcOffset, dest, destOffset);
+      destOffset += 3 + alpha01;
+    }
+  }
+  /**
+   * Returns true if source data will be equal the result/output data.
+   */
+  isPassthrough(bits) {
+    return false;
+  }
+  /**
+   * Refer to the static `ColorSpace.isDefaultDecode` method below.
+   */
+  isDefaultDecode(decode, bpc) {
+    return _ColorSpace.isDefaultDecode(decode, this.numComps);
+  }
+  /**
+   * Fills in the RGB colors in the destination buffer.  alpha01 indicates
+   * how many alpha components there are in the dest array; it will be either
+   * 0 (RGB array) or 1 (RGBA array).
+   */
+  fillRgb(dest, originalWidth, originalHeight, width, height, actualHeight, bpc, comps, alpha01) {
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("TESTING")) {
+      assert(
+        dest instanceof Uint8ClampedArray,
+        'ColorSpace.fillRgb: Unsupported "dest" type.'
+      );
+    }
+    const count = originalWidth * originalHeight;
+    let rgbBuf = null;
+    const numComponentColors = 1 << bpc;
+    const needsResizing = originalHeight !== height || originalWidth !== width;
+    if (this.isPassthrough(bpc)) {
+      rgbBuf = comps;
+    } else if (this.numComps === 1 && count > numComponentColors && this.name !== "DeviceGray" && this.name !== "DeviceRGB") {
+      const allColors = bpc <= 8 ? new Uint8Array(numComponentColors) : new Uint16Array(numComponentColors);
+      for (let i = 0; i < numComponentColors; i++) {
+        allColors[i] = i;
+      }
+      const colorMap = new Uint8ClampedArray(numComponentColors * 3);
+      this.getRgbBuffer(
+        allColors,
+        0,
+        numComponentColors,
+        colorMap,
+        0,
+        bpc,
+        /* alpha01 = */
+        0
+      );
+      if (!needsResizing) {
+        let destPos = 0;
+        for (let i = 0; i < count; ++i) {
+          const key = comps[i] * 3;
+          dest[destPos++] = colorMap[key];
+          dest[destPos++] = colorMap[key + 1];
+          dest[destPos++] = colorMap[key + 2];
+          destPos += alpha01;
+        }
+      } else {
+        rgbBuf = new Uint8Array(count * 3);
+        let rgbPos = 0;
+        for (let i = 0; i < count; ++i) {
+          const key = comps[i] * 3;
+          rgbBuf[rgbPos++] = colorMap[key];
+          rgbBuf[rgbPos++] = colorMap[key + 1];
+          rgbBuf[rgbPos++] = colorMap[key + 2];
+        }
+      }
+    } else if (!needsResizing) {
+      this.getRgbBuffer(comps, 0, width * actualHeight, dest, 0, bpc, alpha01);
+    } else {
+      rgbBuf = new Uint8ClampedArray(count * 3);
+      this.getRgbBuffer(
+        comps,
+        0,
+        count,
+        rgbBuf,
+        0,
+        bpc,
+        /* alpha01 = */
+        0
+      );
+    }
+    if (rgbBuf) {
+      if (needsResizing) {
+        resizeRgbImage(
+          rgbBuf,
+          dest,
+          originalWidth,
+          originalHeight,
+          width,
+          height,
+          alpha01
+        );
+      } else {
+        let destPos = 0, rgbPos = 0;
+        for (let i = 0, ii = width * actualHeight; i < ii; i++) {
+          dest[destPos++] = rgbBuf[rgbPos++];
+          dest[destPos++] = rgbBuf[rgbPos++];
+          dest[destPos++] = rgbBuf[rgbPos++];
+          destPos += alpha01;
+        }
+      }
+    }
+  }
+  /**
+   * True if the colorspace has components in the default range of [0, 1].
+   * This should be true for all colorspaces except for lab color spaces
+   * which are [0,100], [-128, 127], [-128, 127].
+   */
+  get usesZeroToOneRange() {
+    return shadow(this, "usesZeroToOneRange", true);
+  }
+  /**
+   * Checks if a decode map matches the default decode map for a color space.
+   * This handles the general decode maps where there are two values per
+   * component, e.g. [0, 1, 0, 1, 0, 1] for a RGB color.
+   * This does not handle Lab, Indexed, or Pattern decode maps since they are
+   * slightly different.
+   * @param {Array} decode - Decode map (usually from an image).
+   * @param {number} numComps - Number of components the color space has.
+   */
+  static isDefaultDecode(decode, numComps) {
+    if (isDefaultDecodeHelper(decode, numComps * 2)) {
+      return true;
+    }
+    for (let i = 0, ii = decode.length; i < ii; i += 2) {
+      if (decode[i] !== 0 || decode[i + 1] !== 1) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+var DeviceCmykCS = class extends ColorSpace {
+  constructor() {
+    super("DeviceCMYK", 4);
+  }
+  // The coefficients below was found using numerical analysis: the method of
+  // steepest descent for the sum((f_i - color_value_i)^2) for r/g/b colors,
+  // where color_value is the tabular value from the table of sampled RGB colors
+  // from CMYK US Web Coated (SWOP) colorspace, and f_i is the corresponding
+  // CMYK color conversion using the estimation below:
+  //   f(A, B,.. N) = Acc+Bcm+Ccy+Dck+c+Fmm+Gmy+Hmk+Im+Jyy+Kyk+Ly+Mkk+Nk+255
+  #toRgb(src, srcOffset, srcScale, dest, destOffset) {
+    const c = src[srcOffset] * srcScale;
+    const m = src[srcOffset + 1] * srcScale;
+    const y = src[srcOffset + 2] * srcScale;
+    const k = src[srcOffset + 3] * srcScale;
+    dest[destOffset] = 255 + c * (-4.387332384609988 * c + 54.48615194189176 * m + 18.82290502165302 * y + 212.25662451639585 * k + -285.2331026137004) + m * (1.7149763477362134 * m - 5.6096736904047315 * y + -17.873870861415444 * k - 5.497006427196366) + y * (-2.5217340131683033 * y - 21.248923337353073 * k + 17.5119270841813) + k * (-21.86122147463605 * k - 189.48180835922747);
+    dest[destOffset + 1] = 255 + c * (8.841041422036149 * c + 60.118027045597366 * m + 6.871425592049007 * y + 31.159100130055922 * k + -79.2970844816548) + m * (-15.310361306967817 * m + 17.575251261109482 * y + 131.35250912493976 * k - 190.9453302588951) + y * (4.444339102852739 * y + 9.8632861493405 * k - 24.86741582555878) + k * (-20.737325471181034 * k - 187.80453709719578);
+    dest[destOffset + 2] = 255 + c * (0.8842522430003296 * c + 8.078677503112928 * m + 30.89978309703729 * y - 0.23883238689178934 * k + -14.183576799673286) + m * (10.49593273432072 * m + 63.02378494754052 * y + 50.606957656360734 * k - 112.23884253719248) + y * (0.03296041114873217 * y + 115.60384449646641 * k + -193.58209356861505) + k * (-22.33816807309886 * k - 180.12613974708367);
+  }
+  getRgbItem(src, srcOffset, dest, destOffset) {
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("TESTING")) {
+      assert(
+        dest instanceof Uint8ClampedArray,
+        'DeviceCmykCS.getRgbItem: Unsupported "dest" type.'
+      );
+    }
+    this.#toRgb(src, srcOffset, 1, dest, destOffset);
+  }
+  getRgbBuffer(src, srcOffset, count, dest, destOffset, bits, alpha01) {
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("TESTING")) {
+      assert(
+        dest instanceof Uint8ClampedArray,
+        'DeviceCmykCS.getRgbBuffer: Unsupported "dest" type.'
+      );
+    }
+    const scale = 1 / ((1 << bits) - 1);
+    for (let i = 0; i < count; i++) {
+      this.#toRgb(src, srcOffset, scale, dest, destOffset);
+      srcOffset += 4;
+      destOffset += 3 + alpha01;
+    }
+  }
+};
+var CalRGBCS = class _CalRGBCS extends ColorSpace {
+  // See http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html for these
+  // matrices.
+  // prettier-ignore
+  static #BRADFORD_SCALE_MATRIX = new Float32Array([
+    0.8951,
+    0.2664,
+    -0.1614,
+    -0.7502,
+    1.7135,
+    0.0367,
+    0.0389,
+    -0.0685,
+    1.0296
+  ]);
+  // prettier-ignore
+  static #BRADFORD_SCALE_INVERSE_MATRIX = new Float32Array([
+    0.9869929,
+    -0.1470543,
+    0.1599627,
+    0.4323053,
+    0.5183603,
+    0.0492912,
+    -85287e-7,
+    0.0400428,
+    0.9684867
+  ]);
+  // See http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html.
+  // prettier-ignore
+  static #SRGB_D65_XYZ_TO_RGB_MATRIX = new Float32Array([
+    3.2404542,
+    -1.5371385,
+    -0.4985314,
+    -0.969266,
+    1.8760108,
+    0.041556,
+    0.0556434,
+    -0.2040259,
+    1.0572252
+  ]);
+  static #FLAT_WHITEPOINT_MATRIX = new Float32Array([1, 1, 1]);
+  static #tempNormalizeMatrix = new Float32Array(3);
+  static #tempConvertMatrix1 = new Float32Array(3);
+  static #tempConvertMatrix2 = new Float32Array(3);
+  static #DECODE_L_CONSTANT = ((8 + 16) / 116) ** 3 / 8;
+  constructor(whitePoint, blackPoint, gamma, matrix) {
+    super("CalRGB", 3);
+    if (!whitePoint) {
+      throw new FormatError(
+        "WhitePoint missing - required for color space CalRGB"
+      );
+    }
+    const [XW, YW, ZW] = this.whitePoint = whitePoint;
+    const [XB, YB, ZB] = this.blackPoint = blackPoint || new Float32Array(3);
+    [this.GR, this.GG, this.GB] = gamma || new Float32Array([1, 1, 1]);
+    [
+      this.MXA,
+      this.MYA,
+      this.MZA,
+      this.MXB,
+      this.MYB,
+      this.MZB,
+      this.MXC,
+      this.MYC,
+      this.MZC
+    ] = matrix || new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+    if (XW < 0 || ZW < 0 || YW !== 1) {
+      throw new FormatError(
+        `Invalid WhitePoint components for ${this.name}, no fallback available`
+      );
+    }
+    if (XB < 0 || YB < 0 || ZB < 0) {
+      info(
+        `Invalid BlackPoint for ${this.name} [${XB}, ${YB}, ${ZB}], falling back to default.`
+      );
+      this.blackPoint = new Float32Array(3);
+    }
+    if (this.GR < 0 || this.GG < 0 || this.GB < 0) {
+      info(
+        `Invalid Gamma [${this.GR}, ${this.GG}, ${this.GB}] for ${this.name}, falling back to default.`
+      );
+      this.GR = this.GG = this.GB = 1;
+    }
+  }
+  #matrixProduct(a, b, result) {
+    result[0] = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    result[1] = a[3] * b[0] + a[4] * b[1] + a[5] * b[2];
+    result[2] = a[6] * b[0] + a[7] * b[1] + a[8] * b[2];
+  }
+  #toFlat(sourceWhitePoint, LMS, result) {
+    result[0] = LMS[0] * 1 / sourceWhitePoint[0];
+    result[1] = LMS[1] * 1 / sourceWhitePoint[1];
+    result[2] = LMS[2] * 1 / sourceWhitePoint[2];
+  }
+  #toD65(sourceWhitePoint, LMS, result) {
+    const D65X = 0.95047;
+    const D65Y = 1;
+    const D65Z = 1.08883;
+    result[0] = LMS[0] * D65X / sourceWhitePoint[0];
+    result[1] = LMS[1] * D65Y / sourceWhitePoint[1];
+    result[2] = LMS[2] * D65Z / sourceWhitePoint[2];
+  }
+  #sRGBTransferFunction(color) {
+    if (color <= 31308e-7) {
+      return MathClamp(12.92 * color, 0, 1);
+    }
+    return color >= 0.99554525 ? 1 : MathClamp((1 + 0.055) * color ** (1 / 2.4) - 0.055, 0, 1);
+  }
+  #decodeL(L) {
+    if (L < 0) {
+      return -this.#decodeL(-L);
+    }
+    return L > 8 ? ((L + 16) / 116) ** 3 : L * _CalRGBCS.#DECODE_L_CONSTANT;
+  }
+  #compensateBlackPoint(sourceBlackPoint, XYZ_Flat, result) {
+    if (sourceBlackPoint[0] === 0 && sourceBlackPoint[1] === 0 && sourceBlackPoint[2] === 0) {
+      result[0] = XYZ_Flat[0];
+      result[1] = XYZ_Flat[1];
+      result[2] = XYZ_Flat[2];
+      return;
+    }
+    const zeroDecodeL = this.#decodeL(0);
+    const X_DST = zeroDecodeL;
+    const X_SRC = this.#decodeL(sourceBlackPoint[0]);
+    const Y_DST = zeroDecodeL;
+    const Y_SRC = this.#decodeL(sourceBlackPoint[1]);
+    const Z_DST = zeroDecodeL;
+    const Z_SRC = this.#decodeL(sourceBlackPoint[2]);
+    const X_Scale = (1 - X_DST) / (1 - X_SRC);
+    const X_Offset = 1 - X_Scale;
+    const Y_Scale = (1 - Y_DST) / (1 - Y_SRC);
+    const Y_Offset = 1 - Y_Scale;
+    const Z_Scale = (1 - Z_DST) / (1 - Z_SRC);
+    const Z_Offset = 1 - Z_Scale;
+    result[0] = XYZ_Flat[0] * X_Scale + X_Offset;
+    result[1] = XYZ_Flat[1] * Y_Scale + Y_Offset;
+    result[2] = XYZ_Flat[2] * Z_Scale + Z_Offset;
+  }
+  #normalizeWhitePointToFlat(sourceWhitePoint, XYZ_In, result) {
+    if (sourceWhitePoint[0] === 1 && sourceWhitePoint[2] === 1) {
+      result[0] = XYZ_In[0];
+      result[1] = XYZ_In[1];
+      result[2] = XYZ_In[2];
+      return;
+    }
+    const LMS = result;
+    this.#matrixProduct(_CalRGBCS.#BRADFORD_SCALE_MATRIX, XYZ_In, LMS);
+    const LMS_Flat = _CalRGBCS.#tempNormalizeMatrix;
+    this.#toFlat(sourceWhitePoint, LMS, LMS_Flat);
+    this.#matrixProduct(
+      _CalRGBCS.#BRADFORD_SCALE_INVERSE_MATRIX,
+      LMS_Flat,
+      result
+    );
+  }
+  #normalizeWhitePointToD65(sourceWhitePoint, XYZ_In, result) {
+    const LMS = result;
+    this.#matrixProduct(_CalRGBCS.#BRADFORD_SCALE_MATRIX, XYZ_In, LMS);
+    const LMS_D65 = _CalRGBCS.#tempNormalizeMatrix;
+    this.#toD65(sourceWhitePoint, LMS, LMS_D65);
+    this.#matrixProduct(
+      _CalRGBCS.#BRADFORD_SCALE_INVERSE_MATRIX,
+      LMS_D65,
+      result
+    );
+  }
+  #toRgb(src, srcOffset, dest, destOffset, scale) {
+    const A = MathClamp(src[srcOffset] * scale, 0, 1);
+    const B = MathClamp(src[srcOffset + 1] * scale, 0, 1);
+    const C = MathClamp(src[srcOffset + 2] * scale, 0, 1);
+    const AGR = A === 1 ? 1 : A ** this.GR;
+    const BGG = B === 1 ? 1 : B ** this.GG;
+    const CGB = C === 1 ? 1 : C ** this.GB;
+    const X = this.MXA * AGR + this.MXB * BGG + this.MXC * CGB;
+    const Y = this.MYA * AGR + this.MYB * BGG + this.MYC * CGB;
+    const Z = this.MZA * AGR + this.MZB * BGG + this.MZC * CGB;
+    const XYZ = _CalRGBCS.#tempConvertMatrix1;
+    XYZ[0] = X;
+    XYZ[1] = Y;
+    XYZ[2] = Z;
+    const XYZ_Flat = _CalRGBCS.#tempConvertMatrix2;
+    this.#normalizeWhitePointToFlat(this.whitePoint, XYZ, XYZ_Flat);
+    const XYZ_Black = _CalRGBCS.#tempConvertMatrix1;
+    this.#compensateBlackPoint(this.blackPoint, XYZ_Flat, XYZ_Black);
+    const XYZ_D65 = _CalRGBCS.#tempConvertMatrix2;
+    this.#normalizeWhitePointToD65(
+      _CalRGBCS.#FLAT_WHITEPOINT_MATRIX,
+      XYZ_Black,
+      XYZ_D65
+    );
+    const SRGB = _CalRGBCS.#tempConvertMatrix1;
+    this.#matrixProduct(_CalRGBCS.#SRGB_D65_XYZ_TO_RGB_MATRIX, XYZ_D65, SRGB);
+    dest[destOffset] = this.#sRGBTransferFunction(SRGB[0]) * 255;
+    dest[destOffset + 1] = this.#sRGBTransferFunction(SRGB[1]) * 255;
+    dest[destOffset + 2] = this.#sRGBTransferFunction(SRGB[2]) * 255;
+  }
+  getRgbItem(src, srcOffset, dest, destOffset) {
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("TESTING")) {
+      assert(
+        dest instanceof Uint8ClampedArray,
+        'CalRGBCS.getRgbItem: Unsupported "dest" type.'
+      );
+    }
+    this.#toRgb(src, srcOffset, dest, destOffset, 1);
+  }
+  getRgbBuffer(src, srcOffset, count, dest, destOffset, bits, alpha01) {
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("TESTING")) {
+      assert(
+        dest instanceof Uint8ClampedArray,
+        'CalRGBCS.getRgbBuffer: Unsupported "dest" type.'
+      );
+    }
+    const scale = 1 / ((1 << bits) - 1);
+    for (let i = 0; i < count; ++i) {
+      this.#toRgb(src, srcOffset, dest, destOffset, scale);
+      srcOffset += 3;
+      destOffset += 3 + alpha01;
+    }
+  }
+};
 export {
   CFFCompiler,
   CFFParser,
   CFFStrings,
   CMap,
   CipherTransformFactory,
+  DeviceCmykCS,
   Dict,
   DrawOPS,
   FlateStream,

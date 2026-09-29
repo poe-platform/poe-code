@@ -1380,3 +1380,32 @@ EOF
     `gamma#alpha,gamma#b#{"a":"2","z":"1"}#foobar`
   );
 });
+
+test("Wave 219: fd -S/-0/-t e, rg -S/--files-without-match/-l0/-ie, and find -print0 in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp/w219", { recursive: true });
+  await memFs.mkdir("/tmp/w219/emptydir", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp/w219" }).use(standardCommands()).use(fdCommands()).use(searchCommands());
+  const res = await shell.exec(`
+    printf "AlphaLine\\n" > /tmp/w219/a.txt
+    printf "bravo\\n" > /tmp/w219/b.txt
+    printf "" > /tmp/w219/empty.txt
+    out=""
+    for i in 1 2 3 4 5; do
+      f1=$(fd -0 -S +7b . /tmp/w219 | tr "\\0" ":")
+      f2=$(fd -t e . /tmp/w219 | tr "\\n" ",")
+      r1=$(rg -S "alphaline" /tmp/w219/a.txt /tmp/w219/b.txt -I)
+      r2=$(rg -S "Alphaline" /tmp/w219/a.txt /tmp/w219/b.txt -I || printf "nomatch")
+      r3=$(rg --files-without-match "Alpha" /tmp/w219/a.txt /tmp/w219/b.txt)
+      r4=$(rg -l0 -ie "alpha" /tmp/w219/a.txt /tmp/w219/b.txt | tr "\\0" ":")
+      fn1=$(find /tmp/w219 -maxdepth 1 -name "*.txt" -print0 | sort -z | tr "\\0" "|")
+      out="$f1#$f2#$r1#$r2#$r3#$r4#$fn1"
+    done
+    printf "%s\\n" "$out"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    `/tmp/w219/a.txt:#/tmp/w219/empty.txt,/tmp/w219/emptydir,#AlphaLine#nomatch#/tmp/w219/b.txt#/tmp/w219/a.txt:#/tmp/w219/a.txt|/tmp/w219/b.txt|/tmp/w219/empty.txt|`
+  );
+});

@@ -30146,9 +30146,9 @@ export class Runtime {
                   : firstName === "stat"
                     ? evalSyncStat(stageArgs, rawState.cwd, rawState.variables.QUOTING_STYLE, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow))
                   : firstName === "fd"
-                    ? evalSyncFd(stageArgs, rawState.cwd, (p: string) => this.tryInspectMemoryNodeSync(p, true))
+                    ? evalSyncFd(stageArgs, rawState.cwd, (p: string) => this.tryInspectMemoryNodeSync(p, true), true)
                   : firstName === "rg"
-                    ? evalSyncRg(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? evalSyncRg(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, true)
                   : firstName === "readlink"
                     ? evalSyncReadlink(stageArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow))
                   : firstName === "realpath"
@@ -30156,7 +30156,7 @@ export class Runtime {
                   : firstName === "ls"
                     ? evalSyncLs(stageArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow))
                   : firstName === "find"
-                    ? evalSyncFind(stageArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow))
+                    ? evalSyncFind(stageArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow), true)
                   : firstName === "csvlook"
                     ? evalSyncCsvlook(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "csvjson"

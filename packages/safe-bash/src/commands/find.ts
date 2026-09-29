@@ -807,6 +807,7 @@ export function evalSyncFind(
   rawArgs: readonly string[],
   cwd: string,
   inspectNode: (path: string, followFinal: boolean) => SyncFindNodeInfo | undefined,
+  allowNullBytes = false,
 ): string | undefined {
   try {
     const args = [...rawArgs];
@@ -883,6 +884,15 @@ export function evalSyncFind(
         return entry => {
           if (usedCustomOut) customOut += escapeText(entry.display, "display") + "\n";
           else outLines.push(escapeText(entry.display, "display"));
+          return true;
+        };
+      }
+      if (token === "-print0") {
+        if (!allowNullBytes) throw new Error("print0");
+        explicitAction = true;
+        usedCustomOut = true;
+        return entry => {
+          customOut += escapeText(entry.display, "display") + "\0";
           return true;
         };
       }

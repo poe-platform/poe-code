@@ -70,6 +70,7 @@ export function evalSyncFd(
   args: readonly string[],
   cwd: string,
   inspectNode: (absPath: string) => SyncFdVfsNode | undefined,
+  allowNullBytes = false,
 ): string | undefined {
   let a: ReturnType<typeof parseFdArguments>;
   try {
@@ -78,7 +79,7 @@ export function evalSyncFd(
     return undefined;
   }
   if (
-    a.help || a.version || a.exec.length > 0 || a.batch || a.details || a.print0 ||
+    a.help || a.version || a.exec.length > 0 || a.batch || a.details || (a.print0 && !allowNullBytes) ||
     a.within !== undefined || a.before !== undefined
   ) {
     return undefined;
@@ -97,7 +98,7 @@ export function evalSyncFd(
   }
   const sizeChecks: Array<(sz: number) => boolean> = [];
   for (const szSpec of a.sizes) {
-    const m = /^([+-]?)(d+)(b|k|m|g|t|ki|mi|gi|ti)?$/iu.exec(szSpec.trim());
+    const m = /^([+-]?)(\d+)(b|k|m|g|t|ki|mi|gi|ti)?$/iu.exec(szSpec.trim());
     if (!m) return undefined;
     const op = m[1]!;
     const num = Number(m[2]!);
@@ -142,7 +143,7 @@ export function evalSyncFd(
           if (a.types.includes("file") && entry.type === "file") typeOk = true;
           if (a.types.includes("directory") && entry.type === "directory") typeOk = true;
           if (a.types.includes("symlink") && entry.type === "symlink") typeOk = true;
-          if (a.types.includes("empty") && entry.type === "file" && entry.size === 0) typeOk = true;
+          if (a.types.includes("empty") && ((entry.type === "file" && entry.size === 0) || (entry.type === "directory" && (inspectNode(childAbs)?.children?.length ?? 1) === 0))) typeOk = true;
           if (a.types.includes("executable") && entry.type === "file" && ((entry.mode ?? 0) & 0o111) !== 0) typeOk = true;
         }
         const sizeOk = sizeChecks.length === 0 || (entry.type === "file" && sizeChecks.every(fn => fn(entry.size)));
@@ -168,5 +169,6 @@ export function evalSyncFd(
   if (a.quiet) {
     return capped.length > 0 ? "" : undefined;
   }
-  return capped.length === 0 ? "" : `${capped.join("\n")}\n`;
+  const sep = a.print0 ? "\0" : "\n";
+  return capped.length === 0 ? "" : `${capped.join(sep)}${sep}`;
 }

@@ -193,6 +193,14 @@ export interface PdfRgbColor {
   readonly b: number;
 }
 
+/** A transparency-group mask evaluated in page coordinates at the gs operator. */
+export interface PdfSoftMask {
+  readonly subtype: "Alpha" | "Luminosity";
+  readonly operations: readonly PdfPaintOperation[];
+  readonly backdrop: PdfRgbColor;
+  readonly transferMap?: Uint8Array | undefined;
+}
+
 export interface PdfPlacedGlyph {
   /** Glyph paint geometry, kept separate from page drawings for extraction. */
   readonly outline?: PdfEvaluatedPath | undefined;
@@ -211,6 +219,7 @@ export interface PdfPlacedGlyph {
   readonly blendMode?: string | undefined;
   readonly clipPaths?: readonly PdfClipPath[] | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
+  readonly softMask?: PdfSoftMask | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 
@@ -231,6 +240,7 @@ export interface PdfEvaluatedPath {
   readonly isClip?: boolean | undefined;
   readonly clipPaths?: readonly PdfClipPath[] | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
+  readonly softMask?: PdfSoftMask | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 
@@ -245,6 +255,7 @@ export interface PdfEvaluatedImage {
   readonly blendMode?: string | undefined;
   readonly clipPaths?: readonly PdfClipPath[] | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
+  readonly softMask?: PdfSoftMask | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 
@@ -258,7 +269,19 @@ export interface PdfLinkAnnotation {
 export type PdfPaintOperation =
   | { readonly kind: "path"; readonly value: PdfEvaluatedPath }
   | { readonly kind: "image"; readonly value: PdfEvaluatedImage }
-  | { readonly kind: "glyph"; readonly value: PdfPlacedGlyph };
+  | { readonly kind: "glyph"; readonly value: PdfPlacedGlyph }
+  | { readonly kind: "group"; readonly value: PdfPaintGroup };
+
+/** An isolated transparency Form, composited after painting its children. */
+export interface PdfPaintGroup {
+  readonly operations: readonly PdfPaintOperation[];
+  readonly alpha: number;
+  readonly blendMode?: string | undefined;
+  readonly clipPaths?: readonly PdfClipPath[] | undefined;
+  readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
+  readonly clipRect?: readonly [number, number, number, number] | undefined;
+  readonly softMask?: PdfSoftMask | undefined;
+}
 
 export interface PdfDisplayList {
   readonly pageIndex: number;

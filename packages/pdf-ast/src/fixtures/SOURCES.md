@@ -1,3 +1,20 @@
+# PDF.js soft-mask regression fixtures
+
+Unmodified files from Mozilla PDF.js revision
+`91041fb94d6744bc2a5bccd9aad28d617faa8195`, `test/pdfs/`, registered as
+equality cases in `test/test_manifest.json`. Copyright Mozilla Foundation,
+Apache-2.0; see `../../licenses/PDFJS-APACHE-2.0.txt`.
+
+| Local file | Upstream file | SHA-256 |
+| --- | --- | --- |
+| pdfjs-smask_alpha_oob.pdf | smask_alpha_oob.pdf | 38472de8c3e42b94859deae76931fa232b85ba7b86f23d18ccaadb907d697832 |
+| pdfjs-smask_alpha_oob_transfer.pdf | smask_alpha_oob_transfer.pdf | 90b1909aa674c400c76dae0e265e89a83bebc77da4a875a8137c58c7a35a49ec |
+| pdfjs-smask_alpha_bc.pdf | smask_alpha_bc.pdf | fda2a361be849a4b4d95120c8a87208f3d68b06d92fa2293e4dcb96e052d1e34 |
+| pdfjs-smask_luminosity_oob_transfer.pdf | smask_luminosity_oob_transfer.pdf | c691fb3206b5163d0af4d02a1471c0e96f78d9f63804d8ba85867dbdc1c0e740 |
+
+`../render/soft-mask.test.ts` checks the original files at 150px long edge
+or smaller. Independent PDF.js 6.3.289 and SVG/librsvg comparisons use 600px.
+
 # qpdf regression fixtures
 
 Unmodified files from https://github.com/qpdf/qpdf, revision

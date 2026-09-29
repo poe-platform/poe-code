@@ -3,7 +3,7 @@ import { encodeToXmlString, PageViewport } from "../vendor/pdfjs-fonts.mjs";
 import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
 import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
-import type { PdfClipPath, PdfDisplayList, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage } from "../ast.js";
+import type { PdfClipPath, PdfDisplayList, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate } from "../cos/filters.js";
 import { flattenCubic } from "./cubic.js";
 import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
@@ -1182,6 +1182,28 @@ function paintOperations(displayList: PdfDisplayList): readonly PdfPaintOperatio
   ];
 }
 
+// PDF.js _prepareSMaskCanvas/_bakeSMaskCanvas: composite the group's backdrop
+// before converting luminosity, then apply the 256-entry transfer function.
+function renderSoftMask(mask: PdfSoftMask, displayList: PdfDisplayList, scale: number): RgbaBitmap {
+  const bitmap = renderDisplayListToBitmap({
+    ...displayList, rotation: 0, glyphs: [], paths: [], images: [], operations: mask.operations,
+  }, { scale, transparent: true });
+  const { data } = bitmap;
+  for (let i = 0; i < data.length; i += 4) {
+    let value = data[i + 3]!;
+    if (mask.subtype === "Luminosity") {
+      const alpha = value / 255;
+      const r = Math.round(data[i]! * alpha + mask.backdrop.r * 255 * (1 - alpha));
+      const g = Math.round(data[i + 1]! * alpha + mask.backdrop.g * 255 * (1 - alpha));
+      const b = Math.round(data[i + 2]! * alpha + mask.backdrop.b * 255 * (1 - alpha));
+      value = Math.round(pdfLum(r, g, b));
+    }
+    data[i] = data[i + 1] = data[i + 2] = 0;
+    data[i + 3] = mask.transferMap?.[value] ?? value;
+  }
+  return bitmap;
+}
+
 export function renderDisplayListToBitmap(
   displayList: PdfDisplayList,
   options: RenderToPngOptions = {}
@@ -1211,10 +1233,22 @@ export function renderDisplayListToBitmap(
   // Reuse adjacent paints without retaining a page-sized mask for every clip.
   let cachedClips: readonly PdfClipPath[] | undefined;
   let cachedClipMask: Uint8Array | undefined;
+  let cachedSoftMask: PdfSoftMask | undefined;
+  let cachedSoftMaskPixels: Uint8Array | undefined;
   const imageClipMasks = new Map<readonly PdfEvaluatedImage[], Uint8Array>();
   for (const original of paintOperations(displayList)) {
     if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
-    const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
+    let operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
+    if (operation.kind === "group") {
+      const group = operation.value;
+      const bitmap = renderDisplayListToBitmap({ ...displayList, rotation: 0, operations: group.operations }, { ...options, scale, dpiX: undefined, dpiY: undefined, cropRect: undefined, transparent: true });
+      for (let i = 3; i < bitmap.data.length; i += 4) bitmap.data[i] = Math.round(bitmap.data[i]! * group.alpha);
+      operation = { kind: "image", value: {
+        name: "TransparencyGroup", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
+        matrix: [bitmap.width / scale, 0, 0, bitmap.height / scale, 0, displayList.height - bitmap.height / scale],
+        colorSpace: "DeviceRGB", bitsPerComponent: 8, blendMode: group.blendMode, clipRect: group.clipRect,
+      } };
+    }
     const clips = original.value.clipPaths;
     let clipMask = clips && clips === cachedClips ? cachedClipMask : undefined;
     if (clips && !clipMask) {
@@ -1227,6 +1261,19 @@ export function renderDisplayListToBitmap(
       }
       cachedClips = clips;
       cachedClipMask = clipMask;
+    }
+    const softMask = original.value.softMask;
+    if (softMask) {
+      if (softMask !== cachedSoftMask) {
+        cachedSoftMaskPixels = renderSoftMask(softMask, displayList, scale).data;
+        cachedSoftMask = softMask;
+      }
+      if (clipMask) {
+        clipMask = clipMask.slice();
+        for (let i = 3; i < clipMask.length; i += 4) clipMask[i] = Math.round(clipMask[i]! * cachedSoftMaskPixels![i]! / 255);
+      } else {
+        clipMask = cachedSoftMaskPixels;
+      }
     }
     const imageClips = original.value.clipImages;
     if (imageClips) {
@@ -1527,54 +1574,81 @@ export function renderDisplayListToSvg(
     parts.push(`<g transform="matrix(${a} ${b} ${-c} ${-d} ${e + c * displayList.height} ${f + d * displayList.height})">`);
   }
   let clipId = 0;
-  for (const original of paintOperations(displayList)) {
-    if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
-    const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
-    const clips = original.value.clipPaths ?? [];
-    const imageClips = original.value.clipImages ?? [];
-    for (const clip of clips) {
-      const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
-      const id = `text-clip-${clipId++}`;
-      const path = `<path d="${svgPathData(segments, displayList.height)}" clip-rule="${fillRule}"/>`;
-      parts.push(`<defs><clipPath id="${id}" clipPathUnits="userSpaceOnUse">${path}</clipPath></defs><g clip-path="url(#${id})">`);
-    }
-    for (const image of imageClips) {
-      const id = `image-clip-${clipId++}`;
-      parts.push(`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${displayList.width}" height="${displayList.height}" style="mask-type:alpha">${svgImage(image, displayList.height)}</mask></defs><g mask="url(#${id})">`);
-    }
-    if (operation.kind === "path") {
-      const p = operation.value;
-      const pathData = svgPathData(p.segments, displayList.height);
-      if (pathData) {
-        const fill = p.fillColor
-          ? `rgb(${Math.round(p.fillColor.r * 255)},${Math.round(p.fillColor.g * 255)},${Math.round(p.fillColor.b * 255)})`
-          : "none";
-        const stroke = p.strokeColor
-          ? `rgb(${Math.round(p.strokeColor.r * 255)},${Math.round(p.strokeColor.g * 255)},${Math.round(p.strokeColor.b * 255)})`
-          : "none";
-        const fillRuleAttr = p.fillRule === "evenodd" ? ` fill-rule="evenodd"` : "";
-        const fillOpacityAttr = p.fillAlpha !== undefined && p.fillAlpha < 1 ? ` fill-opacity="${p.fillAlpha}"` : "";
-        const strokeOpacityAttr = p.strokeAlpha !== undefined && p.strokeAlpha < 1 ? ` stroke-opacity="${p.strokeAlpha}"` : "";
-        const strokeWidthAttr =
-          p.strokeWidth <= 0
-            ? ` stroke-width="1" vector-effect="non-scaling-stroke"`
-            : ` stroke-width="${p.strokeWidth}"`;
-        const lineCapAttr =
-          p.lineCap === 1 ? ` stroke-linecap="round"` : p.lineCap === 2 ? ` stroke-linecap="square"` : "";
-        const lineJoinAttr =
-          p.lineJoin === 1 ? ` stroke-linejoin="round"` : p.lineJoin === 2 ? ` stroke-linejoin="bevel"` : "";
-        const miterLimitAttr =
-          p.miterLimit !== undefined && p.miterLimit !== 10 ? ` stroke-miterlimit="${p.miterLimit}"` : "";
-        const dashArrayAttr = p.dashArray && p.dashArray.length > 0 ? ` stroke-dasharray="${p.dashArray.join(" ")}"` : "";
-        const dashOffsetAttr = p.dashPhase ? ` stroke-dashoffset="${p.dashPhase}"` : "";
-        const labelAttr = original.kind === "glyph" ? ` aria-label="${escapeXmlText(original.value.unicode)}"` : "";
-        parts.push(`  <path${labelAttr} d="${pathData}" fill="${fill}"${fillRuleAttr}${fillOpacityAttr} stroke="${stroke}"${strokeOpacityAttr}${strokeWidthAttr}${lineCapAttr}${lineJoinAttr}${miterLimitAttr}${dashArrayAttr}${dashOffsetAttr}/>`);
+  const softMaskIds = new Map<PdfSoftMask, string>();
+  const appendOperations = (operations: readonly PdfPaintOperation[]): void => {
+    for (const original of operations) {
+      if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
+      const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
+      const clips = original.value.clipPaths ?? [];
+      const imageClips = original.value.clipImages ?? [];
+      // Blend the finished masked/clipped paint with its parent backdrop.
+      // A blend inside a mask group only sees that group's transparent buffer.
+      const blend = pdfBlendModeToCss(original.value.blendMode);
+      if (blend) parts.push(`<g style="mix-blend-mode:${blend}">`);
+      const softMask = original.value.softMask;
+      if (softMask) {
+        let id = softMaskIds.get(softMask);
+        if (!id) {
+          id = `soft-mask-${clipId++}`;
+          softMaskIds.set(softMask, id);
+          const bitmap = renderSoftMask(softMask, displayList, Math.max(scaleX, scaleY));
+          const image: PdfEvaluatedImage = {
+            name: id, width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
+            matrix: [displayList.width, 0, 0, displayList.height, 0, 0], colorSpace: "DeviceGray", bitsPerComponent: 8,
+          };
+          parts.push(`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${displayList.width}" height="${displayList.height}" style="mask-type:alpha">${svgImage(image, displayList.height)}</mask></defs>`);
+        }
+        parts.push(`<g mask="url(#${id})">`);
       }
-    } else if (operation.kind === "image") {
-      parts.push(`  ${svgImage(operation.value, displayList.height)}`);
+      for (const clip of clips) {
+        const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
+        const id = `text-clip-${clipId++}`;
+        const path = `<path d="${svgPathData(segments, displayList.height)}" clip-rule="${fillRule}"/>`;
+        parts.push(`<defs><clipPath id="${id}" clipPathUnits="userSpaceOnUse">${path}</clipPath></defs><g clip-path="url(#${id})">`);
+      }
+      for (const image of imageClips) {
+        const id = `image-clip-${clipId++}`;
+        parts.push(`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${displayList.width}" height="${displayList.height}" style="mask-type:alpha">${svgImage(image, displayList.height)}</mask></defs><g mask="url(#${id})">`);
+      }
+      if (operation.kind === "group") {
+        parts.push(`<g opacity="${operation.value.alpha}" style="isolation:isolate">`);
+        appendOperations(operation.value.operations);
+        parts.push("</g>");
+      } else if (operation.kind === "path") {
+        const p = operation.value;
+        const pathData = svgPathData(p.segments, displayList.height);
+        if (pathData) {
+          const fill = p.fillColor
+            ? `rgb(${Math.round(p.fillColor.r * 255)},${Math.round(p.fillColor.g * 255)},${Math.round(p.fillColor.b * 255)})`
+            : "none";
+          const stroke = p.strokeColor
+            ? `rgb(${Math.round(p.strokeColor.r * 255)},${Math.round(p.strokeColor.g * 255)},${Math.round(p.strokeColor.b * 255)})`
+            : "none";
+          const fillRuleAttr = p.fillRule === "evenodd" ? ` fill-rule="evenodd"` : "";
+          const fillOpacityAttr = p.fillAlpha !== undefined && p.fillAlpha < 1 ? ` fill-opacity="${p.fillAlpha}"` : "";
+          const strokeOpacityAttr = p.strokeAlpha !== undefined && p.strokeAlpha < 1 ? ` stroke-opacity="${p.strokeAlpha}"` : "";
+          const strokeWidthAttr =
+            p.strokeWidth <= 0
+              ? ` stroke-width="1" vector-effect="non-scaling-stroke"`
+              : ` stroke-width="${p.strokeWidth}"`;
+          const lineCapAttr =
+            p.lineCap === 1 ? ` stroke-linecap="round"` : p.lineCap === 2 ? ` stroke-linecap="square"` : "";
+          const lineJoinAttr =
+            p.lineJoin === 1 ? ` stroke-linejoin="round"` : p.lineJoin === 2 ? ` stroke-linejoin="bevel"` : "";
+          const miterLimitAttr =
+            p.miterLimit !== undefined && p.miterLimit !== 10 ? ` stroke-miterlimit="${p.miterLimit}"` : "";
+          const dashArrayAttr = p.dashArray && p.dashArray.length > 0 ? ` stroke-dasharray="${p.dashArray.join(" ")}"` : "";
+          const dashOffsetAttr = p.dashPhase ? ` stroke-dashoffset="${p.dashPhase}"` : "";
+          const labelAttr = original.kind === "glyph" ? ` aria-label="${escapeXmlText(original.value.unicode)}"` : "";
+          parts.push(`  <path${labelAttr} d="${pathData}" fill="${fill}"${fillRuleAttr}${fillOpacityAttr} stroke="${stroke}"${strokeOpacityAttr}${strokeWidthAttr}${lineCapAttr}${lineJoinAttr}${miterLimitAttr}${dashArrayAttr}${dashOffsetAttr}/>`);
+        }
+      } else if (operation.kind === "image") {
+        parts.push(`  ${svgImage(operation.value, displayList.height)}`);
+      }
+      for (let i = 0; i < clips.length + imageClips.length + (softMask ? 1 : 0) + (blend ? 1 : 0); i++) parts.push("</g>");
     }
-    for (let i = 0; i < clips.length + imageClips.length; i++) parts.push("</g>");
-  }
+  };
+  appendOperations(paintOperations(displayList));
   if (displayList.rotation) parts.push("</g>");
   parts.push("</svg>\n");
   return parts.join("\n");

@@ -359,6 +359,19 @@ device pixel as the enlargement threshold. `image-downsampling.test.ts` adds
 memory-only stripe, alpha, transform, stencil, and save/reopen regressions;
 the unchanged upstream issue13372 fixture also covers reduced patterned masks.
 
+ExtGState soft-mask evaluation and rendering follow PDF.js `handleSMask`,
+`beginGroup`, `_prepareSMaskCanvas`, and `_bakeSMaskCanvas` at the same revision
+(Mozilla Foundation, Apache-2.0). The adapter captures page-coordinate mask
+paints, resets group alpha/blend/soft-mask state, converts the luminosity
+backdrop before filtering, and builds a 256-entry transfer table. Isolated
+Forms retain their own paint groups so outer opacity is applied once.
+Bitmap masks retain only the current prepared surface; SVG masks use the
+export resolution while isolated Form contents remain vector groups.
+`soft-mask.test.ts` ports four unchanged upstream equality fixtures, recorded
+in `src/fixtures/SOURCES.md`, and adds local alpha/transform/group tests plus
+the original issue17069 signature regression. Soft-mask evaluation is bounded
+by the existing eight-level Form limit; mask-only text is excluded from extraction.
+
 Malformed dictionary-key recovery follows PDF.js `Parser.getObj`, skipping
 stray non-Name tokens only in local repair mode. Damaged optional ToUnicode
 streams follow `PartialEvaluator.readToUnicode` error recovery while retaining

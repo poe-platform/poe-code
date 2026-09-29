@@ -10,6 +10,7 @@ import {
   type PdfClipPath,
   type PdfContentNode,
   type PdfCosDict,
+  type PdfCosStream,
   type PdfDictEntry,
   type PdfDisplayList,
   type PdfEvaluatedImage,
@@ -19,6 +20,7 @@ import {
   type PdfPlacedGlyph,
   type PdfPaintOperation,
   type PdfRgbColor,
+  type PdfSoftMask,
 } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
@@ -316,6 +318,7 @@ interface GraphicsState {
   strokeColorSpaceName: string;
   clipPaths?: readonly PdfClipPath[];
   clipImages?: readonly PdfEvaluatedImage[];
+  softMask?: PdfSoftMask | undefined;
   clipRect?: [number, number, number, number] | undefined;
   dashArray?: readonly number[] | undefined;
   dashPhase?: number | undefined;
@@ -1388,12 +1391,15 @@ export function evaluateContentStreamToDisplayList(params: {
   const paths: PdfEvaluatedPath[] = [];
   const images: PdfEvaluatedImage[] = [];
   const operations: PdfPaintOperation[] = [];
+  let capturedOperations: PdfPaintOperation[] | undefined;
+  let insideSoftMask = false;
   const emit = (operation: PdfPaintOperation): void => {
-    const { clipPaths, clipImages } = curState();
-    if (clipPaths || clipImages) operation = { ...operation, value: { ...operation.value,
-      ...(clipPaths ? { clipPaths } : {}), ...(clipImages ? { clipImages } : {}),
+    const { clipPaths, clipImages, softMask } = curState();
+    if (clipPaths || clipImages || softMask) operation = { ...operation, value: { ...operation.value,
+      ...(clipPaths ? { clipPaths } : {}), ...(clipImages ? { clipImages } : {}), ...(softMask ? { softMask } : {}),
     } } as PdfPaintOperation;
-    operations.push(operation);
+    (capturedOperations ?? operations).push(operation);
+    if (insideSoftMask) return;
     switch (operation.kind) {
       case "path": paths.push(operation.value); break;
       case "image": images.push(operation.value); break;
@@ -1512,7 +1518,9 @@ export function evaluateContentStreamToDisplayList(params: {
     st: GraphicsState,
     operator: string,
     ops: readonly import("../ast.js").PdfCosNode[],
-    activeResources: PdfCosDict | undefined
+    activeResources: PdfCosDict | undefined,
+    activeFonts: Map<string, ResolvedPageFont>,
+    depth: number
   ): void => {
     const num = (i: number, fb = 0) => (ops[i]?.kind === "number" ? ops[i]!.value : fb);
     if (operator === "cm") {
@@ -1598,6 +1606,51 @@ export function evaluateContentStreamToDisplayList(params: {
       const extDict = params.cosDoc.resolveDict(dictGet(activeResources, "ExtGState"));
       const gsDict = extDict ? params.cosDoc.resolveDict(dictGet(extDict, ops[0].decoded)) : undefined;
       if (gsDict) {
+        const mask = params.cosDoc.resolve(dictGet(gsDict, "SMask"));
+        if (mask?.kind === "name" && mask.decoded === "None") {
+          st.softMask = undefined;
+        } else if (mask?.kind === "dict") {
+          const subtype = params.cosDoc.resolve(dictGet(mask, "S"));
+          const form = params.cosDoc.resolve(dictGet(mask, "G"));
+          if (form?.kind === "stream" && subtype?.kind === "name" && (subtype.decoded === "Alpha" || subtype.decoded === "Luminosity")) {
+            if (depth >= 8) throw new PdfError("E_LIMIT", "Soft-mask nesting exceeds the form depth limit");
+            const parentOperations = capturedOperations;
+            const parentInsideSoftMask = insideSoftMask;
+            const savedTextState = { pendingTextClip, hasTextClip, activeTm, activeTlm };
+            const captured: PdfPaintOperation[] = [];
+            capturedOperations = captured;
+            insideSoftMask = true;
+            // PDF.js beginGroup resets these three transparency parameters.
+            // Outer clipping is applied to the eventual paint, not twice to
+            // both its mask and its coverage at antialiased boundaries.
+            const maskState = { ...st, softMask: undefined, fillAlpha: 1, strokeAlpha: 1, blendMode: "Normal" };
+            delete maskState.clipPaths;
+            delete maskState.clipImages;
+            delete maskState.clipRect;
+            stateStack.push(maskState);
+            try {
+              paintForm(form, activeResources, activeFonts, depth, undefined, undefined, true);
+            } finally {
+              stateStack.pop();
+              capturedOperations = parentOperations;
+              insideSoftMask = parentInsideSoftMask;
+              ({ pendingTextClip, hasTextClip, activeTm, activeTlm } = savedTextState);
+            }
+            const group = params.cosDoc.resolveDict(dictGet(form.dict, "Group"));
+            const colorSpace = group ? dictGet(group, "CS") : undefined;
+            const bc = params.cosDoc.resolveArray(dictGet(mask, "BC"));
+            const components = bc?.items.map(item => {
+              const value = params.cosDoc!.resolve(item);
+              return value?.kind === "number" ? value.value : 0;
+            });
+            const [r, g, b] = components ? convertColorSpaceComponentsToRgb(params.cosDoc, colorSpace, "DeviceRGB", components, activeResources) : [0, 0, 0];
+            const transfer = params.cosDoc.resolve(dictGet(mask, "TR"));
+            const transferMap = transfer?.kind === "dict" || transfer?.kind === "stream"
+              ? Uint8Array.from({ length: 256 }, (_, i) => Math.floor(kClamp(Math.fround(evalShadingFunctionToComponents(params.cosDoc!, transfer, Math.fround(i / 255))[0] ?? 0)) * 255))
+              : undefined;
+            st.softMask = { subtype: subtype.decoded, operations: captured, backdrop: { r, g, b }, transferMap };
+          }
+        }
         const bmNode = params.cosDoc.resolve(dictGet(gsDict, "BM"));
         if (bmNode?.kind === "name") {
           st.blendMode = bmNode.decoded === "Compatible" ? "Normal" : bmNode.decoded;
@@ -1697,6 +1750,95 @@ export function evaluateContentStreamToDisplayList(params: {
     stateStack.pop();
   };
 
+  const paintForm = (
+    form: PdfCosStream,
+    activeResources: PdfCosDict | undefined,
+    activeFonts: Map<string, ResolvedPageFont>,
+    depth: number,
+    mcid?: number,
+    actualText?: string,
+    maskGroup = false
+  ): void => {
+    const st = curState();
+    const group = params.cosDoc!.resolveDict(dictGet(form.dict, "Group"));
+    const groupType = group ? params.cosDoc!.resolve(dictGet(group, "S")) : undefined;
+    const isolated = group ? params.cosDoc!.resolve(dictGet(group, "I")) : undefined;
+    const isolate = !maskGroup && groupType?.kind === "name" && groupType.decoded === "Transparency" && isolated?.kind === "boolean" && isolated.value;
+    const formStreamBytes = params.cosDoc!.decodeStream(form);
+    const formNodes = parseContentStream(formStreamBytes);
+    const formResDict = params.cosDoc!.resolveDict(dictGet(form.dict, "Resources")) ?? activeResources;
+    const formFonts = new Map<string, ResolvedPageFont>(activeFonts);
+    for (const [k, v] of resolvePageFonts(params.cosDoc, formResDict).entries()) {
+      formFonts.set(k, v);
+    }
+    let nextCtm: Matrix6 = [...st.ctm] as Matrix6;
+    const matArr = params.cosDoc!.resolveArray(dictGet(form.dict, "Matrix"));
+    if (matArr && matArr.items.length >= 6) {
+      const mn = (idx: number, fb = 0) => {
+        const resolved = params.cosDoc!.resolve(matArr.items[idx]);
+        return resolved?.kind === "number" ? resolved.value : fb;
+      };
+      const formMat: Matrix6 = [mn(0, 1), mn(1, 0), mn(2, 0), mn(3, 1), mn(4, 0), mn(5, 0)];
+      nextCtm = multiplyMatrices(formMat, nextCtm);
+    }
+    let nextClip = !isolate && st.clipRect ? ([...st.clipRect] as [number, number, number, number]) : undefined;
+    let nextClipPaths = isolate ? undefined : st.clipPaths;
+    const bboxArr = params.cosDoc!.resolveArray(dictGet(form.dict, "BBox"));
+    if (bboxArr && bboxArr.items.length >= 4) {
+      const bn = (idx: number, fb = 0) => {
+        const resolved = params.cosDoc!.resolve(bboxArr.items[idx]);
+        return resolved?.kind === "number" ? resolved.value : fb;
+      };
+      const bx0 = bn(0, 0), by0 = bn(1, 0), bx1 = bn(2, 0), by1 = bn(3, 0);
+      const pts = [
+        transformPoint(nextCtm, bx0, by0),
+        transformPoint(nextCtm, bx1, by0),
+        transformPoint(nextCtm, bx1, by1),
+        transformPoint(nextCtm, bx0, by1),
+      ];
+      nextClipPaths = [...(nextClipPaths ?? []), [
+        ...pts.map(([x, y], index) => ({ kind: index === 0 ? "move" as const : "line" as const, x: x!, y: y! })),
+        { kind: "close" },
+      ]];
+      const fMinX = Math.min(...pts.map(p => p[0]));
+      const fMinY = Math.min(...pts.map(p => p[1]));
+      const fMaxX = Math.max(...pts.map(p => p[0]));
+      const fMaxY = Math.max(...pts.map(p => p[1]));
+      if (fMaxX > fMinX && fMaxY > fMinY) {
+        nextClip = nextClip
+          ? [
+              Math.max(nextClip[0], fMinX),
+              Math.max(nextClip[1], fMinY),
+              Math.min(nextClip[2], fMaxX),
+              Math.min(nextClip[3], fMaxY),
+            ]
+          : [fMinX, fMinY, fMaxX, fMaxY];
+      }
+    }
+    const parentOperations = capturedOperations;
+    const children: PdfPaintOperation[] = [];
+    const nextState = { ...st, ctm: nextCtm };
+    if (isolate) {
+      capturedOperations = children;
+      nextState.fillAlpha = nextState.strokeAlpha = 1;
+      nextState.blendMode = "Normal";
+      nextState.softMask = undefined;
+      delete nextState.clipImages;
+      delete nextState.clipPaths;
+      delete nextState.clipRect;
+    }
+    if (nextClip) nextState.clipRect = nextClip;
+    if (nextClipPaths) nextState.clipPaths = nextClipPaths;
+    stateStack.push(nextState);
+    try {
+      walkNodes(formNodes, mcid, actualText, formResDict, formFonts, depth + 1);
+    } finally {
+      stateStack.pop();
+      capturedOperations = parentOperations;
+    }
+    if (isolate) emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, blendMode: st.blendMode, clipRect: st.clipRect } });
+  };
+
   const walkNodes = (
     nodes: readonly PdfContentNode[],
     mcid?: number,
@@ -1752,7 +1894,7 @@ export function evaluateContentStreamToDisplayList(params: {
         }
 
         case "state-op": {
-          applyStateOperator(curState(), node.operator, node.operands, activeResources);
+          applyStateOperator(curState(), node.operator, node.operands, activeResources, activeFonts, depth);
           break;
         }
 
@@ -2051,55 +2193,7 @@ export function evaluateContentStreamToDisplayList(params: {
                   ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
                 }, patternMask, activeResources, activeFonts, depth);
               } else if (sub === "Form" && depth < 8) {
-                const formStreamBytes = params.cosDoc.decodeStream(xobjNode);
-                const formNodes = parseContentStream(formStreamBytes);
-                const formResDict = params.cosDoc.resolveDict(dictGet(xobjNode.dict, "Resources")) ?? activeResources;
-                const formFonts = new Map<string, ResolvedPageFont>(activeFonts);
-                for (const [k, v] of resolvePageFonts(params.cosDoc, formResDict).entries()) {
-                  formFonts.set(k, v);
-                }
-                let nextCtm: Matrix6 = [...st.ctm] as Matrix6;
-                const matArr = params.cosDoc.resolveArray(dictGet(xobjNode.dict, "Matrix"));
-                if (matArr && matArr.items.length >= 6) {
-                  const mn = (idx: number, fb = 0) => {
-                    const resolved = params.cosDoc!.resolve(matArr.items[idx]);
-                    return resolved?.kind === "number" ? resolved.value : fb;
-                  };
-                  const formMat: Matrix6 = [mn(0, 1), mn(1, 0), mn(2, 0), mn(3, 1), mn(4, 0), mn(5, 0)];
-                  nextCtm = multiplyMatrices(formMat, nextCtm);
-                }
-                let nextClip = st.clipRect ? ([...st.clipRect] as [number, number, number, number]) : undefined;
-                const bboxArr = params.cosDoc.resolveArray(dictGet(xobjNode.dict, "BBox"));
-                if (bboxArr && bboxArr.items.length >= 4) {
-                  const bn = (idx: number, fb = 0) => {
-                    const resolved = params.cosDoc!.resolve(bboxArr.items[idx]);
-                    return resolved?.kind === "number" ? resolved.value : fb;
-                  };
-                  const bx0 = bn(0, 0), by0 = bn(1, 0), bx1 = bn(2, 0), by1 = bn(3, 0);
-                  const pts = [
-                    transformPoint(nextCtm, bx0, by0),
-                    transformPoint(nextCtm, bx1, by0),
-                    transformPoint(nextCtm, bx0, by1),
-                    transformPoint(nextCtm, bx1, by1),
-                  ];
-                  const fMinX = Math.min(...pts.map(p => p[0]));
-                  const fMinY = Math.min(...pts.map(p => p[1]));
-                  const fMaxX = Math.max(...pts.map(p => p[0]));
-                  const fMaxY = Math.max(...pts.map(p => p[1]));
-                  if (fMaxX > fMinX && fMaxY > fMinY) {
-                    nextClip = nextClip
-                      ? [
-                          Math.max(nextClip[0], fMinX),
-                          Math.max(nextClip[1], fMinY),
-                          Math.min(nextClip[2], fMaxX),
-                          Math.min(nextClip[3], fMaxY),
-                        ]
-                      : [fMinX, fMinY, fMaxX, fMaxY];
-                  }
-                }
-                stateStack.push({ ...st, ctm: nextCtm, ...(nextClip ? { clipRect: nextClip } : {}) });
-                walkNodes(formNodes, mcid, actualText, formResDict, formFonts, depth + 1);
-                if (stateStack.length > 1) stateStack.pop();
+                paintForm(xobjNode, activeResources, activeFonts, depth, mcid, actualText);
               }
             }
           }
@@ -2328,7 +2422,7 @@ export function evaluateContentStreamToDisplayList(params: {
                 st.textRenderMode = cmd.mode;
                 break;
               case "state-op":
-                applyStateOperator(st, cmd.operator, cmd.operands, activeResources);
+                applyStateOperator(st, cmd.operator, cmd.operands, activeResources, activeFonts, depth);
                 break;
               case "show-text":
                 emitTokenBytes(cmd.token.bytes);

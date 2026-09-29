@@ -48,13 +48,17 @@ retain the removed content. Content still used on other pages remains intact;
 redact each occurrence that needs removal.
 
 `page.evaluateDisplayList().operations` exposes paints in content-stream order,
-including nested Forms and patterns. Standard-font glyph outlines are attached
+including nested Forms and patterns. Isolated transparency Forms appear as
+`group` operations with child paints and group opacity; `softMask` preserves
+Alpha/Luminosity mask content, backdrop, and transfer values. Standard-font glyph outlines are attached
 to `glyph.outline`, keeping letters separate from page drawing paths. The `glyphs`, `paths`, and
 `images` arrays remain available for inspection and extraction.
 
 Stencil images preserve the current shading or tiling pattern in bitmap and
 SVG output. Their transformed alpha masks are available as `clipImages` on
 display-list paints; source image extraction remains independent of painting.
+ExtGState soft masks and isolated Form opacity apply to bitmap and SVG output;
+SVG keeps Form contents as vectors and rasterizes soft masks at the export scale.
 
 All 14 standard PDF fonts use bundled PDFium/Foxit outlines and PDF.js metrics.
 PNG and SVG preserve font styles without installed system fonts; SVG exports

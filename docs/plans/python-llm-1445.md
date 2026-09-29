@@ -19,9 +19,9 @@ passing notes are not current acceptance evidence.
 | Requirement | Current source/evidence | Remaining acceptance |
 | --- | --- | --- |
 | Bundled typed requests/responses/exceptions | Current `python/llm-module.ts`; deterministic Python API suites pass on resumed main | Installed tarball import verified; final rich-service artifact still required |
-| Discovery, prompt/system/messages/options, attachments, complete/stream | Python API and named bridge recovered on main | Real shared-service adapter; Bash/Python semantic equivalence |
-| Defaults, prompt functions, transforms, composition and conversations | Current deterministic Python suite | Exact single-call/streaming/shell scripts pass installed launcher; rich customization parity remains |
-| Templates/schema/embeddings and shared-service parity | Python request surface exists; main service is narrower | Integrate 1443 service contract; retain supported-operation parity matrix |
+| Discovery, prompt/system/messages/options, attachments, complete/stream | `createPythonLlmCapability` reuses the injected `LlmService`; Bash/Python request equivalence and rich request tests pass | Final installed shared-service artifact |
+| Defaults, prompt functions, transforms, composition and conversations | Deterministic suite passes; executable `llm-customize.py` added alongside the three existing scripts | Exact four-script replay in final installed shared-service artifact |
+| Templates/schema/embeddings and shared-service parity | Actual shared schema/messages/embed routes implemented, embedding metadata owned and retained | Named templates, persisted conversations and remaining reference CLI workflows still require #1443; explicit rejection is not completion |
 | Provider/auth/billing ownership | Named data-only capability keeps host objects out of Python | Reuse authorized consumer service; hosted receipt |
 | Async iteration, early close, cancellation, exceptions and per-call limits | Current API tests and bridge sources | Installed tarball workerd gate passes cancellation/early close/binary events; final rich-service gate still required |
 | Canonical filesystem, no direct CLI routing | Canonical attachment paths and shell bridge contract | Provider attachment parity and real file round trips |
@@ -67,3 +67,30 @@ they do not establish the richer shared-service parity or hosted auth/billing
 requirements. Logs: `out/installed-python-runtime.log`,
 `out/installed-python-examples.log`, `out/native-envelope-green-final.log`.
 Publication and final shared-service/consumer qualification remain open.
+
+## Resumed shared-service qualification
+
+The native capability now uses the same injected authorized `LlmService` as
+`llmCommands({service})`. No provider transport or manual fake-library bridge is
+introduced. The focused final deterministic API route passes all 19 Node tests
+(`out/python-final-api-contracts-qualified.log`), including a 16 MiB provider
+bytes event split into configured 4 KiB messages, byte order, one final metadata
+event and early provider cleanup. The adapter defaults binary chunks to 16 KiB;
+applications must choose chunks with JSON-envelope headroom under finite native
+message budgets. Buffered completion remains a whole result and may be refused.
+
+Subprocess regressions reproduced parent-environment leakage and lost timeout
+output. Supplied environments now replace child environments; unspecified env
+inherits, leaving parent state unchanged. Buffered deadline failures carry
+partial stdout/stderr into ordinary `subprocess.TimeoutExpired`. Streaming
+deadlines still fail and await child cleanup. Actual source-mode workerd replay passes both
+behaviors, a 2 MiB binary provider event under a finite 1 MiB bridge budget,
+embedding metadata, cancellation and all four executable documentation scripts
+(`out/source-python-final-current.log`, 2/2 tests).
+
+Maintained normal workspace build and repository-wide lint passed before the
+latest compatibility/chunking changes. Focused final ESLint passes. Serialized
+full `npm test` has passed 250 root files / 5,228 root tests and continues through
+workspace batches; no final full-unit success is claimed yet. Final independently
+installed candidate, remote-main delivery of these commits, published package
+provenance and compliant hosted consumer receipts remain pending.

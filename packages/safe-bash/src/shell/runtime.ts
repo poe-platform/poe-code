@@ -28062,7 +28062,7 @@ export class Runtime {
     return undefined;
   }
 
-  private evalSyncFactor(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+  private evalSyncFactor(rawLines: readonly string[] | undefined, opArgs: readonly string[]): string[] | undefined {
     let optionsEnded = false;
     let exponents = false;
     const operands: string[] = [];
@@ -28077,6 +28077,7 @@ export class Runtime {
     if (operands.length > 0) {
       for (const op of operands) tokens.push(op);
     } else {
+      if (rawLines === undefined) return undefined;
       for (const line of rawLines) {
         for (const t of line.split(/[ \t\r\n\f\v]+/)) {
           if (t.length > 0) tokens.push(t);
@@ -28120,7 +28121,7 @@ export class Runtime {
     return out;
   }
 
-  private evalSyncTsort(rawLines: readonly string[], opArgs: readonly string[], cwd: string): string[] | undefined {
+  private evalSyncTsort(rawLines: readonly string[] | undefined, opArgs: readonly string[], cwd: string): string[] | undefined {
     let optionsEnded = false;
     const files: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
@@ -28136,6 +28137,7 @@ export class Runtime {
       if (memLines === undefined) return undefined;
       linesToRead = memLines;
     }
+    if (linesToRead === undefined) return undefined;
     const tokens: string[] = [];
     for (const line of linesToRead) {
       for (const t of line.split(/[ \t\r\n\f\v]+/)) {
@@ -28186,7 +28188,7 @@ export class Runtime {
     return out;
   }
 
-  private evalSyncEnvsubst(inStr: string, opArgs: readonly string[], rawState: State): string | undefined {
+  private evalSyncEnvsubst(inStr: string | undefined, opArgs: readonly string[], rawState: State): string | undefined {
     let endOfOptions = false;
     let variablesMode = false;
     const operands: string[] = [];
@@ -28212,6 +28214,7 @@ export class Runtime {
       const vars = extractVars(operands[0]!);
       return vars.length > 0 ? vars.join("\n") + "\n" : "";
     }
+    if (inStr === undefined) return undefined;
     const allowedVars = operands.length === 1 ? new Set(extractVars(operands[0]!)) : undefined;
     const raw = (stateMonitor(rawState)?.raw ?? rawState) as State & { _exported?: Set<string> };
     const isRestrictedEnv = raw._exported === undefined && "_exported" in raw;
@@ -30901,11 +30904,11 @@ export class Runtime {
         if (w0Plain === "comm") cjLines = this.evalSyncComm(stdinLines, allArgs, rawState.cwd);
         else if (w0Plain === "join") cjLines = this.evalSyncJoin(stdinLines, allArgs, rawState.cwd);
         else if (w0Plain === "paste") cjLines = this.evalSyncPaste(stdinLines ?? [], allArgs, rawState.cwd);
-        else if (w0Plain === "factor") cjLines = this.evalSyncFactor(stdinLines ?? [], allArgs);
-        else if (w0Plain === "tsort") cjLines = this.evalSyncTsort(stdinLines ?? [], allArgs, rawState.cwd);
+        else if (w0Plain === "factor") cjLines = this.evalSyncFactor(stdinLines, allArgs);
+        else if (w0Plain === "tsort") cjLines = this.evalSyncTsort(stdinLines, allArgs, rawState.cwd);
         else if (w0Plain === "jq") cjLines = this.evalSyncJq(undefined, allArgs, rawState.cwd);
         else if (w0Plain === "envsubst") {
-          const esOut = this.evalSyncEnvsubst("", allArgs, rawState);
+          const esOut = this.evalSyncEnvsubst(undefined, allArgs, rawState);
           if (esOut !== undefined) cjLines = esOut.endsWith("\n") ? esOut.slice(0, -1).split("\n") : (esOut ? [esOut] : []);
         }
         else if (w0Plain === "numfmt") {

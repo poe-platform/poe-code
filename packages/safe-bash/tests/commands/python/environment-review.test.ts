@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { setImmediate as nextTurn } from 'node:timers/promises';
 import { test } from 'node:test';
-import { MemoryFileSystem } from 'poe-code/safe-fs/core';
+import { MemoryFileSystem } from '@poe-code/safe-fs/core';
 import { Shell } from '../../../src/core.js';
 import * as python from '../../../src/commands/python/index.js';
 

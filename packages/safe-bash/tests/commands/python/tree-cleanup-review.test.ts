@@ -4,8 +4,8 @@ import { test } from 'node:test';
 import {
   DeviceFileSystem, FsError, MemoryFileSystem, MountFileSystem, PythonFileSystem, ReadOnlyFileSystem,
   scopeFileSystem, withFileSystemQuota,
-} from 'poe-code/safe-fs/core';
-import type { ConditionalRemoveEntryOptions, FsOptions } from 'poe-code/safe-fs/core';
+} from '@poe-code/safe-fs/core';
+import type { ConditionalRemoveEntryOptions, FsOptions } from '@poe-code/safe-fs/core';
 
 function deferred<Value = void>() {
   let resolve!: (value: Value) => void;

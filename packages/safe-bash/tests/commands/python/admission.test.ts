@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { MemoryFileSystem } from 'poe-code/safe-fs/core';
+import { MemoryFileSystem } from '@poe-code/safe-fs/core';
 import type { CommandContext } from '../../../src/contracts/command.js';
 import { createPythonCommands, type PythonWorkerEndpoint } from '../../../src/commands/python/index.js';
 import { registerYieldCheckpoint } from '../../../src/contracts/yield.js';

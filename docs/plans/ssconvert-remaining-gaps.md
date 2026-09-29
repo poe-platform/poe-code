@@ -7,7 +7,7 @@ readiness: draft
 
 # Resolve remaining ssconvert gaps
 
-Tracking: hey-boss #1748; release repairs: #3360. All 19 families remain open.
+All 19 compatibility and qualification families remain open.
 This compact current plan replaces the removed historical gap plan. Detailed
 current findings and source receipts belong in [the case ledger](../ssconvert/gap-resolution.json).
 A delivered partial fix does not close its family.
@@ -174,7 +174,7 @@ Historical mismatch counts and earlier installed artifacts are not current proof
 - [ ] Run actual compiled SDK and command conversions for each changed profile. Independently decode native output records and recalculate in the matching application. For live label scalar/SUM cases require fresh values 2/5 from stale cache 999, preserved tokens and correct behavior after editing the former data gap.
 - [ ] Execute installed artifact conversions outside the checkout with native commands absent from PATH; independently read edited output and compile strict consumers. Inspect actual CLI diagnostics and rendering screenshots.
 - [ ] Before final integrated acceptance, run the maintained root build, tests and lint routes; fix failures and timeouts. A focused package result cannot close the complete integration gate.
-- [ ] Verify each delivered commit's ancestry on remote main, required CI, actual registry version/provenance and installed release behavior separately. Close #1748 and complete the goal only after every requirement is proven; notify through hey-boss when ready.
+- [ ] Verify each delivered commit's ancestry on remote main, required CI, actual registry version/provenance and installed release behavior separately. Complete the goal only after every requirement is proven.
 
 ## 5. Code plan
 

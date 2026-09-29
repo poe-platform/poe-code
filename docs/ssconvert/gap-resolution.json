@@ -649,7 +649,7 @@
             "message": "gnm_value_to_py_obj: unsupported value type"
           }
         ],
-        "status": "Multiplicity mismatch: native has two warning occurrences, current public surfaces one. SDK diagnostic message matches; CLI omits native GLib process/time decoration. Track #2248; isolate loading versus forced recalculation before changing behavior."
+        "status": "Multiplicity mismatch: native has two warning occurrences, current public surfaces one. SDK diagnostic message matches; CLI omits native GLib process/time decoration. Isolate loading versus forced recalculation before changing behavior."
       },
       "remaining": "Full plugin lifecycle/environment behavior, custom Python object/reference services, packed/installed consumers and containing publication remain open. The prior diagnostic mismatch is retained above as historical evidence; current load-stage qualification is recorded separately. No broad family is closed.",
       "loadRecalculation": {
@@ -907,7 +907,7 @@
       "validation": "Six of seven original regressions failed. All 303 tests in fifteen Lotus files pass after correction, including WK1/WK2 controls, mixed range endpoints, negative bounds and source-defined row wrapping. Maintained package lint, source/test/consumer types and selected build pass. A test fixture initially placed its formula over the control cell; correcting the origin preserved both independent negative-axis assertions.",
       "publicQualification": "Compiled public --recalc WKS-to-XLSX conversion and SDK readback preserve six expected formulas and numeric results, including three backward references recalculating to 42. Each input is 54 bytes; outputs range from 4061 to 4069 bytes. Empty diagnostics; all inputs stay in memory.",
       "remaining": "DOS Symphony 0x0405 offsets are addressed separately in lotusSymphonyReferences. Ambiguous DOS Works profiles, native Works/libwps application readback, relative-sheet identity, modern range flag packing and wider format qualification remain open. No family is closed.",
-      "currentReferencePolicy": "See lotusInvalidRanges.boundsAndMasks: explicit #3470/#3529 bounds/masks supersede historical raw absolute and unbounded positive reference behavior."
+      "currentReferencePolicy": "See lotusInvalidRanges.boundsAndMasks: explicit bounds/masks supersede historical raw absolute and unbounded positive reference behavior."
     },
     "lotusLegacyReferenceOffsets": {
       "status": "implemented for BOF 0x0404 and 0x0406; other profiles and application qualification open",
@@ -934,7 +934,7 @@
       "validation": "Seven of twelve original in-memory assertions failed before correction. All 163 tests in eleven Lotus files pass after correction, as do maintained package lint/types and the four-workspace selected build. Recalculation explicitly forces refresh of the fixture's stale cached zero.",
       "publicReadback": "Compiled SDK import and public command --recalc XLSX export/readback preserve =A1 and value 42 for both BOF versions, exit 0, empty stderr, 4074 bytes each. Fixtures and outputs remain in memory.",
       "remaining": "Windows Works and DOS Symphony offsets are addressed in separate source records. Ambiguous DOS Works profiles, modern range flag packing, relative sheets and independent application readback remain open. No Lotus family closure.",
-      "currentReferencePolicy": "See lotusInvalidRanges.boundsAndMasks: explicit #3470/#3529 bounds/masks supersede historical raw absolute and unbounded positive reference behavior."
+      "currentReferencePolicy": "See lotusInvalidRanges.boundsAndMasks: explicit bounds/masks supersede historical raw absolute and unbounded positive reference behavior."
     },
     "lotusWk3Admission": {
       "status": "implemented for BOF 0x1000, subtype 4, length 26; broader qualification open",
@@ -955,14 +955,12 @@
       "validation": "Four admission/decoding assertions failed before correction. All 167 tests in twelve Lotus files pass; maintained package lint/types and selected build pass. Wrong subtype/length remain refused.",
       "publicReadback": "A 133-byte in-memory WK3 fixture autodetects through the compiled SDK and converts through the public --recalc command to 4087-byte XLSX. Readback preserves values 7/8/8 and both =(A1+1) formulas; exit 0, empty stderr.",
       "remaining": "Wider WK3 formatting, charset and companion records, relative sheets, range flag packing and independent application qualification remain open. No Lotus family closure.",
-      "defaultCharset": {
-        "issue": 3473,
-        "source": "LibreOffice bce0998a lotimpop.cxx:57-86 reads the WK3 BOF save count/major/minor identifiers then skips byte 16. It is not an LMBCS group selector for the 0x1000/subtype-4/26-byte profile.",
+      "defaultCharset": {"source": "LibreOffice bce0998a lotimpop.cxx:57-86 reads the WK3 BOF save count/major/minor identifiers then skips byte 16. It is not an LMBCS group selector for the 0x1000/subtype-4/26-byte profile.",
         "implementation": "Only modern versions >=0x1002 read the existing group selector. WK3 retains default group 1 even when reserved byte 16 is nonzero. Cell labels, formula literals/caches and names share the preserved group.",
         "validation": "Three original memory cases (reserved byte 0/16/255) fail before repair; modern group 1 and Japanese group 16 controls pass. All 360 tests in 19 Lotus files, package lint/source/test/consumer types and selected build pass. Twelve compiled SDK/command XLSX exports across both editions preserve original Cafe-with-accent name, four string values and literal/reference formulas without diagnostics or input mutation.",
         "native": "Independent OOXML inspection and all twelve Calc 26.8.0.3 XLSX readbacks preserve Caf\u00e9 in the name and all four cells, plus both live formulas. This is product-output interoperability, not a native WK3 input-decoding qualification.",
         "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{wk3-group-source,wk3-compiled-proof,wk3-native-proof,wk3-cleanup}.json",
-        "remaining": "Wider WK3 charsets/records and original native-format qualification remain under 1748; no Lotus family or publication closure."
+        "remaining": "Wider WK3 charsets/records and original native-format qualification remain under the broader compatibility goal; no Lotus family or publication closure."
       }
     },
     "lotusLookupSemantics": {
@@ -976,18 +974,14 @@
       "validation": "Nine original regressions failed. All 239 tests in thirteen Lotus files, maintained package lint/types and selected build pass.",
       "publicReadback": "Compiled command --recalc XLSX and SDK readback preserve INDEX/VLOOKUP/HLOOKUP results 10/20/20 and translated formulas across BOF 0x0404 direct, 0x1000 direct and 0x1002 named. Inputs 163/183/240 bytes, outputs 4159/4147/4147 bytes; exit 0, empty stderr. Fixtures remain in memory.",
       "remaining": "Relative sheet spans and their relocation, computed source spans, native negative-offset error distinctions and wider qualification remain open.",
-      "fourArguments": {
-        "issue": 3478,
-        "implementation": "Apply row/column swap and zero-based increments when INDEX has four operands, including incrementing its sheet offset. Single-sheet ranges accept offset zero.",
+      "fourArguments": {"implementation": "Apply row/column swap and zero-based increments when INDEX has four operands, including incrementing its sheet offset. Single-sheet ranges accept offset zero.",
         "sourceScope": "Pinned LibreOffice DoFunc lines 90-98 swaps the last two stack operands, without a separate optional-sheet branch. Gnumeric declares variable INDEX arity but forwards its arguments unchanged. The requested four-argument convention is implemented explicitly rather than copied from either incomplete path.",
         "validation": "Nine original failures now pass. 460 tests in 22 Lotus files, package lint/types and selected build pass.",
         "publicQualification": "12 compiled SDK/command outputs across both XLSX editions independently preserve 36 formulas and values: offset 0 selects 10, offsets 1/-1 return #REF!.",
         "nativeQualification": "Six Calc readbacks preserve all formulas and match 12 valid/positive-out-of-range results. Six negative-offset cases yield #VALUE! in Calc versus #REF! in the current Gnumeric-style evaluator; this difference is unresolved, not passing qualification.",
-        "remaining": "A fourth argument on a multi-sheet range still needs selection semantics and transport qualification. #3478 stays open."
+        "remaining": "A fourth argument on a multi-sheet range still needs selection semantics and transport qualification. The broader behavior remains open."
       },
-      "sheetSelection": {
-        "issue": 3478,
-        "implementation": "Fixed direct and named Lotus sheet spans lower to a standard INDEX reference-area list in workbook order. INDEX preserves references in syntactic area sets and evaluates the selector once. No CHOOSE arity limit or repeated selector evaluation. Relative sheet spans retain their original AST path and are not claimed complete.",
+      "sheetSelection": {"implementation": "Fixed direct and named Lotus sheet spans lower to a standard INDEX reference-area list in workbook order. INDEX preserves references in syntactic area sets and evaluates the selector once. No CHOOSE arity limit or repeated selector evaluation. Relative sheet spans retain their original AST path and are not claimed complete.",
         "source": {
           "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/fn-lookup/functions.c",
           "sha256": "cdf3ee4fec97f91cea2f853386d8b4b4f83147ab3803d22c603ca6a7f363a917"
@@ -995,11 +989,9 @@
         "sourceDifference": "Gnumeric gnumeric_index lines 1631-1719 scalarizes syntactic SET values and retains both sheets of a 3D reference. Requested Lotus sheet selection requires reference areas; corresponding old tests expecting #REF! for valid areas were updated explicitly. Named SET sources retain their existing array semantics.",
         "validation": "10 original Lotus failures and 7 original reference-area failures repaired. Full maintained ssconvert package test passes 485 files / 26030 tests plus the seven HarfBuzz node tests. Package lint, source/test/consumer types and selected build pass. Coverage includes direct/named functions, imported named ranges, live selectors, reversed spans, references returned to ROW, selector evaluation count and the complete 256-sheet span with operation accounting.",
         "publicQualification": "28 compiled SDK/command outputs across both XLSX editions independently retain selected numeric values and area expressions. Seven Calc 26.8.0.3 readbacks retain live formulas and values, including the 256-sheet boundary. An intermediate CHOOSE projection failed that native boundary and was replaced before delivery.",
-        "remaining": "Relative sheet-span runtime selection and XLSX annotation transport are now recorded under relativeSheetSelection. Computed span export, native negative-offset differences and wider format qualification remain open; #3478 and all 19 families stay open."
+        "remaining": "Relative sheet-span runtime selection and XLSX annotation transport are now recorded under relativeSheetSelection. Computed span export, native negative-offset differences and wider format qualification remain open; all 19 families stay open."
       },
-      "relativeSheetSelection": {
-        "issue": 3478,
-        "implementation": "INDEX selects the runtime sheet from a 3D reference, preserving relative endpoints for copy/relocation. XLSX resolves direct spans to balanced native reference-area expressions at export and retains the original OpenFormula annotation. Both mixed and fully relative endpoints remain live in the source model.",
+      "relativeSheetSelection": {"implementation": "INDEX selects the runtime sheet from a 3D reference, preserving relative endpoints for copy/relocation. XLSX resolves direct spans to balanced native reference-area expressions at export and retains the original OpenFormula annotation. Both mixed and fully relative endpoints remain live in the source model.",
         "nativeSource": {
           "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/core/tool/interpr1.cxx",
           "finding": "ScInterpreter::ScIndex (line 11314) accepts svRefList areas but rejects double references whose sheet endpoints differ; XLSX needs native reference-area lowering."
@@ -1235,13 +1227,11 @@
       "validation": "Four failing regressions cover BOF 0x0404, 0x1000 and 0x1002 plus the named YEAR token. All 171 tests in thirteen Lotus files pass, with maintained package lint/types and selected build.",
       "publicReadback": "Compiled public command --recalc XLSX export and SDK readback preserve =(year(date(124,1,1))-1900) and value 124 for legacy direct and modern named YEAR; exit 0, empty stderr, 4085/4074 bytes. The serializer normalizes function spelling to lowercase. In-memory fixtures only.",
       "remaining": "Further function argument/index conversions, Works semantics and independent application qualification remain open. This repairs Lotus semantics beyond Gnumeric's stub, not native parser parity.",
-      "works": {
-        "issue": 3478,
-        "sourceDifference": "The existing Works YEAR declaration uses wk1_year_func. Applying that declared hook is explicitly required by #3478. libwps WKS4Spreadsheet.cpp 0.4.14-2 declares ordinary Year and does not subtract 1900; native Works input parity is not claimed.",
+      "works": {"sourceDifference": "The existing Works YEAR declaration uses wk1_year_func. Applying that declared hook is explicitly required. libwps WKS4Spreadsheet.cpp 0.4.14-2 declares ordinary Year and does not subtract 1900; native Works input parity is not claimed.",
         "implementation": "Use the resolved wk1_year_func marker for the 1900 subtraction in both function tables.",
         "validation": "Three original failures for 1900/1999/2024 now pass; 427 tests in 21 Lotus files, package lint/types and selected build pass.",
         "publicQualification": "12 compiled SDK/command outputs across both XLSX editions independently retain YEAR(DATE(...))-1900 and fresh 0/99/124. Six Calc readbacks retain live formulas and values.",
-        "remaining": "Optional INDEX sheet offset in #3478 and broader Works qualification remain open. Database field offsets are now recorded under lotusDatabaseFields. No family closure."
+        "remaining": "Optional INDEX sheet offset and broader Works qualification remain open. Database field offsets are now recorded under lotusDatabaseFields. No family closure."
       }
     },
     "lotusSymphonyReferences": {
@@ -1263,7 +1253,7 @@
       "validation": "Ten of fourteen original memory regressions failed. All 317 tests in sixteen Lotus files pass after correction, including WK1/WK2/Windows Works controls, independent range endpoints, conditional column wrapping, signed row boundaries and preserved absolute coordinates. Maintained package lint, source/test/consumer types and selected build pass.",
       "publicQualification": "Nine compiled public --recalc WK1-to-XLSX conversions and SDK readbacks retain the expected formulas and values with no diagnostics. Four backward references recalculate to 42. A preserved absolute IW8193 reference evaluates to #REF! because the imported sheet has only 256 columns; the initial probe's zero expectation was corrected without changing product bounds. Inputs are 46 bytes; outputs are 4074\u20134092 bytes and remain in memory.",
       "remaining": "Native Symphony/Works application readback, ambiguous DOS Works profiles, relative-sheet identity, modern range flag packing and wider format qualification remain open. No family is closed.",
-      "currentReferencePolicy": "See lotusInvalidRanges.boundsAndMasks: explicit #3470/#3529 bounds/masks supersede historical raw absolute and unbounded positive reference behavior."
+      "currentReferencePolicy": "See lotusInvalidRanges.boundsAndMasks: explicit bounds/masks supersede historical raw absolute and unbounded positive reference behavior."
     },
     "lotusDirectSheetSpans": {
       "status": "implemented independent sheet endpoints for direct Lotus range tokens",
@@ -1375,9 +1365,7 @@
       "priorHighQ": "The compiled engine before this change matched all 120 immutable high-q cases exactly. Historical 47-mismatch reports remain historical evidence; they are not current failures.",
       "accuracy": "A separate mpmath 1.4.1 comparison at 100 decimal digits covered the sixteen initial large-x cases. Source-component results differ from correctly rounded high-precision results in ten cases, by relative errors no larger than 3.572e-16. This change qualifies source parity, not universal correct rounding.",
       "remaining": "The large-argument ceiling is repaired and the supplemental full macOS application cohort is recorded below. Broader phase/order domains, exact Linux/other-runtime application qualification, residual profile differences and containing publication remain open. No family is closed.",
-      "largeArguments": {
-        "issue": 3623,
-        "sources": {
+      "largeArguments": {"sources": {
           "gnumeric": "GNUMERIC_1_12_61/src/sf-bessel.c:2455-2770, SHA256 7a6d8aa65ac2dfd095ffa8d0bc3e77fc7801cf9adac82c66d276e67072938981",
           "goffice": "GOFFICE_0_10_62/goffice/math/go-quad.c:428-512,579-605, SHA256 c73feeeb6a29ffc7acc05a9c8c129689e1b94cb78a2bfe287a1dbe24e1687f48",
           "instructions": "Installed goffice go_quad_mul12/go_quad_mul/go_quad_div arm64 instructions 0x6d130-0x6d334 establish split-product FMA contractions; library SHA256 c0562060e1efc3bff34a93cfd6b08a1e9ba2bf67f7c7cf3cd446dae6fa948bed"
@@ -1562,9 +1550,7 @@
       },
       "relativeValidation": "Eight initial regressions failed, plus later boundary, text-update and serializer-guard failures. Full package: 440 files / 24,426 tests passed before final two guards; final focused formula/codec/legacy cohort: 42 passed. Maintained lint, source/test/consumer types and selected build passed. Six compiled public SDK/command XML/XLSX/ODF conversions retained mixed flags and calculated 23 after readback/copy. No native LibreOffice execution was available.",
       "remaining": "Modern Lotus direct references now retain relative-sheet bits; qualify other token profiles and implement applicable BIFF persistence. Qualify native copy modes, named-expression anchors, external ranges, deleted sheets and Lotus range-bit disagreement. XML/XLSX annotation roundtrips do not establish native copy-semantics interoperability. Source-derived behavior and candidate tests are not native-application qualification. All 19 gap families remain open.",
-      "moveIdentityRepair": {
-        "issue": 3556,
-        "source": "Re-read pinned Calc token.cxx:4564-4605; SHA256 4b95423a6a2bd1db86eacd1ebce66aa54c205c9009d775b707b906c858bb05d1 verified. Local/external references resolve at the old origin before rebasing.",
+      "moveIdentityRepair": {"source": "Re-read pinned Calc token.cxx:4564-4605; SHA256 4b95423a6a2bd1db86eacd1ebce66aa54c205c9009d775b707b906c858bb05d1 verified. Local/external references resolve at the old origin before rebasing.",
         "behavior": "Parse/rewrite positions resolve IDs first, then case-folded display names. Sheet renames use explicit display-name entries before captured-ID fallback. A1 references compare resolved coordinates before replacing source tokens; R1C1 retains offset-based comparison. Label members/data and explicit structural edits participate.",
         "validation": "12 initial failures. Seventeen focused cases; maintained package test passes 453 files / 24,908 Vitest tests plus HarfBuzz verifier checks. Package lint/source/test/consumer types and selected workspace build pass. Compiled SDK moves recalculate 7 locally and across sheets; copy recalculates 104. ODF range spelling, alias-based relative-sheet copies, R1C1 offsets, ID renames, external exclusions and ID/name collision controls pass.",
         "reportedExamples": "The position string s1 cannot denote both an ID and a different display name in the same call: existing ID precedence is preserved and the other sheet is selected by its unique ID. Formula =Remote! is rejected syntax; no reference behavior is claimed for it.",
@@ -2027,7 +2013,7 @@
           "orderedPairs": 3,
           "recalculated": 5,
           "independent": "Python ZIP/XML inspection confirms all three outputs retain the ordered row/column/row declarations, apostrophe quoting, explicit row 70001 endpoint and enabled lookup.",
-          "visual": "Actual compiled command screenshot inspected: expected CSV label-loss warning and unchanged values. The two page-layout warnings exposed during repeated export were repaired under hey-boss #3627; the rebuilt command emits only the expected loss warning."
+          "visual": "Actual compiled command screenshot inspected: expected CSV label-loss warning and unchanged values. The two page-layout warnings exposed during repeated export were repaired in the page-layout repair; the rebuilt command emits only the expected loss warning."
         },
         "remaining": "Live formula identity in ODF/XML/XLSX, inferred BIFF labels and native application qualification remain open. Current host has no LibreOffice, ssconvert or Docker executable; no native readback pass is claimed. This partial implementation closes no family. Cross-sheet label/data identity is now implemented; see reference.odfCrossSheetLabelRanges for the current source and qualification evidence.",
         "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md"
@@ -2350,9 +2336,7 @@
             "receipts": "out/ssconvert-calc-current/formula-label-calc.json; formula-label-source-proof.json; stale-label-inputs.json; label-import-source.json; label-import-finalization-source.json; recalc-config-source.json; native-identity.json; download.json"
           }
         },
-        "mixedRangeSourceAudit": {
-          "issue": 3654,
-          "status": "reported parser/import/export requirements delivered on remote main; refreshed compiled/native profiles qualified",
+        "mixedRangeSourceAudit": {"status": "reported parser/import/export requirements delivered on remote main; refreshed compiled/native profiles qualified",
           "sourceRevision": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77",
           "sources": {
             "sc/source/core/tool/compiler.cxx": {
@@ -2430,9 +2414,7 @@
       "sha256": "df7449b987ee458e57489bae8f69da7a369a23d53f254fb4e1cdc375f9f9e625",
       "finding": "The primary API documentation reproduces the ISO cell-formula definition as formula text in the element character node; unlike CellValue, CellFormula is not derived from XstringType. This does not establish a lossless encoding for XML-forbidden characters inside formula literals. Keep this separate from the proven ST_Xstring cache repair; no generic formula decoding change or resolution claim."
     },
-    "odfPageLayoutReadback": {
-      "issue": 3627,
-      "source": {
+    "odfPageLayoutReadback": {"source": {
         "url": "https://docs.oasis-open.org/office/v1.2/os/OpenDocument-v1.2-os-schema.rng",
         "sha256": "ca5d2510858c6f922b20cd27dc76d34959c1a976b9dfc6b5caeadbebfc83dbbb",
         "definitions": [
@@ -2463,7 +2445,7 @@
     "odfIntegrationWarnings": {
       "trigger": "Terminal release 36307124170, Bash shard 1: four tests in packages/safe-bash/tests/commands/ssconvert-odf.test.ts failed after native ODF default-enabled label lookup was imported.",
       "validation": "All four failures reproduced on current source. Their expected empty diagnostics omitted the required Gnumeric XML/CSV metadata-loss warning. Assertions now compare exact Shell/SDK warning codes and text, including message-only SDK diagnostics. Original input bytes, output CSV, checkpoint/replay, passive-resource authority and failed-publication checks remain. All six maintained file-selected integration tests pass; guarded root ESLint passes with zero errors/warnings.",
-      "scope": "Test correction only; no warning suppression or product behavior change. XML/CSV label identity preservation and complete native/public qualification remain open. Release publication is separately tracked in hey-boss #3360.",
+      "scope": "Test correction only; no warning suppression or product behavior change. XML/CSV label identity preservation and complete native/public qualification remain open. Release publication remains separately qualified.",
       "profileReconciliation": {
         "trigger": "Incoming 4718633707 disabled lookup in the shared fixture after a478340c9f added default-enabled warning expectations; four current integration failures reproduced.",
         "implementation": "Keep disabled lookup as the fixture default. Parameterize the SDK/Shell/replay conversion over absent, false and true settings; explicitly enable lookup in the style transport case. Passive-resource and malformed-input cases use disabled lookup and retain their own diagnostics.",
@@ -2602,9 +2584,7 @@
           "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md, step 16"
         }
       },
-      "absoluteSheets": {
-        "issue": 3656,
-        "source": {
+      "absoluteSheets": {"source": {
           "revision": "bce0998afefdbc355585ca324285661a2170ba77",
           "address": "sc/source/core/tool/address.cxx:1248-1296, SHA256 8cb729f76ca00c2cb38c356aeeef2f8107aa4613d2185056cc65b185ba80e09d: consume the absolute-sheet marker before parsing quoted or unquoted sheet text.",
           "dispatch": "Previously pinned tabvwsh3.cxx:492-538 decodes URL marks and routes them through address/range parsing."
@@ -2614,25 +2594,21 @@
         "scope": "Repairs the reported import/parser/export identity requirements. Actual native navigation, wider format qualification, installed registry artifacts and containing publication remain separate open requirements.",
         "receipts": "out/ssconvert-absolute-hyperlinks/{sources,input,independent-proof,cleanup}.json"
       },
-      "fragmentEscapes": {
-        "issue": 3688,
-        "source": {
+      "fragmentEscapes": {"source": {
           "revision": "bce0998afefdbc355585ca324285661a2170ba77",
           "urlobj": "tools/source/fsys/urlobj.cxx:3490-3537,4551-4662, SHA256 629c4aeacd5b1621c510da27cd48732c5b1853c4a2222752648dd86bac60288d",
           "uri": "sal/rtl/uri.cxx:562-614, SHA256 61ddf498b5c28485ea4ff09faa2c6031200e134aaa80db30bce5337d4f5089bf"
         },
         "implementation": "Decode percent escapes one UTF-8 character at a time like Calc WithCharset: literal percent signs survive, invalid octets remain uppercase escapes, valid neighbors continue decoding and decoded percents are not decoded twice. Exported and retained native local-name marks escape hash/question-mark fragment characters while preserving target identity and case. External URL payloads stay passive.",
         "validation": "Thirteen original fragment cases and two retained-native-mark cases failed before their fixes. Final five-file cohort: 147 tests pass; maintained package lint/types and selected build pass. Ten compiled SDK/command exports independently yield 60 correct targets across Gnumeric, strict/extended retained ODF and regenerated labels. No diagnostics; input bytes unchanged; command transcript screenshot inspected.",
-        "remaining": "Fragment repair delivered in 90535f2a04; current rename/remap and command/default qualification follows below. Native navigation and registry/publication qualification remain open under #1748.",
+        "remaining": "Fragment repair delivered in 90535f2a04; current rename/remap and command/default qualification follows below. Native navigation and registry/publication qualification remain open under the broader compatibility goal.",
         "receipts": "out/ssconvert-hyperlink-lifecycle/{sources,fragment-input,fragment-proof,fragment-cleanup}.json"
       },
-      "renameRemap": {
-        "issue": 3688,
-        "implementation": "Sheet rename/remap rewrites recognized internal Gnumeric style-region, cell/axis-style and retained ODF paragraph links, including native local-name marks. Grammar-aware targets use the existing Calc fragment conversion. Namespace/schema guards preserve foreign, external, malformed and unrelated payloads. Iterative XML traversal preserves mixed text/child indexes; work/depth/cancellation checks apply. Detached sheet links and target name remapping are included; identity-only remaps preserve spellings.",
+      "renameRemap": {"implementation": "Sheet rename/remap rewrites recognized internal Gnumeric style-region, cell/axis-style and retained ODF paragraph links, including native local-name marks. Grammar-aware targets use the existing Calc fragment conversion. Namespace/schema guards preserve foreign, external, malformed and unrelated payloads. Iterative XML traversal preserves mixed text/child indexes; work/depth/cancellation checks apply. Detached sheet links and target name remapping are included; identity-only remaps preserve spellings.",
         "validation": "Four valid original lifecycle cases failed before repair. Focused four-file cohort: 97 tests pass, including 19 lifecycle/guard cases; maintained package lint, source/test/consumer types and selected build pass. Existing command plugin/resource cohort: 23 tests pass. Two independently authored Gnumeric/ODF inputs through compiled SDK registry writers and command factories yield 16 packages and 48 independently decoded correct targets. Retained mixed text/spans, external URLs and input bytes survive. Command verification transcript screenshot inspected. Three adjacent conversion/sheet lifecycle files pass 56 additional tests.",
         "commandDefaults": "Compiled public package exports singular/plural/plugin factories with zero-argument invocation, plus options/limits declarations. Thin Safe Bash adapter identity verified by maintained tests. Default argumentBytes is Infinity: >1 MiB argument payload succeeds, explicit 1 MiB limit refuses. Existing implementation verified without a code change.",
         "probeCorrections": "Independent harness uses the declared EngineConfig environment/codecs and public registry writers for rewritten snapshots; writeWorkbook correctly refuses a snapshot not owned by its engine. ODF regenerated-label tests retain link style regions while discarding only original paragraphs.",
-        "remaining": "Actual native GUI navigation and broader installed/registry/publication qualification remain open under #1748; no family closure.",
+        "remaining": "Actual native GUI navigation and broader installed/registry/publication qualification remain open under the broader compatibility goal; no family closure.",
         "receipts": "out/ssconvert-hyperlink-lifecycle/rename-{inputs,exports,proof,cleanup}.json"
       }
     },
@@ -2655,15 +2631,13 @@
         "source": "Same pinned compiler.cxx, GetRefColRowNames lines 5867\u20135885 and 5907\u20135923: scan the global row/column pair list, with no data-sheet Tab filter. The inferred range stays on the anchor sheet.",
         "implementation": "Automatic Calc/BIFF labels inspect declarations on all workbook sheets. OpenFormula automatic labels retain their separate contiguous-data rules. No dependency on remote cell values is introduced: the boundary uses declaration geometry only.",
         "validation": "Two original regressions returned 60 instead of source-derived 10. 24 axis/owner/data-sheet/dialect combinations pass; complete focused cohort 135 executed tests across four files, with imported fixture tests included. Maintained package lint, product/test/consumer types and selected build pass. Four compiled SDK/command BIFF8-to-CSV conversions return 10 and retain 10/20/30 local data; inputs were seeded through the product writer, output independently parsed with Python. Transcript screenshot inspected.",
-        "remaining": "Native application recalculation still unqualified. #3670 command-factory requirements remain open; the report\u2019s requested data-sheet filter is absent from the pinned Calc source."
+        "remaining": "Native application recalculation still unqualified. Command-factory requirements remain open; the report’s requested data-sheet filter is absent from the pinned Calc source."
       },
-      "automaticSelfExclusion": {
-        "issue": 3646,
-        "status": "implemented, delivered on remote main and qualified through current compiled/native profiles",
+      "automaticSelfExclusion": {"status": "implemented, delivered on remote main and qualified through current compiled/native profiles",
         "source": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77 compiler.cxx GetRefColRowNames, followed by OpenFormula 5.10.5 contiguous-cell rules.",
         "implementation": "Automatic labels exclude the same-axis formula before expanding aggregates and reject scalar self-references. Adjacent formulas are skipped; later formulas stop the range. Final-grid exclusion cannot clamp back to the formula cell.",
         "validation": "33 original regressions failed; all 39 cases pass. Twenty-four compiled SDK/command exports from independent ODF inputs retain native labels and fresh 30 or #REF! results, verified with Python XML. Applied cohort: 871 checks in 34 files, package lint and selected build pass.",
-        "remaining": "Installed registry artifacts, containing publication and wider native profiles remain open under #1748. No family closed.",
+        "remaining": "Installed registry artifacts, containing publication and wider native profiles remain open under the broader compatibility goal. No family closed.",
         "delivery": {
           "commit": "ba048afa64920424d87cf22ac2eafdd905964b21",
           "verifiedRemoteMain": "6c88f10fd974cb93b889bb3fbcc00196262e5af2"
@@ -2692,18 +2666,13 @@
         }
       }
     },
-    "commandFactoryDefaults": {
-      "issue": 3670,
-      "status": "partial",
+    "commandFactoryDefaults": {"status": "partial",
       "implemented": "createSsconvertCommand() and ssconvertCommands() accept omitted/empty options; built-in codecs, C locale and UTC timezone default without ambient environment or optional authority. Explicit limits and invocation environment are preserved.",
       "evidence": "Two original regressions failed before the fix. All 22 factory/resource/cancellation tests pass; maintained Safe Bash build, root guarded lint and Safe Bash typecheck pass. Compiled CSV-XLSX-CSV checks for omitted/empty options preserve bytes; independent ZIP/XML parsing confirms numeric 7.",
       "qa": "../plans/ssconvert-audit-qa.md#qa-command-factory-defaults",
       "remaining": "Defaults are delivered. Standard package ownership and public bundle verification continue under commandPackageOwnership; publication remains separate."
     },
-    "glossaryTimestampProfile": {
-      "issue": 3863,
-      "parentIssue": 1748,
-      "source": "Gnumeric 1.12.61 plugins/gnome-glossary/gnome_glossary.py",
+    "glossaryTimestampProfile": {"source": "Gnumeric 1.12.61 plugins/gnome-glossary/gnome_glossary.py",
       "sourceSha256": "81f5e170bb384f60d492b6e7923cddb050a791f9d21ebfc403778b62fd532618",
       "timezoneData": "Pinned tzdb 2026b TZif; input SHA256 and extractor in packages/safe-bash-command-ssconvert/scripts/generate-glossary-timezones.py",
       "zones": [
@@ -2719,9 +2688,7 @@
       "qualification": "Source-expression header parity only. Eight independently captured winter/summer libc headers, DST boundaries and historical-rule controls; memory conversion fixtures and built public SDK consumers. Does not qualify activation of the complete native glossary plugin. Independent libc comparison matched all 4054 monthly/transition-boundary observations across the admitted interval, including fractional-clock and civil-date rollover controls.",
       "remaining": "Other zones and aliases, instants outside the captured range, exact optional native Python activation, and full native glossary exporter qualification remain open under optional-profiles and format-record-roundtrip."
     },
-    "commandPackageOwnership": {
-      "issue": 3670,
-      "status": "implemented and locally qualified; full integration and delivery pending",
+    "commandPackageOwnership": {"status": "implemented and locally qualified; full integration and delivery pending",
       "implemented": "Singular/plural/plugin factories and options/limits types belong to safe-bash-command-ssconvert; core is a one-line re-export. Private workspace bundles share private contracts and filesystem runtimes. The root builds its public SDK separately at dist/ssconvert/index.js, with the unchanged poe-code/ssconvert API and shared public contracts/FS routes; root packages include private declarations only. Scoped packaging maps contracts and filesystem imports to canonical runtimes.",
       "evidence": "Fresh local root/scoped tarballs built at 5aaf8a8bc7 and installed outside the checkout pass four public SDK/Shell CSV-XLSX/edit/readback routes with numeric B2=8 and empty diagnostics. Both editions preserve 48-point defaults and normalized header/footer escapes. Six direct write/budget/cancellation cases and two Shell output caps verify shared budget binding, exact failures and destination preservation on failure, with staging removed; raw invalid UTF-8 remains exact in both profiles. Strict NodeNext consumers pass. Native commands are absent from the verification PATH.",
       "qa": "../plans/ssconvert-audit-qa.md#qa-command-package-ownership",
@@ -2752,7 +2719,6 @@
     },
     "xlsxWorksheetRecordAudit": {
       "status": "implemented, delivered to remote main and qualified against independent OOXML and native Calc controls",
-      "issue": 3686,
       "sourceRevision": "bce0998afefdbc355585ca324285661a2170ba77",
       "sources": [
         {
@@ -2899,9 +2865,7 @@
       "execution": "Signed soffice CLI from read-only mounted image, isolated temporary profiles. Bundled Python executables fail macOS launch constraints; use the normal CLI without changing signing or platform protections.",
       "scope": "Native formula-generated ODF label readback and subsequent gap edit verified. Availability does not establish other families or platform/optional profiles."
     },
-    "glossaryTimestamp": {
-      "issue": 3863,
-      "status": "open; source-confirmed mismatch",
+    "glossaryTimestamp": {"status": "open; source-confirmed mismatch",
       "source": "Gnumeric GNUMERIC_1_12_61 plugins/gnome-glossary/gnome_glossary.py",
       "sourceSha256": "81f5e170bb384f60d492b6e7923cddb050a791f9d21ebfc403778b62fd532618",
       "finding": "Native source uses strftime %Z. Current Intl en-GB short display names differ for PST/PDT/IST (4 of8 host-Python component comparisons); UTC and Warsaw controls match. This is not full activated plugin qualification.",
@@ -2922,12 +2886,10 @@
       "receipts": "out/ssconvert-odf-settings/perl-{conditional,branch-reset,number-conditions}-{native,compiled}.json; consumed failure logs compacted, downloaded compiler source removed after retaining hashes/excerpts; no generated evidence committed.",
       "remaining": "These are standalone native Perl comparisons, not activated Gnumeric Perl-loader qualification. Final root qualification for explicit backreferences, installed artifacts, broader grammar, Unicode, diagnostics and lifecycle remain open; no family closure. Queued pin 36606002535 contains the first three grammar repairs; the two spelling repairs require later containing publication."
     },
-    "perlDateEra": {
-      "issue": 3871,
-      "status": "Implementation delivered; 92 activated Linux date captures match compiled and installed scoped SDK/Shell",
+    "perlDateEra": {"status": "Implementation delivered; 92 activated Linux date captures match compiled and installed scoped SDK/Shell",
       "source": "https://raw.githubusercontent.com/GNOME/gnumeric/GNUMERIC_1_12_61/plugins/perl-func/perl_func.pl",
       "sourceSha256": "73bfafc72fe65a516eed8708395738a0fbfc11f607321a08bddd456ca572fe71",
-      "finding": "Issue #3871 is resolved on remote main at 0dadb7915bf6296af124a9cd952017bccb56a798. Signed minimum-width Perl year formatting and Intl astronomical era conversion are implemented. The owner recorded 47 memory regressions, host-Perl component controls and public SDK/command conversion. The former 7/36 component and 6/9 alias mismatches are historical failures, not current failures.",
+      "finding": "The date-era repair is delivered on remote main at 0dadb7915bf6296af124a9cd952017bccb56a798. Signed minimum-width Perl year formatting and Intl astronomical era conversion are implemented. The owner recorded 47 memory regressions, host-Perl component controls and public SDK/command conversion. The former 7/36 component and 6/9 alias mismatches are historical failures, not current failures.",
       "receipts": [
         "out/ssconvert-release-investigation/perl-date-era-repro.json",
         "out/ssconvert-release-investigation/date-era-alias-repro.json"
@@ -2949,7 +2911,7 @@
       }
     },
     "xlsxPageBreakAxes": {
-      "status": "validated defect; hey-boss #3892 remains with its assigned worker",
+      "status": "validated defect; repair remains assigned",
       "source": "Calc bce0998afefdbc355585ca324285661a2170ba77 worksheetfragment.cxx/worksheethelper.cxx: rowBreaks select row IsStartOfNewPage. Gnumeric GNUMERIC_1_12_61 XML/print source maps hPageBreaks to rows and vPageBreaks to columns; its XLSX importer reverses those axes.",
       "evidence": "Actual XLSX metadata importer and PDF settings projection produce columnBreaks=[2] from rowBreaks/brk id=2 and rowBreaks=[2] from colBreaks/brk id=2: two mismatches. Gnumeric XLSX roundtrip alone cannot establish correctness because its importer contains the same discrepancy.",
       "remaining": "Repair and independently qualify all affected transports, pagination and public interfaces; no fix or delivery claimed.",
@@ -2959,7 +2921,7 @@
       ]
     },
     "xlsxFirstPageNumber": {
-      "status": "validated defect; hey-boss #3896 open",
+      "status": "validated defect; repair remains open",
       "source": {
         "revision": "bce0998afefdbc355585ca324285661a2170ba77",
         "path": "sc/source/filter/oox/pagesettings.cxx",
@@ -2973,9 +2935,7 @@
         "out/ssconvert-release-investigation/calc-print-options-source.json"
       ]
     },
-    "clockExtrema": {
-      "issue": 3951,
-      "status": "Resolved and verified on remote main; activated Linux SDK/Shell parity passes",
+    "clockExtrema": {"status": "Resolved and verified on remote main; activated Linux SDK/Shell parity passes",
       "source": "Pinned Gnumeric Perl sample localtime/sprintf expression; valid local civil dates need not fit JavaScript Date TimeClip.",
       "finding": "The accepted maximum instant in Tokyo and minimum instant in Los Angeles produced 0NaNNaNNaN instead of 2757600913/-2718210419. NOW/TODAY/UNIX2DATE returned NUM errors in the same cases. All 8 independent host Perl controls exit 0.",
       "repair": "Retain local calendar fields and a numeric wall timestamp; use the Gregorian 400-year cycle to calculate timestamps without materializing an out-of-range Date. Shared serial and calendar consumers use those fields.",
@@ -3030,12 +2990,10 @@
       "receipts": "out/ssconvert-lotus-current/{sheet-name-sources,names-native-proof,names-public-proof,public-native-proof}.json; sheet-names-{red,green,lint,build}.log",
       "remaining": "Other encodings/default-selection APIs, ambiguous flag packing in Lotus-authored inputs, native copy modes, other Lotus metadata, installed registry artifacts and containing publication. No family closure."
     },
-    "engineFactoryDefaults": {
-      "issue": 2460,
-      "status": "SDK defaults and requested English runtime locale aliases implemented and locally qualified",
+    "engineFactoryDefaults": {"status": "SDK defaults and requested English runtime locale aliases implemented and locally qualified",
       "implementation": "Public EngineOptions allows omitted codecs and partial environment. createEngine() defaults built-in codecs, C locale, UTC timezone and empty injected env; existing cwd precedence, explicit capabilities, limits and environment snapshots remain intact. Command option types accept the same partial environment.",
       "validation": "Seven original tests failed before repair; 47 focused engine/cwd/budget tests pass. Maintained package lint and source/test/Node/browser consumer types pass; selected build passes. Three compiled SDK CSV-to-XLSX conversions with omitted/empty/partial options read back exact values without diagnostics. README examples and public type consumer updated.",
-      "remaining": "Containing registry publication and broader optional/native locale profiles remain open under #1748.",
+      "remaining": "Containing registry publication and broader optional/native locale profiles remain open under the broader compatibility goal.",
       "source": {
         "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.41/localedata/SUPPORTED",
         "sha256": "92b5030fd20f64c6fec5430d9d89b65801df104878b208df6742479fdd5f6c05"
@@ -3048,9 +3006,7 @@
         "receipts": "out/ssconvert-hyperlink-lifecycle/english-{sources,exports,proof,cleanup}.json"
       }
     },
-    "odfCalculationSettings": {
-      "issue": 3633,
-      "source": {
+    "odfCalculationSettings": {"source": {
         "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/xml/XMLCalculationSettingsContext.cxx",
         "sha256": "ffbca3e9c52f53a1f5d448d97b8ae6736868972eb79dca70a4b155ef79f739c1",
         "excerpts": [
@@ -3068,63 +3024,50 @@
       "validation": "Nine failing original memory cases precede the fix; 86 focused checks, package lint/source/test/consumer types and selected build pass. Eight compiled SDK/command exports across both ODF profiles preserve counts 25/7 with A1 edited to 8, zero diagnostics and unchanged inputs.",
       "native": "Calc 26.8.0.3 preserves all eight outputs and two independently authored original controls. Disabled status is omitted on native export and compared using its source-defined default; exact counts/tolerance and cell values pass. Headless only; no rendering claim.",
       "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{iteration-source,compiled-proof,native-proof,cleanup}.json",
-      "remaining": "The iteration requirement is implemented and qualified; related label addressing and automatic-style identity repairs are recorded in odfLabelAddressing and odfAutomaticStyleParts. Broader calculation/format qualification and publication stay under 1748."
+      "remaining": "The iteration requirement is implemented and qualified; related label addressing and automatic-style identity repairs are recorded in odfLabelAddressing and odfAutomaticStyleParts. Broader calculation/format qualification and publication stay under the broader compatibility goal."
     },
-    "odfLabelAddressing": {
-      "issue": 3633,
-      "sourceRevision": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77",
+    "odfLabelAddressing": {"sourceRevision": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77",
       "source": "xmlimprt.cxx:1230-1248 resolves deferred label/data ranges; document.cxx:253-278 uses uppercase sheet-name matching. xmlexprt.cxx:4200-4221 and rangeutl.hxx:209-217 export ranges with VALID|TAB_3D, without requiring absolute markers.",
       "implementation": "Resolve both label-range endpoints using the existing Unicode sheet-name fold and preserve display spelling/stable IDs. Export requested explicit absolute row/column coordinates; unlike the original report, this is not claimed to be Calc default wire spelling.",
       "validation": "Two valid case-binding regressions and two absolute-output regressions fail before their fixes; 160 focused tests plus package lint/source/test/consumer types and selected build pass. A first malformed case fixture used replacement-string suffix interpolation; corrected before validating the case failures.",
       "compiledNative": "Eight compiled SDK/command outputs across both editions retain distinct Labels/O'Brien identities and absolute declarations with no diagnostics/input mutation. Independent original plus eight outputs, all with stale 999 caches, recalculate in Calc 26.8.0.3 to 5 or 15 after editing the former gap. Native retains live SUM and exact range geometry while omitting dollar markers and repeating endpoint sheet names.",
       "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{label-sources,label-compiled-proof,label-native-proof,label-cleanup}.json",
-      "remaining": "The reported case-binding and absolute-coordinate requirements are implemented and qualified. Related stream/identity repairs are recorded in odfAutomaticStyleParts. Full Unicode/native label profiles, installed registry composition and publication stay under 1748."
+      "remaining": "The reported case-binding and absolute-coordinate requirements are implemented and qualified. Related stream/identity repairs are recorded in odfAutomaticStyleParts. Full Unicode/native label profiles, installed registry composition and publication stay under the broader compatibility goal."
     },
-    "odfAutomaticStyleParts": {
-      "issue": 3633,
-      "implementation": "Retain packagePart provenance on imported workbook style records. Export styles.xml automatic styles to styles.xml, preserving content.xml automatic styles in content.xml. Older snapshots without provenance retain the prior content fallback.",
+    "odfAutomaticStyleParts": {"implementation": "Retain packagePart provenance on imported workbook style records. Export styles.xml automatic styles to styles.xml, preserving content.xml automatic styles in content.xml. Older snapshots without provenance retain the prior content fallback.",
       "validation": "Both original memory cases fail before repair. 94 focused tests, package lint/source/test/consumer types and selected build pass. Twelve compiled SDK/command exports across both ODF editions and three cycles preserve independently authored native page-layout attributes/header/footer children exactly in styles.xml; A1 edit remains 8, input bytes unchanged, no diagnostics.",
       "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{style-compiled-proof,style-independent-proof,style-cleanup}.json",
-      "remaining": "Original package-part retention is qualified separately above. Generated table/layout/master identity reuse and native readback are recorded in styleIdentity; broader active print properties, cell/region style fidelity and registry publication stay under 1748.",
+      "remaining": "Original package-part retention is qualified separately above. Generated table/layout/master identity reuse and native readback are recorded in styleIdentity; broader active print properties, cell/region style fidelity and registry publication stay under the broader compatibility goal.",
       "styleIdentity": {
         "source": "LibreOffice bce0998a xmlaustp.cxx:331-365 exposes family/parent/property-based automatic-style lookup and named registration. Current product source previously appended fixed taN/plN/mpN definitions without looking at retained identities.",
         "implementation": "Index retained definitions by part/container/element/family/name, retaining the last definition of duplicate identities. Reuse matching generated table/layout/master definitions and allocate noncolliding names for distinct properties. Preserve original named definitions and their package parts.",
         "validation": "Four original cycle/name-collision cases failed before repair. The 28-file ODF cohort passes 1123 tests; the final identity file passes 39 including two added old-duplicate controls. Package lint/source/test/consumer types and selected build pass. Twenty-four compiled SDK/command outputs across both editions, collision/duplicate inputs and three cycles retain stable unique identities, exact original definitions, correct active layouts, A1=8, no diagnostics and unchanged inputs.",
         "native": "Calc 26.8.0.3 reopens eight final compiled outputs and two independent original controls. Active landscape/portrait and 17pt/23pt margins match their respective native controls; edited outputs retain A1=8 versus original 7. No GUI/rendering or registry claim.",
         "receipts": "out/ssconvert-root-build-YJeeDE/out/ssconvert-odf-settings/{style-pool-source,identity-compiled-proof,identity-independent-proof,identity-native-proof,identity-cleanup}.json",
-        "scope": "Completes the generated table/layout/master duplication requirement of 3633; it does not establish deduplication or full semantics for every cell/region/font/print record."
+        "scope": "Completes the generated table/layout/master duplication requirement; it does not establish deduplication or full semantics for every cell/region/font/print record."
       }
     },
     "lotusInvalidRanges": {
       "status": "range collapse, profile bounds and absolute masks implemented; XLSX reference-error consumer regression diagnosed",
-      "issues": [
-        3470,
-        3529
-      ],
       "implementation": "Any invalid textual range endpoint collapses to one #REF! literal before expression parsing, for legacy and modern reference composition. Relative-sheet AST substitution is unchanged.",
       "validation": "24 original failures across WK1, WK2, Symphony and Windows Works now pass. 384 tests in 20 Lotus files plus package lint, source/test/consumer types and selected build pass.",
       "publicQualification": "32 compiled SDK/command --recalc outputs across both XLSX editions preserve bare #REF! and SUM(#REF!), with error caches independently verified from package XML.",
       "nativeQualification": "LibreOffice 26.8.0.3 consumer regression confirmed independently: bare #REF! and SUM(#REF!) parse as ocBad and become #NAME?. LibreOffice 24.2.7.2 preserves both independent and compiled SDK XLSX/XLSX2 outputs. This is not a passing 26.8 application check.",
       "source": "Pinned LibreOffice bce0998afefdbc355585ca324285661a2170ba77 core_resource.hrc:951/970 assigns #REF! to ocErrRef and ocStop. FormulaCompiler.cxx:183/758 inserts in opcode order with first-wins emplace, so OOXML lookup returns ocStop (2), not ocErrRef (44). Direct native UNO lookup/parser probes confirm the collision; rebuilding the parser map restores opcode 44. compiler.cxx:1583-1590 emits the standard literal. See docs/ssconvert/xlsx-reference-errors.md.",
-      "remaining": "Scoped #3470/#3529 implementation and #4053 cause investigation are complete; LibreOffice 26.8 still needs a consumer-side correction. Broader Lotus qualification and all 19 families remain open.",
-      "nativeIssue": 4053,
+      "remaining": "Scoped bounds/masks implementation and native error-output investigation are complete; LibreOffice 26.8 still needs a consumer-side correction. Broader Lotus qualification and all 19 families remain open.",
       "boundsAndMasks": {
-        "requirements": "#3470: columns below 256; WK1 rows below 2048, WK2/Works/Symphony below 16384, modern below 65536. #3529: mask absolute Works/Symphony rows to 14 bits and Symphony columns to 8 bits.",
+        "requirements": "columns below 256; WK1 rows below 2048, WK2/Works/Symphony below 16384, modern below 65536. mask absolute Works/Symphony rows to 14 bits and Symphony columns to 8 bits.",
         "sourceDifference": "Intentional requirement override: libwps 0.4.14-2 WKS4Spreadsheet.cpp lines 1790-1838 preserves raw absolute fields and only rejects negative coordinates. Relative signed offsets and positive half-range wrapping remain unchanged. Previous Symphony assertions for absolute/relative IW references were updated to the authorized masks/bounds.",
         "validation": "36 newly failing regressions plus four passing boundary controls; all 424 tests in 21 Lotus files pass. Maintained package lint, source/test/consumer types and selected build pass.",
-        "publicQualification": "56 compiled SDK/command --recalc outputs across both XLSX editions; independently parsed formulas, types and fresh values match. 12 numeric boundary/mask outputs also retain live formulas and 0/42 through Calc 26.8.0.3. Error-output #4053 is diagnosed as a LibreOffice 26.8 OOXML symbol-map regression; 24.2.7.2 native controls pass."
+        "publicQualification": "56 compiled SDK/command --recalc outputs across both XLSX editions; independently parsed formulas, types and fresh values match. 12 numeric boundary/mask outputs also retain live formulas and 0/42 through Calc 26.8.0.3. Error output is diagnosed as a LibreOffice 26.8 OOXML symbol-map regression; 24.2.7.2 native controls pass."
       },
-      "nativeErrorInvestigation": {
-        "issue": 4053,
-        "resolution": "consumer OOXML symbol-map collision; standard ssconvert formulas preserved",
+      "nativeErrorInvestigation": {"resolution": "consumer OOXML symbol-map collision; standard ssconvert formulas preserved",
         "document": "docs/ssconvert/xlsx-reference-errors.md",
         "regressions": "SDK recalculation with stale #NAME? caches across both XLSX profiles; independent XML checks include ERROR.TYPE distinguishing #REF! (4) from #NAME? (5).",
         "nativeControls": "Independent five-part XLSX, both compiled SDK exports, exact LibreOffice 26.8.0.3 and control 24.2.7.2, direct UNO symbol lookup and grammar probes."
       }
     },
-    "lotusDatabaseFields": {
-      "issue": 3478,
-      "status": "implemented requested zero-based numeric database field offsets",
+    "lotusDatabaseFields": {"status": "implemented requested zero-based numeric database field offsets",
       "functions": [
         "DSUM",
         "DAVG",
@@ -3135,14 +3078,12 @@
         "DSTD",
         "DPURECOUNT"
       ],
-      "sourceDifference": "Gnumeric lotus-formula.c at 325ef79a19580959afaee9cf01cb8ea15f0177b0 lines 114-120 and 221 binds these functions to wk1_std_func without the requested field conversion. libwps 0.4.14-2 WKS4Spreadsheet.cpp similarly forwards database operands. The explicit #3478 requirement takes precedence; this does not claim native Lotus importer parity. Resolved function identity handles both direct and named tokens.",
+      "sourceDifference": "Gnumeric lotus-formula.c at 325ef79a19580959afaee9cf01cb8ea15f0177b0 lines 114-120 and 221 binds these functions to wk1_std_func without the requested field conversion. libwps 0.4.14-2 WKS4Spreadsheet.cpp similarly forwards database operands. The explicit requirement takes precedence; this does not claim native Lotus importer parity. Resolved function identity handles both direct and named tokens.",
       "validation": "24 original failures across WK1 direct, WK3 direct and modern named functions now pass. All 451 tests in 22 Lotus files pass, as do package lint/types and selected build.",
       "publicQualification": "12 compiled SDK/command outputs across both XLSX editions independently preserve 96 translated formula/value pairs. Six Calc readbacks preserve all 48 fresh numeric results and live formulas. Direct opcode 243 retains its existing encountered-opcode diagnostic.",
-      "remaining": "Optional INDEX sheet offset in #3478 and broader native Lotus input/format qualification remain open. No family closure."
+      "remaining": "Optional INDEX sheet offset and broader native Lotus input/format qualification remain open. No family closure."
     },
-    "biffReferenceOperators": {
-      "issue": 3478,
-      "implementation": "BIFF formula writing dispatches parser union/intersection AST nodes to native list/intersection tokens 0x10/0x0f. The previous comma/space keys were unreachable and refused valid reference operations, including Lotus INDEX areas.",
+    "biffReferenceOperators": {"implementation": "BIFF formula writing dispatches parser union/intersection AST nodes to native list/intersection tokens 0x10/0x0f. The previous comma/space keys were unreachable and refused valid reference operations, including Lotus INDEX areas.",
       "source": {
         "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/inc/xlformula.hxx",
         "sha256": "9d1751d6350419bae2457de8289d89ea784757c0fe72bc3630770675e5f494d4",
@@ -3190,7 +3131,7 @@
           "implementation": "Writer emits continued NAME records without replacing the name or its consumers. Reader shares bounded token reassembly with FORMULA, then decodes auxiliary payloads. Aliases and declaration scopes remain present in the portable model.",
           "validation": "Eight original large-name failures repaired. Final 1735 tests in 69 BIFF files, package lint/source/test/consumer types and selected workspace build pass. The malformed-name control now expects the precise missing-CONTINUE diagnostic.",
           "publicQualification": "Four compiled SDK/command BIFF7/8 outputs preserve global/local names and aliases; recalculation gives 6000/1024, and editing their definitions yields 7/9. Calc and Gnumeric replace stale 999 caches with 6000/1024. Calc retains named cell formulas, four definitions and all 6000 Unicode characters.",
-          "nativeScopeLimit": "The initial Calc BIFF7 scope failure was repaired by the #4075 worker in b58fabd556. Offset 8 now carries the one-based worksheet scope and BIFF7 offset 6 the zero-based Calc sheet index; import preserves legacy offset-6-only exports through EXTERNSHEET fallback. Gnumeric interprets that legacy field differently and is not a passing native scope profile for the Calc-compatible encoding.",
+          "nativeScopeLimit": "The initial Calc BIFF7 scope failure was repaired in b58fabd556. Offset 8 now carries the one-based worksheet scope and BIFF7 offset 6 the zero-based Calc sheet index; import preserves legacy offset-6-only exports through EXTERNSHEET fallback. Gnumeric interprets that legacy field differently and is not a passing native scope profile for the Calc-compatible encoding.",
           "remaining": "Gnumeric BIFF7 scope qualification, Gnumeric ARRAY-group readback, Gnumeric continued Unicode auxiliary strings, named/computed INDEX spans and wider name qualification remain open. No issue/family closure."
         },
         "groups": {
@@ -3211,19 +3152,16 @@
         },
         "scopeDelivery": {
           "commit": "b58fabd556f49fc22c6ff53b658aa113de03918f",
-          "issue": 4075,
           "validation": "Worker reports all 1762 tests in 70 BIFF files, focused ESLint and source/test TypeScript checks passing. Reviewed the delivered reader/writer changes; all prior continuation fixes remain.",
           "native": "Worker independently qualified Calc 26.8.0.3 BIFF7/8 global/First/Last duplicate names and local array aliases: 22/33/11/14/26/10. Manual source/profile evidence is in docs/plans/ssconvert-biff7-name-scope-qa.md.",
           "related": "4c264d499eda94928133f5c1b2ee96f4faa84839 also repairs cached STRING lookahead after continued groups and continued EXTERNNAME import; authored and delivered by the other worker.",
-          "remaining": "Gnumeric scope interpretation and broader family/native qualification remain open; the scoped #4075 issue is closed by its owner."
+          "remaining": "Gnumeric scope interpretation and broader family/native qualification remain open; the scoped repair has delivery evidence."
         }
       },
       "namedSpanInvestigation": {
         "source": "LibreOffice bce0998a sc/source/core/tool/interpr1.cxx ScIndex:11348-11355 treats non-list sources as one area; 11516-11520 rejects a reference whose first and last sheet differ.",
         "finding": "A named 3D span still requires native list projection. Inlining fixed references would lose subsequent named-definition edits, so no such production rewrite was made. Named/computed sources remain open.",
-        "currentLotusImport": {
-          "issue": 3478,
-          "source": "lotus.ts op7/op8 resolves name tokens to coordinates at import; INDEX then builds a fixed reference-area list. Retaining the name definition separately does not preserve formula binding.",
+        "currentLotusImport": {"source": "lotus.ts op7/op8 resolves name tokens to coordinates at import; INDEX then builds a fixed reference-area list. Retaining the name definition separately does not preserve formula binding.",
           "compiled": "Two original 132-byte WK3 fixtures, op7/op8, import Across=Sheet1:Sheet2 and return 20. Editing the definition to Sheet2:Sheet3 still returns 20; a live INDEX(Across,1,2,2) control returns expected 30.",
           "probeCorrection": "Initial strict-object assertion rejected null-prototype scalar representation; corrected to compare kind/value, with no product changes.",
           "receipt": "out/ssconvert-odf-settings/lotus-name-edit-before.json",
@@ -3521,9 +3459,7 @@
         ]
       }
     },
-    "biffLabelCorrections": {
-      "issue": 3616,
-      "commits": [
+    "biffLabelCorrections": {"commits": [
         "e98c0660176f277e096fc7f09618eed440d70353",
         "ebaee2eee2",
         "77a990e7bc"
@@ -3540,17 +3476,13 @@
       ],
       "remaining": "The whole BIFF and format families remain open."
     },
-    "fontCompilationRetry": {
-      "issue": 3359,
-      "commit": "9273ab52738b6372c8da13bfdb4d879a0a1b4e16",
+    "fontCompilationRetry": {"commit": "9273ab52738b6372c8da13bfdb4d879a0a1b4e16",
       "delivery": "Verified on remote main; registry qualification pending.",
       "repair": "Discard a rejected shared HarfBuzz compilation promise so a later conversion retries. Concurrent waiters keep the original rejection.",
       "validation": "One original failure; all 70 print tests, package lint/types and maintained selected build pass. Compiled SDK failure publishes no bytes; subsequent SDK and command conversions each produce a valid 5845-byte one-page PDF with empty stderr and exactly two compilation attempts overall.",
-      "remaining": "Pure-JavaScript shaping fallback when workerd denies compilation remains open; CLI omitted limits already default to Infinity. This subset does not close #3359."
+      "remaining": "Pure-JavaScript shaping fallback when workerd denies compilation remains open; CLI omitted limits already default to Infinity. This subset does not complete the broader shaping requirement."
     },
-    "jpegPortableExport": {
-      "issue": 3512,
-      "commit": "3937fb15b7fdbc97ca16d54260e7fc267bd6f3f0",
+    "jpegPortableExport": {"commit": "3937fb15b7fdbc97ca16d54260e7fc267bd6f3f0",
       "delivery": "Verified ancestor of remote main 3ec0827c9a. Containing release and installed registry qualification remain open.",
       "source": "jpeg-js 0.4.4 lib/encoder.js:732 requires Buffer.from. The existing image-ast encodeJpegImage uses typed arrays; ssconvert now uses it with quality 75 and 72 DPI, retaining white alpha composition.",
       "regressions": "Before: three Buffer-free JPEG tests fail. After: 112 rendering tests, 12 private-bundle tests, package lint/source/test/consumer types, selected seven-workspace build and guarded root ESLint pass. Transparent, opaque and half-alpha pixels preserve input ownership; JPEG limits and cancellation remain covered.",
@@ -3558,7 +3490,7 @@
       "whiteSha256": "634d00b5ba1c2c3a713a9c18bfd0cff0f9d1cb67e5136c7422f95fcdf1e80fae",
       "solidSha256": "329e910e84ffda1ccbd2970a0a82d0be09522599ffad938d8a773aaded303f93",
       "cleanup": "Removed 7216402 bytes of consumed bundles/captures and stopped the owned workerd process; compact receipt and original replay inputs remain under out/ssconvert-odf-settings/jpeg-runtime.",
-      "remaining": "Other rendering profiles, registry artifacts and the pandoc/csvkit requirements of #3512 remain open; no old/new encoded-byte identity or whole-family completion claim."
+      "remaining": "Other rendering profiles, registry artifacts and the pandoc/csvkit portability requirements remain open; no old/new encoded-byte identity or whole-family completion claim."
     },
     "lotusNamedDollarMarker": {
       "sources": [
@@ -3676,7 +3608,7 @@
     {
       "id": "format-record-roundtrip",
       "status": "open",
-      "glossaryTimestampFinding": "Issue #3863 records source-derived glossary timestamp parity for four explicit TZif profiles (1970\u20132037); wider timezone/date profiles and native glossary plugin activation/format qualification remain open.",
+      "glossaryTimestampFinding": "Source qualification records source-derived glossary timestamp parity for four explicit TZif profiles (1970–2037); wider timezone/date profiles and native glossary plugin activation/format qualification remain open.",
       "currentFinding": "All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open. XLSX formula string caches encode/decode ST_Xstring and preserve empty cached results without forced recalculation; the 139-test cohort and 32 compiled SDK/command observations passed. Comment author/text escapes and VML type references are repaired; rich comment metadata and native rendering remain open. At 89dd9aa4ba, rich cell font names use rFont with XString decoding/encoding, rather than treating numeric family classification as a typeface. LibreOffice bce0998a stylesbuffer.cxx:605-617 establishes this correction; it intentionally replaces the old Gnumeric-family-handler expectation. Seven failing-before checks become 111 passing focused checks, with package and root lint passing. Current compiled/native font qualification and raw-NUL formula text remain open.",
       "richFontEvidence": {
         "source": "out/ssconvert-xlsx-metadata/rich-font-source.json",
@@ -3716,7 +3648,7 @@
     {
       "id": "optional-profiles",
       "status": "open",
-      "currentFinding": "Retained Linux ARM64 receipts authenticate all eight declared activation profiles. Six enumerate their exact plugin sets cleanly; GDA activates with a GLib cleanup diagnostic, and GNOME-DB activates only 46/47 plugins because ui.xml is missing. Functional qualification of all eight environments and fourteen capability obligations remains open. Registration is not parity; source/receipt hashes and distinct outcomes are recorded in optional-runtime-extension-coverage.json. Issue #3863 records source-derived glossary timestamp parity for four explicit TZif profiles (1970\u20132037); wider timezone/date profiles and native glossary plugin activation/format qualification remain open."
+      "currentFinding": "Retained Linux ARM64 receipts authenticate all eight declared activation profiles. Six enumerate their exact plugin sets cleanly; GDA activates with a GLib cleanup diagnostic, and GNOME-DB activates only 46/47 plugins because ui.xml is missing. Functional qualification of all eight environments and fourteen capability obligations remains open. Registration is not parity; source/receipt hashes and distinct outcomes are recorded in optional-runtime-extension-coverage.json. Source qualification records source-derived glossary timestamp parity for four explicit TZif profiles (1970–2037); wider timezone/date profiles and native glossary plugin activation/format qualification remain open."
     },
     {
       "id": "public-packed-artifacts",
@@ -3748,9 +3680,7 @@
       "4c264d499eda94928133f5c1b2ee96f4faa84839",
       "b58fabd556f49fc22c6ff53b658aa113de03918f"
     ],
-    "playgroundReleaseRepair": {
-      "issue": 3360,
-      "commit": "54f660fdfc56d2c63b8b25009ff9ff330b37257a",
+    "playgroundReleaseRepair": {"commit": "54f660fdfc56d2c63b8b25009ff9ff330b37257a",
       "delivery": "Verified on remote main. Superseded owned pin 36536622833 was canceled before the subsequent fixes. Replacement full pin 36541934977 is pending at 41af7960f989f497e29556d67936527716cc9ace; publication remains unverified.",
       "source": "The 96a2522d10 playground build exhausted a 4096 MB heap locally and in pinned run 36533708178. Upstream adf3b0a256 removes optional command imports from the core shell; dc674cd22f repairs the timeout duration discriminator. The additional kernel-asset prototype was discarded without being pushed.",
       "repair": "Timeout's synchronous evaluator now delegates signal and kill-after options to normal validation, and delegates repeated echo options. Previously an invalid signal inside command substitution returned success instead of exit 125.",
@@ -3796,7 +3726,7 @@
         "source": "https://ftp.gnu.org/gnu/bash/bash-5.2.37.tar.gz",
         "sha256": "9599b22ecd1d5787ad7d3b7bf0c59f312b3396d1e281175dd1f8a4014da621ff",
         "finding": "GNU Bash 5.2.37 uses IFS for plain and modified array-star scalar joins. Modified array-at joins depend on quoting, assignment flags, operator class and empty IFS (subst.c:2948-3090,4396-4430,5829-5860,8839-8870,9264-9285). Native execution also corrects the older tilde-pattern fixture from a b to a:b. The earlier macOS Bash 3.2-based local change is superseded.",
-        "remaining": "Incoming key/read, redirection, loop and nameref fixes are integrated; #3779 was closed by its owner. #3859 retains its owner and broader acceptance. Final maintained checks, public consumers and publication remain pending under #3360.",
+        "remaining": "Incoming key/read, redirection, loop and nameref fixes are integrated. Broader acceptance remains open. Final maintained checks, public consumers and publication remain pending.",
         "receipt": "out/ssconvert-release-investigation/bash-modern-joining-source.json",
         "implementation": "GNU operator/quote/empty-IFS rules apply to both arrays and positional parameters. Quoted slices use IFS; optimized quoted array modifiers preserve the same separators. Raw-byte IFS and incoming key handling remain intact.",
         "checks": "12 failing rebased regressions became233 passing focused tests with zero skips. The incoming quoted positional-replacement expectation was independently corrected against GNU Bash for colon, empty and raw0xff IFS.",
@@ -3815,9 +3745,7 @@
         "releaseRun": "https://github.com/poe-platform/poe-code/actions/runs/36449887569",
         "publication": "Original run completed with a superseded release-stable job; no publication. Follow newer containing runs."
       },
-      "workspaceInstallation": {
-        "issue": 3948,
-        "finding": "A shared stress-audit node_modules symlink repeatedly redirected workspace links to another checkout, breaking builds. npm ci restored all 180 local workspace links; latest root build started after validating them. Another worker owns installation isolation; no permanent repair claimed."
+      "workspaceInstallation": {"finding": "A shared stress-audit node_modules symlink repeatedly redirected workspace links to another checkout, breaking builds. npm ci restored all 180 local workspace links; latest root build started after validating them. Another worker owns installation isolation; no permanent repair claimed."
       },
       "rootBuild": {
         "sourceTree": "d492e1ddd503d32d4de2ecf90e4eb4f9cbfeb18e",
@@ -3825,9 +3753,7 @@
         "log": "out/ssconvert-release-investigation/root-policy-confirmation-build.log",
         "scope": "180 workspaces traversed; 179 declared builds, then root schemas, TypeScript and bundles. The Python workspace has no declared build and is not counted as a pass."
       },
-      "redirectRepair": {
-        "issue": 3952,
-        "commit": "f5ff899d4edabc51735e07f7f45cdcfa257e465e",
+      "redirectRepair": {"commit": "f5ff899d4edabc51735e07f7f45cdcfa257e465e",
         "cause": "Duplicate early coalesced/word redirect branches hid the newer guarded echo handling and failed root no-dupe-else-if.",
         "checks": "348 compound-loop checks, 167 byte/substitution checks and four authenticated GNU Bash 5.2.37 file-output controls pass; root ESLint passes.",
         "receipt": "out/ssconvert-release-investigation/shadowed-redirect-native.json"
@@ -3876,7 +3802,7 @@
           "redirected-loop substitution crash",
           "native Bash tilde/IFS timeout"
         ],
-        "currentMainFollowup": "At 5eb0fc5dd4 the four-file shell subset has 201 pass, 4 fail and 2 skip. Redirected-loop regressions pass. Base64/jq remain tracked in #3987; a new UTF-8 tr pipeline budget failure is #3995; the array printf evidence was reported to #3953. Archive validator now requires the canonical dist/shared contracts runtime; its red current-HEAD failure is fixed. The complete archive-controls/parser cohort and focused ESLint pass; see archive-contracts-{red,green}.log. Native timeout requires fresh qualification; no skip is counted as a pass.",
+        "currentMainFollowup": "At 5eb0fc5dd4 the four-file shell subset has 201 pass, 4 fail and 2 skip. Redirected-loop regressions pass. Base64/jq, UTF-8 tr pipeline budgets and array printf require their separate corrections. Archive validator now requires the canonical dist/shared contracts runtime; its red current-HEAD failure is fixed. The complete archive-controls/parser cohort and focused ESLint pass; see archive-contracts-{red,green}.log. Native timeout requires fresh qualification; no skip is counted as a pass.",
         "log": "out/ssconvert-release-investigation/current-full-test.log",
         "summary": "out/ssconvert-release-investigation/full-test-summary.json"
       },
@@ -3884,14 +3810,6 @@
         "sourceTree": "d492e1ddd503d32d4de2ecf90e4eb4f9cbfeb18e",
         "scopedVersion": "0.0.0-ssconvert-current.d492e1ddd5",
         "repairs": "Root conditional Git runtime selection is preserved; canonical publication checks follow exact platform path type imports and no longer require disposable debug maps. Package file collection handles maintained literal exclusions through one implementation. Upstream map removal, companion declarations, Pandoc await and shell assignment repairs are retained.",
-        "resolvedIssues": [
-          3962,
-          3964,
-          3966,
-          3970,
-          3971,
-          3972
-        ],
         "checks": "Actual root/scoped tarballs installed outside the checkout as physical packages. Four strict NodeNext profiles and Node execution pass. Chrome page and module Worker pass for each package; final rebuilt browser bundles are byte-identical to those inspected in Chrome, with 368 root / 567 scoped inputs and no external imports. Real workerd passes both profiles without nodejs_compat and uses one actual CompiledWasm module each. Root Git init/add/commit/branch executes in Node, Chrome and workerd.",
         "contracts": "Each of eight runtime profiles passes SDK/Shell conversions, edited XLSX-to-CSV, raw argument ownership, exact 21-byte output admission, original budget-refusal and false cancellation identity, preserved destinations and cleanup. Each matches all 92 activated native PERL_DATE cases through both SDK and Shell (1,472 total exact comparisons).",
         "packaging": {
@@ -3935,8 +3853,8 @@
       "scope": "Five atomic repairs: scalar FORMULA, auxiliary array elements, NAME, ARRAY groups and oversized BIFF8 array strings. Each push verified directly against remote main.",
       "checks": "Final 69-file BIFF cohort: 1742 tests. Maintained package lint, source/test/consumer types and selected workspace build pass. Native profiles and failures are recorded in reference.biffReferenceOperators.continuation.",
       "cleanup": "Generated workbooks, Calc profiles and logs removed after compact receipts; no generated binary committed.",
-      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine.",
-      "remaining": "All 19 families stay open. Scoped BIFF7 Calc NAME scope issue #4075 is delivered in b58fabd556; Gnumeric scope/INDEX/continued-group/long-auxiliary-string interoperability and other family requirements remain open."
+      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit current requirements. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability remains open and reserved to another machine.",
+      "remaining": "All 19 families stay open. Scoped BIFF7 Calc NAME scope is delivered in b58fabd556; Gnumeric scope/INDEX/continued-group/long-auxiliary-string interoperability and other family requirements remain open."
     },
     "underlineFidelity": {
       "commits": [
@@ -3946,12 +3864,12 @@
       ],
       "remote": "Every code push independently verified against remote main. See reference.xlsxRichUnderlines and reference.odfAccountingUnderlines for source, tests and native qualification.",
       "cleanup": "Generated spreadsheets, isolated Calc profiles and consumed logs removed; compact ignored receipts retained. No binaries committed.",
-      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine."
+      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit current requirements. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability remains open and reserved to another machine."
     },
     "richUtf16": {
       "commit": "40837714161654e931f9aaae10427ee01e9433c7",
       "remote": "Verified directly on remote main; generated workbooks, profiles and consumed logs removed after compact receipts.",
-      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine.",
+      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit current requirements. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability remains open and reserved to another machine.",
       "htmlFollowup": "05bcbc8b025f58538eb5922f6d72b837dbbb1573 preserves the same U+FEFF content in all HTML profiles; every output independently matches native bytes. Code is verified on main; generated artifacts and consumed logs removed."
     },
     "configCompilerReleaseRepair": {
@@ -3962,7 +3880,7 @@
       "release": {
         "current": 36514126632,
         "head": "ae3f19482defebd67e96e5981cd6e3079a80e276",
-        "state": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine."
+        "state": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit current requirements. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability remains open and reserved to another machine."
       },
       "cleanup": "Consumed CI/local logs, downloaded source, workbooks and Calc profiles removed. Compact ignored JSON receipts remain.",
       "integrationCorrection": {
@@ -3980,7 +3898,7 @@
         "75e5e05a6c728e2b0ecc6556c0827c3319d7ef1c"
       ],
       "remote": "all listed commits verified on main",
-      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine.",
+      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit current requirements. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability remains open and reserved to another machine.",
       "cleanup": "No generated binaries committed; native workbooks, isolated profiles and consumed source/logs removed after compact JSON receipts."
     },
     "encodingCiRepair": {
@@ -3989,9 +3907,9 @@
         "16f9ca7e9728fb22639f0d5d09516abb697e5ab7"
       ],
       "remote": "verified on main",
-      "validation": "Four current failures reproduced. All 33 streaming and 69 inspection tests plus focused lint pass after updates. Newer issue 4042 explicitly requires readFile fallback and attached-only optional od parameters; preserve these requirements. GNU 9.11 short -S accepts separate parameters, so this is not native-parity evidence.",
+      "validation": "Four current failures reproduced. All 33 streaming and 69 inspection tests plus focused lint pass after updates. Current requirements specify readFile fallback and attached-only optional od parameters; preserve these requirements. GNU 9.11 short -S accepts separate parameters, so this is not native-parity evidence.",
       "receipt": "out/ssconvert-odf-settings/release-repairs-checks.json",
-      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine."
+      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit current requirements. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability remains open and reserved to another machine."
     },
     "odfAnnotations": {
       "commit": "a188df91cdf3b87db97af55d8afafec2c5f4fa80",
@@ -4096,9 +4014,7 @@
         "remaining": "Fresh full CI and registry publication; all 19 ssconvert families remain open."
       }
     },
-    "currentRelease": {
-      "issue": 3360,
-      "verifiedRemoteMain": [
+    "currentRelease": {"verifiedRemoteMain": [
         "f09722e0f147e3813681f7f796a1d7f8c827165c",
         "65638a619bc18bd618cddadfa421951d032aff7c",
         "e769554c75685d3a24d40e20b2e06996a3712d21",
@@ -4123,7 +4039,7 @@
       "repairs": "Valid JPEG fixture with decoded-pixel/dimension and byte-exact extraction checks; actual ffmpeg production minification with unchanged 1.5MB limit and shared-codec input identity; SVG parsing checks full accessible text, viewBox and painted visible glyphs; comments clarify five no-op option branches reported by current root lint.",
       "checks": "Lotus: 496 tests, package lint/types, selected build, four compiled SDK/command cases. PDF images: 18 tests and package lint/types. ffmpeg: 16 tests, package lint/types, maintained seven-workspace build closure; 1206003-byte compiled artifact creates/probes 30 frames at 2x2. Safe Bash: 652 runner tests and final 22 PDF integration cases pass. Guarded root ESLint: complete, zero errors/warnings.",
       "probeCorrections": "SVG labels retain spaces; geometry checks apply to visible glyphs. Intermediate test assumptions were corrected, not product regressions.",
-      "publication": "Full pin 36527661819 at cfb23a86ba was observed cancelled externally. It excludes the later optional-build fixture repair. Containing full CI and registry publication remain unverified; latest registry observation remains poe-code 17.0.35 at a8a8a7efbc. Replacement pin and ongoing results tracked in hey-boss #3360. All 19 families remain open.",
+      "publication": "Full pin 36527661819 at cfb23a86ba was observed cancelled externally. It excludes the later optional-build fixture repair. Containing full CI and registry publication remain unverified; latest registry observation remains poe-code 17.0.35 at a8a8a7efbc. Replacement pin and ongoing publication evidence remain required. All 19 families remain open.",
       "receipt": "out/ssconvert-odf-settings/release-pdf-ffmpeg-failures.json",
       "optionalBuildFixture": {
         "reportedRun": 36527106293,
@@ -4133,9 +4049,7 @@
         "validation": "All 71 maintained focused root tests and guarded root ESLint pass with zero errors/warnings. Commit verified on remote main."
       }
     },
-    "releaseRepair20260929": {
-      "issue": 3360,
-      "remoteMain": "41af7960f989f497e29556d67936527716cc9ace",
+    "releaseRepair20260929": {"remoteMain": "41af7960f989f497e29556d67936527716cc9ace",
       "commits": {
         "csvkitCollision": "4dce94c51a9a9c025669f327b60421b2c713110e",
         "ssconvertFactories": "a1bd611e8b3742f445ec3528be35a8496dffc9de",
@@ -4159,13 +4073,7 @@
       },
       "remaining": "Finish current full tests and the containing GitHub release, verify installed publication, and continue all 19 open ssconvert families. No family or issue is closed by this scoped repair."
     },
-    "jpegAndReleaseQualification20260929": {
-      "issues": [
-        1748,
-        3360,
-        3512
-      ],
-      "remoteMain": "a99ed87b5f963ed2285e56ce1b41416189a0c6f5",
+    "jpegAndReleaseQualification20260929": {"remoteMain": "a99ed87b5f963ed2285e56ce1b41416189a0c6f5",
       "commits": {
         "csplitApi": "7c73d6c0505159b13204d4ed2eb2f04cecd6cd64",
         "finiteJsonRetention": "7f7a9df95738f8cc1cd9904fe2f4ce0914a8690d",
@@ -4187,7 +4095,7 @@
       "delivery": "Each atomic commit pushed separately and verified in remote main ancestry. No generated logs, reference source or binary fixtures committed.",
       "jsonRetention": "4475 tests pass, five todo. Finite retained limits use token streaming and reserve numeric UTF-16 storage. Public API succeeds at22177 retained bytes and rejects22176 before the large string; accepted prefix is now [{\"value\": . Full lint/build passed at7f7a9df957.",
       "releaseRepairs": "Csplit45 tests, PyPDF fixture200 tests, rev/tac94 tests and jq escapes22 tests pass. Guarded ESLint passed after the respective repairs. Native terminal-pilot pretest rebuilding overlapped a Rust MCP consumer in failed CI; preserved upstream74c879e30c repair, pandoc0510fa1fbb and mktemp a88b1350ff.",
-      "jpegEntropy": "Six regressions failed before347151bf0e;11 pass after. Missing data and invalid Huffman/restart sequences throw instead of inventing pixels. All122 then-current image tests,27 imagemagick tests and selected SIPS case pass. Scoped issue4166 closed only after remote delivery.",
+      "jpegEntropy": "Six regressions failed before347151bf0e;11 pass after. Missing data and invalid Huffman/restart sequences throw instead of inventing pixels. All122 then-current image tests,27 imagemagick tests and selected SIPS case pass. The scoped repair was verified only after remote delivery.",
       "jpegRefinement": "libjpeg-turbo3.1.2 src/jdphuff.c decode_mcu_AC_refine guided the missing progressive AC branch. Eight authored regressions failed before; nine now cover signed corrections, insertion, zero runs, EOB runs, restart markers and exhausted entropy. All131 image-ast tests and package lint/types/build pass (eight existing lint warnings). Compiled Node/browser decoders with Buffer/process absent exactly match native libjpeg pixels for positive and negative correction fixtures.",
       "localQualification": "Full root build passed on 7fb62305f6 plus the final RTF and immutable-xargs changes:241 declared builds across242 workspaces, including root schema/type/bundle stages. No-build Python workspace is not counted as a build pass. Pandoc1346 tests and typechecks,30 actual Shell tests,33 remote-close tests and53 playground session/execution tests pass. Guarded root ESLint passes. Fresh compiled root Shell embeds two VFS JPEG profiles without Buffer/process and refuses truncation without stdout. Later main rebase preserved Pandoc/contracts/playground sources;30 Shell tests and root lint pass again. Full npm test at55331c9f73 was intentionally stopped incomplete after its first250 files/5246 tests passed; no full-unit pass claimed.",
       "release": {
@@ -4214,7 +4122,7 @@
           "result": "Build/checks/audit/Bash1\u20133 passed; cached units failed the playground readiness race and Bash4 failed compression export aliases. Canceled by this owner after those failures were repaired to free the serial full-validation queue. Fresh units were unfinished and remain incomplete, not a pass; no publication."
         }
       },
-      "remaining": "All19 compatibility families remain open. CSVKit workbook migration awaits shared model extraction4091; requested XML AST package is absent, with its actual canonical parser available at safe-fs/src/xml.ts. Lotus3478 live-name identity/use modes and fontkit3359 remain open. Finish full qualification and verify published artifacts.",
+      "remaining": "All19 compatibility families remain open. CSVKit workbook migration awaits shared model extraction4091; requested XML AST package is absent, with its actual canonical parser available at safe-fs/src/xml.ts. Lotus live-name identity/use modes and font shaping remain open. Finish full qualification and verify published artifacts.",
       "jpegTables": "Seven source-derived regressions failed before;10 table/component tests and all141 image-ast tests pass after. Implicit decoder tables and positional component fallback removed; explicitly declared nondefault tables still decode. Package lint/types and selected build pass.",
       "pandocMigration": "Pandoc now imports image-ast and no longer declares jpeg-js. Decoder-failure/publication regression failed before; the initial positive fixture omitted its required context and was corrected. All1327 package tests, lint/types and14-workspace build pass. Actual compiled browser bundle initializes and handles two progressive JPEG profiles in a VM without Buffer/process or host module imports; E_RESOURCE rejects truncation, E_LIMIT rejects retained capacity, and metafile contains no jpeg-js. VM initially omitted structuredClone, then passed after supplying that standard web API. Probe bundle was kept in memory, not committed.",
       "jpegRefinementSource": {
@@ -4223,7 +4131,7 @@
         "nativeOracle": "libjpeg-turbo3.2.0, build20260630"
       },
       "integration": "Full npm test atb5387d58a1 exposed the missed Safe Bash private dependency profile. Profile85375359cc and its fixture restore exact image-ast admission;420 build tests pass. The following aggregate build exposed incoming sed union TS2339 errors, fixed by type-only discriminants aa91a5d6d5;29 shell tests and guarded lint pass. Maintained84-workspace Safe Bash build and optional/browser postbuild pass.",
-      "rootResourceGap": "Issue4176 resolved by49ce749de8, verified on remote main. RTF declares embedded-image needs and reuses ResourceSession for origins, ordered resourcePath/cwd lookup, URI/symlink validation, bounded reads and cancellation without implicit extraction.19 maintained regressions cover these controls, explicit resolvers, duplicate/unreferenced resources and opaque embedded IDs.12 initial cases and the actual Shell command failed before; review caught and repaired five candidate-only embedded-resource regressions. All1346 Pandoc tests and compiled root VFS checks pass.",
+      "rootResourceGap": "Resource loading repaired by 49ce749de8, verified on remote main. RTF declares embedded-image needs and reuses ResourceSession for origins, ordered resourcePath/cwd lookup, URI/symlink validation, bounded reads and cancellation without implicit extraction.19 maintained regressions cover these controls, explicit resolvers, duplicate/unreferenced resources and opaque embedded IDs.12 initial cases and the actual Shell command failed before; review caught and repaired five candidate-only embedded-resource regressions. All1346 Pandoc tests and compiled root VFS checks pass.",
       "releaseTestRepairs": "Pinned CI cached units exposed a one-second playground readiness race; filesystem replies now trigger the sentinel check, and cleanup awaits the running command on failure.53 session/execution tests pass. Bash4 exposed three remapped compression exports in29 close-probe cases; derive bundle routes from package exports while preserving all canonical source-contract subpaths.33 close-probe cases pass after repairing an intermediate mixed-runtime alias. Immutable xargs dirname input fixes a current prefer-const error. Each repair was committed and pushed separately."
     }
   },
@@ -4239,16 +4147,15 @@
     "helperMigration": "Coordinates now use spreadsheet-ast; an immutable built-in format table replaces SheetJS global state, and a work-charged scanner preserves the existing legacy date-classification profile. Throwing SheetJS coordinate/format mocks prove XLSX independence from those helpers.4551 CSVKit tests pass with5 existing TODO;611 build/integration tests,source/test types and selected8-workspace build pass. SheetJS remains for XLS/BIFF/CFB and codepages.",
     "cfbMigration": "d165b9e50e and372c676cba are verified on remote main. CFB traversal/storage now charges caller counters, and CSVKit uses owned CFB for explicit encoding inspection, preserving BIFF8 override behavior.4552 CSVKit tests with5 existing TODO,42 native workbook profile cases,38 CFB/BIFF tests,278 packaging checks,source/test types,guarded lint and selected9-workspace build pass. SheetJS read still parses the actual BIFF workbook; full dependency removal remains open.",
     "biffCachedMigration": "cdf3bdb837 adds shared record/string admission;265df71418 adds the xlrd cached BIFF2-8/4W profile;daf450b6a8 switches CSVKit and moves SheetJS to test-only dependencies. All are verified on remote main. Preserves encoding overrides,raw errors,empty FORMULA text,actual cell extents,per-sheet BIFF4W formats and BOUNDSHEET ordering without formula/name translation.4552 CSVKit tests with5 existing TODO,42 frozen native workbook cases,1786 BIFF regressions,12 new reader cases,190 packaging checks,package types/lint,guarded root lint and selected9-workspace build pass. Actual workerd2026-07-08 converts XLS with Buffer/process absent and refuses finite work/storage budgets. Inspected output screenshot; removed2891381 bytes of consumed bundles/config/screenshots and retained compact hashes/results.",
-    "compiledValidation": "The maintained npm run build passed252 declared workspace builds across253 workspaces and all root suffix stages. Actual compiled poe-code/safe-bash plus poe-code/csvkit converts XLS to the native expected CSV with empty stderr; compiled HTML/DBF format entrypoints load. Issue3512 is closed for its three verified portability/budget requirements. This live-checkout build is not a frozen final-revision unit certificate.",
+    "compiledValidation": "The maintained npm run build passed252 declared workspace builds across253 workspaces and all root suffix stages. Actual compiled poe-code/safe-bash plus poe-code/csvkit converts XLS to the native expected CSV with empty stderr; compiled HTML/DBF format entrypoints load. All three scoped portability/budget requirements have completion evidence. This live-checkout build is not a frozen final-revision unit certificate.",
     "remaining": "CSVKit production SheetJS removal is delivered. Current registry artifacts and broader format/version/native qualification remain open. Preserve distinct cached and Gnumeric editing semantics. All19 ssconvert families remain open; no containing publication verified."
   },
   "sparseShortcut20260929": {
     "verifiedRemoteMain": "52134c36273946248cee529f29d7aee4a13a6e9f",
-    "issue": 4304,
     "defect": "Incoming967a9376a4 flattened A1=header,A3=42 into header/newline/42, dropping row2; the canonical command retained it.",
     "repair": "Non-dense row or cell coordinates delegate before any output write. Dense conversions retain the shortcut; unsupported column gaps no longer expand an unbounded padding loop.",
     "validation": "Original failing-before reproduction,95 passing command/plugin tests,guarded root lint and an inspected actual Shell terminal screenshot. Controls cover missing/leading rows,sparse columns,dense data and absence of premature destination writes. No generated workbook or screenshot committed.",
-    "remaining": "Broader shortcut ZIP/XML/style/format equivalence remains open under1748. All19 families remain open; publication is separate."
+    "remaining": "Broader shortcut ZIP/XML/style/format equivalence remains open under the broader compatibility goal. All19 families remain open; publication is separate."
   },
   "incrementalRepairs20260929": {
     "verifiedRemoteMain": ["a1b618bef9", "577135d382", "9e3cc4809a", "41b6c009cd", "855ae69c41", "a4d3ffe636", "e877a3bf20", "27cf667509", "0ad2150128"],
@@ -4256,14 +4163,14 @@
     "validation": "4551 CSVKit tests with5 existing TODO,611 build/integration checks,1348 Pandoc tests,107 wkhtmltopdf tests,17 gh tests and final97 Shell conversion tests pass. Package/public types, guarded root lint and the final152-workspace Safe Bash build closure including optional CLI pass. Two Poppler-rendered PDF pages visually confirm body/table text and logical page numbers. New tar/fixed-schema and duplicate-reader probes fail before repair. No whole-repository frozen-revision unit result is claimed.",
     "release": "Pin36574046035 at0ad2150128 passed build,checks,audit,cached units and Bash2/3; Bash4 artifact download hit HTTP503 account egress, Bash1 failed the timeout-zero gate, and fresh units failed the omitted HTML export assertion. Incomingcee61508b3 and own0b433430d4 repair/qualify zero-duration fallback;21 shell controls plus the standalone test pass. f3e56b65d8 includes delivered HTML/DBF exports in the20-test metadata gate; guarded root lint passes. Replacement full pin36579948716 selected1b1e40b3ccce829851328d8cfd0d844ee930dcb9 with pin_revision=true,build_only=false,cold_cache=false. Publication remains unverified.",
     "sourceAndCleanup": "Pinned xlrd2.0.2 source commit3a19d22014d7b3f3041b7188d21a653c18c709bf confirms legacy missing-CODEPAGE ISO-8859-1, populated cell extents, ignored formatting-only blanks and FORMULA tag3 empty text. Source hashes are retained under ignored out. Removed consumed PDF/PNG artifacts and compacted about3MB of output; no generated binaries committed.",
-    "remaining": "All19 ssconvert families remain open, including broader format/rendering/solver/service qualification and current registry artifacts. CSVKit production SheetJS removal is delivered. Issues4300,4302,4304 and4310 are resolved only for their verified defects.4293 still requires containing publication;1748 and3360 remain open."
+    "remaining": "All19 ssconvert families remain open, including broader format/rendering/solver/service qualification and current registry artifacts. CSVKit production SheetJS removal is delivered. The scoped PDF, CFB, XLSX and CSVKit defects have completion evidence. Parser publication and the broader compatibility and release goals remain open."
   },
   "releaseContinuation20260929": {
     "verifiedRemoteMain": ["494f5ea7ef", "8ad1f5b520", "f7ff7d472a", "e669cd7856", "c36f308b5d", "e0962e81a4", "a2bc74efcf", "7959e6bc76"],
     "repairs": "Shell-quote special-parameter suffixes; iterative regex repetition; synchronous arithmetic/format typing; fixture lint; configured xxd/od pipeline limits; export-derived compression probe imports; wc shortcut parity; iterative grouped conditional alternatives.",
     "wcProfile": "GNU coreutils 9.4 src/wc.c requires printable bytes to start C-locale words. Current 9.11 changed this behavior, so the local Homebrew oracle is not interchangeable. Delegate nonprinting and non-ASCII shortcut inputs to the canonical command; preserve the established GNU/Linux profile.",
     "validation": "243 stream/substitution tests and final131 conversion/numeric-limit/closure cases pass. Parser:2176 tests, two additional caller-depth controls,18 built probes, public compiled parse/parseModule at500/2000 levels, types and guarded lint pass. Maintained Safe Bash and SafeJS build closures pass. Earlier build failures from concurrent file replacement and a native import timeout remain recorded separately; neither was waived.",
-    "parserScope": "The original500-level grouped-alternate regression and2000-level controls pass without a new default depth limit. Other recursive grammar forms remain; this is not an arbitrary-depth parser guarantee. Issue4293 remains open pending its containing release requirement.",
+    "parserScope": "The original500-level grouped-alternate regression and2000-level controls pass without a new default depth limit. Other recursive grammar forms remain; this is not an arbitrary-depth parser guarantee. Containing publication remains required.",
     "basenameRepair": "ae229f2f7e verified on main. GNU coreutils9.4 basename.c uses +as:z to stop at the first operand; its synchronous shortcut failed10 existing cases in Bash3/4. One-line option-boundary repair passes70 focused cases and guarded lint.",
     "incomingRepairs": "Wave229-233 tests initially had unregistered/nested it calls, missing setup, template interpolation errors and an invalid Mermaid config key. Local corrections passed91 cases. Incoming c5e6ebfa03 independently delivered the DOCX writer, test setup and additional preflight fixes, so preserve it and drop the duplicate local shell-test commit. Our23e6d69cdd adds sync/async ZIP-and-text DOCX regressions; all37 soffice tests and types pass. Post-rebase91 shell cases and guarded lint pass.",
     "release": {
@@ -4276,14 +4183,12 @@
       "receipts": "out/ssconvert-odf-settings/release-{metadata-unit,metadata-bash1,archive-controls}.summary.json, git-launch-probe.json, release-archive-final.log and release-fixtures-final.log. Consumed CI logs are reduced to original hashes and failure excerpts. No generated evidence committed."
     },
     "metadataGateRepair": "9c990638d7 verified on remote main. Current reproduction fails two of20 checks: removed SafeJS workspace publication and missing ssconvert/commands export. Assertions now require root-owned runtime/types, preserve browser restrictions and exclude duplicate private declarations. All20 metadata tests and root ESLint pass. Consumed3101959-byte CI log reduced to SHA256 and failure excerpt in out/ssconvert-odf-settings/release-runtime-unit.summary.json; this is not a full unit pass.",
-    "pandocRegistryRepair": "683adeb82ba5553c3c61404e4b91b18ab332c18f verified on main. The Safe Bash wrapper dropped the host command lookup required by the underlying Pandoc plugin. Existing default-plugin regression failed before; all30 Pandoc shell checks and root ESLint pass after restoring live registry lookup. Issue4315 remains open while containing release and integration checks continue.",
-    "rebuildOwnership": "Verified remote main:56af2a197c isolates public runtime in dist/shared/safe-js;01fd535e84 publishes reachable root-owned declarations in dist/types without rewriting workspace output;506dd331a7 emits Node-compatible TextEncoder/TextDecoder types. Preserves canonical Fs/XML identities, browser restrictions, source admission and private-import guards; retains upstream9badb683a5 scoped runtime mapping. Full build passed252 declared builds across253 workspaces before later upstream integration. Maintained consumers pass26 public groups,6 source groups,historical consumer and3 rejection controls. Fresh --no-cache24-workspace SafeJS rebuild leaves1513 public declarations/2398917 bytes byte-identical, SHA2563a2f13ddd36068be29cda09e6d9eeed5426a19d76b99afc922c61f6cae447361; compiled SDK/CLI and archive binding pass afterward. Final merged packaging cohort228 tests and root lint pass; compiled selected-format command works. Receipts:out/ssconvert-odf-settings/declaration-final-{before,after}-rebuild.json and declaration-consumers-final.log. Registry qualification and frozen final-revision unit result remain open under3360.",
+    "pandocRegistryRepair": "683adeb82ba5553c3c61404e4b91b18ab332c18f verified on main. The Safe Bash wrapper dropped the host command lookup required by the underlying Pandoc plugin. Existing default-plugin regression failed before; all30 Pandoc shell checks and root ESLint pass after restoring live registry lookup. Containing release and integration checks remain open.",
+    "rebuildOwnership": "Verified remote main:56af2a197c isolates public runtime in dist/shared/safe-js;01fd535e84 publishes reachable root-owned declarations in dist/types without rewriting workspace output;506dd331a7 emits Node-compatible TextEncoder/TextDecoder types. Preserves canonical Fs/XML identities, browser restrictions, source admission and private-import guards; retains upstream9badb683a5 scoped runtime mapping. Full build passed252 declared builds across253 workspaces before later upstream integration. Maintained consumers pass26 public groups,6 source groups,historical consumer and3 rejection controls. Fresh --no-cache24-workspace SafeJS rebuild leaves1513 public declarations/2398917 bytes byte-identical, SHA2563a2f13ddd36068be29cda09e6d9eeed5426a19d76b99afc922c61f6cae447361; compiled SDK/CLI and archive binding pass afterward. Final merged packaging cohort228 tests and root lint pass; compiled selected-format command works. Receipts:out/ssconvert-odf-settings/declaration-final-{before,after}-rebuild.json and declaration-consumers-final.log. Registry qualification and frozen final-revision unit result remain open.",
     "cleanup": "Compacted three consumed lint receipts, removing2899618 bytes while retaining short diagnostics and original hashes in ignored out. No logs, generated binaries or workbook archives committed.",
-    "remaining": "All 19 ssconvert families remain open. CSVKit owned-reader migration and public runtime/declaration rebuild repairs are delivered; issue 3512 is closed. Lotus native transport, remaining format/rendering/solver/service qualification and containing publication remain unfinished. Both older full unit runs exited 1 across changing sources/build output and cannot certify an immutable final revision. The latest failed a DOCX XmlLimitError export load; a fresh canonical export check and affected 408-test rerun pass after rebuilding. Final root publication and installed consumer evidence remain required."
+    "remaining": "All 19 ssconvert families remain open. CSVKit owned-reader migration and public runtime/declaration rebuild repairs are delivered. The scoped portability repair is complete. Lotus native transport, remaining format/rendering/solver/service qualification and containing publication remain unfinished. Both older full unit runs exited 1 across changing sources/build output and cannot certify an immutable final revision. The latest failed a DOCX XmlLimitError export load; a fresh canonical export check and affected 408-test rerun pass after rebuilding. Final root publication and installed consumer evidence remain required."
   },
-  "xmlMigration20260929": {
-    "issues": [1748, 3360, 3512],
-    "remoteCommits": {
+  "xmlMigration20260929": {"remoteCommits": {
       "xmlExtraction": "f0a520866050a3382476fb44e40143fae064e363",
       "csvkitXml": "4618baf04ea6203f28b638977484940e96566e05",
       "binaryFixtureLint": "17e7c709ef",

@@ -1,3 +1,4 @@
+import { tableTextCommands } from "../../src/commands/table-text/index.js";
 import { columnCommands } from "../../src/commands/column/index.js";
 import { structuredCommands } from "../../src/commands/structured/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
@@ -245,5 +246,37 @@ test("evaluates seq (-w, -s, -f), base64 (-w 0, -d, file operands), and column/f
   assert.equal(
     res.stdout,
     "08:09:10:|1,2,3,4|item_01:item_02:item_03:|aGVsbG8gd29ybGQ=|hello world|AGVSBG8GD29YBGQ=|hello: worl:d|^Iindented|a  b:c  d:\n"
+  );
+});
+
+test("evaluates nl, paste, comm, join, and numfmt with file operands in sync substitutions, pipelines, and brace loops (Wave 171)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(tableTextCommands());
+  const res = await shell.exec([
+    "printf 'x\\ny\\n' > /tmp/a.txt",
+    "printf '10\\n20\\n' > /tmp/b.txt",
+    "printf 'a\\nb\\nc\\n' > /tmp/s1.txt",
+    "printf 'b\\nc\\nd\\n' > /tmp/s2.txt",
+    "printf '1:alice\\n2:bob\\n' > /tmp/j1.txt",
+    "printf '1:admin\\n2:user\\n' > /tmp/j2.txt",
+    "printf '1024\\n2048\\n' > /tmp/nums.txt",
+    "nl_pipe=$(nl -ba -w 2 -s : /tmp/a.txt /tmp/b.txt | tr '\\n' ',')",
+    "paste_pipe=$(paste -d : /tmp/a.txt /tmp/b.txt | tr '\\n' ',')",
+    "paste_single=$(paste -s -d , /tmp/a.txt /tmp/b.txt | tr '\\n' ';')",
+    "comm_single=$(comm -12 /tmp/s1.txt /tmp/s2.txt | tr '\\n' ',')",
+    "join_single=$(join -t : /tmp/j1.txt /tmp/j2.txt | tr '\\n' ',')",
+    "numfmt_pipe=$(numfmt --to=iec 1024 2048 | tr '\\n' ',')",
+    "loop_out=''",
+    "for k in 1 2; do",
+    "  p=$(paste -d = /tmp/a.txt /tmp/b.txt | head -n 1)",
+    "  loop_out=\"${loop_out}${p};\"",
+    "done",
+    "echo \"$nl_pipe|$paste_pipe|$paste_single|$comm_single|$join_single|$numfmt_pipe|$loop_out\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    " 1:x, 2:y, 3:10, 4:20,|x:10,y:20,|x,y;10,20;|b,c,|1:alice:admin,2:bob:user,|1.0K,2.0K,|x=10;x=10;\n"
   );
 });

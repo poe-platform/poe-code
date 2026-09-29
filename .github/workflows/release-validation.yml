@@ -428,6 +428,7 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-bash-shard-${{ matrix.shard }}-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-bash-shard-${{ matrix.shard }}-v1-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-${{ runner.arch }}-bash-shard-${{ matrix.shard }}-v1-
       - name: Run balanced Bash shard
         env:
           POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1

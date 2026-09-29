@@ -2317,6 +2317,13 @@
         "evidenceGap": "These sections do not define the inferred data-range selection algorithm. Pinned Calc excform8.cxx lines 339-353 consumes the payload and emits ocBad. Gnumeric ms-formula-read.c explicitly describes its natural-language handling as an undocumented approximation. Neither implementation proves multiple-label inference semantics.",
         "runtimeAvailability": "A supplemental macOS base profile is now built from authenticated Gnumeric 1.12.61 source at out/ssconvert-native-current/runtime/bin/ssconvert; identity, schemas and explicit environment are recorded in that directory. Python/Perl are disabled and optional/Linux profiles are not qualified by this build. Gnumeric's ms-formula-read.c:1357-1398 explicitly substitutes a single-cell approximation for these label operands, so its availability does not establish multiple-label inference rules. LibreOffice and Docker remain unavailable on this host.",
         "next": "Obtain authoritative inference rules or an authenticated matching application fixture before implementing evaluation. Preserve the ordered label-list requirement; do not replace it with the last label alone. This remains open, not resolved."
+      },
+      "inferredMultiCellSourceReview": {
+        "ptgElfColS": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/cc02acdf-f404-4318-9847-8d4cbf523966",
+        "ptgExtraElf": "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/a40d14cc-51ea-4e59-bdc3-eb1abb1ad1ef",
+        "finding": "ColS (0x18/0x0D) uses four ignored bytes and a corresponding ordered PtgExtraElf label sequence with shared relativity. It denotes an inferred column range. The record layout alone does not establish range selection from all hierarchy members.",
+        "calcSource": "Pinned excform8.cxx:339-346 consumes RwS/ColS/RwSV/ColSV and schedules the extra payload, but pushes ocBad. It cannot supply the missing evaluation algorithm. No speculative terminal-label-only implementation was added.",
+        "next": "Find primary hierarchical natural-language range-selection rules or qualify an independent Excel-authored source. Preserve every ordered member and its edit/dependency effect when implementing; current RadicalS support does not complete ColS/ColSV."
       }
     },
     "xlsxFormulaTextAudit": {
@@ -3160,6 +3167,25 @@
         "out/ssconvert-odf-settings/odf-underline-native.json"
       ],
       "remaining": "Strict ODF and readers ignoring the Gnumeric extension lose low accounting placement. Rich XLSX doubleAccounting import is separately unresolved. Native XML properties do not establish pixel rendering, installed-package qualification or registry publication. All 19 families remain open."
+    },
+    "xlsxRichUtf16": {
+      "status": "original UTF-16 units preserved during rich run export; isolated-surrogate native fidelity remains open",
+      "delivery": "40837714161654e931f9aaae10427ee01e9433c7 verified on remote main",
+      "source": {
+        "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/oox/richstring.cxx",
+        "lines": "60-63",
+        "finding": "RichStringPortion::setText assigns decoded XString UTF-16 text directly; run boundaries are not independent UTF-8 text streams."
+      },
+      "defect": "TextDecoder strips a U+FEFF at the start of each byte slice, and TextEncoder replaces isolated UTF-16 surrogates before slices are decoded. Plain ST_Xstring export already preserves these units.",
+      "implementation": "Map sorted canonical UTF-8 offsets to original UTF-16 indices and slice the source string before XString/XML encoding. Reject invalid byte boundaries without truncating text. Shared, inline and comment exports share this path.",
+      "validation": "Eleven original failures precede the fix; 168 tests in four files pass, including multibyte controls, both XLSX editions, shared/inline strings and comment spans. Package lint/types and selected workspace build pass. Compiled public SDK read/write/reopen preserves all six text/span cases in both editions.",
+      "native": "Calc 26.8.0.3 preserves U+FEFF and emoji text and bold spans in both editions, including comments. It removes isolated high/low surrogates from cells and comments on export. Independent XML checks confirm source outputs contain the original escaped units. Native surrogate fidelity is not a pass.",
+      "receipts": [
+        "out/ssconvert-odf-settings/rich-utf16-checks.json",
+        "out/ssconvert-odf-settings/rich-utf16-compiled.json",
+        "out/ssconvert-odf-settings/rich-utf16-native.json"
+      ],
+      "remaining": "Surrogate pairs split across source rich portions require separate model investigation. Other application profiles, complete rich-format transport, rendering, installed artifacts and containing publication remain open. All 19 families stay open."
     }
   },
   "cases": [
@@ -3498,6 +3524,11 @@
       "remote": "Every code push independently verified against remote main. See reference.xlsxRichUnderlines and reference.odfAccountingUnderlines for source, tests and native qualification.",
       "cleanup": "Generated spreadsheets, isolated Calc profiles and consumed logs removed; compact ignored receipts retained. No binaries committed.",
       "release": "Containing publication remains unverified; latest containing release must follow the current pinned BIFF validation."
+    },
+    "richUtf16": {
+      "commit": "40837714161654e931f9aaae10427ee01e9433c7",
+      "remote": "Verified directly on remote main; generated workbooks, profiles and consumed logs removed after compact receipts.",
+      "release": "Full pin 36506462960 has passed build/checks/audit and is testing; pin 36507665678 at 600aaec7d8 is queued with underline fixes. Neither contains this later UTF-16 commit; no containing publication verified."
     }
   },
   "history": {

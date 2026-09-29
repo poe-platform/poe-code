@@ -231,3 +231,51 @@ whitespace, numbers, booleans and the string `007`. Existing XLSX/text regressio
 passed 628 checks before the final sheet-name correction; subsequent focused
 checks and the maintained containing build/full lint pass. This follow-up still
 awaits delivery at this checkpoint and does not establish full XLSX fidelity.
+
+## Verified publication and remaining scope
+
+At the 2026-09-29 15:03 UTC checkpoint, the twelve-hour implementation period
+has ended and release verification continues. All ssconvert implementation work
+through `9b6eec47edade0839282703a8cda358c8f97e503` is verified on remote main.
+The pending ODF rich-text work and independently selectable XLSX, CSV/TSV, ODS,
+XLS, SpreadsheetML, HTML and DBF owners are included. SpreadsheetML and DBF remain
+import-only; compatibility defaults retain their existing registrations.
+
+Scoped `0.1.754` publishes the architecture checkpoint `0a4e96adff`.
+Scoped `0.1.755` additionally publishes the final synchronous codec-owner fix
+`9b6eec47ed`. Both releases passed independent exact-version checks of all three
+public archives, SHA-512 integrity, matching source provenance, fresh npm
+resolution/installation, Cloudflare artifact contracts and Node imports.
+The initial Safe Bash registry 404 responses subsequently resolved without
+republishing or weakening verification. Final scoped run
+[36580487751](https://github.com/poe-platform/poe-code/actions/runs/36580487751)
+completed both publication and verification successfully.
+
+For that final source, the maintained containing build and full lint passed,
+along with 51 final focused checks and 123 shell checks. Installed spreadsheet
+conversions passed in Node, Bun and actual workerd without `nodejs_compat`;
+independent openpyxl input/output readback verified sheet names and typed values.
+The hosted complete installed-package gate passed all 15 native Cloudflare files
+and 87 tests. These are scoped artifact and conversion results, not full format
+fidelity or successful root-package publication.
+
+The separate root `poe-code` release remains unverified. Pin `36580494936` at
+`9b6eec47ed` was cancelled after its Pandoc failure was independently reproduced.
+Replacement pin
+[36585960531](https://github.com/poe-platform/poe-code/actions/runs/36585960531)
+selects `e0a0878513`, whose ancestry includes both the final ssconvert changes
+and Pandoc repair `683adeb82b`. It is pending at this checkpoint; root runtime
+and declaration ownership repairs remain tracked by #3360. Cancelled and
+superseded runs are not publication evidence.
+
+The local complete installed gate had 84 native passes and three 30-second
+deadlines. Exact retries passed both storage cases but reproduced the session
+capacity deadline; diagnostic worker startup alone took 26.562 seconds. Its
+cause remains open in #4314, separately from the unchanged hosted gate's pass.
+
+The validated XLSX formula-cache fixes in #3521 are published. Its supplemental
+formula/defined-name text-encoding question remains open: recorded Gnumeric,
+openpyxl and Calc roundtrip observations do not justify unconditional Xstring
+decoding. Broader compatibility families under #1748 also remain open. Completed
+format-extraction and release-prerequisite issues have individual acceptance
+audits; no blanket compatibility closure or full-fidelity claim is made.

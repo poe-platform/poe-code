@@ -1,3 +1,5 @@
+import { xanCommands } from "../../src/commands/xan/index.ts";
+import { csvgrepCommands } from "../../src/commands/csvgrep/index.ts";
 import { duCommands } from "../../src/commands/du/index.js";
 import { diffPatchCommands } from "../../src/commands/diff-patch/index.js";
 import { treeCommands } from "../../src/commands/tree/index.js";
@@ -670,5 +672,26 @@ test("evaluates du --exclude/--threshold/-t, diff -I/--from-file/--to-file, and 
   assert.equal(
     r.stdout,
     "10:/tmp/w192/big.txt,12:/tmp/w192,#Files /tmp/w192/d1.txt and /tmp/w192/d2.txt are identical#ok\n",
+  );
+});
+
+test("evaluates xan range/wildcard/negated column selectors and csvgrep -f pattern file in sync substitutions (Wave 193)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(xanCommands()).use(csvgrepCommands());
+  const r = await shell.exec(
+    [
+      "printf \"id,user_name,user_role,score\\n1,alice,admin,99\\n2,bob,user,80\\n3,carol,admin,95\\n\" > /tmp/w193.csv",
+      "printf \"admin\\n\" > /tmp/w193.pats",
+      "xan_sel=$(xan select \"!id,user_role,score\" /tmp/w193.csv | tr \"\\n\" \",\")",
+      "xan_rng=$(xan select \"0:1\" /tmp/w193.csv | tr \"\\n\" \",\")",
+      "cg_res=$(csvgrep -c user_role -f /tmp/w193.pats /tmp/w193.csv | xan select \"user_name,score\" | tr \"\\n\" \",\")",
+      "printf \"%s#%s#%s\\n\" \"$xan_sel\" \"$xan_rng\" \"$cg_res\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "user_name,alice,bob,carol,#id,user_name,1,alice,2,bob,3,carol,#user_name,score,alice,99,carol,95,\n",
   );
 });

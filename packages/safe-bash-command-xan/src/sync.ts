@@ -97,30 +97,33 @@ export function evalSyncXan(
     } else if (a === "-H" || a === "--human-readable") {
       if (sub !== "count") return undefined;
       humanReadable = true;
-    } else if (a === "-d" || a === "--delimiter") {
-      if (i + 1 >= args.length) return undefined;
-      const d = args[++i]!;
-      if (d.length !== 1) return undefined;
+    } else if (a === "-d" || a === "--delimiter" || a.startsWith("-d") || a.startsWith("--delimiter=")) {
+      const d = (a === "-d" || a === "--delimiter") ? args[++i] : (a.startsWith("--delimiter=") ? a.slice(12) : a.slice(2));
+      if (!d || d.length !== 1) return undefined;
       delim = d;
-    } else if (a === "-s" || a === "--start" || a === "--skip") {
-      if ((sub !== "headers" && sub !== "slice") || i + 1 >= args.length) return undefined;
-      const v = Number(args[++i]!);
-      if (!Number.isSafeInteger(v) || v < 0) return undefined;
+    } else if (a === "-s" || a === "--start" || a === "--skip" || a.startsWith("--start=") || a.startsWith("--skip=")) {
+      if (sub !== "headers" && sub !== "slice") return undefined;
+      const raw = (a === "-s" || a === "--start" || a === "--skip") ? args[++i] : a.slice(a.indexOf("=") + 1);
+      const v = Number(raw);
+      if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
       startNum = v;
-    } else if (a === "-l" || a === "--len") {
-      if (sub !== "slice" || i + 1 >= args.length) return undefined;
-      const v = Number(args[++i]!);
-      if (!Number.isSafeInteger(v) || v < 0) return undefined;
+    } else if (a === "-l" || a === "--len" || a.startsWith("--len=")) {
+      if (sub !== "slice") return undefined;
+      const raw = (a === "-l" || a === "--len") ? args[++i] : a.slice(6);
+      const v = Number(raw);
+      if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
       lenNum = v;
-    } else if (a === "-e" || a === "--end") {
-      if (sub !== "slice" || i + 1 >= args.length) return undefined;
-      const v = Number(args[++i]!);
-      if (!Number.isSafeInteger(v) || v < 0) return undefined;
+    } else if (a === "-e" || a === "--end" || a.startsWith("--end=")) {
+      if (sub !== "slice") return undefined;
+      const raw = (a === "-e" || a === "--end") ? args[++i] : a.slice(6);
+      const v = Number(raw);
+      if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
       endNum = v;
-    } else if (a === "-i" || a === "--index") {
-      if (sub !== "slice" || i + 1 >= args.length) return undefined;
-      const v = Number(args[++i]!);
-      if (!Number.isSafeInteger(v) || v < 0) return undefined;
+    } else if (a === "-i" || a === "--index" || a.startsWith("--index=")) {
+      if (sub !== "slice") return undefined;
+      const raw = (a === "-i" || a === "--index") ? args[++i] : a.slice(8);
+      const v = Number(raw);
+      if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
       indexNum = v;
     } else if (a.startsWith("-")) {
       return undefined;
@@ -198,22 +201,65 @@ export function evalSyncXan(
   // select
   if (rows.length === 0) return "";
   const hdr = rows[0]!;
-  const positions: number[] = [];
-  const specs = selectionSpec.split(",");
-  for (const rawSpec of specs) {
-    const spec = rawSpec.trim();
-    if (!spec) return undefined;
-    if (/^\d+$/u.test(spec)) {
-      const idx = Number(spec);
-      if (idx >= hdr.length) return undefined;
-      positions.push(idx);
-    } else if (!noHeaders) {
-      const idx = hdr.indexOf(spec);
-      if (idx < 0) return undefined;
-      positions.push(idx);
-    } else {
-      return undefined;
+  const complement = selectionSpec.startsWith("!");
+  const rawBody = complement ? selectionSpec.slice(1) : selectionSpec;
+  const resolveColEndpoint = (ep: string): number | undefined => {
+    if (/^\d+$/u.test(ep)) {
+      const idx = Number(ep);
+      return idx >= 0 && idx < hdr.length ? idx : undefined;
     }
+    if (!noHeaders) {
+      const idx = hdr.indexOf(ep);
+      return idx >= 0 ? idx : undefined;
+    }
+    return undefined;
+  };
+  const selectedRaw: number[] = [];
+  if (rawBody === "" || rawBody === "*") {
+    for (let k = 0; k < hdr.length; k++) selectedRaw.push(k);
+  } else {
+    const specs = rawBody.split(",");
+    for (const rawSpec of specs) {
+      const spec = rawSpec.trim();
+      if (!spec) return undefined;
+      if (spec === "*") {
+        for (let k = 0; k < hdr.length; k++) selectedRaw.push(k);
+      } else if (spec.startsWith("*") && !spec.slice(1).includes("*")) {
+        if (noHeaders) return undefined;
+        const suf = spec.slice(1);
+        for (let k = 0; k < hdr.length; k++) if (hdr[k]!.endsWith(suf)) selectedRaw.push(k);
+      } else if (spec.endsWith("*") && !spec.slice(0, -1).includes("*")) {
+        if (noHeaders) return undefined;
+        const pref = spec.slice(0, -1);
+        for (let k = 0; k < hdr.length; k++) if (hdr[k]!.startsWith(pref)) selectedRaw.push(k);
+      } else if (spec.includes(":")) {
+        const colon = spec.indexOf(":");
+        const left = spec.slice(0, colon);
+        const right = spec.slice(colon + 1);
+        if (right.includes(":")) return undefined;
+        const sIdx = left === "" ? 0 : resolveColEndpoint(left);
+        const eIdx = right === "" ? hdr.length - 1 : resolveColEndpoint(right);
+        if (sIdx === undefined || eIdx === undefined) return undefined;
+        if (sIdx <= eIdx) {
+          for (let k = sIdx; k <= eIdx; k++) selectedRaw.push(k);
+        } else {
+          for (let k = sIdx; k >= eIdx; k--) selectedRaw.push(k);
+        }
+      } else {
+        const idx = resolveColEndpoint(spec);
+        if (idx === undefined) return undefined;
+        selectedRaw.push(idx);
+      }
+    }
+  }
+  const positions: number[] = [];
+  if (complement) {
+    const excluded = new Set(selectedRaw);
+    for (let k = 0; k < hdr.length; k++) {
+      if (!excluded.has(k)) positions.push(k);
+    }
+  } else {
+    positions.push(...selectedRaw);
   }
   const outLines: string[] = [];
   for (let r = 0; r < rows.length; r++) {

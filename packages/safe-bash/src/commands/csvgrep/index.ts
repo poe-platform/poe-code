@@ -59,13 +59,20 @@ export function evalSyncCsvgrep(
   const budget = new CsvBudget({}, syncAbortSignal());
   try {
     const options = parseCsvgrepArguments(opArgs, budget);
-    if (options.file !== undefined) return undefined;
     if (!options.names) {
       if (!options.columns) return undefined;
       const modes = [options.match !== undefined, options.regex !== undefined, options.file !== undefined].filter(Boolean).length;
       if (modes !== 1) return undefined;
     }
     if (options.names && options.headerless) return undefined;
+    let fileMatchSet = new Set<string>();
+    if (options.file !== undefined) {
+      if (!readFileSync) return undefined;
+      const patBytes = readFileSync(options.file);
+      if (!patBytes || patBytes.byteLength > 16384) return undefined;
+      const patText = new TextDecoder("utf-8", { fatal: false }).decode(patBytes);
+      fileMatchSet = new Set(patText.split(/\r?\n/).filter(l => l.length > 0));
+    }
     let sourceBytes = inBytes;
     if (options.filePath !== undefined && options.filePath !== "-") {
       if (!readFileSync) return undefined;
@@ -75,7 +82,7 @@ export function evalSyncCsvgrep(
     }
     const parser = new CsvParser(options.dialect ?? {}, budget);
     const rows = [...parser.push(sourceBytes), ...parser.end()];
-    const matcher = options.names ? undefined : createMatcher(options, new Set<string>(), budget);
+    const matcher = options.names ? undefined : createMatcher(options, fileMatchSet, budget);
     let headers: readonly string[] | undefined;
     let columns: readonly number[] = [];
     let out = "";

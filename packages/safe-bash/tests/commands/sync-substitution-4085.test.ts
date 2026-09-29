@@ -1,3 +1,6 @@
+import { createPdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
+import { createMmdcCommands } from "../../src/commands/mmdc/index.js";
+import { createPandocCommands } from "../../src/commands/pandoc/index.js";
 import { createFfmpegCommands } from "../../src/commands/ffmpeg/index.js";
 import { createGhCommands } from "../../src/commands/gh/index.js";
 import { createSipsCommands } from "../../src/commands/sips/index.js";
@@ -1191,4 +1194,37 @@ test("Wave 151: sync pdfdetach, ffprobe, ffmpeg, and gh substitutions and pipeli
     assert.equal(rGh1.stdout, "https");
     assert.equal(rGh2.stdout, '{\n  "nameWithOwner": "octocat/Hello-World"\n}');
     assert.ok(elapsed < 1000, `Expected <1000ms for 5x150 iterations, got ${elapsed.toFixed(1)}ms`);
+});
+
+
+test("Wave 152: sync pdftoppm, pdftocairo, mmdc, and pandoc substitutions and pipelines", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createPdftoppmCommands(),
+    ...createMmdcCommands(),
+    ...createPandocCommands(),
+  ]) {
+    registry.register(cmd);
+  }
+  const shell = new Shell({ fs, commands: registry });
+
+  const doc = PdfDocument.create();
+  doc.addPage([612, 792]);
+  await fs.writeFile("/sample.pdf", doc.save());
+  await fs.writeFile("/diag.mmd", new TextEncoder().encode("flowchart LR\n  A[Start] --> B[End]\n"));
+
+  const t0 = performance.now();
+  const r1 = await shell.exec('for i in $(seq 1 150); do s=$(pdftoppm -svg /sample.pdf - | head -n 1); done; printf "%s" "$s"');
+  const r2 = await shell.exec('for i in $(seq 1 150); do s=$(pdftocairo -svg /sample.pdf - | head -n 1); done; printf "%s" "$s"');
+  const r3 = await shell.exec('for i in $(seq 1 150); do s=$(mmdc -i /diag.mmd -o - -e svg | head -n 1); done; printf "%s" "$s"');
+  const r4 = await shell.exec('for i in $(seq 1 150); do s=$(pandoc --list-input-formats | head -n 1); done; printf "%s" "$s"');
+  const elapsed = performance.now() - t0;
+
+  assert.match(r1.stdout, /<svg/);
+  assert.match(r2.stdout, /<svg/);
+  assert.match(r3.stdout, /<svg/);
+  assert.equal(r4.stdout, "commonmark");
+  assert.ok(elapsed < 1000, `Expected <1000ms for 4x150 iterations, got ${elapsed.toFixed(1)}ms`);
 });

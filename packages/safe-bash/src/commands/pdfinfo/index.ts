@@ -5,6 +5,7 @@ import {
   createPdfinfoCommands as createRawPdfinfoCommands,
   createPdffontsCommand as createRawPdffontsCommand,
   createPdfdetachCommand as createRawPdfdetachCommand,
+  createPdftocairoCommand as createRawPdftocairoCommand,
   inspectPdfBytes,
   runPdffontsCliSync,
   runPdfdetachCliSync,
@@ -28,6 +29,12 @@ export function createPdffontsCommand(options: PdfinfoCommandOptions = {}): Comm
 
 export function createPdfdetachCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
   const def = createRawPdfdetachCommand(options);
+  builtInDirectContextExecutors.add(def.execute);
+  return def;
+}
+
+export function createPdftocairoCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  const def = createRawPdftocairoCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }

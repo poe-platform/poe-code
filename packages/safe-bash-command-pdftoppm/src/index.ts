@@ -82,11 +82,11 @@ function extractPdftoppmPositionals(argv: readonly string[]): string[] {
   return pos;
 }
 
-export async function runPdftoppmCli(
+export function runPdftoppmCliSync(
   argv: readonly string[],
   files: Map<string, Uint8Array>,
   options: { readonly onAllocateBytes?: (bytes: number) => void } = {}
-): Promise<PdftoppmCliResult> {
+): PdftoppmCliResult {
   let format: "ppm" | "pgm" | "pbm" | "png" | "svg" | "jpg" | "tif" = "ppm";
   let explicitContainer: "png" | "tif" | "jpg" | "svg" | undefined;
   let colorMode: "rgb" | "gray" | "mono" = "rgb";
@@ -441,6 +441,14 @@ export async function runPdftoppmCli(
   return { exitCode: 0, stdout: "", stderr: stderrText };
 }
 
+export async function runPdftoppmCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  options: { readonly onAllocateBytes?: (bytes: number) => void } = {}
+): Promise<PdftoppmCliResult> {
+  return runPdftoppmCliSync(argv, files, options);
+}
+
 async function executePdftoppm(context: CommandContext): Promise<{ exitCode: number }> {
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
@@ -566,11 +574,11 @@ function extractPdftocairoPositionals(argv: readonly string[]): string[] {
   return pos;
 }
 
-export async function runPdftocairoCli(
+export function runPdftocairoCliSync(
   argv: readonly string[],
   files: Map<string, Uint8Array>,
   options: { readonly onAllocateBytes?: (bytes: number) => void } = {}
-): Promise<PdftoppmCliResult> {
+): PdftoppmCliResult {
   let format: "png" | "jpg" | "tif" | "svg" | "pdf" | "ps" | "eps" = "png";
   let grayMode = false;
   let monoMode = false;
@@ -710,7 +718,7 @@ export async function runPdftocairoCli(
   if (format === "svg") {
     const rawOut = positionals[1] ?? (inputPath === "-" ? "-" : `${inputStem}.svg`);
     const rootForSvg = rawOut.toLowerCase().endsWith(".svg") ? rawOut.slice(0, -4) : rawOut;
-    return runPdftoppmCli(["-svg", "-singlefile", ...forwardedArgs, inputPath, rootForSvg], files, options);
+    return runPdftoppmCliSync(["-svg", "-singlefile", ...forwardedArgs, inputPath, rootForSvg], files, options);
   }
 
   if (format === "pdf" || format === "ps" || format === "eps") {
@@ -821,7 +829,7 @@ export async function runPdftocairoCli(
   const snapBefore = new Map(files);
   const rasterPositionals =
     positionals.length === 1 && inputPath !== "-" ? [inputPath, inputStem] : positionals;
-  const res = await runPdftoppmCli([...forwardedArgs, ...rasterPositionals], files, options);
+  const res = runPdftoppmCliSync([...forwardedArgs, ...rasterPositionals], files, options);
   if (res.exitCode !== 0 || (!grayMode && !monoMode)) {
     return res;
   }
@@ -844,6 +852,14 @@ export async function runPdftocairoCli(
     }
   }
   return res;
+}
+
+export async function runPdftocairoCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  options: { readonly onAllocateBytes?: (bytes: number) => void } = {}
+): Promise<PdftoppmCliResult> {
+  return runPdftocairoCliSync(argv, files, options);
 }
 
 export function createPdftocairoCommand(_options: PdftoppmCommandOptions = {}): CommandDefinition {

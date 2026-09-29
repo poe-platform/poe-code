@@ -24510,14 +24510,16 @@ export class Runtime {
       endField = km[2] !== undefined ? Number(km[2]!) : undefined;
       if (endField !== undefined && endField < startField) return undefined;
       const kf = km[3] ?? "";
-      if (kf.includes("n")) keyNum = true;
-      if (kf.includes("h")) keyHuman = true;
-      if (kf.includes("M")) keyMonth = true;
-      if (kf.includes("d")) keyDict = true;
-      if (kf.includes("r")) keyRev = true;
-      if (kf.includes("f")) keyFold = true;
-      if (kf.includes("b")) keyBlanks = true;
-      if (kf.includes("V")) keyVer = true;
+      if (kf.length > 0) {
+        keyNum = kf.includes("n");
+        keyHuman = kf.includes("h");
+        keyMonth = kf.includes("M");
+        keyDict = kf.includes("d");
+        keyRev = kf.includes("r");
+        keyFold = kf.includes("f");
+        keyBlanks = kf.includes("b");
+        keyVer = kf.includes("V");
+      }
     }
     const extractKey = (l: string): string => {
       let raw = keySpec === undefined
@@ -24541,7 +24543,13 @@ export class Runtime {
           })();
       if (keyBlanks) raw = raw.replace(/^[ \t]+/, "");
       if (keyDict) raw = raw.replace(/[^a-zA-Z0-9 \t]+/g, "");
-      return keyFold ? raw.toUpperCase() : raw;
+      if (!keyFold) return raw;
+      let folded = "";
+      for (let i = 0; i < raw.length; i++) {
+        const code = raw.charCodeAt(i);
+        folded += code >= 97 && code <= 122 ? String.fromCharCode(code - 32) : raw[i];
+      }
+      return folded;
     };
     const parseNum = (s: string): number => {
       const m = /^[ \t]*(-?(?:\d+(?:\.\d*)?|\.\d+))/.exec(s);
@@ -24569,6 +24577,23 @@ export class Runtime {
       const idx = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"].indexOf(m[1]!.toUpperCase());
       return idx === -1 ? 0 : idx + 1;
     };
+    const encoded = new Map<string, Uint8Array>();
+    const bytesOf = (line: string): Uint8Array => {
+      let bytes = encoded.get(line);
+      if (bytes === undefined) {
+        bytes = fastSharedTextEncoder.encode(line);
+        encoded.set(line, bytes);
+      }
+      return bytes;
+    };
+    const compareBytes = (left: string, right: string): number => {
+      const a = bytesOf(left);
+      const b = bytesOf(right);
+      for (let i = 0; i < Math.min(a.length, b.length); i++) {
+        if (a[i] !== b[i]) return a[i]! - b[i]!;
+      }
+      return a.length - b.length;
+    };
     const sorted = [...rawLines].sort((a, b) => {
       const ka = extractKey(a);
       const kb = extractKey(b);
@@ -24587,13 +24612,12 @@ export class Runtime {
         const vc = this.compareSyncVersion(ka, kb);
         if (vc !== 0) return keyRev ? -vc : vc;
       } else if (ka !== kb) {
-        return ka < kb ? (keyRev ? 1 : -1) : (keyRev ? -1 : 1);
+        const comparison = compareBytes(ka, kb);
+        return keyRev ? -comparison : comparison;
       }
       if (uniq || stable) return 0;
-      const fa = fold ? a.toUpperCase() : a;
-      const fb = fold ? b.toUpperCase() : b;
-      if (fa !== fb) return fa < fb ? (rev ? 1 : -1) : (rev ? -1 : 1);
-      return a < b ? (rev ? 1 : -1) : a > b ? (rev ? -1 : 1) : 0;
+      const comparison = compareBytes(a, b);
+      return rev ? -comparison : comparison;
     });
     if (!uniq) return sorted;
     const dedup: string[] = [];

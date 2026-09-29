@@ -65,17 +65,17 @@ export function evalSyncOp(
   const biometric = env.OP_BIOMETRIC_UNLOCK_ENABLED;
   if (biometric !== undefined && biometric !== "true" && biometric !== "false") return undefined;
   try {
-    const parsed = parseCommand(opArgs, env, meta.channel);
-    if (parsed.flags.version === true) return `${meta.version}\n`;
-    if (parsed.help) return renderOpHelp(parsed.path, meta.channel);
-    if (parsed.resource === "__complete" || parsed.resource === "__completeNoDesc") {
-      const result = resolveOpCompletion(parsed.args, meta.channel);
+    if (opArgs[0] === "__complete" || opArgs[0] === "__completeNoDesc") {
+      const result = resolveOpCompletion(opArgs.slice(1), meta.channel);
       const lines = result.candidates.map((c) =>
-        parsed.resource === "__complete" ? `${c.value}\t${c.description}` : c.value
+        opArgs[0] === "__complete" ? `${c.value}\t${c.description}` : c.value
       );
       lines.push(`:${result.directive}`);
       return `${lines.join("\n")}\n`;
     }
+    const parsed = parseCommand(opArgs, env, meta.channel);
+    if (parsed.flags.version === true) return `${meta.version}\n`;
+    if (parsed.help) return renderOpHelp(parsed.path, meta.channel);
     return undefined;
   } catch {
     return undefined;

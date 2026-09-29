@@ -75,7 +75,7 @@ export interface SyncCommandEvaluators {
   evalSyncMmdc?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncPandoc?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncSoffice?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
-  evalSyncSsconvert?: (execute: CommandHandler, opArgs: readonly string[]) => string | undefined;
+  evalSyncSsconvert?: (execute: CommandHandler, opArgs: readonly string[], inBytes?: Uint8Array, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncWkhtmltopdf?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncOp?: (execute: any, opArgs: readonly string[], env: Readonly<Record<string, string>>) => string | undefined;
   evalSyncGit?: (stdinBytes: Uint8Array | undefined, opArgs: readonly string[], cwd: string, inspectNode?: any, readFile?: any, executeFn?: any, writeFileSync?: (path: string, bytes: Uint8Array, mode?: number) => boolean, mkdirSync?: (path: string) => boolean, rmSync?: (path: string) => boolean) => string | undefined;

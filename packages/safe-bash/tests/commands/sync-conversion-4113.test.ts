@@ -24,7 +24,7 @@ import { calCommands } from "../../src/commands/cal/index.js";
 import { htmlToMarkdownCommands } from "../../src/commands/html-to-markdown/index.ts";
 import { htmlqCommands } from "../../src/commands/htmlq/index.ts";
 import { whichCommands } from "../../src/commands/which/index.ts";
-import { csvkitCommands, evalSyncCsvstack, evalSyncCsvjoin } from "../../src/commands/csvkit/index.ts";
+import { csvkitCommands, evalSyncCsvstack, evalSyncCsvjoin, evalSyncIn2csv } from "../../src/commands/csvkit/index.ts";
 import { xmlCommands } from "../../src/commands/xml/index.ts";
 import { yqCommands } from "../../src/commands/yq/index.ts";
 import { ddCommands } from "../../src/commands/dd/index.ts";
@@ -1925,6 +1925,13 @@ test("Wave 235: pandoc conversion/-o, wkhtmltopdf file output, gpg -o, and ssh-k
     res.stdout.trim(),
     "<h1 id=\"wave-235-heading\">Wave 235 Heading</h1><p>Paragraph body.</p>|Wave 235 Heading|Wave 235 Heading|%PDF-|-----BEGIN PGP PUBLIC KEY BLOCK-----|-----BEGIN PGP SIGNATURE-----|Signing file /tmp/w235.md|-----BEGIN SSH SIGNATURE-----|# Host oldhost.local found: removed|1"
   );
+});
+
+test("fixed-width in2csv shortcut consumes CSV schema records", () => {
+  const encode = (value: string) => new TextEncoder().encode(value);
+  const schema = encode("column,start,length\nname,1,3\nn,5,2\n");
+  assert.equal(evalSyncIn2csv(encode("Ada 07\n"), ["-f", "fixed", "-s", "/schema.csv", "-I"],
+    path => path === "/schema.csv" ? schema : undefined), "name,n\nAda,07\n");
 });
 
 test("Wave 236: ffmpeg lavfi/transcoding/muxing and git init/config/add/commit/branch/tag in sync command substitutions", async () => {

@@ -954,7 +954,7 @@ export function evalSyncIn2csv(
       if (!schemaBytes || schemaBytes.byteLength > 16384) return undefined;
       let schemaText = syncUtf8Decoder.decode(schemaBytes);
       if (schemaText.charCodeAt(0) === 0xfeff) schemaText = schemaText.slice(1);
-      const schemaRows = readCsv(schemaText, { delimiter: ",", quotechar: "\"", doublequote: true });
+      const schemaRows = Array.from(readCsv(schemaText, { delimiter: ",", quotechar: "\"", doublequote: true }), record => record.cells);
       if (schemaRows.length < 2) return undefined;
       const sHead = schemaRows[0]!;
       const colIdx = sHead.indexOf("column");

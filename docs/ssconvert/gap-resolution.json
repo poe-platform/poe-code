@@ -3225,7 +3225,12 @@
       "141bccbf4d40d0522baa8a790f0da87f27a90941",
       "412ec9125db36f8af806ea38ea63a9c818f582ec",
       "2cf739239d4102eac01d528a56073e58b657a80c",
-      "d492e1ddd503d32d4de2ecf90e4eb4f9cbfeb18e"
+      "d492e1ddd503d32d4de2ecf90e4eb4f9cbfeb18e",
+      "9bd550f4697e63096dc5ad527f4236e61450de5c",
+      "e6a0019c91d7cc16a33bc8487ab98493211a172c",
+      "5bb8e57c7919fa3203cf69021fc90e7fa2d4da98",
+      "460b6547a0828fe90621e0612bc8b91f02ed7074",
+      "0187df3739530d7f377b7a4c9c6000d25378231b"
     ],
     "verifiedPublication": {
       "version": "17.0.35",
@@ -3399,6 +3404,14 @@
         "cleanup": "Browsers, dedicated Workers, workerd instances and owned loopback server closed. Removed 1,052,177,453 bytes of consumed tarballs, staging, installed node_modules, browser bundles, inventories and screenshots; small receipts and consumer inputs remain. Unrelated edits retain checksum e1c46a9cfb0e8b40c06888a5702affe58cbdc4a7de4b3c5213fd9e37aae7b4af.",
         "publication": "Remote main contains all listed repairs. Registry remains poe-code 17.0.35 at a8a8a7efbc7c29daf9e6e6071d3520e774a3b7f2; no containing publication verified. Follow release run 36463194259 and later containing successors."
       }
+    },
+    "biffContinuation": {
+      "head": "0187df3739530d7f377b7a4c9c6000d25378231b",
+      "scope": "Five atomic repairs: scalar FORMULA, auxiliary array elements, NAME, ARRAY groups and oversized BIFF8 array strings. Each push verified directly against remote main.",
+      "checks": "Final 69-file BIFF cohort: 1742 tests. Maintained package lint, source/test/consumer types and selected workspace build pass. Native profiles and failures are recorded in reference.biffReferenceOperators.continuation.",
+      "cleanup": "Generated workbooks, Calc profiles and logs removed after compact receipts; no generated binary committed.",
+      "release": "Pinned run 36503801565 at 5bb8e57c79 has passed build/checks/audit; unit/Bash checks are running. It does not include the later ARRAY-group and oversized-string fixes. #4071 tracks the earlier native discovery hang; no containing publication verified.",
+      "remaining": "All 19 families stay open. BIFF7 native NAME scope is #4075 and owned by another fleet machine; Gnumeric INDEX/continued-group/long-auxiliary-string interoperability and other family requirements remain open."
     }
   },
   "history": {

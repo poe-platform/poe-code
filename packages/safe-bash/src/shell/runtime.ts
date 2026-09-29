@@ -13930,7 +13930,7 @@ export class Runtime {
             const condNonZero = whileCondExpr !== undefined
               ? (this.tryEvalConditionalSync(whileCondExpr, rawState, monitor, store, io, condLine) ?? 1) === 0
               : this.evalSyncLoopArithStmt(whileArithProg!, rawState, io, touched, condLine);
-            if (condCmd.kind === "simple") { lastCmd = condCmd; lastArg = this.fastValueWord(condCmd.words[condCmd.words.length - 1]!, rawState, io)!; }
+            if (condCmd.kind === "simple") { lastCmd = condCmd; lastArg = this.fastValueWord(condCmd.words[condCmd.words.length - 1]!, rawState, io, false, false, false, true) as string; }
             if (condNonZero !== (command.kind === "while")) break;
             ++iterCount;
             this.budget.loop();
@@ -14928,7 +14928,7 @@ export class Runtime {
         } else if (step.condStmt !== undefined) {
           const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
           if (step.cmd.kind === "simple") {
-            lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io)!;
+            lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
           }
           rawState.status = cStatus;
           continue;
@@ -15341,7 +15341,7 @@ export class Runtime {
       const condOk = br.condExpr !== undefined
         ? (this.tryEvalConditionalSync(br.condExpr, rawState, monitor, arrayStore(rawState), io, br.condLine) ?? 1) === 0
         : this.evalSyncLoopArithStmt(br.cond!, rawState, io, touched, br.condLine);
-      if (br.condCmd.kind === "simple") onUpdate({ lastCmd: br.condCmd, lastArg: this.fastValueWord(br.condCmd.words[br.condCmd.words.length - 1]!, rawState, io)! });
+      if (br.condCmd.kind === "simple") onUpdate({ lastCmd: br.condCmd, lastArg: this.fastValueWord(br.condCmd.words[br.condCmd.words.length - 1]!, rawState, io, false, false, false, true) as string });
       rawState.status = condOk ? 0 : 1;
       if (condOk) {
         chosen = br.steps;
@@ -15420,7 +15420,7 @@ export class Runtime {
         const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
         rawState.status = cStatus;
         if (step.cmd.kind === "simple") {
-          lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io)!;
+          lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
           onUpdate({ lastCmd, lastArg });
         }
         continue;
@@ -15585,7 +15585,7 @@ export class Runtime {
         } else if (step.condStmt !== undefined) {
           const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
           if (step.cmd.kind === "simple") {
-            lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io)!;
+            lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
           }
           rawState.status = cStatus;
           continue;

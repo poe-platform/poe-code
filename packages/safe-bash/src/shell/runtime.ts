@@ -24878,6 +24878,10 @@ export class Runtime {
         else if (a === "--count") mode += "c";
         else if (a === "--word-regexp") mode += "w";
         else if (a === "--line-regexp") mode += "x";
+        else if (a === "--quiet" || a === "--silent") mode += "q";
+        else if (a === "--no-filename") mode += "h";
+        else if (a === "--with-filename") mode += "H";
+        else if (a === "--no-messages") mode += "s";
         else return undefined;
       } else if (a.startsWith("-") && a !== "-" && a !== "--") {
         mode += a.slice(1);
@@ -24887,7 +24891,9 @@ export class Runtime {
         return undefined;
       }
     }
-    if (rawPatterns.length === 0 || !/^[vicFEonxw]*$/.test(mode)) return undefined;
+    if (rawPatterns.length === 0 || !/^[vicFEonxwqhsH]*$/.test(mode)) return undefined;
+    const isQuiet = mode.includes("q");
+    const isWithFilename = mode.includes("H") && !mode.includes("h");
     const isLineNumber = mode.includes("n");
     const isLineRegexp = mode.includes("x");
     const isWordRegexp = mode.includes("w");
@@ -24898,6 +24904,46 @@ export class Runtime {
     const isExtended = mode.includes("E");
     const isFixed = mode.includes("F");
     const isOnlyMatching = mode.includes("o");
+    const compileGrepCoreRegex = (core: string): string | undefined => {
+      if (core.length === 0 || /\\[1-9]/.test(core)) return undefined;
+      if (isExtended) {
+        if (!/^(?:[a-zA-Z0-9_ /:;,=.+*?^\-[\]()|{}]|\\[.*+?^${}()|[\]\\/-])+$/.test(core) || /\([^)]*[+*][^)]*\)[+*?]/.test(core)) {
+          return undefined;
+        }
+        return core;
+      }
+      if (!/^(?:[a-zA-Z0-9_ /:;,=.*^\-[\]]|\\[.+*?{}()|[\]\\^$/-])+$/.test(core)) {
+        return undefined;
+      }
+      let out = "";
+      let inBr = false;
+      for (let i = 0; i < core.length; i++) {
+        const ch = core[i]!;
+        if (inBr) {
+          out += ch;
+          if (ch === "]") inBr = false;
+          continue;
+        }
+        if (ch === "[") {
+          inBr = true;
+          out += ch;
+          continue;
+        }
+        if (ch === "\\" && i + 1 < core.length) {
+          const nxt = core[++i]!;
+          if ("+?{}()|".includes(nxt)) out += nxt;
+          else out += "\\" + nxt;
+          continue;
+        }
+        if ("+?{}()|".includes(ch)) {
+          out += "\\" + ch;
+          continue;
+        }
+        out += ch;
+      }
+      if (inBr || /\([^)]*[+*][^)]*\)[+*?]/.test(out)) return undefined;
+      return out;
+    };
     // POSIX bracket classes, collating symbols and equivalence classes have
     // different meanings in JS RegExp. Let the command matcher parse them.
     if (!isFixed && rawPatterns.some(pattern =>
@@ -24917,8 +24963,11 @@ export class Runtime {
           const esc = pat.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
           re = new RegExp(wrapWord(esc), reFlags);
         }
-      } else if (isExtended && !pat.includes("|") && /^[a-zA-Z0-9_ :;,=.+*?()^\-[\]]+$/.test(pat) && !/\([^)]*[+*][^)]*\)[+*?]/.test(pat)) {
-        try { re = new RegExp(wrapWord(pat), reFlags); } catch { re = undefined; }
+      } else if (!pat.includes("|")) {
+        const compiledSrc = compileGrepCoreRegex(pat);
+        if (compiledSrc !== undefined) {
+          try { re = new RegExp(wrapWord(compiledSrc), reFlags); } catch { re = undefined; }
+        }
       } else {
         const branches = isExtended ? pat.split("|") : [pat];
         if (branches.every(b => b.length > 0 && /^[a-zA-Z0-9_ :;,/-]+$/.test(b))) {
@@ -24933,9 +24982,11 @@ export class Runtime {
         const matches = rawLines[li]!.match(re);
         if (matches) {
           matchedLines++;
+          if (isQuiet) return { lines: [], status: 0 };
           for (let mi = 0; mi < matches.length; mi++) {
             if (matches[mi]!.length === 0) continue;
-            out.push(isLineNumber ? `${li + 1}:${matches[mi]!}` : matches[mi]!);
+            const pfx = (isWithFilename ? "(standard input):" : "") + (isLineNumber ? `${li + 1}:` : "");
+            out.push(pfx + matches[mi]!);
           }
           if (matchedLines >= maxCount) break;
         }
@@ -24962,15 +25013,16 @@ export class Runtime {
         const core = c1.endsWith("$") ? c1.slice(0, -1) : c1;
         if (core.length > 0 && /^[a-zA-Z0-9_ :;,/-]+$/.test(core)) {
           compiledBranches.push({ anchorStart, anchorEnd, needle: isCaseInsensitive ? foldCase(core) : core, re: undefined });
-        } else if (isExtended && !isWordRegexp && core.length > 0 && /^[a-zA-Z0-9_ :;,=.+*?^\-[\]()|]+$/.test(core) && !/\([^)]*[+*][^)]*\)[+*?]/.test(core)) {
+        } else {
+          const compiledSrc = compileGrepCoreRegex(core);
+          if (compiledSrc === undefined) return undefined;
           try {
-            const fullSrc = (anchorStart ? "^" : "") + core + (anchorEnd ? "$" : "");
+            const wrapped = isWordRegexp ? `\\b(?:${compiledSrc})\\b` : compiledSrc;
+            const fullSrc = (anchorStart ? "^" : "") + wrapped + (anchorEnd ? "$" : "");
             compiledBranches.push({ anchorStart, anchorEnd, needle: "", re: new RegExp(fullSrc, isCaseInsensitive ? "i" : "") });
           } catch {
             return undefined;
           }
-        } else {
-          return undefined;
         }
       }
     }
@@ -25010,8 +25062,10 @@ export class Runtime {
         if (ok) { hit = true; break; }
       }
       if (isInvert ? !hit : hit) {
+        if (isQuiet) return { lines: [], status: 0 };
         matchedIndices.push(li);
-        matched.push(isLineNumber ? `${li + 1}:${l}` : l);
+        const pfx = (isWithFilename ? "(standard input):" : "") + (isLineNumber ? `${li + 1}:` : "");
+        matched.push(pfx + l);
         if (matched.length >= maxCount) break;
       }
     }

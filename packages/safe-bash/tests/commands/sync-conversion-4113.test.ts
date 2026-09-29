@@ -480,3 +480,14 @@ test("evaluates sed semicolons inside s///, escaped delimiters (\\/), step addre
     "a,B,c#/opt/bin#1,3,5,#START,keep1,END,START,keep2,END,#hdr,mid,tail,#hdr:keep1:mid:keep2:tail:|START:END:START:END:|\n",
   );
 });
+test("evaluates grep BRE regexes (\\+, \\{n,m\\}, \\.), ERE {n,m} quantifiers, grep -o BRE/ERE patterns, and -H/-h/-q in sync substitutions and brace loops (Wave 182)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands());
+  const r = await shell.exec("printf \"rel-2026.01\\nrel-2025.12\\ndev-99\\ntag-2026.05\\n\" > /tmp/grep_in.txt\ng_bre=$(grep '^rel-[0-9]\\+\\.[0-9]\\{2\\}$' /tmp/grep_in.txt | tr '\\n' ',')\ng_ere=$(grep -E '^(rel|tag)-[0-9]{4}\\.[0-9]{2}$' /tmp/grep_in.txt | tr '\\n' ',')\ng_eo=$(grep -Eo '[0-9]{4}\\.[0-9]{2}' /tmp/grep_in.txt | tr '\\n' ',')\ng_bre_o=$(grep -o '[0-9]\\{4\\}' /tmp/grep_in.txt | tr '\\n' ',')\ng_hn=$(cat /tmp/grep_in.txt | grep -Hn '^dev-[0-9]\\+' | tr '\\n' ',')\nloop_out=\"\"\nfor yr in 2025 2026; do\n  c=$(grep -c \"^[a-z]\\{3\\}-${yr}\\.[0-9]\\{2\\}$\" /tmp/grep_in.txt)\n  loop_out=\"${loop_out}${yr}:${c};\"\ndone\nprintf \"%s#%s#%s#%s#%s#%s\\n\" \"$g_bre\" \"$g_ere\" \"$g_eo\" \"$g_bre_o\" \"$g_hn\" \"$loop_out\"");
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "rel-2026.01,rel-2025.12,#rel-2026.01,rel-2025.12,tag-2026.05,#2026.01,2025.12,2026.05,#2026,2025,2026,#(standard input):3:dev-99,#2025:1;2026:2;\n",
+  );
+});

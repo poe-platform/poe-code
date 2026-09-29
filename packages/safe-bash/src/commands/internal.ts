@@ -676,3 +676,255 @@ export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOc
   }
   return { bytes: bytes.subarray(0, size), stop: false };
 }
+
+
+import { gnuInformationSync as gnuInfoSyncInternal } from "./gnu-information.js";
+
+export function evalSyncTee(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean,
+): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal("tee", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  let append = false;
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (ended || !a.startsWith("-") || a === "-") {
+      if (a === "-") return undefined;
+      operands.push(a);
+      continue;
+    }
+    if (a === "--") { ended = true; continue; }
+    if (a === "-a" || a === "--append") { append = true; continue; }
+    if (a === "-i" || a === "--ignore-interrupts" || a === "-p" || a === "--output-error" || a === "--output-error=warn" || a === "--output-error=warn-nopipe") continue;
+    if (a.startsWith("-") && !a.startsWith("--")) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "a") append = true;
+        else if (ch === "i" || ch === "p") continue;
+        else return undefined;
+      }
+      continue;
+    }
+    return undefined;
+  }
+  const data = inBytes ?? new Uint8Array(0);
+  if (data.includes(0)) return undefined;
+  for (const op of operands) {
+    if (!writeFileSync || !writeFileSync(op, data, append)) return undefined;
+  }
+  return decoder.decode(data);
+}
+
+export function evalSyncTouch(
+  opArgs: readonly string[],
+  statTypeSync?: (filePath: string) => string | undefined,
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean,
+): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal("touch", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  let noCreate = false;
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (ended || !a.startsWith("-") || a === "-") {
+      if (a === "-") return undefined;
+      operands.push(a);
+      continue;
+    }
+    if (a === "--") { ended = true; continue; }
+    if (a === "-c" || a === "--no-create") { noCreate = true; continue; }
+    if (a === "-a" || a === "-m" || a === "-f") continue;
+    if (a.startsWith("-") && !a.startsWith("--")) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "c") noCreate = true;
+        else if (ch === "a" || ch === "m" || ch === "f") continue;
+        else return undefined;
+      }
+      continue;
+    }
+    return undefined;
+  }
+  if (operands.length === 0 || !statTypeSync || !readFileSync || !writeFileSync) return undefined;
+  for (const f of operands) {
+    const st = statTypeSync(f);
+    if (st === "missing") {
+      if (!noCreate && !writeFileSync(f, new Uint8Array(0), false)) return undefined;
+    } else if (st === "file") {
+      const cur = readFileSync(f);
+      if (!cur || !writeFileSync(f, cur, false)) return undefined;
+    } else {
+      return undefined;
+    }
+  }
+  return "";
+}
+
+export function evalSyncCp(
+  opArgs: readonly string[],
+  statTypeSync?: (filePath: string) => string | undefined,
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean,
+): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal("cp", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  let verbose = false;
+  let noTargetDir = false;
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (ended || !a.startsWith("-") || a === "-") {
+      operands.push(a);
+      continue;
+    }
+    if (a === "--") { ended = true; continue; }
+    if (a === "-v" || a === "--verbose") { verbose = true; continue; }
+    if (a === "-f" || a === "--force") continue;
+    if (a === "-T" || a === "--no-target-directory") { noTargetDir = true; continue; }
+    if (a.startsWith("-") && !a.startsWith("--")) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "v") verbose = true;
+        else if (ch === "f") continue;
+        else if (ch === "T") noTargetDir = true;
+        else return undefined;
+      }
+      continue;
+    }
+    return undefined;
+  }
+  if (operands.length !== 2 || !statTypeSync || !readFileSync || !writeFileSync) return undefined;
+  const src = operands[0]!;
+  let dst = operands[1]!;
+  if (statTypeSync(src) !== "file") return undefined;
+  const dstSt = statTypeSync(dst);
+  if (dstSt === "directory") {
+    if (noTargetDir) return undefined;
+    const base = src.replace(/\/+$/, "").split("/").pop() || "";
+    if (!base) return undefined;
+    dst = `${dst.replace(/\/+$/, "")}/${base}`;
+  }
+  if (src === dst) return undefined;
+  const finalSt = statTypeSync(dst);
+  if (finalSt !== "missing" && finalSt !== "file") return undefined;
+  const bytes = readFileSync(src);
+  if (!bytes || !writeFileSync(dst, bytes, false)) return undefined;
+  return verbose ? `'${src}' -> '${dst}'\n` : "";
+}
+
+export function evalSyncMv(
+  opArgs: readonly string[],
+  statTypeSync?: (filePath: string) => string | undefined,
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean,
+  rmSync?: (filePath: string) => boolean,
+): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal("mv", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  let verbose = false;
+  let noTargetDir = false;
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (ended || !a.startsWith("-") || a === "-") {
+      operands.push(a);
+      continue;
+    }
+    if (a === "--") { ended = true; continue; }
+    if (a === "-v" || a === "--verbose") { verbose = true; continue; }
+    if (a === "-f" || a === "--force") continue;
+    if (a === "-T" || a === "--no-target-directory") { noTargetDir = true; continue; }
+    if (a.startsWith("-") && !a.startsWith("--")) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "v") verbose = true;
+        else if (ch === "f") continue;
+        else if (ch === "T") noTargetDir = true;
+        else return undefined;
+      }
+      continue;
+    }
+    return undefined;
+  }
+  if (operands.length !== 2 || !statTypeSync || !readFileSync || !writeFileSync || !rmSync) return undefined;
+  const src = operands[0]!;
+  let dst = operands[1]!;
+  if (statTypeSync(src) !== "file") return undefined;
+  const dstSt = statTypeSync(dst);
+  if (dstSt === "directory") {
+    if (noTargetDir) return undefined;
+    const base = src.replace(/\/+$/, "").split("/").pop() || "";
+    if (!base) return undefined;
+    dst = `${dst.replace(/\/+$/, "")}/${base}`;
+  }
+  if (src === dst) return undefined;
+  const finalSt = statTypeSync(dst);
+  if (finalSt !== "missing" && finalSt !== "file") return undefined;
+  const bytes = readFileSync(src);
+  if (!bytes || !writeFileSync(dst, bytes, false) || !rmSync(src)) return undefined;
+  return verbose ? `renamed '${src}' -> '${dst}'\n` : "";
+}
+
+export function evalSyncRmdir(
+  opArgs: readonly string[],
+  statTypeSync?: (filePath: string) => string | undefined,
+  listDirSync?: (filePath: string) => readonly string[] | undefined,
+  rmSync?: (filePath: string) => boolean,
+): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal("rmdir", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  let verbose = false;
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (ended || !a.startsWith("-") || a === "-") {
+      operands.push(a);
+      continue;
+    }
+    if (a === "--") { ended = true; continue; }
+    if (a === "-v" || a === "--verbose") { verbose = true; continue; }
+    return undefined;
+  }
+  if (operands.length === 0 || !statTypeSync || !listDirSync || !rmSync) return undefined;
+  for (const dir of operands) {
+    if (dir === "/" || dir === "." || dir === ".." || dir.endsWith("/.") || dir.endsWith("/..")) return undefined;
+    if (statTypeSync(dir) !== "directory") return undefined;
+    const entries = listDirSync(dir);
+    if (!entries || entries.length !== 0) return undefined;
+  }
+  let out = "";
+  for (const dir of operands) {
+    if (!rmSync(dir)) return undefined;
+    if (verbose) out += `rmdir: removing directory, '${dir}'\n`;
+  }
+  return out;
+}
+
+export function evalSyncSleep(opArgs: readonly string[]): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal("sleep", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  if (opArgs.length === 0) return undefined;
+  let count = 0;
+  for (const a of opArgs) {
+    if (a === "--") continue;
+    if (!/^\+?0+(\.0+)?[smhd]?$/u.test(a)) return undefined;
+    count++;
+  }
+  return count > 0 ? "" : undefined;
+}
+
+syncCommandEvaluators.evalSyncTee = evalSyncTee;
+syncCommandEvaluators.evalSyncTouch = evalSyncTouch;
+syncCommandEvaluators.evalSyncCp = evalSyncCp;
+syncCommandEvaluators.evalSyncMv = evalSyncMv;
+syncCommandEvaluators.evalSyncRmdir = evalSyncRmdir;
+syncCommandEvaluators.evalSyncSleep = evalSyncSleep;

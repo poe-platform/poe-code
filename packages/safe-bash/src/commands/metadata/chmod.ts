@@ -1,7 +1,8 @@
 import { bindConditionalMutation } from "@poe-code/safe-fs/core";
 import { creationUmask } from "../../fs/creation-mask.js";
 import { FsError, type ChmodOptions, type FileStat } from "../../contracts/index.js";
-import { codeOf, diagnostic, options, pathOf, requireOperands, UsageError, value } from "../internal.js";
+import { codeOf, diagnostic, options, pathOf, requireOperands, syncCommandEvaluators, UsageError, value } from "../internal.js";
+import { gnuInformationSync } from "../gnu-information.js";
 import { MetadataBudget, metadataCommand, permissionString, settings, type MetadataCommandsOptions } from "./internal.js";
 
 type ModeChange = (stat: Pick<FileStat, "mode" | "type">) => number;
@@ -149,3 +150,40 @@ export function createChmodCommand(configuration: MetadataCommandsOptions = {}) 
     return { exitCode };
   });
 }
+
+
+export function evalSyncChmod(
+  opArgs: readonly string[],
+  umask: number,
+  chmodNodeSync?: (filePath: string, change: (stat: { type: "file" | "directory" | "symlink"; mode: number }) => number) => boolean,
+): string | undefined {
+  const gnuInfo = gnuInformationSync("chmod", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  if (!chmodNodeSync) return undefined;
+  try {
+    const modeOptions: string[] = [];
+    let ended = false;
+    const args: string[] = [];
+    for (const argument of opArgs) {
+      if (argument === "--") { ended = true; args.push(argument); continue; }
+      if (!ended && argument.startsWith("-") && argument.length > 1 && "rwxXstugo01234567".includes(argument[1]!)) {
+        modeOptions.push(argument);
+        continue;
+      }
+      args.push(argument);
+    }
+    const parsed = options(args, "f", { silent: "f", quiet: "f" });
+    const minOps = modeOptions.length ? 1 : 2;
+    if (parsed.operands.length < minOps) return undefined;
+    const mode = modeOptions.length ? modeOptions.join(",") : parsed.operands.shift()!;
+    const change = modeChange(mode, umask);
+    for (const op of parsed.operands) {
+      if (!chmodNodeSync(op, change)) return undefined;
+    }
+    return "";
+  } catch {
+    return undefined;
+  }
+}
+
+syncCommandEvaluators.evalSyncChmod = evalSyncChmod;

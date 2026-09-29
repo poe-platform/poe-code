@@ -21,10 +21,16 @@ for (const name of commands) {
     assert.deepEqual(actual.bytes, (await run(name, [], allBytes)).bytes);
   });
 
-  test(`${name}: unsupported streaming capability and VFS errors stay explicit`, async () => {
+  test(`${name}: filesystem capabilities and VFS errors stay explicit`, async () => {
     const fs = new MemoryFileSystem();
+    await fs.writeFile("/file", allBytes);
     Object.defineProperty(fs, "readStream", { value: undefined });
-    assert.match((await run(name, ["file"], "", { fs })).stderr, /ENOTSUP.*streaming-read/u);
+    const withoutStreaming = await run(name, ["file"], "", { fs });
+    if (name === "xxd" || name === "od") {
+      assert.equal(withoutStreaming.exitCode, 0, withoutStreaming.stderr);
+      assert.deepEqual(withoutStreaming.bytes, (await run(name, [], allBytes)).bytes);
+      assert.match((await run(name, ["missing"], "", { fs })).stderr, /ENOENT.*missing/u);
+    } else assert.match(withoutStreaming.stderr, /ENOTSUP.*streaming-read/u);
     assert.match((await run(name, ["missing"])).stderr, /ENOENT.*missing/u);
     const denied = withStream({ async *[Symbol.asyncIterator]() { throw new FsError("EACCES", { path: "/denied" }); } });
     const result = await run(name, ["denied"], "", { fs: denied });

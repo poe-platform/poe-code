@@ -25038,6 +25038,10 @@ export class Runtime {
     }
     if (!awkProg) return undefined;
     let progRest = awkProg.trim();
+    if (/^BEGIN\s*\{[^}]*\}$/.test(progRest)) {
+      progRest = progRest.replace(/^BEGIN\s*/, "");
+      rawLines = [""];
+    }
     const beginFsM = /^BEGIN\s*\{([^}]*)\}\s*/.exec(progRest);
     let initVarName: string | undefined;
     let initVarVal = 0;
@@ -25329,11 +25333,12 @@ export class Runtime {
           const aToks = m[10]!.trim().split(/\s*([+*\/%-])\s*/);
           for (let ti = 0; ti < aToks.length; ti += 2) {
             const at = aToks[ti]!;
-            if (!at.startsWith("$") && at !== "NR" && at !== "NF" && !/^-?[0-9]+(?:\.[0-9]+)?$/.test(at) && !userVars.has(at)) return undefined;
+            if (!at.startsWith("$") && at !== "NR" && at !== "NF" && !/^-?[0-9]+(?:\.[0-9]+)?$/.test(at) && !userVars.has(at) && !rowVarSet.has(at)) return undefined;
           }
           for (let ti = 1; ti < aToks.length; ti += 2) {
             if (aToks[ti] === "/" || aToks[ti] === "%") {
-              const divisor = Number(aToks[ti + 1]);
+              const divRaw = userVars.get(aToks[ti + 1]!) ?? aToks[ti + 1];
+              const divisor = Number(divRaw);
               if (!Number.isFinite(divisor) || divisor === 0) return undefined;
             }
           }
@@ -27893,7 +27898,7 @@ export class Runtime {
       if (cmd0.kind !== "simple" || (cmd0.redirects.length !== 0 && !cmd0StdinRedir && !cmd0HereStringRedir)) return undefined;
       const w0Plain0 = cmd0.words[0]?.plain;
       const cmd0YesStage = !cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "yes" && pipeline.commands[1]?.kind === "simple" && pipeline.commands[1]?.words[0]?.plain === "head";
-      const cmd0SysStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "uname" || w0Plain0 === "id" || w0Plain0 === "whoami" || w0Plain0 === "hostname" || w0Plain0 === "nproc" || w0Plain0 === "getconf" || w0Plain0 === "locale" || w0Plain0 === "cal" || w0Plain0 === "ncal" || w0Plain0 === "date" || w0Plain0 === "printenv" || w0Plain0 === "env" || w0Plain0 === "pwd" || w0Plain0 === "dirname" || w0Plain0 === "basename" || w0Plain0 === "expr" || w0Plain0 === "getopt" || w0Plain0 === "pathchk");
+      const cmd0SysStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "uname" || w0Plain0 === "id" || w0Plain0 === "whoami" || w0Plain0 === "hostname" || w0Plain0 === "nproc" || w0Plain0 === "getconf" || w0Plain0 === "locale" || w0Plain0 === "cal" || w0Plain0 === "ncal" || w0Plain0 === "date" || w0Plain0 === "printenv" || w0Plain0 === "env" || w0Plain0 === "pwd" || w0Plain0 === "dirname" || w0Plain0 === "basename" || w0Plain0 === "expr" || w0Plain0 === "getopt" || w0Plain0 === "pathchk" || (w0Plain0 === "awk" && cmd0.words.some(w => w.plain?.includes("BEGIN"))));
       const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || w0Plain0 === "jq" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk" || w0Plain0 === "rev" || w0Plain0 === "tac" || w0Plain0 === "uniq" || w0Plain0 === "base64" || w0Plain0 === "column" || w0Plain0 === "fold" || w0Plain0 === "expand" || w0Plain0 === "unexpand" || w0Plain0 === "strings" || w0Plain0 === "numfmt") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
       if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0YesStage && !cmd0SysStage && !cmd0StdinRedir && !cmd0HereStringRedir && !cmd0FileStage) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
@@ -28060,6 +28065,9 @@ export class Runtime {
           if (subArgs0.length === 0 || (subArgs0.length === 1 && (subArgs0[0] === "-L" || subArgs0[0] === "--logical"))) {
             stage0Formatted = rawState.cwd + "\n";
           }
+        } else if (w0Plain0 === "awk") {
+          const awk0 = this.evalSyncAwk([], subArgs0);
+          if (awk0 !== undefined) stage0Formatted = awk0.join("\n") + (awk0.length > 0 ? "\n" : "");
         } else if (w0Plain0 === "dirname") {
           const d0 = this.evalSyncDirname(subArgs0);
           if (d0 !== undefined) stage0Formatted = d0 + "\n";
@@ -28983,6 +28991,23 @@ export class Runtime {
           rawState.substitutionStatus = 0;
           rawState.status = 0;
           return convStr;
+        }
+      }
+      if (fOk && w0Plain === "awk" && !hasSingleStdinRedir && !hasSingleHereStringRedir && allArgs.some(a => a.includes("BEGIN"))) {
+        const awkBegin = this.evalSyncAwk([], allArgs);
+        if (awkBegin !== undefined) {
+          let res = awkBegin.join("\n") + (awkBegin.length > 0 ? "\n" : "");
+          const outBytes = shellValueByteLength(res);
+          let end = res.length;
+          while (end > 0 && res.charCodeAt(end - 1) === 10) end--;
+          if (end < res.length) res = res.slice(0, end);
+          const nextTotalBytes = this.budget.bytes + outBytes;
+          if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+          this.budget.bytes = nextTotalBytes;
+          this.budget.tick();
+          rawState.substitutionStatus = 0;
+          rawState.status = 0;
+          return res;
         }
       }
       if (fOk && w0Plain === "pathchk" && !hasSingleStdinRedir && !hasSingleHereStringRedir) {

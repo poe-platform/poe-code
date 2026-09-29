@@ -307,3 +307,26 @@ test("evaluates sed backreferences (\\1..\\9, \\&, \\t) and pattern-only awk rul
     "1:a 22:b|42_item|[&]+[&]|db:25:stage,api:30:prod,|db:25:stage,api:30:prod,|3|host:prod,db:stage,api:prod,|prod_api=30;prod_api=30;\n"
   );
 });
+
+test("evaluates standalone awk BEGIN blocks (with -v vars, arithmetic, print, printf, pipelines, and brace loops) in sync substitutions (Wave 173)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(textProgramCommands());
+  const res = await shell.exec([
+    "a_mul=$(awk 'BEGIN { print 6 * 7 }')",
+    "a_div=$(awk -v a=15 -v b=4 'BEGIN { printf \"%.2f\", a / b }')",
+    "a_var=$(awk 'BEGIN { x = 10 + 5; print \"val=\" x * 2 }')",
+    "a_pipe=$(awk 'BEGIN { print \"alpha:beta:gamma\" }' | cut -d : -f 2)",
+    "loop_out=''",
+    "for k in 1 2 3; do",
+    "  r=$(awk -v n=\"$k\" 'BEGIN { printf \"%03d\", n * 10 }')",
+    "  loop_out=\"${loop_out}${r},\"",
+    "done",
+    "echo \"$a_mul|$a_div|$a_var|$a_pipe|$loop_out\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "42|3.75|val=30|beta|010,020,030,\n"
+  );
+});

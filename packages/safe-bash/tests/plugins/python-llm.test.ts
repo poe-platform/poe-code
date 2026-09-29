@@ -17,6 +17,7 @@ class FakeBridge:
  def __init__(self):
   self.calls = []
   self.closed = 0
+  self.embedding_metadata = {'labels': ['owned']}
   self.fail = False
  async def call(self, operation, payload):
   self.calls.append((operation, payload))
@@ -25,7 +26,7 @@ class FakeBridge:
   if operation == 'models':
    return [{'id': 'provider/model', 'aliases': ['small'], 'capabilities': ['complete', 'stream']}]
   if operation == 'embed':
-   return {'model': payload['model'], 'vectors': [[1.0, 0.25]], 'usage': {'tokens': 2}}
+   return {'model': payload['model'], 'vectors': [[1.0, 0.25]], 'usage': {'tokens': 2}, 'metadata': self.embedding_metadata}
   return {'model': payload['model'], 'text': 'answer', 'data': bytes([255, 0, 42]), 'usage': {'tokens': 3}, 'conversation': 'c1', 'metadata': {'done': True}}
  def stream(self, payload):
   self.calls.append(('stream', payload))
@@ -39,6 +40,14 @@ class FakeBridge:
   return chunks()
 
 class LibraryTests(unittest.IsolatedAsyncioTestCase):
+ async def test_embedding_metadata_is_preserved_and_owned(self):
+  bridge = FakeBridge()
+  async with Client(bridge=bridge, model='provider/model') as client:
+   result = await client.embed(['input'])
+  self.assertEqual(result.metadata, {'labels': ['owned']})
+  bridge.embedding_metadata['labels'].append('host-change')
+  self.assertEqual(result.metadata, {'labels': ['owned']})
+
  async def test_embedding_iterable_is_consumed_once_before_transport(self):
   bridge = FakeBridge()
   seen = []

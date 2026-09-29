@@ -138,6 +138,7 @@ class Embeddings:
     model: str
     vectors: tuple[tuple[float, ...], ...]
     usage: Mapping[str, Any] = field(default_factory=dict)
+    metadata: Mapping[str, Any] = field(default_factory=dict)
 
 @dataclass(frozen=True)
 class Event:
@@ -373,7 +374,7 @@ class Client:
             raise LlmError("protocol", "Invalid embedding result")
         if self._limit is not None and sum(len(vector) for vector in vectors) * 8 > self._limit:
             raise LimitError()
-        return Embeddings(result["model"], vectors, copy.deepcopy(result.get("usage", {})))
+        return Embeddings(result["model"], vectors, copy.deepcopy(result.get("usage", {})), copy.deepcopy(result.get("metadata", {})))
 
     def prompt(self, function, **defaults):
         async def invoke(*args, **kwargs):

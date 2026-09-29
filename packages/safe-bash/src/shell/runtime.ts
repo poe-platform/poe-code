@@ -28335,7 +28335,7 @@ export class Runtime {
     if (cmd.kind !== "simple" || (cmd.redirects.length > 0 && !hasSingleStdinRedir && !hasSingleHereStringRedir) || cmd.words.length === 0) return undefined;
     let w0Plain = cmd.words[0]!.plain;
     if (!w0Plain || rawState.extensions?.builtins.has(w0Plain)) return undefined;
-    if (w0Plain === "xxd" || w0Plain === "od") {
+    if (w0Plain === "xxd" || w0Plain === "od" || w0Plain === "mktemp" || w0Plain === "chmod") {
       const definition = this.getExternalCommand(w0Plain);
       if (!definition || !builtInDirectContextExecutors.has(definition.execute)) return undefined;
     }

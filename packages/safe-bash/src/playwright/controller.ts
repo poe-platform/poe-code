@@ -1182,8 +1182,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             pruneOutcomes();
             if (status === 'running') {
               outcomes.delete(parsed.session);
-              outcomes.set(parsed.session, { operation: outcome, expiresAt: operationClock() + 24 * 60 * 60 * 1000 });
-              if (outcomes.size > 16) outcomes.delete(outcomes.keys().next().value!);
+              outcomes.set(parsed.session, { operation: outcome, expiresAt: operationClock() + (options.limits?.maxOperationOutcomeAgeMs ?? Infinity) });
+              if (outcomes.size > (options.limits?.maxOperationOutcomes ?? Infinity)) outcomes.delete(outcomes.keys().next().value!);
             } else {
               const receipt = outcomes.get(parsed.session);
               if (receipt?.operation.operationId === operationId) receipt.operation = outcome;

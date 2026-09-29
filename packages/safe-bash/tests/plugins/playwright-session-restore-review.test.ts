@@ -19,10 +19,13 @@ test('public recovery validators retain only bounded correlation metadata', () =
   for (const status of ['running', 'completed', 'unknown'] as const) {
     assert.equal(parsePlaywrightOperationOutcome({ operationId: 'a'.repeat(128), status }).status, status);
   }
-  for (const name of ['', 'a'.repeat(129), 'https://example.test', 'script()', 'user:password', null]) {
+  for (const name of ['', 'https://example.test', 'script()', 'user:password', null]) {
     assert.throws(() => validatePlaywrightSessionName(name));
     assert.throws(() => parsePlaywrightOperationOutcome({ operationId: name as string, status: 'running' }));
   }
+  validatePlaywrightSessionName('a'.repeat(129));
+  assert.equal(parsePlaywrightOperationOutcome({ operationId: 'a'.repeat(129), status: 'running' }).operationId.length, 129);
+  assert.throws(() => validatePlaywrightSessionName('a'.repeat(129), 128));
   assert.throws(() => parsePlaywrightOperationOutcome({ operationId: 'receipt', status: 'invalid' as 'running' }));
 });
 
@@ -624,4 +627,22 @@ test('expired-session cleanup failure does not settle restoration before sibling
   assert.equal(failed.calls.releases, 1);
   assert.equal(delayed.calls.releases, 1);
   assert.equal(acquisitions, 0);
+});
+
+test('in-memory operation receipts have optional count and age ceilings', async () => {
+  for (const bounded of [false, true]) {
+    const host = browser();
+    let now = 0;
+    const controller = createPlaywrightController({ adapter: host.adapter, operationClock: () => now,
+      ...(bounded ? { limits: { maxOperationOutcomes: 16, maxOperationOutcomeAgeMs: 100 } } : {}) });
+    try {
+      for (let index = 0; index < 17; index++) {
+        await assert.rejects(controller.run({ args: [`-s=receipt${index}`, 'press', 'Enter'], operationId: `operation${index}`,
+          env: {}, signal: new AbortController().signal, async write() {} }));
+      }
+      assert.equal((await controller.inspectRecovery({ name: 'receipt0' })).operation?.operationId, bounded ? undefined : 'operation0');
+      now = 24 * 60 * 60 * 1000 + 1;
+      assert.equal((await controller.inspectRecovery({ name: 'receipt16' })).operation?.operationId, bounded ? undefined : 'operation16');
+    } finally { await controller.dispose(); }
+  }
 });

@@ -50,13 +50,13 @@ async function listTools(request: PlaywrightAbilityRequest) {
   for (const [index, frame] of frames.entries()) {
     request.signal.throwIfAborted();
     if (!frame.evaluate) unsupported('WebMCP frame evaluation');
-    const serialized = await frame.evaluate(async ({ maximum }) => {
+    const serialized = await frame.evaluate(async ({ maximum, timeoutMs }) => {
       const context = (document as unknown as { modelContext?: ModelContext }).modelContext ?? (navigator as unknown as { modelContext?: ModelContext }).modelContext;
       if (!context?.getTools) return '[]';
       let timer: ReturnType<typeof setTimeout> | undefined;
       let tools;
       try {
-        tools = await Promise.race([context.getTools(), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('WebMCP tool discovery timed out')), 5000); })]);
+        tools = timeoutMs === null ? await context.getTools() : await Promise.race([context.getTools(), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('WebMCP tool discovery timed out')), timeoutMs); })]);
       } finally { clearTimeout(timer); }
       const visible = tools.filter(tool => !('window' in tool) || tool.window === window).map(tool => ({
         name: tool.name, description: tool.description ?? '', inputSchema: tool.inputSchema,
@@ -69,7 +69,7 @@ async function listTools(request: PlaywrightAbilityRequest) {
       const text = JSON.stringify(visible);
       if (maximum !== null && (text.length > maximum || new TextEncoder().encode(text).byteLength > maximum)) return null;
       return text;
-    }, { maximum: remaining === Infinity ? null : remaining });
+    }, { maximum: remaining === Infinity ? null : remaining, timeoutMs: request.limits?.webMCPDiscoveryTimeoutMs === undefined || request.limits.webMCPDiscoveryTimeoutMs === Infinity ? null : request.limits.webMCPDiscoveryTimeoutMs });
     if (serialized === null) throw new PlaywrightResourceLimitError('WebMCP result byte limit exceeded');
     if (typeof serialized !== 'string') throw new Error('Invalid WebMCP tool metadata');
     if (serialized.length > remaining) throw new PlaywrightResourceLimitError('WebMCP result byte limit exceeded');

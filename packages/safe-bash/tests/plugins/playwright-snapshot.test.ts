@@ -164,7 +164,8 @@ test('plain ARIA snapshots cannot establish actionable refs', async () => {
 });
 
 test('invalid limits and overlapping navigation during capture fail closed', async () => {
-  for (const limits of [{ maxSnapshotRefs: 0 }, { maxSnapshotRefs: Infinity }]) assert.throws(() => createSnapshotEngine(limits), /limit/i);
+  for (const limits of [{ maxSnapshotRefs: 0 }, { maxSnapshotRefs: NaN }]) assert.throws(() => createSnapshotEngine(limits), /limit/i);
+  assert.doesNotThrow(() => createSnapshotEngine({ maxSnapshotRefs: Infinity }));
   const f = fixture();
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
   const frame = f.snapshots[0]!.frame;

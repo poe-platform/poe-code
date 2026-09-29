@@ -12,6 +12,9 @@ export function isPlaywrightResourceLimitError(error: unknown): boolean {
 
 /** Optional resource ceilings. Omitted values and Infinity disable the ceiling. */
 export interface PlaywrightStructureLimits {
+  readonly maxViewportDimension?: number | undefined;
+  readonly maxOperationOutcomes?: number | undefined;
+  readonly maxOperationOutcomeAgeMs?: number | undefined;
   readonly maxHighlights?: number | undefined;
   readonly maxEventEntries?: number | undefined;
   readonly maxTracePathBytes?: number | undefined;
@@ -36,17 +39,18 @@ export interface PlaywrightStructureLimits {
   readonly maxWebMCPParameterDepth?: number | undefined;
   readonly maxRecordingActions?: number | undefined;
   readonly maxTraceFiles?: number | undefined;
+  readonly webMCPDiscoveryTimeoutMs?: number | undefined;
   readonly maxWebMCPFrames?: number | undefined;
   readonly maxWebMCPMetadataBytes?: number | undefined;
   readonly maxWebMCPMetadataEntries?: number | undefined;
   readonly maxWebMCPMetadataDepth?: number | undefined;
 }
 export const playwrightStructureDefaults: Required<PlaywrightStructureLimits> = Object.freeze({
-  maxHighlights: Infinity, maxEventEntries: Infinity, maxTracePathBytes: Infinity, maxSessionNameBytes: Infinity,
+  maxViewportDimension: Infinity, maxOperationOutcomes: Infinity, maxOperationOutcomeAgeMs: Infinity, maxHighlights: Infinity, maxEventEntries: Infinity, maxTracePathBytes: Infinity, maxSessionNameBytes: Infinity,
   maxConfigBytes: Infinity, maxConfigEntries: Infinity, maxConfigDepth: Infinity,
   maxOutputFiles: Infinity, maxSnapshotDepth: Infinity, maxRecordingActions: Infinity,
   maxEvaluationInputBytes: Infinity, maxEvaluationBytes: Infinity, maxEvaluationEntries: Infinity, maxEvaluationDepth: Infinity, maxScreenshotPixels: Infinity, maxStorageNodes: Infinity, maxStorageDepth: Infinity, maxDownloads: Infinity,
   maxRoutes: Infinity, maxRoutePatternLength: Infinity, maxWebMCPParameterBytes: Infinity, maxWebMCPParameterNodes: Infinity, maxWebMCPParameterDepth: Infinity,
-  maxTraceFiles: Infinity, maxWebMCPFrames: Infinity, maxWebMCPMetadataBytes: Infinity,
+  webMCPDiscoveryTimeoutMs: Infinity, maxTraceFiles: Infinity, maxWebMCPFrames: Infinity, maxWebMCPMetadataBytes: Infinity,
   maxWebMCPMetadataEntries: Infinity, maxWebMCPMetadataDepth: Infinity,
 });

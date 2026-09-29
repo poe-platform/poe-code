@@ -188,7 +188,8 @@ export const playwrightStandardAbilities: Partial<Record<PlaywrightCommand, Play
     const page = requirePage(request);
     if (!page.setViewportSize) unsupported('setViewportSize');
     const width = numeric(request.args[0], 'viewport width'), height = numeric(request.args[1], 'viewport height');
-    if (![width, height].every(value => Number.isSafeInteger(value) && value > 0 && value <= 32768)) throw new Error('Invalid viewport size');
+    if (![width, height].every(value => Number.isSafeInteger(value) && value > 0)) throw new Error('Invalid viewport size');
+    if (Math.max(width, height) > (request.limits?.maxViewportDimension ?? Infinity)) throw new PlaywrightResourceLimitError('Playwright viewport dimension limit exceeded');
     await page.setViewportSize({ width, height });
     return capabilityResult(`await page.setViewportSize({ width: ${width}, height: ${height} });`);
   } },

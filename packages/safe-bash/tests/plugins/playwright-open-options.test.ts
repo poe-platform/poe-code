@@ -73,7 +73,7 @@ test('open rejects compact config graphs before native object parsing', async ()
     ]) {
       await assert.rejects(resolvePlaywrightOpenOptions({ config: 'config.json' }, {
         ...invocation, async readArtifact() { return new TextEncoder().encode(source); },
-      }, adapter, 16 * 1024 * 1024));
+      }, adapter, 16 * 1024 * 1024, { maxConfigBytes: 128 * 1024, maxConfigEntries: 4096, maxConfigDepth: 32 }));
     }
     assert.equal(graphs, 0, 'invalid config must not allocate a native graph');
   } finally { JSON.parse = original; }
@@ -87,7 +87,7 @@ test('all config sources receive the smaller byte budget', async () => {
     const budgets: number[] = [];
     await resolvePlaywrightOpenOptions(options, { ...invocation, env, async readArtifact(path, budget) {
       budgets.push(budget); return new TextEncoder().encode(path.endsWith('.ini') ? '' : '{}');
-    } }, adapter, 16 * 1024 * 1024);
+    } }, adapter, 16 * 1024 * 1024, { maxConfigBytes: 128 * 1024 });
     assert.ok(budgets.length > 0);
     assert.ok(budgets.every(budget => budget === 128 * 1024));
   }

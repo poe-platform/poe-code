@@ -515,6 +515,16 @@ test("head stops reading when satisfied and multiple input headers are controlla
   assert.equal((await run("tail", ["-q", "first", "second"], { fs })).stdout, "one\ntwo\n");
 });
 
+test("wc reads NUL-delimited filenames from asynchronous stdin", async () => {
+  const fs = await fixture({ "first file": "one\n", second: "two\nthree\n" });
+  const result = await run("wc", ["-l", "--total=only", "--files0-from=-"], {
+    fs, stdin: chunks("first file\0second\0", 3), commands: streamCommands(),
+  });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "3\n");
+  assert.equal(result.stderr, "");
+});
+
 test("wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines", async () => {
   const result = await run("wc", ["-lwcm"], { stdin: chunks("héllo  world\nlast") });
   assert.equal(result.stdout, "      1       3      17      18\n");

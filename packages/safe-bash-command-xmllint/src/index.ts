@@ -27,7 +27,7 @@ import { serializeDocument, type DocumentMode } from "safe-bash-xml-engine/docum
 const sharedEncoder = new TextEncoder();
 export { defaultXmlQueryLimits } from "safe-bash-xml-engine/limits";
 export type { XmlCommandsOptions, XmlQueryLimits } from "safe-bash-xml-engine/limits";
-export type { XmlCommandsOptions as XmllintCommandsOptions } from "safe-bash-xml-engine/limits";
+export type { XmlQueryLimits as XmllintLimits, XmlCommandsOptions as XmllintCommandsOptions } from "safe-bash-xml-engine/limits";
 
 async function argumentsFor(
   context: CommandContext,

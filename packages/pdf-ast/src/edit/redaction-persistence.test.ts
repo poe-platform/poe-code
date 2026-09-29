@@ -7,6 +7,7 @@ import {
   cosNumber,
   cosStream,
   dictGet,
+  dictDelete,
   dictSet,
   type SavePdfOptions,
 } from "../index.js";
@@ -94,6 +95,46 @@ describe("redaction persistence", () => {
     const saved = PdfDocument.load(loaded.save());
     expect(saved.getPage(0).evaluateDisplayList().images).toHaveLength(0);
     expect(saved.getPage(1).evaluateDisplayList().images).toHaveLength(1);
+  });
+
+  it("removes discarded image bytes inherited from the parent Pages resources", () => {
+    const doc = PdfDocument.create();
+    const page = doc.addPage([100, 100]);
+    page.drawImage(doc.embedRgbImage(1, 1, new Uint8Array([7, 13, 29])), {
+      x: 10, y: 10, width: 20, height: 20,
+    });
+    const parent = doc.cos.resolveDict(dictGet(page.pageDict, "Parent"))!;
+    dictSet(parent, "Resources", dictGet(page.pageDict, "Resources")!);
+    page.pageDict.entries.splice(page.pageDict.entries.findIndex(entry => entry.key.decoded === "Resources"), 1);
+    const loaded = PdfDocument.load(doc.save());
+    expect(loaded.getPage(0).evaluateDisplayList().images).toHaveLength(1);
+    loaded.getPage(0).redact([0, 0, 50, 50]);
+    const saved = PdfDocument.load(loaded.save());
+    expect([...saved.cos.objects.values()].filter(({ value }) => {
+      const subtype = value.kind === "stream" ? dictGet(value.dict, "Subtype") : undefined;
+      return subtype?.kind === "name" && subtype.decoded === "Image";
+    })).toHaveLength(0);
+  });
+
+  it("does not retain a redacted image through an unused resource on another page", () => {
+    const doc = PdfDocument.create();
+    const page = doc.addPage([100, 100]);
+    page.drawImage(doc.embedRgbImage(1, 1, new Uint8Array([7, 13, 29])), {
+      x: 10, y: 10, width: 20, height: 20,
+    });
+    const parent = doc.cos.resolveDict(dictGet(page.pageDict, "Parent"))!;
+    dictSet(parent, "Resources", dictGet(page.pageDict, "Resources")!);
+    dictDelete(page.pageDict, "Resources");
+    const blank = doc.addPage([100, 100]);
+    dictDelete(blank.pageDict, "Resources");
+    const loaded = PdfDocument.load(doc.save());
+    loaded.getPage(0).redact([0, 0, 50, 50]);
+    const saved = PdfDocument.load(loaded.save());
+    expect(saved.getPage(1).evaluateDisplayList().images).toHaveLength(0);
+    expect([...saved.cos.objects.values()].filter(({ value }) => {
+      const subtype = value.kind === "stream" ? dictGet(value.dict, "Subtype") : undefined;
+      return subtype?.kind === "name" && subtype.decoded === "Image";
+    })).toHaveLength(0);
   });
 
   it("removes a discarded Form XObject and its confidential stream", () => {

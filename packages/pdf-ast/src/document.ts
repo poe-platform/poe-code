@@ -7,6 +7,7 @@ import {
   cosStream,
   cosString,
   decodePdfString,
+  dictDelete,
   dictGet,
   dictSet,
   type PdfCosDict,
@@ -31,6 +32,7 @@ import { parseCosDocument, type ParseCosOptions, type ParsedCosDocument } from "
 import { encryptCosDocument, type EncryptPdfOptions } from "./cos/security.js";
 import { appendIncrementalRevision, serializeCosDocument } from "./cos/writer.js";
 import { getDocumentFormFields, setDocumentFormField, type PdfFormFieldInfo } from "./edit/forms.js";
+import { pruneUnusedXObjects } from "./edit/resources.js";
 import { PdfError } from "./errors.js";
 import { buildSemanticAstFromPages } from "./extract/semantic-ast.js";
 import { formatExtractedPageText, type ExtractTextOptions } from "./extract/text.js";
@@ -139,9 +141,11 @@ export class PdfDocument {
       dictSet(catalog, "Pages", pagesRef);
     }
     this.pages.forEach((p, idx) => {
+      p.materializeInheritedAttributes();
       p.index = idx;
       dictSet(p.pageDict, "Parent", pagesRef!);
     });
+    if (this.cos.requiresFullRewrite) dictDelete(pagesDict, "Resources");
     dictSet(pagesDict, "Kids", cosArray(this.pages.map(p => p.pageRef)));
     dictSet(pagesDict, "Count", cosNumber(this.pages.length));
   }
@@ -643,7 +647,10 @@ export class PdfDocument {
 
   save(options: SavePdfOptions = {}): Uint8Array {
     this.syncPageTree();
-    if (this.cos.requiresFullRewrite) discardUnreachableObjects(this.cos);
+    if (this.cos.requiresFullRewrite) {
+      pruneUnusedXObjects(this.cos, this.pages);
+      discardUnreachableObjects(this.cos);
+    }
     if (options.encrypt) {
       return encryptCosDocument(this.cos, options.encrypt);
     }

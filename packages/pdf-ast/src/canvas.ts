@@ -308,6 +308,16 @@ export class PdfPage {
     return node?.kind === "array" ? node : undefined;
   }
 
+  /** Preserve the four inheritable page attributes before changing /Parent. */
+  materializeInheritedAttributes(): void {
+    this.getResourcesDict();
+    for (const key of ["MediaBox", "CropBox", "Rotate"]) {
+      if (dictGet(this.pageDict, key)) continue;
+      const value = this.resolveInheritedNode(key);
+      if (value) dictSet(this.pageDict, key, value);
+    }
+  }
+
   getResourcesDict(): PdfCosDict {
     let res = this.cosDoc.resolveDict(dictGet(this.pageDict, "Resources"));
     if (!res) {
@@ -727,32 +737,6 @@ export class PdfPage {
       resourcesDict: resources,
       options: { ...options, fontName },
     });
-    const xobjectNames = (nodes: readonly PdfContentNode[]): Set<string> => {
-      const names = new Set<string>();
-      const pending = [...nodes];
-      while (pending.length > 0) {
-        const node = pending.pop()!;
-        if (node.kind === "xobject") names.add(node.name);
-        else if (node.kind === "graphics-group") pending.push(...node.ops);
-        else if (node.kind === "marked-content") pending.push(...node.children);
-      }
-      return names;
-    };
-    const originalNames = xobjectNames(originalNodes);
-    const retainedNames = xobjectNames(redactedNodes);
-    const xobjects = this.cosDoc.resolveDict(dictGet(resources, "XObject"));
-    if (xobjects) {
-      // Resource dictionaries and content streams can be shared across pages.
-      // Detach this page's references instead of modifying shared objects.
-      const ownResources: PdfCosDict = { kind: "dict", entries: [...resources.entries] };
-      dictSet(ownResources, "XObject", {
-        kind: "dict",
-        entries: xobjects.entries.filter(entry =>
-          !originalNames.has(entry.key.decoded) || retainedNames.has(entry.key.decoded)
-        ),
-      });
-      dictSet(this.pageDict, "Resources", ownResources);
-    }
     const replacement = this.cosDoc.allocateObject(cosStream(serializeContentAst(redactedNodes), { compress: true }));
     dictSet(this.pageDict, "Contents", replacement);
     this.cachedContentAst = redactedNodes;

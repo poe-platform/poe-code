@@ -14,7 +14,7 @@ function verifyRetainedFile(actual: FileStat, expected: FileStat): void {
 export async function createLlmOutputSpool(fs: FileSystem, directory: string, signal: AbortSignal) {
  const parent = await fs.stat(directory, { signal });
  if (parent.type !== "directory") throw new FsError("ENOTDIR", { path: directory });
- const caps = await fs.capabilitiesFor?.(directory, { signal, create: true }) ?? fs.capabilities;
+ const caps = await fs.capabilitiesFor?.(directory, { signal }) ?? fs.capabilities;
  if (!caps.retainedStagingCleanup || !caps.retainedStagingWrite || !caps.retainedRead || !fs.createStagedFile || !fs.openReadFile) throw new FsError("ENOTSUP", { message: "LLM nonstream output requires caller filesystem retained staging and reads" });
  let staging;
  for (let attempt = 0; attempt < 16; attempt++) {

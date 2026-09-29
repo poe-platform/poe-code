@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { DeviceFileSystem, MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { toByteSource } from "safe-bash-contracts";
 import { createLlmCommand } from "./command.js";
 
@@ -94,4 +94,21 @@ test("spool cancellation retires a retained reader acquired after cleanup", asyn
   await assert.rejects(pending, /cancelled|closed/);
   assert.equal(closes, 1);
   assert.deepEqual(await backing.readdir("/"), []);
+});
+
+
+test("nonstream output stages beneath a device-aware root directory", async () => {
+  const fs = new DeviceFileSystem(new MemoryFileSystem());
+  const initialEntries = await fs.readdir("/");
+  const output: Uint8Array[] = [], errors: Uint8Array[] = [];
+  const command = createLlmCommand({ defaultModel: "model", providers: [{
+    name: "fixture", models: [{ id: "model" }], async *complete() { yield "answer"; },
+  }] });
+  const result = await command.execute({ command: "llm", args: ["test", "--no-stream"], fs, cwd: "/", env: {},
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write(bytes) { output.push(bytes.slice()); } }, stderr: { async write(bytes) { errors.push(bytes.slice()); } },
+  });
+  assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+  assert.equal(Buffer.concat(output).toString(), "answer\n");
+  assert.deepEqual(await fs.readdir("/"), initialEntries);
 });

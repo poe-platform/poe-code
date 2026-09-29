@@ -389,14 +389,21 @@ export function evalSyncXmllint(
     if (flag === "--noout") { noout = true; idx++; }
     else if (flag === "--format") { format = true; idx++; }
     else if (flag === "--c14n") { c14n = true; idx++; }
-    else if (flag === "--xpath") {
+    else if (flag === "--xpath" || flag.startsWith("--xpath=")) {
       if (xpathQuery !== undefined) return undefined;
-      idx++;
-      if (opArgs[idx] === "--") idx++;
-      const q = opArgs[idx];
-      if (!q || q.startsWith("-")) return undefined;
-      xpathQuery = q;
-      idx++;
+      if (flag.startsWith("--xpath=")) {
+        const q = flag.slice(8);
+        if (!q) return undefined;
+        xpathQuery = q;
+        idx++;
+      } else {
+        idx++;
+        if (opArgs[idx] === "--") idx++;
+        const q = opArgs[idx];
+        if (!q || q.startsWith("-")) return undefined;
+        xpathQuery = q;
+        idx++;
+      }
     } else break;
   }
   if (opArgs[idx] === "--") idx++;
@@ -476,8 +483,6 @@ export function evalSyncXmllint(
       break;
     }
   }
-  if (q.includes("|")) return undefined;
-
   const doc: SyncXmlNode = { kind: "document", children: [] };
   const order: SyncXmlNode[] = [doc];
   const parentOf = new Map<SyncXmlNode, SyncXmlNode>();
@@ -507,129 +512,226 @@ export function evalSyncXmllint(
     }
   }
 
-  let contexts: SyncXmlNode[] = [doc];
-  let at = 0;
-  let firstStep = true;
-  const isNameChar = (c: string) => /^[A-Za-z0-9_.-]$/.test(c);
-  while (at < q.length) {
-    while (at < q.length && /\s/.test(q[at]!)) at++;
-    if (!firstStep && q[at] !== "/") return undefined;
-    firstStep = false;
-    let descendant = false;
-    if (q[at] === "/") {
-      at++;
-      if (q[at] === "/") { descendant = true; at++; }
-    }
-    while (at < q.length && /\s/.test(q[at]!)) at++;
-    let kind: "element" | "attribute" | "text" | "self" | "parent" = "element";
-    if (q[at] === "@") { kind = "attribute"; at++; }
-    let selected = "";
-    if (q[at] === ".") {
-      at++;
-      if (q[at] === ".") { kind = "parent"; at++; selected = "."; }
-      else { kind = "self"; selected = "."; }
-    } else if (q[at] === "*") {
-      selected = "*";
-      at++;
-    } else {
-      const start = at;
-      while (at < q.length && isNameChar(q[at]!)) at++;
-      if (start === at || q[at] === ":") return undefined;
-      selected = q.slice(start, at);
-      while (at < q.length && /\s/.test(q[at]!)) at++;
-      if (q[at] === "(") {
-        if (selected !== "text" || kind !== "element") return undefined;
-        at++;
-        while (at < q.length && /\s/.test(q[at]!)) at++;
-        if (q[at] !== ")") return undefined;
-        at++;
-        kind = "text";
+  // Split top-level union branches on "|" outside quotes and brackets
+  const unionParts: string[] = [];
+  {
+    let cur = "";
+    let inQ: string | undefined;
+    let brDepth = 0;
+    for (let i = 0; i < q.length; i++) {
+      const ch = q[i]!;
+      if (inQ) {
+        if (ch === inQ) inQ = undefined;
+        cur += ch;
+      } else if (ch === "\"" || ch === "\x27") {
+        inQ = ch;
+        cur += ch;
+      } else if (ch === "[") {
+        brDepth++;
+        cur += ch;
+      } else if (ch === "]") {
+        brDepth--;
+        cur += ch;
+      } else if (ch === "|" && brDepth === 0) {
+        if (!cur.trim()) return undefined;
+        unionParts.push(cur.trim());
+        cur = "";
+      } else {
+        cur += ch;
       }
     }
-    while (at < q.length && /\s/.test(q[at]!)) at++;
-    const preds: ({ kind: "pos"; val: number } | { kind: "last" } | { kind: "attr"; name: string; val?: string })[] = [];
-    while (q[at] === "[") {
-      at++;
-      while (at < q.length && /\s/.test(q[at]!)) at++;
-      if (/^[0-9]/.test(q[at] ?? "")) {
-        const s = at;
-        while (at < q.length && /^[0-9]$/.test(q[at]!)) at++;
-        const n = Number(q.slice(s, at));
-        if (!Number.isSafeInteger(n) || n < 1) return undefined;
-        preds.push({ kind: "pos", val: n });
-      } else if (q.startsWith("last()", at)) {
-        at += 6;
-        preds.push({ kind: "last" });
-      } else if (q[at] === "@") {
+    if (inQ || brDepth !== 0 || !cur.trim()) return undefined;
+    unionParts.push(cur.trim());
+  }
+
+  const isNameChar = (c: string) => /^[A-Za-z0-9_.-]$/.test(c);
+  const evalSingleBranch = (branch: string): SyncXmlNode[] | undefined => {
+    let bContexts: SyncXmlNode[] = [doc];
+    let at = 0;
+    let firstStep = true;
+    while (at < branch.length) {
+      while (at < branch.length && /\s/.test(branch[at]!)) at++;
+      if (!firstStep && branch[at] !== "/") return undefined;
+      firstStep = false;
+      let descendant = false;
+      if (branch[at] === "/") {
         at++;
-        const s = at;
-        while (at < q.length && isNameChar(q[at]!)) at++;
-        if (s === at) return undefined;
-        const attrName = q.slice(s, at);
-        while (at < q.length && /\s/.test(q[at]!)) at++;
-        if (q[at] === "]") {
-          preds.push({ kind: "attr", name: attrName });
-        } else if (q[at] === "=") {
+        if (branch[at] === "/") { descendant = true; at++; }
+      }
+      while (at < branch.length && /\s/.test(branch[at]!)) at++;
+      let kind: "element" | "attribute" | "text" | "self" | "parent" = "element";
+      if (branch[at] === "@") { kind = "attribute"; at++; }
+      let selected = "";
+      if (branch[at] === ".") {
+        at++;
+        if (branch[at] === ".") { kind = "parent"; at++; selected = "."; }
+        else { kind = "self"; selected = "."; }
+      } else if (branch[at] === "*") {
+        selected = "*";
+        at++;
+      } else {
+        const start = at;
+        while (at < branch.length && isNameChar(branch[at]!)) at++;
+        if (start === at || branch[at] === ":") return undefined;
+        selected = branch.slice(start, at);
+        while (at < branch.length && /\s/.test(branch[at]!)) at++;
+        if (branch[at] === "(") {
+          if (selected !== "text" || kind !== "element") return undefined;
           at++;
-          while (at < q.length && /\s/.test(q[at]!)) at++;
-          const quote = q[at++];
+          while (at < branch.length && /\s/.test(branch[at]!)) at++;
+          if (branch[at] !== ")") return undefined;
+          at++;
+          kind = "text";
+        }
+      }
+      while (at < branch.length && /\s/.test(branch[at]!)) at++;
+      const preds: (
+        | { kind: "pos"; val: number }
+        | { kind: "last" }
+        | { kind: "attr"; name: string; val?: string; neq?: boolean }
+        | { kind: "textEq"; val: string }
+        | { kind: "child"; name: string; val?: string }
+      )[] = [];
+      while (branch[at] === "[") {
+        at++;
+        while (at < branch.length && /\s/.test(branch[at]!)) at++;
+        if (/^[0-9]/.test(branch[at] ?? "")) {
+          const s = at;
+          while (at < branch.length && /^[0-9]$/.test(branch[at]!)) at++;
+          const n = Number(branch.slice(s, at));
+          if (!Number.isSafeInteger(n) || n < 1) return undefined;
+          preds.push({ kind: "pos", val: n });
+        } else if (branch.startsWith("position()", at)) {
+          at += 10;
+          while (at < branch.length && /\s/.test(branch[at]!)) at++;
+          if (branch[at] !== "=") return undefined;
+          at++;
+          while (at < branch.length && /\s/.test(branch[at]!)) at++;
+          const s = at;
+          while (at < branch.length && /^[0-9]$/.test(branch[at]!)) at++;
+          const n = Number(branch.slice(s, at));
+          if (!Number.isSafeInteger(n) || n < 1) return undefined;
+          preds.push({ kind: "pos", val: n });
+        } else if (branch.startsWith("last()", at)) {
+          at += 6;
+          preds.push({ kind: "last" });
+        } else if (branch.startsWith("text()", at)) {
+          at += 6;
+          while (at < branch.length && /\s/.test(branch[at]!)) at++;
+          if (branch[at] !== "=") return undefined;
+          at++;
+          while (at < branch.length && /\s/.test(branch[at]!)) at++;
+          const quote = branch[at++];
           if (quote !== "\"" && quote !== "\x27") return undefined;
           const vs = at;
-          while (at < q.length && q[at] !== quote) at++;
-          if (at >= q.length) return undefined;
-          preds.push({ kind: "attr", name: attrName, val: q.slice(vs, at++) });
-        } else return undefined;
-      } else {
-        return undefined;
-      }
-      while (at < q.length && /\s/.test(q[at]!)) at++;
-      if (q[at] !== "]") return undefined;
-      at++;
-      while (at < q.length && /\s/.test(q[at]!)) at++;
-    }
-
-    if ((kind === "attribute" || kind === "text") && at < q.length) return undefined;
-
-    const parents = new Set<SyncXmlNode>();
-    const pStack = [...contexts];
-    while (pStack.length) {
-      const n = pStack.pop()!;
-      if (parents.has(n)) continue;
-      parents.add(n);
-      if (descendant && (n.kind === "document" || n.kind === "element")) {
-        for (const c of n.children) pStack.push(c);
-      }
-    }
-    const selSet = new Set<SyncXmlNode>();
-    for (const p of parents) {
-      const cands =
-        kind === "self" ? [p]
-        : kind === "parent" ? (parentOf.has(p) ? [parentOf.get(p)!] : [])
-        : kind === "attribute" ? (p.kind === "element" ? p.attributes : [])
-        : (p.kind === "element" || p.kind === "document") ? p.children : [];
-      let matched = cands.filter(c => {
-        if (kind === "self" || kind === "parent") return true;
-        if (kind === "text") return c.kind === "text" || c.kind === "cdata";
-        if (c.kind !== kind) return false;
-        if (c.kind === "element" || c.kind === "attribute") {
-          return selected === "*" || (c.value.namespace === "" && c.value.localName === selected);
+          while (at < branch.length && branch[at] !== quote) at++;
+          if (at >= branch.length) return undefined;
+          preds.push({ kind: "textEq", val: branch.slice(vs, at++) });
+        } else if (branch[at] === "@") {
+          at++;
+          const s = at;
+          while (at < branch.length && isNameChar(branch[at]!)) at++;
+          if (s === at) return undefined;
+          const attrName = branch.slice(s, at);
+          while (at < branch.length && /\s/.test(branch[at]!)) at++;
+          if (branch[at] === "]") {
+            preds.push({ kind: "attr", name: attrName });
+          } else if (branch[at] === "=" || (branch[at] === "!" && branch[at + 1] === "=")) {
+            const neq = branch[at] === "!";
+            at += neq ? 2 : 1;
+            while (at < branch.length && /\s/.test(branch[at]!)) at++;
+            const quote = branch[at++];
+            if (quote !== "\"" && quote !== "\x27") return undefined;
+            const vs = at;
+            while (at < branch.length && branch[at] !== quote) at++;
+            if (at >= branch.length) return undefined;
+            preds.push({ kind: "attr", name: attrName, val: branch.slice(vs, at++), neq });
+          } else return undefined;
+        } else if (isNameChar(branch[at] ?? "")) {
+          const s = at;
+          while (at < branch.length && isNameChar(branch[at]!)) at++;
+          const childName = branch.slice(s, at);
+          while (at < branch.length && /\s/.test(branch[at]!)) at++;
+          if (branch[at] === "]") {
+            preds.push({ kind: "child", name: childName });
+          } else if (branch[at] === "=") {
+            at++;
+            while (at < branch.length && /\s/.test(branch[at]!)) at++;
+            const quote = branch[at++];
+            if (quote !== "\"" && quote !== "\x27") return undefined;
+            const vs = at;
+            while (at < branch.length && branch[at] !== quote) at++;
+            if (at >= branch.length) return undefined;
+            preds.push({ kind: "child", name: childName, val: branch.slice(vs, at++) });
+          } else return undefined;
+        } else {
+          return undefined;
         }
-        return false;
-      });
-      for (const pred of preds) {
-        if (pred.kind === "pos") matched = matched[pred.val - 1] ? [matched[pred.val - 1]!] : [];
-        else if (pred.kind === "last") matched = matched.length ? [matched[matched.length - 1]!] : [];
-        else {
-          matched = matched.filter(c =>
-            c.kind === "element" &&
-            c.attributes.some(a => a.value.namespace === "" && a.value.localName === pred.name && (pred.val === undefined || a.value.value === pred.val))
-          );
+        while (at < branch.length && /\s/.test(branch[at]!)) at++;
+        if (branch[at] !== "]") return undefined;
+        at++;
+        while (at < branch.length && /\s/.test(branch[at]!)) at++;
+      }
+
+      if ((kind === "attribute" || kind === "text") && at < branch.length) return undefined;
+
+      const parents = new Set<SyncXmlNode>();
+      const pStack = [...bContexts];
+      while (pStack.length) {
+        const n = pStack.pop()!;
+        if (parents.has(n)) continue;
+        parents.add(n);
+        if (descendant && (n.kind === "document" || n.kind === "element")) {
+          for (const c of n.children) pStack.push(c);
         }
       }
-      for (const m of matched) selSet.add(m);
+      const selSet = new Set<SyncXmlNode>();
+      for (const p of parents) {
+        const cands =
+          kind === "self" ? [p]
+          : kind === "parent" ? (parentOf.has(p) ? [parentOf.get(p)!] : [])
+          : kind === "attribute" ? (p.kind === "element" ? p.attributes : [])
+          : (p.kind === "element" || p.kind === "document") ? p.children : [];
+        let matched = cands.filter(c => {
+          if (kind === "self" || kind === "parent") return true;
+          if (kind === "text") return c.kind === "text" || c.kind === "cdata";
+          if (c.kind !== kind) return false;
+          if (c.kind === "element" || c.kind === "attribute") {
+            return selected === "*" || (c.value.namespace === "" && c.value.localName === selected);
+          }
+          return false;
+        });
+        for (const pred of preds) {
+          if (pred.kind === "pos") matched = matched[pred.val - 1] ? [matched[pred.val - 1]!] : [];
+          else if (pred.kind === "last") matched = matched.length ? [matched[matched.length - 1]!] : [];
+          else if (pred.kind === "textEq") {
+            matched = matched.filter(c => c.kind === "element" && syncNodeStringValue(c) === pred.val);
+          } else if (pred.kind === "child") {
+            matched = matched.filter(c =>
+              c.kind === "element" &&
+              c.children.some(ch => ch.kind === "element" && ch.value.namespace === "" && ch.value.localName === pred.name && (pred.val === undefined || syncNodeStringValue(ch) === pred.val))
+            );
+          } else {
+            matched = matched.filter(c =>
+              c.kind === "element" &&
+              c.attributes.some(a => a.value.namespace === "" && a.value.localName === pred.name && (pred.val === undefined || (pred.neq ? a.value.value !== pred.val : a.value.value === pred.val)))
+            );
+          }
+        }
+        for (const m of matched) selSet.add(m);
+      }
+      bContexts = order.filter(n => selSet.has(n));
     }
-    contexts = order.filter(n => selSet.has(n));
+    return bContexts;
+  };
+
+  const unionSet = new Set<SyncXmlNode>();
+  for (const part of unionParts) {
+    const res = evalSingleBranch(part);
+    if (!res) return undefined;
+    for (const n of res) unionSet.add(n);
   }
+  const contexts = order.filter(n => unionSet.has(n));
 
   if (scalar === "count") return String(contexts.length) + "\n";
   if (scalar === "boolean") return (contexts.length ? "true" : "false") + "\n";

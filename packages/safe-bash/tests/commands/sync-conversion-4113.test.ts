@@ -1350,3 +1350,33 @@ EOF
     `["alpha","beta"]#a:|  b: 1|  c:|    - 2|    - 3#first step,second step,third step#third step`
   );
 });
+
+test("Wave 218: xmllint --xpath= union/child/text/position predicates and xq -cS/-j in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp");
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" }).use(standardCommands()).use(tableTextCommands()).use(xmlCommands());
+  const res = await shell.exec(`
+    cat <<'EOF' > /tmp/data.xml
+<catalog>
+  <item id="a" role="admin"><name>alpha</name><status>active</status></item>
+  <item id="b" role="user"><name>beta</name><status>inactive</status></item>
+  <item id="c" role="user"><name>gamma</name><status>active</status></item>
+</catalog>
+EOF
+    out=""
+    for i in 1 2 3 4 5; do
+      x1=$(xmllint --xpath='string(//item[status="active"][position()=2]/name)' /tmp/data.xml)
+      x2=$(xmllint --xpath '//item[@id="a"]/name/text() | //item[@id="c"]/name/text()' /tmp/data.xml | paste -sd",")
+      x3=$(xmllint --xpath 'string(//item[@role!="admin"][name="beta"]/@id)' /tmp/data.xml)
+      xq1=$(printf '<r><z>1</z><a>2</a></r>' | xq -cS '.r')
+      xq2=$(printf '<r><w>foo</w><w>bar</w></r>' | xq -j '.r.w[]')
+      out="$x1#$x2#$x3#$xq1#$xq2"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    `gamma#alpha,gamma#b#{"a":"2","z":"1"}#foobar`
+  );
+});

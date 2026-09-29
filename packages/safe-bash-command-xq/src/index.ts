@@ -147,15 +147,35 @@ export function evalSyncXq(
     const a = opArgs[i]!;
     if (!ended && a === "--") { ended = true; continue; }
     if (!ended && a.startsWith("-") && a !== "-") {
-      if (a === "-r" || a === "--raw-output") { rawOut = true; continue; }
-      if (a === "-c" || a === "--compact-output") { compactOut = true; continue; }
-      if (a === "-n" || a === "--null-input") { nullInput = true; continue; }
-      if (a === "-rc" || a === "-cr") { rawOut = true; compactOut = true; continue; }
+      if (a === "--raw-output") { rawOut = true; continue; }
+      if (a === "--compact-output") { compactOut = true; continue; }
+      if (a === "--null-input") { nullInput = true; continue; }
+      if (a === "--sort-keys") { extraJqArgs.push("-S"); continue; }
+      if (a === "--join-output") { extraJqArgs.push("-j"); continue; }
+      if (a === "--tab") { extraJqArgs.push("--tab"); continue; }
+      if (a === "--indent") {
+        if (i + 1 >= opArgs.length) return undefined;
+        extraJqArgs.push("--indent", opArgs[++i]!);
+        continue;
+      }
       if (a === "--arg" || a === "--argjson") {
         if (i + 2 >= opArgs.length) return undefined;
         extraJqArgs.push(a, opArgs[i + 1]!, opArgs[i + 2]!);
         i += 2;
         continue;
+      }
+      if (!a.startsWith("--")) {
+        let ok = true;
+        for (let j = 1; j < a.length; j++) {
+          const ch = a[j]!;
+          if (ch === "r") rawOut = true;
+          else if (ch === "c") compactOut = true;
+          else if (ch === "n") nullInput = true;
+          else if (ch === "S") extraJqArgs.push("-S");
+          else if (ch === "j") extraJqArgs.push("-j");
+          else { ok = false; break; }
+        }
+        if (ok) continue;
       }
       return undefined;
     }

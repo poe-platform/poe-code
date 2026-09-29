@@ -136,10 +136,12 @@ export function evalSyncXq(
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): { jsonStr: string; jqArgs: string[] } | undefined {
-  if (inBytes.byteLength > 8192 || opArgs.length > 5) return undefined;
+  if (inBytes.byteLength > 8192 || opArgs.length > 12) return undefined;
   let rawOut = false;
   let compactOut = false;
+  let nullInput = false;
   let ended = false;
+  const extraJqArgs: string[] = [];
   const positional: string[] = [];
   for (let i = 0; i < opArgs.length; i++) {
     const a = opArgs[i]!;
@@ -147,7 +149,14 @@ export function evalSyncXq(
     if (!ended && a.startsWith("-") && a !== "-") {
       if (a === "-r" || a === "--raw-output") { rawOut = true; continue; }
       if (a === "-c" || a === "--compact-output") { compactOut = true; continue; }
+      if (a === "-n" || a === "--null-input") { nullInput = true; continue; }
       if (a === "-rc" || a === "-cr") { rawOut = true; compactOut = true; continue; }
+      if (a === "--arg" || a === "--argjson") {
+        if (i + 2 >= opArgs.length) return undefined;
+        extraJqArgs.push(a, opArgs[i + 1]!, opArgs[i + 2]!);
+        i += 2;
+        continue;
+      }
       return undefined;
     }
     positional.push(a);
@@ -169,7 +178,9 @@ export function evalSyncXq(
     return undefined;
   }
   let jsonStr: string;
-  if (xmlText === lastXqXmlText && lastXqJsonStr !== undefined) {
+  if (nullInput) {
+    jsonStr = "null";
+  } else if (xmlText === lastXqXmlText && lastXqJsonStr !== undefined) {
     jsonStr = lastXqJsonStr;
   } else {
     let root: XmlElement;
@@ -192,6 +203,7 @@ export function evalSyncXq(
   if (rawOut && compactOut) jqArgs.push("-rc");
   else if (rawOut) jqArgs.push("-r");
   else if (compactOut) jqArgs.push("-c");
-  jqArgs.push(filter);
+  if (nullInput) jqArgs.push("-n");
+  jqArgs.push(...extraJqArgs, filter);
   return { jsonStr, jqArgs };
 }

@@ -404,7 +404,6 @@ export function evalSyncXmllint(
   if (idx + (fileArg !== undefined ? 1 : 0) < opArgs.length) return undefined;
   if (fileArg !== undefined && fileArg.startsWith("-") && fileArg !== "-") return undefined;
   if (xpathQuery !== undefined && (format || c14n || noout)) return undefined;
-  if (xpathQuery === undefined && !noout) return undefined;
 
   let srcBytes = inBytes;
   if (fileArg !== undefined && fileArg !== "-") {
@@ -430,7 +429,42 @@ export function evalSyncXmllint(
     return undefined;
   }
   if (noout && xpathQuery === undefined) return "";
-  if (!xpathQuery) return undefined;
+  if (xpathQuery === undefined) {
+    const escAttr = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;").replace(/\t/g, "&#x9;").replace(/\n/g, "&#xA;").replace(/\r/g, "&#xD;");
+    const escText = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\r/g, "&#xD;");
+    const renderElem = (el: XmlElement, depth: number): string => {
+      const attrs = [...el.attributes].filter(a => a.namespace !== "http://www.w3.org/2000/xmlns/");
+      if (c14n) attrs.sort((a, b) => a.localName.localeCompare(b.localName));
+      const attrStr = attrs.map(a => ` ${a.name}="${escAttr(a.value)}"`).join("");
+      const children: XmlContent[] = [];
+      let mixed = false;
+      for (let i = 0; i < el.content.length; i++) {
+        const ch = el.content[i]!;
+        if (ch.kind === "text") {
+          const blank = /^[ \t\n\r]*$/.test(ch.text);
+          if (format && !c14n && !mixed && blank && (children.length > 0 || i + 1 < el.content.length)) continue;
+          mixed = true;
+        } else if (ch.kind === "cdata") mixed = true;
+        children.push(ch);
+      }
+      if (children.length === 0) {
+        return c14n ? `<${el.name}${attrStr}></${el.name}>` : `<${el.name}${attrStr}/>`;
+      }
+      const doIndent = format && !c14n && !mixed;
+      let inner = "";
+      for (const ch of children) {
+        if (doIndent) inner += "\n" + "  ".repeat(depth + 1);
+        if (ch.kind === "element") inner += renderElem(ch, depth + 1);
+        else if (ch.kind === "text" || (ch.kind === "cdata" && c14n)) inner += escText(ch.text);
+        else if (ch.kind === "cdata") inner += `<![CDATA[${ch.text}]]>`;
+        else if (ch.kind === "comment") inner += `<!--${ch.text}-->`;
+      }
+      if (doIndent) inner += "\n" + "  ".repeat(depth);
+      return `<${el.name}${attrStr}>${inner}</${el.name}>`;
+    };
+    if (c14n) return renderElem(root, 0);
+    return `<?xml version="1.0"?>\n${renderElem(root, 0)}\n`;
+  }
 
   // Support common XPath queries: string(...), count(...), boolean(...), and /a/b/c[@attr="v"]/text() or /a/b/@attr
   let q = xpathQuery.trim();

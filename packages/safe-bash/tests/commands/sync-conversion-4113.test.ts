@@ -1,3 +1,5 @@
+import { xmlCommands } from "../../src/commands/xml/index.ts";
+import { yqCommands } from "../../src/commands/yq/index.ts";
 import { ddCommands } from "../../src/commands/dd/index.ts";
 import { installCommands } from "../../src/commands/install/index.ts";
 import { spongeCommands } from "../../src/commands/sponge/index.ts";
@@ -889,5 +891,25 @@ test("evaluates chmod -v/-c/--reference, touch -d/-t/-r, and truncate -o in sync
   assert.equal(
     r.stdout,
     "mode of '/tmp/w201_a.txt' changed from 0644 (rw-r--r--) to 0750 (rwxr-x---)|mode of '/tmp/w201_b.txt' changed from 0644 (rw-r--r--) to 0750 (rwxr-x---)#1735787045#8192\n",
+  );
+});
+
+test("evaluates xmllint --format/--c14n, xq --arg/-n, and yq -n/--arg/object-array YAML output in sync substitutions (Wave 202)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(xmlCommands()).use(yqCommands());
+  const r = await shell.exec(
+    [
+      "xm_fmt=$(printf \"<root><a>1</a></root>\" | xmllint --format - | tr \"\\n\" \"|\")",
+      "xm_c14n=$(printf \"<root b=\\\"2\\\" a=\\\"1\\\"/>\" | xmllint --c14n -)",
+      "xq_res=$(printf \"<r><v>10</v></r>\" | xq -r --arg p \"k=\" '$p + .r.v')",
+      "yq_res=$(yq -n --arg k \"host\" --arg v \"db\" '{($k): $v}' | tr \"\\n\" \",\")",
+      "printf \"%s#%s#%s#%s\\n\" \"$xm_fmt\" \"$xm_c14n\" \"$xq_res\" \"$yq_res\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "<?xml version=\"1.0\"?>|<root>|  <a>1</a>|</root>|#<root a=\"1\" b=\"2\"></root>#k=10#host: db,\n",
   );
 });

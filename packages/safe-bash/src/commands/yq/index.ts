@@ -179,7 +179,9 @@ export function evalSyncYqPrep(
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): { jsonStr: string; jqArgs: string[]; format: "yaml" | "json" } | undefined {
-  if (inBytes.byteLength > 8192 || opArgs.length > 8) return undefined;
+  if (inBytes.byteLength > 8192 || opArgs.length > 14) return undefined;
+  let nullInput = false;
+  const extraJqArgs: string[] = [];
   let idx = opArgs[0] === "eval" || opArgs[0] === "e" ? 1 : 0;
   if (opArgs[0] === "eval-all" || opArgs[0] === "ea") return undefined;
   let ended = false;
@@ -192,14 +194,14 @@ export function evalSyncYqPrep(
   for (; idx < opArgs.length; idx++) {
     const a = opArgs[idx]!;
     if (!ended && a === "--") { ended = true; continue; }
-    if (!ended && (a === "-p" || a === "--input-format" || a.startsWith("--input-format="))) {
-      const v = a.startsWith("--input-format=") ? a.slice(15) : opArgs[++idx];
+    if (!ended && (a === "-p" || a.startsWith("-p") || a === "--input-format" || a.startsWith("--input-format="))) {
+      const v = a.startsWith("--input-format=") ? a.slice(15) : a.startsWith("-p=") ? a.slice(3) : a.length > 2 && a.startsWith("-p") ? a.slice(2) : opArgs[++idx];
       if (v !== "yaml" && v !== "toml") return undefined;
       inputFormat = v;
       continue;
     }
-    if (!ended && (a === "-o" || a === "--output-format" || a.startsWith("--output-format="))) {
-      const v = a.startsWith("--output-format=") ? a.slice(16) : opArgs[++idx];
+    if (!ended && (a === "-o" || a.startsWith("-o") || a === "--output-format" || a.startsWith("--output-format="))) {
+      const v = a.startsWith("--output-format=") ? a.slice(16) : a.startsWith("-o=") ? a.slice(3) : a.length > 2 && a.startsWith("-o") ? a.slice(2) : opArgs[++idx];
       if (v !== "yaml" && v !== "json") return undefined;
       format = v;
       explicitJson = v === "json";
@@ -207,6 +209,13 @@ export function evalSyncYqPrep(
     }
     if (!ended && (a === "-c" || a === "--compact-output")) { compact = true; continue; }
     if (!ended && (a === "-r" || a === "--unwrapScalar")) { raw = true; continue; }
+    if (!ended && (a === "-n" || a === "--null-input")) { nullInput = true; continue; }
+    if (!ended && (a === "--arg" || a === "--argjson")) {
+      if (idx + 2 >= opArgs.length) return undefined;
+      extraJqArgs.push(a, opArgs[idx + 1]!, opArgs[idx + 2]!);
+      idx += 2;
+      continue;
+    }
     if (!ended && a.startsWith("-") && a !== "-") return undefined;
     operands.push(a);
   }
@@ -228,7 +237,9 @@ export function evalSyncYqPrep(
     return undefined;
   }
   let jsonStr: string;
-  if (text === lastYqText && inputFormat === lastYqInputFormat && lastYqJsonStr !== undefined) {
+  if (nullInput) {
+    jsonStr = "null";
+  } else if (text === lastYqText && inputFormat === lastYqInputFormat && lastYqJsonStr !== undefined) {
     jsonStr = lastYqJsonStr;
   } else {
     const doc = parseSimpleYamlOrToml(text, inputFormat);
@@ -246,8 +257,21 @@ export function evalSyncYqPrep(
   } else {
     jqArgs.push("-c");
   }
-  jqArgs.push(filter);
+  if (nullInput) jqArgs.push("-n");
+  jqArgs.push(...extraJqArgs, filter);
   return { jsonStr, jqArgs, format };
+}
+
+function formatYamlScalarSync(val: unknown): string | undefined {
+  if (val === null) return "null";
+  if (typeof val === "boolean" || typeof val === "number") return String(val);
+  if (typeof val === "string") {
+    if (val === "" || /^(?:null|true|false|~|[+-]?[0-9])/i.test(val) || /[:#\[\]{}&*!|>%@`"\x27\n\r\t]/.test(val) || val.trim() !== val) {
+      return JSON.stringify(val);
+    }
+    return val;
+  }
+  return undefined;
 }
 
 export function formatSyncYqYamlLines(jsonLines: readonly string[]): string | undefined {
@@ -255,13 +279,23 @@ export function formatSyncYqYamlLines(jsonLines: readonly string[]): string | un
   for (const line of jsonLines) {
     let val: unknown;
     try { val = JSON.parse(line); } catch { return undefined; }
-    if (val === null) out.push("null");
-    else if (typeof val === "boolean" || typeof val === "number") out.push(String(val));
-    else if (typeof val === "string") {
-      if (val === "" || /^(?:null|true|false|~|[+-]?[0-9])/i.test(val) || /[:#\[\]{}&*!|>%@`"\x27\n\r\t]/.test(val) || val.trim() !== val) {
-        out.push(JSON.stringify(val));
-      } else {
-        out.push(val);
+    const scalar = formatYamlScalarSync(val);
+    if (scalar !== undefined) {
+      out.push(scalar);
+    } else if (Array.isArray(val)) {
+      if (val.length === 0) { out.push("[]"); continue; }
+      for (const item of val) {
+        const s = formatYamlScalarSync(item);
+        if (s === undefined) return undefined;
+        out.push(`- ${s}`);
+      }
+    } else if (typeof val === "object" && val !== null) {
+      const entries = Object.entries(val as Record<string, unknown>);
+      if (entries.length === 0) { out.push("{}"); continue; }
+      for (const [k, v] of entries) {
+        const s = formatYamlScalarSync(v);
+        if (s === undefined) return undefined;
+        out.push(`${k}: ${s}`);
       }
     } else {
       return undefined;

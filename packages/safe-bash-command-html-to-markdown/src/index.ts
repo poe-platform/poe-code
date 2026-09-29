@@ -110,7 +110,7 @@ function convertSimpleInlineHtmlSync(html: string): string | undefined {
   out = out.replace(/<(em|i)>([^<>]+)<\/\1>/g, "*$2*");
   out = out.replace(/<(del|s)>([^<>]+)<\/\1>/g, "~~$2~~");
   out = out.replace(/<code>([^<>\x60]+)<\/code>/g, "`$1`");
-  out = out.replace(/<a\s+href="([^"\s<>]+)">([^<>\]\[]+)<\/a>/g, "[$2]($1)");
+  out = out.replace(/<a\s+href="([^"\s<>]+)">([^<>\][]+)<\/a>/g, "[$2]($1)");
   if (out.includes("<") || out.includes(">")) return undefined;
   const dec = decodeHtmlEntitiesSync(out);
   if (dec === undefined) return undefined;

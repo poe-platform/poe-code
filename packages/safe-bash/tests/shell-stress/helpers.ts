@@ -87,8 +87,10 @@ after(context => {
   const completedSources = sourceEvidence();
   assert.equal(completedSources.aggregate, preparedSources.aggregate,
     "Source changed during complete probe run; rerun without attribution");
-  context.diagnostic(JSON.stringify({ sourceScope: "run", sourceBefore: preparedSources.aggregate,
-    sourceAfter: completedSources.aggregate, timeBefore: preparedSources.time, timeAfter: completedSources.time }));
+  const receipt = JSON.stringify({ sourceScope: "run", sourceBefore: preparedSources.aggregate,
+    sourceAfter: completedSources.aggregate, timeBefore: preparedSources.time, timeAfter: completedSources.time });
+  if ("diagnostic" in context) context.diagnostic(receipt);
+  else console.log(receipt);
 });
 
 // Keep complete source qualification outside guest deadlines. Injected adapters

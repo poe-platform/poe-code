@@ -275,7 +275,7 @@ test('distinguishes drained native descriptor close failures from incomplete ter
     await fifth.terminate();
     const sixth = pool.createExecutor();
     await assert.rejects(sixth.run(start()), /finalization did not complete/);
-    await assert.rejects(sixth.terminate(), /finalization did not complete/);
+    await assert.rejects(async () => { await sixth.terminate(); }, /finalization did not complete/);
     assert.equal(pool.inspect().active, 1);
     assert.throws(() => pool.createExecutor(), {category:'capacity'});
   } finally {

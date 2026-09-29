@@ -181,7 +181,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         throw new Error(`Error: ${error instanceof Error ? error.message : "Configuration failed"}`);
       }
     }
-    const args = await parse(argumentsValue.args.length, argumentText, step);
+    const promptOffset = argumentsValue.args[0] === "prompt" ? 1 : 0;
+    const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step);
     if (argumentsValue.args[0] === "models" && args.prompt === "models" && !args.attachments.length) {
       for (const { provider, model } of service.models) {
         await step();

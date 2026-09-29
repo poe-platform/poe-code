@@ -115,11 +115,11 @@ test("limit failure and return failure both survive", async () => {
   await assert.rejects(run(args, undefined, { limits: { maxInputBytes: 1 } }, { stdin }), error => error instanceof AggregateError && error.errors[1] === cleanup);
 });
 
-test("cooperative timer cancellation interrupts finite in-memory work", async () => {
+test("cooperative event-loop cancellation interrupts finite in-memory work", async () => {
   const caller = new AbortController();
-  const timer = setTimeout(() => caller.abort(false), 0);
+  const turn = globalThis.setImmediate(() => caller.abort(false));
   try { await assert.rejects(run(args, new Uint8Array(131_072).fill(65), {}, { signal: caller.signal }), error => error === false); }
-  finally { clearTimeout(timer); }
+  finally { globalThis.clearImmediate(turn); }
 });
 
 test("stream chunk count and cumulative file input are bounded", async () => {

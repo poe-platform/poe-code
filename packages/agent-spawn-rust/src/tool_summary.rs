@@ -94,7 +94,7 @@ fn variable(source: &[u16], i: &mut usize) -> Result<Text, ()> {
         .is_some_and(|c| [42, 64, 35, 63, 36, 33, 95, 45].contains(c))
     {
         let result = prefix("$", &source[*i..*i + 1]);
-        *i = (*i + 2).min(source.len());
+        *i += 1;
         return Ok(result);
     }
     while source.get(*i).is_some_and(|c| {

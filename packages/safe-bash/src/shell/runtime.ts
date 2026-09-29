@@ -11936,7 +11936,7 @@ export class Runtime {
             fnBody.body.lists[0]!.pipelines[0]!.commands.length === 1 &&
             fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.kind === "simple" &&
             fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.redirects.length === 0 &&
-            cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState) && w.parts.length > 0 && w.parts.every(part =>
+            cmd.words.slice(1).every(w => this.isPureArgWord(w, rawState) && this.isPureSyncValueWord(w, rawState) && w.parts.length > 0 && w.parts.every(part =>
               part.quoted || (part.kind === "text" && part.value.length > 0 && !part.value.includes(" ") && !part.value.includes("\t") && !part.value.includes("\n") && !part.value.includes("{") && !hasGlobOrEscape(part.value, true))
             ))
           ) {
@@ -11964,7 +11964,9 @@ export class Runtime {
         const def = w0Plain ? this.commands.get(w0Plain) : undefined;
         if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq") || !def || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
         if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : w0Plain === "seq" ? (!builtInDirectContextExecutors.has(def.execute) && customRegisteredCommands.has(def.execute)) : !builtInDirectContextExecutors.has(def.execute)) return false;
-        if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
+        // Admission must satisfy the substitution evaluator too: a loop cannot
+        // recover from a declined argument after executing earlier body effects.
+        if (!cmd.words.slice(1).every(w => this.isPureArgWord(w, rawState) && this.isPureSyncValueWord(w, rawState))) return false;
         // These substitutions consume one value per word. Unquoted expansions
         // can split, glob, or disappear, including after loop admission.
         if ((w0Plain === "echo" || w0Plain === "basename" || w0Plain === "dirname") &&

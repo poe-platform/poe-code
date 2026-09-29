@@ -6,4 +6,4 @@ export { exiftoolRegistry } from "./registry.js";
 export { createExiftoolArguments, type ExiftoolInvocationOptions } from "./sdk.js";
 
 export { inspectJpeg, editJpeg } from "./jpeg.js";
-export { createExiftoolCommands, type ExiftoolCommandsOptions } from "./command.js";
+export { createExiftoolCommands, evalSyncExiftool, type ExiftoolCommandsOptions } from "./command.js";

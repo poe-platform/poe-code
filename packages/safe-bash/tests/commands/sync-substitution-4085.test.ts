@@ -1,3 +1,7 @@
+import { createPdfinfoCommands } from "../../src/commands/pdfinfo/index.js";
+import { createPdftotextCommands } from "../../src/commands/pdftotext/index.js";
+import { createExiftoolCommands } from "../../src/commands/exiftool/index.js";
+import { PdfDocument } from "@poe-code/pdf-ast";
 import { createCompressionCommands } from "../../src/commands/bytes/compression/index.js";
 import { createGpgCommands } from "../../src/commands/gpg/index.js";
 import { createSshCommands } from "../../src/commands/ssh/index.js";
@@ -1044,4 +1048,36 @@ test("Wave 147: sync gzip, gunzip, zcat, unzstd, and zstdcat substitutions and p
   assert.equal(r2.stdout, "alpha-beta-gamma");
   assert.equal(r3.stdout, "delta-epsilon-zeta");
   assert.ok(elapsed < 800, `Expected < 800ms for 3x150 iterations, took ${elapsed.toFixed(1)}ms`);
+});
+
+test("Wave 148: sync pdfinfo, pdftotext, and exiftool substitutions and pipelines", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createPdfinfoCommands(),
+    ...createPdftotextCommands(),
+    ...createExiftoolCommands(),
+  ]) {
+    registry.register(cmd);
+  }
+  const shell = new Shell({ fs, commands: registry });
+
+  const doc = PdfDocument.create();
+  doc.setTitle("Test Doc");
+  doc.setAuthor("Alice");
+  const page = doc.addPage([612, 792]);
+  page.drawText("Hello from PDF page one", { x: 72, y: 700, size: 12 });
+  await fs.writeFile("/sample.pdf", doc.save());
+
+  const t0 = performance.now();
+  const r1 = await shell.exec('for i in $(seq 1 150); do out=$(pdfinfo /sample.pdf); done; printf "%s" "$out"');
+  const r2 = await shell.exec('for i in $(seq 1 150); do out=$(pdftotext /sample.pdf -); done; printf "%s" "$out"');
+  const r3 = await shell.exec('for i in $(seq 1 150); do out=$(exiftool -s -s -s -Title /sample.pdf); done; printf "%s" "$out"');
+  const elapsed = performance.now() - t0;
+
+  assert.match(r1.stdout, /^Title:\s+Test Doc/m);
+  assert.equal(r2.stdout, "Hello from PDF page one\n\n\f");
+  assert.equal(r3.stdout, "Test Doc");
+  assert.ok(elapsed < 1500, `Expected < 1500ms for 3x150 iterations, took ${elapsed.toFixed(1)}ms`);
 });

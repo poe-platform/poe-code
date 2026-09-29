@@ -303,3 +303,114 @@ export type ExiftoolCommandsOptions = ExiftoolCommandOptions;
 export function createExiftoolCommands(options: ExiftoolCommandsOptions = {}): readonly CommandDefinition[] {
     return [createExiftoolCommand(options)];
 }
+
+export function evalSyncExiftool(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    for (let i = 0; i < opArgs.length; i++) {
+      if (opArgs[i] === "-@" || opArgs[i]!.startsWith("-@")) return undefined;
+    }
+    const syncSignal = new AbortController().signal;
+    const resources = new Resources({ signal: syncSignal });
+    const invocation = parseArguments([...opArgs], resources.limits);
+    if (
+      invocation.assignments.length > 0 ||
+      invocation.tagsFromFile !== undefined ||
+      invocation.destination !== undefined ||
+      invocation.binary ||
+      invocation.files.length === 0
+    ) {
+      return undefined;
+    }
+    let out = "";
+    const emit = (text: string) => {
+      out += text;
+    };
+    const json: string[] = [];
+    const xml: string[] = [];
+    const csv = invocation.csv ? new CsvTable(resources, invocation.missing, invocation.tags) : undefined;
+
+    for (const file of invocation.files) {
+      const bytes = file === "-" ? inBytes : readFileSync?.(file);
+      if (!bytes || !bytes.length || bytes.byteLength > 131072) return undefined;
+      const extension = file.slice(file.lastIndexOf(".") + 1).toUpperCase();
+      const isPdf = extension === "PDF" || (bytes.length >= 5 && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46 && bytes[4] === 0x2d);
+      const jpeg = bytes[0] === 255 && bytes[1] === 216;
+      const png = bytes.length >= 8 && bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71;
+      if (!png && !isPdf && !jpeg) return undefined;
+      const tags = jpeg ? inspectJpeg(bytes, resources).tags : png ? inspectPng(bytes, resources).tags : inspectPdf(bytes, resources).tags;
+      const chosen = selected(tags, invocation.tags, invocation.json ? invocation.groupFamily === 4 : invocation.duplicates && !invocation.csv, resources);
+      if (invocation.xml || invocation.tabular || invocation.template !== undefined) {
+        const values = invocation.template !== undefined ? selected(tags, [], false, resources) : chosen;
+        const rendered = renderPresentation(file, values, invocation, resources);
+        if (invocation.xml) xml.push(rendered);
+        else emit(rendered);
+        continue;
+      }
+      if (csv) {
+        if (invocation.files.length > 1) return undefined;
+        csv.add(file, chosen);
+        continue;
+      }
+      const present = new Set<string>();
+      if (invocation.missing) {
+        for (const tag of chosen) present.add(tag.name);
+      }
+      const scalarOptions = {
+        signal: syncSignal,
+        quoteScalars: invocation.quoteScalars,
+        maxDecodedBytes: resources.limits.maxDecodedBytes,
+        maxOutputBytes: resources.limits.maxOutputBytes,
+        maxWork: resources.limits.maxWork,
+        maxRetainedBytes: resources.limits.maxRetainedBytes,
+      };
+      if (invocation.json) {
+        const entries = ['  "SourceFile": ' + encodeJsonScalar(file, { ...scalarOptions, quoteScalars: true })];
+        const tokens = new Set<string>(['"SourceFile"']);
+        const primaryInstances = new Map<string, number>();
+        if (invocation.groupFamily === 4) {
+          for (const tag of tags) {
+            primaryInstances.set(tag.name, Math.max(primaryInstances.get(tag.name) ?? 0, tag.instance));
+          }
+        }
+        for (const tag of chosen) {
+          const name = invocation.groupFamily === 4 ? (tag.instance === primaryInstances.get(tag.name) ? "" : "Copy" + (tag.instance + 1)) + ":" + tag.name : tag.name;
+          const token = encodeJsonScalar(name, { ...scalarOptions, quoteScalars: true });
+          if (tokens.has(token)) continue;
+          tokens.add(token);
+          entries.push("  " + token + ": " + encodeJsonScalar(tag.value, scalarOptions));
+        }
+        if (invocation.missing) {
+          for (const name of invocation.tags) {
+            if (present.has(name)) continue;
+            const token = encodeJsonScalar((invocation.groupFamily === 4 ? ":" : "") + name, { ...scalarOptions, quoteScalars: true });
+            if (tokens.has(token)) continue;
+            tokens.add(token);
+            entries.push("  " + token + ': "-"');
+          }
+        }
+        json.push("{\n" + entries.join(",\n") + "\n}");
+      } else {
+        for (const tag of chosen) {
+          const value = printable(tag.value, scalarOptions);
+          const group = invocation.groupFamily === 1 ? ("[" + tag.group + "]").padEnd(16) : "";
+          emit(group + (invocation.style === "values" ? value + "\n" : (invocation.style === "compact" ? tag.name + ": " : tag.name.padEnd(32) + ": ") + value + "\n"));
+        }
+        if (invocation.missing) {
+          for (const name of invocation.tags) {
+            if (!present.has(name)) emit(invocation.style === "values" ? "-\n" : (invocation.style === "compact" ? name + ": " : name.padEnd(32) + ": ") + "-\n");
+          }
+        }
+      }
+    }
+    if (invocation.json) emit("[" + json.join(",\n") + "]\n");
+    if (invocation.xml) emit(xmlHeader + xml.join("") + "</rdf:RDF>\n");
+    if (csv) emit(csv.render());
+    return out;
+  } catch {
+    return undefined;
+  }
+}

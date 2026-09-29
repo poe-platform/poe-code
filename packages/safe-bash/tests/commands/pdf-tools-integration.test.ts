@@ -1437,16 +1437,19 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     p1.drawText("BoldHeading", { x: 20, y: 150, size: 16, font: "Helvetica-Bold" });
     p1.drawText("ItalicNote", { x: 20, y: 120, size: 12, font: "Helvetica-Oblique" });
 
+    // MIT jbig2enc 0.32 fixture pair; provenance: pdf-ast/src/fixtures/SOURCES.md.
+    const globals = Buffer.from("0000000000010000000032000003fffdff02fefefe00000005000000054a8a5c4c09d021ff2ad5069efc598b1d73e2ad3bec91246a641f2851e67fffac", "hex");
+    const page = Buffer.from("00000001300001000000130000004000000020000000000000000000000000000002062200010000002500000040000000200000000000000000000000000000059fcc91d51fe8cdcc175d362bffac", "hex");
     const jb2GlobalsRef = doc.cos.allocateObject(
-      cosStream(Uint8Array.from([0x00, 0x00, 0x00, 0x01, 0x00]), { dict: cosDict({}) })
+      cosStream(globals, { dict: cosDict({}) })
     );
     const jb2Ref = doc.cos.allocateObject(
-      cosStream(new TextEncoder().encode("0000000230>"), {
+      cosStream(new TextEncoder().encode(page.toString("hex") + ">"), {
         dict: cosDict({
           Type: cosName("XObject"),
           Subtype: cosName("Image"),
-          Width: cosNumber(4),
-          Height: cosNumber(4),
+          Width: cosNumber(64),
+          Height: cosNumber(32),
           BitsPerComponent: cosNumber(1),
           ColorSpace: cosName("DeviceGray"),
           Filter: cosArray([cosName("ASCIIHexDecode"), cosName("JBIG2Decode")]),
@@ -1489,9 +1492,11 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
       "pdftk /work/labeled.pdf dump_data && " +
       "pdftohtml -stdout /work/multi.pdf"
     );
-    assert.equal(res.exitCode, 0);
+    assert.equal(res.exitCode, 0, res.stderr);
     assert.ok(res.stdout.includes("/work/ext-000.jb2e"));
     assert.ok(res.stdout.includes("/work/ext-000.jb2g"));
+    assert.deepEqual(await vfs.readFile("/work/ext-000.jb2e"), new Uint8Array(page));
+    assert.deepEqual(await vfs.readFile("/work/ext-000.jb2g"), new Uint8Array(globals));
     assert.ok(res.stdout.includes("PageLabelPrefix: Sec&#231;-"));
     assert.ok(res.stdout.includes("<b>BoldHeading</b>"));
     assert.ok(res.stdout.includes("<i>ItalicNote</i>"));

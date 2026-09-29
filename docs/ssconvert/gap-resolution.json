@@ -3106,7 +3106,15 @@
       },
       "namedSpanInvestigation": {
         "source": "LibreOffice bce0998a sc/source/core/tool/interpr1.cxx ScIndex:11348-11355 treats non-list sources as one area; 11516-11520 rejects a reference whose first and last sheet differ.",
-        "finding": "A named 3D span still requires native list projection. Inlining fixed references would lose subsequent named-definition edits, so no such production rewrite was made. Named/computed sources remain open."
+        "finding": "A named 3D span still requires native list projection. Inlining fixed references would lose subsequent named-definition edits, so no such production rewrite was made. Named/computed sources remain open.",
+        "currentLotusImport": {
+          "issue": 3478,
+          "source": "lotus.ts op7/op8 resolves name tokens to coordinates at import; INDEX then builds a fixed reference-area list. Retaining the name definition separately does not preserve formula binding.",
+          "compiled": "Two original 132-byte WK3 fixtures, op7/op8, import Across=Sheet1:Sheet2 and return 20. Editing the definition to Sheet2:Sheet3 still returns 20; a live INDEX(Across,1,2,2) control returns expected 30.",
+          "probeCorrection": "Initial strict-object assertion rejected null-prototype scalar representation; corrected to compare kind/value, with no product changes.",
+          "receipt": "out/ssconvert-odf-settings/lotus-name-edit-before.json",
+          "remaining": "Preserve original name identity, op7 relative copy versus op8 absolute references, subsequent definition edits and native transport. Existing source-materialization convention does not override the requested identity. No fix or closure claimed."
+        }
       }
     },
     "xlsxRichUnderlines": {

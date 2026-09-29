@@ -22,6 +22,51 @@ const cases = [
   ["grep -Eo '[a|b]+'", "a|b\\n", "a|b"],
 ] as const;
 
+const posixCases = [
+  ["grep -E '[]a]'", "]\\na\\nb\\n", "]\na", 0],
+  ["grep -E '[^]a]'", "]\\na\\nb\\n", "b", 0],
+  ["grep -E '[]|a]'", "]\\n|\\na\\nb\\n", "]\n|\na", 0],
+  ["grep -E '[a|b]'", "a\\n|\\nb\\nc\\n", "a\n|\nb", 0],
+  ["grep -Eo '[]a]'", "]\\na\\n", "]\na", 0],
+  ["grep '[]a]'", "]\\na\\nb\\n", "]\na", 0],
+  ["grep -Eo '[0-9]*'", "a1b2\\n", "1\n2", 0],
+  ["grep -Eo 'b?'", "abc\\n", "b", 0],
+  ["grep -Eno 'b?'", "abc\\n", "1:b", 0],
+  ["grep -Eo 'x*'", "abc\\n", "", 0],
+  ["grep -Eo 'x+'", "abc\\n", "", 1],
+  ["sed -E 's/[[:digit:]]+/X/g'", "123\\n", "X", 0],
+  ["sed -E 's/[[:alpha:]]+/X/g'", "abc\\n", "X", 0],
+  ["sed -E 's/[[:alnum:]]+/X/g'", "a1\\n", "X", 0],
+  ["sed -E 's/[[.a.]]/X/g'", "ab\\n", "", 2],
+  ["sed -E 's/[[=a=]]/X/g'", "ab\\n", "", 2],
+  ["sed -E 's/[]a]/X/g'", "]a\\n", "XX", 0],
+  ["sed -E 's/[^]a]/X/g'", "]ab\\n", "]aX", 0],
+  ["sed -E 's/foo|foobar/X/'", "foobar\\n", "X", 0],
+  ["sed -E 's/(foo|foobar)/[\\1]/'", "foobar\\n", "[foobar]", 0],
+] as const;
+
+for (const [command, input, expected, status] of posixCases) {
+  test(`POSIX matching survives substitution optimizations: ${command}`, async t => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands());
+    t.after(() => shell.dispose());
+    const pipeline = `printf '${input}' | ${command}`;
+    const direct = await shell.exec(pipeline);
+    assert.equal(direct.exitCode, status, direct.stderr);
+    assert.equal(direct.stdout, expected ? expected + "\n" : "");
+    const diagnostic = status === 2 ? "sed: collating and equivalence classes are not supported\n" : "";
+    assert.equal(direct.stderr, diagnostic);
+    for (const script of [
+      `value=$(${pipeline}); status=$?; printf '%s\\n%s\\n' "$value" "$status"`,
+      `for i in 1 2; do value=$(${pipeline}); status=$?; done; printf '%s\\n%s\\n' "$value" "$status"`,
+    ]) {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, `${expected}\n${status}\n`);
+      assert.equal(result.stderr, script.startsWith("for ") ? diagnostic.repeat(2) : diagnostic);
+    }
+  });
+}
+
 for (const [command, input, expected] of cases) {
   test(`substitution preserves text command semantics: ${command}`, async t => {
     const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands());

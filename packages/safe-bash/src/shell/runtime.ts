@@ -23175,6 +23175,9 @@ export class Runtime {
         const anchorEnd = core1.endsWith("$");
         const core = anchorEnd ? core1.slice(0, -1) : core1;
         if (core.length === 0 && !anchorStart && !anchorEnd) return undefined;
+        // POSIX-only brackets and leftmost-longest alternatives belong to sed's matcher.
+        if (core.includes("[:") || core.includes("[.") || core.includes("[=") ||
+            core.includes("[]") || core.includes("[^]") || isExtended && core.includes("|")) return undefined;
         let reSrc: string | undefined;
         if (/^[a-zA-Z0-9_ :;,=-]*$/.test(core)) {
           if (/\\[1-9]/.test(rep)) return undefined;
@@ -23348,8 +23351,10 @@ export class Runtime {
     const isOnlyMatching = mode.includes("o");
     // POSIX bracket classes, collating symbols and equivalence classes have
     // different meanings in JS RegExp. Let the command matcher parse them.
-    if (isExtended && !isFixed && rawPatterns.some(pattern =>
-      pattern.includes("[:") || pattern.includes("[.") || pattern.includes("[="))) return undefined;
+    if (!isFixed && rawPatterns.some(pattern =>
+      pattern.includes("[:") || pattern.includes("[.") || pattern.includes("[=") ||
+      pattern.includes("[]") || pattern.includes("[^]") ||
+      isExtended && pattern.includes("[") && pattern.includes("|"))) return undefined;
     if (isCount && (isLineNumber || isOnlyMatching || beforeCtx > 0 || afterCtx > 0)) return undefined;
     if (isOnlyMatching && (beforeCtx > 0 || afterCtx > 0)) return undefined;
     if (isOnlyMatching) {
@@ -23371,15 +23376,18 @@ export class Runtime {
       }
       if (!re) return undefined;
       const out: string[] = [];
+      let matched = false;
       for (let li = 0; li < rawLines.length; li++) {
         const matches = rawLines[li]!.match(re);
         if (matches) {
+          matched = true;
           for (let mi = 0; mi < matches.length; mi++) {
+            if (matches[mi]!.length === 0) continue;
             out.push(isLineNumber ? `${li + 1}:${matches[mi]!}` : matches[mi]!);
           }
         }
       }
-      return { lines: out, status: out.length > 0 ? 0 : 1 };
+      return { lines: out, status: matched ? 0 : 1 };
     }
     if (isExtended && isFixed) return undefined;
     const branches: string[] = [];

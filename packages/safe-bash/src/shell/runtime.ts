@@ -23564,6 +23564,13 @@ export class Runtime {
   }
 
   private evalSyncAwk(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+    // The standalone runtime operates on UTF-8 bytes. Keep this text fast path
+    // ASCII-only so partial byte substrings and case folding use that runtime.
+    for (const text of [...rawLines, ...opArgs]) {
+      for (let i = 0; i < text.length; i++) {
+        if (text.charCodeAt(i) > 127) return undefined;
+      }
+    }
     if (opArgs.length < 1 || opArgs.length > 8) return undefined;
     let awkSep: string | undefined;
     let awkProg: string | undefined;
@@ -23644,8 +23651,7 @@ export class Runtime {
         } else {
           const idx = fTok === "NF" ? fields.length : Number(fTok!);
           const rawField = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
-          const n = /^[ \t]*([+-]?(?:\d+(?:\.\d*)?|\.\d+))/.exec(rawField);
-          delta = n ? Number(n[1]!) : 0;
+          delta = awkNumber(awkInputValue(rawField));
         }
         acc = op === "+=" ? acc + delta : acc - delta;
         touched = true;
@@ -23671,7 +23677,8 @@ export class Runtime {
         const op = cmpCondM[3]!;
         const varRhs = cmpCondM[6] !== undefined ? userVars.get(cmpCondM[6]!) : undefined;
         if (cmpCondM[6] !== undefined && varRhs === undefined) return undefined;
-        const varAsNum = varRhs !== undefined && /^-?(?:\d+(?:\.\d*)?|\.\d+)$/.test(varRhs) ? Number(varRhs) : undefined;
+        const varValue = varRhs !== undefined ? awkInputValue(varRhs) : undefined;
+        const varAsNum = varValue !== undefined && varValue.kind !== "string" ? awkNumber(varValue) : undefined;
         const strRhs = cmpCondM[4] ?? (varAsNum === undefined ? varRhs : undefined);
         const numRhs = cmpCondM[5] !== undefined ? Number(cmpCondM[5]) : varAsNum;
         if (strRhs !== undefined && op !== "==" && op !== "!=") return undefined;
@@ -23802,8 +23809,12 @@ export class Runtime {
           const tIdx = subTarget === "NF" ? fields.length : Number(subTarget);
           if (tIdx >= 1 && tIdx <= fields.length) {
             fields = [...fields];
-            fields[tIdx - 1] = fields[tIdx - 1]!.replace(subRe, matched => subRep.split("&").join(matched));
-            l = fields.join(ofs);
+            let replaced = false;
+            fields[tIdx - 1] = fields[tIdx - 1]!.replace(subRe, matched => {
+              replaced = true;
+              return subRep.split("&").join(matched);
+            });
+            if (replaced) l = fields.join(ofs);
           }
         }
       }
@@ -23841,7 +23852,7 @@ export class Runtime {
         } else if (p.kind === "index") {
           const idx = p.token === "NF" ? fields.length : Number(p.token);
           const s = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
-          const pos = p.sub.length === 0 ? -1 : s.indexOf(p.sub);
+          const pos = s.indexOf(p.sub);
           out += String(pos === -1 ? 0 : pos + 1);
         } else if (p.kind === "int") {
           const idx = p.token === "NF" ? fields.length : Number(p.token);
@@ -23882,14 +23893,12 @@ export class Runtime {
                 const fSub = tk.slice(1);
                 const idx = fSub === "NF" ? fields.length : Number(fSub);
                 const rawF = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
-                const nm = /^[ \t]*([+-]?(?:\d+(?:\.\d*)?|\.\d+))/.exec(rawF);
-                v = nm ? Number(nm[1]!) : 0;
+                v = awkNumber(awkInputValue(rawF));
               } else if (/^-?[0-9]+(?:\.[0-9]+)?$/.test(tk)) {
                 v = Number(tk);
               } else {
                 const uv = userVars.get(tk) ?? "";
-                const nm = /^[ \t]*([+-]?(?:\d+(?:\.\d*)?|\.\d+))/.exec(uv);
-                v = nm ? Number(nm[1]!) : 0;
+                v = awkNumber(awkInputValue(uv));
               }
               vals.push(v);
             }

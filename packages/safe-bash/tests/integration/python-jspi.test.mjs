@@ -72,7 +72,7 @@ const empty = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
 const callbacks = createPythonJspiCallbackCatalog(files['pyodide.asm.mjs']);
 const callbackFiles = callbacks.map(({signature}) => 'callback-' + signature + '.wasm');
 
-test('real workerd native async I/O, imports, binary streams and asynchronous finalization', { timeout: 30000 }, async context => {
+test('real workerd native async I/O, imports, binary streams and asynchronous finalization', { timeout: 120000 }, async context => {
   const injection = `
 import main from 'main.wasm';
 import helper from 'helper.wasm';
@@ -92,6 +92,7 @@ export { WebAssembly, fetch, location };
 `;
   const outputRoot = process.env.TMPDIR;
   const bundle = await build({ entryPoints: [fileURLToPath(new URL('./python-jspi.worker.mjs', import.meta.url))],
+    outfile:resolve(outputRoot, 'main.mjs'), loader:{'.wasm':'copy'},
     bundle: true, write: false, metafile: true, platform: 'node', format: 'esm', target: 'es2022', conditions: ['workerd', 'browser'],
     external: ['main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'native-call.wasm', 'stat-result.wasm', 'stdlib.bin', 'node:*', 'ws', ...callbackFiles],
     define: { 'globalThis.process': 'undefined', process: 'undefined' },
@@ -101,6 +102,7 @@ export { WebAssembly, fetch, location };
       ...(consumerRoot ? {} : {
         '@poe-code/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
         '@poe-platform/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
+        '@poe-platform/safe-bash/core': resolve(root, 'packages/safe-bash/src/commands/index.ts'),
         '@poe-platform/safe-bash/search': resolve(root, 'packages/safe-bash/src/search.ts'),
         '@poe-platform/safe-bash/commands/llm': resolve(root, 'packages/safe-bash/src/commands/llm/index.ts'),
         '@poe-platform/safe-bash/commands/python': resolve(root, 'packages/safe-bash/src/commands/python/index.ts'),
@@ -112,6 +114,9 @@ export { WebAssembly, fetch, location };
         if (args.pluginData?.consumer) return;
         return plugin.resolve(args.path, {resolveDir:consumerRoot, kind:'import-statement', pluginData:{consumer:true}});
       });
+      plugin.onResolve({ filter: /^python-library-examples$/ }, () => ({path:'examples', namespace:'python-library-examples'}));
+      plugin.onLoad({ filter: /.*/, namespace:'python-library-examples' }, () => ({loader:'json', contents:JSON.stringify(Object.fromEntries(
+        ['llm-single.py', 'llm-stream.py', 'shell-tools.py'].map(name => [name, readFileSync(resolve(root, 'packages/safe-bash/docs/examples', name), 'utf8')])))}));
       plugin.onResolve({ filter: /^python-static-assets$/ }, () => ({ path: 'assets', namespace: 'python-static-assets' }));
       plugin.onLoad({ filter: /.*/, namespace: 'python-static-assets' }, () => ({ contents: injection, loader: 'js', resolveDir: root }));
     } }] });
@@ -130,7 +135,8 @@ export { WebAssembly, fetch, location };
     }
   }
   const modules = [
-    { type: 'ESModule', path: resolve(outputRoot, 'main.mjs'), contents: bundle.outputFiles[0].text },
+    { type: 'ESModule', path: resolve(outputRoot, 'main.mjs'), contents: bundle.outputFiles.find(file => file.path.endsWith('.mjs')).text },
+    ...bundle.outputFiles.filter(file => file.path.endsWith('.wasm')).map(file => ({type:'CompiledWasm', path:file.path, contents:file.contents})),
     ...[['main.wasm', files['pyodide.asm.wasm']], ['helper.wasm', helper], ['ccall.wasm', ccall],
       ['empty.wasm', empty], ['trampoline.wasm', createPythonJspiTrampoline()], ['native-call.wasm', createPythonJspiNativeCall()],
       ['stat-result.wasm', createPythonJspiStatResult()]].map(([name, contents]) => ({ type: 'CompiledWasm', path: resolve(outputRoot, name), contents })),
@@ -151,10 +157,16 @@ export { WebAssembly, fetch, location };
     assert.equal(hostResponse.status, 200, JSON.stringify(host));
     assert.equal(host.exitCode, 0, JSON.stringify(host));
     assert.equal(host.stdout, 'host-ok\n');
+    assert.deepEqual(host.examples, [
+      {name:'llm-single.py', exitCode:0, stdout:'Explain gravity in one sentence\n', stderr:''},
+      {name:'llm-stream.py', exitCode:0, stdout:'Explain gravity', stderr:''},
+      {name:'shell-tools.py', exitCode:0, stdout:'shell-example-ok\n', stderr:''},
+    ]);
     assert.equal(host.stderr, '');
     assert.equal(host.released, 1);
     assert.equal(host.calls, 5);
     assert.equal(host.hostCancelled, 1);
+    assert.equal(host.shellStreamCancelled, 1);
     assert.equal(host.libraryReleased, 2);
     assert.equal(host.retirementRejected, true);
     assert.equal(host.siblingExit, 0);

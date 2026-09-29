@@ -1,4 +1,4 @@
-"""Run with the Safe Bash Python launcher, configured rg, and /project files."""
+"""Run with the Safe Bash Python launcher, configured standard commands and rg, and /project files."""
 import subprocess
 from poe_shell import Client
 from pyodide.ffi import run_sync

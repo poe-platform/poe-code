@@ -103,3 +103,56 @@ test('finite shell concurrency and input budgets remain enforced', async () => {
   finish();
   await first;
 });
+
+test('stream exposes output before completion and early close cancels the child', async () => {
+  const signal = new AbortController().signal;
+  let emitted!: () => void;
+  const writing = new Promise<void>(resolve => { emitted = resolve; });
+  let cancelled = false;
+  const context = { signal, executionScope:{}, cwd:'/', env:{}, async invoke(_command, _args, options) {
+    try {
+      emitted();
+      await options!.stdout!.write(new Uint8Array([0,255]));
+      await new Promise<void>(resolve => {
+        if (options!.signal!.aborted) resolve();
+        else options!.signal!.addEventListener('abort', () => resolve(), {once:true});
+      });
+      options!.signal!.throwIfAborted();
+      return {exitCode:0};
+    } finally { cancelled = options!.signal!.aborted; }
+  } } satisfies Partial<CommandContext> as unknown as CommandContext;
+  const shell = createPythonShellCapability(context);
+  const iterator = shell.stream!({argv:['incremental']}, {signal})[Symbol.asyncIterator]();
+  const first = iterator.next();
+  await writing;
+  const marker = Symbol('not incremental');
+  const result = await Promise.race([first, new Promise<typeof marker>(resolve => setTimeout(() => resolve(marker), 25))]);
+  assert.notEqual(result, marker, 'stream must yield while the command is still running');
+  assert.deepEqual(result, {done:false, value:{type:'stdout', data:[0,255]}});
+  await iterator.return!();
+  assert.equal(cancelled, true);
+  assert.equal(pythonShellDispatchActive(context.executionScope), false);
+});
+
+test('stream applies backpressure and orders concurrent stdout and stderr writes', async () => {
+  const signal = new AbortController().signal;
+  let written = false;
+  const context = { signal, executionScope:{}, cwd:'/', env:{}, async invoke(_command, _args, options) {
+    await Promise.all([
+      options!.stdout!.write(new Uint8Array([1])),
+      options!.stderr!.write(new Uint8Array([2])),
+    ]);
+    written = true;
+    return {exitCode:7};
+  } } satisfies Partial<CommandContext> as unknown as CommandContext;
+  const shell = createPythonShellCapability(context);
+  const iterator = shell.stream!({argv:['both']}, {signal})[Symbol.asyncIterator]();
+  assert.deepEqual(await iterator.next(), {done:false, value:{type:'stdout', data:[1]}});
+  assert.equal(written, false);
+  assert.deepEqual(await iterator.next(), {done:false, value:{type:'stderr', data:[2]}});
+  assert.equal(written, false);
+  assert.deepEqual(await iterator.next(), {done:false, value:{type:'exit', returncode:7}});
+  assert.equal(written, true);
+  assert.equal((await iterator.next()).done, true);
+  assert.equal(pythonShellDispatchActive(context.executionScope), false);
+});

@@ -16,7 +16,7 @@ export function createPythonShellCapability(context: CommandContext, options: { 
   const scope = context.executionScope;
   const invoke = context.invoke;
   let running = 0;
-  const execute: NonNullable<PythonHostCapability['call']> = async (value, { signal }) => {
+  const execute = async (value: PythonHostValue, { signal }: { signal: AbortSignal }, publish?: (event: PythonHostValue) => Promise<void>): Promise<PythonHostValue> => {
     signal.throwIfAborted();
     if (running >= maxConcurrentCalls) throw new Error('Python nested shell concurrency limit exceeded');
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Expected a Python shell request');
@@ -58,11 +58,12 @@ export function createPythonShellCapability(context: CommandContext, options: { 
     const stdout: number[] = [];
     const stderr: number[] = [];
     let captured = 0;
-    const sink = (target: number[]) => ({ async write(chunk: Uint8Array) {
+    const sink = (target: number[], type: 'stdout' | 'stderr') => ({ async write(chunk: Uint8Array) {
       childSignal.throwIfAborted();
       if (chunk.length > outputLimit - captured) throw new RangeError('Python shell output limit exceeded');
       captured += chunk.length;
-      for (const byte of chunk) target.push(byte);
+      if (publish) await publish({type, data:Array.from(chunk)});
+      else for (const byte of chunk) target.push(byte);
     } });
     running++;
     dispatching.set(scope, (dispatching.get(scope) ?? 0) + 1);
@@ -70,7 +71,7 @@ export function createPythonShellCapability(context: CommandContext, options: { 
       const args = argv as string[] | undefined;
       const result = await invoke(args ? args[0]! : 'sh', args ? args.slice(1) : ['-c', script as string], {
         signal: childSignal, cwd: request.cwd as string | undefined ?? context.cwd, env, replaceEnv: true,
-        stdin: childInput, stdout: sink(stdout), stderr: sink(stderr), externalInvocation: true,
+        stdin: childInput, stdout: sink(stdout, 'stdout'), stderr: sink(stderr, 'stderr'), externalInvocation: true,
       });
       childSignal.throwIfAborted();
       return { stdout, stderr, exitCode: result.exitCode };
@@ -81,9 +82,47 @@ export function createPythonShellCapability(context: CommandContext, options: { 
     }
   };
   return { call: execute, async *stream(value, context) {
-    const result = await execute(value, context) as { stdout: number[]; stderr: number[]; exitCode: number };
-    if (result.stdout.length) yield { type: 'stdout', data: result.stdout };
-    if (result.stderr.length) yield { type: 'stderr', data: result.stderr };
-    yield { type: 'exit', returncode: result.exitCode };
+    const controller = new AbortController();
+    const signal = AbortSignal.any([context.signal, controller.signal]);
+    let queued: {event:PythonHostValue; accept:() => void} | undefined;
+    let wake: (() => void) | undefined;
+    let ended = false;
+    let failure: unknown;
+    let failed = false;
+    let publishing = Promise.resolve();
+    const publish = async (event: PythonHostValue): Promise<void> => {
+      const next = publishing.then(async () => {
+        signal.throwIfAborted();
+        await new Promise<void>((resolve, reject) => {
+          const abort = (): void => { signal.removeEventListener('abort', abort); reject(signal.reason); wake?.(); };
+          signal.addEventListener('abort', abort, {once:true});
+          queued = {event, accept() { signal.removeEventListener('abort', abort); resolve(); }};
+          wake?.();
+          if (signal.aborted) abort();
+        });
+      });
+      publishing = next.catch(() => undefined);
+      await next;
+    };
+    const child = execute(value, {signal}, publish).then(async result => {
+      await publish({type:'exit', returncode:(result as {exitCode:number}).exitCode});
+    }).catch(error => { failure = error; failed = true; }).finally(() => { ended = true; wake?.(); });
+    try {
+      while (true) {
+        signal.throwIfAborted();
+        if (queued) {
+          const item = queued;
+          queued = undefined;
+          yield item.event;
+          item.accept();
+        } else if (ended) {
+          if (failed) throw failure;
+          break;
+        } else await new Promise<void>(resolve => { wake = resolve; });
+      }
+    } finally {
+      controller.abort(new Error('Python shell stream closed'));
+      await child;
+    }
   } };
 }

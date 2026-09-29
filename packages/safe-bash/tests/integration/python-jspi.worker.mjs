@@ -1,3 +1,5 @@
+import { standardCommands } from '@poe-platform/safe-bash/core';
+import libraryExamples from 'python-library-examples';
 import { loadPyodide } from 'pinned-pyodide-loader';
 import createPyodideModule from 'pinned-pyodide-module';
 import lockFileContents from 'pinned-pyodide-lock';
@@ -73,6 +75,7 @@ async function qualifyShells(backend, createExecutor) {
 }
 
 async function qualifyHostServices(backend, createExecutor) {
+  let shellStreamCancelled = 0;
   let released = 0;
   let calls = 0;
   let hostCancelled = 0;
@@ -161,6 +164,8 @@ async def qualify_libraries():
  async with ShellClient() as child:
   result = await child.run(['rg', 'changed', '/work/shared.txt'], text=True)
   assert result.stdout == 'changed\n'
+  async with child.stream(['pulse']) as early:
+   assert (await early.__anext__()).data == bytes([0,255])
   async with child.stream(['rg', 'changed', '/work/shared.txt']) as events:
    streamed = [event async for event in events]
    assert streamed[0].data == b'changed\n' and streamed[-1].returncode == 0
@@ -182,6 +187,17 @@ print('host-ok')
       context.signal.throwIfAborted();
       return {exitCode:0};
     } });
+    host.commands.register({ name:'pulse', async execute(context) {
+      try {
+        await context.stdout.write(new Uint8Array([0,255]));
+        await new Promise(resolve => {
+          if (context.signal.aborted) resolve();
+          else context.signal.addEventListener('abort', resolve, {once:true});
+        });
+        context.signal.throwIfAborted();
+        return {exitCode:0};
+      } finally { if (context.signal.aborted) shellStreamCancelled++; }
+    } });
     host.commands.register({ name: 'overflow', async execute(context) {
       await context.stdout.write(new Uint8Array(8193));
       return {exitCode:0};
@@ -194,6 +210,7 @@ print('host-ok')
       return {exitCode:7};
     } });
   } });
+  shell.use(standardCommands());
   shell.use(llmCommands({providers:[provider], defaultModel:'fake'}));
   shell.use(pythonCommands({ createExecutor() {
     const executor = createExecutor();
@@ -211,7 +228,7 @@ print('host-ok')
           }
           if (value.payload.prompt === 'error-call') throw new Error('private-host-error');
           if (value.operation !== 'complete') throw new Error('Unsupported fixture operation');
-          if (value.payload.options.enabled !== true || value.payload.options.count !== 2 || value.payload.options.nullable !== null) throw new Error('Typed options were changed');
+          if (value.payload.prompt === 'library' && (value.payload.options.enabled !== true || value.payload.options.count !== 2 || value.payload.options.nullable !== null)) throw new Error('Typed options were changed');
           let text = '';
           for await (const chunk of service.complete({prompt:value.payload.prompt, options:value.payload.options, attachments:[], signal})) text += chunk;
           return {model:'fake', text, data:[]};
@@ -231,6 +248,14 @@ print('host-ok')
   } }));
   try {
     const result = await shell.exec('python host.py');
+    const examples = [];
+    await backend.mkdir('/project');
+    await backend.writeFile('/project/task.txt', new TextEncoder().encode('TODO example\n'));
+    for (const [name, source] of Object.entries(libraryExamples)) {
+      await backend.writeFile('/work/' + name, new TextEncoder().encode(source));
+      const run = await shell.exec('python ' + name);
+      examples.push({name, exitCode:run.exitCode, stdout:run.stdout, stderr:run.stderr});
+    }
     let retirementRejected = false;
     try { await retiredBridge.request({version:1, operation:'call', capability:'identity', value:null}); }
     catch { retirementRejected = true; }
@@ -240,7 +265,7 @@ print('host-ok')
     let siblingResult;
     try { siblingResult = await sibling.exec(`python -c "from safe_host import call; print(call('identity'))"`); }
     finally { await sibling.dispose(); }
-    return {retirementRejected, sibling:siblingResult.stdout, siblingExit:siblingResult.exitCode, exitCode:result.exitCode, stdout:result.stdout, stderr:result.stderr, calls, released, hostCancelled, libraryReleased};
+    return {examples, shellStreamCancelled, retirementRejected, sibling:siblingResult.stdout, siblingExit:siblingResult.exitCode, exitCode:result.exitCode, stdout:result.stdout, stderr:result.stderr, calls, released, hostCancelled, libraryReleased};
   } finally { await shell.dispose(); }
 }
 

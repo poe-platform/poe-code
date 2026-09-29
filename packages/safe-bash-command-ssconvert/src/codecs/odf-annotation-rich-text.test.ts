@@ -33,6 +33,27 @@ it("imports annotation character styles and an explicitly empty author", async (
 });
 
 for (const profile of ["strict", "extended"] as const) {
+  for (const author of ["Grace", "", undefined]) it(`preserves original annotation paragraphs when only author becomes ${String(author)} in ${profile} ODF`, async () => {
+    const paragraphs = '<text:p><text:span text:style-name="Unrepresented">é😀</text:span></text:p><text:p>tail</text:p>';
+    const bytes = await fixture({ mimetype: "application/vnd.oasis.opendocument.spreadsheet", "content.xml": content(
+      '<table:table table:name="S"><table:table-row><table:table-cell><office:annotation xmlns:dc="http://purl.org/dc/elements/1.1/">' +
+      '<dc:creator>Ada</dc:creator>' + paragraphs + '</office:annotation></table:table-cell></table:table-row></table:table>',
+      '<style:style style:name="Unrepresented" style:family="text"><style:text-properties fo:font-family="Example:Family]" fo:font-weight="bold" style:text-position="17% 71%"/></style:style>') });
+    const book = await readOdf(bytes, context);
+    expect(comment(book).attributes.TextFormat).toBeUndefined();
+    const objects = book.sheets[0]!.unsupportedRecords!.find(record => record.kind === "Objects")!;
+    const node = metadataNode(objects.data)!;
+    const attributes = { ...comment(book).attributes };
+    if (author === undefined) delete attributes.Author; else attributes.Author = author;
+    const edited: Workbook = { ...book, sheets: [{ ...book.sheets[0]!, unsupportedRecords: book.sheets[0]!.unsupportedRecords!.map(record =>
+      record === objects ? { ...record, data: { ...node, children: [{ ...node.children[0]!, attributes, children: [] }] } } : record) }] };
+    const output = await createOdfWriter(profile)(edited, [], context);
+    expect((await unpackOdf(output)).parts.get("content.xml")).toContain(paragraphs);
+    const result = comment(await readOdf(output, context)).attributes;
+    expect(result.Author).toBe(author);
+    expect(result.Text).toBe("é😀\ntail");
+  });
+
   it(`exports rich annotation text and controls through ${profile} ODF`, async () => {
     const book = commentBook();
     const reopened = await readOdf(await createOdfWriter(profile)(book, [], context), context);

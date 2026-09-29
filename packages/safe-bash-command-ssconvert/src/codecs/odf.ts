@@ -803,7 +803,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
         addresses.set(`${cell.row}:${cell.column}`, cell);
       }
       const annotations = new Map<string,Record<string,string>>(), passive = new Map<string,string>(), originalParagraphs = new Map<string,{ text: string; richText: ImportedValue; xml: string; range: Range }>();
-      const originalAnnotations = new Map<string,{ signature?: string; xml: string; node: Readonly<Record<string,ImportedValue>> }>();
+      const originalAnnotations = new Map<string,{ signature?: string; textSignature?: string; xml: string; node: Readonly<Record<string,ImportedValue>> }>();
       const cellMetadata: { range: Range; style?: string | undefined; validation?: string | undefined; link?: OdfAttributes | undefined }[] = [];
       const links = new Map<string,OdfAttributes>();
       for (const record of sheet.unsupportedRecords ?? []) {
@@ -824,7 +824,16 @@ export function createOdfWriter(profile: "strict" | "extended") {
             const previous = originalParagraphs.get(key); originalParagraphs.set(key,{ text: v.sourceText, richText: v.sourceRichText ?? [],
               xml: (previous?.xml ?? "") + xml.retained(node, 0, href => translateOdfHyperlink(href, "normalize", xml.charge, sheetNames)), range: r });
           } else if (record.kind === "annotation" && namespaces.OO_NS_OFFICE!.includes(String(node.namespace))) {
-            originalAnnotations.set(key,{ ...(typeof v.sourceComment === "string" ? { signature: v.sourceComment } : {}), xml: xml.retained(node), node });
+            let textSignature: string | undefined;
+            if (typeof v.sourceComment === "string") {
+              xml.charge(v.sourceComment.length);
+              try {
+                const signature: unknown = JSON.parse(v.sourceComment);
+                if (Array.isArray(signature) && signature.length === 3) textSignature = JSON.stringify(signature.slice(1));
+              } catch { /* An invalid source marker cannot establish unchanged text. */ }
+            }
+            originalAnnotations.set(key,{ ...(typeof v.sourceComment === "string" ? { signature: v.sourceComment } : {}),
+              ...(textSignature === undefined ? {} : { textSignature }), xml: xml.retained(node), node });
             if (!addresses.has(key)) {
               if (++count > context.limits.cells) limit("cells");
               addresses.set(key,{ row: v.row, column: v.column, value: { kind: "blank" } });
@@ -950,13 +959,20 @@ export function createOdfWriter(profile: "strict" | "extended") {
           xml.charge((commentSignature?.length ?? 0) + (originalAnnotation?.signature?.length ?? 0));
           if (originalAnnotation && (originalAnnotation.signature === undefined || originalAnnotation.signature === commentSignature)) content += originalAnnotation.xml;
           else if (annotation) {
-            const value = annotation.Text ?? "", runs = readGnumericRichText(annotation.TextFormat, xml.charge);
-            const text = runs?.length ? writeOdfRichText(value,runs,xml,definitions,extended,undefined,false) : xml.text(value);
+            const value = annotation.Text ?? "", textSignature = JSON.stringify([value, annotation.TextFormat ?? null]);
+            xml.charge(textSignature.length);
+            const keepText = originalAnnotation?.textSignature === textSignature;
+            let paragraphs = "";
+            if (!keepText) {
+              const runs = readGnumericRichText(annotation.TextFormat, xml.charge);
+              const text = runs?.length ? writeOdfRichText(value,runs,xml,definitions,extended,undefined,false) : xml.text(value);
+              paragraphs = e("text:p", {}, text);
+            }
             const retained = originalAnnotation ? odfChildren(originalAnnotation.node).filter(child => {
               xml.charge(); const node = odfObject(child);
-              return !(node?.name === "p" && node.namespace === odfNamespaces.text || node?.name === "creator" && node.namespace === odfNamespaces.dc);
+              return !(!keepText && node?.name === "p" && node.namespace === odfNamespaces.text || node?.name === "creator" && node.namespace === odfNamespaces.dc);
             }).map(child => xml.retained(child)).join("") : "";
-            const body = retained + (annotation.Author === undefined ? "" : e("dc:creator", {}, xml.escape(annotation.Author))) + e("text:p", {}, text);
+            const body = (annotation.Author === undefined ? "" : e("dc:creator", {}, xml.escape(annotation.Author))) + retained + paragraphs;
             content += originalAnnotation ? xml.retained(originalAnnotation.node,0,undefined,false,body) : e("office:annotation", {}, body);
           }
           if (cell) {

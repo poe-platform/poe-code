@@ -1,3 +1,4 @@
+import { parseLlmNumericOption } from "./numeric-option.js";
 import type { HttpRequest, HttpTransport } from "safe-bash-contracts/http";
 import type { LlmModel, LlmProvider, LlmRequest, LlmResponseMetadata } from "./types.js";
 import { openAiBytes, openAiError, openAiJson, openAiRecord, openAiResponse } from "./openai-http.js";
@@ -38,8 +39,8 @@ function jsonOptions(options: LlmRequest["options"], endpoint: "chat" | "images"
     const numeric = numericOptions[endpoint].get(key);
     if (!numeric) return [key, value];
     const [type, minimum, maximum] = numeric;
-    const number = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
-    if (!Number.isFinite(number) || type === "integer" && !Number.isSafeInteger(number)) {
+    const number = parseLlmNumericOption(value, type);
+    if (number === undefined || !Number.isFinite(number) || type === "integer" && !Number.isSafeInteger(number)) {
       throw new Error(`Invalid OpenAI option ${key}: expected a finite ${type === "integer" ? "safe integer" : "number"}`);
     }
     if (number < minimum || number > maximum) throw new RangeError(`Invalid OpenAI option ${key}: expected ${minimum}..${maximum}`);
@@ -138,8 +139,8 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       const values: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(request.options)) {
         if (key === "dimensions") {
-          const number = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
-          if (!Number.isSafeInteger(number) || number < 1) throw new TypeError("Invalid OpenAI dimensions: expected a positive integer");
+          const number = parseLlmNumericOption(value, "integer");
+          if (number === undefined || !Number.isSafeInteger(number) || number < 1) throw new TypeError("Invalid OpenAI dimensions: expected a positive integer");
           values[key] = number;
         } else if (key === "user" && typeof value === "string") values[key] = value;
         else throw new TypeError(`Unsupported OpenAI embedding option: ${key}`);

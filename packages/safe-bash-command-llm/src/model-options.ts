@@ -1,3 +1,4 @@
+import { parseLlmNumericOption } from "./numeric-option.js";
 import type { LlmModel, LlmOption } from "./types.js";
 
 /** Validate and translate declared options before storage or provider execution. */
@@ -13,12 +14,13 @@ export function validateModelOptions(model: LlmModel, values: Readonly<Record<st
     switch (rule.type) {
       case "number":
       case "integer": {
-        if (typeof input !== "number" && typeof input !== "string" || typeof input === "string" && !input.trim()) fail("Input should be a valid number, unable to parse string as a number");
-        value = Number(input);
-        if (!Number.isFinite(value)) fail("Input should be a valid number, unable to parse string as a number");
+        const parsed = parseLlmNumericOption(input, rule.type);
+        if (parsed === undefined) return fail(rule.type === "integer" ? "Input should be a valid integer, unable to parse string as an integer" : "Input should be a valid number, unable to parse string as a number");
+        value = parsed;
         if (rule.type === "integer" && !Number.isSafeInteger(value)) fail("Input should be a valid integer");
-        if (rule.minimum !== undefined && value < rule.minimum) fail(`Input should be greater than or equal to ${rule.minimum}`);
-        if (rule.maximum !== undefined && value > rule.maximum) fail(`Input should be less than or equal to ${rule.maximum}`);
+        if (rule.maximum !== undefined && !(value <= rule.maximum)) fail(`Input should be less than or equal to ${rule.maximum}`);
+        if (rule.minimum !== undefined && !(value >= rule.minimum)) fail(`Input should be greater than or equal to ${rule.minimum}`);
+        if (!Number.isFinite(value)) fail("Input should be a valid number, unable to parse string as a number");
         break;
       }
       case "boolean": {

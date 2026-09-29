@@ -1,0 +1,511 @@
+{
+  "distribution": "llm",
+  "version": "0.27.1",
+  "model": "gpt-4o",
+  "cases": [
+    {
+      "option": "temperature",
+      "value": "0x1",
+      "accepted": false,
+      "message": "Input should be a valid number, unable to parse string as a number"
+    },
+    {
+      "option": "temperature",
+      "value": "0b1",
+      "accepted": false,
+      "message": "Input should be a valid number, unable to parse string as a number"
+    },
+    {
+      "option": "temperature",
+      "value": "0_1",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "1__0",
+      "accepted": false,
+      "message": "Input should be a valid number, unable to parse string as a number"
+    },
+    {
+      "option": "temperature",
+      "value": "1e0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "1.0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": ".5",
+      "accepted": true,
+      "converted": 0.5
+    },
+    {
+      "option": "temperature",
+      "value": " 1 ",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "+1",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "01",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "NaN",
+      "accepted": false,
+      "message": "Input should be less than or equal to 2"
+    },
+    {
+      "option": "temperature",
+      "value": "Infinity",
+      "accepted": false,
+      "message": "Input should be less than or equal to 2"
+    },
+    {
+      "option": "temperature",
+      "value": "true",
+      "accepted": false,
+      "message": "Input should be a valid number, unable to parse string as a number"
+    },
+    {
+      "option": "temperature",
+      "value": "1_0.0",
+      "accepted": false,
+      "message": "Input should be less than or equal to 2"
+    },
+    {
+      "option": "temperature",
+      "value": "1.0_0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "1e+0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "_1",
+      "accepted": false,
+      "message": "Input should be a valid number, unable to parse string as a number"
+    },
+    {
+      "option": "temperature",
+      "value": "1_",
+      "accepted": false,
+      "message": "Input should be a valid number, unable to parse string as a number"
+    },
+    {
+      "option": "temperature",
+      "value": "1._0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": ".0",
+      "accepted": true,
+      "converted": 0.0
+    },
+    {
+      "option": "temperature",
+      "value": "-0.0",
+      "accepted": true,
+      "converted": -0.0
+    },
+    {
+      "option": "seed",
+      "value": "0x1",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "0b1",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "0_1",
+      "accepted": true,
+      "converted": 1
+    },
+    {
+      "option": "seed",
+      "value": "1__0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1e0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1.0",
+      "accepted": true,
+      "converted": 1
+    },
+    {
+      "option": "seed",
+      "value": ".5",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": " 1 ",
+      "accepted": true,
+      "converted": 1
+    },
+    {
+      "option": "seed",
+      "value": "+1",
+      "accepted": true,
+      "converted": 1
+    },
+    {
+      "option": "seed",
+      "value": "01",
+      "accepted": true,
+      "converted": 1
+    },
+    {
+      "option": "seed",
+      "value": "NaN",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "Infinity",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "true",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1_0.0",
+      "accepted": true,
+      "converted": 10
+    },
+    {
+      "option": "seed",
+      "value": "1.0_0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1e+0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "_1",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1_",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1._0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": ".0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "-0.0",
+      "accepted": true,
+      "converted": 0
+    },
+    {
+      "option": "temperature",
+      "value": "+_1",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "-_1",
+      "accepted": false,
+      "message": "Input should be greater than or equal to 0"
+    },
+    {
+      "option": "temperature",
+      "value": "1_e0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "1e_0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "1e+_0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "1_.0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "._5",
+      "accepted": true,
+      "converted": 0.5
+    },
+    {
+      "option": "temperature",
+      "value": "1.",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "1.00",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "1.0_",
+      "accepted": false,
+      "message": "Input should be a valid number, unable to parse string as a number"
+    },
+    {
+      "option": "temperature",
+      "value": "1__0.0",
+      "accepted": false,
+      "message": "Input should be a valid number, unable to parse string as a number"
+    },
+    {
+      "option": "temperature",
+      "value": "1_0",
+      "accepted": false,
+      "message": "Input should be less than or equal to 2"
+    },
+    {
+      "option": "temperature",
+      "value": "1._",
+      "accepted": false,
+      "message": "Input should be a valid number, unable to parse string as a number"
+    },
+    {
+      "option": "temperature",
+      "value": "1e0_0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "1 e0",
+      "accepted": false,
+      "message": "Input should be a valid number, unable to parse string as a number"
+    },
+    {
+      "option": "temperature",
+      "value": "1\t",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "0_0",
+      "accepted": true,
+      "converted": 0.0
+    },
+    {
+      "option": "temperature",
+      "value": "+01.0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "temperature",
+      "value": "-0.0",
+      "accepted": true,
+      "converted": -0.0
+    },
+    {
+      "option": "temperature",
+      "value": "-.0",
+      "accepted": true,
+      "converted": -0.0
+    },
+    {
+      "option": "temperature",
+      "value": "1e-0",
+      "accepted": true,
+      "converted": 1.0
+    },
+    {
+      "option": "seed",
+      "value": "+_1",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "-_1",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1_e0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1e_0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1e+_0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1_.0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "._5",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1.",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1.00",
+      "accepted": true,
+      "converted": 1
+    },
+    {
+      "option": "seed",
+      "value": "1.0_",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1__0.0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1_0",
+      "accepted": true,
+      "converted": 10
+    },
+    {
+      "option": "seed",
+      "value": "1._",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1e0_0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1 e0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1\t",
+      "accepted": true,
+      "converted": 1
+    },
+    {
+      "option": "seed",
+      "value": "0_0",
+      "accepted": true,
+      "converted": 0
+    },
+    {
+      "option": "seed",
+      "value": "+01.0",
+      "accepted": true,
+      "converted": 1
+    },
+    {
+      "option": "seed",
+      "value": "-0.0",
+      "accepted": true,
+      "converted": 0
+    },
+    {
+      "option": "seed",
+      "value": "-.0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    },
+    {
+      "option": "seed",
+      "value": "1e-0",
+      "accepted": false,
+      "message": "Input should be a valid integer, unable to parse string as an integer"
+    }
+  ]
+}

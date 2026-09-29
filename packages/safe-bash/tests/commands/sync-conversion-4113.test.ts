@@ -1259,3 +1259,30 @@ test("sync paste -z, comm -z, fold -N, expand -it/-N, unexpand -at/-N, and base6
     "a:1,b:2,c:3,#x-y-z!#b:c:#hello |world |foo#....a		b#>a>b#YWJj:ZGVm:Z2hp:amts"
   );
 });
+
+test("sync sed (-z/--expression/-ne/-Ee), grep (-lZ/--regexp/--max-count/-ie), and awk (--field-separator/--assign) in substitutions (Wave 215)", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp");
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" }).use(standardCommands()).use(tableTextCommands()).use(textProgramCommands());
+  const result = await shell.exec(`
+    printf "foo\\nbar\\n" > /tmp/g1.txt
+    printf "baz\\nFOO\\n" > /tmp/g2.txt
+    printf "%s\\0" alpha beta gamma > /tmp/sz.bin
+
+    out=""
+    for i in 1 2 3 4 5; do
+      sd1=\$(sed -z -ne "1,2p" /tmp/sz.bin | tr "\\0" ":")
+      sd2=\$(printf "aa11\\nbb22\\n" | sed --expression "s/[0-9]+/X/g" -E | paste -sd,)
+      gp1=\$(grep -lZ -ie "foo" /tmp/g1.txt /tmp/g2.txt | tr "\\0" "|")
+      gp2=\$(printf "Alpha\\nalPha\\nbeta\\nALPHA\\n" | grep --regexp "alpha" -i --max-count 2 | paste -sd,)
+      ak1=\$(printf "a:10\\nb:25\\nc:5\\n" | awk --field-separator : --assign s=100 '{ s += \$2 } END { print s }')
+      out="\$sd1#\$sd2#\$gp1#\$gp2#\$ak1"
+    done
+    printf "%s\\n" "\$out"
+  `);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(
+    result.stdout.trim(),
+    "alpha:beta:#aaX,bbX#/tmp/g1.txt|/tmp/g2.txt|#Alpha,alPha#140"
+  );
+});

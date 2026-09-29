@@ -1300,6 +1300,19 @@ async function executeSedGeneral(
         setLineLength(argument === "--line-length" ? context.args[++index] : argument.slice("--line-length=".length));
         continue;
       }
+      if (argument === "--expression" || argument.startsWith("--expression=")) {
+        const source = argument === "--expression" ? context.args[++index] : argument.slice("--expression=".length);
+        if (source === undefined) throw new ProgramError("--expression requires an argument");
+        sources.push(byteString(source));
+        continue;
+      }
+      if (argument === "--file" || argument.startsWith("--file=")) {
+        const source = argument === "--file" ? context.args[++index] : argument.slice("--file=".length);
+        if (source === undefined) throw new ProgramError("--file requires an argument");
+        await assertPathRequirements(context, sedRequirements, ["script-file"], [source]);
+        sources.push(await readProgram(context, source));
+        continue;
+      }
       if (argument.startsWith("--")) throw new ProgramError(`unsupported option '${argument}'`);
       for (let position = 1; position < argument.length; position++) {
         const flag = argument[position]!;

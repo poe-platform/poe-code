@@ -24084,7 +24084,33 @@ export class Runtime {
     };
   }
 
-  private hasZeroTerminatedFlag(cmd: "sort" | "uniq" | "cut" | "paste" | "comm", args: readonly string[]): boolean {
+  private hasZeroTerminatedFlag(cmd: "sort" | "uniq" | "cut" | "paste" | "comm" | "sed" | "grep", args: readonly string[]): boolean {
+    if (cmd === "grep") {
+      let hasZ = false;
+      let hasL = false;
+      for (let i = 0; i < args.length; i++) {
+        const a = args[i]!;
+        if (a === "--") break;
+        if ((a === "-e" || a === "--regexp" || a === "-f" || a === "--file" || a === "-m" || a === "--max-count" || a === "-A" || a === "--after-context" || a === "-B" || a === "--before-context" || a === "-C" || a === "--context") && i + 1 < args.length) {
+          i++;
+          continue;
+        }
+        if (a === "--null") hasZ = true;
+        else if (a === "--files-with-matches" || a === "--files-without-match") hasL = true;
+        else if (a.startsWith("-") && !a.startsWith("--")) {
+          for (let k = 1; k < a.length; k++) {
+            const ch = a[k]!;
+            if (ch === "e" || ch === "f" || ch === "m" || ch === "A" || ch === "B" || ch === "C") {
+              if (k === a.length - 1 && i + 1 < args.length) i++;
+              break;
+            }
+            if (ch === "Z") hasZ = true;
+            if (ch === "l" || ch === "L") hasL = true;
+          }
+        }
+      }
+      return hasZ && hasL;
+    }
     for (let i = 0; i < args.length; i++) {
       const a = args[i]!;
       if (a === "--") break;
@@ -24143,6 +24169,18 @@ export class Runtime {
           continue;
         }
         if (/^-[123z]+$/.test(a) && a.includes("z")) return true;
+      } else if (cmd === "sed") {
+        if (a === "--null-data") return true;
+        if ((a === "-e" || a === "--expression" || a === "-f" || a === "--file") && i + 1 < args.length) {
+          i++;
+          continue;
+        }
+        if (/^-[nErz]+$/.test(a) && a.includes("z")) return true;
+        const m = /^(-[nErz]+)e(.*)$/.exec(a);
+        if (m) {
+          if (m[1]!.includes("z")) return true;
+          if (m[2]!.length === 0 && i + 1 < args.length) i++;
+        }
       }
     }
     return false;
@@ -24267,7 +24305,7 @@ export class Runtime {
     return out;
   }
 
-  private evalSyncSed(rawLines: readonly string[], opArgs: readonly string[]): { lines: string[]; lastInputIndex: number } | undefined {
+  private evalSyncSed(rawLines: readonly string[], opArgs: readonly string[], allowZero = false): { lines: string[]; lastInputIndex: number } | undefined {
     let quiet = false;
     let isExtended = false;
     const rawExprs: string[] = [];
@@ -24275,12 +24313,26 @@ export class Runtime {
       const a = opArgs[i]!;
       if (a === "-n" || a === "--quiet" || a === "--silent") quiet = true;
       else if (a === "-E" || a === "-r" || a === "--regexp-extended") isExtended = true;
-      else if (a === "-En" || a === "-nE" || a === "-rn" || a === "-nr") { quiet = true; isExtended = true; }
-      else if (a === "-e") {
+      else if (a === "-z" || a === "--null-data") { if (!allowZero) return undefined; }
+      else if (/^-[nErz]+$/.test(a)) {
+        if (a.includes("z") && !allowZero) return undefined;
+        if (a.includes("n")) quiet = true;
+        if (a.includes("E") || a.includes("r")) isExtended = true;
+      } else if (a === "-e" || a === "--expression") {
         if (i + 1 >= opArgs.length) return undefined;
         rawExprs.push(opArgs[++i]!);
+      } else if (a.startsWith("--expression=")) {
+        rawExprs.push(a.slice(13));
       } else if (a.startsWith("-e") && a.length > 2) {
         rawExprs.push(a.slice(2));
+      } else if (/^-[nErz]+e(.*)$/.test(a)) {
+        const cm = /^(-[nErz]+)e(.*)$/.exec(a)!;
+        if (cm[1]!.includes("z") && !allowZero) return undefined;
+        if (cm[1]!.includes("n")) quiet = true;
+        if (cm[1]!.includes("E") || cm[1]!.includes("r")) isExtended = true;
+        if (cm[2]!.length > 0) rawExprs.push(cm[2]!);
+        else if (i + 1 < opArgs.length) rawExprs.push(opArgs[++i]!);
+        else return undefined;
       } else if (!a.startsWith("-") && rawExprs.length === 0 && i === opArgs.length - 1) {
         rawExprs.push(a);
       } else {
@@ -24676,10 +24728,10 @@ export class Runtime {
     const rawPatterns: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if ((a === "-A" || a === "-B" || a === "-C") && i + 1 < opArgs.length && /^[0-9]{1,4}$/.test(opArgs[i + 1]!)) {
+      if ((a === "-A" || a === "--after-context" || a === "-B" || a === "--before-context" || a === "-C" || a === "--context") && i + 1 < opArgs.length && /^[0-9]{1,4}$/.test(opArgs[i + 1]!)) {
         const n = Number(opArgs[++i]!);
-        if (a === "-A" || a === "-C") afterCtx = n;
-        if (a === "-B" || a === "-C") beforeCtx = n;
+        if (a === "-A" || a === "--after-context" || a === "-C" || a === "--context") afterCtx = n;
+        if (a === "-B" || a === "--before-context" || a === "-C" || a === "--context") beforeCtx = n;
       } else if (/^-[ABC][0-9]{1,4}$/.test(a)) {
         const n = Number(a.slice(2));
         if (a[1] === "A" || a[1] === "C") afterCtx = n;
@@ -24689,18 +24741,32 @@ export class Runtime {
         const n = Number(a.slice(eq + 1));
         if (a.startsWith("--after") || a.startsWith("--context")) afterCtx = n;
         if (a.startsWith("--before") || a.startsWith("--context")) beforeCtx = n;
-      } else if (a === "-e") {
+      } else if (a === "-e" || a === "--regexp") {
         if (i + 1 >= opArgs.length) return undefined;
         rawPatterns.push(opArgs[++i]!);
+      } else if (a.startsWith("--regexp=")) {
+        rawPatterns.push(a.slice(9));
       } else if (a.startsWith("-e") && a.length > 2) {
         rawPatterns.push(a.slice(2));
-      } else if (a === "-m") {
+      } else if (a === "-m" || a === "--max-count") {
         if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,5}$/.test(opArgs[i + 1]!)) return undefined;
         maxCount = Number(opArgs[++i]!);
       } else if (a.startsWith("-m") && /^[1-9][0-9]{0,5}$/.test(a.slice(2))) {
         maxCount = Number(a.slice(2));
       } else if (a.startsWith("--max-count=") && /^[1-9][0-9]{0,5}$/.test(a.slice(12))) {
         maxCount = Number(a.slice(12));
+      } else if (/^-[vicFEonxwqhsHa]+e(.*)$/.test(a)) {
+        const cm = /^(-[vicFEonxwqhsHa]+)e(.*)$/.exec(a)!;
+        mode += cm[1]!.slice(1).replace(/a/g, "");
+        if (cm[2]!.length > 0) rawPatterns.push(cm[2]!);
+        else if (i + 1 < opArgs.length) rawPatterns.push(opArgs[++i]!);
+        else return undefined;
+      } else if (/^-[vicFEonxwqhsHa]+m([1-9][0-9]{0,5})?$/.test(a)) {
+        const cm = /^(-[vicFEonxwqhsHa]+)m([1-9][0-9]{0,5})?$/.exec(a)!;
+        mode += cm[1]!.slice(1).replace(/a/g, "");
+        if (cm[2] && cm[2].length > 0) maxCount = Number(cm[2]);
+        else if (i + 1 < opArgs.length && /^[1-9][0-9]{0,5}$/.test(opArgs[i + 1]!)) maxCount = Number(opArgs[++i]!);
+        else return undefined;
       } else if (a.startsWith("--") && a !== "--") {
         if (a === "--extended-regexp") mode += "E";
         else if (a === "--fixed-strings") mode += "F";
@@ -24715,9 +24781,10 @@ export class Runtime {
         else if (a === "--no-filename") mode += "h";
         else if (a === "--with-filename") mode += "H";
         else if (a === "--no-messages") mode += "s";
+        else if (a === "--text" || a === "--color=never" || a === "--colour=never") { /* ignore */ }
         else return undefined;
       } else if (a.startsWith("-") && a !== "-" && a !== "--") {
-        mode += a.slice(1);
+        mode += a.slice(1).replace(/a/g, "");
       } else if (!a.startsWith("-") && rawPatterns.length === 0) {
         rawPatterns.push(a);
       } else {
@@ -24938,6 +25005,7 @@ export class Runtime {
     errexit: boolean,
     cwd: string,
     stdinLines?: readonly string[],
+    allowZero = false,
   ): { lines: string[]; status: number } | undefined {
     if (errexit) return undefined;
     const coreArgs: string[] = [];
@@ -24947,11 +25015,23 @@ export class Runtime {
     let noFilename = false;
     let filesWithMatches = false;
     let filesWithoutMatch = false;
+    let nullFileSep = false;
     let quiet = false;
     let hasExplicitPattern = false;
     let hasContext = false;
     let ended = false;
     const fileOperands: string[] = [];
+    const loadPatternFile = (pFile: string | undefined): boolean => {
+      if (!pFile) return false;
+      const pfView = this.tryReadMemoryFileViewSync(resolvePath(cwd, pFile), true, true);
+      if (!pfView || pfView.byteLength === 0 || pfView.byteLength > 4096 || pfView.includes(0)) return false;
+      const pfStr = sharedSyncPipeDecoder.decode(pfView);
+      const pfLines = pfStr.endsWith("\n") ? pfStr.slice(0, -1).split("\n") : pfStr.split("\n");
+      if (pfLines.length === 0 || pfLines.some(l => l.length === 0)) return false;
+      hasExplicitPattern = true;
+      for (const pl of pfLines) coreArgs.push("-e", pl);
+      return true;
+    };
     for (let i = 0; i < allArgs.length; i++) {
       const a = allArgs[i]!;
       if (ended || !a.startsWith("-") || a === "-") {
@@ -24965,10 +25045,15 @@ export class Runtime {
         continue;
       }
       if (a === "--") { ended = true; continue; }
-      if (a === "-e") {
+      if (a === "-e" || a === "--regexp") {
         if (i + 1 >= allArgs.length) return undefined;
         hasExplicitPattern = true;
         coreArgs.push("-e", allArgs[++i]!);
+        continue;
+      }
+      if (a.startsWith("--regexp=")) {
+        hasExplicitPattern = true;
+        coreArgs.push("-e", a.slice(9));
         continue;
       }
       if (a.startsWith("-e") && a.length > 2) {
@@ -24976,20 +25061,13 @@ export class Runtime {
         coreArgs.push(a);
         continue;
       }
-      if (a === "-f" || a.startsWith("-f") || a.startsWith("--file=")) {
-        const pFile = a === "-f" ? allArgs[++i] : (a.startsWith("--file=") ? a.slice(7) : a.slice(2));
-        if (!pFile) return undefined;
-        const pfView = this.tryReadMemoryFileViewSync(resolvePath(cwd, pFile), true, true);
-        if (!pfView || pfView.byteLength === 0 || pfView.byteLength > 4096 || pfView.includes(0)) return undefined;
-        const pfStr = sharedSyncPipeDecoder.decode(pfView);
-        const pfLines = pfStr.endsWith("\n") ? pfStr.slice(0, -1).split("\n") : pfStr.split("\n");
-        if (pfLines.length === 0 || pfLines.some(l => l.length === 0)) return undefined;
-        hasExplicitPattern = true;
-        for (const pl of pfLines) coreArgs.push("-e", pl);
+      if (a === "-f" || a === "--file" || a.startsWith("-f") || a.startsWith("--file=")) {
+        const pFile = (a === "-f" || a === "--file") ? allArgs[++i] : (a.startsWith("--file=") ? a.slice(7) : a.slice(2));
+        if (!loadPatternFile(pFile)) return undefined;
         continue;
       }
-      if ((a === "-m" || a === "-A" || a === "-B" || a === "-C") && i + 1 < allArgs.length) {
-        if (a !== "-m") hasContext = true;
+      if ((a === "-m" || a === "--max-count" || a === "-A" || a === "--after-context" || a === "-B" || a === "--before-context" || a === "-C" || a === "--context") && i + 1 < allArgs.length) {
+        if (a !== "-m" && a !== "--max-count") hasContext = true;
         coreArgs.push(a, allArgs[++i]!);
         continue;
       }
@@ -25002,8 +25080,9 @@ export class Runtime {
       if (a === "--no-filename") { noFilename = true; continue; }
       if (a === "--files-with-matches") { filesWithMatches = true; continue; }
       if (a === "--files-without-match") { filesWithoutMatch = true; continue; }
+      if (a === "--null") { if (!allowZero) return undefined; nullFileSep = true; continue; }
       if (a === "--quiet" || a === "--silent") { quiet = true; continue; }
-      if (a === "--no-messages") continue;
+      if (a === "--no-messages" || a === "--text" || a === "--color=never" || a === "--colour=never") continue;
       if (a.startsWith("--")) {
         coreArgs.push(a);
         continue;
@@ -25015,13 +25094,33 @@ export class Runtime {
         else if (ch === "h") { noFilename = true; withFilename = false; }
         else if (ch === "l") { filesWithMatches = true; filesWithoutMatch = false; }
         else if (ch === "L") { filesWithoutMatch = true; filesWithMatches = false; }
+        else if (ch === "Z") { if (!allowZero) return undefined; nullFileSep = true; }
         else if (ch === "q") { quiet = true; }
-        else if (ch === "s") { /* ignore */ }
-        else remFlags += ch;
+        else if (ch === "s" || ch === "a") { /* ignore */ }
+        else if (ch === "e") {
+          hasExplicitPattern = true;
+          const rest = a.slice(j + 1);
+          if (rest.length > 0) coreArgs.push("-e", rest);
+          else if (i + 1 < allArgs.length) coreArgs.push("-e", allArgs[++i]!);
+          else return undefined;
+          break;
+        } else if (ch === "f") {
+          const rest = a.slice(j + 1);
+          const pFile = rest.length > 0 ? rest : allArgs[++i];
+          if (!loadPatternFile(pFile)) return undefined;
+          break;
+        } else if (ch === "m") {
+          const rest = a.slice(j + 1);
+          const mVal = rest.length > 0 ? rest : allArgs[++i];
+          if (!mVal || !/^[1-9][0-9]{0,5}$/.test(mVal)) return undefined;
+          coreArgs.push("-m", mVal);
+          break;
+        } else remFlags += ch;
       }
       if (remFlags.length > 0) coreArgs.push("-" + remFlags);
     }
     if (!hasExplicitPattern) return undefined;
+    const fDelim = nullFileSep ? "\0" : ":";
     if (fileOperands.length === 0) {
       if (stdinLines === undefined) return undefined;
       const res = this.evalSyncGrep(stdinLines, coreArgs, false);
@@ -25030,7 +25129,7 @@ export class Runtime {
       if (filesWithMatches) return { lines: res.status === 0 ? ["(standard input)"] : [], status: res.status };
       if (filesWithoutMatch) return { lines: res.status !== 0 ? ["(standard input)"] : [], status: res.status !== 0 ? 0 : 1 };
       return {
-        lines: withFilename ? res.lines.map(l => `(standard input):${l}`) : res.lines,
+        lines: withFilename ? res.lines.map(l => `(standard input)${fDelim}${l}`) : res.lines,
         status: res.status,
       };
     }
@@ -25063,7 +25162,7 @@ export class Runtime {
       }
       if (!filesWithMatches && !filesWithoutMatch) {
         for (const ln of res.lines) {
-          outLines.push(showFile ? `${fPath}:${ln}` : ln);
+          outLines.push(showFile ? `${fPath}${fDelim}${ln}` : ln);
         }
       }
     }
@@ -25111,21 +25210,21 @@ export class Runtime {
         }
         optArgs.push(a);
       } else if (cmd === "sed") {
-        if (a === "-i" || a.startsWith("-i") || a.startsWith("--in-place") || a === "-f" || a.startsWith("-f")) return undefined;
-        if (a === "-e" && i + 1 < allArgs.length) {
+        if (a === "-i" || a.startsWith("-i") || a.startsWith("--in-place") || a === "-f" || a.startsWith("-f") || a === "--file" || a.startsWith("--file=")) return undefined;
+        if ((a === "-e" || a === "--expression" || /^-[nErz]+e$/.test(a)) && i + 1 < allArgs.length) {
           hasScriptOrProg = true;
           optArgs.push(a, allArgs[++i]!);
           continue;
         }
-        if (a.startsWith("-e") && a.length > 2) {
+        if ((a.startsWith("-e") && a.length > 2) || a.startsWith("--expression=") || /^-[nErz]+e.+$/.test(a)) {
           hasScriptOrProg = true;
           optArgs.push(a);
           continue;
         }
         optArgs.push(a);
       } else if (cmd === "awk") {
-        if (a === "-f" || a.startsWith("-f")) return undefined;
-        if ((a === "-F" || a === "-v") && i + 1 < allArgs.length) {
+        if (a === "-f" || a.startsWith("-f") || a === "--file" || a.startsWith("--file=")) return undefined;
+        if ((a === "-F" || a === "--field-separator" || a === "-v" || a === "--assign") && i + 1 < allArgs.length) {
           optArgs.push(a, allArgs[++i]!);
           continue;
         }
@@ -25175,7 +25274,7 @@ export class Runtime {
       }
       return out;
     }
-    const zeroTerm = allowZero && (cmd === "sort" || cmd === "uniq" || cmd === "cut") && this.hasZeroTerminatedFlag(cmd, optArgs);
+    const zeroTerm = allowZero && (cmd === "sort" || cmd === "uniq" || cmd === "cut" || cmd === "sed") && this.hasZeroTerminatedFlag(cmd, optArgs);
     const lineSep = zeroTerm ? "\0" : "\n";
     let totalBytes = 0;
     if (cmd === "cut") {
@@ -25200,12 +25299,12 @@ export class Runtime {
       totalBytes += fView.byteLength;
       if (totalBytes > 16384) return undefined;
       const fStr = sharedSyncPipeDecoder.decode(fView);
-      if (fStr.length > 0 && !fStr.endsWith("\n") && (cmd === "fold" || cmd === "expand" || cmd === "unexpand" || cmd === "sed")) return undefined;
+      if (fStr.length > 0 && !fStr.endsWith(lineSep) && (cmd === "fold" || cmd === "expand" || cmd === "unexpand" || cmd === "sed")) return undefined;
       const fLines = fStr.endsWith(lineSep) ? fStr.slice(0, -1).split(lineSep) : (fStr.length === 0 ? [] : fStr.split(lineSep));
       combinedLines.push(...fLines);
     }
     if (cmd === "sort") return this.evalSyncSort(combinedLines, optArgs, false, allowZero);
-    if (cmd === "sed") return this.evalSyncSed(combinedLines, optArgs)?.lines;
+    if (cmd === "sed") return this.evalSyncSed(combinedLines, optArgs, allowZero)?.lines;
     if (cmd === "awk") return this.evalSyncAwk(combinedLines, optArgs);
     if (cmd === "uniq") return this.evalSyncUniq(combinedLines, optArgs, isByteLocale, allowZero);
     if (cmd === "column") return this.evalSyncColumn(combinedLines, optArgs);
@@ -25232,12 +25331,14 @@ export class Runtime {
     const userVars = new Map<string, string>();
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (a === "-F") {
+      if (a === "-F" || a === "--field-separator") {
         if (i + 1 >= opArgs.length || opArgs[i + 1]!.length !== 1 || opArgs[i + 1] === "\\") return undefined;
         awkSep = opArgs[++i]!;
+      } else if (a.startsWith("--field-separator=") && a.length === 19 && a[18] !== "\\") {
+        awkSep = a.slice(18);
       } else if (a.startsWith("-F") && a.length === 3 && a[2] !== "\\") {
         awkSep = a.slice(2);
-      } else if (a === "-v") {
+      } else if (a === "-v" || a === "--assign") {
         if (i + 1 >= opArgs.length) return undefined;
         const kv = opArgs[++i]!;
         const eq = kv.indexOf("=");
@@ -25248,8 +25349,8 @@ export class Runtime {
         if (k === "OFS") ofs = v;
         else if (k === "FS") { if (v.length !== 1) return undefined; awkSep = v; }
         else userVars.set(k, v);
-      } else if (a.startsWith("-v") && a.length > 2) {
-        const kv = a.slice(2);
+      } else if ((a.startsWith("-v") && a.length > 2) || (a.startsWith("--assign=") && a.length > 9)) {
+        const kv = a.startsWith("--assign=") ? a.slice(9) : a.slice(2);
         const eq = kv.indexOf("=");
         if (eq <= 0 || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(kv.slice(0, eq))) return undefined;
         const k = kv.slice(0, eq);
@@ -29265,7 +29366,7 @@ export class Runtime {
             return undefined;
           }
         } else if (sName === "sed") {
-          if ((i === 0 && cmd0FileStage) ? this.evalSyncMultiFileText("sed", sArgs, rawState.cwd, byteLocale(rawState.variables)) === undefined : this.evalSyncSed([], sArgs) === undefined) return undefined;
+          if ((i === 0 && cmd0FileStage) ? this.evalSyncMultiFileText("sed", sArgs, rawState.cwd, byteLocale(rawState.variables), true) === undefined : this.evalSyncSed([], sArgs, true) === undefined) return undefined;
         } else if (sName === "rev") {
           if ((i === 0 && cmd0FileStage) ? this.evalSyncMultiFileText("rev", sArgs, rawState.cwd, false) === undefined : sArgs.length !== 0) return undefined;
         } else if (sName === "awk") {
@@ -29274,8 +29375,8 @@ export class Runtime {
           if (sName === "egrep") sArgs.unshift("-E");
           else if (sName === "fgrep") sArgs.unshift("-F");
           const grepOk = (i === 0 && cmd0FileStage)
-            ? this.evalSyncGrepWithFiles(sArgs, false, false, Boolean(rawState.errexit), rawState.cwd) !== undefined
-            : (this.evalSyncGrep([], sArgs, Boolean(rawState.errexit)) !== undefined || this.evalSyncGrepWithFiles(sArgs, false, false, Boolean(rawState.errexit), rawState.cwd, []) !== undefined);
+            ? this.evalSyncGrepWithFiles(sArgs, false, false, Boolean(rawState.errexit), rawState.cwd, undefined, true) !== undefined
+            : (this.evalSyncGrep([], sArgs, Boolean(rawState.errexit)) !== undefined || this.evalSyncGrepWithFiles(sArgs, false, false, Boolean(rawState.errexit), rawState.cwd, [], true) !== undefined);
           if (!grepOk) return undefined;
         } else if (sName === "jq") {
           const jqPreOk = (i === 0 && cmd0FileStage)
@@ -29646,7 +29747,8 @@ export class Runtime {
             isInlineJoin
           ) {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
-            const isZeroTermStage = (firstName === "sort" || firstName === "uniq" || firstName === "cut" || firstName === "paste" || firstName === "comm") && this.hasZeroTerminatedFlag(firstName, stageArgs);
+            const isZeroTermStage = (firstName === "sort" || firstName === "uniq" || firstName === "cut" || firstName === "paste" || firstName === "comm" || firstName === "sed") && this.hasZeroTerminatedFlag(firstName, stageArgs);
+            const isGrepZeroOut = firstName === "grep" && this.hasZeroTerminatedFlag("grep", stageArgs);
             const stageLineSep = isZeroTermStage ? "\0" : "\n";
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith(stageLineSep) ? inStr.slice(0, -1).split(stageLineSep) : inStr.split(stageLineSep));
             let outLines: string[] = [];
@@ -29728,12 +29830,12 @@ export class Runtime {
               outLines = uniqRes;
             } else if (inlineSedMatch) {
               if (sIdx === 0 && cmd0FileStage) {
-                const sedLines = this.evalSyncMultiFileText("sed", stageArgs, rawState.cwd, byteLocale(rawState.variables));
+                const sedLines = this.evalSyncMultiFileText("sed", stageArgs, rawState.cwd, byteLocale(rawState.variables), true);
                 if (sedLines === undefined) return undefined;
                 outLines = sedLines;
                 sedTerminated = true;
               } else {
-                const sedRes = this.evalSyncSed(rawLines, stageArgs);
+                const sedRes = this.evalSyncSed(rawLines, stageArgs, true);
                 if (sedRes === undefined) return undefined;
                 outLines = sedRes.lines;
                 sedTerminated = sedRes.lastInputIndex < rawLines.length - 1;
@@ -29746,8 +29848,8 @@ export class Runtime {
               outLines = awkRes;
             } else if (isInlineGrep) {
               const grepRes = (sIdx === 0 && cmd0FileStage)
-                ? this.evalSyncGrepWithFiles(stageArgs, false, false, Boolean(rawState.errexit), rawState.cwd)
-                : (this.evalSyncGrep(rawLines, stageArgs, Boolean(rawState.errexit)) ?? this.evalSyncGrepWithFiles(stageArgs, false, false, Boolean(rawState.errexit), rawState.cwd, rawLines));
+                ? this.evalSyncGrepWithFiles(stageArgs, false, false, Boolean(rawState.errexit), rawState.cwd, undefined, true)
+                : (this.evalSyncGrep(rawLines, stageArgs, Boolean(rawState.errexit)) ?? this.evalSyncGrepWithFiles(stageArgs, false, false, Boolean(rawState.errexit), rawState.cwd, rawLines, true));
               if (grepRes === undefined) return undefined;
               stageStatus = grepRes.status;
               if (stageStatus !== 0) failureStatus = stageStatus;
@@ -30100,8 +30202,9 @@ export class Runtime {
             }
             // These filters preserve the terminator of the final selected input line.
             const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev" || firstName === "sed";
+            const outJoinSep = isGrepZeroOut ? "\0" : stageLineSep;
             const terminated = isInlineTac ? (sedTerminated || inStr.includes("\n")) : sedTerminated || !preservesTerminator || inStr.endsWith(stageLineSep) || firstName === "head" && outLines.length < rawLines.length;
-            const outStr = outLines.length > 0 ? outLines.join(stageLineSep) + (terminated ? stageLineSep : "") : "";
+            const outStr = outLines.length > 0 ? outLines.join(outJoinSep) + (terminated ? outJoinSep : "") : "";
             const outByteLen = shellValueByteLength(outStr);
             const nextTotalBytes = this.budget.bytes + outByteLen;
             if (nextTotalBytes > this.budget.maxOutputBytesSmi && outByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");

@@ -131,7 +131,7 @@ function executeAwkSlow(
         }
         continue;
       }
-      const flag = option === "--field-separator" ? "F" : option === "--source" ? "e" : option === "--exec" ? "E" : option === "--include" ? "i" : option === "--load" ? "l" : option.startsWith("--") ? undefined : argument[1];
+      const flag = option === "--field-separator" ? "F" : option === "--assign" ? "v" : option === "--file" ? "f" : option === "--source" ? "e" : option === "--exec" ? "E" : option === "--include" ? "i" : option === "--load" ? "l" : option.startsWith("--") ? undefined : argument[1];
       if (flag !== "F" && flag !== "v" && flag !== "f" && flag !== "e" && flag !== "E" && flag !== "i" && flag !== "l") throw new ProgramError(`unsupported awk option '${argument}'`);
       const attached = argument.startsWith("--") ? equals < 0 ? undefined : argument.slice(equals + 1) : argument.length > 2 ? argument.slice(2) : undefined;
       const value = attached ?? context.args[++index];

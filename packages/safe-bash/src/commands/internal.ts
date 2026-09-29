@@ -118,6 +118,8 @@ export interface SyncCommandEvaluators {
   evalSyncMkdir?: (opArgs: readonly string[], umask: number, statTypeSync?: (filePath: string) => string | undefined, mkdirSync?: (filePath: string, recursive: boolean, mode: number) => boolean) => string | undefined;
   evalSyncRm?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, listDirSync?: (filePath: string) => readonly string[] | ReadonlyMap<string, unknown> | undefined, rmSync?: (filePath: string) => boolean) => string | undefined;
   evalSyncLn?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, rmSync?: (filePath: string) => boolean, linkSync?: (srcOrTarget: string, dstPath: string, symbolic: boolean) => boolean) => string | undefined;
+  evalSyncCat?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncHeadTail?: (name: "head" | "tail", inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
 }
 
 export const syncCommandEvaluators: SyncCommandEvaluators = {};
@@ -1161,3 +1163,242 @@ export function evalSyncLn(
 }
 
 syncCommandEvaluators.evalSyncLn = evalSyncLn;
+
+export function evalSyncCat(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal("cat", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  let flagN = false;
+  let flagB = false;
+  let flagS = false;
+  let flagE = false;
+  let flagT = false;
+  let flagV = false;
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (ended || !a.startsWith("-") || a === "-") {
+      operands.push(a);
+      continue;
+    }
+    if (a === "--") { ended = true; continue; }
+    if (a === "--number") { flagN = true; continue; }
+    if (a === "--number-nonblank") { flagB = true; continue; }
+    if (a === "--squeeze-blank") { flagS = true; continue; }
+    if (a === "--show-ends") { flagE = true; continue; }
+    if (a === "--show-tabs") { flagT = true; continue; }
+    if (a === "--show-nonprinting") { flagV = true; continue; }
+    if (a === "--show-all") { flagV = true; flagE = true; flagT = true; continue; }
+    if (a.startsWith("-") && !a.startsWith("--")) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "n") flagN = true;
+        else if (ch === "b") flagB = true;
+        else if (ch === "s") flagS = true;
+        else if (ch === "E") flagE = true;
+        else if (ch === "T") flagT = true;
+        else if (ch === "v") flagV = true;
+        else if (ch === "A") { flagV = true; flagE = true; flagT = true; }
+        else if (ch === "e") { flagV = true; flagE = true; }
+        else if (ch === "t") { flagV = true; flagT = true; }
+        else if (ch === "u") continue;
+        else return undefined;
+      }
+      continue;
+    }
+    return undefined;
+  }
+  const chunks: Uint8Array[] = [];
+  let totalIn = 0;
+  if (operands.length === 0) {
+    if (inBytes === undefined) return undefined;
+    chunks.push(inBytes);
+    totalIn += inBytes.byteLength;
+  } else {
+    for (const op of operands) {
+      if (op === "-") {
+        if (inBytes === undefined) return undefined;
+        chunks.push(inBytes);
+        totalIn += inBytes.byteLength;
+      } else {
+        if (!readFileSync) return undefined;
+        const b = readFileSync(op);
+        if (!b) return undefined;
+        chunks.push(b);
+        totalIn += b.byteLength;
+      }
+      if (totalIn > 16384) return undefined;
+    }
+  }
+  if (!flagN && !flagB && !flagS && !flagE && !flagT && !flagV) {
+    for (const c of chunks) {
+      if (c.includes(0)) return undefined;
+    }
+    if (chunks.length === 1) return decoder.decode(chunks[0]!);
+    const merged = new Uint8Array(totalIn);
+    let off = 0;
+    for (const c of chunks) {
+      merged.set(c, off);
+      off += c.byteLength;
+    }
+    return decoder.decode(merged);
+  }
+  let lineStart = true;
+  let blankCount = 0;
+  let num = 1;
+  let pendingCr = false;
+  const showEndsOnlyCr = flagE && !flagV;
+  const out: number[] = [];
+  for (const chunk of chunks) {
+    for (let i = 0; i < chunk.byteLength; i++) {
+      const byte = chunk[i]!;
+      if (pendingCr) {
+        pendingCr = false;
+        if (byte === 10) { out.push(94, 77); }
+        else { out.push(13); }
+      }
+      if (lineStart && byte === 10 && flagS && blankCount > 0) continue;
+      if (lineStart && (flagB ? byte !== 10 : flagN)) {
+        const digits = String(num++);
+        const pad = Math.max(0, 6 - digits.length);
+        for (let k = 0; k < pad; k++) out.push(32);
+        for (let k = 0; k < digits.length; k++) out.push(digits.charCodeAt(k));
+        out.push(9);
+      }
+      if (byte === 10) {
+        if (flagE) out.push(36);
+        out.push(10);
+        blankCount = lineStart ? blankCount + 1 : 0;
+        lineStart = true;
+      } else {
+        lineStart = false;
+        blankCount = 0;
+        if (byte === 13 && showEndsOnlyCr) {
+          pendingCr = true;
+        } else if (byte === 9) {
+          if (flagT) out.push(94, 73);
+          else out.push(9);
+        } else if (flagV) {
+          let visible = byte;
+          if (visible >= 128) {
+            out.push(77, 45);
+            visible -= 128;
+          }
+          if (visible < 32) out.push(94, visible + 64);
+          else if (visible === 127) out.push(94, 63);
+          else out.push(visible);
+        } else {
+          if (byte === 0) return undefined;
+          out.push(byte);
+        }
+      }
+    }
+  }
+  if (pendingCr) out.push(13);
+  return decoder.decode(Uint8Array.from(out));
+}
+
+export function evalSyncHeadTail(
+  name: "head" | "tail",
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal(name, opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  let mode: "n" | "c" = "n";
+  let countStr = "10";
+  let headerMode: "default" | "q" | "v" = "default";
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (ended || (!a.startsWith("-") && !(name === "tail" && i === 0 && /^\+[0-9]+$/.test(a))) || a === "-") {
+      operands.push(a);
+      continue;
+    }
+    if (a === "--") { ended = true; continue; }
+    if (a === "-q" || a === "--quiet" || a === "--silent") { headerMode = "q"; continue; }
+    if (a === "-v" || a === "--verbose") { headerMode = "v"; continue; }
+    if (a === "-n" || a === "--lines") {
+      if (i + 1 >= opArgs.length) return undefined;
+      mode = "n";
+      countStr = opArgs[++i]!;
+      continue;
+    }
+    if (a === "-c" || a === "--bytes") {
+      if (i + 1 >= opArgs.length) return undefined;
+      mode = "c";
+      countStr = opArgs[++i]!;
+      continue;
+    }
+    if (a.startsWith("--lines=")) { mode = "n"; countStr = a.slice(8); continue; }
+    if (a.startsWith("--bytes=")) { mode = "c"; countStr = a.slice(8); continue; }
+    if (/^-[0-9]+$/.test(a) || (name === "tail" && i === 0 && /^\+[0-9]+$/.test(a))) {
+      mode = "n";
+      countStr = a.startsWith("-") ? a.slice(1) : a;
+      continue;
+    }
+    if (a.startsWith("-n") && a.length > 2) { mode = "n"; countStr = a.slice(2); continue; }
+    if (a.startsWith("-c") && a.length > 2) { mode = "c"; countStr = a.slice(2); continue; }
+    return undefined;
+  }
+  if (!/^[+-]?[0-9]{1,6}$/.test(countStr)) return undefined;
+  const count = Number(countStr.replace(/^[+-]/, ""));
+  const isPlus = countStr.startsWith("+");
+  const isMinus = countStr.startsWith("-");
+  if (name === "head" && isPlus) return undefined;
+  if (name === "tail" && isMinus && mode === "c") return undefined;
+  const targets = operands.length > 0 ? operands : ["-"];
+  const showHeaders = headerMode === "v" || (headerMode !== "q" && targets.length > 1);
+  let out = "";
+  for (let idx = 0; idx < targets.length; idx++) {
+    const t = targets[idx]!;
+    let bytes: Uint8Array | undefined;
+    if (t === "-") {
+      if (inBytes === undefined) return undefined;
+      bytes = inBytes;
+    } else {
+      if (!readFileSync) return undefined;
+      bytes = readFileSync(t);
+    }
+    if (!bytes || bytes.includes(0)) return undefined;
+    const text = decoder.decode(bytes);
+    if (showHeaders) {
+      out += `${idx > 0 ? "\n" : ""}==> ${t === "-" ? "standard input" : t} <==\n`;
+    }
+    if (mode === "c") {
+      if (name === "head") {
+        out += isMinus ? (count === 0 ? text : decoder.decode(bytes.subarray(0, Math.max(0, bytes.byteLength - count)))) : decoder.decode(bytes.subarray(0, count));
+      } else {
+        out += isPlus ? decoder.decode(bytes.subarray(Math.max(0, count - 1))) : (count === 0 ? "" : decoder.decode(bytes.subarray(Math.max(0, bytes.byteLength - count))));
+      }
+    } else {
+      // Split preserving line terminators
+      const lines: string[] = [];
+      let start = 0;
+      for (let k = 0; k < text.length; k++) {
+        if (text.charCodeAt(k) === 10) {
+          lines.push(text.slice(start, k + 1));
+          start = k + 1;
+        }
+      }
+      if (start < text.length) lines.push(text.slice(start));
+      let selected: string[];
+      if (name === "head") {
+        selected = isMinus ? (count === 0 ? lines : lines.slice(0, Math.max(0, lines.length - count))) : lines.slice(0, count);
+      } else {
+        selected = isPlus ? lines.slice(Math.max(0, count - 1)) : (count === 0 ? [] : lines.slice(-count));
+      }
+      out += selected.join("");
+    }
+  }
+  return out;
+}
+
+syncCommandEvaluators.evalSyncCat = evalSyncCat;
+syncCommandEvaluators.evalSyncHeadTail = evalSyncHeadTail;

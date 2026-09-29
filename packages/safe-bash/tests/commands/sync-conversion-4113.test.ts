@@ -104,3 +104,30 @@ test("evaluates echo -n/-e/-ne and stage-0 dirname/basename/pwd/expr in sync pip
     "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824|aGVsbG8=|beta|-42|--flag|_usr_local|BIN|:tmp|82|ITEM_1:ITEM_2:ITEM_3:\n"
   );
 });
+
+test("evaluates multi-file and formatted cat (-n/-b/-s/-E/-T) and multi-file head/tail (-q/-v) in sync substitutions, pipelines, and brace loops (Wave 166)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands());
+  const res = await shell.exec([
+    "printf \"alpha\\nbeta\\n\" > /tmp/f1.txt",
+    "printf \"gamma\\ndelta\\n\" > /tmp/f2.txt",
+    "c_multi=$(cat /tmp/f1.txt /tmp/f2.txt | tr '\\n' ':')",
+    "c_pipe=$(printf \"one\\n\\n\\ntwo\\n\" | cat -s -b | tr \"\\t\" \":\")",
+    "c_te=$(echo -e \"k\\tv\" | cat -T -E)",
+    "hq=$(head -q -n 1 /tmp/f1.txt /tmp/f2.txt | tr '\\n' ',')",
+    "tq=$(tail -q -n 1 /tmp/f1.txt /tmp/f2.txt | tr '\\n' ',')",
+    "hv=$(head -n 1 /tmp/f1.txt /tmp/f2.txt | head -n 1)",
+    "loop_out=\"\"",
+    "for i in {1..2}; do",
+    "  part=$(cat -E /tmp/f1.txt | head -n $i | tail -n 1)",
+    "  loop_out=\"$loop_out$part|\"",
+    "done",
+    "echo \"$c_multi|$c_pipe|$c_te|$hq|$tq|$hv|$loop_out\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "alpha:beta:gamma:delta:|     1:one\n\n     2:two|k^Iv$|alpha,gamma,|beta,delta,|==> /tmp/f1.txt <==|alpha$|beta$|\n"
+  );
+});

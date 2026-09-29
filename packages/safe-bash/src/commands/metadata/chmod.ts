@@ -163,24 +163,46 @@ export function evalSyncChmod(
   try {
     const modeOptions: string[] = [];
     let ended = false;
+    let referenceValue = false;
     const args: string[] = [];
     for (const argument of opArgs) {
+      if (referenceValue) { referenceValue = false; args.push(argument); continue; }
       if (argument === "--") { ended = true; args.push(argument); continue; }
+      if (!ended && argument === "--reference") { referenceValue = true; args.push(argument); continue; }
       if (!ended && argument.startsWith("-") && argument.length > 1 && "rwxXstugo01234567".includes(argument[1]!)) {
         modeOptions.push(argument);
         continue;
       }
       args.push(argument);
     }
-    const parsed = options(args, "f", { silent: "f", quiet: "f" });
-    const minOps = modeOptions.length ? 1 : 2;
+    const parsed = options(args, "vcf", { verbose: "v", changes: "c", silent: "f", quiet: "f", reference: "reference:" });
+    const reference = value(parsed, "reference");
+    if (reference !== undefined && modeOptions.length) return undefined;
+    const minOps = reference !== undefined || modeOptions.length ? 1 : 2;
     if (parsed.operands.length < minOps) return undefined;
-    const mode = modeOptions.length ? modeOptions.join(",") : parsed.operands.shift()!;
-    const change = modeChange(mode, umask);
-    for (const op of parsed.operands) {
-      if (!chmodNodeSync(op, change)) return undefined;
+    let referenceMode: number | undefined;
+    if (reference !== undefined) {
+      if (!chmodNodeSync(reference, stat => { referenceMode = stat.mode & 0o7777; return stat.mode; }) || referenceMode === undefined) {
+        return undefined;
+      }
     }
-    return "";
+    const mode = modeOptions.length ? modeOptions.join(",") : reference === undefined ? parsed.operands.shift()! : undefined;
+    const change = mode === undefined ? undefined : modeChange(mode, umask);
+    let out = "";
+    for (const op of parsed.operands) {
+      let line = "";
+      const ok = chmodNodeSync(op, stat => {
+        const oldMode = stat.mode & 0o7777;
+        const nextMode = (referenceMode ?? change!(stat)) & 0o7777;
+        if (parsed.flags.has("v") || (parsed.flags.has("c") && nextMode !== oldMode)) {
+          line = `mode of '${op}' ${nextMode === oldMode ? "retained as" : "changed from " + oldMode.toString(8).padStart(4, "0") + " (" + permissionString(oldMode, stat.type).slice(1) + ") to"} ${nextMode.toString(8).padStart(4, "0")} (${permissionString(nextMode, stat.type).slice(1)})\n`;
+        }
+        return nextMode;
+      });
+      if (!ok) return undefined;
+      out += line;
+    }
+    return out;
   } catch {
     return undefined;
   }

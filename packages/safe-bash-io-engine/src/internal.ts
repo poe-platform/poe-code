@@ -108,7 +108,7 @@ export interface SyncCommandEvaluators {
   evalSyncApplyPatch?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncMktemp?: (opArgs: readonly string[], env: Readonly<Record<string, string>>, statTypeSync?: (filePath: string) => string | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean, mkdirSync?: (filePath: string) => boolean) => string | undefined;
   evalSyncTee?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean) => string | undefined;
-  evalSyncTouch?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean) => string | undefined;
+  evalSyncTouch?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean, utimesNodeSync?: (filePath: string, update: (stat: { atimeMs: number; mtimeMs: number }) => { atimeMs?: number; mtimeMs?: number }) => boolean, tz?: string) => string | undefined;
   evalSyncCp?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean, mode?: number) => boolean, statModeSync?: (filePath: string) => number | undefined, umask?: number) => string | undefined;
   evalSyncMv?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean, mode?: number) => boolean, rmSync?: (filePath: string) => boolean, statModeSync?: (filePath: string) => number | undefined) => string | undefined;
   evalSyncRmdir?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, listDirSync?: (filePath: string) => readonly string[] | ReadonlyMap<string, unknown> | undefined, rmSync?: (filePath: string) => boolean) => string | undefined;
@@ -694,6 +694,7 @@ export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOc
 
 
 import { gnuInformationSync as gnuInfoSyncInternal } from "./gnu-information.js";
+import { touchTimes } from "./commands/touch-times.js";
 
 export function evalSyncTee(
   inBytes: Uint8Array | undefined,
@@ -739,10 +740,17 @@ export function evalSyncTouch(
   statTypeSync?: (filePath: string) => string | undefined,
   readFileSync?: (filePath: string) => Uint8Array | undefined,
   writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean,
+  utimesNodeSync?: (filePath: string, update: (stat: { atimeMs: number; mtimeMs: number }) => { atimeMs?: number; mtimeMs?: number }) => boolean,
+  tz = "UTC",
 ): string | undefined {
   const gnuInfo = gnuInfoSyncInternal("touch", opArgs);
   if (gnuInfo !== undefined) return gnuInfo;
   let noCreate = false;
+  let flagA = false;
+  let flagM = false;
+  let dateStr: string | undefined;
+  let stampStr: string | undefined;
+  let refPath: string | undefined;
   let ended = false;
   const operands: string[] = [];
   for (let i = 0; i < opArgs.length; i++) {
@@ -754,26 +762,99 @@ export function evalSyncTouch(
     }
     if (a === "--") { ended = true; continue; }
     if (a === "-c" || a === "--no-create") { noCreate = true; continue; }
-    if (a === "-a" || a === "-m" || a === "-f") continue;
+    if (a === "-a") { flagA = true; continue; }
+    if (a === "-m") { flagM = true; continue; }
+    if (a === "-f" || a === "-h" || a === "--no-dereference") continue;
+    if (a === "-d" || a === "--date" || a.startsWith("--date=")) {
+      const val = a.startsWith("--date=") ? a.slice(7) : opArgs[++i];
+      if (val === undefined) return undefined;
+      dateStr = val;
+      continue;
+    }
+    if (a === "-t") {
+      const val = opArgs[++i];
+      if (!val) return undefined;
+      stampStr = val;
+      continue;
+    }
+    if (a === "-r" || a === "--reference" || a.startsWith("--reference=")) {
+      const val = a.startsWith("--reference=") ? a.slice(12) : opArgs[++i];
+      if (!val) return undefined;
+      refPath = val;
+      continue;
+    }
+    if (a === "--time" || a.startsWith("--time=")) {
+      const val = a.startsWith("--time=") ? a.slice(7) : opArgs[++i];
+      if (val === "atime" || val === "access" || val === "use") { flagA = true; continue; }
+      if (val === "mtime" || val === "modify") { flagM = true; continue; }
+      return undefined;
+    }
     if (a.startsWith("-") && !a.startsWith("--")) {
       for (let j = 1; j < a.length; j++) {
         const ch = a[j]!;
         if (ch === "c") noCreate = true;
-        else if (ch === "a" || ch === "m" || ch === "f") continue;
-        else return undefined;
+        else if (ch === "a") flagA = true;
+        else if (ch === "m") flagM = true;
+        else if (ch === "f" || ch === "h") continue;
+        else if (ch === "d" || ch === "t" || ch === "r") {
+          const rest = a.slice(j + 1) || opArgs[++i];
+          if (rest === undefined) return undefined;
+          if (ch === "d") dateStr = rest;
+          else if (ch === "t") stampStr = rest;
+          else refPath = rest;
+          break;
+        } else return undefined;
       }
       continue;
     }
     return undefined;
   }
   if (operands.length === 0 || !statTypeSync || !readFileSync || !writeFileSync) return undefined;
+  if ((stampStr !== undefined ? 1 : 0) + (refPath !== undefined ? 1 : 0) > 1) return undefined;
+  if (stampStr !== undefined && dateStr !== undefined) return undefined;
+  let refTimes: { atimeMs: number; mtimeMs: number } | undefined;
+  if (refPath !== undefined) {
+    if (!utimesNodeSync || !utimesNodeSync(refPath, st => { refTimes = { atimeMs: st.atimeMs, mtimeMs: st.mtimeMs }; return {}; }) || !refTimes) {
+      return undefined;
+    }
+  }
+  const updateAccess = flagA || !flagM;
+  const updateModify = flagM || !flagA;
+  let parsedTimes: { atimeMs: number; mtimeMs: number } | undefined;
+  try {
+    if (dateStr !== undefined || stampStr !== undefined || refTimes !== undefined) {
+      if (!utimesNodeSync) return undefined;
+      const base = refTimes ?? { atimeMs: Date.now(), mtimeMs: Date.now() };
+      parsedTimes = touchTimes(dateStr, stampStr, tz, base);
+    }
+  } catch {
+    return undefined;
+  }
   for (const f of operands) {
     const st = statTypeSync(f);
     if (st === "missing") {
-      if (!noCreate && !writeFileSync(f, new Uint8Array(0), false)) return undefined;
-    } else if (st === "file") {
-      const cur = readFileSync(f);
-      if (!cur || !writeFileSync(f, cur, false)) return undefined;
+      if (noCreate) continue;
+      if (!writeFileSync(f, new Uint8Array(0), false)) return undefined;
+      if (utimesNodeSync && parsedTimes) {
+        if (!utimesNodeSync(f, () => ({
+          ...(updateAccess ? { atimeMs: parsedTimes!.atimeMs } : {}),
+          ...(updateModify ? { mtimeMs: parsedTimes!.mtimeMs } : {}),
+        }))) return undefined;
+      }
+    } else if (st === "file" || st === "directory") {
+      if (utimesNodeSync) {
+        const now = Date.now();
+        const target = parsedTimes ?? { atimeMs: now, mtimeMs: now };
+        if (!utimesNodeSync(f, () => ({
+          ...(updateAccess ? { atimeMs: target.atimeMs } : {}),
+          ...(updateModify ? { mtimeMs: target.mtimeMs } : {}),
+        }))) return undefined;
+      } else if (st === "file") {
+        const cur = readFileSync(f);
+        if (!cur || !writeFileSync(f, cur, false)) return undefined;
+      } else {
+        return undefined;
+      }
     } else {
       return undefined;
     }

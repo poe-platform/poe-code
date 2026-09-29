@@ -28374,6 +28374,27 @@ export class Runtime {
       return false;
     }
   }
+  private tryUtimesMemoryNodeSync(path: string, update: (stat: { atimeMs: number; mtimeMs: number }) => { atimeMs?: number; mtimeMs?: number }, charge = true): boolean {
+    if (!this.canFastMemoryRedirect || this.budget.limits.maxFileSystemOperations < 1000 || !this.budget.canFileSystemOperation()) return false;
+    if (!this._isMemoryBackingFs || !this.backingFs || this.backingFs.capabilities.readOnly || this.backingFs.capabilitiesFor !== undefined || (this._fileWrites !== undefined && this._fileWrites.size > 0)) return false;
+    try {
+      const mem = this.backingFs as unknown as {
+        resolve: (p: string, s: string) => { node: { type: "file" | "directory" | "symlink"; atimeMs: number; mtimeMs: number; ctimeMs: number } };
+      };
+      const resolved = mem.resolve(path, "utimes");
+      if (resolved.node.type === "symlink") return false;
+      const next = update({ atimeMs: resolved.node.atimeMs, mtimeMs: resolved.node.mtimeMs });
+      if (!this._inSyncLoopPreflight) {
+        if (next.atimeMs !== undefined) resolved.node.atimeMs = next.atimeMs;
+        if (next.mtimeMs !== undefined) resolved.node.mtimeMs = next.mtimeMs;
+      }
+      if (charge && !this._inSyncLoopPreflight) this.budget.fileSystemOperation();
+      return true;
+    } catch {
+      if (charge) this.budget.fileSystemOperation();
+      return false;
+    }
+  }
   private tryChmodMemoryNodeSync(path: string, change: (stat: { type: "file" | "directory" | "symlink"; mode: number }) => number, charge = true): boolean {
     if (!this.canFastMemoryRedirect || this.budget.limits.maxFileSystemOperations < 1000 || !this.budget.canFileSystemOperation()) return false;
     if (!this._isMemoryBackingFs || !this.backingFs || this.backingFs.capabilities.readOnly || this.backingFs.capabilities.permissions === false || this.backingFs.capabilitiesFor !== undefined || (this._fileWrites !== undefined && this._fileWrites.size > 0)) return false;
@@ -29371,7 +29392,7 @@ export class Runtime {
                   : firstName === "tee"
                     ? syncCommandEvaluators.evalSyncTee?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : firstName === "touch"
-                    ? syncCommandEvaluators.evalSyncTouch?.(stageArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), readFile, (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
+                    ? syncCommandEvaluators.evalSyncTouch?.(stageArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), readFile, (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string, upd) => this.tryUtimesMemoryNodeSync(resolvePath(rawState.cwd, p), upd, false), rawState.exported.has("TZ") ? rawState.variables.TZ : undefined)
                   : firstName === "cp"
                     ? syncCommandEvaluators.evalSyncCp?.(stageArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), readFile, (p: string, b: Uint8Array, app: boolean, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string) => this.tryStatMemoryNodeModeSync(resolvePath(rawState.cwd, p), false), rawState.umask ?? 0o022)
                   : firstName === "mv"
@@ -29879,7 +29900,7 @@ export class Runtime {
           : w0Plain === "tee"
             ? syncCommandEvaluators.evalSyncTee?.(optInBytes, allArgs, (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "touch"
-            ? syncCommandEvaluators.evalSyncTouch?.(allArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), readFile, (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
+            ? syncCommandEvaluators.evalSyncTouch?.(allArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), readFile, (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string, upd) => this.tryUtimesMemoryNodeSync(resolvePath(rawState.cwd, p), upd, false), rawState.exported.has("TZ") ? rawState.variables.TZ : undefined)
           : w0Plain === "cp"
             ? syncCommandEvaluators.evalSyncCp?.(allArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), readFile, (p: string, b: Uint8Array, app: boolean, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string) => this.tryStatMemoryNodeModeSync(resolvePath(rawState.cwd, p), false), rawState.umask ?? 0o022)
           : w0Plain === "mv"
@@ -30313,7 +30334,7 @@ export class Runtime {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
-              fileRes = syncCommandEvaluators.evalSyncTouch?.(opArgs, statType, readFile, writeFile);
+              fileRes = syncCommandEvaluators.evalSyncTouch?.(opArgs, statType, readFile, writeFile, (p: string, upd) => this.tryUtimesMemoryNodeSync(resolvePath(rawState.cwd, p), upd, false), rawState.exported.has("TZ") ? rawState.variables.TZ : undefined);
             } else if (w0Plain === "cp") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
               const statMode = (p: string) => this.tryStatMemoryNodeModeSync(resolvePath(rawState.cwd, p), false);

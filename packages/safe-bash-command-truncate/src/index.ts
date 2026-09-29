@@ -172,7 +172,8 @@ export function evalSyncTruncate(
     const args = parseArguments(opArgs, false);
     if (args.display === "help") return helpText;
     if (args.display === "version") return "truncate (safe-bash; GNU coreutils 9.7 semantics)\n";
-    if (!writeFileSync || args.ioBlocks || args.files.length === 0) return undefined;
+    if (!writeFileSync || args.files.length === 0) return undefined;
+    const blockFactor = args.ioBlocks ? 4096n : 1n;
     let refSize: bigint | undefined;
     if (args.reference !== undefined) {
       const refBytes = readFileSync?.(args.reference);
@@ -184,14 +185,15 @@ export function evalSyncTruncate(
       if (!existing && args.noCreate) continue;
       const curSize = BigInt(existing?.length ?? 0);
       const base = refSize ?? curSize;
+      const scaledSize = args.size === undefined ? undefined : args.size * blockFactor;
       let target: bigint;
-      if (args.size === undefined) target = refSize!;
-      else if (args.mode === "absolute") target = args.size;
-      else if (args.mode === "relative") target = base + args.size;
-      else if (args.mode === "<") target = curSize < args.size ? curSize : args.size;
-      else if (args.mode === ">") target = curSize > args.size ? curSize : args.size;
-      else if (args.mode === "/") target = (curSize / args.size) * args.size;
-      else target = ((curSize + args.size - 1n) / args.size) * args.size;
+      if (scaledSize === undefined) target = refSize!;
+      else if (args.mode === "absolute") target = scaledSize;
+      else if (args.mode === "relative") target = base + scaledSize;
+      else if (args.mode === "<") target = curSize < scaledSize ? curSize : scaledSize;
+      else if (args.mode === ">") target = curSize > scaledSize ? curSize : scaledSize;
+      else if (args.mode === "/") target = (curSize / scaledSize) * scaledSize;
+      else target = ((curSize + scaledSize - 1n) / scaledSize) * scaledSize;
       if (target < 0n || target > 1048576n) return undefined;
       const n = Number(target);
       const out = new Uint8Array(n);

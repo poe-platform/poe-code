@@ -867,3 +867,27 @@ test("evaluates head/tail -z/bundled flags, ln -t/multi-source, and wc --files0-
     "r2#'/tmp/w200_ln/w200_a.txt' -> '/tmp/w200_a.txt','/tmp/w200_ln/w200_b.txt' -> '/tmp/w200_b.txt',#3\n",
   );
 });
+
+test("evaluates chmod -v/-c/--reference, touch -d/-t/-r, and truncate -o in sync substitutions (Wave 201)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(metadataCommands());
+  const r = await shell.exec(
+    [
+      "printf \"hello\" > /tmp/w201_a.txt && printf \"world\" > /tmp/w201_b.txt",
+      "ch1=$(chmod -c 750 /tmp/w201_a.txt)",
+      "ch2=$(chmod -v --reference=/tmp/w201_a.txt /tmp/w201_b.txt)",
+      "t0=$(touch -d \"2025-01-02T03:04:05Z\" /tmp/w201_a.txt)",
+      "t1=$(touch -r /tmp/w201_a.txt /tmp/w201_b.txt)",
+      "t_res=$(stat -c \"%Y\" /tmp/w201_b.txt)",
+      "tr0=$(truncate -o -s 2 /tmp/w201_c.txt)",
+      "tr_res=$(stat -c \"%s\" /tmp/w201_c.txt)",
+      "printf \"%s|%s#%s#%s\\n\" \"$ch1\" \"$ch2\" \"$t_res\" \"$tr_res\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "mode of '/tmp/w201_a.txt' changed from 0644 (rw-r--r--) to 0750 (rwxr-x---)|mode of '/tmp/w201_b.txt' changed from 0644 (rw-r--r--) to 0750 (rwxr-x---)#1735787045#8192\n",
+  );
+});

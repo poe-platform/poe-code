@@ -23,3 +23,5 @@ export function metadataCommands(options: MetadataCommandsOptions = {}): Virtual
 export { evalSyncStat, type SyncStatInfo } from "./stat.js";
 
 export { evalSyncMktemp } from "./mktemp.js";
+
+export { evalSyncTruncate } from "safe-bash-command-truncate";

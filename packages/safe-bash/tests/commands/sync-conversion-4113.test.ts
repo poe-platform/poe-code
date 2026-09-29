@@ -1095,13 +1095,13 @@ test("evaluates xxd default/-i/file stage, od -Ax/-tc/file stage, and hexdump -n
     .use(hexdumpCommands());
   const res = await shell.exec(`
     for i in 1 2 3; do
-      x1=\$(xxd -g 1 /tmp/bin.dat)
-      x2=\$(xxd -i /tmp/bin.dat | tr "\\n" "|")
-      o1=\$(od -Ax -tx1 /tmp/bin.dat | head -n 1)
-      o2=\$(od -An -tc /tmp/bin.dat)
-      h1=\$(hexdump -C -n2 /tmp/bin.dat | head -n 1)
+      x1=$(xxd -g 1 /tmp/bin.dat)
+      x2=$(xxd -i /tmp/bin.dat | tr "\\n" "|")
+      o1=$(od -Ax -tx1 /tmp/bin.dat | head -n 1)
+      o2=$(od -An -tc /tmp/bin.dat)
+      h1=$(hexdump -C -n2 /tmp/bin.dat | head -n 1)
     done
-    printf "%s#%s#%s#%s#%s\\n" "\$x1" "\$x2" "\$o1" "\$o2" "\$h1"
+    printf "%s#%s#%s#%s#%s\\n" "$x1" "$x2" "$o1" "$o2" "$h1"
   `);
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(

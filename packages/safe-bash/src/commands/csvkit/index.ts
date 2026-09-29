@@ -53,12 +53,16 @@ export function csvkitCommands(options: CsvkitCommandsOptions = {}): VirtualShel
   return {
     name: "csvkit-commands",
     setup(host) {
-      for (const command of commands) {
-        if (command.fallback) {
-          if (!host.commands.has(command.name)) host.commands.register(command);
-        } else {
-          host.commands.register(command, { replace });
+      if (!replace) {
+        for (const command of commands) {
+          const existing = host.commands.get(command.name);
+          if (existing && !(command.fallback && !existing.fallback)) {
+            throw new Error(`Command already registered: ${command.name}`);
+          }
         }
+      }
+      for (const command of commands) {
+        host.commands.register(command, { replace });
       }
     },
   };

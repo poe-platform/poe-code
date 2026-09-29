@@ -1,5 +1,5 @@
 import { Shell, MemoryFileSystem, llmCommands, createLlmCommands, createOpenAiProvider, createElevenLabsProvider, type LlmCommandsOptions, type LlmProvider, type LlmRequest } from "@poe-platform/safe-bash";
-import { llmCommands as subpathPlugin, createLlmCommands as subpathCommands, createLlmService, type LlmService, type LlmServiceRequest } from "@poe-platform/safe-bash/commands/llm";
+import { llmCommands as subpathPlugin, createLlmCommands as subpathCommands, createLlmService, type LlmService, type LlmStreamEvent, type LlmEmbeddingResponse, type LlmServiceRequest } from "@poe-platform/safe-bash/commands/llm";
 import { createOpenAiProvider as openAi, createElevenLabsProvider as elevenLabs, type OpenAiProviderOptions, type ElevenLabsProviderOptions, type LlmProviderLimits } from "@poe-platform/safe-bash/commands/llm/providers";
 
 const provider: LlmProvider = {
@@ -8,8 +8,12 @@ const provider: LlmProvider = {
 };
 const options: LlmCommandsOptions = { providers: [provider], defaultModel: "short", replace: false };
 const service: LlmService = createLlmService(options);
-const request: LlmServiceRequest = { prompt: "hello", attachments: [], options: { temperature: "0.5" }, signal: new AbortController().signal };
+const request: LlmServiceRequest = { prompt: "hello", attachments: [], options: { temperature: 0.5, store: false, user: null }, signal: new AbortController().signal };
 void service.complete(request);
+const events: AsyncIterable<LlmStreamEvent> = service.stream({ ...request, messages: [{ role: "user", content: "previous" }], schema: { type: "object" }, maxOutputBytes: 1024 });
+const embeddings: Promise<LlmEmbeddingResponse> = service.embed({ inputs: ["one"], options: {}, signal: request.signal });
+const version: 1 = service.version;
+void [events, embeddings, version];
 const plugin: typeof llmCommands = subpathPlugin;
 const commands: typeof createLlmCommands = subpathCommands;
 const openAiFactory: typeof createOpenAiProvider = openAi;

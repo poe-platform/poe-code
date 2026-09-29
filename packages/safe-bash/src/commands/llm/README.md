@@ -25,16 +25,15 @@ The command entry exports `LlmCommandsOptions`, `LlmProvider`, `LlmModel`, and
 `LlmRequest`. `createLlmService({ providers, defaultModel })` exposes the same
 model registry and provider dispatch to JavaScript callers through `models`,
 `resolve(model?)` and `complete(request)`. Requests contain prompt, optional
-model/system, attachments, string-valued provider options and an abort signal.
+model/system, attachments, scalar provider options (string, finite number, boolean or null) and an abort signal. Version 1 additionally accepts message history and JSON schemas when the selected model declares the corresponding capability.
 The service validates model selection and attachment support; providers validate
 and translate their own options. Response chunks have no shell newline or terminal
 formatting. `complete()` returns the provider's iterable: direct callers own its
 iteration, closure, cancellation races, output-type checks and resource budgets.
 Providers receive the supplied abort signal. The shell command supplies those
-iteration policies; this initial service does not yet supply the Python bridge's
-stream lifecycle contract.
-This service currently supports single requests; conversations,
-embeddings and the remaining reference CLI workflows are not yet implemented.
+iteration policies; `stream(request)` supplies text/owned-byte events and a final response event with canonical model, optional provider usage and metadata. It validates output types, supports `maxOutputBytes`, closes on early return, and races cancellation while observing late provider failures. Final events do not retain or repeat the output payload; callers that need buffered text/data collect it under their own limits. Opaque provider cleanup cannot be forcibly completed on cancellation.
+`embed({ model?, inputs, options, signal })` dispatches only to models declaring `embed` and validates finite, equally sized vectors. Providers implement the optional `embed` hook. Message history is caller-owned; persisted conversations and the remaining reference CLI workflows are not yet implemented.
+OpenAI chat models declare message support by default; schema support must be explicitly declared in each model's `capabilities`. The endpoint alone does not establish that an individual model supports structured output.
 Reference factories `createOpenAiProvider` and
 `createElevenLabsProvider`, their `OpenAiModel`/`ElevenLabsModel` and
 `OpenAiProviderOptions`/`ElevenLabsProviderOptions` types, and
@@ -108,10 +107,10 @@ stdout or an already-written output file.
 Combined stdin and attachment bytes obey the shell's `maxInputBytes` allowance.
 Custom hosts can supply `CommandContext.inputBudget` with `maxBytes` and
 `check(totalBytes)`. This is a host context capability, not an `llmCommands` option.
-The command also enforces a 64 MiB collected-input bound and a separate 64 MiB
-argument-byte bound. Invalid UTF-8 prompt/input bytes fail rather than being
-silently replaced. The work guard allows 1,000,000 argument/chunk/text-block
-steps, yielding cooperatively every 256 steps. Shell cancellation, output, and
+Invalid UTF-8 prompt/input bytes fail rather than being silently replaced.
+The command yields cooperatively every 256 argument/chunk/text-block steps.
+Request preparation currently collects stdin and attachments; streaming output
+does not establish bounded request preparation. Shell cancellation, output, and
 execution budgets still apply; provider limits below are additional bounds.
 
 ## Provider contract
@@ -127,13 +126,16 @@ interface LlmModel {
   readonly aliases?: readonly string[];
   readonly attachmentTypes?: readonly string[];
   readonly outputType?: string;
+  readonly capabilities?: readonly ("messages" | "schema" | "embed")[];
 }
 interface LlmRequest {
   model: string;
   prompt: string;
   system?: string;
   attachments: readonly { mimeType: string; bytes: Uint8Array }[];
-  options: Readonly<Record<string, string>>;
+  options: Readonly<Record<string, string | number | boolean | null>>;
+  messages?: readonly { role: "system" | "user" | "assistant"; content: string }[];
+  schema?: Readonly<Record<string, unknown>>;
   signal: AbortSignal;
 }
 interface LlmCommandsOptions {
@@ -152,7 +154,7 @@ Cancellation requests iterator cleanup and observes late rejections; it does
 completion. It cannot forcibly stop arbitrary provider work. Provider-owned
 transport cleanup remains the provider's responsibility.
 
-The command passes every option value unchanged as a string. Providers map
+The shell command passes CLI option values as strings. Structured callers retain typed scalars. Providers map
 options to wire types and reject invalid values. Models/endpoints are supplied
 by the application, not a built-in catalogue or model-name routing mechanism.
 
@@ -181,7 +183,7 @@ support by that service or account.
 `createOpenAiProvider(options)` uses bearer authentication and defaults
 `baseUrl` to `https://api.openai.com/v1`. Compatible API roots, including Poe,
 can be configured explicitly. `OpenAiModel` adds the required
-`endpoint: "chat" | "images" | "videos"` to the common model fields.
+`endpoint: "chat" | "images" | "videos" | "embeddings"` to the common model fields.
 
 | Endpoint | Request and response |
 | --- | --- |

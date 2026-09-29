@@ -1,3 +1,4 @@
+import type { LlmResponseMetadata } from "./types.js";
 import type { ByteSource } from "../../contracts/index.js";
 import { openAiBytes, openAiError, openAiRecord } from "./openai-http.js";
 
@@ -31,15 +32,24 @@ async function* events(source: ByteSource, signal: AbortSignal, limit: number, r
   throw new Error("OpenAI chat stream ended before [DONE]");
 }
 
-export async function* openAiChat(source: ByteSource, signal: AbortSignal, limit = Infinity, responseLimit = Infinity): AsyncIterable<string> {
+export async function* openAiChat(source: ByteSource, signal: AbortSignal, limit = Infinity, responseLimit = Infinity): AsyncGenerator<string, LlmResponseMetadata> {
+  let usage: Readonly<Record<string, unknown>> | undefined;
+  const metadata: Record<string, unknown> = {};
   for await (const data of events(source, signal, limit, responseLimit)) {
     signal.throwIfAborted();
-    if (data.trim() === "[DONE]") return;
+    if (data.trim() === "[DONE]") return { ...(usage ? { usage } : {}), ...(Object.keys(metadata).length ? { metadata } : {}) };
     let parsed: unknown;
     try { parsed = JSON.parse(data); }
     catch { throw new Error("OpenAI returned malformed SSE JSON"); }
     if (!openAiRecord(parsed)) throw new Error("OpenAI returned a non-object SSE event");
     if (parsed.error != null) throw new Error(`OpenAI: ${openAiError(parsed.error) ?? "stream failed"}`);
+    if (parsed.usage !== undefined && parsed.usage !== null) {
+      if (!openAiRecord(parsed.usage)) throw new Error("OpenAI SSE event has invalid usage");
+      usage = parsed.usage;
+    }
+    for (const key of ["id", "model", "created", "system_fingerprint"]) {
+      if (parsed[key] !== undefined) metadata[key] = parsed[key];
+    }
     if (!Array.isArray(parsed.choices)) throw new Error("OpenAI SSE event has no choices");
     for (const choice of parsed.choices) {
       signal.throwIfAborted();
@@ -49,4 +59,5 @@ export async function* openAiChat(source: ByteSource, signal: AbortSignal, limit
       if (typeof content === "string" && content.length > 0) yield content;
     }
   }
+  throw new Error("OpenAI chat stream ended before [DONE]");
 }

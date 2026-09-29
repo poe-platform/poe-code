@@ -1,12 +1,12 @@
 import type { HttpRequest, HttpTransport } from "../network/types.js";
-import type { LlmModel, LlmProvider, LlmRequest } from "./types.js";
+import type { LlmModel, LlmProvider, LlmRequest, LlmResponseMetadata } from "./types.js";
 import { openAiBytes, openAiError, openAiJson, openAiRecord, openAiResponse } from "./openai-http.js";
 import { openAiChat } from "./openai-sse.js";
 import { acceptsMimeType } from "./mime.js";
 import { credential, providerLimits, jsonBody, multipart, type LlmProviderLimits } from "./providers/shared.js";
 
 export interface OpenAiModel extends LlmModel {
-  readonly endpoint: "chat" | "images" | "videos";
+  readonly endpoint: "chat" | "images" | "videos" | "embeddings";
 }
 
 export interface OpenAiProviderOptions {
@@ -29,15 +29,15 @@ const numericOptions = {
   ]),
 };
 
-function jsonOptions(options: LlmRequest["options"], endpoint: "chat" | "images"): Record<string, string | number | boolean> {
+function jsonOptions(options: LlmRequest["options"], endpoint: "chat" | "images"): Record<string, string | number | boolean | null> {
   return Object.fromEntries(Object.entries(options).map(([key, value]) => {
     if ((endpoint === "chat" ? ["store", "parallel_tool_calls", "logprobs"] : ["stream"]).includes(key)) {
-      if (value !== "true" && value !== "false") throw new Error(`Invalid OpenAI option ${key}: expected boolean`);
-      return [key, value === "true"];
+      if (value !== "true" && value !== "false" && typeof value !== "boolean") throw new Error(`Invalid OpenAI option ${key}: expected boolean`);
+      return [key, value === true || value === "true"];
     }
     const type = numericOptions[endpoint].get(key);
     if (!type) return [key, value];
-    const number = value.trim() ? Number(value) : NaN;
+    const number = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
     if (!Number.isFinite(number) || type === "integer" && !Number.isSafeInteger(number)) {
       throw new Error(`Invalid OpenAI option ${key}: expected a finite ${type === "integer" ? "safe integer" : "number"}`);
     }
@@ -114,13 +114,14 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
   const baseUrl = base.href.endsWith("/") ? base.href.slice(0, -1) : base.href;
   const configured = options.models.map(model => Object.freeze({
     ...model,
+    capabilities: Object.freeze(model.capabilities ?? (model.endpoint === "chat" ? ["messages"] as const : model.endpoint === "embeddings" ? ["embed"] as const : [])),
     ...(model.aliases === undefined ? {} : { aliases: Object.freeze([...model.aliases]) }),
     ...(model.attachmentTypes === undefined ? {} : { attachmentTypes: Object.freeze([...model.attachmentTypes]) }),
   }));
   const byId = new Map<string, OpenAiModel>();
   for (const model of configured) {
     if (!model.id || byId.has(model.id)) throw new TypeError(`OpenAI duplicate or empty model id: ${model.id}`);
-    if (!["chat", "images", "videos"].includes(model.endpoint)) throw new TypeError(`OpenAI invalid endpoint for model: ${model.id}`);
+    if (!["chat", "images", "videos", "embeddings"].includes(model.endpoint)) throw new TypeError(`OpenAI invalid endpoint for model: ${model.id}`);
     if (model.endpoint === "images" && !acceptsMimeType(["image/png", "image/jpeg", "image/webp"], model.outputType ?? "")) throw new TypeError("Image models require outputType image/png, image/jpeg or image/webp");
     if (model.endpoint === "videos" && !acceptsMimeType(["video/mp4"], model.outputType ?? "")) throw new TypeError("Video models require outputType video/mp4");
     if (model.endpoint === "chat" && model.outputType !== undefined && !acceptsMimeType(["text/*"], model.outputType)) throw new TypeError("Chat models require a text outputType");
@@ -128,16 +129,49 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
   }
   return {
     name: "openai", models: Object.freeze(configured),
+    async embed(request) {
+      request.signal.throwIfAborted();
+      const model = byId.get(request.model);
+      if (!model || model.endpoint !== "embeddings") throw new Error(`Model ${request.model} does not support embeddings`);
+      const values: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(request.options)) {
+        if (key === "dimensions") {
+          const number = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
+          if (!Number.isSafeInteger(number) || number < 1) throw new TypeError("Invalid OpenAI dimensions: expected a positive integer");
+          values[key] = number;
+        } else if (key === "user" && typeof value === "string") values[key] = value;
+        else throw new TypeError(`Unsupported OpenAI embedding option: ${key}`);
+      }
+      for await (const response of openAiResponse(transport, {
+        url: `${baseUrl}/embeddings`, method: "POST", signal: request.signal,
+        ...jsonBody({ ...values, model: request.model, input: request.inputs }, limits.maxRequestBytes),
+        headers: [["authorization", `Bearer ${apiKey}`], ["content-type", "application/json"]],
+      }, limits.maxResponseBytes)) {
+        const body = await openAiJson(response, request.signal, limits.maxResponseBytes);
+        if (!Array.isArray(body.data) || body.data.length !== request.inputs.length) throw new TypeError("Invalid OpenAI embedding response");
+        const vectors: number[][] = new Array(request.inputs.length);
+        for (const item of body.data) {
+          if (!openAiRecord(item) || !Number.isSafeInteger(item.index) || (item.index as number) < 0 || (item.index as number) >= vectors.length || vectors[item.index as number] !== undefined || !Array.isArray(item.embedding) || !item.embedding.length || item.embedding.some(value => typeof value !== "number" || !Number.isFinite(value))) throw new TypeError("Invalid OpenAI embedding response");
+          vectors[item.index as number] = item.embedding as number[];
+        }
+        if (vectors.some(vector => vector.length !== vectors[0]?.length)) throw new TypeError("Invalid OpenAI embedding dimensions");
+        return { model: request.model, vectors, ...(openAiRecord(body.usage) ? { usage: body.usage } : {}) };
+      }
+      throw new Error("OpenAI returned no embedding response");
+    },
     async *complete(request) {
       request.signal.throwIfAborted();
       const model = byId.get(request.model);
       if (!model) throw new Error(`Unknown model: ${request.model}`);
+      if (model.endpoint === "embeddings") throw new TypeError("Embedding models require embed()");
+      if (model.endpoint !== "chat" && (request.messages?.length || request.schema !== undefined)) throw new TypeError("Messages and schemas require a chat model");
       if (request.attachments.some(attachment => !acceptsMimeType(["image/*"], attachment.mimeType))) {
         throw new Error(`OpenAI ${model.endpoint} endpoint only supports image attachments`);
       }
       if (model.endpoint === "videos" && request.attachments.length > 1) throw new Error("OpenAI videos accepts only one input_reference image");
       if (request.attachments.reduce((size, file) => size + file.bytes.byteLength, 0) > limits.maxRequestBytes) throw new RangeError("Provider request byte limit exceeded");
       if (model.endpoint !== "chat" && request.system !== undefined) throw new TypeError("System prompts are supported only by chat models");
+      if (request.schema !== undefined && request.options.response_format !== undefined) throw new TypeError("OpenAI option response_format conflicts with request schema");
       const reserved = model.endpoint === "chat" ? ["model", "messages", "stream"]
         : model.endpoint === "images" ? ["model", "prompt", "image", "image[]"] : ["model", "prompt", "input_reference"];
       for (const key of Object.keys(request.options)) {
@@ -150,18 +184,21 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       if (model.endpoint === "chat") {
         const messages: unknown[] = [];
         if (request.system !== undefined) messages.push({ role: "system", content: request.system });
+        messages.push(...request.messages ?? []);
         messages.push({ role: "user", content: request.attachments.length === 0 ? request.prompt : [
           { type: "text", text: request.prompt },
           ...request.attachments.map(attachment => ({ type: "image_url", image_url: { url: `data:${attachment.mimeType};base64,${base64(attachment.bytes)}` } })),
         ] });
-        for await (const response of send("/chat/completions", "POST", jsonBody({ ...jsonOptions(request.options, "chat"), model: request.model, messages, stream: true }, limits.maxRequestBytes))) {
-          yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
+        let details: LlmResponseMetadata | undefined;
+        for await (const response of send("/chat/completions", "POST", jsonBody({ ...jsonOptions(request.options, "chat"), ...(request.schema === undefined ? {} : { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } }), model: request.model, messages, stream: true }, limits.maxRequestBytes))) {
+          details = yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
         }
+        return details;
       } else if (model.endpoint === "images") {
         const editing = request.attachments.length > 0;
         const outputFormat = model.outputType!.split(";", 1)[0]!.trim().toLowerCase().slice("image/".length);
         if (request.options.output_format !== undefined && request.options.output_format !== outputFormat) throw new TypeError("output_format conflicts with model outputType");
-        const values: Record<string, string | number | boolean> = { ...jsonOptions(request.options, "images"), output_format: outputFormat, model: request.model, prompt: request.prompt };
+        const values: Record<string, string | number | boolean | null> = { ...jsonOptions(request.options, "images"), output_format: outputFormat, model: request.model, prompt: request.prompt };
         if (values.stream === true) throw new TypeError("Image event streaming is not supported by this reference provider");
         const body = editing ? multipart({ ...values, ...request.options }, request.attachments.map(file => ({ ...file, field: "image[]" })), limits.maxRequestBytes) : jsonBody(values, limits.maxRequestBytes);
         for await (const response of send(editing ? "/images/edits" : "/images/generations", "POST", body)) {

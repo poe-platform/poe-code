@@ -1164,6 +1164,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/text-programs/regex-compilation.test.ts"));
   assert.ok(files.includes("tests/commands/network/private-addresses.test.ts"));
   assert.ok(files.includes("tests/commands/pr-worker-startup.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/service.test.ts"));
   assert.ok(files.includes("tests/commands/llm/command.test.ts"));
   assert.ok(files.includes("tests/commands/llm/openai.test.ts"));
   assert.ok(files.includes("tests/commands/llm/elevenlabs.test.ts"));

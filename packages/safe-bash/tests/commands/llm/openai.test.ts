@@ -6,7 +6,7 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell, cloudflareWorkerLimits } from "../../../src/shell/index.js";
 import { createOpenAiProvider, type OpenAiModel } from "../../../src/commands/llm/openai.js";
 import { openAiChat } from "../../../src/commands/llm/openai-sse.js";
-import { openAiBytes } from "../../../src/commands/llm/openai-http.js";
+import { openAiBytes, openAiRecord } from "../../../src/commands/llm/openai-http.js";
 import { multipart, type LlmProviderLimits } from "../../../src/commands/llm/providers/shared.js";
 import type { LlmRequest } from "../../../src/commands/llm/types.js";
 import type { HttpRequest, HttpResponse, HttpTransport } from "../../../src/commands/network/types.js";
@@ -129,7 +129,7 @@ test("OpenAI routes arbitrary configured models and streams split UTF-8 SSE delt
   const transport = fake(reply);
   const configured = createOpenAiProvider({ transport: transport.transport, apiKey: "test-secret", baseUrl: "https://compatible.test/custom/v1/", models });
   assert.equal(configured.name, "openai");
-  assert.deepEqual(configured.models, models);
+  assert.deepEqual(configured.models, models.map(model => ({ ...model, capabilities: model.endpoint === "chat" ? ["messages"] : [] })));
   const signal = new AbortController().signal;
   assert.deepEqual(await collect(configured.complete(request({ system: "be brief", signal, options: { temperature: "0.25" }, attachments: [{ mimeType: "image/png", bytes: picture }] }))), ["fox 🦊", "!"]);
   const sent = transport.calls[0]!;
@@ -741,4 +741,47 @@ test("OpenAI cancellation during response disposal does not report successful co
 test("OpenAI SSE reader applies the configured response budget independently of event limits", async () => {
   const source = bytes(encoder.encode("data: [DONE]\n\n"));
   await assert.rejects(collect(openAiChat(source, new AbortController().signal, 1024, 4)), /response byte limit/);
+});
+
+test('OpenAI translates typed scalar options and preserves messages and schema on the wire', async () => {
+  const host = fake(response('data: {"choices":[{"delta":{"content":"ok"}}]}\n\ndata: [DONE]\n\n'));
+  const configured = createOpenAiProvider({ transport: host.transport, apiKey: 'synthetic', models: [{ id: 'chat', endpoint: 'chat', capabilities: ['messages', 'schema'] }] });
+  const result = await collect(configured.complete(request({ model: 'chat', options: { temperature: 0.5, store: false }, messages: [{ role: 'assistant', content: 'previous' }], schema: { type: 'object' } })));
+  assert.deepEqual(result, ['ok']);
+  const body = await (await wireBody(host.calls[0]!)).json();
+  assert.ok(openAiRecord(body));
+  assert.equal(body.temperature, 0.5);
+  assert.equal(body.store, false);
+  assert.deepEqual(body.messages, [{ role: 'assistant', content: 'previous' }, { role: 'user', content: 'describe' }]);
+  assert.deepEqual(body.response_format, { type: 'json_schema', json_schema: { name: 'response', schema: { type: 'object' } } });
+  assert.deepEqual(configured.models[0]?.capabilities, ['messages', 'schema']);
+});
+
+test('OpenAI embeddings send typed options and restore response index order', async () => {
+  const host = fake(response({ data: [{ index: 1, embedding: [3, 4] }, { index: 0, embedding: [1, 2] }], usage: { prompt_tokens: 2 } }));
+  const configured = createOpenAiProvider({ transport: host.transport, apiKey: 'synthetic', models: [{ id: 'embed', endpoint: 'embeddings' }] });
+  const result = await configured.embed!({ model: 'embed', inputs: ['one', 'two'], options: { dimensions: 2 }, signal: new AbortController().signal });
+  assert.deepEqual(result, { model: 'embed', vectors: [[1, 2], [3, 4]], usage: { prompt_tokens: 2 } });
+  assert.equal(host.calls[0]!.url, 'https://api.openai.com/v1/embeddings');
+  assert.deepEqual(await (await wireBody(host.calls[0]!)).json(), { dimensions: 2, model: 'embed', input: ['one', 'two'] });
+});
+
+test('OpenAI structured service retains streamed usage and response identity', async () => {
+  const host = fake(response('data: {"id":"r1","model":"chat","choices":[{"delta":{"content":"ok"}}]}\n\ndata: {"id":"r1","choices":[],"usage":{"prompt_tokens":3,"completion_tokens":1}}\n\ndata: [DONE]\n\n'));
+  const { createLlmService } = await import('../../../src/commands/llm/service.js');
+  const service = createLlmService({ defaultModel: 'chat', providers: [createOpenAiProvider({ transport: host.transport, apiKey: 'synthetic', models: [{ id: 'chat', endpoint: 'chat' }] })] });
+  const events = [];
+  for await (const event of service.stream(request({ model: 'chat' }))) events.push(event);
+  assert.deepEqual(events.at(-1), { type: 'response', response: { model: 'chat', usage: { prompt_tokens: 3, completion_tokens: 1 }, metadata: { id: 'r1', model: 'chat' } } });
+});
+
+test('OpenAI schema support is explicitly declared per model and conflicting format options make no request', async () => {
+  const host = fake();
+  const { createLlmService } = await import('../../../src/commands/llm/service.js');
+  const configured = createOpenAiProvider({ transport: host.transport, apiKey: 'synthetic', models: [{ id: 'chat', endpoint: 'chat' }] });
+  const service = createLlmService({ defaultModel: 'chat', providers: [configured] });
+  assert.deepEqual(configured.models[0]?.capabilities, ['messages']);
+  assert.throws(() => service.complete(request({ model: 'chat', schema: { type: 'object' } })), /does not support schema/);
+  await assert.rejects(collect(configured.complete(request({ model: 'chat', schema: { type: 'object' }, options: { response_format: 'text' } }))), /conflicts with request schema/);
+  assert.equal(host.calls.length, 0);
 });

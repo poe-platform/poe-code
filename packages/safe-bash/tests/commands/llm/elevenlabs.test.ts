@@ -454,3 +454,10 @@ test("ElevenLabs waits for already-started iterator cleanup when abort arrives d
   assert.equal(returns, 1);
   assert.equal(fake.disposed, 1);
 });
+
+test('ElevenLabs rejects typed non-string voice identities before transport', async () => {
+  const transport = fixture();
+  const configured = createElevenLabsProvider({ transport: transport.transport, apiKey: 'synthetic', models: [{ id: 'custom', endpoint: 'tts', outputType: 'audio/mpeg' }] });
+  for (const voice_id of [1, true]) await assert.rejects(collect(configured.complete(request({ model: 'custom', options: { voice_id } }))), /voice_id/);
+  assert.equal(transport.requests.length, 0);
+});

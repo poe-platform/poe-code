@@ -7,6 +7,20 @@ export async function verifyLlmCommands() {
   const chunks = [];
   for await (const chunk of service.complete({ prompt: "structured", attachments: [], options: {}, signal: new AbortController().signal })) chunks.push(chunk);
   if (chunks.length !== 1 || chunks[0] !== "structured") throw new Error("LLM structured service adds shell formatting");
+  const rich = createLlmService({ defaultModel: "chat", providers: [{
+    name: "independent", models: [{ id: "chat", capabilities: ["messages", "schema", "embed"] }],
+    async *complete(request) {
+      if (request.options.temperature !== 0.5 || request.options.store !== false || request.messages[0].content !== "previous" || request.schema.type !== "object") throw new Error("LLM structured fields lost at provider boundary");
+      yield "answer";
+      return { usage: { input: 2 }, metadata: { id: "independent" } };
+    },
+    async embed(request) { return { model: request.model, vectors: request.inputs.map(() => [1, 2]) }; },
+  }] });
+  const events = [];
+  for await (const event of rich.stream({ prompt: "hello", messages: [{ role: "assistant", content: "previous" }], schema: { type: "object" }, attachments: [], options: { temperature: 0.5, store: false }, maxOutputBytes: 6, signal: new AbortController().signal })) events.push(event);
+  if (rich.version !== 1 || events.length !== 2 || events[0].text !== "answer" || events[1].response.usage.input !== 2 || events[1].response.metadata.id !== "independent") throw new Error("LLM structured stream contract mismatch");
+  const embedding = await rich.embed({ inputs: ["one"], options: {}, signal: new AbortController().signal });
+  if (embedding.model !== "chat" || embedding.vectors[0][1] !== 2) throw new Error("LLM embeddings unavailable to independent consumers");
   if (rootService !== createLlmService || rootPlugin !== llmCommands || rootOpenAi !== createOpenAiProvider || rootElevenLabs !== createElevenLabsProvider) throw new Error("LLM root/subpath identity mismatch");
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands()).use(llmCommands({
     defaultModel: "text", providers: [

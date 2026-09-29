@@ -1,5 +1,5 @@
 import type { HttpTransport } from "../network/types.js";
-import type { LlmModel, LlmProvider } from "./types.js";
+import type { LlmOption, LlmModel, LlmProvider } from "./types.js";
 import { streamElevenLabs } from "./elevenlabs-stream.js";
 import { acceptsMimeType } from "./mime.js";
 import { credential, providerLimits, jsonBody, type LlmProviderLimits } from "./providers/shared.js";
@@ -39,14 +39,15 @@ const optionTypes = {
   ]),
 };
 
-function parseOptions(options: Readonly<Record<string, string>>, endpoint: ElevenLabsModel["endpoint"]): Record<string, string | number | boolean> {
+function parseOptions(options: Readonly<Record<string, LlmOption>>, endpoint: ElevenLabsModel["endpoint"]): Record<string, LlmOption> {
   return Object.fromEntries(Object.entries(options).map(([key, value]) => {
     const type = optionTypes[endpoint].get(key);
     if (!type) return [key, value];
     if (type === "boolean") {
+      if (typeof value === "boolean") return [key, value];
       if (value === "true" || value === "false") return [key, value === "true"];
     } else {
-      const number = value.trim() ? Number(value) : NaN;
+      const number = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
       if (Number.isFinite(number) && (type !== "integer" || Number.isSafeInteger(number))) return [key, number];
     }
     throw new Error(`Invalid ElevenLabs option ${key}: expected ${type}`);
@@ -90,6 +91,7 @@ export function createElevenLabsProvider(options: ElevenLabsProviderOptions): Ll
       if (!entry) throw new Error(`Unknown model: ${request.model}`);
       const { model, format } = entry;
       if (request.attachments.length) throw new Error(`Model ${model.id} does not accept ${request.attachments[0]!.mimeType} attachments`);
+      if (request.messages?.length || request.schema !== undefined) throw new TypeError("ElevenLabs reference endpoints do not accept messages or schemas");
       if (request.system !== undefined) throw new TypeError("ElevenLabs reference endpoints do not accept system prompts");
       const { output_format: requestedFormat, ...requestOptions } = request.options;
       if (requestedFormat !== undefined && requestedFormat !== format) throw new TypeError("output_format conflicts with model outputType");
@@ -98,7 +100,7 @@ export function createElevenLabsProvider(options: ElevenLabsProviderOptions): Ll
       if (model.endpoint === "tts") {
         const { voice_id: suppliedVoice, ...settings } = requestOptions;
         const voice = suppliedVoice ?? model.defaultVoiceId;
-        if (!voice?.trim()) throw new Error(`ElevenLabs model ${model.id} requires voice_id or a configured defaultVoiceId`);
+        if (typeof voice !== "string" || !voice.trim()) throw new Error(`ElevenLabs model ${model.id} requires voice_id or a configured defaultVoiceId`);
         if (voice === "." || voice === "..") throw new Error("Invalid ElevenLabs voice_id: dot segments are not allowed");
         path = `v1/text-to-speech/${encodeURIComponent(voice)}`;
         body = { text: request.prompt, model_id: model.id, voice_settings: parseOptions(settings, model.endpoint) };

@@ -320,3 +320,27 @@ command execution in Node and Bun, strict root/scoped TypeScript consumers, and
 CSV-only and CSV+XLSX conversion in Workerd without Node compatibility. Both
 scoped SafeJS entrypoints execute bounded programs in Node and Bun. Containing
 publication remains pending.
+
+
+At the 2026-09-29 16:39 UTC delivery checkpoint, scoped `0.1.758` is fully
+published and independently verified from `9badb683a5`. It includes the selected
+command fix `e765e7c23d` and scoped runtime mapping repair `9badb683a5`.
+[Run 36593867946](https://github.com/poe-platform/poe-code/actions/runs/36593867946)
+completed publication and verification successfully. The hosted installed gate
+passed all 15 native files and 87 tests; independent public registry checks
+verified all three exact archives, SHA-512 integrity, matching source provenance,
+fresh npm installation and Node imports. Issue #4422 is closed on that evidence.
+
+Root publication remains outstanding. The release owner delivered root-owned
+declaration closures in `01fd535e84`, Node codec declaration compatibility in
+`506dd331a7`, and current metadata assertions in `9c990638d7`. The declaration
+closure retained identical file count, bytes and digest after rebuilding the
+historical workspace entry. Independent execution of the current root artifact
+passed selected CSV conversion; its browser bundle excludes unselected XLSX,
+BIFF, ODS and PDF implementations. The metadata suite independently passes all
+20 tests. These checks qualify the repair but do not establish publication.
+The containing pinned root
+[run 36598284494](https://github.com/poe-platform/poe-code/actions/runs/36598284494)
+is queued. #4091 and #4417 remain open until root publication is verified;
+#3521's supplemental encoding question and #4314's local native deadline remain
+unresolved as described above.

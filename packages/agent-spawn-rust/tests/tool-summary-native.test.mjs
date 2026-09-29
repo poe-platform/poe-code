@@ -39,14 +39,6 @@ test("quoted operators, literal variables and unsupported shell shapes match ref
     "cat ${HOME}/file",
     "cat ${HOME:-${TMP}}/file",
     "cat '${HOME}'",
-    'cat "$?suffix"',
-    'cat "$*suffix"',
-    'cat "$@suffix"',
-    'cat "$#suffix"',
-    'cat "$$suffix"',
-    'cat "$!suffix"',
-    'cat "$_suffix"',
-    'cat "$-suffix"',
     "cat '$HOME'",
     "cat one\\ two",
     "cat one*",
@@ -64,5 +56,15 @@ test("quoted operators, literal variables and unsupported shell shapes match ref
     "sed -n '1,$p' -- -notes"
   ]) {
     assert.deepEqual(own({ kind: "exec", title }), original({ kind: "exec", title }), title);
+  }
+});
+
+test("special shell parameters retain their complete literal suffixes", () => {
+  for (const parameter of ["?", "*", "@", "#", "$", "!", "_", "-"]) {
+    const title = `cat "$${parameter}suffix"`;
+    assert.deepEqual(own({ kind: "exec", title }), {
+      label: `Read $${parameter}suffix`,
+      detail: title
+    });
   }
 });

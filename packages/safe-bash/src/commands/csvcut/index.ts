@@ -47,7 +47,8 @@ export function csvcutCommands(options: CsvcutCommandsOptions = {}): VirtualShel
   };
 }
 
-const syncAbortSignal = new AbortController().signal;
+let _syncAbortSignal: AbortSignal | undefined;
+const syncAbortSignal = (): AbortSignal => (_syncAbortSignal ??= new AbortController().signal);
 
 export function evalSyncCsvcut(
   inBytes: Uint8Array,

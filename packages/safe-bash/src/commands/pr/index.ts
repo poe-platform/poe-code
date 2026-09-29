@@ -20,20 +20,21 @@ export function prCommands(options: PrCommandsOptions = {}): VirtualShellPlugin 
   } };
 }
 
-const syncPrSignal = new AbortController().signal;
+let _syncPrSignal: AbortSignal | undefined;
+const getSyncPrSignal = (): AbortSignal => (_syncPrSignal ??= new AbortController().signal);
 const syncPrLimits = settings({});
-const syncPrDummyOutput = {
-  signal: syncPrSignal,
+const getSyncPrDummyOutput = (): OutputOperation => ({
+  signal: getSyncPrSignal(),
   output: { async write() {} },
   registerCleanup() {},
   async close() {},
-} as unknown as OutputOperation;
-const syncPrDummyContext = {
+} as unknown as OutputOperation);
+const getSyncPrDummyContext = (): CommandContext => ({
   args: [] as string[],
   cwd: "/",
   env: { LC_ALL: "C" },
-  signal: syncPrSignal,
-} as unknown as CommandContext;
+  signal: getSyncPrSignal(),
+} as unknown as CommandContext);
 
 const prSyncDecoder = new TextDecoder("utf-8", { fatal: false });
 const prSyncCache = new Map<string, string>();
@@ -50,14 +51,14 @@ export function evalSyncPr(
     if (cached !== undefined) return cached;
   }
   try {
-    const budget = new Budget(syncPrDummyContext, syncPrLimits, syncPrSignal);
+    const budget = new Budget(getSyncPrDummyContext(), syncPrLimits, syncPrSignal);
     const parsed = parseOptions([...opArgs], budget);
     if (parsed.information !== undefined) return undefined;
     if (parsed.extremities && parsed.length > 10) return undefined;
     const names = parsed.files.length ? parsed.files : ["-"];
     if (!parsed.files.length) parsed.merge = false;
     const groups = parsed.merge ? [names] : names.map(name => [name]);
-    const lifecycle = new Lifecycle(budget, syncPrDummyOutput);
+    const lifecycle = new Lifecycle(budget, getSyncPrDummyOutput());
     let totalOut = "";
     for (const group of groups) {
       const formatter = new Formatter({ ...parsed }, lifecycle, group.length);

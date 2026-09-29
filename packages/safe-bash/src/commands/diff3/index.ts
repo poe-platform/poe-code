@@ -1,7 +1,8 @@
 import { compareDiff3, diff3DefaultLimits, parseDiff3Arguments } from "safe-bash-command-diff3";
 export * from "safe-bash-command-diff3";
 
-const syncDiff3Signal = new AbortController().signal;
+let _syncDiff3Signal: AbortSignal | undefined;
+const syncDiff3Signal = (): AbortSignal => (_syncDiff3Signal ??= new AbortController().signal);
 const syncDiff3Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 
 export function evalSyncDiff3(

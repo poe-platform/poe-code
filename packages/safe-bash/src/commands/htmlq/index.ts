@@ -85,7 +85,8 @@ export function htmlqCommands(options: HtmlqCommandsOptions = {}): VirtualShellP
   };
 }
 
-const syncAbortSignal = new AbortController().signal;
+let _syncAbortSignal: AbortSignal | undefined;
+const syncAbortSignal = (): AbortSignal => (_syncAbortSignal ??= new AbortController().signal);
 const syncHtmlDecoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
 const syncHtmlLimits = Object.freeze({
   inputBytes: Infinity,
@@ -106,7 +107,7 @@ export function evalSyncHtmlq(
 ): string | undefined {
   if (inBytes.byteLength > 16384) return undefined;
   try {
-    const invocation = invocationOptions({ signal: syncAbortSignal, limits: syncHtmlLimits });
+    const invocation = invocationOptions({ signal: syncAbortSignal(), limits: syncHtmlLimits });
     const args = parseHtmlqArguments(opArgs, invocation);
     if (args.help || args.version || args.output !== "-") return undefined;
     let srcBytes = inBytes;

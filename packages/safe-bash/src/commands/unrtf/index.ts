@@ -1,7 +1,8 @@
 import { renderRtfSync, type UnrtfOptions } from "safe-bash-command-unrtf";
 export * from "safe-bash-command-unrtf";
 
-const syncUnrtfSignal = new AbortController().signal;
+let _syncUnrtfSignal: AbortSignal | undefined;
+const syncUnrtfSignal = (): AbortSignal => (_syncUnrtfSignal ??= new AbortController().signal);
 const syncUnrtfDecoder = new TextDecoder("utf-8", { fatal: false });
 const unrtfCache = new Map<string, string>();
 
@@ -47,7 +48,7 @@ export function evalSyncUnrtf(
   try {
     let out = renderRtfSync(srcBytes, {
       format,
-      signal: syncUnrtfSignal,
+      signal: syncUnrtfSignal(),
       ...(quiet === undefined ? {} : { quiet }),
       ...(noremap === undefined ? {} : { noremap }),
       ...(profile === undefined ? {} : { profile }),

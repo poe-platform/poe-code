@@ -47,7 +47,8 @@ export function csvgrepCommands(options: CsvgrepCommandsOptions = {}): VirtualSh
   };
 }
 
-const syncAbortSignal = new AbortController().signal;
+let _syncAbortSignal: AbortSignal | undefined;
+const syncAbortSignal = (): AbortSignal => (_syncAbortSignal ??= new AbortController().signal);
 
 export function evalSyncCsvgrep(
   inBytes: Uint8Array,

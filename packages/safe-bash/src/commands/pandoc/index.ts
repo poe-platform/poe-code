@@ -58,7 +58,7 @@ export function evalSyncPandoc(
       opArgs,
       {
         cwd: "/",
-        stdin: inBytes ? [inBytes] : undefined,
+        ...(inBytes === undefined ? {} : { stdin: [inBytes] }),
         readFile: async () => new Uint8Array(0),
         writeFile: async () => {},
       },
@@ -85,17 +85,14 @@ export function evalSyncPandoc(
     if (!serialized) return undefined;
     if (parsed.destination !== undefined) {
       if (!writeFileSync) return undefined;
-      const outBytes = serialized.bytes ?? new TextEncoder().encode(serialized.text ?? "");
+      const outBytes = serialized.kind === "binary" ? serialized.bytes : new TextEncoder().encode(serialized.text);
       if (!writeFileSync(parsed.destination, outBytes)) return undefined;
       return "";
     }
-    if (serialized.text !== undefined) {
+    if (serialized.kind === "text") {
       return serialized.text;
     }
-    if (serialized.bytes !== undefined) {
-      return new TextDecoder("utf-8", { fatal: true }).decode(serialized.bytes);
-    }
-    return undefined;
+    return new TextDecoder("utf-8", { fatal: true }).decode(serialized.bytes);
   } catch {
     return undefined;
   }

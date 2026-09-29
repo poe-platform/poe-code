@@ -11869,9 +11869,16 @@ export class Runtime {
       const isNumOp = op === "-eq" || op === "-ne" || op === "-lt" || op === "-le" || op === "-gt" || op === "-ge";
       const isStrOp = op === "=" || op === "==" || op === "!=";
       if ((isNumOp || isStrOp) && safeArgWord(args[0]!) && safeArgWord(args[2]!)) {
+        // POSIX test compares literal strings and decimal integers. Only admit
+        // operands that the shared [[ evaluator can execute without fallback.
+        if (isStrOp && checkIntVars && (rawState.nocasematch || byteLocale(rawState.variables))) return undefined;
+        const isSyncDecimal = (value: string): boolean => {
+          const number = Number(value);
+          return Number.isSafeInteger(number) && Math.abs(number) < 1_000_000_000_000 && String(number) === value;
+        };
         if (isNumOp && checkIntVars) {
           const isGuaranteedIntWord = (w: Word): boolean => {
-            if (w.plain !== undefined) return /^-?[0-9]{1,16}$/.test(w.plain);
+            if (w.plain !== undefined) return isSyncDecimal(w.plain);
             if (w.parts.length === 1) {
               const p0 = w.parts[0]!;
               if (p0.kind === "arithmetic") return false;
@@ -11882,13 +11889,13 @@ export class Runtime {
                       const c0 = pl.commands[0];
                       if (c0?.kind === "simple" && c0.words.length === 1) {
                         const asg = this.assignment(c0.words[0]!);
-                        if (asg?.name === p0.name && (!asg.value.plain || !/^-?[0-9]{1,16}$/.test(asg.value.plain))) return false;
+                        if (asg?.name === p0.name && (!asg.value.plain || !isSyncDecimal(asg.value.plain))) return false;
                       }
                     }
                   }
                 }
                 const cur = rawState.variables[p0.name];
-                return cur === undefined || /^-?[0-9]{1,16}$/.test(cur);
+                return cur === undefined || isSyncDecimal(cur);
               }
             }
             return false;
@@ -13923,7 +13930,7 @@ export class Runtime {
             const condNonZero = whileCondExpr !== undefined
               ? (this.tryEvalConditionalSync(whileCondExpr, rawState, monitor, store, io, condLine) ?? 1) === 0
               : this.evalSyncLoopArithStmt(whileArithProg!, rawState, io, touched, condLine);
-            if (condCmd.kind === "simple") { lastCmd = condCmd; lastArg = "]"; }
+            if (condCmd.kind === "simple") { lastCmd = condCmd; lastArg = this.fastValueWord(condCmd.words[condCmd.words.length - 1]!, rawState, io)!; }
             if (condNonZero !== (command.kind === "while")) break;
             ++iterCount;
             this.budget.loop();
@@ -14921,7 +14928,7 @@ export class Runtime {
         } else if (step.condStmt !== undefined) {
           const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
           if (step.cmd.kind === "simple") {
-            lastArg = "]";
+            lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io)!;
           }
           rawState.status = cStatus;
           continue;
@@ -15334,7 +15341,7 @@ export class Runtime {
       const condOk = br.condExpr !== undefined
         ? (this.tryEvalConditionalSync(br.condExpr, rawState, monitor, arrayStore(rawState), io, br.condLine) ?? 1) === 0
         : this.evalSyncLoopArithStmt(br.cond!, rawState, io, touched, br.condLine);
-      if (br.condCmd.kind === "simple") onUpdate({ lastCmd: br.condCmd, lastArg: "]" });
+      if (br.condCmd.kind === "simple") onUpdate({ lastCmd: br.condCmd, lastArg: this.fastValueWord(br.condCmd.words[br.condCmd.words.length - 1]!, rawState, io)! });
       rawState.status = condOk ? 0 : 1;
       if (condOk) {
         chosen = br.steps;
@@ -15413,7 +15420,7 @@ export class Runtime {
         const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
         rawState.status = cStatus;
         if (step.cmd.kind === "simple") {
-          lastArg = "]";
+          lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io)!;
           onUpdate({ lastCmd, lastArg });
         }
         continue;
@@ -15578,7 +15585,7 @@ export class Runtime {
         } else if (step.condStmt !== undefined) {
           const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
           if (step.cmd.kind === "simple") {
-            lastArg = "]";
+            lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io)!;
           }
           rawState.status = cStatus;
           continue;

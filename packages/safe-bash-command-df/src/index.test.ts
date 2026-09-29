@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createBytePipe, createCommandArguments } from "safe-bash-contracts";
-import { createDfCommand, type DfCommandsOptions } from "./index.js";
+import { createDfCommand, evalSyncDf, type DfCommandsOptions } from "./index.js";
 
 async function runDf(args: string[], files: Record<string, string> = {}, options: DfCommandsOptions = {}) {
   const fs = createMemoryFileSystem();
@@ -135,3 +135,19 @@ test("df excludes pseudo mounts and keeps similarly named directories on root", 
     ["tmpfs", "9", "3"],
   ]);
 });
+
+for (const [operand, bytes] of [["/a", 2], ["/é😀", 7], ["/\ud800", 4], ["/\udc00", 4]] as const) {
+  test(`sync df accounts UTF-8 argument bytes without Buffer: ${JSON.stringify(operand)}`, () => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer")!;
+    const inspect = () => ({ type: "directory" as const, size: 0, children: [] });
+    const admitted = createDfCommand({ limits: { maxArgumentBytes: bytes } });
+    const refused = createDfCommand({ limits: { maxArgumentBytes: bytes - 1 } });
+    try {
+      Object.defineProperty(globalThis, "Buffer", { configurable: true, writable: true, value: undefined });
+      assert.match(evalSyncDf([operand], "/", {}, inspect, admitted.execute)!, /sandbox-vfs/);
+      assert.equal(evalSyncDf([operand], "/", {}, inspect, refused.execute), undefined);
+    } finally {
+      Object.defineProperty(globalThis, "Buffer", descriptor);
+    }
+  });
+}

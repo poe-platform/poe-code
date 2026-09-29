@@ -255,8 +255,11 @@ export function evalSyncDf(
   const limits = settings(options);
   let argBytes = 0;
   for (const arg of args) {
-    argBytes += new TextEncoder().encode(arg).byteLength;
-    if (argBytes > limits.maxArgumentBytes) return undefined;
+    for (const character of arg) {
+      const point = character.codePointAt(0)!;
+      argBytes += point < 0x80 ? 1 : point < 0x800 ? 2 : point < 0x10000 ? 3 : 4;
+      if (argBytes > limits.maxArgumentBytes) return undefined;
+    }
   }
   let showAll = false;
   let scaleMode: "blocks" | "human-1024" | "human-1000" = "blocks";
@@ -290,7 +293,7 @@ export function evalSyncDf(
       else if (arg === "--human-readable") scaleMode = "human-1024";
       else if (arg === "--si") scaleMode = "human-1000";
       else if (arg === "--inodes") showInodes = true;
-      else if (arg === "--local" || arg === "--sync" || arg === "--no-sync") {}
+      else if (arg === "--local" || arg === "--sync" || arg === "--no-sync") { /* VFS mounts are local and need no host sync. */ }
       else if (arg === "--portability") {
         portability = true;
         if (scaleMode === "blocks" && blockSize === 1024 && env.POSIXLY_CORRECT === undefined) blockHeader = "1024-blocks";
@@ -328,7 +331,7 @@ export function evalSyncDf(
         else if (ch === "i") showInodes = true;
         else if (ch === "k") { scaleMode = "blocks"; blockSize = 1024; blockHeader = portability ? "1024-blocks" : "1K-blocks"; }
         else if (ch === "m") { scaleMode = "blocks"; blockSize = 1048576; blockHeader = "1M-blocks"; }
-        else if (ch === "l") {}
+        else if (ch === "l") { /* All VFS mounts are local. */ }
         else if (ch === "P") { portability = true; if (blockSize === 1024 && env.POSIXLY_CORRECT === undefined) blockHeader = "1024-blocks"; }
         else if (ch === "T") printType = true;
         else if (ch === "B") {

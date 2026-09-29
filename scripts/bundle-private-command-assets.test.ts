@@ -7,8 +7,8 @@ import { resolvePrivateCommandBuild } from "./bundle-safe-bash.mjs";
 it("keeps copied private command assets inside a package dist directory", async () => {
   const name = "safe-bash-command-fixture";
   const volume = Volume.fromJSON({
-    [`/repo/packages/${name}/dist/index.js`]: 'import module from "./runtime.wasm"; export { module };',
-    [`/repo/packages/${name}/dist/runtime.wasm`]: "wasm fixture"
+    [`/repo/packages/${name}/src/index.ts`]: 'import module from "./runtime.wasm"; export { module };',
+    [`/repo/packages/${name}/src/runtime.wasm`]: "wasm fixture"
   });
   const profile = { version: "1.0.0", dependencies: {}, devDependencies: {}, portable: true };
   const recipe = resolvePrivateCommandBuild("/repo", { [name]: profile }, [{ dir: name, pkg: {

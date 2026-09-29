@@ -261,6 +261,7 @@ beforeAll(async () => {
     sourcemap: false,
     minifyWhitespace: true,
     entryPoints: {
+      "portable-buffer": options.entryPoints["portable-buffer"],
       "core.browser": options.entryPoints["core.browser"],
       "commands/mdq/index.browser": options.entryPoints["commands/mdq/index.browser"],
     },
@@ -376,6 +377,9 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
     "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
+    "portable-buffer": path.join(root, "packages/safe-bash/src/portable-buffer.ts"),
+    "shell-entry.browser": path.join(root, "packages/safe-bash/src/shell-entry.ts"),
+    "plugins/index.browser": path.join(root, "packages/safe-bash/src/plugins/index.ts"),
     "yq-browser/index": path.join(root, "packages/safe-bash/src/yq.browser.ts"),
     "jobs.browser": path.join(root, "packages/safe-bash/src/jobs.ts"),
     "optional-host.browser": path.join(root, "packages/safe-bash/src/optional-host.ts"),

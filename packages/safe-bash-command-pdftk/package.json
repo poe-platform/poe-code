@@ -27,5 +27,6 @@
   "devDependencies": {
     "@poe-code/pdf-ast": "*",
     "safe-bash-contracts": "*"
-  }
+  },
+  "sideEffects": false
 }

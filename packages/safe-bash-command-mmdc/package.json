@@ -27,5 +27,6 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*"
-  }
+  },
+  "sideEffects": false
 }

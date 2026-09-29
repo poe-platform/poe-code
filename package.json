@@ -71,7 +71,8 @@
     "posttest": "npm run test:stress:lint",
     "test:ci:fresh": "node scripts/build-workspaces.mjs --test-unit --ci-group=fresh --concurrency=4",
     "test:ci:cached": "node scripts/build-workspaces.mjs --test-unit --ci-group=cached",
-    "install:isolated": "node scripts/install-isolated.mjs"
+    "install:isolated": "node scripts/install-isolated.mjs",
+    "verify:safe-bash-profiles": "node scripts/verify-safe-bash-profiles.mjs"
   },
   "bin": {
     "poe": "dist/bin.cjs",
@@ -334,6 +335,23 @@
     "./ssconvert/commands": {
       "types": "./dist/types/safe-bash-command-ssconvert/commands.d.ts",
       "import": "./dist/ssconvert/commands.js"
+    },
+    "./safe-bash/shell": {
+      "types": "./dist/types/safe-bash/shell-entry.d.ts",
+      "workerd": "./packages/safe-bash/dist/shell-entry.browser.js",
+      "browser": "./packages/safe-bash/dist/shell-entry.browser.js",
+      "import": "./packages/safe-bash/dist/shell-entry.js"
+    },
+    "./safe-bash/full": {
+      "types": {
+        "workerd": "./dist/types/safe-bash/core.d.ts",
+        "browser": "./dist/types/safe-bash/core.d.ts",
+        "default": "./dist/safe-bash.d.ts"
+      },
+      "workerd": "./packages/safe-bash/dist/core.browser.js",
+      "browser": "./packages/safe-bash/dist/core.browser.js",
+      "node": "./dist/safe-bash.js",
+      "default": "./dist/safe-bash.js"
     }
   },
   "engines": {

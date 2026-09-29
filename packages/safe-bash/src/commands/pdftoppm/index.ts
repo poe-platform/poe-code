@@ -15,18 +15,24 @@ export * from "safe-bash-command-pdftoppm";
 const utf8Decoder = new TextDecoder("utf-8", { fatal: true });
 
 export function createPdftoppmCommand(options: PdftoppmCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncPdftoppm = evalSyncPdftoppm;
+  syncCommandEvaluators.evalSyncPdftocairo = evalSyncPdftocairo;
   const def = createRawPdftoppmCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createPdftocairoCommand(options: PdftoppmCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncPdftoppm = evalSyncPdftoppm;
+  syncCommandEvaluators.evalSyncPdftocairo = evalSyncPdftocairo;
   const def = createRawPdftocairoCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createPdftoppmCommands(options: PdftoppmCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncPdftoppm = evalSyncPdftoppm;
+  syncCommandEvaluators.evalSyncPdftocairo = evalSyncPdftocairo;
   const defs = createRawPdftoppmCommands(options);
   for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
   return defs;
@@ -155,6 +161,3 @@ export function evalSyncPdftocairo(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncPdftoppm = evalSyncPdftoppm;
-syncCommandEvaluators.evalSyncPdftocairo = evalSyncPdftocairo;

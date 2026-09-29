@@ -18,12 +18,16 @@ function isDefaultPdftotextOptions(options?: PdftotextCommandOptions): boolean {
 }
 
 export function createPdftotextCommand(options: PdftotextCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncPdftotext = evalSyncPdftotext;
+  syncCommandEvaluators.evalSyncPdftohtml = evalSyncPdftohtml;
   const def = createRawPdftotextCommand(options);
   if (isDefaultPdftotextOptions(options)) builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createPdftotextCommands(options: PdftotextCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncPdftotext = evalSyncPdftotext;
+  syncCommandEvaluators.evalSyncPdftohtml = evalSyncPdftohtml;
   const defs = createRawPdftotextCommands(options);
   if (isDefaultPdftotextOptions(options)) {
     for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
@@ -124,6 +128,3 @@ export function evalSyncPdftohtml(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncPdftotext = evalSyncPdftotext;
-syncCommandEvaluators.evalSyncPdftohtml = evalSyncPdftohtml;

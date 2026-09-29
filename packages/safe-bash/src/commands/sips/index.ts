@@ -11,12 +11,14 @@ import {
 export * from "safe-bash-command-sips";
 
 export function createSipsCommand(options: SipsCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncSips = evalSyncSips;
   const def = createRawSipsCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createSipsCommands(options: SipsCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncSips = evalSyncSips;
   const defs = createRawSipsCommands(options);
   for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
   return defs;
@@ -73,5 +75,3 @@ export function evalSyncSips(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncSips = evalSyncSips;

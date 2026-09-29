@@ -35,5 +35,6 @@
       "workerd": "./dist/runtime.workerd.js",
       "default": "./dist/runtime.js"
     }
-  }
+  },
+  "sideEffects": false
 }

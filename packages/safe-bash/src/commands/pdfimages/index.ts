@@ -11,12 +11,14 @@ import {
 export * from "safe-bash-command-pdfimages";
 
 export function createPdfimagesCommand(options: PdfimagesCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncPdfimages = evalSyncPdfimages;
   const def = createRawPdfimagesCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createPdfimagesCommands(options: PdfimagesCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncPdfimages = evalSyncPdfimages;
   const defs = createRawPdfimagesCommands(options);
   for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
   return defs;
@@ -69,5 +71,3 @@ export function evalSyncPdfimages(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncPdfimages = evalSyncPdfimages;

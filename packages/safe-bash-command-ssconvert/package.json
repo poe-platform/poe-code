@@ -112,5 +112,6 @@
         "./ssconvert/commands": "./commands"
       }
     }
-  }
+  },
+  "sideEffects": false
 }

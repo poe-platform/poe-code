@@ -1,0 +1,7 @@
+import assert from "node:assert/strict";
+import { Shell, CommandRegistry, commandRuntimeIdentity } from "@poe-platform/safe-bash/shell";
+import { Shell as FullShell } from "@poe-platform/safe-bash/full";
+import { CommandRegistry as ContractRegistry, commandRuntimeIdentity as contractIdentity } from "@poe-platform/safe-bash/contracts/command";
+assert.equal(Shell, FullShell);
+assert.equal(CommandRegistry, ContractRegistry);
+assert.equal(commandRuntimeIdentity, contractIdentity);

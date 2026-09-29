@@ -18,12 +18,14 @@ function isDefaultWkhtmltopdfOptions(options?: Partial<WkhtmltopdfCommandOptions
 }
 
 export function createWkhtmltopdfCommand(options: Partial<WkhtmltopdfCommandOptions> = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncWkhtmltopdf = evalSyncWkhtmltopdf;
   const def = createPdfAstWkhtmltopdfCommand(options);
   if (isDefaultWkhtmltopdfOptions(options)) builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createWkhtmltopdfCommands(options: Partial<WkhtmltopdfCommandsOptions> = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncWkhtmltopdf = evalSyncWkhtmltopdf;
   return [createWkhtmltopdfCommand(options)];
 }
 
@@ -82,5 +84,3 @@ export function evalSyncWkhtmltopdf(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncWkhtmltopdf = evalSyncWkhtmltopdf;

@@ -11,12 +11,14 @@ import {
 export * from "safe-bash-command-qpdf";
 
 export function createQpdfCommand(options: QpdfCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncQpdf = evalSyncQpdf;
   const def = createRawQpdfCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createQpdfCommands(options: QpdfCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncQpdf = evalSyncQpdf;
   const defs = createRawQpdfCommands(options);
   for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
   return defs;
@@ -64,5 +66,3 @@ export function evalSyncQpdf(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncQpdf = evalSyncQpdf;

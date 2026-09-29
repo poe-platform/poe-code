@@ -255,11 +255,12 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
       let peerPaths;
       // Explicit private workspace profiles admit declarations only, never sibling source.
       for (const [name, profile] of Object.entries(manifest.poeCode?.integration?.privateWorkspaces ?? {})) {
-        assert.ok(name === "safe-bash-contracts" || name.startsWith("safe-bash-command-") || name.startsWith("safe-bash-") && name.endsWith("-engine"), "private workspace must own admitted contracts, an engine or a command");
-        assertLiteralInputPath(name);
-        assert.ok(!name.includes("/"), "private workspace name must be a literal directory");
+        assert.ok(name === "@poe-code/pdf-ast" || name === "safe-bash-contracts" || name.startsWith("safe-bash-command-") || name.startsWith("safe-bash-") && name.endsWith("-engine"), "private workspace must own admitted contracts, an engine or a command");
+        const directory = name === "@poe-code/pdf-ast" ? "pdf-ast" : name;
+        assertLiteralInputPath(directory);
+        assert.ok(!directory.includes("/"), "private workspace name must be a literal directory");
         assert.equal(manifest.devDependencies?.[name], "*", "private workspace must be an explicit local build dependency");
-        const implementationRoot = resolve(root, "../" + name);
+        const implementationRoot = resolve(root, "../" + directory);
         peerMetadata.add(join(implementationRoot, "package.json"));
         const implementation = JSON.parse(read(join(implementationRoot, "package.json"), 65536));
         assert.equal(implementation.name, name, "private workspace identity");

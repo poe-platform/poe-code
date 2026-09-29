@@ -16,30 +16,45 @@ import {
 export * from "safe-bash-command-pdfinfo";
 
 export function createPdfinfoCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncPdfinfo = evalSyncPdfinfo;
+  syncCommandEvaluators.evalSyncPdffonts = evalSyncPdffonts;
+  syncCommandEvaluators.evalSyncPdfdetach = evalSyncPdfdetach;
   const def = createRawPdfinfoCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createPdffontsCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncPdfinfo = evalSyncPdfinfo;
+  syncCommandEvaluators.evalSyncPdffonts = evalSyncPdffonts;
+  syncCommandEvaluators.evalSyncPdfdetach = evalSyncPdfdetach;
   const def = createRawPdffontsCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createPdfdetachCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncPdfinfo = evalSyncPdfinfo;
+  syncCommandEvaluators.evalSyncPdffonts = evalSyncPdffonts;
+  syncCommandEvaluators.evalSyncPdfdetach = evalSyncPdfdetach;
   const def = createRawPdfdetachCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createPdftocairoCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncPdfinfo = evalSyncPdfinfo;
+  syncCommandEvaluators.evalSyncPdffonts = evalSyncPdffonts;
+  syncCommandEvaluators.evalSyncPdfdetach = evalSyncPdfdetach;
   const def = createRawPdftocairoCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createPdfinfoCommands(options: PdfinfoCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncPdfinfo = evalSyncPdfinfo;
+  syncCommandEvaluators.evalSyncPdffonts = evalSyncPdffonts;
+  syncCommandEvaluators.evalSyncPdfdetach = evalSyncPdfdetach;
   const defs = createRawPdfinfoCommands(options);
   for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
   return defs;
@@ -155,7 +170,3 @@ export function evalSyncPdfdetach(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncPdfinfo = evalSyncPdfinfo;
-syncCommandEvaluators.evalSyncPdffonts = evalSyncPdffonts;
-syncCommandEvaluators.evalSyncPdfdetach = evalSyncPdfdetach;

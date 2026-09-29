@@ -17,6 +17,7 @@ export * from "safe-bash-command-imagemagick";
 export type ImagemagickCommandOptions = ImageMagickCommandOptions;
 
 export function createImagemagickCommands(options: ImagemagickCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncIdentify = evalSyncIdentify;
   const defs = createRawImagemagickCommands(options);
   for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
   return defs;
@@ -120,5 +121,3 @@ export function evalSyncIdentify(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncIdentify = evalSyncIdentify;

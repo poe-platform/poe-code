@@ -18,12 +18,14 @@ export * from "safe-bash-command-mmdc";
 const utf8Decoder = new TextDecoder("utf-8", { fatal: true });
 
 export function createMmdcCommand(settings?: MmdcSettings): CommandDefinition {
+  syncCommandEvaluators.evalSyncMmdc = evalSyncMmdc;
   const def = createRawMmdcCommand(settings);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createMmdcCommands(options: MmdcCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncMmdc = evalSyncMmdc;
   const defs = createRawMmdcCommands(options);
   for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
   return defs;
@@ -84,5 +86,3 @@ export function evalSyncMmdc(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncMmdc = evalSyncMmdc;

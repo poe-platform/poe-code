@@ -56,7 +56,8 @@ for (const defect of ['none', 'stale', 'canonical-change', 'missing-literal', 'm
   noHeldReads(owned);
 });
 
-for (const name of ["safe-bash-command-fixture", "safe-bash-csv-engine", "safe-bash-fixture-engine"]) for (const defect of ["none", "public", "closure", "source", "link"]) test(`build qualified private declarations: ${name} ${defect}`, async () => {
+for (const name of ["safe-bash-command-fixture", "safe-bash-csv-engine", "safe-bash-fixture-engine", "@poe-code/pdf-ast"]) for (const defect of ["none", "public", "closure", "source", "link"]) test(`build qualified private declarations: ${name} ${defect}`, async () => {
+  const directory = name.split("/").at(-1);
   const implementation = {
     name, version: "0.0.1", private: defect !== "public", type: "module", dependencies: defect === "closure" ? { forbidden: "1" } : {},
     exports: { ".": { types: defect === "source" ? "./src/index.d.ts" : "./dist/index.d.ts", import: "./dist/index.js" } },
@@ -64,17 +65,17 @@ for (const name of ["safe-bash-command-fixture", "safe-bash-csv-engine", "safe-b
   const owned = fixture({
     "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", devDependencies: { [name]: "*" }, poeCode: { integration: { privateWorkspaces: { [name]: { version: "0.0.1", dependencies: {}, devDependencies: {} } } } } }),
     "src/index.ts": `export { answer } from "${name}";`,
-    [`../${name}/package.json`]: JSON.stringify(implementation),
-    [`../${name}/dist/index.d.ts`]: "export declare const answer: number;",
-    [`../${name}/src/index.d.ts`]: "export declare const answer: number;",
+    [`../${directory}/package.json`]: JSON.stringify(implementation),
+    [`../${directory}/dist/index.d.ts`]: "export declare const answer: number;",
+    [`../${directory}/src/index.d.ts`]: "export declare const answer: number;",
   });
   if (defect === "link") {
-    owned.memory.unlinkSync(root + `/../${name}/dist/index.d.ts`);
-    owned.memory.symlinkSync(root + `/../${name}/src/index.d.ts`, root + `/../${name}/dist/index.d.ts`);
+    owned.memory.unlinkSync(root + `/../${directory}/dist/index.d.ts`);
+    owned.memory.symlinkSync(root + `/../${directory}/src/index.d.ts`, root + `/../${directory}/dist/index.d.ts`);
   }
   if (defect === "none") assert.equal((await owned.run()).status, 0, owned.output.join(""));
   else await assert.rejects(owned.run());
-  assert.equal(owned.reads.some(path => path.endsWith(`/../${name}/src/index.d.ts`)), false);
+  assert.equal(owned.reads.some(path => path.endsWith(`/../${directory}/src/index.d.ts`)), false);
   assert.equal(owned.descriptors.size, 0);
 });
 

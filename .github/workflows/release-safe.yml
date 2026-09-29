@@ -24,6 +24,7 @@ on:
       - "scripts/fixtures/safe-packages-*"
       - "scripts/verify-safe-publication.mjs"
       - "scripts/verify-safe-cloudflare.mjs"
+      - "scripts/verify-safe-bash-profiles.mjs"
       - "scripts/build-workspaces.mjs"
       - "scripts/check-cache.mjs"
       - ".github/workflows/release-safe.yml"
@@ -80,7 +81,7 @@ jobs:
               packages/safe-bash-contracts packages/safe-bash-csv-engine \
               packages/safe-playwright packages/safe-playwright-cloudflare \
               'packages/spreadsheet-*' \
-              scripts/package-safe.mjs scripts/fixtures/safe-packages-* scripts/verify-safe-publication.mjs scripts/verify-safe-cloudflare.mjs scripts/build-workspaces.mjs scripts/check-cache.mjs \
+              scripts/package-safe.mjs scripts/fixtures/safe-packages-* scripts/verify-safe-publication.mjs scripts/verify-safe-cloudflare.mjs scripts/verify-safe-bash-profiles.mjs scripts/build-workspaces.mjs scripts/check-cache.mjs \
               .github/workflows/release-safe.yml || true)
             changed_cmds=$(git diff --name-only "$GITHUB_SHA" origin/main | grep -E "^packages/safe-bash-(command-|.*-engine/)" || true)
             if [ -n "$changed_later" ] || [ -n "$changed_cmds" ]; then
@@ -176,7 +177,7 @@ jobs:
               packages/safe-bash-contracts packages/safe-bash-csv-engine \
               packages/safe-playwright packages/safe-playwright-cloudflare \
               'packages/spreadsheet-*' \
-              scripts/package-safe.mjs scripts/fixtures/safe-packages-* scripts/verify-safe-publication.mjs scripts/verify-safe-cloudflare.mjs scripts/build-workspaces.mjs scripts/check-cache.mjs \
+              scripts/package-safe.mjs scripts/fixtures/safe-packages-* scripts/verify-safe-publication.mjs scripts/verify-safe-cloudflare.mjs scripts/verify-safe-bash-profiles.mjs scripts/build-workspaces.mjs scripts/check-cache.mjs \
               .github/workflows/release-safe.yml || true)
             changed_cmds=$(git diff --name-only "$GITHUB_SHA" origin/main | grep -E "^packages/safe-bash-(command-|.*-engine/)" || true)
             if [ -n "$changed_later" ] || [ -n "$changed_cmds" ]; then
@@ -257,6 +258,7 @@ jobs:
           await runInContext(`(async (require) => { const module = { exports: {} }; ${readFileSync("private-realm.cjs", "utf8")}; await module.exports.verification; })(loadWasm)`, realm);
           NODE
           done
+          node "$GITHUB_WORKSPACE/scripts/verify-safe-bash-profiles.mjs" "$CONSUMER"
           node safe-packages-smoke.mjs
           bun safe-packages-smoke.mjs
           "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --module NodeNext --moduleResolution NodeNext --target ES2022 safe-packages-types.mts

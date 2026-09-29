@@ -453,6 +453,8 @@ it.each([false, true])("keeps copied command WASM inside the standalone artifact
   const wasm = Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]);
   volume.writeFileSync(`/repo/packages/${name}/dist/engine.wasm`, wasm);
   volume.writeFileSync(`/repo/packages/${name}/dist/index.js`, 'import engine from "./engine.wasm"; export { engine };');
+  volume.mkdirSync(`/repo/packages/${name}/src`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${name}/src/index.ts`, 'import engine from "../dist/engine.wasm"; export { engine };');
   volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export declare const engine: unknown;");
   for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/exiftool/index.${suffix}`, `export * from "${name}";`);
   volume.mkdirSync("/repo/packages/safe-bash/browser", { recursive: true });
@@ -540,7 +542,12 @@ it("ships the ExifTool implementation and declarations without an unpublished de
     if (settings.outdir !== "/repo/packages") return options.bundle(settings);
     return build({ ...settings, plugins: [{ name: "private-build-inputs", setup(builder) {
       builder.onResolve({ filter: /.*/ }, args => ({ path: new URL(args.path, pathToFileURL(args.resolveDir + "/")).pathname, namespace: "private" }));
-      builder.onLoad({ filter: /.*/, namespace: "private" }, args => ({ contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: args.path.slice(0, args.path.lastIndexOf("/")) }));
+      builder.onLoad({ filter: /.*/, namespace: "private" }, args => {
+        // Fixtures use source-equivalent JS for both build input and copied
+        // artifacts; production recipes now enter the original source graph.
+        const input = args.path.includes("/src/") ? args.path.replace("/src/", "/dist/").slice(0, -3) + ".js" : args.path;
+        return { contents: volume.readFileSync(input, "utf8").toString(), resolveDir: input.slice(0, input.lastIndexOf("/")), loader: "js" };
+      });
     } }] });
   };
   await packageSafeLibraries({ ...options, bundle, outDir: "/output" });
@@ -763,6 +770,10 @@ it.each([false, true])("admits asset-only contract owners against the full priva
           const target = pkg.exports[key] ?? pkg.exports["./contracts/*"];
           filename = `/output/${name}/` + (target.browser ?? target.import).replace("*", route.slice(1).join("/"));
         } else filename = path.resolve(args.resolveDir, specifier);
+        if (builder.initialOptions.outdir === "/repo/packages" && filename.includes("/src/")) {
+          filename = filename.replace("/src/", "/dist/");
+          if (filename.endsWith(".ts")) filename = filename.slice(0, -3) + ".js";
+        }
         if (!filename.startsWith("/output/") && filename !== "/repo/packages/safe-bash/browser/buffer.mjs" && !privatePackages.some(name => filename.startsWith(`/repo/packages/${name}/dist/`))) throw new Error("Outside isolated consumer: " + filename);
         return { path: path.normalize(filename), namespace: "packed" };
       });
@@ -2218,6 +2229,8 @@ it.each([false, true].flatMap(portable => ["safe-fs", "xml-ast"].map(owner => ({
   for (const suffix of ["js", "d.ts"]) {
     volume.writeFileSync(directory + "/dist/index." + suffix, `export { ${constructor} } from "../../${owner}/dist/${entrypoint}.js";`);
   }
+  volume.mkdirSync(directory + "/src", { recursive: true });
+  volume.writeFileSync(directory + "/src/index.ts", `export { ${constructor} } from "../../${owner}/dist/${entrypoint}.js";`);
   volume.writeFileSync("/repo/packages/safe-fs/package.json", JSON.stringify({
     name: "@poe-code/safe-fs",
     exports: {
@@ -2288,4 +2301,27 @@ it('rewrites imports in deeply nested generated expressions without consuming th
   const source = prefix + "import('poe-code/safe-fs');\n";
   expect(rewriteModuleSpecifiers('generated.js', source, specifier => specifier === 'poe-code/safe-fs' ? '@poe-platform/safe-fs' : specifier))
     .toBe(prefix + 'import("@poe-platform/safe-fs");\n');
+});
+
+it("carries declared Buffer initialization into generated chunks while pruning unused facades", async () => {
+  const { volume, options } = optionalLeftovers();
+  volume.writeFileSync("/repo/packages/safe-bash/dist/core.js", 'import "./portable-buffer.js"; export {};\n');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/portable-buffer.js", "globalThis.Buffer = {};\n");
+  const pure = "/repo/packages/safe-bash/dist/chunks/facade.js";
+  const effect = "/repo/packages/safe-bash/dist/chunks/initializer.js";
+  await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (settings: BuildOptions) => {
+    if (!Object.hasOwn(settings.entryPoints ?? {}, "core.browser")) return options.bundle(settings);
+    return {
+      outputFiles: [pure, effect].map(filename => ({ path: filename, contents: Buffer.from("export {};\n") })),
+      metafile: { inputs: {}, outputs: {
+        [pure]: { inputs: { "packages/safe-bash/src/core.browser.ts": { bytesInOutput: 1 } } },
+        [effect]: { inputs: { "packages/safe-bash/src/portable-buffer.ts": { bytesInOutput: 1 } } },
+      } },
+    };
+  } });
+  const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+  expect(manifest.sideEffects).toContain("./dist/safe-bash/chunks/initializer.js");
+  expect(manifest.sideEffects).toContain("./dist/safe-bash/portable-buffer.js");
+  expect(manifest.sideEffects).not.toContain("./dist/safe-bash/chunks/facade.js");
+  expect(manifest.sideEffects).not.toContain("./dist/safe-bash/core.browser.js");
 });

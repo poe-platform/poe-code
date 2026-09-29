@@ -24,6 +24,7 @@ function isDefaultOptions(options?: GitCommandsOptions): boolean {
 }
 
 export function createGitCommand(options: GitCommandsOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncGit = evalSyncGit;
   const def = createBaseGitCommand(options);
   if (isDefaultOptions(options)) {
     builtInDirectContextExecutors.add(def.execute);
@@ -32,6 +33,7 @@ export function createGitCommand(options: GitCommandsOptions = {}): CommandDefin
 }
 
 export function createGitCommands(options: GitCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncGit = evalSyncGit;
   const defs = createBaseGitCommands(options);
   if (isDefaultOptions(options)) {
     for (const def of defs) builtInDirectContextExecutors.add(def.execute);
@@ -50,5 +52,3 @@ export function gitCommands(options: GitCommandsOptions = {}): VirtualShellPlugi
     }
   };
 }
-
-syncCommandEvaluators.evalSyncGit = evalSyncGit;

@@ -1437,6 +1437,14 @@
               "optional": true
             }
           }
+        },
+        "@poe-code/pdf-ast": {
+          "version": "0.0.1",
+          "dependencies": {
+            "pako": "3.0.1"
+          },
+          "devDependencies": {},
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -2219,13 +2227,23 @@
     "./commands/yes": {
       "types": "./dist/opt-in/entrypoints/yes.d.ts",
       "import": "./dist/opt-in/entrypoints/yes.js"
+    },
+    "./shell": {
+      "types": "./dist/shell-entry.d.ts",
+      "workerd": "./dist/shell-entry.browser.js",
+      "browser": "./dist/shell-entry.browser.js",
+      "import": "./dist/shell-entry.js"
+    },
+    "./full": {
+      "types": "./dist/core.d.ts",
+      "workerd": "./dist/core.browser.js",
+      "browser": "./dist/core.browser.js",
+      "import": "./dist/core.js"
     }
   },
   "sideEffects": [
     "./dist/portable-buffer.js",
     "./src/portable-buffer.ts",
-    "./src/commands/ssconvert/index.ts",
-    "./dist/commands/ssconvert/index.js",
     "./dist/worker/entry.js",
     "./src/worker/entry.ts"
   ],

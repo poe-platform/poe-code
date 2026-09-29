@@ -21,7 +21,8 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
     // still fail admission in the artifact traversal.
     if (!workspace) continue;
     const pkg = workspace?.pkg;
-    if (!pkg || workspace.dir !== name || pkg.private !== true || pkg.type !== "module" || pkg.version !== profile.version ||
+    const directory = name.startsWith("@") ? name.split("/")[1] : name;
+    if (!pkg || workspace.dir !== directory || pkg.private !== true || pkg.type !== "module" || pkg.version !== profile.version ||
         !isDeepStrictEqual(pkg.dependencies ?? {}, profile.dependencies) ||
         !isDeepStrictEqual(pkg.devDependencies ?? {}, profile.devDependencies) ||
         !isDeepStrictEqual(pkg.peerDependencies ?? {}, profile.peerDependencies ?? {}) ||
@@ -46,7 +47,12 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
           target.types !== runtime.slice(0, -3) + ".d.ts") {
         throw new Error("Invalid private command build entrypoint: " + name);
       }
-      entryPoints[name + "/" + runtime.slice(2, -3)] = path.join(rootDir, "packages", name, runtime);
+      // Independent workspace bundles erase dependency identities. Re-enter
+      // the source graph so esbuild can share engines across command exports.
+      // Transforming builds (e.g. Pandoc's portable Lua) explicitly opt out.
+      const input = pkg.poeCode?.bundle?.prebuilt === true
+        ? runtime : "./src/" + runtime.slice("./dist/".length, -3) + ".ts";
+      entryPoints[workspace.dir + "/" + runtime.slice(2, -3)] = path.join(rootDir, "packages", workspace.dir, input);
     }
   }
   if (!Object.keys(entryPoints).length) return undefined;
@@ -131,6 +137,9 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
       "commands/llm/index.browser": path.join(directory, "src/commands/llm/index.ts"),
       "commands/llm/providers/index.browser": path.join(directory, "src/commands/llm/providers/index.ts"),
       "core.browser": path.join(directory, "src/core.browser.ts"),
+      "portable-buffer": path.join(directory, "src/portable-buffer.ts"),
+      "shell-entry.browser": path.join(directory, "src/shell-entry.ts"),
+      "plugins/index.browser": path.join(directory, "src/plugins/index.ts"),
       "yq-browser/index": path.join(directory, "src/yq.browser.ts"),
       "jobs.browser": path.join(directory, "src/jobs.ts"),
       "optional-host.browser": path.join(directory, "src/optional-host.ts"),

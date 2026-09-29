@@ -12,18 +12,21 @@ import {
 export * from "safe-bash-command-soffice";
 
 export function createSofficeCommand(options: SofficeCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncSoffice = evalSyncSoffice;
   const def = createRawSofficeCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createLibreofficeCommand(options: SofficeCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncSoffice = evalSyncSoffice;
   const def = createRawLibreofficeCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createSofficeCommands(options: SofficeCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncSoffice = evalSyncSoffice;
   const defs = createRawSofficeCommands(options);
   for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
   return defs;
@@ -84,5 +87,3 @@ export function evalSyncSoffice(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncSoffice = evalSyncSoffice;

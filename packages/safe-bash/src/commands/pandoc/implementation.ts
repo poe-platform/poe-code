@@ -12,6 +12,7 @@ import {
 export * from "safe-bash-command-pandoc";
 
 export function createPandocCommand(options: PandocCommandsOptions = {}, hasCommand?: (name: string) => boolean): CommandDefinition {
+  syncCommandEvaluators.evalSyncPandoc = evalSyncPandoc;
   const def = createRawPandocCommand(options, hasCommand);
   if (options.limits === undefined && options.filters === undefined && options.jsonFilterCommand === undefined && options.citeproc === undefined) {
     builtInDirectContextExecutors.add(def.execute);
@@ -20,6 +21,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
 }
 
 export function createPandocCommands(options: PandocCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncPandoc = evalSyncPandoc;
   const defs = createRawPandocCommands(options);
   if (options.limits === undefined && options.filters === undefined && options.jsonFilterCommand === undefined && options.citeproc === undefined) {
     for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);

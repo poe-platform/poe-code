@@ -49,6 +49,26 @@ physical permissions, and the host process mask remains unchanged.
 Core and shell imports install a portable `globalThis.Buffer` when it is absent;
 an existing host Buffer is preserved. Workers do not need `nodejs_compat` for this.
 
+For an application that selects its commands, import `Shell` and `CommandRegistry`
+from `@poe-platform/safe-bash/shell`, then compose plugins with `shell.use()`:
+
+```ts
+import { Shell } from "@poe-platform/safe-bash/shell";
+import { pdfinfoCommands } from "@poe-platform/safe-bash/commands/pdfinfo";
+
+const shell = new Shell({ fs }).use(pdfinfoCommands());
+```
+
+Python and LLM plugins have independent `commands/python` and `commands/llm`
+entrypoints. Select spreadsheet formats through `ssconvert/commands` with
+`ssconvert/formats/csv` and `ssconvert/formats/xlsx`; the compatibility
+`commands/ssconvert` entry retains its full format set. The aggregate root/core
+exports and the explicit `@poe-platform/safe-bash/full` aggregate remain available
+with the existing `agentCommands()` defaults;
+keep existing explicit plugins when migrating an application. Splitting dynamic
+imports changes initialization timing: every uploaded static chunk and Wasm asset
+still counts toward a Worker's uncompressed size.
+
 ## Supported features and commands
 
 The root and `core` exports register optional spreadsheet, PDF, media, office,

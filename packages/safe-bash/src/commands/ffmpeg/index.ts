@@ -14,18 +14,24 @@ export * from "safe-bash-command-ffmpeg";
 export { evalSyncFfmpeg, evalSyncFfprobe };
 
 export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncFfmpeg = evalSyncFfmpeg;
+  syncCommandEvaluators.evalSyncFfprobe = evalSyncFfprobe;
   const def = createRawFfmpegCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createFfprobeCommand(options: FfmpegCommandsOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncFfmpeg = evalSyncFfmpeg;
+  syncCommandEvaluators.evalSyncFfprobe = evalSyncFfprobe;
   const def = createRawFfprobeCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createFfmpegCommands(options: FfmpegCommandsOptions = {}): FfmpegCommandPair {
+  syncCommandEvaluators.evalSyncFfmpeg = evalSyncFfmpeg;
+  syncCommandEvaluators.evalSyncFfprobe = evalSyncFfprobe;
   const pair = createRawFfmpegCommands(options);
   for (let i = 0; i < pair.length; i++) builtInDirectContextExecutors.add(pair[i]!.execute);
   return pair;
@@ -49,6 +55,3 @@ export function ffmpegCommands(options: FfmpegCommandsOptions = {}): VirtualShel
     },
   };
 }
-
-syncCommandEvaluators.evalSyncFfmpeg = evalSyncFfmpeg;
-syncCommandEvaluators.evalSyncFfprobe = evalSyncFfprobe;

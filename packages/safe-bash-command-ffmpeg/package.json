@@ -30,5 +30,6 @@
     "@poe-code/image-ast": "*",
     "@poe-code/audio-ast": "*",
     "safe-bash-contracts": "*"
-  }
+  },
+  "sideEffects": false
 }

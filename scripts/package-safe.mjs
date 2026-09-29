@@ -277,7 +277,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     const assertPrivateProfile = (workspace, workspaceName) => {
       const profile = source.poeCode?.integration?.privateWorkspaces?.[workspaceName];
       const pkg = workspace?.pkg;
-      if (!profile || !pkg || workspace.dir !== workspaceName || pkg.private !== true || pkg.type !== "module" || pkg.version !== profile.version ||
+      const directory = workspaceName.startsWith("@") ? workspaceName.split("/")[1] : workspaceName;
+      if (!profile || !pkg || workspace.dir !== directory || pkg.private !== true || pkg.type !== "module" || pkg.version !== profile.version ||
           !isDeepStrictEqual(pkg.dependencies ?? {}, profile.dependencies) ||
           !isDeepStrictEqual(pkg.devDependencies ?? {}, profile.devDependencies) ||
           !isDeepStrictEqual(pkg.peerDependencies ?? {}, profile.peerDependencies ?? {}) ||
@@ -310,6 +311,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       }
     }
     const bundled = new Map();
+    const effectfulBundles = new Set();
     if (name === "safe-js") {
       const graph = await resolveBundleGraph(rootDir, workspaces, files);
       const alias = Object.fromEntries(Object.entries(graph.alias).map(([specifier, target]) => [specifier, publicSpecifier(specifier) !== specifier ? publicSpecifier(specifier) : target]));
@@ -361,6 +363,41 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
               if (typeof target.import === "string" && path.resolve(rootDir, "packages", dir, target.import) === entry) runtimeExports.set(pkg.name + (route === "." ? "" : route.slice(1)), metadata.exports);
             }
           }
+        }
+        // The source package explicitly reviews its facade/chunk graph as pure,
+        // except for declared initializers. Carry those effects into the chunks
+        // that actually contain them; original source paths no longer exist.
+        const initializers = (source.sideEffects ?? []).filter(route => route.startsWith("./src/"))
+          .map(route => path.resolve(rootDir, "packages/safe-bash", route));
+        for (const [filename, output] of Object.entries(result.metafile?.outputs ?? {})) {
+          if (Object.entries(output.inputs).some(([input, contribution]) => contribution.bytesInOutput > 0 &&
+              initializers.includes(path.resolve(rootDir, input)))) effectfulBundles.add(path.resolve(rootDir, filename));
+        }
+        const coreEntry = path.join(rootDir, "packages/safe-bash/dist/core.browser.js");
+        const coreOutput = result.outputFiles.find(output => output.path === coreEntry);
+        // A used aggregate bundle cannot discard its own dependency imports.
+        // Keep the full aggregate behind a pure facade, and give lightweight
+        // APIs their own public bindings so they never select that aggregate.
+        if (coreOutput && result.metafile) {
+          const aggregate = path.join(path.dirname(coreEntry), "full-core.browser.js");
+          bundled.set(aggregate, coreOutput.contents);
+          pending.push(aggregate);
+          const routes = ["shell-entry.browser.js", "plugins/index.browser.js", "commands/python/index.browser.js",
+            "commands/llm/index.browser.js", "commands/llm/providers/index.browser.js"];
+          const declarations = ['export * from "./full-core.browser.js";'];
+          const claimed = new Set();
+          for (const route of routes) {
+            const filename = path.join(path.dirname(coreEntry), route);
+            const metadata = Object.entries(result.metafile?.outputs ?? {}).find(([output]) => path.resolve(rootDir, output) === filename)?.[1];
+            const names = (metadata?.exports ?? []).filter(name => name !== "default" && !claimed.has(name));
+            for (const name of names) claimed.add(name);
+            if (names.length) declarations.push(`export { ${names.join(", ")} } from ${JSON.stringify("./" + route)};`);
+          }
+          for (const filename of effectfulBundles) {
+            if (filename.startsWith(path.dirname(coreEntry) + path.sep))
+              declarations.push(`import ${JSON.stringify("./" + path.relative(path.dirname(coreEntry), filename).split(path.sep).join("/"))};`);
+          }
+          coreOutput.contents = new TextEncoder().encode(declarations.join("\n") + "\n");
         }
         for (const output of result.outputFiles) {
           bundled.set(output.path, output.contents);
@@ -663,6 +700,23 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       publishConfig: { access: "public" }, dependencies,
     };
     if (Object.keys(imports).length) manifest.imports = imports;
+    if (name === "safe-bash") {
+      // Private facade purity follows each reviewed owner. Core facade/chunk
+      // purity follows the existing source package policy, carrying initializer
+      // effects through the bundler metafile. Canonical SDK/native owners retain
+      // their initialization whenever a selected facade reaches them.
+      const removableOwners = workspaces.filter(({ pkg }) => pkg.sideEffects === false &&
+        Object.hasOwn(source.poeCode?.integration?.privateWorkspaces ?? {}, pkg.name));
+      const coreDist = path.join(rootDir, "packages/safe-bash/dist") + path.sep;
+      const coreEffects = (source.sideEffects ?? []).filter(route => route.startsWith("./dist/"))
+        .map(route => path.resolve(rootDir, "packages/safe-bash", route));
+      manifest.sideEffects = [...copied].filter(filename =>
+        (filename.endsWith(".js") || filename.endsWith(".mjs")) &&
+        (effectfulBundles.has(filename) || coreEffects.includes(filename) ||
+          !filename.startsWith(coreDist) && !removableOwners.some(({ dir }) =>
+            filename.startsWith(path.join(rootDir, "packages", dir, "dist") + path.sep))))
+        .map(filename => "./" + artifactPath(rootDir, filename)).sort();
+    }
     if (companionPeers.size) {
       manifest.peerDependencies = Object.fromEntries(companionPeers);
       manifest.peerDependenciesMeta = Object.fromEntries([...companionPeers.keys()].map(peer => [peer, { optional: true }]));

@@ -17,12 +17,14 @@ function isDefaultPdftkOptions(options?: PdftkCommandOptions): boolean {
 }
 
 export function createPdftkCommand(options: PdftkCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncPdftk = evalSyncPdftk;
   const def = createRawPdftkCommand(options);
   if (isDefaultPdftkOptions(options)) builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createPdftkCommands(options: PdftkCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncPdftk = evalSyncPdftk;
   const defs = createRawPdftkCommands(options);
   if (isDefaultPdftkOptions(options)) {
     for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
@@ -76,5 +78,3 @@ export function evalSyncPdftk(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncPdftk = evalSyncPdftk;

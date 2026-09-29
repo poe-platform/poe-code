@@ -21,7 +21,7 @@ async function fixture() {
 }
 
 async function execute(fs: FileSystem, script: string, options: Partial<ShellOptions> = {}, exec: ShellExecOptions = {}) {
-  const shell = new Shell({ fs, cwd: "/work", env: { HOME: "/", PATH: "", OLDPWD: "/" }, ...options }).use(standardCommands());
+  const shell = new Shell({ fs, cwd: "/work", env: { HOME: "/", PATH: "", OLDPWD: "/" }, limits: { maxCdPathBytes: 65536, maxCdPathComponents: 4096, maxCdProbes: 4097, maxCdWork: 8388608, maxDirectoryDiagnosticBytes: 65792 }, ...options }).use(standardCommands());
   try { return await shell.exec(script, exec); } finally { await shell.dispose(); }
 }
 
@@ -167,7 +167,7 @@ for (const [value, text] of [["x".repeat(65_537), "65536 UTF-8 bytes"], [":".rep
     const { fs, calls } = await fixture();
     const result = await execute(fs, "cd target", { env: { CDPATH: value! } });
     assert.equal(result.exitCode, 1);
-    assert.ok(result.stderr.includes(`cd: CDPATH exceeds ${text}`));
+    assert.match(result.stderr, /cd: CDPATH (byte|component) limit exceeded/);
     assert.deepEqual(calls, []);
   });
 }
@@ -184,7 +184,7 @@ test("raw path cap rejects before normalization can shorten it", async () => {
   const { fs, calls } = await fixture();
   const result = await execute(fs, "cd target", { env: { CDPATH: "/".repeat(65_536) } });
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /cd: path exceeds 65536 UTF-8 bytes/);
+  assert.match(result.stderr, /cd: path byte limit exceeded/);
   assert.deepEqual(calls, []);
 });
 

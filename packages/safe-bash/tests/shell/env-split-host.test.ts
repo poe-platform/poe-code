@@ -19,7 +19,8 @@ async function runHost(selected: readonly string[], batch = false): Promise<stri
   return new Promise<string>((resolve, reject) => {
     // Preserve the sealed historical host; argv0 is now a supported option.
     const current = selected.length === 1 && selected[0] === "unsupported-before-chdir";
-    const host = new URL(current ? "./env-split-current-host.mjs" : "../shell-stress/env-split-author/resume-host.mjs", import.meta.url);
+    const bounded = selected.length === 1 && ["split-byte-cap", "split-argument-cap", "split-recursion-cap"].includes(selected[0]!);
+    const host = new URL(bounded ? "./env-split-limits-host.mjs" : current ? "./env-split-current-host.mjs" : "../shell-stress/env-split-author/resume-host.mjs", import.meta.url);
     const child = spawn(process.execPath, ["--unhandled-rejections=strict", fileURLToPath(host), ...(batch ? ["--batch", ...selected] : selected)], {
       detached: true, stdio: ["ignore", "pipe", "pipe"],
     });

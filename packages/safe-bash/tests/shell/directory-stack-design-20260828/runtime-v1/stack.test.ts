@@ -7,7 +7,7 @@ import { Runtime } from "../../../../src/shell/runtime.js";
 async function fixture(options: Partial<ShellOptions> = {}) {
   const fs = new MemoryFileSystem();
   for (const directory of ["/dev", "/c/a", "/a", "/b", "/old", "/borrowed", "/search/target", "/c/+1", "/c/-dash"]) await fs.mkdir(directory, { recursive: true });
-  const shell = new Shell({ fs, cwd: "/c", env: { HOME: "/home", OLDPWD: "/old", PATH: "" }, ...options }).use(standardCommands());
+  const shell = new Shell({ fs, cwd: "/c", env: { HOME: "/home", OLDPWD: "/old", PATH: "" }, limits: { maxCdPathBytes: 65536, maxDirectoryStackEntries: 4096 }, ...options }).use(standardCommands());
   return { fs, shell };
 }
 
@@ -169,8 +169,8 @@ for (const unused of ["dirs -l", "dirs -c", "pushd -n"]) test(`unused oversized 
   assert.equal((await run(unused, { env: { HOME: "x".repeat(65_537) } })).exitCode, 0);
 });
 test("used HOME and reached argv limits versus ignored trailing arguments", async () => {
-  assert.match((await run("dirs", { env: { HOME: "x".repeat(65_537) } })).stderr, /HOME exceeds 65536/);
-  assert.match((await run('pushd -n "$RAW"', { env: { RAW: "x".repeat(65_537) } })).stderr, /argument exceeds 65536/);
+  assert.match((await run("dirs", { env: { HOME: "x".repeat(65_537) } })).stderr, /HOME byte limit exceeded/);
+  assert.match((await run('pushd -n "$RAW"', { env: { RAW: "x".repeat(65_537) } })).stderr, /argument byte limit exceeded/);
   assert.equal((await run('pushd -n raw "$RAW"', { env: { RAW: "x".repeat(65_537) } })).exitCode, 0);
   assert.equal((await run('dirs -- "$RAW"', { env: { RAW: "x".repeat(65_537) } })).exitCode, 0);
 });
@@ -223,7 +223,7 @@ test("4096 remembered entries inclusive, next insertion before missing OLDPWD", 
   const result = await run("pushd -n '' >/dev/null; pushd -n '' >/dev/null; printf '%s:' \"$?\"; dirs +4096; unset OLDPWD; pushd -; printf '%s' \"$?\"");
   assert.equal(result.stdout, "0:\n1");
   assert.equal(result.exitCode, 0);
-  assert.match(result.stderr, /pushd: directory stack exceeds 4096 entries/);
+  assert.match(result.stderr, /pushd: directory stack entry limit exceeded/);
   assert.doesNotMatch(result.stderr, /OLDPWD not set/);
 });
 

@@ -97,7 +97,10 @@ for (const maxPipelineStages of [0, 1]) test(`pipeline capacity ${maxPipelineSta
 });
 
 test("pipeline limits use constructor and per-execution integer validation", async () => {
-  for (const maxPipelineStages of [-1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+  const { shell } = setup({ limits: { maxPipelineStages: Infinity } });
+  try { assert.equal((await shell.exec("true | true", { limits: { maxPipelineStages: Infinity } })).exitCode, 0); }
+  finally { await shell.dispose(); }
+  for (const maxPipelineStages of [-1, 1.5, NaN, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => setup({ limits: { maxPipelineStages } }), RangeError);
     const { shell } = setup();
     try { await assert.rejects(shell.exec("true", { limits: { maxPipelineStages } }), RangeError); }

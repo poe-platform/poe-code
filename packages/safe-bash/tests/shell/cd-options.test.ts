@@ -154,9 +154,9 @@ test("cd -P applies the path bound to the resolved physical directory", async co
   const { fs, shell } = await fixture();
   context.after(() => shell.dispose());
   fs.realpath = async () => "/" + "x".repeat(65_536);
-  const result = await shell.exec('cd -P link; printf "%s|%s|%s" "$?" "$PWD" "$OLDPWD"');
+  const result = await shell.exec('cd -P link; printf "%s|%s|%s" "$?" "$PWD" "$OLDPWD"', { limits: { maxCdPathBytes: 65536 } });
   assert.equal(result.exitCode, 0);
-  assert.equal(result.stderr, "shell: line 1: cd: path exceeds 65536 UTF-8 bytes\n");
+  assert.equal(result.stderr, "shell: line 1: cd: path byte limit exceeded\n");
   assert.equal(result.stdout, "1|/work|/search/link");
 });
 

@@ -62,8 +62,9 @@ test("raw ANSI-C ownership records are admitted without conflating decoded bytes
 
 test("legacy parser arguments and syntax diagnostics remain compatible", () => {
   assert.deepEqual(parseShell("echo ok"), parseShell("echo ok", 0));
+  assert.deepEqual(parseShell("echo ok", 0, { maxParseUnits: Infinity }), parseShell("echo ok"));
   assert.throws(() => parseShell("echo '"), ShellSyntaxError);
-  for (const maxParseUnits of [-1, 0.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1]) {
+  for (const maxParseUnits of [-1, 0.5, NaN, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => parseShell(":", 0, { maxParseUnits }), RangeError);
   }
   assert.equal(cloudflareWorkerLimits.maxParseUnits, 65_536);

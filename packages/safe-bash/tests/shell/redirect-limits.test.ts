@@ -222,7 +222,8 @@ test("execution overrides are local and redirect limits reject invalid numeric s
   const { shell } = fixture(t, { maxRedirects: 0 });
   assert.equal((await shell.exec(": 3<&0", { limits: { maxRedirects: 1 } })).exitCode, 0);
   await assert.rejects(shell.exec(": 3<&0"), redirectLimit);
-  for (const maxRedirects of [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+  assert.equal((await shell.exec(": 3<&0", { limits: { maxRedirects: Infinity } })).exitCode, 0);
+  for (const maxRedirects of [-1, 0.5, NaN, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => setup({ limits: { maxRedirects } }), RangeError);
     await assert.rejects(shell.exec(":", { limits: { maxRedirects } }), RangeError);
   }

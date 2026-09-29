@@ -64,9 +64,10 @@ test("PATH lookup caches positive metadata but rechecks executable access", asyn
 
 test("PATH component defaults, overrides and expansion admission stay independent", async context => {
   assert.equal(resolveLimits().maxPathComponents, Infinity);
+  assert.equal(resolveLimits({ maxPathComponents: Infinity }).maxPathComponents, Infinity);
   assert.equal(cloudflareWorkerLimits.maxPathComponents, 64);
   assert.equal(resolveLimits().maxFileSystemOperations, Infinity);
-  for (const maximum of [-1, 0.5, NaN, Infinity]) assert.throws(() => resolveLimits({ maxPathComponents: maximum }), RangeError);
+  for (const maximum of [-1, 0.5, NaN]) assert.throws(() => resolveLimits({ maxPathComponents: maximum }), RangeError);
   const { fs, shell } = fixture(context, "/first:/second:/third");
   const stat = context.mock.method(fs, "stat");
   await assert.rejects(shell.exec("missing", { limits: { maxExpansionFields: 2 } }), limitIs("maxExpansionFields"));
@@ -91,8 +92,9 @@ test("PATH cap counts consulted components, not unused trailing directories", as
 
 test("PATH search and pathname component quotas are independent", async context => {
   assert.equal(resolveLimits().maxPathnameComponents, Infinity);
+  assert.equal(resolveLimits({ maxPathnameComponents: Infinity }).maxPathnameComponents, Infinity);
   assert.equal(cloudflareWorkerLimits.maxPathnameComponents, 64);
-  for (const maximum of [-1, 0.5, NaN, Infinity]) assert.throws(() => resolveLimits({ maxPathnameComponents: maximum }), RangeError);
+  for (const maximum of [-1, 0.5, NaN]) assert.throws(() => resolveLimits({ maxPathnameComponents: maximum }), RangeError);
   const { fs, shell } = fixture(context, "/nested/bin:/unused");
   await fs.mkdir("/nested/bin", { recursive: true });
   await fs.writeFile("/nested/bin/tool", script, { mode: 0o755 });

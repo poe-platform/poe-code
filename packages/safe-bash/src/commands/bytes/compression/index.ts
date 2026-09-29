@@ -1,3 +1,4 @@
+import { gzipSync, gunzipSync, zstdDecompressSync } from "node:zlib";
 import { PublicDiagnostic } from "../../../diagnostics.js";
 import { type CommandDefinition } from "../../../contracts/index.js";
 import { codeOf, define, diagnostic, output } from "../../internal.js";
@@ -62,4 +63,81 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
     return { exitCode };
   }));
   return [...commands.slice(0, 6), ...createXzCommands(config), ...commands.slice(6)];
+}
+
+const syncCompEncoder = new TextEncoder();
+
+export function evalSyncCompression(
+  cmdName: string,
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): Uint8Array | undefined {
+  try {
+    const options = parseOptions(cmdName, opArgs);
+    if (options.help) {
+      return syncCompEncoder.encode(`Usage: ${cmdName} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n${options.format === "zstd" ? "-1..-9, --best\nHigher levels and --fast[=NUM] are unsupported by the bounded codec.\n" : "-1..-9, --fast, --best\n"}${options.format === "zstd" ? "-q, --quiet (repeat to suppress errors)\n" : ""}${options.format === "gzip" ? "-q, --quiet (suppress warnings)\n-r, --recursive (traverse directories without following symlinks)\n-n, --no-name (always enabled)\n" : `Default compression level: ${options.level}.\n`}-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
+    }
+    if (options.test || options.recursive || options.xzList) return undefined;
+    const isStdinOnly = options.operands.length === 1 && options.operands[0] === "-";
+    if (!options.stdout && !isStdinOnly) return undefined;
+    if (options.format !== "gzip" && options.format !== "zstd") return undefined;
+    if (options.format === "zstd" && !options.decompress) return undefined;
+
+    const outChunks: Uint8Array[] = [];
+    let totalLen = 0;
+
+    for (const op of options.operands) {
+      let srcBytes: Uint8Array | undefined;
+      if (op === "-") {
+        srcBytes = inBytes;
+      } else {
+        if (!readFileSync) return undefined;
+        srcBytes = readFileSync(op);
+      }
+      if (!srcBytes || srcBytes.byteLength > 65536) return undefined;
+
+      let outChunk: Uint8Array;
+      if (options.format === "gzip") {
+        if (options.decompress) {
+          if (srcBytes.byteLength === 0) {
+            outChunk = new Uint8Array(0);
+          } else {
+            if (srcBytes.byteLength < 18 || srcBytes[0] !== 0x1f || srcBytes[1] !== 0x8b) return undefined;
+            outChunk = new Uint8Array(gunzipSync(srcBytes));
+          }
+        } else {
+          const gz = new Uint8Array(gzipSync(srcBytes, { level: options.level }));
+          if (gz.byteLength >= 10) gz[9] = 0xff;
+          outChunk = gz;
+        }
+      } else {
+        // zstd decompress (unzstd / zstdcat / zstd -d)
+        if (srcBytes.byteLength === 0) {
+          outChunk = new Uint8Array(0);
+        } else if (srcBytes.byteLength >= 4 && srcBytes[0] === 0x28 && srcBytes[1] === 0xb5 && srcBytes[2] === 0x2f && srcBytes[3] === 0xfd) {
+          outChunk = new Uint8Array(zstdDecompressSync(srcBytes));
+        } else if (cmdName === "zstdcat" && srcBytes.byteLength >= 18 && srcBytes[0] === 0x1f && srcBytes[1] === 0x8b) {
+          outChunk = new Uint8Array(gunzipSync(srcBytes));
+        } else {
+          return undefined;
+        }
+      }
+      if (outChunk.byteLength > 131072) return undefined;
+      outChunks.push(outChunk);
+      totalLen += outChunk.byteLength;
+      if (totalLen > 131072) return undefined;
+    }
+
+    if (outChunks.length === 1) return outChunks[0]!;
+    const merged = new Uint8Array(totalLen);
+    let offset = 0;
+    for (const chunk of outChunks) {
+      merged.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return merged;
+  } catch {
+    return undefined;
+  }
 }

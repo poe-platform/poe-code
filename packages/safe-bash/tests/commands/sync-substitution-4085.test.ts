@@ -1,3 +1,4 @@
+import { createCompressionCommands } from "../../src/commands/bytes/compression/index.js";
 import { createGpgCommands } from "../../src/commands/gpg/index.js";
 import { createSshCommands } from "../../src/commands/ssh/index.js";
 import { createOpensslCommands } from "../../src/commands/openssl/index.js";
@@ -1017,5 +1018,30 @@ test("Wave 146: sync gpg, ssh, and ssh-keygen substitutions and pipelines", asyn
   assert.match(r1.stdout, /Alice <alice@example.com>/);
   assert.equal(r2.stdout, "user deploy\nhostname prod.example.com\nport 2222\nidentityfile /home/user/.ssh/id_ed25519");
   assert.match(r3.stdout, /^256 SHA256:[A-Za-z0-9+/]+ alice@host \(ED25519\)$/);
+  assert.ok(elapsed < 800, `Expected < 800ms for 3x150 iterations, took ${elapsed.toFixed(1)}ms`);
+});
+
+test("Wave 147: sync gzip, gunzip, zcat, unzstd, and zstdcat substitutions and pipelines", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createCompressionCommands(),
+  ]) {
+    registry.register(cmd);
+  }
+  const shell = new Shell({ fs, commands: registry });
+
+  await shell.exec('printf "alpha-beta-gamma\n" | gzip > /data.gz; printf "delta-epsilon-zeta\n" | zstd > /data.zst');
+
+  const t0 = performance.now();
+  const r1 = await shell.exec('for i in $(seq 1 150); do out=$(printf "roundtrip-test\n" | gzip | gunzip); done; printf "%s" "$out"');
+  const r2 = await shell.exec('for i in $(seq 1 150); do out=$(zcat /data.gz); done; printf "%s" "$out"');
+  const r3 = await shell.exec('for i in $(seq 1 150); do out=$(zstdcat /data.zst); done; printf "%s" "$out"');
+  const elapsed = performance.now() - t0;
+
+  assert.equal(r1.stdout, "roundtrip-test");
+  assert.equal(r2.stdout, "alpha-beta-gamma");
+  assert.equal(r3.stdout, "delta-epsilon-zeta");
   assert.ok(elapsed < 800, `Expected < 800ms for 3x150 iterations, took ${elapsed.toFixed(1)}ms`);
 });

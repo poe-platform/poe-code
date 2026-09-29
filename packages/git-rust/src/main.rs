@@ -204,13 +204,13 @@ fn sync_vfs_root_to_host(root: &str, fs: &MemoryFs, initial_files: &BTreeSet<Str
             }
             NodeKind::Symlink => {
                 if let Ok(target_bytes) = fs.readlink(path) {
-                    let target_str = String::from_utf8_lossy(&target_bytes).to_string();
+                    let _target_str = String::from_utf8_lossy(&target_bytes).to_string();
                     if let Some(parent) = host_path.parent() {
                         let _ = stdfs::create_dir_all(parent);
                     }
                     let _ = stdfs::remove_file(host_path);
                     #[cfg(unix)]
-                    let _ = unix_symlink(&target_str, host_path);
+                    let _ = unix_symlink(&_target_str, host_path);
                 }
             }
             NodeKind::File => {

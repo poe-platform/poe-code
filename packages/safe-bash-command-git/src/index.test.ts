@@ -213,3 +213,61 @@ test('stdin reaches Git plumbing and commit messages without changing bytes', as
   const tag=await run(['mktag'],bytes(`object ${head}\ntype commit\ntag v1\ntagger A <a@example.com> 1502484200 +0000\n\nmessage\n`));
   assert.equal(tag.trim().length,40);
 });
+
+
+test("git integrates with ssh-keygen, gpg, openssl, SSH transport, and hooks in safe-fs", async () => {
+  const { createSshKeygenCommand } = await import("../../safe-bash-command-ssh/src/index.js");
+  const { createGpgCommand } = await import("../../safe-bash-command-gpg/src/index.js");
+  const { createOpensslCommand } = await import("../../safe-bash-command-openssl/src/index.js");
+
+  const fs = new MemoryFileSystem();
+  const gitCmd = createGitCommand();
+  const keygenCmd = createSshKeygenCommand();
+  const _gpgCmd = createGpgCommand();
+  const opensslCmd = createOpensslCommand();
+
+  const execCmd = async (def: { name: string; execute: (c: CommandContext) => Promise<{ exitCode: number }> }, args: string[], cwd = "/") => {
+    let stdout = "", stderr = "";
+    const ctx = {
+      command: def.name,
+      args,
+      cwd,
+      env: {},
+      fs,
+      signal: new AbortController().signal,
+      stdin: (async function* () {})(),
+      stdout: { write(b: Uint8Array) { stdout += new TextDecoder().decode(b); } },
+      stderr: { write(b: Uint8Array) { stderr += new TextDecoder().decode(b); } },
+    } as CommandContext;
+    const res = await def.execute(ctx);
+    assert.equal(res.exitCode, 0, `${def.name} ${args.join(" ")} failed: ${stderr}`);
+    return { stdout, stderr };
+  };
+
+  await execCmd(keygenCmd, ["-t", "ed25519", "-f", "/home/user/.ssh/id_ed25519", "-C", "alice@example.com", "-N", ""]);
+  const pubKey = new TextDecoder().decode(await fs.readFile("/home/user/.ssh/id_ed25519.pub")).trim();
+  await fs.writeFile("/home/user/.ssh/allowed_signers", new TextEncoder().encode(`alice@example.com ${pubKey}\n`));
+
+  await fs.mkdir("/remotes/github.com/org/demo.git", { recursive: true });
+  await execCmd(gitCmd, ["init", "-b", "main"], "/remotes/github.com/org/demo.git");
+  await execCmd(gitCmd, ["config", "user.name", "Alice"], "/remotes/github.com/org/demo.git");
+  await execCmd(gitCmd, ["config", "user.email", "alice@example.com"], "/remotes/github.com/org/demo.git");
+  await fs.writeFile("/remotes/github.com/org/demo.git/README.md", new TextEncoder().encode("# Demo\n"));
+  await execCmd(gitCmd, ["add", "README.md"], "/remotes/github.com/org/demo.git");
+  await execCmd(gitCmd, ["commit", "-m", "initial"], "/remotes/github.com/org/demo.git");
+
+  await fs.mkdir("/work", { recursive: true });
+  await execCmd(gitCmd, ["clone", "git@github.com:org/demo.git", "/work/app"], "/work");
+  await execCmd(gitCmd, ["config", "user.name", "Alice"], "/work/app");
+  await execCmd(gitCmd, ["config", "user.email", "alice@example.com"], "/work/app");
+  await execCmd(gitCmd, ["config", "gpg.format", "ssh"], "/work/app");
+  await execCmd(gitCmd, ["config", "user.signingkey", "/home/user/.ssh/id_ed25519"], "/work/app");
+  await execCmd(gitCmd, ["config", "gpg.ssh.allowedSignersFile", "/home/user/.ssh/allowed_signers"], "/work/app");
+
+  await execCmd(opensslCmd, ["rand", "-hex", "-out", "/work/app/token.txt", "8"], "/work/app");
+  await execCmd(gitCmd, ["add", "token.txt"], "/work/app");
+  await execCmd(gitCmd, ["commit", "-S", "-m", "feat: signed ssh commit"], "/work/app");
+  const verifyOut = await execCmd(gitCmd, ["verify-commit", "HEAD"], "/work/app");
+  assert.match(verifyOut.stdout + verifyOut.stderr, /Good "git" signature for alice@example\.com/);
+  await execCmd(gitCmd, ["push", "origin", "main"], "/work/app");
+});

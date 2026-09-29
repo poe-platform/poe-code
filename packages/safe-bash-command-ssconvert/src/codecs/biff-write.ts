@@ -183,7 +183,10 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
     const text = biffString(name.name, revision, context, 1), header = new Uint8Array(14), view = new DataView(header.buffer);
     header[3] = text[0]!; view.setUint16(4, formula.tokens.length, true);
     const scope = name.sheet === undefined ? 0 : book.sheets.findIndex(sheet => sheet.id === name.sheet) + 1;
-    view.setUint16(revision === 8 ? 8 : 6, scope, true);
+    // Calc reads BIFF5/7 offset 6 as a zero-based worksheet index, gated
+    // by the one-based scope at offset 8. BIFF8 leaves offset 6 unused.
+    if (revision === 7 && scope) view.setUint16(6, scope - 1, true);
+    view.setUint16(8, scope, true);
     const start = header.length + text.length - 1;
     output.continuedRecord(0x18, join(join(header, text.subarray(1)), join(formula.tokens, formula.arrays)),
       [start, ...formula.tokenBoundaries.map(offset => offset + start),

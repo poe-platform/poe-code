@@ -20,10 +20,10 @@ it.each([7, 8] as const)("BIFF%i resolves local names before workbook names and 
   const writer = new BiffFormulaWriter(snapshotWorkbook(book, context.limits), revision, context);
   const index = (source: string, sheet: string) => {
     const tokens = writer.compile(source, sheet, 0, 0).tokens;
-    const qualified = source.includes("!");
+    const qualified = revision === 8 && source.includes("!");
     expect(tokens[0]).toBe(qualified ? 0x59 : 0x43);
-    expect(tokens.length).toBe(qualified ? revision === 8 ? 7 : 25 : revision === 8 ? 5 : 15);
-    return new DataView(tokens.buffer, tokens.byteOffset).getUint16(qualified ? revision === 8 ? 3 : 11 : 1, true);
+    expect(tokens.length).toBe(qualified ? 7 : revision === 8 ? 5 : 15);
+    return new DataView(tokens.buffer, tokens.byteOffset).getUint16(qualified ? 3 : 1, true);
   };
   expect(index("=Answer", "s1")).toBe(2);
   expect(index("=Answer", "First")).toBe(2);

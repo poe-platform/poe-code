@@ -45,7 +45,7 @@ for (const padding of [0, 256]) it.each([7, 8, "dsf"] as const)(
         const data = record.data, wide = revision === 8 && Boolean(data.u8(14) & 1);
         const length = data.u8(3), start = 14 + Number(revision === 8) + length * (wide ? 2 : 1);
         return { text: Buffer.from(data.slice(14 + Number(revision === 8), length * (wide ? 2 : 1))).toString(wide ? "utf16le" : "latin1"),
-          scope: data.u16(revision === 8 ? 8 : 6), tokens: data.slice(start, data.u16(4)) };
+          scope: data.u16(8), tokens: data.slice(start, data.u16(4)) };
       });
       expect(names).toHaveLength(padding + 10);
       for (const [name, target, scope] of [

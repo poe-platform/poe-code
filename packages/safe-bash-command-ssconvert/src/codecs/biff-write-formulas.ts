@@ -34,7 +34,6 @@ export class BiffFormulaWriter {
   readonly macroNames: string[] = [];
   private readonly workbookIndices = new Map<string, number>();
   private readonly linkIndices = new Map<string, number>();
-  private uniqueNameId = 0;
   private readonly relocations: { tokens: Uint8Array; offset: number; index: number; kind: "sheet" | "name" }[] = [];
   constructor(readonly book: Workbook, readonly revision: 7 | 8, readonly context: CapabilityContext) {}
   private externalBook(workbook: string): number {
@@ -323,22 +322,18 @@ export class BiffFormulaWriter {
         if (index < 0 && (node.sheet === undefined || scope !== undefined))
           index = this.book.names?.findIndex(n => matches(n) && n.sheet === undefined) ?? -1;
         if (index < 0) { push([28, 29]); return; }
-        if (node.sheet !== undefined && scope !== undefined) {
-          const data = new Uint8Array(this.revision === 8 ? 7 : 25), view = new DataView(data.buffer);
+        if (node.sheet !== undefined && scope !== undefined && this.revision === 8) {
+          const data = new Uint8Array(7), view = new DataView(data.buffer);
           data[0] = 0x59;
           const scopeIndex = this.book.sheets.indexOf(scope);
-          if (this.revision === 8) {
-            const externalIndex = this.sheetLink(undefined, scopeIndex, scopeIndex);
-            relocations.push({ offset: bytes.length + 1, index: externalIndex, kind: "sheet" });
-            view.setUint16(1, externalIndex, true); view.setUint16(3, index + 1, true);
-          } else {
-            const externalIndex = current === scope ? this.book.sheets.length + 1 : scopeIndex;
-            view.setInt16(1, -(externalIndex + 1), true); view.setUint16(9, 1, true);
-            view.setUint16(11, index + 1, true); view.setUint16(19, 15, true); view.setUint32(21, ++this.uniqueNameId, true);
-          }
-          relocations.push({ offset: bytes.length + (this.revision === 8 ? 3 : 11), index, kind: "name" });
+          const externalIndex = this.sheetLink(undefined, scopeIndex, scopeIndex);
+          relocations.push({ offset: bytes.length + 1, index: externalIndex, kind: "sheet" });
+          view.setUint16(1, externalIndex, true); view.setUint16(3, index + 1, true);
+          relocations.push({ offset: bytes.length + 3, index, kind: "name" });
           push(data);
         } else {
+          // Internal NAME indices already identify their owning worksheet.
+          // Calc cannot resolve our legacy NameX qualification for duplicates.
           const data = new Uint8Array(this.revision === 8 ? 5 : 15); data[0] = 0x43;
           new DataView(data.buffer).setUint16(1, index + 1, true);
           relocations.push({ offset: bytes.length + 1, index, kind: "name" }); push(data);

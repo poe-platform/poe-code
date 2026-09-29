@@ -133,7 +133,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   let automaticLabelLookup = false;
   let cellCount = 0, textBytes = 0, metadataBytes = 0, formulaWork = 0;
   const boundSheets: BoundSheet[] = [], sheets: PendingSheet[] = [], unsupported: UnsupportedRecord[] = [];
-  const names: { name: string; flags: number; tokens: Uint8Array; arrays: readonly Binary[]; sheetIndex: number; revision: number; codepage: number; record: BiffRecord; owner?: PendingSheet }[] = [];
+  const names: { name: string; flags: number; tokens: Uint8Array; arrays: readonly Binary[]; sheetIndex: number; scopeIsWorksheet: boolean; revision: number; codepage: number; record: BiffRecord; owner?: PendingSheet }[] = [];
   const legacyExternalSheets: (string | null | undefined)[] = [];
   const legacyExternalLinks = new Map<number, LegacyExternalLink>();
   const supbooks: { kind: "local" | "addin" | "external"; names: PendingExternalName[]; workbook?: string; sheets: string[] }[] = [], externalReferences: { book: number; first: number; last: number }[] = [];
@@ -350,7 +350,11 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     }
     if (opcode === 0x18 || opcode === 0x218) {
       const flags = data.u16(0), length = data.u8(3), tokenLength = ver === 2 ? data.u8(4) : data.u16(4);
-      const start = ver >= 7 ? 14 : ver >= 3 ? 6 : 5, sheetIndex = ver >= 8 ? data.u16(8) : ver >= 7 ? data.u16(6) : 0;
+      const start = ver >= 7 ? 14 : ver >= 3 ? 6 : 5;
+      // The worksheet scope is explicit in modern NAME headers. Older BIFF7
+      // producers (including our earlier exports) only populated EXTERNSHEET.
+      const scopeIsWorksheet = ver >= 8 || (ver >= 7 && data.u16(8) !== 0);
+      const sheetIndex = scopeIsWorksheet ? data.u16(8) : ver >= 7 ? data.u16(6) : 0;
       const cursor = new BiffStrings([new Binary(data.slice(start, data.bytes.length - start))], context, codepage);
       let name: string;
       if (flags & 0x20 && length) {
@@ -363,7 +367,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       } else name = ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length);
       const formula = formulaParts(index, start + cursor.consumedBytes, tokenLength); index = formula.next;
       names.push({ name: accountText(name), flags, tokens: formula.tokens, arrays: formula.arrays,
-        sheetIndex, revision: ver, codepage, record, ...(sheet ? { owner: sheet } : {}) }); continue;
+        sheetIndex, scopeIsWorksheet, revision: ver, codepage, record, ...(sheet ? { owner: sheet } : {}) }); continue;
     }
     if (ignoredOpcodes.has(opcode)) continue;
     if (opcode === 0xf) { if (sheet) sheet.view.referenceMode = data.u16(0) ? "A1" : "R1C1"; continue; }
@@ -527,7 +531,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   const localSheets = sheets.map(sheet => sheet.name);
   const nameSheets = names.map(name => {
     if (!name.sheetIndex) return undefined;
-    return (name.revision >= 8 ? sheets[name.sheetIndex - 1]?.name : (name.owner?.legacyExternalSheets ?? legacyExternalSheets)[name.sheetIndex - 1]) ?? undefined;
+    return (name.scopeIsWorksheet ? sheets[name.sheetIndex - 1]?.name : (name.owner?.legacyExternalSheets ?? legacyExternalSheets)[name.sheetIndex - 1]) ?? undefined;
   });
   const externalNameTables = new Map<PendingExternalName[], readonly (BiffExternalName | undefined)[]>();
   const formulaNames = names.map(name => name.name);

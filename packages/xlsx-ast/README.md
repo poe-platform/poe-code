@@ -19,6 +19,12 @@ Supply explicit input/output streams and operation options to the engine, then
 call `engine.dispose()` when finished. The existing XLSX format module provides
 ssconvert service registration around these same functions.
 
-This private workspace is shipped through the containing products. Its current
-Gnumeric compatibility profile and documented fidelity limits still apply;
-raw ISO-date provenance for CSVKit is not yet implemented here.
+For table import, `readCachedXlsx` accepts an admitted ZIP archive, its codec and
+limits, a cancellation signal, and aggregate `work`/`retain` admission callbacks.
+It returns stored values without parsing formulas, preserves ISO date strings and
+declared dimensions, and exposes the workbook epoch and active sheet index.
+Built-in number formats remain numeric IDs; custom formats remain strings.
+
+This private workspace is shipped through the containing products. The full
+`readXlsx` reader retains its Gnumeric compatibility profile and documented
+fidelity limits.

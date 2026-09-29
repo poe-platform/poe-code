@@ -11805,17 +11805,7 @@ export class Runtime {
           return false;
         }
         if ((w0Plain === "command" && cmd.words[1]?.plain === "-v") || (w0Plain === "type" && cmd.words[1]?.plain === "-t")) {
-          if (
-            p.commands.length === 1 &&
-            cmd.words.length === 3 &&
-            !rawState.functions.has(w0Plain) &&
-            !rawState.extensions?.builtins.has(w0Plain) &&
-            this.isPureSyncValueWord(cmd.words[2]!, rawState) &&
-            ((cmd.words[2]!.plain !== undefined && this.tryResolveSyncDiscovery(w0Plain === "command" ? "name" : "kind", cmd.words[2]!.plain, rawState) !== undefined) ||
-              (this._isMemoryBackingFs && (this.backingFs as { capabilities?: { permissions?: boolean } })?.capabilities?.permissions !== true))
-          ) {
-            continue;
-          }
+          // PATH entries can change after admission, making discovery decline.
           return false;
         }
         const isFileCommand =
@@ -11847,10 +11837,9 @@ export class Runtime {
           if (w0Plain === "tr" && !hasSingleStdinRedir && !hasSingleHereStringRedir) return false;
           if (w0Plain === "grep" && rawState.errexit) return false;
           if (!hasSingleHereStringRedir) {
-            const fPlain = hasSingleStdinRedir ? cmd.redirects[0]!.target.plain : cmd.words[cmd.words.length - 1]?.plain;
-            if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return false;
-            const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain), false);
-            if (!vCheck || vCheck.byteLength > 16384 || vCheck.includes(0)) return false;
+            // File content/size can change after admission. Execute through the
+            // normal subshell path rather than trusting a one-time file probe.
+            return false;
           }
           const opWords = (hasSingleStdinRedir || hasSingleHereStringRedir) ? cmd.words.slice(1) : cmd.words.slice(1, -1);
           const opCount = opWords.length;
@@ -11893,6 +11882,8 @@ export class Runtime {
               if (jqIn === undefined || this.evalSyncJq(jqIn, plainOps) === undefined) return false;
             } else if (w0Plain === "wc") {
               if (opCount !== 1 || this.normalizeSyncWcFlag(op0) === undefined) return false;
+              // Word counting may decline on later non-ASCII input or locale changes.
+              if (this.normalizeSyncWcFlag(op0) === "-w") return false;
             } else if (w0Plain === "sort") {
               if (plainOps.length !== opCount || this.evalSyncSort([], plainOps, byteLocale(rawState.variables)) === undefined) return false;
             } else if (w0Plain === "uniq") {
@@ -12601,6 +12592,7 @@ export class Runtime {
         if (cmd.kind !== "simple") return false;
         // Nested step execution does not implement redirects; use normal execution.
         if (nested && cmd.redirects.length !== 0) return false;
+        if (cmd.words.length === 0) return false;
         if (cmd.redirects.length === 1) {
           const r0Check = cmd.redirects[0]!;
           const w0DevPlain = cmd.words[0]!.plain;

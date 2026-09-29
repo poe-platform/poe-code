@@ -15,19 +15,36 @@ export class BiffOutput {
     view.setUint16(0, opcode, true); view.setUint16(2, payload.length, true); bytes.set(payload, 4);
     this.parts.push(bytes); this.length += bytes.length; return at;
   }
-  /** Token boundaries avoid interrupting inline strings with width changes. */
-  continuedRecord(opcode: number, payload: Uint8Array, boundaries?: readonly number[]): number {
+  /** Keep tokens/elements intact; oversized UTF-16 array strings carry width flags. */
+  continuedRecord(opcode: number, payload: Uint8Array, boundaries?: readonly number[],
+    strings: readonly { start: number; end: number }[] = []): number {
     const at = this.length;
-    let offset = 0, next = 0;
+    let offset = 0, next = 0, stringIndex = 0;
     do {
-      const maximum = Math.min(payload.length, offset + this.maximumRecord);
+      while (strings[stringIndex] && strings[stringIndex]!.end <= offset) stringIndex++;
+      const continuedString = strings[stringIndex] && strings[stringIndex]!.start < offset;
+      const prefix = continuedString ? 1 : 0;
+      const maximum = Math.min(payload.length, offset + this.maximumRecord - prefix);
       let end = maximum;
       if (boundaries && maximum < payload.length) {
         end = offset;
         while (next < boundaries.length && boundaries[next]! <= maximum) end = boundaries[next++]!;
+        let candidate = stringIndex;
+        while (strings[candidate] && strings[candidate]!.end <= maximum) candidate++;
+        const string = strings[candidate];
+        if (string && string.end - string.start + 4 > this.maximumRecord &&
+          string.start < maximum && maximum < string.end) {
+          const characterEnd = maximum - (maximum - string.start) % 2;
+          if (characterEnd > string.start) end = Math.max(end, characterEnd);
+        }
         if (end <= offset) throw new SsconvertError("unsupported-feature", "Excel BIFF formula token is too large");
       }
-      this.record(offset === 0 ? opcode : 0x3c, payload.subarray(offset, end));
+      let part = payload.subarray(offset, end);
+      if (prefix) {
+        const continued = new Uint8Array(part.length + 1); continued[0] = 1;
+        continued.set(part, 1); part = continued;
+      }
+      this.record(offset === 0 ? opcode : 0x3c, part);
       offset = end;
     } while (offset < payload.length);
     return at;

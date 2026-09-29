@@ -3039,7 +3039,7 @@
         "remaining": "The 256-sheet BIFF7 expansion now passes with FORMULA continuation (see continuation). BIFF relative-copy loss, named/computed span sources, Gnumeric native INDEX semantics and wider format qualification remain open. No issue/family closure."
       },
       "continuation": {
-        "implementation": "Scalar FORMULA tokens continue across bounded BIFF7/8 physical records; the reader reassembles declared tokens before decoding. Writer splits at token boundaries to preserve inline string encoding, charges every physical record against quotas and rejects token lengths beyond the 16-bit header. Auxiliary payloads now continue at complete element boundaries (see arrayElements); oversized individual strings remain open.",
+        "implementation": "Scalar FORMULA tokens continue across bounded BIFF7/8 physical records; the reader reassembles declared tokens before decoding. Writer splits at token boundaries to preserve inline string encoding, charges every physical record against quotas and rejects token lengths beyond the 16-bit header. Auxiliary payloads now continue at complete element boundaries (see arrayElements); oversized BIFF8 strings now carry continuation width flags (see longArrayStrings).",
         "source": {
           "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/excel/ms-biff.c",
           "readerLines": "514-578",
@@ -3049,13 +3049,13 @@
         "validation": "Original continuation, inline-string-boundary and 16-bit-length failures reproduced before repair. Final 69-file BIFF cohort passes 1721 tests, including nine continuation regressions; package lint/source/test/consumer types and selected workspace build pass.",
         "publicQualification": "Four compiled SDK/command BIFF7/8 outputs contain 256 sheets and produce INDEX=20, ROW(INDEX)=2 and a continued literal LEN=6000. SDK caches deliberately start at 999. Both Calc 26.8.0.3 readbacks preserve all six live formulas and independently replace those caches with 20/2/6000. Gnumeric 1.12.61 also recalculates both continued literals to 6000; its INDEX cases remain #REF! and are not passing INDEX qualification.",
         "rejectedApproach": "Raw byte splitting corrupted Calc inline literals (BIFF7 #N/A; BIFF8 LEN=2175). Final token-boundary splitting yields 6000 in both readers.",
-        "remaining": "Oversized individual auxiliary strings and Gnumeric ARRAY-group readback, native relative copying, named/computed INDEX sources, Gnumeric INDEX SET semantics and other format qualification remain open. No issue/family closure.",
+        "remaining": "Gnumeric continued Unicode auxiliary strings and ARRAY-group readback, native relative copying, named/computed INDEX sources, Gnumeric INDEX SET semantics and other format qualification remain open. No issue/family closure.",
         "arrayElements": {
           "source": "Gnumeric 325ef79a ms-formula-write.c:933-974 writes auxiliary array dimensions followed by typed row-major elements; ms-biff.c splits the physical record. Preserve Unicode string boundaries as required by LibreOffice XclImpStream.",
-          "implementation": "Compiler records boundaries after each array header and complete element. FORMULA continuation includes these offsets after token offsets, preserving multiple-array order and avoiding mid-string width flags. Oversized individual elements still fail explicitly.",
+          "implementation": "Compiler records boundaries after each array header and complete element. FORMULA continuation includes these offsets after token offsets, preserving multiple-array order and avoiding mid-string width flags. Oversized BIFF8 strings are handled separately with explicit width flags (see longArrayStrings).",
           "validation": "Six original oversized-array failures reproduced before repair. All 1727 tests in 69 BIFF files pass; maintained package lint/source/test/consumer types and selected workspace build pass.",
           "publicQualification": "Four compiled SDK/command outputs (40960-byte BIFF7 and 52224-byte BIFF8) preserve SUM of a 32x32 array, COUNTA of a Unicode string array, and two independent 4x256 arrays. Both Calc 26.8.0.3 and Gnumeric 1.12.61 replace stale 999 caches with 1024/256/5120. Calc preserves all six live formulas and all 5120 Unicode pairs per string array.",
-          "remaining": "A single auxiliary string larger than the physical record, Gnumeric ARRAY-group readback remain open; no issue/family closure."
+          "remaining": "Gnumeric continued Unicode auxiliary strings and ARRAY-group readback remain open; no issue/family closure."
         },
         "names": {
           "source": "Gnumeric 325ef79a ms-biff.c:538-539 explicitly continues NAME records; token and auxiliary element boundaries follow the qualified FORMULA representation.",
@@ -3063,7 +3063,7 @@
           "validation": "Eight original large-name failures repaired. Final 1735 tests in 69 BIFF files, package lint/source/test/consumer types and selected workspace build pass. The malformed-name control now expects the precise missing-CONTINUE diagnostic.",
           "publicQualification": "Four compiled SDK/command BIFF7/8 outputs preserve global/local names and aliases; recalculation gives 6000/1024, and editing their definitions yields 7/9. Calc and Gnumeric replace stale 999 caches with 6000/1024. Calc retains named cell formulas, four definitions and all 6000 Unicode characters.",
           "nativeScopeLimit": "Calc preserves BIFF8 name scopes, but BIFF7 local names become global. Source xiname.cxx:76-85 reads both NAME scope fields; product BIFF7 writes only offset 6, leaving the offset-8 locality field zero. Independently tracked as hey-boss #4075; not a passing scope profile.",
-          "remaining": "BIFF7 native scope (#4075), Gnumeric ARRAY-group readback, oversized individual auxiliary strings, named/computed INDEX spans and wider name qualification remain open. No issue/family closure."
+          "remaining": "BIFF7 native scope (#4075), Gnumeric ARRAY-group readback, Gnumeric continued Unicode auxiliary strings, named/computed INDEX spans and wider name qualification remain open. No issue/family closure."
         },
         "groups": {
           "implementation": "ARRAY-group export continues at token and complete auxiliary-element boundaries. Group import uses the same bounded token reassembly as scalar FORMULA and NAME while retaining the original group range and anchor.",
@@ -3071,7 +3071,15 @@
           "validation": "Four original oversized-group failures repaired. Final 1739 tests in 69 BIFF files pass, with package lint/source/test/consumer types and selected workspace build.",
           "publicQualification": "Four compiled SDK/command BIFF7/8 outputs preserve two live groups (A1:A2, A3:A4). Both Calc 26.8.0.3 readbacks independently replace four stale 999 caches with 6000/6000/1024/1024, retain array formula types and ranges, and preserve all Unicode characters.",
           "gnumericLimit": "Gnumeric 1.12.61 warns at excel_formula_shared that the first physical record is shorter than the declared token bytes. It retains two stale 999 caches and returns two #ShortStack! values. This is a failed Gnumeric group profile, not successful native qualification.",
-          "remaining": "Gnumeric continued-group interoperability, oversized individual auxiliary strings, BIFF7 native name scope (#4075), named/computed INDEX spans and broader profiles remain open. No issue/family closure."
+          "remaining": "Gnumeric continued-group interoperability, Gnumeric continued Unicode auxiliary strings, BIFF7 native name scope (#4075), named/computed INDEX spans and broader profiles remain open. No issue/family closure."
+        },
+        "longArrayStrings": {
+          "source": "LibreOffice bce0998a XclImpStream::ReadRawUniString follows physical continuations using a fresh character-width flag. The existing BiffStrings reader implements that convention. Gnumeric auto-concatenation does not remove those flags from auxiliary strings.",
+          "implementation": "Compiler records BIFF8 array character spans. Physical record splitting uses UTF-16 code-unit boundaries and emits a width byte only when continuing oversized character data. Tokens, headers and strings that fit in a fresh record retain complete boundaries, preserving already-qualified short-string interoperability. Every added prefix is charged through the existing physical-record quotas.",
+          "validation": "Three original scalar/name/group failures repaired; an additional failing boundary control caught unnecessary splitting of short strings and was repaired before delivery. All 1742 tests in 69 BIFF files, package lint/source/test/consumer types and selected workspace build pass.",
+          "publicQualification": "Four compiled SDK/command long/control outputs pass. Calc 26.8.0.3 replaces stale caches with 18000/18000/18000/after, preserves the name and array-group identity, and preserves all 9000 Unicode pairs in each long string. Both Calc and Gnumeric 1.12.61 retain the short-string control result 256.",
+          "gnumericLimit": "Long profile fails: Gnumeric emits malformed-array warnings, returns #ShortStack! for the group and 0 for the following after element. Its first two LEN results of 18000 do not establish text fidelity and are not counted as successful long-string qualification.",
+          "remaining": "Gnumeric continued Unicode strings/groups, BIFF7 native name scope (#4075), named/computed INDEX spans and wider format qualification remain open. No issue/family closure."
         }
       },
       "namedSpanInvestigation": {

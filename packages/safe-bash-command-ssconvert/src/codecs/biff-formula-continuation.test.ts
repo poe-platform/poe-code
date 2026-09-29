@@ -93,6 +93,8 @@ for (const revision of [7, 8] as const) {
     const records = readBiffRecords(readCfb(bytes, context).get(revision === 7 ? "Book" : "Workbook")!, context);
     expect(records.some(record => record.opcode === 0x3c)).toBe(true);
     expect(records.every(record => record.data.bytes.length <= (revision === 7 ? 2080 : 8224))).toBe(true);
+    if (formula.startsWith("=COUNTA("))
+      expect(records.filter(record => record.opcode === 0x3c).every(record => record.data.u8(0) === 2)).toBe(true);
     const reopened = await readBiff(bytes, context);
     expect(reopened.sheets[0]!.cells[0]!.cachedResult).toEqual({ kind: "number", value: 999 });
     expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: expected });
@@ -137,3 +139,20 @@ for (const revision of [7, 8] as const) {
       .toEqual([0, 1].map(() => ({ kind: "number", value: expected })));
   });
 }
+
+it.each(["cell", "name", "group"] as const)("continues a single BIFF8 auxiliary string in a %s", async kind => {
+  const expression = `=LEN(INDEX({"${"é€".repeat(9000)}","after"},1,1))`;
+  const book: Workbook = { ...(kind === "name" ? { names: [{ name: "LongText", expression }] } : {}),
+    sheets: [{ id: "s", name: "S", ...(kind === "group" ? { formulaGroups: [{ id: "g", kind: "array" as const,
+      expression, range: { startRow: 0, endRow: 0, startColumn: 0, endColumn: 0 } }] } : {}),
+      cells: [{ row: 0, column: 0, formula: kind === "name" ? "=LongText" : expression,
+        ...(kind === "group" ? { formulaGroup: "g" } : {}), value: { kind: "number", value: 999 } }] }] };
+  const bytes = await createBiffWriter(8)(book, [], context);
+  const records = readBiffRecords(readCfb(bytes, context).get("Workbook")!, context);
+  expect(records.every(record => record.data.bytes.length <= 8224)).toBe(true);
+  const reopened = await readBiff(bytes, context);
+  expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 18000 });
+  const recovered = kind === "name" ? reopened.names!.find(name => name.name === "LongText")!.expression
+    : kind === "group" ? reopened.sheets[0]!.formulaGroups![0]!.expression : reopened.sheets[0]!.cells[0]!.formula;
+  expect(recovered).toBe(expression);
+});

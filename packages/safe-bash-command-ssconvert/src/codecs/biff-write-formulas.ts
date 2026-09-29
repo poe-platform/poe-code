@@ -22,6 +22,7 @@ export interface CompiledBiffFormula {
   readonly tokenBoundaries: readonly number[];
   readonly arrays: Uint8Array;
   readonly arrayBoundaries: readonly number[];
+  readonly arrayStrings: readonly { start: number; end: number }[];
   readonly diagnostics: readonly Diagnostic[];
   readonly nameDependencies: readonly number[];
 }
@@ -152,6 +153,7 @@ export class BiffFormulaWriter {
       parse(source, { sheet, row, column });
     const bytes: number[] = [], arrays: number[] = [], diagnostics: Diagnostic[] = [];
     const tokenBoundaries: number[] = [], arrayBoundaries: number[] = [];
+    const arrayStrings: { start: number; end: number }[] = [];
     const boundary = () => {
       if (bytes.length && tokenBoundaries.at(-1) !== bytes.length) tokenBoundaries.push(bytes.length);
     };
@@ -385,7 +387,11 @@ export class BiffFormulaWriter {
         for (const arrayRow of node.rows) for (const item of arrayRow) {
           if (item.kind !== "literal") throw new SsconvertError("unsupported-feature", "Excel BIFF array requires literals");
           const value = item.value;
-          if (value.kind === "string") { push([2], arrays); push(biffString(value.value, this.revision, this.context, this.revision === 8 ? 2 : 1), arrays); }
+          if (value.kind === "string") {
+            const start = arrays.length + 4;
+            push([2], arrays); push(biffString(value.value, this.revision, this.context, this.revision === 8 ? 2 : 1), arrays);
+            if (this.revision === 8 && arrays.length > start) arrayStrings.push({ start, end: arrays.length });
+          }
           else { const data = new Uint8Array(9), view = new DataView(data.buffer);
             data[0] = value.kind === "number" ? 1 : value.kind === "boolean" ? 4 : value.kind === "error" ? 16 : 0;
             if (value.kind === "number") view.setFloat64(1, value.value, true);
@@ -402,7 +408,7 @@ export class BiffFormulaWriter {
       throw new SsconvertError("unsupported-feature", "Excel BIFF formula token length exceeds version limits");
     const tokens = new Uint8Array(bytes);
     for (const relocation of relocations) this.relocations.push({ ...relocation, tokens });
-    return { tokens, tokenBoundaries, arrays: new Uint8Array(arrays), arrayBoundaries, diagnostics,
+    return { tokens, tokenBoundaries, arrays: new Uint8Array(arrays), arrayBoundaries, arrayStrings, diagnostics,
       nameDependencies: relocations.filter(relocation => relocation.kind === "name").map(relocation => relocation.index) };
   }
 }

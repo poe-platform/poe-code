@@ -117,7 +117,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
       const group = sheet.formulaGroups?.find(group => group.id === cell.formulaGroup && group.kind === "array");
       if (group) {
         formulas.set(cell, { tokens: new Uint8Array([dataTables.has(group) ? 2 : 1, ...words(group.range.startRow, group.range.startColumn)]),
-          tokenBoundaries: [5], arrays: new Uint8Array(), arrayBoundaries: [], diagnostics: [], nameDependencies: [] });
+          tokenBoundaries: [5], arrays: new Uint8Array(), arrayBoundaries: [], arrayStrings: [], diagnostics: [], nameDependencies: [] });
       } else if (cell.formula) { const formula = formulaWriter.compile(cell.formula, sheet.id, cell.row, cell.column, undefined, cell.arrayStringLiterals);
         formulas.set(cell, formula); for (const diagnostic of formula.diagnostics) await context.diagnostic?.(diagnostic); }
     }
@@ -187,7 +187,9 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
     const start = header.length + text.length - 1;
     output.continuedRecord(0x18, join(join(header, text.subarray(1)), join(formula.tokens, formula.arrays)),
       [start, ...formula.tokenBoundaries.map(offset => offset + start),
-        ...formula.arrayBoundaries.map(offset => offset + start + formula.tokens.length)]);
+        ...formula.arrayBoundaries.map(offset => offset + start + formula.tokens.length)],
+      formula.arrayStrings.map(span => ({ start: start + formula.tokens.length + span.start,
+        end: start + formula.tokens.length + span.end })));
   }
   if (revision === 8) {
     metadata.global(output); sst(output, strings, context);
@@ -222,7 +224,9 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
           data[4] = group.range.startColumn; data[5] = Math.min(group.range.endColumn, 255); view.setUint16(12, formula.tokens.length, true);
           data.set(formula.tokens, 14); data.set(formula.arrays, 14 + formula.tokens.length);
           output.continuedRecord(0x221, data, [14, ...formula.tokenBoundaries.map(offset => offset + 14),
-            ...formula.arrayBoundaries.map(offset => offset + 14 + formula.tokens.length)]);
+            ...formula.arrayBoundaries.map(offset => offset + 14 + formula.tokens.length)],
+          formula.arrayStrings.map(span => ({ start: 14 + formula.tokens.length + span.start,
+            end: 14 + formula.tokens.length + span.end })));
         }
       }
       const cached = cell.cachedResult ?? cell.value;
@@ -295,9 +299,11 @@ async function writeCell(output: BiffOutput, cell: Cell, xf: number, revision: 7
       data[12] = 255; data[13] = 255; }
     view.setUint16(14, cell.formulaDirty ? 3 : 0, true); view.setUint16(20, formula.tokens.length, true);
     data.set(formula.tokens, 22); data.set(formula.arrays, 22 + formula.tokens.length);
-    // Keep each auxiliary element intact to avoid interrupting string widths.
+    // Split auxiliary character data only with an explicit continuation width.
     output.continuedRecord(6, data, [22, ...formula.tokenBoundaries.map(offset => offset + 22),
-      ...formula.arrayBoundaries.map(offset => offset + 22 + formula.tokens.length)]);
+      ...formula.arrayBoundaries.map(offset => offset + 22 + formula.tokens.length)],
+    formula.arrayStrings.map(span => ({ start: 22 + formula.tokens.length + span.start,
+      end: 22 + formula.tokens.length + span.end })));
     return;
   }
   if (value.kind === "number") { const data = new Uint8Array(14); data.set(header); new DataView(data.buffer).setFloat64(6, value.value, true); output.record(0x203, data); }

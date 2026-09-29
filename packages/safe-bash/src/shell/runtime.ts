@@ -26335,7 +26335,7 @@ export class Runtime {
     return out;
   }
 
-  private evalSyncPaste(rawLines: readonly string[], opArgs: readonly string[], cwd?: string, allowZero = false): string[] | undefined {
+  private evalSyncPaste(rawLines: readonly string[] | undefined, opArgs: readonly string[], cwd?: string, allowZero = false): string[] | undefined {
     let serial = false;
     let zeroTerm = false;
     let delims: string[] = ["\t"];
@@ -26395,6 +26395,10 @@ export class Runtime {
       }
     }
     if (files.length === 0) files.push("-");
+    if (rawLines === undefined) {
+      if (files.includes("-")) return undefined;
+      rawLines = [];
+    }
     if (!files.every(f => f === "-")) {
       if (cwd === undefined) return rawLines.length === 0 ? [] : undefined;
       const stdinCount = files.filter(f => f === "-").length;
@@ -30905,7 +30909,7 @@ export class Runtime {
         let cjLines: string[] | undefined;
         if (w0Plain === "comm") cjLines = this.evalSyncComm(stdinLines, allArgs, rawState.cwd);
         else if (w0Plain === "join") cjLines = this.evalSyncJoin(stdinLines, allArgs, rawState.cwd);
-        else if (w0Plain === "paste") cjLines = this.evalSyncPaste(stdinLines ?? [], allArgs, rawState.cwd);
+        else if (w0Plain === "paste") cjLines = this.evalSyncPaste(stdinLines, allArgs, rawState.cwd);
         else if (w0Plain === "factor") cjLines = this.evalSyncFactor(stdinLines, allArgs);
         else if (w0Plain === "tsort") cjLines = this.evalSyncTsort(stdinLines, allArgs, rawState.cwd);
         else if (w0Plain === "jq") cjLines = this.evalSyncJq(undefined, allArgs, rawState.cwd);
@@ -31071,7 +31075,7 @@ export class Runtime {
               const nlRes = (!hasSingleHereStringRedir && !hasSingleStdinRedir && opArgs.some(a => !a.startsWith("-"))) ? this.evalSyncNl([], allArgs, rawState.cwd) : this.evalSyncNl(rawLines, opArgs, rawState.cwd);
               if (nlRes !== undefined) fileRes = renderLines(nlRes);
             } else if (w0Plain === "paste") {
-              const pasteRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncPaste(rawLines, opArgs, rawState.cwd) : this.evalSyncPaste([], allArgs, rawState.cwd);
+              const pasteRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncPaste(rawLines, opArgs, rawState.cwd) : this.evalSyncPaste(undefined, allArgs, rawState.cwd);
               if (pasteRes !== undefined) fileRes = renderLines(pasteRes);
             } else if (w0Plain === "comm") {
               const commRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncComm(rawLines, opArgs, rawState.cwd) : this.evalSyncComm([], allArgs, rawState.cwd);

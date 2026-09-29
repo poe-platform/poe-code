@@ -27,6 +27,7 @@ test("issue 4106 substitution parity regressions remain in active discovery", ()
 test("issue 4110 CSV stdin and locale regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/substitution-stdin-locale-4110.test.ts"));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/substitution-paste-nl-4103.test.ts"));
 });
 
 test("Python LLM host budget regressions remain in active discovery", () => {

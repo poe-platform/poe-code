@@ -249,7 +249,10 @@ export function evalSyncGit(
   cwd: string,
   inspectNode?: (path: string, follow: boolean) => SyncGitNodeInfo | undefined,
   readFile?: (path: string) => Uint8Array | undefined,
-  executeFn?: CommandDefinition["execute"]
+  executeFn?: CommandDefinition["execute"],
+  writeFileSync?: (path: string, bytes: Uint8Array, mode?: number) => boolean,
+  mkdirSync?: (path: string) => boolean,
+  rmSync?: (path: string) => boolean,
 ): string | undefined {
   if (executeFn) {
     const meta = gitCommandMeta.get(executeFn);
@@ -261,7 +264,8 @@ export function evalSyncGit(
       }
     }
   }
-  if (!isReadOnlyGitArgs(args)) return undefined;
+  const readOnly = isReadOnlyGitArgs(args);
+  if (!readOnly && (!writeFileSync || !mkdirSync || !rmSync)) return undefined;
   if (args.length === 1 && (args[0] === "--version" || args[0] === "-v" || args[0] === "version")) {
     return "git version 0.0.0-development\n";
   }
@@ -320,13 +324,39 @@ export function evalSyncGit(
       exports.git_free(ptr, input.length);
     }
     if (result.exitCode !== 0 || result.stderr !== "" || result.request) return undefined;
-    if (!entriesUnchanged(entries, result.entries)) return undefined;
     const outStr = typeof result.stdoutBytes === "string" ? decoder.decode(decode(result.stdoutBytes)) : result.stdout;
-    if (readOnlyGitResultCache.size >= 32) {
-      const oldest = readOnlyGitResultCache.keys().next().value;
-      if (oldest !== undefined) readOnlyGitResultCache.delete(oldest);
+    if (entriesUnchanged(entries, result.entries)) {
+      if (readOnly) {
+        if (readOnlyGitResultCache.size >= 32) {
+          const oldest = readOnlyGitResultCache.keys().next().value;
+          if (oldest !== undefined) readOnlyGitResultCache.delete(oldest);
+        }
+        readOnlyGitResultCache.set(inputJson, outStr);
+      }
+      return outStr;
     }
-    readOnlyGitResultCache.set(inputJson, outStr);
+    if (!writeFileSync || !mkdirSync || !rmSync || !result.entries) return undefined;
+    const prior = new Map(entries.map(e => [e.path, e]));
+    const next = new Map(result.entries.map(e => [e.path, e]));
+    for (const e of result.entries) {
+      if (e.kind === "symlink" && prior.get(e.path)?.data !== e.data) return undefined;
+    }
+    const removed = entries.filter(e => !next.has(e.path) || next.get(e.path)!.kind !== e.kind).sort((a, b) => b.path.length - a.path.length);
+    for (const e of removed) {
+      if (!rmSync(e.path)) return undefined;
+    }
+    for (const e of result.entries.filter(e => e.kind === "directory").sort((a, b) => a.path.length - b.path.length)) {
+      if (prior.get(e.path)?.kind !== "directory") {
+        if (!mkdirSync(e.path)) return undefined;
+      }
+    }
+    for (const e of result.entries.filter(e => e.kind === "file")) {
+      const p = prior.get(e.path);
+      if (!p || p.kind !== "file" || p.data !== e.data || p.mode !== e.mode) {
+        if (!writeFileSync(e.path, decode(e.data), e.mode)) return undefined;
+      }
+    }
+    readOnlyGitResultCache.clear();
     return outStr;
   } catch {
     return undefined;

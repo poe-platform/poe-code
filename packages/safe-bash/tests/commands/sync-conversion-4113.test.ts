@@ -7,6 +7,8 @@ import { pandocCommands } from "../../src/commands/pandoc/index.js";
 import { wkhtmltopdfCommands } from "../../src/commands/wkhtmltopdf/index.js";
 import { gpgCommands } from "../../src/commands/gpg/index.js";
 import { sshCommands } from "../../src/commands/ssh/index.js";
+import { ffmpegCommands } from "../../src/commands/ffmpeg/index.js";
+import { gitCommands } from "../../src/commands/git/index.js";
 import { mmdcCommands } from "../../src/commands/mmdc/index.js";
 import { pdftotextCommands } from "../../src/commands/pdftotext/index.js";
 import { pdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
@@ -1921,5 +1923,33 @@ test("Wave 235: pandoc conversion/-o, wkhtmltopdf file output, gpg -o, and ssh-k
   assert.equal(
     res.stdout.trim(),
     "<h1 id=\"wave-235-heading\">Wave 235 Heading</h1><p>Paragraph body.</p>|Wave 235 Heading|Wave 235 Heading|%PDF-|-----BEGIN PGP PUBLIC KEY BLOCK-----|-----BEGIN PGP SIGNATURE-----|Signing file /tmp/w235.md|-----BEGIN SSH SIGNATURE-----|# Host oldhost.local found: removed|1"
+  );
+});
+
+test("Wave 236: ffmpeg lavfi/transcoding/muxing and git init/config/add/commit/branch/tag in sync command substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(ffmpegCommands())
+    .use(gitCommands());
+  const res = await shell.exec(`
+    f1=$(ffmpeg -y -f lavfi -i testsrc=duration=0.4:size=16x12:rate=5 /tmp/w236.mp4)
+    fp1=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 /tmp/w236.mp4)
+    f2=$(ffmpeg -y -i /tmp/w236.mp4 -vf scale=8:6 /tmp/w236_scaled.mp4)
+    fp2=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 /tmp/w236_scaled.mp4)
+    f3=$(ffmpeg -y -f lavfi -i sine=frequency=440:duration=0.2 /tmp/w236.wav)
+    fp3=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 /tmp/w236.wav)
+    g1=$(git init /tmp/w236_repo | head -n 1 | grep -o "Initialized empty Git repository")
+    g2=$(git -C /tmp/w236_repo config user.name "Ada" && git -C /tmp/w236_repo config user.email "ada@example.com")
+    printf "hello git\n" > /tmp/w236_repo/hello.txt
+    g3=$(git -C /tmp/w236_repo add hello.txt && git -C /tmp/w236_repo commit -m "initial commit" >/dev/null && git -C /tmp/w236_repo log -n 1 --pretty=%s)
+    g4=$(git -C /tmp/w236_repo branch feature && git -C /tmp/w236_repo tag v1.0 && git -C /tmp/w236_repo tag -l)
+    printf "%s|%s|%s|%s|%s|%s\\n" "\$fp1" "\$fp2" "\$fp3" "\$g1" "\$g3" "\$g4"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "16,12|8,6|pcm_s16le|Initialized empty Git repository|initial commit|v1.0"
   );
 });

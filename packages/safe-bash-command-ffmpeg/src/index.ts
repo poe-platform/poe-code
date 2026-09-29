@@ -1199,8 +1199,16 @@ function getDefaultMediaRegistry(): { astPlugins: readonly MediaAstPlugin[]; reg
   return { astPlugins: defaultAstPluginsCache, registry: defaultRegistryCache };
 }
 
-export function evalSyncFfmpeg(args: readonly string[]): string | undefined {
+export function evalSyncFfmpeg(
+  inBytesOrArgs: Uint8Array | readonly string[] | undefined,
+  maybeArgs?: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
+): string | undefined {
+  const inBytes = Array.isArray(inBytesOrArgs) ? undefined : (inBytesOrArgs as Uint8Array | undefined);
+  const args = (Array.isArray(inBytesOrArgs) ? inBytesOrArgs : (maybeArgs ?? [])) as readonly string[];
   if (args.length === 0) return undefined;
+  const { astPlugins, registry } = getDefaultMediaRegistry();
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     if (
@@ -1218,10 +1226,232 @@ export function evalSyncFfmpeg(args: readonly string[]): string | undefined {
       arg === "-protocols" ||
       arg === "-filters"
     ) {
-      return formatIntrospectionOutput(arg, getDefaultMediaRegistry().astPlugins);
+      return formatIntrospectionOutput(arg, astPlugins);
     }
   }
-  return undefined;
+  try {
+    const budget = new MediaBudgetTracker();
+    const inputs: InputSpec[] = [];
+    let pendingFormat: string | undefined;
+    let pendingSs: number | undefined;
+    let pendingTo: number | undefined;
+    let pendingDuration: number | undefined;
+    let pendingLoop: number | undefined;
+    let pendingFps: number | undefined;
+    let pendingStartNumber: number | undefined;
+    let outputStartNumber: number | undefined;
+    let outputFormat: string | undefined;
+    let outputSs: number | undefined;
+    let outputTo: number | undefined;
+    let outputDuration: number | undefined;
+    let videoCodec: string | undefined;
+    let audioCodec: string | undefined;
+    let audioRate: number | undefined;
+    let audioChannels: number | undefined;
+    let stripAudio = false;
+    let stripVideo = false;
+    let stripSubtitles = false;
+    let shortest = false;
+    let faststart = true;
+    let fragmented = false;
+    let maxVideoFrames: number | undefined;
+    let outputFps: number | undefined;
+    let outputSize: string | undefined;
+    let rotation: number | undefined;
+    let noOverwrite = false;
+    const vfFilters: string[] = [];
+    const afFilters: string[] = [];
+    const metadata: Record<string, string> = {};
+    let outputTarget: string | undefined;
+
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i]!;
+      if (arg === "-y") noOverwrite = false;
+      else if (arg === "-n") noOverwrite = true;
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode" || arg === "-map_metadata" || arg === "-map_chapters") i++;
+      else if (arg === "-start_number") {
+        const val = Number(args[++i]);
+        if (!Number.isSafeInteger(val) || val < 0) return undefined;
+        if (args.slice(i + 1).includes("-i")) pendingStartNumber = val;
+        else outputStartNumber = val;
+      } else if (arg === "-ar") audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
+      else if (arg === "-ac") audioChannels = parseInt(args[++i] ?? "0", 10) || undefined;
+      else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats") continue;
+      else if (arg === "-f") {
+        const val = args[++i];
+        if (inputs.length === 0 || (i + 1 < args.length && args.slice(i + 1).includes("-i"))) pendingFormat = val;
+        else outputFormat = val;
+      } else if (arg === "-ss") {
+        const val = parseFfmpegTimestamp(args[++i] ?? "0");
+        if (args.slice(i + 1).includes("-i")) pendingSs = val;
+        else outputSs = val;
+      } else if (arg === "-to") {
+        const val = parseFfmpegTimestamp(args[++i] ?? "0");
+        if (args.slice(i + 1).includes("-i")) pendingTo = val;
+        else outputTo = val;
+      } else if (arg === "-t") {
+        const val = parseFfmpegTimestamp(args[++i] ?? "0");
+        if (args.slice(i + 1).includes("-i")) pendingDuration = val;
+        else outputDuration = val;
+      } else if (arg === "-stream_loop") pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
+      else if (arg === "-r" || arg === "-framerate") {
+        const val = parseFloat(args[++i] ?? "25") || 25;
+        if (args.slice(i + 1).includes("-i")) pendingFps = val;
+        else outputFps = val;
+      } else if (arg === "-s") outputSize = args[++i];
+      else if (arg === "-i") {
+        inputs.push({
+          path: args[++i] ?? "",
+          format: pendingFormat,
+          startSeconds: pendingSs,
+          endSeconds: pendingTo,
+          durationSeconds: pendingDuration,
+          streamLoop: pendingLoop,
+          fps: pendingFps,
+          startNumber: pendingStartNumber,
+        });
+        pendingFormat = undefined; pendingSs = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
+      } else if (arg === "-c" || arg === "-codec") {
+        const val = args[++i]; videoCodec = val; audioCodec = val;
+      } else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") videoCodec = args[++i];
+      else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") audioCodec = args[++i];
+      else if (arg === "-c:s" || arg === "-scodec" || arg === "-codec:s") i++;
+      else if (arg === "-an") stripAudio = true;
+      else if (arg === "-vn") stripVideo = true;
+      else if (arg === "-sn") stripSubtitles = true;
+      else if (arg === "-shortest") shortest = true;
+      else if (arg === "-frames:v" || arg === "-vframes") maxVideoFrames = parseInt(args[++i] ?? "1", 10) || 1;
+      else if (arg === "-frames:a" || arg === "-aframes") i++;
+      else if (arg === "-movflags") {
+        const flags = args[++i] ?? "";
+        if (flags.includes("faststart")) faststart = true;
+        if (flags.includes("frag_keyframe") || flags.includes("empty_moov")) fragmented = true;
+      } else if (arg === "-vf" || arg === "-filter:v") {
+        const f = args[++i]; if (f) vfFilters.push(f);
+      } else if (arg === "-af" || arg === "-filter:a") {
+        const f = args[++i]; if (f) afFilters.push(f);
+      } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
+        const kv = args[++i] ?? "";
+        const eq = kv.indexOf("=");
+        if (eq >= 0) {
+          const k = kv.slice(0, eq).trim().toLowerCase();
+          const v = kv.slice(eq + 1).trim();
+          if (k === "rotate") rotation = parseInt(v, 10) || 0;
+          else metadata[k] = v;
+        }
+      } else if (arg === "-display_rotation") rotation = Math.abs(parseInt(args[++i] ?? "0", 10) || 0);
+      else if (arg.startsWith("-") && arg !== "-") return undefined;
+      else outputTarget = arg;
+    }
+
+    if (inputs.length === 0 || !outputTarget) return undefined;
+    const isNullMux = outputFormat === "null" || outputTarget === "/dev/null";
+    if (!isNullMux && !writeFileSync) return undefined;
+    if (noOverwrite && !isNullMux && readFileSync?.(outputTarget)) return undefined;
+
+    const loadedDocs: MediaDocument[] = [];
+    for (const inp of inputs) {
+      let doc: MediaDocument;
+      if (inp.format === "lavfi") {
+        doc = parseLavfiSource(
+          inp.path,
+          budget,
+          inp.durationSeconds !== undefined
+            ? (inp.startSeconds ?? 0) + inp.durationSeconds
+            : inp.endSeconds ?? (outputDuration !== undefined ? (inp.startSeconds ?? 0) + (outputSs ?? 0) + outputDuration : outputTo !== undefined ? (inp.startSeconds ?? 0) + outputTo : undefined),
+        );
+      } else {
+        const rawBytes = inp.path === "-" || inp.path === "pipe:" || inp.path === "pipe:0" ? inBytes : readFileSync?.(inp.path);
+        if (!rawBytes || rawBytes.byteLength > 262144) return undefined;
+        budget.checkInputBytes(rawBytes.byteLength);
+        const plugin = registry.detect(rawBytes, inp.path, inp.format);
+        if (!plugin || !plugin.canDemux) return undefined;
+        doc = plugin.parse(rawBytes, { filename: inp.path, budget });
+      }
+      if (inp.startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
+        doc = sliceMp4(doc, { startSeconds: inp.startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds });
+      }
+      if (inp.streamLoop && inp.streamLoop > 0) {
+        doc = concatMp4(Array.from({ length: inp.streamLoop + 1 }, () => doc), { budget });
+      }
+      loadedDocs.push(doc);
+    }
+
+    let workingDoc = muxMp4(loadedDocs, { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
+    if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
+      workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputTo, durationSeconds: outputDuration });
+    }
+    if (outputSize && videoCodec !== "copy") {
+      const [w, h] = outputSize.toLowerCase().split("x");
+      if (w && h) vfFilters.push(`scale=${w}:${h}`);
+    }
+    if (outputFps && videoCodec !== "copy") vfFilters.push(`fps=${outputFps}`);
+    if (vfFilters.length > 0) {
+      const combinedChain = vfFilters.join(",");
+      if (combinedChain.includes("subtitles=")) return undefined;
+      workingDoc = {
+        ...workingDoc,
+        tracks: workingDoc.tracks.map((t) => {
+          if (t.type !== "video") return t;
+          const decoded = ensureDecodedFrames(t, budget);
+          const filtered = applyVideoFilterChain(decoded, combinedChain, budget);
+          const first = filtered[0];
+          return { ...t, width: first?.width ?? t.width, height: first?.height ?? t.height, samples: [], decodedVideoFrames: filtered };
+        }),
+      };
+    }
+    if (maxVideoFrames !== undefined) {
+      workingDoc = {
+        ...workingDoc,
+        tracks: workingDoc.tracks.map((t) => {
+          if (t.type !== "video") return t;
+          if (t.decodedVideoFrames && t.decodedVideoFrames.length > maxVideoFrames!) {
+            return { ...t, samples: [], decodedVideoFrames: t.decodedVideoFrames.slice(0, maxVideoFrames) };
+          }
+          if (t.samples.length > maxVideoFrames!) {
+            const slicedSamples = t.samples.slice(0, maxVideoFrames);
+            return { ...t, duration: slicedSamples.reduce((acc, s) => acc + s.duration, 0), samples: slicedSamples };
+          }
+          return t;
+        }),
+      };
+    }
+    const metaTags: Mp4MetadataTags = {
+      ...workingDoc.metadata,
+      title: metadata.title ?? workingDoc.metadata.title,
+      artist: metadata.artist ?? workingDoc.metadata.artist,
+      album: metadata.album ?? workingDoc.metadata.album,
+      date: metadata.date ?? metadata.year ?? workingDoc.metadata.date,
+      comment: metadata.comment ?? workingDoc.metadata.comment,
+      genre: metadata.genre ?? workingDoc.metadata.genre,
+      encoder: metadata.encoder ?? workingDoc.metadata.encoder,
+    };
+    workingDoc = { ...workingDoc, faststart, metadata: metaTags };
+    if (isNullMux) return "";
+    if (/%0?\d*d/.test(outputTarget)) {
+      const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
+      const vTrack = workingDoc.tracks.find((t) => t.type === "video");
+      const frames = vTrack ? ensureDecodedFrames(vTrack, budget) : [];
+      const limit = maxVideoFrames ? Math.min(frames.length, maxVideoFrames) : frames.length;
+      const imgFmt: ImageFormat = outExt === "jpg" || outExt === "jpeg" ? "jpeg" : outExt === "webp" ? "webp" : outExt === "gif" ? "gif" : outExt === "bmp" ? "bmp" : outExt === "ppm" ? "ppm" : "png";
+      for (let idx = 0; idx < limit; idx++) {
+        const f = frames[idx]!;
+        const fileName = outputTarget.replace(/%0?(\d*)d/, (_, widthDigits: string) => String(idx + (outputStartNumber ?? 1)).padStart(parseInt(widthDigits || "0", 10) || 0, "0"));
+        const encoded = encodeImage(makeRgbaImg(f.width, f.height, f.data), { format: imgFmt }).data;
+        if (!writeFileSync!(fileName, encoded)) return undefined;
+      }
+      return "";
+    }
+    const outPlugin = outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget);
+    if (!outPlugin || !outPlugin.canMux) return undefined;
+    const outExt = outputTarget.split(".").pop()?.toLowerCase();
+    const serializedBytes = outPlugin.serialize(workingDoc, { format: outputFormat ?? outExt, faststart, fragmented, metadata: metaTags, budget });
+    if (outputTarget === "-" || outputTarget === "pipe:" || outputTarget === "pipe:1") return undefined;
+    if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
+    return "";
+  } catch {
+    return undefined;
+  }
 }
 
 export function evalSyncFfprobe(

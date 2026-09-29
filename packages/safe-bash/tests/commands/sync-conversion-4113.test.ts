@@ -1229,3 +1229,33 @@ test("sync sort (-g/--general-numeric-sort/-z/--field-separator/--key), uniq (--
     "NaN,-inf,-2e1,3,1e2,+inf|b:3,a:1e2,c:100|a:b:c:|z:9|m:5|a:2|| 2 x 10, 1 z 20|aa1,ac2| 2 foo; 1 bar;| 2 x 10, 1 z 20|b,e,|p:r,x:z"
   );
 });
+
+test("sync paste -z, comm -z, fold -N, expand -it/-N, unexpand -at/-N, and base64 --wrap in substitutions (Wave 214)", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp");
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" }).use(standardCommands()).use(tableTextCommands()).use(byteCommands());
+  const result = await shell.exec(`
+    printf "%s\\0" a b c > /tmp/pz1.bin
+    printf "%s\\0" 1 2 3 > /tmp/pz2.bin
+    printf "a\\0b\\0c\\0" > /tmp/cz1.bin
+    printf "b\\0c\\0d\\0" > /tmp/cz2.bin
+
+    out=""
+    for i in 1 2 3 4 5; do
+      p1=\$(paste -zd: /tmp/pz1.bin /tmp/pz2.bin | tr "\\0" ",")
+      p2=\$(printf "x\\0y\\0z\\0" | paste -zsd- - | tr "\\0" "!")
+      cm=\$(comm -z12 /tmp/cz1.bin /tmp/cz2.bin | tr "\\0" ":")
+      fd=\$(printf "hello world foo\\n" | fold -s6 | paste -sd"|")
+      ex=\$(printf "\\ta\\t\\tb\\n" | expand -it4 | tr " " ".")
+      ux=\$(printf "    a   b\\n" | unexpand -at4 | tr "\\t" ">")
+      b6=\$(printf "abcdefghijkl" | base64 --wrap 4 | paste -sd:)
+      out="\$p1#\$p2#\$cm#\$fd#\$ex#\$ux#\$b6"
+    done
+    printf "%s\\n" "\$out"
+  `);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(
+    result.stdout.trim(),
+    "a:1,b:2,c:3,#x-y-z!#b:c:#hello |world |foo#....a		b#>a>b#YWJj:ZGVm:Z2hp:amts"
+  );
+});

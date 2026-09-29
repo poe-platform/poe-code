@@ -12139,15 +12139,14 @@ export class Runtime {
           }
           if ((w0Plain === "dirname" ? this.evalSyncDirname(simArgs) : this.evalSyncBasename(simArgs)) === undefined) return false;
         } else if (w0Plain === "seq") {
-          // Literal operands cannot change after admission. Arithmetic and
-          // variables use the normal path, where seq can report invalid input.
-          if (cmd.words.length < 2 || cmd.words.length > 4) return false;
-          const operands = cmd.words.slice(1).map(w => w.plain);
-          if (!operands.every(value => value !== undefined && Number.isInteger(Number(value)) && String(Number(value)) === value && Math.abs(Number(value)) <= 9999999)) return false;
-          const first = operands.length === 1 ? 1 : Number(operands[0]);
-          const increment = operands.length === 3 ? Number(operands[1]) : 1;
-          const last = Number(operands[operands.length - 1]);
-          if (increment === 0 || Math.abs((last - first) / increment) > 1024) return false;
+          const simArgs: string[] = [];
+          for (let wi = 1; wi < cmd.words.length; wi++) {
+            const w = cmd.words[wi]!;
+            const st = w.plain ?? (w.parts.length > 0 && w.parts.every(pt => pt.kind === "text") ? w.parts.map(pt => pt.value).join("") : undefined);
+            if (st === undefined) return false;
+            simArgs.push(st);
+          }
+          if (this.evalSyncSeq(simArgs) === undefined) return false;
         }
         continue;
       }
@@ -23934,7 +23933,7 @@ export class Runtime {
       if (a === "-d" || a === "--decode") { decode = true; continue; }
       if (a === "-i" || a === "--ignore-garbage") { ignoreGarbage = true; continue; }
       if (a === "-di" || a === "-id") { decode = true; ignoreGarbage = true; continue; }
-      if (a === "-w") {
+      if (a === "-w" || a === "--wrap") {
         if (i + 1 >= opArgs.length || !/^[0-9]{1,5}$/.test(opArgs[i + 1]!)) return undefined;
         wrapCols = Number(opArgs[++i]!);
         continue;
@@ -24047,216 +24046,6 @@ export class Runtime {
     return zero ? out.join("\0") + "\0" : out.join("\n");
   }
 
-  private evalSyncSeq(args: readonly string[]): string | undefined {
-    let sep = "\n";
-    let equalWidth = false;
-    let fmt: string | undefined;
-    let ended = false;
-    const nums: string[] = [];
-    for (let i = 0; i < args.length; i++) {
-      const a = args[i]!;
-      if (ended || !a.startsWith("-") || /^-[0-9.]/.test(a)) {
-        if (!/^-?[0-9]{1,7}(?:\.[0-9]{1,4})?$/.test(a)) return undefined;
-        nums.push(a);
-        continue;
-      }
-      if (a === "--") { ended = true; continue; }
-      if (a === "-w" || a === "--equal-width") { equalWidth = true; continue; }
-      if (a === "-s") {
-        if (i + 1 >= args.length) return undefined;
-        sep = args[++i]!;
-        continue;
-      }
-      if (a.startsWith("-s") && a.length > 2) {
-        sep = a.slice(2);
-        continue;
-      }
-      if (a.startsWith("--separator=")) {
-        sep = a.slice(12);
-        continue;
-      }
-      if (a === "-f") {
-        if (i + 1 >= args.length) return undefined;
-        fmt = args[++i]!;
-        continue;
-      }
-      if (a.startsWith("-f") && a.length > 2) {
-        fmt = a.slice(2);
-        continue;
-      }
-      if (a.startsWith("--format=")) {
-        fmt = a.slice(9);
-        continue;
-      }
-      return undefined;
-    }
-    if (nums.length < 1 || nums.length > 3 || (equalWidth && fmt !== undefined)) return undefined;
-    if (sep.includes("\0") || (fmt !== undefined && fmt.includes("\0"))) return undefined;
-    let fmtPrefix = "";
-    let fmtLeft = false;
-    let fmtZeroPad = false;
-    let fmtWidth = 0;
-    let fmtPrec: number | undefined;
-    let fmtSpec: "g" | "f" = "g";
-    let fmtSuffix = "";
-    if (fmt !== undefined) {
-      const m = /^([^%]*?)%(-?)(0?)([0-9]{0,2})(?:\.([0-9]{1,2}))?([gf])([^%]*)$/.exec(fmt);
-      if (!m) return undefined;
-      fmtPrefix = m[1]!;
-      fmtLeft = m[2] === "-";
-      fmtZeroPad = !fmtLeft && m[3] === "0";
-      fmtWidth = m[4] ? Number(m[4]) : 0;
-      fmtPrec = m[5] !== undefined ? Number(m[5]) : undefined;
-      fmtSpec = m[6] as "g" | "f";
-      if (fmtSpec === "g" && fmtPrec !== undefined) return undefined;
-      fmtSuffix = m[7]!;
-    }
-    const fracLen = (s: string): number => {
-      const dot = s.indexOf(".");
-      return dot < 0 ? 0 : s.length - dot - 1;
-    };
-    const firstStr = nums.length === 1 ? "1" : nums[0]!;
-    const incrStr = nums.length === 3 ? nums[1]! : "1";
-    const lastStr = nums[nums.length - 1]!;
-    const scalePow = Math.max(fracLen(firstStr), fracLen(incrStr), fracLen(lastStr));
-    const outPrec = Math.max(fracLen(firstStr), fracLen(incrStr));
-    const scaleFactor = 10 ** scalePow;
-    const firstInt = Math.round(Number(firstStr) * scaleFactor);
-    const incrInt = Math.round(Number(incrStr) * scaleFactor);
-    const lastInt = Math.round(Number(lastStr) * scaleFactor);
-    if (incrInt === 0 || Math.abs((lastInt - firstInt) / incrInt) > 1024) return undefined;
-    const formatScaled = (valInt: number): string => {
-      const num = valInt / scaleFactor;
-      return outPrec > 0 ? num.toFixed(outPrec) : String(Math.round(num));
-    };
-    const padWidth = equalWidth ? Math.max(formatScaled(firstInt).length, formatScaled(lastInt).length) : 0;
-    const seqLines: string[] = [];
-    for (let curInt = firstInt; incrInt > 0 ? curInt <= lastInt : curInt >= lastInt; curInt += incrInt) {
-      const cur = curInt / scaleFactor;
-      if (fmt !== undefined) {
-        const rawNum = fmtSpec === "f" ? cur.toFixed(fmtPrec ?? 6) : String(cur);
-        let body = rawNum;
-        if (fmtWidth > rawNum.length) {
-          if (fmtLeft) body = rawNum.padEnd(fmtWidth, " ");
-          else if (fmtZeroPad && rawNum.startsWith("-")) body = "-" + rawNum.slice(1).padStart(fmtWidth - 1, "0");
-          else body = rawNum.padStart(fmtWidth, fmtZeroPad ? "0" : " ");
-        }
-        seqLines.push(fmtPrefix + body + fmtSuffix);
-      } else if (equalWidth) {
-        const raw = formatScaled(curInt);
-        const body = raw.startsWith("-")
-          ? "-" + raw.slice(1).padStart(Math.max(0, padWidth - 1), "0")
-          : raw.padStart(padWidth, "0");
-        seqLines.push(body);
-      } else {
-        seqLines.push(formatScaled(curInt));
-      }
-    }
-    return seqLines.length > 0 ? seqLines.join(sep) + "\n" : "";
-  }
-
-  private evalSyncBase64(inBytes: Uint8Array, opArgs: readonly string[]): string | undefined {
-    let decode = false;
-    let ignoreGarbage = false;
-    let wrapCols = 76;
-    for (let i = 0; i < opArgs.length; i++) {
-      const a = opArgs[i]!;
-      if (a === "-d" || a === "--decode") { decode = true; continue; }
-      if (a === "-i" || a === "--ignore-garbage") { ignoreGarbage = true; continue; }
-      if (a === "-di" || a === "-id") { decode = true; ignoreGarbage = true; continue; }
-      if (a === "-w") {
-        if (i + 1 >= opArgs.length || !/^[0-9]{1,5}$/.test(opArgs[i + 1]!)) return undefined;
-        wrapCols = Number(opArgs[++i]!);
-        continue;
-      }
-      if (a.startsWith("-w") && /^[0-9]{1,5}$/.test(a.slice(2))) {
-        wrapCols = Number(a.slice(2));
-        continue;
-      }
-      if (a.startsWith("--wrap=") && /^[0-9]{1,5}$/.test(a.slice(7))) {
-        wrapCols = Number(a.slice(7));
-        continue;
-      }
-      return undefined;
-    }
-    if (decode) {
-      const fileStr = sharedSyncPipeDecoder.decode(inBytes);
-      const cleaned = ignoreGarbage ? fileStr.replace(/[^A-Za-z0-9+/=]+/g, "") : fileStr.replace(/[ \t\r\n]+/g, "");
-      if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
-      const decoded = this.syncBase64DecodeBytes(cleaned);
-      if (decoded.some(byte => byte === 0 || byte >= 128)) return undefined;
-      return sharedSyncPipeDecoder.decode(decoded);
-    }
-    const rawB64 = this.syncBase64Encode(inBytes).replace(/\n/g, "");
-    if (rawB64.length === 0) return "";
-    if (wrapCols === 0) return rawB64 + "\n";
-    const lines: string[] = [];
-    for (let i = 0; i < rawB64.length; i += wrapCols) {
-      lines.push(rawB64.slice(i, i + wrapCols));
-    }
-    return lines.join("\n") + "\n";
-  }
-
-  private evalSyncDirname(args: readonly string[]): string | undefined {
-    let idx = 0;
-    if (args[0] === "--") idx = 1;
-    else if (args[0] !== undefined && args[0].startsWith("-") && args[0] !== "-") return undefined;
-    if (idx >= args.length) return undefined;
-    const out: string[] = [];
-    for (let i = idx; i < args.length; i++) {
-      const p = args[i]!;
-      if (p.includes("\0")) return undefined;
-      if (idx === 0 && p.startsWith("-") && p !== "-") return undefined;
-      const parent = dirname(p);
-      let pEnd = parent.length;
-      while (pEnd > 1 && parent[pEnd - 1] === "/") pEnd--;
-      out.push(parent.slice(0, pEnd));
-    }
-    return out.join("\n");
-  }
-
-  private evalSyncBasename(args: readonly string[]): string | undefined {
-    let multiple = false;
-    let suffix: string | undefined;
-    let idx = 0;
-    const operands: string[] = [];
-    while (idx < args.length) {
-      const a = args[idx]!;
-      if (a === "--") { operands.push(...args.slice(idx + 1)); break; }
-      if (!a.startsWith("-") || a === "-") { operands.push(...args.slice(idx)); break; }
-      if (a === "-a" || a === "--multiple") {
-        multiple = true;
-        idx++;
-      } else if (a === "-s" || a === "-as" || a === "-sa") {
-        multiple = true;
-        if (idx + 1 >= args.length) return undefined;
-        suffix = args[idx + 1]!;
-        idx += 2;
-      } else if (a.startsWith("-s") && a.length > 2) {
-        multiple = true;
-        suffix = a.slice(2);
-        idx++;
-      } else {
-        return undefined;
-      }
-    }
-    if (operands.length === 0) return undefined;
-    if (!multiple && operands.length > 2) return undefined;
-    const effSuffix = multiple ? suffix : operands[1];
-    if (effSuffix !== undefined && effSuffix.includes("\0")) return undefined;
-    const paths = multiple ? operands : [operands[0]!];
-    const out: string[] = [];
-    for (const p of paths) {
-      if (p.includes("\0")) return undefined;
-      let res = /^\/+$/u.test(p) ? "/" : basename(p);
-      if (effSuffix && res !== effSuffix && res.endsWith(effSuffix)) {
-        res = res.slice(0, -effSuffix.length);
-      }
-      out.push(res);
-    }
-    return out.join("\n");
-  }
-
   private parseSyncCutSpec(spec: string): ((len: number) => number[]) | undefined {
     if (!/^(?:[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-|-[1-9][0-9]{0,4})(?:,(?:[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-[1-9][0-9]{0,4}|[1-9][0-9]{0,4}-|-[1-9][0-9]{0,4}))*$/.test(spec)) {
       return undefined;
@@ -24295,7 +24084,7 @@ export class Runtime {
     };
   }
 
-  private hasZeroTerminatedFlag(cmd: "sort" | "uniq" | "cut", args: readonly string[]): boolean {
+  private hasZeroTerminatedFlag(cmd: "sort" | "uniq" | "cut" | "paste" | "comm", args: readonly string[]): boolean {
     for (let i = 0; i < args.length; i++) {
       const a = args[i]!;
       if (a === "--") break;
@@ -24333,6 +24122,27 @@ export class Runtime {
           if (m[1]!.includes("z")) return true;
           if (m[2]!.length === 0 && i + 1 < args.length) i++;
         }
+      } else if (cmd === "paste") {
+        if (a === "--delimiters" && i + 1 < args.length) {
+          i++;
+          continue;
+        }
+        if (a.startsWith("-") && !a.startsWith("--") && a.length > 1) {
+          for (let k = 1; k < a.length; k++) {
+            const ch = a[k]!;
+            if (ch === "z") return true;
+            if (ch === "d") {
+              if (k === a.length - 1 && i + 1 < args.length) i++;
+              break;
+            }
+          }
+        }
+      } else if (cmd === "comm") {
+        if (a === "--output-delimiter" && i + 1 < args.length) {
+          i++;
+          continue;
+        }
+        if (/^-[123z]+$/.test(a) && a.includes("z")) return true;
       }
     }
     return false;
@@ -26295,8 +26105,9 @@ export class Runtime {
     return out;
   }
 
-  private evalSyncPaste(rawLines: readonly string[], opArgs: readonly string[], cwd?: string): string[] | undefined {
+  private evalSyncPaste(rawLines: readonly string[], opArgs: readonly string[], cwd?: string, allowZero = false): string[] | undefined {
     let serial = false;
+    let zeroTerm = false;
     let delims: string[] = ["\t"];
     let literal = false;
     const files: string[] = [];
@@ -26322,6 +26133,7 @@ export class Runtime {
       if (literal || a === "-" || !a.startsWith("-")) { files.push(a); continue; }
       if (a === "--") { literal = true; continue; }
       if (a === "--serial") { serial = true; continue; }
+      if (a === "--zero-terminated") { if (!allowZero) return undefined; zeroTerm = true; continue; }
       if (a === "--delimiters" && i + 1 < opArgs.length) {
         const d = parseDelims(opArgs[++i]!);
         if (!d) return undefined;
@@ -26338,7 +26150,10 @@ export class Runtime {
       for (let k = 1; k < a.length; k++) {
         const f = a[k]!;
         if (f === "s") serial = true;
-        else if (f === "d") {
+        else if (f === "z") {
+          if (!allowZero) return undefined;
+          zeroTerm = true;
+        } else if (f === "d") {
           const rest = a.slice(k + 1);
           const rawD = rest.length > 0 ? rest : (i + 1 < opArgs.length ? opArgs[++i] : undefined);
           if (rawD === undefined) return undefined;
@@ -26359,7 +26174,7 @@ export class Runtime {
         if (f === "-") {
           streams.push(rawLines);
         } else {
-          const fl = this.readSyncMemoryLines(resolvePath(cwd, f));
+          const fl = this.readSyncMemoryLines(resolvePath(cwd, f), zeroTerm);
           if (!fl) return undefined;
           streams.push(fl);
         }
@@ -26411,16 +26226,18 @@ export class Runtime {
 
 
 
-  private readSyncMemoryLines(filePath: string): string[] | undefined {
+  private readSyncMemoryLines(filePath: string, zeroTerm = false): string[] | undefined {
     const view = this.tryReadMemoryFileViewSync(filePath);
-    if (!view || view.byteLength > 16384 || view.includes(0) || !view.every(b => b < 128)) return undefined;
+    if (!view || view.byteLength > 16384 || (!zeroTerm && view.includes(0)) || !view.every(b => b < 128)) return undefined;
     const str = sharedSyncPipeDecoder.decode(view);
-    if (str.length > 0 && !str.endsWith("\n")) return undefined;
-    return str.length === 0 ? [] : str.slice(0, -1).split("\n");
+    const sep = zeroTerm ? "\0" : "\n";
+    if (str.length > 0 && !str.endsWith(sep)) return undefined;
+    return str.length === 0 ? [] : str.slice(0, -1).split(sep);
   }
 
-  private evalSyncComm(stdinLines: readonly string[] | undefined, opArgs: readonly string[], cwd: string): string[] | undefined {
+  private evalSyncComm(stdinLines: readonly string[] | undefined, opArgs: readonly string[], cwd: string, allowZero = false): string[] | undefined {
     let sup1 = false, sup2 = false, sup3 = false;
+    let zeroTerm = false;
     let outDelim = "\t";
     let noCheckOrder = false;
     let showTotal = false;
@@ -26436,6 +26253,7 @@ export class Runtime {
       if (a === "--nocheck-order") { noCheckOrder = true; continue; }
       if (a === "--check-order") { noCheckOrder = false; continue; }
       if (a === "--total") { showTotal = true; continue; }
+      if (a === "--zero-terminated") { if (!allowZero) return undefined; zeroTerm = true; continue; }
       if (a === "--output-delimiter" && i + 1 < opArgs.length) {
         outDelim = opArgs[++i]!;
         if (outDelim.length === 0 || /[^\x09\x20-\x7e]/.test(outDelim)) return undefined;
@@ -26446,7 +26264,11 @@ export class Runtime {
         if (outDelim.length === 0 || /[^\x09\x20-\x7e]/.test(outDelim)) return undefined;
         continue;
       }
-      if (/^-[123]+$/.test(a)) {
+      if (/^-[123z]+$/.test(a)) {
+        if (a.includes("z")) {
+          if (!allowZero) return undefined;
+          zeroTerm = true;
+        }
         if (a.includes("1")) sup1 = true;
         if (a.includes("2")) sup2 = true;
         if (a.includes("3")) sup3 = true;
@@ -26456,8 +26278,8 @@ export class Runtime {
     }
     if (files.length !== 2) return undefined;
     if (files[0] === "-" && files[1] === "-") return undefined;
-    const lines1 = files[0] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[0]!));
-    const lines2 = files[1] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[1]!));
+    const lines1 = files[0] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[0]!), zeroTerm);
+    const lines2 = files[1] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[1]!), zeroTerm);
     if (!lines1 || !lines2) return undefined;
     if (!noCheckOrder) {
       for (let i = 1; i < lines1.length; i++) if (lines1[i]! < lines1[i - 1]!) return undefined;
@@ -26913,6 +26735,10 @@ export class Runtime {
           if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,4}$/.test(opArgs[i + 1]!)) return undefined;
           width = Number(opArgs[++i]!);
         }
+      } else if (/^-[sbc]*[1-9][0-9]{0,4}$/.test(a)) {
+        if (a.includes("s")) breakSpaces = true;
+        const m = /[1-9][0-9]{0,4}$/.exec(a)!;
+        width = Number(m[0]!);
       } else if (/^-[sbc]+$/.test(a)) {
         if (a.includes("s")) breakSpaces = true;
       } else {
@@ -26977,6 +26803,17 @@ export class Runtime {
         const parsed = this.parseSyncTabList(a.slice(7));
         if (!parsed) return undefined;
         tabStop = parsed.tabStop; tabList = parsed.tabList;
+      } else if (/^-(?:it|ti)(.*)$/.test(a)) {
+        initialOnly = true;
+        const rest = a.slice(3);
+        const rawSpec = rest.length > 0 ? rest : (i + 1 < opArgs.length ? opArgs[++i]! : "");
+        const parsed = this.parseSyncTabList(rawSpec);
+        if (!parsed) return undefined;
+        tabStop = parsed.tabStop; tabList = parsed.tabList;
+      } else if (/^-[1-9][0-9]{0,2}(?:,[1-9][0-9]{0,2})*$/.test(a)) {
+        const parsed = this.parseSyncTabList(a.slice(1));
+        if (!parsed) return undefined;
+        tabStop = parsed.tabStop; tabList = parsed.tabList;
       } else {
         return undefined;
       }
@@ -27035,6 +26872,19 @@ export class Runtime {
         flagT = true;
       } else if (a.startsWith("--tabs=")) {
         const parsed = this.parseSyncTabList(a.slice(7));
+        if (!parsed) return undefined;
+        tabStop = parsed.tabStop; tabList = parsed.tabList;
+        flagT = true;
+      } else if (/^-(?:at|ta)(.*)$/.test(a)) {
+        flagA = true;
+        flagT = true;
+        const rest = a.slice(3);
+        const rawSpec = rest.length > 0 ? rest : (i + 1 < opArgs.length ? opArgs[++i]! : "");
+        const parsed = this.parseSyncTabList(rawSpec);
+        if (!parsed) return undefined;
+        tabStop = parsed.tabStop; tabList = parsed.tabList;
+      } else if (/^-[1-9][0-9]{0,2}(?:,[1-9][0-9]{0,2})*$/.test(a)) {
+        const parsed = this.parseSyncTabList(a.slice(1));
         if (!parsed) return undefined;
         tabStop = parsed.tabStop; tabList = parsed.tabList;
         flagT = true;
@@ -29443,7 +29293,7 @@ export class Runtime {
         } else if (sName === "nl") {
           if (this.evalSyncNl([], sArgs, (i === 0 && cmd0FileStage) ? rawState.cwd : undefined) === undefined) return undefined;
         } else if (sName === "paste") {
-          if (this.evalSyncPaste([], sArgs, (i === 0 && cmd0FileStage) ? rawState.cwd : undefined) === undefined) return undefined;
+          if (this.evalSyncPaste([], sArgs, (i === 0 && cmd0FileStage) ? rawState.cwd : undefined, true) === undefined) return undefined;
         } else if (sName === "numfmt") {
           if (this.evalSyncNumfmt([], sArgs) === undefined) return undefined;
         } else if (sName === "column") {
@@ -29457,7 +29307,7 @@ export class Runtime {
         } else if (sName === "strings") {
           if ((i === 0 && cmd0FileStage) ? this.evalSyncMultiFileText("strings", sArgs, rawState.cwd, false) === undefined : this.evalSyncStrings([], sArgs) === undefined) return undefined;
         } else if (sName === "comm") {
-          if (this.evalSyncComm([], sArgs, rawState.cwd) === undefined) return undefined;
+          if (this.evalSyncComm([], sArgs, rawState.cwd, true) === undefined) return undefined;
         } else if (sName === "join") {
           if (this.evalSyncJoin([], sArgs, rawState.cwd) === undefined) return undefined;
         } else if (sName === "bc") {
@@ -29796,7 +29646,7 @@ export class Runtime {
             isInlineJoin
           ) {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
-            const isZeroTermStage = (firstName === "sort" || firstName === "uniq" || firstName === "cut") && this.hasZeroTerminatedFlag(firstName, stageArgs);
+            const isZeroTermStage = (firstName === "sort" || firstName === "uniq" || firstName === "cut" || firstName === "paste" || firstName === "comm") && this.hasZeroTerminatedFlag(firstName, stageArgs);
             const stageLineSep = isZeroTermStage ? "\0" : "\n";
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith(stageLineSep) ? inStr.slice(0, -1).split(stageLineSep) : inStr.split(stageLineSep));
             let outLines: string[] = [];
@@ -29919,7 +29769,7 @@ export class Runtime {
               if (nlRes === undefined) return undefined;
               outLines = nlRes;
             } else if (isInlinePaste) {
-              const pasteRes = this.evalSyncPaste(rawLines, stageArgs, rawState.cwd);
+              const pasteRes = this.evalSyncPaste(rawLines, stageArgs, rawState.cwd, true);
               if (pasteRes === undefined) return undefined;
               outLines = pasteRes;
             } else if (isInlineNumfmt) {
@@ -29947,7 +29797,7 @@ export class Runtime {
               if (strRes === undefined) return undefined;
               outLines = strRes;
             } else if (isInlineComm) {
-              const commRes = this.evalSyncComm(rawLines, stageArgs, rawState.cwd);
+              const commRes = this.evalSyncComm(rawLines, stageArgs, rawState.cwd, true);
               if (commRes === undefined) return undefined;
               outLines = commRes;
             } else if (isInlineJoin) {

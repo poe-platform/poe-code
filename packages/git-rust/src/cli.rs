@@ -4652,6 +4652,55 @@ pub fn execute_git_cli_with_input(
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }
+        "upload-pack" | "git-upload-pack" => {
+            let target = positionals.first().copied().unwrap_or(".");
+            let abs = absolute_path(&effective_cwd, target);
+            let gd = if fs.exists(&join(&[&abs, "HEAD"])) {
+                abs
+            } else {
+                discover_gitdir(fs, &join(&[&abs, ".git"]))
+            };
+            let refs = crate::ssh::collect_gitdir_refs(fs, &gd);
+            let mut out = Vec::new();
+            out.extend_from_slice(&crate::models::GitPktLine::encode_str("# service=git-upload-pack\n"));
+            out.extend_from_slice(&crate::models::GitPktLine::flush());
+            for (idx, r) in refs.iter().enumerate() {
+                if idx == 0 {
+                    let sym = r.target.as_deref().map(|t| format!(" symref=HEAD:{t}")).unwrap_or_default();
+                    let line = format!("{} {}\0multi_ack thin-pack side-band side-band-64k ofs-delta shallow no-progress{sym}\n", r.oid, r.r#ref);
+                    out.extend_from_slice(&crate::models::GitPktLine::encode_str(&line));
+                } else {
+                    let line = format!("{} {}\n", r.oid, r.r#ref);
+                    out.extend_from_slice(&crate::models::GitPktLine::encode_str(&line));
+                }
+            }
+            out.extend_from_slice(&crate::models::GitPktLine::flush());
+            CliResult::ok_bytes(out)
+        }
+        "receive-pack" | "git-receive-pack" => {
+            let target = positionals.first().copied().unwrap_or(".");
+            let abs = absolute_path(&effective_cwd, target);
+            let gd = if fs.exists(&join(&[&abs, "HEAD"])) {
+                abs
+            } else {
+                discover_gitdir(fs, &join(&[&abs, ".git"]))
+            };
+            let refs = crate::ssh::collect_gitdir_refs(fs, &gd);
+            let mut out = Vec::new();
+            out.extend_from_slice(&crate::models::GitPktLine::encode_str("# service=git-receive-pack\n"));
+            out.extend_from_slice(&crate::models::GitPktLine::flush());
+            for (idx, r) in refs.iter().enumerate() {
+                if idx == 0 {
+                    let line = format!("{} {}\0report-status delete-refs side-band-64k quiet atomic ofs-delta\n", r.oid, r.r#ref);
+                    out.extend_from_slice(&crate::models::GitPktLine::encode_str(&line));
+                } else {
+                    let line = format!("{} {}\n", r.oid, r.r#ref);
+                    out.extend_from_slice(&crate::models::GitPktLine::encode_str(&line));
+                }
+            }
+            out.extend_from_slice(&crate::models::GitPktLine::flush());
+            CliResult::ok_bytes(out)
+        }
         "ls-remote" => {
             let get_url = sub_args.contains(&"--get-url");
             let heads_only = sub_args.contains(&"--heads") || sub_args.contains(&"-h");

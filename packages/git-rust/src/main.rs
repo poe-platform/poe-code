@@ -260,9 +260,19 @@ fn load_home_ssh_and_gitconfig(fs: &MemoryFs, repo_gitdir: Option<&str>) {
         fs.write_str("/home/user/.gitconfig", &global_cfg);
         if let Some(gd) = repo_gitdir && fs.exists(&format!("{}/HEAD", gd.trim_end_matches('/'))) {
             let local_cfg_path = format!("{}/config", gd.trim_end_matches('/'));
-            let local_cfg = fs.read_str(&local_cfg_path).unwrap_or_default();
+            let mut local_cfg = fs.read_str(&local_cfg_path).unwrap_or_default();
             if !local_cfg.contains("[user]") && global_cfg.contains("[user]") {
-                fs.write_str(&local_cfg_path, &format!("{local_cfg}\n{global_cfg}"));
+                local_cfg = format!("{local_cfg}\n{global_cfg}");
+                fs.write_str(&local_cfg_path, &local_cfg);
+            }
+            if let Ok(env_name) = env::var("GIT_AUTHOR_NAME").or_else(|_| env::var("GIT_COMMITTER_NAME")) {
+                let _ = git_rust::set_config(fs, gd, "user.name", Some(&env_name), false);
+            }
+            if let Ok(env_email) = env::var("GIT_AUTHOR_EMAIL").or_else(|_| env::var("GIT_COMMITTER_EMAIL")) {
+                let _ = git_rust::set_config(fs, gd, "user.email", Some(&env_email), false);
+            }
+            if let Ok(ssh_cmd) = env::var("GIT_SSH_COMMAND") {
+                let _ = git_rust::set_config(fs, gd, "core.sshCommand", Some(&ssh_cmd), false);
             }
         }
     }

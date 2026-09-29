@@ -959,7 +959,8 @@
             "./index": "./dist/commands/dd/index.js",
             "./io": "./dist/commands/dd/io.js",
             "./options": "./dist/commands/dd/options.js",
-            "./report": "./dist/commands/dd/report.js"
+            "./report": "./dist/commands/dd/report.js",
+            "./sync": "./dist/commands/dd/sync.js"
           }
         },
         "safe-bash-command-factor": {

@@ -28,7 +28,7 @@ async function fixture(binary = false) {
     },
     async embed(request) {return {model:request.model, vectors:request.inputs.map(() => [1,2]), usage:{input:request.inputs.length}};},
   }]});
-  const capability = createPythonLlmCapability({fs,cwd:'/work'} as CommandContext, service);
+  const capability = createPythonLlmCapability({fs,cwd:'/work'}, service);
   return {fs, service, requests, capability, closed:() => closed};
 }
 

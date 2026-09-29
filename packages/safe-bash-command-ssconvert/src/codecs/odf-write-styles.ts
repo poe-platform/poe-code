@@ -120,6 +120,7 @@ export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: 
         if (extended && low) text["gnm:text-underline-placement"] = "low";
       }
       if (f.StrikeThrough !== undefined) text["style:text-line-through-style"] = Number(f.StrikeThrough) ? "solid" : "none";
+      if (f.Script !== undefined) text["style:text-position"] = Number(f.Script) < 0 ? "sub 80%" : Number(f.Script) > 0 ? "super 80%" : "0% 100%";
     }
     const borders = odfChildren(odfChildren(node).find(n => odfObject(n)?.name === "StyleBorder"));
     const sides: Readonly<Record<string,string>> = { Top: "top", Bottom: "bottom", Left: "left", Right: "right" };

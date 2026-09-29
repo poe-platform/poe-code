@@ -4,6 +4,7 @@ import { parseExpression } from "../formulas/parser.js";
 import { odfGrammar } from "../formulas/conventions.js";
 import { SsconvertError } from "../contracts.js";
 import { translateOdfHyperlink } from "./odf-hyperlinks.js";
+import { readOdfScriptPosition } from "./odf-text-position.js";
 
 const urn = "urn:oasis:names:tc:opendocument:xmlns:";
 const ns = {
@@ -97,6 +98,7 @@ export function odfCellStyle(node: XmlElement, parent: ImportedValue | undefined
         : (double ? 2 : 1) + (attr(p, "text-underline-placement", "gnm") === "low" ? 2 : 0);
     }
     const strike = attr(p, "text-line-through-style", "style"); if (strike !== undefined) font.StrikeThrough = strike === "none" ? 0 : 1;
+    const script = readOdfScriptPosition(attr(p, "text-position", "style"), charge); if (script !== undefined) font.Script = script;
     family = attr(p, "font-family", "fo") ?? attr(p, "font-name", "style") ?? family;
     for (const [side, target] of [["top", "Top"], ["bottom", "Bottom"], ["left", "Left"], ["right", "Right"]] as const) {
       const border = attr(p, "border-" + side, "fo") ?? attr(p, "border", "fo"); if (!border) continue;

@@ -4,6 +4,7 @@ import type { ImportedValue, RichTextRun } from "../workbook.js";
 import { createOdfXml, odfNamespaces, type OdfAttributes } from "./odf-write-support.js";
 import { createOdfStyleDefinitions } from "./odf-style-definitions.js";
 import { richTextSegments } from "./rich-text-runs.js";
+import { readOdfScriptPosition } from "./odf-text-position.js";
 
 const namespaces = {
   text: [odfNamespaces.text!, "http://openoffice.org/2000/text"],
@@ -55,15 +56,10 @@ export function createOdfTextReader(roots: readonly XmlElement[], charge: (amoun
         const bold = attribute(p, "font-weight", "fo"); if (bold !== undefined) result.bold = bold === "bold" || Number(bold) >= 600 ? 1 : 0;
         const italic = attribute(p, "font-style", "fo"); if (italic !== undefined) result.italic = ["italic", "oblique"].includes(italic) ? 1 : 0;
         const strike = attribute(p, "text-line-through-style", "style"); if (strike !== undefined) result.strikethrough = strike === "none" ? 0 : 1;
-        const position = attribute(p, "text-position", "style");
+        const position = readOdfScriptPosition(attribute(p, "text-position", "style"), charge);
         if (position !== undefined) {
-          charge(position.length);
-          let token = "";
-          for (const character of position.trim()) { if (" \t\r\n".includes(character)) break; token += character; }
-          if (token === "sub" || token === "super" || token.length > 1 && token.endsWith("%") && Number(token.slice(0, -1)) === 0) {
-            result.subscript = token === "sub" ? 1 : 0;
-            result.superscript = token === "super" ? 1 : 0;
-          }
+          result.subscript = position === -1 ? 1 : 0;
+          result.superscript = position === 1 ? 1 : 0;
         }
         const underline = attribute(p, "text-underline-style", "style"), type = attribute(p, "text-underline-type", "style");
         if (underline !== undefined || type === "none") {

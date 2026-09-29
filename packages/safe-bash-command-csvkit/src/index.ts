@@ -21,7 +21,7 @@ export { utf8Codec } from "./codecs/utf8.js";
 export { pythonCodecs, normalizeEncoding } from "./codecs/python.js";
 export { CsvkitDiagnostic, CsvkitBlocked, CsvkitCleanupError } from "./errors.js";
 export { PythonException, diagnosticReport, warningText, type PythonFrame, type PythonTraceback, type PythonWarning } from "./diagnostics/index.js";
-export { readCsv, readCsvStream, writeCsvRow, Writer, DictionaryWriter, type CsvWriteCell, type WriterOptions, type DictionaryWriterOptions, type CsvDialect, type CsvRecord, type CsvCell } from "./csv.js";
+export { readCsv, readCsvStream, writeCsvRow, pythonValueText, Writer, DictionaryWriter, type CsvWriteCell, type WriterOptions, type DictionaryWriterOptions, type CsvDialect, type CsvRecord, type CsvCell } from "./csv.js";
 export { parseArguments, type ParserOptions, type ParseResult } from "./cli/index.js";
 export type { MatchFile } from "./match-files.js";
 export { LazyInput, virtualPath } from "./io/index.js";

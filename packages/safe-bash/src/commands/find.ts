@@ -1,10 +1,10 @@
 import { tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import { modeChange } from "./metadata/chmod.js";
 import { PublicDiagnostic } from "../diagnostics.js";
-import { basename, FsError, getCommandArguments, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
+import { basename, FsError, getCommandArguments, resolvePath, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { compilePattern } from "../shell/pattern.js";
 import { getRuntimeBackingFileSystem, isSyncResolved } from "../fs/creation-mask.js";
-import { codeOf, define, diagnostic, integer, output, outputRange, pathOf, replaceArgument, RESOLVED_EXIT_ZERO, UsageError } from "./internal.js";
+import { builtInDirectContextExecutors, codeOf, define, diagnostic, integer, output, outputRange, pathOf, replaceArgument, RESOLVED_EXIT_ZERO, UsageError } from "./internal.js";
 import { escapeText } from "../escaping.js";
 import { createDirectoryReader } from "./directory-admission.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
@@ -138,7 +138,7 @@ function syntheticStatFor(type: FileStat["type"]): FileStat {
 
 export function findCommands(execute: CommandHandler, maxDirectoryEntries?: number): CommandDefinition[] {
   const readDirectory = createDirectoryReader(maxDirectoryEntries);
-  return [define("find", context => {
+  const defs = [define("find", context => {
     if (
       !context.argumentValues &&
       context.args.length === 3 &&
@@ -282,6 +282,8 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     }
     return executeFindSlow(context);
   })];
+  if (maxDirectoryEntries === undefined) builtInDirectContextExecutors.add(defs[0]!.execute);
+  return defs;
   async function executeFindSlow(context: Parameters<Parameters<typeof define>[1]>[0]) {
     const startedAt = Date.now();
     const rawArgumentValues = context.argumentValues ? getCommandArguments(context) : undefined;
@@ -775,5 +777,262 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     } finally {
       if (useSharedPrintBuf) sharedFindPrintBufInUse = false;
     }
+  }
+}
+
+
+export interface SyncFindNodeInfo {
+  type: "file" | "directory" | "symlink";
+  size: number;
+  mode: number;
+  ino?: number;
+  nlink?: number;
+  children?: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number; ino?: number; target?: string }>;
+}
+
+interface SyncFindEntry {
+  display: string;
+  name: string;
+  type: "file" | "directory" | "symlink";
+  size: number;
+  mode: number;
+  nlink: number;
+  childrenCount: number;
+  prune: boolean;
+}
+
+export function evalSyncFind(
+  rawArgs: readonly string[],
+  cwd: string,
+  inspectNode: (path: string, followFinal: boolean) => SyncFindNodeInfo | undefined,
+): string | undefined {
+  try {
+    const args = [...rawArgs];
+    let follow = "-P";
+    while (args[0] === "-P" || args[0] === "-L" || args[0] === "-H") {
+      follow = args.shift()!;
+    }
+    if (args[0] === "-D") return undefined;
+    if (args[0] === "--") args.shift();
+    const roots: string[] = [];
+    while (args.length && !args[0]!.startsWith("-") && args[0] !== "!" && args[0] !== "(") {
+      roots.push(args.shift()!);
+    }
+    if (roots.length === 0) roots.push(".");
+    if (roots.length > 16) return undefined;
+    for (let i = 0; i < roots.length; i++) {
+      const rp = resolvePath(cwd, roots[i]!);
+      if (rp === "/dev" || rp.startsWith("/dev/")) return undefined;
+    }
+    let maxDepth = Infinity;
+    let minDepth = 0;
+    let depthFirst = false;
+    let explicitAction = false;
+    let offset = 0;
+    const outLines: string[] = [];
+    type SyncExpr = (entry: SyncFindEntry) => boolean;
+
+    const primary = (): SyncExpr => {
+      const token = args[offset++];
+      if (token === undefined) throw new Error("eof");
+      if (token === "(") {
+        const inner = disjunction();
+        if (args[offset++] !== ")") throw new Error("unclosed");
+        return inner;
+      }
+      if (token === "!" || token === "-not") {
+        const inner = primary();
+        return entry => !inner(entry);
+      }
+      if (token === "-depth" || token === "-d") {
+        depthFirst = true;
+        return () => true;
+      }
+      if (token === "-maxdepth" || token === "-mindepth") {
+        const operand = args[offset++];
+        if (operand === undefined || !/^[0-9]+$/.test(operand)) throw new Error("depth");
+        const parsed = Number(operand);
+        if (token === "-maxdepth") maxDepth = parsed;
+        else minDepth = parsed;
+        return () => true;
+      }
+      if (token === "-true" || token === "-false") return () => token === "-true";
+      if (token === "-empty") {
+        return entry => entry.type === "directory" ? entry.childrenCount === 0 : entry.type === "file" && entry.size === 0;
+      }
+      if (token === "-prune") {
+        return entry => {
+          entry.prune = true;
+          return true;
+        };
+      }
+      if (token === "-print") {
+        explicitAction = true;
+        return entry => {
+          outLines.push(escapeText(entry.display, "display"));
+          return true;
+        };
+      }
+      if (
+        token === "-name" ||
+        token === "-iname" ||
+        token === "-path" ||
+        token === "-wholename" ||
+        token === "-ipath" ||
+        token === "-iwholename" ||
+        token === "-type" ||
+        token === "-size" ||
+        token === "-links" ||
+        token === "-perm"
+      ) {
+        const operand = args[offset++];
+        if (operand === undefined) throw new Error("operand");
+        if (token === "-type") {
+          const types: Record<string, SyncFindEntry["type"]> = { f: "file", d: "directory", l: "symlink" };
+          const specialModes: Record<string, number> = { c: 0o020000, b: 0o060000, p: 0o010000, s: 0o140000 };
+          const requested = operand.split(",");
+          if (requested.some(t => t.length !== 1 || !(t in types || t in specialModes))) throw new Error("type");
+          return entry =>
+            requested.some(t =>
+              specialModes[t] ? (entry.mode & 0o170000) === specialModes[t] : entry.type === types[t],
+            );
+        }
+        if (token === "-size") {
+          const comparison = operand[0] === "+" || operand[0] === "-" ? operand[0] : "";
+          const units: Record<string, number> = { c: 1, w: 2, b: 512, k: 1024, M: 1048576, G: 1073741824 };
+          const suffix = operand.at(-1)!;
+          const unit = units[suffix] ?? 512;
+          const digits = operand.slice(comparison ? 1 : 0, units[suffix] === undefined ? undefined : -1);
+          if (!digits || !/^[0-9]+$/.test(digits)) throw new Error("size");
+          const size = Number(digits);
+          return entry =>
+            comparison === "+"
+              ? Math.ceil(entry.size / unit) > size
+              : comparison === "-"
+                ? Math.ceil(entry.size / unit) < size
+                : Math.ceil(entry.size / unit) === size;
+        }
+        if (token === "-links") {
+          const comparison = operand[0] === "+" || operand[0] === "-" ? operand[0] : "";
+          const digits = comparison ? operand.slice(1) : operand;
+          if (!digits || !/^[0-9]+$/.test(digits)) throw new Error("links");
+          const count = Number(digits);
+          return entry =>
+            comparison === "+" ? entry.nlink > count : comparison === "-" ? entry.nlink < count : entry.nlink === count;
+        }
+        if (token === "-perm") {
+          const comparison =
+            operand[0] === "-" || operand[0] === "/" || (operand[0] === "+" && /^[0-7]/u.test(operand.slice(1)))
+              ? operand[0]
+              : "";
+          const spec = comparison ? operand.slice(1) : operand;
+          const evalMode = modeChange(spec, 0);
+          return entry => {
+            const bits = evalMode({ mode: 0, type: entry.type });
+            const permissions = entry.mode & 0o7777;
+            return comparison === "-"
+              ? (permissions & bits) === bits
+              : comparison === "/" || comparison === "+"
+                ? bits === 0 || (permissions & bits) !== 0
+                : permissions === bits;
+          };
+        }
+        const ignoreCase = token === "-iname" || token === "-ipath" || token === "-iwholename";
+        const fn = getCachedFindPattern(operand, ignoreCase);
+        if (!fn) throw new Error("pattern");
+        const useName = token === "-name" || token === "-iname";
+        return entry => fn(useName ? entry.name : entry.display);
+      }
+      throw new Error("unsupported");
+    };
+
+    const conjunction = (): SyncExpr => {
+      let pred = primary();
+      while (offset < args.length && !["-o", "-or", ",", ")"].includes(args[offset]!)) {
+        if (args[offset] === "-a" || args[offset] === "-and") offset++;
+        const left = pred;
+        const right = primary();
+        pred = entry => left(entry) && right(entry);
+      }
+      return pred;
+    };
+
+    const disjunction = (): SyncExpr => {
+      let pred = conjunction();
+      while (args[offset] === "-o" || args[offset] === "-or") {
+        offset++;
+        const left = pred;
+        const right = conjunction();
+        pred = entry => left(entry) || right(entry);
+      }
+      while (args[offset] === ",") {
+        offset++;
+        const left = pred;
+        const right = conjunction();
+        pred = entry => {
+          left(entry);
+          return right(entry);
+        };
+      }
+      return pred;
+    };
+
+    const evaluate: SyncExpr = args.length ? disjunction() : () => true;
+    if (offset !== args.length) return undefined;
+
+    let visitedNodes = 0;
+    const visit = (display: string, depth: number, ancestors: ReadonlySet<number>, knownName?: string): boolean => {
+      if (++visitedNodes > 1024) return false;
+      const absPath = resolvePath(cwd, display);
+      if (absPath === "/dev" || absPath.startsWith("/dev/")) return false;
+      const shouldFollow = follow === "-L" || (follow === "-H" && depth === 0);
+      let info = inspectNode(absPath, false);
+      if (!info) return false;
+      if (shouldFollow && info.type === "symlink") {
+        const followed = inspectNode(absPath, true);
+        if (followed) info = followed;
+      }
+      const entry: SyncFindEntry = {
+        display,
+        name: knownName ?? (basename(display) || "/"),
+        type: info.type,
+        size: info.size,
+        mode: info.mode,
+        nlink: info.nlink ?? (info.type === "directory" ? 2 : 1),
+        childrenCount: info.children ? info.children.length : 0,
+        prune: false,
+      };
+      if (!depthFirst && depth >= minDepth) {
+        const ok = evaluate(entry);
+        if (ok && !explicitAction) outLines.push(escapeText(display, "display"));
+      }
+      if (info.type === "directory" && depth < maxDepth && (!entry.prune || depthFirst)) {
+        const ino = info.ino ?? -1;
+        if (ino !== -1 && ancestors.has(ino)) return false;
+        const nextAncestors = ino !== -1 ? new Set(ancestors).add(ino) : ancestors;
+        let parent = display;
+        while (parent.endsWith("/")) parent = parent.slice(0, -1);
+        const sorted = info.children
+          ? [...info.children].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+          : [];
+        for (let i = 0; i < sorted.length; i++) {
+          const child = sorted[i]!;
+          const childDisplay = `${parent}/${child.name}`;
+          if (!visit(childDisplay, depth + 1, nextAncestors, child.name)) return false;
+        }
+      }
+      if (depthFirst && depth >= minDepth) {
+        const ok = evaluate(entry);
+        if (ok && !explicitAction) outLines.push(escapeText(display, "display"));
+      }
+      return true;
+    };
+
+    for (let i = 0; i < roots.length; i++) {
+      if (!visit(roots[i]!, 0, new Set())) return undefined;
+    }
+    return outLines.length > 0 ? outLines.join("\n") + "\n" : "";
+  } catch {
+    return undefined;
   }
 }

@@ -1,3 +1,4 @@
+import { createCsvkitCommands } from "../../src/commands/csvkit/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
@@ -790,4 +791,47 @@ test("sync substitution fast path covers readlink, realpath, and ls (Wave 140)",
   `);
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "bin/,current@,:80\n");
+});
+
+
+test("sync substitution and pipeline: find, csvlook, and csvjson (Wave 141)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/proj/src/sub", { recursive: true });
+  const enc = new TextEncoder();
+  await fs.writeFile("/proj/src/a.ts", enc.encode("export const a = 1;\n"));
+  await fs.writeFile("/proj/src/sub/b.ts", enc.encode("export const b = 2;\n"));
+  await fs.writeFile("/proj/src/readme.md", enc.encode("# Readme\n"));
+  await fs.writeFile("/proj/data.csv", enc.encode("name,score\nalice,10\nbob,25\n"));
+  const commands = new CommandRegistry([...createStandardCommands(), ...createCsvkitCommands()]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(find /proj/src -maxdepth 2 -type f -name '*.ts' | tr '\n' ','):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "/proj/src/a.ts,/proj/src/sub/b.ts,:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(csvlook /proj/data.csv | wc -l):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "4:80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(csvjson --stream /proj/data.csv | head -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "{\"name\": \"alice\", \"score\": 10.0}:80\n");
 });

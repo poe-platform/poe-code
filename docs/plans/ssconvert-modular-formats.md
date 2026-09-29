@@ -113,9 +113,39 @@ signed and abbreviated durations (`371deddbd9`), and fractional time export
 existing ODF regressions and independent LibreOffice numeric interoperability
 evidence. These results do not establish broader spreadsheet fidelity.
 
-At 2026-09-29 11:15 UTC, pinned root and scoped release runs target
-`9ac53e4f51`; publication is not yet verified. The frozen full unit gate at
-`fbd6434f79` remains active and does not cover the later duration changes.
-SpreadsheetML ownership extraction is tracked by #4290; its existing root
-selected-format route will be joined by the scoped route, with actual reader,
-metadata and schema ownership in `packages/spreadsheet-format-spreadsheetml`.
+`2d3bdaef51` delivered SpreadsheetML reader, metadata and schema ownership in
+`packages/spreadsheet-format-spreadsheetml`, with root/scoped selected-format
+routes. `d9b17d1963` removed soffice's early Node prebundle, and `db78c3bab6`
+repaired canonical XML runtime copying into scoped SafeFS. Those three commits
+are verified on remote main; 228 focused boundary/packaging checks passed.
+Actual installed-consumer qualification and containing publication remain open.
+HTML table ownership is the next format extraction, tracked by #4294, preserving
+the compatibility provider's additional LaTeX/roff registrations.
+
+At the 2026-09-29 11:45 UTC checkpoint, both pinned releases of `9ac53e4f51`
+failed before publication. The scoped run exposed the repaired soffice bundle
+problem; root fresh unit and shell checks have separately tracked failures.
+The frozen full unit gate at `fbd6434f79` finished with native shell failures;
+it does not cover the later duration fixes and is not a passing full gate.
+Newer shell compiler failures prevent a successful current containing build.
+The release owner is reconciling those changes while focused format work proceeds.
+
+At the 2026-09-29 12:05 UTC checkpoint, complete maintained build and lint passed
+with the incoming compiler repairs. Fresh root/scoped artifacts include HTML
+reader/writer ownership in `packages/spreadsheet-format-html`, the SpreadsheetML
+declaration correction, the portable soffice build, and canonical XML copying.
+Installed SpreadsheetML and all five HTML writer profiles pass actual workerd
+checks; selected bundles exclude competing codecs. Strict NodeNext public types
+pass. Independent HTML parsing verifies Unicode, entities and numeric cells in
+all ten HTML outputs. HTML fixtures declare UTF-8, and readback accounts for the
+existing document-title sheets.
+
+Installed root/scoped soffice passes ODS-to-CSV/XLSX conversion and destination
+preservation on input-budget rejection in Node and workerd without
+`nodejs_compat`. The aggregate command runtime retains its existing JavaScript
+Buffer shim; `process` remains unavailable. Public XML limit-error constructor
+identity passes. Independent openpyxl/CSV readback preserves Unicode, multiline
+text, numbers, booleans and the second-sheet AB1 cell. After rebase onto the
+delivered SafeJS parser repair, 197 focused/compatibility tests and full lint
+pass. HTML and declaration commits still await remote delivery at this checkpoint;
+no containing publication has been verified.

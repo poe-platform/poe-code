@@ -327,6 +327,10 @@
     "./ssconvert/formats/spreadsheetml": {
       "types": "./packages/safe-bash-command-ssconvert/dist/formats/spreadsheetml.d.ts",
       "import": "./dist/ssconvert/formats/spreadsheetml.js"
+    },
+    "./ssconvert/formats/html": {
+      "types": "./packages/safe-bash-command-ssconvert/dist/formats/html.d.ts",
+      "import": "./dist/ssconvert/formats/html.js"
     }
   },
   "engines": {
@@ -573,7 +577,8 @@
     "@poe-code/spreadsheet-format-ods": "0.0.1",
     "@poe-code/spreadsheet-format-xls": "0.0.1",
     "@poe-code/xml-ast": "0.0.1",
-    "@poe-code/spreadsheet-format-spreadsheetml": "0.0.1"
+    "@poe-code/spreadsheet-format-spreadsheetml": "0.0.1",
+    "@poe-code/spreadsheet-format-html": "0.0.1"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -773,7 +778,10 @@
     "packages/spreadsheet-ast/dist",
     "packages/xml-ast/dist/**/*.d.ts",
     "packages/spreadsheet-format-spreadsheetml/dist/**/*.d.ts",
-    "packages/spreadsheet-format-spreadsheetml/LICENSE"
+    "packages/spreadsheet-format-spreadsheetml/LICENSE",
+    "packages/spreadsheet-format-html/dist/**/*.d.ts",
+    "packages/spreadsheet-format-html/LICENSE",
+    "packages/spreadsheet-format-html/src/html-NOTICE.md"
   ],
   "license": "MIT",
   "imports": {

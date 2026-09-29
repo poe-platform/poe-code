@@ -1,74 +1,12 @@
 import { createLatexWriter } from "../latex.js";
 import { writeRoff } from "../roff.js";
 import type { FormatProvider } from "../types.js";
-import { createHtmlWriter, probeHtml, readHtml } from "../html.js";
+import { htmlFormat } from "../../formats/html.js";
 
 export default {
-  "id": "Gnumeric_html",
-  "services": [
-    {
-      "id": "html",
-      "direction": "read",
-      read: readHtml,
-      probeContent: probeHtml,
-      "description": "HTML (*.html, *.htm)",
-      "extensions": [
-        "html",
-        "htm"
-      ],
-      "probePriority": 100,
-      "contentProbe": true
-    },
-    {
-      "id": "html32",
-      write: createHtmlWriter({ header: "HTML32", legacy: true, fontColor: true }),
-      "direction": "write",
-      "description": "HTML 3.2 (*.html)",
-      "extensions": [
-        "html"
-      ],
-      "sheetSelection": true
-    },
-    {
-      "id": "html40",
-      write: createHtmlWriter({ header: "HTML40" }),
-      "direction": "write",
-      "description": "HTML 4.0 (*.html)",
-      "extensions": [
-        "html"
-      ],
-      "sheetSelection": true
-    },
-    {
-      "id": "html40frag",
-      write: createHtmlWriter({ header: "fragment", fontColor: true, backgroundAttribute: true }),
-      "direction": "write",
-      "description": "HTML (*.html) fragment",
-      "extensions": [
-        "html"
-      ],
-      "sheetSelection": true
-    },
-    {
-      "id": "xhtml",
-      write: createHtmlWriter({ header: "XHTML", fontColor: true, backgroundAttribute: true }),
-      "direction": "write",
-      "description": "XHTML (*.html)",
-      "extensions": [
-        "html"
-      ],
-      "sheetSelection": true
-    },
-    {
-      "id": "xhtml_range",
-      write: createHtmlWriter({ header: "XHTML", fontColor: true, backgroundAttribute: true, rangeScope: true }),
-      "direction": "write",
-      "description": "XHTML range - for export to clipboard",
-      "extensions": [
-        "html"
-      ],
-      "saveScope": "range"
-    },
+  ...htmlFormat,
+  services: [
+    ...htmlFormat.services,
     {
       "id": "latex",
       write: createLatexWriter({}),
@@ -117,6 +55,5 @@ export default {
         "me"
       ]
     }
-  ],
-  "source": "plugins/html/plugin.xml.in"
+  ]
 } satisfies FormatProvider;

@@ -94,7 +94,8 @@
     "@poe-code/spreadsheet-format-csv": "*",
     "@poe-code/spreadsheet-format-ods": "*",
     "@poe-code/spreadsheet-format-xls": "*",
-    "@poe-code/spreadsheet-format-spreadsheetml": "*"
+    "@poe-code/spreadsheet-format-spreadsheetml": "*",
+    "@poe-code/spreadsheet-format-html": "*"
   },
   "devDependencies": {
     "safe-bash-contracts": "*",

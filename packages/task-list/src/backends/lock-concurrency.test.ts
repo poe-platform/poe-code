@@ -113,7 +113,10 @@ describe("filesystem lock ownership", () => {
     })]);
     await ownerEntered.promise;
     resume.resolve();
-    await vi.advanceTimersByTimeAsync(30_000);
+    await vi.advanceTimersByTimeAsync(10);
+    expect(operation).not.toHaveBeenCalled();
+    vi.setSystemTime(Date.now() + 30_000);
+    await vi.advanceTimersByTimeAsync(10);
     const ownerStillPresent = volume.existsSync(lockPath);
     finishOwner.resolve();
     const ownerResult = await owner;

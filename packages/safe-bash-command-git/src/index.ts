@@ -10,10 +10,10 @@ interface Entry { path: string; kind: string; mode: number; data: string }
 interface Result { exitCode: number; stdout: string; stdoutBytes?: string | null; stderr: string; entries: Entry[] | null; request?: {url:string;method:string;headers:Record<string,string>;body:string} | null }
 interface GitExports { memory: { readonly buffer: ArrayBufferLike }; git_alloc(length:number):number; git_free(ptr:number,length:number):void; git_execute(ptr:number,length:number):number; git_output_len():number }
 const encoder=new TextEncoder(), decoder=new TextDecoder();
-function encode(bytes:Uint8Array):string { return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('hex'); }
-function decode(hex:string):Uint8Array { return new Uint8Array(Buffer.from(hex, 'hex')); }
+function encode(bytes:Uint8Array):string { let o=''; for(let i=0;i<bytes.byteLength;i++) o+=bytes[i]!.toString(16).padStart(2,'0'); return o; }
+function decode(hex:string):Uint8Array { const out=new Uint8Array(hex.length>>>1); for(let i=0;i<out.byteLength;i++) out[i]=Number.parseInt(hex.slice(i*2,i*2+2),16)||0; return out; }
 
-interface GitCommandMeta { readonly limits: GitLimits; readonly hasHttp: boolean; readonly wasmModule?: object }
+interface GitCommandMeta { readonly limits: GitLimits; readonly hasHttp: boolean; readonly wasmModule?: object | undefined }
 const gitCommandMeta = new WeakMap<CommandDefinition["execute"], GitCommandMeta>();
 let sharedDefaultExports: GitExports | undefined;
 function getDefaultGitExports(): GitExports {

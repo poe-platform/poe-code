@@ -1,4 +1,4 @@
-import { gunzipSync, inflateRawSync } from "node:zlib";
+import { ungzip as gunzipSync, inflateRaw as inflateRawSync } from "pako";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { builtInDirectContextExecutors } from "../internal.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
@@ -31,7 +31,7 @@ export type { ArchiveCommandsOptions, ArchiveLimits, ZipHost, ZipEncryptionProfi
 
 export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
   const configured = settings(options);
-  return { name: "tar", description: "Stream USTAR/PAX archives through the virtual filesystem", async execute(original) {
+  const def: CommandDefinition = { name: "tar", description: "Stream USTAR/PAX archives through the virtual filesystem", async execute(original) {
     const limits = invocationLimits(configured, original);
     original.signal.throwIfAborted();
     const controller = new AbortController();

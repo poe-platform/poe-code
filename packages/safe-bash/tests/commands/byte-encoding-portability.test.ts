@@ -47,3 +47,17 @@ test("synchronous date formatting works without the global Buffer", async () => 
   try { assert.equal(evalSyncDate(["-u", "-d", "2020-01-01", "+%Y é"], undefined), "2020 é\n"); }
   finally { Object.defineProperty(globalThis, "Buffer", descriptor); }
 });
+
+test("synchronous stat rendering works without the global Buffer", async () => {
+  const { evalSyncStat } = await import("../../src/commands/metadata/stat.js");
+  const { MemoryFileSystem } = await import("@poe-code/safe-fs/core");
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/é", encodeBytes("abc"));
+  const stat = await fs.stat("/é");
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer")!;
+  Reflect.deleteProperty(globalThis, "Buffer");
+  try {
+    assert.equal(evalSyncStat(["-c", "%n:%s", "/é"], "/", undefined, () => stat), "/é:3\n");
+    assert.equal(evalSyncStat(["--printf=%n:%s", "/é"], "/", undefined, () => stat), "/é:3");
+  } finally { Object.defineProperty(globalThis, "Buffer", descriptor); }
+});

@@ -79,6 +79,21 @@ The incoming synchronous XLSX shortcut dropped sparse row positions. Fix
 actual Shell substitutions pass the 95-test command cohort. Broader shortcut
 format/resource equivalence remains unqualified and part of this plan.
 
+Live Lotus name references are delivered in `2f95e87916` and `7aa2721cff`.
+Definition edits and deletion now affect imported formulas; per-use copy modes
+preserve relative/absolute axes and existing qualified-sheet behavior. Native
+XML/XLSX/BIFF transport remains unfinished and refuses these tokens rather than
+silently dropping identity or relocation. Complete native copy/move qualification
+before closing this family. The ledger records focused and compiled evidence.
+
+The current release follow-up includes Pandoc registry lookup (`683adeb82b`) and
+public runtime ownership. A workspace rebuild deletes root-consumed filesystem
+runtime files in `packages/safe-js/dist` and restores bare workspace imports in
+public declarations (including `@poe-code/xml-ast`). Move public runtime and
+declaration ownership out of rebuildable workspace output; do not relax the
+consumer guard to accept leaking private imports. Verify compiled imports and
+strict consumers after the maintained workspace rebuild route.
+
 Complete the standard singular/plural/plugin command exports in that package.
 Keep file-output budget and cancellation ownership in `safe-bash-contracts`.
 The root SDK and Shell use the declared shared-workspace contracts runtime for

@@ -3570,7 +3570,17 @@
         "maintainedSelectedBuild": "pass",
         "compiledSdkAndCommand": "Four distinct opcode/spelling fixtures produce identical correct CSV on both paths."
       },
-      "remaining": "Original live name identity and name-definition edits, relative copy/move and native transport remain open.",
+      "liveIdentity20260929": {
+        "engineCommit": "2f95e879162035ad66686f79c79d286b741977d0",
+        "importerCommit": "7aa2721cff075b0f1e76437eadda0c415c67afcb",
+        "delivery": "Both verified on remote main through 683adeb82ba5553c3c61404e4b91b18ab332c18f; publication not verified.",
+        "before": "Two original-memory importer regressions fail: replacing Value from A1=11 to B1=13 leaves both opcode7/8 formulas at 11.",
+        "change": "Original exact names now remain name nodes with per-use copy displacement. Definition replacement/deletion, relative/absolute row and column copying, existing local versus explicitly qualified sheet bindings, dependency discovery and internal OpenFormula are preserved. Unsupported Gnumeric/XLSX/BIFF native transport refuses instead of silently erasing identity or copy mode.",
+        "validation": "555 checks in 32 files and 20408 neighboring formula/BIFF/Gnumeric checks pass. Package lint/source/test/consumer types, root ESLint and full build (252 declared builds across 253 workspaces) pass. Compiled SDK produces 11/11 before edits, 13/13 after edits and 19/13 for copied relative/absolute uses. CLI --recalc CSV agrees; failed native export writes no files. Captured successful output visually inspected.",
+        "receipt": "out/ssconvert-odf-settings/lotus-live-compiled.json",
+        "sourceScope": "Pinned FindRel/FindAbs establish name-index identity. Existing cross-sheet copy behavior is retained; this is not complete Calc/native copy-mode qualification."
+      },
+      "remaining": "Native XML/XLSX/BIFF transport and complete native copy/move qualification remain open. Live identity and definition edits are implemented in the owned importer/engine. Full unit and release integration remain pending.",
       "receipts": [
         "out/ssconvert-odf-settings/lotus-dollar-checks.json",
         "out/ssconvert-odf-settings/lotus-dollar-compiled.json"

@@ -3406,6 +3406,37 @@
           "out/ssconvert-odf-settings/weight-rounding-native.json"
         ]
       }
+    },
+    "lotusNamedDollarMarker": {
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotform.cxx",
+          "sha256": "1a6b859a76fe0ac7d7485b0b298996125a19ecfc4b170fcbeccd9ca0a00b2794",
+          "lines": "577-601"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/tool.cxx",
+          "sha256": "ee7385baeaf6c04ff755143fa4753eedfa122c2943fb18751978dc0819c574df",
+          "lines": "466-506"
+        }
+      ],
+      "before": {
+        "failed": 2,
+        "passed": 51,
+        "finding": "Relative $Value resolves Value, selecting A1 instead of B1; missing $Value also silently selects Value."
+      },
+      "after": {
+        "tests": 496,
+        "files": 23,
+        "lintAndTypes": "pass",
+        "maintainedSelectedBuild": "pass",
+        "compiledSdkAndCommand": "Four distinct opcode/spelling fixtures produce identical correct CSV on both paths."
+      },
+      "remaining": "Original live name identity and name-definition edits, relative copy/move and native transport remain open.",
+      "receipts": [
+        "out/ssconvert-odf-settings/lotus-dollar-checks.json",
+        "out/ssconvert-odf-settings/lotus-dollar-compiled.json"
+      ]
     }
   },
   "cases": [

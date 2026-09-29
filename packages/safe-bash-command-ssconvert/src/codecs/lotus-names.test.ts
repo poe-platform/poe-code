@@ -96,6 +96,29 @@ it("recalculates imported names after an apostrophe-containing sheet rename", as
 
 const namedToken = (text: string, opcode = 7) => [opcode, ...Array.from(text, c => c.charCodeAt(0)), 0];
 const formulaRecord = (tokens: number[], row = 0, column = 1, sheet = 0) => record(25, [...word(row), sheet, column, ...Array<number>(10).fill(0), ...tokens, 3]);
+it.each([
+  { opcode: 7, token: "$Value", formula: "=B1", expected: 13 },
+  { opcode: 7, token: "Value", formula: "=A1", expected: 11 },
+  { opcode: 8, token: "$Value", formula: "=$A$1", expected: 11 },
+  { opcode: 8, token: "$$Value", formula: "=$B$1", expected: 13 }
+])("distinguishes the absolute marker from literal dollars in token $opcode/$token", async ({ opcode, token, formula, expected }) => {
+  // LibreOffice RangeNameBufferWK3::FindRel uses the original spelling;
+  // only FindAbs removes the leading absolute-reference marker.
+  const input = modern(newName("Value"), newName("$Value", [0, 0, 1]),
+    formulaRecord(namedToken(token, opcode), 0, 2),
+    record(24, [0, 0, 0, 0, 22, 0]), record(24, [0, 0, 0, 1, 26, 0]));
+  const book = await readLotus(input, context);
+  expect(book.sheets[0]!.cells.find(cell => cell.column === 2)?.formula).toBe(formula);
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells.find(cell => cell.column === 2)?.value)
+    .toEqual({ kind: "number", value: expected });
+});
+it("does not fall back from a missing literal-dollar relative name to a different name", async () => {
+  const warnings: string[] = [];
+  const book = await readLotus(modern(newName("Value"), formulaRecord(namedToken("$Value", 7))),
+    { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  expect(book.sheets[0]!.cells[0]!.formula).toBe("=#NAME?");
+  expect(warnings).toEqual(["Unknown Lotus named reference '$Value'."]);
+});
 it.each([[0, "=$C$2"], [1, "=C$2"], [2, "=$C2"], [3, "=C2"]])("decodes WK3 cell-reference axis flags %i from the Lotus record", async (flags, formula) => {
   // LibreOffice LotusToSc::ReadSRD and libwps LotusSpreadsheet::readCell
   // both assign bit 0 to columns and bit 1 to rows.

@@ -275,7 +275,8 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
         stack.push("#REF!"); break;
       }
       let name = await lmbcs(bytes.subarray(start, at), group, context); at++;
-      if (name.startsWith("$")) name = name.slice(1);
+      // Only absolute-name tokens carry a '$' marker (Calc FindRel/FindAbs).
+      if (op === 8 && name.startsWith("$")) name = name.slice(1);
       const range = names?.get(name);
       if (!range) {
         const external = lotusExternalVariable(name);

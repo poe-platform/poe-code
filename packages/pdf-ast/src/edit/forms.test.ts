@@ -463,7 +463,7 @@ trailer
     expect(bGlyphP2.bbox[0] - aGlyphP2.bbox[0]).toBeCloseTo(30, 0);
   });
 
-  it("applies /AP /N Form XObject /Matrix (ISO 32000-1 §12.5.5 Algorithm 1) and renames colliding /F1 resources during flattenDocumentFormFields", () => {
+  it("applies /AP /N Form XObject /Matrix (ISO 32000-1 §12.5.5 Algorithm 1) and isolates colliding /F1 resources during flattenDocumentFormFields", () => {
     const doc = PdfDocument.create();
     const page = doc.addPage([200, 200]);
     page.drawText("Page Header", { x: 10, y: 180, size: 12 }); // Registers /F1 on page
@@ -504,7 +504,7 @@ trailer
     flattenDocumentFormFields(doc.cos);
 
     const dl = page.evaluateDisplayList();
-    // Both "Page Header" (Helvetica /F1) and flattened "ROT" (Courier renamed to /F1_ap1) should be present
+    // Both "Page Header" (Helvetica /F1) and flattened "ROT" (Courier in the Form resource dictionary) should be present
     const textStr = dl.glyphs.map(g => g.unicode).join("");
     expect(textStr).toContain("Page Header");
     expect(textStr).toContain("ROT");

@@ -1256,52 +1256,23 @@ export function flattenDocumentFormFields(doc: ParsedCosDocument): void {
         }
         let apBaked = false;
         if (apN?.kind === "stream") {
-          let apBytes = doc.decodeStream(apN);
           apBaked = true;
-          const apRes = doc.resolveDict(dictGet(apN.dict, "Resources"));
-          const resRenames = new Map<string, string>();
-          if (apRes) {
-            let dstRes = doc.resolveDict(dictGet(pageDict, "Resources"));
-            if (!dstRes) {
-              dstRes = cosDict({});
-              dictSet(pageDict, "Resources", dstRes);
-            }
-            for (const subKey of ["Font", "XObject", "ExtGState", "ColorSpace", "Pattern", "Shading"]) {
-              const srcSub = doc.resolveDict(dictGet(apRes, subKey));
-              if (!srcSub) continue;
-              let dstSub = doc.resolveDict(dictGet(dstRes, subKey));
-              if (!dstSub) {
-                dstSub = cosDict({});
-                dictSet(dstRes, subKey, dstSub);
-              }
-              for (const entry of srcSub.entries) {
-                const origName = entry.key.decoded;
-                const existingEntry = dictGet(dstSub, origName);
-                if (!existingEntry) {
-                  dictSet(dstSub, origName, entry.value);
-                } else if (
-                  existingEntry.kind === "ref" &&
-                  entry.value.kind === "ref" &&
-                  existingEntry.objectNumber === entry.value.objectNumber
-                ) {
-                  // Same object reference already registered
-                } else {
-                  let suffix = 1;
-                  while (dictGet(dstSub, `${origName}_ap${suffix}`)) suffix++;
-                  const newName = `${origName}_ap${suffix}`;
-                  dictSet(dstSub, newName, entry.value);
-                  resRenames.set(origName, newName);
-                }
-              }
-            }
-          }
-          if (resRenames.size > 0) {
-            let text = new TextDecoder("latin1").decode(apBytes);
-            for (const [oldKey, newKey] of resRenames.entries()) {
-              text = text.replaceAll(`/${oldKey} `, `/${newKey} `).replaceAll(`/${oldKey}\n`, `/${newKey}\n`);
-            }
-            apBytes = new TextEncoder().encode(text);
-          }
+          // Keep each appearance's resource namespace and encoded bytes intact.
+          // Page resources can be inherited or shared with another page.
+          const inheritedResources = doc.resolveDict(resolveInheritedFieldEntry(doc, pageDict, "Resources"));
+          const pageResources: PdfCosDict = { kind: "dict", entries: [...(inheritedResources?.entries ?? [])] };
+          const existingXObjects = doc.resolveDict(dictGet(pageResources, "XObject"));
+          const xObjects: PdfCosDict = { kind: "dict", entries: [...(existingXObjects?.entries ?? [])] };
+          let suffix = 1;
+          while (dictGet(xObjects, `AcroAppearance${suffix}`)) suffix++;
+          const appearanceName = `AcroAppearance${suffix}`;
+          const appearanceDict: PdfCosDict = { kind: "dict", entries: [...apN.dict.entries] };
+          dictSet(appearanceDict, "Type", cosName("XObject"));
+          dictSet(appearanceDict, "Subtype", cosName("Form"));
+          const appearanceRef = doc.allocateObject({ ...apN, dict: appearanceDict });
+          dictSet(xObjects, appearanceName, appearanceRef);
+          dictSet(pageResources, "XObject", xObjects);
+          dictSet(pageDict, "Resources", pageResources);
           const r2Node = rectArr && rectArr.items[2] ? doc.resolve(rectArr.items[2]) : undefined;
           const r3Node = rectArr && rectArr.items[3] ? doc.resolve(rectArr.items[3]) : undefined;
           const rectW = r2Node?.kind === "number" ? Math.max(1, Math.abs(r2Node.value - x1)) : 20;
@@ -1322,14 +1293,12 @@ export function flattenDocumentFormFields(doc: ParsedCosDocument): void {
           }
           const matArr = doc.resolveArray(dictGet(apN.dict, "Matrix"));
           let ma = 1, mb = 0, mc = 0, md = 1, me = 0, mf = 0;
-          let hasFormMatrix = false;
           if (matArr && matArr.items.length >= 6) {
             const mNums = matArr.items.slice(0, 6).map(it => {
               const r = doc.resolve(it);
               return r?.kind === "number" ? r.value : 0;
             });
             ma = mNums[0]!; mb = mNums[1]!; mc = mNums[2]!; md = mNums[3]!; me = mNums[4]!; mf = mNums[5]!;
-            hasFormMatrix = true;
           }
           const corners = [
             [bx0 * ma + by0 * mc + me, bx0 * mb + by0 * md + mf],
@@ -1347,14 +1316,9 @@ export function flattenDocumentFormFields(doc: ParsedCosDocument): void {
           const sy = Number((rectH / bh).toFixed(6));
           const tx = Number((x1 - tbx0 * sx).toFixed(6));
           const ty = Number((y1 - tby0 * sy).toFixed(6));
-          const matSuffix = hasFormMatrix ? ` ${ma} ${mb} ${mc} ${md} ${me} ${mf} cm` : "";
-          const apPrefix = new TextEncoder().encode(`\nq ${sx} 0 0 ${sy} ${tx} ${ty} cm${matSuffix}\n`);
-          const apSuffix = new TextEncoder().encode(`\nQ\n`);
-          const wrappedApBytes = new Uint8Array(apPrefix.length + apBytes.length + apSuffix.length);
-          wrappedApBytes.set(apPrefix, 0);
-          wrappedApBytes.set(apBytes, apPrefix.length);
-          wrappedApBytes.set(apSuffix, apPrefix.length + apBytes.length);
-          const apStreamRef = doc.allocateObject(cosStream(wrappedApBytes, { compress: false }));
+          // The Form invocation applies its own /Matrix exactly once.
+          const placementBytes = new TextEncoder().encode(`\nq ${sx} 0 0 ${sy} ${tx} ${ty} cm /${appearanceName} Do Q\n`);
+          const apStreamRef = doc.allocateObject(cosStream(placementBytes, { compress: false }));
           const existingContents = dictGet(pageDict, "Contents");
           if (!existingContents) {
             dictSet(pageDict, "Contents", apStreamRef);

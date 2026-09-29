@@ -1,14 +1,13 @@
 import { formatPdfNumber, type PdfContentNode, type PdfCosNode, type PdfPathSegment, type PdfTextCommand } from "../ast.js";
 import { serializeCosNodeBytes } from "../cos/writer.js";
-
-const decoder = new TextDecoder("latin1");
+import { bytesToString, stringToBytes } from "../bytes.js";
 
 function fmtNum(n: number): string {
   return formatPdfNumber(Number(n.toFixed(6)));
 }
 
 function fmtNode(node: PdfCosNode): string {
-  return decoder.decode(serializeCosNodeBytes(node));
+  return bytesToString(serializeCosNodeBytes(node));
 }
 
 function serializeTextCommand(cmd: PdfTextCommand): string {
@@ -124,7 +123,7 @@ export function serializeContentNodesToLines(
           entryParts.push(`/${entry.key.decoded} ${fmtNode(entry.value)}`);
         }
         lines.push(`BI ${entryParts.join(" ")} ID`);
-        lines.push(decoder.decode(node.data));
+        lines.push(bytesToString(node.data));
         lines.push("EI");
         break;
       }
@@ -146,10 +145,5 @@ export function serializeContentNodesToLines(
 }
 
 export function serializeContentAst(nodes: readonly PdfContentNode[]): Uint8Array {
-  const str = serializeContentNodesToLines(nodes).join("\n");
-  const out = new Uint8Array(str.length);
-  for (let i = 0; i < str.length; i++) {
-    out[i] = str.charCodeAt(i) & 0xff;
-  }
-  return out;
+  return stringToBytes(serializeContentNodesToLines(nodes).join("\n"));
 }

@@ -20,6 +20,13 @@ in `src/content/pdfjs-operators.test.ts` are adapted from
 `BT`/`ET` to expose local text AST nodes; unmatched `Q` is omitted from the local
 balanced group representation. Copyright 2017 Mozilla Foundation, Apache-2.0.
 
+The binary-string conversions in `src/bytes.ts` and five utility test cases in
+`src/bytes.test.ts` are adapted from `src/shared/util.js` and
+`test/unit/util_spec.js` at the same revision (Copyright Mozilla Foundation,
+Apache-2.0). Adaptations add TypeScript types, use spread with bounded 8192-byte
+chunks, and replace the upstream error helper with Error. Additional tests cover
+all byte values, content serialization, and form appearance resource isolation.
+
 Source: https://github.com/mozilla/pdf.js
 
 # qpdf

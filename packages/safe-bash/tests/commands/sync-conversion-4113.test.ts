@@ -196,20 +196,20 @@ test("evaluates stage-0 < file input redirections in pipelines and rev/tac/uniq 
   );
 });
 
-test("evaluates jq -n/--null-input, -s/--slurp, --arg, --argjson, dynamic object keys {(\$k): \$v}, and multi-file jq in sync substitutions, pipelines, and brace loops (Wave 169)", async () => {
+test("evaluates jq -n/--null-input, -s/--slurp, --arg, --argjson, dynamic object keys {($k): $v}, and multi-file jq in sync substitutions, pipelines, and brace loops (Wave 169)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/tmp");
   const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(structuredCommands());
   const res = await shell.exec([
     "printf '{\"id\":10,\"name\":\"alpha\"}\\n' > /tmp/j1.json",
     "printf '{\"id\":25,\"name\":\"beta\"}\\n' > /tmp/j2.json",
-    "j_null=$(jq -n -c --arg k \"host\" --arg v \"localhost\" --argjson port 8080 '{(\$k): \$v, \$port}')",
-    "j_sel=$(jq -r --arg target \"beta\" 'select(.name == \$target) | .id' /tmp/j1.json /tmp/j2.json)",
+    "j_null=$(jq -n -c --arg k \"host\" --arg v \"localhost\" --argjson port 8080 '{($k): $v, $port}')",
+    "j_sel=$(jq -r --arg target \"beta\" 'select(.name == $target) | .id' /tmp/j1.json /tmp/j2.json)",
     "j_slurp=$(jq -s -c 'map(.id) | add' /tmp/j1.json /tmp/j2.json)",
     "j_pipe=$(jq -r '.name' /tmp/j1.json /tmp/j2.json | tr '\\n' ':')",
     "loop_out=\"\"",
     "for i in {1..2}; do",
-    "  item=$(jq -n -c --arg idx \"$i\" '{step: (\$idx | tonumber)}' | jq -r '.step')",
+    "  item=$(jq -n -c --arg idx \"$i\" '{step: ($idx | tonumber)}' | jq -r '.step')",
     "  loop_out=\"$loop_out$item|\"",
     "done",
     "echo \"$j_null|$j_sel|$j_slurp|$j_pipe|$loop_out\""

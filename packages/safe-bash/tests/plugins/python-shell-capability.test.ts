@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createPythonShellCapability, pythonShellDispatchActive } from '../../src/commands/python/shell-capability.js';
 import type { CommandContext } from '../../src/contracts/index.js';
+import { Shell } from '../../src/shell/index.js';
+import { MemoryFileSystem } from '../../src/fs/memory/index.js';
 
 test('shell capability passes literal argv and child state with shared invocation authority', async () => {
   const scope = {};
@@ -269,4 +271,79 @@ test('stream chunk ceilings must be positive finite safe integers', () => {
   for (const maxStreamChunkBytes of [0, -1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => createPythonShellCapability(context, { maxStreamChunkBytes }), /stream chunk limit/);
   }
+});
+
+for (const mode of ['call', 'stream'] as const) {
+  for (const exitCode of [0, 7]) {
+    test(mode + ' preserves output overflow when an invoker catches it and returns ' + exitCode, async () => {
+      const signal = new AbortController().signal;
+      let overflow = true;
+      let caught = 0;
+      let settled = 0;
+      const context = { signal, executionScope: {}, cwd: '/', env: {}, async invoke(_command, _args, options) {
+        try {
+          await options!.stdout!.write(new Uint8Array([1, 2, 3]));
+          if (overflow) await options!.stderr!.write(new Uint8Array([4, 5]));
+          return { exitCode: 0 };
+        } catch (error) {
+          assert.ok(error instanceof RangeError);
+          caught++;
+          return { exitCode };
+        } finally { settled++; }
+      } } satisfies Partial<CommandContext> as unknown as CommandContext;
+      const capability = createPythonShellCapability(context, { maxOutputBytes: 4, maxConcurrentCalls: 1 });
+      const events: unknown[] = [];
+      const invoke = async () => {
+        if (mode === 'call') await capability.call!({ argv: ['emit'] }, { signal });
+        else for await (const event of capability.stream!({ argv: ['emit'] }, { signal })) events.push(event);
+      };
+      await assert.rejects(invoke(), { name: 'RangeError', message: 'Python shell output limit exceeded' });
+      assert.equal(caught, 1);
+      assert.equal(settled, 1);
+      assert.equal(pythonShellDispatchActive(context.executionScope), false);
+      assert.deepEqual(events, mode === 'stream' ? [{ type: 'stdout', data: [1, 2, 3] }] : []);
+      overflow = false;
+      assert.deepEqual(await capability.call!({ argv: ['emit'] }, { signal }), { stdout: [1, 2, 3], stderr: [], exitCode: 0 });
+      assert.equal(settled, 2);
+    });
+  }
+
+  test(mode + ' preserves output overflow through the real registered shell', async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() });
+    let failure: unknown;
+    shell.register({ name: 'emit', async execute(context) {
+      await context.stdout.write(new TextEncoder().encode(context.args[0]));
+      return { exitCode: 0 };
+    } });
+    shell.register({ name: 'python-bridge-probe', async execute(context) {
+      try {
+        const capability = createPythonShellCapability(context, { maxOutputBytes: 4, maxConcurrentCalls: 1 });
+        const invoke = async () => {
+          if (mode === 'call') await capability.call!({ argv: ['emit', '12345'] }, context);
+          else for await (const event of capability.stream!({ argv: ['emit', '12345'] }, context)) assert.notEqual((event as { type: string }).type, 'exit');
+        };
+        await assert.rejects(invoke(), { name: 'RangeError', message: 'Python shell output limit exceeded' });
+        assert.deepEqual(await capability.call!({ argv: ['emit', '1234'] }, context), { stdout: [49, 50, 51, 52], stderr: [], exitCode: 0 });
+      } catch (error) { failure = error; }
+      return { exitCode: 0 };
+    } });
+    try {
+      const result = await shell.exec('python-bridge-probe');
+      if (failure) throw failure;
+      assert.equal(result.exitCode, 0, result.stderr);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test('parent cancellation wins over an output failure caught by the command', async () => {
+  const parent = new AbortController();
+  const reason = new Error('caller cancelled');
+  const context = { signal: parent.signal, executionScope: {}, cwd: '/', env: {}, async invoke(_command, _args, options) {
+    try { await options!.stdout!.write(new Uint8Array(5)); }
+    catch { parent.abort(reason); }
+    return { exitCode: 0 };
+  } } satisfies Partial<CommandContext> as unknown as CommandContext;
+  const capability = createPythonShellCapability(context, { maxOutputBytes: 4 });
+  await assert.rejects(capability.call!({ argv: ['emit'] }, { signal: parent.signal }), error => error === reason);
+  assert.equal(pythonShellDispatchActive(context.executionScope), false);
 });

@@ -60,9 +60,14 @@ export function createPythonShellCapability(context: CommandContext, options: { 
     const stdout: number[] = [];
     const stderr: number[] = [];
     let captured = 0;
+    let outputFailure: RangeError | undefined;
     const sink = (target: number[], type: 'stdout' | 'stderr') => ({ async write(chunk: Uint8Array) {
       childSignal.throwIfAborted();
-      if (chunk.length > outputLimit - captured) throw new RangeError('Python shell output limit exceeded');
+      if (outputFailure) throw outputFailure;
+      if (chunk.length > outputLimit - captured) {
+        outputFailure = new RangeError('Python shell output limit exceeded');
+        throw outputFailure;
+      }
       captured += chunk.length;
       if (publish) {
         for (let offset = 0; offset < chunk.length; offset += chunkBytes) {
@@ -81,6 +86,8 @@ export function createPythonShellCapability(context: CommandContext, options: { 
         stdin: childInput, stdout: sink(stdout, 'stdout'), stderr: sink(stderr, 'stderr'), externalInvocation: true,
       });
       childSignal.throwIfAborted();
+      // A command may catch sink rejection and return a status; the host limit still failed.
+      if (outputFailure) throw outputFailure;
       return { stdout, stderr, exitCode: result.exitCode };
     } catch (error) {
       if (!publish && !signal.aborted && childSignal.aborted && childSignal.reason?.name === 'TimeoutError') {

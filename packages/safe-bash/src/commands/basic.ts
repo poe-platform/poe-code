@@ -72,7 +72,7 @@ export function basicCommands(): CommandDefinition[] {
       return { exitCode: 0 };
     }),
     define("basename", async (context) => {
-      const parsed = options(context.args, "as:z", { multiple: "a", suffix: "s", zero: "z" });
+      const parsed = options(context.args, "as:z", { multiple: "a", suffix: "s", zero: "z" }, true);
       const multiple = parsed.flags.has("a") || parsed.flags.has("s");
       requireOperands(parsed.operands, 1, multiple ? Infinity : 2);
       const suffix = value(parsed, "s") ?? (multiple ? undefined : parsed.operands[1]);
@@ -84,7 +84,7 @@ export function basicCommands(): CommandDefinition[] {
       return { exitCode: 0 };
     }, 1, 1),
     define("dirname", async (context) => {
-      const parsed = options(context.args, "z", { zero: "z" });
+      const parsed = options(context.args, "z", { zero: "z" }, true);
       requireOperands(parsed.operands);
       for (const operand of parsed.operands) {
         const parent = dirname(operand);

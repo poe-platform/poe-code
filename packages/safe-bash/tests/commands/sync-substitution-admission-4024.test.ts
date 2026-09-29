@@ -30,7 +30,7 @@ for (const command of ["dirname ~", "basename ~", "dirname ~/foo", "basename ~/f
     });
   }
 }
-for (const args of ["-a foo.txt -s .txt bar.txt", "foo.txt -s .txt bar.txt", "-a foo.txt -- -s .txt"]) {
+for (const args of ["-a foo.txt -s .txt bar.txt", "-a foo.txt -- -s .txt"]) {
   test(`basename options after operands: ${args}`, async () => {
     const reference = await execute(`basename ${args}`);
     for (const source of [`x=$(basename ${args}); echo "$x"`, `for i in 1 2; do x=$(basename ${args}); done; echo "$x"`]) {
@@ -39,9 +39,9 @@ for (const args of ["-a foo.txt -s .txt bar.txt", "foo.txt -s .txt bar.txt", "-a
   });
 }
 
-test("basename suffix option after operand produces stripped paths", async () => {
+test("basename suffix option after operand remains a pathname", async () => {
   const result = await execute('x=$(basename -a foo.txt -s .txt bar.txt); echo "$x"');
-  assert.equal(result.stdout, "foo\nbar\n");
+  assert.equal(result.stdout, "foo.txt\n-s\n.txt\nbar.txt\n");
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
 });
@@ -58,3 +58,12 @@ for (const command of ["dirname -- ~", "basename -- ~", "dirname '~'", "basename
     assert.deepEqual(await execute(`HOME=-a; for i in 1 2; do ${body}; done`), await execute(`HOME=-a; ${body}; ${body}`));
   });
 }
+
+test("basename extra operands preserve substitution failure status", async () => {
+  for (const source of ["x=$(basename foo.txt -s .txt bar.txt)", "for i in 1 2; do x=$(basename foo.txt -s .txt bar.txt); done"]) {
+    const result = await execute(source);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "basename: extra operand '.txt'\n".repeat(source.startsWith("for ") ? 2 : 1));
+  }
+});

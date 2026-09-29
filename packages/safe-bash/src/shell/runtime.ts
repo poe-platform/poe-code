@@ -11835,6 +11835,12 @@ export class Runtime {
         if ((hasSingleStdinRedir || hasSingleHereStringRedir) && !isFileCommand) return false;
         if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : (w0Plain === "seq" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "jq") ? (!builtInDirectContextExecutors.has(def.execute) && customRegisteredCommands.has(def.execute)) : !builtInDirectContextExecutors.has(def.execute)) return false;
         if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
+        // These substitutions consume one value per word. Unquoted expansions
+        // can split, glob, or disappear, including after loop admission.
+        if ((w0Plain === "echo" || w0Plain === "basename" || w0Plain === "dirname") &&
+            !cmd.words.slice(1).every(w => w.parts.length > 0 && w.parts.every(part =>
+              part.quoted || (part.kind === "text" && part.value.length > 0 && !part.value.includes(" ") && !part.value.includes("\t") && !part.value.includes("\n") && !part.value.includes("{") && !hasGlobOrEscape(part.value, true))
+            ))) return false;
         if (isFileCommand) {
           if (w0Plain === "tr" && !hasSingleStdinRedir && !hasSingleHereStringRedir) return false;
           if (w0Plain === "grep" && rawState.errexit) return false;
@@ -23193,7 +23199,7 @@ export class Runtime {
     while (idx < args.length) {
       const a = args[idx]!;
       if (a === "--") { operands.push(...args.slice(idx + 1)); break; }
-      if (!a.startsWith("-") || a === "-") { operands.push(a); idx++; continue; }
+      if (!a.startsWith("-") || a === "-") { operands.push(...args.slice(idx)); break; }
       if (a === "-a" || a === "--multiple") {
         multiple = true;
         idx++;

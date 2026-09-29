@@ -65,10 +65,10 @@ const workflowAnchors = [
 
 describe("STR-03 independent original-source validation", () => {
   it("matches workflow 06 replacement/control fields, not STR-01 token metadata", async () => {
+    // Fixed, bounded native fixtures must not depend on host scheduling deadlines.
     const native = runInNewContext(
       "(function () {" + originalWorkflow + "})()",
-      {},
-      { timeout: 100 }
+      {}
     ) as Record<string, unknown>[];
     native.forEach((value, index) => expect(value).toMatchObject(workflowAnchors[index]));
     expect(native.map((value) => value.tokens)).toMatchObject([
@@ -133,7 +133,7 @@ describe("STR-03 independent original-source validation", () => {
       }
     }
   ])("retains exact native return values for $name", async ({ source, expected }) => {
-    const native = runInNewContext("(function () {" + source + "})()", {}, { timeout: 100 });
+    const native = runInNewContext("(function () {" + source + "})()", {});
     expect(native).toEqual(expected);
     const result = await run(source, {
       modules: {},
@@ -307,7 +307,7 @@ describe.each(["replace", "replaceAll"] as const)("independent literal %s contro
 it("keeps callback return tokens literal on regex and literal routes", async () => {
   const source =
     "return { regex: 'aba'.replace(/(a)/g, () => \"$1:$`:$'\"), regexAll: 'aba'.replaceAll(/(a)/g, () => \"$1:$`:$'\"), literal: 'aba'.replace('a', () => \"$1:$`:$'\"), literalAll: 'aba'.replaceAll('a', () => \"$1:$`:$'\") };";
-  const native = runInNewContext("(function () {" + source + "})()", {}, { timeout: 100 });
+  const native = runInNewContext("(function () {" + source + "})()", {});
   expect(native).toEqual({
     regex: "$1:$`:$'b$1:$`:$'",
     regexAll: "$1:$`:$'b$1:$`:$'",

@@ -4202,6 +4202,23 @@
       "releaseTestRepairs": "Pinned CI cached units exposed a one-second playground readiness race; filesystem replies now trigger the sentinel check, and cleanup awaits the running command on failure.53 session/execution tests pass. Bash4 exposed three remapped compression exports in29 close-probe cases; derive bundle routes from package exports while preserving all canonical source-contract subpaths.33 close-probe cases pass after repairing an intermediate mixed-runtime alias. Immutable xargs dirname input fixes a current prefer-const error. Each repair was committed and pushed separately."
     }
   },
+  "xmlMigration20260929": {
+    "issues": [1748, 3360, 3512],
+    "remoteCommits": {
+      "xmlExtraction": "f0a520866050a3382476fb44e40143fae064e363",
+      "csvkitXml": "4618baf04ea6203f28b638977484940e96566e05",
+      "binaryFixtureLint": "17e7c709ef",
+      "numericFixtureLint": "5344238773"
+    },
+    "xmlExtraction": "The 23788-byte namespace-aware stepped parser moved unchanged from safe-fs to xml-ast. SHA2560291f33705e89052d53d8c2a4a06cd0056ae00a66b0d2b7b97fb0fe7d8040c16. SafeFS, root/scoped bundles and raw terminal-pilot vendoring share parser/error identity; declaration authority and duplicate-runtime guards remain enforced.",
+    "xmlValidation": "210 parser tests; final1110 packaging/parser tests and24 facade tests pass. Root build passes248 declared builds across249 workspaces plus root stages;18 package audit rules pass. Production/test/public types, guarded lint and workflow lint pass. Actual workerd without nodejs_compat/Buffer/process and packed terminal-pilot consumers pass.",
+    "csvkitXml": "Replace saxes with xml-ast while preserving namespace-aware relationship-selected ISO dates, implicit coordinates and mixed text/CDATA order. Four original regressions establish missing depth, DTD, work and retained-node enforcement. Reserve XML storage before parsing, charge parser checkpoints/nodes and preserve cancellation reasons.",
+    "csvkitValidation": "4482 package tests pass with5 TODO; final9 XML tests pass.421 integration/build-policy tests, source/test typechecks, selected5-workspace build and guarded root lint pass. Incoming fixture lint repairs preserve evaluated shell text; final69 conversion tests pass.",
+    "fullUnit": "Fresh npm test remains in progress. Its first250 files/5341 tests passed. Later local edits and rebases mean this live run alone cannot certify an immutable final revision; no full-unit pass claimed.",
+    "release": "XML pin36560154940 was pending behind another worker's run and cancellation was requested after later repairs. No containing publication verified. Earlier36553979908 failed build on subsequently repaired diff-patch overload and memory timestamps. Earlier36559847885 is confirmed cancelled and did not contain XML.",
+    "cleanup": "Removed the verified3772100-byte terminal archive and extraction (5039761 bytes total). Retained archive SHA2563f5147f08305d5890e146ef53618ede1916a8220b61109732a866379f80f1ea5. No generated workbook, archive or test log committed.",
+    "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
+  },
   "history": {
     "commit": "27b9a96cbea652668a98d9af6502717c86cbfa1d",
     "note": "Bulky historical evidence and journals were removed at the user's request. Required fixture/provenance files remain. Historical results do not establish current-candidate completion."

@@ -60,8 +60,10 @@ provenance, declared/reset dimensions, BIFF encoding overrides and native CSVKit
 diagnostics. The existing namespace-aware, stepped parser now belongs to
 `packages/xml-ast/src/index.ts`; `safe-fs/xml` retains its API and shares parser
 and error identity through the root and scoped bundles. The parser implementation
-and resource contracts are unchanged. Pandoc's JPEG migration is delivered;
-CSVKit's workbook and XML dependency migration remain open.
+and resource contracts are unchanged. CSVKit's ISO metadata now uses that parser
+with nesting, work and retained-storage accounting; its saxes dependency is removed.
+Pandoc's JPEG migration is delivered. CSVKit's SheetJS replacement and the actual
+XLSX AST extraction remain open; preserve the existing workbook behavior above.
 
 Complete the standard singular/plural/plugin command exports in that package.
 Keep file-output budget and cancellation ownership in `safe-bash-contracts`.

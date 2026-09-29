@@ -17229,7 +17229,7 @@ export class Runtime {
           }
           const rawState = stateMonitor(state)?.raw ?? state;
           if (!state._readOnlyStage && rawState.variables._ !== undefined) delete rawState.variables._;
-          if (!state.functions.has(words[0] ?? "") && words[0] !== "eval") {
+          if (!state.functions.has(words[0] ?? "") && !["eval", ".", "source"].includes(words[declarationIndex] ?? "")) {
             rawState.lastArgument = words.at(-1) ?? "";
             state.lastArgument = rawState.lastArgument;
           }
@@ -17444,7 +17444,7 @@ export class Runtime {
       if (!snapshotScope) {
         const rawState = stateMonitor(state)?.raw ?? state;
         if (rawState.variables._ !== undefined && !assignments.some(assignment => assignment.name === "_")) delete rawState.variables._;
-        if (!functionCommand && words[0] !== "eval") {
+        if (!functionCommand && !["eval", ".", "source"].includes(words[declarationIndex] ?? "")) {
           rawState.lastArgument = words.at(-1) ?? "";
           state.lastArgument = rawState.lastArgument;
         }
@@ -18136,7 +18136,11 @@ export class Runtime {
             return { exitCode: status };
           }
           if (context.command === "command" || context.command === "builtin" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments, defaultPath) };
-          if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
+          if (context.command === "." || context.command === "source") {
+            const exitCode = await this.sourceBuiltin(context, state, { ...io, ...context }, special);
+            state.lastArgument = context.args.at(-1) ?? context.command;
+            return { exitCode };
+          }
           if (context.command === "eval") {
             const exitCode = await this.evalBuiltin(context, state, { ...io, ...context }, special);
             state.lastArgument = context.args.at(-1) ?? context.command;

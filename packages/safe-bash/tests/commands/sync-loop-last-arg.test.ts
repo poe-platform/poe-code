@@ -129,3 +129,32 @@ for (const middleware of [false, true]) for (const source of issue4078Scripts) t
     assert.equal(result.stdout, oracle.stdout);
   } finally { await shell.dispose(); }
 });
+
+const issue4080Calls = [
+  ...["eval", "command eval", "builtin eval", "command -- eval", "command builtin eval"].map(name => `${name} 'echo "inside:$_"; : inner'`),
+  ...[".", "source", "command .", "builtin .", "command source", "builtin source"].flatMap(name => [
+    `${name} /dev/stdin arg1 arg2 <<< 'echo "inside:$_"; : inner'`,
+    `${name} /dev/stdin <<< 'echo "inside:$_"; : inner'`,
+    `${name} /dev/stdin arg1 arg2 <<< 'echo "inside:$_"; return 7'`,
+  ]),
+];
+for (const middleware of [false, true]) for (const call of new Set([...issue4080Calls, ...issue4080Calls.filter(call => call.includes("<<<")).map(call => call.split(" <<<")[0]!)])) for (const setup of ["", "X=1 ", "loop"]) {
+  test(`issue 4080 (${middleware ? "middleware" : "fast"}): ${setup}${call}`, async () => {
+    const source = setup === "loop"
+      ? `for i in ${call.includes("/dev/stdin") && !call.includes("<<<") ? "1" : "1 2"}; do : before; ${call}; echo "after:$_"; done`
+      : `: before; ${setup}${call}; echo "after:$_"`;
+    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", input: 'echo "inside:$_"; : inner\n' });
+    assert.equal(oracle.status, 0);
+    const fs = new MemoryFileSystem();
+    const body = call.includes("return 7") ? 'echo "inside:$_"; return 7' : 'echo "inside:$_"; : inner';
+    await fs.writeFile("/script.sh", new TextEncoder().encode(body));
+    const shell = new Shell({ fs, commands: new CommandRegistry(createStandardCommands()) });
+    if (middleware) shell.use(async (_context, next) => next());
+    try {
+      const result = await shell.exec(source.replaceAll("/dev/stdin", "/script.sh"));
+      assert.equal(result.stderr, oracle.stderr);
+      assert.equal(result.exitCode, oracle.status);
+      assert.equal(result.stdout, oracle.stdout.replaceAll("/dev/stdin", "/script.sh"));
+    } finally { await shell.dispose(); }
+  });
+}

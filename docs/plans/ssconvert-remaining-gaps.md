@@ -108,6 +108,17 @@ workspace output. Verify that workspace rebuilds preserve public runtime imports
 raw arguments, file budgets, cancellation and installed consumers before claiming
 extraction complete.
 
+PERL_SED capture/assertion conditions (`577d74b048`), branch-reset groups
+(`3e7fdf1615`) and numeric-condition semantics (`7b7d675077`) are on remote main.
+Pinned Perl documentation/compiler source and standalone Perl 5.34.1 support
+the grammar changes. All 4,682 focused tests pass; compiled SDK/command checks
+match 56 native outputs across the three cohorts, including raw byte results.
+Initial conditions passed the compiled root export; later cohorts passed the
+compiled command package. Qualify all three through the containing root release,
+installed artifacts and activated Gnumeric loader. Wider grammar, Unicode and
+diagnostics remain open. Release `36598284494` failed fresh units after passing
+build, audit, checks and cached units; inspect and repair the current failure.
+
 | Family | Required completion scope |
 | --- | --- |
 | PWD/resource identity | Actual cwd and logical aliases, symlink identity, GETENV preservation, paths, input/export/write diagnostics, staging/split/graph outputs, cancellation, supported platforms and public consumers. |

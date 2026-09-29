@@ -775,9 +775,13 @@ pub fn ssh_push(
     let old_oid = GitRefManager::resolve(fs, &remote_gitdir, &full_remote_ref, None)
         .unwrap_or_else(|_| "0000000000000000000000000000000000000000".to_string());
 
-    if !delete {
-        copy_reachable_objects(fs, &local_gitdir, &remote_gitdir, std::slice::from_ref(&new_oid))?;
-    }
+    let quarantine = if delete {
+        None
+    } else {
+        let incoming = crate::storage::quarantine::ObjectQuarantine::new(fs, &remote_gitdir);
+        copy_reachable_objects(fs, &local_gitdir, incoming.gitdir(), std::slice::from_ref(&new_oid))?;
+        Some(incoming)
+    };
 
     if !delete
         && !force
@@ -826,7 +830,13 @@ pub fn ssh_push(
 
     if delete {
         GitRefManager::delete_ref(fs, &remote_gitdir, &full_remote_ref)?;
+        if let Some(short) = full_remote_ref.strip_prefix("refs/heads/") {
+            GitRefManager::delete_ref(fs, &local_gitdir, &format!("refs/remotes/{remote_name}/{short}"))?;
+        }
     } else {
+        if let Some(incoming) = &quarantine {
+            copy_reachable_objects(fs, incoming.gitdir(), &remote_gitdir, std::slice::from_ref(&new_oid))?;
+        }
         GitRefManager::write_ref(fs, &remote_gitdir, &full_remote_ref, &new_oid)?;
         if !fs.exists(&join(&[&remote_gitdir, "HEAD"])) {
             GitRefManager::write_symbolic_ref(fs, &remote_gitdir, "HEAD", &full_remote_ref)?;
@@ -836,6 +846,8 @@ pub fn ssh_push(
             let _ = GitRefManager::write_ref(fs, &local_gitdir, &tracking, &new_oid);
         }
     }
+
+    drop(quarantine);
 
     // Server-side post-receive hook
     let _ = run_hook(

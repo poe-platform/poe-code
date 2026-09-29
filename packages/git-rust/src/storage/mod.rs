@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) mod pack_cache;
+pub(crate) mod quarantine;
 
 use crate::errors::GitError;
 use crate::fs::{discover_gitdir, MemoryFs};
@@ -40,7 +41,7 @@ pub fn read_object_loose(
     }
     let source = format!("objects/{}/{}", &oid[0..2], &oid[2..]);
     let filepath = join(&[gitdir, &source]);
-    let bytes = fs.read(&filepath)?;
+    let bytes = quarantine::read_incoming(fs, gitdir, &source).or_else(|| fs.read(&filepath))?;
     Some((bytes, source))
 }
 

@@ -1,5 +1,6 @@
 import path from "node:path";
 import {
+  canonicalXml,
   collectCanonicalDeclarations,
   collectCanonicalNativeAssets,
   type BundleMetafile
@@ -662,10 +663,21 @@ export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildV
   if (metafile.canonicalBundle || metafile.browserCanonicalBundle) {
     const packageDir = "packages/safe-fs";
     let admission = await createSourceAdmission(fs, rootDir, packageDir, []);
+    const xmlDeclaration = path.resolve(rootDir, canonicalXml.types);
+    const xmlAdmission = await createSourceAdmission(
+      fs, rootDir, path.posix.dirname(path.posix.dirname(canonicalXml.types)), []
+    );
     const declarationFs = {
       async readdir(file: string) {
-        const inspected = await admission.inspect(file);
+        const owner = file === xmlDeclaration ? xmlAdmission : admission;
+        const inspected = await owner.inspect(file);
         if (!inspected) return [];
+        if (file === xmlDeclaration) {
+          if (inspected.excluded || !inspected.entries.at(-1)!.stat.isFile()) {
+            throw new Error(`Unsupported canonical declaration file: ${file}`);
+          }
+          throw Object.assign(new Error(`Canonical declaration is a file: ${file}`), { code: "ENOTDIR" });
+        }
         if (inspected.excluded || !inspected.entries.at(-1)!.stat.isDirectory()) {
           throw new Error(`Unsupported canonical declaration directory: ${file}`);
         }
@@ -684,7 +696,7 @@ export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildV
         return entries;
       },
       async readFile(file: string) {
-        const inspected = await admission.inspect(file);
+        const inspected = await (file === xmlDeclaration ? xmlAdmission : admission).inspect(file);
         if (!inspected || inspected.excluded || !inspected.entries.at(-1)!.stat.isFile()) {
           throw new Error(`Unsupported canonical declaration file: ${file}`);
         }

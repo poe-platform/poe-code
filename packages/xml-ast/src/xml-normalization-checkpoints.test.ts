@@ -1,6 +1,6 @@
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
-import { parseXml, parseXmlSteps } from "../src/xml.js";
+import { parseXml, parseXmlSteps } from "./index.js";
 
 for (const length of [1, 511, 512, 513])
 it(`repeated XML names retain all validation work in bounded checkpoints at length ${length}`, () => {

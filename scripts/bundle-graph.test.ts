@@ -68,6 +68,26 @@ it("routes embedded spreadsheet XML imports to the published core entry", () => 
   expect(consumer.external).toContain("poe-code/safe-fs/core");
 });
 
+it("preserves XML error identity for a canonical route outside the primary workspace", async () => {
+  const graph = resolveConsumerGraph({ alias: {
+    "@poe-code/xml-ast": new URL("../packages/xml-ast/src/index.ts", import.meta.url).pathname,
+    "@poe-code/xml-ast-extra": "/unrelated/index.ts",
+  }, external: [] }, canonicalFs);
+  const output = await build({ ...graph, stdin: {
+    contents: 'export {parseXml, XmlLimitError} from "@poe-code/xml-ast";', resolveDir: process.cwd(),
+  }, bundle: true, write: false, platform: "browser", format: "cjs", target: "es2022" });
+  const module = { exports: {} as typeof filesystem };
+  runInContext(output.outputFiles[0]!.text, createContext({ module, exports: module.exports,
+    require(specifier: string) {
+      if (specifier === "poe-code/safe-fs/core") return filesystem;
+      throw new Error(`Unexpected dependency: ${specifier}`);
+    },
+  }));
+  expect(module.exports.XmlLimitError).toBe(filesystem.XmlLimitError);
+  expect(() => module.exports.parseXml("<r><x/></r>", {maxNodes: 1})).toThrow(filesystem.XmlLimitError);
+  expect(graph.alias["@poe-code/xml-ast-extra"]).toBe("/unrelated/index.ts");
+});
+
 it('resolves explicit Node server conditions without admitting schema assets as source', async () => {
   const graph = await resolveBundleGraph('/repo', [{ dir: 'remote', pkg: {
     name: '@example/remote', exports: {

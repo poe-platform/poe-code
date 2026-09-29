@@ -571,7 +571,8 @@
     "@poe-code/spreadsheet-format-xlsx": "0.0.1",
     "@poe-code/spreadsheet-format-csv": "0.0.1",
     "@poe-code/spreadsheet-format-ods": "0.0.1",
-    "@poe-code/spreadsheet-format-xls": "0.0.1"
+    "@poe-code/spreadsheet-format-xls": "0.0.1",
+    "@poe-code/xml-ast": "0.0.1"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -768,7 +769,8 @@
     "packages/spreadsheet-format-xls/dist/**/*.d.ts",
     "packages/spreadsheet-format-xls/LICENSE",
     "packages/spreadsheet-format-xls/src/legacy-binary-NOTICE.md",
-    "packages/spreadsheet-ast/dist"
+    "packages/spreadsheet-ast/dist",
+    "packages/xml-ast/dist/**/*.d.ts"
   ],
   "license": "MIT",
   "imports": {

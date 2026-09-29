@@ -63,6 +63,49 @@ it("does not silently skip build policy when emitted declaration inspection fail
   await expect(loadBuildView(fs, "/repo")).rejects.toBe(failure);
 });
 
+it("loads the extracted XML declaration through its own package boundary", async () => {
+  const fs = memLintFs({
+    "/repo/dist/metafile.json": JSON.stringify({ canonicalBundle: {} }),
+    "/repo/packages/safe-fs/dist/xml.d.ts": 'export * from "../../xml-ast/dist/index.js";',
+    "/repo/packages/xml-ast/dist/index.d.ts": "export declare class XmlLimitError extends SyntaxError {}",
+    "/repo/packages/xml-ast/dist/unapproved.d.ts": "export {};"
+  });
+  const readFile = vi.spyOn(fs, "readFile");
+  const build = await loadBuildView(fs, "/repo");
+  expect(build?.metafile.canonicalTypes).toEqual({
+    "packages/safe-fs/dist/xml.d.ts": ["../../xml-ast/dist/index.js"],
+    "packages/xml-ast/dist/index.d.ts": []
+  });
+  expect(readFile).not.toHaveBeenCalledWith("/repo/packages/xml-ast/dist/unapproved.d.ts");
+});
+
+it.each([
+  ["packages/xml-ast", "/outside/xml"],
+  ["packages/xml-ast/dist", "/outside/xml/dist"],
+  ["packages/xml-ast/dist/index.d.ts", "/outside/xml/dist/index.d.ts"]
+])("rejects extracted XML declaration symlink %s before payload reads", async (link, target) => {
+  const fs = memLintFs({
+    "/repo/dist/metafile.json": JSON.stringify({ canonicalBundle: {} }),
+    "/outside/xml/dist/index.d.ts": "export {};"
+  }, { [`/repo/${link}`]: target });
+  const readFile = vi.spyOn(fs, "readFile");
+  await expect(loadBuildView(fs, "/repo")).rejects.toThrow("Unsupported source");
+  expect(readFile.mock.calls.filter(([file]) => file.endsWith(".d.ts"))).toEqual([]);
+});
+
+it("rejects extracted XML declarations whose canonical path leaves their package", async () => {
+  const target = "/repo/packages/xml-ast/dist/index.d.ts";
+  const fs = memLintFs({
+    "/repo/dist/metafile.json": JSON.stringify({ canonicalBundle: {} }),
+    [target]: "export {};"
+  });
+  const realpath = fs.realpath!.bind(fs);
+  fs.realpath = file => file === target ? Promise.resolve("/outside/index.d.ts") : realpath(file);
+  const readFile = vi.spyOn(fs, "readFile");
+  await expect(loadBuildView(fs, "/repo")).rejects.toThrow("Canonical source path escapes");
+  expect(readFile).not.toHaveBeenCalledWith(target);
+});
+
 it.each(["complete", "unknown-private-type", "private-runtime", "missing-policy-types"])(
   "runs all 18 rules with exact private type edge handling: %s",
   async (defect) => {

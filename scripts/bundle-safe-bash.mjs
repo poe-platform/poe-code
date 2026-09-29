@@ -1,4 +1,5 @@
 import path from "node:path";
+import { canonicalXml } from "../packages/package-lint/dist/bundle-policy.js";
 import * as fileSystem from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
 import { rewriteModuleSpecifiers } from "./package-safe.mjs";
@@ -108,6 +109,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
     "@poe-code/safe-fs/contracts/errors": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/contracts/object": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/xml": "poe-code/safe-fs/core",
+    [canonicalXml.workspace]: canonicalXml.specifier,
   };
   // Aliases resolve before external admission. Leaving a source alias for a
   // canonical package embeds a second runtime identity in the browser bundle.

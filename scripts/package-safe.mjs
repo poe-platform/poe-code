@@ -12,6 +12,7 @@ import { resolveBundleGraph } from "./bundle-graph.mjs";
 import { resolveCommandExportBuilds } from "./safe-command-publication.mjs";
 import { copyNativeAssets, nativeImportMapping, readBuiltNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
+import { canonicalXml } from "../packages/package-lint/dist/bundle-policy.js";
 
 import { rewriteModuleSpecifiers } from "./module-specifiers.mjs";
 export { rewriteModuleSpecifiers } from "./module-specifiers.mjs";
@@ -22,7 +23,8 @@ function artifactPath(rootDir, filename) {
   return path.posix.join("dist", parts[1], ...parts.slice(3));
 }
 
-function publicSpecifier(specifier) {
+function publicSpecifier(specifier, owner) {
+  if (specifier === canonicalXml.workspace && owner !== "safe-fs") return publicSpecifier(canonicalXml.specifier);
   for (const [from, to] of [["poe-code/safe-bash/contracts", "safe-bash-contracts"], ["poe-code/safe-fs", "@poe-platform/safe-fs"], ["@poe-code/safe-fs", "@poe-platform/safe-fs"], ["@poe-platform/safe-js/fs", "@poe-platform/safe-fs"], ["poe-code/safe-js", "@poe-platform/safe-js"], ["poe-code/safejs", "@poe-platform/safe-js"], ["poe-code/ssconvert", "safe-bash-command-ssconvert"]]) {
     if (specifier === from || specifier.startsWith(from + "/")) return to + specifier.slice(from.length);
   }
@@ -241,6 +243,9 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
   const results = [];
   const fsManifest = workspaces.find(workspace => workspace.dir === "safe-fs").pkg;
   const canonicalFileSystemSpecifier = target => {
+    if ([canonicalXml.types, canonicalXml.types.slice(0, -5) + ".js"].some(file => target === path.join(rootDir, file))) {
+      return publicSpecifier(canonicalXml.specifier);
+    }
     if (!target.startsWith(path.join(rootDir, "packages/safe-fs/dist") + path.sep)) return undefined;
     const runtime = target.endsWith(".d.ts") ? target.slice(0, -5) + ".js" : target;
     const route = Object.entries(fsManifest.exports).find(([, value]) =>
@@ -344,7 +349,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
           return [entry, typeof runtime === "string" ? path.join(rootDir, "packages", owner.dir, runtime) : filename];
         }));
         recipes.push({ ...browser, entryPoints,
-          alias: { ...browser.alias, "@poe-code/safe-fs": "@poe-platform/safe-fs", "poe-code/safe-fs": "@poe-platform/safe-fs" },
+          alias: { ...Object.fromEntries(Object.entries(browser.alias).map(([specifier, target]) => [specifier, publicSpecifier(target)])), "@poe-code/safe-fs": "@poe-platform/safe-fs", "poe-code/safe-fs": "@poe-platform/safe-fs" },
         });
       }
       recipes.push(...resolveCommandExportBuilds(rootDir, source, root, workspaces, { alias, external }));
@@ -554,7 +559,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
           }
           const sharedRuntime = specifier.startsWith(".")
             ? rootSharedRuntimeEntries.get(path.resolve(path.dirname(filename), specifier)) : undefined;
-          let publicName = publicSpecifier(sharedRuntime ?? specifier);
+          let publicName = publicSpecifier(sharedRuntime ?? specifier, name);
           if (name === "safe-bash" && optional && !declaration && publicName === "yaml") {
             pending.push(bundledYaml);
             const relative = path.relative(path.dirname(destination), path.join(directory, artifactPath(rootDir, bundledYaml))).split(path.sep).join("/");

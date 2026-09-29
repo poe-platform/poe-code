@@ -62,10 +62,10 @@ export function resolveConsumerGraph(graph, canonical, sharedWorkspaces = []) {
     alias: Object.fromEntries(
       Object.entries(graph.alias).map(([specifier, source]) => [
         specifier,
-        specifier === canonical.workspace || specifier.startsWith(`${canonical.workspace}/`)
-          ? (canonical.routes?.find((route) => route.workspace === specifier)?.specifier ??
-            canonical.specifier)
-          : source
+        canonical.routes?.find((route) => route.workspace === specifier)?.specifier ??
+          (specifier === canonical.workspace || specifier.startsWith(`${canonical.workspace}/`)
+            ? canonical.specifier
+            : source)
       ])
     ),
     external: [

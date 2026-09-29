@@ -1900,7 +1900,7 @@ it("keeps canonical private owners external in the packed browser recipe", async
 });
 
 
-it.each(["@poe-code/safe-fs/core", "poe-code/safe-fs/core", "@poe-platform/safe-fs/core"])("keeps browser filesystem import %s canonical instead of embedding a private constructor", async specifier => {
+it.each(["@poe-code/safe-fs/core", "poe-code/safe-fs/core", "@poe-platform/safe-fs/core", "@poe-code/xml-ast"])("keeps browser filesystem import %s canonical instead of embedding a private constructor", async specifier => {
   const { options } = optionalLeftovers();
   await packageSafeLibraries({ ...options, outDir: "/output" });
   const browser = options.bundle.mock.calls.map(([settings]) => settings as BuildOptions)
@@ -1909,10 +1909,33 @@ it.each(["@poe-code/safe-fs/core", "poe-code/safe-fs/core", "@poe-platform/safe-
   const result = await build({
     ...browser, loader: {".wasm": "binary"}, absWorkingDir: process.cwd(), entryPoints: undefined, outdir: undefined,
     sourcemap: false, splitting: false, inject: [],
-    stdin: { contents: `export { FsError } from ${JSON.stringify(specifier)};`, resolveDir: process.cwd() },
+    stdin: { contents: `export { ${specifier === "@poe-code/xml-ast" ? "XmlLimitError" : "FsError"} } from ${JSON.stringify(specifier)};`, resolveDir: process.cwd() },
   });
   expect(result.outputFiles![0]!.text).toContain('from "@poe-platform/safe-fs/core"');
   expect(result.outputFiles![0]!.text).not.toContain("extends Error");
+});
+
+it("copies XML declarations into their owning filesystem artifact without circular self-reexports", async () => {
+  const { volume, options } = optionalLeftovers();
+  volume.mkdirSync("/repo/packages/xml-ast/dist", { recursive: true });
+  volume.writeFileSync("/repo/packages/xml-ast/package.json", JSON.stringify({
+    name: "@poe-code/xml-ast", private: true, type: "module",
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } }
+  }));
+  volume.writeFileSync("/repo/packages/xml-ast/dist/index.d.ts", "export declare class XmlLimitError extends SyntaxError {}");
+  for (const owner of ["safe-fs", "safe-js", "safe-bash"]) {
+    volume.writeFileSync(`/repo/packages/${owner}/dist/index.d.ts`, 'export { XmlLimitError } from "@poe-code/xml-ast";');
+  }
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  expect(volume.readFileSync("/output/safe-fs/dist/safe-fs/index.d.ts", "utf8"))
+    .toContain('from "../xml-ast/index.js"');
+  expect(volume.readFileSync("/output/safe-fs/dist/xml-ast/index.d.ts", "utf8"))
+    .toContain("class XmlLimitError");
+  for (const owner of ["safe-js", "safe-bash"]) {
+    expect(volume.readFileSync(`/output/${owner}/dist/${owner}/index.d.ts`, "utf8"))
+      .toContain('from "@poe-platform/safe-fs/core"');
+    expect(volume.existsSync(`/output/${owner}/dist/xml-ast/index.d.ts`)).toBe(false);
+  }
 });
 
 it('ships xmllint and its shared XML engine through the established XML export', async () => {
@@ -2006,18 +2029,23 @@ it.each([false, true])("keeps copied private command assets inside built package
   }
 });
 
-it.each([false, true])("preserves canonical filesystem identity from linked command outputs (portable=%s)", async portable => {
+it.each([false, true].flatMap(portable => ["safe-fs", "xml-ast"].map(owner => ({ portable, owner }))))("preserves canonical $owner identity from linked command outputs (portable=$portable)", async ({ portable, owner }) => {
   const { volume, options } = optionalLeftovers();
   const name = "safe-bash-command-example";
   const directory = "/repo/packages/" + name;
   const profile = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable };
+  const constructor = owner === "xml-ast" ? "XmlLimitError" : "FsError";
+  const entrypoint = owner === "xml-ast" ? "index" : "core";
+  volume.mkdirSync(`/repo/packages/${owner}/dist`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${owner}/dist/${entrypoint}.js`, `export class ${constructor} extends Error {}`);
+  volume.writeFileSync(`/repo/packages/${owner}/dist/${entrypoint}.d.ts`, `export declare class ${constructor} extends Error {}`);
   volume.mkdirSync(directory + "/dist", { recursive: true });
   volume.writeFileSync(directory + "/package.json", JSON.stringify({
     name, ...profile, private: true, type: "module",
     exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
   }));
   for (const suffix of ["js", "d.ts"]) {
-    volume.writeFileSync(directory + "/dist/index." + suffix, 'export { FsError } from "../../safe-fs/dist/core.js";');
+    volume.writeFileSync(directory + "/dist/index." + suffix, `export { ${constructor} } from "../../${owner}/dist/${entrypoint}.js";`);
   }
   volume.writeFileSync("/repo/packages/safe-fs/package.json", JSON.stringify({
     name: "@poe-code/safe-fs",
@@ -2034,7 +2062,7 @@ it.each([false, true])("preserves canonical filesystem identity from linked comm
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
   volume.mkdirSync("/repo/packages/safe-bash/dist/commands/example", { recursive: true });
   for (const suffix of ["js", "d.ts"]) {
-    volume.writeFileSync("/repo/packages/safe-bash/dist/commands/example/index." + suffix, 'export { FsError } from "' + name + '";');
+    volume.writeFileSync("/repo/packages/safe-bash/dist/commands/example/index." + suffix, `export { ${constructor} } from "${name}";`);
   }
   await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (settings: BuildOptions) => {
     if (settings.outdir !== "/repo/packages") return options.bundle(settings);
@@ -2048,6 +2076,8 @@ it.each([false, true])("preserves canonical filesystem identity from linked comm
       },
     }] });
   } });
+  expect(volume.readFileSync(`/output/safe-bash/dist/${name}/index.d.ts`, "utf8"))
+    .toContain('from "@poe-platform/safe-fs/core"');
   const consumer = await build({
     stdin: { contents: volume.readFileSync("/output/safe-bash/dist/" + name + "/index.js", "utf8").toString(), resolveDir: "/output" },
     bundle: true, platform: "browser", format: "cjs", write: false,
@@ -2055,14 +2085,14 @@ it.each([false, true])("preserves canonical filesystem identity from linked comm
       name: "canonical-filesystem-consumer",
       setup(builder) {
         builder.onResolve({ filter: /^@poe-platform\/safe-fs\/core$/ }, () => ({ path: "canonical", namespace: "consumer" }));
-        builder.onLoad({ filter: /.*/, namespace: "consumer" }, () => ({ contents: "export const FsError = globalThis.canonicalFsError;" }));
+        builder.onLoad({ filter: /.*/, namespace: "consumer" }, () => ({ contents: `export const ${constructor} = globalThis.canonicalFsError;` }));
       },
     }],
   });
   class CanonicalFsError extends Error {}
-  const context = { canonicalFsError: CanonicalFsError, module: { exports: {} as { FsError?: unknown } } };
+  const context = { canonicalFsError: CanonicalFsError, module: { exports: {} as Record<string, unknown> } };
   runInContext(consumer.outputFiles[0]!.text, createContext(context));
-  expect(context.module.exports.FsError).toBe(CanonicalFsError);
+  expect(context.module.exports[constructor]).toBe(CanonicalFsError);
 });
 
 it("preserves xmllint factories when the XML browser adapter shares a chunk", async () => {

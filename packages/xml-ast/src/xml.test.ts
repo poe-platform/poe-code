@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { parseXml, parseXmlSteps } from "../src/xml.js";
+import { parseXml, parseXmlSteps } from "./index.js";
 
 it("keeps repeated empty elements distinct and resolves each inherited namespace", () => {
   const root = parseXml('<r xmlns:p="urn:first"><p:leaf/><p:leaf/><scope xmlns:p="urn:second"><p:leaf/><p:leaf/></scope><p:leaf/></r>');

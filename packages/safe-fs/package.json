@@ -125,7 +125,8 @@
   "files": [
     "dist",
     "README.md",
-    "PROVENANCE.json"
+    "PROVENANCE.json",
+    "LICENSE"
   ],
   "devDependencies": {
     "node-api-headers": "1.9.0"
@@ -142,5 +143,9 @@
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/safe-fs"
-  }
+  },
+  "dependencies": {
+    "@poe-code/xml-ast": "0.0.1"
+  },
+  "license": "MIT"
 }

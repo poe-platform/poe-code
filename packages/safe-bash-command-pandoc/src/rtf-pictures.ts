@@ -1,4 +1,4 @@
-import { decode } from "jpeg-js";
+import { decodeJpegImage } from "@poe-code/image-ast";
 import { PandocError } from "./errors.js";
 import type { AdapterContext } from "./types.js";
 
@@ -122,7 +122,7 @@ function jpeg(bytes: Uint8Array, context: AdapterContext): Picture {
   context.charge("retainedBytes", memory); context.charge("expandedBytes", memory);
   context.checkpoint(width * height);
   try {
-    const decoded = decode(bytes, {useTArray: true, tolerantDecoding: false, maxResolutionInMP: width * height / 1e6, maxMemoryUsageInMB: memory / 1048576});
+    const decoded = decodeJpegImage(bytes);
     if(decoded.width !== width || decoded.height !== height || decoded.data.length !== width * height * 4) invalid(context, "JPEG decoded dimensions mismatch");
   } catch(error) {
     if(error instanceof PandocError) throw error;

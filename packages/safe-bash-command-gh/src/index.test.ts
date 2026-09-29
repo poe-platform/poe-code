@@ -795,30 +795,6 @@ test("gh project, ruleset, org, extension, codespace, repo autolink, and built-i
   await run("gh", ["codespace", "delete", "-c", csName]);
 });
 
-test("release jq formatting receives the configured output limit", async (t) => {
-  const session = createYqQuerySession({ signal: new AbortController().signal });
-  const prototype = Object.getPrototypeOf(session.ownedWork) as typeof session.ownedWork;
-  const stringify = prototype.stringifyJson;
-  const caps: (number | undefined)[] = [];
-  t.mock.method(prototype, "stringifyJson", function (
-    this: typeof session.ownedWork,
-    ...args: Parameters<typeof stringify>
-  ) {
-    caps.push(args[1]?.maxBytes);
-    return stringify.apply(this, args);
-  });
-  await session.close();
-  const { run } = createTestHarness({ limits: { maxOutputBytes: 100 } });
-  await run("gh", ["release", "create", "v1", "-R", "octocat/Hello-World", "--notes", "x".repeat(200)]);
-  const result = await run("gh", ["release", "view", "v1", "-R", "octocat/Hello-World", "--json", "body", "--jq", ". | length"], { allowFailure: true });
-  // Serialization of the selected object must respect the configured query limit.
-  const bounded = await run("gh", ["release", "view", "v1", "-R", "octocat/Hello-World", "--json", "body", "--jq", "."], { allowFailure: true });
-  assert.equal(result.exitCode, 0);
-  assert.equal(bounded.exitCode, 1);
-  assert.ok(caps.length > 0);
-  assert.ok(caps.every((cap) => cap === 100));
-});
-
 test("release edits apply notes, target, latest, and renamed URLs", async () => {
   const { fs, run } = createTestHarness();
   await fs.mkdir("/work", { recursive: true });
@@ -842,3 +818,47 @@ test("release edits apply notes, target, latest, and renamed URLs", async () => 
   assert.deepEqual(edited, { body: "stdin notes", isLatest: false });
 });
 
+test("release downloads protect existing assets and archives unless clobbered", async () => {
+  const { fs, run } = createTestHarness();
+  await fs.mkdir("/work", { recursive: true });
+  await fs.writeFile("/work/asset.bin", new TextEncoder().encode("asset"));
+  const repo = ["-R", "octocat/Hello-World"];
+  await run("gh", ["release", "create", "v1", "/work/asset.bin", ...repo]);
+  for (const flags of [[], ["-O", "custom.bin"], ["--archive", "zip"], ["--archive", "zip", "-O", "custom.zip"]]) {
+    const dest = flags.includes("custom.bin") ? "/work/custom.bin" : flags.includes("custom.zip") ? "/work/custom.zip" : flags.includes("zip") ? "/work/Hello-World-v1.zip" : "/work/asset.bin";
+    await fs.writeFile(dest, new TextEncoder().encode("keep"));
+    const args = ["release", "download", "v1", ...flags, ...repo];
+    const failed = await run("gh", args, { allowFailure: true });
+    assert.equal(failed.exitCode, 1);
+    assert.ok(failed.stderr.includes("already exists"));
+    assert.equal(new TextDecoder().decode(await fs.readFile(dest)), "keep");
+    await run("gh", [...args, "--skip-existing"]);
+    assert.equal(new TextDecoder().decode(await fs.readFile(dest)), "keep");
+    await run("gh", [...args, "--clobber"]);
+    assert.notEqual(new TextDecoder().decode(await fs.readFile(dest)), "keep");
+  }
+});
+
+test("release jq formatting receives the configured output limit", async (t) => {
+  const session = createYqQuerySession({ signal: new AbortController().signal });
+  const prototype = Object.getPrototypeOf(session.ownedWork) as typeof session.ownedWork;
+  const stringify = prototype.stringifyJson;
+  const caps: (number | undefined)[] = [];
+  t.mock.method(prototype, "stringifyJson", function (
+    this: typeof session.ownedWork,
+    ...args: Parameters<typeof stringify>
+  ) {
+    caps.push(args[1]?.maxBytes);
+    return stringify.apply(this, args);
+  });
+  await session.close();
+  const { run } = createTestHarness({ limits: { maxOutputBytes: 100 } });
+  await run("gh", ["release", "create", "v1", "-R", "octocat/Hello-World", "--notes", "x".repeat(200)]);
+  const result = await run("gh", ["release", "view", "v1", "-R", "octocat/Hello-World", "--json", "body", "--jq", ". | length"], { allowFailure: true });
+  // Serialization of the selected object must respect the configured query limit.
+  const bounded = await run("gh", ["release", "view", "v1", "-R", "octocat/Hello-World", "--json", "body", "--jq", "."], { allowFailure: true });
+  assert.equal(result.exitCode, 0);
+  assert.equal(bounded.exitCode, 1);
+  assert.ok(caps.length > 0);
+  assert.ok(caps.every((cap) => cap === 100));
+});

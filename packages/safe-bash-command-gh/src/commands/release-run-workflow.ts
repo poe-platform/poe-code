@@ -1,4 +1,4 @@
-import { resolvePath } from "@poe-code/safe-fs/core";
+import { isFsError, resolvePath } from "@poe-code/safe-fs/core";
 import { type CommandContext } from "safe-bash-contracts";
 import {
   getBoolFlag,
@@ -372,6 +372,7 @@ export async function handleReleaseCommand(
       { short: "D", long: "dir", type: "string" },
       { short: "O", long: "output", type: "string" },
       { long: "clobber", type: "boolean" },
+      { long: "skip-existing", type: "boolean" },
     ];
     const parsed = parseCommandArgs(restArgs, schemas);
     const tag = parsed.positionals[0];
@@ -387,16 +388,30 @@ export async function handleReleaseCommand(
     const outDir = resolvePath(context.cwd, getStringFlag(parsed, "dir") ?? ".");
     await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
 
+    const clobber = getBoolFlag(parsed, "clobber");
+    const skipExisting = getBoolFlag(parsed, "skip-existing");
+    const download = async (dest: string, data: Uint8Array): Promise<boolean> => {
+      try {
+        await context.fs.writeFile(dest, data, {
+          signal: context.signal,
+          flag: clobber ? "w" : "wx",
+        });
+        return true;
+      } catch (error) {
+        if (!isFsError(error, "EEXIST")) throw error;
+        if (skipExisting) return true;
+        await writeErr(`${dest} already exists (use --clobber to overwrite or --skip-existing to skip)\n`);
+        return false;
+      }
+    };
+
     const archiveFormat = getStringFlag(parsed, "archive");
     if (archiveFormat) {
       const fileName = `${repo.name}-${rel.tagName}.${archiveFormat}`;
       const dest = getStringFlag(parsed, "output")
         ? resolvePath(context.cwd, getStringFlag(parsed, "output")!)
         : `${outDir === "/" ? "" : outDir}/${fileName}`;
-      await context.fs.writeFile(dest, encodeUtf8(`ARCHIVE:${repo.nameWithOwner}:${rel.tagName}`), {
-        signal: context.signal,
-      });
-      return 0;
+      return await download(dest, encodeUtf8(`ARCHIVE:${repo.nameWithOwner}:${rel.tagName}`)) ? 0 : 1;
     }
 
     const patterns = getStringArrayFlag(parsed, "pattern");
@@ -407,7 +422,7 @@ export async function handleReleaseCommand(
       const dest = getStringFlag(parsed, "output")
         ? resolvePath(context.cwd, getStringFlag(parsed, "output")!)
         : `${outDir === "/" ? "" : outDir}/${asset.name}`;
-      await context.fs.writeFile(dest, asset.data, { signal: context.signal });
+      if (!await download(dest, asset.data)) return 1;
     }
     return 0;
   }

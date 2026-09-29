@@ -701,9 +701,9 @@ test("gh search, label, variable, cache, gpg-key, config, status, and browse com
 
 test("gh and git plugins work seamlessly inside @poe-platform/safe-bash Shell scripts and pipelines", async () => {
   const { Shell, standardCommands, gitCommands } = await import(
-    "../../safe-bash/src/index.js"
+    "@poe-platform/safe-bash"
   );
-  const { ghCommands } = await import("../../safe-bash/src/commands/gh/index.js");
+  const { ghCommands } = await import("@poe-platform/safe-bash/commands/gh");
   const fs = new MemoryFileSystem();
   await fs.mkdir("/workspace", { recursive: true });
 

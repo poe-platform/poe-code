@@ -58,7 +58,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     acquisitionSettled?.();
   };
   let scope: AbortSignal | undefined;
-  const close = (): Promise<void> => {
+  const close = (options: FsOptions = {}): Promise<void> => {
     accepting = false;
     closing ??= (async () => {
       if (acquiring) {
@@ -68,7 +68,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
       await work;
       const retained = descriptor;
       descriptor = undefined;
-      try { await retained?.close(); }
+      try { await retained?.close(options); }
       catch (reason) { closeFailure = { reason, acknowledged: false, drained: false }; throw reason; }
       finally {
         if (scope && isManagedAbortSignal(scope)) removeAbortSignalWaiter(scope, aborted);
@@ -79,7 +79,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     void closing.catch(() => {});
     return closing;
   };
-  const aborted = (): void => { void close().catch(() => {}); };
+  const aborted = (): void => { void close({ signal: scope ?? context.signal }).catch(() => {}); };
   const check = (signal?: AbortSignal): void => {
     context.signal.throwIfAborted();
     scope?.throwIfAborted();

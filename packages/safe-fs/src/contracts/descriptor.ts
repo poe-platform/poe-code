@@ -36,5 +36,6 @@ export interface FileDescriptor {
   write(buffer: Uint8Array, position: number | null, options?: FsOptions): Promise<number>;
   truncate(length: number, options?: FsOptions): Promise<void>;
   sync(dataOnly: boolean, options?: FsOptions): Promise<void>;
-  close(): Promise<void>;
+  /** Cancel cooperative close-time publication, while still releasing resources. */
+  close(options?: FsOptions): Promise<void>;
 }

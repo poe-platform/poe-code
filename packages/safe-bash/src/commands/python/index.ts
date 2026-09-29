@@ -160,6 +160,9 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         await input.return?.(undefined);
         fragment = undefined;
         if (packages) environment.finish(packages);
+        // Operation failures remain reportable after all work drains. Only an
+        // unconfirmed interpreter termination must keep its capacity occupied.
+        if (results[1]?.status === 'fulfilled' && admitted) { activeWorkers--; admitted = false; }
         for (const result of results) if (result.status === 'rejected') throw result.reason;
       })().then(() => {
         if (admitted) { activeWorkers--; admitted = false; }

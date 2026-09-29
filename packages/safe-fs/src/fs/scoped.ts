@@ -170,7 +170,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       write: (buffer, position, forwarded = {}) => invoke(forwarded, scoped => descriptor.write(buffer, position, scoped), options.preserveDescriptorWriteReceipt === true),
       truncate: (length, options = {}) => invoke(options, scoped => descriptor.truncate(length, scoped)),
       sync: (dataOnly, options = {}) => invoke(options, scoped => descriptor.sync(dataOnly, scoped)),
-      close: () => closing ??= Promise.resolve().then(() => descriptor.close()),
+      close: (options = {}) => closing ??= Promise.resolve().then(() => descriptor.close(options)),
     };
   };
   const wrapStream = (source: ByteSource, options?: FsOptions): ByteSource => {

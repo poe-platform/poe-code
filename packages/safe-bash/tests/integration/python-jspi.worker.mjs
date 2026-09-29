@@ -6,13 +6,95 @@ import lockFileContents from 'pinned-pyodide-lock';
 import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
-import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator } from '@poe-platform/safe-fs/core';
+import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
 import { createPythonJspiExecutor, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
+
+async function qualifyPublication(backend, createExecutor) {
+  const versions = new Map();
+  let revision = 0;
+  let cancelled = false;
+  let publishing = false;
+  const controller = new AbortController();
+  const store = {
+    async acquire(path) { return versions.get(path); },
+    async publish(path, previous, source, options) {
+      if ((versions.get(path)?.revision ?? null) !== previous) throw new Error('publication conflict');
+      const chunks = [];
+      let size = 0;
+      publishing = true;
+      try {
+        for await (const chunk of source) {
+          if (path === '/work/cancel-large' && options.size > 0) {
+            // Expire while close is suspended in authoritative publication.
+            const timer = setTimeout(() => controller.abort(new Error('publication deadline')), 1);
+            try {
+              await new Promise((resolve, reject) => {
+                options.signal.addEventListener('abort', () => reject(options.signal.reason), {once:true});
+                if (options.signal.aborted) reject(options.signal.reason);
+              });
+            } finally { clearTimeout(timer); cancelled = true; }
+          }
+          options.signal.throwIfAborted();
+          chunks.push(Uint8Array.from(chunk));
+          size += chunk.length;
+        }
+        if (size !== options.size) throw new Error('incomplete publication');
+        const version = { revision: String(++revision),
+          stat: { type:'file', size, mode:options.mode, mtimeMs:0, atimeMs:0, ctimeMs:0 },
+          async read(position, count, options) {
+            options?.signal?.throwIfAborted();
+            const bytes = new Uint8Array(count);
+            let copied = 0;
+            while (copied < count) {
+              const offset = position + copied;
+              const chunk = chunks[Math.floor(offset / 65536)];
+              const part = chunk.subarray(offset % 65536, Math.min(chunk.length, offset % 65536 + count - copied));
+              bytes.set(part, copied);
+              copied += part.length;
+            }
+            return bytes;
+          }, async close() {} };
+        versions.set(path, version);
+        return version;
+      } finally { publishing = false; }
+    },
+  };
+  const fs = withObjectFileDescriptors(backend, store, {maxOpenFiles:1});
+  const pool = createPythonExecutorPool({maxConcurrentExecutors:1, createExecutor});
+  const shell = new Shell({fs}).use(pythonCommands({createExecutor:pool.createExecutor, maxConcurrentWorkers:1}));
+  const quote = String.fromCharCode(39);
+  const script = path => `chunk = bytes(range(256)) * 256
+with open("${path}", "wb") as output:
+ for _ in range(1600):
+  output.write(chunk)
+`;
+  try {
+    let error;
+    try { await shell.exec('python -c ' + quote + script('/work/cancel-large') + quote, {signal:controller.signal}); }
+    catch (reason) { error = String(reason); }
+    if (!error || !cancelled || publishing || pool.inspect().active !== 0) throw new Error('publication retirement failed: ' + JSON.stringify({error,cancelled,publishing,pool:pool.inspect()}));
+    const result = await shell.exec('python -c ' + quote + script('/work/large') + `
+import hashlib
+hasher = hashlib.sha256()
+with open("/work/large", "rb") as source:
+ while data := source.read(65536):
+  hasher.update(data)
+print(hasher.hexdigest())
+` + quote, {signal:AbortSignal.timeout(120000)});
+    const version = versions.get('/work/large');
+    // Verify the retained authoritative bytes independently of Python's digest.
+    for (let position = 0; position < version.stat.size; position += 65536) {
+      const bytes = await version.read(position, 65536);
+      for (let index = 0; index < bytes.length; index++) if (bytes[index] !== index % 256) throw new Error('authoritative byte mismatch');
+    }
+    return {error,cancelled,publishing,pool:pool.inspect(), result, size:version.stat.size};
+  } finally { await shell.dispose(); await pool.dispose(); }
+}
 
 async function qualifyShells(backend, createExecutor) {
   const gates = Object.fromEntries(['first', 'sibling'].map(name => {
@@ -492,6 +574,11 @@ export default {
       }
       return runtime;
     } });
+    if (mode === '/publication') {
+      try { return Response.json({...await qualifyPublication(backend, createExecutor), failures}); }
+      catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }
+      finally { clearInterval(timer); await filesystem.close(); }
+    }
     if (mode === '/host') {
       try { return Response.json({...await qualifyHostServices(backend, createExecutor), failures, ticks}); }
       catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }

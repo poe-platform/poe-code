@@ -145,7 +145,8 @@ test('distinguishes drained native descriptor close failures from incomplete ter
               },
             });
             cfg.bindInstance({ exports: { syscall_syncify: () => 0 } });
-            cfg.bindScheduler({ scheduleCallback: () => {} });
+            const scheduler = { scheduleCallback: (_callback: () => unknown) => {} };
+            cfg.bindScheduler(scheduler);
             const memory = new Uint8Array(65536);
             memory.set(new TextEncoder().encode('/dirty\0'), 256);
             const streams: any[] = [];
@@ -167,7 +168,7 @@ test('distinguishes drained native descriptor close failures from incomplete ter
                 },
                 closeStream(fd: number) { streams[fd] = null; },
               },
-              _Py_FinalizeEx: () => 0,
+              _Py_FinalizeEx: () => { if (idx === 6) throw new Error('finalization did not complete'); return 0; },
               _free: () => {},
               removeFunction: () => {},
               addFunction: () => 1,
@@ -193,7 +194,13 @@ test('distinguishes drained native descriptor close failures from incomplete ter
               },
               runPython: (code: string) => code.includes('errno') ? '{"EIO":5,"EINTR":4,"EINVAL":22}' : 0,
               runPythonAsync: async (code: string) => {
-                if (code.includes('_safe_execution_code') && idx !== 2) {
+                if (code.includes('_safe_execution_code') && idx === 4) {
+                  await new Promise<void>(resolve => scheduler.scheduleCallback(() => {
+                    resolve();
+                    throw new Error('execution context is no longer running');
+                  }));
+                }
+                if (code.includes('_safe_execution_code') && idx !== 2 && idx < 4) {
                   await currentInvoke?.('__syscall_openat', [-100, 256, 1, 0]);
                 }
                 return 0;
@@ -257,6 +264,20 @@ test('distinguishes drained native descriptor close failures from incomplete ter
     await assert.rejects(thirdRun, (err: any) => err instanceof AggregateError && err.errors[0] === conflict);
     await thirdTerminate;
     assert.equal(pool.inspect().active, 0);
+
+    // Callback failure is reported by run, but successful finalization recovers capacity.
+    const fourth = pool.createExecutor();
+    await assert.rejects(fourth.run(start()), /execution context is no longer running/);
+    await fourth.terminate();
+    assert.equal(pool.inspect().active, 0);
+    const fifth = pool.createExecutor();
+    await fifth.run(start());
+    await fifth.terminate();
+    const sixth = pool.createExecutor();
+    await assert.rejects(sixth.run(start()), /finalization did not complete/);
+    await assert.rejects(sixth.terminate(), /finalization did not complete/);
+    assert.equal(pool.inspect().active, 1);
+    assert.throws(() => pool.createExecutor(), {category:'capacity'});
   } finally {
     WebAssembly.Suspending = origSuspending;
     WebAssembly.promising = origPromising;

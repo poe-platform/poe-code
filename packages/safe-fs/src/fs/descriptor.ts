@@ -19,7 +19,7 @@ export interface DescriptorBackend<Resource> {
   write(resource: Resource, buffer: Uint8Array, position: number | null, options: FsOptions): Promise<number>;
   truncate(resource: Resource, length: number, options: FsOptions): Promise<void>;
   sync(resource: Resource, dataOnly: boolean, options: FsOptions): Promise<void>;
-  close(resource: Resource): Promise<void>;
+  close(resource: Resource, options: FsOptions): Promise<void>;
 }
 
 function admitCapabilities(path: string, options: OpenFileOptions, capabilities: FileDescriptorCapabilities): void {
@@ -61,7 +61,7 @@ export function forwardFileDescriptor(descriptor: FileDescriptor,
     write: (retained, buffer, position, options) => operation("write", options, () => retained.write(buffer, position, options)),
     truncate: (retained, length, options) => operation("ftruncate", options, () => retained.truncate(length, options)),
     sync: (retained, dataOnly, options) => operation(dataOnly ? "fdatasync" : "fsync", options, () => retained.sync(dataOnly, options)),
-    close: retained => operation("close", {}, () => retained.close()),
+    close: (retained, options) => operation("close", {}, () => retained.close(options)),
   };
 }
 
@@ -220,9 +220,9 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
     });
   }
 
-  close(): Promise<void> {
+  close(options: FsOptions = {}): Promise<void> {
     this.#closing ??= this.#pending.then(async () => {
-      try { await this.#backend!.close(this.#backend!.resource); }
+      try { await this.#backend!.close(this.#backend!.resource, options); }
       finally {
         this.#backend = undefined;
         this.#getPosition = undefined;
@@ -278,7 +278,7 @@ export async function openFileDescriptor<Resource>(path: string, options: OpenFi
     signal?.throwIfAborted();
     return descriptor;
   } catch (error) {
-    await finishCleanup(() => backend.close(backend.resource), true);
+    await finishCleanup(() => backend.close(backend.resource, {}), true);
     signal?.throwIfAborted();
     throw error;
   }

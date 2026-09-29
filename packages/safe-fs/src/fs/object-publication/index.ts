@@ -372,9 +372,9 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
           if (admitted.synchronization !== undefined) await flush(forwarded);
         },
         sync: async (_state, _dataOnly, forwarded) => { await flush(forwarded); },
-        close: async () => {
+        close: async (_state, forwarded) => {
           let failed = false;
-          try { if (state.dirty || state.failure) await flush({}); }
+          try { if (state.dirty || state.failure) await flush(forwarded); }
           catch (error) { failed = true; throw error; }
           finally {
             clearPages(state);

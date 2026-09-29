@@ -152,6 +152,21 @@ export { WebAssembly, fetch, location };
     handleUncaughtError(error) { runtimeErrors.push({uncaught:String(error)}); },
   }));
   try {
+    const publicationResponse = await miniflare.dispatchFetch('http://fixture/publication');
+    const publication = await publicationResponse.json();
+    assert.equal(publicationResponse.status, 200, JSON.stringify(publication));
+    assert.equal(publication.error, "Error: publication deadline");
+    assert.equal(publication.cancelled, true);
+    assert.equal(publication.publishing, false);
+    assert.equal(publication.pool.active, 0);
+    assert.equal(publication.size, 100 * 1024 * 1024);
+    assert.equal(publication.result.exitCode, 0, JSON.stringify(publication));
+    assert.equal(publication.result.stderr, '');
+    const hash = createHash('sha256');
+    const chunk = Uint8Array.from({length:65536}, (_, index) => index % 256);
+    for (let index = 0; index < 1600; index++) hash.update(chunk);
+    assert.equal(publication.result.stdout, hash.digest('hex') + '\n');
+    assert.deepEqual(publication.failures, []);
     const hostResponse = await miniflare.dispatchFetch('http://fixture/host');
     const host = await hostResponse.json();
     assert.equal(hostResponse.status, 200, JSON.stringify(host));

@@ -91,7 +91,7 @@ export class PythonFileSystem {
       const [id] = request.args;
       const handle = this.#handle(id);
       this.#handles.delete(id);
-      await handle.close();
+      await handle.close({ signal: this.#scope.signal });
       return;
     }
     const signal = this.#scope.signal;
@@ -208,7 +208,7 @@ export class PythonFileSystem {
         await Promise.allSettled([...this.#pending]);
         const handles = [...this.#handles.values()];
         this.#handles.clear();
-        const results = await Promise.allSettled(handles.map(handle => handle.close()));
+        const results = await Promise.allSettled(handles.map(handle => handle.close({ signal: this.#scope.signal })));
         this.#scope.dispose();
         const failed = results.find(result => result.status === "rejected");
         if (failed?.status === "rejected") throw failed.reason;

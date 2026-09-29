@@ -39,6 +39,8 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
   let running: Promise<number> | undefined;
   let retirement: Promise<void> | undefined;
   let schedulerCleanup: Promise<void> | undefined;
+  let interpreterFinalized = false;
+  let finalizationFailure: { reason: unknown } | undefined;
   let cleanup: Promise<void> | undefined;
   let runtime: any;
   let native: ReturnType<typeof createPythonNativeSyscalls> | undefined;
@@ -260,7 +262,9 @@ await _safe_quiesce_tasks()
               try { await scheduler.close(); }
               finally {
                 active.value = native ? 2 : 0;
-                finalized = Number(await engine.promising(runtime._module._Py_FinalizeEx)());
+                finalized = Number(await Promise.resolve().then(() => engine.promising(runtime._module._Py_FinalizeEx)())
+                  .catch(reason => { finalizationFailure = { reason }; throw reason; }));
+                interpreterFinalized = true;
               }
             }
           }
@@ -297,7 +301,10 @@ await _safe_quiesce_tasks()
         controller.abort();
         await running?.catch(() => {});
         await cleanup?.catch(() => {});
-        await schedulerCleanup;
+        // Callback failures remain visible on run. Once callbacks have drained and
+        // CPython finalized, they cannot leave an interpreter occupying capacity.
+        await schedulerCleanup?.catch(error => { if (!interpreterFinalized) throw error; });
+        if (finalizationFailure) throw finalizationFailure.reason;
       })();
       return retirement;
     },

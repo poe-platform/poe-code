@@ -159,9 +159,11 @@ errors do not poison the queue. Cancellation wins over the same operation's
 backend failure, retaining exact falsey reasons. Arbitrary noncooperative work
 cannot be forcibly interrupted by this API.
 
-`close()` synchronously stops new admission, drains previously admitted work,
-and attempts resource release exactly once. It has no cancellation signal and
-repeated calls return the same completion, including a failed completion. The
+`close(options?)` synchronously stops new admission, drains previously admitted work,
+and attempts resource release exactly once. Its optional signal cancels cooperative
+close-time publication; resource release still runs even when already canceled.
+The first call owns the close options. Repeated calls return the same completion,
+including a failed completion. The
 helper clears its retained backend/resource references after the release attempt
 even on failure; this is not proof that a failing provider closed its OS resource
 or that external owners have released their own references. After close starts,

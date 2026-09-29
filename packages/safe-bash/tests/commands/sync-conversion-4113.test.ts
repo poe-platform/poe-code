@@ -1661,3 +1661,35 @@ EOF
     "Success. Updated the following files:;A sub/added.txt;M sub/renamed.txt;D obsolete.txt|hello nested|line1:line2-updated:|deleted"
   );
 });
+
+test("Wave 228: tar -xvf -C directory extraction and unzip -t / unzip -qo -d extraction in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp/w228/src/pkg", { recursive: true });
+  await memFs.writeFile("/tmp/w228/src/pkg/hello.txt", new TextEncoder().encode("tar-extracted\n"));
+  const shell = new Shell({ fs: memFs, cwd: "/tmp/w228" })
+    .use(standardCommands())
+    .use(archiveCommands());
+  const setupRes = await shell.exec(`
+    tar -czf /tmp/w228/pkg.tar.gz -C /tmp/w228/src pkg/hello.txt
+    cd /tmp/w228/src && zip -q /tmp/w228/pkg.zip pkg/hello.txt
+  `);
+  assert.equal(setupRes.exitCode, 0, setupRes.stderr);
+
+  const res = await shell.exec(`
+    for i in 1 2 3 4 5; do
+      rm -rf /tmp/w228/out_tar /tmp/w228/out_zip
+      mkdir -p /tmp/w228/out_tar /tmp/w228/out_zip
+      tv=$(tar -xzvf /tmp/w228/pkg.tar.gz -C /tmp/w228/out_tar)
+      tc=$(cat /tmp/w228/out_tar/pkg/hello.txt)
+      ut=$(unzip -tq /tmp/w228/pkg.zip)
+      _=$(unzip -qo /tmp/w228/pkg.zip -d /tmp/w228/out_zip)
+      zc=$(cat /tmp/w228/out_zip/pkg/hello.txt)
+    done
+    printf "%s|%s|%s|%s\n" "$tv" "$tc" "$ut" "$zc"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "pkg/hello.txt|tar-extracted|No errors detected in compressed data of /tmp/w228/pkg.zip.|tar-extracted"
+  );
+});

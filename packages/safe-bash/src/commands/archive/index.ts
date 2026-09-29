@@ -236,7 +236,9 @@ export function evalSyncZip(args: readonly string[]): string | undefined {
 export function evalSyncTar(
   stdinBytes: Uint8Array | undefined,
   args: readonly string[],
-  readFile?: (path: string) => Uint8Array | undefined
+  readFile?: (path: string) => Uint8Array | undefined,
+  writeFile?: (path: string, bytes: Uint8Array, mode?: number) => boolean,
+  mkdir?: (path: string, mode?: number) => boolean,
 ): string | undefined {
   if (args.length === 1 && args[0] === "--help") {
     return TAR_HELP_TEXT;
@@ -244,9 +246,11 @@ export function evalSyncTar(
   if (args.length === 0) return undefined;
   let mode: "t" | "x" | undefined;
   let toStdout = false;
+  let verbose = false;
   let gzip = false;
   let wildcards = false;
   let stripComponents = 0;
+  let targetDir = "";
   let archive = "-";
   const excludes: string[] = [];
   const operands: string[] = [];
@@ -277,8 +281,13 @@ export function evalSyncTar(
         if (ch === "t") { if (mode) return undefined; mode = "t"; }
         else if (ch === "x") { if (mode) return undefined; mode = "x"; }
         else if (ch === "O") toStdout = true;
+        else if (ch === "v") verbose = true;
         else if (ch === "z") gzip = true;
-        else if (ch === "f") {
+        else if (ch === "C") {
+          const next = args[++i];
+          if (!next) return undefined;
+          targetDir = next;
+        } else if (ch === "f") {
           const next = args[++i];
           if (!next) return undefined;
           archive = next;
@@ -294,6 +303,14 @@ export function evalSyncTar(
     if (a === "--list") { if (mode) return undefined; mode = "t"; i++; continue; }
     if (a === "--extract" || a === "--get") { if (mode) return undefined; mode = "x"; i++; continue; }
     if (a === "--to-stdout") { toStdout = true; i++; continue; }
+    if (a === "--verbose") { verbose = true; i++; continue; }
+    if (a === "--directory" || a.startsWith("--directory=")) {
+      const d = a === "--directory" ? args[++i] : a.slice(12);
+      if (!d) return undefined;
+      targetDir = d;
+      i++;
+      continue;
+    }
     if (a === "--gzip" || a === "--gunzip") { gzip = true; i++; continue; }
     if (a === "--wildcards") { wildcards = true; i++; continue; }
     if (a === "--exclude" || a.startsWith("--exclude=")) {
@@ -319,8 +336,16 @@ export function evalSyncTar(
         if (ch === "t") { if (mode) return undefined; mode = "t"; }
         else if (ch === "x") { if (mode) return undefined; mode = "x"; }
         else if (ch === "O") toStdout = true;
+        else if (ch === "v") verbose = true;
         else if (ch === "z") gzip = true;
-        else if (ch === "f") {
+        else if (ch === "C") {
+          const rest = a.slice(c + 1);
+          if (rest) { targetDir = rest; break; }
+          const next = args[++i];
+          if (!next) return undefined;
+          targetDir = next;
+          break;
+        } else if (ch === "f") {
           const rest = a.slice(c + 1);
           if (rest) { archive = rest; break; }
           const next = args[++i];
@@ -337,7 +362,8 @@ export function evalSyncTar(
   }
   void bundledHandled;
   if (!mode) return undefined;
-  if (mode === "x" && !toStdout) return undefined;
+  if (mode === "t" && verbose) return undefined;
+  if (mode === "x" && !toStdout && (!writeFile || !mkdir)) return undefined;
 
   let raw: Uint8Array | undefined;
   if (archive === "-") {
@@ -453,11 +479,34 @@ export function evalSyncTar(
         if (entry.type === "0") {
           out += syncTextDecoder.decode(payload);
         }
+      } else if (mode === "x") {
+        const relClean = displayEntryName.replace(/\/+$/u, "");
+        if (!relClean || relClean.split("/").includes("..")) return undefined;
+        const destPath = targetDir ? `${targetDir.replace(/\/+$/u, "")}/${relClean}` : relClean;
+        if (entry.type === "5") {
+          extractActions.push({ isDir: true, path: destPath, bytes: new Uint8Array(0), mode: entry.mode || 0o755 });
+        } else if (entry.type === "0") {
+          extractActions.push({ isDir: false, path: destPath, bytes: payload.slice(), mode: entry.mode || 0o644 });
+        } else {
+          return undefined;
+        }
+        if (verbose) out += `${quoteName(displayEntryName, "escape")}\n`;
       }
     }
 
     if (operands.length > 0 && matchedOperands.size !== operands.length) {
       return undefined;
+    }
+    if (mode === "x" && !toStdout) {
+      for (const act of extractActions) {
+        if (act.isDir) {
+          if (!mkdir!(act.path, act.mode)) return undefined;
+        } else {
+          const slash = act.path.lastIndexOf("/");
+          if (slash > 0 && !mkdir!(act.path.slice(0, slash), 0o755)) return undefined;
+          if (!writeFile!(act.path, act.bytes, act.mode)) return undefined;
+        }
+      }
     }
     return out;
   } catch {
@@ -476,12 +525,18 @@ function filteredZipName(name: string): string {
 
 export function evalSyncUnzip(
   args: readonly string[],
-  readFile?: (path: string) => Uint8Array | undefined
+  readFile?: (path: string) => Uint8Array | undefined,
+  writeFile?: (path: string, bytes: Uint8Array, mode?: number) => boolean,
+  mkdir?: (path: string, mode?: number) => boolean,
 ): string | undefined {
   if (!readFile || args.length === 0) return undefined;
   let zipinfoNames = false;
   let pipe = false;
   let list = false;
+  let testMode = false;
+  let caseInsensitive = false;
+  let overwrite = false;
+  let destDir: string | undefined;
   let quiet = 0;
   let archive: string | undefined;
   const patterns: string[] = [];
@@ -502,19 +557,28 @@ export function evalSyncUnzip(
         } else re += "\\[";
       } else re += ch.replace(/[.+^$(){}|\\]/g, "\\$&");
     }
-    return new RegExp(re + "$", "u");
+    return new RegExp(re + "$", caseInsensitive ? "iu" : "u");
   };
 
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
     if (!ended && a === "--") { ended = true; continue; }
     if (!ended && archive !== undefined && a === "-x") { inExclude = true; continue; }
+    if (!ended && (a === "-d" || a.startsWith("-d"))) {
+      const d = a === "-d" ? args[++i] : a.slice(2);
+      if (!d) return undefined;
+      destDir = d;
+      continue;
+    }
     if (!ended && archive === undefined && a.startsWith("-") && a !== "-") {
       if (a === "-Z1" && i === 0) { zipinfoNames = true; continue; }
       for (let c = 1; c < a.length; c++) {
         const ch = a[c]!;
         if (ch === "p") pipe = true;
         else if (ch === "l") list = true;
+        else if (ch === "t") testMode = true;
+        else if (ch === "C") caseInsensitive = true;
+        else if (ch === "o") overwrite = true;
         else if (ch === "q") quiet++;
         else return undefined;
       }
@@ -526,9 +590,12 @@ export function evalSyncUnzip(
       patterns.push(a);
     }
   }
-
-  if (!archive || (!zipinfoNames && !pipe && !list)) return undefined;
-  if ((zipinfoNames ? 1 : 0) + (pipe ? 1 : 0) + (list ? 1 : 0) !== 1) return undefined;
+  void overwrite;
+  if (!archive) return undefined;
+  const modeCount = (zipinfoNames ? 1 : 0) + (pipe ? 1 : 0) + (list ? 1 : 0) + (testMode ? 1 : 0);
+  if (modeCount > 1) return undefined;
+  const extractMode = modeCount === 0;
+  if (extractMode && (!writeFile || !mkdir)) return undefined;
 
   let chosenArchive = archive;
   let bytes = readFile(archive);
@@ -652,6 +719,63 @@ export function evalSyncUnzip(
         out += `${String(m.uncompSize).padStart(9)}  ${dStr}   ${filteredZipName(m.name)}\n`;
       }
       out += `---------                     -------\n${String(totalSize).padStart(9)}                     ${selectedMembers.length} file${selectedMembers.length === 1 ? "" : "s"}\n`;
+      return out;
+    }
+
+    if (testMode || extractMode) {
+      let out = quiet === 0 ? `Archive:  ${filteredZipName(chosenArchive)}\n` : "";
+      const staged: { isDir: boolean; path: string; shown: string; method: number; bytes: Uint8Array }[] = [];
+      for (const m of selectedMembers) {
+        if (m.localOffset + 30 > bytes.byteLength || view.getUint32(m.localOffset, true) !== 0x04034b50) return undefined;
+        const lNameLen = view.getUint16(m.localOffset + 26, true);
+        const lExtraLen = view.getUint16(m.localOffset + 28, true);
+        const dataStart = m.localOffset + 30 + lNameLen + lExtraLen;
+        const dataEnd = dataStart + m.compSize;
+        if (dataEnd > bytes.byteLength) return undefined;
+        const compSlice = bytes.subarray(dataStart, dataEnd);
+        let decoded: Uint8Array;
+        if (m.method === 0) {
+          decoded = compSlice;
+        } else if (m.method === 8) {
+          decoded = inflateRawSync(compSlice);
+        } else {
+          return undefined;
+        }
+        if (decoded.byteLength !== m.uncompSize || crc32(decoded) !== m.crc) return undefined;
+        if (testMode) {
+          if (quiet === 0) {
+            const fn = filteredZipName(m.name);
+            const pad = fn + " ".repeat(Math.max(0, 22 - new TextEncoder().encode(fn).byteLength));
+            out += `    testing: ${pad} OK\n`;
+          }
+        } else {
+          const isDir = m.name.endsWith("/");
+          const clean = m.name.replace(/\/+$/u, "");
+          if (!clean || clean.startsWith("/") || clean.split("/").includes("..")) return undefined;
+          const targetPath = destDir ? `${destDir.replace(/\/+$/u, "")}/${clean}` : clean;
+          const shown = destDir === undefined ? m.name : `${destDir.endsWith("/") ? destDir : `${destDir}/`}${m.name}`;
+          staged.push({ isDir, path: targetPath, shown, method: m.method, bytes: decoded });
+        }
+      }
+      if (testMode) {
+        if (quiet < 2) out += `No errors detected in compressed data of ${filteredZipName(chosenArchive)}.\n`;
+        return out;
+      }
+      for (const item of staged) {
+        if (item.isDir) {
+          if (!mkdir!(item.path, 0o755)) return undefined;
+          if (quiet === 0) out += `   creating: ${filteredZipName(item.shown)}\n`;
+        } else {
+          const slash = item.path.lastIndexOf("/");
+          if (slash > 0 && !mkdir!(item.path.slice(0, slash), 0o755)) return undefined;
+          if (!writeFile!(item.path, item.bytes, 0o644)) return undefined;
+          if (quiet === 0) {
+            const fn = filteredZipName(item.shown);
+            const pad = fn + " ".repeat(Math.max(0, 22 - new TextEncoder().encode(fn).byteLength));
+            out += `${item.method === 0 ? " extracting" : "  inflating"}: ${pad}  \n`;
+          }
+        }
+      }
       return out;
     }
 

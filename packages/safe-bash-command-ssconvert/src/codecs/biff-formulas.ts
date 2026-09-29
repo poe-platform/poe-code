@@ -168,7 +168,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
         if (![0x25, 0x45, 0x65, 0x2b, 0x4b, 0x6b].includes(areaToken)) invalidBiff("radical label requires Area or AreaErr");
         const deleted = (areaToken & 0x1f) === 0x0b;
         if (!deleted && (!isBiffRadicalArea(row, column, [data.u16(offset + 1), data.u16(offset + 3), data.u16(offset + 5) & 0x3fff, data.u16(offset + 7) & 0x3fff]) ||
-          labels && (data.u16(offset + 5) & 0x3fff) !== (data.u16(offset + 7) & 0x3fff)))
+          labels && (column !== (data.u16(offset + 5) & 0x3fff) || (data.u16(offset + 5) & 0x3fff) !== (data.u16(offset + 7) & 0x3fff))))
           invalidBiff("invalid radical label area");
         const sequence = labels?.cells.map(cell => {
           let letters = "";

@@ -240,7 +240,7 @@ export class BiffFormulaWriter {
               const first = reference(data.first), last = reference(data.last);
               const a = new DataView(first.buffer), b = new DataView(last.buffer);
               if (!isBiffRadicalArea(labelRow, labelColumn, [a.getUint16(0, true), b.getUint16(0, true), a.getUint16(2, true) & 255, b.getUint16(2, true) & 255]) ||
-                preceding && first[2] !== last[2])
+                preceding && (labelColumn !== first[2] || first[2] !== last[2]))
                 throw new SsconvertError("unsupported-feature", "Excel BIFF radical label must adjoin its explicit area");
               push([areaClass | 5]); push(first.subarray(0, 2)); push(last.subarray(0, 2)); push(first.subarray(2)); push(last.subarray(2));
             }

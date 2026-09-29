@@ -98,6 +98,29 @@ it("rejects missing, truncated, empty, invalid-column and non-column multiple ra
   await expect(readBiff(input(tokens, [...words(0xffff, 0x3fff)]), { ...context, limits: { ...context.limits, workbookWork: 1000 } })).rejects.toThrow("work limit");
 });
 
+for (const areaClass of [0x20, 0x40, 0x60]) for (const after of [false, true]) {
+  const suffix = areaClass === 0x20 ? "" : areaClass === 0x40 ? ".value" : ".array";
+  const labelRow = after ? 2 : 0;
+  const expected = `=@range${suffix}.multi:{$C$10;$B$${labelRow + 1}}->$B$2:$B$2`;
+  it(`requires a column label when reading a single-cell multiple radical area (class=${areaClass}, after=${after})`, async () => {
+    // MS-XLS 2.5.198.53 requires the terminal label's column to equal
+    // area.columnFirst even when the explicit area has only one cell.
+    const tokens = [24, 11, 0, 0, 0, 0, areaClass | 5, ...words(1, 1, 1, 1)];
+    const wrongColumn = after ? 2 : 0;
+    const payload = (row: number, column: number) => [...words(2, 0, 9, 2, row, column)];
+    await expect(readBiff(input(tokens, payload(1, wrongColumn)), context)).rejects.toThrow("invalid radical label area");
+    const valid = await readBiff(input(tokens, payload(labelRow, 1)), context);
+    expect(valid.sheets[0]!.cells.find(cell => cell.formula)!.formula).toBe(expected);
+  });
+  it(`requires a column label when writing a single-cell multiple radical area (class=${areaClass}, after=${after})`, async () => {
+    const book = (label: string) => ({ sheets: [{ id: "S", name: "S", cells: [{ row: 5, column: 4,
+      formula: `=@range${suffix}.multi:{$C$10;${label}}->$B$2:$B$2`, value: { kind: "blank" as const } }] }] });
+    await expect(createBiffWriter(8)(book(after ? "$C$2" : "$A$2"), [], context)).rejects.toThrow("radical label must adjoin");
+    const roundtrip = await readBiff(await createBiffWriter(8)(book(`$B$${labelRow + 1}`), [], context), context);
+    expect(roundtrip.sheets[0]!.cells.find(cell => cell.formula)!.formula).toBe(expected);
+  });
+}
+
 it("orders two label lists with cached-area extras and ignores reserved bits", async () => {
   const memory = [0x26, 0, 0, 0, 0, 15, 0];
   const labels = extra(false, false), relative = extra(true, false);

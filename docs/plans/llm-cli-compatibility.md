@@ -45,7 +45,7 @@ Reference: Simon Willison `llm==0.27.1`, inspected through its Click command tre
 | `llm models default` | model | incomplete |
 | `llm models list` | --options; --async; --schemas; --tools; -q/--query (repeatable); -m/--model (repeatable) | incomplete |
 | `llm models options` |  | incomplete |
-| `llm models options clear` | model; key | incomplete |
+| `llm models options clear` | model; key (optional) | incomplete |
 | `llm models options list` |  | incomplete |
 | `llm models options set` | model; key; value | incomplete |
 | `llm models options show` | model | incomplete |
@@ -75,7 +75,7 @@ All rows require deterministic differential fixtures against the pinned distribu
 | Behavior | Current evidence / work remaining |
 | --- | --- |
 | Prompts, stdin and attachments | Existing command suite; request preparation buffers input and attachments. Streaming safe-fs-backed inputs and provider serialization remain required. |
-| Models, aliases and defaults | Injected registry exists; persisted configuration, query/list options and default workflows incomplete. |
+| Models, aliases and defaults | Persisted aliases, defaults and string options have 16 pinned differential cases plus scoped-shell and packed Node/Worker coverage. Plain alias listing, queries, full option validation and remaining reference semantics are incomplete. Control files currently have an explicit 1 MiB quota; unlimited-reference qualification remains unresolved. |
 | Options | Strings accepted by shell; typed options and richer shared service delivered; complete CLI option behavior remains incomplete. Consumer blanket rejection requires separate regression and delivery. |
 | Help, diagnostics, status | Command-tree inventory above; differential formatting and exit status incomplete. |
 | Streaming/binary/cancellation | Existing suites; partial errors and cleanup must remain covered. Shared structured events delivered. |

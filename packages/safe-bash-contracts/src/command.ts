@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors } from "./runtime-control.js";
 import type { FileStat, FileSystem } from "./filesystem.js";
 import type { CommandFileSystemRequirement } from "./command-requirements.js";
 import type { ByteSink, ByteSource } from "./io.js";
@@ -306,7 +307,7 @@ export type AsyncCommandHandler = (context: CommandContext) => Promise<CommandRe
 
 export const commandRuntimeIdentity: object = Object.freeze({});
 
-export { builtInDirectContextExecutors } from "./runtime-control.js";
+export { builtInDirectContextExecutors };
 
 export interface CommandDefinition {
   readonly name: string;
@@ -316,6 +317,26 @@ export interface CommandDefinition {
   readonly description?: string;
   readonly filesystemRequirements?: readonly CommandFileSystemRequirement[];
   readonly execute: CommandHandler;
+}
+
+export function isDefaultCommandOptions(options?: unknown): boolean {
+  if (!options || typeof options !== "object") return true;
+  for (const [k, v] of Object.entries(options as Record<string, unknown>)) {
+    if (k !== "replace" && v !== undefined) return false;
+  }
+  return true;
+}
+
+export function registerDefaultExecutor<T extends CommandDefinition>(def: T, options?: unknown): T {
+  if (isDefaultCommandOptions(options)) builtInDirectContextExecutors.add(def.execute);
+  return def;
+}
+
+export function registerDefaultExecutors<T extends readonly CommandDefinition[]>(defs: T, options?: unknown): T {
+  if (isDefaultCommandOptions(options)) {
+    for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
+  }
+  return defs;
 }
 
 export interface RegisterCommandOptions {

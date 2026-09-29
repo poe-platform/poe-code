@@ -1,8 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createBytePipe, createCommandArguments } from "safe-bash-contracts";
+import { builtInDirectContextExecutors, createBytePipe, createCommandArguments } from "safe-bash-contracts";
 import { createDdCommand, createDdCommands, ddCommands, type DdLimits } from "./index.js";
+
+test("canonical dd factories retain default executor admission without admitting configured limits", () => {
+  for (const options of [{}, { replace: true }, { maxTransferBytes: undefined }]) {
+    assert.equal(builtInDirectContextExecutors.has(createDdCommands(options)[0]!.execute), true);
+  }
+  for (const options of [{ maxTransferBytes: 1 }, { limits: { maxTransferBytes: 1 } }]) {
+    assert.equal(builtInDirectContextExecutors.has(createDdCommands(options)[0]!.execute), false);
+  }
+});
 
 test("dd copies and converts uppercase", async () => {
   assert.equal(createDdCommands().length, 1);

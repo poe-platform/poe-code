@@ -1,5 +1,5 @@
 import {
-  commandRuntimeIdentity, createBufferedOutput, getCommandArguments, isFsError, toByteSource, writeBytes,
+  builtInDirectContextExecutors, commandRuntimeIdentity, createBufferedOutput, getCommandArguments, isFsError, toByteSource, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition,
 } from "safe-bash-contracts";
 import { openFileOutput, type FileOutput } from "./filesystem-output.js";
@@ -21,7 +21,7 @@ const errors: Readonly<Record<string, string>> = {
 
 export function createShufCommand(options: ShufCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
-  return Object.freeze({
+  const command = Object.freeze({
     name: "shuf",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Write a random permutation of input records",
@@ -234,4 +234,6 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
       }
     },
   });
+  if (options.maxInputBytes === undefined && options.maxSampleSize === undefined) builtInDirectContextExecutors.add(command.execute);
+  return command;
 }

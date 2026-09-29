@@ -1,6 +1,5 @@
-import { registerDefaultExecutor } from "safe-bash-io-engine/internal";
 import type { CommandDefinition } from "safe-bash-contracts/command";
-import { commandRuntimeIdentity, getCommandArguments } from "safe-bash-contracts/command";
+import { commandRuntimeIdentity, getCommandArguments, registerDefaultExecutor } from "safe-bash-contracts/command";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { assertCountedFileOutput, writeFileOutputCounted } from "./filesystem-output.js";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";

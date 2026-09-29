@@ -1,5 +1,5 @@
 import {
-  commandRuntimeIdentity, FsError, getCommandArguments, isFsError, writeBytes,
+  builtInDirectContextExecutors, commandRuntimeIdentity, FsError, getCommandArguments, isFsError, writeBytes,
   type CommandContext, type CommandDefinition, type VirtualShellPlugin,
 } from "safe-bash-contracts";
 import { shellValueByteLength } from "safe-bash-contracts/value";
@@ -56,7 +56,7 @@ export function createYesCommand(options: YesCommandOptions = {}): CommandDefini
       throw new RangeError(`Yes ${name} must be a positive safe integer${name === "chunkBytes" ? " up to 16777216" : " or Infinity"}`);
     }
   }
-  return Object.freeze({
+  const def = Object.freeze({
     name: "yes",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Repeat a line until canceled or its output consumer closes",
@@ -149,6 +149,8 @@ export function createYesCommand(options: YesCommandOptions = {}): CommandDefini
       } finally { cleanup(); }
     },
   });
+  if (options.maxRecordBytes === undefined && options.chunkBytes === undefined) builtInDirectContextExecutors.add(def.execute);
+  return def;
 }
 
 export function createYesCommands(options: YesCommandOptions = {}): readonly CommandDefinition[] {

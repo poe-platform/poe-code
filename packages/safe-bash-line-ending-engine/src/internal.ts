@@ -87,7 +87,7 @@ export class Budget {
     this.quantum += amount;
     if (this.quantum < 1024) return;
     this.quantum = 0;
-    if (++this.checkpointCount > 1 && !hasYieldCheckpoint(this.caller) && monotonicNow() - this.lastYield < 25) {
+    if (++this.checkpointCount > 1 && (this.checkpointCount & 255) !== 0 && !hasYieldCheckpoint(this.caller) && monotonicNow() - this.lastYield < 25) {
       runYieldCheckpoint(this.caller);
       this.assertOpen();
       return;

@@ -50,7 +50,7 @@ export const lineEndingCommands = dos2unixCommands;
 
 export function evalSyncLineEndings(
   cmdName: "dos2unix" | "unix2dos",
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): Uint8Array | undefined {
@@ -76,7 +76,7 @@ export function evalSyncLineEndings(
   if (files.length > 0 && !toStdout) return undefined;
   const chunks: Uint8Array[] = [];
   if (files.length === 0) {
-    if (inBytes.byteLength > 16384) return undefined;
+    if (!inBytes || inBytes.byteLength > 16384) return undefined;
     chunks.push(inBytes);
   } else {
     if (!readFileSync) return undefined;

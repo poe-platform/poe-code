@@ -27248,8 +27248,8 @@ export class Runtime {
               const b32Bytes = firstName === "base32"
                 ? evalSyncBase32(rawSlice, stageArgs)
                 : firstName === "iconv"
-                  ? evalSyncIconv(rawSlice, stageArgs, readFile)
-                  : evalSyncLineEndings(firstName, rawSlice, stageArgs, readFile);
+                  ? evalSyncIconv(sIdx === 0 && cmd0FileStage ? undefined : rawSlice, stageArgs, readFile)
+                  : evalSyncLineEndings(firstName, sIdx === 0 && cmd0FileStage ? undefined : rawSlice, stageArgs, readFile);
               if (b32Bytes === undefined) return undefined;
               const nextTotalBytes = this.budget.bytes + b32Bytes.byteLength;
               if (nextTotalBytes > this.budget.maxOutputBytesSmi && b32Bytes.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
@@ -27511,7 +27511,7 @@ export class Runtime {
         }
       }
       if (fOk && (w0Plain === "dos2unix" || w0Plain === "unix2dos" || w0Plain === "iconv") && !hasSingleStdinRedir) {
-        const inBytes = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : EMPTY_BYTES;
+        const inBytes = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : undefined;
         const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p));
         const convBytes = w0Plain === "iconv"
           ? evalSyncIconv(inBytes, allArgs, readFile)

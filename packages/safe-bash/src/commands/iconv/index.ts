@@ -30,7 +30,7 @@ const SYNC_ICONV_ALIASES: Record<string, SyncIconvEncoding> = {
 };
 
 export function evalSyncIconv(
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): Uint8Array | undefined {
@@ -73,7 +73,7 @@ export function evalSyncIconv(
   } else if (files.length > 1) {
     return undefined;
   }
-  if (src.byteLength > 16384) return undefined;
+  if (!src || src.byteLength > 16384) return undefined;
 
   const out: number[] = [];
   let offset = 0;
@@ -130,5 +130,7 @@ export function evalSyncIconv(
     }
     offset += count;
   }
+  // Text-only shortcuts cannot retain binary ShellValue provenance.
+  if (out.some(byte => byte === 0 || byte >= 128)) return undefined;
   return new Uint8Array(out);
 }

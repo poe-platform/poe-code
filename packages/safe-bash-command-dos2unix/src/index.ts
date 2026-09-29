@@ -136,12 +136,23 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
         finally { writer.release(); }
         if (failed) throw failed.reason;
       };
+      const stdin = async (): Promise<void> => {
+        const reader = new Reader(active);
+        const writer = new Writer(active, bytes => active.stdout(bytes));
+        await reader.open();
+        if (information.flags.size) await information.print(direction, reader, flags, "");
+        else {
+          const result = await convert(direction, reader, writer, active, flags, "stdin", true);
+          if (result.kind === "unicode" || result.kind === "bom-error" || result.kind === "binary" && !flags.quiet) status ||= 1;
+        }
+      };
       let paired = true, processOptions = true, sawFile = false, stop = false;
       let index = 0;
       for (; index < args.length && !stop; index++) {
         const argument = args[index]!;
         if (processOptions && argument.startsWith("-")) {
           switch (argument) {
+            case "-": sawFile = true; await stdin(); break;
             case "--": processOptions = false; break;
             case "-b": case "--keep-bom": flags.keepBom = true; break;
             case "-r": case "--remove-bom": flags.keepBom = false; flags.addBom = false; break;
@@ -193,16 +204,7 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
           else { await file(args[index - 1]!, argument); paired = true; }
         }
       }
-      if (!sawFile) {
-        const reader = new Reader(active);
-        const writer = new Writer(active, bytes => active.stdout(bytes));
-        await reader.open();
-        if (information.flags.size) await information.print(direction, reader, flags, "");
-        else {
-          const result = await convert(direction, reader, writer, active, flags, "stdin", true);
-          if (result.kind === "unicode" || result.kind === "bom-error" || result.kind === "binary" && !flags.quiet) status ||= 1;
-        }
-      }
+      if (!sawFile) await stdin();
       if (!paired) { await diagnostic(`target of file ${args[Math.min(index - 1, args.length - 1)]} not specified in new-file mode`); status = 1; }
     } catch (error) {
       primary = { reason: error };

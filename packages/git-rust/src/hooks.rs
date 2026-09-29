@@ -125,14 +125,13 @@ fn expand_vars(input: &str, env: &BTreeMap<String, String>, last_status: i32) ->
                 i += 2;
                 continue;
             }
-            if chars[i + 1] == '{' {
-                if let Some(end_rel) = chars[i + 2..].iter().position(|&c| c == '}') {
+            if chars[i + 1] == '{'
+                && let Some(end_rel) = chars[i + 2..].iter().position(|&c| c == '}') {
                     let key: String = chars[i + 2..i + 2 + end_rel].iter().collect();
                     out.push_str(env.get(&key).map(String::as_str).unwrap_or(""));
                     i += 3 + end_rel;
                     continue;
                 }
-            }
             if chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '_' {
                 let mut j = i + 1;
                 if chars[j].is_ascii_digit() {
@@ -289,7 +288,7 @@ fn eval_condition(
         );
         stdout.push_str(&sub_out);
         stderr.push_str(&sub_err);
-        code == Some(0) || code == None
+        code == Some(0) || code.is_none()
     };
     if negate { !inner } else { inner }
 }
@@ -364,8 +363,8 @@ fn eval_script_lines(
             let mut depth = 1usize;
             let mut else_idx = None;
             let mut fi_idx = lines.len();
-            for j in (i + 1)..lines.len() {
-                let t = lines[j].trim();
+            for (j, line) in lines.iter().enumerate().skip(i + 1) {
+                let t = line.trim();
                 if t.starts_with("if ") {
                     depth += 1;
                 } else if t == "fi" || t.starts_with("fi ") || t.starts_with("fi;") {
@@ -420,8 +419,8 @@ fn eval_script_lines(
         if raw_line.starts_with("while ") {
             let mut done_idx = lines.len();
             let mut depth = 1usize;
-            for j in (i + 1)..lines.len() {
-                let t = lines[j].trim();
+            for (j, line) in lines.iter().enumerate().skip(i + 1) {
+                let t = line.trim();
                 if t.starts_with("while ") {
                     depth += 1;
                 } else if t == "done" || t.starts_with("done ") {
@@ -734,11 +733,11 @@ fn eval_single_command(
     };
 
     if let Some(append_target) = redirect_append {
-        let p = resolve_fs_path(repo_root, &append_target.trim_matches('"').trim_matches('\''));
+        let p = resolve_fs_path(repo_root, append_target.trim_matches('"').trim_matches('\''));
         let prev = fs.read_str(&p).unwrap_or_default();
         fs.write_str(&p, &format!("{prev}{local_out}"));
     } else if let Some(write_target) = redirect_write {
-        let p = resolve_fs_path(repo_root, &write_target.trim_matches('"').trim_matches('\''));
+        let p = resolve_fs_path(repo_root, write_target.trim_matches('"').trim_matches('\''));
         fs.write_str(&p, &local_out);
     } else if to_stderr {
         stderr.push_str(&local_out);

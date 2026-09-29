@@ -47,7 +47,7 @@ pub fn sha256(data: &[u8]) -> [u8; 32] {
     }
     msg.extend_from_slice(&bit_len.to_be_bytes());
 
-    for chunk in msg.chunks_exact(64) {
+    for chunk in msg.as_chunks::<64>().0 {
         let mut w = [0u32; 64];
         for i in 0..16 {
             w[i] = u32::from_be_bytes([
@@ -127,7 +127,7 @@ pub fn sha512(data: &[u8]) -> [u8; 64] {
     }
     msg.extend_from_slice(&bit_len.to_be_bytes());
 
-    for chunk in msg.chunks_exact(128) {
+    for chunk in msg.as_chunks::<128>().0 {
         let mut w = [0u64; 80];
         for i in 0..16 {
             let mut b = [0u8; 8];
@@ -232,7 +232,7 @@ pub fn hmac_sha512(key: &[u8], data: &[u8]) -> [u8; 64] {
 }
 
 pub fn pbkdf2_hmac_sha256(password: &[u8], salt: &[u8], iterations: u32, out_len: usize) -> Vec<u8> {
-    let blocks = (out_len + 31) / 32;
+    let blocks = out_len.div_ceil(32);
     let mut out = Vec::with_capacity(blocks * 32);
     for block_idx in 1..=(blocks as u32) {
         let mut salt_block = Vec::with_capacity(salt.len() + 4);
@@ -308,9 +308,7 @@ fn fe_mul(a: &Fe, b: &Fe) -> Fe {
         t[i] += 38 * t[i + 16];
     }
     let mut o = [0i64; 16];
-    for i in 0..16 {
-        o[i] = t[i];
-    }
+    o.copy_from_slice(&t[..16]);
     fe_carry(&mut o);
     o
 }
@@ -595,7 +593,7 @@ pub fn ed25519_verify(public_key: &[u8; 32], message: &[u8], signature: &[u8; 64
 const B64_CHARS: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 pub fn base64_encode(data: &[u8]) -> String {
-    let mut out = String::with_capacity((data.len() + 2) / 3 * 4);
+    let mut out = String::with_capacity(data.len().div_ceil(3) * 4);
     for chunk in data.chunks(3) {
         let b0 = chunk[0] as u32;
         let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };

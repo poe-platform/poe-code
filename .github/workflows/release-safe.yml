@@ -21,10 +21,6 @@ on:
       - "scripts/build-workspaces.mjs"
       - "scripts/check-cache.mjs"
       - ".github/workflows/release-safe.yml"
-concurrency:
-  queue: max
-  group: release-safe
-  cancel-in-progress: false
 permissions:
   contents: write
   id-token: write
@@ -33,6 +29,10 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    concurrency:
+      queue: max
+      group: release-safe
+      cancel-in-progress: false
     outputs:
       version: ${{ steps.version.outputs.next }}
       published: ${{ steps.post-build-queue-check.outputs.publish }}

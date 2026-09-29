@@ -11752,7 +11752,7 @@ export class Runtime {
         (cmd.redirects[0]!.descriptor === undefined || cmd.redirects[0]!.descriptor === 0) &&
         !cmd.redirects[0]!.move && !cmd.redirects[0]!.document && checkInvariantWord(cmd.redirects[0]!.target);
       const hasNoRedir = cmd.kind === "simple" && cmd.redirects.length === 0 &&
-        (cmd.words[0]?.plain === "expr" || cmd.words[0]?.plain === "numfmt" || cmd.words[0]?.plain === "paste" || cmd.words[0]?.plain === "nl" || cmd.words[0]?.plain === "comm" || cmd.words[0]?.plain === "join");
+        (cmd.words[0]?.plain === "expr" || cmd.words[0]?.plain === "numfmt" || cmd.words[0]?.plain === "paste" || cmd.words[0]?.plain === "nl" || cmd.words[0]?.plain === "comm" || cmd.words[0]?.plain === "join" || cmd.words[0]?.plain === "factor" || cmd.words[0]?.plain === "tsort" || cmd.words[0]?.plain === "envsubst");
       if (cmd.kind !== "simple" || cmd.words.length === 0 || (!hasHere && !hasNoRedir)) {
         return false;
       }
@@ -11765,7 +11765,7 @@ export class Runtime {
         (first.redirects[0]!.descriptor === undefined || first.redirects[0]!.descriptor === 0) &&
         !first.redirects[0]!.move && !first.redirects[0]!.document && checkInvariantWord(first.redirects[0]!.target);
       const firstNoRedir = first.kind === "simple" && first.redirects.length === 0 &&
-        (first.words[0]?.plain === "echo" || first.words[0]?.plain === "printf" || first.words[0]?.plain === "paste" || first.words[0]?.plain === "nl" || first.words[0]?.plain === "comm" || first.words[0]?.plain === "join");
+        (first.words[0]?.plain === "echo" || first.words[0]?.plain === "printf" || first.words[0]?.plain === "paste" || first.words[0]?.plain === "nl" || first.words[0]?.plain === "comm" || first.words[0]?.plain === "join" || first.words[0]?.plain === "factor" || first.words[0]?.plain === "tsort" || first.words[0]?.plain === "envsubst");
       if (first.kind !== "simple" || (!firstHere && !firstNoRedir)) {
         return false;
       }
@@ -11776,6 +11776,9 @@ export class Runtime {
           if (!checkInvariantWord(c.words[wi]!)) return false;
         }
       }
+    }
+    if (p.commands.some(c => c.kind === "simple" && c.words[0]?.plain === "envsubst") && (rawState.allexport || [...assigned].some(v => rawState.exported.has(v)))) {
+      return false;
     }
     const savedBytes = this.budget.bytes;
     const savedCmds = this.budget.commands;
@@ -11987,7 +11990,7 @@ export class Runtime {
         }
         // File and here-string evaluators can decline on mutable input. Keep
         // these on the normal path, which can handle arbitrary input sizes.
-        const def = w0Plain ? this.commands.get(w0Plain) : undefined;
+        const def = w0Plain ? (w0Plain === "seq" ? this.getExternalCommand(w0Plain) : this.commands.get(w0Plain)) : undefined;
         if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq") || !def || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
         if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : w0Plain === "seq" ? (!builtInDirectContextExecutors.has(def.execute) && customRegisteredCommands.has(def.execute)) : !builtInDirectContextExecutors.has(def.execute)) return false;
         // Admission must satisfy the substitution evaluator too: a loop cannot
@@ -13331,7 +13334,9 @@ export class Runtime {
     const whileStart = typeof whileValue === "string" ? Number(whileValue) : NaN;
     const whilePrintfInd = Number.isInteger(whileStart) && whileStart >= 0 && whileStart <= 2000 &&
       String(whileStart) === whileValue ? whileName : undefined;
-    const forPrintfInd = command.kind === "for" && command.words?.length === 1 && /^\{[0-9]{1,4}\.\.[0-9]{1,4}(?:\.\.[1-9][0-9]{0,2})?\}$/.test(command.words[0]!.plain ?? "") ? command.name : undefined;
+    const forSeqSub = command.kind === "for" && command.words?.length === 1 && !command.words[0]!.parts[0]?.quoted && command.words[0]!.parts.length === 1 && command.words[0]!.parts[0]!.kind === "substitution" && command.words[0]!.parts[0]!.script.lists.length === 1 && command.words[0]!.parts[0]!.script.lists[0]!.pipelines.length === 1 && command.words[0]!.parts[0]!.script.lists[0]!.pipelines[0]!.commands.length === 1 ? command.words[0]!.parts[0]!.script.lists[0]!.pipelines[0]!.commands[0] : undefined;
+    const isForSeqInd = forSeqSub?.kind === "simple" && forSeqSub.redirects.length === 0 && forSeqSub.words[0]?.plain === "seq" && forSeqSub.words.length >= 2 && forSeqSub.words.length <= 4 && forSeqSub.words.slice(1).every(w => /^[0-9]{1,4}$/.test(w.plain ?? "") && Number(w.plain!) <= 2000);
+    const forPrintfInd = command.kind === "for" && command.words?.length === 1 && (/^\{[0-9]{1,4}\.\.[0-9]{1,4}(?:\.\.[1-9][0-9]{0,2})?\}$/.test(command.words[0]!.plain ?? "") || isForSeqInd) ? command.name : undefined;
     const printfInductionName =
       initializer?.kind === "binary" && initializer.operator === "=" && initializer.left.kind === "name" &&
       initializer.right.kind === "literal" && initializer.right.value >= 0n && initializer.right.value <= 2000n &&
@@ -14617,8 +14622,12 @@ export class Runtime {
         if (w0 === "read") return false;
         if (w0 === "printf") {
           const option = command.words[commandIndex + 1];
-          if (!option?.parts.every(part => part.kind === "text")) return false;
-          if (option.parts.map(part => part.kind === "text" ? part.value : "").join("") === "-v") return false;
+          if (!option) return false;
+          const startsNonDashText = option.parts[0]?.kind === "text" && option.parts[0].value.length > 0 && !option.parts[0].value.startsWith("-");
+          if (!startsNonDashText && command.words.length > commandIndex + 2) {
+            if (!option.parts.every(part => part.kind === "text")) return false;
+            if (option.parts.map(part => part.kind === "text" ? part.value : "").join("") === "-v") return false;
+          }
         }
         if (w0 === "let" || w0 === "declare" || w0 === "typeset" || w0 === "local" || w0 === "export" || w0 === "unset" || w0 === "mapfile" || w0 === "readarray") return false;
       }
@@ -25644,6 +25653,233 @@ export class Runtime {
     return hex + "\n";
   }
 
+  private evalSyncFactor(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+    let optionsEnded = false;
+    let exponents = false;
+    const operands: string[] = [];
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (!optionsEnded && a === "--") { optionsEnded = true; continue; }
+      if (!optionsEnded && (a === "-h" || a === "--exponents")) { exponents = true; continue; }
+      if (!optionsEnded && a.startsWith("-")) return undefined;
+      operands.push(a);
+    }
+    const tokens: string[] = [];
+    if (operands.length > 0) {
+      for (const op of operands) tokens.push(op);
+    } else {
+      for (const line of rawLines) {
+        for (const t of line.split(/[ \t\r\n\f\v]+/)) {
+          if (t.length > 0) tokens.push(t);
+        }
+      }
+    }
+    if (tokens.length > 64) return undefined;
+    const out: string[] = [];
+    for (let ti = 0; ti < tokens.length; ti++) {
+      let tok = tokens[ti]!;
+      let s = 0;
+      while (s < tok.length && tok[s] === " ") s++;
+      if (tok[s] === "+") s++;
+      const clean = s > 0 ? tok.slice(s) : tok;
+      if (clean.length === 0 || clean.length > 18 || !/^[0-9]+$/.test(clean)) return undefined;
+      const nVal = BigInt(clean);
+      let rem = nVal;
+      const factors: bigint[] = [];
+      while (rem > 1n && (rem & 1n) === 0n) {
+        factors.push(2n);
+        rem >>= 1n;
+      }
+      for (let d = 3n; d * d <= rem; d += 2n) {
+        while (rem % d === 0n) {
+          factors.push(d);
+          rem /= d;
+        }
+      }
+      if (rem > 1n) factors.push(rem);
+      let rec = `${nVal}:`;
+      for (let idx = 0; idx < factors.length; idx++) {
+        const f = factors[idx]!;
+        let exp = 1;
+        if (exponents) {
+          while (factors[idx + 1] === f) { exp++; idx++; }
+        }
+        rec += ` ${f}${exp > 1 ? `^${exp}` : ""}`;
+      }
+      out.push(rec);
+    }
+    return out;
+  }
+
+  private evalSyncTsort(rawLines: readonly string[], opArgs: readonly string[], cwd?: string): string[] | undefined {
+    let optionsEnded = false;
+    const files: string[] = [];
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (!optionsEnded && a === "--") { optionsEnded = true; continue; }
+      if (!optionsEnded && a.startsWith("-") && a !== "-") return undefined;
+      files.push(a);
+    }
+    if (files.length > 1) return undefined;
+    let linesToRead = rawLines;
+    if (files.length === 1 && files[0] !== "-") {
+      const memLines = this.readSyncMemoryLines(files[0]!, cwd);
+      if (memLines === undefined) return undefined;
+      linesToRead = memLines;
+    }
+    const tokens: string[] = [];
+    for (const line of linesToRead) {
+      for (const t of line.split(/[ \t\r\n\f\v]+/)) {
+        if (t.length > 0) tokens.push(t);
+      }
+    }
+    if ((tokens.length & 1) !== 0 || tokens.length > 512) return undefined;
+    type TNode = { name: string; count: number; printed: boolean; edges: TNode[] };
+    const nodes = new Map<string, TNode>();
+    const ordered: TNode[] = [];
+    const getNode = (name: string): TNode => {
+      let n = nodes.get(name);
+      if (!n) {
+        n = { name, count: 0, printed: false, edges: [] };
+        nodes.set(name, n);
+        ordered.push(n);
+      }
+      return n;
+    };
+    for (let i = 0; i < tokens.length; i += 2) {
+      const u = getNode(tokens[i]!);
+      const v = getNode(tokens[i + 1]!);
+      if (u !== v && !u.edges.includes(v)) {
+        v.count++;
+        u.edges.unshift(v);
+      }
+    }
+    let remaining = ordered.length;
+    const out: string[] = [];
+    while (remaining > 0) {
+      const queue: TNode[] = [];
+      for (let i = 0; i < ordered.length; i++) {
+        const n = ordered[i]!;
+        if (!n.printed && n.count === 0) queue.push(n);
+      }
+      if (queue.length === 0) return undefined;
+      for (let q = 0; q < queue.length; q++) {
+        const n = queue[q]!;
+        out.push(n.name);
+        n.printed = true;
+        remaining--;
+        for (let e = 0; e < n.edges.length; e++) {
+          const target = n.edges[e]!;
+          if (--target.count === 0) queue.push(target);
+        }
+      }
+    }
+    return out;
+  }
+
+  private evalSyncEnvsubst(inStr: string, opArgs: readonly string[], rawState: State): string | undefined {
+    let endOfOptions = false;
+    let variablesMode = false;
+    const operands: string[] = [];
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (!endOfOptions && a === "--") { endOfOptions = true; continue; }
+      if (!endOfOptions && (a === "-v" || a === "--variables")) { variablesMode = true; continue; }
+      if (!endOfOptions && a.startsWith("-")) return undefined;
+      operands.push(a);
+    }
+    if (operands.length > 1) return undefined;
+    const extractVars = (fmt: string): string[] => {
+      const vars: string[] = [];
+      const re = /\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))/g;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(fmt)) !== null) {
+        vars.push((m[1] ?? m[2])!);
+      }
+      return vars;
+    };
+    if (variablesMode) {
+      if (operands.length !== 1) return undefined;
+      const vars = extractVars(operands[0]!);
+      return vars.length > 0 ? vars.join("\n") + "\n" : "";
+    }
+    const allowedVars = operands.length === 1 ? new Set(extractVars(operands[0]!)) : undefined;
+    const raw = (stateMonitor(rawState)?.raw ?? rawState) as State & { _exported?: Set<string> };
+    const isRestrictedEnv = raw._exported === undefined && "_exported" in raw;
+    return inStr.replace(/\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))/g, (full, braced, bare) => {
+      const name = (braced ?? bare) as string;
+      if (allowedVars !== undefined && !allowedVars.has(name)) return full;
+      if (isRestrictedEnv) return name === "PWD" ? (raw.variables.PWD ?? "") : "";
+      if (raw.exported.has(name) || raw.allexport) return raw.variables[name] ?? "";
+      return "";
+    });
+  }
+
+  private evalSyncHexdump(inBytes: Uint8Array, opArgs: readonly string[], isHd = false): string | undefined {
+    let canonical = isHd;
+    let verbose = false;
+    let ended = false;
+    let skip = 0;
+    let count = Infinity;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (!ended && a === "--") { ended = true; continue; }
+      if (!ended && a === "-C") { canonical = true; continue; }
+      if (!ended && a === "-v") { verbose = true; continue; }
+      if (!ended && (a === "-Cv" || a === "-vC")) { canonical = true; verbose = true; continue; }
+      if (!ended && (a === "-n" || a === "-s")) {
+        if (i + 1 >= opArgs.length || !/^[0-9]+$/.test(opArgs[i + 1]!)) return undefined;
+        const val = Number(opArgs[++i]!);
+        if (a === "-n") count = val; else skip = val;
+        continue;
+      }
+      return undefined;
+    }
+    if (!canonical || inBytes.byteLength > 4096 || count === 0) return undefined;
+    const start = Math.min(inBytes.byteLength, skip);
+    const end = Math.min(inBytes.byteLength, start + count);
+    let address = start;
+    let out = "";
+    let prevSlice: Uint8Array | undefined;
+    let squeezed = false;
+    for (let pos = start; pos < end; pos += 16) {
+      const used = Math.min(16, end - pos);
+      const block = inBytes.subarray(pos, pos + used);
+      let same = prevSlice !== undefined && prevSlice.byteLength === used && used === 16;
+      if (same && prevSlice) {
+        for (let k = 0; k < used; k++) {
+          if (block[k] !== prevSlice[k]) { same = false; break; }
+        }
+      }
+      if (!verbose && same) {
+        if (!squeezed) out += "*\n";
+        squeezed = true;
+        address += used;
+        continue;
+      }
+      prevSlice = block;
+      squeezed = false;
+      let line = address.toString(16).padStart(8, "0") + "  ";
+      for (let k = 0; k < 16; k++) {
+        if (k === 8) line += " ";
+        line += k < used ? block[k]!.toString(16).padStart(2, "0") : "  ";
+        if (k !== 15) line += " ";
+      }
+      line += "  |";
+      for (let k = 0; k < used; k++) {
+        const b = block[k]!;
+        line += (b >= 32 && b <= 126) ? String.fromCharCode(b) : ".";
+      }
+      line += "|\n";
+      out += line;
+      address += used;
+    }
+    if (address > 0) {
+      out += address.toString(16).padStart(8, "0") + "\n";
+    }
+    return out;
+  }
+
   private evalSyncOd(view: Uint8Array, opArgs: readonly string[]): string | undefined {
     let noAddr = false;
     let typeSpec: "x1" | "u1" | "o1" | undefined;
@@ -26257,15 +26493,15 @@ export class Runtime {
         this.isPureSyncValueWord(cmd0.redirects[0]!.target, rawState);
       if (cmd0.kind !== "simple" || (cmd0.redirects.length !== 0 && !cmd0StdinRedir && !cmd0HereStringRedir)) return undefined;
       const w0Plain0 = cmd0.words[0]?.plain;
-      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl");
+      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst");
       if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0HereStringRedir && !cmd0FileStage) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
       if (cmd0StdinRedir && (w0Plain0 !== "cat" || cmd0.words.length !== 1)) return undefined;
       if (cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 1) return undefined;
       if (!cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
-      const def0 = this.commands.get(w0Plain0);
-      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
+      const def0 = (w0Plain0 === "printf" || w0Plain0 === "echo" || w0Plain0 === "cat") ? this.commands.get(w0Plain0) : this.getExternalCommand(w0Plain0);
+      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
       const n = pipeline.commands.length;
       const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
@@ -26278,7 +26514,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "xxd" && sName !== "od" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "xxd" && sName !== "od" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "hexdump" && sName !== "hd" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -26351,6 +26587,14 @@ export class Runtime {
           if (this.evalSyncXxd(EMPTY_BYTES, sArgs) === undefined) return undefined;
         } else if (sName === "od") {
           if (this.evalSyncOd(EMPTY_BYTES, sArgs) === undefined) return undefined;
+        } else if (sName === "factor") {
+          if (this.evalSyncFactor(["2"], sArgs) === undefined) return undefined;
+        } else if (sName === "tsort") {
+          if (this.evalSyncTsort(["a b"], sArgs, rawState.cwd) === undefined) return undefined;
+        } else if (sName === "envsubst") {
+          if (this.evalSyncEnvsubst("", sArgs, rawState) === undefined) return undefined;
+        } else if (sName === "hexdump" || sName === "hd") {
+          if (this.evalSyncHexdump(new Uint8Array([97]), sArgs, sName === "hd") === undefined) return undefined;
         } else {
           return undefined;
         }
@@ -26458,11 +26702,23 @@ export class Runtime {
             firstName === "bc" ||
             firstName === "xxd" ||
             firstName === "od" ||
+            firstName === "factor" ||
+            firstName === "tsort" ||
+            firstName === "envsubst" ||
+            firstName === "hexdump" ||
+            firstName === "hd" ||
             isInlineBase64 ||
             isInlineTac ||
             isInlineNl ||
             isInlinePaste ||
-            isInlineNumfmt
+            isInlineNumfmt ||
+            isInlineColumn ||
+            isInlineFold ||
+            isInlineExpand ||
+            isInlineUnexpand ||
+            isInlineStrings ||
+            isInlineComm ||
+            isInlineJoin
           ) {
             const inStr = prevLen === 0 ? "" : sharedSyncPipeDecoder.decode(prevBuf.subarray(0, prevLen));
             const rawLines = inStr.length === 0 ? [] : (inStr.endsWith("\n") ? inStr.slice(0, -1).split("\n") : inStr.split("\n"));
@@ -26616,9 +26872,23 @@ export class Runtime {
               const bcRes = this.evalSyncBc(inStr.trim(), stageArgs);
               if (bcRes === undefined) return undefined;
               outLines = bcRes;
-            } else if (firstName === "xxd" || firstName === "od") {
+            } else if (firstName === "factor") {
+              const fRes = this.evalSyncFactor(rawLines, stageArgs);
+              if (fRes === undefined) return undefined;
+              outLines = fRes;
+            } else if (firstName === "tsort") {
+              const tsRes = this.evalSyncTsort(rawLines, stageArgs, rawState.cwd);
+              if (tsRes === undefined) return undefined;
+              outLines = tsRes;
+            } else if (firstName === "envsubst" || firstName === "xxd" || firstName === "od" || firstName === "hexdump" || firstName === "hd") {
               const rawBytes = prevBuf.subarray(0, prevLen);
-              const outStr = firstName === "xxd" ? this.evalSyncXxd(rawBytes, stageArgs) : this.evalSyncOd(rawBytes, stageArgs);
+              const outStr = firstName === "envsubst"
+                ? this.evalSyncEnvsubst(inStr, stageArgs, rawState)
+                : firstName === "xxd"
+                  ? this.evalSyncXxd(rawBytes, stageArgs)
+                  : firstName === "od"
+                    ? this.evalSyncOd(rawBytes, stageArgs)
+                    : this.evalSyncHexdump(rawBytes, stageArgs, firstName === "hd");
               if (outStr === undefined) return undefined;
               const encoded = fastSharedTextEncoder.encode(outStr);
               const nextTotalBytes = this.budget.bytes + encoded.byteLength;
@@ -26782,8 +27052,8 @@ export class Runtime {
       w0Plain === "sort" ||
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
-      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od";
-    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od") && Boolean(this.getExternalCommand(w0Plain))))) {
+      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd";
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {
@@ -26816,7 +27086,7 @@ export class Runtime {
           return exprRes.value;
         }
       }
-      if (fOk && (w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || (w0Plain === "numfmt" && !hasSingleHereStringRedir)) && !hasSingleStdinRedir) {
+      if (fOk && (w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "factor" || w0Plain === "tsort" || (w0Plain === "envsubst" && !hasSingleHereStringRedir) || (w0Plain === "numfmt" && !hasSingleHereStringRedir)) && !hasSingleStdinRedir) {
         const stdinLines = hasSingleHereStringRedir
           ? (hereStrVal!.endsWith("\n") ? hereStrVal!.slice(0, -1).split("\n") : (hereStrVal!.length === 0 ? [] : hereStrVal!.split("\n")))
           : undefined;
@@ -26824,6 +27094,12 @@ export class Runtime {
         if (w0Plain === "comm") cjLines = this.evalSyncComm(stdinLines, allArgs, rawState.cwd);
         else if (w0Plain === "join") cjLines = this.evalSyncJoin(stdinLines, allArgs, rawState.cwd);
         else if (w0Plain === "paste") cjLines = this.evalSyncPaste(stdinLines ?? [], allArgs, rawState.cwd);
+        else if (w0Plain === "factor") cjLines = this.evalSyncFactor(stdinLines ?? [], allArgs);
+        else if (w0Plain === "tsort") cjLines = this.evalSyncTsort(stdinLines ?? [], allArgs, rawState.cwd);
+        else if (w0Plain === "envsubst") {
+          const esOut = this.evalSyncEnvsubst("", allArgs, rawState);
+          if (esOut !== undefined) cjLines = esOut.endsWith("\n") ? esOut.slice(0, -1).split("\n") : (esOut ? [esOut] : []);
+        }
         else if (w0Plain === "numfmt") {
           const optArgs: string[] = [];
           const posArgs: string[] = [];
@@ -26974,6 +27250,10 @@ export class Runtime {
               fileRes = this.evalSyncXxd(view, opArgs);
             } else if (w0Plain === "od") {
               fileRes = this.evalSyncOd(view, opArgs);
+            } else if (w0Plain === "hexdump" || w0Plain === "hd") {
+              fileRes = this.evalSyncHexdump(view, opArgs, w0Plain === "hd");
+            } else if (w0Plain === "envsubst" && hasSingleHereStringRedir) {
+              fileRes = this.evalSyncEnvsubst(fileStr, opArgs, rawState);
             } else if (hasSingleHereStringRedir && w0Plain === "column") {
               const colRes = this.evalSyncColumn(rawLines, opArgs);
               if (colRes !== undefined) fileRes = renderLines(colRes);
@@ -27067,7 +27347,7 @@ export class Runtime {
       return res;
     }
     if (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq") return undefined;
-    const def = this.commands.get(w0Plain);
+    const def = w0Plain === "seq" ? this.getExternalCommand(w0Plain) : this.commands.get(w0Plain);
     if (!def) return undefined;
     if (w0Plain === "printf" && def.execute !== printfCommand.execute) return undefined;
     if (w0Plain === "echo" && !defaultEchoExecutors.has(def.execute)) return undefined;

@@ -1,9 +1,21 @@
+import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
-import { createHexdumpCommand, createHdCommand } from "./command.js";
+import { createHexdumpCommand as createRawHexdumpCommand, createHdCommand as createRawHdCommand } from "./command.js";
 import type { HexdumpCommandsOptions } from "./internal.js";
 
-export { createHexdumpCommand, createHdCommand } from "./command.js";
 export type { HexdumpCommandsOptions, HexdumpLimits } from "./internal.js";
+
+export function createHexdumpCommand(options: HexdumpCommandsOptions = {}): CommandDefinition {
+  const def = createRawHexdumpCommand(options);
+  builtInDirectContextExecutors.add(def.execute);
+  return def;
+}
+
+export function createHdCommand(options: HexdumpCommandsOptions = {}): CommandDefinition {
+  const def = createRawHdCommand(options);
+  builtInDirectContextExecutors.add(def.execute);
+  return def;
+}
 
 export function createHexdumpCommands(options: HexdumpCommandsOptions = {}): readonly CommandDefinition[] {
   return [createHexdumpCommand(options), createHdCommand(options)];

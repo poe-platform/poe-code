@@ -73,3 +73,52 @@ for (const loop of [
     } finally { await shell.dispose(); }
   });
 }
+
+test("Wave 125: sync factor, tsort, envsubst, hexdump -C, column -t, fold, expand, and unexpand in seq loops", async () => {
+  const { factorCommands } = await import("../../src/commands/factor/index.js");
+  const { tsortCommands } = await import("../../src/commands/tsort/index.js");
+  const { envsubstCommands } = await import("../../src/commands/envsubst/index.js");
+  const { hexdumpCommands } = await import("../../src/commands/hexdump/index.js");
+  const { columnCommands } = await import("../../src/commands/column/index.js");
+  const { foldCommands } = await import("../../src/commands/fold/index.js");
+  const { standardCommands } = await import("../../src/commands/index.js");
+  const shell = new Shell({ fs: new MemoryFileSystem() })
+    .use(standardCommands())
+    .use(factorCommands())
+    .use(tsortCommands())
+    .use(envsubstCommands())
+    .use(hexdumpCommands())
+    .use(columnCommands())
+    .use(foldCommands());
+  try {
+    const rFactor = await shell.exec("for i in $(seq 10 15); do out=$(factor $((i * 12))); done; echo \"$out\"");
+    assert.equal(rFactor.exitCode, 0);
+    assert.equal(rFactor.stdout, "180: 2 2 3 3 5\n");
+
+    const rFactorExp = await shell.exec("echo \"$(factor -h 720)\"");
+    assert.equal(rFactorExp.exitCode, 0);
+    assert.equal(rFactorExp.stdout, "720: 2^4 3^2 5\n");
+
+    const rTsort = await shell.exec("for i in $(seq 1 5); do out=$(printf \"a b\\nb c\\nc d\\n\" | tsort | tr \"\\n\" \":\"); done; echo \"$out\"");
+    assert.equal(rTsort.exitCode, 0);
+    assert.equal(rTsort.stdout, "a:b:c:d:\n");
+
+    const rEnvsubst = await shell.exec("export NAME=world ROLE=admin; for i in $(seq 1 5); do out=$(printf \"hello \\$NAME (\\$ROLE) #$i\" | envsubst); done; echo \"$out\"");
+    assert.equal(rEnvsubst.exitCode, 0);
+    assert.equal(rEnvsubst.stdout, "hello world (admin) #5\n");
+
+    const rHexdump = await shell.exec("for i in $(seq 1 5); do out=$(printf \"abc$i\" | hexdump -C | head -n 1); done; echo \"$out\"");
+    assert.equal(rHexdump.exitCode, 0);
+    assert.equal(rHexdump.stdout, "00000000  61 62 63 35                                       |abc5|\n");
+
+    const rColumn = await shell.exec("for i in $(seq 1 5); do out=$(printf \"id:val\\n$i:$((i*10))\\n\" | column -t -s : | tail -n 1); done; echo \"$out\"");
+    assert.equal(rColumn.exitCode, 0);
+    assert.equal(rColumn.stdout, "5   50\n");
+
+    const rFold = await shell.exec("for i in $(seq 1 5); do out=$(printf \"item%02d\\n\" \"$i\" | fold -w 4 | tr \"\\n\" \":\"); done; echo \"$out\"");
+    assert.equal(rFold.exitCode, 0);
+    assert.equal(rFold.stdout, "item:05:\n");
+  } finally {
+    await shell.dispose();
+  }
+});

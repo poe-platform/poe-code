@@ -242,24 +242,9 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
   const meta = readJpegMetadata(bytes);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 
-  const quantTables: Uint16Array[] = [
-    new Uint16Array(STD_LUMA_QUANT),
-    new Uint16Array(STD_CHROMA_QUANT),
-    new Uint16Array(STD_CHROMA_QUANT),
-    new Uint16Array(STD_CHROMA_QUANT)
-  ];
-  const dcTrees: HuffmanNode[] = [
-    buildHuffmanTree(STD_DC_LUMA_NRCODES.subarray(1), STD_DC_LUMA_VALUES),
-    buildHuffmanTree(STD_DC_CHROMA_NRCODES.subarray(1), STD_DC_CHROMA_VALUES),
-    buildHuffmanTree(STD_DC_CHROMA_NRCODES.subarray(1), STD_DC_CHROMA_VALUES),
-    buildHuffmanTree(STD_DC_CHROMA_NRCODES.subarray(1), STD_DC_CHROMA_VALUES)
-  ];
-  const acTrees: HuffmanNode[] = [
-    buildHuffmanTree(STD_AC_LUMA_NRCODES.subarray(1), STD_AC_LUMA_VALUES),
-    buildHuffmanTree(STD_AC_CHROMA_NRCODES.subarray(1), STD_AC_CHROMA_VALUES),
-    buildHuffmanTree(STD_AC_CHROMA_NRCODES.subarray(1), STD_AC_CHROMA_VALUES),
-    buildHuffmanTree(STD_AC_CHROMA_NRCODES.subarray(1), STD_AC_CHROMA_VALUES)
-  ];
+  const quantTables: Uint16Array[] = [];
+  const dcTrees: HuffmanNode[] = [];
+  const acTrees: HuffmanNode[] = [];
 
   let width = 0;
   let height = 0;
@@ -362,12 +347,11 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
       for (let i = 0; i < scanCompsCount; i++) {
         const compId = payload[1 + i * 2]!;
         const tdta = payload[1 + i * 2 + 1]!;
-        const comp = components.find(c => c.id === compId) ?? components[i];
-        if (comp) {
-          comp.dcId = tdta >>> 4;
-          comp.acId = tdta & 0x0f;
-          scanComps.push(comp);
-        }
+        const comp = components.find(c => c.id === compId);
+        if (!comp) throw new Error("Unknown JPEG scan component");
+        comp.dcId = tdta >>> 4;
+        comp.acId = tdta & 0x0f;
+        scanComps.push(comp);
       }
       const ssPos = 1 + scanCompsCount * 2;
       const spectralStart = payload[ssPos] ?? 0;
@@ -412,7 +396,7 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
         return v < 1 << (n - 1) ? v + (-1 << n) + 1 : v;
       };
 
-      const decodeSymbol = (tree: HuffmanNode): number => {
+      const decodeSymbol = (tree: HuffmanNode | undefined): number => {
         let node: HuffmanNode | undefined = tree;
         while (node && node.symbol === undefined) {
           const bit = readBit();
@@ -423,8 +407,8 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
       };
 
       const decodeBlockBaseline = (comp: ComponentSpec, block: Int32Array) => {
-        const dcTree = dcTrees[comp.dcId] ?? dcTrees[0]!;
-        const acTree = acTrees[comp.acId] ?? acTrees[0]!;
+        const dcTree = dcTrees[comp.dcId];
+        const acTree = acTrees[comp.acId];
         const t = decodeSymbol(dcTree);
         const diff = receiveExtend(t);
         comp.dcPred += diff;
@@ -452,7 +436,7 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
       const decodeBlockProgressive = (comp: ComponentSpec, block: Int32Array) => {
         if (spectralStart === 0) {
           if (approxHigh === 0) {
-            const dcTree = dcTrees[comp.dcId] ?? dcTrees[0]!;
+            const dcTree = dcTrees[comp.dcId];
             const t = decodeSymbol(dcTree);
             const diff = receiveExtend(t);
             comp.dcPred += diff;
@@ -467,7 +451,7 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
             eobRun--;
             return;
           }
-          const acTree = acTrees[comp.acId] ?? acTrees[0]!;
+          const acTree = acTrees[comp.acId];
           for (let k = spectralStart; k <= spectralEnd; k++) {
             const rs = decodeSymbol(acTree);
             const r = rs >>> 4;
@@ -493,7 +477,7 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
           };
           let k = spectralStart;
           if (eobRun === 0) {
-            const acTree = acTrees[comp.acId] ?? acTrees[0]!;
+            const acTree = acTrees[comp.acId];
             while (k <= spectralEnd) {
               const rs = decodeSymbol(acTree);
               let zeros = rs >>> 4;
@@ -582,7 +566,8 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
   const compPixels = components.map(comp => {
     const pixels = new Uint8Array(comp.blocksX * 8 * comp.blocksY * 8);
     const blockOut = new Uint8Array(64);
-    const quant = quantTables[comp.qId] ?? quantTables[0]!;
+    const quant = quantTables[comp.qId];
+    if (!quant) throw new Error("Missing JPEG quantization table");
     for (let by = 0; by < comp.blocksY; by++) {
       for (let bx = 0; bx < comp.blocksX; bx++) {
         idct8x8(comp.blocks[by * comp.blocksX + bx]!, quant, blockOut);

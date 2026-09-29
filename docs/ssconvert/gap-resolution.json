@@ -4140,7 +4140,7 @@
         3360,
         3512
       ],
-      "remoteMain": "e519c2c095d759138d2c46e3d69920126a79d4c7",
+      "remoteMain": "a99ed87b5f963ed2285e56ce1b41416189a0c6f5",
       "commits": {
         "csplitApi": "7c73d6c0505159b13204d4ed2eb2f04cecd6cd64",
         "finiteJsonRetention": "7f7a9df95738f8cc1cd9904fe2f4ce0914a8690d",
@@ -4153,22 +4153,26 @@
         "jpegTables": "2fd420ea1bcfb133c07e5e3ddb2be495e380aac4",
         "pandocImageAst": "b5387d58a118e765b1f48e599442ff27783898f1",
         "pandocPrivateProfile": "85375359cc0fa6af1a1d83d43e1772232dc27b0a",
-        "sedTextVariants": "aa91a5d6d53317f34468033edeb7d9279d39bf71"
+        "sedTextVariants": "aa91a5d6d53317f34468033edeb7d9279d39bf71",
+        "xargsImmutableInput": "a10f181ac8bddef228728044ce543113d23d32ac",
+        "rtfVfsImages": "49ce749de8cd8677be6b9ea0e979b04ee29cb306",
+        "closeProbeExports": "944bbe937b39bb087e6cd447955390bde6235a18",
+        "playgroundCancellationReadiness": "a99ed87b5f963ed2285e56ce1b41416189a0c6f5"
       },
       "delivery": "Each atomic commit pushed separately and verified in remote main ancestry. No generated logs, reference source or binary fixtures committed.",
       "jsonRetention": "4475 tests pass, five todo. Finite retained limits use token streaming and reserve numeric UTF-16 storage. Public API succeeds at22177 retained bytes and rejects22176 before the large string; accepted prefix is now [{\"value\": . Full lint/build passed at7f7a9df957.",
       "releaseRepairs": "Csplit45 tests, PyPDF fixture200 tests, rev/tac94 tests and jq escapes22 tests pass. Guarded ESLint passed after the respective repairs. Native terminal-pilot pretest rebuilding overlapped a Rust MCP consumer in failed CI; preserved upstream74c879e30c repair, pandoc0510fa1fbb and mktemp a88b1350ff.",
       "jpegEntropy": "Six regressions failed before347151bf0e;11 pass after. Missing data and invalid Huffman/restart sequences throw instead of inventing pixels. All122 then-current image tests,27 imagemagick tests and selected SIPS case pass. Scoped issue4166 closed only after remote delivery.",
       "jpegRefinement": "libjpeg-turbo3.1.2 src/jdphuff.c decode_mcu_AC_refine guided the missing progressive AC branch. Eight authored regressions failed before; nine now cover signed corrections, insertion, zero runs, EOB runs, restart markers and exhausted entropy. All131 image-ast tests and package lint/types/build pass (eight existing lint warnings). Compiled Node/browser decoders with Buffer/process absent exactly match native libjpeg pixels for positive and negative correction fixtures.",
-      "localQualification": "Full root build and lint pass at e519c2c095: all183 declared workspace builds and root schema/type/bundle stages complete. Compiled root Shell passes two embedded-RTF JPEG profiles with Buffer/process absent and rejects truncated images without stdout. Canonical ssconvert executor/configured-limit/default-help/csvkit-collision smoke still passes. Earlier full npm test attempts stopped during builds on repaired Base64 and Pandoc-profile failures; no full unit completion claimed.",
+      "localQualification": "Full root build passed on 7fb62305f6 plus the final RTF and immutable-xargs changes:241 declared builds across242 workspaces, including root schema/type/bundle stages. No-build Python workspace is not counted as a build pass. Pandoc1346 tests and typechecks,30 actual Shell tests,33 remote-close tests and53 playground session/execution tests pass. Guarded root ESLint passes. Fresh compiled root Shell embeds two VFS JPEG profiles without Buffer/process and refuses truncation without stdout. Later main rebase preserved Pandoc/contracts/playground sources;30 Shell tests and root lint pass again. Full npm test at55331c9f73 was intentionally stopped incomplete after its first250 files/5246 tests passed; no full-unit pass claimed.",
       "release": {
         "failedRun": 36543428716,
         "failedHead": "b037af177f88124f26b97747278dc581b2074065",
         "result": "Build, cached unit, audit, checks and Bash2/3 passed; fresh unit and Bash1/4 failed; publication skipped. Subsequent green superseded push workflows also skipped validation/publication. Pin36543755075 canceled outside this session before build.",
-        "containingRun": 36549479848,
-        "head": "cc848fe0dc584477a66c594b7deb85a59dde6901",
+        "containingRun": 36553979908,
+        "head": "a99ed87b5f963ed2285e56ce1b41416189a0c6f5",
         "profile": "pin_revision=true, build_only=false, cold_cache=false",
-        "state": "Pending; contains delivered repairs. No containing publication verified; registry remains17.0.35 at a8a8a7efbc.",
+        "state": "Full pinned release queued at the exact delivered revision. No containing publication verified; registry remains17.0.35 at a8a8a7efbc.",
         "priorContainingRun": {
           "id": 36546548526,
           "head": "7f7bb92263f040efc2fc4e1b85bbfeb81fae6a44",
@@ -4178,6 +4182,11 @@
           "id": 36547754542,
           "head": "b5387d58a118e765b1f48e599442ff27783898f1",
           "result": "Failed in build job109338161617 on the now-repaired Pandoc dependency profile; tests/publication skipped."
+        },
+        "supersededContainingRun": {
+          "id": 36549479848,
+          "head": "cc848fe0dc584477a66c594b7deb85a59dde6901",
+          "result": "Build/checks/audit/Bash1\u20133 passed; cached units failed the playground readiness race and Bash4 failed compression export aliases. Canceled by this owner after those failures were repaired to free the serial full-validation queue. Fresh units were unfinished and remain incomplete, not a pass; no publication."
         }
       },
       "remaining": "All19 compatibility families remain open. CSVKit workbook migration awaits shared model extraction4091; requested XML AST package is absent, with its actual canonical parser available at safe-fs/src/xml.ts. Lotus3478 live-name identity/use modes and fontkit3359 remain open. Finish full qualification and verify published artifacts.",
@@ -4189,7 +4198,8 @@
         "nativeOracle": "libjpeg-turbo3.2.0, build20260630"
       },
       "integration": "Full npm test atb5387d58a1 exposed the missed Safe Bash private dependency profile. Profile85375359cc and its fixture restore exact image-ast admission;420 build tests pass. The following aggregate build exposed incoming sed union TS2339 errors, fixed by type-only discriminants aa91a5d6d5;29 shell tests and guarded lint pass. Maintained84-workspace Safe Bash build and optional/browser postbuild pass.",
-      "rootResourceGap": "A separate compiled Markdown-to-RTF check fails to load /picture.jpg from its configured MemoryFileSystem. Command supplies resourceFiles but RTF writer only uses embedded resources/resources.resolve; filed4176. This is not a JPEG decode failure and remains open."
+      "rootResourceGap": "Issue4176 resolved by49ce749de8, verified on remote main. RTF declares embedded-image needs and reuses ResourceSession for origins, ordered resourcePath/cwd lookup, URI/symlink validation, bounded reads and cancellation without implicit extraction.19 maintained regressions cover these controls, explicit resolvers, duplicate/unreferenced resources and opaque embedded IDs.12 initial cases and the actual Shell command failed before; review caught and repaired five candidate-only embedded-resource regressions. All1346 Pandoc tests and compiled root VFS checks pass.",
+      "releaseTestRepairs": "Pinned CI cached units exposed a one-second playground readiness race; filesystem replies now trigger the sentinel check, and cleanup awaits the running command on failure.53 session/execution tests pass. Bash4 exposed three remapped compression exports in29 close-probe cases; derive bundle routes from package exports while preserving all canonical source-contract subpaths.33 close-probe cases pass after repairing an intermediate mixed-runtime alias. Immutable xargs dirname input fixes a current prefer-const error. Each repair was committed and pushed separately."
     }
   },
   "history": {

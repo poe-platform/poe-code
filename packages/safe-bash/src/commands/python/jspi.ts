@@ -3,6 +3,7 @@ import type { PythonAsyncExecutor, PythonExecutorStart } from './index.js';
 import { PythonFailure } from './diagnostics.js';
 import { parsePythonInvocation } from './invocation.js';
 import { pythonExecution } from './execution.js';
+import { pythonHostModule } from './host-module.js';
 import { pythonJspiSignatures } from './jspi-trampoline.js';
 import { createPythonJspiScheduler, type PythonJspiCallback } from './jspi-scheduler.js';
 import { pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup } from './runtime-scripts.js';
@@ -51,6 +52,8 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
     let qualified = false;
     let exitCode = 0;
     let finalized = 0;
+    let acceptingHostCalls = true;
+    let hostCleanupFailure: { reason: unknown } | undefined;
     try {
       signal.throwIfAborted();
       if (start.packages?.requirements.length || start.installOnly) throw new PythonFailure('runtime-assets', {cause:new Error('JSPI runtime requires statically qualified packages')});
@@ -116,8 +119,17 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
       const module = runtime._module;
       const send = async (pointer: number): Promise<number> => {
         let response = await encode(async () => {
+          const payload = JSON.parse(module.UTF8ToString(pointer, 131072));
+          if (payload[0] === 'host') {
+            try {
+              if (!start.host || !acceptingHostCalls) throw new Error('Python host capability unavailable');
+              return { value: await start.host.request(payload[1]) };
+            } catch {
+              return { error: signal.aborted ? 'Python host operation cancelled' : 'Python host operation failed' };
+            }
+          }
           signal.throwIfAborted();
-          const [operation, path, follow] = JSON.parse(module.UTF8ToString(pointer, 16384));
+          const [operation, path, follow] = payload;
           if (operation === 'stat') return native!.metadata(path, follow);
           if (typeof path !== 'string') throw Object.assign(new Error('Invalid native Python path'), {code:'EINVAL'});
           const target = absolute(path);
@@ -195,6 +207,7 @@ def _safe_native_stat_type(values, extras):
  return _safe_construct_stat(tuple(fields))
 _safe_stat_type = _safe_native_stat_type
 `);
+      runtime.runPython(pythonHostModule);
       runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
       runtime.globals.set('_safe_execution_code', pythonExecution);
       runtime.globals.set('_safe_is_cancelled', () => signal.aborted);
@@ -212,8 +225,13 @@ _safe_exit
     } finally {
       try {
         if (qualified) {
+          acceptingHostCalls = false;
           try {
-            await runtime.runPythonAsync(`
+            try { await start.host?.close(); }
+            catch (error) { if (!signal.aborted) hostCleanupFailure = { reason: error }; }
+          } finally {
+            try {
+              await runtime.runPythonAsync(`
 import asyncio as _safe_asyncio
 async def _safe_quiesce_tasks():
  current = _safe_asyncio.current_task()
@@ -229,11 +247,12 @@ async def _safe_quiesce_tasks():
  await loop.shutdown_default_executor()
 await _safe_quiesce_tasks()
 `);
-          } finally {
-            try { await scheduler.close(); }
-            finally {
-              active.value = native ? 2 : 0;
-              finalized = Number(await engine.promising(runtime._module._Py_FinalizeEx)());
+            } finally {
+              try { await scheduler.close(); }
+              finally {
+                active.value = native ? 2 : 0;
+                finalized = Number(await engine.promising(runtime._module._Py_FinalizeEx)());
+              }
             }
           }
         }
@@ -253,6 +272,7 @@ await _safe_quiesce_tasks()
         }
       }
     }
+    if (hostCleanupFailure) throw hostCleanupFailure.reason;
     signal.throwIfAborted();
     return finalized < 0 ? 120 : exitCode;
   };

@@ -101,6 +101,8 @@ export { WebAssembly, fetch, location };
       ...(consumerRoot ? {} : {
         '@poe-code/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
         '@poe-platform/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
+        '@poe-platform/safe-bash/search': resolve(root, 'packages/safe-bash/src/search.ts'),
+        '@poe-platform/safe-bash/commands/llm': resolve(root, 'packages/safe-bash/src/commands/llm/index.ts'),
         '@poe-platform/safe-bash/commands/python': resolve(root, 'packages/safe-bash/src/commands/python/index.ts'),
         '@poe-platform/safe-bash': resolve(root, 'packages/safe-bash/src/shell/shell.ts'),
         'safe-bash-contracts': resolve(root, 'packages/safe-bash-contracts/src'),
@@ -144,6 +146,16 @@ export { WebAssembly, fetch, location };
     handleUncaughtError(error) { runtimeErrors.push({uncaught:String(error)}); },
   }));
   try {
+    const hostResponse = await miniflare.dispatchFetch('http://fixture/host');
+    const host = await hostResponse.json();
+    assert.equal(hostResponse.status, 200, JSON.stringify(host));
+    assert.equal(host.exitCode, 0, JSON.stringify(host));
+    assert.equal(host.stdout, 'host-ok\n');
+    assert.equal(host.stderr, '');
+    assert.equal(host.released, 1);
+    assert.equal(host.calls, 2);
+    assert.ok(host.ticks > 0);
+    assert.deepEqual(host.failures, []);
     const response = await miniflare.dispatchFetch('http://fixture/native');
     const result = await response.json();
     assert.equal(response.status, 200, JSON.stringify(result));

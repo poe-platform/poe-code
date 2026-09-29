@@ -11,6 +11,11 @@ import { createOutputOperation, type OutputOperation } from '../../contracts/out
 import { inheritYieldCheckpoint, yieldTurn } from '../../contracts/yield.js';
 import { PythonFailure, isPythonFailureCategory, reportPythonFailure, type PythonDiagnosticObserver, type PythonFailureCategory } from './diagnostics.js';
 
+import { createPythonHostBridge, type PythonHostCapability, type PythonHostBridgeOptions } from './host-capabilities.js';
+export * from './host-capabilities.js';
+export { createPythonShellCapability } from './shell-capability.js';
+import { pythonShellDispatchActive } from './shell-capability.js';
+
 class PythonInputChunkError extends RangeError {}
 
 /** A dedicated interpreter worker. The service event loop must never block. */
@@ -26,6 +31,9 @@ export interface PythonInitializationProgress {
 export interface PythonCommandsOptions {
   readonly createWorker?: () => PythonWorkerEndpoint;
   readonly createExecutor?: () => PythonAsyncExecutor;
+  /** Explicit invocation-owned authority; supported by asynchronous executors only. */
+  readonly createCapabilities?: (context: CommandContext) => Readonly<Record<string, PythonHostCapability>>;
+  readonly capabilityLimits?: Omit<PythonHostBridgeOptions, 'signal'>;
   /** Explicit distribution requirements; no import scanning or implicit package downloads. */
   readonly packages?: readonly string[];
   /** Requirements files in the canonical filesystem. */
@@ -58,6 +66,7 @@ export interface PythonWorkerStart {
 
 export interface PythonExecutorStart extends Omit<PythonWorkerStart, 'type' | 'shared'> {
   readonly signal: AbortSignal;
+  readonly host?: ReturnType<typeof createPythonHostBridge>;
   dispatch(request: { readonly op: string; readonly args: unknown[] }): Promise<unknown>;
   onReady(): void;
 }
@@ -71,6 +80,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
   if (!options || (typeof options.createWorker === 'function') === (typeof options.createExecutor === 'function')
     || options.createWorker !== undefined && typeof options.createWorker !== 'function'
     || options.createExecutor !== undefined && typeof options.createExecutor !== 'function') throw new PythonFailure('executor-unavailable');
+  if (options.createCapabilities && !options.createExecutor) throw new TypeError('Python host capabilities require an asynchronous executor');
   if (options.onDiagnostic !== undefined && typeof options.onDiagnostic !== 'function') throw new TypeError('Python onDiagnostic must be a function');
   if (options.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
   const maxTransferBytes = options.maxTransferBytes ?? 65536;
@@ -85,6 +95,10 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
   if (!runtimeMount.startsWith('/') || runtimeMount === '/' || runtimeMount.slice(1).includes('/') || runtimeMount.includes('\0') || runtimeMount.split('/').some(part => part === '..' || part === '.')) throw new TypeError('Python runtime mount must be an absolute top-level canonical path');
   const environment = options.environment ?? createPythonPackageEnvironment(options.provisioning);
   const execute = async (context: CommandContext) => {
+    if (pythonShellDispatchActive(context.executionScope)) {
+      await writeBytes(context.stderr, new TextEncoder().encode('python: nested Python execution is unavailable while the parent interpreter is suspended\n'), context.signal);
+      return { exitCode: 1 };
+    }
     let installation;
     try {
       parsePythonInvocation(context.args, context.env);
@@ -113,6 +127,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
     const service = new PythonFileSystem(context.fs, { cwd: context.cwd, signal, maxTransferBytes, ...maxOpenFiles === undefined ? {} : { maxOpenFiles },
       ...options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries },
       open: (path, settings) => openCommandFile(fileContext, path, settings) });
+    let hostBridge: ReturnType<typeof createPythonHostBridge> | undefined;
     let stdoutOperation: OutputOperation | undefined;
     let stderrOperation: OutputOperation | undefined;
     let endpoint: PythonWorkerEndpoint | undefined;
@@ -140,7 +155,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         const subscription = Promise.resolve().then(() => unsubscribe?.());
         const termination = Promise.resolve().then(() => executor ? executor.terminate() : endpoint?.terminate());
         const filesystemRetirement = termination.finally(() => service.close());
-        const results = await Promise.allSettled([subscription, termination, filesystemRetirement, stdoutOperation?.close(), stderrOperation?.close(), ...pending]);
+        const results = await Promise.allSettled([subscription, termination, filesystemRetirement, hostBridge?.close(), stdoutOperation?.close(), stderrOperation?.close(), ...pending]);
         await input.return?.(undefined);
         fragment = undefined;
         if (packages) environment.finish(packages);
@@ -179,6 +194,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
           await writeBytes(stderrOperation!.output, new TextEncoder().encode('python: ' + failure.message + '\n'), signal);
         }
       };
+      if (options.createCapabilities) hostBridge = createPythonHostBridge(options.createCapabilities({ ...context, signal }), { ...options.capabilityLimits, signal });
       const dispatch = async (request: { op: string; args: unknown[] }): Promise<unknown> => {
         if (request.op === 'close') return service.dispatch(request);
         signal.throwIfAborted();
@@ -230,6 +246,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         let running = true;
         const start: PythonExecutorStart = {
           invocation: { command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env } },
+          ...(hostBridge ? { host: hostBridge } : {}),
           runtimeMount, maxTransferBytes, signal, ...(packages ? { packages } : {}), installOnly: !!installation,
           onReady() {
             if (closed || !running || signal.aborted || ready) return;

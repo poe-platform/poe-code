@@ -5,8 +5,9 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, pythonCommands, createPythonExecutorPool } from '@poe-platform/safe-bash/commands/python';
-import { Shell } from '@poe-platform/safe-bash';
+import { createPythonJspiExecutor, pythonCommands, createPythonExecutorPool, createPythonShellCapability } from '@poe-platform/safe-bash/commands/python';
+import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
+import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
@@ -69,6 +70,92 @@ async function qualifyShells(backend, createExecutor) {
     await Promise.all([first.dispose(), sibling.dispose()]);
     await pool.dispose();
   }
+}
+
+async function qualifyHostServices(backend, createExecutor) {
+  let released = 0;
+  let calls = 0;
+  const provider = { name: 'fake', models: [{ id: 'fake' }], async *complete(request) {
+    await new Promise(resolve => setTimeout(resolve, 5));
+    request.signal.throwIfAborted();
+    yield request.prompt;
+  } };
+  const service = createLlmService({ providers: [provider], defaultModel: 'fake' });
+  await backend.writeFile('/work/host.py', new TextEncoder().encode(String.raw`
+from safe_host import call, stream, run, check_output, CalledProcessError, HostError
+assert call('identity', {'number': 3, 'enabled': True}) == {'number': 3, 'enabled': True}
+with stream('llm', {'prompt': 'direct'}) as chunks:
+ assert list(chunks) == ['direct']
+with stream('bytes') as chunks:
+ assert next(chunks) == bytes([0,255,128])
+try:
+ call('missing')
+ raise AssertionError('unknown capability succeeded')
+except HostError:
+ pass
+with open('/work/shared.txt', 'w') as target:
+ target.write('canonical\n')
+result = call('shell', {'argv': ['rg', 'canonical', '/work/shared.txt']})
+assert result['exitCode'] == 0, result
+assert bytes(result['stdout']) == b'canonical\n', result
+result = call('shell', {'argv': ['probe', '$(bad);*'], 'stdin': [0,255], 'cwd': '/work', 'env': {'CHILD': 'yes'}})
+assert result == {'stdout': [0,255], 'stderr': [119], 'exitCode': 7}, result
+with open('/work/shared.txt') as source:
+ assert source.read() == 'changed'
+assert check_output(['rg', 'changed', '/work/shared.txt'], text=True) == 'changed\n'
+result = call('shell', {'script': 'llm pipeline | rg pipeline'})
+assert result['exitCode'] == 0, result
+result = call('shell', {'argv': ['llm', 'nested']})
+assert bytes(result['stdout']) == b'nested\n', result
+result = call('shell', {'argv': ['python', '-c', 'pass']})
+assert result['exitCode'] == 1 and b'nested Python' in bytes(result['stderr']), result
+for args, options in [(['wait'], {'timeout': 0.001}), (['overflow'], {})]:
+ try:
+  run(args, check=True, **options)
+  raise AssertionError('bounded failure did not occur')
+ except HostError:
+  pass
+try:
+ run(['missing-command'], check=True)
+ raise AssertionError('unknown command succeeded')
+except CalledProcessError as error:
+ assert error.returncode == 127
+assert call('identity', 'still-live') == 'still-live'
+print('host-ok')
+`));
+  const shell = new Shell({fs:backend, cwd:'/work'});
+  shell.use({ name: 'host-fixture', setup(host) {
+    for (const command of createSearchCommands()) host.commands.register(command);
+    host.commands.register({ name: 'wait', async execute(context) {
+      await new Promise(resolve => context.signal.addEventListener('abort', resolve, {once:true}));
+      context.signal.throwIfAborted();
+      return {exitCode:0};
+    } });
+    host.commands.register({ name: 'overflow', async execute(context) {
+      await context.stdout.write(new Uint8Array(8193));
+      return {exitCode:0};
+    } });
+    host.commands.register({ name: 'probe', async execute(context) {
+      if (context.args[0] !== '$(bad);*' || context.env.CHILD !== 'yes' || context.cwd !== '/work') throw new Error('Child state mismatch');
+      for await (const bytes of context.stdin) await context.stdout.write(bytes);
+      await context.fs.writeFile('/work/shared.txt', new TextEncoder().encode('changed'));
+      await context.stderr.write(new Uint8Array([119]));
+      return {exitCode:7};
+    } });
+  } });
+  shell.use(llmCommands({providers:[provider], defaultModel:'fake'}));
+  shell.use(pythonCommands({ createExecutor, maxConcurrentWorkers:1, createCapabilities(context) {
+    return {
+      identity: { async call(value) { calls++; return value; } },
+      llm: { stream(value, {signal}) { return service.complete({prompt:value.prompt, options:{}, attachments:[], signal}); } },
+      bytes: { async *stream() { try { yield new Uint8Array([0,255,128]); yield 'unused'; } finally { released++; } } },
+      shell: createPythonShellCapability(context),
+    };
+  } }));
+  try {
+    const result = await shell.exec('python host.py');
+    return {exitCode:result.exitCode, stdout:result.stdout, stderr:result.stderr, calls, released};
+  } finally { await shell.dispose(); }
 }
 
 const program = `
@@ -242,6 +329,11 @@ export default {
       }
       return runtime;
     } });
+    if (mode === '/host') {
+      try { return Response.json({...await qualifyHostServices(backend, createExecutor), failures, ticks}); }
+      catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }
+      finally { clearInterval(timer); await filesystem.close(); }
+    }
     if (mode === '/shell') {
       try { return Response.json({...await qualifyShells(backend, createExecutor), failures, finalizations}); }
       catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }

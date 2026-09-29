@@ -22,12 +22,12 @@ export function prCommands(options: PrCommandsOptions = {}): VirtualShellPlugin 
 
 const syncPrSignal = new AbortController().signal;
 const syncPrLimits = settings({});
-const syncPrDummyOutput: OutputOperation = {
+const syncPrDummyOutput = {
   signal: syncPrSignal,
-  output: { write() {} },
+  output: { async write() {} },
   registerCleanup() {},
   async close() {},
-};
+} as unknown as OutputOperation;
 const syncPrDummyContext = {
   args: [] as string[],
   cwd: "/",

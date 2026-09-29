@@ -31,6 +31,7 @@ export function createRtfTokenizer(source: AsyncIterable<Uint8Array> | Uint8Arra
       if (pending !== undefined) { const byte = pending; pending = undefined; return byte; }
       while (index === chunk.length) {
         budget.release('retainedBytes', chunk.length); chunk = new Uint8Array(); index = 0;
+        if (!iterator) return -1;
         budget.charge('work', 1, offset);
         const signal = options.signal;
         let abort: (() => void) | undefined;

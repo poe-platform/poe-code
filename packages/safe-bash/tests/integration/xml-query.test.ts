@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import * as api from "../../src/index.js";
 import { MockS3Client, S3FileSystem } from "@poe-code/safe-fs";
-import { createXmlCommands, xmlCommands, type XmlQueryLimits } from "../../src/commands/xml/index.js";
+import { createXmlCommands, createXmllintCommands, xmlCommands, type XmlQueryLimits } from "../../src/commands/xml/index.js";
 import { createCommandArguments, toByteSource } from "../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
 
@@ -426,8 +426,8 @@ test("xmllint supports --noout before or after --xpath and validates default doc
   }
 });
 
-test("XML family captures one limits configuration for both commands", () => {
+for (const factory of [createXmlCommands, createXmllintCommands]) test(`${factory.name} captures one limits configuration`, () => {
   let reads = 0;
-  createXmlCommands({ get limits() { reads++; return { maxNodes: reads === 1 ? 100 : 1 }; } });
+  factory({ get limits() { reads++; return { maxNodes: reads === 1 ? 100 : 1 }; } });
   assert.equal(reads, 1);
 });

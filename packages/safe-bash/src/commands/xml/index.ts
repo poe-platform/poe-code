@@ -112,9 +112,10 @@ async function executeXq(
 }
 
 export function createXmllintCommand(options: XmlCommandsOptions = {}): CommandDefinition {
-  const limits = resolveXmlQueryLimits(options.limits);
+  const suppliedLimits = options.limits;
+  const limits = resolveXmlQueryLimits(suppliedLimits);
   const def = createXmllintCommandInternal({ limits }, runtime);
-  if (options.limits === undefined) builtInDirectContextExecutors.add(def.execute);
+  if (suppliedLimits === undefined) builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 export function createXmllintCommands(options: XmlCommandsOptions = {}): readonly CommandDefinition[] {
@@ -136,10 +137,14 @@ export function xmllintCommands(options: XmlCommandsOptions = {}): VirtualShellP
   };
 }
 export function createXmlCommands(options: XmlCommandsOptions = {}): readonly CommandDefinition[] {
-  const limits = resolveXmlQueryLimits(options.limits);
+  const suppliedLimits = options.limits;
+  const limits = resolveXmlQueryLimits(suppliedLimits);
   const xqDef: CommandDefinition = { name: "xq", execute: (context) => executeXq(context, limits) };
-  if (options.limits === undefined) builtInDirectContextExecutors.add(xqDef.execute);
-  const xmllintDef = createXmllintCommand(options);
+  const xmllintDef = createXmllintCommandInternal({ limits }, runtime);
+  if (suppliedLimits === undefined) {
+    builtInDirectContextExecutors.add(xqDef.execute);
+    builtInDirectContextExecutors.add(xmllintDef.execute);
+  }
   return [xqDef, xmllintDef];
 }
 export function xmlCommands(options: XmlCommandsOptions = {}): VirtualShellPlugin {

@@ -75,6 +75,11 @@ translation, preserve raw errors and blank/dimension behavior, and charge CFB,
 record, string and cell storage to the same invocation counters. Gnumeric's
 CODEPAGE precedence and font-charset rules cannot substitute for CSVKit's explicit
 encoding override; BIFF8 ignores that override while legacy BIFF honors it.
+Pinned xlrd 2.0.2 (`3a19d22014d7b3f3041b7188d21a653c18c709bf`) further requires
+ISO-8859-1 when legacy CODEPAGE and an override are both absent, actual populated
+cell extents rather than DIMENSION hints, and omission of BLANK/MULBLANK records
+when formatting information is disabled. FORMULA cache tag 3 is an empty text
+value, not an absent cell. Qualify these cases before replacing the XLS reader.
 The Gnumeric reader and cached-value reader retain their separate import semantics.
 
 Complete the standard singular/plural/plugin command exports in that package.

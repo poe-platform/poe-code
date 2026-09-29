@@ -40,6 +40,7 @@ export interface TimeoutCommandsOptions extends TimeoutCommandOptions {
 }
 
 interface Settings {
+  readonly defaultExecutor: boolean;
   readonly limits: TimeoutLimits;
   readonly killAfterPolicy: KillAfterPolicy | undefined;
   readonly invoke: CommandInvoker | undefined;
@@ -112,7 +113,8 @@ function settings(value: unknown, includeReplace: boolean): Settings {
     if (configured !== undefined && typeof configured !== "boolean") throw new TypeError("Timeout replace must be a boolean");
     replace = configured ?? false;
   }
-  return { limits, invoke, killAfterPolicy: killAfterPolicy as KillAfterPolicy | undefined, scheduler: binding, maxTimerMilliseconds: maximum ?? 2147483647, replace };
+  const defaultExecutor = configuredLimits === undefined && killAfterPolicy === undefined && invoke === undefined && scheduler === undefined && maximum === undefined;
+  return { defaultExecutor, limits, invoke, killAfterPolicy: killAfterPolicy as KillAfterPolicy | undefined, scheduler: binding, maxTimerMilliseconds: maximum ?? 2147483647, replace };
 }
 
 async function status(configuration: Settings, context: CommandContext, bytes: Uint8Array, exitCode: number, stdout = false): Promise<{ exitCode: number }> {
@@ -310,25 +312,17 @@ function definition(configuration: Settings): CommandDefinition {
   });
 }
 
-function isDefaultTimeoutOptions(options?: TimeoutCommandOptions): boolean {
-  return options === undefined || (
-    options.limits === undefined &&
-    options.killAfterPolicy === undefined &&
-    options.invoke === undefined &&
-    options.scheduler === undefined &&
-    options.maxTimerMilliseconds === undefined
-  );
-}
-
 export function createTimeoutCommand(options?: TimeoutCommandOptions): CommandDefinition {
-  const def = definition(settings(options, false));
-  if (isDefaultTimeoutOptions(options)) builtInDirectContextExecutors.add(def.execute);
+  const configuration = settings(options, false);
+  const def = definition(configuration);
+  if (configuration.defaultExecutor) builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createTimeoutCommands(options?: TimeoutCommandsOptions): readonly CommandDefinition[] {
-  const def = definition(settings(options, true));
-  if (isDefaultTimeoutOptions(options)) builtInDirectContextExecutors.add(def.execute);
+  const configuration = settings(options, true);
+  const def = definition(configuration);
+  if (configuration.defaultExecutor) builtInDirectContextExecutors.add(def.execute);
   return Object.freeze([def]);
 }
 

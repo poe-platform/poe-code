@@ -28583,7 +28583,7 @@ export class Runtime {
               if (joinRes === undefined) return undefined;
               outLines = joinRes;
             } else if (isInlineBase64) {
-              let b64In = prevBuf.subarray(0, prevLen);
+              let b64In: Uint8Array = prevBuf.subarray(0, prevLen);
               let b64Args = stageArgs;
               if (sIdx === 0 && cmd0FileStage) {
                 const fPath = stageArgs[stageArgs.length - 1]!;

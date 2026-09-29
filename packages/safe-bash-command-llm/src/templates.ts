@@ -45,6 +45,20 @@ export function validateLlmTemplateParameters(value: LlmTemplate, params: Record
   const variables = { ...value.defaults, ...params, input: "" };
   for (const text of [value.prompt, value.system]) interpolate(text, variables, true);
 }
+/** Reference Template.vars() includes named placeholders, excluding braced and escaped forms. */
+export function llmTemplateUsesInput(value: LlmTemplate): boolean {
+  for (const text of [value.prompt, value.system]) {
+    if (!text) continue;
+    for (let index = 0; index < text.length; index++) {
+      if (text[index] !== "$") continue;
+      if (text[index + 1] === "$") { index++; continue; }
+      let name = "";
+      while (index + 1 < text.length && "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(text[index + 1]!)) name += text[++index];
+      if (name === "input") return true;
+    }
+  }
+  return false;
+}
 export function evaluateLlmTemplate(value: LlmTemplate, input: string, params: Record<string, string>): { prompt: string; system?: string } {
   const variables = { ...value.defaults, ...params, input };
   return { prompt: value.prompt ? interpolate(value.prompt, variables)! : input, ...(value.system === undefined ? {} : { system: interpolate(value.system, variables)! }) };

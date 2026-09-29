@@ -5,6 +5,26 @@ import { toByteSource } from "safe-bash-contracts";
 import { createLlmCommand } from "./command.js";
 import reference from "./fixtures/templates-reference.json" with { type: "json" };
 
+test("template CLI preserves explicit prompts and only acquires stdin for named input", async () => {
+  for (const [prompt, expected, readsInput] of [
+    ["Fixed", "Fixed\nworld\n", false],
+    ["Fixed $$input", "Fixed $input\nworld\n", false],
+    ["Fixed ${input}", "Fixed \nworld\n", false],
+    ["Fixed $input", "Fixed world\n", true],
+  ] as const) {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/settings/templates", { recursive: true });
+    await fs.writeFile("/settings/templates/check.yaml", new TextEncoder().encode(`prompt: ${prompt}\nmodel: fixture-chat\n`));
+    const command = createLlmCommand({ providers: [{ name: "fixture", models: [{ id: "fixture-chat" }], async *complete(request) { yield request.prompt; } }] });
+    const chunks: Uint8Array[] = [], errors: Uint8Array[] = [];
+    const result = await command.execute({ command: "llm", args: ["world", "-t", "check"], fs, cwd: "/", env: { LLM_USER_PATH: "/settings" }, signal: new AbortController().signal,
+      stdin: readsInput ? toByteSource("") : { [Symbol.asyncIterator]() { return assert.fail("fixed template must not acquire stdin"); } },
+      stdout: { async write(chunk) { chunks.push(chunk.slice()); } }, stderr: { async write(chunk) { errors.push(chunk.slice()); } } });
+    assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+    assert.equal(Buffer.concat(chunks).toString(), expected);
+  }
+});
+
 test("stored template workflows match the pinned deterministic reference", async () => {
   const fs = new MemoryFileSystem();
   const command = createLlmCommand({ providers: [{ name: "fixture", models: [{ id: "fixture-chat", aliases: ["echo"] }], async *complete(request) { yield request.prompt; } }] });

@@ -6,7 +6,7 @@ import { acceptsMimeType, sniffMimeType } from "./mime.js";
 import type { LlmCommandsOptions, LlmRequest } from "./types.js";
 import { createLlmService, type LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
-import { createLlmTemplateStore, evaluateLlmTemplate, validateLlmTemplateParameters } from "./templates.js";
+import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters } from "./templates.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
 import { configurationCommand } from "./configuration-command.js";
 import { listLlmModels, LlmModelsUsageError, modelsGroupHelp } from "./models-list.js";
@@ -203,18 +203,21 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const entry = args.save && selected === undefined ? undefined : service.resolve(model);
     const fragments: string[] = [];
     const decoder = new TextDecoder("utf-8", { fatal: true });
-    const input = await operation.acquire<AsyncIterator<Uint8Array>>(() => context.stdinInput
-      ? { next: () => context.stdinInput!.read(Math.min(65536, inputLimit - inputBytes + 1), signal) }
-      : context.stdin[Symbol.asyncIterator](), async iterator => { await iterator.return?.(); });
-    while (true) {
-      await step();
-      const result = await interrupted(() => input.next(), signal);
-      signal.throwIfAborted();
-      if (result.done) break;
-      const chunk = result.value;
-      if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
-      admitInput(chunk.byteLength);
-      fragments.push(decoder.decode(chunk, { stream: true }));
+    const templateUsesInput = stored !== undefined && llmTemplateUsesInput(stored);
+    if (stored === undefined || templateUsesInput) {
+      const input = await operation.acquire<AsyncIterator<Uint8Array>>(() => context.stdinInput
+        ? { next: () => context.stdinInput!.read(Math.min(65536, inputLimit - inputBytes + 1), signal) }
+        : context.stdin[Symbol.asyncIterator](), async iterator => { await iterator.return?.(); });
+      while (true) {
+        await step();
+        const result = await interrupted(() => input.next(), signal);
+        signal.throwIfAborted();
+        if (result.done) break;
+        const chunk = result.value;
+        if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
+        admitInput(chunk.byteLength);
+        fragments.push(decoder.decode(chunk, { stream: true }));
+      }
     }
     fragments.push(decoder.decode());
     const content = fragments.join("");
@@ -230,7 +233,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       await templateStore.save(args.save, saved); return { exitCode: 0 };
     }
     if (stored) {
-      try { const evaluated = evaluateLlmTemplate(stored, prompt, args.params); prompt = evaluated.prompt; if (args.system === undefined && evaluated.system !== undefined) args.system = evaluated.system; }
+      try {
+        const evaluated = evaluateLlmTemplate(stored, templateUsesInput ? prompt : "", args.params);
+        if (evaluated.prompt) prompt = !templateUsesInput && args.prompt ? `${evaluated.prompt}\n${args.prompt}` : evaluated.prompt;
+        if (args.system === undefined && evaluated.system !== undefined) args.system = evaluated.system;
+      }
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
     }
     if (!entry) throw new Error("No model selected; use --model or configure defaultModel");

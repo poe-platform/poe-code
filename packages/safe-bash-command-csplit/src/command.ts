@@ -158,7 +158,7 @@ export function evalSyncCsplit(
         if (offVal === undefined) return undefined;
         offset = Number(offVal);
       }
-      let jsReStr = rawRe
+      const jsReStr = rawRe
         .replace(/\\([()+?|])/g, "$1")
         .replace(/\[:alnum:\]/g, "0-9A-Za-z")
         .replace(/\[:alpha:\]/g, "A-Za-z")

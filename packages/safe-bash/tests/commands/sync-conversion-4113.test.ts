@@ -1591,3 +1591,34 @@ test("Wave 225: csvstat --median/--stdev/--max-precision, text --min/--max, and 
     "20.5|9.939|3|alice|charlie|id,label;001,alpha;002,beta;"
   );
 });
+
+test("Wave 226: sqlite3 file database persistence, .dump/.save/.read, and openssl -out file in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp/w226", { recursive: true });
+  await memFs.writeFile(
+    "/tmp/w226/init.sql",
+    new TextEncoder().encode("CREATE TABLE items(id INT, label TEXT);\nINSERT INTO items VALUES(1, 'alpha');\n")
+  );
+  const { sqlite3Commands } = await import("../../src/commands/sqlite3/index.ts");
+  const { opensslCommands } = await import("../../src/commands/openssl/index.ts");
+  const shell = new Shell({ fs: memFs, cwd: "/tmp/w226" })
+    .use(standardCommands())
+    .use(sqlite3Commands())
+    .use(opensslCommands());
+  const res = await shell.exec(`
+    for i in 1 2 3 4 5; do
+      rm -f /tmp/w226/app.db /tmp/w226/copy.db /tmp/w226/b64.txt
+      _=$(sqlite3 /tmp/w226/app.db ".read /tmp/w226/init.sql" "INSERT INTO items VALUES(2, 'beta');" ".save /tmp/w226/copy.db")
+      q1=$(sqlite3 -csv /tmp/w226/copy.db "SELECT * FROM items ORDER BY id;" | tr "\n" ";")
+      dmp=$(sqlite3 /tmp/w226/copy.db ".dump" | grep "INSERT INTO")
+      _=$(printf "hello-openssl" | openssl base64 -A -out /tmp/w226/b64.txt)
+      b64=$(cat /tmp/w226/b64.txt)
+    done
+    printf "%s|%s|%s\n" "$q1" "$(printf "%s" "$dmp" | tr "\n" ";")" "$b64"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "1,alpha;2,beta;|INSERT INTO items VALUES(1,'alpha');;INSERT INTO items VALUES(2,'beta');|aGVsbG8tb3BlbnNzbA=="
+  );
+});

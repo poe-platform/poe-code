@@ -1554,6 +1554,7 @@ export function evalSyncSqlite3(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   try {
     const state: CliSessionState = {
@@ -1664,9 +1665,13 @@ export function evalSyncSqlite3(
     if (state.dbPath !== ":memory:") {
       if (!readFileSync) return undefined;
       const dbBytes = readFileSync(state.dbPath);
-      if (!dbBytes || dbBytes.byteLength > 262144) return undefined;
-      if (dbBytes.byteLength > 0) {
-        db.loadFromBytes(dbBytes);
+      if (dbBytes === undefined) {
+        if (state.readonly) return undefined;
+      } else {
+        if (dbBytes.byteLength > 262144) return undefined;
+        if (dbBytes.byteLength > 0) {
+          db.loadFromBytes(dbBytes);
+        }
       }
     }
 
@@ -1814,8 +1819,48 @@ export function evalSyncSqlite3(
         if (names.length > 0) emitOutput(`${names.join("  ")}\n`);
         return true;
       }
+      if (cmd === ".databases") {
+        emitOutput(`main: ${state.dbPath === ":memory:" ? "\"\" r/w" : `${state.dbPath} ${state.readonly ? "r/o" : "r/w"}`}\n`);
+        return true;
+      }
+      if (cmd === ".dump") {
+        const pattern = parts[1];
+        const dumpLines: string[] = ["PRAGMA foreign_keys=OFF;", "BEGIN TRANSACTION;"];
+        for (const tbl of db.tables.values()) {
+          if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) continue;
+          dumpLines.push(`${tbl.sql.replace(/;*\s*$/, "")};`);
+          for (const r of tbl.rows) {
+            const vals = tbl.columns.map((c) => formatSqlQuote(r.data[c.name] ?? null)).join(",");
+            dumpLines.push(`INSERT INTO ${tbl.name} VALUES(${vals});`);
+          }
+        }
+        for (const idx of db.indexes.values()) {
+          if (!pattern || idx.tableName.toLowerCase() === pattern.toLowerCase()) dumpLines.push(`${idx.sql.replace(/;*\s*$/, "")};`);
+        }
+        for (const v of db.views.values()) {
+          if (!pattern || v.name.toLowerCase() === pattern.toLowerCase()) dumpLines.push(`${v.sql.replace(/;*\s*$/, "")};`);
+        }
+        for (const tr of db.triggers.values()) {
+          if (!pattern || tr.tableName.toLowerCase() === pattern.toLowerCase()) dumpLines.push(`${tr.sql.replace(/;*\s*$/, "")};`);
+        }
+        dumpLines.push("COMMIT;");
+        emitOutput(`${dumpLines.join("\n")}\n`);
+        return true;
+      }
+      if (cmd === ".save" || cmd === ".backup") {
+        const targetFile = parts[parts.length - 1];
+        if (!targetFile || !writeFileSync) return false;
+        return writeFileSync(targetFile, db.serializeToBytes());
+      }
+      if (cmd === ".read") {
+        const srcFile = parts[1];
+        if (!srcFile || !readFileSync) return false;
+        const srcBytes = readFileSync(srcFile);
+        if (!srcBytes) return false;
+        return processScriptSync(textDecoder.decode(srcBytes));
+      }
       if (cmd === ".import") {
-        if (state.dbPath !== ":memory:" || state.readonly || !readFileSync) return false;
+        if ((state.dbPath !== ":memory:" && !writeFileSync) || state.readonly || !readFileSync) return false;
         let pIdx = 1;
         let csvOverride = false;
         let skipRows = 0;
@@ -1866,7 +1911,7 @@ export function evalSyncSqlite3(
       if (!trimmed) return true;
       const isMutating = !/^\s*(SELECT|PRAGMA|EXPLAIN|VALUES|WITH\s+[\s\S]*?\bSELECT)\b/i.test(trimmed);
       if (isMutating) {
-        if (state.readonly || state.dbPath !== ":memory:") return false;
+        if (state.readonly || (state.dbPath !== ":memory:" && !writeFileSync)) return false;
       }
       if (state.echo) emitOutput(`${trimmed}\n`);
       const res = db.executeStatement(trimmed);
@@ -1933,7 +1978,10 @@ export function evalSyncSqlite3(
       }
     }
 
-    if (state.exitCode !== 0 || (state.dirty && state.dbPath !== ":memory:")) return undefined;
+    if (state.exitCode !== 0) return undefined;
+    if (state.dirty && state.dbPath !== ":memory:") {
+      if (!writeFileSync || !writeFileSync(state.dbPath, db.serializeToBytes())) return undefined;
+    }
     return out;
   } catch {
     return undefined;

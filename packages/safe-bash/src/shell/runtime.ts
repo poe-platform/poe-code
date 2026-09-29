@@ -30180,9 +30180,9 @@ export class Runtime {
                   : firstName === "xargs"
                     ? evalSyncXargs(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "openssl"
-                    ? syncCommandEvaluators.evalSyncOpenssl?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncOpenssl?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : firstName === "sqlite3"
-                    ? syncCommandEvaluators.evalSyncSqlite3?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncSqlite3?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : firstName === "gpg"
                     ? syncCommandEvaluators.evalSyncGpg?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "ssh"
@@ -30701,9 +30701,9 @@ export class Runtime {
           : w0Plain === "xargs"
             ? evalSyncXargs(optInBytes, allArgs, readFile)
           : w0Plain === "openssl"
-            ? syncCommandEvaluators.evalSyncOpenssl?.(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncOpenssl?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "sqlite3"
-            ? syncCommandEvaluators.evalSyncSqlite3?.(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncSqlite3?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "gpg"
             ? syncCommandEvaluators.evalSyncGpg?.(optInBytes, allArgs, readFile)
           : w0Plain === "ssh"
@@ -31107,10 +31107,10 @@ export class Runtime {
               fileRes = evalSyncXargs(view, opArgs, readFile);
             } else if (w0Plain === "openssl") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = syncCommandEvaluators.evalSyncOpenssl?.(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncOpenssl?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "sqlite3") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = syncCommandEvaluators.evalSyncSqlite3?.(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncSqlite3?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "gpg") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncGpg?.(view, opArgs, readFile);

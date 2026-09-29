@@ -328,6 +328,7 @@ export function evalSyncOpenssl(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   try {
     if (opArgs.length === 0 || opArgs[0] === "--help" || opArgs[0] === "-h" || opArgs[0] === "help") {
@@ -352,11 +353,16 @@ export function evalSyncOpenssl(
         else if (a === "-out" && i + 1 < rest.length) outFile = rest[++i];
         else if (!a.startsWith("-")) numBytes = Number.parseInt(a, 10);
       }
-      if (outFile !== undefined || (!hex && !b64)) return undefined;
+      if (!hex && !b64) return undefined;
       if (!Number.isFinite(numBytes) || numBytes < 0 || numBytes > 16384) return undefined;
       const raw = new Uint8Array(numBytes);
       globalThis.crypto.getRandomValues(raw);
-      return hex ? `${bytesToHex(raw)}\n` : `${bytesToBase64(raw, true)}\n`;
+      const rendered = hex ? `${bytesToHex(raw)}\n` : `${bytesToBase64(raw, true)}\n`;
+      if (outFile !== undefined) {
+        if (!writeFileSync || !writeFileSync(outFile, syncOpensslEncoder.encode(rendered))) return undefined;
+        return "";
+      }
+      return rendered;
     }
 
     if (sub === "base64") {
@@ -372,15 +378,23 @@ export function evalSyncOpenssl(
         else if (a === "-in" && i + 1 < rest.length) inFile = rest[++i];
         else if (a === "-out" && i + 1 < rest.length) outFile = rest[++i];
       }
-      if (outFile !== undefined) return undefined;
       const input = inFile !== undefined ? readFileSync?.(inFile) : inBytes;
       if (!input || input.byteLength > 65536) return undefined;
       if (decode) {
         const out = base64ToBytes(syncOpensslDecoder.decode(input));
+        if (outFile !== undefined) {
+          if (!writeFileSync || !writeFileSync(outFile, out)) return undefined;
+          return "";
+        }
         if (out.includes(0)) return undefined;
         return syncOpensslUtf8Decoder.decode(out);
       }
-      return noNewlines ? bytesToBase64(input, false) : `${bytesToBase64(input, true)}\n`;
+      const b64Str = noNewlines ? bytesToBase64(input, false) : `${bytesToBase64(input, true)}\n`;
+      if (outFile !== undefined) {
+        if (!writeFileSync || !writeFileSync(outFile, syncOpensslEncoder.encode(b64Str))) return undefined;
+        return "";
+      }
+      return b64Str;
     }
 
     if (sub === "dgst" || sub === "sha256" || sub === "sha384" || sub === "sha512" || sub === "sha1") {
@@ -421,7 +435,7 @@ export function evalSyncOpenssl(
           files.push(a);
         }
       }
-      if (outFile !== undefined || binary) return undefined;
+      if (binary && outFile === undefined) return undefined;
       const targets = files.length > 0 ? files : [undefined];
       const textLines: string[] = [];
       for (const f of targets) {
@@ -442,7 +456,22 @@ export function evalSyncOpenssl(
           textLines.push(`${algLabel}(${name})= ${hex}`);
         }
       }
-      return `${textLines.join("\n")}\n`;
+      const dgstOut = `${textLines.join("\n")}\n`;
+      if (outFile !== undefined) {
+        if (!writeFileSync) return undefined;
+        if (binary) {
+          if (targets.length !== 1) return undefined;
+          const b0 = targets[0] !== undefined ? readFileSync?.(targets[0]) : inBytes;
+          if (!b0) return undefined;
+          const hashFn = nodeAlg === "sha512" ? sha512 : nodeAlg === "sha384" ? sha384 : nodeAlg === "sha1" ? sha1 : sha256;
+          const rawDigest = hmacKey !== undefined ? hmac(hashFn, syncOpensslEncoder.encode(hmacKey), b0) : hashFn(b0);
+          if (!writeFileSync(outFile, rawDigest)) return undefined;
+          return "";
+        }
+        if (!writeFileSync(outFile, syncOpensslEncoder.encode(dgstOut))) return undefined;
+        return "";
+      }
+      return dgstOut;
     }
 
     if (sub === "enc") {
@@ -464,11 +493,10 @@ export function evalSyncOpenssl(
         } else if (a === "-in" && i + 1 < rest.length) inFile = rest[++i];
         else if (a === "-out" && i + 1 < rest.length) outFile = rest[++i];
       }
-      if (outFile !== undefined) return undefined;
       const rawInput = inFile !== undefined ? readFileSync?.(inFile) : inBytes;
       if (!rawInput || rawInput.byteLength > 65536) return undefined;
       if (!decrypt) {
-        if (!useBase64) return undefined;
+        if (!useBase64 && outFile === undefined) return undefined;
         const salt = new Uint8Array(8);
         globalThis.crypto.getRandomValues(salt);
         const derived = pbkdf2(sha256, syncOpensslEncoder.encode(password), salt, { c: iterations, dkLen: 48 });
@@ -477,6 +505,11 @@ export function evalSyncOpenssl(
         payload.set([83, 97, 108, 116, 101, 100, 95, 95], 0);
         payload.set(salt, 8);
         payload.set(encrypted, 16);
+        if (outFile !== undefined) {
+          const outBytes = useBase64 ? syncOpensslEncoder.encode(`${bytesToBase64(payload, true)}\n`) : payload;
+          if (!writeFileSync || !writeFileSync(outFile, outBytes)) return undefined;
+          return "";
+        }
         return `${bytesToBase64(payload, true)}\n`;
       } else {
         const decoded = useBase64 ? base64ToBytes(syncOpensslDecoder.decode(rawInput)) : rawInput;
@@ -485,6 +518,10 @@ export function evalSyncOpenssl(
         const cipherBytes = decoded.slice(16);
         const derived = pbkdf2(sha256, syncOpensslEncoder.encode(password), salt, { c: iterations, dkLen: 48 });
         const plain = aesCbcDecrypt(derived.subarray(0, 32), derived.subarray(32, 48), cipherBytes);
+        if (outFile !== undefined) {
+          if (!writeFileSync || !writeFileSync(outFile, plain)) return undefined;
+          return "";
+        }
         if (plain.includes(0)) return undefined;
         return syncOpensslUtf8Decoder.decode(plain);
       }

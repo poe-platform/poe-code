@@ -731,37 +731,37 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
       const facadeExports = {
         "./safe-bash": {
-          types: { workerd: "./packages/safe-bash/dist/core.d.ts", browser: "./packages/safe-bash/dist/core.d.ts", default: "./dist/safe-bash.d.ts" },
+          types: { workerd: "./dist/types/safe-bash/core.d.ts", browser: "./dist/types/safe-bash/core.d.ts", default: "./dist/safe-bash.d.ts" },
           workerd: "./packages/safe-bash/dist/core.browser.js", browser: "./packages/safe-bash/dist/core.browser.js",
           node: "./dist/safe-bash.js", default: "./dist/safe-bash.js",
         },
         ...(rootManifest.exports["./safe-bash/contracts"] ? {
           "./safe-bash/contracts": {
-            types: "./packages/safe-bash-contracts/dist/index.d.ts",
+            types: "./dist/types/safe-bash-contracts/index.d.ts",
             import: "./dist/shared/safe-bash-contracts/index.js",
           },
         } : {}),
         ...(rootManifest.exports["./safe-bash/contracts/*"] ? {
           "./safe-bash/contracts/*": {
-            types: "./packages/safe-bash-contracts/dist/*.d.ts",
+            types: "./dist/types/safe-bash-contracts/*.d.ts",
             import: "./dist/shared/safe-bash-contracts/*.js",
           },
         } : {}),
         ...(rootManifest.exports["./safe-bash/pdf-ast"] ? {
           "./safe-bash/pdf-ast": {
-            types: "./packages/pdf-ast/dist/index.d.ts",
+            types: "./dist/types/pdf-ast/index.d.ts",
             import: "./packages/pdf-ast/dist/index.js",
           },
         } : {}),
         ...(rootManifest.exports["./safe-bash/image-ast"] ? {
           "./safe-bash/image-ast": {
-            types: "./packages/image-ast/dist/index.d.ts",
+            types: "./dist/types/image-ast/index.d.ts",
             import: "./packages/image-ast/dist/index.js",
           },
         } : {}),
         ...(rootManifest.exports["./safe-bash/sharp"] ? {
           "./safe-bash/sharp": {
-            types: "./packages/image-ast/dist/index.d.ts",
+            types: "./dist/types/image-ast/index.d.ts",
             import: "./packages/image-ast/dist/index.js",
           },
         } : {}),

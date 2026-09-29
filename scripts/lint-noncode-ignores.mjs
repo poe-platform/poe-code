@@ -5,7 +5,6 @@ export const nonCodeDirectoryIgnores = [
   ".poe-code/**",
   ".snapshots/**",
   "docs/**",
-  "e2e/fixtures/**",
   "packages/agent-defs-rust/bindings/**",
   "packages/agent-defs-rust/definitions/**",
   "packages/agent-eval/qa/**",

@@ -129,10 +129,6 @@ Don't write any screenshot tests, screenshots are only for adhoc validations
 
 Do not use libraries like @clack/prompts or chalk directly, otherwise we won't achieve coherent style.
 
-### E2E Tests
-
-Use judgement when to run these `npm run e2e:verbose`
-
 ## Root README
 
 Keep the main README up to date, changing in API or different behaviors

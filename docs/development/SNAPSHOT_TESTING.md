@@ -58,18 +58,3 @@ Snapshots are stored in the `.snapshots` directory.
 npm run snapshots:list:stale
 npm run snapshots:delete:stale
 ```
-
-## E2E Proxy Snapshots
-
-E2E tests use the same `POE_SNAPSHOT_MODE` and `POE_SNAPSHOT_MISS` variables.
-The proxy server intercepts model HTTP requests from the selected e2e backend
-and replays recorded snapshots.
-
-E2E snapshots are stored in `.snapshots/<testName>/`.
-
-| Task                    | Command                                                          |
-| ----------------------- | ---------------------------------------------------------------- |
-| Run e2e playback        | `npm run e2e:verbose`                                            |
-| Record all e2e fixtures | `POE_SNAPSHOT_MODE=record npm run e2e:verbose`                   |
-| Record missing only     | `POE_SNAPSHOT_MISS=record npm run e2e:verbose`                   |
-| Record specific test    | `POE_SNAPSHOT_MODE=record npm run e2e:verbose -- e2e/my.test.ts` |

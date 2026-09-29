@@ -18,7 +18,6 @@
     "@poe-code/cached-resource",
     "@poe-code/config-extends",
     "@poe-code/config-mutations",
-    "@poe-code/e2e-test-runner",
     "@poe-code/experiment-loop",
     "@poe-code/frontmatter",
     "@poe-code/github-workflows",

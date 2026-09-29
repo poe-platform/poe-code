@@ -97,16 +97,6 @@ When changing agent definitions or spawn behavior, use the real test command:
 npm run dev -- test <agent>
 ```
 
-## E2E
-
-Run E2E when the change touches configure/spawn/runtime behavior:
-
-```sh
-npm run e2e:verbose
-```
-
-See [development/e2e.md](development/e2e.md) for backend selection and local setup.
-
 ## GitHub Workflows
 
 Do not write unit tests for workflow YAML. Lint workflows instead:

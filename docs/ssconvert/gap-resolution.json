@@ -3186,6 +3186,23 @@
         "out/ssconvert-odf-settings/rich-utf16-native.json"
       ],
       "remaining": "Surrogate pairs split across source rich portions require separate model investigation. Other application profiles, complete rich-format transport, rendering, installed artifacts and containing publication remain open. All 19 families stay open."
+    },
+    "htmlRichBom": {
+      "status": "U+FEFF content preservation delivered in all five HTML export profiles",
+      "delivery": "05bcbc8b025f58538eb5922f6d72b837dbbb1573 verified on remote main",
+      "source": {
+        "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/html/html.c",
+        "lines": "79-109,196-203",
+        "finding": "Rich UTF-8 slices are encoded as character sequences; U+FEFF produces the decimal entity 65279 rather than acting as a transport signature."
+      },
+      "implementation": "Ignore BOM signature processing when decoding a rich span. Existing document-level encoding detection is unchanged.",
+      "validation": "Ten failing-before cases cover run starts and preceding accented/astral text across HTML32, HTML40, fragment, XHTML and XHTML range. All 55 HTML tests, package lint/types and selected build pass. Five compiled SDK and five actual runCommand outputs match native Gnumeric 1.12.61 exports byte-for-byte, with empty stderr.",
+      "receipts": [
+        "out/ssconvert-odf-settings/html-bom-checks.json",
+        "out/ssconvert-odf-settings/html-bom-compiled.json",
+        "out/ssconvert-odf-settings/html-bom-native.json"
+      ],
+      "remaining": "Broader HTML record/style/layout and installed artifact qualification remain open. Source/model-invalid text and other format transports are not established by these ten observations. No containing publication verified; all 19 families stay open."
     }
   },
   "cases": [
@@ -3528,7 +3545,8 @@
     "richUtf16": {
       "commit": "40837714161654e931f9aaae10427ee01e9433c7",
       "remote": "Verified directly on remote main; generated workbooks, profiles and consumed logs removed after compact receipts.",
-      "release": "Full pin 36506462960 has passed build/checks/audit and is testing; pin 36507665678 at 600aaec7d8 is queued with underline fixes. Neither contains this later UTF-16 commit; no containing publication verified."
+      "release": "Full pin 36506462960 has passed build/checks/audit and is testing; pin 36507665678 at 600aaec7d8 is queued with underline fixes. Neither contains this later UTF-16 commit; no containing publication verified.",
+      "htmlFollowup": "05bcbc8b025f58538eb5922f6d72b837dbbb1573 preserves the same U+FEFF content in all HTML profiles; every output independently matches native bytes. Code is verified on main; generated artifacts and consumed logs removed."
     }
   },
   "history": {

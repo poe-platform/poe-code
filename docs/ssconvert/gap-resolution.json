@@ -3230,7 +3230,16 @@
           "out/ssconvert-odf-settings/accounting-html-checks.json",
           "out/ssconvert-odf-settings/accounting-html-command.json"
         ],
-        "remaining": "HTML32 cannot express two lines or accounting placement; fragment rendering depends on matching host CSS. Pixel rendering and other format transports remain open."
+        "remaining": "HTML32 cannot express two lines or accounting placement; fragment rendering depends on matching host CSS. Pixel rendering and other format transports remain open.",
+        "unknownValues": {
+          "commit": "9a97b690e5ef3b1af1e96f4a02bd3cf2bb2b77c4",
+          "defect": "Inherited object keys such as constructor emitted JavaScript function strings in HTML CSS classes. Supported class mapping now requires own keys.",
+          "validation": "Four failures before repair; 70 HTML tests, package lint/types/build and five compiled public command cases pass.",
+          "receipts": [
+            "out/ssconvert-odf-settings/final-html-config-checks.json",
+            "out/ssconvert-odf-settings/html-unknown-command.json"
+          ]
+        }
       }
     }
   },
@@ -3558,7 +3567,7 @@
       "scope": "Five atomic repairs: scalar FORMULA, auxiliary array elements, NAME, ARRAY groups and oversized BIFF8 array strings. Each push verified directly against remote main.",
       "checks": "Final 69-file BIFF cohort: 1742 tests. Maintained package lint, source/test/consumer types and selected workspace build pass. Native profiles and failures are recorded in reference.biffReferenceOperators.continuation.",
       "cleanup": "Generated workbooks, Calc profiles and logs removed after compact receipts; no generated binary committed.",
-      "release": "Pinned 36503801565 canceled after native cleanup stalled; 36506462960 failed fresh config units while every other validation job passed. Config repair 94e760c81a removes unused library compilation. Pins 36507665678 and 36509671114 were canceled externally before complete validation. Replacement full dispatch 36510161550 at 54d6fc6cda includes the config repair, BIFF/UTF16/HTML BOM fixes and XLSX double-accounting import. It excludes later HTML accounting follow-up ad7ad6ba45. Following the existing replacement rather than creating a duplicate pin; no containing publication verified.",
+      "release": "Earlier full pins failed or were canceled. 36510161550 failed build TS1117 after incoming 05d147e648 duplicated the library-loading option; 41718eae53 removes the own duplicate while preserving behavior. Full pin 36510785662 at 41718eae53 contains all BIFF, UTF16, underline, HTML and config repairs from this work and is pending. No containing publication verified.",
       "remaining": "All 19 families stay open. Scoped BIFF7 Calc NAME scope issue #4075 is delivered in b58fabd556; Gnumeric scope/INDEX/continued-group/long-auxiliary-string interoperability and other family requirements remain open."
     },
     "underlineFidelity": {
@@ -3569,12 +3578,12 @@
       ],
       "remote": "Every code push independently verified against remote main. See reference.xlsxRichUnderlines and reference.odfAccountingUnderlines for source, tests and native qualification.",
       "cleanup": "Generated spreadsheets, isolated Calc profiles and consumed logs removed; compact ignored receipts retained. No binaries committed.",
-      "release": "Pins 36507665678 and 36509671114 were canceled externally before complete validation. Replacement full dispatch 36510161550 at 54d6fc6cda includes the config repair, BIFF/UTF16/HTML BOM fixes and XLSX double-accounting import. It excludes later HTML accounting follow-up ad7ad6ba45. Following the existing replacement rather than creating a duplicate pin; no containing publication verified."
+      "release": "Earlier full pins failed or were canceled. 36510161550 failed build TS1117 after incoming 05d147e648 duplicated the library-loading option; 41718eae53 removes the own duplicate while preserving behavior. Full pin 36510785662 at 41718eae53 contains all BIFF, UTF16, underline, HTML and config repairs from this work and is pending. No containing publication verified."
     },
     "richUtf16": {
       "commit": "40837714161654e931f9aaae10427ee01e9433c7",
       "remote": "Verified directly on remote main; generated workbooks, profiles and consumed logs removed after compact receipts.",
-      "release": "Pins 36507665678 and 36509671114 were canceled externally before complete validation. Replacement full dispatch 36510161550 at 54d6fc6cda includes the config repair, BIFF/UTF16/HTML BOM fixes and XLSX double-accounting import. It excludes later HTML accounting follow-up ad7ad6ba45. Following the existing replacement rather than creating a duplicate pin; no containing publication verified.",
+      "release": "Earlier full pins failed or were canceled. 36510161550 failed build TS1117 after incoming 05d147e648 duplicated the library-loading option; 41718eae53 removes the own duplicate while preserving behavior. Full pin 36510785662 at 41718eae53 contains all BIFF, UTF16, underline, HTML and config repairs from this work and is pending. No containing publication verified.",
       "htmlFollowup": "05bcbc8b025f58538eb5922f6d72b837dbbb1573 preserves the same U+FEFF content in all HTML profiles; every output independently matches native bytes. Code is verified on main; generated artifacts and consumed logs removed."
     },
     "configCompilerReleaseRepair": {
@@ -3583,11 +3592,17 @@
       "source": "ts-morph getExportedDeclarations initialized a program containing 63 ambient libraries on every call. Static config extraction needs only the reachable input sources. Disable automatic library loading; keep the original 60s test and 120s process deadlines.",
       "validation": "One deterministic dependency-isolation test fails before repair. After: 186 config tests, 85 native tests (591ms total versus 8803ms for the prior compiler subset), 185 Rust reference tests, focused ESLint and maintained selected config build pass. Linux CI repair is still awaiting verification.",
       "release": {
-        "current": 36510161550,
-        "canceled": 36509671114,
-        "state": "pending; Linux CI repair awaits verification"
+        "current": 36510785662,
+        "head": "41718eae53cdec631ccc037205adf3f6cdc5779b",
+        "state": "pending; Linux native timeout repair and publication await verification"
       },
-      "cleanup": "Consumed CI/local logs, downloaded source, workbooks and Calc profiles removed. Compact ignored JSON receipts remain."
+      "cleanup": "Consumed CI/local logs, downloaded source, workbooks and Calc profiles removed. Compact ignored JSON receipts remain.",
+      "integrationCorrection": {
+        "commit": "41718eae53cdec631ccc037205adf3f6cdc5779b",
+        "remote": "verified directly on remote main",
+        "validation": "TS1117 reproduced before correction. Maintained config build, focused ESLint and all 186 config tests pass afterward. Removed the duplicate introduced by own original commit; retained the independent incoming key.",
+        "receipt": "out/ssconvert-odf-settings/final-html-config-checks.json"
+      }
     }
   },
   "history": {

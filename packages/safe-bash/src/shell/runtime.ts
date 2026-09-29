@@ -1,3 +1,4 @@
+import { syncPosixRegexSource } from "./sync-posix-regex.js";
 import { syncCommandEvaluators } from "../commands/internal.js";
 import { compareSyncJqStrings, splitSyncJqExpression } from "./sync-jq-expression.js";
 import { wcDisplayWidth } from "../commands/wc-width.js";
@@ -24540,11 +24541,8 @@ export class Runtime {
     if (subExprs.length === 0) return undefined;
     const compileSedAddrRe = (patSpec: string): RegExp | undefined => {
       if (patSpec.length === 0 || patSpec.includes("[.") || patSpec.includes("[=") || /\\[1-9]/.test(patSpec)) return undefined;
-      const normPat = patSpec
-        .replace(/\[:space:\]/g, " \t")
-        .replace(/\[:digit:\]/g, "0-9")
-        .replace(/\[:alpha:\]/g, "a-zA-Z")
-        .replace(/\[:alnum:\]/g, "a-zA-Z0-9");
+      const normPat = syncPosixRegexSource(patSpec);
+      if (normPat === undefined) return undefined;
       const jsPat = isExtended
         ? normPat
         : normPat.replace(/\\([+?()|])/g, "$1");
@@ -25568,7 +25566,9 @@ export class Runtime {
         if (patM) {
           const inv = patM[1] === "!";
           let re: RegExp;
-          try { re = new RegExp(patM[2]!); } catch { return undefined; }
+          const source = syncPosixRegexSource(patM[2]!);
+          if (source === undefined) return undefined;
+          try { re = new RegExp(source); } catch { return undefined; }
           return (l: string) => inv ? !re.test(l) : re.test(l);
         }
         const fPatM = /^\$([0-9]+|NF)\s*(~|!~)\s*\/([a-zA-Z0-9_ :;,=.*+?^$()|[\]-]+)\/$/.exec(a);
@@ -25576,7 +25576,9 @@ export class Runtime {
           const fTok = fPatM[1]!;
           const inv = fPatM[2] === "!~";
           let re: RegExp;
-          try { re = new RegExp(fPatM[3]!); } catch { return undefined; }
+          const source = syncPosixRegexSource(fPatM[3]!);
+          if (source === undefined) return undefined;
+          try { re = new RegExp(source); } catch { return undefined; }
           return (l: string, fields: readonly string[]) => {
             const idx = fTok === "NF" ? fields.length : Number(fTok);
             const val = idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
@@ -26212,7 +26214,9 @@ export class Runtime {
     const parseSecSpec = (v: string): NlSecSpec | undefined => {
       if (v === "a" || v === "t" || v === "n") return { style: v };
       if (v.startsWith("p") && v.length > 1) {
-        try { return { style: "p", re: new RegExp(v.slice(1)) }; } catch { return undefined; }
+        const source = syncPosixRegexSource(v.slice(1));
+        if (source === undefined) return undefined;
+        try { return { style: "p", re: new RegExp(source) }; } catch { return undefined; }
       }
       return undefined;
     };
@@ -26756,7 +26760,7 @@ export class Runtime {
       }
     }
     pushRun();
-    if (sep !== undefined) return runs.length === 0 ? [] : [runs.join(sep)];
+    if (sep !== undefined) return runs.length === 0 ? [] : [runs.join(sep) + sep];
     return runs;
   }
 

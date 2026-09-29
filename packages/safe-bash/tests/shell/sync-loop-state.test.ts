@@ -1587,3 +1587,47 @@ test("sync loop paste multi-file/stdin, numfmt positional args + --round, and nl
     await shell.dispose();
   }
 });
+
+
+test("sync loop expr arithmetic/string ops, bc scale arithmetic, xxd -p/-r -p, and od -An -tx1 (Wave 124)", async () => {
+  const { createExprCommands } = await import("../../src/commands/expr/index.js");
+  const { createBcCommands } = await import("../../src/commands/bc/index.js");
+  const { createXxdCommands } = await import("../../src/commands/xxd/index.js");
+  const { createOdCommands } = await import("../../src/commands/od/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([
+      ...basicCommands(),
+      ...streamCommands(),
+      ...createExprCommands(),
+      ...createBcCommands(),
+      ...createXxdCommands(),
+      ...createOdCommands(),
+    ]),
+  });
+  try {
+    const script = [
+      "out=\"\"",
+      "for ((i=1; i<=8; i++)); do",
+      "  e1=$(expr \"$i\" \\* 3 + 5)",
+      "  e2=$(expr substr \"hello_world_$i\" 7 5)",
+      "  e3=$(expr length \"hello_$i\")",
+      "  b1=$(bc <<< \"scale=2; ($i * 3 + 1) / 4\")",
+      "  b2=$(echo \"$i * 10 + 5\" | bc)",
+      "  hex=$(printf \"item_%d\" \"$i\" | xxd -p)",
+      "  dec=$(xxd -r -p <<< \"6974656d5f38\")",
+      "  od1=$(printf \"A%d\" \"$i\" | od -An -tx1)",
+      "  out=\"$e1|$e2|$e3|$b1|$b2|$hex|$dec|$od1\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout,
+      "29|world|7|6.25|85|6974656d5f38|item_8| 41 38\n"
+    );
+  } finally {
+    await shell.dispose();
+  }
+});

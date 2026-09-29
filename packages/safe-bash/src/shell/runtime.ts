@@ -3438,7 +3438,7 @@ export class Runtime {
   private _syncReadOnlyArithRefs: ArithmeticReferences | undefined;
   private _activeSyncLoopAssignedVars: Set<string> | undefined;
   private _activeSyncLoopIO: IO | undefined;
-  private _syncLoopInvariantSubMap: WeakMap<Extract<WordPart, { kind: "substitution" }>, { text: string; outBytes: number; exitStatus: number }> | undefined;
+  private _syncLoopInvariantSubMap: WeakMap<Extract<WordPart, { kind: "substitution" }>, { text: string; outBytes: number; exitStatus: number; dynamic?: boolean }> | undefined;
   constructor( fs: FileSystem, commands: CommandRegistry, middleware: readonly Middleware[], budget: Budget, signal: AbortSignal = budget.signal, fileWrites: Map<string, Promise<void>> | undefined = undefined, outputFiles: Map<string, OutputFile> | undefined = undefined, commandSignal: AbortSignal = signal, cancellation: CancellationBoundary, cancellationState: RuntimeCancellationState, cancellationOwner: CancellationAdmissionOwner | undefined, cancellationDepth: number, cancellationMaxDepth: number, outcomeFrame: RuntimeOutcomeFrame | undefined = undefined, inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs, private readonly reuseDefaultContextFs = false, ) {
     this.commands = commands;
     this.middleware = middleware;
@@ -11706,6 +11706,8 @@ export class Runtime {
     if (list.terminator || list.pipelines.length !== 1) return false;
     const p = list.pipelines[0]!;
     if (p.negate || p.commands.length < 1 || p.commands.length > 5) return false;
+    const indName = this._activePrintfInductionName;
+    let usesInduction = false;
     const checkInvariantWord = (w: Word): boolean => {
       if (w.parts.length === 0) return false;
       for (let i = 0; i < w.parts.length; i++) {
@@ -11715,17 +11717,28 @@ export class Runtime {
           continue;
         }
         if (pt.kind === "variable") {
+          const isInd = indName !== undefined && pt.name === indName;
           if (
             pt.indirect || pt.prefixNames !== undefined || pt.specialParameter || pt.length || pt.substring ||
             pt.transform !== undefined || pt.operator !== undefined || getArraySelector(pt) !== undefined ||
-            !isShellIdentifier(pt.name) || assigned.has(pt.name) || controlNames.has(pt.name) ||
+            !isShellIdentifier(pt.name) || (assigned.has(pt.name) && !isInd) || controlNames.has(pt.name) ||
             pt.name === "OPTIND" || pt.name === "PIPESTATUS" || pt.name === "LINENO" || pt.name === "_" ||
             pt.name === "FUNCNAME" || pt.name === "DIRSTACK" ||
             stateMonitor(rawState)?.store?.get(pt.name) || rawState.variableAttributes?.get(pt.name) ||
             stateMonitor(rawState)?.hasOverlay(pt.name) || hasUnpreparedLocal(rawState, pt.name) ||
-            (rawState.nounset && rawState.variables[pt.name] === undefined)
+            (rawState.nounset && !isInd && rawState.variables[pt.name] === undefined)
           ) {
             return false;
+          }
+          if (isInd) usesInduction = true;
+          continue;
+        }
+        if (pt.kind === "arithmetic") {
+          const aNames = new Set<string>();
+          if (!collectPureReadOnlySmiNames(pt.expression, aNames) || pt.expression.source.includes("/") || pt.expression.source.includes("%")) return false;
+          for (const an of aNames) {
+            if (an === indName) { usesInduction = true; continue; }
+            if (assigned.has(an) || controlNames.has(an) || stateMonitor(rawState)?.store?.get(an)) return false;
           }
           continue;
         }
@@ -11733,16 +11746,14 @@ export class Runtime {
       }
       return true;
     };
-    if (p.commands.some(c => c.kind === "simple" && (c.words[0]?.plain === "comm" || c.words[0]?.plain === "join"))) return false;
     if (p.commands.length === 1) {
       const cmd = p.commands[0]!;
-      if (
-        cmd.kind !== "simple" || cmd.words.length === 0 ||
-        cmd.redirects.length !== 1 || cmd.redirects[0]!.operator !== "<<<" ||
-        (cmd.redirects[0]!.descriptor !== undefined && cmd.redirects[0]!.descriptor !== 0) ||
-        cmd.redirects[0]!.move || cmd.redirects[0]!.document ||
-        !checkInvariantWord(cmd.redirects[0]!.target)
-      ) {
+      const hasHere = cmd.kind === "simple" && cmd.redirects.length === 1 && cmd.redirects[0]!.operator === "<<<" &&
+        (cmd.redirects[0]!.descriptor === undefined || cmd.redirects[0]!.descriptor === 0) &&
+        !cmd.redirects[0]!.move && !cmd.redirects[0]!.document && checkInvariantWord(cmd.redirects[0]!.target);
+      const hasNoRedir = cmd.kind === "simple" && cmd.redirects.length === 0 &&
+        (cmd.words[0]?.plain === "expr" || cmd.words[0]?.plain === "numfmt" || cmd.words[0]?.plain === "paste" || cmd.words[0]?.plain === "nl" || cmd.words[0]?.plain === "comm" || cmd.words[0]?.plain === "join");
+      if (cmd.kind !== "simple" || cmd.words.length === 0 || (!hasHere && !hasNoRedir)) {
         return false;
       }
       for (let i = 0; i < cmd.words.length; i++) {
@@ -11750,34 +11761,49 @@ export class Runtime {
       }
     } else {
       const first = p.commands[0]!;
-      if (first.kind !== "simple" || first.redirects.length !== 0 || (first.words[0]?.plain !== "echo" && first.words[0]?.plain !== "printf")) {
+      const firstHere = first.kind === "simple" && first.redirects.length === 1 && first.redirects[0]!.operator === "<<<" &&
+        (first.redirects[0]!.descriptor === undefined || first.redirects[0]!.descriptor === 0) &&
+        !first.redirects[0]!.move && !first.redirects[0]!.document && checkInvariantWord(first.redirects[0]!.target);
+      const firstNoRedir = first.kind === "simple" && first.redirects.length === 0 &&
+        (first.words[0]?.plain === "echo" || first.words[0]?.plain === "printf" || first.words[0]?.plain === "paste" || first.words[0]?.plain === "nl" || first.words[0]?.plain === "comm" || first.words[0]?.plain === "join");
+      if (first.kind !== "simple" || (!firstHere && !firstNoRedir)) {
         return false;
       }
       for (let ci = 0; ci < p.commands.length; ci++) {
         const c = p.commands[ci]!;
-        if (c.kind !== "simple" || c.redirects.length !== 0 || c.words.length === 0) return false;
+        if (c.kind !== "simple" || (ci > 0 ? c.redirects.length !== 0 : (!firstHere && !firstNoRedir)) || c.words.length === 0) return false;
         for (let wi = 0; wi < c.words.length; wi++) {
           if (!checkInvariantWord(c.words[wi]!)) return false;
         }
       }
     }
     const savedBytes = this.budget.bytes;
+    const savedCmds = this.budget.commands;
     const savedStatus = rawState.status;
     const savedSubStatus = rawState.substitutionStatus;
+    const savedIndVal = indName !== undefined ? rawState.variables[indName] : undefined;
+    if (usesInduction && indName !== undefined && savedIndVal === undefined) {
+      rawState.variables[indName] = "1";
+    }
     let res: string | undefined;
     try {
       res = this.tryFastPureSubstitution(part, rawState, rawState, io);
     } catch {
       res = undefined;
+    } finally {
+      if (usesInduction && indName !== undefined && savedIndVal === undefined) {
+        delete rawState.variables[indName];
+      }
     }
     const outBytes = this.budget.bytes - savedBytes;
     const exitStatus = rawState.status;
     const subStatus = rawState.substitutionStatus;
     this.budget.bytes = savedBytes;
+    this.budget.commands = savedCmds;
     rawState.status = savedStatus;
     rawState.substitutionStatus = savedSubStatus;
     if (res === undefined || exitStatus !== 0 || subStatus !== 0 || outBytes < 0) return false;
-    this._syncLoopInvariantSubMap.set(part, { text: res, outBytes, exitStatus: 0 });
+    this._syncLoopInvariantSubMap.set(part, { text: res, outBytes, exitStatus: 0, dynamic: usesInduction });
     return true;
   }
 
@@ -13325,7 +13351,7 @@ export class Runtime {
     this._activePrintfInductionName = printfInductionName;
     this._activeSyncLoopAssignedVars = this.collectSyncLoopAssignedVars(command, rawState);
     this._activeSyncLoopIO = io;
-    const localInvMap = new WeakMap<Extract<WordPart, { kind: "substitution" }>, { text: string; outBytes: number; exitStatus: number }>();
+    const localInvMap = new WeakMap<Extract<WordPart, { kind: "substitution" }>, { text: string; outBytes: number; exitStatus: number; dynamic?: boolean }>();
     this._syncLoopInvariantSubMap = localInvMap;
     let bodySyncOk = false;
     try {
@@ -14583,17 +14609,19 @@ export class Runtime {
       let commandIndex = 0;
       while (commandIndex < command.words.length && this.assignment(command.words[commandIndex]!)) commandIndex++;
       const commandWord = command.words[commandIndex];
-      if (!commandWord?.parts.every(part => part.kind === "text")) return false;
-      const w0 = commandWord.parts.map(part => part.kind === "text" ? part.value : "").join("");
-      // read targets and printf -v targets may be quoted or expanded. Both can
-      // invalidate the integer assumption used by induction formatting.
-      if (w0 === "read") return false;
-      if (w0 === "printf") {
-        const option = command.words[commandIndex + 1];
-        if (!option?.parts.every(part => part.kind === "text")) return false;
-        if (option.parts.map(part => part.kind === "text" ? part.value : "").join("") === "-v") return false;
+      if (commandWord !== undefined) {
+        if (!commandWord.parts.every(part => part.kind === "text")) return false;
+        const w0 = commandWord.parts.map(part => part.kind === "text" ? part.value : "").join("");
+        // read targets and printf -v targets may be quoted or expanded. Both can
+        // invalidate the integer assumption used by induction formatting.
+        if (w0 === "read") return false;
+        if (w0 === "printf") {
+          const option = command.words[commandIndex + 1];
+          if (!option?.parts.every(part => part.kind === "text")) return false;
+          if (option.parts.map(part => part.kind === "text" ? part.value : "").join("") === "-v") return false;
+        }
+        if (w0 === "let" || w0 === "declare" || w0 === "typeset" || w0 === "local" || w0 === "export" || w0 === "unset" || w0 === "mapfile" || w0 === "readarray") return false;
       }
-      if (w0 === "let" || w0 === "declare" || w0 === "typeset" || w0 === "local" || w0 === "export" || w0 === "unset" || w0 === "mapfile" || w0 === "readarray") return false;
       if (inductionName !== undefined) {
         if (command.words.some(w => {
           const p0 = w.parts[0];
@@ -25365,6 +25393,296 @@ export class Runtime {
     return out;
   }
 
+  private evalSyncExpr(args: readonly string[]): { value: string; status: number } | undefined {
+    if (args.length === 0 || args[0] === "--help" || args[0] === "--version") return undefined;
+    const ops = args[0] === "--" ? args.slice(1) : args;
+    if (ops.length === 0) return undefined;
+    if (ops.length === 2 && ops[0] === "length") {
+      const len = Array.from(ops[1]!).length;
+      return { value: String(len), status: len === 0 ? 1 : 0 };
+    }
+    if (ops.length === 4 && ops[0] === "substr") {
+      const s = ops[1]!;
+      if (!/^-?[0-9]+$/.test(ops[2]!) || !/^-?[0-9]+$/.test(ops[3]!)) return undefined;
+      const pos = Number(ops[2]!);
+      const len = Number(ops[3]!);
+      if (!Number.isSafeInteger(pos) || !Number.isSafeInteger(len)) return undefined;
+      const chars = Array.from(s);
+      const out = (pos < 1 || len <= 0 || pos > chars.length) ? "" : chars.slice(pos - 1, pos - 1 + len).join("");
+      return { value: out, status: out.length === 0 ? 1 : 0 };
+    }
+    if (ops.length === 3 && ops[0] === "index") {
+      const s = Array.from(ops[1]!);
+      const set = new Set(Array.from(ops[2]!));
+      let idx = 0;
+      for (let i = 0; i < s.length; i++) {
+        if (set.has(s[i]!)) { idx = i + 1; break; }
+      }
+      return { value: String(idx), status: idx === 0 ? 1 : 0 };
+    }
+    if (ops.length === 1) {
+      const v = ops[0]!;
+      return { value: v, status: (v === "" || v === "0") ? 1 : 0 };
+    }
+    if (ops.length >= 3 && ops.length % 2 === 1) {
+      for (let i = 0; i < ops.length; i += 2) {
+        if (!/^-?[0-9]{1,15}$/.test(ops[i]!)) return undefined;
+      }
+      const nums: bigint[] = [BigInt(ops[0]!)];
+      const syms: string[] = [];
+      for (let i = 1; i < ops.length; i += 2) {
+        const op = ops[i]!;
+        if (!["+", "-", "*", "/", "%", "=", "==", "!=", ">", ">=", "<", "<="].includes(op)) return undefined;
+        syms.push(op);
+        nums.push(BigInt(ops[i + 1]!));
+      }
+      const addNums: bigint[] = [nums[0]!];
+      const addSyms: string[] = [];
+      for (let i = 0; i < syms.length; i++) {
+        const op = syms[i]!;
+        const r = nums[i + 1]!;
+        if (op === "*" || op === "/" || op === "%") {
+          if ((op === "/" || op === "%") && r === 0n) return undefined;
+          const l = addNums.pop()!;
+          addNums.push(op === "*" ? l * r : op === "/" ? l / r : l % r);
+        } else {
+          addSyms.push(op);
+          addNums.push(r);
+        }
+      }
+      const cmpNums: bigint[] = [addNums[0]!];
+      const cmpSyms: string[] = [];
+      for (let i = 0; i < addSyms.length; i++) {
+        const op = addSyms[i]!;
+        const r = addNums[i + 1]!;
+        if (op === "+" || op === "-") {
+          const l = cmpNums.pop()!;
+          cmpNums.push(op === "+" ? l + r : l - r);
+        } else {
+          cmpSyms.push(op);
+          cmpNums.push(r);
+        }
+      }
+      let cur = cmpNums[0]!;
+      for (let i = 0; i < cmpSyms.length; i++) {
+        const op = cmpSyms[i]!;
+        const r = cmpNums[i + 1]!;
+        const ok = op === "=" || op === "==" ? cur === r : op === "!=" ? cur !== r : op === ">" ? cur > r : op === ">=" ? cur >= r : op === "<" ? cur < r : cur <= r;
+        cur = ok ? 1n : 0n;
+      }
+      const valStr = cur.toString();
+      return { value: valStr, status: cur === 0n ? 1 : 0 };
+    }
+    return undefined;
+  }
+
+  private evalSyncBc(input: string, opArgs: readonly string[]): string[] | undefined {
+    let scale = 0;
+    for (const a of opArgs) {
+      if (a === "-q" || a === "--quiet") continue;
+      if (a === "-l" || a === "--mathlib") { scale = 20; continue; }
+      return undefined;
+    }
+    type DecVal = { c: bigint; s: number };
+    const tenPow = (n: number): bigint => 10n ** BigInt(n);
+    const vars = new Map<string, DecVal>();
+    const evalExpr = (expr: string): DecVal | undefined => {
+      const e = expr.trim();
+      if (e.length === 0) return undefined;
+      if (e.startsWith("(") && e.endsWith(")")) {
+        let d = 0;
+        let wrap = true;
+        for (let i = 0; i < e.length; i++) {
+          if (e[i] === "(") d++;
+          else if (e[i] === ")") {
+            d--;
+            if (d === 0 && i < e.length - 1) { wrap = false; break; }
+          }
+        }
+        if (wrap && d === 0) return evalExpr(e.slice(1, -1));
+      }
+      let d = 0;
+      let addIdx = -1;
+      for (let i = 0; i < e.length; i++) {
+        const ch = e[i]!;
+        if (ch === "(") d++;
+        else if (ch === ")") d--;
+        else if (d === 0 && (ch === "+" || ch === "-")) {
+          const prev = e.slice(0, i).trimEnd();
+          if (prev.length > 0 && !/[+\-*/%^]$/.test(prev)) addIdx = i;
+        }
+      }
+      if (addIdx > 0) {
+        const l = evalExpr(e.slice(0, addIdx));
+        const r = evalExpr(e.slice(addIdx + 1));
+        if (!l || !r) return undefined;
+        const ms = Math.max(l.s, r.s);
+        const lc = l.c * tenPow(ms - l.s);
+        const rc = r.c * tenPow(ms - r.s);
+        return { c: e[addIdx] === "+" ? lc + rc : lc - rc, s: ms };
+      }
+      let mulIdx = -1;
+      for (let i = 0; i < e.length; i++) {
+        const ch = e[i]!;
+        if (ch === "(") d++;
+        else if (ch === ")") d--;
+        else if (d === 0 && (ch === "*" || ch === "/" || ch === "%")) mulIdx = i;
+      }
+      if (mulIdx > 0) {
+        const l = evalExpr(e.slice(0, mulIdx));
+        const r = evalExpr(e.slice(mulIdx + 1));
+        if (!l || !r) return undefined;
+        const op = e[mulIdx]!;
+        if (op === "*") {
+          const rawC = l.c * r.c;
+          const rawS = l.s + r.s;
+          const targetS = Math.min(rawS, Math.max(scale, l.s, r.s));
+          return { c: rawC / tenPow(rawS - targetS), s: targetS };
+        }
+        if (r.c === 0n) return undefined;
+        if (op === "/") {
+          const num = l.c * tenPow(scale + r.s);
+          const den = r.c * tenPow(l.s);
+          return { c: num / den, s: scale };
+        }
+        if (op === "%" && scale === 0 && l.s === 0 && r.s === 0) {
+          return { c: l.c % r.c, s: 0 };
+        }
+        return undefined;
+      }
+      const numM = /^([+-]?\d+)(?:\.(\d+))?$/.exec(e);
+      if (numM) {
+        const intPart = numM[1]!;
+        const fracPart = numM[2] ?? "";
+        const neg = intPart.startsWith("-");
+        const digits = (neg ? intPart.slice(1) : intPart.startsWith("+") ? intPart.slice(1) : intPart) + fracPart;
+        return { c: (neg ? -1n : 1n) * BigInt(digits), s: fracPart.length };
+      }
+      if (/^[a-z][a-z0-9_]*$/.test(e)) {
+        return vars.get(e) ?? { c: 0n, s: 0 };
+      }
+      return undefined;
+    };
+    const formatDec = (v: DecVal): string => {
+      if (v.s === 0) return v.c.toString();
+      const neg = v.c < 0n;
+      const absStr = (neg ? -v.c : v.c).toString().padStart(v.s + 1, "0");
+      const intStr = absStr.slice(0, absStr.length - v.s);
+      const fracStr = absStr.slice(absStr.length - v.s);
+      return (neg && v.c !== 0n ? "-" : "") + (intStr === "0" ? "" : intStr) + "." + fracStr;
+    };
+    const stmts = input.split(/[;\n]+/).map(s => s.trim()).filter(Boolean);
+    const out: string[] = [];
+    for (const st of stmts) {
+      const scaleM = /^scale\s*=\s*([0-9]{1,2})$/.exec(st);
+      if (scaleM) {
+        scale = Number(scaleM[1]!);
+        if (scale > 20) return undefined;
+        continue;
+      }
+      const varM = /^([a-z][a-z0-9_]*)\s*=\s*(.+)$/.exec(st);
+      if (varM && !st.includes("==")) {
+        const val = evalExpr(varM[2]!);
+        if (!val) return undefined;
+        vars.set(varM[1]!, val);
+        continue;
+      }
+      const val = evalExpr(st);
+      if (!val) return undefined;
+      out.push(formatDec(val));
+    }
+    return out;
+  }
+
+  private evalSyncXxd(view: Uint8Array, opArgs: readonly string[]): string | undefined {
+    let plain = false;
+    let reverse = false;
+    let upper = false;
+    let cols = 30;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a === "-p" || a === "-ps" || a === "-plain") plain = true;
+      else if (a === "-r" || a === "-revert") reverse = true;
+      else if (a === "-rp" || a === "-pr") { reverse = true; plain = true; }
+      else if (a === "-u") upper = true;
+      else if (a === "-pu" || a === "-up") { plain = true; upper = true; }
+      else if ((a === "-c" || a === "-cols") && i + 1 < opArgs.length && /^[0-9]{1,4}$/.test(opArgs[i + 1]!)) {
+        cols = Number(opArgs[++i]!);
+      } else if (/^-c[0-9]{1,4}$/.test(a)) {
+        cols = Number(a.slice(2));
+      } else {
+        return undefined;
+      }
+    }
+    if (!plain) return undefined;
+    if (reverse) {
+      const bytes: number[] = [];
+      let high = -1;
+      for (let i = 0; i < view.byteLength; i++) {
+        const b = view[i]!;
+        if (b === 32 || (b >= 9 && b <= 13)) continue;
+        const d = b >= 48 && b <= 57 ? b - 48 : b >= 65 && b <= 70 ? b - 55 : b >= 97 && b <= 102 ? b - 87 : -1;
+        if (d < 0) return undefined;
+        if (high < 0) high = d;
+        else {
+          const outB = (high << 4) | d;
+          if (outB === 0 || outB >= 128) return undefined;
+          bytes.push(outB);
+          high = -1;
+        }
+      }
+      if (high >= 0) return undefined;
+      return sharedSyncPipeDecoder.decode(new Uint8Array(bytes));
+    }
+    if (view.byteLength === 0) return "";
+    let hex = "";
+    for (let i = 0; i < view.byteLength; i++) {
+      const h = view[i]!.toString(16).padStart(2, "0");
+      hex += upper ? h.toUpperCase() : h;
+      if (cols > 0 && (i + 1) % cols === 0 && i + 1 < view.byteLength) hex += "\n";
+    }
+    return hex + "\n";
+  }
+
+  private evalSyncOd(view: Uint8Array, opArgs: readonly string[]): string | undefined {
+    let noAddr = false;
+    let typeSpec: "x1" | "u1" | "o1" | undefined;
+    let verbose = false;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a === "-An") noAddr = true;
+      else if (a === "-A" && i + 1 < opArgs.length && opArgs[i + 1] === "n") { noAddr = true; i++; }
+      else if (a === "-tx1" || a === "-tu1" || a === "-to1") typeSpec = a.slice(2) as "x1" | "u1" | "o1";
+      else if (a === "-t" && i + 1 < opArgs.length && (opArgs[i + 1] === "x1" || opArgs[i + 1] === "u1" || opArgs[i + 1] === "o1")) {
+        typeSpec = opArgs[++i] as "x1" | "u1" | "o1";
+      } else if (a === "-v" || a === "--output-duplicates") verbose = true;
+      else return undefined;
+    }
+    if (!noAddr || !typeSpec) return undefined;
+    if (view.byteLength === 0) return "";
+    const rows: string[] = [];
+    let prevRow = "";
+    let starEmitted = false;
+    for (let off = 0; off < view.byteLength; off += 16) {
+      const slice = view.subarray(off, Math.min(off + 16, view.byteLength));
+      let row = "";
+      for (let i = 0; i < slice.length; i++) {
+        const b = slice[i]!;
+        if (typeSpec === "x1") row += " " + b.toString(16).padStart(2, "0");
+        else if (typeSpec === "o1") row += " " + b.toString(8).padStart(3, "0");
+        else row += " " + b.toString(10).padStart(3, " ");
+      }
+      if (!verbose && off > 0 && slice.length === 16 && row === prevRow) {
+        if (!starEmitted) { rows.push("*"); starEmitted = true; }
+      } else {
+        rows.push(row);
+        prevRow = row;
+        starEmitted = false;
+      }
+    }
+    return rows.join("\n") + "\n";
+  }
+
   private evalSyncNumfmt(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
     let fromScale: "none" | "iec" | "iec-i" | "si" | "auto" = "none";
     let toScale: "none" | "iec" | "iec-i" | "si" = "none";
@@ -25886,7 +26204,7 @@ export class Runtime {
   }
   private tryFastPureSubstitution(part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
     const cachedInv = this._syncLoopInvariantSubMap?.get(part);
-    if (cachedInv !== undefined) {
+    if (cachedInv !== undefined && !cachedInv.dynamic) {
       const nextTotalBytes = this.budget.bytes + cachedInv.outBytes;
       if (nextTotalBytes > this.budget.maxOutputBytesSmi && cachedInv.outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
       this.budget.bytes = nextTotalBytes;
@@ -25947,7 +26265,7 @@ export class Runtime {
       if (cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 1) return undefined;
       if (!cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
       const def0 = this.commands.get(w0Plain0);
-      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
+      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
       const n = pipeline.commands.length;
       const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
@@ -25960,7 +26278,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "xxd" && sName !== "od" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -26027,6 +26345,12 @@ export class Runtime {
           if (this.evalSyncComm([], sArgs, rawState.cwd) === undefined) return undefined;
         } else if (sName === "join") {
           if (this.evalSyncJoin([], sArgs, rawState.cwd) === undefined) return undefined;
+        } else if (sName === "bc") {
+          if (this.evalSyncBc("0", sArgs) === undefined) return undefined;
+        } else if (sName === "xxd") {
+          if (this.evalSyncXxd(EMPTY_BYTES, sArgs) === undefined) return undefined;
+        } else if (sName === "od") {
+          if (this.evalSyncOd(EMPTY_BYTES, sArgs) === undefined) return undefined;
         } else {
           return undefined;
         }
@@ -26131,6 +26455,9 @@ export class Runtime {
             isInlineAwk ||
             isInlineGrep ||
             isInlineJq ||
+            firstName === "bc" ||
+            firstName === "xxd" ||
+            firstName === "od" ||
             isInlineBase64 ||
             isInlineTac ||
             isInlineNl ||
@@ -26285,6 +26612,23 @@ export class Runtime {
               const jqRes = this.evalSyncJq(inStr.trim(), stageArgs);
               if (jqRes === undefined) return undefined;
               outLines = jqRes;
+            } else if (firstName === "bc") {
+              const bcRes = this.evalSyncBc(inStr.trim(), stageArgs);
+              if (bcRes === undefined) return undefined;
+              outLines = bcRes;
+            } else if (firstName === "xxd" || firstName === "od") {
+              const rawBytes = prevBuf.subarray(0, prevLen);
+              const outStr = firstName === "xxd" ? this.evalSyncXxd(rawBytes, stageArgs) : this.evalSyncOd(rawBytes, stageArgs);
+              if (outStr === undefined) return undefined;
+              const encoded = fastSharedTextEncoder.encode(outStr);
+              const nextTotalBytes = this.budget.bytes + encoded.byteLength;
+              if (nextTotalBytes > this.budget.maxOutputBytesSmi && encoded.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+              this.budget.bytes = nextTotalBytes;
+              if (encoded.byteLength > nextBuf.byteLength) nextBuf = new Uint8Array(encoded.byteLength);
+              nextBuf.set(encoded, 0);
+              prevBuf = nextBuf;
+              prevLen = encoded.byteLength;
+              continue;
             }
             // These filters preserve the terminator of the final selected input line.
             const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev" || firstName === "sed";
@@ -26438,8 +26782,8 @@ export class Runtime {
       w0Plain === "sort" ||
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
-      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl";
-    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join") && Boolean(this.getExternalCommand(w0Plain))))) {
+      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od";
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {
@@ -26458,6 +26802,19 @@ export class Runtime {
         const hv = this.fastValueWord(cmd.redirects[0]!.target, state, io, false, false, false, false, undefined, part.line);
         if (typeof hv === "string" && hv.length <= 16384 && !hv.includes("\0")) hereStrVal = hv + "\n";
         else fOk = false;
+      }
+      if (fOk && w0Plain === "expr" && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
+        const exprRes = this.evalSyncExpr(allArgs);
+        if (exprRes !== undefined) {
+          const outBytes = shellValueByteLength(exprRes.value) + 1;
+          const nextTotalBytes = this.budget.bytes + outBytes;
+          if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+          this.budget.bytes = nextTotalBytes;
+          this.budget.tick();
+          rawState.substitutionStatus = exprRes.status;
+          rawState.status = exprRes.status;
+          return exprRes.value;
+        }
       }
       if (fOk && (w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || (w0Plain === "numfmt" && !hasSingleHereStringRedir)) && !hasSingleStdinRedir) {
         const stdinLines = hasSingleHereStringRedir
@@ -26610,6 +26967,13 @@ export class Runtime {
             } else if (hasSingleHereStringRedir && w0Plain === "numfmt") {
               const nmRes = this.evalSyncNumfmt(rawLines, opArgs);
               if (nmRes !== undefined) fileRes = renderLines(nmRes);
+            } else if (w0Plain === "bc") {
+              const bcRes = this.evalSyncBc(fileStr.trim(), opArgs);
+              if (bcRes !== undefined) fileRes = renderLines(bcRes);
+            } else if (w0Plain === "xxd") {
+              fileRes = this.evalSyncXxd(view, opArgs);
+            } else if (w0Plain === "od") {
+              fileRes = this.evalSyncOd(view, opArgs);
             } else if (hasSingleHereStringRedir && w0Plain === "column") {
               const colRes = this.evalSyncColumn(rawLines, opArgs);
               if (colRes !== undefined) fileRes = renderLines(colRes);

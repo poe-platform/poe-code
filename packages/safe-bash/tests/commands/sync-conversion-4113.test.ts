@@ -164,3 +164,32 @@ test("evaluates multi-file and multi-flag wc, grep (-n/-l/-L/-c/-h), sort, cut, 
     " 4 total|23| 2 3|/tmp/f2.txt|/tmp/f1.txt|/tmp/f1.txt:2,/tmp/f2.txt:2,|alpha|alpha:beta:delta:gamma:|al:be:ga:de:|AlphA:betA:gAmmA:deltA:|alpha:beta:gamma:delta:|/tmp/f1.txt:1:alpha|/tmp/f1.txt:2:beta|\n"
   );
 });
+
+test("evaluates stage-0 < file input redirections in pipelines and rev/tac/uniq file operands in sync substitutions and brace loops (Wave 168)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(textProgramCommands());
+  const res = await shell.exec([
+    "printf \"alpha\\nbeta\\n\" > /tmp/f1.txt",
+    "printf \"gamma\\ndelta\\n\" > /tmp/f2.txt",
+    "printf \"x\\nx\\ny\\n\" > /tmp/dups.txt",
+    "tr_redir=$(tr 'a-z' 'A-Z' < /tmp/f1.txt | tr '\\n' ':')",
+    "sort_redir=$(sort -r < /tmp/f1.txt | tr '\\n' ':')",
+    "sed_redir=$(sed 's/a/A/g' < /tmp/f1.txt | head -n 1)",
+    "wc_redir=$(wc -l < /tmp/f1.txt | tr -d ' ')",
+    "rev_m=$(rev /tmp/f1.txt /tmp/f2.txt | tr '\\n' ':')",
+    "tac_m=$(tac /tmp/f1.txt /tmp/f2.txt | tr '\\n' ':')",
+    "uniq_p=$(uniq -c /tmp/dups.txt | tr -s ' ' | tr '\\n' ':')",
+    "loop_out=\"\"",
+    "for i in {1..2}; do",
+    "  item=$(rev /tmp/f$i.txt | head -n 1)",
+    "  loop_out=\"$loop_out$item|\"",
+    "done",
+    "echo \"$tr_redir|$sort_redir|$sed_redir|$wc_redir|$rev_m|$tac_m|$uniq_p|$loop_out\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "ALPHA:BETA:|beta:alpha:|AlphA|2|ahpla:ateb:ammag:atled:|beta:alpha:delta:gamma:| 2 x: 1 y:|ahpla|ammag|\n"
+  );
+});

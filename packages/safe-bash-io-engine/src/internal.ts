@@ -793,6 +793,9 @@ export function evalSyncCp(
   if (gnuInfo !== undefined) return gnuInfo;
   let verbose = false;
   let noTargetDir = false;
+  let noClobber = false;
+  let preserve = false;
+  let targetDir: string | undefined;
   let ended = false;
   const operands: string[] = [];
   for (let i = 0; i < opArgs.length; i++) {
@@ -804,38 +807,75 @@ export function evalSyncCp(
     if (a === "--") { ended = true; continue; }
     if (a === "-v" || a === "--verbose") { verbose = true; continue; }
     if (a === "-f" || a === "--force") continue;
+    if (a === "-n" || a === "--no-clobber") { noClobber = true; continue; }
+    if (a === "-p" || a === "--preserve") { preserve = true; continue; }
     if (a === "-T" || a === "--no-target-directory") { noTargetDir = true; continue; }
+    if (a === "-t" || a === "--target-directory" || a.startsWith("--target-directory=")) {
+      const td = a.startsWith("--target-directory=") ? a.slice(19) : opArgs[++i];
+      if (!td) return undefined;
+      targetDir = td;
+      continue;
+    }
     if (a.startsWith("-") && !a.startsWith("--")) {
       for (let j = 1; j < a.length; j++) {
         const ch = a[j]!;
         if (ch === "v") verbose = true;
         else if (ch === "f") continue;
+        else if (ch === "n") noClobber = true;
+        else if (ch === "p") preserve = true;
         else if (ch === "T") noTargetDir = true;
-        else return undefined;
+        else if (ch === "t") {
+          const rest = a.slice(j + 1) || opArgs[++i];
+          if (!rest) return undefined;
+          targetDir = rest;
+          break;
+        } else return undefined;
       }
       continue;
     }
     return undefined;
   }
-  if (operands.length !== 2 || !statTypeSync || !readFileSync || !writeFileSync) return undefined;
-  const src = operands[0]!;
-  let dst = operands[1]!;
-  if (statTypeSync(src) !== "file") return undefined;
-  const dstSt = statTypeSync(dst);
-  if (dstSt === "directory") {
-    if (noTargetDir) return undefined;
-    const base = src.replace(/\/+$/, "").split("/").pop() || "";
-    if (!base) return undefined;
-    dst = `${dst.replace(/\/+$/, "")}/${base}`;
+  if (!statTypeSync || !readFileSync || !writeFileSync || (noTargetDir && targetDir !== undefined)) return undefined;
+  let sources: string[];
+  let destBase: string;
+  let intoDir = false;
+  if (targetDir !== undefined) {
+    if (operands.length === 0 || statTypeSync(targetDir) !== "directory") return undefined;
+    sources = operands;
+    destBase = targetDir;
+    intoDir = true;
+  } else {
+    if (operands.length < 2) return undefined;
+    destBase = operands[operands.length - 1]!;
+    sources = operands.slice(0, -1);
+    const dstSt = statTypeSync(destBase);
+    if (dstSt === "directory") {
+      if (noTargetDir) return undefined;
+      intoDir = true;
+    } else if (operands.length > 2) {
+      return undefined;
+    }
   }
-  if (src === dst) return undefined;
-  const finalSt = statTypeSync(dst);
-  if (finalSt !== "missing" && finalSt !== "file") return undefined;
-  const srcMode = statModeSync ? statModeSync(src) : undefined;
-  const createMode = ((srcMode ?? 0o666) & 0o777) & ~umask;
-  const bytes = readFileSync(src);
-  if (!bytes || !writeFileSync(dst, bytes, false, createMode)) return undefined;
-  return verbose ? `'${src}' -> '${dst}'\n` : "";
+  let out = "";
+  for (const src of sources) {
+    if (statTypeSync(src) !== "file") return undefined;
+    let dst = destBase;
+    if (intoDir) {
+      const base = src.replace(/\/+$/, "").split("/").pop() || "";
+      if (!base) return undefined;
+      dst = `${destBase.replace(/\/+$/, "")}/${base}`;
+    }
+    if (src === dst) return undefined;
+    const finalSt = statTypeSync(dst);
+    if (finalSt !== "missing" && finalSt !== "file") return undefined;
+    if (finalSt === "file" && noClobber) continue;
+    const srcMode = statModeSync ? statModeSync(src) : undefined;
+    const createMode = preserve ? ((srcMode ?? 0o666) & 0o777) : (((srcMode ?? 0o666) & 0o777) & ~umask);
+    const bytes = readFileSync(src);
+    if (!bytes || !writeFileSync(dst, bytes, false, createMode)) return undefined;
+    if (verbose) out += `'${src}' -> '${dst}'\n`;
+  }
+  return out;
 }
 
 export function evalSyncMv(
@@ -850,6 +890,8 @@ export function evalSyncMv(
   if (gnuInfo !== undefined) return gnuInfo;
   let verbose = false;
   let noTargetDir = false;
+  let noClobber = false;
+  let targetDir: string | undefined;
   let ended = false;
   const operands: string[] = [];
   for (let i = 0; i < opArgs.length; i++) {
@@ -861,39 +903,74 @@ export function evalSyncMv(
     if (a === "--") { ended = true; continue; }
     if (a === "-v" || a === "--verbose") { verbose = true; continue; }
     if (a === "-f" || a === "--force") continue;
+    if (a === "-n" || a === "--no-clobber") { noClobber = true; continue; }
     if (a === "-T" || a === "--no-target-directory") { noTargetDir = true; continue; }
+    if (a === "-t" || a === "--target-directory" || a.startsWith("--target-directory=")) {
+      const td = a.startsWith("--target-directory=") ? a.slice(19) : opArgs[++i];
+      if (!td) return undefined;
+      targetDir = td;
+      continue;
+    }
     if (a.startsWith("-") && !a.startsWith("--")) {
       for (let j = 1; j < a.length; j++) {
         const ch = a[j]!;
         if (ch === "v") verbose = true;
         else if (ch === "f") continue;
+        else if (ch === "n") noClobber = true;
         else if (ch === "T") noTargetDir = true;
-        else return undefined;
+        else if (ch === "t") {
+          const rest = a.slice(j + 1) || opArgs[++i];
+          if (!rest) return undefined;
+          targetDir = rest;
+          break;
+        } else return undefined;
       }
       continue;
     }
     return undefined;
   }
-  if (operands.length !== 2 || !statTypeSync || !readFileSync || !writeFileSync || !rmSync) return undefined;
-  const src = operands[0]!;
-  let dst = operands[1]!;
-  if (statTypeSync(src) !== "file") return undefined;
-  const dstSt = statTypeSync(dst);
-  if (dstSt === "directory") {
-    if (noTargetDir) return undefined;
-    const base = src.replace(/\/+$/, "").split("/").pop() || "";
-    if (!base) return undefined;
-    dst = `${dst.replace(/\/+$/, "")}/${base}`;
+  if (!statTypeSync || !readFileSync || !writeFileSync || !rmSync || (noTargetDir && targetDir !== undefined)) return undefined;
+  let sources: string[];
+  let destBase: string;
+  let intoDir = false;
+  if (targetDir !== undefined) {
+    if (operands.length === 0 || statTypeSync(targetDir) !== "directory") return undefined;
+    sources = operands;
+    destBase = targetDir;
+    intoDir = true;
+  } else {
+    if (operands.length < 2) return undefined;
+    destBase = operands[operands.length - 1]!;
+    sources = operands.slice(0, -1);
+    const dstSt = statTypeSync(destBase);
+    if (dstSt === "directory") {
+      if (noTargetDir) return undefined;
+      intoDir = true;
+    } else if (operands.length > 2) {
+      return undefined;
+    }
   }
-  if (src === dst) return undefined;
-  const finalSt = statTypeSync(dst);
-  if (finalSt !== "missing" && finalSt !== "file") return undefined;
-  const srcMode = statModeSync ? statModeSync(src) : undefined;
-  const bytes = readFileSync(src);
-  if (!bytes) return undefined;
-  if (finalSt === "file" && !rmSync(dst)) return undefined;
-  if (!writeFileSync(dst, bytes, false, srcMode) || !rmSync(src)) return undefined;
-  return verbose ? `renamed '${src}' -> '${dst}'\n` : "";
+  let out = "";
+  for (const src of sources) {
+    if (statTypeSync(src) !== "file") return undefined;
+    let dst = destBase;
+    if (intoDir) {
+      const base = src.replace(/\/+$/, "").split("/").pop() || "";
+      if (!base) return undefined;
+      dst = `${destBase.replace(/\/+$/, "")}/${base}`;
+    }
+    if (src === dst) return undefined;
+    const finalSt = statTypeSync(dst);
+    if (finalSt !== "missing" && finalSt !== "file") return undefined;
+    if (finalSt === "file" && noClobber) continue;
+    const srcMode = statModeSync ? statModeSync(src) : undefined;
+    const bytes = readFileSync(src);
+    if (!bytes) return undefined;
+    if (finalSt === "file" && !rmSync(dst)) return undefined;
+    if (!writeFileSync(dst, bytes, false, srcMode) || !rmSync(src)) return undefined;
+    if (verbose) out += `renamed '${src}' -> '${dst}'\n`;
+  }
+  return out;
 }
 
 export function evalSyncRmdir(
@@ -905,6 +982,8 @@ export function evalSyncRmdir(
   const gnuInfo = gnuInfoSyncInternal("rmdir", opArgs);
   if (gnuInfo !== undefined) return gnuInfo;
   let verbose = false;
+  let parents = false;
+  let ignoreNonEmpty = false;
   let ended = false;
   const operands: string[] = [];
   for (let i = 0; i < opArgs.length; i++) {
@@ -915,19 +994,50 @@ export function evalSyncRmdir(
     }
     if (a === "--") { ended = true; continue; }
     if (a === "-v" || a === "--verbose") { verbose = true; continue; }
+    if (a === "-p" || a === "--parents") { parents = true; continue; }
+    if (a === "--ignore-fail-on-non-empty") { ignoreNonEmpty = true; continue; }
+    if (a.startsWith("-") && !a.startsWith("--")) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "v") verbose = true;
+        else if (ch === "p") parents = true;
+        else return undefined;
+      }
+      continue;
+    }
     return undefined;
   }
   if (operands.length === 0 || !statTypeSync || !listDirSync || !rmSync) return undefined;
-  for (const dir of operands) {
-    if (dir === "/" || dir === "." || dir === ".." || dir.endsWith("/.") || dir.endsWith("/..")) return undefined;
-    if (statTypeSync(dir) !== "directory") return undefined;
-    const entries = listDirSync(dir);
-    if (!entries || ("size" in entries ? entries.size !== 0 : entries.length !== 0)) return undefined;
+  const plan: string[][] = [];
+  for (const rawDir of operands) {
+    const chain: string[] = [];
+    let cur = rawDir;
+    while (true) {
+      if (cur === "/" || cur === "." || cur === ".." || cur.endsWith("/.") || cur.endsWith("/..")) return undefined;
+      if (statTypeSync(cur) !== "directory") return undefined;
+      const entries = listDirSync(cur);
+      if (!entries) return undefined;
+      const count = "size" in entries ? entries.size : entries.length;
+      const expectedCount = chain.length === 0 ? 0 : 1;
+      if (count !== expectedCount) {
+        if (ignoreNonEmpty) break;
+        return undefined;
+      }
+      chain.push(cur);
+      if (!parents) break;
+      const trimmed = cur.replace(/\/+$/, "");
+      const slash = trimmed.lastIndexOf("/");
+      if (slash <= 0) break;
+      cur = trimmed.slice(0, slash);
+    }
+    plan.push(chain);
   }
   let out = "";
-  for (const dir of operands) {
-    if (!rmSync(dir)) return undefined;
-    if (verbose) out += `rmdir: removing directory, '${dir}'\n`;
+  for (const chain of plan) {
+    for (const cur of chain) {
+      if (!rmSync(cur)) return undefined;
+      if (verbose) out += `rmdir: removing directory, '${cur}'\n`;
+    }
   }
   return out;
 }
@@ -1005,7 +1115,6 @@ export function evalSyncMkdir(
     if (!/^[0-7]{1,4}$/.test(modeSpec)) return undefined;
     mode = Number.parseInt(modeSpec, 8);
   }
-  if (verbose && parents) return undefined;
   for (const dir of operands) {
     const st = statTypeSync(dir);
     if (parents) {
@@ -1016,6 +1125,21 @@ export function evalSyncMkdir(
   }
   let out = "";
   for (const dir of operands) {
+    if (parents && verbose) {
+      const parts = dir.split("/").filter(Boolean);
+      let cur = dir.startsWith("/") ? "" : ".";
+      for (let idx = 0; idx < parts.length; idx++) {
+        const part = parts[idx]!;
+        cur = cur === "" ? "/" + part : cur === "." ? part : cur + "/" + part;
+        const st = statTypeSync(cur);
+        if (st === "directory") continue;
+        if (st !== "missing") return undefined;
+        const stepMode = idx === parts.length - 1 ? mode : (0o777 & ~umask);
+        if (!mkdirSync(cur, false, stepMode)) return undefined;
+        out += `mkdir: created directory '${cur}'\n`;
+      }
+      continue;
+    }
     const st = statTypeSync(dir);
     if (parents && st === "directory") continue;
     if (!mkdirSync(dir, parents, mode)) return undefined;

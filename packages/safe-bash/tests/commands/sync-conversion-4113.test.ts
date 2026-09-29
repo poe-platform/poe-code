@@ -824,3 +824,26 @@ test("evaluates dd of=/seek=/iflag=/oflag=/conv=notrunc, install -D/-t/-b, and s
     "__3456____#install: creating directory '/tmp/w198_dir',install: creating directory '/tmp/w198_dir/sub','/tmp/w198.in' -> '/tmp/w198_dir/sub/out.txt',#pass#0123456789tail\n",
   );
 });
+
+test("evaluates cp/mv -t/--target-directory/-n and multi-source, mkdir -pv, and rmdir -pv in sync substitutions (Wave 199)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands());
+  const r = await shell.exec(
+    [
+      "mk_res=$(mkdir -pv /tmp/w199/sub | tr \"\\n\" \",\")",
+      "printf \"a\" > /tmp/w199_1.txt && printf \"b\" > /tmp/w199_2.txt",
+      "cp_res=$(cp -v -t /tmp/w199/sub /tmp/w199_1.txt /tmp/w199_2.txt | tr \"\\n\" \",\")",
+      "mkdir -p /tmp/w199_dst",
+      "mv_res=$(mv -v -t /tmp/w199_dst /tmp/w199_1.txt /tmp/w199_2.txt | tr \"\\n\" \",\")",
+      "mkdir -p /tmp/w199_rm/inner",
+      "rmd_res=$(rmdir -pv --ignore-fail-on-non-empty /tmp/w199_rm/inner | tr \"\\n\" \",\")",
+      "printf \"%s#%s#%s#%s\\n\" \"$mk_res\" \"$cp_res\" \"$mv_res\" \"$rmd_res\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "mkdir: created directory '/tmp/w199',mkdir: created directory '/tmp/w199/sub',#'/tmp/w199_1.txt' -> '/tmp/w199/sub/w199_1.txt','/tmp/w199_2.txt' -> '/tmp/w199/sub/w199_2.txt',#renamed '/tmp/w199_1.txt' -> '/tmp/w199_dst/w199_1.txt',renamed '/tmp/w199_2.txt' -> '/tmp/w199_dst/w199_2.txt',#rmdir: removing directory, '/tmp/w199_rm/inner',rmdir: removing directory, '/tmp/w199_rm',\n",
+  );
+});

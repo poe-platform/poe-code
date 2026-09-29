@@ -24512,7 +24512,7 @@ export class Runtime {
   }
 
   private evalSyncGrep(rawLines: readonly string[], opArgs: readonly string[], errexit: boolean): { lines: string[]; status: number } | undefined {
-    if (errexit || opArgs.length < 1 || opArgs.length > 8) return undefined;
+    if (errexit || opArgs.length < 1 || opArgs.length > 24) return undefined;
     let mode = "";
     let maxCount = Infinity;
     let beforeCtx = 0;
@@ -24545,7 +24545,7 @@ export class Runtime {
         maxCount = Number(a.slice(2));
       } else if (a.startsWith("--max-count=") && /^[1-9][0-9]{0,5}$/.test(a.slice(12))) {
         maxCount = Number(a.slice(12));
-      } else if (a.startsWith("--") && a !== "--" && rawPatterns.length === 0 && i < opArgs.length - 1) {
+      } else if (a.startsWith("--") && a !== "--") {
         if (a === "--extended-regexp") mode += "E";
         else if (a === "--fixed-strings") mode += "F";
         else if (a === "--ignore-case") mode += "i";
@@ -24556,9 +24556,9 @@ export class Runtime {
         else if (a === "--word-regexp") mode += "w";
         else if (a === "--line-regexp") mode += "x";
         else return undefined;
-      } else if (a.startsWith("-") && a !== "-" && a !== "--" && rawPatterns.length === 0 && i < opArgs.length - 1) {
+      } else if (a.startsWith("-") && a !== "-" && a !== "--") {
         mode += a.slice(1);
-      } else if (!a.startsWith("-") && rawPatterns.length === 0 && i === opArgs.length - 1) {
+      } else if (!a.startsWith("-") && rawPatterns.length === 0) {
         rawPatterns.push(a);
       } else {
         return undefined;
@@ -24584,20 +24584,23 @@ export class Runtime {
     if (isCount && (isLineNumber || isOnlyMatching || beforeCtx > 0 || afterCtx > 0)) return undefined;
     if (isOnlyMatching && (beforeCtx > 0 || afterCtx > 0)) return undefined;
     if (isOnlyMatching) {
-      if (rawPatterns.length !== 1 || isInvert || isLineRegexp || isWordRegexp || isFixed) return undefined;
+      if (rawPatterns.length !== 1 || isInvert || isLineRegexp) return undefined;
       const pat = rawPatterns[0]!;
       const reFlags = isCaseInsensitive ? "gi" : "g";
       let re: RegExp | undefined;
-      // JS alternatives are ordered; only literal alternatives below can be
-      // sorted to implement grep's leftmost-longest choice. Other alternatives
-      // use the command's POSIX matcher through the normal fallback.
-      if (isExtended && !pat.includes("|") && /^[a-zA-Z0-9_ :;,=.+*?()^\-[\]]+$/.test(pat) && !/\([^)]*[+*][^)]*\)[+*?]/.test(pat)) {
-        try { re = new RegExp(pat, reFlags); } catch { re = undefined; }
+      const wrapWord = (src: string): string => isWordRegexp ? `\\b(?:${src})\\b` : src;
+      if (isFixed) {
+        if (pat.length > 0 && !pat.includes("\n")) {
+          const esc = pat.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          re = new RegExp(wrapWord(esc), reFlags);
+        }
+      } else if (isExtended && !pat.includes("|") && /^[a-zA-Z0-9_ :;,=.+*?()^\-[\]]+$/.test(pat) && !/\([^)]*[+*][^)]*\)[+*?]/.test(pat)) {
+        try { re = new RegExp(wrapWord(pat), reFlags); } catch { re = undefined; }
       } else {
         const branches = isExtended ? pat.split("|") : [pat];
         if (branches.every(b => b.length > 0 && /^[a-zA-Z0-9_ :;,/-]+$/.test(b))) {
           branches.sort((a, b) => b.length - a.length);
-          re = new RegExp(branches.join("|"), reFlags);
+          re = new RegExp(wrapWord(branches.join("|")), reFlags);
         }
       }
       if (!re) return undefined;
@@ -24761,6 +24764,18 @@ export class Runtime {
       if (a.startsWith("-e") && a.length > 2) {
         hasExplicitPattern = true;
         coreArgs.push(a);
+        continue;
+      }
+      if (a === "-f" || a.startsWith("-f") || a.startsWith("--file=")) {
+        const pFile = a === "-f" ? allArgs[++i] : (a.startsWith("--file=") ? a.slice(7) : a.slice(2));
+        if (!pFile) return undefined;
+        const pfView = this.tryReadMemoryFileViewSync(resolvePath(cwd, pFile), true, true);
+        if (!pfView || pfView.byteLength === 0 || pfView.byteLength > 4096 || pfView.includes(0)) return undefined;
+        const pfStr = sharedSyncPipeDecoder.decode(pfView);
+        const pfLines = pfStr.endsWith("\n") ? pfStr.slice(0, -1).split("\n") : pfStr.split("\n");
+        if (pfLines.length === 0 || pfLines.some(l => l.length === 0)) return undefined;
+        hasExplicitPattern = true;
+        for (const pl of pfLines) coreArgs.push("-e", pl);
         continue;
       }
       if ((a === "-m" || a === "-A" || a === "-B" || a === "-C") && i + 1 < allArgs.length) {

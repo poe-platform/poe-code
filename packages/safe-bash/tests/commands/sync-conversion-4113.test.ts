@@ -330,3 +330,29 @@ test("evaluates standalone awk BEGIN blocks (with -v vars, arithmetic, print, pr
     "42|3.75|val=30|beta|010,020,030,\n"
   );
 });
+
+test("evaluates grep -f pattern files, flags after -e, and -Fo/-Ewo only-matching in sync substitutions, pipelines, and brace loops (Wave 174)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(textProgramCommands());
+  const res = await shell.exec([
+    "printf 'alpha\\ngamma\\n' > /tmp/pats.txt",
+    "printf 'alpha_1\\nbeta_2\\ngamma_3\\nDELTA_4\\n' > /tmp/data.txt",
+    "g_file=$(grep -f /tmp/pats.txt /tmp/data.txt | tr '\\n' ',')",
+    "g_ff=$(grep -Ff /tmp/pats.txt /tmp/data.txt | wc -l | tr -d ' ')",
+    "g_post=$(grep -e alpha -e delta -i /tmp/data.txt | tr '\\n' ',')",
+    "g_fo=$(grep -Fo 'a.b' <<< 'a.b axb a.b' | tr '\\n' ',')",
+    "g_wo=$(grep -Ewo '[a-z]{3}' <<< 'cat cats dog dogs' | tr '\\n' ',')",
+    "loop_out=''",
+    "for k in 1 2; do",
+    "  m=$(grep -f /tmp/pats.txt /tmp/data.txt | tail -n 1)",
+    "  loop_out=\"${loop_out}${m};\"",
+    "done",
+    "echo \"$g_file|$g_ff|$g_post|$g_fo|$g_wo|$loop_out\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "alpha_1,gamma_3,|2|alpha_1,DELTA_4,|a.b,a.b,|cat,dog,|gamma_3;gamma_3;\n"
+  );
+});

@@ -1,3 +1,4 @@
+import { treeCommands } from "../../src/commands/tree/index.js";
 import { fdCommands } from "../../src/commands/fd/index.js";
 import { searchCommands } from "../../src/commands/search/index.js";
 import { bcCommands } from "../../src/commands/bc/index.js";
@@ -627,5 +628,24 @@ test("evaluates rg -o/-w/-x/-r replacement/multiple -e and fd -E exclude/-S size
   assert.equal(
     r.stdout,
     "::tmp::w190::keep::app.ts#alice:42,bob:99,#apple,cherry,\n",
+  );
+});
+
+test("evaluates ls --group-directories-first/-X/-B/-I/-m/-R and tree --dirsfirst/-P/-I/-F in sync substitutions (Wave 191)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(treeCommands());
+  const r = await shell.exec(
+    [
+      "mkdir -p /tmp/w191/zdir && printf \"a\" > /tmp/w191/file.b && printf \"b\" > /tmp/w191/file.a && printf \"bak\" > /tmp/w191/file.a~ && printf \"skip\" > /tmp/w191/ignore.me",
+      "ls_df=$(ls --group-directories-first -B -I '*.me' -X -m /tmp/w191)",
+      "tr_df=$(tree --dirsfirst --noreport -I '*.me|*'~ -P '*.a' -F /tmp/w191 | tr '\\n' ',')",
+      "printf \"%s#%s\\n\" \"$ls_df\" \"$tr_df\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "zdir, file.a, file.b#/tmp/w191/,├── zdir/,└── file.a,\n",
   );
 });

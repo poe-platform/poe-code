@@ -47,6 +47,8 @@ export function evalSyncTree(
 ): string | undefined {
   let showAll = false;
   let dirsOnly = false;
+  let dirsFirst = false;
+  let classify = false;
   let fullPath = false;
   let noIndent = false;
   let noReport = false;
@@ -54,17 +56,37 @@ export function evalSyncTree(
   let versionSort = false;
   let ascii = false;
   let maxLevel = Infinity;
+  const includePatterns: RegExp[] = [];
+  const excludePatterns: RegExp[] = [];
   const operands: string[] = [];
   let endOpts = false;
+
+  const compileTreeGlob = (pat: string): RegExp | undefined => {
+    const alts = pat.split("|");
+    const rxParts: string[] = [];
+    for (const alt of alts) {
+      let rx = "^";
+      for (let k = 0; k < alt.length; k++) {
+        const ch = alt[k]!;
+        if (ch === "*") rx += ".*";
+        else if (ch === "?") rx += ".";
+        else if (".^$+()[]{}|\\".includes(ch)) rx += "\\" + ch;
+        else rx += ch;
+      }
+      rx += "$";
+      rxParts.push(rx);
+    }
+    try { return new RegExp(rxParts.join("|")); } catch { return undefined; }
+  };
 
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
     if (!endOpts && a === "--") { endOpts = true; continue; }
     if (!endOpts && a.startsWith("--") && a.length > 2) {
       if (a === "--noreport") noReport = true;
+      else if (a === "--dirsfirst") dirsFirst = true;
       else if (a === "--charset=ascii" || a === "--charset=ANSI") ascii = true;
       else if (a === "--charset" && i + 1 < args.length && (args[i + 1] === "ascii" || args[i + 1] === "ANSI")) { ascii = true; i++; }
-      else if (a === "--dirsfirst") return undefined;
       else return undefined;
       continue;
     }
@@ -74,6 +96,7 @@ export function evalSyncTree(
         if (ch === "a") showAll = true;
         else if (ch === "d") dirsOnly = true;
         else if (ch === "f") fullPath = true;
+        else if (ch === "F") classify = true;
         else if (ch === "i") noIndent = true;
         else if (ch === "r") reverseSort = true;
         else if (ch === "v") versionSort = true;
@@ -82,6 +105,14 @@ export function evalSyncTree(
           const val = a.slice(j + 1) || args[++i];
           if (!val || !/^\d+$/u.test(val) || Number(val) < 1) return undefined;
           maxLevel = Number(val);
+          j = a.length;
+        } else if (ch === "P" || ch === "I") {
+          const val = a.slice(j + 1) || args[++i];
+          if (!val) return undefined;
+          const re = compileTreeGlob(val);
+          if (!re) return undefined;
+          if (ch === "P") includePatterns.push(re);
+          else excludePatterns.push(re);
           j = a.length;
         } else return undefined;
       }
@@ -100,8 +131,12 @@ export function evalSyncTree(
   let fileCount = 0;
   const lines: string[] = [];
 
-  const sortEntries = <T extends { readonly name: string }>(arr: T[]): T[] => {
+  const sortEntries = <T extends { readonly name: string; readonly type: "file" | "directory" | "symlink" }>(arr: T[]): T[] => {
     const sorted = [...arr].sort((x, y) => {
+      if (dirsFirst && x.type !== y.type) {
+        if (x.type === "directory") return -1;
+        if (y.type === "directory") return 1;
+      }
       const cmp = versionSort ? compareVersions(new TextEncoder().encode(x.name), new TextEncoder().encode(y.name)) : (x.name < y.name ? -1 : x.name > y.name ? 1 : 0);
       return reverseSort ? -cmp : cmp;
     });
@@ -116,6 +151,8 @@ export function evalSyncTree(
       node.children.filter(c => {
         if (!showAll && c.name.startsWith(".")) return false;
         if (dirsOnly && c.type !== "directory") return false;
+        if (excludePatterns.length > 0 && excludePatterns.some(re => re.test(c.name))) return false;
+        if (includePatterns.length > 0 && c.type !== "directory" && !includePatterns.every(re => re.test(c.name))) return false;
         return true;
       })
     );
@@ -124,7 +161,8 @@ export function evalSyncTree(
       const isLast = idx === filtered.length - 1;
       const childAbs = absPath === "/" ? `/${entry.name}` : `${absPath}/${entry.name}`;
       const childDisplay = displayPrefix === "/" ? `/${entry.name}` : `${displayPrefix}/${entry.name}`;
-      const label = (fullPath ? childDisplay : entry.name) + (entry.type === "symlink" && entry.target !== undefined ? ` -> ${entry.target}` : "");
+      const typeSuffix = classify ? (entry.type === "directory" ? "/" : entry.type === "symlink" ? "@" : "") : "";
+      const label = (fullPath ? childDisplay : entry.name) + typeSuffix + (entry.type === "symlink" && entry.target !== undefined ? ` -> ${entry.target}` : "");
       const prefix = noIndent ? "" : (indent + (isLast ? branchEnd : branchMid));
       lines.push(prefix + label);
       if (entry.type === "directory") {
@@ -144,7 +182,7 @@ export function evalSyncTree(
     const rootNode = inspectNode(abs);
     if (!rootNode || rootNode.type !== "directory") return undefined;
     const cleanDisplay = op.length > 1 && op.endsWith("/") ? op.replace(/\/+$/u, "") || "/" : op;
-    lines.push(cleanDisplay);
+    lines.push(cleanDisplay + (classify ? "/" : ""));
     if (!walkDir(abs, cleanDisplay, "", 1)) return undefined;
   }
 

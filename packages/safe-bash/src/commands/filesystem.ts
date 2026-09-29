@@ -1602,33 +1602,81 @@ export function evalSyncLs(
   let hidden: "none" | "all" | "almost-all" = "none";
   let dirItself = false;
   let reverse = false;
-  let sortMode: "name" | "size" | "none" = "name";
+  let recursive = false;
+  let commaStream = false;
+  let dirsFirst = false;
+  let ignoreBackups = false;
+  const ignorePatterns: RegExp[] = [];
+  let sortMode: "name" | "size" | "extension" | "none" = "name";
   let indicator: "none" | "slash" | "file-type" | "classify" = "none";
   const operands: string[] = [];
   let endOpts = false;
 
+  const globToRegExp = (pat: string): RegExp | undefined => {
+    let rx = "^";
+    for (let k = 0; k < pat.length; k++) {
+      const ch = pat[k]!;
+      if (ch === "*") rx += ".*";
+      else if (ch === "?") rx += ".";
+      else if (".^$+()[]{}|\\".includes(ch)) rx += "\\" + ch;
+      else rx += ch;
+    }
+    rx += "$";
+    try { return new RegExp(rx); } catch { return undefined; }
+  };
+
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
     if (!endOpts && a === "--") { endOpts = true; continue; }
+    if (!endOpts && (a === "-I" || a === "--ignore" || a === "--hide")) {
+      if (i + 1 >= args.length) return undefined;
+      const re = globToRegExp(args[++i]!);
+      if (!re) return undefined;
+      ignorePatterns.push(re);
+      continue;
+    }
+    if (!endOpts && (a.startsWith("--ignore=") || a.startsWith("--hide="))) {
+      const val = a.slice(a.indexOf("=") + 1);
+      const re = globToRegExp(val);
+      if (!re) return undefined;
+      ignorePatterns.push(re);
+      continue;
+    }
+    if (!endOpts && a.startsWith("-I") && a.length > 2) {
+      const re = globToRegExp(a.slice(2));
+      if (!re) return undefined;
+      ignorePatterns.push(re);
+      continue;
+    }
     if (!endOpts && a.startsWith("--") && a.length > 2) {
       if (a === "--all") hidden = "all";
       else if (a === "--almost-all") hidden = "almost-all";
       else if (a === "--directory") dirItself = true;
       else if (a === "--reverse") reverse = true;
+      else if (a === "--recursive") recursive = true;
+      else if (a === "--group-directories-first") dirsFirst = true;
+      else if (a === "--ignore-backups") ignoreBackups = true;
       else if (a === "--classify") indicator = "classify";
       else if (a === "--file-type") indicator = "file-type";
+      else if (a === "--sort=size") sortMode = "size";
+      else if (a === "--sort=extension") sortMode = "extension";
+      else if (a === "--sort=none") sortMode = "none";
       else return undefined;
       continue;
     }
     if (!endOpts && a.startsWith("-") && a.length > 1) {
       for (let j = 1; j < a.length; j++) {
         const ch = a[j]!;
-        if (ch === "1") { /* This path already emits one entry per line. */ }
+        if (ch === "1") { /* One entry per line is default in non-tty sync mode unless -m. */ }
         else if (ch === "a") hidden = "all";
         else if (ch === "A") hidden = "almost-all";
+        else if (ch === "B") ignoreBackups = true;
         else if (ch === "d") dirItself = true;
+        else if (ch === "m") commaStream = true;
         else if (ch === "r") reverse = true;
+        else if (ch === "R") recursive = true;
         else if (ch === "S") sortMode = "size";
+        else if (ch === "X") sortMode = "extension";
         else if (ch === "U") sortMode = "none";
         else if (ch === "p") indicator = "slash";
         else if (ch === "F") indicator = "classify";
@@ -1657,24 +1705,79 @@ export function evalSyncLs(
   if (dirItself || st.type !== "directory") {
     return `${target}${suffixFor(st.type, st.mode)}\n`;
   }
-  if (!st.children) return undefined;
-  const items: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }> = [];
-  if (hidden === "all") {
-    items.push({ name: ".", type: "directory", size: 0, mode: st.mode });
-    items.push({ name: "..", type: "directory", size: 0, mode: st.mode });
-  }
-  for (const c of st.children) {
-    if (hidden === "none" && c.name.startsWith(".")) continue;
-    items.push(c);
-  }
-  if (sortMode !== "none") {
-    items.sort((x, y) => {
+
+  const getExt = (name: string): string => {
+    const dot = name.lastIndexOf(".");
+    return dot > 0 ? name.slice(dot + 1) : "";
+  };
+
+  const sortItems = <T extends { name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }>(items: T[]): T[] => {
+    if (sortMode === "none" && !dirsFirst) return items;
+    return [...items].sort((x, y) => {
+      if (dirsFirst && x.type !== y.type) {
+        if (x.type === "directory") return -1;
+        if (y.type === "directory") return 1;
+      }
+      if (sortMode === "none") return 0;
       let cmp = 0;
       if (sortMode === "size") cmp = y.size - x.size;
+      else if (sortMode === "extension") {
+        const ex = getExt(x.name);
+        const ey = getExt(y.name);
+        cmp = ex < ey ? -1 : ex > ey ? 1 : 0;
+      }
       if (cmp === 0) cmp = x.name < y.name ? -1 : x.name > y.name ? 1 : 0;
       return reverse ? -cmp : cmp;
     });
+  };
+
+  const listDirItems = (dirStat: SyncFsStatNode) => {
+    if (!dirStat.children) return undefined;
+    const items: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }> = [];
+    if (hidden === "all") {
+      items.push({ name: ".", type: "directory", size: 0, mode: dirStat.mode });
+      items.push({ name: "..", type: "directory", size: 0, mode: dirStat.mode });
+    }
+    for (const c of dirStat.children) {
+      if (hidden === "none" && c.name.startsWith(".")) continue;
+      if (ignoreBackups && c.name.endsWith("~")) continue;
+      if (ignorePatterns.length > 0 && ignorePatterns.some(re => re.test(c.name))) continue;
+      items.push(c);
+    }
+    return sortItems(items);
+  };
+
+  const formatItems = (items: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }>): string => {
+    if (items.length === 0) return "";
+    const rendered = items.map(it => `${it.name}${suffixFor(it.type, it.mode)}`);
+    return commaStream ? rendered.join(", ") + "\n" : rendered.join("\n") + "\n";
+  };
+
+  if (!recursive) {
+    const items = listDirItems(st);
+    if (!items) return undefined;
+    return formatItems(items);
   }
-  if (items.length === 0) return "";
-  return items.map(it => `${it.name}${suffixFor(it.type, it.mode)}`).join("\n") + "\n";
+
+  const sections: string[] = [];
+  const walkRec = (dirAbs: string, dispPath: string, depth: number): boolean => {
+    if (depth > 32) return false;
+    const dStat = inspectStat(dirAbs, false);
+    if (!dStat || dStat.type !== "directory") return false;
+    const items = listDirItems(dStat);
+    if (!items) return false;
+    const body = formatItems(items);
+    sections.push(`${dispPath}:\n${body}`.replace(/\n$/, ""));
+    for (const it of items) {
+      if (it.name === "." || it.name === "..") continue;
+      if (it.type === "directory") {
+        const nextAbs = dirAbs === "/" ? `/${it.name}` : `${dirAbs}/${it.name}`;
+        const nextDisp = dispPath === "/" ? `/${it.name}` : `${dispPath.replace(/\/+$/, "")}/${it.name}`;
+        if (!walkRec(nextAbs, nextDisp, depth + 1)) return false;
+      }
+    }
+    return true;
+  };
+  if (!walkRec(abs, target, 0)) return undefined;
+  return sections.join("\n\n") + "\n";
 }

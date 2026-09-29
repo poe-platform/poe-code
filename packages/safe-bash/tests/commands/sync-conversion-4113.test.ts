@@ -23,25 +23,25 @@ import { printenvCommands } from "../../src/commands/printenv/index.js";
 import { pathchkCommands } from "../../src/commands/pathchk/index.js";
 import { getoptCommands } from "../../src/commands/getopt/index.js";
 import { calCommands } from "../../src/commands/cal/index.js";
-import { htmlToMarkdownCommands } from "../../src/commands/html-to-markdown/index.ts";
-import { htmlqCommands } from "../../src/commands/htmlq/index.ts";
-import { whichCommands } from "../../src/commands/which/index.ts";
-import { csvkitCommands, evalSyncCsvstack, evalSyncCsvjoin, evalSyncIn2csv } from "../../src/commands/csvkit/index.ts";
-import { xmlCommands } from "../../src/commands/xml/index.ts";
-import { yqCommands } from "../../src/commands/yq/index.ts";
-import { ddCommands } from "../../src/commands/dd/index.ts";
-import { installCommands } from "../../src/commands/install/index.ts";
-import { spongeCommands } from "../../src/commands/sponge/index.ts";
-import { csplitCommands } from "../../src/commands/csplit/index.ts";
-import { lessCommands } from "../../src/commands/less/index.ts";
-import { fileCommands } from "../../src/commands/file/index.ts";
-import { archiveCommands, evalSyncTar } from "../../src/commands/archive/index.ts";
-import { splitCommands } from "../../src/commands/split/index.ts";
-import { prCommands } from "../../src/commands/pr/index.ts";
-import { mdqCommands } from "../../src/commands/mdq/index.ts";
-import { timeEnvCommands } from "../../src/commands/time-env/index.ts";
-import { xanCommands } from "../../src/commands/xan/index.ts";
-import { csvgrepCommands } from "../../src/commands/csvgrep/index.ts";
+import { htmlToMarkdownCommands } from "../../src/commands/html-to-markdown/index.js";
+import { htmlqCommands } from "../../src/commands/htmlq/index.js";
+import { whichCommands } from "../../src/commands/which/index.js";
+import { csvkitCommands, evalSyncCsvstack, evalSyncCsvjoin, evalSyncIn2csv } from "../../src/commands/csvkit/index.js";
+import { xmlCommands } from "../../src/commands/xml/index.js";
+import { yqCommands } from "../../src/commands/yq/index.js";
+import { ddCommands } from "../../src/commands/dd/index.js";
+import { installCommands } from "../../src/commands/install/index.js";
+import { spongeCommands } from "../../src/commands/sponge/index.js";
+import { csplitCommands } from "../../src/commands/csplit/index.js";
+import { lessCommands } from "../../src/commands/less/index.js";
+import { fileCommands } from "../../src/commands/file/index.js";
+import { archiveCommands, evalSyncTar } from "../../src/commands/archive/index.js";
+import { splitCommands } from "../../src/commands/split/index.js";
+import { prCommands } from "../../src/commands/pr/index.js";
+import { mdqCommands } from "../../src/commands/mdq/index.js";
+import { timeEnvCommands } from "../../src/commands/time-env/index.js";
+import { xanCommands } from "../../src/commands/xan/index.js";
+import { csvgrepCommands } from "../../src/commands/csvgrep/index.js";
 import { duCommands } from "../../src/commands/du/index.js";
 import { diffPatchCommands } from "../../src/commands/diff-patch/index.js";
 import { treeCommands } from "../../src/commands/tree/index.js";
@@ -1550,7 +1550,7 @@ test("Wave 224: realpath/readlink physical symlink .. traversal, stat %U/%G/%m/-
   await memFs.mkdir("/tmp/w224/sub/deep", { recursive: true });
   await memFs.writeFile("/tmp/w224/sub/sibling.txt", new TextEncoder().encode("ok\n"));
   await memFs.symlink("/tmp/w224/sub/deep", "/tmp/w224/link");
-  const { dfCommands } = await import("../../src/commands/df/index.ts");
+  const { dfCommands } = await import("../../src/commands/df/index.js");
   const shell = new Shell({ fs: memFs, cwd: "/tmp/w224" })
     .use(standardCommands())
     .use(metadataCommands())
@@ -1616,8 +1616,8 @@ test("Wave 226: sqlite3 file database persistence, .dump/.save/.read, and openss
     "/tmp/w226/init.sql",
     new TextEncoder().encode("CREATE TABLE items(id INT, label TEXT);\nINSERT INTO items VALUES(1, 'alpha');\n")
   );
-  const { sqlite3Commands } = await import("../../src/commands/sqlite3/index.ts");
-  const { opensslCommands } = await import("../../src/commands/openssl/index.ts");
+  const { sqlite3Commands } = await import("../../src/commands/sqlite3/index.js");
+  const { opensslCommands } = await import("../../src/commands/openssl/index.js");
   const shell = new Shell({ fs: memFs, cwd: "/tmp/w226" })
     .use(standardCommands())
     .use(sqlite3Commands())
@@ -1643,7 +1643,7 @@ test("Wave 226: sqlite3 file database persistence, .dump/.save/.read, and openss
 test("Wave 227: apply_patch Delete File, Move to, and nested Add File in sync substitutions", async () => {
   const memFs = new MemoryFileSystem();
   await memFs.mkdir("/tmp/w227", { recursive: true });
-  const { applyPatchCommands } = await import("../../src/commands/apply-patch/index.ts");
+  const { applyPatchCommands } = await import("../../src/commands/apply-patch/index.js");
   const shell = new Shell({ fs: memFs, cwd: "/tmp/w227" })
     .use(standardCommands())
     .use(applyPatchCommands());

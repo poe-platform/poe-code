@@ -98,6 +98,40 @@
         "options",
         "set",
         "tiny",
+        "temperature",
+        "bad"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: temperature\n  Input should be a valid number, unable to parse string as a number\n",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n",
+        "model_options.json": "{\n  \"fixture-chat\": {\n    \"temperature\": \"0.5\"\n  }\n}"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "tiny",
+        "unknown",
+        "value"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: unknown\n  Extra inputs are not permitted\n",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n",
+        "model_options.json": "{\n  \"fixture-chat\": {\n    \"temperature\": \"0.5\"\n  }\n}"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "tiny",
         "seed",
         "7"
       ],

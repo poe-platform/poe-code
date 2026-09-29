@@ -11,11 +11,18 @@ export interface LlmProvider {
   complete(request: LlmRequest): AsyncIterable<string | Uint8Array, LlmResponseMetadata | void>;
   embed?(request: LlmEmbeddingRequest): Promise<LlmEmbeddingResponse>;
 }
+export interface LlmModelOption {
+  readonly type: "number" | "integer" | "boolean" | "string";
+  readonly minimum?: number;
+  readonly maximum?: number;
+  readonly nullable?: boolean;
+}
 export interface LlmModel {
   readonly id: string;
   readonly aliases?: readonly string[];
   readonly attachmentTypes?: readonly string[];
   readonly outputType?: string;
+  readonly options?: Readonly<Record<string, LlmModelOption>>;
   readonly capabilities?: readonly LlmCapability[];
 }
 export interface LlmEmbeddingRequest {

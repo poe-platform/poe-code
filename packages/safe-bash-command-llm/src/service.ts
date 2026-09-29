@@ -1,3 +1,4 @@
+import { validateModelOptions } from "./model-options.js";
 import { acceptsMimeType } from "./mime.js";
 import type { LlmModel, LlmProvider, LlmRequest, LlmEmbeddingRequest, LlmEmbeddingResponse, LlmOption, LlmResponseMetadata } from "./types.js";
 
@@ -67,6 +68,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
     for (const declared of provider.models) {
       if (!declared.id) throw new TypeError("Models require a nonempty id");
       const model: LlmModel = Object.freeze({ ...declared,
+        ...(declared.options ? { options: Object.freeze(Object.fromEntries(Object.entries(declared.options).map(([name, rule]) => [name, Object.freeze({ ...rule })]))) } : {}),
         ...(declared.capabilities ? { capabilities: Object.freeze([...declared.capabilities]) } : {}),
         ...(declared.aliases ? { aliases: Object.freeze([...declared.aliases]) } : {}),
         ...(declared.attachmentTypes ? { attachmentTypes: Object.freeze([...declared.attachmentTypes]) } : {}),
@@ -107,7 +109,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
         }
       }
       const { maxOutputBytes: ignoredMaxOutputBytes, ...input } = request;
-      return entry.provider.complete({ ...input, model: entry.model.id });
+      return entry.provider.complete({ ...input, model: entry.model.id, options: validateModelOptions(entry.model, request.options) });
     },
     async *stream(request: LlmServiceRequest): AsyncGenerator<LlmStreamEvent> {
       const limit = request.maxOutputBytes ?? Infinity;
@@ -152,7 +154,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
       const entry = this.resolve(request.model);
       if (!entry.model.capabilities?.includes("embed") || !entry.provider.embed) throw new Error(`Model ${entry.model.id} does not support embeddings`);
       const embed = entry.provider.embed.bind(entry.provider);
-      const result = await abortable(() => embed({ ...request, model: entry.model.id }), request.signal);
+      const result = await abortable(() => embed({ ...request, model: entry.model.id, options: validateModelOptions(entry.model, request.options) }), request.signal);
       request.signal.throwIfAborted();
       if (result.model !== entry.model.id || !Array.isArray(result.vectors) || result.vectors.length !== request.inputs.length || Array.from(result.vectors).some(vector => !Array.isArray(vector) || !vector.length || Array.from(vector).some(value => typeof value !== "number" || !Number.isFinite(value)) || vector.length !== result.vectors[0]?.length)) throw new TypeError("Invalid embedding response");
       validateMetadata(result);

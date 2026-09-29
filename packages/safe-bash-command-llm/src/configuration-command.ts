@@ -1,3 +1,4 @@
+import { validateModelOptions } from "./model-options.js";
 import type { CommandContext } from "safe-bash-contracts";
 import { createLlmConfiguration, type LlmConfiguration } from "./configuration.js";
 import type { LlmService } from "./service.js";
@@ -68,6 +69,8 @@ export async function configurationCommand(
   }
   if (command === "set" && tokens.length === 4) {
     const model = await canonical(tokens[1]!);
+    const entry = service.models.find(entry => entry.model.id === model);
+    if (entry) validateModelOptions(entry.model, { [tokens[2]!]: tokens[3]! });
     await configuration.setModelOption(model, tokens[2]!, tokens[3]!);
     await diagnostic(`Set default option ${tokens[2]}=${tokens[3]} for model ${model}\n`);
   } else if (command === "show" && tokens.length === 2) {

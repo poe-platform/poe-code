@@ -18,12 +18,17 @@ Tracking: hey-boss #3623 within the open numerical family in #1748.
    Gnumeric XML formulas, both load-only and forced recalculation. Read exported
    XLSX caches independently of formula execution. Compare exact values and
    warning occurrences. Abort on the warning and verify no output publication.
+   Replay the same compiled public exports in Node, a browser page and module
+   worker, and workerd. Check original cancellation-reason identity and disposal;
+   workspace artifacts do not substitute for registry-installed qualification.
 5. Inspect an actual command diagnostic screenshot. Check that ordinary finite
    results and overflow errors export successfully and the input stays intact.
 6. For residual native differences, inspect amplitude, phase, quadrant and
    primitive sin/cos separately. Use an independent high-precision calculation
    to distinguish source parity from mathematical accuracy; retain discrepancies
    explicitly rather than rounding them away.
+   Inspect native machine instructions when source expressions admit different
+   fused-product orders; qualify compiler contraction separately from libm.
 7. Authenticate the full native application's binary and library hashes. Run
    the retained regressions and an explicitly recorded boundary matrix through
    `ssconvert --recalc -T Gnumeric_Excel:xlsx`. Decode its numeric/error caches

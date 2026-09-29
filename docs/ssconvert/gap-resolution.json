@@ -1480,7 +1480,26 @@
           "receiptSha256": "04d6235f690287ba402dbdfacee4759ade385ed7cc22663bc3a8982438c48f93",
           "decision": "Retain the pinned portable primitive profile. Native equality and mathematical accuracy are separate claims; do not alter expected results merely to match Darwin rounding."
         },
-        "remaining": "Exact Linux/other-runtime application profiles, broader domains and containing publication. No unexplained difference remains in this 205-formula macOS cohort; all 19 compatibility families remain open."
+        "remaining": "Exact Linux/other-runtime application profiles, broader domains and containing publication. No unexplained difference remains in this 205-formula macOS cohort; all 19 compatibility families remain open.",
+        "javascriptRuntimeQualification": {
+          "candidate": "49c1c060506e63b6a6d64d62ba2a39e41ed4d835; ssconvert source unchanged from the full-application cohort",
+          "profiles": [
+            "Node 22.23.2 on macOS arm64",
+            "Headless Chrome 154 page",
+            "Headless Chrome 154 module worker",
+            "workerd 2026-07-08 darwin-arm64, compatibilityDate=2026-07-08"
+          ],
+          "routes": "Compiled public createEngine().convert and runCommand, with forced recalculation and XLSX output; both routes also exercise warning-triggered cancellation in each runtime.",
+          "result": "All eight successful conversions independently decode to the same 205 binary64/error values and formula strings. Each emits 200 reduced-accuracy warnings. All eight cancellation runs preserve the original reason by identity and publish zero outputs; disposal completes.",
+          "outputBytes": 8484,
+          "outputSha256": "fd62f728c75864e8e6bec4986c4a6780e9db6965b82a607d5dd60e2680a8ed8c",
+          "compiledDistSha256": "601fc013bf6f5393d2fb0803371ffb63ba775dbe2df7b4aa0558dead1cf2d09c",
+          "browserBundleSha256": "0a0265c1259a6d2adb7426c8327ad8005b4ff43934a75142b1ce550ba3b8d885",
+          "buildBoundary": "esbuild browser/ESM/minify with tsconfigRaw={}; 74 inputs, no workspace TypeScript source inputs. Full generated bundle is temporary qualification output and is removed after reduction.",
+          "receiptSha256": "2f36c770f339c5a909a9548621b1ba2db60a4573a317d656883deb22cc94706f",
+          "probeCorrections": "SDK diagnostics use operation.diagnostic, not the command stderr bridge. The initial workerd readiness control pipe failed; the unchanged module succeeded over an explicit localhost socket. Neither setup error is a product failure.",
+          "scope": "Current compiled workspace artifacts; this does not qualify a registry-installed release, native Linux/libm, Firefox/WebKit, all Bessel domains or overall format fidelity."
+        }
       }
     },
     "sheetReferenceSemantics": {
@@ -3588,7 +3607,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open."
+      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate."
     },
     {
       "id": "format-record-roundtrip",

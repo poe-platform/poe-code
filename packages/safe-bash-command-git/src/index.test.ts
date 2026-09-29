@@ -216,9 +216,9 @@ test('stdin reaches Git plumbing and commit messages without changing bytes', as
 
 
 test("git integrates with ssh-keygen, gpg, openssl, SSH transport, and hooks in safe-fs", async () => {
-  const { createSshKeygenCommand } = await import("safe-bash-command-ssh");
-  const { createGpgCommand } = await import("safe-bash-command-gpg");
-  const { createOpensslCommand } = await import("safe-bash-command-openssl");
+  const { createSshKeygenCommand } = await import(new URL("../../safe-bash-command-ssh/src/index.ts", import.meta.url).href);
+  const { createGpgCommand } = await import(new URL("../../safe-bash-command-gpg/src/index.ts", import.meta.url).href);
+  const { createOpensslCommand } = await import(new URL("../../safe-bash-command-openssl/src/index.ts", import.meta.url).href);
 
   const fs = new MemoryFileSystem();
   const gitCmd = createGitCommand();

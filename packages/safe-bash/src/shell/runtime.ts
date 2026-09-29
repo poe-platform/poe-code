@@ -26247,15 +26247,19 @@ export class Runtime {
       } else if (a === "-o" || (a.startsWith("-o") && a.length > 2)) {
         const rawO = a === "-o" ? opArgs[++i] : a.slice(2);
         if (!rawO) return undefined;
-        const parts = rawO.split(/[ ,]+/).filter(Boolean);
-        if (parts.length === 0) return undefined;
-        outSpec = [];
-        for (const p of parts) {
-          if (p === "0") outSpec.push({ file: 0, idx: 0 });
-          else {
-            const m = /^([12])\.([1-9][0-9]{0,2})$/.exec(p);
-            if (!m) return undefined;
-            outSpec.push({ file: Number(m[1]!) as 1 | 2, idx: Number(m[2]!) - 1 });
+        if (rawO === "auto") {
+          outSpec = [{ file: 0, idx: -1 }];
+        } else {
+          const parts = rawO.split(/[ ,]+/).filter(Boolean);
+          if (parts.length === 0) return undefined;
+          outSpec = [];
+          for (const p of parts) {
+            if (p === "0") outSpec.push({ file: 0, idx: 0 });
+            else {
+              const m = /^([12])\.([1-9][0-9]{0,2})$/.exec(p);
+              if (!m) return undefined;
+              outSpec.push({ file: Number(m[1]!) as 1 | 2, idx: Number(m[2]!) - 1 });
+            }
           }
         }
       } else {
@@ -26275,6 +26279,15 @@ export class Runtime {
       headerRow = { r1: rows1[0], r2: rows2[0] };
       rows1 = rows1.slice(1);
       rows2 = rows2.slice(1);
+    }
+    if (outSpec && outSpec.length === 1 && outSpec[0]!.file === 0 && outSpec[0]!.idx === -1) {
+      const first1 = headerRow?.r1 ?? rows1[0];
+      const first2 = headerRow?.r2 ?? rows2[0];
+      const c1 = first1 ? first1.fields.length : 0;
+      const c2 = first2 ? first2.fields.length : 0;
+      outSpec = [{ file: 0, idx: 0 }];
+      for (let k = 0; k < c1; k++) if (k !== f1) outSpec.push({ file: 1, idx: k });
+      for (let k = 0; k < c2; k++) if (k !== f2) outSpec.push({ file: 2, idx: k });
     }
     if (!noCheckOrder) {
       for (let i = 1; i < rows1.length; i++) if (rows1[i]!.cmpKey < rows1[i - 1]!.cmpKey) return undefined;
@@ -26934,17 +26947,44 @@ export class Runtime {
     return undefined;
   }
 
-  private evalSyncBc(input: string, opArgs: readonly string[]): string[] | undefined {
+  private evalSyncBc(
+    input: string,
+    opArgs: readonly string[],
+    readFileSync?: (p: string) => Uint8Array | undefined,
+  ): string[] | undefined {
     let scale = 0;
     let ibase = 10;
     let obase = 10;
+    const files: string[] = [];
+    let ended = false;
     for (const a of opArgs) {
-      if (a === "-q" || a === "--quiet") continue;
-      if (a === "-l" || a === "--mathlib") { scale = 20; continue; }
-      return undefined;
+      if (!ended && a === "--") { ended = true; continue; }
+      if (!ended && (a === "-q" || a === "--quiet")) continue;
+      if (!ended && (a === "-l" || a === "--mathlib")) { scale = 20; continue; }
+      if (!ended && (a === "-ql" || a === "-lq")) { scale = 20; continue; }
+      if (!ended && a.startsWith("-")) return undefined;
+      files.push(a);
     }
+    let fullInput = "";
+    for (const f of files) {
+      if (!readFileSync) return undefined;
+      const fb = readFileSync(f);
+      if (!fb || fb.includes(0)) return undefined;
+      fullInput += sharedSyncPipeDecoder.decode(fb) + "\n";
+    }
+    fullInput += input;
     type DecVal = { c: bigint; s: number };
     const tenPow = (n: number): bigint => 10n ** BigInt(n);
+    const isqrt = (n: bigint): bigint => {
+      if (n < 2n) return n;
+      let x0 = n;
+      let x1 = (x0 + 1n) >> 1n;
+      while (x1 < x0) {
+        x0 = x1;
+        x1 = (x0 + n / x0) >> 1n;
+      }
+      return x0;
+    };
     const vars = new Map<string, DecVal>();
     const evalExpr = (expr: string): DecVal | undefined => {
       const e = expr.trim();
@@ -26962,6 +27002,35 @@ export class Runtime {
         if (wrap && d === 0) return evalExpr(e.slice(1, -1));
       }
       let d = 0;
+      for (let i = 0; i < e.length - 1; i++) {
+        const ch = e[i]!;
+        if (ch === "(") d++;
+        else if (ch === ")") d--;
+        else if (d === 0 && e.slice(i, i + 2) === "||") {
+          const l = evalExpr(e.slice(0, i));
+          const r = evalExpr(e.slice(i + 2));
+          if (!l || !r) return undefined;
+          return { c: (l.c !== 0n || r.c !== 0n) ? 1n : 0n, s: 0 };
+        }
+      }
+      d = 0;
+      for (let i = 0; i < e.length - 1; i++) {
+        const ch = e[i]!;
+        if (ch === "(") d++;
+        else if (ch === ")") d--;
+        else if (d === 0 && e.slice(i, i + 2) === "&&") {
+          const l = evalExpr(e.slice(0, i));
+          const r = evalExpr(e.slice(i + 2));
+          if (!l || !r) return undefined;
+          return { c: (l.c !== 0n && r.c !== 0n) ? 1n : 0n, s: 0 };
+        }
+      }
+      if (e.startsWith("!") && !e.startsWith("!=")) {
+        const sub = evalExpr(e.slice(1));
+        if (!sub) return undefined;
+        return { c: sub.c === 0n ? 1n : 0n, s: 0 };
+      }
+      d = 0;
       for (let i = 0; i < e.length; i++) {
         const ch = e[i]!;
         if (ch === "(") d++;
@@ -27050,6 +27119,24 @@ export class Runtime {
         const targetS = Math.min(rawS, Math.max(scale, l.s));
         return { c: rawC / tenPow(rawS - targetS), s: targetS };
       }
+      const fnM = /^(sqrt|length|scale)\s*\(([\s\S]+)\)$/.exec(e);
+      if (fnM) {
+        const arg = evalExpr(fnM[2]!);
+        if (!arg) return undefined;
+        const fnName = fnM[1]!;
+        if (fnName === "scale") return { c: BigInt(arg.s), s: 0 };
+        if (fnName === "length") {
+          const absC = arg.c < 0n ? -arg.c : arg.c;
+          const len = absC === 0n ? Math.max(1, arg.s) : Math.max(absC.toString().length, arg.s);
+          return { c: BigInt(len), s: 0 };
+        }
+        if (fnName === "sqrt") {
+          if (arg.c < 0n) return undefined;
+          const targetS = Math.max(scale, arg.s);
+          const scaledArg = arg.c * tenPow(2 * targetS - arg.s);
+          return { c: isqrt(scaledArg), s: targetS };
+        }
+      }
       if (ibase !== 10 && /^[+-]?[0-9A-F]+$/.test(e)) {
         const neg = e.startsWith("-");
         const rawDigits = (neg || e.startsWith("+")) ? e.slice(1) : e;
@@ -27089,7 +27176,7 @@ export class Runtime {
       const fracStr = absStr.slice(absStr.length - v.s);
       return (neg && v.c !== 0n ? "-" : "") + (intStr === "0" ? "" : intStr) + "." + fracStr;
     };
-    const stmts = input.split(/[;\n]+/).map(s => s.trim()).filter(Boolean);
+    const stmts = fullInput.split(/[;\n]+/).map(s => s.trim()).filter(Boolean);
     const out: string[] = [];
     for (const st of stmts) {
       const scaleM = /^scale\s*=\s*([0-9]{1,2})$/.exec(st);
@@ -27104,6 +27191,13 @@ export class Runtime {
         if (bVal < 2 || bVal > 16) return undefined;
         if (baseM[1] === "ibase") ibase = bVal;
         else obase = bVal;
+        continue;
+      }
+      const compM = /^([a-z][a-z0-9_]*)\s*([+\-*/%])=\s*(.+)$/.exec(st);
+      if (compM) {
+        const val = evalExpr(`${compM[1]!} ${compM[2]!} (${compM[3]!})`);
+        if (!val) return undefined;
+        vars.set(compM[1]!, val);
         continue;
       }
       const varM = /^([a-z][a-z0-9_]*)\s*=\s*(.+)$/.exec(st);
@@ -27907,6 +28001,7 @@ export class Runtime {
     let roundMode: "up" | "down" | "from-zero" | "towards-zero" | "nearest" = "from-zero";
     let padding = 0;
     let suffix = "";
+    let formatStr: string | undefined;
     let headerLines = 0;
     let delim: string | undefined;
     let fieldIdx = 1;
@@ -27921,26 +28016,29 @@ export class Runtime {
     };
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (a.startsWith("--from=")) {
-        const v = a.slice(7);
+      if (a.startsWith("--from=") || (a === "--from" && i + 1 < opArgs.length)) {
+        const v = a === "--from" ? opArgs[++i]! : a.slice(7);
         if (v === "none" || v === "iec" || v === "iec-i" || v === "si" || v === "auto") fromScale = v;
         else return undefined;
-      } else if (a.startsWith("--to=")) {
-        const v = a.slice(5);
+      } else if (a.startsWith("--to=") || (a === "--to" && i + 1 < opArgs.length)) {
+        const v = a === "--to" ? opArgs[++i]! : a.slice(5);
         if (v === "none" || v === "iec" || v === "iec-i" || v === "si") toScale = v;
         else return undefined;
-      } else if (a.startsWith("--round=")) {
-        const v = a.slice(8);
+      } else if (a.startsWith("--round=") || (a === "--round" && i + 1 < opArgs.length)) {
+        const v = a === "--round" ? opArgs[++i]! : a.slice(8);
         if (v === "up" || v === "down" || v === "from-zero" || v === "towards-zero" || v === "nearest") roundMode = v;
         else return undefined;
-      } else if (a.startsWith("--padding=")) {
-        const v = a.slice(10);
+      } else if (a.startsWith("--padding=") || (a === "--padding" && i + 1 < opArgs.length)) {
+        const v = a === "--padding" ? opArgs[++i]! : a.slice(10);
         if (!/^-?[1-9][0-9]{0,2}$/.test(v)) return undefined;
         padding = Number(v);
-      } else if (a.startsWith("--suffix=")) {
-        suffix = a.slice(9);
+      } else if (a.startsWith("--suffix=") || (a === "--suffix" && i + 1 < opArgs.length)) {
+        suffix = a === "--suffix" ? opArgs[++i]! : a.slice(9);
+      } else if (a.startsWith("--format=") || (a === "--format" && i + 1 < opArgs.length)) {
+        formatStr = a === "--format" ? opArgs[++i]! : a.slice(9);
       } else if (a === "--header") {
-        headerLines = 1;
+        if (i + 1 < opArgs.length && /^[1-9][0-9]{0,2}$/.test(opArgs[i + 1]!)) headerLines = Number(opArgs[++i]!);
+        else headerLines = 1;
       } else if (/^--header=[1-9][0-9]{0,2}$/.test(a)) {
         headerLines = Number(a.slice(9));
       } else if (a === "-d" && i + 1 < opArgs.length && opArgs[i + 1]!.length === 1) {
@@ -27949,12 +28047,18 @@ export class Runtime {
         delim = a.slice(2);
       } else if (a.startsWith("--delimiter=") && a.length === 13) {
         delim = a.slice(12);
-      } else if (/^--field=[1-9][0-9]{0,2}$/.test(a)) {
-        fieldIdx = Number(a.slice(8));
-      } else if (/^--from-unit=[1-9][0-9]{0,8}$/.test(a)) {
-        fromUnit = Number(a.slice(12));
-      } else if (/^--to-unit=[1-9][0-9]{0,8}$/.test(a)) {
-        toUnit = Number(a.slice(10));
+      } else if (a.startsWith("--field=") || (a === "--field" && i + 1 < opArgs.length)) {
+        const v = a === "--field" ? opArgs[++i]! : a.slice(8);
+        if (!/^[1-9][0-9]{0,2}$/.test(v)) return undefined;
+        fieldIdx = Number(v);
+      } else if (a.startsWith("--from-unit=") || (a === "--from-unit" && i + 1 < opArgs.length)) {
+        const v = a === "--from-unit" ? opArgs[++i]! : a.slice(12);
+        if (!/^[1-9][0-9]{0,8}$/.test(v)) return undefined;
+        fromUnit = Number(v);
+      } else if (a.startsWith("--to-unit=") || (a === "--to-unit" && i + 1 < opArgs.length)) {
+        const v = a === "--to-unit" ? opArgs[++i]! : a.slice(10);
+        if (!/^[1-9][0-9]{0,8}$/.test(v)) return undefined;
+        toUnit = Number(v);
       } else if (!a.startsWith("-") && rawLines.length === 0) {
         rawLines = [...rawLines, ...opArgs.slice(i)];
         break;
@@ -27962,7 +28066,19 @@ export class Runtime {
         return undefined;
       }
     }
-    if (fieldIdx > 1 && delim === undefined) return undefined;
+    let fmtParsed: { prefix: string; zeroPad: boolean; leftAlign: boolean; width: number; prec?: number; suffix: string } | undefined;
+    if (formatStr !== undefined) {
+      const fm = /^([^%]*?)%([-0]*)(\d+)?(?:\.(\d+))?f([^%]*)$/.exec(formatStr);
+      if (!fm) return undefined;
+      fmtParsed = {
+        prefix: fm[1]!,
+        zeroPad: fm[2]!.includes("0") && !fm[2]!.includes("-"),
+        leftAlign: fm[2]!.includes("-"),
+        width: fm[3] ? Number(fm[3]) : 0,
+        prec: fm[4] !== undefined ? Number(fm[4]) : undefined,
+        suffix: fm[5]!,
+      };
+    }
     const units = "KMGTPEZY";
     const out: string[] = [];
     for (let i = 0; i < rawLines.length; i++) {
@@ -27972,12 +28088,26 @@ export class Runtime {
         continue;
       }
       let fields: string[] | undefined;
+      let wsTokens: Array<{ ws: string; tok: string }> | undefined;
+      let trailingWs = "";
       let raw: string;
       if (delim !== undefined) {
         fields = line.split(delim);
         if (fieldIdx > fields.length) return undefined;
         raw = fields[fieldIdx - 1]!.trim();
         if (fields[fieldIdx - 1] !== raw) return undefined;
+      } else if (fieldIdx > 1 || /\s/.test(line.trim())) {
+        wsTokens = [];
+        let pos = 0;
+        const re = /(\s*)(\S+)/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(line)) !== null) {
+          wsTokens.push({ ws: m[1]!, tok: m[2]! });
+          pos = re.lastIndex;
+        }
+        trailingWs = line.slice(pos);
+        if (fieldIdx > wsTokens.length) return undefined;
+        raw = wsTokens[fieldIdx - 1]!.tok;
       } else {
         raw = line.trim();
         if (line !== raw) return undefined;
@@ -27986,8 +28116,7 @@ export class Runtime {
       if (suffix && raw.length > suffix.length && raw.endsWith(suffix)) raw = raw.slice(0, -suffix.length);
       const m = /^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([KMGTPEZYkmgtpezy]i?)?$/.exec(raw);
       if (!m) return undefined;
-      // The command retains input precision using exact decimal arithmetic.
-      if (toScale === "none" && m[1]!.includes(".") && !m[2]) return undefined;
+      if (toScale === "none" && fmtParsed?.prec === undefined && m[1]!.includes(".") && !m[2]) return undefined;
       let val = Number(m[1]!);
       const suf = m[2] ?? "";
       if (suf.length > 0) {
@@ -28000,14 +28129,17 @@ export class Runtime {
         if ((fromScale === "iec" || fromScale === "si") && hasI) return undefined;
         const fBase = (fromScale === "iec" || fromScale === "iec-i" || (fromScale === "auto" && hasI)) ? 1024 : 1000;
         val = val * Math.pow(fBase, pIdx);
-      } else if (fromScale === "iec-i") {
-        // plain number ok
       }
       val = (val * fromUnit) / toUnit;
-      val = applyRound(val);
       let rendered: string;
       if (toScale === "none") {
-        rendered = String(Math.trunc(val));
+        if (fmtParsed?.prec !== undefined) {
+          const factor = Math.pow(10, fmtParsed.prec);
+          const rVal = applyRound(val * factor) / factor;
+          rendered = rVal.toFixed(fmtParsed.prec);
+        } else {
+          rendered = String(Math.trunc(applyRound(val)));
+        }
       } else {
         const tBase = (toScale === "iec" || toScale === "iec-i") ? 1024 : 1000;
         let pIdx = 0;
@@ -28017,27 +28149,36 @@ export class Runtime {
           pIdx++;
         }
         if (pIdx === 0) {
-          rendered = String(Math.trunc(scaled));
+          rendered = fmtParsed?.prec !== undefined ? scaled.toFixed(fmtParsed.prec) : String(Math.trunc(applyRound(scaled)));
         } else {
-          if (Math.abs(scaled) < 10) {
-            scaled = (scaled >= 0 ? Math.ceil(scaled * 10 - 1e-12) : -Math.ceil(Math.abs(scaled) * 10 - 1e-12)) / 10;
-            if (Math.abs(scaled) >= tBase && pIdx < units.length) {
-              scaled /= tBase;
-              pIdx++;
-            }
-          } else {
-            scaled = scaled >= 0 ? Math.ceil(scaled - 1e-12) : -Math.ceil(Math.abs(scaled) - 1e-12);
-            if (Math.abs(scaled) >= tBase && pIdx < units.length) {
-              scaled /= tBase;
-              pIdx++;
-            }
+          const prec = fmtParsed?.prec !== undefined ? fmtParsed.prec : (Math.abs(scaled) < 10 ? 1 : 0);
+          const factor = Math.pow(10, prec);
+          scaled = applyRound(scaled * factor) / factor;
+          if (Math.abs(scaled) >= tBase && pIdx < units.length) {
+            scaled /= tBase;
+            pIdx++;
           }
-          const numText = Math.abs(scaled) < 10 ? scaled.toFixed(1) : scaled.toFixed(0);
+          const numText = scaled.toFixed(prec);
           const uText = (toScale === "si" && pIdx === 1 ? "k" : units[pIdx - 1]!) + (toScale === "iec-i" ? "i" : "");
           rendered = numText + uText;
         }
       }
       rendered += suffix;
+      if (fmtParsed) {
+        if (fmtParsed.width > rendered.length) {
+          const padLen = fmtParsed.width - rendered.length;
+          if (fmtParsed.leftAlign) {
+            rendered = rendered + " ".repeat(padLen);
+          } else if (fmtParsed.zeroPad) {
+            const neg = rendered.startsWith("-");
+            const body = neg ? rendered.slice(1) : rendered;
+            rendered = (neg ? "-" : "") + "0".repeat(padLen) + body;
+          } else {
+            rendered = " ".repeat(padLen) + rendered;
+          }
+        }
+        rendered = fmtParsed.prefix + rendered + fmtParsed.suffix;
+      }
       if (padding !== 0) {
         const w = Math.abs(padding);
         if (rendered.length < w) {
@@ -28048,6 +28189,10 @@ export class Runtime {
       if (fields !== undefined && delim !== undefined) {
         fields[fieldIdx - 1] = rendered;
         out.push(fields.join(delim));
+      } else if (wsTokens !== undefined) {
+        wsTokens[fieldIdx - 1]!.tok = rendered;
+        if (wsTokens[fieldIdx - 1]!.ws.length === 0 && fieldIdx > 1) wsTokens[fieldIdx - 1]!.ws = " ";
+        out.push(wsTokens.map(t => t.ws + t.tok).join("") + trailingWs);
       } else {
         out.push(rendered);
       }
@@ -28814,7 +28959,7 @@ export class Runtime {
       const w0Plain0 = cmd0.words[0]?.plain;
       const cmd0YesStage = !cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "yes" && pipeline.commands[1]?.kind === "simple" && pipeline.commands[1]?.words[0]?.plain === "head";
       const cmd0SysStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "uname" || w0Plain0 === "id" || w0Plain0 === "whoami" || w0Plain0 === "hostname" || w0Plain0 === "nproc" || w0Plain0 === "getconf" || w0Plain0 === "locale" || w0Plain0 === "cal" || w0Plain0 === "ncal" || w0Plain0 === "date" || w0Plain0 === "printenv" || w0Plain0 === "env" || w0Plain0 === "pwd" || w0Plain0 === "dirname" || w0Plain0 === "basename" || w0Plain0 === "expr" || w0Plain0 === "getopt" || w0Plain0 === "pathchk" || (w0Plain0 === "awk" && cmd0.words.some(w => w.plain?.includes("BEGIN"))));
-      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "xxd" || w0Plain0 === "od" || w0Plain0 === "hexdump" || w0Plain0 === "hd" || w0Plain0 === "md5sum" || w0Plain0 === "sha1sum" || w0Plain0 === "sha224sum" || w0Plain0 === "sha256sum" || w0Plain0 === "sha384sum" || w0Plain0 === "sha512sum" || w0Plain0 === "cksum" || w0Plain0 === "base32" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "fmt" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || w0Plain0 === "jq" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk" || w0Plain0 === "rev" || w0Plain0 === "tac" || w0Plain0 === "uniq" || w0Plain0 === "base64" || w0Plain0 === "column" || w0Plain0 === "fold" || w0Plain0 === "expand" || w0Plain0 === "unexpand" || w0Plain0 === "strings" || w0Plain0 === "numfmt") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
+      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "bc" || w0Plain0 === "xxd" || w0Plain0 === "od" || w0Plain0 === "hexdump" || w0Plain0 === "hd" || w0Plain0 === "md5sum" || w0Plain0 === "sha1sum" || w0Plain0 === "sha224sum" || w0Plain0 === "sha256sum" || w0Plain0 === "sha384sum" || w0Plain0 === "sha512sum" || w0Plain0 === "cksum" || w0Plain0 === "base32" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "fmt" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || w0Plain0 === "jq" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk" || w0Plain0 === "rev" || w0Plain0 === "tac" || w0Plain0 === "uniq" || w0Plain0 === "base64" || w0Plain0 === "column" || w0Plain0 === "fold" || w0Plain0 === "expand" || w0Plain0 === "unexpand" || w0Plain0 === "strings" || w0Plain0 === "numfmt") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
       if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0YesStage && !cmd0SysStage && !cmd0StdinRedir && !cmd0HereStringRedir && !cmd0FileStage) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
@@ -28915,7 +29060,7 @@ export class Runtime {
         } else if (sName === "join") {
           if (this.evalSyncJoin([], sArgs, rawState.cwd) === undefined) return undefined;
         } else if (sName === "bc") {
-          if (this.evalSyncBc("0", sArgs) === undefined) return undefined;
+          if (this.evalSyncBc("0", sArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) return undefined;
         } else if (sName === "xxd") {
           if (this.evalSyncXxd(EMPTY_BYTES, sArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) return undefined;
         } else if (sName === "od") {
@@ -29432,7 +29577,8 @@ export class Runtime {
               if (jqRes === undefined) return undefined;
               outLines = jqRes;
             } else if (firstName === "bc") {
-              const bcRes = this.evalSyncBc(inStr.trim(), stageArgs);
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              const bcRes = this.evalSyncBc(inStr.trim(), stageArgs, readFile);
               if (bcRes === undefined) return undefined;
               outLines = bcRes;
             } else if (firstName === "factor") {
@@ -30427,7 +30573,10 @@ export class Runtime {
               const nmRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncNumfmt(rawLines, opArgs) : this.evalSyncNumfmt([], allArgs);
               if (nmRes !== undefined) fileRes = renderLines(nmRes);
             } else if (w0Plain === "bc") {
-              const bcRes = this.evalSyncBc(fileStr.trim(), opArgs);
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              const bcRes = (hasSingleHereStringRedir || hasSingleStdinRedir)
+                ? this.evalSyncBc(fileStr.trim(), opArgs, readFile)
+                : this.evalSyncBc("", allArgs, readFile);
               if (bcRes !== undefined) fileRes = renderLines(bcRes);
             } else if (w0Plain === "xxd") {
               fileRes = this.evalSyncXxd(view, opArgs, undefined, !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : undefined);

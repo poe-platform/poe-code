@@ -1141,3 +1141,29 @@ test("evaluates md5sum/sha256sum/cksum file operands and --check, base32 file st
     "b1946ac92492d2347c6235b4d2611184  /tmp/a.txt#b1946ac92492d2347c6235b4d2611184  /tmp/a.txt|591785b794601e212b260e25925636fd  /tmp/b.txt|#/tmp/a.txt: OK#3015617425 6 /tmp/a.txt#hello#score  name|   95  alice|  100  bob|#{\"users\":[{\"name\":\"alice\",\"score\":\"95\"}]}"
   );
 });
+
+test("evaluates join -o auto, numfmt --format and whitespace --field, and bc sqrt/length/scale/file operands in sync substitutions (Wave 211)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  await fs.writeFile("/tmp/j1.txt", new TextEncoder().encode("id name\n1 alice\n2 bob\n"));
+  await fs.writeFile("/tmp/j2.txt", new TextEncoder().encode("id role\n1 admin\n3 guest\n"));
+  await fs.writeFile("/tmp/calc.bc", new TextEncoder().encode("scale=2; x=10; x+=5; sqrt(x*15); length(12345); scale(1.25)\n"));
+  const shell = new Shell({ fs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(tableTextCommands())
+    .use(bcCommands());
+  const res = await shell.exec(`
+    for i in 1 2 3; do
+      j=\$(join --header -a1 -a2 -e NULL -o auto /tmp/j1.txt /tmp/j2.txt | tr "\\n" "|")
+      nf1=\$(printf "item 2048\\n" | numfmt --to iec --field 2 --format "%06.1f")
+      nf2=\$(numfmt --from si --to iec-i 2K)
+      b=\$(bc /tmp/calc.bc | tr "\\n" ":")
+    done
+    printf "%s#%s#%s#%s\\n" "\$j" "\$nf1" "\$nf2" "\$b"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "id name role|1 alice admin|2 bob NULL|3 NULL guest|#item 002.0K#2.0Ki#15.00:5:2:"
+  );
+});

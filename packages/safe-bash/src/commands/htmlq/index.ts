@@ -87,6 +87,17 @@ export function htmlqCommands(options: HtmlqCommandsOptions = {}): VirtualShellP
 
 const syncAbortSignal = new AbortController().signal;
 const syncHtmlDecoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
+const syncHtmlLimits: HtmlLimits = Object.freeze({
+  inputBytes: Infinity,
+  decodedBytes: Infinity,
+  retainedBytes: Infinity,
+  nodes: Infinity,
+  attributes: Infinity,
+  depth: Infinity,
+  tokenBytes: Infinity,
+  work: Infinity,
+  outputBytes: Infinity,
+});
 
 export function evalSyncHtmlq(
   inBytes: Uint8Array,
@@ -95,7 +106,7 @@ export function evalSyncHtmlq(
 ): string | undefined {
   if (inBytes.byteLength > 16384) return undefined;
   try {
-    const invocation = invocationOptions({ signal: syncAbortSignal });
+    const invocation = invocationOptions({ signal: syncAbortSignal, limits: syncHtmlLimits });
     const args = parseHtmlqArguments(opArgs, invocation);
     if (args.help || args.version || args.output !== "-") return undefined;
     let srcBytes = inBytes;

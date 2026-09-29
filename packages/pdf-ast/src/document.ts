@@ -228,11 +228,13 @@ export class PdfDocument {
       sourcePageObjNums.add(sourceDoc.getPage(i).ref.objectNumber);
     }
 
-    const targetPageRefs = new Map<number, PdfCosRef>();
+    // Like pypdf's _add_page, give every occurrence its own page dictionary
+    // while retaining shared indirect resources below the page.
+    const targetPageRefs: PdfCosRef[] = [];
     for (const idx of indices) {
       const srcPage = sourceDoc.getPage(idx);
       const pageRef = this.cos.allocateObject({ kind: "null" });
-      targetPageRefs.set(idx, pageRef);
+      targetPageRefs.push(pageRef);
       memo.set(srcPage.ref.objectNumber, pageRef);
     }
 
@@ -283,7 +285,7 @@ export class PdfDocument {
     };
 
     const copiedPages: PdfPage[] = [];
-    for (const idx of indices) {
+    for (const [position, idx] of indices.entries()) {
       const srcPage = sourceDoc.getPage(idx);
       const clonedPageDict = cloneNode(srcPage.pageDict) as PdfCosDict;
       const size = srcPage.getSize();
@@ -330,7 +332,7 @@ export class PdfDocument {
           }
         }
       }
-      const pageRef = targetPageRefs.get(idx)!;
+      const pageRef = targetPageRefs[position]!;
       this.cos.setObject(pageRef.objectNumber, clonedPageDict, 0);
       const newPage = new PdfPage(this.cos, pageRef, clonedPageDict, this.pages.length);
       this.pages.push(newPage);

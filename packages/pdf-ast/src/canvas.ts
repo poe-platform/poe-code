@@ -445,13 +445,8 @@ export class PdfPage {
     this.cachedContentAst = parseContentStream(bytes);
     this.isolatedInitialStream = false;
     const stm = cosStream(bytes, { compress });
-    const contentsRef = dictGet(this.pageDict, "Contents");
-    if (contentsRef?.kind === "ref") {
-      this.cosDoc.setObject(contentsRef.objectNumber, stm);
-    } else {
-      const newRef = this.cosDoc.allocateObject(stm);
-      dictSet(this.pageDict, "Contents", newRef);
-    }
+    // Imported pages can share Contents; edits belong to this page only.
+    dictSet(this.pageDict, "Contents", this.cosDoc.allocateObject(stm));
     this.cachedContentsNode = dictGet(this.pageDict, "Contents");
   }
 
@@ -470,13 +465,7 @@ export class PdfPage {
     this.cachedContentAst = [...nodes];
     const bytes = serializeContentAst(this.cachedContentAst);
     const streamObj = cosStream(bytes, { compress });
-    const existingContents = dictGet(this.pageDict, "Contents");
-    if (existingContents?.kind === "ref") {
-      this.cosDoc.setObject(existingContents.objectNumber, streamObj, existingContents.generationNumber);
-    } else {
-      const ref = this.cosDoc.allocateObject(streamObj);
-      dictSet(this.pageDict, "Contents", ref);
-    }
+    dictSet(this.pageDict, "Contents", this.cosDoc.allocateObject(streamObj));
     this.cachedContentsNode = dictGet(this.pageDict, "Contents");
   }
 

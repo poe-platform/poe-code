@@ -281,3 +281,10 @@ resource-limit path. The original issue9418 fixture is documented above.
 The original PDF.js issue2948 fixture covers mesh shading through PatternType 2
 fills. Its provenance is recorded in `src/fixtures/SOURCES.md`; local triangle
 cases exercise direct and chained references to the shading stream.
+
+`src/edit/copy-pages.test.ts` ports `test_append_multiple` from pypdf 6.19.0
+`tests/test_writer.py`, replacing its downloaded PDF with an in-memory page
+and checking every copy and save/reopen. Page copying follows `_writer.py`
+`_add_page`: each occurrence gets a distinct page dictionary while resources
+can remain shared. Content edits replace the page's Contents reference so
+other pages retain their original stream. pypdf attribution/license is above.

@@ -50,16 +50,12 @@ serveFixture(run);`,
   return async request => {
     if (!child.connected) throw new Error("Main-thread fixture is unavailable");
     if (pending) throw new Error("Main-thread fixture requests must be sequential");
-    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       return await new Promise<string>((resolve, reject) => {
         pending = { resolve, reject };
-        timer = setTimeout(() => {
-          child.kill("SIGKILL");
-          reject(new Error("Main-thread fixture exceeded the twenty-five-second request budget"));
-        }, 25000);
+        // Vitest owns the request deadline; afterAll drains or kills the child.
         child.send(JSON.stringify(request) ?? "null", error => { if (error) reject(error); });
       });
-    } finally { clearTimeout(timer); pending = undefined; }
+    } finally { pending = undefined; }
   };
 }

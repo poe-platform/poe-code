@@ -42,7 +42,7 @@ export function evalSyncApplyPatch(
       if (!target || target.includes("..")) return undefined;
       const origBytes = readFileSync(target);
       if (!origBytes) return undefined;
-      let fileLines = decoder.decode(origBytes).replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");
+      const fileLines = decoder.decode(origBytes).replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");
       idx++;
       if (idx < lines.length - 1 && lines[idx]!.startsWith("*** Move to: ")) return undefined;
       let searchPos = 0;

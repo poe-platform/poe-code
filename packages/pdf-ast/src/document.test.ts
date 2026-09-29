@@ -586,11 +586,11 @@ startxref
   it("decodes SOF2 progressive multi-scan JPEGs (DC first + DC refinement + AC spectral selection)", async () => {
     const { decodeJpegToRgba } = await import("./index.js");
     const dhtDcAndAc = [
-      0xff, 0xc4, 0x00, 0x15,
+      0xff, 0xc4, 0x00, 0x14,
       0x00,
       0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0x00,
-      0xff, 0xc4, 0x00, 0x15,
+      0xff, 0xc4, 0x00, 0x14,
       0x10,
       0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0x00,

@@ -1,5 +1,5 @@
 import { assertDecodedByteBudget } from "../cos/limits.js";
-import { Jbig2Image, JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
+import { Jbig2Image, JpegImage, JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
 import { PdfError } from "../errors.js";
 import {
   dictGet,
@@ -385,550 +385,49 @@ function extractRawJpegFromStream(doc: ParsedCosDocument, stream: PdfCosStream, 
   return bytes;
 }
 
-const JPEG_ZIGZAG = [
-  0,  1,  8, 16,  9,  2,  3, 10,
- 17, 24, 32, 25, 18, 11,  4,  5,
- 12, 19, 26, 33, 40, 48, 41, 34,
- 27, 20, 13,  6,  7, 14, 21, 28,
- 35, 42, 49, 56, 57, 50, 43, 36,
- 29, 22, 15, 23, 30, 37, 44, 51,
- 58, 59, 52, 45, 38, 31, 39, 46,
- 53, 60, 61, 54, 47, 55, 62, 63,
-];
-
-interface JpegHuffmanTable {
-  readonly minCode: Int32Array;
-  readonly maxCode: Int32Array;
-  readonly valPtr: Int32Array;
-  readonly huffVal: Uint8Array;
-}
-
-function buildJpegHuffmanTable(counts: Uint8Array, values: Uint8Array): JpegHuffmanTable {
-  const minCode = new Int32Array(17);
-  const maxCode = new Int32Array(17).fill(-1);
-  const valPtr = new Int32Array(17);
-  let code = 0;
-  let k = 0;
-  for (let bits = 1; bits <= 16; bits++) {
-    const cnt = counts[bits - 1] ?? 0;
-    if (cnt > 0) {
-      valPtr[bits] = k;
-      minCode[bits] = code;
-      code += cnt - 1;
-      maxCode[bits] = code;
-      k += cnt;
-      code++;
-    }
-    code <<= 1;
-  }
-  return { minCode, maxCode, valPtr, huffVal: values };
-}
-
-function idct8x8(coeffs: Float64Array, outSpatial: Uint8Array): void {
-  const INV_SQRT2 = Math.SQRT1_2;
-  const tmp = new Float64Array(64);
-  for (let y = 0; y < 8; y++) {
-    for (let x = 0; x < 8; x++) {
-      let sum = 0;
-      for (let u = 0; u < 8; u++) {
-        const cu = u === 0 ? INV_SQRT2 : 1;
-        sum += cu * coeffs[y * 8 + u]! * Math.cos(((2 * x + 1) * u * Math.PI) / 16);
-      }
-      tmp[y * 8 + x] = sum * 0.5;
-    }
-  }
-  for (let x = 0; x < 8; x++) {
-    for (let y = 0; y < 8; y++) {
-      let sum = 0;
-      for (let v = 0; v < 8; v++) {
-        const cv = v === 0 ? INV_SQRT2 : 1;
-        sum += cv * tmp[v * 8 + x]! * Math.cos(((2 * y + 1) * v * Math.PI) / 16);
-      }
-      const sample = Math.round(sum * 0.5 + 128);
-      outSpatial[y * 8 + x] = sample < 0 ? 0 : sample > 255 ? 255 : sample;
-    }
-  }
+export interface JpegDecodeOptions {
+  readonly colorTransform?: number | undefined;
+  readonly decode?: ReadonlyArray<readonly [number, number]> | undefined;
+  readonly isSourcePdf?: boolean | undefined;
 }
 
 export function decodeJpegToRgba(
   jpegBytes: Uint8Array,
   fallbackWidth = 1,
   fallbackHeight = 1,
-  maxDecodedBytes = Infinity
+  maxDecodedBytes = Infinity,
+  options: JpegDecodeOptions = {}
 ): { width: number; height: number; components: number; data: Uint8Array } {
-  let width = Math.max(1, fallbackWidth);
-  let height = Math.max(1, fallbackHeight);
-  let numComponents = 3;
+  assertDecodedByteBudget(fallbackWidth * fallbackHeight * 4, maxDecodedBytes);
+  // PDF.js JpegStream applies PDF /Decode before JPEG color conversion.
+  const decodeTransform = options.decode
+    ? Int32Array.from(options.decode.flatMap(([low, high]) => [(high - low) * 256, low * 255]))
+    : undefined;
+  const decoder = new JpegImage({
+    colorTransform: options.colorTransform,
+    decodeTransform,
+    onImageDimensions: (width, height) => assertDecodedByteBudget(width * height * 4, maxDecodedBytes),
+  });
+  // PDF.js tolerates padding before SOI, notably in inline images.
+  let start = 0;
+  while (start + 1 < jpegBytes.length && !(jpegBytes[start] === 0xff && jpegBytes[start + 1] === 0xd8)) start++;
+  decoder.parse(jpegBytes.subarray(start));
+  const { width, height, numComponents: components } = decoder;
+  if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0) {
+    throw new PdfError("E_PARSE", "Invalid JPEG image dimensions");
+  }
+  if (![1, 3, 4].includes(components)) throw new PdfError("E_CAPABILITY", "Unsupported JPEG component count");
   assertDecodedByteBudget(width * height * 4, maxDecodedBytes);
-
-  const qTables: Float64Array[] = [
-    new Float64Array(64).fill(16),
-    new Float64Array(64).fill(16),
-    new Float64Array(64).fill(16),
-    new Float64Array(64).fill(16),
-  ];
-  const dcTables = new Map<number, JpegHuffmanTable>();
-  const acTables = new Map<number, JpegHuffmanTable>();
-
-  interface CompSpec {
-    id: number;
-    hSamp: number;
-    vSamp: number;
-    qTableId: number;
-    dcTableId: number;
-    acTableId: number;
-    dcPred: number;
-  }
-  const comps: CompSpec[] = [];
-  let restartInterval = 0;
-  let maxH = 1;
-  let maxV = 1;
-  let mcusX = 1;
-  let mcusY = 1;
-  let compZigzagBlocks: Array<Array<Int32Array>> = [];
-  let hasDecodedAnyScan = false;
-  let firstScanDataOffset = -1;
-
-  let pos = 0;
-  if (jpegBytes.length >= 2 && jpegBytes[0] === 0xff && jpegBytes[1] === 0xd8) {
-    pos = 2;
-  }
-
-  while (pos < jpegBytes.length) {
-    while (pos < jpegBytes.length && jpegBytes[pos] !== 0xff) pos++;
-    while (pos < jpegBytes.length && jpegBytes[pos] === 0xff) pos++;
-    if (pos >= jpegBytes.length) break;
-    const marker = jpegBytes[pos++]!;
-    if (marker === 0xd9 || marker === 0x00) break;
-    if (marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd7) || marker === 0x01) {
-      continue;
-    }
-    if (pos + 1 >= jpegBytes.length) break;
-    const segLen = ((jpegBytes[pos]! << 8) | jpegBytes[pos + 1]!) - 2;
-    pos += 2;
-    if (segLen < 0 || pos + segLen > jpegBytes.length) break;
-
-    if (marker === 0xdb) {
-      let qPos = pos;
-      const qEnd = pos + segLen;
-      while (qPos < qEnd) {
-        const pqTq = jpegBytes[qPos++]!;
-        const precision = pqTq >> 4;
-        const tableId = pqTq & 0x0f;
-        const table = new Float64Array(64);
-        for (let k = 0; k < 64 && qPos < qEnd; k++) {
-          if (precision === 0) {
-            table[k] = jpegBytes[qPos++]!;
-          } else {
-            table[k] = (jpegBytes[qPos]! << 8) | (jpegBytes[qPos + 1] ?? 0);
-            qPos += 2;
-          }
-        }
-        qTables[tableId] = table;
-      }
-      pos += segLen;
-    } else if (marker === 0xc4) {
-      let hPos = pos;
-      const hEnd = pos + segLen;
-      while (hPos + 17 <= hEnd) {
-        const tcTh = jpegBytes[hPos++]!;
-        const tc = tcTh >> 4;
-        const th = tcTh & 0x0f;
-        const counts = jpegBytes.subarray(hPos, hPos + 16);
-        hPos += 16;
-        let totalSyms = 0;
-        for (let b = 0; b < 16; b++) totalSyms += counts[b]!;
-        const values = jpegBytes.subarray(hPos, Math.min(hEnd, hPos + totalSyms));
-        hPos += totalSyms;
-        const tbl = buildJpegHuffmanTable(counts, values);
-        if (tc === 0) dcTables.set(th, tbl);
-        else acTables.set(th, tbl);
-      }
-      pos += segLen;
-    } else if (marker === 0xdd) {
-      if (segLen >= 2) {
-        restartInterval = (jpegBytes[pos]! << 8) | jpegBytes[pos + 1]!;
-      }
-      pos += segLen;
-    } else if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
-      if (segLen >= 6) {
-        const sofH = (jpegBytes[pos + 1]! << 8) | jpegBytes[pos + 2]!;
-        const sofW = (jpegBytes[pos + 3]! << 8) | jpegBytes[pos + 4]!;
-        if (sofW > 0) width = sofW;
-        if (sofH > 0) height = sofH;
-        assertDecodedByteBudget(width * height * 4, maxDecodedBytes);
-        numComponents = jpegBytes[pos + 5]!;
-        comps.length = 0;
-        maxH = 1;
-        maxV = 1;
-        for (let c = 0; c < numComponents && 6 + c * 3 + 2 < segLen; c++) {
-          const id = jpegBytes[pos + 6 + c * 3]!;
-          const samp = jpegBytes[pos + 7 + c * 3]!;
-          const qId = jpegBytes[pos + 8 + c * 3]!;
-          const hSamp = Math.max(1, samp >> 4);
-          const vSamp = Math.max(1, samp & 0x0f);
-          if (hSamp > maxH) maxH = hSamp;
-          if (vSamp > maxV) maxV = vSamp;
-          comps.push({
-            id,
-            hSamp,
-            vSamp,
-            qTableId: qId & 0x03,
-            dcTableId: c === 0 ? 0 : 1,
-            acTableId: c === 0 ? 0 : 1,
-            dcPred: 0,
-          });
-        }
-        mcusX = Math.max(1, Math.ceil(width / (maxH * 8)));
-        mcusY = Math.max(1, Math.ceil(height / (maxV * 8)));
-        compZigzagBlocks = comps.map(c => {
-          const count = mcusX * c.hSamp * mcusY * c.vSamp;
-          const arr: Int32Array[] = new Array(count);
-          for (let i = 0; i < count; i++) arr[i] = new Int32Array(64);
-          return arr;
-        });
-      }
-      pos += segLen;
-    } else if (marker === 0xda) {
-      const scanCompIndices: number[] = [];
-      let ss = 0;
-      let se = 63;
-      let ah = 0;
-      let al = 0;
-      if (segLen >= 1) {
-        const ns = jpegBytes[pos]!;
-        for (let s = 0; s < ns && 1 + s * 2 + 1 < segLen; s++) {
-          const csId = jpegBytes[pos + 1 + s * 2]!;
-          const tdTa = jpegBytes[pos + 2 + s * 2]!;
-          let cIdx = comps.findIndex(c => c.id === csId);
-          if (cIdx < 0 && s < comps.length) cIdx = s;
-          if (cIdx >= 0) {
-            comps[cIdx]!.dcTableId = tdTa >> 4;
-            comps[cIdx]!.acTableId = tdTa & 0x0f;
-            scanCompIndices.push(cIdx);
-          }
-        }
-        const tailBase = pos + 1 + ns * 2;
-        if (tailBase + 2 < pos + segLen) {
-          ss = jpegBytes[tailBase]!;
-          se = jpegBytes[tailBase + 1]!;
-          const ahAl = jpegBytes[tailBase + 2]!;
-          ah = ahAl >> 4;
-          al = ahAl & 0x0f;
-        }
-      }
-      const scanStart = pos + segLen;
-      if (firstScanDataOffset < 0) firstScanDataOffset = scanStart;
-      if (comps.length === 0 || (ss === 0 && ah === 0 && dcTables.size === 0)) {
-        pos = scanStart;
-        break;
-      }
-
-      let bitPos = scanStart;
-      let bitBuf = 0;
-      let bitCnt = 0;
-      let hitMarker = false;
-      let eobRun = 0;
-      for (const c of comps) c.dcPred = 0;
-
-      const readNextEntropyByte = (): number => {
-        if (hitMarker || bitPos >= jpegBytes.length) return 0;
-        const b = jpegBytes[bitPos++]!;
-        if (b === 0xff) {
-          while (bitPos < jpegBytes.length && jpegBytes[bitPos] === 0xff) {
-            bitPos++;
-          }
-          if (bitPos >= jpegBytes.length) return 0;
-          const next = jpegBytes[bitPos++]!;
-          if (next === 0x00) {
-            return 0xff;
-          }
-          if (next >= 0xd0 && next <= 0xd7) {
-            for (const c of comps) c.dcPred = 0;
-            eobRun = 0;
-            return readNextEntropyByte();
-          }
-          // Hit next JPEG marker (e.g. DHT, SOS, EOI) - rewind bitPos to 0xFF
-          bitPos -= 2;
-          hitMarker = true;
-          return 0;
-        }
-        return b;
-      };
-
-      const readBits = (n: number): number => {
-        let val = 0;
-        for (let i = 0; i < n; i++) {
-          if (bitCnt === 0) {
-            bitBuf = readNextEntropyByte();
-            bitCnt = 8;
-          }
-          val = (val << 1) | ((bitBuf >> (bitCnt - 1)) & 1);
-          bitCnt--;
-        }
-        return val;
-      };
-
-      const decodeHuff = (tbl: JpegHuffmanTable | undefined): number => {
-        if (!tbl) return 0;
-        let code = 0;
-        for (let len = 1; len <= 16; len++) {
-          code = (code << 1) | readBits(1);
-          const maxC = tbl.maxCode[len]!;
-          if (maxC >= 0 && code <= maxC) {
-            const idx = tbl.valPtr[len]! + (code - tbl.minCode[len]!);
-            return tbl.huffVal[idx] ?? 0;
-          }
-        }
-        return 0;
-      };
-
-      const receiveExtend = (s: number): number => {
-        if (s <= 0) return 0;
-        const v = readBits(s);
-        const vt = 1 << (s - 1);
-        return v < vt ? v - ((1 << s) - 1) : v;
-      };
-
-      const decodeBlockInScan = (ci: number, zz: Int32Array) => {
-        const comp = comps[ci]!;
-        const dcTbl = dcTables.get(comp.dcTableId) ?? dcTables.get(0);
-        const acTbl = acTables.get(comp.acTableId) ?? acTables.get(0);
-
-        if (ss === 0) {
-          if (ah === 0) {
-            const s = decodeHuff(dcTbl);
-            const diff = receiveExtend(s);
-            comp.dcPred += diff;
-            zz[0] = comp.dcPred << al;
-          } else {
-            if (readBits(1) === 1) {
-              zz[0] = (zz[0] ?? 0) | (1 << al);
-            }
-          }
-          if (se === 0) return;
-        }
-
-        if (ah === 0) {
-          if (eobRun > 0) {
-            eobRun--;
-            return;
-          }
-          let k = Math.max(1, ss);
-          while (k <= se) {
-            const rs = decodeHuff(acTbl);
-            const sAc = rs & 0x0f;
-            const rAc = rs >> 4;
-            if (sAc === 0) {
-              if (rAc === 15) {
-                k += 16;
-                continue;
-              }
-              eobRun = (1 << rAc) + (rAc > 0 ? readBits(rAc) : 0) - 1;
-              break;
-            }
-            k += rAc;
-            if (k <= se && k < 64) {
-              zz[k] = receiveExtend(sAc) << al;
-            }
-            k++;
-          }
-        } else {
-          const p1 = 1 << al;
-          const m1 = -(1 << al);
-          let k = Math.max(1, ss);
-          if (eobRun === 0) {
-            while (k <= se) {
-              const rs = decodeHuff(acTbl);
-              const sAc = rs & 0x0f;
-              let rAc = rs >> 4;
-              let newVal = 0;
-              if (sAc !== 0) {
-                newVal = readBits(1) === 1 ? p1 : m1;
-              } else if (rAc !== 15) {
-                eobRun = (1 << rAc) + (rAc > 0 ? readBits(rAc) : 0);
-                break;
-              }
-              while (k <= se) {
-                const cur = zz[k] ?? 0;
-                if (cur !== 0) {
-                  if (readBits(1) === 1) {
-                    zz[k] = cur + (cur > 0 ? p1 : m1);
-                  }
-                } else {
-                  if (rAc === 0) break;
-                  rAc--;
-                }
-                k++;
-              }
-              if (newVal !== 0 && k <= se && k < 64) {
-                zz[k] = newVal;
-              }
-              k++;
-            }
-          }
-          if (eobRun > 0) {
-            while (k <= se) {
-              const cur = zz[k] ?? 0;
-              if (cur !== 0 && readBits(1) === 1) {
-                zz[k] = cur + (cur > 0 ? p1 : m1);
-              }
-              k++;
-            }
-            eobRun--;
-          }
-        }
-      };
-
-      let mcuCounter = 0;
-      const checkRestart = () => {
-        if (restartInterval > 0 && mcuCounter > 0 && mcuCounter % restartInterval === 0) {
-          bitCnt = 0;
-          bitBuf = 0;
-          if (
-            bitPos + 1 < jpegBytes.length &&
-            jpegBytes[bitPos] === 0xff &&
-            jpegBytes[bitPos + 1]! >= 0xd0 &&
-            jpegBytes[bitPos + 1]! <= 0xd7
-          ) {
-            bitPos += 2;
-          }
-          for (const c of comps) c.dcPred = 0;
-          eobRun = 0;
-        }
-        mcuCounter++;
-      };
-
-      if (scanCompIndices.length === 1) {
-        const ci = scanCompIndices[0]!;
-        const comp = comps[ci]!;
-        const blocksW = mcusX * comp.hSamp;
-        const activeBlocksW = Math.max(1, Math.ceil((width * comp.hSamp) / (maxH * 8)));
-        const activeBlocksH = Math.max(1, Math.ceil((height * comp.vSamp) / (maxV * 8)));
-        for (let by8 = 0; by8 < activeBlocksH && !hitMarker; by8++) {
-          for (let bx8 = 0; bx8 < activeBlocksW && !hitMarker; bx8++) {
-            checkRestart();
-            const bIdx = by8 * blocksW + bx8;
-            const zz = compZigzagBlocks[ci]![bIdx];
-            if (zz) decodeBlockInScan(ci, zz);
-          }
-        }
-      } else {
-        for (let my = 0; my < mcusY && !hitMarker; my++) {
-          for (let mx = 0; mx < mcusX && !hitMarker; mx++) {
-            checkRestart();
-            for (const ci of scanCompIndices) {
-              const comp = comps[ci]!;
-              const blocksW = mcusX * comp.hSamp;
-              for (let vy = 0; vy < comp.vSamp; vy++) {
-                for (let hx = 0; hx < comp.hSamp; hx++) {
-                  const bIdx = (my * comp.vSamp + vy) * blocksW + (mx * comp.hSamp + hx);
-                  const zz = compZigzagBlocks[ci]![bIdx];
-                  if (zz) decodeBlockInScan(ci, zz);
-                }
-              }
-            }
-          }
-        }
-      }
-
-      hasDecodedAnyScan = true;
-      pos = bitPos;
-    } else {
-      pos += segLen;
-    }
-  }
-
+  const rgb = decoder.getData({ width, height, forceRGB: true, isSourcePDF: options.isSourcePdf ?? false });
+  if (rgb.length !== width * height * 3) throw new PdfError("E_PARSE", "Invalid decoded JPEG sample count");
   const rgba = new Uint8Array(width * height * 4);
-  if (!hasDecodedAnyScan || comps.length === 0) {
-    let fillR = 180;
-    let fillG = 180;
-    let fillB = 180;
-    if (firstScanDataOffset >= 0 && firstScanDataOffset < jpegBytes.length) {
-      fillR = jpegBytes[firstScanDataOffset] ?? 180;
-      fillG = jpegBytes[firstScanDataOffset + 1] ?? fillR;
-      fillB = jpegBytes[firstScanDataOffset + 2] ?? fillG;
-    }
-    for (let p = 0; p < width * height; p++) {
-      rgba[p * 4] = fillR;
-      rgba[p * 4 + 1] = fillG;
-      rgba[p * 4 + 2] = fillB;
-      rgba[p * 4 + 3] = 255;
-    }
-    return { width, height, components: numComponents, data: rgba };
+  for (let p = 0; p < width * height; p++) {
+    rgba[p * 4] = rgb[p * 3]!;
+    rgba[p * 4 + 1] = rgb[p * 3 + 1]!;
+    rgba[p * 4 + 2] = rgb[p * 3 + 2]!;
+    rgba[p * 4 + 3] = 255;
   }
-
-  const compPlanes = comps.map(c => new Uint8Array(mcusX * c.hSamp * 8 * mcusY * c.vSamp * 8));
-  const blockCoeffs = new Float64Array(64);
-  const blockSpatial = new Uint8Array(64);
-
-  for (let ci = 0; ci < comps.length; ci++) {
-    const comp = comps[ci]!;
-    const qTbl = qTables[comp.qTableId] ?? qTables[0]!;
-    const plane = compPlanes[ci]!;
-    const blocksW = mcusX * comp.hSamp;
-    const blocksH = mcusY * comp.vSamp;
-    const planeStride = blocksW * 8;
-    for (let by8 = 0; by8 < blocksH; by8++) {
-      for (let bx8 = 0; bx8 < blocksW; bx8++) {
-        const zz = compZigzagBlocks[ci]![by8 * blocksW + bx8]!;
-        blockCoeffs.fill(0);
-        for (let k = 0; k < 64; k++) {
-          const naturalIdx = JPEG_ZIGZAG[k] ?? k;
-          blockCoeffs[naturalIdx] = zz[k]! * qTbl[k]!;
-        }
-        idct8x8(blockCoeffs, blockSpatial);
-        const baseX = bx8 * 8;
-        const baseY = by8 * 8;
-        for (let py = 0; py < 8; py++) {
-          const dstRow = (baseY + py) * planeStride + baseX;
-          for (let px = 0; px < 8; px++) {
-            plane[dstRow + px] = blockSpatial[py * 8 + px]!;
-          }
-        }
-      }
-    }
-  }
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const dstIdx = (y * width + x) * 4;
-      if (comps.length === 1) {
-        const c0 = comps[0]!;
-        const stride0 = mcusX * c0.hSamp * 8;
-        const g = compPlanes[0]![y * stride0 + x]!;
-        rgba[dstIdx] = g;
-        rgba[dstIdx + 1] = g;
-        rgba[dstIdx + 2] = g;
-        rgba[dstIdx + 3] = 255;
-      } else {
-        const c0 = comps[0]!;
-        const c1 = comps[1] ?? c0;
-        const c2 = comps[2] ?? c0;
-        const sx0 = Math.floor((x * c0.hSamp) / maxH);
-        const sy0 = Math.floor((y * c0.vSamp) / maxV);
-        const sx1 = Math.floor((x * c1.hSamp) / maxH);
-        const sy1 = Math.floor((y * c1.vSamp) / maxV);
-        const sx2 = Math.floor((x * c2.hSamp) / maxH);
-        const sy2 = Math.floor((y * c2.vSamp) / maxV);
-
-        const yVal = compPlanes[0]![sy0 * (mcusX * c0.hSamp * 8) + sx0]!;
-        const cbVal = compPlanes[1]![sy1 * (mcusX * c1.hSamp * 8) + sx1]! - 128;
-        const crVal = compPlanes[2]![sy2 * (mcusX * c2.hSamp * 8) + sx2]! - 128;
-
-        const r = Math.round(yVal + 1.402 * crVal);
-        const g = Math.round(yVal - 0.344136 * cbVal - 0.714136 * crVal);
-        const b = Math.round(yVal + 1.772 * cbVal);
-
-        rgba[dstIdx] = r < 0 ? 0 : r > 255 ? 255 : r;
-        rgba[dstIdx + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
-        rgba[dstIdx + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
-        rgba[dstIdx + 3] = 255;
-      }
-    }
-  }
-
-  return { width, height, components: numComponents, data: rgba };
+  return { width, height, components, data: rgba };
 }
 
 export function decodeJbig2ToRgba(
@@ -1528,7 +1027,20 @@ export function decodeXObjectImageToRgba(
       if (csInfo.components !== decoded.components) throw new PdfError("E_PARSE", "JPEG 2000 component count does not match ColorSpace");
       rgba = decodeSamplesToRgba(decoded.samples, width, height, 8, csInfo);
     } else {
-      rgba = decodeJpegToRgba(rawEncBytes, width, height, doc.maxDecompressedBytes).data;
+      const params = doc.resolve(dictGet(dict, "DecodeParms") ?? dictGet(dict, "DP"));
+      const decodeParms = params?.kind === "array"
+        ? doc.resolveDict(params.items[filters.findIndex(filter => filter === "DCTDecode" || filter === "DCT")])
+        : doc.resolveDict(params);
+      const colorTransform = decodeParms ? doc.resolve(dictGet(decodeParms, "ColorTransform")) : undefined;
+      const decoded = decodeJpegToRgba(rawEncBytes, width, height, doc.maxDecompressedBytes, {
+        isSourcePdf: true,
+        decode: parseDecodePairs(doc, dict),
+        colorTransform: colorTransform?.kind === "number" ? colorTransform.value : undefined,
+      });
+      width = decoded.width;
+      height = decoded.height;
+      bitsPerComponent = 8;
+      rgba = decoded.data;
     }
     if (smaskNode?.kind === "stream") {
       applySmaskStreamToRgba(doc, smaskNode, rgba, width, height, activeRes);

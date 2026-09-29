@@ -4863,8 +4863,10 @@ function findNextFileMarker(data, currentPos, startPos = currentPos) {
 class JpegImage {
   constructor({
     decodeTransform = null,
-    colorTransform = -1
+    colorTransform = -1,
+    onImageDimensions
   } = {}) {
+    this.onImageDimensions = onImageDimensions;
     this._decodeTransform = decodeTransform;
     this._colorTransform = colorTransform;
   }
@@ -5031,6 +5033,7 @@ class JpegImage {
           }
           frame.maxH = maxH;
           frame.maxV = maxV;
+          this.onImageDimensions?.(frame.samplesPerLine, frame.scanLines);
           prepareComponents(frame);
           break;
         case 0xffc4:

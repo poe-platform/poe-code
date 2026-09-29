@@ -93,3 +93,18 @@ and https://github.com/mozilla/pdf.js/tree/91041fb94d6744bc2a5bccd9aad28d617faa8
 Regenerate the portable font-data module using
 `scripts/generate-standard-font-data.mjs <PDF.js checkout> <directory containing FoxitSans*.cpp>`.
 No Liberation font files are included.
+
+# PDF.js JPEG decoding
+
+`src/extract/images.ts` uses the `JpegImage` export of the standalone decoder
+bundle above, replacing the local handwritten JPEG codec. PDF `/Decode` and
+`/ColorTransform` handling follows PDF.js v4.1.392 `src/core/jpeg_stream.js`.
+The vendored decoder accepts an optional dimension callback before allocating
+frame components, preserving caller-specified byte budgets.
+`src/extract/jpeg-reference.test.ts` ports the CMYK image shape expectation from
+`test/unit/api_spec.js` (issue 4888) and the baseline/extended/progressive SOF
+header cases from `test/unit/jpeg_stream_spec.js` at revision
+`91041fb94d6744bc2a5bccd9aad28d617faa8195`. The SOF cases assert local byte-budget
+behavior instead of browser ImageDecoder availability. Independent pixel
+oracles extend those upstream checks; provenance is in `src/fixtures/SOURCES.md`.
+Mozilla Foundation, Apache-2.0; see `licenses/PDFJS-APACHE-2.0.txt`.

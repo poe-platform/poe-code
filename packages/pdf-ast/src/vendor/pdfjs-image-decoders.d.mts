@@ -15,3 +15,16 @@ export class JpxImage {
   tiles: Array<{ left: number; top: number; width: number; height: number; items: Uint8ClampedArray }>;
   parse(data: Uint8Array): void;
 }
+
+export class JpegImage {
+  constructor(options?: {
+    colorTransform?: number | undefined;
+    decodeTransform?: Int32Array | undefined;
+    onImageDimensions?: ((width: number, height: number) => void) | undefined;
+  });
+  width: number;
+  height: number;
+  numComponents: number;
+  parse(data: Uint8Array): void;
+  getData(options: { width: number; height: number; forceRGB?: boolean; forceRGBA?: boolean; isSourcePDF?: boolean }): Uint8ClampedArray;
+}

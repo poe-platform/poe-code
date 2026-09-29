@@ -14,7 +14,7 @@ Unified first-party PDF AST, parser, lossless editor, extractor, and 2D PNG rast
 | Text & Table Extraction | `doc.extractText()`, `doc.extractTables()`, `doc.toSemanticAst()` | Spatial reading-order clustering (`logical`, `layout`, `raw`, `bbox`), table recovery, and semantic AST conversion |
 | Page Merging & Forms | `doc.copyPagesFrom()`, `doc.getFormFields()`, `doc.setFormField()` | Deep-clone pages across PDFs and inspect or fill `AcroForm` fields |
 | Form Data & Flattening | `parseFormDataBytes()`, `flattenDocumentFormFields()` | Parse FDF, XFDF, and `dump_data_fields` stanzas; bake widget appearances as resource-isolated Forms without rewriting their bytes |
-| Image Extraction | `extractDocumentImages(doc.cos, options)` | Extract XObject, nested Form XObject, and inline images with CTM PPI, `/SMask` alpha, `/ImageMask` stencils, and PDF.js JBIG2/JPEG 2000 decoding |
+| Image Extraction | `extractDocumentImages(doc.cos, options)` | Extract XObject, nested Form XObject, and inline images with CTM PPI, `/SMask` alpha, `/ImageMask` stencils, and PDF.js JPEG/JBIG2/JPEG 2000 decoding |
 | Security & Encryption | `doc.save({ encrypt })`, `PdfDocument.load(bytes, { password })` | Standard Security Handler (`R2`–`R6`, RC4, AES-128, AES-256) encryption and decryption |
 | Raster & Vector Export | `renderPdfPageToBitmap()`, `encodePng()`, `encodeJpeg()`, `encodePpm()`, `encodePgm()`, `encodePbm()`, `renderDisplayListToSvg()` | Paint text, images, and paths in PDF content order; export PNG, JPEG, PPM/PGM/PBM, and SVG with a pure-TypeScript rasterizer |
 
@@ -57,6 +57,8 @@ PNG and SVG preserve font styles without installed system fonts; SVG exports
 glyph paths with accessible labels. Unicode fallback covers characters present
 in the bundled standard, Symbol, and Dingbats fonts; embed a font for other scripts.
 
+JPEG decoding uses PDF.js for baseline/progressive, grayscale, RGB, CMYK, and
+YCCK images, with PDF `/Decode` and `/ColorTransform` handling.
 JBIG2 decoding supports shared `/JBIG2Globals` dictionaries, arithmetic coding,
 and MMR regions. JPEG 2000 decoding handles JP2 containers, raw codestreams,
 and multiple tiles; image dimensions come from the codestream. Decode failures

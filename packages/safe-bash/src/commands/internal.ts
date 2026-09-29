@@ -120,6 +120,7 @@ export interface SyncCommandEvaluators {
   evalSyncLn?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, rmSync?: (filePath: string) => boolean, linkSync?: (srcOrTarget: string, dstPath: string, symbolic: boolean) => boolean) => string | undefined;
   evalSyncCat?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
   evalSyncHeadTail?: (name: "head" | "tail", inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncWc?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], singleByte: boolean, readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
 }
 
 export const syncCommandEvaluators: SyncCommandEvaluators = {};
@@ -1402,3 +1403,153 @@ export function evalSyncHeadTail(
 
 syncCommandEvaluators.evalSyncCat = evalSyncCat;
 syncCommandEvaluators.evalSyncHeadTail = evalSyncHeadTail;
+
+export function evalSyncWc(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  singleByte: boolean,
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal("wc", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  const flags = new Set<string>();
+  let totalMode = "auto";
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (ended || !a.startsWith("-") || a === "-") {
+      operands.push(a);
+      continue;
+    }
+    if (a === "--") { ended = true; continue; }
+    if (a === "--lines") { flags.add("l"); continue; }
+    if (a === "--words") { flags.add("w"); continue; }
+    if (a === "--chars") { flags.add("m"); continue; }
+    if (a === "--bytes") { flags.add("c"); continue; }
+    if (a === "--max-line-length") { flags.add("L"); continue; }
+    if (a === "--total") {
+      if (i + 1 >= opArgs.length) return undefined;
+      totalMode = opArgs[++i]!;
+      continue;
+    }
+    if (a.startsWith("--total=")) {
+      totalMode = a.slice(8);
+      continue;
+    }
+    if (a.startsWith("-") && !a.startsWith("--")) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "l" || ch === "w" || ch === "m" || ch === "c" || ch === "L") {
+          flags.add(ch);
+        } else {
+          return undefined;
+        }
+      }
+      continue;
+    }
+    return undefined;
+  }
+  if (!["auto", "always", "only", "never"].includes(totalMode)) return undefined;
+  if (flags.size === 0) {
+    flags.add("l");
+    flags.add("w");
+    flags.add("c");
+  }
+  const selected = ["l", "w", "m", "c", "L"].filter(f => flags.has(f));
+  const names = operands.length > 0 ? operands : ["-"];
+  const buffers: Uint8Array[] = [];
+  let totalBytesAll = 0;
+  for (const name of names) {
+    let b: Uint8Array | undefined;
+    if (name === "-") {
+      if (inBytes === undefined) return undefined;
+      b = inBytes;
+    } else {
+      if (!readFileSync) return undefined;
+      b = readFileSync(name);
+      if (!b) return undefined;
+    }
+    totalBytesAll += b.byteLength;
+    if (totalBytesAll > 65536) return undefined;
+    if (!singleByte && (flags.has("w") || flags.has("L")) && b.some(byte => byte >= 128)) {
+      return undefined;
+    }
+    buffers.push(b);
+  }
+  let width = 1;
+  if (totalMode !== "only" && (names.length > 1 || selected.length > 1)) {
+    let totalSize = 0;
+    for (let i = 0; i < names.length; i++) {
+      if (names[i] === "-") {
+        width = Math.max(width, 7);
+      } else {
+        totalSize += buffers[i]!.byteLength;
+      }
+    }
+    width = Math.max(width, String(totalSize).length);
+  }
+  const totals: Record<string, number> = { l: 0, w: 0, m: 0, c: 0, L: 0 };
+  const rows: string[] = [];
+  const formatRow = (counts: Record<string, number>, label?: string): string =>
+    selected.map(f => String(counts[f]).padStart(width)).join(" ") + (label === undefined ? "" : ` ${label}`) + "\n";
+
+  for (let idx = 0; idx < names.length; idx++) {
+    const name = names[idx]!;
+    const buf = buffers[idx]!;
+    let l = 0;
+    let w = 0;
+    let m = 0;
+    const c = buf.byteLength;
+    let maxL = 0;
+    let columns = 0;
+    let inWord = false;
+    for (let i = 0; i < buf.byteLength; i++) {
+      const byte = buf[i]!;
+      if (byte === 10) {
+        l++;
+        inWord = false;
+        if (columns > maxL) maxL = columns;
+        columns = 0;
+      } else if (byte === 32 || (byte >= 9 && byte <= 13)) {
+        inWord = false;
+        if (byte === 9) columns += 8 - (columns & 7);
+        else if (byte === 13 || byte === 12) {
+          if (columns > maxL) maxL = columns;
+          columns = 0;
+        } else if (byte === 32) {
+          columns++;
+        }
+      } else if (byte >= 33 && byte < 127) {
+        if (!inWord) {
+          w++;
+          inWord = true;
+        }
+        columns++;
+      }
+    }
+    if (columns > maxL) maxL = columns;
+    if (singleByte) {
+      m = c;
+    } else if (flags.has("m")) {
+      m = Array.from(decoder.decode(buf)).length;
+    }
+    const counts: Record<string, number> = { l, w, m, c, L: maxL };
+    totals.l! += l;
+    totals.w! += w;
+    totals.m! += m;
+    totals.c! += c;
+    totals.L = Math.max(totals.L!, maxL);
+    if (totalMode !== "only") {
+      rows.push(formatRow(counts, operands.length > 0 ? name : undefined));
+    }
+  }
+  if (totalMode === "only") {
+    rows.push(formatRow(totals));
+  } else if (totalMode === "always" || (totalMode === "auto" && names.length > 1)) {
+    rows.push(formatRow(totals, "total"));
+  }
+  return rows.join("");
+}
+
+syncCommandEvaluators.evalSyncWc = evalSyncWc;

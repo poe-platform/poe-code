@@ -24483,6 +24483,228 @@ export class Runtime {
     };
   }
 
+  private evalSyncGrepWithFiles(
+    allArgs: readonly string[],
+    isEgrep: boolean,
+    isFgrep: boolean,
+    errexit: boolean,
+    cwd: string,
+    stdinLines?: readonly string[],
+  ): { lines: string[]; status: number } | undefined {
+    if (errexit) return undefined;
+    const coreArgs: string[] = [];
+    if (isEgrep) coreArgs.push("-E");
+    if (isFgrep) coreArgs.push("-F");
+    let withFilename = false;
+    let noFilename = false;
+    let filesWithMatches = false;
+    let filesWithoutMatch = false;
+    let quiet = false;
+    let hasExplicitPattern = false;
+    let hasContext = false;
+    let ended = false;
+    const fileOperands: string[] = [];
+    for (let i = 0; i < allArgs.length; i++) {
+      const a = allArgs[i]!;
+      if (ended || !a.startsWith("-") || a === "-") {
+        if (!hasExplicitPattern) {
+          hasExplicitPattern = true;
+          coreArgs.push("-e", a);
+        } else {
+          if (a === "-") return undefined;
+          fileOperands.push(a);
+        }
+        continue;
+      }
+      if (a === "--") { ended = true; continue; }
+      if (a === "-e") {
+        if (i + 1 >= allArgs.length) return undefined;
+        hasExplicitPattern = true;
+        coreArgs.push("-e", allArgs[++i]!);
+        continue;
+      }
+      if (a.startsWith("-e") && a.length > 2) {
+        hasExplicitPattern = true;
+        coreArgs.push(a);
+        continue;
+      }
+      if ((a === "-m" || a === "-A" || a === "-B" || a === "-C") && i + 1 < allArgs.length) {
+        if (a !== "-m") hasContext = true;
+        coreArgs.push(a, allArgs[++i]!);
+        continue;
+      }
+      if (/^-[ABC][0-9]{1,4}$/.test(a) || /^--(?:after-context|before-context|context)=[0-9]{1,4}$/.test(a)) {
+        hasContext = true;
+        coreArgs.push(a);
+        continue;
+      }
+      if (a === "--with-filename") { withFilename = true; continue; }
+      if (a === "--no-filename") { noFilename = true; continue; }
+      if (a === "--files-with-matches") { filesWithMatches = true; continue; }
+      if (a === "--files-without-match") { filesWithoutMatch = true; continue; }
+      if (a === "--quiet" || a === "--silent") { quiet = true; continue; }
+      if (a === "--no-messages") continue;
+      if (a.startsWith("--")) {
+        coreArgs.push(a);
+        continue;
+      }
+      let remFlags = "";
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "H") { withFilename = true; noFilename = false; }
+        else if (ch === "h") { noFilename = true; withFilename = false; }
+        else if (ch === "l") { filesWithMatches = true; filesWithoutMatch = false; }
+        else if (ch === "L") { filesWithoutMatch = true; filesWithMatches = false; }
+        else if (ch === "q") { quiet = true; }
+        else if (ch === "s") { /* ignore */ }
+        else remFlags += ch;
+      }
+      if (remFlags.length > 0) coreArgs.push("-" + remFlags);
+    }
+    if (!hasExplicitPattern) return undefined;
+    if (fileOperands.length === 0) {
+      if (stdinLines === undefined) return undefined;
+      const res = this.evalSyncGrep(stdinLines, coreArgs, false);
+      if (!res) return undefined;
+      if (quiet) return { lines: [], status: res.status };
+      if (filesWithMatches) return { lines: res.status === 0 ? ["(standard input)"] : [], status: res.status };
+      if (filesWithoutMatch) return { lines: res.status !== 0 ? ["(standard input)"] : [], status: res.status !== 0 ? 0 : 1 };
+      return {
+        lines: withFilename ? res.lines.map(l => `(standard input):${l}`) : res.lines,
+        status: res.status,
+      };
+    }
+    const showFile = withFilename ? true : noFilename ? false : fileOperands.length > 1;
+    if (showFile && hasContext) return undefined;
+    const outLines: string[] = [];
+    let anyMatch = false;
+    let anyWithoutMatch = false;
+    let totalBytes = 0;
+    for (const fPath of fileOperands) {
+      const fView = this.tryReadMemoryFileViewSync(resolvePath(cwd, fPath), true, true);
+      if (!fView || fView.includes(0)) return undefined;
+      totalBytes += fView.byteLength;
+      if (totalBytes > 16384) return undefined;
+      const fStr = sharedSyncPipeDecoder.decode(fView);
+      const fLines = fStr.endsWith("\n") ? fStr.slice(0, -1).split("\n") : (fStr.length === 0 ? [] : fStr.split("\n"));
+      const res = this.evalSyncGrep(fLines, coreArgs, false);
+      if (!res) return undefined;
+      if (res.status === 0) {
+        anyMatch = true;
+        if (quiet) return { lines: [], status: 0 };
+        if (filesWithMatches) {
+          outLines.push(fPath);
+          continue;
+        }
+      } else if (filesWithoutMatch) {
+        anyWithoutMatch = true;
+        outLines.push(fPath);
+        continue;
+      }
+      if (!filesWithMatches && !filesWithoutMatch) {
+        for (const ln of res.lines) {
+          outLines.push(showFile ? `${fPath}:${ln}` : ln);
+        }
+      }
+    }
+    const status = filesWithoutMatch ? (anyWithoutMatch ? 0 : 1) : (anyMatch ? 0 : 1);
+    return { lines: outLines, status };
+  }
+
+  private evalSyncMultiFileText(
+    cmd: "sort" | "sed" | "cut" | "awk",
+    allArgs: readonly string[],
+    cwd: string,
+    isByteLocale: boolean,
+  ): string[] | undefined {
+    const optArgs: string[] = [];
+    const fileOperands: string[] = [];
+    let ended = false;
+    let hasScriptOrProg = false;
+    for (let i = 0; i < allArgs.length; i++) {
+      const a = allArgs[i]!;
+      if (ended || !a.startsWith("-") || a === "-") {
+        if (a === "-") return undefined;
+        if ((cmd === "sed" || cmd === "awk") && !hasScriptOrProg) {
+          if (cmd === "awk" && (a.includes("FNR") || a.includes("FILENAME"))) return undefined;
+          hasScriptOrProg = true;
+          optArgs.push(a);
+        } else {
+          if (cmd === "awk" && a.includes("=")) return undefined;
+          fileOperands.push(a);
+        }
+        continue;
+      }
+      if (a === "--") { ended = true; continue; }
+      if (cmd === "sort") {
+        if (a === "-o" || a.startsWith("-o") || a.startsWith("--output") || a === "-m" || a === "-c" || a === "-C") return undefined;
+        if ((a === "-k" || a === "-t" || a === "-S" || a === "-T") && i + 1 < allArgs.length) {
+          optArgs.push(a, allArgs[++i]!);
+          continue;
+        }
+        optArgs.push(a);
+      } else if (cmd === "cut") {
+        if ((a === "-d" || a === "-f" || a === "-b" || a === "-c" || a === "--output-delimiter") && i + 1 < allArgs.length) {
+          optArgs.push(a, allArgs[++i]!);
+          continue;
+        }
+        optArgs.push(a);
+      } else if (cmd === "sed") {
+        if (a === "-i" || a.startsWith("-i") || a.startsWith("--in-place") || a === "-f" || a.startsWith("-f")) return undefined;
+        if (a === "-e" && i + 1 < allArgs.length) {
+          hasScriptOrProg = true;
+          optArgs.push(a, allArgs[++i]!);
+          continue;
+        }
+        if (a.startsWith("-e") && a.length > 2) {
+          hasScriptOrProg = true;
+          optArgs.push(a);
+          continue;
+        }
+        optArgs.push(a);
+      } else if (cmd === "awk") {
+        if (a === "-f" || a.startsWith("-f")) return undefined;
+        if ((a === "-F" || a === "-v") && i + 1 < allArgs.length) {
+          optArgs.push(a, allArgs[++i]!);
+          continue;
+        }
+        optArgs.push(a);
+      }
+    }
+    if (fileOperands.length === 0) return undefined;
+    if (cmd === "sort" && isByteLocale) return undefined;
+    let totalBytes = 0;
+    if (cmd === "cut") {
+      const out: string[] = [];
+      for (const fPath of fileOperands) {
+        const fView = this.tryReadMemoryFileViewSync(resolvePath(cwd, fPath), true, true);
+        if (!fView || fView.includes(0)) return undefined;
+        totalBytes += fView.byteLength;
+        if (totalBytes > 16384) return undefined;
+        const fStr = sharedSyncPipeDecoder.decode(fView);
+        const fLines = fStr.endsWith("\n") ? fStr.slice(0, -1).split("\n") : (fStr.length === 0 ? [] : fStr.split("\n"));
+        const res = this.evalSyncCut(fLines, optArgs, isByteLocale);
+        if (!res) return undefined;
+        out.push(...res);
+      }
+      return out;
+    }
+    const combinedLines: string[] = [];
+    for (const fPath of fileOperands) {
+      const fView = this.tryReadMemoryFileViewSync(resolvePath(cwd, fPath), true, true);
+      if (!fView || fView.includes(0)) return undefined;
+      totalBytes += fView.byteLength;
+      if (totalBytes > 16384) return undefined;
+      const fStr = sharedSyncPipeDecoder.decode(fView);
+      const fLines = fStr.endsWith("\n") ? fStr.slice(0, -1).split("\n") : (fStr.length === 0 ? [] : fStr.split("\n"));
+      combinedLines.push(...fLines);
+    }
+    if (cmd === "sort") return this.evalSyncSort(combinedLines, optArgs, false);
+    if (cmd === "sed") return this.evalSyncSed(combinedLines, optArgs)?.lines;
+    if (cmd === "awk") return this.evalSyncAwk(combinedLines, optArgs);
+    return undefined;
+  }
+
   private evalSyncAwk(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
     // The standalone runtime operates on UTF-8 bytes. Keep this text fast path
     // ASCII-only so partial byte substrings and case folding use that runtime.
@@ -27387,7 +27609,7 @@ export class Runtime {
       const w0Plain0 = cmd0.words[0]?.plain;
       const cmd0YesStage = !cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "yes" && pipeline.commands[1]?.kind === "simple" && pipeline.commands[1]?.words[0]?.plain === "head";
       const cmd0SysStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "uname" || w0Plain0 === "id" || w0Plain0 === "whoami" || w0Plain0 === "hostname" || w0Plain0 === "nproc" || w0Plain0 === "getconf" || w0Plain0 === "locale" || w0Plain0 === "cal" || w0Plain0 === "ncal" || w0Plain0 === "date" || w0Plain0 === "printenv" || w0Plain0 === "env" || w0Plain0 === "pwd" || w0Plain0 === "dirname" || w0Plain0 === "basename" || w0Plain0 === "expr" || w0Plain0 === "getopt" || w0Plain0 === "pathchk");
-      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || ((w0Plain0 === "head" || w0Plain0 === "tail") && cmd0.words.length >= 3 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
+      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
       if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0YesStage && !cmd0SysStage && !cmd0HereStringRedir && !cmd0FileStage) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
@@ -27417,13 +27639,13 @@ export class Runtime {
           sArgs.push(v);
         }
         if (sName === "cut") {
-          if (this.evalSyncCut([], sArgs, byteLocale(rawState.variables)) === undefined) return undefined;
+          if ((i === 0 && cmd0FileStage) ? this.evalSyncMultiFileText("cut", sArgs, rawState.cwd, byteLocale(rawState.variables)) === undefined : this.evalSyncCut([], sArgs, byteLocale(rawState.variables)) === undefined) return undefined;
         } else if (sName === "tr") {
           if (this.evalSyncTr("", sArgs) === undefined) return undefined;
         } else if (sName === "uniq") {
           if (this.evalSyncUniq([], sArgs) === undefined) return undefined;
         } else if (sName === "sort") {
-          if (this.evalSyncSort([], sArgs, byteLocale(rawState.variables)) === undefined) return undefined;
+          if ((i === 0 && cmd0FileStage) ? this.evalSyncMultiFileText("sort", sArgs, rawState.cwd, byteLocale(rawState.variables)) === undefined : this.evalSyncSort([], sArgs, byteLocale(rawState.variables)) === undefined) return undefined;
         } else if ((sName === "head" || sName === "tail") && !(i === 0 && cmd0FileStage)) {
           if (sArgs.length === 0) {
             sArgs.push("-n", "10");
@@ -27434,22 +27656,27 @@ export class Runtime {
             sArgs.push(flag, numStr);
           }
           const validNum = sArgs.length === 2 && ((sArgs[0] === "-n" && (/^[0-9]+$/.test(sArgs[1]!) || (sName === "tail" && /^\+[0-9]+$/.test(sArgs[1]!)) || (sName === "head" && /^-[0-9]+$/.test(sArgs[1]!)))) || (sArgs[0] === "-c" && /^[0-9]+$/.test(sArgs[1]!)));
-          if (!validNum) return undefined;
+          if (!validNum && syncCommandEvaluators.evalSyncHeadTail?.(sName, EMPTY_BYTES, sArgs) === undefined) return undefined;
         } else if (sName === "wc") {
-          const normWc = sArgs.length === 1 ? this.normalizeSyncWcFlag(sArgs[0]) : undefined;
-          if (!normWc) return undefined;
-          sArgs[0] = normWc;
+          const normWc = !(i === 0 && cmd0FileStage) && sArgs.length === 1 ? this.normalizeSyncWcFlag(sArgs[0]) : undefined;
+          if (normWc) {
+            sArgs[0] = normWc;
+          } else if (syncCommandEvaluators.evalSyncWc?.(i === 0 && cmd0FileStage ? undefined : EMPTY_BYTES, sArgs, byteLocale(rawState.variables), (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) {
+            return undefined;
+          }
         } else if (sName === "sed") {
-          if (this.evalSyncSed([], sArgs) === undefined) return undefined;
+          if ((i === 0 && cmd0FileStage) ? this.evalSyncMultiFileText("sed", sArgs, rawState.cwd, byteLocale(rawState.variables)) === undefined : this.evalSyncSed([], sArgs) === undefined) return undefined;
         } else if (sName === "rev") {
           if (sArgs.length !== 0) return undefined;
         } else if (sName === "awk") {
-          if (this.evalSyncAwk([], sArgs) === undefined) return undefined;
+          if ((i === 0 && cmd0FileStage) ? this.evalSyncMultiFileText("awk", sArgs, rawState.cwd, byteLocale(rawState.variables)) === undefined : this.evalSyncAwk([], sArgs) === undefined) return undefined;
         } else if (sName === "grep" || sName === "egrep" || sName === "fgrep") {
           if (sName === "egrep") sArgs.unshift("-E");
           else if (sName === "fgrep") sArgs.unshift("-F");
-          const checkArgs = (i === 0 && cmd0FileStage) ? sArgs.slice(0, -1) : sArgs;
-          if ((i === 0 && cmd0FileStage && (sArgs.length < 2 || sArgs[sArgs.length - 1]!.startsWith("-"))) || this.evalSyncGrep([], checkArgs, Boolean(rawState.errexit)) === undefined) return undefined;
+          const grepOk = (i === 0 && cmd0FileStage)
+            ? this.evalSyncGrepWithFiles(sArgs, false, false, Boolean(rawState.errexit), rawState.cwd) !== undefined
+            : (this.evalSyncGrep([], sArgs, Boolean(rawState.errexit)) !== undefined || this.evalSyncGrepWithFiles(sArgs, false, false, Boolean(rawState.errexit), rawState.cwd, []) !== undefined);
+          if (!grepOk) return undefined;
         } else if (sName === "jq") {
           if (sArgs.length === 0 || sArgs.length > 2) return undefined;
           if (sArgs.length === 1 && sArgs[0]!.startsWith("-")) return undefined;
@@ -27826,7 +28053,7 @@ export class Runtime {
               } else {
                 outLines = firstName === "head" ? rawLines.slice(0, count) : (count === 0 ? [] : rawLines.slice(-count));
               }
-            } else if (firstName === "wc") {
+            } else if (firstName === "wc" && !(sIdx === 0 && cmd0FileStage) && stageArgs.length === 1 && (stageArgs[0] === "-l" || stageArgs[0] === "-w" || stageArgs[0] === "-m" || stageArgs[0] === "-L" || stageArgs[0] === "-c")) {
               if (stageArgs[0] === "-l") {
                 let nl = 0;
                 for (let k = 0; k < inStr.length; k++) if (inStr.charCodeAt(k) === 10) nl++;
@@ -27842,7 +28069,9 @@ export class Runtime {
                 outLines = [String(prevLen)];
               }
             } else if (isInlineCutField) {
-              const cutRes = this.evalSyncCut(rawLines, stageArgs, byteLocale(rawState.variables));
+              const cutRes = (sIdx === 0 && cmd0FileStage)
+                ? this.evalSyncMultiFileText("cut", stageArgs, rawState.cwd, byteLocale(rawState.variables))
+                : this.evalSyncCut(rawLines, stageArgs, byteLocale(rawState.variables));
               if (cutRes === undefined) return undefined;
               outLines = cutRes;
             } else if (isInlineTr) {
@@ -27858,32 +28087,35 @@ export class Runtime {
               prevLen = written;
               continue;
             } else if (isInlineSort) {
-              outLines = this.evalSyncSort(rawLines, stageArgs, false) ?? [];
+              outLines = ((sIdx === 0 && cmd0FileStage)
+                ? this.evalSyncMultiFileText("sort", stageArgs, rawState.cwd, byteLocale(rawState.variables))
+                : this.evalSyncSort(rawLines, stageArgs, false)) ?? [];
             } else if (isInlineUniq) {
               const uniqRes = this.evalSyncUniq(rawLines, stageArgs, byteLocale(rawState.variables));
               if (uniqRes === undefined) return undefined;
               outLines = uniqRes;
             } else if (inlineSedMatch) {
-              const sedRes = this.evalSyncSed(rawLines, stageArgs);
-              if (sedRes === undefined) return undefined;
-              outLines = sedRes.lines;
-              sedTerminated = sedRes.lastInputIndex < rawLines.length - 1;
+              if (sIdx === 0 && cmd0FileStage) {
+                const sedLines = this.evalSyncMultiFileText("sed", stageArgs, rawState.cwd, byteLocale(rawState.variables));
+                if (sedLines === undefined) return undefined;
+                outLines = sedLines;
+                sedTerminated = true;
+              } else {
+                const sedRes = this.evalSyncSed(rawLines, stageArgs);
+                if (sedRes === undefined) return undefined;
+                outLines = sedRes.lines;
+                sedTerminated = sedRes.lastInputIndex < rawLines.length - 1;
+              }
             } else if (isInlineAwk) {
-              const awkRes = this.evalSyncAwk(rawLines, stageArgs);
+              const awkRes = (sIdx === 0 && cmd0FileStage)
+                ? this.evalSyncMultiFileText("awk", stageArgs, rawState.cwd, byteLocale(rawState.variables))
+                : this.evalSyncAwk(rawLines, stageArgs);
               if (awkRes === undefined) return undefined;
               outLines = awkRes;
             } else if (isInlineGrep) {
-              let gLines = rawLines;
-              let gArgs = stageArgs;
-              if (sIdx === 0 && cmd0FileStage) {
-                const fPath = stageArgs[stageArgs.length - 1]!;
-                const fView = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPath));
-                if (!fView || fView.byteLength > 16384 || fView.includes(0)) return undefined;
-                const fStr = sharedSyncPipeDecoder.decode(fView);
-                gLines = fStr.endsWith("\n") ? fStr.slice(0, -1).split("\n") : (fStr.length === 0 ? [] : fStr.split("\n"));
-                gArgs = stageArgs.slice(0, -1);
-              }
-              const grepRes = this.evalSyncGrep(gLines, gArgs, Boolean(rawState.errexit));
+              const grepRes = (sIdx === 0 && cmd0FileStage)
+                ? this.evalSyncGrepWithFiles(stageArgs, false, false, Boolean(rawState.errexit), rawState.cwd)
+                : (this.evalSyncGrep(rawLines, stageArgs, Boolean(rawState.errexit)) ?? this.evalSyncGrepWithFiles(stageArgs, false, false, Boolean(rawState.errexit), rawState.cwd, rawLines));
               if (grepRes === undefined) return undefined;
               stageStatus = grepRes.status;
               if (stageStatus !== 0) failureStatus = stageStatus;
@@ -28003,7 +28235,7 @@ export class Runtime {
             firstName === "truncate" ||
             firstName === "install" ||
             firstName === "apply_patch" ||
-            (sIdx === 0 && cmd0FileStage && (firstName === "head" || firstName === "tail")) || firstName === "cat" || firstName === "mktemp" || firstName === "tee" || firstName === "touch" || firstName === "cp" || firstName === "mv" || firstName === "rmdir" || firstName === "sleep" || firstName === "chmod" || firstName === "patch" || firstName === "mkdir" || firstName === "rm" || firstName === "ln" || ((stageArgs.includes("--help") || stageArgs.includes("--version")) && gnuInformationSync(firstName, stageArgs) !== undefined)) {
+            firstName === "head" || firstName === "tail" || firstName === "wc" || firstName === "cat" || firstName === "mktemp" || firstName === "tee" || firstName === "touch" || firstName === "cp" || firstName === "mv" || firstName === "rmdir" || firstName === "sleep" || firstName === "chmod" || firstName === "patch" || firstName === "mkdir" || firstName === "rm" || firstName === "ln" || ((stageArgs.includes("--help") || stageArgs.includes("--version")) && gnuInformationSync(firstName, stageArgs) !== undefined)) {
               const rawBytes = prevBuf.subarray(0, prevLen);
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const outStr = ((stageArgs.includes("--help") || stageArgs.includes("--version")) ? gnuInformationSync(firstName, stageArgs) : undefined) ?? (firstName === "envsubst"
@@ -28182,6 +28414,8 @@ export class Runtime {
                     ? syncCommandEvaluators.evalSyncCat?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : (firstName === "head" || firstName === "tail")
                     ? syncCommandEvaluators.evalSyncHeadTail?.(firstName, sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                  : firstName === "wc"
+                    ? syncCommandEvaluators.evalSyncWc?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, byteLocale(rawState.variables), readFile)
                   : (firstName === "xq" || firstName === "yq")
                     ? this.evalSyncXqOrYq(firstName, rawBytes, stageArgs, readFile)
                   : firstName === "xmllint"
@@ -28830,41 +29064,45 @@ export class Runtime {
               const jqRes = this.evalSyncJq(fileStr.trim(), opArgs);
               if (jqRes !== undefined) fileRes = renderLines(jqRes);
             } else if (w0Plain === "awk") {
-              const awkRes = this.evalSyncAwk(rawLines, opArgs);
+              const awkRes = this.evalSyncAwk(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("awk", allArgs, rawState.cwd, byteLocale(rawState.variables)) : undefined);
               if (awkRes !== undefined) fileRes = renderLines(awkRes);
             } else if (w0Plain === "grep" || w0Plain === "egrep" || w0Plain === "fgrep") {
               const grepArgs = w0Plain === "grep" ? opArgs : [w0Plain === "egrep" ? "-E" : "-F", ...opArgs];
-              const grepRes = this.evalSyncGrep(rawLines, grepArgs, Boolean(rawState.errexit));
+              const grepRes = this.evalSyncGrep(rawLines, grepArgs, Boolean(rawState.errexit)) ?? this.evalSyncGrepWithFiles(allArgs, w0Plain === "egrep", w0Plain === "fgrep", Boolean(rawState.errexit), rawState.cwd, hasSingleHereStringRedir || hasSingleStdinRedir ? rawLines : undefined);
               if (grepRes !== undefined) {
                 exitStatus = grepRes.status;
                 fileRes = renderLines(grepRes.lines);
               }
             } else if (w0Plain === "sed") {
               const sedRes = this.evalSyncSed(rawLines, opArgs);
-              if (sedRes !== undefined) fileRes = renderLines(sedRes.lines);
+              const sedLines = sedRes !== undefined ? sedRes.lines : (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("sed", allArgs, rawState.cwd, byteLocale(rawState.variables)) : undefined);
+              if (sedLines !== undefined) fileRes = renderLines(sedLines);
             } else if (w0Plain === "cut") {
-              const cutRes = this.evalSyncCut(rawLines, opArgs, byteLocale(rawState.variables));
+              const cutRes = this.evalSyncCut(rawLines, opArgs, byteLocale(rawState.variables)) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("cut", allArgs, rawState.cwd, byteLocale(rawState.variables)) : undefined);
               if (cutRes !== undefined) fileRes = renderLines(cutRes);
-            } else if (w0Plain === "wc" && opArgs.length === 1 && this.normalizeSyncWcFlag(opArgs[0]) !== undefined) {
-              const wcMode = this.normalizeSyncWcFlag(opArgs[0])!;
-              let count = 0;
-              if (wcMode === "-l") {
-                for (let k = 0; k < view.byteLength; k++) if (view[k] === 10) count++;
-              } else if (wcMode === "-c") {
-                count = view.byteLength;
-              } else if (wcMode === "-m") {
-                count = byteLocale(rawState.variables) ? view.byteLength : Array.from(fileStr).length;
-              } else if (wcMode === "-L") {
-                count = this.wcMaxLineWidth(fileStr, byteLocale(rawState.variables));
+            } else if (w0Plain === "wc") {
+              if (opArgs.length === 1 && this.normalizeSyncWcFlag(opArgs[0]) !== undefined) {
+                const wcMode = this.normalizeSyncWcFlag(opArgs[0])!;
+                let count = 0;
+                if (wcMode === "-l") {
+                  for (let k = 0; k < view.byteLength; k++) if (view[k] === 10) count++;
+                } else if (wcMode === "-c") {
+                  count = view.byteLength;
+                } else if (wcMode === "-m") {
+                  count = byteLocale(rawState.variables) ? view.byteLength : Array.from(fileStr).length;
+                } else if (wcMode === "-L") {
+                  count = this.wcMaxLineWidth(fileStr, byteLocale(rawState.variables));
+                } else {
+                  if (!byteLocale(rawState.variables) && view.some(byte => byte > 127)) return undefined;
+                  count = fileStr.split(/[ \t\n\r\f\v]+/).filter(Boolean).length;
+                }
+                fileRes = ((hasSingleStdinRedir || hasSingleHereStringRedir) ? String(count) : `${count} ${fileArg}`) + "\n";
               } else {
-                // Unicode word separators depend on locale and POSIXLY_CORRECT.
-                // Use the maintained command for those inputs rather than JS whitespace.
-                if (!byteLocale(rawState.variables) && view.some(byte => byte > 127)) return undefined;
-                count = fileStr.split(/[ \t\n\r\f\v]+/).filter(Boolean).length;
+                const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+                fileRes = syncCommandEvaluators.evalSyncWc?.(hasSingleHereStringRedir || hasSingleStdinRedir ? view : undefined, allArgs, byteLocale(rawState.variables), readFile);
               }
-              fileRes = ((hasSingleStdinRedir || hasSingleHereStringRedir) ? String(count) : `${count} ${fileArg}`) + "\n";
             } else if (w0Plain === "sort" && !byteLocale(rawState.variables)) {
-              const sortRes = this.evalSyncSort(rawLines, opArgs, false);
+              const sortRes = this.evalSyncSort(rawLines, opArgs, false) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("sort", allArgs, rawState.cwd, false) : undefined);
               if (sortRes !== undefined) fileRes = renderLines(sortRes);
             } else if (w0Plain === "uniq") {
               const uniqRes = this.evalSyncUniq(rawLines, opArgs, byteLocale(rawState.variables));

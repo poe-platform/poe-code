@@ -1,3 +1,4 @@
+import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 import { exprCommands } from "../../src/commands/expr/index.js";
 import { metadataCommands } from "../../src/commands/metadata/index.js";
 import assert from "node:assert/strict";
@@ -129,5 +130,37 @@ test("evaluates multi-file and formatted cat (-n/-b/-s/-E/-T) and multi-file hea
   assert.equal(
     res.stdout,
     "alpha:beta:gamma:delta:|     1:one\n\n     2:two|k^Iv$|alpha,gamma,|beta,delta,|==> /tmp/f1.txt <==|alpha$|beta$|\n"
+  );
+});
+
+test("evaluates multi-file and multi-flag wc, grep (-n/-l/-L/-c/-h), sort, cut, sed, and awk in sync substitutions, pipelines, and brace loops (Wave 167)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(textProgramCommands());
+  const res = await shell.exec([
+    "printf \"alpha\\nbeta\\n\" > /tmp/f1.txt",
+    "printf \"gamma\\ndelta\\n\" > /tmp/f2.txt",
+    "w_multi=$(wc -l /tmp/f1.txt /tmp/f2.txt | tail -n 1 | tr -s \" \")",
+    "w_tot=$(wc --total=only -c /tmp/f1.txt /tmp/f2.txt)",
+    "w_pipe=$(printf \"one two\\nthree\\n\" | wc -lw | tr -s \" \")",
+    "g_l=$(grep -l \"gamma\" /tmp/f1.txt /tmp/f2.txt)",
+    "g_L=$(grep -L \"gamma\" /tmp/f1.txt /tmp/f2.txt)",
+    "g_c=$(grep -c \"a\" /tmp/f1.txt /tmp/f2.txt | tr '\\n' ',')",
+    "g_h=$(grep -h \"alpha\" /tmp/f1.txt /tmp/f2.txt)",
+    "s_m=$(sort /tmp/f2.txt /tmp/f1.txt | tr '\\n' ':')",
+    "c_m=$(cut -c1-2 /tmp/f1.txt /tmp/f2.txt | tr '\\n' ':')",
+    "sed_m=$(sed 's/a/A/g' /tmp/f1.txt /tmp/f2.txt | tr '\\n' ':')",
+    "awk_m=$(awk '{print $1}' /tmp/f1.txt /tmp/f2.txt | tr '\\n' ':')",
+    "loop_res=\"\"",
+    "for i in {1..2}; do",
+    "  g_n=$(grep -n \"a\" /tmp/f1.txt /tmp/f2.txt | head -n $i | tail -n 1)",
+    "  loop_res=\"$loop_res$g_n|\"",
+    "done",
+    "echo \"$w_multi|$w_tot|$w_pipe|$g_l|$g_L|$g_c|$g_h|$s_m|$c_m|$sed_m|$awk_m|$loop_res\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    " 4 total|23| 2 3|/tmp/f2.txt|/tmp/f1.txt|/tmp/f1.txt:2,/tmp/f2.txt:2,|alpha|alpha:beta:delta:gamma:|al:be:ga:de:|AlphA:betA:gAmmA:deltA:|alpha:beta:gamma:delta:|/tmp/f1.txt:1:alpha|/tmp/f1.txt:2:beta|\n"
   );
 });

@@ -90,7 +90,10 @@ impl HttpClient for NativeCurlHttpClient {
         for (k, v) in &req.headers {
             cmd.arg("-H").arg(format!("{k}: {v}"));
         }
-        if !req.headers.keys().any(|k| k.eq_ignore_ascii_case("Authorization"))
+        if !req
+            .headers
+            .keys()
+            .any(|k| k.eq_ignore_ascii_case("Authorization"))
             && let Some((user, pass)) = Self::resolve_git_credentials(&req.url)
         {
             cmd.arg("-u").arg(format!("{user}:{pass}"));
@@ -98,7 +101,8 @@ impl HttpClient for NativeCurlHttpClient {
 
         if !req.body.is_empty() {
             let _ = stdfs::write(&body_in_file, &req.body);
-            cmd.arg("--data-binary").arg(format!("@{}", body_in_file.display()));
+            cmd.arg("--data-binary")
+                .arg(format!("@{}", body_in_file.display()));
         }
         cmd.arg(&req.url);
 
@@ -147,7 +151,8 @@ impl HttpClient for NativeCurlHttpClient {
 fn find_host_repo_root(start: &Path) -> Option<PathBuf> {
     let mut cur = start.to_path_buf();
     loop {
-        if cur.join(".git").exists() || (cur.join("HEAD").is_file() && cur.join("objects").is_dir()) {
+        if cur.join(".git").exists() || (cur.join("HEAD").is_file() && cur.join("objects").is_dir())
+        {
             return Some(cur);
         }
         if !cur.pop() {
@@ -156,7 +161,12 @@ fn find_host_repo_root(start: &Path) -> Option<PathBuf> {
     }
 }
 
-fn load_host_dir_into_vfs(host_dir: &Path, vfs_dir: &str, fs: &MemoryFs, tracked_files: &mut BTreeSet<String>) {
+fn load_host_dir_into_vfs(
+    host_dir: &Path,
+    vfs_dir: &str,
+    fs: &MemoryFs,
+    tracked_files: &mut BTreeSet<String>,
+) {
     let _ = fs.mkdir(vfs_dir);
     let Ok(entries) = stdfs::read_dir(host_dir) else {
         return;
@@ -183,15 +193,15 @@ fn load_host_dir_into_vfs(host_dir: &Path, vfs_dir: &str, fs: &MemoryFs, tracked
             }
         } else if meta.is_dir() {
             load_host_dir_into_vfs(&host_path, &vfs_path, fs, tracked_files);
-        } else if meta.is_file() {
-            if let Ok(bytes) = stdfs::read(&host_path) {
-                #[cfg(unix)]
-                let mode = meta.permissions().mode();
-                #[cfg(not(unix))]
-                let mode = 0o100644u32;
-                fs.write_with_mode(&vfs_path, &bytes, mode);
-                tracked_files.insert(vfs_path);
-            }
+        } else if meta.is_file()
+            && let Ok(bytes) = stdfs::read(&host_path)
+        {
+            #[cfg(unix)]
+            let mode = meta.permissions().mode();
+            #[cfg(not(unix))]
+            let mode = 0o100644u32;
+            fs.write_with_mode(&vfs_path, &bytes, mode);
+            tracked_files.insert(vfs_path);
         }
     }
 }
@@ -245,7 +255,7 @@ fn sync_vfs_root_to_host(root: &str, fs: &MemoryFs, initial_files: &BTreeSet<Str
     }
 
     for old_path in initial_files {
-        if old_path.starts_with(root) && !current_set.contains(old_path) {
+        if path_is_within(old_path, root) && !current_set.contains(old_path) {
             let _ = stdfs::remove_file(Path::new(old_path));
         }
     }
@@ -263,23 +273,48 @@ fn load_home_ssh_and_gitconfig(fs: &MemoryFs, repo_gitdir: Option<&str>) {
     let gitconfig = home.join(".gitconfig");
     if let Ok(global_cfg) = stdfs::read_to_string(&gitconfig) {
         fs.write_str("/home/user/.gitconfig", &global_cfg);
-        if let Some(gd) = repo_gitdir && fs.exists(&format!("{}/HEAD", gd.trim_end_matches('/'))) {
+        if let Some(gd) = repo_gitdir
+            && fs.exists(&format!("{}/HEAD", gd.trim_end_matches('/')))
+        {
             let local_cfg_path = format!("{}/config", gd.trim_end_matches('/'));
             let mut local_cfg = fs.read_str(&local_cfg_path).unwrap_or_default();
             if !local_cfg.contains("[user]") && global_cfg.contains("[user]") {
                 local_cfg = format!("{local_cfg}\n{global_cfg}");
                 fs.write_str(&local_cfg_path, &local_cfg);
             }
-            if let Ok(env_name) = env::var("GIT_AUTHOR_NAME").or_else(|_| env::var("GIT_COMMITTER_NAME")) {
+            if let Ok(env_name) =
+                env::var("GIT_AUTHOR_NAME").or_else(|_| env::var("GIT_COMMITTER_NAME"))
+            {
                 let _ = git_rust::set_config(fs, gd, "user.name", Some(&env_name), false);
             }
-            if let Ok(env_email) = env::var("GIT_AUTHOR_EMAIL").or_else(|_| env::var("GIT_COMMITTER_EMAIL")) {
+            if let Ok(env_email) =
+                env::var("GIT_AUTHOR_EMAIL").or_else(|_| env::var("GIT_COMMITTER_EMAIL"))
+            {
                 let _ = git_rust::set_config(fs, gd, "user.email", Some(&env_email), false);
             }
             if let Ok(ssh_cmd) = env::var("GIT_SSH_COMMAND") {
                 let _ = git_rust::set_config(fs, gd, "core.sshCommand", Some(&ssh_cmd), false);
             }
         }
+    }
+}
+
+fn path_is_within(candidate: &str, root: &str) -> bool {
+    Path::new(candidate).starts_with(Path::new(root))
+}
+
+fn load_argument_path(
+    cand: &Path,
+    fs: &MemoryFs,
+    synced_roots: &mut Vec<String>,
+    initial_files: &mut BTreeSet<String>,
+) {
+    let cand_str = cand.to_string_lossy().to_string();
+    if cand.exists() && !synced_roots.iter().any(|r| path_is_within(&cand_str, r)) {
+        load_host_dir_into_vfs(cand, &cand_str, fs, initial_files);
+        synced_roots.push(cand_str);
+    } else if !cand.exists() {
+        synced_roots.push(cand_str);
     }
 }
 
@@ -311,7 +346,8 @@ fn main() {
     let mut synced_roots: Vec<String> = Vec::new();
     let mut initial_files = BTreeSet::new();
 
-    let repo_root_path = find_host_repo_root(&effective_cwd).unwrap_or_else(|| effective_cwd.clone());
+    let repo_root_path =
+        find_host_repo_root(&effective_cwd).unwrap_or_else(|| effective_cwd.clone());
     let repo_root_str = repo_root_path.to_string_lossy().to_string();
     if repo_root_path.exists() {
         load_host_dir_into_vfs(&repo_root_path, &repo_root_str, &fs, &mut initial_files);
@@ -356,14 +392,7 @@ fn main() {
         } else {
             continue;
         };
-        let cand_str = cand.to_string_lossy().to_string();
-        if cand.exists() && !synced_roots.iter().any(|r| cand_str.starts_with(r)) {
-            load_host_dir_into_vfs(&cand, &cand_str, &fs, &mut initial_files);
-            synced_roots.push(cand_str);
-        } else if !cand.exists() {
-            let _ = fs.mkdir(&cand_str);
-            synced_roots.push(cand_str);
-        }
+        load_argument_path(&cand, &fs, &mut synced_roots, &mut initial_files);
     }
 
     // If `.git/config` has a local remote URL, load it into VFS as well
@@ -372,15 +401,18 @@ fn main() {
         for line in cfg_text.lines() {
             if let Some((_, val)) = line.trim().split_once('=') {
                 let u = val.trim();
-                let p_opt = u
-                    .strip_prefix("file://")
-                    .map(PathBuf::from)
-                    .or_else(|| if u.starts_with('/') { Some(PathBuf::from(u)) } else { None });
+                let p_opt = u.strip_prefix("file://").map(PathBuf::from).or_else(|| {
+                    if u.starts_with('/') {
+                        Some(PathBuf::from(u))
+                    } else {
+                        None
+                    }
+                });
                 if let Some(p) = p_opt
                     && p.exists()
                 {
                     let p_str = p.to_string_lossy().to_string();
-                    if !synced_roots.iter().any(|r| p_str.starts_with(r)) {
+                    if !synced_roots.iter().any(|r| path_is_within(&p_str, r)) {
                         load_host_dir_into_vfs(&p, &p_str, &fs, &mut initial_files);
                         synced_roots.push(p_str);
                     }
@@ -400,25 +432,19 @@ fn main() {
     let cwd_str = host_cwd.to_string_lossy().to_string();
     let mut connect_to = Vec::new();
     for i in 0..raw_args.len() {
-        if raw_args[i] == "-c" && i + 1 < raw_args.len() {
-            if let Some((k, v)) = raw_args[i + 1].split_once('=')
-                && k.to_lowercase().ends_with(".connectto")
-            {
-                connect_to.push(v.to_string());
-            }
+        if raw_args[i] == "-c"
+            && i + 1 < raw_args.len()
+            && let Some((k, v)) = raw_args[i + 1].split_once('=')
+            && k.to_lowercase().ends_with(".connectto")
+        {
+            connect_to.push(v.to_string());
         }
     }
     if let Ok(env_ct) = env::var("GIT_CURL_CONNECT_TO") {
         connect_to.push(env_ct);
     }
     let http_client = NativeCurlHttpClient { connect_to };
-    let res = execute_git_cli_with_input(
-        &fs,
-        &cwd_str,
-        &arg_refs,
-        &http_client,
-        &stdin_buf,
-    );
+    let res = execute_git_cli_with_input(&fs, &cwd_str, &arg_refs, &http_client, &stdin_buf);
 
     for root in &synced_roots {
         sync_vfs_root_to_host(root, &fs, &initial_files);
@@ -433,4 +459,31 @@ fn main() {
         eprint!("{}", res.stderr);
     }
     std::process::exit(res.exit_code);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn missing_argument_paths_only_register_potential_outputs() {
+        let fs = MemoryFs::new();
+        let mut roots = vec!["/repo".to_string()];
+        let mut initial = BTreeSet::new();
+        let missing = "/nonexistent-git-rust-issue-4100/missing.txt";
+        load_argument_path(Path::new(missing), &fs, &mut roots, &mut initial);
+        assert!(!fs.exists(missing));
+        assert_eq!(roots, ["/repo", missing]);
+        assert!(initial.is_empty());
+    }
+
+    #[test]
+    fn root_containment_respects_path_components() {
+        assert!(path_is_within("/tmp/repo", "/tmp/repo"));
+        assert!(path_is_within("/tmp/repo/sub/file", "/tmp/repo"));
+        assert!(path_is_within("/tmp/repo/sub", "/tmp/repo/"));
+        assert!(path_is_within("/tmp/repo", "/"));
+        assert!(!path_is_within("/tmp/repo-remote", "/tmp/repo"));
+        assert!(!path_is_within("/tmp/repository/file", "/tmp/repo"));
+    }
 }

@@ -3133,7 +3133,7 @@
         "out/ssconvert-odf-settings/rich-underline-checks.json",
         "out/ssconvert-odf-settings/rich-underline-native.json"
       ],
-      "remaining": "Double-accounting import fidelity, wavy rendering and continuity across runs are unresolved. Calc readback establishes text and line-count properties, not pixel rendering. No installed release qualification or containing publication verified. All 19 families stay open."
+      "remaining": "Double-accounting XLSX import/export is now covered by xlsxRichAccountingUnderlines. Wavy rendering, continuity across runs and other format transports remain unresolved. Native properties do not establish pixel rendering. No installed release qualification or containing publication verified. All 19 families stay open."
     },
     "odfAccountingUnderlines": {
       "status": "cell-style underline count and Gnumeric accounting placement delivered; broader style fidelity open",
@@ -3166,7 +3166,7 @@
         "out/ssconvert-odf-settings/odf-underline-solid-native.json",
         "out/ssconvert-odf-settings/odf-underline-native.json"
       ],
-      "remaining": "Strict ODF and readers ignoring the Gnumeric extension lose low accounting placement. Rich XLSX doubleAccounting import is separately unresolved. Native XML properties do not establish pixel rendering, installed-package qualification or registry publication. All 19 families remain open."
+      "remaining": "Strict ODF and readers ignoring the Gnumeric extension lose low accounting placement. Rich XLSX doubleAccounting import/export is covered by xlsxRichAccountingUnderlines; rich ODF transport remains open. Native XML properties do not establish pixel rendering, installed-package qualification or registry publication. All 19 families remain open."
     },
     "xlsxRichUtf16": {
       "status": "original UTF-16 units preserved during rich run export; isolated-surrogate native fidelity remains open",
@@ -3203,6 +3203,24 @@
         "out/ssconvert-odf-settings/html-bom-native.json"
       ],
       "remaining": "Broader HTML record/style/layout and installed artifact qualification remain open. Source/model-invalid text and other format transports are not established by these ten observations. No containing publication verified; all 19 families stay open."
+    },
+    "xlsxRichAccountingUnderlines": {
+      "status": "double-accounting line count preserved during XLSX rich import/export; other transports remain open",
+      "delivery": "2a8f10318fc235b29021a4c49ca8f23245d9d134 verified directly on remote main",
+      "source": {
+        "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/oox/stylesbuffer.cxx",
+        "lines": "801-809",
+        "finding": "Double and doubleAccounting map to two lines; single and singleAccounting map to one. Calc does not retain low accounting placement."
+      },
+      "implementation": "Keep the existing doubleAccounting rich attribute instead of collapsing it to low. The shared cell/comment writer already supports its OOXML spelling. Single accounting retains its existing low representation.",
+      "validation": "Three failing-before cases; 164 focused tests across five files, maintained package lint/types and selected build pass. Compiled public SDK and runCommand preserve the variants in both XLSX editions with empty command stderr. Native Calc retains one/two lines for shared/inline cells and comments, but removes accounting placement.",
+      "receipts": [
+        "out/ssconvert-odf-settings/compiler-accounting-checks.json",
+        "out/ssconvert-odf-settings/accounting-rich-compiled.json",
+        "out/ssconvert-odf-settings/accounting-rich-command.json",
+        "out/ssconvert-odf-settings/accounting-rich-native.json"
+      ],
+      "remaining": "HTML, ODF, Gnumeric/Pango and rendering transport of accounting rich attributes remain open. No installed-artifact qualification or containing publication verified. All 19 families remain open."
     }
   },
   "cases": [
@@ -3529,7 +3547,7 @@
       "scope": "Five atomic repairs: scalar FORMULA, auxiliary array elements, NAME, ARRAY groups and oversized BIFF8 array strings. Each push verified directly against remote main.",
       "checks": "Final 69-file BIFF cohort: 1742 tests. Maintained package lint, source/test/consumer types and selected workspace build pass. Native profiles and failures are recorded in reference.biffReferenceOperators.continuation.",
       "cleanup": "Generated workbooks, Calc profiles and logs removed after compact receipts; no generated binary committed.",
-      "release": "Pinned run 36503801565 was canceled after fresh native unit cleanup stalled; its completed suites are not a full pass. Fleet repair 5329765f8b is verified on main. Full pinned run 36506462960 at 948c23eb1b is building with all BIFF repairs and bounded cleanup; it excludes the later underline fixes. No containing publication verified.",
+      "release": "Pinned 36503801565 was canceled after native cleanup stalled. Replacement 36506462960 failed only fresh units: config compiler-native.test.mjs exceeded 60 seconds; all other validation jobs passed. Repair 94e760c81a removes 63 unnecessary ambient TypeScript libraries per compilation. Full replacement pin 36509671114 contains the repair and all earlier BIFF/underline/UTF16/HTML fixes. No containing publication verified.",
       "remaining": "All 19 families stay open. Scoped BIFF7 Calc NAME scope issue #4075 is delivered in b58fabd556; Gnumeric scope/INDEX/continued-group/long-auxiliary-string interoperability and other family requirements remain open."
     },
     "underlineFidelity": {
@@ -3545,8 +3563,16 @@
     "richUtf16": {
       "commit": "40837714161654e931f9aaae10427ee01e9433c7",
       "remote": "Verified directly on remote main; generated workbooks, profiles and consumed logs removed after compact receipts.",
-      "release": "Full pin 36506462960 has passed build/checks/audit and is testing; pin 36507665678 at 600aaec7d8 is queued with underline fixes. Neither contains this later UTF-16 commit; no containing publication verified.",
+      "release": "Full pin 36506462960 failed fresh config native units. Underline pin 36507665678 is validating but excludes the later UTF16/HTML and config repair. Replacement full pin 36509671114 at 94e760c81a contains those repairs and is pending; it excludes the later rich double-accounting import fix. No containing publication verified.",
       "htmlFollowup": "05bcbc8b025f58538eb5922f6d72b837dbbb1573 preserves the same U+FEFF content in all HTML profiles; every output independently matches native bytes. Code is verified on main; generated artifacts and consumed logs removed."
+    },
+    "configCompilerReleaseRepair": {
+      "commit": "94e760c81a8216b025e0bf6a6c1d7c9147f755fd",
+      "remote": "Verified directly on remote main",
+      "source": "ts-morph getExportedDeclarations initialized a program containing 63 ambient libraries on every call. Static config extraction needs only the reachable input sources. Disable automatic library loading; keep the original 60s test and 120s process deadlines.",
+      "validation": "One deterministic dependency-isolation test fails before repair. After: 186 config tests, 85 native tests (591ms total versus 8803ms for the prior compiler subset), 185 Rust reference tests, focused ESLint and maintained selected config build pass. Linux CI repair is still awaiting verification.",
+      "release": 36509671114,
+      "cleanup": "Consumed CI/local logs, downloaded source, workbooks and Calc profiles removed. Compact ignored JSON receipts remain."
     }
   },
   "history": {

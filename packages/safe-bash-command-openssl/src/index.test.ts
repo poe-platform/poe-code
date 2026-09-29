@@ -151,3 +151,11 @@ test("openssl dgst, rand, base64, enc -aes-256-cbc -pbkdf2, genpkey/pkey, and re
   assert.match(x509Res.stdout, /subject=\/CN=git\.example\.com/);
   assert.match(x509Res.stdout, /sha256 Fingerprint=/);
 });
+
+
+test("openssl rand fills multiple Web Crypto chunks", async () => {
+  const result = await runOpenssl(createMemoryFileSystem(), ["rand", "-hex", "131073"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout.trim().length, 262146);
+});
+

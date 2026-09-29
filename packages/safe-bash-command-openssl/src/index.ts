@@ -253,7 +253,10 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
             throw new PublicDiagnostic(`invalid random byte count: ${numBytes}`);
           }
           const raw = new Uint8Array(numBytes);
-          globalThis.crypto.getRandomValues(raw);
+          for (let offset = 0; offset < raw.byteLength; offset += 65536) {
+            globalThis.crypto.getRandomValues(raw.subarray(offset, Math.min(offset + 65536, raw.byteLength)));
+            if (offset + 65536 < raw.byteLength) await yieldTurn(context.signal);
+          }
           const out = hex
             ? textEncoder.encode(`${bytesToHex(raw)}\n`)
             : b64

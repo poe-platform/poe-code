@@ -28,6 +28,7 @@ import { bytesToString } from "../bytes.js";
 import { parseCharacterCMap, readCMapCharacters, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "../fonts/truetype.js";
 import { parseContentStream } from "./parser.js";
+import { createCalibratedColorSpace } from "./calibrated-color.js";
 import {
   buildFontEncodingDifferencesMap,
   buildFontEncodingGlyphNamesMap,
@@ -510,23 +511,6 @@ function kClamp(v: number): number {
   return Math.max(0, Math.min(1, v));
 }
 
-function xyzToSrgb(X: number, Y: number, Z: number, Xw = 0.95047, Yw = 1.0, Zw = 1.08883): [number, number, number] {
-  const scaleX = Xw > 1e-6 ? 0.95047 / Xw : 1;
-  const scaleY = Yw > 1e-6 ? 1.0 / Yw : 1;
-  const scaleZ = Zw > 1e-6 ? 1.08883 / Zw : 1;
-  const x = X * scaleX;
-  const y = Y * scaleY;
-  const z = Z * scaleZ;
-  const rl = 3.2404542 * x - 1.5371385 * y - 0.4985314 * z;
-  const gl = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z;
-  const bl = 0.0556434 * x - 0.2040259 * y + 1.0572252 * z;
-  const toGamma = (u: number): number => {
-    const c = Math.max(0, Math.min(1, u));
-    return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
-  };
-  return [toGamma(rl), toGamma(gl), toGamma(bl)];
-}
-
 function getColorSpaceComponentCount(
   doc: ParsedCosDocument | undefined,
   csNode: import("../ast.js").PdfCosNode | undefined,
@@ -604,63 +588,10 @@ function convertColorSpaceComponentsToRgb(
   if (resolved.kind === "array" && resolved.items.length > 0 && doc) {
     const familyNode = doc.resolve(resolved.items[0]);
     const family = familyNode?.kind === "name" ? familyNode.decoded : "";
-    if (family === "CalGray") {
-      const paramDict = resolved.items[1] ? doc.resolveDict(resolved.items[1]) : undefined;
-      const gNode = paramDict ? doc.resolve(dictGet(paramDict, "Gamma")) : undefined;
-      const gamma = gNode?.kind === "number" && gNode.value > 0 ? gNode.value : 1;
-      const a = Math.pow(kClamp(comps[0] ?? 0), gamma);
-      return [a, a, a];
-    }
-    if (family === "CalRGB") {
-      const paramDict = resolved.items[1] ? doc.resolveDict(resolved.items[1]) : undefined;
-      const gammaArr = paramDict ? doc.resolveArray(dictGet(paramDict, "Gamma")) : undefined;
-      const getArrNum = (arr: typeof gammaArr, idx: number, fb: number) => {
-        const r = arr && arr.items[idx] ? doc.resolve(arr.items[idx]) : undefined;
-        return r?.kind === "number" ? r.value : fb;
-      };
-      const gr = getArrNum(gammaArr, 0, 1);
-      const gg = getArrNum(gammaArr, 1, 1);
-      const gb = getArrNum(gammaArr, 2, 1);
-      const ag = Math.pow(kClamp(comps[0] ?? 0), gr > 0 ? gr : 1);
-      const bg = Math.pow(kClamp(comps[1] ?? 0), gg > 0 ? gg : 1);
-      const cg = Math.pow(kClamp(comps[2] ?? 0), gb > 0 ? gb : 1);
-      const matArr = paramDict ? doc.resolveArray(dictGet(paramDict, "Matrix")) : undefined;
-      if (matArr && matArr.items.length >= 9) {
-        const m = (i: number) => getArrNum(matArr, i, 0);
-        const X = m(0) * ag + m(3) * bg + m(6) * cg;
-        const Y = m(1) * ag + m(4) * bg + m(7) * cg;
-        const Z = m(2) * ag + m(5) * bg + m(8) * cg;
-        const wpArr = paramDict ? doc.resolveArray(dictGet(paramDict, "WhitePoint")) : undefined;
-        const Xw = getArrNum(wpArr, 0, 0.95047);
-        const Yw = getArrNum(wpArr, 1, 1.0);
-        const Zw = getArrNum(wpArr, 2, 1.08883);
-        return xyzToSrgb(X, Y, Z, Xw, Yw, Zw);
-      }
-      return [ag, bg, cg];
-    }
-    if (family === "Lab") {
-      const paramDict = resolved.items[1] ? doc.resolveDict(resolved.items[1]) : undefined;
-      const wpArr = paramDict ? doc.resolveArray(dictGet(paramDict, "WhitePoint")) : undefined;
-      const rangeArr = paramDict ? doc.resolveArray(dictGet(paramDict, "Range")) : undefined;
-      const getNum = (arr: typeof wpArr, idx: number, fb: number) => {
-        const r = arr && arr.items[idx] ? doc.resolve(arr.items[idx]) : undefined;
-        return r?.kind === "number" ? r.value : fb;
-      };
-      const Xw = getNum(wpArr, 0, 0.95047);
-      const Yw = getNum(wpArr, 1, 1.0);
-      const Zw = getNum(wpArr, 2, 1.08883);
-      const amin = getNum(rangeArr, 0, -100);
-      const amax = getNum(rangeArr, 1, 100);
-      const bmin = getNum(rangeArr, 2, -100);
-      const bmax = getNum(rangeArr, 3, 100);
-      const Lstar = Math.max(0, Math.min(100, comps[0] ?? 0));
-      const astar = Math.max(amin, Math.min(amax, comps[1] ?? 0));
-      const bstar = Math.max(bmin, Math.min(bmax, comps[2] ?? 0));
-      const M = (Lstar + 16) / 116;
-      const L = M + astar / 500;
-      const N = M - bstar / 200;
-      const gFn = (x: number): number => (x >= 6 / 29 ? x * x * x : (108 / 841) * (x - 4 / 29));
-      return xyzToSrgb(Xw * gFn(L), Yw * gFn(M), Zw * gFn(N), Xw, Yw, Zw);
+    if (family === "CalGray" || family === "CalRGB" || family === "Lab") {
+      const colorSpace = createCalibratedColorSpace(doc, family, resolved.items[1]);
+      const rgb = colorSpace.getRgb(comps, 0);
+      return [rgb[0]! / 255, rgb[1]! / 255, rgb[2]! / 255];
     }
     if (family === "ICCBased" && resolved.items[1]) {
       const iccNode = doc.resolve(resolved.items[1]);

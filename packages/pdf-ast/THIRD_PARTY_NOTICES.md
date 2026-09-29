@@ -461,6 +461,14 @@ class directly, including CMYK palette entries and alternate tint colors.
 `src/render/cmyk-colors.test.ts` ports the byte and floating-point reference
 vectors from PDF.js `test/unit/colorspace_spec.js`, through local PDF APIs.
 
+The same bundle exports unmodified `CalGrayCS`, `CalRGBCS`, and `LabCS`.
+The shared calibrated-color adapter resolves COS parameters before calling
+these classes. Paths, gradients, images, palettes, and calibrated alternate
+tint spaces use the same converters. `calibrated-colors.test.ts` ports the
+corresponding PDF.js `colorspace_spec.js` input/output vectors through those
+APIs and the unchanged `calgray.pdf` equality fixture. Missing WhitePoint
+retains the local D65 fallback for malformed input.
+
 Malformed dictionary-key recovery follows PDF.js `Parser.getObj`, skipping
 stray non-Name tokens only in local repair mode. Damaged optional ToUnicode
 streams follow `PartialEvaluator.readToUnicode` error recovery while retaining

@@ -279,3 +279,8 @@ the harness assembles the contours in `agg_vcgen_stroke.cpp` traversal order.
 Cases cover closed miter/round/bevel joins, acute miter limits, round/square caps,
 nearly collinear edges and reversals. Four-decimal comparisons allow native
 float versus TypeScript double precision differences. The same AGG terms apply.
+`pdfjs-calgray.pdf` is the unchanged PDF.js equality fixture `test/pdfs/calgray.pdf`
+from revision `91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0).
+Its calibrated gray ramps cover gamma and white-point conversion. Manifest MD5:
+`ee784999bfa1ed373f55cdabbb580df1`. SHA-256:
+`5521110fbe2a8cf1d299b3a9d9a03d0db928de7addfa2ea50e32fb440575fc12`.

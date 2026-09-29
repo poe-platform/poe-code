@@ -19588,6 +19588,71 @@ var DeviceCmykCS = class extends ColorSpace {
     }
   }
 };
+var CalGrayCS = class extends ColorSpace {
+  constructor(whitePoint, blackPoint, gamma) {
+    super("CalGray", 1);
+    if (!whitePoint) {
+      throw new FormatError(
+        "WhitePoint missing - required for color space CalGray"
+      );
+    }
+    [this.XW, this.YW, this.ZW] = whitePoint;
+    [this.XB, this.YB, this.ZB] = blackPoint || [0, 0, 0];
+    this.G = gamma || 1;
+    if (this.XW < 0 || this.ZW < 0 || this.YW !== 1) {
+      throw new FormatError(
+        `Invalid WhitePoint components for ${this.name}, no fallback available`
+      );
+    }
+    if (this.XB < 0 || this.YB < 0 || this.ZB < 0) {
+      info(`Invalid BlackPoint for ${this.name}, falling back to default.`);
+      this.XB = this.YB = this.ZB = 0;
+    }
+    if (this.XB !== 0 || this.YB !== 0 || this.ZB !== 0) {
+      warn(
+        `${this.name}, BlackPoint: XB: ${this.XB}, YB: ${this.YB}, ZB: ${this.ZB}, only default values are supported.`
+      );
+    }
+    if (this.G < 1) {
+      info(
+        `Invalid Gamma: ${this.G} for ${this.name}, falling back to default.`
+      );
+      this.G = 1;
+    }
+  }
+  #toRgb(src, srcOffset, dest, destOffset, scale) {
+    const A = src[srcOffset] * scale;
+    const AG = A ** this.G;
+    const L = this.YW * AG;
+    const val = Math.max(295.8 * L ** 0.3333333333333333 - 40.8, 0);
+    dest[destOffset] = val;
+    dest[destOffset + 1] = val;
+    dest[destOffset + 2] = val;
+  }
+  getRgbItem(src, srcOffset, dest, destOffset) {
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("TESTING")) {
+      assert(
+        dest instanceof Uint8ClampedArray,
+        'CalGrayCS.getRgbItem: Unsupported "dest" type.'
+      );
+    }
+    this.#toRgb(src, srcOffset, dest, destOffset, 1);
+  }
+  getRgbBuffer(src, srcOffset, count, dest, destOffset, bits, alpha01) {
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("TESTING")) {
+      assert(
+        dest instanceof Uint8ClampedArray,
+        'CalGrayCS.getRgbBuffer: Unsupported "dest" type.'
+      );
+    }
+    const scale = 1 / ((1 << bits) - 1);
+    for (let i = 0; i < count; ++i) {
+      this.#toRgb(src, srcOffset, dest, destOffset, scale);
+      srcOffset += 1;
+      destOffset += 3 + alpha01;
+    }
+  }
+};
 var CalRGBCS = class _CalRGBCS extends ColorSpace {
   // See http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html for these
   // matrices.
@@ -19806,6 +19871,116 @@ var CalRGBCS = class _CalRGBCS extends ColorSpace {
       srcOffset += 3;
       destOffset += 3 + alpha01;
     }
+  }
+};
+var LabCS = class extends ColorSpace {
+  constructor(whitePoint, blackPoint, range) {
+    super("Lab", 3);
+    if (!whitePoint) {
+      throw new FormatError(
+        "WhitePoint missing - required for color space Lab"
+      );
+    }
+    [this.XW, this.YW, this.ZW] = whitePoint;
+    [this.amin, this.amax, this.bmin, this.bmax] = range || [
+      -100,
+      100,
+      -100,
+      100
+    ];
+    [this.XB, this.YB, this.ZB] = blackPoint || [0, 0, 0];
+    if (this.XW < 0 || this.ZW < 0 || this.YW !== 1) {
+      throw new FormatError(
+        "Invalid WhitePoint components, no fallback available"
+      );
+    }
+    if (this.XB < 0 || this.YB < 0 || this.ZB < 0) {
+      info("Invalid BlackPoint, falling back to default");
+      this.XB = this.YB = this.ZB = 0;
+    }
+    if (this.amin > this.amax || this.bmin > this.bmax) {
+      info("Invalid Range, falling back to defaults");
+      this.amin = -100;
+      this.amax = 100;
+      this.bmin = -100;
+      this.bmax = 100;
+    }
+  }
+  // Function g(x) from spec
+  #fn_g(x) {
+    return x >= 6 / 29 ? x ** 3 : 108 / 841 * (x - 4 / 29);
+  }
+  #decode(value, high1, low2, high2) {
+    return low2 + value * (high2 - low2) / high1;
+  }
+  // If decoding is needed maxVal should be 2^bits per component - 1.
+  #toRgb(src, srcOffset, maxVal, dest, destOffset) {
+    let Ls = src[srcOffset];
+    let as = src[srcOffset + 1];
+    let bs = src[srcOffset + 2];
+    if (maxVal !== false) {
+      Ls = this.#decode(Ls, maxVal, 0, 100);
+      as = this.#decode(as, maxVal, this.amin, this.amax);
+      bs = this.#decode(bs, maxVal, this.bmin, this.bmax);
+    }
+    if (as > this.amax) {
+      as = this.amax;
+    } else if (as < this.amin) {
+      as = this.amin;
+    }
+    if (bs > this.bmax) {
+      bs = this.bmax;
+    } else if (bs < this.bmin) {
+      bs = this.bmin;
+    }
+    const M = (Ls + 16) / 116;
+    const L = M + as / 500;
+    const N = M - bs / 200;
+    const X = this.XW * this.#fn_g(L);
+    const Y = this.YW * this.#fn_g(M);
+    const Z = this.ZW * this.#fn_g(N);
+    let r, g, b;
+    if (this.ZW < 1) {
+      r = X * 3.1339 + Y * -1.617 + Z * -0.4906;
+      g = X * -0.9785 + Y * 1.916 + Z * 0.0333;
+      b = X * 0.072 + Y * -0.229 + Z * 1.4057;
+    } else {
+      r = X * 3.2406 + Y * -1.5372 + Z * -0.4986;
+      g = X * -0.9689 + Y * 1.8758 + Z * 0.0415;
+      b = X * 0.0557 + Y * -0.204 + Z * 1.057;
+    }
+    dest[destOffset] = Math.sqrt(r) * 255;
+    dest[destOffset + 1] = Math.sqrt(g) * 255;
+    dest[destOffset + 2] = Math.sqrt(b) * 255;
+  }
+  getRgbItem(src, srcOffset, dest, destOffset) {
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("TESTING")) {
+      assert(
+        dest instanceof Uint8ClampedArray,
+        'LabCS.getRgbItem: Unsupported "dest" type.'
+      );
+    }
+    this.#toRgb(src, srcOffset, false, dest, destOffset);
+  }
+  getRgbBuffer(src, srcOffset, count, dest, destOffset, bits, alpha01) {
+    if (typeof PDFJSDev === "undefined" || PDFJSDev.test("TESTING")) {
+      assert(
+        dest instanceof Uint8ClampedArray,
+        'LabCS.getRgbBuffer: Unsupported "dest" type.'
+      );
+    }
+    const maxVal = (1 << bits) - 1;
+    for (let i = 0; i < count; i++) {
+      this.#toRgb(src, srcOffset, maxVal, dest, destOffset);
+      srcOffset += 3;
+      destOffset += 3 + alpha01;
+    }
+  }
+  isDefaultDecode(decode, bpc) {
+    return true;
+  }
+  get usesZeroToOneRange() {
+    return shadow(this, "usesZeroToOneRange", false);
   }
 };
 
@@ -21767,11 +21942,14 @@ export {
   CFFParser,
   CFFStrings,
   CMap,
+  CalGrayCS,
+  CalRGBCS,
   CipherTransformFactory,
   DeviceCmykCS,
   Dict,
   DrawOPS,
   FlateStream,
+  LabCS,
   MacStandardGlyphOrdering,
   Name,
   PDF17,

@@ -586,7 +586,7 @@ describe("extractDocumentImages", () => {
     });
     const sepRef = doc.cos.allocateObject(sepStream);
 
-    // 2. 2x1 /Lab image: pixel 0 = [255, 128, 128] (L*=100, a*=0, b*=0 -> white), pixel 1 = [0, 128, 128] (L*=0, a*=0, b*=0 -> black)
+    // 2. 2x1 /Lab image: byte 128 maps to a*=b*=100/255, near neutral.
     const labCs = cosArray([
       cosName("Lab"),
       cosDict({
@@ -626,12 +626,10 @@ describe("extractDocumentImages", () => {
     expect(Array.from(sepBmp.data.subarray(0, 4))).toEqual([255, 255, 255, 255]);
     expect(Array.from(sepBmp.data.subarray(4, 8))).toEqual([0, 51, 204, 255]);
 
-    // Lab image: pixel 0 = white (~255, 255, 255), pixel 1 = black (0, 0, 0)
+    // Independently rendered PDF.js pixels; the small chroma remains at L*=0.
     const labBmp = images[1]!.bitmap;
-    expect(labBmp.data[0]).toBeGreaterThanOrEqual(250);
-    expect(labBmp.data[1]).toBeGreaterThanOrEqual(250);
-    expect(labBmp.data[2]).toBeGreaterThanOrEqual(250);
-    expect(Array.from(labBmp.data.subarray(4, 8))).toEqual([0, 0, 0, 255]);
+    expect(Array.from(labBmp.data.subarray(0, 4))).toEqual([255, 255, 254, 255]);
+    expect(Array.from(labBmp.data.subarray(4, 8))).toEqual([5, 0, 0, 255]);
   });
 
   it("un-mattes pre-blended RGB pixels when /SMask specifies a /Matte color array (ISO 32000-1 §11.6.5.3) and resamples mismatched mask dimensions", () => {

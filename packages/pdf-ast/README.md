@@ -104,6 +104,8 @@ Calculator functions use PDF.js's JavaScript evaluator for arithmetic, bitwise
 operations, conditionals, and stack operations, without dynamic code execution.
 CMYK paths, gradients, and images use PDF.js's color conversion, including
 indexed palettes and spot colors with a CMYK alternate space.
+CalGray, CalRGB, and Lab use PDF.js's calibrated color conversion for paths,
+gradients, images, indexed palettes, and spot-color alternate spaces.
 Bitmap strokes preserve joins, miter limits, caps and dash continuity, and apply
 opacity once across overlapping segments of the same stroke.
 Zero-length dashes preserve round and square dots in bitmap and SVG output,

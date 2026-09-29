@@ -46,6 +46,25 @@ export function encodeToXmlString(value: string): string;
 export class DeviceCmykCS {
   getRgb(src: ArrayLike<number>, srcOffset: number): Uint8ClampedArray;
 }
+export class CalGrayCS {
+  constructor(whitePoint: number[], blackPoint?: number[], gamma?: number);
+  readonly name: "CalGray";
+  getRgb(src: ArrayLike<number>, srcOffset: number): Uint8ClampedArray;
+}
+export class CalRGBCS {
+  constructor(whitePoint: number[], blackPoint?: number[], gamma?: number[], matrix?: number[]);
+  readonly name: "CalRGB";
+  getRgb(src: ArrayLike<number>, srcOffset: number): Uint8ClampedArray;
+}
+export class LabCS {
+  constructor(whitePoint: number[], blackPoint?: number[], range?: number[]);
+  readonly name: "Lab";
+  readonly amin: number;
+  readonly amax: number;
+  readonly bmin: number;
+  readonly bmax: number;
+  getRgb(src: ArrayLike<number>, srcOffset: number): Uint8ClampedArray;
+}
 export class PageViewport {
   constructor(options: { viewBox: number[]; userUnit: number; scale: number; rotation: number; offsetX?: number; offsetY?: number; dontFlip?: boolean });
   readonly width: number;

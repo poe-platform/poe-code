@@ -1,6 +1,7 @@
 import { assertDecodedByteBudget } from "../cos/limits.js";
 import { Jbig2Image, JpegImage, JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
 import { DeviceCmykCS } from "../vendor/pdfjs-fonts.mjs";
+import { createCalibratedColorSpace, type CalibratedColorSpace } from "../content/calibrated-color.js";
 import { PdfError } from "../errors.js";
 import {
   dictGet,
@@ -144,11 +145,8 @@ interface ResolvedColorSpace {
   readonly separationAltSpace?: "rgb" | "gray" | "cmyk" | undefined;
   readonly tintFunctionDoc?: ParsedCosDocument | undefined;
   readonly tintFunctionNode?: PdfCosNode | undefined;
-  readonly isLab?: boolean | undefined;
-  readonly labRange?: readonly [number, number, number, number] | undefined;
-  readonly calGrayGamma?: number | undefined;
-  readonly calRgbGamma?: readonly [number, number, number] | undefined;
-  readonly calRgbMatrix?: readonly number[] | undefined;
+  readonly calibrated?: CalibratedColorSpace | undefined;
+  readonly alternateCalibrated?: CalibratedColorSpace | undefined;
 }
 
 function resolveColorSpaceInfo(
@@ -199,11 +197,9 @@ function resolveColorSpaceInfo(
       let resolvedBaseComp = baseInfo.components;
       if (
         palette &&
-        (baseInfo.isLab ||
-          baseInfo.isSeparation ||
+        (baseInfo.isSeparation ||
           baseInfo.isDeviceN ||
-          baseInfo.calRgbGamma !== undefined ||
-          baseInfo.calGrayGamma !== undefined)
+          baseInfo.calibrated !== undefined)
       ) {
         const numEntries = Math.max(1, Math.min(hival + 1, Math.floor(palette.length / Math.max(1, baseInfo.components))));
         const rgbaPal = decodeSamplesToRgba(palette, numEntries, 1, 8, baseInfo);
@@ -234,51 +230,14 @@ function resolveColorSpaceInfo(
       }
       return { colorSpace: "rgb", colorSpaceLabel: "icc", components: 3 };
     }
-    if (kindName === "CalGray") {
-      const calDict = doc.resolveDict(resolved.items[1]);
-      const gammaNode = calDict ? doc.resolve(dictGet(calDict, "Gamma")) : undefined;
-      const gamma = gammaNode?.kind === "number" && gammaNode.value > 0 ? gammaNode.value : 1;
-      return { colorSpace: "gray", colorSpaceLabel: "cal-gray", components: 1, calGrayGamma: gamma };
-    }
-    if (kindName === "CalRGB") {
-      const calDict = doc.resolveDict(resolved.items[1]);
-      const gammaArr = calDict ? doc.resolveArray(dictGet(calDict, "Gamma")) : undefined;
-      let calRgbGamma: [number, number, number] = [1, 1, 1];
-      if (gammaArr && gammaArr.items.length >= 3) {
-        const gNums = gammaArr.items.slice(0, 3).map(it => {
-          const r = doc.resolve(it);
-          return r?.kind === "number" && r.value > 0 ? r.value : 1;
-        });
-        calRgbGamma = [gNums[0]!, gNums[1]!, gNums[2]!];
-      }
-      const matArr = calDict ? doc.resolveArray(dictGet(calDict, "Matrix")) : undefined;
-      let calRgbMatrix: number[] | undefined;
-      if (matArr && matArr.items.length >= 9) {
-        calRgbMatrix = matArr.items.slice(0, 9).map(it => {
-          const r = doc.resolve(it);
-          return r?.kind === "number" ? r.value : 0;
-        });
-      }
+    if (kindName === "CalGray" || kindName === "CalRGB" || kindName === "Lab") {
+      const calibrated = createCalibratedColorSpace(doc, kindName, resolved.items[1]);
       return {
-        colorSpace: "rgb",
-        colorSpaceLabel: "cal-rgb",
-        components: 3,
-        calRgbGamma,
-        calRgbMatrix,
+        colorSpace: kindName === "CalGray" ? "gray" : "rgb",
+        colorSpaceLabel: kindName === "CalGray" ? "cal-gray" : kindName === "CalRGB" ? "cal-rgb" : "lab",
+        components: kindName === "CalGray" ? 1 : 3,
+        calibrated,
       };
-    }
-    if (kindName === "Lab") {
-      const labDict = doc.resolveDict(resolved.items[1]);
-      const rangeArr = labDict ? doc.resolveArray(dictGet(labDict, "Range")) : undefined;
-      let labRange: [number, number, number, number] = [-100, 100, -100, 100];
-      if (rangeArr && rangeArr.items.length >= 4) {
-        const nums = rangeArr.items.slice(0, 4).map(it => {
-          const r = doc.resolve(it);
-          return r?.kind === "number" ? r.value : 0;
-        });
-        labRange = [nums[0]!, nums[1]!, nums[2]!, nums[3]!];
-      }
-      return { colorSpace: "rgb", colorSpaceLabel: "lab", components: 3, isLab: true, labRange };
     }
     if (kindName === "Separation" || kindName === "DeviceN") {
       const isDevN = kindName === "DeviceN";
@@ -294,6 +253,7 @@ function resolveColorSpaceInfo(
         isSeparation: !isDevN,
         isDeviceN: isDevN,
         separationAltSpace: altSpace,
+        alternateCalibrated: altInfo.calibrated,
         tintFunctionDoc: doc,
         tintFunctionNode: resolved.items[3],
       };
@@ -532,7 +492,9 @@ function decodeSamplesToRgba(
         csInfo.tintFunctionNode,
         chVals
       );
-      if (alt === "cmyk") {
+      if (csInfo.alternateCalibrated) {
+        rgba.set(csInfo.alternateCalibrated.getRgb(outComps, 0), p * 4);
+      } else if (alt === "cmyk") {
         rgba.set(cmykColorSpace.getRgb([outComps[0] ?? 0, outComps[1] ?? 0, outComps[2] ?? 0, outComps[3] ?? 0], 0), p * 4);
       } else if (alt === "gray") {
         const gByte = Math.round(Math.max(0, Math.min(1, outComps[0] ?? 0)) * 255);
@@ -546,73 +508,25 @@ function decodeSamplesToRgba(
       }
       rgba[p * 4 + 3] = 255;
     }
-  } else if (csInfo.isLab) {
-    const [amin, amax, bmin, bmax] = csInfo.labRange ?? [-100, 100, -100, 100];
-    const invF = (t: number) => (t > 6 / 29 ? t * t * t : (3 * (6 / 29) * (6 / 29)) * (t - 4 / 29));
-    const toSrgb = (u: number) => {
-      const c = u <= 0.0031308 ? 12.92 * u : 1.055 * Math.pow(u, 1 / 2.4) - 0.055;
-      return Math.round(Math.max(0, Math.min(1, c)) * 255);
-    };
+  } else if (csInfo.calibrated?.name === "Lab") {
+    const { amin, amax, bmin, bmax } = csInfo.calibrated;
+    const step = bpc === 16 ? 2 : 1;
     for (let p = 0; p < pixelCount; p++) {
-      const s0 = (rawSamples[p * 3] ?? 0) / 255;
-      const s1 = (rawSamples[p * 3 + 1] ?? 128) / 255;
-      const s2 = (rawSamples[p * 3 + 2] ?? 128) / 255;
-      const L = s0 * 100;
-      if (L <= 0.01) {
-        rgba[p * 4] = 0;
-        rgba[p * 4 + 1] = 0;
-        rgba[p * 4 + 2] = 0;
-        rgba[p * 4 + 3] = 255;
-        continue;
-      }
-      const a = amin + s1 * (amax - amin);
-      const b = bmin + s2 * (bmax - bmin);
-      const fy = (L + 16) / 116;
-      const fx = fy + a / 500;
-      const fz = fy - b / 200;
-      const X = 0.95047 * invF(fx);
-      const Y = 1.0 * invF(fy);
-      const Z = 1.08883 * invF(fz);
-      const linR = X * 3.2406 + Y * -1.5372 + Z * -0.4986;
-      const linG = X * -0.9689 + Y * 1.8758 + Z * 0.0415;
-      const linB = X * 0.0557 + Y * -0.2040 + Z * 1.0570;
-      rgba[p * 4] = toSrgb(linR);
-      rgba[p * 4 + 1] = toSrgb(linG);
-      rgba[p * 4 + 2] = toSrgb(linB);
+      const L = (rawSamples[p * 3 * step] ?? 0) / 255 * 100;
+      const a = amin + (rawSamples[(p * 3 + 1) * step] ?? 128) / 255 * (amax - amin);
+      const b = bmin + (rawSamples[(p * 3 + 2) * step] ?? 128) / 255 * (bmax - bmin);
+      rgba.set(csInfo.calibrated.getRgb([L, a, b], 0), p * 4);
       rgba[p * 4 + 3] = 255;
     }
   } else if (csInfo.colorSpace === "rgb") {
-    const hasCalRgb = Boolean(csInfo.calRgbGamma || csInfo.calRgbMatrix);
-    const toSrgbByte = (u: number) => {
-      const c = u <= 0.0031308 ? 12.92 * u : 1.055 * Math.pow(u, 1 / 2.4) - 0.055;
-      return Math.round(Math.max(0, Math.min(1, c)) * 255);
-    };
     const writeRgbPixel = (p: number, rByte: number, gByte: number, bByte: number) => {
-      let rU = remapUnitSampleWithDecode(rByte / 255, 0, decodePairs);
-      let gU = remapUnitSampleWithDecode(gByte / 255, 1, decodePairs);
-      let bU = remapUnitSampleWithDecode(bByte / 255, 2, decodePairs);
-      if (hasCalRgb) {
-        const [gr, gg, gb] = csInfo.calRgbGamma ?? [1, 1, 1];
-        const ag = Math.pow(rU, gr);
-        const bg = Math.pow(gU, gg);
-        const cg = Math.pow(bU, gb);
-        if (csInfo.calRgbMatrix && csInfo.calRgbMatrix.length >= 9) {
-          const m = csInfo.calRgbMatrix;
-          const X = m[0]! * ag + m[3]! * bg + m[6]! * cg;
-          const Y = m[1]! * ag + m[4]! * bg + m[7]! * cg;
-          const Z = m[2]! * ag + m[5]! * bg + m[8]! * cg;
-          const linR = X * 3.2406 + Y * -1.5372 + Z * -0.4986;
-          const linG = X * -0.9689 + Y * 1.8758 + Z * 0.0415;
-          const linB = X * 0.0557 + Y * -0.2040 + Z * 1.0570;
-          rgba[p * 4] = toSrgbByte(linR);
-          rgba[p * 4 + 1] = toSrgbByte(linG);
-          rgba[p * 4 + 2] = toSrgbByte(linB);
-          rgba[p * 4 + 3] = 255;
-          return;
-        }
-        rU = ag;
-        gU = bg;
-        bU = cg;
+      const rU = remapUnitSampleWithDecode(rByte / 255, 0, decodePairs);
+      const gU = remapUnitSampleWithDecode(gByte / 255, 1, decodePairs);
+      const bU = remapUnitSampleWithDecode(bByte / 255, 2, decodePairs);
+      if (csInfo.calibrated) {
+        rgba.set(csInfo.calibrated.getRgb([rU, gU, bU], 0), p * 4);
+        rgba[p * 4 + 3] = 255;
+        return;
       }
       rgba[p * 4] = Math.round(rU * 255);
       rgba[p * 4 + 1] = Math.round(gU * 255);
@@ -632,10 +546,11 @@ function decodeSamplesToRgba(
     }
   } else if (csInfo.colorSpace === "gray") {
     const writeGrayPixel = (p: number, gByte: number) => {
-      let gU = remapUnitSampleWithDecode(gByte / 255, 0, decodePairs);
-      if (csInfo.calGrayGamma && csInfo.calGrayGamma !== 1) {
-        const lin = Math.pow(gU, csInfo.calGrayGamma);
-        gU = lin <= 0.0031308 ? 12.92 * lin : 1.055 * Math.pow(lin, 1 / 2.4) - 0.055;
+      const gU = remapUnitSampleWithDecode(gByte / 255, 0, decodePairs);
+      if (csInfo.calibrated) {
+        rgba.set(csInfo.calibrated.getRgb([gU], 0), p * 4);
+        rgba[p * 4 + 3] = 255;
+        return;
       }
       const outG = Math.round(Math.max(0, Math.min(1, gU)) * 255);
       rgba[p * 4] = outG;

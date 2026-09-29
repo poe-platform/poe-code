@@ -12,6 +12,18 @@ import type { LlmRequest } from "../../../src/commands/llm/types.js";
 import type { HttpRequest, HttpResponse, HttpTransport } from "../../../src/commands/network/types.js";
 
 const encoder = new TextEncoder();
+test("OpenAI rejects out-of-range chat options before transport", async () => {
+  for (const options of [
+    { temperature: -0.1 }, { temperature: "2.1" },
+    { top_p: -0.1 }, { top_p: 1.1 }, { frequency_penalty: -2.1 },
+    { presence_penalty: 2.1 }, { max_tokens: 0 }, { max_completion_tokens: -1 },
+    { n: 0 }, { top_logprobs: 21 }, { seed: Number.MAX_SAFE_INTEGER + 1 },
+  ]) {
+    const transport = fake();
+    await assert.rejects(collect(provider(transport.transport).complete(request({ options }))), /OpenAI option/);
+    assert.equal(transport.calls.length, 0);
+  }
+});
 const picture = Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10, 0, 255);
 const movie = Uint8Array.of(0, 0, 0, 20, 102, 116, 121, 112, 0, 255);
 const models: readonly OpenAiModel[] = [

@@ -206,7 +206,11 @@ fractional integer fields, unsafe integers, and invalid booleans fail before
 transport invocation. Other fields, including `size`, `quality`,
 `background`, and unknown compatible-endpoint fields, remain strings;
 multipart fields, including video `seconds`, remain strings. Provider-controlled
-request fields cannot be overridden by options.
+request fields cannot be overridden by options. Standard numeric options are
+validated before transport: temperature 0–2, top_p 0–1, penalties −2–2,
+positive safe-integer token counts and n, safe-integer seed, and top_logprobs
+0–20. Image n is 1–10, output_compression 0–100 and partial_images 0–3.
+These endpoint checks do not establish support on every configured model.
 
 ### ElevenLabs
 

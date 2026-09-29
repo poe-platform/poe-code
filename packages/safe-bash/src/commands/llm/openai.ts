@@ -18,16 +18,16 @@ export interface OpenAiProviderOptions {
 }
 
 const numericOptions = {
-  chat: new Map([
-    ["temperature", "number"], ["top_p", "number"],
-    ["frequency_penalty", "number"], ["presence_penalty", "number"],
-    ["max_tokens", "integer"], ["max_completion_tokens", "integer"],
-    ["n", "integer"], ["seed", "integer"], ["top_logprobs", "integer"],
+  chat: new Map<string, readonly ["number" | "integer", number, number]>([
+    ["temperature", ["number", 0, 2]], ["top_p", ["number", 0, 1]],
+    ["frequency_penalty", ["number", -2, 2]], ["presence_penalty", ["number", -2, 2]],
+    ["max_tokens", ["integer", 1, Number.MAX_SAFE_INTEGER]], ["max_completion_tokens", ["integer", 1, Number.MAX_SAFE_INTEGER]],
+    ["n", ["integer", 1, Number.MAX_SAFE_INTEGER]], ["seed", ["integer", Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]], ["top_logprobs", ["integer", 0, 20]],
   ]),
-  images: new Map([
-    ["n", "integer"], ["output_compression", "integer"], ["partial_images", "integer"],
+  images: new Map<string, readonly ["number" | "integer", number, number]>([
+    ["n", ["integer", 1, 10]], ["output_compression", ["integer", 0, 100]], ["partial_images", ["integer", 0, 3]],
   ]),
-};
+} as const;
 
 function jsonOptions(options: LlmRequest["options"], endpoint: "chat" | "images"): Record<string, string | number | boolean | null> {
   return Object.fromEntries(Object.entries(options).map(([key, value]) => {
@@ -35,12 +35,14 @@ function jsonOptions(options: LlmRequest["options"], endpoint: "chat" | "images"
       if (value !== "true" && value !== "false" && typeof value !== "boolean") throw new Error(`Invalid OpenAI option ${key}: expected boolean`);
       return [key, value === true || value === "true"];
     }
-    const type = numericOptions[endpoint].get(key);
-    if (!type) return [key, value];
+    const numeric = numericOptions[endpoint].get(key);
+    if (!numeric) return [key, value];
+    const [type, minimum, maximum] = numeric;
     const number = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
     if (!Number.isFinite(number) || type === "integer" && !Number.isSafeInteger(number)) {
       throw new Error(`Invalid OpenAI option ${key}: expected a finite ${type === "integer" ? "safe integer" : "number"}`);
     }
+    if (number < minimum || number > maximum) throw new RangeError(`Invalid OpenAI option ${key}: expected ${minimum}..${maximum}`);
     return [key, number];
   }));
 }

@@ -3250,7 +3250,7 @@
       }
     },
     "odfRichText": {
-      "status": "Seven editable character properties delivered; full rich text and rendering qualification remain open",
+      "status": "Editable seven-property rich text, sub/superscript and cell-font Script transport delivered; full qualification remains open",
       "commit": "579563f5df3d0a9a91744bd13d74b803b4260d92",
       "remote": "verified on main",
       "source": {
@@ -3269,7 +3269,31 @@
         "out/ssconvert-odf-settings/odf-rich-compiled.json",
         "out/ssconvert-odf-settings/odf-rich-native-fixed.json"
       ],
-      "remaining": "Rise, scale, sub/superscript, other typography, annotation rich text, native Gnumeric, pixels, other platforms and installed artifacts remain open. Strict ODF and Calc lose low accounting placement. All 19 families remain open."
+      "remaining": "Arbitrary numeric rise/scale and proportional heights, other typography, annotation rich text, whole-cell Calc script transport, pixels, other platforms and installed artifacts remain open. Strict ODF and Calc lose low accounting placement. All 19 families remain open.",
+      "scriptFollowup": {
+        "commit": "42102a5893f2159489b6bbd904ac1910a33548e1",
+        "remote": "verified on main",
+        "source": "Gnumeric 325ef79a openoffice-write.c:1921-1935 emits sub/super 83% and 0% 100%; openoffice-read.c:7904-7921 maps the script/reset flags. LibreOffice bce0998a xmloff/source/style/escphdl.cxx:41-140 parses position separately from height.",
+        "implementation": "Read/write subscript, superscript and explicit baseline; inherited resets clear the opposing flag. Reject an empty percentage as a baseline reset.",
+        "validation": "Three original failures and one malformed-percentage failure precede repair. All 44 focused tests, package lint/types and selected build pass. Compiled XLSX-to-ODF commands have empty stderr; Calc and Gnumeric preserve both script positions at exact Unicode byte ranges in strict/extended profiles.",
+        "receipts": [
+          "out/ssconvert-odf-settings/odf-script-checks.json",
+          "out/ssconvert-odf-settings/odf-script-compiled.json",
+          "out/ssconvert-odf-settings/odf-script-native.json"
+        ]
+      },
+      "cellScripts": {
+        "commit": "75e5e05a6c728e2b0ecc6556c0827c3319d7ef1c",
+        "remote": "verified on main",
+        "implementation": "Map cell Font.Script -1/0/1 to sub/super 80% and baseline, following Gnumeric openoffice-write.c:1441-1455 and read.c:6788-6795. Share position parsing with rich spans.",
+        "validation": "12 initial failures; 90 tests in four files, package lint/types and selected build pass. Compiled public conversions and native Gnumeric preserve all three Script values in both profiles.",
+        "calc": "FAILED whole-cell native qualification: both profiles become baseline with no rich override. Calc routes ODF through ordinary CharEscapement while cellsuno.cxx:2132-2165 handles special EditCharEscapement specifically for XLSX. Rich-span scripts pass separately. Do not claim full Calc transport.",
+        "receipts": [
+          "out/ssconvert-odf-settings/odf-cell-script-checks.json",
+          "out/ssconvert-odf-settings/odf-cell-script-compiled.json",
+          "out/ssconvert-odf-settings/odf-cell-script-native.json"
+        ]
+      }
     }
   },
   "cases": [
@@ -3596,7 +3620,7 @@
       "scope": "Five atomic repairs: scalar FORMULA, auxiliary array elements, NAME, ARRAY groups and oversized BIFF8 array strings. Each push verified directly against remote main.",
       "checks": "Final 69-file BIFF cohort: 1742 tests. Maintained package lint, source/test/consumer types and selected workspace build pass. Native profiles and failures are recorded in reference.biffReferenceOperators.continuation.",
       "cleanup": "Generated workbooks, Calc profiles and logs removed after compact receipts; no generated binary committed.",
-      "release": "Full pin 36510785662 failed fresh units on native Node importing the root Vitest config and was then canceled. Upstream 834bf1e8f0 fixes imports; bb8af78680 adds regression coverage. Pin 36511580601 failed missing Safe Bash loop fields, since repaired upstream. Full pin 36512581822 at 579563f5df contains these repairs and editable ODF rich text; pending. No containing publication verified.",
+      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine.",
       "remaining": "All 19 families stay open. Scoped BIFF7 Calc NAME scope issue #4075 is delivered in b58fabd556; Gnumeric scope/INDEX/continued-group/long-auxiliary-string interoperability and other family requirements remain open."
     },
     "underlineFidelity": {
@@ -3607,12 +3631,12 @@
       ],
       "remote": "Every code push independently verified against remote main. See reference.xlsxRichUnderlines and reference.odfAccountingUnderlines for source, tests and native qualification.",
       "cleanup": "Generated spreadsheets, isolated Calc profiles and consumed logs removed; compact ignored receipts retained. No binaries committed.",
-      "release": "Full pin 36510785662 failed fresh units on native Node importing the root Vitest config and was then canceled. Upstream 834bf1e8f0 fixes imports; bb8af78680 adds regression coverage. Pin 36511580601 failed missing Safe Bash loop fields, since repaired upstream. Full pin 36512581822 at 579563f5df contains these repairs and editable ODF rich text; pending. No containing publication verified."
+      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine."
     },
     "richUtf16": {
       "commit": "40837714161654e931f9aaae10427ee01e9433c7",
       "remote": "Verified directly on remote main; generated workbooks, profiles and consumed logs removed after compact receipts.",
-      "release": "Full pin 36510785662 failed fresh units on native Node importing the root Vitest config and was then canceled. Upstream 834bf1e8f0 fixes imports; bb8af78680 adds regression coverage. Pin 36511580601 failed missing Safe Bash loop fields, since repaired upstream. Full pin 36512581822 at 579563f5df contains these repairs and editable ODF rich text; pending. No containing publication verified.",
+      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine.",
       "htmlFollowup": "05bcbc8b025f58538eb5922f6d72b837dbbb1573 preserves the same U+FEFF content in all HTML profiles; every output independently matches native bytes. Code is verified on main; generated artifacts and consumed logs removed."
     },
     "configCompilerReleaseRepair": {
@@ -3621,9 +3645,9 @@
       "source": "ts-morph getExportedDeclarations initialized a program containing 63 ambient libraries on every call. Static config extraction needs only the reachable input sources. Disable automatic library loading; keep the original 60s test and 120s process deadlines.",
       "validation": "One deterministic dependency-isolation test fails before repair. After: 186 config tests, 85 native tests (591ms total versus 8803ms for the prior compiler subset), 185 Rust reference tests, focused ESLint and maintained selected config build pass. Linux CI repair is still awaiting verification.",
       "release": {
-        "current": 36512581822,
-        "head": "579563f5df3d0a9a91744bd13d74b803b4260d92",
-        "state": "Full pin 36510785662 failed fresh units on native Node importing the root Vitest config and was then canceled. Upstream 834bf1e8f0 fixes imports; bb8af78680 adds regression coverage. Pin 36511580601 failed missing Safe Bash loop fields, since repaired upstream. Full pin 36512581822 at 579563f5df contains these repairs and editable ODF rich text; pending. No containing publication verified."
+        "current": 36514126632,
+        "head": "ae3f19482defebd67e96e5981cd6e3079a80e276",
+        "state": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine."
       },
       "cleanup": "Consumed CI/local logs, downloaded source, workbooks and Calc profiles removed. Compact ignored JSON receipts remain.",
       "integrationCorrection": {
@@ -3636,11 +3660,23 @@
     "odfRichText": {
       "commits": [
         "bb8af78680018a0d8963b733e6bb84004446fefc",
-        "579563f5df3d0a9a91744bd13d74b803b4260d92"
+        "579563f5df3d0a9a91744bd13d74b803b4260d92",
+        "42102a5893f2159489b6bbd904ac1910a33548e1",
+        "75e5e05a6c728e2b0ecc6556c0827c3319d7ef1c"
       ],
       "remote": "both verified on main",
-      "release": "Full pin 36510785662 failed fresh units on native Node importing the root Vitest config and was then canceled. Upstream 834bf1e8f0 fixes imports; bb8af78680 adds regression coverage. Pin 36511580601 failed missing Safe Bash loop fields, since repaired upstream. Full pin 36512581822 at 579563f5df contains these repairs and editable ODF rich text; pending. No containing publication verified.",
+      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine.",
       "cleanup": "No generated binaries committed; native workbooks, isolated profiles and consumed source/logs removed after compact JSON receipts."
+    },
+    "encodingCiRepair": {
+      "commits": [
+        "a6290b7ab7be96d585257378a8194f9d2a542151",
+        "16f9ca7e9728fb22639f0d5d09516abb697e5ab7"
+      ],
+      "remote": "verified on main",
+      "validation": "Four current failures reproduced. All 33 streaming and 69 inspection tests plus focused lint pass after updates. Newer issue 4042 explicitly requires readFile fallback and attached-only optional od parameters; preserve these requirements. GNU 9.11 short -S accepts separate parameters, so this is not native-parity evidence.",
+      "receipt": "out/ssconvert-odf-settings/release-repairs-checks.json",
+      "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine."
     }
   },
   "history": {

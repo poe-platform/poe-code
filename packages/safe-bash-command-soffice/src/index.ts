@@ -1,3 +1,4 @@
+import { resolvePath } from "@poe-code/safe-fs/core";
 import { convertOds, starCalcCsvOptions } from "./spreadsheet.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -625,59 +626,74 @@ function parseCsvRows(text: string): string[][] {
   return rows;
 }
 
+interface SofficeArguments {
+  readonly convertSpec: string | undefined;
+  readonly catMode: boolean;
+  readonly outdir: string;
+  readonly inputs: readonly string[];
+}
+
+function parseSofficeArguments(argv: readonly string[], cwd: string): SofficeArguments | SofficeCliResult {
+  let convertSpec: string | undefined;
+  let catMode = false;
+  let outdir = cwd;
+  const inputs: string[] = [];
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]!;
+    if (arg === "--help" || arg === "-h") {
+      return {
+        exitCode: 0,
+        stdout: "LibreOffice 24.8 (@poe-code/pdf-ast)\nUsage: soffice --headless --convert-to <format> [--outdir <dir>] <files...>\n",
+        stderr: ""
+      };
+    }
+    if (arg === "--version") {
+      return {
+        exitCode: 0,
+        stdout: "LibreOffice 24.8.0.0 (@poe-code/pdf-ast)\n",
+        stderr: ""
+      };
+    }
+    if (arg === "--cat" || arg === "-cat") {
+      catMode = true;
+      continue;
+    }
+    const option = arg.startsWith("--") ? arg.slice(2) : arg.startsWith("-") ? arg.slice(1) : "";
+    const equals = option.indexOf("=");
+    const name = equals < 0 ? option : option.slice(0, equals);
+    if (["convert-to", "outdir", "infilter", "pidfile", "language"].includes(name)) {
+      const value = equals < 0 ? argv[++i] : option.slice(equals + 1);
+      if (!value || (equals < 0 && value.startsWith("-"))) {
+        return { exitCode: 1, stdout: "", stderr: `Error: ${arg} requires a value\n` };
+      }
+      if (name === "convert-to") convertSpec = value;
+      if (name === "outdir") outdir = value;
+    } else if (arg.startsWith("-")) {
+      continue;
+    } else {
+      inputs.push(arg);
+    }
+  }
+
+  return { convertSpec, catMode, outdir, inputs };
+}
+
 function* runSofficeSteps(
   argv: readonly string[],
   files: Map<string, Uint8Array>,
   cwd: string,
   signal: AbortSignal
 ): Generator<() => Promise<Uint8Array>, SofficeCliResult, Uint8Array> {
-  let convertSpec: string | undefined;
-  let catMode = false;
-  let outdir = cwd;
-  const inputs: string[] = [];
-
   try {
-    for (let i = 0; i < argv.length; i++) {
-      const arg = argv[i]!;
-      if (arg === "--help" || arg === "-h") {
-        return {
-          exitCode: 0,
-          stdout: "LibreOffice 24.8 (@poe-code/pdf-ast)\nUsage: soffice --headless --convert-to <format> [--outdir <dir>] <files...>\n",
-          stderr: ""
-        };
-      }
-      if (arg === "--version") {
-        return {
-          exitCode: 0,
-          stdout: "LibreOffice 24.8.0.0 (@poe-code/pdf-ast)\n",
-          stderr: ""
-        };
-      }
-      if (arg === "--cat" || arg === "-cat") {
-        catMode = true;
-        continue;
-      }
-      const option = arg.startsWith("--") ? arg.slice(2) : arg.startsWith("-") ? arg.slice(1) : "";
-      const equals = option.indexOf("=");
-      const name = equals < 0 ? option : option.slice(0, equals);
-      if (["convert-to", "outdir", "infilter", "pidfile", "language"].includes(name)) {
-        const value = equals < 0 ? argv[++i] : option.slice(equals + 1);
-        if (!value || (equals < 0 && value.startsWith("-"))) {
-          return { exitCode: 1, stdout: "", stderr: `Error: ${arg} requires a value\n` };
-        }
-        if (name === "convert-to") convertSpec = value;
-        if (name === "outdir") outdir = value;
-      } else if (arg.startsWith("-")) {
-        continue;
-      } else {
-        inputs.push(arg);
-      }
-    }
+    const parsed = parseSofficeArguments(argv, cwd);
+    if ("exitCode" in parsed) return parsed;
+    const { convertSpec, catMode, outdir, inputs } = parsed;
 
     if (catMode && !convertSpec && inputs.length > 0) {
       const chunks: string[] = [];
       for (const inputPath of inputs) {
-        const bytes = files.get(inputPath);
+        const bytes = files.get(inputPath) ?? files.get(resolvePath(cwd, inputPath));
         if (!bytes) {
           return { exitCode: 1, stdout: "", stderr: `Error: source file could not be loaded: ${inputPath}\n` };
         }
@@ -719,7 +735,7 @@ function* runSofficeSteps(
     let stdout = "";
 
     for (const inputPath of inputs) {
-      const inputBytes = files.get(inputPath);
+      const inputBytes = files.get(inputPath) ?? files.get(resolvePath(cwd, inputPath));
       if (!inputBytes) {
         return {
           exitCode: 1,
@@ -731,7 +747,7 @@ function* runSofficeSteps(
       const baseName = inputPath.split("/").pop() ?? "document";
       const stem = baseName.replace(/\.[^.]+$/, "");
       const lowerIn = baseName.toLowerCase();
-      const outPath = `${outdir === "/" ? "" : outdir.replace(/\/$/, "")}/${stem}.${targetExt}`;
+      const outPath = resolvePath(cwd, outdir, `${stem}.${targetExt}`);
 
       const defaultFilter =
         targetExt === "pdf"
@@ -927,18 +943,22 @@ export async function soffice(context: CommandContext): Promise<{ exitCode: numb
     const argv = [...carrier.args];
 
     const vfsFiles = new Map<string, Uint8Array>();
-    const resolveVfsPath = (p: string) =>
-      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
-
-    for (const token of argv) {
-      if (token.startsWith("-")) continue;
-      const abs = resolveVfsPath(token);
+    const parsed = parseSofficeArguments(argv, context.cwd);
+    let inputBytes = 0;
+    for (const token of "exitCode" in parsed ? [] : parsed.inputs) {
+      const abs = resolvePath(context.cwd, token);
+      if (vfsFiles.has(abs)) continue;
+      let bytes: Uint8Array;
       try {
-        const bytes = await context.fs.readFile(abs, { signal: invocation.signal });
-        vfsFiles.set(token, bytes);
+        bytes = await context.fs.readFile(abs, { signal: invocation.signal });
       } catch {
-        // Output dir or non-file arg
+        invocation.signal.throwIfAborted();
+        // The runner reports unreadable source operands consistently for both APIs.
+        continue;
       }
+      inputBytes += bytes.byteLength;
+      context.inputBudget?.check(inputBytes);
+      vfsFiles.set(abs, bytes);
     }
 
     const existingSnap = new Map(vfsFiles);
@@ -954,7 +974,7 @@ export async function soffice(context: CommandContext): Promise<{ exitCode: numb
 
     for (const [fileKey, fileBytes] of vfsFiles.entries()) {
       if (existingSnap.get(fileKey) !== fileBytes) {
-        const abs = resolveVfsPath(fileKey);
+        const abs = resolvePath(context.cwd, fileKey);
         const parentDir = abs.slice(0, abs.lastIndexOf("/")) || "/";
         try {
           await context.fs.mkdir(parentDir, { recursive: true, signal: invocation.signal });

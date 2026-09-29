@@ -3300,12 +3300,25 @@
         "source": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77 xmlannoi.cxx:149-165,213-245,291-294 delegates annotation text to shape context and retains content styles. SHA-256 4ec7a198b12698e92e3f222527b476d4f48aa446a2cec67add5cf96a18197599",
         "implementation": "Import and export canonical TextFormat; empty authors, UTF-8 ranges, Unicode/controls, formatting/author edits and deletion. Preserve untouched XML and outer display/geometry attributes plus dates on edits.",
         "validation": "5 initial formatting/edit regressions; 2 additional date/display preservation failures. 1197 tests / 29 ODF files; maintained package lint, source/test/consumer types and selected workspace build pass. Strict and extended public runCommand XLSX-to-ODF and SDK ODF-to-XLSX preserve exact author, text and TextFormat; empty command stderr. Calc preserves character properties and exact Unicode/controls/BOM; substitutes Noto Sans for BOM. Fontconfig cachedir warnings retained. Gnumeric preserves exact author/text/TextFormat and has empty stderr.",
-        "remaining": "Delimiter-bearing font families have no canonical TextFormat representation; author-only edits may lose that markup. Other typography, legacy profiles, pixels, other platforms and installed artifacts remain open.",
+        "remaining": "Canonical delimiter-bearing families, numeric rise/scale, broader typography, legacy profiles, pixels, other platforms and installed artifacts remain open.",
         "receipts": [
           "out/ssconvert-odf-settings/odf-annotation-checks.json",
           "out/ssconvert-odf-settings/odf-annotation-compiled.json",
           "out/ssconvert-odf-settings/odf-annotation-native.json"
-        ]
+        ],
+        "authorOnlyEdits": {
+          "commit": "325efb9420822e14dba6b3b84fed02c188122bf5",
+          "remote": "verified main",
+          "source": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77 xmlannoi.cxx:213-245 reads creator separately from shape text.",
+          "validation": "Six original regressions fail before repair. All 1203 tests in 29 ODF files, maintained package lint/source/test/consumer checks and selected ssconvert build pass.",
+          "compiled": "Public SDK writer preserves exact original paragraph XML for both profiles after a host-codec author edit; command replay has empty stderr. Probe corrected attempts to mutate a frozen result and treat attribute arrays as maps; neither was a product defect.",
+          "native": "Calc and Gnumeric retain identical text and character properties before/after author edits. Calc preserves delimiter-bearing family and represents 17%/71% as superscript on XLSX export. Gnumeric retains bold but omits original family and numeric position. These native limitations do not qualify arbitrary rise/scale. Calc emits Fontconfig cachedir warnings; Gnumeric stderr is empty.",
+          "remaining": "Canonical delimiter-bearing families, numeric rise/scale, broader typography, legacy profiles, pixels, other platforms and installed artifacts remain open.",
+          "receipts": [
+            "out/ssconvert-odf-settings/odf-author-compiled.json",
+            "out/ssconvert-odf-settings/odf-author-native.json"
+          ]
+        }
       }
     }
   },
@@ -3694,8 +3707,9 @@
     "odfAnnotations": {
       "commit": "a188df91cdf3b87db97af55d8afafec2c5f4fa80",
       "remote": "verified main",
-      "release": "36515238702 is building predecessor 2bac491c09. Annotation push run 36515362829 is pending; no containing publication verified.",
-      "cleanup": "Generated annotation workbooks and isolated profiles removed after compact receipts. No binaries committed."
+      "release": "Full pin 36515238702 failed on new gh workspace profile. Upstream 7736e4aca3 exactly matches our uncommitted repair; c6db5c2daf fixes subsequent runtime typing errors. Both retained. Full containing pin 36516153804 requested at b93ef2d4fd; verify ancestry and publication. Registry remains 17.0.35 at a8a8a7efbc.",
+      "cleanup": "Generated annotation workbooks and isolated profiles removed after compact receipts. No binaries committed.",
+      "authorOnlyCommit": "325efb9420822e14dba6b3b84fed02c188122bf5"
     }
   },
   "history": {

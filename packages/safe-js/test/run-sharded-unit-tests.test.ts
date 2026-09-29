@@ -142,4 +142,33 @@ describe("safe-js sharded unit test runner", () => {
     });
     expect(spawn).not.toHaveBeenCalled();
   });
+
+  it("does not skip sharded execution when /proc/<ppid>/cmdline is the Linux /bin/sh -c pretest wrapper", () => {
+    const npmPid = 4242;
+    const fileSystem = createFixtureFs({
+      [`/proc/${process.ppid}/cmdline`]: [
+        "/bin/sh",
+        "-c",
+        "node scripts/numberformat-data.mjs && npm run typecheck:fs && node scripts/run-sharded-unit-tests.mjs"
+      ].join("\0"),
+      [`/proc/${process.ppid}/status`]: `Name:\tsh\nPPid:\t${npmPid}\n`,
+      [`/proc/${npmPid}/cmdline`]: [
+        "node",
+        "/usr/local/bin/npm",
+        "--workspace=@poe-code/safe-js",
+        "--if-present=false",
+        "run",
+        "test:unit"
+      ].join("\0")
+    });
+    const spawn = vi.fn(() => ({ status: 0, signal: null }));
+    const summary = runSafeJsShardedUnitTests("/repo", {
+      fileSystem,
+      spawn,
+      sharedShardSize: 2,
+      isolatedShardSize: 2
+    });
+    expect(summary.skipped).toBe(false);
+    expect(summary.shards).toBe(2);
+  });
 });

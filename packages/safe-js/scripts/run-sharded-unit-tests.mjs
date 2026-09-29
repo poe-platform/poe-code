@@ -158,19 +158,26 @@ export function computeSafeJsShardKeys(rootDirectory, shards, { fileSystem = fs 
 
 function hasForwardedNpmArguments(fileSystem = fs) {
   try {
-    const cmdlinePath = `/proc/${process.ppid}/cmdline`;
-    if (fileSystem.existsSync(cmdlinePath)) {
+    let pid = process.ppid;
+    for (let depth = 0; depth < 4 && Number.isInteger(pid) && pid > 1; depth++) {
+      const cmdlinePath = `/proc/${pid}/cmdline`;
+      if (!fileSystem.existsSync(cmdlinePath)) break;
       const argv = fileSystem.readFileSync(cmdlinePath, "utf8").split("\0").filter(Boolean);
-      const last = argv.at(-1);
-      if (
-        last &&
-        last !== "test:unit" &&
-        last !== "--if-present=false" &&
-        !last.startsWith("--workspace=") &&
-        !last.startsWith("--include-workspace-root=")
-      ) {
-        return true;
+      const testUnitIndex = argv.indexOf("test:unit");
+      if (testUnitIndex >= 0) {
+        return argv
+          .slice(testUnitIndex + 1)
+          .some(
+            arg =>
+              arg !== "--if-present=false" &&
+              !arg.startsWith("--workspace=") &&
+              !arg.startsWith("--include-workspace-root=")
+          );
       }
+      const statusPath = `/proc/${pid}/status`;
+      if (!fileSystem.existsSync(statusPath)) break;
+      const match = fileSystem.readFileSync(statusPath, "utf8").match(/^PPid:\s*(\d+)/m);
+      pid = match ? Number(match[1]) : 0;
     }
   } catch {
     // An unavailable invocation record cannot identify a unit-test child.

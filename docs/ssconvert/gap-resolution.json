@@ -3173,7 +3173,7 @@
         "out/ssconvert-odf-settings/odf-underline-solid-native.json",
         "out/ssconvert-odf-settings/odf-underline-native.json"
       ],
-      "remaining": "Strict ODF and readers ignoring the Gnumeric extension lose low accounting placement. Rich XLSX doubleAccounting import/export is covered by xlsxRichAccountingUnderlines; rich ODF transport remains open. Native XML properties do not establish pixel rendering, installed-package qualification or registry publication. All 19 families remain open."
+      "remaining": "Rich ODF seven-property transport is delivered in odfRichText. Strict ODF and readers ignoring the Gnumeric extension lose low placement. Native XML properties do not establish pixels, installed artifacts or publication; full style qualification remains open."
     },
     "xlsxRichUtf16": {
       "status": "original UTF-16 units preserved during rich run export; isolated-surrogate native fidelity remains open",
@@ -3227,7 +3227,7 @@
         "out/ssconvert-odf-settings/accounting-rich-command.json",
         "out/ssconvert-odf-settings/accounting-rich-native.json"
       ],
-      "remaining": "HTML mapping is delivered in htmlFollowup. ODF, Gnumeric/Pango and rendering transport of accounting rich attributes remain open. No installed-artifact qualification or containing publication verified. All 19 families remain open.",
+      "remaining": "HTML and rich ODF mappings are delivered in htmlFollowup and odfRichText. Gnumeric/Pango, rendering, installed artifacts and containing publication remain open. All 19 families remain open.",
       "htmlFollowup": {
         "commit": "ad7ad6ba452b473df8a2ef3293e66978c7a28c6a",
         "remote": "verified directly on remote main",
@@ -3248,6 +3248,28 @@
           ]
         }
       }
+    },
+    "odfRichText": {
+      "status": "Seven editable character properties delivered; full rich text and rendering qualification remain open",
+      "commit": "579563f5df3d0a9a91744bd13d74b803b4260d92",
+      "remote": "verified on main",
+      "source": {
+        "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+        "repository": "https://github.com/LibreOffice/core",
+        "files": {
+          "sc/source/filter/xml/celltextparacontext.cxx": "118-192,255-287,300-351: styled spans and URL character handling; Calc span context omits tab/line-break child handling",
+          "sc/source/filter/excel/xltools.cxx": "452-456: GetXclFontName requests MS font substitution",
+          "officecfg/registry/data/org/openoffice/VCL.xcu": "2991-2996: Liberation Sans substitutes Arial for MS export"
+        }
+      },
+      "implementation": "Resolve text/paragraph style inheritance and UTF-8 ranges for family, size, bold, italic, strike, underline and color. Generate deduplicated styles and content font declarations. Preserve untouched source XML including neighboring plain paragraphs, but regenerate after canonical formatting edits. Share existing XLSX byte-range segmentation.",
+      "validation": "Six initial regressions, two paragraph-retention failures and two font-declaration failures precede repairs. Final 1574 tests in 41 ODF/XLSX files pass; maintained selected build and full package lint/source/test/consumer checks pass. Compiled public XLSX-to-ODF commands pass both profiles. Calc independently preserves all seven properties, exact Unicode/controls, hyperlinks and mixed styled/plain portions; its documented Arial alias and loss of low accounting placement are observed.",
+      "receipts": [
+        "out/ssconvert-odf-settings/odf-rich-checks.json",
+        "out/ssconvert-odf-settings/odf-rich-compiled.json",
+        "out/ssconvert-odf-settings/odf-rich-native-fixed.json"
+      ],
+      "remaining": "Rise, scale, sub/superscript, other typography, annotation rich text, native Gnumeric, pixels, other platforms and installed artifacts remain open. Strict ODF and Calc lose low accounting placement. All 19 families remain open."
     }
   },
   "cases": [
@@ -3574,7 +3596,7 @@
       "scope": "Five atomic repairs: scalar FORMULA, auxiliary array elements, NAME, ARRAY groups and oversized BIFF8 array strings. Each push verified directly against remote main.",
       "checks": "Final 69-file BIFF cohort: 1742 tests. Maintained package lint, source/test/consumer types and selected workspace build pass. Native profiles and failures are recorded in reference.biffReferenceOperators.continuation.",
       "cleanup": "Generated workbooks, Calc profiles and logs removed after compact receipts; no generated binary committed.",
-      "release": "Earlier full pins failed or were canceled. 36510161550 failed build TS1117 after incoming 05d147e648 duplicated the library-loading option; 41718eae53 removes the own duplicate while preserving behavior. Full pin 36510785662 at 41718eae53 contains all BIFF, UTF16, underline, HTML and config repairs from this work and is pending. No containing publication verified.",
+      "release": "Full pin 36510785662 failed fresh units on native Node importing the root Vitest config and was then canceled. Upstream 834bf1e8f0 fixes imports; bb8af78680 adds regression coverage. Pin 36511580601 failed missing Safe Bash loop fields, since repaired upstream. Full pin 36512581822 at 579563f5df contains these repairs and editable ODF rich text; pending. No containing publication verified.",
       "remaining": "All 19 families stay open. Scoped BIFF7 Calc NAME scope issue #4075 is delivered in b58fabd556; Gnumeric scope/INDEX/continued-group/long-auxiliary-string interoperability and other family requirements remain open."
     },
     "underlineFidelity": {
@@ -3585,12 +3607,12 @@
       ],
       "remote": "Every code push independently verified against remote main. See reference.xlsxRichUnderlines and reference.odfAccountingUnderlines for source, tests and native qualification.",
       "cleanup": "Generated spreadsheets, isolated Calc profiles and consumed logs removed; compact ignored receipts retained. No binaries committed.",
-      "release": "Earlier full pins failed or were canceled. 36510161550 failed build TS1117 after incoming 05d147e648 duplicated the library-loading option; 41718eae53 removes the own duplicate while preserving behavior. Full pin 36510785662 at 41718eae53 contains all BIFF, UTF16, underline, HTML and config repairs from this work and is pending. No containing publication verified."
+      "release": "Full pin 36510785662 failed fresh units on native Node importing the root Vitest config and was then canceled. Upstream 834bf1e8f0 fixes imports; bb8af78680 adds regression coverage. Pin 36511580601 failed missing Safe Bash loop fields, since repaired upstream. Full pin 36512581822 at 579563f5df contains these repairs and editable ODF rich text; pending. No containing publication verified."
     },
     "richUtf16": {
       "commit": "40837714161654e931f9aaae10427ee01e9433c7",
       "remote": "Verified directly on remote main; generated workbooks, profiles and consumed logs removed after compact receipts.",
-      "release": "Earlier full pins failed or were canceled. 36510161550 failed build TS1117 after incoming 05d147e648 duplicated the library-loading option; 41718eae53 removes the own duplicate while preserving behavior. Full pin 36510785662 at 41718eae53 contains all BIFF, UTF16, underline, HTML and config repairs from this work and is pending. No containing publication verified.",
+      "release": "Full pin 36510785662 failed fresh units on native Node importing the root Vitest config and was then canceled. Upstream 834bf1e8f0 fixes imports; bb8af78680 adds regression coverage. Pin 36511580601 failed missing Safe Bash loop fields, since repaired upstream. Full pin 36512581822 at 579563f5df contains these repairs and editable ODF rich text; pending. No containing publication verified.",
       "htmlFollowup": "05bcbc8b025f58538eb5922f6d72b837dbbb1573 preserves the same U+FEFF content in all HTML profiles; every output independently matches native bytes. Code is verified on main; generated artifacts and consumed logs removed."
     },
     "configCompilerReleaseRepair": {
@@ -3599,9 +3621,9 @@
       "source": "ts-morph getExportedDeclarations initialized a program containing 63 ambient libraries on every call. Static config extraction needs only the reachable input sources. Disable automatic library loading; keep the original 60s test and 120s process deadlines.",
       "validation": "One deterministic dependency-isolation test fails before repair. After: 186 config tests, 85 native tests (591ms total versus 8803ms for the prior compiler subset), 185 Rust reference tests, focused ESLint and maintained selected config build pass. Linux CI repair is still awaiting verification.",
       "release": {
-        "current": 36510785662,
-        "head": "41718eae53cdec631ccc037205adf3f6cdc5779b",
-        "state": "pending; Linux native timeout repair and publication await verification"
+        "current": 36512581822,
+        "head": "579563f5df3d0a9a91744bd13d74b803b4260d92",
+        "state": "Full pin 36510785662 failed fresh units on native Node importing the root Vitest config and was then canceled. Upstream 834bf1e8f0 fixes imports; bb8af78680 adds regression coverage. Pin 36511580601 failed missing Safe Bash loop fields, since repaired upstream. Full pin 36512581822 at 579563f5df contains these repairs and editable ODF rich text; pending. No containing publication verified."
       },
       "cleanup": "Consumed CI/local logs, downloaded source, workbooks and Calc profiles removed. Compact ignored JSON receipts remain.",
       "integrationCorrection": {
@@ -3610,6 +3632,15 @@
         "validation": "TS1117 reproduced before correction. Maintained config build, focused ESLint and all 186 config tests pass afterward. Removed the duplicate introduced by own original commit; retained the independent incoming key.",
         "receipt": "out/ssconvert-odf-settings/final-html-config-checks.json"
       }
+    },
+    "odfRichText": {
+      "commits": [
+        "bb8af78680018a0d8963b733e6bb84004446fefc",
+        "579563f5df3d0a9a91744bd13d74b803b4260d92"
+      ],
+      "remote": "both verified on main",
+      "release": "Full pin 36510785662 failed fresh units on native Node importing the root Vitest config and was then canceled. Upstream 834bf1e8f0 fixes imports; bb8af78680 adds regression coverage. Pin 36511580601 failed missing Safe Bash loop fields, since repaired upstream. Full pin 36512581822 at 579563f5df contains these repairs and editable ODF rich text; pending. No containing publication verified.",
+      "cleanup": "No generated binaries committed; native workbooks, isolated profiles and consumed source/logs removed after compact JSON receipts."
     }
   },
   "history": {

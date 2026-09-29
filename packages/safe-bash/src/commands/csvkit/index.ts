@@ -51,7 +51,7 @@ export function csvkitCommands(options: CsvkitCommandsOptions = {}): VirtualShel
   const commands = createCsvkitCommands(options);
   const replace = options.replace ?? false;
   return {
-    name: "csvkit",
+    name: "csvkit-commands",
     setup(host) {
       for (const command of commands) {
         if (command.fallback) {

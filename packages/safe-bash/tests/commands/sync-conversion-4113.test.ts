@@ -1409,3 +1409,31 @@ test("Wave 219: fd -S/-0/-t e, rg -S/--files-without-match/-l0/-ie, and find -pr
     `/tmp/w219/a.txt:#/tmp/w219/empty.txt,/tmp/w219/emptydir,#AlphaLine#nomatch#/tmp/w219/b.txt#/tmp/w219/a.txt:#/tmp/w219/a.txt|/tmp/w219/b.txt|/tmp/w219/empty.txt|`
   );
 });
+
+test("Wave 220: xan headers --csv, xan slice -S/--start-condition -E/--end-condition, and xan count -c/-a/-t in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp");
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" }).use(standardCommands()).use(tableTextCommands()).use(xanCommands());
+  const res = await shell.exec(`
+    cat <<'EOF' > /tmp/metrics.csv
+id,name,score
+1,alpha,10
+2,beta,20
+3,gamma,30
+4,delta,40
+EOF
+    out=""
+    for i in 1 2 3 4 5; do
+      xh=$(xan headers --csv /tmp/metrics.csv | paste -sd",")
+      xs=$(xan slice -S 'score >= 20' -E 'name == "delta"' /tmp/metrics.csv | paste -sd"|")
+      xc=$(xan count -c -a -t 2 /tmp/metrics.csv)
+      out="$xh#$xs#$xc"
+    done
+    printf "%s\\n" "$out"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    `/tmp/metrics.csv,id,name,score#id,name,score|2,beta,20|3,gamma,30#4`
+  );
+});

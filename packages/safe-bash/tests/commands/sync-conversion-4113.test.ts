@@ -458,3 +458,14 @@ test("evaluates jq range, sub/gsub, scan, escaped test(), predicate any(expr)/al
     "[1,3,5,7]|foo-NUM:bar:456|[\"v1.2\",\"v3.45\"]|true|true,true,|[[\"a\",\"b\"],[\"c\",0],[\"c\",1]]|42\n",
   );
 });
+test("evaluates awk printf formatting (%s/%-Ns/%d/%0Nd), n = split(...) count and elements, and character-class regexes in sub/gsub in sync substitutions and brace loops (Wave 180)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(textProgramCommands());
+  const r = await shell.exec("printf \"alice 7 a-b-c\\nbob 42 x-y\\n\" > /tmp/awk_in.txt\na_printf=$(awk '{ printf \"%-6s:%04d\\n\", $1, $2 }' /tmp/awk_in.txt | tr '\\n' '|')\na_split=$(awk '{ n = split($3, parts, \"-\"); print $1, n, parts[1], parts[2] }' /tmp/awk_in.txt | tr '\\n' '|')\na_gsub=$(printf \"item_12_cost_340\\n\" | awk '{ gsub(/[0-9]+/, \"N\"); print $0 }')\nloop_res=\"\"\nfor k in 1 2; do\n  v=$(awk -v mult=\"$k\" '{ printf \"%s=%03d;\", $1, $2 * mult }' /tmp/awk_in.txt)\n  loop_res=\"${loop_res}${v}\"\ndone\nprintf \"%s#%s#%s#%s\\n\" \"$a_printf\" \"$a_split\" \"$a_gsub\" \"$loop_res\"");
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "alice :0007|bob   :0042|#alice 3 a b|bob 2 x y|#item_N_cost_N#alice=007;bob=042;alice=014;bob=084;\n",
+  );
+});

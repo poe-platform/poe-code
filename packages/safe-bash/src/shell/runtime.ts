@@ -2843,7 +2843,7 @@ const syncAwkArithAtom = `(?:\\$(?:[0-9]+|NF)|NR|NF|-?[0-9]+(?:\\.[0-9]+)?|[a-zA
 const syncAwkArithPat = `(?:${syncAwkArithAtom}(?:\\s*[+*\\/%-]\\s*${syncAwkArithAtom})+)`;
 const syncAwkTernaryPat = `(?:(?:\\$(?:[0-9]+|NF)|NR|NF)\\s*(?:==|!=|>=|<=|>|<)\\s*(?:-?[0-9]+(?:\\.[0-9]+)?|"[^"$\\\\]*")\\s*\\?\\s*(?:\\$(?:[0-9]+|NF)|"[^"$\\\\]*"|-?[0-9]+(?:\\.[0-9]+)?)\\s*:\\s*(?:\\$(?:[0-9]+|NF)|"[^"$\\\\]*"|-?[0-9]+(?:\\.[0-9]+)?))`;
 const syncAwkItemPat = `(?:${syncAwkTernaryPat}|int\\(\\$(?:[0-9]+|NF)\\)|(?:toupper|tolower)\\(\\$(?:[0-9]+|NF)\\)|substr\\(\\$(?:[0-9]+|NF)\\s*,\\s*[0-9]+(?:\\s*,\\s*[0-9]+)?\\)|index\\(\\$(?:[0-9]+|NF)\\s*,\\s*"[^"$\\\\]*"\\)|${syncAwkArithPat}|\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|[a-zA-Z_][a-zA-Z0-9_]*\\[[1-9][0-9]{0,3}\\]|[a-zA-Z_][a-zA-Z0-9_]*|"[^"$\\\\]*")`;
-const syncAwkPrintRe = new RegExp(`^\\{\\s*(?:(g?sub)\\(\\s*\\/(\\^?[a-zA-Z0-9_ :;,=-]+\\$?)\\/\\s*,\\s*"([^"\\\\]*)"(?:\\s*,\\s*\\$([0-9]+|NF))?\\s*\\)\\s*;\\s*)?(?:(?:([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*)?split\\(\\s*\\$([0-9]+|NF)\\s*,\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*,\\s*"([^"\\\\])"\\s*\\)\\s*;\\s*)?(?:print(?:\\s+(${syncAwkItemPat}(?:\\s*,?\\s*${syncAwkItemPat})*))?|printf\\s+"([^"$\\\\]*(?:\\\\[nt\\\\"][^"$\\\\]*)*)"\\s*,\\s*(${syncAwkItemPat}(?:\\s*,\\s*${syncAwkItemPat})*))\\s*;?\\s*\\}\\s*$`);
+const syncAwkPrintRe = new RegExp(`^\\{\\s*(?:(g?sub)\\(\\s*\\/(\\^?(?:[a-zA-Z0-9_ :;,=-]|\\[[0-9a-zA-Z_ \\t-]+\\][+*?]?)+\\$?)\\/\\s*,\\s*"([^"\\\\]*)"(?:\\s*,\\s*\\$([0-9]+|NF))?\\s*\\)\\s*;\\s*)?(?:(?:([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*)?split\\(\\s*\\$([0-9]+|NF)\\s*,\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*,\\s*"([^"\\\\])"\\s*\\)\\s*;\\s*)?(?:print(?:\\s+(${syncAwkItemPat}(?:\\s*,?\\s*${syncAwkItemPat})*))?|printf\\s+"([^"$\\\\]*(?:\\\\[nt\\\\"][^"$\\\\]*)*)"\\s*,\\s*(${syncAwkItemPat}(?:\\s*,\\s*${syncAwkItemPat})*))\\s*;?\\s*\\}\\s*$`);
 const syncAwkTokenRe = new RegExp(`(${syncAwkTernaryPat})|int\\(\\$([0-9]+|NF)\\)|(toupper|tolower)\\(\\$([0-9]+|NF)\\)|substr\\(\\$([0-9]+|NF)\\s*,\\s*([0-9]+)(?:\\s*,\\s*([0-9]+))?\\)|index\\(\\$([0-9]+|NF)\\s*,\\s*"([^"$\\\\]*)"\\)|(${syncAwkArithPat})|\\$\\(NF\\s*-\\s*([0-9]+)\\)|\\$([0-9]+|NF)|length\\b(?:\\(\\$([0-9]+|NF)\\))?|(NR|NF)\\b|"([^"$\\\\]*)"|([a-zA-Z_][a-zA-Z0-9_]*)\\[([1-9][0-9]{0,3})\\]|([a-zA-Z_][a-zA-Z0-9_]*)|(,)`, "g");
 
 export class RuntimeCancellationState {
@@ -25520,22 +25520,62 @@ export class Runtime {
     // printf must consume typed values before OFMT string conversion and use
     // the complete formatter, including integer precision and exponent parsing.
     const splitCntVar = awkM[5];
-    // Assignment can shadow -v bindings or mutate fields and output separators.
-    // The canonical interpreter owns those variable and record-state effects.
-    if (splitCntVar !== undefined) return undefined;
+    if (
+      splitCntVar !== undefined &&
+      (["NR", "NF", "FNR", "OFS", "FS", "ORS", "RS", "OFMT", "CONVFMT", "ARGC", "ARGIND", "FILENAME", "RSTART", "RLENGTH", "SUBSEP", "IGNORECASE", "FIELDWIDTHS", "FPAT", "BINMODE", "TEXTDOMAIN"].includes(splitCntVar) ||
+       userVars.has(splitCntVar) ||
+       rowVarSet.has(splitCntVar))
+    ) {
+      return undefined;
+    }
     const splitFieldTok = awkM[6];
     const splitArrName = awkM[7];
     const splitSep = awkM[8];
-    if (awkM[10] !== undefined) return undefined;
-    const exprBody = awkM[9]?.trim();
+    const printfFmtRaw = awkM[10];
+    let printfSpecs: Array<{ lit: string; width: number; zeroPad: boolean; leftAlign: boolean; kind: "s" | "d" }> | undefined;
+    let printfTailLit = "";
+    if (printfFmtRaw !== undefined) {
+      const unesc = printfFmtRaw.replace(/\\([nt\\"])/g, (_, c: string) => c === "n" ? "\n" : c === "t" ? "\t" : c);
+      printfSpecs = [];
+      let curLit = "";
+      let fi = 0;
+      while (fi < unesc.length) {
+        if (unesc[fi] !== "%") {
+          curLit += unesc[fi++]!;
+          continue;
+        }
+        if (unesc[fi + 1] === "%") {
+          curLit += "%";
+          fi += 2;
+          continue;
+        }
+        const spM = /^%(-)?(0)?([1-9][0-9]{0,2})?([sdi])/.exec(unesc.slice(fi));
+        if (!spM) return undefined;
+        printfSpecs.push({
+          lit: curLit,
+          leftAlign: spM[1] === "-",
+          zeroPad: spM[2] === "0" && spM[1] !== "-",
+          width: spM[3] ? Number(spM[3]) : 0,
+          kind: spM[4] === "s" ? "s" : "d",
+        });
+        curLit = "";
+        fi += spM[0]!.length;
+      }
+      printfTailLit = curLit;
+    }
+    const exprBody = (printfFmtRaw !== undefined ? awkM[11] : awkM[9])?.trim();
     let subRe: RegExp | undefined;
     if (subFn && subPat !== undefined) {
       const aS = subPat.startsWith("^");
       const c1 = aS ? subPat.slice(1) : subPat;
       const aE = c1.endsWith("$");
       const core = aE ? c1.slice(0, -1) : c1;
-      const esc = core.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      subRe = new RegExp((aS ? "^" : "") + esc + (aE ? "$" : ""), subFn === "gsub" ? "g" : "");
+      const esc = core.includes("[") ? core : core.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      try {
+        subRe = new RegExp((aS ? "^" : "") + esc + (aE ? "$" : ""), subFn === "gsub" ? "g" : "");
+      } catch {
+        return undefined;
+      }
     }
     const parts: Array<
       | { kind: "field"; token: string }
@@ -25610,8 +25650,11 @@ export class Runtime {
             parts.push({ kind: "lit", text: uv });
           }
         }
-        else if (m[19] !== undefined) parts.push({ kind: "lit", text: ofs });
+        else if (m[19] !== undefined) parts.push({ kind: "lit", text: printfSpecs ? "\0" : ofs });
       }
+    }
+    if (printfSpecs && parts.filter(p => p.kind === "lit" && p.text === "\0").length + 1 !== printfSpecs.length) {
+      return undefined;
     }
     const outLines: string[] = [];
     for (let li = 0; li < rawLines.length; li++) {
@@ -25821,7 +25864,38 @@ export class Runtime {
           out += idx === 0 ? l : (idx >= 1 && idx <= fields.length ? fields[idx - 1]! : "");
         }
       }
-      outLines.push(out);
+      if (printfSpecs) {
+        const argVals = out.split("\0");
+        if (argVals.length !== printfSpecs.length) return undefined;
+        let fmtRow = "";
+        for (let si = 0; si < printfSpecs.length; si++) {
+          const sp = printfSpecs[si]!;
+          fmtRow += sp.lit;
+          let rendered = argVals[si]!;
+          if (sp.kind === "d") {
+            const n = Math.trunc(awkNumber(awkInputValue(rendered)));
+            const neg = n < 0;
+            let digits = String(Math.abs(n));
+            if (sp.zeroPad && sp.width > digits.length + (neg ? 1 : 0)) {
+              digits = digits.padStart(sp.width - (neg ? 1 : 0), "0");
+            }
+            rendered = (neg ? "-" : "") + digits;
+          }
+          if (sp.width > rendered.length) {
+            rendered = sp.leftAlign ? rendered.padEnd(sp.width, " ") : rendered.padStart(sp.width, " ");
+          }
+          fmtRow += rendered;
+        }
+        fmtRow += printfTailLit;
+        outLines.push(fmtRow);
+      } else {
+        outLines.push(out);
+      }
+    }
+    if (printfSpecs) {
+      const joined = outLines.join("");
+      if (joined.length === 0) return [];
+      return (joined.endsWith("\n") ? joined.slice(0, -1) : joined).split("\n");
     }
     return outLines;
   }

@@ -14,6 +14,24 @@ import { findGitRoot, parseRepoSpec, resolveRepoFromContext, runGitInVfs } from 
 import { formatCommandOutput } from "../template.js";
 import type { GhBrowserOpener, GhComment, GhIssue, GhLabel, GhLimits } from "../types.js";
 
+export function extractRepoAndSelectorFromIssueArg(
+  selector: string | undefined,
+  explicitRepoFlag: string | undefined
+): { readonly repoOverride: string | undefined; readonly selector: string | undefined } {
+  if (selector?.startsWith("https://") || selector?.startsWith("http://")) {
+    const url = new URL(selector);
+    const parts = url.pathname.split("/");
+    if (parts.length === 5 && parts[1] && parts[2] && parts[3] === "issues" &&
+        parts[4] && Number.isSafeInteger(Number(parts[4])) && Number(parts[4]) > 0) {
+      return {
+        repoOverride: explicitRepoFlag ?? `${url.host}/${parts[1]}/${parts[2]}`,
+        selector: parts[4],
+      };
+    }
+  }
+  return { repoOverride: explicitRepoFlag, selector };
+}
+
 export const ISSUE_JSON_FIELDS: readonly string[] = [
   "assignees",
   "author",
@@ -197,9 +215,10 @@ export async function handleIssueCommand(
   if (subcommand === "view") {
     const schemas: FlagSchema[] = [{ short: "c", long: "comments", type: "boolean" }];
     const parsed = parseCommandArgs(restArgs, schemas);
-    const coords = await resolveRepoFromContext(context, parsed.repoFlag, backend.defaultHost, backend.getActiveUser());
+    const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+    const coords = await resolveRepoFromContext(context, repoOverride, backend.defaultHost, backend.getActiveUser());
     const repo = backend.getOrCreateRepo(coords.owner, coords.name);
-    const issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+    const issue = backend.resolveIssue(repo, selector ?? "1");
 
     if (getBoolFlag(parsed, "web")) {
       if (openBrowser) await openBrowser(issue.url);
@@ -245,9 +264,10 @@ export async function handleIssueCommand(
       { short: "r", long: "reason", type: "string" },
     ];
     const parsed = parseCommandArgs(restArgs, schemas);
-    const coords = await resolveRepoFromContext(context, parsed.repoFlag, backend.defaultHost, backend.getActiveUser());
+    const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+    const coords = await resolveRepoFromContext(context, repoOverride, backend.defaultHost, backend.getActiveUser());
     const repo = backend.getOrCreateRepo(coords.owner, coords.name);
-    const issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+    const issue = backend.resolveIssue(repo, selector ?? "1");
 
     const commentText = getStringFlag(parsed, "comment");
     if (commentText) {
@@ -282,11 +302,33 @@ export async function handleIssueCommand(
     const schemas: FlagSchema[] = [
       { short: "b", long: "body", type: "string" },
       { short: "F", long: "body-file", type: "string" },
+      { long: "edit-last", type: "boolean" },
+      { long: "delete-last", type: "boolean" },
+      { long: "create-if-none", type: "boolean" },
     ];
     const parsed = parseCommandArgs(restArgs, schemas);
-    const coords = await resolveRepoFromContext(context, parsed.repoFlag, backend.defaultHost, backend.getActiveUser());
+    const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+    const coords = await resolveRepoFromContext(context, repoOverride, backend.defaultHost, backend.getActiveUser());
     const repo = backend.getOrCreateRepo(coords.owner, coords.name);
-    const issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+    const issue = backend.resolveIssue(repo, selector ?? "1");
+    const activeUser = backend.getActiveUser();
+    let lastIndex = -1;
+    for (let index = issue.comments.length - 1; index >= 0; index--) {
+      if (issue.comments[index]!.author.login === activeUser) {
+        lastIndex = index;
+        break;
+      }
+    }
+    if (getBoolFlag(parsed, "delete-last")) {
+      if (lastIndex < 0) {
+        await writeErr("no comments found for current user\n");
+        return 1;
+      }
+      issue.comments.splice(lastIndex, 1);
+      issue.updatedAt = backend.isoNow();
+      await writeOut("Comment deleted\n");
+      return 0;
+    }
     const bodyFile = getStringFlag(parsed, "body-file");
     const body =
       bodyFile !== undefined
@@ -294,6 +336,23 @@ export async function handleIssueCommand(
           ? stdinText
           : decodeUtf8(await context.fs.readFile(resolvePath(context.cwd, bodyFile), { signal: context.signal }))
         : (getStringFlag(parsed, "body") ?? "");
+    if (!body) {
+      await writeErr("body cannot be blank; provide -b/--body or -F/--body-file\n");
+      return 1;
+    }
+    if (getBoolFlag(parsed, "edit-last")) {
+      if (lastIndex >= 0) {
+        const previous = issue.comments[lastIndex]!;
+        issue.comments[lastIndex] = { ...previous, body, updatedAt: backend.isoNow() };
+        issue.updatedAt = issue.comments[lastIndex]!.updatedAt;
+        await writeOut(`${previous.url}\n`);
+        return 0;
+      }
+      if (!getBoolFlag(parsed, "create-if-none")) {
+        await writeErr("no comments found for current user to edit\n");
+        return 1;
+      }
+    }
     const id = backend.nextId();
     const ts = backend.isoNow();
     const c: GhComment = {
@@ -305,6 +364,7 @@ export async function handleIssueCommand(
       url: `${issue.url}#issuecomment-${id}`,
     };
     issue.comments.push(c);
+    issue.updatedAt = ts;
     await writeOut(`${c.url}\n`);
     return 0;
   }
@@ -313,19 +373,29 @@ export async function handleIssueCommand(
     const schemas: FlagSchema[] = [
       { short: "t", long: "title", type: "string" },
       { short: "b", long: "body", type: "string" },
+      { short: "F", long: "body-file", type: "string" },
+      { short: "m", long: "milestone", type: "string" },
+      { long: "remove-milestone", type: "boolean" },
+      { long: "add-project", type: "string[]" },
+      { long: "remove-project", type: "string[]" },
       { long: "add-label", type: "string[]" },
       { long: "remove-label", type: "string[]" },
       { long: "add-assignee", type: "string[]" },
       { long: "remove-assignee", type: "string[]" },
     ];
     const parsed = parseCommandArgs(restArgs, schemas);
-    const coords = await resolveRepoFromContext(context, parsed.repoFlag, backend.defaultHost, backend.getActiveUser());
+    const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+    const coords = await resolveRepoFromContext(context, repoOverride, backend.defaultHost, backend.getActiveUser());
     const repo = backend.getOrCreateRepo(coords.owner, coords.name);
-    const issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+    const issue = backend.resolveIssue(repo, selector ?? "1");
 
     const title = getStringFlag(parsed, "title");
     if (title !== undefined) issue.title = title;
-    const body = getStringFlag(parsed, "body");
+    const bodyFile = getStringFlag(parsed, "body-file");
+    const body = bodyFile !== undefined
+      ? bodyFile === "-" ? stdinText
+        : decodeUtf8(await context.fs.readFile(resolvePath(context.cwd, bodyFile), { signal: context.signal }))
+      : getStringFlag(parsed, "body");
     if (body !== undefined) issue.body = body;
     for (const lblName of getStringArrayFlag(parsed, "add-label")) {
       if (!issue.labels.some((l) => l.name.toLowerCase() === lblName.toLowerCase())) {
@@ -342,15 +412,40 @@ export async function handleIssueCommand(
     if (rmLabels.length > 0) {
       issue.labels = issue.labels.filter((l) => !rmLabels.includes(l.name.toLowerCase()));
     }
+    for (const login of getStringArrayFlag(parsed, "add-assignee")) {
+      const resolved = login === "@me" ? backend.getActiveUser() : login;
+      if (!issue.assignees.some(a => a.login.toLowerCase() === resolved.toLowerCase())) {
+        issue.assignees.push({ login: resolved });
+      }
+    }
+    const removeAssignees = getStringArrayFlag(parsed, "remove-assignee").map(login =>
+      (login === "@me" ? backend.getActiveUser() : login).toLowerCase());
+    issue.assignees = issue.assignees.filter(a => !removeAssignees.includes(a.login.toLowerCase()));
+
+    const milestone = getStringFlag(parsed, "milestone");
+    if (getBoolFlag(parsed, "remove-milestone")) {
+      issue.milestone = null;
+    } else if (milestone !== undefined) {
+      issue.milestone = { id: backend.nextId(), number: 1, title: milestone, description: "", state: "open" };
+    }
+    for (const title of getStringArrayFlag(parsed, "add-project")) {
+      if (!issue.projectItems.some(project => project.title === title)) {
+        issue.projectItems.push({ title });
+      }
+    }
+    const removeProjects = getStringArrayFlag(parsed, "remove-project");
+    issue.projectItems = issue.projectItems.filter(project => !removeProjects.includes(project.title));
+    issue.updatedAt = backend.isoNow();
     await writeOut(`${issue.url}\n`);
     return 0;
   }
 
   if (subcommand === "delete") {
     const parsed = parseCommandArgs(restArgs, []);
-    const coords = await resolveRepoFromContext(context, parsed.repoFlag, backend.defaultHost, backend.getActiveUser());
+    const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+    const coords = await resolveRepoFromContext(context, repoOverride, backend.defaultHost, backend.getActiveUser());
     const repo = backend.getOrCreateRepo(coords.owner, coords.name);
-    const issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+    const issue = backend.resolveIssue(repo, selector ?? "1");
     repo.issues.delete(issue.number);
     await writeOut(`✓ Deleted issue #${issue.number}\n`);
     return 0;
@@ -358,9 +453,10 @@ export async function handleIssueCommand(
 
   if (subcommand === "pin" || subcommand === "unpin") {
     const parsed = parseCommandArgs(restArgs, []);
-    const coords = await resolveRepoFromContext(context, parsed.repoFlag, backend.defaultHost, backend.getActiveUser());
+    const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+    const coords = await resolveRepoFromContext(context, repoOverride, backend.defaultHost, backend.getActiveUser());
     const repo = backend.getOrCreateRepo(coords.owner, coords.name);
-    const issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+    const issue = backend.resolveIssue(repo, selector ?? "1");
     issue.isPinned = subcommand === "pin";
     await writeOut(`✓ ${subcommand === "pin" ? "Pinned" : "Unpinned"} issue #${issue.number}\n`);
     return 0;
@@ -368,9 +464,10 @@ export async function handleIssueCommand(
 
   if (subcommand === "lock" || subcommand === "unlock") {
     const parsed = parseCommandArgs(restArgs, [{ short: "r", long: "reason", type: "string" }]);
-    const coords = await resolveRepoFromContext(context, parsed.repoFlag, backend.defaultHost, backend.getActiveUser());
+    const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+    const coords = await resolveRepoFromContext(context, repoOverride, backend.defaultHost, backend.getActiveUser());
     const repo = backend.getOrCreateRepo(coords.owner, coords.name);
-    const issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+    const issue = backend.resolveIssue(repo, selector ?? "1");
     issue.locked = subcommand === "lock";
     await writeOut(`✓ ${subcommand === "lock" ? "Locked" : "Unlocked"} issue #${issue.number}\n`);
     return 0;
@@ -378,9 +475,10 @@ export async function handleIssueCommand(
 
   if (subcommand === "transfer") {
     const parsed = parseCommandArgs(restArgs, []);
-    const coords = await resolveRepoFromContext(context, parsed.repoFlag, backend.defaultHost, backend.getActiveUser());
+    const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+    const coords = await resolveRepoFromContext(context, repoOverride, backend.defaultHost, backend.getActiveUser());
     const repo = backend.getOrCreateRepo(coords.owner, coords.name);
-    const issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+    const issue = backend.resolveIssue(repo, selector ?? "1");
     const destSpec = parsed.positionals[1];
     if (!destSpec) {
       await writeErr("destination repository required\n");
@@ -407,9 +505,10 @@ export async function handleIssueCommand(
       { short: "l", long: "list", type: "boolean" },
     ];
     const parsed = parseCommandArgs(restArgs, schemas);
-    const coords = await resolveRepoFromContext(context, parsed.repoFlag, backend.defaultHost, backend.getActiveUser());
+    const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+    const coords = await resolveRepoFromContext(context, repoOverride, backend.defaultHost, backend.getActiveUser());
     const repo = backend.getOrCreateRepo(coords.owner, coords.name);
-    const issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+    const issue = backend.resolveIssue(repo, selector ?? "1");
 
     if (getBoolFlag(parsed, "list")) {
       await writeOut(issue.linkedBranches.map((b) => `${b}\t${repo.url}/tree/${b}`).join("\n") + (issue.linkedBranches.length > 0 ? "\n" : ""));

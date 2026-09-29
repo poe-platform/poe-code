@@ -877,3 +877,117 @@ test("release jq formatting receives the configured output limit", async (t) => 
   assert.ok(caps.length > 0);
   assert.ok(caps.every((cap) => cap === 100));
 });
+
+
+test("issue edit applies assignees, body files, milestones, projects and timestamps", async () => {
+  const { fs, backend, run } = createTestHarness();
+  const repo = backend.getOrCreateRepo("alice", "proj");
+  const issue = backend.createIssue(repo, { title: "Issue", assignees: ["old"], project: "Old" });
+  issue.updatedAt = "2000-01-01T00:00:00Z";
+  await fs.mkdir("/work", { recursive: true });
+  await fs.writeFile("/work/body.md", new TextEncoder().encode("File body"));
+  await run("gh", ["issue", "edit", String(issue.number), "-R", "alice/proj", "--add-assignee", "bob,BOB,@me", "--remove-assignee", "OLD", "-F", "body.md", "-m", "Release", "--add-project", "New,New", "--remove-project", "Old"]);
+  assert.deepEqual(issue.assignees.map(a => a.login), ["bob", "octocat"]);
+  assert.equal(issue.body, "File body");
+  assert.equal(issue.milestone?.title, "Release");
+  assert.deepEqual(issue.projectItems, [{ title: "New" }]);
+  assert.notEqual(issue.updatedAt, "2000-01-01T00:00:00Z");
+  await run("gh", ["issue", "edit", String(issue.number), "-R", "alice/proj", "--remove-assignee", "@me", "--remove-milestone", "--remove-project", "New", "-F", "-"], { stdin: "stdin body" });
+  assert.deepEqual(issue.assignees, [{ login: "bob" }]);
+  assert.equal(issue.body, "stdin body");
+  assert.equal(issue.milestone, null);
+  assert.deepEqual(issue.projectItems, []);
+});
+
+test("issue comments edit and delete only the current user's last comment", async () => {
+  const { backend, run } = createTestHarness();
+  const repo = backend.getOrCreateRepo("alice", "proj");
+  const issue = backend.createIssue(repo, { title: "Issue" });
+  const args = ["issue", "comment", String(issue.number), "-R", "alice/proj"];
+  const missing = await run("gh", [...args, "--edit-last", "-b", "edit"], { allowFailure: true });
+  assert.equal(missing.exitCode, 1);
+  assert.equal(issue.comments.length, 0);
+  await run("gh", [...args, "--edit-last", "--create-if-none", "-b", "first"]);
+  const first = { ...issue.comments[0]! };
+  issue.comments.push({ ...first, id: 999, author: { login: "other" }, body: "Other user's comment" });
+  await run("gh", [...args, "--edit-last", "-F", "-"], { stdin: "updated" });
+  assert.equal(issue.comments.length, 2);
+  assert.equal(issue.comments[0]!.body, "updated");
+  assert.equal(issue.comments[0]!.id, first.id);
+  assert.equal(issue.comments[0]!.createdAt, first.createdAt);
+  assert.equal(issue.comments[1]!.body, "Other user's comment");
+  await run("gh", [...args, "--delete-last", "--yes"]);
+  assert.deepEqual(issue.comments.map(c => c.author.login), ["other"]);
+  assert.equal((await run("gh", [...args, "--delete-last", "--yes"], { allowFailure: true })).exitCode, 1);
+});
+
+for (const subcommand of ["view", "edit", "close", "reopen", "comment", "delete", "pin", "unpin", "lock", "unlock"]) {
+  test(`issue ${subcommand} resolves the repository from a URL outside and inside another repo`, async () => {
+    const { backend, run } = createTestHarness();
+    const repo = backend.getOrCreateRepo("alice", "proj");
+    await run("gh", ["repo", "clone", "other/repo"]);
+    for (const cwd of ["/outside", "/work/repo"]) {
+      const issue = backend.createIssue(repo, { title: "URL issue" });
+      if (subcommand === "reopen") issue.state = "CLOSED";
+      if (subcommand === "unpin") issue.isPinned = true;
+      if (subcommand === "unlock") issue.locked = true;
+      const args = subcommand === "view" ? ["--json", "title"] : subcommand === "edit" ? ["-t", "Edited"] : subcommand === "comment" ? ["-b", "Comment"] : [];
+      const result = await run("gh", ["issue", subcommand, issue.url + "?query=1#fragment", ...args], { cwd });
+      if (subcommand === "view") assert.equal(JSON.parse(result.stdout).title, "URL issue");
+      if (subcommand === "edit") assert.equal(issue.title, "Edited");
+      if (subcommand === "comment") assert.equal(issue.comments[0]!.body, "Comment");
+      if (subcommand === "delete") assert.equal(repo.issues.has(issue.number), false);
+      if (subcommand === "close") assert.equal(issue.state, "CLOSED");
+      if (subcommand === "reopen") assert.equal(issue.state, "OPEN");
+      if (["pin", "unpin"].includes(subcommand)) assert.equal(issue.isPinned, subcommand === "pin");
+      if (["lock", "unlock"].includes(subcommand)) assert.equal(issue.locked, subcommand === "lock");
+    }
+  });
+}
+
+test("issue URL selector respects an explicit repository override", async () => {
+  const { backend, run } = createTestHarness();
+  const source = backend.createIssue(backend.getOrCreateRepo("alice", "proj"), { title: "Source" });
+  const target = backend.createIssue(backend.getOrCreateRepo("bob", "proj"), { title: "Target" });
+  const result = await run("gh", ["issue", "view", source.url, "-R", "bob/proj", "--json", "title"]);
+  assert.deepEqual(JSON.parse(result.stdout), { title: target.title });
+});
+
+
+test("issue comment flags do not mutate state through the synchronous fast path", () => {
+  const backend = createGitHubBackend({ defaultUser: "octocat" });
+  const command = createGhCommand({ backend });
+  const issue = backend.createIssue(backend.getOrCreateRepo("alice", "proj"), { title: "Issue" });
+  for (const flag of ["--edit-last", "--delete-last", "--create-if-none", "-F", "--body-file"]) {
+    assert.equal(evalSyncGh(command.execute, ["issue", "comment", issue.url, flag, "-b", "Body"], {}), undefined);
+    assert.equal(issue.comments.length, 0);
+  }
+  assert.ok(evalSyncGh(command.execute, ["issue", "view", issue.url], {})?.includes("Issue #"));
+});
+
+test("issue URL edits and comment changes work through shell command substitutions", async () => {
+  const { Shell, standardCommands } = await import("@poe-platform/safe-bash");
+  const backend = createGitHubBackend({ defaultUser: "octocat" });
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(standardCommands()).use(ghCommands({ backend }));
+  const result = await shell.exec([
+    "set -e",
+    "url=$(gh issue create -R alice/proj -t Issue -b Original)",
+    "gh issue edit \"$url\" --add-assignee bob -m Release --add-project Board -F - > /dev/null <<'EOF'",
+    "Updated body",
+    "EOF",
+    "comment=$(gh issue comment \"$url\" --edit-last --create-if-none -b First)",
+    "edited=$(gh issue comment \"$url\" --edit-last -b Edited)",
+    "gh issue view \"$url\" --json body,assignees,milestone,projectItems,comments",
+    "deleted=$(gh issue comment \"$url\" --delete-last --yes)",
+  ].join("\n"));
+  assert.equal(result.exitCode, 0, result.stderr);
+  const data = JSON.parse(result.stdout);
+  assert.equal(data.body, "Updated body\n");
+  assert.deepEqual(data.assignees, [{ login: "bob" }]);
+  assert.equal(data.milestone.title, "Release");
+  assert.deepEqual(data.projectItems, [{ title: "Board" }]);
+  assert.equal(data.comments.length, 1);
+  assert.equal(data.comments[0].body, "Edited");
+  assert.equal([...backend.getOrCreateRepo("alice", "proj").issues.values()][0]!.comments.length, 0);
+});

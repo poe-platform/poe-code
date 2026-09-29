@@ -17,7 +17,7 @@ import {
   type FlagSchema,
 } from "./args.js";
 import { createGitHubBackend, GitHubBackend } from "./backend.js";
-import { ISSUE_JSON_FIELDS } from "./commands/issue.js";
+import { extractRepoAndSelectorFromIssueArg, ISSUE_JSON_FIELDS } from "./commands/issue.js";
 import { PR_JSON_FIELDS } from "./commands/pr.js";
 import { RELEASE_JSON_FIELDS } from "./commands/release-run-workflow.js";
 import { REPO_JSON_FIELDS } from "./commands/repo.js";
@@ -1058,12 +1058,13 @@ export function evalSyncGh(
       if (sub === "view") {
         const parsed = parseCommandArgs(rest, [{ short: "c", long: "comments", type: "boolean" }]);
         if (parsed.help || getBoolFlag(parsed, "web")) return undefined;
-        const coords = resolveRepoSync(parsed.repoFlag, env, backend.defaultHost, backend.getActiveUser(), cwd, readFileSync);
+        const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+        const coords = resolveRepoSync(repoOverride, env, backend.defaultHost, backend.getActiveUser(), cwd, readFileSync);
         if (!coords) return undefined;
         const repo = backend.getOrCreateRepo(coords.owner, coords.name);
         let issue: GhIssue;
         try {
-          issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+          issue = backend.resolveIssue(repo, selector ?? "1");
         } catch {
           return undefined;
         }
@@ -1097,12 +1098,13 @@ export function evalSyncGh(
           { short: "c", long: "comment", type: "string" },
           { short: "r", long: "reason", type: "string" },
         ]);
-        const coords = resolveRepoSync(parsed.repoFlag, env, backend.defaultHost, backend.getActiveUser(), cwd, readFileSync);
+        const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+        const coords = resolveRepoSync(repoOverride, env, backend.defaultHost, backend.getActiveUser(), cwd, readFileSync);
         if (!coords) return undefined;
         const repo = backend.getOrCreateRepo(coords.owner, coords.name);
         let issue: GhIssue;
         try {
-          issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+          issue = backend.resolveIssue(repo, selector ?? "1");
         } catch {
           return undefined;
         }
@@ -1131,15 +1133,23 @@ export function evalSyncGh(
       }
 
       if (sub === "comment") {
-        const parsed = parseCommandArgs(rest, [{ short: "b", long: "body", type: "string" }]);
+        const parsed = parseCommandArgs(rest, [
+          { short: "b", long: "body", type: "string" },
+          { short: "F", long: "body-file", type: "string" },
+          { long: "edit-last", type: "boolean" },
+          { long: "delete-last", type: "boolean" },
+          { long: "create-if-none", type: "boolean" },
+        ]);
+        if (["body-file", "edit-last", "delete-last", "create-if-none"].some(flag => parsed.flags.has(flag))) return undefined;
         const body = getStringFlag(parsed, "body");
         if (body === undefined) return undefined;
-        const coords = resolveRepoSync(parsed.repoFlag, env, backend.defaultHost, backend.getActiveUser(), cwd, readFileSync);
+        const { repoOverride, selector } = extractRepoAndSelectorFromIssueArg(parsed.positionals[0], parsed.repoFlag);
+        const coords = resolveRepoSync(repoOverride, env, backend.defaultHost, backend.getActiveUser(), cwd, readFileSync);
         if (!coords) return undefined;
         const repo = backend.getOrCreateRepo(coords.owner, coords.name);
         let issue: GhIssue;
         try {
-          issue = backend.resolveIssue(repo, parsed.positionals[0] ?? "1");
+          issue = backend.resolveIssue(repo, selector ?? "1");
         } catch {
           return undefined;
         }

@@ -2,7 +2,9 @@ import {
   createLessCommand as createRawLessCommand,
   createMoreCommand as createRawMoreCommand,
   createLessCommands as createRawLessCommands,
+  createPagerCommands as createRawPagerCommands,
   type LessCommandsOptions,
+  type PagerCommandsOptions,
 } from "safe-bash-command-less";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { registerDefaultExecutor, registerDefaultExecutors } from "../internal.js";
@@ -21,6 +23,10 @@ export function createLessCommands(options: LessCommandsOptions = {}): readonly 
   return registerDefaultExecutors(createRawLessCommands(options), options);
 }
 
+export function createPagerCommands(options: PagerCommandsOptions = {}): readonly CommandDefinition[] {
+  return registerDefaultExecutors(createRawPagerCommands(options), options);
+}
+
 export function lessCommands(options: LessCommandsOptions = {}): VirtualShellPlugin {
   const commands = createLessCommands(options);
   const replace = options.replace ?? false;
@@ -35,4 +41,8 @@ export function lessCommands(options: LessCommandsOptions = {}): VirtualShellPlu
       for (const command of commands) host.commands.register(command, { replace });
     },
   };
+}
+
+export function pagerCommands(options: PagerCommandsOptions = {}): VirtualShellPlugin {
+  return lessCommands(options);
 }

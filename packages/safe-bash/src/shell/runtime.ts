@@ -28,8 +28,8 @@ import { createWhoamiCommands } from "../commands/whoami/index.js";
 import { createUnameCommands } from "../commands/uname/index.js";
 import { createHostnameCommands } from "../commands/hostname/index.js";
 import { createNprocCommands } from "../commands/nproc/index.js";
-import { createShufCommands } from "safe-bash-command-shuf";
-import { createDdCommands } from "safe-bash-command-dd";
+import { createShufCommands } from "../commands/shuf/index.js";
+import { createDdCommands } from "../commands/dd/index.js";
 import { createNumfmtCommands } from "../commands/numfmt/index.js";
 import { createEnvsubstCommands } from "../commands/envsubst/index.js";
 import { createCalCommands } from "../commands/cal/index.js";
@@ -28017,23 +28017,23 @@ export class Runtime {
                   : firstName === "timeout"
                     ? syncCommandEvaluators.evalSyncTimeout?.(stageArgs)
                   : firstName === "split"
-                    ? syncCommandEvaluators.evalSyncSplit?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+                    ? syncCommandEvaluators.evalSyncSplit?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } })
                   : firstName === "csplit"
-                    ? syncCommandEvaluators.evalSyncCsplit?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+                    ? syncCommandEvaluators.evalSyncCsplit?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } })
                   : firstName === "curl"
                     ? syncCommandEvaluators.evalSyncCurl?.(stageArgs)
                   : firstName === "wget"
                     ? syncCommandEvaluators.evalSyncWget?.(stageArgs)
                   : firstName === "sponge"
-                    ? syncCommandEvaluators.evalSyncSponge?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+                    ? syncCommandEvaluators.evalSyncSponge?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } })
                   : firstName === "truncate"
-                    ? syncCommandEvaluators.evalSyncTruncate?.(stageArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+                    ? syncCommandEvaluators.evalSyncTruncate?.(stageArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } })
                   : firstName === "install"
-                    ? syncCommandEvaluators.evalSyncInstall?.(stageArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+                    ? syncCommandEvaluators.evalSyncInstall?.(stageArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, m?: number) => { try { return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), true, m ?? 0o755, this.commandSignal); } catch { return false; } })
                   : firstName === "apply_patch"
-                    ? syncCommandEvaluators.evalSyncApplyPatch?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+                    ? syncCommandEvaluators.evalSyncApplyPatch?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } })
                   : firstName === "mktemp"
-                    ? syncCommandEvaluators.evalSyncMktemp?.(stageArgs, rawState.variables, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o600 & ~(rawState.umask ?? 0o022), this.commandSignal), (p: string) => tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), false, 0o700 & ~(rawState.umask ?? 0o022), this.commandSignal))
+                    ? syncCommandEvaluators.evalSyncMktemp?.(stageArgs, rawState.variables, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, b: Uint8Array) => { try { return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o600 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string) => { try { return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), false, 0o700 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : (firstName === "xq" || firstName === "yq")
                     ? this.evalSyncXqOrYq(firstName, rawBytes, stageArgs, readFile)
                   : firstName === "xmllint"
@@ -28476,23 +28476,23 @@ export class Runtime {
           : w0Plain === "timeout"
             ? syncCommandEvaluators.evalSyncTimeout?.(allArgs)
           : w0Plain === "split"
-            ? syncCommandEvaluators.evalSyncSplit?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+            ? syncCommandEvaluators.evalSyncSplit?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } })
           : w0Plain === "csplit"
-            ? syncCommandEvaluators.evalSyncCsplit?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+            ? syncCommandEvaluators.evalSyncCsplit?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } })
           : w0Plain === "curl"
             ? syncCommandEvaluators.evalSyncCurl?.(allArgs)
           : w0Plain === "wget"
             ? syncCommandEvaluators.evalSyncWget?.(allArgs)
           : w0Plain === "sponge"
-            ? syncCommandEvaluators.evalSyncSponge?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+            ? syncCommandEvaluators.evalSyncSponge?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } })
           : w0Plain === "truncate"
-            ? syncCommandEvaluators.evalSyncTruncate?.(allArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+            ? syncCommandEvaluators.evalSyncTruncate?.(allArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } })
           : w0Plain === "install"
-            ? syncCommandEvaluators.evalSyncInstall?.(allArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+            ? syncCommandEvaluators.evalSyncInstall?.(allArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, m?: number) => { try { return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), true, m ?? 0o755, this.commandSignal); } catch { return false; } })
           : w0Plain === "apply_patch"
-            ? syncCommandEvaluators.evalSyncApplyPatch?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal))
+            ? syncCommandEvaluators.evalSyncApplyPatch?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } })
           : w0Plain === "mktemp"
-            ? syncCommandEvaluators.evalSyncMktemp?.(allArgs, rawState.variables, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o600 & ~(rawState.umask ?? 0o022), this.commandSignal), (p: string) => tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), false, 0o700 & ~(rawState.umask ?? 0o022), this.commandSignal))
+            ? syncCommandEvaluators.evalSyncMktemp?.(allArgs, rawState.variables, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, b: Uint8Array) => { try { return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o600 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string) => { try { return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), false, 0o700 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : (allArgs.includes("--help") || allArgs.includes("--version")) && gnuInformationSync(w0Plain, allArgs) !== undefined
             ? gnuInformationSync(w0Plain, allArgs)
             : w0Plain === "mdq"
@@ -28841,11 +28841,11 @@ export class Runtime {
               fileRes = syncCommandEvaluators.evalSyncTimeout?.(opArgs);
             } else if (w0Plain === "split") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              const writeFile = (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal);
+              const writeFile = (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncSplit?.(view, opArgs, readFile, writeFile);
             } else if (w0Plain === "csplit") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              const writeFile = (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal);
+              const writeFile = (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncCsplit?.(view, opArgs, readFile, writeFile);
             } else if (w0Plain === "curl") {
               fileRes = syncCommandEvaluators.evalSyncCurl?.(opArgs);
@@ -28853,24 +28853,24 @@ export class Runtime {
               fileRes = syncCommandEvaluators.evalSyncWget?.(opArgs);
             } else if (w0Plain === "sponge") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              const writeFile = (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal);
+              const writeFile = (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncSponge?.(view, opArgs, readFile, writeFile);
             } else if (w0Plain === "truncate") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              const writeFile = (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal);
+              const writeFile = (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncTruncate?.(opArgs, readFile, writeFile);
             } else if (w0Plain === "install") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              const writeFile = (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal);
-              fileRes = syncCommandEvaluators.evalSyncInstall?.(opArgs, readFile, writeFile);
+              const writeFile = (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
+              fileRes = syncCommandEvaluators.evalSyncInstall?.(opArgs, readFile, writeFile, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, m?: number) => { try { return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), true, m ?? 0o755, this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "apply_patch") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              const writeFile = (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal);
+              const writeFile = (p: string, b: Uint8Array, m?: number) => { try { const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncApplyPatch?.(view, opArgs, readFile, writeFile);
             } else if (w0Plain === "mktemp") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
-              const writeFile = (p: string, b: Uint8Array) => tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o600 & ~(rawState.umask ?? 0o022), this.commandSignal);
-              const mkdirFn = (p: string) => tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), false, 0o700 & ~(rawState.umask ?? 0o022), this.commandSignal);
+              const writeFile = (p: string, b: Uint8Array) => { try { return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o600 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
+              const mkdirFn = (p: string) => { try { return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), false, 0o700 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncMktemp?.(opArgs, rawState.variables, statType, writeFile, mkdirFn);
             } else if (w0Plain === "dos2unix" || w0Plain === "unix2dos") {
               const leOut = evalSyncLineEndings(w0Plain, view, opArgs);

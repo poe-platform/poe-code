@@ -1,3 +1,4 @@
+import { registerDefaultExecutor } from "../internal.js";
 import { writeBytes, type CommandDefinition } from "../../contracts/index.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { escapeText } from "../../escaping.js";
@@ -13,7 +14,7 @@ const help = "Usage: expr EXPRESSION\nTokens: | & < <= = == != >= > + - * / % :\
 
 export function createExprCommandWithExecutor(executor: RegexExecutor, options: ExprCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
-  return { name: "expr", description: "Evaluate bounded integer and string expressions", async execute(context) {
+  return registerDefaultExecutor({ name: "expr", description: "Evaluate bounded integer and string expressions", async execute(context) {
     return withRegexSession(context, executor, async session => {
       context.signal.throwIfAborted();
       const budget = new Budget(context, limits);
@@ -72,5 +73,5 @@ export function createExprCommandWithExecutor(executor: RegexExecutor, options: 
       await writeBytes(context.stdout, output, context.signal);
       return { exitCode };
     });
-  } };
+  } }, options);
 }

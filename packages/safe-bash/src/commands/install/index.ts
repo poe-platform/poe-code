@@ -413,9 +413,13 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
 export function evalSyncInstall(
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
-  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
+  writeFileSync?: (filePath: string, bytes: Uint8Array, mode?: number) => boolean,
+  statTypeSync?: (filePath: string) => string | undefined,
+  mkdirSync?: (filePath: string, mode?: number) => boolean,
 ): string | undefined {
   let verbose = false;
+  let directoryMode = false;
+  let modeSpec: string | undefined;
   const files: string[] = [];
   let ended = false;
   for (let i = 0; i < opArgs.length; i++) {
@@ -428,19 +432,43 @@ export function evalSyncInstall(
     if (arg === "--help") return helpText;
     if (arg === "--version") return "install (safe-bash; GNU coreutils 9.7 target)\n";
     if (arg === "-v" || arg === "--verbose") { verbose = true; continue; }
+    if (arg === "-d" || arg === "--directory") { directoryMode = true; continue; }
     if (arg === "-c" || arg === "-p" || arg === "--preserve-timestamps" || arg === "-T" || arg === "--no-target-directory") continue;
     if (arg === "-m" || arg === "--mode") {
-      if (opArgs[++i] === undefined) return undefined;
+      const m = opArgs[++i];
+      if (m === undefined) return undefined;
+      modeSpec = m;
       continue;
     }
-    if (arg.startsWith("--mode=") || (arg.startsWith("-m") && arg.length > 2)) continue;
+    if (arg.startsWith("--mode=")) { modeSpec = arg.slice(7); continue; }
+    if (arg.startsWith("-m") && arg.length > 2) { modeSpec = arg.slice(2); continue; }
     return undefined;
   }
-  if (!readFileSync || !writeFileSync || files.length !== 2) return undefined;
+  let modes: InstallMode;
+  try {
+    modes = parseMode(modeSpec);
+  } catch {
+    return undefined;
+  }
+  if (directoryMode) {
+    if (!mkdirSync || !statTypeSync || files.length === 0) return undefined;
+    let out = "";
+    for (const dir of files) {
+      const st = statTypeSync(dir);
+      if (st === "directory") continue;
+      if (st !== "missing") return undefined;
+      if (!mkdirSync(dir, modes.directory)) return undefined;
+      if (verbose) out += `install: creating directory ${quote(dir)}\n`;
+    }
+    return out;
+  }
+  if (!readFileSync || !writeFileSync || !statTypeSync || files.length !== 2) return undefined;
   const [srcPath, dstPath] = files as [string, string];
+  const dstType = statTypeSync(dstPath);
+  if (dstType !== "missing" && dstType !== "file") return undefined;
   const srcBytes = readFileSync(srcPath);
   if (!srcBytes) return undefined;
-  if (!writeFileSync(dstPath, srcBytes)) return undefined;
+  if (!writeFileSync(dstPath, srcBytes, modes.file)) return undefined;
   return verbose ? `${quote(srcPath)} -> ${quote(dstPath)}\n` : "";
 }
 

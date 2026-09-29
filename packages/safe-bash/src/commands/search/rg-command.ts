@@ -1,3 +1,4 @@
+import { registerDefaultExecutor } from "../internal.js";
 import { tryGetMemoryDirectoryEntryNamesSync, tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { hasYieldCheckpoint } from "../../contracts/yield.js";
@@ -1093,7 +1094,7 @@ Unicode selection and extended regex syntax require a configured executor.
 }
 
 export function createRgCommand(executor: RegexExecutor, options: SearchOptions = {}): CommandDefinition {
-  return {
+  return registerDefaultExecutor({
     name: "rg",
     filesystemRequirements: searchRequirements,
     description: "Search virtual files or stdin with recursive filtering and structured results",
@@ -1102,5 +1103,5 @@ export function createRgCommand(executor: RegexExecutor, options: SearchOptions 
       if (fastSync !== undefined) return fastSync;
       return executeRgSlow(context, executor, options);
     },
-  };
+  }, options);
 }

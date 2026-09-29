@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition } from "../../contracts/command.js";
 import { commandRuntimeIdentity, getCommandArguments } from "../../contracts/command.js";
 import { shellValueByteLength } from "../../contracts/value.js";
@@ -456,7 +457,18 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
 }
 
 export function createDdCommands(options: DdCommandsOptions = {}): readonly CommandDefinition[] {
-  return [createDdCommand(options)];
+  const def = createDdCommand(options);
+  if (
+    options.maxBlockBytes === undefined &&
+    options.maxBufferBytes === undefined &&
+    options.maxTransferBytes === undefined &&
+    options.maxReadOperations === undefined &&
+    options.maxArgumentBytes === undefined &&
+    options.openFile === undefined
+  ) {
+    builtInDirectContextExecutors.add(def.execute);
+  }
+  return [def];
 }
 
 export function ddCommands(options: DdCommandsOptions = {}): VirtualShellPlugin {
@@ -464,4 +476,65 @@ export function ddCommands(options: DdCommandsOptions = {}): VirtualShellPlugin 
   return { name: "dd-commands", setup(host) {
     host.commands.register(command, { replace: options.replace ?? false });
   } };
+}
+
+
+const syncDdUtf8Decoder = new TextDecoder("utf-8", { fatal: true });
+
+export function evalSyncDd(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    const plan = parseDd(opArgs);
+    if ("mode" in plan) return undefined;
+    if (plan.status !== "none") return undefined;
+    if (plan.output !== undefined) return undefined;
+    if (plan.seek !== 0n) return undefined;
+    if (plan.inputFlags.size > 0 || plan.outputFlags.size > 0) return undefined;
+    for (const conv of plan.convert) {
+      if (conv !== "ucase" && conv !== "lcase" && conv !== "swab") return undefined;
+    }
+    let sourceBytes = inBytes;
+    if (plan.input !== undefined) {
+      if (!readFileSync) return undefined;
+      sourceBytes = readFileSync(plan.input);
+    }
+    if (!sourceBytes || sourceBytes.byteLength > 16384) return undefined;
+    const ibs = Number(plan.ibs);
+    if (!Number.isSafeInteger(ibs) || ibs <= 0) return undefined;
+    const skipBytesBig = plan.skipBytes ? plan.skip : plan.skip * plan.ibs;
+    if (skipBytesBig > BigInt(sourceBytes.byteLength)) return "";
+    const startOffset = Number(skipBytesBig);
+    let endOffset = sourceBytes.byteLength;
+    if (plan.count !== undefined) {
+      const countBytesBig = plan.countBytes ? plan.count : plan.count * plan.ibs;
+      const limitBig = skipBytesBig + countBytesBig;
+      if (limitBig < BigInt(endOffset)) endOffset = Number(limitBig);
+    }
+    const slice = sourceBytes.slice(startOffset, endOffset);
+    if (plan.convert.has("swab")) {
+      for (let i = 0; i + 1 < slice.byteLength; i += 2) {
+        const tmp = slice[i]!;
+        slice[i] = slice[i + 1]!;
+        slice[i + 1] = tmp;
+      }
+    }
+    if (plan.convert.has("ucase")) {
+      for (let i = 0; i < slice.byteLength; i++) {
+        const b = slice[i]!;
+        if (b >= 97 && b <= 122) slice[i] = b - 32;
+      }
+    } else if (plan.convert.has("lcase")) {
+      for (let i = 0; i < slice.byteLength; i++) {
+        const b = slice[i]!;
+        if (b >= 65 && b <= 90) slice[i] = b + 32;
+      }
+    }
+    if (slice.includes(0)) return undefined;
+    return syncDdUtf8Decoder.decode(slice);
+  } catch {
+    return undefined;
+  }
 }

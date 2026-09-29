@@ -1,7 +1,7 @@
 import { FsError, getCommandArguments, readBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { writeDiagnostic } from "../escaping.js";
 import { shellValueByteLength } from "../contracts/value.js";
-import { define, emptyInput, encoder, escapeBytes, integer, input as fileInput, options, output, pathOf, UsageError, value } from "./internal.js";
+import { builtInDirectContextExecutors, define, emptyInput, encoder, escapeBytes, integer, input as fileInput, options, output, pathOf, UsageError, value } from "./internal.js";
 import { EnvSplitError, parseEnvOptions, type EnvSplitLimits } from "./env-split.js";
 import { delimitedArguments, replaceXargsArguments, xargsDisplay } from "./xargs-bytes.js";
 
@@ -75,7 +75,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
   const configured = configuration.maxParallelProcesses;
   const maxParallelProcesses = configured === undefined ? Infinity : configured;
   if (maxParallelProcesses !== Infinity && (!Number.isSafeInteger(maxParallelProcesses) || maxParallelProcesses < 1)) throw new RangeError("maxParallelProcesses must be a positive safe integer or Infinity");
-  return [
+  const defs = [
     define("env", async context => {
       const argumentValues = getCommandArguments(context);
       const preserveLegacyStatus = argumentValues.args.some(arg => arg.startsWith("-S") || arg.startsWith("--split-string"))
@@ -357,4 +357,308 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       return { exitCode: status };
     }),
   ];
+  if (configuration.maxParallelProcesses === undefined && configuration.envSplitLimits === undefined) {
+    for (const def of defs) builtInDirectContextExecutors.add(def.execute);
+  }
+  return defs;
+}
+
+
+export function evalSyncEnv(
+  opArgs: readonly string[],
+  exported: ReadonlySet<string>,
+  variables: Readonly<Record<string, string | undefined>>,
+): string | undefined {
+  let ignoreEnv = false;
+  const unsetNames: string[] = [];
+  let i = 0;
+  while (i < opArgs.length) {
+    const a = opArgs[i]!;
+    if (a === "--") { i++; break; }
+    if (!a.startsWith("-") || a === "-") break;
+    if (a === "-i" || a === "-" || a === "--ignore-environment") {
+      ignoreEnv = true;
+      i++;
+      continue;
+    }
+    if (a === "-u" || a === "--unset") {
+      const v = opArgs[++i];
+      if (!v || v.includes("=") || v.includes("\0")) return undefined;
+      unsetNames.push(v);
+      i++;
+      continue;
+    }
+    if (a.startsWith("-u") && a.length > 2) {
+      const v = a.slice(2);
+      if (v.includes("=") || v.includes("\0")) return undefined;
+      unsetNames.push(v);
+      i++;
+      continue;
+    }
+    if (a.startsWith("--unset=")) {
+      const v = a.slice(8);
+      if (!v || v.includes("=") || v.includes("\0")) return undefined;
+      unsetNames.push(v);
+      i++;
+      continue;
+    }
+    return undefined;
+  }
+  const env: Record<string, string> = Object.create(null);
+  if (!ignoreEnv) {
+    for (const k of exported) {
+      const v = variables[k];
+      if (v !== undefined) env[k] = v;
+    }
+  }
+  for (const u of unsetNames) delete env[u];
+  const inheritedNames = Object.keys(env);
+  const addedNames: string[] = [];
+  while (i < opArgs.length && opArgs[i]!.includes("=")) {
+    const assign = opArgs[i++]!;
+    const eq = assign.indexOf("=");
+    const name = assign.slice(0, eq);
+    const val = assign.slice(eq + 1);
+    if (!name || name.includes("\0") || val.includes("\0")) return undefined;
+    if (!Object.hasOwn(env, name)) addedNames.push(name);
+    env[name] = val;
+  }
+  const names = [...addedNames.reverse(), ...inheritedNames];
+  if (i === opArgs.length) {
+    let out = "";
+    for (const name of names) out += `${name}=${env[name]}\n`;
+    return out;
+  }
+  const cmd = opArgs[i]!;
+  const cmdArgs = opArgs.slice(i + 1);
+  if (cmd === "printenv") {
+    if (cmdArgs.length === 0) {
+      let out = "";
+      for (const name of names) out += `${name}=${env[name]}\n`;
+      return out;
+    }
+    let out = "";
+    for (const k of cmdArgs) {
+      if (k.startsWith("-")) return undefined;
+      if (!Object.hasOwn(env, k)) return undefined;
+      out += `${env[k]}\n`;
+    }
+    return out;
+  }
+  if (cmd === "echo" && cmdArgs.every(a => !a.startsWith("-"))) {
+    return cmdArgs.join(" ") + "\n";
+  }
+  return undefined;
+}
+
+const syncXargsDecoder = new TextDecoder("utf-8", { fatal: true });
+
+export function evalSyncXargs(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    let noRunIfEmpty = false;
+    let maxArgs: number | undefined;
+    let maxLines: number | undefined;
+    let replaceStr: string | undefined;
+    let delimChar: string | undefined;
+    let eofStr: string | undefined;
+    let argFile: string | undefined;
+    let i = 0;
+    while (i < opArgs.length) {
+      const a = opArgs[i]!;
+      if (a === "--") { i++; break; }
+      if (!a.startsWith("-") || a === "-") break;
+      if (a === "-r" || a === "--no-run-if-empty") { noRunIfEmpty = true; i++; continue; }
+      if (a === "-i" || a === "--replace") { replaceStr = "{}"; maxArgs = undefined; maxLines = undefined; i++; continue; }
+      if (a.startsWith("-I")) {
+        const v = a.length > 2 ? a.slice(2) : opArgs[++i];
+        if (!v) return undefined;
+        replaceStr = v;
+        maxArgs = undefined;
+        maxLines = undefined;
+        i++;
+        continue;
+      }
+      if (a.startsWith("-n") || a === "--max-args") {
+        const v = a.startsWith("-n") && a.length > 2 ? a.slice(2) : opArgs[++i];
+        if (!v || !/^[1-9][0-9]*$/.test(v)) return undefined;
+        maxArgs = Number(v);
+        replaceStr = undefined;
+        maxLines = undefined;
+        i++;
+        continue;
+      }
+      if (a.startsWith("-L") || a === "--max-lines" || a === "-l") {
+        const v = a === "-l" ? "1" : (a.startsWith("-L") && a.length > 2 ? a.slice(2) : opArgs[++i]);
+        if (!v || !/^[1-9][0-9]*$/.test(v)) return undefined;
+        maxLines = Number(v);
+        replaceStr = undefined;
+        maxArgs = undefined;
+        i++;
+        continue;
+      }
+      if (a.startsWith("-d") || a === "--delimiter") {
+        const v = a.startsWith("-d") && a.length > 2 ? a.slice(2) : opArgs[++i];
+        if (v === undefined) return undefined;
+        const parsed = v === "\\n" ? "\n" : v === "\\t" ? "\t" : v.length === 1 ? v : undefined;
+        if (!parsed) return undefined;
+        delimChar = parsed;
+        i++;
+        continue;
+      }
+      if (a.startsWith("-E") || a === "--eof") {
+        const v = a.startsWith("-E") && a.length > 2 ? a.slice(2) : opArgs[++i];
+        if (v === undefined) return undefined;
+        eofStr = v || undefined;
+        i++;
+        continue;
+      }
+      if (a.startsWith("-a") || a === "--arg-file") {
+        const v = a.startsWith("-a") && a.length > 2 ? a.slice(2) : opArgs[++i];
+        if (!v) return undefined;
+        argFile = v;
+        i++;
+        continue;
+      }
+      return undefined;
+    }
+    const cmd = opArgs[i] ?? "echo";
+    if (cmd !== "echo") return undefined;
+    const initialArgs = opArgs.slice(i + 1);
+    let echoNoNewline = false;
+    let initOffset = 0;
+    if (initialArgs[0] === "-n") {
+      echoNoNewline = true;
+      initOffset = 1;
+    }
+    for (let k = initOffset; k < initialArgs.length; k++) {
+      if (initialArgs[k]!.startsWith("-")) return undefined;
+    }
+    const baseInitial = initialArgs.slice(initOffset);
+    let sourceBytes = inBytes;
+    if (argFile !== undefined) {
+      if (!readFileSync) return undefined;
+      sourceBytes = readFileSync(argFile);
+    }
+    if (!sourceBytes || sourceBytes.byteLength > 16384 || sourceBytes.includes(0)) return undefined;
+    const text = syncXargsDecoder.decode(sourceBytes);
+    const items: (string | null)[] = [];
+    if (delimChar !== undefined) {
+      if (text.length > 0) {
+        const parts = text.endsWith(delimChar) ? text.slice(0, -delimChar.length).split(delimChar) : text.split(delimChar);
+        for (const p of parts) items.push(p);
+      }
+    } else if (replaceStr !== undefined) {
+      for (const rawLine of text.split(/\r?\n/)) {
+        const trimmed = rawLine.trim();
+        if (!trimmed) continue;
+        if (eofStr !== undefined && trimmed === eofStr) break;
+        items.push(trimmed);
+      }
+    } else {
+      let cur = "";
+      let active = false;
+      let quote = "";
+      let escaped = false;
+      let lineHasToken = false;
+      for (let p = 0; p < text.length; p++) {
+        const ch = text[p]!;
+        if (escaped) {
+          cur += ch;
+          active = true;
+          lineHasToken = true;
+          escaped = false;
+          continue;
+        }
+        if (quote) {
+          if (ch === "\n") return undefined;
+          if (ch === quote) quote = "";
+          else cur += ch;
+          continue;
+        }
+        if (ch === "\\") {
+          escaped = true;
+          active = true;
+          lineHasToken = true;
+          continue;
+        }
+        if (ch === "\"" || ch === "'") {
+          quote = ch;
+          active = true;
+          lineHasToken = true;
+          continue;
+        }
+        if (ch === "\n" || ch === " " || ch === "\t" || ch === "\r") {
+          if (active) {
+            if (eofStr !== undefined && cur === eofStr) break;
+            items.push(cur);
+            cur = "";
+            active = false;
+          }
+          if (ch === "\n" && maxLines !== undefined && lineHasToken) {
+            items.push(null);
+            lineHasToken = false;
+          }
+          continue;
+        }
+        cur += ch;
+        active = true;
+        lineHasToken = true;
+      }
+      if (quote || escaped) return undefined;
+      if (active) {
+        if (eofStr === undefined || cur !== eofStr) items.push(cur);
+      }
+    }
+    const tokens = items.filter((x): x is string => x !== null);
+    if (tokens.length === 0) {
+      if (noRunIfEmpty || replaceStr !== undefined || maxLines !== undefined) return "";
+      return baseInitial.join(" ") + (echoNoNewline ? "" : "\n");
+    }
+    let out = "";
+    const runEcho = (batch: string[]) => {
+      let args: string[];
+      if (replaceStr !== undefined) {
+        const val = batch[0]!;
+        if (baseInitial.some(a => a.includes(replaceStr!))) {
+          args = baseInitial.map(a => a.split(replaceStr!).join(val));
+        } else {
+          args = [...baseInitial, val];
+        }
+      } else {
+        args = [...baseInitial, ...batch];
+      }
+      out += args.join(" ") + (echoNoNewline ? "" : "\n");
+    };
+    if (replaceStr !== undefined) {
+      for (const tok of tokens) runEcho([tok]);
+    } else if (maxLines !== undefined) {
+      let batch: string[] = [];
+      let linesSeen = 0;
+      for (const it of items) {
+        if (it === null) {
+          linesSeen++;
+          if (linesSeen >= maxLines && batch.length > 0) {
+            runEcho(batch);
+            batch = [];
+            linesSeen = 0;
+          }
+        } else {
+          batch.push(it);
+        }
+      }
+      if (batch.length > 0) runEcho(batch);
+    } else {
+      const limit = maxArgs ?? 5000;
+      for (let k = 0; k < tokens.length; k += limit) {
+        runEcho(tokens.slice(k, k + limit));
+      }
+    }
+    return out;
+  } catch {
+    return undefined;
+  }
 }

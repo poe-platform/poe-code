@@ -1,3 +1,4 @@
+import { createDdCommands } from "../../src/commands/dd/index.js";
 import { createCsvkitCommands } from "../../src/commands/csvkit/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -916,4 +917,46 @@ test("sync substitution and pipeline: in2csv, csvstack, and csvjoin (Wave 143)",
   `);
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "2,beta,200:80\n");
+});
+
+
+test("sync substitution and pipeline: dd, env, and xargs (Wave 144)", async () => {
+  const fs = new MemoryFileSystem();
+  const enc = new TextEncoder();
+  await fs.mkdir("/proj", { recursive: true });
+  await fs.writeFile("/proj/msg.txt", enc.encode("hello world\n"));
+  await fs.writeFile("/proj/list.txt", enc.encode("alpha\nbeta\ngamma\n"));
+  const commands = new CommandRegistry([...createStandardCommands(), ...createDdCommands()]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(dd if=/proj/msg.txt bs=1 skip=6 count=5 conv=ucase status=none):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "WORLD:80\n");
+
+  const r2 = await shell.exec(`
+    export BASE_ENV=prod
+    out=""
+    for i in $(seq 1 80); do
+      out="$(env -i APP=demo MODE=fast printenv APP MODE | tr '\n' ','):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "demo,fast,:80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(cat /proj/list.txt | xargs -I {} echo "item={}" | tail -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "item=gamma:80\n");
 });

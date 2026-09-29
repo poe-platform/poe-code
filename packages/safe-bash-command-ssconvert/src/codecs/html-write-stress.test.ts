@@ -62,6 +62,17 @@ it.each([
   } finally { await engine.dispose(); }
 });
 
+it.each(["__proto__", "constructor", "toString", "hasOwnProperty", "unsupported"])(
+  "ignores unknown rich underline values without emitting inherited JavaScript properties: %s", async underline => {
+    const book: Workbook = { sheets: [{ id: "s", name: "S", cells: [{ row: 0, column: 0,
+      value: { kind: "string", value: "text" }, richText: [{ start: 0, end: 4, attributes: { underline } }] }] }] };
+    const writer = createRegistry([]).select("write", "Gnumeric_html:html40frag")!.write!;
+    const result = new TextDecoder().decode(await writer(book, [], context));
+    expect(result).toContain(">text</td>");
+    expect(result).not.toContain("<span");
+  }
+);
+
 it("preserves rich-text source attribute nesting in reverse order", async () => {
   const book = await readGnumeric(new TextEncoder().encode(fixture("@[rise=8:0:4][bold=1:0:4][italic=1:0:4][strikethrough=1:0:4][underline=single:0:4]")), context);
   const writer = createRegistry([]).select("write", "Gnumeric_html:html40frag")!.write!;

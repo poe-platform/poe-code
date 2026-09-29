@@ -364,6 +364,11 @@ function htmlRgb(source: string | undefined, fallback = "000000"): string {
 }
 const htmlBorderStyles = ["", "thin solid", "medium solid", "thin dashed", "thin dotted", "thick solid", "thick double", "0.5pt solid", "medium dashed", "thin dashed", "medium dashed", "thin dotted", "medium dotted", "thin dashed"];
 const htmlUnderlineClasses = ["", "underline", "doubleunderline", "lowunderline", "lowdoubleunderline"];
+const richUnderlineClasses: Readonly<Record<string, string>> = {
+  single: "underline", low: "lowunderline", double: "doubleunderline",
+  singleAccounting: "lowunderline", doubleAccounting: "lowdoubleunderline", error: "errorunderline",
+  "single-line": "underline", "double-line": "doubleunderline", "error-line": "errorunderline"
+};
 
 /** Provider profiles select syntax; all five savers share this byte writer. */
 export function createHtmlWriter(profile: HtmlExportProfile): NonNullable<import("./types.js").Codec["write"]> {
@@ -511,7 +516,8 @@ export function createHtmlWriter(profile: HtmlExportProfile): NonNullable<import
                     if (key === "italic" && Number(attribute)) { open = "<i>"; close = "</i>"; }
                     if (key === "strikethrough" && Number(attribute)) { open = profile.legacy ? "<strike>" : '<span style="text-decoration: line-through;">'; close = profile.legacy ? "</strike>" : "</span>"; }
                     if (key === "underline" && attribute !== "none") {
-                      const name = ({ single: "underline", low: "lowunderline", double: "doubleunderline", singleAccounting: "lowunderline", doubleAccounting: "lowdoubleunderline", error: "errorunderline", "single-line": "underline", "double-line": "doubleunderline", "error-line": "errorunderline" } as Record<string, string>)[String(attribute)];
+                      const value = String(attribute);
+                      const name = Object.hasOwn(richUnderlineClasses, value) ? richUnderlineClasses[value] : undefined;
                       if (name) { open = profile.legacy ? "<u>" : `<span class="${name}">`; close = profile.legacy ? "</u>" : "</span>"; }
                     }
                     if (key === "rise" && Math.abs(Number(attribute)) > 5 || key === "subscript" && Number(attribute) || key === "superscript" && Number(attribute)) {

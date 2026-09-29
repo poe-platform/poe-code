@@ -1,7 +1,7 @@
 import { hasYieldCheckpoint } from "../contracts/yield.js";
 const SMALL_WC_COUNT_LINES: readonly string[] = Array.from({ length: 129 }, (_, i) => `${i}\n`);
 const SINGLE_STDIN_OPERAND: readonly string[] = ["-"];
-import { createBufferedOutput, createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
+import { collectBytes, createBufferedOutput, createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import { openFileOutput, type FileOutput } from "../contracts/filesystem-output.js";
 import { outputFailure } from "../contracts/io.js";
 import { assertCommandRequirements, type CommandFileSystemRequirement } from "../contracts/command-requirements.js";

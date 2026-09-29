@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, linkSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -18,6 +18,11 @@ import * as verifier from "./verify.mjs";
 
 const authority = fileURLToPath(new URL("../../../", import.meta.url));
 const boundaries = loadBoundaries(authority);
+// Resolve Apple's developer-tool launcher once, before synthetic HOME/TMPDIR
+// directories force it to repeat discovery for every fixture Git operation.
+const fixtureGit = process.platform === "darwin"
+  ? realpathSync(execFileSync("/usr/bin/xcrun", ["--find", "git"], { encoding: "utf8", timeout: 10000 }).trim())
+  : "/usr/bin/git";
 
 test("committed workspace build metadata is authenticated with the source archive", (context) => {
   let candidate;
@@ -1570,9 +1575,10 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     LC_ALL: "C", LANG: "C", TZ: "UTC",
   };
   const git = (args, { input, raw = false } = {}) => {
-    const result = spawnSync("/usr/bin/git", ["-c", "core.hooksPath=/dev/null", "-c", "commit.gpgsign=false", "-c", "core.ignorecase=false", ...args], {
+    const result = spawnSync(fixtureGit, ["-c", "core.hooksPath=/dev/null", "-c", "commit.gpgsign=false", "-c", "core.ignorecase=false", ...args], {
       cwd: repository, env: environment, input, encoding: raw ? undefined : "utf8", timeout: 10000, maxBuffer: 1048576,
     });
+    assert.ifError(result.error);
     assert.equal(result.status, 0, result.stderr);
     return raw ? result.stdout : result.stdout.trim();
   };

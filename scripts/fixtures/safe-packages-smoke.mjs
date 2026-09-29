@@ -1,4 +1,4 @@
-import { verification as selectedSpreadsheetVerification } from "./safe-packages-ssconvert-selected.mjs";
+import { verification as selectedSpreadsheetVerification } from "./safe-packages-ssconvert-scoped.mjs";
 await selectedSpreadsheetVerification;
 import "./safe-packages-pandoc.mjs";
 import "./safe-packages-xmllint.mjs";

@@ -1,4 +1,4 @@
-import { verification as selectedSpreadsheetVerification } from "./safe-packages-ssconvert-selected.mjs";
+import { verification as selectedSpreadsheetVerification } from "./safe-packages-ssconvert-scoped.mjs";
 await selectedSpreadsheetVerification;
 import "./safe-packages-xml-portable.mjs";
 import { Shell, agentCommands, createAgentCommands, createMemoryFileSystem, evaluateCommandSupport, FsError, createBoundedRegexProvider } from "@poe-platform/safe-bash";

@@ -474,7 +474,7 @@ beforeAll(() => {
 });
 
 beforeAll(async () => {
-  const routes = ["core", "jobs", "optional-host", "commands/node", ...new Set(commandFactories.map(([command]) => `commands/${command}`))];
+  const routes = [...new Set(["core", "jobs", "optional-host", "commands/node", ...commandFactories.map(([command]) => `commands/${command}`)])];
   browserConsumerSource = await bundlePublicConsumer(`
     export * from "@poe-platform/safe-bash";
     import * as root from "@poe-platform/safe-bash";
@@ -564,7 +564,7 @@ beforeAll(async () => {
           }
           return { contents: output.exports.map(name => `export const ${name} = globalThis.browser.${name};`).join("\n"), loader: "js" };
         });
-        builder.onResolve({ filter: /^(?:poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
+        builder.onResolve({ filter: /^(?:(?:poe-code|@poe-code)\/safe-fs\/core|@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
         builder.onLoad({ filter: /.*/, namespace: "evaluated-fs" }, () => ({
           contents: Object.keys(filesystem).map(name => `export const ${name} = globalThis.canonical.${name};`).join("\n"), loader: "js",
         }));

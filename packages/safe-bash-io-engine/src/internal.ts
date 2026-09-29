@@ -61,11 +61,11 @@ export interface SyncCommandEvaluators {
   evalSyncPdfdetach?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncPdftotext?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncPdftohtml?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
-  evalSyncExiftool?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncExiftool?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncQpdf?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncPdftk?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncSips?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
-  evalSyncIdentify?: (cmdName: string, inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncIdentify?: (cmdName: string, inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncPdfimages?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncFfmpeg?: (opArgs: readonly string[]) => string | undefined;
   evalSyncFfprobe?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;

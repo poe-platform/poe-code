@@ -308,6 +308,7 @@ export function evalSyncExiftool(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   try {
     for (let i = 0; i < opArgs.length; i++) {
@@ -316,13 +317,17 @@ export function evalSyncExiftool(
     const syncSignal = new AbortController().signal;
     const resources = new Resources({ signal: syncSignal });
     const invocation = parseArguments([...opArgs], resources.limits);
-    if (
-      invocation.assignments.length > 0 ||
-      invocation.tagsFromFile !== undefined ||
-      invocation.destination !== undefined ||
-      invocation.binary ||
-      invocation.files.length === 0
-    ) {
+    const writing = invocation.assignments.length > 0 || invocation.tagsFromFile !== undefined;
+    if (invocation.binary || invocation.files.length === 0) {
+      return undefined;
+    }
+    if (writing && !writeFileSync) {
+      return undefined;
+    }
+    if (!writing && invocation.destination !== undefined) {
+      return undefined;
+    }
+    if (invocation.csv && invocation.files.length > 1) {
       return undefined;
     }
     let out = "";
@@ -332,15 +337,53 @@ export function evalSyncExiftool(
     const json: string[] = [];
     const xml: string[] = [];
     const csv = invocation.csv ? new CsvTable(resources, invocation.missing, invocation.tags) : undefined;
+    let updated = 0, created = 0, unchanged = 0;
+    const pendingWrites: Array<{ path: string; bytes: Uint8Array }> = [];
 
     for (const file of invocation.files) {
       const bytes = file === "-" ? inBytes : readFileSync?.(file);
       if (!bytes || !bytes.length || bytes.byteLength > 131072) return undefined;
       const extension = file.slice(file.lastIndexOf(".") + 1).toUpperCase();
+      if (writing && (file === "-" || ["DOCX", "PPTX", "XLSX"].includes(extension))) return undefined;
       const isPdf = extension === "PDF" || (bytes.length >= 5 && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46 && bytes[4] === 0x2d);
+      if (writing && isPdf && invocation.assignments.some(a => a.name.toLowerCase() === "all")) return undefined;
       const jpeg = bytes[0] === 255 && bytes[1] === 216;
       const png = bytes.length >= 8 && bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71;
       if (!png && !isPdf && !jpeg) return undefined;
+      if (writing) {
+        let assignments = invocation.assignments;
+        if (invocation.tagsFromFile !== undefined) {
+          const srcBytes = invocation.tagsFromFile === "-" ? inBytes : readFileSync?.(invocation.tagsFromFile);
+          if (!srcBytes || !srcBytes.length || srcBytes.byteLength > 131072) return undefined;
+          const srcIsPdf = srcBytes.length >= 5 && srcBytes[0] === 0x25 && srcBytes[1] === 0x50 && srcBytes[2] === 0x44 && srcBytes[3] === 0x46;
+          const srcJpeg = srcBytes[0] === 255 && srcBytes[1] === 216;
+          const srcPng = srcBytes.length >= 8 && srcBytes[0] === 137 && srcBytes[1] === 80 && srcBytes[2] === 78 && srcBytes[3] === 71;
+          if (!srcIsPdf && !srcJpeg && !srcPng) return undefined;
+          const srcTags = srcJpeg ? inspectJpeg(srcBytes, resources).tags : srcIsPdf ? inspectPdf(srcBytes, resources).tags : inspectPng(srcBytes, resources).tags;
+          const values = selected(srcTags, invocation.tags, false, resources);
+          assignments = values.filter(tag => isPdf ? pdfWriteTags.has(tag.name) : jpeg ? Object.hasOwn(jpegWriteTags, tag.name) : Object.hasOwn(exiftoolRegistry.writeChunks, tag.name)).map(tag => ({ name: tag.name, operation: "set" as const, value: tag.value }));
+        }
+        const edited = jpeg ? editJpeg(bytes, assignments, resources) : isPdf ? editPdf(bytes, assignments, resources) : editPng(bytes, assignments, resources);
+        if (invocation.destination === undefined && !assignments.some(op => op.operation === "set" && op.value !== "") && edited.length === bytes.length && edited.every((byte, index) => byte === bytes[index])) {
+          unchanged++;
+          continue;
+        }
+        if (invocation.destination === undefined) {
+          if (invocation.overwrite === "backup") {
+            const backup = file + "_original";
+            if (!readFileSync?.(backup)) {
+              pendingWrites.push({ path: backup, bytes });
+            }
+          }
+          pendingWrites.push({ path: file, bytes: edited });
+          updated++;
+        } else {
+          if (readFileSync?.(invocation.destination)) return undefined;
+          pendingWrites.push({ path: invocation.destination, bytes: edited });
+          created++;
+        }
+        continue;
+      }
       const tags = jpeg ? inspectJpeg(bytes, resources).tags : png ? inspectPng(bytes, resources).tags : inspectPdf(bytes, resources).tags;
       const chosen = selected(tags, invocation.tags, invocation.json ? invocation.groupFamily === 4 : invocation.duplicates && !invocation.csv, resources);
       if (invocation.xml || invocation.tabular || invocation.template !== undefined) {
@@ -351,7 +394,6 @@ export function evalSyncExiftool(
         continue;
       }
       if (csv) {
-        if (invocation.files.length > 1) return undefined;
         csv.add(file, chosen);
         continue;
       }
@@ -406,9 +448,17 @@ export function evalSyncExiftool(
         }
       }
     }
-    if (invocation.json) emit("[" + json.join(",\n") + "]\n");
+    if (pendingWrites.length > 0 && writeFileSync) {
+      for (const pw of pendingWrites) {
+        if (!writeFileSync(pw.path, pw.bytes)) return undefined;
+      }
+    }
+    if (invocation.json && !writing) emit("[" + json.join(",\n") + "]\n");
     if (invocation.xml) emit(xmlHeader + xml.join("") + "</rdf:RDF>\n");
     if (csv) emit(csv.render());
+    if (updated || unchanged) emit(String(updated).padStart(5) + " image files updated\n");
+    if (created) emit(String(created).padStart(5) + " image files created\n");
+    if (unchanged) emit(String(unchanged).padStart(5) + " image files unchanged\n");
     return out;
   } catch {
     return undefined;

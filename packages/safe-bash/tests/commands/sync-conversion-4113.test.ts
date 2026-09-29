@@ -1,6 +1,8 @@
 import { truncateCommands } from "../../src/commands/truncate/index.js";
 import { timeoutCommands } from "../../src/commands/timeout/index.js";
 import { sofficeCommands } from "../../src/commands/soffice/index.js";
+import { imagemagickCommands } from "../../src/commands/imagemagick/index.js";
+import { exiftoolCommands } from "../../src/commands/exiftool/index.js";
 import { mmdcCommands } from "../../src/commands/mmdc/index.js";
 import { pdftotextCommands } from "../../src/commands/pdftotext/index.js";
 import { pdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
@@ -1849,5 +1851,37 @@ test("Wave 233: pdftotext file output, pdftohtml file output, and pdftocairo -sv
   assert.equal(
     res.stdout.trim(),
     "PDF Wave 233 Content|PDF Wave 233 Content|<svg",
+  );
+});
+
+test("Wave 234: magick/convert/mogrify/composite/montage and exiftool tag writing in sync command substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(imagemagickCommands())
+    .use(exiftoolCommands());
+  const res = await shell.exec(`
+    m1=$(magick -size 8x6 xc:red red.png)
+    id1=$(identify -format "%wx%h" red.png)
+    c1=$(convert red.png -resize 4x3! small.png)
+    id2=$(identify -format "%wx%h" small.png)
+    mg1=$(mogrify -resize 12x9! small.png)
+    id3=$(identify -format "%wx%h" small.png)
+    cp1=$(composite red.png small.png comp.png)
+    id4=$(identify -format "%wx%h" comp.png)
+    mt1=$(montage -geometry 4x3+0+0 -tile 2x1 red.png small.png grid.png)
+    id5=$(identify -format "%wx%h" grid.png)
+    inf=$(magick red.png -format "%m:%wx%h" info:)
+    et1=$(exiftool -Artist=Ada -overwrite_original red.png)
+    art=$(exiftool -s -s -s -Artist red.png)
+    et2=$(exiftool -Comment=Hello -o copy.png red.png)
+    cmt=$(exiftool -s -s -s -Comment copy.png)
+    printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\\n" "\$id1" "\$id2" "\$id3" "\$id4" "\$id5" "\$inf" "\$et1" "\$art" "\$et2" "\$cmt"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "8x6|4x3|12x9|12x9|8x3|PNG:8x6|    1 image files updated|Ada|    1 image files created|Hello"
   );
 });

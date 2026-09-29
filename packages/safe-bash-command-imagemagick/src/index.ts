@@ -2719,7 +2719,18 @@ function applyMagickCompositeLayer(
     norm === "softlight" ||
     norm === "saturate"
   ) {
-    return compositeImage(dst, [rgbaToCompositeLayer(src, left, top, parseCompose(modeRaw))]);
+    const ox = Math.round(left);
+    const oy = Math.round(top);
+    if (ox >= 0 && oy >= 0 && ox + src.width <= dst.width && oy + src.height <= dst.height) {
+      return compositeImage(dst, [rgbaToCompositeLayer(src, ox, oy, parseCompose(modeRaw))]);
+    }
+    const sx0 = Math.max(0, -ox);
+    const sy0 = Math.max(0, -oy);
+    const sx1 = Math.min(src.width, dst.width - ox);
+    const sy1 = Math.min(src.height, dst.height - oy);
+    if (sx1 <= sx0 || sy1 <= sy0) return dst;
+    const clipped = extractImage(src, { left: sx0, top: sy0, width: sx1 - sx0, height: sy1 - sy0 });
+    return compositeImage(dst, [rgbaToCompositeLayer(clipped, Math.max(0, ox), Math.max(0, oy), parseCompose(modeRaw))]);
   }
   return { ...dst, data: out, hasAlpha: true };
 }
@@ -4286,6 +4297,14 @@ export async function runConvertCli(
   files: Map<string, Uint8Array>,
   stdinBytes?: Uint8Array
 ): Promise<ImageMagickCliResult> {
+  return runConvertCliSync(argv, files, stdinBytes);
+}
+
+export function runConvertCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  stdinBytes?: Uint8Array
+): ImageMagickCliResult {
   if (argv.length === 0 || argv.includes("--help") || argv.includes("-help") || argv.includes("-h")) {
     return {
       exitCode: 0,
@@ -4405,6 +4424,13 @@ export async function runMogrifyCli(
   argv: readonly string[],
   files: Map<string, Uint8Array>
 ): Promise<ImageMagickCliResult> {
+  return runMogrifyCliSync(argv, files);
+}
+
+export function runMogrifyCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): ImageMagickCliResult {
   let outFormatExt: string | undefined;
   let outDir: string | undefined;
   const opTokens: string[] = [];
@@ -4547,7 +4573,7 @@ export async function runMogrifyCli(
     const destDir = outDir ? outDir.replace(/\/+$/, "") : target.slice(0, Math.max(0, target.lastIndexOf("/")));
     const destPath = outFormatExt || outDir ? `${destDir ? destDir + "/" : ""}${stem}.${targetExt}` : target;
 
-    const res = await runConvertCli([...readSettings, target, ...opTokens, destPath], files);
+    const res = runConvertCliSync([...readSettings, target, ...opTokens, destPath], files);
     if (res.exitCode !== 0) return res;
   }
 
@@ -4559,6 +4585,14 @@ export async function runCompositeCli(
   files: Map<string, Uint8Array>,
   stdinBytes?: Uint8Array
 ): Promise<ImageMagickCliResult> {
+  return runCompositeCliSync(argv, files, stdinBytes);
+}
+
+export function runCompositeCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  stdinBytes?: Uint8Array
+): ImageMagickCliResult {
   const options: string[] = [];
   const operands: string[] = [];
 
@@ -4588,7 +4622,7 @@ export async function runCompositeCli(
   const overlay = operands[0]!;
   const base = operands[1]!;
   const out = operands[operands.length - 1]!;
-  return runConvertCli([base, overlay, ...options, "-composite", out], files, stdinBytes);
+  return runConvertCliSync([base, overlay, ...options, "-composite", out], files, stdinBytes);
 }
 
 function formatMetricNum(n: number): string {
@@ -4603,6 +4637,14 @@ export async function runCompareCli(
   files: Map<string, Uint8Array>,
   stdinBytes?: Uint8Array
 ): Promise<ImageMagickCliResult> {
+  return runCompareCliSync(argv, files, stdinBytes);
+}
+
+export function runCompareCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  stdinBytes?: Uint8Array
+): ImageMagickCliResult {
   const state = createDefaultState();
   state.fuzz = 0;
   let metric = "rmse";
@@ -4877,6 +4919,14 @@ export async function runMontageCli(
   files: Map<string, Uint8Array>,
   stdinBytes?: Uint8Array
 ): Promise<ImageMagickCliResult> {
+  return runMontageCliSync(argv, files, stdinBytes);
+}
+
+export function runMontageCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  stdinBytes?: Uint8Array
+): ImageMagickCliResult {
   const state = createDefaultState();
   let tileCols: number | undefined;
   let tileRows: number | undefined;
@@ -5006,26 +5056,34 @@ export async function runMagickCli(
   files: Map<string, Uint8Array>,
   stdinBytes?: Uint8Array
 ): Promise<ImageMagickCliResult> {
+  return runMagickCliSync(argv, files, stdinBytes);
+}
+
+export function runMagickCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  stdinBytes?: Uint8Array
+): ImageMagickCliResult {
   const sub = argv[0];
   if (sub === "identify") {
-    return runIdentifyCli(argv.slice(1), files, stdinBytes);
+    return runIdentifyCliSync(argv.slice(1), files, stdinBytes);
   }
   if (sub === "mogrify") {
-    return runMogrifyCli(argv.slice(1), files);
+    return runMogrifyCliSync(argv.slice(1), files);
   }
   if (sub === "composite") {
-    return runCompositeCli(argv.slice(1), files, stdinBytes);
+    return runCompositeCliSync(argv.slice(1), files, stdinBytes);
   }
   if (sub === "montage") {
-    return runMontageCli(argv.slice(1), files, stdinBytes);
+    return runMontageCliSync(argv.slice(1), files, stdinBytes);
   }
   if (sub === "compare") {
-    return runCompareCli(argv.slice(1), files, stdinBytes);
+    return runCompareCliSync(argv.slice(1), files, stdinBytes);
   }
   if (sub === "convert") {
-    return runConvertCli(argv.slice(1), files, stdinBytes);
+    return runConvertCliSync(argv.slice(1), files, stdinBytes);
   }
-  return runConvertCli(argv, files, stdinBytes);
+  return runConvertCliSync(argv, files, stdinBytes);
 }
 
 async function executeVfsMagickTool(

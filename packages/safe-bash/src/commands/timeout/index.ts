@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import { FsError, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandInvoker, type VirtualShellPlugin } from "../../contracts/index.js";
 import { shellValueByteLength } from "../../contracts/value.js";
 import { parseDuration } from "./duration.js";
@@ -357,7 +357,7 @@ export function evalSyncTimeout(args: readonly string[]): string | undefined {
   if (i >= args.length) return undefined;
   const durStr = args[i]!;
   const parsed = parseDuration(durStr);
-  if (parsed.kind !== "ok" || parsed.milliseconds <= 0) return undefined;
+  if (parsed.kind !== "value" || parsed.milliseconds <= 0) return undefined;
   i++;
   if (i >= args.length) return undefined;
   const subCmd = args[i]!;
@@ -390,3 +390,5 @@ export function timeoutCommands(options?: TimeoutCommandsOptions): VirtualShellP
     },
   };
 }
+
+syncCommandEvaluators.evalSyncTimeout = evalSyncTimeout;

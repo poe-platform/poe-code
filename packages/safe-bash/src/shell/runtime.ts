@@ -100,7 +100,6 @@ import { evalSyncCmp } from "../commands/cmp.js";
 import { evalSyncWhich } from "../commands/which/index.js";
 import { evalSyncFind } from "../commands/find.js";
 import { evalSyncCompression } from "../commands/bytes/compression/index.js";
-import { evalSyncTimeout } from "../commands/timeout/index.js";
 import { evalSyncTar, evalSyncUnzip, evalSyncZip } from "../commands/archive/index.js";
 
 const syncDdUtf8Decoder = new TextDecoder("utf-8", { fatal: true });
@@ -28000,7 +27999,7 @@ export class Runtime {
                   : firstName === "zip"
                     ? evalSyncZip(stageArgs)
                   : firstName === "timeout"
-                    ? evalSyncTimeout(stageArgs)
+                    ? syncCommandEvaluators.evalSyncTimeout?.(stageArgs)
                   : (firstName === "xq" || firstName === "yq")
                     ? this.evalSyncXqOrYq(firstName, rawBytes, stageArgs, readFile)
                   : firstName === "xmllint"
@@ -28433,7 +28432,7 @@ export class Runtime {
           : w0Plain === "zip"
             ? evalSyncZip(allArgs)
           : w0Plain === "timeout"
-            ? evalSyncTimeout(allArgs)
+            ? syncCommandEvaluators.evalSyncTimeout?.(allArgs)
             : w0Plain === "mdq"
               ? evalSyncMdq(inBytes, allArgs, readFile)
             : w0Plain === "shuf"
@@ -28777,7 +28776,7 @@ export class Runtime {
             } else if (w0Plain === "zip") {
               fileRes = evalSyncZip(opArgs);
             } else if (w0Plain === "timeout") {
-              fileRes = evalSyncTimeout(opArgs);
+              fileRes = syncCommandEvaluators.evalSyncTimeout?.(opArgs);
             } else if (w0Plain === "dos2unix" || w0Plain === "unix2dos") {
               const leOut = evalSyncLineEndings(w0Plain, view, opArgs);
               if (leOut !== undefined) fileRes = sharedSyncPipeDecoder.decode(leOut);

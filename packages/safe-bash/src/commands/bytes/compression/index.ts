@@ -122,7 +122,7 @@ function runPortableCodecSync(
 ): Uint8Array | undefined {
   const tag = factory === bz2Factory ? "bz2" : factory === xzFactory ? "xz" : "zstd";
   const cacheKey = srcBytes.byteLength <= 4096
-    ? `${tag}:${decompress ? 1 : 0}:${level}:${checkOrSmall}:${isLzma ? 1 : 0}:${Buffer.from(srcBytes.buffer, srcBytes.byteOffset, srcBytes.byteLength).toString("hex")}`
+    ? `${tag}:${decompress ? 1 : 0}:${level}:${checkOrSmall}:${isLzma ? 1 : 0}:${Array.from(srcBytes, b => b.toString(16).padStart(2, "0")).join("")}`
     : undefined;
   if (cacheKey !== undefined) {
     const hit = portableCodecResultCache.get(cacheKey);

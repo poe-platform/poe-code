@@ -76,6 +76,7 @@ export interface SyncCommandEvaluators {
   evalSyncWkhtmltopdf?: (opArgs: readonly string[]) => string | undefined;
   evalSyncOp?: (execute: any, opArgs: readonly string[], env: Readonly<Record<string, string>>) => string | undefined;
   evalSyncGit?: (stdinBytes: Uint8Array | undefined, opArgs: readonly string[], cwd: string, inspectNode?: any, readFile?: any, executeFn?: any) => string | undefined;
+  evalSyncTimeout?: (opArgs: readonly string[]) => string | undefined;
 }
 
 export const syncCommandEvaluators: SyncCommandEvaluators = {};

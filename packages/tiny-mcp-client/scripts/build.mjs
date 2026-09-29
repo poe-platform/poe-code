@@ -36,16 +36,15 @@ try {
     { cwd: packageDir, stdio: "inherit" }
   );
 
-  const declarationBundle = await rollup({
-    input: path.join(distDir, "index.d.ts"),
-    external: (source) => source.startsWith("node:"),
-    plugins: [inlineWorkspaceDeclarations, dts()]
-  });
-  await declarationBundle.write({
-    file: path.join(temporaryDir, "index.d.ts"),
-    format: "es"
-  });
-  await declarationBundle.close();
+  for (const entry of ["index", "index.browser"]) {
+    const declarationBundle = await rollup({
+      input: path.join(distDir, entry + ".d.ts"),
+      external: (source) => source.startsWith("node:"),
+      plugins: [inlineWorkspaceDeclarations, dts()]
+    });
+    await declarationBundle.write({ file: path.join(temporaryDir, entry + ".d.ts"), format: "es" });
+    await declarationBundle.close();
+  }
 
   await rm(distDir, { recursive: true, force: true });
   await mkdir(distDir, { recursive: true });
@@ -57,7 +56,15 @@ try {
     platform: "node",
     target: "node18"
   });
-  await cp(path.join(temporaryDir, "index.d.ts"), path.join(distDir, "index.d.ts"));
+  await build({
+    entryPoints: [path.join(packageDir, "src", "index.browser.ts")],
+    outfile: path.join(distDir, "index.browser.js"),
+    bundle: true, format: "esm", platform: "neutral", target: "es2022",
+    mainFields: ["module", "main"], conditions: ["workerd", "browser"], external: ["node:stream"],
+    alias: { "node:child_process": path.join(packageDir, "src", "spawn.browser.ts") }
+  });
+  for (const entry of ["index", "index.browser"])
+    await cp(path.join(temporaryDir, entry + ".d.ts"), path.join(distDir, entry + ".d.ts"));
 } finally {
   await rm(temporaryDir, { recursive: true, force: true });
 }

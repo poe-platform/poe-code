@@ -1,4 +1,3 @@
-import { isIP } from "node:net";
 import { readBoundedResponseText } from "./http-response.js";
 import type {
   OAuthAuthorizationServerMetadata,
@@ -72,7 +71,8 @@ function isLoopbackHostname(hostname: string): boolean {
   return normalizedHostname === "localhost"
     || normalizedHostname === "::1"
     || normalizedHostname === "[::1]"
-    || (isIP(normalizedHostname) === 4 && normalizedHostname.startsWith("127."));
+    || (normalizedHostname.startsWith("127.") && normalizedHostname.split(".").length === 4
+      && normalizedHostname.split(".").every(part => part.length > 0 && [...part].every(char => char >= "0" && char <= "9") && Number(part) <= 255));
 }
 
 function assertSecureUrl(url: URL, label: string): void {

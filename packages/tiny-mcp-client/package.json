@@ -30,5 +30,17 @@
       "mcp-oauth",
       "tiny-stdio-mcp-server"
     ]
+  },
+  "exports": {
+    ".": {
+      "types": {
+        "workerd": "./dist/index.browser.d.ts",
+        "browser": "./dist/index.browser.d.ts",
+        "default": "./dist/index.d.ts"
+      },
+      "workerd": "./dist/index.browser.js",
+      "browser": "./dist/index.browser.js",
+      "import": "./dist/index.js"
+    }
   }
 }

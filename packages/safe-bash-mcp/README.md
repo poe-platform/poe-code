@@ -1,5 +1,12 @@
 # safe-bash-mcp
 
+Workers and browser bundlers select a remote-only entry for
+`@poe-platform/safe-bash/mcp`: discovery, commands, argument parsing and resource
+access. Supply authenticated `fetch` or `oauth: { provider }` owned by your host.
+Desktop OAuth persistence, loopback login and management APIs remain in the full
+Node entry. Workers require `nodejs_compat` for the transport's `node:stream`;
+browser hosts must provide a Node stream polyfill through their bundler.
+
 Install `@poe-platform/safe-bash` and import this SDK from
 `@poe-platform/safe-bash/mcp`.
 

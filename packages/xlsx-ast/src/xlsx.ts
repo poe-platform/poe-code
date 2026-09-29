@@ -183,7 +183,7 @@ async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
       onElement() { nodes++; charge(1); } });
     let step = parser.next(), parserWork = 0;
     while (!step.done) {
-      context.signal.throwIfAborted();
+      charge(1);
       if (++parserWork % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
       step = parser.next();
     }

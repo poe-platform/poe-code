@@ -36,6 +36,18 @@ async function setup(index: string, suppliedLimits = limits, sheet?: string) {
   return { engine, volume, writes, reads };
 }
 
+it("charges XML parser checkpoints for long comments against workbook work", async () => {
+  for (const size of [0, 50000]) {
+    const { engine } = await setup("0", { ...limits, workbookWork: 200 },
+      `<sheetData><row><c><v>42</v></c></row></sheetData><!--${"x".repeat(size)}-->`);
+    try {
+      const reading = engine.readWorkbook({ kind: "resource", uri: "/book.xlsx" }, {}, { signal: new AbortController().signal });
+      if (size) await expect(reading).rejects.toMatchObject({ code: "resource-limit" });
+      else expect((await reading).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
+    } finally { await engine.dispose(); }
+  }
+});
+
 // Source evidence: Gnumeric 1.12.61 xlsx_cell_val_end and xlsx_relaxed_strtol.
 it.each(["1", "-1", "0.0", "0e0", "0x0", "junk", " ", "9007199254740992", "0\u00a0"])("recovers an invalid shared-string reference %j with ordered warning", async index => {
   const { engine } = await setup(index), diagnostics: Diagnostic[] = [];

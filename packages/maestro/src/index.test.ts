@@ -1,6 +1,4 @@
 import crypto from "node:crypto";
-import * as nodeFs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { setImmediate as realSetImmediate, setTimeout as realSetTimeout } from "node:timers";
 import { fs, vol } from "memfs";
@@ -635,24 +633,20 @@ describe("shutdown", () => {
 });
 
 describe("integration", () => {
-  const tempRoots: string[] = [];
-
   beforeEach(() => {
+    vol.reset();
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
   });
 
   afterEach(() => {
     vi.useRealTimers();
-    for (const root of tempRoots.splice(0)) {
-      nodeFs.rmSync(root, { recursive: true, force: true });
-    }
+    vol.reset();
   });
 
   it("runs one task from planned to done after one full tick", async () => {
     const { runMaestro } = await importRealMaestro();
     const fixture = createIntegrationFixture("happy");
-    tempRoots.push(fixture.root);
     const taskList = createIntegrationTaskList([
       integrationTask("one", { metadata: { createdAt: "2026-01-01T00:00:00.000Z" } })
     ]);
@@ -701,7 +695,6 @@ describe("integration", () => {
   it("dispatches three tasks with capacity two across three ticks", async () => {
     const { runMaestro } = await importRealMaestro();
     const fixture = createIntegrationFixture("capacity");
-    tempRoots.push(fixture.root);
     const taskList = createIntegrationTaskList([
       integrationTask("one", { metadata: { createdAt: "2026-01-01T00:00:00.000Z" } }),
       integrationTask("two", { metadata: { createdAt: "2026-01-01T00:00:01.000Z" } }),
@@ -771,7 +764,6 @@ describe("integration", () => {
   it("handles success, retryable failure, and non-retryable failure in chronological order", async () => {
     const { runMaestro } = await importRealMaestro();
     const fixture = createIntegrationFixture("mixed");
-    tempRoots.push(fixture.root);
     const taskList = createIntegrationTaskList([
       integrationTask("success", { metadata: { createdAt: "2026-01-01T00:00:00.000Z" } }),
       integrationTask("retry", { metadata: { createdAt: "2026-01-01T00:00:01.000Z" } }),
@@ -831,7 +823,6 @@ describe("integration", () => {
   it("honors the stop budget during an in-flight dispatch and releases resources", async () => {
     const { runMaestro } = await importRealMaestro();
     const fixture = createIntegrationFixture("abort-dispatch");
-    tempRoots.push(fixture.root);
     const taskList = createIntegrationTaskList([integrationTask("blocked")]);
     const spawn = createTaskScriptSpawn(taskList, { blocked: [{ kind: "block" }] });
     const events = createEventCollector();
@@ -864,13 +855,12 @@ describe("integration", () => {
         step: "in-progress"
       }
     ]);
-    expect(nodeFs.existsSync(workspacePath(fixture, "blocked"))).toBe(false);
+    expect(fs.existsSync(workspacePath(fixture, "blocked"))).toBe(false);
   });
 
   it("stops before the first interval tick without spawning workers", async () => {
     const { runMaestro } = await importRealMaestro();
     const fixture = createIntegrationFixture("abort-before-tick");
-    tempRoots.push(fixture.root);
     const taskList = createIntegrationTaskList([integrationTask("one")]);
     const spawn = createTaskScriptSpawn(taskList, { one: [{ kind: "complete" }] });
     const events = createEventCollector();
@@ -890,7 +880,6 @@ describe("integration", () => {
   it("allows stop to be called twice without double cleanup", async () => {
     const { runMaestro } = await importRealMaestro();
     const fixture = createIntegrationFixture("reentrant-stop");
-    tempRoots.push(fixture.root);
     const taskList = createIntegrationTaskList([integrationTask("one")]);
     const spawn = createTaskScriptSpawn(taskList, { one: [{ kind: "complete" }] });
     const events = createEventCollector();
@@ -916,7 +905,6 @@ describe("integration", () => {
   it("dry-runs a mock task list, reports candidates, and does not dispatch", async () => {
     const { runMaestro } = await importRealMaestro();
     const fixture = createIntegrationFixture("dry-run");
-    tempRoots.push(fixture.root);
     const taskList = createIntegrationTaskList(["one", "two"].map(integrationTask));
     const spawn = createTaskScriptSpawn(taskList, {
       one: [{ kind: "complete" }],
@@ -948,7 +936,6 @@ describe("integration", () => {
   it("dry-runs validation failure, emits validation_failed, and throws", async () => {
     const { runMaestro } = await importRealMaestro();
     const fixture = createIntegrationFixture("dry-run-validation", { list: "missing" });
-    tempRoots.push(fixture.root);
     const taskList = createIntegrationTaskList([integrationTask("one")]);
     const spawn = createTaskScriptSpawn(taskList, { one: [{ kind: "complete" }] });
     const events = createEventCollector();
@@ -972,12 +959,11 @@ describe("integration", () => {
   it("routes mixed pipeline and ralph tasks through their resolved workflow kinds", async () => {
     const { runMaestro } = await importRealMaestro();
     const fixture = createIntegrationFixture("driver-mix");
-    tempRoots.push(fixture.root);
     const pipelineTask = integrationTask("pipeline", {
       metadata: { kind: "pipeline", createdAt: "2026-01-01T00:00:00.000Z" }
     });
     const ralphPath = path.join(fixture.root, "ralph.md");
-    nodeFs.writeFileSync(ralphPath, "ralph plan", "utf8");
+    fs.writeFileSync(ralphPath, "ralph plan", "utf8");
     const ralphTask = integrationTask("ralph", {
       sourcePath: ralphPath,
       metadata: { kind: "ralph", createdAt: "2026-01-01T00:00:01.000Z" }
@@ -1061,7 +1047,7 @@ const integrationStateMachine: StateMachineDef = {
 
 async function importRealMaestro(): Promise<typeof import("./index.js")> {
   vi.resetModules();
-  vi.doUnmock("node:fs/promises");
+  vi.doMock("node:fs/promises", () => ({ ...fs.promises, default: fs.promises }));
   vi.doMock("@poe-code/ralph", () => ({
     runRalph: vi.fn(async (options: RalphRunOptions) => {
       if (options.signal?.aborted) {
@@ -1086,10 +1072,11 @@ function createIntegrationFixture(
   name: string,
   options: { list?: string } = {}
 ): IntegrationFixture {
-  const root = nodeFs.mkdtempSync(path.join(nodeFs.realpathSync(os.tmpdir()), `maestro-${name}-`));
+  const root = path.join("/maestro", name);
+  fs.mkdirSync(root, { recursive: true });
   const workflowPath = path.join(root, "WORKFLOW.md");
   const workspaceRoot = path.join(root, "workspaces");
-  nodeFs.writeFileSync(
+  fs.writeFileSync(
     workflowPath,
     workflowFrontmatter({
       tasks: ["  type: markdown-dir", "  path: ./tasks"],

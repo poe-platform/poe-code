@@ -4,7 +4,7 @@ import { calCommands } from "../../src/commands/cal/index.js";
 import { htmlToMarkdownCommands } from "../../src/commands/html-to-markdown/index.ts";
 import { htmlqCommands } from "../../src/commands/htmlq/index.ts";
 import { whichCommands } from "../../src/commands/which/index.ts";
-import { csvkitCommands } from "../../src/commands/csvkit/index.ts";
+import { csvkitCommands, evalSyncCsvstack, evalSyncCsvjoin } from "../../src/commands/csvkit/index.ts";
 import { xmlCommands } from "../../src/commands/xml/index.ts";
 import { yqCommands } from "../../src/commands/yq/index.ts";
 import { ddCommands } from "../../src/commands/dd/index.ts";
@@ -41,6 +41,20 @@ import { standardCommands } from "../../src/commands/index.js";
 import { byteCommands } from "../../src/commands/bytes/index.js";
 import { dos2unixCommands } from "../../src/commands/line-endings/index.js";
 import { iconvCommands, evalSyncIconv } from "../../src/commands/iconv/index.js";
+
+for (const [separator, flags] of [["\t", ["--tabs"]], [";", ["-d", ";"]], [";", ["--delimiter=;"]]] as const) {
+  for (const command of ["csvstack", "csvjoin"] as const) {
+    test(`${command} sync input dialect: ${flags.join(" ")}`, () => {
+      const files = new Map([
+        ["left.csv", new TextEncoder().encode(`id${separator}name\n10${separator}Alice\n`)],
+        ["right.csv", new TextEncoder().encode(`id${separator}name\n20${separator}Bob\n`)]
+      ]);
+      const evaluate = command === "csvstack" ? evalSyncCsvstack : evalSyncCsvjoin;
+      assert.equal(evaluate(undefined, [...flags, "left.csv", "right.csv"], file => files.get(file)),
+        command === "csvstack" ? "id,name\n10,Alice\n20,Bob\n" : "id,name,id2,name2\n10,Alice,20,Bob\n");
+    });
+  }
+}
 
 for (const [command, input, expected] of [
   ["dos2unix", "hello\\r\\n", "hello\n"],

@@ -575,7 +575,7 @@ export function evalSyncCsvsort(
         } else if (typeof x === "object" && typeof y === "object" && x.kind === "decimal" && y.kind === "decimal") {
           if (x.value.includes("NaN") || y.value.includes("NaN")) throw new Error("NaN");
           order = Decimal.parse(x.value).compare(Decimal.parse(y.value));
-        } else if (typeof x === "object" && typeof y === "object" && x.kind === y.kind && (x.kind === "date" || x.kind === "datetime")) {
+        } else if (typeof x === "object" && typeof y === "object" && (x.kind === "date" || x.kind === "datetime") && (y.kind === "date" || y.kind === "datetime") && x.kind === y.kind) {
           order = x.value < y.value ? -1 : x.value > y.value ? 1 : 0;
         } else if (typeof x === "object" && typeof y === "object" && x.kind === "timedelta" && y.kind === "timedelta") {
           order = x.microseconds < y.microseconds ? -1 : x.microseconds > y.microseconds ? 1 : 0;
@@ -1029,6 +1029,8 @@ export function evalSyncCsvstack(
     let noHeaderRow = false;
     let lineNumbers = false;
     let addBom = false;
+    let delimiter = ",";
+    let tabs = false;
     const files: string[] = [];
     let posDone = false;
     for (let i = 0; i < opArgs.length; i++) {
@@ -1076,7 +1078,7 @@ export function evalSyncCsvstack(
       if (!bytes || bytes.byteLength > 16384) return undefined;
       let text = syncUtf8Decoder.decode(bytes);
       if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
-      const recs = [...readCsv(text, { delimiter: ",", quotechar: "\"", doublequote: true, skipinitialspace: false })];
+      const recs = [...readCsv(text, { delimiter: tabs ? "\t" : delimiter, quotechar: "\"", doublequote: true, skipinitialspace: false })];
       const hdr = recs[0] ? recs[0].cells.map(c => pythonValueText(c)) : [];
       for (const h of hdr) {
         if (!seen.has(h)) {
@@ -1135,6 +1137,13 @@ export function evalSyncCsvjoin(
         if (a === "--outer") { joinMode = "outer"; continue; }
         if (a === "-I" || a === "--no-inference") { noInference = true; continue; }
         if (a === "--add-bom") { addBom = true; continue; }
+        if (a === "-t" || a === "--tabs") { tabs = true; continue; }
+        if (a === "-d" || a === "--delimiter" || a.startsWith("--delimiter=")) {
+          const v = a.startsWith("--delimiter=") ? a.slice(12) : opArgs[++i];
+          if (!v || Array.from(v).length !== 1) return undefined;
+          delimiter = v;
+          continue;
+        }
         if (a === "-c" || a === "--columns") {
           const v = opArgs[++i];
           if (v === undefined) return undefined;
@@ -1147,7 +1156,7 @@ export function evalSyncCsvjoin(
     }
     if (files.length !== 2) return undefined;
     const leftOpts: ParsedSyncCsvkitOptions = {
-      delimiter, tabs, noDoublequote: false, skipInitialSpace: false, noHeaderRow: false,
+      ...(delimiter === undefined ? {} : { delimiter }), tabs, noDoublequote: false, skipInitialSpace: false, noHeaderRow: false,
       skipLines: 0, lineNumbers: false, addBom: false, noInference, blanks: false,
       noLeadingZeroes: false, sniffLimit: 1024, noNumberEllipsis: false,
       indent: null, key: null, streamOutput: false, filePath: files[0]!,

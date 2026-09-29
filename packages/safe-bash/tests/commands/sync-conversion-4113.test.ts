@@ -1195,3 +1195,37 @@ test("evaluates dirname/basename -z/--suffix, seq -ws/--separator/+nums, and exp
     "/tmp/a:/tmp/c:#alpha:beta:#01:04:07:10#20#1#a:b:c:"
   );
 });
+
+test("sync sort (-g/--general-numeric-sort/-z/--field-separator/--key), uniq (--skip-fields/--skip-chars/--check-chars/-z/bundled), and cut (-z/bundled -s) in substitutions (Wave 213)", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp");
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" }).use(standardCommands()).use(tableTextCommands());
+  const result = await shell.exec(`
+    printf "1e2\\n3\\n-2e1\\nNaN\\n-inf\\n+inf\\n" > /tmp/gnum.txt
+    printf "a:1e2\\nb:3\\nc:100\\n" > /tmp/gkey.txt
+    printf "b\\0a\\0c\\0" > /tmp/zsort.bin
+    printf "x 10\\ny 10\\nz 20\\n" > /tmp/u1.txt
+    printf "aa1\\nab1\\nac2\\n" > /tmp/u2.txt
+
+    out=""
+    for i in 1 2 3 4 5; do
+      s1=\$(sort -g /tmp/gnum.txt | paste -sd,)
+      s2=\$(sort --field-separator : --key 2,2g -s /tmp/gkey.txt | paste -sd,)
+      s3=\$(sort -z /tmp/zsort.bin | tr "\\0" ":")
+      s4=\$(printf "z:9\\0a:2\\0m:5\\0" | sort -z -t: -k2,2nr | tr "\\0" "|")
+      u1=\$(uniq --skip-fields 1 -c /tmp/u1.txt | tr -s " " | paste -sd,)
+      u2=\$(uniq --skip-chars 2 --check-chars 1 /tmp/u2.txt | paste -sd,)
+      u3=\$(printf "foo\\0foo\\0bar\\0" | uniq -zc | tr -s " " | tr "\\0" ";")
+      u4=\$(uniq -cf1 /tmp/u1.txt | tr -s " " | paste -sd,)
+      c1=\$(printf "a:b:c\\0no_delim\\0d:e:f\\0" | cut -zs -d: -f2 | tr "\\0" ",")
+      c2=\$(printf "p:q:r\\nplain\\nx:y:z\\n" | cut -d: -sf1,3 | paste -sd,)
+      out="\$s1|\$s2|\$s3|\$s4|\$u1|\$u2|\$u3|\$u4|\$c1|\$c2"
+    done
+    printf "%s\\n" "\$out"
+  `);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(
+    result.stdout.trim(),
+    "NaN,-inf,-2e1,3,1e2,+inf|b:3,a:1e2,c:100|a:b:c:|z:9|m:5|a:2|| 2 x 10, 1 z 20|aa1,ac2| 2 foo; 1 bar;| 2 x 10, 1 z 20|b,e,|p:r,x:z"
+  );
+});

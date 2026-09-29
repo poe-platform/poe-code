@@ -1754,3 +1754,38 @@ test("sync substitution and pipeline fast path for tee, touch, cp, mv, rmdir, sl
   );
   assert.ok(elapsed < 2500, `Expected Wave 161 sync loop under 2500ms, took ${elapsed.toFixed(1)}ms`);
 });
+
+test("sync loop preflight dry-run and per-iteration dynamic execution for mktemp, tee -a, and mv (Wave 162)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp", { recursive: true });
+  const registry = new CommandRegistry();
+  for (const cmd of createAgentCommands({ muscleMemory: true })) {
+    registry.register(cmd, { replace: true });
+  }
+  const sh = new Shell({ fs, commands: registry });
+  const start = performance.now();
+  const res = await sh.exec(`
+    for i in {1..5}; do
+      d=\$(mktemp -d /tmp/w162d.XXXXXX)
+    done
+    mk_count=\$(ls /tmp | grep "^w162d\\." | wc -l)
+
+    printf "" > /tmp/w162_acc.txt
+    for i in {1..5}; do
+      _t=\$(printf "x" | tee -a /tmp/w162_acc.txt)
+      acc_len=\$(cat /tmp/w162_acc.txt | wc -c)
+    done
+    acc_val=\$(cat /tmp/w162_acc.txt)
+
+    printf "payload\n" > /tmp/w162_once.txt
+    for i in {1..1}; do
+      mv_msg=\$(mv -v /tmp/w162_once.txt /tmp/w162_moved.txt)
+    done
+    moved_val=\$(cat /tmp/w162_moved.txt)
+    printf "%s|%s|%s|%s|%s\n" "\$mk_count" "\$acc_val" "\$acc_len" "\$mv_msg" "\$moved_val"
+  `);
+  const elapsed = performance.now() - start;
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(res.stdout, "5|xxxxx|5|renamed '/tmp/w162_once.txt' -> '/tmp/w162_moved.txt'|payload\n");
+  assert.ok(elapsed < 1500, `Expected Wave 162 under 1500ms, took ${elapsed.toFixed(1)}ms`);
+});

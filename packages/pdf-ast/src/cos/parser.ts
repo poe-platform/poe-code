@@ -156,13 +156,55 @@ export class ParsedCosDocument {
   }
 }
 
-function parseNodeFromLexer(lexer: CosByteLexer, bytes: Uint8Array, depth = 0): PdfCosNode | undefined {
-  if (depth > 128) {
-    throw new PdfError("E_CAPABILITY", "PDF syntax nesting limit exceeded");
+function parseNodeFromLexer(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: number): PdfCosNode | undefined {
+  type Container =
+    | { kind: "array"; start: number; items: PdfCosNode[] }
+    | { kind: "dict"; start: number; entries: PdfDictEntry[]; key?: PdfDictEntry["key"] };
+  const stack: Container[] = [];
+  while (true) {
+    const tok = lexer.nextToken();
+    const parent = stack.at(-1);
+    if (!tok) {
+      if (!parent) return undefined;
+      throw new PdfError("E_PARSE", parent.kind === "array" ? "Unterminated PDF array" : "Unterminated PDF dictionary");
+    }
+    let node: PdfCosNode;
+    if (parent?.kind === "array" && tok.kind === "array-end") {
+      stack.pop();
+      node = { kind: "array", items: parent.items, span: { start: parent.start, end: tok.span.end } };
+    } else if (parent?.kind === "dict" && !parent.key) {
+      if (tok.kind === "dict-end") {
+        stack.pop();
+        node = parseDictionaryStream({ kind: "dict", entries: parent.entries, span: { start: parent.start, end: tok.span.end } }, lexer, bytes);
+      } else if (tok.kind === "name") {
+        parent.key = { kind: "name", rawBytes: tok.rawBytes, decoded: tok.decoded, span: tok.span };
+        continue;
+      } else {
+        throw new PdfError("E_PARSE", `Expected dictionary key /Name, got ${tok.kind}`);
+      }
+    } else {
+      if (parent?.kind === "dict" && tok.kind === "dict-end") {
+        throw new PdfError("E_PARSE", `Missing value for dictionary key /${parent.key!.decoded}`);
+      }
+      if (stack.length > maxDepth) throw new PdfError("E_LIMIT", "PDF syntax nesting limit exceeded");
+      if (tok.kind === "array-start") {
+        stack.push({ kind: "array", start: tok.span.start, items: [] });
+        continue;
+      }
+      if (tok.kind === "dict-start") {
+        stack.push({ kind: "dict", start: tok.span.start, entries: [] });
+        continue;
+      }
+      node = parseLeafFromToken(tok, lexer);
+    }
+    const container = stack.at(-1);
+    if (!container) return node;
+    if (container.kind === "array") container.items.push(node);
+    else {
+      container.entries.push({ key: container.key!, value: node });
+      delete container.key;
+    }
   }
-  const tok = lexer.nextToken();
-  if (!tok) return undefined;
-  return parseNodeFromToken(tok, lexer, bytes, depth);
 }
 
 function resolveIndirectIntegerFromBytes(
@@ -198,12 +240,7 @@ function findEndstreamBeforeEndobj(bytes: Uint8Array, fromIndex: number): number
   return firstMatch;
 }
 
-function parseNodeFromToken(
-  tok: CosToken,
-  lexer: CosByteLexer,
-  bytes: Uint8Array,
-  depth: number
-): PdfCosNode {
+function parseLeafFromToken(tok: CosToken, lexer: CosByteLexer): PdfCosNode {
   switch (tok.kind) {
     case "null":
       return { kind: "null", span: tok.span };
@@ -238,111 +275,64 @@ function parseNodeFromToken(
       return { kind: "string", encoding: "literal", bytes: tok.bytes, span: tok.span };
     case "hex-string":
       return { kind: "string", encoding: "hex", bytes: tok.bytes, span: tok.span };
-    case "array-start": {
-      const items: PdfCosNode[] = [];
-      while (true) {
-        const next = lexer.nextToken();
-        if (!next) {
-          throw new PdfError("E_PARSE", "Unterminated PDF array");
-        }
-        if (next.kind === "array-end") {
-          return {
-            kind: "array",
-            items,
-            span: { start: tok.span.start, end: next.span.end },
-          };
-        }
-        items.push(parseNodeFromToken(next, lexer, bytes, depth + 1));
-      }
-    }
-    case "dict-start": {
-      const entries: PdfDictEntry[] = [];
-      let endOffset = tok.span.end;
-      while (true) {
-        const keyTok = lexer.nextToken();
-        if (!keyTok) {
-          throw new PdfError("E_PARSE", "Unterminated PDF dictionary");
-        }
-        if (keyTok.kind === "dict-end") {
-          endOffset = keyTok.span.end;
-          break;
-        }
-        if (keyTok.kind !== "name") {
-          throw new PdfError("E_PARSE", `Expected dictionary key /Name, got ${keyTok.kind}`);
-        }
-        const valTok = lexer.nextToken();
-        if (!valTok || valTok.kind === "dict-end") {
-          throw new PdfError("E_PARSE", `Missing value for dictionary key /${keyTok.decoded}`);
-        }
-        const valNode = parseNodeFromToken(valTok, lexer, bytes, depth + 1);
-        entries.push({
-          key: { kind: "name", rawBytes: keyTok.rawBytes, decoded: keyTok.decoded, span: keyTok.span },
-          value: valNode,
-        });
-      }
-
-      const dictNode: PdfCosDict = {
-        kind: "dict",
-        entries,
-        span: { start: tok.span.start, end: endOffset },
-      };
-
-      const savedAfterDict = lexer.offset;
-      const maybeStreamTok = lexer.nextToken();
-      if (maybeStreamTok?.kind === "keyword" && maybeStreamTok.value === "stream") {
-        let streamStart = lexer.offset;
-        if (bytes[streamStart] === 0x0d && bytes[streamStart + 1] === 0x0a) {
-          streamStart += 2;
-        } else if (bytes[streamStart] === 0x0a || bytes[streamStart] === 0x0d) {
-          streamStart += 1;
-        }
-
-        const lengthEntry = dictGet(dictNode, "Length");
-        const resolvedLength =
-          lengthEntry?.kind === "number"
-            ? lengthEntry.value
-            : lengthEntry?.kind === "ref"
-              ? resolveIndirectIntegerFromBytes(bytes, lengthEntry.objectNumber, lengthEntry.generationNumber)
-              : undefined;
-        let rawStreamBytes: Uint8Array | undefined;
-        let streamEnd = streamStart;
-        if (resolvedLength !== undefined && resolvedLength >= 0 && streamStart + resolvedLength <= bytes.length) {
-          const candidateEnd = streamStart + resolvedLength;
-          const tailSlice = bytes.subarray(candidateEnd, Math.min(bytes.length, candidateEnd + 32));
-          const tailStr = new TextDecoder("latin1").decode(tailSlice);
-          if (tailStr.includes("endstream")) {
-            rawStreamBytes = bytes.subarray(streamStart, candidateEnd);
-            streamEnd = candidateEnd + tailStr.indexOf("endstream") + "endstream".length;
-          }
-        }
-        if (!rawStreamBytes) {
-          const marker = findEndstreamBeforeEndobj(bytes, streamStart);
-          if (marker < 0) {
-            throw new PdfError("E_PARSE", "Missing endstream keyword in PDF stream object");
-          }
-          let dataEnd = marker;
-          if (bytes[dataEnd - 2] === 0x0d && bytes[dataEnd - 1] === 0x0a) {
-            dataEnd -= 2;
-          } else if (bytes[dataEnd - 1] === 0x0a || bytes[dataEnd - 1] === 0x0d) {
-            dataEnd -= 1;
-          }
-          rawStreamBytes = bytes.subarray(streamStart, Math.max(streamStart, dataEnd));
-          streamEnd = marker + ENDSTREAM_BYTES.length;
-        }
-        lexer.offset = streamEnd;
-        return {
-          kind: "stream",
-          dict: dictNode,
-          rawBytes: rawStreamBytes,
-          span: { start: tok.span.start, end: streamEnd },
-        };
-      }
-      lexer.offset = savedAfterDict;
-      return dictNode;
-    }
     default:
       throw new PdfError("E_PARSE", `Unexpected PDF token: ${tok.kind}`);
   }
+}
+
+function parseDictionaryStream(dictNode: PdfCosDict, lexer: CosByteLexer, bytes: Uint8Array): PdfCosNode {
+  const savedAfterDict = lexer.offset;
+  const maybeStreamTok = lexer.nextToken();
+  if (maybeStreamTok?.kind === "keyword" && maybeStreamTok.value === "stream") {
+    let streamStart = lexer.offset;
+    if (bytes[streamStart] === 0x0d && bytes[streamStart + 1] === 0x0a) {
+      streamStart += 2;
+    } else if (bytes[streamStart] === 0x0a || bytes[streamStart] === 0x0d) {
+      streamStart += 1;
+    }
+
+    const lengthEntry = dictGet(dictNode, "Length");
+    const resolvedLength =
+      lengthEntry?.kind === "number"
+        ? lengthEntry.value
+        : lengthEntry?.kind === "ref"
+          ? resolveIndirectIntegerFromBytes(bytes, lengthEntry.objectNumber, lengthEntry.generationNumber)
+          : undefined;
+    let rawStreamBytes: Uint8Array | undefined;
+    let streamEnd = streamStart;
+    if (resolvedLength !== undefined && resolvedLength >= 0 && streamStart + resolvedLength <= bytes.length) {
+      const candidateEnd = streamStart + resolvedLength;
+      const tailSlice = bytes.subarray(candidateEnd, Math.min(bytes.length, candidateEnd + 32));
+      const tailStr = new TextDecoder("latin1").decode(tailSlice);
+      if (tailStr.includes("endstream")) {
+        rawStreamBytes = bytes.subarray(streamStart, candidateEnd);
+        streamEnd = candidateEnd + tailStr.indexOf("endstream") + "endstream".length;
+      }
+    }
+    if (!rawStreamBytes) {
+      const marker = findEndstreamBeforeEndobj(bytes, streamStart);
+      if (marker < 0) {
+        throw new PdfError("E_PARSE", "Missing endstream keyword in PDF stream object");
+      }
+      let dataEnd = marker;
+      if (bytes[dataEnd - 2] === 0x0d && bytes[dataEnd - 1] === 0x0a) {
+        dataEnd -= 2;
+      } else if (bytes[dataEnd - 1] === 0x0a || bytes[dataEnd - 1] === 0x0d) {
+        dataEnd -= 1;
+      }
+      rawStreamBytes = bytes.subarray(streamStart, Math.max(streamStart, dataEnd));
+      streamEnd = marker + ENDSTREAM_BYTES.length;
+    }
+    lexer.offset = streamEnd;
+    return {
+      kind: "stream",
+      dict: dictNode,
+      rawBytes: rawStreamBytes,
+      span: { start: dictNode.span!.start, end: streamEnd },
+    };
+  }
+  lexer.offset = savedAfterDict;
+  return dictNode;
 }
 
 const ENDSTREAM_BYTES = new TextEncoder().encode("endstream");
@@ -377,7 +367,7 @@ function parseHeaderVersion(bytes: Uint8Array): string {
   return head.slice(idx + 5, idx + 8);
 }
 
-function parseObjectAtOffset(bytes: Uint8Array, offset: number): PdfIndirectObject {
+function parseObjectAtOffset(bytes: Uint8Array, offset: number, maxRecursionDepth: number): PdfIndirectObject {
   const lexer = new CosByteLexer(bytes, offset);
   const objNumTok = lexer.nextToken();
   const genNumTok = lexer.nextToken();
@@ -390,7 +380,7 @@ function parseObjectAtOffset(bytes: Uint8Array, offset: number): PdfIndirectObje
   ) {
     throw new PdfError("E_PARSE", `Malformed indirect object header at byte offset ${offset}`);
   }
-  const value = parseNodeFromLexer(lexer, bytes);
+  const value = parseNodeFromLexer(lexer, bytes, maxRecursionDepth);
   if (!value) {
     throw new PdfError("E_PARSE", `Empty indirect object ${objNumTok.value} at offset ${offset}`);
   }
@@ -402,7 +392,7 @@ function parseObjectAtOffset(bytes: Uint8Array, offset: number): PdfIndirectObje
   };
 }
 
-function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number): PdfRevision {
+function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number, maxRecursionDepth: number): PdfRevision {
   if (xrefOffset < 0 || xrefOffset >= bytes.length) {
     throw new PdfError("E_PARSE", `Invalid xref offset: ${xrefOffset}`);
   }
@@ -458,7 +448,7 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
         }
       }
     }
-    const trailerNode = parseNodeFromLexer(lexer, bytes);
+    const trailerNode = parseNodeFromLexer(lexer, bytes, maxRecursionDepth);
     if (!trailerNode || trailerNode.kind !== "dict") {
       throw new PdfError("E_PARSE", "Missing trailer dictionary after xref table");
     }
@@ -472,7 +462,7 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
   }
 
   // Cross-reference stream (PDF 1.5+)
-  const xrefObj = parseObjectAtOffset(bytes, xrefOffset);
+  const xrefObj = parseObjectAtOffset(bytes, xrefOffset, maxRecursionDepth);
   if (xrefObj.value.kind !== "stream") {
     throw new PdfError("E_PARSE", `Expected xref table or XRef stream at offset ${xrefOffset}`);
   }
@@ -561,7 +551,7 @@ function isAsciiDigit(ch: number): boolean {
   return ch >= 0x30 && ch <= 0x39;
 }
 
-function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompressedBytes: number): {
+function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompressedBytes: number, maxRecursionDepth: number): {
   objects: Map<number, PdfIndirectObject>;
   rootRef: PdfCosRef;
   infoRef?: PdfCosRef | undefined;
@@ -599,7 +589,7 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompr
     ) {
       pos += 3;
       try {
-        const parsed = parseObjectAtOffset(bytes, headerStart);
+        const parsed = parseObjectAtOffset(bytes, headerStart, maxRecursionDepth);
         objects.set(parsed.objectNumber, parsed);
         if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
         if (parsed.span && parsed.span.end > pos) {
@@ -618,7 +608,7 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompr
       const t = dictGet(obj.value.dict, "Type");
       if (t?.kind === "name" && t.decoded === "ObjStm") {
         try {
-          for (const [unpackedNum, unpackedVal] of unpackObjectStream(obj.value, maxDecompressedBytes).entries()) {
+          for (const [unpackedNum, unpackedVal] of unpackObjectStream(obj.value, maxDecompressedBytes, maxRecursionDepth).entries()) {
             if (!objects.has(unpackedNum)) {
               objects.set(unpackedNum, {
                 objectNumber: unpackedNum,
@@ -661,7 +651,8 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompr
 
 function unpackObjectStream(
   streamObj: PdfCosStream,
-  maxDecompressedBytes: number
+  maxDecompressedBytes: number,
+  maxRecursionDepth: number
 ): Map<number, PdfCosNode> {
   const nNode = dictGet(streamObj.dict, "N");
   const firstNode = dictGet(streamObj.dict, "First");
@@ -682,11 +673,12 @@ function unpackObjectStream(
   for (const pair of pairs) {
     try {
       const valLexer = new CosByteLexer(decoded, firstNode.value + pair.relativeOffset);
-      const node = parseNodeFromLexer(valLexer, decoded);
+      const node = parseNodeFromLexer(valLexer, decoded, maxRecursionDepth);
       if (node) {
         result.set(pair.objectNumber, node);
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
       // Skip malformed entry in object stream
     }
   }
@@ -730,7 +722,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
         const visitedOffsets = new Set<number>();
         while (currentXrefOffset !== undefined && !visitedOffsets.has(currentXrefOffset)) {
           visitedOffsets.add(currentXrefOffset);
-          const rev = parseXrefRevisionAt(bytes, currentXrefOffset, maxDecompressedBytes);
+          const rev = parseXrefRevisionAt(bytes, currentXrefOffset, maxDecompressedBytes, maxRecursionDepth);
           revisions.push(rev);
           for (const [num, entry] of rev.entries.entries()) {
             if (!mergedXref.has(num)) {
@@ -749,6 +741,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
           currentXrefOffset = rev.previousXrefOffset;
         }
       } catch (err) {
+        if (err instanceof PdfError && err.code === "E_LIMIT") throw err;
         if (recovery === "repair") {
           useRepair = true;
         } else {
@@ -762,7 +755,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
     if (recovery !== "repair") {
       throw new PdfError("E_PARSE", "PDF trailer missing /Root reference");
     }
-    const repaired = repairScanCosDocument(bytes, maxObjects, maxDecompressedBytes);
+    const repaired = repairScanCosDocument(bytes, maxObjects, maxDecompressedBytes, maxRecursionDepth);
     return new ParsedCosDocument({
       version,
       bytes,
@@ -778,7 +771,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
   const objects = new Map<number, PdfIndirectObject>();
   for (const [objNum, entry] of mergedXref.entries()) {
     if (entry.type === "uncompressed") {
-      const parsed = parseObjectAtOffset(bytes, entry.offset ?? 0);
+      const parsed = parseObjectAtOffset(bytes, entry.offset ?? 0, maxRecursionDepth);
       objects.set(objNum, parsed);
       if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
     }
@@ -822,7 +815,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
       if (!unpacked) {
         const stmObj = objects.get(entry.objectStreamNumber)?.value;
         if (stmObj?.kind === "stream") {
-          unpacked = unpackObjectStream(stmObj, maxDecompressedBytes);
+          unpacked = unpackObjectStream(stmObj, maxDecompressedBytes, maxRecursionDepth);
           objStmCache.set(entry.objectStreamNumber, unpacked);
         }
       }

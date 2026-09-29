@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createColumnCommand } from "./column.js";
 import type { ColumnCommandsOptions } from "./options.js";
@@ -6,7 +7,9 @@ export { createColumnCommand } from "./column.js";
 export type { ColumnCommandsOptions, ColumnLimits } from "./options.js";
 
 export function createColumnCommands(options: ColumnCommandsOptions = {}): readonly CommandDefinition[] {
-  return [createColumnCommand(options)];
+  const defs = [createColumnCommand(options)];
+  for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
+  return defs;
 }
 
 export function columnCommands(options: ColumnCommandsOptions = {}): VirtualShellPlugin {

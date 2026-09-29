@@ -1349,3 +1349,47 @@ test("sync loop wave 117: awk split($k, a, sep), sed BRE capture groups + quanti
     await shell.dispose();
   }
 });
+
+test("sync loop wave 118: column -t (-s/-o/-N), fold (-w/-s), expand (-t), and unexpand (-t/-a)", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createColumnCommands } = await import("../../src/commands/column/index.js");
+  const { createStreamInspectionCommands } = await import("../../src/commands/stream-inspection/index.js");
+  const { createStreamFormatCommands } = await import("../../src/commands/stream-format/index.js");
+  const { createTableTextCommands } = await import("../../src/commands/table-text/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([
+      ...createStandardCommands(),
+      ...createColumnCommands(),
+      ...createStreamInspectionCommands(),
+      ...createStreamFormatCommands(),
+      ...createTableTextCommands(),
+    ]),
+  });
+  try {
+    const script = [
+      "tbl=$'1:alice:admin\\n22:bob:user'",
+      "txt='hello world from safe bash'",
+      "tabs=$'a\\tb\\tc'",
+      "out=\"\"",
+      "for ((i=1; i<=10; i++)); do",
+      "  c1=$(column -t -s : -o \" | \" -N id,name,role <<< \"$tbl\" | paste -sd \";\")",
+      "  c2=$(echo \"x 100\" | column -t -o \":\")",
+      "  f1=$(fold -s -w 12 <<< \"$txt\" | paste -sd \"|\")",
+      "  f2=$(echo \"abcdefghij\" | fold -w 4 | paste -sd \",\")",
+      "  e1=$(expand -t 4 <<< \"$tabs\")",
+      "  u1=$(echo \"$e1\" | unexpand -t 4)",
+      "  out=\"$c1#$c2#$f1#$f2#$e1#$u1\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout,
+      "id | name  | role;1  | alice | admin;22 | bob   | user#x:100#hello world |from safe |bash#abcd,efgh,ij#a   b   c#a\tb\tc\n"
+    );
+  } finally {
+    await shell.dispose();
+  }
+});

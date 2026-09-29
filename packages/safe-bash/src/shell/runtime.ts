@@ -24167,6 +24167,269 @@ export class Runtime {
     return out;
   }
 
+
+  private evalSyncColumn(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+    let tableMode = false;
+    let sepChars: Set<string> | undefined;
+    let outSep = "  ";
+    let emptyLines = false;
+    let headers: string[] | undefined;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a === "-t" || a === "--table") tableMode = true;
+      else if (a === "-e" || a === "--table-empty-lines") emptyLines = true;
+      else if (a === "-s" || a === "--separator") {
+        if (i + 1 >= opArgs.length || !opArgs[i + 1]) return undefined;
+        sepChars = new Set(Array.from(opArgs[++i]!));
+      } else if (a.startsWith("-s") && a.length > 2) {
+        sepChars = new Set(Array.from(a.slice(2)));
+      } else if (a.startsWith("--separator=") && a.length > 12) {
+        sepChars = new Set(Array.from(a.slice(12)));
+      } else if (a === "-o" || a === "--output-separator") {
+        if (i + 1 >= opArgs.length) return undefined;
+        outSep = opArgs[++i]!;
+      } else if (a.startsWith("-o") && a.length > 2) {
+        outSep = a.slice(2);
+      } else if (a.startsWith("--output-separator=")) {
+        outSep = a.slice(19);
+      } else if (a === "-N" || a === "--table-columns") {
+        if (i + 1 >= opArgs.length || !opArgs[i + 1]) return undefined;
+        headers = opArgs[++i]!.split(",");
+      } else if (a.startsWith("-N") && a.length > 2) {
+        headers = a.slice(2).split(",");
+      } else if (a.startsWith("--table-columns=") && a.length > 16) {
+        headers = a.slice(16).split(",");
+      } else if (/^-[te]+$/.test(a)) {
+        if (a.includes("t")) tableMode = true;
+        if (a.includes("e")) emptyLines = true;
+      } else {
+        return undefined;
+      }
+    }
+    if (!tableMode || /[^\x20-\x7e]/.test(outSep)) return undefined;
+    if (sepChars) {
+      for (const ch of sepChars) if (ch.length !== 1 || ch.charCodeAt(0) < 0x20 || ch.charCodeAt(0) >= 0x7f) return undefined;
+    }
+    if (headers && headers.some(h => !h || /[^\x20-\x7e]/.test(h))) return undefined;
+    const rows: string[][] = [];
+    let maxCols = headers ? headers.length : 0;
+    for (let i = 0; i < rawLines.length; i++) {
+      const l = rawLines[i]!;
+      if (/[^\x20-\x7e\t]/.test(l) || l.includes("\t")) return undefined;
+      if (l.length === 0) {
+        if (emptyLines) rows.push([]);
+        continue;
+      }
+      const row: string[] = [];
+      let start = 0;
+      for (let k = 0; k < l.length; k++) {
+        const ch = l[k]!;
+        const isSep = sepChars ? sepChars.has(ch) : (ch === " " || ch === "\t");
+        if (isSep) {
+          if (sepChars || k > start) row.push(l.slice(start, k));
+          start = k + 1;
+        }
+      }
+      if (sepChars || l.length > start) row.push(l.slice(start));
+      if (row.length === 0 && !emptyLines) continue;
+      if (row.length > maxCols) maxCols = row.length;
+      rows.push(row);
+    }
+    if (rows.length === 0) return [];
+    const allRows = headers ? [headers, ...rows] : rows;
+    const widths = new Array<number>(maxCols).fill(0);
+    for (let r = 0; r < allRows.length; r++) {
+      const row = allRows[r]!;
+      for (let c = 0; c < row.length; c++) {
+        if (row[c]!.length > widths[c]!) widths[c] = row[c]!.length;
+      }
+    }
+    const out: string[] = [];
+    for (let r = 0; r < allRows.length; r++) {
+      const row = allRows[r]!;
+      if (row.length === 0) { out.push(""); continue; }
+      let line = "";
+      for (let c = 0; c < maxCols; c++) {
+        const val = row[c] ?? "";
+        if (c + 1 < maxCols) {
+          line += val + " ".repeat(Math.max(0, widths[c]! - val.length)) + outSep;
+        } else {
+          line += val;
+        }
+      }
+      out.push(line);
+    }
+    return out;
+  }
+
+  private evalSyncFold(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+    let width = 80;
+    let breakSpaces = false;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a === "-s" || a === "--spaces") breakSpaces = true;
+      else if (a === "-b" || a === "--bytes" || a === "-c" || a === "--characters") { /* ASCII printable */ }
+      else if (a === "-w" || a === "--width") {
+        if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,4}$/.test(opArgs[i + 1]!)) return undefined;
+        width = Number(opArgs[++i]!);
+      } else if (a.startsWith("-w") && /^[1-9][0-9]{0,4}$/.test(a.slice(2))) {
+        width = Number(a.slice(2));
+      } else if (a.startsWith("--width=") && /^[1-9][0-9]{0,4}$/.test(a.slice(8))) {
+        width = Number(a.slice(8));
+      } else if (/^-[sbc]+w([1-9][0-9]{0,4})?$/.test(a)) {
+        if (a.includes("s")) breakSpaces = true;
+        const wIdx = a.indexOf("w");
+        const wRest = a.slice(wIdx + 1);
+        if (wRest) width = Number(wRest);
+        else {
+          if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,4}$/.test(opArgs[i + 1]!)) return undefined;
+          width = Number(opArgs[++i]!);
+        }
+      } else if (/^-[sbc]+$/.test(a)) {
+        if (a.includes("s")) breakSpaces = true;
+      } else {
+        return undefined;
+      }
+    }
+    const out: string[] = [];
+    for (let i = 0; i < rawLines.length; i++) {
+      let l = rawLines[i]!;
+      if (/[^\x20-\x7e]/.test(l)) return undefined;
+      if (l.length <= width) {
+        out.push(l);
+        continue;
+      }
+      if (!breakSpaces) {
+        for (let pos = 0; pos < l.length; pos += width) out.push(l.slice(pos, pos + width));
+      } else {
+        while (l.length > width) {
+          const sp = l.slice(0, width).lastIndexOf(" ");
+          const cut = sp >= 0 ? sp + 1 : width;
+          out.push(l.slice(0, cut));
+          l = l.slice(cut);
+        }
+        out.push(l);
+      }
+    }
+    return out;
+  }
+
+  private evalSyncExpand(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+    let tabStop = 8;
+    let initialOnly = false;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a === "-i" || a === "--initial") initialOnly = true;
+      else if (a === "-t" || a === "--tabs") {
+        if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,2}$/.test(opArgs[i + 1]!)) return undefined;
+        tabStop = Number(opArgs[++i]!);
+      } else if (a.startsWith("-t") && /^[1-9][0-9]{0,2}$/.test(a.slice(2))) {
+        tabStop = Number(a.slice(2));
+      } else if (a.startsWith("--tabs=") && /^[1-9][0-9]{0,2}$/.test(a.slice(7))) {
+        tabStop = Number(a.slice(7));
+      } else {
+        return undefined;
+      }
+    }
+    if (tabStop < 1 || tabStop > 64) return undefined;
+    const out: string[] = [];
+    for (let i = 0; i < rawLines.length; i++) {
+      const l = rawLines[i]!;
+      if (/[^\x20-\x7e\t]/.test(l)) return undefined;
+      if (!l.includes("\t")) { out.push(l); continue; }
+      let res = "";
+      let col = 0;
+      let initial = true;
+      for (let k = 0; k < l.length; k++) {
+        const ch = l[k]!;
+        if (ch === "\t" && (!initialOnly || initial)) {
+          const pad = tabStop - (col % tabStop);
+          res += " ".repeat(pad);
+          col += pad;
+        } else {
+          if (ch !== " " && ch !== "\t") initial = false;
+          res += ch;
+          col++;
+        }
+      }
+      out.push(res);
+    }
+    return out;
+  }
+
+  private evalSyncUnexpand(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+    let tabStop = 8;
+    let flagA = false;
+    let flagT = false;
+    let firstOnly = false;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a === "-a" || a === "--all") flagA = true;
+      else if (a === "--first-only") firstOnly = true;
+      else if (a === "-t" || a === "--tabs") {
+        if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,2}$/.test(opArgs[i + 1]!)) return undefined;
+        tabStop = Number(opArgs[++i]!);
+        flagT = true;
+      } else if (a.startsWith("-t") && /^[1-9][0-9]{0,2}$/.test(a.slice(2))) {
+        tabStop = Number(a.slice(2));
+        flagT = true;
+      } else if (a.startsWith("--tabs=") && /^[1-9][0-9]{0,2}$/.test(a.slice(7))) {
+        tabStop = Number(a.slice(7));
+        flagT = true;
+      } else {
+        return undefined;
+      }
+    }
+    if (tabStop < 1 || tabStop > 64) return undefined;
+    const all = !firstOnly && (flagA || flagT);
+    const out: string[] = [];
+    for (let i = 0; i < rawLines.length; i++) {
+      const l = rawLines[i]!;
+      if (/[^\x20-\x7e\t]/.test(l)) return undefined;
+      let res = "";
+      let column = 0, initial = true, active = true;
+      let pendingStart = 0, pendingCount = 0, pendingTab = false;
+      const flushBlanks = (): void => {
+        if (!pendingCount) return;
+        let position = pendingStart;
+        const convertSingle = initial || pendingCount > 1 || pendingTab;
+        while (position < column) {
+          const stop = position + tabStop - (position % tabStop);
+          if (stop <= column && (stop - position > 1 || convertSingle)) {
+            res += "\t";
+            position = stop;
+          } else {
+            res += " ";
+            position++;
+          }
+        }
+        pendingCount = 0;
+        pendingTab = false;
+      };
+      for (let k = 0; k < l.length; k++) {
+        const ch = l[k]!;
+        if (active && (ch === " " || ch === "\t")) {
+          const stop = column + tabStop - (column % tabStop);
+          if (!pendingCount) pendingStart = column;
+          pendingCount++;
+          pendingTab ||= ch === "\t";
+          column = ch === "\t" ? stop : column + 1;
+          continue;
+        }
+        if (pendingCount) flushBlanks();
+        res += ch;
+        if (active) {
+          column++;
+          initial = false;
+          if (!all) active = false;
+        }
+      }
+      if (pendingCount) flushBlanks();
+      out.push(res);
+    }
+    return out;
+  }
+
   private evalSyncNumfmt(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
     let fromScale: "none" | "iec" | "iec-i" | "si" | "auto" = "none";
     let toScale: "none" | "iec" | "iec-i" | "si" = "none";
@@ -24732,7 +24995,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "jq" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "jq" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -24785,6 +25048,14 @@ export class Runtime {
           if (this.evalSyncPaste([], sArgs) === undefined) return undefined;
         } else if (sName === "numfmt") {
           if (this.evalSyncNumfmt([], sArgs) === undefined) return undefined;
+        } else if (sName === "column") {
+          if (this.evalSyncColumn([], sArgs) === undefined) return undefined;
+        } else if (sName === "fold") {
+          if (this.evalSyncFold([], sArgs) === undefined) return undefined;
+        } else if (sName === "expand") {
+          if (this.evalSyncExpand([], sArgs) === undefined) return undefined;
+        } else if (sName === "unexpand") {
+          if (this.evalSyncUnexpand([], sArgs) === undefined) return undefined;
         } else {
           return undefined;
         }
@@ -24863,6 +25134,10 @@ export class Runtime {
           const isInlineNl = firstName === "nl";
           const isInlinePaste = firstName === "paste";
           const isInlineNumfmt = firstName === "numfmt";
+          const isInlineColumn = firstName === "column";
+          const isInlineFold = firstName === "fold";
+          const isInlineExpand = firstName === "expand";
+          const isInlineUnexpand = firstName === "unexpand";
           const isInlineSort = firstName === "sort" && !byteLocale(rawState.variables);
           const isInlineUniq = firstName === "uniq";
           const inlineSedMatch = firstName === "sed";
@@ -24984,6 +25259,22 @@ export class Runtime {
               const nmRes = this.evalSyncNumfmt(rawLines, stageArgs);
               if (nmRes === undefined) return undefined;
               outLines = nmRes;
+            } else if (isInlineColumn) {
+              const colRes = this.evalSyncColumn(rawLines, stageArgs);
+              if (colRes === undefined) return undefined;
+              outLines = colRes;
+            } else if (isInlineFold) {
+              const foldRes = this.evalSyncFold(rawLines, stageArgs);
+              if (foldRes === undefined) return undefined;
+              outLines = foldRes;
+            } else if (isInlineExpand) {
+              const expRes = this.evalSyncExpand(rawLines, stageArgs);
+              if (expRes === undefined) return undefined;
+              outLines = expRes;
+            } else if (isInlineUnexpand) {
+              const unexpRes = this.evalSyncUnexpand(rawLines, stageArgs);
+              if (unexpRes === undefined) return undefined;
+              outLines = unexpRes;
             } else if (isInlineBase64) {
               if (stageArgs.length === 0) {
                 const b64Wrapped = this.syncBase64Encode(prevBuf.subarray(0, prevLen));
@@ -25159,8 +25450,8 @@ export class Runtime {
       w0Plain === "sort" ||
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
-      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt"));
-    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste") && Boolean(this.getExternalCommand(w0Plain))))) {
+      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand"));
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {
@@ -25297,6 +25588,18 @@ export class Runtime {
             } else if (hasSingleHereStringRedir && w0Plain === "numfmt") {
               const nmRes = this.evalSyncNumfmt(rawLines, opArgs);
               if (nmRes !== undefined) fileRes = renderLines(nmRes);
+            } else if (hasSingleHereStringRedir && w0Plain === "column") {
+              const colRes = this.evalSyncColumn(rawLines, opArgs);
+              if (colRes !== undefined) fileRes = renderLines(colRes);
+            } else if (hasSingleHereStringRedir && w0Plain === "fold") {
+              const foldRes = this.evalSyncFold(rawLines, opArgs);
+              if (foldRes !== undefined) fileRes = renderLines(foldRes);
+            } else if (hasSingleHereStringRedir && w0Plain === "expand") {
+              const expRes = this.evalSyncExpand(rawLines, opArgs);
+              if (expRes !== undefined) fileRes = renderLines(expRes);
+            } else if (hasSingleHereStringRedir && w0Plain === "unexpand") {
+              const unexpRes = this.evalSyncUnexpand(rawLines, opArgs);
+              if (unexpRes !== undefined) fileRes = renderLines(unexpRes);
             }
             if (fileRes !== undefined) {
               // Charge emitted bytes before substitution removes trailing newlines.

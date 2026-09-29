@@ -1,4 +1,5 @@
-import { gzipSync, gunzipSync, zstdDecompressSync } from "node:zlib";
+import { gzip as pakoGzip, ungzip as pakoUngzip } from "pako";
+import zstdFactory from "safe-bash-compression-engine/native/generated/zstd";
 import { PublicDiagnostic } from "../../../diagnostics.js";
 import { type CommandDefinition } from "../../../contracts/index.js";
 import { codeOf, define, diagnostic, output } from "../../internal.js";
@@ -65,6 +66,72 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
   return [...commands.slice(0, 6), ...createXzCommands(config), ...commands.slice(6)];
 }
 
+function zstdUnavailable(): never {
+  throw new Error("codec attempted an unavailable host operation");
+}
+
+const syncZstdWasi = Object.freeze({
+  fd_prestat_get: () => 8,
+  fd_prestat_dir_name: zstdUnavailable,
+  fd_write: zstdUnavailable,
+  fd_read: zstdUnavailable,
+  fd_close: zstdUnavailable,
+  fd_seek: zstdUnavailable,
+  fd_fdstat_get: zstdUnavailable,
+  fd_fdstat_set_flags: zstdUnavailable,
+  fd_filestat_get: zstdUnavailable,
+  environ_get: zstdUnavailable,
+  environ_sizes_get: zstdUnavailable,
+  random_get: zstdUnavailable,
+  clock_time_get: zstdUnavailable,
+  proc_exit: zstdUnavailable,
+});
+
+function zstdDecompressPortableSync(srcBytes: Uint8Array): Uint8Array | undefined {
+  const module = zstdFactory(syncZstdWasi);
+  try {
+    module._initialize?.();
+    if (module.bridge_create(1, 3, 0, 30, 0, 0, 0, 0, 0) !== 0) return undefined;
+    const inputPointer = module.bridge_input();
+    const outputPointer = module.bridge_output();
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    let offset = 0;
+    for (let step = 0; step < 64; step++) {
+      const slice = srcBytes.subarray(offset, Math.min(srcBytes.byteLength, offset + 65536));
+      new Uint8Array(module.memory.buffer, inputPointer, slice.byteLength).set(slice);
+      const status = module.bridge_step(
+        inputPointer,
+        slice.byteLength,
+        outputPointer,
+        65536,
+        offset + slice.byteLength >= srcBytes.byteLength ? 1 : 0,
+      );
+      if (status !== 1 && status !== 2 && status !== 3 && status !== 4) return undefined;
+      const consumed = module.bridge_consumed();
+      const produced = module.bridge_produced();
+      offset += consumed;
+      if (produced > 0) {
+        total += produced;
+        if (total > 131072) return undefined;
+        chunks.push(new Uint8Array(module.memory.buffer, outputPointer, produced).slice());
+      }
+      if (status === 1 && offset >= srcBytes.byteLength) break;
+    }
+    if (chunks.length === 0) return new Uint8Array(0);
+    if (chunks.length === 1) return chunks[0]!;
+    const out = new Uint8Array(total);
+    let pos = 0;
+    for (const c of chunks) {
+      out.set(c, pos);
+      pos += c.byteLength;
+    }
+    return out;
+  } finally {
+    module.bridge_destroy();
+  }
+}
+
 const syncCompEncoder = new TextEncoder();
 
 export function evalSyncCompression(
@@ -104,10 +171,10 @@ export function evalSyncCompression(
             outChunk = new Uint8Array(0);
           } else {
             if (srcBytes.byteLength < 18 || srcBytes[0] !== 0x1f || srcBytes[1] !== 0x8b) return undefined;
-            outChunk = new Uint8Array(gunzipSync(srcBytes));
+            outChunk = pakoUngzip(srcBytes);
           }
         } else {
-          const gz = new Uint8Array(gzipSync(srcBytes, { level: options.level }));
+          const gz = new Uint8Array(pakoGzip(srcBytes, { level: options.level as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 }));
           if (gz.byteLength >= 10) gz[9] = 0xff;
           outChunk = gz;
         }
@@ -116,9 +183,11 @@ export function evalSyncCompression(
         if (srcBytes.byteLength === 0) {
           outChunk = new Uint8Array(0);
         } else if (srcBytes.byteLength >= 4 && srcBytes[0] === 0x28 && srcBytes[1] === 0xb5 && srcBytes[2] === 0x2f && srcBytes[3] === 0xfd) {
-          outChunk = new Uint8Array(zstdDecompressSync(srcBytes));
+          const dec = zstdDecompressPortableSync(srcBytes);
+          if (!dec) return undefined;
+          outChunk = dec;
         } else if (cmdName === "zstdcat" && srcBytes.byteLength >= 18 && srcBytes[0] === 0x1f && srcBytes[1] === 0x8b) {
-          outChunk = new Uint8Array(gunzipSync(srcBytes));
+          outChunk = pakoUngzip(srcBytes);
         } else {
           return undefined;
         }

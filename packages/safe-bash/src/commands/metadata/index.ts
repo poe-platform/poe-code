@@ -18,3 +18,5 @@ export function metadataCommands(options: MetadataCommandsOptions = {}): Virtual
     for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
   } };
 }
+
+export { evalSyncStat, type SyncStatInfo } from "./stat.js";

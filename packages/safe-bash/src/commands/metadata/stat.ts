@@ -265,3 +265,160 @@ export function createStatCommand(configuration: MetadataCommandsOptions = {}) {
     return { exitCode };
   });
 }
+
+export interface SyncStatInfo extends FileStat {
+  readonly target?: string;
+}
+
+const syncStatDecoder = new TextDecoder("utf-8", { fatal: false });
+
+function renderSync(
+  path: string,
+  name: string,
+  stat: SyncStatInfo,
+  format: string,
+  escapes: boolean,
+  limit: number,
+  filesystem: boolean,
+  terse: boolean,
+  quotingStyle: string | undefined,
+): Uint8Array {
+  const chunks: Uint8Array[] = [];
+  let bytes = 0;
+  const append = (text: string | Uint8Array) => {
+    const chunk = typeof text === "string" ? new TextEncoder().encode(text) : text;
+    bytes += chunk.byteLength;
+    if (bytes > limit) throw new FsError("EFBIG", { message: "stat format output limit exceeded" });
+    chunks.push(chunk);
+  };
+  for (let index = 0; index < format.length;) {
+    if (escapes && format[index] === "\\") {
+      const named: Record<string, string> = { a: "\x07", b: "\b", e: "\x1b", f: "\f", n: "\n", r: "\r", t: "\t", v: "\v", "\\": "\\", "\"": "\"" };
+      const code = format[index + 1] ?? "";
+      if (Object.hasOwn(named, code)) {
+        append(named[code]!);
+        index += 2;
+        continue;
+      }
+      const radix = code === "x" ? 16 : 8;
+      const start = index + (radix === 16 ? 2 : 1);
+      const end = Math.min(format.length, start + (radix === 16 ? 2 : 3));
+      let offset = start;
+      let value = 0;
+      while (offset < end) {
+        const digit = "0123456789abcdef".indexOf(format[offset]!.toLowerCase());
+        if (digit < 0 || digit >= radix) break;
+        value = value * radix + digit;
+        offset++;
+      }
+      if (offset === start) { append(format[index++]!); continue; }
+      append(Uint8Array.of(value));
+      index = offset;
+      continue;
+    }
+    if (format[index] !== "%") {
+      const point = String.fromCodePoint(format.codePointAt(index)!);
+      append(point); index += point.length; continue;
+    }
+    const parsed = directive(format, index);
+    index += parsed.length;
+    const { code, flags } = parsed;
+    const width = Number(parsed.width || 0);
+    if (!Number.isSafeInteger(width) || width > limit) throw new FsError("EFBIG", { message: "stat format width limit exceeded" });
+    const epochCode = !filesystem && ["X", "Y", "Z", "W"].includes(code);
+    const precision = parsed.precision === undefined ? undefined : Number(parsed.precision || (epochCode ? 9 : 0));
+    if (precision !== undefined && (!Number.isSafeInteger(precision) || precision > limit)) throw new FsError("EFBIG", { message: "stat format precision limit exceeded" });
+    if (code === "%" && parsed.length !== 2) throw new UsageError("invalid stat format directive");
+    if (filesystem) {
+      let text: string;
+      if (code === "n") text = name;
+      else if (code === "%") text = "%";
+      else if (code === "T") {
+        if (stat.filesystemType === undefined) throw new FsError("ENOTSUP", { syscall: "stat", message: "filesystem does not expose its type" });
+        if (typeof stat.filesystemType !== "string" || stat.filesystemType.length === 0) throw new FsError("EIO", { syscall: "stat", message: "invalid filesystem type" });
+        text = stat.filesystemType;
+      } else throw new FsError("ENOTSUP", { message: `unsupported filesystem stat format: %${code}` });
+      append(formatField(text, code, flags, width, precision, false, false));
+      continue;
+    }
+    let text: string;
+    let linkText: string | undefined;
+    let numeric = false;
+    if (["a", "A", "f"].includes(code)) available(stat.mode, "mode");
+    const times: Record<string, number | undefined> = { X: stat.atimeMs, Y: stat.mtimeMs, Z: stat.ctimeMs, W: stat.birthtimeMs };
+    if (Object.hasOwn(times, code)) { text = terse && times[code] === undefined ? "?" : epoch(available(times[code], code), precision ?? 0); numeric = text !== "?"; }
+    else if (code === "n") text = name;
+    else if (code === "N") {
+      text = quoted(name, quotingStyle);
+      if (stat.type === "symlink") {
+        if (stat.target === undefined) throw new FsError("ENOTSUP", { syscall: "readlink", path });
+        linkText = quoted(stat.target, quotingStyle);
+      }
+    } else if (code === "%") text = "%";
+    else if (code === "A") text = permissionString(stat.mode, stat.type);
+    else if (code === "F") text = stat.type === "directory" ? "directory" : stat.type === "symlink" ? "symbolic link" : stat.type === "character" ? "character special file" : stat.size === 0 ? "regular empty file" : "regular file";
+    else if (["x", "y", "z", "w"].includes(code)) {
+      const value = times[code.toUpperCase()];
+      text = code === "w" && value === undefined ? "-" : timestamp(available(value, code));
+    } else {
+      const fields: Record<string, number | undefined> = { s: stat.size, a: stat.mode & 0o7777, f: stat.mode, i: stat.ino, h: stat.nlink, u: stat.uid, g: stat.gid, d: stat.dev, D: stat.dev,
+        B: 512, b: stat.allocatedBytes === undefined ? undefined : Math.ceil(stat.allocatedBytes / 512),
+        o: stat.ioBlockSize, t: stat.rdevMajor, T: stat.rdevMinor };
+      if (!Object.hasOwn(fields, code)) throw new FsError("ENOTSUP", { message: `unsupported stat format: %${code}` });
+      const value = fields[code];
+      text = terse && value === undefined ? "?" : available(value, code).toString(code === "a" ? 8 : ["f", "D", "t", "T"].includes(code) ? 16 : 10);
+      numeric = text !== "?";
+    }
+    append(formatField(text, code, flags, width, precision, numeric, epochCode));
+    if (linkText !== undefined) {
+      append(" -> ");
+      append(formatField(linkText, code, flags, width, precision, false, false));
+    }
+  }
+  return Buffer.concat(chunks);
+}
+
+function resolveSyncStatPath(cwd: string, target: string): string {
+  const raw = target.startsWith("/") ? target : (cwd.endsWith("/") ? cwd + target : `${cwd}/${target}`);
+  const parts = raw.split("/");
+  const stack: string[] = [];
+  for (const part of parts) {
+    if (!part || part === ".") continue;
+    if (part === "..") stack.pop();
+    else stack.push(part);
+  }
+  return "/" + stack.join("/");
+}
+
+export function evalSyncStat(
+  args: readonly string[],
+  cwd: string,
+  quotingStyle: string | undefined,
+  inspectStat: (absPath: string, follow: boolean) => SyncStatInfo | undefined,
+): string | undefined {
+  let parsed: ReturnType<typeof parse>;
+  try {
+    parsed = parse(args);
+  } catch {
+    return undefined;
+  }
+  const outChunks: Uint8Array[] = [];
+  for (const name of parsed.paths) {
+    if (!name) return undefined;
+    const abs = resolveSyncStatPath(cwd, name);
+    const stat = inspectStat(abs, parsed.follow || parsed.filesystem);
+    if (!stat) return undefined;
+    const terse = parsed.terse && parsed.format === undefined;
+    if (terse && parsed.filesystem) return undefined;
+    const format = parsed.format ?? (parsed.filesystem ? "  File: %n\n  Type: %T" : terse
+      ? "%n %s %b %f %u %g %D %i %h %t %T %X %Y %Z %W %o"
+      : "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w");
+    try {
+      const rendered = renderSync(abs, name, stat, format, parsed.printf, 262144, parsed.filesystem, terse, quotingStyle);
+      outChunks.push(parsed.printf ? rendered : Buffer.concat([rendered, Uint8Array.of(10)]));
+    } catch {
+      return undefined;
+    }
+  }
+  return syncStatDecoder.decode(Buffer.concat(outChunks));
+}

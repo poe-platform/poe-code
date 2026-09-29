@@ -22,6 +22,9 @@ import { createGrepAliasCommands } from "../../src/commands/grep-aliases/index.j
 import { createDfCommands } from "../../src/commands/df/index.js";
 import { createDuCommands } from "../../src/commands/du/index.js";
 import { createTreeCommands } from "../../src/commands/tree/index.js";
+import { createMetadataCommands } from "../../src/commands/metadata/index.js";
+import { createFdCommands } from "../../src/commands/fd/index.js";
+import { createSearchCommands } from "../../src/commands/search/index.js";
 
 const parityXml = new TextEncoder().encode('<config><server id="main"><host>local&#13;host</host><?pi target="1"?><?empty?></server><server id="backup"><host>replica</host></server></config>');
 
@@ -703,4 +706,48 @@ test("sync substitution fast path covers df, du, and tree (Wave 138)", async () 
   `);
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "/proj,README.md,src,index.ts,:80\n");
+});
+
+test("sync substitution fast path covers stat, fd, and rg (Wave 139)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/repo/src", { recursive: true });
+  await fs.writeFile("/repo/README.md", new TextEncoder().encode("# Title\nhello world\n"));
+  await fs.writeFile("/repo/src/app.ts", new TextEncoder().encode("export const port = 8080;\n"));
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createMetadataCommands(),
+    ...createFdCommands(),
+    ...createSearchCommands(),
+  ]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(stat -c "%s:%F" /repo/README.md):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "20:regular file:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(fd -e ts . /repo):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "/repo/src/app.ts:80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(rg -n "port" /repo/src/app.ts):$(cat /repo/README.md | rg -c "hello"):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "1:export const port = 8080;:1:80\n");
 });

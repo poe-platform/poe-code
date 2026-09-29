@@ -20,7 +20,7 @@ import { createSafeJsCommands, type SafeJsRuntime } from "../../src/commands/saf
 import { RegexExecutionError, RegexExecutor } from "../../src/commands/regex-execution/portable.js";
 import { createByteCommands } from "../../src/commands/bytes/index.js";
 import { createBoundedRegexProvider } from "../../src/commands/regex-execution/bounded-provider.js";
-import { createExprCommandWithExecutor } from "../../src/commands/expr/command.js";
+import { createExprCommandWithExecutor } from "safe-bash-command-expr/command";
 import { createGrepCommands } from "../../src/commands/search/grep.js";
 import { compile } from "../../src/commands/regex-execution/matching.js";
 import type { RegexWorkerRequest } from "../../src/commands/regex-execution/provider.js";

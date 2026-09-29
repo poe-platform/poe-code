@@ -3,6 +3,7 @@
 pub mod commands;
 pub mod cli;
 pub mod crypto;
+pub mod hooks;
 mod cli_files;
 mod cli_history;
 mod cli_patch;

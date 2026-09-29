@@ -571,6 +571,7 @@ pub fn execute_git_cli_with_input(
             let mut msgs: Vec<String> = Vec::new();
             let mut amend = false;
             let mut stage_all = false;
+            let mut no_verify = false;
             let mut custom_author: Option<(String, String)> = None;
             let mut reuse_commit: Option<&str> = None;
             let mut msg_file: Option<&str> = None;
@@ -582,6 +583,11 @@ pub fn execute_git_cli_with_input(
                 if matches!(arg, "-m" | "--message") && i + 1 < sub_args.len() {
                     msgs.push(sub_args[i + 1].to_string());
                     i += 2;
+                    continue;
+                }
+                if matches!(arg, "-n" | "--no-verify") {
+                    no_verify = true;
+                    i += 1;
                     continue;
                 }
                 if let Some(m) = arg.strip_prefix("--message=") {
@@ -674,6 +680,12 @@ pub fn execute_git_cli_with_input(
                     let _ = add(fs, &repo_root, Some(&gitdir), &to_add, false);
                 }
             }
+            if !no_verify {
+                let pre = crate::hooks::run_hook(fs, &repo_root, &gitdir, "pre-commit", &[], None);
+                if pre.ran && pre.exit_code != 0 {
+                    return CliResult::err(pre.exit_code, format!("{}{}", pre.stdout, pre.stderr));
+                }
+            }
             if let Some(f_arg) = msg_file
                 && let Some(text) = if f_arg == "-" { Some(stdin_text.to_string()) } else { fs.read_str(&absolute_path(&effective_cwd, f_arg)) }
             {
@@ -697,11 +709,43 @@ pub fn execute_git_cli_with_input(
                     msgs.push(m.trim_end_matches('\n').to_string());
                 }
             }
-            let joined_msg = if msgs.is_empty() {
+            let mut joined_msg = if msgs.is_empty() {
                 None
             } else {
                 Some(msgs.join("\n\n"))
             };
+            if let Some(ref initial_m) = joined_msg {
+                let editmsg_path = join(&[&gitdir, "COMMIT_EDITMSG"]);
+                fs.write_str(&editmsg_path, &format!("{initial_m}\n"));
+                let prep = crate::hooks::run_hook(
+                    fs,
+                    &repo_root,
+                    &gitdir,
+                    "prepare-commit-msg",
+                    &[&editmsg_path, "message"],
+                    None,
+                );
+                if prep.ran && prep.exit_code != 0 && !no_verify {
+                    return CliResult::err(prep.exit_code, format!("{}{}", prep.stdout, prep.stderr));
+                }
+                if !no_verify {
+                    let cm = crate::hooks::run_hook(
+                        fs,
+                        &repo_root,
+                        &gitdir,
+                        "commit-msg",
+                        &[&editmsg_path],
+                        None,
+                    );
+                    if cm.ran && cm.exit_code != 0 {
+                        return CliResult::err(cm.exit_code, format!("{}{}", cm.stdout, cm.stderr));
+                    }
+                }
+                if let Some(updated_m) = fs.read_str(&editmsg_path) {
+                    joined_msg = Some(updated_m.trim_end_matches('\n').to_string());
+                }
+            }
+            let prev_head_before_commit = resolve_ref(fs, &gitdir, "HEAD", None).ok();
             let merge_parents = if !amend
                 && let Some(mh) = fs.read_str(&join(&[&gitdir, "MERGE_HEAD"]))
                 && let Ok(head_oid) = resolve_ref(fs, &gitdir, "HEAD", None)
@@ -820,6 +864,19 @@ pub fn execute_git_cli_with_input(
                     let _ = fs.rm(&join(&[&gitdir, "MERGE_MSG"]));
                     let _ = fs.rm(&join(&[&gitdir, "MERGE_MODE"]));
                     let _ = fs.rm(&join(&[&gitdir, "SQUASH_MSG"]));
+                    let _ = crate::hooks::run_hook(fs, &repo_root, &gitdir, "post-commit", &[], None);
+                    if amend
+                        && let Some(ref old_id) = prev_head_before_commit
+                    {
+                        let _ = crate::hooks::run_hook(
+                            fs,
+                            &repo_root,
+                            &gitdir,
+                            "post-rewrite",
+                            &["amend"],
+                            Some(&format!("{old_id} {oid}\n")),
+                        );
+                    }
                     CliResult::ok(format!("[{}] {}\n", &oid[..7], joined_msg.as_deref().unwrap_or("")))
                 }
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
@@ -1623,6 +1680,14 @@ pub fn execute_git_cli_with_input(
                         "{old_head_oid} {new_head_oid} Git User <user@example.com> 1502484200 +0000\tcheckout: moving from {old_head_name} to {ref_target}\n"
                     ));
                     fs.write_str(&head_log_path, &existing_log);
+                    let _ = crate::hooks::run_hook(
+                        fs,
+                        &repo_root,
+                        &gitdir,
+                        "post-checkout",
+                        &[&old_head_oid, &new_head_oid, "1"],
+                        None,
+                    );
                     CliResult::ok(format!("Switched to branch '{ref_target}'\n"))
                 }
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
@@ -1971,6 +2036,14 @@ pub fn execute_git_cli_with_input(
                             false,
                         );
                     }
+                    let _ = crate::hooks::run_hook(
+                        fs,
+                        &repo_root,
+                        &gitdir,
+                        "post-merge",
+                        &[if squash { "1" } else { "0" }],
+                        None,
+                    );
                     CliResult::ok(format!("Merged {}\n", r.oid.unwrap_or_default()))
                 }
                 Err(e) => CliResult::err(1, format!("CONFLICT: {}\n", e.message)),
@@ -3277,6 +3350,17 @@ pub fn execute_git_cli_with_input(
             let Some(&upstream_ref) = rb_pos.first() else {
                 return CliResult::err(128, "fatal: no upstream specified\n");
             };
+            let pre_rb = crate::hooks::run_hook(
+                fs,
+                &repo_root,
+                &gitdir,
+                "pre-rebase",
+                &rb_pos,
+                None,
+            );
+            if pre_rb.ran && pre_rb.exit_code != 0 {
+                return CliResult::err(pre_rb.exit_code, format!("{}{}", pre_rb.stdout, pre_rb.stderr));
+            }
             if let Some(&branch_arg) = rb_pos.get(1)
                 && let Err(e) = checkout(fs, &repo_root, Some(&gitdir), Some(branch_arg), None, None, true, false, false, true, false)
             {
@@ -3339,10 +3423,26 @@ pub fn execute_git_cli_with_input(
                 timestamp: 1502484200,
                 timezone_offset: 0.0,
             };
+            let mut rewritten_lines = String::new();
             for c_oid in to_replay {
-                if let Err(e) = cherry_pick(fs, Some(&repo_root), &gitdir, &c_oid, false, false, true, None, Some(author.clone()), None) {
-                    return CliResult::err(1, format!("error: could not apply {c_oid}: {}\n", e.message));
+                match cherry_pick(fs, Some(&repo_root), &gitdir, &c_oid, false, false, true, None, Some(author.clone()), None) {
+                    Ok(new_oid) => {
+                        rewritten_lines.push_str(&format!("{c_oid} {new_oid}\n"));
+                    }
+                    Err(e) => {
+                        return CliResult::err(1, format!("error: could not apply {c_oid}: {}\n", e.message));
+                    }
                 }
+            }
+            if !rewritten_lines.is_empty() {
+                let _ = crate::hooks::run_hook(
+                    fs,
+                    &repo_root,
+                    &gitdir,
+                    "post-rewrite",
+                    &["rebase"],
+                    Some(&rewritten_lines),
+                );
             }
             let _ = fs.rmdir(&rebase_dir);
             let target_label = cur_branch.unwrap_or_else(|| "HEAD".to_string());
@@ -4267,44 +4367,69 @@ pub fn execute_git_cli_with_input(
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
         }
-        "push" => match push(
-            fs,
-            http,
-            Some(&repo_root),
-            Some(&gitdir),
-            positionals.get(1).copied(),
-            None,
-            positionals.first().copied(),
-            None,
-            sub_args.contains(&"-f") || sub_args.contains(&"--force"),
-            sub_args.contains(&"--delete") || sub_args.contains(&"-d"),
-            None,
-            None,
-            None,
-        ) {
-            Ok(_) => {
-                if sub_args.contains(&"-u") || sub_args.contains(&"--set-upstream") {
-                    let remote = positionals.first().copied().unwrap_or("origin");
-                    let branch = positionals
-                        .get(1)
-                        .map(|s| s.to_string())
-                        .or_else(|| current_branch(fs, &gitdir, false, false).ok().flatten());
-                    if let Some(branch) = branch {
-                        let name = branch.trim_start_matches("refs/heads/");
-                        for (key, value) in [
-                            (format!("branch.{name}.remote"), remote.to_string()),
-                            (format!("branch.{name}.merge"), format!("refs/heads/{name}")),
-                        ] {
-                            if let Err(e) = set_config(fs, &gitdir, &key, Some(&value), false) {
-                                return CliResult::err(128, format!("fatal: {}\n", e.message));
+        "push" => {
+            if !sub_args.contains(&"--no-verify") {
+                let remote_name = positionals.first().copied().unwrap_or("origin");
+                let remote_url = get_config(fs, &gitdir, &format!("remote.{remote_name}.url"))
+                    .map(|v| v.as_str().to_string())
+                    .unwrap_or_else(|| remote_name.to_string());
+                let head_oid = resolve_ref(fs, &gitdir, "HEAD", None).unwrap_or_else(|_| "0".repeat(40));
+                let cur_b = current_branch(fs, &gitdir, true, false)
+                    .ok()
+                    .flatten()
+                    .unwrap_or_else(|| "refs/heads/main".to_string());
+                let stdin_line = format!("{cur_b} {head_oid} {cur_b} {}\n", "0".repeat(40));
+                let pre_p = crate::hooks::run_hook(
+                    fs,
+                    &repo_root,
+                    &gitdir,
+                    "pre-push",
+                    &[remote_name, &remote_url],
+                    Some(&stdin_line),
+                );
+                if pre_p.ran && pre_p.exit_code != 0 {
+                    return CliResult::err(pre_p.exit_code, format!("{}{}", pre_p.stdout, pre_p.stderr));
+                }
+            }
+            match push(
+                fs,
+                http,
+                Some(&repo_root),
+                Some(&gitdir),
+                positionals.get(1).copied(),
+                None,
+                positionals.first().copied(),
+                None,
+                sub_args.contains(&"-f") || sub_args.contains(&"--force"),
+                sub_args.contains(&"--delete") || sub_args.contains(&"-d"),
+                None,
+                None,
+                None,
+            ) {
+                Ok(_) => {
+                    if sub_args.contains(&"-u") || sub_args.contains(&"--set-upstream") {
+                        let remote = positionals.first().copied().unwrap_or("origin");
+                        let branch = positionals
+                            .get(1)
+                            .map(|s| s.to_string())
+                            .or_else(|| current_branch(fs, &gitdir, false, false).ok().flatten());
+                        if let Some(branch) = branch {
+                            let name = branch.trim_start_matches("refs/heads/");
+                            for (key, value) in [
+                                (format!("branch.{name}.remote"), remote.to_string()),
+                                (format!("branch.{name}.merge"), format!("refs/heads/{name}")),
+                            ] {
+                                if let Err(e) = set_config(fs, &gitdir, &key, Some(&value), false) {
+                                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                                }
                             }
                         }
                     }
+                    CliResult::ok("")
                 }
-                CliResult::ok("")
+                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
-            Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
-        },
+        }
         "check-ref-format" => {
             let branch_mode = sub_args.contains(&"--branch");
             let onelevel = sub_args.contains(&"--allow-onelevel") || branch_mode;

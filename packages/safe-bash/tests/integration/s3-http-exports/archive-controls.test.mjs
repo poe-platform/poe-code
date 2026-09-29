@@ -1417,7 +1417,7 @@ test("dist continuity refuses bytes, membership, ordering, root and selected-ide
 
 test("dist inventory denies held aliases, nonliteral paths and nonregular ancestors before any content reads", () => {
   assert.equal(typeof distChecks.readDistInventory, "function");
-  for (const path of ["dist/commands/xan/blocked.js", "dist/commands/XAN/blocked.js", "dist/@(current|frozen).js", "dist/../escape.js", "dist/link.js", "dist/nonregular", "dist/alias/index.js", "dist/A.js"]) {
+  for (const path of ["dist/commands/xan/design-evidence/blocked.js", "dist/commands/XAN/design-evidence/blocked.js", "dist/@(current|frozen).js", "dist/../escape.js", "dist/link.js", "dist/nonregular", "dist/alias/index.js", "dist/A.js"]) {
     const fixture = syntheticDist([["dist/good.js", "admitted"], ["dist/a.js", "lowercase"], [path, "must not read"]]);
     if (path === "dist/link.js" || path === "dist/nonregular") fixture.records.get(path).kind = "nonregular";
     if (path === "dist/alias/index.js") fixture.records.get("dist/alias").kind = "symlink";
@@ -1844,21 +1844,21 @@ for (const script of ["build.mjs"]) for (const defect of ["missing", "drift", "s
 });
 
 test("committed build script drift and held path aliases fail before candidate execution", async () => {
-  for (const defect of ["script", "held-alias", "held-neighbor"]) await withRepository(fixture => {
+  for (const defect of ["script", "held-alias", "source-case-alias"]) await withRepository(fixture => {
     if (defect === "script") fixture.put(`${packagePrefix}/scripts/integration-inputs.mjs`, "throw new Error('must not execute');\n");
-    else if (defect === "held-alias") fixture.indexEntries.push({ path: `${packagePrefix}/src/commands/XAN/extra.ts`, bytes: "SYNTHETIC_WITHHELD_SENTINEL\n" });
-    else fixture.put(`${packagePrefix}/src/commands/xan/extra.ts`, "SYNTHETIC_WITHHELD_SENTINEL\n");
+    else if (defect === "held-alias") fixture.indexEntries.push({ path: `${packagePrefix}/src/commands/XAN/design-evidence/extra.ts`, bytes: "SYNTHETIC_WITHHELD_SENTINEL\n" });
+    else fixture.indexEntries.push({ path: `${packagePrefix}/src/INDEX.ts`, bytes: "SYNTHETIC_CASE_ALIAS_SENTINEL\n" });
   }, fixture => {
     if (defect === "held-alias") {
       const tree = fixture.git(["ls-tree", "-rz", "--full-tree", "HEAD"], { raw: true });
       assert.equal(tree.at(-1), 0);
       const records = tree.subarray(0, -1).toString("utf8").split("\0");
-      const alias = records.find(record => record.slice(record.indexOf("\t") + 1) === `${packagePrefix}/src/commands/XAN/extra.ts`);
+      const alias = records.find(record => record.slice(record.indexOf("\t") + 1) === `${packagePrefix}/src/commands/XAN/design-evidence/extra.ts`);
       assert.ok(alias, "synthetic committed tree must contain the exact case-alias bytes");
       console.log(JSON.stringify({ defect, treeBytes: tree.length, alias }));
     }
     assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output), error => {
-      assert.match(error.message, defect === "script" ? /differs from reviewed authority/ : defect === "held-alias" ? /case alias/ : /held source metadata inventory/, defect);
+      assert.match(error.message, defect === "script" ? /differs from reviewed authority/ : /case alias/, defect);
       if (defect === "script") {
         assert.ok(error instanceof assert.AssertionError);
         assert.equal(error.code, "ERR_ASSERTION");
@@ -1885,7 +1885,7 @@ test("committed archive refuses source symlinks and package prepare lifecycles b
 
 test("pre-read committed admission never requests held blobs or nonregular input bodies", async () => {
   for (const defect of ["none", "source-symlink", "guard-symlink", "held-alias"]) await withRepository(fixture => {
-    if (defect === "held-alias") fixture.indexEntries.push({ path: `${packagePrefix}/src/commands/XAN/extra.ts`, bytes: "SYNTHETIC_WITHHELD_SENTINEL\n" });
+    if (defect === "held-alias") fixture.indexEntries.push({ path: `${packagePrefix}/src/commands/XAN/design-evidence/extra.ts`, bytes: "SYNTHETIC_WITHHELD_SENTINEL\n" });
     if (defect.endsWith("symlink")) {
       const path = defect === "source-symlink" ? `${packagePrefix}/src/index.ts` : "scripts/guard-package-dist.mjs";
       rmSync(join(fixture.repository, path));
@@ -1913,7 +1913,7 @@ test("pre-read committed admission never requests held blobs or nonregular input
     if (defect === "none") {
       const candidate = inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute);
       assert.ok(candidate.files.has(`${packagePrefix}/src/index.ts`));
-      assert.ok(candidate.withheldPaths.length >= 13);
+      assert.equal(candidate.withheldPaths.length, boundaries.heldSourceFiles.length + boundaries.heldEvidenceDirectories.filter(path => path.startsWith("src/")).length);
     } else assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), defect === "held-alias" ? /case alias/ : /regular committed/);
     if (defect === "none") assert.ok(readOids.length > 0, "positive admitted blob-read control was not exercised");
     else assert.equal(readOids.length, 0, "structural refusal must precede every body request");
@@ -1992,7 +1992,7 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.equal(report.distBaseline.archiveSha256, report.archive.sha256);
     assert.deepEqual(report.distBaseline.files.map(entry => entry.path), report.package.files.filter(path => path.startsWith("dist/")));
     assert.deepEqual(report.distChecks, ["copied", "packed", "copied after pack", "before runtime", "before strict types", "before invalid types", "final built", "final copied", "final installed"]);
-    assert.ok(report.withheldPaths.length >= 12);
+    assert.equal(report.withheldPaths.length, boundaries.heldSourceFiles.length + boundaries.heldEvidenceDirectories.filter(path => path.startsWith("src/")).length);
     assert.ok(report.blobReads.every(path => !path.includes("/src/commands/xan/")));
     assert.ok(report.archivePaths.every(path => !path.includes("/src/commands/xan/")));
     assert.ok(report.steps.every(step => !step.args.includes("prepare") && !step.args.includes("build")));

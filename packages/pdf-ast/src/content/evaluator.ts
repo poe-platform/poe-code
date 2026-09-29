@@ -1,4 +1,4 @@
-import { DeviceCmykCS, getEncoding, type CMap } from "../vendor/pdfjs-fonts.mjs";
+import { buildPostScriptJsFunction, DeviceCmykCS, getEncoding, type CMap } from "../vendor/pdfjs-fonts.mjs";
 import { parseEmbeddedType1Font } from "../fonts/type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "../fonts/cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "../fonts/standard-outlines.js";
@@ -24,6 +24,7 @@ import {
 } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
+import { bytesToString } from "../bytes.js";
 import { parseCharacterCMap, readCMapCharacters, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "../fonts/truetype.js";
 import { parseContentStream } from "./parser.js";
@@ -327,194 +328,12 @@ interface GraphicsState {
   blendMode?: string | undefined;
 }
 
-function evaluateType4PostScriptTokens(tokens: readonly string[], initialStack: readonly number[]): number[] {
-  const stack: number[] = [...initialStack];
-  const runRange = (start: number, end: number): void => {
-    let i = start;
-    while (i < end) {
-      const tok = tokens[i]!;
-      if (tok === "{") {
-        let depth = 1;
-        let j = i + 1;
-        while (j < end && depth > 0) {
-          if (tokens[j] === "{") depth++;
-          else if (tokens[j] === "}") depth--;
-          j++;
-        }
-        const blockStart = i + 1;
-        const blockEnd = j - 1;
-        if (j < end && tokens[j] === "{") {
-          let depth2 = 1;
-          let k = j + 1;
-          while (k < end && depth2 > 0) {
-            if (tokens[k] === "{") depth2++;
-            else if (tokens[k] === "}") depth2--;
-            k++;
-          }
-          if (k < end && tokens[k] === "ifelse") {
-            const cond = stack.pop() ?? 0;
-            if (cond !== 0) runRange(blockStart, blockEnd);
-            else runRange(j + 1, k - 1);
-            i = k + 1;
-            continue;
-          }
-        }
-        if (j < end && tokens[j] === "if") {
-          const cond = stack.pop() ?? 0;
-          if (cond !== 0) runRange(blockStart, blockEnd);
-          i = j + 1;
-          continue;
-        }
-        runRange(blockStart, blockEnd);
-        i = j;
-        continue;
-      }
-      if (tok === "}") {
-        i++;
-        continue;
-      }
-      const numVal = Number(tok);
-      if (tok.length > 0 && !Number.isNaN(numVal)) {
-        stack.push(numVal);
-      } else if (tok === "true") {
-        stack.push(1);
-      } else if (tok === "false") {
-        stack.push(0);
-      } else if (tok === "add") {
-        const b = stack.pop() ?? 0, a = stack.pop() ?? 0;
-        stack.push(a + b);
-      } else if (tok === "sub") {
-        const b = stack.pop() ?? 0, a = stack.pop() ?? 0;
-        stack.push(a - b);
-      } else if (tok === "mul") {
-        const b = stack.pop() ?? 0, a = stack.pop() ?? 0;
-        stack.push(a * b);
-      } else if (tok === "div") {
-        const b = stack.pop() ?? 1, a = stack.pop() ?? 0;
-        stack.push(Math.abs(b) > 1e-12 ? a / b : 0);
-      } else if (tok === "idiv") {
-        const b = stack.pop() ?? 1, a = stack.pop() ?? 0;
-        stack.push(Math.abs(b) > 1e-12 ? Math.trunc(a / b) : 0);
-      } else if (tok === "mod") {
-        const b = stack.pop() ?? 1, a = stack.pop() ?? 0;
-        stack.push(Math.abs(b) > 1e-12 ? a % b : 0);
-      } else if (tok === "neg") {
-        stack.push(-(stack.pop() ?? 0));
-      } else if (tok === "abs") {
-        stack.push(Math.abs(stack.pop() ?? 0));
-      } else if (tok === "ceiling") {
-        stack.push(Math.ceil(stack.pop() ?? 0));
-      } else if (tok === "floor") {
-        stack.push(Math.floor(stack.pop() ?? 0));
-      } else if (tok === "round") {
-        stack.push(Math.round(stack.pop() ?? 0));
-      } else if (tok === "truncate" || tok === "cvi") {
-        stack.push(Math.trunc(stack.pop() ?? 0));
-      } else if (tok === "sqrt") {
-        stack.push(Math.sqrt(Math.max(0, stack.pop() ?? 0)));
-      } else if (tok === "sin") {
-        stack.push(Math.sin(((stack.pop() ?? 0) * Math.PI) / 180));
-      } else if (tok === "cos") {
-        stack.push(Math.cos(((stack.pop() ?? 0) * Math.PI) / 180));
-      } else if (tok === "atan") {
-        const dx = stack.pop() ?? 1, dy = stack.pop() ?? 0;
-        let deg = (Math.atan2(dy, dx) * 180) / Math.PI;
-        if (deg < 0) deg += 360;
-        stack.push(deg);
-      } else if (tok === "exp") {
-        const exp = stack.pop() ?? 1, base = stack.pop() ?? 0;
-        stack.push(Math.pow(base, exp));
-      } else if (tok === "ln") {
-        stack.push(Math.log(Math.max(1e-12, stack.pop() ?? 1)));
-      } else if (tok === "log") {
-        stack.push(Math.log10(Math.max(1e-12, stack.pop() ?? 1)));
-      } else if (tok === "dup") {
-        if (stack.length > 0) stack.push(stack[stack.length - 1]!);
-      } else if (tok === "exch") {
-        if (stack.length >= 2) {
-          const b = stack.pop()!, a = stack.pop()!;
-          stack.push(b, a);
-        }
-      } else if (tok === "pop") {
-        stack.pop();
-      } else if (tok === "copy") {
-        const n = Math.max(0, Math.trunc(stack.pop() ?? 0));
-        const slice = stack.slice(Math.max(0, stack.length - n));
-        stack.push(...slice);
-      } else if (tok === "index") {
-        const n = Math.max(0, Math.trunc(stack.pop() ?? 0));
-        const idx = stack.length - 1 - n;
-        if (idx >= 0 && idx < stack.length) stack.push(stack[idx]!);
-      } else if (tok === "roll") {
-        const jShift = Math.trunc(stack.pop() ?? 0);
-        const n = Math.max(0, Math.trunc(stack.pop() ?? 0));
-        if (n > 0 && stack.length >= n) {
-          const sub = stack.splice(stack.length - n, n);
-          const modShift = ((jShift % n) + n) % n;
-          const rolled = [...sub.slice(n - modShift), ...sub.slice(0, n - modShift)];
-          stack.push(...rolled);
-        }
-      } else if (tok === "eq") {
-        const b = stack.pop() ?? 0, a = stack.pop() ?? 0;
-        stack.push(Math.abs(a - b) < 1e-9 ? 1 : 0);
-      } else if (tok === "ne") {
-        const b = stack.pop() ?? 0, a = stack.pop() ?? 0;
-        stack.push(Math.abs(a - b) >= 1e-9 ? 1 : 0);
-      } else if (tok === "gt") {
-        const b = stack.pop() ?? 0, a = stack.pop() ?? 0;
-        stack.push(a > b ? 1 : 0);
-      } else if (tok === "ge") {
-        const b = stack.pop() ?? 0, a = stack.pop() ?? 0;
-        stack.push(a >= b ? 1 : 0);
-      } else if (tok === "lt") {
-        const b = stack.pop() ?? 0, a = stack.pop() ?? 0;
-        stack.push(a < b ? 1 : 0);
-      } else if (tok === "le") {
-        const b = stack.pop() ?? 0, a = stack.pop() ?? 0;
-        stack.push(a <= b ? 1 : 0);
-      } else if (tok === "and") {
-        const b = stack.pop() ?? 0, a = stack.pop() ?? 0;
-        stack.push(a !== 0 && b !== 0 ? 1 : 0);
-      } else if (tok === "or") {
-        const b = stack.pop() ?? 0, a = stack.pop() ?? 0;
-        stack.push(a !== 0 || b !== 0 ? 1 : 0);
-      } else if (tok === "not") {
-        const a = stack.pop() ?? 0;
-        stack.push(a === 0 ? 1 : 0);
-      }
-      i++;
-    }
-  };
-  runRange(0, tokens.length);
-  return stack;
-}
-
-function tokenizePostScriptCode(bytes: Uint8Array): string[] {
-  const tokens: string[] = [];
-  let cur = "";
-  for (let i = 0; i < bytes.length; i++) {
-    const ch = String.fromCharCode(bytes[i]!);
-    if (ch === "{" || ch === "}") {
-      if (cur.length > 0) {
-        tokens.push(cur);
-        cur = "";
-      }
-      tokens.push(ch);
-    } else if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") {
-      if (cur.length > 0) {
-        tokens.push(cur);
-        cur = "";
-      }
-    } else {
-      cur += ch;
-    }
-  }
-  if (cur.length > 0) tokens.push(cur);
-  if (tokens[0] === "{" && tokens[tokens.length - 1] === "}") {
-    return tokens.slice(1, -1);
-  }
-  return tokens;
-}
+const postScriptFunctions = new WeakMap<PdfCosStream, {
+  source: string;
+  domain: number[];
+  range: number[];
+  evaluate: ReturnType<typeof buildPostScriptJsFunction>;
+}>();
 
 export function evalShadingFunctionToComponents(
   doc: ParsedCosDocument,
@@ -627,9 +446,17 @@ export function evalShadingFunctionToComponents(
       const d1 = dom[i * 2 + 1] ?? 1;
       return Math.max(d0, Math.min(d1, v));
     });
-    const tokens = tokenizePostScriptCode(doc.decodeStream(resolved));
-    const stackOut = evaluateType4PostScriptTokens(tokens, clampedInputs);
-    return clampRange(stackOut);
+    const source = bytesToString(doc.decodeStream(resolved));
+    let cached = postScriptFunctions.get(resolved);
+    if (!cached || cached.source !== source ||
+      cached.domain.length !== dom.length || cached.domain.some((value, index) => value !== dom[index]) ||
+      cached.range.length !== range.length || cached.range.some((value, index) => value !== range[index])) {
+      cached = { source, domain: dom, range, evaluate: buildPostScriptJsFunction(source, dom, range) };
+      postScriptFunctions.set(resolved, cached);
+    }
+    const output: number[] = [];
+    cached.evaluate(clampedInputs, 0, output, 0);
+    return output;
   }
 
   if (ft === 3) {

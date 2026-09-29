@@ -112,6 +112,8 @@ export class PDF17 {
 }
 export class PDF20 extends PDF17 {}
 export function saslPrep(value: string): string;
+export function buildPostScriptJsFunction(source: string, domain: readonly number[], range: readonly number[]):
+  (src: readonly number[], srcOffset: number, dest: number[], destOffset: number) => void;
 export class CipherTransformFactory {
   constructor(dict: Dict, fileId: string, password?: string);
   readonly encryptionKey: Uint8Array | null;

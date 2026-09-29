@@ -447,6 +447,14 @@ cover non-unit domains, zero/negative exponents, output ranges, segment bounds,
 reversed encoding, and image tint consistency. Domain and Range clipping also
 follow the PDF function contract.
 
+Calculator functions use the unmodified PDF.js `buildPostScriptJsFunction`
+from `src/core/postscript/js_evaluator.js`, together with its AST and lexer.
+The JavaScript evaluator interprets instructions without `eval`, `Function`,
+or WebAssembly compilation. Compiled functions are cached weakly by COS stream;
+code, Domain, or Range edits invalidate the entry. `pdfjs-postscript.test.ts`
+ports 35 complete input/output vectors from `test/unit/postscript_spec.js`,
+alongside comment, image-function integration, and edit-invalidation coverage.
+
 The vendor bundle includes unmodified PDF.js `DeviceCmykCS` from
 `src/core/colorspace.js`. Path, shading, and image color conversion use this
 class directly, including CMYK palette entries and alternate tint colors.

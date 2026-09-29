@@ -95,6 +95,12 @@ export function metadataNode(value: ImportedValue | undefined, charge?: (amount?
   }
   return visit(value);
 }
+const richUnderlines: Readonly<Record<string, string>> = {
+  none: "none", single: "single", double: "double", low: "singleAccounting", error: "single",
+  "single-line": "single", "double-line": "double", "error-line": "single",
+  singleAccounting: "singleAccounting", doubleAccounting: "doubleAccounting"
+};
+
 export function writeRichString(value: string, runs: readonly RichTextRun[] | undefined, xml: ElementWriter, charge?: (amount?: number) => void,
   target: "cell" | "comment" = "cell"): string {
   charge?.(value.length);
@@ -118,7 +124,9 @@ export function writeRichString(value: string, runs: readonly RichTextRun[] | un
     if (attrs.size !== undefined) properties += xml("sz", { val: Number(attrs.size) / 1024 });
     if (typeof attrs.family === "string") properties += xml("rFont", { val: encodeXlsxString(attrs.family) });
     if (typeof attrs.color === "string") properties += xml("color", { rgb: "FF" + attrs.color.split("x").join("").toUpperCase() });
-    if (typeof attrs.underline === "string") properties += xml("u", { val: attrs.underline === "low" ? "singleAccounting" : attrs.underline === "error" ? "single" : attrs.underline });
+    if (typeof attrs.underline === "string") properties += xml("u", {
+      val: Object.hasOwn(richUnderlines, attrs.underline) ? richUnderlines[attrs.underline] : "none"
+    });
     if (attrs.subscript || attrs.superscript) properties += xml("vertAlign", { val: attrs.subscript ? "subscript" : "superscript" });
     // An empty rPr creates the default font in Calc instead of inheriting the
     // preceding comment portion. It adds no attributes to our canonical spans.

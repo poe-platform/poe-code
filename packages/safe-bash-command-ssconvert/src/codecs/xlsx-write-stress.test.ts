@@ -23,9 +23,18 @@ it("charges attribute text against the writer work budget", () => {
   const xml = createXlsxXml({ ...context, limits: { ...context.limits, workbookWork: 10 } });
   expect(() => xml.element("t", { val: "x".repeat(11) })).toThrowError(/work limit/);
 });
-it("maps the unsupported Pango error underline to the native single underline", () => {
-  expect(writeRichString("x", [{ start: 0, end: 1, attributes: { underline: "error" } }], createXlsxXml(context).element))
-    .toContain('<u val="single"/>');
+// Pango 1.56.4 pango-attributes.h:153-161 defines the continuous-run
+// variants. OOXML has only none/single/double and the accounting variants.
+for (const target of ["cell", "comment"] as const)
+it.each([
+  ["none", "none"], ["single", "single"], ["double", "double"],
+  ["low", "singleAccounting"], ["error", "single"],
+  ["single-line", "single"], ["double-line", "double"], ["error-line", "single"],
+  ["singleAccounting", "singleAccounting"], ["doubleAccounting", "doubleAccounting"],
+  ["unknown", "none"], ["toString", "none"], ["__proto__", "none"]
+])(`writes a valid OOXML underline for ${target}: %s`, (underline, expected) => {
+  expect(writeRichString("é", [{ start: 0, end: 2, attributes: { underline } }], createXlsxXml(context).element, undefined, target))
+    .toContain(`<u val="${expected}"/>`);
 });
 it("observes the exact cancellation reason before XML work", () => {
   const abort = new AbortController(), reason = { cancelled: true }; abort.abort(reason);

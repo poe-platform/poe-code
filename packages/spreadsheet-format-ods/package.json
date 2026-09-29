@@ -1,0 +1,56 @@
+{
+  "name": "@poe-code/spreadsheet-format-ods",
+  "version": "0.0.1",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "src/odf-blowfish.ts",
+    "src/odf-blowfish-profile.ts",
+    "src/odf-blowfish-NOTICE.md"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/spreadsheet-format-ods",
+    "test:unit": "cd ../.. && vitest run packages/spreadsheet-format-ods",
+    "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@poe-code/spreadsheet-engine": "*",
+    "@poe-code/spreadsheet-ast": "*",
+    "@poe-code/office-package": "*",
+    "@poe-code/safe-fs": "*",
+    "@noble/ciphers": "2.4.0",
+    "@noble/hashes": "2.4.0"
+  },
+  "poeCode": {
+    "safeLibraryExports": {
+      "safe-bash": {
+        "./ssconvert/formats/ods": "."
+      }
+    },
+    "safeLibraryNotices": {
+      "safe-bash": [
+        "./LICENSE",
+        "./src/odf-blowfish.ts",
+        "./src/odf-blowfish-profile.ts",
+        "./src/odf-blowfish-NOTICE.md"
+      ]
+    }
+  }
+}

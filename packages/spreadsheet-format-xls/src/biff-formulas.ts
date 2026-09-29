@@ -1,0 +1,333 @@
+import { SsconvertError } from "@poe-code/spreadsheet-engine/contracts";
+import { Binary, invalidBiff } from "./biff-binary.js";
+import { biffFunctions } from "./biff-source.js";
+import { biffDecode } from "./biff-strings.js";
+import { parseExpression } from "@poe-code/spreadsheet-engine/formulas/parser";
+import { functionDescriptors } from "@poe-code/spreadsheet-engine/formulas/function-descriptors";
+import { excelGrammar, gnumericGrammar } from "@poe-code/spreadsheet-engine/formulas/conventions";
+import { quoteFormulaString } from "@poe-code/spreadsheet-engine/formulas/serialization";
+
+interface Expression { text: string; precedence: number; functionName?: string; }
+export interface BiffNameReference {
+  readonly value: number | "#REF!" | "#NAME?";
+  readonly functionName: string | undefined;
+}
+export interface BiffExternalName {
+  readonly name: string;
+  readonly expression?: string;
+  readonly workbook?: string;
+  readonly sheet?: string;
+}
+export interface BiffFormulaContext {
+  readonly revision: number;
+  readonly codepage: number;
+  readonly row: number;
+  readonly column: number;
+  readonly names: readonly string[];
+  /** Import-time indexed identity, including unlinked forward declarations. */
+  readonly resolveName?: (index: number, qualified: boolean) => BiffNameReference;
+  readonly nameSheets?: readonly (string | undefined)[];
+  /** null is the legacy self-reference placeholder; undefined is an unbound link. */
+  readonly externalSheets: readonly (string | readonly [string, string] | null | undefined)[];
+  /** NameX uses the first display sheet; null is its deleted/self scope marker. */
+  readonly externalNameSheets?: readonly (string | null | undefined)[];
+  /** Associated external/add-in names; undefined denotes an unbound/unsupported namespace. */
+  readonly externalNames?: readonly (readonly (BiffExternalName | undefined)[] | undefined)[];
+  readonly externalWorkbooks?: readonly ({ readonly workbook: string; readonly first: string; readonly last: string } | undefined)[];
+  /** Deleted local link endpoints. */
+  readonly deletedExternalSheets?: readonly boolean[];
+  /** Native standard external SUPBOOKs have no bound workbook and evaluate to #REF!. */
+  readonly unavailableExternalSheets?: readonly boolean[];
+  readonly currentSheet?: string;
+  /** Unqualified names in a workbook-scoped NAME expression bind globally. */
+  readonly globalNameDefinition?: boolean;
+  readonly localSheets?: readonly string[];
+  readonly shared?: boolean;
+  readonly readArray?: () => string;
+  readonly readMemory?: () => void;
+  readonly readLabels?: () => { readonly relative: boolean; readonly cells: readonly { readonly row: number; readonly column: number }[] };
+  readonly accountWork?: (amount: number) => void;
+  readonly limit: number;
+}
+const binaryOperators: Readonly<Record<number, readonly [string, number]>> = {
+  3: ["+", 3], 4: ["-", 3], 5: ["*", 4], 6: ["/", 4], 7: ["^", 5], 8: ["&", 2],
+  9: ["<", 1], 10: ["<=", 1], 11: ["=", 1], 12: [">=", 1], 13: [">", 1], 14: ["<>", 1],
+  15: [" ", 7], 16: [",", 6], 17: [":", 8]
+};
+export const biffErrors: Readonly<Record<number, string>> = {
+  0: "#NULL!", 7: "#DIV/0!", 15: "#VALUE!", 23: "#REF!", 29: "#NAME?", 36: "#NUM!", 42: "#N/A"
+};
+// Excel File Format 1.42 section 3.11: first/last BIFF revision and fixed arity
+// before optional parameters were added. Modern variable tokens keep their count.
+const legacyFixedFunctions: Readonly<Record<number, readonly [number, number, number]>> = {
+  14: [2, 3, 2], 70: [2, 4, 1], 101: [2, 4, 3], 102: [2, 4, 3],
+  197: [2, 2, 1], 220: [3, 4, 2]
+};
+
+/** MS-XLS PtgElfRadical: the label must adjoin one axis of its explicit area. */
+export function isBiffRadicalArea(row: number, column: number, [r1, r2, c1, c2]: readonly [number, number, number, number]): boolean {
+  const rowLabel = r1 === r2 && row === r1 && (column === c1 - 1 || column === c2 + 1);
+  const columnLabel = c1 === c2 && column === c1 && (row === r1 - 1 || row === r2 + 1);
+  return r1 <= r2 && c1 <= c2 && c2 < 256 && rowLabel !== columnLabel;
+}
+
+export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaContext): string {
+  const data = new Binary(bytes), stack: Expression[] = [];
+  let offset = 0, work = 0;
+  const push = (text: string, precedence = 99, functionName?: string) => {
+    work += text.length;
+    if (work > context.limit) throw new SsconvertError("resource-limit", "ssconvert BIFF formula work limit exceeded");
+    context.accountWork?.(text.length);
+    stack.push({ text, precedence, ...(functionName === undefined ? {} : { functionName }) });
+  };
+  function nameText(index: number, fallbackSheet?: string): string {
+    const name = context.names[index - 1]!;
+    // NAME and self-SUPBOOK NameX select an object by index. Their optional
+    // display sheet must not select a different lexical definition.
+    const sheet = context.nameSheets === undefined ? fallbackSheet : context.nameSheets[index - 1];
+    if (sheet !== undefined) return "'" + sheet.split("'").join("''") + "'!" + name;
+    if (context.globalNameDefinition) return name;
+    if (context.nameSheets !== undefined) for (let at = 0; at < context.names.length; at++) {
+      const other = context.names[at]!;
+      work += other.length + 1;
+      if (work > context.limit) throw new SsconvertError("resource-limit", "ssconvert BIFF formula work limit exceeded");
+      context.accountWork?.(other.length + 1);
+      if (context.nameSheets[at] !== undefined && other.toUpperCase() === name.toUpperCase()) return "[]" + name;
+    }
+    return name;
+  }
+  const pop = (): Expression => { const value = stack.pop(); if (!value) invalidBiff("formula stack underflow"); return value; };
+  const protect = (value: Expression, precedence: number) => value.precedence < precedence ? `(${value.text})` : value.text;
+  const reference = (at: number, relative: boolean): string => {
+    const rowBits = data.u16(at), colBits = context.revision >= 8 ? data.u16(at + 2) : data.u8(at + 2);
+    const rowRelative = context.revision >= 8 ? !!(colBits & 0x8000) : !!(rowBits & 0x8000);
+    const colRelative = context.revision >= 8 ? !!(colBits & 0x4000) : !!(rowBits & 0x4000);
+    let row = context.revision >= 8 ? rowBits : rowBits & 0x3fff, column = colBits & 255;
+    if (relative && rowRelative) {
+      const rows = context.revision >= 8 ? 65536 : 16384;
+      row = (context.row + (row >= rows / 2 ? row - rows : row) + rows) % rows;
+    }
+    if (relative && colRelative) column = (context.column + (column >= 128 ? column - 256 : column) + 256) % 256;
+    let letters = ""; for (let n = column + 1; n; n = Math.floor((n - 1) / 26)) letters = String.fromCharCode(65 + (n - 1) % 26) + letters;
+    return `${colRelative ? "" : "$"}${letters}${rowRelative ? "" : "$"}${row + 1}`;
+  };
+  const area = (at: number, relative: boolean): string => {
+    const width = context.revision >= 8 ? 2 : 1;
+    const first = new Uint8Array(2 + width), last = new Uint8Array(2 + width);
+    first.set(data.slice(at, 2)); first.set(data.slice(at + 4, width), 2);
+    last.set(data.slice(at + 2, 2)); last.set(data.slice(at + 4 + width, width), 2);
+    const refContext = { ...context };
+    // Translate two Ref tokens using the same revision/relative rules.
+    const token = relative ? 0x2c : 0x24;
+    return translateBiffFormula(new Uint8Array([token, ...first]), refContext).slice(1) + ":" +
+      translateBiffFormula(new Uint8Array([token, ...last]), refContext).slice(1);
+  };
+  while (offset < bytes.length) {
+    const raw = data.u8(offset++), token = raw >= 0x20 ? (raw & 0x1f) | 0x20 : raw;
+    if (binaryOperators[token]) {
+      const [operator, precedence] = binaryOperators[token]!, right = pop(), left = pop();
+      push(protect(left, precedence) + operator + protect(right, precedence + (token === 4 || token === 6 || token === 7 ? 1 : 0)), precedence);
+    } else if (token === 0x12 || token === 0x13) { const value = pop(); push((token === 0x12 ? "+" : "-") + protect(value, 5), 5); }
+    else if (token === 0x14) { const value = pop(); push(protect(value, 6) + "%", 6); }
+    else if (token === 0x15) push("(" + pop().text + ")");
+    else if (token === 0x16) push("");
+    else if (token === 0x17) {
+      const length = data.u8(offset++); let text: string;
+      if (context.revision >= 8) {
+        const flags = data.u8(offset++); if (flags > 1) invalidBiff("invalid formula string flags");
+        if (flags) {
+          data.check(offset, length * 2);
+          text = "";
+          for (let i = 0; i < length; i++) text += String.fromCharCode(data.u16(offset + i * 2));
+        } else text = biffDecode(data.slice(offset, length), 1200);
+        offset += length * (flags ? 2 : 1);
+      } else { text = biffDecode(data.slice(offset, length), context.codepage); offset += length; }
+      push('"' + text.split('"').join('""') + '"', 99, text);
+    } else if (token === 0x18 && context.revision === 8 && [1, 0x10].includes(data.u8(offset))) {
+      // MS-XLS PtgElfLel/PtgElfRadicalLel: deleted natural-language labels.
+      // Calc emits ocErrName for both. The quoted/reserved bits do not affect it.
+      data.check(offset, 5); offset += 5; push("#NAME?");
+    } else if (token === 0x18 && context.revision === 8 && [2, 3, 6, 7, 10, 11].includes(data.u8(offset))) {
+      data.check(offset, 5);
+      const subtype = data.u8(offset), labels = subtype === 11 ? context.readLabels?.() : undefined;
+      if (subtype === 11 && !labels?.cells.length) invalidBiff("missing multiple label references");
+      const terminal = labels?.cells[labels.cells.length - 1];
+      const row = terminal?.row ?? data.u16(offset + 1), columnBits = terminal ? terminal.column | (labels!.relative ? 0x8000 : 0) : data.u16(offset + 3), column = columnBits & 0x3fff;
+      // MS-XLS ColElfU: fQuoted and fRelative are separate from its 14-bit
+      // column field. Calc discards both flags; preserve the BIFF identity.
+      if (column > 255) invalidBiff("invalid label column");
+      const absolute = columnBits & 0x8000 ? "" : "$";
+      const axis = subtype === 2 || subtype === 6 ? "row" : "column";
+      let letters = "";
+      for (let n = column + 1; n; n = Math.floor((n - 1) / 26)) letters = String.fromCharCode(65 + (n - 1) % 26) + letters;
+      const anchor = (columnBits & 0x4000 ? ".quoted" : "") + ":" + absolute + letters + absolute + (row + 1);
+      offset += 5;
+      if (subtype === 10 || subtype === 11) {
+        data.check(offset, 9);
+        const areaToken = data.u8(offset);
+        if (![0x25, 0x45, 0x65, 0x2b, 0x4b, 0x6b].includes(areaToken)) invalidBiff("radical label requires Area or AreaErr");
+        const deleted = (areaToken & 0x1f) === 0x0b;
+        if (!deleted && (!isBiffRadicalArea(row, column, [data.u16(offset + 1), data.u16(offset + 3), data.u16(offset + 5) & 0x3fff, data.u16(offset + 7) & 0x3fff]) ||
+          labels && (column !== (data.u16(offset + 5) & 0x3fff) || (data.u16(offset + 5) & 0x3fff) !== (data.u16(offset + 7) & 0x3fff))))
+          invalidBiff("invalid radical label area");
+        const sequence = labels?.cells.map(cell => {
+          let letters = "";
+          for (let n = cell.column + 1; n; n = Math.floor((n - 1) / 26)) letters = String.fromCharCode(65 + (n - 1) % 26) + letters;
+          return absolute + letters + absolute + (cell.row + 1);
+        });
+        push("@range" + ((areaToken & 0x60) === 0x40 ? ".value" : (areaToken & 0x60) === 0x60 ? ".array" : "") +
+          (sequence ? ".multi:{" + sequence.join(";") + "}" : anchor) + "->" + (deleted ? "#REF!" : area(offset + 1, false)));
+        offset += 9;
+      } else push("@" + axis + (subtype >= 6 ? ".value" : "") + anchor);
+    } else if (token === 0x19) {
+      const width = context.revision === 2 ? 1 : 2;
+      const flags = data.u8(offset), value = width === 1 ? data.u8(offset + 1) : data.u16(offset + 1); offset += 1 + width;
+      if (flags & 4) { data.check(offset, (value + 1) * width); offset += (value + 1) * width; }
+      else if (flags & 16) push("SUM(" + pop().text + ")");
+    } else if (token === 0x1c) push(biffErrors[data.u8(offset++)] ?? "#UNKNOWN!");
+    else if (token === 0x1d) push(data.u8(offset++) ? "TRUE" : "FALSE");
+    else if (token === 0x1e) { push(String(data.u16(offset))); offset += 2; }
+    else if (token === 0x1f) { const value = data.f64(offset); if (!Number.isFinite(value)) invalidBiff("invalid formula number"); push(String(value)); offset += 8; }
+    else if (token === 0x20 && context.readArray) {
+      const size = context.revision === 2 ? 6 : 7;
+      data.check(offset, size); offset += size; push(context.readArray());
+    }
+    else if (token === 0x21 || token === 0x22) {
+      const argc = token === 0x22 ? data.u8(offset++) & 0x7f : undefined;
+      const index = context.revision >= 4 ? data.u16(offset) : data.u8(offset); offset += context.revision >= 4 ? 2 : 1;
+      if ((index & 0x7fff) === 255) {
+        if (argc === undefined) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: fixed-arity BIFF custom function");
+        if (argc < 1 || argc > stack.length) invalidBiff("invalid custom function argument count");
+        const args = stack.splice(stack.length - argc + 1).map(value => value.text);
+        let name = pop().functionName;
+        if (name === undefined) { push('#"#Unknown!"'); return "=" + pop().text; }
+        for (const prefix of ["_xlfn.", "_xlfnodf."]) if (name.startsWith(prefix)) {
+          const candidate = name.slice(prefix.length).toUpperCase();
+          const alias = prefix === "_xlfn." ? excelGrammar.functionPrefixAliases?.["_XLFN."]?.[candidate] ?? candidate : candidate;
+          if (functionDescriptors[alias]) name = alias;
+          break;
+        }
+        // The name is data, not an expression that may inject extra formula nodes.
+        const parsed = parseExpression("=" + name + "()", { position: { sheet: "", row: context.row, column: context.column },
+          maximumLength: context.limit, maximumNodes: 1 });
+        if (!parsed.ok || parsed.document.root.kind !== "call" || parsed.document.root.spelling !== name)
+          throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: BIFF custom function name");
+        push(name + "(" + args.join(",") + ")"); continue;
+      }
+      const descriptor = biffFunctions[index & 0x7fff];
+      const legacy = legacyFixedFunctions[index & 0x7fff];
+      const fixedCount = legacy && context.revision >= legacy[0] && context.revision <= legacy[1]
+        ? legacy[2] : descriptor && descriptor[1] === descriptor[2] ? descriptor[1] : undefined;
+      const count = argc ?? fixedCount;
+      if (!descriptor || count === undefined)
+        throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: BIFF function ${index}`);
+      if (count < 0 || count > stack.length) invalidBiff("invalid function argument count");
+      const args = stack.splice(stack.length - count, count).map(value => value.text);
+      push(descriptor[0] + "(" + args.join(",") + ")");
+    } else if (token === 0x39) {
+      const width = context.revision >= 8 ? 6 : 24;
+      data.check(offset, width);
+      const rawSheet = data.u16(offset), signedSheet = rawSheet >= 32768 ? rawSheet - 65536 : rawSheet;
+      const index = context.revision >= 8 ? data.u32(offset + 2) : data.u16(offset + 10);
+      offset += width;
+      const namespace = context.revision >= 8 ? rawSheet : signedSheet > 0 ? signedSheet - 1 : undefined;
+      const extern = namespace === undefined ? undefined : context.externalNames?.[namespace];
+      if (extern !== undefined) {
+        const name = extern[index - 1];
+        if (!name) { push("#REF!"); continue; }
+        if (name.workbook !== undefined) {
+          const text = "[" + quoteFormulaString(name.workbook, "'", gnumericGrammar) + "]" +
+            (name.sheet === undefined ? "" : quoteFormulaString(name.sheet, "'", gnumericGrammar) + "!") + name.name;
+          const parsed = parseExpression("=" + text, { position: { sheet: context.currentSheet ?? "", row: context.row, column: context.column },
+            maximumNodes: context.limit, maximumLength: context.limit });
+          const root = parsed.ok ? parsed.document.root : undefined;
+          if (root?.kind !== "name" || root.name !== name.name || root.workbook !== name.workbook || root.sheet !== name.sheet)
+            throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: invalid external BIFF name");
+          push(text);
+          continue;
+        }
+        if (name.expression === undefined)
+          throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF name expression");
+        if (!name.expression.startsWith("=")) invalidBiff("invalid external name expression");
+        push("(" + name.expression.slice(1) + ")", 99, name.name); continue;
+      }
+      if (context.revision < 8 && signedSheet >= 0)
+        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF workbook reference");
+      const binding = context.revision >= 8 ? (context.externalNameSheets ?? context.externalSheets)[rawSheet] : context.externalSheets[-signedSheet - 1];
+      if (binding === undefined)
+        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF workbook reference");
+      const resolution = context.resolveName?.(index, true), resolved = resolution?.value ?? index;
+      if (typeof resolved === "string") { push(resolved, 99, resolution?.functionName); continue; }
+      const name = context.names[resolved - 1];
+      if (!name) { push("#REF!"); continue; }
+      const sheet = binding === null ? context.nameSheets?.[resolved - 1] ?? context.currentSheet : typeof binding === "string" ? binding : binding[0];
+      push(nameText(resolved, sheet), 99, resolution === undefined ? name : resolution.functionName);
+    } else if (token === 0x23) {
+      const index = context.revision >= 8 ? data.u32(offset) : data.u16(offset),
+        width = context.revision >= 8 ? 4 : context.revision >= 5 ? 14 : context.revision === 2 ? 7 : 10;
+      data.check(offset, width); offset += width;
+      const resolution = context.resolveName?.(index, false), resolved = resolution?.value ?? index;
+      if (typeof resolved === "string") { push(resolved, 99, resolution?.functionName); continue; }
+      const name = context.names[resolved - 1]; if (!name) invalidBiff("invalid formula name index");
+      push(nameText(resolved), 99, resolution === undefined ? name : resolution.functionName);
+    } else if (token === 0x24 || token === 0x2c) { push(reference(offset, token === 0x2c)); offset += context.revision >= 8 ? 4 : 3; }
+    else if (token === 0x25 || token === 0x2d) { push(area(offset, token === 0x2d)); offset += context.revision >= 8 ? 8 : 6; }
+    else if (token === 0x2a || token === 0x2b) { const size = context.revision >= 8 ? token === 0x2a ? 4 : 8 : token === 0x2a ? 3 : 6; data.check(offset, size); offset += size; push("#REF!"); }
+    else if (token === 0x3c || token === 0x3d) {
+      const size = context.revision >= 8 ? token === 0x3c ? 6 : 10 : token === 0x3c ? 17 : 20;
+      data.check(offset, size); offset += size; push("#REF!");
+    }
+    else if (token === 0x3a || token === 0x3b) {
+      let sheet: (typeof context.externalSheets)[number];
+      let external: NonNullable<BiffFormulaContext["externalWorkbooks"]>[number];
+      if (context.revision >= 8) {
+        const size = token === 0x3a ? 6 : 10;
+        data.check(offset, size);
+        const index = data.u16(offset);
+        external = context.externalWorkbooks?.[index];
+        if (context.deletedExternalSheets?.[index] || !external && context.unavailableExternalSheets?.[index]) { offset += size; push("#REF!"); continue; }
+        sheet = external ? external.first === external.last ? external.first : [external.first, external.last] : context.externalSheets[index]; offset += 2;
+      }
+      else {
+        const size = token === 0x3a ? 17 : 20;
+        data.check(offset, size);
+        const signed = (at: number) => { const value = data.u16(at); return value >= 32768 ? value - 65536 : value; };
+        const index = signed(offset), firstIndex = signed(offset + 10), lastIndex = signed(offset + 12);
+        external = index > 0 ? context.externalWorkbooks?.[index - 1] : undefined;
+        if (external) sheet = external.first;
+        else {
+          if (index <= 0 && (firstIndex < 0 || lastIndex < 0)) { offset += size; push("#REF!"); continue; }
+          const first = context.externalSheets[Math.abs(index) - 1];
+          // Standard BIFF5/7 uses zero-based physical sheet fields. Preserve the
+          // older native table-index convention when that first field does not
+          // agree with both the signed link and the bound workbook sheet.
+          const physical = index < 0 && firstIndex === -index - 1 && typeof first === "string" && context.localSheets?.[firstIndex] === first;
+          const last = physical ? context.localSheets?.[lastIndex] : index < 0 && firstIndex === lastIndex ? first : index < 0 && lastIndex === 0 ?
+            context.currentSheet ?? null : context.externalSheets[lastIndex - 1];
+          if (first === undefined || last === undefined || typeof first === "object" && first !== null || typeof last === "object" && last !== null)
+            throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF workbook reference");
+          sheet = first === null ? null : last === null || first === last ? first : [first, last];
+        }
+        offset += 14;
+      }
+      if (sheet === undefined) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF workbook reference");
+      const relative = context.revision < 8 && !!context.shared;
+      const ref = token === 0x3a ? reference(offset, relative) : area(offset, relative);
+      offset += context.revision >= 8 ? token === 0x3a ? 4 : 8 : token === 0x3a ? 3 : 6;
+      const endpoints = sheet === null ? [] : typeof sheet === "string" ? [sheet] : sheet;
+      const qualifier = endpoints.map(name => external ? quoteFormulaString(name, "'", gnumericGrammar) : "'" + name.split("'").join("''") + "'").join(":");
+      push((external ? "[" + quoteFormulaString(external.workbook, "'", gnumericGrammar) + "]" : "") + (qualifier ? qualifier + "!" : "") + ref);
+    } else if (token === 0x26 || token === 0x27 || token === 0x28) {
+      const size = context.revision === 2 ? 4 : 6;
+      data.check(offset, size); offset += size;
+      if (token === 0x26) context.readMemory?.();
+    }
+    else if (token === 0x29 || token === 0x2e || token === 0x2f) {
+      const size = context.revision === 2 ? 1 : 2;
+      data.check(offset, size); offset += size;
+    }
+    else throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: BIFF formula token 0x${raw.toString(16)}`);
+  }
+  if (stack.length !== 1) invalidBiff("formula stack did not resolve");
+  return "=" + stack[0]!.text;
+}

@@ -25,7 +25,9 @@ using the native reader's built-in password or an explicit host `password.read` 
 [usage guide](../../docs/ssconvert/usage-draft.md) for examples and capabilities.
 
 ```ts
-import { createEngine, csvFormat, xlsxFormat } from "poe-code/ssconvert";
+import { createEngine } from "poe-code/ssconvert/core";
+import { csvFormat } from "poe-code/ssconvert/formats/csv";
+import { xlsxFormat } from "poe-code/ssconvert/formats/xlsx";
 
 const engine = createEngine({
   formats: [csvFormat, xlsxFormat],
@@ -45,10 +47,17 @@ try {
 ```
 
 Choose `csvFormat` (CSV/TSV), `xlsxFormat`, `odsFormat`, `xlsFormat` or
-`spreadsheetmlFormat` with `formats`. Omit `formats` to retain all built-in
-formats; use `formats: []` for custom codecs only. The same option is accepted
-by `createSsconvertCommand` and `ssconvertCommands`. Format selection controls
-discovery and conversion; the compatibility entrypoint still bundles all formats.
+`spreadsheetmlFormat` with `formats`. The `/core` entrypoint registers no formats
+by default; import each chosen format from its `/formats/` subpath to keep other
+readers, writers and renderers out of your bundle. The core, CSV, XLSX, ODS and XLS subpaths are also available
+under `@poe-platform/safe-bash/ssconvert`. Use `poe-code/safe-bash/spreadsheet-ast`
+(or `@poe-platform/safe-bash/spreadsheet-ast`) for the workbook model alone.
+
+The compatibility `poe-code/ssconvert` entrypoint retains all built-in formats
+when `formats` is omitted. Use `formats: []` for custom codecs only.
+`createSsconvertCommand` and `ssconvertCommands` accept the same selection option.
+The compatibility entrypoint also supplies default rendering and clipboard
+capabilities; `/core` requires those capabilities explicitly.
 
 Filesystem and network access require explicit host bindings. The engine never
 uses a native spreadsheet converter as a fallback. PDF exports can use an explicit

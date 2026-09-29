@@ -948,6 +948,34 @@ it("packages core jobs with one canonical public facade", async () => {
   }
 });
 
+it('ships private wildcard modules used by a companion without private npm dependencies', async () => {
+  const { volume, options } = optionalLeftovers();
+  const manifest = structuredClone(bashManifest);
+  manifest.devDependencies['@example/model'] = '*';
+  volume.writeFileSync('/repo/packages/safe-bash/package.json', JSON.stringify(manifest));
+  for (const [dir, pkg] of [
+    ['companion', { name: 'companion', exports: { '.': { types: './dist/index.d.ts', import: './dist/index.js' } },
+      poeCode: { safeLibraryExports: { 'safe-bash': { './model': '.' } } } }],
+    ['model', { name: '@example/model', exports: { './*': { types: './dist/*.d.ts', import: './dist/*.js' } } }]
+  ] as const) {
+    volume.mkdirSync(`/repo/packages/${dir}/dist/nested`, { recursive: true });
+    volume.mkdirSync(`/repo/packages/${dir}/src/nested`, { recursive: true });
+    volume.writeFileSync(`/repo/packages/${dir}/package.json`, JSON.stringify({ ...pkg, private: true, type: 'module' }));
+  }
+  volume.writeFileSync('/repo/packages/model/src/nested/value.ts', 'export const value = 42;');
+  for (const extension of ['js', 'd.ts']) {
+    volume.writeFileSync(`/repo/packages/companion/dist/index.${extension}`, 'export { value } from "@example/model/nested/value";');
+    volume.writeFileSync(`/repo/packages/model/dist/nested/value.${extension}`, extension === 'js' ? 'export const value = 42;' : 'export declare const value: number;');
+  }
+  await packageSafeLibraries({ ...options, outDir: '/output' });
+  for (const extension of ['js', 'd.ts']) {
+    expect(volume.readFileSync(`/output/safe-bash/dist/companion/index.${extension}`, 'utf8'))
+      .toBe('export { value } from "../model/nested/value.js";');
+    expect(volume.existsSync(`/output/safe-bash/dist/model/nested/value.${extension}`)).toBe(true);
+  }
+  expect(JSON.parse(volume.readFileSync('/output/safe-bash/package.json', 'utf8')).dependencies).not.toHaveProperty('@example/model');
+});
+
 it('preserves companion references to conditional public contracts in the same published package', async () => {
   const { volume, options } = optionalLeftovers();
   const contractsManifest = structuredClone(bashManifest);

@@ -231,6 +231,20 @@ describe("findUnreachableBundleOutputs", () => {
 });
 
 describe("resolveBundleGraph", () => {
+  it("resolves nested source modules behind a standard workspace wildcard export", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/package.json": JSON.stringify({ dependencies: {} }),
+      "/repo/packages/model/src/index.ts": "export {};",
+      "/repo/packages/model/src/nested/value.ts": "export const value = 42;",
+      "/repo/packages/model/src/nested/value.test.ts": "export {};"
+    });
+    const { alias } = await resolveBundleGraph("/repo", [{ dir: "model", pkg: {
+      name: "@example/model", exports: { ".": { import: "./dist/index.js" }, "./*": { import: "./dist/*.js" } }
+    } }], createFsFromVolume(volume).promises);
+    expect(alias["@example/model/nested/value"]).toBe("/repo/packages/model/src/nested/value.ts");
+    expect(alias).not.toHaveProperty("@example/model/*");
+    expect(alias).not.toHaveProperty("@example/model/nested/value.test");
+  });
   it("discovers the canonical SafeJS workspace and subpaths without a private legacy alias", async () => {
     const { alias, external } = await resolveBundleGraph(
       "/repo",

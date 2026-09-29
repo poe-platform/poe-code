@@ -875,7 +875,13 @@
             "@poe-code/pdf": "*",
             "@poe-code/safe-fs": "*",
             "htmlparser2": "^10.0.0",
-            "pdf-lib": "1.17.1"
+            "pdf-lib": "1.17.1",
+            "@poe-code/spreadsheet-ast": "*",
+            "@poe-code/spreadsheet-engine": "*",
+            "@poe-code/spreadsheet-format-xlsx": "*",
+            "@poe-code/spreadsheet-format-csv": "*",
+            "@poe-code/spreadsheet-format-ods": "*",
+            "@poe-code/spreadsheet-format-xls": "*"
           },
           "devDependencies": {
             "safe-bash-contracts": "*",
@@ -2319,7 +2325,13 @@
     "safe-bash-command-base64": "*",
     "safe-bash-command-xan": "*",
     "safe-bash-command-fmt": "*",
-    "safe-bash-command-csplit": "*"
+    "safe-bash-command-csplit": "*",
+    "@poe-code/spreadsheet-ast": "*",
+    "@poe-code/spreadsheet-engine": "*",
+    "@poe-code/spreadsheet-format-xlsx": "*",
+    "@poe-code/spreadsheet-format-csv": "*",
+    "@poe-code/spreadsheet-format-ods": "*",
+    "@poe-code/spreadsheet-format-xls": "*"
   },
   "main": "./dist/index.js",
   "imports": {

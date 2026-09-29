@@ -84,6 +84,19 @@ function getPackageAliases(): Record<string, string> {
           continue;
         }
 
+        // Preserve workspace source resolution for standard wildcard subpath exports.
+        if (exportKey === "./*") {
+          const sourceRoot = path.resolve(packagesDir, pkg, "src");
+          for (const filename of fs.readdirSync(sourceRoot, { recursive: true })) {
+            if (typeof filename !== "string" || !filename.endsWith(".ts") || filename.endsWith(".test.ts")) continue;
+            const subpath = filename.slice(0, -3).split(path.sep).join("/");
+            const entryPath = path.join(sourceRoot, filename);
+            subpathAliases[`@poe-code/${pkg}/${subpath}`] = entryPath;
+            if (packageName !== undefined) bareSubpathAliases[`${packageName}/${subpath}`] = entryPath;
+          }
+          continue;
+        }
+
         const subpath = exportKey.slice(2);
         const subpathEntryPath = path.resolve(packagesDir, pkg, "src", `${subpath}.ts`);
         const subpathMjsPath = path.resolve(packagesDir, pkg, "src", `${subpath}.mjs`);

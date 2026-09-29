@@ -1,7 +1,7 @@
 import type { FormatProvider } from "../codecs/types.js";
 import { probeSpreadsheetML, readSpreadsheetML } from "../codecs/spreadsheetml.js";
 
-export const spreadsheetmlFormat = {
+export const spreadsheetmlFormat: FormatProvider = {
   id: "Gnumeric_Excel",
   source: "plugins/excel/plugin.xml.in",
   services: [
@@ -18,4 +18,4 @@ export const spreadsheetmlFormat = {
       "contentProbe": true
     }
   ]
-} satisfies FormatProvider;
+};

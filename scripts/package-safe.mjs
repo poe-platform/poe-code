@@ -574,7 +574,16 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             const workspace = workspaces.find(({ pkg }) => pkg.private && (publicName === pkg.name || publicName.startsWith(pkg.name + "/")));
             if (workspace) {
               const route = "." + publicName.slice(workspace.pkg.name.length);
-              const exported = workspace.pkg.exports?.[route];
+              let exported = workspace.pkg.exports?.[route];
+              if (exported === undefined && route.startsWith("./") && workspace.pkg.exports?.["./*"]) {
+                const subpath = route.slice(2);
+                if (subpath.split("/").some(part => !part || part === "." || part === ".." || part === "node_modules" || part.includes("\\") || part.includes("%")))
+                  throw new Error("Invalid private workspace export path: " + specifier);
+                const substitute = value => typeof value === "string" ? value.replaceAll("*", subpath)
+                  : value && typeof value === "object" && !Array.isArray(value)
+                    ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, substitute(item)])) : value;
+                exported = substitute(workspace.pkg.exports["./*"]);
+              }
               let entrypoint = declaration
                 ? exported?.types !== undefined ? exported.types : (route === "." && workspace.pkg.exports === undefined ? workspace.pkg.types : undefined)
                 : exported;

@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, readdir, writeFile } from "node:fs/promises";
 import { rewriteModuleSpecifiers } from "./module-specifiers.mjs";
 
 export function resolveSharedRuntimeBuilds(workspaceGraph, canonical, sharedWorkspaces) {
@@ -156,7 +156,7 @@ function nodeRuntimeTarget(target) {
   return undefined;
 }
 
-export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { readFile }) {
+export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { readFile, readdir }) {
   const packagesDir = path.join(rootDir, "packages");
   const alias = {};
   const workspacePackageNames = new Set();
@@ -175,6 +175,22 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
         if (subpath === "." && !prebuilt) continue;
         const clean = subpath.startsWith("./") ? subpath.slice(2) : subpath;
         const built = nodeRuntimeTarget(target);
+        if (subpath === "./*" && built === "./dist/*.js") {
+          const directory = path.join(packagesDir, dir, prebuilt ? "dist" : "src");
+          const extension = prebuilt ? ".js" : ".ts";
+          const walk = async current => {
+            for (const entry of await fileSystem.readdir(current, { withFileTypes: true })) {
+              const filename = path.join(current, entry.name);
+              if (entry.isDirectory()) await walk(filename);
+              else if (entry.name.endsWith(extension) && !entry.name.endsWith(".test" + extension) && !entry.name.endsWith(".d.ts")) {
+                const route = path.relative(directory, filename).slice(0, -extension.length).split(path.sep).join("/");
+                if (!Object.hasOwn(pkg.exports, "./" + route)) alias[pkg.name + "/" + route] = filename;
+              }
+            }
+          };
+          await walk(directory);
+          continue;
+        }
         // Asset patterns retain package resolution; they have no source module.
         if (typeof built === "string" && subpath.endsWith("*") && built.endsWith("*") && !built.startsWith("./dist/")) continue;
         if (typeof built !== "string" || !built.startsWith("./dist/") || !built.endsWith(".js")) {

@@ -1,0 +1,78 @@
+{
+  "name": "@poe-code/spreadsheet-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "src/encoding/tables.ts",
+    "src/encoding/transliteration-tables.ts",
+    "src/encoding/target-transliteration-tables.ts",
+    "src/encoding/ucs2-transliteration-tables.ts",
+    "src/formulas/functions/byte-case.ts",
+    "src/formulas/functions/byte-trim.ts",
+    "src/formulas/functions/byte-case-properties.ts",
+    "src/formulas/functions/captured-acos.ts",
+    "src/formulas/functions/captured-acos-profile.ts",
+    "src/formulas/functions/captured-pow.ts",
+    "src/formulas/functions/captured-pow-profile.ts",
+    "src/encoding/NOTICE.md",
+    "src/encoding/LGPL-2.1.txt",
+    "src/formulas/functions/byte-case-NOTICE.md",
+    "src/formulas/functions/captured-acos-NOTICE.md",
+    "src/formulas/functions/captured-pow-NOTICE.md"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/spreadsheet-engine",
+    "test:unit": "cd ../.. && vitest run packages/spreadsheet-engine",
+    "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@poe-code/spreadsheet-ast": "*",
+    "@poe-code/safe-fs": "*"
+  },
+  "poeCode": {
+    "safeLibraryExports": {
+      "safe-bash": {
+        "./ssconvert/core": "."
+      }
+    },
+    "safeLibraryNotices": {
+      "safe-bash": [
+        "./LICENSE",
+        "./src/encoding/tables.ts",
+        "./src/encoding/transliteration-tables.ts",
+        "./src/encoding/target-transliteration-tables.ts",
+        "./src/encoding/ucs2-transliteration-tables.ts",
+        "./src/formulas/functions/byte-case.ts",
+        "./src/formulas/functions/byte-trim.ts",
+        "./src/formulas/functions/byte-case-properties.ts",
+        "./src/formulas/functions/captured-acos.ts",
+        "./src/formulas/functions/captured-acos-profile.ts",
+        "./src/formulas/functions/captured-pow.ts",
+        "./src/formulas/functions/captured-pow-profile.ts",
+        "./src/encoding/NOTICE.md",
+        "./src/encoding/LGPL-2.1.txt",
+        "./src/formulas/functions/byte-case-NOTICE.md",
+        "./src/formulas/functions/captured-acos-NOTICE.md",
+        "./src/formulas/functions/captured-pow-NOTICE.md"
+      ]
+    }
+  }
+}

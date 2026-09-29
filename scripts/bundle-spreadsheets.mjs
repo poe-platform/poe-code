@@ -1,21 +1,30 @@
 import path from "node:path";
 import { canonicalFs } from "../packages/package-lint/dist/bundle-policy.js";
 
-// Public spreadsheet SDKs inline their engines while sharing invocation contracts.
+// Build each SDK together so independently selected formats share engine classes.
 export function resolveSpreadsheetSdkBuilds(rootDir, consumerBuildOptions, packageJson) {
-  return [["safe-bash-command-csvkit", ["index", "codecs/utf8", "codecs/python"]], ["safe-bash-command-ssconvert", ["index"]]]
-    .flatMap(([workspace, entries]) => {
-      const exportRoot = "./" + workspace.slice("safe-bash-command-".length);
-      return entries.map(entryPoint => ({
-        entryPoints: [path.join(rootDir, "packages", workspace, "src", entryPoint + ".ts")],
-        bundle: true,
-        platform: "node",
-        target: "node22",
-        format: "esm",
-        outfile: path.resolve(rootDir, packageJson.exports[entryPoint === "index" ? exportRoot : exportRoot + "/" + entryPoint].import),
-        ...consumerBuildOptions,
-        external: [...Object.keys({ ...packageJson.dependencies, ...packageJson.optionalDependencies }), ...canonicalFs.routes.map(route => route.specifier)],
-        sourcemap: true,
-      }));
-    });
+  const groups = new Map();
+  for (const target of Object.values(packageJson.exports)) {
+    const output = target?.import?.split("/");
+    if (output?.[0] !== "." || output[1] !== "dist" || !["ssconvert", "csvkit"].includes(output[2])) continue;
+    const source = target.types.split("/");
+    source[source.indexOf("dist")] = "src";
+    const entry = output.slice(3).join("/").slice(0, -".js".length);
+    const entries = groups.get(output[2]) ?? {};
+    entries[entry] = path.resolve(rootDir, source.join("/").slice(0, -".d.ts".length) + ".ts");
+    groups.set(output[2], entries);
+  }
+  return [...groups].map(([name, entryPoints]) => ({
+    bundle: true,
+    platform: "node",
+    target: "node22",
+    format: "esm",
+    ...consumerBuildOptions,
+    entryPoints,
+    outdir: path.join(rootDir, "dist", name),
+    splitting: true,
+    chunkNames: "chunks/[name]-[hash]",
+    external: [...Object.keys({ ...packageJson.dependencies, ...packageJson.optionalDependencies }), ...canonicalFs.routes.map(route => route.specifier)],
+    sourcemap: true,
+  }));
 }

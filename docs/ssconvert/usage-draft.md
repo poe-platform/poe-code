@@ -19,6 +19,33 @@ replace service bindings. Native ssconvert is a separate QA oracle, never a
 product dependency or fallback. Listed services do not establish complete
 format, version, record, formula, numerical or rendering fidelity.
 
+Choose only the formats your application supports by importing the neutral
+engine and individual format modules:
+
+```ts
+import { createEngine } from "poe-code/ssconvert/core";
+import { csvFormat } from "poe-code/ssconvert/formats/csv";
+import { xlsxFormat } from "poe-code/ssconvert/formats/xlsx";
+
+const engine = createEngine({ formats: [csvFormat, xlsxFormat] });
+try {
+  console.log(engine.listServices("read"));
+} finally {
+  await engine.dispose();
+}
+```
+
+The neutral engine installs no formats by default. CSV includes TSV and the
+configurable text exporter; ODS and XLS have separate `odsFormat` and `xlsFormat`
+modules. This composition excludes unselected format implementations from
+consumer bundles. The compatibility `poe-code/ssconvert` entry retains all
+existing defaults and accepts the same `formats` option, including an empty
+array. Shell command factories accept the same selection. Use
+`poe-code/safe-bash/spreadsheet-ast` to create or edit workbook models independently,
+then `await engine.adoptWorkbook(book, { signal })` before writing with that engine.
+The scoped `@poe-platform/safe-bash` package exposes matching `/ssconvert/core`,
+`/ssconvert/formats/{csv,xlsx,ods,xls}` and `/spreadsheet-ast` entries.
+
 BIFF7/8 XOR-obfuscated and BIFF8 RC4/CryptoAPI Excel workbooks using the
 native reader's built-in `VelvetSweatshop` password open automatically.
 BIFF8 export accepts `-T Gnumeric_Excel:excel_biff8 -O encryption=rc4` for standard

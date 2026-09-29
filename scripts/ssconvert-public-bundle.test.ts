@@ -112,7 +112,7 @@ beforeAll(async () => {
   const graph = resolveConsumerGraph(workspaceGraph, canonicalFs, shared);
   const entryPoint = resolve(root, manifest.exports["./ssconvert"].import);
   const options = resolveSpreadsheetSdkBuilds(root, { ...graph, absWorkingDir: root }, manifest)
-    .find(options => options.outfile === entryPoint)!;
+    .find(options => options.outdir === dirname(entryPoint))!;
   expect(options).toBeDefined();
   for (const recipe of [...resolveSharedRuntimeBuilds(workspaceGraph, canonicalFs, shared), options]) {
     const published = await build({ ...recipe, write: false });
@@ -155,6 +155,45 @@ it("starts the bundled spreadsheet SDK in a Worker without Node module initializ
   expect(worker.snapshot).toEqual({});
   expect(Object.isFrozen(worker.snapshot)).toBe(true);
   expect(worker.command).toMatchObject({ name: "ssconvert", execute: expect.any(Function) });
+});
+
+it("shares AST errors and preserves CSV fallback bytes across public entrypoints", async () => {
+  const entry = (route: string) => resolve(root, manifest.exports[route].import);
+  const consumer = await build({
+    stdin: { contents: `
+      import { createEngine, SsconvertError } from ${JSON.stringify(entry("./ssconvert/core"))};
+      import { csvFormat } from ${JSON.stringify(entry("./ssconvert/formats/csv"))};
+      import { SsconvertError as AstError } from ${JSON.stringify(entry("./safe-bash/spreadsheet-ast"))};
+      globalThis.result = (async () => {
+        const engine = createEngine({ formats: [csvFormat] });
+        const operation = { signal: new AbortController().signal };
+        const output = [];
+        try {
+          const book = await engine.readWorkbook({ kind: "stream", filename: "a.csv", source: [new TextEncoder().encode("hello\\n")] }, {}, operation);
+          try {
+            await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) { output.push(bytes); } } },
+              { exportType: "Gnumeric_stf:stf_assistant", exportOptions: ["charset=bogus"] }, operation);
+          } catch (error) {
+            return { sameClass: SsconvertError === AstError, typed: error instanceof SsconvertError,
+              output: output.map(bytes => new TextDecoder().decode(bytes)).join(""), message: error.message };
+          }
+        } finally { await engine.dispose(); }
+      })();`, resolveDir: root },
+    bundle: true, platform: "browser", format: "iife", write: false,
+    alias: { "poe-code/safe-fs/core": resolve(root, "packages/safe-fs/src/core.ts") },
+    plugins: [{ name: "modular-sdk-artifacts", setup(builder) {
+      builder.onResolve({ filter: /.*/ }, args => {
+        if (!args.path.startsWith(".") && !isAbsolute(args.path)) return undefined;
+        const target = resolve(args.resolveDir, args.path);
+        return artifacts.has(target) ? { path: target } : undefined;
+      });
+      builder.onLoad({ filter: /\.js$/ }, args => artifacts.has(args.path)
+        ? { contents: artifacts.get(args.path), loader: "js", resolveDir: dirname(args.path) } : undefined);
+    } }]
+  });
+  const sandbox: Record<string, unknown> = { TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, AbortController, AbortSignal, URL, URLSearchParams, atob, crypto: webcrypto, setTimeout, clearTimeout, queueMicrotask };
+  runInNewContext(consumer.outputFiles[0]!.text, sandbox);
+  expect(await sandbox.result).toEqual({ sameClass: true, typed: true, output: "hello\n", message: "E Error while trying to export file as text" });
 });
 
 it("ships the spreadsheet SDK without unavailable private runtime dependencies", () => {

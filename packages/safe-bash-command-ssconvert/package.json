@@ -10,6 +10,30 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./formats/xlsx": {
+      "types": "./dist/formats/xlsx.d.ts",
+      "import": "./dist/formats/xlsx.js"
+    },
+    "./formats/csv": {
+      "types": "./dist/formats/csv.d.ts",
+      "import": "./dist/formats/csv.js"
+    },
+    "./formats/ods": {
+      "types": "./dist/formats/ods.d.ts",
+      "import": "./dist/formats/ods.js"
+    },
+    "./formats/xls": {
+      "types": "./dist/formats/xls.d.ts",
+      "import": "./dist/formats/xls.js"
+    },
+    "./formats/spreadsheetml": {
+      "types": "./dist/formats/spreadsheetml.d.ts",
+      "import": "./dist/formats/spreadsheetml.js"
     }
   },
   "files": [
@@ -63,7 +87,13 @@
     "@poe-code/pdf": "*",
     "@poe-code/safe-fs": "*",
     "htmlparser2": "^10.0.0",
-    "pdf-lib": "1.17.1"
+    "pdf-lib": "1.17.1",
+    "@poe-code/spreadsheet-ast": "*",
+    "@poe-code/spreadsheet-engine": "*",
+    "@poe-code/spreadsheet-format-xlsx": "*",
+    "@poe-code/spreadsheet-format-csv": "*",
+    "@poe-code/spreadsheet-format-ods": "*",
+    "@poe-code/spreadsheet-format-xls": "*"
   },
   "devDependencies": {
     "safe-bash-contracts": "*",

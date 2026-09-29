@@ -299,6 +299,34 @@
     "./safe-bash/contracts/*": {
       "types": "./packages/safe-bash-contracts/dist/*.d.ts",
       "import": "./dist/shared/safe-bash-contracts/*.js"
+    },
+    "./safe-bash/spreadsheet-ast": {
+      "types": "./packages/spreadsheet-ast/dist/index.d.ts",
+      "import": "./dist/ssconvert/ast.js"
+    },
+    "./ssconvert/core": {
+      "types": "./packages/safe-bash-command-ssconvert/dist/core.d.ts",
+      "import": "./dist/ssconvert/core.js"
+    },
+    "./ssconvert/formats/xlsx": {
+      "types": "./packages/safe-bash-command-ssconvert/dist/formats/xlsx.d.ts",
+      "import": "./dist/ssconvert/formats/xlsx.js"
+    },
+    "./ssconvert/formats/csv": {
+      "types": "./packages/safe-bash-command-ssconvert/dist/formats/csv.d.ts",
+      "import": "./dist/ssconvert/formats/csv.js"
+    },
+    "./ssconvert/formats/ods": {
+      "types": "./packages/safe-bash-command-ssconvert/dist/formats/ods.d.ts",
+      "import": "./dist/ssconvert/formats/ods.js"
+    },
+    "./ssconvert/formats/xls": {
+      "types": "./packages/safe-bash-command-ssconvert/dist/formats/xls.d.ts",
+      "import": "./dist/ssconvert/formats/xls.js"
+    },
+    "./ssconvert/formats/spreadsheetml": {
+      "types": "./packages/safe-bash-command-ssconvert/dist/formats/spreadsheetml.d.ts",
+      "import": "./dist/ssconvert/formats/spreadsheetml.js"
     }
   },
   "engines": {
@@ -537,7 +565,13 @@
     "safe-bash-command-fmt": "*",
     "bats": "^1.13.0",
     "safe-bash-command-csplit": "*",
-    "turbo": "^2.9.18"
+    "turbo": "^2.9.18",
+    "@poe-code/spreadsheet-ast": "0.0.1",
+    "@poe-code/spreadsheet-engine": "0.0.1",
+    "@poe-code/spreadsheet-format-xlsx": "0.0.1",
+    "@poe-code/spreadsheet-format-csv": "0.0.1",
+    "@poe-code/spreadsheet-format-ods": "0.0.1",
+    "@poe-code/spreadsheet-format-xls": "0.0.1"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -702,7 +736,39 @@
     "!**/*.cjs.map",
     "!**/*.d.ts.map",
     "!**/*.d.mts.map",
-    "!**/*.d.cts.map"
+    "!**/*.d.cts.map",
+    "packages/spreadsheet-ast/LICENSE",
+    "packages/spreadsheet-engine/dist/**/*.d.ts",
+    "packages/spreadsheet-engine/LICENSE",
+    "packages/spreadsheet-engine/src/encoding/tables.ts",
+    "packages/spreadsheet-engine/src/encoding/transliteration-tables.ts",
+    "packages/spreadsheet-engine/src/encoding/target-transliteration-tables.ts",
+    "packages/spreadsheet-engine/src/encoding/ucs2-transliteration-tables.ts",
+    "packages/spreadsheet-engine/src/formulas/functions/byte-case.ts",
+    "packages/spreadsheet-engine/src/formulas/functions/byte-trim.ts",
+    "packages/spreadsheet-engine/src/formulas/functions/byte-case-properties.ts",
+    "packages/spreadsheet-engine/src/formulas/functions/captured-acos.ts",
+    "packages/spreadsheet-engine/src/formulas/functions/captured-acos-profile.ts",
+    "packages/spreadsheet-engine/src/formulas/functions/captured-pow.ts",
+    "packages/spreadsheet-engine/src/formulas/functions/captured-pow-profile.ts",
+    "packages/spreadsheet-engine/src/encoding/NOTICE.md",
+    "packages/spreadsheet-engine/src/encoding/LGPL-2.1.txt",
+    "packages/spreadsheet-engine/src/formulas/functions/byte-case-NOTICE.md",
+    "packages/spreadsheet-engine/src/formulas/functions/captured-acos-NOTICE.md",
+    "packages/spreadsheet-engine/src/formulas/functions/captured-pow-NOTICE.md",
+    "packages/spreadsheet-format-xlsx/dist/**/*.d.ts",
+    "packages/spreadsheet-format-xlsx/LICENSE",
+    "packages/spreadsheet-format-csv/dist/**/*.d.ts",
+    "packages/spreadsheet-format-csv/LICENSE",
+    "packages/spreadsheet-format-ods/dist/**/*.d.ts",
+    "packages/spreadsheet-format-ods/LICENSE",
+    "packages/spreadsheet-format-ods/src/odf-blowfish.ts",
+    "packages/spreadsheet-format-ods/src/odf-blowfish-profile.ts",
+    "packages/spreadsheet-format-ods/src/odf-blowfish-NOTICE.md",
+    "packages/spreadsheet-format-xls/dist/**/*.d.ts",
+    "packages/spreadsheet-format-xls/LICENSE",
+    "packages/spreadsheet-format-xls/src/legacy-binary-NOTICE.md",
+    "packages/spreadsheet-ast/dist"
   ],
   "license": "MIT",
   "imports": {

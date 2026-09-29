@@ -64,3 +64,51 @@ an engine's capabilities. There is no global mutable registry.
 - Current remote-main commit ancestry and a separately verified registry release.
 - Remaining compatibility scope stays open; test counts and registration alone
   do not establish full format fidelity.
+
+## Implementation checkpoint
+
+`86f8fad8fe` delivered explicit selection to remote main. The pending extraction
+places the workbook model in `packages/spreadsheet-ast`, orchestration in
+`packages/spreadsheet-engine`, and actual readers/writers in
+`packages/spreadsheet-format-{xlsx,csv,ods,xls}`. Original command source paths
+remain compatibility exports. The neutral engine has no implicit formats.
+Public `/ssconvert/core` and `/ssconvert/formats/*` entries compose the chosen
+implementations. The AST has a separate `/safe-bash/spreadsheet-ast` entry.
+
+The new `adoptWorkbook` operation validates and snapshots an independently
+created or edited AST under the receiving engine's budgets. It preserves the
+existing requirement that writes operate on a workbook owned by that engine.
+
+Verification completed before the latest upstream reconciliation:
+
+- Seven affected package lint/type checks and 494 ssconvert test files / 26,287
+  tests passed. The maintained build completed 189 tasks across 190 workspaces,
+  including root bundles; repository ESLint, type checks and workflow lint passed.
+- Installed root/scoped consumers passed AST→XLSX→CSV roundtrips, exact failed
+  export bytes, shared error-class identity and strict browser NodeNext types.
+  AST-only, CSV, CSV+XLSX, ODS and XLS browser bundles excluded unselected formats.
+- Scoped package generation passed with explicit source and license entries.
+  Public/workerd tests and canonical public command factory identity passed.
+- Independent openpyxl, odfpy and xlwt fixtures were read by both publications;
+  openpyxl, odfpy and xlrd independently read six exported workbooks. Unicode,
+  multiline/quoted strings and numbers survived these basic interoperability
+  checks. This does not establish complete Excel/LibreOffice fidelity.
+- Selected-exporter CLI output was rendered and visually inspected. An ownership
+  audit found 227 implementations identical after import normalization; remaining
+  differences were reviewed against AST ownership, neutral engine composition,
+  shared helpers and module boundaries.
+
+At the 2026-09-29 08:15 UTC checkpoint, the complete shared unit phase had passed
+3,346 files / 372,438 tests (2 skips and 5 TODOs recorded separately). After the
+new public AST export was added to the supported-export assertion, the maintained
+full rerun reused all 89 shared cache records, passed 197 root files / 4,693 tests,
+and passed all 652 Safe Bash build/packaging runner tests. The remaining native
+behavior tests are active; this is not a complete full-gate result.
+
+Current upstream shell changes required further compiler reconciliation. The
+latest complete build and lint evidence above predates those changes. Current
+repository types and workflow lint pass; current ESLint reported unnecessary
+shell-test dollar escapes to the active release owner. No extraction or canonical
+factory prerequisite commit has yet been pushed, and containing publication is
+not verified. The earlier explicit-selection commit `86f8fad8fe` and portable-gh
+repair `2546814fc2` are separately verified on remote main.

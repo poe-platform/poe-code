@@ -1,1 +1,1 @@
-export { parseResize } from "../workbook/resize.js";
+export * from "@poe-code/spreadsheet-engine/conversion/resize";

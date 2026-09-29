@@ -1,0 +1,65 @@
+import type { XmlElement } from "@poe-code/safe-fs/xml";
+import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import { DEFAULT_SHEET_SIZE, MAX_SHEET_SIZE, type LabelRange, type Range, type Sheet } from "@poe-code/spreadsheet-ast";
+import { parseExpression } from "@poe-code/spreadsheet-engine/formulas/parser";
+import { odfGrammar } from "@poe-code/spreadsheet-engine/formulas/conventions";
+import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
+
+const tableNamespaces = ["urn:oasis:names:tc:opendocument:xmlns:table:1.0", "http://openoffice.org/2000/table"];
+
+/** Native table:label-ranges declarations, resolved after all sheets are read.
+ * See Calc xmllabri.cxx and ScXMLExport::WriteLabelRanges. */
+export function readOdfLabelRanges(parent: XmlElement, sheets: readonly Sheet[], context: CapabilityContext,
+  charge: (amount?: number) => void): readonly Sheet[] {
+  const byName = new Map(sheets.map(sheet => { charge(1 + sheet.name.length); return [foldSheetName(sheet.name), sheet] as const; }));
+  const ranges = new Map<string, LabelRange[]>();
+  const sizes = new Map<string, { rows: number; columns: number }>(sheets.map(sheet => {
+    charge(); return [sheet.id, { ...(sheet.size ?? DEFAULT_SHEET_SIZE) }];
+  }));
+  function include(sheet: Sheet, range: Range) {
+    const size = sizes.get(sheet.id)!;
+    while (size.rows <= range.endRow) { charge(); size.rows *= 2; }
+    while (size.columns <= range.endColumn) { charge(); size.columns *= 2; }
+  }
+  function invalid(): never { throw new SsconvertError("io", "E Invalid OpenDocument: invalid label range"); }
+  function attribute(node: XmlElement, name: string) {
+    return node.attributes.find(a => a.localName === name && tableNamespaces.includes(a.namespace))?.value;
+  }
+  function address(source: string | undefined): { sheet: Sheet; range: Range } {
+    if (!source) return invalid();
+    charge(source.length);
+    const parsed = parseExpression("=[" + source + "]", { maximumDepth: context.limits.formulaDepth, grammar: odfGrammar,
+      position: { sheet: sheets[0]?.id ?? "", row: 0, column: 0 }, signal: context.signal,
+      maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes,
+      maximumNodes: context.limits.workbookNodes ?? Infinity });
+    if (!parsed.ok || parsed.document.root.kind !== "reference") return invalid();
+    const first = parsed.document.root.first, last = parsed.document.root.last ?? first;
+    const sheet = first.sheet === undefined ? undefined : byName.get(foldSheetName(first.sheet));
+    const lastSheet = last.sheet === undefined ? sheet : byName.get(foldSheetName(last.sheet));
+    if (!sheet || first.workbook !== undefined || last.workbook !== undefined || lastSheet !== sheet ||
+      !first.row || !first.column || !last.row || !last.column) return invalid();
+    const range = { startRow: first.row.value, endRow: last.row.value, startColumn: first.column.value, endColumn: last.column.value };
+    if (Object.values(range).some(value => !Number.isSafeInteger(value) || value < 0) ||
+      range.startRow > range.endRow || range.startColumn > range.endColumn ||
+      range.endRow >= MAX_SHEET_SIZE.rows || range.endColumn >= MAX_SHEET_SIZE.columns) return invalid();
+    return { sheet, range };
+  }
+  for (const container of parent.children) {
+    charge(); if (container.localName !== "label-ranges" || !tableNamespaces.includes(container.namespace)) continue;
+    for (const node of container.children) {
+      charge(); if (node.localName !== "label-range" || !tableNamespaces.includes(node.namespace)) continue;
+      const axis = attribute(node, "orientation");
+      if (axis !== "row" && axis !== "column") invalid();
+      const labels = address(attribute(node, "label-cell-range-address"));
+      const data = address(attribute(node, "data-cell-range-address"));
+      include(labels.sheet, labels.range); include(data.sheet, data.range);
+      let pairs = ranges.get(labels.sheet.id);
+      if (!pairs) { pairs = []; ranges.set(labels.sheet.id, pairs); }
+      pairs.push({ axis, labels: labels.range, data: data.range, ...(data.sheet !== labels.sheet ? { dataSheet: data.sheet.id } : {}) });
+    }
+  }
+  return sheets.map(sheet => {
+    charge(); const pairs = ranges.get(sheet.id);
+    return { ...sheet, size: sizes.get(sheet.id)!, ...(pairs ? { labelRanges: pairs } : {}) };
+  });
+}

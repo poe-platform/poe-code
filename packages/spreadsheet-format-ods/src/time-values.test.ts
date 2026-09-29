@@ -29,13 +29,34 @@ for (const legacy of [false, true]) {
     ["PT01H02M03.5S", (3600 + 120 + 3.5) / 86400],
     ["PT00H00M00.125S", 0.125 / 86400],
     ["PT25H00M00.5S", (25 * 3600 + 0.5) / 86400],
-    ["PT25H00M00S", 25 / 24]
+    ["PT25H00M00S", 25 / 24],
+    ["PT1H", 1 / 24],
+    ["PT30M", 1 / 48],
+    ["PT0.5S", 0.5 / 86400],
+    ["PT1H30M", 1.5 / 24],
+    ["PT1M0.5S", 60.5 / 86400],
+    ["-PT01H00M00S", -1 / 24],
+    ["-PT1H", -1 / 24],
+    ["P1DT2H3M4S", (86400 + 7200 + 180 + 4) / 86400],
+    ["P1D", 1],
+    ["PT36H", 1.5],
+    ["PT0S", 0],
+    ["-P2DT0.25S", -(2 * 86400 + 0.25) / 86400],
+    ["-PT0S", 0]
   ] as const)(`imports ${legacy ? "legacy" : "ODF"} time %s as a numeric serial`, async (source, value) => {
     expect(await timeCell(source, legacy)).toEqual({ kind: "number", value });
   });
 
   it.each(["PT01.5H00M00S", "PT00H00.5M00S", "PT00H00MNaNS", "PT00H00MInfinityS", "PT00H00M-0.5S"])(
     `retains fallback text for invalid ${legacy ? "legacy" : "ODF"} time components: %s`, async source => {
+      expect(await timeCell(source, legacy)).toEqual({ kind: "string", value: "fallback text" });
+    });
+
+  it.each(["P", "PT", "P1DT", "P1Y", "P1M", "P1.5D", "PT1M1H", "PT1H1H", "PT1S1M",
+    "PT1S1S", "P1D1D", "P1DT1D", "+PT1H", "PT1e2H", "PT0x10H", "PT1H0M0Sjunk",
+    "PT1H0M.5S", "PT1H0M1.S", "PT1H0M1e2S", "PT1H0M0x10S", "PT1H0M1 0S",
+    `PT${"9".repeat(400)}S`, `P${"9".repeat(306)}D`])(
+    `retains fallback text for malformed ${legacy ? "legacy" : "ODF"} durations: %s`, async source => {
       expect(await timeCell(source, legacy)).toEqual({ kind: "string", value: "fallback text" });
     });
 }

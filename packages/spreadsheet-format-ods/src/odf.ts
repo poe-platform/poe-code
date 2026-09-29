@@ -258,6 +258,40 @@ function paragraphs(node: XmlElement, charge: (n?: number) => void): string | un
   }
   return p.map(inline).join("\n");
 }
+function durationValue(source: string, charge: (n?: number) => void): number | undefined {
+  charge(source.length);
+  const negative = source[0] === "-";
+  let offset = negative ? 1 : 0;
+  if (source[offset++] !== "P") return undefined;
+  let time = false, previous = -1, components = 0, seconds = 0;
+  while (offset < source.length) {
+    if (source[offset] === "T") {
+      if (time || ++offset === source.length) return undefined;
+      time = true;
+      continue;
+    }
+    const start = offset;
+    while (source[offset] !== undefined && source[offset]! >= "0" && source[offset]! <= "9") offset++;
+    if (start === offset) return undefined;
+    const fractional = source[offset] === ".";
+    if (fractional) {
+      const decimalStart = ++offset;
+      while (source[offset] !== undefined && source[offset]! >= "0" && source[offset]! <= "9") offset++;
+      if (offset === decimalStart) return undefined;
+    }
+    const amount = Number(source.slice(start, offset)), unit = source[offset++];
+    const order = "DHMS".indexOf(unit ?? "?");
+    // Calendar years/months have no fixed length in spreadsheet day fractions.
+    if (order <= previous || order < 0 || (time ? unit === "D" : unit !== "D") || fractional && unit !== "S")
+      return undefined;
+    previous = order;
+    components++;
+    seconds += amount * [86400, 3600, 60, 1][order]!;
+    if (!Number.isFinite(seconds)) return undefined;
+  }
+  if (!components) return undefined;
+  return seconds === 0 ? 0 : (negative ? -seconds : seconds) / 86400;
+}
 function typedValue(node: XmlElement, legacy: boolean, dateSystem: "1900" | "1904", charge: (n?: number) => void): CellValue | undefined {
   const ns = legacy ? table : office;
   // Attribute order is observable: OpenCalc takes the first successfully parsed value.
@@ -280,12 +314,9 @@ function typedValue(node: XmlElement, legacy: boolean, dateSystem: "1900" | "190
       }
       return { kind: "number", value: dateSerial(d, { book: { sheets: [], dateSystem } }) + fraction };
     }
-    if (a.localName === "time-value" && a.value.startsWith("PT")) {
-      const h = a.value.indexOf("H"), m = a.value.indexOf("M", h + 1), s = a.value.indexOf("S", m + 1);
-      if (h < 2 || m < h || s < m) continue;
-      const fields = [a.value.slice(2, h), a.value.slice(h + 1, m), a.value.slice(m + 1, s)].map(Number);
-      if (fields.every((n, index) => Number.isFinite(n) && n >= 0 && (index === 2 || Number.isInteger(n))))
-        return { kind: "number", value: (fields[0]! * 3600 + fields[1]! * 60 + fields[2]!) / 86400 };
+    if (a.localName === "time-value") {
+      const value = durationValue(a.value, charge);
+      if (value !== undefined) return { kind: "number", value };
     }
   }
   const p = paragraphs(node, charge);

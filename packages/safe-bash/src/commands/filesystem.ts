@@ -1582,3 +1582,276 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
   }
   return commands;
 }
+
+export interface SyncFsStatNode {
+  readonly type: "file" | "directory" | "symlink";
+  readonly size: number;
+  readonly mode: number;
+  readonly mtimeMs: number;
+  readonly target?: string;
+  readonly children?: ReadonlyArray<{
+    readonly name: string;
+    readonly type: "file" | "directory" | "symlink";
+    readonly size: number;
+    readonly mode: number;
+    readonly mtimeMs?: number;
+    readonly target?: string;
+  }>;
+}
+
+function resolveCanonicalSync(
+  cwd: string,
+  inputPath: string,
+  mode: "link" | "e" | "f" | "m" | "s",
+  inspectStat: (absPath: string, follow: boolean) => SyncFsStatNode | undefined,
+): string | undefined {
+  const abs = normalizePath(inputPath, cwd);
+  if (mode === "s") return abs;
+  if (mode === "link") {
+    const st = inspectStat(abs, false);
+    if (!st || st.type !== "symlink" || st.target === undefined) return undefined;
+    return st.target;
+  }
+  const parts = abs.split("/").filter(Boolean);
+  let cur = "/";
+  let hops = 0;
+  let idx = 0;
+  while (idx < parts.length) {
+    const comp = parts[idx]!;
+    if (comp === ".") { idx++; continue; }
+    if (comp === "..") {
+      cur = dirname(cur);
+      idx++;
+      continue;
+    }
+    const nextPath = cur === "/" ? `/${comp}` : `${cur}/${comp}`;
+    const st = inspectStat(nextPath, false);
+    if (!st) {
+      if (mode === "e") return undefined;
+      if (mode === "f") {
+        if (idx !== parts.length - 1) return undefined;
+        const parentSt = inspectStat(cur, true);
+        if (!parentSt || parentSt.type !== "directory") return undefined;
+        return nextPath;
+      }
+      // mode === "m"
+      const rest = parts.slice(idx).join("/");
+      return normalizePath(rest, cur);
+    }
+    if (st.type === "symlink") {
+      if (st.target === undefined || ++hops > 40) return undefined;
+      const targetAbs = st.target.startsWith("/") ? st.target : (cur === "/" ? `/${st.target}` : `${cur}/${st.target}`);
+      const targetParts = targetAbs.split("/").filter(Boolean);
+      const remaining = parts.slice(idx + 1);
+      parts.splice(0, parts.length, ...targetParts, ...remaining);
+      cur = "/";
+      idx = 0;
+      continue;
+    }
+    if (idx < parts.length - 1 && st.type !== "directory") return undefined;
+    cur = nextPath;
+    idx++;
+  }
+  return cur;
+}
+
+export function evalSyncReadlink(
+  args: readonly string[],
+  cwd: string,
+  inspectStat: (absPath: string, follow: boolean) => SyncFsStatNode | undefined,
+): string | undefined {
+  let mode: "link" | "e" | "f" | "m" = "link";
+  let noNewline = false;
+  const operands: string[] = [];
+  let endOpts = false;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (!endOpts && a === "--") { endOpts = true; continue; }
+    if (!endOpts && a.startsWith("--") && a.length > 2) {
+      if (a === "--canonicalize") mode = "f";
+      else if (a === "--canonicalize-existing") mode = "e";
+      else if (a === "--canonicalize-missing") mode = "m";
+      else if (a === "--no-newline") noNewline = true;
+      else if (a === "--quiet" || a === "--silent" || a === "--verbose") {}
+      else return undefined;
+      continue;
+    }
+    if (!endOpts && a.startsWith("-") && a.length > 1) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "f") mode = "f";
+        else if (ch === "e") mode = "e";
+        else if (ch === "m") mode = "m";
+        else if (ch === "n") noNewline = true;
+        else if (ch === "q" || ch === "s" || ch === "v") {}
+        else return undefined;
+      }
+      continue;
+    }
+    operands.push(a);
+  }
+  if (operands.length === 0 || (noNewline && operands.length > 1)) return undefined;
+  const out: string[] = [];
+  for (const op of operands) {
+    if (!op) return undefined;
+    const res = resolveCanonicalSync(cwd, op, mode, inspectStat);
+    if (res === undefined) return undefined;
+    out.push(res);
+  }
+  return noNewline ? out[0]! : `${out.join("\n")}\n`;
+}
+
+export function evalSyncRealpath(
+  args: readonly string[],
+  cwd: string,
+  inspectStat: (absPath: string, follow: boolean) => SyncFsStatNode | undefined,
+): string | undefined {
+  let mode: "e" | "f" | "m" = "f";
+  let strip = false;
+  let relTo: string | undefined;
+  let relBase: string | undefined;
+  const operands: string[] = [];
+  let endOpts = false;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (!endOpts && a === "--") { endOpts = true; continue; }
+    if (!endOpts && (a === "--relative-to" || a.startsWith("--relative-to="))) {
+      relTo = a === "--relative-to" ? args[++i] : a.slice("--relative-to=".length);
+      if (!relTo) return undefined;
+      continue;
+    }
+    if (!endOpts && (a === "--relative-base" || a.startsWith("--relative-base="))) {
+      relBase = a === "--relative-base" ? args[++i] : a.slice("--relative-base=".length);
+      if (!relBase) return undefined;
+      continue;
+    }
+    if (!endOpts && a.startsWith("--") && a.length > 2) {
+      if (a === "--canonicalize") mode = "f";
+      else if (a === "--canonicalize-existing") mode = "e";
+      else if (a === "--canonicalize-missing") mode = "m";
+      else if (a === "--strip" || a === "--no-symlinks") strip = true;
+      else if (a === "--physical") strip = false;
+      else if (a === "--quiet") {}
+      else return undefined;
+      continue;
+    }
+    if (!endOpts && a.startsWith("-") && a.length > 1) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "E") mode = "f";
+        else if (ch === "e") mode = "e";
+        else if (ch === "m") mode = "m";
+        else if (ch === "s") strip = true;
+        else if (ch === "P") strip = false;
+        else if (ch === "q") {}
+        else return undefined;
+      }
+      continue;
+    }
+    operands.push(a);
+  }
+  if (operands.length === 0) return undefined;
+  const effectiveMode = strip ? "s" : mode;
+  const baseCanon = relBase !== undefined ? resolveCanonicalSync(cwd, relBase, effectiveMode, inspectStat) : undefined;
+  if (relBase !== undefined && baseCanon === undefined) return undefined;
+  const toOperand = relTo ?? relBase;
+  const toCanon = toOperand !== undefined ? resolveCanonicalSync(cwd, toOperand, effectiveMode, inspectStat) : undefined;
+  if (toOperand !== undefined && toCanon === undefined) return undefined;
+
+  const out: string[] = [];
+  for (const op of operands) {
+    if (!op) return undefined;
+    const resolved = resolveCanonicalSync(cwd, op, effectiveMode, inspectStat);
+    if (resolved === undefined) return undefined;
+    const display = toCanon !== undefined && (baseCanon === undefined || (isPathWithin(baseCanon, toCanon) && isPathWithin(baseCanon, resolved)))
+      ? (relativePath(toCanon, resolved) || ".")
+      : resolved;
+    out.push(display);
+  }
+  return `${out.join("\n")}\n`;
+}
+
+export function evalSyncLs(
+  args: readonly string[],
+  cwd: string,
+  inspectStat: (absPath: string, follow: boolean) => SyncFsStatNode | undefined,
+): string | undefined {
+  let hidden: "none" | "all" | "almost-all" = "none";
+  let dirItself = false;
+  let reverse = false;
+  let sortMode: "name" | "size" | "none" = "name";
+  let indicator: "none" | "slash" | "file-type" | "classify" = "none";
+  const operands: string[] = [];
+  let endOpts = false;
+
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (!endOpts && a === "--") { endOpts = true; continue; }
+    if (!endOpts && a.startsWith("--") && a.length > 2) {
+      if (a === "--all") hidden = "all";
+      else if (a === "--almost-all") hidden = "almost-all";
+      else if (a === "--directory") dirItself = true;
+      else if (a === "--reverse") reverse = true;
+      else if (a === "--classify") indicator = "classify";
+      else if (a === "--file-type") indicator = "file-type";
+      else return undefined;
+      continue;
+    }
+    if (!endOpts && a.startsWith("-") && a.length > 1) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "1") {}
+        else if (ch === "a") hidden = "all";
+        else if (ch === "A") hidden = "almost-all";
+        else if (ch === "d") dirItself = true;
+        else if (ch === "r") reverse = true;
+        else if (ch === "S") sortMode = "size";
+        else if (ch === "U") sortMode = "none";
+        else if (ch === "p") indicator = "slash";
+        else if (ch === "F") indicator = "classify";
+        else return undefined;
+      }
+      continue;
+    }
+    operands.push(a);
+  }
+  if (operands.length > 1) return undefined;
+  const target = operands[0] ?? ".";
+  if (!target) return undefined;
+  const abs = normalizePath(target, cwd);
+  const st = inspectStat(abs, false);
+  if (!st) return undefined;
+
+  const suffixFor = (type: "file" | "directory" | "symlink", mode: number): string => {
+    if (indicator === "none") return "";
+    if (type === "directory") return "/";
+    if (indicator === "slash") return "";
+    if (type === "symlink") return "@";
+    if (indicator === "classify" && type === "file" && (mode & 0o111) !== 0) return "*";
+    return "";
+  };
+
+  if (dirItself || st.type !== "directory") {
+    return `${target}${suffixFor(st.type, st.mode)}\n`;
+  }
+  if (!st.children) return undefined;
+  const items: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }> = [];
+  if (hidden === "all") {
+    items.push({ name: ".", type: "directory", size: 0, mode: st.mode });
+    items.push({ name: "..", type: "directory", size: 0, mode: st.mode });
+  }
+  for (const c of st.children) {
+    if (hidden === "none" && c.name.startsWith(".")) continue;
+    items.push(c);
+  }
+  if (sortMode !== "none") {
+    items.sort((x, y) => {
+      let cmp = 0;
+      if (sortMode === "size") cmp = y.size - x.size;
+      if (cmp === 0) cmp = x.name < y.name ? -1 : x.name > y.name ? 1 : 0;
+      return reverse ? -cmp : cmp;
+    });
+  }
+  if (items.length === 0) return "";
+  return items.map(it => `${it.name}${suffixFor(it.type, it.mode)}`).join("\n") + "\n";
+}

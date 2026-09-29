@@ -751,3 +751,43 @@ test("sync substitution fast path covers stat, fd, and rg (Wave 139)", async () 
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "1:export const port = 8080;:1:80\n");
 });
+
+test("sync substitution fast path covers readlink, realpath, and ls (Wave 140)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/opt/app/bin", { recursive: true });
+  await fs.writeFile("/opt/app/bin/run", new TextEncoder().encode("#!/bin/sh\n"));
+  await fs.chmod("/opt/app/bin/run", 0o755);
+  await fs.symlink("/opt/app/bin/run", "/opt/app/current");
+  const commands = new CommandRegistry([...createStandardCommands()]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(readlink /opt/app/current):$(readlink -f /opt/app/current):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "/opt/app/bin/run:/opt/app/bin/run:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(realpath --relative-to=/opt/app /opt/app/current):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "bin/run:80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(ls -F /opt/app | tr "\n" ","):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "bin/,current@,:80\n");
+});

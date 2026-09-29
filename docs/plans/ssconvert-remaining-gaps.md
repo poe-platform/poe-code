@@ -69,7 +69,9 @@ unchanged to `xlsx-ast`. CSVKit now uses its cached-value reader, preserving raw
 dates, declared/reset dimensions, formats, workbook epoch and active sheet while
 charging shared invocation budgets. Coordinates now use the shared spreadsheet
 model, built-in formats use an immutable local table, and the legacy XLS date
-classifier charges scanning work. Finish the XLS/BIFF reader, preserving encoding
+classifier charges scanning work. Owned CFB decoding now admits traversal and
+storage through caller counters; CSVKit uses it for legacy encoding inspection.
+SheetJS still performs the main BIFF read. Finish the XLS/BIFF reader, preserving encoding
 overrides and native diagnostics. Its cached-value profile must skip formula/name
 translation, preserve raw errors and blank/dimension behavior, and charge CFB,
 record, string and cell storage to the same invocation counters. Gnumeric's
@@ -81,6 +83,11 @@ cell extents rather than DIMENSION hints, and omission of BLANK/MULBLANK records
 when formatting information is disabled. FORMULA cache tag 3 is an empty text
 value, not an absent cell. Qualify these cases before replacing the XLS reader.
 The Gnumeric reader and cached-value reader retain their separate import semantics.
+
+The incoming synchronous XLSX shortcut dropped sparse row positions. Fix
+`52134c3627` delegates non-dense coordinates before output; dense conversion and
+actual Shell substitutions pass the 95-test command cohort. Broader shortcut
+format/resource equivalence remains unqualified and part of this plan.
 
 Complete the standard singular/plural/plugin command exports in that package.
 Keep file-output budget and cancellation ownership in `safe-bash-contracts`.

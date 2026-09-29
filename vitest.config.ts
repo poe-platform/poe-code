@@ -116,8 +116,6 @@ function getPackageAliases(): Record<string, string> {
     "poe-code/safe-fs/node/filesystem": path.resolve(packagesDir, "safe-fs/src/node/filesystem.ts"),
     "poe-code/safe-fs/core": path.resolve(packagesDir, "safe-fs/src/core.ts"),
     "poe-code/safe-fs": path.resolve(packagesDir, "safe-fs/src/index.ts"),
-    // This generated export is reached through its maintained TypeScript wrapper.
-    "safe-bash-compression-engine/native/generated/zstd": path.resolve(packagesDir, "safe-bash-compression-engine/src/native/zstd.ts"),
     ...bareSubpathAliases,
     ...subpathAliases,
     ...bareMainAliases,

@@ -1,5 +1,3 @@
-import { performance } from "node:perf_hooks";
-
 import { parse } from "../../src/parse.js";
 import { adversarialFailure, minimizeSource } from "./report.js";
 import { createRandom, pick, randomInt, type Random } from "./random.js";
@@ -14,7 +12,7 @@ const LITERALS = ["null", "true", "false", "0", "1", "-1", '"text"'] as const;
 
 export function runParserSmokeFuzzer(): void {
   const random = createRandom(PARSER_SMOKE_SEED);
-  const startedAt = performance.now();
+  const startedAt = process.threadCpuUsage();
 
   for (let index = 0; index < CASE_COUNT; index += 1) {
     const source = index % 5 === 0 ? truncate(random, program(random)) : program(random);
@@ -35,11 +33,12 @@ export function runParserSmokeFuzzer(): void {
     }
   }
 
-  const duration = performance.now() - startedAt;
+  const cpu = process.threadCpuUsage(startedAt);
+  const duration = (cpu.user + cpu.system) / 1_000;
   if (duration > MAX_DURATION_MS) {
     throw adversarialFailure({
       cause: new Error(
-        `case cap exceeded time cap: ${duration.toFixed(1)}ms > ${MAX_DURATION_MS}ms`
+        `case cap exceeded CPU cap: ${duration.toFixed(1)}ms > ${MAX_DURATION_MS}ms`
       ),
       kind: "source",
       seed: PARSER_SMOKE_SEED,

@@ -261,6 +261,34 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
   return { exitCode };
 }
 
+const fastEchoDecoder = new TextDecoder();
+export function tryFastEcho(args: readonly string[]): string | undefined {
+  let newline = true;
+  let escapes = false;
+  let offset = 0;
+  while (offset < args.length && /^-[neE]+$/u.test(args[offset]!)) {
+    const flagArg = args[offset]!;
+    for (let i = 1; i < flagArg.length; i++) {
+      const ch = flagArg[i];
+      if (ch === "n") newline = false;
+      else escapes = ch === "e";
+    }
+    offset++;
+  }
+  const text = offset === 0 ? args.join(" ") : args.slice(offset).join(" ");
+  if (text.includes("\0")) return undefined;
+  if (!escapes) {
+    return newline ? `${text}\n` : text;
+  }
+  const escaped = escapeBytes(text, true);
+  for (let i = 0; i < escaped.bytes.byteLength; i++) {
+    const b = escaped.bytes[i]!;
+    if (b === 0 || b >= 128) return undefined;
+  }
+  const out = fastEchoDecoder.decode(escaped.bytes);
+  return (newline && !escaped.stop) ? `${out}\n` : out;
+}
+
 export function tryFastPrintf(args: readonly string[]): string | undefined {
   const hasDoubleDash = args[0] === "--";
   const fmtIdx = hasDoubleDash ? 1 : 0;

@@ -1,3 +1,4 @@
+import { exprCommands } from "../../src/commands/expr/index.js";
 import { metadataCommands } from "../../src/commands/metadata/index.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -73,5 +74,33 @@ test("evaluates cp/mv mode preservation, ln hard/symbolic links, and stat in syn
     res.stdout,
     "modes=755:600:755 hln=755:2 sln=/tmp/new_cp.sh\n" +
     "vcp='/tmp/src164.sh' -> '/tmp/new_cp.sh'|vln1='/tmp/hard_ln.sh' => '/tmp/new_cp.sh'|vln2='/tmp/sym_ln.sh' -> '/tmp/new_cp.sh'|vmv=renamed '/tmp/src164.sh' -> '/tmp/exist_mv.sh'\n"
+  );
+});
+
+test("evaluates echo -n/-e/-ne and stage-0 dirname/basename/pwd/expr in sync pipelines and brace loops (Wave 165)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(byteCommands()).use(exprCommands());
+  const res = await shell.exec([
+    "h=$(echo -n \"hello\" | sha256sum | cut -d\" \" -f1)",
+    "b=$(echo -n \"hello\" | base64)",
+    "t=$(echo -ne \"alpha\\tbeta\\n\" | cut -f2)",
+    "neg=$(echo \"-42\")",
+    "flg=$(echo \"--flag\")",
+    "d=$(dirname /usr/local/bin | tr / _)",
+    "bn=$(basename /usr/local/bin.tar.gz .tar.gz | tr a-z A-Z)",
+    "p=$(pwd | tr / :)",
+    "ex=$(expr 6 \\* 7 | tr 4 8)",
+    "acc=\"\"",
+    "for i in {1..3}; do",
+    "  v=$(echo -n \"item_$i\" | tr a-z A-Z)",
+    "  acc=\"$acc$v:\"",
+    "done",
+    "echo \"$h|$b|$t|$neg|$flg|$d|$bn|$p|$ex|$acc\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824|aGVsbG8=|beta|-42|--flag|_usr_local|BIN|:tmp|82|ITEM_1:ITEM_2:ITEM_3:\n"
   );
 });

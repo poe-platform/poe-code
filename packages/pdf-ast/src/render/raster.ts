@@ -5,6 +5,7 @@ import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import type { PdfClipPath, PdfDisplayList, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate } from "../cos/filters.js";
+import { flattenCubic } from "./cubic.js";
 
 export interface RgbaBitmap {
   readonly width: number;
@@ -1018,22 +1019,11 @@ function segmentsToScreenEdges(
       const [p1x, p1y] = toScreen(seg.x1, seg.y1);
       const [p2x, p2y] = toScreen(seg.x2, seg.y2);
       const [p3x, p3y] = toScreen(seg.x, seg.y);
-      const steps = 12;
+      const points = flattenCubic(curX, curY, p1x, p1y, p2x, p2y, p3x, p3y);
       let px = curX;
       let py = curY;
-      for (let s = 1; s <= steps; s++) {
-        const t = s / steps;
-        const mt = 1 - t;
-        const qx =
-          mt * mt * mt * curX +
-          3 * mt * mt * t * p1x +
-          3 * mt * t * t * p2x +
-          t * t * t * p3x;
-        const qy =
-          mt * mt * mt * curY +
-          3 * mt * mt * t * p1y +
-          3 * mt * t * t * p2y +
-          t * t * t * p3y;
+      for (let i = 1; i < points.length; i++) {
+        const [qx, qy] = points[i]!;
         edges.push({ x0: px, y0: py, x1: qx, y1: qy });
         px = qx;
         py = qy;

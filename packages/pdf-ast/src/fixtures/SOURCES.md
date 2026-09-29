@@ -212,3 +212,11 @@ same revision (Apache-2.0). It sets clipping before constructing the path and
 then paints a rectangle; `test/unit/api_spec.js` asserts the exact rendered
 pixel counts. Manifest MD5: `7ab95c0f106dccd90d6569f241fe8771`. SHA-256:
 `cbcbf53e8109ed56f9a3fbc696081455c8a5d32cc5cff4e741e85250788dcbff`.
+
+`pdfium-agg-cubic-vectors.json` contains six curve inputs and points emitted by
+the unchanged `curve4_div` implementation from PDFium revision
+`a84323421e94f484faca52dd9d027934eba42ab8`, `third_party/agg23/agg_curves.cpp`.
+The native comparison uses a minimal vector-storage adapter and float inputs;
+expectations allow rounding differences from TypeScript's double precision.
+Cases cover collinear reversals, loops, coincident endpoints/control points,
+and zero-length curves. See `../../licenses/AGG-2.3.txt` and the package notices.

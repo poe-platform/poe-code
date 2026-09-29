@@ -192,3 +192,81 @@ test('shell stream fragments large writes before the finite host envelope', asyn
     assert.equal(pythonShellDispatchActive(context.executionScope), false);
   } finally { await bridge.close(); }
 });
+
+for (const writeBytes of [262144, 16384]) {
+  test(`finite bridge delivers identical binary output with ${writeBytes}-byte producer writes`, async () => {
+    const { createPythonHostBridge } = await import('../../src/commands/python/host-capabilities.js');
+    const signal = new AbortController().signal;
+    const bytes = new Uint8Array(262144).fill(255);
+    const context = { signal, executionScope: {}, cwd: '/', env: {}, async invoke(_command, _args, options) {
+      for (let offset = 0; offset < bytes.length; offset += writeBytes) await options!.stdout!.write(bytes.subarray(offset, offset + writeBytes));
+      return { exitCode: 0 };
+    } } satisfies Partial<CommandContext> as unknown as CommandContext;
+    const bridge = createPythonHostBridge({ shell: createPythonShellCapability(context, { maxInputBytes: 65536, maxOutputBytes: 524288, maxConcurrentCalls: 1, maxStreamChunkBytes: 16384 }) },
+      { signal, maxMessageBytes: 262144, maxMessageDepth: 16, maxConcurrentCalls: 2, maxStreams: 1, maxStreamBytes: 2097152 });
+    try {
+      const handle = await bridge.request({ version: 1, operation: 'stream', capability: 'shell', value: { argv: ['emit'] } });
+      const received: number[] = [];
+      let exits = 0;
+      for (;;) {
+        const next = await bridge.request({ version: 1, operation: 'next', handle }) as { done: boolean; value?: { value: { type: string; data?: number[]; returncode?: number } } };
+        if (next.done) break;
+        const event = next.value!.value;
+        if (event.type === 'exit') { exits++; assert.equal(event.returncode, 0); }
+        else { assert.equal(event.type, 'stdout'); for (const byte of event.data!) received.push(byte); }
+      }
+      assert.deepEqual(Uint8Array.from(received), bytes);
+      assert.equal(exits, 1);
+      assert.equal(pythonShellDispatchActive(context.executionScope), false);
+    } finally { await bridge.close(); }
+    await assert.rejects(bridge.request({ version: 1, operation: 'call', capability: 'shell', value: { argv: ['emit'] } }), /retired/);
+  });
+}
+
+for (const budget of ['output', 'stream'] as const) {
+  test(`fragmented stream preserves partial bytes and retires child on cumulative ${budget} overflow`, async () => {
+    const { createPythonHostBridge } = await import('../../src/commands/python/host-capabilities.js');
+    const signal = new AbortController().signal;
+    let settled = false;
+    const context = { signal, executionScope: {}, cwd: '/', env: {}, async invoke(_command, _args, options) {
+      try {
+        await options!.stdout!.write(new Uint8Array([0, 255]));
+        await options!.stderr!.write(new Uint8Array(32).fill(128));
+        return { exitCode: 0 };
+      } finally { settled = true; }
+    } } satisfies Partial<CommandContext> as unknown as CommandContext;
+    const bridge = createPythonHostBridge({ shell: createPythonShellCapability(context, { maxOutputBytes: budget === 'output' ? 33 : 64, maxStreamChunkBytes: 2 }) },
+      { signal, maxMessageBytes: 1024, maxStreamBytes: budget === 'stream' ? 40 : 1024 });
+    try {
+      const handle = await bridge.request({ version: 1, operation: 'stream', capability: 'shell', value: { argv: ['emit'] } });
+      assert.deepEqual(await bridge.request({ version: 1, operation: 'next', handle }), { done: false, value: { type: 'data', value: { type: 'stdout', data: [0, 255] } } });
+      await assert.rejects(bridge.request({ version: 1, operation: 'next', handle }), budget === 'output' ? /output limit/ : /stream byte limit/);
+      assert.equal(settled, true);
+      assert.equal(pythonShellDispatchActive(context.executionScope), false);
+      await assert.rejects(bridge.request({ version: 1, operation: 'next', handle }), /Unknown Python host stream/);
+    } finally { await bridge.close(); }
+  });
+}
+
+test('parent abort while a fragment awaits admission settles the child without an exit event', async () => {
+  const parent = new AbortController();
+  let settled = false;
+  const context = { signal: parent.signal, executionScope: {}, cwd: '/', env: {}, async invoke(_command, _args, options) {
+    try { await options!.stdout!.write(new Uint8Array(65536)); return { exitCode: 0 }; }
+    finally { settled = true; }
+  } } satisfies Partial<CommandContext> as unknown as CommandContext;
+  const iterator = createPythonShellCapability(context, { maxStreamChunkBytes: 2 }).stream!({ argv: ['emit'] }, { signal: parent.signal })[Symbol.asyncIterator]();
+  assert.deepEqual(await iterator.next(), { done: false, value: { type: 'stdout', data: [0, 0] } });
+  const reason = new Error('parent cancelled');
+  parent.abort(reason);
+  await assert.rejects(iterator.next(), error => error === reason);
+  assert.equal(settled, true);
+  assert.equal(pythonShellDispatchActive(context.executionScope), false);
+});
+
+test('stream chunk ceilings must be positive finite safe integers', () => {
+  const context = { executionScope: {}, invoke: async () => ({ exitCode: 0 }) } as unknown as CommandContext;
+  for (const maxStreamChunkBytes of [0, -1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(() => createPythonShellCapability(context, { maxStreamChunkBytes }), /stream chunk limit/);
+  }
+});

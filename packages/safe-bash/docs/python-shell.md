@@ -74,7 +74,14 @@ run_sync(main())
 ```
 
 Use `async with` for streams, especially when breaking early. Stream writes apply
-backpressure; closing cancels and awaits the child command. Host input and output limits default to disabled. Configure
+backpressure; closing cancels and awaits the child command. The host fragments
+stdout and stderr before serialization, independently of command write sizes.
+`maxStreamChunkBytes` defaults to 16384 and requires a positive finite safe
+integer. Choose it with JSON-envelope headroom under finite bridge message
+limits; byte arrays can require several serialized bytes per output byte.
+`maxOutputBytes` still counts total raw stdout plus stderr, while the bridge
+`maxStreamBytes` counts serialized stream events. Buffered `run`/`capture_output`
+results require their own whole-result message budget. Host input and output limits default to disabled. Configure
 `maxInputBytes` and `maxOutputBytes` in `createPythonShellCapability`, or request
 `max_output_bytes` in the Python API. Configure serialized-message limits with
 `capabilityLimits`. Parent filesystem, command, output and cancellation budgets

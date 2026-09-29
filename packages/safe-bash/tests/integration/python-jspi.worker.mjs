@@ -212,18 +212,19 @@ async def qualify_libraries():
  async with ShellClient() as child:
   result = await child.run(['rg', 'changed', '/work/shared.txt'], text=True)
   assert result.stdout == 'changed\n'
-  async with child.stream(['large-shell']) as events:
-   offset = 0
-   exits = 0
-   async for event in events:
-    if event.type == 'stdout':
-     assert len(event.data) <= 16384
-     assert event.data == bytes((offset + i) % 256 for i in range(len(event.data)))
-     offset += len(event.data)
-    elif event.type == 'exit':
-     exits += 1
-     assert event.returncode == 0
-   assert offset == 262144 and exits == 1
+  for write_bytes in [262144, 16384]:
+   async with child.stream(['large-shell', str(write_bytes)]) as events:
+    offset = 0
+    exits = 0
+    async for event in events:
+     if event.type == 'stdout':
+      assert len(event.data) <= 16384
+      assert event.data == bytes((offset + i) % 256 for i in range(len(event.data)))
+      offset += len(event.data)
+     elif event.type == 'exit':
+      exits += 1
+      assert event.returncode == 0
+    assert offset == 262144 and exits == 1
   async with child.stream(['pulse']) as early:
    assert (await early.__anext__()).data == bytes([0,255])
   async with child.stream(['rg', 'changed', '/work/shared.txt']) as events:
@@ -267,7 +268,9 @@ print('host-ok')
       } finally { if (context.signal.aborted) shellStreamCancelled++; }
     } });
     host.commands.register({ name: 'large-shell', async execute(context) {
-      await context.stdout.write(Uint8Array.from({length:262144}, (_, i) => i % 256));
+      const bytes = Uint8Array.from({length:262144}, (_, i) => i % 256);
+      const writeBytes = Number(context.args[0]);
+      for (let offset = 0; offset < bytes.length; offset += writeBytes) await context.stdout.write(bytes.subarray(offset, offset + writeBytes));
       return {exitCode:0};
     } });
     host.commands.register({ name: 'overflow', async execute(context) {

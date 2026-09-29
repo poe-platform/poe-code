@@ -1,8 +1,8 @@
 import { createEnvCommand } from "./env/index.js";
-import { FsError, getCommandArguments, readBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
+import { getCommandArguments, readBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { writeDiagnostic } from "../escaping.js";
 import { shellValueByteLength } from "../contracts/value.js";
-import { define, emptyInput, encoder, escapeBytes, integer, input as fileInput, options, output, pathOf, UsageError, value } from "./internal.js";
+import { builtInDirectContextExecutors, define, emptyInput, encoder, escapeBytes, integer, input as fileInput, options, pathOf, UsageError, value } from "./internal.js";
 import type { EnvSplitLimits } from "./env-split.js";
 import { delimitedArguments, replaceXargsArguments, xargsDisplay } from "./xargs-bytes.js";
 
@@ -76,7 +76,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
   const configured = configuration.maxParallelProcesses;
   const maxParallelProcesses = configured === undefined ? Infinity : configured;
   if (maxParallelProcesses !== Infinity && (!Number.isSafeInteger(maxParallelProcesses) || maxParallelProcesses < 1)) throw new RangeError("maxParallelProcesses must be a positive safe integer or Infinity");
-  return [
+  const defs = [
     createEnvCommand({ execute, envSplitLimits: configuration.envSplitLimits }),
     define("xargs", async context => {
       const rawArgumentValues = getCommandArguments(context);

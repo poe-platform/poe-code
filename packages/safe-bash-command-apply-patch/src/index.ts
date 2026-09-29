@@ -23,7 +23,7 @@ export function evalSyncApplyPatch(
     const header = lines[idx]!;
     if (header.startsWith("*** Add File: ")) {
       const target = header.slice("*** Add File: ".length);
-      if (!target || target.includes(.js"..")) return undefined;
+      if (!target || target.includes("..")) return undefined;
       idx++;
       const added: string[] = [];
       while (idx < lines.length - 1 && !lines[idx]!.startsWith("*** ")) {
@@ -39,7 +39,7 @@ export function evalSyncApplyPatch(
       });
     } else if (header.startsWith("*** Update File: ")) {
       const target = header.slice("*** Update File: ".length);
-      if (!target || target.includes(.js"..")) return undefined;
+      if (!target || target.includes("..")) return undefined;
       const origBytes = readFileSync(target);
       if (!origBytes) return undefined;
       const fileLines = decoder.decode(origBytes).replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");

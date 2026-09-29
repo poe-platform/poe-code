@@ -51,6 +51,7 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
-    "safe-bash-byte-engine": "*"
+    "safe-bash-byte-engine": "*",
+    "safe-bash-io-engine": "*"
   }
 }

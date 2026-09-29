@@ -52,6 +52,7 @@
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
     "safe-bash-byte-engine": "*",
-    "safe-bash-regex-engine": "*"
+    "safe-bash-regex-engine": "*",
+    "safe-bash-io-engine": "*"
   }
 }

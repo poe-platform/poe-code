@@ -6,7 +6,6 @@ import { Budget, Cursor, interruptible } from "./io.js";
 import { Names } from "./names.js";
 import { Outputs } from "./outputs.js";
 import { parseArguments, settings, type SplitArguments, type SplitLimits } from "./options.js";
-import type { CommandFamilyLimits } from "safe-bash-io-engine/limits";
 import { gnuInformation, gnuInformationSync } from "safe-bash-io-engine/gnu-information";
 import { builtInDirectContextExecutors, decoder, syncCommandEvaluators } from "safe-bash-io-engine/internal";
 

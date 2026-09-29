@@ -299,14 +299,21 @@ export function evalSyncEnv(
   variables: Readonly<Record<string, string | undefined>>,
 ): string | undefined {
   let ignoreEnv = false;
+  let nullDelim = false;
   const unsetNames: string[] = [];
   let i = 0;
   while (i < opArgs.length) {
     const a = opArgs[i]!;
     if (a === "--") { i++; break; }
-    if (!a.startsWith("-") || a === "-") break;
-    if (a === "-i" || a === "-" || a === "--ignore-environment") {
+    if (a === "-") { ignoreEnv = true; i++; continue; }
+    if (!a.startsWith("-")) break;
+    if (a === "-i" || a === "--ignore-environment") {
       ignoreEnv = true;
+      i++;
+      continue;
+    }
+    if (a === "-0" || a === "--null") {
+      nullDelim = true;
       i++;
       continue;
     }
@@ -317,17 +324,31 @@ export function evalSyncEnv(
       i++;
       continue;
     }
-    if (a.startsWith("-u") && a.length > 2) {
-      const v = a.slice(2);
-      if (v.includes("=") || v.includes("\0")) return undefined;
-      unsetNames.push(v);
-      i++;
-      continue;
-    }
     if (a.startsWith("--unset=")) {
       const v = a.slice(8);
       if (!v || v.includes("=") || v.includes("\0")) return undefined;
       unsetNames.push(v);
+      i++;
+      continue;
+    }
+    if (!a.startsWith("--") && a.length > 1) {
+      let ok = true;
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "i") ignoreEnv = true;
+        else if (ch === "0") nullDelim = true;
+        else if (ch === "u") {
+          const rest = a.slice(j + 1);
+          const v = rest.length > 0 ? rest : opArgs[++i];
+          if (!v || v.includes("=") || v.includes("\0")) { ok = false; break; }
+          unsetNames.push(v);
+          break;
+        } else {
+          ok = false;
+          break;
+        }
+      }
+      if (!ok) return undefined;
       i++;
       continue;
     }
@@ -354,23 +375,34 @@ export function evalSyncEnv(
   }
   const names = [...addedNames.reverse(), ...inheritedNames];
   if (i === opArgs.length) {
+    const sep = nullDelim ? "\0" : "\n";
     let out = "";
-    for (const name of names) out += `${name}=${env[name]}\n`;
+    for (const name of names) out += `${name}=${env[name]}${sep}`;
     return out;
   }
+  if (nullDelim) return undefined;
   const cmd = opArgs[i]!;
   const cmdArgs = opArgs.slice(i + 1);
   if (cmd === "printenv") {
-    if (cmdArgs.length === 0) {
+    let sep = "\n";
+    let pIdx = 0;
+    while (pIdx < cmdArgs.length) {
+      const pa = cmdArgs[pIdx]!;
+      if (pa === "--") { pIdx++; break; }
+      if (pa === "--null" || /^-0+$/.test(pa)) { sep = "\0"; pIdx++; continue; }
+      if (pa.startsWith("-")) return undefined;
+      break;
+    }
+    const pNames = cmdArgs.slice(pIdx);
+    if (pNames.length === 0) {
       let out = "";
-      for (const name of names) out += `${name}=${env[name]}\n`;
+      for (const name of names) out += `${name}=${env[name]}${sep}`;
       return out;
     }
     let out = "";
-    for (const k of cmdArgs) {
-      if (k.startsWith("-")) return undefined;
-      if (!Object.hasOwn(env, k)) return undefined;
-      out += `${env[k]}\n`;
+    for (const k of pNames) {
+      if (k.includes("=") || !Object.hasOwn(env, k)) return undefined;
+      out += `${env[k]}${sep}`;
     }
     return out;
   }

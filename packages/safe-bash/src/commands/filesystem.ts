@@ -1485,6 +1485,8 @@ export function evalSyncReadlink(
 ): string | undefined {
   let mode: "link" | "e" | "f" | "m" = "link";
   let noNewline = false;
+  let zero = false;
+  let quiet = false;
   const operands: string[] = [];
   let endOpts = false;
   for (let i = 0; i < args.length; i++) {
@@ -1495,7 +1497,9 @@ export function evalSyncReadlink(
       else if (a === "--canonicalize-existing") mode = "e";
       else if (a === "--canonicalize-missing") mode = "m";
       else if (a === "--no-newline") noNewline = true;
-      else if (a === "--quiet" || a === "--silent" || a === "--verbose") { /* Successful lookup has no diagnostic output. */ }
+      else if (a === "--zero") zero = true;
+      else if (a === "--quiet" || a === "--silent") quiet = true;
+      else if (a === "--verbose") quiet = false;
       else return undefined;
       continue;
     }
@@ -1506,14 +1510,16 @@ export function evalSyncReadlink(
         else if (ch === "e") mode = "e";
         else if (ch === "m") mode = "m";
         else if (ch === "n") noNewline = true;
-        else if (ch === "q" || ch === "s" || ch === "v") { /* Successful lookup has no diagnostic output. */ }
+        else if (ch === "z") zero = true;
+        else if (ch === "q" || ch === "s") quiet = true;
+        else if (ch === "v") quiet = false;
         else return undefined;
       }
       continue;
     }
     operands.push(a);
   }
-  if (operands.length === 0 || (noNewline && operands.length > 1)) return undefined;
+  if (operands.length === 0 || (noNewline && operands.length > 1 && !quiet)) return undefined;
   const out: string[] = [];
   for (const op of operands) {
     if (!op) return undefined;
@@ -1521,7 +1527,8 @@ export function evalSyncReadlink(
     if (res === undefined) return undefined;
     out.push(res);
   }
-  return noNewline ? out[0]! : `${out.join("\n")}\n`;
+  const sep = zero ? "\0" : "\n";
+  return (noNewline && operands.length === 1) ? out[0]! : out.map(x => x + sep).join("");
 }
 
 export function evalSyncRealpath(
@@ -1531,6 +1538,8 @@ export function evalSyncRealpath(
 ): string | undefined {
   let mode: "e" | "f" | "m" = "f";
   let strip = false;
+  let logical = false;
+  let zero = false;
   let relTo: string | undefined;
   let relBase: string | undefined;
   const operands: string[] = [];
@@ -1553,7 +1562,9 @@ export function evalSyncRealpath(
       else if (a === "--canonicalize-existing") mode = "e";
       else if (a === "--canonicalize-missing") mode = "m";
       else if (a === "--strip" || a === "--no-symlinks") strip = true;
-      else if (a === "--physical") strip = false;
+      else if (a === "--logical") logical = true;
+      else if (a === "--physical") { logical = false; strip = false; }
+      else if (a === "--zero") zero = true;
       else if (a === "--quiet") { /* Failed lookup delegates diagnostics to the command. */ }
       else return undefined;
       continue;
@@ -1565,7 +1576,9 @@ export function evalSyncRealpath(
         else if (ch === "e") mode = "e";
         else if (ch === "m") mode = "m";
         else if (ch === "s") strip = true;
-        else if (ch === "P") strip = false;
+        else if (ch === "L") logical = true;
+        else if (ch === "P") { logical = false; strip = false; }
+        else if (ch === "z") zero = true;
         else if (ch === "q") { /* Failed lookup delegates diagnostics to the command. */ }
         else return undefined;
       }
@@ -1575,23 +1588,28 @@ export function evalSyncRealpath(
   }
   if (operands.length === 0) return undefined;
   const effectiveMode = strip ? "s" : mode;
-  const baseCanon = relBase !== undefined ? resolveCanonicalSync(cwd, relBase, effectiveMode, inspectStat) : undefined;
+  const resolveOp = (p: string): string | undefined => {
+    const target = logical ? normalizePath(resolvePath(cwd, p)) : p;
+    return resolveCanonicalSync(cwd, target, effectiveMode, inspectStat);
+  };
+  const baseCanon = relBase !== undefined ? resolveOp(relBase) : undefined;
   if (relBase !== undefined && baseCanon === undefined) return undefined;
   const toOperand = relTo ?? relBase;
-  const toCanon = toOperand !== undefined ? resolveCanonicalSync(cwd, toOperand, effectiveMode, inspectStat) : undefined;
+  const toCanon = toOperand !== undefined ? resolveOp(toOperand) : undefined;
   if (toOperand !== undefined && toCanon === undefined) return undefined;
 
   const out: string[] = [];
   for (const op of operands) {
     if (!op) return undefined;
-    const resolved = resolveCanonicalSync(cwd, op, effectiveMode, inspectStat);
+    const resolved = resolveOp(op);
     if (resolved === undefined) return undefined;
     const display = toCanon !== undefined && (baseCanon === undefined || (isPathWithin(baseCanon, toCanon) && isPathWithin(baseCanon, resolved)))
       ? (relativePath(toCanon, resolved) || ".")
       : resolved;
     out.push(display);
   }
-  return `${out.join("\n")}\n`;
+  const sep = zero ? "\0" : "\n";
+  return out.map(x => x + sep).join("");
 }
 
 export function evalSyncLs(

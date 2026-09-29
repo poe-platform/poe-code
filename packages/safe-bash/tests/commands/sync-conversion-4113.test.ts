@@ -1,3 +1,7 @@
+import { envCommands } from "../../src/commands/env/index.js";
+import { printenvCommands } from "../../src/commands/printenv/index.js";
+import { realpathCommands } from "../../src/commands/realpath/index.js";
+import { readlinkCommands } from "../../src/commands/readlink/index.js";
 import { pathchkCommands } from "../../src/commands/pathchk/index.js";
 import { getoptCommands } from "../../src/commands/getopt/index.js";
 import { calCommands } from "../../src/commands/cal/index.js";
@@ -1007,6 +1011,7 @@ test("evaluates cal -d/bundled flags, getopt bundled flags, and pathchk/cal/geto
   const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(calCommands()).use(getoptCommands()).use(pathchkCommands());
   const res = await shell.exec(`
     touch /tmp/w206_ok.txt
+    export A=1 B=2
     for i in 1 2 3; do
       c1=\$(cal -d 2026-05 | head -n 1)
       c2=\$(echo ignored | cal -A1 -B1 -d2026-05 | head -n 1)
@@ -1021,5 +1026,33 @@ test("evaluates cal -d/bundled flags, getopt bundled flags, and pathchk/cal/geto
   assert.equal(
     res.stdout.trim(),
     "May 2026        |     April 2026             May 2026             June 2026        | -a -b val --alpha --beta two -- rest| -a -b hi -- pos|0|"
+  );
+});
+
+test("evaluates readlink -z/-qn, realpath -z/-L, printenv -0, and env -0/-u in sync substitutions (Wave 207)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  await fs.mkdir("/tmp/dir");
+  await fs.writeFile("/tmp/dir/target.txt", new TextEncoder().encode("ok"));
+  await fs.symlink("/tmp/dir/target.txt", "/tmp/link.txt");
+  const shell = new Shell({ fs, cwd: "/tmp", env: { A: "1", B: "2" } })
+    .use(standardCommands())
+    .use(printenvCommands());
+  const res = await shell.exec(`
+    export A=1 B=2
+    for i in 1 2 3; do
+      rl1=\$(readlink -f -z /tmp/link.txt /tmp/dir/target.txt | tr "\\0" ":")
+      rl2=\$(readlink -qn /tmp/link.txt /tmp/link.txt | tr "\\n" ":")
+      rp1=\$(realpath -L -z /tmp/dir/../link.txt | tr "\\0" ":")
+      pe1=\$(printenv -0 A B | tr "\\0" ":")
+      ev1=\$(env -0 -i X=9 Y=8 | tr "\\0" ":")
+      ev2=\$(echo ignored | env -u A C=3 printenv -0 B C | tr "\\0" ":")
+    done
+    printf "%s|%s|%s|%s|%s|%s\\n" "\$rl1" "\$rl2" "\$rp1" "\$pe1" "\$ev1" "\$ev2"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "/tmp/dir/target.txt:/tmp/dir/target.txt:|/tmp/dir/target.txt:/tmp/dir/target.txt:|/tmp/dir/target.txt:|1:2:|Y=8:X=9:|2:3:"
   );
 });

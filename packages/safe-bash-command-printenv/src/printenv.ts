@@ -58,12 +58,17 @@ export function evalSyncPrintenv(
 ): string | undefined {
   const cfg = execFn ? timeEnvExecutorSettings.get(execFn as never) : undefined;
   if (execFn && !cfg) return undefined;
+  let separator = "\n";
   let offset = 0;
   for (; offset < args.length; offset++) {
     const arg = args[offset]!;
     if (arg === "--") {
       offset++;
       break;
+    }
+    if (arg === "--null" || /^-0+$/.test(arg)) {
+      separator = "\0";
+      continue;
     }
     if (arg.startsWith("-")) return undefined;
     break;
@@ -84,5 +89,5 @@ export function evalSyncPrintenv(
       if (typeof val === "string") out.push(`${name}=${val}`);
     }
   }
-  return out.length === 0 ? "" : `${out.join("\n")}\n`;
+  return out.length === 0 ? "" : out.map(x => x + separator).join("");
 }

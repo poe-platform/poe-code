@@ -21,7 +21,7 @@ export function unrtfCommands(options: UnrtfCommandsOptions = {}): VirtualShellP
   const commands = createUnrtfCommands(options);
   const replace = options.replace ?? false;
   return {
-    name: "unrtf-commands",
+    name: "unrtf",
     setup(host) {
       if (!replace) {
         for (const command of commands) {

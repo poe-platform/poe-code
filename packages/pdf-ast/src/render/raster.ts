@@ -893,10 +893,11 @@ function blendPixel(
   py: number,
   color: PdfRgbColor,
   alpha: number,
-  blendMode?: string
+  blendMode?: string,
+  clipMask?: Uint8Array
 ): void {
   if (px < 0 || py < 0 || px >= width || py >= height || alpha <= 0) return;
-  const a = Math.min(1, Math.max(0, alpha));
+  const a = Math.min(1, Math.max(0, alpha)) * (clipMask ? clipMask[(py * width + px) * 4 + 3]! / 255 : 1);
   const idx = (py * width + px) * 4;
   const csR = Math.min(1, Math.max(0, color.r));
   const csG = Math.min(1, Math.max(0, color.g));
@@ -930,7 +931,8 @@ function drawAntiAliasedSegment(
   alpha = 1,
   lineCap: 0 | 1 | 2 = 0,
   antialias = true,
-  blendMode?: string
+  blendMode?: string,
+  clipMask?: Uint8Array
 ): void {
   const halfW = Math.max(0.6, strokeWidth * 0.5);
   const dx = x1 - x0;
@@ -958,7 +960,7 @@ function drawAntiAliasedSegment(
         const dist = overAlong > 0 ? Math.max(perp, halfW + overAlong) : perp;
         if (dist <= halfW + 0.75) {
           const cov = antialias ? Math.max(0, Math.min(1, halfW + 0.5 - dist)) : dist <= halfW + 0.25 ? 1 : 0;
-          blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode);
+          blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode, clipMask);
         }
         continue;
       }
@@ -969,7 +971,7 @@ function drawAntiAliasedSegment(
       const dist = Math.hypot(cx - projX, cy - projY);
       if (dist <= halfW + 0.75) {
         const cov = antialias ? Math.max(0, Math.min(1, halfW + 0.5 - dist)) : dist <= halfW + 0.25 ? 1 : 0;
-        blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode);
+        blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode, clipMask);
       }
     }
   }
@@ -1077,7 +1079,8 @@ function fillEdgesScanline4x4(
   fillRule: "nonzero" | "evenodd" = "nonzero",
   clipScreen?: readonly [number, number, number, number],
   antialias = true,
-  blendMode?: string
+  blendMode?: string,
+  clipMask?: Uint8Array
 ): void {
   if (edges.length === 0) return;
   let minY = Infinity;
@@ -1145,14 +1148,14 @@ function fillEdgesScanline4x4(
       const count = rowCounts[px]!;
       if (count > 0) {
         const cov = antialias ? count / 16 : count >= 8 ? 1 : 0;
-        blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode);
+        blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode, clipMask);
       }
     }
   }
 }
 
 function glyphPaint(glyph: PdfPlacedGlyph): PdfEvaluatedPath {
-  if (glyph.outline) return glyph.outline;
+  if (glyph.outline) return { ...glyph.outline, ...(glyph.clipPaths ? { clipPaths: glyph.clipPaths } : {}) };
   const cp = glyph.unicode.codePointAt(0);
   const outline = cp === undefined ? [] : getStandardFontOutlines(glyph.fontName).getGlyphOutline(cp);
   const [a, b, c, d, e, f] = glyph.matrix;
@@ -1173,6 +1176,7 @@ function glyphPaint(glyph: PdfPlacedGlyph): PdfEvaluatedPath {
     segments, strokeWidth: mode === 1 || mode === 2 ? 1 : 0,
     ...(mode !== 1 ? { fillColor: glyph.color } : {}),
     ...(mode === 1 || mode === 2 ? { strokeColor: glyph.color } : {}),
+    ...(glyph.clipPaths ? { clipPaths: glyph.clipPaths } : {}),
     ...(glyph.clipRect ? { clipRect: glyph.clipRect } : {}),
     ...(glyph.blendMode ? { blendMode: glyph.blendMode } : {}),
   };
@@ -1213,15 +1217,27 @@ export function renderDisplayListToBitmap(
 
   const aaVec = options.antialiasVector !== false;
   const aaTxt = options.antialiasText !== false;
+  const clipMasks = new Map<readonly (readonly PdfPathSegment[])[], Uint8Array>();
   for (const original of paintOperations(displayList)) {
     if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
     const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
+    const clips = original.value.clipPaths;
+    let clipMask = clips ? clipMasks.get(clips) : undefined;
+    if (clips && !clipMask) {
+      clipMask = new Uint8Array(width * height * 4).fill(255);
+      for (const segments of clips) {
+        const layer = new Uint8Array(width * height * 4);
+        fillEdgesScanline4x4(layer, width, height, segmentsToScreenEdges(segments, displayList.height, scale, true), { r: 1, g: 1, b: 1 });
+        for (let i = 3; i < layer.length; i += 4) clipMask[i] = Math.round(clipMask[i]! * layer[i]! / 255);
+      }
+      clipMasks.set(clips, clipMask);
+    }
     if (operation.kind === "path") {
       const path = operation.value;
       if (path.fillColor) {
         const edges = segmentsToScreenEdges(path.segments, displayList.height, scale, true);
         const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [path.clipRect[0] * scale, (displayList.height - path.clipRect[3]) * scale, path.clipRect[2] * scale, (displayList.height - path.clipRect[1]) * scale] : undefined;
-        fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode);
+        fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask);
       }
       if (path.strokeColor) {
         const edges = segmentsToScreenEdges(path.segments, displayList.height, scale, false);
@@ -1241,7 +1257,7 @@ export function renderDisplayListToBitmap(
 
         for (const e of edges) {
           if (!dashArr || dashCycle <= 1e-4) {
-            drawAntiAliasedSegment(rgba, width, height, e.x0, e.y0, e.x1, e.y1, sw, path.strokeColor, strokeAlpha, path.lineCap ?? 0, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode);
+            drawAntiAliasedSegment(rgba, width, height, e.x0, e.y0, e.x1, e.y1, sw, path.strokeColor, strokeAlpha, path.lineCap ?? 0, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask);
           } else {
             const dx = e.x1 - e.x0;
             const dy = e.y1 - e.y0;
@@ -1273,7 +1289,7 @@ export function renderDisplayListToBitmap(
                   strokeAlpha,
                   path.lineCap ?? 0,
                   (original.kind === "glyph" ? aaTxt : aaVec),
-                  path.blendMode
+                  path.blendMode, clipMask
                 );
               }
               pos += step;
@@ -1327,7 +1343,7 @@ export function renderDisplayListToBitmap(
               b: img.decodedRgba[sIdx + 2]! / 255,
             },
             img.decodedRgba[sIdx + 3]! / 255,
-            img.blendMode
+            img.blendMode, clipMask
           );
         }
       }
@@ -1403,6 +1419,24 @@ function escapeXmlText(str: string): string {
   return encodeToXmlString(valid);
 }
 
+function svgPathData(segments: readonly PdfPathSegment[], height: number): string {
+  const dParts: string[] = [];
+  for (const seg of segments) {
+    if (seg.kind === "move") {
+      dParts.push(`M ${seg.x} ${height - seg.y}`);
+    } else if (seg.kind === "line") {
+      dParts.push(`L ${seg.x} ${height - seg.y}`);
+    } else if (seg.kind === "cubic") {
+      dParts.push(`C ${seg.x1} ${height - seg.y1} ${seg.x2} ${height - seg.y2} ${seg.x} ${height - seg.y}`);
+    } else if (seg.kind === "rect") {
+      dParts.push(`M ${seg.x} ${height - seg.y - seg.height} h ${seg.width} v ${seg.height} h ${-seg.width} Z`);
+    } else if (seg.kind === "close") {
+      dParts.push("Z");
+    }
+  }
+  return dParts.join(" ");
+}
+
 export function renderDisplayListToSvg(
   displayList: PdfDisplayList,
   options: RenderToPngOptions = {}
@@ -1446,26 +1480,20 @@ export function renderDisplayListToSvg(
     const [a, b, c, d, e, f] = viewport.transform;
     parts.push(`<g transform="matrix(${a} ${b} ${-c} ${-d} ${e + c * displayList.height} ${f + d * displayList.height})">`);
   }
+  let clipId = 0;
   for (const original of paintOperations(displayList)) {
     if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
     const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
+    const clips = original.value.clipPaths ?? [];
+    for (const segments of clips) {
+      const id = `text-clip-${clipId++}`;
+      const path = `<path d="${svgPathData(segments, displayList.height)}"/>`;
+      parts.push(`<defs><clipPath id="${id}" clipPathUnits="userSpaceOnUse">${path}</clipPath></defs><g clip-path="url(#${id})">`);
+    }
     if (operation.kind === "path") {
       const p = operation.value;
-      const dParts: string[] = [];
-      for (const seg of p.segments) {
-        if (seg.kind === "move") {
-          dParts.push(`M ${seg.x} ${displayList.height - seg.y}`);
-        } else if (seg.kind === "line") {
-          dParts.push(`L ${seg.x} ${displayList.height - seg.y}`);
-        } else if (seg.kind === "cubic") {
-          dParts.push(`C ${seg.x1} ${displayList.height - seg.y1} ${seg.x2} ${displayList.height - seg.y2} ${seg.x} ${displayList.height - seg.y}`);
-        } else if (seg.kind === "rect") {
-          dParts.push(`M ${seg.x} ${displayList.height - seg.y - seg.height} h ${seg.width} v ${seg.height} h ${-seg.width} Z`);
-        } else if (seg.kind === "close") {
-          dParts.push("Z");
-        }
-      }
-      if (dParts.length > 0) {
+      const pathData = svgPathData(p.segments, displayList.height);
+      if (pathData) {
         const fill = p.fillColor
           ? `rgb(${Math.round(p.fillColor.r * 255)},${Math.round(p.fillColor.g * 255)},${Math.round(p.fillColor.b * 255)})`
           : "none";
@@ -1488,11 +1516,14 @@ export function renderDisplayListToSvg(
         const dashArrayAttr = p.dashArray && p.dashArray.length > 0 ? ` stroke-dasharray="${p.dashArray.join(" ")}"` : "";
         const dashOffsetAttr = p.dashPhase ? ` stroke-dashoffset="${p.dashPhase}"` : "";
         const labelAttr = original.kind === "glyph" ? ` aria-label="${escapeXmlText(original.value.unicode)}"` : "";
-        parts.push(`  <path${labelAttr} d="${dParts.join(" ")}" fill="${fill}"${fillRuleAttr}${fillOpacityAttr} stroke="${stroke}"${strokeOpacityAttr}${strokeWidthAttr}${lineCapAttr}${lineJoinAttr}${miterLimitAttr}${dashArrayAttr}${dashOffsetAttr}/>`);
+        parts.push(`  <path${labelAttr} d="${pathData}" fill="${fill}"${fillRuleAttr}${fillOpacityAttr} stroke="${stroke}"${strokeOpacityAttr}${strokeWidthAttr}${lineCapAttr}${lineJoinAttr}${miterLimitAttr}${dashArrayAttr}${dashOffsetAttr}/>`);
       }
     } else if (operation.kind === "image") {
       const img = operation.value;
-      if (!img.decodedRgba) continue;
+      if (!img.decodedRgba) {
+        for (let i = 0; i < clips.length; i++) parts.push("</g>");
+        continue;
+      }
       const pngBytes = encodeRgbaToPng(img.width, img.height, img.decodedRgba);
       const chunks: string[] = [];
       for (let offset = 0; offset < pngBytes.length; offset += 8192)
@@ -1505,6 +1536,7 @@ export function renderDisplayListToSvg(
         `  <image width="1" height="1" preserveAspectRatio="none" transform="matrix(${a} ${-b} ${-c} ${d} ${svgTx} ${svgTy})" href="data:image/png;base64,${b64}"/>`
       );
     }
+    for (let i = 0; i < clips.length; i++) parts.push("</g>");
   }
   if (displayList.rotation) parts.push("</g>");
   parts.push("</svg>\n");

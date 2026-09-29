@@ -101,6 +101,7 @@ export function serializeContentNodesToLines(
         for (const cmd of node.commands) {
           lines.push(serializeTextCommand(cmd));
         }
+        if (node.end) closeBtIfOpen();
         break;
       case "path-op":
         closeBtIfOpen();

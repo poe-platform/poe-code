@@ -149,6 +149,7 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
       currentTarget().push({
         kind: "text-object",
         commands: currentTextCommands,
+        end: false,
         ...(textContinuation ? { continuation: true } : {}),
       });
       currentTextCommands = [];
@@ -186,6 +187,7 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
     }
 
     if (op === "BI") {
+      flushInTextCommands();
       const entries: PdfDictEntry[] = [];
       while (true) {
         const kTok = lexer.nextToken();
@@ -229,12 +231,14 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
     }
 
     if (op === "q") {
+      flushInTextCommands();
       const group: PdfContentNode = { kind: "graphics-group", ops: [] };
       currentTarget().push(group);
       stack.push({ target: group.ops });
       continue;
     }
     if (op === "Q") {
+      flushInTextCommands();
       if (stack.length > 1) stack.pop();
       continue;
     }
@@ -282,13 +286,12 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
     }
     if (op === "ET") {
       if (inText) {
-        if (currentTextCommands.length > 0 || !textContinuation) {
-          currentTarget().push({
-            kind: "text-object",
-            commands: currentTextCommands,
-            ...(textContinuation ? { continuation: true } : {}),
-          });
-        }
+        currentTarget().push({
+          kind: "text-object",
+          commands: currentTextCommands,
+          end: true,
+          ...(textContinuation ? { continuation: true } : {}),
+        });
         inText = false;
         textContinuation = false;
         currentTextCommands = [];

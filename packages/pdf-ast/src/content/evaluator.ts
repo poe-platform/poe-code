@@ -297,6 +297,7 @@ interface GraphicsState {
   textRenderMode: number;
   fillColorSpaceName: string;
   strokeColorSpaceName: string;
+  clipPaths?: readonly (readonly PdfPathSegment[])[];
   clipRect?: [number, number, number, number] | undefined;
   dashArray?: readonly number[] | undefined;
   dashPhase?: number | undefined;
@@ -1370,6 +1371,8 @@ export function evaluateContentStreamToDisplayList(params: {
   const images: PdfEvaluatedImage[] = [];
   const operations: PdfPaintOperation[] = [];
   const emit = (operation: PdfPaintOperation): void => {
+    const clipPaths = curState().clipPaths;
+    if (clipPaths) operation = { ...operation, value: { ...operation.value, clipPaths } } as PdfPaintOperation;
     operations.push(operation);
     switch (operation.kind) {
       case "path": paths.push(operation.value); break;
@@ -1648,6 +1651,8 @@ export function evaluateContentStreamToDisplayList(params: {
     }
   };
 
+  let pendingTextClip: PdfPathSegment[] = [];
+  let hasTextClip = false;
   let activeTm: Matrix6 = [1, 0, 0, 1, 0, 0];
   let activeTlm: Matrix6 = [1, 0, 0, 1, 0, 0];
 
@@ -2073,6 +2078,8 @@ export function evaluateContentStreamToDisplayList(params: {
         case "text-object": {
           const st = curState();
           if (!node.continuation) {
+            pendingTextClip = [];
+            hasTextClip = false;
             activeTm = [1, 0, 0, 1, 0, 0];
             activeTlm = [1, 0, 0, 1, 0, 0];
           }
@@ -2084,6 +2091,7 @@ export function evaluateContentStreamToDisplayList(params: {
             const decoded = decodeTokenGlyphs(bytes, font);
             const scaleH = st.horizScale / 100;
             for (const item of decoded) {
+              if (st.textRenderMode >= 4 && st.textRenderMode <= 7) hasTextClip = true;
               const totalMatrix = multiplyMatrices(tm, st.ctm);
               const [px, py] = [totalMatrix[4], totalMatrix[5] + st.rise];
               const effectiveFontSize = st.fontSize * Math.hypot(totalMatrix[0], totalMatrix[1]);
@@ -2173,6 +2181,7 @@ export function evaluateContentStreamToDisplayList(params: {
                       transformedGlyphSegs.push(seg);
                     }
                   }
+                  if (st.textRenderMode >= 4 && st.textRenderMode <= 7) pendingTextClip.push(...transformedGlyphSegs);
                   const isFillGlyph = st.textRenderMode === 0 || st.textRenderMode === 2 || st.textRenderMode === 4 || st.textRenderMode === 6;
                   const isStrokeGlyph = st.textRenderMode === 1 || st.textRenderMode === 2 || st.textRenderMode === 5 || st.textRenderMode === 6;
                   const ctmScale = Math.max(1e-6, Math.hypot(st.ctm[0], st.ctm[1]));
@@ -2273,6 +2282,11 @@ export function evaluateContentStreamToDisplayList(params: {
                 }
                 break;
             }
+          }
+          if (node.end !== false && hasTextClip) {
+            st.clipPaths = [...(st.clipPaths ?? []), pendingTextClip];
+            pendingTextClip = [];
+            hasTextClip = false;
           }
           activeTm = tm;
           activeTlm = tlm;

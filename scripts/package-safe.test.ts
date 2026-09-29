@@ -39,6 +39,30 @@ it("keeps portable public command adapters linked to their canonical owner", asy
   expect(Object.keys(result.metafile!.inputs)).toEqual(["packages/safe-bash/src/commands/csplit/index.ts"]);
 });
 
+it("omits orphaned on-disk browser chunks and wasm from safe-bash when core.browser.js is bundled", async () => {
+  const { volume, options } = optionalLeftovers();
+  volume.mkdirSync("/repo/packages/safe-bash/dist/chunks", { recursive: true });
+  volume.writeFileSync("/repo/packages/safe-bash/dist/chunks/orphaned-unexternalized.js", "export const orphaned = 1;\n");
+  volume.writeFileSync("/repo/packages/safe-bash/dist/git_rust-ORPHANED.wasm", Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
+  await packageSafeLibraries({
+    ...options,
+    outDir: "/output",
+    bundle: async (settings: BuildOptions) =>
+      settings.outdir === "/repo/packages/safe-bash/dist"
+        ? {
+            outputFiles: [
+              { path: "/repo/packages/safe-bash/dist/core.browser.js", contents: Buffer.from("export { shared } from \"./chunks/bundled-chunk.js\";\n") },
+              { path: "/repo/packages/safe-bash/dist/chunks/bundled-chunk.js", contents: Buffer.from("export const shared = 42;\n") },
+            ],
+          }
+        : options.bundle(settings as { outdir?: string }),
+  });
+  expect(volume.existsSync("/output/safe-bash/dist/safe-bash/chunks/orphaned-unexternalized.js")).toBe(false);
+  expect(volume.existsSync("/output/safe-bash/dist/safe-bash/git_rust-ORPHANED.wasm")).toBe(false);
+  expect(volume.existsSync("/output/safe-bash/dist/safe-bash/chunks/bundled-chunk.js")).toBe(true);
+  expect(volume.existsSync("/output/safe-bash/dist/safe-bash/core.browser.js")).toBe(true);
+});
+
 it("keeps canonical command functions external in the actual scoped browser recipe", async () => {
   const { options } = optionalLeftovers();
   let browser: BuildOptions | undefined;

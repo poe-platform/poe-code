@@ -420,10 +420,13 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         }
         exports[key] = enqueueExport(workspaceTarget(target));
       }
+      const hasBundledBrowserShell = name === "safe-bash" && [...bundled.keys()].some(key => key.startsWith(path.join(packageDir, "dist/chunks") + path.sep) || key.endsWith(path.sep + "core.browser.js"));
       const walk = async directory => {
         for (const entry of await files.readdir(directory, { withFileTypes: true })) {
           const filename = path.join(directory, entry.name);
           if (excluded(filename)) continue;
+          if (hasBundledBrowserShell && directory === path.join(packageDir, "dist") && entry.isDirectory() && entry.name === "chunks") continue;
+          if (hasBundledBrowserShell && directory === path.join(packageDir, "dist") && entry.name.endsWith(".wasm") && !bundled.has(filename)) continue;
           if (entry.isDirectory()) await walk(filename);
           else if (!entry.name.endsWith(".map") && !(name === "safe-fs" && entry.name === "package.json")) pending.push(filename);
         }

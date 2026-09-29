@@ -40,6 +40,9 @@ import { createIconvCommands, type IconvCommandsOptions } from "../commands/icon
 import { createLineEndingCommands, type LineEndingCommandsOptions } from "../commands/line-endings/index.js";
 import { createBcCommands, type BcCommandsOptions } from "../commands/bc/index.js";
 import { createSpongeCommands, type SpongeCommandsOptions } from "../commands/sponge/index.js";
+import { createOpensslCommands } from "../commands/openssl/index.js";
+import { createSshCommands } from "../commands/ssh/index.js";
+import { createGpgCommands } from "../commands/gpg/index.js";
 import { createFdCommands, type FdCommandsOptions } from "../commands/fd/index.js";
 import { createLessCommands, type LessCommandsOptions } from "../commands/less/index.js";
 import { createIdCommands } from "../commands/id/index.js";
@@ -70,7 +73,7 @@ function getExtraAgentCommand(name: string): CommandDefinition | undefined {
 }
 
 function createExtraAgentCommands(options?: { bc?: Omit<BcCommandsOptions, "replace">; sponge?: Omit<SpongeCommandsOptions, "replace">; fd?: Omit<FdCommandsOptions, "replace">; less?: Omit<LessCommandsOptions, "replace">; sqlite3?: Omit<Sqlite3CommandsOptions, "replace"> }): readonly CommandDefinition[] {
-  return [...createBcCommands(options?.bc), ...createSpongeCommands(options?.sponge), ...createFdCommands(options?.fd), ...createLessCommands(options?.less), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createYesCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands(options?.sqlite3)];
+  return [...createBcCommands(options?.bc), ...createSpongeCommands(options?.sponge), ...createOpensslCommands(), ...createSshCommands(), ...createGpgCommands(), ...createFdCommands(options?.fd), ...createLessCommands(options?.less), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createYesCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands(options?.sqlite3)];
 }
 
 export interface AgentCommandsOptions {

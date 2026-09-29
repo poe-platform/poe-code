@@ -108,3 +108,7 @@ export { pandocCommands, createPandocCommands, createPandocCommand, type PandocC
 export { xzCommands, createXzCommands, createXzCommand, type XzCommandsOptions } from "./commands/xz/index.js";
 export * from "./commands/op/index.js";
 export * from "./commands/mdq/index.js";
+
+export { createOpensslCommand, createOpensslCommands, opensslCommands, type OpensslCommandsOptions, type OpensslLimits, type OpensslOptions } from "./commands/openssl/index.js";
+export { createSshCommand, createSshKeygenCommand, createSshCommands, sshCommands, type SshCommandsOptions, type SshLimits, type SshOptions } from "./commands/ssh/index.js";
+export { createGpgCommand, createGpgCommands, gpgCommands, type GpgCommandsOptions, type GpgLimits, type GpgOptions } from "./commands/gpg/index.js";

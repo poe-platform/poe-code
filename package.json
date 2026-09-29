@@ -692,7 +692,10 @@
     "safe-bash-command-dos2unix": "*",
     "safe-bash-line-ending-engine": "*",
     "safe-bash-markdown-engine": "*",
-    "safe-bash-command-mdq": "*"
+    "safe-bash-command-mdq": "*",
+    "safe-bash-command-openssl": "*",
+    "safe-bash-command-ssh": "*",
+    "safe-bash-command-gpg": "*"
   },
   "repository": {
     "type": "git",

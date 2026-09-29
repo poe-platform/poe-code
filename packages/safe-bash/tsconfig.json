@@ -535,6 +535,27 @@
       "safe-bash-markdown-engine/*": [
         "../safe-bash-markdown-engine/src/*.ts",
         "../safe-bash-markdown-engine/src/*"
+      ],
+      "safe-bash-command-openssl": [
+        "../safe-bash-command-openssl/src/index.ts"
+      ],
+      "safe-bash-command-openssl/*": [
+        "../safe-bash-command-openssl/src/*.ts",
+        "../safe-bash-command-openssl/src/*"
+      ],
+      "safe-bash-command-ssh": [
+        "../safe-bash-command-ssh/src/index.ts"
+      ],
+      "safe-bash-command-ssh/*": [
+        "../safe-bash-command-ssh/src/*.ts",
+        "../safe-bash-command-ssh/src/*"
+      ],
+      "safe-bash-command-gpg": [
+        "../safe-bash-command-gpg/src/index.ts"
+      ],
+      "safe-bash-command-gpg/*": [
+        "../safe-bash-command-gpg/src/*.ts",
+        "../safe-bash-command-gpg/src/*"
       ]
     },
     "baseUrl": "."

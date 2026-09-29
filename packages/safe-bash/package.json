@@ -622,6 +622,18 @@
       "workerd": "./dist/commands/mdq/index.browser.js",
       "browser": "./dist/commands/mdq/index.browser.js",
       "import": "./dist/commands/mdq/index.js"
+    },
+    "./commands/openssl": {
+      "types": "./dist/commands/openssl/index.d.ts",
+      "import": "./dist/commands/openssl/index.js"
+    },
+    "./commands/ssh": {
+      "types": "./dist/commands/ssh/index.d.ts",
+      "import": "./dist/commands/ssh/index.js"
+    },
+    "./commands/gpg": {
+      "types": "./dist/commands/gpg/index.d.ts",
+      "import": "./dist/commands/gpg/index.js"
     }
   },
   "files": [
@@ -784,7 +796,10 @@
     "safe-bash-command-mdq": "*",
     "safe-bash-markdown-engine": "*",
     "@poe-code/pdf": "*",
-    "@poe-code/pdf-ast": "*"
+    "@poe-code/pdf-ast": "*",
+    "safe-bash-command-openssl": "*",
+    "safe-bash-command-ssh": "*",
+    "safe-bash-command-gpg": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -1490,6 +1505,33 @@
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {},
+          "portable": true
+        },
+        "safe-bash-command-openssl": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-ssh": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-gpg": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
           "portable": true
         }
       }

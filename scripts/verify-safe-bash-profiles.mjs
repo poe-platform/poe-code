@@ -64,12 +64,12 @@ safeBashProfiles.splitFull = { ...safeBashProfiles.full, splitting: true };
 
 const engineMarkers = {
   pdf: "Invalid FlateDecode compressed stream",
-  spreadsheet: "Gnumeric_Excel:xlsx",
-  xlsx: "Gnumeric_Excel:xlsx",
+  spreadsheet: "Unsupported ssconvert feature: formula syntax at",
+  xlsx: "E Invalid XLSX:",
   ods: "E Invalid OpenDocument:",
-  xls: "Gnumeric_Excel:excel_biff8",
+  xls: "E Invalid Excel BIFF:",
   ffmpeg: "ffmpeg version",
-  git: "git_rust.wasm",
+  git: "git_rust",
 };
 
 // Measured from clean installed tarballs using the exact profiles below.

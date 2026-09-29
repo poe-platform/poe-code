@@ -1,3 +1,4 @@
+import { createCsvcutCommand } from "../../src/commands/csvcut/index.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import * as lazy from "../../src/lazy-optional.js";
@@ -80,15 +81,20 @@ test("explicit command and family selection; full profile retains the optional i
 
 test("full profile composes with agent commands and preserves fallback precedence", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  shell.register(createCsvcutCommand());
+  await shell.exec("true");
   const csvcut = shell.commands.get("csvcut");
+  const gh = shell.commands.get("gh");
   shell.use(lazy.optionalCommands({ profile: "full" }));
-  assert.equal(shell.commands.get("csvcut"), csvcut);
   const results = await Promise.all([
     shell.exec("printf 'name,value\\na,2\\nb,1\\n' | csvsort -c value | csvcut -c name"),
     shell.exec("printf '# Title\\n' | pandoc -f markdown -t html"),
     shell.exec("ffprobe -version"),
     shell.exec("git --version")
   ]);
+  assert.equal(shell.commands.get("csvcut"), csvcut);
+  assert.ok(gh);
+  assert.equal(shell.commands.get("gh"), gh);
   for (const result of results) assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(results[0]!.stdout, "name\nb\na\n");
   assert.match(results[1]!.stdout, /<h1[^>]*>Title<\/h1>/);

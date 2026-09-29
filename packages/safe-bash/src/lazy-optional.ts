@@ -759,6 +759,7 @@ export function createOptionalCommands(
       ...entry
         .create(options.configuration ?? {})
         .filter((command) => fullFamily || names.has(command.name))
+        .map((command) => options.profile === "full" ? Object.freeze({ ...command, fallback: true }) : command)
     );
   }
   return new CommandRegistry(definitions).list();

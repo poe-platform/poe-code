@@ -64,6 +64,10 @@ shell.use(optionalCommands({ commands: ["pdftotext", "ffprobe"] }));
 // Full profile: agentCommands() plus optionalCommands({ profile: "full" })
 ```
 
+The full optional profile fills missing commands and preserves existing dedicated
+registrations, including configured default commands. Pass `replace: true` to
+replace existing registrations explicitly.
+
 Existing root factories such as `ffmpegCommands()` and `createPdftotextCommand()`
 also defer loading. The advanced command subpaths retain their eager SDK and
 synchronous APIs. Selected ssconvert format factories remain supported through

@@ -25,6 +25,19 @@ it.each(["", "é😀"])(`preserves U+FEFF at rich span starts in ${profile}: %j`
     .toContain((prefix ? "&#233;&#128512;" : "") + "<b>&#65279;</b>z");
 });
 
+// Use the existing cell-style accounting CSS for the same rich-text styles.
+// HTML 3.2 has only the legacy single-line <u> approximation.
+for (const profile of ["html32", "html40", "html40frag", "xhtml", "xhtml_range"])
+it.each([["singleAccounting", "lowunderline"], ["doubleAccounting", "lowdoubleunderline"]])(
+  `preserves accounting rich underlines in ${profile}: %s`, async (underline, className) => {
+    const book: Workbook = { sheets: [{ id: "s", name: "S", cells: [{ row: 0, column: 0,
+      value: { kind: "string", value: "é😀z" }, richText: [{ start: 0, end: 6, attributes: { underline } }] }] }] };
+    const writer = createRegistry([]).select("write", "Gnumeric_html:" + profile)!.write!;
+    expect(new TextDecoder().decode(await writer(book, [], context))).toContain(profile === "html32"
+      ? "<u>&#233;&#128512;</u>z" : `<span class="${className}">&#233;&#128512;</span>z`);
+  }
+);
+
 it.each([
   ["@[italic=1:0:4][italic=0:1:3]", "<i>a</i>bc<i>d</i>"],
   ["@[underline=single:0:4][underline=none:1:3]", '<span class="underline">a</span>bc<span class="underline">d</span>'],

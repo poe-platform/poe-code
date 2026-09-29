@@ -29,6 +29,24 @@ class Bridge:
    finally: self.closed=True
   return events()
 class Cases(unittest.IsolatedAsyncioTestCase):
+ async def test_unlimited(self):
+  from poe_shell import _payload, _result
+  for limit in (None, float('inf')):
+   payload = _payload(['echo'], max_output_bytes=limit)
+   self.assertIsNone(payload['max_output_bytes'])
+   result = _result(['echo'], payload, {'returncode': 0, 'stdout': b'a' * 8388609})
+   self.assertEqual(len(result.stdout), 8388609)
+  self.assertIsNone(_payload(['echo'])['max_output_bytes'])
+  for limit in (-1, 1.5, float('nan'), float('-inf'), True):
+   with self.assertRaises(ValueError): _payload(['echo'], max_output_bytes=limit)
+  with self.assertRaises(ShellError):
+   _result(['echo'], _payload(['echo'], max_output_bytes=1), {'returncode': 0, 'stdout': b'ab'})
+  async with Client(bridge=Bridge()) as client:
+   async with client.stream(['echo']) as stream:
+    self.assertEqual(len([event async for event in stream]), 2)
+   with self.assertRaises(ShellError):
+    async with client.stream(['echo'], max_output_bytes=1) as stream:
+     await stream.__anext__()
  async def test_direct(self):
   bridge=Bridge()
   async with Client(bridge=bridge) as client:
@@ -77,5 +95,5 @@ unittest.main()
   const result = spawnSync('python3', ['-B', '-c', program], { input: JSON.stringify({ source, registration }), encoding: 'utf8', timeout: 5000 });
   assert.equal(result.error, undefined);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stderr, /Ran 2 tests/u);
+  assert.match(result.stderr, /Ran 3 tests/u);
 });

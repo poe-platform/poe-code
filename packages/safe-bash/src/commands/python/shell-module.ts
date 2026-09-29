@@ -27,7 +27,7 @@ def _bytes(value):
     raise ShellError('protocol', 'Invalid shell result bytes')
 
 def _payload(args, *, shell=False, input=None, cwd=None, env=None, timeout=None,
-             max_output_bytes=8388608, text=False, encoding=None, errors=None):
+             max_output_bytes=None, text=False, encoding=None, errors=None):
     if shell:
         if not isinstance(args, str):
             raise TypeError('shell=True requires an explicit Safe Bash script string')
@@ -47,7 +47,9 @@ def _payload(args, *, shell=False, input=None, cwd=None, env=None, timeout=None,
         raise TypeError('env must map strings to strings')
     if timeout is not None and (type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0):
         raise ValueError('timeout must be positive and finite')
-    if type(max_output_bytes) is not int or max_output_bytes < 0:
+    if type(max_output_bytes) is float and max_output_bytes == math.inf:
+        max_output_bytes = None
+    if max_output_bytes is not None and (type(max_output_bytes) is not int or max_output_bytes < 0):
         raise ValueError('max_output_bytes must be a nonnegative integer')
     if input is not None:
         if text or encoding or errors:
@@ -72,7 +74,7 @@ def _result(args, payload, value, *, check=False, text=False, encoding=None, err
     if type(code) is not int:
         raise ShellError('protocol', 'Invalid shell return code')
     output, diagnostic = _bytes(value.get('stdout', [])), _bytes(value.get('stderr', []))
-    if len(output) + len(diagnostic) > payload['max_output_bytes']:
+    if payload['max_output_bytes'] is not None and len(output) + len(diagnostic) > payload['max_output_bytes']:
         raise ShellError('limit', 'Shell captured output limit exceeded')
     if text or encoding or errors:
         output = output.decode(encoding or 'utf-8', errors or 'strict').replace('\r\n', '\n').replace('\r', '\n')
@@ -117,7 +119,7 @@ class Stream:
                 raise ShellError(error.get('code', 'shell'), error.get('message', 'Shell stream failed'))
             data = _bytes(value.get('data', []))
             self.count += len(data)
-            if self.count > self.payload['max_output_bytes']:
+            if self.payload['max_output_bytes'] is not None and self.count > self.payload['max_output_bytes']:
                 raise ShellError('limit', 'Shell streamed output limit exceeded')
             return Event(value['type'], data, value.get('returncode'))
         except BaseException:

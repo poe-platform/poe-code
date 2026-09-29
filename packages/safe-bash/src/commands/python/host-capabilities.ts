@@ -7,6 +7,7 @@ export interface PythonHostCapability {
 export interface PythonHostBridgeOptions {
   readonly signal: AbortSignal;
   readonly maxMessageBytes?: number;
+  readonly maxMessageDepth?: number;
   readonly maxConcurrentCalls?: number;
   readonly maxStreams?: number;
   readonly maxStreamBytes?: number;
@@ -21,14 +22,14 @@ export function pythonHostFailureCode(error: unknown): PythonHostFailureCode {
 
 /** Invocation-owned, pull-based protocol. An uncooperative host retains admission until it settles. */
 export function createPythonHostBridge(capabilities: Readonly<Record<string, PythonHostCapability>>, options: PythonHostBridgeOptions) {
-  const maxMessageBytes = options.maxMessageBytes ?? 65536;
-  const maxConcurrentCalls = options.maxConcurrentCalls ?? 1;
-  const maxStreams = options.maxStreams ?? 4;
-  const maxStreamBytes = options.maxStreamBytes ?? 1048576;
-  for (const limit of [maxMessageBytes, maxConcurrentCalls, maxStreams, maxStreamBytes]) {
-    if (!Number.isSafeInteger(limit) || limit < 1) throw new RangeError('Invalid Python host capability limit');
+  const maxMessageBytes = options.maxMessageBytes ?? Infinity;
+  const maxConcurrentCalls = options.maxConcurrentCalls ?? Infinity;
+  const maxStreams = options.maxStreams ?? Infinity;
+  const maxStreamBytes = options.maxStreamBytes ?? Infinity;
+  const maxMessageDepth = options.maxMessageDepth ?? Infinity;
+  for (const limit of [maxMessageBytes, maxMessageDepth, maxConcurrentCalls, maxStreams, maxStreamBytes]) {
+    if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError('Invalid Python host capability limit');
   }
-  if (maxMessageBytes > 65536) throw new RangeError('Python host message limit cannot exceed 65536 bytes');
   const registry = new Map(Object.entries(capabilities));
   const controller = new AbortController();
   const signal = AbortSignal.any([options.signal, controller.signal]);
@@ -42,10 +43,11 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
   let retired = false;
   let closing: Promise<void> | undefined;
   const data = (value: unknown): PythonHostValue => {
+    const ancestors = new Set<object>();
     let nodes = 0;
     let estimatedBytes = 0;
     const inspect = (item: unknown, depth: number): void => {
-      if (++nodes > maxMessageBytes || depth > 32) throw new RangeError('Python host message limit exceeded');
+      if (++nodes > maxMessageBytes || depth > maxMessageDepth) throw new RangeError('Python host message limit exceeded');
       if (item === null || typeof item === 'boolean' || typeof item === 'number' && Number.isFinite(item)) {
         estimatedBytes += JSON.stringify(item).length;
         if (estimatedBytes > maxMessageBytes) throw new RangeError('Python host message limit exceeded');
@@ -59,6 +61,8 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
       }
       if (typeof item !== 'object' || item === null || !Array.isArray(item) && Object.getPrototypeOf(item) !== Object.prototype && Object.getPrototypeOf(item) !== null) throw new TypeError('Python host messages must contain data only');
       if (Array.isArray(item) && item.length > maxMessageBytes) throw new RangeError('Python host message limit exceeded');
+      if (ancestors.has(item)) throw new TypeError('Python host messages must not contain cycles');
+      ancestors.add(item);
       estimatedBytes += 2;
       if (Object.getOwnPropertySymbols(item).length) throw new TypeError('Python host messages must contain data only');
       for (const key in item) {
@@ -72,6 +76,7 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
         if (!Array.isArray(item)) inspect(key, depth + 1);
         inspect(descriptor.value, depth + 1);
       }
+      ancestors.delete(item);
     };
     inspect(value, 0);
     const encoded = JSON.stringify(value);

@@ -39,6 +39,27 @@ class FakeBridge:
   return chunks()
 
 class LibraryTests(unittest.IsolatedAsyncioTestCase):
+ async def test_explicit_none_overrides_client_limit(self):
+  bridge = FakeBridge()
+  async with Client(bridge=bridge, model='provider/model', max_response_bytes=1) as client:
+   with self.assertRaises(LimitError):
+    await client.complete('hello')
+   await client.complete('hello', max_response_bytes=None)
+   self.assertIsNone(bridge.calls[-1][1]['max_response_bytes'])
+   async with client.stream('hello', max_response_bytes=None) as stream:
+    self.assertEqual(len([event async for event in stream]), 3)
+ async def test_unlimited(self):
+  from poe_llm import _limit, _check_size
+  self.assertIsNone(_limit(None))
+  self.assertIsNone(_limit(float('inf')))
+  for limit in (None, float('inf')):
+   async with Client(bridge=FakeBridge(), model='provider/model', max_response_bytes=limit) as client:
+    self.assertIsNone(client._limit)
+    await client.complete('hello')
+  async with Client(bridge=FakeBridge()) as client:
+   self.assertIsNone(client._limit)
+  _check_size(Response.from_payload({'model': 'provider/model', 'text': 'x' * 8388609}), None)
+
  async def test_typed_customization_and_composition(self):
   bridge = FakeBridge()
   def transform(request):

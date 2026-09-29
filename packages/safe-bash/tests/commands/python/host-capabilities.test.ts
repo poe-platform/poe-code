@@ -115,3 +115,65 @@ test('oversized sparse arrays are rejected before JSON expansion', async () => {
   assert.equal(serialized,false);
   await bridge.close();
 });
+
+for (const limits of [{}, { maxMessageBytes: Infinity, maxConcurrentCalls: Infinity, maxStreams: Infinity, maxStreamBytes: Infinity }, { maxMessageBytes: 200000 }]) {
+  test(`host accepts large messages with limits ${JSON.stringify(limits)}`, async () => {
+    const bridge = createPythonHostBridge({ echo: { async call(value) { return value; } } }, { signal: new AbortController().signal, ...limits });
+    const value = 'x'.repeat(100000);
+    assert.equal(await bridge.request({ version: 1, operation: 'call', capability: 'echo', value }), value);
+    await bridge.close();
+  });
+}
+
+test('host depth is optional and cycles are invalid data', async () => {
+  const value: Record<string, unknown> = {};
+  let child = value;
+  for (let i = 0; i < 40; i++) { child.next = {}; child = child.next as Record<string, unknown>; }
+  const request = { version: 1, operation: 'call', capability: 'echo', value };
+  const bridge = createPythonHostBridge({ echo: { async call(value) { return value; } } }, { signal: new AbortController().signal });
+  assert.deepEqual(await bridge.request(request), value);
+  child.next = value;
+  await assert.rejects(bridge.request(request), /cycles/);
+  await bridge.close();
+  delete child.next;
+  const bounded = createPythonHostBridge({}, { signal: new AbortController().signal, maxMessageDepth: 32 });
+  await assert.rejects(bounded.request(request), /limit/);
+  await bounded.close();
+});
+
+test('default admission permits concurrent calls and more than four streams', async () => {
+  let finish!: () => void;
+  const gate = new Promise<void>(resolve => { finish = resolve; });
+  const bridge = createPythonHostBridge({ echo: { async call(value) { await gate; return value; }, async *stream() { yield 'x'.repeat(1048577); } } }, { signal: new AbortController().signal });
+  const first = bridge.request({ version: 1, operation: 'call', capability: 'echo', value: 1 });
+  const second = bridge.request({ version: 1, operation: 'call', capability: 'echo', value: 2 });
+  finish();
+  assert.deepEqual(await Promise.all([first, second]), [1, 2]);
+  for (let i = 0; i < 5; i++) {
+    const handle = await bridge.request({ version: 1, operation: 'stream', capability: 'echo' });
+    const result = await bridge.request({ version: 1, operation: 'next', handle });
+    assert.equal((result as { done: boolean }).done, false);
+  }
+  await bridge.close();
+});
+
+test('finite host concurrency and stream admission remain enforced', async () => {
+  let finish!: () => void;
+  const gate = new Promise<void>(resolve => { finish = resolve; });
+  const bridge = createPythonHostBridge({ echo: { async call() { await gate; return null; }, async *stream() { yield 'x'; } } }, { signal: new AbortController().signal, maxConcurrentCalls: 1, maxStreams: 1 });
+  const first = bridge.request({ version: 1, operation: 'call', capability: 'echo' });
+  await assert.rejects(bridge.request({ version: 1, operation: 'call', capability: 'echo' }), /concurrency limit/);
+  finish();
+  await first;
+  await bridge.request({ version: 1, operation: 'stream', capability: 'echo' });
+  await assert.rejects(bridge.request({ version: 1, operation: 'stream', capability: 'echo' }), /stream limit/);
+  await bridge.close();
+});
+
+test('host limits reject invalid finite settings', () => {
+  for (const name of ['maxMessageBytes', 'maxMessageDepth', 'maxConcurrentCalls', 'maxStreams', 'maxStreamBytes']) {
+    for (const limit of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+      assert.throws(() => createPythonHostBridge({}, { signal: new AbortController().signal, [name]: limit }), RangeError);
+    }
+  }
+});

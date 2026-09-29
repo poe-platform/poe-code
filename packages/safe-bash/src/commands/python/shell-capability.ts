@@ -7,21 +7,22 @@ export function pythonShellDispatchActive(scope: object | undefined): boolean {
 }
 
 /** Uses the parent's invoker, filesystem and execution budget, never an OS process. */
-export function createPythonShellCapability(context: CommandContext, options: { readonly maxInputBytes?: number; readonly maxOutputBytes?: number } = {}): PythonHostCapability {
+export function createPythonShellCapability(context: CommandContext, options: { readonly maxInputBytes?: number; readonly maxOutputBytes?: number; readonly maxConcurrentCalls?: number } = {}): PythonHostCapability {
   if (!context.invoke || !context.executionScope) throw new TypeError('Python shell capability requires a parent shell invocation');
-  const maxInputBytes = options.maxInputBytes ?? 8192;
-  const maxOutputBytes = options.maxOutputBytes ?? 8192;
-  for (const limit of [maxInputBytes, maxOutputBytes]) if (!Number.isSafeInteger(limit) || limit < 1) throw new RangeError('Invalid Python shell limit');
+  const maxInputBytes = options.maxInputBytes ?? Infinity;
+  const maxOutputBytes = options.maxOutputBytes ?? Infinity;
+  const maxConcurrentCalls = options.maxConcurrentCalls ?? Infinity;
+  for (const limit of [maxInputBytes, maxOutputBytes, maxConcurrentCalls]) if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError('Invalid Python shell limit');
   const scope = context.executionScope;
   const invoke = context.invoke;
-  let running = false;
+  let running = 0;
   const execute: NonNullable<PythonHostCapability['call']> = async (value, { signal }) => {
     signal.throwIfAborted();
-    if (running) throw new Error('Python nested shell concurrency limit exceeded');
+    if (running >= maxConcurrentCalls) throw new Error('Python nested shell concurrency limit exceeded');
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Expected a Python shell request');
     const request = value as Record<string, PythonHostValue>;
     const requestedOutput = request.maxOutputBytes;
-    if (requestedOutput !== undefined && (typeof requestedOutput !== 'number' || !Number.isSafeInteger(requestedOutput) || requestedOutput < 0)) throw new RangeError('Invalid Python shell output limit');
+    if (requestedOutput !== undefined && (typeof requestedOutput !== 'number' || requestedOutput !== Infinity && (!Number.isSafeInteger(requestedOutput) || requestedOutput < 0))) throw new RangeError('Invalid Python shell output limit');
     const outputLimit = Math.min(maxOutputBytes, typeof requestedOutput === 'number' ? requestedOutput : maxOutputBytes);
     const timeoutMs = request.timeoutMs;
     if (timeoutMs !== undefined && (typeof timeoutMs !== 'number' || !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2147483647)) throw new RangeError('Invalid Python shell timeout');
@@ -63,7 +64,7 @@ export function createPythonShellCapability(context: CommandContext, options: { 
       captured += chunk.length;
       for (const byte of chunk) target.push(byte);
     } });
-    running = true;
+    running++;
     dispatching.set(scope, (dispatching.get(scope) ?? 0) + 1);
     try {
       const args = argv as string[] | undefined;
@@ -74,7 +75,7 @@ export function createPythonShellCapability(context: CommandContext, options: { 
       childSignal.throwIfAborted();
       return { stdout, stderr, exitCode: result.exitCode };
     } finally {
-      running = false;
+      running--;
       const count = dispatching.get(scope)! - 1;
       if (count) dispatching.set(scope, count); else dispatching.delete(scope);
     }

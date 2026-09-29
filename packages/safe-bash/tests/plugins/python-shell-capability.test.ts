@@ -15,7 +15,7 @@ test('shell capability passes literal argv and child state with shared invocatio
     await options!.stdout!.write(new Uint8Array([0, 255]));
     await options!.stderr!.write(new TextEncoder().encode('warning'));
     return { exitCode: 7 };
-  } } as CommandContext;
+  } } satisfies Partial<CommandContext> as unknown as CommandContext;
   const shell = createPythonShellCapability(context);
   assert.deepEqual(await shell.call!({ argv: ['echo', '$(bad);*'], cwd: '/child', env: { CHILD: 'yes' } }, { signal }), { stdout: [0, 255], stderr: [119, 97, 114, 110, 105, 110, 103], exitCode: 7 });
   assert.equal(context.cwd, '/parent');
@@ -29,7 +29,7 @@ test('script mode invokes the parent parser and output overflow fails', async ()
     assert.deepEqual(args, ['-c', 'echo ok | cat']);
     await options!.stdout!.write(new Uint8Array(9));
     return { exitCode: 0 };
-  } } as CommandContext;
+  } } satisfies Partial<CommandContext> as unknown as CommandContext;
   const shell = createPythonShellCapability(context, { maxOutputBytes: 8 });
   await assert.rejects(shell.call!({ script: 'echo ok | cat' }, { signal }), /output limit/);
   assert.equal(pythonShellDispatchActive(context.executionScope), false);
@@ -41,7 +41,7 @@ test('child deadlines abort work without replacing parent cancellation authority
   const context = { signal: parent.signal, executionScope: {}, cwd: '/', env: {}, async invoke(_command, _args, options) {
     await new Promise<void>(resolve => options!.signal!.addEventListener('abort', () => { aborted = true; resolve(); }, { once: true }));
     return { exitCode: 0 };
-  } } as CommandContext;
+  } } satisfies Partial<CommandContext> as unknown as CommandContext;
   const shell = createPythonShellCapability(context);
   const keepAlive = setTimeout(() => {}, 100);
   try {
@@ -60,7 +60,46 @@ test('inherited stdin uses the parent source and enforces a caller output cap', 
     assert.deepEqual(input,[0,255]);
     await options!.stdout!.write(new Uint8Array([1,2]));
     return {exitCode:0};
-  }} as CommandContext;
+  }} satisfies Partial<CommandContext> as unknown as CommandContext;
   const shell = createPythonShellCapability(context);
   await assert.rejects(shell.call!({argv:['echo'],stdinMode:'inherit',maxOutputBytes:1},{signal}), /output limit/);
+});
+
+for (const limits of [{}, { maxInputBytes: Infinity, maxOutputBytes: Infinity }]) {
+  test(`shell accepts large input and output with limits ${JSON.stringify(limits)}`, async () => {
+    const signal = new AbortController().signal;
+    const context = { signal, executionScope: {}, cwd: '/', env: {}, async invoke(_command, _args, options) {
+      for await (const chunk of options!.stdin!) await options!.stdout!.write(chunk);
+      return { exitCode: 0 };
+    } } satisfies Partial<CommandContext> as unknown as CommandContext;
+    const shell = createPythonShellCapability(context, limits);
+    const value = 'x'.repeat(100000);
+    const result = await shell.call!({ argv: ['cat'], stdin: value }, { signal }) as { stdout: number[] };
+    assert.equal(result.stdout.length, value.length);
+  });
+}
+
+test('shell concurrency defaults to disabled', async () => {
+  const signal = new AbortController().signal;
+  let finish!: () => void;
+  const gate = new Promise<void>(resolve => { finish = resolve; });
+  const context = { signal, executionScope: {}, cwd: '/', env: {}, async invoke() { await gate; return { exitCode: 0 }; } } satisfies Partial<CommandContext> as unknown as CommandContext;
+  const shell = createPythonShellCapability(context);
+  const first = shell.call!({ argv: ['echo'] }, { signal });
+  const second = shell.call!({ argv: ['echo'] }, { signal });
+  finish();
+  await Promise.all([first, second]);
+});
+
+test('finite shell concurrency and input budgets remain enforced', async () => {
+  const signal = new AbortController().signal;
+  let finish!: () => void;
+  const gate = new Promise<void>(resolve => { finish = resolve; });
+  const context = { signal, executionScope: {}, cwd: '/', env: {}, async invoke() { await gate; return { exitCode: 0 }; } } satisfies Partial<CommandContext> as unknown as CommandContext;
+  const shell = createPythonShellCapability(context, { maxConcurrentCalls: 1, maxInputBytes: 1 });
+  await assert.rejects(shell.call!({ argv: ['cat'], stdin: 'é' }, { signal }), /input limit/);
+  const first = shell.call!({ argv: ['echo'] }, { signal });
+  await assert.rejects(shell.call!({ argv: ['echo'] }, { signal }), /concurrency limit/);
+  finish();
+  await first;
 });

@@ -151,9 +151,11 @@ async def _transform(function, value):
     result = function(value) if function else value
     return await result if inspect.isawaitable(result) else result
 
+_DEFAULT_LIMIT = object()
+
 class Stream:
     """Use async with to close the host iterator after an early break."""
-    def __init__(self, client, request, timeout=None, max_response_bytes=None):
+    def __init__(self, client, request, timeout=None, max_response_bytes=_DEFAULT_LIMIT):
         self._client = client
         self._request = request
         self._iterator = None
@@ -162,7 +164,7 @@ class Stream:
         self._pending = None
         self._lock = asyncio.Lock()
         self._bytes = 0
-        self._limit = client._limit if max_response_bytes is None else _limit(max_response_bytes)
+        self._limit = client._limit if max_response_bytes is _DEFAULT_LIMIT else _limit(max_response_bytes)
         self._timeout = client._timeout if timeout is None else _timeout(timeout)
         self._deadline = None
         self.response = None
@@ -209,7 +211,7 @@ class Stream:
                 else:
                     raise LlmError("protocol", "Unknown stream event")
                 self._bytes += len(event.text.encode("utf-8")) + len(event.data)
-                if self._bytes > self._limit:
+                if self._limit is not None and self._bytes > self._limit:
                     raise LimitError()
                 return event
             except BaseException:
@@ -232,6 +234,8 @@ class Stream:
         await asyncio.shield(self._close_task)
 
 def _limit(value):
+    if value is None or type(value) is float and value == math.inf:
+        return None
     if type(value) is not int or value < 1:
         raise ValueError("max_response_bytes must be a positive integer")
     return value
@@ -242,13 +246,13 @@ def _timeout(value):
     return value
 
 def _check_size(response, limit):
-    if len(response.text.encode("utf-8")) + len(response.data) > limit:
+    if limit is not None and len(response.text.encode("utf-8")) + len(response.data) > limit:
         raise LimitError()
 
 class Client:
     def __init__(self, *, bridge=None, model=None, options=None, system=None,
                  request_transform=None, response_transform=None,
-                 max_response_bytes=8388608, timeout=None):
+                 max_response_bytes=None, timeout=None):
         if bridge is None:
             try:
                 from _poe_llm_capability import bridge
@@ -335,8 +339,8 @@ class Client:
                            capabilities=tuple(value.get("capabilities", ())),
                            metadata=copy.deepcopy(value.get("metadata", {}))) for value in values)
 
-    async def complete(self, prompt="", *, timeout=None, max_response_bytes=None, **values):
-        limit = self._limit if max_response_bytes is None else _limit(max_response_bytes)
+    async def complete(self, prompt="", *, timeout=None, max_response_bytes=_DEFAULT_LIMIT, **values):
+        limit = self._limit if max_response_bytes is _DEFAULT_LIMIT else _limit(max_response_bytes)
         timeout = self._timeout if timeout is None else _timeout(timeout)
         request = self._request(prompt, values)
         async def execute():
@@ -348,7 +352,7 @@ class Client:
             return await _transform(self._response_transform, response)
         return await self._run(execute, timeout)
 
-    def stream(self, prompt="", *, timeout=None, max_response_bytes=None, **values):
+    def stream(self, prompt="", *, timeout=None, max_response_bytes=_DEFAULT_LIMIT, **values):
         self._check_open()
         stream = Stream(self, self._request(prompt, values), timeout, max_response_bytes)
         self._streams.add(stream)
@@ -364,7 +368,7 @@ class Client:
         vectors = tuple(tuple(vector) for vector in result["vectors"])
         if len(vectors) != len(inputs) or any(type(value) not in (int, float) or not math.isfinite(value) for vector in vectors for value in vector):
             raise LlmError("protocol", "Invalid embedding result")
-        if sum(len(vector) for vector in vectors) * 8 > self._limit:
+        if self._limit is not None and sum(len(vector) for vector in vectors) * 8 > self._limit:
             raise LimitError()
         return Embeddings(result["model"], vectors, copy.deepcopy(result.get("usage", {})))
 

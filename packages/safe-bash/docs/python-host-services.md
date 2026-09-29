@@ -76,10 +76,15 @@ Nested Python calls in the same execution scope fail with a diagnostic and statu
 interpreter or increase pool capacity. This conservative rule also covers other
 Python stages sharing that execution scope.
 
-Default capability limits are one pending call, four retained streams and 64 KiB
-of serialized data per request/result, 1 MiB of cumulative stream data per stream,
-and a maximum data depth of 32. Configure
-`capabilityLimits` explicitly when installing the plugin. Streams pull one event
+Capability limits default to disabled (`Infinity`), including call concurrency,
+retained streams, serialized message bytes, cumulative stream bytes and message
+depth. Set positive safe integers in `capabilityLimits` to enforce host budgets;
+`maxMessageBytes` can exceed 64 KiB and `maxMessageDepth` controls nesting. Cyclic
+messages are invalid data. Nested shell input, output and concurrency limits also
+default to `Infinity`; configure them in `createPythonShellCapability`.
+Python `poe_shell` output and `poe_llm.Client` response limits default to `None`
+(disabled), and accept `float("inf")`. Finite byte limits remain enforced. LLM
+operations inherit the client limit when omitted; explicit `None` disables it. Streams pull one event
 per guest request and copy binary events into owned byte arrays. `with stream(...)`
 or explicit `close()` releases an iterator on early exit. Invocation teardown
 aborts pending operations, awaits their settlement and closes retained iterators.

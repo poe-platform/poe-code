@@ -771,7 +771,9 @@
     "packages/spreadsheet-format-xls/LICENSE",
     "packages/spreadsheet-format-xls/src/legacy-binary-NOTICE.md",
     "packages/spreadsheet-ast/dist",
-    "packages/xml-ast/dist/**/*.d.ts"
+    "packages/xml-ast/dist/**/*.d.ts",
+    "packages/spreadsheet-format-spreadsheetml/dist/**/*.d.ts",
+    "packages/spreadsheet-format-spreadsheetml/LICENSE"
   ],
   "license": "MIT",
   "imports": {

@@ -1,5 +1,5 @@
 import { getStandardFontOutlines } from "../fonts/standard-outlines.js";
-import { PageViewport } from "../vendor/pdfjs-fonts.mjs";
+import { encodeToXmlString, PageViewport } from "../vendor/pdfjs-fonts.mjs";
 import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
 import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
@@ -1392,11 +1392,15 @@ function pdfBlendModeToCss(mode?: string): string | undefined {
 }
 
 function escapeXmlText(str: string): string {
-  return str
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll("\"", "&quot;");
+  let valid = "";
+  for (const char of str) {
+    const cp = char.codePointAt(0)!;
+    // XML 1.0's Char production excludes controls, lone surrogates, FFFE and
+    // FFFF even when written as numeric entities. Keep the glyph shape intact.
+    if (cp === 9 || cp === 10 || cp === 13 || (cp >= 0x20 && cp <= 0xd7ff) ||
+        (cp >= 0xe000 && cp <= 0xfffd) || cp >= 0x10000) valid += char;
+  }
+  return encodeToXmlString(valid);
 }
 
 export function renderDisplayListToSvg(

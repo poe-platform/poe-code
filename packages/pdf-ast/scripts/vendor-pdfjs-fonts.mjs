@@ -23,6 +23,7 @@ const result = await build({
       'export { getMetrics } from "./src/core/metrics.js";',
       'export { DrawOPS } from "./src/shared/util.js";',
       'export { PageViewport } from "./src/display/page_viewport.js";',
+      'export { encodeToXmlString } from "./src/core/core_utils.js";',
     ].join("\n"), resolveDir: reference, sourcefile: "pdf-ast-font-entry.js",
   },
   bundle: true, platform: "neutral", format: "esm", target: "es2022",

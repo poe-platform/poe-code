@@ -180,6 +180,15 @@ receives Tw, regardless of its Unicode label. The internal CMap reader preserves
 that classification without changing the public ToUnicode result shape.
 
 
+# SVG labels
+
+SVG accessible labels use PDF.js `encodeToXmlString` from `core_utils.js`, with
+a local XML 1.0 Char filter before encoding. Invalid controls and lone surrogates
+cannot be made legal by numeric references. `src/render/svg-labels.test.ts` ports
+the upstream valid-string cases from `core_utils_spec.js` and verifies complete
+SVG documents with an independent XML parser. Only labels are sanitized; PDF
+extraction and glyph geometry are preserved.
+
 # Page rotation
 
 The same font/graphics vendor bundle includes the unmodified PDF.js

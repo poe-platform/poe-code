@@ -5204,6 +5204,51 @@ function isNumberArray(arr, len) {
   }
   return ArrayBuffer.isView(arr) && !(arr instanceof BigInt64Array || arr instanceof BigUint64Array) && (len === null || arr.length === len);
 }
+var XMLEntities = {
+  /* < */
+  60: "&lt;",
+  /* > */
+  62: "&gt;",
+  /* & */
+  38: "&amp;",
+  /* " */
+  34: "&quot;",
+  /* ' */
+  39: "&apos;"
+};
+function encodeToXmlString(str) {
+  const buffer = [];
+  let start = 0;
+  for (let i = 0, ii = str.length; i < ii; i++) {
+    const char = str.codePointAt(i);
+    if (32 <= char && char <= 126) {
+      const entity = XMLEntities[char];
+      if (entity) {
+        if (start < i) {
+          buffer.push(str.substring(start, i));
+        }
+        buffer.push(entity);
+        start = i + 1;
+      }
+    } else {
+      if (start < i) {
+        buffer.push(str.substring(start, i));
+      }
+      buffer.push(`&#x${char.toString(16).toUpperCase()};`);
+      if (char > 65535) {
+        i++;
+      }
+      start = i + 1;
+    }
+  }
+  if (buffer.length === 0) {
+    return str;
+  }
+  if (start < str.length) {
+    buffer.push(str.substring(start));
+  }
+  return buffer.join("");
+}
 
 // src/core/glyphlist.js
 var getGlyphsUnicode = getLookupTableFactory(function(t) {
@@ -15124,6 +15169,7 @@ export {
   Type2Compiled,
   WinAnsiEncoding,
   ZapfDingbatsEncoding,
+  encodeToXmlString,
   getDingbatsGlyphsUnicode,
   getEncoding,
   getGlyphsUnicode,

@@ -34,13 +34,19 @@ function compile(pattern: string, host: FunctionHost): Node {
     return value;
   };
   const literal = (byte: number, mode: Flags) => node({ kind: "char", byte, test: (input: number) => mode.insensitive ? fold(input) === fold(byte) : input === byte } as const);
+  const blanks = () => {
+    while (pattern[at] === " " || pattern[at] === "\t") { host.tick(); at++; }
+  };
   const identifier = (closing: string) => {
+    if (closing === "}") blanks();
     let name = "";
     while (at < pattern.length && pattern[at] !== closing) {
+      if (closing === "}" && (pattern[at] === " " || pattern[at] === "\t")) break;
       host.tick(); const byte = pattern.charCodeAt(at++);
       if (!word(byte) || !name && byte >= 48 && byte <= 57) return unsupported();
       name += String.fromCharCode(byte);
     }
+    if (closing === "}") blanks();
     if (!name || pattern[at++] !== closing) return unsupported();
     return name;
   };
@@ -69,11 +75,20 @@ function compile(pattern: string, host: FunctionHost): Node {
     if (!inClass && (char >= "1" && char <= "9" || char === "g")) {
       let index: number;
       if (char === "g") {
-        if (pattern[at++] !== "{") return unsupported();
-        if (pattern[at] !== "-" && !(pattern[at]! >= "0" && pattern[at]! <= "9")) return namedReference(identifier("}"), mode);
+        let end: number | undefined;
+        if (pattern[at] === "{") {
+          end = ++at;
+          while (end < pattern.length && pattern[end] !== "}") { host.tick(); end++; }
+          if (end === pattern.length) return unsupported();
+          blanks();
+          if (pattern[at] !== "-" && !(pattern[at]! >= "0" && pattern[at]! <= "9")) return namedReference(identifier("}"), mode);
+        }
         const relative = pattern[at] === "-"; if (relative) at++;
+        if (!(pattern[at]! >= "1" && pattern[at]! <= "9")) return unsupported();
         const number = integer();
-        if (!number || pattern[at++] !== "}") return unsupported();
+        if (number >= 0x7fffffff) return unsupported();
+        // Perl consumes the complete braced argument after reading its numeric prefix.
+        if (end !== undefined) at = end + 1;
         index = relative ? captures - number + 1 : number;
       } else {
         index = Number(char);

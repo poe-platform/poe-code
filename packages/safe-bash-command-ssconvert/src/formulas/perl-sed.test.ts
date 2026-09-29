@@ -179,6 +179,39 @@ it.each(["(?|(a)|(b))\\2", "(?|(a)|(b))\\g{-2}"])
     expect(() => calculate(expression(["ab", pattern, "X"]))).toThrow("PERL_SED");
   });
 
+// Perl 5.34.1 regcomp.c: explicit numeric references never fall back to octal.
+it.each([
+  ["absolute", "aa aax ab", "(a)\\g1", "X Xx ab"],
+  ["relative", "aa aax ab", "(a)\\g-1", "X Xx ab"],
+  ["following literal", "aa aax ab", "(a)\\g1x", "aa X ab"],
+  ["multiple captures", "abba abbb", "(a)(b)\\g-1\\g-2", "X abbb"],
+  ["two digit index", "abcdefghijj abcdefghija", "(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)\\g10", "X abcdefghija"],
+  ["forward", "aa", "\\g1(a)", "aa"],
+  ["branch reset", "aa bb", "(?|(a)|(b))\\g-1", "X X"],
+  ["uneven branch reset", "aba bcb", "(?|(a)|(b)(c))\\g-2", "aba X"],
+  ["scoped flags", "aA Aa", "(?i:(a)\\g1)", "X X"],
+  ["outer capture", "abab aaaa", "((a)b)\\g1", "X aaaa"],
+  ["numeric spaces", "aa aax ab", "(a)\\g{ 1 }", "X Xx ab"],
+  ["relative tabs", "aa aax ab", "(a)\\g{\t-1\t}", "X Xx ab"],
+  ["numeric suffix", "aa aax ab", "(a)\\g{1junk}", "X Xx ab"],
+  ["numeric spaced suffix", "aa aax ab", "(a)\\g{1 a}", "X Xx ab"],
+  ["relative suffix", "aa aax ab", "(a)\\g{-1x}", "X Xx ab"],
+  ["numeric trailing newline", "aa aax ab", "(a)\\g{1\n}", "X Xx ab"],
+  ["named spaces", "aa", "(?<pick>a)\\g{ pick }", "X"],
+  ["named tabs", "aa", "(?<pick>a)\\k{\tpick\t}", "X"]
+])("matches native explicit backreference spelling: %s", (_label, source, pattern, expected) => {
+  expect(calculate(expression([source!, pattern!, "X"]))).toEqual({ kind: "string", value: expected });
+});
+it("preserves raw bytes through unbraced backreferences", () => {
+  expect(calculate(expression(["é", "(\\xC3)\\g1?", "X"]))).toEqual({ kind: "byte-string", value: "58a9" });
+});
+it.each(["(a)\\g001", "(a)\\g{-01}", "(a)\\g{01}", "(a)\\g0", "(a)\\g-0",
+  "(a)\\g", "(a)\\g-", "(a)\\g+1", "(a)\\g{+1}", "(a)\\g{1", "(a)\\g{ 1",
+  "(a)\\g{2147483648}", "(a)\\g2147483648", "(?<pick>a)\\k< pick >"])
+  ("refuses native-invalid explicit backreference %s", pattern => {
+    expect(() => calculate(expression(["aa", pattern, "X"]))).toThrow("PERL_SED");
+  });
+
 // Perl 5.34.1 regcomp.c alphabetic assertions share the symbolic assertion nodes.
 it.each([
   ["pla", "ab ac cb", "(a)", "\\1b", "X ac cb", "ab c ac", "a", "ab|c", "X X aX"],

@@ -3340,6 +3340,28 @@
           ]
         }
       }
+    },
+    "richMarkupFormats": {
+      "commits": [
+        "da243aaf1cd39336842e2b04165dbb1f60928f44",
+        "71ee3efbf6fdfeb6169f04bb73944c7885bf5d4d"
+      ],
+      "source": {
+        "goffice": "GOFFICE_0_10_62 go-format.c:5978-6218; values allow ] before first colon; @[ dispatches to GO_FMT_MARKUP. SHA256 6da5b2923db95cf4c35fa493e26c35f88075cdf7520ae3f0d39b0c50233edc97",
+        "gnumeric": "325ef79a19580959afaee9cf01cb8ea15f0177b0: openoffice-read.c od_style_prop_text omits font family; xlsx-read.c:3528 ignores rFont and incorrectly attaches its family handler to family. SHA256 respectively 8b5f354d79760823ba1913be35ebf8f98fd8007d628ce3608c8b092e504f71d6 and 1f67172ac852954f1f74dbd34afce5f00233e7f8b0fafbfe9f9cf8d0308413b9."
+      },
+      "implementation": "Allow bracket font names in Gnumeric rich-text values and ODF/XLSX comments. Keep parsed cell markup out of canonical/fallback number formats; retain numeric value precedence, unparsed metadata and Gnumeric markup replay.",
+      "validation": "10 new value-format tests fail before repair; 3776 tests/136 files, package lint/types and selected build pass. Six compiled SDK/command profiles (ODF strict/extended, XLSX 2006/2008, XML, preserved text) match byte-exact.",
+      "native": "Calc 26.8.0.3 retains bracket family and cell text across four ODF/XLSX profiles. Gnumeric 1.12.61 preserves XML family but loses family in both ODF/XLSX cells and comments; source confirms native reader limitations. Actual Fontconfig and VML Note warnings retained in receipts.",
+      "receipts": [
+        "out/ssconvert-odf-settings/rich-font-bracket-checks.json",
+        "out/ssconvert-odf-settings/rich-font-bracket-compiled.json",
+        "out/ssconvert-odf-settings/rich-font-bracket-native.json",
+        "out/ssconvert-odf-settings/rich-value-format-checks.json",
+        "out/ssconvert-odf-settings/rich-value-format-compiled.json",
+        "out/ssconvert-odf-settings/rich-value-format-native.json"
+      ],
+      "remaining": "Other typography, rendering, installed release and broader format profiles remain open. No family closed."
     }
   },
   "cases": [
@@ -3727,7 +3749,7 @@
     "odfAnnotations": {
       "commit": "a188df91cdf3b87db97af55d8afafec2c5f4fa80",
       "remote": "verified main",
-      "release": "Containing portable-repair pin 36516673799 canceled. Successor 36516817154 at 70ac821f7e is building and contains all earlier annotation and portable checksum/type repairs, but predates the legacy annotation fix. No containing publication; npm remains 17.0.35 at a8a8a7efbc.",
+      "release": "36516817154 failed fresh units/Bash 1/checks; current failures repaired by 34d40c9523, upstream 992ee7b321 and fe03786502. Full containing pin 36519146966 at 71ee3efbf6 queued; no containing publication verified. Last verified npm 17.0.35 at a8a8a7efbc.",
       "cleanup": "Generated annotation workbooks and isolated profiles removed after compact receipts. No binaries committed.",
       "authorOnlyCommit": "325efb9420822e14dba6b3b84fed02c188122bf5",
       "legacyCommit": "beb3e24fda81b6bdc6fb3a9a439d7156867a5d10"
@@ -3739,11 +3761,30 @@
       "red": "Maintained build proves optional cwd type error, then browser postbuild rejects new node:crypto dependency. Existing browser checksum test independently fails.",
       "green": "41 substitution tests pass for type change; final 161 checksum/substitution tests and focused lint pass. Maintained selected Safe Bash build, optional CLI and browser postbuild pass. Browser VM has no process/Buffer/crypto; all six sync digests match native Node at empty, 3-byte and 16384-byte inputs; larger inputs decline fast path.",
       "retainedUpstream": "7736e4aca3 fixes gh declaration profile, matching our discarded candidate. c6db5c2daf and 735ff59001 reconcile incoming fmt/tsort calls.",
-      "release": "Containing portable-repair pin 36516673799 canceled. Successor 36516817154 at 70ac821f7e is building and contains all earlier annotation and portable checksum/type repairs, but predates the legacy annotation fix. No containing publication; npm remains 17.0.35 at a8a8a7efbc.",
+      "release": "36516817154 failed fresh units/Bash 1/checks; current failures repaired by 34d40c9523, upstream 992ee7b321 and fe03786502. Full containing pin 36519146966 at 71ee3efbf6 queued; no containing publication verified. Last verified npm 17.0.35 at a8a8a7efbc.",
       "registry": {
         "version": "17.0.35",
         "gitHead": "a8a8a7efbc7c29daf9e6e6071d3520e774a3b7f2"
       }
+    },
+    "richMarkupFormats": {
+      "commits": [
+        "da243aaf1cd39336842e2b04165dbb1f60928f44",
+        "71ee3efbf6fdfeb6169f04bb73944c7885bf5d4d"
+      ],
+      "remote": "Both verified on main",
+      "release": "36516817154 failed fresh units/Bash 1/checks; current failures repaired by 34d40c9523, upstream 992ee7b321 and fe03786502. Full containing pin 36519146966 at 71ee3efbf6 queued; no containing publication verified. Last verified npm 17.0.35 at a8a8a7efbc.",
+      "cleanup": "Generated workbooks/profiles and consumed logs/source removed after compact ignored receipts; no binaries committed."
+    },
+    "ghReleaseRegistration": {
+      "commits": [
+        "34d40c95234c8c7ee4d55fccce0b3f34c3993bb2",
+        "fe03786502b4ea32bfb5e760d02475128de53fb8"
+      ],
+      "remote": "Both verified on main",
+      "retainedUpstream": "992ee7b321 supplied identical compiler-path fix; own rebased registration commit contains only root manifest/lock entries.",
+      "receipt": "out/ssconvert-odf-settings/release-gh-registration-checks.json",
+      "release": "36516817154 failed fresh units/Bash 1/checks; current failures repaired by 34d40c9523, upstream 992ee7b321 and fe03786502. Full containing pin 36519146966 at 71ee3efbf6 queued; no containing publication verified. Last verified npm 17.0.35 at a8a8a7efbc."
     }
   },
   "history": {

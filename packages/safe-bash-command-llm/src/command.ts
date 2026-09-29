@@ -227,8 +227,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
   }
 }
 
-export function createLlmCommand(options: LlmCommandsOptions): CommandDefinition {
-  if (!options.service && options.providers === undefined) throw new TypeError("Provide LLM providers or an authorized service");
+export function createLlmCommand(options: LlmCommandsOptions = {}): CommandDefinition {
   if (options.service && (options.providers || options.defaultModel !== undefined)) throw new TypeError("Configure providers and defaultModel on the injected LLM service");
   for (const [name, value] of Object.entries(options.limits ?? {})) {
     if (!Number.isSafeInteger(value) || value < 0) throw new TypeError(`Invalid llm limit: ${name}`);
@@ -238,11 +237,11 @@ export function createLlmCommand(options: LlmCommandsOptions): CommandDefinition
   return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits) };
 }
 
-export function createLlmCommands(options: LlmCommandsOptions): readonly CommandDefinition[] {
+export function createLlmCommands(options: LlmCommandsOptions = {}): readonly CommandDefinition[] {
   return [createLlmCommand(options)];
 }
 
-export function llmCommands(options: LlmCommandsOptions): VirtualShellPlugin {
+export function llmCommands(options: LlmCommandsOptions = {}): VirtualShellPlugin {
   const definitions = createLlmCommands(options);
   const replace = options.replace ?? false;
   return { name: "llm-commands", setup(host) {

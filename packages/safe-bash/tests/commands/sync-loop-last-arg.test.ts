@@ -143,7 +143,9 @@ for (const middleware of [false, true]) for (const call of new Set([...issue4080
     const source = setup === "loop"
       ? `for i in ${call.includes("/dev/stdin") && !call.includes("<<<") ? "1" : "1 2"}; do : before; ${call}; echo "after:$_"; done`
       : `: before; ${setup}${call}; echo "after:$_"`;
-    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", input: 'echo "inside:$_"; : inner\n' });
+    // Prepare stdin in Bash before sourcing it; an externally supplied pipe can
+    // be observed empty while spawnSync is still delivering its input.
+    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", `exec <<< 'echo "inside:$_"; : inner'; ${source}`], { encoding: "utf8" });
     assert.equal(oracle.status, 0);
     const fs = new MemoryFileSystem();
     const body = call.includes("return 7") ? 'echo "inside:$_"; return 7' : 'echo "inside:$_"; : inner';

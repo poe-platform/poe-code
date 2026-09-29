@@ -11,6 +11,8 @@ import { createXmllintCommands, evalSyncXmllint } from "../../src/commands/xml/i
 import { createUnrtfCommands } from "../../src/commands/unrtf/index.js";
 import { createPrCommands } from "../../src/commands/pr/index.js";
 import { createPathchkCommands } from "../../src/commands/pathchk/index.js";
+import { createFileCommands } from "../../src/commands/file/index.js";
+import { createDiff3Commands } from "../../src/commands/diff3/index.js";
 
 const parityXml = new TextEncoder().encode('<config><server id="main"><host>local&#13;host</host><?pi target="1"?><?empty?></server><server id="backup"><host>replica</host></server></config>');
 
@@ -508,6 +510,51 @@ test("sync substitution fast path covers unrtf, pr, and pathchk (Wave 134)", asy
     out=""
     for i in $(seq 1 80); do
       out="$(pathchk -p /items.txt valid_1.txt):$(pathchk --portability /items.txt):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "::80\n");
+});
+
+test("sync substitution fast path covers file, diff3, and cmp (Wave 135)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/script.sh", new TextEncoder().encode("#!/bin/sh\necho hello\n"));
+  await fs.writeFile("/data.json", new TextEncoder().encode("{\"a\":1}\n"));
+  await fs.writeFile("/base.txt", new TextEncoder().encode("line1\nline2\nline3\n"));
+  await fs.writeFile("/mine.txt", new TextEncoder().encode("line1\nline2\nline3\n"));
+  await fs.writeFile("/yours.txt", new TextEncoder().encode("line1\nline2-mod\nline3\n"));
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createFileCommands(),
+    ...createDiff3Commands(),
+  ]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(file -b --mime-type /script.sh):$(cat /data.json | file -b --mime-type -):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "text/x-shellscript:application/json:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(diff3 -m /mine.txt /base.txt /yours.txt | head -n 2 | tail -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "line2-mod:80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(cmp /base.txt /mine.txt):$(cmp -n 5 /base.txt /yours.txt):$i"
     done
     printf "%s\n" "$out"
   `);

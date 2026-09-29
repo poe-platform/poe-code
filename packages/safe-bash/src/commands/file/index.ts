@@ -296,3 +296,79 @@ export function fileCommands(options: FileCommandsOptions = {}): VirtualShellPlu
     for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
   } };
 }
+
+export function evalSyncFile(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (path: string) => Uint8Array | undefined,
+  statTypeSync?: (path: string) => "file" | "directory" | "symlink" | "missing" | undefined,
+): string | undefined {
+  let brief = false;
+  let mimeType = false;
+  let mimeEncoding = false;
+  let separator = ":";
+  let options = true;
+  const names: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const arg = opArgs[i]!;
+    if (options && arg === "--") { options = false; continue; }
+    if (!options || !arg.startsWith("-") || arg === "-") {
+      if (!arg || /[\x00-\x1f\x7f]/.test(arg)) return undefined;
+      names.push(arg);
+      continue;
+    }
+    const long = arg.startsWith("--");
+    const eq = long ? arg.indexOf("=") : -1;
+    const flags = long ? [eq < 0 ? arg : arg.slice(0, eq)] : Array.from(arg.slice(1), f => `-${f}`);
+    for (let p = 0; p < flags.length; p++) {
+      const flag = flags[p]!;
+      if (flag === "-F" || flag === "--separator") {
+        const attached = long ? (eq < 0 ? undefined : arg.slice(eq + 1)) : (p + 1 < flags.length ? arg.slice(p + 2) : undefined);
+        const val = attached ?? opArgs[++i];
+        if (val === undefined || /[\x00-\x1f\x7f]/.test(val)) return undefined;
+        separator = val;
+        break;
+      }
+      if (long && eq >= 0) return undefined;
+      switch (flag) {
+        case "-b": case "--brief": brief = true; break;
+        case "-L": case "--dereference": case "-h": case "--no-dereference": break;
+        case "-i": case "--mime": mimeType = mimeEncoding = true; break;
+        case "--mime-type": mimeType = true; break;
+        case "--mime-encoding": mimeEncoding = true; break;
+        default: return undefined;
+      }
+    }
+  }
+  if (names.length === 0) return undefined;
+  let stdinUsed = false;
+  const outLines: string[] = [];
+  for (const name of names) {
+    let detected: Classification;
+    if (name === "-") {
+      if (stdinUsed) {
+        detected = classify(new Uint8Array(), true);
+      } else {
+        if (!inBytes || inBytes.byteLength > 16384) return undefined;
+        stdinUsed = true;
+        detected = classify(inBytes, true);
+      }
+    } else {
+      const st = statTypeSync?.(name);
+      if (st === "directory") {
+        detected = { description: "directory", mime: "inode/directory", encoding: "binary" };
+      } else {
+        if (!readFileSync) return undefined;
+        const fBytes = readFileSync(name);
+        if (!fBytes || fBytes.byteLength > 16384) return undefined;
+        detected = classify(fBytes, true);
+      }
+    }
+    const content = mimeType && mimeEncoding
+      ? `${detected.mime}; charset=${detected.encoding}`
+      : mimeType ? detected.mime : mimeEncoding ? detected.encoding : detected.description;
+    const label = brief ? "" : `${name === "-" ? "/dev/stdin" : name}${separator} `;
+    outLines.push(`${label}${content}`);
+  }
+  return outLines.join("\n");
+}

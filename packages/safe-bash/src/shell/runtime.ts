@@ -26929,6 +26929,63 @@ export class Runtime {
       }
       return { value: String(idx), status: idx === 0 ? 1 : 0 };
     }
+    if (ops.length === 3 && (ops[1] === ":" || ops[0] === "match")) {
+      const targetStr = ops[0] === "match" ? ops[1]! : ops[0]!;
+      const rawPat = ops[2]!;
+      if (!/\\[2-9]/.test(rawPat) && !rawPat.includes("[:") && !rawPat.includes("[.") && !rawPat.includes("[=")) {
+        let jsPat = "";
+        let hasCap = false;
+        let inBr = false;
+        let okPat = true;
+        for (let i = 0; i < rawPat.length; i++) {
+          const ch = rawPat[i]!;
+          if (inBr) {
+            jsPat += ch;
+            if (ch === "]") inBr = false;
+            continue;
+          }
+          if (ch === "[") { inBr = true; jsPat += ch; continue; }
+          if (ch === "\\" && i + 1 < rawPat.length) {
+            const nxt = rawPat[++i]!;
+            if (nxt === "(") { hasCap = true; jsPat += "("; }
+            else if (nxt === ")") jsPat += ")";
+            else if ("+?{}|".includes(nxt)) jsPat += nxt;
+            else jsPat += "\\" + nxt;
+            continue;
+          }
+          if ("+?{}()|".includes(ch)) { jsPat += "\\" + ch; continue; }
+          jsPat += ch;
+        }
+        if (okPat && !inBr) {
+          try {
+            const re = new RegExp("^(?:" + (jsPat.startsWith("^") ? jsPat.slice(1) : jsPat) + ")");
+            const m = re.exec(targetStr);
+            if (!m) {
+              return hasCap ? { value: "", status: 1 } : { value: "0", status: 1 };
+            }
+            if (hasCap) {
+              const cap = m[1] ?? "";
+              return { value: cap, status: (cap === "" || cap === "0") ? 1 : 0 };
+            }
+            const len = Array.from(m[0]).length;
+            return { value: String(len), status: len === 0 ? 1 : 0 };
+          } catch {
+            // fall through
+          }
+        }
+      }
+    }
+    if (ops.length === 3 && (ops[1] === "|" || ops[1] === "&")) {
+      const a = ops[0]!, b = ops[2]!;
+      const aTruthy = a !== "" && a !== "0";
+      const bTruthy = b !== "" && b !== "0";
+      if (ops[1] === "|") {
+        const res = aTruthy ? a : (bTruthy ? b : "0");
+        return { value: res, status: (aTruthy || bTruthy) ? 0 : 1 };
+      }
+      const res = (aTruthy && bTruthy) ? a : "0";
+      return { value: res, status: (aTruthy && bTruthy) ? 0 : 1 };
+    }
     if (ops.length === 1) {
       const v = ops[0]!;
       return { value: v, status: (v === "" || v === "0") ? 1 : 0 };
@@ -26987,6 +27044,8 @@ export class Runtime {
 
   private evalSyncBc(input: string, opArgs: readonly string[]): string[] | undefined {
     let scale = 0;
+    let ibase = 10;
+    let obase = 10;
     for (const a of opArgs) {
       if (a === "-q" || a === "--quiet") continue;
       if (a === "-l" || a === "--mathlib") { scale = 20; continue; }
@@ -27011,6 +27070,27 @@ export class Runtime {
         if (wrap && d === 0) return evalExpr(e.slice(1, -1));
       }
       let d = 0;
+      for (let i = 0; i < e.length; i++) {
+        const ch = e[i]!;
+        if (ch === "(") d++;
+        else if (ch === ")") d--;
+        else if (d === 0) {
+          const two = e.slice(i, i + 2);
+          const opLen = (two === "==" || two === "!=" || two === "<=" || two === ">=") ? 2 : ((ch === "<" || ch === ">") ? 1 : 0);
+          if (opLen > 0) {
+            const op = e.slice(i, i + opLen);
+            const l = evalExpr(e.slice(0, i));
+            const r = evalExpr(e.slice(i + opLen));
+            if (!l || !r) return undefined;
+            const ms = Math.max(l.s, r.s);
+            const lc = l.c * tenPow(ms - l.s);
+            const rc = r.c * tenPow(ms - r.s);
+            const ok = op === "==" ? lc === rc : op === "!=" ? lc !== rc : op === "<=" ? lc <= rc : op === ">=" ? lc >= rc : op === "<" ? lc < rc : lc > rc;
+            return { c: ok ? 1n : 0n, s: 0 };
+          }
+        }
+      }
+      d = 0;
       let addIdx = -1;
       for (let i = 0; i < e.length; i++) {
         const ch = e[i]!;
@@ -27059,6 +27139,37 @@ export class Runtime {
         }
         return undefined;
       }
+      let powIdx = -1;
+      for (let i = 0; i < e.length; i++) {
+        const ch = e[i]!;
+        if (ch === "(") d++;
+        else if (ch === ")") d--;
+        else if (d === 0 && ch === "^") { powIdx = i; break; }
+      }
+      if (powIdx > 0) {
+        const l = evalExpr(e.slice(0, powIdx));
+        const r = evalExpr(e.slice(powIdx + 1));
+        if (!l || !r || r.s !== 0 || r.c < 0n || r.c > 64n) return undefined;
+        const exp = Number(r.c);
+        if (l.s === 0) return { c: l.c ** r.c, s: 0 };
+        if (l.s * exp > 40) return undefined;
+        const rawC = l.c ** r.c;
+        const rawS = l.s * exp;
+        const targetS = Math.min(rawS, Math.max(scale, l.s));
+        return { c: rawC / tenPow(rawS - targetS), s: targetS };
+      }
+      if (ibase !== 10 && /^[+-]?[0-9A-F]+$/.test(e)) {
+        const neg = e.startsWith("-");
+        const rawDigits = (neg || e.startsWith("+")) ? e.slice(1) : e;
+        let acc = 0n;
+        const bBig = BigInt(ibase);
+        for (const ch of rawDigits) {
+          const dv = ch >= "0" && ch <= "9" ? ch.charCodeAt(0) - 48 : ch.charCodeAt(0) - 55;
+          if (dv < 0 || dv >= ibase) return undefined;
+          acc = acc * bBig + BigInt(dv);
+        }
+        return { c: neg ? -acc : acc, s: 0 };
+      }
       const numM = /^([+-]?\d+)(?:\.(\d+))?$/.exec(e);
       if (numM) {
         const intPart = numM[1]!;
@@ -27073,6 +27184,12 @@ export class Runtime {
       return undefined;
     };
     const formatDec = (v: DecVal): string => {
+      if (obase !== 10) {
+        if (v.s !== 0) return "";
+        const neg = v.c < 0n;
+        const absVal = neg ? -v.c : v.c;
+        return (neg && v.c !== 0n ? "-" : "") + absVal.toString(obase).toUpperCase();
+      }
       if (v.s === 0) return v.c.toString();
       const neg = v.c < 0n;
       const absStr = (neg ? -v.c : v.c).toString().padStart(v.s + 1, "0");
@@ -27089,6 +27206,14 @@ export class Runtime {
         if (scale > 20) return undefined;
         continue;
       }
+      const baseM = /^(ibase|obase)\s*=\s*([0-9]{1,2})$/.exec(st);
+      if (baseM) {
+        const bVal = Number(baseM[2]!);
+        if (bVal < 2 || bVal > 16) return undefined;
+        if (baseM[1] === "ibase") ibase = bVal;
+        else obase = bVal;
+        continue;
+      }
       const varM = /^([a-z][a-z0-9_]*)\s*=\s*(.+)$/.exec(st);
       if (varM && !st.includes("==")) {
         const val = evalExpr(varM[2]!);
@@ -27097,7 +27222,7 @@ export class Runtime {
         continue;
       }
       const val = evalExpr(st);
-      if (!val) return undefined;
+      if (!val || (obase !== 10 && val.s !== 0)) return undefined;
       out.push(formatDec(val));
     }
     return out;

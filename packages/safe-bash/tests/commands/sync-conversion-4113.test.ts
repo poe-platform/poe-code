@@ -1,3 +1,4 @@
+import { bcCommands } from "../../src/commands/bc/index.js";
 import { tableTextCommands } from "../../src/commands/table-text/index.js";
 import { columnCommands } from "../../src/commands/column/index.js";
 import { structuredCommands } from "../../src/commands/structured/index.js";
@@ -511,5 +512,16 @@ test("evaluates join -i/--header/attached flags (-a1/-e0/-o...), comm --nocheck-
   assert.equal(
     r.stdout,
     "ID:Name:Score,a1:Alice:95,b2:Bob:0,#ID:Name,:ID:Score,:A1:95,a1:Alice,b2:Bob,:c3:80,#name   score,alice  95,bob    100,#ID  Name,a1  Alice,b2  Bob,\n",
+  );
+});
+test("evaluates expr STRING : REGEXP / match capture groups and |/&, and bc relational comparisons, ^ exponentiation, and ibase/obase in sync substitutions (Wave 185)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(exprCommands()).use(bcCommands());
+  const r = await shell.exec("e_len=$(expr \"release_2026\" : '[a-z]*')\ne_cap=$(expr \"v2.14.8\" : 'v\\([0-9.]*\\)')\ne_match=$(expr match \"item_42\" 'item_\\([0-9]*\\)')\ne_or=$(expr \"\" \\| \"fallback\")\nb_cmp=$(echo \"3.1415 > 2.7182; 1.5 == 1.50\" | bc | tr '\\n' ',')\nb_pow=$(echo \"2 ^ 10\" | bc)\nb_hex=$(echo \"obase=16; 255\" | bc)\nb_from_hex=$(echo \"ibase=16; FF\" | bc)\nprintf \"%s#%s#%s#%s#%s#%s#%s#%s\\n\" \"$e_len\" \"$e_cap\" \"$e_match\" \"$e_or\" \"$b_cmp\" \"$b_pow\" \"$b_hex\" \"$b_from_hex\"");
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "7#2.14.8#42#fallback#1,1,#1024#FF#255\n",
   );
 });

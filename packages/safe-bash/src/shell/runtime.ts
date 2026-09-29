@@ -24455,18 +24455,90 @@ export class Runtime {
       }
     }
     if (rawExprs.length === 0) return undefined;
+    const splitUnescaped = (str: string, delim: string): string[] | undefined => {
+      const out: string[] = [];
+      let cur = "";
+      for (let i = 0; i < str.length; i++) {
+        const ch = str[i]!;
+        if (ch === "\\" && i + 1 < str.length) {
+          const next = str[++i]!;
+          cur += next === delim ? delim : "\\" + next;
+          continue;
+        }
+        if (ch === delim) {
+          out.push(cur);
+          cur = "";
+          continue;
+        }
+        cur += ch;
+      }
+      out.push(cur);
+      return out;
+    };
     const subExprs: string[] = [];
     for (const re of rawExprs) {
-      if (re.includes(";") && !re.startsWith("s;") && !re.startsWith("y;")) {
-        for (const p of re.split(";")) {
-          const t = p.trim();
-          if (t.length > 0) subExprs.push(t);
+      let cur = "";
+      let i = 0;
+      while (i < re.length) {
+        const ch = re[i]!;
+        if (ch === "\\" && i + 1 < re.length) {
+          cur += ch + re[++i]!;
+          i++;
+          continue;
         }
-      } else {
-        subExprs.push(re.trim());
+        const trimmedCur = cur.trimStart();
+        if (ch === "/" && (trimmedCur.length === 0 || trimmedCur.endsWith(","))) {
+          cur += ch;
+          i++;
+          while (i < re.length) {
+            const rc = re[i]!;
+            cur += rc;
+            i++;
+            if (rc === "\\" && i < re.length) { cur += re[i++]!; continue; }
+            if (rc === "/") break;
+          }
+          continue;
+        }
+        if ((ch === "s" || ch === "y") && i + 1 < re.length && "/#|:@,;%!".includes(re[i + 1]!) && /(?:^|[!\s/0-9$~])$/.test(trimmedCur)) {
+          const d = re[i + 1]!;
+          cur += ch + d;
+          i += 2;
+          let dCount = 0;
+          while (i < re.length && dCount < 2) {
+            const sc = re[i]!;
+            cur += sc;
+            i++;
+            if (sc === "\\" && i < re.length) { cur += re[i++]!; continue; }
+            if (sc === d) dCount++;
+          }
+          continue;
+        }
+        if (ch === ";" || ch === "\n") {
+          const t = cur.trim();
+          if (t.length > 0) subExprs.push(t);
+          cur = "";
+          i++;
+          continue;
+        }
+        cur += ch;
+        i++;
       }
+      const tailT = cur.trim();
+      if (tailT.length > 0) subExprs.push(tailT);
     }
     if (subExprs.length === 0) return undefined;
+    const compileSedAddrRe = (patSpec: string): RegExp | undefined => {
+      if (patSpec.length === 0 || patSpec.includes("[.") || patSpec.includes("[=") || /\\[1-9]/.test(patSpec)) return undefined;
+      const normPat = patSpec
+        .replace(/\[:space:\]/g, " \t")
+        .replace(/\[:digit:\]/g, "0-9")
+        .replace(/\[:alpha:\]/g, "a-zA-Z")
+        .replace(/\[:alnum:\]/g, "a-zA-Z0-9");
+      const jsPat = isExtended
+        ? normPat
+        : normPat.replace(/\\([+?()|])/g, "$1");
+      try { return new RegExp(jsPat); } catch { return undefined; }
+    };
     type SedAddrFn = (l: string, idx1: number, total: number) => boolean;
     type SedStep = { addr: SedAddrFn | undefined; negated: boolean } & (
       | { kind: "d" }
@@ -24481,32 +24553,57 @@ export class Runtime {
       let rest = rawE;
       let addr: SedAddrFn | undefined;
       let negated = false;
-      const addrM = /^(?:([1-9][0-9]{0,4}|\$)(?:,([1-9][0-9]{0,4}|\$))?|\/([^/\\]*(?:\\.[^/\\]*)*)\/)\s*/.exec(rest);
-      if (addrM) {
-        const startSpec = addrM[1];
-        const endSpec = addrM[2];
-        const patSpec = addrM[3];
-        rest = rest.slice(addrM[0]!.length);
-        let addrRe: RegExp | undefined;
-        if (patSpec !== undefined) {
-          if (patSpec.length === 0 || patSpec.includes("[.") || patSpec.includes("[=") || /\\[1-9]/.test(patSpec)) return undefined;
-          const normPat = patSpec
-            .replace(/\[:space:\]/g, " \t")
-            .replace(/\[:digit:\]/g, "0-9")
-            .replace(/\[:alpha:\]/g, "a-zA-Z")
-            .replace(/\[:alnum:\]/g, "a-zA-Z0-9");
-          const jsPat = isExtended
-            ? normPat
-            : normPat.replace(/\\([+?()|])/g, "$1");
-          try { addrRe = new RegExp(jsPat); } catch { return undefined; }
+      let isRangeAddr = false;
+      const stepAddrM = /^([1-9][0-9]{0,4})~([1-9][0-9]{0,4})\s*/.exec(rest);
+      if (stepAddrM) {
+        const first = Number(stepAddrM[1]!);
+        const step = Number(stepAddrM[2]!);
+        rest = rest.slice(stepAddrM[0]!.length);
+        addr = (_l: string, idx1: number): boolean => idx1 >= first && (idx1 - first) % step === 0;
+      } else {
+        const addrM = /^(?:([1-9][0-9]{0,4}|\$)|\/([^/\\]*(?:\\.[^/\\]*)*)\/)(?:\s*,\s*(?:([1-9][0-9]{0,4}|\$)|\/([^/\\]*(?:\\.[^/\\]*)*)\/))?\s*/.exec(rest);
+        if (addrM) {
+          const sNumSpec = addrM[1];
+          const sPatSpec = addrM[2];
+          const eNumSpec = addrM[3];
+          const ePatSpec = addrM[4];
+          rest = rest.slice(addrM[0]!.length);
+          const sRe = sPatSpec !== undefined ? compileSedAddrRe(sPatSpec) : undefined;
+          if (sPatSpec !== undefined && !sRe) return undefined;
+          const eRe = ePatSpec !== undefined ? compileSedAddrRe(ePatSpec) : undefined;
+          if (ePatSpec !== undefined && !eRe) return undefined;
+          if (eNumSpec === undefined && ePatSpec === undefined) {
+            addr = (l: string, idx1: number, total: number): boolean => {
+              if (sRe !== undefined) return sRe.test(l);
+              const sNum = sNumSpec === "$" ? total : Number(sNumSpec!);
+              return idx1 === sNum;
+            };
+          } else {
+            isRangeAddr = true;
+            if (sNumSpec !== undefined && eNumSpec !== undefined) {
+              addr = (_l: string, idx1: number, total: number): boolean => {
+                const sNum = sNumSpec === "$" ? total : Number(sNumSpec);
+                const eNum = eNumSpec === "$" ? total : Number(eNumSpec);
+                return idx1 >= sNum && idx1 <= Math.max(sNum, eNum);
+              };
+            } else {
+              let inRange = false;
+              addr = (l: string, idx1: number, total: number): boolean => {
+                const matchStart = sRe !== undefined ? sRe.test(l) : idx1 === (sNumSpec === "$" ? total : Number(sNumSpec!));
+                const eNum = eNumSpec !== undefined ? (eNumSpec === "$" ? total : Number(eNumSpec)) : undefined;
+                if (!inRange) {
+                  if (!matchStart) return false;
+                  if (eNum !== undefined && idx1 >= eNum) return true;
+                  inRange = true;
+                  return true;
+                }
+                const matchEnd = eRe !== undefined ? eRe.test(l) : idx1 >= eNum!;
+                if (matchEnd) inRange = false;
+                return true;
+              };
+            }
+          }
         }
-        addr = (l: string, idx1: number, total: number): boolean => {
-          if (addrRe !== undefined) return addrRe.test(l);
-          const sNum = startSpec === "$" ? total : Number(startSpec!);
-          if (endSpec === undefined) return idx1 === sNum;
-          const eNum = endSpec === "$" ? total : Number(endSpec);
-          return idx1 >= sNum && idx1 <= Math.max(sNum, eNum);
-        };
       }
       if (rest.startsWith("!")) {
         negated = true;
@@ -24530,7 +24627,7 @@ export class Runtime {
       }
       if (rest.startsWith("i") || rest.startsWith("a") || rest.startsWith("c")) {
         const aicM = /^([aic])(?:\s+|\\\s*)(.+)$/.exec(rest);
-        if (!aicM || addrM?.[2] !== undefined || aicM[2]!.includes("\\")) return undefined;
+        if (!aicM || isRangeAddr || aicM[2]!.includes("\\")) return undefined;
         steps.push({ addr, negated, kind: aicM[1] as "a" | "i" | "c", text: aicM[2]! });
         continue;
       }
@@ -24555,8 +24652,8 @@ export class Runtime {
       if (rest.startsWith("s") && rest.length >= 4) {
         const delim = rest[1]!;
         if (!"/#|:@,;%!".includes(delim)) return undefined;
-        const parts = rest.slice(2).split(delim);
-        if (parts.length !== 3) return undefined;
+        const parts = splitUnescaped(rest.slice(2), delim);
+        if (!parts || parts.length !== 3) return undefined;
         const [pat, rep, flags] = parts as [string, string, string];
         if (!/^[giIp1-9]*$/.test(flags) || /\n/.test(rep) || !/^(?:[^\\]|\\[1-9&\\tn])*$/.test(rep)) return undefined;
         const nthDigits = flags.match(/[1-9]/g);
@@ -24575,7 +24672,7 @@ export class Runtime {
             core.includes("[]") || core.includes("[^]") || core.includes("^") ||
             (isExtended ? core.includes("|") : core.includes("\\|") || core.includes("[") && core.includes("\\"))) return undefined;
         let reSrc: string | undefined;
-        if (/^[a-zA-Z0-9_ :;,=-]*$/.test(core)) {
+        if (/^[a-zA-Z0-9_ /:;,=-]*$/.test(core)) {
           reSrc = core.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         } else if (
           core === "[ \t]*" || core === "[ \t]+" || core === "[ \\t]*" || core === "[ \\t]+" ||

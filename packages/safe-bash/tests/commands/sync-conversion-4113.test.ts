@@ -469,3 +469,14 @@ test("evaluates awk printf formatting (%s/%-Ns/%d/%0Nd), n = split(...) count an
     "alice :0007|bob   :0042|#alice 3 a b|bob 2 x y|#item_N_cost_N#alice=007;bob=042;alice=014;bob=084;\n",
   );
 });
+test("evaluates sed semicolons inside s///, escaped delimiters (\\/), step addresses (1~2p), and regex range addresses (/START/,/END/) in sync substitutions and brace loops (Wave 181)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(textProgramCommands());
+  const r = await shell.exec("printf \"hdr\\nSTART\\nkeep1\\nEND\\nmid\\nSTART\\nkeep2\\nEND\\ntail\\n\" > /tmp/sed_in.txt\ns_semi=$(printf \"a;b;c\\n\" | sed 's/;/,/g; s/b/B/')\ns_esc=$(printf \"/usr/local/bin\\n\" | sed 's/\\/usr\\/local/\\/opt/g')\ns_step=$(printf \"1\\n2\\n3\\n4\\n5\\n\" | sed -n '1~2p' | tr '\\n' ',')\ns_range=$(sed -n '/^START$/,/^END$/p' /tmp/sed_in.txt | tr '\\n' ',')\ns_del=$(sed '/^START$/,/^END$/d' /tmp/sed_in.txt | tr '\\n' ',')\nloop_out=\"\"\nfor k in 1 2; do\n  v=$(sed -n \"${k}~2p\" /tmp/sed_in.txt | tr '\\n' ':')\n  loop_out=\"${loop_out}${v}|\"\ndone\nprintf \"%s#%s#%s#%s#%s#%s\\n\" \"$s_semi\" \"$s_esc\" \"$s_step\" \"$s_range\" \"$s_del\" \"$loop_out\"");
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "a,B,c#/opt/bin#1,3,5,#START,keep1,END,START,keep2,END,#hdr,mid,tail,#hdr:keep1:mid:keep2:tail:|START:END:START:END:|\n",
+  );
+});

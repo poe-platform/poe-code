@@ -421,7 +421,7 @@ test("Wave 133: sync mdq, shuf, and html-to-markdown substitutions and pipelines
   await fs.mkdir("/tmp", { recursive: true });
   await fs.writeFile(
     "/tmp/README.md",
-    new TextEncoder().encode("# Project\n\nIntro paragraph.\n\n## Install\n\n\`\`\`bash\nnpm install\n\`\`\`\n\n## Features\n\n- Fast\n- Safe\n")
+    new TextEncoder().encode("# Project\n\nIntro paragraph.\n\n## Install\n\n```bash\nnpm install\n```\n\n## Features\n\n- Fast\n- Safe\n")
   );
   await fs.writeFile(
     "/tmp/doc.html",

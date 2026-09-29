@@ -1419,6 +1419,16 @@
             "safe-bash-io-engine": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-llm": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-command-file": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -2374,7 +2384,8 @@
     "@poe-code/xlsx-ast": "*",
     "@poe-code/spreadsheet-format-dbf": "*",
     "safe-bash-command-docx": "*",
-    "safe-bash-command-pptx": "*"
+    "safe-bash-command-pptx": "*",
+    "safe-bash-command-llm": "*"
   },
   "main": "./dist/index.js",
   "imports": {

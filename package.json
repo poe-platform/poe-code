@@ -584,7 +584,8 @@
     "@poe-code/xlsx-ast": "0.0.1",
     "@poe-code/spreadsheet-format-dbf": "0.0.1",
     "safe-bash-command-docx": "*",
-    "safe-bash-command-pptx": "*"
+    "safe-bash-command-pptx": "*",
+    "safe-bash-command-llm": "*"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -653,6 +654,8 @@
     "packages/toolcraft-schema/dist",
     "packages/workspace-resolver/dist",
     "packages/worktree/dist",
+    "packages/safe-bash-command-file/dist",
+    "packages/safe-bash-command-llm/dist",
     "!dist/corpus",
     "!packages/memory/dist/corpus",
     "packages/user-error/dist",

@@ -90,6 +90,14 @@
     "./signals": {
       "types": "./dist/signals.d.ts",
       "import": "./dist/signals.js"
+    },
+    "./http": {
+      "types": "./dist/http.d.ts",
+      "import": "./dist/http.js"
+    },
+    "./default-executor": {
+      "types": "./dist/default-executor.d.ts",
+      "import": "./dist/default-executor.js"
     }
   },
   "files": [

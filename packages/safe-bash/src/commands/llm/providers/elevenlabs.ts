@@ -1,1 +1,1 @@
-export { createElevenLabsProvider, type ElevenLabsProviderOptions, type ElevenLabsModel } from "../elevenlabs.js";
+export * from "safe-bash-command-llm/providers/elevenlabs";

@@ -129,6 +129,8 @@ function compileReachableSourceFiles(
 function createProject(): Project {
   return new Project({
     useInMemoryFileSystem: true,
+    // Static scope extraction needs source exports, not ambient type declarations.
+    skipLoadingLibFiles: true,
     compilerOptions: {
       allowJs: false,
       esModuleInterop: true,

@@ -15,6 +15,7 @@ fn test_differential_oid_and_porcelain_parity_against_system_git() {
         assert!(Command::new(prog).current_dir(dir).args(["init", "-b", "main"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["config", "user.name", "Alice"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["config", "user.email", "alice@example.com"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["config", "core.hooksPath", ".git/hooks"]).status().unwrap().success());
         fs::write(dir.join("src.txt"), "line 1\nline 2\n").unwrap();
         assert!(Command::new(prog).current_dir(dir).args(["add", "src.txt"]).status().unwrap().success());
         assert!(
@@ -68,6 +69,7 @@ fn test_differential_branch_merge_and_tag_parity_against_system_git() {
         assert!(Command::new(prog).current_dir(dir).args(["init", "-b", "main"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["config", "user.name", "Alice"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["config", "user.email", "alice@example.com"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["config", "core.hooksPath", ".git/hooks"]).status().unwrap().success());
         fs::write(dir.join("base.txt"), "base\n").unwrap();
         assert!(Command::new(prog).current_dir(dir).args(["add", "base.txt"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["commit", "-m", "base"]).status().unwrap().success());
@@ -106,6 +108,7 @@ fn test_differential_rebase_and_signed_tags_parity() {
         assert!(Command::new(prog).current_dir(dir).args(["init", "-b", "main"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["config", "user.name", "Alice"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["config", "user.email", "alice@example.com"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["config", "core.hooksPath", ".git/hooks"]).status().unwrap().success());
         fs::write(dir.join("a.txt"), "a\n").unwrap();
         assert!(Command::new(prog).current_dir(dir).args(["add", "a.txt"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["commit", "-m", "commit a"]).status().unwrap().success());
@@ -157,6 +160,7 @@ fn test_differential_stash_cherry_pick_and_hooks_parity() {
         assert!(Command::new(prog).current_dir(dir).args(["init", "-b", "main"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["config", "user.name", "Alice"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["config", "user.email", "alice@example.com"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["config", "core.hooksPath", ".git/hooks"]).status().unwrap().success());
         fs::write(dir.join("main.txt"), "v1\n").unwrap();
         assert!(Command::new(prog).current_dir(dir).args(["add", "main.txt"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["commit", "-m", "v1"]).status().unwrap().success());
@@ -187,6 +191,7 @@ fn test_differential_worktree_and_archive_parity_against_system_git() {
         assert!(Command::new(prog).current_dir(dir).args(["init", "-b", "main"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["config", "user.name", "Alice"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["config", "user.email", "alice@example.com"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["config", "core.hooksPath", ".git/hooks"]).status().unwrap().success());
         fs::write(dir.join("app.txt"), "release-content\n").unwrap();
         assert!(Command::new(prog).current_dir(dir).args(["add", "app.txt"]).status().unwrap().success());
         assert!(Command::new(prog).current_dir(dir).args(["commit", "-m", "v1"]).status().unwrap().success());

@@ -76,14 +76,13 @@ export function nativeRepeatTemplate<Request = NativeRequest>(fixture = new URL(
         completed.resolve(message as NativeResponse);
       } else failNative(new Error("Duplicate, mismatched or unexpected native response"));
     });
-    const timer = setTimeout(() => { failNative(new Error("Native child did not become ready")); }, 50000);
+    // Vitest owns the startup hook deadline; afterAll drains or kills its child.
     if (compiled) {
       child.stdin!.on("error", failNative);
       child.stdin!.end(compiled.outputFiles[0]!.contents);
     }
     try { await startup; }
     catch (error) { failNative(error as Error); await closed; throw error; }
-    finally { clearTimeout(timer); }
   });
 
   afterAll(async () => {

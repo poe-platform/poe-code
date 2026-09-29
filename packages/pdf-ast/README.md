@@ -41,5 +41,11 @@ const pngBytes = page.renderToPng({ scale: 1.5 });
 const pdfBytes = doc.save({ normalizeContent: true });
 ```
 
+After `page.redact()`, saving rewrites the file and removes unreachable objects,
+including obsolete content streams and discarded image/Form resources. This also
+applies when `incremental: true` is requested, since previous revisions would
+retain the removed content. Content still used on other pages remains intact;
+redact each occurrence that needs removal.
+
 Resource limits default to `Infinity`. Set `maxObjects`, `maxDecompressedBytes`,
 `maxRecursionDepth`, or save-time `maxOutputBytes` to enforce explicit budgets.

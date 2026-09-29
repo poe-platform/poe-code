@@ -35,6 +35,8 @@ export class ParsedCosDocument {
   encryptRef?: PdfCosRef | undefined;
   idArray?: PdfCosArray | undefined;
   encryption?: PdfEncryptionState | undefined;
+  /** Destructive edits must not retain obsolete objects or earlier file revisions. */
+  requiresFullRewrite = false;
   private readonly maxDecompressedBytes: number;
   private readonly maxRecursionDepth: number;
 

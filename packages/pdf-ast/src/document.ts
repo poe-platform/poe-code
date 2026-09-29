@@ -26,6 +26,7 @@ import {
   type PdfImageHandle,
 } from "./canvas.js";
 import { applyPredictor, decodeFlate } from "./cos/filters.js";
+import { discardUnreachableObjects } from "./cos/garbage-collection.js";
 import { parseCosDocument, type ParseCosOptions, type ParsedCosDocument } from "./cos/parser.js";
 import { encryptCosDocument, type EncryptPdfOptions } from "./cos/security.js";
 import { appendIncrementalRevision, serializeCosDocument } from "./cos/writer.js";
@@ -642,13 +643,14 @@ export class PdfDocument {
 
   save(options: SavePdfOptions = {}): Uint8Array {
     this.syncPageTree();
+    if (this.cos.requiresFullRewrite) discardUnreachableObjects(this.cos);
     if (options.encrypt) {
       return encryptCosDocument(this.cos, options.encrypt);
     }
     const allObjects: PdfIndirectObject[] = [...this.cos.objects.values()].sort(
       (a, b) => a.objectNumber - b.objectNumber
     );
-    if (options.incremental && this.cos.bytes.length > 0) {
+    if (options.incremental && !this.cos.requiresFullRewrite && this.cos.bytes.length > 0) {
       return appendIncrementalRevision(this.cos.bytes, this.cos, allObjects);
     }
     return serializeCosDocument({

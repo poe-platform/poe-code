@@ -712,19 +712,52 @@ export class PdfPage {
       typeof regionsOrSingle[0] === "number"
         ? [regionsOrSingle as readonly [number, number, number, number]]
         : (regionsOrSingle as readonly (readonly [number, number, number, number])[]);
+    if (regions.length === 0) return;
     const fontName = this.ensureStandardFontResource("Helvetica");
     const { width, height } = this.getSize();
+    const originalNodes = this.getContentAst();
+    const resources = this.getResourcesDict();
     const redactedNodes = redactPageContentAst({
       pageIndex: this.index,
       width,
       height,
-      nodes: this.getContentAst(),
+      nodes: originalNodes,
       regions,
       cosDoc: this.cosDoc,
-      resourcesDict: this.getResourcesDict(),
+      resourcesDict: resources,
       options: { ...options, fontName },
     });
-    this.setContentAst(redactedNodes);
+    const xobjectNames = (nodes: readonly PdfContentNode[]): Set<string> => {
+      const names = new Set<string>();
+      const pending = [...nodes];
+      while (pending.length > 0) {
+        const node = pending.pop()!;
+        if (node.kind === "xobject") names.add(node.name);
+        else if (node.kind === "graphics-group") pending.push(...node.ops);
+        else if (node.kind === "marked-content") pending.push(...node.children);
+      }
+      return names;
+    };
+    const originalNames = xobjectNames(originalNodes);
+    const retainedNames = xobjectNames(redactedNodes);
+    const xobjects = this.cosDoc.resolveDict(dictGet(resources, "XObject"));
+    if (xobjects) {
+      // Resource dictionaries and content streams can be shared across pages.
+      // Detach this page's references instead of modifying shared objects.
+      const ownResources: PdfCosDict = { kind: "dict", entries: [...resources.entries] };
+      dictSet(ownResources, "XObject", {
+        kind: "dict",
+        entries: xobjects.entries.filter(entry =>
+          !originalNames.has(entry.key.decoded) || retainedNames.has(entry.key.decoded)
+        ),
+      });
+      dictSet(this.pageDict, "Resources", ownResources);
+    }
+    const replacement = this.cosDoc.allocateObject(cosStream(serializeContentAst(redactedNodes), { compress: true }));
+    dictSet(this.pageDict, "Contents", replacement);
+    this.cachedContentAst = redactedNodes;
+    this.cachedContentsNode = replacement;
+    this.cosDoc.requiresFullRewrite = true;
   }
 
   evaluateDisplayList(options?: { readonly hideAnnotations?: boolean | undefined }): PdfDisplayList {

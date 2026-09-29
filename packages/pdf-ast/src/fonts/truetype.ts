@@ -500,7 +500,7 @@ export function embedTrueTypeFontInCos(
   const descriptorRef = doc.allocateObject(descriptorDict);
 
   const widthItems = [];
-  for (let gid = 0; gid < Math.min(font.numGlyphs, 512); gid++) {
+  for (let gid = 0; gid < font.numGlyphs; gid++) {
     const w = Math.round((font.getAdvanceWidthUnits(gid) * 1000) / font.unitsPerEm);
     widthItems.push(cosNumber(w));
   }

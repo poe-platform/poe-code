@@ -173,3 +173,19 @@ describe("Layer 2 Fonts: Standard 14, ToUnicode CMap, and First-Party TrueType E
     expect(disabledDiffs.has(65)).toBe(false);
   });
 });
+
+it("embeds advance widths for glyph IDs above 511", async () => {
+  const { PdfDocument } = await import("../index.js");
+  const bytes = buildSyntheticTrueTypeBytes();
+  const view = new DataView(bytes.buffer);
+  view.setUint16(188, 600); // maxp.numGlyphs; trailing hmtx glyphs inherit width 650.
+  view.setUint32(236, 599); // The format-12 cmap maps A to glyph 599.
+  const doc = PdfDocument.create(), page = doc.addPage([100, 100]);
+  const font = doc.embedFont(bytes);
+  page.drawText("AA", { font, size: 20, x: 10, y: 30 });
+  const loaded = PdfDocument.load(doc.save());
+  const glyphs = loaded.getPage(0).evaluateDisplayList().glyphs;
+  expect(loaded.extractText()).toBe("AA");
+  expect(glyphs[0]!.charCode).toBe(599);
+  expect(glyphs[1]!.matrix[4] - glyphs[0]!.matrix[4]).toBeCloseTo(13);
+});

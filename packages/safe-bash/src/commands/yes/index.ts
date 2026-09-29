@@ -57,7 +57,7 @@ export function createYesCommand(options: YesCommandOptions = {}): CommandDefini
       throw new RangeError(`Yes ${name} must be a positive safe integer${name === "chunkBytes" ? " up to 16777216" : " or Infinity"}`);
     }
   }
-  return Object.freeze({
+  const def = Object.freeze({
     name: "yes",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Repeat a line until canceled or its output consumer closes",

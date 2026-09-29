@@ -137,3 +137,32 @@ test("static discovery metadata stays compatible with the maintained command fac
     assert.deepEqual(actual, expected, family);
   }
 });
+
+test("default ssconvert keeps its existing CSV and XLSX formats", async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands()).use(lazy.ssconvertCommands());
+  try {
+    const result = await shell.exec(
+      "printf 'Name,Value\\nAda,2\\n' > /input.csv; ssconvert /input.csv /output.xlsx; ssconvert /output.xlsx /roundtrip.csv; cat /roundtrip.csv"
+    );
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.match(result.stdout, /Ada,2/);
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("explicit ssconvert format selections do not install implicit default formats", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(
+    lazy.ssconvertCommands({ formats: [] })
+  );
+  try {
+    const result = await shell.exec("ssconvert --list-exporters");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok(!result.stderr.includes("Gnumeric_Excel"));
+    assert.ok(!result.stderr.includes("Gnumeric_stf:stf_csv"));
+  } finally {
+    await shell.dispose();
+  }
+});

@@ -152,7 +152,10 @@ export type { PandocCommandsOptions } from "./commands/pandoc/index.js";
 export type { PandocLimits } from "./commands/pandoc/index.js";
 
 type ssconvertModule = typeof import("./commands/ssconvert/index.js");
-const loadssconvert = createLazyCommandLoader(() => import("safe-bash-command-ssconvert/commands"));
+const loadssconvert = createLazyCommandLoader(() => import("safe-bash-command-ssconvert"));
+const loadSelectedSsconvert = createLazyCommandLoader(
+  () => import("safe-bash-command-ssconvert/commands")
+);
 const ssconvertMetadata = [
   {
     name: "ssconvert",
@@ -163,7 +166,9 @@ export const createSsconvertCommand: ssconvertModule["createSsconvertCommand"] =
   const metadata = ssconvertMetadata.find((item) => item.name === "ssconvert");
   if (!metadata) throw new TypeError("Unknown ssconvert command");
   return createLazyCommands([metadata], async () => {
-    const module = await loadssconvert();
+    const module = await (args[0]?.formats === undefined
+      ? loadssconvert()
+      : loadSelectedSsconvert());
     return () => [module.createSsconvertCommand(...args)];
   })[0]!;
 };
@@ -177,7 +182,9 @@ export type { SsconvertCommandsOptions } from "./commands/ssconvert/index.js";
 export type { SsconvertLimits } from "./commands/ssconvert/index.js";
 export const createSsconvertCommands: ssconvertModule["createSsconvertCommands"] = (...args) => {
   const definitions = createLazyCommands(ssconvertMetadata, async () => {
-    const module = await loadssconvert();
+    const module = await (args[0]?.formats === undefined
+      ? loadssconvert()
+      : loadSelectedSsconvert());
     return () => module.createSsconvertCommands(...args);
   });
   return definitions;

@@ -12,6 +12,7 @@ import {
   type PdfLinkAnnotation,
   type PdfPathSegment,
   type PdfPlacedGlyph,
+  type PdfPaintOperation,
   type PdfRgbColor,
 } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
@@ -1303,6 +1304,15 @@ export function evaluateContentStreamToDisplayList(params: {
   const glyphs: PdfPlacedGlyph[] = [];
   const paths: PdfEvaluatedPath[] = [];
   const images: PdfEvaluatedImage[] = [];
+  const operations: PdfPaintOperation[] = [];
+  const emit = (operation: PdfPaintOperation): void => {
+    operations.push(operation);
+    switch (operation.kind) {
+      case "path": paths.push(operation.value); break;
+      case "image": images.push(operation.value); break;
+      case "glyph": glyphs.push(operation.value); break;
+    }
+  };
 
   const initialState: GraphicsState = {
     ctm: [1, 0, 0, 1, 0, 0],
@@ -1453,7 +1463,7 @@ export function evaluateContentStreamToDisplayList(params: {
           shStream,
           st.blendMode
         );
-        if (img) images.push(img);
+        if (img) emit({ kind: "image", value: img });
       }
     } else if (operator === "g") {
       const v = num(0, 0);
@@ -1770,7 +1780,7 @@ export function evaluateContentStreamToDisplayList(params: {
                     patClip
                   );
                   if (shImg) {
-                    images.push(shImg);
+                    emit({ kind: "image", value: shImg });
                     evaluatedFillPattern = true;
                   }
                 }
@@ -1848,7 +1858,7 @@ export function evaluateContentStreamToDisplayList(params: {
           const fillRule = node.paint.includes("*") ? "evenodd" : "nonzero";
           const ctmScale = Math.max(1e-6, Math.hypot(st.ctm[0], st.ctm[1]));
           const scaledStrokeWidth = st.strokeWidth === 0 ? 0 : st.strokeWidth * ctmScale;
-          paths.push({
+          emit({ kind: "path", value: {
             segments: transformedSegments,
             fillColor: isFill && !evaluatedFillPattern ? st.fillColor : undefined,
             fillAlpha: isFill && !evaluatedFillPattern ? st.fillAlpha : undefined,
@@ -1863,7 +1873,7 @@ export function evaluateContentStreamToDisplayList(params: {
             ...(st.dashArray ? { dashArray: [...st.dashArray] } : {}),
             ...(st.dashPhase !== undefined ? { dashPhase: st.dashPhase } : {}),
             ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
-          });
+          } });
           break;
         }
 
@@ -1890,7 +1900,7 @@ export function evaluateContentStreamToDisplayList(params: {
                     alpha: st.fillAlpha,
                   }
                 );
-                images.push({
+                emit({ kind: "image", value: {
                   name: node.name,
                   matrix: [...st.ctm],
                   width: decoded.width,
@@ -1900,7 +1910,7 @@ export function evaluateContentStreamToDisplayList(params: {
                   decodedRgba: decoded.rgba,
                   ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                   ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
-                });
+                } });
               } else if (sub === "Form" && depth < 8) {
                 const formStreamBytes = params.cosDoc.decodeStream(xobjNode);
                 const formNodes = parseContentStream(formStreamBytes);
@@ -1971,7 +1981,7 @@ export function evaluateContentStreamToDisplayList(params: {
               alpha: st.fillAlpha,
             }
           );
-          images.push({
+          emit({ kind: "image", value: {
             name: "InlineImage",
             matrix: [...st.ctm],
             width: decoded.width,
@@ -1981,7 +1991,7 @@ export function evaluateContentStreamToDisplayList(params: {
             decodedRgba: decoded.rgba,
             ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
             ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
-          });
+          } });
           break;
         }
 
@@ -2074,7 +2084,7 @@ export function evaluateContentStreamToDisplayList(params: {
                   const isFillGlyph = st.textRenderMode === 0 || st.textRenderMode === 2 || st.textRenderMode === 4 || st.textRenderMode === 6;
                   const isStrokeGlyph = st.textRenderMode === 1 || st.textRenderMode === 2 || st.textRenderMode === 5 || st.textRenderMode === 6;
                   const ctmScale = Math.max(1e-6, Math.hypot(st.ctm[0], st.ctm[1]));
-                  paths.push({
+                  emit({ kind: "path", value: {
                     segments: transformedGlyphSegs,
                     fillColor: isFillGlyph ? st.fillColor : undefined,
                     fillAlpha: isFillGlyph ? st.fillAlpha : undefined,
@@ -2084,7 +2094,7 @@ export function evaluateContentStreamToDisplayList(params: {
                     fillRule: "nonzero",
                     ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                     ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
-                  });
+                  } });
                   evaluatedType3 = true;
                 }
               }
@@ -2094,7 +2104,7 @@ export function evaluateContentStreamToDisplayList(params: {
                 Math.hypot(nextX - px, nextY - py),
                 (advance1000 * effectiveFontSize) / 1000
               );
-              glyphs.push({
+              emit({ kind: "glyph", value: {
                 charCode: item.charCode,
                 unicode: item.unicode,
                 fontName: font?.baseFont ?? st.fontName,
@@ -2109,7 +2119,7 @@ export function evaluateContentStreamToDisplayList(params: {
                 ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
                 mcid,
                 actualText,
-              });
+              } });
               tm = multiplyMatrices([1, 0, 0, 1, advUser, 0], tm);
             }
           };
@@ -2187,6 +2197,7 @@ export function evaluateContentStreamToDisplayList(params: {
     glyphs,
     paths,
     images,
+    operations,
     annotations: params.annotations ? [...params.annotations] : [],
   };
 }

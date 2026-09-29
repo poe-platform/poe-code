@@ -32,6 +32,9 @@ Work began at 2026-09-29 02:42 UTC. The requested ten-hour minimum ends at 2026-
 
 - Inheritance/resource follow-up verification: 150 package tests passed; package lint/typecheck and maintained build passed; PDFtk, qpdf, pdfinfo, and pdftotext consumer suites passed. Publication tracking continues through descendant release runs.
 
+- #4093 inheritance/resource fix verified on remote main at `d0e78ba204`; issue closed. Descendant release runs remain pending; no publication claimed.
+- #4094: eight initial failures reproduced, then fixed by emitting an ordered paint operation list (following PDF.js operator-list design) while retaining extraction arrays. Fourteen focused tests cover every image/path/text permutation, nested Forms, tiling patterns, shading, inline images, Type 3 glyphs, annotation appearances, alpha blending, and legacy display lists. An independent ReportLab six-panel PDF visually matches Poppler painting order; all four fully occluded panel interiors match exactly. Visible text retains the separately tracked #4104 font-outline difference.
+
 ## Completion evidence to collect
 
 For each outcome record the tested revision, focused and integration commands/results, corpus provenance, independent comparison method, examined visual outputs, issue status, remote-main commit, and release publication. Require at least ten hours of work plus verified completion of all outcomes before marking the goal complete.

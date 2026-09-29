@@ -241,6 +241,11 @@ export interface PdfLinkAnnotation {
   readonly destinationPage?: number | undefined;
 }
 
+export type PdfPaintOperation =
+  | { readonly kind: "path"; readonly value: PdfEvaluatedPath }
+  | { readonly kind: "image"; readonly value: PdfEvaluatedImage }
+  | { readonly kind: "glyph"; readonly value: PdfPlacedGlyph };
+
 export interface PdfDisplayList {
   readonly pageIndex: number;
   readonly width: number;
@@ -249,6 +254,8 @@ export interface PdfDisplayList {
   readonly glyphs: readonly PdfPlacedGlyph[];
   readonly paths: readonly PdfEvaluatedPath[];
   readonly images: readonly PdfEvaluatedImage[];
+  /** Paints in content-stream order, including nested Forms and glyph outlines. */
+  readonly operations?: readonly PdfPaintOperation[] | undefined;
   readonly annotations: readonly PdfLinkAnnotation[];
 }
 

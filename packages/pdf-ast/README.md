@@ -16,7 +16,7 @@ Unified first-party PDF AST, parser, lossless editor, extractor, and 2D PNG rast
 | Form Data & Flattening | `parseFormDataBytes()`, `flattenDocumentFormFields()` | Parse FDF, XFDF, and `dump_data_fields` stanzas; bake widget appearances into static page content |
 | Image Extraction | `extractDocumentImages(doc.cos, options)` | Extract XObject, nested Form XObject, and inline images with CTM PPI, `/SMask` alpha, and `/ImageMask` stencil support |
 | Security & Encryption | `doc.save({ encrypt })`, `PdfDocument.load(bytes, { password })` | Standard Security Handler (`R2`–`R6`, RC4, AES-128, AES-256) encryption and decryption |
-| Raster & Vector Export | `renderPdfPageToBitmap()`, `encodePng()`, `encodeJpeg()`, `encodePpm()`, `encodePgm()`, `encodePbm()`, `renderDisplayListToSvg()` | Pure-TypeScript 4x4 subpixel anti-aliased scanline rasterizer to PNG, JPEG, PPM/PGM/PBM, and SVG |
+| Raster & Vector Export | `renderPdfPageToBitmap()`, `encodePng()`, `encodeJpeg()`, `encodePpm()`, `encodePgm()`, `encodePbm()`, `renderDisplayListToSvg()` | Paint text, images, and paths in PDF content order; export PNG, JPEG, PPM/PGM/PBM, and SVG with a pure-TypeScript rasterizer |
 
 ## Quick Start
 
@@ -46,6 +46,10 @@ including obsolete content streams and discarded image/Form resources. This also
 applies when `incremental: true` is requested, since previous revisions would
 retain the removed content. Content still used on other pages remains intact;
 redact each occurrence that needs removal.
+
+`page.evaluateDisplayList().operations` exposes paints in content-stream order,
+including nested Forms, patterns, and glyph outlines. The `glyphs`, `paths`, and
+`images` arrays remain available for inspection and extraction.
 
 Resource limits default to `Infinity`. Set `maxObjects`, `maxDecompressedBytes`,
 `maxRecursionDepth`, or save-time `maxOutputBytes` to enforce explicit budgets.

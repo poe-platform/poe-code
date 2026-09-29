@@ -8,7 +8,7 @@ afterEach(() => vi.restoreAllMocks());
 describe("fast adversarial corpus", () => {
   it("handles transferable parser, runtime, lifecycle, and resource failures", async () => {
     await expect(runAdversarialCorpus()).resolves.toBeUndefined();
-  }, 2_000);
+  });
 
   it("does not count scheduler delays against its CPU work limit", async () => {
     vi.spyOn(performance, "now").mockReturnValueOnce(0).mockReturnValue(1_000);

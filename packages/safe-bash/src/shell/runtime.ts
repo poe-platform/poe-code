@@ -26210,6 +26210,7 @@ export class Runtime {
     let inc = 1;
     let noRenumber = false;
     let joinBlanks = 1;
+    let hasFileOperand = false;
     const parseSecSpec = (v: string): NlSecSpec | undefined => {
       if (v === "a" || v === "t" || v === "n") return { style: v };
       if (v.startsWith("p") && v.length > 1) {
@@ -26280,9 +26281,11 @@ export class Runtime {
       } else if (/^-i-?[0-9]{1,9}$/.test(a)) {
         inc = Number(a.slice(2));
       } else if (!a.startsWith("-")) {
-        if (cwd === undefined) return [];
+        if (cwd === undefined) return undefined;
         const fl = this.readSyncMemoryLines(resolvePath(cwd, a));
         if (!fl) return undefined;
+        if (!hasFileOperand) rawLines = [];
+        hasFileOperand = true;
         rawLines = [...rawLines, ...fl];
       } else {
         return undefined;
@@ -27891,11 +27894,11 @@ export class Runtime {
     if (cmdName === "whoami") {
       if (opArgs.length !== 0 || this.tryReadMemoryFileViewSync("/etc/passwd", false) !== undefined) return undefined;
       if (getEnv("ID_EUID") !== undefined || getEnv("EUID") !== undefined || getEnv("ID_UID") !== undefined || getEnv("UID") !== undefined) return undefined;
-      return getEnv("WHOAMI_USER") ?? getEnv("USER") ?? getEnv("LOGNAME") ?? "sandbox";
+      return getEnv("WHOAMI") ?? getEnv("USER") ?? getEnv("LOGNAME") ?? "sandbox";
     }
     if (cmdName === "id") {
       if (this.tryReadMemoryFileViewSync("/etc/passwd", false) !== undefined || this.tryReadMemoryFileViewSync("/etc/group", false) !== undefined) return undefined;
-      for (const k of ["ID_UID", "UID", "ID_EUID", "EUID", "ID_GID", "GID", "ID_EGID", "EGID", "ID_USER", "USER", "LOGNAME", "ID_GROUP", "ID_GROUPS", "ID_CONTEXT"]) {
+      for (const k of ["ID_UID", "UID", "ID_EUID", "EUID", "ID_GID", "GID", "ID_EGID", "EGID", "ID_USER", "USER", "LOGNAME", "GROUP", "ID_GROUPS", "SELINUX_CONTEXT"]) {
         if (getEnv(k) !== undefined) return undefined;
       }
       if (opArgs.length === 0) return "uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox)";
@@ -27908,10 +27911,12 @@ export class Runtime {
     }
     if (cmdName === "hostname") {
       if (this.tryReadMemoryFileViewSync("/etc/hostname", false) !== undefined || getEnv("HOSTNAME_DOMAIN") !== undefined || getEnv("HOSTNAME_IP") !== undefined) return undefined;
-      const host = getEnv("HOSTNAME") ?? "sandbox";
-      if (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-f" || opArgs[0] === "--fqdn" || opArgs[0] === "--long"))) return host;
+      const host = getEnv("HOSTNAME") || "sandbox";
+      if (opArgs.length === 0) return host;
+      if (opArgs.length === 1 && (opArgs[0] === "-f" || opArgs[0] === "--fqdn" || opArgs[0] === "--long")) return host.includes(".") ? host : `${host}.vfs.local`;
       if (opArgs.length === 1 && (opArgs[0] === "-s" || opArgs[0] === "--short")) return host.split(".")[0]!;
-      if (opArgs.length === 1 && (opArgs[0] === "-i" || opArgs[0] === "--ip-address" || opArgs[0] === "-I" || opArgs[0] === "--all-ip-addresses")) return "127.0.0.1";
+      if (opArgs.length === 1 && (opArgs[0] === "-i" || opArgs[0] === "--ip-address")) return "127.0.0.1";
+      if (opArgs.length === 1 && (opArgs[0] === "-I" || opArgs[0] === "--all-ip-addresses")) return "127.0.0.1 ";
       return undefined;
     }
     if (cmdName === "nproc") {
@@ -29409,7 +29414,18 @@ export class Runtime {
     const list = part.script.lists[0]!;
     if (list.terminator || list.pipelines.length !== 1) return undefined;
     const pipeline = list.pipelines[0]!;
-    if (pipeline.negate) return undefined;
+    if (pipeline.negate || customRegisteredRegistries.has(this.commands)) return undefined;
+    for (const command of pipeline.commands) {
+      if (command.kind !== "simple") continue;
+      const name = command.words[0]?.plain;
+      if (!name) continue;
+      if (name === "fmt" && command === pipeline.commands[0] && command.redirects.length === 0 && !io.stdinIsDefault) return undefined;
+      const definition = this.getExternalCommand(name);
+      if (definition && customRegisteredCommands.has(definition.execute)) return undefined;
+      if (name === "uname" || name === "nproc" || name === "hostname" || name === "id" || name === "whoami") {
+        if (!definition || !builtInDirectContextExecutors.has(definition.execute)) return undefined;
+      }
+    }
     // Range-aware tr and Buffer-free 76-col base64 are supported below.
     if (pipeline.commands.length >= 2 && pipeline.commands.length <= 5) {
       if (
@@ -30472,7 +30488,8 @@ export class Runtime {
     if (cmd.kind !== "simple" || (cmd.redirects.length > 0 && !hasSingleStdinRedir && !hasSingleHereStringRedir) || cmd.words.length === 0) return undefined;
     let w0Plain = cmd.words[0]!.plain;
     if (!w0Plain || rawState.extensions?.builtins.has(w0Plain)) return undefined;
-    if (w0Plain === "xxd" || w0Plain === "od" || w0Plain === "mktemp" || w0Plain === "chmod") {
+    if (w0Plain === "fmt" && !hasSingleStdinRedir && !hasSingleHereStringRedir && !io.stdinIsDefault) return undefined;
+    if (w0Plain === "xxd" || w0Plain === "od" || w0Plain === "mktemp" || w0Plain === "chmod" || w0Plain === "uname" || w0Plain === "nproc" || w0Plain === "hostname" || w0Plain === "id" || w0Plain === "whoami") {
       const definition = this.getExternalCommand(w0Plain);
       if (!definition || !builtInDirectContextExecutors.has(definition.execute)) return undefined;
     }

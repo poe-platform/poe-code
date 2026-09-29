@@ -1,3 +1,5 @@
+import { createOpensslCommands } from "../../src/commands/openssl/index.js";
+import { createSqlite3Commands } from "../../src/commands/sqlite3/index.js";
 import { createDdCommands } from "../../src/commands/dd/index.js";
 import { createCsvkitCommands } from "../../src/commands/csvkit/index.js";
 import assert from "node:assert/strict";
@@ -959,4 +961,33 @@ test("sync substitution and pipeline: dd, env, and xargs (Wave 144)", async () =
   `);
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "item=gamma:80\n");
+});
+
+test("Wave 145: sync openssl and sqlite3 substitutions and pipelines", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createOpensslCommands(),
+    ...createSqlite3Commands(),
+  ]) {
+    registry.register(cmd);
+  }
+  const shell = new Shell({ fs, commands: registry });
+
+  await shell.exec('printf "alpha\n" > /msg.txt; printf "id,name\n1,alice\n2,bob\n" > /users.csv');
+  await shell.exec("sqlite3 /app.db \"CREATE TABLE items(id INT, name TEXT); INSERT INTO items VALUES(1, 'alpha'), (2, 'beta');\"");
+
+  const t0 = performance.now();
+  const r1 = await shell.exec('for i in $(seq 1 150); do out=$(openssl dgst -sha256 -r /msg.txt); done; printf "%s" "$out"');
+  const r2 = await shell.exec('for i in $(seq 1 150); do out=$(printf "hello" | openssl dgst -sha256 -hmac secret); done; printf "%s" "$out"');
+  const r3 = await shell.exec('for i in $(seq 1 150); do out=$(sqlite3 -csv :memory: ".import /users.csv u" "SELECT name FROM u WHERE id = 2;"); done; printf "%s" "$out"');
+  const r4 = await shell.exec('for i in $(seq 1 150); do out=$(sqlite3 -json /app.db "SELECT id, name FROM items WHERE id = 2;"); done; printf "%s" "$out"');
+  const elapsed = performance.now() - t0;
+
+  assert.equal(r1.stdout, "b6a98d9ce9a2d9149288fa3df42d377c3e42737afdcdaf714e33c0a100b51060 */msg.txt");
+  assert.equal(r2.stdout, "HMAC-SHA2-256(stdin)= 88aab3ede8d3adf94d26ab90d3bafd4a2083070c3bcce9c014ee04a443847c0b");
+  assert.equal(r3.stdout, "bob");
+  assert.equal(r4.stdout, '[{"id":2,"name":"beta"}]');
+  assert.ok(elapsed < 800, `Expected < 800ms for 4x150 iterations, took ${elapsed.toFixed(1)}ms`);
 });

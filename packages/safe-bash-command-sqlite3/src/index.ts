@@ -1549,3 +1549,393 @@ export function sqlite3Commands(options: Sqlite3CommandsOptions = {}): VirtualSh
     }
   };
 }
+
+export function evalSyncSqlite3(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    const state: CliSessionState = {
+      mode: "list",
+      insertTable: "table",
+      showHeaders: false,
+      colSeparator: "|",
+      rowSeparator: "\n",
+      nullValue: "",
+      bail: false,
+      echo: false,
+      changes: false,
+      readonly: false,
+      widths: [],
+      outputFile: null,
+      onceFile: null,
+      dbPath: ":memory:",
+      dirty: false,
+      exitRequested: false,
+      exitCode: 0,
+    };
+
+    const preCommands: string[] = [];
+    let initFile: string | null = null;
+    const positional: string[] = [];
+
+    let i = 0;
+    while (i < opArgs.length) {
+      const arg = opArgs[i]!;
+      if (arg === "--") {
+        positional.push(...opArgs.slice(i + 1));
+        break;
+      }
+      if (arg === "-version" || arg === "--version") {
+        return "3.45.0 2024-01-15 17:01:13 1066602b2b1976fe58b5150777cced894af17c803e068f5918390d6915b46e1d\n";
+      }
+      if (arg === "-help" || arg === "--help") {
+        return "Usage: sqlite3 [OPTIONS] FILENAME [SQL]\nOptions:\n  -bail                stop after hitting an error\n  -batch               force batch I/O\n  -box                 set output mode to 'box'\n  -column              set output mode to 'column'\n  -cmd COMMAND         run \"COMMAND\" before reading stdin\n  -csv                 set output mode to 'csv'\n  -echo                print inputs before execution\n  -header              turn headers on\n  -noheader            turn headers off\n  -html                set output mode to HTML\n  -init FILENAME       read/process named file\n  -json                set output mode to 'json'\n  -line                set output mode to 'line'\n  -list                set output mode to 'list'\n  -markdown            set output mode to 'markdown'\n  -nullvalue TEXT      set text string for NULL values\n  -quote               set output mode to 'quote'\n  -readonly            open the database read-only\n  -separator SEP       set output column separator\n  -table               set output mode to 'table'\n  -tabs                set output mode to 'tabs'\n  -version             show SQLite version\n";
+      }
+      if (arg === "-csv" || arg === "--csv") {
+        state.mode = "csv";
+        state.colSeparator = ",";
+      } else if (arg === "-json" || arg === "--json") {
+        state.mode = "json";
+      } else if (arg === "-line" || arg === "--line") {
+        state.mode = "line";
+      } else if (arg === "-list" || arg === "--list") {
+        state.mode = "list";
+        state.colSeparator = "|";
+      } else if (arg === "-column" || arg === "--column") {
+        state.mode = "column";
+      } else if (arg === "-table" || arg === "--table") {
+        state.mode = "table";
+        state.showHeaders = true;
+      } else if (arg === "-box" || arg === "--box") {
+        state.mode = "box";
+        state.showHeaders = true;
+      } else if (arg === "-markdown" || arg === "--markdown") {
+        state.mode = "markdown";
+        state.showHeaders = true;
+      } else if (arg === "-quote" || arg === "--quote") {
+        state.mode = "quote";
+      } else if (arg === "-tabs" || arg === "--tabs") {
+        state.mode = "tabs";
+      } else if (arg === "-html" || arg === "--html") {
+        state.mode = "html";
+      } else if (arg === "-ascii" || arg === "--ascii") {
+        state.mode = "ascii";
+      } else if (arg === "-header" || arg === "--header") {
+        state.showHeaders = true;
+      } else if (arg === "-noheader" || arg === "--noheader") {
+        state.showHeaders = false;
+      } else if (arg === "-bail" || arg === "--bail") {
+        state.bail = true;
+      } else if (arg === "-echo" || arg === "--echo") {
+        state.echo = true;
+      } else if (arg === "-readonly" || arg === "--readonly") {
+        state.readonly = true;
+      } else if (arg === "-batch" || arg === "--batch" || arg === "-interactive" || arg === "--interactive") {
+        // Accepted flags
+      } else if (arg === "-separator" || arg === "--separator") {
+        state.colSeparator = opArgs[i + 1] ?? "|";
+        i += 1;
+      } else if (arg === "-nullvalue" || arg === "--nullvalue") {
+        state.nullValue = opArgs[i + 1] ?? "";
+        i += 1;
+      } else if (arg === "-cmd" || arg === "--cmd") {
+        if (opArgs[i + 1] !== undefined) {
+          preCommands.push(opArgs[i + 1]!);
+        }
+        i += 1;
+      } else if (arg === "-init" || arg === "--init") {
+        initFile = opArgs[i + 1] ?? null;
+        i += 1;
+      } else if (arg.startsWith("-")) {
+        return undefined;
+      } else {
+        positional.push(arg);
+      }
+      i += 1;
+    }
+
+    if (positional.length > 0 && positional[0] !== "") {
+      state.dbPath = positional[0]!;
+    }
+
+    const db = new SqliteDatabase();
+    if (state.dbPath !== ":memory:") {
+      if (!readFileSync) return undefined;
+      const dbBytes = readFileSync(state.dbPath);
+      if (!dbBytes || dbBytes.byteLength > 262144) return undefined;
+      if (dbBytes.byteLength > 0) {
+        db.loadFromBytes(dbBytes);
+      }
+    }
+
+    let out = "";
+    const emitOutput = (text: string) => {
+      if (state.onceFile || (state.outputFile && state.outputFile !== "stdout")) {
+        throw new Error("file output unsupported in sync sqlite3");
+      }
+      out += text;
+    };
+
+    const executeDotCommandSync = (line: string): boolean => {
+      const parts = splitDotCommandArgs(line);
+      const cmd = (parts[0] ?? "").toLowerCase();
+      if (cmd === ".quit" || cmd === ".exit" || cmd === ".q") {
+        state.exitRequested = true;
+        if (parts[1] !== undefined) {
+          state.exitCode = Number(parts[1]) || 0;
+        }
+        return state.exitCode === 0;
+      }
+      if (cmd === ".mode") {
+        const newMode = (parts[1] ?? "list").toLowerCase();
+        if (["list","csv","column","line","json","tabs","html","markdown","box","table","quote","ascii","insert"].includes(newMode)) {
+          state.mode = newMode as OutputMode;
+          if (newMode === "list") state.colSeparator = "|";
+          else if (newMode === "csv") state.colSeparator = ",";
+          else if (newMode === "tabs") state.colSeparator = "\t";
+          else if (newMode === "insert" && parts[2]) state.insertTable = parts[2];
+          else if (["table", "box", "markdown"].includes(newMode) && parts[2] === undefined) state.showHeaders = true;
+        }
+        return true;
+      }
+      if (cmd === ".headers" || cmd === ".header") {
+        const val = (parts[1] ?? "on").toLowerCase();
+        state.showHeaders = val === "on" || val === "1" || val === "true" || val === "yes";
+        return true;
+      }
+      if (cmd === ".separator") {
+        if (parts[1] !== undefined) state.colSeparator = parts[1];
+        if (parts[2] !== undefined) state.rowSeparator = parts[2];
+        return true;
+      }
+      if (cmd === ".nullvalue") {
+        state.nullValue = parts[1] ?? "";
+        return true;
+      }
+      if (cmd === ".width") {
+        state.widths = parts.slice(1).map((x) => Number(x) || 0);
+        return true;
+      }
+      if (cmd === ".print") {
+        emitOutput(`${parts.slice(1).join(" ")}\n`);
+        return true;
+      }
+      if (cmd === ".echo") {
+        const val = (parts[1] ?? "on").toLowerCase();
+        state.echo = val === "on" || val === "1" || val === "true";
+        return true;
+      }
+      if (cmd === ".bail") {
+        const val = (parts[1] ?? "on").toLowerCase();
+        state.bail = val === "on" || val === "1" || val === "true";
+        return true;
+      }
+      if (cmd === ".changes") {
+        const val = (parts[1] ?? "on").toLowerCase();
+        state.changes = val === "on" || val === "1" || val === "true";
+        return true;
+      }
+      if (cmd === ".show") {
+        const info = [
+          `        echo: ${state.echo ? "on" : "off"}`,
+          `     headers: ${state.showHeaders ? "on" : "off"}`,
+          `        mode: ${state.mode}`,
+          `   nullvalue: "${state.nullValue}"`,
+          `      output: ${state.outputFile ?? "stdout"}`,
+          `colseparator: "${state.colSeparator}"`,
+          `rowseparator: "${state.rowSeparator === "\n" ? "\\n" : state.rowSeparator}"`
+        ].join("\n");
+        emitOutput(`${info}\n`);
+        return true;
+      }
+      if (cmd === ".tables") {
+        const pattern = parts[1];
+        const names = [...db.tables.keys(), ...db.views.keys()]
+          .filter((n) => !n.toLowerCase().startsWith("sqlite_"))
+          .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+        const filtered = pattern
+          ? names.filter((n) =>
+              pattern.includes("%") || pattern.includes("_")
+                ? new RegExp(`^${pattern.replace(/%/g, ".*").replace(/_/g, ".")}$`, "i").test(n)
+                : matchGlob(n.toLowerCase(), pattern.toLowerCase()) || n.toLowerCase().includes(pattern.toLowerCase())
+            )
+          : names;
+        if (filtered.length > 0) {
+          const maxLen = Math.max(...filtered.map((s) => s.length));
+          const nCol = Math.max(1, Math.floor(79 / (maxLen + 2)));
+          const nRow = Math.ceil(filtered.length / nCol);
+          const rows: string[] = [];
+          for (let r = 0; r < nRow; r += 1) {
+            const cells: string[] = [];
+            for (let c = 0; c < nCol; c += 1) {
+              const idx = c * nRow + r;
+              if (idx < filtered.length) cells.push(filtered[idx]!.padEnd(maxLen, " "));
+            }
+            rows.push(cells.join("  "));
+          }
+          emitOutput(`${rows.join("\n")}\n`);
+        }
+        return true;
+      }
+      if (cmd === ".schema" || cmd === ".fullschema") {
+        const pattern = parts[1] && !parts[1].startsWith("-") ? parts[1] : undefined;
+        const lines: string[] = [];
+        for (const tbl of db.tables.values()) {
+          if (!pattern || matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) || tbl.name.toLowerCase() === pattern.toLowerCase()) {
+            lines.push(`${tbl.sql.replace(/;*\s*$/, "")};`);
+          }
+        }
+        for (const idx of db.indexes.values()) {
+          if (!pattern || matchGlob(idx.tableName.toLowerCase(), pattern.toLowerCase()) || idx.name.toLowerCase() === pattern.toLowerCase()) {
+            lines.push(`${idx.sql.replace(/;*\s*$/, "")};`);
+          }
+        }
+        for (const v of db.views.values()) {
+          if (!pattern || matchGlob(v.name.toLowerCase(), pattern.toLowerCase()) || v.name.toLowerCase() === pattern.toLowerCase()) {
+            lines.push(`${v.sql.replace(/;*\s*$/, "")};`);
+          }
+        }
+        for (const tr of db.triggers.values()) {
+          if (!pattern || matchGlob(tr.tableName.toLowerCase(), pattern.toLowerCase())) {
+            lines.push(`${tr.sql.replace(/;*\s*$/, "")};`);
+          }
+        }
+        if (lines.length > 0) emitOutput(`${lines.join("\n")}\n`);
+        return true;
+      }
+      if (cmd === ".indexes" || cmd === ".indices") {
+        const pattern = parts[1];
+        const names = [...db.indexes.values()]
+          .filter((idx) => !pattern || idx.tableName.toLowerCase() === pattern.toLowerCase() || matchGlob(idx.name.toLowerCase(), pattern.toLowerCase()))
+          .map((idx) => idx.name)
+          .sort();
+        if (names.length > 0) emitOutput(`${names.join("  ")}\n`);
+        return true;
+      }
+      if (cmd === ".import") {
+        if (state.dbPath !== ":memory:" || state.readonly || !readFileSync) return false;
+        let pIdx = 1;
+        let csvOverride = false;
+        let skipRows = 0;
+        while (pIdx < parts.length && parts[pIdx]!.startsWith("-")) {
+          const flag = parts[pIdx]!;
+          if (flag === "--csv") {
+            csvOverride = true;
+            pIdx += 1;
+          } else if (flag === "--skip") {
+            skipRows = Number(parts[pIdx + 1]) || 0;
+            pIdx += 2;
+          } else {
+            pIdx += 1;
+          }
+        }
+        const fileArg = parts[pIdx] ?? "";
+        const tableArg = parts[pIdx + 1] ?? "";
+        const fileBytes = readFileSync(fileArg);
+        if (!fileBytes || fileBytes.byteLength > 65536) return false;
+        const content = textDecoder.decode(fileBytes);
+        const sep = csvOverride || state.mode === "csv" ? (state.colSeparator === "|" ? "," : state.colSeparator) : state.colSeparator;
+        const parsedRows = parseCsvContent(content, sep).slice(skipRows);
+        if (parsedRows.length === 0) return true;
+        let tbl = db.findTable(tableArg);
+        let dataRows = parsedRows;
+        let colCount = tbl ? tbl.columns.length : (parsedRows[0]?.length ?? 0);
+        if (!tbl) {
+          const headerCols = parsedRows[0]!;
+          colCount = headerCols.length;
+          dataRows = parsedRows.slice(1);
+          const createSql = `CREATE TABLE "${tableArg}"(${headerCols.map((c) => `"${c}" TEXT`).join(", ")})`;
+          db.executeStatement(createSql);
+          tbl = db.findTable(tableArg);
+        }
+        for (const r of dataRows) {
+          if (r.length === 1 && r[0] === "" && colCount > 1) continue;
+          const valsSql = Array.from({ length: colCount }, (_, cIdx) => `'${(r[cIdx] ?? "").replace(/'/g, "''")}'`).join(", ");
+          db.executeStatement(`INSERT INTO "${tbl ? tbl.name : tableArg}" VALUES (${valsSql})`);
+        }
+        state.dirty = true;
+        return true;
+      }
+      return false;
+    };
+
+    const runSqlStatementSync = (stmt: string): boolean => {
+      const trimmed = stmt.trim();
+      if (!trimmed) return true;
+      const isMutating = !/^\s*(SELECT|PRAGMA|EXPLAIN|VALUES|WITH\s+[\s\S]*?\bSELECT)\b/i.test(trimmed);
+      if (isMutating) {
+        if (state.readonly || state.dbPath !== ":memory:") return false;
+      }
+      if (state.echo) emitOutput(`${trimmed}\n`);
+      const res = db.executeStatement(trimmed);
+      if (isMutating) state.dirty = true;
+      if (res) {
+        emitOutput(formatQueryResult(res, state));
+      }
+      if (state.changes && isMutating) {
+        emitOutput(`changes: ${db.lastChanges ?? 0}   total_changes: ${db.totalChanges ?? 0}\n`);
+      }
+      return true;
+    };
+
+    const processScriptSync = (script: string): boolean => {
+      const lines = script.split(/\r?\n/);
+      let sqlBuffer: string[] = [];
+      const flushSqlBuffer = (): boolean => {
+        const joined = sqlBuffer.join("\n").trim();
+        sqlBuffer = [];
+        if (!joined) return true;
+        const stmts = splitSqlStatements(joined);
+        for (const st of stmts) {
+          if (!runSqlStatementSync(st)) return false;
+          if (state.exitRequested) return true;
+        }
+        return true;
+      };
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (sqlBuffer.length === 0 && trimmed.startsWith(".") && !/^\.\d/.test(trimmed)) {
+          if (!executeDotCommandSync(trimmed)) return false;
+          if (state.exitRequested) return true;
+        } else {
+          sqlBuffer.push(line);
+          if (trimmed.endsWith(";") && !/\bBEGIN\b/i.test(sqlBuffer.join("\n"))) {
+            if (!flushSqlBuffer()) return false;
+            if (state.exitRequested) return true;
+          }
+        }
+      }
+      return flushSqlBuffer();
+    };
+
+    if (initFile) {
+      if (!readFileSync) return undefined;
+      const initBytes = readFileSync(initFile);
+      if (!initBytes) return undefined;
+      if (!processScriptSync(textDecoder.decode(initBytes))) return undefined;
+    }
+
+    for (const cmdStr of preCommands) {
+      if (state.exitRequested) break;
+      if (!processScriptSync(cmdStr)) return undefined;
+    }
+
+    if (!state.exitRequested) {
+      if (positional.length >= 2) {
+        for (let p = 1; p < positional.length; p += 1) {
+          if (!processScriptSync(positional[p]!)) return undefined;
+          if (state.exitRequested) break;
+        }
+      } else if (inBytes !== undefined && inBytes.byteLength > 0) {
+        if (!processScriptSync(textDecoder.decode(inBytes))) return undefined;
+      }
+    }
+
+    if (state.exitCode !== 0 || (state.dirty && state.dbPath !== ":memory:")) return undefined;
+    return out;
+  } catch {
+    return undefined;
+  }
+}

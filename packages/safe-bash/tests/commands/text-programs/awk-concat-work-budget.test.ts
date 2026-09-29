@@ -14,14 +14,14 @@ test("awk rejects concat work before copying the assigned result", async context
   const combined = left + right;
   const program = `BEGIN { value="${left}" "${right}" }`;
   let copies = 0;
-  const originalFrom = Buffer.from;
-  Buffer.from = new Proxy(originalFrom, {
-    apply(target, receiver, args: unknown[]) {
-      if (args[0] === combined && args[1] === "latin1") copies++;
-      return Reflect.apply(target, receiver, args);
+  const originalArray = Uint8Array;
+  globalThis.Uint8Array = new Proxy(originalArray, {
+    construct(target, args: unknown[], receiver) {
+      if (args[0] === combined.length) copies++;
+      return Reflect.construct(target, args, receiver);
     },
   });
-  context.after(() => { Buffer.from = originalFrom; });
+  context.after(() => { globalThis.Uint8Array = originalArray; });
   const rejected = await runVirtual("awk", { args: [program] }, { maxSteps: 16, maxBufferBytes: 512 });
   assert.equal(copies, 0, "rejected concat must not reach the ownership copy");
   assert.equal(rejected.exitCode, 2);

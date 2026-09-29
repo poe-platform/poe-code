@@ -849,7 +849,7 @@ function* runSofficeSteps(
           outBytes = new TextEncoder().encode(extracted + "\n");
         }
       } else {
-        // Plain text / Markdown / HTML input -> PDF or TXT
+        // Plain text / Markdown / HTML input uses the selected document writer.
         const rawText = new TextDecoder().decode(inputBytes);
         const lines = rawText.split(/\r?\n/).filter((l) => l.trim().length > 0);
         const blocks: DocBlock[] = lines.map((l) =>

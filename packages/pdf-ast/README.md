@@ -54,7 +54,9 @@ to `glyph.outline`, keeping letters separate from page drawing paths. The `glyph
 
 All 14 standard PDF fonts use bundled PDFium/Foxit outlines and PDF.js metrics.
 PNG and SVG preserve font styles without installed system fonts; SVG exports
-glyph paths with accessible labels. Unicode fallback covers characters present
+glyph paths with accessible labels. Embedded Type1C and CIDFontType0C fonts use
+PDF.js CFF decoding, including their encoding, CID selection, and font matrices.
+Glyph outlines render even when text has no usable Unicode mapping. Unicode fallback covers characters present
 in the bundled standard, Symbol, and Dingbats fonts; embed a font for other scripts.
 
 JPEG decoding uses PDF.js for baseline/progressive, grayscale, RGB, CMYK, and

@@ -108,3 +108,15 @@ header cases from `test/unit/jpeg_stream_spec.js` at revision
 behavior instead of browser ImageDecoder availability. Independent pixel
 oracles extend those upstream checks; provenance is in `src/fixtures/SOURCES.md`.
 Mozilla Foundation, Apache-2.0; see `licenses/PDFJS-APACHE-2.0.txt`.
+
+# Embedded CFF integration
+
+`src/fonts/cff.ts` reuses the same PDF.js CFF parser/compiler and Type 2 path
+compiler for embedded Type1C and CIDFontType0C programs. Input bytes are copied
+before PDF.js's in-place charstring repairs. Charset CIDs select glyphs directly;
+PDF.js encoding tables and PDF Differences select simple-font glyphs. The shared
+path adapter also renders standard fonts and supplies the Unicode mapping needed
+by Type 2 seac compositions. `src/fonts/pdfjs-cff-mapping.test.ts` ports nine
+charset/encoding/FDSelect cases from `test/unit/cff_parser_spec.js` at the pinned
+revision, preserving input bytes and expected mappings. Mozilla Foundation,
+Apache-2.0; see `licenses/PDFJS-APACHE-2.0.txt`.

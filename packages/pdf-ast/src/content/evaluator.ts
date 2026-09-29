@@ -1,3 +1,4 @@
+import { parseEmbeddedCffFont, type EmbeddedCffFont } from "../fonts/cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "../fonts/standard-outlines.js";
 import { decodeInlineImageNodeToRgba, decodeXObjectImageToRgba } from "../extract/images.js";
 import {
@@ -58,6 +59,7 @@ interface ResolvedPageFont {
   readonly fontMatrix?: Matrix6 | undefined;
   readonly charProcs?: PdfCosDict | undefined;
   readonly fontResources?: PdfCosDict | undefined;
+  readonly embeddedCff?: EmbeddedCffFont | undefined;
   readonly embeddedTrueType?: ParsedTrueTypeFont | undefined;
   readonly standardOutlines?: StandardFontOutlines | undefined;
 }
@@ -183,19 +185,29 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
       }
     }
 
+    let embeddedCff: EmbeddedCffFont | undefined;
     let embeddedTrueType: ParsedTrueTypeFont | undefined;
     const fDescDirect = doc.resolveDict(dictGet(fObj, "FontDescriptor"));
     const descArrForTt = subtype === "Type0" ? doc.resolveArray(dictGet(fObj, "DescendantFonts")) : undefined;
     const cidDictForTt = descArrForTt && descArrForTt.items[0] ? doc.resolveDict(descArrForTt.items[0]) : undefined;
     const fDesc = fDescDirect ?? (cidDictForTt ? doc.resolveDict(dictGet(cidDictForTt, "FontDescriptor")) : undefined);
     if (fDesc) {
-      const ff2Node = doc.resolve(dictGet(fDesc, "FontFile2")) ?? doc.resolve(dictGet(fDesc, "FontFile3"));
-      if (ff2Node?.kind === "stream") {
-        embeddedTrueType = parseTrueTypeFont(doc.decodeStream(ff2Node));
+      const program = doc.resolve(dictGet(fDesc, "FontFile2")) ?? doc.resolve(dictGet(fDesc, "FontFile3"));
+      if (program?.kind === "stream") {
+        const programType = doc.resolve(dictGet(program.dict, "Subtype"));
+        if (programType?.kind === "name" && (programType.decoded === "Type1C" || programType.decoded === "CIDFontType0C")) {
+          const baseEncoding = encNode?.kind === "dict" ? doc.resolve(dictGet(encNode, "BaseEncoding")) : encNode;
+          embeddedCff = parseEmbeddedCffFont(doc.decodeStream(program), baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined, glyphNames);
+          for (const [code, unicode] of embeddedCff.unicodeByCode) {
+            if (!differences.has(code)) differences.set(code, unicode);
+          }
+        } else {
+          embeddedTrueType = parseTrueTypeFont(doc.decodeStream(program));
+        }
       }
     }
 
-    const standardOutlines = !embeddedTrueType && subtype !== "Type3" ? getStandardFontOutlines(baseFont) : undefined;
+    const standardOutlines = !embeddedTrueType && !embeddedCff && subtype !== "Type3" ? getStandardFontOutlines(baseFont) : undefined;
     for (const [code, unicode] of standardOutlines?.defaultUnicode ?? []) {
       if (!differences.has(code)) differences.set(code, unicode);
     }
@@ -214,6 +226,7 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
       charProcs,
       fontResources,
       embeddedTrueType,
+      embeddedCff,
       standardOutlines,
     });
   }
@@ -2058,9 +2071,9 @@ export function evaluateContentStreamToDisplayList(params: {
                     evaluatedType3 = true;
                   }
                 }
-              } else if ((font?.embeddedTrueType || font?.standardOutlines) && st.textRenderMode !== 3) {
+              } else if ((font?.embeddedTrueType || font?.embeddedCff || font?.standardOutlines) && st.textRenderMode !== 3) {
                 const cp = item.unicode ? item.unicode.codePointAt(0) : undefined;
-                let glyphOutline = cp !== undefined ? (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp) : [];
+                let glyphOutline = font.embeddedCff ? font.embeddedCff.getGlyphOutline(item.charCode) : cp !== undefined ? (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp) : [];
                 if (glyphOutline.length === 0 && font.embeddedTrueType) {
                   glyphOutline = font.embeddedTrueType.getGlyphOutlineByGid(item.charCode);
                 }
@@ -2104,9 +2117,9 @@ export function evaluateContentStreamToDisplayList(params: {
                     ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                     ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
                   };
-                  if (font.standardOutlines) glyphPaint = paint;
+                  if (font.standardOutlines || font.embeddedCff) glyphPaint = paint;
                   else emit({ kind: "path", value: paint });
-                  evaluatedType3 = !font.standardOutlines;
+                  evaluatedType3 = !font.standardOutlines && !font.embeddedCff;
                 }
               }
               const advUser = ((advance1000 * st.fontSize) / 1000 + st.charSpace + (item.unicode === " " ? st.wordSpace : 0)) * scaleH;

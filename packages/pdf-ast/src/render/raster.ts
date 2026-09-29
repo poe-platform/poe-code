@@ -1213,7 +1213,7 @@ export function renderDisplayListToBitmap(
   const aaVec = options.antialiasVector !== false;
   const aaTxt = options.antialiasText !== false;
   for (const original of paintOperations(displayList)) {
-    if (original.kind === "glyph" && (original.value.renderMode === 3 || !original.value.unicode.trim())) continue;
+    if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
     const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
     if (operation.kind === "path") {
       const path = operation.value;
@@ -1431,7 +1431,7 @@ export function renderDisplayListToSvg(
     parts.push(`  <rect x="${vbX}" y="${vbY}" width="${vbW}" height="${vbH}" fill="#ffffff"/>`);
   }
   for (const original of paintOperations(displayList)) {
-    if (original.kind === "glyph" && (original.value.renderMode === 3 || !original.value.unicode.trim())) continue;
+    if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
     const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
     if (operation.kind === "path") {
       const p = operation.value;

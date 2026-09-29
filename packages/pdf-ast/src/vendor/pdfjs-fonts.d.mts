@@ -6,7 +6,8 @@ export interface CffFont {
   names: string[];
   strings: { count: number; get(index: number): string };
   topDict: CffDict;
-  charset: { charset: string[] };
+  charset: { charset: Array<string | number> };
+  encoding: { encoding: Record<number, number> } | null;
   charStrings: { objects: Uint8Array[] };
   globalSubrIndex: { objects: Uint8Array[] };
   widths: number[];
@@ -14,7 +15,14 @@ export interface CffFont {
   fdSelect: unknown;
   fdArray: unknown[];
 }
-export class CFFParser { constructor(stream: Stream, properties: Record<string, unknown>, seacAnalysisEnabled: boolean); parse(): CffFont; }
+export class CFFStrings { get(index: number): string; }
+export class CFFParser {
+  constructor(stream: Stream, properties: Record<string, unknown>, seacAnalysisEnabled: boolean);
+  parse(): CffFont;
+  parseCharsets(offset: number, count: number, strings: CFFStrings | null, cid: boolean): { predefined: boolean; charset: Array<string | number> };
+  parseEncoding(offset: number, properties: Record<string, unknown>, strings: CFFStrings, charset: null): { encoding: Record<number, number> };
+  parseFDSelect(offset: number, count: number): { format: number; fdSelect: number[] };
+}
 export class CFFCompiler { constructor(cff: CffFont); compile(): number[]; }
 export class Type2Compiled {
   constructor(info: Record<string, unknown>, cmap: Array<{ start: number; end: number; idDelta: number }>, fontMatrix: number[]);
@@ -27,3 +35,5 @@ export const ZapfDingbatsEncoding: string[];
 export const DrawOPS: { moveTo: number; lineTo: number; curveTo: number; quadraticCurveTo: number; closePath: number };
 export const WinAnsiEncoding: string[];
 export function getMetrics(): Record<string, number | (() => Record<string, number>)>;
+
+export function getEncoding(name: string): string[] | null;

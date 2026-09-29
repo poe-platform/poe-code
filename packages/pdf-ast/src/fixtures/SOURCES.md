@@ -99,3 +99,18 @@ baseline fixture (`draft("YCbCr", size)`), packed as three channels plus alpha
 | jpeg-ycbcr-direct.rgba | a843d72d532c0b1cf02650918bcd28caf28c18193462f3cf06fbcc6bfa1430b0 |
 | pdfjs-cmykjpeg.pdf | 659d6b19912f63db988b0b26b9bde0e6d8100667ef162051a4a84ea8e5b90272 |
 | pdfjs-cmykjpeg.rgb | 9fe691d42ce6eb4fd1bacbe6145392ce53daa73eed44f86be04e50901eb6740c |
+
+# Embedded CFF font regressions
+
+The following files are unmodified Mozilla PDF.js `test/pdfs` fixtures at revision
+`91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0):
+`cid_cff.pdf`, `cff_bluescale_small_zones.pdf`, and `text_clip_cff_cid.pdf`,
+prefixed locally with `pdfjs-`. They exercise CID CFF programs, FD dictionaries,
+fonts without usable ToUnicode mappings, and glyph clipping. The CFF tests
+validate font decoding/geometry; text clipping is qualified separately (#4134).
+
+| File | SHA-256 |
+| --- | --- |
+| pdfjs-cid_cff.pdf | d894d356411217414fd9040d3d038612e1f4a1598936b2385a76458dd6d64d38 |
+| pdfjs-cff_bluescale_small_zones.pdf | 82eb3d45411342f622e5a785280821abdadefaade3a3789f2906bda2b22a5d8f |
+| pdfjs-text_clip_cff_cid.pdf | 81aaf48f55c659d29d7a533cd913bd9d028ffad183b46580a2122eebe5187506 |

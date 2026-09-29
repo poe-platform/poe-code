@@ -11,11 +11,11 @@ const result = await build({
   absWorkingDir: reference,
   stdin: {
     contents: [
-      'export { CFFParser, CFFCompiler } from "./src/core/cff_parser.js";',
+      'export { CFFParser, CFFCompiler, CFFStrings } from "./src/core/cff_parser.js";',
       'export { Type2Compiled } from "./src/core/font_renderer.js";',
       'export { Stream } from "./src/core/stream.js";',
       'export { getGlyphsUnicode, getDingbatsGlyphsUnicode } from "./src/core/glyphlist.js";',
-      'export { SymbolSetEncoding, ZapfDingbatsEncoding, WinAnsiEncoding } from "./src/core/encodings.js";',
+      'export { SymbolSetEncoding, ZapfDingbatsEncoding, WinAnsiEncoding, getEncoding } from "./src/core/encodings.js";',
       'export { getMetrics } from "./src/core/metrics.js";',
       'export { DrawOPS } from "./src/shared/util.js";',
     ].join("\n"), resolveDir: reference, sourcefile: "pdf-ast-font-entry.js",

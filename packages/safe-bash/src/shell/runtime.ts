@@ -24974,6 +24974,10 @@ export class Runtime {
         keyVer = kf.includes("V");
       }
     }
+    // Defer invalid effective ordering modes to the command for its usage status
+    // and diagnostic. Explicit key modifiers replace the global modifiers.
+    if (Number(keyNum) + Number(keyHuman) + Number(keyMonth) > 1 ||
+        keyDict && (keyNum || keyHuman || keyMonth)) return undefined;
     const extractKey = (l: string): string => {
       let raw = keySpec === undefined
         ? l
@@ -25010,12 +25014,12 @@ export class Runtime {
     };
     const compareHuman = (sa: string, sb: string): number => {
       const parseH = (s: string): { sign: number; unit: number; val: number } => {
-        const m = /^[ \t]*(-?(?:\d+(?:\.\d*)?|\.\d+))([KMGTPEZYkmgtpezy])?/.exec(s);
+        const m = /^[ \t]*(-?(?:\d+(?:\.\d*)?|\.\d+))([kKMGTPEZYRQ])?/.exec(s);
         if (!m) return { sign: 0, unit: 0, val: 0 };
         const val = Number(m[1]!);
         if (val === 0) return { sign: 0, unit: 0, val: 0 };
-        const uChar = m[2] ? m[2].toUpperCase() : "";
-        const unit = uChar === "" ? 0 : "KMGTPEZY".indexOf(uChar) + 1;
+        const uChar = m[2] === "k" ? "K" : m[2] ?? "";
+        const unit = uChar === "" ? 0 : "KMGTPEZYRQ".indexOf(uChar) + 1;
         return { sign: val < 0 ? -1 : 1, unit, val };
       };
       const ha = parseH(sa);

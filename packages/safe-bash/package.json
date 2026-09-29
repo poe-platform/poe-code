@@ -351,20 +351,20 @@
       "import": "./dist/commands/playwright/index.js"
     },
     "./yes": {
-      "types": "./dist/opt-in/entrypoints/yes.d.ts",
-      "import": "./dist/opt-in/entrypoints/yes.js"
+      "types": "./dist/yes.d.ts",
+      "import": "./dist/yes.js"
     },
     "./cmp": {
       "types": "./dist/opt-in/entrypoints/cmp.d.ts",
       "import": "./dist/opt-in/entrypoints/cmp.js"
     },
     "./dd": {
-      "types": "./dist/opt-in/entrypoints/dd.d.ts",
-      "import": "./dist/opt-in/entrypoints/dd.js"
+      "types": "./dist/dd.d.ts",
+      "import": "./dist/dd.js"
     },
     "./shuf": {
-      "types": "./dist/opt-in/entrypoints/shuf.d.ts",
-      "import": "./dist/opt-in/entrypoints/shuf.js"
+      "types": "./dist/shuf.d.ts",
+      "import": "./dist/shuf.js"
     },
     "./truncate": {
       "types": "./dist/opt-in/entrypoints/truncate.d.ts",

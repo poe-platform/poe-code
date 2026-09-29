@@ -46,3 +46,13 @@ test("public llm plugin connects independent text and binary providers through r
     assert.ok(!entry.createAgentCommands().some(command => command.name === "llm"));
   } finally { await shell.dispose(); }
 });
+
+test('portable command aliases resolve the current built factories', async () => {
+  const published = await import('@poe-platform/safe-bash');
+  const yes = await import('@poe-platform/safe-bash/yes');
+  const dd = await import('@poe-platform/safe-bash/dd');
+  const shuf = await import('@poe-platform/safe-bash/shuf');
+  assert.equal(yes.createYesCommand, published.createYesCommand);
+  assert.equal(dd.createDdCommand, published.createDdCommand);
+  assert.equal(shuf.createShufCommand, published.createShufCommand);
+});

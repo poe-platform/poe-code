@@ -3436,6 +3436,9 @@ export class Runtime {
   private _syncPendingEvalResume: { script: Script; listIndex: number; pipelineIndex: number } | undefined;
   declare private _syncArithRefs: ArithmeticReferences | undefined;
   private _syncReadOnlyArithRefs: ArithmeticReferences | undefined;
+  private _activeSyncLoopAssignedVars: Set<string> | undefined;
+  private _activeSyncLoopIO: IO | undefined;
+  private _syncLoopInvariantSubMap: WeakMap<Extract<WordPart, { kind: "substitution" }>, { text: string; outBytes: number; exitStatus: number }> | undefined;
   constructor( fs: FileSystem, commands: CommandRegistry, middleware: readonly Middleware[], budget: Budget, signal: AbortSignal = budget.signal, fileWrites: Map<string, Promise<void>> | undefined = undefined, outputFiles: Map<string, OutputFile> | undefined = undefined, commandSignal: AbortSignal = signal, cancellation: CancellationBoundary, cancellationState: RuntimeCancellationState, cancellationOwner: CancellationAdmissionOwner | undefined, cancellationDepth: number, cancellationMaxDepth: number, outcomeFrame: RuntimeOutcomeFrame | undefined = undefined, inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs, private readonly reuseDefaultContextFs = false, ) {
     this.commands = commands;
     this.middleware = middleware;
@@ -11624,22 +11627,23 @@ export class Runtime {
   private collectSyncLoopAssignedVars(command: Extract<Command, { kind: "arithmetic-for" | "for" | "while" | "until" }>, rawState: State): Set<string> | undefined {
     const assigned = new Set<string>();
     if (command.kind === "for") assigned.add(resolveSyncNameref(rawState, command.name));
-    const scanArith = (tree: ArithmeticExpression | undefined): void => {
+    const scanArith = (tree: ArithmeticProgram["tree"] | undefined): void => {
       if (!tree) return;
-      if (tree.kind === "unary" && (tree.operator === "++" || tree.operator === "--") && tree.operand.kind === "name") {
-        assigned.add(resolveSyncNameref(rawState, tree.operand.name));
+      if (tree.kind === "unary") {
+        if ((tree.operator === "++" || tree.operator === "--") && tree.operand.kind === "name") {
+          assigned.add(resolveSyncNameref(rawState, tree.operand.name));
+        }
+        scanArith(tree.operand);
       } else if (tree.kind === "binary") {
         if ((tree.operator === "=" || tree.operator.endsWith("=")) && tree.left.kind === "name") {
           assigned.add(resolveSyncNameref(rawState, tree.left.name));
         }
         scanArith(tree.left);
         scanArith(tree.right);
-      } else if (tree.kind === "ternary") {
+      } else if (tree.kind === "conditional") {
         scanArith(tree.condition);
-        scanArith(tree.consequent);
-        scanArith(tree.alternate);
-      } else if (tree.kind === "sequence") {
-        for (const e of tree.expressions) scanArith(e);
+        scanArith(tree.yes);
+        scanArith(tree.no);
       }
     };
     if (command.kind === "arithmetic-for") {
@@ -11669,6 +11673,11 @@ export class Runtime {
               const scalarA = this.assignment(w0);
               if (scalarA) { assigned.add(resolveSyncNameref(rawState, scalarA.name)); continue; }
               const p0 = w0.plain;
+              // printf -v assigns shell variables; computed options are unsafe too.
+              if (p0 === "printf" && c.words.slice(1).some(word => word.plain === "-v" || word.plain === undefined)) {
+                unsafe = true;
+                return;
+              }
               if (!p0 || rawState.functions.has(p0) || p0 === "read" || p0 === "mapfile" || p0 === "readarray" || p0 === "getopts" || p0 === "local" || p0 === "unset" || p0 === "export" || p0 === "declare" || p0 === "typeset" || p0 === "readonly" || p0 === "cd" || p0 === "eval" || p0 === "source" || p0 === ".") {
                 unsafe = true;
                 return;

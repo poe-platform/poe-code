@@ -2,6 +2,7 @@
 
 pub mod commands;
 pub mod cli;
+mod environment;
 pub mod crypto;
 pub mod hooks;
 pub mod ssh;

@@ -12,6 +12,46 @@ use crate::http::{HttpClient, MockHttpServer};
 use crate::utils::{Author, join};
 use crate::{current_branch, discover_gitdir, list_branches, list_tags, resolve_ref, version};
 
+thread_local! {
+    static INPUT_MISSING: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+pub(crate) struct InputScope(bool);
+impl InputScope {
+    pub(crate) fn new(missing: bool) -> Self { Self(INPUT_MISSING.with(|value| value.replace(missing))) }
+}
+impl Drop for InputScope {
+    fn drop(&mut self) { INPUT_MISSING.with(|value| value.set(self.0)); }
+}
+
+// Runs after Git's global arguments are parsed, including on alias expansion.
+fn reads_stdin(command: &str, args: &[&str]) -> bool {
+    if command == "cat-file" && args.contains(&"--batch-all-objects") { return false; }
+    if command == "am" && args.iter().any(|arg| matches!(*arg, "--continue" | "--skip" | "--abort" | "--quit" | "--show-current-patch")) { return false; }
+    let mut positional = Vec::new();
+    let mut i = 0;
+    while i < args.len() {
+        let arg = args[i];
+        if arg == "--" { positional.extend_from_slice(&args[i + 1..]); break; }
+        if matches!(arg, "--help" | "-h") { return false; }
+        if matches!(arg, "--stdin" | "--stdin-paths") || (command == "cat-file" && arg.starts_with("--batch")) { return true; }
+        if matches!(arg, "-F" | "--file") {
+            if args.get(i + 1) == Some(&"-") { return true; }
+            i += 2; continue;
+        }
+        if arg == "--file=-" || arg == "-F-" { return true; }
+        if matches!(arg, "-m" | "--message" | "--author" | "--date" | "-C" | "-c" | "--reuse-message" | "--reedit-message" | "--include" | "--exclude" | "--directory" | "-p" | "-t" | "--whitespace") {
+            i += 2; continue;
+        }
+        if arg == "-" || !arg.starts_with('-') { positional.push(arg); }
+        i += 1;
+    }
+    match command {
+        "mktree" | "mktag" | "pack-objects" | "unpack-objects" | "fast-import" | "stripspace" | "mailinfo" => true,
+        "apply" | "am" => positional.is_empty() || positional.contains(&"-"),
+        _ => false,
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CliResult {
     pub exit_code: i32,
@@ -19,6 +59,7 @@ pub struct CliResult {
     /// Exact output when stdout contains non-UTF-8 bytes.
     pub stdout_bytes: Option<Vec<u8>>,
     pub stderr: String,
+    pub needs_stdin: bool,
 }
 
 impl CliResult {
@@ -28,6 +69,7 @@ impl CliResult {
             stdout: stdout.into(),
             stdout_bytes: None,
             stderr: String::new(),
+            needs_stdin: false,
         }
     }
 
@@ -41,6 +83,7 @@ impl CliResult {
                     stdout: String::from_utf8_lossy(&bytes).into_owned(),
                     stdout_bytes: Some(bytes),
                     stderr: String::new(),
+                    needs_stdin: false,
                 }
             }
         }
@@ -52,6 +95,7 @@ impl CliResult {
             stdout: String::new(),
             stdout_bytes: None,
             stderr: stderr.into(),
+            needs_stdin: false,
         }
     }
 }
@@ -77,7 +121,8 @@ pub fn execute_git_cli_with_input(
     let _replacement_scope = crate::storage::ReplacementScope::new(!args.contains(&"--no-replace-objects"));
     let mut filtered: Vec<&str> = Vec::new();
     let mut effective_cwd = cwd.to_string();
-    let mut explicit_gitdir: Option<String> = None;
+    let mut explicit_worktree = crate::environment::get("GIT_WORK_TREE").map(|p| absolute_path(cwd, &p));
+    let mut explicit_gitdir = crate::environment::get("GIT_DIR").map(|p| absolute_path(cwd, &p));
     let mut inline_configs: Vec<(String, String)> = Vec::new();
     let mut idx = 0;
     while idx < args.len() {
@@ -120,12 +165,12 @@ pub fn execute_git_cli_with_input(
             continue;
         }
         if filtered.is_empty() && args[idx] == "--work-tree" && idx + 1 < args.len() {
-            effective_cwd = args[idx + 1].to_string();
+            explicit_worktree = Some(absolute_path(&effective_cwd, args[idx + 1]));
             idx += 2;
             continue;
         }
         if filtered.is_empty() && let Some(w) = args[idx].strip_prefix("--work-tree=") {
-            effective_cwd = w.to_string();
+            explicit_worktree = Some(absolute_path(&effective_cwd, w));
             idx += 1;
             continue;
         }
@@ -141,6 +186,11 @@ pub fn execute_git_cli_with_input(
         return CliResult::err(1, "usage: git <command> [<args>]\n");
     };
     let sub_args = &filtered[1..];
+    if INPUT_MISSING.with(|missing| missing.get()) && reads_stdin(subcmd, sub_args) {
+        let mut result = CliResult::ok("");
+        result.needs_stdin = true;
+        return result;
+    }
     let positionals: Vec<&str> = sub_args
         .iter()
         .copied()
@@ -157,12 +207,14 @@ pub fn execute_git_cli_with_input(
 
     if subcmd == "init" {
         let mut bare = false;
+        let mut quiet = false;
         let mut default_branch = "master";
-        let mut target_dir = effective_cwd.clone();
+        let mut target_dir = explicit_worktree.clone().unwrap_or_else(|| effective_cwd.clone());
         let mut i = 0;
         while i < sub_args.len() {
             match sub_args[i] {
                 "--bare" => bare = true,
+                "-q" | "--quiet" => quiet = true,
                 "-b" | "--initial-branch" if i + 1 < sub_args.len() => {
                     default_branch = sub_args[i + 1];
                     i += 1;
@@ -178,10 +230,8 @@ pub fn execute_git_cli_with_input(
             }
             i += 1;
         }
-        return match init(fs, Some(&target_dir), None, bare, Some(default_branch)) {
-            Ok(()) => CliResult::ok(format!(
-                "Initialized empty Git repository in {target_dir}/.git/\n"
-            )),
+        return match init(fs, Some(&target_dir), explicit_gitdir.as_deref(), bare, Some(default_branch)) {
+            Ok(()) => CliResult::ok(if quiet { String::new() } else { format!("Initialized empty Git repository in {target_dir}/.git/\n") }),
             Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
         };
     }
@@ -244,7 +294,7 @@ pub fn execute_git_cli_with_input(
         };
     }
 
-    let repo_root = find_root(fs, &effective_cwd).unwrap_or_else(|_| {
+    let repo_root = explicit_worktree.unwrap_or_else(|| find_root(fs, &effective_cwd).unwrap_or_else(|_| {
         let mut cur = effective_cwd.clone();
         loop {
             if fs.exists(&join(&[&cur, ".git"])) || fs.exists(&format!("{cur}.git")) {
@@ -256,7 +306,7 @@ pub fn execute_git_cli_with_input(
             }
             cur = parent;
         }
-    });
+    }));
     let gitdir = match explicit_gitdir {
         Some(g) => discover_gitdir(fs, &g),
         None => {
@@ -569,6 +619,7 @@ pub fn execute_git_cli_with_input(
         }
         "commit" => {
             let mut msgs: Vec<String> = Vec::new();
+            let mut quiet = false;
             let mut amend = false;
             let mut stage_all = false;
             let mut no_verify = false;
@@ -583,6 +634,11 @@ pub fn execute_git_cli_with_input(
                 if matches!(arg, "-m" | "--message") && i + 1 < sub_args.len() {
                     msgs.push(sub_args[i + 1].to_string());
                     i += 2;
+                    continue;
+                }
+                if matches!(arg, "-q" | "--quiet") {
+                    quiet = true;
+                    i += 1;
                     continue;
                 }
                 if matches!(arg, "-n" | "--no-verify") {
@@ -759,6 +815,7 @@ pub fn execute_git_cli_with_input(
             } else {
                 None
             };
+            let explicit_author = custom_author.clone();
             let (author_name, author_email) = custom_author.unwrap_or_else(|| {
                 (
                     get_config(fs, &gitdir, "user.name")
@@ -774,6 +831,20 @@ pub fn execute_git_cli_with_input(
                 email: author_email,
                 timestamp: 1502484200,
                 timezone_offset: 0.0,
+            };
+            let mut author = match crate::environment::identity(author, "AUTHOR") {
+                Ok(author) => author,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            };
+            if let Some((name, email)) = explicit_author { author.name = name; author.email = email; }
+            let committer = Author {
+                name: get_config(fs, &gitdir, "user.name").map(|v| v.as_str()).unwrap_or_else(|| "Git User".into()),
+                email: get_config(fs, &gitdir, "user.email").map(|v| v.as_str()).unwrap_or_else(|| "user@example.com".into()),
+                timestamp: 1502484200, timezone_offset: 0.0,
+            };
+            let committer = match crate::environment::identity(committer, "COMMITTER") {
+                Ok(committer) => committer,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
             };
             let index_path = join(&[&gitdir, "index"]);
             let original_index = fs.read(&index_path);
@@ -810,7 +881,7 @@ pub fn execute_git_cli_with_input(
                 &gitdir,
                 joined_msg.as_deref(),
                 Some(author),
-                None,
+                Some(committer),
                 amend,
                 false,
                 false,
@@ -877,7 +948,7 @@ pub fn execute_git_cli_with_input(
                             Some(&format!("{old_id} {oid}\n")),
                         );
                     }
-                    CliResult::ok(format!("[{}] {}\n", &oid[..7], joined_msg.as_deref().unwrap_or("")))
+                    CliResult::ok(if quiet { String::new() } else { format!("[{}] {}\n", &oid[..7], joined_msg.as_deref().unwrap_or("")) })
                 }
                 Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
@@ -2338,8 +2409,8 @@ pub fn execute_git_cli_with_input(
                 .skip_while(|a| a.starts_with('-')).collect();
             if unset_mode {
                 if let Some(&key) = non_flags.first() {
-                    if get_config(fs, &gitdir, key).is_none() { return CliResult::err(5, ""); }
-                    while get_config(fs, &gitdir, key).is_some() {
+                    if crate::GitConfigManager::get(fs, &gitdir).get(key).is_none() { return CliResult::err(5, ""); }
+                    while crate::GitConfigManager::get(fs, &gitdir).get(key).is_some() {
                         let _ = set_config(fs, &gitdir, key, None, false);
                     }
                     return CliResult::ok("");
@@ -5307,7 +5378,7 @@ pub fn execute_git_cli_with_input(
                 let mut expanded: Vec<&str> = alias_str.split_whitespace().collect();
                 expanded.extend_from_slice(sub_args);
                 if !expanded.is_empty() && expanded[0] != other {
-                    return execute_git_cli_with_http(fs, &effective_cwd, &expanded, http);
+                    return execute_git_cli_with_input(fs, &effective_cwd, &expanded, http, stdin);
                 }
             }
             CliResult::err(1, format!("git: '{other}' is not a git command.\n"))

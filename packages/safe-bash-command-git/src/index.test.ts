@@ -223,7 +223,7 @@ test("git integrates with ssh-keygen, gpg, openssl, SSH transport, and hooks in 
   const fs = new MemoryFileSystem();
   const gitCmd = createGitCommand();
   const keygenCmd = createSshKeygenCommand();
-  const _gpgCmd = createGpgCommand();
+  const ignoredGpgCmd = createGpgCommand();
   const opensslCmd = createOpensslCommand();
 
   const execCmd = async (def: { name: string; execute: (c: CommandContext) => Promise<{ exitCode: number }> }, args: string[], cwd = "/") => {

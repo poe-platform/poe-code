@@ -7,7 +7,7 @@ export interface GitHttpRequest { readonly url: string; readonly method: string;
 export interface GitHttpResponse { readonly status: number; readonly headers: Readonly<Record<string,string>>; readonly body: Uint8Array }
 export interface GitCommandsOptions { readonly http?: (request:GitHttpRequest)=>Promise<GitHttpResponse>; readonly limits?: Partial<GitLimits>; readonly replace?: boolean; readonly wasmModule?: object }
 interface Entry { path: string; kind: string; mode: number; data: string }
-interface Result { exitCode: number; stdout: string; stdoutBytes?: string | null; stderr: string; entries: Entry[] | null; request?: {url:string;method:string;headers:Record<string,string>;body:string} | null }
+interface Result { needsStdin?: boolean; exitCode: number; stdout: string; stdoutBytes?: string | null; stderr: string; entries: Entry[] | null; request?: {url:string;method:string;headers:Record<string,string>;body:string} | null }
 interface GitExports { memory: { readonly buffer: ArrayBufferLike }; git_alloc(length:number):number; git_free(ptr:number,length:number):void; git_execute(ptr:number,length:number):number; git_output_len():number }
 const encoder=new TextEncoder(), decoder=new TextDecoder();
 function encode(bytes:Uint8Array):string { let o=''; for(let i=0;i<bytes.byteLength;i++) o+=bytes[i]!.toString(16).padStart(2,'0'); return o; }
@@ -86,16 +86,7 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
   for(const [name,value] of Object.entries(limits)) if(value!==Infinity && (!Number.isSafeInteger(value) || value<1)) throw new Error(`${name} must be a positive safe integer or Infinity`);
   const def: CommandDefinition = {name:'git',runtimeIdentity:commandRuntimeIdentity,description:'Git repositories in the virtual filesystem',async execute(context) {
     try {
-      const chunks:Uint8Array[]=[];
-      let stdinSize=0;
-      for await (const chunk of readBytes(context.stdin,context.signal)) {
-        stdinSize+=chunk.length;
-        if(stdinSize>limits.maxBytes) throw new Error("Git stdin byte limit exceeded");
-        chunks.push(chunk);
-      }
-      const stdin=new Uint8Array(stdinSize);
-      let offset=0;
-      for(const chunk of chunks) { stdin.set(chunk,offset); offset+=chunk.length; }
+      let stdin: string | undefined;
       const before=await snapshot(context.fs,limits,context.signal);
       const exports = options.wasmModule ? new ((globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly.Instance)(options.wasmModule).exports : getDefaultGitExports();
       const responses: {status:number;headers:Readonly<Record<string,string>>;body:string}[]=[];
@@ -103,7 +94,7 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
       let result:Result;
       for(;;) {
         context.signal.throwIfAborted();
-        const input=encoder.encode(JSON.stringify({cwd:context.cwd,args:context.args,entries:before,responses,stdin:encode(stdin)}));
+        const input=encoder.encode(JSON.stringify({cwd:context.cwd,args:context.args,env:context.env,entries:before,responses,stdin}));
         const ptr=exports.git_alloc(input.length);
         try {
           new Uint8Array(exports.memory.buffer,ptr,input.length).set(input);
@@ -112,6 +103,21 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
           if(length>limits.maxBytes*3+limits.maxEntries*1024+limits.maxHttpBytes*2) throw new Error('Git output byte limit exceeded');
           result=JSON.parse(decoder.decode(new Uint8Array(exports.memory.buffer,output,length))) as Result;
         } finally { exports.git_free(ptr,input.length); }
+        if(result.needsStdin) {
+          if(stdin!==undefined) throw new Error('Git requested stdin more than once');
+          const chunks:Uint8Array[]=[];
+          let size=0;
+          for await(const chunk of readBytes(context.stdin,context.signal)) {
+            size+=chunk.length;
+            if(size>limits.maxBytes) throw new Error('Git stdin byte limit exceeded');
+            chunks.push(chunk);
+          }
+          const bytes=new Uint8Array(size);
+          let offset=0;
+          for(const chunk of chunks) { bytes.set(chunk,offset); offset+=chunk.length; }
+          stdin=encode(bytes);
+          continue;
+        }
         if(!result.request) break;
         if(!options.http) throw new Error('Git network transport is not configured');
         if(responses.length>=limits.maxHttpRequests) throw new Error('Git HTTP request limit exceeded');

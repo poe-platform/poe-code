@@ -20,7 +20,9 @@ await shell.exec('git init -b main; git add .; git commit -m "Initial commit"');
 
 `createGitCommand()`, `createGitCommands()` and `gitCommands()` accept no arguments. Optional `limits` bound filesystem entries, file/path bytes, depth, HTTP requests and HTTP bytes. Every limit defaults to `Infinity` (disabled); set a positive safe integer to enable a budget. The filesystem is imported as a snapshot per invocation; changed entries are published even when Git reports a conflict or other nonzero exit. A failed request parser or input/output budget check publishes no filesystem changes. Adapter publication failures may leave partial writes, as with ordinary filesystem operations; serialize commands that mutate the same repository.
 
-Pipelines and redirects supply standard input to `mktree`, `mktag`, `stripspace`, `hash-object --stdin`, `apply`, and `commit -F -`. Binary stdin is preserved; `limits.maxBytes` also bounds stdin bytes.
+Pipelines and redirects supply standard input to `mktree`, `mktag`, `stripspace`, `hash-object --stdin`, `apply`, and `commit -F -`. Other invocations leave stdin untouched, so `git add` inside a `while read` pipeline preserves the next lines. `git init -q` and `git commit -q` (or `--quiet`) suppress informational output. Binary stdin is preserved; `limits.maxBytes` also bounds stdin bytes.
+
+The command environment supplies `GIT_DIR`, `GIT_WORK_TREE`, author and committer names, emails and dates, `GIT_SSH_COMMAND`, and `HOME`. Overrides are scoped to each invocation; HOME config and SSH files are read only from the virtual filesystem.
 
 Network operations require an explicit `http(request)` callback returning `{status, headers, body}`. The callback receives URL, method, headers, byte body and cancellation signal. Hosts control authentication, redirects and network policy. No ambient credentials or network access are used.
 

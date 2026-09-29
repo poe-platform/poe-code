@@ -90,7 +90,10 @@ pub fn find_root(fs: &MemoryFs, filepath: &str) -> Result<String, GitError> {
 pub fn get_config(fs: &MemoryFs, gitdir: &str, path: &str) -> Option<ConfigValue> {
     let gdir = discover_gitdir(fs, gitdir);
     let config = GitConfigManager::get(fs, &gdir);
-    config.get(path)
+    config.get(path).or_else(|| {
+        let global = fs.read_str(&join(&[&crate::environment::home(), ".gitconfig"]))?;
+        crate::models::git_config::GitConfig::from(&global).get(path)
+    })
 }
 
 pub fn get_config_all(fs: &MemoryFs, gitdir: &str, path: &str) -> Vec<ConfigValue> {

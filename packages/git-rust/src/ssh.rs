@@ -165,7 +165,7 @@ pub fn resolve_ssh_config(
         port: endpoint.port,
         identity_file: None,
         strict_host_key_checking: "accept-new".to_string(),
-        user_known_hosts_file: "/home/user/.ssh/known_hosts".to_string(),
+        user_known_hosts_file: format!("{}/.ssh/known_hosts", crate::environment::home()),
     };
 
     // Check core.sshCommand in git config first
@@ -177,7 +177,7 @@ pub fn resolve_ssh_config(
 
     // Candidate ssh config files in MemoryFs
     let mut config_paths = vec![
-        "/home/user/.ssh/config".to_string(),
+        format!("{}/.ssh/config", crate::environment::home()),
         "/root/.ssh/config".to_string(),
         "/.ssh/config".to_string(),
     ];
@@ -192,10 +192,14 @@ pub fn resolve_ssh_config(
         }
     }
 
+    if let Some(command) = crate::environment::get("GIT_SSH_COMMAND") {
+        apply_ssh_command_flags(&command, &mut cfg);
+    }
+
     if cfg.identity_file.is_none() {
         let default_keys = [
             repo_root.map(|r| format!("{r}/.ssh/id_ed25519")).unwrap_or_default(),
-            "/home/user/.ssh/id_ed25519".to_string(),
+            format!("{}/.ssh/id_ed25519", crate::environment::home()),
             "/root/.ssh/id_ed25519".to_string(),
             "/.ssh/id_ed25519".to_string(),
         ];
@@ -285,7 +289,7 @@ pub fn parse_ssh_config_text(text: &str, target_host: &str, cfg: &mut SshHostCon
             }
         } else if key.eq_ignore_ascii_case("IdentityFile") && !seen_identity {
             let expanded = if let Some(rest) = val.strip_prefix("~/") {
-                format!("/home/user/{rest}")
+                format!("{}/{rest}", crate::environment::home())
             } else {
                 val.to_string()
             };
@@ -296,7 +300,7 @@ pub fn parse_ssh_config_text(text: &str, target_host: &str, cfg: &mut SshHostCon
             seen_strict = true;
         } else if key.eq_ignore_ascii_case("UserKnownHostsFile") && !seen_known_hosts {
             let expanded = if let Some(rest) = val.strip_prefix("~/") {
-                format!("/home/user/{rest}")
+                format!("{}/{rest}", crate::environment::home())
             } else {
                 val.to_string()
             };

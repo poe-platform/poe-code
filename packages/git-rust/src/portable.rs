@@ -110,6 +110,14 @@ pub fn execute_portable(input: &[u8]) -> Result<Vec<u8>, GitError> {
         },
     )
     .map_err(|_| GitError::internal("invalid portable request"))?;
+    let env = match request.get("env") {
+        Some(Value::Object(entries)) => entries.iter().map(|(key, value)| {
+            Ok((String::from_utf16(key).map_err(|_| GitError::internal("invalid environment key"))?, string(value)?))
+        }).collect::<Result<_, GitError>>()?,
+        None => Default::default(),
+        _ => return Err(GitError::internal("expected environment object")),
+    };
+    let _environment = crate::environment::EnvironmentScope::new(env);
     let cwd = string(field(&request, "cwd")?)?;
     let Value::Array(args) = field(&request, "args")? else {
         return Err(GitError::internal("expected args"));
@@ -148,11 +156,12 @@ pub fn execute_portable(input: &[u8]) -> Result<Vec<u8>, GitError> {
         cursor: std::sync::Mutex::new(0),
         pending: std::sync::Mutex::new(None),
     };
+    let _input = crate::cli::InputScope::new(request.get("stdin").is_none());
     let stdin = request.get("stdin").map(bytes).transpose()?.unwrap_or_default();
     let result = execute_git_cli_with_input(&fs, &cwd, &args, &http, &stdin);
     let pending_request = http.pending.lock().unwrap().take().unwrap_or(Value::Null);
     let mut output = Vec::new();
-    let mut pending = vec!["/".to_string()];
+    let mut pending = if result.needs_stdin { Vec::new() } else { vec!["/".to_string()] };
     while let Some(dir) = pending.pop() {
         for name in fs
             .readdir(&dir)
@@ -188,6 +197,7 @@ pub fn execute_portable(input: &[u8]) -> Result<Vec<u8>, GitError> {
     }
     Ok(json::stringify(&object(vec![
         ("exitCode", Value::Number(result.exit_code as f64)),
+        ("needsStdin", Value::Bool(result.needs_stdin)),
         (
             "stdoutBytes",
             result
@@ -198,7 +208,7 @@ pub fn execute_portable(input: &[u8]) -> Result<Vec<u8>, GitError> {
         ),
         ("stdout", text(result.stdout)),
         ("stderr", text(result.stderr)),
-        ("entries", Value::Array(output)),
+        ("entries", if result.needs_stdin { Value::Null } else { Value::Array(output) }),
         ("request", pending_request),
     ]))
     .into_bytes())

@@ -33,3 +33,9 @@ test("base64 decoding matches Node UTF-16 low-byte parsing", () => {
     }
   }
 });
+
+test("hex decoding matches Node UTF-16 low-byte parsing", () => {
+  for (const text of ["İf", "Łf", "fİ", "fŁ", "\ud830f"]) {
+    assert.deepEqual(Array.from(encodeBytes(text, "hex")), Array.from(Buffer.from(text, "hex")), text);
+  }
+});

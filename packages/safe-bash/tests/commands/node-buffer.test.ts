@@ -47,3 +47,22 @@ test("node bounds Buffer allocations and rejects invalid inputs without native c
     assert.equal((await shell.exec("node -p 'Buffer.from(\"abc\").toString()'")).stdout, "abc\n");
   } finally { await shell.dispose(); }
 });
+
+test("guest Buffer decodes Unicode hex and base64 with and without host Buffer", async () => {
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer")!;
+  const source = 'console.log(Buffer.from("İf", "hex").toString("hex"), Buffer.from("fŁ", "hex").toString("hex"), Buffer.from("YŁ==", "base64").toString("hex"), Buffer.from("Y😀Q==", "base64").length)';
+  for (const absent of [false, true]) {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime }));
+    try {
+      if (absent) Reflect.deleteProperty(globalThis, "Buffer");
+      const result = await shell.exec("node -e " + quote(source));
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "0f fa 60 0\n");
+      assert.equal(result.stderr, "");
+      if (absent) assert.equal(typeof globalThis.Buffer, "undefined");
+    } finally {
+      Object.defineProperty(globalThis, "Buffer", descriptor);
+      await shell.dispose();
+    }
+  }
+});

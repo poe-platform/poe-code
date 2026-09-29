@@ -82,7 +82,6 @@ describe("STR-03 independent original-source validation", () => {
       budget: new Budget({
         maxSteps: 10000,
         maxCallDepth: 48,
-        deadline: Date.now() + 1000,
         stringLength: 32768,
         arrayLength: 4096,
         dataSize: 2097152
@@ -138,7 +137,7 @@ describe("STR-03 independent original-source validation", () => {
     expect(native).toEqual(expected);
     const result = await run(source, {
       modules: {},
-      budget: new Budget({ maxSteps: 1000, deadline: Date.now() + 1000 })
+      budget: new Budget({ maxSteps: 1000 })
     });
     expect(result.ok).toBe(true);
     if (!result.ok) throw result.error;

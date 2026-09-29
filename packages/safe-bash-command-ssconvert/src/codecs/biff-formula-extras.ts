@@ -73,12 +73,12 @@ export function biffFormulaExtras(parts: readonly Binary[], revision: number, co
     context.signal.throwIfAborted();
     const low = cursor.word(), high = cursor.word(), count = low + (high & 0x3fff) * 65536;
     if (!count) invalidBiff("empty multiple label references");
-    work += count * 4;
-    if (work > workLimit) throw new SsconvertError("resource-limit", "ssconvert BIFF label work limit exceeded");
-    accountWork?.(count * 4);
     const cells: { row: number; column: number }[] = [];
     for (let index = 0; index < count; index++) {
       context.signal.throwIfAborted();
+      work += 4;
+      if (work > workLimit) throw new SsconvertError("resource-limit", "ssconvert BIFF label work limit exceeded");
+      accountWork?.(4);
       const row = cursor.word(), column = cursor.word() & 0x3fff;
       if (column > 255) invalidBiff("invalid multiple label column");
       cells.push({ row, column });

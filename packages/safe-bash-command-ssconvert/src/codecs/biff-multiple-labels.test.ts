@@ -7,7 +7,8 @@ import { renameWorkbookSheet } from "../formulas/workbook.js";
 import { dirtyWorkbook } from "../workbook/updates/recalculation.js";
 import { resizeWorkbookReferences } from "../workbook/resize.js";
 import { readBiff, createBiffWriter } from "./biff.js";
-import { readBiffRecords, readCfb } from "./biff-binary.js";
+import { Binary, readBiffRecords, readCfb } from "./biff-binary.js";
+import { biffFormulaExtras } from "./biff-formula-extras.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -95,7 +96,21 @@ it("rejects missing, truncated, empty, invalid-column and non-column multiple ra
   for (const invalid of [words(0, 0), [...words(1, 0), ...words(0, 256)], [...words(1, 0), ...words(0, 1)]])
     await expect(readBiff(input(tokens, invalid), context)).rejects.toThrow("Invalid Excel BIFF");
   await expect(readBiff(input([24, 11, 0, 0, 0, 0, 0x25, ...words(0, 0, 1, 3)], extra(false, false)), context)).rejects.toThrow("radical label");
-  await expect(readBiff(input(tokens, [...words(0xffff, 0x3fff)]), { ...context, limits: { ...context.limits, workbookWork: 1000 } })).rejects.toThrow("work limit");
+  await expect(readBiff(input(tokens, [...words(0xffff, 0x3fff)]), { ...context, limits: { ...context.limits, workbookWork: 1000 } })).rejects.toThrow("truncated string/CONTINUE");
+});
+
+it("charges label entries incrementally across CONTINUE parts and still enforces work limits", () => {
+  const payload = extra(false, false);
+  const parts = [...payload].map(byte => new Binary(Uint8Array.of(byte)));
+  const charges: number[] = [];
+  const ctx = { ...context, limits: { ...context.limits, workbookWork: 8 } };
+  expect(biffFormulaExtras(parts, 8, 1200, ctx, amount => charges.push(amount)).readLabels())
+    .toEqual({ relative: false, cells: [{ row: 9, column: 2 }, { row: 0, column: 0 }] });
+  expect(charges).toEqual([4, 4]);
+  const limitedCharges: number[] = [];
+  expect(() => biffFormulaExtras(parts, 8, 1200, { ...ctx, limits: { ...ctx.limits, workbookWork: 7 } },
+    amount => limitedCharges.push(amount)).readLabels()).toThrow("label work limit");
+  expect(limitedCharges).toEqual([4]);
 });
 
 for (const areaClass of [0x20, 0x40, 0x60]) for (const after of [false, true]) {

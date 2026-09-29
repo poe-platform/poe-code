@@ -29914,7 +29914,9 @@ export class Runtime {
                 for (let k = 0; k < inStr.length; k++) if (inStr.charCodeAt(k) === 10) nl++;
                 outLines = [String(nl)];
               } else if (stageArgs[0] === "-w") {
-                if (!byteLocale(rawState.variables) && prevBuf.subarray(0, prevLen).some(byte => byte > 127)) return undefined;
+                // The split shortcut covers printable ASCII and its whitespace only.
+                // Delegate controls and locale-sensitive bytes to the wc command.
+                if (prevBuf.subarray(0, prevLen).some(byte => byte < 9 || (byte > 13 && byte < 32) || byte >= 127)) return undefined;
                 outLines = [String(inStr.split(/[ \t\n\r\f\v]+/).filter(Boolean).length)];
               } else if (stageArgs[0] === "-m") {
                 outLines = [String(byteLocale(rawState.variables) ? prevLen : Array.from(inStr).length)];
@@ -31004,7 +31006,7 @@ export class Runtime {
                 } else if (wcMode === "-L") {
                   count = this.wcMaxLineWidth(fileStr, byteLocale(rawState.variables));
                 } else {
-                  if (!byteLocale(rawState.variables) && view.some(byte => byte > 127)) return undefined;
+                  if (view.some(byte => byte < 9 || (byte > 13 && byte < 32) || byte >= 127)) return undefined;
                   count = fileStr.split(/[ \t\n\r\f\v]+/).filter(Boolean).length;
                 }
                 fileRes = ((hasSingleStdinRedir || hasSingleHereStringRedir) ? String(count) : `${count} ${fileArg}`) + "\n";

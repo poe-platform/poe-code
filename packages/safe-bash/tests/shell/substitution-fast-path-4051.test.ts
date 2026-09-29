@@ -21,13 +21,17 @@ for (const input of ["not-valid-base64!", "YWJ", "====", "Y===", "YWJj=", "YWJj"
 }
 
 for (const locale of ["", "export LC_ALL=C;"]) {
-  for (const input of ["a\\xc2\\xa0b", "\\xc2\\xa0", " a b "]) {
+  // GNU/Linux coreutils 9.4 wc.c counts only printable non-space bytes in C.
+  for (const [input, utf8Count, cCount] of [
+    ["a\\xc2\\xa0b", 2, 1], ["\\xc2\\xa0", 0, 0], [" a b ", 2, 2],
+    ["\\x01 \\x02", 0, 0], ["a\\x01b", 1, 1], ["\\x7f", 0, 0],
+  ] as const) {
     test(`pipeline wc words matches direct command: ${locale} ${input}`, async () => {
       const prefix = `${locale} s=$'${input}';`;
       const reference = await execute(`${prefix} x=$(wc -w <<< "$s"); printf '%s\\n' "$x"`);
       const result = await execute(`${prefix} x=$(printf '%s\\n' "$s" | wc -w); printf '%s\\n' "$x"`);
       assert.deepEqual(result, reference);
-      assert.equal(result.stdout, `${input === " a b " || (!locale && input.startsWith("a")) ? 2 : locale ? 1 : 0}\n`);
+      assert.equal(result.stdout, `${locale ? cCount : utf8Count}\n`);
     });
   }
 }

@@ -19,12 +19,13 @@ for (const separator of ["\r", "\v", "\f", "\u00a0", "\u2028"]) {
     });
   }
 }
-for (const input of ["a\u2028b", "\u2028", "a\rb\vc\fd", " \t\n\r\v\f"]) {
-  test(`wc -w uses ASCII whitespace ${JSON.stringify(input)}`, async () => {
+// GNU/Linux coreutils 9.4 wc.c ignores nonprinting bytes in the C locale.
+for (const [input, count] of [["a\u2028b", 1], ["\u2028", 0], ["a\rb\vc\fd", 4], [" \t\n\r\v\f", 0]] as const) {
+  test(`wc -w preserves C-locale word counting ${JSON.stringify(input)}`, async () => {
     const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]), env: { input, LC_ALL: "C" } });
     try {
       const result = await shell.exec(`out=$(wc -w <<< "$input"); printf '%s' "$out"`);
-      assert.equal(result.stdout, input === "a\rb\vc\fd" ? "4" : input === " \t\n\r\v\f" ? "0" : "1");
+      assert.equal(result.stdout, String(count));
     } finally { await shell.dispose(); }
   });
 }

@@ -263,7 +263,7 @@ test("sed NUL waits for the sink and quits without pulling the next chunk", asyn
   const pending = Promise.resolve(sedCommand().execute({
     command: "sed", args: ["-z", "1q"], cwd: "/work", env: {}, fs: await makeFileSystem(), stdin,
     signal: new AbortController().signal,
-    stdout: { async write(chunk) { assert.deepEqual(chunk, Buffer.from("first\nname\0")); entered(); await blocked; } },
+    stdout: { async write(chunk) { assert.deepEqual(Array.from(chunk), Array.from(new TextEncoder().encode("first\nname\0"))); entered(); await blocked; } },
     stderr: { async write() { assert.fail("unexpected stderr"); } },
   }));
   try {

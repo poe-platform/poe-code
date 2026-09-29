@@ -1,3 +1,6 @@
+import { shufCommands } from "../../src/commands/shuf/index.ts";
+import { mdqCommands } from "../../src/commands/mdq/index.ts";
+import { timeEnvCommands } from "../../src/commands/time-env/index.ts";
 import { xanCommands } from "../../src/commands/xan/index.ts";
 import { csvgrepCommands } from "../../src/commands/csvgrep/index.ts";
 import { duCommands } from "../../src/commands/du/index.js";
@@ -693,5 +696,29 @@ test("evaluates xan range/wildcard/negated column selectors and csvgrep -f patte
   assert.equal(
     r.stdout,
     "user_name,alice,bob,carol,#id,user_name,1,alice,2,bob,3,carol,#user_name,score,alice,99,carol,95,\n",
+  );
+});
+
+test("evaluates shuf -z/bundled flags, mdq ordered list selector 1./-o<format>/multi-file, and date -r/-f in sync substitutions (Wave 194)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(mdqCommands()).use(timeEnvCommands());
+  const r = await shell.exec(
+    [
+      "shuf_res=$(shuf -ze -n 2 alpha beta | tr \"\\0\" \",\" | tr -d \"\\n\")",
+      "printf \"1. first step\\n2. second step\\n\" > /tmp/w194a.md",
+      "printf \"1. third step\\n\" > /tmp/w194b.md",
+      "mdq_res=$(mdq -oplain \"1. step\" /tmp/w194a.md /tmp/w194b.md | tr \"\\n\" \",\")",
+      "printf \"2025-01-01T00:00:00Z\\n2026-06-15T00:00:00Z\\n\" > /tmp/w194.dates",
+      "dt_file=$(date -u -f /tmp/w194.dates +%Y | tr \"\\n\" \",\")",
+      "touch -d 2024-03-04T00:00:00Z /tmp/w194.ref",
+      "dt_ref=$(date -u -r /tmp/w194.ref +%Y-%m-%d)",
+      "printf \"%s#%s#%s\n\" \"$mdq_res\" \"$dt_file\" \"$dt_ref\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "first step,second step,third step,#2025,2026,#2024-03-04\n",
   );
 });

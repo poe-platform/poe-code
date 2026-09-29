@@ -166,6 +166,9 @@ export function evalSyncDate(
   args: readonly string[],
   tzEnv: string | undefined,
   execFn?: unknown,
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+  statMtimeMsSync?: (filePath: string) => number | undefined,
+  stdinBytes?: Uint8Array,
 ): string | undefined {
   const cfg = execFn ? timeEnvExecutorSettings.get(execFn as never) : undefined;
   if (execFn && !cfg) return undefined;
@@ -178,14 +181,36 @@ export function evalSyncDate(
   }
   try {
     const parsed = parseArguments(args);
-    if (parsed.informational || parsed.file !== undefined || parsed.reference !== undefined) {
+    if (parsed.informational) {
       return undefined;
     }
     const zone = new TimeZone(parsed.utc ? "UTC" : tzEnv ?? cfg?.defaultTimeZone ?? "UTC");
     const clock = cfg?.clock ?? Date.now;
     let current: bigint | undefined;
     const now = (): bigint => (current ??= millisecondsInstant(clock()));
-    const instant = parsed.input === undefined ? now() : parseDate(parsed.input, zone, now);
+    if (parsed.file !== undefined) {
+      const fBytes = parsed.file === "-" ? stdinBytes : readFileSync?.(parsed.file);
+      if (!fBytes || fBytes.byteLength > 16384) return undefined;
+      const text = new TextDecoder("utf-8", { fatal: false }).decode(fBytes);
+      const rawLines = text.endsWith("\n") ? text.slice(0, -1).split("\n") : (text.length === 0 ? [] : text.split("\n"));
+      let out = "";
+      for (const line of rawLines) {
+        if (utf8ByteLength(line) > limits.maxArgumentBytes) return undefined;
+        const inst = parseDate(line, zone, now);
+        out += formatDate(parsed.format, inst, zone, limits);
+        if (utf8ByteLength(out) > limits.maxOutputBytes) return undefined;
+      }
+      return out;
+    }
+    let instant: bigint;
+    if (parsed.reference !== undefined) {
+      if (!parsed.reference || !statMtimeMsSync) return undefined;
+      const mtimeMs = statMtimeMsSync(parsed.reference);
+      if (mtimeMs === undefined) return undefined;
+      instant = millisecondsInstant(mtimeMs);
+    } else {
+      instant = parsed.input === undefined ? now() : parseDate(parsed.input, zone, now);
+    }
     const out = formatDate(parsed.format, instant, zone, limits);
     if (utf8ByteLength(out) > limits.maxOutputBytes) return undefined;
     return out;

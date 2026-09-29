@@ -28708,7 +28708,7 @@ export class Runtime {
         }
       } else if (cmd0SysStage) {
         if (w0Plain0 === "date") {
-          stage0Formatted = evalSyncDate(subArgs0, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, def0.execute);
+          stage0Formatted = evalSyncDate(subArgs0, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, def0.execute, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.stat.mtimeMs);
         } else if (w0Plain0 === "printenv") {
           stage0Formatted = evalSyncPrintenv(subArgs0, rawState.exported, rawState.variables, def0.execute);
         } else if (w0Plain0 === "env") {
@@ -29190,7 +29190,7 @@ export class Runtime {
               prevBuf = nextBuf;
               prevLen = encoded.byteLength;
               continue;
-            } else if (firstName === "envsubst" || firstName === "xxd" || firstName === "od" || firstName === "hexdump" || firstName === "hd" || firstName === "fmt" || firstName === "csvcut" || firstName === "csvgrep" || firstName === "htmlq" || firstName === "xmllint" || firstName === "xq" || firstName === "yq" || firstName === "mdq" || firstName === "shuf" || firstName === "html-to-markdown" || firstName === "unrtf" || firstName === "pr" || firstName === "file" || firstName === "diff3" || firstName === "cmp" || firstName === "which" || firstName === "diff" || firstName === "xan" || firstName === "less" || firstName === "more" || firstName === "df" || firstName === "du" || firstName === "tree" || firstName === "stat" || firstName === "fd" || firstName === "rg" || firstName === "readlink" || firstName === "realpath" || firstName === "ls" || firstName === "find" || firstName === "csvlook" || firstName === "csvjson" || firstName === "csvsort" || firstName === "csvformat" || firstName === "csvstat" || firstName === "in2csv" || firstName === "csvstack" || firstName === "csvjoin" || firstName === "dd" || firstName === "xargs" || firstName === "openssl" || firstName === "sqlite3" || firstName === "gpg" || firstName === "ssh" || firstName === "ssh-keygen" || firstName === "pdfinfo" || firstName === "pdffonts" || firstName === "pdftotext" || firstName === "pdftohtml" || firstName === "exiftool" || firstName === "qpdf" || firstName === "pdftk" || firstName === "sips" || firstName === "identify" || firstName === "magick" || firstName === "convert" || firstName === "pdfimages" || firstName === "pdfdetach" || firstName === "ffprobe" || firstName === "ffmpeg" || firstName === "gh" || firstName === "pdftoppm" || firstName === "pdftocairo" || firstName === "mmdc" || firstName === "pandoc" || firstName === "soffice" || firstName === "libreoffice" || firstName === "ssconvert" || firstName === "wkhtmltopdf" || firstName === "op" || firstName === "git" || firstName === "tar" || firstName === "unzip" || firstName === "zip" || firstName === "timeout" || firstName === "split" || firstName === "csplit" || firstName === "curl" || firstName === "wget" ||
+            } else if (firstName === "envsubst" || firstName === "xxd" || firstName === "od" || firstName === "hexdump" || firstName === "hd" || firstName === "fmt" || firstName === "csvcut" || firstName === "csvgrep" || firstName === "htmlq" || firstName === "xmllint" || firstName === "xq" || firstName === "yq" || firstName === "mdq" || firstName === "shuf" || firstName === "html-to-markdown" || firstName === "unrtf" || firstName === "pr" || firstName === "file" || firstName === "diff3" || firstName === "cmp" || firstName === "which" || firstName === "diff" || firstName === "xan" || firstName === "less" || firstName === "more" || firstName === "df" || firstName === "du" || firstName === "tree" || firstName === "stat" || firstName === "fd" || firstName === "rg" || firstName === "readlink" || firstName === "realpath" || firstName === "ls" || firstName === "find" || firstName === "csvlook" || firstName === "csvjson" || firstName === "csvsort" || firstName === "csvformat" || firstName === "csvstat" || firstName === "in2csv" || firstName === "csvstack" || firstName === "csvjoin" || firstName === "dd" || firstName === "xargs" || firstName === "openssl" || firstName === "sqlite3" || firstName === "gpg" || firstName === "ssh" || firstName === "ssh-keygen" || firstName === "pdfinfo" || firstName === "pdffonts" || firstName === "pdftotext" || firstName === "pdftohtml" || firstName === "exiftool" || firstName === "qpdf" || firstName === "pdftk" || firstName === "sips" || firstName === "identify" || firstName === "magick" || firstName === "convert" || firstName === "pdfimages" || firstName === "pdfdetach" || firstName === "ffprobe" || firstName === "ffmpeg" || firstName === "gh" || firstName === "pdftoppm" || firstName === "pdftocairo" || firstName === "mmdc" || firstName === "pandoc" || firstName === "soffice" || firstName === "libreoffice" || firstName === "ssconvert" || firstName === "wkhtmltopdf" || firstName === "op" || firstName === "git" || firstName === "tar" || firstName === "unzip" || firstName === "zip" || firstName === "date" || firstName === "timeout" || firstName === "split" || firstName === "csplit" || firstName === "curl" || firstName === "wget" ||
             firstName === "sponge" ||
             firstName === "truncate" ||
             firstName === "install" ||
@@ -29202,6 +29202,8 @@ export class Runtime {
                 ? this.evalSyncEnvsubst(inStr, stageArgs, rawState)
                 : firstName === "fmt"
                   ? this.evalSyncFmt(rawBytes, stageArgs)
+                  : firstName === "date"
+                    ? evalSyncDate(stageArgs, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, stageDefs[sIdx]!.execute, readFile, (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.stat.mtimeMs, sIdx === 0 && cmd0FileStage ? undefined : rawBytes)
                   : firstName === "mdq"
                     ? evalSyncMdq(rawBytes, stageArgs, readFile)
                   : firstName === "shuf"
@@ -29675,7 +29677,7 @@ export class Runtime {
       if (fOk && (w0Plain === "date" || w0Plain === "printenv" || w0Plain === "env") && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
         const ext = this.getExternalCommand(w0Plain);
         const dpOut = w0Plain === "date"
-          ? evalSyncDate(allArgs, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, ext?.execute)
+          ? evalSyncDate(allArgs, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, ext?.execute, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.stat.mtimeMs)
           : w0Plain === "env"
             ? evalSyncEnv(allArgs, rawState.exported, rawState.variables)
             : evalSyncPrintenv(allArgs, rawState.exported, rawState.variables, ext?.execute);

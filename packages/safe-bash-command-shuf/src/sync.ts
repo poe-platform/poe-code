@@ -11,6 +11,7 @@ export function evalSyncShuf(
   if (inBytes.byteLength > 8192 || opArgs.length > 64) return undefined;
   let echo = false;
   let repeat = false;
+  let zeroTerminated = false;
   let count: number | undefined;
   let rangeLow: number | undefined;
   let rangeSize: number | undefined;
@@ -24,6 +25,21 @@ export function evalSyncShuf(
     if (!ended && a.startsWith("-") && a !== "-") {
       if (a === "-e" || a === "--echo") { echo = true; continue; }
       if (a === "-r" || a === "--repeat") { repeat = true; continue; }
+      if (a === "-z" || a === "--zero-terminated") { zeroTerminated = true; continue; }
+      if (/^-[erz]+(?:n[0-9]{1,6})?$/.test(a)) {
+        const nIdx = a.indexOf("n");
+        const flagsPart = nIdx >= 0 ? a.slice(1, nIdx) : a.slice(1);
+        for (const ch of flagsPart) {
+          if (ch === "e") echo = true;
+          else if (ch === "r") repeat = true;
+          else if (ch === "z") zeroTerminated = true;
+        }
+        if (nIdx >= 0) {
+          const n = Number(a.slice(nIdx + 1));
+          if (count === undefined || n < count) count = n;
+        }
+        continue;
+      }
       if (a === "-n" || a === "--head-count" || a.startsWith("-n") || a.startsWith("--head-count=")) {
         const v = a.startsWith("--head-count=") ? a.slice(13) : a.length > 2 && a.startsWith("-n") ? a.slice(2) : opArgs[++i];
         if (!v || !/^[0-9]{1,6}$/.test(v)) return undefined;
@@ -81,7 +97,7 @@ export function evalSyncShuf(
       if (!fBytes || fBytes.byteLength > 8192) return undefined;
       srcBytes = fBytes;
     }
-    if (srcBytes.includes(0)) return undefined;
+    if (!zeroTerminated && srcBytes.includes(0)) return undefined;
     let text: string;
     try {
       text = syncShufDecoder.decode(srcBytes);
@@ -89,7 +105,8 @@ export function evalSyncShuf(
       return undefined;
     }
     if (text.length > 0) {
-      lines = text.endsWith("\n") ? text.slice(0, -1).split("\n") : text.split("\n");
+      const sep = zeroTerminated ? "\0" : "\n";
+      lines = text.endsWith(sep) ? text.slice(0, -1).split(sep) : text.split(sep);
       if (lines.length > 1024) return undefined;
     }
     size = lines.length;
@@ -165,5 +182,6 @@ export function evalSyncShuf(
     }
     out.push(rangeLow !== undefined ? String(rangeLow + chosen) : lines[chosen]!);
   }
-  return out.join("\n") + "\n";
+  const term = zeroTerminated ? "\0" : "\n";
+  return out.length === 0 ? "" : out.join(term) + term;
 }

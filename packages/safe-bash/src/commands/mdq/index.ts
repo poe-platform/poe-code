@@ -163,6 +163,10 @@ function parseSimpleMdqQuery(query: string): SyncMdSelector[] | undefined {
       const needle = part.slice(1).trim();
       if (needle.length > 0 && !/^[A-Za-z0-9 _-]+$/.test(needle)) return undefined;
       selectors.push({ kind: "item", ordered: false, needle: needle.toLowerCase() });
+    } else if (part === "1." || part.startsWith("1. ")) {
+      const needle = part.slice(2).trim();
+      if (needle.length > 0 && !/^[A-Za-z0-9 _-]+$/.test(needle)) return undefined;
+      selectors.push({ kind: "item", ordered: true, needle: needle.toLowerCase() });
     } else {
       return undefined;
     }
@@ -181,9 +185,9 @@ function renderMdNodeMarkdown(n: SyncMdNode): string {
   }
   if (n.kind === "paragraph") return n.text;
   if (n.kind === "list") {
-    return n.children.map(c => "- " + c.text).join("\n");
+    return n.children.map((c, idx) => (n.ordered ? `${idx + 1}. ` : "- ") + c.text).join("\n");
   }
-  if (n.kind === "item") return "- " + n.text;
+  if (n.kind === "item") return (n.ordered ? `${n.index ?? 1}. ` : "- ") + n.text;
   return "";
 }
 
@@ -214,8 +218,8 @@ export function evalSyncMdq(
   for (let i = 0; i < opArgs.length; i++) {
     const a = opArgs[i]!;
     if (!ended && a === "--") { ended = true; continue; }
-    if (!ended && (a === "-o" || a === "--output" || a.startsWith("--output="))) {
-      const v = a.startsWith("--output=") ? a.slice(9) : opArgs[++i];
+    if (!ended && (a === "-o" || a === "--output" || a.startsWith("-o") || a.startsWith("--output="))) {
+      const v = a.startsWith("--output=") ? a.slice(9) : a.length > 2 && a.startsWith("-o") ? a.slice(2) : opArgs[++i];
       if (v === "plain") format = "plain";
       else if (v === "md" || v === "markdown") format = "markdown";
       else return undefined;
@@ -227,19 +231,20 @@ export function evalSyncMdq(
   }
   const queryStr = positional[0] ?? "";
   const files = positional.slice(1);
-  if (files.length > 1) return undefined;
-  let srcBytes = inBytes;
-  if (files.length === 1 && files[0] !== "-") {
+  let text = "";
+  if (files.length === 0 || (files.length === 1 && files[0] === "-")) {
+    try { text = syncMdqDecoder.decode(inBytes); } catch { return undefined; }
+  } else {
     if (!readFileSync) return undefined;
-    const fBytes = readFileSync(files[0]!);
-    if (!fBytes || fBytes.byteLength > 8192) return undefined;
-    srcBytes = fBytes;
-  }
-  let text: string;
-  try {
-    text = syncMdqDecoder.decode(srcBytes);
-  } catch {
-    return undefined;
+    const parts: string[] = [];
+    let total = 0;
+    for (const f of files) {
+      const fBytes = f === "-" ? inBytes : readFileSync(f);
+      if (!fBytes || total + fBytes.byteLength > 8192) return undefined;
+      total += fBytes.byteLength;
+      try { parts.push(syncMdqDecoder.decode(fBytes)); } catch { return undefined; }
+    }
+    text = parts.join("\n");
   }
   const selectors = parseSimpleMdqQuery(queryStr);
   if (!selectors) return undefined;
@@ -271,7 +276,7 @@ export function evalSyncMdq(
         }
       }
       if (hit) {
-        out.push(n.kind === "item" ? { kind: "list", ordered: false, text: "", children: [n] } : n);
+        out.push(n.kind === "item" ? { kind: "list", ordered: Boolean(n.ordered), text: "", children: [n] } : n);
         continue;
       }
       for (let i = n.children.length - 1; i >= 0; i--) pending.push(n.children[i]!);

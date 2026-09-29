@@ -214,8 +214,15 @@ async function* sources(context: CommandContext, operands: readonly string[], ma
       if (context.fs.readStream && context.fs.capabilities?.streamingRead !== false) {
         source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
       } else {
-        const bytes = await context.fs.readFile(path, { signal: context.signal });
-        source = (async function* () { yield bytes; })();
+        try {
+          const bytes = await context.fs.readFile(path, { signal: context.signal });
+          source = (async function* () { yield bytes; })();
+        } catch (error) {
+          if (!context.fs.readStream && error instanceof FsError && error.code === "ENOENT") {
+            throw new FsError("ENOTSUP", { path, syscall: "readStream", message: "encoding commands require a streaming-read filesystem" });
+          }
+          throw error;
+        }
       }
     }
     let slicesSinceYield = 0;
@@ -612,7 +619,16 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset]!;
         if (flag === "S") {
-          const parameter = argument.slice(offset + 1);
+          let parameter = argument.slice(offset + 1);
+          const next = context.args[index + 1];
+          if (!parameter && next && [...next].every(character => character >= "0" && character <= "9")) {
+            const hasMoreOperands = context.args.slice(index + 2).some(arg => arg === "-" || !arg.startsWith("-"));
+            const existsAsFile = !hasMoreOperands && await context.fs.stat(pathOf(context, next)).then(() => true, () => false);
+            if (!existsAsFile) {
+              parameter = next;
+              index++;
+            }
+          }
           rewritten.push(`-S${parameter || "3"}`);
           break;
         }
@@ -626,7 +642,16 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
           throw new UsageError("use --endian=little or --endian=big; -e is unsupported");
         }
         if (flag === "w") {
-          const parameter = argument.slice(offset + 1);
+          let parameter = argument.slice(offset + 1);
+          const next = context.args[index + 1];
+          if (!parameter && next && [...next].every(character => character >= "0" && character <= "9")) {
+            const hasMoreOperands = context.args.slice(index + 2).some(arg => arg === "-" || !arg.startsWith("-"));
+            const existsAsFile = !hasMoreOperands && await context.fs.stat(pathOf(context, next)).then(() => true, () => false);
+            if (!existsAsFile) {
+              parameter = next;
+              index++;
+            }
+          }
           rewritten.push(`-w${parameter || "32"}`);
           break;
         }

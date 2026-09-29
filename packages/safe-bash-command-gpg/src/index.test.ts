@@ -88,3 +88,45 @@ test("gpg generates Ed25519 keys, lists keys, signs detached PGP signatures, and
   assert.match(verify.stdout, /\[GNUPG:\] GOODSIG/);
   assert.match(verify.stderr, /Good signature from "Alice <alice@example\.com>"/);
 });
+
+
+test("gpg requires the signing public key in the verification keyring", async () => {
+  const fs = createMemoryFileSystem();
+  const sign = await runGpg(fs, ["--detach-sign", "-u", "Alice"], "message");
+  assert.equal(sign.exitCode, 0);
+  const clean = createMemoryFileSystem();
+  await clean.writeFile("/signature", new TextEncoder().encode(sign.stdout));
+  const missing = await runGpg(clean, ["--status-fd=1", "--verify", "/signature"], "message");
+  assert.notEqual(missing.exitCode, 0);
+  assert.equal(missing.stdout, "");
+  const exported = await runGpg(fs, ["--export"]);
+  assert.equal((await runGpg(clean, ["--import"], exported.stdout)).exitCode, 0);
+  assert.equal((await runGpg(clean, ["--verify", "/signature"], "message")).exitCode, 0);
+});
+
+test("gpg rejects a cryptographically valid signature with a forged hashed key ID", async () => {
+  const fs = createMemoryFileSystem();
+  const sign = await runGpg(fs, ["--detach-sign", "-u", "Attacker"], "message");
+  const keys = JSON.parse(new TextDecoder().decode(await fs.readFile("/home/user/.gnupg/keyring.json"))) as { seedHex: string; pubHex: string; keyIdHex: string }[];
+  const key = keys[0]!;
+  const packet = Buffer.from(sign.stdout.split("\n").filter(l => l && !l.startsWith("-") && !l.startsWith("=")).join(""), "base64");
+  const body = packet.subarray(packet[1] === 255 ? 6 : 2);
+  const headerEnd = 6 + body.readUInt16BE(4);
+  for (let offset = 6; offset < headerEnd; offset += 1 + body[offset]!) {
+    if (body[offset + 1] === 16) body.fill(0x42, offset + 2, offset + 1 + body[offset]!);
+  }
+  const trailer = Buffer.alloc(6);
+  trailer[0] = 4; trailer[1] = 255; trailer.writeUInt32BE(headerEnd, 2);
+  const digest = await crypto.subtle.digest("SHA-256", Buffer.concat([Buffer.from("message"), body.subarray(0, headerEnd), trailer]));
+  const privateKey = await crypto.subtle.importKey("jwk", { kty: "OKP", crv: "Ed25519", d: Buffer.from(key.seedHex, "hex").toString("base64url"), x: Buffer.from(key.pubHex, "hex").toString("base64url") }, "Ed25519", false, ["sign"]);
+  const signature = new Uint8Array(await crypto.subtle.sign("Ed25519", privateKey, digest));
+  const unhashedEnd = headerEnd + 2 + body.readUInt16BE(headerEnd);
+  body.set(new Uint8Array(digest).subarray(0, 2), unhashedEnd);
+  body.set(signature.subarray(0, 32), unhashedEnd + 4);
+  body.set(signature.subarray(32), unhashedEnd + 38);
+  await fs.writeFile("/forged", new TextEncoder().encode(`-----BEGIN PGP SIGNATURE-----\n${packet.toString("base64")}\n-----END PGP SIGNATURE-----\n`));
+  const result = await runGpg(fs, ["--status-fd=1", "--verify", "/forged"], "message");
+  assert.notEqual(result.exitCode, 0);
+  assert.equal(result.stdout, "");
+});
+

@@ -214,6 +214,7 @@ async function createOpenPgpDetachedSignature(
 async function verifyOpenPgpDetachedSignature(
   armor: string,
   payload: Uint8Array,
+  keys: readonly StoredGpgKey[],
 ): Promise<{ valid: boolean; signerUid: string; keyIdHex: string }> {
   const b64 = armor
     .split("\n")
@@ -263,6 +264,13 @@ async function verifyOpenPgpDetachedSignature(
   if (!pubKey || unhashedEnd + 2 + 68 > body.byteLength) {
     return { valid: false, signerUid, keyIdHex };
   }
+  const fingerprint = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", new Uint8Array(pubKey)));
+  const derivedKeyId = bytesToHex(fingerprint.slice(24, 32)).toUpperCase();
+  const trustedKey = keys.find(key => key.keyIdHex === derivedKeyId && key.pubHex.toLowerCase() === bytesToHex(pubKey));
+  if (keyIdHex !== derivedKeyId || !trustedKey) {
+    return { valid: false, signerUid, keyIdHex };
+  }
+  signerUid = trustedKey.uid;
   const mpiStart = unhashedEnd + 2;
   const sigBytes = new Uint8Array(64);
   sigBytes.set(body.slice(mpiStart + 2, mpiStart + 34), 0);
@@ -504,7 +512,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           const dataBytes = positionals[1]
             ? await context.fs.readFile(pathPosix.resolve(context.cwd, positionals[1]))
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
-          const res = await verifyOpenPgpDetachedSignature(sigArmor, dataBytes);
+          const res = await verifyOpenPgpDetachedSignature(sigArmor, dataBytes, await loadKeyring(context));
           if (!res.valid) {
             await writeText(context.stderr, `gpg: BAD signature from "${res.signerUid}"\n`);
             return { exitCode: 1 };

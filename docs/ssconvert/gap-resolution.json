@@ -1374,7 +1374,7 @@
       },
       "priorHighQ": "The compiled engine before this change matched all 120 immutable high-q cases exactly. Historical 47-mismatch reports remain historical evidence; they are not current failures.",
       "accuracy": "A separate mpmath 1.4.1 comparison at 100 decimal digits covered the sixteen initial large-x cases. Source-component results differ from correctly rounded high-precision results in ten cases, by relative errors no larger than 3.572e-16. This change qualifies source parity, not universal correct rounding.",
-      "remaining": "Arguments above 2^52, broader phase/order domains, other runtime profiles, full application qualification and containing publication remain open. No family is closed.",
+      "remaining": "The large-argument ceiling is repaired and the supplemental full macOS application cohort is recorded below. Broader phase/order domains, exact Linux/other-runtime application qualification, residual profile differences and containing publication remain open. No family is closed.",
       "largeArguments": {
         "issue": 3623,
         "sources": {
@@ -1399,8 +1399,75 @@
           "candidateCosine": 0.3329140353929016,
           "finding": "Native amplitude/phase/quadrant substituted into the candidate reproduce the candidate result. Independent 160-digit Decimal Machin/Taylor evaluation gives cosine 0.33291403539290157039655028599135625445..., rounding to the candidate binary64 value. Do not alter it merely to match the less accurate Darwin primitive. Exact other-platform/libm profiles remain unqualified."
         },
-        "remaining": "Full native application, Linux/other runtime large-argument profiles, broader order/argument domains and containing publication remain open. No numeric family is closed.",
+        "remaining": "Supplemental full macOS application evidence is recorded in fullNativeApplication. Exact Linux/other-runtime profiles, broader order/argument domains, residual profile differences and containing publication remain open. No numeric family is closed.",
         "qa": "docs/plans/ssconvert-bessel-phase-qa.md"
+      },
+      "fullNativeApplication": {
+        "status": "Supplemental macOS application qualification; residual differences and other profiles remain open",
+        "candidate": "cfb23a86baa59436447cd089f30d8c3f102e8973; ssconvert source unchanged through dc27b68f99682e20fb86c1d9ad34b59b182c7119",
+        "native": {
+          "application": "Gnumeric ssconvert 1.12.61, macOS 26.4.1 arm64, unmodified native source; Python/Perl disabled",
+          "identitySha256": "585e1244b95230217fb7cceb586ee3b7e741c221f2d9597c0b13947215ac5640",
+          "authentication": "All 20 recorded binary/library sizes and SHA256 values freshly verified; --version succeeds.",
+          "formulaSource": "GNOME/gnumeric 325ef79a19580959afaee9cf01cb8ea15f0177b0 plugins/fn-eng/functions.c:617-644, SHA256 a5d95d74ab0625dd0a83561bd9c4efc871f4958dcc4deaf05b67c9dd52c239a9; J/Y pass fractional orders directly without truncation."
+        },
+        "cohort": {
+          "formulas": 205,
+          "construction": "Deduplicated retained bessel-current-independent, bessel-phase-boundary and bessel-large-arguments regressions plus J/Y at x=[1e12-1,1e12,1e12+1,2^52-1,2^52,2^52+1,1e20,1e40,1e150,1e155,1e300], orders=[0,.5,12,-.5,-12,x/100].",
+          "inputBytes": 14606,
+          "inputSha256": "3431d6b25e63bda7dc8b317d5d80d2905154758aebd417e1c920d71985818190",
+          "historicalScope": "The original 110-case source-component scratch cohort is no longer available here. This new cohort does not claim to replay all original 110 cases."
+        },
+        "execution": {
+          "arguments": "--recalc -T Gnumeric_Excel:xlsx input.gnumeric native.xlsx",
+          "environment": "Fresh owned HOME/XDG directories, LC_ALL=LANG=C, TZ=UTC, PATH=/usr/bin:/bin, GSETTINGS_BACKEND=memory and authenticated runtime schemas.",
+          "exitCode": 0,
+          "stdoutBytes": 0,
+          "stderrBytes": 21000,
+          "stderrSha256": "6f26b5dc4cb64260949293969efae7712432998ed9341469429a29ea8d3a6e58",
+          "fixtureCorrection": "Initial handcrafted Gnumeric XML omitted SheetNameIndex; corrected before accepting these results. This was fixture setup, not a product regression."
+        },
+        "comparison": {
+          "method": "Independent Python ZIP/XML cache decoding and exact binary64/error comparison; compiled SDK and runCommand decoded outputs agree.",
+          "exactMatches": 182,
+          "differences": 23,
+          "warnings": "Native and each candidate route emit exactly 200 reduced-accuracy warnings.",
+          "retainedRegressions": "All retained phase-boundary and large-argument regression cases match. Twenty-two differences belong to bessel-current-independent; the added matrix retains the previously explained BESSELY(1e40,1e38) cosine rounding difference.",
+          "receiptSha256": "774deeac5885f4e628d21c137de753cfadebb9490fb8d480de1679fae1f7a687"
+        },
+        "primitiveIsolation": {
+          "method": "Counterfactual candidate-source substitution of captured acos, pow, log1p, exp and sin/cos with /usr/lib/libSystem.B.dylib values, loaded by Python ctypes. Baseline reproduces all 22 candidate values exactly. This is a source experiment, not a second native application run.",
+          "nativeMatchesOf22": {
+            "acosOnly": 1,
+            "powOnly": 0,
+            "log1pOnly": 2,
+            "expOnly": 0,
+            "trigOnly": 14,
+            "allFive": 21
+          },
+          "remaining": {
+            "formula": "BESSELY(192.16044087952775,170.39993582028956)",
+            "nativeBits": "bf8748933ae336f0",
+            "candidateBits": "bf8748933ae336f1",
+            "allFiveSubstitutedBits": "bf8748933ae336ec",
+            "finding": "Primitive substitution does not explain this residual. No production numerical change is justified by this experiment alone."
+          },
+          "receiptSha256": "1ca0c2e53be69d753bc4c4b9040c0ca7b0646039e6390b327aed530e08f729b3"
+        },
+        "accuracy": {
+          "method": "mpmath 1.4.1 Bessel J/Y at 100 and 160 decimal digits, exact binary64 input arguments; all 22 reference values round identically at both precisions.",
+          "closerToReference": {
+            "candidate": 14,
+            "native": 8
+          },
+          "maxRelativeError": {
+            "candidate": 3.5257013020235587e-13,
+            "native": 3.555004640392843e-13
+          },
+          "receiptSha256": "04d6235f690287ba402dbdfacee4759ade385ed7cc22663bc3a8982438c48f93",
+          "decision": "Retain the pinned portable primitive profile. Native equality and mathematical accuracy are separate claims; do not alter expected results merely to match Darwin rounding."
+        },
+        "remaining": "One small-argument primitive-substitution residual, exact Linux/other-runtime application profiles, broader domains and containing publication. All 19 compatibility families remain open."
       }
     },
     "sheetReferenceSemantics": {
@@ -3508,7 +3575,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Full native/Linux/other-runtime qualification, broader domains and publication remain open."
+      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution reproduces 21 of 22 small-argument differences; one remains unexplained. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open."
     },
     {
       "id": "format-record-roundtrip",
@@ -3931,7 +3998,8 @@
         "65638a619bc18bd618cddadfa421951d032aff7c",
         "e769554c75685d3a24d40e20b2e06996a3712d21",
         "cced4225f50ce4af6771a51a92be0d4c50feaa5c",
-        "622d2420f34c8895f606d319b5b5b69eedc5db10"
+        "622d2420f34c8895f606d319b5b5b69eedc5db10",
+        "dc27b68f99682e20fb86c1d9ad34b59b182c7119"
       ],
       "previousRun": {
         "id": 36525540483,
@@ -3950,8 +4018,15 @@
       "repairs": "Valid JPEG fixture with decoded-pixel/dimension and byte-exact extraction checks; actual ffmpeg production minification with unchanged 1.5MB limit and shared-codec input identity; SVG parsing checks full accessible text, viewBox and painted visible glyphs; comments clarify five no-op option branches reported by current root lint.",
       "checks": "Lotus: 496 tests, package lint/types, selected build, four compiled SDK/command cases. PDF images: 18 tests and package lint/types. ffmpeg: 16 tests, package lint/types, maintained seven-workspace build closure; 1206003-byte compiled artifact creates/probes 30 frames at 2x2. Safe Bash: 652 runner tests and final 22 PDF integration cases pass. Guarded root ESLint: complete, zero errors/warnings.",
       "probeCorrections": "SVG labels retain spaces; geometry checks apply to visible glyphs. Intermediate test assumptions were corrected, not product regressions.",
-      "publication": "Containing full CI and registry publication remain unverified. Last observed poe-code 17.0.35 at a8a8a7efbc excludes these commits. Replacement pin and ongoing results tracked in hey-boss #3360. All 19 ssconvert families remain open.",
-      "receipt": "out/ssconvert-odf-settings/release-pdf-ffmpeg-failures.json"
+      "publication": "Full pin 36527661819 at cfb23a86ba was observed cancelled externally. It excludes the later optional-build fixture repair. Containing full CI and registry publication remain unverified; latest registry observation remains poe-code 17.0.35 at a8a8a7efbc. Replacement pin and ongoing results tracked in hey-boss #3360. All 19 families remain open.",
+      "receipt": "out/ssconvert-odf-settings/release-pdf-ffmpeg-failures.json",
+      "optionalBuildFixture": {
+        "reportedRun": 36527106293,
+        "job": 109274055602,
+        "reproduction": "1 of 71 current focused tests failed because the fixture inherited newly direct core command exports while expecting declared opt-in aliases.",
+        "repair": "Declare yes/shuf/dd opt-in routes in the in-memory fixture. Generated runtime/type symbol and peer-route assertions remain unchanged.",
+        "validation": "All 71 maintained focused root tests and guarded root ESLint pass with zero errors/warnings. Commit verified on remote main."
+      }
     }
   },
   "history": {

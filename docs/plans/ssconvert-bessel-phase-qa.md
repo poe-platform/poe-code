@@ -24,6 +24,13 @@ Tracking: hey-boss #3623 within the open numerical family in #1748.
    primitive sin/cos separately. Use an independent high-precision calculation
    to distinguish source parity from mathematical accuracy; retain discrepancies
    explicitly rather than rounding them away.
-7. Reduce receipts into the gap ledger, purge consumed raw captures, commit
+7. Authenticate the full native application's binary and library hashes. Run
+   the retained regressions and an explicitly recorded boundary matrix through
+   `ssconvert --recalc -T Gnumeric_Excel:xlsx`. Decode its numeric/error caches
+   independently and compare both public candidate routes and warning counts.
+   Record the platform, enabled plugins, environment and exact cohort; missing
+   historical captures do not count as replayed coverage. Isolate differing
+   primitives without changing the pinned profile solely to match another libm.
+8. Reduce receipts into the gap ledger, purge consumed raw captures, commit
    explicit paths, verify remote-main ancestry and monitor publication. Keep
    broader numeric/platform qualification open until its own evidence passes.

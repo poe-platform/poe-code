@@ -22912,6 +22912,17 @@ export class Runtime {
       }
       return cur;
     }
+    const commaSplit = splitSyncJqExpression(st, ",");
+    if (!commaSplit) return undefined;
+    if (commaSplit.parts.length > 1) {
+      const out: unknown[] = [];
+      for (const cPart of commaSplit.parts) {
+        const r = this.evalSyncJqPathOps(item, cPart);
+        if (r === undefined) return undefined;
+        for (const rv of r) out.push(rv);
+      }
+      return out;
+    }
     const alternatives = splitSyncJqExpression(st, "//");
     if (!alternatives) return undefined;
     if (alternatives.parts.length > 1) {
@@ -23096,7 +23107,27 @@ export class Runtime {
       }
       return [outObj];
     }
-    const byM = /^(sort_by|unique_by|group_by|min_by|max_by)\(\s*(\.[a-zA-Z_][a-zA-Z0-9_.]*)\s*\)$/.exec(st);
+    const firstLastFnM = /^(first|last)\(\s*(.+)\s*\)$/.exec(st);
+    if (firstLastFnM) {
+      const genVals = this.evalSyncJqPathOps(item, firstLastFnM[2]!.trim());
+      if (!genVals) return undefined;
+      if (genVals.length === 0) return [];
+      return [firstLastFnM[1] === "first" ? genVals[0] : genVals[genVals.length - 1]];
+    }
+    const limitFnM = /^limit\(\s*([0-9]+)\s*;\s*(.+)\s*\)$/.exec(st);
+    if (limitFnM) {
+      const n = Number(limitFnM[1]!);
+      const genVals = this.evalSyncJqPathOps(item, limitFnM[2]!.trim());
+      if (!genVals) return undefined;
+      return genVals.slice(0, n);
+    }
+    const isEmptyFnM = /^isempty\(\s*(.+)\s*\)$/.exec(st);
+    if (isEmptyFnM) {
+      const genVals = this.evalSyncJqPathOps(item, isEmptyFnM[1]!.trim());
+      if (!genVals) return undefined;
+      return [genVals.length === 0];
+    }
+    const byM = /^(sort_by|unique_by|group_by|min_by|max_by)\(\s*(.+)\s*\)$/.exec(st);
     if (byM && Array.isArray(item)) {
       const fn = byM[1]!;
       const kPath = byM[2]!;
@@ -23322,19 +23353,40 @@ export class Runtime {
       if (!condVals) return undefined;
       return condVals.some(v => v !== null && v !== undefined && v !== false) ? [item] : [];
     }
-    const delM = /^del\(\s*\.([a-zA-Z_][a-zA-Z0-9_]*)(?:\.([a-zA-Z_][a-zA-Z0-9_]*))?\s*\)$/.exec(st);
-    if (delM && item && typeof item === "object" && !Array.isArray(item)) {
-      const k1 = delM[1]!;
-      const k2 = delM[2];
-      const clone = { ...(item as Record<string, unknown>) };
-      if (k2 === undefined) {
-        delete clone[k1];
-      } else if (clone[k1] && typeof clone[k1] === "object" && !Array.isArray(clone[k1])) {
-        const subClone = { ...(clone[k1] as Record<string, unknown>) };
-        delete subClone[k2];
-        clone[k1] = subClone;
+    const delGenM = /^del\(\s*(.+)\s*\)$/.exec(st);
+    if (delGenM && item && typeof item === "object") {
+      const delSpecs = splitSyncJqExpression(delGenM[1]!, ",");
+      if (delSpecs && delSpecs.parts.length > 0) {
+        if (!Array.isArray(item)) {
+          const clone: Record<string, unknown> = { ...(item as Record<string, unknown>) };
+          let okDel = true;
+          for (const rawSpec of delSpecs.parts) {
+            const m = /^\.([a-zA-Z_][a-zA-Z0-9_]*)(?:\.([a-zA-Z_][a-zA-Z0-9_]*))?$/.exec(rawSpec.trim());
+            if (!m) { okDel = false; break; }
+            const k1 = m[1]!;
+            const k2 = m[2];
+            if (k2 === undefined) {
+              delete clone[k1];
+            } else if (clone[k1] && typeof clone[k1] === "object" && !Array.isArray(clone[k1])) {
+              const subClone = { ...(clone[k1] as Record<string, unknown>) };
+              delete subClone[k2];
+              clone[k1] = subClone;
+            }
+          }
+          if (okDel) return [clone];
+        } else {
+          const idxsToDelete = new Set<number>();
+          let okDel = true;
+          for (const rawSpec of delSpecs.parts) {
+            const m = /^\.\[\s*(-?[0-9]+)\s*\]$/.exec(rawSpec.trim());
+            if (!m) { okDel = false; break; }
+            let idx = Number(m[1]!);
+            if (idx < 0) idx = item.length + idx;
+            if (idx >= 0 && idx < item.length) idxsToDelete.add(idx);
+          }
+          if (okDel) return [item.filter((_, idx) => !idxsToDelete.has(idx))];
+        }
       }
-      return [clone];
     }
     const rangeFnM = /^range\(\s*(.+)\s*\)$/.exec(st);
     if (rangeFnM) {
@@ -23357,12 +23409,14 @@ export class Runtime {
       return outRange;
     }
     const anyAllFnM = /^(any|all)\(\s*(.+)\s*\)$/.exec(st);
-    if (anyAllFnM && Array.isArray(item)) {
+    if (anyAllFnM) {
       const argSplit = splitSyncJqExpression(anyAllFnM[2]!, ";");
-      if (argSplit && argSplit.parts.length === 1) {
+      if (argSplit && (argSplit.parts.length === 1 ? Array.isArray(item) : argSplit.parts.length === 2)) {
         const isAny = anyAllFnM[1] === "any";
-        const predExpr = argSplit.parts[0]!.trim();
-        for (const el of item) {
+        const sourceItems = argSplit.parts.length === 1 ? (item as unknown[]) : this.evalSyncJqPathOps(item, argSplit.parts[0]!.trim());
+        if (!sourceItems) return undefined;
+        const predExpr = argSplit.parts[argSplit.parts.length === 1 ? 0 : 1]!.trim();
+        for (const el of sourceItems) {
           const r = this.evalSyncJqPathOps(el, predExpr);
           if (!r) return undefined;
           for (const rv of r) {
@@ -23661,11 +23715,16 @@ export class Runtime {
     return formatSyncYqYamlLines(jqLines);
   }
 
-  private evalSyncJq(input: string | undefined, opArgs: readonly string[], cwd?: string): string[] | undefined {
+  private evalSyncJq(input: string | undefined, opArgs: readonly string[], cwd?: string, rawInputText?: string): string[] | undefined {
     let rawOut = false;
+    let joinOut = false;
+    let rawInput = false;
+    let sortKeys = false;
     let compactOut = false;
     let nullInput = false;
     let slurp = false;
+    let useTab = false;
+    let indentCount = 2;
     let filter: string | undefined;
     let ended = false;
     const fileOperands: string[] = [];
@@ -23683,9 +23742,20 @@ export class Runtime {
       }
       if (a === "--") { ended = true; continue; }
       if (a === "--raw-output") { rawOut = true; continue; }
+      if (a === "--join-output") { rawOut = true; joinOut = true; continue; }
+      if (a === "--raw-input") { rawInput = true; continue; }
+      if (a === "--sort-keys") { sortKeys = true; continue; }
       if (a === "--compact-output") { compactOut = true; continue; }
       if (a === "--null-input") { nullInput = true; continue; }
       if (a === "--slurp") { slurp = true; continue; }
+      if (a === "--tab") { useTab = true; continue; }
+      if (a === "--indent") {
+        if (i + 1 >= opArgs.length) return undefined;
+        const n = Number(opArgs[++i]!);
+        if (!Number.isInteger(n) || n < 0 || n > 8) return undefined;
+        indentCount = n;
+        continue;
+      }
       if (a === "--arg") {
         if (i + 2 >= opArgs.length) return undefined;
         const k = opArgs[++i]!;
@@ -23710,6 +23780,9 @@ export class Runtime {
         for (let j = 1; j < a.length; j++) {
           const ch = a[j]!;
           if (ch === "r") rawOut = true;
+          else if (ch === "j") { rawOut = true; joinOut = true; }
+          else if (ch === "R") rawInput = true;
+          else if (ch === "S") sortKeys = true;
           else if (ch === "c") compactOut = true;
           else if (ch === "n") nullInput = true;
           else if (ch === "s") slurp = true;
@@ -23720,6 +23793,28 @@ export class Runtime {
       return undefined;
     }
     if (filter === undefined) return undefined;
+    const sortJsonKeysDeep = (v: unknown): unknown => {
+      if (Array.isArray(v)) return v.map(sortJsonKeysDeep);
+      if (v && typeof v === "object") {
+        const sorted: Record<string, unknown> = {};
+        for (const k of Object.keys(v as Record<string, unknown>).sort(compareSyncJqStrings)) {
+          sorted[k] = sortJsonKeysDeep((v as Record<string, unknown>)[k]);
+        }
+        return sorted;
+      }
+      return v;
+    };
+    const indentArg: string | number | undefined = compactOut ? undefined : (useTab ? "\t" : indentCount);
+    const formatJqVal = (val: unknown): string => {
+      if (rawOut && typeof val === "string") return val;
+      const target = sortKeys ? sortJsonKeysDeep(val ?? null) : (val ?? null);
+      return JSON.stringify(target, null, indentArg);
+    };
+    const finalizeOut = (items: unknown[]): string[] => {
+      const rendered = items.map(formatJqVal);
+      if (joinOut) return rendered.length > 0 ? [rendered.join("")] : [];
+      return rendered;
+    };
     const parseJsonStream = (src: string, target: unknown[]): boolean => {
       try {
         target.push(JSON.parse(src));
@@ -23741,6 +23836,35 @@ export class Runtime {
     let current: unknown[] = [];
     if (nullInput) {
       current = [null];
+    } else if (rawInput) {
+      let rawCombined = "";
+      if (fileOperands.length > 0) {
+        if (!cwd) return undefined;
+        let totalB = 0;
+        const chunks: string[] = [];
+        for (const fPath of fileOperands) {
+          const fView = this.tryReadMemoryFileViewSync(resolvePath(cwd, fPath), true, true);
+          if (!fView || fView.includes(0)) return undefined;
+          totalB += fView.byteLength;
+          if (totalB > 16384) return undefined;
+          chunks.push(sharedSyncPipeDecoder.decode(fView));
+        }
+        rawCombined = chunks.join("");
+      } else {
+        const srcText = rawInputText ?? input;
+        if (srcText === undefined) return undefined;
+        rawCombined = srcText;
+      }
+      if (slurp) {
+        current = [rawCombined];
+      } else {
+        if (rawCombined.length === 0) {
+          current = [];
+        } else {
+          const stripped = rawCombined.endsWith("\n") ? rawCombined.slice(0, -1) : rawCombined;
+          current = stripped.split("\n").map(l => l.endsWith("\r") ? l.slice(0, -1) : l);
+        }
+      }
     } else if (fileOperands.length > 0) {
       if (!cwd) return undefined;
       let totalB = 0;
@@ -23756,7 +23880,7 @@ export class Runtime {
       if (input === undefined) return undefined;
       if (!parseJsonStream(input, current)) return undefined;
     }
-    if (slurp && !nullInput) {
+    if (slurp && !nullInput && !rawInput) {
       current = [current];
     }
     const prevVars = this._syncJqVars;
@@ -23765,7 +23889,6 @@ export class Runtime {
     const trimmedFilter = filter.trim();
     if (trimmedFilter.startsWith("[") && trimmedFilter.endsWith("]") && splitSyncJqExpression(trimmedFilter, "|")?.parts.length === 1) {
       const innerFilter = trimmedFilter.slice(1, -1).trim();
-      const innerArgs = rawOut || compactOut ? [compactOut ? "-c" : "-r", innerFilter] : [innerFilter];
       const outArrays: unknown[] = [];
       for (const item of current) {
         const innerStages = splitSyncJqExpression(innerFilter, "|");
@@ -23787,8 +23910,7 @@ export class Runtime {
         }
         outArrays.push(subCur);
       }
-      void innerArgs;
-      return outArrays.map(val => JSON.stringify(val ?? null, null, compactOut ? undefined : 2));
+      return finalizeOut(outArrays);
     }
     const stages = splitSyncJqExpression(filter, "|");
     if (!stages) return undefined;
@@ -23806,7 +23928,7 @@ export class Runtime {
       }
       current = next;
     }
-    return current.map(val => (rawOut && typeof val === "string" ? val : JSON.stringify(val ?? null, null, compactOut ? undefined : 2)));
+    return finalizeOut(current);
     } finally {
       this._syncJqVars = prevVars;
     }
@@ -29928,7 +30050,7 @@ export class Runtime {
               prevLen = encoded.byteLength;
               continue;
             } else if (isInlineJq) {
-              const jqRes = this.evalSyncJq((sIdx === 0 && cmd0FileStage) ? undefined : inStr.trim(), stageArgs, rawState.cwd);
+              const jqRes = this.evalSyncJq((sIdx === 0 && cmd0FileStage) ? undefined : inStr.trim(), stageArgs, rawState.cwd, (sIdx === 0 && cmd0FileStage) ? undefined : inStr);
               if (jqRes === undefined) return undefined;
               outLines = jqRes;
             } else if (firstName === "bc") {
@@ -30849,7 +30971,7 @@ export class Runtime {
                 fileRes = syncCommandEvaluators.evalSyncHeadTail?.(w0Plain, hasSingleHereStringRedir || hasSingleStdinRedir ? view : undefined, allArgs, readFile);
               }
             } else if (w0Plain === "jq") {
-              const jqRes = this.evalSyncJq(fileStr.trim(), opArgs, rawState.cwd) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncJq(undefined, allArgs, rawState.cwd) : undefined);
+              const jqRes = this.evalSyncJq(fileStr.trim(), opArgs, rawState.cwd, fileStr) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncJq(undefined, allArgs, rawState.cwd) : undefined);
               if (jqRes !== undefined) fileRes = renderLines(jqRes);
             } else if (w0Plain === "awk") {
               const awkRes = this.evalSyncAwk(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("awk", allArgs, rawState.cwd, byteLocale(rawState.variables)) : undefined);

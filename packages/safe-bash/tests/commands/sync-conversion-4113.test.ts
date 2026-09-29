@@ -1286,3 +1286,26 @@ test("sync sed (-z/--expression/-ne/-Ee), grep (-lZ/--regexp/--max-count/-ie), a
     "alpha:beta:#aaX,bbX#/tmp/g1.txt|/tmp/g2.txt|#Alpha,alPha#140"
   );
 });
+
+test("Wave 216: jq -R/-Rs/-j/-S/--tab/--indent, multi-path del, 2-arg any/all, first/last/limit/isempty, and general *_by in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp");
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" }).use(standardCommands()).use(structuredCommands());
+  const res = await shell.exec(`
+    r1=$(printf "alpha\nbeta\ngamma\n" | jq -R -c '"[" + . + "]"')
+    r2=$(printf "line1\nline2\n" | jq -Rs -c 'split("\\n")')
+    r3=$(printf '{"z":1,"a":{"d":4,"b":2}}\n' | jq -cS '.')
+    r4=$(printf '["a","b","c"]\n' | jq -j '.[]')
+    r5=$(printf '{"a":1,"b":{"x":2,"y":3},"c":4}\n' | jq -c 'del(.a, .b.x)')
+    r6=$(printf '[10,20,30,40]\n' | jq -c 'del(.[1], .[-1])')
+    r7=$(printf '{"items":[2,4,7]}\n' | jq -c '[any(.items[]; . > 5), all(.items[]; . > 0)]')
+    r8=$(printf '[1,2,3,4,5]\n' | jq -c '[first(.[] | select(. > 2)), last(.[] | select(. < 5)), limit(2; .[]), isempty(.[] | select(. > 9))]')
+    r9=$(printf '[{"a":2,"b":5},{"a":1,"b":2},{"a":3,"b":1}]\n' | jq -c 'sort_by(.a + .b) | map(.a)')
+    printf "%s|%s|%s|%s|%s|%s|%s|%s|%s\n" "$(printf "%s" "$r1" | tr "\n" ",")" "$r2" "$r3" "$r4" "$r5" "$r6" "$r7" "$r8" "$r9"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    `"[alpha]","[beta]","[gamma]"|["line1","line2",""]|{"a":{"b":2,"d":4},"z":1}|abc|{"b":{"y":3},"c":4}|[10,30]|[true,true]|[3,4,1,2,true]|[1,3,2]`
+  );
+});

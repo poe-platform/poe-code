@@ -27034,24 +27034,49 @@ export class Runtime {
     return out;
   }
 
-  private evalSyncXxd(view: Uint8Array, opArgs: readonly string[]): string | undefined {
+  private evalSyncXxd(
+    view: Uint8Array,
+    opArgs: readonly string[],
+    readFileSync?: (p: string) => Uint8Array | undefined,
+    fileOperandName?: string,
+  ): string | undefined {
     let plain = false;
     let reverse = false;
     let upper = false;
-    let cols = 30;
+    let binary = false;
+    let include = false;
+    let decimalAddress = false;
+    let explicitCols: number | undefined;
+    let explicitGroup: number | undefined;
+    let includeName: string | undefined;
     let maxLen: number | undefined;
     let seekOff = 0;
+    let ended = false;
+    const files: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (a === "-p" || a === "-ps" || a === "-plain") plain = true;
+      if (ended) { files.push(a); continue; }
+      if (a === "--") { ended = true; continue; }
+      if (a === "-p" || a === "-ps" || a === "-plain" || a === "-postscript") plain = true;
       else if (a === "-r" || a === "-revert") reverse = true;
       else if (a === "-rp" || a === "-pr") { reverse = true; plain = true; }
       else if (a === "-u") upper = true;
       else if (a === "-pu" || a === "-up") { plain = true; upper = true; }
+      else if (a === "-b" || a === "-bits") binary = true;
+      else if (a === "-i" || a === "-include") include = true;
+      else if (a === "-d") decimalAddress = true;
       else if ((a === "-c" || a === "-cols") && i + 1 < opArgs.length && /^[0-9]{1,4}$/.test(opArgs[i + 1]!)) {
-        cols = Number(opArgs[++i]!);
+        explicitCols = Number(opArgs[++i]!);
       } else if (/^-c[0-9]{1,4}$/.test(a)) {
-        cols = Number(a.slice(2));
+        explicitCols = Number(a.slice(2));
+      } else if ((a === "-g" || a === "-groupsize") && i + 1 < opArgs.length && /^[0-9]{1,4}$/.test(opArgs[i + 1]!)) {
+        explicitGroup = Number(opArgs[++i]!);
+      } else if (/^-g[0-9]{1,4}$/.test(a)) {
+        explicitGroup = Number(a.slice(2));
+      } else if ((a === "-n" || a === "-name") && i + 1 < opArgs.length) {
+        includeName = opArgs[++i]!;
+      } else if (a.startsWith("-n") && a.length > 2) {
+        includeName = a.slice(2);
       } else if ((a === "-l" || a === "-len") && i + 1 < opArgs.length && /^[0-9]{1,6}$/.test(opArgs[i + 1]!)) {
         maxLen = Number(opArgs[++i]!);
       } else if (/^-l[0-9]{1,6}$/.test(a)) {
@@ -27060,15 +27085,69 @@ export class Runtime {
         seekOff = Number(opArgs[++i]!);
       } else if (/^-s[+-]?[0-9]{1,6}$/.test(a)) {
         seekOff = Number(a.slice(2));
+      } else if (!a.startsWith("-") || a === "-") {
+        files.push(a);
       } else {
         return undefined;
       }
     }
-    if (!plain) return undefined;
+    if ((plain && (binary || include)) || (binary && include) || (reverse && !plain)) return undefined;
+    if (files.length > 1) return undefined;
+    let effFile = fileOperandName;
+    if (files.length === 1 && files[0] !== "-") {
+      if (!readFileSync) return undefined;
+      const fb = readFileSync(files[0]!);
+      if (!fb || fb.byteLength > 16384) return undefined;
+      view = fb;
+      effFile = files[0]!;
+    }
+    const cols = explicitCols ?? (plain ? 30 : include ? 12 : binary ? 6 : 16);
+    const group = explicitGroup ?? (binary ? 1 : 2);
+    if (!plain && cols < 1) return undefined;
     if (!reverse && (seekOff !== 0 || maxLen !== undefined)) {
       const start = seekOff < 0 ? Math.max(0, view.byteLength + seekOff) : Math.min(view.byteLength, seekOff);
       const end = maxLen !== undefined ? Math.min(view.byteLength, start + maxLen) : view.byteLength;
       view = view.subarray(start, end);
+    }
+    if (include) {
+      const effName = includeName ?? effFile;
+      let ident = "";
+      if (effName !== undefined) {
+        for (const ch of effName) {
+          const c = ch.charCodeAt(0);
+          ident += (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122) ? ch : "_";
+        }
+        if (ident[0] && ident[0] >= "0" && ident[0] <= "9") ident = "__" + ident;
+      }
+      const pfx = upper ? "0X" : "0x";
+      const rows: string[] = [];
+      for (let off = 0; off < view.byteLength; off += cols) {
+        const sl = view.subarray(off, Math.min(view.byteLength, off + cols));
+        rows.push("  " + Array.from(sl, b => pfx + (upper ? b.toString(16).toUpperCase() : b.toString(16)).padStart(2, "0")).join(", "));
+      }
+      let out = effName !== undefined ? `unsigned char ${ident}[] = {\n` : "";
+      if (rows.length > 0) out += rows.join(",\n") + "\n";
+      if (effName !== undefined) out += `};\nunsigned int ${ident}_len = ${view.byteLength};\n`;
+      return out;
+    }
+    if (!plain) {
+      const startAddr = seekOff < 0 ? Math.max(0, view.byteLength + seekOff) : seekOff;
+      const width = cols * (binary ? 8 : 2) + (group ? Math.floor((cols - 1) / group) : 0);
+      let out = "";
+      for (let off = 0; off < view.byteLength; off += cols) {
+        const sl = view.subarray(off, Math.min(view.byteLength, off + cols));
+        let data = "";
+        let ascii = "";
+        for (let idx = 0; idx < sl.length; idx++) {
+          if (group && idx && idx % group === 0) data += " ";
+          const b = sl[idx]!;
+          data += binary ? b.toString(2).padStart(8, "0") : (upper ? b.toString(16).toUpperCase() : b.toString(16)).padStart(2, "0");
+          ascii += b >= 32 && b <= 126 ? String.fromCharCode(b) : ".";
+        }
+        const addr = (startAddr + off).toString(decimalAddress ? 10 : 16).padStart(8, "0");
+        out += `${addr}: ${data.padEnd(width, " ")}  ${ascii}\n`;
+      }
+      return out;
     }
     if (reverse) {
       const bytes: number[] = [];
@@ -27549,25 +27628,53 @@ export class Runtime {
     });
   }
 
-  private evalSyncHexdump(inBytes: Uint8Array, opArgs: readonly string[], isHd = false): string | undefined {
+  private evalSyncHexdump(
+    inBytes: Uint8Array,
+    opArgs: readonly string[],
+    isHd = false,
+    readFileSync?: (p: string) => Uint8Array | undefined,
+  ): string | undefined {
     let canonical = isHd;
     let verbose = false;
     let ended = false;
     let skip = 0;
     let count = Infinity;
+    const files: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (!ended && a === "--") { ended = true; continue; }
-      if (!ended && a === "-C") { canonical = true; continue; }
-      if (!ended && a === "-v") { verbose = true; continue; }
-      if (!ended && (a === "-Cv" || a === "-vC")) { canonical = true; verbose = true; continue; }
-      if (!ended && (a === "-n" || a === "-s")) {
+      if (ended) { files.push(a); continue; }
+      if (a === "--") { ended = true; continue; }
+      if (a === "-C") { canonical = true; continue; }
+      if (a === "-v") { verbose = true; continue; }
+      if (a === "-Cv" || a === "-vC") { canonical = true; verbose = true; continue; }
+      if (a === "-n" || a === "-s" || a === "--length" || a === "--skip") {
         if (i + 1 >= opArgs.length || !/^[0-9]+$/.test(opArgs[i + 1]!)) return undefined;
         const val = Number(opArgs[++i]!);
-        if (a === "-n") count = val; else skip = val;
+        if (a === "-n" || a === "--length") count = val; else skip = val;
         continue;
       }
+      if (/^-[ns][0-9]+$/.test(a)) {
+        const val = Number(a.slice(2));
+        if (a[1] === "n") count = val; else skip = val;
+        continue;
+      }
+      if (!a.startsWith("-")) { files.push(a); continue; }
       return undefined;
+    }
+    if (files.length > 0) {
+      if (!readFileSync) return undefined;
+      const chunks: Uint8Array[] = [];
+      let total = 0;
+      for (const f of files) {
+        const b = readFileSync(f);
+        if (!b || total + b.byteLength > 4096) return undefined;
+        chunks.push(b);
+        total += b.byteLength;
+      }
+      const merged = new Uint8Array(total);
+      let pos = 0;
+      for (const c of chunks) { merged.set(c, pos); pos += c.byteLength; }
+      inBytes = merged;
     }
     if (!canonical || inBytes.byteLength > 4096 || count === 0) return undefined;
     const start = Math.min(inBytes.byteLength, skip);
@@ -27614,55 +27721,97 @@ export class Runtime {
     return out;
   }
 
-  private evalSyncOd(view: Uint8Array, opArgs: readonly string[]): string | undefined {
-    let noAddr = false;
-    let typeSpec: "x1" | "u1" | "o1" | undefined;
+  private evalSyncOd(
+    view: Uint8Array,
+    opArgs: readonly string[],
+    readFileSync?: (p: string) => Uint8Array | undefined,
+  ): string | undefined {
+    let addrRadix: "o" | "x" | "d" | "n" = "o";
+    let typeSpec: "x1" | "u1" | "o1" | "c" | undefined;
     let verbose = false;
     let skipBytes = 0;
     let readBytes: number | undefined;
+    let width = 16;
+    let ended = false;
+    const files: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (a === "-An") noAddr = true;
-      else if (a === "-A" && i + 1 < opArgs.length && opArgs[i + 1] === "n") { noAddr = true; i++; }
-      else if (a === "-tx1" || a === "-tu1" || a === "-to1") typeSpec = a.slice(2) as "x1" | "u1" | "o1";
-      else if (a === "-t" && i + 1 < opArgs.length && (opArgs[i + 1] === "x1" || opArgs[i + 1] === "u1" || opArgs[i + 1] === "o1")) {
-        typeSpec = opArgs[++i] as "x1" | "u1" | "o1";
+      if (ended) { files.push(a); continue; }
+      if (a === "--") { ended = true; continue; }
+      if (a === "-An" || a === "-Ax" || a === "-Ao" || a === "-Ad") addrRadix = a[2] as "o" | "x" | "d" | "n";
+      else if (a === "-A" && i + 1 < opArgs.length && ["o", "x", "d", "n"].includes(opArgs[i + 1]!)) {
+        addrRadix = opArgs[++i] as "o" | "x" | "d" | "n";
+      } else if (a === "-tx1" || a === "-tu1" || a === "-to1" || a === "-tc") {
+        typeSpec = a.slice(2) as "x1" | "u1" | "o1" | "c";
+      } else if (a === "-c") {
+        typeSpec = "c";
+      } else if (a === "-b") {
+        typeSpec = "o1";
+      } else if (a === "-t" && i + 1 < opArgs.length && ["x1", "u1", "o1", "c"].includes(opArgs[i + 1]!)) {
+        typeSpec = opArgs[++i] as "x1" | "u1" | "o1" | "c";
       } else if (a === "-v" || a === "--output-duplicates") verbose = true;
+      else if (a === "-w" && i + 1 < opArgs.length && /^[1-9][0-9]{0,3}$/.test(opArgs[i + 1]!)) width = Number(opArgs[++i]!);
+      else if (/^-w[1-9][0-9]{0,3}$/.test(a)) width = Number(a.slice(2));
+      else if (/^--width=[1-9][0-9]{0,3}$/.test(a)) width = Number(a.slice(8));
       else if (a === "-j" && i + 1 < opArgs.length && /^[0-9]{1,6}$/.test(opArgs[i + 1]!)) skipBytes = Number(opArgs[++i]!);
       else if (/^-j[0-9]{1,6}$/.test(a)) skipBytes = Number(a.slice(2));
       else if (/^--skip-bytes=[0-9]{1,6}$/.test(a)) skipBytes = Number(a.slice(13));
       else if (a === "-N" && i + 1 < opArgs.length && /^[0-9]{1,6}$/.test(opArgs[i + 1]!)) readBytes = Number(opArgs[++i]!);
       else if (/^-N[0-9]{1,6}$/.test(a)) readBytes = Number(a.slice(2));
       else if (/^--read-bytes=[0-9]{1,6}$/.test(a)) readBytes = Number(a.slice(13));
+      else if (!a.startsWith("-") || a === "-") files.push(a);
       else return undefined;
     }
-    if (!noAddr || !typeSpec) return undefined;
+    if (!typeSpec) return undefined;
+    if (files.length > 0) {
+      if (!readFileSync) return undefined;
+      const chunks: Uint8Array[] = [];
+      let total = 0;
+      for (const f of files) {
+        const b = f === "-" ? view : readFileSync(f);
+        if (!b || total + b.byteLength > 16384) return undefined;
+        chunks.push(b);
+        total += b.byteLength;
+      }
+      const merged = new Uint8Array(total);
+      let pos = 0;
+      for (const c of chunks) { merged.set(c, pos); pos += c.byteLength; }
+      view = merged;
+    }
+    if (skipBytes > view.byteLength) return undefined;
     if (skipBytes > 0 || readBytes !== undefined) {
       const sOff = Math.min(view.byteLength, skipBytes);
       const eOff = readBytes !== undefined ? Math.min(view.byteLength, sOff + readBytes) : view.byteLength;
       view = view.subarray(sOff, eOff);
     }
-    if (view.byteLength === 0) return "";
+    const fmtAddr = (off: number): string =>
+      addrRadix === "n" ? "" : off.toString(addrRadix === "o" ? 8 : addrRadix === "x" ? 16 : 10).padStart(addrRadix === "x" ? 6 : 7, "0");
+    if (view.byteLength === 0) return addrRadix === "n" ? "" : fmtAddr(skipBytes) + "\n";
+    const escMap: Record<number, string> = { 0: "\\0", 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r" };
     const rows: string[] = [];
     let prevRow = "";
     let starEmitted = false;
-    for (let off = 0; off < view.byteLength; off += 16) {
-      const slice = view.subarray(off, Math.min(off + 16, view.byteLength));
+    for (let off = 0; off < view.byteLength; off += width) {
+      const slice = view.subarray(off, Math.min(off + width, view.byteLength));
       let row = "";
       for (let i = 0; i < slice.length; i++) {
         const b = slice[i]!;
         if (typeSpec === "x1") row += " " + b.toString(16).padStart(2, "0");
         else if (typeSpec === "o1") row += " " + b.toString(8).padStart(3, "0");
-        else row += " " + b.toString(10).padStart(3, " ");
+        else if (typeSpec === "c") {
+          const ch = escMap[b] ?? (b >= 32 && b <= 126 ? String.fromCharCode(b) : b.toString(8).padStart(3, "0"));
+          row += " " + ch.padStart(3, " ");
+        } else row += " " + b.toString(10).padStart(3, " ");
       }
-      if (!verbose && off > 0 && slice.length === 16 && row === prevRow) {
+      if (!verbose && off > 0 && slice.length === width && row === prevRow) {
         if (!starEmitted) { rows.push("*"); starEmitted = true; }
       } else {
-        rows.push(row);
+        rows.push(fmtAddr(skipBytes + off) + row);
         prevRow = row;
         starEmitted = false;
       }
     }
+    if (addrRadix !== "n") rows.push(fmtAddr(skipBytes + view.byteLength));
     return rows.join("\n") + "\n";
   }
 
@@ -28579,14 +28728,14 @@ export class Runtime {
       const w0Plain0 = cmd0.words[0]?.plain;
       const cmd0YesStage = !cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "yes" && pipeline.commands[1]?.kind === "simple" && pipeline.commands[1]?.words[0]?.plain === "head";
       const cmd0SysStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "uname" || w0Plain0 === "id" || w0Plain0 === "whoami" || w0Plain0 === "hostname" || w0Plain0 === "nproc" || w0Plain0 === "getconf" || w0Plain0 === "locale" || w0Plain0 === "cal" || w0Plain0 === "ncal" || w0Plain0 === "date" || w0Plain0 === "printenv" || w0Plain0 === "env" || w0Plain0 === "pwd" || w0Plain0 === "dirname" || w0Plain0 === "basename" || w0Plain0 === "expr" || w0Plain0 === "getopt" || w0Plain0 === "pathchk" || (w0Plain0 === "awk" && cmd0.words.some(w => w.plain?.includes("BEGIN"))));
-      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "fmt" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || w0Plain0 === "jq" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk" || w0Plain0 === "rev" || w0Plain0 === "tac" || w0Plain0 === "uniq" || w0Plain0 === "base64" || w0Plain0 === "column" || w0Plain0 === "fold" || w0Plain0 === "expand" || w0Plain0 === "unexpand" || w0Plain0 === "strings" || w0Plain0 === "numfmt") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
+      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "xxd" || w0Plain0 === "od" || w0Plain0 === "hexdump" || w0Plain0 === "hd" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "fmt" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || w0Plain0 === "jq" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk" || w0Plain0 === "rev" || w0Plain0 === "tac" || w0Plain0 === "uniq" || w0Plain0 === "base64" || w0Plain0 === "column" || w0Plain0 === "fold" || w0Plain0 === "expand" || w0Plain0 === "unexpand" || w0Plain0 === "strings" || w0Plain0 === "numfmt") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
       if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0YesStage && !cmd0SysStage && !cmd0StdinRedir && !cmd0HereStringRedir && !cmd0FileStage) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
       if (cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 1) return undefined;
       if (!cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length < 2) return undefined;
       const def0 = (w0Plain0 === "printf" || w0Plain0 === "echo" || w0Plain0 === "cat" || w0Plain0 === "pwd" || w0Plain0 === "dirname" || w0Plain0 === "basename") ? this.commands.get(w0Plain0) : this.getExternalCommand(w0Plain0);
-      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || w0Plain0 === "seq" || cmd0YesStage || cmd0SysStage || cmd0StdinRedir || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && w0Plain0 !== "fmt" && w0Plain0 !== "md5sum" && w0Plain0 !== "sha1sum" && w0Plain0 !== "sha224sum" && w0Plain0 !== "sha256sum" && w0Plain0 !== "sha384sum" && w0Plain0 !== "sha512sum" && w0Plain0 !== "cksum" && w0Plain0 !== "base32" && w0Plain0 !== "base64" && w0Plain0 !== "csvcut" && w0Plain0 !== "csvgrep" && w0Plain0 !== "dos2unix" && w0Plain0 !== "unix2dos" && w0Plain0 !== "iconv" && w0Plain0 !== "gzip" && w0Plain0 !== "gunzip" && w0Plain0 !== "zcat" && w0Plain0 !== "unzstd" && w0Plain0 !== "zstdcat" && w0Plain0 !== "htmlq" && w0Plain0 !== "xmllint" && w0Plain0 !== "xq" && w0Plain0 !== "yq" && w0Plain0 !== "mdq" && w0Plain0 !== "shuf" && w0Plain0 !== "html-to-markdown" && w0Plain0 !== "unrtf" && w0Plain0 !== "pr" && w0Plain0 !== "file" && w0Plain0 !== "diff3" && w0Plain0 !== "cmp" && w0Plain0 !== "which" && w0Plain0 !== "diff" && w0Plain0 !== "xan" && w0Plain0 !== "less" && w0Plain0 !== "more" && w0Plain0 !== "df" && w0Plain0 !== "du" && w0Plain0 !== "tree" && w0Plain0 !== "stat" && w0Plain0 !== "fd" && w0Plain0 !== "rg" && w0Plain0 !== "readlink" && w0Plain0 !== "realpath" && w0Plain0 !== "ls" && w0Plain0 !== "find" && w0Plain0 !== "csvlook" && w0Plain0 !== "csvjson" && w0Plain0 !== "csvsort" && w0Plain0 !== "csvformat" && w0Plain0 !== "csvstat" && w0Plain0 !== "in2csv" && w0Plain0 !== "csvstack" && w0Plain0 !== "csvjoin" && w0Plain0 !== "dd" && w0Plain0 !== "env" && w0Plain0 !== "xargs" && w0Plain0 !== "openssl" && w0Plain0 !== "sqlite3" && w0Plain0 !== "gpg" && w0Plain0 !== "ssh" && w0Plain0 !== "ssh-keygen" && w0Plain0 !== "pdfinfo" && w0Plain0 !== "pdffonts" && w0Plain0 !== "pdftotext" && w0Plain0 !== "pdftohtml" && w0Plain0 !== "exiftool" && w0Plain0 !== "qpdf" && w0Plain0 !== "pdftk" && w0Plain0 !== "sips" && w0Plain0 !== "identify" && w0Plain0 !== "magick" && w0Plain0 !== "convert" && w0Plain0 !== "pdfimages" && w0Plain0 !== "pdfdetach" && w0Plain0 !== "ffprobe" && w0Plain0 !== "ffmpeg" && w0Plain0 !== "gh" && w0Plain0 !== "pdftoppm" && w0Plain0 !== "pdftocairo" && w0Plain0 !== "mmdc" && w0Plain0 !== "pandoc" && w0Plain0 !== "soffice" && w0Plain0 !== "libreoffice" && w0Plain0 !== "ssconvert" && w0Plain0 !== "wkhtmltopdf" && w0Plain0 !== "op" && w0Plain0 !== "date" && w0Plain0 !== "printenv" && w0Plain0 !== "egrep" && w0Plain0 !== "fgrep" && w0Plain0 !== "yes" && w0Plain0 !== "cal" && w0Plain0 !== "ncal" && w0Plain0 !== "expr" && w0Plain0 !== "getopt" && w0Plain0 !== "pathchk" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
+      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || w0Plain0 === "seq" || cmd0YesStage || cmd0SysStage || cmd0StdinRedir || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && w0Plain0 !== "fmt" && w0Plain0 !== "md5sum" && w0Plain0 !== "sha1sum" && w0Plain0 !== "sha224sum" && w0Plain0 !== "sha256sum" && w0Plain0 !== "sha384sum" && w0Plain0 !== "sha512sum" && w0Plain0 !== "cksum" && w0Plain0 !== "base32" && w0Plain0 !== "base64" && w0Plain0 !== "csvcut" && w0Plain0 !== "csvgrep" && w0Plain0 !== "dos2unix" && w0Plain0 !== "unix2dos" && w0Plain0 !== "iconv" && w0Plain0 !== "gzip" && w0Plain0 !== "gunzip" && w0Plain0 !== "zcat" && w0Plain0 !== "unzstd" && w0Plain0 !== "zstdcat" && w0Plain0 !== "htmlq" && w0Plain0 !== "xmllint" && w0Plain0 !== "xq" && w0Plain0 !== "yq" && w0Plain0 !== "mdq" && w0Plain0 !== "shuf" && w0Plain0 !== "html-to-markdown" && w0Plain0 !== "unrtf" && w0Plain0 !== "pr" && w0Plain0 !== "file" && w0Plain0 !== "diff3" && w0Plain0 !== "cmp" && w0Plain0 !== "which" && w0Plain0 !== "diff" && w0Plain0 !== "xan" && w0Plain0 !== "less" && w0Plain0 !== "more" && w0Plain0 !== "df" && w0Plain0 !== "du" && w0Plain0 !== "tree" && w0Plain0 !== "stat" && w0Plain0 !== "fd" && w0Plain0 !== "rg" && w0Plain0 !== "readlink" && w0Plain0 !== "realpath" && w0Plain0 !== "ls" && w0Plain0 !== "find" && w0Plain0 !== "csvlook" && w0Plain0 !== "csvjson" && w0Plain0 !== "csvsort" && w0Plain0 !== "csvformat" && w0Plain0 !== "csvstat" && w0Plain0 !== "in2csv" && w0Plain0 !== "csvstack" && w0Plain0 !== "csvjoin" && w0Plain0 !== "dd" && w0Plain0 !== "env" && w0Plain0 !== "xargs" && w0Plain0 !== "openssl" && w0Plain0 !== "sqlite3" && w0Plain0 !== "gpg" && w0Plain0 !== "ssh" && w0Plain0 !== "ssh-keygen" && w0Plain0 !== "pdfinfo" && w0Plain0 !== "pdffonts" && w0Plain0 !== "pdftotext" && w0Plain0 !== "pdftohtml" && w0Plain0 !== "exiftool" && w0Plain0 !== "qpdf" && w0Plain0 !== "pdftk" && w0Plain0 !== "sips" && w0Plain0 !== "identify" && w0Plain0 !== "magick" && w0Plain0 !== "convert" && w0Plain0 !== "pdfimages" && w0Plain0 !== "pdfdetach" && w0Plain0 !== "ffprobe" && w0Plain0 !== "ffmpeg" && w0Plain0 !== "gh" && w0Plain0 !== "pdftoppm" && w0Plain0 !== "pdftocairo" && w0Plain0 !== "mmdc" && w0Plain0 !== "pandoc" && w0Plain0 !== "soffice" && w0Plain0 !== "libreoffice" && w0Plain0 !== "ssconvert" && w0Plain0 !== "wkhtmltopdf" && w0Plain0 !== "op" && w0Plain0 !== "date" && w0Plain0 !== "printenv" && w0Plain0 !== "egrep" && w0Plain0 !== "fgrep" && w0Plain0 !== "yes" && w0Plain0 !== "cal" && w0Plain0 !== "ncal" && w0Plain0 !== "expr" && w0Plain0 !== "getopt" && w0Plain0 !== "pathchk" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
       const n = pipeline.commands.length;
       const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
@@ -28599,7 +28748,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || ((sName !== "cat" || startStageIdx === 0) && sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "hexdump" && sName !== "hd" && sName !== "fmt" && sName !== "md5sum" && sName !== "sha1sum" && sName !== "sha224sum" && sName !== "sha256sum" && sName !== "sha384sum" && sName !== "sha512sum" && sName !== "cksum" && sName !== "base32" && sName !== "base64" && sName !== "csvcut" && sName !== "csvgrep" && sName !== "dos2unix" && sName !== "unix2dos" && sName !== "iconv" && sName !== "gzip" && sName !== "gunzip" && sName !== "zcat" && sName !== "unzstd" && sName !== "zstdcat" && sName !== "htmlq" && sName !== "xmllint" && sName !== "xq" && sName !== "yq" && sName !== "mdq" && sName !== "shuf" && sName !== "html-to-markdown" && sName !== "unrtf" && sName !== "pr" && sName !== "file" && sName !== "diff3" && sName !== "cmp" && sName !== "which" && sName !== "diff" && sName !== "xan" && sName !== "less" && sName !== "more" && sName !== "df" && sName !== "du" && sName !== "tree" && sName !== "stat" && sName !== "fd" && sName !== "rg" && sName !== "readlink" && sName !== "realpath" && sName !== "ls" && sName !== "find" && sName !== "csvlook" && sName !== "csvjson" && sName !== "csvsort" && sName !== "csvformat" && sName !== "csvstat" && sName !== "in2csv" && sName !== "csvstack" && sName !== "csvjoin" && sName !== "dd" && sName !== "xargs" && sName !== "openssl" && sName !== "sqlite3" && sName !== "gpg" && sName !== "ssh" && sName !== "ssh-keygen" && sName !== "pdfinfo" && sName !== "pdffonts" && sName !== "pdftotext" && sName !== "pdftohtml" && sName !== "exiftool" && sName !== "qpdf" && sName !== "pdftk" && sName !== "sips" && sName !== "identify" && sName !== "magick" && sName !== "convert" && sName !== "pdfimages" && sName !== "pdfdetach" && sName !== "ffprobe" && sName !== "ffmpeg" && sName !== "gh" && sName !== "pdftoppm" && sName !== "pdftocairo" && sName !== "mmdc" && sName !== "pandoc" && sName !== "soffice" && sName !== "libreoffice" && sName !== "ssconvert" && sName !== "wkhtmltopdf" && sName !== "op" && sName !== "date" && sName !== "cal" && sName !== "ncal" && sName !== "getopt" && sName !== "pathchk" && sName !== "printenv" && sName !== "env" && sName !== "egrep" && sName !== "fgrep" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || ((sName !== "cat" || startStageIdx === 0) && sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "xxd" && sName !== "od" && sName !== "hexdump" && sName !== "hd" && sName !== "fmt" && sName !== "md5sum" && sName !== "sha1sum" && sName !== "sha224sum" && sName !== "sha256sum" && sName !== "sha384sum" && sName !== "sha512sum" && sName !== "cksum" && sName !== "base32" && sName !== "base64" && sName !== "csvcut" && sName !== "csvgrep" && sName !== "dos2unix" && sName !== "unix2dos" && sName !== "iconv" && sName !== "gzip" && sName !== "gunzip" && sName !== "zcat" && sName !== "unzstd" && sName !== "zstdcat" && sName !== "htmlq" && sName !== "xmllint" && sName !== "xq" && sName !== "yq" && sName !== "mdq" && sName !== "shuf" && sName !== "html-to-markdown" && sName !== "unrtf" && sName !== "pr" && sName !== "file" && sName !== "diff3" && sName !== "cmp" && sName !== "which" && sName !== "diff" && sName !== "xan" && sName !== "less" && sName !== "more" && sName !== "df" && sName !== "du" && sName !== "tree" && sName !== "stat" && sName !== "fd" && sName !== "rg" && sName !== "readlink" && sName !== "realpath" && sName !== "ls" && sName !== "find" && sName !== "csvlook" && sName !== "csvjson" && sName !== "csvsort" && sName !== "csvformat" && sName !== "csvstat" && sName !== "in2csv" && sName !== "csvstack" && sName !== "csvjoin" && sName !== "dd" && sName !== "xargs" && sName !== "openssl" && sName !== "sqlite3" && sName !== "gpg" && sName !== "ssh" && sName !== "ssh-keygen" && sName !== "pdfinfo" && sName !== "pdffonts" && sName !== "pdftotext" && sName !== "pdftohtml" && sName !== "exiftool" && sName !== "qpdf" && sName !== "pdftk" && sName !== "sips" && sName !== "identify" && sName !== "magick" && sName !== "convert" && sName !== "pdfimages" && sName !== "pdfdetach" && sName !== "ffprobe" && sName !== "ffmpeg" && sName !== "gh" && sName !== "pdftoppm" && sName !== "pdftocairo" && sName !== "mmdc" && sName !== "pandoc" && sName !== "soffice" && sName !== "libreoffice" && sName !== "ssconvert" && sName !== "wkhtmltopdf" && sName !== "op" && sName !== "date" && sName !== "cal" && sName !== "ncal" && sName !== "getopt" && sName !== "pathchk" && sName !== "printenv" && sName !== "env" && sName !== "egrep" && sName !== "fgrep" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -28682,9 +28831,9 @@ export class Runtime {
         } else if (sName === "bc") {
           if (this.evalSyncBc("0", sArgs) === undefined) return undefined;
         } else if (sName === "xxd") {
-          if (this.evalSyncXxd(EMPTY_BYTES, sArgs) === undefined) return undefined;
+          if (this.evalSyncXxd(EMPTY_BYTES, sArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) return undefined;
         } else if (sName === "od") {
-          if (this.evalSyncOd(EMPTY_BYTES, sArgs) === undefined) return undefined;
+          if (this.evalSyncOd(EMPTY_BYTES, sArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) return undefined;
         } else if (sName === "factor") {
           if (this.evalSyncFactor(["2"], sArgs) === undefined) return undefined;
         } else if (sName === "tsort") {
@@ -28692,7 +28841,7 @@ export class Runtime {
         } else if (sName === "envsubst") {
           if (this.evalSyncEnvsubst("", sArgs, rawState) === undefined) return undefined;
         } else if (sName === "hexdump" || sName === "hd") {
-          if (this.evalSyncHexdump(new Uint8Array([97]), sArgs, sName === "hd") === undefined) return undefined;
+          if (this.evalSyncHexdump(new Uint8Array([97]), sArgs, sName === "hd", (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) return undefined;
         } else if (sName === "fmt") {
           if (this.evalSyncFmt(EMPTY_BYTES, sArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) return undefined;
         } else if (sName === "md5sum" || sName === "sha1sum" || sName === "sha224sum" || sName === "sha256sum" || sName === "sha384sum" || sName === "sha512sum" || sName === "cksum") {
@@ -29448,10 +29597,10 @@ export class Runtime {
                       : firstName === "csvgrep"
                         ? evalSyncCsvgrep(rawBytes, stageArgs, readFile)
                       : firstName === "xxd"
-                        ? this.evalSyncXxd(rawBytes, stageArgs)
+                        ? this.evalSyncXxd(rawBytes, stageArgs, readFile)
                         : firstName === "od"
-                          ? this.evalSyncOd(rawBytes, stageArgs)
-                          : this.evalSyncHexdump(rawBytes, stageArgs, firstName === "hd"));
+                          ? this.evalSyncOd(rawBytes, stageArgs, readFile)
+                          : this.evalSyncHexdump(rawBytes, stageArgs, firstName === "hd", readFile));
               if (outStr === undefined) return undefined;
               const encoded = fastSharedTextEncoder.encode(outStr);
               const nextTotalBytes = this.budget.bytes + encoded.byteLength;
@@ -30050,7 +30199,8 @@ export class Runtime {
           const view = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fileArg));
           // The text shortcut must not decode arbitrary file bytes or strip a BOM.
           // Non-ASCII file inputs use normal execution, which owns their raw ShellValue.
-          if (view && view.byteLength <= 16384 && !view.includes(0) && (hasSingleHereStringRedir || view.every(byte => byte < 128))) {
+          const isBinaryViewTool = w0Plain === "xxd" || w0Plain === "od" || w0Plain === "hexdump" || w0Plain === "hd";
+          if (view && view.byteLength <= 16384 && (isBinaryViewTool || (!view.includes(0) && (hasSingleHereStringRedir || view.every(byte => byte < 128))))) {
             const fileStr = hasSingleHereStringRedir ? hereStrVal! : sharedSyncPipeDecoder.decode(view);
             // Record-based shortcuts below serialize complete newline-terminated records.
             // Let normal commands preserve partial final records when reading files.
@@ -30189,7 +30339,7 @@ export class Runtime {
               const bcRes = this.evalSyncBc(fileStr.trim(), opArgs);
               if (bcRes !== undefined) fileRes = renderLines(bcRes);
             } else if (w0Plain === "xxd") {
-              fileRes = this.evalSyncXxd(view, opArgs);
+              fileRes = this.evalSyncXxd(view, opArgs, undefined, !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : undefined);
             } else if (w0Plain === "od") {
               fileRes = this.evalSyncOd(view, opArgs);
             } else if (w0Plain === "hexdump" || w0Plain === "hd") {

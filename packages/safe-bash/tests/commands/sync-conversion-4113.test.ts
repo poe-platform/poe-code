@@ -1,3 +1,6 @@
+import { hexdumpCommands } from "../../src/commands/hexdump/index.js";
+import { odCommands } from "../../src/commands/od/index.js";
+import { xxdCommands } from "../../src/commands/xxd/index.js";
 import { envCommands } from "../../src/commands/env/index.js";
 import { printenvCommands } from "../../src/commands/printenv/index.js";
 import { realpathCommands } from "../../src/commands/realpath/index.js";
@@ -1081,5 +1084,31 @@ test("evaluates iconv -o/multi-file/-sc, dos2unix -q/-qn/bundled flags, and xarg
   assert.equal(
     res.stdout.trim(),
     "caf nave|caf nave|l1$:l2$:|a b:c:"
+  );
+});
+
+test("evaluates xxd default/-i/file stage, od -Ax/-tc/file stage, and hexdump -n/-s/file stage in sync substitutions (Wave 209)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  await fs.writeFile("/tmp/bin.dat", new TextEncoder().encode("AB\n"));
+  const shell = new Shell({ fs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(xxdCommands())
+    .use(odCommands())
+    .use(hexdumpCommands());
+  const res = await shell.exec(`
+    for i in 1 2 3; do
+      x1=\$(xxd -g 1 /tmp/bin.dat)
+      x2=\$(xxd -i /tmp/bin.dat | tr "\\n" "|")
+      o1=\$(od -Ax -tx1 /tmp/bin.dat | head -n 1)
+      o2=\$(od -An -tc /tmp/bin.dat)
+      h1=\$(hexdump -C -n2 /tmp/bin.dat | head -n 1)
+    done
+    printf "%s#%s#%s#%s#%s\\n" "\$x1" "\$x2" "\$o1" "\$o2" "\$h1"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "00000000: 41 42 0a                                         AB.#unsigned char _tmp_bin_dat[] = {|  0x41, 0x42, 0x0a|};|unsigned int _tmp_bin_dat_len = 3;|#000000 41 42 0a#   A   B  \\n#00000000  41 42                                             |AB|"
   );
 });

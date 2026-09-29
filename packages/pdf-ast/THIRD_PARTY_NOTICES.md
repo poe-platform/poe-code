@@ -12,6 +12,14 @@ Adaptations use the local byte-offset/token API, preserve explicit token budgets
 and existing exponent support, and translate Jasmine assertions to Vitest. These
 files have been modified from the upstream originals.
 
+The content operator vocabulary, known-command token boundaries, and operand
+recovery in `src/content/operators.ts`, `src/content/parser.ts`, and
+`src/cos/lexer.ts` follow PDF.js `EvaluatorPreprocessor` and `Lexer`. The cases
+in `src/content/pdfjs-operators.test.ts` are adapted from
+`test/unit/evaluator_spec.js` at the same revision. Nested text assertions use
+`BT`/`ET` to expose local text AST nodes; unmatched `Q` is omitted from the local
+balanced group representation. Copyright 2017 Mozilla Foundation, Apache-2.0.
+
 Source: https://github.com/mozilla/pdf.js
 
 # qpdf

@@ -1,3 +1,7 @@
+/* Command recovery adapted from Mozilla PDF.js EvaluatorPreprocessor.
+ * Copyright 2017 Mozilla Foundation. Licensed under Apache-2.0.
+ * See THIRD_PARTY_NOTICES.md and licenses/PDFJS-APACHE-2.0.txt.
+ */
 import {
   decodePdfString,
   dictGet,
@@ -12,6 +16,9 @@ import {
   type PdfTextCommand,
 } from "../ast.js";
 import { CosByteLexer, type CosToken, isPdfDelimiter, isPdfWhitespace } from "../cos/lexer.js";
+
+import { PdfError } from "../errors.js";
+import { PDF_KNOWN_COMMANDS, PDF_OPERATOR_ARITIES, PDF_PATH_OPERATORS, PDF_VARIABLE_OPERATORS } from "./operators.js";
 
 const PATH_PAINT_OPS = new Set(["S", "s", "f", "F", "f*", "B", "B*", "b", "b*", "n"]);
 
@@ -117,10 +124,13 @@ function looksLikePostEiContentStream(bytes: Uint8Array, posAfterEi: number): bo
 }
 
 export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
-  const lexer = new CosByteLexer(bytes);
+  const lexer = new CosByteLexer(bytes, 0, bytes.length, Infinity, PDF_KNOWN_COMMANDS);
   const rootNodes: PdfContentNode[] = [];
   const stack: Array<{ target: PdfContentNode[] }> = [{ target: rootNodes }];
   const operands: PdfCosNode[] = [];
+  const nonProcessedArgs: PdfCosNode[] = [];
+  let previousWasPath = false;
+  let invalidPathCount = 0;
 
   let inText = false;
   let textContinuation = false;
@@ -151,12 +161,29 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
     if (!tok) break;
 
     if (tok.kind !== "keyword") {
-      operands.push(parseOperandToken(tok, lexer));
+      const operand = parseOperandToken(tok, lexer);
+      if (operand.kind !== "null") operands.push(operand);
+      if (operands.length > 33) throw new PdfError("E_PARSE", "Too many arguments");
       continue;
     }
 
     const op = tok.value;
+    const variable = PDF_VARIABLE_OPERATORS.has(op);
+    const count = Object.hasOwn(PDF_OPERATOR_ARITIES, op) ? PDF_OPERATOR_ARITIES[op]! : undefined;
+    if (count === undefined && !variable) continue;
     const args = operands.splice(0, operands.length);
+    if (!previousWasPath) invalidPathCount = 0;
+    previousWasPath = PDF_PATH_OPERATORS.has(op);
+    if (!variable && count !== undefined) {
+      while (args.length > count) nonProcessedArgs.push(args.shift()!);
+      while (args.length < count && nonProcessedArgs.length > 0) args.unshift(nonProcessedArgs.pop()!);
+      if (args.length < count) {
+        if (previousWasPath && ++invalidPathCount > 10) {
+          throw new PdfError("E_PARSE", `Invalid command ${op}: expected ${count} args, but received ${args.length} args.`);
+        }
+        continue;
+      }
+    }
 
     if (op === "BI") {
       const entries: PdfDictEntry[] = [];

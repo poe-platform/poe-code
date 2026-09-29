@@ -50,7 +50,9 @@ export class CosByteLexer {
   readonly end: number;
   readonly maxTokenBytes: number;
 
-  constructor(bytes: Uint8Array, start = 0, end = bytes.length, maxTokenBytes = Infinity) {
+  constructor(bytes: Uint8Array, start = 0, end = bytes.length, maxTokenBytes = Infinity,
+    readonly knownCommands?: ReadonlySet<string>
+  ) {
     this.bytes = bytes;
     this.pos = start;
     this.end = end;
@@ -132,19 +134,19 @@ export class CosByteLexer {
       return { kind: "keyword", value: String.fromCharCode(b), span: { start, end: this.pos } };
     }
 
+    let raw = "";
     while (this.pos < this.end) {
       const cur = this.bytes[this.pos]!;
       if (isPdfWhitespace(cur) || isPdfDelimiter(cur)) break;
+      const next = raw + String.fromCharCode(cur);
+      if (this.knownCommands?.has(raw) && !this.knownCommands.has(next)) break;
+      raw = next;
       this.pos++;
       if (this.pos - start > this.maxTokenBytes) {
         throw new PdfError("E_LIMIT", "PDF token exceeds maximum byte length");
       }
     }
 
-    let raw = "";
-    for (let i = start; i < this.pos; i++) {
-      raw += String.fromCharCode(this.bytes[i]!);
-    }
     const span: ByteSpan = { start, end: this.pos };
 
     if (raw === "true") return { kind: "boolean", value: true, span };

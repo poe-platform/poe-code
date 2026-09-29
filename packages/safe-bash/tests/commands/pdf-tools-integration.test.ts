@@ -12,7 +12,7 @@ import {
 } from "@poe-code/pdf-ast";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { parseDocument } from "htmlparser2";
+import { DomUtils, parseDocument } from "htmlparser2";
 import { Shell, createMemoryFileSystem } from "../../src/index.js";
 import { pdfinfoCommands } from "../../src/commands/pdfinfo/index.js";
 import { pdftoppmPlugin } from "../../src/commands/pdftoppm/index.js";
@@ -371,7 +371,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     const svg = parseDocument(svgContent, { xmlMode: true }).children.find(node => node.type === "tag" && node.name === "svg");
     assert.ok(svg?.type === "tag");
     assert.equal(svg.attribs.viewBox, "0 0 300 200");
-    const glyphs = svg.children.filter(node => node.type === "tag" && node.name === "path" && node.attribs["aria-label"] !== undefined);
+    const glyphs = DomUtils.findAll(node => node.name === "path" && node.attribs["aria-label"] !== undefined, svg.children);
     assert.equal(glyphs.map(node => node.type === "tag" ? node.attribs["aria-label"] : "").join(""), "Packet Page 1");
     for (const glyph of glyphs) {
       assert.ok(glyph.type === "tag");

@@ -857,7 +857,7 @@ function* runSofficeSteps(
             ? { kind: "heading", text: l.slice(2).trim() }
             : { kind: "paragraph", text: l }
         );
-        outBytes = targetExt === "pdf" ? renderBlocksToPdf(blocks, stem) : targetExt === "html" ? renderBlocksToHtml(blocks, stem) : inputBytes;
+        outBytes = targetExt === "pdf" ? renderBlocksToPdf(blocks, stem) : targetExt === "docx" ? buildDocxFromBlocks(blocks) : targetExt === "html" ? renderBlocksToHtml(blocks, stem) : inputBytes;
       }
 
       if (targetExt === "pdf" && filterOpts && filterOpts.trim().startsWith("{")) {

@@ -1,3 +1,9 @@
+import { truncateCommands } from "../../src/commands/truncate/index.js";
+import { timeoutCommands } from "../../src/commands/timeout/index.js";
+import { sofficeCommands } from "../../src/commands/soffice/index.js";
+import { mmdcCommands } from "../../src/commands/mmdc/index.js";
+import { pdftotextCommands } from "../../src/commands/pdftotext/index.js";
+import { pdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
 import { tsortCommands } from "../../src/commands/tsort/index.js";
 import { hexdumpCommands } from "../../src/commands/hexdump/index.js";
 import { odCommands } from "../../src/commands/od/index.js";
@@ -1692,129 +1698,156 @@ test("Wave 228: tar -xvf -C directory extraction and unzip -t / unzip -qo -d ext
     res.stdout.trim(),
     "pkg/hello.txt|tar-extracted|No errors detected in compressed data of /tmp/w228/pkg.zip.|tar-extracted"
   );
+});
 
-  it("supports truncate relative clamping/-r modes, csplit repeated regex {*}/{N}, and patch -o -/new-file/no-newline in sync command substitutions (Wave 229)", async () => {
-    const shell = createShell();
-    const res = await shell.exec(`
-      out=""
-      for i in 1 2; do
-        printf "hello" > /tmp/w229_small.txt
-        printf "0123456789" > /tmp/w229_ref.txt
-        t_clamp=\$(truncate -s -100 /tmp/w229_small.txt && wc -c < /tmp/w229_small.txt | tr -d " ")
-        printf "abc" > /tmp/w229_gt.txt
-        t_ref_gt=\$(truncate -r /tmp/w229_ref.txt -s ">6" /tmp/w229_gt.txt && wc -c < /tmp/w229_gt.txt | tr -d " ")
-        printf "header\n===\nsec1\n===\nsec2\n===\nsec3\n" > /tmp/w229_cs.txt
-        cs_out=\$(csplit -f /tmp/w229_xx -b "%02d" /tmp/w229_cs.txt "/^===$/" "{*}" | tr "\n" ",")
-        cs_f1=\$(cat /tmp/w229_xx01 | tr "\n" "|")
-        cs_f3=\$(cat /tmp/w229_xx03 | tr "\n" "|")
-        printf "a\nb\n" > /tmp/w229_orig.txt
-        printf -- "--- a/w229_orig.txt\n+++ b/w229_orig.txt\n@@ -1,2 +1,2 @@\n a\n-b\n+B\n\\ No newline at end of file\n" > /tmp/w229.patch
-        p_stdout=\$(patch -s -o - /tmp/w229_orig.txt /tmp/w229.patch)
-        rm -f /tmp/w229_new.txt
-        printf -- "--- /dev/null\n+++ b/w229_new.txt\n@@ -0,0 +1,2 @@\n+first\n+second\n" > /tmp/w229_new.patch
-        p_new=\$(patch -s /tmp/w229_new.txt /tmp/w229_new.patch && cat /tmp/w229_new.txt | tr "\n" "|")
-        out="${t_clamp}:${t_ref_gt}:${cs_out}:${cs_f1}:${cs_f3}:${p_stdout}:${p_new}"
-      done
-      printf "%s\n" "\$out"
-    `);
-    assert.equal(res.exitCode, 0, res.stderr);
-    assert.equal(
-      res.stdout.trim(),
-      "0:10:7,9,9,9,:===|sec1|:===|sec3|:a\nB:first|second|",
-    );
-  });
+test("Wave 229: truncate relative clamping/-r modes, csplit repeated regex {*}/{N}, and patch -o -/new-file/no-newline in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(truncateCommands())
+    .use(csplitCommands())
+    .use(diffPatchCommands());
+  const res = await shell.exec(`
+    out=""
+    for i in 1 2; do
+      printf "hello" > /tmp/w229_small.txt
+      printf "0123456789" > /tmp/w229_ref.txt
+      t_clamp=$(truncate -s -100 /tmp/w229_small.txt && wc -c < /tmp/w229_small.txt | tr -d " ")
+      printf "abc" > /tmp/w229_gt.txt
+      t_ref_gt=$(truncate -r /tmp/w229_ref.txt -s ">6" /tmp/w229_gt.txt && wc -c < /tmp/w229_gt.txt | tr -d " ")
+      printf "header\\n===\\nsec1\\n===\\nsec2\\n===\\nsec3\\n" > /tmp/w229_cs.txt
+      cs_out=$(csplit -f /tmp/w229_xx -b "%02d" /tmp/w229_cs.txt "/^===$/" "{*}" | tr "\\n" ",")
+      cs_f1=$(cat /tmp/w229_xx01 | tr "\\n" "|")
+      cs_f3=$(cat /tmp/w229_xx03 | tr "\\n" "|")
+      printf "a\\nb\\n" > /tmp/w229_orig.txt
+      printf -- "--- a/w229_orig.txt\\n+++ b/w229_orig.txt\\n@@ -1,2 +1,2 @@\\n a\\n-b\\n+B\\n\\\\ No newline at end of file\\n" > /tmp/w229.patch
+      p_stdout=$(patch -s -o - /tmp/w229_orig.txt /tmp/w229.patch)
+      rm -f /tmp/w229_new.txt
+      printf -- "--- /dev/null\\n+++ b/w229_new.txt\\n@@ -0,0 +1,2 @@\\n+first\\n+second\\n" > /tmp/w229_new.patch
+      p_new=$(patch -s /tmp/w229_new.txt /tmp/w229_new.patch && cat /tmp/w229_new.txt | tr "\\n" "|")
+      out="\${t_clamp}:\${t_ref_gt}:\${cs_out}:\${cs_f1}:\${cs_f3}:\${p_stdout}:\${p_new}"
+    done
+    printf "%s\\n" "$out"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "0:10:7,9,9,9,:===|sec1|:===|sec3|:a\nB:first|second|",
+  );
+});
 
-  it("supports mkdir symbolic modes (-m u=rwx,go=rx), ln -sr relative symlinks, and rm -rv recursive verbose/symlink removal in sync command substitutions (Wave 230)", async () => {
-    const shell = createShell();
-    const res = await shell.exec(`
-      out=""
-      for i in 1 2; do
-        rm -rf /tmp/w230_tree /tmp/w230_symdir
-        mk_out=\$(mkdir -v -m u=rwx,g=rx,o= /tmp/w230_symdir && stat -c "%a" /tmp/w230_symdir)
-        mkdir -p /tmp/w230_tree/a/b /tmp/w230_tree/a/c
-        printf "target-data" > /tmp/w230_tree/a/b/file.txt
-        ln_out=\$(ln -srv /tmp/w230_tree/a/b/file.txt /tmp/w230_tree/a/c/link.txt)
-        rl_out=\$(readlink /tmp/w230_tree/a/c/link.txt)
-        rm_sym=\$(rm -v /tmp/w230_tree/a/c/link.txt)
-        rm_tree=\$(rm -rv /tmp/w230_tree/a | tr "\n" "|")
-        out="${mk_out}|${ln_out}|${rl_out}|${rm_sym}|${rm_tree}"
-      done
-      printf "%s\n" "\$out"
-    `);
-    assert.equal(res.exitCode, 0, res.stderr);
-    assert.equal(
-      res.stdout.trim(),
-      "mkdir: created directory '/tmp/w230_symdir'\n750|'/tmp/w230_tree/a/c/link.txt' -> '../b/file.txt'|../b/file.txt|removed '/tmp/w230_tree/a/c/link.txt'|removed '/tmp/w230_tree/a/b/file.txt'|removed '/tmp/w230_tree/a/b'|removed '/tmp/w230_tree/a/c'|removed '/tmp/w230_tree/a'|",
-    );
-  });
+test("Wave 230: mkdir symbolic modes (-m u=rwx,go=rx), ln -sr relative symlinks, and rm -rv recursive verbose/symlink removal in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(metadataCommands());
+  const res = await shell.exec(`
+    out=""
+    for i in 1 2; do
+      rm -rf /tmp/w230_tree /tmp/w230_symdir
+      mk_out=$(mkdir -v -m u=rwx,g=rx,o= /tmp/w230_symdir && stat -c "%a" /tmp/w230_symdir)
+      mkdir -p /tmp/w230_tree/a/b /tmp/w230_tree/a/c
+      printf "target-data" > /tmp/w230_tree/a/b/file.txt
+      ln_out=$(ln -srv /tmp/w230_tree/a/b/file.txt /tmp/w230_tree/a/c/link.txt)
+      rl_out=$(readlink /tmp/w230_tree/a/c/link.txt)
+      rm_sym=$(rm -v /tmp/w230_tree/a/c/link.txt)
+      rm_tree=$(rm -rv /tmp/w230_tree/a | tr "\\n" "|")
+      out="\${mk_out}|\${ln_out}|\${rl_out}|\${rm_sym}|\${rm_tree}"
+    done
+    printf "%s\\n" "$out"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "mkdir: created directory '/tmp/w230_symdir'\n750|'/tmp/w230_tree/a/c/link.txt' -> '../b/file.txt'|../b/file.txt|removed '/tmp/w230_tree/a/c/link.txt'|removed '/tmp/w230_tree/a/b/file.txt'|removed '/tmp/w230_tree/a/b'|removed '/tmp/w230_tree/a/c'|removed '/tmp/w230_tree/a'|",
+  );
+});
 
-  it("supports env -S/--split-string, xargs cat/wc/head/tail, and timeout -s/-k 0/0 duration in sync command substitutions (Wave 231)", async () => {
-    const shell = createShell();
-    const res = await shell.exec(`
-      export W231_PREFIX="prod"
-      printf "alpha\\nbeta\\ngamma\\n" > /tmp/w231_a.txt
-      printf "delta\\nepsilon\\n" > /tmp/w231_b.txt
-      out=""
-      for i in 1 2; do
-        env_s=\$(env -S 'APP=\${W231_PREFIX}_svc printenv APP')
-        x_cat=\$(printf "/tmp/w231_a.txt\\n/tmp/w231_b.txt\\n" | xargs cat -n | tr "\\n" "|")
-        x_wc=\$(printf "/tmp/w231_a.txt\\n/tmp/w231_b.txt\\n" | xargs wc -l | tr -s " " | tr "\\n" "|")
-        x_head=\$(printf "/tmp/w231_a.txt\\n/tmp/w231_b.txt\\n" | xargs head -q -n 1 | tr "\\n" ",")
-        to_sig=\$(timeout -s TERM -k 0 5s printf "%s=%d," k1 10 k2 20)
-        to_zero=\$(timeout 0 basename /usr/local/bin/tool.sh .sh)
-        out="\${env_s}|\${x_head}|\${to_sig}|\${to_zero}"
-      done
-      printf "%s\\n" "\$out"
-    `);
-    assert.equal(res.exitCode, 0, res.stderr);
-    assert.equal(
-      res.stdout.trim(),
-      "prod_svc|alpha,delta,|k1=10,k2=20,|tool",
-    );
-  });
+test("Wave 231: env -S/--split-string, xargs cat/wc/head/tail, and timeout -s/-k 0/0 duration in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(printenvCommands())
+    .use(timeoutCommands());
+  const res = await shell.exec(`
+    export W231_PREFIX="prod"
+    printf "alpha\\nbeta\\ngamma\\n" > /tmp/w231_a.txt
+    printf "delta\\nepsilon\\n" > /tmp/w231_b.txt
+    out=""
+    for i in 1 2; do
+      env_s=$(env -S 'APP=\${W231_PREFIX}_svc printenv APP')
+      x_cat=$(printf "/tmp/w231_a.txt\\n/tmp/w231_b.txt\\n" | xargs cat -n | tr "\\n" "|")
+      x_wc=$(printf "/tmp/w231_a.txt\\n/tmp/w231_b.txt\\n" | xargs wc -l | tr -s " " | tr "\\n" "|")
+      x_head=$(printf "/tmp/w231_a.txt\\n/tmp/w231_b.txt\\n" | xargs head -q -n 1 | tr "\\n" ",")
+      to_sig=$(timeout -s TERM -k 0 5s printf "%s=%d," k1 10 k2 20)
+      to_zero=$(timeout 0 basename /usr/local/bin/tool.sh .sh)
+      out="\${env_s}|\${x_head}|\${to_sig}|\${to_zero}"
+    done
+    printf "%s\\n" "$out"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "prod_svc|alpha,delta,|k1=10,k2=20,|tool",
+  );
+});
 
-  it("supports soffice --convert-to, mmdc -o/-c file output, and sips/qpdf/pdftk output persistence in sync command substitutions (Wave 232)", async () => {
-    const shell = createShell();
-    const res = await shell.exec(`
-      printf "Hello LibreOffice\\nLine Two\\n" > /tmp/w232_note.txt
-      printf "graph TD\\n  A[Start] --> B[End]\\n" > /tmp/w232_chart.mmd
-      printf '{"theme":"dark","svgId":"w232_id"}' > /tmp/w232_cfg.json
-      out=""
-      for i in 1 2; do
-        rm -f /tmp/w232_note.docx /tmp/w232_chart.svg
-        so_msg=\$(soffice --headless --convert-to docx --outdir /tmp /tmp/w232_note.txt)
-        so_cat=\$(soffice --cat /tmp/w232_note.docx | tr "\\n" "|")
-        mm_out=\$(mmdc -i /tmp/w232_chart.mmd -o /tmp/w232_chart.svg -c /tmp/w232_cfg.json && grep -o "w232_id" /tmp/w232_chart.svg | head -n 1)
-        out="\${so_cat}:\${mm_out}"
-      done
-      printf "%s\\n" "\$out"
-    `);
-    assert.equal(res.exitCode, 0, res.stderr);
-    assert.equal(
-      res.stdout.trim(),
-      "Hello LibreOffice|Line Two|:w232_id",
-    );
-  });
+test("Wave 232: soffice --convert-to, mmdc -o/-c file output, and sips/qpdf/pdftk output persistence in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(sofficeCommands())
+    .use(mmdcCommands());
+  const res = await shell.exec(`
+    printf "Hello LibreOffice\\nLine Two\\n" > /tmp/w232_note.txt
+    printf "graph TD\\n  A[Start] --> B[End]\\n" > /tmp/w232_chart.mmd
+    printf '{"theme":"dark"}' > /tmp/w232_cfg.json
+    out=""
+    for i in 1 2; do
+      rm -f /tmp/w232_note.docx /tmp/w232_chart.svg
+      so_msg=$(soffice --headless --convert-to docx --outdir /tmp /tmp/w232_note.txt)
+      so_cat=$(soffice --cat /tmp/w232_note.docx | tr "\\n" "|")
+      _=$(mmdc -i /tmp/w232_chart.mmd -o /tmp/w232_chart.svg -c /tmp/w232_cfg.json --svgId w232_id)
+      mm_out=$(grep -o "w232_id" /tmp/w232_chart.svg | head -n 1)
+      out="\${so_cat}:\${mm_out}"
+    done
+    printf "%s\\n" "$out"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "Hello LibreOffice|Line Two|:w232_id",
+  );
+});
 
-  it("supports pdftotext file output, pdftohtml file output, and pdftocairo -svg file output in sync command substitutions (Wave 233)", async () => {
-    const shell = createShell();
-    const res = await shell.exec(`
-      printf "PDF Wave 233 Content\\n" > /tmp/w233_src.txt
-      soffice --headless --convert-to pdf --outdir /tmp /tmp/w233_src.txt >/dev/null
-      out=""
-      for i in 1 2; do
-        rm -f /tmp/w233_out.txt /tmp/w233_out.html /tmp/w233_out.svg
-        pt_out=\$(pdftotext /tmp/w233_src.pdf /tmp/w233_out.txt && tr -d "\\n\\f" < /tmp/w233_out.txt)
-        ph_out=\$(pdftohtml -s /tmp/w233_src.pdf /tmp/w233_out.html >/dev/null && grep -o "PDF Wave 233 Content" /tmp/w233_out.html | head -n 1)
-        pc_out=\$(pdftocairo -svg /tmp/w233_src.pdf /tmp/w233_out.svg && grep -o "<svg" /tmp/w233_out.svg | head -n 1)
-        out="\${pt_out}|\${ph_out}|\${pc_out}"
-      done
-      printf "%s\\n" "\$out"
-    `);
-    assert.equal(res.exitCode, 0, res.stderr);
-    assert.equal(
-      res.stdout.trim(),
-      "PDF Wave 233 Content|PDF Wave 233 Content|<svg",
-    );
-  });
+test("Wave 233: pdftotext file output, pdftohtml file output, and pdftocairo -svg file output in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(sofficeCommands())
+    .use(pdftotextCommands())
+    .use(pdftoppmCommands());
+  const res = await shell.exec(`
+    printf "PDF Wave 233 Content\\n" > /tmp/w233_src.txt
+    soffice --headless --convert-to pdf --outdir /tmp /tmp/w233_src.txt >/dev/null
+    out=""
+    for i in 1 2; do
+      rm -f /tmp/w233_out.txt /tmp/w233_out.html /tmp/w233_out.svg
+      pt_out=$(pdftotext /tmp/w233_src.pdf /tmp/w233_out.txt && tr -d "\\n\\f" < /tmp/w233_out.txt)
+      ph_out=$(pdftohtml -s /tmp/w233_src.pdf /tmp/w233_out.html >/dev/null && grep -o "PDF Wave 233 Content" /tmp/w233_out.html | head -n 1)
+      pc_out=$(pdftocairo -svg /tmp/w233_src.pdf /tmp/w233_out.svg && grep -o "<svg" /tmp/w233_out.svg | head -n 1)
+      out="\${pt_out}|\${ph_out}|\${pc_out}"
+    done
+    printf "%s\\n" "$out"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "PDF Wave 233 Content|PDF Wave 233 Content|<svg",
+  );
 });

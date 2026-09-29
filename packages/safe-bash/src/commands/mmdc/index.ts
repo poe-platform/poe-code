@@ -57,10 +57,12 @@ export function evalSyncMmdc(
       const cfgBytes = readFileSync?.(parsed.configFile);
       if (!cfgBytes) return undefined;
       const cfg = JSON.parse(utf8Decoder.decode(cfgBytes)) as Record<string, unknown>;
+      if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) return undefined;
+      const allowedKeys = new Set(["theme", "rankGap", "nodeGap", "padding", "width", "height", "scale", "backgroundColor", "flowchart", "themeVariables"]);
+      if (Object.keys(cfg).some(k => !allowedKeys.has(k))) return undefined;
       if (typeof cfg.theme === "string") cfgTheme = cfg.theme;
       if (typeof cfg.width === "number") cfgWidth = cfg.width;
       if (typeof cfg.height === "number") cfgHeight = cfg.height;
-      if (typeof cfg.svgId === "string") cfgSvgId = cfg.svgId;
       if (typeof cfg.backgroundColor === "string") cfgBg = cfg.backgroundColor;
     }
     const rawBytes = parsed.input === "-" ? inBytes : readFileSync?.(parsed.input);

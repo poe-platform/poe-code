@@ -11739,7 +11739,10 @@ export class Runtime {
     const isMutatingCmdName = (n: string | undefined): boolean =>
       n === "mkdir" || n === "rmdir" || n === "rm" || n === "touch" || n === "cp" || n === "mv" || n === "ln" ||
       n === "chmod" || n === "install" || n === "truncate" || n === "sponge" || n === "apply_patch" ||
-      n === "patch" || n === "split" || n === "csplit" || n === "tee" || n === "mktemp";
+      n === "patch" || n === "split" || n === "csplit" || n === "tee" || n === "mktemp" ||
+      n === "soffice" || n === "libreoffice" || n === "mmdc" || n === "sips" || n === "qpdf" || n === "pdftk" ||
+      n === "pdftotext" || n === "pdftohtml" || n === "pdfimages" || n === "pdfdetach" || n === "pdftoppm" ||
+      n === "pdftocairo" || n === "sqlite3" || n === "openssl" || n === "tar" || n === "unzip" || n === "zip" || n === "dd";
     const scanWordForMutatingSub = (w: Word): void => {
       for (const pt of w.parts) {
         if (pt.kind === "substitution") {
@@ -11896,7 +11899,7 @@ export class Runtime {
     if (usesInduction && indName !== undefined && savedIndVal === undefined) {
       rawState.variables[indName] = "1";
     }
-    if (this._activeSyncLoopHasFileMutations || p.commands.some(c => c.kind === "simple" && (c.words[0]?.plain === "mktemp" || c.words[0]?.plain === "shuf" || c.words[0]?.plain === "sponge" || c.words[0]?.plain === "truncate" || c.words[0]?.plain === "install" || c.words[0]?.plain === "apply_patch" || c.words[0]?.plain === "split" || c.words[0]?.plain === "csplit" || c.words[0]?.plain === "tee" || c.words[0]?.plain === "touch" || c.words[0]?.plain === "cp" || c.words[0]?.plain === "mv" || c.words[0]?.plain === "rmdir" || c.words[0]?.plain === "chmod" || c.words[0]?.plain === "patch" || c.words[0]?.plain === "mkdir" || c.words[0]?.plain === "rm" || c.words[0]?.plain === "ln"))) {
+    if (this._activeSyncLoopHasFileMutations || p.commands.some(c => c.kind === "simple" && (c.words[0]?.plain === "mktemp" || c.words[0]?.plain === "shuf" || c.words[0]?.plain === "sponge" || c.words[0]?.plain === "truncate" || c.words[0]?.plain === "install" || c.words[0]?.plain === "apply_patch" || c.words[0]?.plain === "split" || c.words[0]?.plain === "csplit" || c.words[0]?.plain === "tee" || c.words[0]?.plain === "touch" || c.words[0]?.plain === "cp" || c.words[0]?.plain === "mv" || c.words[0]?.plain === "rmdir" || c.words[0]?.plain === "chmod" || c.words[0]?.plain === "patch" || c.words[0]?.plain === "mkdir" || c.words[0]?.plain === "rm" || c.words[0]?.plain === "ln" || c.words[0]?.plain === "soffice" || c.words[0]?.plain === "libreoffice" || c.words[0]?.plain === "mmdc" || c.words[0]?.plain === "sips" || c.words[0]?.plain === "qpdf" || c.words[0]?.plain === "pdftk" || c.words[0]?.plain === "pdftotext" || c.words[0]?.plain === "pdftohtml" || c.words[0]?.plain === "pdfimages" || c.words[0]?.plain === "pdfdetach" || c.words[0]?.plain === "pdftoppm" || c.words[0]?.plain === "pdftocairo" || c.words[0]?.plain === "sqlite3" || c.words[0]?.plain === "openssl" || c.words[0]?.plain === "tar" || c.words[0]?.plain === "unzip" || c.words[0]?.plain === "zip" || c.words[0]?.plain === "dd"))) {
       usesInduction = true;
     }
     let res: string | undefined;

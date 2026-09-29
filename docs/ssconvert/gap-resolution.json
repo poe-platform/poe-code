@@ -1009,9 +1009,9 @@
         "remaining": "Native XLSX formulas use fixed sheet areas; relative copying remains available through ssconvert source annotations, not native Excel/Calc copy semantics. Computed span export, ODF/Gnumeric/BIFF transport and negative-offset error qualification remain open. No issue/family closure.",
         "delivery": "58562411b5c24dccd575409ffd79d2917f535706; verified on remote main. Release publication remains unverified.",
         "transportInvestigation": {
-          "gnumeric": "Pinned gnumeric_index evaluates syntactic SET without reference flags (lines 1647, 1663-1673), so the XLSX reference-area representation cannot be reused unchanged. gnumeric_choose evaluates only the selected operand with PERMIT_NON_SCALAR (1132-1159); this is a candidate requiring native bounds/reference qualification, not an implemented exporter.",
+          "gnumeric": "Pinned gnumeric_index scalarizes SET sources; independent native cases confirm #REF! for 2/256-area INDEX, ROW and COLUMN. CHOOSE returns the correct values/references at both widths, but maps out-of-range and error selectors to #VALUE! instead of #REF!/#DIV/0!. Candidate rejected to avoid regressions; exporter remains open.",
           "odf": "Current ODF transport preserves the original relative reference directly. Calc ScIndex rejects a cross-sheet double reference, so native calculation needs a different representation. Replacing the relative span with fixed areas would lose standard ODF copy semantics; no such regression was introduced.",
-          "availability": "No ssconvert or docker executable is available on this host; the documented colima oracle cannot currently be invoked. Pinned source and Calc 26.8.0.3 remain available."
+          "availability": "Retained Gnumeric 1.12.61 was found outside PATH at out/ssconvert-native-current/runtime/bin/ssconvert. All 20 recorded binaries/libraries match native-identity.json hashes; --version succeeds with its retained schema directory. Docker/colima remains unavailable; this is the authenticated Darwin profile, not Linux."
         }
       }
     },
@@ -3011,6 +3011,27 @@
       "validation": "24 original failures across WK1 direct, WK3 direct and modern named functions now pass. All 451 tests in 22 Lotus files pass, as do package lint/types and selected build.",
       "publicQualification": "12 compiled SDK/command outputs across both XLSX editions independently preserve 96 translated formula/value pairs. Six Calc readbacks preserve all 48 fresh numeric results and live formulas. Direct opcode 243 retains its existing encountered-opcode diagnostic.",
       "remaining": "Optional INDEX sheet offset in #3478 and broader native Lotus input/format qualification remain open. No family closure."
+    },
+    "biffReferenceOperators": {
+      "issue": 3478,
+      "implementation": "BIFF formula writing dispatches parser union/intersection AST nodes to native list/intersection tokens 0x10/0x0f. The previous comma/space keys were unreachable and refused valid reference operations, including Lotus INDEX areas.",
+      "source": {
+        "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/inc/xlformula.hxx",
+        "sha256": "9d1751d6350419bae2457de8289d89ea784757c0fe72bc3630770675e5f494d4",
+        "matches": [
+          {
+            "line": 66,
+            "text": "const sal_uInt8 EXC_TOKID_ISECT             = 0x0F;     /// Intersection operator."
+          },
+          {
+            "line": 67,
+            "text": "const sal_uInt8 EXC_TOKID_LIST              = 0x10;     /// List operator."
+          }
+        ]
+      },
+      "validation": "Eight original failures now pass. All 1704 tests in 68 BIFF files, package lint/source/test/consumer types and selected workspace build pass.",
+      "publicQualification": "Four compiled SDK/command BIFF7/8 outputs preserve 16 recalculated results for SUM unions/intersections, INDEX area selection and ROW of the returned reference. Both Calc 26.8.0.3 readbacks preserve all eight live formulas and values 17/12/20/2.",
+      "remaining": "This repairs operator token emission. Native Gnumeric INDEX SET evaluation, relative/computed span export and wider format qualification remain open; no issue or family closure."
     }
   },
   "cases": [

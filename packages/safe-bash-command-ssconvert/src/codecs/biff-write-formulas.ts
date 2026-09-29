@@ -10,7 +10,7 @@ import { words } from "./biff-write-binary.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 
 const operators: Readonly<Record<string, number>> = { "+": 3, "-": 4, "*": 5, "/": 6, "^": 7, "&": 8,
-  "<": 9, "<=": 10, "=": 11, ">=": 12, ">": 13, "<>": 14, " ": 15, ",": 16, ":": 17 };
+  "<": 9, "<=": 10, "=": 11, ">=": 12, ">": 13, "<>": 14, intersection: 15, union: 16, ":": 17 };
 const functions = new Map(Object.entries(biffFunctions).map(([id, spec]) => [spec[0], { id: Number(id), min: spec[1], max: spec[2] }]));
 // Gnumeric 1.12.61 ms-excel-read.c excel97_func_desc: these must be macros, not addins.
 const macroFunctions = new Set(["AVERAGEIF", "AVERAGEIFS", "CUBEKPIMEMBER", "CUBEMEMBER", "CUBEMEMBERPROPERTY",

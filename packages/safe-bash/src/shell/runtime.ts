@@ -27557,8 +27557,8 @@ export class Runtime {
           const e0 = this.evalSyncExpr(subArgs0);
           if (e0 !== undefined && e0.status <= 1) stage0Formatted = e0.value + "\n";
         } else if (w0Plain0 === "getopt") {
-          const g0 = this.evalSyncGetopt(subArgs0);
-          if (g0 !== undefined) stage0Formatted = g0 + "\n";
+          const g0 = evalSyncGetopt(subArgs0, rawState.variables);
+          if (g0 !== undefined) stage0Formatted = g0.endsWith("\n") ? g0 : g0 + "\n";
         } else if (w0Plain0 === "pathchk") {
           stage0Formatted = evalSyncPathchk(subArgs0);
         } else {

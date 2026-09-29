@@ -688,6 +688,7 @@
     "safe-bash-command-locale": "*",
     "safe-bash-command-df": "*",
     "safe-bash-command-sqlite3": "*",
+    "safe-bash-command-gh": "*",
     "safe-bash-command-git": "*",
     "safe-bash-command-dos2unix": "*",
     "safe-bash-line-ending-engine": "*",

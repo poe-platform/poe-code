@@ -757,7 +757,7 @@ it.each([["wkhtmltopdf", "index"], ["xz", "index"], ["pandoc", "index"]])("packs
   expect(commandManifest.exports[entry === "index" ? "." : "./" + entry]).toEqual({ types: `./dist/${entry}.d.ts`, import: `./dist/${entry}.js` });
   expect(bashManifest.poeCode.integration.privateWorkspaces[commandName]).toBeDefined();
   const facade = ts.createSourceFile("index.ts", readFileSync(new URL(`../packages/safe-bash/src/commands/${command}/index.ts`, import.meta.url), "utf8"), ts.ScriptTarget.Latest, true);
-  expect(facade.statements.some(statement => ts.isExportDeclaration(statement)
+  expect(facade.statements.some(statement => (ts.isExportDeclaration(statement) || ts.isImportDeclaration(statement))
     && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === commandSpecifier)).toBe(true);
   const { volume, options } = optionalLeftovers();
   for (const [name, dependencies, devDependencies] of [

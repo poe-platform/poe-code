@@ -128,6 +128,9 @@ Work began at 2026-09-29 02:42 UTC. The requested ten-hour minimum ends at 2026-
 - #4154: librsvg rejected the real font_ascent_descent SVG because an aria-label contained U+001E. Eleven of twelve focused cases failed before filtering XML 1.0 forbidden characters and using the upstream PDF.js XML encoder. Two tests port valid strings from core_utils_spec; independent saxes parsing covers controls, lone surrogates, noncharacters, whitespace and supplementary characters. All 410 PDF tests and package lint/typecheck/build pass.
 - #4154 qualification: the formerly rejected SVG now renders in librsvg and visually matches MuPDF (mean RGB error 0.373/255). A 1,088-document sweep covering all 1,114,112 code-point values produces valid XML. Corrected the stress harness to allow an empty sanitized label for blocks containing only forbidden characters; the attribute and shape remain present. Evidence: font-ascent-xml-fixed.png, svg-labels-stress.mjs and svg-labels-stress.log.
 
+- #4154 verified on remote main at `5631e44278`; issue closed.
+- #4155: release 36535718194 passed its build, then failed only the canonical xz graph test. A focused local run reproduced the assertion requiring a re-export even though the adapter now imports and wraps the same canonical owner. The assertion accepts either TypeScript import or re-export edges and retains all graph checks. All 385 tests across the eight publication test files pass, as does focused ESLint. Publication is still unverified.
+
 ## Completion evidence to collect
 
 For each outcome record the tested revision, focused and integration commands/results, corpus provenance, independent comparison method, examined visual outputs, issue status, remote-main commit, and release publication. Require at least ten hours of work plus verified completion of all outcomes before marking the goal complete.

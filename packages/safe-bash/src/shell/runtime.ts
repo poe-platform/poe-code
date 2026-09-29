@@ -25819,7 +25819,7 @@ export class Runtime {
     if (tokens.length > 64) return undefined;
     const out: string[] = [];
     for (let ti = 0; ti < tokens.length; ti++) {
-      let tok = tokens[ti]!;
+      const tok = tokens[ti]!;
       let s = 0;
       while (s < tok.length && tok[s] === " ") s++;
       if (tok[s] === "+") s++;

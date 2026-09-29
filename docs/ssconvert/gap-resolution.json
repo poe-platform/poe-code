@@ -3220,7 +3220,18 @@
         "out/ssconvert-odf-settings/accounting-rich-command.json",
         "out/ssconvert-odf-settings/accounting-rich-native.json"
       ],
-      "remaining": "HTML, ODF, Gnumeric/Pango and rendering transport of accounting rich attributes remain open. No installed-artifact qualification or containing publication verified. All 19 families remain open."
+      "remaining": "HTML mapping is delivered in htmlFollowup. ODF, Gnumeric/Pango and rendering transport of accounting rich attributes remain open. No installed-artifact qualification or containing publication verified. All 19 families remain open.",
+      "htmlFollowup": {
+        "commit": "ad7ad6ba452b473df8a2ef3293e66978c7a28c6a",
+        "remote": "verified directly on remote main",
+        "implementation": "Map existing singleAccounting/doubleAccounting rich values to the same lowunderline/lowdoubleunderline CSS classes used for cell font styles. HTML32 retains its legacy <u> approximation.",
+        "validation": "Ten failing-before cases; all 65 HTML tests across six files, package lint/types and selected workspace build pass. All five compiled public XLSX-to-HTML runCommand profiles preserve the expected spans with empty stderr.",
+        "receipts": [
+          "out/ssconvert-odf-settings/accounting-html-checks.json",
+          "out/ssconvert-odf-settings/accounting-html-command.json"
+        ],
+        "remaining": "HTML32 cannot express two lines or accounting placement; fragment rendering depends on matching host CSS. Pixel rendering and other format transports remain open."
+      }
     }
   },
   "cases": [
@@ -3547,7 +3558,7 @@
       "scope": "Five atomic repairs: scalar FORMULA, auxiliary array elements, NAME, ARRAY groups and oversized BIFF8 array strings. Each push verified directly against remote main.",
       "checks": "Final 69-file BIFF cohort: 1742 tests. Maintained package lint, source/test/consumer types and selected workspace build pass. Native profiles and failures are recorded in reference.biffReferenceOperators.continuation.",
       "cleanup": "Generated workbooks, Calc profiles and logs removed after compact receipts; no generated binary committed.",
-      "release": "Pinned 36503801565 was canceled after native cleanup stalled. Replacement 36506462960 failed only fresh units: config compiler-native.test.mjs exceeded 60 seconds; all other validation jobs passed. Repair 94e760c81a removes 63 unnecessary ambient TypeScript libraries per compilation. Full replacement pin 36509671114 contains the repair and all earlier BIFF/underline/UTF16/HTML fixes. No containing publication verified.",
+      "release": "Pinned 36503801565 canceled after native cleanup stalled; 36506462960 failed fresh config units while every other validation job passed. Config repair 94e760c81a removes unused library compilation. Pins 36507665678 and 36509671114 were canceled externally before complete validation. Replacement full dispatch 36510161550 at 54d6fc6cda includes the config repair, BIFF/UTF16/HTML BOM fixes and XLSX double-accounting import. It excludes later HTML accounting follow-up ad7ad6ba45. Following the existing replacement rather than creating a duplicate pin; no containing publication verified.",
       "remaining": "All 19 families stay open. Scoped BIFF7 Calc NAME scope issue #4075 is delivered in b58fabd556; Gnumeric scope/INDEX/continued-group/long-auxiliary-string interoperability and other family requirements remain open."
     },
     "underlineFidelity": {
@@ -3558,12 +3569,12 @@
       ],
       "remote": "Every code push independently verified against remote main. See reference.xlsxRichUnderlines and reference.odfAccountingUnderlines for source, tests and native qualification.",
       "cleanup": "Generated spreadsheets, isolated Calc profiles and consumed logs removed; compact ignored receipts retained. No binaries committed.",
-      "release": "Containing publication remains unverified; latest containing release must follow the current pinned BIFF validation."
+      "release": "Pins 36507665678 and 36509671114 were canceled externally before complete validation. Replacement full dispatch 36510161550 at 54d6fc6cda includes the config repair, BIFF/UTF16/HTML BOM fixes and XLSX double-accounting import. It excludes later HTML accounting follow-up ad7ad6ba45. Following the existing replacement rather than creating a duplicate pin; no containing publication verified."
     },
     "richUtf16": {
       "commit": "40837714161654e931f9aaae10427ee01e9433c7",
       "remote": "Verified directly on remote main; generated workbooks, profiles and consumed logs removed after compact receipts.",
-      "release": "Full pin 36506462960 failed fresh config native units. Underline pin 36507665678 is validating but excludes the later UTF16/HTML and config repair. Replacement full pin 36509671114 at 94e760c81a contains those repairs and is pending; it excludes the later rich double-accounting import fix. No containing publication verified.",
+      "release": "Pins 36507665678 and 36509671114 were canceled externally before complete validation. Replacement full dispatch 36510161550 at 54d6fc6cda includes the config repair, BIFF/UTF16/HTML BOM fixes and XLSX double-accounting import. It excludes later HTML accounting follow-up ad7ad6ba45. Following the existing replacement rather than creating a duplicate pin; no containing publication verified.",
       "htmlFollowup": "05bcbc8b025f58538eb5922f6d72b837dbbb1573 preserves the same U+FEFF content in all HTML profiles; every output independently matches native bytes. Code is verified on main; generated artifacts and consumed logs removed."
     },
     "configCompilerReleaseRepair": {
@@ -3571,7 +3582,11 @@
       "remote": "Verified directly on remote main",
       "source": "ts-morph getExportedDeclarations initialized a program containing 63 ambient libraries on every call. Static config extraction needs only the reachable input sources. Disable automatic library loading; keep the original 60s test and 120s process deadlines.",
       "validation": "One deterministic dependency-isolation test fails before repair. After: 186 config tests, 85 native tests (591ms total versus 8803ms for the prior compiler subset), 185 Rust reference tests, focused ESLint and maintained selected config build pass. Linux CI repair is still awaiting verification.",
-      "release": 36509671114,
+      "release": {
+        "current": 36510161550,
+        "canceled": 36509671114,
+        "state": "pending; Linux CI repair awaits verification"
+      },
       "cleanup": "Consumed CI/local logs, downloaded source, workbooks and Calc profiles removed. Compact ignored JSON receipts remain."
     }
   },

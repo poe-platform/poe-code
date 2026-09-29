@@ -93,7 +93,7 @@ export { WebAssembly, fetch, location };
   const outputRoot = process.env.TMPDIR;
   const bundle = await build({ entryPoints: [fileURLToPath(new URL('./python-jspi.worker.mjs', import.meta.url))],
     outfile:resolve(outputRoot, 'main.mjs'), loader:{'.wasm':'copy'},
-    bundle: true, write: false, metafile: true, platform: 'node', format: 'esm', target: 'es2022', conditions: ['workerd', 'browser'],
+    bundle: true, write: false, metafile: true, platform: 'browser', mainFields: ['browser', 'module', 'main'], format: 'esm', target: 'es2022', conditions: ['workerd', 'browser'],
     external: ['main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'native-call.wasm', 'stat-result.wasm', 'stdlib.bin', 'node:*', 'ws', ...callbackFiles],
     define: { 'globalThis.process': 'undefined', process: 'undefined' },
     alias: { 'pinned-pyodide-loader': resolve(runtimeRoot, 'pyodide.mjs'),

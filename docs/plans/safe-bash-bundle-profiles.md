@@ -14,7 +14,7 @@ A seven-PDF-command minified source recipe measured 7,160,948 bytes before graph
 
 Run `npm run verify:safe-bash-profiles -- <installed-consumer-directory>` against installed tarballs or exact public versions. The scoped release workflow runs it before publication. It bundles without checkout aliases or exclusions, totals every emitted static JavaScript/Wasm/data module, reports deltas against core, asserts excluded engines, and boots each profile in Miniflare/workerd. Profiles cover both shell and root core imports, Python with LLM, one PDF, several PDF commands plus SDK, CSV, CSV/XLSX, selected Git, and the full export surface.
 
-Default ESM profiles use esbuild's normal unsplit output. Additional shell, Python/LLM and full profiles enable code splitting and count every generated chunk. Esbuild emits orphan dynamic-import chunks from unused aggregate exports when splitting is enabled; use `/shell` and explicit command paths for that configuration. Root named shell/Python/LLM/default-registry bindings also get separate facade ownership.
+Default ESM profiles use esbuild's normal unsplit output. Additional shell, Python/LLM and full profiles enable code splitting and count every generated chunk. Esbuild emits orphan dynamic-import chunks from unused aggregate exports when splitting is enabled; use `/shell` and explicit command paths for that configuration. Root named shell/Python/LLM/default-registry/regex bindings also get separate facade ownership.
 
 Budgets are derived from the measured installed tarballs below: 2% total growth, plus 5% growth of each incremental delta with a 16 KiB minimum allowance. They are regression budgets, separate from Cloudflare's deployment limit.
 
@@ -29,6 +29,7 @@ Budgets are derived from the measured installed tarballs below: 2% total growth,
 | csvXlsx | 6,852,858 | 1,903,526 |
 | git | 10,269,735 | 5,320,403 |
 | defaultRegistry | 6,212,163 | 1,262,831 |
+| registryWithRegex | 6,213,504 | 1,264,164 |
 | full | 24,851,519 | 19,902,187 |
 | rootPythonLlm | 5,052,096 | 102,764 |
 | splitCore | 4,871,225 | -78,107 |

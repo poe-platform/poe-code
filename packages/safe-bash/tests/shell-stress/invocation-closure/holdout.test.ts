@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { build } from "esbuild";
 import { appendFile, readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 import { cases, hostCases } from "./cases.js";
@@ -19,10 +21,20 @@ const safePluginTuples = new Map<string, { exitCode: number; stdoutHex: string; 
   ["type-multiple-status", { exitCode: 0, stdoutHex: Buffer.from("builtin\nfunction\nfile\nmixed:1\nprintf is a registered command\nclosuretool is tools/closuretool\n").toString("hex"), stderrHex: "" }],
 ]);
 
+const privateWorkspaces = JSON.parse(readFileSync("package.json", "utf8")).poeCode.integration.privateWorkspaces;
+const probeProgram = await build({
+  entryPoints: [`${owned}/probe.ts`], bundle: true,
+  platform: "node", format: "esm", target: "es2022", write: false,
+  alias: {
+    ...Object.fromEntries(Object.keys(privateWorkspaces).map(name => [name, resolve("..", name, "src")])),
+    "@poe-code/safe-fs": resolve("../safe-fs/src"),
+  },
+});
+
 async function probe(id: string) {
   const env: Record<string, string> = { PATH: "unused", HOME: "/nonexistent", LC_ALL: "C", LANG: "C", TZ: "UTC" };
   if (process.env.INVOCATION_TRACE) env.INVOCATION_TRACE = process.env.INVOCATION_TRACE;
-  const child = await boundedProcess(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--import", "./tests/shell-stress/invocation-modes/trace.mjs", `${owned}/probe.ts`, id], { cwd: process.cwd(), env });
+  const child = await boundedProcess(process.execPath, ["--unhandled-rejections=strict", "--import", "./tests/shell-stress/invocation-modes/trace.mjs", "--input-type=module", "-", id], { cwd: process.cwd(), env, input: probeProgram.outputFiles[0]!.contents });
   if (process.env.CLOSURE_OBSERVATIONS) {
     assert.ok(process.env.CLOSURE_OBSERVATIONS.startsWith(`${resolve(owned)}/`));
     await appendFile(process.env.CLOSURE_OBSERVATIONS, `${JSON.stringify({ id, child })}\n`);

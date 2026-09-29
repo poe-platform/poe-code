@@ -3094,6 +3094,39 @@
         "source": "LibreOffice bce0998a sc/source/core/tool/interpr1.cxx ScIndex:11348-11355 treats non-list sources as one area; 11516-11520 rejects a reference whose first and last sheet differ.",
         "finding": "A named 3D span still requires native list projection. Inlining fixed references would lose subsequent named-definition edits, so no such production rewrite was made. Named/computed sources remain open."
       }
+    },
+    "xlsxRichUnderlines": {
+      "status": "valid rich underline export delivered; complete underline fidelity remains open",
+      "delivery": "c870967468f8d822833545323a913df316ab51a7 verified on remote main",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/GNOME/pango/1.56.4/pango/pango-attributes.h",
+          "lines": "153-174",
+          "finding": "single-line/double-line/error-line preserve the base underline kind while drawing continuously across runs."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/oox/stylesbuffer.cxx",
+          "lines": "801-809",
+          "finding": "Calc distinguishes single and double underline; accounting variants map to their respective line counts."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/excel/xlsx-write.c",
+          "lines": "391-411",
+          "finding": "OOXML exports none/single/double/singleAccounting; unsupported error styling maps to single and unknown enum values to none."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/excel/xlsx-read.c",
+          "lines": "3424-3431",
+          "finding": "Both accounting rich underlines map to Pango low; doubleAccounting has an upstream fixme. Our reader currently shares this loss."
+        }
+      ],
+      "implementation": "Use an own-key mapping for every supported rich underline. Pango continuous variants export as single/double/single; invalid strings become none instead of invalid OOXML. Existing accounting SDK values remain valid. Shared, inline and comment writers use the same serializer.",
+      "validation": "12 failing-before cases; 133 focused tests in five files pass. Maintained package lint/types and selected workspace build pass. Both compiled public XLSX editions retain Unicode text and single/double/single spans through Calc 26.8.0.3 reopen/export for shared cells, inline cells and comments.",
+      "receipts": [
+        "out/ssconvert-odf-settings/rich-underline-checks.json",
+        "out/ssconvert-odf-settings/rich-underline-native.json"
+      ],
+      "remaining": "Double-accounting import fidelity, wavy rendering and continuity across runs are unresolved. Calc readback establishes text and line-count properties, not pixel rendering. No installed release qualification or containing publication verified. All 19 families stay open."
     }
   },
   "cases": [

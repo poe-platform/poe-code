@@ -186,21 +186,25 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
         }
       }
     } else {
-      const stdName = normalizeStandard14FontName(baseFont);
-      const stdMetrics = STANDARD_14_FONTS[stdName];
-      defaultWidth = stdMetrics.defaultWidth;
-      for (const [codeStr, wVal] of Object.entries(stdMetrics.widthsByCode)) {
-        widths.set(Number(codeStr), wVal);
-      }
       const firstCharNode = doc.resolve(dictGet(fObj, "FirstChar"));
       const widthsArr = doc.resolveArray(dictGet(fObj, "Widths"));
-      if (firstCharNode?.kind === "number" && widthsArr) {
+      if (widthsArr) {
+        // PDF.js extractWidths: explicit tables use MissingWidth, not a
+        // standard-font width for characters omitted from the table.
+        const descriptor = doc.resolveDict(dictGet(fObj, "FontDescriptor"));
+        const missingWidth = descriptor ? doc.resolve(dictGet(descriptor, "MissingWidth")) : undefined;
+        defaultWidth = (missingWidth?.kind === "number" ? missingWidth.value : 0) * type3Scale1000;
+        const firstChar = firstCharNode?.kind === "number" ? firstCharNode.value : 0;
         for (let k = 0; k < widthsArr.items.length; k++) {
           const wItem = doc.resolve(widthsArr.items[k]);
           if (wItem?.kind === "number") {
-            widths.set(firstCharNode.value + k, wItem.value * type3Scale1000);
+            widths.set(firstChar + k, wItem.value * type3Scale1000);
           }
         }
+      } else {
+        const stdMetrics = STANDARD_14_FONTS[normalizeStandard14FontName(baseFont)];
+        defaultWidth = stdMetrics.defaultWidth;
+        for (const [codeStr, wVal] of Object.entries(stdMetrics.widthsByCode)) widths.set(Number(codeStr), wVal);
       }
     }
 
@@ -1109,16 +1113,13 @@ export function evaluateContentStreamToDisplayList(params: {
     }
     if (font?.cmap) {
       if (!font.isTwoByteCid) {
-        const stdName = normalizeStandard14FontName(font.baseFont);
-        const stdMetrics = STANDARD_14_FONTS[stdName];
         const out: Array<{ charCode: number; isSpace: boolean; unicode: string; advance1000: number }> = [];
         for (let i = 0; i < bytes.length; i++) {
           const code = bytes[i]!;
           const unicode =
             font.cmap.map.get(code) ??
             (font.differences.has(code) ? font.differences.get(code)! : decodeWinAnsiByte(code));
-          const advance1000 =
-            font.widths.get(code) ?? stdMetrics.widthsByCode[code] ?? stdMetrics.defaultWidth;
+          const advance1000 = font.widths.get(code) ?? font.defaultWidth;
           out.push({ charCode: code, isSpace: code === 0x20, unicode, advance1000 });
         }
         return out;
@@ -1150,7 +1151,9 @@ export function evaluateContentStreamToDisplayList(params: {
     for (let i = 0; i < bytes.length; i++) {
       const code = bytes[i]!;
       const unicode = font?.differences.get(code) ?? decodeWinAnsiByte(code);
-      const advance1000 = font?.widths.get(code) ?? stdMetrics.widthsByCode[code] ?? stdMetrics.defaultWidth;
+      const advance1000 = font
+        ? font.widths.get(code) ?? font.defaultWidth
+        : stdMetrics.widthsByCode[code] ?? stdMetrics.defaultWidth;
       out.push({ charCode: code, isSpace: code === 0x20, unicode, advance1000 });
     }
     return out;

@@ -83,6 +83,8 @@ OpenType CFF tables use the same PDF.js outline renderer. `doc.embedFont()`
 preserves full OpenType CFF programs with their matching PDF font metadata,
 including widths for every embedded glyph.
 Word spacing follows encoded one-byte spaces, including remapped characters.
+Explicit font width tables honor MissingWidth (zero when absent), preserving
+Type 3 spacing and advances for codes outside the declared table.
 ToUnicode maps decode mixed one- through four-byte character codes, including
 ligatures and supplementary Unicode characters.
 Bitmap, PNG, and SVG rendering honor page rotation; pixel crops use displayed

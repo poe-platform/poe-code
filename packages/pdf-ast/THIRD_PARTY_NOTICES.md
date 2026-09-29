@@ -497,3 +497,10 @@ Declared stream lengths follow PDF.js `Parser.makeStream`/`tryShift` in
 the actual terminator. `src/cos/stream-length.test.ts` covers direct/indirect
 lengths, malformed tokens at the claimed end, delimiter text inside accurate
 streams, and PDF.js's unchanged `xobject-image.pdf` through load/save/render.
+
+Explicit simple-font width tables follow PDF.js `PartialEvaluator.extractWidths`
+in `src/core/evaluator.js`: undeclared codes use `FontDescriptor.MissingWidth`,
+or zero when absent. Standard-font widths apply only without an explicit
+Widths table. `src/fonts/explicit-widths.test.ts` covers Type1, TrueType and
+Type3 widths with and without ToUnicode, plus the unchanged upstream
+`Type3WordSpacing.pdf` fixture.

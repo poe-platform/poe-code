@@ -308,3 +308,9 @@ combines a function Matrix with a BBox in shading coordinates. SHA-256:
 `91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). Its content stream
 declares Length 14 although additional matrix and image operators follow.
 SHA-256: `9bd4a6f17bac7b6d218ae0f8d28ea80f7025948499fa3686e46d6950cac6ab9a`.
+
+`pdfjs-Type3WordSpacing.pdf` is unchanged from PDF.js
+`test/pdfs/Type3WordSpacing.pdf` at revision
+`91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). Six text lines
+exercise word spacing with a Type 3 width table that omits the space glyph.
+SHA-256: `8ac40dc49d40af8b5a50b442ced56b8db962c961a779a0284cd3a6207adc0bb7`.

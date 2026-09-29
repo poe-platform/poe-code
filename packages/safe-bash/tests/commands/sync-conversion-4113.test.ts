@@ -1,10 +1,7 @@
 import { hexdumpCommands } from "../../src/commands/hexdump/index.js";
 import { odCommands } from "../../src/commands/od/index.js";
 import { xxdCommands } from "../../src/commands/xxd/index.js";
-import { envCommands } from "../../src/commands/env/index.js";
 import { printenvCommands } from "../../src/commands/printenv/index.js";
-import { realpathCommands } from "../../src/commands/realpath/index.js";
-import { readlinkCommands } from "../../src/commands/readlink/index.js";
 import { pathchkCommands } from "../../src/commands/pathchk/index.js";
 import { getoptCommands } from "../../src/commands/getopt/index.js";
 import { calCommands } from "../../src/commands/cal/index.js";

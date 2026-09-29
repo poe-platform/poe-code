@@ -280,7 +280,7 @@ test("selected file, c string and s input each charge their actual source", asyn
 });
 
 test("env parser caps and carriage-return command bytes survive the bridge", async () => {
-  const { shell, fs } = setup();
+  const { shell, fs } = setup({ limits: { maxEnvSplitBytes: 131072, maxEnvSplitArguments: 10000 } });
   for (const [header, status, diagnostic] of [
     [`-S bash ${"x".repeat(131072)}`, 125, /split-string byte limit exceeded/u],
     [`-S bash ${"x ".repeat(10001)}`, 125, /split-string argument limit exceeded/u],
@@ -598,4 +598,17 @@ test("guarded completion: target middleware can change scoped state or short cir
       assert.equal(calls, short ? 0 : 1);
     } finally { await shell.dispose(); }
   }
+});
+
+test('env shebangs admit inputs above former split ceilings by default', async () => {
+  const { shell, fs } = setup();
+  try {
+    for (const suffix of ['x'.repeat(131073), 'x '.repeat(10001)]) {
+      await fs.writeFile('/program', encode(`#!/usr/bin/env -S bash -c 'true' ${suffix}\ntrue`), { mode: 0o755 });
+      const result = await shell.exec('/program');
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    await fs.writeFile('/program', encode("#!/usr/bin/env -S bash -c 'true'\ntrue"), { mode: 0o755 });
+    assert.equal((await shell.exec('/program', { limits: { maxEnvSplitArguments: 1 } })).exitCode, 125);
+  } finally { await shell.dispose(); }
 });

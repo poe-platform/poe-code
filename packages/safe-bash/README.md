@@ -646,9 +646,9 @@ have unlimited resource budgets by default. Set individual family limits to opt
 in; setting one limit leaves the others unlimited. Explicit `Infinity` also
 disables a limit. Shell helpers expose `maxCdWork`, `maxCdProbes`,
 `maxCdPathBytes`, `maxCdPathComponents`, `maxDirectoryStackEntries`,
-`maxDirectoryStackOutputBytes`, `maxSyntaxDepth`, `maxAdmittedHandles`, `maxDescriptorOperations`, `maxDescriptorReadBytes`, `maxGlobstarStates`, `maxGlobstarDepth` and
+`maxDirectoryStackBytes`, `maxDirectoryDiagnosticBytes`, `maxDirectoryStackOutputBytes`, `maxSyntaxDepth`, `maxAdmittedHandles`, `maxDescriptorOperations`, `maxDescriptorReadBytes`, `maxGlobstarStates`, `maxGlobstarDepth` and
 `maxGlobstarEntries`. Env split limits are supplied through
-`execution.envSplitLimits`; truncate uses `metadata.limits.maxArguments`.
+`execution.envSplitLimits`; env shebangs use `maxEnvSplitBytes`, `maxEnvSplitArguments`, `maxEnvSplitExpansions`, and `maxEnvSplitWork` in Shell limits; truncate uses `metadata.limits.maxArguments`.
 Browser controller structural ceilings (configuration, snapshots, output files,
 recording, traces, routes and WebMCP) are also optional `limits`; WebMCP discovery uses the optional `webMCPDiscoveryTimeoutMs` deadline, disabled by default; viewport dimensions and operation receipt count/age use `maxViewportDimension`, `maxOperationOutcomes`, and `maxOperationOutcomeAgeMs`, also unlimited by default; network and
 route-policy byte/count ceilings default to `Infinity`. `xargs -s Infinity` and `--max-chars=Infinity` explicitly remove

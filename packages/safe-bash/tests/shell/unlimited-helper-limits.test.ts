@@ -21,3 +21,21 @@ test('cd admits more than 4096 CDPATH components and obeys explicit helper ceili
     assert.match(noWork.stderr, /work limit/);
   } finally { await shell.dispose(); }
 });
+
+test('directory diagnostics and retained stack bytes have optional ceilings', async () => {
+  const { shell, fs } = setup();
+  const { FsError } = await import('../../src/contracts/index.js');
+  const diagnostic = 'x'.repeat(65793);
+  fs.stat = async () => { throw new FsError('EIO', { message: diagnostic }); };
+  try {
+    const unlimited = await shell.exec('cd /missing');
+    assert.ok(unlimited.stderr.includes(diagnostic));
+    const bounded = await shell.exec('cd /missing', { limits: { maxDirectoryDiagnosticBytes: 64 } });
+    assert.ok(bounded.stderr.includes('[truncated]'));
+    assert.equal(resolveLimits({}).maxDirectoryStackBytes, Infinity);
+    assert.equal((await shell.exec('pushd -n abc')).exitCode, 0);
+    const stack = await shell.exec('pushd -n def', { limits: { maxDirectoryStackBytes: 1 } });
+    assert.equal(stack.exitCode, 1);
+    assert.match(stack.stderr, /directory stack byte limit/);
+  } finally { await shell.dispose(); }
+});

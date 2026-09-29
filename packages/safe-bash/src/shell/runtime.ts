@@ -175,8 +175,9 @@ export const defaultLimits: ResolvedShellLimits = {
   maxExpansionBytes: Infinity,
   maxWallClockMs: Infinity,
   maxCpuMs: Infinity,
+  maxEnvSplitBytes: Infinity, maxEnvSplitArguments: Infinity, maxEnvSplitExpansions: Infinity, maxEnvSplitWork: Infinity,
   maxCdWork: Infinity, maxCdPathBytes: Infinity, maxCdProbes: Infinity, maxGlobstarStates: Infinity, maxGlobstarDepth: Infinity,
-  maxGlobstarEntries: Infinity, maxCdPathComponents: Infinity, maxDirectoryStackEntries: Infinity, maxDirectoryStackOutputBytes: Infinity,
+  maxGlobstarEntries: Infinity, maxCdPathComponents: Infinity, maxDirectoryStackBytes: Infinity, maxDirectoryDiagnosticBytes: Infinity, maxDirectoryStackEntries: Infinity, maxDirectoryStackOutputBytes: Infinity,
   pipeHighWaterMark: 64 * 1024,
 };
 
@@ -2203,7 +2204,9 @@ function filesystemDiagnostic(error: unknown, target: string, onInternalError?: 
 function cdUtf8Width(codePoint: number): number {
   return codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
 }
-function cdDiagnostic(fragments: readonly string[]): string {
+function cdDiagnostic(fragments: readonly string[], maxBytes: number): string {
+  if (maxBytes === Infinity) return fragments.join("");
+  const suffix = " [truncated]".slice(0, maxBytes);
   const chunks: string[] = [];
   let bytes = 0;
   let suffixBoundary = 0;
@@ -2213,15 +2216,15 @@ function cdDiagnostic(fragments: readonly string[]): string {
     while (index < fragment.length) {
       const codePoint = fragment.codePointAt(index)!;
       const width = cdUtf8Width(codePoint);
-      if (bytes + width > 65_792) {
+      if (bytes + width > maxBytes) {
         chunks.push(fragment.slice(0, index));
-        return `${chunks.join("").slice(0, suffixBoundary)} [truncated]`;
+        return `${chunks.join("").slice(0, suffixBoundary)}${suffix}`;
       }
       bytes += width;
       const length = codePoint > 0xffff ? 2 : 1;
       index += length;
       units += length;
-      if (bytes <= 65_780) suffixBoundary = units;
+      if (bytes <= maxBytes - suffix.length) suffixBoundary = units;
     }
     chunks.push(fragment);
   }
@@ -2341,7 +2344,7 @@ class DirectoryStackWork {
   constructor(private readonly name: string, private readonly signal: AbortSignal, private readonly stdout: ByteSink, private readonly limits: ResolvedShellLimits) {}
 
   fail(text: string, status = 1): never {
-    throw new CommandFailure(cdDiagnostic([this.name, ": ", text]), status);
+    throw new CommandFailure(cdDiagnostic([this.name, ": ", text], this.limits.maxDirectoryDiagnosticBytes), status);
   }
   async charge(amount: number): Promise<void> {
     this.signal.throwIfAborted();
@@ -18849,7 +18852,6 @@ export class Runtime {
       if (eof) return status;
     }
   }
-  private static readonly envShebangCommand = executionCommands(() => { throw new Error("Unreserved shebang invocation"); }).find(command => command.name === "env");
   private async shebangState(context: CommandContext, state: State): Promise<State> {
     const child = await cloneState(state, this.signal);
     child.cwd = resolvePath("/", context.cwd);
@@ -18981,7 +18983,10 @@ export class Runtime {
     return { exitCode };
   }
   private async envShebang(context: CommandContext, state: State, io: IO, optionalArgument: string | undefined, target: string, args: readonly string[], loadedSource: { path: string; source: string }): Promise<number> {
-    const definition = Runtime.envShebangCommand;
+    const definition = executionCommands(() => { throw new Error("Unreserved shebang invocation"); }, { envSplitLimits: {
+      bytes: this.budget.limits.maxEnvSplitBytes, arguments: this.budget.limits.maxEnvSplitArguments,
+      expansions: this.budget.limits.maxEnvSplitExpansions, work: this.budget.limits.maxEnvSplitWork,
+    } }).find(command => command.name === "env");
     if (!definition) throw new CommandFailure(`${target}: env interpreter is unavailable`, 126);
     const allocation = this.budget.values.scope();
     io[invocationScope].register(() => allocation.close());
@@ -19604,7 +19609,7 @@ export class Runtime {
       const description = filesystemDiagnostic(error, "", this.budget.onInternalError);
       const text = description ? "" : message(error, this.budget.onInternalError);
       diagnose?.(error, cdDiagnostic(description ? [name, ": ", target, description]
-        : stackHooks && text.startsWith("cd: ") ? [name, text.slice(2)] : [text]));
+        : stackHooks && text.startsWith("cd: ") ? [name, text.slice(2)] : [text], this.budget.limits.maxDirectoryDiagnosticBytes));
       throw error;
     }
     this.signal.throwIfAborted();
@@ -19646,7 +19651,7 @@ export class Runtime {
       const removedBytes = removed === undefined ? 0 : await work.scan(tail.entries[removed]!, "path");
       const extraBytes = added === undefined ? 0 : addedBytes ?? await work.scan(added, "path");
       const bytes = tail.bytes - removedBytes + extraBytes;
-      if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > 4_194_304) work.fail("directory stack exceeds 4194304 UTF-8 bytes");
+      if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.budget.limits.maxDirectoryStackBytes) work.fail("directory stack byte limit exceeded");
       await work.charge(length);
       const entries = new Array<string>(length);
       for (let index = 0; index < length; index++) entries[index] = entry(index);

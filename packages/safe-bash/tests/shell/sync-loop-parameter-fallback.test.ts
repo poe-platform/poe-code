@@ -76,7 +76,7 @@ for (const [source, stdout] of [
   ['f() { echo "${s#c}"; }; for i in 1 2; do s="café"; f; done', 'afé\nafé\n'],
   ['for i in 1 2; do s="CAFÉ"; echo "${s,}" "${s,,}"; done', 'cAFÉ café\ncAFÉ café\n'],
   ['s=abcdef; for i in 1 2; do echo "${s:1:-2}"; done', 'bcd\nbcd\n'],
-]) {
+] as const) {
   test(`parameter fallback preserves dynamic state: ${source}`, async () => {
     const shell = new Shell({ fs: new MemoryFileSystem() });
     for (const command of basicCommands()) shell.commands.register(command);

@@ -288,7 +288,12 @@ function getCompiledSyncPatternRegex(pattern: string): RegExp | null {
         contents = "^";
         cursor++;
       }
-      if (cursor >= pattern.length || pattern.charCodeAt(cursor) === 93) {
+      // Bash treats a closing bracket at the start of a class as a member.
+      if (pattern.charCodeAt(cursor) === 93) {
+        contents += "\\]";
+        cursor++;
+      }
+      if (cursor >= pattern.length) {
         syncPatternRegexCache.set(pattern, null);
         return null;
       }

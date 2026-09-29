@@ -8446,9 +8446,17 @@ export class Runtime {
       if (!okWord(expr.left) || !okWord(expr.right)) return false;
       // Matching publishes BASH_REMATCH. A sibling may still require fallback,
       // so only a standalone match can be attempted without replaying writes.
-      if (expr.operator === "=~") return depth === 0 && this.extractSimpleErePattern(expr.right, rawState) !== undefined;
+      if (expr.operator === "=~") return !requireTotal && depth === 0 && this.extractSimpleErePattern(expr.right, rawState) !== undefined;
       if (expr.operator === "==" || expr.operator === "=" || expr.operator === "!=") {
         if (expr.right.parts.length > 0 && expr.right.parts.every(p => p.quoted)) return true;
+        if (requireTotal) {
+          // Variable patterns can change during the loop. Only admit a static
+          // pattern whose synchronous matcher is guaranteed to return a result.
+          if (!expr.right.parts.every((p, idx) => p.kind === "text" && !p.byteValue && (p.quoted || idx > 0 || !p.value.startsWith("~")))) return false;
+          const pattern = expr.right.parts.map(p => p.kind === "text" ? (p.quoted ? p.value.replace(/[\\*?[\]()]/g, "\\$&") : p.value) : "").join("");
+          const work = { remaining: 4096, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+          return tryMatchesPatternSync(pattern, "", work, false, true) !== undefined;
+        }
         if (expr.right.parts.length > 0 && expr.right.parts.every((p, idx) =>
           (p.kind === "text" && !p.byteValue && (p.quoted || idx > 0 || !p.value.startsWith("~"))) || (p.kind === "variable" && !p.indirect && !p.prefixNames && !p.length && !p.substring && !p.transform && p.operator === undefined && getArraySelector(p) === undefined)
         )) return true;
@@ -8604,19 +8612,28 @@ export class Runtime {
         if (typeof right !== "string") return undefined;
         const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
         const lTrim = left.trim() || "0";
-        let lNum = resolveSimpleArithOperand(lTrim, rawState, monitor, store, syncTouched);
+        // Preserve all signed 64-bit literal digits instead of rounding through Number.
+        let lNum: number | bigint | undefined = lTrim.length > 13 && /^-?[0-9]{1,19}$/.test(lTrim)
+          ? BigInt.asIntN(64, BigInt(lTrim))
+          : resolveSimpleArithOperand(lTrim, rawState, monitor, store, syncTouched);
         if (lNum === undefined) {
           const lExpr = tryEvalSimpleExpandedArith(lTrim, rawState, monitor, store, syncTouched);
           if (lExpr !== undefined) lNum = Number(lExpr);
         }
         if (lNum === undefined) return undefined;
         const rTrim = right.trim() || "0";
-        let rNum = resolveSimpleArithOperand(rTrim, rawState, monitor, store, syncTouched);
+        let rNum: number | bigint | undefined = rTrim.length > 13 && /^-?[0-9]{1,19}$/.test(rTrim)
+          ? BigInt.asIntN(64, BigInt(rTrim))
+          : resolveSimpleArithOperand(rTrim, rawState, monitor, store, syncTouched);
         if (rNum === undefined) {
           const rExpr = tryEvalSimpleExpandedArith(rTrim, rawState, monitor, store, syncTouched);
           if (rExpr !== undefined) rNum = Number(rExpr);
         }
         if (rNum === undefined) return undefined;
+        if (typeof lNum !== typeof rNum) {
+          lNum = BigInt(lNum);
+          rNum = BigInt(rNum);
+        }
         let ok: boolean;
         switch (expr.operator) {
           case "-eq": ok = lNum === rNum; break;
@@ -11879,10 +11896,10 @@ export class Runtime {
       if ((isNumOp || isStrOp) && safeArgWord(args[0]!) && safeArgWord(args[2]!)) {
         if (isNumOp && checkIntVars) {
           const isGuaranteedIntWord = (w: Word): boolean => {
-            if (w.plain !== undefined) return /^-?[0-9]+$/.test(w.plain);
+            if (w.plain !== undefined) return /^-?[0-9]{1,16}$/.test(w.plain);
             if (w.parts.length === 1) {
               const p0 = w.parts[0]!;
-              if (p0.kind === "arithmetic") return true;
+              if (p0.kind === "arithmetic") return false;
               if (p0.kind === "variable" && !p0.indirect && !p0.prefixNames && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined) {
                 if (script) {
                   for (const lst of script.lists) {
@@ -11890,13 +11907,13 @@ export class Runtime {
                       const c0 = pl.commands[0];
                       if (c0?.kind === "simple" && c0.words.length === 1) {
                         const asg = this.assignment(c0.words[0]!);
-                        if (asg?.name === p0.name && (!asg.value.plain || !/^-?[0-9]+$/.test(asg.value.plain))) return false;
+                        if (asg?.name === p0.name && (!asg.value.plain || !/^-?[0-9]{1,16}$/.test(asg.value.plain))) return false;
                       }
                     }
                   }
                 }
                 const cur = rawState.variables[p0.name];
-                return cur === undefined || /^-?[0-9]+$/.test(cur);
+                return cur === undefined || /^-?[0-9]{1,16}$/.test(cur);
               }
             }
             return false;

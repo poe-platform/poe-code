@@ -127,11 +127,11 @@ function parseSimpleMarkdownSync(source: string): SyncMdNode[] | undefined {
 
 interface SyncMdSelector {
   kind: "section" | "code" | "item";
-  min?: number;
-  max?: number;
+  min?: number | undefined;
+  max?: number | undefined;
   needle: string;
-  langNeedle?: string;
-  ordered?: boolean;
+  langNeedle?: string | undefined;
+  ordered?: boolean | undefined;
 }
 
 function parseSimpleMdqQuery(query: string): SyncMdSelector[] | undefined {

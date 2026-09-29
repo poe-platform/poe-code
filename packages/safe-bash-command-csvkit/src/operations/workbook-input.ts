@@ -1,4 +1,5 @@
-import { read, utils, CFB, SSF, set_cptable, type WorkBook } from '@e965/xlsx';
+import { read, CFB, set_cptable, type WorkBook } from '@e965/xlsx';
+import { formatA1, parseA1 } from '@poe-code/spreadsheet-ast';
 import type { CsvkitWorkbook, CsvkitWorkbookCell } from '../workbook.js';
 import * as codepages from '@e965/xlsx/dist/cpexcel';
 import { createZipCodec, CodecError } from '@poe-code/office-package';
@@ -14,6 +15,10 @@ import type { TypedTable } from '../table/index.js';
 import { castValue } from '../table/types.js';
 import { writeCsvRow } from '../csv.js';
 import { pathExtension } from '../io/index.js';
+import { legacyWorkbookDateFormat, workbookNumberFormats } from './workbook-formats.js';
+
+// Public raw workbook coordinates are bounded by invocation limits, not a fixed sheet edition.
+const workbookAddressBounds = { rows: Number.MAX_SAFE_INTEGER, columns: Number.MAX_SAFE_INTEGER };
 
 // ESM workbook readers require the pinned library's codepage tables explicitly.
 set_cptable(codepages);
@@ -60,13 +65,13 @@ export class WorkbookInput {
           let maxRow = -1, maxColumn = -1;
           for (const cell of sheet.cells) {
             r.step(); r.retain(128);
-            const address = utils.encode_cell({ r: cell.row, c: cell.column });
+            const address = formatA1(cell.row, cell.column, workbookAddressBounds);
             maxRow = Math.max(maxRow, cell.row); maxColumn = Math.max(maxColumn, cell.column);
             cells[address] = { t: cell.type, v: cell.value, z: cell.format, ...(cell.type === 'e' ? { w: String(cell.value) } : {}) };
             if (cell.type === 'd' && typeof cell.value === 'string') dates.set(address, cell.value);
           }
           const reset = r.options.reset_dimensions || r.options.reset_dimensions === null && sheet.dimension === 'A1';
-          const range = !reset && sheet.dimension ? sheet.dimension : maxRow < 0 ? undefined : `A1:${utils.encode_cell({ r: maxRow, c: maxColumn })}`;
+          const range = !reset && sheet.dimension ? sheet.dimension : maxRow < 0 ? undefined : `A1:${formatA1(maxRow, maxColumn, workbookAddressBounds)}`;
           if (range !== undefined) cells['!ref'] = range;
           sheets[sheet.name] = cells; isoDates.set(sheet.name, dates);
         }
@@ -131,14 +136,16 @@ export class WorkbookInput {
     }
     const sheet = book.Sheets[name]!;
     const isoDates = this.#isoDates.get(name);
-    const range = sheet['!ref'] ? utils.decode_range(sheet['!ref']) : undefined;
-    const width = range ? range.e.c + 1 : 0;
-    const end = range ? range.e.r + 1 : 0;
+    const reference = sheet['!ref'];
+    const rangeEnd = reference ? parseA1(reference.slice(reference.lastIndexOf(':') + 1), workbookAddressBounds) : undefined;
+    const width = rangeEnd ? rangeEnd.column + 1 : 0;
+    const end = rangeEnd ? rangeEnd.row + 1 : 0;
     if (width > r.context.limits.maxColumns || end > r.context.limits.maxRows) throw new CsvkitBlocked('workbook dimensions exceed row/column budget');
     const start = Math.max(0, Number(r.options.skip_lines));
     const headers = r.options.no_header_row ? defaultHeaders(width) : await normalizeHeaders(Array.from({ length: width }, (_, column) => {
-      const cell = sheet[utils.encode_cell({ r: start, c: column })] as CsvkitWorkbookCell | undefined;
-      return this.cell(cell, true, false, isoDates?.get(utils.encode_cell({ r: start, c: column }))) ?? '';
+      const address = formatA1(start, column, workbookAddressBounds);
+      const cell = sheet[address] as CsvkitWorkbookCell | undefined;
+      return this.cell(cell, true, false, isoDates?.get(address)) ?? '';
     }), r);
     const mixedColumns = new Set<number>();
     if (this.format === 'xls') {
@@ -146,9 +153,10 @@ export class WorkbookInput {
         const types = new Set<string>();
         for (let row = start + (r.options.no_header_row ? 0 : 1); row < end; row++) {
           r.step();
-          const cell = sheet[utils.encode_cell({ r: row, c: column })] as CsvkitWorkbookCell | undefined;
+          const cell = sheet[formatA1(row, column, workbookAddressBounds)] as CsvkitWorkbookCell | undefined;
           if (cell && cell.v !== undefined && cell.v !== null && cell.t !== 'z') {
-            types.add(cell.t === 'n' && cell.z && SSF.is_date(cell.z) ? 'date' : cell.t);
+            const format = typeof cell.z === 'number' ? workbookNumberFormats[cell.z] : cell.z;
+            types.add(cell.t === 'n' && format && legacyWorkbookDateFormat(format, r.step) ? 'date' : cell.t);
           }
         }
         if (types.size > 1) mixedColumns.add(column);
@@ -159,11 +167,11 @@ export class WorkbookInput {
     for (let row = start + (r.options.no_header_row ? 0 : 1); row < end; row++) {
       r.step(); r.retain(64 + width * 64);
       const cells = Array.from({ length: width }, (_, column) => {
-        const address = utils.encode_cell({ r: row, c: column });
+        const address = formatA1(row, column, workbookAddressBounds);
         r.step();
         const cell = sheet[address] as CsvkitWorkbookCell | undefined;
         const value = this.cell(cell, false, mixedColumns.has(column), isoDates?.get(address));
-        const format = typeof cell?.z === 'number' ? SSF.get_table()[cell.z] : cell?.z;
+        const format = typeof cell?.z === 'number' ? workbookNumberFormats[cell.z] : cell?.z;
         // Python time objects fall through Agate's inference to Text. Their
         // string representations would instead be inferred as TimeDelta.
         if (this.format === 'xlsx' && value?.[2] === ':' &&
@@ -182,13 +190,11 @@ export class WorkbookInput {
     }];
   }
   cell(cell: CsvkitWorkbookCell | undefined, header = false, mixed = false, isoValue?: string): string | null {
-    // SheetJS also permits a numeric built-in format ID in its cell API.
-    // Resolve that ID through the reader's actual format table before inspection.
-    const format = typeof cell?.z === 'number' ? SSF.get_table()[cell.z] : cell?.z;
+    const format = typeof cell?.z === 'number' ? workbookNumberFormats[cell.z] : cell?.z;
     if (isoValue !== undefined) return workbookIsoValue(isoValue, header, format ?? 'General');
     if (!cell || cell.t === 'z' || cell.v === undefined || cell.v === null) return null;
     const value = cell.v;
-    if (typeof value === 'number' && format && (this.format === 'xlsx' ? xlsxDateFormat(format, this.runtime) : SSF.is_date(format)) && !mixed && !(header && this.format === 'xls')) {
+    if (typeof value === 'number' && format && (this.format === 'xlsx' ? xlsxDateFormat(format, this.runtime) : legacyWorkbookDateFormat(format, this.runtime.step)) && !mixed && !(header && this.format === 'xls')) {
       return workbookDate(value, format, this.#date1904, header, this.format);
     }
     if (value instanceof Date) {

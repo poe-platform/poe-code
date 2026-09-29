@@ -35,7 +35,7 @@
     "@e965/xlsx": "0.20.3",
     "@poe-code/office-package": "*",
     "@sqlite.org/sqlite-wasm": "3.50.4-build1",
-    "@poe-code/xml-ast": "*",
+    "@poe-code/spreadsheet-ast": "*",
     "@poe-code/xlsx-ast": "*"
   },
   "engines": {

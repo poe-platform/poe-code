@@ -5,7 +5,9 @@ import reference from '../../../docs/csvkit/in2csv-reference.json' with { type: 
 
 vi.mock('@e965/xlsx', async importOriginal => ({
   ...await importOriginal<typeof import('@e965/xlsx')>(),
-  read: vi.fn(() => { throw new Error('XLSX must use the owned reader'); })
+  read: vi.fn(() => { throw new Error('XLSX must use the owned reader'); }),
+  utils: { encode_cell() { throw new Error('SheetJS coordinates are unavailable'); }, decode_range() { throw new Error('SheetJS coordinates are unavailable'); } },
+  SSF: { get_table() { throw new Error('SheetJS formats are unavailable'); }, is_date() { throw new Error('SheetJS formats are unavailable'); } }
 }));
 
 test('in2csv reads XLSX through the owned reader without invoking SheetJS', async () => {

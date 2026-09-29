@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { PdfDocument, cosArray, cosDict, cosName, cosNumber, cosStream, cosString, dictGet, dictSet } from "@poe-code/pdf-ast";
-import { parseQpdfPageRange, runQpdfCli } from "./index.js";
+import { parseQpdfPageRange, runQpdfCli, runQpdfCliSync } from "./index.js";
 
 function createNumberedPdf(pageCount: number, prefix = "Doc"): Uint8Array {
   const doc = PdfDocument.create();
@@ -14,6 +14,42 @@ function createNumberedPdf(pageCount: number, prefix = "Doc"): Uint8Array {
 }
 
 describe("safe-bash-command-qpdf", () => {
+  for (const args of [
+    ["in.pdf", "-"],
+    ["--empty", "-"],
+    ["--encrypt", "-", "owner", "128", "--", "in.pdf", "out.pdf"],
+    ["-", "--help"],
+    ["-", "--version"],
+    ["-", "--object-streams=invalid"],
+  ]) {
+    it(`preserves stdin when it is not needed: ${JSON.stringify(args)}`, async () => {
+      const pdf = createNumberedPdf(1);
+      let reads = 0;
+      const files = new Map([["in.pdf", pdf]]);
+      const result = await runQpdfCli(args, files, async () => { reads++; files.set("-", pdf); });
+      const expected = runQpdfCliSync(args, new Map([["in.pdf", pdf]]));
+      assert.deepEqual(result, expected);
+      assert.equal(reads, 0);
+    });
+  }
+
+  for (const args of [
+    ["-", "-"],
+    ["--empty", "--pages", "-", "1", "--", "out.pdf"],
+    ["in.pdf", "--overlay", "-", "--", "out.pdf"],
+    ["in.pdf", "--add-attachment", "-", "--", "out.pdf"],
+  ]) {
+    it(`reads a referenced stdin input exactly once: ${JSON.stringify(args)}`, async () => {
+      const pdf = createNumberedPdf(1);
+      let reads = 0;
+      const files = new Map([["in.pdf", pdf]]);
+      const result = await runQpdfCli(args, files, async () => { reads++; files.set("-", pdf); });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(reads, 1);
+      assert.equal(PdfDocument.load(files.get(args.at(-1)!)!).getPageCount(), 1);
+    });
+  }
+
   it("parses qpdf page range syntax including rN, z, descending, x exclusion, and :odd/:even", () => {
     // 5,7-9,12:odd => positions 1,3,5 of [5,7,8,9,12] => [5,8,12]
     assert.deepEqual(parseQpdfPageRange("5,7-9,12:odd", 15), [5, 8, 12]);

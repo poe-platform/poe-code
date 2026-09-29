@@ -620,14 +620,16 @@ export async function runQpdfCli(
   files: Map<string, Uint8Array>,
   readStdin?: () => Promise<void>
 ): Promise<QpdfCliResult> {
-  if (readStdin && argv.includes("-")) await readStdin();
-  return runQpdfCliSync(argv, files);
+  const parsed = parseQpdfArguments(argv);
+  if (parsed.result) return parsed.result;
+  const { inputFile, pageSpecs, stampSpecs, addAttachmentSpecs, copyAttachmentsSpecs, updateFromJsonFiles } = parsed.options;
+  const usesStdin = inputFile === "-" || updateFromJsonFiles.includes("-") ||
+    [...pageSpecs, ...stampSpecs, ...addAttachmentSpecs, ...copyAttachmentsSpecs].some(spec => spec.file === "-");
+  if (readStdin && usesStdin) await readStdin();
+  return executeQpdfCli(parsed.options, files);
 }
 
-export function runQpdfCliSync(
-  argv: readonly string[],
-  files: Map<string, Uint8Array>
-): QpdfCliResult {
+function parseQpdfArguments(argv: readonly string[]) {
   let check = false;
   let showNpages = false;
   let showPages = false;
@@ -685,18 +687,18 @@ export function runQpdfCliSync(
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
     if (arg === "--help" || arg === "-h") {
-      return {
+      return { result: {
         exitCode: 0,
         stdout: "Usage: qpdf [options] infile [outfile]\n",
         stderr: ""
-      };
+      } };
     }
     if (arg === "--version") {
-      return {
+      return { result: {
         exitCode: 0,
         stdout: "qpdf version 11.9.1 (@poe-code/pdf-ast)\n",
         stderr: ""
-      };
+      } };
     }
     if (arg === "--check") {
       check = true;
@@ -723,7 +725,7 @@ export function runQpdfCliSync(
       if (mode === "yes" || mode === "auto" || mode === "no") {
         removeUnreferencedResources = mode;
       } else {
-        return { exitCode: 2, stdout: "", stderr: `qpdf: invalid remove-unreferenced-resources mode ${mode}\n` };
+        return { result: { exitCode: 2, stdout: "", stderr: `qpdf: invalid remove-unreferenced-resources mode ${mode}\n` } };
       }
     } else if (arg === "--externalize-inline-images") {
       externalizeInlineImages = true;
@@ -850,7 +852,7 @@ export function runQpdfCliSync(
       } else if (vRaw === "1") {
         jsonVersion = 1;
       } else {
-        return { exitCode: 2, stdout: "", stderr: `qpdf: invalid json version ${vRaw}\n` };
+        return { result: { exitCode: 2, stdout: "", stderr: `qpdf: invalid json version ${vRaw}\n` } };
       }
     } else if (arg.startsWith("--json-key=")) {
       const k = arg.slice("--json-key=".length);
@@ -866,13 +868,13 @@ export function runQpdfCliSync(
         "encrypt"
       ]);
       if (!validKeys.has(k)) {
-        return { exitCode: 2, stdout: "", stderr: `qpdf: invalid json-key ${k}\n` };
+        return { result: { exitCode: 2, stdout: "", stderr: `qpdf: invalid json-key ${k}\n` } };
       }
       jsonKeys.push(k);
     } else if (arg.startsWith("--json-object=")) {
       const parsed = parseStrictJsonObjectSelector(arg.slice("--json-object=".length));
       if (!parsed) {
-        return { exitCode: 2, stdout: "", stderr: `qpdf: invalid json-object selector\n` };
+        return { result: { exitCode: 2, stdout: "", stderr: `qpdf: invalid json-object selector\n` } };
       }
       jsonObjectSelectors.push(parsed);
     } else if (arg.startsWith("--json-stream-data=")) {
@@ -880,7 +882,7 @@ export function runQpdfCliSync(
       if (m === "none" || m === "inline" || m === "file") {
         jsonStreamDataMode = m;
       } else {
-        return { exitCode: 2, stdout: "", stderr: `qpdf: invalid json-stream-data mode ${m}\n` };
+        return { result: { exitCode: 2, stdout: "", stderr: `qpdf: invalid json-stream-data mode ${m}\n` } };
       }
     } else if (arg.startsWith("--json-stream-prefix=")) {
       jsonStreamPrefix = arg.slice("--json-stream-prefix=".length);
@@ -901,16 +903,16 @@ export function runQpdfCliSync(
       const v = arg.slice("--normalize-content=".length);
       if (v === "y") normalizeContentFlag = true;
       else if (v === "n") normalizeContentFlag = false;
-      else return { exitCode: 2, stdout: "", stderr: `qpdf: invalid normalize-content value ${v}\n` };
+      else return { result: { exitCode: 2, stdout: "", stderr: `qpdf: invalid normalize-content value ${v}\n` } };
     } else if (arg.startsWith("--compress-streams=")) {
       const v = arg.slice("--compress-streams=".length);
       if (v === "y") streamDataMode = "compress";
       else if (v === "n") streamDataMode = "uncompress";
-      else return { exitCode: 2, stdout: "", stderr: `qpdf: invalid compress-streams value ${v}\n` };
+      else return { result: { exitCode: 2, stdout: "", stderr: `qpdf: invalid compress-streams value ${v}\n` } };
     } else if (arg.startsWith("--object-streams=")) {
       const v = arg.slice("--object-streams=".length);
       if (v !== "preserve" && v !== "disable" && v !== "generate") {
-        return { exitCode: 2, stdout: "", stderr: `qpdf: invalid object-streams mode ${v}\n` };
+        return { result: { exitCode: 2, stdout: "", stderr: `qpdf: invalid object-streams mode ${v}\n` } };
       }
       objectStreamsMode = v;
     } else if (arg.startsWith("--stream-data=")) {
@@ -997,7 +999,133 @@ export function runQpdfCliSync(
   const inputFile = emptyInput ? undefined : positional[0];
   const outputFile = emptyInput ? positional[0] : positional[1];
 
-  // stdin populated by caller
+  return { options: {
+    check,
+    showNpages,
+    showPages,
+    withImages,
+    showEncryption,
+    isEncrypted,
+    requiresPassword,
+    showXref,
+    showObject,
+    filteredStreamData,
+    rawStreamData,
+    listAttachments,
+    showAttachmentKey,
+    jsonVersion,
+    jsonKeys,
+    jsonObjectSelectors,
+    jsonStreamDataMode,
+    jsonStreamPrefix,
+    jsonInput,
+    updateFromJsonFiles,
+    removeInfo,
+    removeMetadata,
+    removeStructure,
+    removeAcroform,
+    emptyInput,
+    replaceInput,
+    qdf,
+    generateAppearances,
+    normalizeContentFlag,
+    objectStreamsMode,
+    streamDataMode,
+    decrypt,
+    password,
+    splitPagesGroup,
+    collateCount,
+    linearize,
+    showLinearization,
+    flattenAnnotations,
+    flattenRotation,
+    removeUnreferencedResources,
+    externalizeInlineImages,
+    iiMinBytes,
+    removePageLabels,
+    pageLabelSpecs,
+    removeAttachmentKeys,
+    addAttachmentSpecs,
+    copyAttachmentsSpecs,
+    pageSpecs,
+    rotateSpecs,
+    stampSpecs,
+    encryptConfig,
+    warningExit0,
+    inputFile,
+    outputFile
+  } };
+}
+
+export function runQpdfCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): QpdfCliResult {
+  const parsed = parseQpdfArguments(argv);
+  if (parsed.result) return parsed.result;
+  return executeQpdfCli(parsed.options, files);
+}
+
+function executeQpdfCli(
+  options: NonNullable<ReturnType<typeof parseQpdfArguments>["options"]>,
+  files: Map<string, Uint8Array>
+): QpdfCliResult {
+  const {
+    check,
+    showNpages,
+    showPages,
+    withImages,
+    showEncryption,
+    isEncrypted,
+    requiresPassword,
+    showXref,
+    showObject,
+    filteredStreamData,
+    rawStreamData,
+    listAttachments,
+    showAttachmentKey,
+    jsonVersion,
+    jsonKeys,
+    jsonObjectSelectors,
+    jsonStreamDataMode,
+    jsonStreamPrefix,
+    jsonInput,
+    updateFromJsonFiles,
+    removeInfo,
+    removeMetadata,
+    removeStructure,
+    removeAcroform,
+    emptyInput,
+    replaceInput,
+    qdf,
+    generateAppearances,
+    normalizeContentFlag,
+    objectStreamsMode,
+    streamDataMode,
+    decrypt,
+    password,
+    splitPagesGroup,
+    collateCount,
+    linearize,
+    showLinearization,
+    flattenAnnotations,
+    flattenRotation,
+    removeUnreferencedResources,
+    externalizeInlineImages,
+    iiMinBytes,
+    removePageLabels,
+    pageLabelSpecs,
+    removeAttachmentKeys,
+    addAttachmentSpecs,
+    copyAttachmentsSpecs,
+    pageSpecs,
+    rotateSpecs,
+    stampSpecs,
+    encryptConfig,
+    warningExit0,
+    inputFile,
+    outputFile
+  } = options;
 
   const loadBytes = (filePath: string): Uint8Array | undefined => {
     if (filePath === "." && inputFile) return files.get(inputFile);
@@ -2280,7 +2408,7 @@ export function runQpdfCliSync(
   if (!finalTarget) {
     return { exitCode: 2, stdout: "", stderr: "qpdf: an output file is required\n" };
   }
-  if (!replaceInput && inputFile && finalTarget === inputFile) {
+  if (!replaceInput && inputFile && inputFile !== "-" && finalTarget === inputFile) {
     return {
       exitCode: 2,
       stdout: "",

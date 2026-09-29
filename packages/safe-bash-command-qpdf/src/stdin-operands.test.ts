@@ -4,7 +4,7 @@ import { PdfDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { qpdf } from "./index.js";
 
-const cases: [string[], number][] = [[["-", "--npages"], 1], [["-", "--show-npages"], 1], [["-", "--check"], 1], [["-", "out.pdf"], 1], [["in.pdf", "-"], 0], [["@args.txt"], 0], [["@transform.txt"], 0], [["@stdin.txt"], 1]];
+const cases: [string[], number][] = [[["-", "--npages"], 1], [["-", "--show-npages"], 1], [["-", "--check"], 1], [["-", "out.pdf"], 1], [["-", "-"], 1], [["in.pdf", "-"], 0], [["@args.txt"], 0], [["@transform.txt"], 0], [["@stdin.txt"], 1]];
 for (const [args, expectedReads] of cases) {
   it(JSON.stringify(args), async () => {
     const doc = PdfDocument.create(); doc.addPage().drawText("Fixture", { x: 20, y: 20, size: 12 });

@@ -28,6 +28,7 @@ on:
       - ".github/workflows/release-safe.yml"
       - "packages/spreadsheet-*/**"
       - "packages/xml-ast/**"
+      - "packages/xlsx-ast/**"
 permissions:
   contents: write
   id-token: write
@@ -73,7 +74,7 @@ jobs:
           fi
           if [ "$PIN_REVISION" != "true" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
             changed_later=$(git diff --name-only "$GITHUB_SHA" origin/main -- \
-              packages/safe-bash packages/safe-fs packages/safe-js packages/xml-ast \
+              packages/safe-bash packages/safe-fs packages/safe-js packages/xml-ast packages/xlsx-ast \
               packages/safe-bash-contracts packages/safe-bash-csv-engine \
               packages/safe-playwright packages/safe-playwright-cloudflare \
               'packages/spreadsheet-*' \
@@ -169,7 +170,7 @@ jobs:
           git fetch --filter=blob:none origin main
           if [ "$PIN_REVISION" != "true" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
             changed_later=$(git diff --name-only "$GITHUB_SHA" origin/main -- \
-              packages/safe-bash packages/safe-fs packages/safe-js packages/xml-ast \
+              packages/safe-bash packages/safe-fs packages/safe-js packages/xml-ast packages/xlsx-ast \
               packages/safe-bash-contracts packages/safe-bash-csv-engine \
               packages/safe-playwright packages/safe-playwright-cloudflare \
               'packages/spreadsheet-*' \

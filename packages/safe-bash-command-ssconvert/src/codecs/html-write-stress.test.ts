@@ -5,12 +5,25 @@ import { runCommand } from "../cli.js";
 import { readGnumeric } from "./gnumeric.js";
 import { createRegistry } from "./registry.js";
 import type { CapabilityContext } from "../contracts.js";
+import type { Workbook } from "../workbook.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {}, environment: { env: {}, locale: "C", timezone: "UTC" }, limits: { inputBytes: 100000, outputBytes: 1000000, cells: 1000, sheets: 10, operations: 1000 } };
 
 function fixture(format: string): string {
   return '<gnm:Workbook xmlns:gnm="http://www.gnumeric.org/v10.dtd"><gnm:Version Epoch="1" Major="12" Minor="61"/><gnm:SheetNameIndex><gnm:SheetName>S</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:Cells><gnm:Cell Row="0" Col="0" ValueType="60" ValueFormat="' + format + '">abcd</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>';
 }
+
+// Gnumeric html.c:79-109,196-203 encodes each UTF-8 span as characters;
+// U+FEFF in a cell is content, not a transport byte-order marker.
+for (const profile of ["html32", "html40", "html40frag", "xhtml", "xhtml_range"])
+it.each(["", "é😀"])(`preserves U+FEFF at rich span starts in ${profile}: %j`, async prefix => {
+  const value = prefix + "\ufeffz", start = new TextEncoder().encode(prefix).length;
+  const book: Workbook = { sheets: [{ id: "s", name: "S", cells: [{ row: 0, column: 0,
+    value: { kind: "string", value }, richText: [{ start, end: start + 3, attributes: { bold: 1 } }] }] }] };
+  const writer = createRegistry([]).select("write", "Gnumeric_html:" + profile)!.write!;
+  expect(new TextDecoder().decode(await writer(book, [], context)))
+    .toContain((prefix ? "&#233;&#128512;" : "") + "<b>&#65279;</b>z");
+});
 
 it.each([
   ["@[italic=1:0:4][italic=0:1:3]", "<i>a</i>bc<i>d</i>"],

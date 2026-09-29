@@ -520,7 +520,7 @@ export function createHtmlWriter(profile: HtmlExportProfile): NonNullable<import
                     }
                     if (open) { put(open); closures.unshift(close); }
                 }
-                put(encoded(new TextDecoder().decode(bytes.subarray(from, to))));
+                put(encoded(new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes.subarray(from, to))));
                 for (const closure of closures) put(closure);
               }
             } else if (cell) put(encoded(await renderCellText(cell, book, context, "preserve")));

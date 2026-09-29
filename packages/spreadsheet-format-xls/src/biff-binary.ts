@@ -27,10 +27,19 @@ export function isCfb(bytes: Uint8Array): boolean { return signature.every((byte
 
 interface Entry { name: string; type: number; left: number; right: number; child: number; start: number; size: number; }
 
+export interface CfbReadContext {
+  readonly signal: AbortSignal;
+  readonly limits: { readonly inputBytes: number };
+  /** Optional aggregate invocation admission, in addition to local container limits. */
+  readonly work?: () => void;
+  readonly retain?: (bytes: number) => void;
+}
+
 /** Only root-owned streams are exposed. FAT and directory references are never host paths. */
-export function readCfb(bytes: Uint8Array, context: CapabilityContext): ReadonlyMap<string, Uint8Array> {
-  context.signal.throwIfAborted();
+export function readCfb(bytes: Uint8Array, context: CfbReadContext): ReadonlyMap<string, Uint8Array> {
+  context.signal.throwIfAborted(); context.work?.();
   if (bytes.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
+  context.retain?.(256);
   const file = new Binary(bytes); file.check(0, 512);
   if (!isCfb(bytes) || file.u16(28) !== 0xfffe) invalidBiff("invalid CFB header");
   const version = file.u16(26), shift = file.u16(30);
@@ -39,27 +48,31 @@ export function readCfb(bytes: Uint8Array, context: CapabilityContext): Readonly
   const sectorSize = 2 ** shift, sectorCount = Math.floor(bytes.length / sectorSize) - 1;
   if (sectorCount < 0 || bytes.length % sectorSize !== 0 || file.u32(56) !== 4096) invalidBiff("invalid CFB size");
   const sector = (id: number): Binary => {
-    context.signal.throwIfAborted();
+    context.signal.throwIfAborted(); context.work?.();
     if (id >= sectorCount) invalidBiff("CFB sector outside file");
     return new Binary(file.slice((id + 1) * sectorSize, sectorSize));
   };
   const fatCount = file.u32(44), difatCount = file.u32(72), miniCount = file.u32(64);
   if (fatCount > sectorCount || difatCount > sectorCount || miniCount > sectorCount) invalidBiff("invalid CFB chain count");
-  const fatIds: number[] = [], seenDifat = new Set<number>();
+  const fatIds: number[] = [], seenFat = new Set<number>(), seenDifat = new Set<number>();
   const addFat = (id: number) => {
+    context.work?.();
     if (id === free) return;
-    if (id >= sectorCount || fatIds.length >= fatCount || fatIds.includes(id)) invalidBiff("invalid CFB FAT sector");
-    fatIds.push(id);
+    if (id >= sectorCount || fatIds.length >= fatCount || seenFat.has(id)) invalidBiff("invalid CFB FAT sector");
+    context.retain?.(64); seenFat.add(id); fatIds.push(id);
   };
   for (let offset = 76; offset < 512; offset += 4) addFat(file.u32(offset));
   let difat = file.u32(68);
   for (let index = 0; index < difatCount; index++) {
-    if (seenDifat.has(difat)) invalidBiff("CFB DIFAT cycle"); seenDifat.add(difat);
+    context.work?.();
+    if (seenDifat.has(difat)) invalidBiff("CFB DIFAT cycle");
+    context.retain?.(64); seenDifat.add(difat);
     const data = sector(difat);
     for (let offset = 0; offset < sectorSize - 4; offset += 4) addFat(data.u32(offset));
     difat = data.u32(sectorSize - 4);
   }
   if (difatCount && difat !== end || fatIds.length !== fatCount) invalidBiff("CFB FAT count mismatch");
+  context.retain?.(fatIds.length * 64);
   const fatSectors = fatIds.map(sector), fatWidth = sectorSize / 4;
   const nextFat = (id: number): number => {
     if (id >= sectorCount || !fatSectors[Math.floor(id / fatWidth)]) invalidBiff("CFB FAT reference outside table");
@@ -68,10 +81,10 @@ export function readCfb(bytes: Uint8Array, context: CapabilityContext): Readonly
   const chain = (start: number, maximum: number, next: (id: number) => number): number[] => {
     const ids: number[] = [], seen = new Set<number>();
     for (let id = start; id !== end; id = next(id)) {
-      context.signal.throwIfAborted();
+      context.signal.throwIfAborted(); context.work?.();
       if (seen.has(id)) invalidBiff("CFB chain cycle");
       if (ids.length >= maximum) invalidBiff("CFB chain exceeds declared size");
-      seen.add(id); ids.push(id);
+      context.retain?.(64); seen.add(id); ids.push(id);
     }
     return ids;
   };
@@ -79,9 +92,12 @@ export function readCfb(bytes: Uint8Array, context: CapabilityContext): Readonly
   const collect = (ids: readonly number[], size: number, width: number, source: (id: number) => Binary): Uint8Array => {
     if (size > context.limits.inputBytes - allocated) throw new SsconvertError("resource-limit", "ssconvert CFB decoded bytes limit exceeded");
     if (ids.length !== Math.ceil(size / width)) invalidBiff("CFB stream size mismatch");
+    context.retain?.(size);
     allocated += size;
     const result = new Uint8Array(size);
-    for (let i = 0; i < ids.length; i++) result.set(source(ids[i]!).slice(0, Math.min(width, size - i * width)), i * width);
+    for (let i = 0; i < ids.length; i++) {
+      context.work?.(); result.set(source(ids[i]!).slice(0, Math.min(width, size - i * width)), i * width);
+    }
     return result;
   };
   const dirIds = chain(file.u32(48), sectorCount, nextFat);
@@ -89,13 +105,14 @@ export function readCfb(bytes: Uint8Array, context: CapabilityContext): Readonly
   const directory = new Binary(collect(dirIds, dirIds.length * sectorSize, sectorSize, sector));
   const entries: Entry[] = [];
   for (let offset = 0; offset < directory.bytes.length; offset += 128) {
-    context.signal.throwIfAborted();
+    context.signal.throwIfAborted(); context.work?.();
     const type = directory.u8(offset + 66), length = directory.u16(offset + 64);
     if (type && (length < 2 || length > 64 || length % 2 || directory.u16(offset + length - 2) !== 0)) invalidBiff("invalid CFB directory name");
     if (![0, 1, 2, 5].includes(type)) invalidBiff("invalid CFB entry type");
     const high = directory.u32(offset + 124), low = directory.u32(offset + 120);
     const size = version === 3 ? low : high * 2 ** 32 + low;
     if (!Number.isSafeInteger(size) || type && size > bytes.length) invalidBiff("invalid CFB stream size");
+    context.retain?.(128 + (type ? length : 0));
     entries.push({ name: type ? new TextDecoder("utf-16le", { fatal: true }).decode(directory.slice(offset, length - 2)) : "",
       type, left: directory.u32(offset + 68), right: directory.u32(offset + 72), child: directory.u32(offset + 76),
       start: directory.u32(offset + 116), size });
@@ -109,14 +126,16 @@ export function readCfb(bytes: Uint8Array, context: CapabilityContext): Readonly
   const nextMini = (id: number) => { if (id >= Math.ceil(root.size / 64)) invalidBiff("CFB mini sector outside stream"); return miniFat.u32(id * 4); };
   const result = new Map<string, Uint8Array>(), visited = new Set<number>(), pending = [root.child];
   while (pending.length) {
-    context.signal.throwIfAborted();
+    context.signal.throwIfAborted(); context.work?.();
     const id = pending.pop()!; if (id === free) continue;
-    if (visited.has(id)) invalidBiff("CFB directory cycle"); visited.add(id);
+    if (visited.has(id)) invalidBiff("CFB directory cycle");
+    context.retain?.(96); visited.add(id);
     const entry = entries[id]; if (!entry || !entry.type || entry.type === 5) invalidBiff("invalid CFB directory reference");
     pending.push(entry.left, entry.right);
     if (entry.type !== 2) continue;
     if (result.has(entry.name)) invalidBiff("duplicate CFB stream name");
     const mini = entry.size < 4096;
+    context.retain?.(64);
     result.set(entry.name, collect(chain(entry.start, Math.ceil(entry.size / (mini ? 64 : sectorSize)), mini ? nextMini : nextFat),
       entry.size, mini ? 64 : sectorSize, mini ? miniSector : sector));
   }

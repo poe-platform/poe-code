@@ -1,3 +1,5 @@
+import { verification as selectedSpreadsheetVerification } from "./safe-packages-ssconvert-selected.mjs";
+await selectedSpreadsheetVerification;
 import "./safe-packages-pandoc.mjs";
 import "./safe-packages-xmllint.mjs";
 import { verifyFfmpeg } from "./safe-packages-ffmpeg.mjs";

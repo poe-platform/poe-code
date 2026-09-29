@@ -1,3 +1,10 @@
+import { createSsconvertCommand as createSelectedCommand, createSsconvertCommands as createSelectedCommands,
+  ssconvertCommands as selectedCommands, type SsconvertCommandsOptions as SelectedCommandOptions } from "poe-code/ssconvert/commands";
+import { csvFormat } from "poe-code/ssconvert/formats/csv";
+const selectedOptions: SelectedCommandOptions = { formats: [csvFormat], limits: { inputBytes: 1000000 } };
+createSelectedCommand(selectedOptions);
+createSelectedCommands(selectedOptions);
+selectedCommands(selectedOptions);
 import { createEngine, readXlsx, createXlsxWriter, referenceText, exportOptionPairs, resolveVfsCwd, createPythonSampleFunctions, recalculateWorkbook,
   type Workbook, type CapabilityContext, type ConversionRequest, type EngineConfig, type EngineOptions, type WorkingDirectoryFileSystem, type PythonUnicodeVersion, type FormulaCapability } from "safe-bash-command-ssconvert";
 import { readXlsx as rootReadXlsx, createPythonSampleFunctions as rootPythonFunctions, createSsconvertCommand, createSsconvertCommands, ssconvertCommands, type SsconvertCommandsOptions, type SsconvertLimits, type LabelRange } from "poe-code/ssconvert";

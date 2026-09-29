@@ -1,10 +1,12 @@
 import { expect, it } from "vitest";
 import { createEngine, defaultSsconvertLimits, updateWorkbook } from "./core.js";
+import { createSsconvertCommand, createSsconvertCommands, ssconvertCommands } from "./commands.js";
 import { csvFormat } from "./formats/csv.js";
 import { xlsxFormat } from "./formats/xlsx.js";
-import { createSsconvertCommand } from "./command.js";
+import { createSsconvertCommand as createCompatibilityCommand } from "./command.js";
+import { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-control";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { createCommandArguments, toByteSource } from "safe-bash-contracts";
+import { CommandRegistry, createCommandArguments, toByteSource } from "safe-bash-contracts";
 
 it("reads CSV, edits the AST, writes XLSX and returns through the selected CSV writer", async () => {
   const engine = createEngine({ formats: [csvFormat, xlsxFormat] });
@@ -60,4 +62,45 @@ it("the neutral engine preserves cancellation identity before consuming selected
     } }, {}, { signal: controller.signal })).rejects.toBe(reason);
     expect(consumed).toBe(false);
   } finally { await engine.dispose(); }
+});
+
+it("composable commands have no implicit formats and cannot use the compatibility fast path", async () => {
+  const command = createSsconvertCommand();
+  expect(builtInDirectContextExecutors.has(command.execute)).toBe(false);
+  expect(builtInDirectContextExecutors.has(createSsconvertCommands()[0]!.execute)).toBe(false);
+  const compatibility = createCompatibilityCommand();
+  expect(builtInDirectContextExecutors.has(compatibility.execute)).toBe(true);
+  const diagnostics: Uint8Array[] = [];
+  const context = { command: "ssconvert", cwd: "/", env: {}, fs: new MemoryFileSystem(),
+    ...createCommandArguments(["--list-importers"]), signal: new AbortController().signal,
+    stdin: toByteSource(""), stdout: { async write() {} },
+    stderr: { async write(bytes: Uint8Array) { diagnostics.push(bytes); } } };
+  expect(await command.execute(context)).toEqual({ exitCode: 0 });
+  expect(diagnostics.map(bytes => new TextDecoder().decode(bytes)).join("")).toBe("ID | Description\n");
+  diagnostics.length = 0;
+  expect(await compatibility.execute(context)).toEqual({ exitCode: 0 });
+  const listing = diagnostics.map(bytes => new TextDecoder().decode(bytes)).join("");
+  expect(listing).toContain("Gnumeric_Excel:xlsx");
+  expect(listing).toContain("Gnumeric_OpenCalc");
+});
+
+it("the composable plugin snapshots formats and refuses duplicate registration unless replace is requested", async () => {
+  const formats = [csvFormat];
+  const plugin = ssconvertCommands({ formats });
+  formats.length = 0;
+  const registry = new CommandRegistry();
+  const host = { commands: registry, use() {}, registerFileSystem() {} };
+  plugin.setup(host);
+  expect(() => plugin.setup(host)).toThrow("Command already registered");
+  const captured = registry.get("ssconvert")!;
+  ssconvertCommands({ formats: [csvFormat], replace: true }).setup(host);
+  const diagnostics: Uint8Array[] = [];
+  expect(await captured.execute({ command: "ssconvert", cwd: "/", env: {}, fs: new MemoryFileSystem(),
+    ...createCommandArguments(["--list-importers"]), signal: new AbortController().signal,
+    stdin: toByteSource(""), stdout: { async write() {} },
+    stderr: { async write(bytes: Uint8Array) { diagnostics.push(bytes); } }
+  })).toEqual({ exitCode: 0 });
+  const listing = diagnostics.map(bytes => new TextDecoder().decode(bytes)).join("");
+  expect(listing).toContain("Gnumeric_stf:stf_csvtab");
+  expect(listing).not.toContain("Gnumeric_Excel");
 });

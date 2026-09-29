@@ -15,12 +15,17 @@ const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"))
 const artifacts = new Map<string, string>();
 it.each([
   ["public", "poe-code/ssconvert", "poe-code/safe-bash/contracts", "poe-code/safe-fs/core"],
-  ["workspace", "safe-bash-command-ssconvert", "safe-bash-contracts", "@poe-code/safe-fs/core"]
+  ["workspace", "safe-bash-command-ssconvert", "safe-bash-contracts", "@poe-code/safe-fs/core"],
+  ["public selected CSV", "poe-code/ssconvert/commands", "poe-code/safe-bash/contracts", "poe-code/safe-fs/core"],
+  ["workspace selected CSV", "safe-bash-command-ssconvert/commands", "safe-bash-contracts", "@poe-code/safe-fs/core"]
 ])("shares raw arguments and frozen cleanup budgets in the %s SDK graph", async (_profile, sdk, contracts, filesystem) => {
+  const selected = sdk.endsWith("/commands");
   const result = await build({
     stdin: {
       contents: `
         import { createSsconvertCommands } from ${JSON.stringify(sdk)};
+        ${selected ? `import { csvFormat } from ${JSON.stringify(sdk.slice(0, -"/commands".length) + "/formats/csv")};` : ""}
+        const commandOptions = ${selected ? "{ formats: [csvFormat] }" : "{}"};
         import { bindFileOutputBudget, createCommandArguments, shellValueFromBytes } from ${JSON.stringify(contracts)};
         import { MemoryFileSystem } from ${JSON.stringify(filesystem)};
         globalThis.result = (async () => {
@@ -43,7 +48,7 @@ it.each([
               await sink.write(bytes);
             } }));
             let exitCode, cancelled = false, refused = false;
-            try { exitCode = (await createSsconvertCommands()[0].execute(context)).exitCode; }
+            try { exitCode = (await createSsconvertCommands(commandOptions)[0].execute(context)).exitCode; }
             catch (error) {
               if (error === false) cancelled = true;
               else if (error === refusal) refused = true;
@@ -60,7 +65,7 @@ it.each([
           const raw = new Uint8Array([45, 45, 255]);
           const carrier = createCommandArguments([shellValueFromBytes(raw)]);
           raw.fill(0);
-          const result = await createSsconvertCommands()[0].execute({ command: "ssconvert",
+          const result = await createSsconvertCommands(commandOptions)[0].execute({ command: "ssconvert",
             args: carrier.args, argumentValues: carrier, fs: new MemoryFileSystem(), cwd: "/", env: {},
             signal: new AbortController().signal, stdin: [], stdinIsDefault: true,
             stdout: { async write() {} }, stderr: { async write(bytes) { diagnostics.push(...bytes); } } });
@@ -84,6 +89,10 @@ it.each([
         : undefined);
     } }],
   });
+  if (selected) {
+    for (const marker of ["createXlsxWriter", "createBiffWriter", "createOdfWriter", "PDFDocument", "fontkit"])
+      expect(result.outputFiles[0]!.text).not.toContain(marker);
+  }
   const worker: Record<string, unknown> = { TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, AbortController, AbortSignal, URL, URLSearchParams, atob, crypto: webcrypto, setTimeout, clearTimeout, queueMicrotask };
   runInNewContext(result.outputFiles[0]!.text, worker);
   const actual = await worker.result as { observations: unknown[]; rawExit: number; diagnostic: string };

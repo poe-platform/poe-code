@@ -125,3 +125,28 @@ it("a DBF application owns its reader without shell commands or competing format
   expect(result.outputFiles[0]!.text).toContain("Gnumeric_xbase");
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
 });
+
+it.each([
+  ["CSV", false],
+  ["CSV and XLSX", true]
+])('a %s command excludes unselected codecs and rendering', async (_name, includeXlsx) => {
+  const formats = includeXlsx ? "csvFormat, xlsxFormat" : "csvFormat";
+  const result = await build({
+    stdin: {
+      contents: `import { createSsconvertCommand, createSsconvertCommands, ssconvertCommands } from "./commands.ts";
+        import { csvFormat } from "./formats/csv.ts";
+        ${includeXlsx ? 'import { xlsxFormat } from "./formats/xlsx.ts";' : ''}
+        globalThis.commands = [createSsconvertCommand({ formats: [${formats}] }),
+          createSsconvertCommands({ formats: [${formats}] }), ssconvertCommands({ formats: [${formats}] })];`,
+      resolveDir: fileURLToPath(new URL(".", import.meta.url))
+    },
+    bundle: true, platform: "browser", format: "esm", write: false, metafile: true, logLevel: "silent"
+  });
+  const included = Object.values(result.metafile!.outputs).flatMap(output =>
+    Object.entries(output.inputs).filter(([, value]) => value.bytesInOutput > 0).map(([name]) => name));
+  expect(included.some(name => name.includes("/spreadsheet-format-csv/"))).toBe(true);
+  expect(included.some(name => name.includes("/spreadsheet-format-xlsx/"))).toBe(includeXlsx);
+  expect(included.filter(name => ["/spreadsheet-format-xls/", "/spreadsheet-format-ods/", "/spreadsheet-format-html/",
+    "/spreadsheet-format-dbf/", "/spreadsheet-format-spreadsheetml/", "/pdf-lib/", "/fontkit/", "/@noble/ciphers/",
+    "/codecs/providers/", "/rendering/print/"].some(part => name.includes(part)))).toEqual([]);
+});

@@ -279,3 +279,28 @@ openpyxl and Calc roundtrip observations do not justify unconditional Xstring
 decoding. Broader compatibility families under #1748 also remain open. Completed
 format-extraction and release-prerequisite issues have individual acceptance
 audits; no blanket compatibility closure or full-fidelity claim is made.
+
+
+## Selected-format command composition audit
+
+The post-publication audit found that selected SDK bundles were isolated, but
+`createSsconvertCommand({ formats: [csvFormat] })` still statically imported the
+compatibility engine. The reproduced browser bundle included 262 unrelated
+codec/rendering inputs and occupied 10,853,309 bytes. Issue #4417 tracks this
+remaining command-side architecture requirement; scoped 0.1.755 does not fix it.
+
+The new `/ssconvert/commands` entrypoint binds the shared shell adapter to the
+neutral engine, with explicit format and rendering capabilities. `/ssconvert/core`
+remains the engine-only entrypoint. Existing `/ssconvert` and shell command
+imports retain their built-in defaults and synchronous executor eligibility;
+composable commands do not enter that default-only fast path. Both root and
+scoped publication routes expose the same command factories and option type.
+
+Source bundle regressions cover CSV-only and CSV+XLSX selections and retain the
+SDK-only isolation assertions. Command checks cover disabled-format destination
+preservation, snapshots, duplicate registration and empty/default registrations.
+Published-bundle checks exercise raw arguments, output budgets and cancellation
+through the selected entrypoint. The installed-package release fixtures now
+exercise selected CSV conversion, disabled XLSX preservation, empty defaults,
+plugin registration and the public TypeScript contract. This follow-up is still
+under validation and is not yet claimed as remotely delivered or published.

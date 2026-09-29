@@ -34,6 +34,10 @@
     "./formats/spreadsheetml": {
       "types": "./dist/formats/spreadsheetml.d.ts",
       "import": "./dist/formats/spreadsheetml.js"
+    },
+    "./commands": {
+      "types": "./dist/commands.d.ts",
+      "import": "./dist/commands.js"
     }
   },
   "files": [
@@ -101,5 +105,12 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "jpeg-js": "0.4.4"
+  },
+  "poeCode": {
+    "safeLibraryExports": {
+      "safe-bash": {
+        "./ssconvert/commands": "./commands"
+      }
+    }
   }
 }

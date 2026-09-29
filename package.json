@@ -335,6 +335,10 @@
     "./ssconvert/formats/dbf": {
       "types": "./packages/safe-bash-command-ssconvert/dist/formats/dbf.d.ts",
       "import": "./dist/ssconvert/formats/dbf.js"
+    },
+    "./ssconvert/commands": {
+      "types": "./packages/safe-bash-command-ssconvert/dist/commands.d.ts",
+      "import": "./dist/ssconvert/commands.js"
     }
   },
   "engines": {

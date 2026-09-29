@@ -150,13 +150,20 @@ it("embeds the declared ssconvert SDK behind its legacy CLI subpath without a CL
   volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/package.json", JSON.stringify({
     ...JSON.parse(readFileSync(new URL("../packages/safe-bash-command-ssconvert/package.json", import.meta.url), "utf8")),
     files: ["dist"],
-    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+    exports: {
+      ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
+      "./commands": { types: "./dist/commands.d.ts", import: "./dist/commands.js" },
+    },
   }));
   volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/index.js", "export const createEngine = () => 'spreadsheet';");
   volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/index.d.ts", "export declare const createEngine: () => string;");
   for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/ssconvert/index." + suffix,
     'export { createEngine } from "poe-code/ssconvert";');
+  volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/commands.js", "export const createSsconvertCommand = () => ({ name: 'ssconvert' });");
+  volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/commands.d.ts", "export declare const createSsconvertCommand: () => { name: string };");
   await packageSafeLibraries({ ...options, outDir: "/output" });
+  expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).exports["./ssconvert/commands"])
+    .toEqual({ types: "./dist/safe-bash-command-ssconvert/commands.d.ts", import: "./dist/safe-bash-command-ssconvert/commands.js" });
   for (const suffix of ["js", "d.ts"]) expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/ssconvert/index." + suffix, "utf8"))
     .toContain('"../../../safe-bash-command-ssconvert/index.js"');
   expect(volume.readFileSync("/output/safe-bash/dist/safe-bash-command-ssconvert/index.d.ts", "utf8")).toContain("createEngine");
@@ -174,12 +181,19 @@ it("ships the spreadsheet command SDK without a CLI dependency", async () => {
   volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/package.json", JSON.stringify({
     ...JSON.parse(readFileSync(new URL("../packages/safe-bash-command-ssconvert/package.json", import.meta.url), "utf8")),
     files: ["dist"],
-    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+    exports: {
+      ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
+      "./commands": { types: "./dist/commands.d.ts", import: "./dist/commands.js" },
+    },
   }));
   volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/index.js", 'export const createSsconvertCommand = () => ({ name: "ssconvert" });');
   volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/index.d.ts", "export declare const createSsconvertCommand: () => { name: string };");
   for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/ssconvert/index." + suffix, `export { createSsconvertCommand } from ${JSON.stringify(exported.text)};`);
+  volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/commands.js", "export const createSsconvertCommand = () => ({ name: 'ssconvert' });");
+  volume.writeFileSync("/repo/packages/safe-bash-command-ssconvert/dist/commands.d.ts", "export declare const createSsconvertCommand: () => { name: string };");
   await packageSafeLibraries({ ...options, outDir: "/output" });
+  expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).exports["./ssconvert/commands"])
+    .toEqual({ types: "./dist/safe-bash-command-ssconvert/commands.d.ts", import: "./dist/safe-bash-command-ssconvert/commands.js" });
   expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/ssconvert/index.js", "utf8")).toContain('"../../../safe-bash-command-ssconvert/index.js"');
   expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).dependencies).not.toHaveProperty("poe-code");
 });

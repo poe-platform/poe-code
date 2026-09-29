@@ -55,7 +55,20 @@ under `@poe-platform/safe-bash/ssconvert`. Use `poe-code/safe-bash/spreadsheet-a
 
 The compatibility `poe-code/ssconvert` entrypoint retains all built-in formats
 when `formats` is omitted. Use `formats: []` for custom codecs only.
-`createSsconvertCommand` and `ssconvertCommands` accept the same selection option.
+For a shell with selected formats, import `createSsconvertCommand`,
+`createSsconvertCommands` or `ssconvertCommands` from `/commands`:
+
+```ts
+import { ssconvertCommands } from "poe-code/ssconvert/commands";
+import { csvFormat } from "poe-code/ssconvert/formats/csv";
+
+const plugin = ssconvertCommands({ formats: [csvFormat] });
+```
+
+These commands register only the selected formats. Their VFS, cancellation,
+resource limits and output publication use the same shell adapter as the
+compatibility commands. Omitting `formats` from a composable command installs no formats. The same API is
+available at `@poe-platform/safe-bash/ssconvert/commands`.
 The compatibility entrypoint also supplies default rendering and clipboard
 capabilities; `/core` requires those capabilities explicitly.
 

@@ -3318,6 +3318,26 @@
             "out/ssconvert-odf-settings/odf-author-compiled.json",
             "out/ssconvert-odf-settings/odf-author-native.json"
           ]
+        },
+        "legacy": {
+          "commit": "beb3e24fda81b6bdc6fb3a9a439d7156867a5d10",
+          "remote": "verified main",
+          "source": {
+            "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+            "files": {
+              "lo-OOo2Oasis.cxx": "fc02e1e5a871a39815961b4af1054bcea2f474dd03855151c4f76a08888f2672",
+              "lo-xmlannoi.cxx": "4ec7a198b12698e92e3f222527b476d4f48aa446a2cec67add5cf96a18197599"
+            },
+            "lines": "OOo2Oasis.cxx:348,699-705 moves legacy author/create-date/create-date-string into dc:creator/dc:date/meta:date-string; xmlannoi.cxx:166-198 reads legacy attributes and position. Legacy annotation states are absent from the Gnumeric-derived schema; admit the requested functionality from LibreOffice."
+          },
+          "implementation": "Read legacy office:author including empty values, preserve dc:creator precedence, admit legacy annotations/nested spans/whitespace, regenerate supported rich formatting into ODF, move date fields into elements and preserve display/SVG position. Preserve meta:date-string on replay.",
+          "validation": "Four initial failures; final 1209 tests / 29 ODF files pass. Package lint/source/test/consumer checks and selected workspace build pass. Actual compiled public commands and SDK read/write replay pass both profiles with empty command stderr.",
+          "native": "Calc reads both profiles with exactly the same author/date/text/bold/display/x/y semantics as direct SXC import. Gnumeric reads the upgraded author/text/TextFormat with empty stderr. Calc emits Fontconfig cachedir warnings and omits the fallback date-string when the valid date exists.",
+          "remaining": "Other legacy styles/objects, unrepresentable typography and canonical comment metadata, pixels, other platforms and installed artifacts remain open. All 19 families remain open.",
+          "receipts": [
+            "out/ssconvert-odf-settings/odf-legacy-annotation-compiled.json",
+            "out/ssconvert-odf-settings/odf-legacy-annotation-native.json"
+          ]
         }
       }
     }
@@ -3707,9 +3727,23 @@
     "odfAnnotations": {
       "commit": "a188df91cdf3b87db97af55d8afafec2c5f4fa80",
       "remote": "verified main",
-      "release": "Full pin 36515238702 failed on new gh workspace profile. Upstream 7736e4aca3 exactly matches our uncommitted repair; c6db5c2daf fixes subsequent runtime typing errors. Both retained. Full containing pin 36516153804 requested at b93ef2d4fd; verify ancestry and publication. Registry remains 17.0.35 at a8a8a7efbc.",
+      "release": "Containing portable-repair pin 36516673799 canceled. Successor 36516817154 at 70ac821f7e is building and contains all earlier annotation and portable checksum/type repairs, but predates the legacy annotation fix. No containing publication; npm remains 17.0.35 at a8a8a7efbc.",
       "cleanup": "Generated annotation workbooks and isolated profiles removed after compact receipts. No binaries committed.",
-      "authorOnlyCommit": "325efb9420822e14dba6b3b84fed02c188122bf5"
+      "authorOnlyCommit": "325efb9420822e14dba6b3b84fed02c188122bf5",
+      "legacyCommit": "beb3e24fda81b6bdc6fb3a9a439d7156867a5d10"
+    },
+    "releasePortability": {
+      "tsortCommit": "f24d774fd0bef9510a64375e6c0d3ece59aede4f",
+      "checksumCommit": "3c7a61378ff43d7fdef5e28b77de978b510be5c1",
+      "remote": "both verified on main",
+      "red": "Maintained build proves optional cwd type error, then browser postbuild rejects new node:crypto dependency. Existing browser checksum test independently fails.",
+      "green": "41 substitution tests pass for type change; final 161 checksum/substitution tests and focused lint pass. Maintained selected Safe Bash build, optional CLI and browser postbuild pass. Browser VM has no process/Buffer/crypto; all six sync digests match native Node at empty, 3-byte and 16384-byte inputs; larger inputs decline fast path.",
+      "retainedUpstream": "7736e4aca3 fixes gh declaration profile, matching our discarded candidate. c6db5c2daf and 735ff59001 reconcile incoming fmt/tsort calls.",
+      "release": "Containing portable-repair pin 36516673799 canceled. Successor 36516817154 at 70ac821f7e is building and contains all earlier annotation and portable checksum/type repairs, but predates the legacy annotation fix. No containing publication; npm remains 17.0.35 at a8a8a7efbc.",
+      "registry": {
+        "version": "17.0.35",
+        "gitHead": "a8a8a7efbc7c29daf9e6e6071d3520e774a3b7f2"
+      }
     }
   },
   "history": {

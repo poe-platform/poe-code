@@ -1,3 +1,4 @@
+import { prCommands } from "../../src/commands/pr/index.ts";
 import { shufCommands } from "../../src/commands/shuf/index.ts";
 import { mdqCommands } from "../../src/commands/mdq/index.ts";
 import { timeEnvCommands } from "../../src/commands/time-env/index.ts";
@@ -720,5 +721,28 @@ test("evaluates shuf -z/bundled flags, mdq ordered list selector 1./-o<format>/m
   assert.equal(
     r.stdout,
     "first step,second step,third step,#2025,2026,#2024-03-04\n",
+  );
+});
+
+test("evaluates fmt file operands, pr page headers with --date-format, and xan slice -L/--last and -I/--indices in sync substitutions (Wave 195)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(prCommands()).use(xanCommands());
+  const r = await shell.exec(
+    [
+      "printf \"one two three four\\n\" > /tmp/w195a.txt",
+      "printf \"five six seven\\n\" > /tmp/w195b.txt",
+      "fmt_res=$(fmt -w 10 /tmp/w195a.txt /tmp/w195b.txt | tr \"\\n\" \",\")",
+      "pr_res=$(printf \"body\\n\" | pr --date-format=\"2026-01-01\" -h \"CustomTitle\" -l 12 | grep \"CustomTitle\" | tr -s \" \")",
+      "printf \"id,val\\n1,a\\n2,b\\n3,c\\n4,d\\n\" > /tmp/w195.csv",
+      "xan_last=$(xan slice -L 2 /tmp/w195.csv | tr \"\\n\" \",\")",
+      "xan_idx=$(xan slice -I 0,2 /tmp/w195.csv | tr \"\\n\" \",\")",
+      "printf \"%s#%s#%s#%s\\n\" \"$fmt_res\" \"$pr_res\" \"$xan_last\" \"$xan_idx\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "one two,three four,five,six seven,#2026-01-01 CustomTitle Page 1#id,val,3,c,4,d,#id,val,1,a,3,c,\n",
   );
 });

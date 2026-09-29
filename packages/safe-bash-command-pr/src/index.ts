@@ -5,6 +5,8 @@ import { Formatter } from "./format.js";
 import { Budget, settings, type PrCommandsOptions } from "./internal.js";
 import { Lifecycle, Reader } from "./io.js";
 import { parseOptions } from "./options.js";
+import { formatDate } from "safe-bash-calendar-engine/time-env/format";
+import { TimeZone } from "safe-bash-calendar-engine/time-env/calendar";
 
 export { createPrCommand } from "./command.js";
 export type { PrCommandsOptions, PrLimits } from "./internal.js";
@@ -54,11 +56,27 @@ export function evalSyncPr(
     const budget = new Budget(getSyncPrDummyContext(), syncPrLimits, getSyncPrSignal());
     const parsed = parseOptions([...opArgs], budget);
     if (parsed.information !== undefined) return undefined;
-    if (parsed.extremities && parsed.length > 10) return undefined;
+    if (parsed.extremities) cacheKey = undefined;
     const names = parsed.files.length ? parsed.files : ["-"];
     if (!parsed.files.length) parsed.merge = false;
     const groups = parsed.merge ? [names] : names.map(name => [name]);
     const lifecycle = new Lifecycle(budget, getSyncPrDummyOutput());
+    const nowMs = Date.now();
+    const formatStamp = (): string => {
+      const value = new Date(nowMs);
+      if (parsed.dateFormat !== undefined) {
+        return formatDate(parsed.dateFormat, BigInt(Math.trunc(nowMs)) * 1_000_000n, new TimeZone("UTC"), {
+          maxArguments: syncPrLimits.maxArguments, maxArgumentBytes: syncPrLimits.maxArgumentBytes,
+          maxOutputBytes: Math.min(syncPrLimits.maxBufferedBytes, syncPrLimits.maxOutputBytes),
+          maxEnvironmentEntries: 1, maxFormatWidth: syncPrLimits.maxPageWidth,
+        }).slice(0, -1);
+      }
+      const year = String(value.getUTCFullYear()).padStart(4, "0");
+      const month = String(value.getUTCMonth() + 1).padStart(2, "0");
+      const day = String(value.getUTCDate()).padStart(2, "0");
+      const time = `${String(value.getUTCHours()).padStart(2, "0")}:${String(value.getUTCMinutes()).padStart(2, "0")}`;
+      return `${year}-${month}-${day} ${time}`;
+    };
     let totalOut = "";
     for (const group of groups) {
       const formatter = new Formatter({ ...parsed }, lifecycle, group.length);
@@ -68,6 +86,7 @@ export function evalSyncPr(
         if (name === "-") {
           srcBytes = inBytes;
         } else {
+          if (parsed.extremities && parsed.dateFormat === undefined) return undefined;
           if (!readFileSync) return undefined;
           srcBytes = readFileSync(name);
         }
@@ -76,7 +95,9 @@ export function evalSyncPr(
         reader.initFromBytes(srcBytes);
         readers.push(reader);
       }
-      if (!formatter.runSync(readers, "", "")) return undefined;
+      const title = parsed.header ?? (parsed.merge || readers[0]!.name === "-" ? "" : readers[0]!.name);
+      const stamp = parsed.extremities ? formatStamp() : "";
+      if (!formatter.runSync(readers, stamp, title)) return undefined;
       totalOut += lifecycle.takeStdoutSync();
     }
     const res = totalOut.endsWith("\n") ? totalOut.slice(0, -1) : totalOut;

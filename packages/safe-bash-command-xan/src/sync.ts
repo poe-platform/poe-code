@@ -79,6 +79,8 @@ export function evalSyncXan(
   let lenNum: number | undefined;
   let endNum: number | undefined;
   let indexNum: number | undefined;
+  let lastNum: number | undefined;
+  let indicesList: number[] | undefined;
   let delim: string | undefined;
   const positionals: string[] = [];
 
@@ -125,6 +127,26 @@ export function evalSyncXan(
       const v = Number(raw);
       if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
       indexNum = v;
+    } else if (a === "-L" || a === "--last" || a.startsWith("--last=")) {
+      if (sub !== "slice") return undefined;
+      const raw = (a === "-L" || a === "--last") ? args[++i] : a.slice(7);
+      const v = Number(raw);
+      if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
+      lastNum = v;
+    } else if (a === "-I" || a === "--indices" || a.startsWith("--indices=")) {
+      if (sub !== "slice") return undefined;
+      const raw = (a === "-I" || a === "--indices") ? args[++i] : a.slice(10);
+      if (!raw) return undefined;
+      const parts = raw.split(",");
+      const parsedIdx: number[] = [];
+      for (const p of parts) {
+        if (!/^\d+$/.test(p)) return undefined;
+        const v = Number(p);
+        if (!Number.isSafeInteger(v) || v < 0) return undefined;
+        parsedIdx.push(v);
+      }
+      parsedIdx.sort((x, y) => x - y);
+      indicesList = parsedIdx.filter((v, idx, arr) => idx === 0 || arr[idx - 1] !== v);
     } else if (a.startsWith("-")) {
       return undefined;
     } else {
@@ -191,8 +213,17 @@ export function evalSyncXan(
     }
     const outRows: string[][] = [];
     if (!noHeaders) outRows.push(rows[0]!);
-    for (let r = s; r < Math.min(e, dataRows.length); r++) {
-      if (r >= 0) outRows.push(dataRows[r]!);
+    if (lastNum !== undefined) {
+      const sliced = lastNum === 0 ? [] : dataRows.slice(Math.max(0, dataRows.length - lastNum));
+      for (const r of sliced) outRows.push(r);
+    } else if (indicesList !== undefined) {
+      for (const idx of indicesList) {
+        if (idx >= 0 && idx < dataRows.length) outRows.push(dataRows[idx]!);
+      }
+    } else {
+      for (let r = s; r < Math.min(e, dataRows.length); r++) {
+        if (r >= 0) outRows.push(dataRows[r]!);
+      }
     }
     if (outRows.length === 0) return "";
     return outRows.map(r => r.map(c => formatSyncCsvCell(c, effectiveDelim)).join(",")).join("\n") + "\n";

@@ -27100,36 +27100,50 @@ export class Runtime {
   }
 
   private _syncFmtParsedCache = new Map<string, { files?: readonly unknown[] }>();
-  private evalSyncFmt(inBytes: Uint8Array, opArgs: readonly string[]): string | undefined {
+  private evalSyncFmt(inBytes: Uint8Array, opArgs: readonly string[], readFile?: (path: string) => Uint8Array | undefined): string | undefined {
     if (inBytes.byteLength > 4096) return undefined;
     try {
       const cacheKey = opArgs.join("\x1f");
       let parsed = this._syncFmtParsedCache.get(cacheKey);
       if (!parsed) {
         const argBytes = opArgs.map(a => fastSharedTextEncoder.encode(a));
-        parsed = parseFmtArguments(argBytes) as { files?: readonly unknown[] };
+        parsed = parseFmtArguments(argBytes) as { files?: readonly unknown[]; information?: unknown };
         if (this._syncFmtParsedCache.size < 64) this._syncFmtParsedCache.set(cacheKey, parsed);
       }
-      if (parsed.files && (parsed.files as readonly { name: string }[]).some(f => f.name !== "-")) return undefined;
-      if (inBytes.byteLength === 0) return "";
-      const engine = createFmtEngine(parsed as Parameters<typeof createFmtEngine>[0], {}, { aborted: false } as AbortSignal);
-      const gen = engine.run();
-      let step = gen.next();
-      let sent = false;
+      if ((parsed as { information?: unknown }).information !== undefined) return undefined;
+      const files = (parsed.files as readonly { name: string }[] | undefined) ?? [{ name: "-" }];
       let out = "";
-      while (!step.done) {
-        if (step.value === "input") {
-          if (!sent) {
-            sent = true;
-            step = gen.next(inBytes);
-          } else {
-            step = gen.next(null);
-          }
-        } else if (step.value instanceof Uint8Array) {
-          out += sharedSyncPipeDecoder.decode(step.value);
-          step = gen.next();
+      let stdinDone = false;
+      for (const f of files) {
+        if (f.name === "-" && stdinDone) continue;
+        let srcBytes = inBytes;
+        if (f.name === "-") {
+          stdinDone = true;
         } else {
-          step = gen.next();
+          if (!readFile) return undefined;
+          const fBytes = readFile(f.name);
+          if (!fBytes || fBytes.byteLength > 4096) return undefined;
+          srcBytes = fBytes;
+        }
+        if (srcBytes.byteLength === 0) continue;
+        const engine = createFmtEngine(parsed as Parameters<typeof createFmtEngine>[0], {}, { aborted: false } as AbortSignal);
+        const gen = engine.run();
+        let step = gen.next();
+        let sent = false;
+        while (!step.done) {
+          if (step.value === "input") {
+            if (!sent) {
+              sent = true;
+              step = gen.next(srcBytes);
+            } else {
+              step = gen.next(null);
+            }
+          } else if (step.value instanceof Uint8Array) {
+            out += sharedSyncPipeDecoder.decode(step.value);
+            step = gen.next();
+          } else {
+            step = gen.next();
+          }
         }
       }
       return out;
@@ -28544,7 +28558,7 @@ export class Runtime {
       const w0Plain0 = cmd0.words[0]?.plain;
       const cmd0YesStage = !cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "yes" && pipeline.commands[1]?.kind === "simple" && pipeline.commands[1]?.words[0]?.plain === "head";
       const cmd0SysStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "uname" || w0Plain0 === "id" || w0Plain0 === "whoami" || w0Plain0 === "hostname" || w0Plain0 === "nproc" || w0Plain0 === "getconf" || w0Plain0 === "locale" || w0Plain0 === "cal" || w0Plain0 === "ncal" || w0Plain0 === "date" || w0Plain0 === "printenv" || w0Plain0 === "env" || w0Plain0 === "pwd" || w0Plain0 === "dirname" || w0Plain0 === "basename" || w0Plain0 === "expr" || w0Plain0 === "getopt" || w0Plain0 === "pathchk" || (w0Plain0 === "awk" && cmd0.words.some(w => w.plain?.includes("BEGIN"))));
-      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || w0Plain0 === "jq" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk" || w0Plain0 === "rev" || w0Plain0 === "tac" || w0Plain0 === "uniq" || w0Plain0 === "base64" || w0Plain0 === "column" || w0Plain0 === "fold" || w0Plain0 === "expand" || w0Plain0 === "unexpand" || w0Plain0 === "strings" || w0Plain0 === "numfmt") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
+      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "fmt" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || w0Plain0 === "jq" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk" || w0Plain0 === "rev" || w0Plain0 === "tac" || w0Plain0 === "uniq" || w0Plain0 === "base64" || w0Plain0 === "column" || w0Plain0 === "fold" || w0Plain0 === "expand" || w0Plain0 === "unexpand" || w0Plain0 === "strings" || w0Plain0 === "numfmt") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
       if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0YesStage && !cmd0SysStage && !cmd0StdinRedir && !cmd0HereStringRedir && !cmd0FileStage) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
@@ -28659,7 +28673,7 @@ export class Runtime {
         } else if (sName === "hexdump" || sName === "hd") {
           if (this.evalSyncHexdump(new Uint8Array([97]), sArgs, sName === "hd") === undefined) return undefined;
         } else if (sName === "fmt") {
-          if (this.evalSyncFmt(EMPTY_BYTES, sArgs) === undefined) return undefined;
+          if (this.evalSyncFmt(EMPTY_BYTES, sArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) return undefined;
         } else if (sName === "md5sum" || sName === "sha1sum" || sName === "sha224sum" || sName === "sha256sum" || sName === "sha384sum" || sName === "sha512sum" || sName === "cksum") {
           if (evalSyncChecksum(sName, EMPTY_BYTES, sArgs) === undefined) return undefined;
         } else if (sName === "base32") {
@@ -29201,7 +29215,7 @@ export class Runtime {
               const outStr = ((stageArgs.includes("--help") || stageArgs.includes("--version")) ? gnuInformationSync(firstName, stageArgs) : undefined) ?? (firstName === "envsubst"
                 ? this.evalSyncEnvsubst(inStr, stageArgs, rawState)
                 : firstName === "fmt"
-                  ? this.evalSyncFmt(rawBytes, stageArgs)
+                  ? this.evalSyncFmt(rawBytes, stageArgs, readFile)
                   : firstName === "date"
                     ? evalSyncDate(stageArgs, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, stageDefs[sIdx]!.execute, readFile, (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.stat.mtimeMs, sIdx === 0 && cmd0FileStage ? undefined : rawBytes)
                   : firstName === "mdq"
@@ -29748,7 +29762,7 @@ export class Runtime {
           return res;
         }
       }
-      if (fOk && (w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "csvlook" || w0Plain === "csvjson" || w0Plain === "csvsort" || w0Plain === "csvformat" || w0Plain === "csvstat" || w0Plain === "in2csv" || w0Plain === "csvstack" || w0Plain === "csvjoin" || w0Plain === "dd" || w0Plain === "xargs" || w0Plain === "openssl" || w0Plain === "sqlite3" || w0Plain === "gpg" || w0Plain === "ssh" || w0Plain === "ssh-keygen" || w0Plain === "pdfinfo" || w0Plain === "pdffonts" || w0Plain === "pdftotext" || w0Plain === "pdftohtml" || w0Plain === "exiftool" || w0Plain === "qpdf" || w0Plain === "pdftk" || w0Plain === "sips" || w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "pdfimages" || w0Plain === "pdfdetach" || w0Plain === "ffprobe" || w0Plain === "ffmpeg" || w0Plain === "gh" || w0Plain === "pdftoppm" || w0Plain === "pdftocairo" || w0Plain === "mmdc" || w0Plain === "pandoc" || w0Plain === "soffice" || w0Plain === "libreoffice" || w0Plain === "ssconvert" || w0Plain === "wkhtmltopdf" || w0Plain === "op" || w0Plain === "git" || w0Plain === "tar" || w0Plain === "unzip" || w0Plain === "zip" || w0Plain === "timeout" || w0Plain === "split" || w0Plain === "csplit" || w0Plain === "curl" || w0Plain === "wget" || w0Plain === "sponge" || w0Plain === "truncate" || w0Plain === "install" || w0Plain === "apply_patch" || w0Plain === "mktemp" || w0Plain === "tee" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "patch" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "pr" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "less" || w0Plain === "more" || w0Plain === "rg") && !hasSingleStdinRedir && (hasSingleHereStringRedir || w0Plain === "shuf" || w0Plain === "dd" || w0Plain === "xargs" || w0Plain === "openssl" || w0Plain === "sqlite3" || w0Plain === "gpg" || w0Plain === "ssh" || w0Plain === "ssh-keygen" || w0Plain === "pdfinfo" || w0Plain === "pdffonts" || w0Plain === "pdftotext" || w0Plain === "pdftohtml" || w0Plain === "exiftool" || w0Plain === "qpdf" || w0Plain === "pdftk" || w0Plain === "sips" || w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "pdfimages" || w0Plain === "pdfdetach" || w0Plain === "ffprobe" || w0Plain === "ffmpeg" || w0Plain === "gh" || w0Plain === "pdftoppm" || w0Plain === "pdftocairo" || w0Plain === "mmdc" || w0Plain === "pandoc" || w0Plain === "soffice" || w0Plain === "libreoffice" || w0Plain === "ssconvert" || w0Plain === "wkhtmltopdf" || w0Plain === "op" || w0Plain === "git" || w0Plain === "tar" || w0Plain === "unzip" || w0Plain === "zip" || w0Plain === "timeout" || w0Plain === "split" || w0Plain === "csplit" || w0Plain === "curl" || w0Plain === "wget" || w0Plain === "sponge" || w0Plain === "truncate" || w0Plain === "install" || w0Plain === "apply_patch" || w0Plain === "mktemp" || w0Plain === "tee" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "patch" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln" || allArgs.some(a => a !== "-" && !a.startsWith("-")))) {
+      if (fOk && (w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "csvlook" || w0Plain === "csvjson" || w0Plain === "csvsort" || w0Plain === "csvformat" || w0Plain === "csvstat" || w0Plain === "in2csv" || w0Plain === "csvstack" || w0Plain === "csvjoin" || w0Plain === "dd" || w0Plain === "xargs" || w0Plain === "openssl" || w0Plain === "sqlite3" || w0Plain === "gpg" || w0Plain === "ssh" || w0Plain === "ssh-keygen" || w0Plain === "pdfinfo" || w0Plain === "pdffonts" || w0Plain === "pdftotext" || w0Plain === "pdftohtml" || w0Plain === "exiftool" || w0Plain === "qpdf" || w0Plain === "pdftk" || w0Plain === "sips" || w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "pdfimages" || w0Plain === "pdfdetach" || w0Plain === "ffprobe" || w0Plain === "ffmpeg" || w0Plain === "gh" || w0Plain === "pdftoppm" || w0Plain === "pdftocairo" || w0Plain === "mmdc" || w0Plain === "pandoc" || w0Plain === "soffice" || w0Plain === "libreoffice" || w0Plain === "ssconvert" || w0Plain === "wkhtmltopdf" || w0Plain === "op" || w0Plain === "git" || w0Plain === "tar" || w0Plain === "unzip" || w0Plain === "zip" || w0Plain === "timeout" || w0Plain === "split" || w0Plain === "csplit" || w0Plain === "curl" || w0Plain === "wget" || w0Plain === "sponge" || w0Plain === "truncate" || w0Plain === "install" || w0Plain === "apply_patch" || w0Plain === "mktemp" || w0Plain === "tee" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "patch" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "fmt" || w0Plain === "pr" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "less" || w0Plain === "more" || w0Plain === "rg") && !hasSingleStdinRedir && (hasSingleHereStringRedir || w0Plain === "shuf" || w0Plain === "dd" || w0Plain === "xargs" || w0Plain === "openssl" || w0Plain === "sqlite3" || w0Plain === "gpg" || w0Plain === "ssh" || w0Plain === "ssh-keygen" || w0Plain === "pdfinfo" || w0Plain === "pdffonts" || w0Plain === "pdftotext" || w0Plain === "pdftohtml" || w0Plain === "exiftool" || w0Plain === "qpdf" || w0Plain === "pdftk" || w0Plain === "sips" || w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "pdfimages" || w0Plain === "pdfdetach" || w0Plain === "ffprobe" || w0Plain === "ffmpeg" || w0Plain === "gh" || w0Plain === "pdftoppm" || w0Plain === "pdftocairo" || w0Plain === "mmdc" || w0Plain === "pandoc" || w0Plain === "soffice" || w0Plain === "libreoffice" || w0Plain === "ssconvert" || w0Plain === "wkhtmltopdf" || w0Plain === "op" || w0Plain === "git" || w0Plain === "tar" || w0Plain === "unzip" || w0Plain === "zip" || w0Plain === "timeout" || w0Plain === "split" || w0Plain === "csplit" || w0Plain === "curl" || w0Plain === "wget" || w0Plain === "sponge" || w0Plain === "truncate" || w0Plain === "install" || w0Plain === "apply_patch" || w0Plain === "mktemp" || w0Plain === "tee" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "patch" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln" || allArgs.some(a => a !== "-" && !a.startsWith("-")))) {
         const inBytes = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : EMPTY_BYTES;
         const optInBytes = hasSingleHereStringRedir ? inBytes : undefined;
         const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
@@ -29890,6 +29904,8 @@ export class Runtime {
               ? evalSyncHtmlToMarkdown(inBytes, allArgs, readFile)
             : w0Plain === "unrtf"
               ? evalSyncUnrtf(optInBytes, allArgs, readFile)
+            : w0Plain === "fmt"
+              ? this.evalSyncFmt(inBytes, allArgs, readFile)
             : w0Plain === "pr"
               ? evalSyncPr(optInBytes, allArgs, readFile)
             : w0Plain === "file"

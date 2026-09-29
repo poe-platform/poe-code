@@ -68,12 +68,12 @@ const syncHtmlLimits = Object.freeze({
 });
 
 export function evalSyncHtmlq(
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
   writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
-  if (inBytes.byteLength > 16384) return undefined;
+  if (inBytes && inBytes.byteLength > 16384) return undefined;
   try {
     const invocation = invocationOptions({ signal: syncAbortSignal(), limits: syncHtmlLimits });
     const args = parseHtmlqArguments(opArgs, invocation);
@@ -85,6 +85,8 @@ export function evalSyncHtmlq(
       if (!fBytes || fBytes.byteLength > 16384) return undefined;
       srcBytes = fBytes;
     }
+    // Missing bytes mean inherited stdin has not been collected by the fast path.
+    if (!srcBytes) return undefined;
     const budget = new HtmlBudget(invocation);
     const original = syncHtmlDecoder.decode(srcBytes);
     const document = parseHtmlSync(original, invocation, budget);

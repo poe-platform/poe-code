@@ -171,3 +171,26 @@ test('disposing a Shell cancels htmlq pending parsing and awaits producer cleanu
   await shell.dispose();
   assert.equal(returned, 1);
 });
+
+
+test('htmlq substitutions preserve inherited stdin and explicit input sources', async t => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands()).use(htmlqCommands());
+  t.after(() => shell.dispose());
+  await fs.writeFile('/input.html', encoder.encode('<p>File</p>'));
+  for (const [source, expected] of [
+    ['printf "<p>Hello</p>\\n" | htmlq --text p', 'Hello\n'],
+    ['printf "<p>Hello</p>\\n" | { echo "$(htmlq --text p)"; }', 'Hello\n'],
+    ['printf "<p>Hello</p>" | { echo "$(htmlq --text -f - p)"; }', 'Hello\n'],
+    ['printf "<p>Hello</p>" | { echo "$(htmlq --text -f /input.html p)"; }', 'File\n'],
+    ['printf "<p>Hello</p>" | { echo "$(htmlq --text p <<< \'<p>Here</p>\')"; }', 'Here\n'],
+    ['echo "$(htmlq --text p < /input.html)"', 'File\n'],
+    ['echo "$(htmlq --text p <<< \'\')"', '\n'],
+    ['echo "$(htmlq --text p)"', '\n'],
+  ] as const) {
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, source);
+    assert.equal(result.stderr, '', source);
+    assert.equal(result.stdout, expected, source);
+  }
+});

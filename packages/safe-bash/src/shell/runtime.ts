@@ -30848,7 +30848,7 @@ export class Runtime {
               ? this.evalSyncXqOrYq(w0Plain, inBytes, allArgs, readFile)
             : w0Plain === "xmllint"
               ? evalSyncXmllint(inBytes, allArgs, readFile)
-              : evalSyncHtmlq(inBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
+              : evalSyncHtmlq(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
         if (csvOut !== undefined) {
           const outBytes = shellValueByteLength(csvOut);
           let end = csvOut.length;

@@ -117,7 +117,7 @@ const syncDdUtf8Decoder = new TextDecoder("utf-8", { fatal: true });
 function parseSyncDdSize(raw: string): bigint | undefined {
   const m = /^(\d+)([cwbkKMGTPEZY]?i?B?)$/u.exec(raw);
   if (!m) return undefined;
-  let base = BigInt(m[1]!);
+  const base = BigInt(m[1]!);
   const suf = m[2]!;
   if (!suf) return base;
   if (suf === "c") return base;

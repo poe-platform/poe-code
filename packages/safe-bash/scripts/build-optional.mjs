@@ -354,6 +354,10 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
     selected.set(filename, contents);
   }
   const entrypoints = new Map();
+  const commandEntries = [...new Set(routes(coreManifest, false)
+    .filter(route => route.target.startsWith("./dist/opt-in/entrypoints/") && route.target.endsWith(".js"))
+    .map(route => path.basename(route.target, ".js")))];
+  const printer = ts.createPrinter();
   for (const extension of [".js", ".d.ts"]) {
     const filename = path.join(dist, "optional" + extension);
     const source = ts.createSourceFile(filename, selected.get(filename).toString(), ts.ScriptTarget.Latest, true);
@@ -364,10 +368,30 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
       if (!ts.isExportDeclaration(origin) || !origin.moduleSpecifier || !ts.isStringLiteral(origin.moduleSpecifier)) continue;
       const parts = origin.moduleSpecifier.text.split("/");
       const name = parts[1] === "commands" || parts[1] === "fs" ? parts[2] : parts[1] === "shell" && parts[2] === "extensions" ? parts[3] : undefined;
-      if (!name) continue;
-      const target = path.join(dist, "entrypoints", name + extension);
-      const text = rewriteModuleSpecifiers(filename, statement.getText(source), reference => reference.startsWith("./") ? "../" + reference.slice(2) : reference);
-      entrypoints.set(target, (entrypoints.get(target) ?? "") + text + "\n");
+      const groups = new Map();
+      if (name) groups.set(name, statement.getText(source));
+      else if (origin.moduleSpecifier.text === "./index.js" && statement.exportClause && ts.isNamedExports(statement.exportClause)) {
+        // Core-owned commands retain their declared optional aliases. Derive
+        // each family from the public singular/plural/plugin and type names.
+        for (const command of commandEntries) {
+          const title = command[0].toUpperCase() + command.slice(1);
+          const elements = statement.exportClause.elements.filter(element => {
+            const symbol = element.name.text;
+            return [command + "Commands", "create" + title + "Command", "create" + title + "Commands"].includes(symbol)
+              || symbol.startsWith(title) && symbol[title.length] !== undefined
+                && symbol[title.length] !== symbol[title.length].toLowerCase();
+          });
+          if (!elements.length) continue;
+          const declaration = ts.factory.updateExportDeclaration(statement, statement.modifiers, statement.isTypeOnly,
+            ts.factory.updateNamedExports(statement.exportClause, elements), statement.moduleSpecifier, statement.attributes);
+          groups.set(command, printer.printNode(ts.EmitHint.Unspecified, declaration, source));
+        }
+      }
+      for (const [entryName, contents] of groups) {
+        const target = path.join(dist, "entrypoints", entryName + extension);
+        const text = rewriteModuleSpecifiers(filename, contents, reference => reference.startsWith("./") ? "../" + reference.slice(2) : reference);
+        entrypoints.set(target, (entrypoints.get(target) ?? "") + text + "\n");
+      }
     }
   }
   for (const [filename, text] of entrypoints) selected.set(filename, Buffer.from(text));

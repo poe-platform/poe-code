@@ -96,6 +96,32 @@ function fixture() {
 }
 
 describe("optional-owned compiled graph", () => {
+  it("retains declared command entrypoints when runtime and types forward through core", async () => {
+    const { volume, options } = fixture();
+    const runtime = 'export { Shell, agentCommands, createYesCommand, createYesCommands, yesCommands, createShufCommand, createShufCommands, shufCommands, createDdCommand, createDdCommands, ddCommands } from "./index.js";\n';
+    const types = 'export type { YesCommandOptions, YesCommandsOptions, ShufCommandsOptions, DdCommandsOptions, DdFileHandle, DdFileOpener, DdFileRequest } from "./index.js";\n';
+    volume.writeFileSync(core + "/dist/optional.js", runtime);
+    volume.writeFileSync(core + "/dist/optional.d.ts", runtime + types);
+    const result = await buildOptionalPackage(options);
+    expect(result.peerImports).toEqual(["@poe-platform/safe-bash"]);
+    for (const [name, exportedTypes] of Object.entries({
+      yes: ["YesCommandOptions", "YesCommandsOptions"], shuf: ["ShufCommandsOptions"],
+      dd: ["DdCommandsOptions", "DdFileHandle", "DdFileOpener", "DdFileRequest"]
+    })) {
+      const title = name[0]!.toUpperCase() + name.slice(1);
+      for (const extension of ["js", "d.ts"]) {
+        const target = "entrypoints/" + name + "." + extension;
+        expect(result.files).toContain(target);
+        const source = ts.createSourceFile(target, volume.readFileSync(core + "/dist/opt-in/" + target, "utf8").toString(), ts.ScriptTarget.Latest, true);
+        const statements = source.statements.filter(ts.isExportDeclaration);
+        expect(statements.every(statement => statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === "@poe-platform/safe-bash")).toBe(true);
+        const names = statements.flatMap(statement => statement.exportClause && ts.isNamedExports(statement.exportClause) ? statement.exportClause.elements.map(element => element.name.text) : []);
+        expect(names).toEqual(["create" + title + "Command", "create" + title + "Commands", name + "Commands", ...(extension === "d.ts" ? exportedTypes : [])]);
+      }
+    }
+    expect(result.files).not.toContain("entrypoints/agent.js");
+  });
+
   it("keeps optional jobs exports bound to the core host after jobs enter the default shell", async () => {
     const { volume, options } = fixture();
     volume.mkdirSync(core + "/dist/shell/extensions/jobs", { recursive: true });

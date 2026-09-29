@@ -286,7 +286,7 @@ cases exercise direct and chained references to the shading stream.
 `tests/test_writer.py`, replacing its downloaded PDF with an in-memory page
 and checking every copy and save/reopen. Page copying follows `_writer.py`
 `_add_page`: each occurrence gets a distinct page dictionary while resources
-can remain shared. Content edits replace the page's Contents reference so
+can remain shared. Edits to shared content replace the page's Contents reference so
 other pages retain their original stream. pypdf attribution/license is above.
 
 Windows Symbol cmap selection in `src/content/evaluator.ts` follows PDF.js

@@ -8,6 +8,18 @@ function sourceDocument() {
 }
 
 describe("copying pages", () => {
+  it.each(["raw", "drawing"])("keeps repeated %s edits from retaining obsolete stream objects", mode => {
+    const doc = sourceDocument();
+    const page = doc.getPage(0);
+    const originalCount = doc.cos.objects.size;
+    for (let i = 0; i < 100; i++) {
+      if (mode === "raw") page.setRawContentStream(`BT /F1 15 Tf 20 60 Td (Edit ${i}) Tj ET`);
+      else page.drawText(`Edit ${i}`, { x: 20, y: 60, size: 15 });
+    }
+    expect(doc.cos.objects.size).toBe(originalCount);
+    expect(PdfDocument.load(doc.save()).extractText({ mode: "raw" })).toContain("Edit 99");
+  });
+
   // Ported from pypdf 6.19.0 tests/test_writer.py::test_append_multiple.
   // Replace the downloaded fixture with an in-memory page and check all copies.
   it("gives repeated pages distinct identities across both append batches", () => {
@@ -62,5 +74,18 @@ describe("copying pages", () => {
     const link = saved.cos.resolveDict(annots.items[0])!;
     const dest = saved.cos.resolveArray(dictGet(link, "Dest"))!;
     expect(dest.items[0]).toMatchObject({ kind: "ref", objectNumber: saved.getPage(0).ref.objectNumber, generationNumber: 0 });
+  });
+
+  it("does not replace a Contents array used by another page", () => {
+    const source = sourceDocument();
+    const first = source.getPage(0);
+    const contents = source.cos.allocateObject(cosArray([dictGet(first.pageDict, "Contents")!]));
+    dictSet(first.pageDict, "Contents", contents);
+    const second = source.addPage([200, 200]);
+    dictSet(second.pageDict, "Contents", contents);
+    dictSet(second.pageDict, "Resources", first.getResourcesDict());
+    first.setRawContentStream("BT /F1 15 Tf 20 60 Td (Edited) Tj ET");
+    const saved = PdfDocument.load(source.save());
+    expect(saved.getPages().map(page => page.extractText())).toEqual(["Edited", "Original"]);
   });
 });

@@ -13,6 +13,7 @@ import {
   type PdfCosDict,
   type PdfCosNode,
   type PdfCosRef,
+  type PdfCosStream,
   type PdfDisplayList,
   type PdfExtractedPage,
   type PdfExtractedTable,
@@ -445,8 +446,7 @@ export class PdfPage {
     this.cachedContentAst = parseContentStream(bytes);
     this.isolatedInitialStream = false;
     const stm = cosStream(bytes, { compress });
-    // Imported pages can share Contents; edits belong to this page only.
-    dictSet(this.pageDict, "Contents", this.cosDoc.allocateObject(stm));
+    this.replaceContentStream(stm);
     this.cachedContentsNode = dictGet(this.pageDict, "Contents");
   }
 
@@ -465,8 +465,35 @@ export class PdfPage {
     this.cachedContentAst = [...nodes];
     const bytes = serializeContentAst(this.cachedContentAst);
     const streamObj = cosStream(bytes, { compress });
-    dictSet(this.pageDict, "Contents", this.cosDoc.allocateObject(streamObj));
+    this.replaceContentStream(streamObj);
     this.cachedContentsNode = dictGet(this.pageDict, "Contents");
+  }
+
+  private replaceContentStream(stream: PdfCosStream): void {
+    const contents = dictGet(this.pageDict, "Contents");
+    if (contents?.kind === "ref") {
+      // Copies and content arrays may reference the same stream. Reuse an
+      // unshared object so repeated drawing does not retain every old version.
+      let references = 0;
+      const pending = [...this.cosDoc.objects.values()].map(object => object.value);
+      const visited = new Set<PdfCosNode>();
+      while (pending.length > 0 && references < 2) {
+        const node = pending.pop()!;
+        if (node.kind === "ref") {
+          if (node.objectNumber === contents.objectNumber && node.generationNumber === contents.generationNumber) references++;
+        } else if (!visited.has(node)) {
+          visited.add(node);
+          if (node.kind === "array") for (const item of node.items) pending.push(item);
+          else if (node.kind === "dict") for (const entry of node.entries) pending.push(entry.value);
+          else if (node.kind === "stream") pending.push(node.dict);
+        }
+      }
+      if (references === 1) {
+        this.cosDoc.setObject(contents.objectNumber, stream, contents.generationNumber);
+        return;
+      }
+    }
+    dictSet(this.pageDict, "Contents", this.cosDoc.allocateObject(stream));
   }
 
   drawText(text: string, options: DrawTextOptions): void {

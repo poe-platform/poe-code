@@ -65,3 +65,15 @@ export interface Type1Program {
   charstrings: Array<{ glyphName: string; width: number; charstring: number[] }>;
   properties: { privateData: Map<string, unknown> };
 }
+
+export class CMap {
+  codespaceRanges: number[][];
+  numCodespaceRanges: number;
+  addCodespaceRange(length: number, low: number, high: number): void;
+  mapOne(source: number, target: number | string): void;
+  mapBfRange(low: number, high: number, destination: string): void;
+  mapBfRangeToArray(low: number, high: number, destinations: Array<string | number>): void;
+  mapCidRange(low: number, high: number, destination: number): void;
+  forEach(callback: (code: number, value: number | string) => void): void;
+  readCharCode(value: string, offset: number, result: { charcode: number; length: number }): void;
+}

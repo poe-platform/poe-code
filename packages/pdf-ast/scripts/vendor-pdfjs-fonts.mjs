@@ -11,6 +11,7 @@ const result = await build({
   absWorkingDir: reference,
   stdin: {
     contents: [
+      'export { CMap } from "./src/core/cmap.js";',
       'export { CFFParser, CFFCompiler, CFFStrings } from "./src/core/cff_parser.js";',
       'export { Type2Compiled } from "./src/core/font_renderer.js";',
       'export { Type1Font } from "./src/core/type1_font.js";',
@@ -28,6 +29,15 @@ const result = await build({
   plugins: [{
     name: "expose-cff-path-compiler",
     setup(builder) {
+      // The standalone CMap class has no imports. Exclude its browser/network
+      // factory rather than pulling PDF.js's renderer and scripting entrypoints.
+      builder.onLoad({ filter: /cmap\.js$/ }, args => {
+        const source = readFileSync(args.path, "utf8");
+        const start = source.indexOf("const MAX_MAP_RANGE =");
+        const end = source.indexOf("// A special case of CMap,");
+        if (start < 0 || end <= start) throw new Error("PDF.js CMap source markers changed");
+        return { contents: source.slice(start, end) + "\nexport { CMap };\n", loader: "js" };
+      });
       builder.onLoad({ filter: /font_renderer\.js$/ }, args => ({
         contents: readFileSync(args.path, "utf8") + "\nexport { Type2Compiled };\n", loader: "js",
       }));

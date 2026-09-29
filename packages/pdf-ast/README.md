@@ -58,6 +58,8 @@ glyph paths with accessible labels. Embedded Type1C and CIDFontType0C fonts use
 PDF.js CFF decoding, including their encoding, CID selection, and font matrices.
 Embedded Type 1 (`/FontFile`) programs use PDF.js decryption and conversion,
 including PFB/hex containers, Differences, and composed accents.
+ToUnicode maps decode mixed one- through four-byte character codes, including
+ligatures and supplementary Unicode characters.
 Glyph outlines render even when text has no usable Unicode mapping. Unicode fallback covers characters present
 in the bundled standard, Symbol, and Dingbats fonts; embed a font for other scripts.
 

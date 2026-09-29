@@ -1,6 +1,141 @@
 /* eslint-disable */
 /* Mozilla PDF.js, Apache-2.0. Generated from 91041fb94d6744bc2a5bccd9aad28d617faa8195; see THIRD_PARTY_NOTICES.md. */
 
+// src/core/cmap.js
+var MAX_MAP_RANGE = 2 ** 24 - 1;
+var CMap = class {
+  // Map entries have one of two forms.
+  // - cid chars are 16-bit unsigned integers, stored as integers.
+  // - bf chars are variable-length byte sequences, stored as strings, with
+  //   one byte per character.
+  #map = /* @__PURE__ */ new Map();
+  #mappedEntries = 0;
+  constructor(builtInCMap = false) {
+    this.codespaceRanges = [[], [], [], []];
+    this.numCodespaceRanges = 0;
+    this.name = "";
+    this.vertical = false;
+    this.useCMap = null;
+    this.builtInCMap = builtInCMap;
+  }
+  addCodespaceRange(n, low, high) {
+    this.codespaceRanges[n - 1].push(low, high);
+    this.numCodespaceRanges++;
+  }
+  #consumeBudget(count, name) {
+    if (count <= 0) {
+      return;
+    }
+    if (this.#mappedEntries + count > MAX_MAP_RANGE) {
+      throw new Error(`${name} - ignoring data above MAX_MAP_RANGE.`);
+    }
+    this.#mappedEntries += count;
+  }
+  mapCidRange(low, high, dstLow) {
+    this.#consumeBudget(high - low + 1, "mapCidRange");
+    while (low <= high) {
+      this.#map.set(low++, dstLow++);
+    }
+  }
+  mapBfRange(low, high, dstLow) {
+    this.#consumeBudget(high - low + 1, "mapBfRange");
+    const lastByte = dstLow.length - 1;
+    while (low <= high) {
+      this.#map.set(low++, dstLow);
+      const nextCharCode = dstLow.charCodeAt(lastByte) + 1;
+      if (nextCharCode > 255) {
+        dstLow = dstLow.substring(0, lastByte - 1) + String.fromCharCode(dstLow.charCodeAt(lastByte - 1) + 1) + "\0";
+        continue;
+      }
+      dstLow = dstLow.substring(0, lastByte) + String.fromCharCode(nextCharCode);
+    }
+  }
+  mapBfRangeToArray(low, high, array) {
+    const ii = array.length;
+    this.#consumeBudget(Math.min(high - low + 1, ii), "mapBfRangeToArray");
+    let i = 0;
+    while (low <= high && i < ii) {
+      this.#map.set(low++, array[i++]);
+    }
+  }
+  // This is used for both bf and cid chars.
+  mapOne(src, dst) {
+    this.#map.set(src, dst);
+  }
+  lookup(code) {
+    return this.#map.get(code);
+  }
+  contains(code) {
+    return this.#map.has(code);
+  }
+  forEach(callback) {
+    for (const [charCode, entry] of this.#map) {
+      callback(charCode, entry);
+    }
+  }
+  charCodeOf(value) {
+    for (const [charCode, entry] of this.#map) {
+      if (entry === value) {
+        return charCode;
+      }
+    }
+    return -1;
+  }
+  getMap() {
+    return new Map(this.#map);
+  }
+  readCharCode(str, offset, out) {
+    let c = 0;
+    const codespaceRanges = this.codespaceRanges;
+    for (let n = 0, nn = codespaceRanges.length; n < nn; n++) {
+      c = (c << 8 | str.charCodeAt(offset + n)) >>> 0;
+      const codespaceRange = codespaceRanges[n];
+      for (let k = 0, kk = codespaceRange.length; k < kk; ) {
+        const low = codespaceRange[k++];
+        const high = codespaceRange[k++];
+        if (c >= low && c <= high) {
+          out.charcode = c;
+          out.length = n + 1;
+          return;
+        }
+      }
+    }
+    out.charcode = 0;
+    out.length = 1;
+  }
+  getCharCodeLength(charCode) {
+    const codespaceRanges = this.codespaceRanges;
+    for (let n = 0, nn = codespaceRanges.length; n < nn; n++) {
+      const codespaceRange = codespaceRanges[n];
+      for (let k = 0, kk = codespaceRange.length; k < kk; ) {
+        const low = codespaceRange[k++];
+        const high = codespaceRange[k++];
+        if (charCode >= low && charCode <= high) {
+          return n + 1;
+        }
+      }
+    }
+    return 1;
+  }
+  get size() {
+    return this.#map.size;
+  }
+  get isIdentityCMap() {
+    if (!(this.name === "Identity-H" || this.name === "Identity-V")) {
+      return false;
+    }
+    if (this.#map.size !== 65536) {
+      return false;
+    }
+    for (let i = 0; i < 65536; i++) {
+      if (this.#map.get(i) !== i) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+
 // src/shared/util.js
 var isNodeJS = (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) && typeof process === "object" && process + "" === "[object process]" && !process.versions.nw && !(process.versions.electron && process.type && process.type !== "browser");
 var BBOX_INIT = [Infinity, Infinity, -Infinity, -Infinity];
@@ -14566,6 +14701,7 @@ export {
   CFFCompiler,
   CFFParser,
   CFFStrings,
+  CMap,
   DrawOPS,
   Stream,
   StringStream,

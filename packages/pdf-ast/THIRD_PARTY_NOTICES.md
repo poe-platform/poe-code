@@ -133,3 +133,19 @@ and follows `src/core/fonts.js` for seac base/accent selection and displacement.
 encryption, and malformed/truncated inputs. Adaptations add TypeScript types,
 Vitest imports, and portable byte-to-hex conversion. Copyright 2017 Mozilla
 Foundation, Apache-2.0; see `licenses/PDFJS-APACHE-2.0.txt`.
+
+# ToUnicode CMap decoding
+
+The same bundle includes the unmodified standalone `CMap` class and range budget
+from PDF.js `src/core/cmap.js`; the regeneration script extracts that class without
+its browser/network factory. `src/fonts/cmap.ts` adapts the upstream bfchar,
+bfrange, cidchar, cidrange, and codespace block grammar to the existing synchronous
+lexer and delegates range expansion and variable-length character decoding to
+`CMap`. UTF-16BE conversion follows `PartialEvaluator.readToUnicode`, including
+numeric entries and omitted leading zero bytes; local compatibility infers a fixed
+source width when a codespace declaration is absent.
+`src/fonts/cmap-codespaces.test.ts` ports eight cases from
+`test/unit/cmap_spec.js` plus the issue 18099 odd-length destination behavior from
+`src/core/evaluator.js`, and adds integration cases. The tests adapt raw CMap
+values to the public Unicode API. Copyright Mozilla Foundation, Apache-2.0, pinned
+revision `91041fb94d6744bc2a5bccd9aad28d617faa8195`.

@@ -1,4 +1,6 @@
-import { CosByteLexer } from "../cos/lexer.js";
+import { CosByteLexer, type CosToken } from "../cos/lexer.js";
+import { bytesToString } from "../bytes.js";
+import { CMap } from "../vendor/pdfjs-fonts.mjs";
 
 export interface ParsedToUnicodeCMap {
   readonly map: ReadonlyMap<number, string>;
@@ -7,112 +9,97 @@ export interface ParsedToUnicodeCMap {
 }
 
 function bytesToBigEndianUint(bytes: Uint8Array): number {
-  let v = 0;
-  for (let i = 0; i < bytes.length; i++) {
-    v = (v << 8) | bytes[i]!;
-  }
-  return v >>> 0;
+  let value = 0;
+  for (const byte of bytes) value = ((value << 8) | byte) >>> 0;
+  return value;
 }
 
-function decodeUtf16BeBytes(bytes: Uint8Array): string {
-  if (bytes.length === 1) {
-    return String.fromCharCode(bytes[0]!);
-  }
-  const units: number[] = [];
-  for (let i = 0; i + 1 < bytes.length; i += 2) {
-    units.push((bytes[i]! << 8) | bytes[i + 1]!);
-  }
-  return String.fromCharCode(...units);
+function isString(token: CosToken | undefined): token is Extract<CosToken, { kind: "string" | "hex-string" }> {
+  return token?.kind === "string" || token?.kind === "hex-string";
 }
 
-function incrementStringCodePoint(str: string, delta: number): string {
-  const cps = Array.from(str);
-  if (cps.length === 0) return "";
-  const lastCp = cps[cps.length - 1]!.codePointAt(0) ?? 0;
-  cps[cps.length - 1] = String.fromCodePoint(lastCp + delta);
-  return cps.join("");
+// PDF.js readToUnicode accepts numeric CIDs and restores omitted leading zero
+// bytes before decoding UTF-16BE. Build in chunks to avoid argument limits.
+function decodeDestination(value: number | string): string {
+  if (typeof value === "number") return String.fromCodePoint(value);
+  if (value.length % 2) value = "\0" + value;
+  let decoded = "";
+  for (let index = 0; index < value.length; index += 2) {
+    decoded += String.fromCharCode((value.charCodeAt(index) << 8) | value.charCodeAt(index + 1));
+  }
+  return decoded;
 }
 
 export function parseToUnicodeCMap(cmapBytes: Uint8Array): ParsedToUnicodeCMap {
   const lexer = new CosByteLexer(cmapBytes);
-  const map = new Map<number, string>();
-  let isTwoByte = false;
-
+  const cmap = new CMap();
+  let inferredLength = 1;
+  let section = "";
+  // The block grammar follows PDF.js parseBfChar/parseBfRange/parseCidChar/
+  // parseCidRange/parseCodespaceRange, adapted to our synchronous lexer.
   while (true) {
-    const tok = lexer.nextToken();
-    if (!tok) break;
-
-    if (tok.kind === "keyword" && tok.value === "begincodespacerange") {
-      while (true) {
-        const t1 = lexer.nextToken();
-        if (!t1 || (t1.kind === "keyword" && t1.value === "endcodespacerange")) break;
-        const t2 = lexer.nextToken();
-        if (t1.kind === "hex-string" && t1.bytes.length >= 2) {
-          isTwoByte = true;
+    const source = lexer.nextToken();
+    if (!source) break;
+    if (source.kind === "keyword") {
+      if (source.value === "endcmap") break;
+      section = source.value;
+      continue;
+    }
+    if (!isString(source) || source.bytes.length < 1 || source.bytes.length > 4) continue;
+    if (!["begincodespacerange", "beginbfchar", "begincidchar", "beginbfrange", "begincidrange"].includes(section)) continue;
+    const low = bytesToBigEndianUint(source.bytes);
+    const next = lexer.nextToken();
+    if (section === "begincodespacerange") {
+      if (isString(next) && next.bytes.length === source.bytes.length) cmap.addCodespaceRange(source.bytes.length, low, bytesToBigEndianUint(next.bytes));
+    } else if (section === "beginbfchar" || section === "begincidchar") {
+      inferredLength = Math.max(inferredLength, source.bytes.length);
+      if (isString(next)) cmap.mapOne(low, bytesToString(next.bytes));
+      else if (next?.kind === "number" && next.isInteger) cmap.mapOne(low, next.value);
+    } else if (section === "beginbfrange" || section === "begincidrange") {
+      inferredLength = Math.max(inferredLength, source.bytes.length);
+      const destination = lexer.nextToken();
+      if (!isString(next) || !destination) continue;
+      const high = bytesToBigEndianUint(next.bytes);
+      if (destination.kind === "array-start") {
+        const array: Array<number | string> = [];
+        while (true) {
+          const item = lexer.nextToken();
+          if (!item || item.kind === "array-end") break;
+          if (isString(item)) array.push(bytesToString(item.bytes));
+          else if (item.kind === "number" && item.isInteger) array.push(item.value);
         }
-        if (!t2 || (t2.kind === "keyword" && t2.value === "endcodespacerange")) break;
-      }
-    } else if (tok.kind === "keyword" && tok.value === "beginbfchar") {
-      while (true) {
-        const srcTok = lexer.nextToken();
-        if (!srcTok || (srcTok.kind === "keyword" && srcTok.value === "endbfchar")) break;
-        const dstTok = lexer.nextToken();
-        if (!dstTok || (dstTok.kind === "keyword" && dstTok.value === "endbfchar")) break;
-        if (srcTok.kind === "hex-string" && dstTok.kind === "hex-string") {
-          if (srcTok.bytes.length >= 2) isTwoByte = true;
-          const code = bytesToBigEndianUint(srcTok.bytes);
-          map.set(code, decodeUtf16BeBytes(dstTok.bytes));
-        }
-      }
-    } else if (tok.kind === "keyword" && tok.value === "beginbfrange") {
-      while (true) {
-        const startTok = lexer.nextToken();
-        if (!startTok || (startTok.kind === "keyword" && startTok.value === "endbfrange")) break;
-        const endTok = lexer.nextToken();
-        const targetTok = lexer.nextToken();
-        if (!endTok || !targetTok) break;
-        if (startTok.kind === "hex-string" && endTok.kind === "hex-string") {
-          if (startTok.bytes.length >= 2) isTwoByte = true;
-          const startCode = bytesToBigEndianUint(startTok.bytes);
-          const endCode = bytesToBigEndianUint(endTok.bytes);
-          if (targetTok.kind === "hex-string") {
-            const baseStr = decodeUtf16BeBytes(targetTok.bytes);
-            for (let c = startCode; c <= endCode && c - startCode <= 65535; c++) {
-              map.set(c, incrementStringCodePoint(baseStr, c - startCode));
-            }
-          } else if (targetTok.kind === "array-start") {
-            let c = startCode;
-            while (true) {
-              const item = lexer.nextToken();
-              if (!item || item.kind === "array-end") break;
-              if (item.kind === "hex-string" && c <= endCode) {
-                map.set(c, decodeUtf16BeBytes(item.bytes));
-                c++;
-              }
-            }
+        try { cmap.mapBfRangeToArray(low, high, array); } catch { /* PDF.js skips oversized ranges and resumes parsing. */ }
+      } else {
+        try {
+          if (isString(destination)) cmap.mapBfRange(low, high, bytesToString(destination.bytes));
+          else if (destination.kind === "number" && destination.isInteger) {
+            if (section === "begincidrange") cmap.mapCidRange(low, high, destination.value);
+            else cmap.mapBfRange(low, high, String.fromCharCode(destination.value));
           }
-        }
+        } catch { /* Match PDF.js range-budget recovery. */ }
       }
     }
   }
-
+  // Legacy callers often provide mapping blocks without a codespace declaration.
+  // Preserve their fixed-width decoding, including zero-prefixed source codes.
+  if (!cmap.numCodespaceRanges) cmap.addCodespaceRange(inferredLength, 0, 2 ** (8 * inferredLength) - 1);
+  const map = new Map<number, string>();
+  cmap.forEach((code, value) => map.set(code, decodeDestination(value)));
+  const isTwoByte = cmap.codespaceRanges.slice(1).some(ranges => ranges.length > 0);
   return {
     map,
     isTwoByte,
-    decodeBytes(bytes: Uint8Array): Array<{ charCode: number; unicode: string }> {
+    decodeBytes(bytes) {
       const out: Array<{ charCode: number; unicode: string }> = [];
-      if (isTwoByte && bytes.length >= 2 && bytes.length % 2 === 0) {
-        for (let i = 0; i < bytes.length; i += 2) {
-          const cid = (bytes[i]! << 8) | bytes[i + 1]!;
-          const mapped = map.get(cid) ?? (cid >= 0x20 ? String.fromCodePoint(cid) : "");
-          out.push({ charCode: cid, unicode: mapped });
-        }
-        return out;
-      }
-      for (let i = 0; i < bytes.length; i++) {
-        const code = bytes[i]!;
-        const mapped = map.get(code) ?? (code >= 0x20 ? String.fromCharCode(code) : "");
-        out.push({ charCode: code, unicode: mapped });
+      const input = bytesToString(bytes);
+      const result = { charcode: 0, length: 0 };
+      for (let offset = 0; offset < bytes.length;) {
+        cmap.readCharCode(input, offset, result);
+        if (offset + result.length > bytes.length) break;
+        const charCode = result.charcode;
+        const fallback = charCode >= 0x20 && charCode <= 0x10ffff ? String.fromCodePoint(charCode) : "";
+        out.push({ charCode, unicode: map.get(charCode) ?? fallback });
+        offset += result.length;
       }
       return out;
     },

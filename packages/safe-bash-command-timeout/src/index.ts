@@ -384,7 +384,7 @@ export function evalSyncTimeout(args: readonly string[]): string | undefined {
   if (i >= args.length) return undefined;
   const durStr = args[i]!;
   const parsed = parseDuration(durStr);
-  if (parsed.kind !== "value" || parsed.milliseconds < 0) return undefined;
+  if (parsed.kind !== "value" || parsed.milliseconds <= 0) return undefined;
   if (killAfterMs !== undefined && killAfterMs !== 0 && parsed.milliseconds !== 0 && parsed.milliseconds !== Infinity) {
     return undefined;
   }

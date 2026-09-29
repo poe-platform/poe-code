@@ -1,4 +1,8 @@
-import { createHash, createHmac, pbkdf2Sync, createCipheriv, createDecipheriv } from "node:crypto";
+import { cbc } from "@noble/ciphers/aes.js";
+import { hmac } from "@noble/hashes/hmac.js";
+import { sha1 } from "@noble/hashes/legacy.js";
+import { pbkdf2 } from "@noble/hashes/pbkdf2.js";
+import { sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
 import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
@@ -46,6 +50,7 @@ export function opensslCommands(options: OpensslCommandsOptions = {}): VirtualSh
   };
 }
 
+const syncOpensslEncoder = new TextEncoder();
 const syncOpensslDecoder = new TextDecoder();
 const syncOpensslUtf8Decoder = new TextDecoder("utf-8", { fatal: true });
 
@@ -214,9 +219,12 @@ export function evalSyncOpenssl(
       for (const f of targets) {
         const bytes = f !== undefined ? readFileSync?.(f) : inBytes;
         if (!bytes || bytes.byteLength > 65536) return undefined;
-        const hex = hmacKey !== undefined
-          ? createHmac(nodeAlg, hmacKey).update(bytes).digest("hex")
-          : createHash(nodeAlg).update(bytes).digest("hex");
+        const hashFn = nodeAlg === "sha512" ? sha512 : nodeAlg === "sha384" ? sha384 : nodeAlg === "sha1" ? sha1 : sha256;
+        const hex = bytesToHex(
+          hmacKey !== undefined
+            ? hmac(hashFn, syncOpensslEncoder.encode(hmacKey), bytes)
+            : hashFn(bytes)
+        );
         const name = f ?? "stdin";
         if (coreutilsFormat) {
           textLines.push(`${hex} *${name}`);
@@ -255,28 +263,20 @@ export function evalSyncOpenssl(
         if (!useBase64) return undefined;
         const salt = new Uint8Array(8);
         globalThis.crypto.getRandomValues(salt);
-        const derived = pbkdf2Sync(password, salt, iterations, 48, "sha256");
-        const cipher = createCipheriv("aes-256-cbc", derived.subarray(0, 32), derived.subarray(32, 48));
-        const c1 = cipher.update(rawInput);
-        const c2 = cipher.final();
-        const payload = new Uint8Array(16 + c1.byteLength + c2.byteLength);
+        const derived = pbkdf2(sha256, syncOpensslEncoder.encode(password), salt, { c: iterations, dkLen: 48 });
+        const encrypted = cbc(derived.subarray(0, 32), derived.subarray(32, 48)).encrypt(rawInput);
+        const payload = new Uint8Array(16 + encrypted.byteLength);
         payload.set([83, 97, 108, 116, 101, 100, 95, 95], 0);
         payload.set(salt, 8);
-        payload.set(c1, 16);
-        payload.set(c2, 16 + c1.byteLength);
+        payload.set(encrypted, 16);
         return `${bytesToBase64(payload, true)}\n`;
       } else {
         const decoded = useBase64 ? base64ToBytes(syncOpensslDecoder.decode(rawInput)) : rawInput;
         if (decoded.byteLength < 16 || syncOpensslDecoder.decode(decoded.slice(0, 8)) !== "Salted__") return undefined;
         const salt = decoded.slice(8, 16);
         const cipherBytes = decoded.slice(16);
-        const derived = pbkdf2Sync(password, salt, iterations, 48, "sha256");
-        const decipher = createDecipheriv("aes-256-cbc", derived.subarray(0, 32), derived.subarray(32, 48));
-        const p1 = decipher.update(cipherBytes);
-        const p2 = decipher.final();
-        const plain = new Uint8Array(p1.byteLength + p2.byteLength);
-        plain.set(p1, 0);
-        plain.set(p2, p1.byteLength);
+        const derived = pbkdf2(sha256, syncOpensslEncoder.encode(password), salt, { c: iterations, dkLen: 48 });
+        const plain = cbc(derived.subarray(0, 32), derived.subarray(32, 48)).decrypt(cipherBytes);
         if (plain.includes(0)) return undefined;
         return syncOpensslUtf8Decoder.decode(plain);
       }
@@ -320,7 +320,7 @@ export function evalSyncOpenssl(
         lines.push(`notAfter=${meta.notAfter}`);
       }
       if (showFingerprint) {
-        const fpHex = createHash("sha256").update(rawCert).digest("hex").toUpperCase();
+        const fpHex = bytesToHex(sha256(rawCert)).toUpperCase();
         const colonHex = fpHex.match(/.{1,2}/g)!.join(":");
         lines.push(`sha256 Fingerprint=${colonHex}`);
       }
@@ -336,7 +336,7 @@ export function evalSyncOpenssl(
         if (a === "-salt" && i + 1 < rest.length) salt = rest[++i]!;
         else if (!a.startsWith("-")) pw = a;
       }
-      const digest = createHash("sha512").update(`${salt}:${pw}`).digest();
+      const digest = sha512(syncOpensslEncoder.encode(`${salt}:${pw}`));
       return `$6$${salt}$${bytesToBase64(digest)}\n`;
     }
 

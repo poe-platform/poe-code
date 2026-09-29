@@ -8,6 +8,9 @@ import { textContext } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 
 const enc = (value: string) => new TextEncoder().encode(value);
+const packageEntries = (bytes: Uint8Array) => [...readPackage(bytes)]
+  .map(([name, content]) => [name, Buffer.from(content).toString("base64")] as const)
+  .sort(([left], [right]) => left.localeCompare(right));
 const ref = (resultHandle: string, index?: number) => ({ resultHandle, ...(index === undefined ? {} : { index }) });
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
 for (const carrier of ["direct", "choice", "fallback", "choice-empty", "fallback-empty", "process-content", "ignorable", "opaque"] as const)
@@ -44,9 +47,9 @@ it(`${route} reads ${owner} cached break presence from ${carrier} content; stric
       const result = await shell.exec("docx batch /input --ops-file /ops --json");
       expect(result.exitCode, result.stdout + result.stderr).toBe(0); const data = JSON.parse(result.stdout);
       expect(data.affected).toBe(0); expect(data.data.results.at(-1).data).toBe(expected);
-      expect(await fs.readFile("/input")).toEqual(input);
+      expect(Buffer.from(await fs.readFile("/input")).equals(Buffer.from(input))).toBe(true);
     } finally { await shell.dispose(); }
   }
-  if (route !== "shell") expect(readPackage(new Uint8Array(memory.readFileSync("/output") as Buffer))).toEqual(readPackage(input));
-  expect(memory.readFileSync("/input")).toEqual(Buffer.from(input));
+  if (route !== "shell") expect(packageEntries(new Uint8Array(memory.readFileSync("/output") as Buffer))).toEqual(packageEntries(input));
+  expect((memory.readFileSync("/input") as Buffer).equals(Buffer.from(input))).toBe(true);
 });

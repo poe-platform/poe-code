@@ -659,10 +659,11 @@ export function evalSyncCsvformat(
       }
       text = text.slice(pos);
     }
+    const explicitInDelimiter = opts.tabs ? "\t" : opts.delimiter;
     let inDialect: CsvDialect = {
-      delimiter: opts.tabs ? "\t" : opts.delimiter,
-      quotechar: opts.quotechar,
-      escapechar: opts.escapechar,
+      ...(explicitInDelimiter !== undefined ? { delimiter: explicitInDelimiter } : {}),
+      ...(opts.quotechar !== undefined ? { quotechar: opts.quotechar } : {}),
+      ...(opts.escapechar !== undefined ? { escapechar: opts.escapechar } : {}),
       doublequote: !opts.noDoublequote,
       skipinitialspace: opts.skipInitialSpace,
     };

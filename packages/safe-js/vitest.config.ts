@@ -1,8 +1,9 @@
 import { defineConfig } from "vitest/config";
-import { consumePretestShardCompletion, safeJsResolve } from "./scripts/unit-config-helper.mjs";
+import unitConfig from "../../vitest.config.js";
+import { consumePretestShardCompletion } from "./scripts/unit-config-helper.mjs";
 
 export default defineConfig({
-  resolve: safeJsResolve,
+  resolve: unitConfig.resolve,
   test: {
     globals: true,
     environment: "node",

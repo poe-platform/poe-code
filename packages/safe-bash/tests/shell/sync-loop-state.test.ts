@@ -5,6 +5,9 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
+import { streamCommands } from "../../src/commands/streams.js";
+import { streamFormatCommands } from "../../src/commands/stream-format/index.js";
+import { filesystemCommands } from "../../src/commands/filesystem.js";
 import { predicateCommands } from "../../src/commands/predicates.js";
 
 const cases = [
@@ -1228,5 +1231,27 @@ for (const length of [512, 513, 600, 4096]) {
       assert.equal(result.stderr, native.stderr);
       assert.equal(result.stdout, native.stdout);
     } finally { await shell.dispose(); }
+  });
+}
+
+for (const [name, script, expected] of [
+  ['quoted function argument', 'f() { printf "<%s>" "$1"; }; for i in 1 2; do x="a b"; echo "$(f "$x")"; done', '<a b>\n<a b>\n'],
+  ['small literal seq', 'for i in 1 2; do echo "$(seq 3 -1 1)"; done', '3\n2\n1\n3\n2\n1\n'],
+  ['invariant quoted seq', 'n=3; for i in 1 2; do echo "$(seq 1 "$n")"; done', '1\n2\n3\n1\n2\n3\n'],
+  ['split function argument', 'f() { printf "<%s>" "$1"; }; x=alpha; for i in 1 2; do x="a b"; echo "$(f $x)"; done', '<a>\n<a>\n'],
+  ['empty function argument', 'f() { echo "x$1"; }; x=alpha; for i in 1 2; do x=""; echo "$(f $x)"; done', 'x\nx\n'],
+  ['glob function argument', 'f() { echo "x$1"; }; mkdir /work; echo > /work/one; cd /work; x=alpha; for i in 1 2; do x="*"; echo "$(f $x)"; done', 'xone\nxone\n'],
+  ['file function substitution', 'echo hello > /f; f() { cat /f; }; for i in 1 2; do echo "$(f)"; done', 'hello\nhello\n'],
+  ['large seq', 'for i in 1 2; do echo "$(seq 1 2000)"; done', Array.from({length: 2000}, (_, i) => String(i + 1)).join('\n') + '\n' + Array.from({length: 2000}, (_, i) => String(i + 1)).join('\n') + '\n'],
+  ['zero seq increment', 'for i in 1 2; do echo "$(seq 1 0 3)"; done', '\n\n'],
+  ['arithmetic seq increment', 'for i in 1 2; do echo "$(seq 1 $((i - 1)) 3)"; done', '\n1\n2\n3\n'],
+  ['mutated seq bound', 'n=2; for i in 1 2; do n=2000; echo "$(seq 1 $n)"; done', Array.from({length: 2000}, (_, i) => String(i + 1)).join('\n') + '\n' + Array.from({length: 2000}, (_, i) => String(i + 1)).join('\n') + '\n'],
+  ['invalid seq bound', 'n=2; for i in 1 2; do n=bad; echo "$(seq 1 $n)"; done', '\n\n'],
+] as const) {
+  test(`sync substitution admission: ${name}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...filesystemCommands(), ...streamCommands()]) }).use(streamFormatCommands());
+    const result = await shell.exec(script);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.exitCode, 0);
   });
 }

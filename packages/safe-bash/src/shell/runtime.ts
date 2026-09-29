@@ -11785,11 +11785,13 @@ export class Runtime {
             fnBody.body.lists[0]!.pipelines[0]!.commands.length === 1 &&
             fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.kind === "simple" &&
             fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.redirects.length === 0 &&
-            cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))
+            cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState) && w.parts.length > 0 && w.parts.every(part =>
+              part.quoted || (part.kind === "text" && part.value.length > 0 && !part.value.includes(" ") && !part.value.includes("\t") && !part.value.includes("\n") && !part.value.includes("{") && !hasGlobOrEscape(part.value, true))
+            ))
           ) {
             const innerCmd = fnBody.body.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "simple" }>;
             const innerW0 = innerCmd.words[0]?.plain;
-            if (innerW0 && !rawState.functions.has(innerW0) && !rawState.extensions?.builtins.has(innerW0)) {
+            if (innerW0 && (innerW0 === "echo" || innerW0 === "printf" || innerW0 === "dirname" || innerW0 === "basename" || innerW0 === "pwd" || innerW0 === "command" || innerW0 === "type" || innerW0 === "seq") && !rawState.functions.has(innerW0) && !rawState.extensions?.builtins.has(innerW0)) {
               cmd = innerCmd;
               w0Plain = innerW0;
             }
@@ -11938,19 +11940,15 @@ export class Runtime {
           }
           if ((w0Plain === "dirname" ? this.evalSyncDirname(simArgs) : this.evalSyncBasename(simArgs)) === undefined) return false;
         } else if (w0Plain === "seq") {
-          const isSeqIntWord = (w: Word): boolean => {
-            if (w.plain !== undefined) return /^-?[0-9]{1,7}$/.test(w.plain);
-            if (w.parts.length === 1) {
-              const p0 = w.parts[0]!;
-              if (p0.kind === "arithmetic") return true;
-              if (p0.kind === "variable" && !p0.indirect && !p0.prefixNames && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined) {
-                const cur = rawState.variables[p0.name];
-                return cur !== undefined && /^-?[0-9]{1,7}$/.test(cur);
-              }
-            }
-            return false;
-          };
-          if (cmd.words.length < 2 || cmd.words.length > 4 || !cmd.words.slice(1).every(isSeqIntWord)) return false;
+          // Literal operands cannot change after admission. Arithmetic and
+          // variables use the normal path, where seq can report invalid input.
+          if (cmd.words.length < 2 || cmd.words.length > 4) return false;
+          const operands = cmd.words.slice(1).map(w => w.plain);
+          if (!operands.every(value => value !== undefined && Number.isInteger(Number(value)) && String(Number(value)) === value && Math.abs(Number(value)) <= 9999999)) return false;
+          const first = operands.length === 1 ? 1 : Number(operands[0]);
+          const increment = operands.length === 3 ? Number(operands[1]) : 1;
+          const last = Number(operands[operands.length - 1]);
+          if (increment === 0 || Math.abs((last - first) / increment) > 1024) return false;
         }
         if (p.commands.length >= 2) {
           if ((w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "seq" && w0Plain !== "cat" && !hasSingleHereStringRedir) || syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || rawState.errexit || rawState.nounset) return false;

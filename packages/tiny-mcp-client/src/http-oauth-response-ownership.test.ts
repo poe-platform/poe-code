@@ -7,7 +7,7 @@ it("preserves OAuth candidate deadlines through the HTTP transport", async () =>
   const entered = Promise.withResolvers<void>();
   let metadataSignal: AbortSignal | undefined;
   const transport = new HttpTransport({ url: "https://resource.invalid/mcp", oauth: { provider: {
-    handleUnauthorized: () => ({ action: "fail" })
+    handleUnauthorized: async input => { await input.discover!(); return { action: "fail" }; }
   } }, fetch: async (_url, init) => {
     if (init?.method === "POST") return new Response(null, { status: 401, headers: {
       "WWW-Authenticate": 'Bearer resource_metadata="https://resource.invalid/metadata"'
@@ -44,8 +44,9 @@ it.each(["retry", "provider error", "provider throws", "challenge error", "disco
     let clone: Response | undefined;
     let posts = 0;
     const transport = new HttpTransport({ url: "https://resource.invalid/mcp", oauth: { provider: {
-      handleUnauthorized(input) {
+      async handleUnauthorized(input) {
         clone = input.response;
+        if (action === "discovery error") await input.discover!();
         if (action === "provider throws") throw new Error("provider threw");
         if (action === "provider error") return { action: "fail", error: new Error("provider failed") };
         return { action: action === "retry" ? "retry" : "fail" };

@@ -32,7 +32,7 @@ it.each([401, 403, "retried 401"] as const)("releases an ambiguous %s response b
     await expect(layer.sendRequest("own", { _meta: { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} } })).rejects.toThrow(new Error("Bearer challenge must not repeat authentication parameters"));
     expect(cancel).toHaveBeenCalledOnce();
     expect(posts).toBe(mode === "retried 401" ? 2 : 1);
-    expect(metadata).toBe(mode === "retried 401" ? 2 : 0);
+    expect(metadata).toBe(0);
     expect(authorize).toHaveBeenCalledTimes(mode === "retried 401" ? 1 : 0);
   } finally { void ambiguous.body?.cancel().catch(() => undefined); layer.dispose(); transport.dispose(); await transport.closed; }
 });

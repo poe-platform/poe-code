@@ -15,7 +15,8 @@ it.each(["authorize", "unauthorized", "metadata"] as const)("cancels originating
       if (phase !== "authorize" || !first) return;
       first = false; signal = input.signal; entered.resolve(); await release.promise;
     },
-    async handleUnauthorized(input: { signal?: AbortSignal }) {
+    async handleUnauthorized(input: { signal?: AbortSignal; discover?: () => Promise<unknown> }) {
+      if (phase === "metadata") await input.discover!();
       signal = input.signal; entered.resolve(); await release.promise;
       return { action: "retry" as const };
     }

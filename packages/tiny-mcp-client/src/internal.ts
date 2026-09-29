@@ -3309,12 +3309,13 @@ export class HttpTransport implements McpTransport {
     try {
       const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
       const resourceMetadataUrl = challenge?.params.resource_metadata;
-      const discovery = await discoveryClient.discover(this.url, { resourceMetadataUrl, signal });
+      let discovery: ReturnType<typeof discoveryClient.discover> | undefined;
+      const discover = () => discovery ??= discoveryClient.discover(this.url, { resourceMetadataUrl, signal });
       const providerResponse = response.clone();
       let result;
       try {
         result = await this.oauthProvider.handleUnauthorized({
-          requestUrl: new URL(this.url), response: providerResponse, challenge, discovery,
+          requestUrl: new URL(this.url), response: providerResponse, challenge, discover,
           signal,
           requestHeaders: new Headers(requestHeaders),
           presentedTokens,

@@ -161,7 +161,11 @@ export function createDefaultOAuthClientProvider(
           ...(presented === undefined ? {} : { presentedTokens: presented }) };
         assertNoAccessTokenInUrl(input.requestUrl, "Protected resource request URL");
         const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
-        const resource = canonicalizeResourceIndicator(input.discovery.resource);
+        const discovery = input.discovery ?? structuredClone(await waitForOAuthOperation(
+          input.discover?.() ?? Promise.reject(new Error("OAuth recovery requires metadata discovery")), input.signal
+        ));
+        if (discovery === undefined) throw new Error("OAuth recovery requires metadata discovery");
+        const resource = canonicalizeResourceIndicator(discovery.resource);
         assertRequestMatchesResource(requestUrl, resource);
         const cached = await waitForOAuthOperation(loadSession(resource), input.signal);
         const currentTokens = cached?.tokens ?? (!initialGrantConsumed && initialGrant?.resource === resource ? initialGrant.tokens : undefined);
@@ -183,7 +187,7 @@ export function createDefaultOAuthClientProvider(
         const session = await ensureAuthorizedSession(
           resource,
           {
-            ...input.discovery,
+            ...discovery,
             resource
           },
           input.fetch,

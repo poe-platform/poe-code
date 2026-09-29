@@ -149,7 +149,11 @@ observe the supplied signal and pass it to any work they start.
 `authorizeRequest` may return an owned token snapshot for the request it
 authorized. The HTTP client supplies that snapshot as `presentedTokens`, along
 with the actual request's `requestHeaders`, to `handleUnauthorized`. Providers
-that return `void` remain supported. The native provider compares the rejected
+that return `void` remain supported. HTTP transports supply lazy `discover()`
+instead of eagerly fetching metadata before the handler. A custom handler can
+return `{ action: "fail" }` without metadata access or replay; call `discover()`
+only when recovery needs validated metadata. Direct callers may still supply
+already validated `discovery`. The native provider compares the rejected
 snapshot with persisted credentials: delayed 401s retry with a newer grant
 without redeeming its refresh token again. A proven current token is refreshed
 on 401 even when the server omits `error="invalid_token"`. Invalid provenance

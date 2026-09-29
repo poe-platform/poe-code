@@ -103,7 +103,7 @@ the same optional `closeReason` promise when closing requires asynchronous work.
 
 ## OAuth HTTP support
 
-`HttpTransport` accepts `oauth` options from `mcp-oauth`. When a protected server returns a Bearer `WWW-Authenticate` challenge, the transport discovers protected-resource metadata, loads authorization-server metadata, lets the OAuth provider handle authorization, and retries the request when credentials are available.
+`HttpTransport` accepts `oauth` options from `mcp-oauth`. On HTTP 401, the transport calls the OAuth provider before fetching metadata. Custom providers can reject the presented token and return `{ action: "fail" }` without discovery or request replay. The handler receives a memoized `discover()` callback for validated protected-resource and authorization-server metadata when recovery needs it. The built-in provider invokes this callback and requests a retry when credentials are available.
 
 ```ts
 import { HttpTransport } from "tiny-mcp-client";

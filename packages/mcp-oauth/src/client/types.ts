@@ -57,7 +57,10 @@ export interface OAuthClientProvider {
     requestUrl: URL;
     response: Response;
     challenge: OAuthUnauthorizedChallenge | null;
-    discovery: OAuthDiscoveryResult;
+    /** Validated metadata supplied by direct callers, if already available. */
+    discovery?: OAuthDiscoveryResult;
+    /** Lazy validated metadata; invoke only when OAuth recovery needs it. */
+    discover?: () => Promise<OAuthDiscoveryResult>;
     fetch: OAuthMetadataFetch;
     signal?: AbortSignal;
     /** Headers actually attached to this rejected request. */

@@ -171,3 +171,15 @@ Word-spacing classification follows PDF.js `Font.charsToGlyphs`
 (`src/core/fonts.js`) and canvas text painting: only an original one-byte 0x20
 receives Tw, regardless of its Unicode label. The internal CMap reader preserves
 that classification without changing the public ToUnicode result shape.
+
+
+# OpenType CFF tables
+
+`src/fonts/truetype.ts` follows PDF.js `FontRendererFactory` by using the `CFF `
+table when an sfnt font has no `glyf` table. It reuses the existing CFF parser
+and path adapter, while retaining sfnt glyph mappings and metrics. The synthetic
+OpenType fixture in `src/fonts/opentype-cff.test.ts` wraps the Adobe/PDF.js CFF
+specification example from `cff_parser_spec.js`, with its second charstring
+replaced by an unhinted triangle and compiled once with PDF.js CFFCompiler.
+The test contains no system font assets. Mozilla Foundation, Apache-2.0, same
+pinned revision and license as the other CFF cases.

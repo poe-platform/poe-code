@@ -1,3 +1,5 @@
+import { CFFParser, Stream } from "../vendor/pdfjs-fonts.mjs";
+import { createCffGlyphRenderer } from "./cff.js";
 import {
   cosArray,
   cosDict,
@@ -212,9 +214,22 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
   const scale1000 = (v: number): number => Math.round((v * 1000) / unitsPerEm);
   const loca = tables.get("loca");
   const glyf = tables.get("glyf");
+  const cffTable = tables.get("CFF ");
+  let renderCffGlyph: ((gid: number) => PdfPathSegment[]) | undefined;
+  if (!glyf && cffTable) {
+    if (cffTable.length === 0 || cffTable.offset + cffTable.length > bytes.length) {
+      throw new PdfError("E_PARSE", "OpenType CFF table is outside the font program");
+    }
+    // PDF.js FontRendererFactory selects the CFF table when glyf is absent.
+    // Copy it because PDF.js can repair charstrings in place.
+    const cff = new CFFParser(new Stream(bytes.slice(cffTable.offset, cffTable.offset + cffTable.length)), {}, false).parse();
+    renderCffGlyph = createCffGlyphRenderer(cff);
+  }
 
   const getGlyphOutlineByGid = (gid: number, depth = 0): PdfPathSegment[] => {
-    if (!loca || !glyf || gid < 0 || gid >= numGlyphs || depth > 6) return [];
+    if (gid < 0 || gid >= numGlyphs || depth > 6) return [];
+    if (renderCffGlyph) return renderCffGlyph(gid);
+    if (!loca || !glyf) return [];
     let gOff = 0;
     let gNext = 0;
     if (indexToLocFormat === 0) {

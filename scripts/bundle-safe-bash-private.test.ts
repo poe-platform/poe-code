@@ -4,6 +4,45 @@ import { resolvePrivateCommandBuild, resolveBrowserShellBuild } from "./bundle-s
 import { build } from "esbuild";
 import { runInNewContext } from "node:vm";
 import path from "node:path";
+import { readFileSync } from "node:fs";
+
+it("preserves the portable export surface when canonical owners remain external", async () => {
+  const root = process.cwd();
+  const manifest = JSON.parse(readFileSync(path.join(root, "packages/safe-bash/package.json"), "utf8"));
+  const names = [];
+  for (const external of [[], Object.keys(manifest.poeCode.integration.privateWorkspaces)]) {
+    const options = resolveBrowserShellBuild(root, { external });
+    const result = await build({ ...options, sourcemap: false });
+    const publicOutputs = new Set(Object.keys(options.entryPoints).map(name =>
+      path.relative(root, path.join(options.outdir, name + ".js"))));
+    names.push(Object.fromEntries(Object.entries(result.metafile!.outputs)
+      .filter(([filename]) => publicOutputs.has(filename))
+      .map(([filename, output]) => [filename, output.exports])));
+    if (external.length) {
+      const outputs = new Map(result.outputFiles.map(file => [file.path, file.text]));
+      const entry = path.join(options.outdir, "commands/csplit/index.browser.js");
+      const consumer = await build({
+        stdin: { contents: `import * as api from ${JSON.stringify(entry)}; import { createCsplitCommand as canonical } from "safe-bash-command-csplit"; export { api, canonical };` },
+        bundle: true, write: false, platform: "browser", format: "cjs",
+        alias: { "poe-code/safe-fs/core": path.join(root, "packages/safe-fs/src/core.ts") },
+        plugins: [{ name: "packed-csplit-identity", setup(builder) {
+          builder.onResolve({ filter: /.*/ }, args => {
+            if (args.path === "safe-bash-command-csplit") return { path: args.path, namespace: "owner" };
+            const filename = path.resolve(path.dirname(args.importer), args.path);
+            return outputs.has(filename) ? { path: filename, namespace: "artifact" } : undefined;
+          });
+          builder.onLoad({ filter: /.*/, namespace: "artifact" }, args => ({ contents: outputs.get(args.path)!, loader: "js" }));
+          builder.onLoad({ filter: /.*/, namespace: "owner" }, () => ({ contents: "export function createCsplitCommand() { return {name: 'csplit'}; } export const createCsplitCommands = () => [createCsplitCommand()]; export const csplitCommands = () => ({}); export const evalSyncCsplit = () => '';", loader: "js" }));
+        } }],
+      });
+      const module = { exports: {} as { api: { createCsplitCommand(): { name: string } }; canonical: unknown } };
+      runInNewContext(consumer.outputFiles[0]!.text, { module, TextEncoder, TextDecoder, Uint8Array });
+      expect(module.exports.api.createCsplitCommand).toBe(module.exports.canonical);
+      expect(module.exports.api.createCsplitCommand().name).toBe("csplit");
+    }
+  }
+  expect(names[1]).toEqual(names[0]);
+});
 
 it("keeps root conditional runtimes unresolved until browser or workerd consumption", async () => {
   const options = resolveBrowserShellBuild(process.cwd(), {

@@ -9,6 +9,13 @@ import {
 } from "safe-bash-command-op";
 
 export * from "safe-bash-command-op";
+export {
+  captureEnvironment, createDocumentHandlers, createEnvironmentHandlers,
+  createItemHandlers, createObjectBackend, createOp, createOpTextCodec,
+  createSecretHandlers, parseCommand, parseOpFileMode, parseSecretReference,
+  renderOpHelp, renderOpOutput, restoreEnvironment, selectOpBackendContext,
+  selectOpGlobalFlags,
+} from "safe-bash-command-op";
 export { evalSyncOp };
 
 export function createOpCommand(options: OpCommandsOptions = {}): CommandDefinition & { execute(context: OpCommandContext): Promise<{ exitCode: number }> } {

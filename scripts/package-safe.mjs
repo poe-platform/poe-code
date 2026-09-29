@@ -340,15 +340,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       if (portableCommands) recipes.push(portableCommands);
       if (Object.values(source.exports).some(value => value?.browser?.endsWith(".browser.js") || value?.workerd?.endsWith(".browser.js"))) {
         const browser = resolveBrowserShellBuild(rootDir, { external: ["@poe-platform/safe-fs", ...canonical] });
-        const entryPoints = Object.fromEntries(Object.entries(browser.entryPoints).map(([entry, filename]) => {
-          const command = entry.split("/");
-          const owner = command.length === 3 && command[0] === "commands" && command[2] === "index.browser"
-            ? workspaces.find(workspace => workspace.pkg.name === "safe-bash-command-" + command[1]) : undefined;
-          const runtime = owner && source.poeCode?.integration?.privateWorkspaces?.[owner.pkg.name]
-            ? owner.pkg.exports?.["."]?.import : undefined;
-          return [entry, typeof runtime === "string" ? path.join(rootDir, "packages", owner.dir, runtime) : filename];
-        }));
-        recipes.push({ ...browser, entryPoints,
+        recipes.push({ ...browser,
           alias: { ...Object.fromEntries(Object.entries(browser.alias).map(([specifier, target]) => [specifier, publicSpecifier(target)])), "@poe-code/safe-fs": "@poe-platform/safe-fs", "poe-code/safe-fs": "@poe-platform/safe-fs" },
         });
       }

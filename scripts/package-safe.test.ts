@@ -10,6 +10,35 @@ import { build, transformSync, type BuildOptions, type Plugin } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
+it("keeps portable public command adapters linked to their canonical owner", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-csplit";
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces[name] = { version: "0.0.1", dependencies: {}, devDependencies: {} };
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
+    name, private: true, type: "module", version: "0.0.1",
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  volume.writeFileSync(`/repo/packages/${name}/dist/index.js`, "export function createCsplitCommand() {}\n");
+  volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export declare function createCsplitCommand(): void;\n");
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const recipe = options.bundle.mock.calls.map(([settings]) => settings as BuildOptions)
+    .find(settings => Object.hasOwn(settings.entryPoints ?? {}, "core.browser"))!;
+  const filename = (recipe.entryPoints as Record<string, string>)["commands/csplit/index.browser"]!;
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const result = await build({
+    entryPoints: [filename.replace("/repo/", root)], bundle: true, write: false,
+    platform: "browser", format: "esm", metafile: true,
+    external: Object.keys(bashManifest.poeCode.integration.privateWorkspaces),
+  });
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  expect(imports.length).toBeGreaterThan(0);
+  for (const imported of imports) expect(imported).toEqual({ path: name, kind: "import-statement", external: true });
+  expect(Object.keys(result.metafile!.inputs)).toEqual(["packages/safe-bash/src/commands/csplit/index.ts"]);
+});
+
 it("keeps canonical command functions external in the actual scoped browser recipe", async () => {
   const { options } = optionalLeftovers();
   let browser: BuildOptions | undefined;
@@ -262,6 +291,11 @@ it.each([
 
 it("preserves public contract exports when the browser bundle externalizes their canonical runtime", async () => {
   const entry = readFileSync(new URL("../packages/safe-bash/src/core.browser.ts", import.meta.url), "utf8");
+  const parsed = ts.createSourceFile("core.browser.ts", entry, ts.ScriptTarget.Latest, true);
+  const coreNames = parsed.statements.filter(ts.isExportDeclaration).flatMap(statement =>
+    statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === "./core.js"
+      && statement.exportClause && ts.isNamedExports(statement.exportClause)
+      ? statement.exportClause.elements.map(element => element.name.text) : []);
   const publicContracts = {
     command: ["CommandArgumentIdentityError", "createCommandArguments", "getCommandArguments", "commandRuntimeIdentity", "CommandRegistry", "validateExitCode"],
     "command-requirements": ["evaluateCommandSupport", "assertCommandRequirements"],
@@ -273,7 +307,7 @@ it("preserves public contract exports when the browser bundle externalizes their
   };
   const forwarding = Object.keys(publicContracts).map(name => `export * from "safe-bash-contracts/${name}";`).join("\n");
   const modules = new Map([
-    ["shell", forwarding],
+    ["shell", forwarding + "\n" + coreNames.map(name => `export const ${name} = {};`).join("\n")],
     ["safe-bash-contracts", forwarding + '\nexport const shellValueBytes = {};'],
     ...Object.entries(publicContracts).map(([subpath, names]) => [
       "safe-bash-contracts/" + subpath, names.map(name => `export const ${name} = {};`).join("\n"),
@@ -306,7 +340,7 @@ it("preserves public contract exports when the browser bundle externalizes their
   const output = { exports: {} as { api: Record<string, unknown>; canonical: Record<string, unknown> } };
   new Function("module", consumer.outputFiles[0]!.text)(output);
   const names = Object.values(publicContracts).flat();
-  expect(Object.keys(output.exports.api).sort()).toEqual([...names].sort());
+  expect(Object.keys(output.exports.api).sort()).toEqual([...names, ...coreNames].sort());
   for (const name of names) expect(output.exports.api[name]).toBe(output.exports.canonical[name]);
 });
 

@@ -50,7 +50,7 @@ check((await shell.exec("git -C /repo status --porcelain")).exitCode === 0, "Git
     setup: "shell.use(baseAgentCommands({ regexExecutor: createBoundedRegexProvider() }));",
     smoke: 'check((await shell.exec("printf actual | grep actual")).stdout === "actual\\n", "explicit regex provider");', forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
   enabledConsumer: { imports: shell + `
-import { baseAgentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";
+import { baseAgentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash/registry";
 import { bcCommands } from "@poe-platform/safe-bash/commands/bc";
 import { csvcutCommands } from "@poe-platform/safe-bash/commands/csvcut";
 import { csvgrepCommands } from "@poe-platform/safe-bash/commands/csvgrep";
@@ -93,6 +93,8 @@ safeBashProfiles.rootPythonLlm = { ...safeBashProfiles.pythonLlm,
 
 safeBashProfiles.splitCore = { ...safeBashProfiles.core, splitting: true };
 safeBashProfiles.splitPythonLlm = { ...safeBashProfiles.pythonLlm, splitting: true };
+safeBashProfiles.splitEnabledConsumer = { ...safeBashProfiles.enabledConsumer, splitting: true };
+
 safeBashProfiles.splitFull = { ...safeBashProfiles.full, splitting: true };
 
 const engineMarkers = {
@@ -125,6 +127,7 @@ export const safeBashProfileBaselines = {
   "rootPythonLlm": 5052096,
   "splitCore": 4871225,
   "splitPythonLlm": 4968430,
+  "splitEnabledConsumer": 6195230,
   "splitFull": 24702427
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)

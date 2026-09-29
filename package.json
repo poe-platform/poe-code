@@ -352,6 +352,12 @@
       "browser": "./packages/safe-bash/dist/core.browser.js",
       "node": "./dist/safe-bash.js",
       "default": "./dist/safe-bash.js"
+    },
+    "./safe-bash/registry": {
+      "types": "./dist/types/safe-bash/registry-entry.d.ts",
+      "workerd": "./packages/safe-bash/dist/registry-entry.browser.js",
+      "browser": "./packages/safe-bash/dist/registry-entry.browser.js",
+      "import": "./packages/safe-bash/dist/registry-entry.js"
     }
   },
   "engines": {

@@ -2239,6 +2239,12 @@
       "workerd": "./dist/core.browser.js",
       "browser": "./dist/core.browser.js",
       "import": "./dist/core.js"
+    },
+    "./registry": {
+      "types": "./dist/registry-entry.d.ts",
+      "workerd": "./dist/registry-entry.browser.js",
+      "browser": "./dist/registry-entry.browser.js",
+      "import": "./dist/registry-entry.js"
     }
   },
   "sideEffects": [

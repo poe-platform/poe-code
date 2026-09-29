@@ -5,3 +5,6 @@ import { CommandRegistry as ContractRegistry, commandRuntimeIdentity as contract
 assert.equal(Shell, FullShell);
 assert.equal(CommandRegistry, ContractRegistry);
 assert.equal(commandRuntimeIdentity, contractIdentity);
+import { baseAgentCommands } from "@poe-platform/safe-bash";
+import { baseAgentCommands as registryBaseAgentCommands } from "@poe-platform/safe-bash/registry";
+assert.equal(baseAgentCommands, registryBaseAgentCommands);

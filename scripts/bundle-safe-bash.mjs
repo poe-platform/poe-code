@@ -139,6 +139,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
       "core.browser": path.join(directory, "src/core.browser.ts"),
       "portable-buffer": path.join(directory, "src/portable-buffer.ts"),
       "shell-entry.browser": path.join(directory, "src/shell-entry.ts"),
+      "registry-entry.browser": path.join(directory, "src/registry-entry.ts"),
       "plugins/index.browser": path.join(directory, "src/plugins/index.ts"),
       "commands/regex-execution/public.browser": path.join(directory, "src/commands/regex-execution/public.ts"),
       "yq-browser/index": path.join(directory, "src/yq.browser.ts"),

@@ -379,6 +379,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
     "portable-buffer": path.join(root, "packages/safe-bash/src/portable-buffer.ts"),
     "shell-entry.browser": path.join(root, "packages/safe-bash/src/shell-entry.ts"),
+    "registry-entry.browser": path.join(root, "packages/safe-bash/src/registry-entry.ts"),
     "plugins/index.browser": path.join(root, "packages/safe-bash/src/plugins/index.ts"),
     "commands/regex-execution/public.browser": path.join(root, "packages/safe-bash/src/commands/regex-execution/public.ts"),
     "yq-browser/index": path.join(root, "packages/safe-bash/src/yq.browser.ts"),

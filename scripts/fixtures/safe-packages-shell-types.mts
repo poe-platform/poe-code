@@ -1,4 +1,4 @@
-import { baseAgentCommands, type BaseAgentCommandsOptions } from "@poe-platform/safe-bash";
+import { baseAgentCommands, type BaseAgentCommandsOptions } from "@poe-platform/safe-bash/registry";
 import { Shell, CommandRegistry, createCommandArguments, type CommandDefinition, type VirtualShellPlugin } from "@poe-platform/safe-bash/shell";
 import { Shell as FullShell } from "@poe-platform/safe-bash/full";
 import { createMemoryFileSystem } from "@poe-platform/safe-fs/core";

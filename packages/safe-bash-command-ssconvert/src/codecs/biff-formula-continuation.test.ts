@@ -80,3 +80,21 @@ it.each([7, 8] as const)("rejects BIFF%i token lengths that cannot fit the 16-bi
     { row: 0, column: 0, formula: `=LEN("${"a".repeat(70000)}")`, value: { kind: "number", value: 999 } }
   ] }] }, [], context)).rejects.toThrow("formula token length");
 });
+
+for (const revision of [7, 8] as const) {
+  it.each([
+    [`=SUM({${Array.from({ length: 32 }, () => Array<number>(32).fill(1).join(",")).join(";")}})`, 1024],
+    [`=COUNTA({${Array.from({ length: 16 }, () => Array<string>(16).fill(`"${"é€".repeat(20)}"`).join(",")).join(";")}})`, 256],
+    [`=SUM({${Array.from({ length: 4 }, () => Array<number>(256).fill(2).join(",")).join(";")}})+SUM({${Array.from({ length: 4 }, () => Array<number>(256).fill(3).join(",")).join(";")}})`, 5120]
+  ])(`continues BIFF${revision} auxiliary arrays with native element boundaries (%#)`, async (formula, expected) => {
+    const bytes = await createBiffWriter(revision)({ sheets: [{ id: "s", name: "S", cells: [
+      { row: 0, column: 0, formula, value: { kind: "number", value: 999 } }
+    ] }] }, [], context);
+    const records = readBiffRecords(readCfb(bytes, context).get(revision === 7 ? "Book" : "Workbook")!, context);
+    expect(records.some(record => record.opcode === 0x3c)).toBe(true);
+    expect(records.every(record => record.data.bytes.length <= (revision === 7 ? 2080 : 8224))).toBe(true);
+    const reopened = await readBiff(bytes, context);
+    expect(reopened.sheets[0]!.cells[0]!.cachedResult).toEqual({ kind: "number", value: 999 });
+    expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: expected });
+  });
+}

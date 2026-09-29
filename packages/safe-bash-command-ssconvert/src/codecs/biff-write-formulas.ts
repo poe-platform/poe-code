@@ -21,6 +21,7 @@ export interface CompiledBiffFormula {
   readonly tokens: Uint8Array;
   readonly tokenBoundaries: readonly number[];
   readonly arrays: Uint8Array;
+  readonly arrayBoundaries: readonly number[];
   readonly diagnostics: readonly Diagnostic[];
   readonly nameDependencies: readonly number[];
 }
@@ -150,7 +151,7 @@ export class BiffFormulaWriter {
     const root = definition ? parseNamedExpression(definition, this.book, parse, () => this.context.signal.throwIfAborted()) :
       parse(source, { sheet, row, column });
     const bytes: number[] = [], arrays: number[] = [], diagnostics: Diagnostic[] = [];
-    const tokenBoundaries: number[] = [];
+    const tokenBoundaries: number[] = [], arrayBoundaries: number[] = [];
     const boundary = () => {
       if (bytes.length && tokenBoundaries.at(-1) !== bytes.length) tokenBoundaries.push(bytes.length);
     };
@@ -380,6 +381,7 @@ export class BiffFormulaWriter {
         if (!columns || columns > 256 || node.rows.length > 65536) throw new SsconvertError("unsupported-feature", "Excel BIFF array dimensions exceed limits");
         push([0x40, ...new Uint8Array(7)]);
         push([this.revision === 8 ? columns - 1 : columns & 255, ...words(node.rows.length - (this.revision === 8 ? 1 : 0))], arrays);
+        arrayBoundaries.push(arrays.length);
         for (const arrayRow of node.rows) for (const item of arrayRow) {
           if (item.kind !== "literal") throw new SsconvertError("unsupported-feature", "Excel BIFF array requires literals");
           const value = item.value;
@@ -389,6 +391,7 @@ export class BiffFormulaWriter {
             if (value.kind === "number") view.setFloat64(1, value.value, true);
             else if (value.kind === "boolean") data[1] = Number(value.value);
             else if (value.kind === "error") data[1] = biffError(value.value); push(data, arrays); }
+          arrayBoundaries.push(arrays.length);
         }
       }
       boundary();
@@ -399,7 +402,7 @@ export class BiffFormulaWriter {
       throw new SsconvertError("unsupported-feature", "Excel BIFF formula token length exceeds version limits");
     const tokens = new Uint8Array(bytes);
     for (const relocation of relocations) this.relocations.push({ ...relocation, tokens });
-    return { tokens, tokenBoundaries, arrays: new Uint8Array(arrays), diagnostics,
+    return { tokens, tokenBoundaries, arrays: new Uint8Array(arrays), arrayBoundaries, diagnostics,
       nameDependencies: relocations.filter(relocation => relocation.kind === "name").map(relocation => relocation.index) };
   }
 }

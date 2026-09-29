@@ -3039,7 +3039,7 @@
         "remaining": "The 256-sheet BIFF7 expansion now passes with FORMULA continuation (see continuation). BIFF relative-copy loss, named/computed span sources, Gnumeric native INDEX semantics and wider format qualification remain open. No issue/family closure."
       },
       "continuation": {
-        "implementation": "Scalar FORMULA tokens continue across bounded BIFF7/8 physical records; the reader reassembles declared tokens before decoding. Writer splits at token boundaries to preserve inline string encoding, charges every physical record against quotas and rejects token lengths beyond the 16-bit header. Auxiliary array payload continuation remains open.",
+        "implementation": "Scalar FORMULA tokens continue across bounded BIFF7/8 physical records; the reader reassembles declared tokens before decoding. Writer splits at token boundaries to preserve inline string encoding, charges every physical record against quotas and rejects token lengths beyond the 16-bit header. Auxiliary payloads now continue at complete element boundaries (see arrayElements); oversized individual strings remain open.",
         "source": {
           "url": "https://raw.githubusercontent.com/GNOME/gnumeric/325ef79a19580959afaee9cf01cb8ea15f0177b0/plugins/excel/ms-biff.c",
           "readerLines": "514-578",
@@ -3049,7 +3049,18 @@
         "validation": "Original continuation, inline-string-boundary and 16-bit-length failures reproduced before repair. Final 69-file BIFF cohort passes 1721 tests, including nine continuation regressions; package lint/source/test/consumer types and selected workspace build pass.",
         "publicQualification": "Four compiled SDK/command BIFF7/8 outputs contain 256 sheets and produce INDEX=20, ROW(INDEX)=2 and a continued literal LEN=6000. SDK caches deliberately start at 999. Both Calc 26.8.0.3 readbacks preserve all six live formulas and independently replace those caches with 20/2/6000. Gnumeric 1.12.61 also recalculates both continued literals to 6000; its INDEX cases remain #REF! and are not passing INDEX qualification.",
         "rejectedApproach": "Raw byte splitting corrupted Calc inline literals (BIFF7 #N/A; BIFF8 LEN=2175). Final token-boundary splitting yields 6000 in both readers.",
-        "remaining": "Oversized auxiliary array/group/name records, native relative copying, named/computed INDEX sources, Gnumeric INDEX SET semantics and other format qualification remain open. No issue/family closure."
+        "remaining": "Oversized individual auxiliary strings and group/name records, native relative copying, named/computed INDEX sources, Gnumeric INDEX SET semantics and other format qualification remain open. No issue/family closure.",
+        "arrayElements": {
+          "source": "Gnumeric 325ef79a ms-formula-write.c:933-974 writes auxiliary array dimensions followed by typed row-major elements; ms-biff.c splits the physical record. Preserve Unicode string boundaries as required by LibreOffice XclImpStream.",
+          "implementation": "Compiler records boundaries after each array header and complete element. FORMULA continuation includes these offsets after token offsets, preserving multiple-array order and avoiding mid-string width flags. Oversized individual elements still fail explicitly.",
+          "validation": "Six original oversized-array failures reproduced before repair. All 1727 tests in 69 BIFF files pass; maintained package lint/source/test/consumer types and selected workspace build pass.",
+          "publicQualification": "Four compiled SDK/command outputs (40960-byte BIFF7 and 52224-byte BIFF8) preserve SUM of a 32x32 array, COUNTA of a Unicode string array, and two independent 4x256 arrays. Both Calc 26.8.0.3 and Gnumeric 1.12.61 replace stale 999 caches with 1024/256/5120. Calc preserves all six live formulas and all 5120 Unicode pairs per string array.",
+          "remaining": "A single auxiliary string larger than the physical record, ARRAY-group and NAME record continuation remain open; no issue/family closure."
+        }
+      },
+      "namedSpanInvestigation": {
+        "source": "LibreOffice bce0998a sc/source/core/tool/interpr1.cxx ScIndex:11348-11355 treats non-list sources as one area; 11516-11520 rejects a reference whose first and last sheet differ.",
+        "finding": "A named 3D span still requires native list projection. Inlining fixed references would lose subsequent named-definition edits, so no such production rewrite was made. Named/computed sources remain open."
       }
     }
   },

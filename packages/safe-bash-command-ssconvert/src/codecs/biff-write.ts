@@ -117,7 +117,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
       const group = sheet.formulaGroups?.find(group => group.id === cell.formulaGroup && group.kind === "array");
       if (group) {
         formulas.set(cell, { tokens: new Uint8Array([dataTables.has(group) ? 2 : 1, ...words(group.range.startRow, group.range.startColumn)]),
-          tokenBoundaries: [5], arrays: new Uint8Array(), diagnostics: [], nameDependencies: [] });
+          tokenBoundaries: [5], arrays: new Uint8Array(), arrayBoundaries: [], diagnostics: [], nameDependencies: [] });
       } else if (cell.formula) { const formula = formulaWriter.compile(cell.formula, sheet.id, cell.row, cell.column, undefined, cell.arrayStringLiterals);
         formulas.set(cell, formula); for (const diagnostic of formula.diagnostics) await context.diagnostic?.(diagnostic); }
     }
@@ -290,9 +290,9 @@ async function writeCell(output: BiffOutput, cell: Cell, xf: number, revision: 7
       data[12] = 255; data[13] = 255; }
     view.setUint16(14, cell.formulaDirty ? 3 : 0, true); view.setUint16(20, formula.tokens.length, true);
     data.set(formula.tokens, 22); data.set(formula.arrays, 22 + formula.tokens.length);
-    // Auxiliary array strings have their own continuation-width rules.
-    if (formula.arrays.length) output.record(6, data);
-    else output.continuedRecord(6, data, [22, ...formula.tokenBoundaries.map(offset => offset + 22)]);
+    // Keep each auxiliary element intact to avoid interrupting string widths.
+    output.continuedRecord(6, data, [22, ...formula.tokenBoundaries.map(offset => offset + 22),
+      ...formula.arrayBoundaries.map(offset => offset + 22 + formula.tokens.length)]);
     return;
   }
   if (value.kind === "number") { const data = new Uint8Array(14); data.set(header); new DataView(data.buffer).setFloat64(6, value.value, true); output.record(0x203, data); }

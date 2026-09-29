@@ -85,19 +85,24 @@ function parseSimpleXlsxRows(zipBytes: Uint8Array): string[][] | undefined {
   if (/<f(?:\s|>)/u.test(sheetXml)) return undefined;
 
   const rows: string[][] = [];
-  for (const rowMatch of sheetXml.matchAll(/<row\b[\s\S]*?<\/row>/g)) {
+  for (const rowMatch of sheetXml.matchAll(/<row\b([^>]*)>[\s\S]*?<\/row>/g)) {
+    // The shortcut only appends dense cells. Let the canonical reader place
+    // sparse rows/columns, including leading gaps, before any output is written.
+    const rowRef = /\br="(\d+)"/.exec(rowMatch[1] ?? "");
+    if (!rowRef || Number(rowRef[1]) !== rows.length + 1) return undefined;
     const rowCells: string[] = [];
     for (const cellMatch of rowMatch[0].matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
       const attrs = cellMatch[1] ?? "";
       const body = cellMatch[2] ?? "";
-      const refMatch = /\br="([A-Z]+)\d+"/i.exec(attrs);
+      const refMatch = /\br="([A-Z]+)(\d+)"/i.exec(attrs);
+      if (!refMatch || Number(refMatch[2]) !== rows.length + 1) return undefined;
       if (refMatch?.[1]) {
         let targetCol = 0;
         for (const ch of refMatch[1].toUpperCase()) {
           targetCol = targetCol * 26 + (ch.charCodeAt(0) - 64);
         }
         targetCol -= 1;
-        while (rowCells.length < targetCol) rowCells.push("");
+        if (targetCol !== rowCells.length) return undefined;
       }
       if (cellMatch[2] === undefined) {
         rowCells.push("");

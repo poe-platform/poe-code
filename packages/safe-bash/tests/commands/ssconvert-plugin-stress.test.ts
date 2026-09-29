@@ -7,7 +7,9 @@ import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
-import { createSsconvertCommand, createSsconvertCommands, ssconvertCommands } from "../../src/commands/ssconvert/index.js";
+import { standardCommands } from "../../src/commands/index.js";
+import { createSsconvertCommand, createSsconvertCommands, ssconvertCommands, evalSyncSsconvert } from "../../src/commands/ssconvert/index.js";
+import { createStoredZipArchive } from "safe-bash-command-soffice";
 import { builtInDirectContextExecutors } from "../../src/commands/internal.js";
 import * as ssconvertPackage from "safe-bash-command-ssconvert";
 
@@ -34,6 +36,42 @@ function invocation(args: readonly string[], overrides: Partial<CommandContext> 
     stderr: { async write(bytes) { stderr.push(new Uint8Array(bytes)); } }, ...overrides };
   return { context, stdout, stderr };
 }
+
+test("ssconvert XLSX shortcuts preserve sparse positions and dense conversions", async (t) => {
+  for (const { name, firstRow, lastRow, lastColumn, expected } of [
+    { name: "dense", firstRow: 1, lastRow: 2, lastColumn: "A", expected: "header\n42\n" },
+    { name: "missing row", firstRow: 1, lastRow: 3, lastColumn: "A", expected: "header\n\n42\n" },
+    { name: "leading row", firstRow: 2, lastRow: 3, lastColumn: "A", expected: "\nheader\n42\n" },
+    { name: "missing column", firstRow: 1, lastRow: 2, lastColumn: "C", expected: "header,,\n,,42\n" }
+  ]) await t.test(name, async () => {
+  const bytes = createStoredZipArchive({
+    "[Content_Types].xml": encode('<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/></Types>'),
+    "_rels/.rels": encode('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="r" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'),
+    "xl/workbook.xml": encode('<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Sheet1" sheetId="1" r:id="s"/></sheets></workbook>'),
+    "xl/_rels/workbook.xml.rels": encode('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="s" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'),
+    "xl/worksheets/sheet1.xml": encode(`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="${firstRow}"><c r="A${firstRow}" t="inlineStr"><is><t>header</t></is></c></row><row r="${lastRow}"><c r="${lastColumn}${lastRow}"><v>42</v></c></row></sheetData></worksheet>`)
+  });
+  const fs = new MemoryFileSystem(); await fs.writeFile("/book.xlsx", bytes);
+  const command = createSsconvertCommand(), args = ["-T", "Gnumeric_stf:stf_csv", "/book.xlsx", "fd://1"];
+  const call = invocation(args, { fs });
+  assert.equal((await command.execute(call.context)).exitCode, 0);
+  assert.equal(new TextDecoder().decode(Buffer.concat(call.stdout)), expected);
+  const shortcut = evalSyncSsconvert(command.execute, args, undefined, () => bytes);
+  if (name === "dense") assert.equal(shortcut, expected);
+  if (shortcut !== undefined) assert.equal(shortcut, expected);
+  const writes: Uint8Array[] = [];
+  const fileShortcut = evalSyncSsconvert(command.execute, ["/book.xlsx", "/book.csv"], undefined,
+    () => bytes, (_path, output) => { writes.push(output); return true; });
+  if (fileShortcut === undefined) assert.deepEqual(writes, []);
+  else assert.equal(new TextDecoder().decode(Buffer.concat(writes)), expected);
+  const shell = new Shell({ fs }).use(standardCommands()).use(ssconvertCommands());
+  try {
+    const result = await shell.exec('value=$(ssconvert -T Gnumeric_stf:stf_csv /book.xlsx fd://1); echo "$value"');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  } finally { await shell.dispose(); }
+  });
+});
 
 test("ssconvert private package owns the singular, plural and plugin factories", async () => {
   assert.equal(ssconvertPackage.createSsconvertCommand, createSsconvertCommand);

@@ -110,7 +110,15 @@ export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: 
       text["fo:font-size"] = f.Unit ? f.Unit + "pt" : undefined;
       if (f.Bold !== undefined) text["fo:font-weight"] = Number(f.Bold) ? "bold" : "normal";
       if (f.Italic !== undefined) text["fo:font-style"] = Number(f.Italic) ? "italic" : "normal";
-      if (f.Underline !== undefined) { text["style:text-underline-style"] = Number(f.Underline) ? "solid" : "none"; text["style:text-underline-type"] = Number(f.Underline) === 2 ? "double" : "single"; }
+      if (f.Underline !== undefined) {
+        const underline = Number(f.Underline), low = underline === 3 || underline === 4;
+        text["style:text-underline-style"] = low ? "dash" : underline ? "solid" : "none";
+        text["style:text-underline-type"] = underline === 2 || underline === 4 ? "double" : underline ? "single" : "none";
+        text["style:text-underline-width"] = "auto";
+        text["style:text-underline-color"] = "font-color";
+        text["style:text-underline-mode"] = "continuous";
+        if (extended && low) text["gnm:text-underline-placement"] = "low";
+      }
       if (f.StrikeThrough !== undefined) text["style:text-line-through-style"] = Number(f.StrikeThrough) ? "solid" : "none";
     }
     const borders = odfChildren(odfChildren(node).find(n => odfObject(n)?.name === "StyleBorder"));

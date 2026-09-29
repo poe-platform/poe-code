@@ -89,7 +89,13 @@ export function odfCellStyle(node: XmlElement, parent: ImportedValue | undefined
     const size = distance(attr(p, "font-size", "fo")); if (size !== undefined) font.Unit = size;
     const weight = attr(p, "font-weight", "fo"); if (weight !== undefined) font.Bold = weight === "bold" || Number(weight) >= 600 ? 1 : 0;
     const italic = attr(p, "font-style", "fo"); if (italic !== undefined) font.Italic = italic === "italic" || italic === "oblique" ? 1 : 0;
-    const underline = attr(p, "text-underline-style", "style"); if (underline !== undefined) font.Underline = underline === "none" ? 0 : attr(p, "text-underline-type", "style") === "double" ? 2 : 1;
+    const underline = attr(p, "text-underline-style", "style");
+    if (underline !== undefined) {
+      const type = attr(p, "text-underline-type", "style");
+      const double = type === "double" || attr(p, "text-underline-width", "style") === "bold";
+      font.Underline = underline === "none" || type === "none" ? 0
+        : (double ? 2 : 1) + (attr(p, "text-underline-placement", "gnm") === "low" ? 2 : 0);
+    }
     const strike = attr(p, "text-line-through-style", "style"); if (strike !== undefined) font.StrikeThrough = strike === "none" ? 0 : 1;
     family = attr(p, "font-family", "fo") ?? attr(p, "font-name", "style") ?? family;
     for (const [side, target] of [["top", "Top"], ["bottom", "Bottom"], ["left", "Left"], ["right", "Right"]] as const) {

@@ -1630,7 +1630,12 @@ dual_fixture_test!(cli_show_ref_verify_checkout_index_verify_commit_prune_and_re
     assert!(f.fs.exists(&join(&[&f.dir, "export/README.md"])));
 
     // 3. verify-commit and verify-tag (unsigned returns 1)
-    assert_eq!(execute_git_cli(&f.fs, &f.dir, &["commit", "--amend", "-S", "-m", "signed commit"]).exit_code, 0);
+    let signing_key = git_rust::crypto::format_openssh_ed25519_private_key(&[7; 32], "fixture signing key");
+    let signing_path = join(&[&f.dir, "signing-key"]);
+    f.fs.write_str(&signing_path, &signing_key);
+    execute_git_cli(&f.fs, &f.dir, &["config", "user.signingkey", "signing-key"]);
+    let signed = execute_git_cli(&f.fs, &f.dir, &["commit", "--amend", "-S", "-m", "signed commit"]);
+    assert_eq!(signed.exit_code, 0, "{}", signed.stderr);
     let r_vc = execute_git_cli(&f.fs, &f.dir, &["verify-commit", "HEAD"]); assert_eq!(r_vc.exit_code, 0); assert!(r_vc.stdout.contains("Good signature"));
     assert_eq!(execute_git_cli(&f.fs, &f.dir, &["verify-tag", "v4.0.0"]).exit_code, 1);
 

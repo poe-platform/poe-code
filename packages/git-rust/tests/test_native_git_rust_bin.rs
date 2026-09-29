@@ -45,6 +45,10 @@ fn test_standalone_git_rust_cli_binary_on_host_fs() {
             .success()
     );
 
+    let signing_key = git_rust::crypto::format_openssh_ed25519_private_key(&[7; 32], "fixture signing key");
+    fs::write(work.join(".git/signing-key"), &signing_key).unwrap();
+    assert!(Command::new(bin).current_dir(&work).args(["config", "user.signingkey", ".git/signing-key"]).status().unwrap().success());
+
     // Global configuration may choose a different hooks directory on the host.
     assert!(
         Command::new(bin)

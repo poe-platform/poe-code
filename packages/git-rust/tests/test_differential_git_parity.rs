@@ -125,6 +125,9 @@ fn test_differential_rebase_and_signed_tags_parity() {
     }
 
     // Tag with signature in git-rust and verify-tag
+    let signing_key = git_rust::crypto::format_openssh_ed25519_private_key(&[7; 32], "fixture signing key");
+    fs::write(rust_dir.join(".git/signing-key"), &signing_key).unwrap();
+    assert!(Command::new(bin).current_dir(&rust_dir).args(["config", "user.signingkey", ".git/signing-key"]).status().unwrap().success());
     assert!(Command::new(bin).current_dir(&rust_dir).args(["tag", "-s", "v2.0.0", "-m", "signed release v2"]).status().unwrap().success());
     let verify_tag = Command::new(bin).current_dir(&rust_dir).args(["verify-tag", "v2.0.0"]).output().unwrap();
     assert!(verify_tag.status.success());

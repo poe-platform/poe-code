@@ -703,7 +703,7 @@ pub fn commit(
                 &signer_uid,
                 comm_obj.committer.timestamp as u32,
                 &unsigned_payload,
-            ));
+            ).map_err(|message| GitError::new(ErrorCode::ParseError, message, BTreeMap::new()))?);
         }
         let bytes = crate::models::GitCommit::from_object(&comm_obj).to_object();
         let oid = _write_object(fs, &gdir, "commit", &bytes, "content", None, dry_run)?;

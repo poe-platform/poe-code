@@ -42,7 +42,8 @@ impl GitAnnotatedTag {
                     "\n".to_string()
                 }
             } else {
-                format!("\n{gpg}")
+                if obj.message.ends_with('\n') { gpg.to_string() }
+                else { format!("\n{gpg}") }
             }
         );
         Self { raw: rendered }

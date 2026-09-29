@@ -950,149 +950,32 @@ pub fn sshsig_verify(
     })
 }
 
-// --- OpenPGP (RFC 4880) Detached Signature & Key Support ---
+#[cfg(not(target_arch = "wasm32"))]
+pub use crate::openpgp::{
+    PgpSigVerified, pgp_fingerprint_from_pubkey, pgp_key_id_from_pubkey, pgp_public_key,
+    pgp_sign_detached, pgp_sign_with_secret_key, pgp_verify_detached, pgp_verify_detached_with_key,
+};
 
-fn crc24(data: &[u8]) -> u32 {
-    let mut crc: u32 = 0x00b704ce;
-    for &b in data {
-        crc ^= (b as u32) << 16;
-        for _ in 0..8 {
-            crc <<= 1;
-            if (crc & 0x01000000) != 0 {
-                crc ^= 0x01864cfb;
-            }
-        }
-    }
-    crc & 0x00ffffff
-}
-
-fn pgp_armor(header: &str, body: &[u8]) -> String {
-    let b64 = wrap_b64(&base64_encode(body), 64);
-    let c = crc24(body);
-    let crc_bytes = [(c >> 16) as u8, (c >> 8) as u8, c as u8];
-    let crc_b64 = base64_encode(&crc_bytes);
-    format!(
-        "-----BEGIN {header}-----\n\n{b64}\n={crc_b64}\n-----END {header}-----"
-    )
-}
-
-fn pgp_dearmor(armored: &str, header: &str) -> Option<Vec<u8>> {
-    let start_tag = format!("-----BEGIN {header}-----");
-    let end_tag = format!("-----END {header}-----");
-    let start = armored.find(&start_tag)?;
-    let end = armored.find(&end_tag)?;
-    let inner = &armored[start + start_tag.len()..end];
-    let mut b64_lines = Vec::new();
-    let mut in_headers = true;
-    for line in inner.lines() {
-        let t = line.trim();
-        if in_headers {
-            if t.is_empty() {
-                in_headers = false;
-            } else if !t.contains(':') {
-                in_headers = false;
-                if !t.starts_with('=') {
-                    b64_lines.push(t);
-                }
-            }
-            continue;
-        }
-        if t.is_empty() || t.starts_with('=') {
-            continue;
-        }
-        b64_lines.push(t);
-    }
-    base64_decode(&b64_lines.join(""))
-}
-
-pub fn pgp_fingerprint_from_pubkey(pk: &[u8; 32]) -> String {
-    let digest = sha256(pk);
-    let mut hex = String::with_capacity(40);
-    for b in &digest[..20] {
-        hex.push_str(&format!("{b:02X}"));
-    }
-    hex
-}
-
-pub fn pgp_key_id_from_pubkey(pk: &[u8; 32]) -> String {
-    let fp = pgp_fingerprint_from_pubkey(pk);
-    fp[fp.len() - 16..].to_string()
-}
-
-pub fn pgp_sign_detached(seed: &[u8; 32], signer_uid: &str, timestamp: u32, payload: &[u8]) -> String {
-    let pk = ed25519_public_key(seed);
-    let mut trailer = Vec::new();
-    trailer.extend_from_slice(b"PGPv4\0");
-    trailer.extend_from_slice(&timestamp.to_be_bytes());
-    trailer.extend_from_slice(&pk);
-    let uid_bytes = signer_uid.as_bytes();
-    trailer.extend_from_slice(&(uid_bytes.len() as u16).to_be_bytes());
-    trailer.extend_from_slice(uid_bytes);
-
-    let mut to_sign = Vec::with_capacity(payload.len() + trailer.len());
-    to_sign.extend_from_slice(payload);
-    to_sign.extend_from_slice(&trailer);
-    let sig = ed25519_sign(seed, &to_sign);
-
-    let mut packet = Vec::with_capacity(trailer.len() + 64);
-    packet.extend_from_slice(&trailer);
-    packet.extend_from_slice(&sig);
-    pgp_armor("PGP SIGNATURE", &packet)
-}
-
-#[derive(Debug, Clone)]
-pub struct PgpSigVerified {
-    pub public_key: [u8; 32],
-    pub key_id: String,
-    pub fingerprint: String,
-    pub signer_uid: String,
-    pub timestamp: u32,
-}
-
-pub fn pgp_verify_detached(armored_sig: &str, payload: &[u8]) -> Option<PgpSigVerified> {
-    let packet = pgp_dearmor(armored_sig, "PGP SIGNATURE")?;
-    if packet.len() < 6 + 4 + 32 + 2 + 64 || &packet[..6] != b"PGPv4\0" {
-        return None;
-    }
-    let timestamp = u32::from_be_bytes([packet[6], packet[7], packet[8], packet[9]]);
-    let mut pk = [0u8; 32];
-    pk.copy_from_slice(&packet[10..42]);
-    let uid_len = u16::from_be_bytes([packet[42], packet[43]]) as usize;
-    if packet.len() != 44 + uid_len + 64 {
-        return None;
-    }
-    let signer_uid = std::str::from_utf8(&packet[44..44 + uid_len]).ok()?.to_string();
-    let trailer = &packet[..44 + uid_len];
-    let mut sig64 = [0u8; 64];
-    sig64.copy_from_slice(&packet[44 + uid_len..]);
-
-    let mut to_sign = Vec::with_capacity(payload.len() + trailer.len());
-    to_sign.extend_from_slice(payload);
-    to_sign.extend_from_slice(trailer);
-    if !ed25519_verify(&pk, &to_sign, &sig64) {
-        return None;
-    }
-    Some(PgpSigVerified {
-        public_key: pk,
-        key_id: pgp_key_id_from_pubkey(&pk),
-        fingerprint: pgp_fingerprint_from_pubkey(&pk),
-        signer_uid,
-        timestamp,
-    })
-}
-
-pub fn derive_seed_for_signing_key(fs: &MemoryFs, root: &str, signing_key: &str) -> [u8; 32] {
+pub fn derive_seed_for_signing_key(
+    fs: &MemoryFs,
+    root: &str,
+    signing_key: &str,
+) -> Result<[u8; 32], String> {
     let trimmed = signing_key.trim();
     if trimmed.contains("-----BEGIN OPENSSH PRIVATE KEY-----")
         && let Some((seed, _, _)) = parse_openssh_ed25519_private_key(trimmed)
     {
-        return seed;
+        return Ok(seed);
     }
     if !trimmed.is_empty() {
         let candidates = if trimmed.starts_with('/') {
             vec![trimmed.to_string()]
         } else if let Some(rest) = trimmed.strip_prefix("~/") {
-            vec![format!("/home/user/{rest}"), format!("/root/{rest}"), format!("{root}/{rest}")]
+            vec![
+                format!("/home/user/{rest}"),
+                format!("/root/{rest}"),
+                format!("{root}/{rest}"),
+            ]
         } else {
             vec![format!("{root}/{trimmed}"), trimmed.to_string()]
         };
@@ -1101,7 +984,7 @@ pub fn derive_seed_for_signing_key(fs: &MemoryFs, root: &str, signing_key: &str)
                 && let Ok(text) = std::str::from_utf8(&bytes)
                 && let Some((seed, _, _)) = parse_openssh_ed25519_private_key(text)
             {
-                return seed;
+                return Ok(seed);
             }
         }
     }
@@ -1114,10 +997,10 @@ pub fn derive_seed_for_signing_key(fs: &MemoryFs, root: &str, signing_key: &str)
             && let Ok(text) = std::str::from_utf8(&bytes)
             && let Some((seed, _, _)) = parse_openssh_ed25519_private_key(text)
         {
-            return seed;
+            return Ok(seed);
         }
     }
-    sha256(format!("git-rust-signing-seed:{trimmed}").as_bytes())
+    Err("No usable signing private key was provided".to_string())
 }
 
 pub fn sign_git_payload(
@@ -1128,12 +1011,43 @@ pub fn sign_git_payload(
     signer_uid: &str,
     timestamp: u32,
     payload: &str,
-) -> String {
-    let seed = derive_seed_for_signing_key(fs, root, signing_key);
+) -> Result<String, String> {
     if gpg_format.eq_ignore_ascii_case("ssh") {
-        sshsig_sign(&seed, "git", payload.as_bytes())
+        let seed = derive_seed_for_signing_key(fs, root, signing_key)?;
+        Ok(sshsig_sign(&seed, "git", payload.as_bytes()))
     } else {
-        pgp_sign_detached(&seed, signer_uid, timestamp, payload.as_bytes())
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            if signing_key.contains("-----BEGIN PGP PRIVATE KEY BLOCK-----") {
+                return pgp_sign_with_secret_key(
+                    signing_key.as_bytes(),
+                    timestamp,
+                    payload.as_bytes(),
+                );
+            }
+            let key_path = if signing_key.starts_with('/') {
+                signing_key.to_string()
+            } else {
+                format!("{root}/{signing_key}")
+            };
+            if let Ok(key) = fs.read_file(&key_path)
+                && !key.starts_with(b"-----BEGIN OPENSSH PRIVATE KEY-----")
+            {
+                return pgp_sign_with_secret_key(&key, timestamp, payload.as_bytes());
+            }
+            let seed = derive_seed_for_signing_key(fs, root, signing_key)?;
+            Ok(pgp_sign_detached(
+                &seed,
+                signer_uid,
+                timestamp,
+                payload.as_bytes(),
+            ))
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            let _ = (signer_uid, timestamp);
+            Err("OpenPGP signing requires the native git-rust runtime".to_string())
+        }
     }
 }
 
@@ -1170,19 +1084,35 @@ pub fn verify_git_signature(
             Err("BAD SSH signature".to_string())
         }
     } else if signature.contains("-----BEGIN PGP SIGNATURE-----") {
-        if let Some(verified) = pgp_verify_detached(signature, payload.as_bytes()) {
+        #[cfg(target_arch = "wasm32")]
+        {
+            Err("OpenPGP verification requires the native git-rust runtime".to_string())
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let key_path = crate::commands::plumbing::get_config(
+                fs,
+                &crate::fs::discover_gitdir(fs, &format!("{root}/.git")),
+                "gpg.openpgp.publicKeyFile",
+            )
+            .map(|v| v.as_str().to_string());
+            let public_key = key_path
+                .map(|p| {
+                    let path = if p.starts_with('/') {
+                        p
+                    } else {
+                        format!("{root}/{p}")
+                    };
+                    fs.read_file(&path)
+                        .map_err(|_| format!("gpg: Cannot read public key: {path}"))
+                })
+                .transpose()?;
+            let verified =
+                pgp_verify_detached_with_key(signature, payload.as_bytes(), public_key.as_deref())?;
             Ok(format!(
-                "gpg: Good signature from \"{}\" [ultimate]\ngpg: Primary key fingerprint: {}",
+                "gpg: Good signature from \"{}\" [unknown]\ngpg: Primary key fingerprint: {}",
                 verified.signer_uid, verified.fingerprint
             ))
-        } else if signature.lines().count() <= 4 {
-            // Backward-compatible synthetic fixture signature from isomorphic-git tests
-            Ok(format!(
-                "Good signature: {}",
-                signature.lines().next().unwrap_or("PGP")
-            ))
-        } else {
-            Err("gpg: BAD signature".to_string())
         }
     } else {
         Err("Unknown signature format".to_string())

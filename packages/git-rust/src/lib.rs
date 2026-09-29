@@ -2,8 +2,11 @@
 
 pub mod commands;
 pub mod cli;
-mod environment;
+#[doc(hidden)]
+pub mod environment;
 pub mod crypto;
+#[cfg(not(target_arch = "wasm32"))]
+mod openpgp;
 pub mod hooks;
 pub mod ssh;
 mod cli_files;

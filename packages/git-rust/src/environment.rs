@@ -3,9 +3,9 @@ use std::{cell::RefCell, collections::BTreeMap};
 thread_local! {
     static ENV: RefCell<BTreeMap<String, String>> = const { RefCell::new(BTreeMap::new()) };
 }
-pub(crate) struct EnvironmentScope(BTreeMap<String, String>);
+pub struct EnvironmentScope(BTreeMap<String, String>);
 impl EnvironmentScope {
-    pub(crate) fn new(env: BTreeMap<String, String>) -> Self {
+    pub fn new(env: BTreeMap<String, String>) -> Self {
         Self(ENV.with(|current| current.replace(env)))
     }
 }

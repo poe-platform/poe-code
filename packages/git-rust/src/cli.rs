@@ -876,6 +876,25 @@ pub fn execute_git_cli_with_input(
                     return CliResult::err(128, format!("fatal: {}\n", e.message));
                 }
             }
+            // Apply command-local signing options to the SDK's commit path.
+            let config_path = join(&[&gitdir, "config"]);
+            let signing_config = gpg_sign_flag.as_ref().map(|key_override| {
+                let original = fs.read(&config_path);
+                let format = get_config(fs, &gitdir, "gpg.format")
+                    .map(|value| value.as_str().to_string()).unwrap_or_else(|| "openpgp".into());
+                let key = key_override.clone().or_else(|| get_config(fs, &gitdir, "user.signingkey")
+                    .map(|value| value.as_str().to_string()))
+                    .map(|key| {
+                        let absolute = join(&[&repo_root, &key]);
+                        if fs.exists(&absolute) { absolute } else { key }
+                    });
+                let mut config = crate::GitConfigManager::get(fs, &gitdir);
+                config.set("commit.gpgsign", Some("true"));
+                config.set("gpg.format", Some(&format));
+                if let Some(key) = key { config.set("user.signingkey", Some(&key)); }
+                crate::GitConfigManager::save(fs, &gitdir, &config);
+                original
+            });
             let result = commit(
                 fs,
                 &gitdir,
@@ -890,6 +909,10 @@ pub fn execute_git_cli_with_input(
                 merge_parents.as_deref(),
                 None,
             );
+            if let Some(original) = signing_config {
+                if let Some(bytes) = original { fs.write(&config_path, &bytes); }
+                else { let _ = fs.rm(&config_path); }
+            }
             if !commit_paths.is_empty() {
                 if let Some(bytes) = &original_index { fs.write(&index_path, bytes); } else { let _ = fs.rm(&index_path); }
                 if result.is_ok() {
@@ -901,36 +924,7 @@ pub fn execute_git_cli_with_input(
                 }
             }
             match result {
-                Ok(mut oid) => {
-                    if let Some(ref key_opt) = gpg_sign_flag
-                        && let Ok(read_c) = crate::read_commit(fs, &gitdir, &oid)
-                    {
-                        let gpg_format = get_config(fs, &gitdir, "gpg.format")
-                            .map(|v| v.as_str().to_string())
-                            .unwrap_or_else(|| "openpgp".to_string());
-                        let signing_key = key_opt
-                            .clone()
-                            .or_else(|| get_config(fs, &gitdir, "user.signingkey").map(|v| v.as_str().to_string()))
-                            .unwrap_or_else(|| read_c.commit.committer.email.clone());
-                        let signer_uid = format!("{} <{}>", read_c.commit.committer.name, read_c.commit.committer.email);
-                        let mut signed_obj = read_c.commit.clone();
-                        signed_obj.gpgsig = None;
-                        let unsigned_payload = crate::models::GitCommit::from_object(&signed_obj).without_signature();
-                        signed_obj.gpgsig = Some(crate::crypto::sign_git_payload(
-                            fs,
-                            &repo_root,
-                            &gpg_format,
-                            &signing_key,
-                            &signer_uid,
-                            signed_obj.committer.timestamp as u32,
-                            &unsigned_payload,
-                        ));
-                        if let Ok(new_oid) = crate::commands::plumbing::write_commit(fs, &gitdir, &signed_obj) {
-                            let target_ref = crate::GitRefManager::resolve(fs, &gitdir, "HEAD", Some(2)).unwrap_or_else(|_| "HEAD".to_string());
-                            let _ = crate::GitRefManager::write_ref(fs, &gitdir, &target_ref, &new_oid);
-                            oid = new_oid;
-                        }
-                    }
+                Ok(oid) => {
                     let _ = fs.rm(&join(&[&gitdir, "MERGE_HEAD"]));
                     let _ = fs.rm(&join(&[&gitdir, "MERGE_MSG"]));
                     let _ = fs.rm(&join(&[&gitdir, "MERGE_MODE"]));
@@ -1839,9 +1833,7 @@ pub fn execute_git_cli_with_input(
                     && let Some(ref sig) = t.tag.gpgsig
                 {
                     let allowed = get_config(fs, &gitdir, "gpg.ssh.allowedSignersFile").map(|v| v.as_str().to_string());
-                    let mut unsigned_tag = t.tag.clone();
-                    unsigned_tag.gpgsig = None;
-                    let payload = crate::models::GitAnnotatedTag::from_object(&unsigned_tag).render().to_string();
+                    let payload = t.payload;
                     match crate::crypto::verify_git_signature(fs, &repo_root, sig, &payload, allowed.as_deref()) {
                         Ok(msg) => CliResult::ok(format!("{msg}\n")),
                         Err(err) => CliResult::err(1, format!("error: {err}\n")),
@@ -1940,6 +1932,10 @@ pub fn execute_git_cli_with_input(
                         timestamp: 1502484200,
                         timezone_offset: 0.0,
                     };
+                    let tagger = match crate::environment::identity(tagger, "COMMITTER") {
+                        Ok(tagger) => tagger,
+                        Err(error) => return CliResult::err(128, format!("fatal: {}\n", error.message)),
+                    };
                     let gpgsig = if sign_tag {
                         let target_oid = object
                             .clone()
@@ -1968,7 +1964,7 @@ pub fn execute_git_cli_with_input(
                             .or_else(|| get_config(fs, &gitdir, "user.signingkey").map(|v| v.as_str().to_string()))
                             .unwrap_or_else(|| tagger.email.clone());
                         let signer_uid = format!("{} <{}>", tagger.name, tagger.email);
-                        Some(crate::crypto::sign_git_payload(
+                        Some(match crate::crypto::sign_git_payload(
                             fs,
                             &repo_root,
                             &gpg_format,
@@ -1976,7 +1972,10 @@ pub fn execute_git_cli_with_input(
                             &signer_uid,
                             tagger.timestamp as u32,
                             &payload,
-                        ))
+                        ) {
+                            Ok(signature) => signature,
+                            Err(error) => return CliResult::err(1, format!("error: {error}\n")),
+                        })
                     } else {
                         None
                     };
@@ -5226,9 +5225,7 @@ pub fn execute_git_cli_with_input(
                 && let Some(ref sig) = t.tag.gpgsig
             {
                 let allowed = get_config(fs, &gitdir, "gpg.ssh.allowedSignersFile").map(|v| v.as_str().to_string());
-                let mut unsigned_tag = t.tag.clone();
-                unsigned_tag.gpgsig = None;
-                let payload = crate::models::GitAnnotatedTag::from_object(&unsigned_tag).render().to_string();
+                let payload = t.payload;
                 match crate::crypto::verify_git_signature(fs, &repo_root, sig, &payload, allowed.as_deref()) {
                     Ok(msg) => CliResult::ok(format!("{msg}\n")),
                     Err(err) => CliResult::err(1, format!("error: {err}\n")),

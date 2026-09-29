@@ -134,6 +134,10 @@ fn test_git_cli_commit_and_tag_signing_openpgp_and_ssh() {
     fs.write_str("/repo/hello.txt", "hello signed world\n");
     assert_eq!(execute_git_cli(&fs, cwd, &["add", "hello.txt"]).exit_code, 0);
 
+    let pgp_private = format_openssh_ed25519_private_key(&sha256(b"alice-pgp-key"), "alice@example.com");
+    fs.write_str("/repo/.ssh/pgp-key", &pgp_private);
+    execute_git_cli(&fs, cwd, &["config", "user.signingkey", ".ssh/pgp-key"]);
+
     // 1. OpenPGP commit signing with -S
     let commit_res = execute_git_cli(&fs, cwd, &["commit", "-S", "-m", "pgp signed commit"]);
     assert_eq!(commit_res.exit_code, 0, "stderr: {}", commit_res.stderr);
@@ -141,6 +145,8 @@ fn test_git_cli_commit_and_tag_signing_openpgp_and_ssh() {
     let verify_commit_res = execute_git_cli(&fs, cwd, &["verify-commit", "HEAD"]);
     assert_eq!(verify_commit_res.exit_code, 0, "stderr: {}", verify_commit_res.stderr);
     assert!(verify_commit_res.stdout.contains("Good signature from \"Alice <alice@example.com>\""));
+    let signed_oid = git_rust::resolve_ref(&fs, "/repo/.git", "HEAD", None).unwrap();
+    assert!(fs.read_str("/repo/.git/logs/HEAD").unwrap_or_default().contains(&signed_oid));
 
     let log_sig_res = execute_git_cli(&fs, cwd, &["log", "-1", "--show-signature"]);
     assert_eq!(log_sig_res.exit_code, 0);
@@ -154,6 +160,20 @@ fn test_git_cli_commit_and_tag_signing_openpgp_and_ssh() {
     assert!(verify_tag_res.stdout.contains("Good signature from \"Alice <alice@example.com>\""));
     let tag_v_res = execute_git_cli(&fs, cwd, &["tag", "-v", "v1.0.0"]);
     assert_eq!(tag_v_res.exit_code, 0);
+    let tag_oid = git_rust::resolve_ref(&fs, "/repo/.git", "refs/tags/v1.0.0", None).unwrap();
+    let signed_tag = git_rust::read_tag(&fs, "/repo/.git", &tag_oid).unwrap();
+    assert!(pgp_verify_detached(signed_tag.tag.gpgsig.as_deref().unwrap(), signed_tag.payload.as_bytes()).is_some());
+    let mut changed_tag = signed_tag.tag;
+    changed_tag.message.push_str("\n\n");
+    let changed_oid = git_rust::commands::plumbing::write_tag(&fs, "/repo/.git", &changed_tag).unwrap();
+    git_rust::GitRefManager::write_ref(&fs, "/repo/.git", "refs/tags/tampered", &changed_oid).unwrap();
+    for args in [&["verify-tag", "tampered"][..], &["tag", "-v", "tampered"][..]] {
+        let result = execute_git_cli(&fs, cwd, args);
+        assert_ne!(result.exit_code, 0, "tag whitespace tampering must fail");
+        assert!(result.stderr.contains("BAD signature"));
+    }
+
+
 
     // 3. SSH commit & tag signing with gpg.format=ssh and allowed_signers
     let ssh_seed = sha256(b"alice-ssh-signing-key");
@@ -188,4 +208,128 @@ fn test_git_cli_commit_and_tag_signing_openpgp_and_ssh() {
     let verify_ssh_tag = execute_git_cli(&fs, cwd, &["verify-tag", "v2.0.0"]);
     assert_eq!(verify_ssh_tag.exit_code, 0, "stderr: {}", verify_ssh_tag.stderr);
     assert!(verify_ssh_tag.stdout.contains("Good \"git\" signature for alice@example.com with ED25519 key SHA256:"));
+}
+
+#[test]
+fn rejects_unverified_pgp_armor() {
+    for signature in [
+        "-----BEGIN PGP SIGNATURE-----",
+        "-----BEGIN PGP SIGNATURE-----\ninvalid\n-----END PGP SIGNATURE-----",
+    ] {
+        let result = git_rust::crypto::verify_git_signature(
+            &MemoryFs::new(), "/repo", signature, "unverified payload", None,
+        );
+        assert!(result.is_err(), "unverified armor was accepted: {result:?}");
+    }
+}
+
+#[test]
+fn openpgp_signatures_are_standard_packets() {
+    use sequoia_openpgp::{Packet, PacketPile, parse::Parse};
+    let armor = pgp_sign_detached(&sha256(b"interop"), "Interop", 1_700_000_000, b"payload");
+    let packets = PacketPile::from_bytes(armor.as_bytes()).expect("standard OpenPGP packets");
+    assert!(matches!(packets.children().next(), Some(Packet::Signature(_))));
+}
+
+#[test]
+fn independently_produced_openpgp_signature_verifies_with_certificate() {
+    use git_rust::crypto::pgp_verify_detached_with_key;
+    let signature = include_str!("fixtures/openpgp/signature.asc");
+    let payload = include_bytes!("fixtures/openpgp/payload.txt");
+    let cert = include_bytes!("fixtures/openpgp/public-key.asc");
+    let verified = pgp_verify_detached_with_key(signature, payload, Some(cert)).unwrap();
+    assert_eq!(verified.fingerprint, "8E8C33FA4626337976D97978069C0C348DD82C19");
+    assert!(pgp_verify_detached_with_key(signature, b"tampered", Some(cert)).is_err());
+    assert!(pgp_verify_detached_with_key(signature, payload, None).unwrap_err().contains("No public key"));
+    let wrong_key = git_rust::crypto::pgp_public_key(&sha256(b"wrong"), "Wrong");
+    assert!(pgp_verify_detached_with_key(signature, payload, Some(wrong_key.as_bytes())).is_err());
+}
+
+#[test]
+fn cli_rejects_invalid_commit_and_tag_signatures() {
+    let fs = MemoryFs::new();
+    execute_git_cli(&fs, "/repo", &["init"]);
+    execute_git_cli(&fs, "/repo", &["config", "user.name", "Alice"]);
+    execute_git_cli(&fs, "/repo", &["config", "user.email", "alice@example.com"]);
+    execute_git_cli(&fs, "/repo", &["commit", "--allow-empty", "-m", "unsigned"]);
+    let oid = git_rust::resolve_ref(&fs, "/repo/.git", "HEAD", None).unwrap();
+    let mut commit = git_rust::read_commit(&fs, "/repo/.git", &oid).unwrap().commit;
+    commit.gpgsig = Some("-----BEGIN PGP SIGNATURE-----".into());
+    let oid = git_rust::commands::plumbing::write_commit(&fs, "/repo/.git", &commit).unwrap();
+    git_rust::GitRefManager::write_ref(&fs, "/repo/.git", "refs/heads/main", &oid).unwrap();
+    let result = execute_git_cli(&fs, "/repo", &["verify-commit", &oid]);
+    assert_ne!(result.exit_code, 0);
+    assert!(result.stderr.contains("BAD signature"));
+    execute_git_cli(&fs, "/repo", &["tag", "-a", "bad", "-m", "tag"]);
+    let oid = git_rust::resolve_ref(&fs, "/repo/.git", "refs/tags/bad", None).unwrap();
+    let mut tag = git_rust::read_tag(&fs, "/repo/.git", &oid).unwrap().tag;
+    tag.gpgsig = Some("-----BEGIN PGP SIGNATURE-----\ninvalid\n-----END PGP SIGNATURE-----".into());
+    let oid = git_rust::commands::plumbing::write_tag(&fs, "/repo/.git", &tag).unwrap();
+    git_rust::GitRefManager::write_ref(&fs, "/repo/.git", "refs/tags/bad", &oid).unwrap();
+    for args in [&["verify-tag", "bad"][..], &["tag", "-v", "bad"][..]] {
+        let result = execute_git_cli(&fs, "/repo", args);
+        assert_ne!(result.exit_code, 0, "{result:?}");
+        assert!(result.stderr.contains("BAD signature"));
+        assert!(!result.stdout.contains("Good signature"));
+    }
+}
+
+#[test]
+fn signs_using_the_configured_openpgp_secret_certificate() {
+    let fs = MemoryFs::new();
+    fs.write_str("/repo/key.asc", include_str!("fixtures/openpgp/test-secret-key.asc"));
+    let signature = git_rust::crypto::sign_git_payload(
+        &fs, "/repo", "openpgp", "key.asc", "Alice", 1_700_000_000, "payload",
+    ).unwrap();
+    let verified = git_rust::crypto::pgp_verify_detached_with_key(
+        &signature, b"payload", Some(include_bytes!("fixtures/openpgp/public-key.asc")),
+    ).expect("signature made by the configured key");
+    assert_eq!(verified.fingerprint, "8E8C33FA4626337976D97978069C0C348DD82C19");
+}
+
+#[test]
+fn configured_openpgp_key_signs_commits_and_tags_at_requested_date() {
+    let _environment = git_rust::environment::EnvironmentScope::new([
+        ("GIT_AUTHOR_DATE".into(), "1700000000 +0000".into()),
+        ("GIT_COMMITTER_DATE".into(), "1700000000 +0000".into()),
+    ].into());
+    let fs = MemoryFs::new();
+    execute_git_cli(&fs, "/repo", &["init"]);
+    execute_git_cli(&fs, "/repo", &["config", "user.name", "Alice"]);
+    execute_git_cli(&fs, "/repo", &["config", "user.email", "alice@example.com"]);
+    fs.write_str("/repo/key.asc", include_str!("fixtures/openpgp/test-secret-key.asc"));
+    fs.write_str("/repo/public.asc", include_str!("fixtures/openpgp/public-key.asc"));
+    execute_git_cli(&fs, "/repo", &["config", "user.signingkey", "key.asc"]);
+    execute_git_cli(&fs, "/repo", &["config", "gpg.openpgp.publicKeyFile", "public.asc"]);
+    for args in [
+        &["commit", "--allow-empty", "-S", "-m", "signed"][..],
+        &["verify-commit", "HEAD"],
+        &["tag", "-s", "signed", "-m", "signed tag"],
+        &["verify-tag", "signed"],
+    ] {
+        let result = execute_git_cli(&fs, "/repo", args);
+        assert_eq!(result.exit_code, 0, "{args:?}: {}", result.stderr);
+    }
+}
+
+#[test]
+fn failed_openpgp_signing_does_not_publish_an_unsigned_commit() {
+    let fs = MemoryFs::new();
+    execute_git_cli(&fs, "/repo", &["init"]);
+    execute_git_cli(&fs, "/repo", &["config", "user.name", "Alice"]);
+    execute_git_cli(&fs, "/repo", &["config", "user.email", "alice@example.com"]);
+    fs.write_str("/repo/key.asc", "-----BEGIN PGP PRIVATE KEY BLOCK-----\ninvalid");
+    execute_git_cli(&fs, "/repo", &["config", "user.signingkey", "key.asc"]);
+    let result = execute_git_cli(&fs, "/repo", &["commit", "--allow-empty", "-S", "-m", "invalid key"]);
+    assert_ne!(result.exit_code, 0);
+    assert!(result.stderr.contains("Invalid secret key"));
+    assert!(git_rust::resolve_ref(&fs, "/repo/.git", "HEAD", None).is_err());
+}
+
+#[test]
+fn rejects_signing_without_secret_key_material() {
+    let result = git_rust::crypto::sign_git_payload(
+        &MemoryFs::new(), "/repo", "openpgp", "alice@example.com", "Alice", 1_700_000_000, "payload",
+    );
+    assert!(result.is_err(), "an identity string is not a secret key");
 }

@@ -444,6 +444,15 @@ fn main() {
         connect_to.push(env_ct);
     }
     let http_client = NativeCurlHttpClient { connect_to };
+    let mut request_env: BTreeMap<String, String> = env::vars()
+        .filter(|(name, _)| name.starts_with("GIT_AUTHOR_") || name.starts_with("GIT_COMMITTER_"))
+        .collect();
+    let timestamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)
+        .expect("system clock precedes Unix epoch").as_secs();
+    for role in ["AUTHOR", "COMMITTER"] {
+        request_env.entry(format!("GIT_{role}_DATE")).or_insert_with(|| format!("{timestamp} +0000"));
+    }
+    let _environment = git_rust::environment::EnvironmentScope::new(request_env);
     let res = execute_git_cli_with_input(&fs, &cwd_str, &arg_refs, &http_client, &stdin_buf);
 
     for root in &synced_roots {

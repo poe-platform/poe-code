@@ -1180,14 +1180,14 @@ test("evaluates dirname/basename -z/--suffix, seq -ws/--separator/+nums, and exp
     .use(tsortCommands());
   const res = await shell.exec(`
     for i in 1 2 3; do
-      dn=\$(dirname -z /tmp/a/b /tmp/c/d | tr "\\0" ":")
-      bn=\$(basename --suffix=.txt /tmp/alpha.txt /tmp/beta.txt | tr "\\n" ":")
-      sq=\$(seq -ws: +1 +3 +10)
-      ex1=\$(expr \\( 2 + 3 \\) \\* 4)
-      ex2=\$(expr "apple" \\< "banana" \\& "fallback" \\| "none")
-      ts=\$(tsort < /tmp/graph.txt | tr "\\n" ":")
+      dn=$(dirname -z /tmp/a/b /tmp/c/d | tr "\\0" ":")
+      bn=$(basename --suffix=.txt /tmp/alpha.txt /tmp/beta.txt | tr "\\n" ":")
+      sq=$(seq -ws: +1 +3 +10)
+      ex1=$(expr \\( 2 + 3 \\) \\* 4)
+      ex2=$(expr "apple" \\< "banana" \\& "fallback" \\| "none")
+      ts=$(tsort < /tmp/graph.txt | tr "\\n" ":")
     done
-    printf "%s#%s#%s#%s#%s#%s\\n" "\$dn" "\$bn" "\$sq" "\$ex1" "\$ex2" "\$ts"
+    printf "%s#%s#%s#%s#%s#%s\\n" "$dn" "$bn" "$sq" "$ex1" "$ex2" "$ts"
   `);
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(

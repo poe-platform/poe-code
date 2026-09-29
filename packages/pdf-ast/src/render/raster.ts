@@ -1,4 +1,5 @@
 import { getStandardFontOutlines } from "../fonts/standard-outlines.js";
+import { PageViewport } from "../vendor/pdfjs-fonts.mjs";
 import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
 import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
@@ -1353,6 +1354,7 @@ export function renderDisplayListToBitmap(
     result = { width: targetW, height: targetH, data: resampled };
   }
 
+  result = rotateRgbaBitmapQuarterTurns(result, displayList.rotation ?? 0);
   if (options.cropRect) {
     result = cropRgbaBitmap(result, options.cropRect);
   }
@@ -1404,18 +1406,22 @@ export function renderDisplayListToSvg(
   const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1);
   const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
   const scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
-  const fullW = Math.max(1, Math.round(displayList.width * scaleX));
-  const fullH = Math.max(1, Math.round(displayList.height * scaleY));
-  const vbX = options.cropRect ? options.cropRect.x / scaleX : 0;
-  const vbY = options.cropRect ? options.cropRect.y / scaleY : 0;
+  const viewport = new PageViewport({ viewBox: [0, 0, displayList.width, displayList.height], userUnit: 1, scale: 1, rotation: displayList.rotation ?? 0 });
+  const quarterTurn = displayList.rotation === 90 || displayList.rotation === 270;
+  const outputScaleX = quarterTurn ? scaleY : scaleX;
+  const outputScaleY = quarterTurn ? scaleX : scaleY;
+  const fullW = Math.max(1, Math.round(viewport.width * outputScaleX));
+  const fullH = Math.max(1, Math.round(viewport.height * outputScaleY));
+  const vbX = options.cropRect ? options.cropRect.x / outputScaleX : 0;
+  const vbY = options.cropRect ? options.cropRect.y / outputScaleY : 0;
   const vbW =
     options.cropRect && options.cropRect.width > 0
-      ? options.cropRect.width / scaleX
-      : Math.max(1, displayList.width - vbX);
+      ? options.cropRect.width / outputScaleX
+      : Math.max(1, viewport.width - vbX);
   const vbH =
     options.cropRect && options.cropRect.height > 0
-      ? options.cropRect.height / scaleY
-      : Math.max(1, displayList.height - vbY);
+      ? options.cropRect.height / outputScaleY
+      : Math.max(1, viewport.height - vbY);
   const outW =
     options.cropRect && options.cropRect.width > 0
       ? Math.round(options.cropRect.width)
@@ -1429,6 +1435,12 @@ export function renderDisplayListToSvg(
   ];
   if (!options.transparent) {
     parts.push(`  <rect x="${vbX}" y="${vbY}" width="${vbW}" height="${vbH}" fill="#ffffff"/>`);
+  }
+  if (displayList.rotation) {
+    // Paths and images below already flip PDF y coordinates. Compose that
+    // inverse flip with PDF.js's viewport transform to rotate every paint.
+    const [a, b, c, d, e, f] = viewport.transform;
+    parts.push(`<g transform="matrix(${a} ${b} ${-c} ${-d} ${e + c * displayList.height} ${f + d * displayList.height})">`);
   }
   for (const original of paintOperations(displayList)) {
     if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
@@ -1490,6 +1502,7 @@ export function renderDisplayListToSvg(
       );
     }
   }
+  if (displayList.rotation) parts.push("</g>");
   parts.push("</svg>\n");
   return parts.join("\n");
 }
@@ -1550,7 +1563,8 @@ export function renderPdfPageToBitmap(
   const page = new PdfPage(cos, leaf.ref, leaf.dict, resolvedIndex);
   const { cropRect, ...restOptions } = options ?? {};
   let bitmap = renderDisplayListToBitmap(
-    page.evaluateDisplayList({ hideAnnotations: options?.hideAnnotations }),
+    // CropBox is in unrotated page coordinates. Apply page rotation after it.
+    { ...page.evaluateDisplayList({ hideAnnotations: options?.hideAnnotations }), rotation: 0 },
     restOptions
   );
   if (options?.useCropBox) {

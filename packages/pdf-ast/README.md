@@ -69,6 +69,8 @@ including widths for every embedded glyph.
 Word spacing follows encoded one-byte spaces, including remapped characters.
 ToUnicode maps decode mixed one- through four-byte character codes, including
 ligatures and supplementary Unicode characters.
+Bitmap, PNG, and SVG rendering honor page rotation; pixel crops use displayed
+coordinates after rotation.
 Glyph outlines render even when text has no usable Unicode mapping. Unicode fallback covers characters present
 in the bundled standard, Symbol, and Dingbats fonts; embed a font for other scripts.
 

@@ -35,6 +35,13 @@ export const ZapfDingbatsEncoding: string[];
 export const DrawOPS: { moveTo: number; lineTo: number; curveTo: number; quadraticCurveTo: number; closePath: number };
 export const WinAnsiEncoding: string[];
 export const MacStandardGlyphOrdering: string[];
+export class PageViewport {
+  constructor(options: { viewBox: number[]; userUnit: number; scale: number; rotation: number; offsetX?: number; offsetY?: number; dontFlip?: boolean });
+  readonly width: number;
+  readonly height: number;
+  readonly transform: [number, number, number, number, number, number];
+  convertToViewportPoint(x: number, y: number): [number, number];
+}
 export function getMetrics(): Record<string, number | (() => Record<string, number>)>;
 
 export function getEncoding(name: string): string[] | null;

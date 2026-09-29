@@ -180,6 +180,16 @@ receives Tw, regardless of its Unicode label. The internal CMap reader preserves
 that classification without changing the public ToUnicode result shape.
 
 
+# Page rotation
+
+The same font/graphics vendor bundle includes the unmodified PDF.js
+`src/display/page_viewport.js` class. SVG rendering uses its rotation transform;
+bitmap rendering rotates the finished page before applying pixel crops.
+`src/render/page-rotation.test.ts` adapts the rotated viewport-size case from
+PDF.js `test/unit/api_spec.js` to integer raster dimensions and adds public API
+and pixel-geometry regressions. Mozilla Foundation, Apache-2.0, same pinned
+revision as above.
+
 # OpenType CFF tables
 
 `src/fonts/truetype.ts` follows PDF.js `FontRendererFactory` by using the `CFF `

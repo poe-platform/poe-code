@@ -224,6 +224,261 @@
       "exitCode": 2,
       "stdout": "",
       "stderr": "Error: Option '--schemas' does not take a value.\n"
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "-q",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "-q",
+        "-h"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "--",
+        "--help"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models list [OPTIONS]\nTry 'llm models list -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "-m",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "--query=--help"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "--query=--help"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "--query=hello",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm models list [OPTIONS]\n\n  List available models\n\nOptions:\n  --options         Show options for each model, if available\n  --async           List async models\n  --schemas         List models that support schemas\n  --tools           List models that support tools\n  -q, --query TEXT  Search for models matching these strings\n  -m, --model TEXT  Specific model IDs\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "-q=-h"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "--query",
+        "-h"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available models\n  default  Show or set the default model\n  options  Manage default options for models\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "-m",
+        "-h"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available models\n  default  Show or set the default model\n  options  Manage default options for models\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "--",
+        "-h"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm models list [OPTIONS]\n\n  List available models\n\nOptions:\n  --options         Show options for each model, if available\n  --async           List async models\n  --schemas         List models that support schemas\n  --tools           List models that support tools\n  -q, --query TEXT  Search for models matching these strings\n  -m, --model TEXT  Specific model IDs\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "--",
+        "--wat"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models list [OPTIONS]\nTry 'llm models list -h' for help.\n\nError: Got unexpected extra argument (--wat)\n"
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "--model=echo",
+        "--options"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-chat (aliases: echo)\n  Options:\n    temperature: float\n      Sampling temperature\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "-m",
+        "fixture-chat",
+        "-m",
+        "absent"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-chat (aliases: echo)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "--schemas",
+        "--async"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "-h",
+        "--wat"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models list [OPTIONS]\nTry 'llm models list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "--schemas=true",
+        "--help"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--schemas' does not take a value.\n"
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "--list"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models list [OPTIONS]\nTry 'llm models list -h' for help.\n\nError: No such option: --list\n"
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "-m"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '-m' requires an argument.\n"
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "-h",
+        "bogus"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm models list [OPTIONS]\n\n  List available models\n\nOptions:\n  --options         Show options for each model, if available\n  --async           List async models\n  --schemas         List models that support schemas\n  --tools           List models that support tools\n  -q, --query TEXT  Search for models matching these strings\n  -m, --model TEXT  Specific model IDs\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "bogus",
+        "-h"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm models list [OPTIONS]\n\n  List available models\n\nOptions:\n  --options         Show options for each model, if available\n  --async           List async models\n  --schemas         List models that support schemas\n  --tools           List models that support tools\n  -q, --query TEXT  Search for models matching these strings\n  -m, --model TEXT  Specific model IDs\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "--",
+        "--help",
+        "-h"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models list [OPTIONS]\nTry 'llm models list -h' for help.\n\nError: Got unexpected extra arguments (--help -h)\n"
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "first",
+        "second"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models list [OPTIONS]\nTry 'llm models list -h' for help.\n\nError: Got unexpected extra arguments (first second)\n"
+    },
+    {
+      "argv": [
+        "models",
+        "--",
+        "--wat"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models list [OPTIONS]\nTry 'llm models list -h' for help.\n\nError: No such option: --wat\n"
     }
   ]
 }

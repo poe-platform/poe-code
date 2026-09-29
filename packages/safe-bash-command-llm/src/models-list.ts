@@ -12,35 +12,43 @@ export class LlmModelsUsageError extends Error {
 
 /** Reference model-list query semantics for the configured host catalog. */
 export async function listLlmModels(context: CommandContext, service: LlmService, tokens: readonly string[], emit: (text: string) => Promise<void>, step: () => Promise<void>): Promise<void> {
-  if (tokens[0] !== "list" && tokens.some(token => token.startsWith("-") && !token.startsWith("--") && token.slice(1).includes("h"))) {
+  const explicit = tokens[0] === "list";
+  const terminator = tokens.indexOf("--");
+  const groupFlags = terminator < 0 ? tokens : tokens.slice(0, terminator);
+  if (!explicit && groupFlags.some(token => token === "--help" || token.startsWith("-") && !token.startsWith("--") && token.slice(1).includes("h"))) {
     await emit(modelsGroupHelp);
     return;
   }
-  if (tokens.includes("--help") || tokens.includes("-h")) {
-    await emit("Usage: llm models list [OPTIONS]\n\n  List available models\n\nOptions:\n  --options         Show options for each model, if available\n  --async           List async models\n  --schemas         List models that support schemas\n  --tools           List models that support tools\n  -q, --query TEXT  Search for models matching these strings\n  -m, --model TEXT  Specific model IDs\n  -h, --help        Show this message and exit.\n");
-    return;
-  }
   const queries: string[] = [], selected: string[] = [];
-  let schemas = false, tools = false, asyncModels = false, options = false;
-  const args = tokens[0] === "list" ? tokens.slice(1) : tokens;
+  let schemas = false, tools = false, asyncModels = false, options = false, help = false, ended = false;
+  const unexpected: string[] = [];
+  const args = explicit ? tokens.slice(1) : tokens.filter((_, index) => index !== terminator);
   for (let index = 0; index < args.length; index++) {
     await step();
     const argument = args[index]!;
+    if (ended) { unexpected.push(argument); continue; }
+    if (argument === "--") { ended = true; continue; }
+    if (argument === "--help" || argument === "-h") { help = true; continue; }
     if (argument === "--options") { options = true; continue; }
     if (argument === "--schemas") { schemas = true; continue; }
     if (argument === "--tools") { tools = true; continue; }
     if (argument === "--async") { asyncModels = true; continue; }
-    if (!argument.startsWith("-")) throw new LlmModelsUsageError(`Got unexpected extra argument (${argument})`);
+    if (!argument.startsWith("-") || argument === "-") { unexpected.push(argument); continue; }
     const equals = argument.indexOf("=");
     const long = argument.startsWith("--");
     const flag = long ? argument.slice(0, equals < 0 ? undefined : equals) : argument.slice(0, 2);
     const attached = long ? equals < 0 ? undefined : argument.slice(equals + 1) : argument.length > 2 ? argument.slice(2) : undefined;
-    if (equals >= 0 && ["--schemas", "--tools", "--async", "--options"].includes(flag)) throw new LlmModelsUsageError(`Option '${flag}' does not take a value.`, false);
+    if (equals >= 0 && ["--schemas", "--tools", "--async", "--options", "--help", "-h"].includes(flag)) throw new LlmModelsUsageError(`Option '${flag}' does not take a value.`, false);
     if (!["-q", "--query", "-m", "--model"].includes(flag)) throw new LlmModelsUsageError(`No such option: ${flag}`);
     const value = attached ?? args[++index];
     if (value === undefined) throw new LlmModelsUsageError(`Option '${flag}' requires an argument.`, false);
     (flag === "-q" || flag === "--query" ? queries : selected).push(value);
   }
+  if (help) {
+    await emit("Usage: llm models list [OPTIONS]\n\n  List available models\n\nOptions:\n  --options         Show options for each model, if available\n  --async           List async models\n  --schemas         List models that support schemas\n  --tools           List models that support tools\n  -q, --query TEXT  Search for models matching these strings\n  -m, --model TEXT  Specific model IDs\n  -h, --help        Show this message and exit.\n");
+    return;
+  }
+  if (unexpected.length) throw new LlmModelsUsageError(`Got unexpected extra argument${unexpected.length === 1 ? "" : "s"} (${unexpected.join(" ")})`);
   const configuration = createLlmConfiguration(context);
   const configuredAliases = await configuration.aliases();
   const shownDescriptions = new Set<string>();

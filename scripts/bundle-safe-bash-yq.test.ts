@@ -14,7 +14,7 @@ beforeAll(async () => {
   published = await build({ ...resolveBrowserShellBuild(root), sourcemap: false });
   for (const output of published.outputFiles!) {
     artifacts.set(output.path, output.path.endsWith(".wasm")
-      ? `export default new WebAssembly.Module(Uint8Array.from(${JSON.stringify([...output.contents])}));`
+      ? `export default new WebAssembly.Module(Uint8Array.from(atob(${JSON.stringify(Buffer.from(output.contents).toString("base64"))}), byte => byte.charCodeAt(0)));`
       : output.text);
   }
 }, 60_000);
@@ -73,7 +73,7 @@ it("ships the portable graph without bare private contract imports", () => {
 it.each(["browser", "workerd"])("runs public optional YQ staged writes with portable Buffer under %s", async condition => {
   const sandbox = createContext({ TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream,
     ReadableStream, WritableStream, AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask,
-    crypto: globalThis.crypto, performance });
+    crypto: globalThis.crypto, performance, atob });
   expect(runInContext("typeof Buffer", sandbox)).toBe("undefined");
   const api = programs.get(condition)!.runInContext(sandbox);
   const result = await api.run();

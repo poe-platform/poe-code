@@ -491,3 +491,14 @@ test("evaluates grep BRE regexes (\\+, \\{n,m\\}, \\.), ERE {n,m} quantifiers, g
     "rel-2026.01,rel-2025.12,#rel-2026.01,rel-2025.12,tag-2026.05,#2026.01,2025.12,2026.05,#2026,2025,2026,#(standard input):3:dev-99,#2025:1;2026:2;\n",
   );
 });
+test("evaluates sort --key=, combined -rnk/-nt:, start-field modifiers (-k 2n,2), character offsets (-k 1.4,1.5n), cut -c --output-delimiter and -sf, and uniq --group in sync substitutions (Wave 183)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands());
+  const r = await shell.exec("printf \"id_03:40\\nid_01:100\\nid_02:20\\n\" > /tmp/sort_in.txt\ns_key=$(sort -t: --key=2n,2 /tmp/sort_in.txt | tr '\\n' ',')\ns_comb=$(sort -nt: -rnk2,2 /tmp/sort_in.txt | tr '\\n' ',')\ns_char=$(sort -t: -k 1.4,1.5n /tmp/sort_in.txt | tr '\\n' ',')\nc_delim=$(printf \"abcdef\\n123456\\n\" | cut -c 1-2,5-6 --output-delimiter=: | tr '\\n' ',')\nc_sf=$(printf \"no_delim\\na:b:c\\n\" | cut -d: -sf2)\nu_grp=$(printf \"a\\na\\nb\\nc\\nc\\n\" | uniq --group=separate | tr '\\n' ':')\nprintf \"%s#%s#%s#%s#%s#%s\\n\" \"$s_key\" \"$s_comb\" \"$s_char\" \"$c_delim\" \"$c_sf\" \"$u_grp\"");
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "id_02:20,id_03:40,id_01:100,#id_01:100,id_03:40,id_02:20,#id_01:100,id_02:20,id_03:40,#ab:ef,12:56,#b#a:a::b::c:c:\n",
+  );
+});

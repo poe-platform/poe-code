@@ -24362,11 +24362,19 @@ export class Runtime {
         if (ci + 1 >= opArgs.length) return undefined;
         outDelim = opArgs[++ci]!;
         if (outDelim.length === 0 || outDelim.includes("\0")) return undefined;
+      } else if (ca === "-n") {
+        // GNU/POSIX no-op flag
       } else if (ca.startsWith("-sd") || ca.startsWith("-ds")) {
         suppressNoDelim = true;
         const rest = ca.slice(3);
         if (rest.length > 0) norm.push("-d" + rest);
         else if (ci + 1 < opArgs.length) norm.push("-d" + opArgs[++ci]!);
+        else return undefined;
+      } else if (ca.startsWith("-sf") || ca.startsWith("-fs")) {
+        suppressNoDelim = true;
+        const rest = ca.slice(3);
+        if (rest.length > 0) norm.push("-f" + rest);
+        else if (ci + 1 < opArgs.length) norm.push("-f" + opArgs[++ci]!);
         else return undefined;
       } else if ((ca === "-d" || ca === "-f" || ca === "-c" || ca === "-b") && ci + 1 < opArgs.length) {
         norm.push(ca + opArgs[++ci]!);
@@ -24390,17 +24398,38 @@ export class Runtime {
         norm.push(ca);
       }
     }
-    if (!suppressNoDelim && outDelim === undefined && norm.length === 1 && (norm[0]!.startsWith("-c") || norm[0]!.startsWith("-b"))) {
+    if (!suppressNoDelim && norm.length === 1 && (norm[0]!.startsWith("-c") || norm[0]!.startsWith("-b"))) {
       const isByteMode = norm[0]!.startsWith("-b");
       if (!isByteMode && byteLocaleMode) return undefined;
       if (isByteMode && rawLines.some(l => { for (let i = 0; i < l.length; i++) if (l.charCodeAt(i) >= 128) return true; return false; })) return undefined;
       const basePicker = this.parseSyncCutSpec(norm[0]!.slice(2));
       if (!basePicker) return undefined;
       const picker = isComplement ? (len: number) => { const s = new Set(basePicker(len)); const r: number[] = []; for (let i = 0; i < len; i++) if (!s.has(i)) r.push(i); return r; } : basePicker;
+      if (outDelim === undefined) {
+        return rawLines.map(l => {
+          const chars = isByteMode ? l.split("") : Array.from(l);
+          const idxs = picker(chars.length);
+          return idxs.map(i => chars[i]!).join("");
+        });
+      }
+      if (isComplement) return undefined;
+      const rawRanges = norm[0]!.slice(2).split(",").map(part => {
+        const dash = part.indexOf("-");
+        return dash === -1 ? [Number(part), Number(part)] as [number, number]
+          : dash === 0 ? [1, Number(part.slice(1))] as [number, number]
+          : dash === part.length - 1 ? [Number(part.slice(0, -1)), Infinity] as [number, number]
+          : [Number(part.slice(0, dash)), Number(part.slice(dash + 1))] as [number, number];
+      }).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+      for (let ri = 1; ri < rawRanges.length; ri++) {
+        if (rawRanges[ri]![0] <= rawRanges[ri - 1]![1]) return undefined;
+      }
       return rawLines.map(l => {
         const chars = isByteMode ? l.split("") : Array.from(l);
-        const idxs = picker(chars.length);
-        return idxs.map(i => chars[i]!).join("");
+        const segs: string[] = [];
+        for (const [rs, re] of rawRanges) {
+          if (rs <= chars.length) segs.push(chars.slice(rs - 1, Math.min(chars.length, re)).join(""));
+        }
+        return segs.join(outDelim);
       });
     }
     let delim = "\t";
@@ -27788,6 +27817,40 @@ export class Runtime {
         keySpecs.push(opArgs[++i]!);
       } else if (a.startsWith("-k") && a.length > 2) {
         keySpecs.push(a.slice(2));
+      } else if (a.startsWith("--key=") && a.length > 6) {
+        keySpecs.push(a.slice(6));
+      } else if (/^-[runfbsVhMd]+k(.*)$/.test(a)) {
+        const cm = /^(-[runfbsVhMd]+)k(.*)$/.exec(a)!;
+        const pfx = cm[1]!;
+        if (pfx.includes("r")) rev = true;
+        if (pfx.includes("n")) num = true;
+        if (pfx.includes("h")) human = true;
+        if (pfx.includes("M")) month = true;
+        if (pfx.includes("d")) dict = true;
+        if (pfx.includes("u")) uniq = true;
+        if (pfx.includes("f")) fold = true;
+        if (pfx.includes("b")) blanks = true;
+        if (pfx.includes("s")) stable = true;
+        if (pfx.includes("V")) ver = true;
+        if (cm[2]!.length > 0) keySpecs.push(cm[2]!);
+        else if (i + 1 < opArgs.length) keySpecs.push(opArgs[++i]!);
+        else return undefined;
+      } else if (/^-[runfbsVhMd]+t(.?)$/.test(a)) {
+        const cm = /^(-[runfbsVhMd]+)t(.?)$/.exec(a)!;
+        const pfx = cm[1]!;
+        if (pfx.includes("r")) rev = true;
+        if (pfx.includes("n")) num = true;
+        if (pfx.includes("h")) human = true;
+        if (pfx.includes("M")) month = true;
+        if (pfx.includes("d")) dict = true;
+        if (pfx.includes("u")) uniq = true;
+        if (pfx.includes("f")) fold = true;
+        if (pfx.includes("b")) blanks = true;
+        if (pfx.includes("s")) stable = true;
+        if (pfx.includes("V")) ver = true;
+        if (cm[2]!.length === 1) sep = cm[2]!;
+        else if (cm[2]!.length === 0 && i + 1 < opArgs.length && opArgs[i + 1]!.length === 1) sep = opArgs[++i]!;
+        else return undefined;
       } else {
         return undefined;
       }
@@ -27795,7 +27858,9 @@ export class Runtime {
     if (ver || keySpecs.some(ks => ks.includes("V"))) return undefined;
     const keySpec = keySpecs[0];
     let startField = 1;
+    let startChar = 1;
     let endField: number | undefined;
+    let endChar: number | undefined;
     let keyNum = num;
     let keyHuman = human;
     let keyMonth = month;
@@ -27805,12 +27870,15 @@ export class Runtime {
     let keyBlanks = blanks;
     let keyVer = ver;
     if (keySpec !== undefined) {
-      const km = /^([1-9][0-9]{0,2})(?:,([1-9][0-9]{0,2}))?([nrbfVhMd]*)$/.exec(keySpec);
+      const km = /^([1-9][0-9]{0,2})(?:\.([1-9][0-9]{0,2}))?([nrbfVhMd]*)(?:,([1-9][0-9]{0,2})(?:\.([0-9]{1,3}))?([nrbfVhMd]*))?$/.exec(keySpec);
       if (!km) return undefined;
       startField = Number(km[1]!);
-      endField = km[2] !== undefined ? Number(km[2]!) : undefined;
+      startChar = km[2] !== undefined ? Number(km[2]!) : 1;
+      endField = km[4] !== undefined ? Number(km[4]!) : undefined;
+      endChar = km[5] !== undefined ? Number(km[5]!) : undefined;
       if (endField !== undefined && endField < startField) return undefined;
-      const kf = km[3] ?? "";
+      if ((startChar > 1 || (endChar !== undefined && endChar > 0)) && endField !== undefined && endField !== startField) return undefined;
+      const kf = (km[3] ?? "") + (km[6] ?? "");
       if (kf.length > 0) {
         keyNum = kf.includes("n");
         keyHuman = kf.includes("h");
@@ -27847,6 +27915,9 @@ export class Runtime {
             return l.slice(start, end);
           })();
       if (keyBlanks) raw = raw.replace(/^[ \t]+/, "");
+      if (startChar > 1 || (endChar !== undefined && endChar > 0)) {
+        raw = raw.slice(startChar - 1, endChar !== undefined && endChar > 0 ? endChar : undefined);
+      }
       if (keyDict) raw = raw.replace(/[^a-zA-Z0-9 \t]+/g, "");
       if (!keyFold) return raw;
       let folded = "";
@@ -28001,6 +28072,7 @@ export class Runtime {
     let hasCount = false;
     let onlyRepeated = false;
     let allRepeated: "none" | "prepend" | "separate" | undefined;
+    let groupMode: "separate" | "prepend" | "append" | "both" | undefined;
     let onlyUnique = false;
     let skipFields = 0;
     let skipChars = 0;
@@ -28013,6 +28085,10 @@ export class Runtime {
       else if (a === "-D" || a === "--all-repeated" || a === "--all-repeated=none") { onlyRepeated = true; allRepeated = "none"; }
       else if (a === "--all-repeated=prepend") { onlyRepeated = true; allRepeated = "prepend"; }
       else if (a === "--all-repeated=separate") { onlyRepeated = true; allRepeated = "separate"; }
+      else if (a === "--group" || a === "--group=separate") groupMode = "separate";
+      else if (a === "--group=prepend") groupMode = "prepend";
+      else if (a === "--group=append") groupMode = "append";
+      else if (a === "--group=both") groupMode = "both";
       else if (a === "--unique") onlyUnique = true;
       else if (/^--skip-fields=[0-9]{1,4}$/.test(a)) skipFields = Number(a.slice(14));
       else if (/^--skip-chars=[0-9]{1,4}$/.test(a)) skipChars = Number(a.slice(13));
@@ -28073,8 +28149,17 @@ export class Runtime {
       let uEnd = uIdx + 1;
       while (uEnd < rawLines.length && keyOf(rawLines[uEnd]!) === k0) uEnd++;
       if (allRepeated !== undefined && (hasCount || onlyUnique)) return undefined;
+      if (groupMode !== undefined && (hasCount || onlyRepeated || onlyUnique || allRepeated !== undefined)) return undefined;
       const count = uEnd - uIdx;
-      if (allRepeated !== undefined) {
+      if (groupMode !== undefined) {
+        if (groupMode === "prepend" || (groupMode === "both" && uIdx === 0) || ((groupMode === "separate" || groupMode === "both") && outLines.length > 0)) {
+          outLines.push("");
+        }
+        for (let ri = uIdx; ri < uEnd; ri++) outLines.push(rawLines[ri]!);
+        if (groupMode === "append" || (groupMode === "both" && uEnd === rawLines.length)) {
+          outLines.push("");
+        }
+      } else if (allRepeated !== undefined) {
         if (count > 1) {
           if (allRepeated === "prepend" || (allRepeated === "separate" && outLines.length > 0)) outLines.push("");
           for (let ri = uIdx; ri < uEnd; ri++) outLines.push(rawLines[ri]!);

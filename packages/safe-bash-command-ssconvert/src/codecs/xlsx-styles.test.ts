@@ -22,7 +22,7 @@ it("maps measured native font, fill, border, alignment, protection and builtin d
 });
 it("preserves rich font names, UTF8 offsets, size clamp and markup spellings", () => {
   const result = readXlsxString(xml(`<si xmlns="${ss}"><r><rPr><rFont val="Liberation Serif"/><family val="1"/><sz val="2000"/><b/><u val="doubleAccounting"/><color rgb="FF010203"/></rPr><t>é😀</t></r><r><rPr><i val="0"/></rPr><t>z</t></r></si>`), context);
-  expect(result).toEqual({ value: "é😀z", richText: [{ start: 0, end: 6, attributes: { family: "Liberation Serif", size: 1024000, bold: 1, underline: "low", color: "01x02x03" } }, { start: 6, end: 7, attributes: { italic: 0 } }] });
+  expect(result).toEqual({ value: "é😀z", richText: [{ start: 0, end: 6, attributes: { family: "Liberation Serif", size: 1024000, bold: 1, underline: "doubleAccounting", color: "01x02x03" } }, { start: 6, end: 7, attributes: { italic: 0 } }] });
 });
 // LibreOffice bce0998a stylesbuffer.cxx:605-617 maps rFont to the decoded
 // font name; family is an integer classification, never a typeface name.

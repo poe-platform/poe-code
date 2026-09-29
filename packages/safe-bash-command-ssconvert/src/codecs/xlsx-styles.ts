@@ -95,7 +95,7 @@ export function readXlsxString(node: XmlElement | undefined, context: Capability
       else if (p.localName === "b") attributes.bold = boolean(val, true) ? 1 : 0;
       else if (p.localName === "i") attributes.italic = boolean(val, true) ? 1 : 0;
       else if (p.localName === "strike") attributes.strikethrough = boolean(val, true) ? 1 : 0;
-      else if (p.localName === "u") attributes.underline = val === "double" ? "double" : val === "none" ? "none" : val === "singleAccounting" || val === "doubleAccounting" ? "low" : "single";
+      else if (p.localName === "u") attributes.underline = val === "double" || val === "doubleAccounting" ? val : val === "none" ? "none" : val === "singleAccounting" ? "low" : "single";
       else if (p.localName === "vertAlign" && val === "subscript") attributes.subscript = 1;
       else if (p.localName === "vertAlign" && val === "superscript") attributes.superscript = 1;
       else if (p.localName === "color") { const rgb = color(p, [], true)!; attributes.color = [rgb.slice(0, 2), rgb.slice(2, 4), rgb.slice(4, 6)].join("x"); }

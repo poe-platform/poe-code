@@ -33,6 +33,21 @@ it("computes UTF-8 run offsets after escape decoding and keeps text nodes separa
     richText: [{ start: 2, end: 7, attributes: { bold: 1 } }] });
 });
 
+// Calc stylesbuffer.cxx:801-809 keeps doubleAccounting distinct from
+// singleAccounting when converting the shared cell/comment font model.
+for (const target of ["cell", "comment"] as const)
+it.each([
+  ["singleAccounting", "low"], ["doubleAccounting", "doubleAccounting"],
+  ["single", "single"], ["double", "double"], ["none", "none"]
+])(`retains rich ${target} underline line count through import and export: %s`, (wire, underline) => {
+  const input = `<si xmlns="${namespace}"><r><rPr><u val="${wire}"/></rPr><t>é😀</t></r></si>`;
+  const read = readXlsxString(parseXml(input), context);
+  expect(read).toEqual({ value: "é😀", richText: [{ start: 0, end: 6, attributes: { underline } }] });
+  const output = writeRichString(read.value, read.richText, createXlsxXml(context).element, undefined, target);
+  expect(output).toContain(`<u val="${wire}"/>`);
+  expect(readXlsxString(parseXml(`<si xmlns="${namespace}">${output}</si>`), context)).toEqual(read);
+});
+
 // RichStringPortion::setText preserves decoded UTF-16 units. A run boundary
 // must not act as a UTF-8 stream boundary or replace an isolated surrogate.
 for (const target of ["cell", "comment"] as const)

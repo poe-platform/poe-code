@@ -1,5 +1,6 @@
 import path from "node:path";
 import { canonicalFs } from "../packages/package-lint/dist/bundle-policy.js";
+import { declarationSource } from "./publish-declarations.mjs";
 
 // Build each SDK together so independently selected formats share engine classes.
 export function resolveSpreadsheetSdkBuilds(rootDir, consumerBuildOptions, packageJson) {
@@ -7,7 +8,7 @@ export function resolveSpreadsheetSdkBuilds(rootDir, consumerBuildOptions, packa
   for (const target of Object.values(packageJson.exports)) {
     const output = target?.import?.split("/");
     if (output?.[0] !== "." || output[1] !== "dist" || !["ssconvert", "csvkit"].includes(output[2])) continue;
-    const source = target.types.split("/");
+    const source = path.relative(rootDir, declarationSource(rootDir, path.resolve(rootDir, target.types))).split(path.sep);
     source[source.indexOf("dist")] = "src";
     const entry = output.slice(3).join("/").slice(0, -".js".length);
     const entries = groups.get(output[2]) ?? {};

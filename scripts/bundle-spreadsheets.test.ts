@@ -19,3 +19,14 @@ it("builds spreadsheet entrypoints from their declared public exports", () => {
   expect(recipes.map(recipe => recipe.outdir)).toEqual(["/repo/dist/ssconvert", "/repo/dist/csvkit"]);
   expect(recipes.every(recipe => recipe.splitting === true)).toBe(true);
 });
+
+it("resolves workspace sources from root-owned declaration exports", () => {
+  const recipes = resolveSpreadsheetSdkBuilds("/repo", {}, { exports: {
+    "./ssconvert": { types: "./dist/types/safe-bash-command-ssconvert/index.d.ts", import: "./dist/ssconvert/index.js" },
+    "./ssconvert/formats/example": { types: "./dist/types/example-format/index.d.ts", import: "./dist/ssconvert/formats/example.js" },
+  } });
+  expect(recipes[0].entryPoints).toEqual({
+    index: "/repo/packages/safe-bash-command-ssconvert/src/index.ts",
+    "formats/example": "/repo/packages/example-format/src/index.ts",
+  });
+});

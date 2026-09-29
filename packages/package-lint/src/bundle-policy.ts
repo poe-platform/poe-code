@@ -15,7 +15,7 @@ export const canonicalFsRoutes = [
       node: "dist/shared/safe-js/safe-fs.js",
       browser: "dist/shared/safe-js/browser/safe-fs.js"
     },
-    types: { node: "packages/safe-fs/dist/index.d.ts", browser: "packages/safe-fs/dist/core.d.ts" }
+    types: { node: "dist/types/safe-fs/index.d.ts", browser: "dist/types/safe-fs/core.d.ts" }
   },
   {
     workspace: "@poe-code/safe-fs/core",
@@ -26,7 +26,7 @@ export const canonicalFsRoutes = [
       node: "dist/shared/safe-js/safe-fs-core.js",
       browser: "dist/shared/safe-js/browser/safe-fs-core.js"
     },
-    types: { node: "packages/safe-fs/dist/core.d.ts", browser: "packages/safe-fs/dist/core.d.ts" }
+    types: { node: "dist/types/safe-fs/core.d.ts", browser: "dist/types/safe-fs/core.d.ts" }
   },
   {
     workspace: "@poe-code/safe-fs/node",
@@ -35,8 +35,8 @@ export const canonicalFsRoutes = [
     source: { node: "packages/safe-fs/src/node-host.ts", browser: null },
     runtime: { node: "dist/shared/safe-js/safe-fs-node.js", browser: null },
     types: {
-      node: "packages/safe-fs/dist/node-host.d.ts",
-      browser: "packages/safe-fs/dist/node-unavailable.d.ts"
+      node: "dist/types/safe-fs/node-host.d.ts",
+      browser: "dist/types/safe-fs/node-unavailable.d.ts"
     }
   },
   {
@@ -46,8 +46,8 @@ export const canonicalFsRoutes = [
     source: { node: "packages/safe-fs/src/node/filesystem.ts", browser: null },
     runtime: { node: "dist/shared/safe-js/safe-fs-bridge.js", browser: null },
     types: {
-      node: "packages/safe-fs/dist/node/filesystem.d.ts",
-      browser: "packages/safe-fs/dist/node-unavailable.d.ts"
+      node: "dist/types/safe-fs/node/filesystem.d.ts",
+      browser: "dist/types/safe-fs/node-unavailable.d.ts"
     }
   }
 ] as const;
@@ -56,12 +56,12 @@ export const canonicalFsProfiles = {
   node: {
     outdir: "dist/shared/safe-js",
     policy: "packages/safe-fs/src/platform/node.ts",
-    types: "packages/safe-fs/dist/platform/node.d.ts"
+    types: "dist/types/safe-fs/platform/node.d.ts"
   },
   browser: {
     outdir: "dist/shared/safe-js/browser",
     policy: "packages/safe-fs/src/platform/browser.ts",
-    types: "packages/safe-fs/dist/platform/browser.d.ts"
+    types: "dist/types/safe-fs/platform/browser.d.ts"
   }
 } as const;
 
@@ -88,8 +88,8 @@ const nodeOnlySafeJsExports = Object.fromEntries(
     route,
     {
       types: {
-        browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-        default: `./packages/safe-js/dist/${entry}.d.ts`
+        browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+        default: `./dist/types/safe-js/${entry}.d.ts`
       },
       browser: null,
       import: `./dist/shared/safe-js/${entry}.js`
@@ -107,9 +107,9 @@ export const canonicalFsTypeImports = {
   },
   "#safe-fs-platform-path": {
     types: {
-      workerd: "./packages/safe-fs/dist/platform/browser-path.d.ts",
-      browser: "./packages/safe-fs/dist/platform/browser-path.d.ts",
-      default: "./packages/safe-fs/dist/platform/node-path.d.ts"
+      workerd: "./dist/types/safe-fs/platform/browser-path.d.ts",
+      browser: "./dist/types/safe-fs/platform/browser-path.d.ts",
+      default: "./dist/types/safe-fs/platform/node-path.d.ts"
     },
     default: null
   }
@@ -119,7 +119,7 @@ export const canonicalXml = {
   workspace: "@poe-code/xml-ast",
   specifier: "poe-code/safe-fs/core",
   source: "packages/xml-ast/src/index.ts",
-  types: "packages/xml-ast/dist/index.d.ts"
+  types: "dist/types/xml-ast/index.d.ts"
 } as const;
 
 export const canonicalFs = {
@@ -127,7 +127,7 @@ export const canonicalFs = {
   specifier: "poe-code/safe-fs",
   source: "packages/safe-fs/src/index.ts",
   runtime: "dist/shared/safe-js/safe-fs.js",
-  types: "packages/safe-fs/dist/index.d.ts",
+  types: "dist/types/safe-fs/index.d.ts",
   routes: [
     ...canonicalFsRoutes,
     { workspace: "@poe-code/safe-fs/xml", specifier: "poe-code/safe-fs/core" },
@@ -261,11 +261,12 @@ export function findBundleIssues(
       const route = record(exported[suffix ? "./safe-bash/contracts/*" : "./safe-bash/contracts"]);
       const runtimeRoot = ["packages/safe-bash-contracts/dist", "dist/shared/safe-bash-contracts"]
         .find(root => route.import === `./${root}/${suffix ? "*" : "index"}.js`);
+      const typeRoot = ["packages/safe-bash-contracts/dist", "dist/types/safe-bash-contracts"]
+        .find(root => route.types === `./${root}/${suffix ? "*" : "index"}.d.ts`);
       const runtime = `${runtimeRoot}/${entry}.js`;
-      const types = `packages/safe-bash-contracts/dist/${entry}.d.ts`;
+      const types = `${typeRoot}/${entry}.d.ts`;
       if (entry.split("/").every(part => part && part !== "." && part !== "..") &&
-          runtimeRoot !== undefined &&
-          route.types === `./packages/safe-bash-contracts/dist/${suffix ? "*" : "index"}.d.ts` &&
+          runtimeRoot !== undefined && typeRoot !== undefined &&
           Object.hasOwn(metafile.outputs ?? {}, runtime) && packedFiles.has(runtime) && packedFiles.has(types)) continue;
     }
     const dependency = packageName(specifier);
@@ -324,14 +325,14 @@ export function findBundleIssues(
   if (
     [...packedFiles].some(
       (filename) =>
-        (filename.startsWith("packages/safe-fs/dist/") || filename.startsWith(path.posix.dirname(canonicalXml.types) + "/")) &&
+        (filename.startsWith("packages/safe-fs/dist/") || filename.startsWith("packages/xml-ast/dist/") || filename.startsWith("dist/types/safe-fs/") || filename.startsWith(path.posix.dirname(canonicalXml.types) + "/")) &&
         [".js", ".mjs", ".cjs"].some((extension) => filename.endsWith(extension))
     )
   )
     fail("duplicate-packed-runtime");
   if (Object.keys(metafile.inputs ?? {}).some((input) => input.startsWith("packages/safe-fs/src/") || input === canonicalXml.source))
     fail("duplicate-canonical-runtime");
-  const emptyTypes = "packages/safe-fs/dist/node-unavailable.d.ts";
+  const emptyTypes = "dist/types/safe-fs/node-unavailable.d.ts";
   if (!metafile.canonicalEmptyTypes?.includes(emptyTypes))
     fail("nonempty-browser-node-types", "poe-code/safe-fs/node");
 
@@ -444,7 +445,7 @@ export function findBundleIssues(
       if (seenTypes.has(filename)) continue;
       seenTypes.add(filename);
       if (
-        (!filename.startsWith("packages/safe-fs/dist/") && filename !== canonicalXml.types) ||
+        (!filename.startsWith("dist/types/safe-fs/") && filename !== canonicalXml.types) ||
         path.posix.normalize(filename) !== filename ||
         !filename.endsWith(".d.ts")
       ) {
@@ -495,7 +496,7 @@ export async function collectCanonicalDeclarations(
   const { default: ts } = await import("typescript");
   const declarations = await collectPackageFiles(
     rootDir,
-    ["packages/safe-fs/dist/**/*.d.ts", canonicalXml.types],
+    ["dist/types/safe-fs/**/*.d.ts", canonicalXml.types],
     files
   );
   const canonicalTypes: Record<string, string[]> = {};
@@ -558,7 +559,7 @@ export async function collectPackageFiles(
   }
 ): Promise<Set<string>> {
   const packed = new Set<string>();
-  async function visit(filename: string, declarationsOnly: boolean): Promise<void> {
+  async function visit(filename: string, declarationExtension?: string): Promise<void> {
     const absolute = path.join(rootDir, filename);
     let children;
     try {
@@ -568,7 +569,7 @@ export async function collectPackageFiles(
       if (code === "ENOENT") return;
       if (code !== "ENOTDIR") throw error;
       if (
-        (!declarationsOnly || filename.endsWith(".d.ts")) &&
+        (!declarationExtension || filename.endsWith(declarationExtension)) &&
         (!files.stat || (await files.stat(absolute)).isFile())
       )
         packed.add(filename);
@@ -576,8 +577,8 @@ export async function collectPackageFiles(
     }
     for (const child of children) {
       const relative = path.posix.join(filename, child.name);
-      if (child.isDirectory()) await visit(relative, declarationsOnly);
-      else if (!declarationsOnly || child.name.endsWith(".d.ts")) packed.add(relative);
+      if (child.isDirectory()) await visit(relative, declarationExtension);
+      else if (!declarationExtension || child.name.endsWith(declarationExtension)) packed.add(relative);
     }
   }
   const excludedSuffixes: string[] = [];
@@ -587,6 +588,10 @@ export async function collectPackageFiles(
       continue;
     }
     if (entry.startsWith("!")) {
+      if ([".d.ts", ".d.mts", ".d.cts"].some(extension => entry.endsWith("/**/*" + extension))) {
+        for (const filename of await collectPackageFiles(rootDir, [entry.slice(1)], files)) packed.delete(filename);
+        continue;
+      }
       const pattern = entry.slice(1);
       if (!pattern || pattern.startsWith("/") || pattern.split("/").some(part => !part || part === "." || part === "..") ||
         ["*", "?", "[", "]", "{", "}", "!", "\\"].some(character => pattern.includes(character))) {
@@ -598,12 +603,12 @@ export async function collectPackageFiles(
       }
       continue;
     }
-    const declarationsOnly = entry.endsWith("/**/*.d.ts");
-    const directory = declarationsOnly ? entry.slice(0, -"/**/*.d.ts".length) : entry;
+    const declarationExtension = [".d.ts", ".d.mts", ".d.cts"].find(extension => entry.endsWith("/**/*" + extension));
+    const directory = declarationExtension ? entry.slice(0, -("/**/*" + declarationExtension).length) : entry;
     const components = directory.split("/");
     const wildcard = components.findIndex(component => component.includes("*"));
     if (directory.startsWith("/") || components.includes("..") ||
-      wildcard !== -1 && (!declarationsOnly || components[wildcard]!.split("*").length !== 2 ||
+      wildcard !== -1 && (!declarationExtension || components[wildcard]!.split("*").length !== 2 ||
         components.slice(wildcard + 1).some(component => component.includes("*")))) {
       throw new Error(`Unsupported package files entry: ${entry}`);
     }
@@ -616,9 +621,9 @@ export async function collectPackageFiles(
       });
       for (const child of children) {
         if (child.isDirectory() && child.name.startsWith(prefix!) && child.name.endsWith(suffix!))
-          await visit(path.posix.join(parent, child.name, ...components.slice(wildcard + 1)), true);
+          await visit(path.posix.join(parent, child.name, ...components.slice(wildcard + 1)), declarationExtension);
       }
-    } else await visit(directory, declarationsOnly);
+    } else await visit(directory, declarationExtension);
   }
   for (const file of packed) {
     if (excludedSuffixes.some(suffix => file.endsWith(suffix))) packed.delete(file);

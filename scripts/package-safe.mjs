@@ -13,6 +13,7 @@ import { resolveCommandExportBuilds } from "./safe-command-publication.mjs";
 import { copyNativeAssets, nativeImportMapping, readBuiltNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
 import { canonicalXml } from "../packages/package-lint/dist/bundle-policy.js";
+import { declarationSource } from "./publish-declarations.mjs";
 
 import { rewriteModuleSpecifiers } from "./module-specifiers.mjs";
 export { rewriteModuleSpecifiers } from "./module-specifiers.mjs";
@@ -243,7 +244,9 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
   const results = [];
   const fsManifest = workspaces.find(workspace => workspace.dir === "safe-fs").pkg;
   const canonicalFileSystemSpecifier = target => {
-    if ([canonicalXml.types, canonicalXml.types.slice(0, -5) + ".js"].some(file => target === path.join(rootDir, file))) {
+    target = declarationSource(rootDir, target);
+    const xmlTypes = declarationSource(rootDir, path.join(rootDir, canonicalXml.types));
+    if ([xmlTypes, xmlTypes.slice(0, -5) + ".js"].includes(target)) {
       return publicSpecifier(canonicalXml.specifier);
     }
     if (!target.startsWith(path.join(rootDir, "packages/safe-fs/dist") + path.sep)) return undefined;
@@ -355,7 +358,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     }
     const enqueueExport = value => {
       if (typeof value === "string" && value.startsWith("./")) {
-        const absolute = path.resolve(rootDir, value);
+        const absolute = declarationSource(rootDir, path.resolve(rootDir, value));
         if (!value.includes("*")) pending.push(absolute);
         return "./" + artifactPath(rootDir, absolute);
       }

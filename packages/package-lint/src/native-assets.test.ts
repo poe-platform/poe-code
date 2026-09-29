@@ -333,7 +333,7 @@ for (const defect of [
     if (defect === "packed-missing") setup.packed.delete(`${assetRoot}/linux-x64-glibc.node`);
     if (defect === "packed-extra") setup.packed.add(`${assetRoot}/extra.node`);
     if (defect === "nested-scope") setup.packed.add("dist/shared/safe-js/package.json");
-    if (defect === "duplicate-runtime") setup.packed.add("packages/safe-fs/dist/index.js");
+    if (defect === "duplicate-runtime") setup.packed.add("dist/types/safe-fs/index.js");
     if (defect === "consumer-edge")
       setup.metafile.outputs["dist/index.js"].imports.push({
         path: specifier,
@@ -544,7 +544,7 @@ for (const reason of ["node-type", "browser-type", "foreign-declaration", "decla
     } else {
       const facts = await policy.collectCanonicalNativeAssets("/repo", setup.fs);
       setup.metafile.canonicalTypes[
-        `packages/safe-fs/dist/platform/${reason === "node-type" ? "node" : "browser"}.d.ts`
+        `dist/types/safe-fs/platform/${reason === "node-type" ? "node" : "browser"}.d.ts`
       ].push(specifier);
       expect(
         policy.findBundleIssues(

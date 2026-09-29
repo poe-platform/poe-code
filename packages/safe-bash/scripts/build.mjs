@@ -339,11 +339,18 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         const peer = JSON.parse(read(join(peerRoot, "package.json")));
         assert.equal(peer.name, "poe-code", "canonical public peer identity");
         const detached = checkout && peer.exports?.["./safe-fs"] === undefined;
+        const compileDeclaration = (target, workspaceTarget, message) => {
+          const parts = workspaceTarget.split("/");
+          const publicTarget = [".", "dist", "types", parts[2], ...parts.slice(4)].join("/");
+          assert.ok(target === workspaceTarget || checkout && target === publicTarget, message);
+          // Root publication follows workspace compilation; its mirror need not exist yet.
+          return checkout ? workspaceTarget : target;
+        };
         const exported = detached
           ? { types: "./packages/safe-fs/dist/index.d.ts" }
           : peer.exports?.["./safe-fs"];
-        const target = typeof exported?.types === "string" ? exported.types : exported?.types?.default;
-        assert.equal(target, "./packages/safe-fs/dist/index.d.ts", "canonical public SafeFS declaration entry");
+        const target = compileDeclaration(typeof exported?.types === "string" ? exported.types : exported?.types?.default,
+          "./packages/safe-fs/dist/index.d.ts", "canonical public SafeFS declaration entry");
         if (checkout && !detached) assert.equal(exported.import, "./dist/shared/safe-js/safe-fs.js", "canonical public SafeFS must use the shared SafeJS runtime");
         toolRoots.push(join(peerRoot, "packages/safe-fs/dist"));
         peerPaths = { ...peerPaths, "poe-code/safe-fs": [resolve(peerRoot, target)] };
@@ -351,8 +358,8 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           ? { types: "./packages/safe-fs/dist/core.d.ts" }
           : peer.exports?.["./safe-fs/core"];
         if (core !== undefined) {
-          const coreTarget = typeof core.types === "string" ? core.types : core.types?.default;
-          assert.equal(coreTarget, "./packages/safe-fs/dist/core.d.ts", "canonical public SafeFS core declaration entry");
+          const coreTarget = compileDeclaration(typeof core.types === "string" ? core.types : core.types?.default,
+            "./packages/safe-fs/dist/core.d.ts", "canonical public SafeFS core declaration entry");
           if (checkout && !detached) assert.equal(core.import, "./dist/shared/safe-js/safe-fs-core.js", "canonical public SafeFS core must use the shared SafeJS runtime");
           peerPaths["poe-code/safe-fs/core"] = [resolve(peerRoot, coreTarget)];
         }
@@ -363,8 +370,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
             const exported = detached
               ? { types: './packages/safe-playwright/dist/' + entry + '.d.ts', import: './packages/safe-playwright/dist/' + entry + '.js' }
               : peer.exports?.[name];
-            const target = `./packages/safe-playwright/dist/${entry}.d.ts`;
-            assert.equal(exported?.types, target, 'canonical public Playwright declaration entry');
+            const target = compileDeclaration(exported?.types, `./packages/safe-playwright/dist/${entry}.d.ts`, 'canonical public Playwright declaration entry');
             assert.equal(exported?.import, `./packages/safe-playwright/dist/${entry}.js`, 'canonical public Playwright runtime entry');
             peerPaths['poe-code/' + name.slice(2)] = [resolve(peerRoot, target)];
           }
@@ -373,19 +379,19 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         if (manifest.devDependencies?.["safe-bash-command-ssconvert"] !== undefined) {
           assert.equal(manifest.devDependencies["safe-bash-command-ssconvert"], "*", "ssconvert SDK build dependency must be the local workspace");
           const exported = peer.exports?.["./ssconvert"];
-          assert.equal(exported?.types, "./packages/safe-bash-command-ssconvert/dist/index.d.ts", "canonical public ssconvert declaration entry");
-          assert.ok(["./dist/ssconvert/index.js", exported.types.slice(0, -5) + ".js"].includes(exported?.import), "canonical public ssconvert runtime entry");
-          peerPaths["poe-code/ssconvert"] = [resolve(peerRoot, exported.types)];
-          peerPaths["safe-bash-command-ssconvert"] = [resolve(peerRoot, exported.types)];
+          const target = compileDeclaration(exported?.types, "./packages/safe-bash-command-ssconvert/dist/index.d.ts", "canonical public ssconvert declaration entry");
+          assert.ok(["./dist/ssconvert/index.js", target.slice(0, -5) + ".js"].includes(exported?.import), "canonical public ssconvert runtime entry");
+          peerPaths["poe-code/ssconvert"] = [resolve(peerRoot, target)];
+          peerPaths["safe-bash-command-ssconvert"] = [resolve(peerRoot, target)];
           toolRoots.push(join(peerRoot, "packages/safe-bash-command-ssconvert/dist"));
         }
         if (manifest.devDependencies?.["safe-bash-command-csvkit"] !== undefined) {
           assert.equal(manifest.devDependencies["safe-bash-command-csvkit"], "*", "CSV SDK build dependency must be the local workspace");
           const exported = peer.exports?.["./csvkit"];
-          assert.equal(exported?.types, "./packages/safe-bash-command-csvkit/dist/index.d.ts", "canonical public CSV declaration entry");
-          assert.ok(["./dist/csvkit/index.js", exported.types.slice(0, -5) + ".js"].includes(exported?.import), "canonical public CSV runtime entry");
-          peerPaths["poe-code/csvkit"] = [resolve(peerRoot, exported.types)];
-          peerPaths["safe-bash-command-csvkit"] = [resolve(peerRoot, exported.types)];
+          const target = compileDeclaration(exported?.types, "./packages/safe-bash-command-csvkit/dist/index.d.ts", "canonical public CSV declaration entry");
+          assert.ok(["./dist/csvkit/index.js", target.slice(0, -5) + ".js"].includes(exported?.import), "canonical public CSV runtime entry");
+          peerPaths["poe-code/csvkit"] = [resolve(peerRoot, target)];
+          peerPaths["safe-bash-command-csvkit"] = [resolve(peerRoot, target)];
           toolRoots.push(join(peerRoot, "packages/safe-bash-command-csvkit/dist"));
         }
       }

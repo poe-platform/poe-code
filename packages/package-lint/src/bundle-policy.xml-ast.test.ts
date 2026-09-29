@@ -8,9 +8,9 @@ it.each(["node", "browser"] as const)("keeps the XML AST implementation and type
   const chunk = `dist/shared/safe-js/${profile === "browser" ? "browser/" : ""}chunks/fs.js`;
   graph.metafile.inputs["packages/xml-ast/src/index.ts"] = {};
   graph.metafile.outputs[chunk]!.inputs["packages/xml-ast/src/index.ts"] = {};
-  metafile.canonicalTypes["packages/safe-fs/dist/core.d.ts"]!.push("../../xml-ast/dist/index.js");
-  metafile.canonicalTypes["packages/xml-ast/dist/index.d.ts"] = [];
-  packed.add("packages/xml-ast/dist/index.d.ts");
+  metafile.canonicalTypes["dist/types/safe-fs/core.d.ts"]!.push("../xml-ast/index.js");
+  metafile.canonicalTypes["dist/types/xml-ast/index.d.ts"] = [];
+  packed.add("dist/types/xml-ast/index.d.ts");
   expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
 
   graph.metafile.outputs[chunk]!.inputs["packages/xml-ast/src/unapproved.ts"] = {};
@@ -25,7 +25,7 @@ it("refuses an independently bundled XML error class in a consumer", () => {
 
 it("refuses a second packed XML runtime outside the canonical bundle", () => {
   const {manifest, metafile, packed} = canonicalBundleFixture();
-  packed.add("packages/xml-ast/dist/index.js");
+  packed.add("dist/types/xml-ast/index.js");
   expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({external: "poe-code/safe-fs", reason: "duplicate-packed-runtime"});
 });
 
@@ -40,13 +40,13 @@ it.each(["node", "browser"] as const)("refuses duplicated XML code within the %s
 
 it("collects emitted XML declarations for canonical closure inspection", async () => {
   const fs = memLintFs({
-    "/repo/packages/safe-fs/dist/xml.d.ts": 'export * from "../../xml-ast/dist/index.js";',
-    "/repo/packages/xml-ast/dist/index.d.ts": "export declare class XmlLimitError extends SyntaxError { readonly limit: string; }",
-    "/repo/packages/xml-ast/dist/unapproved.d.ts": "export {};",
+    "/repo/dist/types/safe-fs/xml.d.ts": 'export * from "../xml-ast/index.js";',
+    "/repo/dist/types/xml-ast/index.d.ts": "export declare class XmlLimitError extends SyntaxError { readonly limit: string; }",
+    "/repo/dist/types/xml-ast/unapproved.d.ts": "export {};",
   });
   const result = await collectCanonicalDeclarations("/repo", fs);
   expect(result.canonicalTypes).toEqual({
-    "packages/safe-fs/dist/xml.d.ts": ["../../xml-ast/dist/index.js"],
-    "packages/xml-ast/dist/index.d.ts": [],
+    "dist/types/safe-fs/xml.d.ts": ["../xml-ast/index.js"],
+    "dist/types/xml-ast/index.d.ts": [],
   });
 });

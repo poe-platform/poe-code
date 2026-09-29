@@ -30,3 +30,16 @@ it("excludes disposable maps and literal paths from the publication inventory", 
 it.each(["!../outside", "!/outside", "!dist/*.js", "!**/", "!"])("rejects unsupported exclusion %s", async entry => {
   await expect(collectPackageFiles("/repo", [entry], memLintFs({}))).rejects.toThrow("Unsupported package files entry");
 });
+
+it("ships the public declaration mirror without duplicate private declarations", async () => {
+  const fs = memLintFs({
+    "/repo/dist/types/owner/index.d.ts": "export {};",
+    "/repo/packages/owner/dist/index.d.ts": "export {};",
+    "/repo/packages/owner/dist/vendor.d.mts": "export {};",
+    "/repo/packages/owner/dist/vendor.d.cts": "export {};",
+    "/repo/packages/owner/dist/index.js": "export {};",
+  });
+  const files = await collectPackageFiles("/repo", ["dist", "packages/owner/dist",
+    "!packages/*/dist/**/*.d.ts", "!packages/*/dist/**/*.d.mts", "!packages/*/dist/**/*.d.cts"], fs);
+  expect([...files].sort()).toEqual(["dist/types/owner/index.d.ts", "packages/owner/dist/index.js"]);
+});

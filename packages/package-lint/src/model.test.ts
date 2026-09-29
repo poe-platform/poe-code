@@ -29,9 +29,9 @@ it("preserves raw external specifiers and canonical producer evidence", () => {
 
 it.each([
   ["packages/safe-fs", "/outside/package"],
-  ["packages/safe-fs/dist", "/outside/package/dist"],
-  ["packages/safe-fs/dist/nested", "/outside/package/dist/nested"],
-  ["packages/safe-fs/dist/index.d.ts", "/outside/package/dist/index.d.ts"]
+  ["dist/types/safe-fs", "/outside/package/dist"],
+  ["dist/types/safe-fs/nested", "/outside/package/dist/nested"],
+  ["dist/types/safe-fs/index.d.ts", "/outside/package/dist/index.d.ts"]
 ])(
   "rejects canonical declaration symlink %s before traversal or payload reads",
   async (link, target) => {
@@ -62,7 +62,7 @@ it.each(["lstat", "realpath"] as const)(
   async (method) => {
     const fs = memLintFs({
       "/repo/dist/metafile.json": pkgJson({ canonicalBundle: {} }),
-      "/repo/packages/safe-fs/dist/index.d.ts": "export {};"
+      "/repo/dist/types/safe-fs/index.d.ts": "export {};"
     });
     fs[method] = undefined;
     const readFile = vi.spyOn(fs, "readFile");
@@ -76,7 +76,7 @@ it.each(["lstat", "realpath"] as const)(
 it.each(["special", "canonical-escape", "excluded-identity"])(
   "rejects canonical declaration %s metadata before reading the declaration",
   async (defect) => {
-    const target = "/repo/packages/safe-fs/dist/index.d.ts";
+    const target = "/repo/dist/types/safe-fs/index.d.ts";
     const held = "/repo/packages/safe-fs/src/held.d.ts";
     const fs = memLintFs({
       "/repo/dist/metafile.json": pkgJson({ browserCanonicalBundle: {} }),
@@ -116,7 +116,7 @@ it.each(["special", "canonical-escape", "excluded-identity"])(
 );
 
 it("validates canonical package exclusions before reading declarations", async () => {
-  const target = "/repo/packages/safe-fs/dist/index.d.ts";
+  const target = "/repo/dist/types/safe-fs/index.d.ts";
   const fs = memLintFs({
     "/repo/dist/metafile.json": pkgJson({ canonicalBundle: {} }),
     "/repo/packages/safe-fs/package.json": pkgJson({
@@ -135,7 +135,7 @@ it("validates canonical package exclusions before reading declarations", async (
 it.each([undefined, null, false, 0, -0, "", Number.NaN])(
   "preserves canonical declaration payload failure identity %s",
   async (reason) => {
-    const target = "/repo/packages/safe-fs/dist/index.d.ts";
+    const target = "/repo/dist/types/safe-fs/index.d.ts";
     const fs = memLintFs({
       "/repo/dist/metafile.json": pkgJson({ canonicalBundle: {} }),
       [target]: "export {};"
@@ -160,12 +160,12 @@ it.each([false, true])(
     const fs = memLintFs({
       "/repo/package.json": pkgJson({
         name: "poe-code",
-        files: ["packages/safe-fs/dist/**/*.d.ts"]
+        files: ["dist/types/safe-fs/**/*.d.ts"]
       }),
       "/repo/packages/safe-fs/package.json": pkgJson({ name: "@poe-code/safe-fs", private: true }),
-      "/repo/packages/safe-fs/dist/index.d.ts": 'export * from "./nested/contracts.js";',
-      "/repo/packages/safe-fs/dist/nested/contracts.d.ts": "export interface FileSystem {}",
-      "/repo/packages/safe-fs/dist/index.js": "throw new Error('second implementation');"
+      "/repo/dist/types/safe-fs/index.d.ts": 'export * from "./nested/contracts.js";',
+      "/repo/dist/types/safe-fs/nested/contracts.d.ts": "export interface FileSystem {}",
+      "/repo/dist/types/safe-fs/index.js": "throw new Error('second implementation');"
     });
     const model = await loadWorkspace(
       fs,
@@ -173,7 +173,7 @@ it.each([false, true])(
       explicit ? { packlistProvider: createNpmPacklistProvider(fs) } : {}
     );
     expect(model.packageFiles.get(".")!.files).toEqual(
-      new Set(["packages/safe-fs/dist/index.d.ts", "packages/safe-fs/dist/nested/contracts.d.ts"])
+      new Set(["dist/types/safe-fs/index.d.ts", "dist/types/safe-fs/nested/contracts.d.ts"])
     );
   }
 );
@@ -183,9 +183,9 @@ it("does not replace an authoritative provider's omitted declarations with sourc
     memLintFs({
       "/repo/package.json": pkgJson({
         name: "poe-code",
-        files: ["packages/safe-fs/dist/**/*.d.ts"]
+        files: ["dist/types/safe-fs/**/*.d.ts"]
       }),
-      "/repo/packages/safe-fs/dist/index.d.ts": "export {};"
+      "/repo/dist/types/safe-fs/index.d.ts": "export {};"
     }),
     "/repo",
     {

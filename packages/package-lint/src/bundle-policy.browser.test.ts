@@ -15,7 +15,7 @@ describe("version-independent builtins retain released FS profile restrictions",
   ])("accepts %s in Node FS runtime and declaration edges", (name) => {
     const { manifest, metafile, packed, chunk } = canonicalBundleFixture();
     metafile.canonicalBundle.metafile.outputs[chunk].imports.push({ path: name, external: true });
-    metafile.canonicalTypes["packages/safe-fs/dist/platform/node.d.ts"].push(name);
+    metafile.canonicalTypes["dist/types/safe-fs/platform/node.d.ts"].push(name);
     expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
   });
 
@@ -26,7 +26,7 @@ describe("version-independent builtins retain released FS profile restrictions",
       metafile.browserCanonicalBundle.metafile.outputs[
         "dist/shared/safe-js/browser/chunks/fs.js"
       ].imports.push({ path: name, external: true });
-      metafile.canonicalTypes["packages/safe-fs/dist/platform/browser.d.ts"].push(name);
+      metafile.canonicalTypes["dist/types/safe-fs/platform/browser.d.ts"].push(name);
       expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([
         { external: "poe-code/safe-fs", reason: "external-canonical-dependency" },
         { external: "poe-code/safe-fs", reason: "external-canonical-types" }
@@ -45,7 +45,7 @@ describe("version-independent builtins retain released FS profile restrictions",
     (name, reason) => {
       const { manifest, metafile, packed, chunk } = canonicalBundleFixture();
       metafile.canonicalBundle.metafile.outputs[chunk].imports.push({ path: name, external: true });
-      metafile.canonicalTypes["packages/safe-fs/dist/platform/node.d.ts"].push(name);
+      metafile.canonicalTypes["dist/types/safe-fs/platform/node.d.ts"].push(name);
       expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([
         { external: name, reason },
         { external: "poe-code/safe-fs", reason: "external-canonical-dependency" },
@@ -180,7 +180,7 @@ describe("conditional canonical FS publication", () => {
     const { manifest, metafile, packed } = canonicalBundleFixture();
     const browser = metafile.browserCanonicalBundle.metafile;
     const shared = "dist/shared/safe-js/browser/chunks/fs.js";
-    if (defect === "nested-package-scope") packed.add("packages/safe-fs/package.json");
+    if (defect === "nested-package-scope") packed.add("dist/types/safe-fs/package.json");
     if (defect === "nonempty-node-types") metafile.canonicalEmptyTypes = [];
     if (defect === "extra-route")
       Object.assign(manifest.exports, { "./safe-fs/anything": manifest.exports["./safe-fs"] });
@@ -202,16 +202,16 @@ describe("conditional canonical FS publication", () => {
       delete metafile.canonicalBundle.metafile.outputs["dist/shared/safe-js/safe-fs-core.js"];
     if (defect === "unpacked-browser-chunk") packed.delete(shared);
     if (defect === "missing-transitive-types")
-      packed.delete("packages/safe-fs/dist/contracts/errors.d.ts");
+      packed.delete("dist/types/safe-fs/contracts/errors.d.ts");
     if (defect === "missing-types-metadata")
-      delete metafile.canonicalTypes["packages/safe-fs/dist/contracts/errors.d.ts"];
+      delete metafile.canonicalTypes["dist/types/safe-fs/contracts/errors.d.ts"];
     if (defect === "node-types-in-browser")
-      metafile.canonicalTypes["packages/safe-fs/dist/core.d.ts"].push("node:fs");
+      metafile.canonicalTypes["dist/types/safe-fs/core.d.ts"].push("node:fs");
     if (defect === "type-protocol")
-      metafile.canonicalTypes["packages/safe-fs/dist/core.d.ts"].push("file:///tmp/types.d.ts");
+      metafile.canonicalTypes["dist/types/safe-fs/core.d.ts"].push("file:///tmp/types.d.ts");
     if (defect === "bad-private-types")
       manifest.imports["#safe-fs-platform"].types.browser =
-        "./packages/safe-fs/dist/platform/node.d.ts";
+        "./dist/types/safe-fs/platform/node.d.ts";
     if (defect === "runtime-private-policy")
       Object.assign(manifest.imports["#safe-fs-platform"], { import: "./policy.js" });
     if (defect === "node-route-browser-fallback")
@@ -223,8 +223,8 @@ describe("conditional canonical FS publication", () => {
         "./safe-fs": {
           ...manifest.exports["./safe-fs"],
           types: {
-            default: "./packages/safe-fs/dist/index.d.ts",
-            browser: "./packages/safe-fs/dist/core.d.ts"
+            default: "./dist/types/safe-fs/index.d.ts",
+            browser: "./dist/types/safe-fs/core.d.ts"
           }
         }
       });

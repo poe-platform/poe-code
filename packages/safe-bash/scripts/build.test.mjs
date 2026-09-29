@@ -329,6 +329,20 @@ for (const defect of ["none", "detached", "declaration", "runtime"]) test(`build
   noHeldReads(owned);
 });
 
+test("checkout compilation uses workspace prerequisites before root-owned types are published", async () => {
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } }),
+    "src/index.ts": 'import type { FileSystem } from "poe-code/safe-fs"; export const filesystem: FileSystem = { portable: true };',
+    "../../package.json": JSON.stringify({ name: "poe-code", type: "module", exports: {
+      "./safe-fs": { types: "./dist/types/safe-fs/index.d.ts", import: "./dist/shared/safe-js/safe-fs.js" },
+    } }),
+    "../../packages/safe-fs/dist/index.d.ts": "export interface FileSystem { portable: boolean; }",
+  });
+  assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  assert.ok(owned.reads.includes("/packages/safe-fs/dist/index.d.ts"));
+  assert.ok(!owned.reads.includes("/dist/types/safe-fs/index.d.ts"));
+});
+
 test("build directory index reuses large stable listings with fresh metadata", async () => {
   const owned = fixture();
   const listing = owned.fileSystem.readdirSync;

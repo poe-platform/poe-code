@@ -5,17 +5,17 @@ import { canonicalBundleFixture } from "./fixtures.js";
 it("follows the authenticated platform path declaration profiles", () => {
   const { manifest, metafile, packed } = canonicalBundleFixture();
   const pathImport = { types: {
-    workerd: "./packages/safe-fs/dist/platform/browser-path.d.ts",
-    browser: "./packages/safe-fs/dist/platform/browser-path.d.ts",
-    default: "./packages/safe-fs/dist/platform/node-path.d.ts"
+    workerd: "./dist/types/safe-fs/platform/browser-path.d.ts",
+    browser: "./dist/types/safe-fs/platform/browser-path.d.ts",
+    default: "./dist/types/safe-fs/platform/node-path.d.ts"
   }, default: null };
   Object.assign(manifest.imports, { "#safe-fs-platform-path": pathImport });
-  metafile.canonicalTypes["packages/safe-fs/dist/core.d.ts"].push("./contracts/path.js");
+  metafile.canonicalTypes["dist/types/safe-fs/core.d.ts"].push("./contracts/path.js");
   const declarations = {
-    "packages/safe-fs/dist/contracts/path.d.ts": ["#safe-fs-platform-path"],
-    "packages/safe-fs/dist/platform/node-path.d.ts": ["node:path"],
-    "packages/safe-fs/dist/platform/browser-path.d.ts": ["../contracts/portable-path.js"],
-    "packages/safe-fs/dist/contracts/portable-path.d.ts": []
+    "dist/types/safe-fs/contracts/path.d.ts": ["#safe-fs-platform-path"],
+    "dist/types/safe-fs/platform/node-path.d.ts": ["node:path"],
+    "dist/types/safe-fs/platform/browser-path.d.ts": ["../contracts/portable-path.js"],
+    "dist/types/safe-fs/contracts/portable-path.d.ts": []
   };
   Object.assign(metafile.canonicalTypes, declarations);
   for (const filename of Object.keys(declarations)) packed.add(filename);
@@ -28,11 +28,11 @@ it("follows the authenticated platform path declaration profiles", () => {
     });
     packed.add(filename);
   }
-  declarations["packages/safe-fs/dist/platform/browser-path.d.ts"].push("node:path");
+  declarations["dist/types/safe-fs/platform/browser-path.d.ts"].push("node:path");
   expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({
     external: "poe-code/safe-fs", reason: "external-canonical-types"
   });
-  declarations["packages/safe-fs/dist/platform/browser-path.d.ts"].pop();
+  declarations["dist/types/safe-fs/platform/browser-path.d.ts"].pop();
   pathImport.types.browser = pathImport.types.default;
   expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({
     external: "poe-code/safe-fs", reason: "invalid-canonical-type-import"

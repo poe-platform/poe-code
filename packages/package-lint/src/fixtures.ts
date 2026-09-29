@@ -154,83 +154,83 @@ export function canonicalBundleFixture() {
   const source = "packages/safe-fs/src/index.ts";
   const entry = "dist/shared/safe-js/safe-fs.js";
   const chunk = "dist/shared/safe-js/chunks/fs.js";
-  const types = "packages/safe-fs/dist/index.d.ts";
+  const types = "dist/types/safe-fs/index.d.ts";
   const manifest = {
     name: "poe-code",
     exports: {
       "./safe-js": {
         types: {
-          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: "./packages/safe-js/dist/index.d.ts"
+          browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+          default: "./dist/types/safe-js/index.d.ts"
         },
         browser: null,
         import: "./dist/shared/safe-js/index.js"
       },
       "./safe-js/core": {
         types: {
-          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: "./packages/safe-js/dist/core.d.ts"
+          browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+          default: "./dist/types/safe-js/core.d.ts"
         },
         browser: null,
         import: "./dist/shared/safe-js/core.js"
       },
       "./safe-js/cli": {
         types: {
-          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: "./packages/safe-js/dist/cli.d.ts"
+          browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+          default: "./dist/types/safe-js/cli.d.ts"
         },
         browser: null,
         import: "./dist/shared/safe-js/cli.js"
       },
       "./safejs": {
         types: {
-          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: "./packages/safe-js/dist/index.d.ts"
+          browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+          default: "./dist/types/safe-js/index.d.ts"
         },
         browser: null,
         import: "./dist/shared/safe-js/index.js"
       },
       "./safejs/core": {
         types: {
-          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: "./packages/safe-js/dist/core.d.ts"
+          browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+          default: "./dist/types/safe-js/core.d.ts"
         },
         browser: null,
         import: "./dist/shared/safe-js/core.js"
       },
       "./safejs/cli": {
         types: {
-          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: "./packages/safe-js/dist/cli.d.ts"
+          browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+          default: "./dist/types/safe-js/cli.d.ts"
         },
         browser: null,
         import: "./dist/shared/safe-js/cli.js"
       },
       "./safe-fs": {
-        types: { browser: "./packages/safe-fs/dist/core.d.ts", default: `./${types}` },
+        types: { browser: "./dist/types/safe-fs/core.d.ts", default: `./${types}` },
         browser: "./dist/shared/safe-js/browser/safe-fs.js",
         import: `./${entry}`
       },
       "./safe-fs/core": {
         types: {
-          browser: "./packages/safe-fs/dist/core.d.ts",
-          default: "./packages/safe-fs/dist/core.d.ts"
+          browser: "./dist/types/safe-fs/core.d.ts",
+          default: "./dist/types/safe-fs/core.d.ts"
         },
         browser: "./dist/shared/safe-js/browser/safe-fs-core.js",
         import: "./dist/shared/safe-js/safe-fs-core.js"
       },
       "./safe-fs/node": {
         types: {
-          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: "./packages/safe-fs/dist/node-host.d.ts"
+          browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+          default: "./dist/types/safe-fs/node-host.d.ts"
         },
         browser: null,
         import: "./dist/shared/safe-js/safe-fs-node.js"
       },
       "./safe-fs/node/filesystem": {
         types: {
-          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: "./packages/safe-fs/dist/node/filesystem.d.ts"
+          browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+          default: "./dist/types/safe-fs/node/filesystem.d.ts"
         },
         browser: null,
         import: "./dist/shared/safe-js/safe-fs-bridge.js"
@@ -239,13 +239,13 @@ export function canonicalBundleFixture() {
     imports: {
       "#safe-fs-platform": {
         types: {
-          browser: "./packages/safe-fs/dist/platform/browser.d.ts",
-          default: "./packages/safe-fs/dist/platform/node.d.ts"
+          browser: "./dist/types/safe-fs/platform/browser.d.ts",
+          default: "./dist/types/safe-fs/platform/node.d.ts"
         },
         default: null
       }
     },
-    files: ["dist", "packages/safe-js/dist", "packages/safe-fs/dist/**/*.d.ts"],
+    files: ["dist", "dist/types/safe-js", "dist/types/safe-fs/**/*.d.ts"],
     dependencies: { jose: "*" },
     optionalDependencies: { "optional-sdk": "*" }
   };
@@ -303,16 +303,16 @@ export function canonicalBundleFixture() {
     },
     canonicalBundle: graph("node"),
     browserCanonicalBundle: graph("browser"),
-    canonicalEmptyTypes: ["packages/safe-fs/dist/node-unavailable.d.ts"],
+    canonicalEmptyTypes: ["dist/types/safe-fs/node-unavailable.d.ts"],
     canonicalTypes: {
       [types]: ["./core.js"],
-      "packages/safe-fs/dist/core.d.ts": ["./contracts/errors.js"],
-      "packages/safe-fs/dist/node-host.d.ts": ["./index.js"],
-      "packages/safe-fs/dist/node/filesystem.d.ts": ["../core.js"],
-      "packages/safe-fs/dist/node-unavailable.d.ts": [],
-      "packages/safe-fs/dist/contracts/errors.d.ts": ["#safe-fs-platform"],
-      "packages/safe-fs/dist/platform/node.d.ts": ["node:util"],
-      "packages/safe-fs/dist/platform/browser.d.ts": []
+      "dist/types/safe-fs/core.d.ts": ["./contracts/errors.js"],
+      "dist/types/safe-fs/node-host.d.ts": ["./index.js"],
+      "dist/types/safe-fs/node/filesystem.d.ts": ["../core.js"],
+      "dist/types/safe-fs/node-unavailable.d.ts": [],
+      "dist/types/safe-fs/contracts/errors.d.ts": ["#safe-fs-platform"],
+      "dist/types/safe-fs/platform/node.d.ts": ["node:util"],
+      "dist/types/safe-fs/platform/browser.d.ts": []
     } as Record<string, string[]>
   };
   const packed = new Set([

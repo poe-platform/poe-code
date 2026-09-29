@@ -242,7 +242,7 @@ export function resolvePeerProfile(root, io = filesystem) {
     assert.equal(lock.packages?.["packages/safe-bash"]?.devDependencies?.["poe-code"], "file:../..");
     assert.deepEqual(lock.packages?.["node_modules/poe-code"], { resolved: "", link: true });
     assert.equal(peer.exports?.["./safe-fs"]?.import, "./dist/shared/safe-js/safe-fs.js", "Public SafeFS must preserve shared SafeJS runtime identity");
-    assert.equal(conditionalTarget(peer.exports?.["./safe-fs"]?.types, ["node", "default"]), "./packages/safe-fs/dist/index.d.ts");
+    assert.ok(["./packages/safe-fs/dist/index.d.ts", "./dist/types/safe-fs/index.d.ts"].includes(conditionalTarget(peer.exports?.["./safe-fs"]?.types, ["node", "default"])), "Public SafeFS must select its canonical declaration entry");
     return { profile: "checkout-root", qualification: "integrated checkout; not published peer-range satisfaction", directory, metadata, peer, lock, lockPath, integrity: null };
   }
   const locked = lock.packages?.["node_modules/poe-code"];
@@ -295,7 +295,7 @@ export function bindPeerArtifact({ root, artifact, declarations, checkout = fals
   const selected = new Map([["package.json", Buffer.from(metadata)]]), declarationPaths = new Set(), nativeDirectories = new Map(), captureLimits = new Map();
   const capture = (local, limit = 16 * 1024 * 1024) => {
     limit = Math.min(limit, captureLimits.get(local) ?? limit);
-    assert.ok((local.startsWith("packages/") && local.includes("/dist/") || local.startsWith(`${runtimeRoot}/`)) && contained(tooling, resolve(tooling, local)), `Peer closure requires built package paths: ${local}`);
+    assert.ok((local.startsWith("packages/") && local.includes("/dist/") || local.startsWith(`${runtimeRoot}/`) || local.startsWith("dist/types/")) && contained(tooling, resolve(tooling, local)), `Peer closure requires built package paths: ${local}`);
     assert.ok(!local.split("/").some(part => part.toLowerCase() === "xan"), "Held peer input is forbidden");
     assert.ok(selected.size < 256, "Peer closure exceeds member bound");
     const bytes = checkout ? regularBytes(io, join(tooling, local), limit) : archive.get(local);
@@ -410,7 +410,7 @@ export function bindPeerArtifact({ root, artifact, declarations, checkout = fals
     assert.ok(declarationPaths.has(path), "Public declaration is missing from the bound closure");
     const runtime = publicRuntime(specifier);
     if (profile.profile === "checkout-root" && specifier === "poe-code/safe-fs/core") {
-      assert.equal(path, "packages/safe-fs/dist/core.d.ts", "Public SafeFS core must select the portable declaration entry");
+      assert.ok(["packages/safe-fs/dist/core.d.ts", "dist/types/safe-fs/core.d.ts"].includes(path), "Public SafeFS core must select the portable declaration entry");
       assert.equal(runtime, "dist/shared/safe-js/safe-fs-core.js", "Public SafeFS core must preserve shared SafeJS runtime identity");
     }
     pending.push(runtime);

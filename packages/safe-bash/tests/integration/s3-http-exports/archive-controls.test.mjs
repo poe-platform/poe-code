@@ -1195,7 +1195,7 @@ test("checkout public peer bindings preserve identity without claiming published
   assert.equal(binding.qualification, "integrated checkout; not published peer-range satisfaction");
   assert.equal(binding.integrity, null);
   assert.equal(binding.exports["./safe-fs"].import, "./dist/shared/safe-js/safe-fs.js");
-  assert.equal(binding.publicEntries.get("poe-code/safe-fs/core"), "packages/safe-fs/dist/core.d.ts");
+  assert.equal(binding.publicEntries.get("poe-code/safe-fs/core"), "dist/types/safe-fs/core.d.ts");
   assert.throws(() => createPeerBinding(authority, manifest, new Map(), ["poe-code/private"]), /explicit public type export/);
 });
 

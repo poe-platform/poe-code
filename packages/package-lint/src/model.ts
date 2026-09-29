@@ -662,15 +662,11 @@ export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildV
   }
   if (metafile.canonicalBundle || metafile.browserCanonicalBundle) {
     const packageDir = "packages/safe-fs";
-    let admission = await createSourceAdmission(fs, rootDir, packageDir, []);
+    let admission = await createSourceAdmission(fs, rootDir, ".", []);
     const xmlDeclaration = path.resolve(rootDir, canonicalXml.types);
-    const xmlAdmission = await createSourceAdmission(
-      fs, rootDir, path.posix.dirname(path.posix.dirname(canonicalXml.types)), []
-    );
     const declarationFs = {
       async readdir(file: string) {
-        const owner = file === xmlDeclaration ? xmlAdmission : admission;
-        const inspected = await owner.inspect(file);
+        const inspected = await admission.inspect(file);
         if (!inspected) return [];
         if (file === xmlDeclaration) {
           if (inspected.excluded || !inspected.entries.at(-1)!.stat.isFile()) {
@@ -696,14 +692,14 @@ export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildV
         return entries;
       },
       async readFile(file: string) {
-        const inspected = await (file === xmlDeclaration ? xmlAdmission : admission).inspect(file);
+        const inspected = await admission.inspect(file);
         if (!inspected || inspected.excluded || !inspected.entries.at(-1)!.stat.isFile()) {
           throw new Error(`Unsupported canonical declaration file: ${file}`);
         }
         return fs.readFile(file);
       }
     };
-    const manifestFile = path.join(admission.packageRoot, "package.json");
+    const manifestFile = path.join(rootDir, packageDir, "package.json");
     if (await admission.inspect(manifestFile)) {
       const manifest = JSON.parse(await declarationFs.readFile(manifestFile)) as Record<
         string,
@@ -715,7 +711,7 @@ export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildV
           : undefined;
       const sourceExclude = parseSourceExclude(poeCode?.packageLint, packageDir);
       if (sourceExclude.length > 0) {
-        admission = await createSourceAdmission(fs, rootDir, packageDir, sourceExclude);
+        admission = await createSourceAdmission(fs, rootDir, ".", sourceExclude.map(excluded => `${packageDir}/${excluded}`));
       }
     }
     Object.assign(metafile, await collectCanonicalDeclarations(rootDir, declarationFs));

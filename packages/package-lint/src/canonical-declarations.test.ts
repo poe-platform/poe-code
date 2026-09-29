@@ -28,23 +28,23 @@ it("collects import-type and reexport edges from emitted declarations, not saved
       canonicalBundle: { entryPoints: [], metafile: {} },
       canonicalTypes: { stale: [] }
     }),
-    "/repo/packages/safe-fs/dist/contracts/errors.d.ts":
+    "/repo/dist/types/safe-fs/contracts/errors.d.ts":
       'import type { PlatformErrno } from "#safe-fs-platform"; export type Imported = import("./types.js").FileSystem; export * from "./other.js"; import Legacy = require("./legacy.js");',
-    "/repo/packages/safe-fs/dist/node-unavailable.d.ts": "export {};",
-    "/repo/packages/safe-fs/dist/index.js": "throw new Error('unpublished runtime');"
+    "/repo/dist/types/safe-fs/node-unavailable.d.ts": "export {};",
+    "/repo/dist/types/safe-fs/index.js": "throw new Error('unpublished runtime');"
   });
   const build = await loadBuildView(fs, "/repo");
   expect(build?.metafile.canonicalTypes).toEqual({
-    "packages/safe-fs/dist/contracts/errors.d.ts": [
+    "dist/types/safe-fs/contracts/errors.d.ts": [
       "#safe-fs-platform",
       "./types.js",
       "./other.js",
       "./legacy.js"
     ],
-    "packages/safe-fs/dist/node-unavailable.d.ts": []
+    "dist/types/safe-fs/node-unavailable.d.ts": []
   });
   expect(build?.metafile.canonicalEmptyTypes).toEqual([
-    "packages/safe-fs/dist/node-unavailable.d.ts"
+    "dist/types/safe-fs/node-unavailable.d.ts"
   ]);
   expect(await collectCanonicalDeclarations("/repo", fs)).toMatchObject({
     canonicalTypes: build?.metafile.canonicalTypes
@@ -54,7 +54,7 @@ it("collects import-type and reexport edges from emitted declarations, not saved
 it("does not silently skip build policy when emitted declaration inspection fails", async () => {
   const fs = memLintFs({
     "/repo/dist/metafile.json": JSON.stringify({ canonicalBundle: {} }),
-    "/repo/packages/safe-fs/dist/index.d.ts": "export {};"
+    "/repo/dist/types/safe-fs/index.d.ts": "export {};"
   });
   const failure = Object.assign(new Error("declarations unreadable"), { code: "EACCES" });
   fs.readdir = async () => {
@@ -66,23 +66,23 @@ it("does not silently skip build policy when emitted declaration inspection fail
 it("loads the extracted XML declaration through its own package boundary", async () => {
   const fs = memLintFs({
     "/repo/dist/metafile.json": JSON.stringify({ canonicalBundle: {} }),
-    "/repo/packages/safe-fs/dist/xml.d.ts": 'export * from "../../xml-ast/dist/index.js";',
-    "/repo/packages/xml-ast/dist/index.d.ts": "export declare class XmlLimitError extends SyntaxError {}",
-    "/repo/packages/xml-ast/dist/unapproved.d.ts": "export {};"
+    "/repo/dist/types/safe-fs/xml.d.ts": 'export * from "../xml-ast/index.js";',
+    "/repo/dist/types/xml-ast/index.d.ts": "export declare class XmlLimitError extends SyntaxError {}",
+    "/repo/dist/types/xml-ast/unapproved.d.ts": "export {};"
   });
   const readFile = vi.spyOn(fs, "readFile");
   const build = await loadBuildView(fs, "/repo");
   expect(build?.metafile.canonicalTypes).toEqual({
-    "packages/safe-fs/dist/xml.d.ts": ["../../xml-ast/dist/index.js"],
-    "packages/xml-ast/dist/index.d.ts": []
+    "dist/types/safe-fs/xml.d.ts": ["../xml-ast/index.js"],
+    "dist/types/xml-ast/index.d.ts": []
   });
-  expect(readFile).not.toHaveBeenCalledWith("/repo/packages/xml-ast/dist/unapproved.d.ts");
+  expect(readFile).not.toHaveBeenCalledWith("/repo/dist/types/xml-ast/unapproved.d.ts");
 });
 
 it.each([
-  ["packages/xml-ast", "/outside/xml"],
-  ["packages/xml-ast/dist", "/outside/xml/dist"],
-  ["packages/xml-ast/dist/index.d.ts", "/outside/xml/dist/index.d.ts"]
+  ["dist/types", "/outside/xml"],
+  ["dist/types/xml-ast", "/outside/xml/dist"],
+  ["dist/types/xml-ast/index.d.ts", "/outside/xml/dist/index.d.ts"]
 ])("rejects extracted XML declaration symlink %s before payload reads", async (link, target) => {
   const fs = memLintFs({
     "/repo/dist/metafile.json": JSON.stringify({ canonicalBundle: {} }),
@@ -94,7 +94,7 @@ it.each([
 });
 
 it("rejects extracted XML declarations whose canonical path leaves their package", async () => {
-  const target = "/repo/packages/xml-ast/dist/index.d.ts";
+  const target = "/repo/dist/types/xml-ast/index.d.ts";
   const fs = memLintFs({
     "/repo/dist/metafile.json": JSON.stringify({ canonicalBundle: {} }),
     [target]: "export {};"
@@ -126,10 +126,10 @@ it.each(["complete", "unknown-private-type", "private-runtime", "missing-policy-
             .join("\n") || "export {};"
         : "export {};";
     if (defect === "unknown-private-type")
-      files["/repo/packages/safe-fs/dist/core.d.ts"] +=
+      files["/repo/dist/types/safe-fs/core.d.ts"] +=
         '\nexport type Bad = import("#other").Type;';
     if (defect === "missing-policy-types")
-      packed.delete("packages/safe-fs/dist/platform/browser.d.ts");
+      packed.delete("dist/types/safe-fs/platform/browser.d.ts");
     if (defect === "private-runtime")
       metafile.outputs["dist/index.js"].imports.push({
         path: "#safe-fs-platform",

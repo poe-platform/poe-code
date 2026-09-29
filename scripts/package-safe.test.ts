@@ -983,6 +983,24 @@ function optionalLeftovers() {
   return { volume, data, excluded, options: { rootDir: "/repo", version: "0.1.0", files, bundle } };
 }
 
+it("packages SafeJS from workspace outputs when root exports use separate runtime and type ownership", async () => {
+  const { volume, options } = optionalLeftovers();
+  volume.writeFileSync("/repo/package.json", JSON.stringify({ license: "MIT", exports: {
+    "./safe-js": {
+      types: { browser: "./dist/types/safe-fs/node-unavailable.d.ts", default: "./dist/types/safe-js/index.d.ts" },
+      browser: null, import: "./dist/shared/safe-js/index.js",
+    },
+  } }));
+  volume.writeFileSync("/repo/packages/safe-fs/dist/node-unavailable.d.ts", "export {};\n");
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const manifest = JSON.parse(volume.readFileSync("/output/safe-js/package.json", "utf8").toString());
+  expect(manifest.exports["."]).toEqual({
+    types: { browser: "./dist/safe-fs/node-unavailable.d.ts", default: "./dist/safe-js/index.d.ts" },
+    browser: null, import: "./dist/safe-js/index.js",
+  });
+  expect(volume.existsSync("/output/safe-js/dist/safe-js/index.js")).toBe(true);
+});
+
 it("resolves packaged real filesystem declarations for Workers while retaining browser restrictions", async () => {
   const { volume, options } = optionalLeftovers();
   const exports = {

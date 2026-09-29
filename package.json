@@ -85,7 +85,7 @@
       "import": "./dist/index.js"
     },
     "./memory": {
-      "types": "./packages/memory/dist/index.d.ts",
+      "types": "./dist/types/memory/index.d.ts",
       "import": "./packages/memory/dist/index.js"
     },
     "./agent": {
@@ -109,25 +109,25 @@
       "import": "./dist/skills.js"
     },
     "./csvkit": {
-      "types": "./packages/safe-bash-command-csvkit/dist/index.d.ts",
+      "types": "./dist/types/safe-bash-command-csvkit/index.d.ts",
       "import": "./packages/safe-bash-command-csvkit/dist/index.js"
     },
     "./csvkit/codecs/utf8": {
-      "types": "./packages/safe-bash-command-csvkit/dist/codecs/utf8.d.ts",
+      "types": "./dist/types/safe-bash-command-csvkit/codecs/utf8.d.ts",
       "import": "./packages/safe-bash-command-csvkit/dist/codecs/utf8.js"
     },
     "./csvkit/codecs/python": {
-      "types": "./packages/safe-bash-command-csvkit/dist/codecs/python.d.ts",
+      "types": "./dist/types/safe-bash-command-csvkit/codecs/python.d.ts",
       "import": "./packages/safe-bash-command-csvkit/dist/codecs/python.js"
     },
     "./ssconvert": {
-      "types": "./packages/safe-bash-command-ssconvert/dist/index.d.ts",
+      "types": "./dist/types/safe-bash-command-ssconvert/index.d.ts",
       "import": "./dist/ssconvert/index.js"
     },
     "./safe-bash": {
       "types": {
-        "workerd": "./packages/safe-bash/dist/core.d.ts",
-        "browser": "./packages/safe-bash/dist/core.d.ts",
+        "workerd": "./dist/types/safe-bash/core.d.ts",
+        "browser": "./dist/types/safe-bash/core.d.ts",
         "default": "./dist/safe-bash.d.ts"
       },
       "workerd": "./packages/safe-bash/dist/core.browser.js",
@@ -143,15 +143,15 @@
       "default": "./dist/safe-bash-media.js"
     },
     "./safe-bash/pdf-ast": {
-      "types": "./packages/pdf-ast/dist/index.d.ts",
+      "types": "./dist/types/pdf-ast/index.d.ts",
       "import": "./packages/pdf-ast/dist/index.js"
     },
     "./safe-bash/image-ast": {
-      "types": "./packages/image-ast/dist/index.d.ts",
+      "types": "./dist/types/image-ast/index.d.ts",
       "import": "./packages/image-ast/dist/index.js"
     },
     "./safe-bash/sharp": {
-      "types": "./packages/image-ast/dist/index.d.ts",
+      "types": "./dist/types/image-ast/index.d.ts",
       "import": "./packages/image-ast/dist/index.js"
     },
     "./media": {
@@ -170,98 +170,98 @@
     },
     "./safe-fs/core": {
       "types": {
-        "browser": "./packages/safe-fs/dist/core.d.ts",
-        "default": "./packages/safe-fs/dist/core.d.ts"
+        "browser": "./dist/types/safe-fs/core.d.ts",
+        "default": "./dist/types/safe-fs/core.d.ts"
       },
       "browser": "./dist/shared/safe-js/browser/safe-fs-core.js",
       "import": "./dist/shared/safe-js/safe-fs-core.js"
     },
     "./safe-fs": {
       "types": {
-        "browser": "./packages/safe-fs/dist/core.d.ts",
-        "default": "./packages/safe-fs/dist/index.d.ts"
+        "browser": "./dist/types/safe-fs/core.d.ts",
+        "default": "./dist/types/safe-fs/index.d.ts"
       },
       "browser": "./dist/shared/safe-js/browser/safe-fs.js",
       "import": "./dist/shared/safe-js/safe-fs.js"
     },
     "./safe-fs/node": {
       "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-fs/dist/node-host.d.ts"
+        "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/types/safe-fs/node-host.d.ts"
       },
       "browser": null,
       "import": "./dist/shared/safe-js/safe-fs-node.js"
     },
     "./safe-fs/node/filesystem": {
       "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-fs/dist/node/filesystem.d.ts"
+        "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/types/safe-fs/node/filesystem.d.ts"
       },
       "browser": null,
       "import": "./dist/shared/safe-js/safe-fs-bridge.js"
     },
     "./safe-js": {
       "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/index.d.ts"
+        "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/types/safe-js/index.d.ts"
       },
       "browser": null,
       "import": "./dist/shared/safe-js/index.js"
     },
     "./safe-js/core": {
       "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/core.d.ts"
+        "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/types/safe-js/core.d.ts"
       },
       "browser": null,
       "import": "./dist/shared/safe-js/core.js"
     },
     "./safe-js/cli": {
       "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/cli.d.ts"
+        "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/types/safe-js/cli.d.ts"
       },
       "browser": null,
       "import": "./dist/shared/safe-js/cli.js"
     },
     "./safejs": {
       "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/index.d.ts"
+        "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/types/safe-js/index.d.ts"
       },
       "browser": null,
       "import": "./dist/shared/safe-js/index.js"
     },
     "./safejs/core": {
       "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/core.d.ts"
+        "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/types/safe-js/core.d.ts"
       },
       "browser": null,
       "import": "./dist/shared/safe-js/core.js"
     },
     "./safejs/cli": {
       "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/cli.d.ts"
+        "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/types/safe-js/cli.d.ts"
       },
       "browser": null,
       "import": "./dist/shared/safe-js/cli.js"
     },
     "./safe-playwright": {
-      "types": "./packages/safe-playwright/dist/index.d.ts",
+      "types": "./dist/types/safe-playwright/index.d.ts",
       "import": "./packages/safe-playwright/dist/index.js"
     },
     "./safe-playwright/adapter": {
-      "types": "./packages/safe-playwright/dist/adapter.d.ts",
+      "types": "./dist/types/safe-playwright/adapter.d.ts",
       "import": "./packages/safe-playwright/dist/adapter.js"
     },
     "./media/server": {
       "types": {
-        "workerd": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "workerd": "./dist/types/safe-fs/node-unavailable.d.ts",
+        "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
         "node": "./dist/media-server.d.ts",
-        "default": "./packages/safe-fs/dist/node-unavailable.d.ts"
+        "default": "./dist/types/safe-fs/node-unavailable.d.ts"
       },
       "workerd": null,
       "browser": null,
@@ -270,10 +270,10 @@
     },
     "./remote-execution/server": {
       "types": {
-        "workerd": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "workerd": "./dist/types/safe-fs/node-unavailable.d.ts",
+        "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
         "node": "./dist/remote-execution-server.d.ts",
-        "default": "./packages/safe-fs/dist/node-unavailable.d.ts"
+        "default": "./dist/types/safe-fs/node-unavailable.d.ts"
       },
       "workerd": null,
       "browser": null,
@@ -281,58 +281,58 @@
       "default": null
     },
     "./remote-execution/providers/*": {
-      "types": "./packages/remote-execution/dist/providers/*.d.ts",
+      "types": "./dist/types/remote-execution/providers/*.d.ts",
       "workerd": "./packages/remote-execution/dist/providers/*.js",
       "browser": "./packages/remote-execution/dist/providers/*.js",
       "node": "./packages/remote-execution/dist/providers/*.js",
       "default": "./packages/remote-execution/dist/providers/*.js"
     },
     "./safe-bash/contracts": {
-      "types": "./packages/safe-bash-contracts/dist/index.d.ts",
+      "types": "./dist/types/safe-bash-contracts/index.d.ts",
       "import": "./dist/shared/safe-bash-contracts/index.js"
     },
     "./safe-bash/contracts/*": {
-      "types": "./packages/safe-bash-contracts/dist/*.d.ts",
+      "types": "./dist/types/safe-bash-contracts/*.d.ts",
       "import": "./dist/shared/safe-bash-contracts/*.js"
     },
     "./safe-bash/spreadsheet-ast": {
-      "types": "./packages/spreadsheet-ast/dist/index.d.ts",
+      "types": "./dist/types/spreadsheet-ast/index.d.ts",
       "import": "./dist/ssconvert/ast.js"
     },
     "./ssconvert/core": {
-      "types": "./packages/safe-bash-command-ssconvert/dist/core.d.ts",
+      "types": "./dist/types/safe-bash-command-ssconvert/core.d.ts",
       "import": "./dist/ssconvert/core.js"
     },
     "./ssconvert/formats/xlsx": {
-      "types": "./packages/safe-bash-command-ssconvert/dist/formats/xlsx.d.ts",
+      "types": "./dist/types/safe-bash-command-ssconvert/formats/xlsx.d.ts",
       "import": "./dist/ssconvert/formats/xlsx.js"
     },
     "./ssconvert/formats/csv": {
-      "types": "./packages/safe-bash-command-ssconvert/dist/formats/csv.d.ts",
+      "types": "./dist/types/safe-bash-command-ssconvert/formats/csv.d.ts",
       "import": "./dist/ssconvert/formats/csv.js"
     },
     "./ssconvert/formats/ods": {
-      "types": "./packages/safe-bash-command-ssconvert/dist/formats/ods.d.ts",
+      "types": "./dist/types/safe-bash-command-ssconvert/formats/ods.d.ts",
       "import": "./dist/ssconvert/formats/ods.js"
     },
     "./ssconvert/formats/xls": {
-      "types": "./packages/safe-bash-command-ssconvert/dist/formats/xls.d.ts",
+      "types": "./dist/types/safe-bash-command-ssconvert/formats/xls.d.ts",
       "import": "./dist/ssconvert/formats/xls.js"
     },
     "./ssconvert/formats/spreadsheetml": {
-      "types": "./packages/safe-bash-command-ssconvert/dist/formats/spreadsheetml.d.ts",
+      "types": "./dist/types/safe-bash-command-ssconvert/formats/spreadsheetml.d.ts",
       "import": "./dist/ssconvert/formats/spreadsheetml.js"
     },
     "./ssconvert/formats/html": {
-      "types": "./packages/safe-bash-command-ssconvert/dist/formats/html.d.ts",
+      "types": "./dist/types/safe-bash-command-ssconvert/formats/html.d.ts",
       "import": "./dist/ssconvert/formats/html.js"
     },
     "./ssconvert/formats/dbf": {
-      "types": "./packages/safe-bash-command-ssconvert/dist/formats/dbf.d.ts",
+      "types": "./dist/types/safe-bash-command-ssconvert/formats/dbf.d.ts",
       "import": "./dist/ssconvert/formats/dbf.js"
     },
     "./ssconvert/commands": {
-      "types": "./packages/safe-bash-command-ssconvert/dist/commands.d.ts",
+      "types": "./dist/types/safe-bash-command-ssconvert/commands.d.ts",
       "import": "./dist/ssconvert/commands.js"
     }
   },
@@ -659,7 +659,6 @@
     "!packages/safe-bash-command-csvkit/dist/operations/workbook-iso.d.ts",
     "!packages/safe-bash-command-csvkit/dist/operations/workbook-iso.d.ts.map",
     "packages/safe-bash-command-csvkit/THIRD_PARTY_NOTICES.txt",
-    "packages/safe-bash-command-ssconvert/dist/**/*.d.ts",
     "packages/safe-bash-command-ssconvert/LICENSE",
     "packages/safe-bash-command-ssconvert/src/encoding/LGPL-2.1.txt",
     "packages/safe-bash-command-ssconvert/src/encoding/NOTICE.md",
@@ -678,7 +677,6 @@
     "!packages/safe-bash/dist/commands/op/op.test.js.map",
     "!packages/safe-bash/dist/commands/op/op.test.d.ts",
     "!packages/safe-bash/dist/commands/op/op.test.d.ts.map",
-    "packages/safe-bash-contracts/dist/**/*.d.ts",
     "packages/media-cli/dist",
     "packages/remote-execution/dist",
     "packages/safe-bash-command-exiftool/dist",
@@ -696,8 +694,6 @@
     "packages/safe-bash-command-soffice/dist",
     "packages/safe-bash-command-sips/dist",
     "packages/safe-bash-command-imagemagick/dist",
-    "packages/safe-js/dist/**/*.d.ts",
-    "packages/safe-fs/dist/**/*.d.ts",
     "!packages/safe-js/dist/package.json",
     "packages/safe-playwright/dist",
     "packages/media-cli/README.md",
@@ -707,7 +703,6 @@
     "packages/media-cli/NOTICE",
     "packages/media-cli/NOTICE.ImageMagick",
     "packages/remote-execution/README.md",
-    "packages/safe-bash-*/dist/**/*.d.ts",
     "packages/safe-bash-command-bc/dist",
     "packages/safe-bash-command-sponge/dist",
     "packages/safe-bash-command-fd/dist",
@@ -739,8 +734,6 @@
     "packages/safe-bash-line-ending-engine/dist",
     "packages/safe-bash-command-pandoc/dist",
     "packages/safe-bash-command-pandoc/LICENSE",
-    "packages/mp4-ast/dist/**/*.d.ts",
-    "packages/pdf/dist/**/*.d.ts",
     "!**/*.js.map",
     "!**/*.mjs.map",
     "!**/*.cjs.map",
@@ -748,7 +741,6 @@
     "!**/*.d.mts.map",
     "!**/*.d.cts.map",
     "packages/spreadsheet-ast/LICENSE",
-    "packages/spreadsheet-engine/dist/**/*.d.ts",
     "packages/spreadsheet-engine/LICENSE",
     "packages/spreadsheet-engine/src/encoding/tables.ts",
     "packages/spreadsheet-engine/src/encoding/transliteration-tables.ts",
@@ -766,36 +758,30 @@
     "packages/spreadsheet-engine/src/formulas/functions/byte-case-NOTICE.md",
     "packages/spreadsheet-engine/src/formulas/functions/captured-acos-NOTICE.md",
     "packages/spreadsheet-engine/src/formulas/functions/captured-pow-NOTICE.md",
-    "packages/spreadsheet-format-xlsx/dist/**/*.d.ts",
     "packages/spreadsheet-format-xlsx/LICENSE",
-    "packages/xlsx-ast/dist/**/*.d.ts",
     "packages/xlsx-ast/LICENSE",
-    "packages/spreadsheet-format-csv/dist/**/*.d.ts",
     "packages/spreadsheet-format-csv/LICENSE",
-    "packages/spreadsheet-format-ods/dist/**/*.d.ts",
     "packages/spreadsheet-format-ods/LICENSE",
     "packages/spreadsheet-format-ods/src/odf-blowfish.ts",
     "packages/spreadsheet-format-ods/src/odf-blowfish-profile.ts",
     "packages/spreadsheet-format-ods/src/odf-blowfish-NOTICE.md",
-    "packages/spreadsheet-format-xls/dist/**/*.d.ts",
     "packages/spreadsheet-format-xls/LICENSE",
     "packages/spreadsheet-format-xls/src/legacy-binary-NOTICE.md",
     "packages/spreadsheet-ast/dist",
-    "packages/xml-ast/dist/**/*.d.ts",
-    "packages/spreadsheet-format-spreadsheetml/dist/**/*.d.ts",
     "packages/spreadsheet-format-spreadsheetml/LICENSE",
-    "packages/spreadsheet-format-html/dist/**/*.d.ts",
     "packages/spreadsheet-format-html/LICENSE",
     "packages/spreadsheet-format-html/src/html-NOTICE.md",
-    "packages/spreadsheet-format-dbf/dist/**/*.d.ts",
-    "packages/spreadsheet-format-dbf/LICENSE"
+    "packages/spreadsheet-format-dbf/LICENSE",
+    "!packages/*/dist/**/*.d.ts",
+    "!packages/*/dist/**/*.d.mts",
+    "!packages/*/dist/**/*.d.cts"
   ],
   "license": "MIT",
   "imports": {
     "#safe-fs-platform": {
       "types": {
-        "browser": "./packages/safe-fs/dist/platform/browser.d.ts",
-        "default": "./packages/safe-fs/dist/platform/node.d.ts"
+        "browser": "./dist/types/safe-fs/platform/browser.d.ts",
+        "default": "./dist/types/safe-fs/platform/node.d.ts"
       },
       "default": null
     },
@@ -811,17 +797,17 @@
     },
     "#safe-fs-platform-path": {
       "types": {
-        "workerd": "./packages/safe-fs/dist/platform/browser-path.d.ts",
-        "browser": "./packages/safe-fs/dist/platform/browser-path.d.ts",
-        "default": "./packages/safe-fs/dist/platform/node-path.d.ts"
+        "workerd": "./dist/types/safe-fs/platform/browser-path.d.ts",
+        "browser": "./dist/types/safe-fs/platform/browser-path.d.ts",
+        "default": "./dist/types/safe-fs/platform/node-path.d.ts"
       },
       "default": null
     },
     "#safe-js-platform": {
       "types": {
-        "workerd": "./packages/safe-js/dist/platform/workerd.d.ts",
-        "browser": "./packages/safe-js/dist/platform/workerd.d.ts",
-        "default": "./packages/safe-js/dist/platform/node.d.ts"
+        "workerd": "./dist/types/safe-js/platform/workerd.d.ts",
+        "browser": "./dist/types/safe-js/platform/workerd.d.ts",
+        "default": "./dist/types/safe-js/platform/node.d.ts"
       },
       "default": null
     }

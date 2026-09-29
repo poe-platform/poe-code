@@ -80,6 +80,15 @@ function parseMonthSpec(spec: string): number | undefined {
   return undefined;
 }
 
+function parseDateSpec(spec: string): { year: number; month: number } | undefined {
+  const m = /^(\d{1,4})-(\d{1,2})(?:-\d{1,2})?$/.exec(spec);
+  if (!m) return undefined;
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  if (year < 1 || year > 9999 || month < 1 || month > 12) return undefined;
+  return { year, month };
+}
+
 function isLeapYear(year: number, julianReform = true): boolean {
   if (julianReform && year <= 1752) {
     return year % 4 === 0;
@@ -282,6 +291,7 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
       let spanAround = false;
       let showWeeks = false;
       let explicitMonth: number | undefined;
+      let explicitYear: number | undefined;
       let afterMonths = 0;
       let beforeMonths = 0;
       const operands: string[] = [];
@@ -330,8 +340,8 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
           // Accepted
         } else if (arg === "--week" || arg.startsWith("--week=") || arg === "-w") {
           showWeeks = true;
-        } else if (arg === "-m" || arg === "--month") {
-          const val = rawArgs[++i];
+        } else if (arg === "-m" || arg === "--month" || arg.startsWith("--month=")) {
+          const val = arg.startsWith("--month=") ? arg.slice(8) : rawArgs[++i];
           if (!val) {
             await writeText(context.stderr, "cal: option requires an argument -- 'm'\n");
             return { exitCode: 1 };
@@ -342,14 +352,23 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
             return { exitCode: 1 };
           }
           explicitMonth = m;
-        } else if (arg === "-n" || arg === "--months") {
-          const val = rawArgs[++i];
+        } else if (arg === "-n" || arg === "--months" || arg.startsWith("--months=")) {
+          const val = arg.startsWith("--months=") ? arg.slice(9) : rawArgs[++i];
           const n = Number(val);
           if (!val || !Number.isSafeInteger(n) || n < 1 || n > lim.maxMonths) {
             await writeText(context.stderr, `cal: invalid month count '${val ?? ""}'\n`);
             return { exitCode: 1 };
           }
           spanMonths = n;
+        } else if (arg === "-d" || arg === "--date" || arg.startsWith("--date=")) {
+          const val = arg.startsWith("--date=") ? arg.slice(7) : rawArgs[++i];
+          const ds = val ? parseDateSpec(val) : undefined;
+          if (!ds) {
+            await writeText(context.stderr, `cal: invalid date '${val ?? ""}'\n`);
+            return { exitCode: 1 };
+          }
+          explicitYear = ds.year;
+          explicitMonth = ds.month;
         } else if (arg === "-A" || arg === "-B") {
           const val = rawArgs[++i];
           const count = Number(val);
@@ -389,6 +408,35 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
               }
               explicitMonth = m;
               break;
+            } else if (ch === "n") {
+              const rest = arg.slice(j + 1) || rawArgs[++i];
+              const n = Number(rest);
+              if (!rest || !Number.isSafeInteger(n) || n < 1 || n > lim.maxMonths) {
+                await writeText(context.stderr, `cal: invalid month count '${rest ?? ""}'\n`);
+                return { exitCode: 1 };
+              }
+              spanMonths = n;
+              break;
+            } else if (ch === "A" || ch === "B") {
+              const rest = arg.slice(j + 1) || rawArgs[++i];
+              const count = Number(rest);
+              if (!rest || !Number.isSafeInteger(count) || count < 0) {
+                await writeText(context.stderr, `cal: invalid month count '${rest ?? ""}'\n`);
+                return { exitCode: 1 };
+              }
+              if (ch === "A") afterMonths = count;
+              else beforeMonths = count;
+              break;
+            } else if (ch === "d") {
+              const rest = arg.slice(j + 1) || rawArgs[++i];
+              const ds = rest ? parseDateSpec(rest) : undefined;
+              if (!ds) {
+                await writeText(context.stderr, `cal: invalid date '${rest ?? ""}'\n`);
+                return { exitCode: 1 };
+              }
+              explicitYear = ds.year;
+              explicitMonth = ds.month;
+              break;
             } else {
               await writeText(context.stderr, `cal: invalid option -- '${ch}'\n`);
               return { exitCode: 1 };
@@ -405,7 +453,7 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
 
       const epoch = context.env.SOURCE_DATE_EPOCH;
       const now = options.clock ? options.clock() : epoch !== undefined ? new Date(Number(epoch) * 1000) : new Date();
-      let year = now.getUTCFullYear();
+      let year = explicitYear ?? now.getUTCFullYear();
       let month = explicitMonth ?? (now.getUTCMonth() + 1);
 
       if (operands.length === 1) {
@@ -602,6 +650,7 @@ export function evalSyncCal(
   let spanAround = false;
   let showWeeks = false;
   let explicitMonth: number | undefined;
+  let explicitYear: number | undefined;
   let afterMonths = 0;
   let beforeMonths = 0;
   const operands: string[] = [];
@@ -627,17 +676,23 @@ export function evalSyncCal(
     }
     else if (arg === "--no-highlight" || arg === "-h" || arg === "-J") { /* ignore */ }
     else if (arg === "--week" || arg.startsWith("--week=") || arg === "-w") { showWeeks = true; }
-    else if (arg === "-m" || arg === "--month") {
-      const val = rawArgs[++i];
+    else if (arg === "-m" || arg === "--month" || arg.startsWith("--month=")) {
+      const val = arg.startsWith("--month=") ? arg.slice(8) : rawArgs[++i];
       if (!val) return undefined;
       const m = parseMonthSpec(val);
       if (m === undefined) return undefined;
       explicitMonth = m;
-    } else if (arg === "-n" || arg === "--months") {
-      const val = rawArgs[++i];
+    } else if (arg === "-n" || arg === "--months" || arg.startsWith("--months=")) {
+      const val = arg.startsWith("--months=") ? arg.slice(9) : rawArgs[++i];
       const n = Number(val);
       if (!val || !Number.isSafeInteger(n) || n < 1 || n > 24) return undefined;
       spanMonths = n;
+    } else if (arg === "-d" || arg === "--date" || arg.startsWith("--date=")) {
+      const val = arg.startsWith("--date=") ? arg.slice(7) : rawArgs[++i];
+      const ds = val ? parseDateSpec(val) : undefined;
+      if (!ds) return undefined;
+      explicitYear = ds.year;
+      explicitMonth = ds.month;
     } else if (arg === "-A" || arg === "-B") {
       const val = rawArgs[++i];
       const count = Number(val);
@@ -668,6 +723,26 @@ export function evalSyncCal(
           if (m === undefined) return undefined;
           explicitMonth = m;
           break;
+        } else if (ch === "n") {
+          const rest = arg.slice(j + 1) || rawArgs[++i];
+          const n = Number(rest);
+          if (!rest || !Number.isSafeInteger(n) || n < 1 || n > 24) return undefined;
+          spanMonths = n;
+          break;
+        } else if (ch === "A" || ch === "B") {
+          const rest = arg.slice(j + 1) || rawArgs[++i];
+          const count = Number(rest);
+          if (!rest || !Number.isSafeInteger(count) || count < 0 || count > 24) return undefined;
+          if (ch === "A") afterMonths = count;
+          else beforeMonths = count;
+          break;
+        } else if (ch === "d") {
+          const rest = arg.slice(j + 1) || rawArgs[++i];
+          const ds = rest ? parseDateSpec(rest) : undefined;
+          if (!ds) return undefined;
+          explicitYear = ds.year;
+          explicitMonth = ds.month;
+          break;
         } else return undefined;
       }
     } else {
@@ -677,7 +752,7 @@ export function evalSyncCal(
 
   if (afterMonths > 0 || beforeMonths > 0) spanMonths = beforeMonths + 1 + afterMonths;
   const now = sourceDateEpoch !== undefined ? new Date(Number(sourceDateEpoch) * 1000) : new Date();
-  let year = now.getUTCFullYear();
+  let year = explicitYear ?? now.getUTCFullYear();
   let month = explicitMonth ?? (now.getUTCMonth() + 1);
 
   if (operands.length === 1) {

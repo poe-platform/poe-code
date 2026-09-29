@@ -71,8 +71,6 @@ export function evalSyncGetopt(
         specification = v;
       } else if (a.startsWith("--options=")) {
         specification = a.slice(10);
-      } else if (a.startsWith("-o") && a.length > 2) {
-        specification = a.slice(2);
       } else if (a === "-l" || a === "--longoptions" || a === "--long") {
         const v = args[++idx];
         if (v === undefined || !parseLongSpecList(v)) return undefined;
@@ -90,11 +88,47 @@ export function evalSyncGetopt(
         alternative = true;
       } else if (a === "-n" || a === "--name") {
         if (args[++idx] === undefined) return undefined;
-      } else if (a === "-s" || a === "--shell") {
-        const sh = args[++idx];
+      } else if (a.startsWith("--name=")) {
+        // accepted
+      } else if (a === "-s" || a === "--shell" || a.startsWith("--shell=")) {
+        const sh = a.startsWith("--shell=") ? a.slice(8) : args[++idx];
         if (sh === "bash" || sh === "sh") tcsh = false;
         else if (sh === "tcsh" || sh === "csh") tcsh = true;
         else return undefined;
+      } else if (!a.startsWith("--") && a.length > 1) {
+        for (let j = 1; j < a.length; j++) {
+          const ch = a[j]!;
+          if (ch === "q") { /* quiet */ }
+          else if (ch === "Q") quietOutput = true;
+          else if (ch === "u") quote = false;
+          else if (ch === "a") alternative = true;
+          else if (ch === "o") {
+            const rest = a.slice(j + 1);
+            const v = rest.length > 0 ? rest : args[++idx];
+            if (v === undefined) return undefined;
+            specification = v;
+            break;
+          } else if (ch === "l") {
+            const rest = a.slice(j + 1);
+            const v = rest.length > 0 ? rest : args[++idx];
+            if (v === undefined || !parseLongSpecList(v)) return undefined;
+            break;
+          } else if (ch === "n") {
+            const rest = a.slice(j + 1);
+            const v = rest.length > 0 ? rest : args[++idx];
+            if (v === undefined) return undefined;
+            break;
+          } else if (ch === "s") {
+            const rest = a.slice(j + 1);
+            const sh = rest.length > 0 ? rest : args[++idx];
+            if (sh === "bash" || sh === "sh") tcsh = false;
+            else if (sh === "tcsh" || sh === "csh") tcsh = true;
+            else return undefined;
+            break;
+          } else {
+            return undefined;
+          }
+        }
       } else {
         return undefined;
       }

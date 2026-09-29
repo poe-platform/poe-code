@@ -1,3 +1,6 @@
+import { pathchkCommands } from "../../src/commands/pathchk/index.js";
+import { getoptCommands } from "../../src/commands/getopt/index.js";
+import { calCommands } from "../../src/commands/cal/index.js";
 import { htmlToMarkdownCommands } from "../../src/commands/html-to-markdown/index.ts";
 import { htmlqCommands } from "../../src/commands/htmlq/index.ts";
 import { whichCommands } from "../../src/commands/which/index.ts";
@@ -981,5 +984,28 @@ test("evaluates html-to-markdown blockquote/pre/hr/entities, htmlq -o output fil
   assert.equal(
     r.stdout,
     "> a & b||---||```|x = 1|```|#ok#/bin/mytool\n",
+  );
+});
+
+test("evaluates cal -d/bundled flags, getopt bundled flags, and pathchk/cal/getopt pipeline stages in sync substitutions (Wave 206)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(calCommands()).use(getoptCommands()).use(pathchkCommands());
+  const res = await shell.exec(`
+    touch /tmp/w206_ok.txt
+    for i in 1 2 3; do
+      c1=\$(cal -d 2026-05 | head -n 1)
+      c2=\$(echo ignored | cal -A1 -B1 -d2026-05 | head -n 1)
+      g1=\$(getopt -qu -o ab: -l alpha,beta: -- -a -b val --alpha --beta=two rest)
+      g2=\$(echo ignored | getopt -uqo ab: -- -a -b hi pos)
+      p1=\$(pathchk /tmp/w206_ok.txt | wc -c)
+      p2=\$(echo ignored | pathchk /tmp/w206_ok.txt)
+    done
+    printf "%s|%s|%s|%s|%s|%s\n" "\$c1" "\$c2" "\$g1" "\$g2" "\$p1" "\$p2"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "May 2026        |     April 2026             May 2026             June 2026        | -a -b val --alpha --beta two -- rest| -a -b hi -- pos|0|"
   );
 });

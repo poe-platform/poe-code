@@ -138,3 +138,33 @@ fn test_differential_rebase_and_signed_tags_parity() {
     assert_eq!(sys_tree.trim(), rust_tree.trim());
     let _ = fs::remove_dir_all(&base);
 }
+
+
+#[test]
+fn test_differential_stash_cherry_pick_and_hooks_parity() {
+    let bin = env!("CARGO_BIN_EXE_git-rust");
+    let base = std::env::temp_dir().join(format!("git-rust-diff-stash-{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    let sys_dir = base.join("sys");
+    let rust_dir = base.join("rust");
+    fs::create_dir_all(&sys_dir).unwrap();
+    fs::create_dir_all(&rust_dir).unwrap();
+
+    for (prog, dir) in [("git", &sys_dir), (bin, &rust_dir)] {
+        assert!(Command::new(prog).current_dir(dir).args(["init", "-b", "main"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["config", "user.name", "Alice"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["config", "user.email", "alice@example.com"]).status().unwrap().success());
+        fs::write(dir.join("main.txt"), "v1\n").unwrap();
+        assert!(Command::new(prog).current_dir(dir).args(["add", "main.txt"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["commit", "-m", "v1"]).status().unwrap().success());
+
+        // Dirty tracked file, stash push, then stash pop
+        fs::write(dir.join("main.txt"), "v2-stashed\n").unwrap();
+        assert!(Command::new(prog).current_dir(dir).args(["stash", "push", "-m", "wip"]).status().unwrap().success());
+        assert_eq!(fs::read_to_string(dir.join("main.txt")).unwrap(), "v1\n");
+        assert!(Command::new(prog).current_dir(dir).args(["stash", "pop"]).status().unwrap().success());
+        assert_eq!(fs::read_to_string(dir.join("main.txt")).unwrap(), "v2-stashed\n");
+    }
+
+    let _ = fs::remove_dir_all(&base);
+}

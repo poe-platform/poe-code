@@ -69,7 +69,8 @@ test("explicit command and family selection; full profile retains the optional i
       "csvstack",
       "csvstat",
       "in2csv",
-      "sql2csv"
+      "sql2csv",
+      "gh"
     ]
   );
   const pair = lazy.createFfmpegCommands();
@@ -110,7 +111,8 @@ test("static discovery metadata stays compatible with the maintained command fac
     "sips",
     "imagemagick",
     "wkhtmltopdf",
-    "csvkit"
+    "csvkit",
+    "gh"
   ] as const;
   for (const family of families) {
     const module = (await import(`../../src/commands/${family}/index.js`)) as Record<

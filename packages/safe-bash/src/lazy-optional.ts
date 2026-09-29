@@ -114,8 +114,8 @@ export const createSofficeCommands: sofficeModule["createSofficeCommands"] = (..
 };
 export type { SofficeCommandsOptions } from "./commands/soffice/index.js";
 
-type pandocModule = typeof import("./commands/pandoc/index.js");
-const loadpandoc = createLazyCommandLoader(() => import("./commands/pandoc/index.js"));
+type pandocModule = typeof import("./commands/pandoc/implementation.js");
+const loadpandoc = createLazyCommandLoader(() => import("./commands/pandoc/implementation.js"));
 const pandocMetadata = [
   {
     name: "pandoc",
@@ -148,8 +148,8 @@ export const createPandocCommand: pandocModule["createPandocCommand"] = (...args
     return () => [module.createPandocCommand(...args)];
   })[0]!;
 };
-export type { PandocCommandsOptions } from "./commands/pandoc/index.js";
-export type { PandocLimits } from "./commands/pandoc/index.js";
+export type { PandocCommandsOptions } from "./commands/pandoc/implementation.js";
+export type { PandocLimits } from "./commands/pandoc/implementation.js";
 
 type ssconvertModule = typeof import("./commands/ssconvert/index.js");
 const loadssconvert = createLazyCommandLoader(() => import("safe-bash-command-ssconvert"));
@@ -606,6 +606,25 @@ export const createCsvkitCommand: csvkitModule["createCsvkitCommand"] = (...args
 };
 export type { CsvkitCommandsOptions } from "./commands/csvkit/index.js";
 
+type ghModule = typeof import("./commands/gh/index.js");
+const loadgh = createLazyCommandLoader(() => import("./commands/gh/index.js"));
+const ghMetadata = [
+  { name: "gh", description: "Work seamlessly with GitHub from the command line" }
+] as const;
+export const createGhCommand: ghModule["createGhCommand"] = (...args) =>
+  createLazyCommands(ghMetadata, async () => {
+    const module = await loadgh();
+    return () => [module.createGhCommand(...args)];
+  })[0]!;
+export const createGhCommands: ghModule["createGhCommands"] = (...args) =>
+  createLazyCommands(ghMetadata, async () => {
+    const module = await loadgh();
+    return () => module.createGhCommands(...args);
+  });
+export const ghCommands: ghModule["ghCommands"] = (options = {}) =>
+  lazyCommandPlugin("gh", createGhCommands(options), options.replace ?? false);
+export type { GhCommandOptions, GhCommandsOptions, GhLimits } from "./commands/gh/index.js";
+
 /** Extension contract for trusted, statically bundled command code. */
 export {
   createLazyCommandLoader,
@@ -615,6 +634,7 @@ export {
 export type { LazyCommandMetadata, LazyCommandFactory } from "./plugins/lazy-command.js";
 
 export interface OptionalCommandConfiguration {
+  readonly gh?: Parameters<ghModule["createGhCommands"]>[0];
   readonly ffmpeg?: Parameters<ffmpegModule["createFfmpegCommands"]>[0];
   readonly git?: Parameters<gitModule["createGitCommands"]>[0];
   readonly soffice?: Parameters<sofficeModule["createSofficeCommands"]>[0];
@@ -702,6 +722,10 @@ const optionalFamilies = {
   csvkit: {
     metadata: csvkitMetadata,
     create: (options: OptionalCommandConfiguration) => createCsvkitCommands(options.csvkit)
+  },
+  gh: {
+    metadata: ghMetadata,
+    create: (options: OptionalCommandConfiguration) => createGhCommands(options.gh)
   }
 } as const;
 export type OptionalCommandFamily = keyof typeof optionalFamilies;

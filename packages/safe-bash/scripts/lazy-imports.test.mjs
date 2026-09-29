@@ -40,6 +40,7 @@ test("root import cannot statically evaluate optional spreadsheet, PDF, media or
         "pdf-ast/",
         "mp4-ast/",
         "git-rust/",
+        "safe-bash-command-git/",
         "safe-bash-command-soffice/",
         "safe-bash-command-ssconvert/",
         "safe-bash-command-ffmpeg/"

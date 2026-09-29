@@ -63,7 +63,7 @@ export { createHostnameCommand, createHostnameCommands, hostnameCommands, type H
 export { createNprocCommand, createNprocCommands, nprocCommands, type NprocCommandsOptions, type NprocLimits, type NprocOptions } from "./commands/nproc/index.js";
 export { createShufCommand, createShufCommands, shufCommands, type ShufCommandsOptions, type ShufLimits, type ShufOptions } from "./shuf.js";
 export { createYesCommand, createYesCommands, yesCommands, type YesCommandOptions, type YesCommandsOptions, type YesLimits, type YesOptions } from "./yes.js";
-export { createDdCommand, createDdCommands, ddCommands, type DdFileHandle, type DdFileOpener, type DdFileRequest, type DdCommandsOptions, type DdLimits, type DdOptions } from "./commands/dd/index.js";
+export { createDdCommand, createDdCommands, ddCommands, type DdFileHandle, type DdFileOpener, type DdFileRequest, type DdCommandsOptions, type DdLimits, type DdOptions } from "./dd.js";
 export { createNumfmtCommand, createNumfmtCommands, numfmtCommands, type NumfmtCommandsOptions, type NumfmtLimits, type NumfmtOptions } from "./commands/numfmt/index.js";
 export { createEnvsubstCommand, createEnvsubstCommands, envsubstCommands, type EnvsubstCommandsOptions, type EnvsubstLimits, type EnvsubstOptions } from "./commands/envsubst/index.js";
 export { createCalCommand, createCalCommands, calCommands, type CalCommandsOptions, type CalLimits, type CalOptions } from "./commands/cal/index.js";

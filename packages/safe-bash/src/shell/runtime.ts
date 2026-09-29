@@ -29290,10 +29290,6 @@ export class Runtime {
                 if (decoded.some(byte => byte === 0 || byte >= 128)) return undefined;
                 fileRes = sharedSyncPipeDecoder.decode(decoded);
               }
-            } else if (hasSingleHereStringRedir && w0Plain === "rev" && opArgs.length === 0) {
-              fileRes = renderLines(rawLines.map(l => Array.from(l).reverse().join("")));
-            } else if (hasSingleHereStringRedir && w0Plain === "tac" && opArgs.length === 0) {
-              fileRes = renderLines([...rawLines].reverse());
             } else if (w0Plain === "nl") {
               const nlRes = this.evalSyncNl(rawLines, opArgs, rawState.cwd);
               if (nlRes !== undefined) fileRes = renderLines(nlRes);

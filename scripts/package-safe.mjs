@@ -510,9 +510,9 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       const declaration = filename.endsWith(".js") ? filename.slice(0, -3) + ".d.ts"
         : filename.endsWith(".mjs") ? filename.slice(0, -4) + ".d.mts"
         : filename.endsWith(".cjs") ? filename.slice(0, -4) + ".d.cts" : undefined;
-      if (declaration && !excluded(declaration) && await exists(declaration)) pending.push(declaration);
+      if (declaration && !excluded(declaration) && (await exists(declaration) || await exists(declaration.replace("/dist/", "/src/")))) pending.push(declaration);
       const destination = path.join(directory, artifactPath(rootDir, filename));
-      let contents = bundled.has(filename) ? Buffer.from(bundled.get(filename)) : await files.readFile(filename);
+      let contents = bundled.has(filename) ? Buffer.from(bundled.get(filename)) : await files.readFile(await exists(filename) ? filename : filename.replace("/dist/", "/src/"));
       if (filename.endsWith(".js") || filename.endsWith(".mjs") || filename.endsWith(".ts")) {
         const declaration = filename.endsWith(".d.ts") || filename.endsWith(".d.mts");
         contents = rewriteModuleSpecifiers(filename, contents.toString(), specifier => {

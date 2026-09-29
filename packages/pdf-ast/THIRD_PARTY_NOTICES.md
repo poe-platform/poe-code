@@ -277,3 +277,7 @@ Uncompressed object loading also follows PDF.js `fetchUncompressed` by checking
 object number and generation against the xref entry. Recovery retries the file
 scan when an eager object read fails, preserving the common authentication and
 resource-limit path. The original issue9418 fixture is documented above.
+
+The original PDF.js issue2948 fixture covers mesh shading through PatternType 2
+fills. Its provenance is recorded in `src/fixtures/SOURCES.md`; local triangle
+cases exercise direct and chained references to the shading stream.

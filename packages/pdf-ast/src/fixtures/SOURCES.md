@@ -180,3 +180,8 @@ followed by full-file recovery of its one blank page. SHA-256:
 same pinned revision (Apache-2.0). Its damaged uncompressed xref entries require
 full-file recovery; pinned PDF.js independently recovers its one-page catalog.
 SHA-256: `bc0d5ec68433277d36aea4d80c3f8a97a85672b3ded52696118f69623f9a5114`.
+
+`pdfjs-issue2948.pdf` is the unchanged PDF.js `test/pdfs/issue2948.pdf` at the
+same pinned revision (Apache-2.0). Its PatternType 2 rainbow uses a Type 4 mesh
+shading stream. SHA-256:
+`ca52f1602d984cb7a0db562ea1217d879cde4fef402a9564152cab15f6546d5b`.

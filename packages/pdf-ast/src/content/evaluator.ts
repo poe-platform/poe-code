@@ -1831,7 +1831,8 @@ export function evaluateContentStreamToDisplayList(params: {
                 }
               }
               if (Number.isFinite(pMinX) && Number.isFinite(pMinY) && pMaxX > pMinX && pMaxY > pMinY) {
-                const shDict = params.cosDoc.resolveDict(dictGet(patDict, "Shading"));
+                const shading = params.cosDoc.resolve(dictGet(patDict, "Shading"));
+                const shDict = shading?.kind === "stream" ? shading.dict : shading?.kind === "dict" ? shading : undefined;
                 if (shDict) {
                   let patMatrix: Matrix6 = [1, 0, 0, 1, 0, 0];
                   const pmArr = params.cosDoc.resolveArray(dictGet(patDict, "Matrix"));
@@ -1857,7 +1858,8 @@ export function evaluateContentStreamToDisplayList(params: {
                     patClip,
                     st.fillAlpha,
                     "PatternShading_" + st.fillPatternName,
-                    patClip
+                    patClip,
+                    shading?.kind === "stream" ? shading : undefined
                   );
                   if (shImg) {
                     emit({ kind: "image", value: shImg });

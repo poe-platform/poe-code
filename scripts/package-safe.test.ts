@@ -2053,3 +2053,10 @@ it("preserves xmllint factories when the XML browser adapter shares a chunk", as
   const output = result.outputFiles.find(file => file.path === "/output/xml.js")!.text;
   for (const name of ["createXmllintCommand", "createXmllintCommands", "xmllintCommands"]) expect(output).toContain(name);
 });
+
+it('rewrites imports in deeply nested generated expressions without consuming the call stack', () => {
+  const prefix = 'export const generated = ' + '0 + '.repeat(120000);
+  const source = prefix + "import('poe-code/safe-fs');\n";
+  expect(rewriteModuleSpecifiers('generated.js', source, specifier => specifier === 'poe-code/safe-fs' ? '@poe-platform/safe-fs' : specifier))
+    .toBe(prefix + 'import("@poe-platform/safe-fs");\n');
+});

@@ -80,7 +80,7 @@ export function buildDependencyGraph(
     if (node.kind === "name") {
       const name = named(node, position);
       if (!name || names.has(name)) return [];
-      return staticRanges(parseNamedExpression(name, book, parse, tick, maximumDepth), position, new Set([...names, name]), depth + 1);
+      return staticRanges(parseNamedExpression(name, book, parse, tick, maximumDepth, node.relocation), position, new Set([...names, name]), depth + 1);
     }
     if (node.kind === "call" && (node.name === "IF" || node.name === "CHOOSE")) {
       const ranges: CalculationRange[] = [];
@@ -162,7 +162,7 @@ export function buildDependencyGraph(
       if (node.kind === "name" && (node.workbook === undefined || node.workbook === "")) {
         const name = named(node, position);
         if (name && !names.has(name)) {
-          pending.push({ node: parseNamedExpression(name, book, parse, tick, maximumDepth), position, names: new Set([...names, name]), depth: depth + 1 });
+          pending.push({ node: parseNamedExpression(name, book, parse, tick, maximumDepth, node.relocation), position, names: new Set([...names, name]), depth: depth + 1 });
         }
       }
       const children = node.kind === "unary" || node.kind === "parentheses" ? [node.child] : node.kind === "binary" ? [node.left, node.right] : node.kind === "call" ? node.args : node.kind === "array" ? node.rows.flat() : [];

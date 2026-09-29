@@ -1,7 +1,7 @@
 import { SsconvertError } from "../contracts.js";
 import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import type { FormulaDocument, FormulaNode, ParsePosition, ReferenceEndpoint } from "./ast.js";
-import { serializeReference, serializeLabelReference, quoteFormulaString } from "./serialization.js";
+import { serializeExpression, serializeReference, serializeLabelReference, quoteFormulaString } from "./serialization.js";
 
 export function visitFormula(node: FormulaNode, visitor: (node: FormulaNode) => void): void {
   visitor(node);
@@ -97,6 +97,22 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
           ? serializeLabelReference({ ...node, first, ...(last ? { last } : {}), label }, document.grammar, position)
           : serializeReference(first, last, document.grammar, position) });
       }
+    } else if (node.kind === "name" && node.relocation && edit.translation === "copy") {
+      const relocation = { ...node.relocation };
+      if (relocation.relative) {
+        relocation.row += target.row - document.position.row;
+        relocation.column += target.column - document.position.column;
+      }
+      if (target.sheet !== document.position.sheet) {
+        const origin = document.sheetOrder?.indexOf(document.position.sheet) ?? -1;
+        const destination = document.sheetOrder?.indexOf(target.sheet) ?? -1;
+        if (origin < 0 || destination < 0) throw new SsconvertError("invalid-request", "Cross-sheet formula copy requires workbook tab order");
+        relocation.sheet += destination - origin;
+      }
+      if (![relocation.row, relocation.column, relocation.sheet].every(Number.isSafeInteger))
+        throw new SsconvertError("invalid-request", "Invalid live name displacement");
+      const text = serializeExpression({ ...document, root: { ...node, relocation } }, document.grammar, false).slice(document.grammar.prefixes[0]?.length ?? 0);
+      changes.push({ start: node.start, end: node.end, text });
     } else if (node.kind === "name" && (node.workbook === undefined || node.workbook === "") && node.sheet && renamedSheet(node.sheet) !== undefined) {
       const text = quoteFormulaString(renamedSheet(node.sheet)!, "'", document.grammar) + document.grammar.sheetSeparator + node.name;
       changes.push({ start: node.start, end: node.end, text: document.grammar.bracketReferences ? "[" + text + "]" : text });

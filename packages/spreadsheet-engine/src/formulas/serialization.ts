@@ -138,6 +138,12 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
         options.relativeSheets === "fixed" ? { ...value.first, sheetRelative: false } : value.first,
         options.relativeSheets === "fixed" && value.last ? { ...value.last, sheetRelative: false } : value.last, grammar, position);
       case "name": {
+        if (value.relocation) {
+          if (grammar.id !== "gnumeric" && !grammar.internalNames)
+            throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: live name relocation in target grammar");
+          const { relative, row, column, sheet } = value.relocation;
+          return `@name.${relative ? "relative" : "absolute"}[${row},${column},${sheet}]:` + quoteFormulaString(value.name, '"', grammar);
+        }
         if (grammar.qualifiedNames === false && (value.sheet !== undefined || value.workbook !== undefined))
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: qualified formula name in target grammar");
         if (value.workbook === "" && grammar.bracketReferences && value.sheet === undefined)

@@ -240,6 +240,28 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     if (depth > (options.maximumNodes ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula node limit exceeded");
     try {
       const c = source[offset];
+      if (source.startsWith("@name.", offset)) {
+        if (grammar.id !== "gnumeric" && !grammar.internalNames) fail("Internal live name in native formula");
+        offset += 6;
+        const relative = source.startsWith("relative[", offset);
+        if (!relative && !source.startsWith("absolute[", offset)) fail("Invalid live name mode");
+        offset += 9;
+        const displacement = (separator: string): number => {
+          const start = offset;
+          if (source[offset] === "-") offset++;
+          const begin = offset;
+          while (digit(source[offset])) offset++;
+          const value = Number(source.slice(start, offset));
+          if (offset === begin || !Number.isSafeInteger(value) || source[offset++] !== separator) fail("Invalid live name displacement");
+          return value;
+        };
+        const row = displacement(","), column = displacement(","), sheet = displacement("]");
+        if (!relative && (row !== 0 || column !== 0) || source[offset++] !== ":" || source[offset] !== '"') fail("Invalid live name");
+        const name = quoted('"', grammar.stringEscape);
+        if (!name) fail("Empty live name");
+        options.onName?.(name);
+        return node({ kind: "name", name, workbook: "", relocation: { relative, row, column, sheet }, start, end: offset });
+      }
       if (c === "@" && !internalLabels) fail("Internal label reference in native formula");
       if (c === "@" && internalLabels) {
         // Explicit ssconvert label references avoid the ambiguity of Gnumeric's

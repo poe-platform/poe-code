@@ -8,6 +8,16 @@ export interface ParsePosition {
   readonly column: number;
 }
 export interface Axis { readonly value: number; readonly relative: boolean }
+/** A binary-format name use retains identity while copies displace its definition.
+ * Offsets apply to references resolved at the current definition's declaration
+ * anchor. Copy adds row/column deltas only in relative mode and always adds tab
+ * displacement; moving a formula leaves the offsets intact. */
+export interface NameRelocation {
+  readonly relative: boolean;
+  readonly row: number;
+  readonly column: number;
+  readonly sheet: number;
+}
 export interface ReferenceEndpoint {
   readonly row?: Axis;
   readonly column?: Axis;
@@ -35,6 +45,7 @@ export type FormulaNode = Span & (
       /** A live label anchor, not the data range it currently selects. */
       readonly label?: LabelReference }
   | { readonly kind: "name"; readonly name: string; readonly sheet?: string;
+      readonly relocation?: NameRelocation;
       /** Empty means the current workbook; without a sheet it selects only global names. */
       readonly workbook?: string }
   | { readonly kind: "unary"; readonly op: "+" | "-" | "%"; readonly child: FormulaNode }
@@ -71,6 +82,7 @@ export interface FormulaGrammar {
   readonly quotedLabels?: "openformula" | "calc";
   /** Permit ssconvert's live label anchors in internal workbook expressions. */
   readonly internalLabels?: boolean;
+  readonly internalNames?: boolean;
   readonly quotedErrors?: boolean;
   readonly rangeSeparator?: string;
   readonly sheetSpans?: boolean;

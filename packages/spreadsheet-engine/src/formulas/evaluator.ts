@@ -145,7 +145,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
     const matches = (entry: NonNullable<Workbook["names"]>[number]) => entry.name === node.name;
     const name = book.names?.find(entry => entry.sheet === sheet && matches(entry)) ?? book.names?.find(entry => entry.sheet === undefined && matches(entry));
     if (!name || names.has(name)) return error("#REF!");
-    return indirectRange(parseNamedExpression(name, book, parse, tick, context.limits.formulaDependencyDepth ?? Infinity), position, new Set([...names, name]), depth + 1);
+    return indirectRange(parseNamedExpression(name, book, parse, tick, context.limits.formulaDependencyDepth ?? Infinity, node.relocation), position, new Set([...names, name]), depth + 1);
   }
   function scalar(value: Value, position: ParsePosition): CellValue {
     // OpenFormula §5.10.4 selects at the formula position when the consumer
@@ -208,7 +208,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
         const matches = (entry: NonNullable<Workbook["names"]>[number]) => entry.name === node.name;
         const name = book.names?.find(entry => entry.sheet === sheet && matches(entry)) ?? book.names?.find(entry => entry.sheet === undefined && matches(entry));
         if (!name || names.has(name)) return error("#NAME?");
-        return evaluate(parseNamedExpression(name, book, parse, tick, context.limits.formulaDependencyDepth ?? Infinity), position, array, new Set([...names, name]), wantReference);
+        return evaluate(parseNamedExpression(name, book, parse, tick, context.limits.formulaDependencyDepth ?? Infinity, node.relocation), position, array, new Set([...names, name]), wantReference);
       }
       if (node.kind === "unary") {
         const apply = (value: CellValue) => {

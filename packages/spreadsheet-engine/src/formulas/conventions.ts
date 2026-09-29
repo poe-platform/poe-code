@@ -27,7 +27,7 @@ export const odfGrammar: FormulaGrammar = Object.freeze({ ...gnumericGrammar,
   prefixes: Object.freeze(["of:=", "oooc:=", "="]), functionPrefixes: Object.freeze(["ORG.GNUMERIC.", "COM.MICROSOFT."])
 });
 /** Internal OpenFormula preserves relative sheets alongside live label anchors. */
-export const internalOdfGrammar: FormulaGrammar = Object.freeze({ ...odfGrammar, internalLabels: true });
+export const internalOdfGrammar: FormulaGrammar = Object.freeze({ ...odfGrammar, internalLabels: true, internalNames: true });
 export const sylkGrammar: FormulaGrammar = Object.freeze({ ...gnumericGrammar, id: "sylk", address: "r1c1" });
 /** Native SYLK output quotes strings without escaping; its reader does not invert that operation. */
 export const sylkWriterGrammar: FormulaGrammar = Object.freeze({ ...sylkGrammar, id: "sylk-writer", stringEscape: "raw" });

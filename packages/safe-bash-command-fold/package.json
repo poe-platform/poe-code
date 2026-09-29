@@ -22,8 +22,7 @@
   "devDependencies": {
     "safe-bash-io-engine": "*",
     "safe-bash-contracts": "*",
-    "safe-bash-text-stream-engine": "*",
-    "safe-bash-command-fold": "*"
+    "safe-bash-text-stream-engine": "*"
   },
   "version": "0.0.1",
   "type": "module",

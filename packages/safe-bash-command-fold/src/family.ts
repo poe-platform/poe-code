@@ -1,4 +1,4 @@
-import { decodeFoldUnit, portableWidth, type FoldUnit } from "safe-bash-command-fold";
+import { decodeFoldUnit, portableWidth, type FoldUnit } from "./index.js";
 import type { ByteSource, CommandDefinition } from "safe-bash-contracts";
 import { integer } from "safe-bash-io-engine/internal";
 import { numericOptions } from "safe-bash-text-stream-engine/stream-inspection/numeric-options";

@@ -1,1679 +1,5 @@
 {
-  "files": [
-    "dist",
-    "!dist/optional.js",
-    "!dist/optional.js.map",
-    "!dist/optional.d.ts",
-    "!dist/optional.d.ts.map",
-    "!dist/commands/cmp",
-    "!dist/commands/dd",
-    "!dist/commands/install",
-    "!dist/commands/shuf",
-    "!dist/commands/truncate",
-    "!dist/commands/yes",
-    "!dist/commands/yq/expression.js",
-    "!dist/commands/yq/comments.js",
-    "!dist/commands/yq/comments.js.map",
-    "!dist/commands/yq/comments.d.ts",
-    "!dist/commands/yq/comments.d.ts.map",
-    "!dist/commands/yq/expression.js.map",
-    "!dist/commands/yq/expression.d.ts",
-    "!dist/commands/yq/expression.d.ts.map",
-    "!dist/commands/yq/nodes.js",
-    "!dist/commands/yq/nodes.js.map",
-    "!dist/commands/yq/nodes.d.ts",
-    "!dist/commands/yq/nodes.d.ts.map",
-    "!dist/commands/yq/evaluate.js",
-    "!dist/commands/yq/evaluate.js.map",
-    "!dist/commands/yq/evaluate.d.ts",
-    "!dist/commands/yq/evaluate.d.ts.map",
-    "!dist/commands/yq/native-work.js",
-    "!dist/commands/yq/native-work.js.map",
-    "!dist/commands/yq/native-work.d.ts",
-    "!dist/commands/yq/native-work.d.ts.map",
-    "!dist/commands/yq/inplace.js",
-    "!dist/commands/yq/inplace.js.map",
-    "!dist/commands/yq/inplace.d.ts",
-    "!dist/commands/yq/inplace.d.ts.map",
-    "!dist/commands/yq/arguments.js",
-    "!dist/commands/yq/arguments.js.map",
-    "!dist/commands/yq/arguments.d.ts",
-    "!dist/commands/yq/arguments.d.ts.map",
-    "!dist/commands/yq/mike.js",
-    "!dist/commands/yq/mike.js.map",
-    "!dist/commands/yq/mike.d.ts",
-    "!dist/commands/yq/mike.d.ts.map",
-    "!dist/commands/yq/formats.js",
-    "!dist/commands/yq/formats.js.map",
-    "!dist/commands/yq/formats.d.ts",
-    "!dist/commands/yq/formats.d.ts.map",
-    "!dist/commands/yq/native-encoder.js",
-    "!dist/commands/yq/native-encoder.js.map",
-    "!dist/commands/yq/native-encoder.d.ts",
-    "!dist/commands/yq/native-encoder.d.ts.map",
-    "!dist/fs/devices",
-    "!dist/shell/extensions/arrays",
-    "!dist/shell/extensions/trap",
-    "!dist/shell/extensions/mapfile",
-    "!dist/shell/extensions/read",
-    "!dist/opt-in",
-    "!dist/commands/op/op.test.js",
-    "!dist/commands/op/op.test.js.map",
-    "!dist/commands/op/op.test.d.ts",
-    "!dist/commands/op/op.test.d.ts.map"
-  ],
-  "poeCode": {
-    "packageLint": {
-      "sourceExclude": [
-        "src/commands/cmp/index.ts",
-        "src/commands/dd/index.ts",
-        "src/commands/install/index.ts",
-        "src/commands/shuf/index.ts",
-        "src/commands/truncate/index.ts",
-        "src/commands/yes/index.ts",
-        "src/commands/yq/arguments.ts",
-        "src/commands/yq/comments.ts",
-        "src/commands/yq/evaluate.ts",
-        "src/commands/yq/expression.ts",
-        "src/commands/yq/formats.ts",
-        "src/commands/yq/inplace.ts",
-        "src/commands/yq/mike.ts",
-        "src/commands/yq/native-encoder.ts",
-        "src/commands/yq/native-work.ts",
-        "src/commands/yq/nodes.ts",
-        "src/fs/devices/index.ts",
-        "src/optional.ts",
-        "src/shell/extensions/arrays/index.ts",
-        "src/shell/extensions/mapfile/index.ts",
-        "src/shell/extensions/read/index.ts",
-        "src/shell/extensions/trap/index.ts"
-      ]
-    },
-    "integration": {
-      "standalonePeer": {
-        "range": ">=13.0.0",
-        "developmentVersion": "13.0.0"
-      },
-      "peerProfile": "checkout-root",
-      "privateWorkspaces": {
-        "safe-bash-command-html-to-markdown": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "portable": true,
-          "devDependencies": {
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-contracts": "*",
-            "safe-bash-command-shuf": "*",
-            "safe-bash-io-engine": "*"
-          }
-        },
-        "safe-bash-command-csvcut": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-csv-engine": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-csvkit": {
-          "version": "0.0.1",
-          "dependencies": {
-            "@e965/xlsx": "0.20.3",
-            "@poe-code/office-package": "*",
-            "@sqlite.org/sqlite-wasm": "3.50.4-build1",
-            "saxes": "6.0.0"
-          },
-          "devDependencies": {
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-htmlq": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-markdown-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-install": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true,
-          "optionalModules": {
-            ".": "./dist/commands/install/index.js",
-            "./arguments": "./dist/commands/install/arguments.js",
-            "./index": "./dist/commands/install/index.js",
-            "./mode": "./dist/commands/install/mode.js",
-            "./options": "./dist/commands/install/options.js"
-          }
-        },
-        "safe-bash-command-jq": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/safe-fs": "*",
-            "safe-bash-contracts": "*",
-            "safe-bash-query-engine": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-cal": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-fd": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-regex-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-envsubst": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-pandoc": {
-          "version": "0.0.1",
-          "dependencies": {
-            "@poe-code/office-package": "*",
-            "entities": "^6.0.1",
-            "jsonc-parser": "^3.3.1",
-            "parse5": "7.3.0",
-            "saxes": "6.0.0",
-            "@poe-code/pdf": "0.0.1",
-            "pptx": "*",
-            "yaml": "2.9.0",
-            "fengari": "^0.1.5",
-            "@poe-code/pdf-ast": "*",
-            "citeproc": "2.4.63",
-            "docx": "*",
-            "safe-bash-command-ssconvert": "*",
-            "safe-bash-markdown-engine": "*",
-            "@poe-code/image-ast": "*"
-          },
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-imagemagick": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/image-ast": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-df": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-hexdump": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-csv-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {},
-          "portable": true
-        },
-        "safe-bash-command-mmdc": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-apply-patch": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-locale": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-io-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-query-engine": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-calendar-engine": "*",
-            "safe-bash-regex-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-seq": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-text-stream-engine": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-join": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-table-text-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-compression-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "@poe-code/office-package": "*"
-          },
-          "assets": [
-            "./dist/native/sources.json",
-            "./dist/native/LICENSES.txt",
-            "./dist/native/generated/bz2.mjs",
-            "./dist/native/generated/bz2.d.mts",
-            "./dist/native/generated/xz.mjs",
-            "./dist/native/generated/xz.d.mts",
-            "./dist/native/generated/zstd.mjs",
-            "./dist/native/generated/zstd.d.mts"
-          ],
-          "portable": true
-        },
-        "safe-bash-command-sha512sum": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-exiftool": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-split": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-bc": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-xmllint": {
-          "assets": [
-            "./dist/index.d.ts"
-          ],
-          "portable": true,
-          "version": "0.0.1",
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-io-engine": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-xml-engine": "*",
-            "safe-bash-command-xq": "*"
-          },
-          "dependencies": {}
-        },
-        "safe-bash-base-encoding-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-input-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-id": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-printenv": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-calendar-engine": "*",
-            "safe-bash-byte-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-xml-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/safe-fs": "*",
-            "safe-bash-contracts": "*",
-            "safe-bash-query-engine": "*"
-          },
-          "portable": true,
-          "assets": [
-            "./dist/index.d.ts"
-          ]
-        },
-        "safe-bash-command-iconv": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-sha1sum": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-checksum-engine": "*",
-            "safe-bash-byte-input-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-table-text-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-nl": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-text-stream-engine": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-regex-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-env": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-gh": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-query-engine": "*",
-            "safe-bash-command-git": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-ssh": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-qpdf": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-sips": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/image-ast": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-getconf": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-timeout": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-pdftotext": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-fmt": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-checksum-engine": {
-          "version": "0.0.1",
-          "dependencies": {
-            "@noble/hashes": "2.4.0"
-          },
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-input-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-csvgrep": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-csv-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-touch": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/safe-fs": "*",
-            "safe-bash-contracts": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-unexpand": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-text-stream-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-ffmpeg": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/mp4-ast": "*",
-            "@poe-code/image-ast": "*",
-            "@poe-code/audio-ast": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-gpg": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-line-ending-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "assets": [
-            "./dist/LICENSE"
-          ]
-        },
-        "safe-bash-command-xz": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-compression-engine": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-comm": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-table-text-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-factor": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-date": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-calendar-engine": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-tac": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-text-stream-engine": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-command-expr": "*",
-            "safe-bash-regex-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-od": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-mdq": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-markdown-engine": "*",
-            "safe-bash-regex-engine": "*",
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-byte-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {},
-          "portable": true
-        },
-        "safe-bash-command-op": {
-          "version": "0.0.1",
-          "dependencies": {
-            "@kayahr/text-encoding": "^2.2.0"
-          },
-          "devDependencies": {
-            "@types/node": "^25.2.2",
-            "memfs": "4.56.10",
-            "tsx": ">=4.21.0",
-            "typescript": "^5.9.3",
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-wkhtmltopdf": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-calendar-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-csplit": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-regex-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-which": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-openssl": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-rg": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-search-engine": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-regex-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-text-stream-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-regex-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-ssconvert": {
-          "version": "0.0.1",
-          "dependencies": {
-            "@noble/ciphers": "2.4.0",
-            "@noble/hashes": "2.4.0",
-            "@pdf-lib/fontkit": "1.1.1",
-            "@poe-code/image-ast": "*",
-            "@poe-code/office-package": "*",
-            "@poe-code/pdf": "*",
-            "@poe-code/safe-fs": "*",
-            "htmlparser2": "^10.0.0",
-            "pdf-lib": "1.17.1"
-          },
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "jpeg-js": "0.4.4"
-          },
-          "publicAlias": "poe-code/ssconvert",
-          "portable": true
-        },
-        "safe-bash-command-dos2unix": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-line-ending-engine": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "assets": [
-            "./dist/LICENSE"
-          ],
-          "portable": true
-        },
-        "safe-bash-command-base64": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-base-encoding-engine": "*",
-            "safe-bash-byte-input-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-yq": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-query-engine": "*",
-            "safe-bash-regex-engine": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "peerDependencies": {
-            "yaml": "2.9.0"
-          },
-          "peerDependenciesMeta": {
-            "yaml": {
-              "optional": true
-            }
-          },
-          "optionalModules": {
-            "./expression": "./dist/commands/yq/expression.js",
-            "./comments": "./dist/commands/yq/comments.js",
-            "./nodes": "./dist/commands/yq/nodes.js",
-            "./evaluate": "./dist/commands/yq/evaluate.js",
-            "./native-work": "./dist/commands/yq/native-work.js",
-            "./inplace": "./dist/commands/yq/inplace.js",
-            "./arguments": "./dist/commands/yq/arguments.js",
-            "./mike": "./dist/commands/yq/mike.js",
-            "./formats": "./dist/commands/yq/formats.js",
-            "./native-encoder": "./dist/commands/yq/native-encoder.js"
-          },
-          "portable": true
-        },
-        "safe-bash-command-fgrep": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-search-engine": "*",
-            "safe-bash-command-grep": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-cmp": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true,
-          "optionalModules": {
-            ".": "./dist/commands/cmp/index.js",
-            "./compare": "./dist/commands/cmp/compare.js",
-            "./index": "./dist/commands/cmp/index.js",
-            "./io": "./dist/commands/cmp/io.js",
-            "./options": "./dist/commands/cmp/options.js"
-          }
-        },
-        "safe-bash-command-tsort": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-dd": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true,
-          "optionalModules": {
-            ".": "./dist/commands/dd/index.js",
-            "./conversions": "./dist/commands/dd/conversions.js",
-            "./creation-mask": "./dist/commands/dd/creation-mask.js",
-            "./filesystem-descriptor": "./dist/commands/dd/filesystem-descriptor.js",
-            "./filesystem-output": "./dist/commands/dd/filesystem-output.js",
-            "./index": "./dist/commands/dd/index.js",
-            "./io": "./dist/commands/dd/io.js",
-            "./options": "./dist/commands/dd/options.js",
-            "./report": "./dist/commands/dd/report.js"
-          }
-        },
-        "safe-bash-io-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-query-engine": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-calendar-engine": "*",
-            "safe-bash-regex-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-truncate": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true,
-          "optionalModules": {
-            ".": "./dist/commands/truncate/index.js",
-            "./arguments": "./dist/commands/truncate/arguments.js",
-            "./index": "./dist/commands/truncate/index.js"
-          }
-        },
-        "safe-bash-command-expand": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-text-stream-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-diff3": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-getopt": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-yes": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true,
-          "optionalModules": {
-            ".": "./dist/commands/yes/index.js",
-            "./index": "./dist/commands/yes/index.js"
-          }
-        },
-        "safe-bash-command-git": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "@poe-code/git-rust": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-pdftk": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-sponge": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-unrtf": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-paste": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-table-text-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-md5sum": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-checksum-engine": "*",
-            "safe-bash-byte-input-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-xxd": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-sqlite3": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-hostname": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-sleep": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-calendar-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-soffice": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-egrep": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-search-engine": "*",
-            "safe-bash-command-grep": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-realpath": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/safe-fs": "*",
-            "safe-bash-contracts": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-tree": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-expr": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-regex-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-sha256sum": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-checksum-engine": "*",
-            "safe-bash-byte-input-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-pathchk": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-fold": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "portable": true,
-          "assets": [
-            "./dist/LICENSE",
-            "./dist/COPYING",
-            "./dist/COPYING.LESSER",
-            "./dist/width-data.ts"
-          ],
-          "devDependencies": {
-            "safe-bash-io-engine": "*",
-            "safe-bash-contracts": "*",
-            "safe-bash-text-stream-engine": "*",
-            "safe-bash-command-fold": "*"
-          }
-        },
-        "safe-bash-command-bzip2": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-compression-engine": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-xq": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/safe-fs": "*",
-            "safe-bash-contracts": "*",
-            "safe-bash-xml-engine": "*",
-            "safe-bash-query-engine": "*",
-            "safe-bash-command-jq": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-strings": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-text-stream-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-base32": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-base-encoding-engine": "*",
-            "safe-bash-byte-input-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-grep": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-search-engine": "*",
-            "safe-bash-regex-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-pr": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-calendar-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-column": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-table-text-engine": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-pdfinfo": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-shuf": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true,
-          "optionalModules": {
-            ".": "./dist/commands/shuf/index.js",
-            "./args": "./dist/commands/shuf/args.js",
-            "./creation-mask": "./dist/commands/shuf/creation-mask.js",
-            "./filesystem-descriptor": "./dist/commands/shuf/filesystem-descriptor.js",
-            "./filesystem-output": "./dist/commands/shuf/filesystem-output.js",
-            "./index": "./dist/commands/shuf/index.js",
-            "./input": "./dist/commands/shuf/input.js",
-            "./options": "./dist/commands/shuf/options.js",
-            "./random": "./dist/commands/shuf/random.js",
-            "./shuf": "./dist/commands/shuf/shuf.js",
-            "./usage": "./dist/commands/shuf/usage.js"
-          }
-        },
-        "safe-bash-command-nproc": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-pdftoppm": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-du": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-uname": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-whoami": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-less": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-pdfimages": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-rev": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-text-stream-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-markdown-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {},
-          "portable": true
-        },
-        "safe-bash-command-file": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-contracts": {
-          "version": "0.0.1",
-          "dependencies": {
-            "@poe-code/safe-fs": "*"
-          },
-          "devDependencies": {},
-          "publicAlias": "@poe-platform/safe-bash/contracts",
-          "portable": true
-        },
-        "safe-bash-command-numfmt": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-query-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-regex-engine": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-search-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*",
-            "safe-bash-regex-engine": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-xan": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-byte-engine": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-byte-input-engine": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
-          },
-          "portable": true
-        },
-        "safe-bash-command-readlink": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "safe-bash-contracts": "*",
-            "safe-bash-io-engine": "*"
-          },
-          "portable": true
-        }
-      }
-    }
-  },
-  "devDependencies": {
-    "safe-bash-command-imagemagick": "*",
-    "safe-bash-command-printenv": "*",
-    "@poe-code/media-cli": "*",
-    "@poe-code/remote-execution": "*",
-    "safe-bash-text-stream-engine": "*",
-    "safe-bash-command-jq": "*",
-    "safe-bash-command-pdftk": "*",
-    "@poe-code/pdf-ast": "*",
-    "safe-bash-command-xxd": "*",
-    "safe-bash-command-which": "*",
-    "safe-bash-command-sips": "*",
-    "safe-bash-command-hexdump": "*",
-    "safe-bash-command-xmllint": "*",
-    "safe-bash-command-nproc": "*",
-    "safe-bash-command-strings": "*",
-    "safe-bash-base-encoding-engine": "*",
-    "safe-bash-table-text-engine": "*",
-    "safe-bash-command-base32": "*",
-    "safe-bash-command-timeout": "*",
-    "safe-bash-command-gpg": "*",
-    "safe-bash-command-rev": "*",
-    "safe-bash-command-csvgrep": "*",
-    "safe-bash-command-paste": "*",
-    "safe-bash-command-touch": "*",
-    "@poe-code/safe-playwright": "*",
-    "safe-bash-command-htmlq": "*",
-    "safe-bash-command-pdfimages": "*",
-    "safe-bash-command-comm": "*",
-    "@poe-code/package-lint": "*",
-    "safe-bash-command-yes": "*",
-    "safe-bash-command-less": "*",
-    "safe-bash-regex-engine": "*",
-    "safe-bash-command-uname": "*",
-    "safe-bash-command-ssconvert": "*",
-    "safe-bash-command-html-to-markdown": "*",
-    "safe-bash-command-shuf": "*",
-    "safe-bash-command-nl": "*",
-    "safe-bash-command-unrtf": "*",
-    "safe-bash-command-bc": "*",
-    "@poe-code/office-package": "*",
-    "safe-bash-command-wkhtmltopdf": "*",
-    "safe-bash-command-sqlite3": "*",
-    "tsx": "^4.23.12",
-    "safe-bash-command-tac": "*",
-    "safe-bash-command-xq": "*",
-    "safe-bash-byte-engine": "*",
-    "safe-bash-command-expr": "*",
-    "@poe-code/pdf": "*",
-    "safe-bash-command-soffice": "*",
-    "memfs": "4.56.10",
-    "safe-bash-command-ffmpeg": "*",
-    "safe-bash-command-qpdf": "*",
-    "safe-bash-command-file": "*",
-    "safe-bash-command-fgrep": "*",
-    "safe-bash-command-envsubst": "*",
-    "safe-bash-command-fold": "*",
-    "safe-bash-command-split": "*",
-    "safe-bash-command-unexpand": "*",
-    "safe-bash-csv-engine": "*",
-    "safe-bash-command-gh": "*",
-    "safe-bash-compression-engine": "*",
-    "safe-bash-command-locale": "*",
-    "safe-bash-command-df": "*",
-    "safe-bash-command-od": "*",
-    "safe-bash-command-tsort": "*",
-    "safe-bash-command-pdfinfo": "*",
-    "safe-bash-command-readlink": "*",
-    "safe-bash-command-pr": "*",
-    "safe-bash-command-cal": "*",
-    "safe-bash-command-pdftoppm": "*",
-    "safe-bash-command-id": "*",
-    "safe-bash-command-whoami": "*",
-    "@noble/hashes": "2.4.0",
-    "safe-bash-command-date": "*",
-    "safe-bash-command-ssh": "*",
-    "safe-bash-command-csvkit": "*",
-    "safe-bash-byte-input-engine": "*",
-    "safe-bash-command-op": "*",
-    "safe-bash-markdown-engine": "*",
-    "safe-bash-command-getconf": "*",
-    "safe-bash-command-diff3": "*",
-    "safe-bash-command-factor": "*",
-    "safe-bash-command-realpath": "*",
-    "pptx": "*",
-    "safe-bash-command-cmp": "*",
-    "safe-bash-command-pathchk": "*",
-    "safe-bash-command-md5sum": "*",
-    "safe-bash-command-mdq": "*",
-    "safe-bash-command-xz": "*",
-    "typescript": "5.9",
-    "safe-bash-command-git": "*",
-    "safe-bash-command-join": "*",
-    "safe-bash-command-csvcut": "*",
-    "safe-bash-command-sleep": "*",
-    "pako": "3.0.1",
-    "safe-bash-command-seq": "*",
-    "safe-bash-calendar-engine": "*",
-    "safe-bash-command-apply-patch": "*",
-    "poe-code": "file:../..",
-    "safe-bash-command-tree": "*",
-    "safe-bash-contracts": "*",
-    "safe-bash-command-expand": "*",
-    "safe-bash-command-numfmt": "*",
-    "safe-bash-command-hostname": "*",
-    "safe-bash-query-engine": "*",
-    "safe-bash-io-engine": "*",
-    "safe-bash-command-dd": "*",
-    "safe-bash-xml-engine": "*",
-    "safe-bash-command-env": "*",
-    "safe-bash-command-grep": "*",
-    "safe-bash-command-install": "*",
-    "safe-bash-command-sha512sum": "*",
-    "safe-bash-command-pdftotext": "*",
-    "safe-bash-command-du": "*",
-    "safe-bash-command-exiftool": "*",
-    "safe-bash-command-iconv": "*",
-    "safe-bash-command-getopt": "*",
-    "safe-bash-command-bzip2": "*",
-    "safe-bash-command-mmdc": "*",
-    "safe-bash-command-sha1sum": "*",
-    "safe-bash-command-sha256sum": "*",
-    "safe-bash-command-dos2unix": "*",
-    "safe-bash-command-egrep": "*",
-    "safe-bash-command-fd": "*",
-    "safe-bash-checksum-engine": "*",
-    "safe-bash-search-engine": "*",
-    "safe-bash-command-column": "*",
-    "safe-bash-command-sponge": "*",
-    "safe-bash-command-pandoc": "*",
-    "safe-bash-command-rg": "*",
-    "@types/node": "^22.20.1",
-    "safe-bash-command-openssl": "*",
-    "safe-bash-command-yq": "*",
-    "@poe-code/safe-fs": "*",
-    "safe-bash-line-ending-engine": "*",
-    "docx": "*",
-    "safe-bash-command-truncate": "*",
-    "safe-bash-command-base64": "*",
-    "safe-bash-command-xan": "*",
-    "safe-bash-command-fmt": "*",
-    "safe-bash-command-csplit": "*"
-  },
-  "sideEffects": [
-    "./dist/portable-buffer.js",
-    "./src/portable-buffer.ts",
-    "./src/commands/ssconvert/index.ts",
-    "./dist/commands/ssconvert/index.js",
-    "./dist/worker/entry.js",
-    "./src/worker/entry.ts"
-  ],
-  "private": true,
-  "version": "0.0.0",
-  "peerDependencies": {
-    "poe-code": ">=13.0.0",
-    "yaml": "2.9.0"
-  },
-  "imports": {
-    "#safe-bash-zip-aes-crypto": {
-      "types": "./src/commands/archive/zip/aes-primitives.ts",
-      "workerd": "./dist/commands/archive/zip/aes-primitives-unavailable.js",
-      "browser": "./dist/commands/archive/zip/aes-primitives-unavailable.js",
-      "default": "./dist/commands/archive/zip/aes-primitives.js"
-    },
-    "#safe-bash-network-platform": {
-      "types": "./src/commands/network/platform.ts",
-      "workerd": "./dist/commands/network/platform-portable.js",
-      "browser": "./dist/commands/network/platform-portable.js",
-      "default": "./dist/commands/network/platform.js"
-    }
-  },
-  "name": "@poe-platform/safe-bash",
-  "main": "./dist/index.js",
-  "peerDependenciesMeta": {
-    "yaml": {
-      "optional": true
-    }
-  },
-  "dependencies": {},
-  "types": "./dist/index.d.ts",
-  "engines": {
-    "node": ">=22"
-  },
   "description": "Extensible virtual shell with pluggable filesystems and streaming commands",
-  "scripts": {
-    "benchmark": "node --import tsx benchmarks/run.ts",
-    "build": "node ../../scripts/guard-package-dist.mjs && rm -rf dist/opt-in && node scripts/integration-inputs.mjs && node scripts/build.mjs",
-    "build:optional": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.optional.json",
-    "typecheck": "node scripts/typecheck.mjs",
-    "typecheck:all": "node scripts/typecheck.mjs --build",
-    "typecheck:consumers": "node scripts/typecheck.mjs --consumers",
-    "test": "node scripts/test.mjs",
-    "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
-    "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
-    "verify:release:whole": "node scripts/verify-whole-gate.mjs",
-    "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/test-reporting.test.mjs scripts/historical-type-models.test.mjs scripts/command-workspaces.test.mjs",
-    "test:unit": "npm run test:runner && node scripts/test.mjs",
-    "provision:python:integration": "npm --prefix tests/integration/pyodide-runtime ci && npm --prefix tests/integration/pyodide-runtime run provision:public",
-    "test:python:integration": "npm --prefix tests/integration/pyodide-runtime run test:public",
-    "postbuild": "node scripts/build-optional-cli.mjs"
-  },
-  "type": "module",
   "exports": {
     ".": {
       "types": {
@@ -2422,5 +748,1678 @@
       "types": "./dist/opt-in/entrypoints/yes.d.ts",
       "import": "./dist/opt-in/entrypoints/yes.js"
     }
-  }
+  },
+  "poeCode": {
+    "integration": {
+      "standalonePeer": {
+        "range": ">=13.0.0",
+        "developmentVersion": "13.0.0"
+      },
+      "peerProfile": "checkout-root",
+      "privateWorkspaces": {
+        "safe-bash-command-ssh": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-csvcut": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-csv-engine": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-locale": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-seq": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-text-stream-engine": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-xml-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*",
+            "safe-bash-query-engine": "*"
+          },
+          "portable": true,
+          "assets": [
+            "./dist/index.d.ts"
+          ]
+        },
+        "safe-bash-command-less": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-byte-input-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-rev": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-text-stream-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-op": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@kayahr/text-encoding": "^2.2.0"
+          },
+          "devDependencies": {
+            "@types/node": "^25.2.2",
+            "memfs": "4.56.10",
+            "tsx": ">=4.21.0",
+            "typescript": "^5.9.3",
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-bc": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-nl": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-text-stream-engine": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-regex-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-qpdf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-text-stream-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-yes": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/yes/index.js",
+            "./index": "./dist/commands/yes/index.js"
+          }
+        },
+        "safe-bash-line-ending-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "assets": [
+            "./dist/LICENSE"
+          ]
+        },
+        "safe-bash-command-xxd": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-htmlq": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-markdown-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-fold": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "portable": true,
+          "assets": [
+            "./dist/LICENSE",
+            "./dist/COPYING",
+            "./dist/COPYING.LESSER",
+            "./dist/width-data.ts"
+          ],
+          "devDependencies": {
+            "safe-bash-io-engine": "*",
+            "safe-bash-contracts": "*",
+            "safe-bash-text-stream-engine": "*"
+          }
+        },
+        "safe-bash-command-git": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "@poe-code/git-rust": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-sips": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/image-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-whoami": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-hostname": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-diff3": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-csvgrep": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-csv-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-shuf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/shuf/index.js",
+            "./args": "./dist/commands/shuf/args.js",
+            "./creation-mask": "./dist/commands/shuf/creation-mask.js",
+            "./filesystem-descriptor": "./dist/commands/shuf/filesystem-descriptor.js",
+            "./filesystem-output": "./dist/commands/shuf/filesystem-output.js",
+            "./index": "./dist/commands/shuf/index.js",
+            "./input": "./dist/commands/shuf/input.js",
+            "./options": "./dist/commands/shuf/options.js",
+            "./random": "./dist/commands/shuf/random.js",
+            "./shuf": "./dist/commands/shuf/shuf.js",
+            "./usage": "./dist/commands/shuf/usage.js"
+          }
+        },
+        "safe-bash-search-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-regex-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-io-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-query-engine": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-calendar-engine": "*",
+            "safe-bash-regex-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-checksum-engine": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@noble/hashes": "2.4.0"
+          },
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-input-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-base64": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-base-encoding-engine": "*",
+            "safe-bash-byte-input-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-paste": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-table-text-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-readlink": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-query-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-regex-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-jq": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*",
+            "safe-bash-query-engine": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-realpath": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-uname": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-comm": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-table-text-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-fgrep": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-search-engine": "*",
+            "safe-bash-command-grep": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-ffmpeg": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/mp4-ast": "*",
+            "@poe-code/image-ast": "*",
+            "@poe-code/audio-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-factor": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-pathchk": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-base-encoding-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-input-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-io-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-query-engine": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-calendar-engine": "*",
+            "safe-bash-regex-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-gh": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-query-engine": "*",
+            "safe-bash-command-git": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-unexpand": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-text-stream-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-getopt": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-which": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-hexdump": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-tree": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-csvkit": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@e965/xlsx": "0.20.3",
+            "@poe-code/office-package": "*",
+            "@sqlite.org/sqlite-wasm": "3.50.4-build1",
+            "saxes": "6.0.0"
+          },
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-join": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-table-text-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-timeout": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-ssconvert": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@noble/ciphers": "2.4.0",
+            "@noble/hashes": "2.4.0",
+            "@pdf-lib/fontkit": "1.1.1",
+            "@poe-code/image-ast": "*",
+            "@poe-code/office-package": "*",
+            "@poe-code/pdf": "*",
+            "@poe-code/safe-fs": "*",
+            "htmlparser2": "^10.0.0",
+            "pdf-lib": "1.17.1"
+          },
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "jpeg-js": "0.4.4"
+          },
+          "publicAlias": "poe-code/ssconvert",
+          "portable": true
+        },
+        "safe-bash-command-split": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-fmt": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-sha512sum": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-byte-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {},
+          "portable": true
+        },
+        "safe-bash-command-pdftoppm": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-tac": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-text-stream-engine": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-command-expr": "*",
+            "safe-bash-regex-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-fd": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-regex-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-imagemagick": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/image-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-xan": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-touch": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-xmllint": {
+          "assets": [
+            "./dist/index.d.ts"
+          ],
+          "portable": true,
+          "version": "0.0.1",
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-xml-engine": "*",
+            "safe-bash-command-xq": "*"
+          },
+          "dependencies": {}
+        },
+        "safe-bash-command-pandoc": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@poe-code/office-package": "*",
+            "entities": "^6.0.1",
+            "jsonc-parser": "^3.3.1",
+            "parse5": "7.3.0",
+            "saxes": "6.0.0",
+            "@poe-code/pdf": "0.0.1",
+            "pptx": "*",
+            "yaml": "2.9.0",
+            "fengari": "^0.1.5",
+            "@poe-code/pdf-ast": "*",
+            "citeproc": "2.4.63",
+            "docx": "*",
+            "safe-bash-command-ssconvert": "*",
+            "safe-bash-markdown-engine": "*",
+            "@poe-code/image-ast": "*"
+          },
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-calendar-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-pdftotext": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-pdfimages": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-tsort": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-md5sum": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-checksum-engine": "*",
+            "safe-bash-byte-input-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-envsubst": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-printenv": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-calendar-engine": "*",
+            "safe-bash-byte-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-markdown-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {},
+          "portable": true
+        },
+        "safe-bash-command-expand": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-text-stream-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-egrep": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-search-engine": "*",
+            "safe-bash-command-grep": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-file": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-date": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-calendar-engine": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-strings": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-text-stream-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-nproc": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-du": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-exiftool": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-sponge": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-df": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-table-text-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-dos2unix": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-line-ending-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "assets": [
+            "./dist/LICENSE"
+          ],
+          "portable": true
+        },
+        "safe-bash-command-sleep": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-calendar-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-soffice": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-expr": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-regex-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-rg": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-search-engine": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-regex-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-apply-patch": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-iconv": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-openssl": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-grep": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-search-engine": "*",
+            "safe-bash-regex-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-od": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-csplit": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-regex-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-pdftk": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-wkhtmltopdf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-base32": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-base-encoding-engine": "*",
+            "safe-bash-byte-input-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-id": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-html-to-markdown": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "portable": true,
+          "devDependencies": {
+            "@poe-code/safe-fs": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-contracts": "*",
+            "safe-bash-command-shuf": "*",
+            "safe-bash-io-engine": "*"
+          }
+        },
+        "safe-bash-command-gpg": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-sha1sum": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-checksum-engine": "*",
+            "safe-bash-byte-input-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-yq": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-query-engine": "*",
+            "safe-bash-regex-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "peerDependencies": {
+            "yaml": "2.9.0"
+          },
+          "peerDependenciesMeta": {
+            "yaml": {
+              "optional": true
+            }
+          },
+          "optionalModules": {
+            "./expression": "./dist/commands/yq/expression.js",
+            "./comments": "./dist/commands/yq/comments.js",
+            "./nodes": "./dist/commands/yq/nodes.js",
+            "./evaluate": "./dist/commands/yq/evaluate.js",
+            "./native-work": "./dist/commands/yq/native-work.js",
+            "./inplace": "./dist/commands/yq/inplace.js",
+            "./arguments": "./dist/commands/yq/arguments.js",
+            "./mike": "./dist/commands/yq/mike.js",
+            "./formats": "./dist/commands/yq/formats.js",
+            "./native-encoder": "./dist/commands/yq/native-encoder.js"
+          },
+          "portable": true
+        },
+        "safe-bash-command-install": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/install/index.js",
+            "./arguments": "./dist/commands/install/arguments.js",
+            "./index": "./dist/commands/install/index.js",
+            "./mode": "./dist/commands/install/mode.js",
+            "./options": "./dist/commands/install/options.js"
+          }
+        },
+        "safe-bash-command-cal": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-mmdc": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-env": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-cmp": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/cmp/index.js",
+            "./compare": "./dist/commands/cmp/compare.js",
+            "./index": "./dist/commands/cmp/index.js",
+            "./io": "./dist/commands/cmp/io.js",
+            "./options": "./dist/commands/cmp/options.js"
+          }
+        },
+        "safe-bash-command-getconf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-truncate": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/truncate/index.js",
+            "./arguments": "./dist/commands/truncate/arguments.js",
+            "./index": "./dist/commands/truncate/index.js"
+          }
+        },
+        "safe-bash-command-unrtf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-sha256sum": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-checksum-engine": "*",
+            "safe-bash-byte-input-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-contracts": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@poe-code/safe-fs": "*"
+          },
+          "devDependencies": {},
+          "publicAlias": "@poe-platform/safe-bash/contracts",
+          "portable": true
+        },
+        "safe-bash-compression-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "@poe-code/office-package": "*"
+          },
+          "assets": [
+            "./dist/native/sources.json",
+            "./dist/native/LICENSES.txt",
+            "./dist/native/generated/bz2.mjs",
+            "./dist/native/generated/bz2.d.mts",
+            "./dist/native/generated/xz.mjs",
+            "./dist/native/generated/xz.d.mts",
+            "./dist/native/generated/zstd.mjs",
+            "./dist/native/generated/zstd.d.mts"
+          ],
+          "portable": true
+        },
+        "safe-bash-csv-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {},
+          "portable": true
+        },
+        "safe-bash-command-sqlite3": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-bzip2": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-compression-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-xq": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*",
+            "safe-bash-xml-engine": "*",
+            "safe-bash-query-engine": "*",
+            "safe-bash-command-jq": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-pr": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-calendar-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-column": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-table-text-engine": "*",
+            "safe-bash-byte-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-regex-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-pdfinfo": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-mdq": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-markdown-engine": "*",
+            "safe-bash-regex-engine": "*",
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-dd": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true,
+          "optionalModules": {
+            ".": "./dist/commands/dd/index.js",
+            "./conversions": "./dist/commands/dd/conversions.js",
+            "./creation-mask": "./dist/commands/dd/creation-mask.js",
+            "./filesystem-descriptor": "./dist/commands/dd/filesystem-descriptor.js",
+            "./filesystem-output": "./dist/commands/dd/filesystem-output.js",
+            "./index": "./dist/commands/dd/index.js",
+            "./io": "./dist/commands/dd/io.js",
+            "./options": "./dist/commands/dd/options.js",
+            "./report": "./dist/commands/dd/report.js"
+          }
+        },
+        "safe-bash-command-xz": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-compression-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-numfmt": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        }
+      }
+    },
+    "packageLint": {
+      "sourceExclude": [
+        "src/commands/cmp/index.ts",
+        "src/commands/dd/index.ts",
+        "src/commands/install/index.ts",
+        "src/commands/shuf/index.ts",
+        "src/commands/truncate/index.ts",
+        "src/commands/yes/index.ts",
+        "src/commands/yq/arguments.ts",
+        "src/commands/yq/comments.ts",
+        "src/commands/yq/evaluate.ts",
+        "src/commands/yq/expression.ts",
+        "src/commands/yq/formats.ts",
+        "src/commands/yq/inplace.ts",
+        "src/commands/yq/mike.ts",
+        "src/commands/yq/native-encoder.ts",
+        "src/commands/yq/native-work.ts",
+        "src/commands/yq/nodes.ts",
+        "src/fs/devices/index.ts",
+        "src/optional.ts",
+        "src/shell/extensions/arrays/index.ts",
+        "src/shell/extensions/mapfile/index.ts",
+        "src/shell/extensions/read/index.ts",
+        "src/shell/extensions/trap/index.ts"
+      ]
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "!dist/optional.js",
+    "!dist/optional.js.map",
+    "!dist/optional.d.ts",
+    "!dist/optional.d.ts.map",
+    "!dist/commands/cmp",
+    "!dist/commands/dd",
+    "!dist/commands/install",
+    "!dist/commands/shuf",
+    "!dist/commands/truncate",
+    "!dist/commands/yes",
+    "!dist/commands/yq/expression.js",
+    "!dist/commands/yq/comments.js",
+    "!dist/commands/yq/comments.js.map",
+    "!dist/commands/yq/comments.d.ts",
+    "!dist/commands/yq/comments.d.ts.map",
+    "!dist/commands/yq/expression.js.map",
+    "!dist/commands/yq/expression.d.ts",
+    "!dist/commands/yq/expression.d.ts.map",
+    "!dist/commands/yq/nodes.js",
+    "!dist/commands/yq/nodes.js.map",
+    "!dist/commands/yq/nodes.d.ts",
+    "!dist/commands/yq/nodes.d.ts.map",
+    "!dist/commands/yq/evaluate.js",
+    "!dist/commands/yq/evaluate.js.map",
+    "!dist/commands/yq/evaluate.d.ts",
+    "!dist/commands/yq/evaluate.d.ts.map",
+    "!dist/commands/yq/native-work.js",
+    "!dist/commands/yq/native-work.js.map",
+    "!dist/commands/yq/native-work.d.ts",
+    "!dist/commands/yq/native-work.d.ts.map",
+    "!dist/commands/yq/inplace.js",
+    "!dist/commands/yq/inplace.js.map",
+    "!dist/commands/yq/inplace.d.ts",
+    "!dist/commands/yq/inplace.d.ts.map",
+    "!dist/commands/yq/arguments.js",
+    "!dist/commands/yq/arguments.js.map",
+    "!dist/commands/yq/arguments.d.ts",
+    "!dist/commands/yq/arguments.d.ts.map",
+    "!dist/commands/yq/mike.js",
+    "!dist/commands/yq/mike.js.map",
+    "!dist/commands/yq/mike.d.ts",
+    "!dist/commands/yq/mike.d.ts.map",
+    "!dist/commands/yq/formats.js",
+    "!dist/commands/yq/formats.js.map",
+    "!dist/commands/yq/formats.d.ts",
+    "!dist/commands/yq/formats.d.ts.map",
+    "!dist/commands/yq/native-encoder.js",
+    "!dist/commands/yq/native-encoder.js.map",
+    "!dist/commands/yq/native-encoder.d.ts",
+    "!dist/commands/yq/native-encoder.d.ts.map",
+    "!dist/fs/devices",
+    "!dist/shell/extensions/arrays",
+    "!dist/shell/extensions/trap",
+    "!dist/shell/extensions/mapfile",
+    "!dist/shell/extensions/read",
+    "!dist/opt-in",
+    "!dist/commands/op/op.test.js",
+    "!dist/commands/op/op.test.js.map",
+    "!dist/commands/op/op.test.d.ts",
+    "!dist/commands/op/op.test.d.ts.map"
+  ],
+  "private": true,
+  "peerDependencies": {
+    "poe-code": ">=13.0.0",
+    "yaml": "2.9.0"
+  },
+  "peerDependenciesMeta": {
+    "yaml": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "benchmark": "node --import tsx benchmarks/run.ts",
+    "build": "node ../../scripts/guard-package-dist.mjs && rm -rf dist/opt-in && node scripts/integration-inputs.mjs && node scripts/build.mjs",
+    "build:optional": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.optional.json",
+    "typecheck": "node scripts/typecheck.mjs",
+    "typecheck:all": "node scripts/typecheck.mjs --build",
+    "typecheck:consumers": "node scripts/typecheck.mjs --consumers",
+    "test": "node scripts/test.mjs",
+    "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
+    "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
+    "verify:release:whole": "node scripts/verify-whole-gate.mjs",
+    "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/test-reporting.test.mjs scripts/historical-type-models.test.mjs scripts/command-workspaces.test.mjs",
+    "test:unit": "npm run test:runner && node scripts/test.mjs",
+    "provision:python:integration": "npm --prefix tests/integration/pyodide-runtime ci && npm --prefix tests/integration/pyodide-runtime run provision:public",
+    "test:python:integration": "npm --prefix tests/integration/pyodide-runtime run test:public",
+    "postbuild": "node scripts/build-optional-cli.mjs"
+  },
+  "version": "0.0.0",
+  "imports": {
+    "#safe-bash-zip-aes-crypto": {
+      "types": "./src/commands/archive/zip/aes-primitives.ts",
+      "workerd": "./dist/commands/archive/zip/aes-primitives-unavailable.js",
+      "browser": "./dist/commands/archive/zip/aes-primitives-unavailable.js",
+      "default": "./dist/commands/archive/zip/aes-primitives.js"
+    },
+    "#safe-bash-network-platform": {
+      "types": "./src/commands/network/platform.ts",
+      "workerd": "./dist/commands/network/platform-portable.js",
+      "browser": "./dist/commands/network/platform-portable.js",
+      "default": "./dist/commands/network/platform.js"
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-command-imagemagick": "*",
+    "safe-bash-command-printenv": "*",
+    "@poe-code/media-cli": "*",
+    "@poe-code/remote-execution": "*",
+    "safe-bash-text-stream-engine": "*",
+    "safe-bash-command-jq": "*",
+    "safe-bash-command-pdftk": "*",
+    "@poe-code/pdf-ast": "*",
+    "safe-bash-command-xxd": "*",
+    "safe-bash-command-which": "*",
+    "safe-bash-command-sips": "*",
+    "safe-bash-command-hexdump": "*",
+    "safe-bash-command-xmllint": "*",
+    "safe-bash-command-nproc": "*",
+    "safe-bash-command-strings": "*",
+    "safe-bash-base-encoding-engine": "*",
+    "safe-bash-table-text-engine": "*",
+    "safe-bash-command-base32": "*",
+    "safe-bash-command-timeout": "*",
+    "safe-bash-command-gpg": "*",
+    "safe-bash-command-rev": "*",
+    "safe-bash-command-csvgrep": "*",
+    "safe-bash-command-paste": "*",
+    "safe-bash-command-touch": "*",
+    "@poe-code/safe-playwright": "*",
+    "safe-bash-command-htmlq": "*",
+    "safe-bash-command-pdfimages": "*",
+    "safe-bash-command-comm": "*",
+    "@poe-code/package-lint": "*",
+    "safe-bash-command-yes": "*",
+    "safe-bash-command-less": "*",
+    "safe-bash-regex-engine": "*",
+    "safe-bash-command-uname": "*",
+    "safe-bash-command-ssconvert": "*",
+    "safe-bash-command-html-to-markdown": "*",
+    "safe-bash-command-shuf": "*",
+    "safe-bash-command-nl": "*",
+    "safe-bash-command-unrtf": "*",
+    "safe-bash-command-bc": "*",
+    "@poe-code/office-package": "*",
+    "safe-bash-command-wkhtmltopdf": "*",
+    "safe-bash-command-sqlite3": "*",
+    "tsx": "^4.23.12",
+    "safe-bash-command-tac": "*",
+    "safe-bash-command-xq": "*",
+    "safe-bash-byte-engine": "*",
+    "safe-bash-command-expr": "*",
+    "@poe-code/pdf": "*",
+    "safe-bash-command-soffice": "*",
+    "memfs": "4.56.10",
+    "safe-bash-command-ffmpeg": "*",
+    "safe-bash-command-qpdf": "*",
+    "safe-bash-command-file": "*",
+    "safe-bash-command-fgrep": "*",
+    "safe-bash-command-envsubst": "*",
+    "safe-bash-command-fold": "*",
+    "safe-bash-command-split": "*",
+    "safe-bash-command-unexpand": "*",
+    "safe-bash-csv-engine": "*",
+    "safe-bash-command-gh": "*",
+    "safe-bash-compression-engine": "*",
+    "safe-bash-command-locale": "*",
+    "safe-bash-command-df": "*",
+    "safe-bash-command-od": "*",
+    "safe-bash-command-tsort": "*",
+    "safe-bash-command-pdfinfo": "*",
+    "safe-bash-command-readlink": "*",
+    "safe-bash-command-pr": "*",
+    "safe-bash-command-cal": "*",
+    "safe-bash-command-pdftoppm": "*",
+    "safe-bash-command-id": "*",
+    "safe-bash-command-whoami": "*",
+    "@noble/hashes": "2.4.0",
+    "safe-bash-command-date": "*",
+    "safe-bash-command-ssh": "*",
+    "safe-bash-command-csvkit": "*",
+    "safe-bash-byte-input-engine": "*",
+    "safe-bash-command-op": "*",
+    "safe-bash-markdown-engine": "*",
+    "safe-bash-command-getconf": "*",
+    "safe-bash-command-diff3": "*",
+    "safe-bash-command-factor": "*",
+    "safe-bash-command-realpath": "*",
+    "pptx": "*",
+    "safe-bash-command-cmp": "*",
+    "safe-bash-command-pathchk": "*",
+    "safe-bash-command-md5sum": "*",
+    "safe-bash-command-mdq": "*",
+    "safe-bash-command-xz": "*",
+    "typescript": "5.9",
+    "safe-bash-command-git": "*",
+    "safe-bash-command-join": "*",
+    "safe-bash-command-csvcut": "*",
+    "safe-bash-command-sleep": "*",
+    "pako": "3.0.1",
+    "safe-bash-command-seq": "*",
+    "safe-bash-calendar-engine": "*",
+    "safe-bash-command-apply-patch": "*",
+    "poe-code": "file:../..",
+    "safe-bash-command-tree": "*",
+    "safe-bash-contracts": "*",
+    "safe-bash-command-expand": "*",
+    "safe-bash-command-numfmt": "*",
+    "safe-bash-command-hostname": "*",
+    "safe-bash-query-engine": "*",
+    "safe-bash-io-engine": "*",
+    "safe-bash-command-dd": "*",
+    "safe-bash-xml-engine": "*",
+    "safe-bash-command-env": "*",
+    "safe-bash-command-grep": "*",
+    "safe-bash-command-install": "*",
+    "safe-bash-command-sha512sum": "*",
+    "safe-bash-command-pdftotext": "*",
+    "safe-bash-command-du": "*",
+    "safe-bash-command-exiftool": "*",
+    "safe-bash-command-iconv": "*",
+    "safe-bash-command-getopt": "*",
+    "safe-bash-command-bzip2": "*",
+    "safe-bash-command-mmdc": "*",
+    "safe-bash-command-sha1sum": "*",
+    "safe-bash-command-sha256sum": "*",
+    "safe-bash-command-dos2unix": "*",
+    "safe-bash-command-egrep": "*",
+    "safe-bash-command-fd": "*",
+    "safe-bash-checksum-engine": "*",
+    "safe-bash-search-engine": "*",
+    "safe-bash-command-column": "*",
+    "safe-bash-command-sponge": "*",
+    "safe-bash-command-pandoc": "*",
+    "safe-bash-command-rg": "*",
+    "@types/node": "^22.20.1",
+    "safe-bash-command-openssl": "*",
+    "safe-bash-command-yq": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-line-ending-engine": "*",
+    "docx": "*",
+    "safe-bash-command-truncate": "*",
+    "safe-bash-command-base64": "*",
+    "safe-bash-command-xan": "*",
+    "safe-bash-command-fmt": "*",
+    "safe-bash-command-csplit": "*"
+  },
+  "name": "@poe-platform/safe-bash",
+  "type": "module",
+  "sideEffects": [
+    "./dist/portable-buffer.js",
+    "./src/portable-buffer.ts",
+    "./src/commands/ssconvert/index.ts",
+    "./dist/commands/ssconvert/index.js",
+    "./dist/worker/entry.js",
+    "./src/worker/entry.ts"
+  ]
 }

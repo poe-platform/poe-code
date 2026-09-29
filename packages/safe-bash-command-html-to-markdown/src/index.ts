@@ -97,7 +97,7 @@ function convertSimpleInlineHtmlSync(html: string): string | undefined {
   out = out.replace(/<(em|i)>([^<>]+)<\/\1>/g, "*$2*");
   out = out.replace(/<(del|s)>([^<>]+)<\/\1>/g, "~~$2~~");
   out = out.replace(/<code>([^<>\x60]+)<\/code>/g, "`$1`");
-  out = out.replace(/<a\s+href="([^"\s<>]+)">([^<>\]\[]+)<\/a>/g, "[$2]($1)");
+  out = out.replace(/<a\s+href="([^"\s<>]+)">([^<>\][]+)<\/a>/g, "[$2]($1)");
   if (out.includes("<") || out.includes(">")) return undefined;
   return out.replace(/[ \t\r\n]+/g, " ").trim();
 }
@@ -148,7 +148,7 @@ export function evalSyncHtmlToMarkdown(
       if (inner === undefined) return undefined;
       if (tag.startsWith("h")) {
         const lvl = Number(tag.slice(1));
-        blocks.push("#".repeat(lvl) + (inner ? .js" " + inner : ""));
+        blocks.push("#".repeat(lvl) + (inner ? " " + inner : ""));
       } else {
         if (inner) blocks.push(inner);
       }

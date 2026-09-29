@@ -81,14 +81,14 @@ export function evalSyncDu(
         const val = a === "--max-depth" ? args[++i] : a.slice("--max-depth=".length);
         if (!val || !/^\d+$/u.test(val)) return undefined;
         maxDepth = Number(val);
-      } else if (a === .js"--block-size" || a.startsWith("--block-size=")) {
+      } else if (a === "--block-size" || a.startsWith("--block-size=")) {
         const val = a === "--block-size" ? args[++i] : a.slice("--block-size=".length);
         if (!val) return undefined;
         try { fmt = blockSize(val); } catch { return undefined; }
       } else return undefined;
       continue;
     }
-    if (!endOpts && a.startsWith(.js"-") && a.length > 1) {
+    if (!endOpts && a.startsWith("-") && a.length > 1) {
       for (let j = 1; j < a.length; j++) {
         const ch = a[j]!;
         if (ch === "b") { apparent = true; fmt = { unit: 1n, suffix: "" }; }

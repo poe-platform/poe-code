@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
+import { parseXml } from "@poe-code/safe-fs/xml";
 import { createZipCodec } from "@poe-code/office-package";
 import { createEngine } from "../engine.js";
 import type { RuntimeLimits } from "../contracts.js";
@@ -119,4 +120,48 @@ it("exports unqualified odd header/footer text in native Left section", async ()
   const { xml } = await load('<sheetData/><headerFooter><oddHeader>Header &amp;P</oddHeader><oddFooter>Footer</oddFooter></headerFooter>', {}, limits, true);
   expect(xml).toContain('<gnm:Header Left="Header &amp;[PAGE]" Middle="" Right=""/>');
   expect(xml).toContain('<gnm:Footer Left="Footer" Middle="" Right=""/>');
+});
+
+// #4053: a consumer must not confuse a deleted reference with an unknown name.
+// Deliberately stale caches ensure this exercises recalculation, not cache replay.
+it.each(["xlsx", "xlsx2"])("preserves reference-error semantics through SDK recalculation and %s export", async profile => {
+  const cases = [
+    ["#REF!", "e", "#REF!"], ["SUM(#REF!)", "e", "#REF!"],
+    ["ERROR.TYPE(#REF!)", "n", "4"], ["ERROR.TYPE(#NAME?)", "n", "5"],
+    ["ISERROR(#REF!)", "b", "1"], ["IFERROR(#REF!,42)", "n", "42"],
+    ["1/0", "e", "#DIV/0!"], ["#VALUE!", "e", "#VALUE!"],
+    ["#N/A", "e", "#N/A"], ["#NUM!", "e", "#NUM!"],
+    ["#NAME?", "e", "#NAME?"], ["#NULL!", "e", "#NULL!"]
+  ];
+  const volume = new Volume();
+  volume.writeFileSync("/input.xlsx", await packageBytes("<sheetData>" + cases.map(([formula], row) =>
+    `<row r="${row + 1}"><c r="A${row + 1}" t="e"><f>${formula}</f><v>#NAME?</v></c></row>`).join("") + "</sheetData>"));
+  const engine = createEngine({ codecs: [], environment, limits,
+    filesystem: { async read(uri) { return [new Uint8Array(volume.readFileSync(uri) as Uint8Array)]; },
+      async write(uri, bytes) { volume.writeFileSync(uri, bytes); } } });
+  const operation = { signal: new AbortController().signal };
+  try {
+    const result = await engine.convert({ input: { kind: "resource", uri: "/input.xlsx" },
+      destination: { kind: "resource", uri: "/output.xlsx" }, exportType: `Gnumeric_Excel:${profile}`, recalc: true }, operation);
+    expect(result.exitCode).toBe(0);
+    const zip = createZipCodec(), bounds = { maxArchiveBytes: 100000, maxEntryBytes: 100000, maxTotalBytes: 100000,
+      maxMembers: 100, maxPathBytes: 1024, maxDepth: 32, maxPaxBytes: 10000, maxTextBytes: 100000, chunkSize: 4096 };
+    const archive = await zip.readZipArchive(new Uint8Array(volume.readFileSync("/output.xlsx") as Uint8Array), bounds, operation.signal);
+    const sheet = archive.entries.find(entry => entry.name === "xl/worksheets/sheet1.xml")!;
+    let xml = "";
+    const decoder = new TextDecoder();
+    for await (const chunk of zip.decodeZipEntry(sheet, bounds, operation.signal)) xml += decoder.decode(chunk, { stream: true });
+    xml += decoder.decode();
+    const rows = parseXml(xml).children.find(node => node.localName === "sheetData")!.children;
+    expect(rows.map(row => {
+      const cell = row.children[0]!;
+      return [cell.children.find(node => node.localName === "f")!.text,
+        cell.attributes.find(attribute => attribute.localName === "t")?.value ?? "n",
+        cell.children.find(node => node.localName === "v")!.text];
+    })).toEqual(cases);
+    const reopened = await engine.readWorkbook({ kind: "resource", uri: "/output.xlsx" }, {}, operation);
+    expect(reopened.sheets[0]!.cells.slice(0, 2).map(cell => cell.cachedResult)).toEqual([
+      { kind: "error", value: "#REF!" }, { kind: "error", value: "#REF!" }
+    ]);
+  } finally { await engine.dispose(); }
 });

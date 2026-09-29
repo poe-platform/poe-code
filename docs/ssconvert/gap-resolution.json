@@ -2982,7 +2982,7 @@
       }
     },
     "lotusInvalidRanges": {
-      "status": "range collapse, profile bounds and absolute masks implemented; native XLSX error readback remains open",
+      "status": "range collapse, profile bounds and absolute masks implemented; XLSX reference-error consumer regression diagnosed",
       "issues": [
         3470,
         3529
@@ -2990,15 +2990,22 @@
       "implementation": "Any invalid textual range endpoint collapses to one #REF! literal before expression parsing, for legacy and modern reference composition. Relative-sheet AST substitution is unchanged.",
       "validation": "24 original failures across WK1, WK2, Symphony and Windows Works now pass. 384 tests in 20 Lotus files plus package lint, source/test/consumer types and selected build pass.",
       "publicQualification": "32 compiled SDK/command --recalc outputs across both XLSX editions preserve bare #REF! and SUM(#REF!), with error caches independently verified from package XML.",
-      "nativeQualification": "FAILED: LibreOffice 26.8.0.3 changes all eight XLSX2 output formulas to #ref! / SUM(#ref!) and cached #NAME?. Controls without defined names or iteration fail too; 1/0 retains #DIV/0!. This is an unresolved output interoperability finding, not a passing native check.",
-      "source": "Pinned LibreOffice compiler.cxx bce0998afefdbc355585ca324285661a2170ba77 lines 1583-1590 explicitly writes plain #REF! for deleted OOXML references; SHA256 84dfe1e52b8b632d8fd9d687d64857c779283bb3de660063664b916c7d458e83. Native cause remains under investigation.",
-      "remaining": "Scoped #3470/#3529 implementation is complete; native error literal interoperability remains tracked in #4053. Broader Lotus qualification and all 19 families remain open.",
+      "nativeQualification": "LibreOffice 26.8.0.3 consumer regression confirmed independently: bare #REF! and SUM(#REF!) parse as ocBad and become #NAME?. LibreOffice 24.2.7.2 preserves both independent and compiled SDK XLSX/XLSX2 outputs. This is not a passing 26.8 application check.",
+      "source": "Pinned LibreOffice bce0998afefdbc355585ca324285661a2170ba77 core_resource.hrc:951/970 assigns #REF! to ocErrRef and ocStop. FormulaCompiler.cxx:183/758 inserts in opcode order with first-wins emplace, so OOXML lookup returns ocStop (2), not ocErrRef (44). Direct native UNO lookup/parser probes confirm the collision; rebuilding the parser map restores opcode 44. compiler.cxx:1583-1590 emits the standard literal. See docs/ssconvert/xlsx-reference-errors.md.",
+      "remaining": "Scoped #3470/#3529 implementation and #4053 cause investigation are complete; LibreOffice 26.8 still needs a consumer-side correction. Broader Lotus qualification and all 19 families remain open.",
       "nativeIssue": 4053,
       "boundsAndMasks": {
         "requirements": "#3470: columns below 256; WK1 rows below 2048, WK2/Works/Symphony below 16384, modern below 65536. #3529: mask absolute Works/Symphony rows to 14 bits and Symphony columns to 8 bits.",
         "sourceDifference": "Intentional requirement override: libwps 0.4.14-2 WKS4Spreadsheet.cpp lines 1790-1838 preserves raw absolute fields and only rejects negative coordinates. Relative signed offsets and positive half-range wrapping remain unchanged. Previous Symphony assertions for absolute/relative IW references were updated to the authorized masks/bounds.",
         "validation": "36 newly failing regressions plus four passing boundary controls; all 424 tests in 21 Lotus files pass. Maintained package lint, source/test/consumer types and selected build pass.",
-        "publicQualification": "56 compiled SDK/command --recalc outputs across both XLSX editions; independently parsed formulas, types and fresh values match. 12 numeric boundary/mask outputs also retain live formulas and 0/42 through Calc 26.8.0.3. Error-output application qualification remains #4053."
+        "publicQualification": "56 compiled SDK/command --recalc outputs across both XLSX editions; independently parsed formulas, types and fresh values match. 12 numeric boundary/mask outputs also retain live formulas and 0/42 through Calc 26.8.0.3. Error-output #4053 is diagnosed as a LibreOffice 26.8 OOXML symbol-map regression; 24.2.7.2 native controls pass."
+      },
+      "nativeErrorInvestigation": {
+        "issue": 4053,
+        "resolution": "consumer OOXML symbol-map collision; standard ssconvert formulas preserved",
+        "document": "docs/ssconvert/xlsx-reference-errors.md",
+        "regressions": "SDK recalculation with stale #NAME? caches across both XLSX profiles; independent XML checks include ERROR.TYPE distinguishing #REF! (4) from #NAME? (5).",
+        "nativeControls": "Independent five-part XLSX, both compiled SDK exports, exact LibreOffice 26.8.0.3 and control 24.2.7.2, direct UNO symbol lookup and grammar probes."
       }
     },
     "lotusDatabaseFields": {

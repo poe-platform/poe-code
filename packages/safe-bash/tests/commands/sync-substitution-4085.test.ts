@@ -4,7 +4,7 @@ import { createWkhtmltopdfCommands } from "../../src/commands/wkhtmltopdf/index.
 import { createOpCommands } from "../../src/commands/op/index.js";
 import { createGitCommands } from "../../src/commands/git/index.js";
 import { createArchiveCommands } from "../../src/commands/archive/index.js";
-import { createTimeoutCommands } from "../../src/commands/timeout/index.js";
+import { createTimeoutCommands, evalSyncTimeout } from "../../src/commands/timeout/index.js";
 import { createPdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
 import { createMmdcCommands } from "../../src/commands/mmdc/index.js";
 import { createPandocCommands } from "../../src/commands/pandoc/index.js";
@@ -1332,6 +1332,31 @@ test("sync substitution and pipeline fast path for git, tar, unzip, and zip (Wav
   assert.equal(lines[6], "hello from git and archives");
   assert.match(lines[7] ?? "", /safe-bash zip/);
   assert.ok(elapsed < 1500, `Expected < 1500ms for 8x150 iterations, took ${elapsed.toFixed(1)}ms`);
+});
+
+test("timeout sync evaluator admits parsed durations and defers options requiring child validation", () => {
+  assert.equal(evalSyncTimeout(["5s", "echo", "ready"]), "ready\n");
+  for (const args of [
+    ["invalid", "echo", "ready"], ["0", "echo", "ready"],
+    ["-s", "invalid", "5", "echo", "ready"], ["--signal=invalid", "5", "echo", "ready"],
+    ["-k", "invalid", "5", "echo", "ready"], ["--kill-after=invalid", "5", "echo", "ready"],
+    ["5", "echo", "-n", "-n", "ready"]
+  ]) assert.equal(evalSyncTimeout(args), undefined, args.join(" "));
+});
+
+test("timeout sync substitutions preserve child diagnostics and echo options", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createTimeoutCommands()]) });
+  try {
+    for (const args of ["-s invalid 5 echo ready", "--signal=invalid 5 echo ready", "-k invalid 5 echo ready", "--kill-after=invalid 5 echo ready", "5 echo -n -n ready"]) {
+      const direct = await shell.exec(`timeout ${args}`);
+      const substitution = await shell.exec(`value="$(timeout ${args})"; status=$?; printf '%s' "$value"; exit "$status"`);
+      assert.equal(substitution.exitCode, direct.exitCode, args);
+      assert.equal(substitution.stderr, direct.stderr, args);
+      assert.equal(substitution.stdout, direct.stdout, args);
+    }
+  } finally {
+    await shell.dispose();
+  }
 });
 
 test("sync substitution and pipeline fast path for bzip2, bunzip2, bzcat, xz, unxz, xzcat, zstd, and timeout (Wave 155)", async () => {

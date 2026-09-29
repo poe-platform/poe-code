@@ -343,13 +343,10 @@ export function evalSyncTimeout(args: readonly string[]): string | undefined {
     if (a === "--") { i++; break; }
     if (a === "--preserve-status" || a === "--foreground" || a === "-v" || a === "--verbose") { i++; continue; }
     if (a === "-s" || a === "--signal" || a === "-k" || a === "--kill-after") {
-      if (i + 1 >= args.length) return undefined;
-      i += 2;
-      continue;
+      return undefined;
     }
     if (a.startsWith("--signal=") || a.startsWith("--kill-after=") || (a.startsWith("-s") && a.length > 2) || (a.startsWith("-k") && a.length > 2)) {
-      i++;
-      continue;
+      return undefined;
     }
     if (a.startsWith("-")) return undefined;
     break;
@@ -365,7 +362,10 @@ export function evalSyncTimeout(args: readonly string[]): string | undefined {
   if (subCmd === "echo") {
     let noNewline = false;
     let start = 0;
-    if (subArgs[0] === "-n") { noNewline = true; start = 1; }
+    if (subArgs[0] === "-n") {
+      if (subArgs[1]?.startsWith("-")) return undefined;
+      noNewline = true; start = 1;
+    }
     else if (subArgs[0]?.startsWith("-")) return undefined;
     return subArgs.slice(start).join(" ") + (noNewline ? "" : "\n");
   }

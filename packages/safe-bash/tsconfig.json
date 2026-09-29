@@ -561,6 +561,7 @@
         "../safe-bash-command-gh/src/index.ts"
       ],
       "safe-bash-command-gh/*": [
+        "../safe-bash-command-gh/src/*.ts",
         "../safe-bash-command-gh/src/*"
       ]
     },

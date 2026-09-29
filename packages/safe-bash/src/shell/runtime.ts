@@ -12449,13 +12449,18 @@ export class Runtime {
             const devWordOk = (w: Word): boolean =>
               this.isPureSyncValueWord(w, rawState) &&
               w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)));
+            // Only a nonempty literal prefix proves an expansion cannot become an option.
+            const devOperandOk = (w: Word): boolean => {
+              const first = w.parts[0];
+              return first?.kind === "text" && first.value.length > 0 && !first.value.startsWith("-") && devWordOk(w);
+            };
             const devShapeOk =
               (w0DevPlain === "pwd" && cmd.words.length === 1) ||
-              ((w0DevPlain === "dirname" || w0DevPlain === "echo") && cmd.words.length === 2 && !cmd.words[1]!.plain?.startsWith("-") && devWordOk(cmd.words[1]!)) ||
+              ((w0DevPlain === "dirname" || w0DevPlain === "echo") && cmd.words.length === 2 && devOperandOk(cmd.words[1]!)) ||
               (w0DevPlain === "basename" && (
-                (cmd.words.length === 2 && !cmd.words[1]!.plain?.startsWith("-") && devWordOk(cmd.words[1]!)) ||
-                (cmd.words.length === 3 && !cmd.words[1]!.plain?.startsWith("-") && devWordOk(cmd.words[1]!) && devWordOk(cmd.words[2]!)) ||
-                (cmd.words.length === 4 && cmd.words[1]!.plain === "-s" && cmd.words[2]!.plain !== undefined && !cmd.words[3]!.plain?.startsWith("-") && devWordOk(cmd.words[3]!))
+                (cmd.words.length === 2 && devOperandOk(cmd.words[1]!)) ||
+                (cmd.words.length === 3 && devOperandOk(cmd.words[1]!) && devWordOk(cmd.words[2]!)) ||
+                (cmd.words.length === 4 && cmd.words[1]!.plain === "-s" && cmd.words[2]!.plain !== undefined && devOperandOk(cmd.words[3]!))
               ));
             if (devShapeOk) continue;
           }
@@ -14720,7 +14725,22 @@ export class Runtime {
     this._syncStdoutBatch += text;
     if (this._syncStdoutBatch.length >= 8192) this.flushSyncStdoutBatch(io);
   }
+  private runSyncDiscardStep(step: SyncLoopStep, rawState: State, io: IO): string {
+    this.budget.fileSystemOperation();
+    const args = step.discardWords!.map(word => this.fastValueWord(word, rawState, io, false, false, false, false, 0, step.line) as string);
+    const cmdName = step.cmd.words[0]!.plain!;
+    let output: string;
+    if (cmdName === "pwd") output = rawState.variables.PWD ?? rawState.cwd;
+    else if (cmdName === "echo") output = args[0]!;
+    else if (cmdName === "dirname") output = this.evalSyncDirname(args)!;
+    else output = this.evalSyncBasename(step.discardSuffix === undefined ? args : ["-s", step.discardSuffix, ...args])!;
+    const bytes = shellValueByteLength(output) + 1;
+    if (this.budget.bytes + bytes > this.budget.maxOutputBytesSmi && bytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+    this.budget.bytes += bytes;
+    return args[args.length - 1] ?? cmdName;
+  }
   private writeSyncRedirectStep( step: SyncLoopStep, encoded: Uint8Array, append: boolean, mode: number, rawState: State, io: IO, ): void {
+    if (this.budget.bytes + encoded.byteLength > this.budget.maxOutputBytesSmi && encoded.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
     // The memory fast writer may retain its input; the encoder scratch is reused.
     encoded = encoded.slice();
     if (step.targetDirPrefix !== undefined && step.targetNamePrefix !== undefined) {
@@ -14862,27 +14882,7 @@ export class Runtime {
           touched.add(step.name);
           lastArg = pLastArg;
         } else if (step.isDiscardDevNull && step.discardWords !== undefined) {
-          this.budget.fileSystemOperation();
-          const dw = step.discardWords;
-          const cmdName = step.cmd.words[0]!.plain!;
-          let evalFirst = "";
-          let evalLast = cmdName;
-          for (let wi = 0; wi < dw.length; wi++) {
-            const v = this.fastValueWord(dw[wi]!, rawState, io, false, false, false, false, 0, step.line) as string;
-            if (wi === 0) evalFirst = v;
-            evalLast = v;
-          }
-          let outChars = 0;
-          if (cmdName === "pwd") outChars = (rawState.variables.PWD ?? rawState.cwd).length + 1;
-          else if (cmdName === "echo") outChars = evalFirst.length + 1;
-          else if (cmdName === "dirname") outChars = dirname(evalFirst).length + 1;
-          else if (cmdName === "basename") {
-            const sfx = step.discardSuffix !== undefined ? step.discardSuffix : (dw.length === 2 ? evalLast : undefined);
-            const baseStr = /^\/+$/u.test(evalFirst) ? "/" : basename(evalFirst);
-            outChars = (sfx && baseStr !== sfx && baseStr.endsWith(sfx) ? baseStr.length - sfx.length : baseStr.length) + 1;
-          }
-          this.budget.bytes += outChars;
-          lastArg = step.discardSuffix !== undefined ? evalLast : (dw.length > 0 ? evalLast : cmdName);
+          lastArg = this.runSyncDiscardStep(step, rawState, io);
         } else if (step.name !== undefined && step.value !== undefined) {
           rawState.substitutionStatus = 0;
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
@@ -15403,27 +15403,7 @@ export class Runtime {
         touched.add(step.name);
         lastArg = pLastArg;
       } else if (step.isDiscardDevNull && step.discardWords !== undefined) {
-        this.budget.fileSystemOperation();
-        const dw = step.discardWords;
-        const cmdName = step.cmd.words[0]!.plain!;
-        let evalFirst = "";
-        let evalLast = cmdName;
-        for (let wi = 0; wi < dw.length; wi++) {
-          const v = this.fastValueWord(dw[wi]!, rawState, io, false, false, false, false, 0, step.line) as string;
-          if (wi === 0) evalFirst = v;
-          evalLast = v;
-        }
-        let outChars = 0;
-        if (cmdName === "pwd") outChars = (rawState.variables.PWD ?? rawState.cwd).length + 1;
-        else if (cmdName === "echo") outChars = evalFirst.length + 1;
-        else if (cmdName === "dirname") outChars = dirname(evalFirst).length + 1;
-        else if (cmdName === "basename") {
-          const sfx = step.discardSuffix !== undefined ? step.discardSuffix : (dw.length === 2 ? evalLast : undefined);
-          const baseStr = /^\/+$/u.test(evalFirst) ? "/" : basename(evalFirst);
-          outChars = (sfx && baseStr !== sfx && baseStr.endsWith(sfx) ? baseStr.length - sfx.length : baseStr.length) + 1;
-        }
-        this.budget.bytes += outChars;
-        lastArg = step.discardSuffix !== undefined ? evalLast : (dw.length > 0 ? evalLast : cmdName);
+        lastArg = this.runSyncDiscardStep(step, rawState, io);
       } else if (step.name !== undefined && step.value !== undefined) {
         rawState.substitutionStatus = 0;
         const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
@@ -15556,27 +15536,7 @@ export class Runtime {
           touched.add(step.name);
           lastArg = pLastArg;
         } else if (step.isDiscardDevNull && step.discardWords !== undefined) {
-          this.budget.fileSystemOperation();
-          const dw = step.discardWords;
-          const cmdName = step.cmd.words[0]!.plain!;
-          let evalFirst = "";
-          let evalLast = cmdName;
-          for (let wi = 0; wi < dw.length; wi++) {
-            const v = this.fastValueWord(dw[wi]!, rawState, io, false, false, false, false, 0, step.line) as string;
-            if (wi === 0) evalFirst = v;
-            evalLast = v;
-          }
-          let outChars = 0;
-          if (cmdName === "pwd") outChars = (rawState.variables.PWD ?? rawState.cwd).length + 1;
-          else if (cmdName === "echo") outChars = evalFirst.length + 1;
-          else if (cmdName === "dirname") outChars = dirname(evalFirst).length + 1;
-          else if (cmdName === "basename") {
-            const sfx = step.discardSuffix !== undefined ? step.discardSuffix : (dw.length === 2 ? evalLast : undefined);
-            const baseStr = /^\/+$/u.test(evalFirst) ? "/" : basename(evalFirst);
-            outChars = (sfx && baseStr !== sfx && baseStr.endsWith(sfx) ? baseStr.length - sfx.length : baseStr.length) + 1;
-          }
-          this.budget.bytes += outChars;
-          lastArg = step.discardSuffix !== undefined ? evalLast : (dw.length > 0 ? evalLast : cmdName);
+          lastArg = this.runSyncDiscardStep(step, rawState, io);
         } else if (step.name !== undefined && step.value !== undefined) {
           rawState.substitutionStatus = 0;
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;

@@ -4202,6 +4202,14 @@
       "releaseTestRepairs": "Pinned CI cached units exposed a one-second playground readiness race; filesystem replies now trigger the sentinel check, and cleanup awaits the running command on failure.53 session/execution tests pass. Bash4 exposed three remapped compression exports in29 close-probe cases; derive bundle routes from package exports while preserving all canonical source-contract subpaths.33 close-probe cases pass after repairing an intermediate mixed-runtime alias. Immutable xargs dirname input fixes a current prefer-const error. Each repair was committed and pushed separately."
     }
   },
+  "xlsxMigration20260929": {
+    "remoteCommits": {"implementation": "032e054a4a", "parserWork": "51cf6b306f", "releaseTriggers": "c28462d973"},
+    "extraction": "Eight implementation files (243737 bytes) moved unchanged from spreadsheet-format-xlsx to xlsx-ast; previous subpaths and format registration reexport the same functions. Original aggregate SHA256df57b5949d3a0fc60c873790a982ce6837608a0b9bc71b8d24952716e7ded4f8 hashes sorted filenames, NUL, then binary SHA256 digests. No workbook or binary fixtures added.",
+    "validation": "460 XLSX tests,296 packaging tests,source/test types and guarded lint pass. Full root build completes250 declared builds across251 workspaces plus root stages;18 package audit rules pass. Compiled root SDK roundtrip returns42. Actual workerd at compatibility date2026-07-15 reads/writes2006/2008 editions without Buffer/process/SheetJS, preserves reader identity and enforces output limits.",
+    "workAccounting": "A50000-character XML comment previously bypassed workbookWork200. Charge every parser checkpoint using the existing work counter; small control remains accepted. All461 XLSX/public tests,selected7-workspace build and guarded lint pass after the repair.",
+    "releaseWiring": "Include xlsx-ast in scoped workflow triggers and both superseding-revision checks. Maintained workflow lint passes. Publication of this extraction remains pending; do not infer it from local builds or remote delivery.",
+    "remaining": "CSVKit still imports SheetJS. Adapt ISO date provenance, declared/reset dimensions, native diagnostics and aggregate storage/work accounting before changing its XLSX reader; complete the XLS/BIFF encoding path separately. All19 ssconvert families remain open."
+  },
   "releaseContinuation20260929": {
     "verifiedRemoteMain": ["494f5ea7ef", "8ad1f5b520", "f7ff7d472a", "e669cd7856", "c36f308b5d", "e0962e81a4", "a2bc74efcf", "7959e6bc76"],
     "repairs": "Shell-quote special-parameter suffixes; iterative regex repetition; synchronous arithmetic/format typing; fixture lint; configured xxd/od pipeline limits; export-derived compression probe imports; wc shortcut parity; iterative grouped conditional alternatives.",

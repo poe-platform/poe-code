@@ -44,7 +44,12 @@ Provision missing authenticated environments through the existing host/container
 routes documented in the reference procedures. Record unavailable dependencies
 as blockers, never as passes, and continue independent work.
 
-Implementation owner: `packages/safe-bash-command-ssconvert/src`. Keep the
+Implementation owners: `packages/spreadsheet-ast/src` holds the shared workbook
+model; `packages/spreadsheet-engine/src` holds formulas, orchestration and shared
+utilities; `packages/spreadsheet-format-{xlsx,csv,ods,xls}/src` hold those codecs.
+The remaining codecs, rendering and command composition still live in
+`packages/safe-bash-command-ssconvert/src`. Old paths for extracted implementations
+are compatibility reexports; apply fixes at the new owners. Keep the
 Safe Bash adapter thin. Use structured parser/model nodes and vetted cryptographic
 primitives. Each code fix needs a current failing original memory test or other
 concrete evidence, neighboring controls and narrowly maintained verification.
@@ -119,11 +124,11 @@ Historical mismatch counts and earlier installed artifacts are not current proof
 
 1. Repair active ledger/plan links and keep current findings concise. Use
    `docs/ssconvert/gap-resolution.json` for receipts and all 19 open rows.
-2. Continue `src/codecs/biff-formulas.ts`, `biff-write-formulas.ts`, `biff.ts` and
-   `src/formulas/{ast,parser,serialization,rewriting,label-references,dependencies}.ts`:
+2. Continue `packages/spreadsheet-format-xls/src/{biff-formulas,biff-write-formulas,biff}.ts`
+   and `packages/spreadsheet-engine/src/formulas/{ast,parser,serialization,rewriting,label-references,dependencies}.ts`:
    complete flag, subtype, context and transport behavior from pinned sources.
-3. Drain validated defects in `src/codecs`, `src/workbook`, `src/formulas`,
-   `src/rendering`, `src/solver` and explicit service adapters. Preserve unrelated
+3. Drain validated defects at the AST, engine and format owners above, plus the
+   remaining command codecs, rendering, solver and explicit service adapters. Preserve unrelated
    work. Implement each atomic improvement with its own commit and delivery.
 4. Update existing package/root support text and relevant public consumers as
    behavior changes. Qualify native and public profiles while releases run.

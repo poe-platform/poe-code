@@ -114,6 +114,8 @@ test("static discovery metadata stays compatible with the maintained command fac
     "csvkit",
     "gh"
   ] as const;
+  const actualPluginNames = [];
+  const expectedPluginNames = [];
   for (const family of families) {
     const module = (await import(`../../src/commands/${family}/index.js`)) as Record<
       string,
@@ -137,7 +139,12 @@ test("static discovery metadata stays compatible with the maintained command fac
         filesystemRequirements
       }));
     assert.deepEqual(actual, expected, family);
+    const pluginName = `${family}Commands` as const;
+    const originalPlugin = module[pluginName] as unknown as () => import("../../src/contracts/index.js").VirtualShellPlugin;
+    actualPluginNames.push(lazy[pluginName]().name);
+    expectedPluginNames.push(originalPlugin().name);
   }
+  assert.deepEqual(actualPluginNames, expectedPluginNames);
 });
 
 test("default ssconvert keeps its existing CSV and XLSX formats", async () => {

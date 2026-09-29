@@ -103,7 +103,7 @@ export const createSofficeCommand: sofficeModule["createSofficeCommand"] = (...a
   })[0]!;
 };
 export const sofficeCommands: sofficeModule["sofficeCommands"] = (options = {}) =>
-  lazyCommandPlugin("soffice-commands", createSofficeCommands(options), options.replace ?? false);
+  lazyCommandPlugin("soffice", createSofficeCommands(options), options.replace ?? false);
 export type { SofficeCommandOptions } from "./commands/soffice/index.js";
 export const createSofficeCommands: sofficeModule["createSofficeCommands"] = (...args) => {
   const definitions = createLazyCommands(sofficeMetadata, async () => {
@@ -224,7 +224,7 @@ export const createPdfinfoCommand: pdfinfoModule["createPdfinfoCommand"] = (...a
   })[0]!;
 };
 export const pdfinfoCommands: pdfinfoModule["pdfinfoCommands"] = (options = {}) =>
-  lazyCommandPlugin("pdfinfo-commands", createPdfinfoCommands(options), options.replace ?? false);
+  lazyCommandPlugin("pdfinfo", createPdfinfoCommands(options), options.replace ?? false);
 export type { PdfinfoCommandOptions } from "./commands/pdfinfo/index.js";
 export const createPdfinfoCommands: pdfinfoModule["createPdfinfoCommands"] = (...args) => {
   const definitions = createLazyCommands(pdfinfoMetadata, async () => {
@@ -257,7 +257,7 @@ export const createPdftotextCommand: pdftotextModule["createPdftotextCommand"] =
 };
 export const pdftotextCommands: pdftotextModule["pdftotextCommands"] = (options = {}) =>
   lazyCommandPlugin(
-    "pdftotext-commands",
+    "pdftotext",
     createPdftotextCommands(options),
     options.replace ?? false
   );
@@ -289,7 +289,7 @@ export const createPdfimagesCommand: pdfimagesModule["createPdfimagesCommand"] =
 };
 export const pdfimagesCommands: pdfimagesModule["pdfimagesCommands"] = (options = {}) =>
   lazyCommandPlugin(
-    "pdfimages-commands",
+    "pdfimages",
     createPdfimagesCommands(options),
     options.replace ?? false
   );
@@ -324,7 +324,7 @@ export const createPdftoppmCommand: pdftoppmModule["createPdftoppmCommand"] = (.
   })[0]!;
 };
 export const pdftoppmCommands: pdftoppmModule["pdftoppmCommands"] = (options = {}) =>
-  lazyCommandPlugin("pdftoppm-commands", createPdftoppmCommands(options), options.replace ?? false);
+  lazyCommandPlugin("pdftoppm", createPdftoppmCommands(options), options.replace ?? false);
 export type { PdftoppmCommandOptions } from "./commands/pdftoppm/index.js";
 export const createPdftoppmCommands: pdftoppmModule["createPdftoppmCommands"] = (...args) => {
   const definitions = createLazyCommands(pdftoppmMetadata, async () => {
@@ -353,7 +353,7 @@ export const createPdftkCommand: pdftkModule["createPdftkCommand"] = (...args) =
   })[0]!;
 };
 export const pdftkCommands: pdftkModule["pdftkCommands"] = (options = {}) =>
-  lazyCommandPlugin("pdftk-commands", createPdftkCommands(options), options.replace ?? false);
+  lazyCommandPlugin("pdftk", createPdftkCommands(options), options.replace ?? false);
 export type { PdftkCommandOptions } from "./commands/pdftk/index.js";
 export const createPdftkCommands: pdftkModule["createPdftkCommands"] = (...args) => {
   const definitions = createLazyCommands(pdftkMetadata, async () => {
@@ -382,7 +382,7 @@ export const createQpdfCommand: qpdfModule["createQpdfCommand"] = (...args) => {
   })[0]!;
 };
 export const qpdfCommands: qpdfModule["qpdfCommands"] = (options = {}) =>
-  lazyCommandPlugin("qpdf-commands", createQpdfCommands(options), options.replace ?? false);
+  lazyCommandPlugin("qpdf", createQpdfCommands(options), options.replace ?? false);
 export type { QpdfCommandOptions } from "./commands/qpdf/index.js";
 export const createQpdfCommands: qpdfModule["createQpdfCommands"] = (...args) => {
   const definitions = createLazyCommands(qpdfMetadata, async () => {
@@ -410,7 +410,7 @@ export const createSipsCommand: sipsModule["createSipsCommand"] = (...args) => {
   })[0]!;
 };
 export const sipsCommands: sipsModule["sipsCommands"] = (options = {}) =>
-  lazyCommandPlugin("sips-commands", createSipsCommands(options), options.replace ?? false);
+  lazyCommandPlugin("sips", createSipsCommands(options), options.replace ?? false);
 export type { SipsCommandOptions } from "./commands/sips/index.js";
 export const createSipsCommands: sipsModule["createSipsCommands"] = (...args) => {
   const definitions = createLazyCommands(sipsMetadata, async () => {
@@ -463,7 +463,7 @@ export const createMagickCommand: imagemagickModule["createMagickCommand"] = (..
 };
 export const imagemagickCommands: imagemagickModule["imagemagickCommands"] = (options = {}) =>
   lazyCommandPlugin(
-    "imagemagick-commands",
+    "imagemagick",
     createImagemagickCommands(options),
     options.replace ?? false
   );
@@ -509,7 +509,7 @@ export const createWkhtmltopdfCommand: wkhtmltopdfModule["createWkhtmltopdfComma
 };
 export const wkhtmltopdfCommands: wkhtmltopdfModule["wkhtmltopdfCommands"] = (options = {}) =>
   lazyCommandPlugin(
-    "wkhtmltopdf-commands",
+    "wkhtmltopdf",
     createWkhtmltopdfCommands(options),
     options.replace ?? false
   );
@@ -622,7 +622,7 @@ export const createGhCommands: ghModule["createGhCommands"] = (...args) =>
     return () => module.createGhCommands(...args);
   });
 export const ghCommands: ghModule["ghCommands"] = (options = {}) =>
-  lazyCommandPlugin("gh", createGhCommands(options), options.replace ?? false);
+  lazyCommandPlugin("gh-commands", createGhCommands(options), options.replace ?? false);
 export type { GhCommandOptions, GhCommandsOptions, GhLimits } from "./commands/gh/index.js";
 
 /** Extension contract for trusted, statically bundled command code. */

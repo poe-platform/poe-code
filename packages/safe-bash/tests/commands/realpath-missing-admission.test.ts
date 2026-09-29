@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { withFileSystemQuota } from "@poe-code/safe-fs";
 import { FsError, toByteSource, type FileSystem } from "../../src/contracts/index.js";
-import { filesystemCommands } from "../../src/commands/filesystem.js";
+import { evalSyncRealpath, filesystemCommands } from "../../src/commands/filesystem.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { MockS3Client, S3FileSystem } from "../../src/fs/s3/index.js";
 import { Shell } from "../../src/shell/index.js";
@@ -371,3 +371,7 @@ for (const flags of ["-m", "--canonicalize-missing"]) {
     }
   });
 }
+
+test('logical synchronous realpath resolves relative operands before canonicalization', () => {
+  assert.equal(evalSyncRealpath(['-Lm', 'missing/../target'], '/work', () => undefined), '/work/target\n');
+});

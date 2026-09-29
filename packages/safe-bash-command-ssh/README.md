@@ -9,7 +9,7 @@ OpenSSH client (`ssh`) and key/signature utility (`ssh-keygen`) commands for `@p
   - Derive public keys from private keys (`ssh-keygen -y -f ~/.ssh/id_ed25519`).
   - Display `SHA256:` key fingerprints (`ssh-keygen -l -f ~/.ssh/id_ed25519.pub`).
   - Search (`-F`) and remove (`-R`) hosts in `known_hosts`.
-  - Create and verify `SSHSIG` v1 signatures (`ssh-keygen -Y sign`, `ssh-keygen -Y verify`, `ssh-keygen -Y check-novalidate`, `ssh-keygen -Y find-principals`) compatible with Git `gpg.format = ssh`.
+  - Create and verify `SSHSIG` v1 signatures (`ssh-keygen -Y sign`, `ssh-keygen -Y verify`, `ssh-keygen -Y check-novalidate`, `ssh-keygen -Y find-principals`) compatible with Git `gpg.format = ssh`. Verification requires `-f <allowed_signers>`, `-I <identity>`, and `-n <namespace>`; signer entries support comma-separated principal patterns (`*`, `?`, and negation) and `namespaces="..."`. Comment lines are ignored. Unsupported signer options are rejected.
 - **`ssh`**:
   - Parse `~/.ssh/config`, verify `known_hosts` and identity keys, and execute `-G` config dumps or remote repository commands (`git-upload-pack`, `git-receive-pack`).
 

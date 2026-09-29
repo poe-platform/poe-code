@@ -133,3 +133,37 @@ test("ssh-keygen generates Ed25519 keys, derives pubkey (-y), fingerprints (-l),
   assert.equal(verifyRes.exitCode, 0);
   assert.match(verifyRes.stdout, /Good "git" signature for alice@example\.com with ED25519 key SHA256:/);
 });
+
+
+test("SSHSIG authorization checks identity, namespace, key and comment lines", async () => {
+  const fs = createMemoryFileSystem();
+  const cmd = createSshKeygenCommand();
+  assert.equal((await runCmd(cmd, fs, ["-f", "/key"])).exitCode, 0);
+  assert.equal((await runCmd(cmd, fs, ["-f", "/other"])).exitCode, 0);
+  await fs.writeFile("/message", new TextEncoder().encode("message"));
+  assert.equal((await runCmd(cmd, fs, ["-Y", "sign", "-f", "/key", "-n", "git", "/message"])).exitCode, 0);
+  const pub = new TextDecoder().decode(await fs.readFile("/key.pub")).trim();
+  const other = new TextDecoder().decode(await fs.readFile("/other.pub")).trim();
+  const verify = ["-Y", "verify", "-f", "/allowed", "-I", "alice@example.com", "-n", "git", "-s", "/message.sig"];
+  for (const line of ["", `# alice@example.com ${pub}`, `bob@example.com ${pub}`, `alice@example.com ${other}`, `alice@example.com namespaces="file" ${pub}`, `alice@example.com cert-authority ${pub}`, `alice@example.com unknown-option ${pub}`, `*,!alice@example.com ${pub}`]) {
+    await fs.writeFile("/allowed", new TextEncoder().encode(line));
+    const result = await runCmd(cmd, fs, verify, "message");
+    assert.notEqual(result.exitCode, 0, line);
+    assert.equal(result.stdout, "");
+  }
+  for (const line of [`alice@example.com ${pub}`, `bob,?lice@*.com namespaces="file,git" ${pub}`]) {
+    await fs.writeFile("/allowed", new TextEncoder().encode(line));
+    assert.equal((await runCmd(cmd, fs, verify, "message")).exitCode, 0, line);
+  }
+  const wrongNamespace = [...verify];
+  wrongNamespace[7] = "file";
+  assert.notEqual((await runCmd(cmd, fs, wrongNamespace, "message")).exitCode, 0);
+  for (const missing of ["-f", "-I", "-n"]) {
+    const args = [...verify];
+    args.splice(args.indexOf(missing), 2);
+    assert.notEqual((await runCmd(cmd, fs, args, "message")).exitCode, 0, missing);
+  }
+  await fs.writeFile("/allowed", new TextEncoder().encode(`  # alice@example.com ${pub}`));
+  assert.notEqual((await runCmd(cmd, fs, ["-Y", "find-principals", "-f", "/allowed", "-s", "/message.sig"])).exitCode, 0);
+});
+

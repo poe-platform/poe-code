@@ -228,6 +228,62 @@ function parseOpenSshEd25519PublicKey(line: string): { pubKey: Uint8Array; comme
   };
 }
 
+function matchesGlob(value: string, pattern: string): boolean {
+  let v = 0;
+  let p = 0;
+  let star = -1;
+  let retry = 0;
+  while (v < value.length) {
+    if (pattern[p] === "?" || pattern[p] === value[v]) { v++; p++; }
+    else if (pattern[p] === "*") { star = p++; retry = v; }
+    else if (star >= 0) { p = star + 1; v = ++retry; }
+    else return false;
+  }
+  while (pattern[p] === "*") p++;
+  return p === pattern.length;
+}
+
+function matchesPatterns(value: string, patterns: string): boolean {
+  let matched = false;
+  for (const pattern of patterns.split(",")) {
+    const negative = pattern.startsWith("!");
+    if (matchesGlob(value, negative ? pattern.slice(1) : pattern)) {
+      if (negative) return false;
+      matched = true;
+    }
+  }
+  return matched;
+}
+
+function parseAllowedSigner(line: string): { principals: string; namespaces?: string; pubKey: Uint8Array } | undefined {
+  const text = line.trim();
+  if (!text || text.startsWith("#")) return undefined;
+  const fields: string[] = [];
+  let field = "";
+  let quoted = false;
+  for (const char of text) {
+    if (char === '"') quoted = !quoted;
+    if (!quoted && (char === " " || char === "\t")) {
+      if (field) { fields.push(field); field = ""; }
+    } else field += char;
+  }
+  if (quoted) return undefined;
+  if (field) fields.push(field);
+  const principals = fields[0];
+  let index = 1;
+  let namespaces: string | undefined;
+  if (fields[index] !== "ssh-ed25519") {
+    const options = fields[index++];
+    // Fail closed for certificate and validity options that this implementation cannot enforce.
+    if (!options?.startsWith('namespaces="') || !options.endsWith('"')) return undefined;
+    namespaces = options.slice(12, -1);
+    if (!namespaces || namespaces.includes('"')) return undefined;
+  }
+  if (!principals || fields[index] !== "ssh-ed25519" || !fields[index + 1]) return undefined;
+  const key = parseOpenSshEd25519PublicKey(`${fields[index]} ${fields[index + 1]}`);
+  return key ? { principals, ...(namespaces === undefined ? {} : { namespaces }), pubKey: key.pubKey } : undefined;
+}
+
 async function computeFingerprintSha256(pubKey: Uint8Array): Promise<string> {
   const blob = sshEd25519PubkeyBlob(pubKey);
   const buf = blob.buffer.slice(blob.byteOffset, blob.byteOffset + blob.byteLength) as ArrayBuffer;
@@ -308,6 +364,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
       let removeHost: string | undefined;
       let yAction: string | undefined;
       let namespace = "file";
+      let namespaceProvided = false;
       let allowedSignersFile: string | undefined;
       let signerIdentity: string | undefined;
       let signatureFile: string | undefined;
@@ -324,7 +381,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
         else if (a === "-F" && i + 1 < args.length) findHost = args[++i];
         else if (a === "-R" && i + 1 < args.length) removeHost = args[++i];
         else if (a === "-Y" && i + 1 < args.length) yAction = args[++i];
-        else if (a === "-n" && i + 1 < args.length) namespace = args[++i]!;
+        else if (a === "-n" && i + 1 < args.length) { namespace = args[++i]!; namespaceProvided = true; }
         else if (a === "-I" && i + 1 < args.length) signerIdentity = args[++i];
         else if (a === "-s" && i + 1 < args.length) signatureFile = args[++i];
         else if (a === "-q") continue;
@@ -435,21 +492,26 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
             const rawSig = readSshString(sigBlob, spos);
             if (!pubKey || !rawSig) throw new PublicDiagnostic("invalid SSHSIG key/signature");
 
-            if (yAction === "find-principals") {
+            if (yAction !== "find-principals" && (!namespaceProvided || textDecoder.decode(sigNs) !== namespace)) {
+              throw new PublicDiagnostic("signature namespace does not match requested namespace");
+            }
+            if (yAction === "verify" || yAction === "find-principals") {
               allowedSignersFile = fileArg;
-              if (allowedSignersFile) {
-                const asText = textDecoder.decode(await context.fs.readFile(pathPosix.resolve(context.cwd, allowedSignersFile)));
-                const fp = await computeFingerprintSha256(pubKey);
-                for (const line of asText.split("\n")) {
-                  const p = parseOpenSshEd25519PublicKey(line);
-                  if (p && (await computeFingerprintSha256(p.pubKey)) === fp) {
-                    const principal = line.trim().split(/\s+/)[0]!;
-                    await writeText(context.stdout, `${principal}\n`);
-                    return { exitCode: 0 };
-                  }
-                }
+              if (!allowedSignersFile || (yAction === "verify" && !signerIdentity)) {
+                throw new PublicDiagnostic("allowed signers file and signer identity are required for verification");
               }
-              return { exitCode: 1 };
+              const asText = textDecoder.decode(await context.fs.readFile(pathPosix.resolve(context.cwd, allowedSignersFile)));
+              const entries = asText.split("\n").map(parseAllowedSigner).filter(entry => entry !== undefined);
+              const matching = entries.filter(entry => entry.pubKey.every((byte, index) => byte === pubKey[index])
+                && (yAction === "find-principals" || matchesPatterns(namespace, entry.namespaces ?? "*")));
+              if (yAction === "find-principals") {
+                if (matching.length === 0) return { exitCode: 1 };
+                await writeText(context.stdout, `${matching.map(entry => entry.principals).join("\n")}\n`);
+                return { exitCode: 0 };
+              }
+              if (!matching.some(entry => matchesPatterns(signerIdentity!, entry.principals))) {
+                throw new PublicDiagnostic("signer is not authorized by allowed signers");
+              }
             }
 
             const payload = await collectSourceBytes(context.stdin, maxBytes, context.signal);

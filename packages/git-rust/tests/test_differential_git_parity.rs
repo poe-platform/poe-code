@@ -90,3 +90,51 @@ fn test_differential_branch_merge_and_tag_parity_against_system_git() {
     assert_eq!(sys_tree.trim(), rust_tree.trim());
     let _ = fs::remove_dir_all(&base);
 }
+
+
+#[test]
+fn test_differential_rebase_and_signed_tags_parity() {
+    let bin = env!("CARGO_BIN_EXE_git-rust");
+    let base = std::env::temp_dir().join(format!("git-rust-diff-rebase-{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    let sys_dir = base.join("sys");
+    let rust_dir = base.join("rust");
+    fs::create_dir_all(&sys_dir).unwrap();
+    fs::create_dir_all(&rust_dir).unwrap();
+
+    for (prog, dir) in [("git", &sys_dir), (bin, &rust_dir)] {
+        assert!(Command::new(prog).current_dir(dir).args(["init", "-b", "main"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["config", "user.name", "Alice"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["config", "user.email", "alice@example.com"]).status().unwrap().success());
+        fs::write(dir.join("a.txt"), "a\n").unwrap();
+        assert!(Command::new(prog).current_dir(dir).args(["add", "a.txt"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["commit", "-m", "commit a"]).status().unwrap().success());
+
+        assert!(Command::new(prog).current_dir(dir).args(["checkout", "-b", "topic"]).status().unwrap().success());
+        fs::write(dir.join("b.txt"), "b\n").unwrap();
+        assert!(Command::new(prog).current_dir(dir).args(["add", "b.txt"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["commit", "-m", "commit b"]).status().unwrap().success());
+
+        assert!(Command::new(prog).current_dir(dir).args(["checkout", "main"]).status().unwrap().success());
+        fs::write(dir.join("c.txt"), "c\n").unwrap();
+        assert!(Command::new(prog).current_dir(dir).args(["add", "c.txt"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["commit", "-m", "commit c"]).status().unwrap().success());
+
+        assert!(Command::new(prog).current_dir(dir).args(["checkout", "topic"]).status().unwrap().success());
+        assert!(Command::new(prog).current_dir(dir).args(["rebase", "main"]).status().unwrap().success());
+    }
+
+    // Tag with signature in git-rust and verify-tag
+    assert!(Command::new(bin).current_dir(&rust_dir).args(["tag", "-s", "v2.0.0", "-m", "signed release v2"]).status().unwrap().success());
+    let verify_tag = Command::new(bin).current_dir(&rust_dir).args(["verify-tag", "v2.0.0"]).output().unwrap();
+    assert!(verify_tag.status.success());
+
+    let sys_tree = String::from_utf8(
+        Command::new("git").current_dir(&sys_dir).args(["rev-parse", "HEAD^{tree}"]).output().unwrap().stdout
+    ).unwrap();
+    let rust_tree = String::from_utf8(
+        Command::new(bin).current_dir(&rust_dir).args(["rev-parse", "HEAD^{tree}"]).output().unwrap().stdout
+    ).unwrap();
+    assert_eq!(sys_tree.trim(), rust_tree.trim());
+    let _ = fs::remove_dir_all(&base);
+}

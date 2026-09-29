@@ -332,23 +332,62 @@ export function evalSyncTimeout(args: readonly string[]): string | undefined {
     if (args[0] === "--help") return "Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual-bash command with a cooperative time limit.\n";
   }
   let i = 0;
+  let killAfterMs: number | undefined;
   while (i < args.length) {
     const a = args[i]!;
     if (a === "--") { i++; break; }
+    if (a === "-" || !a.startsWith("-")) break;
     if (a === "--preserve-status" || a === "--foreground" || a === "-v" || a === "--verbose") { i++; continue; }
-    if (a === "-s" || a === "--signal" || a === "-k" || a === "--kill-after") {
-      return undefined;
+    if (a === "--signal" || a.startsWith("--signal=")) {
+      const sigTok = a === "--signal" ? args[++i] : a.slice(9);
+      if (sigTok === undefined || parseSignal(sigTok) === undefined) return undefined;
+      i++;
+      continue;
     }
-    if (a.startsWith("--signal=") || a.startsWith("--kill-after=") || (a.startsWith("-s") && a.length > 2) || (a.startsWith("-k") && a.length > 2)) {
-      return undefined;
+    if (a === "--kill-after" || a.startsWith("--kill-after=")) {
+      const kaTok = a === "--kill-after" ? args[++i] : a.slice(13);
+      if (kaTok === undefined) return undefined;
+      const ka = parseDuration(kaTok);
+      if (ka.kind !== "value") return undefined;
+      killAfterMs = ka.milliseconds;
+      i++;
+      continue;
     }
-    if (a.startsWith("-")) return undefined;
-    break;
+    if (!a.startsWith("--")) {
+      let pos = 1;
+      let ok = true;
+      while (pos < a.length) {
+        const ch = a[pos]!;
+        if (ch === "v" || ch === "f" || ch === "p") { pos++; continue; }
+        if (ch === "s") {
+          const sigTok = a.slice(pos + 1) || args[++i];
+          if (sigTok === undefined || parseSignal(sigTok) === undefined) { ok = false; break; }
+          break;
+        }
+        if (ch === "k") {
+          const kaTok = a.slice(pos + 1) || args[++i];
+          if (kaTok === undefined) { ok = false; break; }
+          const ka = parseDuration(kaTok);
+          if (ka.kind !== "value") { ok = false; break; }
+          killAfterMs = ka.milliseconds;
+          break;
+        }
+        ok = false;
+        break;
+      }
+      if (!ok) return undefined;
+      i++;
+      continue;
+    }
+    return undefined;
   }
   if (i >= args.length) return undefined;
   const durStr = args[i]!;
   const parsed = parseDuration(durStr);
-  if (parsed.kind !== "value" || parsed.milliseconds <= 0) return undefined;
+  if (parsed.kind !== "value" || parsed.milliseconds < 0) return undefined;
+  if (killAfterMs !== undefined && killAfterMs !== 0 && parsed.milliseconds !== 0 && parsed.milliseconds !== Infinity) {
+    return undefined;
+  }
   i++;
   if (i >= args.length) return undefined;
   const subCmd = args[i]!;
@@ -364,9 +403,61 @@ export function evalSyncTimeout(args: readonly string[]): string | undefined {
     return subArgs.slice(start).join(" ") + (noNewline ? "" : "\n");
   }
   if (subCmd === "true") return "";
-  if (subCmd === "printf" && subArgs.length >= 1 && (subArgs[0] === "%s" || subArgs[0] === "%s\n")) {
-    const sep = subArgs[0] === "%s\n" ? "\n" : "";
-    return subArgs.slice(1).map(x => x + sep).join("");
+  if (subCmd === "dirname" && subArgs.length >= 1 && subArgs.every(x => !x.startsWith("-"))) {
+    return subArgs.map(p => {
+      const s = p.replace(/\/+$/, "");
+      if (!s) return "/";
+      const sl = s.lastIndexOf("/");
+      if (sl < 0) return ".";
+      return s.slice(0, sl).replace(/\/+$/, "") || "/";
+    }).join("\n") + "\n";
+  }
+  if (subCmd === "basename" && subArgs.length >= 1 && subArgs.length <= 2 && subArgs.every(x => !x.startsWith("-"))) {
+    const clean = subArgs[0]!.replace(/\/+$/, "");
+    if (!clean) return "/\n";
+    let base = clean.slice(clean.lastIndexOf("/") + 1);
+    const suf = subArgs[1];
+    if (suf && base.length > suf.length && base.endsWith(suf)) base = base.slice(0, -suf.length);
+    return base + "\n";
+  }
+  if (subCmd === "printf" && subArgs.length >= 1) {
+    const fmt = subArgs[0]!;
+    const vals = subArgs.slice(1);
+    let vIdx = 0;
+    let res = "";
+    const applyOnce = (): boolean => {
+      for (let k = 0; k < fmt.length; k++) {
+        if (fmt[k] === "\\") {
+          const nxt = fmt[++k];
+          if (nxt === "n") res += "\n";
+          else if (nxt === "t") res += "\t";
+          else if (nxt === "\\") res += "\\";
+          else return false;
+        } else if (fmt[k] === "%") {
+          const nxt = fmt[++k];
+          if (nxt === "%") res += "%";
+          else if (nxt === "s") res += vals[vIdx++] ?? "";
+          else if (nxt === "d") {
+            const raw = vals[vIdx++] ?? "0";
+            if (!/^-?[0-9]+$/.test(raw)) return false;
+            res += String(Number(raw));
+          } else return false;
+        } else {
+          res += fmt[k]!;
+        }
+      }
+      return true;
+    };
+    if (vals.length === 0) {
+      if (!applyOnce()) return undefined;
+    } else {
+      while (vIdx < vals.length) {
+        const before = vIdx;
+        if (!applyOnce()) return undefined;
+        if (vIdx === before) break;
+      }
+    }
+    return res;
   }
   return undefined;
 }

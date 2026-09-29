@@ -2,7 +2,7 @@ import { createEnvCommand } from "./env/index.js";
 import { getCommandArguments, readBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { writeDiagnostic } from "../escaping.js";
 import { shellValueByteLength } from "../contracts/value.js";
-import { builtInDirectContextExecutors, define, emptyInput, encoder, escapeBytes, integer, input as fileInput, options, pathOf, UsageError, value } from "./internal.js";
+import { builtInDirectContextExecutors, define, emptyInput, encoder, escapeBytes, integer, input as fileInput, options, pathOf, syncCommandEvaluators, UsageError, value } from "./internal.js";
 import type { EnvSplitLimits } from "./env-split.js";
 import { delimitedArguments, replaceXargsArguments, xargsDisplay } from "./xargs-bytes.js";
 
@@ -293,11 +293,86 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
 }
 
 
+function splitEnvStringSync(raw: string, vars: Readonly<Record<string, string | undefined>>): string[] | undefined {
+  const tokens: string[] = [];
+  let cur = "";
+  let active = false;
+  let quote: "'" | "\"" | null = null;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i]!;
+    if (!quote && (ch === " " || ch === "\t" || ch === "\n" || ch === "\r" || ch === "\f" || ch === "\v")) {
+      if (active) { tokens.push(cur); cur = ""; active = false; }
+      continue;
+    }
+    if (!quote && ch === "#") {
+      if (!active) {
+        while (i < raw.length && raw[i] !== "\n") i++;
+        continue;
+      }
+    }
+    if (ch === "'" && quote !== "\"") {
+      quote = quote === "'" ? null : "'";
+      active = true;
+      continue;
+    }
+    if (ch === "\"" && quote !== "'") {
+      quote = quote === "\"" ? null : "\"";
+      active = true;
+      continue;
+    }
+    if (ch === "\\") {
+      const nxt = raw[++i];
+      if (nxt === undefined) return undefined;
+      if (quote === "'") {
+        if (nxt === "'" || nxt === "\\") cur += nxt;
+        else cur += "\\" + nxt;
+      } else {
+        if (nxt === "n") cur += "\n";
+        else if (nxt === "t") cur += "\t";
+        else if (nxt === "r") cur += "\r";
+        else if (nxt === "f") cur += "\f";
+        else if (nxt === "v") cur += "\v";
+        else if (nxt === "c") return tokens.concat(active ? [cur] : []);
+        else if (nxt === "_" ) {
+          if (!quote && active) { tokens.push(cur); cur = ""; active = false; }
+          else if (quote) cur += " ";
+        } else cur += nxt;
+      }
+      active = true;
+      continue;
+    }
+    if (ch === "$" && quote !== "'") {
+      if (raw[i + 1] === "{") {
+        const close = raw.indexOf("}", i + 2);
+        if (close < 0) return undefined;
+        const vName = raw.slice(i + 2, close);
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(vName)) return undefined;
+        cur += vars[vName] ?? "";
+        active = true;
+        i = close;
+        continue;
+      }
+      const m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(raw.slice(i + 1));
+      if (!m) return undefined;
+      cur += vars[m[0]] ?? "";
+      active = true;
+      i += m[0].length;
+      continue;
+    }
+    cur += ch;
+    active = true;
+  }
+  if (quote) return undefined;
+  if (active) tokens.push(cur);
+  return tokens;
+}
+
 export function evalSyncEnv(
-  opArgs: readonly string[],
+  rawOpArgs: readonly string[],
   exported: ReadonlySet<string>,
   variables: Readonly<Record<string, string | undefined>>,
 ): string | undefined {
+  const opArgs = [...rawOpArgs];
   let ignoreEnv = false;
   let nullDelim = false;
   const unsetNames: string[] = [];
@@ -329,6 +404,14 @@ export function evalSyncEnv(
       if (!v || v.includes("=") || v.includes("\0")) return undefined;
       unsetNames.push(v);
       i++;
+      continue;
+    }
+    if (a === "-S" || a === "--split-string" || a.startsWith("--split-string=") || (a.startsWith("-S") && a.length > 2)) {
+      const rawSplit = a.startsWith("--split-string=") ? a.slice(15) : (a.startsWith("-S") && a.length > 2 ? a.slice(2) : opArgs[++i]);
+      if (rawSplit === undefined) return undefined;
+      const expanded = splitEnvStringSync(rawSplit, variables);
+      if (!expanded) return undefined;
+      opArgs.splice(i, 1, ...expanded);
       continue;
     }
     if (!a.startsWith("--") && a.length > 1) {
@@ -406,9 +489,15 @@ export function evalSyncEnv(
     }
     return out;
   }
-  if (cmd === "echo" && cmdArgs.every(a => !a.startsWith("-"))) {
-    return cmdArgs.join(" ") + "\n";
+  if (cmd === "echo") {
+    let noNl = false;
+    let start = 0;
+    if (cmdArgs[0] === "-n") { noNl = true; start = 1; }
+    if (cmdArgs.slice(start).every(a => !a.startsWith("-"))) {
+      return cmdArgs.slice(start).join(" ") + (noNl ? "" : "\n");
+    }
   }
+  if (cmd === "true") return "";
   return undefined;
 }
 
@@ -531,7 +620,7 @@ export function evalSyncXargs(
       return undefined;
     }
     const cmd = opArgs[i] ?? "echo";
-    if (cmd !== "echo" && cmd !== "printf" && cmd !== "basename" && cmd !== "dirname") return undefined;
+    if (cmd !== "echo" && cmd !== "printf" && cmd !== "basename" && cmd !== "dirname" && cmd !== "cat" && cmd !== "wc" && cmd !== "head" && cmd !== "tail" && cmd !== "true") return undefined;
     const initialArgs = opArgs.slice(i + 1);
     let echoNoNewline = false;
     let initOffset = 0;
@@ -628,6 +717,10 @@ export function evalSyncXargs(
     let out = "";
     const evalBatchCmd = (args: string[]): string | undefined => {
       if (cmd === "echo") return args.join(" ") + (echoNoNewline ? "" : "\n");
+      if (cmd === "true") return "";
+      if (cmd === "cat") return syncCommandEvaluators.evalSyncCat?.(undefined, args, readFileSync);
+      if (cmd === "wc") return syncCommandEvaluators.evalSyncWc?.(undefined, args, true, readFileSync);
+      if (cmd === "head" || cmd === "tail") return syncCommandEvaluators.evalSyncHeadTail?.(cmd, undefined, args, readFileSync);
       if (cmd === "dirname") {
         if (args.length === 0) return undefined;
         return args.map(p => {

@@ -1747,4 +1747,29 @@ test("Wave 228: tar -xvf -C directory extraction and unzip -t / unzip -qo -d ext
       "mkdir: created directory '/tmp/w230_symdir'\n750|'/tmp/w230_tree/a/c/link.txt' -> '../b/file.txt'|../b/file.txt|removed '/tmp/w230_tree/a/c/link.txt'|removed '/tmp/w230_tree/a/b/file.txt'|removed '/tmp/w230_tree/a/b'|removed '/tmp/w230_tree/a/c'|removed '/tmp/w230_tree/a'|",
     );
   });
+
+  it("supports env -S/--split-string, xargs cat/wc/head/tail, and timeout -s/-k 0/0 duration in sync command substitutions (Wave 231)", async () => {
+    const shell = createShell();
+    const res = await shell.exec(`
+      export W231_PREFIX="prod"
+      printf "alpha\\nbeta\\ngamma\\n" > /tmp/w231_a.txt
+      printf "delta\\nepsilon\\n" > /tmp/w231_b.txt
+      out=""
+      for i in 1 2; do
+        env_s=\$(env -S 'APP=\${W231_PREFIX}_svc printenv APP')
+        x_cat=\$(printf "/tmp/w231_a.txt\\n/tmp/w231_b.txt\\n" | xargs cat -n | tr "\\n" "|")
+        x_wc=\$(printf "/tmp/w231_a.txt\\n/tmp/w231_b.txt\\n" | xargs wc -l | tr -s " " | tr "\\n" "|")
+        x_head=\$(printf "/tmp/w231_a.txt\\n/tmp/w231_b.txt\\n" | xargs head -q -n 1 | tr "\\n" ",")
+        to_sig=\$(timeout -s TERM -k 0 5s printf "%s=%d," k1 10 k2 20)
+        to_zero=\$(timeout 0 basename /usr/local/bin/tool.sh .sh)
+        out="\${env_s}|\${x_head}|\${to_sig}|\${to_zero}"
+      done
+      printf "%s\\n" "\$out"
+    `);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout.trim(),
+      "prod_svc|alpha,delta,|k1=10,k2=20,|tool",
+    );
+  });
 });

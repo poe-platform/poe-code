@@ -50,7 +50,7 @@ export const same = createDos2unixCommand === api.createDos2unixCommand && creat
       }));
     } }],
   });
-  const sandbox = createContext({ TextEncoder, TextDecoder, require(specifier: string) {
+  const sandbox = createContext({ TextEncoder, TextDecoder, AbortController, AbortSignal, require(specifier: string) {
     expect(specifier).toBe("safe-bash-command-dos2unix");
     return runtime;
   } });

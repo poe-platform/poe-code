@@ -525,3 +525,23 @@ test("evaluates expr STRING : REGEXP / match capture groups and |/&, and bc rela
     "7#2.14.8#42#fallback#1,1,#1024#FF#255\n",
   );
 });
+
+test("evaluates numfmt --header/-d/--field/--from-unit/--to-unit, xxd -l/-s, and od -j/-N in sync substitutions (Wave 186)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(byteCommands());
+  const r = await shell.exec(
+    [
+      "nf_tbl=$(printf \"NAME:SIZE\\nfileA:2048\\nfileB:1048576\\n\" | numfmt --header -d: --field=2 --to=iec | tr '\\n' ',')",
+      "nf_unit=$(echo 4 | numfmt --from-unit=512 --to=iec)",
+      "xxd_sub=$(printf \"abcdef\" | xxd -p -s 2 -l 3)",
+      "od_sub=$(printf \"ABCDEF\" | od -An -tx1 -j 1 -N 3)",
+      "printf \"%s#%s#%s#%s\\n\" \"$nf_tbl\" \"$nf_unit\" \"$xxd_sub\" \"$od_sub\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "NAME:SIZE,fileA:2.0K,fileB:1.0M,#2.0K#636465# 42 43 44\n",
+  );
+});

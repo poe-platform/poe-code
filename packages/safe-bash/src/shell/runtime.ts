@@ -26902,6 +26902,8 @@ export class Runtime {
     let reverse = false;
     let upper = false;
     let cols = 30;
+    let maxLen: number | undefined;
+    let seekOff = 0;
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if (a === "-p" || a === "-ps" || a === "-plain") plain = true;
@@ -26913,11 +26915,24 @@ export class Runtime {
         cols = Number(opArgs[++i]!);
       } else if (/^-c[0-9]{1,4}$/.test(a)) {
         cols = Number(a.slice(2));
+      } else if ((a === "-l" || a === "-len") && i + 1 < opArgs.length && /^[0-9]{1,6}$/.test(opArgs[i + 1]!)) {
+        maxLen = Number(opArgs[++i]!);
+      } else if (/^-l[0-9]{1,6}$/.test(a)) {
+        maxLen = Number(a.slice(2));
+      } else if ((a === "-s" || a === "-seek") && i + 1 < opArgs.length && /^[+-]?[0-9]{1,6}$/.test(opArgs[i + 1]!)) {
+        seekOff = Number(opArgs[++i]!);
+      } else if (/^-s[+-]?[0-9]{1,6}$/.test(a)) {
+        seekOff = Number(a.slice(2));
       } else {
         return undefined;
       }
     }
     if (!plain) return undefined;
+    if (!reverse && (seekOff !== 0 || maxLen !== undefined)) {
+      const start = seekOff < 0 ? Math.max(0, view.byteLength + seekOff) : Math.min(view.byteLength, seekOff);
+      const end = maxLen !== undefined ? Math.min(view.byteLength, start + maxLen) : view.byteLength;
+      view = view.subarray(start, end);
+    }
     if (reverse) {
       const bytes: number[] = [];
       let high = -1;
@@ -27452,6 +27467,8 @@ export class Runtime {
     let noAddr = false;
     let typeSpec: "x1" | "u1" | "o1" | undefined;
     let verbose = false;
+    let skipBytes = 0;
+    let readBytes: number | undefined;
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if (a === "-An") noAddr = true;
@@ -27460,9 +27477,20 @@ export class Runtime {
       else if (a === "-t" && i + 1 < opArgs.length && (opArgs[i + 1] === "x1" || opArgs[i + 1] === "u1" || opArgs[i + 1] === "o1")) {
         typeSpec = opArgs[++i] as "x1" | "u1" | "o1";
       } else if (a === "-v" || a === "--output-duplicates") verbose = true;
+      else if (a === "-j" && i + 1 < opArgs.length && /^[0-9]{1,6}$/.test(opArgs[i + 1]!)) skipBytes = Number(opArgs[++i]!);
+      else if (/^-j[0-9]{1,6}$/.test(a)) skipBytes = Number(a.slice(2));
+      else if (/^--skip-bytes=[0-9]{1,6}$/.test(a)) skipBytes = Number(a.slice(13));
+      else if (a === "-N" && i + 1 < opArgs.length && /^[0-9]{1,6}$/.test(opArgs[i + 1]!)) readBytes = Number(opArgs[++i]!);
+      else if (/^-N[0-9]{1,6}$/.test(a)) readBytes = Number(a.slice(2));
+      else if (/^--read-bytes=[0-9]{1,6}$/.test(a)) readBytes = Number(a.slice(13));
       else return undefined;
     }
     if (!noAddr || !typeSpec) return undefined;
+    if (skipBytes > 0 || readBytes !== undefined) {
+      const sOff = Math.min(view.byteLength, skipBytes);
+      const eOff = readBytes !== undefined ? Math.min(view.byteLength, sOff + readBytes) : view.byteLength;
+      view = view.subarray(sOff, eOff);
+    }
     if (view.byteLength === 0) return "";
     const rows: string[] = [];
     let prevRow = "";
@@ -27493,6 +27521,11 @@ export class Runtime {
     let roundMode: "up" | "down" | "from-zero" | "towards-zero" | "nearest" = "from-zero";
     let padding = 0;
     let suffix = "";
+    let headerLines = 0;
+    let delim: string | undefined;
+    let fieldIdx = 1;
+    let fromUnit = 1;
+    let toUnit = 1;
     const applyRound = (x: number): number => {
       if (roundMode === "up") return Math.ceil(x - 1e-12);
       if (roundMode === "down") return Math.floor(x + 1e-12);
@@ -27520,6 +27553,22 @@ export class Runtime {
         padding = Number(v);
       } else if (a.startsWith("--suffix=")) {
         suffix = a.slice(9);
+      } else if (a === "--header") {
+        headerLines = 1;
+      } else if (/^--header=[1-9][0-9]{0,2}$/.test(a)) {
+        headerLines = Number(a.slice(9));
+      } else if (a === "-d" && i + 1 < opArgs.length && opArgs[i + 1]!.length === 1) {
+        delim = opArgs[++i]!;
+      } else if (a.startsWith("-d") && a.length === 3) {
+        delim = a.slice(2);
+      } else if (a.startsWith("--delimiter=") && a.length === 13) {
+        delim = a.slice(12);
+      } else if (/^--field=[1-9][0-9]{0,2}$/.test(a)) {
+        fieldIdx = Number(a.slice(8));
+      } else if (/^--from-unit=[1-9][0-9]{0,8}$/.test(a)) {
+        fromUnit = Number(a.slice(12));
+      } else if (/^--to-unit=[1-9][0-9]{0,8}$/.test(a)) {
+        toUnit = Number(a.slice(10));
       } else if (!a.startsWith("-") && rawLines.length === 0) {
         rawLines = [...rawLines, ...opArgs.slice(i)];
         break;
@@ -27527,13 +27576,26 @@ export class Runtime {
         return undefined;
       }
     }
+    if (fieldIdx > 1 && delim === undefined) return undefined;
     const units = "KMGTPEZY";
     const out: string[] = [];
     for (let i = 0; i < rawLines.length; i++) {
       const line = rawLines[i]!;
-      let raw = line.trim();
-      // Preserve field whitespace and padding through the command implementation.
-      if (line !== raw) return undefined;
+      if (i < headerLines) {
+        out.push(line);
+        continue;
+      }
+      let fields: string[] | undefined;
+      let raw: string;
+      if (delim !== undefined) {
+        fields = line.split(delim);
+        if (fieldIdx > fields.length) return undefined;
+        raw = fields[fieldIdx - 1]!.trim();
+        if (fields[fieldIdx - 1] !== raw) return undefined;
+      } else {
+        raw = line.trim();
+        if (line !== raw) return undefined;
+      }
       if (raw.length === 0) { out.push(""); continue; }
       if (suffix && raw.length > suffix.length && raw.endsWith(suffix)) raw = raw.slice(0, -suffix.length);
       const m = /^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([KMGTPEZYkmgtpezy]i?)?$/.exec(raw);
@@ -27555,6 +27617,7 @@ export class Runtime {
       } else if (fromScale === "iec-i") {
         // plain number ok
       }
+      val = (val * fromUnit) / toUnit;
       val = applyRound(val);
       let rendered: string;
       if (toScale === "none") {
@@ -27596,7 +27659,12 @@ export class Runtime {
           rendered = padding < 0 ? rendered + pad : pad + rendered;
         }
       }
-      out.push(rendered);
+      if (fields !== undefined && delim !== undefined) {
+        fields[fieldIdx - 1] = rendered;
+        out.push(fields.join(delim));
+      } else {
+        out.push(rendered);
+      }
     }
     return out;
   }

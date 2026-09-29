@@ -416,6 +416,7 @@ export async function handleReleaseCommand(
     const schemas: FlagSchema[] = [
       { short: "t", long: "title", type: "string" },
       { short: "n", long: "notes", type: "string" },
+      { short: "F", long: "notes-file", type: "string" },
       { long: "draft", type: "boolean" },
       { long: "prerelease", type: "boolean" },
       { long: "tag", type: "string" },
@@ -431,14 +432,34 @@ export async function handleReleaseCommand(
     }
     const title = getStringFlag(parsed, "title");
     if (title !== undefined) rel.name = title;
-    const notes = getStringFlag(parsed, "notes");
+    const notesFile = getStringFlag(parsed, "notes-file");
+    const notes = notesFile !== undefined
+      ? notesFile === "-"
+        ? stdinText
+        : decodeUtf8(await context.fs.readFile(resolvePath(context.cwd, notesFile), { signal: context.signal }))
+      : getStringFlag(parsed, "notes");
     if (notes !== undefined) rel.body = notes;
     if (parsed.flags.has("draft")) rel.isDraft = getBoolFlag(parsed, "draft");
     if (parsed.flags.has("prerelease")) rel.isPrerelease = getBoolFlag(parsed, "prerelease");
+    const target = getStringFlag(parsed, "target");
+    if (target !== undefined) rel.targetCommitish = target;
+    if (parsed.flags.has("latest")) {
+      rel.isLatest = getBoolFlag(parsed, "latest");
+      if (rel.isLatest) {
+        for (const existing of repo.releases.values()) {
+          if (existing !== rel) existing.isLatest = false;
+        }
+      }
+    }
     const newTag = getStringFlag(parsed, "tag");
     if (newTag && newTag !== tag) {
       repo.releases.delete(tag);
       rel.tagName = newTag;
+      rel.url = `${repo.url}/releases/tag/${newTag}`;
+      rel.assets = rel.assets.map((asset) => ({
+        ...asset,
+        url: `${repo.url}/releases/download/${newTag}/${asset.name}`,
+      }));
       repo.releases.set(newTag, rel);
     }
     await writeOut(`${rel.url}\n`);

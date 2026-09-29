@@ -818,3 +818,27 @@ test("release jq formatting receives the configured output limit", async (t) => 
   assert.ok(caps.length > 0);
   assert.ok(caps.every((cap) => cap === 100));
 });
+
+test("release edits apply notes, target, latest, and renamed URLs", async () => {
+  const { fs, run } = createTestHarness();
+  await fs.mkdir("/work", { recursive: true });
+  await fs.writeFile("/work/asset.bin", new TextEncoder().encode("asset"));
+  await fs.writeFile("/work/notes.md", new TextEncoder().encode("file notes\n"));
+  const repo = ["-R", "octocat/Hello-World"];
+  await run("gh", ["release", "create", "stable", ...repo]);
+  await run("gh", ["release", "create", "old", "/work/asset.bin", "--prerelease", ...repo]);
+  await run("gh", ["release", "edit", "old", "-F", "notes.md", "--target", "release-branch", "--latest", "--tag", "new", ...repo]);
+  const fields = "tagName,body,targetCommitish,isLatest,url,assets";
+  const result = JSON.parse((await run("gh", ["release", "view", "new", "--json", fields, ...repo])).stdout);
+  assert.equal(result.body, "file notes\n");
+  assert.equal(result.targetCommitish, "release-branch");
+  assert.equal(result.isLatest, true);
+  assert.equal(result.tagName, "new");
+  assert.equal(result.url, "https://github.com/octocat/Hello-World/releases/tag/new");
+  assert.equal(result.assets[0].url, "https://github.com/octocat/Hello-World/releases/download/new/asset.bin");
+  assert.equal(JSON.parse((await run("gh", ["release", "view", "stable", "--json", "isLatest", ...repo])).stdout).isLatest, false);
+  await run("gh", ["release", "edit", "new", "--notes-file", "-", "--latest=false", ...repo], { stdin: "stdin notes" });
+  const edited = JSON.parse((await run("gh", ["release", "view", "new", "--json", "body,isLatest", ...repo])).stdout);
+  assert.deepEqual(edited, { body: "stdin notes", isLatest: false });
+});
+

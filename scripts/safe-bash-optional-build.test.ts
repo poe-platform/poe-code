@@ -208,6 +208,19 @@ describe("optional-owned compiled graph", () => {
     expect(read("entrypoints/yes.js")).toBe('export { yesCommands } from "../commands/yes/index.js";\n');
   });
 
+  it("routes optional synchronization through the canonical host registry", async () => {
+    const { volume, options } = fixture();
+    const names = "isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors";
+    volume.writeFileSync(core + "/dist/commands/yes/helper.js", `export { ${names} } from "../internal.js";`);
+    volume.writeFileSync(core + "/dist/commands/yes/index.d.ts", `export { ${names} } from "../internal.js";`);
+    await expect(buildOptionalPackage(options)).resolves.toMatchObject({ status: 0 });
+    for (const file of ["helper.js", "index.d.ts"]) {
+      expect(volume.readFileSync(optional + "/dist/opt-in/commands/yes/" + file, "utf8").toString())
+        .toContain(`export { ${names} } from "@poe-platform/safe-bash/optional-host";`);
+    }
+    expect(volume.existsSync(optional + "/dist/opt-in/commands/internal.js")).toBe(false);
+  });
+
   it("does not select unrelated optional leftovers even when the compiler emitted them", async () => {
     const { volume, compilation, options } = fixture();
     volume.mkdirSync(core + "/dist/commands/dd", { recursive: true });

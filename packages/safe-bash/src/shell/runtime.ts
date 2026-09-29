@@ -26605,7 +26605,7 @@ export class Runtime {
         let jsPat = "";
         let hasCap = false;
         let inBr = false;
-        let okPat = true;
+        const okPat = true;
         for (let i = 0; i < rawPat.length; i++) {
           const ch = rawPat[i]!;
           if (inBr) {

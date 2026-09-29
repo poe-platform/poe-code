@@ -255,7 +255,7 @@ export function evalSyncDf(
   const limits = settings(options);
   let argBytes = 0;
   for (const arg of args) {
-    argBytes += Buffer.byteLength(arg);
+    argBytes += new TextEncoder().encode(arg).byteLength;
     if (argBytes > limits.maxArgumentBytes) return undefined;
   }
   let showAll = false;

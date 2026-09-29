@@ -101,7 +101,7 @@ export function evalSyncTree(
 
   const sortEntries = <T extends { readonly name: string }>(arr: T[]): T[] => {
     const sorted = [...arr].sort((x, y) => {
-      const cmp = versionSort ? compareVersions(x.name, y.name) : (x.name < y.name ? -1 : x.name > y.name ? 1 : 0);
+      const cmp = versionSort ? compareVersions(new TextEncoder().encode(x.name), new TextEncoder().encode(y.name)) : (x.name < y.name ? -1 : x.name > y.name ? 1 : 0);
       return reverseSort ? -cmp : cmp;
     });
     return sorted;

@@ -26998,13 +26998,13 @@ export class Runtime {
         if (node.entries) {
           for (const [cName, cNode] of node.entries) {
             const cSize = cNode.type === "file" ? (cNode.byteLength ?? cNode.data?.byteLength ?? 0) : cNode.type === "symlink" ? Buffer.byteLength(cNode.target ?? "") : 0;
-            children.push({ name: cName, type: cNode.type, size: cSize, ino: cNode.ino, target: cNode.target });
+            children.push({ name: cName, type: cNode.type, size: cSize, ...(cNode.ino !== undefined ? { ino: cNode.ino } : {}), ...(cNode.target !== undefined ? { target: cNode.target } : {}) });
           }
         }
-        return { type: "directory", size: 0, ino: node.ino, children };
+        return { type: "directory", size: 0, ...(node.ino !== undefined ? { ino: node.ino } : {}), children };
       }
       const size = node.type === "file" ? (node.byteLength ?? node.data?.byteLength ?? 0) : Buffer.byteLength(node.target ?? "");
-      return { type: node.type, size, ino: node.ino, target: node.target };
+      return { type: node.type, size, ...(node.ino !== undefined ? { ino: node.ino } : {}), ...(node.target !== undefined ? { target: node.target } : {}) };
     } catch {
       if (charge) this.budget.fileSystemOperation();
       return undefined;

@@ -7,7 +7,7 @@ import {
 import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 
-export type { XzCommandsOptions, CompressionCommandOptions };
+export * from "safe-bash-command-xz";
 
 function isDefaultXzOptions(options?: XzCommandsOptions): boolean {
   return options === undefined || options.maxDecodedBytes === undefined;

@@ -12,8 +12,7 @@ import {
 import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 
-export { settings };
-export type { Bzip2CommandsOptions, Bzip2Limits, Bzip2Options, CompressionCommandOptions };
+export * from "safe-bash-command-bzip2";
 
 function isDefaultBzip2Options(options?: Bzip2CommandsOptions): boolean {
   return options === undefined || (options.maxDecodedBytes === undefined && options.limits?.maxDecodedBytes === undefined);

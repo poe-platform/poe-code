@@ -223,10 +223,11 @@ function loadSyncTypedTable(
     }
     text = text.slice(pos);
   }
+  const explicitDelimiter = opts.tabs ? "\t" : opts.delimiter;
   let dialect: CsvDialect = {
-    delimiter: opts.tabs ? "\t" : opts.delimiter,
-    quotechar: opts.quotechar,
-    escapechar: opts.escapechar,
+    ...(explicitDelimiter !== undefined ? { delimiter: explicitDelimiter } : {}),
+    ...(opts.quotechar !== undefined ? { quotechar: opts.quotechar } : {}),
+    ...(opts.escapechar !== undefined ? { escapechar: opts.escapechar } : {}),
     doublequote: !opts.noDoublequote,
     skipinitialspace: opts.skipInitialSpace,
   };

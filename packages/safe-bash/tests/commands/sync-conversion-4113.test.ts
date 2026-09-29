@@ -1,3 +1,5 @@
+import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
+import { opCommands, createObjectBackend } from "../../src/commands/op/index.js";
 import { ghCommands } from "../../src/commands/gh/index.js";
 import { truncateCommands } from "../../src/commands/truncate/index.js";
 import { timeoutCommands } from "../../src/commands/timeout/index.js";
@@ -1997,4 +1999,29 @@ test("Wave 237: gh config/alias/repo/issue/pr/release/label/variable/api in sync
   ].join("\n"));
   assert.equal(r.exitCode, 0, r.stderr);
   assert.equal(r.stdout.trim(), "1:nvim:1:Bug 1:Feat 1:v1.0.1:prod-1:octocat\n2:nvim:1:Bug 2:Feat 2:v1.0.2:prod-2:octocat");
+});
+
+test("Wave 238: ssconvert CSV/TSV/XLSX conversion and op completion in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp", { recursive: true });
+  const sh = new Shell({ fs: memFs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(ssconvertCommands())
+    .use(opCommands({ version: "2.30.0" }));
+  const r = await sh.exec([
+    "for i in 1 2; do",
+    "  printf \"metric,score\\nalpha,$((i * 10))\\nbeta,$((i * 20))\\n\" > /tmp/in_$i.csv",
+    "  s1=$(ssconvert /tmp/in_$i.csv /tmp/out_$i.xlsx)",
+    "  s2=$(ssconvert /tmp/out_$i.xlsx /tmp/round_$i.csv)",
+    "  s3=$(ssconvert -T Gnumeric_stf:stf_csv /tmp/out_$i.xlsx fd://1 | tail -n 1)",
+    "  op_ver=$(op --version)",
+    "  op_comp=$(op __completeNoDesc item | head -n 1)",
+    "  echo \"$i:$s3:$op_ver:$op_comp\"",
+    "done"
+  ].join("\n"));
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout.trim(),
+    "1:beta,20:2.30.0:item\n2:beta,40:2.30.0:item"
+  );
 });

@@ -1,4 +1,5 @@
 import { createOpCommand as createDispatcher, parseCommand, renderOpHelp, type OpCommandContext, type OpCommandOptions } from "./cli.js";
+import { resolveOpCompletion } from "./completion-resolver.js";
 import { createSecretHandlers } from "./secrets.js";
 import { createCompletionHandler } from "./completion.js";
 import { createEnvironmentHandlers } from "./environment-commands.js";
@@ -67,6 +68,14 @@ export function evalSyncOp(
     const parsed = parseCommand(opArgs, env, meta.channel);
     if (parsed.flags.version === true) return `${meta.version}\n`;
     if (parsed.help) return renderOpHelp(parsed.path, meta.channel);
+    if (parsed.resource === "__complete" || parsed.resource === "__completeNoDesc") {
+      const result = resolveOpCompletion(parsed.args, meta.channel);
+      const lines = result.candidates.map((c) =>
+        parsed.resource === "__complete" ? `${c.value}\t${c.description}` : c.value
+      );
+      lines.push(`:${result.directive}`);
+      return `${lines.join("\n")}\n`;
+    }
     return undefined;
   } catch {
     return undefined;

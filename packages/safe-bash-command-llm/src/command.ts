@@ -12,6 +12,7 @@ interface Arguments {
   model?: string;
   system?: string;
   prompt: string;
+  noStream?: boolean;
   options: Record<string, string>;
   attachments: { path: string; mimeType?: string }[];
 }
@@ -24,6 +25,7 @@ async function parse(length: number, text: (index: number) => string, step: () =
     await step();
     const argument = text(index);
     if (!ended && argument === "--no-log") continue;
+    if (!ended && argument === "--no-stream") { parsed.noStream = true; continue; }
     if (ended || !argument.startsWith("-") || argument === "-") { operands.push(argument); continue; }
     if (argument === "--") { ended = true; continue; }
     const equals = argument.indexOf("=");
@@ -83,11 +85,13 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     work++;
     if (work % 256 === 0) await yieldTurn(signal);
   };
+  let bufferedOutput: Uint8Array[] | undefined;
   let outputBytes = 0;
   let writing = false;
   const write = async (chunk: Uint8Array): Promise<void> => {
     if (chunk.byteLength > (limits?.maxOutputBytes ?? Infinity) - outputBytes) throw new FsError("EFBIG", { message: "llm output byte limit exceeded" });
     outputBytes += chunk.byteLength;
+    if (bufferedOutput) { bufferedOutput.push(chunk.slice()); return; }
     writing = true;
     await operation.output.write(chunk);
     writing = false;
@@ -191,6 +195,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       ...(args.system === undefined ? {} : { system: args.system }), attachments, options: args.options, signal,
     };
     signal.throwIfAborted();
+    if (args.noStream) bufferedOutput = [];
     iterator = service.complete(request)[Symbol.asyncIterator]();
     const text = (entry.model.outputType ?? "text/plain").toLowerCase().startsWith("text/");
     let pendingSurrogate = "";
@@ -212,6 +217,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       if (pendingSurrogate) await emitText(pendingSurrogate);
       await write(Uint8Array.of(10));
     }
+    if (bufferedOutput) for (const chunk of bufferedOutput) { writing = true; await operation.output.write(chunk); writing = false; }
     return { exitCode: 0 };
   } catch (error) {
     context.signal.throwIfAborted();

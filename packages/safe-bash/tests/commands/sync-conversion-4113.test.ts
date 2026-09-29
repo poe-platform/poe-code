@@ -1,3 +1,5 @@
+import { archiveCommands } from "../../src/commands/archive/index.ts";
+import { splitCommands } from "../../src/commands/split/index.ts";
 import { prCommands } from "../../src/commands/pr/index.ts";
 import { shufCommands } from "../../src/commands/shuf/index.ts";
 import { mdqCommands } from "../../src/commands/mdq/index.ts";
@@ -744,5 +746,29 @@ test("evaluates fmt file operands, pr page headers with --date-format, and xan s
   assert.equal(
     r.stdout,
     "one two,three four,five,six seven,#2026-01-01 CustomTitle Page 1#id,val,3,c,4,d,#id,val,1,a,3,c,\n",
+  );
+});
+
+test("evaluates tar --exclude/--wildcards/--strip-components, unzip wildcards/-x, and split -C/-n file splitting in sync substitutions (Wave 196)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(archiveCommands()).use(splitCommands());
+  const r = await shell.exec(
+    [
+      "mkdir -p /tmp/w196/sub && printf \"keep\\n\" > /tmp/w196/sub/a.txt && printf \"skip\\n\" > /tmp/w196/sub/b.bak",
+      "tar -cf /tmp/w196.tar -C /tmp w196",
+      "tar_res=$(tar -tf /tmp/w196.tar --exclude=\"*.bak\" --strip-components=2 --wildcards \"*.txt\")",
+      "zip -qr /tmp/w196.zip /tmp/w196",
+      "uz_res=$(unzip -Z1 /tmp/w196.zip \"*.txt\" -x \"*.bak\")",
+      "printf \"abcd\\nefgh\\nijkl\\n\" > /tmp/w196.in",
+      "sp_res=$(split --verbose -C 6 /tmp/w196.in /tmp/w196_part_ | tr \"\\n\" \",\")",
+      "p1=$(cat /tmp/w196_part_aa)",
+      "printf \"%s#%s#%s#%s\\n\" \"$tar_res\" \"$uz_res\" \"$sp_res\" \"$p1\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "a.txt#tmp/w196/sub/a.txt#creating file '/tmp/w196_part_aa',creating file '/tmp/w196_part_ab',creating file '/tmp/w196_part_ac',#abcd\n",
   );
 });

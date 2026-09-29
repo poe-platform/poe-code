@@ -257,6 +257,68 @@ export function evalSyncSplit(
         }
       }
       if (start < src.length) chunks.push(src.subarray(start));
+    } else if (args.mode === "line-bytes") {
+      let pos = 0;
+      let bufParts: Uint8Array[] = [];
+      let bufLen = 0;
+      const flushBuf = () => {
+        if (bufLen === 0) return;
+        const merged = new Uint8Array(bufLen);
+        let o = 0;
+        for (const p of bufParts) { merged.set(p, o); o += p.length; }
+        chunks.push(merged);
+        bufParts = [];
+        bufLen = 0;
+      };
+      while (pos < src.length) {
+        let end = pos;
+        while (end < src.length && src[end] !== args.separator) end++;
+        if (end < src.length) end++;
+        let lineSlice = src.subarray(pos, end);
+        pos = end;
+        while (lineSlice.length > args.size) {
+          flushBuf();
+          chunks.push(lineSlice.subarray(0, args.size));
+          lineSlice = lineSlice.subarray(args.size);
+        }
+        if (bufLen + lineSlice.length > args.size) flushBuf();
+        if (lineSlice.length > 0) {
+          bufParts.push(lineSlice);
+          bufLen += lineSlice.length;
+        }
+      }
+      flushBuf();
+    } else if (args.mode === "chunks") {
+      if (args.chunkMode === "round-robin") {
+        const buckets: Uint8Array[][] = Array.from({ length: args.size }, () => []);
+        let start = 0;
+        let rec = 0;
+        for (let off = 0; off < src.length; off++) {
+          if (src[off] !== args.separator && off + 1 !== src.length) continue;
+          buckets[rec++ % args.size]!.push(src.subarray(start, off + 1));
+          start = off + 1;
+        }
+        for (const b of buckets) {
+          const total = b.reduce((s, p) => s + p.length, 0);
+          const merged = new Uint8Array(total);
+          let o = 0;
+          for (const p of b) { merged.set(p, o); o += p.length; }
+          chunks.push(merged);
+        }
+      } else {
+        const chunkSize = Math.floor(src.length / args.size);
+        const rem = src.length % args.size;
+        let chunkOffset = 0;
+        for (let idx = 0; idx < args.size; idx++) {
+          let end = chunkSize * (idx + 1) + Math.min(idx + 1, rem);
+          if (args.chunkMode === "lines") {
+            end = Math.max(end, chunkOffset);
+            while (end < src.length && end > 0 && src[end - 1] !== args.separator) end++;
+          }
+          chunks.push(src.subarray(chunkOffset, end));
+          chunkOffset = end;
+        }
+      }
     } else {
       return undefined;
     }

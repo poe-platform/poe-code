@@ -245,8 +245,27 @@ export function evalSyncTar(
   let mode: "t" | "x" | undefined;
   let toStdout = false;
   let gzip = false;
+  let wildcards = false;
+  let stripComponents = 0;
   let archive = "-";
+  const excludes: string[] = [];
   const operands: string[] = [];
+  const globToRe = (pat: string): RegExp => {
+    let re = "^";
+    for (let idx = 0; idx < pat.length; idx++) {
+      const ch = pat[idx]!;
+      if (ch === "*") re += ".*";
+      else if (ch === "?") re += ".";
+      else if (ch === "[") {
+        const close = pat.indexOf("]", idx + 1);
+        if (close > idx + 1) {
+          re += pat.slice(idx, close + 1);
+          idx = close;
+        } else re += "\\[";
+      } else re += ch.replace(/[.+^$(){}|\\]/g, "\\$&");
+    }
+    return new RegExp(re + "$", "u");
+  };
   let i = 0;
   let bundledHandled = false;
   while (i < args.length) {
@@ -276,6 +295,22 @@ export function evalSyncTar(
     if (a === "--extract" || a === "--get") { if (mode) return undefined; mode = "x"; i++; continue; }
     if (a === "--to-stdout") { toStdout = true; i++; continue; }
     if (a === "--gzip" || a === "--gunzip") { gzip = true; i++; continue; }
+    if (a === "--wildcards") { wildcards = true; i++; continue; }
+    if (a === "--exclude" || a.startsWith("--exclude=")) {
+      const ex = a === "--exclude" ? args[++i] : a.slice(10);
+      if (!ex) return undefined;
+      excludes.push(ex);
+      i++;
+      continue;
+    }
+    if (a === "--strip-components" || a.startsWith("--strip-components=") || a.startsWith("--strip=")) {
+      const raw = a === "--strip-components" ? args[++i] : a.slice(a.indexOf("=") + 1);
+      const v = Number(raw);
+      if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
+      stripComponents = v;
+      i++;
+      continue;
+    }
     if (a.startsWith("--file=")) { archive = a.slice(7); i++; continue; }
     if (a.startsWith("-") && a !== "-") {
       if (a.startsWith("--")) return undefined;
@@ -375,12 +410,28 @@ export function evalSyncTar(
 
       if (entry.name.startsWith("/")) return undefined;
 
+      const cleanEntry = entry.name.replace(/\/+$/u, "");
+      if (excludes.length > 0) {
+        const baseName = cleanEntry.slice(cleanEntry.lastIndexOf("/") + 1);
+        let isExcluded = false;
+        for (const ex of excludes) {
+          const exRe = globToRe(ex.replace(/\/+$/u, ""));
+          if (exRe.test(cleanEntry) || exRe.test(baseName)) { isExcluded = true; break; }
+        }
+        if (isExcluded) continue;
+      }
+
       let selected = operands.length === 0;
       if (!selected) {
-        const cleanEntry = entry.name.replace(/\/+$/u, "");
         for (let opIdx = 0; opIdx < operands.length; opIdx++) {
           const cleanOp = operands[opIdx]!.replace(/\/+$/u, "");
-          if (cleanEntry === cleanOp || cleanEntry.startsWith(cleanOp + "/")) {
+          if (wildcards && (cleanOp.includes("*") || cleanOp.includes("?") || cleanOp.includes("["))) {
+            const opRe = globToRe(cleanOp);
+            if (opRe.test(cleanEntry) || opRe.test(cleanEntry.slice(cleanEntry.lastIndexOf("/") + 1))) {
+              selected = true;
+              matchedOperands.add(opIdx);
+            }
+          } else if (cleanEntry === cleanOp || cleanEntry.startsWith(cleanOp + "/")) {
             selected = true;
             matchedOperands.add(opIdx);
           }
@@ -388,8 +439,16 @@ export function evalSyncTar(
       }
       if (!selected) continue;
 
+      let displayEntryName = entry.name;
+      if (stripComponents > 0) {
+        const hasTrailingSlash = displayEntryName.endsWith("/");
+        const segs = cleanEntry.split("/").filter(Boolean);
+        if (segs.length <= stripComponents) continue;
+        displayEntryName = segs.slice(stripComponents).join("/") + (hasTrailingSlash ? "/" : "");
+      }
+
       if (mode === "t") {
-        out += `${quoteName(entry.name, "escape")}\n`;
+        out += `${quoteName(displayEntryName, "escape")}\n`;
       } else if (mode === "x" && toStdout) {
         if (entry.type === "0") {
           out += syncTextDecoder.decode(payload);
@@ -426,12 +485,31 @@ export function evalSyncUnzip(
   let quiet = 0;
   let archive: string | undefined;
   const patterns: string[] = [];
+  const excludePatterns: string[] = [];
+  let inExclude = false;
   let ended = false;
+  const zipGlobToRe = (pat: string): RegExp => {
+    let re = "^";
+    for (let idx = 0; idx < pat.length; idx++) {
+      const ch = pat[idx]!;
+      if (ch === "*") re += ".*";
+      else if (ch === "?") re += ".";
+      else if (ch === "[") {
+        const close = pat.indexOf("]", idx + 1);
+        if (close > idx + 1) {
+          re += pat.slice(idx, close + 1);
+          idx = close;
+        } else re += "\\[";
+      } else re += ch.replace(/[.+^$(){}|\\]/g, "\\$&");
+    }
+    return new RegExp(re + "$", "u");
+  };
 
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
     if (!ended && a === "--") { ended = true; continue; }
-    if (!ended && a.startsWith("-") && a !== "-") {
+    if (!ended && archive !== undefined && a === "-x") { inExclude = true; continue; }
+    if (!ended && archive === undefined && a.startsWith("-") && a !== "-") {
       if (a === "-Z1" && i === 0) { zipinfoNames = true; continue; }
       for (let c = 1; c < a.length; c++) {
         const ch = a[c]!;
@@ -442,8 +520,9 @@ export function evalSyncUnzip(
       }
     } else if (archive === undefined) {
       archive = a;
+    } else if (inExclude) {
+      excludePatterns.push(a);
     } else {
-      if (a.includes("*") || a.includes("?") || a.includes("[")) return undefined;
       patterns.push(a);
     }
   }
@@ -523,14 +602,17 @@ export function evalSyncUnzip(
     }
 
     const matchedPatterns = new Set<number>();
+    const patRegexes = patterns.map(zipGlobToRe);
+    const exRegexes = excludePatterns.map(zipGlobToRe);
     const selectedMembers: ParsedZipMember[] = [];
     for (const m of members) {
+      if (exRegexes.some(re => re.test(m.name))) continue;
       if (patterns.length === 0) {
         selectedMembers.push(m);
       } else {
         let hit = false;
-        for (let pIdx = 0; pIdx < patterns.length; pIdx++) {
-          if (m.name === patterns[pIdx]) {
+        for (let pIdx = 0; pIdx < patRegexes.length; pIdx++) {
+          if (patRegexes[pIdx]!.test(m.name)) {
             hit = true;
             matchedPatterns.add(pIdx);
           }

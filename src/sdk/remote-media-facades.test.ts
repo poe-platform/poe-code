@@ -8,7 +8,7 @@ it.each(['media', 'remote-execution'])('exposes the %s server declarations only 
   const importer = fileURLToPath(new URL('./consumer.mts', import.meta.url));
   const options: ts.CompilerOptions = { module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext };
   const nodeDeclaration = fileURLToPath(new URL(`../../dist/${owner}-server.d.ts`, import.meta.url));
-  const unavailableDeclaration = fileURLToPath(new URL('../../packages/safe-fs/dist/node-unavailable.d.ts', import.meta.url));
+  const unavailableDeclaration = fileURLToPath(new URL('../../dist/types/safe-fs/node-unavailable.d.ts', import.meta.url));
   const manifestPath = fileURLToPath(new URL('../../package.json', import.meta.url));
   const volume = Volume.fromJSON({
     [manifestPath]: readFileSync(manifestPath, 'utf8'),

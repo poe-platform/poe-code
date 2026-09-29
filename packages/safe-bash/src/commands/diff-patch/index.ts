@@ -167,17 +167,16 @@ export function evalSyncPatch(
     if (a === "-N" || a === "--forward" || a === "-f" || a === "--force" || a === "-t" || a === "--batch" || a === "-u" || a === "--unified") { continue; }
     if (a === "-o" || a === "--output") {
       outputPath = opArgs[++i];
-      if (!outputPath || outputPath === "-" || outputPath === "/dev/null") return undefined;
+      if (!outputPath) return undefined;
       continue;
     }
     if (a.startsWith("-o") && a.length > 2) {
       outputPath = a.slice(2);
-      if (outputPath === "-" || outputPath === "/dev/null") return undefined;
       continue;
     }
     if (a.startsWith("--output=")) {
       outputPath = a.slice(9);
-      if (!outputPath || outputPath === "-" || outputPath === "/dev/null") return undefined;
+      if (!outputPath) return undefined;
       continue;
     }
     if (a === "-p" || a === "--strip") {
@@ -238,11 +237,15 @@ export function evalSyncPatch(
   }
   if (!resolvedTarget) return undefined;
   const origBytes = readFileSync(resolvedTarget);
-  if (!origBytes || origBytes.includes(0)) return undefined;
-  const origText = syncDiffDecoder.decode(origBytes);
+  if (origBytes && origBytes.includes(0)) return undefined;
+  const isNewFile = !origBytes && (reverse ? headerNew === "/dev/null" : headerOld === "/dev/null");
+  if (!origBytes && !isNewFile) return undefined;
+  const origText = origBytes ? syncDiffDecoder.decode(origBytes) : "";
+  let hasTrailingNewline = origText === "" ? true : origText.endsWith("\n");
   const origLines = origText === "" ? [] : (origText.endsWith("\n") ? origText.slice(0, -1).split("\n") : origText.split("\n"));
   const outLines: string[] = [];
   let origPos = 0;
+  let lastHunkOp: " " | "-" | "+" = " ";
   while (idx < lines.length) {
     const line = lines[idx]!;
     if (!line.startsWith("@@ ")) {
@@ -266,13 +269,20 @@ export function evalSyncPatch(
         if (origLines[origPos] !== body) return undefined;
         outLines.push(body);
         origPos++;
+        lastHunkOp = " ";
       } else if (prefix === "-") {
         if (origLines[origPos] !== body) return undefined;
         origPos++;
+        if (origPos === origLines.length) hasTrailingNewline = true;
+        lastHunkOp = "-";
       } else if (prefix === "+") {
         outLines.push(body);
+        if (origPos === origLines.length) hasTrailingNewline = true;
+        lastHunkOp = "+";
       } else if (hl.startsWith("\\ No newline")) {
-        return undefined;
+        if (lastHunkOp === "+" || (lastHunkOp === " " && origPos === origLines.length)) {
+          hasTrailingNewline = false;
+        }
       } else {
         return undefined;
       }
@@ -280,9 +290,12 @@ export function evalSyncPatch(
     }
   }
   while (origPos < origLines.length) outLines.push(origLines[origPos++]!);
-  const resultText = outLines.length === 0 ? "" : outLines.join("\n") + "\n";
+  const resultText = outLines.length === 0 ? "" : outLines.join("\n") + (hasTrailingNewline ? "\n" : "");
+  if (outputPath === "-") {
+    return resultText;
+  }
   const destPath = outputPath ?? resolvedTarget;
-  if (!dryRun) {
+  if (!dryRun && outputPath !== "/dev/null") {
     if (!writeFileSync(destPath, encoder.encode(resultText), false)) return undefined;
   }
   if (quiet) return "";

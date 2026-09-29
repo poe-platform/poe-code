@@ -186,20 +186,27 @@ export function evalSyncCsplit(
     return mergedSlice;
   };
   let nextIdx = 1;
+  let current = 0;
+  let foreverFinished = false;
   const pieces: Uint8Array[] = [];
   for (const pat of parsedPatterns) {
+    if (foreverFinished) break;
     if (pat.kind === "line") {
       for (let r = 0; r <= pat.repeat; r++) {
         const target = pat.line * (r + 1);
+        if (suppress && current + 1 > lines.length) return undefined;
         if (target > lines.length + 1 || nextIdx > lines.length) return undefined;
         const sliceLines: Uint8Array[] = [];
         while (nextIdx < target) {
           sliceLines.push(lines[nextIdx - 1]!);
+          current = Math.max(current, nextIdx);
           nextIdx++;
         }
         pieces.push(mergeLines(sliceLines));
+        if (!suppress && current + 1 > lines.length) return undefined;
         if (suppress) {
           if (nextIdx > lines.length) return undefined;
+          current = Math.max(current, nextIdx);
           nextIdx++;
         }
       }
@@ -207,46 +214,52 @@ export function evalSyncCsplit(
       const maxReps = pat.repeat === "*" ? lines.length + 1 : pat.repeat + 1;
       for (let r = 0; r < maxReps; r++) {
         let matchedLine = -1;
-        for (let searchIdx = nextIdx; searchIdx <= lines.length; searchIdx++) {
-          if (searchIdx === nextIdx && r === 0 && pat.offset === 0 && nextIdx === 1) {
-            // Can match line 1
+        for (;;) {
+          current++;
+          if (current > lines.length) break;
+          if (pat.re.test(lineStrings[current - 1]!)) {
+            matchedLine = current;
+            break;
           }
-          if (pat.re.test(lineStrings[searchIdx - 1]!)) {
-            if (searchIdx + pat.offset >= nextIdx) {
-              matchedLine = searchIdx;
-              break;
-            }
+          if (pat.offset >= 0) {
+            current = Math.max(current, nextIdx);
           }
         }
         if (matchedLine === -1) {
-          if (pat.repeat === "*") break;
+          if (pat.repeat === "*") {
+            if (!pat.skip) {
+              const remLines = lines.slice(nextIdx - 1);
+              pieces.push(mergeLines(remLines));
+            }
+            foreverFinished = true;
+            break;
+          }
           return undefined;
         }
         const target = matchedLine + pat.offset;
-        if (target < nextIdx || target > lines.length + 1) return undefined;
+        if (nextIdx > lines.length || target < nextIdx || target > lines.length + 1) return undefined;
         const sliceLines: Uint8Array[] = [];
         while (nextIdx < target) {
           sliceLines.push(lines[nextIdx - 1]!);
+          current = Math.max(current, nextIdx);
           nextIdx++;
         }
         if (!pat.skip) {
           pieces.push(mergeLines(sliceLines));
         }
+        if (pat.offset > 0) current = target;
         if (suppress) {
           if (nextIdx > lines.length) return undefined;
+          current = Math.max(current, nextIdx);
           nextIdx++;
-        } else if (target === matchedLine && nextIdx === matchedLine && pat.repeat === "*") {
-          // Ensure progress when matching next chunk
         }
       }
     }
   }
-  const restLines: Uint8Array[] = [];
-  while (nextIdx <= lines.length) {
-    restLines.push(lines[nextIdx - 1]!);
-    nextIdx++;
+  if (!foreverFinished) {
+    const restLines = lines.slice(nextIdx - 1);
+    pieces.push(mergeLines(restLines));
   }
-  pieces.push(mergeLines(restLines));
   const sizes: number[] = [];
   let fileIdx = 0;
   for (const piece of pieces) {

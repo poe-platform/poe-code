@@ -1692,4 +1692,35 @@ test("Wave 228: tar -xvf -C directory extraction and unzip -t / unzip -qo -d ext
     res.stdout.trim(),
     "pkg/hello.txt|tar-extracted|No errors detected in compressed data of /tmp/w228/pkg.zip.|tar-extracted"
   );
+
+  it("supports truncate relative clamping/-r modes, csplit repeated regex {*}/{N}, and patch -o -/new-file/no-newline in sync command substitutions (Wave 229)", async () => {
+    const shell = createShell();
+    const res = await shell.exec(`
+      out=""
+      for i in 1 2; do
+        printf "hello" > /tmp/w229_small.txt
+        printf "0123456789" > /tmp/w229_ref.txt
+        t_clamp=\$(truncate -s -100 /tmp/w229_small.txt && wc -c < /tmp/w229_small.txt | tr -d " ")
+        printf "abc" > /tmp/w229_gt.txt
+        t_ref_gt=\$(truncate -r /tmp/w229_ref.txt -s ">6" /tmp/w229_gt.txt && wc -c < /tmp/w229_gt.txt | tr -d " ")
+        printf "header\n===\nsec1\n===\nsec2\n===\nsec3\n" > /tmp/w229_cs.txt
+        cs_out=\$(csplit -f /tmp/w229_xx -b "%02d" /tmp/w229_cs.txt "/^===$/" "{*}" | tr "\n" ",")
+        cs_f1=\$(cat /tmp/w229_xx01 | tr "\n" "|")
+        cs_f3=\$(cat /tmp/w229_xx03 | tr "\n" "|")
+        printf "a\nb\n" > /tmp/w229_orig.txt
+        printf -- "--- a/w229_orig.txt\n+++ b/w229_orig.txt\n@@ -1,2 +1,2 @@\n a\n-b\n+B\n\\ No newline at end of file\n" > /tmp/w229.patch
+        p_stdout=\$(patch -s -o - /tmp/w229_orig.txt /tmp/w229.patch)
+        rm -f /tmp/w229_new.txt
+        printf -- "--- /dev/null\n+++ b/w229_new.txt\n@@ -0,0 +1,2 @@\n+first\n+second\n" > /tmp/w229_new.patch
+        p_new=\$(patch -s /tmp/w229_new.txt /tmp/w229_new.patch && cat /tmp/w229_new.txt | tr "\n" "|")
+        out="${t_clamp}:${t_ref_gt}:${cs_out}:${cs_f1}:${cs_f3}:${p_stdout}:${p_new}"
+      done
+      printf "%s\n" "\$out"
+    `);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout.trim(),
+      "0:10:7,9,9,9,:===|sec1|:===|sec3|:a\nB:first|second|",
+    );
+  });
 });

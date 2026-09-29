@@ -190,11 +190,12 @@ export function evalSyncTruncate(
       if (scaledSize === undefined) target = refSize!;
       else if (args.mode === "absolute") target = scaledSize;
       else if (args.mode === "relative") target = base + scaledSize;
-      else if (args.mode === "<") target = curSize < scaledSize ? curSize : scaledSize;
-      else if (args.mode === ">") target = curSize > scaledSize ? curSize : scaledSize;
-      else if (args.mode === "/") target = (curSize / scaledSize) * scaledSize;
-      else target = ((curSize + scaledSize - 1n) / scaledSize) * scaledSize;
-      if (target < 0n || target > 1048576n) return undefined;
+      else if (args.mode === "<") target = base < scaledSize ? base : scaledSize;
+      else if (args.mode === ">") target = base > scaledSize ? base : scaledSize;
+      else if (args.mode === "/") target = (base / scaledSize) * scaledSize;
+      else target = ((base + scaledSize - 1n) / scaledSize) * scaledSize;
+      if (target < 0n) target = 0n;
+      if (target > 1048576n) return undefined;
       const n = Number(target);
       const out = new Uint8Array(n);
       if (existing && existing.length > 0) {

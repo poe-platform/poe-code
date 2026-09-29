@@ -11128,7 +11128,6 @@ export class Runtime {
             this.budget.tick();
             rawState.substitutionStatus = 0;
             if (rawState.variables._ !== undefined) delete rawState.variables._;
-            rawState.lastArgument = fnArgs.length > 0 ? fnArgs[fnArgs.length - 1]! : w0Plain;
             const positional = rawState.positional;
             let fnArgsBytes = 0;
             for (let i = 0; i < fnArgs.length; i++) fnArgsBytes += fnArgs[i]!.length;
@@ -11312,7 +11311,6 @@ export class Runtime {
                 this.budget.tick();
                 rawState.substitutionStatus = 0;
                 if (rawState.variables._ !== undefined) delete rawState.variables._;
-                rawState.lastArgument = lastCmdArg;
                 rawState.depth++;
                 let evalStatus: number | { listIndex: number; pipelineIndex: number };
                 try {
@@ -11321,6 +11319,7 @@ export class Runtime {
                   rawState.depth--;
                 }
                 if (typeof evalStatus === "number") {
+                  rawState.lastArgument = lastCmdArg;
                   if (cachedUnit.script.lists.length === 0) {
                     const activeStore = monitor.store;
                     const activeExisting = activeStore?.get("PIPESTATUS");
@@ -14607,6 +14606,7 @@ export class Runtime {
   ): string {
     const locals = (decl.kind === "local" || decl.kind === "declare") && rawState.locals.length > 0 ? rawState.locals[rawState.locals.length - 1]! : undefined;
     let lastArg: string = decl.kind;
+    const values = decl.items.map(item => item.value === undefined ? undefined : this.fastValueWord(item.value, rawState, io, false, false, false, rawState.braceexpand !== false, 0, line) as string);
     for (let i = 0; i < decl.items.length; i++) {
       const item = decl.items[i]!;
       const isNewLocal = locals ? !locals.has(item.name) : false;
@@ -14624,7 +14624,7 @@ export class Runtime {
         touched.add(item.name);
       }
       if (item.value !== undefined) {
-        const val = this.fastValueWord(item.value, rawState, io, false, false, false, rawState.braceexpand !== false, 0, line) as string;
+        const val = values[i]!;
         if (item.append) {
           const curRaw = rawState.variables[item.name];
           const curStr = curRaw === undefined ? "" : (touched.has(item.name) ? curRaw : (monitor.values.get(item.name, curRaw) ?? curRaw));
@@ -14633,7 +14633,7 @@ export class Runtime {
           rawState.variables[item.name] = val;
         }
         touched.add(item.name);
-        lastArg = `${item.name}=${rawState.variables[item.name]}`;
+        lastArg = `${item.name}${item.append ? "+=" : "="}${val}`;
       } else {
         lastArg = item.name;
       }
@@ -16302,8 +16302,6 @@ export class Runtime {
             state.substitutionStatus = 0;
             const rawState = stateMonitor(state)?.raw ?? state;
             if (rawState.variables._ !== undefined) delete rawState.variables._;
-            rawState.lastArgument = (wordValues as readonly string[])[wordValues.length - 1] ?? w0Plain;
-            state.lastArgument = rawState.lastArgument;
             return await this.dispatchFastFunction(w0Plain, state.functions.get(w0Plain)!, (wordValues as readonly string[]).slice(1), state, originalIO);
           }
         }
@@ -17257,8 +17255,10 @@ export class Runtime {
           }
           const rawState = stateMonitor(state)?.raw ?? state;
           if (!state._readOnlyStage && rawState.variables._ !== undefined) delete rawState.variables._;
-          rawState.lastArgument = words.length > 0 ? words[words.length - 1]! : "";
-          state.lastArgument = rawState.lastArgument;
+          if (!state.functions.has(words[0] ?? "") && words[0] !== "eval") {
+            rawState.lastArgument = words.at(-1) ?? "";
+            state.lastArgument = rawState.lastArgument;
+          }
           if (!words.length) return state.substitutionStatus;
           const args = words.slice(1);
           const argValues = allStrings ? args : wordValues.slice(1);
@@ -17470,8 +17470,10 @@ export class Runtime {
       if (!snapshotScope) {
         const rawState = stateMonitor(state)?.raw ?? state;
         if (rawState.variables._ !== undefined && !assignments.some(assignment => assignment.name === "_")) delete rawState.variables._;
-        rawState.lastArgument = words.length > 0 ? words[words.length - 1]! : "";
-        state.lastArgument = rawState.lastArgument;
+        if (!functionCommand && words[0] !== "eval") {
+          rawState.lastArgument = words.at(-1) ?? "";
+          state.lastArgument = rawState.lastArgument;
+        }
       }
       if (!words.length) return state.substitutionStatus;
       const args = words.slice(1);
@@ -18161,7 +18163,11 @@ export class Runtime {
           }
           if (context.command === "command" || context.command === "builtin" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments, defaultPath) };
           if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
-          if (context.command === "eval") return { exitCode: await this.evalBuiltin(context, state, { ...io, ...context }, special) };
+          if (context.command === "eval") {
+            const exitCode = await this.evalBuiltin(context, state, { ...io, ...context }, special);
+            state.lastArgument = context.args.at(-1) ?? context.command;
+            return { exitCode };
+          }
           const builtinWork = this.builtin({ ...context, [declarationArrays]: io[declarationArrays] }, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
           const builtin = await interruptible(builtinWork, this.signal);
           if (builtin !== undefined) {

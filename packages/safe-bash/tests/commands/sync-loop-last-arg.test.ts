@@ -103,3 +103,29 @@ test('3957 outer string bracket condition', async () => {
     assert.equal(result.stdout, oracle.stdout);
   } finally { await shell.dispose(); }
 });
+
+const issue4078Scripts = [
+  ...['declare', 'typeset', 'export'].flatMap(kind => [
+    `x=outer; for i in 1 2; do ${kind} x="in_$i" y="$x"; echo "y:$y"; done`,
+    ...(kind === "export" ? [] : [`x=foo; for i in 1 2; do ${kind} x+=bar; done; echo "x:$x last:$_"`]),
+  ]),
+  'x=outer; fn() { for i in 1 2; do local x="in_$i" y="$x"; echo "y:$y"; done; }; fn; echo "after:$x"',
+  'fn() { local x=foo; for i in 1 2; do local x+=bar; done; echo "x:$x last:$_"; }; fn',
+  'x=outer; fn() { for i in 1 2; do local x y="${x:-UNSET}"; echo "y:$y"; x=outer; done; }; fn',
+  ...['fn arg1 arg2', 'fn', 'X=1 fn arg1 arg2', 'X=1 fn', 'fn arg1 arg2 >/dev/null', 'for i in 1 2; do fn arg1 arg2; done'].map(call =>
+    `fn() { echo "in1:$_"; echo "in2:$_"; }; echo before >/dev/null; ${call}; echo "after:$_"`),
+  ...["eval 'echo in_eval:$_'", "X=1 eval 'echo in_eval:$_'", "eval 'echo in_eval:$_; read -r v <<< value; echo read:$v'", "eval ''", 'eval', "eval 'echo in_eval:$_' >/dev/null"].map(call =>
+    `echo before_eval >/dev/null; ${call}; echo "after:$_"`),
+];
+for (const middleware of [false, true]) for (const source of issue4078Scripts) test(`issue 4078 (${middleware ? "middleware" : "fast"}): ${source}`, async () => {
+  const oracle = spawnSync('/bin/bash', ['--noprofile', '--norc', '-c', source], { encoding: 'utf8' });
+  assert.equal(oracle.status, 0);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+  if (middleware) shell.use(async (_context, next) => next());
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.stderr, oracle.stderr);
+    assert.equal(result.exitCode, oracle.status);
+    assert.equal(result.stdout, oracle.stdout);
+  } finally { await shell.dispose(); }
+});

@@ -87,7 +87,7 @@ export function htmlqCommands(options: HtmlqCommandsOptions = {}): VirtualShellP
 
 const syncAbortSignal = new AbortController().signal;
 const syncHtmlDecoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
-const syncHtmlLimits: HtmlLimits = Object.freeze({
+const syncHtmlLimits = Object.freeze({
   inputBytes: Infinity,
   decodedBytes: Infinity,
   retainedBytes: Infinity,

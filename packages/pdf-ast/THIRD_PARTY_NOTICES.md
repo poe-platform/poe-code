@@ -491,3 +491,9 @@ Function-shading BBox coordinates follow PDF.js `FunctionBasedShading` in
 Matrix. The local evaluator transforms page pixels back into shading space
 for clipping. `src/render/shading-bbox.test.ts` covers translated, rotated,
 and sheared page transforms and the unchanged upstream equality fixture.
+
+Declared stream lengths follow PDF.js `Parser.makeStream`/`tryShift` in
+`src/core/parser.js`: the next token must be `endstream`, otherwise scan for
+the actual terminator. `src/cos/stream-length.test.ts` covers direct/indirect
+lengths, malformed tokens at the claimed end, delimiter text inside accurate
+streams, and PDF.js's unchanged `xobject-image.pdf` through load/save/render.

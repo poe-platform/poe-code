@@ -302,3 +302,9 @@ patch control points, reuse flags 1–3, and a color function. SHA-256:
 `91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). Its fourth panel
 combines a function Matrix with a BBox in shading coordinates. SHA-256:
 `21a0d4951f2d45f86d90dd9bac824805b54b2bd2fefe6efad763d227d484ed64`.
+
+`pdfjs-xobject-image.pdf` is unchanged from PDF.js
+`test/pdfs/xobject-image.pdf` at revision
+`91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). Its content stream
+declares Length 14 although additional matrix and image operators follow.
+SHA-256: `9bd4a6f17bac7b6d218ae0f8d28ea80f7025948499fa3686e46d6950cac6ab9a`.

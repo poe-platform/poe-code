@@ -132,6 +132,9 @@ raise errors instead of producing placeholder pixels. Rendering and image extrac
 share these decoders, including inline images; extraction retains original encoded
 image bytes and JBIG2 globals for native-format export.
 
+Short or damaged stream lengths are recovered without discarding trailing
+drawing commands; correct lengths preserve delimiter-like bytes inside streams.
+
 Circular indirect-reference chains raise a PDF parse error; long acyclic reference
 chains resolve without recursive JavaScript calls.
 

@@ -310,11 +310,18 @@ function parseDictionaryStream(dictNode: PdfCosDict, lexer: CosByteLexer, bytes:
     let streamEnd = streamStart;
     if (resolvedLength !== undefined && resolvedLength >= 0 && streamStart + resolvedLength <= bytes.length) {
       const candidateEnd = streamStart + resolvedLength;
-      const tailSlice = bytes.subarray(candidateEnd, Math.min(bytes.length, candidateEnd + 32));
-      const tailStr = new TextDecoder("latin1").decode(tailSlice);
-      if (tailStr.includes("endstream")) {
+      const tailLexer = new CosByteLexer(bytes, candidateEnd);
+      let endToken: CosToken | undefined;
+      try {
+        endToken = tailLexer.nextToken();
+      } catch (error) {
+        // Like PDF.js makeStream/tryShift, recover when Length lands inside
+        // binary data or an incomplete token instead of accepting truncation.
+        if (!(error instanceof PdfError) || error.code !== "E_PARSE") throw error;
+      }
+      if (endToken?.kind === "keyword" && endToken.value === "endstream") {
         rawStreamBytes = bytes.subarray(streamStart, candidateEnd);
-        streamEnd = candidateEnd + tailStr.indexOf("endstream") + "endstream".length;
+        streamEnd = tailLexer.offset;
       }
     }
     if (!rawStreamBytes) {

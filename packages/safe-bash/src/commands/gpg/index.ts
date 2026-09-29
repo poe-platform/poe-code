@@ -1,4 +1,87 @@
-import { createHash, createPrivateKey, sign } from "node:crypto";
+import { sha256, sha512 } from "@noble/hashes/sha2.js";
+const ED25519_P = 2n ** 255n - 19n;
+const ED25519_L = 2n ** 252n + 27742317777372353535851937790883648493n;
+const edMod = (a: bigint, m = ED25519_P): bigint => ((a % m) + m) % m;
+const edModPow = (b: bigint, e: bigint, m = ED25519_P): bigint => {
+  let r = 1n; b = edMod(b, m);
+  while (e > 0n) { if (e & 1n) r = (r * b) % m; b = (b * b) % m; e >>= 1n; }
+  return r;
+};
+const edInv = (a: bigint): bigint => edModPow(a, ED25519_P - 2n, ED25519_P);
+const ED25519_D = edMod(-121665n * edInv(121666n));
+const ED25519_I = edModPow(2n, (ED25519_P - 1n) / 4n);
+const ED25519_BY = edMod(4n * edInv(5n));
+const ED25519_BX = 15112221349535400772501151409588531511454012693041857206046113283949847762202n;
+type EdPt = readonly [bigint, bigint, bigint, bigint];
+const ED25519_B: EdPt = [ED25519_BX, ED25519_BY, 1n, edMod(ED25519_BX * ED25519_BY)];
+
+function edPtAdd(p: EdPt, q: EdPt): EdPt {
+  const [X1, Y1, Z1, T1] = p, [X2, Y2, Z2, T2] = q;
+  const A = edMod((Y1 - X1) * (Y2 - X2)), B_ = edMod((Y1 + X1) * (Y2 + X2));
+  const C = edMod(T1 * 2n * ED25519_D * T2), D_ = edMod(Z1 * 2n * Z2);
+  const E = edMod(B_ - A), F = edMod(D_ - C), G = edMod(D_ + C), H = edMod(B_ + A);
+  return [edMod(E * F), edMod(G * H), edMod(F * G), edMod(E * H)];
+}
+function edPtMul(p: EdPt, n: bigint): EdPt {
+  let r: EdPt = [0n, 1n, 1n, 0n], t = p;
+  while (n > 0n) { if (n & 1n) r = edPtAdd(r, t); t = edPtAdd(t, t); n >>= 1n; }
+  return r;
+}
+function edEncodePt(p: EdPt): Uint8Array {
+  const z = edInv(p[2]), x = edMod(p[0] * z), y = edMod(p[1] * z);
+  const out = new Uint8Array(32);
+  let v = y;
+  for (let i = 0; i < 32; i++) { out[i] = Number(v & 0xffn); v >>= 8n; }
+  out[31]! |= Number(x & 1n) << 7;
+  return out;
+}
+function edDecodePt(b: Uint8Array): EdPt | null {
+  let y = 0n;
+  for (let i = 0; i < 32; i++) y |= BigInt(b[i]! & (i === 31 ? 0x7f : 0xff)) << BigInt(8 * i);
+  if (y >= ED25519_P) return null;
+  const sign = (b[31]! >>> 7) & 1;
+  const y2 = edMod(y * y), u = edMod(y2 - 1n), v = edMod(ED25519_D * y2 + 1n);
+  let x = edMod(u * edModPow(v, 3n) * edModPow(edMod(u * edModPow(v, 7n)), (ED25519_P - 5n) / 8n));
+  if (edMod(v * x * x) === edMod(-u)) x = edMod(x * ED25519_I);
+  if (edMod(v * x * x) !== u) return null;
+  if (x === 0n && sign === 1) return null;
+  if (Number(x & 1n) !== sign) x = ED25519_P - x;
+  return [x, y, 1n, edMod(x * y)];
+}
+const edBytesToNumLE = (b: Uint8Array): bigint => { let v = 0n; for (let i = 0; i < b.length; i++) v |= BigInt(b[i]!) << BigInt(8 * i); return v; };
+const edNumTo32LE = (v: bigint): Uint8Array => { const o = new Uint8Array(32); for (let i = 0; i < 32; i++) { o[i] = Number(v & 0xffn); v >>= 8n; } return o; };
+function ed25519Sign(msg: Uint8Array, seed: Uint8Array): Uint8Array {
+  const h = sha512(seed);
+  const sBytes = h.slice(0, 32);
+  sBytes[0]! &= 248; sBytes[31]! &= 127; sBytes[31]! |= 64;
+  const a = edBytesToNumLE(sBytes);
+  const A = edEncodePt(edPtMul(ED25519_B, a));
+  const rInput = new Uint8Array(32 + msg.length);
+  rInput.set(h.slice(32, 64), 0); rInput.set(msg, 32);
+  const r = edMod(edBytesToNumLE(sha512(rInput)), ED25519_L);
+  const R = edEncodePt(edPtMul(ED25519_B, r));
+  const kInput = new Uint8Array(64 + msg.length);
+  kInput.set(R, 0); kInput.set(A, 32); kInput.set(msg, 64);
+  const k = edMod(edBytesToNumLE(sha512(kInput)), ED25519_L);
+  const S = edNumTo32LE(edMod(r + k * a, ED25519_L));
+  const sig = new Uint8Array(64);
+  sig.set(R, 0); sig.set(S, 32);
+  return sig;
+}
+function ed25519Verify(sig: Uint8Array, msg: Uint8Array, pub: Uint8Array): boolean {
+  if (sig.length !== 64 || pub.length !== 32) return false;
+  const R = edDecodePt(sig.subarray(0, 32));
+  const A = edDecodePt(pub);
+  const S = edBytesToNumLE(sig.subarray(32, 64));
+  if (!R || !A || S >= ED25519_L) return false;
+  const kInput = new Uint8Array(64 + msg.length);
+  kInput.set(sig.subarray(0, 32), 0); kInput.set(pub, 32); kInput.set(msg, 64);
+  const k = edMod(edBytesToNumLE(sha512(kInput)), ED25519_L);
+  const lhs = edEncodePt(edPtMul(ED25519_B, S));
+  const rhs = edEncodePt(edPtAdd(R, edPtMul(A, k)));
+  return lhs.every((b, i) => b === rhs[i]);
+}
+
 import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
@@ -176,7 +259,7 @@ export function evalSyncGpg(
       const fromHex = (h: string) => new Uint8Array(h.match(/.{1,2}/g)!.map(b => Number.parseInt(b, 16)));
       const seed = fromHex(found.seedHex);
       const pubKey = fromHex(found.pubHex);
-      const fpDigest = createHash("sha256").update(pubKey).digest();
+      const fpDigest = sha256(pubKey);
       const keyId = fpDigest.subarray(24, 32);
 
       const hashedSub: number[] = [];
@@ -201,13 +284,8 @@ export function evalSyncGpg(
         [4, 0xff, (hLen >>> 24) & 0xff, (hLen >>> 16) & 0xff, (hLen >>> 8) & 0xff, hLen & 0xff],
         payload.byteLength + sigHeader.length,
       );
-      const digest = createHash("sha256").update(hashTarget).digest();
-      const toB64Url = (b: Uint8Array) => bytesToBase64(b).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-      const privKey = createPrivateKey({
-        key: { kty: "OKP", crv: "Ed25519", d: toB64Url(seed), x: toB64Url(pubKey) },
-        format: "jwk",
-      });
-      const sigBytes = new Uint8Array(sign(null, digest, privKey));
+      const digest = sha256(hashTarget);
+      const sigBytes = ed25519Sign(digest, seed);
       const body: number[] = [
         ...sigHeader,
         (pubKeySub.length >>> 8) & 0xff,

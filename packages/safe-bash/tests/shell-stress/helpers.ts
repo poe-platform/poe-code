@@ -51,6 +51,7 @@ async function executeVirtual(request: ChildRequest | BatchRequest, dependencies
   const bundled = await build({
     entryPoints: [fileURLToPath(new URL("./virtual-child.ts", import.meta.url))],
     bundle: true, packages: "external", platform: "node", format: "esm", target: "es2022", write: false,
+    resolveExtensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".css", ".json"],
     alias: {
       ...Object.fromEntries(Object.keys(privateWorkspaces).map(name => [name,
         fileURLToPath(new URL(`../../../${name}/dist`, import.meta.url))])),

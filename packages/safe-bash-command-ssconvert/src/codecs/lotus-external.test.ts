@@ -51,8 +51,15 @@ it.each(["Missing", "<<>>Sheet:A1", "<<book>Sheet:A1", "<<book>>:A1", "<<book>>S
   "<<book>>Sheet:A1..Last:B0", "<<book>>Sheet:XFE1", "<<book>>Sheet:A16777217"])(
   "preserves the unknown-name diagnostic for malformed or unqualified external syntax: %s", async variable => {
     const warnings: string[] = [];
-    const book = await readLotus(fixture(variable), { ...context, async diagnostic(d) { warnings.push(d.message); } });
-    expect(book.sheets[0]!.cells[0]!.formula).toBe("=(#NAME?+1)");
+    let calls = 0;
+    const configured: CapabilityContext = { ...context, async diagnostic(d) { warnings.push(d.message); },
+      externalReferences: { resolve() { calls++; return { kind: "number", value: 42 }; } } };
+    const book = await readLotus(fixture(variable), configured);
+    const parsed = parseExpression(book.sheets[0]!.cells[0]!.formula!, { position: { sheet: "lotus-0", row: 2, column: 2 } });
+    expect(parsed.ok && parsed.document.root).toMatchObject({ kind: "parentheses",
+      child: { kind: "binary", left: { kind: "name", name: variable, workbook: "" } } });
+    expect(recalculateWorkbook(book, configured, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#NAME?" });
+    expect(calls).toBe(0);
     expect(warnings).toEqual([`Unknown Lotus named reference '${variable}'.`]);
   });
 

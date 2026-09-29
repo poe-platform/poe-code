@@ -278,18 +278,15 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
       // Only absolute-name tokens carry a '$' marker (Calc FindRel/FindAbs).
       if (op === 8 && name.startsWith("$")) name = name.slice(1);
       const range = names?.get(name);
-      if (!range) {
-        const external = lotusExternalVariable(name);
-        if (external !== undefined) stack.push(external);
-        else {
+      const external = range ? undefined : lotusExternalVariable(name);
+      if (external !== undefined) stack.push(external);
+      else {
+        if (!range)
           await context.diagnostic?.({ code: "lotus", severity: "warning", message: `Unknown Lotus named reference '${name}'.` });
-          stack.push("#NAME?");
-        }
-      } else {
-        // Calc FindRel/FindAbs retain name indexes. Bind to the original name,
-        // with the token's copy mode, so later definition edits remain live.
-        const fixedSheet = range.first.sheet !== sheetIndex || range.last.sheet !== sheetIndex;
-        stack.push(`@name.${op === 7 ? "relative" : "absolute"}${fixedSheet ? ".fixed-sheet" : ""}[0,0,0]:` + quoteFormulaString(name, '"', gnumericGrammar));
+        // Retain identity and copy mode even when the declaration is missing,
+        // so adding or editing it later can bind this same formula reference.
+        const fixedSheet = range && (range.first.sheet !== sheetIndex || range.last.sheet !== sheetIndex);
+        stack.push(name ? `@name.${op === 7 ? "relative" : "absolute"}${fixedSheet ? ".fixed-sheet" : ""}[0,0,0]:` + quoteFormulaString(name, '"', gnumericGrammar) : "#NAME?");
       }
     } else if (modern && op >= 9 && op <= 11) {
       const length = op === 9 ? 4 : op === 10 ? 5 : 11;

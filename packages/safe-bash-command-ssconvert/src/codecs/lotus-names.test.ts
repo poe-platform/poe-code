@@ -119,8 +119,40 @@ it("does not fall back from a missing literal-dollar relative name to a differen
   const warnings: string[] = [];
   const book = await readLotus(modern(newName("Value"), formulaRecord(namedToken("$Value", 7))),
     { ...context, async diagnostic(d) { warnings.push(d.message); } });
-  expect(book.sheets[0]!.cells[0]!.formula).toBe("=#NAME?");
+  expect(book.sheets[0]!.cells[0]!.formula).toBe('=@name.relative[0,0,0]:"$Value"');
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#NAME?" });
+  expect(recalculateWorkbook({ ...book, names: [...book.names!, { name: "$Value", expression: "=42" }] }, context, true)
+    .sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
   expect(warnings).toEqual(["Unknown Lotus named reference '$Value'."]);
+});
+it.each([7, 8])("binds an unresolved token %i after a definition is added, copied and edited", async opcode => {
+  const book = await readLotus(modern(formulaRecord(namedToken(opcode === 8 ? "$Late" : "Late", opcode), 2, 2),
+    record(24, [0, 0, 0, 0, 22, 0]), record(24, [0, 0, 0, 1, 26, 0]),
+    record(24, [1, 0, 0, 1, 34, 0]), record(24, [1, 0, 0, 2, 38, 0])), context);
+  const value = (input: typeof book, row = 2) => recalculateWorkbook(input, context, true)
+    .sheets[0]!.cells.find(cell => cell.row === row && cell.formula)?.value;
+  expect(value(book)).toEqual({ kind: "error", value: "#NAME?" });
+  expect(book.names ?? []).toEqual([]);
+  const named = { ...book, names: [{ name: "Late", expression: "='Sheet1'!$A$1" }] };
+  expect(value(named)).toEqual({ kind: "number", value: 11 });
+  const source = book.sheets[0]!.cells.find(cell => cell.formula)!;
+  const parsed = parseExpression(source.formula!, { workbook: book, position: { sheet: "lotus-0", row: 2, column: 2 } });
+  expect(parsed.ok).toBe(true); if (!parsed.ok) return;
+  const formula = rewriteReferences(parsed.document, { translation: "copy", position: { sheet: "lotus-0", row: 3, column: 3 } });
+  const copied = { ...named, sheets: named.sheets.map(sheet => ({ ...sheet, cells: [...sheet.cells,
+    { row: 3, column: 3, formula, value: { kind: "blank" as const } }] })) };
+  expect(value(copied, 3)).toEqual({ kind: "number", value: opcode === 7 ? 17 : 11 });
+  expect(value({ ...copied, names: [{ name: "Late", expression: "='Sheet1'!$B$1" }] }, 3))
+    .toEqual({ kind: "number", value: opcode === 7 ? 19 : 13 });
+  expect(value({ ...copied, names: [] }, 3)).toEqual({ kind: "error", value: "#NAME?" });
+});
+it("keeps unresolved Lotus names in the global namespace when a local name is added", async () => {
+  const book = await readLotus(modern(formulaRecord(namedToken("Late"))), context);
+  const names = [{ name: "Late", sheet: "lotus-0", expression: "=11" }];
+  expect(recalculateWorkbook({ ...book, names }, context, true).sheets[0]!.cells[0]!.value)
+    .toEqual({ kind: "error", value: "#NAME?" });
+  expect(recalculateWorkbook({ ...book, names: [...names, { name: "Late", expression: "=13" }] }, context, true)
+    .sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 13 });
 });
 it.each([[0, "=$C$2"], [1, "=C$2"], [2, "=$C2"], [3, "=C2"]])("decodes WK3 cell-reference axis flags %i from the Lotus record", async (flags, formula) => {
   // LibreOffice LotusToSc::ReadSRD and libwps LotusSpreadsheet::readCell
@@ -163,8 +195,13 @@ it("does not resurrect an overwritten deferred formula", async () => {
 it("consumes a complete missing name without interpreting its bytes as opcodes", async () => {
   const warnings: string[] = [];
   const book = await readLotus(modern(formulaRecord([...namedToken("Missing"), 5, 2, 0, 15])), { ...context, async diagnostic(d) { warnings.push(d.message); } });
-  expect(book.sheets[0]?.cells[0]?.formula).toBe("=(#NAME?+1)");
+  expect(book.sheets[0]?.cells[0]?.formula).toBe('=(@name.relative[0,0,0]:"Missing"+1)');
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#NAME?" });
   expect(warnings).toEqual(["Unknown Lotus named reference 'Missing'."]);
+});
+it.each([[7, ""], [8, "$"]] as const)("keeps an empty token %i name invalid", async (opcode, token) => {
+  const book = await readLotus(modern(formulaRecord(namedToken(token, opcode))), context);
+  expect(book.sheets[0]!.cells[0]!.formula).toBe("=#NAME?");
 });
 it("rejects an unterminated named token without inventing a terminator", async () => {
   const warnings: string[] = [];

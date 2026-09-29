@@ -1437,3 +1437,29 @@ EOF
     `/tmp/metrics.csv,id,name,score#id,name,score|2,beta,20|3,gamma,30#4`
   );
 });
+
+test("Wave 221: tree -Ji/--sort=version, multi-operand ls and ls -L, and du -0 in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp/w221", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp/w221" }).use(standardCommands()).use(tableTextCommands()).use(treeCommands()).use(duCommands());
+  const res = await shell.exec(`
+    printf "hello" > /tmp/w221/v2.txt
+    printf "world!" > /tmp/w221/v10.txt
+    ln -s /tmp/w221/v10.txt /tmp/w221/link.txt
+    out=""
+    for i in 1 2 3 4 5; do
+      tj=$(tree -Ji --noreport -I "link.txt" /tmp/w221)
+      tv=$(tree -i --noreport --sort=version -I "link.txt" /tmp/w221 | paste -sd",")
+      lm=$(ls /tmp/w221/v10.txt /tmp/w221/v2.txt | paste -sd",")
+      ll=$(ls -LF /tmp/w221/link.txt)
+      du0=$(du -0 -bs /tmp/w221/v2.txt /tmp/w221/v10.txt | tr "\\0\\t" ":=")
+      out="$tj#$tv#$lm#$ll#$du0"
+    done
+    printf "%s\\n" "$out"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    `[{"type":"directory","name":"/tmp/w221","contents":[{"type":"file","name":"v10.txt"},{"type":"file","name":"v2.txt"}]}]#/tmp/w221,v2.txt,v10.txt#/tmp/w221/v10.txt,/tmp/w221/v2.txt#/tmp/w221/link.txt#5=/tmp/w221/v2.txt:6=/tmp/w221/v10.txt:`
+  );
+});

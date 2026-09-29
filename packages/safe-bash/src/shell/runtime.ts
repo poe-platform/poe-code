@@ -30142,7 +30142,7 @@ export class Runtime {
                   : firstName === "df"
                     ? evalSyncDf(stageArgs, rawState.cwd, rawState.variables, (p: string) => this.tryInspectMemoryNodeSync(p, true), extDef.execute)
                   : firstName === "du"
-                    ? evalSyncDu(stageArgs, rawState.cwd, rawState.variables, (p: string) => this.tryInspectMemoryNodeSync(p, true))
+                    ? evalSyncDu(stageArgs, rawState.cwd, rawState.variables, (p: string) => this.tryInspectMemoryNodeSync(p, true), true)
                   : firstName === "tree"
                     ? evalSyncTree(stageArgs, rawState.cwd, (p: string) => this.tryInspectMemoryNodeSync(p, true))
                   : firstName === "stat"

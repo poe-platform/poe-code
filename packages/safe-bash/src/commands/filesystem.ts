@@ -1625,6 +1625,7 @@ export function evalSyncLs(
   let dirsFirst = false;
   let ignoreBackups = false;
   const ignorePatterns: RegExp[] = [];
+  let followSymlinks = false;
   let sortMode: "name" | "size" | "extension" | "none" = "name";
   let indicator: "none" | "slash" | "file-type" | "classify" = "none";
   const operands: string[] = [];
@@ -1675,7 +1676,12 @@ export function evalSyncLs(
       else if (a === "--group-directories-first") dirsFirst = true;
       else if (a === "--ignore-backups") ignoreBackups = true;
       else if (a === "--classify") indicator = "classify";
-      else if (a === "--file-type") indicator = "file-type";
+      else if (a === "--file-type" || a === "--indicator-style=file-type") indicator = "file-type";
+      else if (a === "--indicator-style=slash") indicator = "slash";
+      else if (a === "--indicator-style=classify") indicator = "classify";
+      else if (a === "--indicator-style=none") indicator = "none";
+      else if (a === "--dereference") followSymlinks = true;
+      else if (a === "--hide-control-chars") { /* default */ }
       else if (a === "--sort=size") sortMode = "size";
       else if (a === "--sort=extension") sortMode = "extension";
       else if (a === "--sort=none") sortMode = "none";
@@ -1698,17 +1704,20 @@ export function evalSyncLs(
         else if (ch === "U") sortMode = "none";
         else if (ch === "p") indicator = "slash";
         else if (ch === "F") indicator = "classify";
+        else if (ch === "L") followSymlinks = true;
+        else if (ch === "q") { /* default */ }
         else return undefined;
       }
       continue;
     }
     operands.push(a);
   }
-  if (operands.length > 1) return undefined;
-  const target = operands[0] ?? ".";
-  if (!target) return undefined;
+  if (operands.length === 0) operands.push(".");
+  if (operands.some(o => !o)) return undefined;
+  if (operands.length > 1 && recursive) return undefined;
+  const target = operands[0]!;
   const abs = normalizePath(target, cwd);
-  const st = inspectStat(abs, false);
+  const st = inspectStat(abs, followSymlinks);
   if (!st) return undefined;
 
   const suffixFor = (type: "file" | "directory" | "symlink", mode: number): string => {
@@ -1720,7 +1729,7 @@ export function evalSyncLs(
     return "";
   };
 
-  if (dirItself || st.type !== "directory") {
+  if (operands.length === 1 && (dirItself || st.type !== "directory")) {
     return `${target}${suffixFor(st.type, st.mode)}\n`;
   }
 
@@ -1772,6 +1781,34 @@ export function evalSyncLs(
   };
 
   if (!recursive) {
+    if (operands.length > 1) {
+      const fileItems: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }> = [];
+      const dirOperands: Array<{ name: string; stat: SyncFsStatNode; size: number; mode: number }> = [];
+      for (const op of operands) {
+        const opAbs = normalizePath(op, cwd);
+        const opSt = inspectStat(opAbs, followSymlinks);
+        if (!opSt) return undefined;
+        if (dirItself || opSt.type !== "directory") {
+          fileItems.push({ name: op, type: opSt.type, size: opSt.size, mode: opSt.mode });
+        } else {
+          dirOperands.push({ name: op, stat: opSt, size: opSt.size, mode: opSt.mode });
+        }
+      }
+      const sortedFiles = sortItems(fileItems);
+      const sortedDirs = sortItems(dirOperands.map(d => ({ name: d.name, type: "directory" as const, size: d.size, mode: d.mode })));
+      const dirMap = new Map(dirOperands.map(d => [d.name, d.stat]));
+      const blocks: string[] = [];
+      if (sortedFiles.length > 0) {
+        blocks.push(formatItems(sortedFiles).replace(/\n$/, ""));
+      }
+      for (const d of sortedDirs) {
+        const dItems = listDirItems(dirMap.get(d.name)!);
+        if (!dItems) return undefined;
+        const body = formatItems(dItems).replace(/\n$/, "");
+        blocks.push(body ? `${d.name}:\n${body}` : `${d.name}:`);
+      }
+      return blocks.length > 0 ? `${blocks.join("\n\n")}\n` : "";
+    }
     const items = listDirItems(st);
     if (!items) return undefined;
     return formatItems(items);

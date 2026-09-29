@@ -53,7 +53,9 @@ export function evalSyncTree(
   let noIndent = false;
   let noReport = false;
   let reverseSort = false;
-  let versionSort = false;
+  let sortMode: "name" | "version" | "none" = "name";
+  let jsonOut = false;
+  let fileLimit = 0;
   let ascii = false;
   let maxLevel = Infinity;
   const includePatterns: RegExp[] = [];
@@ -85,8 +87,22 @@ export function evalSyncTree(
     if (!endOpts && a.startsWith("--") && a.length > 2) {
       if (a === "--noreport") noReport = true;
       else if (a === "--dirsfirst") dirsFirst = true;
-      else if (a === "--charset=ascii" || a === "--charset=ANSI") ascii = true;
-      else if (a === "--charset" && i + 1 < args.length && (args[i + 1] === "ascii" || args[i + 1] === "ANSI")) { ascii = true; i++; }
+      else if (a === "--sort=name" || a === "--sort=version" || a === "--sort=none") sortMode = a.slice(7) as "name" | "version" | "none";
+      else if (a === "--sort" && i + 1 < args.length && (args[i + 1] === "name" || args[i + 1] === "version" || args[i + 1] === "none")) { sortMode = args[++i] as "name" | "version" | "none"; }
+      else if (a.startsWith("--filelimit=")) {
+        const v = a.slice(12);
+        if (!/^\d+$/.test(v)) return undefined;
+        fileLimit = Number(v);
+      } else if (a === "--filelimit" && i + 1 < args.length && /^\d+$/.test(args[i + 1]!)) {
+        fileLimit = Number(args[++i]!);
+      } else if (a === "--charset=ascii" || a === "--charset=ASCII" || a === "--charset=US-ASCII" || a === "--charset=ANSI") ascii = true;
+      else if (a === "--charset=UTF-8" || a === "--charset=UTF8") ascii = false;
+      else if (a === "--charset" && i + 1 < args.length) {
+        const cs = args[++i]!;
+        if (cs === "ascii" || cs === "ASCII" || cs === "US-ASCII" || cs === "ANSI") ascii = true;
+        else if (cs === "UTF-8" || cs === "UTF8") ascii = false;
+        else return undefined;
+      }
       else return undefined;
       continue;
     }
@@ -98,8 +114,11 @@ export function evalSyncTree(
         else if (ch === "f") fullPath = true;
         else if (ch === "F") classify = true;
         else if (ch === "i") noIndent = true;
+        else if (ch === "J") jsonOut = true;
         else if (ch === "r") reverseSort = true;
-        else if (ch === "v") versionSort = true;
+        else if (ch === "v") sortMode = "version";
+        else if (ch === "U") sortMode = "none";
+        else if (ch === "n") { /* no-op */ }
         else if (ch === "A") ascii = false;
         else if (ch === "L") {
           const val = a.slice(j + 1) || args[++i];
@@ -132,12 +151,14 @@ export function evalSyncTree(
   const lines: string[] = [];
 
   const sortEntries = <T extends { readonly name: string; readonly type: "file" | "directory" | "symlink" }>(arr: T[]): T[] => {
+    if (sortMode === "none" && !dirsFirst) return [...arr];
     const sorted = [...arr].sort((x, y) => {
       if (dirsFirst && x.type !== y.type) {
         if (x.type === "directory") return -1;
         if (y.type === "directory") return 1;
       }
-      const cmp = versionSort ? compareVersions(new TextEncoder().encode(x.name), new TextEncoder().encode(y.name)) : (x.name < y.name ? -1 : x.name > y.name ? 1 : 0);
+      if (sortMode === "none") return 0;
+      const cmp = sortMode === "version" ? compareVersions(new TextEncoder().encode(x.name), new TextEncoder().encode(y.name)) : (x.name < y.name ? -1 : x.name > y.name ? 1 : 0);
       return reverseSort ? -cmp : cmp;
     });
     return sorted;
@@ -176,6 +197,63 @@ export function evalSyncTree(
     return true;
   };
 
+  if (jsonOut) {
+    if (fileLimit > 0) return undefined;
+    const nl = noIndent ? "" : "\n";
+    const pad = (d: number) => (noIndent ? "" : "  ".repeat(d));
+    let jDirCount = 0;
+    let jFileCount = 0;
+    const buildJsonEntry = (absPath: string, dispName: string, depth: number): string | undefined => {
+      const node = inspectNode(absPath);
+      if (!node || node.type !== "directory" || !node.children) return undefined;
+      const filtered = depth > maxLevel ? [] : sortEntries(
+        node.children.filter(c => {
+          if (!showAll && c.name.startsWith(".")) return false;
+          if (dirsOnly && c.type !== "directory") return false;
+          if (excludePatterns.length > 0 && excludePatterns.some(re => re.test(c.name))) return false;
+          if (includePatterns.length > 0 && c.type !== "directory" && !includePatterns.every(re => re.test(c.name))) return false;
+          return true;
+        })
+      );
+      let s = `${pad(depth + 1)}` + JSON.stringify({ type: "directory", name: dispName }).slice(0, -1);
+      if (filtered.length > 0) {
+        const childJson: string[] = [];
+        for (const entry of filtered) {
+          const cAbs = absPath === "/" ? `/${entry.name}` : `${absPath}/${entry.name}`;
+          const cDisp = fullPath ? (dispName === "/" ? `/${entry.name}` : `${dispName}/${entry.name}`) : entry.name;
+          if (entry.type === "directory") {
+            jDirCount++;
+            const sub = buildJsonEntry(cAbs, cDisp, depth + 1);
+            if (sub === undefined) return undefined;
+            childJson.push(sub);
+          } else {
+            jFileCount++;
+            const fObj: Record<string, unknown> = { type: entry.type === "symlink" ? "link" : "file", name: cDisp };
+            if (entry.type === "symlink" && entry.target !== undefined) fObj.target = entry.target;
+            childJson.push(`${pad(depth + 2)}${JSON.stringify(fObj)}`);
+          }
+        }
+        s += `,"contents":[${nl}${childJson.join(`,${nl}`)}${nl}${pad(depth + 1)}]`;
+      }
+      s += "}";
+      return s;
+    };
+    const rootItems: string[] = [];
+    for (const op of operands) {
+      if (!op) return undefined;
+      const abs = resolveSyncTreePath(cwd, op);
+      const cleanDisplay = op.length > 1 && op.endsWith("/") ? op.replace(/\/+$/u, "") || "/" : op;
+      const built = buildJsonEntry(abs, cleanDisplay, 0);
+      if (built === undefined) return undefined;
+      rootItems.push(built);
+    }
+    if (!noReport) {
+      const repObj = dirsOnly ? { type: "report", directories: jDirCount } : { type: "report", directories: jDirCount, files: jFileCount };
+      rootItems.push(`${pad(1)}${JSON.stringify(repObj)}`);
+    }
+    return `[${nl}${rootItems.join(`,${nl}`)}${nl}]\n`;
+  }
+  if (fileLimit > 0) return undefined;
   for (const op of operands) {
     if (!op) return undefined;
     const abs = resolveSyncTreePath(cwd, op);

@@ -45,9 +45,11 @@ export function evalSyncDu(
   cwd: string,
   env: Readonly<Record<string, string | undefined>>,
   inspectNode: (absPath: string) => SyncDuVfsNode | undefined,
+  allowNullBytes = false,
 ): string | undefined {
   let apparent = false;
   let inodes = false;
+  let nullTerminated = false;
   let all = false;
   let total = false;
   let separate = false;
@@ -89,6 +91,7 @@ export function evalSyncDu(
       else if (a === "--separate-dirs") separate = true;
       else if (a === "--count-links") countLinks = true;
       else if (a === "--summarize") summarize = true;
+      else if (a === "--null") nullTerminated = true;
       else if (a === "--human-readable") fmt = { unit: 1n, suffix: "", human: 1024 };
       else if (a === "--si") fmt = { unit: 1n, suffix: "", human: 1000 };
       else if (a === "--max-depth" || a.startsWith("--max-depth=")) {
@@ -126,6 +129,7 @@ export function evalSyncDu(
         else if (ch === "S") separate = true;
         else if (ch === "l") countLinks = true;
         else if (ch === "s") summarize = true;
+        else if (ch === "0") nullTerminated = true;
         else if (ch === "h") fmt = { unit: 1n, suffix: "", human: 1024 };
         else if (ch === "H") fmt = { unit: 1n, suffix: "", human: 1000 };
         else if (ch === "k") fmt = { unit: 1024n, suffix: "" };
@@ -157,6 +161,7 @@ export function evalSyncDu(
     operands.push(a);
   }
   if (summarize && maxDepth !== Infinity && maxDepth !== 0) return undefined;
+  if (nullTerminated && !allowNullBytes) return undefined;
   if (summarize && all) return undefined;
   if (summarize) maxDepth = 0;
   // On MemoryFileSystem, allocatedBytes is undefined so only apparent or inodes succeeds with exitCode 0
@@ -215,5 +220,6 @@ export function evalSyncDu(
     const formatted = inodes ? String(grandTotal) : formatSize(grandTotal, fmt);
     outLines.push(`${formatted}\ttotal`);
   }
-  return outLines.length === 0 ? "" : `${outLines.join("\n")}\n`;
+  const sep = nullTerminated ? "\0" : "\n";
+  return outLines.length === 0 ? "" : `${outLines.join(sep)}${sep}`;
 }

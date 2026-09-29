@@ -154,7 +154,7 @@ function parseSimpleMdqQuery(query: string): SyncMdSelector[] | undefined {
       if (rest.length > 0 && !rest.startsWith(" ")) return undefined;
       const needle = rest.trim();
       if (needle.length > 0 && !/^[A-Za-z0-9 _-]+$/.test(needle)) return undefined;
-      selectors.push({ kind: "section", min, max, needle: needle.toLowerCase() });
+      selectors.push({ kind: "section", ...(min === undefined ? {} : { min }), ...(max === undefined ? {} : { max }), needle: needle.toLowerCase() });
     } else if (part.startsWith("```")) {
       const rest = part.slice(3);
       if (rest.includes(" ") || !/^[A-Za-z0-9_+-]*$/.test(rest)) return undefined;

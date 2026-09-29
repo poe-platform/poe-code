@@ -36,6 +36,7 @@ for (const after of [false, true]) for (const relative of [false, true]) for (co
     const tokens = [...radical(areaClass), 0x22, 1, 4, 0], payload = extra(relative, after);
     const book = await readBiff(input(tokens, payload, after), context);
     const cell = book.sheets[0]!.cells.find(cell => cell.formula)!;
+    expect(cell).not.toHaveProperty("arrayStringLiterals");
     const address = relative ? `C10;A${after ? 5 : 1}` : `$C$10;$A$${after ? 5 : 1}`;
     expect(cell.formula).toBe(`=SUM(@range${areaClass === 0x20 ? "" : areaClass === 0x40 ? ".value" : ".array"}.multi:{${address}}->$A$2:$A$4)`);
     const calculated = recalculateWorkbook(book, context, true);
@@ -55,6 +56,7 @@ it("consumes ELF and array extras in token encounter order", async () => {
     const tokens = [...(first ? [...array, ...elf] : [...elf, ...array]), 0x22, 2, 4, 0];
     const payload = first ? [...value, ...labels] : [...labels, ...value];
     const calculated = recalculateWorkbook(await readBiff(input(tokens, payload), context), context, true);
+    expect(calculated.sheets[0]!.cells.find(cell => cell.formula)!.arrayStringLiterals).toBe(true);
     expect(calculated.sheets[0]!.cells.find(cell => cell.formula)!.value).toEqual({ kind: "number", value: 15 });
     const native = formula(await createBiffWriter(8)(calculated, [], context));
     expect([...native.bytes.subarray(22 + native.u16(20))]).toEqual(payload);

@@ -32,6 +32,7 @@ it(`consumes ${first} auxiliary data first across ${continued ? "continued" : "s
   const extra = first === "memory" ? [...memory, ...array] : [...array, ...memory];
   const book = await readBiff(workbook(tokens, continued ? [extra.slice(0, 5), extra.slice(5)] : [extra]), context);
   expect(book.sheets[0]!.cells[0]!.formula).toBe(first === "memory" ? "=SUM($A$2,$A$3)+SUM({1})" : "=SUM({1})+SUM($A$2,$A$3)");
+  expect(book.sheets[0]!.cells[0]!.arrayStringLiterals).toBe(true);
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 43 });
 });
 
@@ -66,7 +67,41 @@ it.each([[], [1], memory.slice(0, -1)].map(extra => ({ extra })))("refuses trunc
 
 it("admits empty cached areas without changing formula references", async () => {
   const book = await readBiff(workbook(sumMemory, [[0, 0]]), context);
+  expect(book.sheets[0]!.cells[0]!).not.toHaveProperty("arrayStringLiterals");
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
+});
+
+it("does not mark nonempty cached areas as array literals", async () => {
+  const book = await readBiff(workbook(sumMemory, [memory]), context);
+  expect(book.sheets[0]!.cells[0]!).not.toHaveProperty("arrayStringLiterals");
+});
+
+it.each([false, true])("sets named-expression array semantics only for an actual array (array=%s)", async withArray => {
+  const record = (id: number, bytes: readonly number[]) => [id & 255, id >> 8, bytes.length & 255, bytes.length >> 8, ...bytes];
+  const tokens = withArray ? sumArray : sumMemory, extra = withArray ? array : memory;
+  const header = new Uint8Array(14); header[3] = 1; header[4] = tokens.length;
+  const bytes = Uint8Array.from([...record(0x809, [0, 6, 16, 0]),
+    ...record(0x18, [...header, 0, 78, ...tokens, ...extra]), ...record(10, [])]);
+  const book = await readBiff(bytes, context);
+  const name = book.names?.find(entry => entry.name === "N");
+  expect(name).toBeDefined();
+  if (withArray) expect(name!.arrayStringLiterals).toBe(true);
+  else expect(name!).not.toHaveProperty("arrayStringLiterals");
+});
+
+it("does not mark cached-area payloads in shared formulas as array literals", async () => {
+  const record = (id: number, bytes: readonly number[]) => [id & 255, id >> 8, bytes.length & 255, bytes.length >> 8, ...bytes];
+  const cell = (row: number) => {
+    const header = new Uint8Array(22); header[0] = row; header[20] = 5;
+    return record(6, [...header, 1, 0, 0, 0, 0]);
+  };
+  const group = new Uint8Array(10); group[2] = 1; group[8] = sumMemory.length;
+  const bytes = Uint8Array.from([...record(0x809, [0, 6, 16, 0]), ...cell(0),
+    ...record(0x4bc, [...group, ...sumMemory, ...memory]), ...cell(1), ...record(10, [])]);
+  const book = await readBiff(bytes, context);
+  expect(book.sheets[0]!.formulaGroups).toHaveLength(1);
+  for (const expression of [...book.sheets[0]!.cells, ...book.sheets[0]!.formulaGroups!])
+    expect(expression).not.toHaveProperty("arrayStringLiterals");
 });
 
 it("bounds declared memory areas before reading their payload", async () => {

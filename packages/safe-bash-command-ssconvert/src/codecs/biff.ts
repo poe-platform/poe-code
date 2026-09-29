@@ -536,16 +536,26 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   const externalNameTables = new Map<PendingExternalName[], readonly (BiffExternalName | undefined)[]>();
   const formulaNames = names.map(name => name.name);
   const nameBindings = new BiffNameBindings(context, sheets);
+  // Trailing bytes also hold labels and caches; only decoded PtgArray operands
+  // require literal array-string semantics on the resulting expressions.
+  const arrayFormulas = new WeakSet<Uint8Array>();
   const formula = (tokens: Uint8Array, arrays: readonly Binary[] | undefined, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false,
-    resolveName = nameBindings.resolve, globalNameDefinition = false) => translateBiffFormula(tokens, {
-    revision, codepage: cp, row, column, accountWork: accountFormulaWork,
-    ...biffFormulaExtras(arrays ?? [], revision, cp, { ...context,
+    resolveName = nameBindings.resolve, globalNameDefinition = false) => {
+    const extras = biffFormulaExtras(arrays ?? [], revision, cp, { ...context,
       limits: { ...context.limits, workbookTextBytes: (context.limits.workbookTextBytes ?? context.limits.inputBytes) - textBytes }
-    }, accountFormulaWork), names: formulaNames, resolveName, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
+    }, accountFormulaWork);
+    return translateBiffFormula(tokens, {
+    revision, codepage: cp, row, column, accountWork: accountFormulaWork, ...extras,
+    readArray() {
+      const value = extras.readArray();
+      arrayFormulas.add(tokens);
+      return value;
+    }, names: formulaNames, resolveName, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
     ...(owner ? { currentSheet: owner.name } : {}), shared, globalNameDefinition, localSheets, nameSheets, deletedExternalSheets, unavailableExternalSheets, externalNameSheets,
     externalWorkbooks: revision >= 8 ? externalWorkbooks : legacyWorkbookBindings.get(owner)!,
     externalNames: revision >= 8 ? modernExternalNames : legacyNameBindings.get(owner)!,
     limit: context.limits.workbookWork ?? context.limits.inputBytes * 8 });
+  };
   const externalTables = [
     ...supbooks.filter(book => book.kind !== "local").map(book => book.names),
     ...[legacyExternalLinks, ...sheets.map(sheet => sheet.legacyExternalLinks)].flatMap(links =>
@@ -629,7 +639,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     const at = index - 1;
     const name = names[at]!;
     materializedNames.push({ name: name.name, expression: accountText(nameBindings.expression(at + 1)),
-      ...(name.arrays.some(part => part.bytes.length) ? { arrayStringLiterals: true } : {}),
+      ...(arrayFormulas.has(name.tokens) ? { arrayStringLiterals: true } : {}),
       ...(name.sheetIndex ? { sheet: nameSheets[at] ?? invalidBiff("invalid name sheet scope") } : {}) });
   }
   for (const name of finalizedNames.defaults) {
@@ -696,8 +706,8 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     const formulaGroups: FormulaGroup[] = [];
     for (const group of sheet.groups) {
       try { formulaGroups.push({ id: group.id, kind: group.kind === "table" ? "array" : group.kind, range: group.range,
-        ...(group.arrays.some(part => part.bytes.length) ? { arrayStringLiterals: true } : {}),
-        expression: accountText(group.expression ?? formula(group.tokens, group.arrays, sheet.revision, sheet.codepage, group.range.startRow, group.range.startColumn, sheet, group.kind === "shared")) }); }
+        expression: accountText(group.expression ?? formula(group.tokens, group.arrays, sheet.revision, sheet.codepage, group.range.startRow, group.range.startColumn, sheet, group.kind === "shared")),
+        ...(arrayFormulas.has(group.tokens) ? { arrayStringLiterals: true } : {}) }); }
       catch (error) { if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;
         await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: error.message }); }
     }
@@ -722,7 +732,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
             if (group.kind !== "shared") { formulaRow = group.range.startRow; formulaColumn = group.range.startColumn; }
           }
           cell = { ...cell, formula: accountText(expression ?? formula(tokens, arrays, pending.revision, pending.codepage, formulaRow, formulaColumn, sheet, shared)),
-            ...(arrays?.some(part => part.bytes.length) ? { arrayStringLiterals: true } : {}) };
+            ...(arrayFormulas.has(tokens) ? { arrayStringLiterals: true } : {}) };
         }
         catch (error) {
           if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;

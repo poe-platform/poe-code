@@ -1,4 +1,4 @@
-import { createGhCommands, type GhCommandOptions } from "../lazy-gh.js";
+import type { GhCommandOptions } from "../lazy-gh.js";
 import { CommandRegistry, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { createStandardCommandsWithGrep, type ExecutionCommandsOptions, type StandardCommandsOptions } from "../commands/standard.js";
@@ -231,8 +231,8 @@ function hasCustomFamilyOptions(options: AgentCommandsOptions): boolean {
   );
 }
 
-export function composeRawAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors): readonly CommandDefinition[] {
-  const commands: CommandDefinition[] = [...createGhCommands(options.gh)];
+export function composeRawAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors, additionalCommands: readonly CommandDefinition[] = []): readonly CommandDefinition[] {
+  const commands: CommandDefinition[] = [...additionalCommands];
   const useErgonomicGrep = options.regexExecutor === undefined;
   const grep = createGrepCommands(executors.grep, { ergonomicRegex: useErgonomicGrep });
   const exprLimits = options.expr?.limits;
@@ -309,6 +309,6 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
   return commands;
 }
 
-export function composeAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors): readonly CommandDefinition[] {
-  return new CommandRegistry(composeRawAgentCommands(options, executors)).list();
+export function composeAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors, additionalCommands: readonly CommandDefinition[] = []): readonly CommandDefinition[] {
+  return new CommandRegistry(composeRawAgentCommands(options, executors, additionalCommands)).list();
 }

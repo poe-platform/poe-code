@@ -29,5 +29,6 @@
     "safe-bash-query-engine": "*",
     "safe-bash-command-git": "*",
     "@poe-code/safe-fs": "*"
-  }
+  },
+  "sideEffects": false
 }

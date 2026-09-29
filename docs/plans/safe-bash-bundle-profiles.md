@@ -28,7 +28,7 @@ Budgets are derived from the measured installed tarballs below: 2% total growth,
 | csv | 6,656,262 | 1,706,930 |
 | csvXlsx | 6,852,858 | 1,903,526 |
 | git | 10,269,735 | 5,320,403 |
-| defaultRegistry | 6,212,163 | 1,262,831 |
+| baseRegistry | 6,212,163 | 1,262,831 |
 | registryWithRegex | 6,213,504 | 1,264,164 |
 | enabledConsumer | 6,287,679 | 1,338,347 |
 | full | 24,851,519 | 19,902,187 |
@@ -45,11 +45,13 @@ The historical Git Wasm grew from 2,878,331 to 5,310,726 bytes. Changes between 
 
 ## Consumer composition
 
-The maintained `enabledConsumer` profile preserves the independently captured 121-command application inventory. Use named `agentCommands` and `createBoundedRegexProvider` imports from the root alongside `Shell` from `/shell`. Add these explicit plugin imports, retaining the application's existing per-family resource options:
+`agentCommands()` retains its GH-enabled default; `baseAgentCommands()` selects
+the shell registry without GH/Git and accepts the same family limits. Add the
+explicit GH plugin wherever the application enables it. The maintained `enabledConsumer` profile preserves the independently captured 121-command application inventory. Use named `baseAgentCommands` and `createBoundedRegexProvider` imports from the root alongside `Shell` from `/shell`. Add these explicit plugin imports, retaining the application's existing per-family resource options:
 
 ```ts
 import { Shell } from "@poe-platform/safe-bash/shell";
-import { agentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";
+import { baseAgentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";
 import { bcCommands } from "@poe-platform/safe-bash/commands/bc";
 import { csvcutCommands } from "@poe-platform/safe-bash/commands/csvcut";
 import { csvgrepCommands } from "@poe-platform/safe-bash/commands/csvgrep";

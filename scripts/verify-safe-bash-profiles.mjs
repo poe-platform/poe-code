@@ -44,13 +44,13 @@ check(new TextDecoder().decode(await fs.readFile("/roundtrip.csv")) === "Name,Va
     smoke: `check((await shell.exec("git init /repo")).exitCode === 0, "Git initialization");
 check((await shell.exec("git -C /repo status --porcelain")).exitCode === 0, "Git status");`,
     forbidden: ["pdf", "spreadsheet", "ffmpeg"] },
-  defaultRegistry: { imports: shell.replace('"@poe-platform/safe-bash/shell"', '"@poe-platform/safe-bash"') + '\nimport { agentCommands } from "@poe-platform/safe-bash";',
-    setup: "shell.use(agentCommands());", smoke: 'check((await shell.exec("printf default | cat")).stdout === "default", "default registry");', forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
-  registryWithRegex: { imports: shell.replace('"@poe-platform/safe-bash/shell"', '"@poe-platform/safe-bash"') + '\nimport { agentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";',
-    setup: "shell.use(agentCommands({ regexExecutor: createBoundedRegexProvider() }));",
+  baseRegistry: { imports: shell.replace('"@poe-platform/safe-bash/shell"', '"@poe-platform/safe-bash"') + '\nimport { baseAgentCommands } from "@poe-platform/safe-bash";',
+    setup: "shell.use(baseAgentCommands());", smoke: 'check((await shell.exec("printf default | cat")).stdout === "default", "base registry");', forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
+  registryWithRegex: { imports: shell.replace('"@poe-platform/safe-bash/shell"', '"@poe-platform/safe-bash"') + '\nimport { baseAgentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";',
+    setup: "shell.use(baseAgentCommands({ regexExecutor: createBoundedRegexProvider() }));",
     smoke: 'check((await shell.exec("printf actual | grep actual")).stdout === "actual\\n", "explicit regex provider");', forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
   enabledConsumer: { imports: shell + `
-import { agentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";
+import { baseAgentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";
 import { bcCommands } from "@poe-platform/safe-bash/commands/bc";
 import { csvcutCommands } from "@poe-platform/safe-bash/commands/csvcut";
 import { csvgrepCommands } from "@poe-platform/safe-bash/commands/csvgrep";
@@ -62,7 +62,7 @@ import { unrtfCommands } from "@poe-platform/safe-bash/commands/unrtf";
 import { yqCommands } from "@poe-platform/safe-bash/commands/yq";
 import { ddCommands } from "@poe-platform/safe-bash/dd";
 import { yesCommands } from "@poe-platform/safe-bash/yes";`,
-    setup: `shell.use(agentCommands({ regexExecutor: createBoundedRegexProvider() }));
+    setup: `shell.use(baseAgentCommands({ regexExecutor: createBoundedRegexProvider() }));
 shell.use(bcCommands());
 shell.use(csvcutCommands());
 shell.use(csvgrepCommands());
@@ -79,7 +79,9 @@ for (const name of ["ln", "readlink"]) shell.commands.unregister(name);`,
     smoke: `check(JSON.stringify(shell.commands.list().filter(command => command.name !== "probe").map(command => command.name).sort()) === JSON.stringify(["[", "apply_patch", "awk", "base32", "base64", "basename", "bc", "bunzip2", "bzcat", "bzip2", "cat", "chmod", "cksum", "cmp", "column", "comm", "cp", "csplit", "csvcut", "csvgrep", "cut", "date", "dd", "diff", "diff3", "dirname", "dos2unix", "du", "echo", "egrep", "env", "expand", "expr", "factor", "false", "fd", "fgrep", "file", "find", "fmt", "fold", "getopt", "grep", "gunzip", "gzip", "hd", "head", "hexdump", "html-to-markdown", "htmlq", "iconv", "join", "jq", "less", "ls", "md5sum", "mdq", "mkdir", "mktemp", "more", "mv", "nl", "numfmt", "od", "paste", "patch", "pr", "printenv", "printf", "pwd", "realpath", "rev", "rg", "rm", "rmdir", "sed", "seq", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum", "shuf", "sleep", "sort", "split", "stat", "strings", "tac", "tail", "tar", "tee", "test", "timeout", "touch", "tr", "tree", "true", "truncate", "tsort", "unexpand", "uniq", "unix2dos", "unrtf", "unxz", "unzip", "unzstd", "wc", "which", "xargs", "xmllint", "xq", "xxd", "xz", "xzcat", "yes", "yq", "zcat", "zip", "zstd", "zstdcat"]), "enabled consumer inventory");`, forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
   full: { imports: `import * as full from "@poe-platform/safe-bash/full";\n${shell}`,
     setup: "shell.use(full.agentCommands()); globalThis.fullProfile = full;",
-    smoke: 'check((await shell.exec("printf full | cat")).stdout === "full", "full registry");', forbidden: [] },
+    smoke: `check((await shell.exec("printf full | cat")).stdout === "full", "full registry");
+check((await shell.exec("echo $(gh version)")).stdout.includes("gh version"), "selected GH synchronous evaluator");
+check((await shell.exec("gh repo clone octocat/Hello-World")).exitCode === 0, "selected GH Git clone");`, forbidden: [] },
 };
 
 safeBashProfiles.rootPythonLlm = { ...safeBashProfiles.pythonLlm,
@@ -116,7 +118,7 @@ export const safeBashProfileBaselines = {
   "csv": 6656262,
   "csvXlsx": 6852858,
   "git": 10269735,
-  "defaultRegistry": 6212163,
+  "baseRegistry": 6212163,
   "registryWithRegex": 6213504,
   "enabledConsumer": 6287679,
   "full": 24851519,

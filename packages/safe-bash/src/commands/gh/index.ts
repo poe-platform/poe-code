@@ -8,16 +8,19 @@ import {
   type GhCommandsOptions,
 } from "safe-bash-command-gh";
 
-export * from "safe-bash-command-gh";
+export type * from "safe-bash-command-gh";
+export { DEFAULT_GH_LIMITS, GitHubBackend, createGitHubBackend, createDefaultOpenSslProvider, createDefaultSshProvider, parseRepoSpec, settings } from "safe-bash-command-gh";
 export { evalSyncGh };
 
 export function createGhCommand(options: GhCommandOptions = {}): CommandDefinition {
+  syncCommandEvaluators.evalSyncGh = evalSyncGh;
   const def = createRawGhCommand(options);
   builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createGhCommands(options: GhCommandsOptions = {}): readonly CommandDefinition[] {
+  syncCommandEvaluators.evalSyncGh = evalSyncGh;
   const defs = createRawGhCommands(options);
   for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
   return defs;
@@ -32,5 +35,3 @@ export function ghCommands(options: GhCommandsOptions = {}): VirtualShellPlugin 
     },
   };
 }
-
-syncCommandEvaluators.evalSyncGh = evalSyncGh;

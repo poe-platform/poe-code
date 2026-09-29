@@ -66,7 +66,10 @@ entrypoints. Select spreadsheet formats through `ssconvert/commands` with
 exports and the explicit `@poe-platform/safe-bash/full` aggregate remain available
 with the existing `agentCommands()` defaults;
 keep existing explicit plugins and their limits when migrating an application.
-Named root `agentCommands` and regex-provider imports do not select the optional
+For a lightweight registry, use named root `baseAgentCommands` with the same
+family limits and regex options. It preserves the base shell inventory without
+the default registry’s GH/Git integration; add `ghCommands` explicitly where needed.
+Named root base-registry and regex-provider imports do not select the optional
 `op`, `node` or `safejs` plugins; add those only through their command entrypoints.
 Removing a registered command changes availability, while shared family code may
 remain bundled. Splitting dynamic

@@ -1,3 +1,4 @@
+import { createGhCommands } from "../commands/gh/index.js";
 import type { CommandDefinition } from "../contracts/index.js";
 import { RegexExecutor } from "../commands/regex-execution/portable.js";
 import { createBoundedRegexProvider } from "../commands/regex-execution/bounded-provider.js";
@@ -6,6 +7,7 @@ import type { VirtualShellPlugin } from "../contracts/index.js";
 import { agentWorkerRecipes, agentWorkerPlugins, captureAgentWorkerRecipe } from "./worker-recipes.js";
 
 export type { AgentCommandsOptions } from "./composition.js";
+export type BaseAgentCommandsOptions = Omit<AgentCommandsOptions, "gh">;
 
 function createRegexExecutors(options: AgentCommandsOptions): AgentRegexExecutors {
   const provider = options.regexExecutor === undefined ? createBoundedRegexProvider() : options.regexExecutor;
@@ -15,7 +17,7 @@ function createRegexExecutors(options: AgentCommandsOptions): AgentRegexExecutor
 }
 
 export function createAgentCommands(options: AgentCommandsOptions = {}): readonly CommandDefinition[] {
-  const commands = composeAgentCommands(options, createRegexExecutors(options));
+  const commands = composeAgentCommands(options, createRegexExecutors(options), createGhCommands(options.gh));
   const recipe = captureAgentWorkerRecipe(options);
   for (const command of commands) {
     if (recipe) agentWorkerRecipes.set(command.execute, recipe);
@@ -23,21 +25,17 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
   return commands;
 }
 
-export function agentCommands(options: AgentCommandsOptions = {}): VirtualShellPlugin {
-  const recipe = captureAgentWorkerRecipe(options);
+export function baseAgentCommands(options: BaseAgentCommandsOptions = {}): VirtualShellPlugin {
   // Forward supplied limits without turning omitted defaults into explicit options.
   const regex = Object.freeze({ ...options.regex });
   const executors = createRegexExecutors({ ...options, regex });
   let disposal: Promise<void> | undefined;
   const plugin: VirtualShellPlugin = {
-    name: "agent-commands",
+    name: "base-agent-commands",
     setup(host) {
       if (disposal) throw new Error("Agent commands are disposed");
       host.provideCapabilities?.({ regex: { executor: executors.grep.provider, limits: regex } });
       const definitions = composeRawAgentCommands({ ...options, execute: options.execute ?? commandExecutor(name => host.commands.get(name)) }, executors);
-      for (const definition of definitions) {
-        if (recipe) agentWorkerRecipes.set(definition.execute, recipe);
-      }
       if (!options.replace) for (const definition of definitions) {
         if (host.commands.has(definition.name)) throw new Error(`Command already registered: ${definition.name}`);
       }
@@ -52,6 +50,28 @@ export function agentCommands(options: AgentCommandsOptions = {}): VirtualShellP
         if (errors.length > 1) throw new AggregateError(errors, "agent regex disposal failed");
       })();
     },
+  };
+  return plugin;
+}
+
+export function agentCommands(options: AgentCommandsOptions = {}): VirtualShellPlugin {
+  const base = baseAgentCommands(options);
+  const recipe = captureAgentWorkerRecipe(options);
+  const plugin: VirtualShellPlugin = {
+    name: "agent-commands",
+    setup(host) {
+      const previous = new Map(host.commands.list().map(command => [command.name, command.execute]));
+      const definitions = createGhCommands(options.gh);
+      if (!options.replace) for (const definition of definitions) {
+        if (host.commands.has(definition.name)) throw new Error(`Command already registered: ${definition.name}`);
+      }
+      base.setup(host);
+      for (const definition of definitions) host.commands.register(definition, { replace: options.replace ?? false });
+      if (recipe) for (const definition of host.commands.list()) {
+        if (previous.get(definition.name) !== definition.execute) agentWorkerRecipes.set(definition.execute, recipe);
+      }
+    },
+    ...(base.dispose ? { dispose: base.dispose } : {}),
   };
   if (recipe) agentWorkerPlugins.add(plugin);
   return plugin;

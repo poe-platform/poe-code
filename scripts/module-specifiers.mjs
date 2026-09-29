@@ -8,7 +8,9 @@ import ts from "typescript";
 export function rewriteModuleSpecifiers(filename, text, rewrite) {
   const source = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest);
   const replacements = [];
-  const visit = node => {
+  const pending = [source];
+  while (pending.length) {
+    const node = pending.pop();
     let literal;
     if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) literal = node.moduleSpecifier;
     else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) literal = node.argument.literal;
@@ -21,12 +23,12 @@ export function rewriteModuleSpecifiers(filename, text, rewrite) {
       const value = rewrite(literal.text);
       if (value !== literal.text) replacements.push({ start: literal.getStart(source), end: literal.end, value: JSON.stringify(value) });
     }
-    ts.forEachChild(node, visit);
-  };
-  visit(source);
+    const children = [];
+    ts.forEachChild(node, child => { children.push(child); });
+    for (let index = children.length - 1; index >= 0; index--) pending.push(children[index]);
+  }
   for (const replacement of replacements.sort((left, right) => right.start - left.start)) {
     text = text.slice(0, replacement.start) + replacement.value + text.slice(replacement.end);
   }
   return text;
 }
-

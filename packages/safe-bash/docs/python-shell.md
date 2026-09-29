@@ -19,9 +19,8 @@ Both launchers still bundle the modules, and existing Node filesystem execution
 remains available. The qualified suspension boundary is Pyodide/JSPI in workerd.
 
 The native capability carries JSON data, never host credentials or service object
-proxies. Its scope ends with the Python invocation. The deterministic shell/subprocess API suites pass. Current installed-package
-and hosted qualification are tracked in the issue plan; they are separate from
-these API tests. These examples require the capability.
+proxies. Its scope ends with the Python invocation. These examples require the
+capability and an asynchronous runtime qualified for the host integration.
 
 Ordinary `import subprocess` supports this subset through the existing Python
 launcher:
@@ -92,7 +91,6 @@ Direct nested `python`/`python3` argv is rejected with `nested_python`.
 Capability-enabled Python allows one interpreter per shell execution scope;
 reentry through scripts, aliases or pipelines fails admission immediately rather
 than waiting for the suspended interpreter. Independent invocation scopes may
-run concurrently subject to configured worker/pool limits. Hosted consumer
-acceptance remains recorded in the issue's requirement matrix.
+run concurrently subject to configured worker/pool limits.
 
-Run the bundled [shell-tools.py](examples/shell-tools.py) with `python /work/shell-tools.py` after placing it in the canonical filesystem. It requires the parent to enable `rg`, `/project` to contain a TODO, and a writable `/work`. Current installed-package qualification of this exact file is tracked in the issue plan.
+Run the bundled [shell-tools.py](examples/shell-tools.py) with `python /work/shell-tools.py` after placing it in the canonical filesystem. It requires the parent to enable `rg`, `/project` to contain a TODO, and a writable `/work`.

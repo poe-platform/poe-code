@@ -28,9 +28,7 @@ shell.use(llmCommands({ service })).use(pythonCommands({
 ```
 
 The deterministic Python suites verify customization and the API contract.
-The current installed-package and hosted consumer qualification is tracked in
-[the issue plan](../../../docs/plans/python-llm-1445.md); old test notes do not
-establish current service parity or deployment.
+Installed runtime and hosted integration require separate qualification.
 
 ```python
 from poe_llm import Client, Attachment
@@ -120,7 +118,7 @@ with its own cleanup scope and the same borrowed bridge.
 | Templates | `template`, `parameters`, Python prompt functions | Python prompt functions work; named templates/parameters are explicitly rejected until shared-service support is delivered |
 | Conversations | `Conversation`, prior messages | Python orchestrates message history; persisted conversation IDs are explicitly rejected until shared-service support is delivered |
 | Embeddings | `embed()`, `Embeddings` | Use the shared embedding operation; reject unsupported providers |
-| Logs, collections and configuration | No persistence methods currently | Shared-service parity remains pending; see the requirement matrix |
+| Logs, collections and configuration | No persistence methods currently | The shared service must supply persistence before these methods are available |
 | Cancellation and cleanup | Async context managers, timeout, response limit | Cancel invocation-owned operations and release streams |
 
 The client defaults to no response-byte limit and no timeout. Set
@@ -166,9 +164,8 @@ For deterministic testing, `Client(bridge=...)` accepts an object with async
 a response record; `embed` returns model, vectors, usage and metadata. Stream events use
 `type: text|bytes|response`. Binary data can be bytes or byte-value sequences.
 
-Package publication and poe2 adoption are separate from implementation and are
-not verified by the Python unit tests. The requirement audit is maintained in
-[the issue plan](../../../docs/plans/python-llm-1445.md).
+Package publication and consumer adoption require verification beyond Python
+unit tests.
 
 The executable [customization example](examples/llm-customize.py) composes defaults,
 request/response transforms, a reusable prompt function and local conversation

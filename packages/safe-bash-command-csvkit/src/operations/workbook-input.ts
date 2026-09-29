@@ -1,8 +1,6 @@
-import { read, set_cptable, type WorkBook } from '@e965/xlsx';
 import { formatA1, parseA1 } from '@poe-code/spreadsheet-ast';
-import { readCfb } from '@poe-code/spreadsheet-format-xls/biff-binary';
+import { readCachedBiff } from '@poe-code/spreadsheet-format-xls/cached';
 import type { CsvkitWorkbook, CsvkitWorkbookCell } from '../workbook.js';
-import * as codepages from '@e965/xlsx/dist/cpexcel';
 import { createZipCodec, CodecError } from '@poe-code/office-package';
 import { readCachedXlsx, CachedXlsxError } from '@poe-code/xlsx-ast';
 import type { Runtime } from '../runtime.js';
@@ -20,9 +18,6 @@ import { legacyWorkbookDateFormat, workbookNumberFormats } from './workbook-form
 
 // Public raw workbook coordinates are bounded by invocation limits, not a fixed sheet edition.
 const workbookAddressBounds = { rows: Number.MAX_SAFE_INTEGER, columns: Number.MAX_SAFE_INTEGER };
-
-// ESM workbook readers require the pinned library's codepage tables explicitly.
-set_cptable(codepages);
 
 /** Buffer only workbook input, which the reference library also requires. */
 export class WorkbookInput {
@@ -93,37 +88,31 @@ export class WorkbookInput {
     } else if (!((bytes[0] === 208 && bytes[1] === 207) || (bytes[0] === 9 && [0, 2, 4, 8].includes(bytes[1]!)))) {
       throw new CsvkitBlocked('XLS non-OLE/non-BIFF input');
     }
-    // SheetJS never receives paths, file handles, or network capabilities.
-    let book: WorkBook;
     try {
-      let readerBytes = bytes;
-      let codepage: number | undefined;
-      const stream = !namesOnly && r.options.encoding_xls ? workbookBiffStream(bytes, r) : undefined;
-      if (stream && !unicodeBiff(stream)) {
-        codepage = xlsCodepage(String(r.options.encoding_xls));
-        r.retain(stream.length);
-        readerBytes = Uint8Array.from(stream);
-        // Unlike xlrd's encoding_override, SheetJS's option loses to CODEPAGE.
-        // Rewrite that parsed BIFF record in an owned raw stream before reading.
-        for (let offset = 0; offset + 4 <= readerBytes.length;) {
-          r.step();
-          const type = readerBytes[offset]! | readerBytes[offset + 1]! << 8;
-          const length = readerBytes[offset + 2]! | readerBytes[offset + 3]! << 8;
-          if (offset + 4 + length > readerBytes.length) throw new CsvkitBlocked('truncated XLS BIFF record');
-          if (type === 0x0042 && length === 2) { readerBytes[offset + 4] = codepage & 255; readerBytes[offset + 5] = codepage >> 8; }
-          offset += 4 + length;
+      const limits = r.context.limits;
+      const cached = readCachedBiff(bytes, { signal: r.context.signal, work: r.step, retain: bytes => r.retain(bytes), namesOnly,
+        limits: { inputBytes: limits.maxInputBytes, workbookNodes: limits.maxWork, workbookTextBytes: limits.maxRetainedBytes,
+          cells: limits.maxWork, sheets: limits.maxArchiveMembers },
+        ...(r.options.encoding_xls ? { encoding: () => xlsCodepage(String(r.options.encoding_xls)) } : {}) });
+      const sheets: Record<string, Record<string, unknown>> = Object.create(null);
+      for (const sheet of cached.sheets) {
+        r.step(); r.retain(128 + sheet.name.length * 2);
+        const cells: Record<string, unknown> = Object.create(null);
+        let maxRow = -1, maxColumn = -1;
+        for (const cell of sheet.cells) {
+          r.step(); r.retain(128);
+          cells[formatA1(cell.row, cell.column, workbookAddressBounds)] = { t: cell.type, v: cell.value, z: cell.format };
+          maxRow = Math.max(maxRow, cell.row); maxColumn = Math.max(maxColumn, cell.column);
         }
+        if (maxRow >= 0) cells['!ref'] = `A1:${formatA1(maxRow, maxColumn, workbookAddressBounds)}`;
+        sheets[sheet.name] = cells;
       }
-      book = read(readerBytes, { type: 'array', cellDates: false, cellNF: true, cellFormula: false, sheetStubs: true,
-        ...(namesOnly ? { bookSheets: true } : {}),
-        ...(codepage === undefined ? {} : { codepage }) });
+      return { SheetNames: cached.sheets.map(sheet => sheet.name), Sheets: sheets, Workbook: { WBProps: { date1904: cached.date1904 } } };
     } catch (failure) {
+      r.context.signal.throwIfAborted();
       if (failure instanceof CsvkitDiagnostic) throw failure;
       throw new CsvkitBlocked(`in2csv ${this.format} parser: ${failure instanceof Error ? failure.message : String(failure)}`);
     }
-    r.step();
-    if (book.SheetNames.length > r.context.limits.maxArchiveMembers) throw new CsvkitBlocked('workbook sheet budget exceeded');
-    return book;
   }
   async table(book: CsvkitWorkbook, selection: string | number | null): Promise<readonly [string, TypedTable]> {
     const r = this.runtime;
@@ -323,16 +312,6 @@ function xlsxDateFormat(format: string, runtime: Runtime): boolean {
     previous = char;
   }
   return false;
-}
-function unicodeBiff(bytes: Uint8Array): boolean {
-  return bytes.length >= 6 && (bytes[4]! | bytes[5]! << 8) === 0x0600;
-}
-function workbookBiffStream(bytes: Uint8Array, runtime: Runtime): Uint8Array {
-  if (bytes[0] !== 208) return bytes;
-  const streams = readCfb(bytes, { signal: runtime.context.signal,
-    limits: { inputBytes: runtime.context.limits.maxInputBytes },
-    work: runtime.step, retain: size => runtime.retain(size) });
-  return streams.get('Workbook') ?? streams.get('Book') ?? bytes;
 }
 function xlsCodepage(encoding: string): number {
   const names: Readonly<Record<string, number>> = { 'ascii': 20127, 'utf-8': 65001, 'utf8': 65001, 'latin1': 28591, 'latin-1': 28591, 'cp1252': 1252, 'windows-1252': 1252, 'cp437': 437, 'cp850': 850, 'cp932': 932 };

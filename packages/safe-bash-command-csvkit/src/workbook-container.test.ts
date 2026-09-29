@@ -5,10 +5,11 @@ import reference from '../../../docs/csvkit/in2csv-reference.json' with { type: 
 
 vi.mock('@e965/xlsx', async importOriginal => ({
   ...await importOriginal<typeof import('@e965/xlsx')>(),
+  read() { throw new Error('SheetJS workbook reader is unavailable'); },
   CFB: { read() { throw new Error('SheetJS container helper is unavailable'); } }
 }));
 
-test('XLS encoding inspection uses the owned container reader and ignores BIFF8 overrides', async () => {
+test('XLS reading uses owned BIFF and container readers and ignores BIFF8 overrides', async () => {
   const bytes = Uint8Array.from(Buffer.from(reference.binary['dummy.xls'], 'base64'));
   let stdout = '', stderr = '';
   const context: InvocationContext = {

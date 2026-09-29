@@ -1,0 +1,98 @@
+{
+  "distribution": "llm",
+  "version": "0.27.1",
+  "cases": [
+    {
+      "argv": [
+        "schemas",
+        "dsl",
+        "name, age int, bio: their bio"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\n      \"type\": \"string\"\n    },\n    \"age\": {\n      \"type\": \"integer\"\n    },\n    \"bio\": {\n      \"type\": \"string\",\n      \"description\": \"their bio\"\n    }\n  },\n  \"required\": [\n    \"name\",\n    \"age\",\n    \"bio\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "schemas",
+        "dsl",
+        "name str, active bool, score float",
+        "--multi"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"items\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"active\": {\n            \"type\": \"boolean\"\n          },\n          \"score\": {\n            \"type\": \"number\"\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"active\",\n          \"score\"\n        ]\n      }\n    }\n  },\n  \"required\": [\n    \"items\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "schemas",
+        "dsl",
+        "name: commas, in descriptions\nage int: years"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\n      \"type\": \"string\",\n      \"description\": \"commas, in descriptions\"\n    },\n    \"age\": {\n      \"type\": \"integer\",\n      \"description\": \"years\"\n    }\n  },\n  \"required\": [\n    \"name\",\n    \"age\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "schemas",
+        "dsl",
+        "a unknown, a int"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"a\": {\n      \"type\": \"integer\"\n    }\n  },\n  \"required\": [\n    \"a\",\n    \"a\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "schemas",
+        "dsl",
+        ""
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"type\": \"object\",\n  \"properties\": {},\n  \"required\": []\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "schemas",
+        "dsl",
+        "__proto__, constructor int"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"__proto__\": {\n      \"type\": \"string\"\n    },\n    \"constructor\": {\n      \"type\": \"integer\"\n    }\n  },\n  \"required\": [\n    \"__proto__\",\n    \"constructor\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "schemas",
+        "dsl",
+        "name",
+        "--unexpected"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm schemas dsl [OPTIONS] INPUT\nTry 'llm schemas dsl -h' for help.\n\nError: No such option: --unexpected\n"
+    },
+    {
+      "argv": [
+        "schemas",
+        "dsl"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm schemas dsl [OPTIONS] INPUT\nTry 'llm schemas dsl -h' for help.\n\nError: Missing argument 'INPUT'.\n"
+    },
+    {
+      "argv": [
+        "schemas",
+        "dsl",
+        "name",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm schemas dsl [OPTIONS] INPUT\n\n  Convert LLM's schema DSL to a JSON schema\n\n      llm schema dsl 'name, age int, bio: their bio'\n\nOptions:\n  --multi     Wrap in an array\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    }
+  ]
+}

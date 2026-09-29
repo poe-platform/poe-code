@@ -7,6 +7,7 @@ import type { LlmCommandsOptions, LlmRequest } from "./types.js";
 import { createLlmService, type LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
 import { createLlmTemplateStore, evaluateLlmTemplate } from "./templates.js";
+import { parseLlmSchemaDsl } from "./schemas.js";
 import { configurationCommand } from "./configuration-command.js";
 
 interface Arguments {
@@ -139,6 +140,31 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       argumentText(0);
       argumentText(1);
       await emitText("Usage: llm models [OPTIONS]\n\n  List configured models\n\nOptions:\n  -h, --help  Show this message and exit.\n");
+      return { exitCode: 0 };
+    }
+    if (argumentsValue.args[0] === "schemas" && argumentsValue.args[1] === "dsl") {
+      const tokens = Array.from({ length: argumentsValue.args.length - 2 }, (_, index) => argumentText(index + 2));
+      const usage = "Usage: llm schemas dsl [OPTIONS] INPUT\n";
+      if (tokens.includes("--help") || tokens.includes("-h")) {
+        await emitText(usage + "\n  Convert LLM's schema DSL to a JSON schema\n\n      llm schema dsl 'name, age int, bio: their bio'\n\nOptions:\n  --multi     Wrap in an array\n  -h, --help  Show this message and exit.\n");
+        return { exitCode: 0 };
+      }
+      let multi = false, optionsEnded = false;
+      const inputs: string[] = [];
+      let failure: string | undefined;
+      for (const token of tokens) {
+        await step();
+        if (!optionsEnded && token === "--") optionsEnded = true;
+        else if (!optionsEnded && token === "--multi") multi = true;
+        else if (!optionsEnded && token.startsWith("-") && token !== "-") { failure = `No such option: ${token}`; break; }
+        else { admitInput(new TextEncoder().encode(token).byteLength); inputs.push(token); }
+      }
+      failure ??= inputs.length === 0 ? "Missing argument 'INPUT'." : inputs.length > 1 ? `Got unexpected extra argument (${inputs[1]})` : undefined;
+      if (failure) {
+        await writeDiagnostic(context.stderr, usage + "Try 'llm schemas dsl -h' for help.\n\nError: " + failure + "\n", signal);
+        return { exitCode: 2 };
+      }
+      await emitText(JSON.stringify(parseLlmSchemaDsl(inputs[0]!, multi), null, 2) + "\n");
       return { exitCode: 0 };
     }
     if (argumentsValue.args[0] === "templates") {

@@ -7,3 +7,4 @@ export type { LlmProviderLimits } from "./providers/shared.js";
 export { createLlmConfiguration, type LlmConfiguration } from "./configuration.js";
 export { validateModelOptions } from "./model-options.js";
 export { createLlmTemplateStore, evaluateLlmTemplate, type LlmTemplate } from "./templates.js";
+export { parseLlmSchemaDsl } from "./schemas.js";

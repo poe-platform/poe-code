@@ -28,7 +28,7 @@ export function evalSyncDiff3(
       if (!srcBytes || srcBytes.byteLength > 16384) return undefined;
       inputs.push(srcBytes);
     }
-    const rendered = compareDiff3(inputs, options, diff3DefaultLimits, syncDiff3Signal);
+    const rendered = compareDiff3(inputs, options, diff3DefaultLimits, syncDiff3Signal());
     if (rendered.exitCode !== 0 || rendered.stderr.byteLength !== 0) return undefined;
     let out = syncDiff3Decoder.decode(rendered.stdout);
     if (out.endsWith("\n")) out = out.slice(0, -1);

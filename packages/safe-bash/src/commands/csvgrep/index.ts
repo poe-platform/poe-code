@@ -56,7 +56,7 @@ export function evalSyncCsvgrep(
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): string | undefined {
   if (inBytes.byteLength > 16384) return undefined;
-  const budget = new CsvBudget({}, syncAbortSignal);
+  const budget = new CsvBudget({}, syncAbortSignal());
   try {
     const options = parseCsvgrepArguments(opArgs, budget);
     if (options.file !== undefined) return undefined;

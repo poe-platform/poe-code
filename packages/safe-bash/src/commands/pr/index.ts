@@ -51,7 +51,7 @@ export function evalSyncPr(
     if (cached !== undefined) return cached;
   }
   try {
-    const budget = new Budget(getSyncPrDummyContext(), syncPrLimits, syncPrSignal);
+    const budget = new Budget(getSyncPrDummyContext(), syncPrLimits, getSyncPrSignal());
     const parsed = parseOptions([...opArgs], budget);
     if (parsed.information !== undefined) return undefined;
     if (parsed.extremities && parsed.length > 10) return undefined;

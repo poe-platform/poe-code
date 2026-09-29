@@ -56,7 +56,7 @@ export function evalSyncCsvcut(
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): string | undefined {
   if (inBytes.byteLength > 16384) return undefined;
-  const budget = new CsvBudget({}, syncAbortSignal);
+  const budget = new CsvBudget({}, syncAbortSignal());
   try {
     const supplied = parseCsvcutArguments(opArgs, budget);
     if (supplied.help || supplied.version) return undefined;

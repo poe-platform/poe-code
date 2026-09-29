@@ -3506,6 +3506,18 @@
         ]
       }
     },
+    "jpegPortableExport": {
+      "issue": 3512,
+      "commit": "3937fb15b7fdbc97ca16d54260e7fc267bd6f3f0",
+      "delivery": "Verified ancestor of remote main 3ec0827c9a. Containing release and installed registry qualification remain open.",
+      "source": "jpeg-js 0.4.4 lib/encoder.js:732 requires Buffer.from. The existing image-ast encodeJpegImage uses typed arrays; ssconvert now uses it with quality 75 and 72 DPI, retaining white alpha composition.",
+      "regressions": "Before: three Buffer-free JPEG tests fail. After: 112 rendering tests, 12 private-bundle tests, package lint/source/test/consumer types, selected seven-workspace build and guarded root ESLint pass. Transparent, opaque and half-alpha pixels preserve input ownership; JPEG limits and cancellation remain covered.",
+      "compiled": "Actual SDK and command export a 98x48 white graph in Node 22.23.2 and workerd 2026-07-08 without nodejs_compat. All four 747-byte JPEGs independently decode to entirely white opaque pixels. Node SDK/command also export a 749-byte solid graph; every RGB channel differs by at most one from 18,52,86, and opacity is exact. Solid image visually inspected.",
+      "whiteSha256": "634d00b5ba1c2c3a713a9c18bfd0cff0f9d1cb67e5136c7422f95fcdf1e80fae",
+      "solidSha256": "329e910e84ffda1ccbd2970a0a82d0be09522599ffad938d8a773aaded303f93",
+      "cleanup": "Removed 7216402 bytes of consumed bundles/captures and stopped the owned workerd process; compact receipt and original replay inputs remain under out/ssconvert-odf-settings/jpeg-runtime.",
+      "remaining": "Other rendering profiles, registry artifacts and the pandoc/csvkit requirements of #3512 remain open; no old/new encoded-byte identity or whole-family completion claim."
+    },
     "lotusNamedDollarMarker": {
       "sources": [
         {

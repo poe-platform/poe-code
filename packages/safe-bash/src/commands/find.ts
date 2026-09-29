@@ -793,6 +793,8 @@ export interface SyncFindNodeInfo {
 interface SyncFindEntry {
   display: string;
   name: string;
+  relative: string;
+  depth: number;
   type: "file" | "directory" | "symlink";
   size: number;
   mode: number;
@@ -828,7 +830,10 @@ export function evalSyncFind(
     let minDepth = 0;
     let depthFirst = false;
     let explicitAction = false;
+    let quitNow = false;
     let offset = 0;
+    let customOut = "";
+    let usedCustomOut = false;
     const outLines: string[] = [];
     type SyncExpr = (entry: SyncFindEntry) => boolean;
 
@@ -866,12 +871,67 @@ export function evalSyncFind(
           return true;
         };
       }
+      if (token === "-quit") {
+        explicitAction = true;
+        return () => {
+          quitNow = true;
+          return true;
+        };
+      }
       if (token === "-print") {
         explicitAction = true;
         return entry => {
-          outLines.push(escapeText(entry.display, "display"));
+          if (usedCustomOut) customOut += escapeText(entry.display, "display") + "\n";
+          else outLines.push(escapeText(entry.display, "display"));
           return true;
         };
+      }
+      if (token === "-printf") {
+        const fmt = args[offset++];
+        if (fmt === undefined) throw new Error("printf");
+        for (let k = 0; k < fmt.length; k++) {
+          if (fmt[k] === "\\") {
+            const nxt = fmt[++k];
+            if (nxt !== "n" && nxt !== "t" && nxt !== "r" && nxt !== "\\") throw new Error("printf-esc");
+          } else if (fmt[k] === "%") {
+            const nxt = fmt[++k];
+            if (!nxt || !"pfhPsdym%".includes(nxt)) throw new Error("printf-dir");
+          }
+        }
+        explicitAction = true;
+        usedCustomOut = true;
+        return entry => {
+          let rendered = "";
+          for (let k = 0; k < fmt.length; k++) {
+            if (fmt[k] === "\\") {
+              const nxt = fmt[++k]!;
+              rendered += nxt === "n" ? "\n" : nxt === "t" ? "\t" : nxt === "r" ? "\r" : "\\";
+            } else if (fmt[k] === "%") {
+              const nxt = fmt[++k]!;
+              if (nxt === "%") rendered += "%";
+              else if (nxt === "p") rendered += entry.display;
+              else if (nxt === "f") rendered += entry.name;
+              else if (nxt === "h") {
+                const slash = entry.display.lastIndexOf("/");
+                rendered += slash < 0 ? "." : slash === 0 ? "/" : entry.display.slice(0, slash);
+              } else if (nxt === "P") rendered += entry.relative;
+              else if (nxt === "s") rendered += String(entry.size);
+              else if (nxt === "d") rendered += String(entry.depth);
+              else if (nxt === "y") rendered += entry.type === "directory" ? "d" : entry.type === "symlink" ? "l" : "f";
+              else if (nxt === "m") rendered += (entry.mode & 0o7777).toString(8).padStart(3, "0");
+            } else {
+              rendered += fmt[k]!;
+            }
+          }
+          customOut += rendered;
+          return true;
+        };
+      }
+      if (token === "-regex" || token === "-iregex") {
+        const operand = args[offset++];
+        if (operand === undefined) throw new Error("regex");
+        const re = new RegExp("^(?:" + operand + ")$", token === "-iregex" ? "i" : "");
+        return entry => re.test(entry.display);
       }
       if (
         token === "-name" ||
@@ -981,7 +1041,8 @@ export function evalSyncFind(
     if (offset !== args.length) return undefined;
 
     let visitedNodes = 0;
-    const visit = (display: string, depth: number, ancestors: ReadonlySet<number>, knownName?: string): boolean => {
+    const visit = (display: string, relative: string, depth: number, ancestors: ReadonlySet<number>, knownName?: string): boolean => {
+      if (quitNow) return true;
       if (++visitedNodes > 1024) return false;
       const absPath = resolvePath(cwd, display);
       if (absPath === "/dev" || absPath.startsWith("/dev/")) return false;
@@ -995,6 +1056,8 @@ export function evalSyncFind(
       const entry: SyncFindEntry = {
         display,
         name: knownName ?? (basename(display) || "/"),
+        relative,
+        depth,
         type: info.type,
         size: info.size,
         mode: info.mode,
@@ -1005,6 +1068,7 @@ export function evalSyncFind(
       if (!depthFirst && depth >= minDepth) {
         const ok = evaluate(entry);
         if (ok && !explicitAction) outLines.push(escapeText(display, "display"));
+        if (quitNow) return true;
       }
       if (info.type === "directory" && depth < maxDepth && (!entry.prune || depthFirst)) {
         const ino = info.ino ?? -1;
@@ -1016,12 +1080,14 @@ export function evalSyncFind(
           ? [...info.children].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
           : [];
         for (let i = 0; i < sorted.length; i++) {
+          if (quitNow) break;
           const child = sorted[i]!;
           const childDisplay = `${parent}/${child.name}`;
-          if (!visit(childDisplay, depth + 1, nextAncestors, child.name)) return false;
+          const childRel = relative ? `${relative}/${child.name}` : child.name;
+          if (!visit(childDisplay, childRel, depth + 1, nextAncestors, child.name)) return false;
         }
       }
-      if (depthFirst && depth >= minDepth) {
+      if (!quitNow && depthFirst && depth >= minDepth) {
         const ok = evaluate(entry);
         if (ok && !explicitAction) outLines.push(escapeText(display, "display"));
       }
@@ -1029,8 +1095,10 @@ export function evalSyncFind(
     };
 
     for (let i = 0; i < roots.length; i++) {
-      if (!visit(roots[i]!, 0, new Set())) return undefined;
+      if (quitNow) break;
+      if (!visit(roots[i]!, "", 0, new Set())) return undefined;
     }
+    if (usedCustomOut) return customOut;
     return outLines.length > 0 ? outLines.join("\n") + "\n" : "";
   } catch {
     return undefined;

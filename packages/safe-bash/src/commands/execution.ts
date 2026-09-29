@@ -401,7 +401,19 @@ export function evalSyncXargs(
       if (a === "--") { i++; break; }
       if (!a.startsWith("-") || a === "-") break;
       if (a === "-r" || a === "--no-run-if-empty") { noRunIfEmpty = true; i++; continue; }
+      if (a === "-0" || a === "--null") { delimChar = "\0"; i++; continue; }
       if (a === "-i" || a === "--replace") { replaceStr = "{}"; maxArgs = undefined; maxLines = undefined; i++; continue; }
+      if (a.startsWith("--replace=")) { replaceStr = a.slice(10) || "{}"; maxArgs = undefined; maxLines = undefined; i++; continue; }
+      if (a.startsWith("--max-args=")) {
+        const v = a.slice(11);
+        if (!/^[1-9][0-9]*$/.test(v)) return undefined;
+        maxArgs = Number(v); replaceStr = undefined; maxLines = undefined; i++; continue;
+      }
+      if (a.startsWith("--max-lines=")) {
+        const v = a.slice(12);
+        if (!/^[1-9][0-9]*$/.test(v)) return undefined;
+        maxLines = Number(v); maxArgs = undefined; replaceStr = undefined; i++; continue;
+      }
       if (a.startsWith("-I")) {
         const v = a.length > 2 ? a.slice(2) : opArgs[++i];
         if (!v) return undefined;
@@ -455,16 +467,18 @@ export function evalSyncXargs(
       return undefined;
     }
     const cmd = opArgs[i] ?? "echo";
-    if (cmd !== "echo") return undefined;
+    if (cmd !== "echo" && cmd !== "printf" && cmd !== "basename" && cmd !== "dirname") return undefined;
     const initialArgs = opArgs.slice(i + 1);
     let echoNoNewline = false;
     let initOffset = 0;
-    if (initialArgs[0] === "-n") {
+    if (cmd === "echo" && initialArgs[0] === "-n") {
       echoNoNewline = true;
       initOffset = 1;
     }
-    for (let k = initOffset; k < initialArgs.length; k++) {
-      if (initialArgs[k]!.startsWith("-")) return undefined;
+    if (cmd === "echo" || cmd === "dirname") {
+      for (let k = initOffset; k < initialArgs.length; k++) {
+        if (initialArgs[k]!.startsWith("-")) return undefined;
+      }
     }
     const baseInitial = initialArgs.slice(initOffset);
     let sourceBytes = inBytes;
@@ -472,7 +486,7 @@ export function evalSyncXargs(
       if (!readFileSync) return undefined;
       sourceBytes = readFileSync(argFile);
     }
-    if (!sourceBytes || sourceBytes.byteLength > 16384 || sourceBytes.includes(0)) return undefined;
+    if (!sourceBytes || sourceBytes.byteLength > 16384 || (delimChar !== "\0" && sourceBytes.includes(0))) return undefined;
     const text = syncXargsDecoder.decode(sourceBytes);
     const items: (string | null)[] = [];
     if (delimChar !== undefined) {
@@ -548,7 +562,88 @@ export function evalSyncXargs(
       return baseInitial.join(" ") + (echoNoNewline ? "" : "\n");
     }
     let out = "";
+    const evalBatchCmd = (args: string[]): string | undefined => {
+      if (cmd === "echo") return args.join(" ") + (echoNoNewline ? "" : "\n");
+      if (cmd === "dirname") {
+        if (args.length === 0) return undefined;
+        return args.map(p => {
+          let s = p.replace(/\/+$/, "");
+          if (!s) return "/";
+          const sl = s.lastIndexOf("/");
+          if (sl < 0) return ".";
+          const pref = s.slice(0, sl).replace(/\/+$/, "");
+          return pref || "/";
+        }).join("\n") + "\n";
+      }
+      if (cmd === "basename") {
+        let multi = false;
+        let suffix: string | undefined;
+        const ops: string[] = [];
+        for (let k = 0; k < args.length; k++) {
+          const a = args[k]!;
+          if (a === "-a" || a === "--multiple") multi = true;
+          else if ((a === "-s" || a === "--suffix") && k + 1 < args.length) { multi = true; suffix = args[++k]!; }
+          else if (a.startsWith("-s") && a.length > 2) { multi = true; suffix = a.slice(2); }
+          else if (a.startsWith("--suffix=")) { multi = true; suffix = a.slice(9); }
+          else if (a.startsWith("-")) return undefined;
+          else ops.push(a);
+        }
+        if (ops.length === 0 || (!multi && ops.length > 2)) return undefined;
+        if (!multi && ops.length === 2) suffix = ops.pop();
+        return ops.map(p => {
+          const clean = p.replace(/\/+$/, "");
+          if (!clean) return "/";
+          const sl = clean.lastIndexOf("/");
+          let base = sl < 0 ? clean : clean.slice(sl + 1);
+          if (suffix && base.length > suffix.length && base.endsWith(suffix)) base = base.slice(0, -suffix.length);
+          return base;
+        }).join("\n") + "\n";
+      }
+      if (cmd === "printf") {
+        if (args.length === 0) return undefined;
+        const fmt = args[0]!;
+        const vals = args.slice(1);
+        let vIdx = 0;
+        let res = "";
+        const applyOnce = (): boolean => {
+          for (let k = 0; k < fmt.length; k++) {
+            if (fmt[k] === "\\") {
+              const nxt = fmt[++k];
+              if (nxt === "n") res += "\n";
+              else if (nxt === "t") res += "\t";
+              else if (nxt === "\\") res += "\\";
+              else return false;
+            } else if (fmt[k] === "%") {
+              const nxt = fmt[++k];
+              if (nxt === "%") res += "%";
+              else if (nxt === "s") res += vals[vIdx++] ?? "";
+              else if (nxt === "d") {
+                const raw = vals[vIdx++] ?? "0";
+                if (!/^-?[0-9]+$/.test(raw)) return false;
+                res += String(Number(raw));
+              } else return false;
+            } else {
+              res += fmt[k]!;
+            }
+          }
+          return true;
+        };
+        if (vals.length === 0) {
+          if (!applyOnce()) return undefined;
+        } else {
+          while (vIdx < vals.length) {
+            const before = vIdx;
+            if (!applyOnce()) return undefined;
+            if (vIdx === before) break;
+          }
+        }
+        return res;
+      }
+      return undefined;
+    };
+    let failedCmd = false;
     const runEcho = (batch: string[]) => {
+      if (failedCmd) return;
       let args: string[];
       if (replaceStr !== undefined) {
         const val = batch[0]!;
@@ -560,7 +655,9 @@ export function evalSyncXargs(
       } else {
         args = [...baseInitial, ...batch];
       }
-      out += args.join(" ") + (echoNoNewline ? "" : "\n");
+      const chunk = evalBatchCmd(args);
+      if (chunk === undefined) { failedCmd = true; return; }
+      out += chunk;
     };
     if (replaceStr !== undefined) {
       for (const tok of tokens) runEcho([tok]);
@@ -586,6 +683,7 @@ export function evalSyncXargs(
         runEcho(tokens.slice(k, k + limit));
       }
     }
+    if (failedCmd) return undefined;
     return out;
   } catch {
     return undefined;

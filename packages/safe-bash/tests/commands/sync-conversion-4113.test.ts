@@ -585,3 +585,25 @@ test("evaluates seq decimal stepping (0 0.5 2) and %.Nf formatting, base64 -d -i
     "0.0:0.5:1.0:1.5:2.0#01.00,01.50,02.00#hello#bonono\n",
   );
 });
+
+test("evaluates find -regex/-iregex/-printf/-quit and xargs printf/basename/dirname/-0 in sync substitutions and pipelines (Wave 189)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands());
+  const r = await shell.exec(
+    [
+      "mkdir -p /tmp/w189/sub && printf \"hello\" > /tmp/w189/sub/alpha.txt && printf \"world!\" > /tmp/w189/sub/beta.md",
+      "f_printf=$(find /tmp/w189 -type f -printf \"%f:%s:%y,\")",
+      "f_regex=$(find /tmp/w189 -regex \".*\\.txt\")",
+      "x_printf=$(printf \"one\\ntwo\\nthree\\n\" | xargs printf \"[%s]\")",
+      "x_base=$(printf \"/a/b/foo.txt\\n/c/d/bar.txt\\n\" | xargs basename -s .txt | tr '\\n' ',')",
+      "x_dir=$(printf \"/a/b/foo.txt\\n/c/d/bar.txt\\n\" | xargs -n 1 dirname | tr '\\n' ',')",
+      "printf \"%s#%s#%s#%s#%s\\n\" \"$f_printf\" \"$f_regex\" \"$x_printf\" \"$x_base\" \"$x_dir\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "alpha.txt:5:f,beta.md:6:f,#/tmp/w189/sub/alpha.txt#[one][two][three]#foo,bar,#/a/b,/c/d,\n",
+  );
+});

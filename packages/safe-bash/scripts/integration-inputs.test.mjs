@@ -493,7 +493,7 @@ test("optional scripting leaves stay outside the default build and package expor
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);
   const configuration = JSON.parse(readRegularInput(root, "tsconfig.build.json", 65536, fs, boundaries));
-  const metadata = JSON.parse(readRegularInput(root, "package.json", 65536, fs, boundaries));
+  const metadata = JSON.parse(readRegularInput(root, "package.json", 262144, fs, boundaries));
   assert.equal(metadata.peerDependencies.yaml, "2.9.0");
   assert.equal(metadata.peerDependenciesMeta.yaml.optional, true);
   assert.deepEqual(metadata.exports["./jobs"], {
@@ -508,14 +508,20 @@ test("optional scripting leaves stay outside the default build and package expor
   }
   assert.equal(metadata.files.includes("!dist/shell/extensions/jobs"), false, "core Shell requires packaged jobs output");
   for (const path of [
-    "src/commands/cmp/compare.ts", "src/commands/cmp/index.ts", "src/commands/cmp/io.ts", "src/commands/cmp/options.ts",
-    "src/commands/dd/conversions.ts", "src/commands/dd/index.ts", "src/commands/dd/io.ts", "src/commands/dd/options.ts", "src/commands/dd/report.ts",
-    "src/commands/install/arguments.ts", "src/commands/install/index.ts", "src/commands/install/mode.ts", "src/commands/install/options.ts",
-    "src/commands/shuf/args.ts", "src/commands/shuf/index.ts", "src/commands/shuf/input.ts", "src/commands/shuf/options.ts",
-    "src/commands/shuf/random.ts", "src/commands/shuf/shuf.ts", "src/commands/shuf/usage.ts",
-    "src/commands/truncate/arguments.ts", "src/commands/truncate/index.ts", "src/commands/yes/index.ts",
-    "src/commands/yq/arguments.ts", "src/commands/yq/nodes.ts", "src/commands/yq/expression.ts", "src/commands/yq/evaluate.ts",
-    "src/commands/yq/inplace.ts", "src/commands/yq/mike.ts", "src/commands/yq/native-encoder.ts", "src/commands/yq/native-work.ts",
+    "src/commands/cmp/index.ts",
+    "src/commands/dd/index.ts",
+    "src/commands/install/index.ts",
+    "src/commands/shuf/index.ts",
+    "src/commands/truncate/index.ts",
+    "src/commands/yes/index.ts",
+    "src/commands/yq/arguments.ts",
+    "src/commands/yq/nodes.ts",
+    "src/commands/yq/expression.ts",
+    "src/commands/yq/evaluate.ts",
+    "src/commands/yq/inplace.ts",
+    "src/commands/yq/mike.ts",
+    "src/commands/yq/native-encoder.ts",
+    "src/commands/yq/native-work.ts",
     "src/fs/devices/index.ts",
     "src/optional.ts",
     "src/shell/extensions/trap/index.ts",
@@ -537,7 +543,11 @@ test("optional scripting leaves stay outside the default build and package expor
     assert.equal(metadata.poeCode.packageLint.sourceExclude.includes(path), false, `core jobs must remain linted: ${path}`);
   }
   assert.equal(metadata.files.includes("!dist/shell/extensions/jobs"), false, "default and public jobs share one packaged implementation");
-  for (const path of ["./commands/cmp", "./commands/dd", "./commands/install", "./commands/shuf", "./commands/truncate", "./commands/yes", "./fs/devices", "./shell/extensions/trap", "./shell/extensions/mapfile", "./shell/extensions/read"]) {
+  for (const name of ["cmp", "dd", "install", "shuf", "truncate", "yes"]) {
+    assert.equal(metadata.exports[`./commands/${name}`].import, `./dist/opt-in/entrypoints/${name}.js`);
+    assert.equal(metadata.exports[`./commands/${name}`].types, `./dist/opt-in/entrypoints/${name}.d.ts`);
+  }
+  for (const path of ["./fs/devices", "./shell/extensions/trap", "./shell/extensions/mapfile", "./shell/extensions/read"]) {
     assert.equal(Object.hasOwn(metadata.exports, path), false, `optional leaf is not a default package export: ${path}`);
   }
 });
@@ -2483,7 +2493,7 @@ function assertWholeGateRetired(source, args = []) {
 test("retired whole-gate alias refuses all arguments before legacy activity", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const source = readRegularInput(root, "scripts/verify-whole-gate.mjs", 4096).toString();
-  const metadata = JSON.parse(readRegularInput(root, "package.json", 65536));
+  const metadata = JSON.parse(readRegularInput(root, "package.json", 262144));
   assert.equal(metadata.scripts["verify:release:whole"], "node scripts/verify-whole-gate.mjs");
   for (const args of [
     [], ["--help"], ["--force"],

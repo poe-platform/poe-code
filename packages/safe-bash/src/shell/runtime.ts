@@ -23935,7 +23935,7 @@ export class Runtime {
     const out: string[] = [];
     let curStyle: "a" | "t" | "n" = bodyStyle;
     let num = start;
-    const unnumberedPrefix = " ".repeat(width + sep.length);
+    const unnumberedPrefix = " ".repeat(width + shellValueByteLength(sep));
     for (let i = 0; i < rawLines.length; i++) {
       const l = rawLines[i]!;
       if (l === "\\:" || l === "\\:\\:" || l === "\\:\\:\\:") {
@@ -24335,7 +24335,7 @@ export class Runtime {
     return undefined;
   }
 
-  private evalSyncUniq(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+  private evalSyncUniq(rawLines: readonly string[], opArgs: readonly string[], isByteLocale = false): string[] | undefined {
     let ignoreCase = false;
     let hasCount = false;
     let onlyRepeated = false;
@@ -24374,6 +24374,18 @@ export class Runtime {
         return undefined;
       }
     }
+    if (isByteLocale && (skipChars !== 0 || checkChars !== Infinity) && rawLines.some(line => {
+      for (let i = 0; i < line.length; i++) if (line.charCodeAt(i) > 127) return true;
+      return false;
+    })) return undefined;
+    const foldAscii = (value: string): string => {
+      let folded = "";
+      for (let i = 0; i < value.length; i++) {
+        const code = value.charCodeAt(i);
+        folded += code >= 97 && code <= 122 ? String.fromCharCode(code - 32) : value[i]!;
+      }
+      return folded;
+    };
     const keyOf = (l: string): string => {
       let offset = 0;
       for (let f = 0; f < skipFields; f++) {
@@ -24382,11 +24394,11 @@ export class Runtime {
       }
       if (skipChars === 0 && checkChars === Infinity) {
         const sub = l.slice(offset);
-        return ignoreCase ? sub.toLowerCase() : sub;
+        return ignoreCase ? foldAscii(sub) : sub;
       }
       const chars = Array.from(l.slice(offset));
       const sub = (checkChars === Infinity ? chars.slice(skipChars) : chars.slice(skipChars, skipChars + checkChars)).join("");
-      return ignoreCase ? sub.toLowerCase() : sub;
+      return ignoreCase ? foldAscii(sub) : sub;
     };
     const outLines: string[] = [];
     let uIdx = 0;
@@ -24805,7 +24817,7 @@ export class Runtime {
             } else if (isInlineSort) {
               outLines = this.evalSyncSort(rawLines, stageArgs, false) ?? [];
             } else if (isInlineUniq) {
-              const uniqRes = this.evalSyncUniq(rawLines, stageArgs);
+              const uniqRes = this.evalSyncUniq(rawLines, stageArgs, byteLocale(rawState.variables));
               if (uniqRes === undefined) return undefined;
               outLines = uniqRes;
             } else if (inlineSedMatch) {
@@ -25126,7 +25138,7 @@ export class Runtime {
               const sortRes = this.evalSyncSort(rawLines, opArgs, false);
               if (sortRes !== undefined) fileRes = renderLines(sortRes);
             } else if (w0Plain === "uniq") {
-              const uniqRes = this.evalSyncUniq(rawLines, opArgs);
+              const uniqRes = this.evalSyncUniq(rawLines, opArgs, byteLocale(rawState.variables));
               if (uniqRes !== undefined) fileRes = renderLines(uniqRes);
             } else if (w0Plain === "tr" && (hasSingleStdinRedir || hasSingleHereStringRedir)) {
               fileRes = this.evalSyncTr(fileStr, opArgs);

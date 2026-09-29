@@ -2112,6 +2112,8 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   const onlyRepeated = parsed.flags.has("d");
   const onlyUnique = parsed.flags.has("u");
   const identityKey = skipFields === 0 && skipCharacters === 0 && width === Infinity && !ignoreCase;
+  const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG;
+  const byteLocale = locale === "C" || locale === "POSIX";
   const uniqDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
   const key = (bytes: Uint8Array) => {
     if (identityKey) return bytes;
@@ -2122,8 +2124,13 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
     }
     let result: Uint8Array;
     try {
-      const chars = Array.from(uniqDecoder.decode(bytes.subarray(offset)));
-      result = encoder.encode((width === Infinity ? chars.slice(skipCharacters) : chars.slice(skipCharacters, skipCharacters + width)).join(""));
+      if (byteLocale) {
+        offset += skipCharacters;
+        result = bytes.subarray(offset, width === Infinity ? undefined : offset + width);
+      } else {
+        const chars = Array.from(uniqDecoder.decode(bytes.subarray(offset)));
+        result = encoder.encode((width === Infinity ? chars.slice(skipCharacters) : chars.slice(skipCharacters, skipCharacters + width)).join(""));
+      }
     } catch (error) {
       if (!(error instanceof TypeError)) throw error;
       // Invalid UTF-8 records retain byte comparisons without replacement characters.
@@ -2595,7 +2602,7 @@ export function textCommands(): CommandDefinition[] {
                       } else {
                         const f1 = Number(part.slice(0, dashIdx));
                         const f2 = Number(part.slice(dashIdx + 1));
-                        if (f1 < 1 || f2 < f1 || f2 > 30) { okMask = false; break; }
+                        if (!Number.isFinite(f2) || f1 < 1 || f2 < f1 || f2 > 30) { okMask = false; break; }
                         for (let fn = f1; fn <= f2; fn++) mask |= (1 << fn);
                       }
                     }

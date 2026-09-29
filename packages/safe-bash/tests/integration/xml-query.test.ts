@@ -1,3 +1,4 @@
+import { createXqCommands } from "safe-bash-command-xq";
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as api from "../../src/index.js";
@@ -426,7 +427,7 @@ test("xmllint supports --noout before or after --xpath and validates default doc
   }
 });
 
-for (const factory of [createXmlCommands, createXmllintCommands]) test(`${factory.name} captures one limits configuration`, () => {
+for (const factory of [createXmlCommands, createXmllintCommands, createXqCommands]) test(`${factory.name} captures one limits configuration`, () => {
   let reads = 0;
   factory({ get limits() { reads++; return { maxNodes: reads === 1 ? 100 : 1 }; } });
   assert.equal(reads, 1);

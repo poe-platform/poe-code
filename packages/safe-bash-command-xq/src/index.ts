@@ -96,7 +96,7 @@ async function executeXq(
 }
 import type { VirtualShellPlugin } from "safe-bash-contracts";
 export type { XmlCommandsOptions as XqCommandsOptions, XmlQueryLimits as XqLimits } from "safe-bash-xml-engine/limits";
-export function createXqCommand(options: XmlCommandsOptions = {}): CommandDefinition { const limits = resolveXmlQueryLimits(options.limits); const definition: CommandDefinition = { name: "xq", execute: context => executeXq(context, limits) }; if (options.limits === undefined) builtInDirectContextExecutors.add(definition.execute); return definition; }
+export function createXqCommand(options: XmlCommandsOptions = {}): CommandDefinition { const configuredLimits = options.limits; const limits = resolveXmlQueryLimits(configuredLimits); const definition: CommandDefinition = { name: "xq", execute: context => executeXq(context, limits) }; if (configuredLimits === undefined) builtInDirectContextExecutors.add(definition.execute); return definition; }
 export function createXqCommands(options: XmlCommandsOptions = {}): readonly CommandDefinition[] { return [createXqCommand(options)]; }
 export function xqCommands(options: XmlCommandsOptions = {}): VirtualShellPlugin { const commands = createXqCommands(options); return { name: "xq-commands", setup(host) { if (!options.replace) for (const command of commands) if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`); for (const command of commands) host.commands.register(command, {replace: options.replace ?? false}); } }; }
 

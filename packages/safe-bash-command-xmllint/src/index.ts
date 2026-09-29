@@ -285,9 +285,10 @@ export function createXmllintCommand(
   options: XmlCommandsOptions = {},
   runtime: XmlCommandRuntime = portableRuntime
 ): CommandDefinition {
-  const limits = resolveXmlQueryLimits(options.limits);
+  const configuredLimits = options.limits;
+  const limits = resolveXmlQueryLimits(configuredLimits);
   const definition: CommandDefinition = { name: "xmllint", execute: (context) => execute(context, limits, runtime) };
-  if (options.limits === undefined) builtInDirectContextExecutors.add(definition.execute);
+  if (configuredLimits === undefined) builtInDirectContextExecutors.add(definition.execute);
   return definition;
 }
 
@@ -604,7 +605,8 @@ export function evalSyncXmllint(
 }
 
 export function createXmlCommands(options: XmlCommandsOptions = {}): readonly CommandDefinition[] {
-  return [createXqCommand(options), createXmllintCommand(options)];
+  const capturedOptions = { ...options };
+  return [createXqCommand(capturedOptions), createXmllintCommand(capturedOptions)];
 }
 
 export function xmlCommands(options: XmlCommandsOptions = {}): VirtualShellPlugin {

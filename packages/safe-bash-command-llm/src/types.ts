@@ -66,6 +66,7 @@ export interface LlmInputSource {
   readonly bytes: ByteSource;
   dispose(): Promise<void>;
 }
+/** Control data is borrowed; callers keep options/schema stable until sources are disposed. */
 export interface LlmSourceRequest extends Omit<LlmRequest, "prompt" | "system" | "messages" | "attachments"> {
   readonly prompt: LlmInputSource;
   readonly system?: LlmInputSource;

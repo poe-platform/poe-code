@@ -28743,7 +28743,7 @@ export class Runtime {
         }
       } else if (cmd0SysStage) {
         if (w0Plain0 === "date") {
-          stage0Formatted = evalSyncDate(subArgs0, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, def0.execute, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.stat.mtimeMs);
+          stage0Formatted = evalSyncDate(subArgs0, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, def0.execute, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.mtimeMs);
         } else if (w0Plain0 === "printenv") {
           stage0Formatted = evalSyncPrintenv(subArgs0, rawState.exported, rawState.variables, def0.execute);
         } else if (w0Plain0 === "env") {
@@ -29242,7 +29242,7 @@ export class Runtime {
                 : firstName === "fmt"
                   ? this.evalSyncFmt(rawBytes, stageArgs, readFile)
                   : firstName === "date"
-                    ? evalSyncDate(stageArgs, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, stageDefs[sIdx]!.execute, readFile, (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.stat.mtimeMs, sIdx === 0 && cmd0FileStage ? undefined : rawBytes)
+                    ? evalSyncDate(stageArgs, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, stageDefs[sIdx]!.execute, readFile, (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.mtimeMs, sIdx === 0 && cmd0FileStage ? undefined : rawBytes)
                   : firstName === "mdq"
                     ? evalSyncMdq(rawBytes, stageArgs, readFile)
                   : firstName === "shuf"
@@ -29716,7 +29716,7 @@ export class Runtime {
       if (fOk && (w0Plain === "date" || w0Plain === "printenv" || w0Plain === "env") && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
         const ext = this.getExternalCommand(w0Plain);
         const dpOut = w0Plain === "date"
-          ? evalSyncDate(allArgs, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, ext?.execute, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.stat.mtimeMs)
+          ? evalSyncDate(allArgs, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, ext?.execute, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.mtimeMs)
           : w0Plain === "env"
             ? evalSyncEnv(allArgs, rawState.exported, rawState.variables)
             : evalSyncPrintenv(allArgs, rawState.exported, rawState.variables, ext?.execute);

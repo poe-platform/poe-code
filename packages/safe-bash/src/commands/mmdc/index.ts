@@ -53,7 +53,6 @@ export function evalSyncMmdc(
       theme: parsed.theme ?? "light",
       width: parsed.width,
       height: parsed.height,
-      scale: parsed.scale ?? 1,
       svgId: parsed.svgId,
       backgroundColor: parsed.backgroundColor,
     });

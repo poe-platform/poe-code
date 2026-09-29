@@ -34,3 +34,22 @@ Licensed under Apache-2.0; see `licenses/PDFJS-APACHE-2.0.txt`. The tests were
 adapted to the local TypeScript API and extended with redaction cases.
 
 Source: https://github.com/qpdf/qpdf
+
+
+# PDF.js standalone image decoders
+
+`src/vendor/pdfjs-image-decoders.mjs` vendors the official PDF.js 4.1.392
+`image_decoders/pdf.image_decoders.mjs` distribution (Mozilla Foundation,
+Apache-2.0). This is the last PDF.js release with synchronous JavaScript JPX
+and JBIG2 decoders, matching this library's synchronous, portable API.
+Local JPX bounds checks reject truncated boxes, markers, tile parts, zero tile
+sizes, and zero component subsampling before allocation. A 101-byte JP2 prefix
+otherwise exhausts memory in the upstream build. Other adaptations remove the global export
+assignment and unavailable source-map reference, add a generated-code lint
+comment, and provide a local TypeScript declaration for the used API.
+
+Source: https://unpkg.com/pdfjs-dist@4.1.392/image_decoders/pdf.image_decoders.mjs
+Upstream SHA-256: `257b89097a3266bcae8cd04d6faaec135a0774f6762b4476c44f0c76f8334f49`.
+Full license: `licenses/PDFJS-APACHE-2.0.txt`.
+Fixture provenance and independent reference pixels are documented in
+`src/fixtures/SOURCES.md`.

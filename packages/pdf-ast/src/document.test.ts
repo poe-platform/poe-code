@@ -732,8 +732,8 @@ trailer
     expect(outline[0]!.kind).toBe("move");
   });
 
-  it("serializes byte-accurate linearized PDFs and decodes JBIG2/JPX streams", async () => {
-    const { decodeJbig2ToRgba, decodeJpxToRgba, dictGet } = await import("./index.js");
+  it("serializes byte-accurate linearized PDFs", async () => {
+    const { dictGet } = await import("./index.js");
     const doc = PdfDocument.create();
     const p = doc.addPage({ width: 200, height: 100 });
     p.drawText("Linearized PDF Test", { x: 20, y: 50, size: 14 });
@@ -751,12 +751,6 @@ trailer
     }
     expect(foundLinL).toBe(linBytes.length);
 
-    const jbig2Rgba = decodeJbig2ToRgba(new Uint8Array([0xaa, 0x55]), 8, 2);
-    expect(jbig2Rgba.length).toBe(8 * 2 * 4);
-    const jpxRgba = decodeJpxToRgba(new Uint8Array([0xff, 0x4f, 0xff, 0x93, 200, 100, 50]), 4, 4);
-    expect(jpxRgba.length).toBe(4 * 4 * 4);
-    expect(jpxRgba[0]).toBe(200);
-    expect(jpxRgba[1]).toBe(100);
-    expect(jpxRgba[2]).toBe(50);
+
   });
 });

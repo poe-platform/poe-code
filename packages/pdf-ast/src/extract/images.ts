@@ -1,3 +1,5 @@
+import { Jbig2Image, JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
+import { PdfError } from "../errors.js";
 import {
   dictGet,
   type PdfContentNode,
@@ -927,246 +929,76 @@ export function decodeJpegToRgba(
 export function decodeJbig2ToRgba(
   jbig2Bytes: Uint8Array,
   fallbackWidth = 1,
-  fallbackHeight = 1
+  fallbackHeight = 1,
+  globals?: Uint8Array
 ): Uint8Array {
-  let width = Math.max(1, fallbackWidth);
-  let height = Math.max(1, fallbackHeight);
-  let pos = 0;
-  // Optional 8-byte JBIG2 file header: 97 4A 42 32 0D 0A 1A 0A
-  if (
-    jbig2Bytes.length >= 9 &&
-    jbig2Bytes[0] === 0x97 &&
-    jbig2Bytes[1] === 0x4a &&
-    jbig2Bytes[2] === 0x42 &&
-    jbig2Bytes[3] === 0x32
-  ) {
-    const fileFlags = jbig2Bytes[8]!;
-    pos = (fileFlags & 2) === 0 ? 13 : 9;
+  if (jbig2Bytes.length < 11) throw new PdfError("E_PARSE", "Invalid JBIG2 stream");
+  const decoder = new Jbig2Image();
+  const signature = [0x97, 0x4a, 0x42, 0x32, 0x0d, 0x0a, 0x1a, 0x0a];
+  const standalone = signature.every((byte, i) => jbig2Bytes[i] === byte);
+  let width = fallbackWidth, height = fallbackHeight;
+  let pixels: Uint8Array | Uint8ClampedArray;
+  if (standalone) {
+    pixels = decoder.parse(jbig2Bytes);
+    width = decoder.width;
+    height = decoder.height;
+  } else {
+    const chunks = globals ? [{ data: globals, start: 0, end: globals.length }] : [];
+    chunks.push({ data: jbig2Bytes, start: 0, end: jbig2Bytes.length });
+    const decoded = decoder.parseChunks(chunks);
+    if (!decoded) throw new PdfError("E_PARSE", "JBIG2 stream has no page bitmap");
+    pixels = decoded;
   }
-
-  let defaultPixel = 0; // 0 = white in JBIG2 page bitmap, 1 = black
-  const bitmap = new Uint8Array(width * height);
-  let decodedRegion = false;
-
-  const readU32 = (offset: number): number =>
-    ((jbig2Bytes[offset]! << 24) |
-      (jbig2Bytes[offset + 1]! << 16) |
-      (jbig2Bytes[offset + 2]! << 8) |
-      jbig2Bytes[offset + 3]!) >>> 0;
-
-  while (pos + 11 <= jbig2Bytes.length) {
-    const segFlags = jbig2Bytes[pos + 4]!;
-    const segType = segFlags & 0x3f;
-    const pageAssocLarge = (segFlags & 0x40) !== 0;
-    let hdrPos = pos + 5;
-    if (hdrPos >= jbig2Bytes.length) break;
-    const rtByte = jbig2Bytes[hdrPos]!;
-    const refCount = (rtByte >> 5) & 7;
-    if (refCount < 5) {
-      hdrPos += 1;
-    } else {
-      if (hdrPos + 4 > jbig2Bytes.length) break;
-      const longCount = readU32(hdrPos) & 0x1fffffff;
-      hdrPos += 4 + Math.ceil((longCount + 1) / 8);
-    }
-    const refSize = 1;
-    hdrPos += (refCount < 5 ? refCount : 0) * refSize;
-    hdrPos += pageAssocLarge ? 4 : 1;
-    if (hdrPos + 4 > jbig2Bytes.length) break;
-    const dataLen = readU32(hdrPos);
-    const dataStart = hdrPos + 4;
-    if (dataLen === 0xffffffff || dataStart + dataLen > jbig2Bytes.length) break;
-
-    if (segType === 48 && dataLen >= 9) {
-      // Page Information segment
-      const pw = readU32(dataStart);
-      const ph = readU32(dataStart + 4);
-      if (pw > 0 && pw <= 8192) width = pw;
-      if (ph > 0 && ph <= 8192) height = ph;
-      const pageFlags = jbig2Bytes[dataStart + 8]!;
-      defaultPixel = (pageFlags >> 2) & 1;
-      if (defaultPixel) bitmap.fill(1);
-    } else if ((segType === 38 || segType === 39) && dataLen >= 18) {
-      // Immediate Generic Region segment
-      const regW = Math.min(width, readU32(dataStart));
-      const regH = Math.min(height, readU32(dataStart + 4));
-      const regX = readU32(dataStart + 8);
-      const regY = readU32(dataStart + 12);
-      const regFlags = jbig2Bytes[dataStart + 17]!;
-      const isMmr = (regFlags & 1) !== 0;
-      const payload = jbig2Bytes.subarray(dataStart + 18, dataStart + dataLen);
-      const rowStride = Math.ceil(regW / 8);
-      if (!isMmr && payload.length >= rowStride * regH) {
-        for (let ry = 0; ry < regH; ry++) {
-          for (let rx = 0; rx < regW; rx++) {
-            const b = payload[ry * rowStride + (rx >> 3)]!;
-            const bit = (b >> (7 - (rx & 7))) & 1;
-            const dx = regX + rx;
-            const dy = regY + ry;
-            if (dx < width && dy < height) {
-              bitmap[dy * width + dx] = bit;
-            }
-          }
-        }
-        decodedRegion = true;
-      } else if (payload.length > 0) {
-        for (let ry = 0; ry < regH; ry++) {
-          for (let rx = 0; rx < regW; rx++) {
-            const bitIdx = ry * regW + rx;
-            const b = payload[(bitIdx >> 3) % payload.length]!;
-            const bit = (b >> (7 - (bitIdx & 7))) & 1;
-            const dx = regX + rx;
-            const dy = regY + ry;
-            if (dx < width && dy < height) {
-              bitmap[dy * width + dx] = bit;
-            }
-          }
-        }
-        decodedRegion = true;
-      }
-    } else if (segType === 51) {
-      break; // End of File
-    }
-    pos = dataStart + dataLen;
+  if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0 ||
+      pixels.length !== (standalone ? width * height : Math.ceil(width / 8) * height)) {
+    throw new PdfError("E_PARSE", "JBIG2 bitmap dimensions do not match decoded data");
   }
-
-  if (!decodedRegion && jbig2Bytes.length > 0) {
-    const rowStride = Math.ceil(width / 8);
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const byteIdx = (y * rowStride + (x >> 3)) % jbig2Bytes.length;
-        const bit = (jbig2Bytes[byteIdx]! >> (7 - (x & 7))) & 1;
-        bitmap[y * width + x] = bit;
-      }
-    }
-  }
-
   const rgba = new Uint8Array(width * height * 4);
-  for (let i = 0; i < width * height; i++) {
-    const lum = bitmap[i] ? 0 : 255;
-    rgba[i * 4] = lum;
-    rgba[i * 4 + 1] = lum;
-    rgba[i * 4 + 2] = lum;
-    rgba[i * 4 + 3] = 255;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const lum = standalone ? pixels[y * width + x]!
+        : (pixels[y * Math.ceil(width / 8) + (x >> 3)]! >> (7 - (x & 7))) & 1 ? 0 : 255;
+      const offset = (y * width + x) * 4;
+      rgba.set([lum, lum, lum, 255], offset);
+    }
   }
   return rgba;
 }
 
+function decodeJpxSamples(bytes: Uint8Array): { width: number; height: number; components: number; samples: Uint8Array } {
+  const decoder = new JpxImage();
+  decoder.failOnCorruptedImage = true;
+  decoder.parse(bytes);
+  const { width, height, componentsCount: components, tiles } = decoder;
+  if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0 ||
+      !Number.isSafeInteger(components) || components <= 0 || !tiles?.length) {
+    throw new PdfError("E_PARSE", "JPEG 2000 stream has no valid image");
+  }
+  const samples = new Uint8Array(width * height * components);
+  for (const tile of tiles) {
+    if (tile.left < 0 || tile.top < 0 || tile.left + tile.width > width || tile.top + tile.height > height ||
+        tile.items.length !== tile.width * tile.height * components) {
+      throw new PdfError("E_PARSE", "Invalid JPEG 2000 tile bounds");
+    }
+    for (let row = 0; row < tile.height; row++) {
+      const start = row * tile.width * components;
+      samples.set(tile.items.subarray(start, start + tile.width * components), ((tile.top + row) * width + tile.left) * components);
+    }
+  }
+  return { width, height, components, samples };
+}
+
 export function decodeJpxToRgba(
   jpxBytes: Uint8Array,
-  fallbackWidth = 1,
-  fallbackHeight = 1
+  _fallbackWidth = 1,
+  _fallbackHeight = 1
 ): Uint8Array {
-  let width = Math.max(1, fallbackWidth);
-  let height = Math.max(1, fallbackHeight);
-  let numComps = 3;
-  let payloadStart = 0;
-
-  const readU32 = (offset: number): number =>
-    ((jpxBytes[offset]! << 24) |
-      (jpxBytes[offset + 1]! << 16) |
-      (jpxBytes[offset + 2]! << 8) |
-      jpxBytes[offset + 3]!) >>> 0;
-
-  // Check for JP2 box format signature (00 00 00 0C 6A 50 20 20)
-  if (
-    jpxBytes.length >= 12 &&
-    jpxBytes[4] === 0x6a &&
-    jpxBytes[5] === 0x50 &&
-    jpxBytes[6] === 0x20 &&
-    jpxBytes[7] === 0x20
-  ) {
-    let boxPos = 0;
-    while (boxPos + 8 <= jpxBytes.length) {
-      let boxLen = readU32(boxPos);
-      const boxType =
-        String.fromCharCode(jpxBytes[boxPos + 4]!) +
-        String.fromCharCode(jpxBytes[boxPos + 5]!) +
-        String.fromCharCode(jpxBytes[boxPos + 6]!) +
-        String.fromCharCode(jpxBytes[boxPos + 7]!);
-      if (boxLen === 0) boxLen = jpxBytes.length - boxPos;
-      if (boxLen < 8 || boxPos + boxLen > jpxBytes.length) break;
-      if (boxType === "jp2h") {
-        // Superbox containing ihdr
-        let subPos = boxPos + 8;
-        const subEnd = boxPos + boxLen;
-        while (subPos + 8 <= subEnd) {
-          const subLen = readU32(subPos);
-          const subType =
-            String.fromCharCode(jpxBytes[subPos + 4]!) +
-            String.fromCharCode(jpxBytes[subPos + 5]!) +
-            String.fromCharCode(jpxBytes[subPos + 6]!) +
-            String.fromCharCode(jpxBytes[subPos + 7]!);
-          if (subLen < 8 || subPos + subLen > subEnd) break;
-          if (subType === "ihdr" && subLen >= 22) {
-            const ih = readU32(subPos + 8);
-            const iw = readU32(subPos + 12);
-            const nc = (jpxBytes[subPos + 16]! << 8) | jpxBytes[subPos + 17]!;
-            if (iw > 0 && iw <= 8192) width = iw;
-            if (ih > 0 && ih <= 8192) height = ih;
-            if (nc > 0 && nc <= 4) numComps = nc;
-          }
-          subPos += subLen;
-        }
-      } else if (boxType === "jp2c") {
-        payloadStart = boxPos + 8;
-        break;
-      }
-      boxPos += boxLen;
-    }
-  }
-
-  // Parse J2K codestream SIZ (0xFF51) and SOD (0xFF93)
-  let csPos = payloadStart;
-  let sodOffset = -1;
-  while (csPos + 2 <= jpxBytes.length) {
-    if (jpxBytes[csPos] !== 0xff) {
-      csPos++;
-      continue;
-    }
-    const marker = (jpxBytes[csPos]! << 8) | jpxBytes[csPos + 1]!;
-    csPos += 2;
-    if (marker === 0xff4f || marker === 0xff92) continue; // SOC, EPH
-    if (marker === 0xff93) {
-      sodOffset = csPos;
-      break;
-    }
-    if (marker === 0xffd9) break; // EOC
-    if (csPos + 2 > jpxBytes.length) break;
-    const segLen = (jpxBytes[csPos]! << 8) | jpxBytes[csPos + 1]!;
-    if (segLen < 2 || csPos + segLen > jpxBytes.length) break;
-    if (marker === 0xff51 && segLen >= 38) {
-      // SIZ marker
-      const xSiz = readU32(csPos + 4);
-      const ySiz = readU32(csPos + 8);
-      const xOSiz = readU32(csPos + 12);
-      const yOSiz = readU32(csPos + 16);
-      const cSiz = (jpxBytes[csPos + 36]! << 8) | jpxBytes[csPos + 37]!;
-      if (xSiz > xOSiz && xSiz - xOSiz <= 8192) width = xSiz - xOSiz;
-      if (ySiz > yOSiz && ySiz - yOSiz <= 8192) height = ySiz - yOSiz;
-      if (cSiz > 0 && cSiz <= 4) numComps = cSiz;
-    }
-    csPos += segLen;
-  }
-
-  const rgba = new Uint8Array(width * height * 4);
-  const dataOffset = sodOffset >= 0 ? sodOffset : payloadStart;
-  const avail = jpxBytes.subarray(dataOffset);
-  for (let p = 0; p < width * height; p++) {
-    if (numComps === 1) {
-      const g = avail.length > 0 ? avail[p % avail.length]! : 180;
-      rgba[p * 4] = g;
-      rgba[p * 4 + 1] = g;
-      rgba[p * 4 + 2] = g;
-      rgba[p * 4 + 3] = 255;
-    } else {
-      rgba[p * 4] = avail.length > 0 ? avail[(p * 3) % avail.length]! : 180;
-      rgba[p * 4 + 1] = avail.length > 1 ? avail[(p * 3 + 1) % avail.length]! : 180;
-      rgba[p * 4 + 2] = avail.length > 2 ? avail[(p * 3 + 2) % avail.length]! : 180;
-      rgba[p * 4 + 3] = 255;
-    }
-  }
-  return rgba;
+  const image = decodeJpxSamples(jpxBytes);
+  if (![1, 3, 4].includes(image.components)) throw new PdfError("E_CAPABILITY", "Unsupported JPEG 2000 component count");
+  return decodeSamplesToRgba(image.samples, image.width, image.height, 8, {
+    colorSpace: image.components === 1 ? "gray" : image.components === 4 ? "cmyk" : "rgb",
+    components: image.components,
+  });
 }
 
 function decodeJpegFallbackRgba(jpegBytes: Uint8Array, width: number, height: number): Uint8Array {
@@ -1631,12 +1463,12 @@ export function decodeXObjectImageToRgba(
   const imageMaskNode = doc.resolve(dictGet(dict, "ImageMask") ?? dictGet(dict, "IM"));
   const isMask = imageMaskNode?.kind === "boolean" && imageMaskNode.value;
 
-  const width = wNode?.kind === "number" ? Math.max(1, Math.round(wNode.value)) : 1;
-  const height = hNode?.kind === "number" ? Math.max(1, Math.round(hNode.value)) : 1;
-  const bitsPerComponent = bpcNode?.kind === "number" ? bpcNode.value : isMask ? 1 : 8;
+  let width = wNode?.kind === "number" ? Math.max(1, Math.round(wNode.value)) : 1;
+  let height = hNode?.kind === "number" ? Math.max(1, Math.round(hNode.value)) : 1;
+  let bitsPerComponent = bpcNode?.kind === "number" ? bpcNode.value : isMask ? 1 : 8;
 
   const csNode = dictGet(dict, "ColorSpace") ?? dictGet(dict, "CS");
-  const csInfo: ResolvedColorSpace = isMask
+  let csInfo: ResolvedColorSpace = isMask
     ? { colorSpace: "gray", components: 1 }
     : resolveColorSpaceInfo(doc, csNode, activeRes);
 
@@ -1667,12 +1499,30 @@ export function decodeXObjectImageToRgba(
   let rgba: Uint8Array;
   if (encoding === "jpeg" || encoding === "jbig2" || encoding === "jpx") {
     const rawEncBytes = extractRawJpegFromStream(doc, xobjStream, filters);
-    rgba =
-      encoding === "jbig2"
-        ? decodeJbig2ToRgba(rawEncBytes, width, height)
-        : encoding === "jpx"
-          ? decodeJpxToRgba(rawEncBytes, width, height)
-          : decodeJpegFallbackRgba(rawEncBytes, width, height);
+    if (encoding === "jbig2") {
+      const params = doc.resolve(dictGet(dict, "DecodeParms") ?? dictGet(dict, "DP"));
+      const decodeParms = params?.kind === "array"
+        ? doc.resolveDict(params.items[filters.findIndex(filter => filter === "JBIG2Decode")])
+        : doc.resolveDict(params);
+      const globals = decodeParms ? doc.resolve(dictGet(decodeParms, "JBIG2Globals")) : undefined;
+      rgba = decodeJbig2ToRgba(rawEncBytes, width, height, globals?.kind === "stream" ? doc.decodeStream(globals) : undefined);
+    } else if (encoding === "jpx") {
+      const decoded = decodeJpxSamples(rawEncBytes);
+      width = decoded.width;
+      height = decoded.height;
+      bitsPerComponent = 8;
+      if (!csNode) {
+        if (![1, 3, 4].includes(decoded.components)) throw new PdfError("E_CAPABILITY", "Unsupported JPEG 2000 component count");
+        csInfo = {
+          colorSpace: decoded.components === 1 ? "gray" : decoded.components === 4 ? "cmyk" : "rgb",
+          components: decoded.components,
+        };
+      }
+      if (csInfo.components !== decoded.components) throw new PdfError("E_PARSE", "JPEG 2000 component count does not match ColorSpace");
+      rgba = decodeSamplesToRgba(decoded.samples, width, height, 8, csInfo);
+    } else {
+      rgba = decodeJpegFallbackRgba(rawEncBytes, width, height);
+    }
     if (smaskNode?.kind === "stream") {
       applySmaskStreamToRgba(doc, smaskNode, rgba, width, height, activeRes);
     }

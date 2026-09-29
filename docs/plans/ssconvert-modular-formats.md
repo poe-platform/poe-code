@@ -172,3 +172,33 @@ license and shared helper declarations. Isolated installed workerd consumers
 match the independent records without Node globals or competing formats, and
 strict public NodeNext types pass. Delivery and publication remain pending for
 this DBF checkpoint.
+
+At the 2026-09-29 13:20 UTC checkpoint, fresh artifacts at `06167ce1e7`
+pass the complete scoped installed-package release gate: optional dependencies,
+Node and Bun behavior, public declarations, isolated browser/Worker realms,
+browser command behavior and factory identity, legacy coexistence, filesystem-only
+consumers, and 15 native Cloudflare files / 87 tests. The local macOS harness uses
+explicit canonical temporary directories; its assertions are unchanged.
+
+The gate exposed three repaired publication prerequisites: the unrtf adapter's
+plugin name, an LLM type fixture that widened supplied providers to optional,
+and browser wildcard exports lost while canonical private owners remained
+external. The latter repair preserves all 440 existing portable runtime exports
+and all 24 public browser entrypoint surfaces, retaining the same command factory
+across root and subpath imports. Its failing-before regressions, all 222 packaging
+tests and full maintained lint pass. This is artifact qualification, not registry
+publication.
+
+The earlier `b92f4b02af` complete build also produced fresh root/scoped selected
+DBF, HTML and SpreadsheetML Worker consumers and public type checks. Independent
+Python/Gnumeric records agree with DBF import; ten HTML outputs independently
+parse correctly. Installed soffice Worker exports retain the expected Unicode,
+multiline, numeric, boolean and second-sheet values under CSV/openpyxl readback.
+
+Reconciliation preserves the upstream CSV schema, tar extraction and shared
+callback repairs in `41b6c009cd`, `855ae69c41` and `e877a3bf20`; this session's
+remaining CSV/tar commits retain additional regression coverage. The redundant
+callback commit is dropped. A current maintained Safe Bash build is refreshing
+compiled outputs after the latest incoming command changes. DBF and the remaining
+publication fixes still await push at this checkpoint; no containing published
+release is claimed, and the broader compatibility families remain open.

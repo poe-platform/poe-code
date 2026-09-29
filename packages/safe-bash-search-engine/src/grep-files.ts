@@ -1,4 +1,3 @@
-import { bytesFrom } from "safe-bash-byte-engine";
 import { assertCommandRequirements, type CommandContext } from "safe-bash-contracts";
 import { diagnostic, lines, pathOf, UsageError, value, type ParsedOptions } from "safe-bash-io-engine/internal";
 import { matchesPattern } from "safe-bash-io-engine/shell/pattern";
@@ -18,7 +17,7 @@ export async function* grepFiles(context: CommandContext, parsed: ParsedOptions,
   for (const { key, pattern } of filters) {
     if (key === "include" || key === "exclude") rules.push({ pattern, include: key === "include" });
     if (key === "exclude-from") {
-      for await (const line of lines(requiredFileInput(context, grepRequirements, "pattern-file", pattern, bufferLimit))) rules.push({ pattern: bytesFrom(line.bytes).toString(), include: false });
+      for await (const line of lines(requiredFileInput(context, grepRequirements, "pattern-file", pattern, bufferLimit))) rules.push({ pattern: new TextDecoder().decode(line.bytes), include: false });
     }
   }
   const excludedDirectories = parsed.values.get("exclude-dir") ?? [];

@@ -1622,3 +1622,42 @@ test("Wave 226: sqlite3 file database persistence, .dump/.save/.read, and openss
     "1,alpha;2,beta;|INSERT INTO items VALUES(1,'alpha');;INSERT INTO items VALUES(2,'beta');|aGVsbG8tb3BlbnNzbA=="
   );
 });
+
+test("Wave 227: apply_patch Delete File, Move to, and nested Add File in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp/w227", { recursive: true });
+  const { applyPatchCommands } = await import("../../src/commands/apply-patch/index.ts");
+  const shell = new Shell({ fs: memFs, cwd: "/tmp/w227" })
+    .use(standardCommands())
+    .use(applyPatchCommands());
+  const res = await shell.exec(`
+    for i in 1 2 3 4 5; do
+      rm -rf /tmp/w227/old.txt /tmp/w227/obsolete.txt /tmp/w227/sub
+      printf "line1\nline2\n" > /tmp/w227/old.txt
+      printf "bye\n" > /tmp/w227/obsolete.txt
+      out=$(apply_patch <<'EOF'
+*** Begin Patch
+*** Add File: sub/added.txt
++hello nested
+*** Update File: old.txt
+*** Move to: sub/renamed.txt
+@@
+ line1
+-line2
++line2-updated
+*** Delete File: obsolete.txt
+*** End Patch
+EOF
+)
+      c1=$(cat /tmp/w227/sub/added.txt)
+      c2=$(cat /tmp/w227/sub/renamed.txt | tr "\n" ":")
+      ex=$(test -e /tmp/w227/obsolete.txt && echo "exists" || echo "deleted")
+    done
+    printf "%s|%s|%s|%s\n" "$(printf "%s" "$out" | tr "\n" ";")" "$c1" "$c2" "$ex"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "Success. Updated the following files:;A sub/added.txt;M sub/renamed.txt;D obsolete.txt|hello nested|line1:line2-updated:|deleted"
+  );
+});

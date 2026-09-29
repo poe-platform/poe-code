@@ -10,6 +10,8 @@ export function evalSyncApplyPatch(
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
   writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
+  removeFileSync?: (filePath: string) => boolean,
+  mkdirSync?: (filePath: string) => boolean,
 ): string | undefined {
   if (!readFileSync || !writeFileSync || opArgs.length > 1) return undefined;
   const rawPatch = opArgs.length === 1 ? opArgs[0]! : (inBytes ? decoder.decode(inBytes) : "");
@@ -17,7 +19,7 @@ export function evalSyncApplyPatch(
   if (lines.length < 2 || lines[0] !== "*** Begin Patch" || lines[lines.length - 1] !== "*** End Patch") {
     return undefined;
   }
-  const writes: { path: string; bytes: Uint8Array; summary: string }[] = [];
+  const actions: { kind: "write" | "delete" | "move"; path: string; dest?: string; bytes?: Uint8Array; summary: string }[] = [];
   let idx = 1;
   while (idx < lines.length - 1) {
     const header = lines[idx]!;
@@ -32,10 +34,21 @@ export function evalSyncApplyPatch(
         added.push(l.slice(1));
         idx++;
       }
-      writes.push({
+      actions.push({
+        kind: "write",
         path: target,
         bytes: encoder.encode(added.join("\n") + (added.length ? "\n" : "")),
         summary: `A ${target}\n`,
+      });
+    } else if (header.startsWith("*** Delete File: ")) {
+      const target = header.slice("*** Delete File: ".length);
+      if (!target || target.includes("..") || !removeFileSync) return undefined;
+      if (!readFileSync(target)) return undefined;
+      idx++;
+      actions.push({
+        kind: "delete",
+        path: target,
+        summary: `D ${target}\n`,
       });
     } else if (header.startsWith("*** Update File: ")) {
       const target = header.slice("*** Update File: ".length);
@@ -44,7 +57,12 @@ export function evalSyncApplyPatch(
       if (!origBytes) return undefined;
       const fileLines = decoder.decode(origBytes).replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");
       idx++;
-      if (idx < lines.length - 1 && lines[idx]!.startsWith("*** Move to: ")) return undefined;
+      let moveDest: string | undefined;
+      if (idx < lines.length - 1 && lines[idx]!.startsWith("*** Move to: ")) {
+        moveDest = lines[idx]!.slice("*** Move to: ".length);
+        if (!moveDest || moveDest.includes("..") || !removeFileSync) return undefined;
+        idx++;
+      }
       let searchPos = 0;
       while (idx < lines.length - 1 && !lines[idx]!.startsWith("*** ")) {
         if (!lines[idx]!.startsWith("@@")) return undefined;
@@ -74,20 +92,45 @@ export function evalSyncApplyPatch(
         fileLines.splice(matchIdx, oldChunk.length, ...newChunk);
         searchPos = matchIdx + newChunk.length;
       }
-      writes.push({
-        path: target,
-        bytes: encoder.encode(fileLines.join("\n") + "\n"),
-        summary: `M ${target}\n`,
-      });
+      const outBytes = encoder.encode(fileLines.join("\n") + "\n");
+      if (moveDest && moveDest !== target) {
+        actions.push({
+          kind: "move",
+          path: target,
+          dest: moveDest,
+          bytes: outBytes,
+          summary: `M ${moveDest}\n`,
+        });
+      } else {
+        actions.push({
+          kind: "write",
+          path: target,
+          bytes: outBytes,
+          summary: `M ${target}\n`,
+        });
+      }
     } else {
       return undefined;
     }
   }
-  if (writes.length === 0) return undefined;
-  for (const w of writes) {
-    if (!writeFileSync(w.path, w.bytes)) return undefined;
+  if (actions.length === 0) return undefined;
+  const ensureDir = (filePath: string) => {
+    const slash = filePath.lastIndexOf("/");
+    if (slash > 0 && mkdirSync) mkdirSync(filePath.slice(0, slash));
+  };
+  for (const act of actions) {
+    if (act.kind === "delete") {
+      if (!removeFileSync!(act.path)) return undefined;
+    } else if (act.kind === "move") {
+      ensureDir(act.dest!);
+      if (!writeFileSync(act.dest!, act.bytes!)) return undefined;
+      if (!removeFileSync!(act.path)) return undefined;
+    } else {
+      ensureDir(act.path);
+      if (!writeFileSync(act.path, act.bytes!)) return undefined;
+    }
   }
-  return "Success. Updated the following files:\n" + writes.map(w => w.summary).join("");
+  return "Success. Updated the following files:\n" + actions.map(a => a.summary).join("");
 }
 
 syncCommandEvaluators.evalSyncApplyPatch = evalSyncApplyPatch;

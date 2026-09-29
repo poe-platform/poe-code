@@ -205,10 +205,19 @@ function isReadOnlyGitArgs(args: readonly string[]): boolean {
     if (a === "hash-object") {
       return !args.slice(i + 1).includes("-w");
     }
+    if (a === "remote") {
+      const rest = args.slice(i + 1);
+      return rest.length === 0 || rest[0] === "-v" || rest[0] === "--verbose" || rest[0] === "get-url" || rest[0] === "show";
+    }
+    if (a === "stash" || a === "worktree") {
+      const rest = args.slice(i + 1);
+      return rest[0] === "list" || (a === "stash" && rest[0] === "show");
+    }
     if (a === "branch" || a === "tag") {
       const rest = args.slice(i + 1);
       if (rest.length === 0) return true;
-      if (rest.length === 1 && (rest[0] === "--show-current" || rest[0] === "-l" || rest[0] === "--list" || rest[0] === "-a" || rest[0] === "-r" || rest[0] === "-v" || rest[0] === "-vv")) return true;
+      if (rest[0] === "-l" || rest[0] === "--list" || rest[0] === "--contains" || rest[0] === "--points-at" || rest[0] === "--merged" || rest[0] === "--no-merged") return true;
+      if (rest.length === 1 && (rest[0] === "--show-current" || rest[0] === "-a" || rest[0] === "-r" || rest[0] === "-v" || rest[0] === "-vv")) return true;
       return false;
     }
     return READ_ONLY_GIT_SUBCOMMANDS.has(a);

@@ -5,6 +5,7 @@ import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-en
 import { MAX_SHEET_SIZE, DEFAULT_SHEET_SIZE, formatA1, type Workbook, type Sheet, type Cell,
   type CellValue, type ImportedValue, type UnsupportedRecord, type AxisMetadata, type Range,
   type NamedExpression, type FormulaGroup } from "@poe-code/spreadsheet-ast";
+import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import { parseExpression } from "@poe-code/spreadsheet-engine/formulas/parser";
 import { quotedLabelText } from "@poe-code/spreadsheet-engine/formulas/quoted-labels";
 import { prepareOdfFormulaLabels } from "./odf-formula-labels.js";
@@ -567,7 +568,14 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
           maximumNodes: context.limits.workbookNodes ?? Infinity }) : undefined;
         const endpoint = parsedBase?.ok && parsedBase.document.root.kind === "reference" && !parsedBase.document.root.last
           ? parsedBase.document.root.first : undefined;
-        const position = { sheet: endpoint?.sheet ?? initialSheet, row: endpoint?.row?.value ?? 0, column: endpoint?.column?.value ?? 0 };
+        const baseName = endpoint?.sheet;
+        if (baseName !== undefined) pkg.charge(baseName.length);
+        const baseKey = baseName === undefined ? undefined : foldSheetName(baseName);
+        const baseSheet = baseKey === undefined ? initialSheet : sheets.find(candidate => {
+          pkg.charge(1 + candidate.name.length);
+          return foldSheetName(candidate.name) === baseKey;
+        })?.id ?? baseName!;
+        const position = { sheet: baseSheet, row: endpoint?.row?.value ?? 0, column: endpoint?.column?.value ?? 0 };
         const expression = await formula(source, legacy, position, context, book, pkg.charge);
         if (expression) names.push({ name, expression, ...(sheet ? { sheet } : {}), position });
       }

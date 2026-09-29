@@ -3,6 +3,13 @@ import test from "node:test";
 import { createOpenAiProvider } from "./openai.js";
 import reference from "./fixtures/openai-structured-options-reference.json" with {type:"json"};
 import { openAiChatOptions } from "./openai-chat-options.js";
+test("token IDs retain exact pinned integers beyond JavaScript numeric precision", () => {
+ for (const [input, key, bias] of [
+  ['{"9007199254740993":10}', "9007199254740993", 10],
+  ['{"-9007199254740993":20}', "-9007199254740993", 20],
+  ['{"+09_007_199_254_740_993":-100}', "9007199254740993", -100],
+ ] as const) assert.deepEqual(openAiChatOptions({ logit_bias: input }), { logit_bias: { [key]: bias } });
+});
 test("token bias canonical collisions retain pinned Python dictionary insertion order", () => {
  for (const [input, expected] of [
   ['{"01":10,"1":20}', 20],

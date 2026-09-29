@@ -43,9 +43,14 @@ function logitBias(input: LlmOption): Record<string, number> {
  const result: Record<string, number> = {};
  for (const key of dictionaryKeys(input)) {
   const value: unknown = (parsed as Record<string, unknown>)[key];
-  const token = biasInteger(key), bias = biasInteger(value);
-  if (token === undefined || !Number.isSafeInteger(token) || bias === undefined || !Number.isSafeInteger(bias) || bias < -100 || bias > 100) throw new TypeError("Invalid OpenAI logit_bias: Invalid key-value pair in logit_bias dictionary");
-  Object.defineProperty(result, String(token), { value: bias, enumerable: true, configurable: true, writable: true });
+  let token: string | undefined;
+  if (biasInteger(key) !== undefined) {
+   try { token = BigInt(key.trim().replaceAll("_", "")).toString(); }
+   catch { /* Invalid decimal integer key. */ }
+  }
+  const bias = biasInteger(value);
+  if (token === undefined || bias === undefined || !Number.isSafeInteger(bias) || bias < -100 || bias > 100) throw new TypeError("Invalid OpenAI logit_bias: Invalid key-value pair in logit_bias dictionary");
+  Object.defineProperty(result, token, { value: bias, enumerable: true, configurable: true, writable: true });
  }
  return result;
 }

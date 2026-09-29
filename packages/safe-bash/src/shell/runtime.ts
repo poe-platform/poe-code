@@ -12054,6 +12054,7 @@ export class Runtime {
         // Inline function steps have no continuation for a declined expansion.
         if (this._syncLoopFnCheckDepth > 0) return false;
         if (this.tryAdmitLoopInvariantSubstitution(part, rawState)) continue;
+        if (customRegisteredRegistries.has(this.commands)) return false;
         if (part.script.lists.length !== 1) return false;
         const list = part.script.lists[0]!;
         if (list.terminator || list.pipelines.length !== 1) return false;

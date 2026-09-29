@@ -1340,7 +1340,7 @@ export function evalSyncLn(
     return undefined;
   }
   if (noTargetDir && targetDir !== undefined) return undefined;
-  let pairs: [string, string][] = [];
+  const pairs: [string, string][] = [];
   if (targetDir !== undefined) {
     if (operands.length === 0 || statTypeSync(targetDir) !== "directory") return undefined;
     for (const s of operands) {

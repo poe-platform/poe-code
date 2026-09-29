@@ -1,3 +1,4 @@
+import { syncCommandEvaluators } from "../commands/internal.js";
 import { compareSyncJqStrings, splitSyncJqExpression } from "./sync-jq-expression.js";
 import { wcDisplayWidth } from "../commands/wc-width.js";
 import { text as awkValueText, compare as awkCompare, inputValue as awkInputValue, numeric as awkNumeric, number as awkNumber, string as awkString } from "../commands/text-programs/awk-values.js";
@@ -99,28 +100,6 @@ import { evalSyncCmp } from "../commands/cmp.js";
 import { evalSyncWhich } from "../commands/which/index.js";
 import { evalSyncFind } from "../commands/find.js";
 import { evalSyncCompression } from "../commands/bytes/compression/index.js";
-import { evalSyncOpenssl } from "../commands/openssl/index.js";
-import { evalSyncSqlite3 } from "../commands/sqlite3/index.js";
-import { evalSyncGpg } from "../commands/gpg/index.js";
-import { evalSyncSsh, evalSyncSshKeygen } from "../commands/ssh/index.js";
-import { evalSyncPdfinfo, evalSyncPdffonts, evalSyncPdfdetach } from "../commands/pdfinfo/index.js";
-import { evalSyncPdftotext, evalSyncPdftohtml } from "../commands/pdftotext/index.js";
-import { evalSyncExiftool } from "../commands/exiftool/index.js";
-import { evalSyncQpdf } from "../commands/qpdf/index.js";
-import { evalSyncPdftk } from "../commands/pdftk/index.js";
-import { evalSyncSips } from "../commands/sips/index.js";
-import { evalSyncIdentify } from "../commands/imagemagick/index.js";
-import { evalSyncPdfimages } from "../commands/pdfimages/index.js";
-import { evalSyncFfmpeg, evalSyncFfprobe } from "../commands/ffmpeg/index.js";
-import { evalSyncGh } from "../commands/gh/index.js";
-import { evalSyncPdftoppm, evalSyncPdftocairo } from "../commands/pdftoppm/index.js";
-import { evalSyncMmdc } from "../commands/mmdc/index.js";
-import { evalSyncPandoc } from "../commands/pandoc/index.js";
-import { evalSyncSoffice } from "../commands/soffice/index.js";
-import { evalSyncSsconvert } from "../commands/ssconvert/index.js";
-import { evalSyncWkhtmltopdf } from "../commands/wkhtmltopdf/index.js";
-import { evalSyncOp } from "../commands/op/index.js";
-import { evalSyncGit } from "../commands/git/index.js";
 import { evalSyncTar, evalSyncUnzip, evalSyncZip } from "../commands/archive/index.js";
 
 const syncDdUtf8Decoder = new TextDecoder("utf-8", { fatal: true });
@@ -27957,61 +27936,61 @@ export class Runtime {
                   : firstName === "xargs"
                     ? evalSyncXargs(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "openssl"
-                    ? evalSyncOpenssl(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncOpenssl?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "sqlite3"
-                    ? evalSyncSqlite3(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncSqlite3?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "gpg"
-                    ? evalSyncGpg(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncGpg?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "ssh"
-                    ? evalSyncSsh(stageArgs)
+                    ? syncCommandEvaluators.evalSyncSsh?.(stageArgs)
                   : firstName === "ssh-keygen"
-                    ? evalSyncSshKeygen(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncSshKeygen?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "pdfinfo"
-                    ? evalSyncPdfinfo(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncPdfinfo?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "pdftotext"
-                    ? evalSyncPdftotext(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncPdftotext?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "exiftool"
-                    ? evalSyncExiftool(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncExiftool?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "pdffonts"
-                    ? evalSyncPdffonts(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncPdffonts?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "pdftohtml"
-                    ? evalSyncPdftohtml(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncPdftohtml?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "qpdf"
-                    ? evalSyncQpdf(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncQpdf?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "pdftk"
-                    ? evalSyncPdftk(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncPdftk?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "sips"
-                    ? evalSyncSips(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncSips?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : (firstName === "identify" || firstName === "magick" || firstName === "convert")
-                    ? evalSyncIdentify(firstName, sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncIdentify?.(firstName, sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "pdfimages"
-                    ? evalSyncPdfimages(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncPdfimages?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "pdfdetach"
-                    ? evalSyncPdfdetach(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncPdfdetach?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "ffprobe"
-                    ? evalSyncFfprobe(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncFfprobe?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "ffmpeg"
-                    ? evalSyncFfmpeg(stageArgs)
+                    ? syncCommandEvaluators.evalSyncFfmpeg?.(stageArgs)
                   : firstName === "gh"
-                    ? evalSyncGh(stageDefs[sIdx]!.execute, stageArgs, rawState.variables)
+                    ? syncCommandEvaluators.evalSyncGh?.(stageDefs[sIdx]!.execute, stageArgs, rawState.variables)
                   : firstName === "pdftoppm"
-                    ? evalSyncPdftoppm(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncPdftoppm?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "pdftocairo"
-                    ? evalSyncPdftocairo(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncPdftocairo?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "mmdc"
-                    ? evalSyncMmdc(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncMmdc?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "pandoc"
-                    ? evalSyncPandoc(stageArgs)
+                    ? syncCommandEvaluators.evalSyncPandoc?.(stageArgs)
                   : (firstName === "soffice" || firstName === "libreoffice")
-                    ? evalSyncSoffice(stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncSoffice?.(stageArgs, readFile)
                   : firstName === "ssconvert"
-                    ? evalSyncSsconvert(stageArgs)
+                    ? syncCommandEvaluators.evalSyncSsconvert?.(stageArgs)
                   : firstName === "wkhtmltopdf"
-                    ? evalSyncWkhtmltopdf(stageArgs)
+                    ? syncCommandEvaluators.evalSyncWkhtmltopdf?.(stageArgs)
                   : firstName === "op"
-                    ? evalSyncOp(stageDefs[sIdx]!.execute, stageArgs, rawState.variables)
+                    ? syncCommandEvaluators.evalSyncOp?.(stageDefs[sIdx]!.execute, stageArgs, rawState.variables)
                   : firstName === "git"
-                    ? evalSyncGit(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, p === "/", follow), (p: string) => this.tryReadMemoryFileViewSync(p, false, true), stageDefs[sIdx]!.execute)
+                    ? syncCommandEvaluators.evalSyncGit?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, p === "/", follow), (p: string) => this.tryReadMemoryFileViewSync(p, false, true), stageDefs[sIdx]!.execute)
                   : firstName === "tar"
                     ? evalSyncTar(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "unzip"
@@ -28388,61 +28367,61 @@ export class Runtime {
           : w0Plain === "xargs"
             ? evalSyncXargs(optInBytes, allArgs, readFile)
           : w0Plain === "openssl"
-            ? evalSyncOpenssl(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncOpenssl?.(optInBytes, allArgs, readFile)
           : w0Plain === "sqlite3"
-            ? evalSyncSqlite3(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncSqlite3?.(optInBytes, allArgs, readFile)
           : w0Plain === "gpg"
-            ? evalSyncGpg(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncGpg?.(optInBytes, allArgs, readFile)
           : w0Plain === "ssh"
-            ? evalSyncSsh(allArgs)
+            ? syncCommandEvaluators.evalSyncSsh?.(allArgs)
           : w0Plain === "ssh-keygen"
-            ? evalSyncSshKeygen(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncSshKeygen?.(optInBytes, allArgs, readFile)
           : w0Plain === "pdfinfo"
-            ? evalSyncPdfinfo(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncPdfinfo?.(optInBytes, allArgs, readFile)
           : w0Plain === "pdftotext"
-            ? evalSyncPdftotext(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncPdftotext?.(optInBytes, allArgs, readFile)
           : w0Plain === "exiftool"
-            ? evalSyncExiftool(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncExiftool?.(optInBytes, allArgs, readFile)
           : w0Plain === "pdffonts"
-            ? evalSyncPdffonts(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncPdffonts?.(optInBytes, allArgs, readFile)
           : w0Plain === "pdftohtml"
-            ? evalSyncPdftohtml(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncPdftohtml?.(optInBytes, allArgs, readFile)
           : w0Plain === "qpdf"
-            ? evalSyncQpdf(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncQpdf?.(optInBytes, allArgs, readFile)
           : w0Plain === "pdftk"
-            ? evalSyncPdftk(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncPdftk?.(optInBytes, allArgs, readFile)
           : w0Plain === "sips"
-            ? evalSyncSips(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncSips?.(optInBytes, allArgs, readFile)
           : (w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert")
-            ? evalSyncIdentify(w0Plain, optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncIdentify?.(w0Plain, optInBytes, allArgs, readFile)
           : w0Plain === "pdfimages"
-            ? evalSyncPdfimages(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncPdfimages?.(optInBytes, allArgs, readFile)
           : w0Plain === "pdfdetach"
-            ? evalSyncPdfdetach(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncPdfdetach?.(optInBytes, allArgs, readFile)
           : w0Plain === "ffprobe"
-            ? evalSyncFfprobe(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncFfprobe?.(optInBytes, allArgs, readFile)
           : w0Plain === "ffmpeg"
-            ? evalSyncFfmpeg(allArgs)
+            ? syncCommandEvaluators.evalSyncFfmpeg?.(allArgs)
           : w0Plain === "gh"
-            ? evalSyncGh(this.getExternalCommand("gh")!.execute, allArgs, rawState.variables)
+            ? syncCommandEvaluators.evalSyncGh?.(this.getExternalCommand("gh")!.execute, allArgs, rawState.variables)
           : w0Plain === "pdftoppm"
-            ? evalSyncPdftoppm(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncPdftoppm?.(optInBytes, allArgs, readFile)
           : w0Plain === "pdftocairo"
-            ? evalSyncPdftocairo(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncPdftocairo?.(optInBytes, allArgs, readFile)
           : w0Plain === "mmdc"
-            ? evalSyncMmdc(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncMmdc?.(optInBytes, allArgs, readFile)
           : w0Plain === "pandoc"
-            ? evalSyncPandoc(allArgs)
+            ? syncCommandEvaluators.evalSyncPandoc?.(allArgs)
           : (w0Plain === "soffice" || w0Plain === "libreoffice")
-            ? evalSyncSoffice(allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncSoffice?.(allArgs, readFile)
           : w0Plain === "ssconvert"
-            ? evalSyncSsconvert(allArgs)
+            ? syncCommandEvaluators.evalSyncSsconvert?.(allArgs)
           : w0Plain === "wkhtmltopdf"
-            ? evalSyncWkhtmltopdf(allArgs)
+            ? syncCommandEvaluators.evalSyncWkhtmltopdf?.(allArgs)
           : w0Plain === "op"
-            ? evalSyncOp(this.getExternalCommand("op")!.execute, allArgs, rawState.variables)
+            ? syncCommandEvaluators.evalSyncOp?.(this.getExternalCommand("op")!.execute, allArgs, rawState.variables)
           : w0Plain === "git"
-            ? evalSyncGit(optInBytes, allArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, p === "/", follow), (p: string) => this.tryReadMemoryFileViewSync(p, false, true), this.getExternalCommand("git")!.execute)
+            ? syncCommandEvaluators.evalSyncGit?.(optInBytes, allArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, p === "/", follow), (p: string) => this.tryReadMemoryFileViewSync(p, false, true), this.getExternalCommand("git")!.execute)
           : w0Plain === "tar"
             ? evalSyncTar(optInBytes, allArgs, readFile)
           : w0Plain === "unzip"
@@ -28709,80 +28688,80 @@ export class Runtime {
               fileRes = evalSyncXargs(view, opArgs, readFile);
             } else if (w0Plain === "openssl") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncOpenssl(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncOpenssl?.(view, opArgs, readFile);
             } else if (w0Plain === "sqlite3") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncSqlite3(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncSqlite3?.(view, opArgs, readFile);
             } else if (w0Plain === "gpg") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncGpg(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncGpg?.(view, opArgs, readFile);
             } else if (w0Plain === "ssh") {
-              fileRes = evalSyncSsh(opArgs);
+              fileRes = syncCommandEvaluators.evalSyncSsh?.(opArgs);
             } else if (w0Plain === "ssh-keygen") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncSshKeygen(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncSshKeygen?.(view, opArgs, readFile);
             } else if (w0Plain === "pdfinfo") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncPdfinfo(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncPdfinfo?.(view, opArgs, readFile);
             } else if (w0Plain === "pdftotext") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncPdftotext(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncPdftotext?.(view, opArgs, readFile);
             } else if (w0Plain === "exiftool") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncExiftool(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncExiftool?.(view, opArgs, readFile);
             } else if (w0Plain === "pdffonts") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncPdffonts(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncPdffonts?.(view, opArgs, readFile);
             } else if (w0Plain === "pdftohtml") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncPdftohtml(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncPdftohtml?.(view, opArgs, readFile);
             } else if (w0Plain === "qpdf") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncQpdf(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncQpdf?.(view, opArgs, readFile);
             } else if (w0Plain === "pdftk") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncPdftk(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncPdftk?.(view, opArgs, readFile);
             } else if (w0Plain === "sips") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncSips(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncSips?.(view, opArgs, readFile);
             } else if (w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncIdentify(w0Plain, view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncIdentify?.(w0Plain, view, opArgs, readFile);
             } else if (w0Plain === "pdfimages") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncPdfimages(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncPdfimages?.(view, opArgs, readFile);
             } else if (w0Plain === "pdfdetach") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncPdfdetach(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncPdfdetach?.(view, opArgs, readFile);
             } else if (w0Plain === "ffprobe") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncFfprobe(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncFfprobe?.(view, opArgs, readFile);
             } else if (w0Plain === "ffmpeg") {
-              fileRes = evalSyncFfmpeg(opArgs);
+              fileRes = syncCommandEvaluators.evalSyncFfmpeg?.(opArgs);
             } else if (w0Plain === "gh") {
-              fileRes = evalSyncGh(this.getExternalCommand("gh")!.execute, opArgs, rawState.variables);
+              fileRes = syncCommandEvaluators.evalSyncGh?.(this.getExternalCommand("gh")!.execute, opArgs, rawState.variables);
             } else if (w0Plain === "pdftoppm") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncPdftoppm(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncPdftoppm?.(view, opArgs, readFile);
             } else if (w0Plain === "pdftocairo") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncPdftocairo(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncPdftocairo?.(view, opArgs, readFile);
             } else if (w0Plain === "mmdc") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncMmdc(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncMmdc?.(view, opArgs, readFile);
             } else if (w0Plain === "pandoc") {
-              fileRes = evalSyncPandoc(opArgs);
+              fileRes = syncCommandEvaluators.evalSyncPandoc?.(opArgs);
             } else if (w0Plain === "soffice" || w0Plain === "libreoffice") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = evalSyncSoffice(opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncSoffice?.(opArgs, readFile);
             } else if (w0Plain === "ssconvert") {
-              fileRes = evalSyncSsconvert(opArgs);
+              fileRes = syncCommandEvaluators.evalSyncSsconvert?.(opArgs);
             } else if (w0Plain === "wkhtmltopdf") {
-              fileRes = evalSyncWkhtmltopdf(opArgs);
+              fileRes = syncCommandEvaluators.evalSyncWkhtmltopdf?.(opArgs);
             } else if (w0Plain === "op") {
-              fileRes = evalSyncOp(this.getExternalCommand("op")!.execute, opArgs, rawState.variables);
+              fileRes = syncCommandEvaluators.evalSyncOp?.(this.getExternalCommand("op")!.execute, opArgs, rawState.variables);
             } else if (w0Plain === "git") {
-              fileRes = evalSyncGit(view, opArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, p === "/", follow), (p: string) => this.tryReadMemoryFileViewSync(p, false, true), this.getExternalCommand("git")!.execute);
+              fileRes = syncCommandEvaluators.evalSyncGit?.(view, opArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, p === "/", follow), (p: string) => this.tryReadMemoryFileViewSync(p, false, true), this.getExternalCommand("git")!.execute);
             } else if (w0Plain === "tar") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncTar(view, opArgs, readFile);

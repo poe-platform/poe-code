@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createGhCommand as createRawGhCommand,
@@ -32,3 +32,5 @@ export function ghCommands(options: GhCommandsOptions = {}): VirtualShellPlugin 
     },
   };
 }
+
+syncCommandEvaluators.evalSyncGh = evalSyncGh;

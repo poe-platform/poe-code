@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createPdfimagesCommand as createRawPdfimagesCommand,
@@ -66,3 +66,5 @@ export function evalSyncPdfimages(
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncPdfimages = evalSyncPdfimages;

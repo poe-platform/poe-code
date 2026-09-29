@@ -82,7 +82,7 @@ function ed25519Verify(sig: Uint8Array, msg: Uint8Array, pub: Uint8Array): boole
   return lhs.every((b, i) => b === rhs[i]);
 }
 
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createSshCommand as createRawSshCommand,
@@ -471,3 +471,6 @@ export function evalSyncSshKeygen(
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncSsh = evalSyncSsh;
+syncCommandEvaluators.evalSyncSshKeygen = evalSyncSshKeygen;

@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createPandocCommand as createRawPandocCommand,
@@ -43,3 +43,5 @@ export function evalSyncPandoc(opArgs: readonly string[]): string | undefined {
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncPandoc = evalSyncPandoc;

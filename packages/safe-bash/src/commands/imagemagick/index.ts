@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createImagemagickCommands as createRawImagemagickCommands,
@@ -70,3 +70,5 @@ export function evalSyncIdentify(
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncIdentify = evalSyncIdentify;

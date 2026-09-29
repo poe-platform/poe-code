@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createQpdfCommand as createRawQpdfCommand,
@@ -61,3 +61,5 @@ export function evalSyncQpdf(
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncQpdf = evalSyncQpdf;

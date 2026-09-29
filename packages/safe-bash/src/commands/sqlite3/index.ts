@@ -1,8 +1,9 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createSqlite3Command as createRawSqlite3Command,
   createSqlite3Commands as createRawSqlite3Commands,
+  evalSyncSqlite3,
   type Sqlite3CommandsOptions,
 } from "safe-bash-command-sqlite3";
 
@@ -47,3 +48,5 @@ export function sqlite3Commands(options: Sqlite3CommandsOptions = {}): VirtualSh
     },
   };
 }
+
+syncCommandEvaluators.evalSyncSqlite3 = evalSyncSqlite3;

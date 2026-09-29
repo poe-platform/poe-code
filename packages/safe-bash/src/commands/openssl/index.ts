@@ -2,7 +2,7 @@ import { hmac } from "@noble/hashes/hmac.js";
 import { sha1 } from "@noble/hashes/legacy.js";
 import { pbkdf2 } from "@noble/hashes/pbkdf2.js";
 import { sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createOpensslCommand as createRawOpensslCommand,
@@ -553,3 +553,5 @@ export function evalSyncOpenssl(
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncOpenssl = evalSyncOpenssl;

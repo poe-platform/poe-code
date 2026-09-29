@@ -1,8 +1,9 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createExiftoolCommand as createRawExiftoolCommand,
   createExiftoolCommands as createRawExiftoolCommands,
+  evalSyncExiftool,
   type ExiftoolCommandOptions,
   type ExiftoolCommandsOptions,
 } from "safe-bash-command-exiftool";
@@ -37,3 +38,5 @@ export function exiftoolCommands(options: ExiftoolCommandOptions = {}): VirtualS
     },
   };
 }
+
+syncCommandEvaluators.evalSyncExiftool = evalSyncExiftool;

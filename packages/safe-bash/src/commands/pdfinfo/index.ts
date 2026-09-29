@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createPdfinfoCommand as createRawPdfinfoCommand,
@@ -154,3 +154,7 @@ export function evalSyncPdfdetach(
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncPdfinfo = evalSyncPdfinfo;
+syncCommandEvaluators.evalSyncPdffonts = evalSyncPdffonts;
+syncCommandEvaluators.evalSyncPdfdetach = evalSyncPdfdetach;

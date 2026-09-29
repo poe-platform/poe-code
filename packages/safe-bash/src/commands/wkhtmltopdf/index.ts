@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createWkhtmltopdfCommand as createRawWkhtmltopdfCommand,
@@ -46,3 +46,5 @@ export function evalSyncWkhtmltopdf(opArgs: readonly string[]): string | undefin
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncWkhtmltopdf = evalSyncWkhtmltopdf;

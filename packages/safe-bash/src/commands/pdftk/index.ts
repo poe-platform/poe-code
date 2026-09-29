@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createPdftkCommand as createRawPdftkCommand,
@@ -73,3 +73,5 @@ export function evalSyncPdftk(
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncPdftk = evalSyncPdftk;

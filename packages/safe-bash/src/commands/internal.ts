@@ -47,6 +47,39 @@ export const decoder = new TextDecoder();
 export const bufferLimit = Infinity;
 export const builtInDirectContextExecutors = new WeakSet<CommandHandler>();
 
+export interface SyncCommandEvaluators {
+  evalSyncOpenssl?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncSqlite3?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncGpg?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncSsh?: (opArgs: readonly string[]) => string | undefined;
+  evalSyncSshKeygen?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncPdfinfo?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncPdffonts?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncPdfdetach?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncPdftotext?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncPdftohtml?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncExiftool?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncQpdf?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncPdftk?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncSips?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncIdentify?: (cmdName: string, inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncPdfimages?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncFfmpeg?: (opArgs: readonly string[]) => string | undefined;
+  evalSyncFfprobe?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncGh?: (execute: any, opArgs: readonly string[], env: Readonly<Record<string, string>>) => string | undefined;
+  evalSyncPdftoppm?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncPdftocairo?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncMmdc?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncPandoc?: (opArgs: readonly string[]) => string | undefined;
+  evalSyncSoffice?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncSsconvert?: (opArgs: readonly string[]) => string | undefined;
+  evalSyncWkhtmltopdf?: (opArgs: readonly string[]) => string | undefined;
+  evalSyncOp?: (execute: any, opArgs: readonly string[], env: Readonly<Record<string, string>>) => string | undefined;
+  evalSyncGit?: (opArgs: readonly string[], cwd: string, fs: any) => string | undefined;
+}
+
+export const syncCommandEvaluators: SyncCommandEvaluators = {};
+
 export { UsageError } from "safe-bash-contracts/diagnostics";
 
 export interface ParsedOptions {

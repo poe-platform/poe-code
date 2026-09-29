@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createSofficeCommand as createRawSofficeCommand,
@@ -71,3 +71,5 @@ export function evalSyncSoffice(
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncSoffice = evalSyncSoffice;

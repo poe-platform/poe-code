@@ -9,7 +9,7 @@ import {
   type GitLimits,
   type SyncGitNodeInfo
 } from "safe-bash-command-git";
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import { type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 
 export { evalSyncGit };
@@ -50,3 +50,5 @@ export function gitCommands(options: GitCommandsOptions = {}): VirtualShellPlugi
     }
   };
 }
+
+syncCommandEvaluators.evalSyncGit = evalSyncGit;

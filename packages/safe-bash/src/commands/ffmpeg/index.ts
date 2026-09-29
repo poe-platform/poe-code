@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createFfmpegCommand as createRawFfmpegCommand,
@@ -49,3 +49,6 @@ export function ffmpegCommands(options: FfmpegCommandsOptions = {}): VirtualShel
     },
   };
 }
+
+syncCommandEvaluators.evalSyncFfmpeg = evalSyncFfmpeg;
+syncCommandEvaluators.evalSyncFfprobe = evalSyncFfprobe;

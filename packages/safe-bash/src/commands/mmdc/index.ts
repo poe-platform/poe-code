@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition } from "../../contracts/index.js";
 import {
   createMmdcCommand as createRawMmdcCommand,
@@ -61,3 +61,5 @@ export function evalSyncMmdc(
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncMmdc = evalSyncMmdc;

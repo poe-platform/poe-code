@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createSsconvertCommand as createRawSsconvertCommand,
@@ -44,3 +44,5 @@ export function evalSyncSsconvert(opArgs: readonly string[]): string | undefined
     return undefined;
   }
 }
+
+syncCommandEvaluators.evalSyncSsconvert = evalSyncSsconvert;

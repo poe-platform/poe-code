@@ -1,4 +1,4 @@
-import { splitSyncJqExpression } from "./sync-jq-expression.js";
+import { compareSyncJqStrings, splitSyncJqExpression } from "./sync-jq-expression.js";
 import { wcDisplayWidth } from "../commands/wc-width.js";
 import { text as awkValueText, compare as awkCompare, inputValue as awkInputValue, numeric as awkNumeric, number as awkNumber, string as awkString } from "../commands/text-programs/awk-values.js";
 import { bytesToHex, latin1Text } from "../byte-encoding.js";
@@ -22470,13 +22470,28 @@ export class Runtime {
 
   private evalSyncJqPathOps(item: unknown, expr: string): unknown[] | undefined {
     let st = expr.trim();
-    let alternatives = splitSyncJqExpression(st, "//");
-    if (!alternatives) return undefined;
-    while (alternatives.wrapped) {
+    let pipeSplit = splitSyncJqExpression(st, "|");
+    if (!pipeSplit) return undefined;
+    while (pipeSplit.wrapped) {
       st = st.slice(1, -1).trim();
-      alternatives = splitSyncJqExpression(st, "//");
-      if (!alternatives) return undefined;
+      pipeSplit = splitSyncJqExpression(st, "|");
+      if (!pipeSplit) return undefined;
     }
+    if (pipeSplit.parts.length > 1) {
+      let cur: unknown[] = [item];
+      for (const pStage of pipeSplit.parts) {
+        const next: unknown[] = [];
+        for (const it of cur) {
+          const r = this.evalSyncJqPathOps(it, pStage);
+          if (r === undefined) return undefined;
+          for (const rv of r) next.push(rv);
+        }
+        cur = next;
+      }
+      return cur;
+    }
+    const alternatives = splitSyncJqExpression(st, "//");
+    if (!alternatives) return undefined;
     if (alternatives.parts.length > 1) {
       const lhs = alternatives.parts[0]!;
       const rhs = alternatives.parts.slice(1).join("//");
@@ -22489,20 +22504,6 @@ export class Runtime {
       }
       const truthy = lVals.filter(v => v !== null && v !== undefined && v !== false);
       return truthy.length > 0 ? truthy : rVals;
-    }
-    const pipeSplit = splitSyncJqExpression(st, "|");
-    if (pipeSplit && pipeSplit.parts.length > 1) {
-      let cur: unknown[] = [item];
-      for (const pStage of pipeSplit.parts) {
-        const next: unknown[] = [];
-        for (const it of cur) {
-          const r = this.evalSyncJqPathOps(it, pStage);
-          if (r === undefined) return undefined;
-          for (const rv of r) next.push(rv);
-        }
-        cur = next;
-      }
-      return cur;
     }
     if (st === ".") return [item];
     const dotArithM = /^\.\s*([+*\/%-])\s*(-?[0-9]+(?:\.[0-9]+)?)$/.exec(st);
@@ -22588,7 +22589,7 @@ export class Runtime {
     if (st === "sort") {
       if (!Array.isArray(item)) return undefined;
       if (item.every(x => typeof x === "number")) return [[...(item as number[])].sort((a, b) => a - b)];
-      if (item.every(x => typeof x === "string")) return [[...(item as string[])].sort()];
+      if (item.every(x => typeof x === "string")) return [[...(item as string[])].sort(compareSyncJqStrings)];
       return undefined;
     }
     if (st === "tojson") return [JSON.stringify(item)];
@@ -22636,7 +22637,7 @@ export class Runtime {
         if (typeof a === "number" && typeof b === "number") return a - b;
         const sa = String(a);
         const sb = String(b);
-        return sa < sb ? -1 : sa > sb ? 1 : 0;
+        return compareSyncJqStrings(sa, sb);
       };
       keyed.sort((a, b) => cmpK(a.k, b.k));
       if (fn === "min_by") return [keyed.length > 0 ? keyed[0]!.el : null];
@@ -22682,7 +22683,7 @@ export class Runtime {
         return [st === "min" ? Math.min(...(item as number[])) : Math.max(...(item as number[]))];
       }
       if (item.every(x => typeof x === "string")) {
-        const sorted = [...(item as string[])].sort();
+        const sorted = [...(item as string[])].sort(compareSyncJqStrings);
         return [st === "min" ? sorted[0] : sorted[sorted.length - 1]];
       }
       return undefined;

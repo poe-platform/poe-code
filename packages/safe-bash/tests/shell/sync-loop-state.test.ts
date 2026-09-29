@@ -9,6 +9,34 @@ import { streamCommands } from "../../src/commands/streams.js";
 import { streamFormatCommands } from "../../src/commands/stream-format/index.js";
 import { filesystemCommands } from "../../src/commands/filesystem.js";
 import { predicateCommands } from "../../src/commands/predicates.js";
+import { createStructuredCommands } from "../../src/commands/structured/index.js";
+
+for (const [input, filter, expected] of [
+  ['[{"a":1,"b":2},{"a":false,"b":3}]', 'map(.a // .b | . + 10)', '[11,13]'],
+  ['{"x":{"a":1,"b":2}}', 'map_values(.a // .b | . + 10)', '{"x":11}'],
+  ['{"a":1,"b":2}', '(.a // .b | . + 10)', '11'],
+  ['"😀b"', 'split("")', '["😀","b"]'],
+  ['["😀","！","😀a","！a"]', 'sort', '["！","！a","😀","😀a"]'],
+  ['["😀","！"]', 'min', '"！"'],
+  ['["😀","！"]', 'max', '"😀"'],
+  ['[{"k":"😀"},{"k":"！"}]', 'sort_by(.k)', '[{"k":"！"},{"k":"😀"}]'],
+  ['[{"k":"😀"},{"k":"！"}]', 'min_by(.k)', '{"k":"！"}'],
+  ['[{"k":"😀"},{"k":"！"}]', 'max_by(.k)', '{"k":"😀"}'],
+  ['[{"k":"😀"},{"k":"！"},{"k":"😀"}]', 'unique_by(.k)', '[{"k":"！"},{"k":"😀"}]'],
+  ['[{"k":"😀"},{"k":"！"},{"k":"😀"}]', 'group_by(.k)', '[[{"k":"！"}],[{"k":"😀"},{"k":"😀"}]]'],
+] as const) {
+  test(`sync jq preserves precedence and Unicode: ${filter}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...createStructuredCommands()]) });
+    context.after(() => shell.dispose());
+    const command = `printf '%s\\n' '${input}' | jq -c '${filter}'`;
+    for (const source of [command, `for i in 1 2; do x=$(${command}); done; printf '%s\\n' "$x"`]) {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, expected + "\n");
+    }
+  });
+}
 
 const cases = [
   ['locale LC_ALL quoting', 's=hello; for i in 1 2; do LC_ALL=C; echo "${s@Q}"; done', "'hello'\n'hello'\n"],

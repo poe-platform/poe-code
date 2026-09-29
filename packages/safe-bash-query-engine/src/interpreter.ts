@@ -378,24 +378,19 @@ export class Interpreter {
             this.budget.step(input.length + 1);
             if (this.budget.needsYield()) return NOT_SINGLE;
             if (input.length === 0) return [];
-            const keyed: { key: string | number; value: Json; idx: number }[] = [];
-            let keyType: "string" | "number" | undefined;
+            const keyed: { key: number; value: Json; idx: number }[] = [];
             let keyBytes = 0;
             for (let i = 0; i < input.length; i++) {
               const val = input[i]!;
               const k = this.tryEvalSingle(ast.args[0]!, val, depth + 1, false);
               if (k === NOT_SINGLE) return NOT_SINGLE;
               if (typeof k === "string") {
-                if (keyType === undefined) keyType = "string";
-                else if (keyType !== "string") return NOT_SINGLE;
-                keyBytes += this.budget.value(k);
-                if (keyBytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-                keyed.push({ key: k, value: val, idx: i });
+                // The full evaluator compares Unicode code points and accounts
+                // for comparison work through its cooperative budget.
+                return NOT_SINGLE;
               } else {
                 const nk = exactFiniteNumber(k);
                 if (nk === undefined) return NOT_SINGLE;
-                if (keyType === undefined) keyType = "number";
-                else if (keyType !== "number") return NOT_SINGLE;
                 keyBytes += this.budget.value(k);
                 if (keyBytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
                 keyed.push({ key: nk, value: val, idx: i });
@@ -408,7 +403,7 @@ export class Interpreter {
               return res;
             }
             const groups: Json[][] = [];
-            let prevKey: string | number | undefined;
+            let prevKey: number | undefined;
             for (let i = 0; i < keyed.length; i++) {
               const item = keyed[i]!;
               if (prevKey === undefined || item.key !== prevKey) groups.push([]);

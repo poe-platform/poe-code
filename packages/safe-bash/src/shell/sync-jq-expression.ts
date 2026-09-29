@@ -1,3 +1,17 @@
+/** jq orders strings by Unicode scalar values rather than UTF-16 units. */
+export function compareSyncJqStrings(left: string, right: string): number {
+  let leftOffset = 0;
+  let rightOffset = 0;
+  while (leftOffset < left.length && rightOffset < right.length) {
+    const leftPoint = left.codePointAt(leftOffset)!;
+    const rightPoint = right.codePointAt(rightOffset)!;
+    if (leftPoint !== rightPoint) return leftPoint - rightPoint;
+    leftOffset += leftPoint > 0xffff ? 2 : 1;
+    rightOffset += rightPoint > 0xffff ? 2 : 1;
+  }
+  return leftOffset < left.length ? 1 : rightOffset < right.length ? -1 : 0;
+}
+
 /** Scan only the grammar boundaries needed by the synchronous jq subset. */
 export function splitSyncJqExpression(expression: string, separator: string): { parts: string[]; wrapped: boolean } | undefined {
   const parts: string[] = [];

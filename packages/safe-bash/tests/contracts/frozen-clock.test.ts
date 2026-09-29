@@ -24,6 +24,7 @@ const cases: [string, () => CommandDefinition, string[], string][] = [
   ["dd", createDdCommand, ["if=/input", "of=/output", "bs=16", "status=none"], "abc\n".repeat(256)],
   ["fmt", () => createFmtCommands()[0]!, ["-w", "10", "/input"], "one two three four five six\n".repeat(32768)],
   ["numfmt", createNumfmtCommand, ["--field=2", "--to=iec"], "a 1024\n".repeat(8192)],
+  ["numfmt", createNumfmtCommand, ["--to=iec", `--field=${Array.from({ length: 1024 }, (_, i) => i * 2 + 1).join(",")}`], "1024 2048\n".repeat(32)],
   ["pr", () => createPrCommands()[0]!, ["-l", "20", "/input"], "abc\n".repeat(8192)],
   ["tsort", createTsortCommand, ["/input"], Array.from({ length: 8192 }, (_, i) => `n${i} n${i + 1}\n`).join("")],
   ["html-to-markdown", createHtmlToMarkdownCommand, ["/input"], "<p>hello world</p>".repeat(8192)],
@@ -36,7 +37,7 @@ const cases: [string, () => CommandDefinition, string[], string][] = [
 ];
 
 for (const [name, factory, args, input] of cases) {
-  test(`${name} ${args.join(" ")} repeatedly yields host turns with a frozen Worker clock`, async t => {
+  test(`${name} ${args.map(argument => argument.length > 80 ? `${argument.slice(0, 80)}…` : argument).join(" ")} repeatedly yields host turns with a frozen Worker clock`, async t => {
     const fs = createMemoryFileSystem();
     await fs.writeFile("/input", new TextEncoder().encode(input));
     if (name === "shuf" && args.includes("8")) {

@@ -924,7 +924,7 @@ class Converter {
       settings.toUnit !== 1n ||
       (settings.to !== "iec" && settings.to !== "iec-i" && settings.to !== "si" && settings.to !== "none") ||
       line.indexOf("\0") >= 0 ||
-      !this.canTickSync(line.length * 2 + 16)
+      !this.canTickSync((line.length * 2 + 16) * ((settings.fields?.length ?? 0) + 1))
     ) {
       return false;
     }

@@ -45,6 +45,8 @@ export function evalSyncWhich(
       i++;
       break;
     }
+    if (arg === "--all") { all = true; i++; continue; }
+    if (arg === "--silent" || arg === "--quiet") { quiet = true; i++; continue; }
     if (!arg.startsWith("-") || arg === "-") break;
     for (let j = 1; j < arg.length; j++) {
       const ch = arg[j]!;

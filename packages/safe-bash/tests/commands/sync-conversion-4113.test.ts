@@ -1,3 +1,6 @@
+import { htmlToMarkdownCommands } from "../../src/commands/html-to-markdown/index.ts";
+import { htmlqCommands } from "../../src/commands/htmlq/index.ts";
+import { whichCommands } from "../../src/commands/which/index.ts";
 import { csvkitCommands } from "../../src/commands/csvkit/index.ts";
 import { xmlCommands } from "../../src/commands/xml/index.ts";
 import { yqCommands } from "../../src/commands/yq/index.ts";
@@ -956,5 +959,27 @@ test("evaluates csvsort -ri/date sorting, csvformat -U2/attached flags, and csvj
   assert.equal(
     r.stdout,
     "name,dt|Alpha,2025-01-01|beta,2025-01-03|#name,dt|beta,2025-01-03|Alpha,2025-01-01|#\"k\";\"v\"|\"a\";\"10\"|#{\"a\": \"01\", \"b\": \"2\"}|\n",
+  );
+});
+
+test("evaluates html-to-markdown blockquote/pre/hr/entities, htmlq -o output file, and which --all in sync substitutions (Wave 205)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  await fs.mkdir("/bin");
+  await fs.writeFile("/bin/mytool", new TextEncoder().encode("#!/bin/sh\n"), { mode: 0o755 });
+  const shell = new Shell({ fs, cwd: "/tmp", env: { PATH: "/bin" } }).use(standardCommands()).use(htmlToMarkdownCommands()).use(htmlqCommands()).use(whichCommands());
+  const r = await shell.exec(
+    [
+      "md_res=$(printf \"<blockquote>a &amp; b</blockquote><hr><pre><code>x = 1</code></pre>\" | html-to-markdown | tr \"\\n\" \"|\")",
+      "hq_empty=$(printf \"<div><span class=\\\"v\\\">ok</span></div>\" | htmlq -t -o /tmp/w205_hq.txt \".v\")",
+      "hq_res=$(cat /tmp/w205_hq.txt)",
+      "wh_res=$(which --all mytool)",
+      "printf \"%s#%s#%s\\n\" \"$md_res\" \"$hq_res\" \"$wh_res\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "> a & b||---||```|x = 1|```|#ok#/bin/mytool\n",
   );
 });

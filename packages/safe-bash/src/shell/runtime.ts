@@ -29422,7 +29422,7 @@ export class Runtime {
                   : firstName === "xmllint"
                     ? evalSyncXmllint(rawBytes, stageArgs, readFile)
                     : firstName === "htmlq"
-                      ? evalSyncHtmlq(rawBytes, stageArgs, readFile)
+                      ? evalSyncHtmlq(rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                     : firstName === "csvcut"
                       ? evalSyncCsvcut(rawBytes, stageArgs, readFile)
                       : firstName === "csvgrep"
@@ -29953,7 +29953,7 @@ export class Runtime {
               ? this.evalSyncXqOrYq(w0Plain, inBytes, allArgs, readFile)
             : w0Plain === "xmllint"
               ? evalSyncXmllint(inBytes, allArgs, readFile)
-              : evalSyncHtmlq(inBytes, allArgs, readFile);
+              : evalSyncHtmlq(inBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
         if (csvOut !== undefined) {
           const outBytes = shellValueByteLength(csvOut);
           let end = csvOut.length;
@@ -30386,7 +30386,7 @@ export class Runtime {
               const cmpOut = evalSyncCompression(w0Plain, view, opArgs, readFile);
               if (cmpOut !== undefined && !cmpOut.includes(0)) fileRes = sharedSyncPipeDecoder.decode(cmpOut);
             } else if (w0Plain === "htmlq") {
-              fileRes = evalSyncHtmlq(view, opArgs);
+              fileRes = evalSyncHtmlq(view, opArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "xmllint") {
               fileRes = evalSyncXmllint(view, opArgs);
             } else if (w0Plain === "xq" || w0Plain === "yq") {

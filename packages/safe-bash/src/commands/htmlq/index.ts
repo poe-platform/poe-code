@@ -54,6 +54,7 @@ export { createHtmlqCommand, createHtmlqCommands, htmlqCommand, htmlqCommands } 
 let _syncAbortSignal: AbortSignal | undefined;
 const syncAbortSignal = (): AbortSignal => (_syncAbortSignal ??= new AbortController().signal);
 const syncHtmlDecoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
+const syncHtmlEncoder = new TextEncoder();
 const syncHtmlLimits = Object.freeze({
   inputBytes: Infinity,
   decodedBytes: Infinity,
@@ -70,12 +71,13 @@ export function evalSyncHtmlq(
   inBytes: Uint8Array,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   if (inBytes.byteLength > 16384) return undefined;
   try {
     const invocation = invocationOptions({ signal: syncAbortSignal(), limits: syncHtmlLimits });
     const args = parseHtmlqArguments(opArgs, invocation);
-    if (args.help || args.version || args.output !== "-") return undefined;
+    if (args.help || args.version) return undefined;
     let srcBytes = inBytes;
     if (args.filename !== "-") {
       if (!readFileSync) return undefined;
@@ -151,6 +153,10 @@ export function evalSyncHtmlq(
       } else {
         out += serializeHtml(node, invocation, args.pretty ? "pretty" : "normalized") + "\n";
       }
+    }
+    if (args.output !== "-") {
+      if (!writeFileSync || !writeFileSync(args.output, syncHtmlEncoder.encode(out))) return undefined;
+      return "";
     }
     return out;
   } catch {

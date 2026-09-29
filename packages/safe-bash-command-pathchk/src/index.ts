@@ -1,5 +1,9 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import {
   commandRuntimeIdentity,
+  getCommandArguments,
+  shellValueByteLength,
+  shellValueBytes,
   writeText,
   type CommandContext,
   type CommandDefinition,
@@ -44,7 +48,6 @@ const VERSION_TEXT = `pathchk (Sandbox VFS-ish/GNU coreutils) 9.7
 `;
 
 const PORTABLE_CHAR_RE = /^[A-Za-z0-9._-]+$/;
-const sharedEncoder = new TextEncoder();
 
 function resolveVfsPath(cwd: string, target: string): string {
   const raw = target.startsWith("/") ? target : (cwd.endsWith("/") ? cwd + target : `${cwd}/${target}`);
@@ -66,9 +69,11 @@ export function createPathchkCommand(options: PathchkCommandsOptions = {}): Comm
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
       context.signal.throwIfAborted();
+      const carrier = getCommandArguments(context);
+      const args = carrier.args;
       let argBytes = 0;
-      for (const arg of context.args) {
-        argBytes += sharedEncoder.encode(arg).byteLength;
+      for (const value of carrier.values) {
+        argBytes += shellValueByteLength(value);
         if (argBytes > limits.maxArgumentBytes) {
           await writeText(context.stderr, "pathchk: argument budget exceeded\n");
           return { exitCode: 1 };
@@ -77,11 +82,11 @@ export function createPathchkCommand(options: PathchkCommandsOptions = {}): Comm
 
       let checkBasicPosix = false;
       let checkExtraPosix = false;
-      const operands: string[] = [];
+      const operands: number[] = [];
       let endOfOptions = false;
 
-      for (let i = 0; i < context.args.length; i++) {
-        const arg = context.args[i]!;
+      for (let i = 0; i < args.length; i++) {
+        const arg = args[i]!;
         if (!endOfOptions && arg === "--") {
           endOfOptions = true;
           continue;
@@ -115,7 +120,7 @@ export function createPathchkCommand(options: PathchkCommandsOptions = {}): Comm
           }
           continue;
         }
-        operands.push(arg);
+        operands.push(i);
       }
 
       if (operands.length === 0) {
@@ -127,7 +132,12 @@ export function createPathchkCommand(options: PathchkCommandsOptions = {}): Comm
       const pathMax = checkBasicPosix ? 256 : 4096;
       const nameMax = checkBasicPosix ? 14 : 255;
 
-      for (const name of operands) {
+      let checked = 0;
+      for (const position of operands) {
+        const name = args[position]!;
+        const value = carrier.values[position]!;
+        context.signal.throwIfAborted();
+        if ((checked++ & 127) === 0) await yieldTurn(context.signal);
         if (name.length === 0) {
           if (checkExtraPosix) {
             await writeText(context.stderr, "pathchk: empty file name\n");
@@ -138,7 +148,7 @@ export function createPathchkCommand(options: PathchkCommandsOptions = {}): Comm
           continue;
         }
 
-        const byteLen = sharedEncoder.encode(name).byteLength;
+        const byteLen = shellValueByteLength(value);
         if (byteLen >= pathMax) {
           await writeText(
             context.stderr,
@@ -151,7 +161,13 @@ export function createPathchkCommand(options: PathchkCommandsOptions = {}): Comm
         const components = name.split("/").filter(Boolean);
         let componentFailed = false;
 
+        const bytes = shellValueBytes(value);
+        let byteOffset = 0;
         for (const comp of components) {
+          while (bytes[byteOffset] === 47) byteOffset++;
+          const componentStart = byteOffset;
+          while (byteOffset < bytes.length && bytes[byteOffset] !== 47) byteOffset++;
+          const compBytes = byteOffset - componentStart;
           if (checkExtraPosix && comp.startsWith("-")) {
             await writeText(context.stderr, `pathchk: leading '-' in a component of file name '${name}'\n`);
             componentFailed = true;
@@ -169,7 +185,6 @@ export function createPathchkCommand(options: PathchkCommandsOptions = {}): Comm
             componentFailed = true;
             break;
           }
-          const compBytes = sharedEncoder.encode(comp).byteLength;
           if (compBytes > nameMax) {
             await writeText(
               context.stderr,
@@ -191,6 +206,8 @@ export function createPathchkCommand(options: PathchkCommandsOptions = {}): Comm
           const parts = full.split("/").filter(Boolean);
           let current = "";
           for (let k = 0; k < parts.length - 1; k++) {
+            context.signal.throwIfAborted();
+            if ((k & 127) === 0) await yieldTurn(context.signal);
             current += "/" + parts[k]!;
             try {
               const st = await context.fs.stat(current, { signal: context.signal });
@@ -200,6 +217,7 @@ export function createPathchkCommand(options: PathchkCommandsOptions = {}): Comm
                 break;
               }
             } catch {
+              context.signal.throwIfAborted();
               break;
             }
           }

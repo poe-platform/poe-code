@@ -1124,16 +1124,16 @@ test("evaluates md5sum/sha256sum/cksum file operands and --check, base32 file st
     .use(structuredCommands());
   const res = await shell.exec(`
     for i in 1 2 3; do
-      m1=\$(md5sum /tmp/a.txt)
-      m2=\$(md5sum /tmp/a.txt /tmp/b.txt | tr "\\n" "|")
-      printf "%s\\n" "\$m1" > /tmp/a.md5
-      mc=\$(md5sum -c /tmp/a.md5)
-      ck=\$(cksum /tmp/a.txt)
-      b32=\$(base32 -w0 /tmp/a.txt | base32 -di)
-      c1=\$(column -t -s, -N id,name,score -R score -H id -O score,name /tmp/t1.csv /tmp/t2.csv | tr "\\n" "|")
-      c2=\$(column -J -n users -s, -N id,name,score -H id /tmp/t1.csv | jq -c .)
+      m1=$(md5sum /tmp/a.txt)
+      m2=$(md5sum /tmp/a.txt /tmp/b.txt | tr "\\n" "|")
+      printf "%s\\n" "$m1" > /tmp/a.md5
+      mc=$(md5sum -c /tmp/a.md5)
+      ck=$(cksum /tmp/a.txt)
+      b32=$(base32 -w0 /tmp/a.txt | base32 -di)
+      c1=$(column -t -s, -N id,name,score -R score -H id -O score,name /tmp/t1.csv /tmp/t2.csv | tr "\\n" "|")
+      c2=$(column -J -n users -s, -N id,name,score -H id /tmp/t1.csv | jq -c .)
     done
-    printf "%s#%s#%s#%s#%s#%s#%s\\n" "\$m1" "\$m2" "\$mc" "\$ck" "\$b32" "\$c1" "\$c2"
+    printf "%s#%s#%s#%s#%s#%s#%s\\n" "$m1" "$m2" "$mc" "$ck" "$b32" "$c1" "$c2"
   `);
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(
@@ -1154,12 +1154,12 @@ test("evaluates join -o auto, numfmt --format and whitespace --field, and bc sqr
     .use(bcCommands());
   const res = await shell.exec(`
     for i in 1 2 3; do
-      j=\$(join --header -a1 -a2 -e NULL -o auto /tmp/j1.txt /tmp/j2.txt | tr "\\n" "|")
-      nf1=\$(printf "item 2048\\n" | numfmt --to iec --field 2 --format "%06.1f")
-      nf2=\$(numfmt --from si --to iec-i 2K)
-      b=\$(bc /tmp/calc.bc | tr "\\n" ":")
+      j=$(join --header -a1 -a2 -e NULL -o auto /tmp/j1.txt /tmp/j2.txt | tr "\\n" "|")
+      nf1=$(printf "item 2048\\n" | numfmt --to iec --field 2 --format "%06.1f")
+      nf2=$(numfmt --from si --to iec-i 2K)
+      b=$(bc /tmp/calc.bc | tr "\\n" ":")
     done
-    printf "%s#%s#%s#%s\\n" "\$j" "\$nf1" "\$nf2" "\$b"
+    printf "%s#%s#%s#%s\\n" "$j" "$nf1" "$nf2" "$b"
   `);
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(

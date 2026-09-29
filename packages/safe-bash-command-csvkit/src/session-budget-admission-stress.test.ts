@@ -91,6 +91,40 @@ test("JSON string admission counts escaping and Unicode exactly for values and k
   }
 });
 
+test("finite JSON retained budgets wait for each value before visiting the next", async () => {
+  let release!: () => void;
+  const barrier = new Promise<void>(resolve => { release = resolve; });
+  let entered!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  let nextReads = 0;
+  const values: JsonValue[] = [1, 2];
+  Object.defineProperty(values, 1, { get() { nextReads++; return 2; } });
+  const writes: string[] = [];
+  const f = fixture({ limits: { ...defaultLimits, maxRetainedBytes: 128 }, stdout: { async write(bytes) {
+    const text = new TextDecoder().decode(bytes);
+    writes.push(text);
+    if (text.includes("1.0")) { entered(); await barrier; }
+  } } });
+  const operation = emit(values, f.runtime, null);
+  try {
+    await started;
+    assert.equal(nextReads, 0);
+    assert.equal(writes.join(""), "[1.0");
+    release();
+    await operation;
+    assert.equal(writes.join(""), "[1.0, 2.0]");
+  } finally { release(); await operation; await f.runtime.close(); }
+});
+
+test("JSON numeric tokens reserve retained bytes before publication", async () => {
+  const token = "1".repeat(1024);
+  const f = fixture({ limits: { ...defaultLimits, maxRetainedBytes: 64 } });
+  try {
+    await assert.rejects(emit([{ token }], f.runtime, null), /retained byte budget exceeded/);
+    assert.equal(Buffer.concat(f.output).toString(), "[");
+  } finally { await f.runtime.close(); }
+});
+
 test("batched rows preserve admitted prefix before later serialization refusal", async () => {
   const f = fixture();
   try {

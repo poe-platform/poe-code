@@ -43,11 +43,11 @@ export function floatText(value: number): string {
 export async function emit(value: JsonValue, runtime: Runtime, indent: number | null, depth = 0): Promise<void> {
   // Finite limits admit each token before publication, retaining the accepted
   // prefix if a later token is refused. Unlimited payloads remain batched below.
-  if (runtime.context.limits.maxOutputBytes !== Infinity || runtime.context.limits.maxWork !== Infinity) {
+  if (runtime.context.limits.maxOutputBytes !== Infinity || runtime.context.limits.maxWork !== Infinity || runtime.context.limits.maxRetainedBytes !== Infinity) {
     runtime.step();
     if (typeof value === "number") { await runtime.write(floatText(value)); return; }
     if (value === null || typeof value === "string" || typeof value === "boolean") { await runtime.write(typeof value === "string" ? jsonString(value, runtime) : JSON.stringify(value)); return; }
-    if ("token" in value) { await runtime.write(value.token); return; }
+    if ("token" in value) { runtime.retain(value.token.length * 2); await runtime.write(value.token); return; }
     const object = value instanceof Map;
     const size = object ? value.size : (value as readonly JsonValue[]).length;
     runtime.retain(size * 32);

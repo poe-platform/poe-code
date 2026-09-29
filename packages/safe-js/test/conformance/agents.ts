@@ -11,7 +11,7 @@ const bundled = await build({
     "#safe-js-platform": fileURLToPath(new URL("../../src/platform/node.ts", import.meta.url)),
     "#safe-js-atomic-wait": fileURLToPath(new URL("../../src/platform/atomic-wait-node.ts", import.meta.url))
   },
-  bundle: true, platform: "node", format: "esm", write: false
+  bundle: true, platform: "node", format: "esm", write: false, minify: true, keepNames: true
 });
 const workerEntry = new URL(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0]!.contents).toString("base64")}`);
 

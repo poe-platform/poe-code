@@ -18,6 +18,20 @@ function formulaBook(formula: string): Workbook {
 }
 
 for (const revision of [7, 8] as const) {
+  it.each([["First", "$Second"], ["$First", "Second"], ["First", "Second"], ["$First", "$Second"]])(
+    `exports INDEX sheet selection as native BIFF${revision} areas (%s:%s)`, async (first, last) => {
+      const diagnostics: Diagnostic[] = [];
+      const bytes = await createBiffWriter(revision)(formulaBook(`of:=INDEX([${first}.$A$1:${last}.$A$1];1;1;2)`), [],
+        { ...context, async diagnostic(value) { diagnostics.push(value); } });
+      const book = await readBiff(bytes, context);
+      // Calc's ScIndex rejects a 3D double reference; it requires a reference list.
+      expect(book.sheets[0]!.cells.find(cell => cell.formula)!.formula).toContain("INDEX((");
+      expect(recalculateWorkbook(book, context, true).sheets[0]!.cells.find(cell => cell.formula)!.value)
+        .toEqual({ kind: "number", value: 11 });
+      expect(diagnostics).toHaveLength(first.startsWith("$") && last.startsWith("$") ? 0 : 1);
+      if (diagnostics.length) expect(diagnostics[0]!.message).toContain("fixed sheet references");
+    });
+
   // LibreOffice xeformula.cxx resolves the tab at the source anchor, then emits
   // fixed EXTERNSHEET links. Read the standard stream separately from any future
   // container annotations: this checks that interoperable fallback explicitly.

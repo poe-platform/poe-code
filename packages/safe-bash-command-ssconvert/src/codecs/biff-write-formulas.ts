@@ -8,6 +8,7 @@ import { isBiffRadicalArea } from "./biff-formulas.js";
 import { biffString, biffError } from "./biff-write.js";
 import { words } from "./biff-write-binary.js";
 import { foldSheetName } from "../workbook/case-fold.js";
+import { expandIndexSheetAreas } from "../formulas/index-sheet-areas.js";
 
 const operators: Readonly<Record<string, number>> = { "+": 3, "-": 4, "*": 5, "/": 6, "^": 7, "&": 8,
   "<": 9, "<=": 10, "=": 11, ">=": 12, ">": 13, "<>": 14, intersection: 15, union: 16, ":": 17 };
@@ -137,7 +138,12 @@ export class BiffFormulaWriter {
         maximumNodes: this.context.limits.workbookNodes ?? this.context.limits.cells,
         maximumLength: this.context.limits.workbookTextBytes ?? this.context.limits.outputBytes });
       if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Cannot export Excel formula: ${expression}`);
-      return parsed.document.root;
+      let work = 0;
+      return expandIndexSheetAreas(parsed.document, () => {
+        this.context.signal.throwIfAborted();
+        if (++work > (this.context.limits.workbookNodes ?? this.context.limits.cells))
+          throw new SsconvertError("resource-limit", "ssconvert BIFF formula node limit exceeded");
+      }).root;
     };
     const relative = definition !== undefined;
     const root = definition ? parseNamedExpression(definition, this.book, parse, () => this.context.signal.throwIfAborted()) :

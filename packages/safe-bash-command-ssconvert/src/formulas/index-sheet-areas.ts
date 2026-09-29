@@ -1,7 +1,7 @@
 import { foldSheetName } from "../workbook/case-fold.js";
 import type { FormulaDocument, FormulaNode, ReferenceEndpoint } from "./ast.js";
 
-/** Native INDEX takes reference areas; preserve 3D spans in the source model
+/** Excel/Calc INDEX takes reference areas; preserve 3D spans in the source model
  * until export so sheet-relative copies can resolve at their new anchor. */
 export function expandIndexSheetAreas(document: FormulaDocument, onWork: () => void): FormulaDocument {
   const order = document.sheetOrder;
@@ -36,8 +36,9 @@ export function expandIndexSheetAreas(document: FormulaDocument, onWork: () => v
         for (let index = Math.min(first, last); index <= Math.max(first, last); index++) {
           onWork();
           const sheet = document.sheetNames?.[order[index]!] ?? order[index]!;
-          const first = { ...source.first, sheet, sheetRelative: false };
-          const last = { ...source.last, sheet, sheetRelative: false };
+          // Keep the flags so codecs can diagnose native copy-semantics loss.
+          const first = { ...source.first, sheet };
+          const last = { ...source.last, sheet };
           delete first.sheetOffset; delete last.sheetOffset;
           areas.push({ ...source, first, last });
         }

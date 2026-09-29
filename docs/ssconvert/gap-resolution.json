@@ -1006,7 +1006,7 @@
         },
         "validation": "12 original runtime-copy failures and 6 original XLSX export failures now pass. Full maintained package tests: 485 files / 26048 Vitest tests plus 7 HarfBuzz node tests. Package lint, source/test/consumer types and selected workspace build pass.",
         "publicQualification": "18 compiled outputs: SDK/command conversions and copied formulas across both XLSX editions. Source annotations read back exactly and recalculate selected values. All 12 independent Calc 26.8.0.3 readbacks preserve live formulas and expected values, including a collapsed span returning #REF!.",
-        "remaining": "Native XLSX formulas use fixed sheet areas; relative copying remains available through ssconvert source annotations, not native Excel/Calc copy semantics. Computed span export, ODF/Gnumeric/BIFF transport and negative-offset error qualification remain open. No issue/family closure.",
+        "remaining": "Native XLSX formulas use fixed sheet areas; relative copying remains available through ssconvert source annotations, not native Excel/Calc copy semantics. BIFF direct spans now calculate natively (see biffReferenceOperators.sheetSpans), with existing copy-loss warnings. BIFF7 wide-record limits, computed/named span export, ODF/Gnumeric transport and negative-offset error qualification remain open.",
         "delivery": "58562411b5c24dccd575409ffd79d2917f535706; verified on remote main. Release publication remains unverified.",
         "transportInvestigation": {
           "gnumeric": "Pinned gnumeric_index scalarizes SET sources; independent native cases confirm #REF! for 2/256-area INDEX, ROW and COLUMN. CHOOSE returns the correct values/references at both widths, but maps out-of-range and error selectors to #VALUE! instead of #REF!/#DIV/0!. Candidate rejected to avoid regressions; exporter remains open.",
@@ -3031,7 +3031,13 @@
       },
       "validation": "Eight original failures now pass. All 1704 tests in 68 BIFF files, package lint/source/test/consumer types and selected workspace build pass.",
       "publicQualification": "Four compiled SDK/command BIFF7/8 outputs preserve 16 recalculated results for SUM unions/intersections, INDEX area selection and ROW of the returned reference. Both Calc 26.8.0.3 readbacks preserve all eight live formulas and values 17/12/20/2.",
-      "remaining": "This repairs operator token emission. Native Gnumeric INDEX SET evaluation, relative/computed span export and wider format qualification remain open; no issue or family closure."
+      "remaining": "This repairs operator token emission. Native Gnumeric INDEX SET evaluation, relative/computed span export and wider format qualification remain open; no issue or family closure.",
+      "sheetSpans": {
+        "implementation": "Direct INDEX 3D sources expand at BIFF export into balanced reference areas using workbook sheet order. The shared helper retains sheet-relative flags so BIFF still emits its existing fixed-sheet/copy-loss warning. XLSX continues preserving its original source annotation.",
+        "validation": "Eight original native-area regressions fail before repair. Full maintained package tests pass 486 files / 26064 Vitest tests plus 7 HarfBuzz node tests. Package lint/source/test/consumer types and selected build pass.",
+        "publicQualification": "17 compiled SDK/command BIFF7/8 outputs retain value 20 and reference-area formulas. All nine Calc 26.8.0.3 readbacks preserve live formulas and values, including the 256-sheet BIFF8 boundary. Relative exports retain exactly one loss warning; fixed exports have none.",
+        "remaining": "The 256-sheet BIFF7 expansion exceeds the existing record-size limit and remains unresolved; it is not a passing profile. BIFF relative-copy loss, named/computed span sources, Gnumeric native INDEX semantics and wider format qualification remain open. No issue/family closure."
+      }
     }
   },
   "cases": [

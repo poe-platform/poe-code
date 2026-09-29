@@ -22322,6 +22322,8 @@ export class Runtime {
   }
   private expandSyncTrCharArray(spec: string): string[] | undefined {
     if (spec.length === 0) return undefined;
+    // Non-ASCII sets require the byte-oriented tr parser.
+    for (let i = 0; i < spec.length; i++) if (spec.charCodeAt(i) >= 128) return undefined;
     // Escaped endpoints need the tr parser before range expansion.
     if (spec.includes("\\") && spec.includes("-")) return undefined;
     const posixClasses: Record<string, string> = {
@@ -22739,9 +22741,9 @@ export class Runtime {
       for (const el of item) {
         if (!el || typeof el !== "object" || Array.isArray(el)) return undefined;
         const rec = el as Record<string, unknown>;
-        const k = rec.key ?? rec.name ?? rec.k;
+        const k = [rec.key, rec.Key, rec.name, rec.Name].find(value => value !== undefined && value !== null && value !== false);
         if (typeof k !== "string") return undefined;
-        obj[k] = Object.hasOwn(rec, "value") ? rec.value : (Object.hasOwn(rec, "v") ? rec.v : null);
+        obj[k] = Object.hasOwn(rec, "value") ? rec.value : (Object.hasOwn(rec, "Value") ? rec.Value : null);
       }
       return [obj];
     }
@@ -22770,7 +22772,7 @@ export class Runtime {
         if (!Array.isArray(item) || !item.every(x => typeof x === "string" || typeof x === "number" || typeof x === "boolean" || x === null)) return undefined;
         return [item.map(x => x === null ? "" : String(x)).join(arg)];
       }
-      if (fn === "split") return typeof item === "string" ? [item.split(arg)] : undefined;
+      if (fn === "split") return typeof item === "string" ? [arg === "" ? Array.from(item) : item.split(arg)] : undefined;
       if (fn === "ltrimstr") return typeof item === "string" ? [item.startsWith(arg) ? item.slice(arg.length) : item] : undefined;
       if (fn === "rtrimstr") return typeof item === "string" ? [arg.length > 0 && item.endsWith(arg) ? item.slice(0, -arg.length) : item] : undefined;
       if (fn === "startswith") return typeof item === "string" ? [item.startsWith(arg)] : undefined;

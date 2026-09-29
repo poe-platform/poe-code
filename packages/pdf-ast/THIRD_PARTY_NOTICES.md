@@ -406,7 +406,15 @@ and intermediate-surface state reset. Bitmap and SVG exports follow
 ports the unchanged `transparency_group.pdf` and `bug1873345.pdf` equality
 fixtures, with independently obtained reference pixels. Full non-isolated
 backdrop compositing for groups with outer effects retains PDF.js's documented
-limitation. Form contents remain vectors in SVG output.
+limitation.
+
+Masked non-isolated Forms with inner blending or soft-mask effects follow
+PDF.js `beginGroup`'s `needsBackdropCopy && inSMaskMode` path. The raster adapter
+copies the existing page within the transformed Form BBox before painting the
+group; ordinary outer-opacity groups keep their transparent intermediate.
+`src/render/masked-group-backdrop.test.ts` covers this distinction and the
+unchanged `issue13520.pdf` fixture. SVG uses a raster fallback for pages requiring
+this backdrop copy; other Form groups retain their vector output.
 
 CropBox handling follows PDF.js `Page.getBoundingBox` and `Page.view` in
 `src/core/document.js`, and the SVG corner transform follows

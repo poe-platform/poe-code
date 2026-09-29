@@ -1863,7 +1863,7 @@ export function evaluateContentStreamToDisplayList(params: {
       stateStack.pop();
       capturedOperations = parentOperations;
     }
-    if (compositeGroup) emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, blendMode: st.blendMode, clipRect: st.clipRect } });
+    if (compositeGroup) emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, isolated, bboxClip: nextClipPaths?.[0], blendMode: st.blendMode, clipRect: st.clipRect } });
   };
 
   const walkNodes = (

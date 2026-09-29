@@ -3,7 +3,7 @@ import { encodeToXmlString, PageViewport } from "../vendor/pdfjs-fonts.mjs";
 import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
 import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
-import type { PdfClipPath, PdfDisplayList, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
+import type { PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate } from "../cos/filters.js";
 import { flattenCubic } from "./cubic.js";
 import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
@@ -1202,10 +1202,22 @@ export function getDisplayListCropBox(list: PdfDisplayList): [number, number, nu
   return x1 > x0 && y1 > y0 ? [x0, y0, x1, y1] : full;
 }
 
-function hasBlendModes(operations: readonly PdfPaintOperation[]): boolean {
+function hasCompositingEffects(operations: readonly PdfPaintOperation[], includeSoftMasks = false): boolean {
   return operations.some(operation =>
+    (includeSoftMasks && !!operation.value.softMask) ||
     (!!operation.value.blendMode && operation.value.blendMode !== "Normal" && operation.value.blendMode !== "Compatible") ||
-    (operation.kind === "group" && hasBlendModes(operation.value.operations)));
+    (operation.kind === "group" && hasCompositingEffects(operation.value.operations, includeSoftMasks)));
+}
+
+// PDF.js beginGroup: needsBackdropCopy && inSMaskMode. Ordinary outer-opacity
+// groups still use transparent intermediates, even when they are non-isolated.
+function needsGroupBackdrop(group: PdfPaintGroup): boolean {
+  return group.isolated === false && !!group.softMask && hasCompositingEffects(group.operations, true);
+}
+
+function containsBackdropGroup(operations: readonly PdfPaintOperation[]): boolean {
+  return operations.some(operation => operation.kind === "group" &&
+    (needsGroupBackdrop(operation.value) || containsBackdropGroup(operation.value.operations)));
 }
 
 export function renderDisplayListToBitmap(
@@ -1225,7 +1237,7 @@ export function renderDisplayListToBitmap(
 
   // PDF.js beginDrawing: blend modes see the page's transparent backdrop,
   // never the viewer's white/custom background. Composite that background last.
-  const deferBackground = !options.transparent && hasBlendModes(paintOperations(displayList));
+  const deferBackground = !options.transparent && hasCompositingEffects(paintOperations(displayList));
   const transparent = options.transparent || deferBackground;
   const bg = options.background ?? { r: 1, g: 1, b: 1 };
   const bgR = transparent ? 0 : Math.round(bg.r * 255);
@@ -1252,7 +1264,16 @@ export function renderDisplayListToBitmap(
     let operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
     if (operation.kind === "group") {
       const group = operation.value;
-      const bitmap = renderDisplayListToBitmap({ ...displayList, rotation: 0, operations: group.operations }, { ...options, scale, dpiX: undefined, dpiY: undefined, cropRect: undefined, useCropBox: false, transparent: true });
+      let operations = group.operations;
+      if (needsGroupBackdrop(group)) {
+        operations = [{ kind: "image", value: {
+          name: "GroupBackdrop", width, height, decodedRgba: rgba.slice(),
+          matrix: [width / scale, 0, 0, height / scale, originX, pageTop - height / scale],
+          colorSpace: "DeviceRGB", bitsPerComponent: 8,
+          ...(group.bboxClip ? { clipPaths: [group.bboxClip] } : {}),
+        } }, ...operations];
+      }
+      const bitmap = renderDisplayListToBitmap({ ...displayList, rotation: 0, operations }, { ...options, scale, dpiX: undefined, dpiY: undefined, cropRect: undefined, useCropBox: false, transparent: true });
       for (let i = 3; i < bitmap.data.length; i += 4) bitmap.data[i] = Math.round(bitmap.data[i]! * group.alpha);
       operation = { kind: "image", value: {
         name: "TransparencyGroup", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
@@ -1517,6 +1538,16 @@ export function renderDisplayListToSvg(
   options: RenderToPngOptions = {}
 ): string {
   const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1);
+  if (containsBackdropGroup(paintOperations(displayList))) {
+    // SVG masks isolate their group from earlier paints. Use the same raster
+    // composite as PNG when PDF blending needs that earlier page backdrop.
+    const bitmap = renderDisplayListToBitmap(displayList, { ...options, scale: baseScale });
+    const embedded = svgImage({
+      name: "PageComposite", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
+      matrix: [bitmap.width, 0, 0, bitmap.height, 0, 0], colorSpace: "DeviceRGB", bitsPerComponent: 8,
+    }, bitmap.height);
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${bitmap.width}" height="${bitmap.height}" viewBox="0 0 ${bitmap.width} ${bitmap.height}">${embedded}</svg>\n`;
+  }
   const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
   const scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
   const [originX, originY] = displayList.origin ?? [0, 0];

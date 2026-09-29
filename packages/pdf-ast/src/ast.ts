@@ -278,6 +278,9 @@ export type PdfPaintOperation =
 export interface PdfPaintGroup {
   readonly operations: readonly PdfPaintOperation[];
   readonly alpha: number;
+  readonly isolated?: boolean | undefined;
+  /** Transformed Form BBox, used to bound a copied backdrop. */
+  readonly bboxClip?: PdfClipPath | undefined;
   readonly blendMode?: string | undefined;
   readonly clipPaths?: readonly PdfClipPath[] | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;

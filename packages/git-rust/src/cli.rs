@@ -627,7 +627,7 @@ pub fn execute_git_cli_with_input(
             let mut reuse_commit: Option<&str> = None;
             let mut msg_file: Option<&str> = None;
             let mut commit_paths: Vec<String> = Vec::new();
-            let mut gpg_sign_flag: Option<Option<String>> = None;
+            let mut gpg_sign_flag: Option<(bool, Option<String>)> = None;
             let mut i = 0;
             while i < sub_args.len() {
                 let arg = sub_args[i];
@@ -668,18 +668,17 @@ pub fn execute_git_cli_with_input(
                     continue;
                 }
                 if matches!(arg, "-S" | "--gpg-sign") {
-                    gpg_sign_flag = Some(None);
+                    gpg_sign_flag = Some((true, None));
                     i += 1;
                     continue;
                 }
                 if arg == "--no-gpg-sign" {
-                    gpg_sign_flag = None;
-                    let _ = set_config(fs, &gitdir, "commit.gpgsign", Some("false"), false);
+                    gpg_sign_flag = Some((false, None));
                     i += 1;
                     continue;
                 }
                 if let Some(key_id) = arg.strip_prefix("--gpg-sign=").or_else(|| arg.strip_prefix("-S")) {
-                    gpg_sign_flag = Some(Some(key_id.to_string()));
+                    gpg_sign_flag = Some((true, Some(key_id.to_string())));
                     i += 1;
                     continue;
                 }
@@ -878,7 +877,7 @@ pub fn execute_git_cli_with_input(
             }
             // Apply command-local signing options to the SDK's commit path.
             let config_path = join(&[&gitdir, "config"]);
-            let signing_config = gpg_sign_flag.as_ref().map(|key_override| {
+            let signing_config = gpg_sign_flag.as_ref().map(|(enabled, key_override)| {
                 let original = fs.read(&config_path);
                 let format = get_config(fs, &gitdir, "gpg.format")
                     .map(|value| value.as_str().to_string()).unwrap_or_else(|| "openpgp".into());
@@ -889,7 +888,7 @@ pub fn execute_git_cli_with_input(
                         if fs.exists(&absolute) { absolute } else { key }
                     });
                 let mut config = crate::GitConfigManager::get(fs, &gitdir);
-                config.set("commit.gpgsign", Some("true"));
+                config.set("commit.gpgsign", Some(if *enabled { "true" } else { "false" }));
                 config.set("gpg.format", Some(&format));
                 if let Some(key) = key { config.set("user.signingkey", Some(&key)); }
                 crate::GitConfigManager::save(fs, &gitdir, &config);

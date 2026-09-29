@@ -587,3 +587,206 @@ export function calCommands(options: CalCommandsOptions = {}): VirtualShellPlugi
     },
   };
 }
+
+export function evalSyncCal(
+  cmdName: "cal" | "ncal",
+  rawArgs: readonly string[],
+  sourceDateEpoch?: string
+): string | undefined {
+  const isNcalDefault = cmdName === "ncal";
+  let verticalLayout = isNcalDefault;
+  let mondayFirst = isNcalDefault;
+  let julian = false;
+  let wholeYear = false;
+  let spanMonths = 1;
+  let spanAround = false;
+  let showWeeks = false;
+  let explicitMonth: number | undefined;
+  let afterMonths = 0;
+  let beforeMonths = 0;
+  const operands: string[] = [];
+
+  for (let i = 0; i < rawArgs.length; i++) {
+    const arg = rawArgs[i]!;
+    if (arg === "--") {
+      operands.push(...rawArgs.slice(i + 1));
+      break;
+    }
+    if (arg === "--help" || arg === "--version") return undefined;
+    if (arg === "--one" || arg === "-1") { spanMonths = 1; spanAround = false; }
+    else if (arg === "--three" || arg === "-3") { spanMonths = 3; spanAround = true; }
+    else if (arg === "--sunday" || arg === "-s") { mondayFirst = false; }
+    else if (arg === "--monday" || arg === "-M") { mondayFirst = true; }
+    else if (arg === "-b" || arg === "-C") { verticalLayout = false; mondayFirst = false; }
+    else if (arg === "-N") { verticalLayout = true; mondayFirst = true; }
+    else if (arg === "--julian" || arg === "-j") { julian = true; }
+    else if (arg === "--year" || arg === "-y") { wholeYear = true; }
+    else if (arg === "--span" || arg === "-S") {
+      if (isNcalDefault && verticalLayout) mondayFirst = false;
+      else spanAround = true;
+    }
+    else if (arg === "--no-highlight" || arg === "-h" || arg === "-J") { /* ignore */ }
+    else if (arg === "--week" || arg.startsWith("--week=") || arg === "-w") { showWeeks = true; }
+    else if (arg === "-m" || arg === "--month") {
+      const val = rawArgs[++i];
+      if (!val) return undefined;
+      const m = parseMonthSpec(val);
+      if (m === undefined) return undefined;
+      explicitMonth = m;
+    } else if (arg === "-n" || arg === "--months") {
+      const val = rawArgs[++i];
+      const n = Number(val);
+      if (!val || !Number.isSafeInteger(n) || n < 1 || n > 24) return undefined;
+      spanMonths = n;
+    } else if (arg === "-A" || arg === "-B") {
+      const val = rawArgs[++i];
+      const count = Number(val);
+      if (!val || !Number.isSafeInteger(count) || count < 0 || count > 24) return undefined;
+      if (arg === "-A") afterMonths = count;
+      else beforeMonths = count;
+    } else if (arg.startsWith("-") && arg.length > 1) {
+      for (let j = 1; j < arg.length; j++) {
+        const ch = arg[j]!;
+        if (ch === "1") { spanMonths = 1; spanAround = false; }
+        else if (ch === "3") { spanMonths = 3; spanAround = true; }
+        else if (ch === "s") mondayFirst = false;
+        else if (ch === "M") mondayFirst = true;
+        else if (ch === "b" || ch === "C") { verticalLayout = false; mondayFirst = false; }
+        else if (ch === "N") { verticalLayout = true; mondayFirst = true; }
+        else if (ch === "j") julian = true;
+        else if (ch === "y") wholeYear = true;
+        else if (ch === "S") {
+          if (isNcalDefault && verticalLayout) mondayFirst = false;
+          else spanAround = true;
+        }
+        else if (ch === "h" || ch === "J") { /* ignore */ }
+        else if (ch === "w") { showWeeks = true; }
+        else if (ch === "m") {
+          const rest = arg.slice(j + 1) || rawArgs[++i];
+          if (!rest) return undefined;
+          const m = parseMonthSpec(rest);
+          if (m === undefined) return undefined;
+          explicitMonth = m;
+          break;
+        } else return undefined;
+      }
+    } else {
+      operands.push(arg);
+    }
+  }
+
+  if (afterMonths > 0 || beforeMonths > 0) spanMonths = beforeMonths + 1 + afterMonths;
+  const now = sourceDateEpoch !== undefined ? new Date(Number(sourceDateEpoch) * 1000) : new Date();
+  let year = now.getUTCFullYear();
+  let month = explicitMonth ?? (now.getUTCMonth() + 1);
+
+  if (operands.length === 1) {
+    const y = Number(operands[0]);
+    if (!/^\d+$/.test(operands[0]!) || y < 1 || y > 9999) return undefined;
+    year = y;
+    if (explicitMonth === undefined) wholeYear = true;
+  } else if (operands.length === 2) {
+    const m = parseMonthSpec(operands[0]!);
+    const y = Number(operands[1]);
+    if (m === undefined || !/^\d+$/.test(operands[1]!) || y < 1 || y > 9999) return undefined;
+    month = m;
+    year = y;
+  } else if (operands.length === 3) {
+    const m = parseMonthSpec(operands[1]!);
+    const y = Number(operands[2]);
+    if (m === undefined || !/^\d+$/.test(operands[2]!) || y < 1 || y > 9999) return undefined;
+    month = m;
+    year = y;
+  } else if (operands.length > 3) {
+    return undefined;
+  }
+
+  const count = wholeYear ? 12 : spanMonths;
+  if (!Number.isSafeInteger(count) || count > 24) return undefined;
+  const gridWidth = julian ? 27 : 20;
+  const perRow = julian ? 2 : 3;
+
+  if (verticalLayout) {
+    const offset = wholeYear ? 0 : beforeMonths || (spanAround ? Math.floor((spanMonths - 1) / 2) : 0);
+    const baseMonth = wholeYear ? 0 : month - 1 - offset;
+    const grids: string[][] = [];
+    for (let idx = 0; idx < count; idx++) {
+      const total = year * 12 + baseMonth + idx;
+      grids.push(renderVerticalNcalMonth(Math.floor(total / 12), ((total % 12) + 12) % 12 + 1, {
+        mondayFirst, julian, includeYearInHeader: !wholeYear, showWeeks,
+      }));
+    }
+    const verticalPerRow = wholeYear ? (julian ? 3 : 4) : perRow;
+    const lines: string[] = wholeYear ? [centerText(String(year), (julian ? 26 : 22) * verticalPerRow)] : [];
+    for (let start = 0; start < grids.length; start += verticalPerRow) {
+      const group = grids.slice(start, start + verticalPerRow);
+      for (let line = 0; line < group[0]!.length; line++) {
+        lines.push(group.map((grid, index) => {
+          const text = line === 0 || index === 0 ? grid[line]! : "  " + grid[line]!.slice(2);
+          return text.padEnd(julian ? 26 : 22);
+        }).join(""));
+      }
+      if (start + verticalPerRow < grids.length) lines.push("");
+    }
+    return (count === 1 && !wholeYear ? grids[0]! : lines).join("\n");
+  }
+
+  if (wholeYear) {
+    const lines: string[] = [`${" ".repeat(28)}${year}`];
+    for (let startM = 1; startM <= 12; startM += perRow) {
+      const rowMonths = [];
+      for (let k = 0; k < perRow && startM + k <= 12; k++) {
+        rowMonths.push(renderMonthGrid(year, startM + k, { mondayFirst, julian, includeYearInHeader: false }));
+      }
+      lines.push(rowMonths.map(g => g.header.padEnd(gridWidth, " ")).join("  ") + "  ");
+      lines.push(rowMonths.map(g => g.dayHeader.padEnd(gridWidth, " ")).join("  ") + "  ");
+      for (let w = 0; w < 6; w++) {
+        lines.push(rowMonths.map(g => g.weeks[w]!).join("  ") + "  ");
+      }
+      if (startM + perRow <= 12) lines.push("");
+    }
+    return lines.join("\n");
+  }
+
+  let startYear = year;
+  let startMonth = month;
+  if (beforeMonths > 0) {
+    const totalMonths = startYear * 12 + (startMonth - 1) - beforeMonths;
+    startYear = Math.floor(totalMonths / 12);
+    startMonth = ((totalMonths % 12) + 12) % 12 + 1;
+  } else if (spanAround && spanMonths > 1) {
+    const offset = Math.floor((spanMonths - 1) / 2);
+    const totalMonths = startYear * 12 + (startMonth - 1) - offset;
+    startYear = Math.floor(totalMonths / 12);
+    startMonth = ((totalMonths % 12) + 12) % 12 + 1;
+  }
+
+  if (spanMonths === 1) {
+    const g = renderMonthGrid(startYear, startMonth, { mondayFirst, julian, includeYearInHeader: true });
+    return [
+      g.header.padEnd(gridWidth, " ") + "  ",
+      g.dayHeader.padEnd(gridWidth, " ") + "  ",
+      ...g.weeks.map(w => w.padEnd(gridWidth, " ") + "  "),
+    ].join("\n");
+  }
+
+  const grids = [];
+  let curY = startYear;
+  let curM = startMonth;
+  for (let idx = 0; idx < spanMonths; idx++) {
+    grids.push(renderMonthGrid(curY, curM, { mondayFirst, julian, includeYearInHeader: true }));
+    curM++;
+    if (curM > 12) { curM = 1; curY++; }
+  }
+  const lines: string[] = [];
+  for (let r = 0; r < grids.length; r += perRow) {
+    const slice = grids.slice(r, r + perRow);
+    lines.push(slice.map(g => g.header.padEnd(gridWidth, " ")).join("  ") + "  ");
+    lines.push(slice.map(g => g.dayHeader.padEnd(gridWidth, " ")).join("  ") + "  ");
+    for (let w = 0; w < 6; w++) {
+      lines.push(slice.map(g => g.weeks[w]!).join("  ") + "  ");
+    }
+    if (r + perRow < grids.length) lines.push("");
+  }
+  return lines.join("\n");
+}

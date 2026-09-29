@@ -256,3 +256,40 @@ test("Wave 129: sync getopt, dos2unix, unix2dos, and iconv substitutions and pip
   assert.equal(r2.exitCode, 0);
   assert.equal(r2.stdout, "gamma:caf-80\n");
 });
+
+test("Wave 130: sync htmlq, cal, and ncal substitutions and pipelines", async () => {
+  const { createHtmlqCommands } = await import("../../src/commands/htmlq/index.js");
+  const { createCalCommands } = await import("../../src/commands/cal/index.js");
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp", { recursive: true });
+  await fs.writeFile(
+    "/tmp/page.html",
+    new TextEncoder().encode("<html><body><ul id=\"items\"><li class=\"active\" data-id=\"42\">First</li><li>Second</li></ul></body></html>")
+  );
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createHtmlqCommands(),
+    ...createCalCommands(),
+  ]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(htmlq --text "li.active" -f /tmp/page.html):$(htmlq -a data-id "li.active" -f /tmp/page.html):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "First:42:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(cal 2 2024 | head -n 1):$(ncal 2 2024 | head -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "   February 2024      :    February 2024     :80\n");
+});

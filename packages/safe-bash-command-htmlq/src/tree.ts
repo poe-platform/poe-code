@@ -429,6 +429,14 @@ export async function parseHtml(
   budget.charge("decodedBytes", tail.length * 2);
   budget.charge("retainedBytes", tail.length * 2);
   original += tail;
+  return parseHtmlSync(original, options, budget);
+}
+export function parseHtmlSync(
+  original: string,
+  options: HtmlOptions,
+  existingBudget?: HtmlBudget
+): PublicHtmlNode {
+  const budget = existingBudget ?? new HtmlBudget(options);
   budget.charge("retainedBytes", original.length * 2);
   let normalized = "";
   if (original.charCodeAt(0) !== 0xfeff && !original.includes("\r")) {

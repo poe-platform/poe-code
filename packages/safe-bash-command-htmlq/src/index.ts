@@ -1,4 +1,4 @@
-export { HtmlError, htmlqBaseline } from "./contracts.js";
+export { HtmlBudget, HtmlError, htmlqBaseline, invocationOptions } from "./contracts.js";
 export type {
   HtmlAccounting,
   HtmlOptions,
@@ -8,8 +8,8 @@ export type {
   HtmlAttribute,
   HtmlErrorCode
 } from "./contracts.js";
-export { parseHtml, detachHtmlNode } from "./tree.js";
-export { serializeHtml, serializeHtmlBytes, htmlText } from "./serializer.js";
+export { parseHtml, parseHtmlSync, detachHtmlNode, replaceHtmlAttribute, getInternalHtmlNode } from "./tree.js";
+export { serializeHtml, serializeHtmlBytes, htmlText, rustWhitespaceOnly } from "./serializer.js";
 export { inclusiveHtmlDescendants } from "./traversal.js";
 
 export { selectHtml } from "./selectors.js";

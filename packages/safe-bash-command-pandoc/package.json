@@ -1,11 +1,35 @@
 {
-  "name": "safe-bash-command-pandoc",
-  "version": "0.0.1",
-  "private": true,
-  "license": "MIT",
+  "poeCode": {
+    "bundle": {
+      "prebuilt": true
+    }
+  },
   "type": "module",
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "name": "safe-bash-command-pandoc",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && npm run typecheck:public",
+    "lint": "eslint src conformance stress scripts && npm run typecheck",
+    "test": "cd ../.. && vitest run packages/safe-bash-command-pandoc",
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-pandoc",
+    "test:stress": "cd ../.. && vitest run --config packages/safe-bash-command-pandoc/stress/vitest.config.mjs",
+    "pretest:conformance": "cd ../.. && npm run build:workspaces -- --workspace=safe-bash-command-pandoc",
+    "test:conformance": "node conformance/commonmark.mjs",
+    "pretest:conformance:rst": "cd ../.. && npm run build:workspaces -- --workspace=safe-bash-command-pandoc",
+    "test:conformance:rst": "node conformance/rst.mjs",
+    "typecheck:public": "tsc -p tsconfig.public-types.json",
+    "pretest:unit": "npm run typecheck:public"
+  },
+  "license": "MIT",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -24,48 +48,25 @@
       "import": "./dist/command.js"
     }
   },
-  "files": [
-    "dist",
-    "LICENSE"
-  ],
-  "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && npm run typecheck:public",
-    "lint": "eslint src conformance stress scripts && npm run typecheck",
-    "test": "cd ../.. && vitest run packages/safe-bash-command-pandoc",
-    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-pandoc",
-    "test:stress": "cd ../.. && vitest run --config packages/safe-bash-command-pandoc/stress/vitest.config.mjs",
-    "pretest:conformance": "cd ../.. && npm run build:workspaces -- --workspace=safe-bash-command-pandoc",
-    "test:conformance": "node conformance/commonmark.mjs",
-    "pretest:conformance:rst": "cd ../.. && npm run build:workspaces -- --workspace=safe-bash-command-pandoc",
-    "test:conformance:rst": "node conformance/rst.mjs",
-    "typecheck:public": "tsc -p tsconfig.public-types.json",
-    "pretest:unit": "npm run typecheck:public"
-  },
   "dependencies": {
-    "@poe-code/office-package": "*",
     "entities": "^6.0.1",
-    "jsonc-parser": "^3.3.1",
-    "parse5": "7.3.0",
-    "saxes": "6.0.0",
-    "@poe-code/pdf": "0.0.1",
-    "pptx": "*",
-    "yaml": "2.9.0",
-    "fengari": "^0.1.5",
-    "@poe-code/pdf-ast": "*",
-    "citeproc": "2.4.63",
-    "docx": "*",
-    "safe-bash-command-ssconvert": "*",
     "safe-bash-markdown-engine": "*",
-    "@poe-code/image-ast": "*"
+    "@poe-code/pdf-ast": "*",
+    "saxes": "6.0.0",
+    "@poe-code/office-package": "*",
+    "@poe-code/pdf": "0.0.1",
+    "jsonc-parser": "^3.3.1",
+    "docx": "*",
+    "sprintf-js": "^1.1.3",
+    "yaml": "2.9.0",
+    "parse5": "7.3.0",
+    "fengari": "^0.1.5",
+    "@poe-code/image-ast": "*",
+    "citeproc": "2.4.63",
+    "safe-bash-command-ssconvert": "*",
+    "pptx": "*"
   },
-  "devDependencies": {
-    "safe-bash-contracts": "*",
-    "@poe-code/safe-fs": "*"
-  },
-  "poeCode": {
-    "bundle": {
-      "prebuilt": true
-    }
-  }
+  "private": true,
+  "types": "dist/index.d.ts",
+  "version": "0.0.1"
 }

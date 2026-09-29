@@ -489,3 +489,5 @@ export function settings(options: DdCommandsOptions = {}): DdLimits {
 }
 
 export type DdOptions = DdCommandsOptions;
+
+export { evalSyncDd } from "./sync.js";

@@ -129,8 +129,6 @@ function compileReachableSourceFiles(
 function createProject(): Project {
   return new Project({
     useInMemoryFileSystem: true,
-    // Static scope extraction needs source exports, not ambient type declarations.
-    skipLoadingLibFiles: true,
     compilerOptions: {
       allowJs: false,
       esModuleInterop: true,
@@ -139,6 +137,7 @@ function createProject(): Project {
       target: ts.ScriptTarget.ES2022
     },
     skipAddingFilesFromTsConfig: true,
+    // Static scope extraction needs source exports, not ambient type declarations.
     skipLoadingLibFiles: true
   });
 }

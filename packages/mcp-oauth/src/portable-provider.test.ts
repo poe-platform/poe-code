@@ -11,7 +11,8 @@ it("rejects desktop OAuth and persistence explicitly", () => {
   expect(createDefaultOAuthClientProvider).toThrow("Desktop OAuth");
   expect(createAuthStoreSessionStore).toThrow("persistence");
 });
-it("preserves authorization error identity across desktop and remote entries", () => {
-  expect(OAuthAuthorizationError).toBe(DesktopAuthorizationError);
+it("recognizes authorization errors across desktop and remote entries", () => {
+  expect(DesktopAuthorizationError.is(new OAuthAuthorizationError("denied", "synthetic"))).toBe(true);
+  expect(OAuthAuthorizationError.is(new Error("unbranded"))).toBe(false);
   expect(OAuthAuthorizationError.is(new DesktopAuthorizationError("denied", "synthetic"))).toBe(true);
 });

@@ -1470,3 +1470,42 @@ test("sync loop wave 120: jq object construction {k: .expr}, string interpolatio
     await shell.dispose();
   }
 });
+
+test("sync loop wave 121: comm (-12/-23/--output-delimiter/--total) and join (-t/-a/-v/-e/-o)", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTableTextCommands } = await import("../../src/commands/table-text/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([
+      ...createStandardCommands(),
+      ...createTableTextCommands(),
+    ]),
+  });
+  try {
+    const script = [
+      "printf \"alpha\\nbeta\\ngamma\\n\" > /allow",
+      "printf \"1:admin\\n2:user\\n3:guest\\n\" > /roles",
+      "items=$'beta\\ndelta\\ngamma'",
+      "users=$'1:alice\\n2:bob\\n4:dave'",
+      "out=\"\"",
+      "for ((i=1; i<=10; i++)); do",
+      "  c1=$(comm -12 - /allow <<< \"$items\" | paste -sd \",\")",
+      "  c2=$(echo \"$items\" | comm -23 - /allow)",
+      "  c3=$(comm --output-delimiter=: --total - /allow <<< \"$items\" | tail -n 1)",
+      "  j1=$(join -t : - /roles <<< \"$users\" | paste -sd \",\")",
+      "  j2=$(echo \"$users\" | join -t : -a 1 -e NONE -o 0,1.2,2.2 - /roles | paste -sd \",\")",
+      "  j3=$(join -t : -v 1 - /roles <<< \"$users\")",
+      "  out=\"$c1|$c2|$c3|$j1|$j2|$j3\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout,
+      "beta,gamma|delta|1:1:2:total|1:alice:admin,2:bob:user|1:alice:admin,2:bob:user,4:dave:NONE|4:dave\n"
+    );
+  } finally {
+    await shell.dispose();
+  }
+});

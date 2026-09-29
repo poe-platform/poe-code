@@ -11724,6 +11724,7 @@ export class Runtime {
       }
       return true;
     };
+    if (p.commands.some(c => c.kind === "simple" && (c.words[0]?.plain === "comm" || c.words[0]?.plain === "join"))) return false;
     if (p.commands.length === 1) {
       const cmd = p.commands[0]!;
       if (
@@ -24486,6 +24487,192 @@ export class Runtime {
 
 
 
+
+  private readSyncMemoryLines(filePath: string): string[] | undefined {
+    const view = this.tryReadMemoryFileViewSync(filePath);
+    if (!view || view.byteLength > 16384 || view.includes(0) || !view.every(b => b < 128)) return undefined;
+    const str = sharedSyncPipeDecoder.decode(view);
+    if (str.length > 0 && !str.endsWith("\n")) return undefined;
+    return str.length === 0 ? [] : str.slice(0, -1).split("\n");
+  }
+
+  private evalSyncComm(stdinLines: readonly string[] | undefined, opArgs: readonly string[], cwd: string): string[] | undefined {
+    let sup1 = false, sup2 = false, sup3 = false;
+    let outDelim = "\t";
+    let noCheckOrder = false;
+    let showTotal = false;
+    let literal = false;
+    const files: string[] = [];
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (literal || a === "-" || !a.startsWith("-")) {
+        files.push(a);
+        continue;
+      }
+      if (a === "--") { literal = true; continue; }
+      if (a === "--nocheck-order") { noCheckOrder = true; continue; }
+      if (a === "--total") { showTotal = true; continue; }
+      if (a.startsWith("--output-delimiter=")) {
+        outDelim = a.slice(19);
+        if (outDelim.length === 0 || /[^\x09\x20-\x7e]/.test(outDelim)) return undefined;
+        continue;
+      }
+      if (/^-[123]+$/.test(a)) {
+        if (a.includes("1")) sup1 = true;
+        if (a.includes("2")) sup2 = true;
+        if (a.includes("3")) sup3 = true;
+        continue;
+      }
+      return undefined;
+    }
+    if (files.length !== 2) return undefined;
+    if (files[0] === "-" && files[1] === "-") return undefined;
+    const lines1 = files[0] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[0]!));
+    const lines2 = files[1] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[1]!));
+    if (!lines1 || !lines2) return undefined;
+    if (!noCheckOrder) {
+      for (let i = 1; i < lines1.length; i++) if (lines1[i]! < lines1[i - 1]!) return undefined;
+      for (let i = 1; i < lines2.length; i++) if (lines2[i]! < lines2[i - 1]!) return undefined;
+    }
+    const p2 = sup1 ? "" : outDelim;
+    const p3 = (sup1 ? "" : outDelim) + (sup2 ? "" : outDelim);
+    const out: string[] = [];
+    let i = 0, j = 0, c1 = 0, c2 = 0, c3 = 0;
+    while (i < lines1.length && j < lines2.length) {
+      const l1 = lines1[i]!, l2 = lines2[j]!;
+      if (l1 < l2) {
+        if (!sup1) out.push(l1);
+        c1++; i++;
+      } else if (l1 > l2) {
+        if (!sup2) out.push(p2 + l2);
+        c2++; j++;
+      } else {
+        if (!sup3) out.push(p3 + l1);
+        c3++; i++; j++;
+      }
+    }
+    while (i < lines1.length) {
+      if (!sup1) out.push(lines1[i]!);
+      c1++; i++;
+    }
+    while (j < lines2.length) {
+      if (!sup2) out.push(p2 + lines2[j]!);
+      c2++; j++;
+    }
+    if (showTotal) out.push(`${c1}${outDelim}${c2}${outDelim}${c3}${outDelim}total`);
+    return out;
+  }
+
+  private evalSyncJoin(stdinLines: readonly string[] | undefined, opArgs: readonly string[], cwd: string): string[] | undefined {
+    let sep: string | undefined;
+    let f1 = 0, f2 = 0;
+    let unp1 = false, unp2 = false, paired = true;
+    let emptyRep = "";
+    let outSpec: Array<{ file: 0 | 1 | 2; idx: number }> | undefined;
+    let literal = false;
+    const files: string[] = [];
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (literal || a === "-" || !a.startsWith("-")) {
+        files.push(a);
+        continue;
+      }
+      if (a === "--") { literal = true; continue; }
+      if (a === "-t" || a.startsWith("-t")) {
+        const v = a === "-t" ? opArgs[++i] : a.slice(2);
+        if (!v || v.length !== 1 || /[^\x20-\x7e]/.test(v)) return undefined;
+        sep = v;
+      } else if (a === "-1" || a === "-2" || a === "-j") {
+        if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,2}$/.test(opArgs[i + 1]!)) return undefined;
+        const idx = Number(opArgs[++i]!) - 1;
+        if (a !== "-2") f1 = idx;
+        if (a !== "-1") f2 = idx;
+      } else if (a === "-a" || a === "-v") {
+        if (i + 1 >= opArgs.length || (opArgs[i + 1] !== "1" && opArgs[i + 1] !== "2")) return undefined;
+        const side = opArgs[++i]!;
+        if (side === "1") unp1 = true; else unp2 = true;
+        if (a === "-v") paired = false;
+      } else if (a === "-e") {
+        if (i + 1 >= opArgs.length) return undefined;
+        emptyRep = opArgs[++i]!;
+      } else if (a === "-o") {
+        if (i + 1 >= opArgs.length) return undefined;
+        const parts = opArgs[++i]!.split(/[ ,]+/).filter(Boolean);
+        if (parts.length === 0) return undefined;
+        outSpec = [];
+        for (const p of parts) {
+          if (p === "0") outSpec.push({ file: 0, idx: 0 });
+          else {
+            const m = /^([12])\.([1-9][0-9]{0,2})$/.exec(p);
+            if (!m) return undefined;
+            outSpec.push({ file: Number(m[1]!) as 1 | 2, idx: Number(m[2]!) - 1 });
+          }
+        }
+      } else {
+        return undefined;
+      }
+    }
+    if (files.length !== 2 || (files[0] === "-" && files[1] === "-")) return undefined;
+    const raw1 = files[0] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[0]!));
+    const raw2 = files[1] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[1]!));
+    if (!raw1 || !raw2) return undefined;
+    const splitRow = (line: string): string[] => sep !== undefined ? line.split(sep) : (line.trim().length === 0 ? [] : line.trim().split(/[ \t]+/));
+    const rows1 = raw1.map(l => { const fs = splitRow(l); return { fields: fs, key: fs[f1] ?? "" }; });
+    const rows2 = raw2.map(l => { const fs = splitRow(l); return { fields: fs, key: fs[f2] ?? "" }; });
+    for (let i = 1; i < rows1.length; i++) if (rows1[i]!.key < rows1[i - 1]!.key) return undefined;
+    for (let i = 1; i < rows2.length; i++) if (rows2[i]!.key < rows2[i - 1]!.key) return undefined;
+    const outSep = sep ?? " ";
+    const formatJoin = (key: string, r1: readonly string[] | undefined, r2: readonly string[] | undefined): string => {
+      if (outSpec) {
+        return outSpec.map(s => {
+          if (s.file === 0) return key;
+          const src = s.file === 1 ? r1 : r2;
+          const val = src ? src[s.idx] : undefined;
+          return val !== undefined && val !== "" ? val : emptyRep;
+        }).join(outSep);
+      }
+      const parts = [key];
+      if (r1) for (let k = 0; k < r1.length; k++) if (k !== f1) parts.push(r1[k]!);
+      if (r2) for (let k = 0; k < r2.length; k++) if (k !== f2) parts.push(r2[k]!);
+      return parts.join(outSep);
+    };
+    const out: string[] = [];
+    let i = 0, j = 0;
+    while (i < rows1.length && j < rows2.length) {
+      const k1 = rows1[i]!.key, k2 = rows2[j]!.key;
+      if (k1 < k2) {
+        if (unp1) out.push(formatJoin(k1, rows1[i]!.fields, undefined));
+        i++;
+      } else if (k1 > k2) {
+        if (unp2) out.push(formatJoin(k2, undefined, rows2[j]!.fields));
+        j++;
+      } else {
+        let iEnd = i + 1;
+        while (iEnd < rows1.length && rows1[iEnd]!.key === k1) iEnd++;
+        let jEnd = j + 1;
+        while (jEnd < rows2.length && rows2[jEnd]!.key === k2) jEnd++;
+        if (paired) {
+          for (let ii = i; ii < iEnd; ii++) {
+            for (let jj = j; jj < jEnd; jj++) {
+              out.push(formatJoin(k1, rows1[ii]!.fields, rows2[jj]!.fields));
+            }
+          }
+        }
+        i = iEnd;
+        j = jEnd;
+      }
+    }
+    while (i < rows1.length) {
+      if (unp1) out.push(formatJoin(rows1[i]!.key, rows1[i]!.fields, undefined));
+      i++;
+    }
+    while (j < rows2.length) {
+      if (unp2) out.push(formatJoin(rows2[j]!.key, undefined, rows2[j]!.fields));
+      j++;
+    }
+    return out;
+  }
+
   private evalSyncStrings(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
     let minLen = 4;
     let sep: string | undefined;
@@ -25375,7 +25562,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "jq" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -25438,6 +25625,10 @@ export class Runtime {
           if (this.evalSyncUnexpand([], sArgs) === undefined) return undefined;
         } else if (sName === "strings") {
           if (this.evalSyncStrings([], sArgs) === undefined) return undefined;
+        } else if (sName === "comm") {
+          if (this.evalSyncComm([], sArgs, rawState.cwd) === undefined) return undefined;
+        } else if (sName === "join") {
+          if (this.evalSyncJoin([], sArgs, rawState.cwd) === undefined) return undefined;
         } else {
           return undefined;
         }
@@ -25521,6 +25712,8 @@ export class Runtime {
           const isInlineExpand = firstName === "expand";
           const isInlineUnexpand = firstName === "unexpand";
           const isInlineStrings = firstName === "strings";
+          const isInlineComm = firstName === "comm";
+          const isInlineJoin = firstName === "join";
           const isInlineSort = firstName === "sort" && !byteLocale(rawState.variables);
           const isInlineUniq = firstName === "uniq";
           const inlineSedMatch = firstName === "sed";
@@ -25662,6 +25855,14 @@ export class Runtime {
               const strRes = this.evalSyncStrings(rawLines, stageArgs);
               if (strRes === undefined) return undefined;
               outLines = strRes;
+            } else if (isInlineComm) {
+              const commRes = this.evalSyncComm(rawLines, stageArgs, rawState.cwd);
+              if (commRes === undefined) return undefined;
+              outLines = commRes;
+            } else if (isInlineJoin) {
+              const joinRes = this.evalSyncJoin(rawLines, stageArgs, rawState.cwd);
+              if (joinRes === undefined) return undefined;
+              outLines = joinRes;
             } else if (isInlineBase64) {
               if (stageArgs.length === 0) {
                 const b64Wrapped = this.syncBase64Encode(prevBuf.subarray(0, prevLen));
@@ -25837,8 +26038,8 @@ export class Runtime {
       w0Plain === "sort" ||
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
-      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings"));
-    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings") && Boolean(this.getExternalCommand(w0Plain))))) {
+      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join";
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {
@@ -25857,6 +26058,28 @@ export class Runtime {
         const hv = this.fastValueWord(cmd.redirects[0]!.target, state, io, false, false, false, false, undefined, part.line);
         if (typeof hv === "string" && hv.length <= 16384 && !hv.includes("\0")) hereStrVal = hv + "\n";
         else fOk = false;
+      }
+      if (fOk && (w0Plain === "comm" || w0Plain === "join") && !hasSingleStdinRedir) {
+        const stdinLines = hasSingleHereStringRedir
+          ? (hereStrVal!.endsWith("\n") ? hereStrVal!.slice(0, -1).split("\n") : (hereStrVal!.length === 0 ? [] : hereStrVal!.split("\n")))
+          : undefined;
+        const cjLines = w0Plain === "comm"
+          ? this.evalSyncComm(stdinLines, allArgs, rawState.cwd)
+          : this.evalSyncJoin(stdinLines, allArgs, rawState.cwd);
+        if (cjLines !== undefined) {
+          let fileRes = cjLines.length === 0 ? "" : cjLines.join("\n") + "\n";
+          const outBytes = shellValueByteLength(fileRes);
+          let end = fileRes.length;
+          while (end > 0 && fileRes.charCodeAt(end - 1) === 10) end--;
+          if (end < fileRes.length) fileRes = fileRes.slice(0, end);
+          const nextTotalBytes = this.budget.bytes + outBytes;
+          if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+          this.budget.bytes = nextTotalBytes;
+          this.budget.tick();
+          rawState.substitutionStatus = 0;
+          rawState.status = 0;
+          return fileRes;
+        }
       }
       if (fOk && (hasSingleStdinRedir || hasSingleHereStringRedir || allArgs.length >= 1)) {
         const fileArg = hasSingleStdinRedir ? redirTarget! : (hasSingleHereStringRedir ? "" : allArgs[allArgs.length - 1]!);

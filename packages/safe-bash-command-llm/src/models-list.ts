@@ -10,6 +10,21 @@ export class LlmModelsUsageError extends Error {
   }
 }
 
+function wrapDescription(description: string): string {
+  const lines: string[] = [];
+  let line = "";
+  for (const word of description.split(" ")) {
+    if (!word) continue;
+    if (line && line.length + word.length + 1 > 70) {
+      lines.push(line);
+      line = "";
+    }
+    line += (line ? " " : "") + word;
+  }
+  if (line) lines.push(line);
+  return lines.join("\n      ");
+}
+
 /** Reference model-list query semantics for the configured host catalog. */
 export async function listLlmModels(context: CommandContext, service: LlmService, tokens: readonly string[], emit: (text: string) => Promise<void>, step: () => Promise<void>): Promise<void> {
   const explicit = tokens[0] === "list";
@@ -69,7 +84,7 @@ export async function listLlmModels(context: CommandContext, service: LlmService
       for (const [name, rule] of Object.entries(model.options!)) {
         const type = { number: "float", integer: "int", boolean: "boolean", string: "str" }[rule.type];
         output += `\n    ${name}: ${type}`;
-        if (rule.description && !shownDescriptions.has(provider.name)) output += `\n      ${rule.description}`;
+        if (rule.description && !shownDescriptions.has(provider.name)) output += `\n      ${wrapDescription(rule.description)}`;
       }
       shownDescriptions.add(provider.name);
     }

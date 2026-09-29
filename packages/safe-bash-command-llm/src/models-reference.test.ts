@@ -17,3 +17,15 @@ test("pinned models listing intersects query terms, unions explicit model IDs an
   });
  }
 });
+
+
+ test("model option descriptions wrap like the pinned reference", async () => {
+ const reference = (await import("./fixtures/model-description-reference.json", { with: { type: "json" } })).default;
+ const command = createLlmCommand({providers:[{name:"FixtureModel",models:[{id:"fixture-description", options:{temperature:{type:"number", nullable:true, description:reference.description}}}],complete(){throw new Error("listing must not execute a provider");}}]});
+ const fixture=reference.cases[0]!;
+ const chunks: Uint8Array[] = [], errors: Uint8Array[] = [];
+ const result=await command.execute({command:"llm",args:fixture.argv,fs:new MemoryFileSystem(),cwd:"/",env:{},signal:new AbortController().signal,stdin:toByteSource(""),stdout:{async write(chunk){chunks.push(chunk.slice());}},stderr:{async write(chunk){errors.push(chunk.slice());}}});
+ assert.equal(result.exitCode,fixture.exitCode);
+ assert.equal(Buffer.concat(chunks).toString(),fixture.stdout);
+ assert.equal(Buffer.concat(errors).toString(),fixture.stderr);
+ });

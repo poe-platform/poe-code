@@ -1,0 +1,17 @@
+{
+  "distribution": "llm",
+  "version": "0.27.1",
+  "description": "Controls sampling temperature for generated tokens using the configured model. Lower values produce more predictable responses and higher values increase variation.",
+  "cases": [
+    {
+      "argv": [
+        "models",
+        "list",
+        "--options"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-description\n  Options:\n    temperature: float\n      Controls sampling temperature for generated tokens using the\n      configured model. Lower values produce more predictable responses and\n      higher values increase variation.\n",
+      "stderr": ""
+    }
+  ]
+}

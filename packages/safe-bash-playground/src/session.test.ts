@@ -276,14 +276,27 @@ describe("PlaygroundSession", () => {
   ])("preserves acknowledged root cwd on worker termination: %s", async (command) => {
     const session = await createSession();
     const timers = vi.spyOn(globalThis, "setTimeout");
+    let acknowledge!: () => void;
+    let refuse!: (reason: unknown) => void;
+    const ready = new Promise<void>((resolve, reject) => { acknowledge = resolve; refuse = reject; });
+    const postMessage = fixture.Worker.prototype.postMessage;
+    const messages = vi.spyOn(fixture.Worker.prototype, "postMessage").mockImplementation(function (this: InstanceType<typeof fixture.Worker>, value) {
+      postMessage.call(this, value);
+      // A filesystem reply acknowledges a completed host operation. Observe the
+      // sentinel after those replies instead of racing worker startup against a
+      // separate one-second polling timeout.
+      if (typeof value === "object" && value !== null && "kind" in value && value.kind === "fs-result") {
+        void session.readFile("/home/cancellation.txt").then(text => {
+          if (text === "ready\n") acknowledge();
+        }, error => {
+          if (!(typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT")) refuse(error);
+        });
+      }
+    });
+    const running = session.run(command);
     try {
-      const running = session.run(command);
-      await vi.waitFor(
-        async () => {
-          expect(await session.readFile("/home/cancellation.txt")).toBe("ready\n");
-        },
-        { interval: 1 }
-      );
+      await Promise.race([ready, running.then(result => { throw new Error(`Worker completed before cancellation readiness: ${JSON.stringify(result)}`); })]);
+      messages.mockRestore();
       const timeout = timers.mock.calls.find(([, delay]) => delay === 5000)?.[0];
       if (typeof timeout !== "function") throw new Error("Missing execution timeout");
       timeout();
@@ -291,6 +304,10 @@ describe("PlaygroundSession", () => {
       expect(session.cwd).toBe("/home/examples");
       expect((await session.run("pwd")).stdout).toBe("/home/examples\n");
     } finally {
+      const timeout = timers.mock.calls.find(([, delay]) => delay === 5000)?.[0];
+      if (typeof timeout === "function") timeout();
+      await running;
+      messages.mockRestore();
       timers.mockRestore();
     }
   });

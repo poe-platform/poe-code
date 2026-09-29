@@ -12,8 +12,8 @@ export const canonicalFsRoutes = [
     key: "./safe-fs",
     source: { node: "packages/safe-fs/src/index.ts", browser: "packages/safe-fs/src/core.ts" },
     runtime: {
-      node: "packages/safe-js/dist/safe-fs.js",
-      browser: "packages/safe-js/dist/browser/safe-fs.js"
+      node: "dist/shared/safe-js/safe-fs.js",
+      browser: "dist/shared/safe-js/browser/safe-fs.js"
     },
     types: { node: "packages/safe-fs/dist/index.d.ts", browser: "packages/safe-fs/dist/core.d.ts" }
   },
@@ -23,8 +23,8 @@ export const canonicalFsRoutes = [
     key: "./safe-fs/core",
     source: { node: "packages/safe-fs/src/core.ts", browser: "packages/safe-fs/src/core.ts" },
     runtime: {
-      node: "packages/safe-js/dist/safe-fs-core.js",
-      browser: "packages/safe-js/dist/browser/safe-fs-core.js"
+      node: "dist/shared/safe-js/safe-fs-core.js",
+      browser: "dist/shared/safe-js/browser/safe-fs-core.js"
     },
     types: { node: "packages/safe-fs/dist/core.d.ts", browser: "packages/safe-fs/dist/core.d.ts" }
   },
@@ -33,7 +33,7 @@ export const canonicalFsRoutes = [
     specifier: "poe-code/safe-fs/node",
     key: "./safe-fs/node",
     source: { node: "packages/safe-fs/src/node-host.ts", browser: null },
-    runtime: { node: "packages/safe-js/dist/safe-fs-node.js", browser: null },
+    runtime: { node: "dist/shared/safe-js/safe-fs-node.js", browser: null },
     types: {
       node: "packages/safe-fs/dist/node-host.d.ts",
       browser: "packages/safe-fs/dist/node-unavailable.d.ts"
@@ -44,7 +44,7 @@ export const canonicalFsRoutes = [
     specifier: "poe-code/safe-fs/node/filesystem",
     key: "./safe-fs/node/filesystem",
     source: { node: "packages/safe-fs/src/node/filesystem.ts", browser: null },
-    runtime: { node: "packages/safe-js/dist/safe-fs-bridge.js", browser: null },
+    runtime: { node: "dist/shared/safe-js/safe-fs-bridge.js", browser: null },
     types: {
       node: "packages/safe-fs/dist/node/filesystem.d.ts",
       browser: "packages/safe-fs/dist/node-unavailable.d.ts"
@@ -54,12 +54,12 @@ export const canonicalFsRoutes = [
 
 export const canonicalFsProfiles = {
   node: {
-    outdir: "packages/safe-js/dist",
+    outdir: "dist/shared/safe-js",
     policy: "packages/safe-fs/src/platform/node.ts",
     types: "packages/safe-fs/dist/platform/node.d.ts"
   },
   browser: {
-    outdir: "packages/safe-js/dist/browser",
+    outdir: "dist/shared/safe-js/browser",
     policy: "packages/safe-fs/src/platform/browser.ts",
     types: "packages/safe-fs/dist/platform/browser.d.ts"
   }
@@ -92,7 +92,7 @@ const nodeOnlySafeJsExports = Object.fromEntries(
         default: `./packages/safe-js/dist/${entry}.d.ts`
       },
       browser: null,
-      import: `./packages/safe-js/dist/${entry}.js`
+      import: `./dist/shared/safe-js/${entry}.js`
     }
   ])
 );
@@ -126,7 +126,7 @@ export const canonicalFs = {
   workspace: "@poe-code/safe-fs",
   specifier: "poe-code/safe-fs",
   source: "packages/safe-fs/src/index.ts",
-  runtime: "packages/safe-js/dist/safe-fs.js",
+  runtime: "dist/shared/safe-js/safe-fs.js",
   types: "packages/safe-fs/dist/index.d.ts",
   routes: [
     ...canonicalFsRoutes,

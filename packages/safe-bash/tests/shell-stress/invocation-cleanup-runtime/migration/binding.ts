@@ -72,8 +72,8 @@ export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashe
   const entries: Record<string, string> = {};
   const checkoutEntries: Record<string, string> = {
     "poe-code/csvkit": "./packages/safe-bash-command-csvkit/dist/index.js",
-    "poe-code/safe-fs": "./packages/safe-js/dist/safe-fs.js",
-    "poe-code/safe-fs/core": "./packages/safe-js/dist/safe-fs-core.js",
+    "poe-code/safe-fs": "./dist/shared/safe-js/safe-fs.js",
+    "poe-code/safe-fs/core": "./dist/shared/safe-js/safe-fs-core.js",
     "poe-code/safe-playwright": "./packages/safe-playwright/dist/index.js",
     "poe-code/safe-playwright/adapter": "./packages/safe-playwright/dist/adapter.js",
   };
@@ -88,7 +88,7 @@ export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashe
       assert.ok(publicEntries.includes(fileName), `Unreviewed canonical runtime entry: ${fileName}`);
       const target = peer.exports[`.${fileName.slice("poe-code".length)}`]?.import;
       assert.equal(typeof target, "string", "Canonical runtime requires an explicit public import target");
-      assert.ok(target!.startsWith("./packages/") && target!.includes("/dist/") && !target!.split("/").includes(".."), "Canonical public target is not a built package entry");
+      assert.ok((target!.startsWith("./packages/") && target!.includes("/dist/") || target!.startsWith("./dist/shared/safe-js/")) && !target!.split("/").includes(".."), "Canonical public target is not a built package entry");
       if (checkoutBinding) assert.equal(target, checkoutEntries[fileName], `Canonical runtime differs from reviewed public target: ${fileName}`);
       if (peerBinding) assert.equal(target, `./${peerBinding.entries[fileName]}`, `Canonical runtime differs from authenticated public binding: ${fileName}`);
       entries[fileName] = posix.join("node_modules/poe-code", target!);
@@ -109,7 +109,7 @@ export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashe
     const path = pending.pop()!;
     if (Object.hasOwn(files, path)) continue;
     assert.ok(Object.keys(files).length < 128, "Peer runtime closure exceeds file bound");
-    assert.ok(path.startsWith("node_modules/poe-code/packages/") && path.includes("/dist/") && (path.endsWith(".js") || path.endsWith(".mjs")), `Peer closure requires built ESM: ${path}`);
+    assert.ok(["node_modules/poe-code/packages/", "node_modules/poe-code/dist/shared/safe-js/"].some(prefix => path.startsWith(prefix)) && path.includes("/dist/") && (path.endsWith(".js") || path.endsWith(".mjs")), `Peer closure requires built ESM: ${path}`);
     const local = path.slice("node_modules/poe-code/".length);
     const bytes = await readPeer(path, facts?.nativeAssets.find(asset => asset.path === local)?.maxBytes);
     files[path] = digest(bytes);
@@ -122,7 +122,7 @@ export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashe
       const nativeEdge = facts?.nativeEdges.find(edge => edge.importer === local && edge.specifier === fileName);
       assert.ok(nativeEdge || fileName.startsWith("./") || fileName.startsWith("../"), `Unreviewed peer runtime dependency: ${fileName}`);
       const target = nativeEdge ? `node_modules/poe-code/${nativeEdge.target}` : posix.normalize(posix.join(posix.dirname(path), fileName));
-      assert.ok(target.startsWith("node_modules/poe-code/packages/") && target.includes("/dist/"), `Peer runtime edge escapes built package: ${fileName}`);
+      assert.ok(["node_modules/poe-code/packages/", "node_modules/poe-code/dist/shared/safe-js/"].some(prefix => target.startsWith(prefix)) && target.includes("/dist/"), `Peer runtime edge escapes built package: ${fileName}`);
       if (admitted) assert.equal(target, `node_modules/poe-code/${admitted[fileName]}`, `Peer runtime edge differs from authenticated binding: ${fileName}`);
       imports[fileName] = target;
       pending.push(target);

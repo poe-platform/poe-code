@@ -14,9 +14,9 @@ import {
 const peerCapture = await import(
   new URL("./qualified-current-release/peer.mjs", import.meta.url).href
 );
-const runtime = "packages/safe-js/dist/safe-fs.js";
-const core = "packages/safe-js/dist/safe-fs-core.js";
-const directory = "packages/safe-js/dist/native/fs-seek";
+const runtime = "dist/shared/safe-js/safe-fs.js";
+const core = "dist/shared/safe-js/safe-fs-core.js";
+const directory = "dist/shared/safe-js/native/fs-seek";
 const specifier = "#safe-fs-native-seek";
 const loaderPath = `${directory}/loader.mjs`;
 const binaryPath = `${directory}/linux-x64-glibc.node`;
@@ -127,7 +127,7 @@ function fixture(
       Buffer.from(native ? `export {loadBinding} from "${specifier}";` : "export const fs = {};")
     ],
     [core, Buffer.from('export {fs} from "./shared.js";')],
-    ["packages/safe-js/dist/shared.js", Buffer.from("export const fs = {};")],
+    ["dist/shared/safe-js/shared.js", Buffer.from("export const fs = {};")],
     ["packages/safe-fs/dist/index.d.ts", Buffer.from("export declare const fs: unknown;")],
     ["packages/safe-fs/dist/core.d.ts", Buffer.from("export declare const fs: unknown;")],
     ...(!release ? [
@@ -327,7 +327,7 @@ test("required peer preserves branded no-native relative closure", async (contex
     );
     assert.equal(Object.keys(result.files).length, 5);
     assert.deepEqual(result.edges[`${prefix}${core}`], {
-      "./shared.js": `${prefix}packages/safe-js/dist/shared.js`
+      "./shared.js": `${prefix}dist/shared/safe-js/shared.js`
     });
   });
 });
@@ -593,13 +593,13 @@ for (const limit of ["member", "aggregate", "count"])
           )
         );
         for (let index = 0; index < 124; index++)
-          files.set(`packages/safe-js/dist/member-${index}.js`, Buffer.from("export {};"));
+          files.set(`dist/shared/safe-js/member-${index}.js`, Buffer.from("export {};"));
       } else if (limit === "member")
-        files.set("packages/safe-js/dist/shared.js", Buffer.from(" ".repeat(8 * 1024 * 1024 + 1)));
+        files.set("dist/shared/safe-js/shared.js", Buffer.from(" ".repeat(8 * 1024 * 1024 + 1)));
       else {
         files.set(core, Buffer.from('import "./shared.js"; import "./another.js";'));
         for (const name of ["shared", "another"])
-          files.set(`packages/safe-js/dist/${name}.js`, Buffer.from(" ".repeat(8 * 1024 * 1024)));
+          files.set(`dist/shared/safe-js/${name}.js`, Buffer.from(" ".repeat(8 * 1024 * 1024)));
       }
     });
     await withIo(context, setup, async () => {

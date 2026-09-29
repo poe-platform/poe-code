@@ -13,7 +13,7 @@ test("canonical conformance identifies the private workspace without claiming a 
 function peerFixture(checkout: boolean) {
   const packageRoot = checkout ? "/fixture/packages/safe-bash" : "/fixture/bash";
   const peerRoot = checkout ? "/fixture" : "/fixture/bash/node_modules/poe-code";
-  const target = checkout ? "./packages/safe-js/dist/safe-fs.js" : "./dist/safe-fs.js";
+  const target = checkout ? "./dist/shared/safe-js/safe-fs.js" : "./dist/safe-fs.js";
   const moduleUrl = pathToFileURL(`${peerRoot}/${target.slice(2)}`).href;
   const metadata = { name: "poe-code", version: checkout ? "0.0.0-dev" : "13.0.0", workspaces: ["packages/*"], exports: { "./safe-fs": { import: target } } };
   const lock = checkout ? {

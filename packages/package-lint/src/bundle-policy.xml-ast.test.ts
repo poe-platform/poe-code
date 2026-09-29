@@ -5,7 +5,7 @@ import { canonicalBundleFixture, memLintFs } from "./fixtures.js";
 it.each(["node", "browser"] as const)("keeps the XML AST implementation and types in the %s canonical runtime", profile => {
   const {manifest, metafile, packed} = canonicalBundleFixture();
   const graph = profile === "node" ? metafile.canonicalBundle : metafile.browserCanonicalBundle;
-  const chunk = `packages/safe-js/dist/${profile === "browser" ? "browser/" : ""}chunks/fs.js`;
+  const chunk = `dist/shared/safe-js/${profile === "browser" ? "browser/" : ""}chunks/fs.js`;
   graph.metafile.inputs["packages/xml-ast/src/index.ts"] = {};
   graph.metafile.outputs[chunk]!.inputs["packages/xml-ast/src/index.ts"] = {};
   metafile.canonicalTypes["packages/safe-fs/dist/core.d.ts"]!.push("../../xml-ast/dist/index.js");
@@ -32,7 +32,7 @@ it("refuses a second packed XML runtime outside the canonical bundle", () => {
 it.each(["node", "browser"] as const)("refuses duplicated XML code within the %s canonical graph", profile => {
   const {manifest, metafile, packed} = canonicalBundleFixture();
   const graph = profile === "node" ? metafile.canonicalBundle : metafile.browserCanonicalBundle;
-  const directory = `packages/safe-js/dist/${profile === "browser" ? "browser/" : ""}`;
+  const directory = `dist/shared/safe-js/${profile === "browser" ? "browser/" : ""}`;
   graph.metafile.inputs["packages/xml-ast/src/index.ts"] = {};
   for (const filename of [`${directory}safe-fs.js`, `${directory}chunks/fs.js`]) graph.metafile.outputs[filename]!.inputs["packages/xml-ast/src/index.ts"] = {};
   expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({external: "poe-code/safe-fs", reason: "duplicate-canonical-singleton"});

@@ -344,7 +344,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           : peer.exports?.["./safe-fs"];
         const target = typeof exported?.types === "string" ? exported.types : exported?.types?.default;
         assert.equal(target, "./packages/safe-fs/dist/index.d.ts", "canonical public SafeFS declaration entry");
-        if (checkout && !detached) assert.equal(exported.import, "./packages/safe-js/dist/safe-fs.js", "canonical public SafeFS must use the shared SafeJS runtime");
+        if (checkout && !detached) assert.equal(exported.import, "./dist/shared/safe-js/safe-fs.js", "canonical public SafeFS must use the shared SafeJS runtime");
         toolRoots.push(join(peerRoot, "packages/safe-fs/dist"));
         peerPaths = { ...peerPaths, "poe-code/safe-fs": [resolve(peerRoot, target)] };
         const core = detached
@@ -353,7 +353,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         if (core !== undefined) {
           const coreTarget = typeof core.types === "string" ? core.types : core.types?.default;
           assert.equal(coreTarget, "./packages/safe-fs/dist/core.d.ts", "canonical public SafeFS core declaration entry");
-          if (checkout && !detached) assert.equal(core.import, "./packages/safe-js/dist/safe-fs-core.js", "canonical public SafeFS core must use the shared SafeJS runtime");
+          if (checkout && !detached) assert.equal(core.import, "./dist/shared/safe-js/safe-fs-core.js", "canonical public SafeFS core must use the shared SafeJS runtime");
           peerPaths["poe-code/safe-fs/core"] = [resolve(peerRoot, coreTarget)];
         }
         if (manifest.devDependencies?.['@poe-code/safe-playwright'] !== undefined) {

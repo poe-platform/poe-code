@@ -5,10 +5,10 @@ import { canonicalBundleFixture } from "./fixtures.js";
 function interpreterBundle(specifiers: string[]) {
   const fixture = canonicalBundleFixture();
   const canonical = fixture.metafile.canonicalBundle;
-  const chunk = "packages/safe-js/dist/chunks/interpreter.js";
+  const chunk = "dist/shared/safe-js/chunks/interpreter.js";
   for (const name of ["index", "core", "cli"]) {
     const source = `packages/safe-js/src/${name}.ts`;
-    const output = `packages/safe-js/dist/${name}.js`;
+    const output = `dist/shared/safe-js/${name}.js`;
     canonical.entryPoints.push(source);
     canonical.metafile.inputs[source] = {};
     canonical.metafile.outputs[output] = {

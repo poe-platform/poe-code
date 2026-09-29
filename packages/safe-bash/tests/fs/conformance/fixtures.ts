@@ -168,7 +168,7 @@ export async function canonicalPeerState(
       const rootMetadata = JSON.parse(new TextDecoder().decode(rootBytes));
       assert.equal(rootMetadata.name, "poe-code");
       assert.ok(rootMetadata.workspaces?.includes("packages/*"));
-      assert.equal(rootMetadata.exports?.["./safe-fs"]?.import, "./packages/safe-js/dist/safe-fs.js", "public export must retain shared runtime identity");
+      assert.equal(rootMetadata.exports?.["./safe-fs"]?.import, "./dist/shared/safe-js/safe-fs.js", "public export must retain shared runtime identity");
       const workspaceBytes = await read(join(packageRoot, "package.json"));
       const workspace = JSON.parse(new TextDecoder().decode(workspaceBytes));
       assert.equal(workspace.name, "@poe-platform/safe-bash");
@@ -202,7 +202,7 @@ export async function canonicalPeerState(
       };
       if (resolve(packageRoot) === join(directory, "packages/safe-bash")) {
         assert.ok(metadata.workspaces?.includes("packages/*"), "canonical checkout must declare the Bash workspace");
-        assert.equal(target, "./packages/safe-js/dist/safe-fs.js", "canonical checkout must use the shared SafeJS bundle");
+        assert.equal(target, "./dist/shared/safe-js/safe-fs.js", "canonical checkout must use the shared SafeJS bundle");
         const workspaceBytes = await read(join(packageRoot, "package.json"));
         const workspace = JSON.parse(new TextDecoder().decode(workspaceBytes));
         assert.equal(workspace.name, "@poe-platform/safe-bash");

@@ -15,7 +15,6 @@ const contained = (root, path) => {
 
 const nativeSeek = Object.freeze({
   specifier: "#safe-fs-native-seek",
-  directory: "packages/safe-js/dist/native/fs-seek",
   napi: 6,
   maxBinaryBytes: 1048576,
   target: Object.freeze({ platform: "linux", arch: "x64", libc: "glibc", minimumLibc: "2.31" }),
@@ -242,7 +241,7 @@ export function resolvePeerProfile(root, io = filesystem) {
     assert.equal(peer.devDependencies?.["poe-code"], "file:.");
     assert.equal(lock.packages?.["packages/safe-bash"]?.devDependencies?.["poe-code"], "file:../..");
     assert.deepEqual(lock.packages?.["node_modules/poe-code"], { resolved: "", link: true });
-    assert.equal(peer.exports?.["./safe-fs"]?.import, "./packages/safe-js/dist/safe-fs.js", "Public SafeFS must preserve shared SafeJS runtime identity");
+    assert.equal(peer.exports?.["./safe-fs"]?.import, "./dist/shared/safe-js/safe-fs.js", "Public SafeFS must preserve shared SafeJS runtime identity");
     assert.equal(conditionalTarget(peer.exports?.["./safe-fs"]?.types, ["node", "default"]), "./packages/safe-fs/dist/index.d.ts");
     return { profile: "checkout-root", qualification: "integrated checkout; not published peer-range satisfaction", directory, metadata, peer, lock, lockPath, integrity: null };
   }
@@ -289,11 +288,14 @@ export function bindPeerArtifact({ root, artifact, declarations, checkout = fals
   assert.equal(declaration.integrity, profile.integrity);
   assert.equal(declaration.metadataSha256, digest(metadata), "Declaration peer metadata differs from artifact");
   const tooling = profile.directory;
+  const runtimeRoot = peer.exports?.["./safe-fs"]?.import === "./dist/shared/safe-js/safe-fs.js"
+    ? "dist/shared/safe-js" : "packages/safe-js/dist";
+  const nativeDirectory = `${runtimeRoot}/native/fs-seek`;
   assert.ok(io.lstatSync(tooling).isDirectory() && !io.lstatSync(tooling).isSymbolicLink(), "Build peer directory must not redirect");
   const selected = new Map([["package.json", Buffer.from(metadata)]]), declarationPaths = new Set(), nativeDirectories = new Map(), captureLimits = new Map();
   const capture = (local, limit = 16 * 1024 * 1024) => {
     limit = Math.min(limit, captureLimits.get(local) ?? limit);
-    assert.ok(local.startsWith("packages/") && local.includes("/dist/") && contained(tooling, resolve(tooling, local)), `Peer closure requires built package paths: ${local}`);
+    assert.ok((local.startsWith("packages/") && local.includes("/dist/") || local.startsWith(`${runtimeRoot}/`)) && contained(tooling, resolve(tooling, local)), `Peer closure requires built package paths: ${local}`);
     assert.ok(!local.split("/").some(part => part.toLowerCase() === "xan"), "Held peer input is forbidden");
     assert.ok(selected.size < 256, "Peer closure exceeds member bound");
     const bytes = checkout ? regularBytes(io, join(tooling, local), limit) : archive.get(local);
@@ -329,14 +331,14 @@ export function bindPeerArtifact({ root, artifact, declarations, checkout = fals
   }
   let native;
   const nativeRuntime = importer => {
-    assert.ok(importer.startsWith("packages/safe-js/dist/") && !importer.startsWith("packages/safe-js/dist/browser/") && !importer.startsWith(`${nativeSeek.directory}/`), "Private native peer edge requires the canonical Node runtime");
-    assert.equal(peer.exports?.["./safe-fs"]?.import, "./packages/safe-js/dist/safe-fs.js", "Native peer requires canonical Node SafeFS ownership");
+    assert.ok(importer.startsWith(`${runtimeRoot}/`) && !importer.startsWith(`${runtimeRoot}/browser/`) && !importer.startsWith(`${nativeDirectory}/`), "Private native peer edge requires the canonical Node runtime");
+    assert.equal(peer.exports?.["./safe-fs"]?.import, `./${runtimeRoot}/safe-fs.js`, "Native peer requires canonical Node SafeFS ownership");
     const mapping = nativeObject(peer.imports?.[nativeSeek.specifier]);
     assert.deepEqual(Object.keys(mapping), ["types", "workerd", "browser", "default"], "Native peer import condition order changed");
-    assert.deepEqual(mapping, { types: `./${nativeSeek.directory}/loader.d.ts`, workerd: null, browser: null, default: `./${nativeSeek.directory}/loader.mjs` }, "Native peer import mapping changed");
+    assert.deepEqual(mapping, { types: `./${nativeDirectory}/loader.d.ts`, workerd: null, browser: null, default: `./${nativeDirectory}/loader.mjs` }, "Native peer import mapping changed");
     if (native) return native.loader;
-    const directory = nativeSeek.directory;
-    for (const scope of ["packages/safe-js/dist/package.json", "packages/safe-js/dist/native/package.json"]) {
+    const directory = nativeDirectory;
+    for (const scope of [`${runtimeRoot}/package.json`, `${runtimeRoot}/native/package.json`]) {
       assert.ok(!io.existsSync(join(tooling, scope)) && !archive?.has(scope), "Native peer cannot introduce a nested package scope");
     }
     const manifest = nativeObject(JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(capture(`${directory}/manifest.json`, 16384))), ["version", "napi", "maxBinaryBytes", "targets", "build"]);
@@ -409,7 +411,7 @@ export function bindPeerArtifact({ root, artifact, declarations, checkout = fals
     const runtime = publicRuntime(specifier);
     if (profile.profile === "checkout-root" && specifier === "poe-code/safe-fs/core") {
       assert.equal(path, "packages/safe-fs/dist/core.d.ts", "Public SafeFS core must select the portable declaration entry");
-      assert.equal(runtime, "packages/safe-js/dist/safe-fs-core.js", "Public SafeFS core must preserve shared SafeJS runtime identity");
+      assert.equal(runtime, "dist/shared/safe-js/safe-fs-core.js", "Public SafeFS core must preserve shared SafeJS runtime identity");
     }
     pending.push(runtime);
   }
@@ -445,7 +447,7 @@ export function bindPeerArtifact({ root, artifact, declarations, checkout = fals
       }
       else if (specifier.startsWith(".")) {
         target = relative(tooling, resolve(tooling, dirname(local), specifier));
-        assert.ok(!target.startsWith(`${nativeSeek.directory}/`), "Native peer assets require the exact private import boundary");
+        assert.ok(!target.startsWith(`${nativeDirectory}/`), "Native peer assets require the exact private import boundary");
       }
       else target = publicRuntime(specifier);
       capture(target);

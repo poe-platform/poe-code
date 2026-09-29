@@ -293,7 +293,7 @@ test("workspace distribution retains one private runtime and canonical filesyste
   }
   const binding = distChecks.bindWorkspacePrerequisites("/repository", { workspaceMetadata }, io);
   const files = new Map(["js", "d.ts"].map(suffix => [`dist/index.${suffix}`, Buffer.from('export { marker } from "safe-bash-command-fmt";\nexport { marker as shared } from "safe-bash-contracts";\n')]));
-  const peer = { entries: { "poe-code/safe-fs/core": "packages/safe-js/dist/safe-fs-core.js" }, files: [] };
+  const peer = { entries: { "poe-code/safe-fs/core": "dist/shared/safe-js/safe-fs-core.js" }, files: [] };
   const prepared = verifier.prepareWorkspaceDistribution(files, binding, peer);
   assert.equal(prepared.files.size, 6);
   for (const suffix of ["js", "d.ts"]) {
@@ -322,7 +322,7 @@ for (const alias of ["@poe-code/safe-fs/contracts/object", "@poe-code/safe-fs/co
     const { workspaceMetadata, io } = builtWorkspacePrerequisiteFixture();
     const binding = distChecks.bindWorkspacePrerequisites("/repository", { workspaceMetadata }, io);
     const files = new Map(["js", "d.ts"].map(suffix => [`dist/index.${suffix}`, Buffer.from(`export * from ${JSON.stringify(alias)};\n`)]));
-    const peer = { entries: { "poe-code/safe-fs/core": "packages/safe-js/dist/safe-fs-core.js" }, files: [] };
+    const peer = { entries: { "poe-code/safe-fs/core": "dist/shared/safe-js/safe-fs-core.js" }, files: [] };
     const prepared = verifier.prepareWorkspaceDistribution(files, binding, peer);
     assert.equal(prepared.files.size, 2);
     for (const bytes of prepared.files.values()) assert.equal(bytes.toString(), 'export * from "poe-code/safe-fs/core";\n');
@@ -1169,7 +1169,7 @@ function syntheticDist(entries) {
 
 function peerSnapshot() {
   const committed = new Map([["package.json", Buffer.from('{"name":"poe-code"}')], [`${packagePrefix}/package.json`, Buffer.from('{"name":"@poe-platform/safe-bash"}')]]);
-  const peerBytes = new Map([["package.json", committed.get("package.json")], ["packages/safe-fs/dist/index.d.ts", Buffer.from("export interface Canonical {}")], ["packages/safe-js/dist/safe-fs.js", Buffer.from('export { identity } from "./shared.js";')], ["packages/safe-js/dist/shared.js", Buffer.from("export const identity = {};")]]);
+  const peerBytes = new Map([["package.json", committed.get("package.json")], ["packages/safe-fs/dist/index.d.ts", Buffer.from("export interface Canonical {}")], ["dist/shared/safe-js/safe-fs.js", Buffer.from('export { identity } from "./shared.js";')], ["dist/shared/safe-js/shared.js", Buffer.from("export const identity = {};")]]);
   const peer = { files: [...peerBytes].map(([path, bytes]) => ({ path, sha256: digest(bytes) })) };
   const entries = new Map(committed);
   for (const [path, bytes] of peerBytes) {
@@ -1194,7 +1194,7 @@ test("checkout public peer bindings preserve identity without claiming published
   assert.equal(binding.profile, "checkout-root");
   assert.equal(binding.qualification, "integrated checkout; not published peer-range satisfaction");
   assert.equal(binding.integrity, null);
-  assert.equal(binding.exports["./safe-fs"].import, "./packages/safe-js/dist/safe-fs.js");
+  assert.equal(binding.exports["./safe-fs"].import, "./dist/shared/safe-js/safe-fs.js");
   assert.equal(binding.publicEntries.get("poe-code/safe-fs/core"), "packages/safe-fs/dist/core.d.ts");
   assert.throws(() => createPeerBinding(authority, manifest, new Map(), ["poe-code/private"]), /explicit public type export/);
 });
@@ -1205,12 +1205,12 @@ for (const route of ["poe-code/safe-fs", "poe-code/safe-fs/core", "poe-code/priv
     "node_modules/@poe-platform/safe-bash/dist/index.js": `export { value } from "${route}";`,
     "node_modules/@poe-platform/safe-bash/dist/fs/s3/http/index.js": "export {};",
     "node_modules/poe-code/package.json": '{"type":"module"}',
-    "node_modules/poe-code/packages/safe-js/dist/safe-fs.js": "export const value = 1;",
-    "node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js": 'export { value } from "./shared.js";',
-    "node_modules/poe-code/packages/safe-js/dist/shared.js": "export const value = 1;",
+    "node_modules/poe-code/dist/shared/safe-js/safe-fs.js": "export const value = 1;",
+    "node_modules/poe-code/dist/shared/safe-js/safe-fs-core.js": 'export { value } from "./shared.js";',
+    "node_modules/poe-code/dist/shared/safe-js/shared.js": "export const value = 1;",
   };
   const io = createFsFromVolume(Volume.fromJSON(Object.fromEntries(Object.entries(files).map(([path, bytes]) => [`/consumer/${path}`, bytes]))));
-  const peer = { entries: { "poe-code/safe-fs": "packages/safe-js/dist/safe-fs.js", "poe-code/safe-fs/core": "packages/safe-js/dist/safe-fs-core.js" },
+  const peer = { entries: { "poe-code/safe-fs": "dist/shared/safe-js/safe-fs.js", "poe-code/safe-fs/core": "dist/shared/safe-js/safe-fs-core.js" },
     files: Object.entries(files).filter(([path]) => path.startsWith("node_modules/poe-code/")).map(([path, bytes]) => ({ path: path.slice("node_modules/poe-code/".length), sha256: digest(bytes) })) };
   const packed = Object.keys(files).filter(path => path.startsWith("node_modules/@poe-platform/safe-bash/")).map(path => path.slice("node_modules/@poe-platform/safe-bash/".length));
   const bind = () => verifier.bindPackedConsumer("/consumer", packed, peer, { publicEntries: new Map(), declarations: new Map() }, ts, io);
@@ -1219,8 +1219,8 @@ for (const route of ["poe-code/safe-fs", "poe-code/safe-fs/core", "poe-code/priv
     const binding = bind();
     assert.equal(binding.entries[route], `node_modules/poe-code/${peer.entries[route]}`);
     assert.equal(binding.edges["node_modules/@poe-platform/safe-bash/dist/index.js"][route], binding.entries[route]);
-    assert.equal(binding.edges[binding.entries["poe-code/safe-fs/core"]]["./shared.js"], "node_modules/poe-code/packages/safe-js/dist/shared.js");
-    io.writeFileSync("/consumer/node_modules/poe-code/packages/safe-js/dist/shared.js", "changed");
+    assert.equal(binding.edges[binding.entries["poe-code/safe-fs/core"]]["./shared.js"], "node_modules/poe-code/dist/shared/safe-js/shared.js");
+    io.writeFileSync("/consumer/node_modules/poe-code/dist/shared/safe-js/shared.js", "changed");
     assert.throws(bind, /Runtime input drift/);
   }
 });
@@ -1296,7 +1296,7 @@ test("peer snapshot accepts the exact authenticated union at both destinations w
 
 test("peer snapshot accepts an equal-byte committed overlap", () => {
   const fixture = peerSnapshot();
-  const path = "packages/safe-js/dist/shared.js";
+  const path = "dist/shared/safe-js/shared.js";
   fixture.committed.set(path, Buffer.from(fixture.records.get(path).bytes));
   fixture.check();
   assert.equal(fixture.reads.length, 9);
@@ -1311,7 +1311,7 @@ test("peer snapshot does not admit staged files without the authenticated peer b
 test("peer snapshot does not rebaseline a later staged-peer mutation", () => {
   const fixture = peerSnapshot();
   fixture.check();
-  fixture.records.get(`${packagePrefix}/node_modules/poe-code/packages/safe-js/dist/shared.js`).bytes = Buffer.from("later mutation");
+  fixture.records.get(`${packagePrefix}/node_modules/poe-code/dist/shared/safe-js/shared.js`).bytes = Buffer.from("later mutation");
   assert.throws(fixture.check, /snapshot input changed/);
 });
 
@@ -1330,7 +1330,7 @@ test("peer snapshot retains only the existing root tools and Bash output exclusi
 
 test("peer snapshot retains the per-input size bound before reading a peer leaf", () => {
   const fixture = peerSnapshot();
-  const path = "packages/safe-js/dist/shared.js";
+  const path = "dist/shared/safe-js/shared.js";
   fixture.records.get(path).size = 16 * 1024 * 1024 + 1;
   assert.throws(fixture.check, /unadmitted type-input file or size/);
   assert.equal(fixture.reads.includes(path), false);
@@ -1338,32 +1338,32 @@ test("peer snapshot retains the per-input size bound before reading a peer leaf"
 
 test("peer snapshot rejects conflicting authority before payload reads", () => {
   const fixture = peerSnapshot();
-  fixture.committed.set("packages/safe-js/dist/shared.js", Buffer.from("different committed bytes"));
+  fixture.committed.set("dist/shared/safe-js/shared.js", Buffer.from("different committed bytes"));
   assert.throws(fixture.check, /snapshot authority conflict/);
   assert.deepEqual(fixture.reads, []);
 });
 
-for (const path of [`${packagePrefix}/package.json`, "packages/safe-js/dist/shared.js", `${packagePrefix}/node_modules/poe-code/packages/safe-js/dist/shared.js`]) test(`peer snapshot rejects changed bytes at ${path}`, () => {
+for (const path of [`${packagePrefix}/package.json`, "dist/shared/safe-js/shared.js", `${packagePrefix}/node_modules/poe-code/dist/shared/safe-js/shared.js`]) test(`peer snapshot rejects changed bytes at ${path}`, () => {
   const fixture = peerSnapshot();
   fixture.records.get(path).bytes = Buffer.from("tampered");
   assert.throws(fixture.check, /snapshot input changed/);
 });
 
-for (const path of ["packages/safe-js/dist/shared.js", `${packagePrefix}/node_modules/poe-code/packages/safe-js/dist/shared.js`]) test(`peer snapshot rejects missing member at ${path}`, () => {
+for (const path of ["dist/shared/safe-js/shared.js", `${packagePrefix}/node_modules/poe-code/dist/shared/safe-js/shared.js`]) test(`peer snapshot rejects missing member at ${path}`, () => {
   const fixture = peerSnapshot();
   fixture.records.delete(path);
   assert.throws(fixture.check, /snapshot contains missing or new committed inputs/);
   assert.deepEqual(fixture.reads, []);
 });
 
-for (const path of ["foreign.js", "packages/safe-js/dist/foreign.js", `${packagePrefix}/node_modules/poe-code/foreign.js`]) test(`peer snapshot rejects foreign addition at ${path}`, () => {
+for (const path of ["foreign.js", "dist/shared/safe-js/foreign.js", `${packagePrefix}/node_modules/poe-code/foreign.js`]) test(`peer snapshot rejects foreign addition at ${path}`, () => {
   const fixture = peerSnapshot();
   fixture.records.set(path, { kind: "file", bytes: Buffer.from("foreign") });
   assert.throws(fixture.check, /snapshot contains missing or new committed inputs/);
   assert.deepEqual(fixture.reads, []);
 });
 
-for (const path of ["packages/safe-js", "packages/safe-js/dist/shared.js", `${packagePrefix}/node_modules/poe-code`]) test(`peer snapshot rejects symlink at ${path} before payload reads`, () => {
+for (const path of ["dist/shared/safe-js", "dist/shared/safe-js/shared.js", `${packagePrefix}/node_modules/poe-code`]) test(`peer snapshot rejects symlink at ${path} before payload reads`, () => {
   const fixture = peerSnapshot();
   fixture.records.get(path).kind = "symlink";
   assert.throws(fixture.check, /snapshot input symlink/);
@@ -1601,7 +1601,7 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     // The synthetic OP sources below remain an explicit build prerequisite.
     manifest.devDependencies["safe-bash-command-op"] = "*";
     const root = { name: "poe-code", version: "0.0.0-synthetic", type: "module", private: true, workspaces: ["packages/*"], devDependencies: { "@poe-platform/safe-bash": "*", "poe-code": "file:." }, exports: Object.fromEntries(Object.entries(manifest.exports).map(([path, conditions]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, distChecks.mirrorArchiveExportTargets(conditions)])) };
-    root.exports["./safe-fs"] = { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" };
+    root.exports["./safe-fs"] = { types: "./packages/safe-fs/dist/index.d.ts", import: "./dist/shared/safe-js/safe-fs.js" };
     const marker = join(directory, "unexpected-lifecycle");
     root.scripts = Object.fromEntries(["prepare", "prepack", "postpack", "preinstall", "postinstall"].map(name => [name, `node -e ${JSON.stringify(`require("node:fs").writeFileSync(${JSON.stringify(marker)}, ${JSON.stringify(name)})`)}`]));
     const lock = { name: root.name, version: root.version, lockfileVersion: 3, packages: {
@@ -1643,8 +1643,8 @@ export interface S3HttpTransportOptions { endpoint: string; region: string; cred
       : 'export { createS3HttpTransport } from "poe-code/safe-fs";\nexport type { S3HttpCredentials, S3HttpCredentialProvider, S3HttpRequestFactory, S3HttpTransportOptions } from "poe-code/safe-fs";\n');
     const peerFiles = new Map([
       ["packages/safe-fs/dist/index.d.ts", types + transport + "export declare function createS3HttpTransport(options: S3HttpTransportOptions): S3Transport;\nexport declare class FsError extends Error {}\nexport declare class MemoryFileSystem {}\n"],
-      ["packages/safe-js/dist/safe-fs.js", 'export { createS3HttpTransport, FsError, MemoryFileSystem } from "./shared.js";\n'],
-      ["packages/safe-js/dist/shared.js", "export class FsError extends Error {}\nexport class MemoryFileSystem {}\nexport function createS3HttpTransport(options) { void options; return { headObject() {}, getObject() {}, putObject() {}, copyObject() {}, deleteObject() {}, listObjectsV2() {} }; }\n"],
+      ["dist/shared/safe-js/safe-fs.js", 'export { createS3HttpTransport, FsError, MemoryFileSystem } from "./shared.js";\n'],
+      ["dist/shared/safe-js/shared.js", "export class FsError extends Error {}\nexport class MemoryFileSystem {}\nexport function createS3HttpTransport(options) { void options; return { headObject() {}, getObject() {}, putObject() {}, copyObject() {}, deleteObject() {}, listObjectsV2() {} }; }\n"],
     ]);
     const fixture = { directory, repository, output: join(directory, "output"), manifest, root, lock, marker, put, paths, git, indexEntries: [], peerArtifact: join(directory, "peer.tgz") };
     change(fixture);
@@ -1969,7 +1969,7 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.equal(report.peer.version, fixture.root.version);
     assert.equal(report.peer.integrity, null);
     assert.equal(report.peer.tarballSha256, profile === "packed-root" ? digest(readFileSync(fixture.peerArtifact)) : null);
-    assert.equal(report.peer.entries["poe-code/safe-fs"], "packages/safe-js/dist/safe-fs.js");
+    assert.equal(report.peer.entries["poe-code/safe-fs"], "dist/shared/safe-js/safe-fs.js");
     assert.equal(report.archivePaths.includes(`${packagePrefix}/src/fs/s3/http/types.ts`), localTypes);
     assert.equal(report.package.files.includes("dist/fs/s3/http/types.d.ts"), localTypes);
     assert.equal(report.typecheck.files.some(path => path.endsWith("/node_modules/@poe-platform/safe-bash/dist/fs/s3/http/types.d.ts")), localTypes);
@@ -2060,7 +2060,7 @@ test("canonical public declarations cannot drop an exported HTTP type", { timeou
 for (const defect of ["missing declaration", "missing runtime", "root metadata drift", "explicit missing artifact"]) test(`default checkout peer refuses ${defect} before building or consuming`, async () => {
   await withRepository(() => {}, async fixture => {
     if (defect === "missing declaration") rmSync(join(fixture.repository, "packages/safe-fs/dist/index.d.ts"));
-    if (defect === "missing runtime") rmSync(join(fixture.repository, "packages/safe-js/dist/safe-fs.js"));
+    if (defect === "missing runtime") rmSync(join(fixture.repository, "dist/shared/safe-js/safe-fs.js"));
     if (defect === "root metadata drift") writeFileSync(join(fixture.repository, "package.json"), JSON.stringify({ ...fixture.root, version: "0.0.0-drift" }));
     const report = await verifyCommittedExports({ repository: fixture.repository, ...(defect === "explicit missing artifact" ? { peerArtifact: join(fixture.directory, "missing-peer.tgz") } : {}) });
     assert.equal(report.status, "fail");

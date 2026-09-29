@@ -73,7 +73,7 @@ it("keeps Node SafeJS and all Node FS roots in one publisher-managed split build
     conditions: ["browser"],
     platform: "browser",
     external: [],
-    outdir: "/repo/packages/safe-js/dist/browser"
+    outdir: "/repo/dist/shared/safe-js/browser"
   });
   expect(builds.browser.entryPoints).toEqual({
     "safe-fs": "/repo/packages/safe-fs/src/core.ts",
@@ -90,12 +90,34 @@ it("externalizes the registered native loader only in the Node canonical profile
   expect(builds.browser.external).toEqual([]);
 });
 
+it("keeps public runtime outputs intact when a private workspace rebuild clears its dist", async () => {
+  const { createFsFromVolume, Volume } = await import("memfs");
+  const { resolveCanonicalFsBuilds } = await import("./bundle-fs.mjs");
+  const { canonicalFsRoutes } = await import("../packages/package-lint/src/bundle-policy.js");
+  const builds = resolveCanonicalFsBuilds("/repo", { alias: {}, external: [] }, {
+    index: "/repo/packages/safe-js/src/index.ts",
+  });
+  const volume = Volume.fromJSON({
+    "/repo/packages/safe-js/dist/index.js": "workspace output",
+    ...Object.fromEntries(Object.values(builds).flatMap(build =>
+      Object.keys(build.entryPoints).map(name => [`${build.outdir}/${name}.js`, "public output"])
+    )),
+  });
+  await createFsFromVolume(volume).promises.rm("/repo/packages/safe-js/dist", { recursive: true });
+  for (const route of canonicalFsRoutes) {
+    for (const runtime of Object.values(route.runtime)) {
+      if (runtime) expect(volume.existsSync(`/repo/${runtime}`)).toBe(true);
+    }
+  }
+  expect(volume.existsSync(`${builds.node.outdir}/index.js`)).toBe(true);
+});
+
 it("publishes separately built runtimes without pruning live canonical filesystem chunks", async () => {
   const { createFsFromVolume, Volume } = await import("memfs");
   const { publishBundleOutputs } = await import("./publish-bundle.mjs");
   const { resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild, mergeRuntimeBundleOutputs } = await import("./bundle-fs.mjs");
   const graph = { alias: {}, external: [] };
-  const node = resolveCanonicalFsBuilds("/repo", graph, { index: "/repo/packages/safe-js/src/index.ts" }).node;
+  const node = { ...resolveCanonicalFsBuilds("/repo", graph, { index: "/repo/packages/safe-js/src/index.ts" }).node, outdir: "/repo/packages/safe-js/dist" };
   const workerd = resolveWorkerdRuntimeBuild("/repo", graph);
   const chunk = "packages/safe-js/dist/chunks/canonical-NEW.js";
   const makeResult = (outputs: Record<string, { entryPoint?: string; imports?: { path: string }[] }>) => ({

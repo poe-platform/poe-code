@@ -71,7 +71,7 @@ for (const [profile, options] of Object.entries(resolveCanonicalFsBuilds(rootDir
   await publishBundleOutputs(result, { outdir: options.outdir, entryPoints: Object.values(options.entryPoints), workingDirectory: rootDir });
   canonicalBuilds[profile] = { entryPoints: Object.values(options.entryPoints).map(filename => path.relative(rootDir, filename).split(path.sep).join("/")), metafile: result.metafile };
 }
-await copyNativeAssets({ rootDir, outDir: path.join(rootDir, "packages/safe-js/dist") });
+await copyNativeAssets({ rootDir, outDir: path.join(rootDir, "dist/shared/safe-js") });
 
 // Plugin to strip shebangs from source files
 const stripShebangPlugin = {

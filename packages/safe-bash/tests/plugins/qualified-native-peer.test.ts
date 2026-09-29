@@ -7,8 +7,8 @@ import { createFsFromVolume, Volume } from "memfs";
 const { bindPeerArtifact, stagePeerArtifact, assertPeerArtifact, assertPeerDeclarationFiles } =
   await import(new URL("./qualified-current-release/peer.mjs", import.meta.url).href);
 const hash = (bytes: string | Uint8Array) => createHash("sha256").update(bytes).digest("hex");
-const directory = "packages/safe-js/dist/native/fs-seek";
-const runtime = "packages/safe-js/dist/safe-fs.js";
+const directory = "dist/shared/safe-js/native/fs-seek";
+const runtime = "dist/shared/safe-js/safe-fs.js";
 const types = "packages/safe-fs/dist/index.d.ts";
 const specifier = "#safe-fs-native-seek";
 const loader =
@@ -188,7 +188,7 @@ for (const defect of [
     const mapping = setup.peer.imports[specifier];
     if (defect === "unknown") setup.files.set(runtime, Buffer.from('export * from "#unreviewed";'));
     if (defect === "types") mapping.types = "./packages/safe-fs/dist/native/loader.d.ts";
-    if (defect === "default") mapping.default = "./packages/safe-js/dist/native/other/loader.mjs";
+    if (defect === "default") mapping.default = "./dist/shared/safe-js/native/other/loader.mjs";
     if (defect === "browser") Reflect.set(mapping, "browser", mapping.default);
     if (defect === "workerd") Reflect.set(mapping, "workerd", mapping.default);
     if (defect === "order")
@@ -202,7 +202,7 @@ for (const defect of [
       const local =
         defect === "foreign-profile"
           ? "packages/safe-fs/dist/foreign.js"
-          : "packages/safe-js/dist/browser/foreign.js";
+          : "dist/shared/safe-js/browser/foreign.js";
       setup.files.set(
         runtime,
         Buffer.from(

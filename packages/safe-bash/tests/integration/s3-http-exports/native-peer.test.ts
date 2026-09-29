@@ -8,8 +8,8 @@ import ts from "typescript";
 const { bindPackedConsumer } = await import(new URL("./verify.mjs", import.meta.url).href);
 const { bindPeerArtifact, stagePeerArtifact } = await import(new URL("../../plugins/qualified-current-release/peer.mjs", import.meta.url).href);
 const digest = (bytes: string | Uint8Array) => createHash("sha256").update(bytes).digest("hex");
-const runtime = "packages/safe-js/dist/safe-fs.js";
-const directory = "packages/safe-js/dist/native/fs-seek";
+const runtime = "dist/shared/safe-js/safe-fs.js";
+const directory = "dist/shared/safe-js/native/fs-seek";
 const specifier = "#safe-fs-native-seek";
 const prefix = "node_modules/poe-code/";
 
@@ -33,7 +33,7 @@ function fixture(native = true, empty = false) {
   const files = new Map<string, string | Buffer>([
     ["package.json", JSON.stringify(metadata)],
     [runtime, native ? `export { loadBinding } from "${specifier}";` : 'export { value } from "./shared.js";'],
-    ["packages/safe-js/dist/shared.js", "export const value = 1;"],
+    ["dist/shared/safe-js/shared.js", "export const value = 1;"],
     ["packages/safe-fs/dist/index.d.ts", "export declare const value: unknown;"],
     ...(native ? [
       [`${directory}/loader.mjs`, loader], [`${directory}/loader.d.ts`, declaration],
@@ -84,7 +84,7 @@ test("S3 packed consumer preserves nonnative branded and legacy closures", () =>
   const branded = bindPackedConsumer("/consumer", setup.packed, setup.peer, setup.declarations, ts, setup.io);
   const legacy = { entries: setup.peer.entries, files: setup.peer.files };
   assert.deepEqual(bindPackedConsumer("/consumer", setup.packed, legacy, setup.declarations, ts, setup.io), branded);
-  assert.equal(branded.edges[`${prefix}${runtime}`]["./shared.js"], `${prefix}packages/safe-js/dist/shared.js`);
+  assert.equal(branded.edges[`${prefix}${runtime}`]["./shared.js"], `${prefix}dist/shared/safe-js/shared.js`);
 });
 
 test("S3 packed consumer rejects a serialized peer instead of trusting native metadata", () => {

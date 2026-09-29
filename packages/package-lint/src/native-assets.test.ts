@@ -9,7 +9,7 @@ import { canonicalBundleFixture } from "./fixtures.js";
 import { loadBuildView, type LintFs } from "./model.js";
 
 const digest = (bytes: string | Uint8Array) => createHash("sha256").update(bytes).digest("hex");
-const assetRoot = "packages/safe-js/dist/native/fs-seek";
+const assetRoot = "dist/shared/safe-js/native/fs-seek";
 const specifier = "#safe-fs-native-seek";
 
 function fixture(empty = false) {
@@ -327,12 +327,12 @@ for (const defect of [
     const facts = await policy.collectCanonicalNativeAssets("/repo", setup.fs);
     if (defect === "browser")
       setup.metafile.browserCanonicalBundle.metafile.outputs[
-        "packages/safe-js/dist/browser/chunks/fs.js"
+        "dist/shared/safe-js/browser/chunks/fs.js"
       ].imports.push({ path: specifier, external: true });
     if (defect === "mapping") setup.manifest.imports[specifier].default = "./wrong.mjs";
     if (defect === "packed-missing") setup.packed.delete(`${assetRoot}/linux-x64-glibc.node`);
     if (defect === "packed-extra") setup.packed.add(`${assetRoot}/extra.node`);
-    if (defect === "nested-scope") setup.packed.add("packages/safe-js/dist/package.json");
+    if (defect === "nested-scope") setup.packed.add("dist/shared/safe-js/package.json");
     if (defect === "duplicate-runtime") setup.packed.add("packages/safe-fs/dist/index.js");
     if (defect === "consumer-edge")
       setup.metafile.outputs["dist/index.js"].imports.push({

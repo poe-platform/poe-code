@@ -178,16 +178,16 @@
         "browser": "./packages/safe-fs/dist/core.d.ts",
         "default": "./packages/safe-fs/dist/core.d.ts"
       },
-      "browser": "./packages/safe-js/dist/browser/safe-fs-core.js",
-      "import": "./packages/safe-js/dist/safe-fs-core.js"
+      "browser": "./dist/shared/safe-js/browser/safe-fs-core.js",
+      "import": "./dist/shared/safe-js/safe-fs-core.js"
     },
     "./safe-fs": {
       "types": {
         "browser": "./packages/safe-fs/dist/core.d.ts",
         "default": "./packages/safe-fs/dist/index.d.ts"
       },
-      "browser": "./packages/safe-js/dist/browser/safe-fs.js",
-      "import": "./packages/safe-js/dist/safe-fs.js"
+      "browser": "./dist/shared/safe-js/browser/safe-fs.js",
+      "import": "./dist/shared/safe-js/safe-fs.js"
     },
     "./safe-fs/node": {
       "types": {
@@ -195,7 +195,7 @@
         "default": "./packages/safe-fs/dist/node-host.d.ts"
       },
       "browser": null,
-      "import": "./packages/safe-js/dist/safe-fs-node.js"
+      "import": "./dist/shared/safe-js/safe-fs-node.js"
     },
     "./safe-fs/node/filesystem": {
       "types": {
@@ -203,7 +203,7 @@
         "default": "./packages/safe-fs/dist/node/filesystem.d.ts"
       },
       "browser": null,
-      "import": "./packages/safe-js/dist/safe-fs-bridge.js"
+      "import": "./dist/shared/safe-js/safe-fs-bridge.js"
     },
     "./safe-js": {
       "types": {
@@ -211,7 +211,7 @@
         "default": "./packages/safe-js/dist/index.d.ts"
       },
       "browser": null,
-      "import": "./packages/safe-js/dist/index.js"
+      "import": "./dist/shared/safe-js/index.js"
     },
     "./safe-js/core": {
       "types": {
@@ -219,7 +219,7 @@
         "default": "./packages/safe-js/dist/core.d.ts"
       },
       "browser": null,
-      "import": "./packages/safe-js/dist/core.js"
+      "import": "./dist/shared/safe-js/core.js"
     },
     "./safe-js/cli": {
       "types": {
@@ -227,7 +227,7 @@
         "default": "./packages/safe-js/dist/cli.d.ts"
       },
       "browser": null,
-      "import": "./packages/safe-js/dist/cli.js"
+      "import": "./dist/shared/safe-js/cli.js"
     },
     "./safejs": {
       "types": {
@@ -235,7 +235,7 @@
         "default": "./packages/safe-js/dist/index.d.ts"
       },
       "browser": null,
-      "import": "./packages/safe-js/dist/index.js"
+      "import": "./dist/shared/safe-js/index.js"
     },
     "./safejs/core": {
       "types": {
@@ -243,7 +243,7 @@
         "default": "./packages/safe-js/dist/core.d.ts"
       },
       "browser": null,
-      "import": "./packages/safe-js/dist/core.js"
+      "import": "./dist/shared/safe-js/core.js"
     },
     "./safejs/cli": {
       "types": {
@@ -251,7 +251,7 @@
         "default": "./packages/safe-js/dist/cli.d.ts"
       },
       "browser": null,
-      "import": "./packages/safe-js/dist/cli.js"
+      "import": "./dist/shared/safe-js/cli.js"
     },
     "./safe-playwright": {
       "types": "./packages/safe-playwright/dist/index.d.ts",
@@ -699,7 +699,7 @@
     "packages/safe-bash-command-soffice/dist",
     "packages/safe-bash-command-sips/dist",
     "packages/safe-bash-command-imagemagick/dist",
-    "packages/safe-js/dist",
+    "packages/safe-js/dist/**/*.d.ts",
     "packages/safe-fs/dist/**/*.d.ts",
     "!packages/safe-js/dist/package.json",
     "packages/safe-playwright/dist",
@@ -803,10 +803,10 @@
       "default": null
     },
     "#safe-fs-native-seek": {
-      "types": "./packages/safe-js/dist/native/fs-seek/loader.d.ts",
+      "types": "./dist/shared/safe-js/native/fs-seek/loader.d.ts",
       "workerd": null,
       "browser": null,
-      "default": "./packages/safe-js/dist/native/fs-seek/loader.mjs"
+      "default": "./dist/shared/safe-js/native/fs-seek/loader.mjs"
     },
     "#git-wasm": {
       "workerd": "./packages/safe-bash-command-git/dist/runtime.workerd.js",

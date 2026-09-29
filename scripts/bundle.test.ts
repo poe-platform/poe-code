@@ -6,7 +6,7 @@ import { beforeAll, expect, it, vi } from "vitest";
 import { resolveConsumerGraph } from "./bundle-graph.mjs";
 
 type PublicFs = typeof import("../packages/safe-fs/src/index.js");
-const outdir = "/isolated/packages/safe-js/dist";
+const outdir = "/isolated/dist/shared/safe-js";
 let load: (filename: string) => PublicFs;
 let publicFs: PublicFs, bash: PublicFs, duplicated: PublicFs;
 let consumer: BuildResult;

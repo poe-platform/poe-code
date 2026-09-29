@@ -308,8 +308,8 @@ for (const defect of ["none", "detached", "declaration", "runtime"]) test(`build
     "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } }),
     "src/index.ts": 'import type { FileSystem } from "poe-code/safe-fs/core"; export const filesystem: FileSystem = { portable: true };',
     "../../package.json": JSON.stringify({ name: "poe-code", type: "module", exports: {
-      "./safe-fs": { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" },
-      "./safe-fs/core": { types: { default: "./packages/safe-fs/dist/core.d.ts" }, import: "./packages/safe-js/dist/safe-fs-core.js" },
+      "./safe-fs": { types: "./packages/safe-fs/dist/index.d.ts", import: "./dist/shared/safe-js/safe-fs.js" },
+      "./safe-fs/core": { types: { default: "./packages/safe-fs/dist/core.d.ts" }, import: "./dist/shared/safe-js/safe-fs-core.js" },
     } }),
     "../../packages/safe-fs/dist/index.d.ts": "export interface FileSystem { portable: boolean; }",
     "../../packages/safe-fs/dist/core.d.ts": "export interface FileSystem { portable: boolean; }",
@@ -862,10 +862,10 @@ test("guarded compiler resolves the public peer declaration without admitting pe
   const owned = fixture({
     "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "13.0.0" } }),
     "src/index.ts": 'export type { Canonical } from "poe-code/safe-fs";\n',
-    "node_modules/poe-code/package.json": JSON.stringify({ name: "poe-code", version: "13.0.0", type: "module", exports: { "./safe-fs": { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" } } }),
+    "node_modules/poe-code/package.json": JSON.stringify({ name: "poe-code", version: "13.0.0", type: "module", exports: { "./safe-fs": { types: "./packages/safe-fs/dist/index.d.ts", import: "./dist/shared/safe-js/safe-fs.js" } } }),
     "node_modules/poe-code/packages/safe-fs/dist/index.d.ts": 'export interface Canonical { identity: "public"; }\n',
     "node_modules/poe-code/packages/safe-fs/src/index.ts": 'UNADMITTED SOURCE',
-    "node_modules/poe-code/packages/safe-js/dist/safe-fs.js": 'UNEXECUTED RUNTIME',
+    "node_modules/poe-code/dist/shared/safe-js/safe-fs.js": 'UNEXECUTED RUNTIME',
   });
   const result = await owned.run();
   assert.equal(result.status, 0, owned.output.join(""));
@@ -949,7 +949,7 @@ function checkoutPeerFixture(optionalYaml = false) {
     manifest.peerDependencies.yaml = "2.9.0";
     manifest.peerDependenciesMeta = { yaml: { optional: true } };
   }
-  const peer = { name: "poe-code", version: "0.0.0-dev", type: "module", devDependencies: { "poe-code": "file:." }, exports: { "./safe-fs": { types: { default: "./packages/safe-fs/dist/index.d.ts" }, import: "./packages/safe-js/dist/safe-fs.js" } } };
+  const peer = { name: "poe-code", version: "0.0.0-dev", type: "module", devDependencies: { "poe-code": "file:." }, exports: { "./safe-fs": { types: { default: "./packages/safe-fs/dist/index.d.ts" }, import: "./dist/shared/safe-js/safe-fs.js" } } };
   const lock = { packages: { "packages/safe-bash": {
     peerDependencies: structuredClone(manifest.peerDependencies),
     ...(optionalYaml ? { peerDependenciesMeta: structuredClone(manifest.peerDependenciesMeta) } : {}),
@@ -960,8 +960,8 @@ function checkoutPeerFixture(optionalYaml = false) {
     [packageRoot + "/package.json"]: JSON.stringify(manifest), [checkout + "/package.json"]: JSON.stringify(peer),
     [checkout + "/package-lock.json"]: JSON.stringify(lock),
     [checkout + "/packages/safe-fs/dist/index.d.ts"]: declaration,
-    [checkout + "/packages/safe-js/dist/safe-fs.js"]: 'export { identity } from "./shared.js";\n',
-    [checkout + "/packages/safe-js/dist/shared.js"]: 'export const identity = {};\n',
+    [checkout + "/dist/shared/safe-js/safe-fs.js"]: 'export { identity } from "./shared.js";\n',
+    [checkout + "/dist/shared/safe-js/shared.js"]: 'export const identity = {};\n',
   }));
   const hash = bytes => createHash("sha256").update(bytes).digest("hex");
   const declarations = { peer: { version: peer.version, integrity: null, metadataSha256: hash(JSON.stringify(peer)), declarations: new Map([["packages/safe-fs/dist/index.d.ts", hash(declaration)]]), publicEntries: new Map([["poe-code/safe-fs", "packages/safe-fs/dist/index.d.ts"]]) } };
@@ -978,7 +978,7 @@ function registryPeerFixture(optionalYaml = false) {
   peer.version = "13.0.0";
   delete peer.devDependencies;
   const files = new Map([["package.json", Buffer.from(JSON.stringify(peer))]]);
-  for (const path of ["packages/safe-fs/dist/index.d.ts", "packages/safe-js/dist/safe-fs.js", "packages/safe-js/dist/shared.js"]) {
+  for (const path of ["packages/safe-fs/dist/index.d.ts", "dist/shared/safe-js/safe-fs.js", "dist/shared/safe-js/shared.js"]) {
     files.set(path, original.io.readFileSync(original.checkout + "/" + path));
   }
   const blocks = [];
@@ -1222,7 +1222,7 @@ test("explicit checkout capture stages only the canonical public closure and det
   stagePeerArtifact(binding, "/consumer");
   assertPeerArtifact(binding, "/consumer");
   assert.equal(owned.io.existsSync("/consumer/node_modules/poe-code/packages/safe-fs/src"), false);
-  owned.io.writeFileSync("/consumer/node_modules/poe-code/packages/safe-js/dist/shared.js", "changed");
+  owned.io.writeFileSync("/consumer/node_modules/poe-code/dist/shared/safe-js/shared.js", "changed");
   assert.throws(() => assertPeerArtifact(binding, "/consumer"), /changed/);
 });
 
@@ -1973,7 +1973,7 @@ for (const defect of ['none', 'declaration', 'runtime', 'source-import']) test(`
     'package.json': JSON.stringify({ name: 'virtual-bash', type: 'module', peerDependencies: { 'poe-code': '>=13.0.0' }, devDependencies: { 'poe-code': 'file:../..', '@poe-code/safe-playwright': '*' }, poeCode: { integration: { peerProfile: 'checkout-root' } } }),
     'src/index.ts': 'export { createPlaywrightController } from "poe-code/safe-playwright"; export type { PlaywrightAdapter } from "poe-code/safe-playwright/adapter";',
     '../../package.json': JSON.stringify({ name: 'poe-code', type: 'module', exports: {
-      './safe-fs': { types: './packages/safe-fs/dist/index.d.ts', import: './packages/safe-js/dist/safe-fs.js' },
+      './safe-fs': { types: './packages/safe-fs/dist/index.d.ts', import: './dist/shared/safe-js/safe-fs.js' },
       './safe-playwright': { types: './packages/safe-playwright/dist/index.d.ts', import: './packages/safe-playwright/dist/index.js' },
       './safe-playwright/adapter': { types: './packages/safe-playwright/dist/adapter.d.ts', import: './packages/safe-playwright/dist/adapter.js' },
     } }),

@@ -204,11 +204,287 @@ async function computeVfsUsage(
   return { usedBytes, usedInodes };
 }
 
+export const dfExecutorOptions = new WeakMap<CommandDefinition["execute"], DfCommandsOptions>();
+
+export interface SyncDfVfsNode {
+  readonly type: "file" | "directory" | "symlink";
+  readonly size: number;
+  readonly children?: ReadonlyArray<{ readonly name: string; readonly type: "file" | "directory" | "symlink"; readonly size: number }>;
+}
+
+function computeVfsUsageSync(
+  rootPath: string,
+  budget: { remaining: number },
+  mountTargets: readonly string[],
+  inspectNode: (absPath: string) => SyncDfVfsNode | undefined,
+): { usedBytes: number; usedInodes: number } | undefined {
+  if (budget.remaining < 1) return undefined;
+  budget.remaining--;
+  let usedBytes = 4096;
+  let usedInodes = 1;
+  const queue: string[] = [rootPath];
+  for (let index = 0; index < queue.length; index++) {
+    const current = queue[index]!;
+    const dirNode = inspectNode(current);
+    const entries = dirNode?.type === "directory" && dirNode.children ? dirNode.children : [];
+    for (const entry of entries) {
+      const child = current === "/" ? `/${entry.name}` : `${current}/${entry.name}`;
+      if (mountTargets.includes(child)) continue;
+      if (budget.remaining < 1) return undefined;
+      budget.remaining--;
+      usedInodes++;
+      if (entry.type === "directory") {
+        usedBytes += 4096;
+        queue.push(child);
+      } else {
+        usedBytes += Math.max(0, Number(entry.size ?? 0));
+      }
+    }
+  }
+  return { usedBytes, usedInodes };
+}
+
+export function evalSyncDf(
+  args: readonly string[],
+  cwd: string,
+  env: Readonly<Record<string, string | undefined>>,
+  inspectNode: (absPath: string) => SyncDfVfsNode | undefined,
+  execFn?: unknown,
+): string | undefined {
+  const options = (execFn ? dfExecutorOptions.get(execFn as never) : undefined) ?? {};
+  const limits = settings(options);
+  let argBytes = 0;
+  for (const arg of args) {
+    argBytes += Buffer.byteLength(arg);
+    if (argBytes > limits.maxArgumentBytes) return undefined;
+  }
+  let showAll = false;
+  let scaleMode: "blocks" | "human-1024" | "human-1000" = "blocks";
+  let blockSize = env.POSIXLY_CORRECT !== undefined ? 512 : 1024;
+  let blockHeader = env.POSIXLY_CORRECT !== undefined ? "512-blocks" : "1K-blocks";
+  let showInodes = false;
+  let portability = false;
+  let printType = false;
+  let showTotal = false;
+  let outputFields: string[] | undefined;
+  const includeTypes = new Set<string>();
+  const excludeTypes = new Set<string>();
+  const operands: string[] = [];
+  let endOfOptions = false;
+
+  const envBlock = env.DF_BLOCK_SIZE ?? env.BLOCK_SIZE ?? env.BLOCKSIZE;
+  if (envBlock) {
+    const parsed = parseBlockSize(envBlock);
+    if (parsed) {
+      blockSize = parsed.size;
+      blockHeader = parsed.label;
+    }
+  }
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    if (!endOfOptions && arg === "--") { endOfOptions = true; continue; }
+    if (!endOfOptions && (arg === "--help" || arg === "--version")) return undefined;
+    if (!endOfOptions && arg.startsWith("--") && arg.length > 2) {
+      if (arg === "--all") showAll = true;
+      else if (arg === "--human-readable") scaleMode = "human-1024";
+      else if (arg === "--si") scaleMode = "human-1000";
+      else if (arg === "--inodes") showInodes = true;
+      else if (arg === "--local" || arg === "--sync" || arg === "--no-sync") {}
+      else if (arg === "--portability") {
+        portability = true;
+        if (scaleMode === "blocks" && blockSize === 1024 && env.POSIXLY_CORRECT === undefined) blockHeader = "1024-blocks";
+      } else if (arg === "--print-type") printType = true;
+      else if (arg === "--total") showTotal = true;
+      else if (arg === "--output" || arg.startsWith("--output=")) {
+        if (arg === "--output") outputFields = [...DEFAULT_OUTPUT_FIELDS];
+        else {
+          const list = arg.slice("--output=".length).split(",").filter(Boolean);
+          if (list.length === 0 || list.some(f => !VALID_OUTPUT_FIELDS.has(f))) return undefined;
+          outputFields = list;
+        }
+      } else if (arg === "--block-size" || arg.startsWith("--block-size=")) {
+        const val = arg === "--block-size" ? args[++i] : arg.slice("--block-size=".length);
+        const parsed = val ? parseBlockSize(val) : undefined;
+        if (!parsed) return undefined;
+        scaleMode = "blocks"; blockSize = parsed.size; blockHeader = parsed.label;
+      } else if (arg === "--type" || arg.startsWith("--type=")) {
+        const val = arg === "--type" ? args[++i] : arg.slice("--type=".length);
+        if (!val) return undefined;
+        includeTypes.add(val);
+      } else if (arg === "--exclude-type" || arg.startsWith("--exclude-type=")) {
+        const val = arg === "--exclude-type" ? args[++i] : arg.slice("--exclude-type=".length);
+        if (!val) return undefined;
+        excludeTypes.add(val);
+      } else return undefined;
+      continue;
+    }
+    if (!endOfOptions && arg.startsWith("-") && arg.length > 1) {
+      for (let j = 1; j < arg.length; j++) {
+        const ch = arg[j]!;
+        if (ch === "a") showAll = true;
+        else if (ch === "h") scaleMode = "human-1024";
+        else if (ch === "H") scaleMode = "human-1000";
+        else if (ch === "i") showInodes = true;
+        else if (ch === "k") { scaleMode = "blocks"; blockSize = 1024; blockHeader = portability ? "1024-blocks" : "1K-blocks"; }
+        else if (ch === "m") { scaleMode = "blocks"; blockSize = 1048576; blockHeader = "1M-blocks"; }
+        else if (ch === "l") {}
+        else if (ch === "P") { portability = true; if (blockSize === 1024 && env.POSIXLY_CORRECT === undefined) blockHeader = "1024-blocks"; }
+        else if (ch === "T") printType = true;
+        else if (ch === "B") {
+          const val = arg.slice(j + 1) || args[++i];
+          const parsed = val ? parseBlockSize(val) : undefined;
+          if (!parsed) return undefined;
+          scaleMode = "blocks"; blockSize = parsed.size; blockHeader = parsed.label; j = arg.length;
+        } else if (ch === "t") {
+          const val = arg.slice(j + 1) || args[++i];
+          if (!val) return undefined;
+          includeTypes.add(val); j = arg.length;
+        } else if (ch === "x") {
+          const val = arg.slice(j + 1) || args[++i];
+          if (!val) return undefined;
+          excludeTypes.add(val); j = arg.length;
+        } else return undefined;
+      }
+      continue;
+    }
+    operands.push(arg);
+  }
+  if (outputFields && (showInodes || printType || portability)) return undefined;
+  for (const t of includeTypes) if (excludeTypes.has(t)) return undefined;
+
+  const rootTotalBytes = options.totalBytes ?? 1024 * 1024 * 1024;
+  const rootTotalInodes = options.totalInodes ?? 1048576;
+  const defaultMounts: DfMountEntry[] = [
+    { source: "sandbox-vfs", fstype: "vfs", target: "/", totalBytes: rootTotalBytes, totalInodes: rootTotalInodes },
+    { source: "tmpfs", fstype: "tmpfs", target: "/tmp", totalBytes: 256 * 1024 * 1024, totalInodes: 262144 },
+    { source: "proc", fstype: "proc", target: "/proc", totalBytes: 0, usedBytes: 0, totalInodes: 0, usedInodes: 0, pseudo: true },
+  ];
+  if (!options.mounts) {
+    const budget = { remaining: limits.maxVisitedEntries };
+    const mountTargets = defaultMounts.map(m => m.target);
+    for (let idx = 0; idx < defaultMounts.length; idx++) {
+      const m = defaultMounts[idx]!;
+      if (m.pseudo) continue;
+      const usage = computeVfsUsageSync(m.target, budget, mountTargets, inspectNode);
+      if (!usage) return undefined;
+      defaultMounts[idx] = {
+        ...m,
+        usedBytes: Math.min(m.totalBytes, usage.usedBytes),
+        usedInodes: Math.min(m.totalInodes, usage.usedInodes),
+      };
+    }
+  }
+  const mountTable = options.mounts ?? defaultMounts;
+  const selected: Array<{ mount: DfMountEntry; fileOperand: string }> = [];
+  if (operands.length > 0) {
+    for (const op of operands) {
+      const resolved = resolveVfsPath(cwd, op);
+      const isMountTarget = mountTable.some(m => m.target === resolved);
+      if (!isMountTarget && !inspectNode(resolved)) return undefined;
+      let best = mountTable[0]!;
+      for (const m of mountTable) {
+        if (resolved === m.target || (m.target !== "/" && resolved.startsWith(m.target + "/"))) {
+          if (m.target.length >= best.target.length) best = m;
+        }
+      }
+      selected.push({ mount: best, fileOperand: op });
+    }
+  } else {
+    for (const m of mountTable) {
+      if (!showAll && m.pseudo) continue;
+      selected.push({ mount: m, fileOperand: m.target });
+    }
+  }
+  const filtered = selected.filter(({ mount }) => {
+    if (includeTypes.size > 0 && !includeTypes.has(mount.fstype)) return false;
+    if (excludeTypes.has(mount.fstype)) return false;
+    return true;
+  });
+  if (filtered.length === 0) return undefined;
+
+  const formatSizeVal = (bytes: number): string => {
+    if (scaleMode === "human-1024") return formatHuman(bytes, 1024);
+    if (scaleMode === "human-1000") return formatHuman(bytes, 1000);
+    return String(Math.ceil(bytes / blockSize));
+  };
+  const formatPct = (used: number, total: number): string => {
+    if (total <= 0) return "-";
+    const pct = Math.min(100, Math.max(used > 0 ? 1 : 0, Math.ceil((used / total) * 100)));
+    return `${pct}%`;
+  };
+  const activeFields = outputFields
+    ? outputFields
+    : showInodes
+      ? (printType ? ["source", "fstype", "itotal", "iused", "iavail", "ipcent", "target"] : ["source", "itotal", "iused", "iavail", "ipcent", "target"])
+      : (printType ? ["source", "fstype", "size", "used", "avail", "pcent", "target"] : ["source", "size", "used", "avail", "pcent", "target"]);
+  const headerRow = activeFields.map(f => {
+    if (f === "size") return (scaleMode === "human-1024" || scaleMode === "human-1000") ? "Size" : blockHeader;
+    if (f === "avail" && portability && !outputFields) return "Available";
+    if (f === "pcent" && portability && !outputFields) return "Capacity";
+    return FIELD_HEADERS[f] ?? f;
+  });
+  const dataRows: string[][] = [];
+  let sumTotalBytes = 0, sumUsedBytes = 0, sumAvailBytes = 0, sumTotalInodes = 0, sumUsedInodes = 0, sumAvailInodes = 0;
+  for (const { mount, fileOperand } of filtered) {
+    const usedB = mount.usedBytes ?? 0;
+    const availB = Math.max(0, mount.totalBytes - usedB);
+    const usedI = mount.usedInodes ?? 0;
+    const availI = Math.max(0, mount.totalInodes - usedI);
+    sumTotalBytes += mount.totalBytes; sumUsedBytes += usedB; sumAvailBytes += availB;
+    sumTotalInodes += mount.totalInodes; sumUsedInodes += usedI; sumAvailInodes += availI;
+    dataRows.push(activeFields.map(f => {
+      switch (f) {
+        case "source": return mount.source;
+        case "fstype": return mount.fstype;
+        case "itotal": return scaleMode === "blocks" ? String(mount.totalInodes) : formatSizeVal(mount.totalInodes);
+        case "iused": return scaleMode === "blocks" ? String(usedI) : formatSizeVal(usedI);
+        case "iavail": return scaleMode === "blocks" ? String(availI) : formatSizeVal(availI);
+        case "ipcent": return formatPct(usedI, mount.totalInodes);
+        case "size": return formatSizeVal(mount.totalBytes);
+        case "used": return formatSizeVal(usedB);
+        case "avail": return formatSizeVal(availB);
+        case "pcent": return formatPct(usedB, mount.totalBytes);
+        case "file": return fileOperand;
+        case "target": return mount.target;
+        default: return "";
+      }
+    }));
+  }
+  if (showTotal) {
+    dataRows.push(activeFields.map(f => {
+      switch (f) {
+        case "source": return "total";
+        case "fstype": return "-";
+        case "itotal": return scaleMode === "blocks" ? String(sumTotalInodes) : formatSizeVal(sumTotalInodes);
+        case "iused": return scaleMode === "blocks" ? String(sumUsedInodes) : formatSizeVal(sumUsedInodes);
+        case "iavail": return scaleMode === "blocks" ? String(sumAvailInodes) : formatSizeVal(sumAvailInodes);
+        case "ipcent": return formatPct(sumUsedInodes, sumTotalInodes);
+        case "size": return formatSizeVal(sumTotalBytes);
+        case "used": return formatSizeVal(sumUsedBytes);
+        case "avail": return formatSizeVal(sumAvailBytes);
+        case "pcent": return formatPct(sumUsedBytes, sumTotalBytes);
+        default: return "-";
+      }
+    }));
+  }
+  const widths = headerRow.map((h, col) => {
+    let max = Math.max(h.length, col === 0 ? 14 : 5);
+    for (const r of dataRows) max = Math.max(max, r[col]!.length);
+    return max;
+  });
+  const rightAligned = new Set(["itotal", "iused", "iavail", "ipcent", "size", "used", "avail", "pcent"]);
+  const formatTableRow = (cells: string[]): string =>
+    cells.map((cell, idx) => idx === cells.length - 1 ? cell : (rightAligned.has(activeFields[idx]!) ? cell.padStart(widths[idx]!, " ") : cell.padEnd(widths[idx]!, " "))).join(" ");
+  const lines = [formatTableRow(headerRow), ...dataRows.map(formatTableRow)];
+  return `${lines.join("\n")}\n`;
+}
+
 export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
   const sharedEncoder = new TextEncoder();
 
-  return {
+  const def: CommandDefinition = {
     name: "df",
     description: "Report file system disk space usage in the Sandbox VFS",
     runtimeIdentity: commandRuntimeIdentity,
@@ -666,6 +942,8 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
       return { exitCode };
     },
   };
+  dfExecutorOptions.set(def.execute, options);
+  return def;
 }
 
 export function createDfCommands(options: DfCommandsOptions = {}): readonly CommandDefinition[] {

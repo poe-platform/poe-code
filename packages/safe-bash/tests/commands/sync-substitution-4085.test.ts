@@ -19,6 +19,9 @@ import { createXanCommands } from "../../src/commands/xan/index.js";
 import { createTimeEnvCommands } from "../../src/commands/time-env/index.js";
 import { createLessCommands } from "../../src/commands/less/index.js";
 import { createGrepAliasCommands } from "../../src/commands/grep-aliases/index.js";
+import { createDfCommands } from "../../src/commands/df/index.js";
+import { createDuCommands } from "../../src/commands/du/index.js";
+import { createTreeCommands } from "../../src/commands/tree/index.js";
 
 const parityXml = new TextEncoder().encode('<config><server id="main"><host>local&#13;host</host><?pi target="1"?><?empty?></server><server id="backup"><host>replica</host></server></config>');
 
@@ -656,4 +659,48 @@ test("sync substitution fast path covers date, printenv, less, more, egrep, and 
   `);
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "two,three,:one:80\n");
+});
+
+test("sync substitution fast path covers df, du, and tree (Wave 138)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/proj/src", { recursive: true });
+  await fs.writeFile("/proj/README.md", new TextEncoder().encode("hello\n"));
+  await fs.writeFile("/proj/src/index.ts", new TextEncoder().encode("export const x = 1;\n"));
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createDfCommands(),
+    ...createDuCommands(),
+    ...createTreeCommands(),
+  ]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(df --output=source,target /proj | tail -n 1 | tr -s " "):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "sandbox-vfs /:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(du -sb /proj | cut -f1):$(du -s --inodes /proj | cut -f1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "26:4:80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(tree -i --noreport /proj | tr "\n" ","):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "/proj,README.md,src,index.ts,:80\n");
 });

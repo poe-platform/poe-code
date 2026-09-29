@@ -14,6 +14,12 @@ export class Lifecycle {
     if (this.closing) throw new PrError("command is closed");
   }
   hasPendingStdout(): boolean { return this.pendingStdout.length > 0; }
+  takeStdoutSync(): string {
+    const chunk = this.pendingStdout;
+    this.pendingStdout = "";
+    this.budget.retain(-chunk.length * 3);
+    return chunk;
+  }
   async operation<Value>(action: () => Value | Promise<Value>, admitted = false): Promise<Value> {
     this.assertOpen();
     if (!admitted) this.budget.charge();
@@ -169,6 +175,11 @@ export class Reader {
       this.iterator = Reflect.apply(factory, source, []);
     });
   }
+  initFromBytes(content: Uint8Array): void {
+    this.chunk = content;
+    this.offset = 0;
+    this.ended = true;
+  }
   unget(value: number): void { this.pushed = value; }
   get(): number | Promise<number> {
     const { budget } = this.lifecycle;
@@ -181,6 +192,10 @@ export class Reader {
         if (value === 10 || value === 12) { this.length = 0; budget.line(); }
         else budget.check(++this.length, budget.limits.maxLineBytes, "input line bytes");
         return value;
+      }
+      if (this.ended) {
+        if (this.length > 0) { this.length = 0; budget.line(); }
+        return -1;
       }
     }
     return this.getSlow(cp);

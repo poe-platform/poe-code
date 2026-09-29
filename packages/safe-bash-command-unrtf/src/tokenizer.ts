@@ -14,11 +14,16 @@ export interface RtfTokenizer {
 
 /** Flat tokens retain no tree or binary payload. Source chunks are borrowed only
  * until exhausted; callers must not mutate them while an invocation is active. */
-export function createRtfTokenizer(source: AsyncIterable<Uint8Array>, options: UnrtfOptions, budget = new Budget(options)): RtfTokenizer {
+export function createRtfTokenizer(source: AsyncIterable<Uint8Array> | Uint8Array, options: UnrtfOptions, budget = new Budget(options)): RtfTokenizer {
   options = budget.options;
-  const iterator = source[Symbol.asyncIterator]();
-  let chunk: Uint8Array = new Uint8Array(), index = 0, offset = 0, pending: number | undefined;
+  const isSyncBytes = source instanceof Uint8Array;
+  const iterator = isSyncBytes ? undefined : source[Symbol.asyncIterator]();
+  let chunk: Uint8Array = isSyncBytes ? source : new Uint8Array(), index = 0, offset = 0, pending: number | undefined;
   let depth = 0, roots = 0, header = false, tokenRetained = 0, closed = false;
+  if (isSyncBytes) {
+    budget.charge("inputBytes", source.length, 0);
+    budget.charge("retainedBytes", source.length, 0);
+  }
   const fail = (message: string, at = offset): never => { throw new UnrtfError('E_PARSE', message, at); };
   const read = async (raw = false): Promise<number> => {
     for (;;) {
@@ -54,7 +59,7 @@ export function createRtfTokenizer(source: AsyncIterable<Uint8Array>, options: U
     }
   };
   const readFast = (raw = false): number | Promise<number> => {
-    while (pending !== undefined || (index < chunk.length && (offset === 0 || (offset & 4095) !== 0))) {
+    while (pending !== undefined || (index < chunk.length && (isSyncBytes || offset === 0 || (offset & 4095) !== 0))) {
       budget.check(offset);
       if (pending !== undefined) {
         const byte = pending;
@@ -65,6 +70,12 @@ export function createRtfTokenizer(source: AsyncIterable<Uint8Array>, options: U
       offset++;
       const byte = chunk[index++]!;
       if (raw || byte !== 13) return byte;
+    }
+    if (isSyncBytes) {
+      budget.release("retainedBytes", chunk.length);
+      chunk = new Uint8Array();
+      index = 0;
+      return -1;
     }
     return read(raw);
   };
@@ -138,6 +149,20 @@ export function createRtfTokenizer(source: AsyncIterable<Uint8Array>, options: U
 
   const parseControlSync = (at: number, initialControl: number): RtfToken => {
     let control = initialControl;
+    if (control < 0) fail('Truncated control', at);
+    if (control === 39) {
+      budget.bound('tokenBytes', 4, at);
+      const high = hex(readFast() as number);
+      const low = hex(readFast() as number);
+      if (high < 0 || low < 0) fail('Malformed hex escape', at);
+      if (!header) fail('Missing RTF header', at);
+      return emit({ kind: 'byte', byte: high * 16 + low, escaped: true, offset: at });
+    }
+    if (!letter(control)) {
+      budget.bound('tokenBytes', 2, at);
+      if (!header) fail('Missing RTF header', at);
+      return emit(control === 10 ? { kind: 'control', name: 'par', parameter: undefined, offset: at } : { kind: 'symbol', name: String.fromCharCode(control), offset: at });
+    }
     let name = '', size = 0;
     while (letter(control)) {
       budget.bound('tokenBytes', ++size, at); budget.charge('retainedBytes', 2, at); tokenRetained += 2; name += String.fromCharCode(control);
@@ -155,7 +180,7 @@ export function createRtfTokenizer(source: AsyncIterable<Uint8Array>, options: U
         budget.bound('tokenBytes', ++size, at);
         if (value > Math.floor((2147483648 - (control - 48)) / 10)) fail('Control parameter overflow', at);
         value = value * 10 + control - 48;
-        control = readFast() as number;
+        control = readFast(name === 'bin') as number;
       }
       if (!negative && value > 2147483647) fail('Control parameter overflow', at);
       parameter = negative ? -value : value;
@@ -166,6 +191,14 @@ export function createRtfTokenizer(source: AsyncIterable<Uint8Array>, options: U
       header = true;
     }
     budget.release('retainedBytes', tokenRetained); tokenRetained = 0;
+    if (name === 'bin') {
+      if (parameter === undefined || parameter < 0) throw new UnrtfError('E_PARSE', 'Invalid binary count', at);
+      budget.charge('binaryBytes', parameter, at);
+      for (let i = 0; i < parameter; i++) {
+        if ((readFast(true) as number) < 0) fail('Truncated binary payload', at);
+      }
+      return emit({ kind: 'binary', length: parameter, offset: at });
+    }
     return emit({kind:'control', name, parameter, offset:at});
   };
 
@@ -190,6 +223,7 @@ export function createRtfTokenizer(source: AsyncIterable<Uint8Array>, options: U
     }
     const rc0 = readFast();
     if (typeof rc0 === 'number') {
+      if (isSyncBytes) return parseControlSync(at, rc0);
       if (rc0 !== 39 && letter(rc0) && index + 32 < chunk.length && (offset & 4095) < 4000) {
         let look = index;
         let c = rc0;
@@ -246,10 +280,12 @@ export function createRtfTokenizer(source: AsyncIterable<Uint8Array>, options: U
       closed = true;
       budget.release('retainedBytes', chunk.length + depth * 128 + tokenRetained);
       chunk = new Uint8Array(); pending = undefined;
-      if (failed) {
-        try { await iterator.return?.(); }
-        catch { /* Preserve the primary parsing, budget or cancellation error. */ }
-      } else await iterator.return?.();
+      if (iterator) {
+        if (failed) {
+          try { await iterator.return?.(); }
+          catch { /* Preserve the primary parsing, budget or cancellation error. */ }
+        } else await iterator.return?.();
+      }
     }
   };
 }

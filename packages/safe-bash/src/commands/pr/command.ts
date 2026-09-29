@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors } from "../internal.js";
 import { FsError, type CommandDefinition } from "../../contracts/index.js";
 import { createOutputOperation } from "../../contracts/output.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
@@ -11,7 +12,7 @@ import { CommandFailure } from "../time-env/shared.js";
 
 export function createPrCommand(options: PrCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
-  return { name: "pr", description: "Paginate files and print balanced or merged columns", async execute(context) {
+  const def: CommandDefinition = { name: "pr", description: "Paginate files and print balanced or merged columns", async execute(context) {
     const output = createOutputOperation(context, context.stdout);
     const budget = new Budget(context, limits, output.signal);
     let lifecycle: Lifecycle | undefined;
@@ -105,4 +106,6 @@ export function createPrCommand(options: PrCommandsOptions = {}): CommandDefinit
     if (failure) throw failure.reason;
     return { exitCode };
   } };
+  if (options.limits === undefined) builtInDirectContextExecutors.add(def.execute);
+  return def;
 }

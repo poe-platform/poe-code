@@ -269,3 +269,180 @@ async function* renderPersonality(source:AsyncIterable<Uint8Array>, options:Unrt
     if (started) yield emit(template('body_end') + template('document_end'),0);
   } finally { budget.release('retainedBytes',stack.length * 128); }
 }
+
+export function renderRtfSync(source: Uint8Array, options: UnrtfRenderOptions, budget = new Budget(options)): string {
+  if (options.profile === "gnu-0.21.10") {
+    const personality = personalities[options.format];
+    if (!personality) throw new UnrtfError("E_PROFILE", "Unsupported output personality", 0);
+    const template = (name: string): string => (personality[name] ?? "").split("\\%").join("%");
+    let out = "";
+    let started = false;
+    let active: string[] = [];
+    const stack: string[][] = [];
+    const controls: Record<string, string> = { b: "bold", i: "italic", ul: "underline", strike: "strikethru" };
+    const extractor = createRtfExtractor(source, options, budget, false);
+    for (;;) {
+      const event = extractor.next();
+      if (event instanceof Promise) throw new UnrtfError("E_PARSE", "Unexpected async event", 0);
+      if (!event) break;
+      if (!started) {
+        const banner = options.quiet ? "" : template("comment_begin") + " Translation from RTF performed by UnRTF, version 0.21.10 " + template("comment_end");
+        out += template("document_begin") + template("header_begin") + template("utf8_encoding") + banner + template("header_end") + template("body_begin");
+        started = true;
+      }
+      if (event.kind === "open") {
+        stack.push([...active]);
+      } else if (event.kind === "close") {
+        out += [...active].reverse().map(name => template(name + "_end")).join("");
+        active = stack.pop()!;
+        if (stack.length) out += active.map(name => template(name + "_begin")).join("");
+      } else if (event.kind === "control") {
+        const name = controls[event.name];
+        if (name || event.name === "plain" || event.name === "ulnone") {
+          if (name && event.parameter !== 0) {
+            if (!active.includes(name)) { active.push(name); out += template(name + "_begin"); }
+            continue;
+          }
+          out += [...active].reverse().map(value => template(value + "_end")).join("");
+          if (event.name === "plain") active = [];
+          else {
+            const value = name ?? "underline";
+            active = active.filter(item => item !== value);
+            if (event.parameter !== 0 && event.name !== "ulnone") active.push(value);
+          }
+          out += active.map(value => template(value + "_begin")).join("");
+        }
+      } else if (event.kind === "text") {
+        for (const char of event.text) {
+          const code = char.codePointAt(0)!;
+          if (char === "\n") out += template("line_break");
+          else if (options.noremap) out += char;
+          else out += personality["<U" + code.toString(16).toUpperCase() + ">"] ?? personality[String(code)] ?? char;
+        }
+      }
+    }
+    if (started) out += template("body_end") + template("document_end");
+    return out;
+  }
+  const html = options.format === "html";
+  if (!html && options.format !== "text") throw new UnrtfError("E_PROFILE", "Unsupported output format", 0);
+  let style = { ...normal }, paragraph = false, table = false, row = false, cell = false;
+  let defaultFont: number | undefined;
+  const stack: Style[] = [], fonts = new Map<number, string>(), colors = new Map<number, string | undefined>();
+  const endParagraph = (): string => { if (!paragraph) return ""; paragraph = false; return "</p>"; };
+  const beginText = (): string => {
+    if (table) { if (!row) throw new UnrtfError("E_PARSE", "Text outside table row", 0); if (!cell) { cell = true; return "<td>"; } return ""; }
+    if (!paragraph) { paragraph = true; return "<p>"; } return "";
+  };
+  const styled = (text: string, st: Style): string => {
+    let start = "", end = "";
+    for (const [enabled, tag] of [[st.bold, "strong"], [st.italic, "em"], [st.underline, "u"], [st.strike, "s"]] as const)
+      if (enabled) { start += `<${tag}>`; end = `</${tag}>` + end; }
+    const css: string[] = [];
+    const fontId = st.font ?? defaultFont;
+    const font = fontId === undefined ? undefined : fonts.get(fontId);
+    if (font !== undefined) {
+      let name = "";
+      for (const char of font) {
+        const code = char.codePointAt(0)!;
+        name += code >= 65 && code <= 90 || code >= 97 && code <= 122 || code >= 48 && code <= 57 || char === " " || char === "-" ? char : "\\" + code.toString(16) + " ";
+      }
+      css.push("font-family:&#39;" + name + "&#39;");
+    }
+    if (st.size !== undefined) css.push("font-size:" + st.size / 2 + "pt");
+    if (st.color !== undefined) css.push("color:" + st.color);
+    if (css.length) { start += `<span style="${css.join(";")}">`; end = "</span>" + end; }
+    return start + text + end;
+  };
+  let run = "", runStyle: Style = { ...normal };
+  const flush = (): string => {
+    if (!run) return "";
+    const res = beginText() + styled(run, runStyle);
+    run = "";
+    return res;
+  };
+  const sameStyle = (): boolean => runStyle.bold === style.bold && runStyle.italic === style.italic &&
+    runStyle.underline === style.underline && runStyle.strike === style.strike &&
+    runStyle.font === (style.font ?? defaultFont) && runStyle.size === style.size && runStyle.color === style.color;
+  let out = "";
+  let hasEvent = false;
+  const extractor = createRtfExtractor(source, options, budget, false);
+  for (;;) {
+    const event = extractor.next();
+    if (event instanceof Promise) throw new UnrtfError("E_PARSE", "Unexpected async event", 0);
+    if (!event) break;
+    if (!hasEvent) {
+      hasEvent = true;
+      if (html) out += "<!DOCTYPE html><html><body>";
+    }
+    if (event.kind === "open") {
+      stack.push(style); style = { ...style };
+    } else if (event.kind === "close") {
+      style = stack.pop()!;
+    } else if (event.kind === "font") {
+      fonts.set(event.font.id, event.font.name);
+    } else if (event.kind === "color") {
+      colors.set(event.index, event.rgb);
+    } else if (event.kind === "text") {
+      if (!html) {
+        out += event.text;
+        continue;
+      }
+      if (table && !row) {
+        out += flush() + "</tbody></table>";
+        table = false;
+      }
+      for (const char of event.text) {
+        if (char === "\n") {
+          out += flush() + (table || event.boundary === "line" ? beginText() + "<br>" : paragraph ? endParagraph() : "<p></p>");
+        } else {
+          if (run && !sameStyle()) out += flush();
+          if (!run) {
+            runStyle = { ...style };
+            const font = style.font ?? defaultFont;
+            if (font !== undefined) runStyle.font = font;
+          }
+          run += char === "&" ? "&amp;" : char === "<" ? "&lt;" : char === ">" ? "&gt;" : char === "\t" ? "&#9;" : char;
+        }
+      }
+    } else if (event.kind === "control") {
+      const { name, parameter, offset } = event;
+      if (html && (name === "trowd" || name === "cell" || name === "row")) out += flush();
+      if (name === "plain") style = { ...normal };
+      else if (name === "f" || name === "deff") {
+        if (parameter !== undefined) {
+          if (name === "deff") defaultFont = parameter;
+          style.font = parameter;
+        }
+      } else if (name === "fs") {
+        if (parameter === undefined || parameter <= 0 || parameter > 32767) throw new UnrtfError("E_PARSE", "Invalid font size", offset);
+        style.size = parameter;
+      } else if (name === "cf") {
+        if (parameter === undefined || !colors.has(parameter)) throw new UnrtfError("E_PARSE", "Undeclared color", offset);
+        const color = colors.get(parameter);
+        if (color === undefined) delete style.color; else style.color = color;
+      } else if (name === "b") style.bold = parameter !== 0;
+      else if (name === "i") style.italic = parameter !== 0;
+      else if (name === "ul" || name === "ulnone") style.underline = name === "ul" && parameter !== 0;
+      else if (name === "strike") style.strike = parameter !== 0;
+      else if (name === "trowd") {
+        if (row) throw new UnrtfError("E_PARSE", "Nested or unterminated table row", offset);
+        if (html) { out += endParagraph() + (table ? "" : "<table><tbody>") + "<tr>"; table = true; }
+        row = true;
+      } else if (name === "cell") {
+        if (!row) throw new UnrtfError("E_PARSE", "Cell outside table row", offset);
+        if (html) { out += cell ? "</td>" : "<td></td>"; cell = false; }
+        else out += "\t";
+      } else if (name === "row") {
+        if (!row) throw new UnrtfError("E_PARSE", "Row end outside table", offset);
+        if (html) { out += (cell ? "</td>" : "") + "</tr>"; cell = false; }
+        else out += "\n";
+        row = false;
+      }
+    }
+  }
+  out += flush();
+  if (row) throw new UnrtfError("E_PARSE", "Unterminated table row", 0);
+  if (html && hasEvent) out += endParagraph() + (table ? "</tbody></table>" : "") + "</body></html>";
+  return out;
+}

@@ -42,7 +42,7 @@ export interface RtfExtractor {
 
 /** Standards-correct extraction, not GNU 0.21.10 personality rendering.
  * Unknown controls are exposed for a renderer to admit or reject explicitly. */
-export function createRtfExtractor(source: AsyncIterable<Uint8Array>, options: UnrtfOptions, budget = new Budget(options), accountOutput = true): RtfExtractor {
+export function createRtfExtractor(source: AsyncIterable<Uint8Array> | Uint8Array, options: UnrtfOptions, budget = new Budget(options), accountOutput = true): RtfExtractor {
   const tokenizer = createRtfTokenizer(source, options, budget);
   const fonts = new Map<number,RtfFont>(), stack: State[] = [];
   let state: State = {uc:1,page:1252,font:undefined,destination:'',skip:false,starred:false,declaration:undefined};
@@ -305,14 +305,16 @@ export function createRtfExtractor(source: AsyncIterable<Uint8Array>, options: U
       const page = (state.font === undefined ? undefined : fonts.get(state.font)?.codePage) || state.page;
       if (activePage !== page) {
         const event = output(flush(token.offset),token.offset); if (event) queued.push(event);
-        decoder = codec(page,token.offset); activePage = page;
+        if (!codecLabels[page]) throw new UnrtfError("E_CODEC", `Code page ${page} is unavailable`, token.offset);
+        decoder = undefined; activePage = page;
       }
       let decoded:string;
       if (byte < 0x80 && !decoderPending) {
         decoded = String.fromCharCode(byte);
       } else {
+        decoder ??= codec(page,token.offset);
         singleByte[0] = byte;
-        try { decoded = decoder!.decode(singleByte,{stream:true}); }
+        try { decoded = decoder.decode(singleByte,{stream:true}); }
         catch { throw new UnrtfError('E_ENCODING','Malformed encoded byte sequence',token.offset); }
         decoderPending = decoded.length === 0;
       }

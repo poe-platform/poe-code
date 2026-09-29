@@ -408,6 +408,90 @@ export class Formatter {
       if (column.start - this.options.separator.length === this.options.margin) this.outputPosition -= this.options.separator.length;
     }
   }
+  runSync(readers: Reader[], date: string, name: string): boolean {
+    const count = this.options.merge ? readers.length : this.options.columns;
+    for (let index = 0; index < count; index++) {
+      const start = index === 0 ? this.options.margin + this.options.separator.length : this.options.truncate
+        ? this.options.margin + index * (this.columnWidth + this.options.separator.length) + (this.options.merge && this.options.numbered ? this.numberWidth : 0) : 0;
+      this.columns.push({ reader: readers[this.options.merge ? index : 0]!, status: "open", full: false,
+        numbered: this.options.numbered && (!this.options.merge || index === 0), start,
+        lines: [], current: 0, remaining: 0 });
+    }
+    while (this.pageNumber <= this.options.lastPage) {
+      if (this.store) {
+        this.budget.retain(-this.pageRetained);
+        this.pageRetained = 0;
+        const lines: StoredLine[] = [];
+        this.storing = true;
+        for (const column of this.columns) { column.lines = []; column.current = 0; }
+        try {
+          for (const column of this.columns) {
+            for (let c = 0; c < this.body && column.status === "open"; c++) {
+              this.stored = "";
+              this.inputPosition = 0;
+              const rp = this.readSyncOrAsync(column, date, name);
+              if (rp) return false;
+              if (column.status === "open" || this.stored.length) {
+                this.budget.retain(32);
+                this.pageRetained += 32;
+                lines.push({ text: this.stored, end: this.inputPosition });
+              }
+            }
+          }
+        } finally { this.storing = false; }
+        let start = 0;
+        for (let index = 0; index < this.columns.length; index++) {
+          const column = this.columns[index]!;
+          const cnt = Math.floor(lines.length / this.columns.length) + (index < lines.length % this.columns.length ? 1 : 0);
+          column.lines = lines.slice(start, start + cnt);
+          column.remaining = cnt;
+          start += cnt;
+        }
+      } else {
+        for (const column of this.columns) column.remaining = column.status === "open" ? this.body : 0;
+      }
+      if (!this.ready()) break;
+      this.budget.page();
+      this.needHeader = this.options.extremities;
+      let printed = false;
+      let left = this.body * (this.options.doubleSpace ? 2 : 1);
+      while (left > 0 && this.ready()) {
+        this.outputPosition = 0; this.spaces = 0; this.separators = 0; this.vertical = false; this.alignEmpty = false; this.empty = true;
+        for (const column of this.columns) {
+          this.budget.charge();
+          this.inputPosition = 0;
+          if (column.remaining > 0 || column.status === "feed") {
+            this.feedOnly = false;
+            this.padding = column.start;
+            if (this.store) this.storedLine(column, date, name);
+            else {
+              const rp = this.readSyncOrAsync(column, date, name);
+              if (rp) return false;
+            }
+            printed ||= this.vertical;
+            column.remaining--;
+            if (column.remaining <= 0 && !this.ready()) break;
+            if (this.options.merge && column.status !== "open") {
+              if (this.empty) this.alignEmpty = true;
+              else if (column.status === "closed" || this.feedOnly) this.align(column);
+            }
+          } else if (this.options.merge) { if (this.empty) this.alignEmpty = true; else this.align(column); }
+          if (this.options.useSeparator) this.separators++;
+        }
+        if (this.vertical) { this.append("\n"); left--; }
+        if (!this.ready() && !this.options.extremities) { if (this.flushSyncOrAsync()) return false; break; }
+        if (this.options.doubleSpace && printed) { this.append("\n"); left--; }
+        if (this.flushSyncOrAsync()) return false;
+      }
+      if (left === 0) for (const column of this.columns) if (column.status === "open") column.full = true;
+      if (printed && this.options.extremities) this.append(this.options.formFeed ? "\f" : this.repeat("\n", left + 5));
+      else if (this.options.keepFF && this.printFeed) { this.append("\f"); this.printFeed = false; }
+      if (this.flushSyncOrAsync()) return false;
+      this.pageNumber++;
+      for (const column of this.columns) if (column.status === "held") column.status = "open";
+    }
+    return true;
+  }
   async run(readers: Reader[], date: string, name: string): Promise<void> {
     const count = this.options.merge ? readers.length : this.options.columns;
     for (let index = 0; index < count; index++) {

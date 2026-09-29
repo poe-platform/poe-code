@@ -8,6 +8,9 @@ import { CommandRegistry } from "../../src/contracts/index.js";
 import { Runtime } from "../../src/shell/runtime.js";
 import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { createXmllintCommands, evalSyncXmllint } from "../../src/commands/xml/index.js";
+import { createUnrtfCommands } from "../../src/commands/unrtf/index.js";
+import { createPrCommands } from "../../src/commands/pr/index.js";
+import { createPathchkCommands } from "../../src/commands/pathchk/index.js";
 
 const parityXml = new TextEncoder().encode('<config><server id="main"><host>local&#13;host</host><?pi target="1"?><?empty?></server><server id="backup"><host>replica</host></server></config>');
 
@@ -467,4 +470,47 @@ test("Wave 133: sync mdq, shuf, and html-to-markdown substitutions and pipelines
   `);
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "# Title:- Second:80\n");
+});
+
+test("sync substitution fast path covers unrtf, pr, and pathchk (Wave 134)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/doc.rtf", new TextEncoder().encode("{\\rtf1\\ansi Hello {\\b World}\\par Second line}\n"));
+  await fs.writeFile("/items.txt", new TextEncoder().encode("alpha\nbeta\ngamma\ndelta\n"));
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createUnrtfCommands(),
+    ...createPrCommands(),
+    ...createPathchkCommands(),
+  ]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(unrtf --text /doc.rtf | head -n 1):$(cat /doc.rtf | unrtf --html):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "Hello World:<!DOCTYPE html><html><body><p>Hello <strong>World</strong></p><p>Second line</p></body></html>:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(pr -t -2 -s: /items.txt | head -n 1):$(printf "1\n2\n3\n4\n" | pr -t -2 -s, | tail -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "alpha:gamma:2,4:80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(pathchk -p /items.txt valid_1.txt):$(pathchk --portability /items.txt):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "::80\n");
 });

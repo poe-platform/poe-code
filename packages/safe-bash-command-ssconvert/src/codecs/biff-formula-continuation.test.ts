@@ -156,3 +156,41 @@ it.each(["cell", "name", "group"] as const)("continues a single BIFF8 auxiliary 
     : kind === "group" ? reopened.sheets[0]!.formulaGroups![0]!.expression : reopened.sheets[0]!.cells[0]!.formula;
   expect(recovered).toBe(expression);
 });
+
+it.each([7, 8] as const)("continues large BIFF%i array groups and preserves STRING caches", async revision => {
+  const formula = `=INDEX({${Array.from({ length: 60 }, (_, i) => `"${"x".repeat(150)}_${i}"`).join(",")}},1,60)`;
+  const diagnostics: unknown[] = [];
+  const bytes = await createBiffWriter(revision)({ sheets: [{ id: "s", name: "S", formulaGroups: [
+    { id: "g", kind: "array", range: { startRow: 0, endRow: 0, startColumn: 0, endColumn: 0 }, expression: formula }
+  ], cells: [{ row: 0, column: 0, formula, formulaGroup: "g", value: { kind: "string", value: "cached" } }] }] }, [], context);
+  const records = readBiffRecords(readCfb(bytes, context).get(revision === 7 ? "Book" : "Workbook")!, context);
+  const group = records.findIndex(record => record.opcode === 0x221);
+  expect(records[group + 1]!.opcode).toBe(0x3c);
+  expect(records.every(record => record.data.bytes.length <= (revision === 7 ? 2080 : 8224))).toBe(true);
+  const reopened = await readBiff(bytes, { ...context, diagnostic: async d => { diagnostics.push(d); } });
+  expect(diagnostics).toEqual([]);
+  expect(reopened.sheets[0]!.cells[0]!.cachedResult).toEqual({ kind: "string", value: "cached" });
+  expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "string", value: `${"x".repeat(150)}_59` });
+});
+
+it.each([0x221, 0x4bc])("reads continued group tokens and STRING cache for opcode %i", async opcode => {
+  const formula = '=INDEX({"hello","world"},1,2)';
+  const bytes = await createBiffWriter(8)({ sheets: [{ id: "s", name: "S", formulaGroups: [
+    { id: "g", kind: "array", range: { startRow: 0, endRow: 0, startColumn: 0, endColumn: 0 }, expression: formula }
+  ], cells: [{ row: 0, column: 0, formula, formulaGroup: "g", value: { kind: "string", value: "world" } }] }] }, [], context);
+  const records = readBiffRecords(readCfb(bytes, context).get("Workbook")!, context);
+  const raw: number[] = [];
+  const append = (op: number, data: Uint8Array) => raw.push(op & 255, op >>> 8, data.length & 255, data.length >>> 8, ...data);
+  for (const record of records) {
+    if (record.opcode !== 0x221) { append(record.opcode, record.data.bytes); continue; }
+    const header = opcode === 0x221 ? record.data.bytes.subarray(0, 14) : new Uint8Array(10);
+    if (opcode === 0x4bc) { header.set(record.data.bytes.subarray(0, 6)); new DataView(header.buffer).setUint16(8, record.data.u16(12), true); }
+    const first = new Uint8Array(header.length + 1); first.set(header); first[header.length] = record.data.u8(14);
+    append(opcode, first); append(0x3c, record.data.bytes.subarray(15));
+  }
+  const diagnostics: unknown[] = [];
+  const reopened = await readBiff(Uint8Array.from(raw), { ...context, diagnostic: async d => { diagnostics.push(d); } });
+  expect(diagnostics).toEqual([]);
+  expect(reopened.sheets[0]!.cells[0]!.cachedResult).toEqual({ kind: "string", value: "world" });
+  expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "string", value: "world" });
+});

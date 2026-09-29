@@ -316,13 +316,12 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       const name = accountText(ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length));
       const end = 7 + cursor.consumedBytes;
       const tokenLength = end + 2 <= data.bytes.length ? data.u16(end) : 0;
-      const tokens = tokenLength ? data.slice(end + 2, tokenLength) : new Uint8Array();
+      const formula = tokenLength ? formulaParts(index, end + 2, tokenLength) : { tokens: new Uint8Array(), arrays: [], next: index };
       const legacyLink = (sheet?.legacyExternalLinks ?? legacyExternalLinks).get((sheet?.legacyExternalSheets ?? legacyExternalSheets).length - 1);
       const table = ver >= 8 ? supbooks.at(-1)?.names : legacyLink?.names;
       if (!table) invalidBiff("EXTERNNAME without workbook link");
-      const arrays = tokenLength ? stringParts(index, end + 2 + tokenLength) : { parts: [], next: index };
-      index = arrays.next;
-      table.push({ name, sheetIndex: data.u16(2), tokens, arrays: arrays.parts, revision: ver, codepage, supported: flags === 0, record });
+      index = formula.next;
+      table.push({ name, sheetIndex: data.u16(2), tokens: formula.tokens, arrays: formula.arrays, revision: ver, codepage, supported: flags === 0, record });
       const addin = ver >= 8 ? supbooks.at(-1)?.kind === "addin" : legacyLink?.addin;
       const externalIdentity = (ver >= 8 ? supbooks.at(-1)?.workbook : legacyLink?.workbook) !== undefined && flags === 0;
       if (!addin || flags !== 0) await retain(record, sheet?.unsupportedRecords ?? unsupported, !externalIdentity);
@@ -415,7 +414,9 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       const nextOpcode = records[index + 1]?.opcode;
       const groupFollows = nextOpcode === 0x4bc || nextOpcode === 0x21 || nextOpcode === 0x221 ||
         nextOpcode === 0x36 || nextOpcode === 0x37 || nextOpcode === 0x236;
-      const stringOpcode = records[index + (groupFollows ? 2 : 1)]?.opcode;
+      let stringIndex = index + (groupFollows ? 2 : 1);
+      if (groupFollows) while (records[stringIndex]?.opcode === 0x3c) stringIndex++;
+      const stringOpcode = records[stringIndex]?.opcode;
       if (stringCache && stringOpcode !== 7 && stringOpcode !== 0x207) {
         const error: CellValue = { kind: "error", value: "MISSING STRING" };
         lastFormula.cell = { ...lastFormula.cell, value: error, cachedResult: error };

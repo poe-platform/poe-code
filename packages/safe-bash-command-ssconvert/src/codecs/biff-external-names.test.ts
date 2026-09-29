@@ -92,3 +92,19 @@ it("retains unsupported external declaration flags without interpreting their bo
   expect(book.unsupportedRecords?.find(record => record.kind === "EXTERNNAME_v0")?.data)
     .toMatchObject({ opcode: 0x23, bytes: "02000000000004005261746507001e02001e030003" });
 });
+
+it.each([0x23, 0x223])("reads EXTERNNAME %i tokens across CONTINUE records", async opcode => {
+  const input = workbook(0x39, "active");
+  const parts: Uint8Array[] = [];
+  for (let offset = 0; offset < input.length;) {
+    const view = new DataView(input.buffer, offset), op = view.getUint16(0, true), size = view.getUint16(2, true);
+    const payload = input.subarray(offset + 4, offset + 4 + size);
+    if (op === 0x23) { parts.push(record(opcode, payload.subarray(0, 15)), record(0x3c, payload.subarray(15))); }
+    else parts.push(record(op, payload));
+    offset += size + 4;
+  }
+  // One extra physical header precedes the worksheet BOF.
+  new DataView(parts[1]!.buffer).setUint32(4, new DataView(parts[1]!.buffer).getUint32(4, true) + 4, true);
+  const book = await readBiff(join(...parts), context);
+  expect(book.sheets[0]!.cells[0]!.formula).toBe("=['book.xls']Rate+1");
+});

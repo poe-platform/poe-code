@@ -170,3 +170,57 @@ The previous full-suite restart terminated during build because new workspace
 links were absent. Current declared dependencies have been installed; that failed
 run is not full-suite success. Qualifying publication, full shared-service parity
 and compliant consumer/hosted acceptance remain pending.
+
+## Host-owned LLM budgets and text streaming checkpoint
+
+Delivered on remote main `4016ddc5467bce573fde039f23edf64242ff8288`;
+fresh fetch verified the exact remote head. Buffered completions now enforce
+host-owned serialized response, raw event and terminal metadata ceilings before
+retaining output. Empty events count without accumulating text fragments, JSON
+escaping and numeric byte-array expansion count, and guest limits cannot raise
+host policy. Streaming retains an independent cumulative budget and fragments
+text at Unicode scalar boundaries before serialization. The public options are
+`maxBufferedResponseBytes`, `maxBufferedEvents`, `maxMetadataBytes` and
+`maxStreamChunkBytes`; finite deployment policies remain explicitly configured.
+
+The observed red regressions are retained in
+`out/python-llm-budgets-confirmed-red.log`. Maintained focused verification passes
+706 runner checks, 12 selected tests and root posttest
+(`out/python-llm-budgets-maintained.log`); rebased adapter tests pass 11/11 and
+ESLint passes. Integration input registration passes 141 checks. Actual source
+Pyodide/workerd passes 4/4 (`out/python-llm-budgets-workerd-source.log`), including
+provider disposal after limit errors and early close, one terminal event, exact
+2.1 MiB Unicode text written incrementally to the canonical filesystem and the
+existing large binary stream under a separate 8 KiB buffered ceiling.
+
+Publication `.754` is independently confirmed from source
+`0a4e96adffbe183882ad196cacbbb58192b9b20f`; it contains the previous adapter and
+shell fragmentation, not this budget repair. Scoped run `36595943486` tracks the
+new delivered commit. Independent repaired-artifact installation is in progress;
+packaging required fresh locale generation and upstream root-export mapping.
+The maintained normal build is running to supply all public-package prerequisites.
+No full release success is claimed.
+
+Requirement checkpoint: importable typed/customizable Python library, explicit
+shared-service routing, async cleanup, canonical files, bundled distribution and
+shell/subprocess subset have prior implementation/runtime evidence; current
+host bounds and text fragmentation pass focused/source gates; full #1443 parity,
+repaired public artifact qualification/publication, poe2 adoption and hosted
+model-option/auth/billing/private-file/callback acceptance remain open.
+
+The earlier remote full runner remains unobserved on this tool host and was not
+restarted; its terminal receipt must be reconciled before another full run.
+Issue 1445 remains open, and #4185 ownership/tracking remains separate.
+
+Independent repaired public artifacts now qualify: the normal maintained build
+completed successfully, then `scripts/package-safe.mjs` assembled all three
+libraries at `0.0.0-python-bounds-1445`. Real npm tarballs installed with scripts
+disabled into `out/python-bounds-consumer`, without workspace symlinks. Actual
+Pyodide/workerd passes 4/4 (`out/python-bounds-installed-workerd.log`), including
+bounded buffered responses/empty events/metadata, Unicode fragmentation and
+canonical file streaming, provider cleanup, shell/subprocess examples and
+100 MiB authoritative publication/cancellation recovery. Safe Bash SHA-1 is
+`1173260b16d0933da2b8e2247fd970c4509f7293`; the complete integrity receipt is
+`out/python-bounds-pack-receipt.json`. This is an independently installed local
+candidate, not registry publication or hosted acceptance. Repaired publication,
+full shared-service parity, poe2 adoption and hosted acceptance remain open.

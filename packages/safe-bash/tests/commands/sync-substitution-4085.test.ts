@@ -1,4 +1,5 @@
 import { createAgentCommands } from "../../src/plugins/index.js";
+import { evalSyncRmdir, evalSyncRm } from "../../src/commands/internal.js";
 import { createCmpCommands } from "../../src/commands/cmp/index.js";
 import { createExprCommands } from "../../src/commands/expr/index.js";
 import { createBcCommands } from "../../src/commands/bc/index.js";
@@ -1823,4 +1824,18 @@ test("sync substitution and brace-loop admission for mkdir, rm, sha256sum, colum
     "mkdir: created directory '/tmp/w163_dir'|removed '/tmp/w163_dir'|750|2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824|a  b|68656c6c6f|42\n"
   );
   assert.ok(elapsed < 2500, `Expected Wave 163 under 2500ms, took ${elapsed.toFixed(1)}ms`);
+});
+
+for (const [name, evaluate, args] of [
+  ['rmdir', evalSyncRmdir, ['/directory']],
+  ['rm -d', evalSyncRm, ['-d', '/directory']],
+] as const) test(`${name} synchronous admission reads directory map cardinality`, () => {
+  for (const occupied of [false, true]) {
+    const entries = new Map<string, { type: 'file' }>();
+    if (occupied) entries.set('keep', { type: 'file' });
+    const removed: string[] = [];
+    const result = evaluate(args, () => 'directory', () => entries, path => { removed.push(path); return true; });
+    assert.equal(result, occupied ? undefined : '');
+    assert.deepEqual(removed, occupied ? [] : ['/directory']);
+  }
 });

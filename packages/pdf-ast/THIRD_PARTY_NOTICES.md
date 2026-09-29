@@ -415,6 +415,14 @@ local display list and crops before page rotation, keeping editing coordinates
 unchanged. `src/render/crop-box.test.ts` covers these rules and the unmodified
 `issue13520.pdf` equality fixture, recorded in `src/fixtures/SOURCES.md`.
 
+MediaBox-origin rendering follows PDF.js `PageViewport` in
+`src/display/page_viewport.js`: viewport coordinates subtract the normalized
+lower-left page origin before applying rotation. Local rasterization applies
+that translation to paths, strokes, images, clips, and intermediate mask/group
+surfaces; SVG uses the vendored viewport transform. The unchanged PDF.js
+`bug852992_reduced.pdf` soft-mask fixture and memory-only offset-page tests cover
+this behavior in `src/render/media-box-origin.test.ts`.
+
 Malformed dictionary-key recovery follows PDF.js `Parser.getObj`, skipping
 stray non-Name tokens only in local repair mode. Damaged optional ToUnicode
 streams follow `PartialEvaluator.readToUnicode` error recovery while retaining

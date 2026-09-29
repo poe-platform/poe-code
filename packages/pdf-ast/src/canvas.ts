@@ -936,6 +936,7 @@ export class PdfPage {
       pageIndex: this.index,
       width,
       height,
+      origin: [originX, originY],
       rotation: this.getRotation(),
       nodes: baseNodes,
       cosDoc: this.cosDoc,

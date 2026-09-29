@@ -35,6 +35,12 @@ including its documented limitation for full non-isolated backdrop compositing.
 
 # PDF.js visible-page regression fixture
 
+`pdfjs-bug852992-reduced.pdf` is unchanged `test/pdfs/bug852992_reduced.pdf`
+from the same Mozilla PDF.js revision (Apache-2.0), SHA-256
+`385640f3ef3a84d460b2393deaa3b3582babfd22de92258a806537d224d31add`.
+Its negative MediaBox origin and soft masks are covered by
+`../render/media-box-origin.test.ts`, using independent PDF.js reference pixels.
+
 `pdfjs-issue13520.pdf` is unchanged `test/pdfs/issue13520.pdf` from the same
 Mozilla PDF.js revision (Apache-2.0), SHA-256
 `2716c9b9e7f828b03f7bd79ad5d5b77b57e29869c16cf98813ee1397aacfe399`.

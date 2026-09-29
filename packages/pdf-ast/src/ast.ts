@@ -289,6 +289,8 @@ export interface PdfDisplayList {
   readonly pageIndex: number;
   readonly width: number;
   readonly height: number;
+  /** Lower-left MediaBox coordinates; painting and editing retain PDF coordinates. */
+  readonly origin?: readonly [number, number] | undefined;
   /** Unrotated CropBox relative to the MediaBox origin, when supplied by a page. */
   readonly cropBox?: readonly [number, number, number, number] | undefined;
   readonly rotation: 0 | 90 | 180 | 270;

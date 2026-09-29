@@ -1380,6 +1380,7 @@ export function evaluateContentStreamToDisplayList(params: {
   readonly pageIndex: number;
   readonly width: number;
   readonly height: number;
+  readonly origin?: readonly [number, number] | undefined;
   readonly rotation?: 0 | 90 | 180 | 270 | undefined;
   readonly nodes: readonly PdfContentNode[];
   readonly cosDoc?: ParsedCosDocument | undefined;
@@ -1556,7 +1557,8 @@ export function evaluateContentStreamToDisplayList(params: {
       const shDict = shNode?.kind === "dict" ? shNode : shNode?.kind === "stream" ? shNode.dict : undefined;
       const shStream = shNode?.kind === "stream" ? shNode : undefined;
       if (shDict) {
-        const targetBox: [number, number, number, number] = st.clipRect ?? [0, 0, params.width, params.height];
+        const [originX, originY] = params.origin ?? [0, 0];
+        const targetBox: [number, number, number, number] = st.clipRect ?? [originX, originY, originX + params.width, originY + params.height];
         const img = renderShadingDictToImage(
           params.cosDoc,
           shDict,
@@ -2462,6 +2464,7 @@ export function evaluateContentStreamToDisplayList(params: {
     pageIndex: params.pageIndex,
     width: params.width,
     height: params.height,
+    ...(params.origin ? { origin: params.origin } : {}),
     rotation: params.rotation ?? 0,
     glyphs,
     paths,

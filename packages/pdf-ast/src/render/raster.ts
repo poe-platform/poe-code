@@ -1007,7 +1007,7 @@ function prepareStroke(path: PdfEvaluatedPath, scale: number) {
   return { matrix, width, dashArray, dashPhase };
 }
 
-function strokeContours(path: PdfEvaluatedPath, pageHeight: number, scale: number): StrokePoint[][] {
+function strokeContours(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0): StrokePoint[][] {
   const stroke = prepareStroke(path, scale);
   if (!stroke) return [];
   const inverse = inverseStrokeMatrix(stroke.matrix);
@@ -1021,8 +1021,8 @@ function strokeContours(path: PdfEvaluatedPath, pageHeight: number, scale: numbe
     (inverse[1]! * x + inverse[3]! * y + inverse[5]!) * strokeScale,
   ];
   const toScreen = ([x, y]: StrokePoint): StrokePoint => [
-    (a * x / strokeScale + c * y / strokeScale + e) * scale,
-    (pageHeight - b * x / strokeScale - d * y / strokeScale - f) * scale,
+    (a * x / strokeScale + c * y / strokeScale + e - originX) * scale,
+    (pageHeight + originY - b * x / strokeScale - d * y / strokeScale - f) * scale,
   ];
   const contours = strokeOutlines(segmentsToScreenPaths(path.segments, pageHeight, scale, project),
     stroke.width * strokeScale, path.lineCap ?? 0, path.lineJoin ?? 0, path.miterLimit ?? 10,
@@ -1216,6 +1216,9 @@ export function renderDisplayListToBitmap(
   const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
   const scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
   const scale = scaleX;
+  const [originX, originY] = displayList.origin ?? [0, 0];
+  const pageTop = originY + displayList.height;
+  const toScreen = (x: number, y: number): StrokePoint => [(x - originX) * scale, (pageTop - y) * scale];
   const width = Math.max(1, Math.round(displayList.width * scale));
   const height = Math.max(1, Math.round(displayList.height * scale));
   const rgba = new Uint8Array(width * height * 4);
@@ -1253,7 +1256,7 @@ export function renderDisplayListToBitmap(
       for (let i = 3; i < bitmap.data.length; i += 4) bitmap.data[i] = Math.round(bitmap.data[i]! * group.alpha);
       operation = { kind: "image", value: {
         name: "TransparencyGroup", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
-        matrix: [bitmap.width / scale, 0, 0, bitmap.height / scale, 0, displayList.height - bitmap.height / scale],
+        matrix: [bitmap.width / scale, 0, 0, bitmap.height / scale, originX, pageTop - bitmap.height / scale],
         colorSpace: "DeviceRGB", bitsPerComponent: 8, blendMode: group.blendMode, clipRect: group.clipRect,
       } };
     }
@@ -1264,7 +1267,7 @@ export function renderDisplayListToBitmap(
       for (const clip of clips) {
         const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
         const layer = new Uint8Array(width * height * 4);
-        fillEdgesScanline4x4(layer, width, height, pathsToEdges(segmentsToScreenPaths(segments, displayList.height, scale), true), { r: 1, g: 1, b: 1 }, 1, fillRule);
+        fillEdgesScanline4x4(layer, width, height, pathsToEdges(segmentsToScreenPaths(segments, displayList.height, scale, toScreen), true), { r: 1, g: 1, b: 1 }, 1, fillRule);
         for (let i = 3; i < layer.length; i += 4) clipMask[i] = Math.round(clipMask[i]! * layer[i]! / 255);
       }
       cachedClips = clips;
@@ -1306,17 +1309,17 @@ export function renderDisplayListToBitmap(
     if (operation.kind === "path") {
       const path = operation.value;
       if (path.fillColor) {
-        const edges = pathsToEdges(segmentsToScreenPaths(path.segments, displayList.height, scale), true);
-        const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [path.clipRect[0] * scale, (displayList.height - path.clipRect[3]) * scale, path.clipRect[2] * scale, (displayList.height - path.clipRect[1]) * scale] : undefined;
+        const edges = pathsToEdges(segmentsToScreenPaths(path.segments, displayList.height, scale, toScreen), true);
+        const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [(path.clipRect[0] - originX) * scale, (pageTop - path.clipRect[3]) * scale, (path.clipRect[2] - originX) * scale, (pageTop - path.clipRect[1]) * scale] : undefined;
         fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask);
       }
       if (path.strokeColor) {
         const rawSw = path.strokeWidth * scale * (path.strokeMatrix ? Math.hypot(path.strokeMatrix[0], path.strokeMatrix[1]) : 1);
         const strokeAlpha = options.thinLineMode === "shape" && rawSw < 1
           ? (path.strokeAlpha ?? 1) * Math.max(0.25, rawSw) : path.strokeAlpha ?? 1;
-        const edges = pathsToEdges(strokeContours(path, displayList.height, scale).map(points => ({ points, closed: true })));
+        const edges = pathsToEdges(strokeContours(path, displayList.height, scale, originX, originY).map(points => ({ points, closed: true })));
         const clipScreen: [number, number, number, number] | undefined = path.clipRect
-          ? [path.clipRect[0] * scale, (displayList.height - path.clipRect[3]) * scale, path.clipRect[2] * scale, (displayList.height - path.clipRect[1]) * scale] : undefined;
+          ? [(path.clipRect[0] - originX) * scale, (pageTop - path.clipRect[3]) * scale, (path.clipRect[2] - originX) * scale, (pageTop - path.clipRect[1]) * scale] : undefined;
         fillEdgesScanline4x4(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
           original.kind === "glyph" ? aaTxt : aaVec, path.blendMode, clipMask);
       }
@@ -1328,12 +1331,12 @@ export function renderDisplayListToBitmap(
       if (Math.abs(det) <= 1e-8) continue;
       const cornersPdfX = [e, a + e, a + c + e, c + e];
       const cornersPdfY = [f, b + f, b + d + f, d + f];
-      const cornersPx = cornersPdfX.map(cx => cx * scale);
-      const cornersPy = cornersPdfY.map(cy => (displayList.height - cy) * scale);
-      const clipMinPx = img.clipRect ? Math.floor(img.clipRect[0] * scale) : 0;
-      const clipMaxPx = img.clipRect ? Math.ceil(img.clipRect[2] * scale) - 1 : width - 1;
-      const clipMinPy = img.clipRect ? Math.floor((displayList.height - img.clipRect[3]) * scale) : 0;
-      const clipMaxPy = img.clipRect ? Math.ceil((displayList.height - img.clipRect[1]) * scale) - 1 : height - 1;
+      const cornersPx = cornersPdfX.map(cx => (cx - originX) * scale);
+      const cornersPy = cornersPdfY.map(cy => (pageTop - cy) * scale);
+      const clipMinPx = img.clipRect ? Math.floor((img.clipRect[0] - originX) * scale) : 0;
+      const clipMaxPx = img.clipRect ? Math.ceil((img.clipRect[2] - originX) * scale) - 1 : width - 1;
+      const clipMinPy = img.clipRect ? Math.floor((pageTop - img.clipRect[3]) * scale) : 0;
+      const clipMaxPy = img.clipRect ? Math.ceil((pageTop - img.clipRect[1]) * scale) - 1 : height - 1;
       const minPx = Math.max(0, clipMinPx, Math.floor(Math.min(...cornersPx)));
       const maxPx = Math.min(width - 1, clipMaxPx, Math.ceil(Math.max(...cornersPx)) - 1);
       const minPy = Math.max(0, clipMinPy, Math.floor(Math.min(...cornersPy)));
@@ -1355,11 +1358,11 @@ export function renderDisplayListToBitmap(
       const sample = new Float64Array(4);
 
       for (let py = minPy; py <= maxPy; py++) {
-        const yPdf = displayList.height - (py + 0.5) / scale;
+        const yPdf = pageTop - (py + 0.5) / scale;
         if (img.clipRect && (yPdf < img.clipRect[1] || yPdf > img.clipRect[3])) continue;
         const dyPdf = yPdf - f;
         for (let px = minPx; px <= maxPx; px++) {
-          const xPdf = (px + 0.5) / scale;
+          const xPdf = originX + (px + 0.5) / scale;
           if (img.clipRect && (xPdf < img.clipRect[0] || xPdf > img.clipRect[2])) continue;
           const dxPdf = xPdf - e;
           const u = (d * dxPdf - c * dyPdf) / det;
@@ -1516,14 +1519,16 @@ export function renderDisplayListToSvg(
   const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1);
   const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
   const scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
-  const viewport = new PageViewport({ viewBox: [0, 0, displayList.width, displayList.height], userUnit: 1, scale: 1, rotation: displayList.rotation ?? 0 });
+  const [originX, originY] = displayList.origin ?? [0, 0];
+  const viewport = new PageViewport({ viewBox: [originX, originY, originX + displayList.width, originY + displayList.height], userUnit: 1, scale: 1, rotation: displayList.rotation ?? 0 });
   const quarterTurn = displayList.rotation === 90 || displayList.rotation === 270;
   const outputScaleX = quarterTurn ? scaleY : scaleX;
   const outputScaleY = quarterTurn ? scaleX : scaleY;
   let bounds = [0, 0, viewport.width, viewport.height];
   if (options.useCropBox) {
     // PDF.js PageViewport.convertToViewportRectangle transforms both corners.
-    const [x0, y0, x1, y1] = getDisplayListCropBox(displayList);
+    const box = getDisplayListCropBox(displayList);
+    const [x0, y0, x1, y1] = [box[0] + originX, box[1] + originY, box[2] + originX, box[3] + originY];
     const [a, b, c, d, e, f] = viewport.transform;
     bounds = [a * x0 + c * y0 + e, b * x0 + d * y0 + f, a * x1 + c * y1 + e, b * x1 + d * y1 + f];
   }
@@ -1558,7 +1563,7 @@ export function renderDisplayListToSvg(
     parts.push(`  <rect x="${vbX}" y="${vbY}" width="${vbW}" height="${vbH}" fill="#ffffff"/>`);
   }
   parts.push('<g style="isolation:isolate">');
-  if (displayList.rotation) {
+  if (displayList.rotation || originX || originY) {
     // Paths and images below already flip PDF y coordinates. Compose that
     // inverse flip with PDF.js's viewport transform to rotate every paint.
     const [a, b, c, d, e, f] = viewport.transform;
@@ -1585,9 +1590,9 @@ export function renderDisplayListToSvg(
           const bitmap = renderSoftMask(softMask, displayList, Math.max(scaleX, scaleY));
           const image: PdfEvaluatedImage = {
             name: id, width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
-            matrix: [displayList.width, 0, 0, displayList.height, 0, 0], colorSpace: "DeviceGray", bitsPerComponent: 8,
+            matrix: [displayList.width, 0, 0, displayList.height, originX, originY], colorSpace: "DeviceGray", bitsPerComponent: 8,
           };
-          parts.push(`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${displayList.width}" height="${displayList.height}" style="mask-type:alpha">${svgImage(image, displayList.height)}</mask></defs>`);
+          parts.push(`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="${originX}" y="${-originY}" width="${displayList.width}" height="${displayList.height}" style="mask-type:alpha">${svgImage(image, displayList.height)}</mask></defs>`);
         }
         parts.push(`<g mask="url(#${id})">`);
       }
@@ -1599,7 +1604,7 @@ export function renderDisplayListToSvg(
       }
       for (const image of imageClips) {
         const id = `image-clip-${clipId++}`;
-        parts.push(`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${displayList.width}" height="${displayList.height}" style="mask-type:alpha">${svgImage(image, displayList.height)}</mask></defs><g mask="url(#${id})">`);
+        parts.push(`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="${originX}" y="${-originY}" width="${displayList.width}" height="${displayList.height}" style="mask-type:alpha">${svgImage(image, displayList.height)}</mask></defs><g mask="url(#${id})">`);
       }
       if (operation.kind === "group") {
         parts.push(`<g opacity="${operation.value.alpha}" style="isolation:isolate">`);
@@ -1657,7 +1662,7 @@ export function renderDisplayListToSvg(
     }
   };
   appendOperations(paintOperations(displayList));
-  if (displayList.rotation) parts.push("</g>");
+  if (displayList.rotation || originX || originY) parts.push("</g>");
   parts.push("</g>");
   parts.push("</svg>\n");
   return parts.join("\n");

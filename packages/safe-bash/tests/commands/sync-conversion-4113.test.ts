@@ -33,7 +33,7 @@ import { spongeCommands } from "../../src/commands/sponge/index.ts";
 import { csplitCommands } from "../../src/commands/csplit/index.ts";
 import { lessCommands } from "../../src/commands/less/index.ts";
 import { fileCommands } from "../../src/commands/file/index.ts";
-import { archiveCommands } from "../../src/commands/archive/index.ts";
+import { archiveCommands, evalSyncTar } from "../../src/commands/archive/index.ts";
 import { splitCommands } from "../../src/commands/split/index.ts";
 import { prCommands } from "../../src/commands/pr/index.ts";
 import { mdqCommands } from "../../src/commands/mdq/index.ts";
@@ -1932,6 +1932,19 @@ test("fixed-width in2csv shortcut consumes CSV schema records", () => {
   const schema = encode("column,start,length\nname,1,3\nn,5,2\n");
   assert.equal(evalSyncIn2csv(encode("Ada 07\n"), ["-f", "fixed", "-s", "/schema.csv", "-I"],
     path => path === "/schema.csv" ? schema : undefined), "name,n\nAda,07\n");
+});
+
+test("tar extraction shortcut retains actions before writing selected files", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/source.txt", new TextEncoder().encode("extracted\n"));
+  const shell = new Shell({ fs, cwd: "/" }).use(standardCommands()).use(archiveCommands());
+  const result = await shell.exec("tar -cf /archive.tar source.txt");
+  assert.equal(result.exitCode, 0, result.stderr);
+  const archive = await fs.readFile("/archive.tar");
+  const writes = new Map<string, Uint8Array>();
+  assert.equal(evalSyncTar(archive, ["-xvf", "-"], undefined,
+    (path, bytes) => { writes.set(path, bytes); return true; }, () => true), "source.txt\n");
+  assert.equal(new TextDecoder().decode(writes.get("source.txt")), "extracted\n");
 });
 
 test("Wave 236: ffmpeg lavfi/transcoding/muxing and git init/config/add/commit/branch/tag in sync command substitutions", async () => {

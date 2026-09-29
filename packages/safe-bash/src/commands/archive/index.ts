@@ -391,6 +391,7 @@ export function evalSyncTar(
     let longName: string | undefined;
     let longLink: string | undefined;
     const matchedOperands = new Set<number>();
+    const extractActions: { isDir: boolean; path: string; bytes: Uint8Array; mode: number }[] = [];
     let out = "";
     let offset = 0;
 

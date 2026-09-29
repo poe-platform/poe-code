@@ -135,6 +135,7 @@ test('cleanup is observed even when a prior runtime failure wins the direct comm
 
 test('missing retained open is diagnosed on use without blocking inline commands', async () => {
   const fs = new MemoryFileSystem();
+  await fs.writeFile('/input', new Uint8Array());
   Object.defineProperty(fs, 'open', { value: undefined });
   const diagnostics: python.PythonDiagnostic[] = [];
   const shell = new Shell({ fs }).use(python.pythonCommands({

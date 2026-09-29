@@ -13,6 +13,9 @@ import { createPrCommands } from "../../src/commands/pr/index.js";
 import { createPathchkCommands } from "../../src/commands/pathchk/index.js";
 import { createFileCommands } from "../../src/commands/file/index.js";
 import { createDiff3Commands } from "../../src/commands/diff3/index.js";
+import { createWhichCommands } from "../../src/commands/which/index.js";
+import { createDiffPatchCommands } from "../../src/commands/diff-patch/index.js";
+import { createXanCommands } from "../../src/commands/xan/index.js";
 
 const parityXml = new TextEncoder().encode('<config><server id="main"><host>local&#13;host</host><?pi target="1"?><?empty?></server><server id="backup"><host>replica</host></server></config>');
 
@@ -560,4 +563,52 @@ test("sync substitution fast path covers file, diff3, and cmp (Wave 135)", async
   `);
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "::80\n");
+});
+
+test("sync substitution fast path covers which, diff, and xan (Wave 136)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/usr/bin", { recursive: true });
+  await fs.writeFile("/usr/bin/mytool", new TextEncoder().encode("#!/bin/sh\n"));
+  await fs.chmod("/usr/bin/mytool", 0o755);
+  await fs.writeFile("/a.txt", new TextEncoder().encode("alpha\nbeta\n"));
+  await fs.writeFile("/b.txt", new TextEncoder().encode("alpha\nbeta\n"));
+  await fs.writeFile("/c.txt", new TextEncoder().encode("ALPHA\nBETA  \n"));
+  await fs.writeFile("/data.csv", new TextEncoder().encode("id,name,score\n1,Alice,95\n2,Bob,88\n"));
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createWhichCommands(),
+    ...createDiffPatchCommands(),
+    ...createXanCommands(),
+  ]);
+  const shell = new Shell({ fs, commands, env: { PATH: "/bin:/usr/bin" } });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(which mytool):$(which -s mytool):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "/usr/bin/mytool::80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(diff -s /a.txt /b.txt):$(diff -i -w /a.txt /c.txt):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "Files /a.txt and /b.txt are identical::80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(xan count /data.csv):$(cat /data.csv | xan headers -j - | tr "\n" ","):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "2:id,name,score,:80\n");
 });

@@ -220,6 +220,7 @@ function serializeXmlNodeSync(node: SyncXmlNode): string {
     } else if (cur.kind === "text") out += escapeXmlSync(cur.text, false);
     else if (cur.kind === "cdata") out += `<![CDATA[${cur.text}]]>`;
     else if (cur.kind === "comment") out += `<!--${cur.text}-->`;
+    else if (cur.kind === "processing-instruction") out += `<?${cur.target}${cur.text ? " " + cur.text : ""}?>`;
   }
   return out;
 }
@@ -326,9 +327,12 @@ export function evalSyncXmllint(
 
   let contexts: SyncXmlNode[] = [doc];
   let at = 0;
+  let firstStep = true;
   const isNameChar = (c: string) => /^[A-Za-z0-9_.-]$/.test(c);
   while (at < q.length) {
     while (at < q.length && /\s/.test(q[at]!)) at++;
+    if (!firstStep && q[at] !== "/") return undefined;
+    firstStep = false;
     let descendant = false;
     if (q[at] === "/") {
       at++;
@@ -401,6 +405,8 @@ export function evalSyncXmllint(
       at++;
       while (at < q.length && /\s/.test(q[at]!)) at++;
     }
+
+    if ((kind === "attribute" || kind === "text") && at < q.length) return undefined;
 
     const parents = new Set<SyncXmlNode>();
     const pStack = [...contexts];

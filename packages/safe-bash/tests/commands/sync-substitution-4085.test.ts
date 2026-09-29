@@ -7,6 +7,44 @@ import { createStandardCommands } from "../../src/commands/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { Runtime } from "../../src/shell/runtime.js";
 import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
+import { createXmllintCommands, evalSyncXmllint } from "../../src/commands/xml/index.js";
+
+const parityXml = new TextEncoder().encode('<config><server id="main"><host>local&#13;host</host><?pi target="1"?><?empty?></server><server id="backup"><host>replica</host></server></config>');
+
+for (const path of ["/config server/host", "/config/server/@id/host", "/config/server/text()/host"]) {
+  for (const query of [path, `count(${path})`, `string(${path})`, `boolean(${path})`]) {
+    test(`xmllint rejects invalid XPath in sync substitutions: ${query}`, async () => {
+      assert.equal(evalSyncXmllint(parityXml, ["--xpath", query]), undefined);
+      const fs = new MemoryFileSystem();
+      await fs.writeFile("/config.xml", parityXml);
+      const shell = new Shell({ fs, commands: new CommandRegistry([...createStandardCommands(), ...createXmllintCommands()]) });
+      try {
+        const direct = await shell.exec(`xmllint --xpath "${query}" /config.xml`);
+        const substitution = await shell.exec(`value="$(xmllint --xpath "${query}" /config.xml)"`);
+        assert.equal(direct.exitCode, 10);
+        assert.equal(substitution.exitCode, direct.exitCode);
+        assert.equal(substitution.stderr, direct.stderr);
+        assert.equal(substitution.stdout, "");
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+test("xmllint sync serialization preserves processing instructions and carriage returns", async () => {
+  const query = "/config/server[@id='main']";
+  const expected = '<server id="main"><host>local&#13;host</host><?pi target="1"?><?empty?></server>\n';
+  assert.equal(evalSyncXmllint(parityXml, ["--xpath", query]), expected);
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/config.xml", parityXml);
+  const shell = new Shell({ fs, commands: new CommandRegistry([...createStandardCommands(), ...createXmllintCommands()]) });
+  try {
+    const direct = await shell.exec(`xmllint --xpath "${query}" /config.xml`);
+    const substitution = await shell.exec(`value="$(xmllint --xpath "${query}" /config.xml)"; printf '%s\\n' "$value"`);
+    assert.equal(direct.stdout, expected);
+    assert.deepEqual(substitution, direct);
+    assert.equal(evalSyncXmllint(parityXml, ["--xpath", "/config/server/host"]), '<host>local&#13;host</host>\n<host>replica</host>\n');
+  } finally { await shell.dispose(); }
+});
 
 for (const [setup, substitution, value] of [
   ['a=hello;', 'echo "x${a@U}"', 'xHELLO'],

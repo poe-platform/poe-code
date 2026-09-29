@@ -18,6 +18,12 @@ try {
 ```
 
 Compose additional format modules explicitly to convert between file types.
+For tabular imports, the `./cached` entrypoint reads BIFF2–8 cached values,
+including BIFF4 workbook containers, without translating formulas or names.
+It preserves raw error codes, encoding overrides, worksheet order and number
+formats, and admits CFB, record, string and cell storage through caller budgets.
+This value-only reader excludes formatting-only blank cells and ignores DIMENSION
+hints; the ordinary engine reader retains its editing and recalculation model.
 Existing ssconvert service IDs, supported profiles and documented fidelity limits
 remain unchanged. This private workspace is shipped through the containing
 products, not as a separate npm publication.

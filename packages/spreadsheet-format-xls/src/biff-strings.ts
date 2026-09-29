@@ -14,6 +14,7 @@ export function biffOverrideCodepage(encoding: string | undefined): number | und
   return encoding === undefined ? undefined : overrideCodepages[encoding];
 }
 export function biffDecode(bytes: Uint8Array, codepage: number): string {
+  if (codepage === 65001) return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
   const multibyte = biffDbcsTables[codepage];
   if (multibyte) {
     const characters: string[] = [];
@@ -26,7 +27,7 @@ export function biffDecode(bytes: Uint8Array, codepage: number): string {
     }
     return characters.join("");
   }
-  const name = codepage === 1200 || codepage === 1201 ? "iso-8859-1" :
+  const name = codepage === 20127 ? "ascii" : codepage === 1200 || codepage === 1201 || codepage === 28591 ? "iso-8859-1" :
     codepage === 10000 ? "macintosh" : codepage >= 1250 && codepage <= 1258 ? `windows-${codepage}` : `cp${codepage}`;
   const table = singleByteTables[name];
   if (!table) throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: BIFF codepage ${codepage}`);

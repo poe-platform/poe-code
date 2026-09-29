@@ -384,19 +384,11 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
 
       const readBit = (): number => {
         if (bitCount === 0) {
-          if (scanPos >= bytes.length) return 0;
-          let b = bytes[scanPos++]!;
+          if (scanPos >= bytes.length) throw new Error("Truncated JPEG entropy data");
+          const b = bytes[scanPos++]!;
           if (b === 0xff) {
-            while (scanPos < bytes.length && bytes[scanPos] === 0xff) scanPos++;
-            const next = bytes[scanPos] ?? 0;
-            if (next === 0x00) {
-              scanPos++;
-            } else if (next >= 0xd0 && next <= 0xd7) {
-              scanPos++;
-              b = bytes[scanPos++] ?? 0;
-            } else {
-              return 0;
-            }
+            if (scanPos >= bytes.length) throw new Error("Truncated JPEG entropy escape");
+            if (bytes[scanPos++] !== 0x00) throw new Error("Unexpected JPEG marker in entropy data");
           }
           bitBuf = b;
           bitCount = 8;
@@ -426,7 +418,8 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
           const bit = readBit();
           node = node.children?.[bit];
         }
-        return node?.symbol ?? 0;
+        if (node?.symbol === undefined) throw new Error("Invalid JPEG Huffman code");
+        return node.symbol;
       };
 
       const decodeBlockBaseline = (comp: ComponentSpec, block: Int32Array) => {
@@ -496,6 +489,16 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
       };
 
       let mcuCounter = 0;
+      let restartCounter = 0;
+      const consumeRestart = (): void => {
+        if (bytes[scanPos++] !== 0xff) throw new Error("Missing JPEG restart marker");
+        while (bytes[scanPos] === 0xff) scanPos++;
+        if (bytes[scanPos++] !== 0xd0 + restartCounter % 8) throw new Error("Invalid JPEG restart sequence");
+        restartCounter++;
+        for (const comp of scanComps) comp.dcPred = 0;
+        eobRun = 0;
+        bitCount = 0;
+      };
       if (scanComps.length === 1 && (spectralStart > 0 || scanCompsCount === 1 && components.length > 1)) {
         const comp = scanComps[0]!;
         const blocksCols = Math.ceil(width / (8 * (maxH / comp.h)));
@@ -503,9 +506,7 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
         for (let by = 0; by < blocksRows; by++) {
           for (let bx = 0; bx < blocksCols; bx++) {
             if (restartInterval > 0 && mcuCounter > 0 && mcuCounter % restartInterval === 0) {
-              comp.dcPred = 0;
-              eobRun = 0;
-              bitCount = 0;
+              consumeRestart();
             }
             const block = comp.blocks[by * comp.blocksX + bx]!;
             if (meta.isProgressive) decodeBlockProgressive(comp, block);
@@ -517,9 +518,7 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
         for (let my = 0; my < mcusY; my++) {
           for (let mx = 0; mx < mcusX; mx++) {
             if (restartInterval > 0 && mcuCounter > 0 && mcuCounter % restartInterval === 0) {
-              for (const c of scanComps) c.dcPred = 0;
-              eobRun = 0;
-              bitCount = 0;
+              consumeRestart();
             }
             for (const comp of scanComps) {
               for (let vy = 0; vy < comp.v; vy++) {

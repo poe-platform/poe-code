@@ -56,33 +56,23 @@ Safe Bash adapter thin. Use structured parser/model nodes and vetted cryptograph
 primitives. Each code fix needs a current failing original memory test or other
 concrete evidence, neighboring controls and narrowly maintained verification.
 
-Finish the remaining CSVKit workbook migration against the shared spreadsheet
-model and XLSX/XLS format packages delivered under #4091. Preserve ISO date
-provenance, declared/reset dimensions, BIFF encoding overrides and native CSVKit
-diagnostics. The existing namespace-aware, stepped parser now belongs to
-`packages/xml-ast/src/index.ts`; `safe-fs/xml` retains its API and shares parser
-and error identity through the root and scoped bundles. The parser implementation
-and resource contracts are unchanged. CSVKit's ISO metadata now uses that parser
-with nesting, work and retained-storage accounting; its saxes dependency is removed.
-Pandoc's JPEG migration is delivered. The actual XLSX implementation has moved
-unchanged to `xlsx-ast`. CSVKit now uses its cached-value reader, preserving raw ISO
-dates, declared/reset dimensions, formats, workbook epoch and active sheet while
-charging shared invocation budgets. Coordinates now use the shared spreadsheet
-model, built-in formats use an immutable local table, and the legacy XLS date
-classifier charges scanning work. Owned CFB decoding now admits traversal and
-storage through caller counters; CSVKit uses it for legacy encoding inspection.
-SheetJS still performs the main BIFF read. Finish the XLS/BIFF reader, preserving encoding
-overrides and native diagnostics. Its cached-value profile must skip formula/name
-translation, preserve raw errors and blank/dimension behavior, and charge CFB,
-record, string and cell storage to the same invocation counters. Gnumeric's
-CODEPAGE precedence and font-charset rules cannot substitute for CSVKit's explicit
-encoding override; BIFF8 ignores that override while legacy BIFF honors it.
-Pinned xlrd 2.0.2 (`3a19d22014d7b3f3041b7188d21a653c18c709bf`) further requires
-ISO-8859-1 when legacy CODEPAGE and an override are both absent, actual populated
-cell extents rather than DIMENSION hints, and omission of BLANK/MULBLANK records
-when formatting information is disabled. FORMULA cache tag 3 is an empty text
-value, not an absent cell. Qualify these cases before replacing the XLS reader.
-The Gnumeric reader and cached-value reader retain their separate import semantics.
+CSVKit now uses owned cached-value XLSX and BIFF readers, shared coordinates and
+local format classification. SheetJS remains only a CSVKit test dependency.
+The namespace-aware parser belongs to `xml-ast`; `safe-fs/xml` retains parser/error
+identity. Pandoc and ssconvert use the owned JPEG implementation. Preserve these
+boundaries while qualifying further workbook and rendering profiles.
+
+XLSX imports preserve raw ISO dates, declared/reset dimensions, formats, epoch and
+active sheet. BIFF imports skip formula/name translation and formatting-only blanks,
+preserve raw errors and empty string caches, and use populated-cell extents.
+CFB, record, string and cell allocations share caller work/storage counters.
+Pinned xlrd 2.0.2 (`3a19d22014d7b3f3041b7188d21a653c18c709bf`) supplies the
+cached profile: legacy encoding overrides beat CODEPAGE, the missing-encoding
+fallback is ISO-8859-1, and BIFF8 ignores legacy overrides. BIFF4 workbook containers
+reset per-sheet formats; BOUNDSHEET order controls sheet selection. Keep the
+Gnumeric editing reader's separate formula, font and encoding semantics.
+The library and adapter are delivered as `265df71418` and `daf450b6a8`; current
+registry artifact qualification and the broader format-family scope remain open.
 
 The incoming synchronous XLSX shortcut dropped sparse row positions. Fix
 `52134c3627` delegates non-dense coordinates before output; dense conversion and

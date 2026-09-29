@@ -1190,3 +1190,37 @@ pub fn verify_git_signature(
         Err("Unknown signature format".to_string())
     }
 }
+
+pub fn sha1_bytes(data: &[u8]) -> [u8; 20] {
+    let hex = crate::utils::shasum(data);
+    let mut out = [0u8; 20];
+    for i in 0..20 {
+        out[i] = u8::from_str_radix(&hex[i * 2..i * 2 + 2], 16).unwrap_or(0);
+    }
+    out
+}
+
+pub fn sha1_hmac(key: &[u8], data: &[u8]) -> [u8; 20] {
+    let mut k_block = [0u8; 64];
+    if key.len() > 64 {
+        let h = sha1_bytes(key);
+        k_block[..20].copy_from_slice(&h);
+    } else {
+        k_block[..key.len()].copy_from_slice(key);
+    }
+    let mut ipad = [0x36u8; 64];
+    let mut opad = [0x5cu8; 64];
+    for i in 0..64 {
+        ipad[i] ^= k_block[i];
+        opad[i] ^= k_block[i];
+    }
+    let mut inner = Vec::with_capacity(64 + data.len());
+    inner.extend_from_slice(&ipad);
+    inner.extend_from_slice(data);
+    let inner_hash = sha1_bytes(&inner);
+
+    let mut outer = Vec::with_capacity(64 + 20);
+    outer.extend_from_slice(&opad);
+    outer.extend_from_slice(&inner_hash);
+    sha1_bytes(&outer)
+}

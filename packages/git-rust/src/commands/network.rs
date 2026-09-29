@@ -354,6 +354,19 @@ pub fn fetch(
             .ok_or_else(|| GitError::missing_parameter("url"))?,
     };
 
+    if crate::ssh::is_ssh_or_local_url(&resolved_url) {
+        return crate::ssh::ssh_fetch(
+            fs,
+            dir,
+            Some(&gdir),
+            &resolved_url,
+            Some(remote_name),
+            ref_name,
+            single_branch,
+            tags,
+        );
+    }
+
     let server_refs = list_server_refs(
         http,
         &resolved_url,
@@ -698,6 +711,20 @@ pub fn push(
             .map(|v| v.as_str().to_string())
             .ok_or_else(|| GitError::missing_parameter("url"))?,
     };
+
+    if crate::ssh::is_ssh_or_local_url(&resolved_url) {
+        return crate::ssh::ssh_push(
+            fs,
+            dir,
+            Some(&gdir),
+            &resolved_url,
+            Some(remote_name),
+            ref_name,
+            remote_ref,
+            force,
+            delete,
+        );
+    }
 
     let local_ref = match ref_name {
         Some(r) => r.to_string(),

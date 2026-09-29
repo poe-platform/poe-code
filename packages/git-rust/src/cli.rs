@@ -4664,6 +4664,24 @@ pub fn execute_git_cli_with_input(
             if get_url {
                 return CliResult::ok(format!("{url}\n"));
             }
+            if crate::ssh::is_ssh_or_local_url(&url)
+                && let Ok(server_refs) = crate::ssh::ssh_list_server_refs(fs, Some(&repo_root), Some(&gitdir), &url)
+            {
+                let mut out = String::new();
+                for r in server_refs {
+                    if heads_only && !r.r#ref.starts_with("refs/heads/") {
+                        continue;
+                    }
+                    if tags_only && !r.r#ref.starts_with("refs/tags/") {
+                        continue;
+                    }
+                    if !patterns.is_empty() && !patterns.iter().any(|p| r.r#ref.ends_with(p) || r.r#ref.contains(p)) {
+                        continue;
+                    }
+                    out.push_str(&format!("{}\t{}\n", r.oid, r.r#ref));
+                }
+                return CliResult::ok(out);
+            }
             if (url.starts_with("http://") || url.starts_with("https://"))
                 && let Ok(server_refs) = crate::list_server_refs(http, &url, None, false, 1, None, true, true, None)
             {

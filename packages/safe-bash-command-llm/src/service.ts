@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { validateModelOptions } from "./model-options.js";
 import { acceptsMimeType } from "./mime.js";
 import type { LlmModel, LlmProvider, LlmRequest, LlmEmbeddingRequest, LlmEmbeddingResponse, LlmOption, LlmResponseMetadata, LlmSourceRequest, LlmInputSource } from "./types.js";
@@ -40,6 +41,27 @@ function abortable<Value>(start: () => PromiseLike<Value>, signal: AbortSignal):
   });
 }
 
+async function textByteLength(text: string, signal: AbortSignal, maxBytes: number): Promise<number> {
+  let size = 0, checkpoint = 0;
+  signal.throwIfAborted();
+  for (let index = 0; index < text.length; index++) {
+    if (index - checkpoint >= 65536) {
+      await yieldTurn(signal);
+      checkpoint = index;
+    }
+    const code = text.charCodeAt(index);
+    if (code < 128) size++;
+    else if (code < 2048) size += 2;
+    else if (code >= 0xd800 && code <= 0xdbff && index + 1 < text.length && text.charCodeAt(index + 1) >= 0xdc00 && text.charCodeAt(index + 1) <= 0xdfff) {
+      size += 4;
+      index++;
+    } else size += 3;
+    if (size > maxBytes) throw new RangeError("LLM output byte limit exceeded");
+  }
+  signal.throwIfAborted();
+  return size;
+}
+
 function validateMetadata(value: LlmResponseMetadata): void {
   for (const field of [value.usage, value.metadata]) {
     if (field !== undefined && (!field || typeof field !== "object" || Array.isArray(field))) throw new TypeError("Invalid LLM response metadata");
@@ -77,7 +99,8 @@ async function* streamResult(completion: () => AsyncIterable<string | Uint8Array
           const chunk = result.value;
           const text = (model.outputType ?? "text/plain").toLowerCase().startsWith("text/");
           if (text ? typeof chunk !== "string" : !(chunk instanceof Uint8Array)) throw new TypeError("Provider returned an incompatible LLM output chunk");
-          size += typeof chunk === "string" ? new TextEncoder().encode(chunk).length : chunk.byteLength;
+          size += typeof chunk === "string" ? await textByteLength(chunk, request.signal, limit - size) : chunk.byteLength;
+          request.signal.throwIfAborted();
           if (size > limit) throw new RangeError("LLM output byte limit exceeded");
           yield typeof chunk === "string" ? { type: "text", text: chunk } : { type: "bytes", data: new Uint8Array(chunk) };
         }

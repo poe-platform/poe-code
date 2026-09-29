@@ -64,7 +64,7 @@ test("Infinity timer chunks are accepted and clamped to the host maximum", async
 });
 
 test("timeout binds host timers at use time and imports without performance", async () => {
-  const bundled = await build({ entryPoints: ["src/commands/timeout/scheduler.ts"], absWorkingDir: new URL("../../", import.meta.url).pathname, bundle: true, write: false, platform: "neutral", format: "iife", globalName: "scheduler" });
+  const bundled = await build({ entryPoints: ["../safe-bash-command-timeout/src/scheduler.ts"], absWorkingDir: new URL("../../", import.meta.url).pathname, bundle: true, write: false, platform: "neutral", format: "iife", globalName: "scheduler" });
   const host: Record<string, unknown> = {};
   runInNewContext(bundled.outputFiles[0]!.text, host);
   const binding = (host.scheduler as { defaultSchedulerBinding: typeof defaultSchedulerBinding }).defaultSchedulerBinding;

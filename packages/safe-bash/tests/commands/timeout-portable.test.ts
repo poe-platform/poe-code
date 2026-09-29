@@ -129,7 +129,7 @@ test("timeout GNU duration spellings preserve file and raw stdin bytes through S
 
 test("timeout scheduler browser graph has no Node clock or timer dependency", async () => {
   const result = await build({
-    entryPoints: [fileURLToPath(new URL("../../src/commands/timeout/scheduler.ts", import.meta.url))],
+    entryPoints: [fileURLToPath(new URL("../../../safe-bash-command-timeout/src/scheduler.ts", import.meta.url))],
     bundle: true, write: false, metafile: true, platform: "browser", format: "cjs", target: "es2022",
     conditions: ["workerd", "worker", "browser"], logLevel: "silent",
   });
@@ -156,7 +156,7 @@ test("timeout scheduler browser graph has no Node clock or timer dependency", as
     },
   });
   const globalObject: unknown = runInContext("globalThis", sandbox);
-  const scheduler = runInContext(`(function(){ const module = { exports: {} }; ${result.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as typeof import("../../src/commands/timeout/scheduler.js");
+  const scheduler = runInContext(`(function(){ const module = { exports: {} }; ${result.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as typeof import("safe-bash-command-timeout/scheduler");
   const deadline = scheduler.createDeadline(scheduler.defaultSchedulerBinding, 25, 10);
   deadline.start();
   assert.ok(active.has(0));

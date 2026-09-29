@@ -220,3 +220,39 @@ test("Wave 128: sync getconf, locale, csvcut, and csvgrep substitutions and pipe
   assert.equal(r2.exitCode, 0);
   assert.equal(r2.stdout, "carol,91:80\n");
 });
+
+test("Wave 129: sync getopt, dos2unix, unix2dos, and iconv substitutions and pipelines", async () => {
+  const { createGetoptCommands } = await import("../../src/commands/getopt/index.js");
+  const { createDos2unixCommands } = await import("../../src/commands/line-endings/index.js");
+  const { createIconvCommands } = await import("../../src/commands/iconv/index.js");
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp", { recursive: true });
+  await fs.writeFile("/tmp/crlf.txt", new TextEncoder().encode("alpha\r\nbeta\r\ngamma\r\n"));
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createGetoptCommands(),
+    ...createDos2unixCommands(),
+    ...createIconvCommands(),
+  ]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(getopt -o ab:c --long alpha,beta: -- -a -b val --alpha pos1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, " -a -b 'val' --alpha -- 'pos1':80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(dos2unix -O /tmp/crlf.txt | unix2dos | dos2unix | tail -n 1):$(printf "café-%s\n" "$i" | iconv -f UTF-8 -t ASCII//IGNORE)"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "gamma:caf-80\n");
+});

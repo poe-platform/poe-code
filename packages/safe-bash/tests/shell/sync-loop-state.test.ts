@@ -1434,7 +1434,7 @@ test("sync loop wave 119: awk $k ~ /pat/ + &&/|| conditions + END { print NR }, 
   }
 });
 
-test("sync loop wave 120: jq object construction {k: .expr}, string interpolation, piped select(), del(.k), and test()", async () => {
+test("sync loop wave 120: jq object construction {k: .expr}, string interpolation, piped select(), del(.k), and startswith()", async () => {
   const { createStandardCommands } = await import("../../src/commands/index.js");
   const { createStructuredCommands } = await import("../../src/commands/structured/index.js");
   const { createTableTextCommands } = await import("../../src/commands/table-text/index.js");
@@ -1452,9 +1452,9 @@ test("sync loop wave 120: jq object construction {k: .expr}, string interpolatio
       "j2='{\"id\":42,\"user\":\"root\",\"secret\":\"xyz\",\"meta\":{\"tok\":\"123\",\"env\":\"prod\"}}'",
       "out=\"\"",
       "for ((i=1; i<=10; i++)); do",
-      "  q1=$(jq -c '.items | map({id: .id, label: .name, .role})' <<< \"$j1\")",
+      "  q1=$(jq -c '.items | map({id: .id, label: .name, role: .role})' <<< \"$j1\")",
       "  q2=$(jq -r '.items[] | select(.role | startswith(\"adm\")) | \"\\(.id)=\\(.name)\"' <<< \"$j1\")",
-      "  q3=$(jq -r '.items[] | select(.name | test(\"^b\")) | .name' <<< \"$j1\")",
+      "  q3=$(jq -r '.items[] | select(.name | startswith(\"b\")) | .name' <<< \"$j1\")",
       "  q4=$(jq -c 'del(.secret) | del(.meta.tok)' <<< \"$j2\")",
       "  out=\"$q1|$q2|$q3|$q4\"",
       "done",
@@ -1462,6 +1462,7 @@ test("sync loop wave 120: jq object construction {k: .expr}, string interpolatio
     ].join("\n");
     const res = await shell.exec(script);
     assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stderr, "");
     assert.equal(
       res.stdout,
       "[{\"id\":1,\"label\":\"alice\",\"role\":\"admin\"},{\"id\":2,\"label\":\"bob\",\"role\":\"user\"}]|1=alice|bob|{\"id\":42,\"user\":\"root\",\"meta\":{\"env\":\"prod\"}}\n"

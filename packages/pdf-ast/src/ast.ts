@@ -274,7 +274,7 @@ export type PdfPaintOperation =
   | { readonly kind: "glyph"; readonly value: PdfPlacedGlyph }
   | { readonly kind: "group"; readonly value: PdfPaintGroup };
 
-/** An isolated transparency Form, composited after painting its children. */
+/** A transparency Form, composited after painting its children. */
 export interface PdfPaintGroup {
   readonly operations: readonly PdfPaintOperation[];
   readonly alpha: number;

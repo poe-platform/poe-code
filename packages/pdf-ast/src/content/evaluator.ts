@@ -1762,8 +1762,13 @@ export function evaluateContentStreamToDisplayList(params: {
     const st = curState();
     const group = params.cosDoc!.resolveDict(dictGet(form.dict, "Group"));
     const groupType = group ? params.cosDoc!.resolve(dictGet(group, "S")) : undefined;
-    const isolated = group ? params.cosDoc!.resolve(dictGet(group, "I")) : undefined;
-    const isolate = !maskGroup && groupType?.kind === "name" && groupType.decoded === "Transparency" && isolated?.kind === "boolean" && isolated.value;
+    const isolation = group ? params.cosDoc!.resolve(dictGet(group, "I")) : undefined;
+    const isolated = isolation?.kind === "boolean" && isolation.value;
+    // PDF.js beginGroup: ordinary non-isolated
+    // Forms paint directly, retaining inherited state. Group effects instead
+    // apply once to the finished Form, after resetting its inner paint state.
+    const compositeGroup = !maskGroup && groupType?.kind === "name" && groupType.decoded === "Transparency" &&
+      (isolated || st.fillAlpha !== 1 || !!st.softMask || (st.blendMode !== "Normal" && st.blendMode !== "Compatible"));
     const formStreamBytes = params.cosDoc!.decodeStream(form);
     const formNodes = parseContentStream(formStreamBytes);
     const formResDict = params.cosDoc!.resolveDict(dictGet(form.dict, "Resources")) ?? activeResources;
@@ -1781,8 +1786,8 @@ export function evaluateContentStreamToDisplayList(params: {
       const formMat: Matrix6 = [mn(0, 1), mn(1, 0), mn(2, 0), mn(3, 1), mn(4, 0), mn(5, 0)];
       nextCtm = multiplyMatrices(formMat, nextCtm);
     }
-    let nextClip = !isolate && st.clipRect ? ([...st.clipRect] as [number, number, number, number]) : undefined;
-    let nextClipPaths = isolate ? undefined : st.clipPaths;
+    let nextClip = !compositeGroup && st.clipRect ? ([...st.clipRect] as [number, number, number, number]) : undefined;
+    let nextClipPaths = compositeGroup ? undefined : st.clipPaths;
     const bboxArr = params.cosDoc!.resolveArray(dictGet(form.dict, "BBox"));
     if (bboxArr && bboxArr.items.length >= 4) {
       const bn = (idx: number, fb = 0) => {
@@ -1818,7 +1823,7 @@ export function evaluateContentStreamToDisplayList(params: {
     const parentOperations = capturedOperations;
     const children: PdfPaintOperation[] = [];
     const nextState = { ...st, ctm: nextCtm };
-    if (isolate) {
+    if (compositeGroup) {
       capturedOperations = children;
       nextState.fillAlpha = nextState.strokeAlpha = 1;
       nextState.blendMode = "Normal";
@@ -1836,7 +1841,7 @@ export function evaluateContentStreamToDisplayList(params: {
       stateStack.pop();
       capturedOperations = parentOperations;
     }
-    if (isolate) emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, blendMode: st.blendMode, clipRect: st.clipRect } });
+    if (compositeGroup) emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, blendMode: st.blendMode, clipRect: st.clipRect } });
   };
 
   const walkNodes = (

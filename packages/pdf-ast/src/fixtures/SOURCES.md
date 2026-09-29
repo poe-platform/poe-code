@@ -15,6 +15,24 @@ Apache-2.0; see `../../licenses/PDFJS-APACHE-2.0.txt`.
 `../render/soft-mask.test.ts` checks the original files at 150px long edge
 or smaller. Independent PDF.js 6.3.289 and SVG/librsvg comparisons use 600px.
 
+# PDF.js transparency-group regression fixtures
+
+Unmodified equality fixtures from the same Mozilla PDF.js revision and license:
+
+| Local file | Upstream file | SHA-256 |
+| --- | --- | --- |
+| pdfjs-transparency_group.pdf | transparency_group.pdf | 029dd50635adee0711836095b76aab62226ca8731f6642a9454b25e2668226dd |
+| pdfjs-bug1873345.pdf | bug1873345.pdf | 7c7df480e9f1a2618f5dcb44bb21786ca4ce3e6fd59c13d19772a72f47a4cec8 |
+
+`../render/transparency-group.test.ts` ports the overlap and multiply-highlight
+checks using independently rendered PDF.js 6.3.289 pixel samples at 150px long
+edge. Local memory-only cases cover group opacity, blend resets, masks, nested
+groups, transparent backgrounds, and the direct-paint stroke-alpha behavior
+described by PDF.js `beginGroup`. Poppler and PDFium provide additional reference
+renders; their stroke-alpha behavior differs from PDF.js on the direct path.
+For outer-opacity groups, the intermediate-surface behavior follows PDF.js,
+including its documented limitation for full non-isolated backdrop compositing.
+
 # qpdf regression fixtures
 
 Unmodified files from https://github.com/qpdf/qpdf, revision

@@ -399,6 +399,15 @@ in `src/fixtures/SOURCES.md`, and adds local alpha/transform/group tests plus
 the original issue17069 signature regression. Soft-mask evaluation is bounded
 by the existing eight-level Form limit; mask-only text is excluded from extraction.
 
+Non-isolated transparency Forms follow `beginGroup`'s direct-paint eligibility
+and intermediate-surface state reset. Bitmap and SVG exports follow
+`beginDrawing` in keeping the viewer background outside page blend calculations.
+`src/render/transparency-group.test.ts` adds local opacity/blend/mask cases and
+ports the unchanged `transparency_group.pdf` and `bug1873345.pdf` equality
+fixtures, with independently obtained reference pixels. Full non-isolated
+backdrop compositing for groups with outer effects retains PDF.js's documented
+limitation. Form contents remain vectors in SVG output.
+
 Malformed dictionary-key recovery follows PDF.js `Parser.getObj`, skipping
 stray non-Name tokens only in local repair mode. Damaged optional ToUnicode
 streams follow `PartialEvaluator.readToUnicode` error recovery while retaining

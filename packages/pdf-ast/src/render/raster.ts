@@ -1189,6 +1189,12 @@ function renderSoftMask(mask: PdfSoftMask, displayList: PdfDisplayList, scale: n
   return bitmap;
 }
 
+function hasBlendModes(operations: readonly PdfPaintOperation[]): boolean {
+  return operations.some(operation =>
+    (!!operation.value.blendMode && operation.value.blendMode !== "Normal" && operation.value.blendMode !== "Compatible") ||
+    (operation.kind === "group" && hasBlendModes(operation.value.operations)));
+}
+
 export function renderDisplayListToBitmap(
   displayList: PdfDisplayList,
   options: RenderToPngOptions = {}
@@ -1201,11 +1207,15 @@ export function renderDisplayListToBitmap(
   const height = Math.max(1, Math.round(displayList.height * scale));
   const rgba = new Uint8Array(width * height * 4);
 
+  // PDF.js beginDrawing: blend modes see the page's transparent backdrop,
+  // never the viewer's white/custom background. Composite that background last.
+  const deferBackground = !options.transparent && hasBlendModes(paintOperations(displayList));
+  const transparent = options.transparent || deferBackground;
   const bg = options.background ?? { r: 1, g: 1, b: 1 };
-  const bgR = options.transparent ? 0 : Math.round(bg.r * 255);
-  const bgG = options.transparent ? 0 : Math.round(bg.g * 255);
-  const bgB = options.transparent ? 0 : Math.round(bg.b * 255);
-  const bgA = options.transparent ? 0 : 255;
+  const bgR = transparent ? 0 : Math.round(bg.r * 255);
+  const bgG = transparent ? 0 : Math.round(bg.g * 255);
+  const bgB = transparent ? 0 : Math.round(bg.b * 255);
+  const bgA = transparent ? 0 : 255;
   for (let i = 0; i < width * height; i++) {
     rgba[i * 4] = bgR;
     rgba[i * 4 + 1] = bgG;
@@ -1369,6 +1379,15 @@ export function renderDisplayListToBitmap(
     }
   }
 
+  if (deferBackground) {
+    for (let i = 0; i < rgba.length; i += 4) {
+      const alpha = rgba[i + 3]! / 255;
+      rgba[i] = Math.round(rgba[i]! * alpha + bg.r * 255 * (1 - alpha));
+      rgba[i + 1] = Math.round(rgba[i + 1]! * alpha + bg.g * 255 * (1 - alpha));
+      rgba[i + 2] = Math.round(rgba[i + 2]! * alpha + bg.b * 255 * (1 - alpha));
+      rgba[i + 3] = 255;
+    }
+  }
   let result: RgbaBitmap = { width, height, data: rgba };
   if (Math.abs(scaleX - scaleY) > 1e-6) {
     const targetW = Math.max(1, Math.round(displayList.width * scaleX));
@@ -1507,6 +1526,7 @@ export function renderDisplayListToSvg(
   if (!options.transparent) {
     parts.push(`  <rect x="${vbX}" y="${vbY}" width="${vbW}" height="${vbH}" fill="#ffffff"/>`);
   }
+  parts.push('<g style="isolation:isolate">');
   if (displayList.rotation) {
     // Paths and images below already flip PDF y coordinates. Compose that
     // inverse flip with PDF.js's viewport transform to rotate every paint.
@@ -1607,6 +1627,7 @@ export function renderDisplayListToSvg(
   };
   appendOperations(paintOperations(displayList));
   if (displayList.rotation) parts.push("</g>");
+  parts.push("</g>");
   parts.push("</svg>\n");
   return parts.join("\n");
 }

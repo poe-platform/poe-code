@@ -4,6 +4,22 @@ import { DisallowedSyntaxError, parse } from "../parse.js";
 import { parseModule } from "./parser.js";
 
 describe("parse", () => {
+  it.each([false, true])("parses deep conditional alternates without host recursion (grouped=%s)", grouped => {
+    let source = "0";
+    for (let i = 0; i < 2000; i++) source = `a ? 1 : ${grouped ? `(${source})` : source}`;
+    let node = parse(source);
+    expect(node.span.start.offset).toBe(0);
+    expect(node.span.end.offset).toBe(source.length);
+    for (let i = 0; i < 2000; i++) {
+      expect(node.type).toBe("ConditionalExpression");
+      if (node.type !== "ConditionalExpression") throw new Error("Missing conditional");
+      expect(node.test.type).toBe("Identifier");
+      expect(node.consequent.type).toBe("NumericLiteral");
+      node = node.alternate;
+    }
+    expect(node).toMatchObject({ type: "NumericLiteral", value: 0 });
+  });
+
   it.each([
     "callback = () => 1;",
     "callback = value => value;",

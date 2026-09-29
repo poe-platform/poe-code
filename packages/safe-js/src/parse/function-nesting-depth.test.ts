@@ -87,6 +87,18 @@ it("accepts deep redundant grouping independently of the ternary budget", () => 
   expect(() => parseWithDepth(`return ${"(".repeat(2000)}true${")".repeat(2000)};`, 5)).not.toThrow();
 });
 
+it("enforces the caller depth at iteratively parsed conditional alternates", () => {
+  let expression = "0";
+  for (let i = 0; i < 500; i++) expression = `false ? 1 : (${expression})`;
+  expect(() => parseWithDepth(`return ${expression};`, 500)).not.toThrow();
+  expect(() => parseWithDepth(`return ${expression};`, 499)).toThrow("Conditional expression nesting limit exceeded");
+});
+
+it("allows in inside grouped alternates within a NoIn initializer", () => {
+  expect(() => parseWithDepth("for (var key = true ? 1 : (false ? ('x' in {}) : 0); false;) {}"))
+    .not.toThrow();
+});
+
 
 it("bounds ternaries independently across successive uninvoked arrows", () => {
   expect(() => parseWithDepth("const a=true; const f=a ? () => (a ? () => (a ? () => (a ? 1 : 0) : 0) : 0) : 0;", 2)).not.toThrow();

@@ -1127,7 +1127,7 @@ class Parser {
     }
   }
 
-  private parseAssignmentExpression(): ParsedExpression {
+  private parseAssignmentPrefix(): ParsedExpression | undefined {
     const token = this.currentToken();
     if (token.type === "keyword" && token.value === "yield" && !this.isContextualIdentifier(token)) {
       if (this.functionContext !== "generator" && this.functionContext !== "async-generator") {
@@ -1182,7 +1182,15 @@ class Parser {
       };
     }
 
-    const left = this.parseConditionalExpression();
+    return undefined;
+  }
+
+  private parseAssignmentExpression(initial?: ParsedExpression): ParsedExpression {
+    if (initial === undefined) {
+      const prefix = this.parseAssignmentPrefix();
+      if (prefix !== undefined) return prefix;
+    }
+    const left = this.parseConditionalExpression(initial);
     const operator = this.consumeAssignmentOperator();
     if (operator === undefined) {
       return left;
@@ -1299,37 +1307,79 @@ class Parser {
   }
 
   private parseConditionalExpression(initial?: ParsedExpression): ParsedExpression {
-    const token = this.currentToken();
-    const test = initial ?? this.parseCoalesceExpression();
-    if (this.consumePunctuator("?") === undefined) {
-      return test;
-    }
-
+    let token = this.currentToken();
+    let expression = initial ?? this.parseCoalesceExpression();
+    if (this.currentToken().type !== "punctuator" || this.currentToken().value !== "?") return expression;
     const limit = this.compilation?.owner?.budget.limits.maxCallDepth ?? Infinity;
-    if (limit !== Infinity && this.conditionalExpressionDepth + this.conditionalDepth(test.node) >= limit) {
-      throw new Error(
-        `Conditional expression nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`
-      );
-    }
-
-    this.conditionalExpressionDepth += 1;
+    const previousDepth = this.conditionalExpressionDepth;
+    const previousAllowIn = this.allowIn;
+    const pending: {
+      test: ParsedExpression;
+      consequent: ParsedExpression;
+      groups: { start: Token; allowIn: boolean }[];
+    }[] = [];
     try {
+      while (this.consumePunctuator("?") !== undefined) {
+        if (limit !== Infinity && this.conditionalExpressionDepth + this.conditionalDepth(expression.node) >= limit) {
+          throw new Error(
+            `Conditional expression nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`
+          );
+        }
+        this.conditionalExpressionDepth += 1;
+        const consequent = this.parseExpression();
+        this.expectPunctuator(":");
+        const frame = { test: expression, consequent, groups: [] as { start: Token; allowIn: boolean }[] };
+        pending.push(frame);
 
-      const consequent = this.parseExpression();
-      this.expectPunctuator(":");
-      const alternate = this.parseAssignmentExpression();
-      return {
-        node: {
-          type: "ConditionalExpression",
-          test: test.node,
-          consequent: consequent.node,
-          alternate: alternate.node,
-          span: createSpan(test.node.span.start, alternate.node.span.end)
-        },
-        parenthesized: false
-      };
+        // A group covering the entire alternate can be resumed after its inner
+        // conditional, without retaining another host precedence stack. Groups
+        // with call/member/operator suffixes retain the ordinary grammar path.
+        while (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
+          const close = this.closingParentheses.get(this.index);
+          const suffix = close === undefined ? undefined : this.readToken(close + 1);
+          if (suffix === undefined || !(suffix.type === "eof" ||
+            (suffix.type === "punctuator" && [")", "]", "}", ",", ";", ":"].includes(suffix.value)))) break;
+          frame.groups.push({ start: this.expectPunctuator("("), allowIn: this.allowIn });
+          this.allowIn = true;
+        }
+
+        token = this.currentToken();
+        const prefix = this.parseAssignmentPrefix();
+        if (prefix !== undefined) { expression = prefix; break; }
+        expression = this.parseCoalesceExpression();
+        if (this.currentToken().type !== "punctuator" || this.currentToken().value !== "?") {
+          expression = this.parseAssignmentExpression(expression);
+          break;
+        }
+      }
+
+      while (pending.length > 0) {
+        const frame = pending.pop()!;
+        for (let i = frame.groups.length - 1; i >= 0; i--) {
+          const group = frame.groups[i]!;
+          expression = this.parseExpression({ allowSequence: true }, expression);
+          const end = this.expectPunctuator(")");
+          expression.node.span = createSpan(group.start.start, end.end);
+          this.parenthesizedNodes.add(expression.node);
+          expression = { node: expression.node, parenthesized: true };
+          this.allowIn = group.allowIn;
+        }
+        expression = {
+          node: {
+            type: "ConditionalExpression",
+            test: frame.test.node,
+            consequent: frame.consequent.node,
+            alternate: expression.node,
+            span: createSpan(frame.test.node.span.start, expression.node.span.end)
+          },
+          parenthesized: false
+        };
+        this.conditionalExpressionDepth -= 1;
+      }
+      return expression;
     } finally {
-      this.conditionalExpressionDepth -= 1;
+      this.conditionalExpressionDepth = previousDepth;
+      this.allowIn = previousAllowIn;
     }
   }
 

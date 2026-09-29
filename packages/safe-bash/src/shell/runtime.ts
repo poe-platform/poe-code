@@ -23177,6 +23177,7 @@ export class Runtime {
     return undefined;
   }
 
+  private _syncJqVars: Map<string, unknown> | undefined = undefined;
   private evalSyncJqPathOps(item: unknown, expr: string): unknown[] | undefined {
     let st = expr.trim();
     let pipeSplit = splitSyncJqExpression(st, "|");
@@ -23215,6 +23216,10 @@ export class Runtime {
       return truthy.length > 0 ? truthy : rVals;
     }
     if (st === ".") return [item];
+    if (/^\$[a-zA-Z_][a-zA-Z0-9_]*$/.test(st)) {
+      const vn = st.slice(1);
+      return this._syncJqVars?.has(vn) ? [this._syncJqVars.get(vn)] : undefined;
+    }
     if (st === "true") return [true];
     if (st === "false") return [false];
     if (st === "null") return [null];
@@ -23528,10 +23533,16 @@ export class Runtime {
         return lv !== null && lv !== undefined && lv !== false ? [item] : [];
       }
       let rv: unknown;
-      try {
-        rv = JSON.parse(selM[3]!.trim());
-      } catch {
-        return undefined;
+      const rhsTrim = selM[3]!.trim();
+      const rhsEval = this.evalSyncJqPathOps(item, rhsTrim);
+      if (rhsEval && rhsEval.length === 1) {
+        rv = rhsEval[0];
+      } else {
+        try {
+          rv = JSON.parse(rhsTrim);
+        } catch {
+          return undefined;
+        }
       }
       // The full jq evaluator owns structural equality and jq ordering.
       if ((typeof lv === "object" && lv !== null) || (typeof rv === "object" && rv !== null)) return undefined;
@@ -23590,6 +23601,22 @@ export class Runtime {
           const v = this.evalSyncJqPathOps(item, "." + k);
           if (!v || v.length !== 1) return undefined;
           outObj[k] = v[0];
+          continue;
+        }
+        const shortVarM = /^\$([a-zA-Z_][a-zA-Z0-9_]*)$/.exec(fs);
+        if (shortVarM) {
+          const k = shortVarM[1]!;
+          if (!this._syncJqVars?.has(k)) return undefined;
+          outObj[k] = this._syncJqVars.get(k);
+          continue;
+        }
+        const dynKvM = /^\(\s*([^)]+)\s*\)\s*:\s*(.+)$/.exec(fs);
+        if (dynKvM) {
+          const kRes = this.evalSyncJqPathOps(item, dynKvM[1]!.trim());
+          if (!kRes || kRes.length !== 1 || typeof kRes[0] !== "string") return undefined;
+          const vRes = this.evalSyncJqPathOps(item, dynKvM[2]!);
+          if (!vRes || vRes.length !== 1) return undefined;
+          outObj[kRes[0]] = vRes[0];
           continue;
         }
         const kvM = /^(?:"([^"\\]+)"|([a-zA-Z_][a-zA-Z0-9_]*))\s*:\s*(.+)$/.exec(fs);
@@ -23745,33 +23772,107 @@ export class Runtime {
     return formatSyncYqYamlLines(jqLines);
   }
 
-  private evalSyncJq(input: string, opArgs: readonly string[]): string[] | undefined {
+  private evalSyncJq(input: string | undefined, opArgs: readonly string[], cwd?: string): string[] | undefined {
     let rawOut = false;
     let compactOut = false;
+    let nullInput = false;
+    let slurp = false;
     let filter: string | undefined;
-    if (opArgs.length === 1 && !opArgs[0]!.startsWith("-")) {
-      filter = opArgs[0]!;
-    } else if (opArgs.length === 2 && (opArgs[0] === "-r" || opArgs[0] === "--raw-output" || opArgs[0] === "-c" || opArgs[0] === "--compact-output" || opArgs[0] === "-rc" || opArgs[0] === "-cr")) {
-      rawOut = ["-r", "-rc", "-cr", "--raw-output"].includes(opArgs[0]!);
-      compactOut = ["-c", "-rc", "-cr", "--compact-output"].includes(opArgs[0]!);
-      filter = opArgs[1]!;
-    }
-    if (!filter) return undefined;
-    let current: unknown[] = [];
-    try {
-      current = [JSON.parse(input)];
-    } catch {
-      if (!input.includes("\n")) return undefined;
-      try {
-        for (const line of input.split("\n")) {
-          const t = line.trim();
-          if (t.length > 0) current.push(JSON.parse(t));
+    let ended = false;
+    const fileOperands: string[] = [];
+    const vars = new Map<string, unknown>();
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (ended || !a.startsWith("-") || a === "-") {
+        if (filter === undefined) {
+          filter = a;
+        } else {
+          if (a === "-") return undefined;
+          fileOperands.push(a);
         }
-        if (current.length === 0) return undefined;
-      } catch {
-        return undefined;
+        continue;
       }
+      if (a === "--") { ended = true; continue; }
+      if (a === "--raw-output") { rawOut = true; continue; }
+      if (a === "--compact-output") { compactOut = true; continue; }
+      if (a === "--null-input") { nullInput = true; continue; }
+      if (a === "--slurp") { slurp = true; continue; }
+      if (a === "--arg") {
+        if (i + 2 >= opArgs.length) return undefined;
+        const k = opArgs[++i]!;
+        const v = opArgs[++i]!;
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(k)) return undefined;
+        vars.set(k, v);
+        continue;
+      }
+      if (a === "--argjson") {
+        if (i + 2 >= opArgs.length) return undefined;
+        const k = opArgs[++i]!;
+        const vRaw = opArgs[++i]!;
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(k)) return undefined;
+        try {
+          vars.set(k, JSON.parse(vRaw));
+        } catch {
+          return undefined;
+        }
+        continue;
+      }
+      if (a.startsWith("-") && !a.startsWith("--")) {
+        for (let j = 1; j < a.length; j++) {
+          const ch = a[j]!;
+          if (ch === "r") rawOut = true;
+          else if (ch === "c") compactOut = true;
+          else if (ch === "n") nullInput = true;
+          else if (ch === "s") slurp = true;
+          else return undefined;
+        }
+        continue;
+      }
+      return undefined;
     }
+    if (filter === undefined) return undefined;
+    const parseJsonStream = (src: string, target: unknown[]): boolean => {
+      try {
+        target.push(JSON.parse(src));
+        return true;
+      } catch {
+        if (!src.includes("\n")) return false;
+        const before = target.length;
+        try {
+          for (const line of src.split("\n")) {
+            const t = line.trim();
+            if (t.length > 0) target.push(JSON.parse(t));
+          }
+          return target.length > before;
+        } catch {
+          return false;
+        }
+      }
+    };
+    let current: unknown[] = [];
+    if (nullInput) {
+      current = [null];
+    } else if (fileOperands.length > 0) {
+      if (!cwd) return undefined;
+      let totalB = 0;
+      for (const fPath of fileOperands) {
+        const fView = this.tryReadMemoryFileViewSync(resolvePath(cwd, fPath), true, true);
+        if (!fView || fView.includes(0)) return undefined;
+        totalB += fView.byteLength;
+        if (totalB > 16384) return undefined;
+        const fStr = sharedSyncPipeDecoder.decode(fView).trim();
+        if (!parseJsonStream(fStr, current)) return undefined;
+      }
+    } else {
+      if (input === undefined) return undefined;
+      if (!parseJsonStream(input, current)) return undefined;
+    }
+    if (slurp && !nullInput) {
+      current = [current];
+    }
+    const prevVars = this._syncJqVars;
+    this._syncJqVars = vars.size > 0 ? vars : undefined;
+    try {
     const trimmedFilter = filter.trim();
     if (trimmedFilter.startsWith("[") && trimmedFilter.endsWith("]")) {
       const innerFilter = trimmedFilter.slice(1, -1).trim();
@@ -23817,6 +23918,9 @@ export class Runtime {
       current = next;
     }
     return current.map(val => (rawOut && typeof val === "string" ? val : JSON.stringify(val ?? null, null, compactOut ? undefined : 2)));
+    } finally {
+      this._syncJqVars = prevVars;
+    }
   }
   private evalSyncDirname(args: readonly string[]): string | undefined {
     let idx = 0;
@@ -27639,7 +27743,7 @@ export class Runtime {
       const w0Plain0 = cmd0.words[0]?.plain;
       const cmd0YesStage = !cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "yes" && pipeline.commands[1]?.kind === "simple" && pipeline.commands[1]?.words[0]?.plain === "head";
       const cmd0SysStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "uname" || w0Plain0 === "id" || w0Plain0 === "whoami" || w0Plain0 === "hostname" || w0Plain0 === "nproc" || w0Plain0 === "getconf" || w0Plain0 === "locale" || w0Plain0 === "cal" || w0Plain0 === "ncal" || w0Plain0 === "date" || w0Plain0 === "printenv" || w0Plain0 === "env" || w0Plain0 === "pwd" || w0Plain0 === "dirname" || w0Plain0 === "basename" || w0Plain0 === "expr" || w0Plain0 === "getopt" || w0Plain0 === "pathchk");
-      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk" || w0Plain0 === "rev" || w0Plain0 === "tac" || w0Plain0 === "uniq") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
+      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || w0Plain0 === "jq" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk" || w0Plain0 === "rev" || w0Plain0 === "tac" || w0Plain0 === "uniq") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
       if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0YesStage && !cmd0SysStage && !cmd0StdinRedir && !cmd0HereStringRedir && !cmd0FileStage) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
@@ -27707,9 +27811,7 @@ export class Runtime {
             : (this.evalSyncGrep([], sArgs, Boolean(rawState.errexit)) !== undefined || this.evalSyncGrepWithFiles(sArgs, false, false, Boolean(rawState.errexit), rawState.cwd, []) !== undefined);
           if (!grepOk) return undefined;
         } else if (sName === "jq") {
-          if (sArgs.length === 0 || sArgs.length > 2) return undefined;
-          if (sArgs.length === 1 && sArgs[0]!.startsWith("-")) return undefined;
-          if (sArgs.length === 2 && !["-r", "--raw-output", "-c", "--compact-output", "-rc", "-cr"].includes(sArgs[0]!)) return undefined;
+          if (this.evalSyncJq((i === 0 && cmd0FileStage) ? undefined : "null", sArgs, rawState.cwd) === undefined) return undefined;
         } else if (sName === "base64") {
           if (sArgs.length > 1 || (sArgs.length === 1 && sArgs[0] !== "-d" && sArgs[0] !== "--decode")) return undefined;
         } else if (sName === "tac") {
@@ -28237,7 +28339,7 @@ export class Runtime {
                 continue;
               }
             } else if (isInlineJq) {
-              const jqRes = this.evalSyncJq(inStr.trim(), stageArgs);
+              const jqRes = this.evalSyncJq((sIdx === 0 && cmd0FileStage) ? undefined : inStr.trim(), stageArgs, rawState.cwd);
               if (jqRes === undefined) return undefined;
               outLines = jqRes;
             } else if (firstName === "bc") {
@@ -29012,7 +29114,7 @@ export class Runtime {
           return exprRes.value;
         }
       }
-      if (fOk && (w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "factor" || w0Plain === "tsort" || (w0Plain === "envsubst" && !hasSingleHereStringRedir) || (w0Plain === "numfmt" && !hasSingleHereStringRedir)) && !hasSingleStdinRedir) {
+      if (fOk && (w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "factor" || w0Plain === "tsort" || (w0Plain === "jq" && !hasSingleHereStringRedir) || (w0Plain === "envsubst" && !hasSingleHereStringRedir) || (w0Plain === "numfmt" && !hasSingleHereStringRedir)) && !hasSingleStdinRedir) {
         const stdinLines = hasSingleHereStringRedir
           ? (hereStrVal!.endsWith("\n") ? hereStrVal!.slice(0, -1).split("\n") : (hereStrVal!.length === 0 ? [] : hereStrVal!.split("\n")))
           : undefined;
@@ -29022,6 +29124,7 @@ export class Runtime {
         else if (w0Plain === "paste") cjLines = this.evalSyncPaste(stdinLines ?? [], allArgs, rawState.cwd);
         else if (w0Plain === "factor") cjLines = this.evalSyncFactor(stdinLines ?? [], allArgs);
         else if (w0Plain === "tsort") cjLines = this.evalSyncTsort(stdinLines ?? [], allArgs, rawState.cwd);
+        else if (w0Plain === "jq") cjLines = this.evalSyncJq(undefined, allArgs, rawState.cwd);
         else if (w0Plain === "envsubst") {
           const esOut = this.evalSyncEnvsubst("", allArgs, rawState);
           if (esOut !== undefined) cjLines = esOut.endsWith("\n") ? esOut.slice(0, -1).split("\n") : (esOut ? [esOut] : []);
@@ -29114,7 +29217,7 @@ export class Runtime {
                 fileRes = syncCommandEvaluators.evalSyncHeadTail?.(w0Plain, hasSingleHereStringRedir || hasSingleStdinRedir ? view : undefined, allArgs, readFile);
               }
             } else if (w0Plain === "jq") {
-              const jqRes = this.evalSyncJq(fileStr.trim(), opArgs);
+              const jqRes = this.evalSyncJq(fileStr.trim(), opArgs, rawState.cwd) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncJq(undefined, allArgs, rawState.cwd) : undefined);
               if (jqRes !== undefined) fileRes = renderLines(jqRes);
             } else if (w0Plain === "awk") {
               const awkRes = this.evalSyncAwk(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("awk", allArgs, rawState.cwd, byteLocale(rawState.variables)) : undefined);

@@ -102,17 +102,52 @@ export function createTaskFingerprints(plan, {
     else if (file === "package.json") {
       try {
         const parsed = JSON.parse(fileSystem.readFileSync(path.join(plan.root, file), "utf8"));
+        const filterExternalDeps = record => {
+          if (!record || typeof record !== "object") return record;
+          return Object.fromEntries(
+            Object.entries(record)
+              .filter(([dep]) => !aliases.has(dep))
+              .sort(([a], [b]) => a.localeCompare(b))
+          );
+        };
         common.update(createHash("sha256").update(JSON.stringify({
           type: parsed.type,
           workspaces: parsed.workspaces,
-          dependencies: parsed.dependencies,
-          devDependencies: parsed.devDependencies,
-          optionalDependencies: parsed.optionalDependencies,
-          peerDependencies: parsed.peerDependencies,
+          dependencies: filterExternalDeps(parsed.dependencies),
+          devDependencies: filterExternalDeps(parsed.devDependencies),
+          optionalDependencies: filterExternalDeps(parsed.optionalDependencies),
+          peerDependencies: filterExternalDeps(parsed.peerDependencies),
           overrides: parsed.overrides,
           engines: parsed.engines,
           packageManager: parsed.packageManager
         })).digest("hex"));
+      } catch {
+        common.update(read(file));
+      }
+    }
+    else if (file === "package-lock.json") {
+      try {
+        const parsed = JSON.parse(fileSystem.readFileSync(path.join(plan.root, file), "utf8"));
+        if (parsed && typeof parsed === "object" && parsed.packages && typeof parsed.packages === "object") {
+          const externalPackages = Object.entries(parsed.packages)
+            .filter(([key, value]) => key.startsWith("node_modules/") && value && typeof value === "object" && value.link !== true)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, value]) => [
+              key,
+              {
+                version: value.version ?? null,
+                resolved: value.resolved ?? null,
+                integrity: value.integrity ?? null,
+                optional: Boolean(value.optional)
+              }
+            ]);
+          common.update(createHash("sha256").update(JSON.stringify({
+            lockfileVersion: parsed.lockfileVersion ?? null,
+            externalPackages
+          })).digest("hex"));
+        } else {
+          common.update(read(file));
+        }
       } catch {
         common.update(read(file));
       }

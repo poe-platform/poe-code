@@ -109,7 +109,33 @@ export function computeSafeJsShardKeys(rootDirectory, shards, { fileSystem = fs 
     if (!fileSystem.existsSync(fullPath)) continue;
     baseHash.update(file);
     baseHash.update("\0");
-    baseHash.update(fileSystem.readFileSync(fullPath));
+    const rawBytes = fileSystem.readFileSync(fullPath);
+    if (file === "package-lock.json") {
+      try {
+        const parsed = JSON.parse(rawBytes.toString("utf8"));
+        if (parsed && typeof parsed === "object" && parsed.packages && typeof parsed.packages === "object") {
+          const externalPackages = Object.entries(parsed.packages)
+            .filter(([key, value]) => key.startsWith("node_modules/") && value && typeof value === "object" && value.link !== true)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, value]) => [
+              key,
+              {
+                version: value.version ?? null,
+                resolved: value.resolved ?? null,
+                integrity: value.integrity ?? null,
+                optional: Boolean(value.optional)
+              }
+            ]);
+          baseHash.update(JSON.stringify({ lockfileVersion: parsed.lockfileVersion ?? null, externalPackages }));
+        } else {
+          baseHash.update(rawBytes);
+        }
+      } catch {
+        baseHash.update(rawBytes);
+      }
+    } else {
+      baseHash.update(rawBytes);
+    }
     baseHash.update("\0");
   }
   const baseDigest = baseHash.digest("hex");

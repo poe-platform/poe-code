@@ -269,4 +269,57 @@ describe("content-addressed check cache", () => {
     }));
     expect(key()).not.toBe(before);
   });
+
+  it("keeps workspace fingerprints stable across workspace-only entries in package.json and package-lock.json while invalidating on external package updates", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/package.json", JSON.stringify({
+      name: "poe-code",
+      type: "module",
+      workspaces: ["packages/*"],
+      dependencies: { semver: "^7.0.0" },
+      devDependencies: { "@poe-code/beta": "0.0.1" }
+    }));
+    state.fileSystem.writeFileSync("/repo/package-lock.json", JSON.stringify({
+      lockfileVersion: 3,
+      packages: {
+        "": { dependencies: { semver: "^7.0.0" }, devDependencies: { "@poe-code/beta": "0.0.1" } },
+        "packages/alpha": { name: "alpha", version: "0.0.1" },
+        "packages/beta": { name: "beta", version: "0.0.1" },
+        "node_modules/@poe-code/beta": { resolved: "packages/beta", link: true },
+        "node_modules/semver": { version: "7.5.4", resolved: "https://registry.npmjs.org/semver/-/semver-7.5.4.tgz", integrity: "sha512-1" }
+      }
+    }));
+    const files = [...state.files, "package.json"];
+    const key = () => createTaskFingerprints(state.plan, { files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event: "build" }).get("alpha");
+    const before = key();
+
+    state.fileSystem.writeFileSync("/repo/package.json", JSON.stringify({
+      name: "poe-code",
+      type: "module",
+      workspaces: ["packages/*"],
+      dependencies: { semver: "^7.0.0" },
+      devDependencies: { "@poe-code/beta": "0.0.1", "@poe-code/other": "0.0.1" }
+    }));
+    state.fileSystem.writeFileSync("/repo/package-lock.json", JSON.stringify({
+      lockfileVersion: 3,
+      packages: {
+        "": { dependencies: { semver: "^7.0.0" }, devDependencies: { "@poe-code/other": "0.0.1", "@poe-code/beta": "0.0.1" } },
+        "packages/other": { name: "other", version: "0.0.1" },
+        "packages/alpha": { name: "alpha", version: "0.0.1" },
+        "packages/beta": { name: "beta", version: "0.0.1" },
+        "node_modules/@poe-code/other": { resolved: "packages/other", link: true },
+        "node_modules/@poe-code/beta": { resolved: "packages/beta", link: true },
+        "node_modules/semver": { version: "7.5.4", resolved: "https://registry.npmjs.org/semver/-/semver-7.5.4.tgz", integrity: "sha512-1" }
+      }
+    }));
+    expect(key()).toBe(before);
+
+    state.fileSystem.writeFileSync("/repo/package-lock.json", JSON.stringify({
+      lockfileVersion: 3,
+      packages: {
+        "node_modules/semver": { version: "7.6.0", resolved: "https://registry.npmjs.org/semver/-/semver-7.6.0.tgz", integrity: "sha512-2" }
+      }
+    }));
+    expect(key()).not.toBe(before);
+  });
 });

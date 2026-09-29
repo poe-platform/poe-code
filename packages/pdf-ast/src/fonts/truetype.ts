@@ -25,6 +25,7 @@ export interface ParsedTrueTypeFont {
   readonly flags: number;
   readonly bbox: readonly [number, number, number, number];
   readonly numGlyphs: number;
+  readonly isCff: boolean;
   getGlyphId(codePoint: number): number;
   getAdvanceWidthUnits(glyphId: number): number;
   getAdvanceWidth1000(codePoint: number): number;
@@ -434,6 +435,7 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
     flags: 32,
     bbox: [scale1000(xMin), scale1000(yMin), scale1000(xMax), scale1000(yMax)],
     numGlyphs,
+    isCff: renderCffGlyph !== undefined,
     getGlyphId(codePoint: number): number {
       return codePointToGlyph.get(codePoint) ?? 0;
     },
@@ -475,7 +477,7 @@ export function embedTrueTypeFontInCos(
   usedGlyphs?: ReadonlyMap<number, string>
 ): PdfCosRef {
   const fontFileStream = cosStream(font.bytes, {
-    dict: cosDict({ Length1: cosNumber(font.bytes.length) }),
+    dict: cosDict(font.isCff ? { Subtype: cosName("OpenType") } : { Length1: cosNumber(font.bytes.length) }),
     compress: true,
   });
   const fontFileRef = doc.allocateObject(fontFileStream);
@@ -495,7 +497,7 @@ export function embedTrueTypeFontInCos(
     Descent: cosNumber(font.descender),
     CapHeight: cosNumber(font.capHeight),
     StemV: cosNumber(80),
-    FontFile2: fontFileRef,
+    [font.isCff ? "FontFile3" : "FontFile2"]: fontFileRef,
   });
   const descriptorRef = doc.allocateObject(descriptorDict);
 
@@ -508,7 +510,7 @@ export function embedTrueTypeFontInCos(
 
   const cidFontDict = cosDict({
     Type: cosName("Font"),
-    Subtype: cosName("CIDFontType2"),
+    Subtype: cosName(font.isCff ? "CIDFontType0" : "CIDFontType2"),
     BaseFont: cosName(font.postScriptName),
     CIDSystemInfo: cosDict({
       Registry: cosString("Adobe"),
@@ -518,7 +520,7 @@ export function embedTrueTypeFontInCos(
     FontDescriptor: descriptorRef,
     DW: cosNumber(1000),
     W: wArray,
-    CIDToGIDMap: cosName("Identity"),
+    ...(font.isCff ? {} : { CIDToGIDMap: cosName("Identity") }),
   });
   const cidFontRef = doc.allocateObject(cidFontDict);
 

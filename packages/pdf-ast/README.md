@@ -61,7 +61,9 @@ including PFB/hex containers, Differences, and composed accents. Embedded
 TrueType CID fonts select outlines through `/CIDToGIDMap`, independently of
 the Unicode labels used for extraction. Embedded Type0 Encoding CMaps resolve
 source character codes to CIDs before width and TrueType/CFF glyph selection.
-OpenType CFF tables use the same PDF.js outline renderer.
+OpenType CFF tables use the same PDF.js outline renderer. `doc.embedFont()`
+preserves full OpenType CFF programs with their matching PDF font metadata,
+including widths for every embedded glyph.
 Word spacing follows encoded one-byte spaces, including remapped characters.
 ToUnicode maps decode mixed one- through four-byte character codes, including
 ligatures and supplementary Unicode characters.

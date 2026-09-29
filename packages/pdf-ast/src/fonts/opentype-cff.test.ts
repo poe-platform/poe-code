@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { PdfDocument, parseTrueTypeFont, cosArray, cosDict, cosName, cosNumber, cosStream, dictSet } from "../index.js";
+import { PdfDocument, parseTrueTypeFont, cosArray, cosDict, cosName, cosNumber, cosStream, dictGet, dictSet, embedTrueTypeFontInCos } from "../index.js";
 
 // Adobe CFF specification / PDF.js unit-test example, with glyph 1 replaced by
 // an unhinted triangle through CFFCompiler. No external font files are needed.
@@ -58,4 +58,30 @@ it("retains original OpenType bytes when PDF.js repairs an embedded charstring",
 it("rejects a CFF table extending beyond the OpenType font", () => {
   const bytes = openTypeFont();
   expect(() => parseTrueTypeFont(bytes.subarray(0, bytes.length - 1))).toThrow("OpenType CFF table is outside the font program");
+});
+
+it("embeds full OpenType CFF as FontFile3/OpenType with a Type0 descendant", () => {
+  const bytes = openTypeFont(), doc = PdfDocument.create();
+  const ref = embedTrueTypeFontInCos(doc.cos, parseTrueTypeFont(bytes));
+  const font = doc.cos.resolveDict(ref)!;
+  const descendant = doc.cos.resolveDict(doc.cos.resolveArray(dictGet(font, "DescendantFonts"))!.items[0])!;
+  expect(dictGet(descendant, "Subtype")).toEqual(cosName("CIDFontType0"));
+  expect(dictGet(descendant, "CIDToGIDMap")).toBeUndefined();
+  const descriptor = doc.cos.resolveDict(dictGet(descendant, "FontDescriptor"))!;
+  expect(dictGet(descriptor, "FontFile2")).toBeUndefined();
+  const program = doc.cos.resolve(dictGet(descriptor, "FontFile3"));
+  expect(program?.kind).toBe("stream");
+  if (program?.kind !== "stream") throw new Error("Missing OpenType font stream");
+  expect(dictGet(program.dict, "Subtype")).toEqual(cosName("OpenType"));
+  expect(doc.cos.decodeStream(program)).toEqual(bytes);
+});
+
+it("round trips embedded OpenType CFF text, widths, and outlines", () => {
+  const doc = PdfDocument.create(), page = doc.addPage([100, 100]);
+  page.drawText("AA", { font: doc.embedFont(openTypeFont()), size: 20, x: 10, y: 20 });
+  const loaded = PdfDocument.load(doc.save()), display = loaded.getPage(0).evaluateDisplayList();
+  expect(loaded.extractText()).toBe("AA");
+  expect(display.paths).toHaveLength(2);
+  expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(3);
+  expect(display.glyphs[1]!.matrix[4] - display.glyphs[0]!.matrix[4]).toBeCloseTo(12);
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cosArray, cosDict, cosName, cosNumber, cosRef } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosRef, dictGet } from "../ast.js";
 import { parseCosDocument } from "../cos/parser.js";
 import { serializeCosDocument } from "../cos/writer.js";
 import { generateToUnicodeCMap, parseToUnicodeCMap } from "./cmap.js";
@@ -117,6 +117,16 @@ describe("Layer 2 Fonts: Standard 14, ToUnicode CMap, and First-Party TrueType E
     const fontRef = embedTrueTypeFontInCos(cosDoc, font, usedGlyphs);
     const embeddedDict = cosDoc.resolveDict(fontRef);
     expect(embeddedDict).toBeDefined();
+    const descendant = cosDoc.resolveDict(cosDoc.resolveArray(dictGet(embeddedDict!, "DescendantFonts"))!.items[0])!;
+    expect(dictGet(descendant, "Subtype")).toEqual(cosName("CIDFontType2"));
+    expect(dictGet(descendant, "CIDToGIDMap")).toEqual(cosName("Identity"));
+    const descriptor = cosDoc.resolveDict(dictGet(descendant, "FontDescriptor"))!;
+    expect(dictGet(descriptor, "FontFile3")).toBeUndefined();
+    const program = cosDoc.resolve(dictGet(descriptor, "FontFile2"));
+    expect(program?.kind).toBe("stream");
+    if (program?.kind !== "stream") throw new Error("Missing TrueType font stream");
+    expect(dictGet(program.dict, "Subtype")).toBeUndefined();
+    expect(cosDoc.decodeStream(program)).toEqual(font.bytes);
   });
 
   it("resolves Adobe glyph names, presentation-form ligatures vs .swash variants, uni/u sequences, and whole-font numeric heuristics", () => {

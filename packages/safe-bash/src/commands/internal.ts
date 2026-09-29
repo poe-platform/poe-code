@@ -106,6 +106,16 @@ export interface SyncCommandEvaluators {
   evalSyncInstall?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, mode?: number) => boolean, statTypeSync?: (filePath: string) => string | undefined, mkdirSync?: (filePath: string, mode?: number) => boolean) => string | undefined;
   evalSyncApplyPatch?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncMktemp?: (opArgs: readonly string[], env: Readonly<Record<string, string>>, statTypeSync?: (filePath: string) => string | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean, mkdirSync?: (filePath: string) => boolean) => string | undefined;
+  evalSyncTee?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean) => string | undefined;
+  evalSyncTouch?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean) => string | undefined;
+  evalSyncCp?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean) => string | undefined;
+  evalSyncMv?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean, rmSync?: (filePath: string) => boolean) => string | undefined;
+  evalSyncRmdir?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, listDirSync?: (filePath: string) => readonly string[] | ReadonlyMap<string, unknown> | undefined, rmSync?: (filePath: string) => boolean) => string | undefined;
+  evalSyncSleep?: (opArgs: readonly string[]) => string | undefined;
+  evalSyncChmod?: (opArgs: readonly string[], umask: number, chmodNodeSync?: (filePath: string, change: (stat: { type: "file" | "directory" | "symlink"; mode: number }) => number) => boolean) => string | undefined;
+  evalSyncPatch?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean) => string | undefined;
+  evalSyncMkdir?: (opArgs: readonly string[], umask: number, statTypeSync?: (filePath: string) => string | undefined, mkdirSync?: (filePath: string, recursive: boolean, mode: number) => boolean) => string | undefined;
+  evalSyncRm?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, listDirSync?: (filePath: string) => readonly string[] | ReadonlyMap<string, unknown> | undefined, rmSync?: (filePath: string) => boolean) => string | undefined;
 }
 
 export const syncCommandEvaluators: SyncCommandEvaluators = {};
@@ -876,7 +886,7 @@ export function evalSyncMv(
 export function evalSyncRmdir(
   opArgs: readonly string[],
   statTypeSync?: (filePath: string) => string | undefined,
-  listDirSync?: (filePath: string) => readonly string[] | undefined,
+  listDirSync?: (filePath: string) => readonly string[] | ReadonlyMap<string, unknown> | undefined,
   rmSync?: (filePath: string) => boolean,
 ): string | undefined {
   const gnuInfo = gnuInfoSyncInternal("rmdir", opArgs);
@@ -899,7 +909,7 @@ export function evalSyncRmdir(
     if (dir === "/" || dir === "." || dir === ".." || dir.endsWith("/.") || dir.endsWith("/..")) return undefined;
     if (statTypeSync(dir) !== "directory") return undefined;
     const entries = listDirSync(dir);
-    if (!entries || entries.length !== 0) return undefined;
+    if (!entries || ("size" in entries ? entries.size !== 0 : entries.length !== 0)) return undefined;
   }
   let out = "";
   for (const dir of operands) {
@@ -1004,7 +1014,7 @@ export function evalSyncMkdir(
 export function evalSyncRm(
   opArgs: readonly string[],
   statTypeSync?: (filePath: string) => string | undefined,
-  listDirSync?: (filePath: string) => readonly string[] | undefined,
+  listDirSync?: (filePath: string) => readonly string[] | ReadonlyMap<string, unknown> | undefined,
   rmSync?: (filePath: string) => boolean,
 ): string | undefined {
   const gnuInfo = gnuInfoSyncInternal("rm", opArgs);
@@ -1047,10 +1057,12 @@ export function evalSyncRm(
     if (st === "missing") {
       if (!force) return undefined;
     } else if (st === "directory") {
+      const entries = listDirSync(f);
+      const count = entries ? ("size" in entries ? entries.size : entries.length) : 1;
       if (recursive) {
-        if (verbose && (listDirSync(f)?.length ?? 1) > 0) return undefined;
+        if (verbose && count > 0) return undefined;
       } else if (dirFlag) {
-        if ((listDirSync(f)?.length ?? 1) > 0) return undefined;
+        if (count > 0) return undefined;
       } else {
         return undefined;
       }

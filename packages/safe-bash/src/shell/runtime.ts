@@ -28101,7 +28101,7 @@ export class Runtime {
                   : firstName === "mv"
                     ? syncCommandEvaluators.evalSyncMv?.(stageArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), readFile, (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } })
                   : firstName === "rmdir"
-                    ? syncCommandEvaluators.evalSyncRmdir?.(stageArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal), (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } })
+                    ? syncCommandEvaluators.evalSyncRmdir?.(stageArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p)), (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } })
                   : firstName === "sleep"
                     ? syncCommandEvaluators.evalSyncSleep?.(stageArgs)
                   : firstName === "chmod"
@@ -28111,7 +28111,7 @@ export class Runtime {
                   : firstName === "mkdir"
                     ? syncCommandEvaluators.evalSyncMkdir?.(stageArgs, rawState.umask ?? 0o022, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, rec: boolean, m: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), rec, m, this.commandSignal); } catch { return false; } })
                   : firstName === "rm"
-                    ? syncCommandEvaluators.evalSyncRm?.(stageArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal), (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } })
+                    ? syncCommandEvaluators.evalSyncRm?.(stageArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p)), (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } })
                   : (firstName === "xq" || firstName === "yq")
                     ? this.evalSyncXqOrYq(firstName, rawBytes, stageArgs, readFile)
                   : firstName === "xmllint"
@@ -28584,7 +28584,7 @@ export class Runtime {
           : w0Plain === "mv"
             ? syncCommandEvaluators.evalSyncMv?.(allArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), readFile, (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } })
           : w0Plain === "rmdir"
-            ? syncCommandEvaluators.evalSyncRmdir?.(allArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal), (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } })
+            ? syncCommandEvaluators.evalSyncRmdir?.(allArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p)), (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } })
           : w0Plain === "sleep"
             ? syncCommandEvaluators.evalSyncSleep?.(allArgs)
           : w0Plain === "chmod"
@@ -28594,7 +28594,7 @@ export class Runtime {
           : w0Plain === "mkdir"
             ? syncCommandEvaluators.evalSyncMkdir?.(allArgs, rawState.umask ?? 0o022, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, rec: boolean, m: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), rec, m, this.commandSignal); } catch { return false; } })
           : w0Plain === "rm"
-            ? syncCommandEvaluators.evalSyncRm?.(allArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal), (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } })
+            ? syncCommandEvaluators.evalSyncRm?.(allArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p)), (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } })
           : (allArgs.includes("--help") || allArgs.includes("--version")) && gnuInformationSync(w0Plain, allArgs) !== undefined
             ? gnuInformationSync(w0Plain, allArgs)
             : w0Plain === "mdq"
@@ -28995,7 +28995,7 @@ export class Runtime {
               fileRes = syncCommandEvaluators.evalSyncMv?.(opArgs, statType, readFile, writeFile, rmFn);
             } else if (w0Plain === "rmdir") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
-              const listDir = (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal);
+              const listDir = (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p));
               const rmFn = (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncRmdir?.(opArgs, statType, listDir, rmFn);
             } else if (w0Plain === "sleep") {
@@ -29012,7 +29012,7 @@ export class Runtime {
               fileRes = syncCommandEvaluators.evalSyncMkdir?.(opArgs, rawState.umask ?? 0o022, statType, mkdirFn);
             } else if (w0Plain === "rm") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
-              const listDir = (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal);
+              const listDir = (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p));
               const rmFn = (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncRm?.(opArgs, statType, listDir, rmFn);
             } else if (w0Plain === "dos2unix" || w0Plain === "unix2dos") {

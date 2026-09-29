@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { dirname } from "node:path";
 import { readFileSync } from "node:fs";
-import { createNodeRegexProvider } from "../../../src/node.js";
+import { createNodeRegexProvider } from "../../../src/commands/regex-execution/client.js";
 import { createSearchCommands, searchCommands } from "../../../src/commands/search/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
 import { toByteSource, type CommandContext } from "../../../src/contracts/index.js";

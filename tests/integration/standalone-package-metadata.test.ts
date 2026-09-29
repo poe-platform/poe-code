@@ -192,7 +192,7 @@ describe("standalone package publish metadata", () => {
       ".", "./agent", "./config", "./config/testing", "./credentials", "./memory", "./skills", "./csvkit", "./csvkit/codecs/python", "./csvkit/codecs/utf8", "./ssconvert",
       "./safe-bash", "./safe-bash/contracts", "./safe-bash/contracts/*", "./safe-bash/commands/media", "./media", "./media/server",
       "./safe-bash/image-ast", "./safe-bash/pdf-ast", "./safe-bash/sharp", "./safe-bash/spreadsheet-ast",
-      "./ssconvert/core", "./ssconvert/formats/csv", "./ssconvert/formats/xlsx", "./ssconvert/formats/ods", "./ssconvert/formats/xls", "./ssconvert/formats/spreadsheetml",
+      "./ssconvert/core", "./ssconvert/formats/csv", "./ssconvert/formats/dbf", "./ssconvert/formats/html", "./ssconvert/formats/xlsx", "./ssconvert/formats/ods", "./ssconvert/formats/xls", "./ssconvert/formats/spreadsheetml",
       "./remote-execution", "./remote-execution/server", "./remote-execution/providers/*",
       "./safe-fs", "./safe-fs/core", "./safe-fs/node", "./safe-fs/node/filesystem",
       "./safe-js", "./safe-js/core", "./safe-js/cli", "./safejs", "./safejs/core", "./safejs/cli",

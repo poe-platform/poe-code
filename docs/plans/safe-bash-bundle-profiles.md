@@ -30,6 +30,7 @@ Budgets are derived from the measured installed tarballs below: 2% total growth,
 | git | 10,269,735 | 5,320,403 |
 | defaultRegistry | 6,212,163 | 1,262,831 |
 | registryWithRegex | 6,213,504 | 1,264,164 |
+| enabledConsumer | 6,287,679 | 1,338,347 |
 | full | 24,851,519 | 19,902,187 |
 | rootPythonLlm | 5,052,096 | 102,764 |
 | splitCore | 4,871,225 | -78,107 |
@@ -40,7 +41,31 @@ The Worker checks pipeline streaming, canonical filesystem writes, abort-reason 
 
 ## Git asset audit
 
-The historical Git Wasm grew from 2,878,331 to 5,310,726 bytes. Changes between the containing source revisions include signing (Ed25519/OpenSSH SSHSIG/OpenPGP), hooks/core.hooksPath, SSH transport and known_hosts, server hooks, standalone native host filesystem and credentials, upload-pack/receive-pack and SSH-to-HTTPS fallback. The packaging script selects the `git_rust.wasm` library artifact, not the separate `git-rust` executable. Native host filesystem/process/credential-helper adapters live in `src/main.rs`; their presence in the source diff is not evidence that those adapters caused library Wasm growth. The library includes portable crypto, hooks, SSH and wire modules. These are supported features, not demonstrated duplicate copies. This change preserves them. Core and unrelated profiles must carry zero Git assets; the selected Git profile must carry exactly one Wasm and execute repository initialization/status. The current packed asset is 5,310,842 bytes, with one copy in Git/full and zero in unrelated profiles. Native-only code splitting would need a separate behavior-qualified compiler change.
+The historical Git Wasm grew from 2,878,331 to 5,310,726 bytes. Changes between the containing source revisions include signing (Ed25519/OpenSSH SSHSIG/OpenPGP), hooks/core.hooksPath, SSH transport and known_hosts, server hooks, standalone native host filesystem and credentials, upload-pack/receive-pack and SSH-to-HTTPS fallback. The packaging script selects the `git_rust.wasm` library artifact, not the separate `git-rust` executable. Native host filesystem/process/credential-helper adapters live in `src/main.rs`; their presence in the source diff is not evidence that those adapters caused library Wasm growth. The library includes portable crypto, hooks, SSH and wire modules. These are supported features, not demonstrated duplicate copies. This change preserves them. Core and unrelated profiles must carry zero Git assets; the selected Git profile must carry exactly one Wasm and execute repository initialization/status. The current packed asset is 5,310,324 bytes, with one copy in Git/full and zero in unrelated profiles. Native-only code splitting would need a separate behavior-qualified compiler change.
+
+## Consumer composition
+
+The maintained `enabledConsumer` profile preserves the independently captured 121-command application inventory. Use named `agentCommands` and `createBoundedRegexProvider` imports from the root alongside `Shell` from `/shell`. Add these explicit plugin imports, retaining the application's existing per-family resource options:
+
+```ts
+import { Shell } from "@poe-platform/safe-bash/shell";
+import { agentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";
+import { bcCommands } from "@poe-platform/safe-bash/commands/bc";
+import { csvcutCommands } from "@poe-platform/safe-bash/commands/csvcut";
+import { csvgrepCommands } from "@poe-platform/safe-bash/commands/csvgrep";
+import { diff3Commands } from "@poe-platform/safe-bash/commands/diff3";
+import { fdCommands } from "@poe-platform/safe-bash/commands/fd";
+import { htmlqCommands } from "@poe-platform/safe-bash/commands/htmlq";
+import { lessCommands } from "@poe-platform/safe-bash/commands/less";
+import { unrtfCommands } from "@poe-platform/safe-bash/commands/unrtf";
+import { yqCommands } from "@poe-platform/safe-bash/commands/yq";
+import { ddCommands } from "@poe-platform/safe-bash/dd";
+import { yesCommands } from "@poe-platform/safe-bash/yes";
+```
+
+Compose these plugins through `shell.use()` or their public `setup(host)` contract, as the application's existing plugin does. Preserve its configured regex provider, filesystem limits and command limits rather than replacing them with example defaults. The installed acceptance checks the complete enabled inventory after initialization, streaming, VFS writes and cancellation.
+
+This composition does not import the `op`, `node` or `safejs` plugins; the installed output explicitly rejects the secrets engine's runtime marker as well as unused document/media/Git engines. Preserve the existing policy removing `ln` and `readlink` after plugin setup. Those two commands belong to the shared filesystem family; registration policy does not prove their shared implementation bytes disappear. No bundler aliases, consumer source rewrites or exclusion plugins are required. Additional document/media/Git plugins remain explicit opt-ins and must be retained wherever the application enables them.
 
 ## Production qualification
 

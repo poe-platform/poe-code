@@ -65,7 +65,11 @@ entrypoints. Select spreadsheet formats through `ssconvert/commands` with
 `commands/ssconvert` entry retains its full format set. The aggregate root/core
 exports and the explicit `@poe-platform/safe-bash/full` aggregate remain available
 with the existing `agentCommands()` defaults;
-keep existing explicit plugins when migrating an application. Splitting dynamic
+keep existing explicit plugins and their limits when migrating an application.
+Named root `agentCommands` and regex-provider imports do not select the optional
+`op`, `node` or `safejs` plugins; add those only through their command entrypoints.
+Removing a registered command changes availability, while shared family code may
+remain bundled. Splitting dynamic
 imports changes initialization timing: every uploaded static chunk and Wasm asset
 still counts toward a Worker's uncompressed size.
 

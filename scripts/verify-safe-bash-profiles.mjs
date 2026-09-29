@@ -13,16 +13,16 @@ import { csvFormat } from "@poe-platform/safe-bash/ssconvert/formats/csv";`;
 // These are installed ESM consumers. No checkout aliases, excluded imports or
 // source rewriting: all static JS chunks and copied assets count in the total.
 export const safeBashProfiles = {
-  core: { imports: shell, setup: "", smoke: "", forbidden: ["pdf", "spreadsheet", "ffmpeg", "git"] },
-  rootCore: { imports: shell.replace('"@poe-platform/safe-bash/shell"', '"@poe-platform/safe-bash"'), setup: "", smoke: "", forbidden: ["pdf", "spreadsheet", "ffmpeg", "git"] },
+  core: { imports: shell, setup: "", smoke: "", forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
+  rootCore: { imports: shell.replace('"@poe-platform/safe-bash/shell"', '"@poe-platform/safe-bash"'), setup: "", smoke: "", forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
   pythonLlm: { imports: shell + `
 import { pythonCommands } from "@poe-platform/safe-bash/commands/python";
 import { llmCommands } from "@poe-platform/safe-bash/commands/llm";`,
     setup: `shell.use(pythonCommands({ createExecutor: () => ({ async run(start) { start.onReady(); return 0; }, terminate() {} }) }));
 shell.use(llmCommands({ defaultModel: "fixture", providers: [{ name: "fixture", models: [{ id: "fixture" }], async *complete() { yield "hello"; } }] }));`,
     smoke: `check((await shell.exec("python -c pass")).exitCode === 0, "python executor");
-check((await shell.exec("llm prompt")).stdout === "hello\\n", "LLM streaming");`, forbidden: ["pdf", "spreadsheet", "ffmpeg", "git"] },
-  pdf: { imports: shell + pdf, setup: "shell.use(pdfinfoCommands());", smoke: 'check((await shell.exec("pdfinfo --help")).exitCode === 0, "PDF command");', forbidden: ["spreadsheet", "ffmpeg", "git"] },
+check((await shell.exec("llm prompt")).stdout === "hello\\n", "LLM streaming");`, forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
+  pdf: { imports: shell + pdf, setup: "shell.use(pdfinfoCommands());", smoke: 'check((await shell.exec("pdfinfo --help")).exitCode === 0, "PDF command");', forbidden: ["spreadsheet", "ffmpeg", "git", "op"] },
   multiplePdf: { imports: shell + pdf + `
 import { pdftotextCommands } from "@poe-platform/safe-bash/commands/pdftotext";
 import { qpdfCommands } from "@poe-platform/safe-bash/commands/qpdf";
@@ -30,25 +30,53 @@ import { PdfDocument } from "@poe-platform/safe-bash/pdf-ast";`,
     setup: "shell.use(pdfinfoCommands()).use(pdftotextCommands()).use(qpdfCommands());",
     smoke: `const document = PdfDocument.create(); document.addPage([612, 792]); await fs.writeFile("/input.pdf", document.save());
 check((await shell.exec("pdfinfo /input.pdf")).stdout.includes("Pages:"), "PDF inspection");
-for (const command of ["pdftotext", "qpdf"]) check((await shell.exec(command + " --help")).exitCode === 0, command);`, forbidden: ["spreadsheet", "ffmpeg", "git"] },
+for (const command of ["pdftotext", "qpdf"]) check((await shell.exec(command + " --help")).exitCode === 0, command);`, forbidden: ["spreadsheet", "ffmpeg", "git", "op"] },
   csv: { imports: shell + csv, setup: "shell.use(ssconvertCommands({ formats: [csvFormat] }));", smoke: `await fs.writeFile("/input.csv", new TextEncoder().encode("Name,Value\\nOffice,7\\n"));
 check((await shell.exec("ssconvert /input.csv /output.csv")).exitCode === 0, "CSV conversion");
 check(new TextDecoder().decode(await fs.readFile("/output.csv")) === "Name,Value\\nOffice,7\\n", "CSV output");
-check((await shell.exec("ssconvert /input.csv /refused.xlsx")).exitCode !== 0, "unselected XLSX rejected");`, forbidden: ["pdf", "xlsx", "ods", "xls", "ffmpeg", "git"] },
+check((await shell.exec("ssconvert /input.csv /refused.xlsx")).exitCode !== 0, "unselected XLSX rejected");`, forbidden: ["pdf", "xlsx", "ods", "xls", "ffmpeg", "git", "op"] },
   csvXlsx: { imports: shell + csv + '\nimport { xlsxFormat } from "@poe-platform/safe-bash/ssconvert/formats/xlsx";', setup: "shell.use(ssconvertCommands({ formats: [csvFormat, xlsxFormat] }));", smoke: `await fs.writeFile("/input.csv", new TextEncoder().encode("Name,Value\\nOffice,7\\n"));
 check((await shell.exec("ssconvert /input.csv /output.xlsx")).exitCode === 0, "XLSX writer");
 check((await shell.exec("ssconvert /output.xlsx /roundtrip.csv")).exitCode === 0, "XLSX reader");
-check(new TextDecoder().decode(await fs.readFile("/roundtrip.csv")) === "Name,Value\\nOffice,7\\n", "XLSX round trip");`, forbidden: ["pdf", "ods", "ffmpeg", "git"] },
+check(new TextDecoder().decode(await fs.readFile("/roundtrip.csv")) === "Name,Value\\nOffice,7\\n", "XLSX round trip");`, forbidden: ["pdf", "ods", "xls", "ffmpeg", "git", "op"] },
   git: { imports: shell + '\nimport { gitCommands } from "@poe-platform/safe-bash/commands/git";',
     setup: "shell.use(gitCommands());",
     smoke: `check((await shell.exec("git init /repo")).exitCode === 0, "Git initialization");
 check((await shell.exec("git -C /repo status --porcelain")).exitCode === 0, "Git status");`,
     forbidden: ["pdf", "spreadsheet", "ffmpeg"] },
   defaultRegistry: { imports: shell.replace('"@poe-platform/safe-bash/shell"', '"@poe-platform/safe-bash"') + '\nimport { agentCommands } from "@poe-platform/safe-bash";',
-    setup: "shell.use(agentCommands());", smoke: 'check((await shell.exec("printf default | cat")).stdout === "default", "default registry");', forbidden: ["pdf", "spreadsheet", "ffmpeg", "git"] },
+    setup: "shell.use(agentCommands());", smoke: 'check((await shell.exec("printf default | cat")).stdout === "default", "default registry");', forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
   registryWithRegex: { imports: shell.replace('"@poe-platform/safe-bash/shell"', '"@poe-platform/safe-bash"') + '\nimport { agentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";',
     setup: "shell.use(agentCommands({ regexExecutor: createBoundedRegexProvider() }));",
-    smoke: 'check((await shell.exec("printf actual | grep actual")).stdout === "actual\\n", "explicit regex provider");', forbidden: ["pdf", "spreadsheet", "ffmpeg", "git"] },
+    smoke: 'check((await shell.exec("printf actual | grep actual")).stdout === "actual\\n", "explicit regex provider");', forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
+  enabledConsumer: { imports: shell + `
+import { agentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";
+import { bcCommands } from "@poe-platform/safe-bash/commands/bc";
+import { csvcutCommands } from "@poe-platform/safe-bash/commands/csvcut";
+import { csvgrepCommands } from "@poe-platform/safe-bash/commands/csvgrep";
+import { diff3Commands } from "@poe-platform/safe-bash/commands/diff3";
+import { fdCommands } from "@poe-platform/safe-bash/commands/fd";
+import { htmlqCommands } from "@poe-platform/safe-bash/commands/htmlq";
+import { lessCommands } from "@poe-platform/safe-bash/commands/less";
+import { unrtfCommands } from "@poe-platform/safe-bash/commands/unrtf";
+import { yqCommands } from "@poe-platform/safe-bash/commands/yq";
+import { ddCommands } from "@poe-platform/safe-bash/dd";
+import { yesCommands } from "@poe-platform/safe-bash/yes";`,
+    setup: `shell.use(agentCommands({ regexExecutor: createBoundedRegexProvider() }));
+shell.use(bcCommands());
+shell.use(csvcutCommands());
+shell.use(csvgrepCommands());
+shell.use(diff3Commands());
+shell.use(fdCommands());
+shell.use(htmlqCommands());
+shell.use(lessCommands());
+shell.use(unrtfCommands());
+shell.use(yqCommands());
+shell.use(ddCommands());
+shell.use(yesCommands());
+await shell.exec("true");
+for (const name of ["ln", "readlink"]) shell.commands.unregister(name);`,
+    smoke: `check(JSON.stringify(shell.commands.list().filter(command => command.name !== "probe").map(command => command.name).sort()) === JSON.stringify(["[", "apply_patch", "awk", "base32", "base64", "basename", "bc", "bunzip2", "bzcat", "bzip2", "cat", "chmod", "cksum", "cmp", "column", "comm", "cp", "csplit", "csvcut", "csvgrep", "cut", "date", "dd", "diff", "diff3", "dirname", "dos2unix", "du", "echo", "egrep", "env", "expand", "expr", "factor", "false", "fd", "fgrep", "file", "find", "fmt", "fold", "getopt", "grep", "gunzip", "gzip", "hd", "head", "hexdump", "html-to-markdown", "htmlq", "iconv", "join", "jq", "less", "ls", "md5sum", "mdq", "mkdir", "mktemp", "more", "mv", "nl", "numfmt", "od", "paste", "patch", "pr", "printenv", "printf", "pwd", "realpath", "rev", "rg", "rm", "rmdir", "sed", "seq", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum", "shuf", "sleep", "sort", "split", "stat", "strings", "tac", "tail", "tar", "tee", "test", "timeout", "touch", "tr", "tree", "true", "truncate", "tsort", "unexpand", "uniq", "unix2dos", "unrtf", "unxz", "unzip", "unzstd", "wc", "which", "xargs", "xmllint", "xq", "xxd", "xz", "xzcat", "yes", "yq", "zcat", "zip", "zstd", "zstdcat"]), "enabled consumer inventory");`, forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
   full: { imports: `import * as full from "@poe-platform/safe-bash/full";\n${shell}`,
     setup: "shell.use(full.agentCommands()); globalThis.fullProfile = full;",
     smoke: 'check((await shell.exec("printf full | cat")).stdout === "full", "full registry");', forbidden: [] },
@@ -73,6 +101,7 @@ const engineMarkers = {
   xls: "E Invalid Excel BIFF:",
   ffmpeg: "ffmpeg version",
   git: "git_rust",
+  op: "op requires VFS write, permissions and exclusive-create capabilities",
 };
 
 // Measured from clean installed tarballs using the exact profiles below.
@@ -89,6 +118,7 @@ export const safeBashProfileBaselines = {
   "git": 10269735,
   "defaultRegistry": 6212163,
   "registryWithRegex": 6213504,
+  "enabledConsumer": 6287679,
   "full": 24851519,
   "rootPythonLlm": 5052096,
   "splitCore": 4871225,

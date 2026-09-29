@@ -3508,13 +3508,21 @@
     },
     "biffLabelCorrections": {
       "issue": 3616,
-      "commits": ["e98c0660176f277e096fc7f09618eed440d70353", "ebaee2eee2", "77a990e7bc"],
+      "commits": [
+        "e98c0660176f277e096fc7f09618eed440d70353",
+        "ebaee2eee2",
+        "77a990e7bc"
+      ],
       "delivery": "All three verified on remote main; issue requirements complete. Containing registry publication remains separate.",
       "source": "MS-XLS 2.5.198.53 PtgElfRadicalS requires its terminal label column to equal area.columnFirst, including one-cell areas. The authenticated page SHA-256 remains 321cbac7a02fb450a2a93a88a14f5fcca47e942657908d7e960e9524e0f0f837.",
       "repairs": "Enforce terminal column identity on read/write; charge PtgExtraElf entries incrementally so a truncated huge count reaches the existing truncation diagnostic; set arrayStringLiterals only after an actual PtgArray operand is decoded, for cells, shared groups and names.",
       "validation": "Original failures: 12 anchor, 2 accounting, 16 array-metadata regressions. Final 71-file/1786-test BIFF cohort, package lint/source/test/consumer types and maintained selected build pass. Tests preserve actual array strings and existing resource/cancellation controls.",
       "public": "36 compiled SDK/command anchor cases: 18 correct refusals and 18 valid controls. Truncated-count SDK/command paths report existing io/truncated string/CONTINUE and publish zero bytes. Six cell/name/shared profiles retain correct metadata through compiled SDK read, command BIFF export and SDK readback. The existing writer expands shared groups into cells; this is not shared-record identity qualification.",
-      "receipts": ["out/ssconvert-odf-settings/biff-single-column-public.json", "out/ssconvert-odf-settings/biff-label-work-public.json", "out/ssconvert-odf-settings/biff-array-flag-public.json"],
+      "receipts": [
+        "out/ssconvert-odf-settings/biff-single-column-public.json",
+        "out/ssconvert-odf-settings/biff-label-work-public.json",
+        "out/ssconvert-odf-settings/biff-array-flag-public.json"
+      ],
       "remaining": "The whole BIFF and format families remain open."
     },
     "fontCompilationRetry": {
@@ -3718,7 +3726,7 @@
     "playgroundReleaseRepair": {
       "issue": 3360,
       "commit": "54f660fdfc56d2c63b8b25009ff9ff330b37257a",
-      "delivery": "Verified on remote main. Full containing pin 36536622833 is queued; publication is not yet verified.",
+      "delivery": "Verified on remote main. Superseded owned pin 36536622833 was canceled before the subsequent fixes. Replacement full pin 36541934977 is pending at 41af7960f989f497e29556d67936527716cc9ace; publication remains unverified.",
       "source": "The 96a2522d10 playground build exhausted a 4096 MB heap locally and in pinned run 36533708178. Upstream adf3b0a256 removes optional command imports from the core shell; dc674cd22f repairs the timeout duration discriminator. The additional kernel-asset prototype was discarded without being pushed.",
       "repair": "Timeout's synchronous evaluator now delegates signal and kill-after options to normal validation, and delegates repeated echo options. Previously an invalid signal inside command substitution returned success instead of exit 125.",
       "validation": "Two original timeout regressions fail before repair. All 16 focused timeout tests, guarded root lint, the maintained playground build at 4096 MB, and all 254 playground tests pass. Browser regex execution and invalid-signal exit 125 pass; screenshot inspected. Later independent PDF/XML and facade reexports were retained by rebase.",
@@ -4099,6 +4107,32 @@
         "repair": "Declare yes/shuf/dd opt-in routes in the in-memory fixture. Generated runtime/type symbol and peer-route assertions remain unchanged.",
         "validation": "All 71 maintained focused root tests and guarded root ESLint pass with zero errors/warnings. Commit verified on remote main."
       }
+    },
+    "releaseRepair20260929": {
+      "issue": 3360,
+      "remoteMain": "41af7960f989f497e29556d67936527716cc9ace",
+      "commits": {
+        "csvkitCollision": "4dce94c51a9a9c025669f327b60421b2c713110e",
+        "ssconvertFactories": "a1bd611e8b3742f445ec3528be35a8496dffc9de",
+        "timeoutOptions": "7168231cea92dc0249e352f31aef6cc2254ff719",
+        "encodingOptions": "8072f2225cf66d14af1be32a5567a6ae9747d3c1",
+        "wave160Lint": "f1c5b8b5fcb0dfb04e5e733982bcb4ef80ede04e",
+        "browserFixture": "ced3f08bf5f1854c31a060ef7e1a4240e2e569f8",
+        "wave161To163Lint": "a265e66c5b57d348dd225411103a729217fe084f",
+        "directoryMapControls": "41af7960f989f497e29556d67936527716cc9ace"
+      },
+      "repair": "Csvkit preflights every name before registration. Ssconvert reexports the canonical private factories and enrolls only default handlers in the shared executor registry; synchronous evaluation checks the actual handler so configured argument limits cannot be bypassed. Timeout classifies captured options without rereading getters. Encoding factories receive option objects. Existing browser-bundle fixtures receive standard abort globals; redundant template escapes were removed without changing shell input.",
+      "upstream": "Preserved upstream admitted shuf/yes/dd facades, optional-host helper exports, evaluator callback declarations and directory-map handling. Equivalent local prototypes were dropped during rebase; the directory-map regression controls were retained.",
+      "validation": "Original collision, factory identity, configured argument-limit, timeout getter and browser-global failures were reproduced. After rebase, 188 focused shell tests pass; the two new map controls and three adjacent sync cases also pass. All 93 shared-contract tests and 39 heredoc tests pass. Full npm run lint passes. Current npm run build completes all 183 declared workspace builds and root schema/type/bundle stages; the playground site builds in 27.69 seconds. Earlier package-lint run passes all 18 rules.",
+      "public": "Compiled root SDK and ssconvert SDK use the same executor registry. SDK-created commands retain configured argument limits in plain, redirected and piped substitutions (exit 1), default help succeeds, and csvkit rejection preserves the complete registry. Independently emitted SDK bundles have distinct factory function objects; exact factory identity is qualified for canonical source reexports, not across independent bundles.",
+      "fullTest": "The first full npm test exposed a browser VM fixture missing AbortSignal; its four tests pass after correction. The replacement at 41af7960f9 completed its first 250 files / 5233 tests successfully. Both broad runs were stopped through verified owned process trees before rebasing and are incomplete. The second was retired after independently reproducing the csplit export failure and observing upstream random/mktemp repairs; it is not a full workspace pass.",
+      "release": {
+        "run": 36541934977,
+        "head": "41af7960f989f497e29556d67936527716cc9ace",
+        "profile": "pin_revision=true, build_only=false, cold_cache=false",
+        "state": "Attempt 1 was canceled outside this session before build. Attempt 2 is building; it predates upstream random/mktemp fixes at 1e99219132. No containing publication verified."
+      },
+      "remaining": "Finish current full tests and the containing GitHub release, verify installed publication, and continue all 19 open ssconvert families. No family or issue is closed by this scoped repair."
     }
   },
   "history": {

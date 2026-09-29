@@ -3506,6 +3506,25 @@
         ]
       }
     },
+    "biffLabelCorrections": {
+      "issue": 3616,
+      "commits": ["e98c0660176f277e096fc7f09618eed440d70353", "ebaee2eee2", "77a990e7bc"],
+      "delivery": "All three verified on remote main; issue requirements complete. Containing registry publication remains separate.",
+      "source": "MS-XLS 2.5.198.53 PtgElfRadicalS requires its terminal label column to equal area.columnFirst, including one-cell areas. The authenticated page SHA-256 remains 321cbac7a02fb450a2a93a88a14f5fcca47e942657908d7e960e9524e0f0f837.",
+      "repairs": "Enforce terminal column identity on read/write; charge PtgExtraElf entries incrementally so a truncated huge count reaches the existing truncation diagnostic; set arrayStringLiterals only after an actual PtgArray operand is decoded, for cells, shared groups and names.",
+      "validation": "Original failures: 12 anchor, 2 accounting, 16 array-metadata regressions. Final 71-file/1786-test BIFF cohort, package lint/source/test/consumer types and maintained selected build pass. Tests preserve actual array strings and existing resource/cancellation controls.",
+      "public": "36 compiled SDK/command anchor cases: 18 correct refusals and 18 valid controls. Truncated-count SDK/command paths report existing io/truncated string/CONTINUE and publish zero bytes. Six cell/name/shared profiles retain correct metadata through compiled SDK read, command BIFF export and SDK readback. The existing writer expands shared groups into cells; this is not shared-record identity qualification.",
+      "receipts": ["out/ssconvert-odf-settings/biff-single-column-public.json", "out/ssconvert-odf-settings/biff-label-work-public.json", "out/ssconvert-odf-settings/biff-array-flag-public.json"],
+      "remaining": "The whole BIFF and format families remain open."
+    },
+    "fontCompilationRetry": {
+      "issue": 3359,
+      "commit": "9273ab52738b6372c8da13bfdb4d879a0a1b4e16",
+      "delivery": "Verified on remote main; registry qualification pending.",
+      "repair": "Discard a rejected shared HarfBuzz compilation promise so a later conversion retries. Concurrent waiters keep the original rejection.",
+      "validation": "One original failure; all 70 print tests, package lint/types and maintained selected build pass. Compiled SDK failure publishes no bytes; subsequent SDK and command conversions each produce a valid 5845-byte one-page PDF with empty stderr and exactly two compilation attempts overall.",
+      "remaining": "Pure-JavaScript shaping fallback when workerd denies compilation remains open; CLI omitted limits already default to Infinity. This subset does not close #3359."
+    },
     "jpegPortableExport": {
       "issue": 3512,
       "commit": "3937fb15b7fdbc97ca16d54260e7fc267bd6f3f0",

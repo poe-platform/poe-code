@@ -1772,4 +1772,27 @@ test("Wave 228: tar -xvf -C directory extraction and unzip -t / unzip -qo -d ext
       "prod_svc|alpha,delta,|k1=10,k2=20,|tool",
     );
   });
+
+  it("supports soffice --convert-to, mmdc -o/-c file output, and sips/qpdf/pdftk output persistence in sync command substitutions (Wave 232)", async () => {
+    const shell = createShell();
+    const res = await shell.exec(`
+      printf "Hello LibreOffice\\nLine Two\\n" > /tmp/w232_note.txt
+      printf "graph TD\\n  A[Start] --> B[End]\\n" > /tmp/w232_chart.mmd
+      printf '{"theme":"dark","svgId":"w232_id"}' > /tmp/w232_cfg.json
+      out=""
+      for i in 1 2; do
+        rm -f /tmp/w232_note.docx /tmp/w232_chart.svg
+        so_msg=\$(soffice --headless --convert-to docx --outdir /tmp /tmp/w232_note.txt)
+        so_cat=\$(soffice --cat /tmp/w232_note.docx | tr "\\n" "|")
+        mm_out=\$(mmdc -i /tmp/w232_chart.mmd -o /tmp/w232_chart.svg -c /tmp/w232_cfg.json && grep -o "w232_id" /tmp/w232_chart.svg | head -n 1)
+        out="\${so_cat}:\${mm_out}"
+      done
+      printf "%s\\n" "\$out"
+    `);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout.trim(),
+      "Hello LibreOffice|Line Two|:w232_id",
+    );
+  });
 });

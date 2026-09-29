@@ -39,6 +39,7 @@ export function evalSyncSips(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   try {
     const files = new Map<string, Uint8Array>();
@@ -63,7 +64,9 @@ export function evalSyncSips(
     const res = runSipsCliSync(opArgs, files);
     if (res.exitCode !== 0 || res.stderr) return undefined;
     for (const [k, v] of files.entries()) {
-      if (snap.get(k) !== v) return undefined;
+      if (snap.get(k) !== v) {
+        if (!writeFileSync || !writeFileSync(k, v)) return undefined;
+      }
     }
     return res.stdout;
   } catch {

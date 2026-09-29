@@ -62,9 +62,9 @@ export interface SyncCommandEvaluators {
   evalSyncPdftotext?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
   evalSyncPdftohtml?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
   evalSyncExiftool?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
-  evalSyncQpdf?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
-  evalSyncPdftk?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
-  evalSyncSips?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncQpdf?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
+  evalSyncPdftk?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
+  evalSyncSips?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncIdentify?: (cmdName: string, inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
   evalSyncPdfimages?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
   evalSyncFfmpeg?: (opArgs: readonly string[]) => string | undefined;
@@ -72,9 +72,9 @@ export interface SyncCommandEvaluators {
   evalSyncGh?: (execute: any, opArgs: readonly string[], env: Readonly<Record<string, string>>) => string | undefined;
   evalSyncPdftoppm?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
   evalSyncPdftocairo?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
-  evalSyncMmdc?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncMmdc?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncPandoc?: (opArgs: readonly string[]) => string | undefined;
-  evalSyncSoffice?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncSoffice?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncSsconvert?: (execute: CommandHandler, opArgs: readonly string[]) => string | undefined;
   evalSyncWkhtmltopdf?: (opArgs: readonly string[]) => string | undefined;
   evalSyncOp?: (execute: any, opArgs: readonly string[], env: Readonly<Record<string, string>>) => string | undefined;

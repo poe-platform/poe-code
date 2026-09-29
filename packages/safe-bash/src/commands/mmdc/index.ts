@@ -35,27 +35,48 @@ export function mmdcCommands(settings?: MmdcSettings): MmdcPlugin {
   return plugin;
 }
 
+const mmdcUtf8Encoder = new TextEncoder();
+
 export function evalSyncMmdc(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   try {
     const parsed = parseMmdcArguments(opArgs);
     if (parsed.action === "help") return MMDC_HELP_TEXT;
     if (parsed.action === "version") return `${MMDC_VERSION}\n`;
-    if (parsed.output !== "-" || parsed.outputFormat !== "svg") return undefined;
-    if (parsed.configFile !== undefined) return undefined;
+    if (parsed.outputFormat !== "svg") return undefined;
+    let cfgTheme: string | undefined;
+    let cfgWidth: number | undefined;
+    let cfgHeight: number | undefined;
+    let cfgSvgId: string | undefined;
+    let cfgBg: string | undefined;
+    if (parsed.configFile !== undefined) {
+      const cfgBytes = readFileSync?.(parsed.configFile);
+      if (!cfgBytes) return undefined;
+      const cfg = JSON.parse(utf8Decoder.decode(cfgBytes)) as Record<string, unknown>;
+      if (typeof cfg.theme === "string") cfgTheme = cfg.theme;
+      if (typeof cfg.width === "number") cfgWidth = cfg.width;
+      if (typeof cfg.height === "number") cfgHeight = cfg.height;
+      if (typeof cfg.svgId === "string") cfgSvgId = cfg.svgId;
+      if (typeof cfg.backgroundColor === "string") cfgBg = cfg.backgroundColor;
+    }
     const rawBytes = parsed.input === "-" ? inBytes : readFileSync?.(parsed.input);
     if (!rawBytes || rawBytes.byteLength > 262144) return undefined;
     const sourceText = utf8Decoder.decode(rawBytes);
     const res = renderMermaidSvg(sourceText, {
-      theme: parsed.theme ?? "light",
-      width: parsed.width,
-      height: parsed.height,
-      svgId: parsed.svgId,
-      backgroundColor: parsed.backgroundColor,
+      theme: (parsed.theme ?? cfgTheme ?? "light") as "light",
+      width: parsed.width ?? cfgWidth,
+      height: parsed.height ?? cfgHeight,
+      svgId: parsed.svgId ?? cfgSvgId,
+      backgroundColor: parsed.backgroundColor ?? cfgBg,
     });
+    if (parsed.output !== "-") {
+      if (!writeFileSync || !writeFileSync(parsed.output, mmdcUtf8Encoder.encode(res.svg))) return undefined;
+      return "";
+    }
     return res.svg;
   } catch {
     return undefined;

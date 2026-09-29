@@ -30201,11 +30201,11 @@ export class Runtime {
                   : firstName === "pdftohtml"
                     ? syncCommandEvaluators.evalSyncPdftohtml?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "qpdf"
-                    ? syncCommandEvaluators.evalSyncQpdf?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncQpdf?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : firstName === "pdftk"
-                    ? syncCommandEvaluators.evalSyncPdftk?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncPdftk?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : firstName === "sips"
-                    ? syncCommandEvaluators.evalSyncSips?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncSips?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : (firstName === "identify" || firstName === "magick" || firstName === "convert")
                     ? syncCommandEvaluators.evalSyncIdentify?.(firstName, sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "pdfimages"
@@ -30223,11 +30223,11 @@ export class Runtime {
                   : firstName === "pdftocairo"
                     ? syncCommandEvaluators.evalSyncPdftocairo?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "mmdc"
-                    ? syncCommandEvaluators.evalSyncMmdc?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncMmdc?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : firstName === "pandoc"
                     ? syncCommandEvaluators.evalSyncPandoc?.(stageArgs)
                   : (firstName === "soffice" || firstName === "libreoffice")
-                    ? syncCommandEvaluators.evalSyncSoffice?.(stageArgs, readFile)
+                    ? syncCommandEvaluators.evalSyncSoffice?.(stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : firstName === "ssconvert"
                     ? syncCommandEvaluators.evalSyncSsconvert?.(stageDefs[sIdx]!.execute, stageArgs)
                   : firstName === "wkhtmltopdf"
@@ -30722,11 +30722,11 @@ export class Runtime {
           : w0Plain === "pdftohtml"
             ? syncCommandEvaluators.evalSyncPdftohtml?.(optInBytes, allArgs, readFile)
           : w0Plain === "qpdf"
-            ? syncCommandEvaluators.evalSyncQpdf?.(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncQpdf?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "pdftk"
-            ? syncCommandEvaluators.evalSyncPdftk?.(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncPdftk?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "sips"
-            ? syncCommandEvaluators.evalSyncSips?.(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncSips?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : (w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert")
             ? syncCommandEvaluators.evalSyncIdentify?.(w0Plain, optInBytes, allArgs, readFile)
           : w0Plain === "pdfimages"
@@ -30744,11 +30744,11 @@ export class Runtime {
           : w0Plain === "pdftocairo"
             ? syncCommandEvaluators.evalSyncPdftocairo?.(optInBytes, allArgs, readFile)
           : w0Plain === "mmdc"
-            ? syncCommandEvaluators.evalSyncMmdc?.(optInBytes, allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncMmdc?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "pandoc"
             ? syncCommandEvaluators.evalSyncPandoc?.(allArgs)
           : (w0Plain === "soffice" || w0Plain === "libreoffice")
-            ? syncCommandEvaluators.evalSyncSoffice?.(allArgs, readFile)
+            ? syncCommandEvaluators.evalSyncSoffice?.(allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "ssconvert"
             ? syncCommandEvaluators.evalSyncSsconvert?.(this.getExternalCommand("ssconvert")!.execute, allArgs)
           : w0Plain === "wkhtmltopdf"
@@ -31137,13 +31137,13 @@ export class Runtime {
               fileRes = syncCommandEvaluators.evalSyncPdftohtml?.(view, opArgs, readFile);
             } else if (w0Plain === "qpdf") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = syncCommandEvaluators.evalSyncQpdf?.(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncQpdf?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "pdftk") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = syncCommandEvaluators.evalSyncPdftk?.(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncPdftk?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "sips") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = syncCommandEvaluators.evalSyncSips?.(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncSips?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncIdentify?.(w0Plain, view, opArgs, readFile);
@@ -31168,12 +31168,12 @@ export class Runtime {
               fileRes = syncCommandEvaluators.evalSyncPdftocairo?.(view, opArgs, readFile);
             } else if (w0Plain === "mmdc") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = syncCommandEvaluators.evalSyncMmdc?.(view, opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncMmdc?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "pandoc") {
               fileRes = syncCommandEvaluators.evalSyncPandoc?.(opArgs);
             } else if (w0Plain === "soffice" || w0Plain === "libreoffice") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = syncCommandEvaluators.evalSyncSoffice?.(opArgs, readFile);
+              fileRes = syncCommandEvaluators.evalSyncSoffice?.(opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "ssconvert") {
               fileRes = syncCommandEvaluators.evalSyncSsconvert?.(this.getExternalCommand("ssconvert")!.execute, opArgs);
             } else if (w0Plain === "wkhtmltopdf") {

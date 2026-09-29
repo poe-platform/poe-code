@@ -1,3 +1,6 @@
+import { FsError } from "safe-bash-contracts";
+import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { yieldTurn } from "safe-bash-contracts/yield";
 
 const pathPosix = {
   resolve(cwd: string, target: string): string {
@@ -67,10 +70,15 @@ export function settings(options: LessCommandsOptions = {}): LessLimits {
 async function readSourceText(source: ByteSource, maxBytes: number, signal: AbortSignal): Promise<string> {
   const chunks: Uint8Array[] = [];
   let total = 0;
+  let quantum = 0;
+  let chunksRead = 0;
   for await (const chunk of readBytes(source, signal)) {
     total += chunk.byteLength;
+    signal.throwIfAborted();
+    quantum += Math.max(1, chunk.byteLength);
+    if (quantum >= 16384 || ++chunksRead >= 128) { quantum = 0; chunksRead = 0; await yieldTurn(signal); }
     if (total > maxBytes) {
-      throw new Error(`input exceeds maximum size of ${maxBytes} bytes`);
+      throw new PublicDiagnostic(`input exceeds maximum size of ${maxBytes} bytes`);
     }
     chunks.push(chunk);
   }
@@ -91,7 +99,8 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
       const maxBytes = Math.min(limits.maxInputBytes, (context as { limits?: { maxInputBytes?: number } }).limits?.maxInputBytes ?? limits.maxInputBytes);
-      const args = context.args;
+      context.signal.throwIfAborted();
+      const args = getCommandArguments(context).args;
       let lineNumbers = false;
       let squeezeBlank = false;
       let startLine = 1;
@@ -150,7 +159,12 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
 
       if (!lineNumbers && !squeezeBlank && startLine === 1 && !startSearch && files.length === 0) {
         let total = 0;
+        let quantum = 0;
+        let chunksRead = 0;
         for await (const chunk of readBytes(context.stdin, context.signal)) {
+          context.signal.throwIfAborted();
+          quantum += Math.max(1, chunk.byteLength);
+          if (quantum >= 16384 || ++chunksRead >= 128) { quantum = 0; chunksRead = 0; await yieldTurn(context.signal); }
           total += chunk.byteLength;
           if (total > maxBytes) {
             await writeText(context.stderr, `${name}: input exceeds maximum size of ${maxBytes} bytes\n`);
@@ -161,61 +175,78 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
         return { exitCode: 0 };
       }
 
-      const texts: string[] = [];
-      let exitCode = 0;
-      if (files.length === 0) {
-        texts.push(await readSourceText(context.stdin, maxBytes, context.signal));
-      } else {
-        for (const file of files) {
-          if (file === "-") {
-            texts.push(await readSourceText(context.stdin, maxBytes, context.signal));
-          } else {
-            try {
-              const targetPath = pathPosix.resolve(context.cwd, file);
-              const raw = await context.fs.readFile(targetPath);
-              if (raw.byteLength > maxBytes) {
-                await writeText(context.stderr, `${name}: ${file}: input exceeds maximum size\n`);
-                return { exitCode: 1 };
+      try {
+        const texts: string[] = [];
+        let exitCode = 0;
+        if (files.length === 0) {
+          texts.push(await readSourceText(context.stdin, maxBytes, context.signal));
+        } else {
+          for (const file of files) {
+            if (file === "-") {
+              texts.push(await readSourceText(context.stdin, maxBytes, context.signal));
+            } else {
+              try {
+                const targetPath = pathPosix.resolve(context.cwd, file);
+                const raw = await context.fs.readFile(targetPath, { signal: context.signal });
+                context.signal.throwIfAborted();
+                if (raw.byteLength > maxBytes) {
+                  await writeText(context.stderr, `${name}: ${file}: input exceeds maximum size\n`);
+                  return { exitCode: 1 };
+                }
+                texts.push(new TextDecoder("utf-8", { fatal: false }).decode(raw));
+              } catch (err) {
+                context.signal.throwIfAborted();
+                if (!(err instanceof FsError)) throw err;
+                const msg = err instanceof Error ? err.message : String(err);
+                await writeText(context.stderr, `${name}: ${file}: ${msg}\n`);
+                exitCode = 1;
               }
-              texts.push(new TextDecoder("utf-8", { fatal: false }).decode(raw));
-            } catch (err) {
-              const msg = err instanceof Error ? err.message : String(err);
-              await writeText(context.stderr, `${name}: ${file}: ${msg}\n`);
-              exitCode = 1;
             }
           }
         }
+
+        const combined = texts.join("");
+        if (!combined) return { exitCode };
+
+        const hasTrailingNewline = combined.endsWith("\n");
+        const rawLines = combined.split("\n");
+        if (hasTrailingNewline) rawLines.pop();
+
+        let startIdx = Math.max(0, startLine - 1);
+        if (startSearch) {
+          let found = -1;
+          for (let index = 0; index < rawLines.length; index++) {
+            context.signal.throwIfAborted();
+            if ((index & 127) === 0) await yieldTurn(context.signal);
+            if (rawLines[index]!.includes(startSearch)) { found = index; break; }
+          }
+          if (found >= 0) startIdx = found;
+        }
+
+        let out = "";
+        let prevBlank = false;
+        for (let idx = startIdx; idx < rawLines.length; idx++) {
+          context.signal.throwIfAborted();
+          if ((idx & 127) === 0) await yieldTurn(context.signal);
+          const line = rawLines[idx]!;
+          const isBlank = line.length === 0;
+          if (squeezeBlank && isBlank && prevBlank) continue;
+          prevBlank = isBlank;
+          const prefix = lineNumbers ? `${String(idx + 1).padStart(6, " ")}  ` : "";
+          const isLast = idx === rawLines.length - 1;
+          out += prefix + line + (!isLast || hasTrailingNewline ? "\n" : "");
+        }
+
+        if (out.length > 0) {
+          await writeText(context.stdout, out);
+        }
+        return { exitCode };
+      } catch (error) {
+        context.signal.throwIfAborted();
+        if (!(error instanceof PublicDiagnostic)) throw error;
+        await writeText(context.stderr, `${name}: ${error.message}\n`);
+        return { exitCode: 1 };
       }
-
-      const combined = texts.join("");
-      if (!combined) return { exitCode };
-
-      const hasTrailingNewline = combined.endsWith("\n");
-      const rawLines = combined.split("\n");
-      if (hasTrailingNewline) rawLines.pop();
-
-      let startIdx = Math.max(0, startLine - 1);
-      if (startSearch) {
-        const found = rawLines.findIndex(l => l.includes(startSearch));
-        if (found >= 0) startIdx = found;
-      }
-
-      let out = "";
-      let prevBlank = false;
-      for (let idx = startIdx; idx < rawLines.length; idx++) {
-        const line = rawLines[idx]!;
-        const isBlank = line.length === 0;
-        if (squeezeBlank && isBlank && prevBlank) continue;
-        prevBlank = isBlank;
-        const prefix = lineNumbers ? `${String(idx + 1).padStart(6, " ")}  ` : "";
-        const isLast = idx === rawLines.length - 1;
-        out += prefix + line + (!isLast || hasTrailingNewline ? "\n" : "");
-      }
-
-      if (out.length > 0) {
-        await writeText(context.stdout, out);
-      }
-      return { exitCode };
     },
   };
 }

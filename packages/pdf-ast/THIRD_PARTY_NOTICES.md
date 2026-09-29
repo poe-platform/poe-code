@@ -245,3 +245,16 @@ that pypdf version and deterministic test-only entropy.
 pypdf is BSD-3-Clause; copyright Mathieu Fenniak (2006–2008), Ashish Kulkarni
 (2007), and Steve Witham (2014). See `licenses/PYPDF-BSD.txt`.
 Source: https://github.com/py-pdf/pypdf/tree/6.19.0
+
+The reader in `src/cos/security.ts` delegates authentication and cipher selection
+to PDF.js `CipherTransformFactory`; its COS adapter resolves encryption entries
+and preserves plaintext cross-reference streams, metadata, and signature
+Contents. Explicit Crypt filter ordering follows PDF.js `src/core/parser.js`
+`makeStream`/`filter`; the adapter retains the remaining encoded filter chain
+when serializing decrypted documents. `src/cos/pdfjs-security.test.ts` ports 23
+upstream authentication cases and adds integration regressions. The original
+fixtures and their hashes are listed in `src/fixtures/SOURCES.md`.
+
+For R5 passwords, the adapter additionally follows pypdf’s SASLprep policy as
+a fallback after PDF.js rejects the raw UTF-8 candidate. The generated pypdf
+regression fixture is documented in `src/fixtures/SOURCES.md`.

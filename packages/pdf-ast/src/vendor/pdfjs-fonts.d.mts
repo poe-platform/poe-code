@@ -1,5 +1,5 @@
 /** PDF.js CFF parser and path compiler; see THIRD_PARTY_NOTICES.md. */
-export class Stream { constructor(bytes: Uint8Array); }
+export class Stream { constructor(bytes: Uint8Array); dict?: Dict; }
 export class FlateStream {
   constructor(stream: Stream, length?: number);
   buffer: Uint8Array;
@@ -111,7 +111,7 @@ export class PDF20 extends PDF17 {}
 export function saslPrep(value: string): string;
 export class CipherTransformFactory {
   constructor(dict: Dict, fileId: string, password?: string);
-  readonly encryptionKey: Uint8Array;
+  readonly encryptionKey: Uint8Array | null;
   readonly encryptMetadata: boolean;
   readonly algorithm: number;
   createCipherTransform(number: number, generation: number): {

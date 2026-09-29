@@ -1,0 +1,127 @@
+{
+  "source": "Mozilla PDF.js test/unit/crypto_spec.js at 91041fb94d6744bc2a5bccd9aad28d617faa8195, Apache-2.0",
+  "fileId1": "f6c6af17f372528d524d9a80d1efdf18",
+  "fileId2": "3c4c5f3a4496af409a9db33c781c76ac",
+  "dictionaries": {
+    "dict1": {
+      "Filter": {
+        "name": "Standard"
+      },
+      "V": 2,
+      "Length": 128,
+      "O": "80c30496916f20736c3ae61b135491f20d5612e3ff5ebbe9564fd86b9aca7c5d",
+      "U": "6a0c8d3e591900bc6a647d91bdaa001800000000000000000000000000000000",
+      "P": -1028,
+      "R": 3
+    },
+    "dict2": {
+      "Filter": {
+        "name": "Standard"
+      },
+      "V": 4,
+      "Length": 128,
+      "O": "734614762e793527db970a3522b3e1d4adbd9b3cb4a5897515b259f168d9e9f4",
+      "U": "930489a9bf8a45a688a2dbc2a0a8676e00000000000000000000000000000000",
+      "P": -1084,
+      "R": 4
+    },
+    "aes256Dict": {
+      "Filter": {
+        "name": "Standard"
+      },
+      "V": 5,
+      "Length": 256,
+      "O": "3c6289233365c898d2b2e2e486cda318cc7eb1246a32247dd2acab78de6c8b73f37647998011653ec8f5f20cda7b1878",
+      "U": "83f28fa057028a864ffdbdade04990f1be51c50ff96991970fc24103017ebbdd75a904209f6516dca85ed7c06426bc28",
+      "OE": "d5ca0ebd6e4c46bf06c30abe9d649055083e7bb29ce53228e5d836de22266adf",
+      "UE": "2396c3a9f53333ff9e9e21f2e74b7dbe197eac72c3f489f5eaa52a4a3c261111",
+      "Perms": "d8fc8434e5650d425d7f66fd3c4f4d4d",
+      "P": -1084,
+      "R": 5
+    },
+    "aes256IsoDict": {
+      "Filter": {
+        "name": "Standard"
+      },
+      "V": 5,
+      "Length": 256,
+      "O": "58e83e36f51af5d1897bdd48c73125d91f4a73a77f9eb04d2da3572f275ad98d8ee8a9d0cad605b91dd0b92e0b4c8795",
+      "U": "5ee6cd4ba663fa4cdb801155391121a4962e67b0a09cbbe9a6dfa3fd93eb5fb853f59265c6f722c6bf0b105eedd814af",
+      "OE": "d149e04d679bc9b5be44df143e5a38d205f0b280ee7c44fefdf43e6cd0870afb",
+      "UE": "79d002b5e6599c3cfd8fd41c54b4c4b1ad80dd6b2e145eba87335f1814dffe24",
+      "Perms": "6cad0fa0eb4d86574d3ecbb5e058c937",
+      "P": -1084,
+      "R": 6
+    },
+    "aes256BlankDict": {
+      "Filter": {
+        "name": "Standard"
+      },
+      "V": 5,
+      "Length": 256,
+      "O": "b87004c36726fc57cc4ed416a1e89530595ac99eb12d97f3fe03131966665a6e8ff5ebeccc3573561065ce6cb5e947c1",
+      "U": "83d47a69f14f30963112cc82cbcabf3579fd21ebe4d1b51dd6fa14f3be8f7173ef88dee2e8dcf535e4b816c8148d651e",
+      "OE": "8f19e8d427d507cac6a111a6615b74f4df0f84290fe4ef46375b5b11a08f1765",
+      "UE": "81f55db02881e47f5f7c8f8562a07e10d0886c787b7e4a5e9132b664122705f6",
+      "Perms": "861536320daea2fb5d3b223d7112b248",
+      "P": -1084,
+      "R": 5
+    },
+    "aes256IsoBlankDict": {
+      "Filter": {
+        "name": "Standard"
+      },
+      "V": 5,
+      "Length": 256,
+      "O": "f7db9955a64dac6bafcfd7414677e9c191cb4467492352cf0c1572d7340dcee99140e4985146bf887e6adead8ff440c1",
+      "U": "1aa9dc913883936b295b1137b136dbe88efe28e589d40ead123b7d4e5f3666657a8b471805594f687d5a48a35a87172a",
+      "OE": "a4618820681b7fcdd5ca63d85283e5d61cd298079834baaf1bb47f51f81e557d",
+      "UE": "a00a5a55271d272c0bfe0ea24cf9625ea1b9d6763762b236a94e99f1a4446571",
+      "Perms": "03f269070dc3f9f22880b7f5ddd163eb",
+      "P": -1084,
+      "R": 6
+    },
+    "aes256UnicodeDict": {
+      "Filter": {
+        "name": "Standard"
+      },
+      "V": 5,
+      "Length": 256,
+      "O": "07e7c3306beef554bd6911ac8248760c9df05a5c9e63299a24a0c2a15b22903033333333333333334444444444444444",
+      "U": "b0b5e1da16134dfef00c4d09f2eef26a3867498581108da04f3e5d24b9b5f37811111111111111112222222222222222",
+      "OE": "7a2c9753f56c7c7cca2f833e2d32339057db21b9edd24b6f7dd9719b4b9b6542",
+      "UE": "8cee2c8ad21682dcbbdf6552729607c4ab6c9954a742beba439f6647f26866b8",
+      "Perms": "e94d1d8d96bed3a98dbda6be3e1a2aad",
+      "P": -1084,
+      "R": 5
+    },
+    "aes256SaslPrepDict": {
+      "Filter": {
+        "name": "Standard"
+      },
+      "V": 5,
+      "Length": 256,
+      "O": "2114dff5892a5f97b6b7ebf850027d59fd9582cabd1ca6545e8b7101fc9dd200847af489e83e58df71cfcef246a6b295",
+      "U": "981e8012145993440b792f07715ecc7bd1cd672c5b32ddb7c07dc7d51f355123bdca31fd6d7bb7d160297691d233e1b4",
+      "OE": "41f1bf91aa8bf033d86dcf0b1419d6bf8b2a4ffa6c6eaa6285f253427ccffb58",
+      "UE": "772076efadec02adc61b06de50debe38dda5dbc7378e03354c1dfddd1383ac9b",
+      "Perms": "0efe0222fb3566a638740c6111174a66",
+      "P": -4,
+      "R": 6
+    },
+    "aes256SaslPrepFallbackDict": {
+      "Filter": {
+        "name": "Standard"
+      },
+      "V": 5,
+      "Length": 256,
+      "O": "b14fa641bde91909ecff75473cbe575a2c4ef6c7437a9ae184150c3636aeb4e6c0c1c2c3c4c5c6c7d0d1d2d3d4d5d6d7",
+      "U": "690cb0b9b790aa584ec93136452ec2cfbe47de1d71668f3abf92fbfac86f2311a0a1a2a3a4a5a6a7b0b1b2b3b4b5b6b7",
+      "OE": "0b4522a4aa58dac5d4da4ca091513e3a45eeb79757cf6db8ac8a6b80b45deb0f",
+      "UE": "d0c0e4724df7e7d2faa0907bbcbe867035b527a1108a8686952b92b4e1f4a59a",
+      "Perms": "edd45f4ded9edef982c8a97fc1ccc4b4",
+      "P": -4,
+      "R": 6
+    }
+  }
+}

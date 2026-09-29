@@ -1,5 +1,5 @@
-import { PDF17, PDF20, saslPrep } from "../vendor/pdfjs-fonts.mjs";
-import { stringToBytes } from "../bytes.js";
+import { CipherTransformFactory, Dict, Name, Stream, PDF17, PDF20, saslPrep } from "../vendor/pdfjs-fonts.mjs";
+import { bytesToString, stringToBytes } from "../bytes.js";
 import {
   aesCbcDecrypt,
   aesCbcEncrypt,
@@ -14,14 +14,19 @@ import {
   cosNumber,
   cosRef,
   dictGet,
+  dictDelete,
+  dictSet,
   type PdfCosDict,
   type PdfCosNode,
+  type PdfCosStream,
   type PdfEncryptionState,
   type PdfIndirectObject,
   type PdfPermissions,
 } from "../ast.js";
 import { PdfError } from "../errors.js";
 import type { ParsedCosDocument } from "./parser.js";
+import { decodeStreamObject } from "./filters.js";
+import { assertDecodedByteBudget } from "./limits.js";
 import { serializeCosDocument } from "./writer.js";
 
 const PADDING_32 = Uint8Array.from([
@@ -109,129 +114,86 @@ export function computeR5R6Hash(
   return (revision === 6 ? new PDF20() : new PDF17())._hash(password, input, userKey);
 }
 
+const securityHandlers = new WeakMap<PdfEncryptionState, {
+  factory: CipherTransformFactory;
+  plaintextObjects: Set<number>;
+}>();
+
 export function derivePdfEncryptionKey(
   encryptDict: PdfCosDict,
   documentId0: Uint8Array,
-  password = ""
+  password = "",
+  options: {
+    resolve?: (node: PdfCosNode) => PdfCosNode | undefined;
+    maxRecursionDepth?: number;
+  } = {}
 ): PdfEncryptionState {
-  const filterNode = dictGet(encryptDict, "Filter");
-  const filter = filterNode?.kind === "name" ? filterNode.decoded : "Standard";
-  if (filter !== "Standard") {
-    throw new PdfError("E_CAPABILITY", `Unsupported PDF security handler: ${filter}`);
-  }
-  const vNode = dictGet(encryptDict, "V");
-  const rNode = dictGet(encryptDict, "R");
-  const lengthNode = dictGet(encryptDict, "Length");
-  const pNode = dictGet(encryptDict, "P");
-  const uNode = dictGet(encryptDict, "U");
-  const oNode = dictGet(encryptDict, "O");
-  const ueNode = dictGet(encryptDict, "UE");
-  const oeNode = dictGet(encryptDict, "OE");
-  const encMetaNode = dictGet(encryptDict, "EncryptMetadata");
-
-  const version = vNode?.kind === "number" ? vNode.value : 1;
-  const revision = rNode?.kind === "number" ? rNode.value : 2;
-  const keyLengthBits = lengthNode?.kind === "number" ? lengthNode.value : revision >= 5 ? 256 : version >= 2 ? 128 : 40;
-  const pMask = pNode?.kind === "number" ? pNode.value : -4;
-  const encryptMetadata = encMetaNode?.kind === "boolean" ? encMetaNode.value : true;
-  const uBytes = uNode?.kind === "string" ? uNode.bytes : new Uint8Array(0);
-  const oBytes = oNode?.kind === "string" ? oNode.bytes : new Uint8Array(0);
-
-  if (revision === 5 || revision === 6) {
-    if (uBytes.length < 48 || oBytes.length < 48 || ueNode?.kind !== "string" || oeNode?.kind !== "string") {
-      throw new PdfError("E_CAPABILITY", "Invalid R5/R6 encryption dictionary entries");
-    }
-    const prepared = revision === 6 ? saslPrep(password) : password;
-    for (const candidate of prepared === password ? [password] : [prepared, password]) {
-      const pwdBytes = new TextEncoder().encode(candidate).subarray(0, 127);
-      const rev = revision as 5 | 6;
-
-      // Check user password
-      const uValHash = computeR5R6Hash(pwdBytes, uBytes.subarray(32, 40), new Uint8Array(0), rev);
-      const isUserMatch = uValHash.every((b, idx) => b === uBytes[idx]);
-      if (isUserMatch) {
-        const uKeyHash = computeR5R6Hash(pwdBytes, uBytes.subarray(40, 48), new Uint8Array(0), rev);
-        const fileKey = aesCbcDecrypt(uKeyHash, new Uint8Array(16), ueNode.bytes.subarray(0, 32), false);
-        return {
-          filter,
-          version,
-          revision,
-          keyLengthBits: 256,
-          encryptMetadata,
-          permissions: decodePermissionsMask(pMask),
-          fileKey,
-        };
+  const plaintextObjects = new Set<number>();
+  const converted = new Map<PdfCosNode, unknown>();
+  const convert = (node: PdfCosNode, depth = 0): unknown => {
+    if (converted.has(node)) return converted.get(node);
+    if (depth > (options.maxRecursionDepth ?? 128)) throw new PdfError("E_LIMIT", "PDF encryption dictionary recursion limit exceeded");
+    switch (node.kind) {
+      case "ref": {
+        plaintextObjects.add(node.objectNumber);
+        const resolved = options.resolve?.(node);
+        if (!resolved || resolved === node) throw new PdfError("E_PARSE", "Unresolved encryption dictionary reference");
+        // Record references before descending so cyclic dictionaries remain bounded.
+        converted.set(node, null);
+        const value = convert(resolved, depth + 1);
+        converted.set(node, value);
+        return value;
       }
-
-      // Check owner password
-      const oValHash = computeR5R6Hash(pwdBytes, oBytes.subarray(32, 40), uBytes.subarray(0, 48), rev);
-      const isOwnerMatch = oValHash.every((b, idx) => b === oBytes[idx]);
-      if (isOwnerMatch) {
-        const oKeyHash = computeR5R6Hash(pwdBytes, oBytes.subarray(40, 48), uBytes.subarray(0, 48), rev);
-        const fileKey = aesCbcDecrypt(oKeyHash, new Uint8Array(16), oeNode.bytes.subarray(0, 32), false);
-        return {
-          filter,
-          version,
-          revision,
-          keyLengthBits: 256,
-          encryptMetadata,
-          permissions: decodePermissionsMask(pMask),
-          fileKey,
-        };
+      case "dict": {
+        const dict = new Dict();
+        converted.set(node, dict);
+        for (const entry of node.entries) dict.set(entry.key.decoded, convert(entry.value, depth + 1));
+        return dict;
       }
-
-    }
-    throw new PdfError("E_CAPABILITY", "Invalid PDF password");
-  }
-
-  // Revision 2, 3, or 4
-  const keyBytesLen = Math.max(5, Math.floor(keyLengthBits / 8));
-  const computeR2To4FileKey = (pwdPad: Uint8Array): Uint8Array => {
-    const pBuf = new Uint8Array(4);
-    new DataView(pBuf.buffer).setInt32(0, pMask, true);
-    const chunks: Uint8Array[] = [pwdPad, oBytes.subarray(0, 32), pBuf, documentId0];
-    if (revision >= 4 && !encryptMetadata) {
-      chunks.push(Uint8Array.from([0xff, 0xff, 0xff, 0xff]));
-    }
-    let digest = md5Bytes(chunks);
-    if (revision >= 3) {
-      for (let i = 0; i < 50; i++) {
-        digest = md5Bytes([digest.subarray(0, keyBytesLen)]);
+      case "array": {
+        const items: unknown[] = [];
+        converted.set(node, items);
+        for (const item of node.items) items.push(convert(item, depth + 1));
+        return items;
       }
+      case "name": return Name.get(node.decoded);
+      case "string": return bytesToString(node.bytes);
+      case "number": case "boolean": return node.value;
+      case "null": return null;
+      default: throw new PdfError("E_PARSE", "Invalid encryption dictionary value");
     }
-    return digest.subarray(0, keyBytesLen);
   };
-
-  const computeUserValue = (fileKey: Uint8Array): Uint8Array => {
-    if (revision === 2) {
-      return rc4Transform(fileKey, PADDING_32);
+  try {
+    const dict = convert(encryptDict) as Dict;
+    // An absent crypt-filter dictionary denotes the default Identity filters.
+    if (!dict.get("CF")) dict.set("CF", new Dict());
+    const revision = dict.get("R");
+    let factory: CipherTransformFactory;
+    try {
+      factory = new CipherTransformFactory(dict, bytesToString(documentId0), password);
+    } catch (error) {
+      // pypdf applies SASLprep to R5 too. Keep raw UTF-8 compatibility first,
+      // then try the standard prepared candidate when authentication fails.
+      const prepared = revision === 5 ? saslPrep(password) : password;
+      if (!(error instanceof Error) || error.name !== "PasswordException" || prepared === password) throw error;
+      factory = new CipherTransformFactory(dict, bytesToString(documentId0), prepared);
     }
-    const digest = md5Bytes([PADDING_32, documentId0]);
-    let encrypted = rc4Transform(fileKey, digest);
-    for (let i = 1; i <= 19; i++) {
-      const iterKey = new Uint8Array(fileKey.length);
-      for (let j = 0; j < fileKey.length; j++) iterKey[j] = fileKey[j]! ^ i;
-      encrypted = rc4Transform(iterKey, encrypted);
-    }
-    return encrypted;
-  };
-
-  const userKeyCandidate = computeR2To4FileKey(padPassword32(password));
-  const expectedU = computeUserValue(userKeyCandidate);
-  const checkLen = revision === 2 ? 32 : 16;
-  if (expectedU.subarray(0, checkLen).every((b, idx) => b === uBytes[idx])) {
-    return {
-      filter,
-      version,
-      revision,
-      keyLengthBits,
-      encryptMetadata,
-      permissions: decodePermissionsMask(pMask),
-      fileKey: userKeyCandidate,
+    const permissions = dict.get("P");
+    if (typeof revision !== "number") throw new PdfError("E_CAPABILITY", "Invalid PDF encryption revision");
+    const fileKey = factory.encryptionKey ?? new Uint8Array(0);
+    const state: PdfEncryptionState = {
+      filter: "Standard", version: factory.algorithm, revision,
+      keyLengthBits: fileKey.length * 8,
+      encryptMetadata: factory.algorithm < 4 || factory.encryptMetadata,
+      permissions: decodePermissionsMask(typeof permissions === "number" ? permissions : -4), fileKey,
     };
+    securityHandlers.set(state, { factory, plaintextObjects });
+    return state;
+  } catch (error) {
+    if (error instanceof PdfError) throw error;
+    throw new PdfError("E_CAPABILITY", error instanceof Error && error.name === "PasswordException"
+      ? "Invalid PDF password" : `PDF security handler: ${error instanceof Error ? error.message : String(error)}`);
   }
-
-  throw new PdfError("E_CAPABILITY", "Invalid PDF password");
 }
 
 export function decryptPdfBuffer(
@@ -241,6 +203,8 @@ export function decryptPdfBuffer(
   data: Uint8Array
 ): Uint8Array {
   if (data.length === 0) return data;
+  const handler = securityHandlers.get(state);
+  if (handler) return stringToBytes(handler.factory.createCipherTransform(objectNumber, generationNumber).decryptString(bytesToString(data)));
 
   if (state.revision === 5 || state.revision === 6) {
     if (data.length < 16 || data.length % 16 !== 0) {
@@ -284,6 +248,8 @@ export function encryptPdfBuffer(
   generationNumber: number,
   plaintext: Uint8Array
 ): Uint8Array {
+  const handler = securityHandlers.get(state);
+  if (handler) return stringToBytes(handler.factory.createCipherTransform(objectNumber, generationNumber).encryptString(bytesToString(plaintext)));
   if (state.revision === 5 || state.revision === 6) {
     const iv = globalThis.crypto.getRandomValues(new Uint8Array(16));
     const enc = aesCbcEncrypt(state.fileKey, iv, plaintext, true);
@@ -306,7 +272,8 @@ export function encryptPdfBuffer(
 
 function transformNodeStringsAndStreams(
   node: PdfCosNode,
-  transform: (bytes: Uint8Array) => Uint8Array
+  transform: (bytes: Uint8Array) => Uint8Array,
+  transformStream?: (stream: PdfCosStream) => PdfCosStream
 ): PdfCosNode {
   switch (node.kind) {
     case "string":
@@ -318,32 +285,41 @@ function transformNodeStringsAndStreams(
     case "array":
       return {
         kind: "array",
-        items: node.items.map(item => transformNodeStringsAndStreams(item, transform)),
+        items: node.items.map(item => transformNodeStringsAndStreams(item, transform, transformStream)),
       };
-    case "dict":
+    case "dict": {
+      const type = dictGet(node, "Type");
+      const fieldType = dictGet(node, "FT");
+      const byteRange = dictGet(node, "ByteRange");
+      const signature = (type?.kind === "name" && type.decoded === "Sig") ||
+        (fieldType?.kind === "name" && fieldType.decoded === "Sig") ||
+        (byteRange?.kind === "array" && dictGet(node, "Filter")?.kind === "name");
       return {
         kind: "dict",
         entries: node.entries.map(e => ({
           key: e.key,
-          value: transformNodeStringsAndStreams(e.value, transform),
+          value: signature && e.key.decoded === "Contents" ? e.value : transformNodeStringsAndStreams(e.value, transform, transformStream),
         })),
       };
+    }
     case "stream": {
-      const transformedStream = transform(node.rawBytes);
+      const type = dictGet(node.dict, "Type");
+      if (type?.kind === "name" && type.decoded === "XRef") return node;
+      const stream = transformStream ? transformStream(node) : { ...node, rawBytes: transform(node.rawBytes) };
       const updatedDict: PdfCosDict = {
         kind: "dict",
-        entries: node.dict.entries.map(e => ({
+        entries: stream.dict.entries.map(e => ({
           key: e.key,
           value:
             e.key.decoded === "Length"
-              ? cosNumber(transformedStream.length)
-              : transformNodeStringsAndStreams(e.value, transform),
+              ? cosNumber(stream.rawBytes.length)
+              : transformNodeStringsAndStreams(e.value, transform, transformStream),
         })),
       };
       return {
         kind: "stream",
         dict: updatedDict,
-        rawBytes: transformedStream,
+        rawBytes: stream.rawBytes,
       };
     }
     default:
@@ -450,19 +426,70 @@ export function encryptCosDocument(doc: ParsedCosDocument, options: EncryptPdfOp
   });
 }
 
+// PDF.js Parser.makeStream/filter: explicit Crypt suppresses StmF and is
+// evaluated at its declared position. Preserve all remaining encoded filters.
+function decryptStream(
+  doc: ParsedCosDocument,
+  stream: PdfCosStream,
+  transform: ReturnType<CipherTransformFactory["createCipherTransform"]>
+): PdfCosStream {
+  const type = doc.resolve(dictGet(stream.dict, "Type"));
+  const decrypt = (bytes: Uint8Array, cryptName?: Name) => {
+    const input = new Stream(bytes);
+    input.dict = new Dict();
+    if (type?.kind === "name") input.dict.set("Type", Name.get(type.decoded));
+    return transform.createStream(input, bytes.length, cryptName).getBytes();
+  };
+  const filter = doc.resolve(dictGet(stream.dict, "Filter") ?? dictGet(stream.dict, "F"));
+  const filters = filter?.kind === "array" ? filter.items.map(node => doc.resolve(node)) : [filter];
+  let lastCrypt = -1;
+  for (let i = 0; i < filters.length; i++) {
+    const node = filters[i];
+    if (node?.kind === "name" && node.decoded === "Crypt") lastCrypt = i;
+  }
+  if (lastCrypt < 0) return { ...stream, rawBytes: decrypt(stream.rawBytes) };
+
+  const params = doc.resolve(dictGet(stream.dict, "DecodeParms") ?? dictGet(stream.dict, "DP"));
+  let bytes = stream.rawBytes;
+  for (let i = 0; i <= lastCrypt; i++) {
+    const filter = filters[i];
+    if (filter?.kind !== "name") throw new PdfError("E_PARSE", "Invalid encrypted stream filter");
+    const parameter = doc.resolve(params?.kind === "array" ? params.items[i] : params);
+    if (filter.decoded === "Crypt") {
+      const name = parameter?.kind === "dict" ? doc.resolve(dictGet(parameter, "Name")) : undefined;
+      bytes = decrypt(bytes, Name.get(name?.kind === "name" ? name.decoded : "Identity"));
+    } else {
+      bytes = decodeStreamObject({ kind: "stream", rawBytes: bytes, dict: cosDict({ Filter: filter, DecodeParms: parameter }) }, doc.maxDecompressedBytes, node => doc.resolve(node));
+    }
+    assertDecodedByteBudget(bytes.length, doc.maxDecompressedBytes);
+  }
+  const dict: PdfCosDict = { kind: "dict", entries: [...stream.dict.entries] };
+  for (const key of ["Filter", "F", "DecodeParms", "DP"]) dictDelete(dict, key);
+  const remaining = filters.slice(lastCrypt + 1);
+  if (remaining.length) {
+    if (remaining.some(node => node?.kind !== "name")) throw new PdfError("E_PARSE", "Invalid encrypted stream filter");
+    dictSet(dict, "Filter", cosArray(remaining as PdfCosNode[]));
+    if (params?.kind === "array") dictSet(dict, "DecodeParms", cosArray(params.items.slice(lastCrypt + 1)));
+    else if (params?.kind === "dict") dictSet(dict, "DecodeParms", params);
+  }
+  return { kind: "stream", dict, rawBytes: bytes };
+}
+
 export function decryptCosDocument(doc: ParsedCosDocument, state: PdfEncryptionState): void {
   const encryptObjNum = doc.encryptRef?.objectNumber;
+  const handler = securityHandlers.get(state);
   for (const [num, obj] of doc.objects.entries()) {
-    if (num === encryptObjNum) continue;
-    const decrypted = transformNodeStringsAndStreams(obj.value, cipher =>
-      decryptPdfBuffer(state, obj.objectNumber, obj.generationNumber, cipher)
+    if (num === encryptObjNum || handler?.plaintextObjects.has(num)) continue;
+    if (obj.value.kind === "stream") {
+      const type = doc.resolve(dictGet(obj.value.dict, "Type"));
+      if (type?.kind === "name" && (type.decoded === "XRef" || (type.decoded === "Metadata" && !state.encryptMetadata))) continue;
+    }
+    const transform = handler?.factory.createCipherTransform(obj.objectNumber, obj.generationNumber);
+    const decrypted = transformNodeStringsAndStreams(obj.value,
+      cipher => decryptPdfBuffer(state, obj.objectNumber, obj.generationNumber, cipher),
+      transform ? stream => decryptStream(doc, stream, transform) : undefined
     );
-    doc.objects.set(num, {
-      objectNumber: obj.objectNumber,
-      generationNumber: obj.generationNumber,
-      value: decrypted,
-      span: obj.span,
-    });
+    doc.objects.set(num, { objectNumber: obj.objectNumber, generationNumber: obj.generationNumber, value: decrypted, span: obj.span });
   }
 }
 

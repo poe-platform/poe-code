@@ -131,3 +131,31 @@ computed independently using that checkout's `FlateStream`, not pdf-ast.
 | pdfjs-flate-issue11651.pdf-10.bin | c62db31061a61e6b273989413e2b1a932f527e5d38a5e66cbee7d75e7a16da80 |
 | pdfjs-flate-issue3885.pdf-12.bin | 90a50754c0c2216bf3a2b2d3e69691cdd777203b5611e35fc6a9da701da40382 |
 | pdfjs-flate-bug1050040.pdf-2.bin | 8720aad581e3839f8edee2fe970d377a24081898114b85e1c9849f3bf78bccc0 |
+
+## PDF.js standard security fixtures
+
+Pinned upstream revision: `91041fb94d6744bc2a5bccd9aad28d617faa8195`.
+The following unchanged files come from `test/pdfs/` (Mozilla Foundation,
+Apache-2.0). Each also passed the upstream test manifest MD5 check during the
+corpus audit.
+
+| Local file | Upstream file | SHA-256 |
+| --- | --- | --- |
+| `pdfjs-empty_protected.pdf` | `empty_protected.pdf` | `69556af04215faec7da3e93e823c64f1b74679e52fd10379176f0e0462dd4b6c` |
+| `pdfjs-issue6010_1.pdf` | `issue6010_1.pdf` | `d7fd95e016b7d43bc9eed1041b0cdd6ee00e3dd902e50d0307b0a428782c543c` |
+| `pdfjs-issue6010_2.pdf` | `issue6010_2.pdf` | `53008dd89a45e313112ad6c6f17ade3e5c8f33f3106028a4e5b61f570b270ce9` |
+| `pdfjs-saslprep-r6.pdf` | `saslprep-r6.pdf` | `e570bea23d5e1b8a796ffc3701920f04fc114543b4b25e8f03bd913ca47f1da9` |
+| `pdfjs-issue19484_1.pdf` | `issue19484_1.pdf` | `0f020604762fe289eaed602bfb5f4e3d921fb04ffc0fd61ec5423933a03f1948` |
+| `pdfjs-issue19484_2.pdf` | `issue19484_2.pdf` | `247215f0ca711ec552289c3076cc7ee38f117c3e0d9c83bfc136ff99f2627216` |
+
+`pdfjs-security-vectors.json` adapts nine dictionaries and two file identifiers
+from `test/unit/crypto_spec.js` at that revision. Binary strings are represented
+as hexadecimal, names as `{name: ...}`, and numbers are unchanged. The 23
+authentication cases in `cos/pdfjs-security.test.ts` are ported from that suite.
+The remaining tests exercise the local COS/parser integration.
+
+`pypdf-r5-saslprep.pdf` was generated with pypdf 6.19.0 `PdfWriter.encrypt`
+using `algorithm="AES-256-R5"`, user password `SªSL\u00adprep`, and owner password
+`owner`. Its one-page text/rectangle source was generated with ReportLab. It
+reproduces pypdf's R5 SASLprep password encoding, which PDF.js's raw R5 candidate
+alone does not authenticate. SHA-256: `3947c5fe9ef65513fc507f1f9aeab885e6972693f0bf8fbdbbfac8a7afb376d4`.

@@ -698,6 +698,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
   let rootRef: PdfCosRef | undefined;
   let infoRef: PdfCosRef | undefined;
   let encryptRef: PdfCosRef | undefined;
+  let encryptNode: PdfCosRef | PdfCosDict | undefined;
   let idArray: PdfCosArray | undefined;
 
   let useRepair = false;
@@ -734,7 +735,10 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
           const inf = dictGet(rev.trailer, "Info");
           if (!infoRef && inf?.kind === "ref") infoRef = inf;
           const enc = dictGet(rev.trailer, "Encrypt");
-          if (!encryptRef && enc?.kind === "ref") encryptRef = enc;
+          if (!encryptNode && (enc?.kind === "ref" || enc?.kind === "dict")) {
+            encryptNode = enc;
+            if (enc.kind === "ref") encryptRef = enc;
+          }
           const id = dictGet(rev.trailer, "ID");
           if (!idArray && id?.kind === "array") idArray = id;
 
@@ -790,8 +794,8 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
     maxRecursionDepth,
   });
 
-  if (encryptRef) {
-    const encryptDict = doc.resolveDict(encryptRef);
+  if (encryptNode) {
+    const encryptDict = doc.resolveDict(encryptNode);
     if (!encryptDict) {
       throw new PdfError("E_PARSE", "Missing /Encrypt dictionary object");
     }
@@ -802,7 +806,10 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
         idFirstBytes = new Uint8Array(firstId.bytes);
       }
     }
-    const encState = authenticateStandardEncryption(encryptDict, idFirstBytes, options.password ?? "");
+    const encState = authenticateStandardEncryption(encryptDict, idFirstBytes, options.password ?? "", {
+      resolve: node => node.kind === "ref" ? doc.getObject(node.objectNumber) : node,
+      maxRecursionDepth,
+    });
     doc.encryption = encState;
     decryptCosDocument(doc, encState);
   }

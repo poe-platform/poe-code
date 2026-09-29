@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { createZipCodec } from "@poe-code/office-package";
 import { parseXml } from "@poe-code/safe-fs/xml";
 import type { CapabilityContext } from "../contracts.js";
 import type { Workbook } from "../workbook.js";
@@ -119,4 +120,48 @@ it.each(["2006", "2008"] as const)("preserves unique formula string caches in %s
   const cells = (await readXlsx(bytes, context)).sheets[0]!.cells;
   expect(cells.map(cell => cell.cachedResult)).toEqual(values.map(value => ({ kind: "string", value })));
   expect(cells.map(cell => cell.formula)).toEqual(values.map(() => '="_x0000_"'));
+});
+
+for (const edition of ["2006", "2008"] as const)
+for (const cache of ["value", "cachedResult"] as const)
+it.each([0, 1, 2])(`keeps formula string caches out of shared strings (${edition}, ${cache}, %i plain cells)`, async plainCount => {
+  const value = "A\0_x0000_😀\ud800";
+  const stringValue = { kind: "string", value } as const;
+  const formula = '="_x0000_"';
+  const book: Workbook = { calculationMode: "manual", sheets: [{ id: "s", name: "S", cells: [
+    ...Array.from({ length: plainCount }, (_, row) => ({ row, column: 0, value: stringValue })),
+    ...Array.from({ length: 2 }, (_, index) => ({ row: plainCount + index, column: 0,
+      formula, value: { kind: "blank" } as const, [cache]: stringValue }))
+  ] }] };
+  const before = structuredClone(book);
+  const bytes = await createXlsxWriter(edition)(book, [], context);
+  const zip = createZipCodec();
+  const bounds = { maxArchiveBytes: 1000000, maxEntryBytes: 1000000, maxTotalBytes: 1000000,
+    maxMembers: 100, maxPathBytes: 1024, maxDepth: 32, maxPaxBytes: 10000, maxTextBytes: 1000000, chunkSize: 4096 };
+  const archive = await zip.readZipArchive(bytes, bounds, context.signal);
+  const parts = new Map<string, ReturnType<typeof parseXml>>();
+  for (const name of ["xl/worksheets/sheet1.xml", "xl/sharedStrings.xml"]) {
+    const entry = archive.entries.find(entry => entry.name === name);
+    if (!entry) continue;
+    const decoder = new TextDecoder(); let text = "";
+    for await (const chunk of zip.decodeZipEntry(entry, bounds, context.signal)) text += decoder.decode(chunk, { stream: true });
+    parts.set(name, parseXml(text + decoder.decode()));
+  }
+  const sheetData = parts.get("xl/worksheets/sheet1.xml")!.children.find(node => node.localName === "sheetData")!;
+  const cells = sheetData.children.flatMap(row => row.children.filter(node => node.localName === "c"));
+  expect(cells.map(cell => cell.attributes.find(attribute => attribute.localName === "t")?.value)).toEqual([
+    ...Array.from({ length: plainCount }, () => plainCount > 1 ? "s" : "inlineStr"), "str", "str"
+  ]);
+  for (const cell of cells.slice(plainCount)) {
+    expect(cell.children.find(node => node.localName === "f")?.text).toBe(formula.slice(1));
+    expect(cell.children.find(node => node.localName === "v")?.text).toBe("A_x0000__x005F_x0000_😀_xD800_");
+  }
+  const shared = parts.get("xl/sharedStrings.xml");
+  if (plainCount > 1) {
+    expect(shared!.children.filter(node => node.localName === "si").map(node => readXlsxString(node, context).value)).toEqual([value]);
+    expect(cells.slice(0, plainCount).map(cell => cell.children.find(node => node.localName === "v")?.text)).toEqual(["0", "0"]);
+  } else expect(shared).toBeUndefined();
+  const reread = (await readXlsx(bytes, context)).sheets[0]!.cells;
+  expect(reread.map(cell => cell.formula ? cell.cachedResult : cell.value)).toEqual(Array(plainCount + 2).fill(stringValue));
+  expect(book).toEqual(before);
 });

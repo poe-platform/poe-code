@@ -577,7 +577,7 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
     for (const sheet of book.sheets) for (const cell of sheet.cells) {
       charge(); if (++totalCells > context.limits.cells) limit("cells");
       const value = cell.formula ? cell.cachedResult ?? cell.value : cell.value;
-      if (value.kind === "string") { const key = JSON.stringify([value.value, cell.richText ?? []]); stringCounts.set(key, (stringCounts.get(key) ?? 0) + 1); }
+      if (!cell.formula && value.kind === "string") { const key = JSON.stringify([value.value, cell.richText ?? []]); stringCounts.set(key, (stringCounts.get(key) ?? 0) + 1); }
     }
     if (book.sheets.length > context.limits.sheets) limit("sheets");
     const active = Math.max(0, book.sheets.findIndex(sheet => sheet.id === book.activeSheet));
@@ -651,12 +651,12 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
               ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals, true, cell.formula) },
               escapeXlsx(exportXlsxFormula(book, cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals)));
           if (value.kind === "string") {
-            if ((stringCounts.get(stringKey) ?? 0) > 1) {
+            if (cell.formula) { type = "str"; body += xml("v", {}, escapeXlsx(encodeXlsxString(value.value))); }
+            else if ((stringCounts.get(stringKey) ?? 0) > 1) {
               type = "s"; let id = sharedIds.get(stringKey);
               if (id === undefined) { id = shared.length; sharedIds.set(stringKey, id); shared.push({ ...cell, value }); }
               body += xml("v", {}, String(id));
-            } else if (cell.formula) { type = "str"; body += xml("v", {}, escapeXlsx(encodeXlsxString(value.value))); }
-            else { type = "inlineStr"; body += xml("is", {}, writeRichString(value.value, cell.richText, xml, charge)); }
+            } else { type = "inlineStr"; body += xml("is", {}, writeRichString(value.value, cell.richText, xml, charge)); }
           } else if (value.kind !== "blank") {
             type = value.kind === "boolean" ? "b" : value.kind === "error" ? "e" : undefined;
             body += xml("v", {}, value.kind === "boolean" ? value.value ? "1" : "0" : value.kind === "number" ? gnumericNumber(value.value) : escapeXlsx(value.value));

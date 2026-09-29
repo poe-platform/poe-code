@@ -103,7 +103,9 @@ Configure finite input/output limits explicitly with `maxInputBytes` and
 `maxOutputBytes` when creating the shell adapter. Capture overflow fails rather
 than returning silently truncated data. Native serialized-message budgets are
 configured separately with `capabilityLimits.maxMessageBytes`; there is no
-implicit 64 KiB ceiling. Application-specific host failures become sanitized
+implicit 64 KiB ceiling or separate 128 KiB native decoder ceiling. The native
+transport decodes the complete allocated request before applying the configured
+capability budget. Application-specific host failures become sanitized
 `HostError`s in the guest; detailed errors stay in host-owned diagnostics.
 
 Customizable [Python LLM workflows](python-llm.md) and

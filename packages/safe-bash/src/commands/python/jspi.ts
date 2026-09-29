@@ -124,7 +124,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
       const module = runtime._module;
       const send = async (pointer: number): Promise<number> => {
         let response = await encode(async () => {
-          const payload = JSON.parse(module.UTF8ToString(pointer, 131072));
+          const payload = JSON.parse(module.UTF8ToString(pointer));
           if (payload[0] === 'host') {
             try {
               if (!start.host || !acceptingHostCalls) throw new Error('Python host capability unavailable');

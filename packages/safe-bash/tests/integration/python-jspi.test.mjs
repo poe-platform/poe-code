@@ -153,7 +153,7 @@ export { WebAssembly, fetch, location };
     assert.equal(host.stdout, 'host-ok\n');
     assert.equal(host.stderr, '');
     assert.equal(host.released, 1);
-    assert.equal(host.calls, 2);
+    assert.equal(host.calls, 5);
     assert.equal(host.hostCancelled, 1);
     assert.equal(host.libraryReleased, 2);
     assert.equal(host.retirementRejected, true);

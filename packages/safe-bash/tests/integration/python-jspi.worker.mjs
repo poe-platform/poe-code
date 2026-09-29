@@ -87,6 +87,9 @@ async function qualifyHostServices(backend, createExecutor) {
   await backend.writeFile('/work/host.py', new TextEncoder().encode(String.raw`
 from safe_host import call, stream, run, check_output, CalledProcessError, HostError
 assert call('identity', {'number': 3, 'enabled': True}) == {'number': 3, 'enabled': True}
+for size in (131000, 131072, 131500):
+ payload = 'x' * size + '\u03bb'
+ assert call('identity', payload) == payload
 with stream('llm', {'prompt': 'direct'}) as chunks:
  assert list(chunks) == ['direct']
 with stream('bytes') as chunks:
@@ -195,7 +198,7 @@ print('host-ok')
   shell.use(pythonCommands({ createExecutor() {
     const executor = createExecutor();
     return { run(start) { retiredBridge = start.host; return executor.run(start); }, terminate: executor.terminate.bind(executor) };
-  }, maxConcurrentWorkers:1, createCapabilities(context) {
+  }, maxConcurrentWorkers:1, capabilityLimits:{maxMessageBytes:1048576}, createCapabilities(context) {
     return {
       identity: { async call(value) { calls++; return value; } },
       llm: {
@@ -223,7 +226,7 @@ print('host-ok')
         },
       },
       bytes: { async *stream() { try { yield new Uint8Array([0,255,128]); yield 'unused'; } finally { released++; } } },
-      shell: createPythonShellCapability(context),
+      shell: createPythonShellCapability(context, {maxOutputBytes:8192}),
     };
   } }));
   try {

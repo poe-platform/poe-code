@@ -58,6 +58,7 @@ export function resolveXmlQueryLimits(options: Partial<XmlQueryLimits> = {}): Xm
 export class XmlBudget {
   private steps = 0;
   private checkpoint = 0;
+  private checkpointCount = 0;
   private lastYield = monotonicNow();
   private aborted = false;
   private readonly pollSignal: boolean;
@@ -82,7 +83,7 @@ export class XmlBudget {
     if (this.checkpoint >= 16384) {
       this.checkpoint = 0;
       const now = monotonicNow();
-      if (this.checkpointTurn !== yieldTurn || hasYieldCheckpoint(this.signal) || now - this.lastYield >= 16) {
+      if ((++this.checkpointCount & 15) === 0 || this.checkpointTurn !== yieldTurn || hasYieldCheckpoint(this.signal) || now - this.lastYield >= 16) {
         this.lastYield = now;
         return this.checkpointTurn(this.signal).then(() => {
           this.lastYield = monotonicNow();

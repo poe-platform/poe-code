@@ -1,0 +1,157 @@
+{
+  "distribution": "llm",
+  "version": "0.27.1",
+  "provider": "deterministic-fixture",
+  "cases": [
+    {
+      "argv": [
+        "models",
+        "options",
+        "list"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "No default options set for any models.\n",
+      "files": {}
+    },
+    {
+      "argv": [
+        "aliases"
+      ],
+      "exitCode": 0,
+      "stdout": "echo : fixture-chat\n",
+      "stderr": "",
+      "files": {}
+    },
+    {
+      "argv": [
+        "aliases",
+        "list"
+      ],
+      "exitCode": 0,
+      "stdout": "echo : fixture-chat\n",
+      "stderr": "",
+      "files": {}
+    },
+    {
+      "argv": [
+        "aliases",
+        "set",
+        "tiny",
+        "-q",
+        "fixture"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Alias 'tiny' set to model 'fixture-chat'\n",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n"
+      }
+    },
+    {
+      "argv": [
+        "aliases",
+        "list"
+      ],
+      "exitCode": 0,
+      "stdout": "echo : fixture-chat\ntiny : fixture-chat\n",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n"
+      }
+    },
+    {
+      "argv": [
+        "aliases",
+        "set",
+        "missing",
+        "-q",
+        "absent"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: No model found matching query: absent\n",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "tiny",
+        "temperature",
+        "0.5"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Set default option temperature=0.5 for model fixture-chat\n",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n",
+        "model_options.json": "{\n  \"fixture-chat\": {\n    \"temperature\": \"0.5\"\n  }\n}"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "tiny",
+        "seed",
+        "7"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Set default option seed=7 for model fixture-chat\n",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n",
+        "model_options.json": "{\n  \"fixture-chat\": {\n    \"temperature\": \"0.5\",\n    \"seed\": \"7\"\n  }\n}"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "tiny"
+      ],
+      "exitCode": 0,
+      "stdout": "Cleared temperature, seed options for model fixture-chat\n",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n",
+        "model_options.json": "{}"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "tiny"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n",
+        "model_options.json": "{}"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "list"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "No default options set for any models.\n",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n",
+        "model_options.json": "{}"
+      }
+    }
+  ]
+}

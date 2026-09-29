@@ -26,7 +26,7 @@ export interface LlmConfiguration {
   allModelOptions(): Promise<Options>;
   modelOptions(model: string): Promise<Record<string, string>>;
   setModelOption(model: string, name: string, value: string): Promise<void>;
-  clearModelOption(model: string, name: string): Promise<void>;
+  clearModelOption(model: string, name?: string): Promise<void>;
 }
 
 export function createLlmConfiguration(context: Context): LlmConfiguration {
@@ -128,7 +128,9 @@ export function createLlmConfiguration(context: Context): LlmConfiguration {
     clearModelOption: (model, name) => serialized(async () => {
       const expected = await stat(filename("model_options.json"));
       const values = await options();
-      if (Object.hasOwn(values, model)) {
+      if (!Object.hasOwn(values, model)) return;
+      if (name === undefined) delete values[model];
+      else {
         delete values[model]![name];
         if (!Object.keys(values[model]!).length) delete values[model];
       }

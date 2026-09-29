@@ -289,3 +289,5 @@ llm -m gpt-image-1 'a fox' | base64
 URL attachments, key management, interactive chat, logging/history databases,
 model/plugin installation, templates, embeddings, and conversation continuation
 are outside this pack.
+
+Use `llm aliases` for the plain alias list or `llm aliases set short -q part -q name` to select the first model matching every query. `llm models options clear MODEL` clears all defaults atomically; the SDK equivalent is `configuration.clearModelOption(model)`. Pass a key to either interface to clear one option.

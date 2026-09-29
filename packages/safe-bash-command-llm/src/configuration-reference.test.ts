@@ -34,3 +34,18 @@ test("persisted CLI workflow matches llm 0.27.1 deterministic configuration char
     }
   }
 });
+
+test("alias listing, query selection and option clearing match the pinned reference", async () => {
+  const { default: characterization } = await import("./fixtures/configuration-list-reference.json", { with: { type: "json" } });
+  const fs = new MemoryFileSystem();
+  const command = createLlmCommand({ providers: [{ name: "fixture", models: [{ id: "fixture-chat", aliases: ["echo"] }], async *complete() { yield "unused"; } }] });
+  for (const fixture of characterization.cases) {
+    const output: Uint8Array[] = [], errors: Uint8Array[] = [];
+    const result = await command.execute({ command: "llm", args: fixture.argv, fs, cwd: "/", env: { LLM_USER_PATH: "/settings" }, signal: new AbortController().signal, stdin: toByteSource(""), stdout: { async write(bytes) { output.push(bytes.slice()); } }, stderr: { async write(bytes) { errors.push(bytes.slice()); } } });
+    const label = fixture.argv.join(" ");
+    assert.equal(result.exitCode, fixture.exitCode, label);
+    assert.equal(Buffer.concat(output).toString(), fixture.stdout, label);
+    assert.equal(Buffer.concat(errors).toString(), fixture.stderr, label);
+    for (const [name, text] of Object.entries(fixture.files)) assert.equal(new TextDecoder().decode(await fs.readFile(`/settings/${name}`)), text, `${label}: ${name}`);
+  }
+});

@@ -87,12 +87,8 @@ export function evalSyncDiff(
     !pairFiles ||
     opts.recursive ||
     opts.paginate ||
-    opts.format === "side" ||
-    opts.format === "ifdef" ||
-    opts.format === "ed" ||
-    opts.functions.length > 0 ||
-    opts.excludes.length > 0 ||
-    opts.excludeFiles.length > 0
+    (opts.format === "side" && !opts.suppressCommon) ||
+    opts.format === "ifdef"
   ) {
     return undefined;
   }
@@ -152,6 +148,9 @@ export function evalSyncPatch(
   if (!readFileSync || !writeFileSync) return undefined;
   let strip: number | undefined;
   let quiet = false;
+  let reverse = false;
+  let dryRun = false;
+  let outputPath: string | undefined;
   let inputPath: string | undefined;
   let ended = false;
   const operands: string[] = [];
@@ -163,6 +162,24 @@ export function evalSyncPatch(
     }
     if (a === "--") { ended = true; continue; }
     if (a === "-s" || a === "--quiet" || a === "--silent") { quiet = true; continue; }
+    if (a === "-R" || a === "--reverse") { reverse = true; continue; }
+    if (a === "--dry-run") { dryRun = true; continue; }
+    if (a === "-N" || a === "--forward" || a === "-f" || a === "--force" || a === "-t" || a === "--batch" || a === "-u" || a === "--unified") { continue; }
+    if (a === "-o" || a === "--output") {
+      outputPath = opArgs[++i];
+      if (!outputPath || outputPath === "-" || outputPath === "/dev/null") return undefined;
+      continue;
+    }
+    if (a.startsWith("-o") && a.length > 2) {
+      outputPath = a.slice(2);
+      if (outputPath === "-" || outputPath === "/dev/null") return undefined;
+      continue;
+    }
+    if (a.startsWith("--output=")) {
+      outputPath = a.slice(9);
+      if (!outputPath || outputPath === "-" || outputPath === "/dev/null") return undefined;
+      continue;
+    }
     if (a === "-p" || a === "--strip") {
       const v = opArgs[++i];
       if (!v || !/^\d+$/.test(v)) return undefined;
@@ -195,10 +212,13 @@ export function evalSyncPatch(
   if (!patchBytes || patchBytes.includes(0)) return undefined;
   const patchText = syncDiffDecoder.decode(patchBytes);
   const lines = patchText.split("\n");
+  let headerOld: string | undefined;
   let headerNew: string | undefined;
   let idx = 0;
   while (idx < lines.length && !lines[idx]!.startsWith("@@ ")) {
-    if (lines[idx]!.startsWith("+++ ")) {
+    if (lines[idx]!.startsWith("--- ")) {
+      headerOld = lines[idx]!.slice(4).split("\t")[0]!.trim();
+    } else if (lines[idx]!.startsWith("+++ ")) {
       headerNew = lines[idx]!.slice(4).split("\t")[0]!.trim();
     }
     idx++;
@@ -206,13 +226,14 @@ export function evalSyncPatch(
   if (idx >= lines.length) return undefined;
   let resolvedTarget = targetArg;
   if (!resolvedTarget) {
-    if (!headerNew || headerNew === "/dev/null") return undefined;
+    const hdr = headerNew && headerNew !== "/dev/null" ? headerNew : headerOld;
+    if (!hdr || hdr === "/dev/null") return undefined;
     if (strip !== undefined) {
-      const parts = headerNew.split("/");
+      const parts = hdr.split("/");
       if (parts.length <= strip) return undefined;
       resolvedTarget = parts.slice(strip).join("/");
     } else {
-      resolvedTarget = headerNew.split("/").pop() || headerNew;
+      resolvedTarget = hdr.split("/").pop() || hdr;
     }
   }
   if (!resolvedTarget) return undefined;
@@ -230,14 +251,16 @@ export function evalSyncPatch(
     }
     const m = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/.exec(line);
     if (!m) return undefined;
-    const oldStart = Number(m[1]!) === 0 ? 0 : Number(m[1]!) - 1;
+    const startLineNum = Number(reverse ? m[3]! : m[1]!);
+    const oldStart = startLineNum === 0 ? 0 : startLineNum - 1;
     if (oldStart < origPos || oldStart > origLines.length) return undefined;
     while (origPos < oldStart) outLines.push(origLines[origPos++]!);
     idx++;
     while (idx < lines.length && !lines[idx]!.startsWith("@@ ")) {
       const hl = lines[idx]!;
       if (hl === "" && idx === lines.length - 1) { idx++; break; }
-      const prefix = hl[0];
+      const rawPrefix = hl[0];
+      const prefix = reverse ? (rawPrefix === "+" ? "-" : rawPrefix === "-" ? "+" : rawPrefix) : rawPrefix;
       const body = hl.slice(1);
       if (prefix === " ") {
         if (origLines[origPos] !== body) return undefined;
@@ -258,8 +281,14 @@ export function evalSyncPatch(
   }
   while (origPos < origLines.length) outLines.push(origLines[origPos++]!);
   const resultText = outLines.length === 0 ? "" : outLines.join("\n") + "\n";
-  if (!writeFileSync(resolvedTarget, encoder.encode(resultText), false)) return undefined;
-  return quiet ? "" : `patching file ${resolvedTarget}\n`;
+  const destPath = outputPath ?? resolvedTarget;
+  if (!dryRun) {
+    if (!writeFileSync(destPath, encoder.encode(resultText), false)) return undefined;
+  }
+  if (quiet) return "";
+  const verb = dryRun ? "checking" : "patching";
+  const label = outputPath !== undefined ? `${outputPath} (read from ${resolvedTarget})` : resolvedTarget;
+  return `${verb} file ${label}\n`;
 }
 
 syncCommandEvaluators.evalSyncPatch = evalSyncPatch;

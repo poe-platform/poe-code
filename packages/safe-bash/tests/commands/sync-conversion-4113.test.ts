@@ -1463,3 +1463,34 @@ test("Wave 221: tree -Ji/--sort=version, multi-operand ls and ls -L, and du -0 i
     `[{"type":"directory","name":"/tmp/w221","contents":[{"type":"file","name":"v10.txt"},{"type":"file","name":"v2.txt"}]}]#/tmp/w221,v2.txt,v10.txt#/tmp/w221/v10.txt,/tmp/w221/v2.txt#/tmp/w221/link.txt#5=/tmp/w221/v2.txt:6=/tmp/w221/v10.txt:`
   );
 });
+
+test("Wave 222: patch --dry-run/-o/-R and diff -sp/-sy --suppress-common-lines in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp/w222", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp/w222" }).use(standardCommands()).use(diffPatchCommands());
+  const res = await shell.exec(`
+    printf "alpha\\nbeta\\n" > /tmp/w222/orig.txt
+    cat <<'EOF' > /tmp/w222/change.patch
+--- a/orig.txt
++++ b/orig.txt
+@@ -1,2 +1,2 @@
+ alpha
+-beta
++gamma
+EOF
+    out=""
+    for i in 1 2 3 4 5; do
+      p_dry=$(patch --dry-run /tmp/w222/orig.txt /tmp/w222/change.patch)
+      p_out=$(patch -o /tmp/w222/patched.txt /tmp/w222/orig.txt /tmp/w222/change.patch)
+      p_rev=$(patch -R -o /tmp/w222/reverted.txt /tmp/w222/patched.txt /tmp/w222/change.patch)
+      d_same=$(diff -sp /tmp/w222/orig.txt /tmp/w222/reverted.txt)
+      out="$p_dry|$p_out|$p_rev|$d_same"
+    done
+    printf "%s\\n" "$out"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    `checking file /tmp/w222/orig.txt|patching file /tmp/w222/patched.txt (read from /tmp/w222/orig.txt)|patching file /tmp/w222/reverted.txt (read from /tmp/w222/patched.txt)|Files /tmp/w222/orig.txt and /tmp/w222/reverted.txt are identical`
+  );
+});

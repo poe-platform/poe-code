@@ -43,8 +43,8 @@ async function handleDefineError(
   return { exitCode: error instanceof UsageError ? usageFailureCode : failureCode };
 }
 
-export const encoder = new TextEncoder();
-export const decoder = new TextDecoder();
+export const encoder: InstanceType<typeof TextEncoder> = new TextEncoder();
+export const decoder: InstanceType<typeof TextDecoder> = new TextDecoder();
 export const bufferLimit = Infinity;
 export { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-control";
 

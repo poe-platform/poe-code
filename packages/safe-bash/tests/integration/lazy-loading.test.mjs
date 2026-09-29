@@ -60,22 +60,53 @@ test(`lazy optional loading in actual workerd (${consumer ? "installed" : "sourc
       {
         name: "observe-heavy-evaluation",
         setup(builder) {
-          builder.onLoad(
-            {
-              filter:
-                /\/safe-bash\/(?:src|dist)\/commands\/(?:csvkit|soffice|ssconvert|ffmpeg|git|pdfinfo|pdftotext|pdftk|qpdf|wkhtmltopdf)\/index\.(?:ts|js)$/
-            },
-            async (args) => {
+          builder.onLoad({ filter: /\.(?:ts|js)$/ }, async (args) => {
+            const families = [
+              "csvkit",
+              "soffice",
+              "ssconvert",
+              "ffmpeg",
+              "git",
+              "pdfinfo",
+              "pdftotext",
+              "pdftk",
+              "qpdf",
+              "wkhtmltopdf",
+              "pandoc"
+            ];
+            let labels = [];
+            let contents;
+            if (
+              consumer &&
+              args.path.startsWith(resolve(consumer, "node_modules/@poe-platform/safe-bash") + "/")
+            ) {
+              contents = await readFile(args.path, "utf8");
+              labels = families.filter(
+                (family) =>
+                  contents.includes(`// packages/safe-bash/src/commands/${family}/index.ts`) ||
+                  contents.includes(`// packages/safe-bash-command-${family}/`)
+              );
+              for (const [owner, label] of [
+                ["spreadsheet-engine", "spreadsheet-engine"],
+                ["pdf-ast", "pdf-engine"],
+                ["mp4-ast", "media-engine"]
+              ]) {
+                if (contents.includes(`// packages/${owner}/`)) labels.push(label);
+              }
+            } else if (!consumer && args.path.includes("/safe-bash/src/commands/")) {
               const family = args.path.split("/").at(-2);
-              return {
-                contents:
-                  `(globalThis.__lazyEngineEvaluations ??= []).push(${JSON.stringify(family)});\n` +
-                  (await readFile(args.path, "utf8")),
-                loader: args.path.endsWith(".ts") ? "ts" : "js",
-                resolveDir: dirname(args.path)
-              };
+              if (families.includes(family) && args.path.endsWith("/index.ts")) labels = [family];
             }
-          );
+            if (labels.length === 0) return;
+            contents ??= await readFile(args.path, "utf8");
+            return {
+              contents:
+                `(globalThis.__lazyEngineEvaluations ??= []).push(...${JSON.stringify(labels)});\n` +
+                contents,
+              loader: args.path.endsWith(".ts") ? "ts" : "js",
+              resolveDir: dirname(args.path)
+            };
+          });
         }
       }
     ]
@@ -86,6 +117,10 @@ test(`lazy optional loading in actual workerd (${consumer ? "installed" : "sourc
   );
   if (consumer)
     for (const input of Object.keys(bundle.metafile.inputs)) {
+      if (
+        resolve(root, input) === fileURLToPath(new URL("lazy-loading.worker.mjs", import.meta.url))
+      )
+        continue;
       assert.ok(
         !resolve(root, input).startsWith(resolve(root, "packages") + "/"),
         `Installed qualification leaked workspace source: ${input}`
@@ -143,11 +178,22 @@ test(`lazy optional loading in actual workerd (${consumer ? "installed" : "sourc
       [],
       "shell/discovery/Python/LLM must not evaluate heavy command adapters"
     );
-    assert.equal(result.discovery, 42);
-    for (const name of ["ordinary", "first", "second", "pdf", "media", "git"])
+    assert.equal(result.discovery, 43);
+    for (const name of [
+      "ordinary",
+      "first",
+      "second",
+      "pdf",
+      "spreadsheet",
+      "pandoc",
+      "media",
+      "git"
+    ])
       assert.equal(result[name].exitCode, 0, result[name].stderr);
     assert.equal(result.first.stdout, "name\nb\na\n");
     assert.match(result.pdf.stdout, /Lazy PDF/);
+    assert.match(result.spreadsheet.stdout, /Ada,2/);
+    assert.match(result.pandoc.stdout, /Worker document/);
     assert.ok(
       !result.afterCsv.some((name) =>
         [

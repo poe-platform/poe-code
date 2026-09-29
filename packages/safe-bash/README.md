@@ -78,7 +78,9 @@ validation in deferred factories occurs at first execution.
 
 Static dynamic-import chunks and Wasm assets still count toward Cloudflare's
 total uncompressed upload size. Deferring evaluation reduces startup work;
-splitting files alone does not remove deployment bytes. The maintained
+splitting files alone does not remove deployment bytes. Hosts can parse or
+compile statically declared assets before execution; the loader defers JavaScript
+evaluation and mutable engine initialization. The maintained
 `tests/integration/lazy-loading.test.mjs` qualifies source and installed profiles
 in workerd and reports cold runtime/setup, first use, repeat use and cleanup
 measurements. Python uses an injected asynchronous executor in this loader

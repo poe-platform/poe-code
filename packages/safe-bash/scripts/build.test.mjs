@@ -243,6 +243,7 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
       ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
       "./zip": { types: "./dist/zip.d.ts", import: "./dist/zip.js" },
       "./compression": { types: "./dist/compression.d.ts", import: "./dist/compression.js" },
+      "./zip-sync": { types: "./dist/zip-sync.d.ts", import: "./dist/zip-sync.js" },
     },
   };
   const owned = fixture({
@@ -254,6 +255,7 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
     [shared + "/dist/index.d.ts"]: 'export { archive } from "./zip.js";',
     [shared + "/dist/zip.d.ts"]: "export declare const archive: number;",
     [shared + "/dist/compression.d.ts"]: "export declare const compression: number;",
+    [shared + "/dist/zip-sync.d.ts"]: "export declare const storedArchive: number;",
     [shared + "/src/private.d.ts"]: "export declare const hidden: number;",
   });
   if (defect === "version") metadata.version = "0.0.2";

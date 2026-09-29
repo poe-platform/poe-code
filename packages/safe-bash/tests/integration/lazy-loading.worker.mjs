@@ -63,6 +63,10 @@ export default {
       const pdf = await shell.exec(
         "printf '<h1>Lazy PDF</h1>' | wkhtmltopdf - /lazy.pdf; pdftotext /lazy.pdf -"
       );
+      const spreadsheet = await shell.exec(
+        "printf 'Name,Value\\nAda,2\\n' > /input.csv; ssconvert /input.csv /output.xlsx; ssconvert /output.xlsx /roundtrip.csv; cat /roundtrip.csv"
+      );
+      const pandoc = await shell.exec("printf '# Worker document\\n' | pandoc -f markdown -t html");
       const media = await shell.exec("ffprobe -version");
       const git = await shell.exec("git --version");
       const disposedAt = performance.now();
@@ -80,6 +84,8 @@ export default {
         first,
         second,
         pdf,
+        spreadsheet,
+        pandoc,
         media,
         git
       });

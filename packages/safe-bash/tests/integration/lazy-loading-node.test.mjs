@@ -27,20 +27,24 @@ test(`optional public profile executes under Node (${consumer ? "installed" : "s
     .use(optionalCommands({ profile: "full" }));
   const setupMs = performance.now() - setupAt;
   try {
-    assert.equal(optionalCommandCatalog.length, 42);
+    assert.equal(optionalCommandCatalog.length, 43);
     const firstAt = performance.now();
     const results = await Promise.all([
       shell.exec("printf 'name,value\\na,2\\nb,1\\n' | csvsort -c value | csvcut -c name"),
       shell.exec("printf '<h1>Node PDF</h1>' | wkhtmltopdf - result.pdf; pdftotext result.pdf -"),
       shell.exec("printf '# Node document\\n' | pandoc -f markdown -t html"),
       shell.exec("ffprobe -version"),
-      shell.exec("git --version")
+      shell.exec("git --version"),
+      shell.exec(
+        "printf 'Name,Value\\nAda,2\\n' > table.csv; ssconvert table.csv table.xlsx; ssconvert table.xlsx roundtrip.csv; cat roundtrip.csv"
+      )
     ]);
     const firstUseMs = performance.now() - firstAt;
     for (const result of results) assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(results[0].stdout, "name\nb\na\n");
     assert.match(results[1].stdout, /Node PDF/);
     assert.match(results[2].stdout, /Node document/);
+    assert.match(results[5].stdout, /Ada,2/);
     assert.ok((await fs.readFile("/work/result.pdf")).length > 0);
     const repeatAt = performance.now();
     const repeat = await shell.exec("printf 'name,value\\nc,3\\n' | csvsort -c value");

@@ -1883,7 +1883,7 @@ test("Wave 234: magick/convert/mogrify/composite/montage and exiftool tag writin
     art=$(exiftool -s -s -s -Artist red.png)
     et2=$(exiftool -Comment=Hello -o copy.png red.png)
     cmt=$(exiftool -s -s -s -Comment copy.png)
-    printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\\n" "\$id1" "\$id2" "\$id3" "\$id4" "\$id5" "\$inf" "\$et1" "\$art" "\$et2" "\$cmt"
+    printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\\n" "$id1" "$id2" "$id3" "$id4" "$id5" "$inf" "$et1" "$art" "$et2" "$cmt"
   `);
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(
@@ -1917,7 +1917,7 @@ test("Wave 235: pandoc conversion/-o, wkhtmltopdf file output, gpg -o, and ssh-k
     printf "oldhost.local ssh-ed25519 AAAAC3\nnewhost.local ssh-ed25519 AAAAC3\n" > /tmp/w235_known
     s3=$(ssh-keygen -R oldhost.local -f /tmp/w235_known | head -n 1)
     s4=$(grep -c "newhost.local" /tmp/w235_known)
-    printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\\n" "\$p1" "\$p2" "\$p3" "\$wk1" "\$g1" "\$g2" "\$s1" "\$s2" "\$s3" "\$s4"
+    printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\\n" "$p1" "$p2" "$p3" "$wk1" "$g1" "$g2" "$s1" "$s2" "$s3" "$s4"
   `);
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(

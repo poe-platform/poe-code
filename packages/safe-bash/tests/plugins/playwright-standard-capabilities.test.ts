@@ -266,7 +266,7 @@ test('WebMCP rejects compact parameter graphs before JSON parsing or browser acc
   Object.assign(f.page, { frames() { accessed = true; return []; } });
   JSON.parse = (text, reviver) => { if (sources.includes(text)) parsed = true; return parse(text, reviver); };
   try {
-    for (const source of sources) await assert.rejects(playwrightStandardAbilities['webmcp-call']!.execute({ ...f.request('webmcp-call', ['missing'], { params: source }), limits: { maxWebMCPParameterBytes: 4 * 1024 * 1024, maxWebMCPParameterNodes: 10000 } }), PlaywrightResourceLimitError);
+    for (const source of sources) await assert.rejects(playwrightStandardAbilities['webmcp-call']!.execute({ ...f.request('webmcp-call', ['missing'], { params: source }), limits: { maxCommandBytes: Infinity, maxArtifactBytes: Infinity, maxWebMCPParameterBytes: 4 * 1024 * 1024, maxWebMCPParameterNodes: 10000 } }), PlaywrightResourceLimitError);
     assert.equal(parsed, false);
     assert.equal(accessed, false);
   } finally { JSON.parse = parse; }
@@ -325,7 +325,7 @@ test('WebMCP rejects compact graphs before parsing and bounds aggregate frame me
   const serialized = JSON.stringify([{ name: 'tool', description: '', inputSchema: { enum: Array(2000).fill(0) } }]);
   const frame = { ...f.page, evaluate: async () => serialized } as unknown as PlaywrightPage;
   const page = { ...frame, frames: () => [frame, frame, frame] };
-  await assert.rejects(playwrightStandardAbilities['webmcp-list']!.execute({ ...request, limits: { maxWebMCPMetadataEntries: 4096 }, browserSession: { ...request.browserSession!, page } }), PlaywrightResourceLimitError);
+  await assert.rejects(playwrightStandardAbilities['webmcp-list']!.execute({ ...request, limits: { maxCommandBytes: Infinity, maxArtifactBytes: Infinity, maxWebMCPMetadataEntries: 4096 }, browserSession: { ...request.browserSession!, page } }), PlaywrightResourceLimitError);
   assert.ok(await playwrightStandardAbilities['webmcp-list']!.execute({ ...request, browserSession: { ...request.browserSession!, page } }));
 });
 
@@ -353,7 +353,7 @@ test('WebMCP discovery deadlines are disabled by default and explicitly configur
       setTimeout(_callback: () => void, milliseconds: number) { timers.push(milliseconds); return 1; }, clearTimeout() {},
     }) } as unknown as PlaywrightPage;
     const request = f.request('webmcp-list');
-    await playwrightStandardAbilities['webmcp-list']!.execute({ ...request, ...(deadline === Infinity ? {} : { limits: { webMCPDiscoveryTimeoutMs: deadline } }), browserSession: { ...request.browserSession!, page } });
+    await playwrightStandardAbilities['webmcp-list']!.execute({ ...request, ...(deadline === Infinity ? {} : { limits: { maxCommandBytes: Infinity, maxArtifactBytes: Infinity, webMCPDiscoveryTimeoutMs: deadline } }), browserSession: { ...request.browserSession!, page } });
     assert.deepEqual(timers, deadline === Infinity ? [] : [deadline]);
   }
 });
@@ -366,6 +366,6 @@ test('viewport dimensions have an optional ceiling', async () => {
   const browserSession = { ...request.browserSession!, page };
   await playwrightStandardAbilities.resize!.execute({ ...request, browserSession });
   assert.deepEqual(sizes, [{ width: 32769, height: 100 }]);
-  await assert.rejects(playwrightStandardAbilities.resize!.execute({ ...request, browserSession, limits: { maxViewportDimension: 32768 } }), /viewport.*limit/i);
+  await assert.rejects(playwrightStandardAbilities.resize!.execute({ ...request, browserSession, limits: { maxCommandBytes: Infinity, maxArtifactBytes: Infinity, maxViewportDimension: 32768 } }), /viewport.*limit/i);
   assert.equal(sizes.length, 1);
 });

@@ -5,7 +5,7 @@ import { createObjectBackend, opCommands, createOpCommand, createOpCommands, typ
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 
-import { opCommands as packageOpCommands } from "../../../safe-bash-command-op/src/index.js";
+import { opCommands as packageOpCommands } from "safe-bash-command-op";
 
 test("op factories accept omitted options and expose limits", () => {
   const limits: OpLimits = { maxInputBytes: 2 };

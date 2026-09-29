@@ -15,6 +15,7 @@ test("command families preserve results without the global Buffer", async () => 
     "tar -cf /out.tar /a && tar -tf /out.tar", "zip -q /out.zip /a && unzip -l /out.zip",
     "printf 'é\\n' | sort | uniq | wc -c", "printf 'a b\\na c\\n' | cut -d ' ' -f 2",
     "find / -type f", "printf abc | tr a-z A-Z", "printf abc | xargs echo",
+    "printf 'é stop later\\n' | xargs -P 2 -E stop echo",
     "printf 'x,y\\n1,2\\n' | xan count", "printf '<p>Hello</p>' | html-to-markdown",
     "curl -sS -u é:pw https://example.test/data", "wget -q -O - https://example.test/data",
     "printf '%s' '--- /a\n+++ /a\n@@ -1,2 +1,2 @@\n-hello é\n+hi é\n world\n' | patch /a && cat /a",

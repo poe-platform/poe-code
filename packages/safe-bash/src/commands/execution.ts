@@ -1,3 +1,4 @@
+import { equalBytes } from "../byte-encoding.js";
 import { createEnvCommand } from "./env/index.js";
 import { getCommandArguments, readBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { writeDiagnostic } from "../escaping.js";
@@ -257,8 +258,8 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
             }
             continue;
           }
-          if (stop || delimiter === undefined && eofBytes !== undefined && Buffer.compare(argument, eofBytes) === 0) break;
-          const size = (typeof argument === "string" ? Buffer.byteLength(argument) : argument.byteLength) + 1;
+          if (stop || delimiter === undefined && eofBytes !== undefined && equalBytes(typeof argument === "string" ? encoder.encode(argument) : argument, eofBytes)) break;
+          const size = (typeof argument === "string" ? shellValueByteLength(argument) : argument.byteLength) + 1;
           if (replacement === undefined && baseBytes + size > maxBytes) throw new UsageError("single argument exceeds command size limit");
           if (batch.length && (batch.length === maxArgs || bytes + size > maxBytes)) {
             if ((parsed.flags.has("x") || maxLines !== undefined) && batch.length < maxArgs) throw new UsageError("command size limit exceeded");

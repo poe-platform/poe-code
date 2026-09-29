@@ -46,7 +46,7 @@ operations remain a separate structured capability, not command strings.
 | `capture_output`, `check` | Separate captured stdout/stderr; optional status checking |
 | `text`, `encoding`, `errors`, `universal_newlines` | Decode captured bytes; encode text input |
 | `input` | Binary bytes or text in text mode |
-| `cwd`, `env` | Child-only cwd; supplied environment replaces child environment |
+| `cwd`, `env` | Default to current Python cwd/environment; relative cwd resolves there; supplied env replaces child environment |
 | `timeout` | Host deadline and cancellation; partial captured bytes on expiration |
 | `stdin`, `stdout`, `stderr` | Inherited, `PIPE`, or `DEVNULL`; no file descriptors or merging |
 | `Popen`, process groups, PTY, executable override, other options | Explicitly unsupported |

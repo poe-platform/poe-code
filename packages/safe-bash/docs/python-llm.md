@@ -113,7 +113,7 @@ with its own cleanup scope and the same borrowed bridge.
 | Discovery and selection | `models()`, `model=` | Resolve identities and aliases through the shared catalog |
 | Prompt, system and messages | `Request`, `Message`, `complete()` | Validate and dispatch the same request as the CLI |
 | Options | String, safe integer (±9,007,199,254,740,991), finite float, boolean, null | Preserve types and validate provider settings |
-| Attachments | `Attachment(path, mime_type)` | Read the canonical invocation filesystem; infer MIME when omitted |
+| Attachments | `Attachment(path, mime_type)` | Read the canonical invocation filesystem; resolve relative paths from current Python cwd; infer MIME when omitted |
 | Text and binary responses | `Response`, incremental `Stream` events | Return text/bytes and final response records |
 | Usage and metadata | `Response` and `Embeddings` fields | Supply available provider metadata |
 | Structured output | `schema`, `Response.json()` | Validate and send schema through the shared service |

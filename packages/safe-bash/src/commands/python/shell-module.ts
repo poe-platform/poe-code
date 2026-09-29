@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import math
 import inspect
+import os
 import subprocess
 from dataclasses import dataclass
 
@@ -59,6 +60,12 @@ def _payload(args, *, shell=False, input=None, cwd=None, env=None, timeout=None,
         elif not isinstance(input, (bytes, bytearray, memoryview)):
             raise TypeError('Binary input must be bytes')
         result['input'] = list(input)
+    # The host retains the original shell context; snapshot the current guest state.
+    if cwd is None:
+        cwd = os.getcwd()
+    elif cwd and not os.path.isabs(cwd):
+        cwd = os.path.join(os.getcwd(), cwd)
+    env = dict(os.environ if env is None else env)
     result.update(cwd=cwd, env=env, timeout=timeout, max_output_bytes=max_output_bytes)
     return result
 

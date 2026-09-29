@@ -7,6 +7,7 @@ import asyncio
 import copy
 import inspect
 import math
+import os
 from dataclasses import dataclass, field, replace
 from typing import Any, AsyncIterator, Callable, Mapping, Optional, Protocol, Sequence, Union
 
@@ -49,7 +50,8 @@ class Attachment:
     def payload(self):
         if not isinstance(self.path, str) or not self.path or "\0" in self.path:
             raise ValueError("Attachment requires an agent filesystem path")
-        result = {"path": self.path}
+        path = self.path if os.path.isabs(self.path) else os.path.join(os.getcwd(), self.path)
+        result = {"path": path}
         if self.mime_type is not None:
             result["mimeType"] = self.mime_type
         return result

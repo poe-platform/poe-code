@@ -80,6 +80,20 @@ class LibraryTests(unittest.IsolatedAsyncioTestCase):
    self.assertIsNone(client._limit)
   _check_size(Response.from_payload({'model': 'provider/model', 'text': 'x' * 8388609}), None)
 
+ async def test_relative_attachments_follow_operation_context(self):
+  from unittest.mock import patch
+  attachment = Attachment('input.bin', 'application/octet-stream')
+  bridge = FakeBridge()
+  async with Client(bridge=bridge, model='provider/model') as client:
+   with patch('os.getcwd', return_value='/guest'):
+    await client.complete('hello', attachments=[attachment])
+   self.assertEqual(bridge.calls[-1][1]['attachments'], [{'path':'/guest/input.bin','mimeType':'application/octet-stream'}])
+   with patch('os.getcwd', return_value='/next'):
+    async with client.stream('hello', attachments=[attachment]) as stream:
+     self.assertEqual(len([event async for event in stream]),3)
+   self.assertEqual(bridge.calls[-1][1]['attachments'], [{'path':'/next/input.bin','mimeType':'application/octet-stream'}])
+  self.assertEqual(Attachment('/absolute/input.bin').payload(), {'path':'/absolute/input.bin'})
+
  async def test_typed_customization_and_composition(self):
   bridge = FakeBridge()
   def transform(request):

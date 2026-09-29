@@ -70,7 +70,10 @@ signaling or arbitrary-binary support.
 
 Shell execution uses the parent's invoker and canonical filesystem, with the
 same execution budget and cancellation/deadline authority. cwd/env are child
-state: omitted env inherits; supplied env replaces the child environment. Python must close or flush its ordinary file handles before shell commands
+state: omitted cwd/env use the current Python directory and a snapshot of its
+environment; supplied env replaces the child environment. Relative child cwd
+and attachment paths resolve against the current Python directory. Python must
+close or flush its ordinary file handles before shell commands
 read their contents; no workspace copies or automatic guest-buffer flushes occur.
 Nested Python calls in the same execution scope fail with a diagnostic and status
 1 while a Python-originated shell call is active. They never queue for the occupied

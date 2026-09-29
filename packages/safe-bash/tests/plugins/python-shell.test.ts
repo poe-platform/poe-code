@@ -22,6 +22,7 @@ class Bridge:
   if payload.get('timeout') == 0.01: return {'error': {'code': 'timeout', 'message': 'deadline', 'stdout': [255], 'stderr': [0]}}
   return {'returncode': 7 if payload.get('argv', [''])[0] == 'fail' else 0, 'stdout': [255,0,42], 'stderr': [97]}
  def stream(self,payload):
+  self.calls.append(('stream',payload))
   async def events():
    try:
     yield {'type':'stdout','data':[255,0]}
@@ -65,6 +66,31 @@ class Cases(unittest.IsolatedAsyncioTestCase):
      break
    self.assertTrue(bridge.closed)
   with self.assertRaises(ShellError): await client.run(['echo'])
+ async def test_current_guest_context(self):
+  import os
+  from unittest.mock import patch
+  bridge=Bridge()
+  cap=types.ModuleType('_poe_shell_capability'); cap.bridge=bridge
+  with patch.dict(sys.modules, {'_poe_shell_capability':cap}), patch('os.getcwd', return_value='/guest'), patch.dict(os.environ, {'GUEST':'initial'}, clear=True):
+   subprocess.run(['pwd'], capture_output=True)
+   inherited=bridge.calls[-1][1]
+   self.assertEqual(inherited['cwd'],'/guest')
+   self.assertEqual(inherited['env'],{'GUEST':'initial'})
+   os.environ['GUEST']='later'
+   self.assertEqual(inherited['env'],{'GUEST':'initial'})
+   async with Client(bridge=bridge) as client:
+    await client.run(['pwd'], cwd='child', env={'ONLY':'override'})
+    self.assertEqual(bridge.calls[-1][1]['cwd'],'/guest/child')
+    self.assertEqual(bridge.calls[-1][1]['env'],{'ONLY':'override'})
+    await client.run(['pwd'])
+    self.assertEqual(bridge.calls[-1][1]['cwd'],'/guest')
+    self.assertEqual(bridge.calls[-1][1]['env'],{'GUEST':'later'})
+    async with client.stream(['pwd']) as stream:
+     self.assertEqual(len([event async for event in stream]),2)
+    self.assertEqual(bridge.calls[-1][1]['cwd'],'/guest')
+    self.assertEqual(bridge.calls[-1][1]['env'],{'GUEST':'later'})
+   self.assertEqual(os.getcwd(),'/guest')
+   self.assertEqual(dict(os.environ),{'GUEST':'later'})
  async def test_subprocess(self):
   bridge=Bridge()
   cap=types.ModuleType('_poe_shell_capability'); cap.bridge=bridge
@@ -95,5 +121,5 @@ unittest.main()
   const result = spawnSync('python3', ['-B', '-c', program], { input: JSON.stringify({ source, registration }), encoding: 'utf8', timeout: 5000 });
   assert.equal(result.error, undefined);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stderr, /Ran 3 tests/u);
+  assert.match(result.stderr, /Ran 4 tests/u);
 });

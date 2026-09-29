@@ -11745,33 +11745,18 @@ export class Runtime {
         const list = part.script.lists[0]!;
         if (list.terminator || list.pipelines.length !== 1) return false;
         const p = list.pipelines[0]!;
-        if (p.negate || p.commands.length < 1 || p.commands.length > 5) return false;
+        // Pipeline buffers can overflow after variable or stage expansion.
+        // A synchronous loop cannot resume after earlier body effects, so keep
+        // bounded pipelines on the normal substitution execution path.
+        if (p.negate || p.commands.length !== 1) return false;
         let cmd = p.commands[0]!;
-        const hasSingleStdinRedir =
-          cmd.kind === "simple" &&
-          cmd.redirects.length === 1 &&
-          cmd.redirects[0]!.operator === "<" &&
-          (cmd.redirects[0]!.descriptor === undefined || cmd.redirects[0]!.descriptor === 0) &&
-          !cmd.redirects[0]!.move &&
-          !cmd.redirects[0]!.document &&
-          cmd.redirects[0]!.target.plain !== undefined &&
-          !cmd.redirects[0]!.target.plain.startsWith("-") &&
-          cmd.redirects[0]!.target.plain !== "/dev/stdin";
-        const hasSingleHereStringRedir =
-          cmd.kind === "simple" &&
-          cmd.redirects.length === 1 &&
-          cmd.redirects[0]!.operator === "<<<" &&
-          (cmd.redirects[0]!.descriptor === undefined || cmd.redirects[0]!.descriptor === 0) &&
-          !cmd.redirects[0]!.move &&
-          !cmd.redirects[0]!.document &&
-          this.isPureSyncValueWord(cmd.redirects[0]!.target, rawState);
         // Loop substitutions require a real subshell: header admission can
         // decline at runtime, and induction writes also change export attributes.
         if (cmd.kind === "for" || cmd.kind === "arithmetic-for" || cmd.kind === "while") return false;
         if (p.commands.length === 1 && (cmd.kind === "if" || cmd.kind === "case") && this.isPureSyncSubIfOrCase(cmd, rawState)) {
           continue;
         }
-        if (cmd.kind !== "simple" || (cmd.redirects.length > 0 && !hasSingleStdinRedir && !hasSingleHereStringRedir) || cmd.words.length === 0) return false;
+        if (cmd.kind !== "simple" || cmd.redirects.length > 0 || cmd.words.length === 0) return false;
         let w0Plain = cmd.words[0]!.plain;
         // Range-aware tr and Buffer-free 76-col base64 are handled below.
         if (p.commands.length === 1 && w0Plain !== undefined && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !rawState.extensions?.builtins.has(w0Plain)) {
@@ -11809,24 +11794,11 @@ export class Runtime {
           // PATH entries can change after admission, making discovery decline.
           return false;
         }
-        const isFileCommand =
-          w0Plain === "cat" ||
-          w0Plain === "head" ||
-          w0Plain === "tail" ||
-          w0Plain === "jq" ||
-          w0Plain === "awk" ||
-          w0Plain === "grep" ||
-          w0Plain === "sed" ||
-          w0Plain === "cut" ||
-          w0Plain === "wc" ||
-          w0Plain === "sort" ||
-          w0Plain === "uniq" ||
-          w0Plain === "tr" ||
-          (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt"));
-        const def = w0Plain ? (this.commands.get(w0Plain) ?? ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "jq") ? this.getExternalCommand(w0Plain) : undefined)) : undefined;
-        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq" && !isFileCommand) || !def || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
-        if ((hasSingleStdinRedir || hasSingleHereStringRedir) && !isFileCommand) return false;
-        if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : (w0Plain === "seq" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "jq") ? (!builtInDirectContextExecutors.has(def.execute) && customRegisteredCommands.has(def.execute)) : !builtInDirectContextExecutors.has(def.execute)) return false;
+        // File and here-string evaluators can decline on mutable input. Keep
+        // these on the normal path, which can handle arbitrary input sizes.
+        const def = w0Plain ? this.commands.get(w0Plain) : undefined;
+        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq") || !def || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
+        if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : w0Plain === "seq" ? (!builtInDirectContextExecutors.has(def.execute) && customRegisteredCommands.has(def.execute)) : !builtInDirectContextExecutors.has(def.execute)) return false;
         if (!cmd.words.slice(1).every(w => this.isPureSyncValueWord(w, rawState))) return false;
         // These substitutions consume one value per word. Unquoted expansions
         // can split, glob, or disappear, including after loop admission.
@@ -11834,75 +11806,6 @@ export class Runtime {
             !cmd.words.slice(1).every(w => w.parts.length > 0 && w.parts.every(part =>
               part.quoted || (part.kind === "text" && part.value.length > 0 && !part.value.includes(" ") && !part.value.includes("\t") && !part.value.includes("\n") && !part.value.includes("{") && !hasGlobOrEscape(part.value, true))
             ))) return false;
-        if (isFileCommand) {
-          if (w0Plain === "tr" && !hasSingleStdinRedir && !hasSingleHereStringRedir) return false;
-          if (w0Plain === "grep" && rawState.errexit) return false;
-          if (!hasSingleHereStringRedir) {
-            // File content/size can change after admission. Execute through the
-            // normal subshell path rather than trusting a one-time file probe.
-            return false;
-          }
-          const opWords = (hasSingleStdinRedir || hasSingleHereStringRedir) ? cmd.words.slice(1) : cmd.words.slice(1, -1);
-          const opCount = opWords.length;
-          const op0 = opWords[0]?.plain;
-          const op1 = opWords[1]?.plain;
-          if (w0Plain === "cat" || w0Plain === "rev" || w0Plain === "tac") {
-            if (opCount !== 0) return false;
-          } else {
-            if (p.commands.length !== 1 && !hasSingleHereStringRedir) return false;
-            if (w0Plain === "head" || w0Plain === "tail") {
-              const validHT =
-                opCount === 0 ||
-                (opCount === 1 && op0 !== undefined && (/^-(?:n|c|--lines=|--bytes=)?[0-9]{1,5}$/.test(op0) || /^--(?:lines|bytes)=[0-9]{1,5}$/.test(op0) || (w0Plain === "tail" && /^(?:-n|--lines=)\+[0-9]{1,5}$/.test(op0)) || (w0Plain === "head" && /^(?:-n|--lines=)-[0-9]{1,5}$/.test(op0)))) ||
-                (opCount === 2 && ((op0 === "-n" && op1 !== undefined && (/^[0-9]{1,5}$/.test(op1) || (w0Plain === "tail" && /^\+[0-9]{1,5}$/.test(op1)) || (w0Plain === "head" && /^-[0-9]{1,5}$/.test(op1)))) || (op0 === "-c" && op1 !== undefined && /^[0-9]{1,5}$/.test(op1))));
-              if (!validHT) return false;
-            }
-            const plainOps: string[] = [];
-            for (let oi = 0; oi < opCount; oi++) {
-              const ow = opWords[oi]!;
-              const pw = ow.plain ?? (ow.parts.length > 0 && ow.parts.every(pt => pt.kind === "text") ? ow.parts.map(pt => pt.value).join("") : undefined);
-              if (pw === undefined) break;
-              plainOps.push(pw);
-            }
-            if (w0Plain === "cut") {
-              // Probe non-ASCII input: loop data can change after admission.
-              if (plainOps.length !== opCount || this.evalSyncCut(["é"], plainOps, byteLocale(rawState.variables)) === undefined) return false;
-            } else if (w0Plain === "sed") {
-              if (plainOps.length !== opCount || this.evalSyncSed([], plainOps) === undefined) return false;
-            } else if (w0Plain === "grep") {
-              if (plainOps.length !== opCount || this.evalSyncGrep([], plainOps, Boolean(rawState.errexit)) === undefined) return false;
-            } else if (w0Plain === "awk") {
-              const input = this.extractLoopInvariantInput(cmd, hasSingleStdinRedir, hasSingleHereStringRedir, rawState);
-              if (plainOps.length !== opCount || input === undefined) return false;
-              const lines = input.length === 0 ? [] : input.split("\n");
-              if (input.endsWith("\n")) lines.pop();
-              if (this.evalSyncAwk(lines, plainOps) === undefined) return false;
-            } else if (w0Plain === "jq") {
-              if (plainOps.length !== opCount) return false;
-              const jqIn = this.extractLoopInvariantInput(cmd, hasSingleStdinRedir, hasSingleHereStringRedir, rawState)?.trim();
-              if (jqIn === undefined || this.evalSyncJq(jqIn, plainOps) === undefined) return false;
-            } else if (w0Plain === "wc") {
-              if (opCount !== 1 || this.normalizeSyncWcFlag(op0) === undefined) return false;
-              // Word counting may decline on later non-ASCII input or locale changes.
-              if (this.normalizeSyncWcFlag(op0) === "-w") return false;
-            } else if (w0Plain === "sort") {
-              if (plainOps.length !== opCount || this.evalSyncSort([], plainOps, byteLocale(rawState.variables)) === undefined) return false;
-            } else if (w0Plain === "uniq") {
-              if (plainOps.length !== opCount || this.evalSyncUniq([], plainOps) === undefined) return false;
-            } else if (w0Plain === "base64") {
-              if (opCount > 1 || (opCount === 1 && op0 !== "-d" && op0 !== "--decode")) return false;
-            } else if (w0Plain === "tr") {
-              if (plainOps.length !== opCount || this.evalSyncTr("", plainOps) === undefined) return false;
-            } else if (w0Plain === "nl") {
-              if (plainOps.length !== opCount || this.evalSyncNl([], plainOps) === undefined) return false;
-            } else if (w0Plain === "paste") {
-              if (plainOps.length !== opCount || this.evalSyncPaste([], plainOps) === undefined) return false;
-            } else if (w0Plain === "numfmt") {
-              const nmCheck = this.extractLoopInvariantInput(cmd, hasSingleStdinRedir, hasSingleHereStringRedir, rawState)?.trim();
-              if (nmCheck === undefined || plainOps.length !== opCount || this.evalSyncNumfmt(nmCheck.split("\n"), plainOps) === undefined) return false;
-            }
-          }
-        }
         if (w0Plain === "printf") {
           if (!this.isSyncPrintfCallOk(cmd, 1, rawState, this._activePrintfInductionName)) return false;
         } else if (w0Plain === "echo") {
@@ -11941,76 +11844,6 @@ export class Runtime {
           const increment = operands.length === 3 ? Number(operands[1]) : 1;
           const last = Number(operands[operands.length - 1]);
           if (increment === 0 || Math.abs((last - first) / increment) > 1024) return false;
-        }
-        if (p.commands.length >= 2) {
-          if ((w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "seq" && w0Plain !== "cat" && !hasSingleHereStringRedir) || syncPurePipelineSlotInUse || !this.budget.canSyncPurePipe || rawState.errexit || rawState.nounset) return false;
-          if (w0Plain === "printf") {
-            if (!this.isSyncPrintfCallOk(cmd, 1, rawState, this._activePrintfInductionName)) return false;
-          }
-          for (let sIdx = 1; sIdx < p.commands.length; sIdx++) {
-            const sCmd = p.commands[sIdx]!;
-            if (sCmd.kind !== "simple" || sCmd.redirects.length !== 0 || sCmd.words.length === 0) return false;
-            const sName = sCmd.words[0]!.plain;
-            // Range-aware tr and Buffer-free 76-col base64 are handled in pipeline stages.
-            if (!sName || (sName !== "cut" && sName !== "tr" && sName !== "sort" && sName !== "head" && sName !== "tail" && sName !== "wc" && sName !== "sed" && sName !== "uniq" && sName !== "rev" && sName !== "awk" && sName !== "grep" && sName !== "jq" && sName !== "base64" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "numfmt")) return false;
-            const sDef = this.commands.get(sName) ?? ((sName === "rev" || sName === "tac" || sName === "nl" || sName === "paste" || sName === "jq") ? this.getExternalCommand(sName) : undefined);
-            if (!sDef || customRegisteredCommands.has(sDef.execute) || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "jq" && !builtInDirectContextExecutors.has(sDef.execute)) ) return false;
-            if (rawState.functions.has(sName) || rawState.extensions?.builtins.has(sName)) return false;
-            const sArgWords = sCmd.words.slice(1);
-            const sPlainArgs: string[] = [];
-            let allPlainStageArgs = true;
-            for (let k = 0; k < sArgWords.length; k++) {
-              const sw = sArgWords[k]!;
-              const sp = sw.plain ?? (sw.parts.length > 0 && sw.parts.every(pt => pt.kind === "text") ? sw.parts.map(pt => pt.value).join("") : undefined);
-              if (sp === undefined) { allPlainStageArgs = false; break; }
-              sPlainArgs.push(sp);
-            }
-            if (!allPlainStageArgs) return false;
-            if (sName === "sort") {
-              if (this.evalSyncSort([], sPlainArgs, byteLocale(rawState.variables)) === undefined) return false;
-            } else if (sName === "uniq") {
-              if (this.evalSyncUniq([], sPlainArgs) === undefined) return false;
-            } else if (sName === "wc") {
-              if (sPlainArgs.length !== 1 || this.normalizeSyncWcFlag(sPlainArgs[0]) === undefined) return false;
-            } else if (sName === "head" || sName === "tail") {
-              const okHT = sPlainArgs.length === 0 || (sPlainArgs.length === 1 && (/^-(?:n|c)?[0-9]{1,5}$/.test(sPlainArgs[0]!) || /^--(?:lines|bytes)=[0-9]{1,5}$/.test(sPlainArgs[0]!) || (sName === "tail" && /^(?:-n|--lines=)\+[0-9]{1,5}$/.test(sPlainArgs[0]!)) || (sName === "head" && /^(?:-n|--lines=)-[0-9]{1,5}$/.test(sPlainArgs[0]!)))) || (sPlainArgs.length === 2 && ((sPlainArgs[0] === "-n" && (/^[0-9]{1,5}$/.test(sPlainArgs[1]!) || (sName === "tail" && /^\+[0-9]{1,5}$/.test(sPlainArgs[1]!)) || (sName === "head" && /^-[0-9]{1,5}$/.test(sPlainArgs[1]!)))) || (sPlainArgs[0] === "-c" && /^[0-9]{1,5}$/.test(sPlainArgs[1]!))));
-              if (!okHT) return false;
-            } else if (sName === "cut") {
-              // Byte cuts may reject non-ASCII data on a later iteration.
-              if (this.evalSyncCut(["é"], sPlainArgs, byteLocale(rawState.variables)) === undefined) return false;
-            } else if (sName === "sed") {
-              if (this.evalSyncSed([], sPlainArgs) === undefined) return false;
-            } else if (sName === "awk") {
-              if (sIdx !== 1) return false;
-              const input = this.extractLoopInvariantInput(cmd, hasSingleStdinRedir, hasSingleHereStringRedir, rawState);
-              if (input === undefined) return false;
-              const lines = input.length === 0 ? [] : input.split("\n");
-              if (input.endsWith("\n")) lines.pop();
-              if (this.evalSyncAwk(lines, sPlainArgs) === undefined) return false;
-            } else if (sName === "grep") {
-              if (this.evalSyncGrep([], sPlainArgs, Boolean(rawState.errexit)) === undefined) return false;
-            } else if (sName === "tr") {
-              if (this.evalSyncTr("", sPlainArgs) === undefined) return false;
-            } else if (sName === "jq") {
-              if (sIdx !== 1) return false;
-              const jqIn = this.extractLoopInvariantInput(cmd, hasSingleStdinRedir, hasSingleHereStringRedir, rawState)?.trim();
-              if (jqIn === undefined || this.evalSyncJq(jqIn, sPlainArgs) === undefined) return false;
-            } else if (sName === "base64") {
-              if (sPlainArgs.length !== 0) return false;
-            } else if (sName === "tac") {
-              if (sPlainArgs.length !== 0 || (w0Plain !== "echo" && !hasSingleHereStringRedir)) return false;
-            } else if (sName === "nl") {
-              if ((w0Plain !== "echo" && !hasSingleHereStringRedir) || this.evalSyncNl([], sPlainArgs) === undefined) return false;
-            } else if (sName === "paste") {
-              if (this.evalSyncPaste([], sPlainArgs) === undefined) return false;
-            } else if (sName === "numfmt") {
-              if (sIdx !== 1) return false;
-              const nmCheck = this.extractLoopInvariantInput(cmd, hasSingleStdinRedir, hasSingleHereStringRedir, rawState)?.trim();
-              if (nmCheck === undefined || this.evalSyncNumfmt(nmCheck.split("\n"), sPlainArgs) === undefined) return false;
-            } else if (sName === "rev") {
-              if (sPlainArgs.length !== 0) return false;
-            }
-          }
         }
         continue;
       }
@@ -14575,80 +14408,6 @@ export class Runtime {
     if (this._activeLoopCondScript && !this.isVarUnmutatedInScript(varName, this._activeLoopCondScript)) return false;
     if (this._activeLoopBodyScript && !this.isVarUnmutatedInScript(varName, this._activeLoopBodyScript)) return false;
     return true;
-  }
-  private isFileReadOnlyScript(script: Script, rawState: State): boolean {
-    const visit = (value: unknown): boolean => {
-      if (value === null || typeof value !== "object") return true;
-      if (Array.isArray(value)) return value.every(visit);
-      const node = value as Record<string, unknown>;
-      if (typeof node.operator === "string" && "target" in node && !["<", "<<<", "<<", "<<-"].includes(node.operator)) return false;
-      if (node.kind === "simple") {
-        const cmd = value as Extract<Command, { kind: "simple" }>;
-        // Unknown commands (including shell functions) cannot promise read-only I/O.
-        const name = cmd.words[0]?.plain;
-        if (name === undefined && !cmd.words.every(word => this.assignment(word) || getArrayAssignment(word))) return false;
-        if (name !== undefined && (hasShellFunction(rawState, name) || !["jq", "cat", "echo", "printf", "test", "[", ":", "true", "false"].includes(name))) return false;
-      }
-      return Object.values(node).every(visit);
-    };
-    return visit(script);
-  }
-  private extractLoopInvariantInput(cmd: Extract<Command, { kind: "simple" }>, hasSingleStdinRedir: boolean, hasSingleHereStringRedir: boolean, rawState: State): string | undefined {
-    const w0 = cmd.words[0]?.plain;
-    const resolveInvariantWord = (w: Word): string | undefined => {
-      if (w.plain !== undefined) return w.plain;
-      if (w.parts.length > 0 && w.parts.every(pt => pt.kind === "text")) return w.parts.map(pt => pt.value).join("");
-      if (w.parts.length === 1 && w.parts[0]!.kind === "variable") {
-        const vp = w.parts[0]!;
-        if (!vp.indirect && !vp.operator && !vp.substring && !vp.transform && !vp.length && !vp.prefixNames && getArraySelector(vp) === undefined && this.isVarUnmutatedInActiveLoop(vp.name)) {
-          const val = rawState.variables[vp.name];
-          if (typeof val === "string") return val;
-        }
-      }
-      return undefined;
-    };
-    if (w0 === "jq" || w0 === "numfmt" || w0 === "awk") {
-      if (hasSingleHereStringRedir) {
-        const resolved = resolveInvariantWord(cmd.redirects[0]!.target);
-        return resolved !== undefined ? resolved + "\n" : undefined;
-      }
-      if (this._fileWrites?.size || this._outputFiles?.size) return undefined;
-      if ([this._activeLoopBodyScript, this._activeLoopCondScript].some(script => script && !this.isFileReadOnlyScript(script, rawState))) return undefined;
-      const fPlain = hasSingleStdinRedir ? cmd.redirects[0]!.target.plain : cmd.words[cmd.words.length - 1]?.plain;
-      if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return undefined;
-      const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain), false);
-      if (!vCheck || vCheck.byteLength > 16384 || vCheck.includes(0)) return undefined;
-      return sharedSyncPipeDecoder.decode(vCheck);
-    }
-    if (w0 === "cat") {
-      if (hasSingleHereStringRedir) {
-        const resolved = resolveInvariantWord(cmd.redirects[0]!.target);
-        return resolved !== undefined ? resolved + "\n" : undefined;
-      }
-      if (this._fileWrites?.size || this._outputFiles?.size) return undefined;
-      if ([this._activeLoopBodyScript, this._activeLoopCondScript].some(script => script && !this.isFileReadOnlyScript(script, rawState))) return undefined;
-      const fPlain = hasSingleStdinRedir ? cmd.redirects[0]!.target.plain : cmd.words[1]?.plain;
-      if (!fPlain || fPlain.startsWith("-") || fPlain === "/dev/stdin") return undefined;
-      const vCheck = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPlain), false);
-      if (!vCheck || vCheck.byteLength > 16384 || vCheck.includes(0)) return undefined;
-      return sharedSyncPipeDecoder.decode(vCheck);
-    }
-    if (w0 === "echo" && cmd.words.length === 2) {
-      const resolved = resolveInvariantWord(cmd.words[1]!);
-      if (resolved !== undefined && !resolved.startsWith("-")) return resolved + "\n";
-      return undefined;
-    }
-    if (w0 === "printf" && cmd.words.length >= 2) {
-      const args: string[] = [];
-      for (let i = 1; i < cmd.words.length; i++) {
-        const r = resolveInvariantWord(cmd.words[i]!);
-        if (r === undefined) return undefined;
-        args.push(r);
-      }
-      const formatted = tryFastPrintf(args);
-      return formatted;
-    }
-    return undefined;
   }
   private canSyncPrintfInductionBody(script: Script, rawState: State, inductionName?: string): boolean {
     for (const list of script.lists) for (const pipeline of list.pipelines) for (const command of pipeline.commands) {
@@ -23517,7 +23276,9 @@ export class Runtime {
         }
         if (st.kind === "=") {
           out.push(String(idx1));
-          lastInputIndex = i;
+          // Line numbers are generated records, always terminated, even when
+          // the final input record is partial. Later prints can override this.
+          lastInputIndex = -1;
           continue;
         }
         if (st.kind === "q") {
@@ -23555,7 +23316,10 @@ export class Runtime {
           }
           return replacement;
         });
-        if (matchedOnce && st.printOnMatch) out.push(l);
+        if (matchedOnce && st.printOnMatch) {
+          out.push(l);
+          lastInputIndex = i;
+        }
       }
       if (quitNow) {
         break;

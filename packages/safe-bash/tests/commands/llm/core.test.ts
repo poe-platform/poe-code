@@ -105,12 +105,15 @@ test("llm rejects ambiguous ids and aliases at registration", () => {
   }
 });
 
-test("llm models lists all injected declarations without calling providers", async () => {
+test("llm models lists injected models and attachment details without calling providers", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(llmCommands({ providers: [{ name: "fake", models: [{ id: "a", aliases: ["alias"], attachmentTypes: ["audio/*"], outputType: "audio/mpeg" }], complete() { throw new Error("must not query"); } }] }));
   try {
     const result = await shell.exec("llm models");
     assert.equal(result.exitCode, 0);
-    for (const text of ["fake/a", "alias", "audio/*", "audio/mpeg"]) assert.ok(result.stdout.includes(text));
+    for (const text of ["fake: a", "alias"]) assert.ok(result.stdout.includes(text));
+    const details = await shell.exec("llm models --options");
+    assert.equal(details.exitCode, 0);
+    assert.ok(details.stdout.includes("audio/*"));
   } finally { await shell.dispose(); }
 });
 

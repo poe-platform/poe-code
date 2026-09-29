@@ -1,0 +1,229 @@
+{
+  "distribution": "llm",
+  "version": "0.27.1",
+  "provider": "deterministic-fixture",
+  "descriptionPolicy": "Descriptions are shown once per model class within one list invocation; model schema is not mutated.",
+  "cases": [
+    {
+      "argv": [
+        "models"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-chat (aliases: echo)\nFixtureModel: fixture-schema (aliases: structured)\nDefault: fixture-chat\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "list"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-chat (aliases: echo)\nFixtureModel: fixture-schema (aliases: structured)\nDefault: fixture-chat\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "-q",
+        "echo"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-chat (aliases: echo)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "-q",
+        "chat",
+        "-q",
+        "schema"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "-q",
+        "fixture",
+        "-q",
+        "chat"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-chat (aliases: echo)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "-m",
+        "echo"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-chat (aliases: echo)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "-m",
+        "fixture-chat",
+        "-m",
+        "fixture-schema"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-chat (aliases: echo)\nFixtureModel: fixture-schema (aliases: structured)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "--schemas"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-schema (aliases: structured)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "--tools"
+      ],
+      "exitCode": 0,
+      "stdout": "Default: fixture-chat\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "--async"
+      ],
+      "exitCode": 0,
+      "stdout": "Default: fixture-chat\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "--options"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-chat (aliases: echo)\n  Options:\n    temperature: float\n      Sampling temperature\nFixtureModel: fixture-schema (aliases: structured)\n  Options:\n    temperature: float\n  Features:\n  - schemas\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "-q",
+        "absent"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "-m",
+        "absent"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available models\n  default  Show or set the default model\n  options  Manage default options for models\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm models list [OPTIONS]\n\n  List available models\n\nOptions:\n  --options         Show options for each model, if available\n  --async           List async models\n  --schemas         List models that support schemas\n  --tools           List models that support tools\n  -q, --query TEXT  Search for models matching these strings\n  -m, --model TEXT  Specific model IDs\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "bogus"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models list [OPTIONS]\nTry 'llm models list -h' for help.\n\nError: Got unexpected extra argument (bogus)\n"
+    },
+    {
+      "argv": [
+        "models",
+        "-q"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '-q' requires an argument.\n"
+    },
+    {
+      "argv": [
+        "models",
+        "--wat"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models list [OPTIONS]\nTry 'llm models list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "argv": [
+        "models",
+        "list",
+        "bogus"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models list [OPTIONS]\nTry 'llm models list -h' for help.\n\nError: Got unexpected extra argument (bogus)\n"
+    },
+    {
+      "argv": [
+        "models",
+        "-q=chat"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available models\n  default  Show or set the default model\n  options  Manage default options for models\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "-qchat"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available models\n  default  Show or set the default model\n  options  Manage default options for models\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "--model=echo"
+      ],
+      "exitCode": 0,
+      "stdout": "FixtureModel: fixture-chat (aliases: echo)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "models",
+        "--schemas=false"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--schemas' does not take a value.\n"
+    }
+  ]
+}

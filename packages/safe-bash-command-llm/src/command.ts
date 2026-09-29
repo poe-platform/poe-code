@@ -9,6 +9,7 @@ import { createLlmConfiguration } from "./configuration.js";
 import { createLlmTemplateStore, evaluateLlmTemplate, validateLlmTemplateParameters } from "./templates.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
 import { configurationCommand } from "./configuration-command.js";
+import { listLlmModels, LlmModelsUsageError, modelsGroupHelp } from "./models-list.js";
 
 interface Arguments {
   model?: string;
@@ -139,7 +140,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (argumentsValue.args.length === 2 && argumentsValue.args[0] === "models" && ["--help", "-h"].includes(argumentsValue.args[1]!)) {
       argumentText(0);
       argumentText(1);
-      await emitText("Usage: llm models [OPTIONS]\n\n  List configured models\n\nOptions:\n  -h, --help  Show this message and exit.\n");
+      await emitText(modelsGroupHelp);
       return { exitCode: 0 };
     }
     if (argumentsValue.args[0] === "schemas" && argumentsValue.args[1] === "dsl") {
@@ -181,15 +182,12 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         throw new Error(`Error: ${error instanceof Error ? error.message : "Configuration failed"}`);
       }
     }
-    const promptOffset = argumentsValue.args[0] === "prompt" ? 1 : 0;
-    const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step);
-    if (argumentsValue.args[0] === "models" && args.prompt === "models" && !args.attachments.length) {
-      for (const { provider, model } of service.models) {
-        await step();
-        await emitText(`${provider.name}/${model.id}	aliases: ${model.aliases?.join(", ") || "-"}	attachments: ${model.attachmentTypes?.join(", ") || "-"}	output: ${model.outputType ?? "text/plain"}\n`);
-      }
+    if (argumentsValue.args[0] === "models") {
+      await listLlmModels(context, service, Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, step);
       return { exitCode: 0 };
     }
+    const promptOffset = argumentsValue.args[0] === "prompt" ? 1 : 0;
+    const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step);
     const configuration = createLlmConfiguration(context);
     const templateStore = createLlmTemplateStore(context);
     if (args.save && args.template) throw new Error("Error: --save cannot be used with --template");
@@ -290,7 +288,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (writing) throw error;
     await operation.close();
     await writeDiagnostic(context.stderr, `${error instanceof Error ? error.message.slice(0, 4096) : "llm provider failed"}\n`, context.signal);
-    return { exitCode: 1 };
+    return { exitCode: error instanceof LlmModelsUsageError ? 2 : 1 };
   } finally {
     controller.abort(new Error("llm request closed"));
     await operation.close();

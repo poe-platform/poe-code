@@ -12,6 +12,7 @@ export interface LlmProvider {
   embed?(request: LlmEmbeddingRequest): Promise<LlmEmbeddingResponse>;
 }
 export interface LlmModelOption {
+  readonly description?: string;
   readonly type: "number" | "integer" | "boolean" | "string";
   readonly minimum?: number;
   readonly maximum?: number;

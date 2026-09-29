@@ -137,7 +137,7 @@ test("models help works through Shell with empty or configured providers", async
       const result = await shell.exec("llm models --help");
       assert.equal(result.exitCode, 0);
       assert.equal(result.stderr, "");
-      assert.equal(result.stdout, "Usage: llm models [OPTIONS]\n\n  List configured models\n\nOptions:\n  -h, --help  Show this message and exit.\n");
+      assert.equal(result.stdout, "Usage: llm models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available models\n  default  Show or set the default model\n  options  Manage default options for models\n");
       const short = await shell.exec("llm models -h");
       assert.equal(short.exitCode, 0);
       assert.equal(short.stderr, "");
@@ -162,7 +162,10 @@ test("lists all provider models without requiring a default or reading stdin", a
   const run = await fixture(["models"], { stdin: { [Symbol.asyncIterator]() { return assert.fail("must not read stdin"); } } });
   assert.equal((await run.execute()).exitCode, 0);
   const text = Buffer.concat(run.stdout).toString();
-  for (const value of ["fake/text", "chat", "text/plain", "fake/audio", "image/*", "application/pdf", "audio/mpeg"]) assert.ok(text.includes(value), value);
+  for (const value of ["fake: text", "chat", "fake: audio"]) assert.ok(text.includes(value), value);
+  const details = await fixture(["models", "--options"]);
+  assert.equal((await details.execute()).exitCode, 0);
+  for (const value of ["image/*", "application/pdf"]) assert.ok(Buffer.concat(details.stdout).toString().includes(value), value);
 });
 
 test("multi-provider qualified routing preserves provider this binding", async () => {

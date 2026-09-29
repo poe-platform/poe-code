@@ -1,6 +1,11 @@
 name: Release scoped safe packages
 on:
   workflow_dispatch:
+    inputs:
+      pin_revision:
+        description: Finish this explicitly selected revision even if main advances
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -65,7 +70,7 @@ jobs:
               exit 0
             fi
           fi
-          if { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+          if [ "$PIN_REVISION" != "true" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
             changed_later=$(git diff --name-only "$GITHUB_SHA" origin/main -- \
               packages/safe-bash packages/safe-fs packages/safe-js \
               packages/safe-bash-contracts packages/safe-bash-csv-engine \
@@ -161,7 +166,7 @@ jobs:
         run: |
           set -euo pipefail
           git fetch --filter=blob:none origin main
-          if { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+          if [ "$PIN_REVISION" != "true" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
             changed_later=$(git diff --name-only "$GITHUB_SHA" origin/main -- \
               packages/safe-bash packages/safe-fs packages/safe-js \
               packages/safe-bash-contracts packages/safe-bash-csv-engine \
@@ -286,6 +291,8 @@ jobs:
         run: |
           gh auth setup-git
           git push origin "$GITHUB_SHA:refs/heads/safe-publication" --force-with-lease || true
+    env:
+      PIN_REVISION: ${{ github.event_name == 'workflow_dispatch' && inputs.pin_revision || false }}
   verify-publication:
     needs: publish
     if: needs.publish.outputs.published == 'true'

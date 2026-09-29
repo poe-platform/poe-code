@@ -185,6 +185,14 @@ a wider codespace. `src/fonts/simple-font-codespace.test.ts` checks that behavio
 and the original upstream issue17069 equality fixture, including TJ fragments,
 word spacing, Unicode labels spanning multiple characters, and save/reopen.
 
+Ordinary clipping follows PDF.js `CanvasGraphics.consumePath`: install pending
+`W`/`W*` intersections after painting the current path, retaining nonzero/even-odd
+winding and implicit closure. `src/render/path-clipping.test.ts` ports the normal
+rendering assertions from `test/unit/api_spec.js`'s `should render with
+operationsFilter` case (7200 black and 12800 white pixels) and the unchanged
+`clippath.pdf` fixture. Other local cases cover curves, reversed rectangles,
+transforms, save/restore, text/image intersections, and issue17069's signature.
+
 
 # SVG labels
 

@@ -7,6 +7,7 @@ import {
   decodePdfString,
   dictGet,
   dictSet,
+  type PdfClipPath,
   type PdfContentNode,
   type PdfCosDict,
   type PdfDictEntry,
@@ -313,7 +314,7 @@ interface GraphicsState {
   textRenderMode: number;
   fillColorSpaceName: string;
   strokeColorSpaceName: string;
-  clipPaths?: readonly (readonly PdfPathSegment[])[];
+  clipPaths?: readonly PdfClipPath[];
   clipImages?: readonly PdfEvaluatedImage[];
   clipRect?: [number, number, number, number] | undefined;
   dashArray?: readonly number[] | undefined;
@@ -1772,7 +1773,7 @@ export function evaluateContentStreamToDisplayList(params: {
               const [x, y] = transformPoint(st.ctm, seg.x, seg.y);
               transformedSegments.push({ kind: "cubic", x1, y1, x2, y2, x, y });
             } else if (seg.kind === "rect") {
-              if (hasRotOrShear) {
+              if (hasRotOrShear || seg.width * st.ctm[0] < 0 || seg.height * st.ctm[3] < 0) {
                 const [p0x, p0y] = transformPoint(st.ctm, seg.x, seg.y);
                 const [p1x, p1y] = transformPoint(st.ctm, seg.x + seg.width, seg.y);
                 const [p2x, p2y] = transformPoint(st.ctm, seg.x + seg.width, seg.y + seg.height);
@@ -1807,7 +1808,12 @@ export function evaluateContentStreamToDisplayList(params: {
             }
           }
 
-          if (node.clip && transformedSegments.length > 0) {
+          const applyClip = () => {
+            if (!node.clip) return;
+            st.clipPaths = [...(st.clipPaths ?? []), {
+              segments: transformedSegments,
+              fillRule: node.clip === "W*" ? "evenodd" : "nonzero",
+            }];
             let cMinX = Infinity, cMinY = Infinity, cMaxX = -Infinity, cMaxY = -Infinity;
             for (const s of transformedSegments) {
               if (s.kind === "move" || s.kind === "line") {
@@ -1837,9 +1843,13 @@ export function evaluateContentStreamToDisplayList(params: {
                   ]
                 : [cMinX, cMinY, cMaxX, cMaxY];
             }
-          }
+          };
 
-          if (node.paint === "n") break;
+          // PDF.js consumePath installs W/W* only after the current paint.
+          if (node.paint === "n") {
+            applyClip();
+            break;
+          }
 
           const isFill = ["f", "F", "f*", "B", "B*", "b", "b*"].includes(node.paint);
           const isStroke = ["S", "s", "B", "B*", "b", "b*"].includes(node.paint);
@@ -1977,7 +1987,10 @@ export function evaluateContentStreamToDisplayList(params: {
               }
             }
           }
-          if (evaluatedFillPattern && !isStroke) break;
+          if (evaluatedFillPattern && !isStroke) {
+            applyClip();
+            break;
+          }
           const fillRule = node.paint.includes("*") ? "evenodd" : "nonzero";
           const ctmScale = Math.max(1e-6, Math.hypot(st.ctm[0], st.ctm[1]));
           const scaledStrokeWidth = st.strokeWidth === 0 ? 0 : st.strokeWidth * ctmScale;
@@ -1997,6 +2010,7 @@ export function evaluateContentStreamToDisplayList(params: {
             ...(st.dashPhase !== undefined ? { dashPhase: st.dashPhase } : {}),
             ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
           } });
+          applyClip();
           break;
         }
 

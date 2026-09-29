@@ -160,6 +160,12 @@ export type PdfPathSegment =
   | { readonly kind: "rect"; readonly x: number; readonly y: number; readonly width: number; readonly height: number }
   | { readonly kind: "close" };
 
+/** A clipping intersection. Bare segment arrays retain nonzero semantics. */
+export type PdfClipPath = readonly PdfPathSegment[] | {
+  readonly segments: readonly PdfPathSegment[];
+  readonly fillRule: "nonzero" | "evenodd";
+};
+
 export type PdfContentNode =
   | { readonly kind: "graphics-group"; readonly ops: PdfContentNode[] }
   | {
@@ -203,7 +209,7 @@ export interface PdfPlacedGlyph {
   readonly mcid?: number | undefined;
   readonly actualText?: string | undefined;
   readonly blendMode?: string | undefined;
-  readonly clipPaths?: readonly (readonly PdfPathSegment[])[] | undefined;
+  readonly clipPaths?: readonly PdfClipPath[] | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
@@ -223,7 +229,7 @@ export interface PdfEvaluatedPath {
   readonly dashPhase?: number | undefined;
   readonly blendMode?: string | undefined;
   readonly isClip?: boolean | undefined;
-  readonly clipPaths?: readonly (readonly PdfPathSegment[])[] | undefined;
+  readonly clipPaths?: readonly PdfClipPath[] | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
@@ -237,7 +243,7 @@ export interface PdfEvaluatedImage {
   readonly bitsPerComponent: number;
   readonly decodedRgba?: Uint8Array | undefined;
   readonly blendMode?: string | undefined;
-  readonly clipPaths?: readonly (readonly PdfPathSegment[])[] | undefined;
+  readonly clipPaths?: readonly PdfClipPath[] | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }

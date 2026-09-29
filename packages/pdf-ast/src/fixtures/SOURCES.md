@@ -206,3 +206,9 @@ with annotations enabled. Its simple Calibri font has single-byte text and
 mapping entries despite a two-byte ToUnicode codespace. Manifest MD5:
 `e44a3920c83d8e7be112c52da4db8e57`. SHA-256:
 `338fa82e5d4ee20033967eafb229d3b64a38edd0465421592800165b94003dac`.
+
+`pdfjs-clippath.pdf` is the unchanged PDF.js `test/pdfs/clippath.pdf` at the
+same revision (Apache-2.0). It sets clipping before constructing the path and
+then paints a rectangle; `test/unit/api_spec.js` asserts the exact rendered
+pixel counts. Manifest MD5: `7ab95c0f106dccd90d6569f241fe8771`. SHA-256:
+`cbcbf53e8109ed56f9a3fbc696081455c8a5d32cc5cff4e741e85250788dcbff`.

@@ -3,7 +3,7 @@ import { encodeToXmlString, PageViewport } from "../vendor/pdfjs-fonts.mjs";
 import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
 import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
-import type { PdfDisplayList, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage } from "../ast.js";
+import type { PdfClipPath, PdfDisplayList, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate } from "../cos/filters.js";
 
 export interface RgbaBitmap {
@@ -1052,8 +1052,8 @@ function segmentsToScreenEdges(
       if (closeSubpaths && hasOpenSubpath && (curX !== startX || curY !== startY)) {
         edges.push({ x0: curX, y0: curY, x1: startX, y1: startY });
       }
-      const [rx0, ry0] = toScreen(seg.x, seg.y + seg.height);
-      const [rx1, ry1] = toScreen(seg.x + seg.width, seg.y);
+      const [rx0, ry0] = toScreen(seg.x, seg.y);
+      const [rx1, ry1] = toScreen(seg.x + seg.width, seg.y + seg.height);
       edges.push(
         { x0: rx0, y0: ry0, x1: rx1, y1: ry0 },
         { x0: rx1, y0: ry0, x1: rx1, y1: ry1 },
@@ -1217,21 +1217,25 @@ export function renderDisplayListToBitmap(
 
   const aaVec = options.antialiasVector !== false;
   const aaTxt = options.antialiasText !== false;
-  const clipMasks = new Map<readonly (readonly PdfPathSegment[])[], Uint8Array>();
+  // Reuse adjacent paints without retaining a page-sized mask for every clip.
+  let cachedClips: readonly PdfClipPath[] | undefined;
+  let cachedClipMask: Uint8Array | undefined;
   const imageClipMasks = new Map<readonly PdfEvaluatedImage[], Uint8Array>();
   for (const original of paintOperations(displayList)) {
     if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
     const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
     const clips = original.value.clipPaths;
-    let clipMask = clips ? clipMasks.get(clips) : undefined;
+    let clipMask = clips && clips === cachedClips ? cachedClipMask : undefined;
     if (clips && !clipMask) {
       clipMask = new Uint8Array(width * height * 4).fill(255);
-      for (const segments of clips) {
+      for (const clip of clips) {
+        const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
         const layer = new Uint8Array(width * height * 4);
-        fillEdgesScanline4x4(layer, width, height, segmentsToScreenEdges(segments, displayList.height, scale, true), { r: 1, g: 1, b: 1 });
+        fillEdgesScanline4x4(layer, width, height, segmentsToScreenEdges(segments, displayList.height, scale, true), { r: 1, g: 1, b: 1 }, 1, fillRule);
         for (let i = 3; i < layer.length; i += 4) clipMask[i] = Math.round(clipMask[i]! * layer[i]! / 255);
       }
-      clipMasks.set(clips, clipMask);
+      cachedClips = clips;
+      cachedClipMask = clipMask;
     }
     const imageClips = original.value.clipImages;
     if (imageClips) {
@@ -1460,7 +1464,7 @@ function svgPathData(segments: readonly PdfPathSegment[], height: number): strin
     } else if (seg.kind === "cubic") {
       dParts.push(`C ${seg.x1} ${height - seg.y1} ${seg.x2} ${height - seg.y2} ${seg.x} ${height - seg.y}`);
     } else if (seg.kind === "rect") {
-      dParts.push(`M ${seg.x} ${height - seg.y - seg.height} h ${seg.width} v ${seg.height} h ${-seg.width} Z`);
+      dParts.push(`M ${seg.x} ${height - seg.y} h ${seg.width} v ${-seg.height} h ${-seg.width} Z`);
     } else if (seg.kind === "close") {
       dParts.push("Z");
     }
@@ -1517,9 +1521,10 @@ export function renderDisplayListToSvg(
     const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
     const clips = original.value.clipPaths ?? [];
     const imageClips = original.value.clipImages ?? [];
-    for (const segments of clips) {
+    for (const clip of clips) {
+      const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
       const id = `text-clip-${clipId++}`;
-      const path = `<path d="${svgPathData(segments, displayList.height)}"/>`;
+      const path = `<path d="${svgPathData(segments, displayList.height)}" clip-rule="${fillRule}"/>`;
       parts.push(`<defs><clipPath id="${id}" clipPathUnits="userSpaceOnUse">${path}</clipPath></defs><g clip-path="url(#${id})">`);
     }
     for (const image of imageClips) {

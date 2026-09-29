@@ -49,6 +49,15 @@ Safe Bash adapter thin. Use structured parser/model nodes and vetted cryptograph
 primitives. Each code fix needs a current failing original memory test or other
 concrete evidence, neighboring controls and narrowly maintained verification.
 
+Finish the remaining CSVKit workbook migration against the shared spreadsheet
+model and XLSX/XLS format packages being extracted under #4091. Preserve ISO date
+provenance, declared/reset dimensions, BIFF encoding overrides and native CSVKit
+diagnostics. Extract the existing namespace-aware, stepped parser from
+`safe-fs/src/xml.ts` into the requested XML AST package; retain the public
+`safe-fs/xml` surface and canonical parser/error identity. Reuse the implementation
+and its resource contracts rather than introduce a second parser. Pandoc's JPEG
+migration is delivered; workbook and XML dependency migration remain open.
+
 Complete the standard singular/plural/plugin command exports in that package.
 Keep file-output budget and cancellation ownership in `safe-bash-contracts`.
 The root SDK and Shell use the declared shared-workspace contracts runtime for

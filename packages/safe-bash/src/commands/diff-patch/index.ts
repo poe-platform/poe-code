@@ -1,4 +1,4 @@
-import { encoder, registerDefaultExecutor, registerDefaultExecutors, syncCommandEvaluators } from "../internal.js";
+import { encoder, registerDefaultExecutors, syncCommandEvaluators } from "../internal.js";
 import { gnuInformationSync } from "../gnu-information.js";
 import { flags } from "./diff-options.js";
 import { expandTabs } from "./diff-output.js";
@@ -119,23 +119,18 @@ export function evalSyncDiff(
     }
   }
   if (!same) {
-    if (opts.ignorePatterns.length === 0 && !opts.ignoreCase && !opts.ignoreTrailing && !opts.ignoreBlank && !opts.ignoreTabs && !opts.stripTrailingCr && opts.whitespace === "exact") {
+    // Ignore patterns apply to change groups through the command's bounded BRE
+    // matcher. Filtering entire inputs here can hide differences between them.
+    if (opts.ignorePatterns.length > 0) return undefined;
+    if (!opts.ignoreCase && !opts.ignoreTrailing && !opts.ignoreBlank && !opts.ignoreTabs && !opts.stripTrailingCr && opts.whitespace === "exact") {
       return undefined;
     }
     for (let i = 0; i < b1.byteLength; i++) if (b1[i] === 0) return undefined;
     for (let i = 0; i < b2.byteLength; i++) if (b2[i] === 0) return undefined;
-    const ignoreRes: RegExp[] = [];
-    for (const pat of opts.ignorePatterns) {
-      try { ignoreRes.push(new RegExp(pat, opts.ignoreCase ? "i" : "")); } catch { return undefined; }
-    }
     const t1 = syncDiffDecoder.decode(b1);
     const t2 = syncDiffDecoder.decode(b2);
-    let l1 = normalizeSyncDiffLines(t1, opts);
-    let l2 = normalizeSyncDiffLines(t2, opts);
-    if (ignoreRes.length > 0) {
-      l1 = l1.filter(line => !ignoreRes.some(re => re.test(line.replace(/\n$/, ""))));
-      l2 = l2.filter(line => !ignoreRes.some(re => re.test(line.replace(/\n$/, ""))));
-    }
+    const l1 = normalizeSyncDiffLines(t1, opts);
+    const l2 = normalizeSyncDiffLines(t2, opts);
     if (l1.length !== l2.length) return undefined;
     for (let i = 0; i < l1.length; i++) {
       if (l1[i] !== l2[i]) return undefined;

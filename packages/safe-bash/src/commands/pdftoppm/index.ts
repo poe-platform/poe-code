@@ -49,6 +49,7 @@ export function evalSyncPdftoppm(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   try {
     const files = new Map<string, Uint8Array>();
@@ -73,7 +74,6 @@ export function evalSyncPdftoppm(
         positionals.push(a);
       }
     }
-    if (positionals.length > 1 && positionals[1] !== "-") return undefined;
     const input = positionals[0] ?? "-";
     if (input !== "-") {
       const b = readFileSync?.(input);
@@ -82,8 +82,14 @@ export function evalSyncPdftoppm(
     } else if (!files.has("-")) {
       return undefined;
     }
+    const snap = new Map(files);
     const res = runPdftoppmCliSync(opArgs, files);
     if (res.exitCode !== 0 || res.stderr) return undefined;
+    for (const [k, v] of files.entries()) {
+      if (snap.get(k) !== v) {
+        if (!writeFileSync || !writeFileSync(k, v)) return undefined;
+      }
+    }
     if (res.stdoutBytes) {
       if (res.stdoutBytes.includes(0)) return undefined;
       return utf8Decoder.decode(res.stdoutBytes);
@@ -98,6 +104,7 @@ export function evalSyncPdftocairo(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   try {
     const files = new Map<string, Uint8Array>();
@@ -124,8 +131,6 @@ export function evalSyncPdftocairo(
       }
     }
     const input = positionals[0] ?? "-";
-    const output = positionals[1] ?? (input === "-" ? "-" : "");
-    if (output !== "-") return undefined;
     if (input !== "-") {
       const b = readFileSync?.(input);
       if (!b || b.byteLength > 262144) return undefined;
@@ -133,8 +138,14 @@ export function evalSyncPdftocairo(
     } else if (!files.has("-")) {
       return undefined;
     }
+    const snap = new Map(files);
     const res = runPdftocairoCliSync(opArgs, files);
     if (res.exitCode !== 0 || res.stderr) return undefined;
+    for (const [k, v] of files.entries()) {
+      if (snap.get(k) !== v) {
+        if (!writeFileSync || !writeFileSync(k, v)) return undefined;
+      }
+    }
     if (res.stdoutBytes) {
       if (res.stdoutBytes.includes(0)) return undefined;
       return utf8Decoder.decode(res.stdoutBytes);

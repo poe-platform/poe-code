@@ -1795,4 +1795,26 @@ test("Wave 228: tar -xvf -C directory extraction and unzip -t / unzip -qo -d ext
       "Hello LibreOffice|Line Two|:w232_id",
     );
   });
+
+  it("supports pdftotext file output, pdftohtml file output, and pdftocairo -svg file output in sync command substitutions (Wave 233)", async () => {
+    const shell = createShell();
+    const res = await shell.exec(`
+      printf "PDF Wave 233 Content\\n" > /tmp/w233_src.txt
+      soffice --headless --convert-to pdf --outdir /tmp /tmp/w233_src.txt >/dev/null
+      out=""
+      for i in 1 2; do
+        rm -f /tmp/w233_out.txt /tmp/w233_out.html /tmp/w233_out.svg
+        pt_out=\$(pdftotext /tmp/w233_src.pdf /tmp/w233_out.txt && tr -d "\\n\\f" < /tmp/w233_out.txt)
+        ph_out=\$(pdftohtml -s /tmp/w233_src.pdf /tmp/w233_out.html >/dev/null && grep -o "PDF Wave 233 Content" /tmp/w233_out.html | head -n 1)
+        pc_out=\$(pdftocairo -svg /tmp/w233_src.pdf /tmp/w233_out.svg && grep -o "<svg" /tmp/w233_out.svg | head -n 1)
+        out="\${pt_out}|\${ph_out}|\${pc_out}"
+      done
+      printf "%s\\n" "\$out"
+    `);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout.trim(),
+      "PDF Wave 233 Content|PDF Wave 233 Content|<svg",
+    );
+  });
 });

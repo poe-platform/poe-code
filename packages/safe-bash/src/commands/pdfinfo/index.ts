@@ -127,19 +127,14 @@ export function evalSyncPdfdetach(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   try {
-    for (let i = 0; i < opArgs.length; i++) {
-      const a = opArgs[i]!;
-      if (a === "-save" || a === "-savefile" || a === "-saveall" || a === "-o") {
-        return undefined;
-      }
-    }
     const files = new Map<string, Uint8Array>();
     if (inBytes !== undefined) files.set("-", inBytes);
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (a === "-upw" || a === "-opw" || a === "-enc") {
+      if (a === "-upw" || a === "-opw" || a === "-enc" || a === "-save" || a === "-savefile" || a === "-o") {
         i++;
       } else if (!a.startsWith("-") && a !== "-") {
         const b = readFileSync?.(a);
@@ -147,8 +142,14 @@ export function evalSyncPdfdetach(
         files.set(a, b);
       }
     }
+    const snap = new Map(files);
     const res = runPdfdetachCliSync(opArgs, files);
     if (res.exitCode !== 0 || res.stderr) return undefined;
+    for (const [k, v] of files.entries()) {
+      if (snap.get(k) !== v) {
+        if (!writeFileSync || !writeFileSync(k, v)) return undefined;
+      }
+    }
     return res.stdout;
   } catch {
     return undefined;

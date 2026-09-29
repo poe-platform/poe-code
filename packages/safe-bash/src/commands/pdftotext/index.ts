@@ -42,10 +42,13 @@ export function pdftotextCommands(options: PdftotextCommandsOptions = {}): Virtu
   };
 }
 
+const pdfTxtEncoder = new TextEncoder();
+
 export function evalSyncPdftotext(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   try {
     const positionals: string[] = [];
@@ -73,12 +76,14 @@ export function evalSyncPdftotext(
       return res.output;
     }
     const target = positionals[0] ?? "-";
-    const outTarget = positionals[1] ?? (target === "-" ? "-" : undefined);
-    if (outTarget !== "-") return undefined;
     const pdfBytes = target === "-" ? inBytes : readFileSync?.(target);
     if (!pdfBytes || pdfBytes.byteLength > 262144) return undefined;
     const res = extractPdfToTextBytes(pdfBytes, opArgs);
-    if (res.exitCode !== 0 || res.stderr || res.outputPath !== "-") return undefined;
+    if (res.exitCode !== 0 || res.stderr) return undefined;
+    if (res.outputPath !== "-") {
+      if (!res.outputPath || !writeFileSync || !writeFileSync(res.outputPath, pdfTxtEncoder.encode(res.output))) return undefined;
+      return "";
+    }
     return res.output;
   } catch {
     return undefined;
@@ -89,6 +94,7 @@ export function evalSyncPdftohtml(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
   try {
     const files = new Map<string, Uint8Array>();
@@ -109,7 +115,9 @@ export function evalSyncPdftohtml(
     const res = runPdftohtmlCliSync(opArgs, files);
     if (res.exitCode !== 0 || res.stderr) return undefined;
     for (const [k, v] of files.entries()) {
-      if (snap.get(k) !== v) return undefined;
+      if (snap.get(k) !== v) {
+        if (!writeFileSync || !writeFileSync(k, v)) return undefined;
+      }
     }
     return res.stdout;
   } catch {

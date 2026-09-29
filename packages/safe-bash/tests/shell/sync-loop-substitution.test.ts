@@ -6,6 +6,8 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { streamCommands } from "../../src/commands/streams.js";
+import { createByteCommands } from "../../src/commands/bytes/index.js";
+import { createStreamInspectionCommands } from "../../src/commands/stream-inspection/index.js";
 import { grepCommands } from "../../src/commands/grep.js";
 
 for (const loop of ["for ((i=0;i<3;i++))", "for i in {0..2}"]) {
@@ -127,3 +129,38 @@ for (const [name, values, command] of [
     }
   }
 }
+
+for (const [pipeline, expected] of [
+  ['head -c 1 <<< "ab" | tac', "a"],
+  ['tr -d "\\n" <<< "ab" | tac', "ab"],
+  ['echo "ab" | head -c 1 | tac', "a"],
+  ['echo "ab" | tr -d "\\n" | tac', "ab"],
+  ['head -c 3 <<< "a\nb" | tac', "ba"],
+  ['head -c 5 <<< "a\nb\nc" | tac', "cb\na"],
+  ['head -c 0 <<< "ab" | tac', ""],
+] as const) {
+  test(`sync pipeline preserves partial tac records: ${pipeline}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...streamCommands(), ...createStreamInspectionCommands()]) });
+    try {
+      const result = await shell.exec(`for i in 1 2; do echo "$( ${pipeline} )"; done`);
+      assert.equal(result.stdout, `${expected}\n`.repeat(2));
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("sync pipeline retains expanded stages beyond shared buffer capacity", async () => {
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  for (const suffix of ["", " | head -c 70000", " | tr a b", " | base64 | base64 -d"]) {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...streamCommands(), ...createTextProgramCommands(), ...createByteCommands()]) });
+    try {
+      const source = `s=${"a".repeat(4000)}; for i in 1 2; do echo "$(echo "x$s" | sed 's/a/aaaaaaaaaaaaaaaaaaaa/g'${suffix})"; done`;
+      const result = await shell.exec(source);
+      const expanded = "x" + (suffix.includes("tr a b") ? "b" : "a").repeat(80000);
+      assert.equal(result.stdout, ((suffix.includes("head") ? expanded.slice(0, 70000) : expanded) + "\n").repeat(2));
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  }
+});

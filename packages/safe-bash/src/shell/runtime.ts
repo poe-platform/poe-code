@@ -24715,7 +24715,7 @@ export class Runtime {
           const firstName = stageNames[sIdx]!;
           const extDef = stageDefs[sIdx]!;
           const stageArgs = stageArgsList[sIdx]!;
-          const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
+          let nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
           const isInlineCutField = firstName === "cut";
           const isInlineTr = firstName === "tr";
           const isInlineAwk = firstName === "awk";
@@ -24764,6 +24764,7 @@ export class Runtime {
                 const nextTotalBytes = this.budget.bytes + sub.byteLength;
                 if (nextTotalBytes > this.budget.maxOutputBytesSmi && sub.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
                 this.budget.bytes = nextTotalBytes;
+                if (sub.byteLength > nextBuf.byteLength) nextBuf = new Uint8Array(sub.byteLength);
                 nextBuf.set(sub, 0);
                 prevBuf = nextBuf;
                 prevLen = sub.byteLength;
@@ -24800,10 +24801,10 @@ export class Runtime {
               const transformed = this.evalSyncTr(inStr, stageArgs);
               if (transformed === undefined) return undefined;
               const outByteLen = shellValueByteLength(transformed);
-              if (outByteLen > nextBuf.byteLength) return undefined;
               const nextTotalBytes = this.budget.bytes + outByteLen;
               if (nextTotalBytes > this.budget.maxOutputBytesSmi && outByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
               this.budget.bytes = nextTotalBytes;
+              if (outByteLen > nextBuf.byteLength) nextBuf = new Uint8Array(outByteLen);
               const written = transformed.length === 0 ? 0 : fastSharedTextEncoder.encodeInto(transformed, nextBuf).written;
               prevBuf = nextBuf;
               prevLen = written;
@@ -24830,8 +24831,10 @@ export class Runtime {
               if (stageStatus !== 0) failureStatus = stageStatus;
               outLines = grepRes.lines;
             } else if (isInlineTac) {
-              if (inStr.length > 0 && !inStr.endsWith("\n")) return undefined;
               outLines = [...rawLines].reverse();
+              if (!inStr.endsWith("\n") && outLines.length > 1) {
+                outLines.splice(0, 2, outLines[0]! + outLines[1]!);
+              }
             } else if (isInlineNl) {
               const nlRes = this.evalSyncNl(rawLines, stageArgs);
               if (nlRes === undefined) return undefined;
@@ -24852,10 +24855,11 @@ export class Runtime {
                 const cleaned = inStr.replace(/[ \t\r\n]+/g, "");
                 if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
                 const decoded = this.syncBase64DecodeBytes(cleaned);
-                if (decoded.some(byte => byte === 0 || byte >= 128) || decoded.byteLength > nextBuf.byteLength) return undefined;
+                if (decoded.some(byte => byte === 0 || byte >= 128)) return undefined;
                 const nextTotalBytes = this.budget.bytes + decoded.byteLength;
                 if (nextTotalBytes > this.budget.maxOutputBytesSmi && decoded.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
                 this.budget.bytes = nextTotalBytes;
+                if (decoded.byteLength > nextBuf.byteLength) nextBuf = new Uint8Array(decoded.byteLength);
                 nextBuf.set(decoded, 0);
                 prevBuf = nextBuf;
                 prevLen = decoded.byteLength;
@@ -24868,13 +24872,13 @@ export class Runtime {
             }
             // These filters preserve the terminator of the final selected input line.
             const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev" || firstName === "sed";
-            const terminated = sedTerminated || !preservesTerminator || inStr.endsWith("\n") || firstName === "head" && outLines.length < rawLines.length;
+            const terminated = isInlineTac ? inStr.includes("\n") : sedTerminated || !preservesTerminator || inStr.endsWith("\n") || firstName === "head" && outLines.length < rawLines.length;
             const outStr = outLines.length > 0 ? outLines.join("\n") + (terminated ? "\n" : "") : "";
             const outByteLen = shellValueByteLength(outStr);
-            if (outByteLen > nextBuf.byteLength) return undefined;
             const nextTotalBytes = this.budget.bytes + outByteLen;
             if (nextTotalBytes > this.budget.maxOutputBytesSmi && outByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
             this.budget.bytes = nextTotalBytes;
+            if (outByteLen > nextBuf.byteLength) nextBuf = new Uint8Array(outByteLen);
             const written = outStr.length === 0 ? 0 : fastSharedTextEncoder.encodeInto(outStr, nextBuf).written;
             prevBuf = nextBuf;
             prevLen = written;

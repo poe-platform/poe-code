@@ -1,5 +1,5 @@
 import { commandRuntimeIdentity, FsError, dirname, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandResult, type FileStat, type FileSystemCapabilities, type VirtualShellPlugin } from "../../contracts/index.js";
-import { builtInDirectContextExecutors, codeOf, pathOf, syncCommandEvaluators } from "../internal.js";
+import { builtInDirectContextExecutors, isDefaultCommandOptions, codeOf, pathOf, syncCommandEvaluators } from "../internal.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { argumentBytes, helpText, maximumSize, minimumSize, parseArguments, quote, TruncateError, type TruncateArguments } from "./arguments.js";
 
@@ -229,7 +229,7 @@ export function createTruncateCommand(options: TruncateCommandsOptions = {}): Co
       } finally { await close(); }
     },
   };
-  builtInDirectContextExecutors.add(def.execute);
+  if (isDefaultCommandOptions(options)) builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 

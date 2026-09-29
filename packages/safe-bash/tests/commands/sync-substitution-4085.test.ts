@@ -1,3 +1,15 @@
+import { createBcCommands } from "../../src/commands/bc/index.js";
+import { createFmtCommands } from "../../src/commands/fmt/index.js";
+import { createFoldCommands } from "../../src/commands/fold/index.js";
+import { createHostnameCommands } from "../../src/commands/hostname/index.js";
+import { createIdCommands } from "../../src/commands/id/index.js";
+import { createNprocCommands } from "../../src/commands/nproc/index.js";
+import { createNumfmtCommands } from "../../src/commands/numfmt/index.js";
+import { createOdCommands } from "../../src/commands/od/index.js";
+import { createSha512sumCommands } from "../../src/commands/sha512sum/index.js";
+import { createUnameCommands } from "../../src/commands/uname/index.js";
+import { createWhoamiCommands } from "../../src/commands/whoami/index.js";
+import { createXxdCommands } from "../../src/commands/xxd/index.js";
 import { createSofficeCommands } from "../../src/commands/soffice/index.js";
 import { createSsconvertCommands } from "../../src/commands/ssconvert/index.js";
 import { createWkhtmltopdfCommands } from "../../src/commands/wkhtmltopdf/index.js";
@@ -1524,4 +1536,82 @@ test("sync substitution and pipeline fast path for sponge, truncate, install, an
   assert.equal(new TextDecoder().decode(await fs.readFile("/inst.txt")), "abcd");
   assert.equal(new TextDecoder().decode(await fs.readFile("/patched.txt")), "hello patch\n");
   assert.ok(elapsed < 1500, `Expected fast sync execution (< 1500ms), took ${elapsed.toFixed(1)}ms`);
+});
+
+test("sync brace and arithmetic loop admission for 20+ command adapters via registerDefaultExecutors (Wave 158)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/a.txt", new TextEncoder().encode("alpha\nbeta\n"));
+  await fs.writeFile("/b.txt", new TextEncoder().encode("alpha\nbeta\n"));
+  await fs.writeFile("/c.txt", new TextEncoder().encode("alpha\nbeta\n"));
+  await fs.writeFile("/data.csv", new TextEncoder().encode("name,score\nalice,10\nbob,20\n"));
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createBcCommands(),
+    ...createDfCommands(),
+    ...createFdCommands(),
+    ...createFmtCommands(),
+    ...createFoldCommands(),
+    ...createHostnameCommands(),
+    ...createIdCommands(),
+    ...createNprocCommands(),
+    ...createNumfmtCommands(),
+    ...createOdCommands(),
+    ...createSha512sumCommands(),
+    ...createUnameCommands(),
+    ...createWhoamiCommands(),
+    ...createXxdCommands(),
+    ...createDiff3Commands(),
+    ...createPathchkCommands(),
+    ...createDuCommands(),
+    ...createTreeCommands(),
+    ...createFileCommands(),
+    ...createWhichCommands(),
+    ...createXanCommands(),
+  ]) {
+    registry.register(cmd, { replace: true });
+  }
+  const sh = new Shell({ fs, commands: registry });
+
+  const t0 = performance.now();
+  const r = await sh.exec(`
+    r_bc=""
+    r_un=""
+    r_id=""
+    r_wh=""
+    r_hn=""
+    r_np=""
+    r_nf=""
+    r_xx=""
+    r_d3=""
+    r_xn=""
+    for i in {1..150}; do
+      r_bc=$(bc <<< "6 * 7")
+      r_un=$(uname -s)
+      r_id=$(id -u)
+      r_wh=$(whoami)
+      r_hn=$(hostname)
+      r_np=$(nproc)
+      r_nf=$(numfmt --to=iec <<< "1024")
+      r_xx=$(xxd -p <<< "AB")
+      r_d3=$(diff3 /a.txt /b.txt /c.txt)
+      r_xn=$(xan count /data.csv)
+    done
+    printf "\x25s|\x25s|\x25s|\x25s|\x25s|\x25s|\x25s|\x25s|\x25s|\x25s\n" "$r_bc" "$r_un" "$r_id" "$r_wh" "$r_hn" "$r_np" "$r_nf" "$r_xx" "$r_d3" "$r_xn"
+  `);
+  const elapsed = performance.now() - t0;
+
+  assert.equal(r.exitCode, 0, r.stderr);
+  const parts = r.stdout.trim().split("|");
+  assert.equal(parts[0], "42");
+  assert.equal(parts[1], "Linux");
+  assert.equal(parts[2], "1000");
+  assert.equal(parts[3], "sandbox");
+  assert.equal(parts[4], "sandbox");
+  assert.ok(Number(parts[5]) >= 1);
+  assert.equal(parts[6], "1.0K");
+  assert.equal(parts[7], "41420a");
+  assert.equal(parts[8], "");
+  assert.equal(parts[9], "2");
+  assert.ok(elapsed < 1500, `Expected fast sync brace-loop execution (< 1500ms), took ${elapsed.toFixed(1)}ms`);
 });

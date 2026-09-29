@@ -1,6 +1,38 @@
-import { compareDiff3, diff3DefaultLimits, parseDiff3Arguments } from "safe-bash-command-diff3";
+import {
+  compareDiff3,
+  diff3DefaultLimits,
+  parseDiff3Arguments,
+  createDiff3Command as createRawDiff3Command,
+  createDiff3Commands as createRawDiff3Commands,
+  type Diff3CommandsOptions,
+} from "safe-bash-command-diff3";
+import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
+import { registerDefaultExecutor, registerDefaultExecutors } from "../internal.js";
 export * from "safe-bash-command-diff3";
 
+export function createDiff3Command(options: Diff3CommandsOptions = {}): CommandDefinition {
+  return registerDefaultExecutor(createRawDiff3Command(options), options);
+}
+
+export function createDiff3Commands(options: Diff3CommandsOptions = {}): readonly CommandDefinition[] {
+  return registerDefaultExecutors(createRawDiff3Commands(options), options);
+}
+
+export function diff3Commands(options: Diff3CommandsOptions = {}): VirtualShellPlugin {
+  const commands = createDiff3Commands(options);
+  const replace = options.replace ?? false;
+  return {
+    name: "diff3-commands",
+    setup(host) {
+      if (!replace) {
+        for (const command of commands) {
+          if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
+        }
+      }
+      for (const command of commands) host.commands.register(command, { replace });
+    },
+  };
+}
 let _syncDiff3Signal: AbortSignal | undefined;
 const syncDiff3Signal = (): AbortSignal => (_syncDiff3Signal ??= new AbortController().signal);
 const syncDiff3Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });

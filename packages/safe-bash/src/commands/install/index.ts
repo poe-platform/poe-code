@@ -3,7 +3,7 @@ import { commandRuntimeIdentity } from "../../contracts/command.js";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { assertCountedFileOutput, openFileOutput, writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import { yieldTurn } from "../../contracts/yield.js";
-import { builtInDirectContextExecutors, codeOf, output, pathOf, syncCommandEvaluators } from "../internal.js";
+import { builtInDirectContextExecutors, isDefaultCommandOptions, codeOf, output, pathOf, syncCommandEvaluators } from "../internal.js";
 import { compareCopyIdentity, compareObservedEntries } from "../copy-identity.js";
 import { helpText, parseArguments, type InstallArguments } from "./arguments.js";
 import { parseMode, type InstallMode } from "./mode.js";
@@ -521,7 +521,7 @@ export function createInstallCommand(options: InstallCommandsOptions = {}): Comm
       return { exitCode };
     } catch (error) { await report(error); return { exitCode: 1 }; }
   } };
-  builtInDirectContextExecutors.add(def.execute);
+  if (isDefaultCommandOptions(options)) builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 

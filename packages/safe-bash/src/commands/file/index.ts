@@ -1,5 +1,5 @@
 import { FsError, readBytes, toByteSource, type ByteSource, type CommandContext, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "../../contracts/index.js";
-import { pathOf } from "../internal.js";
+import { pathOf, registerDefaultExecutor } from "../internal.js";
 import { classify, type Classification } from "./classify.js";
 import { limitMessage, FileFailure, FileLimitError, settings, SharedBudget, type FileCommandsOptions } from "./shared.js";
 
@@ -284,7 +284,7 @@ export function createFileCommand(options: FileCommandsOptions = {}): CommandDef
 }
 
 export function createFileCommands(options: FileCommandsOptions = {}): readonly CommandDefinition[] {
-  return [createFileCommand(options)];
+  return [registerDefaultExecutor(createFileCommand(options), options)];
 }
 
 export function fileCommands(options: FileCommandsOptions = {}): VirtualShellPlugin {

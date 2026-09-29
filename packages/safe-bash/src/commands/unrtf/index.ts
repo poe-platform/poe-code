@@ -1,6 +1,37 @@
-import { renderRtfSync, type UnrtfOptions } from "safe-bash-command-unrtf";
+import {
+  renderRtfSync,
+  type UnrtfOptions,
+  createUnrtfCommand as createRawUnrtfCommand,
+  createUnrtfCommands as createRawUnrtfCommands,
+  type UnrtfCommandsOptions,
+} from "safe-bash-command-unrtf";
+import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
+import { registerDefaultExecutor, registerDefaultExecutors } from "../internal.js";
 export * from "safe-bash-command-unrtf";
 
+export function createUnrtfCommand(options: UnrtfCommandsOptions = {}): CommandDefinition {
+  return registerDefaultExecutor(createRawUnrtfCommand(options), options);
+}
+
+export function createUnrtfCommands(options: UnrtfCommandsOptions = {}): readonly CommandDefinition[] {
+  return registerDefaultExecutors(createRawUnrtfCommands(options), options);
+}
+
+export function unrtfCommands(options: UnrtfCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createUnrtfCommands(options);
+  const replace = options.replace ?? false;
+  return {
+    name: "unrtf-commands",
+    setup(host) {
+      if (!replace) {
+        for (const command of commands) {
+          if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
+        }
+      }
+      for (const command of commands) host.commands.register(command, { replace });
+    },
+  };
+}
 let _syncUnrtfSignal: AbortSignal | undefined;
 const syncUnrtfSignal = (): AbortSignal => (_syncUnrtfSignal ??= new AbortController().signal);
 const syncUnrtfDecoder = new TextDecoder("utf-8", { fatal: false });

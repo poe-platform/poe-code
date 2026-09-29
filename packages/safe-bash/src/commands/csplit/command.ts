@@ -1,5 +1,5 @@
 import { FsError, type CommandDefinition } from "../../contracts/index.js";
-import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
+import { builtInDirectContextExecutors, isDefaultCommandOptions, syncCommandEvaluators } from "../internal.js";
 import { integer } from "./options.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { RegexExecutor, withRegexSession } from "../regex-execution/portable.js";
@@ -212,6 +212,6 @@ export function createCsplitCommandWithExecutor(executor: RegexExecutor, options
       return { exitCode };
     });
   } };
-  builtInDirectContextExecutors.add(def.execute);
+  if (isDefaultCommandOptions(options)) builtInDirectContextExecutors.add(def.execute);
   return def;
 }

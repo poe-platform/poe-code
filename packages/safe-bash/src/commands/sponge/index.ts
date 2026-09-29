@@ -8,7 +8,7 @@ import {
   type SpongeOptions,
 } from "safe-bash-command-sponge";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
-import { builtInDirectContextExecutors, decoder, syncCommandEvaluators } from "../internal.js";
+import { builtInDirectContextExecutors, isDefaultCommandOptions, decoder, syncCommandEvaluators } from "../internal.js";
 
 export { settings, type SpongeCommandsOptions, type SpongeLimits, type SpongeOptions };
 
@@ -60,13 +60,13 @@ syncCommandEvaluators.evalSyncSponge = evalSyncSponge;
 
 export function createSpongeCommand(options: SpongeCommandsOptions = {}): CommandDefinition {
   const def = createRawSpongeCommand(options);
-  builtInDirectContextExecutors.add(def.execute);
+  if (isDefaultCommandOptions(options)) builtInDirectContextExecutors.add(def.execute);
   return def;
 }
 
 export function createSpongeCommands(options: SpongeCommandsOptions = {}): readonly CommandDefinition[] {
   return createRawSpongeCommands(options).map(def => {
-    builtInDirectContextExecutors.add(def.execute);
+    if (isDefaultCommandOptions(options)) builtInDirectContextExecutors.add(def.execute);
     return def;
   });
 }

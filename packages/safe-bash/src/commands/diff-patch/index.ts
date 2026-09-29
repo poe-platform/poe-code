@@ -1,3 +1,4 @@
+import { registerDefaultExecutor, registerDefaultExecutors } from "../internal.js";
 import { flags } from "./diff-options.js";
 import { expandTabs } from "./diff-output.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
@@ -8,7 +9,7 @@ import type { DiffPatchOptions } from "./shared.js";
 export type { DiffPatchOptions } from "./shared.js";
 
 export function createDiffPatchCommands(options: DiffPatchOptions = {}): readonly CommandDefinition[] {
-  return [diffCommand(options), patchCommand(options)];
+  return registerDefaultExecutors([diffCommand(options), patchCommand(options)], options);
 }
 
 export function diffPatchCommands(options: DiffPatchOptions = {}): VirtualShellPlugin {

@@ -1,3 +1,4 @@
+import { registerDefaultExecutor } from "../internal.js";
 import type { CommandContext, CommandDefinition, CommandResult } from "../../contracts/command.js";
 import { escapeText } from "../../escaping.js";
 import { FsError } from "../../contracts/errors.js";
@@ -105,7 +106,7 @@ export function createXanCommand(options?: XanCommandsOptions): CommandDefinitio
   const { limits } = validateOptions(options);
   return { name: "xan", description: "Bounded byte-stream CSV headers, count, select and slice", execute: context => execute(context, limits) };
 }
-export function createXanCommands(options?: XanCommandsOptions): readonly CommandDefinition[] { return [createXanCommand(options)]; }
+export function createXanCommands(options?: XanCommandsOptions): readonly CommandDefinition[] { return [registerDefaultExecutor(createXanCommand(options), options)]; }
 export function xanCommands(options?: XanCommandsOptions): VirtualShellPlugin {
   const { replace } = validateOptions(options);
   const commands = createXanCommands(options);

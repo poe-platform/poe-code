@@ -1,3 +1,4 @@
+import { registerDefaultExecutor, registerDefaultExecutors } from "../internal.js";
 import { compareVersions } from "./sort.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createTreeCommand } from "./tree.js";
@@ -6,7 +7,7 @@ export { createTreeCommand } from "./tree.js";
 export type { TreeCommandsOptions, TreeLimits } from "./options.js";
 
 export function createTreeCommands(options: TreeCommandsOptions = {}): readonly CommandDefinition[] {
-  return [createTreeCommand(options)];
+  return [registerDefaultExecutor(createTreeCommand(options), options)];
 }
 
 export function treeCommands(options: TreeCommandsOptions = {}): VirtualShellPlugin {

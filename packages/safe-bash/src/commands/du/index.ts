@@ -1,3 +1,4 @@
+import { registerDefaultExecutor, registerDefaultExecutors } from "../internal.js";
 import { blockSize, formatSize, type Format } from "./format.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createDuCommand } from "./du.js";
@@ -6,7 +7,7 @@ export { createDuCommand } from "./du.js";
 export type { DuCommandsOptions, DuLimits } from "./options.js";
 
 export function createDuCommands(options: DuCommandsOptions = {}): readonly CommandDefinition[] {
-  return [createDuCommand(options)];
+  return [registerDefaultExecutor(createDuCommand(options), options)];
 }
 
 export function duCommands(options: DuCommandsOptions = {}): VirtualShellPlugin {

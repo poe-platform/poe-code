@@ -1,5 +1,5 @@
 import type { CommandContext, CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
-import { builtInDirectContextExecutors, decoder, encoder, syncCommandEvaluators } from "../internal.js";
+import { builtInDirectContextExecutors, isDefaultCommandOptions, decoder, encoder, syncCommandEvaluators } from "../internal.js";
 import { execute } from "./apply.js";
 import { settings, type ApplyPatchCommandsOptions } from "./options.js";
 
@@ -95,7 +95,7 @@ syncCommandEvaluators.evalSyncApplyPatch = evalSyncApplyPatch;
 export function createApplyPatchCommand(options: ApplyPatchCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
   const executeFn = (context: CommandContext) => execute(context, limits);
-  builtInDirectContextExecutors.add(executeFn);
+  if (isDefaultCommandOptions(options)) builtInDirectContextExecutors.add(executeFn);
   return Object.freeze({ name: "apply_patch", description: "Apply a bounded literal Codex-format patch to the virtual filesystem", execute: executeFn });
 }
 

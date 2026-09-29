@@ -47,6 +47,26 @@ export const decoder = new TextDecoder();
 export const bufferLimit = Infinity;
 export const builtInDirectContextExecutors = new WeakSet<CommandHandler>();
 
+export function isDefaultCommandOptions(options?: unknown): boolean {
+  if (!options || typeof options !== "object") return true;
+  for (const [k, v] of Object.entries(options as Record<string, unknown>)) {
+    if (k !== "replace" && v !== undefined) return false;
+  }
+  return true;
+}
+
+export function registerDefaultExecutor<T extends CommandDefinition>(def: T, options?: unknown): T {
+  if (isDefaultCommandOptions(options)) builtInDirectContextExecutors.add(def.execute);
+  return def;
+}
+
+export function registerDefaultExecutors<T extends readonly CommandDefinition[]>(defs: T, options?: unknown): T {
+  if (isDefaultCommandOptions(options)) {
+    for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
+  }
+  return defs;
+}
+
 export interface SyncCommandEvaluators {
   evalSyncOpenssl?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
   evalSyncSqlite3?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;

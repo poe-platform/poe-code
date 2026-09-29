@@ -1,5 +1,35 @@
+import {
+  createPathchkCommand as createRawPathchkCommand,
+  createPathchkCommands as createRawPathchkCommands,
+  type PathchkCommandsOptions,
+} from "safe-bash-command-pathchk";
+import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
+import { registerDefaultExecutor, registerDefaultExecutors } from "../internal.js";
 export * from "safe-bash-command-pathchk";
 
+export function createPathchkCommand(options: PathchkCommandsOptions = {}): CommandDefinition {
+  return registerDefaultExecutor(createRawPathchkCommand(options), options);
+}
+
+export function createPathchkCommands(options: PathchkCommandsOptions = {}): readonly CommandDefinition[] {
+  return registerDefaultExecutors(createRawPathchkCommands(options), options);
+}
+
+export function pathchkCommands(options: PathchkCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createPathchkCommands(options);
+  const replace = options.replace ?? false;
+  return {
+    name: "pathchk-commands",
+    setup(host) {
+      if (!replace) {
+        for (const command of commands) {
+          if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
+        }
+      }
+      for (const command of commands) host.commands.register(command, { replace });
+    },
+  };
+}
 const PORTABLE_CHAR_RE = /^[A-Za-z0-9._-]+$/;
 const sharedUtf8Encoder = new TextEncoder();
 

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createHash } from "node:crypto";
 import { FsError, type FileSystem } from "../../../../src/contracts/index.js";
+import { standardCommands } from "../../../../src/commands/index.js";
 import { Shell } from "../../../../src/shell/index.js";
 import { chunks, encoder, fixture, overrideFs, registry, run } from "./helpers.js";
 
@@ -371,5 +372,28 @@ test("checksums issue 1041: cksum -c flags whitespace-only and indented # lines,
   const untaggedRes = await shell.exec("cksum -a sha256 --tag --untagged f");
   assert.equal(untaggedRes.exitCode, 0, untaggedRes.stderr);
   assert.equal(untaggedRes.stdout, "5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03  f\n");
+  await shell.dispose();
+});
+
+
+test("checksum substitutions preserve filenames and mixed inherited stdin", async () => {
+  const fs = await fixture({ "f.txt": "hello\n" });
+  const shell = new Shell({ fs, commands: registry, cwd: "/work" }).use(standardCommands());
+  for (const name of ["md5sum", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum", "cksum"]) {
+    for (const options of ["", "--tag", "--binary"]) {
+      if (name === "cksum" && options === "--binary") continue;
+      const invocation = `${name} ${options} f.txt`;
+      const direct = await shell.exec(invocation);
+      assert.equal(direct.exitCode, 0);
+      assert.deepEqual(await shell.exec(`echo "$(${invocation})"`), direct, invocation);
+    }
+    for (const operands of ["-", "- f.txt", "f.txt -", "- f.txt -"]) {
+      const expected = await run(name, operands.split(" "), { fs, stdin: "from stdin\n" });
+      const actual = await shell.exec(`printf "from stdin\n" | { echo "$(${name} ${operands})"; }`);
+      assert.equal(actual.exitCode, 0);
+      assert.equal(actual.stderr, "");
+      assert.equal(actual.stdout, expected.stdout, `${name} ${operands}`);
+    }
+  }
   await shell.dispose();
 });

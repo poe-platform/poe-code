@@ -30841,7 +30841,7 @@ export class Runtime {
             : w0Plain === "rg"
               ? evalSyncRg(optInBytes, allArgs, readFile)
             : (w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum")
-              ? (() => { const cs = evalSyncChecksum(w0Plain, inBytes, allArgs, readFile); return cs !== undefined && !cs.includes("\0") ? cs : undefined; })()
+              ? (() => { const cs = evalSyncChecksum(w0Plain, optInBytes, allArgs, readFile); return cs !== undefined && !cs.includes("\0") ? cs : undefined; })()
             : w0Plain === "base32"
               ? (() => { const b32 = evalSyncBase32(inBytes, allArgs, readFile); return b32 !== undefined ? sharedSyncPipeDecoder.decode(b32) : undefined; })()
             : (w0Plain === "xq" || w0Plain === "yq")

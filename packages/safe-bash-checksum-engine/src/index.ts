@@ -397,12 +397,12 @@ function digestSync(bytes: Uint8Array, algorithm: Algorithm, bits = 512): Digest
 
 export function evalSyncChecksum(
   name: string,
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (p: string) => Uint8Array | undefined,
   fileOperandName?: string,
 ): string | undefined {
-  if (inBytes.byteLength > 16384) return undefined;
+  if (inBytes && inBytes.byteLength > 16384) return undefined;
   const baseAlg: Algorithm | undefined =
     name === "cksum" ? "crc" :
     name === "md5sum" ? "md5" :
@@ -422,11 +422,14 @@ export function evalSyncChecksum(
   } catch {
     return undefined;
   }
+  // A file-backed call supplies file bytes, not the command's inherited stdin.
+  if (fileOperandName !== undefined && settings.operands.includes("-")) return undefined;
   if (settings.encoding === "raw") return undefined;
   let stdinUsed = false;
   const getBytes = (filename: string): Uint8Array | undefined => {
     try { validateFilename(filename); } catch { return undefined; }
     if (filename === "-") {
+      if (inBytes === undefined) return undefined;
       if (stdinUsed) return new Uint8Array(0);
       stdinUsed = true;
       return inBytes;

@@ -113,6 +113,7 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
           endOfOptions = true;
           continue;
         }
+        if (!endOfOptions && arg === "--append") { append = true; continue; }
         if (!endOfOptions && (arg === "--help" || arg === "-h")) {
           await writeText(context.stdout, "Usage: sponge [-a] [FILE]\nSoak up standard input and write to FILE (or stdout).\n");
           return { exitCode: 0 };
@@ -144,7 +145,7 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
         const maxBytes = Math.min(limits.maxBufferedBytes, (context as { limits?: { maxInputBytes?: number } }).limits?.maxInputBytes ?? limits.maxBufferedBytes);
         const buffered = await collectSourceBytes(context.stdin, maxBytes, context.signal);
 
-        if (files.length === 0) {
+        if (files.length === 0 || files[0] === "-") {
           await writeBytes(context.stdout, buffered, context.signal);
           return { exitCode: 0 };
         }

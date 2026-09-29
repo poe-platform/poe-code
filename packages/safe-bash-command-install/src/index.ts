@@ -419,6 +419,11 @@ export function evalSyncInstall(
 ): string | undefined {
   let verbose = false;
   let directoryMode = false;
+  let createLeading = false;
+  let backup = false;
+  let suffix = "~";
+  let targetDir: string | undefined;
+  let noTargetDir = false;
   let modeSpec: string | undefined;
   const files: string[] = [];
   let ended = false;
@@ -433,15 +438,58 @@ export function evalSyncInstall(
     if (arg === "--version") return "install (safe-bash; GNU coreutils 9.7 target)\n";
     if (arg === "-v" || arg === "--verbose") { verbose = true; continue; }
     if (arg === "-d" || arg === "--directory") { directoryMode = true; continue; }
-    if (arg === "-c" || arg === "-p" || arg === "--preserve-timestamps" || arg === "-T" || arg === "--no-target-directory") continue;
-    if (arg === "-m" || arg === "--mode") {
-      const m = opArgs[++i];
+    if (arg === "-D") { createLeading = true; continue; }
+    if (arg === "-b" || arg === "--backup") { backup = true; continue; }
+    if (arg === "-T" || arg === "--no-target-directory") { noTargetDir = true; continue; }
+    if (arg === "-c" || arg === "-p" || arg === "--preserve-timestamps" || arg === "-C" || arg === "--compare") continue;
+    if (arg === "-m" || arg === "--mode" || arg.startsWith("--mode=")) {
+      const m = arg.startsWith("--mode=") ? arg.slice(7) : opArgs[++i];
       if (m === undefined) return undefined;
       modeSpec = m;
       continue;
     }
-    if (arg.startsWith("--mode=")) { modeSpec = arg.slice(7); continue; }
-    if (arg.startsWith("-m") && arg.length > 2) { modeSpec = arg.slice(2); continue; }
+    if (arg === "-t" || arg === "--target-directory" || arg.startsWith("--target-directory=")) {
+      const td = arg.startsWith("--target-directory=") ? arg.slice(19) : opArgs[++i];
+      if (!td) return undefined;
+      targetDir = td;
+      continue;
+    }
+    if (arg === "-S" || arg === "--suffix" || arg.startsWith("--suffix=")) {
+      const sf = arg.startsWith("--suffix=") ? arg.slice(9) : opArgs[++i];
+      if (!sf) return undefined;
+      backup = true;
+      suffix = sf;
+      continue;
+    }
+    if (arg.startsWith("-") && !arg.startsWith("--")) {
+      for (let j = 1; j < arg.length; j++) {
+        const ch = arg[j]!;
+        if (ch === "v") verbose = true;
+        else if (ch === "d") directoryMode = true;
+        else if (ch === "D") createLeading = true;
+        else if (ch === "b") backup = true;
+        else if (ch === "T") noTargetDir = true;
+        else if (ch === "c" || ch === "p" || ch === "C") continue;
+        else if (ch === "m") {
+          const rest = arg.slice(j + 1) || opArgs[++i];
+          if (!rest) return undefined;
+          modeSpec = rest;
+          break;
+        } else if (ch === "t") {
+          const rest = arg.slice(j + 1) || opArgs[++i];
+          if (!rest) return undefined;
+          targetDir = rest;
+          break;
+        } else if (ch === "S") {
+          const rest = arg.slice(j + 1) || opArgs[++i];
+          if (!rest) return undefined;
+          backup = true;
+          suffix = rest;
+          break;
+        } else return undefined;
+      }
+      continue;
+    }
     return undefined;
   }
   let modes: InstallMode;
@@ -462,14 +510,67 @@ export function evalSyncInstall(
     }
     return out;
   }
-  if (!readFileSync || !writeFileSync || !statTypeSync || files.length !== 2) return undefined;
-  const [srcPath, dstPath] = files as [string, string];
-  const dstType = statTypeSync(dstPath);
-  if (dstType !== "missing" && dstType !== "file") return undefined;
-  const srcBytes = readFileSync(srcPath);
-  if (!srcBytes) return undefined;
-  if (!writeFileSync(dstPath, srcBytes, modes.file)) return undefined;
-  return verbose ? `${quote(srcPath)} -> ${quote(dstPath)}\n` : "";
+  if (!readFileSync || !writeFileSync || !statTypeSync) return undefined;
+  if (noTargetDir && targetDir !== undefined) return undefined;
+  let out = "";
+  const ensureParents = (dirPath: string): boolean => {
+    if (!dirPath || dirPath === "/" || dirPath === ".") return true;
+    const parts = dirPath.split("/").filter(Boolean);
+    let cur = dirPath.startsWith("/") ? "" : ".";
+    for (const part of parts) {
+      cur = cur === "" ? "/" + part : cur === "." ? part : cur + "/" + part;
+      const st = statTypeSync(cur);
+      if (st === "directory") continue;
+      if (st !== "missing" || !mkdirSync) return false;
+      if (!mkdirSync(cur, 0o755)) return false;
+      if (verbose) out += `install: creating directory ${quote(cur)}\n`;
+    }
+    return true;
+  };
+  const copySingle = (sPath: string, dPath: string): boolean => {
+    if (createLeading) {
+      const slash = dPath.lastIndexOf("/");
+      if (slash > 0 && !ensureParents(dPath.slice(0, slash))) return false;
+    }
+    const dType = statTypeSync(dPath);
+    if (dType !== "missing" && dType !== "file") return false;
+    const sBytes = readFileSync(sPath);
+    if (!sBytes) return false;
+    let backupNote = "";
+    if (backup && dType === "file") {
+      const oldBytes = readFileSync(dPath);
+      if (!oldBytes || !writeFileSync(dPath + suffix, oldBytes, modes.file)) return false;
+      backupNote = ` (backup: ${quote(dPath + suffix)})`;
+    }
+    if (!writeFileSync(dPath, sBytes, modes.file)) return false;
+    if (verbose) out += `${quote(sPath)} -> ${quote(dPath)}${backupNote}\n`;
+    return true;
+  };
+  if (targetDir !== undefined) {
+    if (files.length === 0) return undefined;
+    if (createLeading && !ensureParents(targetDir)) return undefined;
+    if (statTypeSync(targetDir) !== "directory") return undefined;
+    for (const sPath of files) {
+      const base = sPath.replace(/\/+$/, "").slice(sPath.replace(/\/+$/, "").lastIndexOf("/") + 1);
+      if (!copySingle(sPath, targetDir.replace(/\/+$/, "") + "/" + base)) return undefined;
+    }
+    return out;
+  }
+  if (files.length < 2) return undefined;
+  const lastArg = files[files.length - 1]!;
+  const lastType = statTypeSync(lastArg);
+  if (!noTargetDir && (lastType === "directory" || files.length > 2)) {
+    if (lastType !== "directory") return undefined;
+    for (let i = 0; i < files.length - 1; i++) {
+      const sPath = files[i]!;
+      const base = sPath.replace(/\/+$/, "").slice(sPath.replace(/\/+$/, "").lastIndexOf("/") + 1);
+      if (!copySingle(sPath, lastArg.replace(/\/+$/, "") + "/" + base)) return undefined;
+    }
+    return out;
+  }
+  if (files.length !== 2) return undefined;
+  if (!copySingle(files[0]!, files[1]!)) return undefined;
+  return out;
 }
 
 syncCommandEvaluators.evalSyncInstall = evalSyncInstall;

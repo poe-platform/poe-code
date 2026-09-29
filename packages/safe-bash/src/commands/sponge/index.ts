@@ -26,6 +26,7 @@ export function evalSyncSponge(
       endOfOptions = true;
       continue;
     }
+    if (!endOfOptions && arg === "--append") { append = true; continue; }
     if (!endOfOptions && (arg === "--help" || arg === "-h")) {
       return "Usage: sponge [-a] [FILE]\nSoak up standard input and write to FILE (or stdout).\n";
     }
@@ -43,7 +44,7 @@ export function evalSyncSponge(
   }
   if (files.length > 1) return undefined;
   const payload = inBytes ?? new Uint8Array(0);
-  if (files.length === 0) return decoder.decode(payload);
+  if (files.length === 0 || files[0] === "-") return decoder.decode(payload);
   if (!writeFileSync) return undefined;
   const target = files[0]!;
   if (append) {

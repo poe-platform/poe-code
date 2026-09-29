@@ -29279,7 +29279,7 @@ export class Runtime {
                   : firstName === "csvjoin"
                     ? evalSyncCsvjoin(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "dd"
-                    ? evalSyncDd(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                    ? evalSyncDd(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : firstName === "xargs"
                     ? evalSyncXargs(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "openssl"
@@ -29787,7 +29787,7 @@ export class Runtime {
           : w0Plain === "csvjoin"
             ? evalSyncCsvjoin(optInBytes, allArgs, readFile)
           : w0Plain === "dd"
-            ? evalSyncDd(optInBytes, allArgs, readFile)
+            ? evalSyncDd(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "xargs"
             ? evalSyncXargs(optInBytes, allArgs, readFile)
           : w0Plain === "openssl"

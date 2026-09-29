@@ -1,3 +1,6 @@
+import { ddCommands } from "../../src/commands/dd/index.ts";
+import { installCommands } from "../../src/commands/install/index.ts";
+import { spongeCommands } from "../../src/commands/sponge/index.ts";
 import { csplitCommands } from "../../src/commands/csplit/index.ts";
 import { lessCommands } from "../../src/commands/less/index.ts";
 import { fileCommands } from "../../src/commands/file/index.ts";
@@ -796,5 +799,28 @@ test("evaluates csplit -b/regex patterns, less -p/-i/-n, and file -0/-f in sync 
   assert.equal(
     r.stdout,
     "5,9,#---:body:#TARGET TWO,line three,#text/plain\n",
+  );
+});
+
+test("evaluates dd of=/seek=/iflag=/oflag=/conv=notrunc, install -D/-t/-b, and sponge --append/- in sync substitutions (Wave 198)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(ddCommands()).use(installCommands()).use(spongeCommands());
+  const r = await shell.exec(
+    [
+      "printf \"0123456789\" > /tmp/w198.in",
+      "printf \"__________\" > /tmp/w198.dd",
+      "dd_empty=$(dd if=/tmp/w198.in of=/tmp/w198.dd bs=2 skip=3 count=4 iflag=skip_bytes,count_bytes seek=2 oflag=seek_bytes conv=notrunc,ucase status=none)",
+      "dd_res=$(cat /tmp/w198.dd)",
+      "inst_res=$(install -Dv -m 644 /tmp/w198.in /tmp/w198_dir/sub/out.txt | tr \"\\n\" \",\")",
+      "sp_app=$(printf \"tail\" | sponge --append /tmp/w198_dir/sub/out.txt)\n      sp_res=$(printf \"pass\" | sponge -)",
+      "inst_cat=$(cat /tmp/w198_dir/sub/out.txt)",
+      "printf \"%s#%s#%s#%s\\n\" \"$dd_res\" \"$inst_res\" \"$sp_res\" \"$inst_cat\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "__3456____#install: creating directory '/tmp/w198_dir',install: creating directory '/tmp/w198_dir/sub','/tmp/w198.in' -> '/tmp/w198_dir/sub/out.txt',#pass#0123456789tail\n",
   );
 });

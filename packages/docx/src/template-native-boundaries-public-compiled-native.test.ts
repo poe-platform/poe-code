@@ -16,14 +16,14 @@ const field = (id: number) => `<w:sdt><w:sdtPr><w:id w:val="${id}"/><w:tag w:val
 const region = (tag: string, blocks: string, id: number) => `<w:sdt xmlns:v="http://schemas.microsoft.com/office/word/2012/wordml"><w:sdtPr><w:id w:val="${id}"/><w:tag w:val="${tag}"/><v:repeatingSection/></w:sdtPr><w:sdtContent><w:sdt><w:sdtPr><w:id w:val="${id+1}"/><v:repeatingSectionItem/></w:sdtPr><w:sdtContent>${blocks}</w:sdtContent></w:sdt></w:sdtContent></w:sdt>`;
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
 for (const route of ["sdk", "cli", "sdk-batch", "cli-batch"] as const)
-for (const boundary of ["row-1000", "row-1001", "block-1000", "block-1001", "depth4", "depth5", "depth5-shape", "row-1000-budget", "block-1000-budget"] as const)
+for (const boundary of ["row-1000", "row-1001", "block-1000", "block-1001", "depth4", "depth5", "depth5-shape", "row-1000-budget", "block-1000-budget", "row-1001-default", "block-1001-default", "depth5-default"] as const)
 describe(`${route} executes native template boundary ${boundary}; ${kind}; strict=${strict}`, () => {
-  const fails = boundary.endsWith("1001") || boundary.startsWith("depth5") || boundary.endsWith("budget");
-  const rejection = boundary === "depth5" ? "usage" : "limit-exceeded";
+  const fails = boundary.endsWith("1001") || (boundary.startsWith("depth5") && !boundary.endsWith("default")) || boundary.endsWith("budget");
+  const rejection = "limit-exceeded";
   const controller = new AbortController();
   afterAll(() => { controller.abort(); context = undefined; output = undefined; });
   let output: Uint8Array | undefined, input: Uint8Array, before: ReturnType<typeof readPackage>;
-  const documentLimits = { retainedBytes: 2147483648, work: 2147483648 };
+  const documentLimits = { retainedBytes: 2147483648, work: 2147483648, ...(boundary.endsWith("default") ? {} : { templateRepeatDepth: 4, templateRepeatItems: 1000 }) };
   const limits = { ...textContext.limits, maxArchiveBytes: 33554432, maxEntryBytes: 16777216, maxTotalBytes: 67108864, maxRetainedBytes: documentLimits.retainedBytes };
   let context: compiledTypes.ArchiveContext & { readonly encoding: { readonly order: "input"; readonly compression: "store" } } | undefined = { ...textContext, signal: controller.signal, budget: new api.DocumentBudget(documentLimits, controller.signal), limits, encoding: { order: "input", compression: "store" } };
   it("publishes or rejects before mutation", async () => {
@@ -56,7 +56,7 @@ describe(`${route} executes native template boundary ${boundary}; ${kind}; stric
       const command = route === "cli" ? "docx template apply /input --data-file /data --output /output --force --json" : "docx batch /input --ops-file /ops --output /output --force --json";
       const result = await shell.exec(command + (boundary.endsWith("budget") ? " --limit retainedBytes=1048576" : ""), { signal: controller.signal });
       expect(await fs.readFile("/input")).toEqual(input);
-      if (fails) { expect(result.exitCode, result.stdout + result.stderr).toBe(rejection === "usage" ? 2 : 4); expect(JSON.parse(result.stdout).errors[0].code).toBe(rejection); expect(await fs.readFile("/output")).toEqual(encode("Retained destination")); return; }
+      if (fails) { expect(result.exitCode, result.stdout + result.stderr).toBe(4); expect(JSON.parse(result.stdout).errors[0].code).toBe(rejection); expect(await fs.readFile("/output")).toEqual(encode("Retained destination")); return; }
       expect(result.exitCode, result.stdout + result.stderr).toBe(0); output = await fs.readFile("/output");
     } finally { await shell.dispose(); }
   }
@@ -75,9 +75,9 @@ describe(`${route} executes native template boundary ${boundary}; ${kind}; stric
   if (!output || !context) throw new Error("No verified publication candidate.");
   const controls = (await api.inspectDocumentControls(output, {}, context)).items;
   expect(new Set(controls.map(control => control.id)).size).toBe(controls.length); expect(controls.every(control => control.id !== "777")).toBe(true);
-  if (boundary.endsWith("1000")) {
+  if (!boundary.startsWith("depth")) {
     const expectedIds: string[] = [];
-    for (let candidate = 1; expectedIds.length < 2000; candidate++) if (![10, 11, 30, 777].includes(candidate)) expectedIds.push(String(candidate));
+    for (let candidate = 1; expectedIds.length < Number(boundary.split("-")[1]) * 2; candidate++) if (![10, 11, 30, 777].includes(candidate)) expectedIds.push(String(candidate));
     expect(controls.slice(1).map(control => control.id)).toEqual(expectedIds);
   }
   expect(controls.filter(control => control.tag === "entry").every(control => !control.placeholder)).toBe(true);
@@ -86,7 +86,7 @@ describe(`${route} executes native template boundary ${boundary}; ${kind}; stric
   expect(output, "Verified publication candidate").toBeDefined();
   if (!output || !context) throw new Error("No verified publication candidate.");
   const text = (await api.extractDocumentText(output, context)).text;
-  expect(text).toBe('Outside {{entry}}\n'+(boundary === "depth4" ? "Nested leaf 海" : Array.from({ length: 1000 }, (_, index) => `Record ${index} 海`).join("\n")));
+  expect(text).toBe('Outside {{entry}}\n'+(boundary.startsWith("depth") ? "Nested leaf 海" : Array.from({ length: Number(boundary.split("-")[1]) }, (_, index) => `Record ${index} 海`).join("\n")));
   expect(readPackage(input)).toEqual(before);
   });
 });

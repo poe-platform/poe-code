@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors } from "../internal.js";
 import { FsError, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandInvoker, type VirtualShellPlugin } from "../../contracts/index.js";
 import { shellValueByteLength } from "../../contracts/value.js";
 import { parseDuration } from "./duration.js";
@@ -309,12 +310,71 @@ function definition(configuration: Settings): CommandDefinition {
   });
 }
 
+function isDefaultTimeoutOptions(options?: TimeoutCommandOptions): boolean {
+  return options === undefined || (
+    options.limits === undefined &&
+    options.killAfterPolicy === undefined &&
+    options.invoke === undefined &&
+    options.scheduler === undefined &&
+    options.maxTimerMilliseconds === undefined
+  );
+}
+
 export function createTimeoutCommand(options?: TimeoutCommandOptions): CommandDefinition {
-  return definition(settings(options, false));
+  const def = definition(settings(options, false));
+  if (isDefaultTimeoutOptions(options)) builtInDirectContextExecutors.add(def.execute);
+  return def;
 }
 
 export function createTimeoutCommands(options?: TimeoutCommandsOptions): readonly CommandDefinition[] {
-  return Object.freeze([definition(settings(options, true))]);
+  const def = definition(settings(options, true));
+  if (isDefaultTimeoutOptions(options)) builtInDirectContextExecutors.add(def.execute);
+  return Object.freeze([def]);
+}
+
+export function evalSyncTimeout(args: readonly string[]): string | undefined {
+  if (args.length === 1) {
+    if (args[0] === "--version") return "timeout (virtual-bash cooperative profile)\n";
+    if (args[0] === "--help") return "Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual-bash command with a cooperative time limit.\n";
+  }
+  let i = 0;
+  while (i < args.length) {
+    const a = args[i]!;
+    if (a === "--") { i++; break; }
+    if (a === "--preserve-status" || a === "--foreground" || a === "-v" || a === "--verbose") { i++; continue; }
+    if (a === "-s" || a === "--signal" || a === "-k" || a === "--kill-after") {
+      if (i + 1 >= args.length) return undefined;
+      i += 2;
+      continue;
+    }
+    if (a.startsWith("--signal=") || a.startsWith("--kill-after=") || (a.startsWith("-s") && a.length > 2) || (a.startsWith("-k") && a.length > 2)) {
+      i++;
+      continue;
+    }
+    if (a.startsWith("-")) return undefined;
+    break;
+  }
+  if (i >= args.length) return undefined;
+  const durStr = args[i]!;
+  const parsed = parseDuration(durStr);
+  if (parsed.kind !== "ok" || parsed.milliseconds <= 0) return undefined;
+  i++;
+  if (i >= args.length) return undefined;
+  const subCmd = args[i]!;
+  const subArgs = args.slice(i + 1);
+  if (subCmd === "echo") {
+    let noNewline = false;
+    let start = 0;
+    if (subArgs[0] === "-n") { noNewline = true; start = 1; }
+    else if (subArgs[0]?.startsWith("-")) return undefined;
+    return subArgs.slice(start).join(" ") + (noNewline ? "" : "\n");
+  }
+  if (subCmd === "true") return "";
+  if (subCmd === "printf" && subArgs.length >= 1 && (subArgs[0] === "%s" || subArgs[0] === "%s\n")) {
+    const sep = subArgs[0] === "%s\n" ? "\n" : "";
+    return subArgs.slice(1).map(x => x + sep).join("");
+  }
+  return undefined;
 }
 
 export function timeoutCommands(options?: TimeoutCommandsOptions): VirtualShellPlugin {

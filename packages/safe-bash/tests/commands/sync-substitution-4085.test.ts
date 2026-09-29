@@ -4,6 +4,7 @@ import { createWkhtmltopdfCommands } from "../../src/commands/wkhtmltopdf/index.
 import { createOpCommands } from "../../src/commands/op/index.js";
 import { createGitCommands } from "../../src/commands/git/index.js";
 import { createArchiveCommands } from "../../src/commands/archive/index.js";
+import { createTimeoutCommands } from "../../src/commands/timeout/index.js";
 import { createPdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
 import { createMmdcCommands } from "../../src/commands/mmdc/index.js";
 import { createPandocCommands } from "../../src/commands/pandoc/index.js";
@@ -1331,4 +1332,56 @@ test("sync substitution and pipeline fast path for git, tar, unzip, and zip (Wav
   assert.equal(lines[6], "hello from git and archives");
   assert.match(lines[7] ?? "", /safe-bash zip/);
   assert.ok(elapsed < 1500, `Expected < 1500ms for 8x150 iterations, took ${elapsed.toFixed(1)}ms`);
+});
+
+test("sync substitution and pipeline fast path for bzip2, bunzip2, bzcat, xz, unxz, xzcat, zstd, and timeout (Wave 155)", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createCompressionCommands(),
+    ...createTimeoutCommands(),
+  ]) {
+    registry.register(cmd, { replace: true });
+  }
+  const shell = new Shell({ fs, commands: registry });
+
+  const setup = await shell.exec(`
+    printf 'hello bzip2 payload\n' | bzip2 -c > /data.bz2
+    printf 'hello xz payload\n' | xz -c > /data.xz
+    printf 'hello zstd payload\n' | zstd -c > /data.zst
+  `);
+  assert.equal(setup.exitCode, 0, setup.stderr);
+
+  const t0 = performance.now();
+  const res = await shell.exec(`
+    r_bzcat=""
+    r_bzpipe=""
+    r_xzcat=""
+    r_xzpipe=""
+    r_zstd=""
+    r_tver=""
+    r_techo=""
+    for i in $(seq 1 150); do
+      r_bzcat=$(bzcat /data.bz2)
+      r_bzpipe=$(printf 'inline bz2\n' | bzip2 -c | bunzip2)
+      r_xzcat=$(xzcat /data.xz)
+      r_xzpipe=$(printf 'inline xz\n' | xz -c | unxz)
+      r_zstd=$(printf 'inline zstd\n' | zstd -c | unzstd)
+      r_tver=$(timeout --version | head -n 1)
+      r_techo=$(timeout 5s echo "timed ok")
+    done
+    printf '%s\n%s\n%s\n%s\n%s\n%s\n%s\n' "$r_bzcat" "$r_bzpipe" "$r_xzcat" "$r_xzpipe" "$r_zstd" "$r_tver" "$r_techo"
+  `);
+  const elapsed = performance.now() - t0;
+  assert.equal(res.exitCode, 0, res.stderr);
+  const lines = res.stdout.trim().split("\n");
+  assert.equal(lines[0], "hello bzip2 payload");
+  assert.equal(lines[1], "inline bz2");
+  assert.equal(lines[2], "hello xz payload");
+  assert.equal(lines[3], "inline xz");
+  assert.equal(lines[4], "inline zstd");
+  assert.match(lines[5] ?? "", /^timeout /);
+  assert.equal(lines[6], "timed ok");
+  assert.ok(elapsed < 1500, `Expected < 1500ms for 7x150 iterations, took ${elapsed.toFixed(1)}ms`);
 });

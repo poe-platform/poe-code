@@ -515,7 +515,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
         const keyPair = (await globalThis.crypto.subtle.generateKey({ name: "Ed25519" }, true, [
           "sign",
           "verify",
-        ])) as CryptoKeyPair;
+        ])) as unknown as { privateKey: CryptoKey; publicKey: CryptoKey };
         const jwk = await globalThis.crypto.subtle.exportKey("jwk", keyPair.privateKey);
         const fromB64Url = (s: string) => base64ToBytes(s.replace(/-/g, "+").replace(/_/g, "/"));
         const seed = fromB64Url(jwk.d!);

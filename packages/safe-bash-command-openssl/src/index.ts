@@ -431,7 +431,7 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
           const keyPair = (await globalThis.crypto.subtle.generateKey({ name: "Ed25519" }, true, [
             "sign",
             "verify",
-          ])) as CryptoKeyPair;
+          ])) as unknown as { privateKey: CryptoKey; publicKey: CryptoKey };
           const pkcs8 = new Uint8Array(await globalThis.crypto.subtle.exportKey("pkcs8", keyPair.privateKey));
           const pem = `-----BEGIN PRIVATE KEY-----\n${bytesToBase64(pkcs8, true)}\n-----END PRIVATE KEY-----\n`;
           await emitOutput(context, outFile, textEncoder.encode(pem));
@@ -491,7 +491,7 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
           const keyPair = (await globalThis.crypto.subtle.generateKey({ name: "Ed25519" }, true, [
             "sign",
             "verify",
-          ])) as CryptoKeyPair;
+          ])) as unknown as { privateKey: CryptoKey; publicKey: CryptoKey };
           const pkcs8 = new Uint8Array(await globalThis.crypto.subtle.exportKey("pkcs8", keyPair.privateKey));
           const spki = new Uint8Array(await globalThis.crypto.subtle.exportKey("spki", keyPair.publicKey));
           if (keyOut) {

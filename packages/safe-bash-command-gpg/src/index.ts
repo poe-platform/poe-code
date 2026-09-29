@@ -330,7 +330,7 @@ async function ensureKeyForUid(context: CommandContext, uid: string): Promise<{ 
     };
   }
   const seed = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", textEncoder.encode(`gpg-key-seed:${uid}`)));
-  const kp = (await globalThis.crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"])) as CryptoKeyPair;
+  const kp = (await globalThis.crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"])) as unknown as { privateKey: CryptoKey; publicKey: CryptoKey };
   const jwk = await globalThis.crypto.subtle.exportKey("jwk", kp.privateKey);
   const realSeed = base64ToBytes(jwk.d!);
   const realPub = base64ToBytes(jwk.x!);

@@ -418,7 +418,7 @@ impl MemoryFs {
     }
 
     pub fn mkdir(&self, filepath: &str) -> Result<(), FsError> {
-        mkdirp(|p| self.mkdir_single(p), filepath, 10)
+        mkdirp(|p| self.mkdir_single(p), filepath, 64)
     }
 
     pub fn rmdir(&self, filepath: &str) -> Result<(), FsError> {
@@ -540,6 +540,23 @@ impl MemoryFs {
             Some(_) => Err(FsError::new("EINVAL", "Not a symbolic link")),
             None => Err(FsError::enoent(filepath)),
         }
+    }
+
+
+    pub fn list_paths_under(&self, prefix: &str) -> Vec<String> {
+        let clean = Self::clean_abs_path(prefix);
+        let slash = if clean == "/" {
+            "/".to_string()
+        } else {
+            format!("{clean}/")
+        };
+        let state = self.state.read().unwrap();
+        state
+            .entries
+            .keys()
+            .filter(|k| *k == &clean || k.starts_with(&slash))
+            .cloned()
+            .collect()
     }
 
     pub fn cp_recursive(&self, src: &str, dst: &str) -> Result<(), FsError> {

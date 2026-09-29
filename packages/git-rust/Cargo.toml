@@ -14,3 +14,7 @@ path = "src/lib.rs"
 glob = "0.3.4"
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }
 regex = "1.13.1"
+
+[[bin]]
+name = "git-rust"
+path = "src/main.rs"

@@ -319,7 +319,7 @@ pub fn host_matches_known_hosts_entry(entry_hosts: &str, host: &str, port: u16) 
         let Some(salt) = base64_decode(salt_b64) else { return false };
         let Some(expected) = base64_decode(hash_b64) else { return false };
         let mac_host = sha1_hmac(&salt, host.as_bytes());
-        if mac_host.as_slice() == expected.as_slice() {
+        if port == 22 && mac_host.as_slice() == expected.as_slice() {
             return true;
         }
         let mac_bracket = sha1_hmac(&salt, bracketed.as_bytes());
@@ -327,7 +327,7 @@ pub fn host_matches_known_hosts_entry(entry_hosts: &str, host: &str, port: u16) 
     }
     for token in entry_hosts.split(',') {
         let t = token.trim();
-        if t == host || t == bracketed || (port == 22 && t == format!("[{host}]:22")) {
+        if (port == 22 && t == host) || t == bracketed {
             return true;
         }
     }

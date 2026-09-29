@@ -67,7 +67,7 @@ interface TextOptions {
   locale?: string;
 }
 
-function appendField(text: string, options: TextOptions, append: (text: string) => void): void {
+export function appendTextField(text: string, options: Pick<TextOptions, "mode" | "quote" | "whitespace">, append: (text: string) => void): void {
   // Preserve NUL and scan the entire field. Triggers retain the initial
   // configuration even after separator, quote and eol properties change via -O.
   const whitespace = (c: string | undefined) => c !== undefined && c !== "\u000b" && c !== "\ufeff" && c.trim() === "";
@@ -139,7 +139,7 @@ async function exportText(args: Parameters<NonNullable<Codec["write"]>>, options
           const bytes = byteField(decodeByteString(value.value, tick, context.limits.outputBytes), options,
             renderingContext.limits.outputBytes - length, tick);
           length += bytes.length; chunks.push(bytes);
-        } else appendField(cell ? await renderCellText(cell, book, renderingContext, options.format) : "", options, append);
+        } else appendTextField(cell ? await renderCellText(cell, book, renderingContext, options.format) : "", options, append);
       }
       append(options.eol);
     }

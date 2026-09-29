@@ -202,3 +202,32 @@ callback commit is dropped. A current maintained Safe Bash build is refreshing
 compiled outputs after the latest incoming command changes. DBF and the remaining
 publication fixes still await push at this checkpoint; no containing published
 release is claimed, and the broader compatibility families remain open.
+
+The eight pending commits were subsequently verified on remote main
+`0a4e96adff`: DBF ownership, the unrtf adapter name, CSV/tar regression coverage,
+the LLM declaration fixture, canonical browser exports, qualification notes and
+additional op completion regressions. The containing maintained build and full
+lint passed, along with 236 focused and 101 conversion checks. Equivalent op
+and evaluator runtime repairs delivered by other workers were preserved.
+Scoped pin `36576991455` selects that exact revision; root pin `36577000641`
+selects its descendant `cdf3bdb837`. Publication remains separately monitored.
+
+Follow-up #4308 reconciles the newer synchronous conversion path with the same
+ownership boundaries. The shell adapter now only wires archive operations and
+the evaluator; command parsing and dispatch live in the command owner. CSV
+parsing/formatting lives in the CSV format package, with the field quoting
+function shared by synchronous and canonical exporters. XLSX package-entry
+parsing/writing lives in `xlsx-ast` and uses the shared XML parser and spreadsheet
+cell-value types. ZIP operations remain an explicitly supplied composition
+dependency; selected format bundles contain no shell command or PDF renderer.
+
+This is a dense, unformatted synchronous profile, with canonical fallback for
+unsupported workbooks before destination publication. It retains the incoming
+sparse-coordinate fallback. Failing-before cases cover escaped string literals,
+rich string runs, booleans, XML namespaces/quoting, CSV whitespace and sheet-name
+preservation. Typed XLSX values survive canonical writer readback; an independent
+openpyxl input and openpyxl/CSV output readback preserve its sheet name, Unicode,
+whitespace, numbers, booleans and the string `007`. Existing XLSX/text regressions
+passed 628 checks before the final sheet-name correction; subsequent focused
+checks and the maintained containing build/full lint pass. This follow-up still
+awaits delivery at this checkpoint and does not establish full XLSX fidelity.

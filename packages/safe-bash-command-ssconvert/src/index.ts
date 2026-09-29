@@ -73,3 +73,5 @@ export { createDatabaseFunctions } from "./formulas/database-functions.js";
 export type { DatabaseQuery, DatabaseQueryRequest, DatabaseQueryResult } from "./formulas/database-functions.js";
 
 export * from "./command.js";
+
+export { createSyncSsconvertEvaluator, type SynchronousSpreadsheetArchive } from "./sync.js";

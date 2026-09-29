@@ -42,6 +42,10 @@
     "./report": {
       "types": "./dist/report.d.ts",
       "import": "./dist/report.js"
+    },
+    "./sync": {
+      "types": "./dist/sync.d.ts",
+      "import": "./dist/sync.js"
     }
   },
   "files": [

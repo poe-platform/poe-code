@@ -116,8 +116,13 @@ match 56 native outputs across the three cohorts, including raw byte results.
 Initial conditions passed the compiled root export; later cohorts passed the
 compiled command package. Qualify all three through the containing root release,
 installed artifacts and activated Gnumeric loader. Wider grammar, Unicode and
-diagnostics remain open. Release `36598284494` failed fresh units after passing
-build, audit, checks and cached units; inspect and repair the current failure.
+diagnostics remain open. Release `36598284494` failed fresh units and Bash 1;
+its declaration/browser/archive fixture failures are repaired. Final archive
+controls pass 265 tests with one explicit-input qualification skip; the rebased
+browser/public/facade cohort passes 67 tests and root ESLint passes.
+The containing pin `36606002535` at `b00b184630` is pending; publication and
+installed artifact qualification remain unverified. Preserve the independently
+delivered root/scoped fixture separation `61baed7701`.
 
 | Family | Required completion scope |
 | --- | --- |

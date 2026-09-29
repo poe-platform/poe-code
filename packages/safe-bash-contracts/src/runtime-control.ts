@@ -1,6 +1,9 @@
-import type { FileSystem } from "./index.js";
+import type { CommandHandler, FileSystem } from "./index.js";
 import { addAbortSignalWaiter, removeAbortSignalWaiter } from "./signals.js";
 export { abortManagedController, addAbortSignalWaiter, combineManagedSignals, createManagedControlController, isManagedAbortSignal, isManagedControlSignal, notifyAbortSignalWaiters, registerManagedAbortSignal, removeAbortSignalWaiter, toNativeAbortSignal, type ManagedControlController, type AbortSignalWaiter } from "./signals.js";
+
+/** Default command handlers eligible for the shell's built-in execution paths. */
+export const builtInDirectContextExecutors = new WeakSet<CommandHandler>();
 
 /** Creation mask carried through the shell's transparent filesystem views. */
 export const creationUmask = Symbol("creationUmask");

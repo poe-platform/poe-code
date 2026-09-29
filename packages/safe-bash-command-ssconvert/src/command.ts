@@ -13,6 +13,7 @@ import {
   type CommandDefinition,
   type VirtualShellPlugin
 } from "safe-bash-contracts";
+import { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-control";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 
@@ -25,39 +26,40 @@ export interface SsconvertCommandsOptions extends Omit<EngineConfig, "filesystem
 }
 /** Explicit opt-in; the domain engine is the only conversion implementation. */
 export function createSsconvertCommand(options: SsconvertCommandsOptions = {}): CommandDefinition {
-  if (options.replace !== undefined && typeof options.replace !== "boolean")
+  const configured = { ...options };
+  if (configured.replace !== undefined && typeof configured.replace !== "boolean")
     throw new TypeError("ssconvert replace must be boolean");
   const binding = {
-    ...options,
-    ...(options.io === undefined ? {} : { io: Object.freeze({
-      ...(options.io.descriptors === undefined ? {} : { descriptors: Object.freeze(Object.fromEntries(
-        Object.entries(options.io.descriptors).map(([key, descriptor]) => [key, Object.freeze({ ...descriptor })])
+    ...configured,
+    ...(configured.io === undefined ? {} : { io: Object.freeze({
+      ...(configured.io.descriptors === undefined ? {} : { descriptors: Object.freeze(Object.fromEntries(
+        Object.entries(configured.io.descriptors).map(([key, descriptor]) => [key, Object.freeze({ ...descriptor })])
       )) }),
-      ...(options.io.adapters === undefined ? {} : { adapters: Object.freeze({ ...options.io.adapters }) }),
-      ...(options.io.transport === undefined ? {} : { transport: Object.freeze({
-        authorize: options.io.transport.authorize.bind(options.io.transport),
-        request: options.io.transport.request.bind(options.io.transport),
-        redirects: options.io.transport.redirects
+      ...(configured.io.adapters === undefined ? {} : { adapters: Object.freeze({ ...configured.io.adapters }) }),
+      ...(configured.io.transport === undefined ? {} : { transport: Object.freeze({
+        authorize: configured.io.transport.authorize.bind(configured.io.transport),
+        request: configured.io.transport.request.bind(configured.io.transport),
+        redirects: configured.io.transport.redirects
       }) })
     }) }),
-    ...(options.runtimeFunctions === undefined ? {} : { runtimeFunctions: snapshotRuntimeFunctions(options.runtimeFunctions) }),
-    ...(options.profile === undefined ? {} : { profile: Object.freeze({
-      ...options.profile,
-      ...(options.profile.groups === undefined ? {} : { groups: Object.freeze({ ...options.profile.groups }) }),
-      ...(options.profile.configurationRoots === undefined ? {} : {
-        configurationRoots: Object.freeze({ ...options.profile.configurationRoots })
+    ...(configured.runtimeFunctions === undefined ? {} : { runtimeFunctions: snapshotRuntimeFunctions(configured.runtimeFunctions) }),
+    ...(configured.profile === undefined ? {} : { profile: Object.freeze({
+      ...configured.profile,
+      ...(configured.profile.groups === undefined ? {} : { groups: Object.freeze({ ...configured.profile.groups }) }),
+      ...(configured.profile.configurationRoots === undefined ? {} : {
+        configurationRoots: Object.freeze({ ...configured.profile.configurationRoots })
       })
     }) }),
-    codecs: Object.freeze([...(options.codecs ?? [])]),
-    ...(options.formats === undefined ? {} : { formats: snapshotFormats(options.formats) }),
-    limits: Object.freeze({ ...defaultSsconvertLimits, ...options.limits }),
+    codecs: Object.freeze([...(configured.codecs ?? [])]),
+    ...(configured.formats === undefined ? {} : { formats: snapshotFormats(configured.formats) }),
+    limits: Object.freeze({ ...defaultSsconvertLimits, ...configured.limits }),
     environment: Object.freeze({
       locale: "C", timezone: "UTC",
-      ...options.environment,
-      env: Object.freeze({ ...options.environment?.env })
+      ...configured.environment,
+      env: Object.freeze({ ...configured.environment?.env })
     })
   };
-  return {
+  const command: CommandDefinition = {
     name: "ssconvert",
     description: "Explicitly bound TypeScript spreadsheet conversion engine",
     async execute(context) {
@@ -191,6 +193,10 @@ export function createSsconvertCommand(options: SsconvertCommandsOptions = {}): 
       }
     }
   };
+  if (Object.entries(configured).every(([key, value]) => key === "replace" || value === undefined)) {
+    builtInDirectContextExecutors.add(command.execute);
+  }
+  return command;
 }
 export function ssconvertCommands(options: SsconvertCommandsOptions = {}): VirtualShellPlugin {
   const commands = createSsconvertCommands(options),

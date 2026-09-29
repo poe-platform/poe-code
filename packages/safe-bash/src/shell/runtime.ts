@@ -28059,7 +28059,7 @@ export class Runtime {
                   : (firstName === "soffice" || firstName === "libreoffice")
                     ? syncCommandEvaluators.evalSyncSoffice?.(stageArgs, readFile)
                   : firstName === "ssconvert"
-                    ? syncCommandEvaluators.evalSyncSsconvert?.(stageArgs)
+                    ? syncCommandEvaluators.evalSyncSsconvert?.(stageDefs[sIdx]!.execute, stageArgs)
                   : firstName === "wkhtmltopdf"
                     ? syncCommandEvaluators.evalSyncWkhtmltopdf?.(stageArgs)
                   : firstName === "op"
@@ -28542,7 +28542,7 @@ export class Runtime {
           : (w0Plain === "soffice" || w0Plain === "libreoffice")
             ? syncCommandEvaluators.evalSyncSoffice?.(allArgs, readFile)
           : w0Plain === "ssconvert"
-            ? syncCommandEvaluators.evalSyncSsconvert?.(allArgs)
+            ? syncCommandEvaluators.evalSyncSsconvert?.(this.getExternalCommand("ssconvert")!.execute, allArgs)
           : w0Plain === "wkhtmltopdf"
             ? syncCommandEvaluators.evalSyncWkhtmltopdf?.(allArgs)
           : w0Plain === "op"
@@ -28924,7 +28924,7 @@ export class Runtime {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncSoffice?.(opArgs, readFile);
             } else if (w0Plain === "ssconvert") {
-              fileRes = syncCommandEvaluators.evalSyncSsconvert?.(opArgs);
+              fileRes = syncCommandEvaluators.evalSyncSsconvert?.(this.getExternalCommand("ssconvert")!.execute, opArgs);
             } else if (w0Plain === "wkhtmltopdf") {
               fileRes = syncCommandEvaluators.evalSyncWkhtmltopdf?.(opArgs);
             } else if (w0Plain === "op") {

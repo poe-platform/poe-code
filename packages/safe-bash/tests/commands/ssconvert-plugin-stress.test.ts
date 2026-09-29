@@ -7,7 +7,8 @@ import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
-import { createSsconvertCommand, ssconvertCommands } from "../../src/commands/ssconvert/index.js";
+import { createSsconvertCommand, createSsconvertCommands, ssconvertCommands } from "../../src/commands/ssconvert/index.js";
+import { builtInDirectContextExecutors } from "../../src/commands/internal.js";
 import * as ssconvertPackage from "safe-bash-command-ssconvert";
 
 const encode = (value: string) => new TextEncoder().encode(value);
@@ -36,6 +37,7 @@ function invocation(args: readonly string[], overrides: Partial<CommandContext> 
 
 test("ssconvert private package owns the singular, plural and plugin factories", async () => {
   assert.equal(ssconvertPackage.createSsconvertCommand, createSsconvertCommand);
+  assert.equal(ssconvertPackage.createSsconvertCommands, createSsconvertCommands);
   assert.equal(ssconvertPackage.ssconvertCommands, ssconvertCommands);
   const commands = ssconvertPackage.createSsconvertCommands();
   assert.deepEqual(commands.map(command => command.name), ["ssconvert"]);
@@ -45,6 +47,27 @@ test("ssconvert private package owns the singular, plural and plugin factories",
   assert.equal((await commands[0]!.execute(call.context)).exitCode, 0);
   assert.deepEqual(call.stderr, []);
   assert.equal(new TextDecoder().decode(Buffer.concat(call.stdout)), "Name,Value\nexample,7\n");
+});
+
+test("ssconvert canonical factories enroll default executors for synchronous evaluation", () => {
+  for (const supplied of [undefined, {}, { replace: true }]) {
+    const command = ssconvertPackage.createSsconvertCommand(supplied);
+    assert.equal(builtInDirectContextExecutors.has(command.execute), true);
+  }
+});
+
+test("ssconvert synchronous evaluation preserves configured argument limits", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", encode(""));
+  const shell = new Shell({ fs }).use(agentCommands()).use(ssconvertCommands({ limits: { argumentBytes: 1 } }));
+  try {
+    for (const source of ["ssconvert --help", "ssconvert --help < /input", "ssconvert --help | cat"]) {
+      const result = await shell.exec(`set -o pipefail; value="$(${source})"`);
+      assert.equal(result.exitCode, 1, source);
+      assert.equal(result.stdout, "", source);
+      assert.match(result.stderr, /argument.*limit exceeded/, source);
+    }
+  } finally { await shell.dispose(); }
 });
 
 test("ssconvert shell output refusal retires staging and preserves the existing destination", async () => {

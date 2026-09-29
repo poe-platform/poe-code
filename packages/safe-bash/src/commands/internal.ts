@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-control";
 import { pathOf } from "safe-bash-query-engine/path";
 import { UsageError, publicDiagnosticMessage } from "../diagnostics.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
@@ -45,7 +46,7 @@ async function handleDefineError(
 export const encoder = new TextEncoder();
 export const decoder = new TextDecoder();
 export const bufferLimit = Infinity;
-export const builtInDirectContextExecutors = new WeakSet<CommandHandler>();
+export { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-control";
 
 export function isDefaultCommandOptions(options?: unknown): boolean {
   if (!options || typeof options !== "object") return true;
@@ -92,7 +93,7 @@ export interface SyncCommandEvaluators {
   evalSyncMmdc?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
   evalSyncPandoc?: (opArgs: readonly string[]) => string | undefined;
   evalSyncSoffice?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
-  evalSyncSsconvert?: (opArgs: readonly string[]) => string | undefined;
+  evalSyncSsconvert?: (execute: CommandHandler, opArgs: readonly string[]) => string | undefined;
   evalSyncWkhtmltopdf?: (opArgs: readonly string[]) => string | undefined;
   evalSyncOp?: (execute: any, opArgs: readonly string[], env: Readonly<Record<string, string>>) => string | undefined;
   evalSyncGit?: (stdinBytes: Uint8Array | undefined, opArgs: readonly string[], cwd: string, inspectNode?: any, readFile?: any, executeFn?: any) => string | undefined;

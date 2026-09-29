@@ -86,12 +86,15 @@ function getPackageAliases(): Record<string, string> {
 
         const subpath = exportKey.slice(2);
         const subpathEntryPath = path.resolve(packagesDir, pkg, "src", `${subpath}.ts`);
+        const subpathMjsPath = path.resolve(packagesDir, pkg, "src", `${subpath}.mjs`);
         const subpathIndexPath = path.resolve(packagesDir, pkg, "src", subpath, "index.ts");
         const resolvedSubpath = fs.existsSync(subpathEntryPath)
           ? subpathEntryPath
-          : fs.existsSync(subpathIndexPath)
-            ? subpathIndexPath
-            : undefined;
+          : fs.existsSync(subpathMjsPath)
+            ? subpathMjsPath
+            : fs.existsSync(subpathIndexPath)
+              ? subpathIndexPath
+              : undefined;
 
         if (resolvedSubpath === undefined) {
           continue;

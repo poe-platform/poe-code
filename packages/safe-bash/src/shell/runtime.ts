@@ -24689,8 +24689,8 @@ export class Runtime {
   }
 
   private evalSyncNl(rawLines: readonly string[], opArgs: readonly string[], cwd?: string): string[] | undefined {
-    let bodyStyle: "a" | "t" | "n" | "p" = "t";
-    let bodyRe: RegExp | undefined;
+    let bodyStyle = "t" as "a" | "t" | "n" | "p";
+    let bodyRe = undefined as RegExp | undefined;
     let format: "ln" | "rn" | "rz" = "rn";
     let width = 6;
     let sep = "\t";
@@ -24757,13 +24757,13 @@ export class Runtime {
       }
     }
     const out: string[] = [];
-    let curStyle: "a" | "t" | "n" | "p" = bodyStyle;
+    let curStyle = bodyStyle as "a" | "t" | "n" | "p";
     let num = start;
     const unnumberedPrefix = " ".repeat(width + shellValueByteLength(sep));
     for (let i = 0; i < rawLines.length; i++) {
       const l = rawLines[i]!;
       if (l === "\\:" || l === "\\:\\:" || l === "\\:\\:\\:") {
-        curStyle = l === "\\:\\:" ? bodyStyle : "n";
+        curStyle = (l === "\\:\\:" ? bodyStyle : "n") as "a" | "t" | "n" | "p";
         num = start;
         out.push("");
         continue;

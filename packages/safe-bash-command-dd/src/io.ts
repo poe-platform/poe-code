@@ -145,7 +145,9 @@ export async function openDdFile(context: CommandContext, request: DdFileRequest
     try {
       await context.fs.stat(path, { signal });
       existsInFs = true;
-    } catch {}
+    } catch {
+      // Fall through to the virtual device when filesystem lookup fails.
+    }
     if (!existsInFs) {
       let devClosed = false;
       return {

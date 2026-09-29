@@ -1,3 +1,4 @@
+import type { LlmService } from "./service.js";
 export type LlmOption = string | number | boolean | null;
 export type LlmCapability = "messages" | "schema" | "embed";
 export interface LlmResponseMetadata {
@@ -38,7 +39,8 @@ export interface LlmRequest {
   signal: AbortSignal;
 }
 export interface LlmCommandsOptions {
-  readonly providers: readonly LlmProvider[];
+  readonly providers?: readonly LlmProvider[];
+  readonly service?: LlmService;
   readonly defaultModel?: string;
   readonly replace?: boolean;
 }

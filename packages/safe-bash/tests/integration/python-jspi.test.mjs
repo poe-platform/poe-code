@@ -116,7 +116,7 @@ export { WebAssembly, fetch, location };
       });
       plugin.onResolve({ filter: /^python-library-examples$/ }, () => ({path:'examples', namespace:'python-library-examples'}));
       plugin.onLoad({ filter: /.*/, namespace:'python-library-examples' }, () => ({loader:'json', contents:JSON.stringify(Object.fromEntries(
-        ['llm-single.py', 'llm-stream.py', 'shell-tools.py'].map(name => [name, readFileSync(resolve(root, 'packages/safe-bash/docs/examples', name), 'utf8')])))}));
+        ['llm-single.py', 'llm-stream.py', 'llm-customize.py', 'shell-tools.py'].map(name => [name, readFileSync(resolve(root, 'packages/safe-bash/docs/examples', name), 'utf8')])))}));
       plugin.onResolve({ filter: /^python-static-assets$/ }, () => ({ path: 'assets', namespace: 'python-static-assets' }));
       plugin.onLoad({ filter: /.*/, namespace: 'python-static-assets' }, () => ({ contents: injection, loader: 'js', resolveDir: root }));
     } }] });
@@ -160,6 +160,7 @@ export { WebAssembly, fetch, location };
     assert.deepEqual(host.examples, [
       {name:'llm-single.py', exitCode:0, stdout:'Explain gravity in one sentence\n', stderr:''},
       {name:'llm-stream.py', exitCode:0, stdout:'Explain gravity', stderr:''},
+      {name:'llm-customize.py', exitCode:0, stdout:'EXPLAIN GRAVITY\nSECOND\n', stderr:''},
       {name:'shell-tools.py', exitCode:0, stdout:'shell-example-ok\n', stderr:''},
     ]);
     assert.equal(host.stderr, '');
@@ -167,7 +168,7 @@ export { WebAssembly, fetch, location };
     assert.equal(host.calls, 5);
     assert.equal(host.hostCancelled, 1);
     assert.equal(host.shellStreamCancelled, 1);
-    assert.equal(host.libraryReleased, 2);
+    assert.equal(host.libraryReleased, 4);
     assert.equal(host.retirementRejected, true);
     assert.equal(host.siblingExit, 0);
     assert.equal(host.sibling, 'sibling-authority\n');

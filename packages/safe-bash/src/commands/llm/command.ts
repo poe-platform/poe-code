@@ -209,7 +209,9 @@ async function execute(context: CommandContext, service: LlmService) {
 }
 
 export function createLlmCommands(options: LlmCommandsOptions): readonly CommandDefinition[] {
-  const service = createLlmService(options);
+  if (!options.service && options.providers === undefined) throw new TypeError("Provide LLM providers or an authorized service");
+  if (options.service && (options.providers || options.defaultModel !== undefined)) throw new TypeError("Configure providers and defaultModel on the injected LLM service");
+  const service = options.service ?? createLlmService({ ...options, providers: options.providers ?? [] });
   return [{ name: "llm", description: "Query injected language and media models", execute: context => execute(context, service) }];
 }
 

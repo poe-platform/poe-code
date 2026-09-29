@@ -10,10 +10,22 @@ The JSPI launcher installs an invocation-owned bridge. Enable `llm` in
 `pythonCommands({ createCapabilities })`: its `call({ operation, payload },
 { signal })` handles `models`, `complete` and `embed`; its `stream(payload,
 { signal })` produces incremental events. The application adapter must reuse
-its authorized JavaScript service. Python receives data, never credentials or
+`createPythonLlmCapability(context, service)` over its authorized JavaScript
+service. Python receives data, never credentials or
 service objects. A default `Client()` raises `CapabilityError` when the parent
 has not enabled the capability. The blocking Node filesystem launcher does not
 support host capabilities.
+
+```javascript
+import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
+import { pythonCommands, createPythonLlmCapability } from '@poe-platform/safe-bash/commands/python';
+
+const service = createLlmService({ providers: [authorizedProvider], defaultModel: 'your-model' });
+shell.use(llmCommands({ service })).use(pythonCommands({
+  createExecutor,
+  createCapabilities: context => ({ llm: createPythonLlmCapability(context, service) }),
+}));
+```
 
 The deterministic Python suites verify customization and the API contract.
 The current installed-package and hosted consumer qualification is tracked in
@@ -48,7 +60,7 @@ async with Client(model="your-model") as client:
                 print(event.text, end="", flush=True)
             elif event.type == "bytes":
                 process_bytes(event.data)
-        response = stream.response  # The optional complete-response event.
+        response = stream.response  # Final model/usage/metadata; prior output is not retained.
 ```
 
 `break` alone does not close Python async iterators. Exiting `async with` closes
@@ -103,10 +115,10 @@ with its own cleanup scope and the same borrowed bridge.
 | Options | String, safe integer (±9,007,199,254,740,991), finite float, boolean, null | Preserve types and validate provider settings |
 | Attachments | `Attachment(path, mime_type)` | Read the canonical invocation filesystem; infer MIME when omitted |
 | Text and binary responses | `Response`, incremental `Stream` events | Return text/bytes and final response records |
-| Usage and metadata | Response fields | Supply available provider metadata |
+| Usage and metadata | `Response` and `Embeddings` fields | Supply available provider metadata |
 | Structured output | `schema`, `Response.json()` | Validate and send schema through the shared service |
-| Templates | `template`, `parameters`, Python prompt functions | Resolve configured host templates; Python functions need no host template registry |
-| Conversations | `Conversation`, prior messages | Python orchestrates turns; host continuation requires explicit service support |
+| Templates | `template`, `parameters`, Python prompt functions | Python prompt functions work; named templates/parameters are explicitly rejected until shared-service support is delivered |
+| Conversations | `Conversation`, prior messages | Python orchestrates message history; persisted conversation IDs are explicitly rejected until shared-service support is delivered |
 | Embeddings | `embed()`, `Embeddings` | Use the shared embedding operation; reject unsupported providers |
 | Logs, collections and configuration | No persistence methods currently | Shared-service parity remains pending; see the requirement matrix |
 | Cancellation and cleanup | Async context managers, timeout, response limit | Cancel invocation-owned operations and release streams |
@@ -122,6 +134,15 @@ interpreter memory, provider buffers or billing. Configure host admission,
 serialized-message and stream limits through `capabilityLimits`. The host may
 set stricter application limits; it must report refusal rather than truncate.
 
+`createPythonLlmCapability(context, service, {maxStreamChunkBytes})` splits binary
+provider events without retaining the stream; the default chunk is 16 KiB. For a
+finite `capabilityLimits.maxMessageBytes`, choose chunks below one quarter of
+that budget, allowing additional room for the JSON event envelope. This accounts
+for byte-array JSON expansion. Byte order is preserved, early close releases the
+provider iterator, and terminal model/usage/metadata is emitted once after payload
+chunks. Buffered completion, embeddings and terminal metadata must independently
+fit the message budget; oversized results fail explicitly.
+
 Exceptions include `LlmError(code, message)`, `CapabilityError`, `LimitError`,
 native `asyncio.CancelledError` and `asyncio.TimeoutError`. Invalid Python option
 types and invalid limits fail before transport. Host errors must be sanitized by
@@ -130,9 +151,13 @@ the bridge; credentials, private files and service objects must not enter Python
 For deterministic testing, `Client(bridge=...)` accepts an object with async
 `call(operation, payload)` and `stream(payload)` returning an async iterator with
 `aclose()`. The bundled native adapter maps this Python contract to the named data-only host capability. `models` returns model records; `complete` returns
-a response record; `embed` returns model, vectors and usage. Stream events use
+a response record; `embed` returns model, vectors, usage and metadata. Stream events use
 `type: text|bytes|response`. Binary data can be bytes or byte-value sequences.
 
 Package publication and poe2 adoption are separate from implementation and are
 not verified by the Python unit tests. The requirement audit is maintained in
 [the issue plan](../../../docs/plans/python-llm-1445.md).
+
+The executable [customization example](examples/llm-customize.py) composes defaults,
+request/response transforms, a reusable prompt function and local conversation
+history through the same invocation service.

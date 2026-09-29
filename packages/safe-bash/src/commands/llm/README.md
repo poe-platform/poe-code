@@ -17,7 +17,8 @@ safe-bash package-root exports. The distributable package name is
 
 | Option | Meaning |
 | --- | --- |
-| `providers` | Required readonly list of providers declaring models and `complete` |
+| `providers` | Readonly list of providers declaring models and `complete`; required unless `service` is supplied |
+| `service` | Existing authorized `LlmService` reused by Bash and other front ends; configure its providers/default model when creating the service |
 | `defaultModel` | Optional model ID, alias, or qualified `provider/model` used when `-m` is omitted |
 | `replace` | Optional boolean, default `false`; replace an already registered `llm` command, not model conflicts |
 

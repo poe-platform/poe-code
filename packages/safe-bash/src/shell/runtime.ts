@@ -11893,14 +11893,14 @@ export class Runtime {
     if (p.commands.some(c => c.kind === "simple" && (c.words[0]?.plain === "envsubst" || c.words[0]?.plain === "uname" || c.words[0]?.plain === "id" || c.words[0]?.plain === "whoami" || c.words[0]?.plain === "hostname" || c.words[0]?.plain === "nproc" || c.words[0]?.plain === "locale" || c.words[0]?.plain === "getopt" || c.words[0]?.plain === "cal" || c.words[0]?.plain === "ncal" || c.words[0]?.plain === "date" || c.words[0]?.plain === "printenv" || c.words[0]?.plain === "env" || c.words[0]?.plain === "df" || c.words[0]?.plain === "du" || c.words[0]?.plain === "stat" || c.words[0]?.plain === "which")) && (rawState.allexport || [...assigned].some(v => rawState.exported.has(v)))) {
       return false;
     }
+    // A successful probe cannot prove totality for later induction values.
+    // The loop steps cannot resume a declined expansion after earlier effects.
+    // Leave dynamic words to the separately checked path or normal execution.
+    if (usesInduction) return false;
     const savedBytes = this.budget.bytes;
     const savedCmds = this.budget.commands;
     const savedStatus = rawState.status;
     const savedSubStatus = rawState.substitutionStatus;
-    const savedIndVal = indName !== undefined ? rawState.variables[indName] : undefined;
-    if (usesInduction && indName !== undefined && savedIndVal === undefined) {
-      rawState.variables[indName] = "1";
-    }
     if (this._activeSyncLoopHasFileMutations || p.commands.some(c => c.kind === "simple" && (c.words[0]?.plain === "mktemp" || c.words[0]?.plain === "shuf" || c.words[0]?.plain === "sponge" || c.words[0]?.plain === "truncate" || c.words[0]?.plain === "install" || c.words[0]?.plain === "apply_patch" || c.words[0]?.plain === "split" || c.words[0]?.plain === "csplit" || c.words[0]?.plain === "tee" || c.words[0]?.plain === "touch" || c.words[0]?.plain === "cp" || c.words[0]?.plain === "mv" || c.words[0]?.plain === "rmdir" || c.words[0]?.plain === "chmod" || c.words[0]?.plain === "patch" || c.words[0]?.plain === "mkdir" || c.words[0]?.plain === "rm" || c.words[0]?.plain === "ln" || c.words[0]?.plain === "soffice" || c.words[0]?.plain === "libreoffice" || c.words[0]?.plain === "mmdc" || c.words[0]?.plain === "sips" || c.words[0]?.plain === "qpdf" || c.words[0]?.plain === "pdftk" || c.words[0]?.plain === "pdftotext" || c.words[0]?.plain === "pdftohtml" || c.words[0]?.plain === "pdfimages" || c.words[0]?.plain === "pdfdetach" || c.words[0]?.plain === "pdftoppm" || c.words[0]?.plain === "pdftocairo" || c.words[0]?.plain === "sqlite3" || c.words[0]?.plain === "openssl" || c.words[0]?.plain === "tar" || c.words[0]?.plain === "unzip" || c.words[0]?.plain === "zip" || c.words[0]?.plain === "dd" || c.words[0]?.plain === "magick" || c.words[0]?.plain === "convert" || c.words[0]?.plain === "mogrify" || c.words[0]?.plain === "composite" || c.words[0]?.plain === "montage" || c.words[0]?.plain === "compare" || c.words[0]?.plain === "exiftool" || c.words[0]?.plain === "pandoc" || c.words[0]?.plain === "wkhtmltopdf" || c.words[0]?.plain === "gpg" || c.words[0]?.plain === "ssh-keygen" || c.words[0]?.plain === "ffmpeg" || c.words[0]?.plain === "git" || c.words[0]?.plain === "gh" || c.words[0]?.plain === "ssconvert" || c.words[0]?.plain === "op"))) {
       usesInduction = true;
     }
@@ -11913,9 +11913,6 @@ export class Runtime {
       res = undefined;
     } finally {
       this._inSyncLoopPreflight = prevPreflight;
-      if (usesInduction && indName !== undefined && savedIndVal === undefined) {
-        delete rawState.variables[indName];
-      }
     }
     const outBytes = this.budget.bytes - savedBytes;
     const exitStatus = rawState.status;
@@ -27584,7 +27581,7 @@ export class Runtime {
         const absVal = neg ? -v.c : v.c;
         return (neg && v.c !== 0n ? "-" : "") + absVal.toString(obase).toUpperCase();
       }
-      if (v.s === 0) return v.c.toString();
+      if (v.c === 0n || v.s === 0) return v.c.toString();
       const neg = v.c < 0n;
       const absStr = (neg ? -v.c : v.c).toString().padStart(v.s + 1, "0");
       const intStr = absStr.slice(0, absStr.length - v.s);
@@ -28342,12 +28339,16 @@ export class Runtime {
       else if (a === "-A" && i + 1 < opArgs.length && ["o", "x", "d", "n"].includes(opArgs[i + 1]!)) {
         addrRadix = opArgs[++i] as "o" | "x" | "d" | "n";
       } else if (a === "-tx1" || a === "-tu1" || a === "-to1" || a === "-tc") {
+        if (typeSpec !== undefined) return undefined;
         typeSpec = a.slice(2) as "x1" | "u1" | "o1" | "c";
       } else if (a === "-c") {
+        if (typeSpec !== undefined) return undefined;
         typeSpec = "c";
       } else if (a === "-b") {
+        if (typeSpec !== undefined) return undefined;
         typeSpec = "o1";
       } else if (a === "-t" && i + 1 < opArgs.length && ["x1", "u1", "o1", "c"].includes(opArgs[i + 1]!)) {
+        if (typeSpec !== undefined) return undefined;
         typeSpec = opArgs[++i] as "x1" | "u1" | "o1" | "c";
       } else if (a === "-v" || a === "--output-duplicates") verbose = true;
       else if (a === "-w" && i + 1 < opArgs.length && /^[1-9][0-9]{0,3}$/.test(opArgs[i + 1]!)) width = Number(opArgs[++i]!);

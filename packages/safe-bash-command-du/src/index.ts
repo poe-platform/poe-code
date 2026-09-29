@@ -54,6 +54,20 @@ export function evalSyncDu(
   let countLinks = false;
   let maxDepth = Infinity;
   let summarize = false;
+  let threshold: bigint | undefined;
+  const excludeRegexes: RegExp[] = [];
+  const globToRe = (pat: string): RegExp | undefined => {
+    let rx = "^";
+    for (let k = 0; k < pat.length; k++) {
+      const ch = pat[k]!;
+      if (ch === "*") rx += ".*";
+      else if (ch === "?") rx += ".";
+      else if (".^$+()[]{}|\\".includes(ch)) rx += "\\" + ch;
+      else rx += ch;
+    }
+    rx += "$";
+    try { return new RegExp(rx); } catch { return undefined; }
+  };
   let fmt: Format;
   try {
     const envBlock = env.DU_BLOCK_SIZE ?? env.BLOCK_SIZE ?? env.BLOCKSIZE;
@@ -85,6 +99,21 @@ export function evalSyncDu(
         const val = a === "--block-size" ? args[++i] : a.slice("--block-size=".length);
         if (!val) return undefined;
         try { fmt = blockSize(val); } catch { return undefined; }
+      } else if (a === "--exclude" || a.startsWith("--exclude=")) {
+        const val = a === "--exclude" ? args[++i] : a.slice("--exclude=".length);
+        if (!val) return undefined;
+        const re = globToRe(val);
+        if (!re) return undefined;
+        excludeRegexes.push(re);
+      } else if (a === "--threshold" || a.startsWith("--threshold=")) {
+        const val = a === "--threshold" ? args[++i] : a.slice("--threshold=".length);
+        if (!val) return undefined;
+        const neg = val.startsWith("-");
+        const raw = (neg || val.startsWith("+")) ? val.slice(1) : val;
+        try {
+          const b = blockSize(raw).unit;
+          threshold = neg ? -b : b;
+        } catch { return undefined; }
       } else return undefined;
       continue;
     }
@@ -110,6 +139,16 @@ export function evalSyncDu(
           const val = a.slice(j + 1) || args[++i];
           if (!val) return undefined;
           try { fmt = blockSize(val); } catch { return undefined; }
+          j = a.length;
+        } else if (ch === "t") {
+          const val = a.slice(j + 1) || args[++i];
+          if (!val) return undefined;
+          const neg = val.startsWith("-");
+          const raw = (neg || val.startsWith("+")) ? val.slice(1) : val;
+          try {
+            const b = blockSize(raw).unit;
+            threshold = neg ? -b : b;
+          } catch { return undefined; }
           j = a.length;
         } else return undefined;
       }
@@ -144,6 +183,7 @@ export function evalSyncDu(
     let ownBytes = baseBytes;
     if (node.type === "directory" && node.children) {
       for (const child of node.children) {
+        if (excludeRegexes.length > 0 && excludeRegexes.some(re => re.test(child.name))) continue;
         const suffix = display.endsWith("/") ? "" : "/";
         const childAbs = absPath === "/" ? `/${child.name}` : `${absPath}/${child.name}`;
         const childDisplay = `${display}${suffix}${child.name}`;
@@ -154,8 +194,12 @@ export function evalSyncDu(
     }
     if (depth === 0 || (depth <= maxDepth && (node.type === "directory" || all))) {
       const val = separate ? ownBytes : sumBytes;
-      const formatted = inodes ? String(val) : formatSize(val, fmt);
-      outLines.push(`${formatted}\t${display}`);
+      const bigVal = BigInt(val);
+      const passThreshold = threshold === undefined || (threshold >= 0n ? bigVal >= threshold : bigVal <= -threshold);
+      if (passThreshold) {
+        const formatted = inodes ? String(val) : formatSize(val, fmt);
+        outLines.push(`${formatted}\t${display}`);
+      }
     }
     return { bytes: sumBytes, directory: node.type === "directory" };
   };

@@ -75,24 +75,29 @@ export function evalSyncDiff(
   } catch {
     return undefined;
   }
+  const pairFiles =
+    opts.fromFile !== undefined && opts.toFile === undefined && opts.files.length === 1
+      ? [opts.fromFile, opts.files[0]!]
+      : opts.toFile !== undefined && opts.fromFile === undefined && opts.files.length === 1
+        ? [opts.files[0]!, opts.toFile]
+        : opts.fromFile === undefined && opts.toFile === undefined && opts.files.length === 2
+          ? [opts.files[0]!, opts.files[1]!]
+          : undefined;
   if (
-    opts.files.length !== 2 ||
+    !pairFiles ||
     opts.recursive ||
     opts.paginate ||
     opts.format === "side" ||
     opts.format === "ifdef" ||
     opts.format === "ed" ||
-    opts.fromFile !== undefined ||
-    opts.toFile !== undefined ||
-    opts.ignorePatterns.length > 0 ||
     opts.functions.length > 0 ||
     opts.excludes.length > 0 ||
     opts.excludeFiles.length > 0
   ) {
     return undefined;
   }
-  const left = opts.files[0]!;
-  const right = opts.files[1]!;
+  const left = pairFiles[0]!;
+  const right = pairFiles[1]!;
   if (left === "-" && right === "-") return opts.reportSame ? `Files ${opts.labels[0] ?? left} and ${opts.labels[1] ?? right} are identical\n` : "";
   const resolveOperand = (op: string): Uint8Array | undefined => {
     if (op === "-" || op === "/dev/stdin" || op === "/dev/fd/0") return stdinBytes;
@@ -114,15 +119,23 @@ export function evalSyncDiff(
     }
   }
   if (!same) {
-    if (!opts.ignoreCase && !opts.ignoreTrailing && !opts.ignoreBlank && !opts.ignoreTabs && !opts.stripTrailingCr && opts.whitespace === "exact") {
+    if (opts.ignorePatterns.length === 0 && !opts.ignoreCase && !opts.ignoreTrailing && !opts.ignoreBlank && !opts.ignoreTabs && !opts.stripTrailingCr && opts.whitespace === "exact") {
       return undefined;
     }
     for (let i = 0; i < b1.byteLength; i++) if (b1[i] === 0) return undefined;
     for (let i = 0; i < b2.byteLength; i++) if (b2[i] === 0) return undefined;
+    const ignoreRes: RegExp[] = [];
+    for (const pat of opts.ignorePatterns) {
+      try { ignoreRes.push(new RegExp(pat, opts.ignoreCase ? "i" : "")); } catch { return undefined; }
+    }
     const t1 = syncDiffDecoder.decode(b1);
     const t2 = syncDiffDecoder.decode(b2);
-    const l1 = normalizeSyncDiffLines(t1, opts);
-    const l2 = normalizeSyncDiffLines(t2, opts);
+    let l1 = normalizeSyncDiffLines(t1, opts);
+    let l2 = normalizeSyncDiffLines(t2, opts);
+    if (ignoreRes.length > 0) {
+      l1 = l1.filter(line => !ignoreRes.some(re => re.test(line.replace(/\n$/, ""))));
+      l2 = l2.filter(line => !ignoreRes.some(re => re.test(line.replace(/\n$/, ""))));
+    }
     if (l1.length !== l2.length) return undefined;
     for (let i = 0; i < l1.length; i++) {
       if (l1[i] !== l2[i]) return undefined;

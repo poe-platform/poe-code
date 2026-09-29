@@ -505,17 +505,17 @@ export function evalSyncCmp(
       if (stopped || a === "-" || !a.startsWith("-")) { operands.push(a); continue; }
       if (a === "--") { stopped = true; continue; }
       if (a === "-s" || a === "--silent" || a === "--quiet" || a === "-b" || a === "-c" || a === "--print-bytes" || a === "-l" || a === "--verbose") continue;
-      if (a === "-i" || a === "--ignore-initial") {
-        const v = opArgs[++i];
-        if (v === undefined) return undefined;
+      if (a === "-i" || a === "--ignore-initial" || a.startsWith("-i") || a.startsWith("--ignore-initial=")) {
+        const v = (a === "-i" || a === "--ignore-initial") ? opArgs[++i] : (a.startsWith("--ignore-initial=") ? a.slice(17) : a.slice(2));
+        if (v === undefined || v === "") return undefined;
         const d = v.indexOf(":");
         if (d < 0) { setSkip(0, v); if (skips[0] > skips[1]) skips[1] = skips[0]; }
         else { setSkip(0, v.slice(0, d)); setSkip(1, v.slice(d + 1)); }
         continue;
       }
-      if (a === "-n" || a === "--bytes") {
-        const v = opArgs[++i];
-        if (v === undefined) return undefined;
+      if (a === "-n" || a === "--bytes" || a.startsWith("-n") || a.startsWith("--bytes=")) {
+        const v = (a === "-n" || a === "--bytes") ? opArgs[++i] : (a.startsWith("--bytes=") ? a.slice(8) : a.slice(2));
+        if (v === undefined || v === "") return undefined;
         const p = byteCount(v, "bytes");
         if (p < count) count = p;
         continue;

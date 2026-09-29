@@ -1,3 +1,5 @@
+import { duCommands } from "../../src/commands/du/index.js";
+import { diffPatchCommands } from "../../src/commands/diff-patch/index.js";
 import { treeCommands } from "../../src/commands/tree/index.js";
 import { fdCommands } from "../../src/commands/fd/index.js";
 import { searchCommands } from "../../src/commands/search/index.js";
@@ -647,5 +649,26 @@ test("evaluates ls --group-directories-first/-X/-B/-I/-m/-R and tree --dirsfirst
   assert.equal(
     r.stdout,
     "zdir, file.a, file.b#/tmp/w191/,├── zdir/,└── file.a,\n",
+  );
+});
+
+test("evaluates du --exclude/--threshold/-t, diff -I/--from-file/--to-file, and cmp -iSKIP/-nLIMIT in sync substitutions (Wave 192)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(byteCommands()).use(duCommands()).use(diffPatchCommands());
+  const r = await shell.exec(
+    [
+      "mkdir -p /tmp/w192 && printf \"1234567890\" > /tmp/w192/big.txt && printf \"12\" > /tmp/w192/small.txt && printf \"1234567890\" > /tmp/w192/skip.bak",
+      "du_res=$(du -a -b --exclude='*.bak' --threshold=5 /tmp/w192 | tr '\\t\\n' ':,')",
+      "printf \"hdr_v1\\nsame\\n\" > /tmp/w192/d1.txt && printf \"hdr_v2\\nsame\\n\" > /tmp/w192/d2.txt",
+      "df_res=$(diff -s -I '^hdr_' --from-file=/tmp/w192/d1.txt /tmp/w192/d2.txt)",
+      "cmp_res=$(cmp -s -i7 -n4 /tmp/w192/d1.txt /tmp/w192/d2.txt && echo ok)",
+      "printf \"%s#%s#%s\\n\" \"$du_res\" \"$df_res\" \"$cmp_res\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "10:/tmp/w192/big.txt,12:/tmp/w192,#Files /tmp/w192/d1.txt and /tmp/w192/d2.txt are identical#ok\n",
   );
 });

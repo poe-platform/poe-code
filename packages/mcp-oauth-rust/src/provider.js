@@ -963,8 +963,12 @@ export function createDefaultOAuthClientProvider(options) {
           ...(presented === undefined ? {} : { presentedTokens: presented })
         };
         validateUrl(input.requestUrl, "Protected resource request URL");
-        const url = canonicalizeResourceIndicator(input.requestUrl),
-          resource = canonicalizeResourceIndicator(input.discovery.resource);
+        const url = canonicalizeResourceIndicator(input.requestUrl);
+        const discovery = input.discovery ?? structuredClone(await waitForOAuthOperation(
+          input.discover?.() ?? Promise.reject(new Error("OAuth recovery requires metadata discovery")), input.signal
+        ));
+        if (discovery === undefined) throw new Error("OAuth recovery requires metadata discovery");
+        const resource = canonicalizeResourceIndicator(discovery.resource);
         unwrap(native.providerRequestMatches(url, resource));
         const cached = await waitForOAuthOperation(loadSession(resource), input.signal);
         input.signal?.throwIfAborted();
@@ -999,7 +1003,7 @@ export function createDefaultOAuthClientProvider(options) {
             (input.presentedTokens !== undefined && challenge === undefined));
         const session = await ensure(
           resource,
-          { ...input.discovery, resource },
+          { ...discovery, resource },
           input.fetch,
           true,
           force,

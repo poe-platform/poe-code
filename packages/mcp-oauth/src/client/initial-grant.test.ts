@@ -121,3 +121,18 @@ it("rejects an empty redirect fragment before imported lifetime clocks", () => {
   })).toThrow(new Error("Invalid OAuth loopback redirect URI"));
   expect(now).not.toHaveBeenCalled();
 });
+
+it("refreshes an imported grant after requesting lazy discovery", async () => {
+  const f = fixture({ ...tokens, expiresAt: 0 });
+  const discover = vi.fn(async () => discovery);
+  const result = await f.provider.handleUnauthorized({
+    requestUrl: new URL(resource), response: new Response(null, { status: 401 }),
+    challenge: { scheme: "Bearer", params: { error: "invalid_token" }, raw: "Bearer error=invalid_token" },
+    discover, fetch: f.fetch
+  });
+  expect(result).toEqual({ action: "retry" });
+  expect(discover).toHaveBeenCalledOnce();
+  expect(f.fetch).toHaveBeenCalledOnce();
+  expect(f.session()?.tokens?.accessToken).toBe("rotated-access");
+  expect(f.session()?.discovery.resourceMetadata).toEqual(discovery.resourceMetadata);
+});

@@ -83,7 +83,8 @@ export interface OAuthClientProvider {
     requestUrl: URL;
     response: Response;
     challenge: OAuthUnauthorizedChallenge | null;
-    discovery: OAuthDiscoveryResult;
+    discovery?: OAuthDiscoveryResult;
+    discover?: () => Promise<OAuthDiscoveryResult>;
     requestHeaders?: Headers;
     presentedTokens?: StoredOAuthTokens | null;
     fetch: OAuthMetadataFetch;

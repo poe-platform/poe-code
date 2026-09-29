@@ -311,12 +311,13 @@ export class HttpTransport {
     if (response.status !== 401 || this.#provider === undefined || this.#discovery === undefined) return false;
     try {
       const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
-      const discovery = await this.#discovery.discover(this.#url, { resourceMetadataUrl: challenge?.params.resource_metadata, signal });
+      let discovery;
+      const discover = () => discovery ??= this.#discovery.discover(this.#url, { resourceMetadataUrl: challenge?.params.resource_metadata, signal });
       const providerResponse = response.clone();
       let result;
       try {
         result = await this.#provider.handleUnauthorized({
-          requestUrl: new URL(this.#url), response: providerResponse, challenge, discovery,
+          requestUrl: new URL(this.#url), response: providerResponse, challenge, discover,
           signal, requestHeaders: new Headers(requestHeaders), presentedTokens,
           fetch: (url, init) => fetchMcpResponse(this.#fetch ?? globalThis.fetch, url, {
             ...init, signal: init?.signal == null ? signal : AbortSignal.any([signal, init.signal]),

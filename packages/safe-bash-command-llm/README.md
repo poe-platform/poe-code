@@ -6,7 +6,9 @@ Persist aliases, default models and default options in the caller’s filesystem
 
 Use `llm aliases` for the plain alias list or `llm aliases set short -q part -q name` to select the first model matching every query. `llm models options clear MODEL` clears all defaults atomically; the SDK equivalent is `configuration.clearModelOption(model)`. Pass a key to either interface to clear one option.
 
-Models can declare an `options` map with scalar types and numeric bounds. Declared options are validated before persistence or provider execution, and service requests receive typed values. Providers without declarations retain their own option validation.
+Models can declare an `options` map with scalar types and numeric bounds. Declared options are validated before persistence or provider execution, and service requests receive typed values. Providers without declarations retain their own option validation. Numeric declarations and OpenAI options follow the pinned reference’s decimal syntax, rejecting radix prefixes and exponent strings for integer fields.
+
+Use `llm prompt hello` or `llm hello` for the same prompt; `llm -- prompt hello` sends the literal words. List models with `llm models`, narrow matches with repeated `-q` queries or repeated `-m` selections, and inspect declared options and attachment types with `--options`. `--schemas` selects schema-capable models. Model-list usage errors exit with status 2. Positive tool and async catalog metadata remain incomplete.
 
 Use `llmCommands({ service })` to share an authorized `createLlmService()` instance with another language frontend. Configure providers and the default model on that service; command limits remain per invocation.
 

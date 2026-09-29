@@ -1542,10 +1542,14 @@
           "portable": true
         },
         "safe-bash-command-gh": {
-          "packagePath": "packages/safe-bash-command-gh",
-          "adapterEntrypoint": "src/commands/gh/index.ts",
-          "runtimeEntrypoint": "dist/index.js",
-          "typesEntrypoint": "dist/index.d.ts",
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-query-engine": "*",
+            "safe-bash-command-git": "*",
+            "@poe-code/safe-fs": "*"
+          },
           "portable": true
         }
       }

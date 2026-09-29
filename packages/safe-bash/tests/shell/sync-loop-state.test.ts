@@ -1393,3 +1393,43 @@ test("sync loop wave 118: column -t (-s/-o/-N), fold (-w/-s), expand (-t), and u
     await shell.dispose();
   }
 });
+
+test("sync loop wave 119: awk $k ~ /pat/ + &&/|| conditions + END { print NR }, strings -n, and loop-invariant substitution caching", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const { createStreamInspectionCommands } = await import("../../src/commands/stream-inspection/index.js");
+  const { createTableTextCommands } = await import("../../src/commands/table-text/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([
+      ...createStandardCommands(),
+      ...createTextProgramCommands(),
+      ...createStreamInspectionCommands(),
+      ...createTableTextCommands(),
+    ]),
+  });
+  try {
+    const script = [
+      "rows=$'dev api 20\\nprod web 5\\nprod db 15\\nprod cache 30'",
+      "txt=$'ab\\nhello_world\\nxy\\nsafe_bash'",
+      "out=\"\"",
+      "for ((i=1; i<=10; i++)); do",
+      "  a1=$(awk '$1 ~ /^prod/ && $3 >= 10 { print $2, $3 }' <<< \"$rows\" | paste -sd \",\")",
+      "  a2=$(awk '$1 !~ /^prod/ || $3 == 30 { print $2 }' <<< \"$rows\" | paste -sd \",\")",
+      "  a3=$(awk 'END { print NR }' <<< \"$rows\")",
+      "  a4=$(awk 'END { print $2 }' <<< \"$rows\")",
+      "  s1=$(strings -n 5 <<< \"$txt\" | paste -sd \",\")",
+      "  out=\"$a1|$a2|$a3|$a4|$s1\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout,
+      "db 15,cache 30|api,cache|4|cache|hello_world,safe_bash\n"
+    );
+  } finally {
+    await shell.dispose();
+  }
+});

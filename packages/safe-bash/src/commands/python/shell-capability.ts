@@ -32,7 +32,7 @@ export function createPythonShellCapability(context: CommandContext, options: { 
     if ((typeof script === 'string') === Array.isArray(argv)) throw new TypeError('Provide either literal argv or a script');
     if (argv !== undefined && (!Array.isArray(argv) || !argv.length || argv.some(item => typeof item !== 'string' || item.includes('\0')))) throw new TypeError('Invalid Python shell argv');
     if (request.cwd !== undefined && (typeof request.cwd !== 'string' || request.cwd.includes('\0'))) throw new TypeError('Invalid Python shell cwd');
-    const env = { ...context.env };
+    const env = request.env === undefined ? { ...context.env } : {};
     if (request.env !== undefined) {
       if (!request.env || typeof request.env !== 'object' || Array.isArray(request.env)) throw new TypeError('Invalid Python shell environment');
       for (const [key, item] of Object.entries(request.env)) {
@@ -75,6 +75,11 @@ export function createPythonShellCapability(context: CommandContext, options: { 
       });
       childSignal.throwIfAborted();
       return { stdout, stderr, exitCode: result.exitCode };
+    } catch (error) {
+      if (!publish && !signal.aborted && childSignal.aborted && childSignal.reason?.name === 'TimeoutError') {
+        return {error:{code:'timeout', message:'Python shell deadline exceeded', stdout, stderr}};
+      }
+      throw error;
     } finally {
       running--;
       const count = dispatching.get(scope)! - 1;

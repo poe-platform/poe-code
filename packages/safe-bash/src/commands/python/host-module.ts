@@ -90,7 +90,14 @@ def run(args, *, shell=False, input=None, cwd=None, env=None, text=False, check=
   request['env'] = env
  if timeout is not None:
   request['timeoutMs'] = max(1, int(timeout * 1000))
- result = CompletedProcess(args, call('shell', request), text)
+ value = call('shell', request)
+ if value.get('error'):
+  failure = value['error']
+  if failure.get('code') == 'timeout':
+   import subprocess
+   raise subprocess.TimeoutExpired(args, timeout, output=bytes(failure['stdout']), stderr=bytes(failure['stderr']))
+  raise HostError(failure.get('message', 'Shell service failed'), failure.get('code', 'service'))
+ result = CompletedProcess(args, value, text)
  if check:
   result.check_returncode()
  return result

@@ -14,6 +14,8 @@ class _SafeLibraryBridge:
    result = self.host.call('shell', request)
   except self.host.HostError as error:
    return dict(error=dict(code=error.code, message=str(error), stdout=[], stderr=[]))
+  if result.get('error'):
+   return result
   for name in ('stdout', 'stderr'):
    if payload.get(name) == 'inherit':
     import sys
@@ -26,6 +28,8 @@ class _SafeLibraryBridge:
    result = await self.wait('begin', capability='shell', value=self.shell_request(payload))
   except self.host.HostError as error:
    return dict(error=dict(code=error.code, message=str(error), stdout=[], stderr=[]))
+  if result.get('error'):
+   return result
   return dict(returncode=result['exitCode'], stdout=result['stdout'], stderr=result['stderr'])
  def shell_request(self, payload):
   request = {key: payload[key] for key in ('argv', 'script', 'cwd', 'env') if payload.get(key) is not None}

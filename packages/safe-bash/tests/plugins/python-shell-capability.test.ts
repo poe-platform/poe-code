@@ -11,7 +11,7 @@ test('shell capability passes literal argv and child state with shared invocatio
     assert.equal(command, 'echo');
     assert.deepEqual(args, ['$(bad);*']);
     assert.equal(options?.cwd, '/child');
-    assert.deepEqual(options?.env, { TOKEN: 'host', CHILD: 'yes' });
+    assert.deepEqual(options?.env, { CHILD: 'yes' });
     await options!.stdout!.write(new Uint8Array([0, 255]));
     await options!.stderr!.write(new TextEncoder().encode('warning'));
     return { exitCode: 7 };
@@ -19,6 +19,7 @@ test('shell capability passes literal argv and child state with shared invocatio
   const shell = createPythonShellCapability(context);
   assert.deepEqual(await shell.call!({ argv: ['echo', '$(bad);*'], cwd: '/child', env: { CHILD: 'yes' } }, { signal }), { stdout: [0, 255], stderr: [119, 97, 114, 110, 105, 110, 103], exitCode: 7 });
   assert.equal(context.cwd, '/parent');
+  assert.deepEqual(context.env, { TOKEN: 'host' });
   assert.equal(pythonShellDispatchActive(scope), false);
 });
 
@@ -39,13 +40,15 @@ test('child deadlines abort work without replacing parent cancellation authority
   const parent = new AbortController();
   let aborted = false;
   const context = { signal: parent.signal, executionScope: {}, cwd: '/', env: {}, async invoke(_command, _args, options) {
+    await options!.stdout!.write(new Uint8Array([0,255]));
+    await options!.stderr!.write(new Uint8Array([42]));
     await new Promise<void>(resolve => options!.signal!.addEventListener('abort', () => { aborted = true; resolve(); }, { once: true }));
     return { exitCode: 0 };
   } } satisfies Partial<CommandContext> as unknown as CommandContext;
   const shell = createPythonShellCapability(context);
   const keepAlive = setTimeout(() => {}, 100);
   try {
-    await assert.rejects(shell.call!({ argv: ['delayed'], timeoutMs: 1 }, { signal: parent.signal }), /timeout/i);
+    assert.deepEqual(await shell.call!({ argv: ['delayed'], timeoutMs: 1 }, { signal: parent.signal }), { error: {code:'timeout', message:'Python shell deadline exceeded', stdout:[0,255], stderr:[42]} });
     assert.equal(aborted, true);
     assert.equal(parent.signal.aborted, false);
     assert.equal(pythonShellDispatchActive(context.executionScope), false);

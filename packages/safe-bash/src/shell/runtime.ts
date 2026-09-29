@@ -22959,6 +22959,95 @@ export class Runtime {
       } else return undefined;
       return ok ? [item] : [];
     }
+    const genSelM = /^select\(\s*(.+)\s*\)$/.exec(st);
+    if (genSelM) {
+      const condVals = this.evalSyncJqPathOps(item, genSelM[1]!);
+      if (!condVals) return undefined;
+      return condVals.some(v => v !== null && v !== undefined && v !== false) ? [item] : [];
+    }
+    const delM = /^del\(\s*\.([a-zA-Z_][a-zA-Z0-9_]*)(?:\.([a-zA-Z_][a-zA-Z0-9_]*))?\s*\)$/.exec(st);
+    if (delM && item && typeof item === "object" && !Array.isArray(item)) {
+      const k1 = delM[1]!;
+      const k2 = delM[2];
+      const clone = { ...(item as Record<string, unknown>) };
+      if (k2 === undefined) {
+        delete clone[k1];
+      } else if (clone[k1] && typeof clone[k1] === "object" && !Array.isArray(clone[k1])) {
+        const subClone = { ...(clone[k1] as Record<string, unknown>) };
+        delete subClone[k2];
+        clone[k1] = subClone;
+      }
+      return [clone];
+    }
+    const testFnM = /^test\(\s*"([^"\\]*)"(?:\s*;\s*"([i]*)")?\s*\)$/.exec(st);
+    if (testFnM && typeof item === "string") {
+      try {
+        const re = new RegExp(testFnM[1]!, testFnM[2] ?? "");
+        return [re.test(item)];
+      } catch {
+        return undefined;
+      }
+    }
+    if (st.startsWith("{") && st.endsWith("}")) {
+      const innerObj = st.slice(1, -1).trim();
+      if (innerObj.length === 0) return [{}];
+      const fieldsSplit = splitSyncJqExpression(innerObj, ",");
+      if (!fieldsSplit) return undefined;
+      const outObj: Record<string, unknown> = {};
+      for (const fieldSpec of fieldsSplit.parts) {
+        const fs = fieldSpec.trim();
+        const shortM = /^\.([a-zA-Z_][a-zA-Z0-9_]*)$/.exec(fs);
+        if (shortM) {
+          const k = shortM[1]!;
+          const v = this.evalSyncJqPathOps(item, "." + k);
+          if (!v || v.length !== 1) return undefined;
+          outObj[k] = v[0];
+          continue;
+        }
+        const kvM = /^(?:"([^"\\]+)"|([a-zA-Z_][a-zA-Z0-9_]*))\s*:\s*(.+)$/.exec(fs);
+        if (!kvM) return undefined;
+        const k = (kvM[1] ?? kvM[2])!;
+        const v = this.evalSyncJqPathOps(item, kvM[3]!);
+        if (!v || v.length !== 1) return undefined;
+        outObj[k] = v[0];
+      }
+      return [outObj];
+    }
+    if (st.startsWith("\"") && st.endsWith("\"") && st.length >= 2) {
+      const body = st.slice(1, -1);
+      if (!body.includes("\\(")) {
+        try { return [JSON.parse(st)]; } catch { return undefined; }
+      }
+      let outStr = "";
+      let pos = 0;
+      while (pos < body.length) {
+        const idx = body.indexOf("\\(", pos);
+        if (idx === -1) {
+          const tail = body.slice(pos);
+          if (tail.includes("\\")) return undefined;
+          outStr += tail;
+          break;
+        }
+        const lit = body.slice(pos, idx);
+        if (lit.includes("\\")) return undefined;
+        outStr += lit;
+        let depth = 1;
+        let end = idx + 2;
+        while (end < body.length && depth > 0) {
+          if (body[end] === "(") depth++;
+          else if (body[end] === ")") depth--;
+          if (depth > 0) end++;
+        }
+        if (depth !== 0) return undefined;
+        const subExpr = body.slice(idx + 2, end).trim();
+        const v = this.evalSyncJqPathOps(item, subExpr);
+        if (!v || v.length !== 1) return undefined;
+        const val = v[0];
+        outStr += val === null ? "null" : typeof val === "string" ? val : JSON.stringify(val);
+        pos = end + 1;
+      }
+      return [outStr];
+    }
     if (!st.startsWith(".")) return undefined;
     let rest = st.slice(1);
     const ops: Array<{ kind: "prop"; key: string } | { kind: "index"; idx: number } | { kind: "iter" }> = [];

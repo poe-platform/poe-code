@@ -1209,19 +1209,19 @@ test("sync sort (-g/--general-numeric-sort/-z/--field-separator/--key), uniq (--
 
     out=""
     for i in 1 2 3 4 5; do
-      s1=\$(sort -g /tmp/gnum.txt | paste -sd,)
-      s2=\$(sort --field-separator : --key 2,2g -s /tmp/gkey.txt | paste -sd,)
-      s3=\$(sort -z /tmp/zsort.bin | tr "\\0" ":")
-      s4=\$(printf "z:9\\0a:2\\0m:5\\0" | sort -z -t: -k2,2nr | tr "\\0" "|")
-      u1=\$(uniq --skip-fields 1 -c /tmp/u1.txt | tr -s " " | paste -sd,)
-      u2=\$(uniq --skip-chars 2 --check-chars 1 /tmp/u2.txt | paste -sd,)
-      u3=\$(printf "foo\\0foo\\0bar\\0" | uniq -zc | tr -s " " | tr "\\0" ";")
-      u4=\$(uniq -cf1 /tmp/u1.txt | tr -s " " | paste -sd,)
-      c1=\$(printf "a:b:c\\0no_delim\\0d:e:f\\0" | cut -zs -d: -f2 | tr "\\0" ",")
-      c2=\$(printf "p:q:r\\nplain\\nx:y:z\\n" | cut -d: -sf1,3 | paste -sd,)
-      out="\$s1|\$s2|\$s3|\$s4|\$u1|\$u2|\$u3|\$u4|\$c1|\$c2"
+      s1=$(sort -g /tmp/gnum.txt | paste -sd,)
+      s2=$(sort --field-separator : --key 2,2g -s /tmp/gkey.txt | paste -sd,)
+      s3=$(sort -z /tmp/zsort.bin | tr "\\0" ":")
+      s4=$(printf "z:9\\0a:2\\0m:5\\0" | sort -z -t: -k2,2nr | tr "\\0" "|")
+      u1=$(uniq --skip-fields 1 -c /tmp/u1.txt | tr -s " " | paste -sd,)
+      u2=$(uniq --skip-chars 2 --check-chars 1 /tmp/u2.txt | paste -sd,)
+      u3=$(printf "foo\\0foo\\0bar\\0" | uniq -zc | tr -s " " | tr "\\0" ";")
+      u4=$(uniq -cf1 /tmp/u1.txt | tr -s " " | paste -sd,)
+      c1=$(printf "a:b:c\\0no_delim\\0d:e:f\\0" | cut -zs -d: -f2 | tr "\\0" ",")
+      c2=$(printf "p:q:r\\nplain\\nx:y:z\\n" | cut -d: -sf1,3 | paste -sd,)
+      out="$s1|$s2|$s3|$s4|$u1|$u2|$u3|$u4|$c1|$c2"
     done
-    printf "%s\\n" "\$out"
+    printf "%s\\n" "$out"
   `);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(
@@ -1242,16 +1242,16 @@ test("sync paste -z, comm -z, fold -N, expand -it/-N, unexpand -at/-N, and base6
 
     out=""
     for i in 1 2 3 4 5; do
-      p1=\$(paste -zd: /tmp/pz1.bin /tmp/pz2.bin | tr "\\0" ",")
-      p2=\$(printf "x\\0y\\0z\\0" | paste -zsd- - | tr "\\0" "!")
-      cm=\$(comm -z12 /tmp/cz1.bin /tmp/cz2.bin | tr "\\0" ":")
-      fd=\$(printf "hello world foo\\n" | fold -s6 | paste -sd"|")
-      ex=\$(printf "\\ta\\t\\tb\\n" | expand -it4 | tr " " ".")
-      ux=\$(printf "    a   b\\n" | unexpand -at4 | tr "\\t" ">")
-      b6=\$(printf "abcdefghijkl" | base64 --wrap 4 | paste -sd:)
-      out="\$p1#\$p2#\$cm#\$fd#\$ex#\$ux#\$b6"
+      p1=$(paste -zd: /tmp/pz1.bin /tmp/pz2.bin | tr "\\0" ",")
+      p2=$(printf "x\\0y\\0z\\0" | paste -zsd- - | tr "\\0" "!")
+      cm=$(comm -z12 /tmp/cz1.bin /tmp/cz2.bin | tr "\\0" ":")
+      fd=$(printf "hello world foo\\n" | fold -s6 | paste -sd"|")
+      ex=$(printf "\\ta\\t\\tb\\n" | expand -it4 | tr " " ".")
+      ux=$(printf "    a   b\\n" | unexpand -at4 | tr "\\t" ">")
+      b6=$(printf "abcdefghijkl" | base64 --wrap 4 | paste -sd:)
+      out="$p1#$p2#$cm#$fd#$ex#$ux#$b6"
     done
-    printf "%s\\n" "\$out"
+    printf "%s\\n" "$out"
   `);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(
@@ -1271,14 +1271,14 @@ test("sync sed (-z/--expression/-ne/-Ee), grep (-lZ/--regexp/--max-count/-ie), a
 
     out=""
     for i in 1 2 3 4 5; do
-      sd1=\$(sed -z -ne "1,2p" /tmp/sz.bin | tr "\\0" ":")
-      sd2=\$(printf "aa11\\nbb22\\n" | sed --expression "s/[0-9]+/X/g" -E | paste -sd,)
-      gp1=\$(grep -lZ -ie "foo" /tmp/g1.txt /tmp/g2.txt | tr "\\0" "|")
-      gp2=\$(printf "Alpha\\nalPha\\nbeta\\nALPHA\\n" | grep --regexp "alpha" -i --max-count 2 | paste -sd,)
-      ak1=\$(printf "a:10\\nb:25\\nc:5\\n" | awk --field-separator : --assign s=100 '{ s += \$2 } END { print s }')
-      out="\$sd1#\$sd2#\$gp1#\$gp2#\$ak1"
+      sd1=$(sed -z -ne "1,2p" /tmp/sz.bin | tr "\\0" ":")
+      sd2=$(printf "aa11\\nbb22\\n" | sed --expression "s/[0-9]+/X/g" -E | paste -sd,)
+      gp1=$(grep -lZ -ie "foo" /tmp/g1.txt /tmp/g2.txt | tr "\\0" "|")
+      gp2=$(printf "Alpha\\nalPha\\nbeta\\nALPHA\\n" | grep --regexp "alpha" -i --max-count 2 | paste -sd,)
+      ak1=$(printf "a:10\\nb:25\\nc:5\\n" | awk --field-separator : --assign s=100 '{ s += $2 } END { print s }')
+      out="$sd1#$sd2#$gp1#$gp2#$ak1"
     done
-    printf "%s\\n" "\$out"
+    printf "%s\\n" "$out"
   `);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(

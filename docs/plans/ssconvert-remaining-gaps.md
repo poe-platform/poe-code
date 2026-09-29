@@ -67,8 +67,14 @@ with nesting, work and retained-storage accounting; its saxes dependency is remo
 Pandoc's JPEG migration is delivered. The actual XLSX implementation has moved
 unchanged to `xlsx-ast`. CSVKit now uses its cached-value reader, preserving raw ISO
 dates, declared/reset dimensions, formats, workbook epoch and active sheet while
-charging shared invocation budgets. Finish the remaining SheetJS coordinate/format
-helpers and XLS/BIFF reader, preserving encoding overrides and native diagnostics.
+charging shared invocation budgets. Coordinates now use the shared spreadsheet
+model, built-in formats use an immutable local table, and the legacy XLS date
+classifier charges scanning work. Finish the XLS/BIFF reader, preserving encoding
+overrides and native diagnostics. Its cached-value profile must skip formula/name
+translation, preserve raw errors and blank/dimension behavior, and charge CFB,
+record, string and cell storage to the same invocation counters. Gnumeric's
+CODEPAGE precedence and font-charset rules cannot substitute for CSVKit's explicit
+encoding override; BIFF8 ignores that override while legacy BIFF honors it.
 The Gnumeric reader and cached-value reader retain their separate import semantics.
 
 Complete the standard singular/plural/plugin command exports in that package.

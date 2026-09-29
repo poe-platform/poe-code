@@ -413,3 +413,58 @@ test("Wave 132: sync xq and yq substitutions and pipelines", async () => {
   assert.equal(r2.exitCode, 0);
   assert.equal(r2.stdout, "safe-bash:9000:8080:80\n");
 });
+
+test("Wave 133: sync mdq, shuf, and html-to-markdown substitutions and pipelines", async () => {
+  const { createMdqCommands } = await import("../../src/commands/mdq/index.js");
+  const { createHtmlToMarkdownCommands } = await import("../../src/commands/html-to-markdown/index.js");
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp", { recursive: true });
+  await fs.writeFile(
+    "/tmp/README.md",
+    new TextEncoder().encode("# Project\n\nIntro paragraph.\n\n## Install\n\n\`\`\`bash\nnpm install\n\`\`\`\n\n## Features\n\n- Fast\n- Safe\n")
+  );
+  await fs.writeFile(
+    "/tmp/doc.html",
+    new TextEncoder().encode("<h1>Title</h1><p>Hello <strong>world</strong> with <code>code</code>.</p><ul><li>First</li><li>Second</li></ul>")
+  );
+  await fs.writeFile(
+    "/tmp/seed.bin",
+    new Uint8Array(256).map((_, i) => (i * 73 + 19) & 0xff)
+  );
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createMdqCommands(),
+    ...createHtmlToMarkdownCommands(),
+  ]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(mdq -o plain '\`\`\`bash' /tmp/README.md):$(cat /tmp/README.md | mdq -o plain "# Features | -"):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "npm install:Fast\nSafe:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(shuf --random-source=/tmp/seed.bin -e a b c | tr "\n" ","):$(shuf -i 42-42 -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "b,a,c,:42:80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(html-to-markdown /tmp/doc.html | head -n 1):$(cat /tmp/doc.html | html-to-markdown | tail -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "# Title:- Second:80\n");
+});

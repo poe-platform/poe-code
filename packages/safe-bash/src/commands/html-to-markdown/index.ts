@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors } from "../internal.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { createOutputOperation, writeBytes, type CommandDefinition, type OutputOperation, type VirtualShellPlugin } from "../../contracts/index.js";
 import { escapeText } from "../../escaping.js";
@@ -12,7 +13,7 @@ export type { HtmlToMarkdownCommandsOptions, HtmlToMarkdownLimits } from "./opti
 
 export function createHtmlToMarkdownCommand(options: HtmlToMarkdownCommandsOptions = {}): CommandDefinition {
   const configured = settings(options);
-  return { name: "html-to-markdown", description: "Convert bounded VFS/stdin HTML to Markdown without fetching or executing", async execute(context) {
+  const def: CommandDefinition = { name: "html-to-markdown", description: "Convert bounded VFS/stdin HTML to Markdown without fetching or executing", async execute(context) {
     context.signal.throwIfAborted();
     const profile = (context.capabilities?.commandLimits as CommandFamilyLimits | undefined)?.htmlToMarkdown;
     const limits = { ...configured };
@@ -69,6 +70,8 @@ export function createHtmlToMarkdownCommand(options: HtmlToMarkdownCommandsOptio
     if (rejected) throw failure;
     return result;
   } };
+  if (options.limits === undefined) builtInDirectContextExecutors.add(def.execute);
+  return def;
 }
 
 export function createHtmlToMarkdownCommands(options: HtmlToMarkdownCommandsOptions = {}): readonly CommandDefinition[] {
@@ -81,4 +84,95 @@ export function htmlToMarkdownCommands(options: HtmlToMarkdownCommandsOptions = 
     if (!replace) for (const command of commands) if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
     for (const command of commands) host.commands.register(command, { replace });
   } };
+}
+
+const syncHtmlMdDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+let lastHtmlMdInput: string | undefined;
+let lastHtmlMdOutput: string | undefined;
+
+function convertSimpleInlineHtmlSync(html: string): string | undefined {
+  if (html.includes("&")) return undefined;
+  let out = html;
+  out = out.replace(/<(strong|b)>([^<>]+)<\/\1>/g, "**$2**");
+  out = out.replace(/<(em|i)>([^<>]+)<\/\1>/g, "*$2*");
+  out = out.replace(/<(del|s)>([^<>]+)<\/\1>/g, "~~$2~~");
+  out = out.replace(/<code>([^<>\x60]+)<\/code>/g, "`$1`");
+  out = out.replace(/<a\s+href="([^"\s<>]+)">([^<>\]\[]+)<\/a>/g, "[$2]($1)");
+  if (out.includes("<") || out.includes(">")) return undefined;
+  return out.replace(/[ \t\r\n]+/g, " ").trim();
+}
+
+export function evalSyncHtmlToMarkdown(
+  inBytes: Uint8Array,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  if (inBytes.byteLength > 8192 || opArgs.length > 3) return undefined;
+  let ended = false;
+  const files: string[] = [];
+  for (const a of opArgs) {
+    if (!ended && a === "--") { ended = true; continue; }
+    if (!ended && a.startsWith("-") && a !== "-") return undefined;
+    files.push(a);
+  }
+  if (files.length > 1) return undefined;
+  let srcBytes = inBytes;
+  if (files.length === 1 && files[0] !== "-") {
+    if (!readFileSync) return undefined;
+    const fBytes = readFileSync(files[0]!);
+    if (!fBytes || fBytes.byteLength > 8192) return undefined;
+    srcBytes = fBytes;
+  }
+  let html: string;
+  try {
+    html = syncHtmlMdDecoder.decode(srcBytes);
+  } catch {
+    return undefined;
+  }
+  if (html === lastHtmlMdInput && lastHtmlMdOutput !== undefined) {
+    return lastHtmlMdOutput;
+  }
+  if (html.includes("&") || html.includes("<!--") || html.includes("<![")) return undefined;
+  const trimmed = html.trim();
+  if (trimmed === "") return "";
+  const blockRe = /^\s*(?:<(h[1-6]|p)>([\s\S]*?)<\/\1>|<ul>([\s\S]*?)<\/ul>|<ol>([\s\S]*?)<\/ol>)\s*/;
+  let rest = trimmed;
+  const blocks: string[] = [];
+  while (rest.length > 0) {
+    const m = blockRe.exec(rest);
+    if (!m) return undefined;
+    rest = rest.slice(m[0].length);
+    if (m[1]) {
+      const tag = m[1];
+      const inner = convertSimpleInlineHtmlSync(m[2]!);
+      if (inner === undefined) return undefined;
+      if (tag.startsWith("h")) {
+        const lvl = Number(tag.slice(1));
+        blocks.push("#".repeat(lvl) + (inner ? " " + inner : ""));
+      } else {
+        if (inner) blocks.push(inner);
+      }
+    } else if (m[3] !== undefined || m[4] !== undefined) {
+      const ordered = m[4] !== undefined;
+      const listBody = (m[3] ?? m[4])!.trim();
+      const liRe = /^\s*<li>([\s\S]*?)<\/li>\s*/;
+      let lRest = listBody;
+      const items: string[] = [];
+      let idx = 1;
+      while (lRest.length > 0) {
+        const lm = liRe.exec(lRest);
+        if (!lm) return undefined;
+        lRest = lRest.slice(lm[0].length);
+        const itemText = convertSimpleInlineHtmlSync(lm[1]!);
+        if (itemText === undefined) return undefined;
+        items.push((ordered ? `${idx++}. ` : "- ") + itemText);
+      }
+      if (items.length === 0) return undefined;
+      blocks.push(items.join("\n"));
+    }
+  }
+  const result = blocks.length > 0 ? blocks.join("\n\n") + "\n" : "";
+  lastHtmlMdInput = html;
+  lastHtmlMdOutput = result;
+  return result;
 }

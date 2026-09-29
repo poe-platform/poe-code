@@ -61,9 +61,9 @@ export { createWhoamiCommand, createWhoamiCommands, whoamiCommands, type WhoamiC
 export { createUnameCommand, createUnameCommands, unameCommands, type UnameCommandsOptions, type UnameLimits, type UnameOptions } from "./commands/uname/index.js";
 export { createHostnameCommand, createHostnameCommands, hostnameCommands, type HostnameCommandsOptions, type HostnameLimits, type HostnameOptions } from "./commands/hostname/index.js";
 export { createNprocCommand, createNprocCommands, nprocCommands, type NprocCommandsOptions, type NprocLimits, type NprocOptions } from "./commands/nproc/index.js";
-export { createShufCommand, createShufCommands, shufCommands, type ShufCommandsOptions, type ShufLimits, type ShufOptions } from "safe-bash-command-shuf";
-export { createYesCommand, createYesCommands, yesCommands, type YesCommandsOptions, type YesLimits, type YesOptions } from "safe-bash-command-yes";
-export { createDdCommand, createDdCommands, ddCommands, type DdCommandsOptions, type DdLimits, type DdOptions } from "safe-bash-command-dd";
+export { createShufCommand, createShufCommands, shufCommands, type ShufCommandsOptions, type ShufLimits, type ShufOptions } from "./commands/shuf/index.js";
+export { createYesCommand, createYesCommands, yesCommands, type YesCommandsOptions, type YesLimits, type YesOptions } from "./commands/yes/index.js";
+export { createDdCommand, createDdCommands, ddCommands, type DdCommandsOptions, type DdLimits, type DdOptions } from "./commands/dd/index.js";
 export { createNumfmtCommand, createNumfmtCommands, numfmtCommands, type NumfmtCommandsOptions, type NumfmtLimits, type NumfmtOptions } from "./commands/numfmt/index.js";
 export { createEnvsubstCommand, createEnvsubstCommands, envsubstCommands, type EnvsubstCommandsOptions, type EnvsubstLimits, type EnvsubstOptions } from "./commands/envsubst/index.js";
 export { createCalCommand, createCalCommands, calCommands, type CalCommandsOptions, type CalLimits, type CalOptions } from "./commands/cal/index.js";

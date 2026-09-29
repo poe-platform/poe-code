@@ -95,3 +95,38 @@ for (const delimiter of ["\\:", "\\:\\:", "\\:\\:\\:"]) {
     }
   });
 }
+
+const wave112Cases = [
+  ["awk '{ print index($1, \"\") }'", "abc\\n", "1\n", 0],
+  ["awk '{ print index($1, \"a\") }'", "😀a\\n", "5\n", 0],
+  ["grep -o -m 1 'a'", "aa\\nab\\n", "a\na\n", 0],
+  ["grep --only-matching --max-count=1 'a'", "ab\\nab\\n", "a\n", 0],
+  ["grep -Eo 'a*'", "bab\\n", "a\n", 0],
+  ["grep -no -m1 'a'", "x\\naa\\nab\\n", "2:a\n2:a\n", 0],
+  ["grep -Eo -m1 'a*'", "bbb\\na\\n", "", 0],
+  ["grep -Eo '[[:digit:]]+'", "x123\\n", "123\n", 0],
+  ["grep -Eo '[[:alpha:]]+'", "123abc\\n", "abc\n", 0],
+  ["grep -Ei 'ä'", "Ä\\n", "", 2],
+  ["grep -Eio '[A-Z]+'", "ſKAa\\n", "Aa\n", 0],
+  ["sed -n '=' | wc -c", "a", "2\n", 0],
+] as const;
+
+for (const [command, input, expected, status] of wave112Cases) {
+  test(`Wave 112 direct and substitution parity: ${command}`, async t => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands());
+    t.after(() => shell.dispose());
+    const pipeline = `printf '${input}' | ${command}`;
+    const direct = await shell.exec(pipeline);
+    assert.equal(direct.stdout, expected);
+    assert.equal(direct.exitCode, status, direct.stderr);
+    for (const script of [
+      `value=$(${pipeline}); status=$?; printf '%s\\n%s\\n' "$value" "$status"`,
+      `for i in 1 2; do value=$(${pipeline}); status=$?; done; printf '%s\\n%s\\n' "$value" "$status"`,
+    ]) {
+      const result = await shell.exec(script);
+      assert.equal(result.stdout, `${expected.trimEnd()}\n${status}\n`);
+      assert.equal(result.stderr, script.startsWith("for ") ? direct.stderr.repeat(2) : direct.stderr);
+      assert.equal(result.exitCode, 0);
+    }
+  });
+}

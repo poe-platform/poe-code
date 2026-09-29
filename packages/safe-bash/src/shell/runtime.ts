@@ -23623,18 +23623,19 @@ export class Runtime {
       }
       if (!re) return undefined;
       const out: string[] = [];
-      let matched = false;
+      let matchedLines = 0;
       for (let li = 0; li < rawLines.length; li++) {
         const matches = rawLines[li]!.match(re);
         if (matches) {
-          matched = true;
+          matchedLines++;
           for (let mi = 0; mi < matches.length; mi++) {
             if (matches[mi]!.length === 0) continue;
             out.push(isLineNumber ? `${li + 1}:${matches[mi]!}` : matches[mi]!);
           }
+          if (matchedLines >= maxCount) break;
         }
       }
-      return { lines: out, status: matched ? 0 : 1 };
+      return { lines: out, status: matchedLines > 0 ? 0 : 1 };
     }
     if (isExtended && isFixed) return undefined;
     const branches: string[] = [];

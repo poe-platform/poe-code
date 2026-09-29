@@ -556,6 +556,12 @@
       "safe-bash-command-gpg/*": [
         "../safe-bash-command-gpg/src/*.ts",
         "../safe-bash-command-gpg/src/*"
+      ],
+      "safe-bash-command-gh": [
+        "../safe-bash-command-gh/src/index.ts"
+      ],
+      "safe-bash-command-gh/*": [
+        "../safe-bash-command-gh/src/*"
       ]
     },
     "baseUrl": "."

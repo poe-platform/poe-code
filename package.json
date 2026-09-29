@@ -224,7 +224,8 @@
     }
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "packages/safe-bash-command-gh"
   ],
   "scripts": {
     "build": "node scripts/build-workspaces.mjs && npm run codegen:plan-schemas && npm run codegen:harness-schemas && node --input-type=module -e 'import {rm} from \"node:fs/promises\"; import {assertSafeOutputDirectory} from \"./scripts/guard-package-dist.mjs\"; await assertSafeOutputDirectory(process.cwd()); await rm(\"dist\", {recursive:true, force:true});' && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",

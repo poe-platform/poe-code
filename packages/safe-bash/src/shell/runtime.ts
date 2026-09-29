@@ -24466,12 +24466,15 @@ export class Runtime {
     const out: string[] = [];
     for (let i = 0; i < rawLines.length; i++) {
       const line = rawLines[i]!;
-      const raw = line.trim();
+      let raw = line.trim();
       // Preserve field whitespace and padding through the command implementation.
       if (line !== raw) return undefined;
       if (raw.length === 0) { out.push(""); continue; }
+      if (suffix && raw.length > suffix.length && raw.endsWith(suffix)) raw = raw.slice(0, -suffix.length);
       const m = /^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([KMGTPEZYkmgtpezy]i?)?$/.exec(raw);
       if (!m) return undefined;
+      // The command retains input precision using exact decimal arithmetic.
+      if (toScale === "none" && m[1]!.includes(".") && !m[2]) return undefined;
       let val = Number(m[1]!);
       const suf = m[2] ?? "";
       if (suf.length > 0) {

@@ -8,6 +8,17 @@ import { createTextProgramCommands } from "../../src/commands/text-programs/inde
 import { CommandRegistry } from "../../src/contracts/index.js";
 
 const cases = [
+  ["numfmt positive decimal", "1.2\\n", "numfmt --to=none", "1.2"],
+  ["numfmt negative decimal", "-1.2\\n", "numfmt --to=none", "-1.2"],
+  ["numfmt decimal precision", "1.200\\n", "numfmt --to=none", "1.200"],
+  ["numfmt leading spaces", "   1024\\n", "numfmt --to=iec", "   1.0K"],
+  ["numfmt suffix collision", "10K\\n", "numfmt --from=iec --suffix=K", "10K"],
+  ["numfmt suffix after unit", "10KK\\n", "numfmt --from=iec --suffix=K", "10240K"],
+  ["numfmt scaled fraction", "1.2K\\n", "numfmt --from=iec", "1229"],
+  ["jq mixed min", '[{"k":null},{"k":false},{"k":true},{"k":0},{"k":"a"}]\\n', "jq -c 'min_by(.k)'", '{"k":null}'],
+  ["jq mixed max", '[{"k":null},{"k":false},{"k":true},{"k":0},{"k":"a"}]\\n', "jq -c 'max_by(.k)'", '{"k":"a"}'],
+  ["jq composite min", '[{"k":{}},{"k":[]},{"k":"a"}]\\n', "jq -c 'min_by(.k)'", '{"k":"a"}'],
+  ["jq composite max", '[{"k":{}},{"k":[]},{"k":"a"}]\\n', "jq -c 'max_by(.k)'", '{"k":{}}'],
   ["jq mixed sort", '[{"k":"a"},{"k":1},{"k":true},{"k":false},{"k":null}]\\n', "jq -c 'sort_by(.k)'", '[{"k":null},{"k":false},{"k":true},{"k":1},{"k":"a"}]'],
   ["jq unique types", '[{"k":1},{"k":"1"},{"k":false},{"k":"false"},{"k":null},{"k":"null"}]\\n', "jq -c 'unique_by(.k)'", '[{"k":null},{"k":false},{"k":1},{"k":"1"},{"k":"false"},{"k":"null"}]'],
   ["jq group types", '[{"k":null},{"k":"null"},{"k":null}]\\n', "jq -c 'group_by(.k)'", '[[{"k":null},{"k":null}],[{"k":"null"}]]'],
@@ -25,13 +36,14 @@ const cases = [
 ] as const;
 
 for (const [name, input, filter, expected] of cases) {
-  for (const mode of ["pipeline", "substitution", "loop"] as const) {
+  for (const mode of ["pipeline", "substitution", "loop", "arithmetic-loop"] as const) {
     test(`${name}: ${mode}`, async () => {
       const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands(), ...createStructuredCommands()]) });
       try {
-        const pipeline = `printf '${input}' | ${filter}`;
+        const pipeline = `printf -- '${input}' | ${filter}`;
         const source = mode === "pipeline" ? pipeline : mode === "substitution"
           ? `out=$(${pipeline}); printf '%s\\n' "$out"`
+          : mode === "arithmetic-loop" ? `for ((i=0;i<2;i++)); do out=$(${pipeline}); done; printf '%s\\n' "$out"`
           : `for i in 1 2; do out=$(${pipeline}); done; printf '%s\\n' "$out"`;
         const result = await shell.exec(source);
         assert.equal(result.stdout, `${expected}\n`);

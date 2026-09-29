@@ -94,15 +94,21 @@ export class ParsedCosDocument {
   }
 
   resolve(node: PdfCosNode | undefined, depth = 0): PdfCosNode | undefined {
-    if (!node) return undefined;
-    if (depth > this.maxRecursionDepth) {
-      throw new PdfError("E_CAPABILITY", "PDF indirect reference recursion limit exceeded");
+    const visited = new Set<number>();
+    while (node) {
+      if (depth > this.maxRecursionDepth) {
+        throw new PdfError("E_CAPABILITY", "PDF indirect reference recursion limit exceeded");
+      }
+      if (node.kind !== "ref") return node;
+      // Like PDF.js XRef's pending references, this state belongs to one lookup.
+      if (visited.has(node.objectNumber)) {
+        throw new PdfError("E_PARSE", "Circular PDF indirect reference");
+      }
+      visited.add(node.objectNumber);
+      node = this.objects.get(node.objectNumber)?.value;
+      depth++;
     }
-    if (node.kind === "ref") {
-      const target = this.objects.get(node.objectNumber)?.value;
-      return this.resolve(target, depth + 1);
-    }
-    return node;
+    return undefined;
   }
 
   resolveDict(node: PdfCosNode | undefined): PdfCosDict | undefined {

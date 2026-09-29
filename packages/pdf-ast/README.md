@@ -66,6 +66,9 @@ raise errors instead of producing placeholder pixels. Rendering and image extrac
 share these decoders, including inline images; extraction retains original encoded
 image bytes and JBIG2 globals for native-format export.
 
+Circular indirect-reference chains raise a PDF parse error; long acyclic reference
+chains resolve without recursive JavaScript calls.
+
 Resource limits default to `Infinity`. Set `maxObjects`, `maxDecompressedBytes`,
 `maxRecursionDepth`, or save-time `maxOutputBytes` to enforce explicit budgets.
 `maxDecompressedBytes` bounds each decoded stream and image RGBA buffer, including

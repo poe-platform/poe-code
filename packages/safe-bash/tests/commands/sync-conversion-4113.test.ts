@@ -1,3 +1,4 @@
+import { columnCommands } from "../../src/commands/column/index.js";
 import { structuredCommands } from "../../src/commands/structured/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 import { exprCommands } from "../../src/commands/expr/index.js";
@@ -217,5 +218,32 @@ test("evaluates jq -n/--null-input, -s/--slurp, --arg, --argjson, dynamic object
   assert.equal(
     res.stdout,
     "{\"host\":\"localhost\",\"port\":8080}|25|35|alpha:beta:|1|2|\n"
+  );
+});
+
+test("evaluates seq (-w, -s, -f), base64 (-w 0, -d, file operands), and column/fold/expand/unexpand/strings file operands in sync substitutions and pipelines (Wave 170)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(byteCommands()).use(columnCommands());
+  const res = await shell.exec([
+    "printf \"hello world\" > /tmp/msg.txt",
+    "printf \"aGVsbG8gd29ybGQ=\\n\" > /tmp/msg.b64",
+    "printf \"a b\\nc d\\n\" > /tmp/tbl.txt",
+    "printf \"        indented\\n\" > /tmp/spaces.txt",
+    "sq_w=$(seq -w 8 10 | tr '\\n' ':')",
+    "sq_s=$(seq -s ',' 1 4)",
+    "sq_f=$(seq -f 'item_%02g' 1 3 | tr '\\n' ':')",
+    "b_enc=$(base64 -w 0 /tmp/msg.txt)",
+    "b_dec=$(base64 -d /tmp/msg.b64)",
+    "b_pipe=$(base64 -w 0 /tmp/msg.txt | tr 'a-z' 'A-Z')",
+    "f_fold=$(fold -w 5 /tmp/msg.txt | tr '\\n' ':')",
+    "u_unexp=$(unexpand -a /tmp/spaces.txt | cat -T)",
+    "c_col=$(column -t /tmp/tbl.txt | tr '\\n' ':')",
+    "echo \"$sq_w|$sq_s|$sq_f|$b_enc|$b_dec|$b_pipe|$f_fold|$u_unexp|$c_col\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "08:09:10:|1,2,3,4|item_01:item_02:item_03:|aGVsbG8gd29ybGQ=|hello world|AGVSBG8GD29YBGQ=|hello: worl:d|^Iindented|a  b:c  d:\n"
   );
 });

@@ -18,3 +18,16 @@ test("stored template workflows match the pinned deterministic reference", async
     for (const [name, text] of Object.entries(fixture.files)) assert.equal(new TextDecoder().decode(await fs.readFile(`/settings/${name}`)), text, label);
   }
 });
+
+test("template validation and model admission precede stdin acquisition", async () => {
+  for (const [prompt, expected] of [["$missing", "Error: Missing variables: missing\n"], ["$input", "Unknown model: missing\n"]]) {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/settings/templates", { recursive: true });
+    await fs.writeFile("/settings/templates/check.yaml", new TextEncoder().encode(`prompt: ${prompt}\n`));
+    const command = createLlmCommand({ defaultModel: "missing" });
+    const errors: Uint8Array[] = [];
+    const result = await command.execute({ command: "llm", args: ["-t", "check"], fs, cwd: "/", env: { LLM_USER_PATH: "/settings" }, signal: new AbortController().signal, stdin: { [Symbol.asyncIterator]() { return assert.fail("must not acquire stdin"); } }, stdout: { async write() { assert.fail("must not write output"); } }, stderr: { async write(chunk) { errors.push(chunk.slice()); } } });
+    assert.equal(result.exitCode, 1);
+    assert.equal(Buffer.concat(errors).toString(), expected);
+  }
+});

@@ -6,7 +6,7 @@ import { acceptsMimeType, sniffMimeType } from "./mime.js";
 import type { LlmCommandsOptions, LlmRequest } from "./types.js";
 import { createLlmService, type LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
-import { createLlmTemplateStore, evaluateLlmTemplate } from "./templates.js";
+import { createLlmTemplateStore, evaluateLlmTemplate, validateLlmTemplateParameters } from "./templates.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
 import { configurationCommand } from "./configuration-command.js";
 
@@ -195,6 +195,13 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     let stored;
     try { stored = args.template === undefined ? undefined : await templateStore.load(args.template); }
     catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
+    if (stored) {
+      try { validateLlmTemplateParameters(stored, args.params); }
+      catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
+    }
+    const selected = args.model ?? stored?.model ?? (args.save ? undefined : await configuration.defaultModel());
+    const model = selected === undefined ? undefined : await configuration.resolveAlias(selected);
+    const entry = args.save && selected === undefined ? undefined : service.resolve(model);
     const fragments: string[] = [];
     const decoder = new TextDecoder("utf-8", { fatal: true });
     const input = await operation.acquire<AsyncIterator<Uint8Array>>(() => context.stdinInput
@@ -216,7 +223,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (args.save) {
       if (args.attachments.length) throw new Error("Error: Template attachment storage is not implemented");
       const saved = {
-        ...(args.model === undefined ? {} : { model: service.resolve(await configuration.resolveAlias(args.model)).model.id }),
+        ...(args.model === undefined ? {} : { model: entry!.model.id }),
         ...(prompt ? { prompt } : {}), ...(args.system === undefined ? {} : { system: args.system }),
         ...(Object.keys(args.params).length ? { defaults: args.params } : {}),
         ...(Object.keys(args.options).length ? { options: args.options } : {}),
@@ -227,9 +234,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       try { const evaluated = evaluateLlmTemplate(stored, prompt, args.params); prompt = evaluated.prompt; if (args.system === undefined && evaluated.system !== undefined) args.system = evaluated.system; }
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
     }
-    const selected = args.model ?? stored?.model ?? await configuration.defaultModel();
-    const model = selected === undefined ? undefined : await configuration.resolveAlias(selected);
-    const entry = service.resolve(model);
+    if (!entry) throw new Error("No model selected; use --model or configure defaultModel");
     args.options = { ...await configuration.modelOptions(entry.model.id), ...stored?.options, ...args.options };
     const attachments: { mimeType: string; bytes: Uint8Array }[] = [];
     for (const attachment of args.attachments) {

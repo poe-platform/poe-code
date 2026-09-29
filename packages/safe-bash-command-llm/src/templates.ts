@@ -22,13 +22,13 @@ function template(value: unknown, name: string): LlmTemplate {
   }
   return { ...fields, name } as LlmTemplate;
 }
-function interpolate(text: string | undefined, params: Record<string, string>): string | undefined {
+function interpolate(text: string | undefined, params: Record<string, string>, validateOnly = false): string | undefined {
   if (!text) return text;
   let result = "";
   const missing: string[] = [];
   for (let index = 0; index < text.length; index++) {
-    if (text[index] !== "$") { result += text[index]; continue; }
-    if (text[index + 1] === "$") { result += "$"; index++; continue; }
+    if (text[index] !== "$") { if (!validateOnly) result += text[index]; continue; }
+    if (text[index + 1] === "$") { if (!validateOnly) result += "$"; index++; continue; }
     const start = index, braced = text[index + 1] === "{";
     if (braced) index++;
     let name = "";
@@ -36,10 +36,14 @@ function interpolate(text: string | undefined, params: Record<string, string>): 
     if (!name || "0123456789".includes(name[0]!) || braced && text[index + 1] !== "}") throw new Error(`Invalid placeholder in template at position ${start}`);
     if (braced) index++;
     if (!Object.hasOwn(params, name)) { if (!missing.includes(name)) missing.push(name); }
-    else result += String(params[name]);
+    else if (!validateOnly) result += String(params[name]);
   }
   if (missing.length) throw new Error(`Missing variables: ${missing.join(", ")}`);
   return result;
+}
+export function validateLlmTemplateParameters(value: LlmTemplate, params: Record<string, string>): void {
+  const variables = { ...value.defaults, ...params, input: "" };
+  for (const text of [value.prompt, value.system]) interpolate(text, variables, true);
 }
 export function evaluateLlmTemplate(value: LlmTemplate, input: string, params: Record<string, string>): { prompt: string; system?: string } {
   const variables = { ...value.defaults, ...params, input };

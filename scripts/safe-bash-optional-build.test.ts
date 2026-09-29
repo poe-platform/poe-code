@@ -98,6 +98,15 @@ function fixture() {
 describe("optional-owned compiled graph", () => {
   it("retains declared command entrypoints when runtime and types forward through core", async () => {
     const { volume, options } = fixture();
+    const manifest = JSON.parse(volume.readFileSync(core + "/package.json", "utf8").toString());
+    // Exercise declared optional aliases even after production routes move to core.
+    for (const name of ["yes", "shuf", "dd"]) {
+      manifest.exports["./commands/" + name] = {
+        types: "./dist/opt-in/entrypoints/" + name + ".d.ts",
+        import: "./dist/opt-in/entrypoints/" + name + ".js",
+      };
+    }
+    volume.writeFileSync(core + "/package.json", JSON.stringify(manifest));
     const runtime = 'export { Shell, agentCommands, createYesCommand, createYesCommands, yesCommands, createShufCommand, createShufCommands, shufCommands, createDdCommand, createDdCommands, ddCommands } from "./index.js";\n';
     const types = 'export type { YesCommandOptions, YesCommandsOptions, ShufCommandsOptions, DdCommandsOptions, DdFileHandle, DdFileOpener, DdFileRequest } from "./index.js";\n';
     volume.writeFileSync(core + "/dist/optional.js", runtime);

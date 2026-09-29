@@ -25,9 +25,10 @@ using the native reader's built-in password or an explicit host `password.read` 
 [usage guide](../../docs/ssconvert/usage-draft.md) for examples and capabilities.
 
 ```ts
-import { createEngine } from "poe-code/ssconvert";
+import { createEngine, csvFormat, xlsxFormat } from "poe-code/ssconvert";
 
 const engine = createEngine({
+  formats: [csvFormat, xlsxFormat],
   codecs: [],
   environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: {
@@ -42,6 +43,12 @@ try {
   await engine.dispose();
 }
 ```
+
+Choose `csvFormat` (CSV/TSV), `xlsxFormat`, `odsFormat`, `xlsFormat` or
+`spreadsheetmlFormat` with `formats`. Omit `formats` to retain all built-in
+formats; use `formats: []` for custom codecs only. The same option is accepted
+by `createSsconvertCommand` and `ssconvertCommands`. Format selection controls
+discovery and conversion; the compatibility entrypoint still bundles all formats.
 
 Filesystem and network access require explicit host bindings. The engine never
 uses a native spreadsheet converter as a fallback. PDF exports can use an explicit

@@ -1,4 +1,4 @@
-import type { Codec } from "./codecs.js";
+import type { Codec, FormatProvider } from "./codecs.js";
 import type { Workbook, CellUpdate, CellRange, SheetSelection } from "./workbook.js";
 import type { FormulaCapability, GoalSeekRequest, ExternalReferencesCapability } from "./formulas.js";
 import type { FormattingCapability } from "./formatting.js";
@@ -145,6 +145,8 @@ export interface EngineConfig {
   readonly datasource?: import("./datasource.js").DatasourceCapability;
   readonly runtimeFunctions?: import("./formulas/runtime-functions.js").RuntimeFunctions;
   readonly codecs: readonly Codec[];
+  /** Explicit installed formats. Omission retains defaults; [] installs only custom codecs. */
+  readonly formats?: readonly FormatProvider[];
   readonly limits?: Partial<RuntimeLimits>;
   readonly environment: Environment;
   readonly filesystem?: FileSystem;

@@ -102,7 +102,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 0))
       throw new TypeError(`Invalid ssconvert limit: ${name}`);
   }
-  const registry = createRegistry(config.codecs);
+  const registry = createRegistry(config.codecs, config.formats);
   const formatting = config.formatting ?? createFormattingCapability();
   const rendering = config.rendering ?? createImageRendering();
   const books = new WeakSet<Workbook>();

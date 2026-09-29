@@ -1,5 +1,6 @@
 import { createEngine, defaultSsconvertLimits } from "./engine.js";
 import { snapshotRuntimeFunctions } from "./formulas/runtime-functions.js";
+import { snapshotFormats } from "./codecs/format-provider.js";
 import { createResourceIO, type ResourceIOOptions } from "./io/index.js";
 import { createVfsOutput } from "./io/publication.js";
 import { resolveVfsCwd } from "./io/cwd.js";
@@ -48,6 +49,7 @@ export function createSsconvertCommand(options: SsconvertCommandsOptions = {}): 
       })
     }) }),
     codecs: Object.freeze([...(options.codecs ?? [])]),
+    ...(options.formats === undefined ? {} : { formats: snapshotFormats(options.formats) }),
     limits: Object.freeze({ ...defaultSsconvertLimits, ...options.limits }),
     environment: Object.freeze({
       locale: "C", timezone: "UTC",

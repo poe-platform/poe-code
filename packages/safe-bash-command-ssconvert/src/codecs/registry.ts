@@ -4,7 +4,7 @@ import type { Codec, Direction, FormatProvider, ServiceDescriptor, SourceService
 import { compareServiceIds } from "./ordering.js";
 
 const providers: readonly FormatProvider[] = sourceProviders;
-const definitions: readonly SourceService[] = providers.flatMap((provider) => provider.services.map((service) => ({
+const defaultDefinitions: readonly SourceService[] = providers.flatMap((provider) => provider.services.map((service) => ({
   ...service, id: `${provider.id}:${service.id}`, source: service.source ?? provider.source
 })));
 
@@ -31,7 +31,7 @@ function descriptor(service: Codec): ServiceDescriptor {
 
 /** Complete source census, never an installed-codec listing. */
 export const sourceServices: readonly SourceService[] = Object.freeze(
-  definitions.map((service) => Object.freeze({
+  defaultDefinitions.map((service) => Object.freeze({
     ...descriptor(service), direction: service.direction, source: service.source
   }))
 );
@@ -45,7 +45,9 @@ function extension(filename: string): string {
 
 const scopes = { workbook: 0, sheet: 1, range: 2 } as const;
 
-export function createRegistry(codecs: readonly Codec[]) {
+export function createRegistry(codecs: readonly Codec[], formats?: readonly FormatProvider[]) {
+  const definitions = formats === undefined ? defaultDefinitions : formats.flatMap(provider =>
+    provider.services.map(service => ({ ...service, id: `${provider.id}:${service.id}`, source: service.source ?? provider.source })));
   // Registration order is explicit host configuration, not filesystem enumeration.
   const entries: { codec: Codec; direction: Direction; order: number }[] = [];
   const ids = new Set<string>();

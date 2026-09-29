@@ -53,11 +53,15 @@ describe("built portable entrypoints", () => {
     "@poe-platform/safe-bash/yes", "@poe-platform/safe-bash/dd",
     "safe-bash-command-xz", "@poe-code/image-ast",
   ]) it(`${specifier} bundles for workerd`, async () => {
-    await build({
+    const result = await build({
       absWorkingDir: root.pathname,
       stdin: { contents: `export * from ${JSON.stringify(specifier)};`, resolveDir: root.pathname },
       bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", write: false,
+      // Match the production workerd bundler: Wasm imports retain module assets.
+      loader: { ".wasm": "copy" }, outdir: new URL("out/workerd-entrypoints/", root).pathname,
     });
+    for (const file of result.outputFiles.filter(file => file.path.endsWith(".wasm")))
+      expect(WebAssembly.validate(file.contents)).toBe(true);
   });
   it("the default image bundle has no Node builtins", async () => {
     await build({

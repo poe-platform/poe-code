@@ -85,7 +85,7 @@ async function* streamResult(completion: () => AsyncIterable<string | Uint8Array
         if (!ended) {
           const closing = Promise.resolve().then(() => iterator.return?.());
           if (request.signal.aborted) void closing.catch(() => undefined);
-          else await closing;
+          else await abortable(() => closing, request.signal);
         }
       }
 }

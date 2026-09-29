@@ -65,3 +65,28 @@ test("OpenAI consumes streamed UTF-8 prompts and binary attachments through the 
   assert.equal(events[0]?.type,"text");
   assert.equal(closed,4);
 });
+
+
+test("cancellation interrupts stalled provider retirement after early source return", async () => {
+  const controller = new AbortController();
+  const reason = new Error("cancel retirement");
+  let disposed = 0;
+  let retiring!: () => void;
+  const retirementStarted = new Promise<void>(resolve => { retiring = resolve; });
+  const source = { bytes: { async *[Symbol.asyncIterator]() { yield Uint8Array.of(97); } }, async dispose() { disposed++; } };
+  const service = createLlmService({ defaultModel: "fixture", providers: [{
+    name: "fixture", models: [{ id: "fixture" }], complete() { throw new Error("buffered path must not run"); },
+    completeSources() { return { [Symbol.asyncIterator]() { return {
+      async next() { return { done: false as const, value: "answer" }; },
+      return() { retiring(); return new Promise<IteratorResult<string>>(() => undefined); },
+    }; } }; },
+  }] });
+  const iterator = service.streamSources!({ prompt: source, attachments: [], options: {}, signal: controller.signal })[Symbol.asyncIterator]();
+  assert.deepEqual(await iterator.next(), { done: false, value: { type: "text", text: "answer" } });
+  const retirement = iterator.return!();
+  await retirementStarted;
+  const rejected = assert.rejects(retirement, error => error === reason);
+  controller.abort(reason);
+  await rejected;
+  assert.equal(disposed, 1);
+});

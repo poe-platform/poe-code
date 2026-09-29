@@ -60,7 +60,7 @@ it.each(["schema", "command", "resource"] as const)("retains a hidden discovery-
   const issuer = "https://auth.example", set = vi.fn(), cache = { get: async () => null, set };
   let authorized = false;
   const provider = { authorizeRequest: ({ headers }: { headers: Headers }) => { if (authorized) headers.set("Authorization", "Bearer granted"); },
-    handleUnauthorized: () => { authorized = true; return { action: "retry" as const }; } };
+    handleUnauthorized: async ({ discover }: { discover?: () => Promise<unknown> }) => { await discover!(); authorized = true; return { action: "retry" as const }; } };
   const fetch = vi.fn(async (target: string | URL, init?: RequestInit) => {
     if (String(target) === `${url}/metadata`) return Response.json({ resource: url, authorization_servers: [issuer] });
     if (String(target) !== url) return Response.json({ issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] });

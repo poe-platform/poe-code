@@ -2,7 +2,7 @@
   "name": "@poe-code/pdf-ast",
   "version": "0.0.1",
   "private": true,
-  "license": "MIT",
+  "license": "(MIT AND Apache-2.0)",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,7 +14,9 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "THIRD_PARTY_NOTICES.md",
+    "licenses"
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js",

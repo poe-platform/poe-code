@@ -1,3 +1,7 @@
+/*! Numeric recovery and malformed-command handling adapted from Mozilla PDF.js.
+ * Copyright 2017 Mozilla Foundation. Licensed under Apache-2.0.
+ * See licenses/PDFJS-APACHE-2.0.txt and THIRD_PARTY_NOTICES.md.
+ */
 import { formatPdfNumber, type ByteSpan } from "../ast.js";
 import { PdfError } from "../errors.js";
 
@@ -38,37 +42,6 @@ function hexValue(byte: number): number {
   if (byte >= 0x41 && byte <= 0x46) return byte - 0x41 + 10;
   if (byte >= 0x61 && byte <= 0x66) return byte - 0x61 + 10;
   return -1;
-}
-
-function isPdfNumericLexeme(raw: string): boolean {
-  if (raw.length === 0) return false;
-  let i = 0;
-  if (raw[i] === "+" || raw[i] === "-") i++;
-  let digitsBefore = 0;
-  while (i < raw.length && raw.charCodeAt(i) >= 48 && raw.charCodeAt(i) <= 57) {
-    digitsBefore++;
-    i++;
-  }
-  let digitsAfter = 0;
-  if (i < raw.length && raw[i] === ".") {
-    i++;
-    while (i < raw.length && raw.charCodeAt(i) >= 48 && raw.charCodeAt(i) <= 57) {
-      digitsAfter++;
-      i++;
-    }
-  }
-  if (digitsBefore === 0 && digitsAfter === 0) return false;
-  if (i < raw.length && (raw[i] === "e" || raw[i] === "E")) {
-    i++;
-    if (i < raw.length && (raw[i] === "+" || raw[i] === "-")) i++;
-    let expDigits = 0;
-    while (i < raw.length && raw.charCodeAt(i) >= 48 && raw.charCodeAt(i) <= 57) {
-      expDigits++;
-      i++;
-    }
-    if (expDigits === 0) return false;
-  }
-  return i === raw.length;
 }
 
 export class CosByteLexer {
@@ -146,6 +119,18 @@ export class CosByteLexer {
     if (b === 0x2f) {
       return this.readName();
     }
+    if ((b >= 0x30 && b <= 0x39) || b === 0x2b || b === 0x2d || b === 0x2e) {
+      return this.readNumber();
+    }
+    if (b === 0x29) {
+      this.pos++;
+      throw new PdfError("E_PARSE", "Unexpected closing parenthesis in PDF token");
+    }
+    if (b === 0x7b || b === 0x7d ||
+        ((b < 0x20 || b > 0x7f) && this.bytes[start + 1]! >= 0x20 && this.bytes[start + 1]! <= 0x7f)) {
+      this.pos++;
+      return { kind: "keyword", value: String.fromCharCode(b), span: { start, end: this.pos } };
+    }
 
     while (this.pos < this.end) {
       const cur = this.bytes[this.pos]!;
@@ -166,18 +151,79 @@ export class CosByteLexer {
     if (raw === "false") return { kind: "boolean", value: false, span };
     if (raw === "null") return { kind: "null", span };
 
-    if (isPdfNumericLexeme(raw)) {
-      const value = Number(raw);
-      if (!Number.isFinite(value)) {
-        throw new PdfError("E_CAPABILITY", `Non-finite PDF number: ${raw}`);
-      }
-      const hasExponent = raw.includes("e") || raw.includes("E");
-      const isInteger = Number.isInteger(value) && !raw.includes(".") && !hasExponent;
-      const normalizedRaw = hasExponent ? formatPdfNumber(value) : raw;
-      return { kind: "number", value, raw: normalizedRaw, isInteger, span };
-    }
-
     return { kind: "keyword", value: raw, span };
+  }
+
+  private readNumber(): CosToken {
+    const start = this.pos;
+    const advance = () => {
+      this.pos++;
+      if (this.pos - start > this.maxTokenBytes) {
+        throw new PdfError("E_LIMIT", "PDF token exceeds maximum byte length");
+      }
+    };
+    let normalized = "";
+    let decimal = false;
+    let exponent = false;
+    const first = this.bytes[this.pos];
+    if (first === 0x2d || first === 0x2b) {
+      normalized = String.fromCharCode(first);
+      advance();
+      if (first === 0x2d && this.pos < this.end && this.bytes[this.pos] === 0x2d) advance();
+    }
+    while (this.pos < this.end && (this.bytes[this.pos] === 0x0a || this.bytes[this.pos] === 0x0d)) advance();
+    if (this.pos < this.end && this.bytes[this.pos] === 0x2e) {
+      normalized += ".";
+      decimal = true;
+      advance();
+    }
+    const digit = this.pos < this.end ? this.bytes[this.pos]! : -1;
+    if (digit < 0x30 || digit > 0x39) {
+      if (digit === -1 || isPdfWhitespace(digit) || digit === 0x28 || digit === 0x3c) {
+        return { kind: "number", value: 0, raw: "0", isInteger: true, span: { start, end: this.pos } };
+      }
+      throw new PdfError("E_PARSE", "Invalid PDF number prefix");
+    }
+    while (this.pos < this.end) {
+      const b = this.bytes[this.pos]!;
+      if (b >= 0x30 && b <= 0x39) {
+        normalized += String.fromCharCode(b);
+        advance();
+      } else if (b === 0x2e && !decimal) {
+        normalized += ".";
+        decimal = true;
+        advance();
+      } else if (b === 0x2d) {
+        advance();
+      } else {
+        break;
+      }
+    }
+    // Retain existing exponent compatibility without consuming the E of ET.
+    if (this.bytes[this.pos] === 0x65 || this.bytes[this.pos] === 0x45) {
+      let next = this.pos + 1;
+      if (this.bytes[next] === 0x2b || this.bytes[next] === 0x2d) next++;
+      if (next < this.end && this.bytes[next]! >= 0x30 && this.bytes[next]! <= 0x39) {
+        exponent = true;
+        while (this.pos < next) {
+          normalized += String.fromCharCode(this.bytes[this.pos]!);
+          advance();
+        }
+        while (this.pos < this.end && this.bytes[this.pos]! >= 0x30 && this.bytes[this.pos]! <= 0x39) {
+          normalized += String.fromCharCode(this.bytes[this.pos]!);
+          advance();
+        }
+      }
+    }
+    const value = Number(normalized);
+    if (!Number.isFinite(value)) {
+      throw new PdfError("E_CAPABILITY", `Non-finite PDF number: ${normalized}`);
+    }
+    return {
+      kind: "number", value, raw: exponent ? formatPdfNumber(value) : normalized,
+      isInteger: Number.isInteger(value) && !decimal && !exponent,
+      span: { start, end: this.pos },
+    };
   }
 
   private readName(): CosToken {

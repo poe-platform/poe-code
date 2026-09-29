@@ -228,11 +228,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
 }
 
 export function createLlmCommand(options: LlmCommandsOptions = {}): CommandDefinition {
-  if (options.service && (options.providers || options.defaultModel !== undefined)) throw new TypeError("Configure providers and defaultModel on the injected LLM service");
   for (const [name, value] of Object.entries(options.limits ?? {})) {
     if (!Number.isSafeInteger(value) || value < 0) throw new TypeError(`Invalid llm limit: ${name}`);
   }
   const limits = options.limits === undefined ? undefined : Object.freeze({ ...options.limits });
+  if (options.service && (options.providers !== undefined || options.defaultModel !== undefined)) throw new TypeError("Configure providers and defaultModel on the injected LLM service");
   const service = options.service ?? createLlmService({ ...options, providers: options.providers ?? [] });
   return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits) };
 }

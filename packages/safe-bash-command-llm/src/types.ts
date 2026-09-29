@@ -51,6 +51,7 @@ export interface LlmLimits {
 }
 export interface LlmCommandsOptions {
   readonly limits?: Partial<LlmLimits>;
+  readonly service?: LlmService;
   readonly providers?: readonly LlmProvider[];
   readonly service?: LlmService;
   readonly defaultModel?: string;

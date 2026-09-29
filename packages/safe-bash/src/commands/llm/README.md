@@ -293,3 +293,5 @@ are outside this pack.
 Use `llm aliases` for the plain alias list or `llm aliases set short -q part -q name` to select the first model matching every query. `llm models options clear MODEL` clears all defaults atomically; the SDK equivalent is `configuration.clearModelOption(model)`. Pass a key to either interface to clear one option.
 
 Models can declare an `options` map with scalar types and numeric bounds. Declared options are validated before persistence or provider execution, and service requests receive typed values. Providers without declarations retain their own option validation.
+
+Use `llmCommands({ service })` to share an authorized `createLlmService()` instance with another language frontend. Configure providers and the default model on that service; command limits remain per invocation.

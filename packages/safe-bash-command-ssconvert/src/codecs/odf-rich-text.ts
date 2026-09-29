@@ -53,7 +53,12 @@ export function createOdfTextReader(roots: readonly XmlElement[], charge: (amoun
         const fontName = attribute(p, "font-name", "style"), font = attribute(p, "font-family", "fo") ?? (fontName ? fonts.get(fontName) ?? fontName : undefined);
         if (font !== undefined) result.family = font;
         const size = pointSize(attribute(p, "font-size", "fo")); if (size !== undefined) result.size = Math.round(size * 1024);
-        const bold = attribute(p, "font-weight", "fo"); if (bold !== undefined) result.bold = bold === "bold" || Number(bold) >= 600 ? 1 : 0;
+        const bold = attribute(p, "font-weight", "fo");
+        if (bold !== undefined) {
+          const weight = bold === "normal" ? 400 : bold === "bold" ? 700 : Number(bold);
+          // GOffice rich weights scale Pango's normal 400 / bold 700 to 0 / 1.
+          if (Number.isInteger(weight) && weight >= 100 && weight <= 900) result.bold = (weight - 400) / 300;
+        }
         const italic = attribute(p, "font-style", "fo"); if (italic !== undefined) result.italic = ["italic", "oblique"].includes(italic) ? 1 : 0;
         const strike = attribute(p, "text-line-through-style", "style"); if (strike !== undefined) result.strikethrough = strike === "none" ? 0 : 1;
         const position = readOdfScriptPosition(attribute(p, "text-position", "style"), charge);
@@ -119,7 +124,11 @@ export function writeOdfRichText(value: string, runs: readonly RichTextRun[], xm
     const properties: Record<string, string> = {};
     if (typeof a.family === "string") properties["style:font-name"] = definitions.register("fonts", "style:font-face", "rtfont", { "svg:font-family": a.family });
     if (typeof a.size === "number" && Number.isFinite(a.size) && a.size >= 0) properties["fo:font-size"] = a.size / 1024 + "pt";
-    if (a.bold !== undefined) properties["fo:font-weight"] = Number(a.bold) ? "bold" : "normal";
+    if (a.bold !== undefined) {
+      const weight = Math.trunc(Number(a.bold) * 300 + 400);
+      properties["fo:font-weight"] = weight === 400 ? "normal" : weight === 700 ? "bold" :
+        weight >= 100 && weight <= 900 ? String(weight) : Number(a.bold) ? "bold" : "normal";
+    }
     if (a.italic !== undefined) properties["fo:font-style"] = Number(a.italic) ? "italic" : "normal";
     if (a.strikethrough !== undefined) properties["style:text-line-through-style"] = Number(a.strikethrough) ? "solid" : "none";
     // Gnumeric's rich text styles use 83% for automatic sub/superscript.

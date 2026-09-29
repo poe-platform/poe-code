@@ -11,6 +11,7 @@ import {
   pythonValueText,
   writeCsvRow,
   parseColumnIdentifiers,
+  matchColumnIdentifier,
   type CsvDialect,
   type CsvkitCommandsOptions,
   type InferenceOptions,
@@ -755,6 +756,355 @@ export function evalSyncCsvstat(
       return out;
     }
     return out + `${table.rows.length}\n`;
+  } catch {
+    return undefined;
+  }
+}
+
+
+export function evalSyncIn2csv(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    let formatSpec: string | undefined;
+    let keySpec: string | undefined;
+    let namesOnly = false;
+    const filteredArgs: string[] = [];
+    let posDone = false;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (!posDone && a === "--") { posDone = true; filteredArgs.push(a); continue; }
+      if (!posDone && a.startsWith("-") && a !== "-") {
+        if (a === "-n" || a === "--names") { namesOnly = true; continue; }
+        if (a === "-f" || a === "--format") {
+          const v = opArgs[++i];
+          if (!v) return undefined;
+          formatSpec = v.toLowerCase();
+          continue;
+        }
+        if (a === "-k" || a === "--key") {
+          const v = opArgs[++i];
+          if (!v) return undefined;
+          keySpec = v;
+          continue;
+        }
+      }
+      filteredArgs.push(a);
+    }
+    if (namesOnly) return undefined;
+    const opts = parseSyncCsvkitCommon(filteredArgs, "csvlook");
+    if (!opts) return undefined;
+    let sourceBytes = inBytes;
+    if (opts.filePath !== undefined && opts.filePath !== "-") {
+      if (!readFileSync) return undefined;
+      sourceBytes = readFileSync(opts.filePath);
+    }
+    if (!sourceBytes || sourceBytes.byteLength > 16384) return undefined;
+    let fmt = formatSpec;
+    if (!fmt && opts.filePath && opts.filePath !== "-") {
+      const lower = opts.filePath.toLowerCase();
+      if (lower.endsWith(".json") || lower.endsWith(".js")) fmt = "json";
+      else if (lower.endsWith(".ndjson") || lower.endsWith(".jsonl")) fmt = "ndjson";
+      else if (lower.endsWith(".csv") || lower.endsWith(".tsv")) fmt = "csv";
+    }
+    if (!fmt && keySpec !== undefined) fmt = "json";
+    if (fmt === "csv") {
+      const table = loadSyncTypedTable(inBytes, opts, readFileSync);
+      if (!table) return undefined;
+      const outDialect: CsvDialect = { delimiter: ",", quotechar: "\"", doublequote: true, lineterminator: "\n" };
+      let out = opts.addBom ? "\ufeff" : "";
+      out += writeCsvRow(table.headers, outDialect);
+      for (const row of table.rows) {
+        out += writeCsvRow(
+          row.map(v => (v === null ? "" : typeof v === "object" && v.kind === "datetime" ? v.value.replace(" ", "T") : pythonValueText(v))),
+          outDialect,
+        );
+      }
+      return out;
+    }
+    if (fmt !== "json" && fmt !== "ndjson") return undefined;
+    if (fmt === "ndjson" && keySpec !== undefined) return undefined;
+    let text = syncUtf8Decoder.decode(sourceBytes);
+    if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+    let parsedItems: unknown[];
+    if (fmt === "ndjson") {
+      parsedItems = [];
+      for (const line of text.split(/\r?\n/)) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        parsedItems.push(JSON.parse(trimmed));
+      }
+    } else {
+      let root = JSON.parse(text);
+      if (root && typeof root === "object" && !Array.isArray(root)) {
+        if (!keySpec || !(keySpec in (root as Record<string, unknown>))) return undefined;
+        root = (root as Record<string, unknown>)[keySpec];
+      }
+      if (!Array.isArray(root)) return undefined;
+      parsedItems = root;
+    }
+    const headers: string[] = [];
+    const known = new Set<string>();
+    const rawMaps: Map<string, string | null>[] = [];
+    const flatten = (val: unknown, path: string, row: Map<string, string | null>): void => {
+      if (val !== null && typeof val === "object") {
+        if (Array.isArray(val)) {
+          for (let idx = 0; idx < val.length; idx++) flatten(val[idx], path + String(idx) + "/", row);
+        } else {
+          for (const [k, child] of Object.entries(val as Record<string, unknown>)) flatten(child, path + k + "/", row);
+        }
+        return;
+      }
+      let start = 0;
+      let end = path.length;
+      while (path[start] === "/") start++;
+      while (end > start && path[end - 1] === "/") end--;
+      const name = path.slice(start, end);
+      if (!name) throw new Error("empty header");
+      const cell = val === null || val === undefined ? null : typeof val === "boolean" ? (val ? "True" : "False") : String(val);
+      row.set(name, cell);
+    };
+    for (const item of parsedItems) {
+      if (item === null || typeof item !== "object" || Array.isArray(item)) return undefined;
+      const row = new Map<string, string | null>();
+      flatten(item, "", row);
+      for (const name of row.keys()) {
+        if (!known.has(name)) {
+          known.add(name);
+          headers.push(name);
+        }
+      }
+      rawMaps.push(row);
+    }
+    if (headers.length === 0) return undefined;
+    const stringRows = rawMaps.map((m, rIdx) => {
+      const cells = headers.map(h => m.get(h) ?? "");
+      return opts.lineNumbers ? [String(rIdx + 1), ...cells] : cells;
+    });
+    const finalHeaders = opts.lineNumbers ? ["line_number", ...headers] : headers;
+    const inferenceOpts: InferenceOptions = {
+      now: Date.now(),
+      timezone: "UTC",
+      noInference: opts.noInference,
+      numberTextOnly: false,
+      blanks: opts.blanks,
+      nullValues: [],
+      noLeadingZeroes: opts.noLeadingZeroes,
+      maxDecimalDigits: Infinity,
+      maxDecimalExponent: Infinity,
+    };
+    const table = inferTable(finalHeaders, stringRows, inferenceOpts);
+    const outDialect: CsvDialect = { delimiter: ",", quotechar: "\"", doublequote: true, lineterminator: "\n" };
+    let out = opts.addBom ? "\ufeff" : "";
+    out += writeCsvRow(table.headers, outDialect);
+    for (const row of table.rows) {
+      out += writeCsvRow(
+        row.map(v => (v === null ? "" : typeof v === "object" && v.kind === "datetime" ? v.value.replace(" ", "T") : pythonValueText(v))),
+        outDialect,
+      );
+    }
+    return out;
+  } catch {
+    return undefined;
+  }
+}
+
+export function evalSyncCsvstack(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    let groupsSpec: string | undefined;
+    let groupName = "group";
+    let groupByFilenames = false;
+    let noHeaderRow = false;
+    let lineNumbers = false;
+    let addBom = false;
+    const files: string[] = [];
+    let posDone = false;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (!posDone && a === "--") { posDone = true; continue; }
+      if (!posDone && a.startsWith("-") && a !== "-") {
+        if (a === "-H" || a === "--no-header-row") { noHeaderRow = true; continue; }
+        if (a === "-l" || a === "--linenumbers") { lineNumbers = true; continue; }
+        if (a === "--add-bom") { addBom = true; continue; }
+        if (a === "--filenames") { groupByFilenames = true; continue; }
+        if (a === "-g" || a === "--groups") {
+          const v = opArgs[++i];
+          if (v === undefined) return undefined;
+          groupsSpec = v;
+          continue;
+        }
+        if (a === "-n" || a === "--group-name") {
+          const v = opArgs[++i];
+          if (v === undefined) return undefined;
+          groupName = v;
+          continue;
+        }
+        return undefined;
+      }
+      files.push(a);
+    }
+    if (files.length === 0) files.push("-");
+    if (noHeaderRow) return undefined;
+    const groups = groupsSpec !== undefined && !groupByFilenames ? groupsSpec.split(",") : undefined;
+    if (groups && groups.length !== files.length) return undefined;
+    const grouped = groupsSpec !== undefined || groupByFilenames;
+    const parsedFiles: { group: string; headers: string[]; rows: string[][] }[] = [];
+    const unionHeaders: string[] = [];
+    const seen = new Set<string>();
+    for (let idx = 0; idx < files.length; idx++) {
+      const f = files[idx]!;
+      const bytes = f === "-" ? inBytes : readFileSync ? readFileSync(f) : undefined;
+      if (!bytes || bytes.byteLength > 16384) return undefined;
+      let text = syncUtf8Decoder.decode(bytes);
+      if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+      const recs = [...readCsv(text, { delimiter: ",", quotechar: "\"", doublequote: true, skipinitialspace: false })];
+      const hdr = recs[0] ? recs[0].cells.map(c => pythonValueText(c)) : [];
+      for (const h of hdr) {
+        if (!seen.has(h)) {
+          seen.add(h);
+          unionHeaders.push(h);
+        }
+      }
+      const groupVal = groups ? groups[idx]! : f.split("/").at(-1)!;
+      parsedFiles.push({
+        group: groupVal,
+        headers: hdr,
+        rows: recs.slice(1).map(r => r.cells.map(c => pythonValueText(c))),
+      });
+    }
+    const outHeaders = grouped ? [groupName, ...unionHeaders] : [...unionHeaders];
+    const outDialect: CsvDialect = { delimiter: ",", quotechar: "\"", doublequote: true, lineterminator: "\n" };
+    let out = addBom ? "\ufeff" : "";
+    out += writeCsvRow(lineNumbers ? ["line_number", ...outHeaders] : outHeaders, outDialect);
+    let lineNum = 1;
+    for (const pf of parsedFiles) {
+      for (const r of pf.rows) {
+        const rowMap = new Map<string, string>();
+        for (let c = 0; c < pf.headers.length; c++) rowMap.set(pf.headers[c]!, r[c] ?? "");
+        const cells = unionHeaders.map(h => rowMap.get(h) ?? "");
+        if (grouped) cells.unshift(pf.group);
+        if (lineNumbers) cells.unshift(String(lineNum++));
+        out += writeCsvRow(cells, outDialect);
+      }
+    }
+    return out;
+  } catch {
+    return undefined;
+  }
+}
+
+export function evalSyncCsvjoin(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    let columnsSpec: string | undefined;
+    let joinMode: "inner" | "left" | "right" | "outer" = "inner";
+    let noInference = false;
+    let addBom = false;
+    const files: string[] = [];
+    let posDone = false;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (!posDone && a === "--") { posDone = true; continue; }
+      if (!posDone && a.startsWith("-") && a !== "-") {
+        if (a === "--left") { joinMode = "left"; continue; }
+        if (a === "--right") { joinMode = "right"; continue; }
+        if (a === "--outer") { joinMode = "outer"; continue; }
+        if (a === "-I" || a === "--no-inference") { noInference = true; continue; }
+        if (a === "--add-bom") { addBom = true; continue; }
+        if (a === "-c" || a === "--columns") {
+          const v = opArgs[++i];
+          if (v === undefined) return undefined;
+          columnsSpec = v;
+          continue;
+        }
+        return undefined;
+      }
+      files.push(a);
+    }
+    if (files.length !== 2 || !columnsSpec) return undefined;
+    const colParts = columnsSpec.split(",");
+    if (colParts.length !== 1 && colParts.length !== 2) return undefined;
+    const leftOpts: ParsedSyncCsvkitOptions = {
+      tabs: false, noDoublequote: false, skipInitialSpace: false, noHeaderRow: false,
+      skipLines: 0, lineNumbers: false, addBom: false, noInference, blanks: false,
+      noLeadingZeroes: false, sniffLimit: 1024, noNumberEllipsis: false,
+      indent: null, key: null, streamOutput: false, filePath: files[0]!,
+    };
+    const rightOpts: ParsedSyncCsvkitOptions = { ...leftOpts, filePath: files[1]! };
+    const leftTable = loadSyncTypedTable(inBytes, leftOpts, readFileSync);
+    const rightTable = loadSyncTypedTable(inBytes, rightOpts, readFileSync);
+    if (!leftTable || !rightTable) return undefined;
+    const leftKey = matchColumnIdentifier(leftTable.headers, colParts[0]!, 1);
+    const rightKey = matchColumnIdentifier(rightTable.headers, colParts[1] ?? colParts[0]!, 1);
+    const full = joinMode === "outer" || joinMode === "right";
+    const inner = joinMode === "inner";
+    const keyVal = (v: TableValue): string => {
+      if (v === null) return "null";
+      if (typeof v === "string") return "text:" + v;
+      if (typeof v === "boolean") return v ? "number:1:0" : "number:0";
+      if (v.kind === "decimal") {
+        const d = Decimal.parse(v.value).normalized();
+        return "number:" + d.toString();
+      }
+      return "other:" + pythonValueText(v);
+    };
+    const includedRight = rightTable.headers.map((_, idx) => idx).filter(idx => full || idx !== rightKey);
+    const outHeaders = [
+      ...leftTable.headers,
+      ...includedRight.map(idx => (leftTable.headers.includes(rightTable.headers[idx]!) ? rightTable.headers[idx]! + "2" : rightTable.headers[idx]!)),
+    ];
+    if (new Set(outHeaders).size !== outHeaders.length) return undefined;
+    const rightHash = new Map<string, (readonly TableValue[])[]>();
+    const rightKeys: string[] = [];
+    for (const row of rightTable.rows) {
+      const k = keyVal(row[rightKey]!);
+      rightKeys.push(k);
+      const list = rightHash.get(k);
+      if (list) list.push(row);
+      else rightHash.set(k, [row]);
+    }
+    const joinedRows: TableValue[][] = [];
+    const seenKeys = new Set<string>();
+    for (const lRow of leftTable.rows) {
+      const k = keyVal(lRow[leftKey]!);
+      const matches = k === "null" ? undefined : rightHash.get(k);
+      if (matches) {
+        seenKeys.add(k);
+        for (const rRow of matches) {
+          joinedRows.push([...lRow, ...includedRight.map(idx => rRow[idx]!)]);
+        }
+      } else if (!inner && joinMode !== "right") {
+        joinedRows.push([...lRow, ...includedRight.map(() => null)]);
+      }
+    }
+    if (full) {
+      for (let i = 0; i < rightTable.rows.length; i++) {
+        const k = rightKeys[i]!;
+        if (k === "null" || !seenKeys.has(k)) {
+          const rRow = rightTable.rows[i]!;
+          joinedRows.push([...leftTable.headers.map(() => null), ...includedRight.map(idx => rRow[idx]!)]);
+        }
+      }
+    }
+    const outDialect: CsvDialect = { delimiter: ",", quotechar: "\"", doublequote: true, lineterminator: "\n" };
+    let out = addBom ? "\ufeff" : "";
+    out += writeCsvRow(outHeaders, outDialect);
+    for (const row of joinedRows) {
+      out += writeCsvRow(
+        row.map(v => (v === null ? "" : typeof v === "object" && v.kind === "datetime" ? v.value.replace(" ", "T") : pythonValueText(v))),
+        outDialect,
+      );
+    }
+    return out;
   } catch {
     return undefined;
   }

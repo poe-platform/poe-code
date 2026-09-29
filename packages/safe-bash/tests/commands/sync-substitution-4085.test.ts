@@ -875,3 +875,45 @@ test("sync substitution and pipeline: csvsort, csvformat, and csvstat (Wave 142)
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "3:80\n");
 });
+
+
+test("sync substitution and pipeline: in2csv, csvstack, and csvjoin (Wave 143)", async () => {
+  const fs = new MemoryFileSystem();
+  const enc = new TextEncoder();
+  await fs.mkdir("/proj", { recursive: true });
+  await fs.writeFile("/proj/items.json", enc.encode("[{\"id\": 1, \"name\": \"alpha\"}, {\"id\": 2, \"name\": \"beta\"}]\n"));
+  await fs.writeFile("/proj/left.csv", enc.encode("id,name\n1,alpha\n2,beta\n"));
+  await fs.writeFile("/proj/right.csv", enc.encode("id,price\n1,100\n2,200\n"));
+  const commands = new CommandRegistry([...createStandardCommands(), ...createCsvkitCommands()]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(in2csv /proj/items.json | tail -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "2,beta:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(csvstack -g g1,g2 /proj/left.csv /proj/left.csv | tail -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "g2,2,beta:80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(csvjoin -c id /proj/left.csv /proj/right.csv | tail -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "2,beta,200:80\n");
+});

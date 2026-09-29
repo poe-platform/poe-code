@@ -9,6 +9,39 @@ import ts from "typescript";
 import { build, transformSync, type BuildOptions, type Plugin } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
+it("packages isolated root SafeJS exports from canonical workspace artifacts", async () => {
+  const { volume, options } = optionalLeftovers();
+  const root = JSON.parse(volume.readFileSync("/repo/package.json", "utf8") as string);
+  const source = JSON.parse(volume.readFileSync("/repo/packages/safe-js/package.json", "utf8") as string);
+  for (const [route, entry] of [["./safe-js", "index"], ["./safe-js/core", "core"], ["./safe-js/cli", "cli"]]) {
+    source.exports[route === "./safe-js" ? "." : route.replace("./safe-js", ".")] = {
+      types: `./dist/${entry}.d.ts`, import: `./dist/${entry}.js`,
+    };
+    root.exports[route] = {
+      types: { default: `./packages/safe-js/dist/${entry}.d.ts` },
+      browser: null,
+      import: `./dist/shared/safe-js/${entry}.js`,
+    };
+    volume.writeFileSync(`/repo/packages/safe-js/dist/${entry}.js`, 'export { value } from "./value.js";\n');
+    volume.writeFileSync(`/repo/packages/safe-js/dist/${entry}.d.ts`, 'export { value } from "./value.js";\n');
+  }
+  volume.writeFileSync("/repo/packages/safe-js/dist/value.js", "export const value = 42;\n");
+  volume.writeFileSync("/repo/packages/safe-js/dist/value.d.ts", "export declare const value: 42;\n");
+  volume.writeFileSync("/repo/package.json", JSON.stringify(root));
+  volume.writeFileSync("/repo/packages/safe-js/package.json", JSON.stringify(source));
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const manifest = JSON.parse(volume.readFileSync("/output/safe-js/package.json", "utf8") as string);
+  for (const [route, entry] of [[".", "index"], ["./core", "core"], ["./cli", "cli"]]) {
+    expect(manifest.exports[route]).toEqual({
+      types: { default: `./dist/safe-js/${entry}.d.ts` }, browser: null, import: `./dist/safe-js/${entry}.js`,
+    });
+    expect(volume.readFileSync(`/output/safe-js/dist/safe-js/${entry}.js`, "utf8")).toContain('"./value.js"');
+  }
+  expect(volume.readFileSync("/output/safe-js/dist/safe-js/value.js", "utf8")).toBe("export const value = 42;\n");
+  expect(volume.readFileSync("/output/safe-js/dist/safe-js/value.d.ts", "utf8")).toBe("export declare const value: 42;\n");
+  expect(volume.existsSync("/output/safe-js/dist/shared")).toBe(false);
+});
+
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
 it("keeps portable public command adapters linked to their canonical owner", async () => {
   const { volume, options } = optionalLeftovers();

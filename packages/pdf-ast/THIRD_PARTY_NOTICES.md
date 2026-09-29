@@ -165,3 +165,9 @@ The CMap block parser and code reader are shared by ToUnicode and embedded Type0
 Encoding streams. Following PDF.js font mapping, source character codes select
 Unicode labels, while the Encoding CMap's CIDs select widths and embedded glyphs.
 The synchronous integration adds no browser or external CMap-fetch dependency.
+
+
+Word-spacing classification follows PDF.js `Font.charsToGlyphs`
+(`src/core/fonts.js`) and canvas text painting: only an original one-byte 0x20
+receives Tw, regardless of its Unicode label. The internal CMap reader preserves
+that classification without changing the public ToUnicode result shape.

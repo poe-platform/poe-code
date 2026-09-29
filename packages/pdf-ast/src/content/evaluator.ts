@@ -20,7 +20,7 @@ import {
   type PdfRgbColor,
 } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
-import { parseCharacterCMap, readCMapCodes, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
+import { parseCharacterCMap, readCMapCharacters, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "../fonts/truetype.js";
 import { parseContentStream } from "./parser.js";
 import {
@@ -1392,21 +1392,21 @@ export function evaluateContentStreamToDisplayList(params: {
   const decodeTokenGlyphs = (
     bytes: Uint8Array,
     font: ResolvedPageFont | undefined
-  ): Array<{ charCode: number; cid?: number; unicode: string; advance1000: number }> => {
+  ): Array<{ charCode: number; cid?: number; isSpace: boolean; unicode: string; advance1000: number }> => {
     if (font?.encodingCMap) {
       const encoding = font.encodingCMap;
-      return readCMapCodes(encoding, bytes).map(charCode => {
+      return readCMapCharacters(encoding, bytes).map(({ charCode, isSpace }) => {
         const value = encoding.lookup(charCode);
         const cid = typeof value === "number" ? value : 0;
         const unicode = font.cmap?.map.get(charCode) ?? font.differences.get(cid) ?? (cid >= 0x20 && cid <= 0x10ffff ? String.fromCodePoint(cid) : "");
-        return { charCode, cid, unicode, advance1000: font.widths.get(cid) ?? font.defaultWidth };
+        return { charCode, cid, isSpace, unicode, advance1000: font.widths.get(cid) ?? font.defaultWidth };
       });
     }
     if (font?.cmap) {
       if (!font.isTwoByteCid) {
         const stdName = normalizeStandard14FontName(font.baseFont);
         const stdMetrics = STANDARD_14_FONTS[stdName];
-        const out: Array<{ charCode: number; unicode: string; advance1000: number }> = [];
+        const out: Array<{ charCode: number; isSpace: boolean; unicode: string; advance1000: number }> = [];
         for (let i = 0; i < bytes.length; i++) {
           const code = bytes[i]!;
           const unicode =
@@ -1414,23 +1414,25 @@ export function evaluateContentStreamToDisplayList(params: {
             (font.differences.has(code) ? font.differences.get(code)! : decodeWinAnsiByte(code));
           const advance1000 =
             font.widths.get(code) ?? stdMetrics.widthsByCode[code] ?? stdMetrics.defaultWidth;
-          out.push({ charCode: code, unicode, advance1000 });
+          out.push({ charCode: code, isSpace: code === 0x20, unicode, advance1000 });
         }
         return out;
       }
       const decoded = font.cmap.decodeBytes(bytes);
       return decoded.map(item => ({
         charCode: item.charCode,
+        isSpace: false,
         unicode: item.unicode,
         advance1000: font.widths.get(item.charCode) ?? font.defaultWidth,
       }));
     }
     if (font?.isTwoByteCid && bytes.length >= 2 && bytes.length % 2 === 0) {
-      const out: Array<{ charCode: number; unicode: string; advance1000: number }> = [];
+      const out: Array<{ charCode: number; isSpace: boolean; unicode: string; advance1000: number }> = [];
       for (let i = 0; i < bytes.length; i += 2) {
         const cid = (bytes[i]! << 8) | bytes[i + 1]!;
         out.push({
           charCode: cid,
+          isSpace: false,
           unicode: cid >= 0x20 ? String.fromCodePoint(cid) : "",
           advance1000: font.widths.get(cid) ?? font.defaultWidth,
         });
@@ -1439,12 +1441,12 @@ export function evaluateContentStreamToDisplayList(params: {
     }
     const stdName = normalizeStandard14FontName(font?.baseFont ?? curState().fontName);
     const stdMetrics = STANDARD_14_FONTS[stdName];
-    const out: Array<{ charCode: number; unicode: string; advance1000: number }> = [];
+    const out: Array<{ charCode: number; isSpace: boolean; unicode: string; advance1000: number }> = [];
     for (let i = 0; i < bytes.length; i++) {
       const code = bytes[i]!;
       const unicode = font?.differences.get(code) ?? decodeWinAnsiByte(code);
       const advance1000 = font?.widths.get(code) ?? stdMetrics.widthsByCode[code] ?? stdMetrics.defaultWidth;
-      out.push({ charCode: code, unicode, advance1000 });
+      out.push({ charCode: code, isSpace: code === 0x20, unicode, advance1000 });
     }
     return out;
   };
@@ -2164,7 +2166,7 @@ export function evaluateContentStreamToDisplayList(params: {
                   evaluatedType3 = !font.standardOutlines && !font.embeddedCff;
                 }
               }
-              const advUser = ((advance1000 * st.fontSize) / 1000 + st.charSpace + (item.unicode === " " ? st.wordSpace : 0)) * scaleH;
+              const advUser = ((advance1000 * st.fontSize) / 1000 + st.charSpace + (item.isSpace ? st.wordSpace : 0)) * scaleH;
               const [nextX, nextY] = transformPoint(totalMatrix, advUser, 0);
               const glyphWidth = Math.max(
                 Math.hypot(nextX - px, nextY - py),

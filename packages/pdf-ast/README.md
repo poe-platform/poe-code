@@ -61,6 +61,7 @@ including PFB/hex containers, Differences, and composed accents. Embedded
 TrueType CID fonts select outlines through `/CIDToGIDMap`, independently of
 the Unicode labels used for extraction. Embedded Type0 Encoding CMaps resolve
 source character codes to CIDs before width and TrueType/CFF glyph selection.
+Word spacing follows encoded one-byte spaces, including remapped characters.
 ToUnicode maps decode mixed one- through four-byte character codes, including
 ligatures and supplementary Unicode characters.
 Glyph outlines render even when text has no usable Unicode mapping. Unicode fallback covers characters present

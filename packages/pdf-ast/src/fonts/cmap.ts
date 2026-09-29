@@ -86,14 +86,14 @@ export function parseCharacterCMap(cmapBytes: Uint8Array): CMap {
   return cmap;
 }
 
-export function readCMapCodes(cmap: CMap, bytes: Uint8Array): number[] {
-  const codes: number[] = [];
+export function readCMapCharacters(cmap: CMap, bytes: Uint8Array): Array<{ charCode: number; isSpace: boolean }> {
+  const codes: Array<{ charCode: number; isSpace: boolean }> = [];
   const input = bytesToString(bytes);
   const result = { charcode: 0, length: 0 };
   for (let offset = 0; offset < bytes.length;) {
     cmap.readCharCode(input, offset, result);
     if (offset + result.length > bytes.length) break;
-    codes.push(result.charcode);
+    codes.push({ charCode: result.charcode, isSpace: result.length === 1 && bytes[offset] === 0x20 });
     offset += result.length;
   }
   return codes;
@@ -108,7 +108,7 @@ export function parseToUnicodeCMap(cmapBytes: Uint8Array): ParsedToUnicodeCMap {
     map,
     isTwoByte,
     decodeBytes(bytes) {
-      return readCMapCodes(cmap, bytes).map(charCode => ({
+      return readCMapCharacters(cmap, bytes).map(({ charCode }) => ({
         charCode,
         unicode: map.get(charCode) ?? (charCode >= 0x20 && charCode <= 0x10ffff ? String.fromCodePoint(charCode) : ""),
       }));

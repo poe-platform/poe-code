@@ -36,12 +36,22 @@ for (const scenario of [
     let prepared = probes.get(entry);
     if (prepared === undefined) {
       const privateWorkspaces = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8")).poeCode.integration.privateWorkspaces;
+      // Keep every contracts subpath on the same source runtime as this Shell.
+      const sourceAliases = {
+        "safe-bash-contracts": fileURLToPath(new URL("../../../safe-bash-contracts/src", import.meta.url)),
+        "@poe-code/safe-fs": fileURLToPath(new URL("../../../safe-fs/src", import.meta.url)),
+      };
       prepared = build({ entryPoints: [entry], bundle: true, packages: "external", platform: "node",
         alias: {
-          ...Object.fromEntries(Object.keys(privateWorkspaces).map(name => [name,
-            fileURLToPath(new URL(`../../../${name}/dist`, import.meta.url))])),
-          "safe-bash-contracts": fileURLToPath(new URL("../../../safe-bash-contracts/src", import.meta.url)),
-          "@poe-code/safe-fs": fileURLToPath(new URL("../../../safe-fs/src", import.meta.url)),
+          ...Object.fromEntries(Object.keys(privateWorkspaces).filter(name => !Object.hasOwn(sourceAliases, name)).flatMap(name => {
+            const root = new URL(`../../../${name}/`, import.meta.url);
+            const manifest = JSON.parse(readFileSync(new URL("package.json", root), "utf8"));
+            return Object.entries(manifest.exports as Record<string, string | {import: string}>).map(([route, target]) => [
+              route === "." ? name : name + route.slice(1),
+              fileURLToPath(new URL(typeof target === "string" ? target : target.import, root)),
+            ]);
+          })),
+          ...sourceAliases,
         },
         format: "esm", target: "es2022", write: false }).then(result => result.outputFiles[0]!.text);
       probes.set(entry, prepared);

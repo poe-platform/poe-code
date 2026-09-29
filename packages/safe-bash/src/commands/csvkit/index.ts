@@ -181,8 +181,8 @@ function parseSyncCsvkitCommon(opArgs: readonly string[], mode: "csvlook" | "csv
           res.indent = Number(v);
           continue;
         }
-        if (a === "-k" || a === "--key") {
-          const v = opArgs[++i];
+        if (a === "-k" || a.startsWith("-k") || a === "--key" || a.startsWith("--key=")) {
+          const v = a.startsWith("--key=") ? a.slice(6) : a.startsWith("-k=") ? a.slice(3) : a.length > 2 && a.startsWith("-k") ? a.slice(2) : opArgs[++i];
           if (v === undefined) return undefined;
           res.key = v;
           continue;
@@ -734,6 +734,9 @@ export function evalSyncCsvstat(
     let countOnly = false;
     let namesOnly = false;
     let zeroBased = false;
+    let noGrouping = false;
+    let columnsSpec: string | null = null;
+    let metricOp: "type" | "nulls" | "nonnulls" | "unique" | "min" | "max" | "sum" | "mean" | "len" | undefined;
     const filteredArgs: string[] = [];
     let posDone = false;
     for (let i = 0; i < opArgs.length; i++) {
@@ -743,11 +746,28 @@ export function evalSyncCsvstat(
         if (a === "--count") { countOnly = true; continue; }
         if (a === "-n" || a === "--names") { namesOnly = true; continue; }
         if (a === "--zero") { zeroBased = true; continue; }
+        if (a === "-G" || a === "--no-grouping-separator") { noGrouping = true; continue; }
+        if (a === "-c" || a === "--columns" || a.startsWith("--columns=")) {
+          const v = a.startsWith("--columns=") ? a.slice(10) : opArgs[++i];
+          if (!v) return undefined;
+          columnsSpec = v;
+          continue;
+        }
+        const mMap: Record<string, typeof metricOp> = {
+          "--type": "type", "--nulls": "nulls", "--non-nulls": "nonnulls",
+          "--unique": "unique", "--min": "min", "--max": "max",
+          "--sum": "sum", "--mean": "mean", "--len": "len",
+        };
+        if (mMap[a]) {
+          if (metricOp !== undefined) return undefined;
+          metricOp = mMap[a];
+          continue;
+        }
       }
       filteredArgs.push(a);
     }
-    if (!countOnly && !namesOnly) return undefined;
-    if (countOnly && namesOnly) return undefined;
+    const modeCount = (countOnly ? 1 : 0) + (namesOnly ? 1 : 0) + (metricOp ? 1 : 0);
+    if (modeCount !== 1) return undefined;
     const opts = parseSyncCsvkitCommon(filteredArgs, "csvlook");
     if (!opts) return undefined;
     const table = loadSyncTypedTable(inBytes, opts, readFileSync);
@@ -760,7 +780,61 @@ export function evalSyncCsvstat(
       }
       return out;
     }
-    return out + `${table.rows.length}\n`;
+    if (countOnly) {
+      return out + `${table.rows.length}\n`;
+    }
+    const ids = parseColumnIdentifiers(columnsSpec, table.headers, zeroBased ? 0 : 1, undefined, () => {}, true);
+    const fmtDec = (d: Decimal): string => {
+      const num = Number(d.toString());
+      if (!Number.isFinite(num)) return d.toString();
+      let s = num.toFixed(3);
+      while (s.endsWith("0")) s = s.slice(0, -1);
+      if (s.endsWith(".")) s = s.slice(0, -1);
+      if (!noGrouping) {
+        const [intPart = "", fracPart] = s.split(".");
+        const sign = intPart.startsWith("-") ? "-" : "";
+        const digits = sign ? intPart.slice(1) : intPart;
+        const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        s = sign + grouped + (fracPart !== undefined ? "." + fracPart : "");
+      }
+      return s;
+    };
+    for (const id of ids) {
+      const colType = table.columns[id]!.type;
+      const values = table.rows.map(r => r[id]!);
+      const nonNull = values.filter(v => v !== null);
+      let valStr = "None";
+      if (metricOp === "type") valStr = colType;
+      else if (metricOp === "nulls") valStr = nonNull.length !== values.length ? "True" : "False";
+      else if (metricOp === "nonnulls") valStr = String(nonNull.length);
+      else if (metricOp === "unique") {
+        const seen = new Set(values.map(v => v === null ? "null" : typeof v === "object" && v.kind === "decimal" ? "d:" + Decimal.parse(v.value).normalized().toString() : typeof v + ":" + pythonValueText(v)));
+        valStr = String(seen.size);
+      } else if (metricOp === "len" && colType === "Text") {
+        let maxLen = 0;
+        for (const v of nonNull) maxLen = Math.max(maxLen, Array.from(String(v)).length);
+        valStr = fmtDec(Decimal.parse(String(maxLen)));
+      } else if ((metricOp === "min" || metricOp === "max" || metricOp === "sum" || metricOp === "mean") && colType === "Number") {
+        if (nonNull.length > 0) {
+          const decs = nonNull.map(v => Decimal.parse((v as { value: string }).value));
+          if (metricOp === "min" || metricOp === "max") {
+            let best = decs[0]!;
+            for (let k = 1; k < decs.length; k++) {
+              if (metricOp === "min" ? decs[k]!.compare(best) < 0 : decs[k]!.compare(best) > 0) best = decs[k]!;
+            }
+            valStr = fmtDec(best);
+          } else {
+            let sum = Decimal.parse("0");
+            for (const d of decs) sum = sum.add(d);
+            valStr = fmtDec(metricOp === "sum" ? sum : sum.divide(Decimal.parse(String(decs.length))));
+          }
+        }
+      } else {
+        return undefined;
+      }
+      out += (ids.length === 1 ? "" : `${String(id + 1).padStart(3)}. ${table.headers[id]}: `) + valStr + "\n";
+    }
+    return out;
   } catch {
     return undefined;
   }
@@ -783,8 +857,8 @@ export function evalSyncIn2csv(
       if (!posDone && a === "--") { posDone = true; filteredArgs.push(a); continue; }
       if (!posDone && a.startsWith("-") && a !== "-") {
         if (a === "-n" || a === "--names") { namesOnly = true; continue; }
-        if (a === "-f" || a === "--format") {
-          const v = opArgs[++i];
+        if (a === "-f" || a.startsWith("-f") || a === "--format" || a.startsWith("--format=")) {
+          const v = a.startsWith("--format=") ? a.slice(9) : a.startsWith("-f=") ? a.slice(3) : a.length > 2 && a.startsWith("-f") ? a.slice(2) : opArgs[++i];
           if (!v) return undefined;
           formatSpec = v.toLowerCase();
           continue;
@@ -798,7 +872,7 @@ export function evalSyncIn2csv(
       }
       filteredArgs.push(a);
     }
-    if (namesOnly) return undefined;
+
     const opts = parseSyncCsvkitCommon(filteredArgs, "csvlook");
     if (!opts) return undefined;
     let sourceBytes = inBytes;
@@ -815,6 +889,14 @@ export function evalSyncIn2csv(
       else if (lower.endsWith(".csv") || lower.endsWith(".tsv")) fmt = "csv";
     }
     if (!fmt && keySpec !== undefined) fmt = "json";
+    if (namesOnly) {
+      if (fmt !== "json") return undefined;
+      let text = syncUtf8Decoder.decode(sourceBytes);
+      if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+      const root = JSON.parse(text);
+      if (!root || typeof root !== "object" || Array.isArray(root)) return undefined;
+      return Object.keys(root as Record<string, unknown>).map(k => k + "\n").join("");
+    }
     if (fmt === "csv") {
       const table = loadSyncTypedTable(inBytes, opts, readFileSync);
       if (!table) return undefined;
@@ -937,6 +1019,13 @@ export function evalSyncCsvstack(
         if (a === "-H" || a === "--no-header-row") { noHeaderRow = true; continue; }
         if (a === "-l" || a === "--linenumbers") { lineNumbers = true; continue; }
         if (a === "--add-bom") { addBom = true; continue; }
+        if (a === "-t" || a === "--tabs") { tabs = true; continue; }
+        if (a === "-d" || a === "--delimiter" || a.startsWith("--delimiter=")) {
+          const v = a.startsWith("--delimiter=") ? a.slice(12) : opArgs[++i];
+          if (!v || Array.from(v).length !== 1) return undefined;
+          delimiter = v;
+          continue;
+        }
         if (a === "--filenames") { groupByFilenames = true; continue; }
         if (a === "-g" || a === "--groups") {
           const v = opArgs[++i];
@@ -1014,6 +1103,8 @@ export function evalSyncCsvjoin(
     let joinMode: "inner" | "left" | "right" | "outer" = "inner";
     let noInference = false;
     let addBom = false;
+    let delimiter: string | undefined;
+    let tabs = false;
     const files: string[] = [];
     let posDone = false;
     for (let i = 0; i < opArgs.length; i++) {
@@ -1035,11 +1126,9 @@ export function evalSyncCsvjoin(
       }
       files.push(a);
     }
-    if (files.length !== 2 || !columnsSpec) return undefined;
-    const colParts = columnsSpec.split(",");
-    if (colParts.length !== 1 && colParts.length !== 2) return undefined;
+    if (files.length !== 2) return undefined;
     const leftOpts: ParsedSyncCsvkitOptions = {
-      tabs: false, noDoublequote: false, skipInitialSpace: false, noHeaderRow: false,
+      delimiter, tabs, noDoublequote: false, skipInitialSpace: false, noHeaderRow: false,
       skipLines: 0, lineNumbers: false, addBom: false, noInference, blanks: false,
       noLeadingZeroes: false, sniffLimit: 1024, noNumberEllipsis: false,
       indent: null, key: null, streamOutput: false, filePath: files[0]!,
@@ -1048,6 +1137,29 @@ export function evalSyncCsvjoin(
     const leftTable = loadSyncTypedTable(inBytes, leftOpts, readFileSync);
     const rightTable = loadSyncTypedTable(inBytes, rightOpts, readFileSync);
     if (!leftTable || !rightTable) return undefined;
+    if (!columnsSpec) {
+      if (joinMode !== "inner") return undefined;
+      const outHeaders = [
+        ...leftTable.headers,
+        ...rightTable.headers.map(h => (leftTable.headers.includes(h) ? h + "2" : h)),
+      ];
+      if (new Set(outHeaders).size !== outHeaders.length) return undefined;
+      const maxRows = Math.max(leftTable.rows.length, rightTable.rows.length);
+      const outDialect: CsvDialect = { delimiter: ",", quotechar: "\"", doublequote: true, lineterminator: "\n" };
+      let out = addBom ? "\ufeff" : "";
+      out += writeCsvRow(outHeaders, outDialect);
+      for (let r = 0; r < maxRows; r++) {
+        const lRow = leftTable.rows[r] ?? leftTable.headers.map(() => null);
+        const rRow = rightTable.rows[r] ?? rightTable.headers.map(() => null);
+        out += writeCsvRow(
+          [...lRow, ...rRow].map(v => (v === null ? "" : typeof v === "object" && v.kind === "datetime" ? v.value.replace(" ", "T") : pythonValueText(v))),
+          outDialect,
+        );
+      }
+      return out;
+    }
+    const colParts = columnsSpec.split(",");
+    if (colParts.length !== 1 && colParts.length !== 2) return undefined;
     const leftKey = matchColumnIdentifier(leftTable.headers, colParts[0]!, 1);
     const rightKey = matchColumnIdentifier(rightTable.headers, colParts[1] ?? colParts[0]!, 1);
     const full = joinMode === "outer" || joinMode === "right";

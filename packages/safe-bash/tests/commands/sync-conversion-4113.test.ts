@@ -1,3 +1,4 @@
+import { csvkitCommands } from "../../src/commands/csvkit/index.ts";
 import { xmlCommands } from "../../src/commands/xml/index.ts";
 import { yqCommands } from "../../src/commands/yq/index.ts";
 import { ddCommands } from "../../src/commands/dd/index.ts";
@@ -911,5 +912,28 @@ test("evaluates xmllint --format/--c14n, xq --arg/-n, and yq -n/--arg/object-arr
   assert.equal(
     r.stdout,
     "<?xml version=\"1.0\"?>|<root>|  <a>1</a>|</root>|#<root a=\"1\" b=\"2\"></root>#k=10#host: db,\n",
+  );
+});
+
+test("evaluates csvstat -c/--sum/--max, in2csv -n, and csvjoin positional join in sync substitutions (Wave 203)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(csvkitCommands());
+  const r = await shell.exec(
+    [
+      "printf \"id,score\\n1,10\\n2,25\\n\" > /tmp/w203_a.csv",
+      "printf \"tag\\nalpha\\nbeta\\n\" > /tmp/w203_b.csv",
+      "printf \"{\\\"users\\\":[{\\\"id\\\":1}],\\\"meta\\\":[{\\\"v\\\":2}]}\" > /tmp/w203.json",
+      "st_sum=$(csvstat -c score --sum /tmp/w203_a.csv)",
+      "st_max=$(csvstat -c score --max /tmp/w203_a.csv)",
+      "in_names=$(in2csv -n /tmp/w203.json | tr \"\\n\" \",\")",
+      "cj_pos=$(csvjoin /tmp/w203_a.csv /tmp/w203_b.csv | tr \"\\n\" \"|\")",
+      "printf \"%s#%s#%s#%s\\n\" \"$st_sum\" \"$st_max\" \"$in_names\" \"$cj_pos\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "35#25#users,meta,#id,score,tag|1,10,alpha|2,25,beta|\n",
   );
 });

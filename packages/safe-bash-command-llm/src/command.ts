@@ -43,7 +43,7 @@ async function parse(length: number, text: (index: number) => string, step: () =
       if (++index >= length) throw new Error(`Option ${flag} requires an argument`);
       return text(index);
     };
-    if (!["-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "-t", "--template", "--save", "-p", "--param"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+    if (!["-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
     const value = attached ?? take();
     if (flag === "-t" || flag === "--template") parsed.template = value;
     else if (flag === "--save") parsed.save = value;
@@ -51,7 +51,7 @@ async function parse(length: number, text: (index: number) => string, step: () =
     else if (flag === "-m" || flag === "--model") parsed.model = value;
     else if (flag === "-s" || flag === "--system") parsed.system = value;
     else if (flag === "-o" || flag === "--option") parsed.options[value] = take();
-    else if (flag === "--at") parsed.attachments.push({ path: value, mimeType: take() });
+    else if (flag === "--at" || flag === "--attachment-type") parsed.attachments.push({ path: value, mimeType: take() });
     else parsed.attachments.push({ path: value });
   }
   parsed.prompt = operands.join(" ");

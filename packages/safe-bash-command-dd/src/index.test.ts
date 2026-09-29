@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createBytePipe, createCommandArguments } from "safe-bash-contracts";
-import { createDdCommand, createDdCommands, ddCommands } from "./index.js";
+import { createDdCommand, createDdCommands, ddCommands, type DdLimits } from "./index.js";
 
 test("dd copies and converts uppercase", async () => {
   assert.equal(createDdCommands().length, 1);
@@ -25,3 +25,33 @@ test("dd copies and converts uppercase", async () => {
   const out = new TextDecoder().decode(await fs.readFile("/out.txt"));
   assert.equal(out, "HELLO WORLD");
 });
+
+const limitNames = ["maxBlockBytes", "maxBufferBytes", "maxTransferBytes", "maxReadOperations", "maxArgumentBytes"] as const;
+for (const name of limitNames) {
+  test(`dd accepts Infinity for ${name}`, () => {
+    assert.doesNotThrow(() => createDdCommand({ [name]: Infinity }));
+    assert.doesNotThrow(() => ddCommands({ limits: { [name]: Infinity } }));
+  });
+}
+
+test("dd enforces nested limits ahead of legacy limits", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode("hello"));
+  const cmd = createDdCommand({ maxTransferBytes: Infinity, limits: { maxTransferBytes: 2 } });
+  const result = await cmd.execute({
+    command: "dd", args: createCommandArguments(["if=/input", "status=none"]).args,
+    cwd: "/", env: {}, fs, stdin: (async function* () {})(),
+    stdout: createBytePipe().writable, stderr: createBytePipe().writable,
+    signal: new AbortController().signal,
+  });
+  assert.notEqual(result.exitCode, 0);
+});
+
+for (const name of limitNames) {
+  test(`dd validates nested ${name}`, () => {
+    const limits: Partial<DdLimits> = { [name]: -1 };
+    assert.throws(() => createDdCommand({ limits }), RangeError);
+    assert.throws(() => createDdCommand({ limits: { [name]: NaN } }), RangeError);
+    assert.throws(() => createDdCommand({ limits: { [name]: 1.5 } }), RangeError);
+  });
+}

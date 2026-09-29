@@ -91,8 +91,8 @@ function resolveMaxInputBytes(optionsOrLimit: number | OdCommandOptions | undefi
   if (typeof optionsOrLimit === "number") return optionsOrLimit;
   const maxInputBytes = optionsOrLimit?.limits?.maxInputBytes ?? optionsOrLimit?.maxInputBytes;
   if (maxInputBytes === undefined) return Infinity;
-  if (!Number.isSafeInteger(maxInputBytes) || maxInputBytes < 0) {
-    throw new RangeError("maxInputBytes must be a nonnegative safe integer");
+  if (maxInputBytes !== Infinity && (!Number.isSafeInteger(maxInputBytes) || maxInputBytes < 0)) {
+    throw new RangeError("maxInputBytes must be a nonnegative safe integer or Infinity");
   }
   return maxInputBytes;
 }
@@ -211,8 +211,12 @@ async function* sources(context: CommandContext, operands: readonly string[], ma
       source = context.stdin;
     } else {
       const path = pathOf(context, operand);
-      if (!context.fs.readStream) throw new FsError("ENOTSUP", { path, syscall: "readStream", message: "encoding commands require a streaming-read filesystem" });
-      source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
+      if (context.fs.readStream && context.fs.capabilities?.streamingRead !== false) {
+        source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
+      } else {
+        const bytes = await context.fs.readFile(path, { signal: context.signal });
+        source = (async function* () { yield bytes; })();
+      }
     }
     let slicesSinceYield = 0;
     for await (const chunk of budget.read(source, context.signal)) {
@@ -594,11 +598,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
           continue;
         }
         if (argument === "--width") {
-          const next = context.args[index + 1];
-          if (next && [...next].every(c => c >= "0" && c <= "9")) {
-            rewritten.push(`-w${next}`);
-            index++;
-          } else rewritten.push("-w32");
+          rewritten.push("-w32");
           continue;
         }
         rewritten.push(argument);
@@ -612,12 +612,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset]!;
         if (flag === "S") {
-          let parameter = argument.slice(offset + 1);
-          const next = context.args[index + 1];
-          if (!parameter && next && [...next].every(character => character >= "0" && character <= "9")) {
-            parameter = next;
-            index++;
-          }
+          const parameter = argument.slice(offset + 1);
           rewritten.push(`-S${parameter || "3"}`);
           break;
         }
@@ -631,12 +626,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
           throw new UsageError("use --endian=little or --endian=big; -e is unsupported");
         }
         if (flag === "w") {
-          let parameter = argument.slice(offset + 1);
-          const next = context.args[index + 1];
-          if (!parameter && next && [...next].every(character => character >= "0" && character <= "9")) {
-            parameter = next;
-            index++;
-          }
+          const parameter = argument.slice(offset + 1);
           rewritten.push(`-w${parameter || "32"}`);
           break;
         }

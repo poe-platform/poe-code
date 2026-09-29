@@ -18,3 +18,5 @@ import { createMemoryFileSystem, Shell, agentCommands } from "@poe-platform/safe
 const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
 const res = await shell.exec("printf 'hello world' | dd bs=1 skip=6 count=5 status=none");
 ```
+
+Command factories accept `limits: Partial<DdLimits>` for block size, buffer size, transferred bytes, read operations, and argument bytes. Nested limits take precedence over the corresponding top-level options. Each limit accepts `Infinity` (the default) or a positive safe integer; `maxTransferBytes` also accepts zero.

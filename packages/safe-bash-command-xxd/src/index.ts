@@ -91,8 +91,8 @@ function resolveMaxInputBytes(optionsOrLimit: number | XxdCommandOptions | undef
   if (typeof optionsOrLimit === "number") return optionsOrLimit;
   const maxInputBytes = optionsOrLimit?.limits?.maxInputBytes ?? optionsOrLimit?.maxInputBytes;
   if (maxInputBytes === undefined) return Infinity;
-  if (!Number.isSafeInteger(maxInputBytes) || maxInputBytes < 0) {
-    throw new RangeError("maxInputBytes must be a nonnegative safe integer");
+  if (maxInputBytes !== Infinity && (!Number.isSafeInteger(maxInputBytes) || maxInputBytes < 0)) {
+    throw new RangeError("maxInputBytes must be a nonnegative safe integer or Infinity");
   }
   return maxInputBytes;
 }
@@ -216,8 +216,12 @@ async function* sources(context: CommandContext, operands: readonly string[], ma
       source = context.stdin;
     } else {
       const path = pathOf(context, operand);
-      if (!context.fs.readStream) throw new FsError("ENOTSUP", { path, syscall: "readStream", message: "encoding commands require a streaming-read filesystem" });
-      source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
+      if (context.fs.readStream && context.fs.capabilities?.streamingRead !== false) {
+        source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
+      } else {
+        const bytes = await context.fs.readFile(path, { signal: context.signal });
+        source = (async function* () { yield bytes; })();
+      }
     }
     let slicesSinceYield = 0;
     for await (const chunk of budget.read(source, context.signal)) {

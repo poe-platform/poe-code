@@ -22,6 +22,7 @@ export interface DdCommandsOptions {
   readonly maxTransferBytes?: number | undefined;
   readonly maxReadOperations?: number | undefined;
   readonly maxArgumentBytes?: number | undefined;
+  readonly limits?: Partial<DdLimits> | undefined;
   readonly now?: (() => number) | undefined;
   readonly openFile?: DdFileOpener | undefined;
 }
@@ -100,15 +101,9 @@ or available locally via: info '(coreutils) dd invocation'
 `;
 
 export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinition {
-  const limits = {
-    maxBlockBytes: options.maxBlockBytes ?? Infinity,
-    maxBufferBytes: options.maxBufferBytes ?? Infinity,
-    maxTransferBytes: options.maxTransferBytes ?? Infinity,
-    maxReadOperations: options.maxReadOperations ?? Infinity,
-    maxArgumentBytes: options.maxArgumentBytes ?? Infinity,
-  };
-  for (const [name, value] of Object.entries(options).filter(([name]) => name.startsWith("max"))) {
-    if (value !== undefined && (typeof value !== "number" || !Number.isSafeInteger(value) || value < (name === "maxTransferBytes" ? 0 : 1))) throw new RangeError(`${name} must be a ${name === "maxTransferBytes" ? "nonnegative" : "positive"} safe integer`);
+  const limits = settings(options);
+  for (const [name, value] of Object.entries(limits)) {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < (name === "maxTransferBytes" ? 0 : 1))) throw new RangeError(`${name} must be a ${name === "maxTransferBytes" ? "nonnegative" : "positive"} safe integer or Infinity`);
   }
   const opener = options.openFile ?? openDdFile;
   const now = options.now ?? (() => performance.now());
@@ -484,11 +479,11 @@ export interface DdLimits {
 }
 export function settings(options: DdCommandsOptions = {}): DdLimits {
   return {
-    maxBlockBytes: options.maxBlockBytes ?? Infinity,
-    maxBufferBytes: options.maxBufferBytes ?? Infinity,
-    maxTransferBytes: options.maxTransferBytes ?? Infinity,
-    maxReadOperations: options.maxReadOperations ?? Infinity,
-    maxArgumentBytes: options.maxArgumentBytes ?? Infinity,
+    maxBlockBytes: options.limits?.maxBlockBytes ?? options.maxBlockBytes ?? Infinity,
+    maxBufferBytes: options.limits?.maxBufferBytes ?? options.maxBufferBytes ?? Infinity,
+    maxTransferBytes: options.limits?.maxTransferBytes ?? options.maxTransferBytes ?? Infinity,
+    maxReadOperations: options.limits?.maxReadOperations ?? options.maxReadOperations ?? Infinity,
+    maxArgumentBytes: options.limits?.maxArgumentBytes ?? options.maxArgumentBytes ?? Infinity,
   };
 }
 

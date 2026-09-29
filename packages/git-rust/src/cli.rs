@@ -4660,6 +4660,9 @@ pub fn execute_git_cli_with_input(
             } else {
                 discover_gitdir(fs, &join(&[&abs, ".git"]))
             };
+            if !fs.exists(&join(&[&gd, "HEAD"])) {
+                return CliResult::err(128, format!("fatal: '{target}' does not appear to be a git repository\n"));
+            }
             let refs = crate::ssh::collect_gitdir_refs(fs, &gd);
             let mut out = Vec::new();
             out.extend_from_slice(&crate::models::GitPktLine::encode_str("# service=git-upload-pack\n"));
@@ -4685,6 +4688,9 @@ pub fn execute_git_cli_with_input(
             } else {
                 discover_gitdir(fs, &join(&[&abs, ".git"]))
             };
+            if !fs.exists(&join(&[&gd, "HEAD"])) {
+                return CliResult::err(128, format!("fatal: '{target}' does not appear to be a git repository\n"));
+            }
             let refs = crate::ssh::collect_gitdir_refs(fs, &gd);
             let mut out = Vec::new();
             out.extend_from_slice(&crate::models::GitPktLine::encode_str("# service=git-receive-pack\n"));

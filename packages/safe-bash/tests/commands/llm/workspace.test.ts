@@ -21,3 +21,19 @@ test("private LLM command applies explicit byte limits without querying an overs
   assert.equal(output.length, 0);
   assert.match(Buffer.concat(errors).toString(), /input byte limit exceeded/);
 });
+
+test("LLM configuration persists through the shell's scoped overlay filesystem", async () => {
+  const { Shell } = await import("../../../src/index.js");
+  const { llmCommands } = await import("safe-bash-command-llm");
+  const shell = new Shell({ fs: new MemoryFileSystem(), env: { LLM_USER_PATH: "/settings" } }).use(llmCommands({
+    providers: [{ name: "fixture", models: [{ id: "echo" }], async *complete() { yield "unused"; } }],
+  }));
+  try {
+    const alias = await shell.exec("llm aliases set tiny echo");
+    assert.equal(alias.exitCode, 0, alias.stderr);
+    const option = await shell.exec("llm models options set tiny temperature 0.5");
+    assert.equal(option.exitCode, 0, option.stderr);
+    assert.equal((await shell.exec("llm models options show tiny")).stdout, "temperature: 0.5\n");
+    assert.equal((await shell.exec("llm aliases list --json")).stdout, '{\n    "tiny": "echo"\n}\n');
+  } finally { await shell.dispose(); }
+});

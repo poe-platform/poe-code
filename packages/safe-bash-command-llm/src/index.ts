@@ -4,3 +4,4 @@ export type { LlmOption, LlmCapability, LlmResponseMetadata, LlmEmbeddingRequest
 export { createOpenAiProvider, type OpenAiModel, type OpenAiProviderOptions } from "./openai.js";
 export { createElevenLabsProvider, type ElevenLabsModel, type ElevenLabsProviderOptions } from "./elevenlabs.js";
 export type { LlmProviderLimits } from "./providers/shared.js";
+export { createLlmConfiguration, type LlmConfiguration } from "./configuration.js";

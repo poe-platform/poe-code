@@ -12,14 +12,15 @@ store credentials, discover models remotely, or implicitly enable networking.
 Import from `virtual-bash/commands/llm` in this workspace, or the equivalent
 safe-bash package-root exports. The distributable package name is
 `@poe-platform/safe-bash`; Browser/Worker command-subpath exports are available.
-`createLlmCommands(options)` returns command definitions;
-`llmCommands(options)` returns a plugin for `shell.use(...)`. Both accept:
+`createLlmCommand(options)` returns one command; `createLlmCommands(options)` returns command definitions;
+`llmCommands(options)` returns a plugin for `shell.use(...)`. They accept:
 
 | Option | Meaning |
 | --- | --- |
 | `providers` | Readonly list of providers declaring models and `complete`; required unless `service` is supplied |
 | `service` | Existing authorized `LlmService` reused by Bash and other front ends; configure its providers/default model when creating the service |
 | `defaultModel` | Optional model ID, alias, or qualified `provider/model` used when `-m` is omitted |
+| `limits` | Optional `maxInputBytes` and `maxOutputBytes` byte quotas, validated and retained at command construction |
 | `replace` | Optional boolean, default `false`; replace an already registered `llm` command, not model conflicts |
 
 The command entry exports `LlmCommandsOptions`, `LlmProvider`, `LlmModel`, and
@@ -34,6 +35,8 @@ iteration, closure, cancellation races, output-type checks and resource budgets.
 Providers receive the supplied abort signal. The shell command supplies those
 iteration policies; `stream(request)` supplies text/owned-byte events and a final response event with canonical model, optional provider usage and metadata. It validates output types, supports `maxOutputBytes`, closes on early return, and races cancellation while observing late provider failures. Final events do not retain or repeat the output payload; callers that need buffered text/data collect it under their own limits. Opaque provider cleanup cannot be forcibly completed on cancellation.
 `embed({ model?, inputs, options, signal })` dispatches only to models declaring `embed` and validates finite, equally sized vectors. Providers implement the optional `embed` hook. Message history is caller-owned; persisted conversations and the remaining reference CLI workflows are not yet implemented.
+`createLlmConfiguration(context)` exposes the same virtual configuration storage without shell formatting. The CLI honors `LLM_USER_PATH`, otherwise a canonical XDG directory under `HOME`. Configuration JSON is parsed and merged, updates use conditional atomic publication, and concurrent instances sharing one filesystem serialize updates. Control files have a 1 MiB quota; unlimited reference configuration-state parity remains incomplete. This quota does not establish bounded prompt or attachment preparation.
+
 OpenAI chat models declare message support by default; schema support must be explicitly declared in each model's `capabilities`. The endpoint alone does not establish that an individual model supports structured output.
 Reference factories `createOpenAiProvider` and
 `createElevenLabsProvider`, their `OpenAiModel`/`ElevenLabsModel` and
@@ -77,6 +80,10 @@ try {
 | `-a, --attachment <path>` | Repeatable sandbox-file attachment; sniff MIME from bytes, then fall back to extension |
 | `--at <path> <mimetype>` | Repeatable sandbox-file attachment with explicit MIME type |
 | `-h, --help` | Show usage without requiring a model or calling a provider; `llm models --help` (or `-h`) shows model-listing usage |
+| `--version` | Report the pinned compatibility target, `llm, version 0.27.1` |
+| `llm aliases set/remove/path`, `llm aliases list --json` | Persist, remove, locate and inspect canonical aliases in caller storage |
+| `llm models default [MODEL]` | Persist or show the default model |
+| `llm models options set MODEL KEY VALUE`, `show MODEL`, `list`, `clear MODEL KEY` | Persist string-valued defaults and merge them with explicit request options |
 | `llm models` | List configured `provider/model` names, aliases, accepted attachment types, and output types without a provider request |
 | `--` | End option parsing, including prompts beginning with `-` |
 

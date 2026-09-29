@@ -5,6 +5,8 @@ import { pathOf } from "safe-bash-contracts/path";
 import { acceptsMimeType, sniffMimeType } from "./mime.js";
 import type { LlmCommandsOptions, LlmRequest } from "./types.js";
 import { createLlmService, type LlmService } from "./service.js";
+import { createLlmConfiguration } from "./configuration.js";
+import { configurationCommand } from "./configuration-command.js";
 
 interface Arguments {
   model?: string;
@@ -21,6 +23,7 @@ async function parse(length: number, text: (index: number) => string, step: () =
   for (let index = 0; index < length; index++) {
     await step();
     const argument = text(index);
+    if (!ended && argument === "--no-log") continue;
     if (ended || !argument.startsWith("-") || argument === "-") { operands.push(argument); continue; }
     if (argument === "--") { ended = true; continue; }
     const equals = argument.indexOf("=");
@@ -127,6 +130,15 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       await emitText("Usage: llm models [OPTIONS]\n\n  List configured models\n\nOptions:\n  -h, --help  Show this message and exit.\n");
       return { exitCode: 0 };
     }
+    const configurationInvocation = argumentsValue.args[0] === "aliases" || argumentsValue.args[0] === "models" && ["default", "options"].includes(argumentsValue.args[1] ?? "") || argumentsValue.args[0] === "--version";
+    if (configurationInvocation) {
+      try {
+        const tokens = Array.from({ length: argumentsValue.args.length }, (_, index) => argumentText(index));
+        if (await configurationCommand(context, service, tokens, emitText, text => writeDiagnostic(context.stderr, text, signal))) return { exitCode: 0 };
+      } catch (error) {
+        throw new Error(`Error: ${error instanceof Error ? error.message : "Configuration failed"}`);
+      }
+    }
     const args = await parse(argumentsValue.args.length, argumentText, step);
     if (argumentsValue.args[0] === "models" && args.prompt === "models" && !args.attachments.length) {
       for (const { provider, model } of service.models) {
@@ -135,7 +147,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       }
       return { exitCode: 0 };
     }
-    const entry = service.resolve(args.model);
+    const configuration = createLlmConfiguration(context);
+    const selected = args.model ?? await configuration.defaultModel();
+    const model = selected === undefined ? undefined : await configuration.resolveAlias(selected);
+    const entry = service.resolve(model);
+    args.options = { ...await configuration.modelOptions(entry.model.id), ...args.options };
     const fragments: string[] = [];
     const decoder = new TextDecoder("utf-8", { fatal: true });
     const input = await operation.acquire<AsyncIterator<Uint8Array>>(() => context.stdinInput

@@ -6,6 +6,7 @@ import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../as
 import type { PdfClipPath, PdfDisplayList, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate } from "../cos/filters.js";
 import { flattenCubic } from "./cubic.js";
+import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
 
 export interface RgbaBitmap {
   readonly width: number;
@@ -1331,6 +1332,21 @@ export function renderDisplayListToBitmap(
       const maxPx = Math.min(width - 1, clipMaxPx, Math.ceil(Math.max(...cornersPx)) - 1);
       const minPy = Math.max(0, clipMinPy, Math.floor(Math.min(...cornersPy)));
       const maxPy = Math.min(height - 1, clipMaxPy, Math.ceil(Math.max(...cornersPy)) - 1);
+      if (minPx > maxPx || minPy > maxPy) continue;
+
+      // Measure source-pixel footprints through the inverse transform so that
+      // rotations/reflections reduce the appropriate source axis.
+      const source = downscaleImage({ width: img.width, height: img.height, data: img.decodedRgba },
+        Math.hypot(d, c) * img.width / Math.abs(det * scale),
+        Math.hypot(b, a) * img.height / Math.abs(det * scale));
+      // As in PDF.js getImageSmoothingEnabled, smooth downscaling even when
+      // Interpolate is absent. The largest singular value detects enlargement
+      // under skew as well as ordinary axis-aligned scaling.
+      const ax = a * scale / img.width, ay = b * scale / img.width;
+      const bx = c * scale / img.height, by = d * scale / img.height;
+      const s1 = ax * ax + ay * ay, s2 = bx * bx + by * by, cross = ax * bx + ay * by;
+      const smooth = Math.fround((s1 + s2 + Math.hypot(s1 - s2, 2 * cross)) / 2) <= 1;
+      const sample = new Float64Array(4);
 
       for (let py = minPy; py <= maxPy; py++) {
         const yPdf = displayList.height - (py + 0.5) / scale;
@@ -1343,9 +1359,14 @@ export function renderDisplayListToBitmap(
           const u = (d * dxPdf - c * dyPdf) / det;
           const v = (-b * dxPdf + a * dyPdf) / det;
           if (u < 0 || u > 1 || v < 0 || v > 1) continue;
-          const sx = Math.min(img.width - 1, Math.max(0, Math.floor(u * img.width)));
-          const sy = Math.min(img.height - 1, Math.max(0, Math.floor((1 - v) * img.height)));
-          const sIdx = (sy * img.width + sx) * 4;
+          if (smooth) {
+            sampleImageLinear(source, u * source.width - 0.5, (1 - v) * source.height - 0.5, sample);
+          } else {
+            const sx = Math.min(source.width - 1, Math.max(0, Math.floor(u * source.width)));
+            const sy = Math.min(source.height - 1, Math.max(0, Math.floor((1 - v) * source.height)));
+            const sIdx = (sy * source.width + sx) * 4;
+            for (let c = 0; c < 4; c++) sample[c] = source.data[sIdx + c]!;
+          }
           blendPixel(
             rgba,
             width,
@@ -1353,11 +1374,11 @@ export function renderDisplayListToBitmap(
             px,
             py,
             {
-              r: img.decodedRgba[sIdx]! / 255,
-              g: img.decodedRgba[sIdx + 1]! / 255,
-              b: img.decodedRgba[sIdx + 2]! / 255,
+              r: sample[0]! / 255,
+              g: sample[1]! / 255,
+              b: sample[2]! / 255,
             },
-            img.decodedRgba[sIdx + 3]! / 255,
+            sample[3]! / 255,
             img.blendMode, clipMask
           );
         }

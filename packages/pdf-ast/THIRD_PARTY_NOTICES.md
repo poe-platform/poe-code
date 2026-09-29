@@ -349,6 +349,16 @@ The source fixture and hashes are recorded in `src/fixtures/SOURCES.md`.
 The one-pixel gradient expectation is independently verified by Poppler and
 MuPDF; PDF.js's `paintSolidColorImageMask` optimization loses that pattern.
 
+`src/render/image-sampling.ts` adapts `CanvasGraphics._scaleImage` from the same
+pinned PDF.js revision (Copyright 2012 Mozilla Foundation, Apache-2.0). The
+successive half-size canvas draws use local bilinear sampling with premultiplied
+alpha; only the current reduction level is retained. Source-axis footprints
+come from the inverse image transform to preserve rotated anisotropic reductions.
+Final downscaling uses smoothing, as in `getImageSmoothingEnabled`, with one
+device pixel as the enlargement threshold. `image-downsampling.test.ts` adds
+memory-only stripe, alpha, transform, stencil, and save/reopen regressions;
+the unchanged upstream issue13372 fixture also covers reduced patterned masks.
+
 Malformed dictionary-key recovery follows PDF.js `Parser.getObj`, skipping
 stray non-Name tokens only in local repair mode. Damaged optional ToUnicode
 streams follow `PartialEvaluator.readToUnicode` error recovery while retaining

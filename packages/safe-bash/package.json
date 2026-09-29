@@ -1256,7 +1256,8 @@
             "memfs": "4.56.10",
             "tsx": ">=4.21.0",
             "typescript": "^5.9.3",
-            "safe-bash-contracts": "*"
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
           },
           "portable": true
         },

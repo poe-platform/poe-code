@@ -243,3 +243,26 @@ test("root entry exposes enforceable OpLimits", async () => {
   assert.equal((await createOp({ limits }).execute(run.context)).exitCode, 1);
   assert.match(Buffer.concat(run.errors).toString(), /input exceeds maximum size of 2 bytes/);
 });
+
+test("shell adapter preserves explicitly supplied file callbacks over VFS fallbacks", async () => {
+  const { createOpCommand } = await import("./index.js");
+  const backend = createObjectBackend({ vaults: [{ id: "vault", name: "Development" }],
+    items: [{ id: "item", title: "Service", vault: "vault", fields: [{ id: "password", value: "test-secret" }] }] });
+  const run = fixture(["inject", "-i", "template", "-o", "output"]);
+  const writes: string[] = [];
+  const context = Object.assign(run.context, {
+    cwd: "/work", fs: { capabilities: { read: false, write: false } },
+    async readFile(path: string) {
+      assert.equal(path, "template");
+      return new TextEncoder().encode("{{ op://Development/Service/password }}");
+    },
+    async writeFile(path: string, bytes: Uint8Array) {
+      assert.equal(path, "output");
+      writes.push(new TextDecoder().decode(bytes));
+      return "/host/output";
+    },
+  });
+  assert.equal((await createOpCommand({ backend }).execute(context)).exitCode, 0, Buffer.concat(run.errors).toString());
+  assert.deepEqual(writes, ["test-secret"]);
+  assert.equal(Buffer.concat(run.output).toString(), "/host/output\n");
+});

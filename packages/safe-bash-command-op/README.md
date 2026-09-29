@@ -37,17 +37,19 @@ there is no native CLI fallback or implicit host credential discovery.
 The unconditional allow policy is only a simple synthetic example; use a
 restrictive policy for sensitive operations.
 
-`opCommands(options): VirtualShellPlugin` and
+`opCommands(options = {}): VirtualShellPlugin` and
 `createOpCommand(options): CommandDefinition` are exported alongside
 `createObjectBackend` from the same plugin subpath. Here `createOpCommand`
-is the fully composed shell adapter, not the internal low-level dispatcher.
+is the fully composed shell adapter. The standalone workspace entry point uses
+the same adapter: it bridges VFS input/output relative to the shell cwd and
+preserves explicitly supplied `readFile` and `writeFile` callbacks.
 
 `OpLimits` exposes `maxInputBytes`. Set `limits: { maxInputBytes: 1048576 }`
 to bound buffered stdin before parsing or backend execution; omission defaults to
 `Infinity`.
 
 `OpCommandsOptions` extends the internal `OpCommandOptions` documented below:
-required `backend`, policy callbacks/mode, handlers, version and channel, plus
+optional `backend` (an empty object backend by default), policy callbacks/mode, handlers, version and channel, plus
 `replace?` (default false), `authentication?`, `pluginScope?`,
 `confirmPluginClear?` and `selectPlugin?`. Existing `op` registration fails
 unless `replace: true` is explicit. Importing the plugin does not register it.

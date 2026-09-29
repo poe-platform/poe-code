@@ -1,9 +1,33 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { standardCommands } from "../../src/commands/index.js";
-import { createObjectBackend, opCommands } from "../../src/commands/op/index.js";
+import { createObjectBackend, opCommands, createOpCommand, createOpCommands, type OpLimits } from "../../src/commands/op/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
+
+import { opCommands as packageOpCommands } from "../../../safe-bash-command-op/src/index.js";
+
+test("op factories accept omitted options and expose limits", () => {
+  const limits: OpLimits = { maxInputBytes: 2 };
+  assert.equal(createOpCommand().name, "op");
+  assert.equal(createOpCommands()[0].name, "op");
+  assert.equal(opCommands().name, "op-commands");
+  assert.equal(createOpCommand({ limits }).name, "op");
+});
+
+test("standalone op plugin bridges cwd-relative VFS input and private output", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/template", encode("TOKEN={{ op://Team/Login/password }}\n"));
+  const shell = new Shell({ fs, cwd: "/work" }).use(packageOpCommands({ backend: backendFixture() }));
+  const injected = await shell.exec("op inject -i template -o rendered");
+  assert.equal(injected.exitCode, 0, injected.stderr);
+  assert.deepEqual(await fs.readFile("/work/rendered"), encode("TOKEN=synthetic-token\n"));
+  const read = await shell.exec("op read op://Team/Login/password -o secret");
+  assert.equal(read.exitCode, 0, read.stderr);
+  assert.deepEqual(await fs.readFile("/work/secret"), encode("synthetic-token"));
+  assert.equal((await fs.lstat("/work/secret")).mode & 0o777, 0o600);
+});
 
 const encode = (value: string) => new TextEncoder().encode(value);
 

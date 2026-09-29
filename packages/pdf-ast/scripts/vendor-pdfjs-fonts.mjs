@@ -17,6 +17,9 @@ const result = await build({
       'export { Type1Font } from "./src/core/type1_font.js";',
       'export { Type1Parser } from "./src/core/type1_parser.js";',
       'export { MacStandardGlyphOrdering } from "./src/core/fonts_utils.js";',
+      'export { CipherTransformFactory, PDF17, PDF20 } from "./src/core/crypto.js";',
+      'export { Dict, Name } from "./src/core/primitives.js";',
+      'export { saslPrep } from "./src/core/sasl_prep.js";',
       'export { FlateStream } from "./src/core/flate_stream.js";',
       'export { Stream, StringStream } from "./src/core/stream.js";',
       'export { getGlyphsUnicode, getDingbatsGlyphsUnicode } from "./src/core/glyphlist.js";',
@@ -41,6 +44,16 @@ const result = await build({
         const end = source.indexOf("// A special case of CMap,");
         if (start < 0 || end <= start) throw new Error("PDF.js CMap source markers changed");
         return { contents: source.slice(start, end) + "\nexport { CMap };\n", loader: "js" };
+      });
+      builder.onLoad({ filter: /crypto\.js$/ }, args => {
+        let source = readFileSync(args.path, "utf8");
+        // Node 22/ES2022 equivalents: summing sixteen bytes is exact.
+        const sum = "Math.sumPrecise(e.slice(0, 16))";
+        const cache = "return this.#cipherCache.getOrInsertComputed(key, () =>\n      this.resolveCipher(filterName)\n    );";
+        if (!source.includes(sum) || !source.includes(cache)) throw new Error("PDF.js crypto source markers changed");
+        source = source.replace(sum, "e.slice(0, 16).reduce((sum, byte) => sum + byte, 0)");
+        source = source.replace(cache, "if (!this.#cipherCache.has(key)) this.#cipherCache.set(key, this.resolveCipher(filterName));\n    return this.#cipherCache.get(key);");
+        return { contents: source, loader: "js" };
       });
       builder.onLoad({ filter: /font_renderer\.js$/ }, args => ({
         contents: readFileSync(args.path, "utf8") + "\nexport { Type2Compiled };\n", loader: "js",

@@ -15,7 +15,7 @@ Unified first-party PDF AST, parser, lossless editor, extractor, and 2D PNG rast
 | Page Merging & Forms | `doc.copyPagesFrom()`, `doc.getFormFields()`, `doc.setFormField()` | Deep-clone pages across PDFs and inspect or fill `AcroForm` fields |
 | Form Data & Flattening | `parseFormDataBytes()`, `flattenDocumentFormFields()` | Parse FDF, XFDF, and `dump_data_fields` stanzas; bake widget appearances as resource-isolated Forms without rewriting their bytes |
 | Image Extraction | `extractDocumentImages(doc.cos, options)` | Extract XObject, nested Form XObject, and inline images with CTM PPI, `/SMask` alpha, `/ImageMask` stencils, and PDF.js JPEG/JBIG2/JPEG 2000 decoding |
-| Security & Encryption | `doc.save({ encrypt })`, `PdfDocument.load(bytes, { password })` | Standard Security Handler (`R2`–`R6`, RC4, AES-128, AES-256) encryption and decryption |
+| Security & Encryption | `doc.save({ encrypt })`, `PdfDocument.load(bytes, { password })` | Read Standard Security Handler `R2`–`R6`; write fresh AES-256 `R6` encryption or explicit RC4 `R3` |
 | Raster & Vector Export | `renderPdfPageToBitmap()`, `encodePng()`, `encodeJpeg()`, `encodePpm()`, `encodePgm()`, `encodePbm()`, `renderDisplayListToSvg()` | Paint text, images, and paths in PDF content order; export PNG, JPEG, PPM/PGM/PBM, and SVG with a pure-TypeScript rasterizer |
 
 ## Quick Start

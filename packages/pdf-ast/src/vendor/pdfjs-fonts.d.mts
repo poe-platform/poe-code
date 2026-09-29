@@ -94,3 +94,29 @@ export class CMap {
   forEach(callback: (code: number, value: number | string) => void): void;
   readCharCode(value: string, offset: number, result: { charcode: number; length: number }): void;
 }
+
+export class Dict {
+  constructor();
+  set(key: string, value: unknown): void;
+  get(key: string): unknown;
+}
+export class Name {
+  static get(name: string): Name;
+  readonly name: string;
+}
+export class PDF17 {
+  _hash(password: Uint8Array, input: Uint8Array, userBytes: Uint8Array): Uint8Array;
+}
+export class PDF20 extends PDF17 {}
+export function saslPrep(value: string): string;
+export class CipherTransformFactory {
+  constructor(dict: Dict, fileId: string, password?: string);
+  readonly encryptionKey: Uint8Array;
+  readonly encryptMetadata: boolean;
+  readonly algorithm: number;
+  createCipherTransform(number: number, generation: number): {
+    decryptString(value: string): string;
+    encryptString(value: string): string;
+    createStream(stream: Stream, length: number | null, filter?: Name | null): { getBytes(): Uint8Array };
+  };
+}

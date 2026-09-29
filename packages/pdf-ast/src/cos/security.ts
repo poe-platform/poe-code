@@ -1,10 +1,9 @@
+import { PDF17, PDF20, saslPrep } from "../vendor/pdfjs-fonts.mjs";
+import { stringToBytes } from "../bytes.js";
 import {
   aesCbcDecrypt,
   aesCbcEncrypt,
   md5Bytes,
-  sha256Bytes,
-  sha384Bytes,
-  sha512Bytes,
 } from "./crypto-primitives.js";
 import {
   cosArray,
@@ -56,16 +55,8 @@ export function rc4Transform(key: Uint8Array, data: Uint8Array): Uint8Array {
   return out;
 }
 
-function md5(chunks: readonly Uint8Array[]): Uint8Array {
-  return md5Bytes(chunks);
-}
-
-function sha256(chunks: readonly Uint8Array[]): Uint8Array {
-  return sha256Bytes(chunks);
-}
-
 function padPassword32(password: string): Uint8Array {
-  const bytes = new TextEncoder().encode(password);
+  const bytes = stringToBytes(password);
   const out = new Uint8Array(32);
   const copyLen = Math.min(32, bytes.length);
   out.set(bytes.subarray(0, copyLen), 0);
@@ -103,66 +94,19 @@ export function encodePermissionsMask(perms: Partial<PdfPermissions>): number {
   return p;
 }
 
-const R5_R6_HASH_CACHE = new Map<string, Uint8Array>();
-
-function bytesToHexKey(b: Uint8Array): string {
-  let s = "";
-  for (let i = 0; i < b.length; i++) {
-    s += b[i]!.toString(16).padStart(2, "0");
-  }
-  return s;
-}
-
-/**
- * PDF 2.0 / ISO 32000-2 Algorithm 2.B (R6 hash) and R5 SHA-256 hash.
- */
+/** PDF.js ISO 32000-2 Algorithm 2.B, with the public byte-oriented API retained. */
 export function computeR5R6Hash(
   passwordBytes: Uint8Array,
   salt: Uint8Array,
   userKey: Uint8Array,
   revision: 5 | 6
 ): Uint8Array {
-  const pwd = passwordBytes.subarray(0, 127);
-  const cacheKey = `${revision}:${bytesToHexKey(pwd)}:${bytesToHexKey(salt)}:${bytesToHexKey(userKey)}`;
-  const cached = R5_R6_HASH_CACHE.get(cacheKey);
-  if (cached) return new Uint8Array(cached);
-
-  let k = sha256([pwd, salt, userKey]);
-  if (revision === 5) {
-    R5_R6_HASH_CACHE.set(cacheKey, new Uint8Array(k));
-    return k;
-  }
-
-  const k1Bufs = new Map<number, Uint8Array>([
-    [32, new Uint8Array((pwd.length + 32 + userKey.length) * 64)],
-    [48, new Uint8Array((pwd.length + 48 + userKey.length) * 64)],
-    [64, new Uint8Array((pwd.length + 64 + userKey.length) * 64)],
-  ]);
-  let round = 0;
-  while (true) {
-    const k1BlockLen = pwd.length + k.length + userKey.length;
-    const k1 = k1Bufs.get(k.length) ?? new Uint8Array(k1BlockLen * 64);
-    for (let i = 0; i < 64; i++) {
-      const base = i * k1BlockLen;
-      k1.set(pwd, base);
-      k1.set(k, base + pwd.length);
-      k1.set(userKey, base + pwd.length + k.length);
-    }
-    const e = aesCbcEncrypt(k.subarray(0, 16), k.subarray(16, 32), k1, false);
-    let sumMod3 = 0;
-    for (let i = 0; i < 16; i++) {
-      sumMod3 = (sumMod3 + e[i]!) % 3;
-    }
-    k = sumMod3 === 0 ? sha256Bytes([e]) : sumMod3 === 1 ? sha384Bytes(e) : sha512Bytes(e);
-    round++;
-    if (round >= 64 && e[e.length - 1]! <= round - 32) {
-      break;
-    }
-  }
-  const result = new Uint8Array(k.subarray(0, 32));
-  if (R5_R6_HASH_CACHE.size > 512) R5_R6_HASH_CACHE.clear();
-  R5_R6_HASH_CACHE.set(cacheKey, result);
-  return new Uint8Array(result);
+  const password = passwordBytes.subarray(0, 127);
+  const input = new Uint8Array(password.length + salt.length + userKey.length);
+  input.set(password);
+  input.set(salt, password.length);
+  input.set(userKey, password.length + salt.length);
+  return (revision === 6 ? new PDF20() : new PDF17())._hash(password, input, userKey);
 }
 
 export function derivePdfEncryptionKey(
@@ -197,43 +141,46 @@ export function derivePdfEncryptionKey(
     if (uBytes.length < 48 || oBytes.length < 48 || ueNode?.kind !== "string" || oeNode?.kind !== "string") {
       throw new PdfError("E_CAPABILITY", "Invalid R5/R6 encryption dictionary entries");
     }
-    const pwdBytes = new TextEncoder().encode(password).subarray(0, 127);
-    const rev = revision as 5 | 6;
+    const prepared = revision === 6 ? saslPrep(password) : password;
+    for (const candidate of prepared === password ? [password] : [prepared, password]) {
+      const pwdBytes = new TextEncoder().encode(candidate).subarray(0, 127);
+      const rev = revision as 5 | 6;
 
-    // Check user password
-    const uValHash = computeR5R6Hash(pwdBytes, uBytes.subarray(32, 40), new Uint8Array(0), rev);
-    const isUserMatch = uValHash.every((b, idx) => b === uBytes[idx]);
-    if (isUserMatch) {
-      const uKeyHash = computeR5R6Hash(pwdBytes, uBytes.subarray(40, 48), new Uint8Array(0), rev);
-      const fileKey = aesCbcDecrypt(uKeyHash, new Uint8Array(16), ueNode.bytes.subarray(0, 32), false);
-      return {
-        filter,
-        version,
-        revision,
-        keyLengthBits: 256,
-        encryptMetadata,
-        permissions: decodePermissionsMask(pMask),
-        fileKey,
-      };
+      // Check user password
+      const uValHash = computeR5R6Hash(pwdBytes, uBytes.subarray(32, 40), new Uint8Array(0), rev);
+      const isUserMatch = uValHash.every((b, idx) => b === uBytes[idx]);
+      if (isUserMatch) {
+        const uKeyHash = computeR5R6Hash(pwdBytes, uBytes.subarray(40, 48), new Uint8Array(0), rev);
+        const fileKey = aesCbcDecrypt(uKeyHash, new Uint8Array(16), ueNode.bytes.subarray(0, 32), false);
+        return {
+          filter,
+          version,
+          revision,
+          keyLengthBits: 256,
+          encryptMetadata,
+          permissions: decodePermissionsMask(pMask),
+          fileKey,
+        };
+      }
+
+      // Check owner password
+      const oValHash = computeR5R6Hash(pwdBytes, oBytes.subarray(32, 40), uBytes.subarray(0, 48), rev);
+      const isOwnerMatch = oValHash.every((b, idx) => b === oBytes[idx]);
+      if (isOwnerMatch) {
+        const oKeyHash = computeR5R6Hash(pwdBytes, oBytes.subarray(40, 48), uBytes.subarray(0, 48), rev);
+        const fileKey = aesCbcDecrypt(oKeyHash, new Uint8Array(16), oeNode.bytes.subarray(0, 32), false);
+        return {
+          filter,
+          version,
+          revision,
+          keyLengthBits: 256,
+          encryptMetadata,
+          permissions: decodePermissionsMask(pMask),
+          fileKey,
+        };
+      }
+
     }
-
-    // Check owner password
-    const oValHash = computeR5R6Hash(pwdBytes, oBytes.subarray(32, 40), uBytes.subarray(0, 48), rev);
-    const isOwnerMatch = oValHash.every((b, idx) => b === oBytes[idx]);
-    if (isOwnerMatch) {
-      const oKeyHash = computeR5R6Hash(pwdBytes, oBytes.subarray(40, 48), uBytes.subarray(0, 48), rev);
-      const fileKey = aesCbcDecrypt(oKeyHash, new Uint8Array(16), oeNode.bytes.subarray(0, 32), false);
-      return {
-        filter,
-        version,
-        revision,
-        keyLengthBits: 256,
-        encryptMetadata,
-        permissions: decodePermissionsMask(pMask),
-        fileKey,
-      };
-    }
-
     throw new PdfError("E_CAPABILITY", "Invalid PDF password");
   }
 
@@ -246,10 +193,10 @@ export function derivePdfEncryptionKey(
     if (revision >= 4 && !encryptMetadata) {
       chunks.push(Uint8Array.from([0xff, 0xff, 0xff, 0xff]));
     }
-    let digest = md5(chunks);
+    let digest = md5Bytes(chunks);
     if (revision >= 3) {
       for (let i = 0; i < 50; i++) {
-        digest = md5([digest.subarray(0, keyBytesLen)]);
+        digest = md5Bytes([digest.subarray(0, keyBytesLen)]);
       }
     }
     return digest.subarray(0, keyBytesLen);
@@ -259,7 +206,7 @@ export function derivePdfEncryptionKey(
     if (revision === 2) {
       return rc4Transform(fileKey, PADDING_32);
     }
-    const digest = md5([PADDING_32, documentId0]);
+    const digest = md5Bytes([PADDING_32, documentId0]);
     let encrypted = rc4Transform(fileKey, digest);
     for (let i = 1; i <= 19; i++) {
       const iterKey = new Uint8Array(fileKey.length);
@@ -320,7 +267,7 @@ export function decryptPdfBuffer(
     suffix[7] = 0x6c;
     suffix[8] = 0x54;
   }
-  const objKey = md5([state.fileKey, suffix]).subarray(0, Math.min(16, state.fileKey.length + 5));
+  const objKey = md5Bytes([state.fileKey, suffix]).subarray(0, Math.min(16, state.fileKey.length + 5));
   if (useAes128) {
     if (data.length < 16 || data.length % 16 !== 0) return data;
     const iv = data.subarray(0, 16);
@@ -338,15 +285,7 @@ export function encryptPdfBuffer(
   plaintext: Uint8Array
 ): Uint8Array {
   if (state.revision === 5 || state.revision === 6) {
-    // Deterministic 16-byte IV from objectNumber/generationNumber for reproducible tests
-    const iv = sha256([
-      state.fileKey,
-      Uint8Array.from([
-        objectNumber & 0xff,
-        (objectNumber >>> 8) & 0xff,
-        generationNumber & 0xff,
-      ]),
-    ]).subarray(0, 16);
+    const iv = globalThis.crypto.getRandomValues(new Uint8Array(16));
     const enc = aesCbcEncrypt(state.fileKey, iv, plaintext, true);
     const out = new Uint8Array(16 + enc.length);
     out.set(iv, 0);
@@ -361,7 +300,7 @@ export function encryptPdfBuffer(
     generationNumber & 0xff,
     (generationNumber >>> 8) & 0xff,
   ]);
-  const objKey = md5([state.fileKey, suffix]).subarray(0, Math.min(16, state.fileKey.length + 5));
+  const objKey = md5Bytes([state.fileKey, suffix]).subarray(0, Math.min(16, state.fileKey.length + 5));
   return rc4Transform(objKey, plaintext);
 }
 
@@ -419,97 +358,95 @@ export interface EncryptPdfOptions {
   readonly permissions?: Partial<PdfPermissions> | undefined;
 }
 
+// Algorithms 2–5 and 3.8–3.10 follow pypdf 6.19.0 _encryption.py.
+// See THIRD_PARTY_NOTICES.md for provenance and modifications.
+function createR3Encryption(userPassword: string, ownerPassword: string, pMask: number, id: Uint8Array) {
+  let ownerKey = md5Bytes([padPassword32(ownerPassword)]);
+  for (let i = 0; i < 50; i++) ownerKey = md5Bytes([ownerKey]);
+  let owner = padPassword32(userPassword);
+  for (let i = 0; i < 20; i++) owner = rc4Transform(ownerKey.map(byte => byte ^ i), owner);
+
+  const pBytes = new Uint8Array(4);
+  new DataView(pBytes.buffer).setInt32(0, pMask, true);
+  let fileKey = md5Bytes([padPassword32(userPassword), owner, pBytes, id]);
+  for (let i = 0; i < 50; i++) fileKey = md5Bytes([fileKey]);
+  let user = md5Bytes([PADDING_32, id]);
+  for (let i = 0; i < 20; i++) user = rc4Transform(fileKey.map(byte => byte ^ i), user);
+  const uFull = new Uint8Array(32);
+  uFull.set(user);
+  uFull.set(PADDING_32.subarray(0, 16), 16);
+  return { fileKey, dict: cosDict({
+    Filter: cosName("Standard"), V: cosNumber(2), R: cosNumber(3),
+    Length: cosNumber(128), P: cosNumber(pMask),
+    U: cosHexString(uFull), O: cosHexString(owner),
+  }) };
+}
+
+function createR6Encryption(userPassword: string, ownerPassword: string, pMask: number) {
+  const fileKey = globalThis.crypto.getRandomValues(new Uint8Array(32));
+  const userSalt = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  const ownerSalt = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  const userBytes = new TextEncoder().encode(saslPrep(userPassword)).subarray(0, 127);
+  const ownerBytes = new TextEncoder().encode(saslPrep(ownerPassword)).subarray(0, 127);
+  const uFull = new Uint8Array(48);
+  uFull.set(computeR5R6Hash(userBytes, userSalt.subarray(0, 8), new Uint8Array(0), 6));
+  uFull.set(userSalt, 32);
+  const userKey = computeR5R6Hash(userBytes, userSalt.subarray(8), new Uint8Array(0), 6);
+  const ue = aesCbcEncrypt(userKey, new Uint8Array(16), fileKey, false);
+  const oFull = new Uint8Array(48);
+  oFull.set(computeR5R6Hash(ownerBytes, ownerSalt.subarray(0, 8), uFull, 6));
+  oFull.set(ownerSalt, 32);
+  const ownerKey = computeR5R6Hash(ownerBytes, ownerSalt.subarray(8), uFull, 6);
+  const oe = aesCbcEncrypt(ownerKey, new Uint8Array(16), fileKey, false);
+
+  const permissions = new Uint8Array(16);
+  new DataView(permissions.buffer).setInt32(0, pMask, true);
+  permissions.fill(255, 4, 8);
+  permissions.set([84, 97, 100, 98], 8); // EncryptMetadata=true, followed by "adb".
+  permissions.set(globalThis.crypto.getRandomValues(new Uint8Array(4)), 12);
+  // A single CBC block with a zero IV is the required AES-ECB block.
+  const perms = aesCbcEncrypt(fileKey, new Uint8Array(16), permissions, false);
+  return { fileKey, dict: cosDict({
+    Filter: cosName("Standard"), V: cosNumber(5), R: cosNumber(6),
+    Length: cosNumber(256), P: cosNumber(pMask), EncryptMetadata: cosBool(true),
+    U: cosHexString(uFull), O: cosHexString(oFull), UE: cosHexString(ue), OE: cosHexString(oe),
+    Perms: cosHexString(perms),
+    CF: cosDict({ StdCF: cosDict({ CFM: cosName("AESV3"), AuthEvent: cosName("DocOpen"), Length: cosNumber(32) }) }),
+    StmF: cosName("StdCF"), StrF: cosName("StdCF"),
+  }) };
+}
+
 export function encryptCosDocument(doc: ParsedCosDocument, options: EncryptPdfOptions = {}): Uint8Array {
   const userPassword = options.userPassword ?? "";
   const ownerPassword = options.ownerPassword ?? userPassword;
-  const revision = 6;
+  const revision = options.revision ?? 6;
+  if (revision !== 3 && revision !== 6) throw new PdfError("E_CAPABILITY", `Unsupported encryption revision: ${revision}`);
   const pMask = encodePermissionsMask(options.permissions ?? {});
-  const permissions = decodePermissionsMask(pMask);
-
-  const fileKey = sha256([
-    new TextEncoder().encode(`poe-pdf-key:${userPassword}:${ownerPassword}:${pMask}`),
-  ]);
-
-  const uValSalt = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
-  const uKeySalt = Uint8Array.from([9, 10, 11, 12, 13, 14, 15, 16]);
-  const oValSalt = Uint8Array.from([17, 18, 19, 20, 21, 22, 23, 24]);
-  const oKeySalt = Uint8Array.from([25, 26, 27, 28, 29, 30, 31, 32]);
-
-  const userBytes = new TextEncoder().encode(userPassword).subarray(0, 127);
-  const ownerBytes = new TextEncoder().encode(ownerPassword).subarray(0, 127);
-
-  const uHash = computeR5R6Hash(userBytes, uValSalt, new Uint8Array(0), 6);
-  const uFull = new Uint8Array(48);
-  uFull.set(uHash, 0);
-  uFull.set(uValSalt, 32);
-  uFull.set(uKeySalt, 40);
-
-  const uKeyHash = computeR5R6Hash(userBytes, uKeySalt, new Uint8Array(0), 6);
-  const ueBytes = aesCbcEncrypt(uKeyHash, new Uint8Array(16), fileKey, false);
-
-  const oHash = computeR5R6Hash(ownerBytes, oValSalt, uFull, 6);
-  const oFull = new Uint8Array(48);
-  oFull.set(oHash, 0);
-  oFull.set(oValSalt, 32);
-  oFull.set(oKeySalt, 40);
-
-  const oKeyHash = computeR5R6Hash(ownerBytes, oKeySalt, uFull, 6);
-  const oeBytes = aesCbcEncrypt(oKeyHash, new Uint8Array(16), fileKey, false);
-
+  const idBytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  const { fileKey, dict: encryptDict } = revision === 6
+    ? createR6Encryption(userPassword, ownerPassword, pMask)
+    : createR3Encryption(userPassword, ownerPassword, pMask, idBytes);
   const state: PdfEncryptionState = {
-    filter: "Standard",
-    version: 5,
-    revision,
-    keyLengthBits: 256,
-    encryptMetadata: true,
-    permissions,
-    fileKey,
+    filter: "Standard", version: revision === 6 ? 5 : 2, revision,
+    keyLengthBits: fileKey.length * 8, encryptMetadata: true,
+    permissions: decodePermissionsMask(pMask), fileKey,
   };
-
   let maxObjNum = 0;
-  for (const obj of doc.objects.values()) {
-    if (obj.objectNumber > maxObjNum) maxObjNum = obj.objectNumber;
-  }
+  for (const obj of doc.objects.values()) maxObjNum = Math.max(maxObjNum, obj.objectNumber);
   const encryptObjNum = maxObjNum + 1;
-
   const encryptedObjects: PdfIndirectObject[] = [];
   for (const obj of doc.objects.values()) {
     const transformed = transformNodeStringsAndStreams(obj.value, plain =>
       encryptPdfBuffer(state, obj.objectNumber, obj.generationNumber, plain)
     );
-    encryptedObjects.push({
-      objectNumber: obj.objectNumber,
-      generationNumber: obj.generationNumber,
-      value: transformed,
-    });
+    encryptedObjects.push({ objectNumber: obj.objectNumber, generationNumber: obj.generationNumber, value: transformed });
   }
-
-  const encryptDict = cosDict({
-    Filter: cosName("Standard"),
-    V: cosNumber(5),
-    R: cosNumber(6),
-    Length: cosNumber(256),
-    P: cosNumber(pMask),
-    EncryptMetadata: cosBool(true),
-    U: cosHexString(uFull),
-    O: cosHexString(oFull),
-    UE: cosHexString(ueBytes),
-    OE: cosHexString(oeBytes),
-  });
-
-  encryptedObjects.push({
-    objectNumber: encryptObjNum,
-    generationNumber: 0,
-    value: encryptDict,
-  });
-
-  const idBytes = sha256([fileKey]).subarray(0, 16);
+  encryptedObjects.push({ objectNumber: encryptObjNum, generationNumber: 0, value: encryptDict });
   return serializeCosDocument({
-    objects: encryptedObjects,
-    rootRef: doc.rootRef,
-    infoRef: doc.infoRef,
+    objects: encryptedObjects, rootRef: doc.rootRef, infoRef: doc.infoRef,
     encryptRef: cosRef(encryptObjNum),
     idArray: cosArray([cosHexString(idBytes), cosHexString(idBytes)]),
+    version: revision === 6 ? "2.0" : Number.parseFloat(doc.version) < 1.4 ? "1.4" : doc.version,
   });
 }
 

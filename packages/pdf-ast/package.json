@@ -38,7 +38,8 @@
       "safe-bash": [
         "./THIRD_PARTY_NOTICES.md",
         "./licenses/PDFJS-APACHE-2.0.txt",
-        "./licenses/PDFIUM-BSD.txt"
+        "./licenses/PDFIUM-BSD.txt",
+        "./licenses/PYPDF-BSD.txt"
       ]
     }
   }

@@ -222,3 +222,26 @@ additional regressions use the extracted upstream streams listed in
 `src/fixtures/SOURCES.md`. Copyright 2012/2017 Mozilla Foundation and
 1996–2003 Glyph & Cog, LLC, Apache-2.0. The upstream Flate implementation is a
 JavaScript port of XPDF's implementation.
+
+# PDF standard security handler
+
+`src/vendor/pdfjs-fonts.mjs` also includes `src/core/crypto.js`,
+`src/core/sasl_prep.js`, and their dependencies from the pinned PDF.js revision
+`91041fb94d6744bc2a5bccd9aad28d617faa8195` (Mozilla Foundation, Apache-2.0).
+The vendor script replaces `Map.getOrInsertComputed` with ordinary Map operations
+and `Math.sumPrecise` with exact integer addition over sixteen bytes for Node 22
+and ES2022 compatibility; it does not modify globals. The R5/R6 password hash
+adapter in `src/cos/security.ts` uses PDF.js's PDF17/PDF20 implementation.
+The AES256 length cases in `src/cos/security-writer.test.ts` are adapted from
+PDF.js `test/unit/crypto_spec.js`, with independent Node AES validation.
+
+The R3 and R6 encryption dictionary construction in `src/cos/security.ts`
+follows pypdf 6.19.0 `pypdf/_encryption.py` (`AlgV4`, `AlgV5`, and
+`Encryption.write_entry`). Modifications adapt the algorithms to the COS API,
+use Web Crypto randomness, and use PDF.js for password hashing/preparation.
+Fixed password/key/permission test values were generated independently with
+that pypdf version and deterministic test-only entropy.
+
+pypdf is BSD-3-Clause; copyright Mathieu Fenniak (2006–2008), Ashish Kulkarni
+(2007), and Steve Witham (2014). See `licenses/PYPDF-BSD.txt`.
+Source: https://github.com/py-pdf/pypdf/tree/6.19.0

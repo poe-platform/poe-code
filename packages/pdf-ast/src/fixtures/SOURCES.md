@@ -237,3 +237,11 @@ The native comparison uses a minimal vector-storage adapter and float inputs;
 expectations allow rounding differences from TypeScript's double precision.
 Cases cover collinear reversals, loops, coincident endpoints/control points,
 and zero-length curves. See `../../licenses/AGG-2.3.txt` and the package notices.
+
+`pdfium-agg-stroke-vectors.json` contains nine cap/join inputs and native output
+contours from unchanged `agg_math_stroke.h` and `agg_math.h` at the same PDFium
+revision. Minimal support headers provide the vertex structure and math macros;
+the harness assembles the contours in `agg_vcgen_stroke.cpp` traversal order.
+Cases cover closed miter/round/bevel joins, acute miter limits, round/square caps,
+nearly collinear edges and reversals. Four-decimal comparisons allow native
+float versus TypeScript double precision differences. The same AGG terms apply.

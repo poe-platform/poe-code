@@ -7,6 +7,7 @@ import type { PdfClipPath, PdfDisplayList, PdfPaintOperation, PdfPathSegment, Pd
 import { applyPredictor, decodeFlate, encodeFlate } from "../cos/filters.js";
 import { flattenCubic } from "./cubic.js";
 import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
+import { strokeOutlines, type StrokePoint, type StrokeSubpath } from "./stroke.js";
 
 export interface RgbaBitmap {
   readonly width: number;
@@ -920,65 +921,6 @@ function blendPixel(
   rgba[idx + 3] = Math.round(outA * 255);
 }
 
-function drawAntiAliasedSegment(
-  rgba: Uint8Array,
-  width: number,
-  height: number,
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number,
-  strokeWidth: number,
-  color: PdfRgbColor,
-  alpha = 1,
-  lineCap: 0 | 1 | 2 = 0,
-  antialias = true,
-  blendMode?: string,
-  clipMask?: Uint8Array
-): void {
-  const halfW = Math.max(0.6, strokeWidth * 0.5);
-  const dx = x1 - x0;
-  const dy = y1 - y0;
-  const lenSq = dx * dx + dy * dy;
-  const segLen = Math.sqrt(lenSq);
-  const pad = lineCap === 2 ? halfW + 2 : halfW + 1;
-  const minX = Math.max(0, Math.floor(Math.min(x0, x1) - pad));
-  const maxX = Math.min(width - 1, Math.ceil(Math.max(x0, x1) + pad));
-  const minY = Math.max(0, Math.floor(Math.min(y0, y1) - pad));
-  const maxY = Math.min(height - 1, Math.ceil(Math.max(y0, y1) + pad));
-
-  for (let py = minY; py <= maxY; py++) {
-    for (let px = minX; px <= maxX; px++) {
-      const cx = px + 0.5;
-      const cy = py + 0.5;
-      if (segLen > 1e-6 && (lineCap === 0 || lineCap === 2)) {
-        const ux = dx / segLen;
-        const uy = dy / segLen;
-        const along = (cx - x0) * ux + (cy - y0) * uy;
-        const perp = Math.abs(-(cx - x0) * uy + (cy - y0) * ux);
-        const minAlong = lineCap === 2 ? -halfW : 0;
-        const maxAlong = lineCap === 2 ? segLen + halfW : segLen;
-        const overAlong = along < minAlong ? minAlong - along : along > maxAlong ? along - maxAlong : 0;
-        const dist = overAlong > 0 ? Math.max(perp, halfW + overAlong) : perp;
-        if (dist <= halfW + 0.75) {
-          const cov = antialias ? Math.max(0, Math.min(1, halfW + 0.5 - dist)) : dist <= halfW + 0.25 ? 1 : 0;
-          blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode, clipMask);
-        }
-        continue;
-      }
-      let t = lenSq > 1e-6 ? ((cx - x0) * dx + (cy - y0) * dy) / lenSq : 0;
-      t = Math.max(0, Math.min(1, t));
-      const projX = x0 + t * dx;
-      const projY = y0 + t * dy;
-      const dist = Math.hypot(cx - projX, cy - projY);
-      if (dist <= halfW + 0.75) {
-        const cov = antialias ? Math.max(0, Math.min(1, halfW + 0.5 - dist)) : dist <= halfW + 0.25 ? 1 : 0;
-        blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode, clipMask);
-      }
-    }
-  }
-}
-
 interface Edge {
   x0: number;
   y0: number;
@@ -986,76 +928,57 @@ interface Edge {
   y1: number;
 }
 
-function segmentsToScreenEdges(
-  segments: readonly PdfPathSegment[],
-  pageHeight: number,
-  scale: number,
-  closeSubpaths = false
-): Edge[] {
-  const edges: Edge[] = [];
-  let curX = 0;
-  let curY = 0;
-  let startX = 0;
-  let startY = 0;
-  let hasOpenSubpath = false;
-
-  const toScreen = (x: number, y: number): [number, number] => [x * scale, (pageHeight - y) * scale];
-
-  for (const seg of segments) {
-    if (seg.kind === "move") {
-      if (closeSubpaths && hasOpenSubpath && (curX !== startX || curY !== startY)) {
-        edges.push({ x0: curX, y0: curY, x1: startX, y1: startY });
+function segmentsToScreenPaths(segments: readonly PdfPathSegment[], pageHeight: number, scale: number): StrokeSubpath[] {
+  const paths: StrokeSubpath[] = [];
+  let points: StrokePoint[] = [];
+  let current: StrokePoint = [0, 0];
+  const toScreen = (x: number, y: number): StrokePoint => [x * scale, (pageHeight - y) * scale];
+  for (const segment of segments) {
+    if (segment.kind === "move") {
+      if (points.length) paths.push({ points, closed: false });
+      current = toScreen(segment.x, segment.y);
+      points = [current];
+    } else if (segment.kind === "line") {
+      if (!points.length) points = [current];
+      current = toScreen(segment.x, segment.y);
+      points.push(current);
+    } else if (segment.kind === "cubic") {
+      if (!points.length) points = [current];
+      const a = toScreen(segment.x1, segment.y1), b = toScreen(segment.x2, segment.y2);
+      const end = toScreen(segment.x, segment.y);
+      const curve = flattenCubic(current[0], current[1], a[0], a[1], b[0], b[1], end[0], end[1]);
+      for (let i = 1; i < curve.length; i++) points.push(curve[i]!);
+      current = end;
+    } else if (segment.kind === "close") {
+      if (points.length) {
+        paths.push({ points, closed: true });
+        current = points[0]!;
+        points = [];
       }
-      [curX, curY] = toScreen(seg.x, seg.y);
-      startX = curX;
-      startY = curY;
-      hasOpenSubpath = false;
-    } else if (seg.kind === "line") {
-      const [nx, ny] = toScreen(seg.x, seg.y);
-      edges.push({ x0: curX, y0: curY, x1: nx, y1: ny });
-      curX = nx;
-      curY = ny;
-      hasOpenSubpath = true;
-    } else if (seg.kind === "cubic") {
-      const [p1x, p1y] = toScreen(seg.x1, seg.y1);
-      const [p2x, p2y] = toScreen(seg.x2, seg.y2);
-      const [p3x, p3y] = toScreen(seg.x, seg.y);
-      const points = flattenCubic(curX, curY, p1x, p1y, p2x, p2y, p3x, p3y);
-      let px = curX;
-      let py = curY;
-      for (let i = 1; i < points.length; i++) {
-        const [qx, qy] = points[i]!;
-        edges.push({ x0: px, y0: py, x1: qx, y1: qy });
-        px = qx;
-        py = qy;
-      }
-      curX = p3x;
-      curY = p3y;
-      hasOpenSubpath = true;
-    } else if (seg.kind === "close") {
-      if (curX !== startX || curY !== startY) {
-        edges.push({ x0: curX, y0: curY, x1: startX, y1: startY });
-        curX = startX;
-        curY = startY;
-      }
-      hasOpenSubpath = false;
-    } else if (seg.kind === "rect") {
-      if (closeSubpaths && hasOpenSubpath && (curX !== startX || curY !== startY)) {
-        edges.push({ x0: curX, y0: curY, x1: startX, y1: startY });
-      }
-      const [rx0, ry0] = toScreen(seg.x, seg.y);
-      const [rx1, ry1] = toScreen(seg.x + seg.width, seg.y + seg.height);
-      edges.push(
-        { x0: rx0, y0: ry0, x1: rx1, y1: ry0 },
-        { x0: rx1, y0: ry0, x1: rx1, y1: ry1 },
-        { x0: rx1, y0: ry1, x1: rx0, y1: ry1 },
-        { x0: rx0, y0: ry1, x1: rx0, y1: ry0 }
-      );
-      hasOpenSubpath = false;
+    } else if (segment.kind === "rect") {
+      if (points.length) paths.push({ points, closed: false });
+      const first = toScreen(segment.x, segment.y);
+      paths.push({ points: [first, toScreen(segment.x + segment.width, segment.y),
+        toScreen(segment.x + segment.width, segment.y + segment.height), toScreen(segment.x, segment.y + segment.height)], closed: true });
+      current = first;
+      points = [];
     }
   }
-  if (closeSubpaths && hasOpenSubpath && (curX !== startX || curY !== startY)) {
-    edges.push({ x0: curX, y0: curY, x1: startX, y1: startY });
+  if (points.length) paths.push({ points, closed: false });
+  return paths;
+}
+
+function pathsToEdges(paths: readonly StrokeSubpath[], closeSubpaths = false): Edge[] {
+  const edges: Edge[] = [];
+  for (const { points, closed } of paths) {
+    for (let i = 1; i < points.length; i++) {
+      const a = points[i - 1]!, b = points[i]!;
+      edges.push({ x0: a[0], y0: a[1], x1: b[0], y1: b[1] });
+    }
+    if ((closed || closeSubpaths) && points.length > 1) {
+      const a = points[points.length - 1]!, b = points[0]!;
+      edges.push({ x0: a[0], y0: a[1], x1: b[0], y1: b[1] });
+    }
   }
   return edges;
 }
@@ -1256,7 +1179,7 @@ export function renderDisplayListToBitmap(
       for (const clip of clips) {
         const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
         const layer = new Uint8Array(width * height * 4);
-        fillEdgesScanline4x4(layer, width, height, segmentsToScreenEdges(segments, displayList.height, scale, true), { r: 1, g: 1, b: 1 }, 1, fillRule);
+        fillEdgesScanline4x4(layer, width, height, pathsToEdges(segmentsToScreenPaths(segments, displayList.height, scale), true), { r: 1, g: 1, b: 1 }, 1, fillRule);
         for (let i = 3; i < layer.length; i += 4) clipMask[i] = Math.round(clipMask[i]! * layer[i]! / 255);
       }
       cachedClips = clips;
@@ -1298,68 +1221,23 @@ export function renderDisplayListToBitmap(
     if (operation.kind === "path") {
       const path = operation.value;
       if (path.fillColor) {
-        const edges = segmentsToScreenEdges(path.segments, displayList.height, scale, true);
+        const edges = pathsToEdges(segmentsToScreenPaths(path.segments, displayList.height, scale), true);
         const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [path.clipRect[0] * scale, (displayList.height - path.clipRect[3]) * scale, path.clipRect[2] * scale, (displayList.height - path.clipRect[1]) * scale] : undefined;
         fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask);
       }
       if (path.strokeColor) {
-        const edges = segmentsToScreenEdges(path.segments, displayList.height, scale, false);
         const rawSw = path.strokeWidth * scale;
         const sw = Math.max(1, rawSw);
-        const strokeAlpha =
-          options.thinLineMode === "shape" && rawSw < 1
-            ? (path.strokeAlpha ?? 1) * Math.max(0.25, rawSw)
-            : path.strokeAlpha ?? 1;
-        const dashArr =
-          path.dashArray && path.dashArray.length > 0
-            ? path.dashArray.map((d) => Math.max(0, d * scale))
-            : undefined;
-        const dashCycle = dashArr ? dashArr.reduce((a, b) => a + b, 0) : 0;
-        let dashDist = ((path.dashPhase ?? 0) * scale) % (dashCycle || 1);
-        if (dashDist < 0) dashDist += dashCycle;
-
-        for (const e of edges) {
-          if (!dashArr || dashCycle <= 1e-4) {
-            drawAntiAliasedSegment(rgba, width, height, e.x0, e.y0, e.x1, e.y1, sw, path.strokeColor, strokeAlpha, path.lineCap ?? 0, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask);
-          } else {
-            const dx = e.x1 - e.x0;
-            const dy = e.y1 - e.y0;
-            const edgeLen = Math.hypot(dx, dy);
-            if (edgeLen <= 1e-4) continue;
-            let pos = 0;
-            while (pos < edgeLen) {
-              let cycleRem = dashDist % dashCycle;
-              let dIdx = 0;
-              while (dIdx < dashArr.length - 1 && cycleRem >= dashArr[dIdx]!) {
-                cycleRem -= dashArr[dIdx]!;
-                dIdx++;
-              }
-              const segRemainInDash = Math.max(1e-4, dashArr[dIdx]! - cycleRem);
-              const step = Math.min(edgeLen - pos, segRemainInDash);
-              if (dIdx % 2 === 0) {
-                const t0 = pos / edgeLen;
-                const t1 = (pos + step) / edgeLen;
-                drawAntiAliasedSegment(
-                  rgba,
-                  width,
-                  height,
-                  e.x0 + dx * t0,
-                  e.y0 + dy * t0,
-                  e.x0 + dx * t1,
-                  e.y0 + dy * t1,
-                  sw,
-                  path.strokeColor,
-                  strokeAlpha,
-                  path.lineCap ?? 0,
-                  (original.kind === "glyph" ? aaTxt : aaVec),
-                  path.blendMode, clipMask
-                );
-              }
-              pos += step;
-              dashDist = (dashDist + step) % dashCycle;
-            }
-          }
-        }
+        const strokeAlpha = options.thinLineMode === "shape" && rawSw < 1
+          ? (path.strokeAlpha ?? 1) * Math.max(0.25, rawSw) : path.strokeAlpha ?? 1;
+        const contours = strokeOutlines(segmentsToScreenPaths(path.segments, displayList.height, scale),
+          sw, path.lineCap ?? 0, path.lineJoin ?? 0, path.miterLimit ?? 10,
+          path.dashArray?.map(value => Math.max(0, value * scale)), (path.dashPhase ?? 0) * scale);
+        const edges = pathsToEdges(contours.map(points => ({ points, closed: true })));
+        const clipScreen: [number, number, number, number] | undefined = path.clipRect
+          ? [path.clipRect[0] * scale, (displayList.height - path.clipRect[3]) * scale, path.clipRect[2] * scale, (displayList.height - path.clipRect[1]) * scale] : undefined;
+        fillEdgesScanline4x4(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
+          original.kind === "glyph" ? aaTxt : aaVec, path.blendMode, clipMask);
       }
     } else if (operation.kind === "image") {
       const img = operation.value;

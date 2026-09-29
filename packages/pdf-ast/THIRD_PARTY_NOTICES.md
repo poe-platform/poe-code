@@ -215,6 +215,20 @@ adapter; other cases use independently rendered PDF.js pixels.
 
 Source: https://github.com/chromium/pdfium/blob/a84323421e94f484faca52dd9d027934eba42ab8/third_party/agg23/agg_curves.cpp
 
+`src/render/stroke.ts` adapts the cap, join, miter and arc calculations from
+`third_party/agg23/agg_math_stroke.h`, with forward/backward contour assembly
+from `agg_vcgen_stroke.cpp`, at the same PDFium revision and under the same AGG
+permission terms. The adapter uses double-precision arrays, PDFium's
+`miter_join_revert` bevel fallback, and a one-million-vertex expansion limit.
+Local dash splitting preserves joins across vertices and closed seams, resets
+phase per subpath, and handles odd arrays and zero-length round dots.
+`src/render/stroke-joins.test.ts` checks native cap/join vectors plus independent
+PDF.js pixels; Poppler also confirms the final zero-length dash is omitted.
+The native harness calls unchanged upstream math routines with minimal support
+headers and local contour assembly; it is not the full upstream generator.
+
+Source: https://github.com/chromium/pdfium/blob/a84323421e94f484faca52dd9d027934eba42ab8/third_party/agg23/agg_math_stroke.h
+
 
 # SVG labels
 

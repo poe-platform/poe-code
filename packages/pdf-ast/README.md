@@ -79,6 +79,8 @@ ToUnicode maps decode mixed one- through four-byte character codes, including
 ligatures and supplementary Unicode characters.
 Bitmap, PNG, and SVG rendering honor page rotation; pixel crops use displayed
 coordinates after rotation.
+Bitmap strokes preserve joins, miter limits, caps and dash continuity, and apply
+opacity once across overlapping segments of the same stroke.
 Glyph outlines render even when text has no usable Unicode mapping. Unicode fallback covers characters present
 in the bundled standard, Symbol, and Dingbats fonts; embed a font for other scripts.
 A damaged optional ToUnicode stream does not prevent rendering embedded glyphs;

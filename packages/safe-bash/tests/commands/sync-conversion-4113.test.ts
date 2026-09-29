@@ -20,7 +20,6 @@ import { fileCommands } from "../../src/commands/file/index.ts";
 import { archiveCommands } from "../../src/commands/archive/index.ts";
 import { splitCommands } from "../../src/commands/split/index.ts";
 import { prCommands } from "../../src/commands/pr/index.ts";
-import { shufCommands } from "../../src/commands/shuf/index.ts";
 import { mdqCommands } from "../../src/commands/mdq/index.ts";
 import { timeEnvCommands } from "../../src/commands/time-env/index.ts";
 import { xanCommands } from "../../src/commands/xan/index.ts";
@@ -1013,14 +1012,14 @@ test("evaluates cal -d/bundled flags, getopt bundled flags, and pathchk/cal/geto
     touch /tmp/w206_ok.txt
     export A=1 B=2
     for i in 1 2 3; do
-      c1=\$(cal -d 2026-05 | head -n 1)
-      c2=\$(echo ignored | cal -A1 -B1 -d2026-05 | head -n 1)
-      g1=\$(getopt -qu -o ab: -l alpha,beta: -- -a -b val --alpha --beta=two rest)
-      g2=\$(echo ignored | getopt -uqo ab: -- -a -b hi pos)
-      p1=\$(pathchk /tmp/w206_ok.txt | wc -c)
-      p2=\$(echo ignored | pathchk /tmp/w206_ok.txt)
+      c1=$(cal -d 2026-05 | head -n 1)
+      c2=$(echo ignored | cal -A1 -B1 -d2026-05 | head -n 1)
+      g1=$(getopt -qu -o ab: -l alpha,beta: -- -a -b val --alpha --beta=two rest)
+      g2=$(echo ignored | getopt -uqo ab: -- -a -b hi pos)
+      p1=$(pathchk /tmp/w206_ok.txt | wc -c)
+      p2=$(echo ignored | pathchk /tmp/w206_ok.txt)
     done
-    printf "%s|%s|%s|%s|%s|%s\n" "\$c1" "\$c2" "\$g1" "\$g2" "\$p1" "\$p2"
+    printf "%s|%s|%s|%s|%s|%s\n" "$c1" "$c2" "$g1" "$g2" "$p1" "$p2"
   `);
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(

@@ -937,3 +937,24 @@ test("evaluates csvstat -c/--sum/--max, in2csv -n, and csvjoin positional join i
     "35#25#users,meta,#id,score,tag|1,10,alpha|2,25,beta|\n",
   );
 });
+
+test("evaluates csvsort -ri/date sorting, csvformat -U2/attached flags, and csvjson bundled flags in sync substitutions (Wave 204)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(csvkitCommands());
+  const r = await shell.exec(
+    [
+      "printf \"name,dt\\nbeta,2025-01-03\\nAlpha,2025-01-01\\n\" > /tmp/w204.csv",
+      "s_dt=$(csvsort -c dt /tmp/w204.csv | tr \"\\n\" \"|\")",
+      "s_ri=$(csvsort -ri -cname /tmp/w204.csv | tr \"\\n\" \"|\")",
+      "fmt_u2=$(printf \"k,v\\na,10\\n\" | csvformat -D \";\" -U2 | tr \"\\n\" \"|\")",
+      "cj_res=$(printf \"a\tb\\n01\t2\\n\" | csvjson -tI --stream | tr \"\\n\" \"|\")",
+      "printf \"%s#%s#%s#%s\\n\" \"$s_dt\" \"$s_ri\" \"$fmt_u2\" \"$cj_res\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "name,dt|Alpha,2025-01-01|beta,2025-01-03|#name,dt|beta,2025-01-03|Alpha,2025-01-01|#\"k\";\"v\"|\"a\";\"10\"|#{\"a\": \"01\", \"b\": \"2\"}|\n",
+  );
+});

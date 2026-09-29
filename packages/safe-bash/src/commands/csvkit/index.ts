@@ -131,14 +131,14 @@ function parseSyncCsvkitCommon(opArgs: readonly string[], mode: "csvlook" | "csv
       if (a === "-I" || a === "--no-inference") { res.noInference = true; continue; }
       if (a === "--blanks") { res.blanks = true; continue; }
       if (a === "--no-leading-zeroes") { res.noLeadingZeroes = true; continue; }
-      if (a === "-d" || a === "--delimiter") {
-        const v = opArgs[++i];
+      if (a === "-d" || a.startsWith("-d") || a === "--delimiter" || a.startsWith("--delimiter=")) {
+        const v = a.startsWith("--delimiter=") ? a.slice(12) : a.startsWith("-d=") ? a.slice(3) : a.length > 2 && a.startsWith("-d") ? a.slice(2) : opArgs[++i];
         if (!v || Array.from(v).length !== 1) return undefined;
         res.delimiter = v;
         continue;
       }
-      if (a === "-q" || a === "--quotechar") {
-        const v = opArgs[++i];
+      if (a === "-q" || a.startsWith("-q") || a === "--quotechar" || a.startsWith("--quotechar=")) {
+        const v = a.startsWith("--quotechar=") ? a.slice(12) : a.startsWith("-q=") ? a.slice(3) : a.length > 2 && a.startsWith("-q") ? a.slice(2) : opArgs[++i];
         if (!v || Array.from(v).length !== 1) return undefined;
         res.quotechar = v;
         continue;
@@ -149,8 +149,8 @@ function parseSyncCsvkitCommon(opArgs: readonly string[], mode: "csvlook" | "csv
         res.escapechar = v;
         continue;
       }
-      if (a === "-K" || a === "--skip-lines") {
-        const v = opArgs[++i];
+      if (a === "-K" || a.startsWith("-K") || a === "--skip-lines" || a.startsWith("--skip-lines=")) {
+        const v = a.startsWith("--skip-lines=") ? a.slice(13) : a.startsWith("-K=") ? a.slice(3) : a.length > 2 && a.startsWith("-K") ? a.slice(2) : opArgs[++i];
         if (v === undefined || !/^[0-9]+$/.test(v)) return undefined;
         res.skipLines = Number(v);
         continue;
@@ -175,8 +175,8 @@ function parseSyncCsvkitCommon(opArgs: readonly string[], mode: "csvlook" | "csv
         }
       } else {
         if (a === "--stream") { res.streamOutput = true; continue; }
-        if (a === "-i" || a === "--indent") {
-          const v = opArgs[++i];
+        if (a === "-i" || a.startsWith("-i") || a === "--indent" || a.startsWith("--indent=")) {
+          const v = a.startsWith("--indent=") ? a.slice(9) : a.startsWith("-i=") ? a.slice(3) : a.length > 2 && a.startsWith("-i") ? a.slice(2) : opArgs[++i];
           if (v === undefined || !/^[0-9]+$/.test(v)) return undefined;
           res.indent = Number(v);
           continue;
@@ -187,6 +187,20 @@ function parseSyncCsvkitCommon(opArgs: readonly string[], mode: "csvlook" | "csv
           res.key = v;
           continue;
         }
+      }
+      if (!a.startsWith("--") && a.length > 2) {
+        let ok = true;
+        for (let j = 1; j < a.length; j++) {
+          const ch = a[j]!;
+          if (ch === "t") res.tabs = true;
+          else if (ch === "b") res.noDoublequote = true;
+          else if (ch === "S") res.skipInitialSpace = true;
+          else if (ch === "H") res.noHeaderRow = true;
+          else if (ch === "l") res.lineNumbers = true;
+          else if (ch === "I") res.noInference = true;
+          else { ok = false; break; }
+        }
+        if (ok) continue;
       }
       return undefined;
     }
@@ -517,8 +531,9 @@ export function evalSyncCsvsort(
         if (a === "-i" || a === "--ignore-case") { ignoreCase = true; continue; }
         if (a === "-n" || a === "--names") { namesOnly = true; continue; }
         if (a === "--zero") { zeroBased = true; continue; }
-        if (a === "-c" || a === "--columns") {
-          const v = opArgs[++i];
+        if (a === "-ri" || a === "-ir") { reverse = true; ignoreCase = true; continue; }
+        if (a === "-c" || a.startsWith("-c") || a === "--columns" || a.startsWith("--columns=")) {
+          const v = a.startsWith("--columns=") ? a.slice(10) : a.startsWith("-c=") ? a.slice(3) : a.length > 2 && a.startsWith("-c") ? a.slice(2) : opArgs[++i];
           if (v === undefined) return undefined;
           columnsSpec = v;
           continue;
@@ -560,6 +575,10 @@ export function evalSyncCsvsort(
         } else if (typeof x === "object" && typeof y === "object" && x.kind === "decimal" && y.kind === "decimal") {
           if (x.value.includes("NaN") || y.value.includes("NaN")) throw new Error("NaN");
           order = Decimal.parse(x.value).compare(Decimal.parse(y.value));
+        } else if (typeof x === "object" && typeof y === "object" && x.kind === y.kind && (x.kind === "date" || x.kind === "datetime")) {
+          order = x.value < y.value ? -1 : x.value > y.value ? 1 : 0;
+        } else if (typeof x === "object" && typeof y === "object" && x.kind === "timedelta" && y.kind === "timedelta") {
+          order = x.microseconds < y.microseconds ? -1 : x.microseconds > y.microseconds ? 1 : 0;
         } else {
           throw new Error("unsupported type");
         }
@@ -608,14 +627,14 @@ export function evalSyncCsvformat(
         if (a === "-T" || a === "--out-tabs") { outTabs = true; continue; }
         if (a === "-A" || a === "--out-asv") { outAsv = true; continue; }
         if (a === "-B" || a === "--out-no-doublequote") { outNoDoublequote = true; continue; }
-        if (a === "-D" || a === "--out-delimiter") {
-          const v = opArgs[++i];
+        if (a === "-D" || a.startsWith("-D") || a === "--out-delimiter" || a.startsWith("--out-delimiter=")) {
+          const v = a.startsWith("--out-delimiter=") ? a.slice(16) : a.startsWith("-D=") ? a.slice(3) : a.length > 2 && a.startsWith("-D") ? a.slice(2) : opArgs[++i];
           if (!v || Array.from(v).length !== 1) return undefined;
           outDelimiter = v;
           continue;
         }
-        if (a === "-Q" || a === "--out-quotechar") {
-          const v = opArgs[++i];
+        if (a === "-Q" || a.startsWith("-Q") || a === "--out-quotechar" || a.startsWith("--out-quotechar=")) {
+          const v = a.startsWith("--out-quotechar=") ? a.slice(16) : a.startsWith("-Q=") ? a.slice(3) : a.length > 2 && a.startsWith("-Q") ? a.slice(2) : opArgs[++i];
           if (!v || Array.from(v).length !== 1) return undefined;
           outQuotechar = v;
           continue;
@@ -626,15 +645,15 @@ export function evalSyncCsvformat(
           outEscapechar = v;
           continue;
         }
-        if (a === "-M" || a === "--out-lineterminator") {
-          const v = opArgs[++i];
+        if (a === "-M" || a.startsWith("-M") || a === "--out-lineterminator" || a.startsWith("--out-lineterminator=")) {
+          const v = a.startsWith("--out-lineterminator=") ? a.slice(21) : a.startsWith("-M=") ? a.slice(3) : a.length > 2 && a.startsWith("-M") ? a.slice(2) : opArgs[++i];
           if (v === undefined) return undefined;
           outLineterminator = v;
           continue;
         }
-        if (a === "-U" || a === "--out-quoting") {
-          const v = opArgs[++i];
-          if (v === undefined || !/^[013]$/.test(v)) return undefined;
+        if (a === "-U" || a.startsWith("-U") || a === "--out-quoting" || a.startsWith("--out-quoting=")) {
+          const v = a.startsWith("--out-quoting=") ? a.slice(14) : a.startsWith("-U=") ? a.slice(3) : a.length > 2 && a.startsWith("-U") ? a.slice(2) : opArgs[++i];
+          if (v === undefined || !/^[0123]$/.test(v)) return undefined;
           outQuoting = Number(v);
           continue;
         }
@@ -863,8 +882,8 @@ export function evalSyncIn2csv(
           formatSpec = v.toLowerCase();
           continue;
         }
-        if (a === "-k" || a === "--key") {
-          const v = opArgs[++i];
+        if (a === "-k" || a.startsWith("-k") || a === "--key" || a.startsWith("--key=")) {
+          const v = a.startsWith("--key=") ? a.slice(6) : a.startsWith("-k=") ? a.slice(3) : a.length > 2 && a.startsWith("-k") ? a.slice(2) : opArgs[++i];
           if (!v) return undefined;
           keySpec = v;
           continue;

@@ -25,7 +25,7 @@ export function getoptCommands(options: GetoptCommandsOptions = {}): VirtualShel
 function quoteShell(value: string, quote: boolean, tcsh: boolean): string {
   if (!quote) return " " + value;
   if (tcsh) {
-    return " '" + value.replace(/[\x27\n!]/g, ch => ch === "'" ? "'\''" : "\\" + ch) + "'";
+    return " '" + value.replace(/[\x27\n!]/g, ch => ch === "'" ? "'''" : "\\" + ch) + "'";
   }
   return " '" + value.replaceAll("'", "'\\''") + "'";
 }

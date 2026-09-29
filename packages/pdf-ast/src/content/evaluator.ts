@@ -1,3 +1,4 @@
+import { parseEmbeddedType1Font } from "../fonts/type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "../fonts/cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "../fonts/standard-outlines.js";
 import { decodeInlineImageNodeToRgba, decodeXObjectImageToRgba } from "../extract/images.js";
@@ -192,17 +193,31 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
     const cidDictForTt = descArrForTt && descArrForTt.items[0] ? doc.resolveDict(descArrForTt.items[0]) : undefined;
     const fDesc = fDescDirect ?? (cidDictForTt ? doc.resolveDict(dictGet(cidDictForTt, "FontDescriptor")) : undefined);
     if (fDesc) {
-      const program = doc.resolve(dictGet(fDesc, "FontFile2")) ?? doc.resolve(dictGet(fDesc, "FontFile3"));
+      const type1Program = doc.resolve(dictGet(fDesc, "FontFile"));
+      const program = doc.resolve(dictGet(fDesc, "FontFile2")) ?? doc.resolve(dictGet(fDesc, "FontFile3")) ?? type1Program;
       if (program?.kind === "stream") {
         const programType = doc.resolve(dictGet(program.dict, "Subtype"));
-        if (programType?.kind === "name" && (programType.decoded === "Type1C" || programType.decoded === "CIDFontType0C")) {
-          const baseEncoding = encNode?.kind === "dict" ? doc.resolve(dictGet(encNode, "BaseEncoding")) : encNode;
+        const baseEncoding = encNode?.kind === "dict" ? doc.resolve(dictGet(encNode, "BaseEncoding")) : encNode;
+        if (program === type1Program) {
+          const length1 = doc.resolve(dictGet(program.dict, "Length1"));
+          const length2 = doc.resolve(dictGet(program.dict, "Length2"));
+          const flags = doc.resolve(dictGet(fDesc, "Flags"));
+          embeddedCff = parseEmbeddedType1Font(doc.decodeStream(program), {
+            length1: length1?.kind === "number" ? length1.value : 0,
+            length2: length2?.kind === "number" ? length2.value : 0,
+            flags: flags?.kind === "number" ? flags.value : 0,
+            fontMatrix: [0.001, 0, 0, 0.001, 0, 0], bbox: [0, 0, 0, 0],
+            baseEncodingName: baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined,
+            differences: glyphNames, overridableEncoding: true, widths: Object.fromEntries(widths),
+            composite: subtype === "Type0", cMap: { charCodeOf: (cid: number) => cid },
+          });
+        } else if (programType?.kind === "name" && (programType.decoded === "Type1C" || programType.decoded === "CIDFontType0C")) {
           embeddedCff = parseEmbeddedCffFont(doc.decodeStream(program), baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined, glyphNames);
-          for (const [code, unicode] of embeddedCff.unicodeByCode) {
-            if (!differences.has(code)) differences.set(code, unicode);
-          }
         } else {
           embeddedTrueType = parseTrueTypeFont(doc.decodeStream(program));
+        }
+        for (const [code, unicode] of embeddedCff?.unicodeByCode ?? []) {
+          if (!differences.has(code)) differences.set(code, unicode);
         }
       }
     }

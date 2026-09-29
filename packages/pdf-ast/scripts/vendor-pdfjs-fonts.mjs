@@ -13,7 +13,9 @@ const result = await build({
     contents: [
       'export { CFFParser, CFFCompiler, CFFStrings } from "./src/core/cff_parser.js";',
       'export { Type2Compiled } from "./src/core/font_renderer.js";',
-      'export { Stream } from "./src/core/stream.js";',
+      'export { Type1Font } from "./src/core/type1_font.js";',
+      'export { Type1Parser } from "./src/core/type1_parser.js";',
+      'export { Stream, StringStream } from "./src/core/stream.js";',
       'export { getGlyphsUnicode, getDingbatsGlyphsUnicode } from "./src/core/glyphlist.js";',
       'export { SymbolSetEncoding, ZapfDingbatsEncoding, WinAnsiEncoding, getEncoding } from "./src/core/encodings.js";',
       'export { getMetrics } from "./src/core/metrics.js";',

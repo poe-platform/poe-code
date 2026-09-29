@@ -37,3 +37,31 @@ export const WinAnsiEncoding: string[];
 export function getMetrics(): Record<string, number | (() => Record<string, number>)>;
 
 export function getEncoding(name: string): string[] | null;
+
+export class StringStream extends Stream { constructor(value: string); }
+export interface Type1Properties extends Record<string, unknown> {
+  fontMatrix: number[];
+  bbox: number[];
+}
+export class Type1Font {
+  constructor(name: string, stream: Stream, properties: Type1Properties);
+  data: number[];
+  seacs: Map<number, number[]>;
+  getCharset(): string[];
+  getGlyphMapping(properties: Type1Properties): Map<number, number>;
+}
+export class Type1Parser {
+  constructor(stream: Stream, encrypted: boolean, seacAnalysisEnabled: boolean);
+  getToken(): string | null;
+  readNumber(): number;
+  readBoolean(): number;
+  readNumberArray(): number[];
+  extractFontHeader(properties: Record<string, unknown>): void;
+  extractFontProgram(properties: Record<string, unknown>): Type1Program;
+  extractCidKeyedFontProgram(properties: Record<string, unknown>): Type1Program | null;
+}
+export interface Type1Program {
+  subrs: number[][];
+  charstrings: Array<{ glyphName: string; width: number; charstring: number[] }>;
+  properties: { privateData: Map<string, unknown> };
+}

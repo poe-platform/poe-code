@@ -5060,6 +5060,9 @@ function getLookupTableFactory(initializer, useArray = false) {
     return lookup;
   };
 }
+function isWhiteSpace(ch) {
+  return ch === 32 || ch === 9 || ch === 13 || ch === 10;
+}
 function isNumberArray(arr, len) {
   if (Array.isArray(arr)) {
     return (len === null || arr.length === len) && arr.every((x) => typeof x === "number");
@@ -9656,6 +9659,11 @@ var Stream = class _Stream extends BaseStream {
     );
   }
 };
+var StringStream = class extends Stream {
+  constructor(str, dict = null) {
+    super(stringToBytes(str), NaN, NaN, dict);
+  }
+};
 
 // src/core/font_renderer.js
 function getSubroutineBias(subrs) {
@@ -10161,6 +10169,1371 @@ var Type2Compiled = class extends CompiledFont {
   }
   compileGlyphImpl(code, cmds, glyphId) {
     compileCharString(code, cmds, this, glyphId);
+  }
+};
+
+// src/core/unicode.js
+var getSpecialPUASymbols = getLookupTableFactory(function(t) {
+  t[63721] = 169;
+  t[63193] = 169;
+  t[63720] = 174;
+  t[63194] = 174;
+  t[63722] = 8482;
+  t[63195] = 8482;
+  t[63718] = 9168;
+  t[63719] = 9135;
+  t[63733] = 9134;
+  t[63729] = 9127;
+  t[63730] = 9128;
+  t[63731] = 9129;
+  t[63740] = 9131;
+  t[63741] = 9132;
+  t[63742] = 9133;
+  t[63726] = 9121;
+  t[63727] = 9122;
+  t[63728] = 9123;
+  t[63737] = 9124;
+  t[63738] = 9125;
+  t[63739] = 9126;
+  t[63723] = 9115;
+  t[63724] = 9116;
+  t[63725] = 9117;
+  t[63734] = 9118;
+  t[63735] = 9119;
+  t[63736] = 9120;
+});
+function getUnicodeForGlyph(name, glyphsUnicodeMap) {
+  let unicode = glyphsUnicodeMap[name];
+  if (unicode !== void 0) {
+    return unicode;
+  }
+  if (!name) {
+    return -1;
+  }
+  if (name[0] === "u") {
+    const nameLen = name.length;
+    let hexStr;
+    if (nameLen === 7 && name[1] === "n" && name[2] === "i") {
+      hexStr = name.substring(3);
+    } else if (nameLen >= 5 && nameLen <= 7) {
+      hexStr = name.substring(1);
+    } else {
+      return -1;
+    }
+    if (hexStr === hexStr.toUpperCase()) {
+      unicode = parseInt(hexStr, 16);
+      if (unicode >= 0) {
+        return unicode;
+      }
+    }
+  }
+  return -1;
+}
+
+// src/core/fonts_utils.js
+var SEAC_ANALYSIS_ENABLED = true;
+var FontFlags = {
+  FixedPitch: 1,
+  Serif: 2,
+  Symbolic: 4,
+  Script: 8,
+  Nonsymbolic: 32,
+  Italic: 64,
+  AllCap: 65536,
+  SmallCap: 131072,
+  ForceBold: 262144
+};
+function recoverGlyphName(name, glyphsUnicodeMap) {
+  if (glyphsUnicodeMap[name] !== void 0) {
+    return name;
+  }
+  const unicode = getUnicodeForGlyph(name, glyphsUnicodeMap);
+  if (unicode !== -1) {
+    for (const key in glyphsUnicodeMap) {
+      if (glyphsUnicodeMap[key] === unicode) {
+        return key;
+      }
+    }
+  }
+  info("Unable to recover a standard glyph name for: " + name);
+  return name;
+}
+function type1FontGlyphMapping(properties, builtInEncoding, glyphNames) {
+  const charCodeToGlyphId = /* @__PURE__ */ new Map();
+  let glyphId, baseEncoding;
+  const isSymbolicFont = !!(properties.flags & FontFlags.Symbolic);
+  if (properties.isInternalFont) {
+    baseEncoding = builtInEncoding;
+    for (let charCode = 0; charCode < baseEncoding.length; charCode++) {
+      glyphId = glyphNames.indexOf(baseEncoding[charCode]);
+      charCodeToGlyphId.set(
+        charCode,
+        glyphId >= 0 ? glyphId : (
+          /* notdef = */
+          0
+        )
+      );
+    }
+  } else if (properties.baseEncodingName) {
+    baseEncoding = getEncoding(properties.baseEncodingName);
+    for (let charCode = 0; charCode < baseEncoding.length; charCode++) {
+      glyphId = glyphNames.indexOf(baseEncoding[charCode]);
+      charCodeToGlyphId.set(
+        charCode,
+        glyphId >= 0 ? glyphId : (
+          /* notdef = */
+          0
+        )
+      );
+    }
+  } else if (isSymbolicFont) {
+    for (const charCode in builtInEncoding) {
+      charCodeToGlyphId.set(+charCode, builtInEncoding[charCode]);
+    }
+  } else {
+    baseEncoding = StandardEncoding;
+    for (let charCode = 0; charCode < baseEncoding.length; charCode++) {
+      glyphId = glyphNames.indexOf(baseEncoding[charCode]);
+      charCodeToGlyphId.set(
+        charCode,
+        glyphId >= 0 ? glyphId : (
+          /* notdef = */
+          0
+        )
+      );
+    }
+  }
+  let glyphsUnicodeMap;
+  if (properties.differences) {
+    for (const [charCode, glyphName] of properties.differences) {
+      glyphId = glyphNames.indexOf(glyphName);
+      if (glyphId === -1) {
+        glyphsUnicodeMap ??= getGlyphsUnicode();
+        const standardGlyphName = recoverGlyphName(glyphName, glyphsUnicodeMap);
+        if (standardGlyphName !== glyphName) {
+          glyphId = glyphNames.indexOf(standardGlyphName);
+        }
+      }
+      charCodeToGlyphId.set(
+        charCode,
+        glyphId >= 0 ? glyphId : (
+          /* notdef = */
+          0
+        )
+      );
+    }
+  }
+  return charCodeToGlyphId;
+}
+var getVerticalPresentationForm = getLookupTableFactory((t) => {
+  t[8211] = 65074;
+  t[8212] = 65073;
+  t[8229] = 65072;
+  t[8230] = 65049;
+  t[12289] = 65041;
+  t[12290] = 65042;
+  t[12296] = 65087;
+  t[12297] = 65088;
+  t[12298] = 65085;
+  t[12299] = 65086;
+  t[12300] = 65089;
+  t[12301] = 65090;
+  t[12302] = 65091;
+  t[12303] = 65092;
+  t[12304] = 65083;
+  t[12305] = 65084;
+  t[12308] = 65081;
+  t[12309] = 65082;
+  t[12310] = 65047;
+  t[12311] = 65048;
+  t[65103] = 65076;
+  t[65281] = 65045;
+  t[65288] = 65077;
+  t[65289] = 65078;
+  t[65292] = 65040;
+  t[65306] = 65043;
+  t[65307] = 65044;
+  t[65311] = 65046;
+  t[65339] = 65095;
+  t[65341] = 65096;
+  t[65343] = 65075;
+  t[65371] = 65079;
+  t[65373] = 65080;
+});
+
+// src/core/type1_parser.js
+var HINTING_ENABLED = false;
+var COMMAND_MAP = {
+  hstem: [1],
+  vstem: [3],
+  vmoveto: [4],
+  rlineto: [5],
+  hlineto: [6],
+  vlineto: [7],
+  rrcurveto: [8],
+  callsubr: [10],
+  flex: [12, 35],
+  drop: [12, 18],
+  endchar: [14],
+  rmoveto: [21],
+  hmoveto: [22],
+  vhcurveto: [30],
+  hvcurveto: [31]
+};
+var Type1CharString = class {
+  width = 0;
+  lsb = 0;
+  flexing = false;
+  output = [];
+  stack = [];
+  convert(encoded, subrs, seacAnalysisEnabled) {
+    const count = encoded.length;
+    let error = false;
+    let wx, sbx, subrNumber;
+    for (let i = 0; i < count; i++) {
+      let value = encoded[i];
+      if (value < 32) {
+        if (value === 12) {
+          value = (value << 8) + encoded[++i];
+        }
+        switch (value) {
+          case 1:
+            if (!HINTING_ENABLED) {
+              this.stack = [];
+              break;
+            }
+            error = this.executeCommand(2, COMMAND_MAP.hstem);
+            break;
+          case 3:
+            if (!HINTING_ENABLED) {
+              this.stack = [];
+              break;
+            }
+            error = this.executeCommand(2, COMMAND_MAP.vstem);
+            break;
+          case 4:
+            if (this.flexing) {
+              if (this.stack.length < 1) {
+                error = true;
+                break;
+              }
+              const dy = this.stack.pop();
+              this.stack.push(0, dy);
+              break;
+            }
+            error = this.executeCommand(1, COMMAND_MAP.vmoveto);
+            break;
+          case 5:
+            error = this.executeCommand(2, COMMAND_MAP.rlineto);
+            break;
+          case 6:
+            error = this.executeCommand(1, COMMAND_MAP.hlineto);
+            break;
+          case 7:
+            error = this.executeCommand(1, COMMAND_MAP.vlineto);
+            break;
+          case 8:
+            error = this.executeCommand(6, COMMAND_MAP.rrcurveto);
+            break;
+          case 9:
+            this.stack = [];
+            break;
+          case 10:
+            if (this.stack.length < 1) {
+              error = true;
+              break;
+            }
+            subrNumber = this.stack.pop();
+            if (!subrs[subrNumber]) {
+              error = true;
+              break;
+            }
+            error = this.convert(subrs[subrNumber], subrs, seacAnalysisEnabled);
+            break;
+          case 11:
+            return error;
+          case 13:
+            if (this.stack.length < 2) {
+              error = true;
+              break;
+            }
+            wx = this.stack.pop();
+            sbx = this.stack.pop();
+            this.lsb = sbx;
+            this.width = wx;
+            this.stack.push(wx, sbx);
+            error = this.executeCommand(2, COMMAND_MAP.hmoveto);
+            break;
+          case 14:
+            this.output.push(COMMAND_MAP.endchar[0]);
+            break;
+          case 21:
+            if (this.flexing) {
+              break;
+            }
+            error = this.executeCommand(2, COMMAND_MAP.rmoveto);
+            break;
+          case 22:
+            if (this.flexing) {
+              this.stack.push(0);
+              break;
+            }
+            error = this.executeCommand(1, COMMAND_MAP.hmoveto);
+            break;
+          case 30:
+            error = this.executeCommand(4, COMMAND_MAP.vhcurveto);
+            break;
+          case 31:
+            error = this.executeCommand(4, COMMAND_MAP.hvcurveto);
+            break;
+          case (12 << 8) + 0:
+            this.stack = [];
+            break;
+          case (12 << 8) + 1:
+            if (!HINTING_ENABLED) {
+              this.stack = [];
+              break;
+            }
+            error = this.executeCommand(2, COMMAND_MAP.vstem);
+            break;
+          case (12 << 8) + 2:
+            if (!HINTING_ENABLED) {
+              this.stack = [];
+              break;
+            }
+            error = this.executeCommand(2, COMMAND_MAP.hstem);
+            break;
+          case (12 << 8) + 6:
+            if (seacAnalysisEnabled) {
+              const asb = this.stack.at(-5);
+              this.seac = this.stack.splice(-4, 4);
+              this.seac[0] += this.lsb - asb;
+              error = this.executeCommand(0, COMMAND_MAP.endchar);
+            } else {
+              error = this.executeCommand(4, COMMAND_MAP.endchar);
+            }
+            break;
+          case (12 << 8) + 7:
+            if (this.stack.length < 4) {
+              error = true;
+              break;
+            }
+            this.stack.pop();
+            wx = this.stack.pop();
+            const sby = this.stack.pop();
+            sbx = this.stack.pop();
+            this.lsb = sbx;
+            this.width = wx;
+            this.stack.push(wx, sbx, sby);
+            error = this.executeCommand(3, COMMAND_MAP.rmoveto);
+            break;
+          case (12 << 8) + 12:
+            if (this.stack.length < 2) {
+              error = true;
+              break;
+            }
+            const num2 = this.stack.pop();
+            const num1 = this.stack.pop();
+            this.stack.push(num1 / num2);
+            break;
+          case (12 << 8) + 16:
+            if (this.stack.length < 2) {
+              error = true;
+              break;
+            }
+            subrNumber = this.stack.pop();
+            const numArgs = this.stack.pop();
+            if (subrNumber === 0 && numArgs === 3) {
+              const flexArgs = this.stack.splice(-17, 17);
+              this.stack.push(
+                flexArgs[2] + flexArgs[0],
+                // bcp1x + rpx
+                flexArgs[3] + flexArgs[1],
+                // bcp1y + rpy
+                flexArgs[4],
+                // bcp2x
+                flexArgs[5],
+                // bcp2y
+                flexArgs[6],
+                // p2x
+                flexArgs[7],
+                // p2y
+                flexArgs[8],
+                // bcp3x
+                flexArgs[9],
+                // bcp3y
+                flexArgs[10],
+                // bcp4x
+                flexArgs[11],
+                // bcp4y
+                flexArgs[12],
+                // p3x
+                flexArgs[13],
+                // p3y
+                flexArgs[14]
+                // flexDepth
+                // 15 = finalx unused by flex
+                // 16 = finaly unused by flex
+              );
+              error = this.executeCommand(13, COMMAND_MAP.flex, true);
+              this.flexing = false;
+              this.stack.push(flexArgs[15], flexArgs[16]);
+            } else if (subrNumber === 1 && numArgs === 0) {
+              this.flexing = true;
+            }
+            break;
+          case (12 << 8) + 17:
+            break;
+          case (12 << 8) + 33:
+            this.stack = [];
+            break;
+          default:
+            warn('Unknown type 1 charstring command of "' + value + '"');
+            break;
+        }
+        if (error) {
+          break;
+        }
+        continue;
+      } else if (value <= 246) {
+        value -= 139;
+      } else if (value <= 250) {
+        value = (value - 247) * 256 + encoded[++i] + 108;
+      } else if (value <= 254) {
+        value = -((value - 251) * 256) - encoded[++i] - 108;
+      } else {
+        value = (encoded[++i] & 255) << 24 | (encoded[++i] & 255) << 16 | (encoded[++i] & 255) << 8 | (encoded[++i] & 255) << 0;
+      }
+      this.stack.push(value);
+    }
+    return error;
+  }
+  executeCommand(howManyArgs, command, keepStack) {
+    const stackLength = this.stack.length;
+    if (howManyArgs > stackLength) {
+      return true;
+    }
+    const start = stackLength - howManyArgs;
+    for (let i = start; i < stackLength; i++) {
+      let value = this.stack[i];
+      if (Number.isInteger(value)) {
+        this.output.push(28, value >> 8 & 255, value & 255);
+      } else {
+        value = 65536 * value | 0;
+        this.output.push(
+          255,
+          value >> 24 & 255,
+          value >> 16 & 255,
+          value >> 8 & 255,
+          value & 255
+        );
+      }
+    }
+    this.output.push(...command);
+    if (keepStack) {
+      this.stack.splice(start, howManyArgs);
+    } else {
+      this.stack.length = 0;
+    }
+    return false;
+  }
+};
+var EEXEC_ENCRYPT_KEY = 55665;
+var CHAR_STRS_ENCRYPT_KEY = 4330;
+function isHexDigit(code) {
+  return code >= 48 && code <= 57 || // '0'-'9'
+  code >= 65 && code <= 70 || // 'A'-'F'
+  code >= 97 && code <= 102;
+}
+function decrypt(data, key, discardNumber) {
+  if (discardNumber >= data.length) {
+    return new Uint8Array(0);
+  }
+  const c1 = 52845, c2 = 22719;
+  let r = key | 0, i, j;
+  for (i = 0; i < discardNumber; i++) {
+    r = (data[i] + r) * c1 + c2 & (1 << 16) - 1;
+  }
+  const count = data.length - discardNumber;
+  const decrypted = new Uint8Array(count);
+  for (i = discardNumber, j = 0; j < count; i++, j++) {
+    const value = data[i];
+    decrypted[j] = value ^ r >> 8;
+    r = (value + r) * c1 + c2 & (1 << 16) - 1;
+  }
+  return decrypted;
+}
+function decryptAscii(data, key, discardNumber) {
+  const c1 = 52845, c2 = 22719;
+  let r = key | 0;
+  const count = data.length, maybeLength = count >>> 1;
+  const decrypted = new Uint8Array(maybeLength);
+  let i, j;
+  for (i = 0, j = 0; i < count; i++) {
+    const digit1 = data[i];
+    if (!isHexDigit(digit1)) {
+      continue;
+    }
+    i++;
+    let digit2;
+    while (i < count && !isHexDigit(digit2 = data[i])) {
+      i++;
+    }
+    if (i < count) {
+      const value = parseInt(String.fromCharCode(digit1, digit2), 16);
+      decrypted[j++] = value ^ r >> 8;
+      r = (value + r) * c1 + c2 & (1 << 16) - 1;
+    }
+  }
+  return decrypted.slice(discardNumber, j);
+}
+function isSpecial(c) {
+  return c === /* '/' = */
+  47 || c === /* '[' = */
+  91 || c === /* ']' = */
+  93 || c === /* '{' = */
+  123 || c === /* '}' = */
+  125 || c === /* '(' = */
+  40 || c === /* ')' = */
+  41;
+}
+var Type1Parser = class {
+  constructor(stream, encrypted, seacAnalysisEnabled) {
+    if (encrypted) {
+      const data = stream.getBytes();
+      const isBinary = !((isHexDigit(data[0]) || isWhiteSpace(data[0])) && isHexDigit(data[1]) && isHexDigit(data[2]) && isHexDigit(data[3]) && isHexDigit(data[4]) && isHexDigit(data[5]) && isHexDigit(data[6]) && isHexDigit(data[7]));
+      stream = new Stream(
+        isBinary ? decrypt(data, EEXEC_ENCRYPT_KEY, 4) : decryptAscii(data, EEXEC_ENCRYPT_KEY, 4)
+      );
+    }
+    this.seacAnalysisEnabled = !!seacAnalysisEnabled;
+    this.stream = stream;
+    this.nextChar();
+  }
+  readNumberArray() {
+    this.getToken();
+    const array = [];
+    while (true) {
+      const token = this.getToken();
+      if (token === null || token === "]" || token === "}") {
+        break;
+      }
+      array.push(parseFloat(token || 0));
+    }
+    return array;
+  }
+  readNumber() {
+    const token = this.getToken();
+    return parseFloat(token || 0);
+  }
+  readInt() {
+    const token = this.getToken();
+    return parseInt(token || 0, 10) | 0;
+  }
+  readBoolean() {
+    const token = this.getToken();
+    return token === "true" ? 1 : 0;
+  }
+  nextChar() {
+    return this.currentChar = this.stream.getByte();
+  }
+  prevChar() {
+    this.stream.skip(-2);
+    return this.currentChar = this.stream.getByte();
+  }
+  getToken() {
+    let comment = false;
+    let ch = this.currentChar;
+    while (true) {
+      if (ch === -1) {
+        return null;
+      }
+      if (comment) {
+        if (ch === 10 || ch === 13) {
+          comment = false;
+        }
+      } else if (ch === /* '%' = */
+      37) {
+        comment = true;
+      } else if (!isWhiteSpace(ch)) {
+        break;
+      }
+      ch = this.nextChar();
+    }
+    if (isSpecial(ch)) {
+      this.nextChar();
+      return String.fromCharCode(ch);
+    }
+    let token = "";
+    do {
+      token += String.fromCharCode(ch);
+      ch = this.nextChar();
+    } while (ch >= 0 && !isWhiteSpace(ch) && !isSpecial(ch));
+    return token;
+  }
+  readCharStrings(bytes, lenIV) {
+    if (lenIV === -1) {
+      return bytes;
+    }
+    return decrypt(bytes, CHAR_STRS_ENCRYPT_KEY, lenIV);
+  }
+  /*
+   * Returns an object containing a Subrs array and a CharStrings
+   * array extracted from and eexec encrypted block of data
+   */
+  extractFontProgram(properties) {
+    const stream = this.stream;
+    const subrs = [], charstrings = [];
+    const privateData = /* @__PURE__ */ new Map([["lenIV", 4]]);
+    const program = {
+      subrs: [],
+      charstrings: [],
+      properties: {
+        privateData
+      }
+    };
+    let token, length, data;
+    let subrsParsed = false;
+    let charStringsParsed = false;
+    while ((token = this.getToken()) !== null) {
+      if (token !== "/") {
+        continue;
+      }
+      token = this.getToken();
+      switch (token) {
+        case "CharStrings":
+          if (charStringsParsed) {
+            break;
+          }
+          charStringsParsed = true;
+          this.getToken();
+          this.getToken();
+          this.getToken();
+          this.getToken();
+          while (true) {
+            token = this.getToken();
+            if (token === null || token === "end") {
+              break;
+            }
+            if (token !== "/") {
+              continue;
+            }
+            const glyph = this.getToken();
+            length = this.readInt();
+            this.getToken();
+            data = length > 0 ? stream.getBytes(length) : new Uint8Array(0);
+            const encoded = this.readCharStrings(
+              data,
+              privateData.get("lenIV")
+            );
+            this.nextChar();
+            token = this.getToken();
+            if (token === "noaccess") {
+              this.getToken();
+            } else if (token === "/") {
+              this.prevChar();
+            }
+            charstrings.push({
+              glyph,
+              encoded
+            });
+          }
+          break;
+        case "Subrs":
+          if (subrsParsed) {
+            break;
+          }
+          subrsParsed = true;
+          this.readInt();
+          this.getToken();
+          while (this.getToken() === "dup") {
+            const index = this.readInt();
+            length = this.readInt();
+            this.getToken();
+            data = length > 0 ? stream.getBytes(length) : new Uint8Array(0);
+            const encoded = this.readCharStrings(
+              data,
+              privateData.get("lenIV")
+            );
+            this.nextChar();
+            token = this.getToken();
+            if (token === "noaccess") {
+              this.getToken();
+            }
+            subrs[index] = encoded;
+          }
+          break;
+        case "BlueValues":
+        case "OtherBlues":
+        case "FamilyBlues":
+        case "FamilyOtherBlues":
+          const blueArray = this.readNumberArray();
+          if (HINTING_ENABLED && blueArray.length > 0 && blueArray.length % 2 === 0) {
+            privateData.set(token, blueArray);
+          }
+          break;
+        case "StemSnapH":
+        case "StemSnapV":
+          privateData.set(token, this.readNumberArray());
+          break;
+        case "StdHW":
+        case "StdVW":
+          privateData.set(token, this.readNumberArray()[0]);
+          break;
+        case "BlueShift":
+        case "lenIV":
+        case "BlueFuzz":
+        case "BlueScale":
+        case "LanguageGroup":
+          privateData.set(token, this.readNumber());
+          break;
+        case "ExpansionFactor":
+          privateData.set(token, this.readNumber() || 0.06);
+          break;
+        case "ForceBold":
+          privateData.set(token, this.readBoolean());
+          break;
+      }
+    }
+    for (const { encoded, glyph } of charstrings) {
+      const charString = new Type1CharString();
+      const error = charString.convert(
+        encoded,
+        subrs,
+        this.seacAnalysisEnabled
+      );
+      const output = !error ? charString.output : [14];
+      const charStringObject = {
+        glyphName: glyph,
+        charstring: output,
+        width: charString.width,
+        lsb: charString.lsb,
+        seac: charString.seac
+      };
+      if (glyph === ".notdef") {
+        program.charstrings.unshift(charStringObject);
+      } else {
+        program.charstrings.push(charStringObject);
+      }
+      if (properties.builtInEncoding) {
+        const index = properties.builtInEncoding.indexOf(glyph);
+        if (index > -1 && properties.widths[index] === void 0 && index >= properties.firstChar && index <= properties.lastChar) {
+          properties.widths[index] = charString.width;
+        }
+      }
+    }
+    return program;
+  }
+  /*
+   * Returns an object containing a Subrs array and a CharStrings array
+   * extracted from a CID-keyed Type 1 font program (Adobe TechNote 5014,
+   * CIDFontType 0). The stream must start at the PostScript header.
+   *
+   * The binary section that follows the "StartData" marker contains:
+   *  - CIDMap at CIDMapOffset, with (CIDCount + 1) entries; each entry is
+   *    FDBytes (FD-index) + GDBytes (glyph data offset) bytes.
+   *  - SubrMap at SubrMapOffset, with (SubrCount + 1) entries of SDBytes
+   *    each, holding subr data offsets.
+   *  - The charstring/subr data, each encrypted with the Type 1 charstring
+   *    cipher and prefixed by `lenIV` random bytes.
+   *
+   * Only single-FDArray fonts are supported.
+   */
+  extractCidKeyedFontProgram(properties) {
+    const stream = this.stream;
+    const privateData = /* @__PURE__ */ new Map([["lenIV", 4]]);
+    const program = {
+      subrs: [],
+      charstrings: [],
+      properties: { privateData }
+    };
+    let cidCount = 0;
+    let cidMapOffset = -1;
+    let fdBytes = 1;
+    let gdBytes = 0;
+    let subrMapOffset = -1;
+    let sdBytes = 0;
+    let subrCount = 0;
+    let startDataLength = 0;
+    let startDataIsHex = false;
+    let foundStartData = false;
+    const previousTokens = [];
+    function rememberToken(value) {
+      previousTokens.push(value);
+      if (previousTokens.length > 4) {
+        previousTokens.shift();
+      }
+    }
+    let token;
+    while ((token = this.getToken()) !== null) {
+      if (token === "StartData") {
+        const dataType = previousTokens.at(-3);
+        const dataLength = previousTokens.at(-1);
+        if (previousTokens.at(-4) !== "(" || previousTokens.at(-2) !== ")" || dataType !== "Binary" && dataType !== "Hex" || !/^\d+$/.test(dataLength)) {
+          return null;
+        }
+        startDataLength = parseInt(dataLength, 10);
+        if (startDataLength <= 0) {
+          return null;
+        }
+        startDataIsHex = dataType === "Hex";
+        foundStartData = true;
+        break;
+      }
+      rememberToken(token);
+      if (token !== "/") {
+        continue;
+      }
+      token = this.getToken();
+      rememberToken(token);
+      switch (token) {
+        case "FontMatrix":
+          properties.fontMatrix = this.readNumberArray();
+          break;
+        case "FontBBox":
+          const fontBBox = this.readNumberArray();
+          properties.ascent = Math.max(fontBBox[3], fontBBox[1]);
+          properties.descent = Math.min(fontBBox[1], fontBBox[3]);
+          properties.ascentScaled = true;
+          break;
+        case "CIDCount":
+          cidCount = this.readInt();
+          break;
+        case "CIDMapOffset":
+          cidMapOffset = this.readInt();
+          break;
+        case "FDBytes":
+          fdBytes = this.readInt();
+          break;
+        case "GDBytes":
+          gdBytes = this.readInt();
+          break;
+        case "SubrMapOffset":
+          subrMapOffset = this.readInt();
+          break;
+        case "SDBytes":
+          sdBytes = this.readInt();
+          break;
+        case "SubrCount":
+          subrCount = this.readInt();
+          break;
+        case "BlueValues":
+        case "OtherBlues":
+        case "FamilyBlues":
+        case "FamilyOtherBlues":
+          this.readNumberArray();
+          break;
+        case "StemSnapH":
+        case "StemSnapV":
+          privateData.set(token, this.readNumberArray());
+          break;
+        case "StdHW":
+        case "StdVW":
+          privateData.set(token, this.readNumberArray()[0]);
+          break;
+        case "BlueShift":
+        case "lenIV":
+        case "BlueFuzz":
+        case "BlueScale":
+        case "LanguageGroup":
+          privateData.set(token, this.readNumber());
+          break;
+        case "ExpansionFactor":
+          privateData.set(token, this.readNumber() || 0.06);
+          break;
+        case "ForceBold":
+          privateData.set(token, this.readBoolean());
+          break;
+      }
+    }
+    if (!foundStartData || cidCount <= 0 || cidMapOffset < 0 || fdBytes < 0 || fdBytes > 4 || gdBytes < 1 || gdBytes > 4) {
+      return null;
+    }
+    const maxLength = stream.end - stream.pos;
+    if (startDataLength > maxLength) {
+      if (!startDataIsHex) {
+        startDataLength = maxLength;
+      } else if (startDataLength > 2 * maxLength) {
+        return null;
+      }
+    }
+    let binary = stream.getBytes(startDataIsHex ? void 0 : startDataLength);
+    if (startDataIsHex) {
+      const decoded = new Uint8Array(startDataLength);
+      let digit1 = -1, j = 0;
+      for (let i = 0, ii = binary.length; i < ii && j < startDataLength; i++) {
+        const digit = binary[i];
+        if (!isHexDigit(digit)) {
+          continue;
+        }
+        if (digit1 < 0) {
+          digit1 = digit;
+          continue;
+        }
+        decoded[j++] = parseInt(String.fromCharCode(digit1, digit), 16);
+        digit1 = -1;
+      }
+      if (j !== startDataLength) {
+        return null;
+      }
+      binary = decoded;
+    }
+    const lenIV = privateData.get("lenIV");
+    const cidEntrySize = fdBytes + gdBytes;
+    const subrs = [];
+    function readUint(offset, byteCount) {
+      let n = 0;
+      for (let i = 0; i < byteCount; i++) {
+        n = n << 8 | binary[offset + i];
+      }
+      return n >>> 0;
+    }
+    if (cidMapOffset + (cidCount + 1) * cidEntrySize > binary.length || subrCount > 0 && (subrMapOffset < 0 || sdBytes < 1 || sdBytes > 4 || subrMapOffset + (subrCount + 1) * sdBytes > binary.length)) {
+      return null;
+    }
+    if (fdBytes > 0) {
+      for (let cid = 0; cid < cidCount; cid++) {
+        if (readUint(cidMapOffset + cid * cidEntrySize, fdBytes) !== 0) {
+          return null;
+        }
+      }
+    }
+    if (subrCount > 0) {
+      const subrOffsets = new Array(subrCount + 1);
+      for (let i = 0; i <= subrCount; i++) {
+        subrOffsets[i] = readUint(subrMapOffset + i * sdBytes, sdBytes);
+      }
+      for (let i = 0; i < subrCount; i++) {
+        const start = subrOffsets[i];
+        const end = subrOffsets[i + 1];
+        if (end > binary.length || end < start) {
+          subrs[i] = new Uint8Array(0);
+          continue;
+        }
+        subrs[i] = this.readCharStrings(binary.subarray(start, end), lenIV);
+      }
+    }
+    const charstrings = [];
+    let prevOffset = readUint(cidMapOffset + fdBytes, gdBytes);
+    for (let cid = 0; cid < cidCount; cid++) {
+      const nextOffset = readUint(
+        cidMapOffset + (cid + 1) * cidEntrySize + fdBytes,
+        gdBytes
+      );
+      const glyphName = cid === 0 ? ".notdef" : `cid${cid}`;
+      if (nextOffset > prevOffset && nextOffset <= binary.length) {
+        const encoded = this.readCharStrings(
+          binary.subarray(prevOffset, nextOffset),
+          lenIV
+        );
+        const charString = new Type1CharString();
+        const error = charString.convert(
+          encoded,
+          subrs,
+          this.seacAnalysisEnabled
+        );
+        charstrings.push({
+          glyphName,
+          charstring: error ? [14] : charString.output,
+          width: charString.width,
+          lsb: charString.lsb,
+          seac: charString.seac
+        });
+      } else {
+        const notDef = charstrings[0];
+        charstrings.push({
+          glyphName,
+          charstring: notDef?.charstring.slice() || [139, 14],
+          // 0 endchar
+          width: notDef?.width || 0,
+          lsb: notDef?.lsb || 0
+        });
+      }
+      prevOffset = nextOffset;
+    }
+    program.subrs = subrs;
+    program.charstrings = charstrings;
+    return program;
+  }
+  extractFontHeader(properties) {
+    let token;
+    while ((token = this.getToken()) !== null) {
+      if (token !== "/") {
+        continue;
+      }
+      token = this.getToken();
+      switch (token) {
+        case "FontMatrix":
+          const matrix = this.readNumberArray();
+          properties.fontMatrix = matrix;
+          break;
+        case "Encoding":
+          const encodingArg = this.getToken();
+          let encoding;
+          if (!/^\d+$/.test(encodingArg)) {
+            encoding = getEncoding(encodingArg);
+          } else {
+            encoding = [];
+            const size = parseInt(encodingArg, 10) | 0;
+            this.getToken();
+            for (let j = 0; j < size; j++) {
+              token = this.getToken();
+              while (token !== "dup" && token !== "def") {
+                token = this.getToken();
+                if (token === null) {
+                  return;
+                }
+              }
+              if (token === "def") {
+                break;
+              }
+              const index = this.readInt();
+              this.getToken();
+              const glyph = this.getToken();
+              encoding[index] = glyph;
+              this.getToken();
+            }
+          }
+          properties.builtInEncoding = encoding;
+          break;
+        case "FontBBox":
+          const fontBBox = this.readNumberArray();
+          properties.ascent = Math.max(fontBBox[3], fontBBox[1]);
+          properties.descent = Math.min(fontBBox[1], fontBBox[3]);
+          properties.ascentScaled = true;
+          break;
+      }
+    }
+  }
+};
+
+// src/core/type1_font.js
+function findBlock(streamBytes, signature, startIndex) {
+  const streamBytesLength = streamBytes.length;
+  const signatureLength = signature.length;
+  const scanLength = streamBytesLength - signatureLength;
+  let i = startIndex, found = false;
+  while (i < scanLength) {
+    let j = 0;
+    while (j < signatureLength && streamBytes[i + j] === signature[j]) {
+      j++;
+    }
+    if (j >= signatureLength) {
+      i += j;
+      while (i < streamBytesLength && isWhiteSpace(streamBytes[i])) {
+        i++;
+      }
+      found = true;
+      break;
+    }
+    i++;
+  }
+  return {
+    found,
+    length: i
+  };
+}
+function getHeaderBlock(stream, suggestedLength) {
+  const EEXEC_SIGNATURE = [101, 101, 120, 101, 99];
+  const streamStartPos = stream.pos;
+  let headerBytes, headerBytesLength, block;
+  try {
+    headerBytes = stream.getBytes(suggestedLength);
+    headerBytesLength = headerBytes.length;
+  } catch {
+  }
+  if (headerBytesLength === suggestedLength) {
+    block = findBlock(
+      headerBytes,
+      EEXEC_SIGNATURE,
+      suggestedLength - 2 * EEXEC_SIGNATURE.length
+    );
+    if (block.found && block.length === suggestedLength) {
+      return {
+        stream: new Stream(headerBytes),
+        length: suggestedLength
+      };
+    }
+  }
+  warn('Invalid "Length1" property in Type1 font -- trying to recover.');
+  stream.pos = streamStartPos;
+  const SCAN_BLOCK_LENGTH = 2048;
+  let actualLength;
+  while (true) {
+    const scanBytes = stream.peekBytes(SCAN_BLOCK_LENGTH);
+    block = findBlock(scanBytes, EEXEC_SIGNATURE, 0);
+    if (block.length === 0) {
+      break;
+    }
+    stream.pos += block.length;
+    if (block.found) {
+      actualLength = stream.pos - streamStartPos;
+      break;
+    }
+  }
+  stream.pos = streamStartPos;
+  if (actualLength) {
+    return {
+      stream: new Stream(stream.getBytes(actualLength)),
+      length: actualLength
+    };
+  }
+  warn('Unable to recover "Length1" property in Type1 font -- using as is.');
+  return {
+    stream: new Stream(stream.getBytes(suggestedLength)),
+    length: suggestedLength
+  };
+}
+function getEexecBlock(stream, suggestedLength) {
+  const eexecBytes = stream.getBytes();
+  if (eexecBytes.length === 0) {
+    throw new FormatError("getEexecBlock - no font program found.");
+  }
+  return {
+    stream: new Stream(eexecBytes),
+    length: eexecBytes.length
+  };
+}
+function isCidKeyedType1File(file) {
+  const sample = file.peekBytes(2048);
+  if (sample.length < 2 || sample[0] !== 37 || sample[1] !== 33) {
+    return false;
+  }
+  const text = bytesToString(sample);
+  return text.includes("Resource-CIDFont") || /\/CIDFontType\s+0\b/.test(text);
+}
+var Type1Font = class {
+  #rawFileLength;
+  constructor(name, file, properties) {
+    let data;
+    if (properties.composite && isCidKeyedType1File(file)) {
+      data = this.#parseCidKeyedType1(file, properties);
+    }
+    data ||= this.#parseType1(file, properties);
+    for (const key in data.properties) {
+      properties[key] = data.properties[key];
+    }
+    const charstrings = data.charstrings;
+    const type2Charstrings = this.getType2Charstrings(charstrings);
+    const subrs = this.getType2Subrs(data.subrs);
+    this.charstrings = charstrings;
+    this.data = this.wrap(
+      name,
+      type2Charstrings,
+      this.charstrings,
+      subrs,
+      properties
+    );
+    this.seacs = this.getSeacs(data.charstrings);
+  }
+  #parseType1(file, properties) {
+    const PFB_HEADER_SIZE = 6;
+    let headerBlockLength = properties.length1;
+    let eexecBlockLength = properties.length2;
+    let pfbHeader = file.peekBytes(PFB_HEADER_SIZE);
+    const pfbHeaderPresent = pfbHeader[0] === 128 && pfbHeader[1] === 1;
+    if (pfbHeaderPresent) {
+      file.skip(PFB_HEADER_SIZE);
+      headerBlockLength = pfbHeader[5] << 24 | pfbHeader[4] << 16 | pfbHeader[3] << 8 | pfbHeader[2];
+    }
+    const headerBlock = getHeaderBlock(file, headerBlockLength);
+    const headerBlockParser = new Type1Parser(
+      headerBlock.stream,
+      false,
+      SEAC_ANALYSIS_ENABLED
+    );
+    headerBlockParser.extractFontHeader(properties);
+    if (pfbHeaderPresent) {
+      pfbHeader = file.getBytes(PFB_HEADER_SIZE);
+      eexecBlockLength = pfbHeader[5] << 24 | pfbHeader[4] << 16 | pfbHeader[3] << 8 | pfbHeader[2];
+    }
+    const eexecBlock = getEexecBlock(file, eexecBlockLength);
+    const eexecBlockParser = new Type1Parser(
+      eexecBlock.stream,
+      true,
+      SEAC_ANALYSIS_ENABLED
+    );
+    const data = eexecBlockParser.extractFontProgram(properties);
+    this.#rawFileLength = headerBlock.length + eexecBlock.length;
+    return data;
+  }
+  #parseCidKeyedType1(file, properties) {
+    const fileStart = file.pos;
+    const length = file.end - fileStart;
+    const parser = new Type1Parser(file, false, SEAC_ANALYSIS_ENABLED);
+    const data = parser.extractCidKeyedFontProgram(properties);
+    if (!data) {
+      file.pos = fileStart;
+      warn("Type1Font: unable to parse CID-keyed Type 1 font.");
+      return null;
+    }
+    this.#rawFileLength = length;
+    return data;
+  }
+  get numGlyphs() {
+    return this.charstrings.length + 1;
+  }
+  getCharset() {
+    const charset = [".notdef"];
+    for (const { glyphName } of this.charstrings) {
+      charset.push(glyphName);
+    }
+    return charset;
+  }
+  getGlyphMapping(properties) {
+    const charstrings = this.charstrings;
+    if (properties.composite) {
+      const charCodeToGlyphId = /* @__PURE__ */ new Map();
+      for (let glyphId2 = 0, charstringsLen = charstrings.length; glyphId2 < charstringsLen; glyphId2++) {
+        const charCode = properties.cMap.charCodeOf(glyphId2);
+        charCodeToGlyphId.set(charCode, glyphId2 + 1);
+      }
+      return charCodeToGlyphId;
+    }
+    const glyphNames = [".notdef"];
+    let builtInEncoding, glyphId;
+    for (glyphId = 0; glyphId < charstrings.length; glyphId++) {
+      glyphNames.push(charstrings[glyphId].glyphName);
+    }
+    const encoding = properties.builtInEncoding;
+    if (encoding) {
+      builtInEncoding = /* @__PURE__ */ Object.create(null);
+      for (const charCode in encoding) {
+        glyphId = glyphNames.indexOf(encoding[charCode]);
+        if (glyphId >= 0) {
+          builtInEncoding[charCode] = glyphId;
+        }
+      }
+    }
+    return type1FontGlyphMapping(properties, builtInEncoding, glyphNames);
+  }
+  hasGlyphId(id) {
+    if (id < 0 || id >= this.numGlyphs) {
+      return false;
+    }
+    if (id === 0) {
+      return true;
+    }
+    const glyph = this.charstrings[id - 1];
+    return glyph.charstring.length > 0;
+  }
+  getSeacs(charstrings) {
+    const seacs = /* @__PURE__ */ new Map();
+    for (let i = 0, ii = charstrings.length; i < ii; i++) {
+      const { seac } = charstrings[i];
+      if (seac) {
+        seacs.set(i + 1, seac);
+      }
+    }
+    return seacs;
+  }
+  getType2Charstrings(type1Charstrings) {
+    const type2Charstrings = [];
+    for (const type1Charstring of type1Charstrings) {
+      type2Charstrings.push(type1Charstring.charstring);
+    }
+    return type2Charstrings;
+  }
+  getType2Subrs(type1Subrs) {
+    let bias = 0;
+    const count = type1Subrs.length;
+    if (count < 1133) {
+      bias = 107;
+    } else if (count < 33769) {
+      bias = 1131;
+    } else {
+      bias = 32768;
+    }
+    const type2Subrs = [];
+    let i;
+    for (i = 0; i < bias; i++) {
+      type2Subrs.push([11]);
+    }
+    for (i = 0; i < count; i++) {
+      type2Subrs.push(type1Subrs[i]);
+    }
+    return type2Subrs;
+  }
+  wrap(name, glyphs, charstrings, subrs, properties) {
+    const cff = new CFF(this.#rawFileLength);
+    cff.header = new CFFHeader(1, 0, 4, 4);
+    cff.names = [name];
+    const topDict = new CFFTopDict();
+    topDict.setByName("version", 391);
+    topDict.setByName("Notice", 392);
+    topDict.setByName("FullName", 393);
+    topDict.setByName("FamilyName", 394);
+    topDict.setByName("Weight", 395);
+    topDict.setByName("Encoding", null);
+    topDict.setByName("FontMatrix", properties.fontMatrix);
+    topDict.setByName("FontBBox", properties.bbox);
+    topDict.setByName("charset", null);
+    topDict.setByName("CharStrings", null);
+    topDict.setByName("Private", null);
+    cff.topDict = topDict;
+    const strings = new CFFStrings();
+    strings.add("Version 0.11");
+    strings.add("See original notice");
+    strings.add(name);
+    strings.add(name);
+    strings.add("Medium");
+    cff.strings = strings;
+    cff.globalSubrIndex = new CFFIndex();
+    const count = glyphs.length;
+    const charsetArray = [".notdef"];
+    for (let i = 0; i < count; i++) {
+      const { glyphName } = charstrings[i];
+      const index = CFFStandardStrings.indexOf(glyphName);
+      if (index === -1) {
+        strings.add(glyphName);
+      }
+      charsetArray.push(glyphName);
+    }
+    cff.charset = new CFFCharset(false, 0, charsetArray);
+    const charStringsIndex = new CFFIndex();
+    charStringsIndex.add([139, 14]);
+    for (let i = 0; i < count; i++) {
+      charStringsIndex.add(glyphs[i]);
+    }
+    cff.charStrings = charStringsIndex;
+    const privateDict = new CFFPrivateDict();
+    privateDict.setByName("Subrs", null);
+    const fields = [
+      "BlueValues",
+      "OtherBlues",
+      "FamilyBlues",
+      "FamilyOtherBlues",
+      "StemSnapH",
+      "StemSnapV",
+      "BlueShift",
+      "BlueFuzz",
+      "BlueScale",
+      "LanguageGroup",
+      "ExpansionFactor",
+      "ForceBold",
+      "StdHW",
+      "StdVW"
+    ];
+    for (const field of fields) {
+      if (!properties.privateData.has(field)) {
+        continue;
+      }
+      const value = properties.privateData.get(field);
+      if (Array.isArray(value)) {
+        for (let j = value.length - 1; j > 0; j--) {
+          value[j] -= value[j - 1];
+        }
+      }
+      privateDict.setByName(field, value);
+    }
+    cff.topDict.privateDict = privateDict;
+    const subrIndex = new CFFIndex();
+    for (const subr of subrs) {
+      subrIndex.add(subr);
+    }
+    privateDict.subrsIndex = subrIndex;
+    const compiler = new CFFCompiler(cff);
+    return compiler.compile();
   }
 };
 
@@ -13195,7 +14568,10 @@ export {
   CFFStrings,
   DrawOPS,
   Stream,
+  StringStream,
   SymbolSetEncoding,
+  Type1Font,
+  Type1Parser,
   Type2Compiled,
   WinAnsiEncoding,
   ZapfDingbatsEncoding,

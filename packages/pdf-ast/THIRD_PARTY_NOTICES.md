@@ -120,3 +120,16 @@ by Type 2 seac compositions. `src/fonts/pdfjs-cff-mapping.test.ts` ports nine
 charset/encoding/FDSelect cases from `test/unit/cff_parser_spec.js` at the pinned
 revision, preserving input bytes and expected mappings. Mozilla Foundation,
 Apache-2.0; see `licenses/PDFJS-APACHE-2.0.txt`.
+
+# Embedded Type 1 integration
+
+The font bundle also includes PDF.js `Type1Font` and `Type1Parser` at the pinned
+revision. `src/fonts/type1.ts` uses their PFB/PFA handling, eexec/charstring
+decryption, Type 1-to-Type 2 conversion, and original glyph mapping. It restores
+the original charset after CFF conversion, preserves the embedded .notdef shape,
+and follows `src/core/fonts.js` for seac base/accent selection and displacement.
+`src/fonts/pdfjs-type1.test.ts` ports all 19 cases from
+`test/unit/type1_parser_spec.js`, including CID binary/hex data, subroutines,
+encryption, and malformed/truncated inputs. Adaptations add TypeScript types,
+Vitest imports, and portable byte-to-hex conversion. Copyright 2017 Mozilla
+Foundation, Apache-2.0; see `licenses/PDFJS-APACHE-2.0.txt`.

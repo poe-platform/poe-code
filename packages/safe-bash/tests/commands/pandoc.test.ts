@@ -432,3 +432,24 @@ test("pandoc omits disabled filesystem read budgets and preserves finite ones", 
     } finally { await shell.dispose(); }
   }
 });
+
+test("pandoc embeds local VFS pictures in RTF without media extraction", async () => {
+  const {shell, volume} = fixture();
+  // Original 8x1 grayscale JPEG with one DC coefficient and a complete EOI.
+  const bytes = Buffer.from("ffd8ffdb004300" + "10".repeat(64) + "ffc0000b080001000801011100ffc40026000100000000000000000000000000000001100100000000000000000000000000000000ffda0008010100003f005fffd9", "hex");
+  volume.mkdirSync("/work/assets");
+  volume.writeFileSync("/work/assets/p x.jpg", bytes);
+  volume.writeFileSync("/work/image.md", "![picture](p%20x.jpg)");
+  try {
+    const result = await shell.exec("pandoc -f commonmark -t rtf --resource-path assets image.md");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok(result.stdout.includes("\\jpegblip\\picw8\\pich1"));
+    assert.ok(result.stdout.includes(bytes.toString("hex")));
+    assert.deepEqual(volume.readdirSync("/work/assets"), ["p x.jpg"]);
+    volume.writeFileSync("/work/assets/p x.jpg", bytes.subarray(0, -2));
+    const invalid = await shell.exec("pandoc -f commonmark -t rtf --resource-path assets image.md -o out");
+    assert.notEqual(invalid.exitCode, 0);
+    assert.equal(invalid.stdout, "");
+    assert.equal(volume.readFileSync("/work/out", "utf8"), "Keep");
+  } finally {await shell.dispose();}
+});

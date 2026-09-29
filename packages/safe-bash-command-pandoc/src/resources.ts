@@ -82,7 +82,7 @@ export class ResourceSession {
       name = dot > 0 ? `${basename.slice(0, dot)}-${n}${basename.slice(dot)}` : `${basename}-${n}`;
     }
     this.names.add(name);
-    const entry = {path: `${this.destination === "/" ? "" : this.destination}/${name}`, bytes};
+    const entry = {path: this.destination === undefined ? name : `${this.destination === "/" ? "" : this.destination}/${name}`, bytes};
     this.context.charge("references", 1);
     this.context.charge("retainedBytes", entry.path.length * 2 + 64);
     this.plans.push(entry);
@@ -102,16 +102,18 @@ export class ResourceSession {
     }
   }
 
-  async prepare(document: Document, lossy: boolean): Promise<Document> {
-    if (this.destination === undefined) return document;
+  async prepare(document: Document, lossy: boolean, embedImages = false): Promise<Document> {
+    if (this.destination === undefined && (!embedImages || !this.context.context.resourceFiles || this.context.resources)) return document;
     const fs = this.context.context.resourceFiles!;
     const ctx = this.context;
     const embedded = new Map<string, Uint8Array>();
+    const imageResources = new Map<string, Uint8Array>();
     const embeddedEntries = new Map<string, {path: string; bytes: Uint8Array}>();
     for (const resource of document.resources) {
-      mediaKeyBasename(resource.id, ctx);
+      if (this.destination !== undefined) mediaKeyBasename(resource.id, ctx);
       const previous = embedded.get(resource.id);
       if (previous) {
+        if (embedImages) ctx.fail("E_RESOURCE", "Duplicate embedded resource id");
         if (previous.length !== resource.bytes.length) ctx.fail("E_RESOURCE", "Conflicting embedded resource keys");
         for (let i = 0; i < previous.length; i++) {
           ctx.checkpoint();
@@ -133,9 +135,20 @@ export class ResourceSession {
     };
     await validate(document.blocks);
     await validate(document.metadata);
-    const destinationType = await inspect(fs, this.destination, ctx);
-    if (destinationType !== undefined && destinationType !== "directory") ctx.fail("E_IO", "Extraction destination is not a directory");
-    for (const [key, bytes] of embedded) embeddedEntries.set(key, this.allocate(mediaKeyBasename(key, ctx), bytes));
+    if (this.destination !== undefined) {
+      const destinationType = await inspect(fs, this.destination, ctx);
+      if (destinationType !== undefined && destinationType !== "directory") ctx.fail("E_IO", "Extraction destination is not a directory");
+    }
+    for (const [key, bytes] of embedded) {
+      const entry = this.allocate(this.destination === undefined ? "resource" : mediaKeyBasename(key, ctx), bytes);
+      embeddedEntries.set(key, entry);
+      if (embedImages) {
+        const id = entry.path.split("/").map(encodeURIComponent).join("/");
+        ctx.charge("references", 1);
+        ctx.charge("retainedBytes", id.length * 2 + 64);
+        imageResources.set(id, bytes);
+      }
+    }
     const visit = async (value: unknown, path: string): Promise<unknown> => {
       await ctx.cooperate();
       if (value === null || typeof value !== "object" || value instanceof Uint8Array) return value;
@@ -185,6 +198,11 @@ export class ResourceSession {
           return image;
         }
         const outputUrl = entry.path.split("/").map(encodeURIComponent).join("/") + target.suffix;
+        if (embedImages && !imageResources.has(outputUrl)) {
+          ctx.charge("references", 1);
+          ctx.charge("retainedBytes", outputUrl.length * 2 + 64);
+          imageResources.set(outputUrl, entry.bytes);
+        }
         return {...image, c: [image.c[0], await visit(image.c[1], `${path}.c[1]`), [outputUrl, title]]};
       }
       if (Array.isArray(value)) {const result = []; for (let i = 0; i < value.length; i++) result.push(await visit(value[i], `${path}[${i}]`)); return result;}
@@ -193,12 +211,12 @@ export class ResourceSession {
       return result;
     };
     const prepared = {...document, blocks: await visit(document.blocks, "$.blocks"), metadata: await visit(document.metadata, "$.metadata")} as Document;
-    for (const entry of this.plans) if (await inspect(fs, entry.path, ctx) !== undefined) ctx.fail("E_IO", `Extraction destination already exists: ${entry.path}`);
-    return prepared;
+    if (this.destination !== undefined) for (const entry of this.plans) if (await inspect(fs, entry.path, ctx) !== undefined) ctx.fail("E_IO", `Extraction destination already exists: ${entry.path}`);
+    return embedImages ? {...prepared, resources: [...imageResources].map(([id, bytes]) => ({id, bytes}))} : prepared;
   }
 
   async publish(): Promise<void> {
-    if (!this.plans.length) return;
+    if (this.destination === undefined || !this.plans.length) return;
     const ctx = this.context;
     const fs = ctx.context.resourceFiles!;
     const options = ctx.signal ? {signal: ctx.signal} : {};

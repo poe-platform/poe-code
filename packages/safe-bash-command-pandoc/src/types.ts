@@ -221,6 +221,8 @@ export interface ReaderCapability {
   read(input: Input, context: AdapterContext, selection?: FormatSelection): Promise<Document>;
 }
 export interface WriterCapability {
+  /** Resolve local image bytes before writing an embedding format. */
+  readonly imageResources?: "embed";
   readonly format: string;
   readonly math?: "source";
   write(

@@ -92,7 +92,10 @@ keep defaults, templates, includes and document inputs within one budget.
 Pandoc sandbox or additional filesystem isolation.
 
 Resources use `resourcePath` (ordered VFS directories) and `extractMedia` (VFS
-output directory). No media is downloaded implicitly. PDF options are `pdf`
+output directory). RTF embeds local pictures from the configured VFS, using each
+input document’s directory or `resourcePath`; `extractMedia` is optional. SDK callers
+can also supply embedded resources or an explicit resolver. No media is downloaded
+implicitly. PDF options are `pdf`
 (`pageSize`: `a4` or `letter`; `orientation`: `portrait` or `landscape`; `margin`,
 `font`, `fontSize`, `lineHeight`), `pdfPage` (`width`, `height`, `margin`, in points),
 and `pdfFonts` (ordered supplied font inputs). The packaged named font is `mono`;

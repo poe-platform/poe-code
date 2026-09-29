@@ -20,7 +20,8 @@ import type {
   WriteOptions,
   Diagnostic,
   FilterRequest,
-  ReaderCapability
+  ReaderCapability,
+  WriterCapability
 } from "./types.js";
 
 import {LocalTemplate} from "./templates.js";
@@ -302,7 +303,7 @@ class Session extends ExecutionContext {
     return owned;
   }
 
-  async writable(document: Document, math?: "source", filters?: ConversionOptions["filters"], to?: string): Promise<Document> {
+  async writable(document: Document, writer: WriterCapability, filters?: ConversionOptions["filters"], to?: string): Promise<Document> {
     let metadata = document.metadata;
     for (const file of this.metadataFiles ?? []) {
       const input = await this.input(file, "json");
@@ -315,7 +316,7 @@ class Session extends ExecutionContext {
     for (const request of filters ?? []) {
       document = await this.document(await this.call(() => this.context.filters!.apply(document, {...request}, Object.assign(this, {to: to!}))));
     }
-    if (math !== "source") {
+    if (writer.math !== "source") {
       const visit = async (value: unknown, path: string): Promise<void> => {
         { const p = this.cooperateFast(); if (p) await p; }
         if (value === null || typeof value !== "object" || value instanceof Uint8Array) return;
@@ -364,7 +365,7 @@ class Session extends ExecutionContext {
       };
       await visit(document.blocks);
     }
-    return await this.media.prepare(document, this.lossy);
+    return await this.media.prepare(document, this.lossy, writer.imageResources === "embed");
   }
   async finish(serialized: SerializedDocument): Promise<ConversionResult> {
     this.checkpoint(0);
@@ -470,7 +471,7 @@ export async function writeDocument(
     session.options(options);
     const writer = session.registry.resolve(options.to, "write");
     await session.preflightOptions();
-    const owned = await session.writable(await session.document(document), writer.writer!.math);
+    const owned = await session.writable(await session.document(document), writer.writer!);
     return await session.finish(
       await session.call(() => writer.writer!.write(owned, session, writer))
     );
@@ -590,7 +591,7 @@ export async function convert(
     }
     const document = await session.writable(
       await session.document({ blocks, metadata, resources, ...settings }, true),
-      writer.writer!.math, filters, options.to
+      writer.writer!, filters, options.to
     );
     return await session.finish(
       await session.call(() => writer.writer!.write(document, session, writer))

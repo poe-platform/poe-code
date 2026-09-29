@@ -502,11 +502,23 @@ export function evalSyncInstall(
     if (!mkdirSync || !statTypeSync || files.length === 0) return undefined;
     let out = "";
     for (const dir of files) {
-      const st = statTypeSync(dir);
-      if (st === "directory") continue;
-      if (st !== "missing") return undefined;
-      if (!mkdirSync(dir, modes.directory)) return undefined;
-      if (verbose) out += `install: creating directory ${quote(dir)}\n`;
+      if (!dir) return undefined;
+      const parts = dir.split("/");
+      let current = dir.startsWith("/") ? "/" : "";
+      const components = parts.filter(Boolean);
+      if (!components.length) components.push(".");
+      for (let idx = 0; idx < components.length; idx++) {
+        current = current && current !== "/" ? `${current}/${components[idx]}` : `${current}${components[idx]}`;
+        const last = idx === components.length - 1;
+        const st = statTypeSync(current);
+        if (st === "directory") {
+          if (last && modeSpec !== undefined) return undefined;
+          continue;
+        }
+        if (st !== "missing") return undefined;
+        if (!mkdirSync(current, last ? modes.directory : 0o755)) return undefined;
+        if (verbose) out += `install: creating directory ${quote(current)}\n`;
+      }
     }
     return out;
   }
@@ -516,9 +528,9 @@ export function evalSyncInstall(
   const ensureParents = (dirPath: string): boolean => {
     if (!dirPath || dirPath === "/" || dirPath === ".") return true;
     const parts = dirPath.split("/").filter(Boolean);
-    let cur = dirPath.startsWith("/") ? "" : ".";
+    let cur = dirPath.startsWith("/") ? "/" : "";
     for (const part of parts) {
-      cur = cur === "" ? "/" + part : cur === "." ? part : cur + "/" + part;
+      cur = cur && cur !== "/" ? `${cur}/${part}` : `${cur}${part}`;
       const st = statTypeSync(cur);
       if (st === "directory") continue;
       if (st !== "missing" || !mkdirSync) return false;

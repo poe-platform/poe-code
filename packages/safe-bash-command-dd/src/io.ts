@@ -140,6 +140,36 @@ export async function openDdFile(context: CommandContext, request: DdFileRequest
   }
   const path = request.path === undefined || request.path === "" ? request.path
     : request.path.startsWith("/") ? request.path : `${context.cwd}/${request.path}`;
+  if (path === "/dev/null" || path === "/dev/zero") {
+    let existsInFs = false;
+    try {
+      await context.fs.stat(path, { signal });
+      existsInFs = true;
+    } catch {}
+    if (!existsInFs) {
+      let devClosed = false;
+      return {
+        type: "character",
+        async read(size) {
+          signal.throwIfAborted();
+          if (devClosed) throw new FsError("EBADF");
+          return path === "/dev/zero" ? new Uint8Array(size) : new Uint8Array(0);
+        },
+        async write(bytes) {
+          signal.throwIfAborted();
+          if (devClosed) throw new FsError("EBADF");
+          return bytes.byteLength;
+        },
+        async seek() {
+          signal.throwIfAborted();
+          if (devClosed) throw new FsError("EBADF");
+        },
+        async close() {
+          devClosed = true;
+        },
+      };
+    }
+  }
   if (path !== undefined && context.fs.open) {
     if (request.flags.has("nofollow")) return openDescriptor(context, path, request);
     const capabilities = await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities;

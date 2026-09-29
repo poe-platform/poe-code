@@ -1494,3 +1494,36 @@ EOF
     `checking file /tmp/w222/orig.txt|patching file /tmp/w222/patched.txt (read from /tmp/w222/orig.txt)|patching file /tmp/w222/reverted.txt (read from /tmp/w222/patched.txt)|Files /tmp/w222/orig.txt and /tmp/w222/reverted.txt are identical`
   );
 });
+
+test("Wave 223: install -dv multi-level directories and dd bs=NxM/cbs/conv=block/unblock/sync and /dev/zero in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp/w223_root", { recursive: true });
+  const shell = new Shell({ fs: memFs, cwd: "/tmp/w223_root" }).use(standardCommands()).use(installCommands()).use(ddCommands());
+  const res = await shell.exec(`
+    for i in 1 2 3 4 5; do
+      rm -rf /tmp/w223
+      out1=$(install -dv /tmp/w223/a/b/c)
+      echo "hello" > /tmp/w223/src.txt
+      out2=$(install -Dv -m 644 /tmp/w223/src.txt /tmp/w223/nested/dir/dst.txt)
+      out3=$(printf "hi\\nthere!\\n" | dd cbs=4 conv=block status=none)
+      out4=$(printf "hi  ther" | dd cbs=4 conv=unblock status=none | tr "\\n" "|")
+      out5=$(dd if=/dev/zero bs=2x3 count=2 status=none | tr "\\0" "Z")
+      out6=$(dd if=/tmp/w223/src.txt of=/tmp/w223/dd_out.txt bs=1 count=5B conv=ucase status=none && cat /tmp/w223/dd_out.txt)
+    done
+    printf "%s\\n---\\n%s\\n---\\n<%s>|<%s>|<%s>|<%s>\\n" "$out1" "$out2" "$out3" "$out4" "$out5" "$out6"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "install: creating directory '/tmp/w223'\n" +
+    "install: creating directory '/tmp/w223/a'\n" +
+    "install: creating directory '/tmp/w223/a/b'\n" +
+    "install: creating directory '/tmp/w223/a/b/c'\n" +
+    "---\n" +
+    "install: creating directory '/tmp/w223/nested'\n" +
+    "install: creating directory '/tmp/w223/nested/dir'\n" +
+    "'/tmp/w223/src.txt' -> '/tmp/w223/nested/dir/dst.txt'\n" +
+    "---\n" +
+    "<hi  ther>|<hi|ther|>|<ZZZZZZZZZZZZ>|<HELLO>\n"
+  );
+});

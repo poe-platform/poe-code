@@ -33,6 +33,30 @@ it("computes UTF-8 run offsets after escape decoding and keeps text nodes separa
     richText: [{ start: 2, end: 7, attributes: { bold: 1 } }] });
 });
 
+// RichStringPortion::setText preserves decoded UTF-16 units. A run boundary
+// must not act as a UTF-8 stream boundary or replace an isolated surrogate.
+for (const target of ["cell", "comment"] as const)
+it.each(["\ufeff", "\ud800", "\udfff", "😀", "é", "\0"])(`preserves rich ${target} text at UTF-8 span boundaries: %j`, character => {
+  const value = "a" + character + "z", end = 1 + new TextEncoder().encode(character).length;
+  const runs = [{ start: 1, end, attributes: { bold: 1 } }];
+  const output = writeRichString(value, runs, createXlsxXml(context).element, undefined, target);
+  const read = readXlsxString(parseXml(`<si xmlns="${namespace}">${output}</si>`), context);
+  expect(read).toEqual({ value, richText: runs });
+});
+
+it.each(["2006", "2008"] as const)("preserves shared and inline rich UTF-16 units in %s", async edition => {
+  const values = ["\ufeff\ud800z", "\ufeff\ud800z", "\udfff😀"];
+  const book: Workbook = { sheets: [{ id: "s", name: "S", cells: values.map((value, row) => ({ row, column: 0,
+    value: { kind: "string", value }, richText: [{ start: 0, end: new TextEncoder().encode(value).length, attributes: { bold: 1 } }] })) }] };
+  const result = await readXlsx(await createXlsxWriter(edition)(book, [], context), context);
+  expect(result.sheets[0]!.cells.map(cell => ({ value: cell.value, richText: cell.richText }))).toEqual(
+    book.sheets[0]!.cells.map(cell => ({ value: cell.value, richText: cell.richText })));
+});
+
+it.each([1, 2, 3, 5, -1, Infinity, 1.5])("rejects invalid rich UTF-8 boundaries instead of truncating text: %s", end => {
+  expect(() => writeRichString("😀", [{ start: 0, end, attributes: { bold: 1 } }], createXlsxXml(context).element)).toThrow();
+});
+
 it.each([
   ["A\0Z", "A_x0000_Z"],
   ["\x01\x1f\ufffe\uffff", "_x0001__x001F__xFFFE__xFFFF_"],

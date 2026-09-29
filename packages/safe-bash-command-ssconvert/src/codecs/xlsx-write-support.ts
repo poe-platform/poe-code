@@ -107,8 +107,20 @@ export function writeRichString(value: string, runs: readonly RichTextRun[] | un
   const t = (text: string) => xml("t", text.trim() !== text ? { "xml:space": "preserve" } : {}, escapeXlsx(encodeXlsxString(text)));
   if (!runs?.length) return t(value);
   charge?.(runs.length);
-  const bytes = new TextEncoder().encode(value), decoder = new TextDecoder("UTF-8", { fatal: true });
-  const points = [...new Set([0, bytes.length, ...runs.flatMap(run => [run.start, run.end])])].sort((a, b) => a - b);
+  const length = new TextEncoder().encode(value).length;
+  const points = [...new Set([0, length, ...runs.flatMap(run => [run.start, run.end])])].sort((a, b) => a - b);
+  // Offsets use UTF-8 byte lengths, but the original string owns its UTF-16
+  // units. Decoding byte slices strips BOMs and replaces isolated surrogates.
+  let byteOffset = 0, characterOffset = 0;
+  const characters = points.map(point => {
+    while (byteOffset < point && characterOffset < value.length) {
+      const code = value.codePointAt(characterOffset)!;
+      byteOffset += code < 128 ? 1 : code < 2048 ? 2 : code < 65536 ? 3 : 4;
+      characterOffset += code > 65535 ? 2 : 1;
+    }
+    if (byteOffset !== point) throw new SsconvertError("invalid-request", "Invalid rich text UTF-8 boundary");
+    return characterOffset;
+  });
   // Calc's XText comment path applies the first portion to the whole shape.
   // Keep it empty so every visible portion receives its own range formatting.
   let result = target === "comment" ? xml("r", {}, t("")) : "";
@@ -130,7 +142,7 @@ export function writeRichString(value: string, runs: readonly RichTextRun[] | un
     if (attrs.subscript || attrs.superscript) properties += xml("vertAlign", { val: attrs.subscript ? "subscript" : "superscript" });
     // An empty rPr creates the default font in Calc instead of inheriting the
     // preceding comment portion. It adds no attributes to our canonical spans.
-    result += xml("r", {}, (properties || target === "comment" ? xml("rPr", {}, properties) : "") + t(decoder.decode(bytes.subarray(start, end))));
+    result += xml("r", {}, (properties || target === "comment" ? xml("rPr", {}, properties) : "") + t(value.slice(characters[i], characters[i + 1])));
   }
   return result;
 }

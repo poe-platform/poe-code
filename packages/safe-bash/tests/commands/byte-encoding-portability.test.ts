@@ -39,3 +39,11 @@ test("hex decoding matches Node UTF-16 low-byte parsing", () => {
     assert.deepEqual(Array.from(encodeBytes(text, "hex")), Array.from(Buffer.from(text, "hex")), text);
   }
 });
+
+test("synchronous date formatting works without the global Buffer", async () => {
+  const { evalSyncDate } = await import("../../src/commands/time-env/date.js");
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer")!;
+  Reflect.deleteProperty(globalThis, "Buffer");
+  try { assert.equal(evalSyncDate(["-u", "-d", "2020-01-01", "+%Y é"], undefined), "2020 é\n"); }
+  finally { Object.defineProperty(globalThis, "Buffer", descriptor); }
+});

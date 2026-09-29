@@ -57,19 +57,20 @@ not poll synchronously or reenter a suspended interpreter. Use
 boundary and exception translation are exercised in real workerd.
 
 `run` supports literal argv or explicit `shell=True` script parsing, input bytes
-or text, cwd, environment overlays, UTF-8 text output, `check` and a positive
+or text, cwd, explicit child environments, UTF-8 text output, `check` and a positive
 `timeout` in seconds. It returns `args`, `returncode`, `stdout` and `stderr`.
 `check_output` checks the status and returns captured stdout. Nonzero checked
 results raise `CalledProcessError` with `returncode`, `cmd`, `output` and `stderr`.
 This executes configured Safe Bash commands, not OS processes. The runtime also adapts stdlib `subprocess.run` and `subprocess.check_output`
 to the same shell capability. `poe_shell.Client` supports coroutine execution and
-bounded captured stream events. These events follow command completion; they
-do not promise incremental shell output. There is no Popen, PTY, fork, process
+incremental stream events with backpressure. The shell adapter splits stdout and
+stderr writes into 16 KiB chunks by default; configure `maxStreamChunkBytes`
+with JSON-envelope headroom below the invocation message budget. There is no Popen, PTY, fork, process
 signaling or arbitrary-binary support.
 
 Shell execution uses the parent's invoker and canonical filesystem, with the
 same execution budget and cancellation/deadline authority. cwd/env are child
-state. Python must close or flush its ordinary file handles before shell commands
+state: omitted env inherits; supplied env replaces the child environment. Python must close or flush its ordinary file handles before shell commands
 read their contents; no workspace copies or automatic guest-buffer flushes occur.
 Nested Python calls in the same execution scope fail with a diagnostic and status
 1 while a Python-originated shell call is active. They never queue for the occupied

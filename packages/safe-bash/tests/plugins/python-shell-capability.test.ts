@@ -115,7 +115,7 @@ test('stream exposes output before completion and early close cancels the child'
   const context = { signal, executionScope:{}, cwd:'/', env:{}, async invoke(_command, _args, options) {
     try {
       emitted();
-      await options!.stdout!.write(new Uint8Array([0,255]));
+      await options!.stdout!.write(new Uint8Array(32769));
       await new Promise<void>(resolve => {
         if (options!.signal!.aborted) resolve();
         else options!.signal!.addEventListener('abort', () => resolve(), {once:true});
@@ -131,7 +131,7 @@ test('stream exposes output before completion and early close cancels the child'
   const marker = Symbol('not incremental');
   const result = await Promise.race([first, new Promise<typeof marker>(resolve => setTimeout(() => resolve(marker), 25))]);
   assert.notEqual(result, marker, 'stream must yield while the command is still running');
-  assert.deepEqual(result, {done:false, value:{type:'stdout', data:[0,255]}});
+  assert.deepEqual(result, {done:false, value:{type:'stdout', data:Array.from(new Uint8Array(16384))}});
   await iterator.return!();
   assert.equal(cancelled, true);
   assert.equal(pythonShellDispatchActive(context.executionScope), false);
@@ -158,4 +158,37 @@ test('stream applies backpressure and orders concurrent stdout and stderr writes
   assert.equal(written, true);
   assert.equal((await iterator.next()).done, true);
   assert.equal(pythonShellDispatchActive(context.executionScope), false);
+});
+
+test('shell stream fragments large writes before the finite host envelope', async () => {
+  const { createPythonHostBridge } = await import('../../src/commands/python/host-capabilities.js');
+  const signal = new AbortController().signal;
+  const bytes = Uint8Array.from({ length: 256 * 1024 }, (_, i) => i % 256);
+  const errorBytes = new Uint8Array([...bytes, 0, 255, 128]);
+  let settled = false;
+  const context = { signal, executionScope: {}, cwd: '/', env: {}, async invoke(_command, _args, options) {
+    try { await options!.stdout!.write(bytes); await options!.stderr!.write(errorBytes); return { exitCode: 7 }; }
+    finally { settled = true; }
+  } } satisfies Partial<CommandContext> as unknown as CommandContext;
+  const bridge = createPythonHostBridge({ shell: createPythonShellCapability(context, { maxOutputBytes: 600 * 1024 }) }, { signal, maxMessageBytes: 256 * 1024, maxStreamBytes: 4 * 1024 * 1024 });
+  try {
+    const handle = await bridge.request({ version: 1, operation: 'stream', capability: 'shell', value: { argv: ['emit'] } });
+    const stdout: number[] = [], stderr: number[] = [];
+    let exits = 0;
+    for (;;) {
+      const next = await bridge.request({ version: 1, operation: 'next', handle }) as { done: boolean; value?: { value: { type: string; data?: number[]; returncode?: number } } };
+      if (next.done) break;
+      const event = next.value!.value;
+      if (event.type === 'exit') { exits++; assert.equal(event.returncode, 7); }
+      else {
+        assert.ok(event.data!.length <= 16 * 1024);
+        for (const byte of event.data!) (event.type === 'stdout' ? stdout : stderr).push(byte);
+      }
+    }
+    assert.deepEqual(Uint8Array.from(stdout), bytes);
+    assert.deepEqual(Uint8Array.from(stderr), errorBytes);
+    assert.equal(exits, 1);
+    assert.equal(settled, true);
+    assert.equal(pythonShellDispatchActive(context.executionScope), false);
+  } finally { await bridge.close(); }
 });

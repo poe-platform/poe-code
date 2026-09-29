@@ -7,12 +7,14 @@ export function pythonShellDispatchActive(scope: object | undefined): boolean {
 }
 
 /** Uses the parent's invoker, filesystem and execution budget, never an OS process. */
-export function createPythonShellCapability(context: CommandContext, options: { readonly maxInputBytes?: number; readonly maxOutputBytes?: number; readonly maxConcurrentCalls?: number } = {}): PythonHostCapability {
+export function createPythonShellCapability(context: CommandContext, options: { readonly maxInputBytes?: number; readonly maxOutputBytes?: number; readonly maxConcurrentCalls?: number; readonly maxStreamChunkBytes?: number } = {}): PythonHostCapability {
   if (!context.invoke || !context.executionScope) throw new TypeError('Python shell capability requires a parent shell invocation');
   const maxInputBytes = options.maxInputBytes ?? Infinity;
   const maxOutputBytes = options.maxOutputBytes ?? Infinity;
   const maxConcurrentCalls = options.maxConcurrentCalls ?? Infinity;
   for (const limit of [maxInputBytes, maxOutputBytes, maxConcurrentCalls]) if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError('Invalid Python shell limit');
+  const chunkBytes = options.maxStreamChunkBytes ?? 16384;
+  if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError('Invalid Python shell stream chunk limit');
   const scope = context.executionScope;
   const invoke = context.invoke;
   let running = 0;
@@ -62,7 +64,12 @@ export function createPythonShellCapability(context: CommandContext, options: { 
       childSignal.throwIfAborted();
       if (chunk.length > outputLimit - captured) throw new RangeError('Python shell output limit exceeded');
       captured += chunk.length;
-      if (publish) await publish({type, data:Array.from(chunk)});
+      if (publish) {
+        for (let offset = 0; offset < chunk.length; offset += chunkBytes) {
+          childSignal.throwIfAborted();
+          await publish({type, data:Array.from(chunk.subarray(offset, offset + chunkBytes))});
+        }
+      }
       else for (const byte of chunk) target.push(byte);
     } });
     running++;

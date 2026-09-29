@@ -2442,9 +2442,9 @@ interface InvokeOutcomeRecord {
 const syncAwkArithAtom = `(?:\\$(?:[0-9]+|NF)|NR|NF|-?[0-9]+(?:\\.[0-9]+)?|[a-zA-Z_][a-zA-Z0-9_]*)`;
 const syncAwkArithPat = `(?:${syncAwkArithAtom}(?:\\s*[+*\\/%-]\\s*${syncAwkArithAtom})+)`;
 const syncAwkTernaryPat = `(?:(?:\\$(?:[0-9]+|NF)|NR|NF)\\s*(?:==|!=|>=|<=|>|<)\\s*(?:-?[0-9]+(?:\\.[0-9]+)?|"[^"$\\\\]*")\\s*\\?\\s*(?:\\$(?:[0-9]+|NF)|"[^"$\\\\]*"|-?[0-9]+(?:\\.[0-9]+)?)\\s*:\\s*(?:\\$(?:[0-9]+|NF)|"[^"$\\\\]*"|-?[0-9]+(?:\\.[0-9]+)?))`;
-const syncAwkItemPat = `(?:${syncAwkTernaryPat}|int\\(\\$(?:[0-9]+|NF)\\)|(?:toupper|tolower)\\(\\$(?:[0-9]+|NF)\\)|substr\\(\\$(?:[0-9]+|NF)\\s*,\\s*[0-9]+(?:\\s*,\\s*[0-9]+)?\\)|index\\(\\$(?:[0-9]+|NF)\\s*,\\s*"[^"$\\\\]*"\\)|${syncAwkArithPat}|\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|[a-zA-Z_][a-zA-Z0-9_]*|"[^"$\\\\]*")`;
-const syncAwkPrintRe = new RegExp(`^\\{\\s*(?:(g?sub)\\(\\s*\\/(\\^?[a-zA-Z0-9_ :;,=-]+\\$?)\\/\\s*,\\s*"([^"\\\\]*)"(?:\\s*,\\s*\\$([0-9]+|NF))?\\s*\\)\\s*;\\s*)?(?:print(?:\\s+(${syncAwkItemPat}(?:\\s*,?\\s*${syncAwkItemPat})*))?|printf\\s+"([^"$\\\\]*(?:\\\\[nt\\\\"][^"$\\\\]*)*)"\\s*,\\s*(${syncAwkItemPat}(?:\\s*,\\s*${syncAwkItemPat})*))\\s*;?\\s*\\}\\s*$`);
-const syncAwkTokenRe = new RegExp(`(${syncAwkTernaryPat})|int\\(\\$([0-9]+|NF)\\)|(toupper|tolower)\\(\\$([0-9]+|NF)\\)|substr\\(\\$([0-9]+|NF)\\s*,\\s*([0-9]+)(?:\\s*,\\s*([0-9]+))?\\)|index\\(\\$([0-9]+|NF)\\s*,\\s*"([^"$\\\\]*)"\\)|(${syncAwkArithPat})|\\$\\(NF\\s*-\\s*([0-9]+)\\)|\\$([0-9]+|NF)|length\\b(?:\\(\\$([0-9]+|NF)\\))?|(NR|NF)\\b|"([^"$\\\\]*)"|([a-zA-Z_][a-zA-Z0-9_]*)|(,)`, "g");
+const syncAwkItemPat = `(?:${syncAwkTernaryPat}|int\\(\\$(?:[0-9]+|NF)\\)|(?:toupper|tolower)\\(\\$(?:[0-9]+|NF)\\)|substr\\(\\$(?:[0-9]+|NF)\\s*,\\s*[0-9]+(?:\\s*,\\s*[0-9]+)?\\)|index\\(\\$(?:[0-9]+|NF)\\s*,\\s*"[^"$\\\\]*"\\)|${syncAwkArithPat}|\\$(?:[0-9]+|NF)|\\$\\(NF\\s*-\\s*[0-9]+\\)|length(?:\\(\\$(?:[0-9]+|NF)\\))?|NR|NF|[a-zA-Z_][a-zA-Z0-9_]*\\[[1-9][0-9]{0,3}\\]|[a-zA-Z_][a-zA-Z0-9_]*|"[^"$\\\\]*")`;
+const syncAwkPrintRe = new RegExp(`^\\{\\s*(?:(g?sub)\\(\\s*\\/(\\^?[a-zA-Z0-9_ :;,=-]+\\$?)\\/\\s*,\\s*"([^"\\\\]*)"(?:\\s*,\\s*\\$([0-9]+|NF))?\\s*\\)\\s*;\\s*)?(?:(?:([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*)?split\\(\\s*\\$([0-9]+|NF)\\s*,\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*,\\s*"([^"\\\\])"\\s*\\)\\s*;\\s*)?(?:print(?:\\s+(${syncAwkItemPat}(?:\\s*,?\\s*${syncAwkItemPat})*))?|printf\\s+"([^"$\\\\]*(?:\\\\[nt\\\\"][^"$\\\\]*)*)"\\s*,\\s*(${syncAwkItemPat}(?:\\s*,\\s*${syncAwkItemPat})*))\\s*;?\\s*\\}\\s*$`);
+const syncAwkTokenRe = new RegExp(`(${syncAwkTernaryPat})|int\\(\\$([0-9]+|NF)\\)|(toupper|tolower)\\(\\$([0-9]+|NF)\\)|substr\\(\\$([0-9]+|NF)\\s*,\\s*([0-9]+)(?:\\s*,\\s*([0-9]+))?\\)|index\\(\\$([0-9]+|NF)\\s*,\\s*"([^"$\\\\]*)"\\)|(${syncAwkArithPat})|\\$\\(NF\\s*-\\s*([0-9]+)\\)|\\$([0-9]+|NF)|length\\b(?:\\(\\$([0-9]+|NF)\\))?|(NR|NF)\\b|"([^"$\\\\]*)"|([a-zA-Z_][a-zA-Z0-9_]*)\\[([1-9][0-9]{0,3})\\]|([a-zA-Z_][a-zA-Z0-9_]*)|(,)`, "g");
 
 export class RuntimeCancellationState {
   private _records: Set<InvokeOutcomeRecord> | undefined;
@@ -23032,6 +23032,22 @@ export class Runtime {
         else return undefined;
       } else if ((ca === "-d" || ca === "-f" || ca === "-c" || ca === "-b") && ci + 1 < opArgs.length) {
         norm.push(ca + opArgs[++ci]!);
+      } else if (ca.startsWith("--delimiter=")) {
+        norm.push("-d" + ca.slice(12));
+      } else if (ca === "--delimiter" && ci + 1 < opArgs.length) {
+        norm.push("-d" + opArgs[++ci]!);
+      } else if (ca.startsWith("--fields=")) {
+        norm.push("-f" + ca.slice(9));
+      } else if (ca === "--fields" && ci + 1 < opArgs.length) {
+        norm.push("-f" + opArgs[++ci]!);
+      } else if (ca.startsWith("--characters=")) {
+        norm.push("-c" + ca.slice(13));
+      } else if (ca === "--characters" && ci + 1 < opArgs.length) {
+        norm.push("-c" + opArgs[++ci]!);
+      } else if (ca.startsWith("--bytes=")) {
+        norm.push("-b" + ca.slice(8));
+      } else if (ca === "--bytes" && ci + 1 < opArgs.length) {
+        norm.push("-b" + opArgs[++ci]!);
       } else {
         norm.push(ca);
       }
@@ -23226,6 +23242,31 @@ export class Runtime {
             const expanded = core.replace(/\[:space:\]/g, " \\t\\r\\n\\v\\f");
             void new RegExp(expanded);
             reSrc = expanded;
+          } catch {
+            reSrc = undefined;
+          }
+        } else if (!isExtended && /^[a-zA-Z0-9_ :;,=.*^\-[\]\\()+?|]+$/.test(core)) {
+          try {
+            let bre = "";
+            let okBre = true;
+            for (let bi = 0; bi < core.length; bi++) {
+              const ch = core[bi]!;
+              if (ch === "\\") {
+                const nxt = core[++bi];
+                if (nxt === "(" || nxt === ")" || nxt === "+" || nxt === "?" || nxt === "|") bre += nxt;
+                else if (nxt === "." || nxt === "*" || nxt === "[" || nxt === "]" || nxt === "^" || nxt === "$" || nxt === "\\") bre += "\\" + nxt;
+                else { okBre = false; break; }
+              } else if (ch === "(" || ch === ")" || ch === "+" || ch === "?" || ch === "|") {
+                bre += "\\" + ch;
+              } else {
+                bre += ch;
+              }
+            }
+            if (okBre && !/\([^)]*[+*][^)]*\)[+*?]/.test(bre)) {
+              const expanded = bre.replace(/\[:space:\]/g, " \\t\\r\\n\\v\\f");
+              void new RegExp(expanded);
+              reSrc = expanded;
+            }
           } catch {
             reSrc = undefined;
           }
@@ -23657,8 +23698,12 @@ export class Runtime {
     const subTarget = awkM[4] ?? "0";
     // printf must consume typed values before OFMT string conversion and use
     // the complete formatter, including integer precision and exponent parsing.
-    if (awkM[6] !== undefined) return undefined;
-    const exprBody = awkM[5]?.trim();
+    const splitCntVar = awkM[5];
+    const splitFieldTok = awkM[6];
+    const splitArrName = awkM[7];
+    const splitSep = awkM[8];
+    if (awkM[10] !== undefined) return undefined;
+    const exprBody = awkM[9]?.trim();
     let subRe: RegExp | undefined;
     if (subFn && subPat !== undefined) {
       const aS = subPat.startsWith("^");
@@ -23679,6 +23724,8 @@ export class Runtime {
       | { kind: "ternary"; lhs: string; op: string; rhs: string; yes: string; no: string }
       | { kind: "arith"; tokens: string[] }
       | { kind: "var"; name: "NR" | "NF" }
+      | { kind: "split_cnt" }
+      | { kind: "split_el"; idx1: number }
       | { kind: "lit"; text: string }
     > = [];
     if (!exprBody) {
@@ -23723,11 +23770,19 @@ export class Runtime {
         else if (m[14] !== undefined) parts.push({ kind: "var", name: m[14] as "NR" | "NF" });
         else if (m[15] !== undefined) parts.push({ kind: "lit", text: m[15]! });
         else if (m[16] !== undefined) {
-          const uv = userVars.get(m[16]!);
-          if (uv === undefined) return undefined;
-          parts.push({ kind: "lit", text: uv });
+          if (!splitArrName || m[16] !== splitArrName) return undefined;
+          parts.push({ kind: "split_el", idx1: Number(m[17]!) });
         }
-        else if (m[17] !== undefined) parts.push({ kind: "lit", text: ofs });
+        else if (m[18] !== undefined) {
+          if (splitCntVar && m[18] === splitCntVar) {
+            parts.push({ kind: "split_cnt" });
+          } else {
+            const uv = userVars.get(m[18]!);
+            if (uv === undefined) return undefined;
+            parts.push({ kind: "lit", text: uv });
+          }
+        }
+        else if (m[19] !== undefined) parts.push({ kind: "lit", text: ofs });
       }
     }
     const outLines: string[] = [];
@@ -23756,11 +23811,19 @@ export class Runtime {
         outLines.push(l);
         continue;
       }
+      let splitEls: string[] | undefined;
+      if (splitFieldTok !== undefined && splitSep !== undefined) {
+        const sIdx = splitFieldTok === "NF" ? fields.length : Number(splitFieldTok);
+        const sVal = sIdx === 0 ? l : (sIdx >= 1 && sIdx <= fields.length ? fields[sIdx - 1]! : "");
+        splitEls = sVal.length === 0 ? [] : (splitSep === " " ? sVal.split(/[ \t]+/).filter(Boolean) : sVal.split(splitSep));
+      }
       let out = "";
       for (let pi = 0; pi < parts.length; pi++) {
         const p = parts[pi]!;
         if (p.kind === "lit") out += p.text;
         else if (p.kind === "var") out += String(p.name === "NR" ? li + 1 : fields.length);
+        else if (p.kind === "split_cnt") out += String(splitEls ? splitEls.length : 0);
+        else if (p.kind === "split_el") out += splitEls && p.idx1 >= 1 && p.idx1 <= splitEls.length ? splitEls[p.idx1 - 1]! : "";
         else if (p.kind === "nf_minus") {
           const idx = fields.length - p.offset;
           if (idx < 0) return undefined;

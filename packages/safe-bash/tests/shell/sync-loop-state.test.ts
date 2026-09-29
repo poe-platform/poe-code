@@ -1284,3 +1284,40 @@ for (const loop of ["for i in 1 2", "for ((i=0;i<2;i++))", "while ((i++<2))", "u
     } finally { await shell.dispose(); }
   });
 }
+
+test("sync loop wave 117: awk split($k, a, sep), sed BRE capture groups + quantifiers, and cut long flags", async () => {
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    commands: new CommandRegistry([
+      ...createStandardCommands(),
+      ...createTextProgramCommands(),
+    ]),
+  });
+  try {
+    const script = [
+      "rec='alpha:beta:gamma:delta'",
+      "pair='foo:123 bar:456'",
+      "out=\"\"",
+      "for ((i=1; i<=10; i++)); do",
+      "  a1=$(awk '{ n = split($0, a, \":\"); print a[3], a[1], n }' <<< \"$rec\")",
+      "  a2=$(echo \"id=99/ok\" | awk -F= '{ split($2, p, \"/\"); print $1, p[2], p[1] }')",
+      "  s1=$(sed 's/\\([a-z]\\+\\):\\([0-9]\\+\\)/\\2=\\1/g' <<< \"$pair\")",
+      "  s2=$(echo \"cat:10 dog:20\" | sed 's/\\(cat\\|dog\\):\\([0-9]\\+\\)/[\\1#\\2]/g')",
+      "  c1=$(cut --delimiter=: --fields=2,4 <<< \"$rec\")",
+      "  c2=$(echo \"$rec\" | cut --characters=1-5,12-16)",
+      "  out=\"$a1|$a2|$s1|$s2|$c1|$c2\"",
+      "done",
+      "printf \"%s\\n\" \"$out\"",
+    ].join("\n");
+    const res = await shell.exec(script);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(
+      res.stdout,
+      "gamma alpha 4|id ok 99|123=foo 456=bar|[cat#10] [dog#20]|beta:delta|alphagamma\n"
+    );
+  } finally {
+    await shell.dispose();
+  }
+});

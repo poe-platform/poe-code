@@ -7,7 +7,7 @@ import type { SQLiteFileSystem } from './sqlite-vfs.js';
 import { installSqliteVfs } from './sqlite-vfs-install.js';
 import { parseDatabaseUrl } from './database-url.js';
 import { sqlite as sqliteDialect } from './databases/sqlite.js';
-import { repr } from './cli/parser.js';
+import { repr } from './cli/lexical.js';
 import { bytesRepr } from './operations/dbf-files.js';
 
 /** SQLAlchemy 2.0.54's bounded tuple/list parameter diagnostic profile. */

@@ -2,7 +2,7 @@ import type { DatabaseProvider } from './contracts.js';
 import { databases } from './databases.js';
 import { PythonException } from './diagnostics/index.js';
 import { CsvkitBlocked } from './errors.js';
-import { integer, repr } from './cli/parser.js';
+import { integer, repr } from './cli/lexical.js';
 
 /** SQLAlchemy URL identity is separate from a WHATWG URL. Database paths are literal. */
 export interface DatabaseUrl {

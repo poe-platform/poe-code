@@ -1,5 +1,5 @@
 import type { Runtime } from "../runtime.js";
-import { repr } from "../cli/parser.js";
+import { repr } from "../cli/lexical.js";
 import { CsvkitDiagnostic } from "../errors.js";
 import { Decimal } from "../types/decimal.js";
 

@@ -1,7 +1,7 @@
 import type { Runtime } from "../runtime.js";
 import { CsvkitBlocked, CsvkitDiagnostic } from "../errors.js";
 import { readCsvStream } from "../csv.js";
-import { integer, repr } from "../cli/parser.js";
+import { integer, repr } from "../cli/lexical.js";
 import { stripWhitespace } from "../python-text.js";
 import { decimalZeroes } from "../unicode-profile.js";
 

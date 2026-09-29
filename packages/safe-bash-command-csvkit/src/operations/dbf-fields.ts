@@ -1,6 +1,6 @@
 import type { Runtime } from '../runtime.js';
 import { CsvkitDiagnostic } from '../errors.js';
-import { integer } from '../cli/parser.js';
+import { integer } from '../cli/lexical.js';
 import { numericField } from '../csv.js';
 import { floatText } from './json-table.js';
 import { bytesRepr } from './dbf-files.js';

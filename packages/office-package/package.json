@@ -18,6 +18,10 @@
     "./compression": {
       "types": "./dist/compression.d.ts",
       "import": "./dist/compression.js"
+    },
+    "./zip-sync": {
+      "types": "./dist/zip-sync.d.ts",
+      "import": "./dist/zip-sync.js"
     }
   },
   "files": [

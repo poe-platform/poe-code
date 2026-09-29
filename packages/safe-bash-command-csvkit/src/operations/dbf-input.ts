@@ -1,6 +1,6 @@
 import type { Runtime } from '../runtime.js';
 import { CsvkitBlocked, CsvkitDiagnostic } from '../errors.js';
-import { repr } from '../cli/parser.js';
+import { repr } from '../cli/lexical.js';
 import { resolveCodec, normalizeEncoding } from '../codecs/python.js';
 import { pythonCodecAliases } from '../codecs/aliases.js';
 import { PythonException } from '../diagnostics/index.js';

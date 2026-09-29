@@ -1,5 +1,5 @@
 import { CsvkitBlocked, CsvkitDiagnostic } from "../errors.js";
-import { repr } from "../cli/parser.js";
+import { repr } from "../cli/lexical.js";
 import { decimalZeroes, integerWhitespace } from "../unicode-profile.js";
 import { stripWhitespace, lowerText } from "../python-text.js";
 

@@ -27,11 +27,13 @@
     "@poe-code/spreadsheet-engine": "*",
     "@poe-code/spreadsheet-format-csv": "*",
     "@poe-code/spreadsheet-format-ods": "*",
-    "@poe-code/spreadsheet-format-xlsx": "*"
+    "@poe-code/spreadsheet-format-xlsx": "*",
+    "@poe-code/office-package": "*"
   },
   "devDependencies": {
     "@poe-code/pdf-ast": "*",
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*"
-  }
+  },
+  "sideEffects": false
 }

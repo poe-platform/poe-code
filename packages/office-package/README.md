@@ -10,6 +10,11 @@ const compression = createCompressionCodec();
 const zip = createZipCodec();
 ```
 
+`@poe-code/office-package/zip-sync` provides `readZipArchiveEntries` and
+`createStoredZipArchive` for synchronous, already buffered office document
+fast paths. It does not import spreadsheet codecs or PDF rendering. Use the
+streaming codecs with explicit limits for untrusted or large archives.
+
 ## Configuration
 
 There are no environment variables or configuration files. Callers supply byte

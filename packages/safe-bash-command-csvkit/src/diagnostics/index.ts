@@ -1,5 +1,5 @@
 import { CsvkitBlocked, CsvkitDiagnostic } from "../errors.js";
-import { repr } from "../cli/parser.js";
+import { repr } from "../cli/lexical.js";
 import { stripWhitespace } from "../python-text.js";
 import { PythonException } from './exception.js';
 export { PythonException, type PythonFrame, type PythonTraceback } from './exception.js';

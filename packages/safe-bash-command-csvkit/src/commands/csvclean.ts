@@ -4,7 +4,7 @@ import type { Runtime } from "../runtime.js";
 import { writeCsvRow } from "../csv.js";
 import { CsvkitDiagnostic } from "../errors.js";
 import { integerWhitespace } from "../unicode-profile.js";
-import { repr } from "../cli/parser.js";
+import { repr } from "../cli/lexical.js";
 
 export const csvclean = {
   execute: clean,

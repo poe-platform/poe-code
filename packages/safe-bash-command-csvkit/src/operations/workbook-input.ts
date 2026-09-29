@@ -5,7 +5,7 @@ import { createZipCodec, CodecError } from '@poe-code/office-package';
 import { readCachedXlsx, CachedXlsxError } from '@poe-code/xlsx-ast';
 import type { Runtime } from '../runtime.js';
 import { CsvkitBlocked, CsvkitDiagnostic } from '../errors.js';
-import { repr, integer } from '../cli/parser.js';
+import { repr, integer } from '../cli/lexical.js';
 import { decimalZeroes } from '../unicode-profile.js';
 import { nondecimalDigits } from './workbook-digit-profile.js';
 import { inputTable, csvifiedRow } from './input-table.js';

@@ -429,6 +429,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
             ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
             "./zip": { types: "./dist/zip.d.ts", import: "./dist/zip.js" },
             "./compression": { types: "./dist/compression.d.ts", import: "./dist/compression.js" },
+            "./zip-sync": { types: "./dist/zip-sync.d.ts", import: "./dist/zip-sync.js" },
           };
           assert.deepEqual(dependency.exports, exports, "shared archive declaration exports");
           toolRoots.push(join(dependencyRoot, "dist"));

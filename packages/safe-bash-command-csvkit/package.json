@@ -18,6 +18,10 @@
     "./codecs/python": {
       "types": "./dist/codecs/python.d.ts",
       "import": "./dist/codecs/python.js"
+    },
+    "./sync-support": {
+      "types": "./dist/sync-support.d.ts",
+      "import": "./dist/sync-support.js"
     }
   },
   "files": [

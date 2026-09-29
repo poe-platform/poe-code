@@ -1,7 +1,7 @@
 import type { Runtime } from '../runtime.js';
 import { decodeJson, type JsonInput } from '../json-input.js';
 import { CsvkitBlocked, CsvkitDiagnostic } from '../errors.js';
-import { repr } from '../cli/parser.js';
+import { repr } from '../cli/lexical.js';
 import { writeCsvRow } from '../csv.js';
 import { floatText } from './json-table.js';
 

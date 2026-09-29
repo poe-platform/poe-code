@@ -1,4 +1,4 @@
-import { integer, repr } from "../cli/parser.js";
+import { integer, repr } from "../cli/lexical.js";
 import { CsvkitDiagnostic } from "../errors.js";
 import { decimalZeroes } from "../unicode-profile.js";
 

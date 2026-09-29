@@ -1,6 +1,6 @@
 import { CsvkitBlocked, CsvkitDiagnostic } from "./errors.js";
 import { decimalZeroes, integerWhitespace } from "./unicode-profile.js";
-import { repr } from "./cli/parser.js";
+import { repr } from "./cli/lexical.js";
 
 export interface CsvDialect {
   readonly delimiter?: string;

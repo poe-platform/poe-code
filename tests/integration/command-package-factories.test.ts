@@ -7,6 +7,7 @@ import * as csvgrep from "safe-bash-command-csvgrep";
 import * as diff3 from "safe-bash-command-diff3";
 import * as htmlq from "safe-bash-command-htmlq";
 import * as publicHtmlq from "../../packages/safe-bash/src/commands/htmlq/index.js";
+import { builtInDirectContextExecutors } from "../../packages/safe-bash/src/commands/internal.js";
 import * as mmdc from "safe-bash-command-mmdc";
 import * as pdftk from "safe-bash-command-pdftk";
 import * as pdftoppm from "safe-bash-command-pdftoppm";
@@ -161,6 +162,8 @@ it("wkhtmltopdf exposes zero-argument command factories and preserves plugin reg
 
 it("htmlq public facade exposes the family factory and options", () => {
   const options: publicHtmlq.HtmlqCommandsOptions = {};
-  expect(publicHtmlq.createHtmlqCommands).toBe(htmlq.createHtmlqCommands);
-  expect(publicHtmlq.createHtmlqCommands(options)[0].name).toBe("htmlq");
+  const command = publicHtmlq.createHtmlqCommands(options)[0];
+  expect(command.name).toBe(htmlq.createHtmlqCommands(options)[0].name);
+  expect(builtInDirectContextExecutors.has(command.execute)).toBe(true);
+  expect(builtInDirectContextExecutors.has(publicHtmlq.createHtmlqCommands({ limits: { inputBytes: 1 } })[0].execute)).toBe(false);
 });

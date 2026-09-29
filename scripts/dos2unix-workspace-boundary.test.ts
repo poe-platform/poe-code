@@ -17,6 +17,7 @@ import { yieldTurn as compatibleYield } from "../packages/safe-bash/src/contract
 import { createManagedControlController as compatibleController } from "../packages/safe-bash/src/fs/creation-mask.js";
 import { Shell } from "../packages/safe-bash/src/shell/index.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { builtInDirectContextExecutors } from "../packages/safe-bash/src/commands/internal.js";
 
 it("retains factory exports when public browser entries share an external command runtime", async () => {
   const adapter = fileURLToPath(new URL("../packages/safe-bash/src/commands/line-endings/index.ts", import.meta.url));
@@ -49,7 +50,7 @@ export const same = createDos2unixCommand === api.createDos2unixCommand && creat
       }));
     } }],
   });
-  const sandbox = createContext({ require(specifier: string) {
+  const sandbox = createContext({ TextEncoder, TextDecoder, require(specifier: string) {
     expect(specifier).toBe("safe-bash-command-dos2unix");
     return runtime;
   } });
@@ -58,8 +59,12 @@ export const same = createDos2unixCommand === api.createDos2unixCommand && creat
 });
 
 it("shares the private implementation, diagnostics and file output accounting with Safe Bash", () => {
-  expect(publicDos2unix).toBe(createDos2unixCommand);
-  expect(publicUnix2dos).toBe(createUnix2dosCommand);
+  for (const [facade, implementation] of [[publicDos2unix, createDos2unixCommand], [publicUnix2dos, createUnix2dosCommand]]) {
+    const command = facade();
+    expect(command.name).toBe(implementation().name);
+    expect(builtInDirectContextExecutors.has(command.execute)).toBe(true);
+    expect(builtInDirectContextExecutors.has(facade({ limits: { maxInputBytes: 1 } }).execute)).toBe(false);
+  }
   expect(compatibleError).toBe(LineEndingError);
   expect(compatibleWrite).toBe(writeFileOutput);
   expect(compatibleBudgets).toBe(filesystemOutputBudgets);

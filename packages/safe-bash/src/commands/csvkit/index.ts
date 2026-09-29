@@ -9,6 +9,8 @@ import {
   POSSIBLE_DELIMITERS,
   Decimal,
   pythonValueText,
+  writeCsvRow,
+  parseColumnIdentifiers,
   type CsvDialect,
   type CsvkitCommandsOptions,
   type InferenceOptions,
@@ -482,6 +484,276 @@ export function evalSyncCsvjson(
     }
     out += emitSyncJson(output, opts.indent);
     return out;
+  } catch {
+    return undefined;
+  }
+}
+
+
+export function evalSyncCsvsort(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    let columnsSpec: string | null = null;
+    let reverse = false;
+    let ignoreCase = false;
+    let namesOnly = false;
+    let zeroBased = false;
+    const filteredArgs: string[] = [];
+    let posDone = false;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (!posDone && a === "--") { posDone = true; filteredArgs.push(a); continue; }
+      if (!posDone && a.startsWith("-") && a !== "-") {
+        if (a === "-r" || a === "--reverse") { reverse = true; continue; }
+        if (a === "-i" || a === "--ignore-case") { ignoreCase = true; continue; }
+        if (a === "-n" || a === "--names") { namesOnly = true; continue; }
+        if (a === "--zero") { zeroBased = true; continue; }
+        if (a === "-c" || a === "--columns") {
+          const v = opArgs[++i];
+          if (v === undefined) return undefined;
+          columnsSpec = v;
+          continue;
+        }
+      }
+      filteredArgs.push(a);
+    }
+    const opts = parseSyncCsvkitCommon(filteredArgs, "csvlook");
+    if (!opts) return undefined;
+    const table = loadSyncTypedTable(inBytes, opts, readFileSync);
+    if (!table) return undefined;
+    let out = opts.addBom ? "\ufeff" : "";
+    if (namesOnly) {
+      if (opts.noHeaderRow) return undefined;
+      for (let i = 0; i < table.headers.length; i++) {
+        out += `${String(i + (zeroBased ? 0 : 1)).padStart(3, " ")}: ${table.headers[i]}\n`;
+      }
+      return out;
+    }
+    const columns = parseColumnIdentifiers(columnsSpec, table.headers, zeroBased ? 0 : 1, null, () => {}, true);
+    const rows = [...table.rows];
+    const keyed = rows.map(row =>
+      columns.map(idx => {
+        const val = row[idx]!;
+        return ignoreCase && typeof val === "string" ? val.toUpperCase() : val;
+      }),
+    );
+    const indices = rows.map((_, i) => i);
+    indices.sort((a, b) => {
+      for (let c = 0; c < columns.length; c++) {
+        const x = keyed[a]![c]!;
+        const y = keyed[b]![c]!;
+        let order = 0;
+        if (x === null || y === null) order = x === null ? (y === null ? 0 : 1) : -1;
+        else if (typeof x === "string" && typeof y === "string") {
+          order = x < y ? -1 : x > y ? 1 : 0;
+        } else if (typeof x === "boolean" && typeof y === "boolean") {
+          order = Number(x) - Number(y);
+        } else if (typeof x === "object" && typeof y === "object" && x.kind === "decimal" && y.kind === "decimal") {
+          if (x.value.includes("NaN") || y.value.includes("NaN")) throw new Error("NaN");
+          order = Decimal.parse(x.value).compare(Decimal.parse(y.value));
+        } else {
+          throw new Error("unsupported type");
+        }
+        if (order !== 0) return reverse ? -order : order;
+      }
+      return 0;
+    });
+    const outDialect: CsvDialect = { delimiter: ",", quotechar: "\"", doublequote: true, lineterminator: "\n" };
+    out += writeCsvRow(table.headers, outDialect);
+    for (const idx of indices) {
+      const formattedCells = rows[idx]!.map(v => {
+        if (v === null) return "";
+        if (typeof v === "object" && v.kind === "datetime") return v.value.replace(" ", "T");
+        return pythonValueText(v);
+      });
+      out += writeCsvRow(formattedCells, outDialect);
+    }
+    return out;
+  } catch {
+    return undefined;
+  }
+}
+
+export function evalSyncCsvformat(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    let outDelimiter = ",";
+    let outTabs = false;
+    let outAsv = false;
+    let outQuotechar = "\"";
+    let outQuoting = 0;
+    let outNoDoublequote = false;
+    let outEscapechar: string | undefined;
+    let outLineterminator = "\n";
+    let skipHeader = false;
+    const filteredArgs: string[] = [];
+    let posDone = false;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (!posDone && a === "--") { posDone = true; filteredArgs.push(a); continue; }
+      if (!posDone && a.startsWith("-") && a !== "-") {
+        if (a === "-E" || a === "--skip-header") { skipHeader = true; continue; }
+        if (a === "-T" || a === "--out-tabs") { outTabs = true; continue; }
+        if (a === "-A" || a === "--out-asv") { outAsv = true; continue; }
+        if (a === "-B" || a === "--out-no-doublequote") { outNoDoublequote = true; continue; }
+        if (a === "-D" || a === "--out-delimiter") {
+          const v = opArgs[++i];
+          if (!v || Array.from(v).length !== 1) return undefined;
+          outDelimiter = v;
+          continue;
+        }
+        if (a === "-Q" || a === "--out-quotechar") {
+          const v = opArgs[++i];
+          if (!v || Array.from(v).length !== 1) return undefined;
+          outQuotechar = v;
+          continue;
+        }
+        if (a === "-P" || a === "--out-escapechar") {
+          const v = opArgs[++i];
+          if (!v || Array.from(v).length !== 1) return undefined;
+          outEscapechar = v;
+          continue;
+        }
+        if (a === "-M" || a === "--out-lineterminator") {
+          const v = opArgs[++i];
+          if (v === undefined) return undefined;
+          outLineterminator = v;
+          continue;
+        }
+        if (a === "-U" || a === "--out-quoting") {
+          const v = opArgs[++i];
+          if (v === undefined || !/^[013]$/.test(v)) return undefined;
+          outQuoting = Number(v);
+          continue;
+        }
+      }
+      filteredArgs.push(a);
+    }
+    const opts = parseSyncCsvkitCommon(filteredArgs, "csvlook");
+    if (!opts) return undefined;
+    let sourceBytes = inBytes;
+    if (opts.filePath !== undefined && opts.filePath !== "-") {
+      if (!readFileSync) return undefined;
+      sourceBytes = readFileSync(opts.filePath);
+    }
+    if (!sourceBytes || sourceBytes.byteLength > 16384) return undefined;
+    let text = syncUtf8Decoder.decode(sourceBytes);
+    if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+    if (opts.skipLines > 0) {
+      let linesLeft = opts.skipLines;
+      let pos = 0;
+      while (pos < text.length && linesLeft > 0) {
+        const ch = text[pos++];
+        if (ch === "\r") {
+          if (text[pos] === "\n") pos++;
+          linesLeft--;
+        } else if (ch === "\n") linesLeft--;
+      }
+      text = text.slice(pos);
+    }
+    let inDialect: CsvDialect = {
+      delimiter: opts.tabs ? "\t" : opts.delimiter,
+      quotechar: opts.quotechar,
+      escapechar: opts.escapechar,
+      doublequote: !opts.noDoublequote,
+      skipinitialspace: opts.skipInitialSpace,
+    };
+    if (
+      !opts.tabs &&
+      opts.delimiter === undefined &&
+      opts.quotechar === undefined &&
+      opts.escapechar === undefined &&
+      !opts.noDoublequote &&
+      !opts.skipInitialSpace &&
+      opts.sniffLimit !== 0 &&
+      text.length > 0
+    ) {
+      const sample = opts.sniffLimit > 0 ? text.slice(0, opts.sniffLimit) : text;
+      if (sample.includes(",") && !/[\t;|:\x27]/.test(sample)) {
+        inDialect = { delimiter: ",", quotechar: "\"", doublequote: true, skipinitialspace: false };
+      } else {
+        const sniffed = sniff(sample);
+        if (sniffed) inDialect = sniffed;
+      }
+    }
+    const outDialect: CsvDialect = {
+      delimiter: outAsv ? "\x1f" : outTabs ? "\t" : outDelimiter,
+      lineterminator: outAsv ? "\x1e" : outLineterminator,
+      quotechar: outQuotechar,
+      quoting: outQuoting,
+      doublequote: !outNoDoublequote,
+      ...(outEscapechar !== undefined ? { escapechar: outEscapechar } : {}),
+    };
+    writeCsvRow([], outDialect);
+    let out = opts.addBom ? "\ufeff" : "";
+    let first = true;
+    for (const record of readCsv(text, inDialect)) {
+      const values = record.cells.map(c => pythonValueText(c));
+      if (first) {
+        first = false;
+        if (opts.noHeaderRow) {
+          if (!skipHeader) {
+            const hdr = defaultHeaders(values.length);
+            out += writeCsvRow(opts.lineNumbers ? ["line_number", ...hdr] : hdr, outDialect);
+          }
+        } else {
+          if (!skipHeader) {
+            out += writeCsvRow(opts.lineNumbers ? ["line_number", ...values] : values, outDialect);
+          }
+          continue;
+        }
+      }
+      const rowCells = opts.lineNumbers ? [String(record.line - (opts.noHeaderRow ? 0 : 1)), ...values] : values;
+      out += writeCsvRow(rowCells, outDialect);
+    }
+    return out;
+  } catch {
+    return undefined;
+  }
+}
+
+export function evalSyncCsvstat(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    let countOnly = false;
+    let namesOnly = false;
+    let zeroBased = false;
+    const filteredArgs: string[] = [];
+    let posDone = false;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (!posDone && a === "--") { posDone = true; filteredArgs.push(a); continue; }
+      if (!posDone && a.startsWith("-") && a !== "-") {
+        if (a === "--count") { countOnly = true; continue; }
+        if (a === "-n" || a === "--names") { namesOnly = true; continue; }
+        if (a === "--zero") { zeroBased = true; continue; }
+      }
+      filteredArgs.push(a);
+    }
+    if (!countOnly && !namesOnly) return undefined;
+    if (countOnly && namesOnly) return undefined;
+    const opts = parseSyncCsvkitCommon(filteredArgs, "csvlook");
+    if (!opts) return undefined;
+    const table = loadSyncTypedTable(inBytes, opts, readFileSync);
+    if (!table) return undefined;
+    let out = opts.addBom ? "\ufeff" : "";
+    if (namesOnly) {
+      if (opts.noHeaderRow) return undefined;
+      for (let i = 0; i < table.headers.length; i++) {
+        out += `${String(i + (zeroBased ? 0 : 1)).padStart(3, " ")}: ${table.headers[i]}\n`;
+      }
+      return out;
+    }
+    return out + `${table.rows.length}\n`;
   } catch {
     return undefined;
   }

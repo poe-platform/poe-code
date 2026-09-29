@@ -835,3 +835,43 @@ test("sync substitution and pipeline: find, csvlook, and csvjson (Wave 141)", as
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "{\"name\": \"alice\", \"score\": 10.0}:80\n");
 });
+
+
+test("sync substitution and pipeline: csvsort, csvformat, and csvstat (Wave 142)", async () => {
+  const fs = new MemoryFileSystem();
+  const enc = new TextEncoder();
+  await fs.mkdir("/proj", { recursive: true });
+  await fs.writeFile("/proj/scores.csv", enc.encode("name,score\nbob,25\nalice,10\ncharlie,18\n"));
+  const commands = new CommandRegistry([...createStandardCommands(), ...createCsvkitCommands()]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(csvsort -c score -r /proj/scores.csv | head -n 2 | tail -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "bob,25:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(csvformat -D '|' -E /proj/scores.csv | head -n 1):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "bob|25:80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(csvstat --count /proj/scores.csv):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "3:80\n");
+});

@@ -2,10 +2,12 @@ import type { Page } from "@cloudflare/playwright";
 import { EventEmitter } from "node:events";
 import { expect, test } from "vitest";
 import { createBrowserSnapshotScheduler } from "../src/browser-snapshot-scheduler";
+import type { installSnapshotLabelCache, SnapshotScript } from "../src/browser-snapshot-labels";
 
-interface Progress { signal: AbortSignal }
+interface Progress { signal: AbortSignal; race<T>(promise: Promise<T>): Promise<T> }
 interface SnapshotOptions { timeout?: number; track?: string }
 interface NativeFrame {
+	_utilityContext(): Promise<{ injectedScript(): Promise<{ evaluate(fn: typeof installSnapshotLabelCache): Promise<void> }> }>;
 	name: string;
 	detached: boolean;
 	isDetached(): boolean;
@@ -24,6 +26,9 @@ function browserPage(action: SnapshotAction = async frame => frame.name) {
 	const retryTimeouts = [1000, 2000, 4000, 8000];
 	function addFrame(parent: NativeFrame | undefined, name: string, selected = true) {
 		const frame: NativeFrame = {
+			async _utilityContext() { return { async injectedScript() { return {
+				async evaluate(fn) { fn({ incrementalAriaSnapshot() { return { full: "", iframeRefs: [] }; } } satisfies SnapshotScript); },
+			}; } }; },
 			name, selected, detached: false, isDetached() { return this.detached; }, children: [], sentinel: Symbol(name),
 			async retryWithProgressAndTimeouts(progress, timeouts, callback) {
 				retries.push({ receiver: this, progress, timeouts });
@@ -71,7 +76,24 @@ function browserPage(action: SnapshotAction = async frame => frame.name) {
 	};
 }
 
-function progress() { return { signal: new AbortController().signal }; }
+function progress(signal = new AbortController().signal): Progress {
+  return {
+    signal,
+    async race(promise) {
+      signal.throwIfAborted();
+      let aborted: () => void;
+      const cancellation = new Promise<never>((_, reject) => {
+        aborted = () => reject(signal.reason);
+        signal.addEventListener("abort", aborted, { once: true });
+      });
+      try {
+        return await Promise.race([promise, cancellation]);
+      } finally {
+        signal.removeEventListener("abort", aborted!);
+      }
+    }
+  };
+}
 function nextTurn() { return new Promise<void>(resolve => setTimeout(resolve, 0)); }
 function observe<T>(operation: Promise<T>) {
 	const result: { status: "pending" | "fulfilled" | "rejected"; value?: T; reason?: unknown } = { status: "pending" };
@@ -93,6 +115,33 @@ test("a late page event after owner shutdown performs no native preparation", ()
 	expect(() => context.emit("page", fixture.page)).not.toThrow();
 	expect(fixture.native.snapshotForAI).toBe(snapshot);
 	expect(fixture.root.retryWithProgressAndTimeouts).toBe(retry);
+});
+
+test("canceling utility-context preparation preserves the deadline reason without entering capture", async () => {
+  const scheduler = createBrowserSnapshotScheduler();
+  let captures = 0;
+  const fixture = browserPage(async (frame) => {
+    captures++;
+    return frame.name;
+  });
+  const ready = Promise.withResolvers<Awaited<ReturnType<NativeFrame["_utilityContext"]>>>();
+  const original = fixture.root._utilityContext;
+  fixture.root._utilityContext = () => ready.promise;
+  const controller = new AbortController();
+  const reason = new Error("snapshot deadline");
+  scheduler.prepare(fixture.page);
+  const operation = observe(fixture.native.snapshotForAI(progress(controller.signal)));
+  try {
+    await nextTurn();
+    controller.abort(reason);
+    await operation.done;
+    expect(operation.result).toMatchObject({ status: "rejected", reason });
+    expect(captures).toBe(0);
+  } finally {
+    ready.resolve(await original());
+    scheduler.stop(reason);
+    await scheduler.settled();
+  }
 });
 
 test("detaching a queued native frame rejects it before any snapshot callback runs", async () => {
@@ -224,7 +273,7 @@ test("canceling queued snapshot progress rejects its exact reason before any cal
 	const hold = Promise.withResolvers<void>();
 	const firstProgress = progress();
 	const canceled = new AbortController();
-	const secondProgress = { signal: canceled.signal };
+	const secondProgress = progress(canceled.signal);
 	const reason = { canceled: "source timeout" };
 	const entered: Progress[] = [];
 	const fixture = browserPage(async (frame, current) => {

@@ -11,6 +11,7 @@ import { captureBrowserSnapshotJSON } from "../src/browser-snapshot-json";
 import { collectRendererCoverage } from "./browser-native-coverage.worker";
 import { createCloudflarePlaywrightAdapter } from "../src/index";
 import { failureText } from "./browser-native-failure";
+import { verifySnapshotLabels } from "./browser-snapshot-labels.worker";
 
 function flatten(nodes: readonly PlaywrightSnapshotJSONNode[]) {
 	const result = [...nodes];
@@ -23,6 +24,17 @@ function flatten(nodes: readonly PlaywrightSnapshotJSONNode[]) {
 
 export default {
 	async fetch(request: Request, env: { BROWSER: BrowserWorker }) {
+		if (new URL(request.url).pathname === "/labels") {
+			const lease = await createCloudflarePlaywrightAdapter(env.BROWSER).acquire({
+				acquisitionId: "labels", session: "labels", browser: "chromium", headless: true,
+				signal: new AbortController().signal,
+			});
+			try {
+				assert.ok(lease.captureSnapshotJSON);
+				await verifySnapshotLabels(await lease.context.newPage() as Page, lease.captureSnapshotJSON);
+				return Response.json({ ok: true });
+			} finally { await lease.release(); }
+		}
 		if (new URL(request.url).pathname === "/handle-burst") {
 			const lease = await createCloudflarePlaywrightAdapter(env.BROWSER).acquire({
 				acquisitionId: "handle-burst",

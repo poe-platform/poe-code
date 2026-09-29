@@ -1,8 +1,12 @@
 import type { Page } from '@cloudflare/playwright';
+import { installSnapshotLabelCache } from './browser-snapshot-labels.js';
 
-interface NativeProgress { readonly signal: AbortSignal }
+interface NativeProgress { readonly signal: AbortSignal; race<T>(promise: Promise<T>): Promise<T> }
 type SnapshotAction = (continuePolling: symbol) => Promise<unknown>;
 interface NativeFrame {
+  _utilityContext(): Promise<{ injectedScript(): Promise<{
+    evaluate(fn: typeof installSnapshotLabelCache): Promise<void>;
+  }> }>;
   isDetached(): boolean;
   retryWithProgressAndTimeouts(progress: NativeProgress, timeouts: number[], action: SnapshotAction): Promise<unknown>;
 }
@@ -73,7 +77,13 @@ export function createBrowserSnapshotScheduler() {
 
   function snapshotAction(progress: NativeProgress, frame: NativeFrame, action: SnapshotAction): SnapshotAction {
     return function (this: unknown, continuePolling) {
-      return schedule(progress, frame, () => action.call(this, continuePolling));
+      return schedule(progress, frame, async () => {
+        const context = await progress.race(frame._utilityContext());
+        const injected = await progress.race(context.injectedScript());
+        await progress.race(injected.evaluate(installSnapshotLabelCache));
+        progress.signal.throwIfAborted();
+        return action.call(this, continuePolling);
+      });
     };
   }
 

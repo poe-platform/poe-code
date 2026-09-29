@@ -65,9 +65,11 @@ and error identity through the root and scoped bundles. The parser implementatio
 and resource contracts are unchanged. CSVKit's ISO metadata now uses that parser
 with nesting, work and retained-storage accounting; its saxes dependency is removed.
 Pandoc's JPEG migration is delivered. The actual XLSX implementation has moved
-unchanged to `xlsx-ast`; CSVKit's SheetJS replacement remains open. Adapt raw ISO
-dates, declared/reset dimensions and encoding profiles before switching its reader;
-the existing Gnumeric reader's numeric interpretation cannot preserve those alone.
+unchanged to `xlsx-ast`. CSVKit now uses its cached-value reader, preserving raw ISO
+dates, declared/reset dimensions, formats, workbook epoch and active sheet while
+charging shared invocation budgets. Finish the remaining SheetJS coordinate/format
+helpers and XLS/BIFF reader, preserving encoding overrides and native diagnostics.
+The Gnumeric reader and cached-value reader retain their separate import semantics.
 
 Complete the standard singular/plural/plugin command exports in that package.
 Keep file-output budget and cancellation ownership in `safe-bash-contracts`.

@@ -79,7 +79,9 @@ it("keeps headings with images and declared table headers", async () => {
 });
 it("admits JPEG decoded dimensions before embedding", async () => {
   const bytes = Uint8Array.from([255,216,255,192,0,17,8,255,255,255,255,3,1,17,0,2,17,0,3,17,0,255,217]);
-  expect(await inspect([{kind: "image", bytes, media: "jpeg", width: 40, height: 40}]).then(() => "accepted", e => e.code)).toBe("E_LIMIT");
+  const block = {kind: "image" as const, bytes, media: "jpeg" as const, width: 40, height: 40};
+  expect((await inspect([block])).boxes[0]).toMatchObject({kind: "image"});
+  await expect(renderPdf({fonts: [font], blocks: [block]}, {limits: {imagePixels: 4_000_000}})).rejects.toMatchObject({code: "E_LIMIT"});
 });
 it("rejects zero advance and hostile sfnt directories before library parsing", async () => {
   const corrupt = new Uint8Array(font.bytes); const view = new DataView(corrupt.buffer);

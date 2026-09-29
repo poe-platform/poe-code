@@ -44,7 +44,7 @@ it("admits packaged font decoding before allocation", () => {
   expect(admitted).toBe(resource.bytes.length);
 });
 
-it("embeds an original in-memory PNG and rejects oversized decoded dimensions", async () => {
+it("embeds an original in-memory PNG and enforces explicit decoded dimension limits", async () => {
   const bytes = Uint8Array.from([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1,8,2,0,0,0,144,119,83,222,0,0,0,12,73,68,65,84,120,156,99,80,104,56,0,0,2,36,1,97,221,20,154,144,0,0,0,0,73,69,78,68,174,66,96,130]);
   const block = {kind: "image" as const, bytes, media: "png" as const, width: 24, height: 24};
   const output = await renderPdf({fonts: [font], blocks: [block]});
@@ -54,7 +54,7 @@ it("embeds an original in-memory PNG and rejects oversized decoded dimensions", 
   const oversized = new Uint8Array(bytes);
   new DataView(oversized.buffer).setUint32(16, 100000);
   new DataView(oversized.buffer).setUint32(20, 100000);
-  await expect(renderPdf({fonts: [font], blocks: [{...block, bytes: oversized}]})).rejects.toMatchObject({code: "E_LIMIT"});
+  await expect(renderPdf({fonts: [font], blocks: [{...block, bytes: oversized}]}, {limits: {imagePixels: 4_000_000}})).rejects.toMatchObject({code: "E_LIMIT"});
 });
 it("rejects WOFF containers rather than embedding them as TrueType PDF streams", async () => {
   // Original WOFF derived entirely in memory from the supplied packaged TTF.

@@ -28,11 +28,11 @@ test("synchronous issue comments retain matching creation and update timestamps"
   }
 });
 
-function createTestHarness(options: Parameters<typeof createGhCommand>[0] = {}) {
+function createTestHarness(options: Parameters<typeof createGhCommand>[0] = {}, sharedCommand?: ReturnType<typeof createGhCommand>) {
   const fs = new MemoryFileSystem();
   const backend = options.backend ?? createGitHubBackend({ defaultUser: "octocat" });
   const gitCmd = createGitCommand();
-  const ghCmd = createGhCommand({
+  const ghCmd = sharedCommand ?? createGhCommand({
     backend,
     git: gitCmd,
     ...options,
@@ -46,6 +46,7 @@ function createTestHarness(options: Parameters<typeof createGhCommand>[0] = {}) 
       readonly stdin?: string;
       readonly env?: Record<string, string>;
       readonly allowFailure?: boolean;
+      readonly stdinRead?: () => void;
     } = {}
   ) => {
     let stdout = "";
@@ -59,6 +60,7 @@ function createTestHarness(options: Parameters<typeof createGhCommand>[0] = {}) 
       fs,
       signal: new AbortController().signal,
       stdin: (async function* () {
+        opts.stdinRead?.();
         if (stdinBytes.length > 0) yield stdinBytes;
       })(),
       stdout: {
@@ -990,4 +992,120 @@ test("issue URL edits and comment changes work through shell command substitutio
   assert.equal(data.comments.length, 1);
   assert.equal(data.comments[0].body, "Edited");
   assert.equal([...backend.getOrCreateRepo("alice", "proj").issues.values()][0]!.comments.length, 0);
+});
+
+
+test("default backend is isolated per VFS and persists within that VFS", async () => {
+  const command = createGhCommand();
+  const first = createTestHarness({}, command);
+  const second = createTestHarness({}, command);
+  await first.run("gh", ["auth", "login", "--with-token"], { stdin: "private-token" });
+  assert.equal((await first.run("gh", ["auth", "token"])).stdout.trim(), "private-token");
+  assert.notEqual((await second.run("gh", ["auth", "token"], { allowFailure: true })).stdout.trim(), "private-token");
+  await first.run("gh", ["alias", "set", "private-alias", "version"]);
+  assert.notEqual((await second.run("gh", ["private-alias"], { allowFailure: true })).exitCode, 0);
+});
+
+test("non-input commands and aliases leave stdin unread", async () => {
+  const { run } = createTestHarness();
+  await run("gh", ["alias", "set", "ver", "version"]);
+  for (const args of [["--version"], ["ver"], ["issue", "list", "-R", "octocat/Hello-World"], ["auth", "status"]]) {
+    await run("gh", args, { stdin: "remaining lines", stdinRead: () => assert.fail("stdin drained") });
+  }
+});
+
+test("pagination preserves singleton and empty arrays with jq and slurp", async () => {
+  for (const data of [[{ title: "Only One Issue" }], []]) {
+    const { run } = createTestHarness({ http: async () => ({ status: 200, headers: {}, body: new TextEncoder().encode(JSON.stringify(data)) }) });
+    const result = await run("gh", ["api", "/repos/octocat/Hello-World/issues", "--paginate"]);
+    assert.deepEqual(JSON.parse(result.stdout), data);
+    assert.deepEqual(JSON.parse((await run("gh", ["api", "/repos/octocat/Hello-World/issues", "--paginate", "--slurp"])).stdout), [data]);
+    if (data.length) assert.equal((await run("gh", ["api", "/repos/octocat/Hello-World/issues", "--paginate", "-q", ".[0].title"])).stdout, "Only One Issue\n");
+  }
+});
+
+test("file and stdin inputs share invocation byte and file budgets", async () => {
+  for (const limits of [{ maxInputBytes: 3 }, { maxFiles: 1 }]) {
+    const { fs, run } = createTestHarness({ limits });
+    await fs.mkdir("/work", { recursive: true });
+    await fs.writeFile("/work/a", new TextEncoder().encode("ab"));
+    await fs.writeFile("/work/b", new TextEncoder().encode("cd"));
+    const result = await run("gh", ["api", "/test", "-F", "a=@a", "-F", "b=@b"], { allowFailure: true });
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /limit exceeded/u);
+  }
+  const { fs, run } = createTestHarness({ limits: { maxInputBytes: 3 } });
+  await fs.mkdir("/work", { recursive: true });
+  await fs.writeFile("/work/a", new TextEncoder().encode("ab"));
+  const result = await run("gh", ["api", "/test", "-F", "a=@a", "-F", "b=@-"], { stdin: "cd", allowFailure: true });
+  assert.equal(result.exitCode, 1);
+});
+
+test("shared plugin isolates shell state and gh does not drain while-read pipelines", async () => {
+  const { Shell, standardCommands } = await import("@poe-platform/safe-bash");
+  const plugin = ghCommands();
+  const first = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(plugin);
+  const second = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(plugin);
+  assert.equal((await first.exec('gh auth login --with-token <<< "private-shell-token"')).exitCode, 0);
+  assert.equal((await first.exec("gh auth token")).stdout.trim(), "private-shell-token");
+  assert.notEqual((await second.exec("gh auth token")).stdout.trim(), "private-shell-token");
+  assert.equal((await first.exec("gh issue create -R octocat/isolation -t private -b body")).exitCode, 0);
+  assert.equal(JSON.parse((await second.exec("gh issue list -R octocat/isolation --json title")).stdout).length, 0);
+  const result = await first.exec('printf "item1\\nitem2\\nitem3\\n" | while read -r x; do gh --version >/dev/null; echo "got:$x"; done');
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "got:item1\ngot:item2\ngot:item3\n");
+});
+
+test("all file-consuming command families reject oversized inputs", async () => {
+  const commands = [
+    ["api", "/test", "--input", "large"],
+    ["pr", "create", "-R", "octocat/Hello-World", "-t", "title", "--body-file", "large"],
+    ["issue", "create", "-R", "octocat/Hello-World", "-t", "title", "--body-file", "large"],
+    ["release", "create", "v1", "-R", "octocat/Hello-World", "--notes-file", "large"],
+    ["release", "create", "v1", "large", "-R", "octocat/Hello-World"],
+    ["gist", "create", "large"],
+    ["secret", "set", "-R", "octocat/Hello-World", "-f", "large"],
+    ["ssh-key", "add", "large"],
+    ["gpg-key", "add", "large"],
+    ["repo", "deploy-key", "add", "large", "-R", "octocat/Hello-World"],
+    ["attestation", "verify", "large", "-R", "octocat/Hello-World"],
+  ];
+  for (const args of commands) {
+    const { fs, run } = createTestHarness({ limits: { maxInputBytes: 1 } });
+    await fs.mkdir("/work", { recursive: true });
+    await fs.writeFile("/work/large", new TextEncoder().encode("oversized"));
+    const result = await run("gh", args, { allowFailure: true });
+    assert.equal(result.exitCode, 1, args.join(" "));
+    assert.match(result.stderr, /input byte limit exceeded/u, args.join(" "));
+  }
+});
+
+
+test("sync evaluation defers filesystem state and reads to budgeted execution", () => {
+  assert.equal(evalSyncGh(createGhCommand().execute, ["auth", "token"], {}), undefined);
+  const backend = createGitHubBackend();
+  const command = createGhCommand({ backend, limits: { maxInputBytes: 1 } });
+  assert.equal(evalSyncGh(command.execute, ["issue", "list"], {}, "/work", () => assert.fail("unbudgeted read")), undefined);
+});
+
+test("stdin aliases read once and named input files leave stdin untouched", async () => {
+  const { fs, run } = createTestHarness({ limits: { maxInputBytes: 2 } });
+  await fs.mkdir("/work", { recursive: true });
+  await fs.writeFile("/work/input", new TextEncoder().encode("ab"));
+  await run("gh", ["alias", "set", "send", "api /test -F a=@- -F b=@-"]);
+  let reads = 0;
+  await run("gh", ["send"], { stdin: "ab", stdinRead: () => { reads++; } });
+  assert.equal(reads, 1);
+  for (const args of [["api", "/test", "--input", "input"], ["gist", "create", "input"]]) {
+    await run("gh", args, { stdin: "untouched", stdinRead: () => assert.fail("named input consumed stdin") });
+  }
+});
+
+test("an explicitly injected backend shares state across filesystems", async () => {
+  const backend = createGitHubBackend();
+  const command = createGhCommand({ backend });
+  const first = createTestHarness({}, command);
+  const second = createTestHarness({}, command);
+  await first.run("gh", ["auth", "login", "--with-token"], { stdin: "shared-test-token" });
+  assert.equal((await second.run("gh", ["auth", "token"])).stdout.trim(), "shared-test-token");
 });

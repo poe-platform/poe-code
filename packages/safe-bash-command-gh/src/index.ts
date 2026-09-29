@@ -1,6 +1,6 @@
+import { createGhInput } from "./input.js";
 import {
   commandRuntimeIdentity,
-  readBytes,
   writeBytes,
   type CommandContext,
   type CommandDefinition,
@@ -212,16 +212,8 @@ function normalizeTopLevelArgs(rawArgs: readonly string[]): {
 
 export function createGhCommand(options: GhCommandOptions = {}): CommandDefinition {
   const limits: GhLimits = { ...DEFAULT_GH_LIMITS, ...options.limits };
-  const backend =
-    options.backend ??
-    createGitHubBackend({
-      defaultHost: options.defaultHost,
-      defaultUser: options.defaultUser,
-      defaultToken: options.defaultToken,
-      now: options.now,
-    });
+  const backends = new WeakMap<CommandContext["fs"], GitHubBackend>();
   const openssl = createDefaultOpenSslProvider(options.openssl);
-  const ssh = createDefaultSshProvider(options.ssh, backend.getActiveUser());
 
   const def: CommandDefinition = {
     name: "gh",
@@ -229,10 +221,24 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
     description: "Work seamlessly with GitHub from the command line",
     async execute(context: CommandContext) {
       context.signal.throwIfAborted();
+      let backend = options.backend ?? backends.get(context.fs);
+      if (!backend) {
+        backend = createGitHubBackend({
+          defaultHost: options.defaultHost,
+          defaultUser: options.defaultUser,
+          defaultToken: options.defaultToken,
+          now: options.now,
+        });
+        backends.set(context.fs, backend);
+      }
       backend.resetUsage();
+      const ssh = createDefaultSshProvider(options.ssh, backend.getActiveUser());
+      const input = createGhInput(context, limits);
+      context = { ...context, fs: input.fs };
 
       let outputBytes = 0;
       const writeOut = async (text: string) => {
+        input.assertWithinLimits();
         const bytes = encodeUtf8(text);
         outputBytes += bytes.length;
         if (outputBytes > limits.maxOutputBytes) {
@@ -246,22 +252,8 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
       };
 
       try {
-        const stdinChunks: Uint8Array[] = [];
-        let totalIn = 0;
-        for await (const chunk of readBytes(context.stdin, context.signal)) {
-          totalIn += chunk.length;
-          if (totalIn > limits.maxInputBytes) {
-            throw new Error("gh input byte limit exceeded");
-          }
-          stdinChunks.push(chunk);
-        }
-        const stdinBytes = new Uint8Array(totalIn);
-        let inOffset = 0;
-        for (const chunk of stdinChunks) {
-          stdinBytes.set(chunk, inOffset);
-          inOffset += chunk.length;
-        }
-        const stdinText = decodeUtf8(stdinBytes);
+        const readStdinBytes = input.readStdinBytes;
+        const readStdinText = async () => decodeUtf8(await readStdinBytes());
 
         const dispatch = async (argsToRun: readonly string[], depth = 0): Promise<number> => {
           if (depth > 8) {
@@ -312,7 +304,7 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
             git: options.git,
             openBrowser: options.openBrowser,
             limits,
-            stdinText,
+            readStdinText,
             writeOut,
             writeErr,
           };
@@ -327,7 +319,7 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
                   git: options.git,
                   openBrowser: options.openBrowser,
                   limits,
-                  stdinText,
+                  readStdinText,
                   writeOut,
                   writeErr,
                 },
@@ -356,7 +348,7 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
                   git: options.git,
                   openBrowser: options.openBrowser,
                   limits,
-                  stdinText,
+                  readStdinText,
                   writeOut,
                   writeErr,
                 },
@@ -370,8 +362,8 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
                   http: options.http,
                   git: options.git,
                   limits,
-                  stdinBytes,
-                  stdinText,
+                  readStdinBytes,
+                  readStdinText,
                   writeOut,
                   writeErr,
                 },
@@ -383,7 +375,7 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
                   limits,
                   context,
                   backend,
-                  stdinText,
+                  readStdinText,
                   writeOut,
                   writeErr,
                 },
@@ -446,6 +438,7 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
         };
 
         const exitCode = await dispatch(context.args);
+        input.assertWithinLimits();
         return { exitCode };
       } catch (error) {
         context.signal.throwIfAborted();
@@ -455,8 +448,10 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
       }
     },
   };
-  ghBackendByExecutor.set(def.execute, {
-    backend,
+  // The synchronous evaluator has no filesystem identity. Default state must
+  // stay on the asynchronous path, which can select the VFS-owned backend.
+  if (options.backend) ghBackendByExecutor.set(def.execute, {
+    backend: options.backend,
     hasCustomHttp: Boolean(options.http),
     hasCustomBrowser: Boolean(options.openBrowser),
     limits,
@@ -670,7 +665,8 @@ export function evalSyncGh(
   readFileSync?: (path: string) => Uint8Array | undefined,
 ): string | undefined {
   const meta = ghBackendByExecutor.get(execFn);
-  if (!meta) return undefined;
+  // File reads need the invocation budget supplied by execute().
+  if (!meta || readFileSync) return undefined;
   const { backend, hasCustomHttp, limits } = meta;
 
   let argsToRun: readonly string[] = rawArgs;

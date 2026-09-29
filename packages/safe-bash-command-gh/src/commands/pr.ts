@@ -111,11 +111,11 @@ async function readBodyFromFlagOrFile(
   context: CommandContext,
   bodyFlag: string | undefined,
   bodyFileFlag: string | undefined,
-  stdinText: string
+  readStdinText: () => Promise<string>
 ): Promise<string | undefined> {
   if (bodyFileFlag !== undefined) {
     if (bodyFileFlag === "-") {
-      return stdinText;
+      return readStdinText();
     }
     const resolved = resolvePath(context.cwd, bodyFileFlag);
     const bytes = await context.fs.readFile(resolved, { signal: context.signal });
@@ -145,7 +145,7 @@ export interface PrHandlerEnv {
   readonly git?: CommandDefinition | CommandHandler | undefined;
   readonly openBrowser?: GhBrowserOpener | undefined;
   readonly limits: GhLimits;
-  readonly stdinText: string;
+  readonly readStdinText: () => Promise<string>;
   readonly writeOut: (text: string) => Promise<void>;
   readonly writeErr: (text: string) => Promise<void>;
 }
@@ -154,7 +154,7 @@ export async function handlePrCommand(
   env: PrHandlerEnv,
   rawArgs: readonly string[]
 ): Promise<number> {
-  const { context, backend, git, openBrowser, limits, stdinText, writeOut, writeErr } = env;
+  const { context, backend, git, openBrowser, limits, readStdinText, writeOut, writeErr } = env;
   const subcommand = rawArgs[0];
   const restArgs = rawArgs.slice(1);
 
@@ -281,7 +281,7 @@ export async function handlePrCommand(
       context,
       getStringFlag(parsed, "body"),
       getStringFlag(parsed, "body-file"),
-      stdinText
+      readStdinText
     );
 
     if (parsed.flags.has("recover")) {
@@ -861,7 +861,7 @@ export async function handlePrCommand(
         context,
         getStringFlag(parsed, "body"),
         getStringFlag(parsed, "body-file"),
-        stdinText
+        readStdinText
       )) ?? pr.body;
 
     repo.commits.set(mergeOid, {
@@ -948,7 +948,7 @@ export async function handlePrCommand(
         context,
         getStringFlag(parsed, "body"),
         getStringFlag(parsed, "body-file"),
-        stdinText
+        readStdinText
       )) ?? "";
 
     if ((requestChanges || commentOnly) && !body.trim()) {
@@ -1130,7 +1130,7 @@ export async function handlePrCommand(
       context,
       getStringFlag(parsed, "body"),
       getStringFlag(parsed, "body-file"),
-      stdinText
+      readStdinText
     );
     if (!body) {
       await writeErr("body cannot be blank; provide -b/--body or -F/--body-file\n");
@@ -1217,7 +1217,7 @@ export async function handlePrCommand(
       context,
       getStringFlag(parsed, "body"),
       getStringFlag(parsed, "body-file"),
-      stdinText
+      readStdinText
     );
     if (newBody !== undefined) pr.body = newBody;
     const newBase = getStringFlag(parsed, "base");
@@ -1580,7 +1580,7 @@ export async function handlePrCommand(
         context,
         getStringFlag(parsed, "body"),
         getStringFlag(parsed, "body-file"),
-        stdinText
+        readStdinText
       )) ?? `Reverts ${repo.nameWithOwner}#${pr.number}`;
 
     const revertPr = backend.createPullRequest(repo, {

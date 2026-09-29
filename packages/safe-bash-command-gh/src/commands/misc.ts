@@ -43,7 +43,7 @@ export interface MiscHandlerEnv {
   readonly git?: CommandDefinition | CommandHandler | undefined;
   readonly openBrowser?: GhBrowserOpener | undefined;
   readonly limits: GhLimits;
-  readonly stdinText: string;
+  readonly readStdinText: () => Promise<string>;
   readonly writeOut: (text: string) => Promise<void>;
   readonly writeErr: (text: string) => Promise<void>;
 }
@@ -53,7 +53,7 @@ export async function handleGistCommand(
   env: MiscHandlerEnv,
   rawArgs: readonly string[]
 ): Promise<number> {
-  const { context, backend, git, stdinText, writeOut, writeErr } = env;
+  const { context, backend, git, readStdinText, writeOut, writeErr } = env;
   const sub = rawArgs[0];
   const rest = rawArgs.slice(1);
 
@@ -73,7 +73,8 @@ export async function handleGistCommand(
 
     if (parsed.positionals.length === 0 || (parsed.positionals.length === 1 && parsed.positionals[0] === "-")) {
       const fn = getStringFlag(parsed, "filename") ?? "gistfile0.txt";
-      files[fn] = { filename: fn, content: stdinText, size: stdinText.length };
+      const content = await readStdinText();
+      files[fn] = { filename: fn, content, size: content.length };
     } else {
       for (const fileArg of parsed.positionals) {
         const resolved = resolvePath(context.cwd, fileArg);
@@ -557,7 +558,7 @@ export async function handleSecretCommand(
   env: MiscHandlerEnv,
   rawArgs: readonly string[]
 ): Promise<number> {
-  const { context, backend, openssl, stdinText, writeOut, writeErr } = env;
+  const { context, backend, openssl, readStdinText, writeOut, writeErr } = env;
   const sub = rawArgs[0] ?? "list";
   const rest = rawArgs.slice(1);
   const schemas: FlagSchema[] = [
@@ -631,7 +632,7 @@ export async function handleSecretCommand(
       await writeErr("secret name required\n");
       return 1;
     }
-    const value = getStringFlag(parsed, "body") ?? stdinText.trim();
+    const value = getStringFlag(parsed, "body") ?? (await readStdinText()).trim();
     const encrypted = await openssl.encryptSecretForGitHub(value, "gh_pub_key_b64", "key_1");
     const entry: GhSecret = {
       name,
@@ -660,7 +661,7 @@ export async function handleVariableCommand(
   env: MiscHandlerEnv,
   rawArgs: readonly string[]
 ): Promise<number> {
-  const { context, backend, stdinText, writeOut, writeErr } = env;
+  const { context, backend, readStdinText, writeOut, writeErr } = env;
   const sub = rawArgs[0] ?? "list";
   const rest = rawArgs.slice(1);
   const schemas: FlagSchema[] = [
@@ -720,7 +721,7 @@ export async function handleVariableCommand(
       await writeErr("variable name required\n");
       return 1;
     }
-    const value = getStringFlag(parsed, "body") ?? parsed.positionals[1] ?? stdinText.trim();
+    const value = getStringFlag(parsed, "body") ?? parsed.positionals[1] ?? (await readStdinText()).trim();
     const ts = backend.isoNow();
     const entry: GhVariable = {
       name,
@@ -817,7 +818,7 @@ export async function handleSshKeyCommand(
   env: MiscHandlerEnv,
   rawArgs: readonly string[]
 ): Promise<number> {
-  const { context, backend, ssh, stdinText, writeOut, writeErr } = env;
+  const { context, backend, ssh, readStdinText, writeOut, writeErr } = env;
   const sub = rawArgs[0] ?? "list";
   const rest = rawArgs.slice(1);
   const schemas: FlagSchema[] = [
@@ -850,11 +851,13 @@ export async function handleSshKeyCommand(
 
   if (sub === "add") {
     const keyFile = parsed.positionals[0];
-    let keyContent = stdinText.trim();
+    let keyContent: string;
     if (keyFile && keyFile !== "-") {
       keyContent = decodeUtf8(
         await context.fs.readFile(resolvePath(context.cwd, keyFile), { signal: context.signal })
       ).trim();
+    } else {
+      keyContent = (await readStdinText()).trim();
     }
     if (!keyContent) {
       const generated = await ssh.keygen({ comment: `${backend.getActiveUser()}@safe-bash` });
@@ -890,7 +893,7 @@ export async function handleGpgKeyCommand(
   env: MiscHandlerEnv,
   rawArgs: readonly string[]
 ): Promise<number> {
-  const { context, backend, openssl, stdinText, writeOut, writeErr } = env;
+  const { context, backend, openssl, readStdinText, writeOut, writeErr } = env;
   const sub = rawArgs[0] ?? "list";
   const rest = rawArgs.slice(1);
   const parsed = parseCommandArgs(rest, [{ short: "t", long: "title", type: "string" }]);
@@ -927,7 +930,7 @@ export async function handleGpgKeyCommand(
         ? decodeUtf8(
             await context.fs.readFile(resolvePath(context.cwd, keyFile), { signal: context.signal })
           ).trim()
-        : stdinText.trim() || "-----BEGIN PGP PUBLIC KEY BLOCK-----\nFAKE\n-----END PGP PUBLIC KEY BLOCK-----";
+        : (await readStdinText()).trim() || "-----BEGIN PGP PUBLIC KEY BLOCK-----\nFAKE\n-----END PGP PUBLIC KEY BLOCK-----";
     const digest = await openssl.sha256(rawKey);
     const keyId = bytesToHex(digest).slice(0, 16).toUpperCase();
     const id = backend.nextId();

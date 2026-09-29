@@ -71,7 +71,7 @@ export interface IssueHandlerEnv {
   readonly git?: CommandDefinition | CommandHandler | undefined;
   readonly openBrowser?: GhBrowserOpener | undefined;
   readonly limits: GhLimits;
-  readonly stdinText: string;
+  readonly readStdinText: () => Promise<string>;
   readonly writeOut: (text: string) => Promise<void>;
   readonly writeErr: (text: string) => Promise<void>;
 }
@@ -80,7 +80,7 @@ export async function handleIssueCommand(
   env: IssueHandlerEnv,
   rawArgs: readonly string[]
 ): Promise<number> {
-  const { context, backend, git, openBrowser, limits, stdinText, writeOut, writeErr } = env;
+  const { context, backend, git, openBrowser, limits, readStdinText, writeOut, writeErr } = env;
   const subcommand = rawArgs[0];
   const restArgs = rawArgs.slice(1);
 
@@ -139,7 +139,7 @@ export async function handleIssueCommand(
     const body =
       bodyFile !== undefined
         ? bodyFile === "-"
-          ? stdinText
+          ? await readStdinText()
           : decodeUtf8(await context.fs.readFile(resolvePath(context.cwd, bodyFile), { signal: context.signal }))
         : (getStringFlag(parsed, "body") ?? "");
 
@@ -333,7 +333,7 @@ export async function handleIssueCommand(
     const body =
       bodyFile !== undefined
         ? bodyFile === "-"
-          ? stdinText
+          ? await readStdinText()
           : decodeUtf8(await context.fs.readFile(resolvePath(context.cwd, bodyFile), { signal: context.signal }))
         : (getStringFlag(parsed, "body") ?? "");
     if (!body) {
@@ -393,7 +393,7 @@ export async function handleIssueCommand(
     if (title !== undefined) issue.title = title;
     const bodyFile = getStringFlag(parsed, "body-file");
     const body = bodyFile !== undefined
-      ? bodyFile === "-" ? stdinText
+      ? bodyFile === "-" ? await readStdinText()
         : decodeUtf8(await context.fs.readFile(resolvePath(context.cwd, bodyFile), { signal: context.signal }))
       : getStringFlag(parsed, "body");
     if (body !== undefined) issue.body = body;

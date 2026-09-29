@@ -65,8 +65,8 @@ export interface ApiHandlerEnv {
   readonly http?: GhHttpTransport | undefined;
   readonly git?: CommandDefinition | CommandHandler | undefined;
   readonly limits: GhLimits;
-  readonly stdinBytes: Uint8Array;
-  readonly stdinText: string;
+  readonly readStdinBytes: () => Promise<Uint8Array>;
+  readonly readStdinText: () => Promise<string>;
   readonly writeOut: (text: string) => Promise<void>;
   readonly writeErr: (text: string) => Promise<void>;
 }
@@ -75,7 +75,7 @@ export async function handleApiCommand(
   env: ApiHandlerEnv,
   rawArgs: readonly string[]
 ): Promise<number> {
-  const { context, backend, http, git, limits, stdinBytes, stdinText, writeOut, writeErr } = env;
+  const { context, backend, http, git, limits, readStdinBytes, readStdinText, writeOut, writeErr } = env;
 
   const schemas: FlagSchema[] = [
     { short: "X", long: "method", type: "string" },
@@ -165,7 +165,7 @@ export async function handleApiCommand(
       const fileRef = rawVal.slice(1);
       coerced =
         fileRef === "-"
-          ? stdinText
+          ? await readStdinText()
           : decodeUtf8(await context.fs.readFile(resolvePath(context.cwd, fileRef), { signal: context.signal }));
     } else if (rawVal === "true") coerced = true;
     else if (rawVal === "false") coerced = false;
@@ -192,7 +192,7 @@ export async function handleApiCommand(
   if (inputFlag !== undefined) {
     requestBodyBytes =
       inputFlag === "-"
-        ? stdinBytes
+        ? await readStdinBytes()
         : await context.fs.readFile(resolvePath(context.cwd, inputFlag), { signal: context.signal });
   } else if (isGraphQl) {
     const query = String(payload.query ?? "");
@@ -238,6 +238,7 @@ export async function handleApiCommand(
   const templateFlag = getStringFlag(parsed, "template");
 
   const collectedPages: unknown[] = [];
+  let hasArrayPage = false;
   let nextUrl: string | undefined = fullUrl;
   let lastStatus = 200;
   let lastHeaders: Readonly<Record<string, string>> = {};
@@ -268,6 +269,7 @@ export async function handleApiCommand(
       try {
         const parsedPage = JSON.parse(lastBodyText);
         if (Array.isArray(parsedPage) && paginate && !slurp) {
+          hasArrayPage = true;
           collectedPages.push(...parsedPage);
         } else {
           collectedPages.push(parsedPage);
@@ -298,7 +300,7 @@ export async function handleApiCommand(
     paginate
       ? slurp
         ? collectedPages
-        : collectedPages.length === 1 && !Array.isArray(collectedPages[0])
+        : !hasArrayPage && collectedPages.length === 1 && !Array.isArray(collectedPages[0])
           ? collectedPages[0]
           : collectedPages
       : collectedPages[0];

@@ -42,7 +42,7 @@ export interface AuthHandlerEnv {
   readonly limits: GhLimits;
   readonly context: CommandContext;
   readonly backend: GitHubBackend;
-  readonly stdinText: string;
+  readonly readStdinText: () => Promise<string>;
   readonly writeOut: (text: string) => Promise<void>;
   readonly writeErr: (text: string) => Promise<void>;
 }
@@ -51,7 +51,7 @@ export async function handleAuthCommand(
   env: AuthHandlerEnv,
   rawArgs: readonly string[]
 ): Promise<number> {
-  const { context, backend, stdinText, writeOut, writeErr } = env;
+  const { context, backend, readStdinText, writeOut, writeErr } = env;
   const subcommand = rawArgs[0];
   const restArgs = rawArgs.slice(1);
 
@@ -93,7 +93,7 @@ export async function handleAuthCommand(
 
     let token = "gho_authenticated_token";
     if (getBoolFlag(parsed, "with-token")) {
-      token = stdinText.trim();
+      token = (await readStdinText()).trim();
       if (!token) {
         await writeErr("error: token required on standard input when using --with-token\n");
         return 1;

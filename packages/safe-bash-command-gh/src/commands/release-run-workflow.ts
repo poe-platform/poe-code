@@ -85,7 +85,7 @@ export interface ReleaseRunWorkflowEnv {
   readonly openssl: GhOpenSslProvider;
   readonly openBrowser?: GhBrowserOpener | undefined;
   readonly limits: GhLimits;
-  readonly stdinText: string;
+  readonly readStdinText: () => Promise<string>;
   readonly writeOut: (text: string) => Promise<void>;
   readonly writeErr: (text: string) => Promise<void>;
 }
@@ -94,7 +94,7 @@ export async function handleReleaseCommand(
   env: ReleaseRunWorkflowEnv,
   rawArgs: readonly string[]
 ): Promise<number> {
-  const { context, backend, openssl, openBrowser, stdinText, writeOut, writeErr } = env;
+  const { context, backend, openssl, openBrowser, readStdinText, writeOut, writeErr } = env;
   const subcommand = rawArgs[0];
   const restArgs = rawArgs.slice(1);
 
@@ -174,7 +174,7 @@ export async function handleReleaseCommand(
     let body =
       notesFile !== undefined
         ? notesFile === "-"
-          ? stdinText
+          ? await readStdinText()
           : decodeUtf8(await context.fs.readFile(resolvePath(context.cwd, notesFile), { signal: context.signal }))
         : (getStringFlag(parsed, "notes") ?? "");
 
@@ -450,7 +450,7 @@ export async function handleReleaseCommand(
     const notesFile = getStringFlag(parsed, "notes-file");
     const notes = notesFile !== undefined
       ? notesFile === "-"
-        ? stdinText
+        ? await readStdinText()
         : decodeUtf8(await context.fs.readFile(resolvePath(context.cwd, notesFile), { signal: context.signal }))
       : getStringFlag(parsed, "notes");
     if (notes !== undefined) rel.body = notes;

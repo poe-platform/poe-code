@@ -32,6 +32,8 @@ const gh = createGhCommand({
 });
 ```
 
+Default backend state (including tokens and aliases) is scoped to the filesystem. Pass `backend` explicitly to share state across filesystems. Commands consume stdin only when an input option or subcommand requires it. Per invocation, `limits.maxInputBytes` caps aggregate stdin and file bytes, and `limits.maxFiles` caps distinct input file paths, including Git worktree reads.
+
 ## Injectable / Faked OpenSSH & OpenSSL and Skipped Host Capabilities
 
 - **Injectable & Faked OpenSSL (`options.openssl` / `GhOpenSslProvider`)**:

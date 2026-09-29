@@ -355,7 +355,7 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
   }
   const entrypoints = new Map();
   const commandEntries = [...new Set(routes(coreManifest, false)
-    .filter(route => route.target.startsWith("./dist/opt-in/entrypoints/") && route.target.endsWith(".js"))
+    .filter(route => (route.target.startsWith("./dist/opt-in/entrypoints/") || /^\/[a-z0-9-]+$/.test(route.key.slice(1)) && route.target === `./dist/${route.key.slice(2)}.js`) && route.target.endsWith(".js"))
     .map(route => path.basename(route.target, ".js")))];
   const printer = ts.createPrinter();
   for (const extension of [".js", ".d.ts"]) {

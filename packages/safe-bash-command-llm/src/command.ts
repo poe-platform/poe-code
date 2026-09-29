@@ -7,6 +7,7 @@ import type { LlmCommandsOptions, LlmRequest } from "./types.js";
 import { createLlmService, type LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
 import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters } from "./templates.js";
+import { createLlmOutputSpool } from "./output-spool.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
 import { configurationCommand } from "./configuration-command.js";
 import { listLlmModels, LlmModelsUsageError, modelsGroupHelp } from "./models-list.js";
@@ -94,13 +95,13 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     work++;
     if (work % 256 === 0) await yieldTurn(signal);
   };
-  let bufferedOutput: Uint8Array[] | undefined;
+  let outputSpool: Awaited<ReturnType<typeof createLlmOutputSpool>> | undefined;
   let outputBytes = 0;
   let writing = false;
   const write = async (chunk: Uint8Array): Promise<void> => {
     if (chunk.byteLength > (limits?.maxOutputBytes ?? Infinity) - outputBytes) throw new FsError("EFBIG", { message: "llm output byte limit exceeded" });
     outputBytes += chunk.byteLength;
-    if (bufferedOutput) { bufferedOutput.push(chunk.slice()); return; }
+    if (outputSpool) { await outputSpool.write(chunk); return; }
     writing = true;
     await operation.output.write(chunk);
     writing = false;
@@ -273,7 +274,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       ...(args.system === undefined ? {} : { system: args.system }), attachments, options: args.options, signal,
     };
     signal.throwIfAborted();
-    if (args.noStream) bufferedOutput = [];
+    if (args.noStream) outputSpool = await operation.acquire(() => createLlmOutputSpool(context.fs, context.cwd, signal), spool => spool.close());
     iterator = service.complete(request)[Symbol.asyncIterator]();
     const text = (entry.model.outputType ?? "text/plain").toLowerCase().startsWith("text/");
     let pendingSurrogate = "";
@@ -295,7 +296,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       if (pendingSurrogate) await emitText(pendingSurrogate);
       await write(Uint8Array.of(10));
     }
-    if (bufferedOutput) for (const chunk of bufferedOutput) { writing = true; await operation.output.write(chunk); writing = false; }
+    if (outputSpool) for await (const chunk of outputSpool.replay()) { writing = true; await operation.output.write(chunk); writing = false; }
     return { exitCode: 0 };
   } catch (error) {
     context.signal.throwIfAborted();

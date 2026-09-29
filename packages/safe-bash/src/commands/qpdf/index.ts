@@ -52,7 +52,7 @@ export function evalSyncQpdf(
     }
     const snap = new Map(files);
     const res = runQpdfCliSync(opArgs, files);
-    if (res.exitCode !== 0 || res.stderr || res.stdoutBytes) return undefined;
+    if (res.exitCode !== 0 || res.stderr) return undefined;
     for (const [k, v] of files.entries()) {
       if (snap.get(k) !== v) return undefined;
     }

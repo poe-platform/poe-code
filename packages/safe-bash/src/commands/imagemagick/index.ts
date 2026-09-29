@@ -3,11 +3,12 @@ import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/inde
 import {
   createImagemagickCommands as createRawImagemagickCommands,
   runIdentifyCliSync,
-  type ImagemagickCommandOptions,
+  type ImageMagickCommandOptions,
   type ImagemagickCommandsOptions,
 } from "safe-bash-command-imagemagick";
 
 export * from "safe-bash-command-imagemagick";
+export type ImagemagickCommandOptions = ImageMagickCommandOptions;
 
 export function createImagemagickCommands(options: ImagemagickCommandsOptions = {}): readonly CommandDefinition[] {
   const defs = createRawImagemagickCommands(options);

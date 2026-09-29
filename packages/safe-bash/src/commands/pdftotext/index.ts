@@ -13,7 +13,8 @@ export * from "safe-bash-command-pdftotext";
 
 function isDefaultPdftotextOptions(options?: PdftotextCommandOptions): boolean {
   if (!options) return true;
-  return options.limits === undefined && options.maxInputBytes === undefined && options.maxOutputBytes === undefined;
+  const o = options as { readonly limits?: unknown; readonly maxInputBytes?: unknown; readonly maxOutputBytes?: unknown };
+  return o.limits === undefined && o.maxInputBytes === undefined && o.maxOutputBytes === undefined;
 }
 
 export function createPdftotextCommand(options: PdftotextCommandOptions = {}): CommandDefinition {

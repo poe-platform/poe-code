@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -50,7 +49,14 @@ const SIPS_BUFFER_PROPS = new WeakMap<Uint8Array, Map<string, string | null>>();
 const SIPS_CONTENT_PROPS = new Map<string, Map<string, string | null>>();
 
 function imageFingerprint(bytes: Uint8Array): string {
-  return createHash("sha256").update(bytes).digest("hex");
+  let h1 = 0x811c9dc5;
+  let h2 = 0x01000193;
+  for (let i = 0; i < bytes.byteLength; i++) {
+    const b = bytes[i]!;
+    h1 = Math.imul(h1 ^ b, 0x01000193) >>> 0;
+    h2 = Math.imul(h2 ^ ((b + i) & 0xff), 0x85ebca6b) >>> 0;
+  }
+  return `${bytes.byteLength}:${h1.toString(16).padStart(8, "0")}:${h2.toString(16).padStart(8, "0")}`;
 }
 
 function escapeXml(value: string): string {

@@ -1428,14 +1428,17 @@ function resolveCanonicalSync(
   mode: "link" | "e" | "f" | "m" | "s",
   inspectStat: (absPath: string, follow: boolean) => SyncFsStatNode | undefined,
 ): string | undefined {
-  const abs = normalizePath(inputPath, cwd);
-  if (mode === "s") return abs;
+  if (mode === "s") return normalizePath(inputPath, cwd);
+  const trailingSlash = inputPath.length > 1 && inputPath.endsWith("/");
   if (mode === "link") {
+    if (trailingSlash) return undefined;
+    const abs = normalizePath(inputPath, cwd);
     const st = inspectStat(abs, false);
     if (!st || st.type !== "symlink" || st.target === undefined) return undefined;
     return st.target;
   }
-  const parts = abs.split("/").filter(Boolean);
+  const rawAbs = inputPath.startsWith("/") ? inputPath : (cwd === "/" ? `/${inputPath}` : `${cwd}/${inputPath}`);
+  const parts = rawAbs.split("/").filter(Boolean);
   let cur = "/";
   let hops = 0;
   let idx = 0;
@@ -1443,6 +1446,8 @@ function resolveCanonicalSync(
     const comp = parts[idx]!;
     if (comp === ".") { idx++; continue; }
     if (comp === "..") {
+      const curSt = inspectStat(cur, false);
+      if (curSt && curSt.type !== "directory") return undefined;
       cur = dirname(cur);
       idx++;
       continue;
@@ -1452,14 +1457,17 @@ function resolveCanonicalSync(
     if (!st) {
       if (mode === "e") return undefined;
       if (mode === "f") {
-        if (idx !== parts.length - 1) return undefined;
+        if (idx !== parts.length - 1 || trailingSlash) return undefined;
         const parentSt = inspectStat(cur, true);
         if (!parentSt || parentSt.type !== "directory") return undefined;
         return nextPath;
       }
-      // mode === "m"
-      const rest = parts.slice(idx).join("/");
-      return normalizePath(rest, cur);
+      // mode === "m": continue step-by-step so subsequent ".." can resume symlink traversal
+      const curSt = inspectStat(cur, false);
+      if (curSt && curSt.type !== "directory") return undefined;
+      cur = nextPath;
+      idx++;
+      continue;
     }
     if (st.type === "symlink") {
       if (st.target === undefined || ++hops > 40) return undefined;
@@ -1471,7 +1479,7 @@ function resolveCanonicalSync(
       idx = 0;
       continue;
     }
-    if (idx < parts.length - 1 && st.type !== "directory") return undefined;
+    if ((idx < parts.length - 1 || (trailingSlash && mode !== "m")) && st.type !== "directory") return undefined;
     cur = nextPath;
     idx++;
   }

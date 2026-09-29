@@ -1527,3 +1527,31 @@ test("Wave 223: install -dv multi-level directories and dd bs=NxM/cbs/conv=block
     "<hi  ther>|<hi|ther|>|<ZZZZZZZZZZZZ>|<HELLO>\n"
   );
 });
+
+test("Wave 224: realpath/readlink physical symlink .. traversal, stat %U/%G/%m/--cached, and df DF_BLOCK_SIZE=human-readable in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp/w224/sub/deep", { recursive: true });
+  await memFs.writeFile("/tmp/w224/sub/sibling.txt", new TextEncoder().encode("ok\n"));
+  await memFs.symlink("/tmp/w224/sub/deep", "/tmp/w224/link");
+  const { dfCommands } = await import("../../src/commands/df/index.ts");
+  const shell = new Shell({ fs: memFs, cwd: "/tmp/w224" })
+    .use(standardCommands())
+    .use(metadataCommands())
+    .use(dfCommands());
+  const res = await shell.exec(`
+    export DF_BLOCK_SIZE=human-readable
+    for i in 1 2 3 4 5; do
+      p_phys=$(realpath /tmp/w224/link/../sibling.txt)
+      p_log=$(realpath -L /tmp/w224/link/../sub/sibling.txt)
+      p_miss=$(readlink -m /tmp/w224/missing/../link/../sibling.txt)
+      st_ug=$(stat --cached=default -c "%U:%G:%m:%a" /tmp/w224/sub/sibling.txt)
+      df_hr=$(df --output=source,size,target /tmp | tail -n 1)
+    done
+    printf "%s|%s|%s|%s|%s\n" "$p_phys" "$p_log" "$p_miss" "$st_ug" "$df_hr"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "/tmp/w224/sub/sibling.txt|/tmp/w224/sub/sibling.txt|/tmp/w224/sub/sibling.txt|root:root:/:666|tmpfs           256M /tmp"
+  );
+});

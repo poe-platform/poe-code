@@ -35,6 +35,7 @@ function parse(args: readonly string[]) {
     if (literal || argument === "-" || !argument.startsWith("-")) paths.push(argument);
     else if (argument === "--") literal = true;
     else if (argument === "--dereference") follow = true;
+    else if (argument === "--cached=default" || argument === "--cached=never" || argument === "--cached=always") continue;
     else if (argument === "--file-system") filesystem = true;
     else if (argument === "--terse") terse = true;
     else if (argument === "--format" || argument.startsWith("--format=") || argument === "--printf" || argument.startsWith("--printf=")) {
@@ -236,6 +237,9 @@ async function render(context: CommandContext, path: string, name: string, stat:
       }
     } else if (code === "%") text = "%";
     else if (code === "A") text = permissionString(stat.mode, stat.type);
+    else if (code === "U") text = available(stat.uid, "u") === 0 ? "root" : String(stat.uid);
+    else if (code === "G") text = available(stat.gid, "g") === 0 ? "root" : String(stat.gid);
+    else if (code === "m") text = "/";
     else if (code === "F") text = stat.type === "directory" ? "directory" : stat.type === "symlink" ? "symbolic link" : stat.type === "character" ? "character special file" : stat.size === 0 ? "regular empty file" : "regular file";
     else if (["x", "y", "z", "w"].includes(code)) {
       const value = times[code.toUpperCase()];
@@ -376,6 +380,9 @@ function renderSync(
       }
     } else if (code === "%") text = "%";
     else if (code === "A") text = permissionString(stat.mode, stat.type);
+    else if (code === "U") text = available(stat.uid, "u") === 0 ? "root" : String(stat.uid);
+    else if (code === "G") text = available(stat.gid, "g") === 0 ? "root" : String(stat.gid);
+    else if (code === "m") text = "/";
     else if (code === "F") text = stat.type === "directory" ? "directory" : stat.type === "symlink" ? "symbolic link" : stat.type === "character" ? "character special file" : stat.size === 0 ? "regular empty file" : "regular file";
     else if (["x", "y", "z", "w"].includes(code)) {
       const value = times[code.toUpperCase()];

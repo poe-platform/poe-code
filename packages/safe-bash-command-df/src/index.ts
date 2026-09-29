@@ -277,17 +277,24 @@ export function evalSyncDf(
 
   const envBlock = env.DF_BLOCK_SIZE ?? env.BLOCK_SIZE ?? env.BLOCKSIZE;
   if (envBlock) {
-    const parsed = parseBlockSize(envBlock);
-    if (parsed) {
-      blockSize = parsed.size;
-      blockHeader = parsed.label;
+    if (envBlock === "human-readable") {
+      scaleMode = "human-1024";
+    } else if (envBlock === "si") {
+      scaleMode = "human-1000";
+    } else {
+      const parsed = parseBlockSize(envBlock);
+      if (parsed) {
+        blockSize = parsed.size;
+        blockHeader = parsed.label;
+      }
     }
   }
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     if (!endOfOptions && arg === "--") { endOfOptions = true; continue; }
-    if (!endOfOptions && (arg === "--help" || arg === "--version")) return undefined;
+    if (!endOfOptions && arg === "--help") return HELP_TEXT;
+    if (!endOfOptions && arg === "--version") return VERSION_TEXT;
     if (!endOfOptions && arg.startsWith("--") && arg.length > 2) {
       if (arg === "--all") showAll = true;
       else if (arg === "--human-readable") scaleMode = "human-1024";
@@ -518,10 +525,16 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
 
       const envBlock = context.env.DF_BLOCK_SIZE ?? context.env.BLOCK_SIZE ?? context.env.BLOCKSIZE;
       if (envBlock) {
-        const parsed = parseBlockSize(envBlock);
-        if (parsed) {
-          blockSize = parsed.size;
-          blockHeader = parsed.label;
+        if (envBlock === "human-readable") {
+          scaleMode = "human-1024";
+        } else if (envBlock === "si") {
+          scaleMode = "human-1000";
+        } else {
+          const parsed = parseBlockSize(envBlock);
+          if (parsed) {
+            blockSize = parsed.size;
+            blockHeader = parsed.label;
+          }
         }
       }
 

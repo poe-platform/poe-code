@@ -3,7 +3,7 @@ import test from 'node:test';
 
 test('pr can load before request-scoped AbortController construction is permitted', async () => {
   const original = globalThis.AbortController;
-  globalThis.AbortController = class extends original { constructor() { throw new Error('AbortController requires a request scope'); } };
+  globalThis.AbortController = new Proxy(original, { construct() { throw new Error('AbortController requires a request scope'); } });
   let module: typeof import('../../src/commands/pr/index.js');
   try {
     const source = '../../src/commands/pr/index.js?request-scope';

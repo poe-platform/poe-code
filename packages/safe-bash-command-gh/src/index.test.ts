@@ -12,7 +12,12 @@ import {
   createGitHubBackend,
   evalSyncGh,
   ghCommands,
+  settings,
+  DEFAULT_GH_LIMITS,
 } from "./index.js";
+
+// Runtime source loading avoids pulling the whole Shell into this package's typecheck.
+const safeBashSource: string = "../../safe-bash/src/index.js";
 
 test("synchronous issue comments retain matching creation and update timestamps", () => {
   const backend = createGitHubBackend({ defaultUser: "octocat" });
@@ -47,6 +52,8 @@ function createTestHarness(options: Parameters<typeof createGhCommand>[0] = {}, 
       readonly env?: Record<string, string>;
       readonly allowFailure?: boolean;
       readonly stdinRead?: () => void;
+      readonly signal?: AbortSignal;
+      readonly chunks?: AsyncIterable<Uint8Array>;
     } = {}
   ) => {
     let stdout = "";
@@ -58,8 +65,8 @@ function createTestHarness(options: Parameters<typeof createGhCommand>[0] = {}, 
       cwd: opts.cwd ?? "/work",
       env: { HOME: "/home/octocat", ...(opts.env ?? {}) },
       fs,
-      signal: new AbortController().signal,
-      stdin: (async function* () {
+      signal: opts.signal ?? new AbortController().signal,
+      stdin: opts.chunks ?? (async function* () {
         opts.stdinRead?.();
         if (stdinBytes.length > 0) yield stdinBytes;
       })(),
@@ -582,11 +589,8 @@ test("gh issue, release, workflow, run, gist, search, auth, alias, and resource 
   const tokenRes = await run("gh", ["auth", "token"]);
   assert.equal(tokenRes.stdout.trim(), "ghp_custom_secret_token_999");
 
-  // Resource limit enforcement
-  const limited = createTestHarness({ limits: { maxHttpRequests: 0 } });
-  const limitRes = await limited.run("gh", ["api", "user"], { allowFailure: true });
-  assert.equal(limitRes.exitCode, 1);
-  assert.match(limitRes.stderr, /HTTP request limit exceeded/u);
+  // Invalid resource budgets fail at construction, before executing requests.
+  assert.throws(() => createTestHarness({ limits: { maxHttpRequests: 0 } }), RangeError);
 });
 
 test("advanced PR flags (--fill-first, --fill-verbose, --template, --auto, --disable-auto, --match-head-commit, edit, close, reopen, lock, unlock, update-branch, status)", async () => {
@@ -718,10 +722,9 @@ test("gh search, label, variable, cache, gpg-key, config, status, and browse com
 });
 
 test("gh and git plugins work seamlessly inside @poe-platform/safe-bash Shell scripts and pipelines", async () => {
-  const { Shell, standardCommands, gitCommands } = await import(
-    "@poe-platform/safe-bash"
+  const { Shell, standardCommands, gitCommands, ghCommands } = await import(
+    safeBashSource
   );
-  const { ghCommands } = await import("@poe-platform/safe-bash/commands/gh");
   const fs = new MemoryFileSystem();
   await fs.mkdir("/workspace", { recursive: true });
 
@@ -1108,4 +1111,71 @@ test("an explicitly injected backend shares state across filesystems", async () 
   const second = createTestHarness({}, command);
   await first.run("gh", ["auth", "login", "--with-token"], { stdin: "shared-test-token" });
   assert.equal((await second.run("gh", ["auth", "token"])).stdout.trim(), "shared-test-token");
+});
+
+
+test("gh limits default to disabled and validate explicit budgets", () => {
+  assert.equal(typeof settings, "function");
+  for (const key of Object.keys(DEFAULT_GH_LIMITS) as Array<keyof typeof DEFAULT_GH_LIMITS>) {
+    assert.equal(settings({})[key], Infinity);
+    for (const value of [1, Number.MAX_SAFE_INTEGER, Infinity]) {
+      assert.equal(settings({ limits: { [key]: value } })[key], value);
+    }
+    for (const value of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+      assert.throws(() => createGhCommand({ limits: { [key]: value } }), RangeError);
+    }
+  }
+});
+
+test("gh aliases allow long chains, configurable depth, and reject cycles", async () => {
+  const backend = createGitHubBackend();
+  for (let i = 0; i < 20; i++) backend.config.aliases[`a${i}`] = i === 19 ? "version" : `a${i + 1}`;
+  const unlimited = createTestHarness({ backend });
+  assert.match((await unlimited.run("gh", ["a0"])).stdout, /gh version/u);
+  const limited = createTestHarness({ backend, limits: { maxAliasDepth: 2 } });
+  assert.equal((await limited.run("gh", ["a18"])).exitCode, 0);
+  assert.match((await limited.run("gh", ["a17"], { allowFailure: true })).stderr, /alias expansion depth limit/u);
+  backend.config.aliases.a19 = "a0";
+  assert.match((await unlimited.run("gh", ["a0"], { allowFailure: true })).stderr, /alias expansion loop/u);
+});
+
+test("gh stdin yields to timer cancellation under frozen clocks", async () => {
+  for (const size of [1, 16384]) {
+    const { run } = createTestHarness();
+    const controller = new AbortController();
+    const reason = new Error("cancel stdin");
+    let consumed = 0;
+    const chunks = (async function* () {
+      for (let i = 0; i < 1000; i++) {
+        consumed++;
+        yield new Uint8Array(size);
+      }
+    })();
+    const originalNow = Date.now;
+    Date.now = () => 0;
+    const timer = setTimeout(() => controller.abort(reason), 0);
+    try {
+      await assert.rejects(run("gh", ["api", "/test", "--input", "-"], { chunks, signal: controller.signal, allowFailure: true }), error => error === reason);
+      assert.ok(consumed < 1000);
+    } finally {
+      clearTimeout(timer);
+      Date.now = originalNow;
+    }
+  }
+});
+
+
+test("agent command composition includes gh with default and custom families", async () => {
+  const { Shell, agentCommands } = await import(safeBashSource);
+  for (const options of [{}, { gh: { limits: { maxOutputBytes: 1 } }, bytes: {} }]) {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands(options));
+    const result = await shell.exec("gh version");
+    if ("gh" in options) {
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /output byte limit/u);
+    } else {
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.match(result.stdout, /gh version/u);
+    }
+  }
 });

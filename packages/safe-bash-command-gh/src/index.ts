@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { createGhInput } from "./input.js";
 import {
   commandRuntimeIdentity,
@@ -210,8 +211,18 @@ function normalizeTopLevelArgs(rawArgs: readonly string[]): {
   };
 }
 
-export function createGhCommand(options: GhCommandOptions = {}): CommandDefinition {
+export function settings(options: GhCommandOptions = {}): GhLimits {
   const limits: GhLimits = { ...DEFAULT_GH_LIMITS, ...options.limits };
+  for (const [name, value] of Object.entries(limits)) {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {
+      throw new RangeError(`gh ${name} must be Infinity or a positive safe integer`);
+    }
+  }
+  return limits;
+}
+
+export function createGhCommand(options: GhCommandOptions = {}): CommandDefinition {
+  const limits = settings(options);
   const backends = new WeakMap<CommandContext["fs"], GitHubBackend>();
   const openssl = createDefaultOpenSslProvider(options.openssl);
 
@@ -255,11 +266,9 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
         const readStdinBytes = input.readStdinBytes;
         const readStdinText = async () => decodeUtf8(await readStdinBytes());
 
+        const visitedAliases = new Set<string>();
         const dispatch = async (argsToRun: readonly string[], depth = 0): Promise<number> => {
-          if (depth > 8) {
-            await writeErr("gh: alias expansion loop detected\n");
-            return 1;
-          }
+          context.signal.throwIfAborted();
           const { command, subArgs, version, help } = normalizeTopLevelArgs(argsToRun);
           if (version || command === "version") {
             await writeOut(GH_VERSION_OUTPUT);
@@ -271,12 +280,22 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
           }
 
           if (command === "co" && !(command in backend.config.aliases)) {
-            return dispatch(["pr", "checkout", ...subArgs], depth + 1);
+            return dispatch(["pr", "checkout", ...subArgs], depth);
           }
 
           // Check alias expansion
           const aliasExpansion = backend.config.aliases[command];
           if (aliasExpansion) {
+            if (visitedAliases.has(command)) {
+              await writeErr("gh: alias expansion loop detected\n");
+              return 1;
+            }
+            if (depth >= limits.maxAliasDepth) {
+              await writeErr("gh: alias expansion depth limit exceeded\n");
+              return 1;
+            }
+            visitedAliases.add(command);
+            if (visitedAliases.size % 128 === 0) await yieldTurn(context.signal);
             const cleanExpansion = aliasExpansion.startsWith("!")
               ? aliasExpansion.slice(1).replace(/^gh\s+/u, "")
               : aliasExpansion;

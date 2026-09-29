@@ -1,3 +1,4 @@
+import { createGhCommands, type GhCommandOptions } from "../commands/gh/index.js";
 import { CommandRegistry, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { createStandardCommandsWithGrep, type ExecutionCommandsOptions, type StandardCommandsOptions } from "../commands/standard.js";
@@ -77,6 +78,7 @@ function createExtraAgentCommands(options?: { bc?: Omit<BcCommandsOptions, "repl
 }
 
 export interface AgentCommandsOptions {
+  readonly gh?: GhCommandOptions;
   readonly predicateIdentity?: StandardCommandsOptions["predicateIdentity"];
   readonly execution?: ExecutionCommandsOptions;
   readonly bytes?: Omit<ByteCommandsOptions, "replace">;
@@ -230,7 +232,7 @@ function hasCustomFamilyOptions(options: AgentCommandsOptions): boolean {
 }
 
 export function composeRawAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors): readonly CommandDefinition[] {
-  const commands: CommandDefinition[] = [];
+  const commands: CommandDefinition[] = [...createGhCommands(options.gh)];
   const useErgonomicGrep = options.regexExecutor === undefined;
   const grep = createGrepCommands(executors.grep, { ergonomicRegex: useErgonomicGrep });
   const exprLimits = options.expr?.limits;

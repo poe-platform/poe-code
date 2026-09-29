@@ -112,4 +112,4 @@ export * from "./commands/mdq/index.js";
 export { createOpensslCommand, createOpensslCommands, opensslCommands, type OpensslCommandsOptions, type OpensslLimits, type OpensslOptions } from "./commands/openssl/index.js";
 export { createSshCommand, createSshKeygenCommand, createSshCommands, sshCommands, type SshCommandsOptions, type SshLimits, type SshOptions } from "./commands/ssh/index.js";
 export { createGpgCommand, createGpgCommands, gpgCommands, type GpgCommandsOptions, type GpgLimits, type GpgOptions } from "./commands/gpg/index.js";
-export { createGhCommand, createGhCommands, ghCommands, type GhCommandOptions, type GhCommandsOptions } from "./commands/gh/index.js";
+export { createGhCommand, createGhCommands, ghCommands, type GhCommandOptions, type GhCommandsOptions, type GhLimits } from "./commands/gh/index.js";

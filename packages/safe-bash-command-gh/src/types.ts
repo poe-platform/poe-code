@@ -5,15 +5,17 @@ export interface GhLimits {
   readonly maxInputBytes: number;
   readonly maxFiles: number;
   readonly maxItems: number;
+  readonly maxAliasDepth: number;
 }
 
 export const DEFAULT_GH_LIMITS: Readonly<GhLimits> = Object.freeze({
-  maxHttpRequests: 256,
-  maxHttpBytes: 64 * 1024 * 1024,
-  maxOutputBytes: 32 * 1024 * 1024,
-  maxInputBytes: 16 * 1024 * 1024,
-  maxFiles: 4096,
-  maxItems: 10000,
+  maxHttpRequests: Infinity,
+  maxHttpBytes: Infinity,
+  maxOutputBytes: Infinity,
+  maxInputBytes: Infinity,
+  maxFiles: Infinity,
+  maxItems: Infinity,
+  maxAliasDepth: Infinity,
 });
 
 export interface GhHttpRequest {

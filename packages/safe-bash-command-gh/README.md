@@ -32,6 +32,8 @@ const gh = createGhCommand({
 });
 ```
 
+All resource limits default to `Infinity` (disabled). Configure `limits` with positive safe integers to bound requests, HTTP/input/output bytes, files, items, or alias expansion depth (`maxAliasDepth`). Alias cycles are rejected even when depth is unlimited.
+
 Default backend state (including tokens and aliases) is scoped to the filesystem. Pass `backend` explicitly to share state across filesystems. Commands consume stdin only when an input option or subcommand requires it. Per invocation, `limits.maxInputBytes` caps aggregate stdin and file bytes, and `limits.maxFiles` caps distinct input file paths, including Git worktree reads.
 
 ## Injectable / Faked OpenSSH & OpenSSL and Skipped Host Capabilities

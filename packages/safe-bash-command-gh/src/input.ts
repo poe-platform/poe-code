@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { resolvePath } from "@poe-code/safe-fs/core";
 import { readBytes, type CommandContext } from "safe-bash-contracts";
 import type { GhLimits } from "./types.js";
@@ -47,10 +48,18 @@ export function createGhInput(context: CommandContext, limits: GhLimits) {
   const readStdinBytes = () => stdin ??= (async () => {
     const chunks: Uint8Array[] = [];
     let size = 0;
+    let turnBytes = 0;
+    let turnChunks = 0;
     for await (const chunk of readBytes(context.stdin, context.signal)) {
       chargeBytes(chunk.length);
       chunks.push(chunk);
       size += chunk.length;
+      turnBytes += chunk.length;
+      if (++turnChunks >= 128 || turnBytes >= 16 * 1024) {
+        await yieldTurn(context.signal);
+        turnBytes = 0;
+        turnChunks = 0;
+      }
     }
     const bytes = new Uint8Array(size);
     let offset = 0;

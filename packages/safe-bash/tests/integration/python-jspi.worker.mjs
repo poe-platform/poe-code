@@ -173,6 +173,14 @@ async function qualifyHostServices(backend, createExecutor) {
       await new Promise(resolve => request.signal.addEventListener('abort', () => {hostCancelled++; resolve();}, {once:true}));
       request.signal.throwIfAborted();
     }
+    if (['host-buffer', 'host-empty', 'host-metadata', 'large-text'].includes(request.prompt)) {
+      try {
+        if (request.prompt === 'host-buffer') yield 'x'.repeat(65536);
+        else if (request.prompt === 'host-empty') for (let i = 0; i < 1000; i++) yield '';
+        else if (request.prompt === 'large-text') yield '🌍é\n'.repeat(300000);
+        return {metadata:{id:'text-result',detail:request.prompt === 'host-metadata' ? 'x'.repeat(65536) : 'small'}};
+      } finally {libraryReleased++;}
+    }
     if (request.prompt === 'large-binary') {
       try { yield Uint8Array.from({length:2 * 1024 * 1024}, (_,index) => index % 256); } finally {libraryReleased++;}
       return {metadata:{id:'large-image'}};
@@ -265,6 +273,32 @@ async def qualify_libraries():
    events = [event async for event in chunks]
    assert events[0].text == 'incremental'
    assert events[1].text == '-end' and events[-1].response.model == 'fake'
+  for prompt in ['host-buffer', 'host-empty', 'host-metadata']:
+   try:
+    await client.complete(prompt, max_response_bytes=1000000)
+    raise AssertionError('host-owned LLM limit was bypassed')
+   except LimitError:
+    pass
+  async with client.stream('large-text') as early:
+   first = await early.__anext__()
+   assert len(first.text.encode('utf-8')) <= 16384
+  pattern = '🌍é\n'
+  count = 0
+  terminals = 0
+  with open('/work/text-stream.txt', 'w', encoding='utf-8') as output:
+   async with client.stream('large-text') as events:
+    async for event in events:
+     if event.type == 'text':
+      assert len(event.text.encode('utf-8')) <= 16384
+      start = count % len(pattern)
+      assert event.text == (pattern * ((start + len(event.text) + 2) // 3))[start:start + len(event.text)]
+      output.write(event.text)
+      count += len(event.text)
+     else:
+      terminals += 1
+      assert count == 900000 and event.response.metadata['id'] == 'text-result'
+  import os
+  assert terminals == 1 and os.stat('/work/text-stream.txt').st_size == 2100000
   offset = 0
   async with client.stream('large-binary', model='binary') as chunks:
    async for event in chunks:
@@ -381,7 +415,7 @@ print('host-ok')
   }, maxConcurrentWorkers:1, capabilityLimits:{maxMessageBytes:1048576}, createCapabilities(context) {
     return {
       identity: { async call(value) { calls++; return value; } },
-      llm: createPythonLlmCapability(context,service),
+      llm: createPythonLlmCapability(context,service,{maxBufferedResponseBytes:8192,maxBufferedEvents:64,maxMetadataBytes:4096}),
       bytes: { async *stream() { try { yield new Uint8Array([0,255,128]); yield 'unused'; } finally { released++; } } },
       shell: createPythonShellCapability(context, {maxOutputBytes:524288}),
     };

@@ -100,6 +100,22 @@ including final response metadata. Typed scalar options remain structured data;
 no CLI source serialization occurs. Custom request/response transforms and
 custom Python bridges from the saved library remain supported.
 
+The LLM adapter accepts host-owned `maxBufferedResponseBytes`,
+`maxBufferedEvents` and `maxMetadataBytes`. Buffered completion clamps the shared
+service's output limit and admits the serialized result before retaining payload;
+JSON escaping, byte-array expansion, model identity, usage and metadata all count.
+Empty text events are counted but are not retained. The event and metadata ceilings
+default to the buffered ceiling; all three default to disabled (`Infinity`) when
+no host limits are configured. Guest limits may lower the host ceiling and cannot
+raise or omit it. `maxMetadataBytes` measures the complete terminal response data.
+Choose ceilings with headroom below the invocation's serialized-message budget.
+These buffered ceilings do not cap stream payload totals: large streams can write
+incrementally to canonical files. Text and binary stream events are fragmented
+using `maxStreamChunkBytes` (16 KiB by default); text preserves Unicode scalars.
+A text scalar larger than the configured chunk ceiling fails explicitly; select
+at least four bytes to accommodate every valid Unicode scalar. Parent bridge
+stream/message limits and cancellation remain in force.
+
 Configure finite input/output limits explicitly with `maxInputBytes` and
 `maxOutputBytes` when creating the shell adapter. Capture overflow fails rather
 than returning silently truncated data. Native serialized-message budgets are

@@ -10,10 +10,89 @@ function record(value: PythonHostValue): {readonly [key:string]:PythonHostValue}
   return value as {readonly [key:string]:PythonHostValue};
 }
 
+/** Count the wire representation before retaining/serializing host metadata. */
+function jsonBytes(value: PythonHostValue, limit: number): number {
+  if (limit === Infinity) return 0;
+  let bytes = 0;
+  const ancestors = new Set<object>();
+  const add = (size: number): void => {
+    if (size > limit - bytes) throw new RangeError('Python LLM serialized response limit exceeded');
+    bytes += size;
+  };
+  const string = (text: string): void => {
+    add(2);
+    if (text.length > limit - bytes) throw new RangeError('Python LLM serialized response limit exceeded');
+    for (let i = 0; i < text.length; i++) {
+      const point = text.codePointAt(i)!;
+      if (point > 65535) { add(4); i++; }
+      else if (point === 34 || point === 92) add(2);
+      else if (point < 32) add([8, 9, 10, 12, 13].includes(point) ? 2 : 6);
+      else if (point >= 0xd800 && point <= 0xdfff) add(6);
+      else add(point < 128 ? 1 : point < 2048 ? 2 : 3);
+    }
+  };
+  const visit = (item: PythonHostValue): void => {
+    if (typeof item === 'string') { string(item); return; }
+    if (item === null || typeof item === 'boolean' || typeof item === 'number' && Number.isFinite(item)) {
+      add(JSON.stringify(item).length); return;
+    }
+    if (!item || typeof item !== 'object' || ancestors.has(item)) throw new TypeError('Python LLM response must contain acyclic data');
+    ancestors.add(item);
+    add(2);
+    let entries = 0;
+    if (Array.isArray(item)) {
+      if (item.length > limit - bytes) throw new RangeError('Python LLM serialized response limit exceeded');
+      for (let i = 0; i < item.length; i++) {
+        const descriptor = Object.getOwnPropertyDescriptor(item, String(i));
+        if (!descriptor || !('value' in descriptor)) throw new TypeError('Python LLM response must contain data');
+        if (entries++) add(1);
+        visit(descriptor.value);
+      }
+    } else {
+      for (const key in item) {
+        if (!Object.hasOwn(item, key)) continue;
+        const descriptor = Object.getOwnPropertyDescriptor(item, key)!;
+        if (!('value' in descriptor)) throw new TypeError('Python LLM response must contain data');
+        if (entries++) add(1);
+        string(key); add(1); visit(descriptor.value);
+      }
+    }
+    ancestors.delete(item);
+  };
+  visit(value);
+  return bytes;
+}
+
+function* textFragments(text: string, limit: number): Generator<string> {
+  let start = 0, bytes = 0;
+  for (let i = 0; i < text.length;) {
+    const point = text.codePointAt(i)!;
+    const width = point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
+    if (width > limit) throw new RangeError('Python LLM stream chunk limit cannot fit a Unicode scalar');
+    if (width > limit - bytes) { yield text.slice(start, i); start = i; bytes = 0; }
+    bytes += width;
+    i += point > 65535 ? 2 : 1;
+  }
+  if (start < text.length || !text.length) yield text.slice(start);
+}
+
+export interface PythonLlmCapabilityOptions {
+  readonly maxStreamChunkBytes?: number;
+  readonly maxBufferedResponseBytes?: number;
+  readonly maxBufferedEvents?: number;
+  readonly maxMetadataBytes?: number;
+}
+
 /** Reuses the invocation's authorized service; Python receives only model data. */
-export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | 'cwd' | 'inputBudget'>, service: LlmService, options: {readonly maxStreamChunkBytes?:number} = {}): PythonHostCapability {
+export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | 'cwd' | 'inputBudget'>, service: LlmService, options: PythonLlmCapabilityOptions = {}): PythonHostCapability {
   const chunkBytes = options.maxStreamChunkBytes ?? 16384;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError('Invalid Python LLM stream chunk limit');
+  const bufferedLimit = options.maxBufferedResponseBytes ?? Infinity;
+  const eventLimit = options.maxBufferedEvents ?? bufferedLimit;
+  const metadataLimit = options.maxMetadataBytes ?? bufferedLimit;
+  for (const limit of [bufferedLimit, eventLimit, metadataLimit]) {
+    if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError('Invalid Python LLM host limit');
+  }
   const prepare = async (value: PythonHostValue, signal: AbortSignal): Promise<LlmServiceRequest> => {
     const payload = record(value);
     for (const key of ['template', 'conversation']) {
@@ -69,7 +148,15 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
           yield {type:'bytes',data:Array.from(event.data.subarray(offset,offset + chunkBytes))};
         }
       }
-      else yield event as unknown as PythonHostValue;
+      else if (event.type === 'text') {
+        for (const text of textFragments(event.text, chunkBytes)) {
+          request.signal.throwIfAborted();
+          yield {type:'text', text};
+        }
+      } else {
+        jsonBytes(event.response as unknown as PythonHostValue, metadataLimit);
+        yield event as unknown as PythonHostValue;
+      }
     }
   };
   return {
@@ -86,15 +173,41 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
           inputs:payload.inputs as readonly string[], options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>, signal}) as unknown as PythonHostValue;
       }
       if (operation.operation !== 'complete') throw new TypeError('Unsupported Python LLM operation');
-      const text:string[] = [], data:number[] = [];
+      const request = await prepare(payload, signal);
+      const bounded = {...request, maxOutputBytes:Math.min(request.maxOutputBytes ?? Infinity, bufferedLimit)};
+      let text = '', textBytes = 0, dataBytes = 0, received = 0;
+      const data:number[] = [];
       let response: Record<string,PythonHostValue> = {};
-      for await (const value of events(payload,{signal})) {
-        const event = record(value);
-        if (event.type === 'text') text.push(event.text as string);
-        else if (event.type === 'bytes') for (const byte of event.data as readonly number[]) data.push(byte);
-        else if (event.type === 'response') response = {...record(event.response!)};
+      let envelopeBytes = jsonBytes({text:'', data:[]}, bufferedLimit);
+      const admit = (size: number): void => {
+        if (size > bufferedLimit - envelopeBytes - textBytes - dataBytes) throw new RangeError('Python LLM buffered response limit exceeded');
+      };
+      for await (const event of service.stream(bounded)) {
+        bounded.signal.throwIfAborted();
+        if (++received > eventLimit) throw new RangeError('Python LLM buffered event limit exceeded');
+        if (event.type === 'text') {
+          const size = bufferedLimit === Infinity || !event.text ? 0 : jsonBytes(event.text, bufferedLimit - envelopeBytes - textBytes - dataBytes + 2) - 2;
+          admit(size);
+          textBytes += size;
+          if (event.text) text += event.text;
+        } else if (event.type === 'bytes') {
+          let size = 0;
+          if (bufferedLimit !== Infinity) for (let i = 0; i < event.data.length; i++) {
+            size += String(event.data[i]!).length + (data.length || i ? 1 : 0);
+            admit(size);
+          }
+          dataBytes += size;
+          for (const byte of event.data) data.push(byte);
+        } else {
+          jsonBytes(event.response as unknown as PythonHostValue, metadataLimit);
+          const details = record(event.response as unknown as PythonHostValue);
+          const size = jsonBytes({...details, text:'', data:[]}, bufferedLimit);
+          if (size > bufferedLimit - textBytes - dataBytes) throw new RangeError('Python LLM buffered response limit exceeded');
+          envelopeBytes = size;
+          response = {...details};
+        }
       }
-      return {...response,text:text.join(''),data};
+      return {...response,text,data};
     },
     stream:events,
   };

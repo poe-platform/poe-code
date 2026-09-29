@@ -225,7 +225,7 @@ test('real workerd native async I/O, imports, binary streams and asynchronous fi
     assert.equal(host.calls, 5);
     assert.equal(host.hostCancelled, 1);
     assert.equal(host.shellStreamCancelled, 1);
-    assert.equal(host.libraryReleased, 4);
+    assert.equal(host.libraryReleased, 9);
     assert.equal(host.retirementRejected, true);
     assert.equal(host.siblingExit, 0);
     assert.equal(host.sibling, 'sibling-authority\n');

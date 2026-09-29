@@ -3,11 +3,12 @@ import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { pathOf } from "safe-bash-contracts/path";
 import { acceptsMimeType, sniffMimeType } from "./mime.js";
-import type { LlmCommandsOptions, LlmRequest } from "./types.js";
+import type { LlmCommandsOptions, LlmRequest, LlmInputSource } from "./types.js";
 import { createLlmService, type LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
 import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters } from "./templates.js";
 import { createLlmOutputSpool } from "./output-spool.js";
+import { fileSource } from "./file-source.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
 import { configurationCommand } from "./configuration-command.js";
 import { listLlmModels, LlmModelsUsageError, modelsGroupHelp } from "./models-list.js";
@@ -253,12 +254,47 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       ...args.attachments.filter(item => item.mimeType !== undefined),
     ];
     const attachments: { mimeType: string; bytes: Uint8Array }[] = [];
+    const sourceAttachments: { mimeType: string; source: LlmInputSource }[] = [];
+    const streamed = service.streamSources !== undefined && entry.provider.completeSources !== undefined;
+    const textSource = (value: string): LlmInputSource => ({
+      async dispose() {},
+      bytes: { async *[Symbol.asyncIterator]() {
+        for (let offset = 0; offset < value.length;) {
+          await step();
+          let end = Math.min(value.length, offset + 16384);
+          const last = value.charCodeAt(end - 1);
+          if (end < value.length && last >= 0xd800 && last <= 0xdbff) end--;
+          yield new TextEncoder().encode(value.slice(offset, end));
+          offset = end;
+        }
+      } },
+    });
     for (const attachment of args.attachments) {
       await step();
       if (attachment.path.includes("://")) throw new Error("URL attachments are not supported");
       const path = pathOf(context, attachment.path);
       const stat = await interrupted(() => context.fs.stat(path, { signal }), signal);
       checkInput(stat.size);
+      if (streamed) {
+        const source = await operation.acquire(() => fileSource({ fs: context.fs, path, signal, maxBytes: inputLimit - inputBytes, expectedStat: stat }), source => source.dispose());
+        const input = source.bytes[Symbol.asyncIterator]();
+        const first = await interrupted(() => input.next(), signal);
+        const mimeType = attachment.mimeType ?? sniffMimeType(path, first.done ? new Uint8Array() : first.value);
+        if (!acceptsMimeType(entry.model.attachmentTypes ?? [], mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${mimeType}`);
+        admitInput(stat.size);
+        sourceAttachments.push({ mimeType, source: {
+          dispose: source.dispose,
+          bytes: { async *[Symbol.asyncIterator]() {
+            if (!first.done) yield first.value;
+            while (true) {
+              const next = await interrupted(() => input.next(), signal);
+              if (next.done) break;
+              yield next.value;
+            }
+          } },
+        } });
+        continue;
+      }
       const bytes = await interrupted(() => context.fs.readFile(path, { signal,
         ...(inputLimit === Infinity ? {} : { maxBytes: inputLimit - inputBytes }),
       }), signal);
@@ -275,7 +311,16 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     };
     signal.throwIfAborted();
     if (args.noStream) outputSpool = await operation.acquire(() => createLlmOutputSpool(context.fs, context.cwd, signal), spool => spool.close());
-    iterator = service.complete(request)[Symbol.asyncIterator]();
+    if (streamed) {
+      const events = service.streamSources!({ model: request.model, options: request.options, signal, prompt: textSource(prompt),
+        ...(args.system === undefined ? {} : { system: textSource(args.system) }), attachments: sourceAttachments });
+      iterator = (async function* () {
+        for await (const event of events) {
+          if (event.type === "text") yield event.text;
+          else if (event.type === "bytes") yield event.data;
+        }
+      })()[Symbol.asyncIterator]();
+    } else iterator = service.complete(request)[Symbol.asyncIterator]();
     const text = (entry.model.outputType ?? "text/plain").toLowerCase().startsWith("text/");
     let pendingSurrogate = "";
     while (true) {

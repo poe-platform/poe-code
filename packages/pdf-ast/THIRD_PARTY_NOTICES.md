@@ -179,6 +179,12 @@ Word-spacing classification follows PDF.js `Font.charsToGlyphs`
 receives Tw, regardless of its Unicode label. The internal CMap reader preserves
 that classification without changing the public ToUnicode result shape.
 
+Simple-font character segmentation also follows `Font.charsToGlyphs`: Type1,
+TrueType, and Type3 strings use single-byte codes even when ToUnicode declares
+a wider codespace. `src/fonts/simple-font-codespace.test.ts` checks that behavior
+and the original upstream issue17069 equality fixture, including TJ fragments,
+word spacing, Unicode labels spanning multiple characters, and save/reopen.
+
 
 # SVG labels
 

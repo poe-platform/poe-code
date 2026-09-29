@@ -199,3 +199,10 @@ stream is also truncated. PDF.js ignores the broken map and renders embedded
 glyphs, but cannot extract the displayed English text. Manifest MD5:
 `a1ea636f413e02e10dbdf379ab4a99ae`. SHA-256:
 `13ba78671c0ceaaffb10878e6c153c18924db5afcd54cc7f038eb85fb10e28b1`.
+
+`pdfjs-issue17069.pdf` is the unchanged PDF.js `test/pdfs/issue17069.pdf` at
+revision `91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0), equality test
+with annotations enabled. Its simple Calibri font has single-byte text and
+mapping entries despite a two-byte ToUnicode codespace. Manifest MD5:
+`e44a3920c83d8e7be112c52da4db8e57`. SHA-256:
+`338fa82e5d4ee20033967eafb229d3b64a38edd0465421592800165b94003dac`.

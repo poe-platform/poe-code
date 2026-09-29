@@ -124,7 +124,8 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
     const glyphNames = buildFontEncodingGlyphNamesMap(encNode);
     const widths = new Map<number, number>();
     let defaultWidth = 556;
-    const isTwoByteCid = subtype === "Type0" || Boolean(cmap?.isTwoByte);
+    // ToUnicode labels codes; only the font's encoding determines their width.
+    const isTwoByteCid = subtype === "Type0";
 
     let fontMatrix: Matrix6 | undefined;
     let charProcs: PdfCosDict | undefined;

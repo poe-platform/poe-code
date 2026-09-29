@@ -119,18 +119,20 @@ test("fmt admits input bytes before copying oversized producer chunks and closes
   assert.equal(retired, 1);
 });
 
-test("fmt bounds unproductive empty input without limiting productive tiny chunks", async () => {
+test("fmt enforces explicit empty input limits without limiting productive tiny chunks", async () => {
   let retired = 0;
   let pulls = 0;
   const empty: ByteSource = { async *[Symbol.asyncIterator]() {
     try { while (true) { assert.ok(++pulls <= 4097, "empty input must stop at its liveness guard"); yield new Uint8Array(); } }
     finally { retired++; }
   } };
-  const result = await format([], empty);
+  const result = await format([], empty, {}, undefined, { emptyChunks: 4096 });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stderr.toString(), "fmt: empty input chunk limit exceeded\n");
   assert.equal(pulls, 4097);
   assert.equal(retired, 1);
+  const unrestricted: ByteSource = { async *[Symbol.asyncIterator]() { for (let index = 0; index < 4097; index++) yield new Uint8Array(); } };
+  assert.equal((await format([], unrestricted)).exitCode, 0);
   const productive: ByteSource = { async *[Symbol.asyncIterator]() { for (let index = 0; index < 4097; index++) yield Uint8Array.of(97); } };
   assert.deepEqual((await format([], productive)).stdout, Buffer.from("a".repeat(4097) + "\n"));
 });

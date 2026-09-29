@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { summarizeToolAction } from "./tool-summary.js";
 
 describe("concise dashboard tool actions", () => {
+  it.each(["?", "*", "@", "#", "$", "!", "_", "-"])("preserves text after literal parameter $%s", (parameter) => {
+    const path = `$${parameter}suffix`;
+    const title = `cat "${path}"`;
+    expect(summarizeToolAction({ kind: "exec", title })).toEqual({ label: `Read ${path}`, detail: title });
+  });
   it.each([
     ["/bin/zsh -lc 'cat src/validation.ts'", "Read src/validation.ts"],
     ["/bin/zsh -lc \"sed -n '97,149p' packages/docx/tests/assertions.ts\"", "Read packages/docx/tests/assertions.ts"],

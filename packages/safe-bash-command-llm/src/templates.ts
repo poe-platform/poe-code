@@ -9,14 +9,21 @@ export interface LlmTemplate {
   model?: string;
   defaults?: Record<string, string>;
   options?: Record<string, string>;
+  attachments?: string[];
+  attachment_types?: { type: string; value: string }[];
 }
-const templateFields = ["name", "prompt", "system", "model", "defaults", "options"];
+const templateFields = ["name", "prompt", "system", "model", "defaults", "options", "attachments", "attachment_types"];
 function template(value: unknown, name: string): LlmTemplate {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`Invalid template: ${name}`);
   const fields = value as Record<string, unknown>;
   for (const [key, item] of Object.entries(fields)) {
     if (!templateFields.includes(key)) throw new Error(`Unsupported template field: ${key}`);
-    if (["defaults", "options"].includes(key)) {
+    if (key === "attachments") {
+      if (!Array.isArray(item) || item.some(value => typeof value !== "string")) throw new Error(`Invalid template: ${name}`);
+    } else if (key === "attachment_types") {
+      if (!Array.isArray(item) || item.some(value => !value || typeof value !== "object" || Array.isArray(value) || typeof value.type !== "string" || typeof value.value !== "string")) throw new Error(`Invalid template: ${name}`);
+      fields[key] = item.map(({ type, value }: { type: string; value: string }) => ({ type, value }));
+    } else if (["defaults", "options"].includes(key)) {
       if (!item || typeof item !== "object" || Array.isArray(item) || Object.values(item).some(value => typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean")) throw new Error(`Invalid template: ${name}`);
     } else if (typeof item !== "string") throw new Error(`Invalid template: ${name}`);
   }

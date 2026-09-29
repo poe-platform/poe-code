@@ -223,12 +223,15 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const content = fragments.join("");
     let prompt = content && args.prompt ? `${content}\n\n${args.prompt}` : content || args.prompt;
     if (args.save) {
-      if (args.attachments.length) throw new Error("Error: Template attachment storage is not implemented");
+      const attachments = args.attachments.filter(item => item.mimeType === undefined).map(item => item.path);
+      const attachmentTypes = args.attachments.filter(item => item.mimeType !== undefined).map(item => ({ type: item.mimeType!, value: item.path }));
       const saved = {
         ...(args.model === undefined ? {} : { model: entry!.model.id }),
         ...(prompt ? { prompt } : {}), ...(args.system === undefined ? {} : { system: args.system }),
         ...(Object.keys(args.params).length ? { defaults: args.params } : {}),
         ...(Object.keys(args.options).length ? { options: args.options } : {}),
+        ...(attachments.length ? { attachments } : {}),
+        ...(attachmentTypes.length ? { attachment_types: attachmentTypes } : {}),
       };
       await templateStore.save(args.save, saved); return { exitCode: 0 };
     }
@@ -242,6 +245,12 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     if (!entry) throw new Error("No model selected; use --model or configure defaultModel");
     args.options = { ...await configuration.modelOptions(entry.model.id), ...stored?.options, ...args.options };
+    args.attachments = [
+      ...(stored?.attachments ?? []).map(path => ({ path })),
+      ...args.attachments.filter(item => item.mimeType === undefined),
+      ...(stored?.attachment_types ?? []).map(item => ({ path: item.value, mimeType: item.type })),
+      ...args.attachments.filter(item => item.mimeType !== undefined),
+    ];
     const attachments: { mimeType: string; bytes: Uint8Array }[] = [];
     for (const attachment of args.attachments) {
       await step();

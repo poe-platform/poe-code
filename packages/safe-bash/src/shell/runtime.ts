@@ -11612,6 +11612,10 @@ export class Runtime {
         continue;
       }
       if (part.kind === "variable") {
+        // Unsubscripted array references expand element zero through the normal
+        // evaluator. fastValueWord cannot guarantee that expansion throughout
+        // a loop, so reject it before executing any loop effects.
+        if (stateMonitor(rawState)?.store?.get(part.name)) return false;
         // These expansions can require multiple fields or asynchronous quoting
         // as loop state changes. Decide before the loop produces any effects.
         if (this._syncLoopFnCheckDepth > 0 && (part.substring || getArraySelector(part)?.kind === "element")) return false;
@@ -14343,15 +14347,25 @@ export class Runtime {
         return false;
       }
       if (command.kind !== "simple" || hasShellFunction(rawState, command.words[0]?.plain ?? "") || command.words.some(word => getArrayAssignment(word) !== undefined)) return false;
-      const w0 = command.words[0]?.plain;
+      let commandIndex = 0;
+      while (commandIndex < command.words.length && this.assignment(command.words[commandIndex]!)) commandIndex++;
+      const commandWord = command.words[commandIndex];
+      if (!commandWord?.parts.every(part => part.kind === "text")) return false;
+      const w0 = commandWord.parts.map(part => part.kind === "text" ? part.value : "").join("");
+      // read targets and printf -v targets may be quoted or expanded. Both can
+      // invalidate the integer assumption used by induction formatting.
+      if (w0 === "read") return false;
+      if (w0 === "printf") {
+        const option = command.words[commandIndex + 1];
+        if (!option?.parts.every(part => part.kind === "text")) return false;
+        if (option.parts.map(part => part.kind === "text" ? part.value : "").join("") === "-v") return false;
+      }
       if (w0 === "let" || w0 === "declare" || w0 === "typeset" || w0 === "local" || w0 === "export" || w0 === "unset" || w0 === "mapfile" || w0 === "readarray") return false;
       if (inductionName !== undefined) {
         if (command.words.some(w => {
           const p0 = w.parts[0];
           return p0?.kind === "text" && !p0.quoted && (p0.value.startsWith(inductionName + "=") || p0.value.startsWith(inductionName + "+="));
         })) return false;
-        if (w0 === "read" && (inductionName === "REPLY" || command.words.slice(1).some(w => w.plain === inductionName || w.plain === "-a" || w.plain === "-ra" || w.plain === "-ar"))) return false;
-        if (w0 === "printf" && command.words[1]?.plain === "-v" && command.words[2]?.plain === inductionName) return false;
       }
       for (const word of [...command.words, ...command.redirects.map(redirect => redirect.target)]) for (const part of word.parts) {
         if (part.kind === "text") continue;

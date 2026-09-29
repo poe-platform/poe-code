@@ -24350,9 +24350,7 @@ export class Runtime {
         const parts = rest.slice(2).split(delim);
         if (parts.length !== 3) return undefined;
         const [pat, rep, flags] = parts as [string, string, string];
-        // Capture validation (including unmatched input) belongs to sed's parser.
-        if (rep.includes("\\")) return undefined;
-        if (!/^[giIp1-9]*$/.test(flags) || /\n|\\(?![1-9])/.test(rep)) return undefined;
+        if (!/^[giIp1-9]*$/.test(flags) || /\n/.test(rep) || !/^(?:[^\\]|\\[1-9&\\tn])*$/.test(rep)) return undefined;
         const nthDigits = flags.match(/[1-9]/g);
         if (nthDigits && (nthDigits.length > 1 || flags.includes("g"))) return undefined;
         const nth = nthDigits ? Number(nthDigits[0]!) : 0;
@@ -24370,7 +24368,6 @@ export class Runtime {
             (isExtended ? core.includes("|") : core.includes("\\|") || core.includes("[") && core.includes("\\"))) return undefined;
         let reSrc: string | undefined;
         if (/^[a-zA-Z0-9_ :;,=-]*$/.test(core)) {
-          if (/\\[1-9]/.test(rep)) return undefined;
           reSrc = core.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         } else if (
           core === "[ \t]*" || core === "[ \t]+" || core === "[ \\t]*" || core === "[ \\t]+" ||
@@ -24378,7 +24375,6 @@ export class Runtime {
           core === "[0-9]+" || core === "[0-9]*" ||
           core === "[a-zA-Z]+" || core === "[a-zA-Z0-9_]+"
         ) {
-          if (/\\[1-9]/.test(rep)) return undefined;
           reSrc = core.replace("[[:space:]]", "[ \\t\\r\\n\\v\\f]");
         } else if (isExtended && /^[a-zA-Z0-9_ :;,=.+*?|()^\-[\]]+$/.test(core) && !/\([^)]*[+*][^)]*\)[+*?]/.test(core)) {
           try {
@@ -24415,6 +24411,13 @@ export class Runtime {
           }
         }
         if (reSrc === undefined) return undefined;
+        const numGroups = (new RegExp(reSrc + "|").exec("")?.length ?? 1) - 1;
+        for (let ri = 0; ri < rep.length; ri++) {
+          if (rep[ri] === "\\") {
+            const nxt = rep[++ri]!;
+            if (nxt >= "1" && nxt <= "9" && Number(nxt) > numGroups) return undefined;
+          }
+        }
         const fullRe = new RegExp((anchorStart ? "^" : "") + reSrc + (anchorEnd ? "$" : ""), (global ? "g" : "") + (ignoreCase ? "i" : ""));
         steps.push({ addr, negated, kind: "s", re: fullRe, rep, printOnMatch, nth });
         continue;
@@ -24478,8 +24481,16 @@ export class Runtime {
             if (c === "&") replacement += matched;
             else if (c === "\\" && ri + 1 < st.rep.length) {
               const next = st.rep[++ri]!;
-              const group = next >= "1" && next <= "9" ? groups[Number(next) - 1] : next;
-              replacement += typeof group === "string" ? group : "";
+              if (next >= "1" && next <= "9") {
+                const group = groups[Number(next) - 1];
+                replacement += typeof group === "string" ? group : "";
+              } else if (next === "t") {
+                replacement += "\t";
+              } else if (next === "n") {
+                replacement += "\n";
+              } else {
+                replacement += next;
+              }
             } else replacement += c;
           }
           return replacement;
@@ -25090,8 +25101,8 @@ export class Runtime {
     let rowPred: ((l: string, fields: readonly string[], nr: number) => boolean) | undefined;
     if (!progRest.startsWith("{")) {
       const braceIdx = progRest.indexOf("{");
-      if (braceIdx <= 0) return undefined;
-      const condHead = progRest.slice(0, braceIdx).trim();
+      if (braceIdx === 0) return undefined;
+      const condHead = (braceIdx === -1 ? progRest : progRest.slice(0, braceIdx)).trim();
       const buildAtomPred = (atomStr: string): ((l: string, fields: readonly string[], nr: number) => boolean) | undefined => {
         const a = atomStr.trim();
         const patM = /^(!?)\/([a-zA-Z0-9_ :;,=.*+?^$()|[\]-]+)\/$/.exec(a);
@@ -25163,7 +25174,7 @@ export class Runtime {
         }
         return false;
       };
-      progRest = progRest.slice(braceIdx).trim();
+      progRest = braceIdx === -1 ? "{ print $0 }" : progRest.slice(braceIdx).trim();
     }
     type AwkPreAssign = {
       targetKind: "field" | "var";

@@ -112,7 +112,7 @@ test("evaluates echo -n/-e/-ne and stage-0 dirname/basename/pwd/expr in sync pip
 test("evaluates multi-file and formatted cat (-n/-b/-s/-E/-T) and multi-file head/tail (-q/-v) in sync substitutions, pipelines, and brace loops (Wave 166)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/tmp");
-  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands());
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(textProgramCommands());
   const res = await shell.exec([
     "printf \"alpha\\nbeta\\n\" > /tmp/f1.txt",
     "printf \"gamma\\ndelta\\n\" > /tmp/f2.txt",
@@ -278,5 +278,32 @@ test("evaluates nl, paste, comm, join, and numfmt with file operands in sync sub
   assert.equal(
     res.stdout,
     " 1:x, 2:y, 3:10, 4:20,|x:10,y:20,|x,y;10,20;|b,c,|1:alice:admin,2:bob:user,|1.0K,2.0K,|x=10;x=10;\n"
+  );
+});
+
+test("evaluates sed backreferences (\\1..\\9, \\&, \\t) and pattern-only awk rules in sync substitutions, pipelines, and brace loops (Wave 172)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(textProgramCommands());
+  const res = await shell.exec([
+    "printf '# header\\nhost:10:prod\\ndb:25:stage\\napi:30:prod\\n' > /tmp/rows.txt",
+    "s_ere=$(sed -E 's/([a-z]+)=([0-9]+)/\\2:\\1/g' <<< 'a=1 b=22')",
+    "s_bre=$(sed 's/\\([a-z][a-z]*\\)-\\([0-9][0-9]*\\)/\\2_\\1/' <<< 'item-42')",
+    "s_amp=$(sed 's/x/[\\&]/g' <<< 'x+x')",
+    "a_nr=$(awk 'NR > 2' /tmp/rows.txt | tr '\\n' ',')",
+    "a_cmp=$(awk -F: '$2 >= 25' /tmp/rows.txt | tr '\\n' ',')",
+    "a_nocomm=$(awk '!/^#/' /tmp/rows.txt | wc -l | tr -d ' ')",
+    "c_comp=$(cut -d : -f 2 --complement /tmp/rows.txt | grep -v '^#' | tr '\\n' ',')",
+    "loop_out=''",
+    "for k in 1 2; do",
+    "  v=$(sed -E 's/([a-z]+):([0-9]+):([a-z]+)/\\3_\\1=\\2/' /tmp/rows.txt | tail -n 1)",
+    "  loop_out=\"${loop_out}${v};\"",
+    "done",
+    "echo \"$s_ere|$s_bre|$s_amp|$a_nr|$a_cmp|$a_nocomm|$c_comp|$loop_out\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "1:a 22:b|42_item|[&]+[&]|db:25:stage,api:30:prod,|db:25:stage,api:30:prod,|3|host:prod,db:stage,api:prod,|prod_api=30;prod_api=30;\n"
   );
 });

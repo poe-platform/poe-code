@@ -127,3 +127,20 @@ Issue 1445 remains open: full shared-service parity, final adapter publication,
 consumer adoption and compliant hosted authorization/billing/cleanup acceptance
 are not yet complete. No extra Worker deployment or release-barrier bypass is
 authorized by this checkpoint.
+
+## Publication repair checkpoint
+
+Remote main `2827abdfd13444f418a80194c9f9161c2d0cc045` contains the
+publication build repairs and their regressions; fresh fetch and ancestry verify
+delivery. Concurrent upstream date/diff fixes were retained, including the full
+shared diff matcher fallback. Async stdin for `wc --files0-from=-` reproduced an
+internal error before restoring its missing byte-collector import and passes
+afterward. Maintained repair/existing-suite verification passes 704 runner checks,
+1,431 selected checks and root posttest
+(`out/python-publication-repair-combined-unit.log`); the final rebased eight
+regressions and ESLint pass separately. Scoped publication run 36555304294
+failed on these exact compile errors before this delivery. Full `npm test` is
+restarted with persistent log `out/python-full-unit-after-repairs.log` and an
+explicit terminal `.exit` receipt; no full-suite success is claimed yet.
+Qualifying publication, full service parity and compliant hosted acceptance
+remain incomplete, so issue 1445 stays open.

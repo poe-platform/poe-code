@@ -1,3 +1,4 @@
+import { assertDecodedByteBudget } from "./limits.js";
 import {
   decodePdfString,
   dictGet,
@@ -37,7 +38,7 @@ export class ParsedCosDocument {
   encryption?: PdfEncryptionState | undefined;
   /** Destructive edits must not retain obsolete objects or earlier file revisions. */
   requiresFullRewrite = false;
-  private readonly maxDecompressedBytes: number;
+  readonly maxDecompressedBytes: number;
   private readonly maxRecursionDepth: number;
 
   constructor(params: {
@@ -123,8 +124,12 @@ export class ParsedCosDocument {
   }
 
   decodeStream(stream: PdfCosStream): Uint8Array {
-    if (stream.decodedBytes) return stream.decodedBytes;
+    if (stream.decodedBytes) {
+      assertDecodedByteBudget(stream.decodedBytes.byteLength, this.maxDecompressedBytes);
+      return stream.decodedBytes;
+    }
     const decoded = decodeStreamObject(stream, this.maxDecompressedBytes, n => this.resolve(n));
+    assertDecodedByteBudget(decoded.byteLength, this.maxDecompressedBytes);
     (stream as { decodedBytes?: Uint8Array }).decodedBytes = decoded;
     return decoded;
   }

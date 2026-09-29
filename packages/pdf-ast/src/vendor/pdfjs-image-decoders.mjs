@@ -2380,7 +2380,8 @@ class ContextCache {
   }
 }
 class DecodingContext {
-  constructor(data, start, end) {
+  constructor(data, start, end, onImageDimensions) {
+    this.onImageDimensions = onImageDimensions;
     this.data = data;
     this.start = start;
     this.end = end;
@@ -2652,6 +2653,7 @@ function decodeBitmapTemplate0(width, height, decodingContext) {
   return bitmap;
 }
 function decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, decodingContext) {
+  decodingContext.onImageDimensions?.(width, height);
   if (mmr) {
     const input = new Reader(decodingContext.data, decodingContext.start, decodingContext.end);
     return decodeMMRBitmap(input, width, height, false);
@@ -2760,6 +2762,7 @@ function decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, d
   return bitmap;
 }
 function decodeRefinement(width, height, templateIndex, referenceBitmap, offsetX, offsetY, prediction, at, decodingContext) {
+  decodingContext.onImageDimensions?.(width, height);
   let codingTemplate = RefinementTemplates[templateIndex].coding;
   if (templateIndex === 0) {
     codingTemplate = codingTemplate.concat([at[0]]);
@@ -2938,6 +2941,7 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
   return exportedSymbols;
 }
 function decodeTextRegion(huffman, refinement, width, height, defaultPixelValue, numberOfSymbolInstances, stripSize, inputSymbols, symbolCodeLength, transposed, dsOffset, referenceCorner, combinationOperator, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, logStripSize, huffmanInput) {
+  decodingContext.onImageDimensions?.(width, height);
   if (huffman && refinement) {
     throw new Jbig2Error("refinement with Huffman is not supported");
   }
@@ -3089,6 +3093,7 @@ function decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternInd
   return patterns;
 }
 function decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeight, defaultPixelValue, enableSkip, combinationOperator, gridWidth, gridHeight, gridOffsetX, gridOffsetY, gridVectorX, gridVectorY, decodingContext) {
+  decodingContext.onImageDimensions?.(regionWidth, regionHeight);
   const skip = null;
   if (enableSkip) {
     throw new Jbig2Error("skip is not supported");
@@ -3513,8 +3518,8 @@ function processSegments(segments, visitor) {
     processSegment(segments[i], visitor);
   }
 }
-function parseJbig2Chunks(chunks) {
-  const visitor = new SimpleSegmentVisitor();
+function parseJbig2Chunks(chunks, onImageDimensions) {
+  const visitor = new SimpleSegmentVisitor(onImageDimensions);
   for (let i = 0, ii = chunks.length; i < ii; i++) {
     const chunk = chunks[i];
     const segments = readSegments({}, chunk.data, chunk.start, chunk.end);
@@ -3522,7 +3527,7 @@ function parseJbig2Chunks(chunks) {
   }
   return visitor.buffer;
 }
-function parseJbig2(data) {
+function parseJbig2(data, onImageDimensions) {
   const end = data.length;
   let position = 0;
   if (data[position] !== 0x97 || data[position + 1] !== 0x4a || data[position + 2] !== 0x42 || data[position + 3] !== 0x32 || data[position + 4] !== 0x0d || data[position + 5] !== 0x0a || data[position + 6] !== 0x1a || data[position + 7] !== 0x0a) {
@@ -3537,7 +3542,7 @@ function parseJbig2(data) {
     position += 4;
   }
   const segments = readSegments(header, data, position, end);
-  const visitor = new SimpleSegmentVisitor();
+  const visitor = new SimpleSegmentVisitor(onImageDimensions);
   processSegments(segments, visitor);
   const {
     width,
@@ -3566,7 +3571,9 @@ function parseJbig2(data) {
   };
 }
 class SimpleSegmentVisitor {
+  constructor(onImageDimensions) { this.onImageDimensions = onImageDimensions; }
   onPageInformation(info) {
+    this.onImageDimensions?.(info.width, info.height);
     this.currentPageInfo = info;
     const rowSize = info.width + 7 >> 3;
     const buffer = new Uint8ClampedArray(rowSize * info.height);
@@ -3626,7 +3633,7 @@ class SimpleSegmentVisitor {
   }
   onImmediateGenericRegion(region, data, start, end) {
     const regionInfo = region.info;
-    const decodingContext = new DecodingContext(data, start, end);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions);
     const bitmap = decodeBitmap(region.mmr, regionInfo.width, regionInfo.height, region.template, region.prediction, null, region.at, decodingContext);
     this.drawBitmap(regionInfo, bitmap);
   }
@@ -3650,7 +3657,7 @@ class SimpleSegmentVisitor {
         inputSymbols.push(...referredSymbols);
       }
     }
-    const decodingContext = new DecodingContext(data, start, end);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions);
     symbols[currentSegment] = decodeSymbolDictionary(dictionary.huffman, dictionary.refinement, inputSymbols, dictionary.numberOfNewSymbols, dictionary.numberOfExportedSymbols, huffmanTables, dictionary.template, dictionary.at, dictionary.refinementTemplate, dictionary.refinementAt, decodingContext, huffmanInput);
   }
   onImmediateTextRegion(region, referredSegments, data, start, end) {
@@ -3669,7 +3676,7 @@ class SimpleSegmentVisitor {
       huffmanInput = new Reader(data, start, end);
       huffmanTables = getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput);
     }
-    const decodingContext = new DecodingContext(data, start, end);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions);
     const bitmap = decodeTextRegion(region.huffman, region.refinement, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.numberOfSymbolInstances, region.stripSize, inputSymbols, symbolCodeLength, region.transposed, region.dsOffset, region.referenceCorner, region.combinationOperator, huffmanTables, region.refinementTemplate, region.refinementAt, decodingContext, region.logStripSize, huffmanInput);
     this.drawBitmap(regionInfo, bitmap);
   }
@@ -3681,13 +3688,13 @@ class SimpleSegmentVisitor {
     if (!patterns) {
       this.patterns = patterns = {};
     }
-    const decodingContext = new DecodingContext(data, start, end);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions);
     patterns[currentSegment] = decodePatternDictionary(dictionary.mmr, dictionary.patternWidth, dictionary.patternHeight, dictionary.maxPatternIndex, dictionary.template, decodingContext);
   }
   onImmediateHalftoneRegion(region, referredSegments, data, start, end) {
     const patterns = this.patterns[referredSegments[0]];
     const regionInfo = region.info;
-    const decodingContext = new DecodingContext(data, start, end);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions);
     const bitmap = decodeHalftoneRegion(region.mmr, patterns, region.template, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.enableSkip, region.combinationOperator, region.gridWidth, region.gridHeight, region.gridOffsetX, region.gridOffsetY, region.gridVectorX, region.gridVectorY, decodingContext);
     this.drawBitmap(regionInfo, bitmap);
   }
@@ -4144,15 +4151,16 @@ function decodeMMRBitmap(input, width, height, endOfBlock) {
   return bitmap;
 }
 class Jbig2Image {
+  constructor(onImageDimensions) { this.onImageDimensions = onImageDimensions; }
   parseChunks(chunks) {
-    return parseJbig2Chunks(chunks);
+    return parseJbig2Chunks(chunks, this.onImageDimensions);
   }
   parse(data) {
     const {
       imgData,
       width,
       height
-    } = parseJbig2(data);
+    } = parseJbig2(data, this.onImageDimensions);
     this.width = width;
     this.height = height;
     return imgData;
@@ -5354,7 +5362,8 @@ const SubbandsGainLog2 = {
   HH: 2
 };
 class JpxImage {
-  constructor() {
+  constructor(onImageDimensions) {
+    this.onImageDimensions = onImageDimensions;
     this.failOnCorruptedImage = false;
   }
   parse(data) {
@@ -5508,6 +5517,7 @@ class JpxImage {
                 siz.XTOsiz > siz.XOsiz || siz.YTOsiz > siz.YOsiz) {
               throw new JpxError("Invalid SIZ dimensions");
             }
+            this.onImageDimensions?.(siz.Xsiz - siz.XOsiz, siz.Ysiz - siz.YOsiz);
             siz.Csiz = componentsCount;
             const components = [];
             j = position + 38;
@@ -5728,6 +5738,7 @@ class JpxImage {
         position += length;
       }
     } catch (e) {
+      if (e?.code === "E_LIMIT") throw e;
       if (doNotRecover || this.failOnCorruptedImage) {
         throw new JpxError(e.message);
       } else {

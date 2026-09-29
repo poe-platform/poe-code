@@ -1,3 +1,4 @@
+import { assertDecodedByteBudget } from "../cos/limits.js";
 import { Jbig2Image, JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
 import { PdfError } from "../errors.js";
 import {
@@ -375,8 +376,9 @@ function extractRawJpegFromStream(doc: ParsedCosDocument, stream: PdfCosStream, 
       return bytes;
     }
     try {
-      bytes = decodePdfFilter(f, bytes);
-    } catch {
+      bytes = decodePdfFilter(f, bytes, undefined, doc.maxDecompressedBytes);
+    } catch (error) {
+      if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
       return bytes;
     }
   }
@@ -451,11 +453,13 @@ function idct8x8(coeffs: Float64Array, outSpatial: Uint8Array): void {
 export function decodeJpegToRgba(
   jpegBytes: Uint8Array,
   fallbackWidth = 1,
-  fallbackHeight = 1
+  fallbackHeight = 1,
+  maxDecodedBytes = Infinity
 ): { width: number; height: number; components: number; data: Uint8Array } {
   let width = Math.max(1, fallbackWidth);
   let height = Math.max(1, fallbackHeight);
   let numComponents = 3;
+  assertDecodedByteBudget(width * height * 4, maxDecodedBytes);
 
   const qTables: Float64Array[] = [
     new Float64Array(64).fill(16),
@@ -552,6 +556,7 @@ export function decodeJpegToRgba(
         const sofW = (jpegBytes[pos + 3]! << 8) | jpegBytes[pos + 4]!;
         if (sofW > 0) width = sofW;
         if (sofH > 0) height = sofH;
+        assertDecodedByteBudget(width * height * 4, maxDecodedBytes);
         numComponents = jpegBytes[pos + 5]!;
         comps.length = 0;
         maxH = 1;
@@ -930,10 +935,12 @@ export function decodeJbig2ToRgba(
   jbig2Bytes: Uint8Array,
   fallbackWidth = 1,
   fallbackHeight = 1,
-  globals?: Uint8Array
+  globals?: Uint8Array,
+  maxDecodedBytes = Infinity
 ): Uint8Array {
   if (jbig2Bytes.length < 11) throw new PdfError("E_PARSE", "Invalid JBIG2 stream");
-  const decoder = new Jbig2Image();
+  assertDecodedByteBudget(fallbackWidth * fallbackHeight * 4, maxDecodedBytes);
+  const decoder = new Jbig2Image((width, height) => assertDecodedByteBudget(width * height * 4, maxDecodedBytes));
   const signature = [0x97, 0x4a, 0x42, 0x32, 0x0d, 0x0a, 0x1a, 0x0a];
   const standalone = signature.every((byte, i) => jbig2Bytes[i] === byte);
   let width = fallbackWidth, height = fallbackHeight;
@@ -965,8 +972,8 @@ export function decodeJbig2ToRgba(
   return rgba;
 }
 
-function decodeJpxSamples(bytes: Uint8Array): { width: number; height: number; components: number; samples: Uint8Array } {
-  const decoder = new JpxImage();
+function decodeJpxSamples(bytes: Uint8Array, maxDecodedBytes = Infinity): { width: number; height: number; components: number; samples: Uint8Array } {
+  const decoder = new JpxImage((width, height) => assertDecodedByteBudget(width * height * 4, maxDecodedBytes));
   decoder.failOnCorruptedImage = true;
   decoder.parse(bytes);
   const { width, height, componentsCount: components, tiles } = decoder;
@@ -991,18 +998,15 @@ function decodeJpxSamples(bytes: Uint8Array): { width: number; height: number; c
 export function decodeJpxToRgba(
   jpxBytes: Uint8Array,
   _fallbackWidth = 1,
-  _fallbackHeight = 1
+  _fallbackHeight = 1,
+  maxDecodedBytes = Infinity
 ): Uint8Array {
-  const image = decodeJpxSamples(jpxBytes);
+  const image = decodeJpxSamples(jpxBytes, maxDecodedBytes);
   if (![1, 3, 4].includes(image.components)) throw new PdfError("E_CAPABILITY", "Unsupported JPEG 2000 component count");
   return decodeSamplesToRgba(image.samples, image.width, image.height, 8, {
     colorSpace: image.components === 1 ? "gray" : image.components === 4 ? "cmyk" : "rgb",
     components: image.components,
   });
-}
-
-function decodeJpegFallbackRgba(jpegBytes: Uint8Array, width: number, height: number): Uint8Array {
-  return decodeJpegToRgba(jpegBytes, width, height).data;
 }
 
 function parseDecodePairs(
@@ -1467,6 +1471,8 @@ export function decodeXObjectImageToRgba(
   let height = hNode?.kind === "number" ? Math.max(1, Math.round(hNode.value)) : 1;
   let bitsPerComponent = bpcNode?.kind === "number" ? bpcNode.value : isMask ? 1 : 8;
 
+  assertDecodedByteBudget(width * height * 4, doc.maxDecompressedBytes);
+
   const csNode = dictGet(dict, "ColorSpace") ?? dictGet(dict, "CS");
   let csInfo: ResolvedColorSpace = isMask
     ? { colorSpace: "gray", components: 1 }
@@ -1482,7 +1488,7 @@ export function decodeXObjectImageToRgba(
     const smaskEncoding = resolveEncodingKind(smaskFilters);
     if (smaskEncoding === "jpeg") {
       const smaskJpeg = extractRawJpegFromStream(doc, smaskNode, smaskFilters);
-      const smaskRgba = decodeJpegFallbackRgba(smaskJpeg, width, height);
+      const smaskRgba = decodeJpegToRgba(smaskJpeg, width, height, doc.maxDecompressedBytes).data;
       alphaSamples = new Uint8Array(width * height);
       for (let p = 0; p < width * height; p++) {
         alphaSamples[p] = smaskRgba[p * 4]!;
@@ -1490,7 +1496,8 @@ export function decodeXObjectImageToRgba(
     } else {
       try {
         alphaSamples = doc.decodeStream(smaskNode);
-      } catch {
+      } catch (error) {
+        if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
         alphaSamples = undefined;
       }
     }
@@ -1505,9 +1512,9 @@ export function decodeXObjectImageToRgba(
         ? doc.resolveDict(params.items[filters.findIndex(filter => filter === "JBIG2Decode")])
         : doc.resolveDict(params);
       const globals = decodeParms ? doc.resolve(dictGet(decodeParms, "JBIG2Globals")) : undefined;
-      rgba = decodeJbig2ToRgba(rawEncBytes, width, height, globals?.kind === "stream" ? doc.decodeStream(globals) : undefined);
+      rgba = decodeJbig2ToRgba(rawEncBytes, width, height, globals?.kind === "stream" ? doc.decodeStream(globals) : undefined, doc.maxDecompressedBytes);
     } else if (encoding === "jpx") {
-      const decoded = decodeJpxSamples(rawEncBytes);
+      const decoded = decodeJpxSamples(rawEncBytes, doc.maxDecompressedBytes);
       width = decoded.width;
       height = decoded.height;
       bitsPerComponent = 8;
@@ -1521,7 +1528,7 @@ export function decodeXObjectImageToRgba(
       if (csInfo.components !== decoded.components) throw new PdfError("E_PARSE", "JPEG 2000 component count does not match ColorSpace");
       rgba = decodeSamplesToRgba(decoded.samples, width, height, 8, csInfo);
     } else {
-      rgba = decodeJpegFallbackRgba(rawEncBytes, width, height);
+      rgba = decodeJpegToRgba(rawEncBytes, width, height, doc.maxDecompressedBytes).data;
     }
     if (smaskNode?.kind === "stream") {
       applySmaskStreamToRgba(doc, smaskNode, rgba, width, height, activeRes);
@@ -1539,7 +1546,8 @@ export function decodeXObjectImageToRgba(
     let decodedSamples: Uint8Array;
     try {
       decodedSamples = doc.decodeStream(xobjStream);
-    } catch {
+    } catch (error) {
+      if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
       decodedSamples = xobjStream.rawBytes;
     }
     const decodePairs = parseDecodePairs(doc, dict);
@@ -1617,6 +1625,7 @@ export function decodeInlineImageNodeToRgba(
   const width = wNode?.kind === "number" ? Math.max(1, Math.round(wNode.value)) : 1;
   const height = hNode?.kind === "number" ? Math.max(1, Math.round(hNode.value)) : 1;
   const bitsPerComponent = bpcNode?.kind === "number" ? bpcNode.value : isInlineMask ? 1 : 8;
+  assertDecodedByteBudget(width * height * 4, doc?.maxDecompressedBytes);
   const csInfo: ResolvedColorSpace =
     csNode && doc
       ? resolveColorSpaceInfo(doc, csNode, activeRes)
@@ -1645,17 +1654,18 @@ export function decodeInlineImageNodeToRgba(
     try {
       decodedSamples = decodeStreamObject(
         { kind: "stream", dict, rawBytes: rawData },
-        undefined,
+        doc?.maxDecompressedBytes,
         n => (doc ? doc.resolve(n) : n)
       );
-    } catch {
+    } catch (error) {
+      if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
       // Keep raw bytes on filter error
     }
   }
 
   const rgba =
     encoding === "jpeg"
-      ? decodeJpegFallbackRgba(decodedSamples, width, height)
+      ? decodeJpegToRgba(decodedSamples, width, height, doc?.maxDecompressedBytes).data
       : decodeSamplesToRgba(
           decodedSamples,
           width,
@@ -1723,6 +1733,7 @@ export function extractDocumentImages(
 
       const width = wNode?.kind === "number" ? Math.max(1, Math.round(wNode.value)) : 1;
       const height = hNode?.kind === "number" ? Math.max(1, Math.round(hNode.value)) : 1;
+      assertDecodedByteBudget(width * height * 4, doc.maxDecompressedBytes);
       const bitsPerComponent = bpcNode?.kind === "number" ? bpcNode.value : isMask ? 1 : 8;
       const interpolate = interpNode?.kind === "boolean" ? interpNode.value : false;
 
@@ -1751,7 +1762,8 @@ export function extractDocumentImages(
           if (globalsStream?.kind === "stream") {
             try {
               jbig2GlobalsBytes = doc.decodeStream(globalsStream);
-            } catch {
+            } catch (error) {
+              if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
               jbig2GlobalsBytes = globalsStream.rawBytes;
             }
           }
@@ -1781,14 +1793,15 @@ export function extractDocumentImages(
       if (smaskNode?.kind === "stream") {
         try {
           alphaSamples = doc.decodeStream(smaskNode);
-        } catch {
+        } catch (error) {
+          if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
           alphaSamples = undefined;
         }
       }
 
       if (encoding === "jpeg") {
         rawJpegBytes = extractRawJpegFromStream(doc, xobjStream, filters);
-        rgba = decodeJpegFallbackRgba(rawJpegBytes, width, height);
+        rgba = decodeJpegToRgba(rawJpegBytes, width, height, doc.maxDecompressedBytes).data;
         if (smaskNode?.kind === "stream") {
           applySmaskStreamToRgba(doc, smaskNode, rgba, width, height, activeRes);
         }
@@ -1800,7 +1813,8 @@ export function extractDocumentImages(
         let decodedSamples: Uint8Array;
         try {
           decodedSamples = doc.decodeStream(xobjStream);
-        } catch {
+        } catch (error) {
+          if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
           decodedSamples = xobjStream.rawBytes;
         }
         const decodePairs = parseDecodePairs(doc, dict);
@@ -1943,7 +1957,8 @@ export function extractDocumentImages(
               let formBytes: Uint8Array;
               try {
                 formBytes = doc.decodeStream(targetStream);
-              } catch {
+              } catch (error) {
+                if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
                 formBytes = targetStream.rawBytes;
               }
               const formAst = parseContentStream(formBytes);
@@ -1965,6 +1980,7 @@ export function extractDocumentImages(
 
             const width = wNode?.kind === "number" ? Math.max(1, Math.round(wNode.value)) : 1;
             const height = hNode?.kind === "number" ? Math.max(1, Math.round(hNode.value)) : 1;
+            assertDecodedByteBudget(width * height * 4, doc.maxDecompressedBytes);
             const bitsPerComponent =
               bpcNode?.kind === "number" ? bpcNode.value : isInlineMask ? 1 : 8;
             const interpolate = interpNode?.kind === "boolean" ? interpNode.value : false;
@@ -1982,16 +1998,17 @@ export function extractDocumentImages(
               try {
                 decodedSamples = decodeStreamObject(
                   { kind: "stream", dict, rawBytes: node.data },
-                  undefined,
+                  doc.maxDecompressedBytes,
                   n => doc.resolve(n)
                 );
-              } catch {
+              } catch (error) {
+                if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
                 // Keep raw bytes on filter error
               }
             }
             const rgba =
               encoding === "jpeg"
-                ? decodeJpegFallbackRgba(decodedSamples, width, height)
+                ? decodeJpegToRgba(decodedSamples, width, height, doc.maxDecompressedBytes).data
                 : decodeSamplesToRgba(
                     decodedSamples,
                     width,
@@ -2042,7 +2059,8 @@ export function extractDocumentImages(
             const patRes = doc.resolveDict(dictGet(patStream.dict, "Resources")) ?? pageResources;
             try {
               walkAst(parseContentStream(doc.decodeStream(patStream)), patRes, visitedForms);
-            } catch {
+            } catch (error) {
+              if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
               // ignore malformed pattern stream
             }
           }
@@ -2062,7 +2080,8 @@ export function extractDocumentImages(
                 if (cpStream?.kind === "stream") {
                   try {
                     walkAst(parseContentStream(doc.decodeStream(cpStream)), fRes, visitedForms);
-                  } catch {
+                  } catch (error) {
+                    if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
                     // ignore malformed charproc
                   }
                 }
@@ -2083,7 +2102,8 @@ export function extractDocumentImages(
           const apRes = doc.resolveDict(dictGet(resolved.dict, "Resources")) ?? pageResources;
           try {
             walkAst(parseContentStream(doc.decodeStream(resolved)), apRes, visitedForms);
-          } catch {
+          } catch (error) {
+            if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
             // ignore malformed appearance stream
           }
         } else if (resolved.kind === "dict") {

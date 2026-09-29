@@ -44,6 +44,10 @@ Work began at 2026-09-29 02:42 UTC. The requested ten-hour minimum ends at 2026-
 - #4095 stress found a real upstream decoder flaw: JP2 truncated at byte 101 consumed memory until a 64 MB subprocess aborted. Added local JPX box/marker/tile bounds checks and invalid-size/subsampling guards with regression tests. All 483 JP2/J2K prefixes now terminate: 481 rejected, two raw J2K prefixes missing the EOC bytes recover exact original pixels. All 100 independently encoded RGB/gray JP2/J2K images (including tiles and reversible color transforms) still match reference pixels exactly.
 - Both upstream codec regression images match independent PyMuPDF RGBA hashes and were visually inspected side by side. The shared-symbol fixture uses lossy jbig2enc mode; its separate expected hash matches PyMuPDF, whereas arithmetic/MMR fixtures match the original bi-level source. Final package suite: 200 tests passed, lint/typecheck and maintained build passed. No native runtime dependencies were added; jbig2enc was installed only as an independent fixture generator.
 
+- #4095 codec delivery verified on remote main at `b3bdee8ec1`; issue closed. Publication remains pending.
+- #4121 reproduces image decoding bypassing an explicit 16-byte decompression budget. Added per-buffer checks for raw images, JPEG header dimensions, JPX and JBIG2 dimensions/regions, masks, inline images, cached/unfiltered streams, and extraction. Limit errors now survive fallback catches. Defaults remain unlimited; this does not claim an aggregate memory cap.
+- #4124 separately reproduces extraction returning compressed JPX/JBIG2 bytes as pixel samples. Rendering is correct for the committed reference while extraction has a different hash; follow-up will remove duplicated codec logic.
+
 ## Completion evidence to collect
 
 For each outcome record the tested revision, focused and integration commands/results, corpus provenance, independent comparison method, examined visual outputs, issue status, remote-main commit, and release publication. Require at least ten hours of work plus verified completion of all outcomes before marking the goal complete.

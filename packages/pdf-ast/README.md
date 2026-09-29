@@ -58,3 +58,6 @@ raise errors instead of producing placeholder pixels.
 
 Resource limits default to `Infinity`. Set `maxObjects`, `maxDecompressedBytes`,
 `maxRecursionDepth`, or save-time `maxOutputBytes` to enforce explicit budgets.
+`maxDecompressedBytes` bounds each decoded stream and image RGBA buffer, including
+masks and codec header dimensions. It is a per-buffer limit, not a total document
+memory limit; codec working memory can exceed the final pixel buffer size.

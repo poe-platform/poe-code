@@ -1,11 +1,13 @@
 /** Public API of the vendored PDF.js 4.1.392 standalone decoder build. */
 export class Jbig2Image {
+  constructor(onImageDimensions?: (width: number, height: number) => void);
   width: number;
   height: number;
   parse(data: Uint8Array): Uint8ClampedArray;
   parseChunks(chunks: Array<{ data: Uint8Array; start: number; end: number }>): Uint8Array | undefined;
 }
 export class JpxImage {
+  constructor(onImageDimensions?: (width: number, height: number) => void);
   width: number;
   height: number;
   componentsCount: number;

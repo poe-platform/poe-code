@@ -115,7 +115,7 @@ const expectedPrefix = [
 ];
 const limitNames = ["maxArguments", "maxArgumentBytes", "maxInputBytes", "maxOutputBytes", "maxBufferedBytes", "maxDiagnosticBytes", "maxFiles", "maxWork", "maxEmptyChunks", "maxPathBytes", "maxDepth", "maxTempAttempts", "chunkSize"] as const;
 
-test("default line-ending commands append to the independent 108-command prefix", () => {
+test("default line-ending commands append to the independent 109-command prefix", () => {
   const names = entry.createAgentCommands().map(command => command.name);
   assert.deepEqual(names, [...expectedPrefix, "dos2unix", "unix2dos", "mdq"]);
   assert.equal(new Set(names).size, 112);

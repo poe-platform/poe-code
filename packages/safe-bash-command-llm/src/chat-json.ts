@@ -3,7 +3,7 @@ import { base64Stream } from "./base64-stream.js";
 import { acceptsMimeType } from "./mime.js";
 import type { LlmSourceRequest } from "./types.js";
 /** Admit provider-owned control fields before opening the streamed HTTP body. */
-export function chatJson(request: LlmSourceRequest, limit: number): AsyncIterable<Uint8Array> {
+export function chatJson(request: Omit<LlmSourceRequest, "options"> & { readonly options: Readonly<Record<string, unknown>> }, limit: number): AsyncIterable<Uint8Array> {
   request.signal.throwIfAborted();
   for (const field of ["model", "messages", "stream"]) if (Object.hasOwn(request.options, field)) throw new TypeError(`${field} is controlled by the provider`);
   if (request.schema && Object.hasOwn(request.options, "response_format")) throw new TypeError("schema conflicts with response_format");

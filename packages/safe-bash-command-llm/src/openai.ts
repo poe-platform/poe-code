@@ -1,3 +1,4 @@
+import { openAiChatOptions } from "./openai-chat-options.js";
 import { chatJson } from "./chat-json.js";
 import { parseLlmNumericOption } from "./numeric-option.js";
 import type { HttpRequest, HttpTransport } from "safe-bash-contracts/http";
@@ -167,7 +168,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       request.signal.throwIfAborted();
       const model = byId.get(request.model);
       if (!model || model.endpoint !== "chat") throw new Error(`Model ${request.model} does not support streamed inputs`);
-      const body = chatJson({ ...request, options: jsonOptions(request.options, "chat") }, limits.maxRequestBytes);
+      const body = chatJson({ ...request, options: openAiChatOptions(jsonOptions(request.options, "chat")) }, limits.maxRequestBytes);
       let details: LlmResponseMetadata | undefined;
       for await (const response of openAiResponse(transport, {
         url: `${baseUrl}/chat/completions`, method: "POST", signal: request.signal,
@@ -208,7 +209,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
           ...request.attachments.map(attachment => ({ type: "image_url", image_url: { url: `data:${attachment.mimeType};base64,${base64(attachment.bytes)}` } })),
         ] });
         let details: LlmResponseMetadata | undefined;
-        for await (const response of send("/chat/completions", "POST", jsonBody({ ...jsonOptions(request.options, "chat"), ...(request.schema === undefined ? {} : { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } }), model: request.model, messages, stream: true }, limits.maxRequestBytes))) {
+        for await (const response of send("/chat/completions", "POST", jsonBody({ ...openAiChatOptions(jsonOptions(request.options, "chat")), ...(request.schema === undefined ? {} : { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } }), model: request.model, messages, stream: true }, limits.maxRequestBytes))) {
           details = yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
         }
         return details;

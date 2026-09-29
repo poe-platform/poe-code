@@ -1,7 +1,8 @@
 import { creationUmask } from "../../fs/creation-mask.js";
 import { randomInteger } from "../portable-random.js";
 import { FsError, validatePath } from "../../contracts/index.js";
-import { codeOf, diagnostic, pathOf, UsageError } from "../internal.js";
+import { codeOf, diagnostic, pathOf, syncCommandEvaluators, UsageError } from "../internal.js";
+import { gnuInformationSync } from "../gnu-information.js";
 import { MetadataBudget, metadataCommand, settings, type MetadataCommandsOptions } from "./internal.js";
 
 function parse(args: readonly string[]) {
@@ -60,6 +61,46 @@ function parse(args: readonly string[]) {
   const tail = suffix ?? name.slice(end);
   return { directory, dryRun, quiet, useTmpdir, deprecatedTmpdir, tmpdir, template, prefix: template.slice(0, template.length - name.length + start), count: end - start, tail };
 }
+
+
+export function evalSyncMktemp(
+  opArgs: readonly string[],
+  env: Readonly<Record<string, string>>,
+  statTypeSync?: (filePath: string) => string | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
+  mkdirSync?: (filePath: string) => boolean,
+): string | undefined {
+  const gnuInfo = gnuInformationSync("mktemp", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  try {
+    const parsed = parse(opArgs);
+    const parent = (parsed.deprecatedTmpdir && env.TMPDIR) || parsed.tmpdir || env.TMPDIR || "/tmp";
+    validatePath(parent);
+    if (!statTypeSync) return undefined;
+    const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    for (let attempt = 0; attempt < 32; attempt++) {
+      let random = "";
+      for (let i = 0; i < parsed.count; i++) random += alphabet[randomInteger(alphabet.length)];
+      const generated = `${parsed.prefix}${random}${parsed.tail}`;
+      const display = parsed.useTmpdir ? `${parent.replace(/\/+$/u, "")}/${generated}` : generated;
+      const st = statTypeSync(display);
+      if (st !== "missing") continue;
+      if (!parsed.dryRun) {
+        if (parsed.directory) {
+          if (!mkdirSync || !mkdirSync(display)) return undefined;
+        } else {
+          if (!writeFileSync || !writeFileSync(display, new Uint8Array(0))) return undefined;
+        }
+      }
+      return `${display}\n`;
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+syncCommandEvaluators.evalSyncMktemp = evalSyncMktemp;
 
 export function createMktempCommand(configuration: MetadataCommandsOptions = {}) {
   const configured = settings(configuration);

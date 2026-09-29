@@ -1,3 +1,4 @@
+import { registerDefaultExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createPrintenvCommand } from "./printenv.js";
 import { createDateCommand } from "./date.js";
@@ -7,7 +8,7 @@ export type { TimeEnvCommandsOptions, TimeEnvLimits, SleepScheduler } from "./sh
 
 export function createTimeEnvCommands(options: TimeEnvCommandsOptions = {}): readonly CommandDefinition[] {
   const configuration = settings(options);
-  return [createDateCommand(configuration), createSleepCommand(configuration), createPrintenvCommand(configuration)];
+  return registerDefaultExecutors([createDateCommand(configuration), createSleepCommand(configuration), createPrintenvCommand(configuration)], options);
 }
 
 export function timeEnvCommands(options: TimeEnvCommandsOptions = {}): VirtualShellPlugin {

@@ -1,3 +1,4 @@
+import { registerDefaultExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createChmodCommand } from "./chmod.js";
 import { createStatCommand } from "./stat.js";
@@ -8,7 +9,7 @@ export type { MetadataCommandsOptions, MetadataLimits } from "./internal.js";
 
 export function createMetadataCommands(options: MetadataCommandsOptions = {}): readonly CommandDefinition[] {
   settings(options);
-  return [createChmodCommand(options), createStatCommand(options), createMktempCommand(options), truncateCommand(options)];
+  return registerDefaultExecutors([createChmodCommand(options), createStatCommand(options), createMktempCommand(options), truncateCommand(options)], options);
 }
 
 export function metadataCommands(options: MetadataCommandsOptions = {}): VirtualShellPlugin {
@@ -20,3 +21,5 @@ export function metadataCommands(options: MetadataCommandsOptions = {}): Virtual
 }
 
 export { evalSyncStat, type SyncStatInfo } from "./stat.js";
+
+export { evalSyncMktemp } from "./mktemp.js";

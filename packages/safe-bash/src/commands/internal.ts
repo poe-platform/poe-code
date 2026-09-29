@@ -105,6 +105,7 @@ export interface SyncCommandEvaluators {
   evalSyncTruncate?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncInstall?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncApplyPatch?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
+  evalSyncMktemp?: (opArgs: readonly string[], env: Readonly<Record<string, string>>, statTypeSync?: (filePath: string) => string | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean, mkdirSync?: (filePath: string) => boolean) => string | undefined;
 }
 
 export const syncCommandEvaluators: SyncCommandEvaluators = {};

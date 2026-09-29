@@ -1,3 +1,4 @@
+import { registerDefaultExecutor } from "../internal.js";
 import type { CommandDefinition } from "../../contracts/command.js";
 import { commandRuntimeIdentity, getCommandArguments } from "../../contracts/command.js";
 import { shellValueByteLength } from "../../contracts/value.js";
@@ -456,7 +457,7 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
 }
 
 export function createDdCommands(options: DdCommandsOptions = {}): readonly CommandDefinition[] {
-  return [createDdCommand(options)];
+  return [registerDefaultExecutor(createDdCommand(options), options)];
 }
 
 export function ddCommands(options: DdCommandsOptions = {}): VirtualShellPlugin {

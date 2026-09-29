@@ -1,3 +1,5 @@
+import { createCmpCommands } from "../../src/commands/cmp/index.js";
+import { createExprCommands } from "../../src/commands/expr/index.js";
 import { createBcCommands } from "../../src/commands/bc/index.js";
 import { createFmtCommands } from "../../src/commands/fmt/index.js";
 import { createFoldCommands } from "../../src/commands/fold/index.js";
@@ -1614,4 +1616,62 @@ test("sync brace and arithmetic loop admission for 20+ command adapters via regi
   assert.equal(parts[8], "");
   assert.equal(parts[9], "2");
   assert.ok(elapsed < 1500, `Expected fast sync brace-loop execution (< 1500ms), took ${elapsed.toFixed(1)}ms`);
+});
+
+test("sync mktemp and brace-loop admission for metadata, time-env, cmp, dd, expr, and grep-aliases (Wave 159)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp", { recursive: true });
+  await fs.writeFile("/f1.txt", new TextEncoder().encode("alpha\nbeta\n"));
+  await fs.writeFile("/f2.txt", new TextEncoder().encode("alpha\nbeta\n"));
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createMetadataCommands(),
+    ...createTimeEnvCommands(),
+    ...createCmpCommands(),
+    ...createDdCommands(),
+    ...createExprCommands(),
+    ...createGrepAliasCommands(),
+  ]) {
+    registry.register(cmd, { replace: true });
+  }
+  const sh = new Shell({ fs, commands: registry, env: { APP_TAG: "prod-v9" } });
+
+  const t0 = performance.now();
+  const r = await sh.exec(`
+    mk_u=""
+    mk_f=""
+    mk_d=""
+    mk_ver=""
+    dt_out=""
+    pe_out=""
+    ex_out=""
+    eg_out=""
+    for i in {1..150}; do
+      mk_u=$(mktemp -u --suffix=.json)
+      mk_f=$(mktemp /tmp/item.XXXXXX)
+      mk_d=$(mktemp -d /tmp/dir.XXXXXX)
+      mk_ver=$(mktemp --version)
+      dt_out=$(date -u +%Y)
+      pe_out=$(printenv APP_TAG)
+      ex_out=$(expr 19 + 23)
+      eg_out=$(egrep "^beta$" /f1.txt)
+    done
+    printf "\x25s|\x25s|\x25s|\x25s|\x25s|\x25s|\x25s|\x25s\n" "$mk_u" "$mk_f" "$mk_d" "$mk_ver" "$dt_out" "$pe_out" "$ex_out" "$eg_out"
+  `);
+  const elapsed = performance.now() - t0;
+
+  assert.equal(r.exitCode, 0, r.stderr);
+  const parts = r.stdout.trim().split("|");
+  assert.match(parts[0] ?? "", /^\/tmp\/tmp\.[A-Za-z0-9]{10}\.json$/);
+  assert.match(parts[1] ?? "", /^\/tmp\/item\.[A-Za-z0-9]{6}$/);
+  assert.match(parts[2] ?? "", /^\/tmp\/dir\.[A-Za-z0-9]{6}$/);
+  assert.equal(parts[3], "mktemp (safe-bash virtual implementation)");
+  assert.match(parts[4] ?? "", /^\d{4}$/);
+  assert.equal(parts[5], "prod-v9");
+  assert.equal(parts[6], "42");
+  assert.equal(parts[7], "beta");
+  assert.equal((await fs.stat(parts[1]!)).type, "file");
+  assert.equal((await fs.stat(parts[2]!)).type, "directory");
+  assert.ok(elapsed < 1500, `Expected fast sync execution (< 1500ms), took ${elapsed.toFixed(1)}ms`);
 });

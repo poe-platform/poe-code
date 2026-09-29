@@ -1,3 +1,4 @@
+import { registerDefaultExecutor } from "../internal.js";
 import { commandRuntimeIdentity, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 import { compare } from "./compare.js";
 import { errorText, InputError, inputDiagnostic, Session } from "./io.js";

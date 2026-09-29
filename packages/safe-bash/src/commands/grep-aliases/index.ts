@@ -1,3 +1,4 @@
+import { registerDefaultExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { grepCommands } from "../grep.js";
 import type { RegexExecutionOptions } from "../regex-execution/protocol.js";
@@ -13,7 +14,7 @@ import { alias, createGrepAliases } from "./aliases.js";
 
 export function createGrepAliasCommands(options: GrepAliasOptions = {}): readonly CommandDefinition[] {
   const grep = grepCommands({ ...options.regex, ...(options.regexExecutor === undefined ? {} : { regexExecutor: options.regexExecutor }) })[0]!;
-  return createGrepAliases(grep);
+  return registerDefaultExecutors(createGrepAliases(grep), options);
 }
 
 export function egrepCommand(options: GrepAliasOptions = {}): CommandDefinition {

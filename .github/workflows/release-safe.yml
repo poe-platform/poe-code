@@ -14,6 +14,8 @@ on:
       - "packages/safe-fs/**"
       - "packages/safe-js/**"
       - "packages/safe-bash-contracts/**"
+      - "packages/pdf-ast/**"
+      - "packages/office-package/**"
       - "packages/safe-bash-csv-engine/**"
       - "packages/safe-bash-*-engine/**"
       - "packages/safe-bash-command-*/**"
@@ -77,7 +79,7 @@ jobs:
           fi
           if [ "$PIN_REVISION" != "true" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
             changed_later=$(git diff --name-only "$GITHUB_SHA" origin/main -- \
-              packages/safe-bash packages/safe-fs packages/safe-js packages/xml-ast packages/xlsx-ast packages/xls-ast \
+              packages/safe-bash packages/safe-fs packages/safe-js packages/xml-ast packages/xlsx-ast packages/xls-ast packages/pdf-ast packages/office-package \
               packages/safe-bash-contracts packages/safe-bash-csv-engine \
               packages/safe-playwright packages/safe-playwright-cloudflare \
               'packages/spreadsheet-*' \
@@ -173,7 +175,7 @@ jobs:
           git fetch --filter=blob:none origin main
           if [ "$PIN_REVISION" != "true" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
             changed_later=$(git diff --name-only "$GITHUB_SHA" origin/main -- \
-              packages/safe-bash packages/safe-fs packages/safe-js packages/xml-ast packages/xlsx-ast packages/xls-ast \
+              packages/safe-bash packages/safe-fs packages/safe-js packages/xml-ast packages/xlsx-ast packages/xls-ast packages/pdf-ast packages/office-package \
               packages/safe-bash-contracts packages/safe-bash-csv-engine \
               packages/safe-playwright packages/safe-playwright-cloudflare \
               'packages/spreadsheet-*' \

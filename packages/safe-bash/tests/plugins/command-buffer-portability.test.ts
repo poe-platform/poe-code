@@ -52,3 +52,21 @@ test("command families preserve results without the global Buffer", async () => 
   try { assert.deepEqual(await execute(), expected); assert.equal(globalThis.Buffer, undefined); }
   finally { Object.defineProperty(globalThis, "Buffer", descriptor); }
 });
+
+test("symlink stat substitutions preserve the filesystem budget without Buffer", async () => {
+  const execute = async () => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/é", new TextEncoder().encode("abc"));
+    await fs.symlink("/é", "/link");
+    const shell = new Shell({ fs, limits: { maxFileSystemOperations: 2000 } }).use(agentCommands());
+    try { return await shell.exec('for ((i=0;i<600;i++)); do x=$(stat -c %s /link); done; printf "%s" "$x"'); }
+    finally { await shell.dispose(); }
+  };
+  const expected = await execute();
+  assert.equal(expected.exitCode, 0, expected.stderr);
+  assert.equal(expected.stdout, "3");
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer")!;
+  Reflect.deleteProperty(globalThis, "Buffer");
+  try { assert.deepEqual(await execute(), expected); }
+  finally { Object.defineProperty(globalThis, "Buffer", descriptor); }
+});

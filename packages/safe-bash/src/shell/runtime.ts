@@ -29275,13 +29275,13 @@ export class Runtime {
         if (node.entries) {
           for (const [cName, cNode] of node.entries) {
             if (cNode.type === "directory") dirLinks++;
-            const cSize = cNode.type === "file" ? (cNode.byteLength ?? cNode.data?.byteLength ?? 0) : cNode.type === "symlink" ? Buffer.byteLength(cNode.target ?? "") : 0;
+            const cSize = cNode.type === "file" ? (cNode.byteLength ?? cNode.data?.byteLength ?? 0) : cNode.type === "symlink" ? shellValueByteLength(cNode.target ?? "") : 0;
             children.push({ name: cName, type: cNode.type, size: cSize, mode: cNode.mode ?? 0, ...(cNode.ino !== undefined ? { ino: cNode.ino } : {}), ...(cNode.target !== undefined ? { target: cNode.target } : {}) });
           }
         }
         return { type: "directory", size: 0, mode, ino, nlink: dirLinks, uid: 0, gid: 0, dev: 0, atimeMs, mtimeMs, ctimeMs, birthtimeMs, filesystemType: "memory", ioBlockSize: 4096, children };
       }
-      const size = node.type === "file" ? (node.byteLength ?? node.data?.byteLength ?? 0) : Buffer.byteLength(node.target ?? "");
+      const size = node.type === "file" ? (node.byteLength ?? node.data?.byteLength ?? 0) : shellValueByteLength(node.target ?? "");
       return { type: node.type, size, mode, ino, nlink: node.nlink ?? 1, uid: 0, gid: 0, dev: 0, atimeMs, mtimeMs, ctimeMs, birthtimeMs, filesystemType: "memory", ioBlockSize: 4096, ...(node.target !== undefined ? { target: node.target } : {}) };
     } catch {
       if (charge) this.budget.fileSystemOperation();

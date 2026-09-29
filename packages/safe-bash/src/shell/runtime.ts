@@ -24125,6 +24125,7 @@ export class Runtime {
     for (let idx = 0; idx < args.length; idx++) {
       const a = args[idx]!;
       if (ended || !a.startsWith("-") || a === "-") {
+        ended = true;
         operands.push(a);
         continue;
       }

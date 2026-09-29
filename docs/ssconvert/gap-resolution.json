@@ -3269,7 +3269,7 @@
         "out/ssconvert-odf-settings/odf-rich-compiled.json",
         "out/ssconvert-odf-settings/odf-rich-native-fixed.json"
       ],
-      "remaining": "Arbitrary numeric rise/scale and proportional heights, other typography, annotation rich text, whole-cell Calc script transport, pixels, other platforms and installed artifacts remain open. Strict ODF and Calc lose low accounting placement. All 19 families remain open.",
+      "remaining": "Arbitrary numeric rise/scale and proportional heights, other typography, broader annotation typography, whole-cell Calc script transport, pixels, other platforms and installed artifacts remain open. Strict ODF and Calc lose low accounting placement. All 19 families remain open.",
       "scriptFollowup": {
         "commit": "42102a5893f2159489b6bbd904ac1910a33548e1",
         "remote": "verified on main",
@@ -3292,6 +3292,19 @@
           "out/ssconvert-odf-settings/odf-cell-script-checks.json",
           "out/ssconvert-odf-settings/odf-cell-script-compiled.json",
           "out/ssconvert-odf-settings/odf-cell-script-native.json"
+        ]
+      },
+      "annotations": {
+        "commit": "a188df91cdf3b87db97af55d8afafec2c5f4fa80",
+        "remote": "verified main",
+        "source": "LibreOffice bce0998afefdbc355585ca324285661a2170ba77 xmlannoi.cxx:149-165,213-245,291-294 delegates annotation text to shape context and retains content styles. SHA-256 4ec7a198b12698e92e3f222527b476d4f48aa446a2cec67add5cf96a18197599",
+        "implementation": "Import and export canonical TextFormat; empty authors, UTF-8 ranges, Unicode/controls, formatting/author edits and deletion. Preserve untouched XML and outer display/geometry attributes plus dates on edits.",
+        "validation": "5 initial formatting/edit regressions; 2 additional date/display preservation failures. 1197 tests / 29 ODF files; maintained package lint, source/test/consumer types and selected workspace build pass. Strict and extended public runCommand XLSX-to-ODF and SDK ODF-to-XLSX preserve exact author, text and TextFormat; empty command stderr. Calc preserves character properties and exact Unicode/controls/BOM; substitutes Noto Sans for BOM. Fontconfig cachedir warnings retained. Gnumeric preserves exact author/text/TextFormat and has empty stderr.",
+        "remaining": "Delimiter-bearing font families have no canonical TextFormat representation; author-only edits may lose that markup. Other typography, legacy profiles, pixels, other platforms and installed artifacts remain open.",
+        "receipts": [
+          "out/ssconvert-odf-settings/odf-annotation-checks.json",
+          "out/ssconvert-odf-settings/odf-annotation-compiled.json",
+          "out/ssconvert-odf-settings/odf-annotation-native.json"
         ]
       }
     }
@@ -3664,7 +3677,7 @@
         "42102a5893f2159489b6bbd904ac1910a33548e1",
         "75e5e05a6c728e2b0ecc6556c0827c3319d7ef1c"
       ],
-      "remote": "both verified on main",
+      "remote": "all listed commits verified on main",
       "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine.",
       "cleanup": "No generated binaries committed; native workbooks, isolated profiles and consumed source/logs removed after compact JSON receipts."
     },
@@ -3677,6 +3690,12 @@
       "validation": "Four current failures reproduced. All 33 streaming and 69 inspection tests plus focused lint pass after updates. Newer issue 4042 explicitly requires readFile fallback and attached-only optional od parameters; preserve these requirements. GNU 9.11 short -S accepts separate parameters, so this is not native-parity evidence.",
       "receipt": "out/ssconvert-odf-settings/release-repairs-checks.json",
       "release": "Full pin 36512368723 at bb8af78680 finished: build, audit, checks, cached units and Bash 3/4 passed; Bash 1/2 and fresh units failed. Delivered a6290b7ab7 and 16f9ca7e97 align stale encoding tests with explicit newer issue 4042. Incoming ae3f19482d signs the Git fixture before verification. Own obsolete queued pin 36512581822 canceled; other-worker pin 36514126632 at ae3f19482d is pending and excludes the subsequent reconciliation 58eb6de1be. No containing publication verified. PGP verification/interoperability issue 4098 remains open and reserved to another machine."
+    },
+    "odfAnnotations": {
+      "commit": "a188df91cdf3b87db97af55d8afafec2c5f4fa80",
+      "remote": "verified main",
+      "release": "36515238702 is building predecessor 2bac491c09. Annotation push run 36515362829 is pending; no containing publication verified.",
+      "cleanup": "Generated annotation workbooks and isolated profiles removed after compact receipts. No binaries committed."
     }
   },
   "history": {

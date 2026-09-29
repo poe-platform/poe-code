@@ -77,8 +77,16 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
-    "safe-bash-command-file": "*"
+    "safe-bash-command-file": "*",
+    "safe-bash-contracts": "*"
+  },
+  "peerDependencies": {
+    "yaml": "2.9.0"
+  },
+  "peerDependenciesMeta": {
+    "yaml": {
+      "optional": true
+    }
   }
 }

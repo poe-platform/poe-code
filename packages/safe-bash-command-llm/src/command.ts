@@ -6,25 +6,29 @@ import { acceptsMimeType, sniffMimeType } from "./mime.js";
 import type { LlmCommandsOptions, LlmRequest } from "./types.js";
 import { createLlmService, type LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
+import { createLlmTemplateStore, evaluateLlmTemplate } from "./templates.js";
 import { configurationCommand } from "./configuration-command.js";
 
 interface Arguments {
   model?: string;
   system?: string;
   prompt: string;
+  template?: string;
+  save?: string;
   noStream?: boolean;
+  params: Record<string, string>;
   options: Record<string, string>;
   attachments: { path: string; mimeType?: string }[];
 }
 
 async function parse(length: number, text: (index: number) => string, step: () => Promise<void>): Promise<Arguments> {
-  const parsed: Arguments = { prompt: "", options: Object.create(null) as Record<string, string>, attachments: [] };
+  const parsed: Arguments = { prompt: "", params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
   const operands: string[] = [];
   let ended = false;
   for (let index = 0; index < length; index++) {
     await step();
     const argument = text(index);
-    if (!ended && argument === "--no-log") continue;
+    if (!ended && ["--no-log", "-n"].includes(argument)) continue;
     if (!ended && argument === "--no-stream") { parsed.noStream = true; continue; }
     if (ended || !argument.startsWith("-") || argument === "-") { operands.push(argument); continue; }
     if (argument === "--") { ended = true; continue; }
@@ -36,9 +40,12 @@ async function parse(length: number, text: (index: number) => string, step: () =
       if (++index >= length) throw new Error(`Option ${flag} requires an argument`);
       return text(index);
     };
-    if (!["-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+    if (!["-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "-t", "--template", "--save", "-p", "--param"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
     const value = attached ?? take();
-    if (flag === "-m" || flag === "--model") parsed.model = value;
+    if (flag === "-t" || flag === "--template") parsed.template = value;
+    else if (flag === "--save") parsed.save = value;
+    else if (flag === "-p" || flag === "--param") Object.defineProperty(parsed.params, value, { value: take(), enumerable: true, configurable: true, writable: true });
+    else if (flag === "-m" || flag === "--model") parsed.model = value;
     else if (flag === "-s" || flag === "--system") parsed.system = value;
     else if (flag === "-o" || flag === "--option") parsed.options[value] = take();
     else if (flag === "--at") parsed.attachments.push({ path: value, mimeType: take() });
@@ -134,6 +141,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       await emitText("Usage: llm models [OPTIONS]\n\n  List configured models\n\nOptions:\n  -h, --help  Show this message and exit.\n");
       return { exitCode: 0 };
     }
+    if (argumentsValue.args[0] === "templates") {
+      try { await createLlmTemplateStore(context).command(Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText); }
+      catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Template failed"}`); }
+      return { exitCode: 0 };
+    }
     const configurationInvocation = argumentsValue.args[0] === "aliases" || argumentsValue.args[0] === "models" && ["default", "options"].includes(argumentsValue.args[1] ?? "") || argumentsValue.args[0] === "--version";
     if (configurationInvocation) {
       try {
@@ -152,10 +164,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       return { exitCode: 0 };
     }
     const configuration = createLlmConfiguration(context);
-    const selected = args.model ?? await configuration.defaultModel();
-    const model = selected === undefined ? undefined : await configuration.resolveAlias(selected);
-    const entry = service.resolve(model);
-    args.options = { ...await configuration.modelOptions(entry.model.id), ...args.options };
+    const templateStore = createLlmTemplateStore(context);
+    if (args.save && args.template) throw new Error("Error: --save cannot be used with --template");
+    let stored;
+    try { stored = args.template === undefined ? undefined : await templateStore.load(args.template); }
+    catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
     const fragments: string[] = [];
     const decoder = new TextDecoder("utf-8", { fatal: true });
     const input = await operation.acquire<AsyncIterator<Uint8Array>>(() => context.stdinInput
@@ -173,6 +186,25 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     fragments.push(decoder.decode());
     const content = fragments.join("");
+    let prompt = content && args.prompt ? `${content}\n\n${args.prompt}` : content || args.prompt;
+    if (args.save) {
+      if (args.attachments.length) throw new Error("Error: Template attachment storage is not implemented");
+      const saved = {
+        ...(args.model === undefined ? {} : { model: service.resolve(await configuration.resolveAlias(args.model)).model.id }),
+        ...(prompt ? { prompt } : {}), ...(args.system === undefined ? {} : { system: args.system }),
+        ...(Object.keys(args.params).length ? { defaults: args.params } : {}),
+        ...(Object.keys(args.options).length ? { options: args.options } : {}),
+      };
+      await templateStore.save(args.save, saved); return { exitCode: 0 };
+    }
+    if (stored) {
+      try { const evaluated = evaluateLlmTemplate(stored, prompt, args.params); prompt = evaluated.prompt; if (args.system === undefined && evaluated.system !== undefined) args.system = evaluated.system; }
+      catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
+    }
+    const selected = args.model ?? stored?.model ?? await configuration.defaultModel();
+    const model = selected === undefined ? undefined : await configuration.resolveAlias(selected);
+    const entry = service.resolve(model);
+    args.options = { ...await configuration.modelOptions(entry.model.id), ...stored?.options, ...args.options };
     const attachments: { mimeType: string; bytes: Uint8Array }[] = [];
     for (const attachment of args.attachments) {
       await step();
@@ -191,7 +223,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       attachments.push({ mimeType, bytes: new Uint8Array(bytes) });
     }
     const request: LlmRequest = {
-      model: entry.model.id, prompt: content && args.prompt ? `${content}\n\n${args.prompt}` : content || args.prompt,
+      model: entry.model.id, prompt,
       ...(args.system === undefined ? {} : { system: args.system }), attachments, options: args.options, signal,
     };
     signal.throwIfAborted();

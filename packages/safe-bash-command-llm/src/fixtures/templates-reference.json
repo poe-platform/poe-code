@@ -1,0 +1,160 @@
+{
+  "distribution": "llm",
+  "version": "0.27.1",
+  "provider": "deterministic-fixture",
+  "cases": [
+    {
+      "argv": [
+        "templates",
+        "path"
+      ],
+      "exitCode": 0,
+      "stdout": "<USER_PATH>/templates\n",
+      "stderr": "",
+      "files": {}
+    },
+    {
+      "argv": [
+        "templates",
+        "list"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {}
+    },
+    {
+      "argv": [
+        "Hello $input",
+        "-s",
+        "Speak $style",
+        "-m",
+        "echo",
+        "-p",
+        "style",
+        "softly",
+        "--save",
+        "greet"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "templates/greet.yaml": "model: fixture-chat\nprompt: Hello $input\nsystem: Speak $style\ndefaults:\n    style: softly\n"
+      }
+    },
+    {
+      "argv": [
+        "templates"
+      ],
+      "exitCode": 0,
+      "stdout": "greet : system: Speak $style prompt: Hello $input\n",
+      "stderr": "",
+      "files": {
+        "templates/greet.yaml": "model: fixture-chat\nprompt: Hello $input\nsystem: Speak $style\ndefaults:\n    style: softly\n"
+      }
+    },
+    {
+      "argv": [
+        "templates",
+        "show",
+        "greet"
+      ],
+      "exitCode": 0,
+      "stdout": "defaults:\n    style: softly\nmodel: fixture-chat\nname: greet\nprompt: Hello $input\nsystem: Speak $style\n\n",
+      "stderr": "",
+      "files": {
+        "templates/greet.yaml": "model: fixture-chat\nprompt: Hello $input\nsystem: Speak $style\ndefaults:\n    style: softly\n"
+      }
+    },
+    {
+      "argv": [
+        "world",
+        "-t",
+        "greet",
+        "--no-log",
+        "--no-stream"
+      ],
+      "exitCode": 0,
+      "stdout": "Hello world\n",
+      "stderr": "",
+      "files": {
+        "templates/greet.yaml": "model: fixture-chat\nprompt: Hello $input\nsystem: Speak $style\ndefaults:\n    style: softly\n"
+      }
+    },
+    {
+      "argv": [
+        "world",
+        "-t",
+        "greet",
+        "-p",
+        "style",
+        "loudly",
+        "--no-log",
+        "--no-stream"
+      ],
+      "exitCode": 0,
+      "stdout": "Hello world\n",
+      "stderr": "",
+      "files": {
+        "templates/greet.yaml": "model: fixture-chat\nprompt: Hello $input\nsystem: Speak $style\ndefaults:\n    style: softly\n"
+      }
+    },
+    {
+      "argv": [
+        "templates",
+        "show",
+        "missing"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: Template 'missing' not found or invalid\n",
+      "files": {
+        "templates/greet.yaml": "model: fixture-chat\nprompt: Hello $input\nsystem: Speak $style\ndefaults:\n    style: softly\n"
+      }
+    },
+    {
+      "argv": [
+        "world",
+        "-t",
+        "missing",
+        "--no-log"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: Invalid template: missing\n",
+      "files": {
+        "templates/greet.yaml": "model: fixture-chat\nprompt: Hello $input\nsystem: Speak $style\ndefaults:\n    style: softly\n"
+      }
+    },
+    {
+      "argv": [
+        "$missing",
+        "--save",
+        "missing-var"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "templates/missing-var.yaml": "prompt: $missing\n",
+        "templates/greet.yaml": "model: fixture-chat\nprompt: Hello $input\nsystem: Speak $style\ndefaults:\n    style: softly\n"
+      }
+    },
+    {
+      "argv": [
+        "world",
+        "-t",
+        "missing-var",
+        "--no-log"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: Missing variables: missing\n",
+      "files": {
+        "templates/missing-var.yaml": "prompt: $missing\n",
+        "templates/greet.yaml": "model: fixture-chat\nprompt: Hello $input\nsystem: Speak $style\ndefaults:\n    style: softly\n"
+      }
+    }
+  ]
+}

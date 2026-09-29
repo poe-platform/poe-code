@@ -9,3 +9,5 @@ Use `llm aliases` for the plain alias list or `llm aliases set short -q part -q 
 Models can declare an `options` map with scalar types and numeric bounds. Declared options are validated before persistence or provider execution, and service requests receive typed values. Providers without declarations retain their own option validation.
 
 Use `llmCommands({ service })` to share an authorized `createLlmService()` instance with another language frontend. Configure providers and the default model on that service; command limits remain per invocation.
+
+Store a prompt with `llm 'Hello $input' -s 'Speak $style' -m MODEL -p style softly --save greet`, then run `llm world -t greet -p style loudly`. `llm templates` lists stored templates; `templates show NAME` and `templates path` inspect them. These workflows use the caller filesystem and the optional `yaml@2.9.0` parser. SDK callers use `createLlmTemplateStore()` and `evaluateLlmTemplate()`. Attachment templates, external loaders, editor workflows and the remaining template fields are incomplete. `--no-stream` buffers terminal output; it does not yet select a different provider HTTP protocol.

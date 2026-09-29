@@ -52,6 +52,10 @@ including nested Forms and patterns. Standard-font glyph outlines are attached
 to `glyph.outline`, keeping letters separate from page drawing paths. The `glyphs`, `paths`, and
 `images` arrays remain available for inspection and extraction.
 
+Stencil images preserve the current shading or tiling pattern in bitmap and
+SVG output. Their transformed alpha masks are available as `clipImages` on
+display-list paints; source image extraction remains independent of painting.
+
 All 14 standard PDF fonts use bundled PDFium/Foxit outlines and PDF.js metrics.
 PNG and SVG preserve font styles without installed system fonts; SVG exports
 glyph paths with accessible labels. Embedded Type1C and CIDFontType0C fonts use

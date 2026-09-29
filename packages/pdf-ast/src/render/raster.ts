@@ -3,7 +3,7 @@ import { encodeToXmlString, PageViewport } from "../vendor/pdfjs-fonts.mjs";
 import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
 import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
-import type { PdfDisplayList, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath } from "../ast.js";
+import type { PdfDisplayList, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate } from "../cos/filters.js";
 
 export interface RgbaBitmap {
@@ -1218,6 +1218,7 @@ export function renderDisplayListToBitmap(
   const aaVec = options.antialiasVector !== false;
   const aaTxt = options.antialiasText !== false;
   const clipMasks = new Map<readonly (readonly PdfPathSegment[])[], Uint8Array>();
+  const imageClipMasks = new Map<readonly PdfEvaluatedImage[], Uint8Array>();
   for (const original of paintOperations(displayList)) {
     if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
     const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
@@ -1231,6 +1232,26 @@ export function renderDisplayListToBitmap(
         for (let i = 3; i < layer.length; i += 4) clipMask[i] = Math.round(clipMask[i]! * layer[i]! / 255);
       }
       clipMasks.set(clips, clipMask);
+    }
+    const imageClips = original.value.clipImages;
+    if (imageClips) {
+      let imageMask = imageClipMasks.get(imageClips);
+      if (!imageMask) {
+        imageMask = new Uint8Array(width * height * 4).fill(255);
+        for (const image of imageClips) {
+          const layer = renderDisplayListToBitmap({
+            ...displayList, rotation: 0, paths: [], glyphs: [], images: [image], operations: [{ kind: "image", value: image }],
+          }, { scale, transparent: true }).data;
+          for (let i = 3; i < layer.length; i += 4) imageMask[i] = Math.round(imageMask[i]! * layer[i]! / 255);
+        }
+        imageClipMasks.set(imageClips, imageMask);
+      }
+      if (clipMask) {
+        clipMask = clipMask.slice();
+        for (let i = 3; i < clipMask.length; i += 4) clipMask[i] = Math.round(clipMask[i]! * imageMask[i]! / 255);
+      } else {
+        clipMask = imageMask;
+      }
     }
     if (operation.kind === "path") {
       const path = operation.value;
@@ -1419,6 +1440,16 @@ function escapeXmlText(str: string): string {
   return encodeToXmlString(valid);
 }
 
+function svgImage(image: PdfEvaluatedImage, pageHeight: number): string {
+  if (!image.decodedRgba) return "";
+  const png = encodeRgbaToPng(image.width, image.height, image.decodedRgba);
+  const chunks: string[] = [];
+  for (let offset = 0; offset < png.length; offset += 8192)
+    chunks.push(String.fromCharCode(...png.subarray(offset, offset + 8192)));
+  const [a, b, c, d, e, f] = image.matrix;
+  return `<image width="1" height="1" preserveAspectRatio="none" transform="matrix(${a} ${-b} ${-c} ${d} ${e + c} ${pageHeight - f - d})" href="data:image/png;base64,${btoa(chunks.join(""))}"/>`;
+}
+
 function svgPathData(segments: readonly PdfPathSegment[], height: number): string {
   const dParts: string[] = [];
   for (const seg of segments) {
@@ -1485,10 +1516,15 @@ export function renderDisplayListToSvg(
     if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
     const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
     const clips = original.value.clipPaths ?? [];
+    const imageClips = original.value.clipImages ?? [];
     for (const segments of clips) {
       const id = `text-clip-${clipId++}`;
       const path = `<path d="${svgPathData(segments, displayList.height)}"/>`;
       parts.push(`<defs><clipPath id="${id}" clipPathUnits="userSpaceOnUse">${path}</clipPath></defs><g clip-path="url(#${id})">`);
+    }
+    for (const image of imageClips) {
+      const id = `image-clip-${clipId++}`;
+      parts.push(`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${displayList.width}" height="${displayList.height}" style="mask-type:alpha">${svgImage(image, displayList.height)}</mask></defs><g mask="url(#${id})">`);
     }
     if (operation.kind === "path") {
       const p = operation.value;
@@ -1519,24 +1555,9 @@ export function renderDisplayListToSvg(
         parts.push(`  <path${labelAttr} d="${pathData}" fill="${fill}"${fillRuleAttr}${fillOpacityAttr} stroke="${stroke}"${strokeOpacityAttr}${strokeWidthAttr}${lineCapAttr}${lineJoinAttr}${miterLimitAttr}${dashArrayAttr}${dashOffsetAttr}/>`);
       }
     } else if (operation.kind === "image") {
-      const img = operation.value;
-      if (!img.decodedRgba) {
-        for (let i = 0; i < clips.length; i++) parts.push("</g>");
-        continue;
-      }
-      const pngBytes = encodeRgbaToPng(img.width, img.height, img.decodedRgba);
-      const chunks: string[] = [];
-      for (let offset = 0; offset < pngBytes.length; offset += 8192)
-        chunks.push(String.fromCharCode(...pngBytes.subarray(offset, offset + 8192)));
-      const b64 = btoa(chunks.join(""));
-      const [a, b, c, d, e, f] = img.matrix;
-      const svgTx = e + c;
-      const svgTy = displayList.height - f - d;
-      parts.push(
-        `  <image width="1" height="1" preserveAspectRatio="none" transform="matrix(${a} ${-b} ${-c} ${d} ${svgTx} ${svgTy})" href="data:image/png;base64,${b64}"/>`
-      );
+      parts.push(`  ${svgImage(operation.value, displayList.height)}`);
     }
-    for (let i = 0; i < clips.length; i++) parts.push("</g>");
+    for (let i = 0; i < clips.length + imageClips.length; i++) parts.push("</g>");
   }
   if (displayList.rotation) parts.push("</g>");
   parts.push("</svg>\n");

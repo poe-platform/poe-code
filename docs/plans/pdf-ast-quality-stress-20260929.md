@@ -4,6 +4,14 @@ User objective: bring pdf-ast to perfection and work for ten hours, stress testi
 
 Work began at 2026-09-29 02:42 UTC. The requested ten-hour minimum ends at 2026-09-29 12:42 UTC. Continue beyond that minimum if required work remains. Use actual execution evidence, not elapsed time alone, for completion.
 
+The user extended completeness work for another eight hours at 2026-09-29
+15:14:54 UTC, through at least 23:14:54 UTC. Continue from the delivered fixes,
+using PDF.js reference behavior and unit cases, with pypdf for editing
+interoperability. First revalidate gradient stencil, missing-text, and annotation
+corpus failures on current main, then broaden the corpus and editor round trips.
+Each defect still requires failing evidence, focused correction, independent
+verification, atomic delivery, and publication monitoring.
+
 ## Required outcomes
 
 - Redaction removes targeted content from saved objects and prior revisions while preserving unrelated content and shared resources correctly (#4093).
@@ -196,5 +204,7 @@ Work began at 2026-09-29 02:42 UTC. The requested ten-hour minimum ends at 2026-
 - Superseded pending release 36577255287 was cancelled before publication so the next pin can include the repeated-edit correction. Earlier containing release 36576991455 has published and is verifying public installations; it does not include the later symbol/growth fixes.
 
 ## Completion evidence to collect
+
+- Eight-hour continuation, #4309: current main c2c7bf13fc retained the pattern-stencil defect. Eight failing cases, plus a ninth blend-mode regression, drove transformed image-alpha clipping of the existing pattern paints in bitmap/SVG. Original PDF.js issue13372 is retained unchanged with hashes; inline, rotation, inverted Decode, alpha, tiling, extraction, and one-pixel detail are covered. All 562 PDF tests, lint/typecheck, selected workspace build, and 120 command-consumer checks pass. Actual fixture and SVG were inspected in stencil-pattern-fixed-comparison.png; gradient colors are restored. Rotation/inline/alpha synthetic renders match PDF.js at mean RGB differences 0.084–0.137/255. PDF.js's one-pixel shortcut paints black; independent Poppler and MuPDF confirm the preserved gradient (local mean difference to Poppler 0.510/255). Evidence: stencil-pattern-{red,blend-red,all-tests-final,lint-final,build-final,consumers-vitest,consumers-node}.log; stencil-pattern-synthetic-comparison.png; stencil-one-oracles.png. Separate downsampling aliasing remains #4416. Atomic main delivery/publication follows.
 
 For each outcome record the tested revision, focused and integration commands/results, corpus provenance, independent comparison method, examined visual outputs, issue status, remote-main commit, and release publication. Require at least ten hours of work plus verified completion of all outcomes before marking the goal complete.

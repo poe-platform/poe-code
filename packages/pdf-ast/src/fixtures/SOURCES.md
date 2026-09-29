@@ -185,3 +185,9 @@ SHA-256: `bc0d5ec68433277d36aea4d80c3f8a97a85672b3ded52696118f69623f9a5114`.
 same pinned revision (Apache-2.0). Its PatternType 2 rainbow uses a Type 4 mesh
 shading stream. SHA-256:
 `ca52f1602d984cb7a0db562ea1217d879cde4fef402a9564152cab15f6546d5b`.
+
+`pdfjs-issue13372.pdf` is the unchanged PDF.js `test/pdfs/issue13372.pdf` at
+revision `91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). Its upstream
+equality test paints a CCITT stencil with an axial shading pattern. Manifest MD5:
+`0bc5329623fd554174c5e7653f904e28`. SHA-256:
+`2ed729efdc6a2f4454b9a468988798c556a88fa9b47507f6d3e357e4963df661`.

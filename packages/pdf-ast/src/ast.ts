@@ -204,6 +204,7 @@ export interface PdfPlacedGlyph {
   readonly actualText?: string | undefined;
   readonly blendMode?: string | undefined;
   readonly clipPaths?: readonly (readonly PdfPathSegment[])[] | undefined;
+  readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 
@@ -223,6 +224,7 @@ export interface PdfEvaluatedPath {
   readonly blendMode?: string | undefined;
   readonly isClip?: boolean | undefined;
   readonly clipPaths?: readonly (readonly PdfPathSegment[])[] | undefined;
+  readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 
@@ -236,6 +238,7 @@ export interface PdfEvaluatedImage {
   readonly decodedRgba?: Uint8Array | undefined;
   readonly blendMode?: string | undefined;
   readonly clipPaths?: readonly (readonly PdfPathSegment[])[] | undefined;
+  readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 

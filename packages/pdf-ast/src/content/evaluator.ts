@@ -306,6 +306,7 @@ interface GraphicsState {
   fillColorSpaceName: string;
   strokeColorSpaceName: string;
   clipPaths?: readonly (readonly PdfPathSegment[])[];
+  clipImages?: readonly PdfEvaluatedImage[];
   clipRect?: [number, number, number, number] | undefined;
   dashArray?: readonly number[] | undefined;
   dashPhase?: number | undefined;
@@ -1379,8 +1380,10 @@ export function evaluateContentStreamToDisplayList(params: {
   const images: PdfEvaluatedImage[] = [];
   const operations: PdfPaintOperation[] = [];
   const emit = (operation: PdfPaintOperation): void => {
-    const clipPaths = curState().clipPaths;
-    if (clipPaths) operation = { ...operation, value: { ...operation.value, clipPaths } } as PdfPaintOperation;
+    const { clipPaths, clipImages } = curState();
+    if (clipPaths || clipImages) operation = { ...operation, value: { ...operation.value,
+      ...(clipPaths ? { clipPaths } : {}), ...(clipImages ? { clipImages } : {}),
+    } } as PdfPaintOperation;
     operations.push(operation);
     switch (operation.kind) {
       case "path": paths.push(operation.value); break;
@@ -1664,6 +1667,27 @@ export function evaluateContentStreamToDisplayList(params: {
   let activeTm: Matrix6 = [1, 0, 0, 1, 0, 0];
   let activeTlm: Matrix6 = [1, 0, 0, 1, 0, 0];
 
+  const paintImage = (
+    image: PdfEvaluatedImage,
+    patternMask: boolean,
+    resources: PdfCosDict | undefined,
+    activeFonts: Map<string, ResolvedPageFont>,
+    depth: number
+  ): void => {
+    if (!patternMask) {
+      emit({ kind: "image", value: image });
+      return;
+    }
+    const st = curState();
+    // Like PDF.js _createMaskCanvas: paint at page resolution, then apply the
+    // transformed stencil alpha. A one-pixel mask must not flatten a gradient.
+    stateStack.push({ ...st, clipImages: [...(st.clipImages ?? []), image] });
+    walkNodes([{ kind: "path-op", paint: "f", segments: [
+      { kind: "rect", x: 0, y: 0, width: 1, height: 1 },
+    ] }], undefined, undefined, resources, activeFonts, depth);
+    stateStack.pop();
+  };
+
   const walkNodes = (
     nodes: readonly PdfContentNode[],
     mcid?: number,
@@ -1867,7 +1891,8 @@ export function evaluateContentStreamToDisplayList(params: {
                     st.fillAlpha,
                     "PatternShading_" + st.fillPatternName,
                     patClip,
-                    shading?.kind === "stream" ? shading : undefined
+                    shading?.kind === "stream" ? shading : undefined,
+                    st.blendMode
                   );
                   if (shImg) {
                     emit({ kind: "image", value: shImg });
@@ -1979,18 +2004,20 @@ export function evaluateContentStreamToDisplayList(params: {
               const subNode = params.cosDoc.resolve(dictGet(xobjNode.dict, "Subtype"));
               const sub = subNode?.kind === "name" ? subNode.decoded : "";
               if (sub === "Image") {
+                const maskNode = params.cosDoc.resolve(dictGet(xobjNode.dict, "ImageMask"));
+                const patternMask = !!st.fillPatternName && maskNode?.kind === "boolean" && maskNode.value;
                 const decoded = decodeXObjectImageToRgba(
                   params.cosDoc,
                   xobjNode,
                   activeResources,
-                  {
+                  patternMask ? { r: 1, g: 1, b: 1, alpha: 1 } : {
                     r: st.fillColor.r,
                     g: st.fillColor.g,
                     b: st.fillColor.b,
                     alpha: st.fillAlpha,
                   }
                 );
-                emit({ kind: "image", value: {
+                paintImage({
                   name: node.name,
                   matrix: [...st.ctm],
                   width: decoded.width,
@@ -2000,7 +2027,7 @@ export function evaluateContentStreamToDisplayList(params: {
                   decodedRgba: decoded.rgba,
                   ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                   ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
-                } });
+                }, patternMask, activeResources, activeFonts, depth);
               } else if (sub === "Form" && depth < 8) {
                 const formStreamBytes = params.cosDoc.decodeStream(xobjNode);
                 const formNodes = parseContentStream(formStreamBytes);
@@ -2059,19 +2086,22 @@ export function evaluateContentStreamToDisplayList(params: {
 
         case "inline-image": {
           const st = curState();
+          const maskEntry = dictGet(node.dict, "ImageMask") ?? dictGet(node.dict, "IM");
+          const maskNode = params.cosDoc ? params.cosDoc.resolve(maskEntry) : maskEntry;
+          const patternMask = !!st.fillPatternName && maskNode?.kind === "boolean" && maskNode.value;
           const decoded = decodeInlineImageNodeToRgba(
             params.cosDoc,
             node.dict,
             node.data,
             activeResources,
-            {
+            patternMask ? { r: 1, g: 1, b: 1, alpha: 1 } : {
               r: st.fillColor.r,
               g: st.fillColor.g,
               b: st.fillColor.b,
               alpha: st.fillAlpha,
             }
           );
-          emit({ kind: "image", value: {
+          paintImage({
             name: "InlineImage",
             matrix: [...st.ctm],
             width: decoded.width,
@@ -2081,7 +2111,7 @@ export function evaluateContentStreamToDisplayList(params: {
             decodedRgba: decoded.rgba,
             ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
             ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
-          } });
+          }, patternMask, activeResources, activeFonts, depth);
           break;
         }
 

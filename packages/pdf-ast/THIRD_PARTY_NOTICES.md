@@ -295,3 +295,12 @@ tables and clear the high byte only for F000–F0FF. The TrueType reader records
 the selected cmap's encoding. Tests in `src/fonts/cid-to-gid.test.ts` cover
 raw and prefixed symbol codes plus the original issue2948 fixture at the
 same pinned PDF.js revision documented above.
+
+Pattern-painted stencils follow PDF.js `CanvasGraphics._createMaskCanvas`:
+the current pattern is painted in page coordinates through transformed mask
+alpha, rather than coloring the source mask pixels. `stencil-pattern.test.ts`
+ports the original `issue13372` equality fixture and adds memory-only coverage
+for inline masks, rotation, inverted Decode, alpha, one-pixel masks, and tiling.
+The source fixture and hashes are recorded in `src/fixtures/SOURCES.md`.
+The one-pixel gradient expectation is independently verified by Poppler and
+MuPDF; PDF.js's `paintSolidColorImageMask` optimization loses that pattern.

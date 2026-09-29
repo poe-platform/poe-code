@@ -439,6 +439,14 @@ is ported from `test/unit/colorspace_spec.js` (AlternateCS), with assertions on
 the tint components before color conversion. The unchanged
 `bug852992_reduced.pdf` fixture also verifies the restored soft-mask fade.
 
+Exponential and stitched function evaluation follows PDF.js
+`PDFFunction.constructInterpolated` and `constructStitched` in the same source:
+apply the exponent to the input, and pass the stitched Encode result to the
+child without rescaling it to a unit interval. Local memory-only regressions
+cover non-unit domains, zero/negative exponents, output ranges, segment bounds,
+reversed encoding, and image tint consistency. Domain and Range clipping also
+follow the PDF function contract.
+
 The vendor bundle includes unmodified PDF.js `DeviceCmykCS` from
 `src/core/colorspace.js`. Path, shading, and image color conversion use this
 class directly, including CMYK palette entries and alternate tint colors.

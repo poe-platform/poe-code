@@ -637,25 +637,26 @@ export function evalShadingFunctionToComponents(
     const bounds = getNums("Bounds", []);
     const encode = getNums("Encode", []);
     if (fnsArr && fnsArr.items.length > 0) {
+      const input = Math.max(dom[0] ?? 0, Math.min(dom[1] ?? 1, t));
       let segIdx = 0;
-      while (segIdx < bounds.length && t >= bounds[segIdx]!) segIdx++;
+      while (segIdx < bounds.length && input >= bounds[segIdx]!) segIdx++;
       segIdx = Math.min(fnsArr.items.length - 1, segIdx);
       const b0 = segIdx === 0 ? (dom[0] ?? 0) : bounds[segIdx - 1]!;
       const b1 = segIdx < bounds.length ? bounds[segIdx]! : (dom[1] ?? 1);
       const e0 = encode[segIdx * 2] ?? 0;
       const e1 = encode[segIdx * 2 + 1] ?? 1;
-      const localT = Math.abs(b1 - b0) > 1e-8 ? e0 + ((t - b0) / (b1 - b0)) * (e1 - e0) : e0;
-      return evalShadingFunctionToComponents(doc, fnsArr.items[segIdx], Math.max(0, Math.min(1, localT)));
+      const localT = b1 !== b0 ? e0 + ((input - b0) / (b1 - b0)) * (e1 - e0) : e0;
+      return clampRange(evalShadingFunctionToComponents(doc, fnsArr.items[segIdx], localT));
     }
   }
-  const c0 = getNums("C0", [0, 0, 0]);
-  const c1 = getNums("C1", [1, 1, 1]);
+  const c0 = getNums("C0", [0]);
+  const c1 = getNums("C1", [1]);
   const nNode = doc.resolve(dictGet(fnDict, "N"));
-  const expN = nNode?.kind === "number" && nNode.value > 0 ? nNode.value : 1;
+  const expN = nNode?.kind === "number" ? nNode.value : 1;
   const d0 = dom[0] ?? 0;
   const d1 = dom[1] ?? 1;
-  const normT = Math.abs(d1 - d0) > 1e-8 ? (t - d0) / (d1 - d0) : t;
-  const w = Math.pow(Math.max(0, Math.min(1, normT)), expN);
+  // PDF.js constructInterpolated uses x ** N, not a normalized domain ratio.
+  const w = Math.pow(Math.max(d0, Math.min(d1, t)), expN);
   const len = Math.max(c0.length, c1.length);
   const out: number[] = [];
   for (let i = 0; i < len; i++) {

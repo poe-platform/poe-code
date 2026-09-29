@@ -765,9 +765,11 @@ describe("extractDocumentImages", () => {
     expect(extracted[0]!.bitmap.data[0]).toBe(255);
     expect(extracted[0]!.bitmap.data[1]).toBe(255);
     expect(extracted[0]!.bitmap.data[2]).toBe(255);
-    expect(extracted[0]!.bitmap.data[4]).toBe(51);
-    expect(extracted[0]!.bitmap.data[5]).toBe(102);
-    expect(extracted[0]!.bitmap.data[6]).toBe(204);
+    // Type 2 is single-input even in this malformed two-channel DeviceN.
+    // PDF.js renders the second pixel as [153, 178, 229], using its first tint.
+    expect(extracted[0]!.bitmap.data[4]).toBe(153);
+    expect(extracted[0]!.bitmap.data[5]).toBe(178);
+    expect(extracted[0]!.bitmap.data[6]).toBe(229);
 
     expect(extracted[1]!.bitmap.data[0]).toBe(0);
     expect(extracted[1]!.bitmap.data[1]).toBe(255);

@@ -98,6 +98,8 @@ Rendering also honors nonzero and negative MediaBox origins. Display-list
 coordinates, including clipped artwork, shading, and soft masks.
 Sampled PDF functions interpolate gradients, soft masks, and tint colors across
 all input axes, including packed 1–32-bit samples and reversed encoding ranges.
+Exponential and stitched functions preserve their input domains and output
+ranges, with the same tint evaluation for paths and images.
 CMYK paths, gradients, and images use PDF.js's color conversion, including
 indexed palettes and spot colors with a CMYK alternate space.
 Bitmap strokes preserve joins, miter limits, caps and dash continuity, and apply

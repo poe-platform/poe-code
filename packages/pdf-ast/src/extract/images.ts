@@ -142,12 +142,8 @@ interface ResolvedColorSpace {
   readonly isSeparation?: boolean | undefined;
   readonly isDeviceN?: boolean | undefined;
   readonly separationAltSpace?: "rgb" | "gray" | "cmyk" | undefined;
-  readonly separationC0?: readonly number[] | undefined;
-  readonly separationC1?: readonly number[] | undefined;
-  readonly separationN?: number | undefined;
   readonly tintFunctionDoc?: ParsedCosDocument | undefined;
   readonly tintFunctionNode?: PdfCosNode | undefined;
-  readonly tintFunctionType?: number | undefined;
   readonly isLab?: boolean | undefined;
   readonly labRange?: readonly [number, number, number, number] | undefined;
   readonly calGrayGamma?: number | undefined;
@@ -291,34 +287,6 @@ function resolveColorSpaceInfo(
       const altInfo = resolveColorSpaceInfo(doc, resolved.items[2], resourcesDict);
       const altSpace: "rgb" | "gray" | "cmyk" =
         altInfo.colorSpace === "cmyk" ? "cmyk" : altInfo.colorSpace === "gray" ? "gray" : "rgb";
-      const fnResolved = doc.resolve(resolved.items[3]);
-      const fnDict = fnResolved?.kind === "stream" ? fnResolved.dict : fnResolved?.kind === "dict" ? fnResolved : undefined;
-      const ftNode = fnDict ? doc.resolve(dictGet(fnDict, "FunctionType")) : undefined;
-      const tintFunctionType = ftNode?.kind === "number" ? ftNode.value : 2;
-      const c0Arr = fnDict ? doc.resolveArray(dictGet(fnDict, "C0")) : undefined;
-      const c1Arr = fnDict ? doc.resolveArray(dictGet(fnDict, "C1")) : undefined;
-      const nNode = fnDict ? doc.resolve(dictGet(fnDict, "N")) : undefined;
-      const c0 = c0Arr
-        ? c0Arr.items.map(it => {
-            const r = doc.resolve(it);
-            return r?.kind === "number" ? r.value : 0;
-          })
-        : altSpace === "cmyk"
-          ? [0, 0, 0, 0]
-          : altSpace === "gray"
-            ? [1]
-            : [1, 1, 1];
-      const c1 = c1Arr
-        ? c1Arr.items.map(it => {
-            const r = doc.resolve(it);
-            return r?.kind === "number" ? r.value : 0;
-          })
-        : altSpace === "cmyk"
-          ? [0, 0, 0, 1]
-          : altSpace === "gray"
-            ? [0]
-            : [0, 0, 0];
-      const sepN = nNode?.kind === "number" && nNode.value > 0 ? nNode.value : 1;
       return {
         colorSpace: altSpace,
         colorSpaceLabel: isDevN ? "devn" : "sep",
@@ -326,12 +294,8 @@ function resolveColorSpaceInfo(
         isSeparation: !isDevN,
         isDeviceN: isDevN,
         separationAltSpace: altSpace,
-        separationC0: c0,
-        separationC1: c1,
-        separationN: sepN,
         tintFunctionDoc: doc,
         tintFunctionNode: resolved.items[3],
-        tintFunctionType,
       };
     }
   }
@@ -554,70 +518,31 @@ function decodeSamplesToRgba(
   const pixelCount = width * height;
 
   if (csInfo.isSeparation || csInfo.isDeviceN) {
-    const c0 = csInfo.separationC0 ?? [1, 1, 1];
-    const c1 = csInfo.separationC1 ?? [0, 0, 0];
-    const expN = csInfo.separationN ?? 1;
     const alt = csInfo.separationAltSpace ?? "rgb";
     const numCh = Math.max(1, csInfo.components);
     const step = bpc === 16 ? 2 : 1;
-    const useGenericTintFn =
-      csInfo.tintFunctionDoc !== undefined &&
-      csInfo.tintFunctionNode !== undefined &&
-      (csInfo.tintFunctionType === 0 || csInfo.tintFunctionType === 3 || csInfo.tintFunctionType === 4);
     for (let p = 0; p < pixelCount; p++) {
       const chVals: number[] = [];
-      let wSum = 0;
       for (let ch = 0; ch < numCh; ch++) {
         const sRaw = (rawSamples[(p * numCh + ch) * step] ?? 0) / 255;
-        const tRemapped = remapUnitSampleWithDecode(sRaw, ch, decodePairs);
-        chVals.push(tRemapped);
-        wSum += Math.pow(Math.max(0, Math.min(1, tRemapped)), expN);
+        chVals.push(remapUnitSampleWithDecode(sRaw, ch, decodePairs));
       }
-      if (useGenericTintFn) {
-        const outComps = evalShadingFunctionToComponents(
-          csInfo.tintFunctionDoc!,
-          csInfo.tintFunctionNode,
-          chVals
-        );
-        if (alt === "cmyk") {
-          const c = outComps[0] ?? 0;
-          const m = outComps[1] ?? 0;
-          const y = outComps[2] ?? 0;
-          const k = outComps[3] ?? 0;
-          rgba.set(cmykColorSpace.getRgb([c, m, y, k], 0), p * 4);
-        } else if (alt === "gray") {
-          const gByte = Math.round(Math.max(0, Math.min(1, outComps[0] ?? 0)) * 255);
-          rgba[p * 4] = gByte;
-          rgba[p * 4 + 1] = gByte;
-          rgba[p * 4 + 2] = gByte;
-        } else {
-          rgba[p * 4] = Math.round(Math.max(0, Math.min(1, outComps[0] ?? 0)) * 255);
-          rgba[p * 4 + 1] = Math.round(Math.max(0, Math.min(1, outComps[1] ?? 0)) * 255);
-          rgba[p * 4 + 2] = Math.round(Math.max(0, Math.min(1, outComps[2] ?? 0)) * 255);
-        }
-        rgba[p * 4 + 3] = 255;
-        continue;
-      }
-      const w = Math.max(0, Math.min(1, wSum));
+      const outComps = evalShadingFunctionToComponents(
+        csInfo.tintFunctionDoc!,
+        csInfo.tintFunctionNode,
+        chVals
+      );
       if (alt === "cmyk") {
-        const c = (c0[0] ?? 0) + w * ((c1[0] ?? 0) - (c0[0] ?? 0));
-        const m = (c0[1] ?? 0) + w * ((c1[1] ?? 0) - (c0[1] ?? 0));
-        const y = (c0[2] ?? 0) + w * ((c1[2] ?? 0) - (c0[2] ?? 0));
-        const k = (c0[3] ?? 0) + w * ((c1[3] ?? 1) - (c0[3] ?? 0));
-        rgba.set(cmykColorSpace.getRgb([c, m, y, k], 0), p * 4);
+        rgba.set(cmykColorSpace.getRgb([outComps[0] ?? 0, outComps[1] ?? 0, outComps[2] ?? 0, outComps[3] ?? 0], 0), p * 4);
       } else if (alt === "gray") {
-        const gVal = (c0[0] ?? 1) + w * ((c1[0] ?? 0) - (c0[0] ?? 1));
-        const gByte = Math.round(Math.max(0, Math.min(1, gVal)) * 255);
+        const gByte = Math.round(Math.max(0, Math.min(1, outComps[0] ?? 0)) * 255);
         rgba[p * 4] = gByte;
         rgba[p * 4 + 1] = gByte;
         rgba[p * 4 + 2] = gByte;
       } else {
-        const rVal = (c0[0] ?? 1) + w * ((c1[0] ?? 0) - (c0[0] ?? 1));
-        const gVal = (c0[1] ?? 1) + w * ((c1[1] ?? 0) - (c0[1] ?? 1));
-        const bVal = (c0[2] ?? 1) + w * ((c1[2] ?? 0) - (c0[2] ?? 1));
-        rgba[p * 4] = Math.round(Math.max(0, Math.min(1, rVal)) * 255);
-        rgba[p * 4 + 1] = Math.round(Math.max(0, Math.min(1, gVal)) * 255);
-        rgba[p * 4 + 2] = Math.round(Math.max(0, Math.min(1, bVal)) * 255);
+        rgba[p * 4] = Math.round(Math.max(0, Math.min(1, outComps[0] ?? 0)) * 255);
+        rgba[p * 4 + 1] = Math.round(Math.max(0, Math.min(1, outComps[1] ?? 0)) * 255);
+        rgba[p * 4 + 2] = Math.round(Math.max(0, Math.min(1, outComps[2] ?? 0)) * 255);
       }
       rgba[p * 4 + 3] = 255;
     }

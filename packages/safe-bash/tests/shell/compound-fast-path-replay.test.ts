@@ -26,7 +26,7 @@ const syncAssignmentCases = [
   ["UTF-8 element slice", 'arr=(ascii élan); cnt=0; for i in 0 1; do cnt=$((cnt+1)); echo "${arr[$i]:0:2}"; done; echo "cnt=$cnt"', "as\nél\ncnt=2\n"],
   ["scalar element slice", 's=hello; cnt=0; for i in 1 2; do cnt=$((cnt+1)); echo "${s[0]:$i:2}"; done; echo "cnt=$cnt"', "el\nll\ncnt=2\n"],
   ["negative element slice", 'arr=(first hello); cnt=0; for i in 1 2; do cnt=$((cnt+1)); echo "${arr[-1]:$i:2}"; done; echo "cnt=$cnt"', "el\nll\ncnt=2\n"],
-  ["negative length fails only its command", 'arr=(abcdef ab); cnt=0; for i in 0 1; do cnt=$((cnt+1)); echo "${arr[$i]:1:-2}" 2>/dev/null || true; done; echo "cnt=$cnt"', "bcd\ncnt=2\n"],
+  ["negative length aborts the loop", 'arr=(abcdef ab); cnt=0; for i in 0 1; do cnt=$((cnt+1)); echo "${arr[$i]:1:-2}" 2>/dev/null || true; done; echo "cnt=$cnt"', "bcd\n"],
   ["printf UTF-8 element slice", 'arr=(ascii "é🙂Z"); cnt=0; for i in 0 1; do cnt=$((cnt+1)); printf "%s\\n" "${arr[$i]:0:2}"; done; echo "cnt=$cnt"', "as\né🙂\ncnt=2\n"],
   ["printf scalar element slice", 's=hello; cnt=0; for i in 1 2; do cnt=$((cnt+1)); printf "%s\\n" "${s[0]:$i:2}"; done; echo "cnt=$cnt"', "el\nll\ncnt=2\n"],
   ["printf sparse negative element slice", 'arr=([2]=first [9]=hello); cnt=0; for i in 1 2; do cnt=$((cnt+1)); printf "%s\\n" "${arr[-1]:$i:2}"; done; echo "cnt=$cnt"', "el\nll\ncnt=2\n"],
@@ -62,9 +62,9 @@ for (const [name, source, expected] of syncAssignmentCases) {
       for (const command of basicCommands()) shell.register(command);
       context.after(() => shell.dispose());
       const result = await shell.exec(source);
-      if (name === "negative length fails only its command") assert.match(result.stderr, /substring expression < 0/);
+      if (name === "negative length aborts the loop") assert.match(result.stderr, /substring expression < 0/);
       else assert.equal(result.stderr, "");
-      assert.equal(result.exitCode, 0);
+      assert.equal(result.exitCode, name === "negative length aborts the loop" ? 1 : 0);
       assert.equal(result.stdout, expected);
     });
   }

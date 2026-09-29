@@ -1222,7 +1222,6 @@ class DiscardCommandFailure extends CommandFailure {
   constructor(readonly variableName: string, status: number, readonly origin: "assignment" | "declaration") { super(`${variableName}: readonly variable`, status); }
 }
 class ParameterExpansionFailure extends ExpansionFailure {}
-class SubstringRangeFailure extends ExpansionFailure {}
 class NounsetFailure extends ExpansionFailure {
   constructor(message: string, line?: number, readonly status = 1) { super(message, line); }
 }
@@ -11698,43 +11697,19 @@ export class Runtime {
           // their alternates rather than risking corruption or replay.
           return false;
         }
-        if (part.length || part.substring || part.operator !== undefined) {
+        // Substrings and pattern/case operators can decline as loop values
+        // change to Unicode or lengths become invalid. Loop steps cannot resume
+        // after that decline without corrupting assignments or replaying effects.
+        if (part.substring) return false;
+        if (part.length || part.operator !== undefined) {
           if ( this.budget.limits.maxExpansionBytes !== Infinity || rawState.depth >= 32 || rawState.nounset || rawState.nocasematch || byteLocale(rawState.variables) !== false) {
             return false;
           }
           if (part.length) {
-            if (part.operator !== undefined || part.substring) return false;
-          } else if (part.substring) {
-            if ( part.operator !== undefined || !part.substring.offset.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)) || (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.operator && !p.substring && !p.length)))) {
-              return false;
-            }
-          } else if (part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") {
-            if (part.alternate && part.alternate.parts.length > 0) return false;
+            if (part.operator !== undefined) return false;
           } else if (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") {
             if (!part.alternate || !part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring && p.prefixNames !== "@"))) return false;
             if (!this.isPureSyncValueWord(part.alternate, rawState, allowAt)) return false;
-          } else if (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") {
-            if (!part.alternate || part.alternate.parts.length === 0) return false;
-            const q0 = part.alternate.parts[0]!.quoted;
-            const trimOp = part.operator;
-            if (!part.alternate.parts.every((p, idx) => p.quoted === q0 && ( (p.kind === "text" && !p.byteValue && (p.quoted || !hasGlobOrEscape(p.value, !!rawState.extglob) || (idx === 0 && (trimOp === "#" || trimOp === "##") && p.value === "*") || (idx === part.alternate!.parts.length - 1 && (trimOp === "%" || trimOp === "%%") && p.value === "*") || (part.alternate!.parts.length === 1 && Boolean(tryCompileTrimGlobToRegex(p.value, trimOp, !!rawState.extglob))))) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && (getArraySelector(p) === undefined || (p.name === "BASH_REMATCH" && getArraySelector(p)?.kind === "element" && /^[0-9]{1,2}$/.test((getArraySelector(p) as { index: { decimal: string } }).index.decimal))) && isShellIdentifier(p.name))
-            ))) {
-              return false;
-            }
-          } else if (part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%") {
-            if (!part.alternate || part.alternate.parts.length === 0) return false;
-            const q0 = part.alternate.parts[0]!.quoted;
-            const repOp = part.operator;
-            if (!part.alternate.parts.every(p => p.quoted === q0 && ( (p.kind === "text" && !p.byteValue && (p.quoted || !hasGlobOrEscape(p.value, !!rawState.extglob) || (part.alternate!.parts.length === 1 && Boolean(tryCompileFixedGlobToRegex(p.value, repOp, !!rawState.extglob))))) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
-            ))) {
-              return false;
-            }
-            if (part.replacement && part.replacement.parts.length > 0) {
-              if (!part.replacement.parts.every(p => ( (p.kind === "text" && !p.byteValue && !p.value.includes("&") && !p.value.includes("\\") && (p.quoted || !p.value.startsWith("~"))) || (p.kind === "variable" && !p.operator && !p.substring && !p.length && !p.indirect && !p.prefixNames && !p.specialParameter && !p.transform && getArraySelector(p) === undefined && isShellIdentifier(p.name))
-              ))) {
-                return false;
-              }
-            }
           } else return false;
         }
         continue;
@@ -16897,7 +16872,7 @@ export class Runtime {
         }
         catch (failure) { this.signal.throwIfAborted(); publicDiagnosticMessage(failure, this.budget.onInternalError); }
       }
-      if ((error instanceof ExpansionFailure && !(error instanceof SubstringRangeFailure && state.loopDepth > 0)) || error instanceof BraceExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+      if (error instanceof ExpansionFailure || error instanceof BraceExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof FatalCommandFailure) throw completedExit(error.status);
       if (error instanceof DiscardCommandFailure) throw completedExit(error.status, "discard");
       const status = outputTracker.outputStatus ?? (error instanceof CommandFailure ? error.status : 1);
@@ -21298,7 +21273,7 @@ export class Runtime {
     if (expression.length) {
       const length = await arithmetic(expression.length);
       end = length.value < 0n ? size + length.value : offset + length.value;
-      if (end < offset) throw new SubstringRangeFailure(`${length.source}: substring expression < 0`, line);
+      if (end < offset) throw new ExpansionFailure(`${length.source}: substring expression < 0`, line);
       if (end > size) end = size;
     }
     this.signal.throwIfAborted();

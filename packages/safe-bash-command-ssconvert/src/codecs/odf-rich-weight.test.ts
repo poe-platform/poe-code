@@ -7,7 +7,7 @@ import { metadataNode } from "./xlsx-write-support.js";
 
 // LibreOffice weighhdl.cxx maps normal/bold to 400/700 and accepts 100..900.
 // GOffice go-format.c represents rich weight as (Pango weight - 400) / 300.
-for (const weight of [100, 200, 300, 400, 500, 600, 700, 800, 900]) {
+for (const weight of [100, 157, 170, 183, 196, 200, 219, 232, 245, 300, 350, 400, 500, 600, 700, 800, 900]) {
   const bold = (weight - 400) / 300;
   it(`imports numeric rich weight ${weight} in cells and annotations`, async () => {
     const style = `<style:style style:name="Weight" style:family="text"><style:text-properties fo:font-weight="${weight}"/></style:style>`;
@@ -31,3 +31,10 @@ for (const weight of [100, 200, 300, 400, 500, 600, 700, 800, 900]) {
     expect((await readOdf(bytes, context)).sheets[0]!.cells[0]!.richText).toEqual(richText);
   });
 }
+
+for (const profile of ["strict", "extended"] as const) it(`retains GOffice truncation for fractional rich weight through ${profile} ODF`, async () => {
+  const book: Workbook = { sheets: [{ id: "s", name: "S", cells: [{ row: 0, column: 0,
+    value: { kind: "string", value: "A" }, richText: [{ start: 0, end: 1, attributes: { bold: -0.809 } }] }] }] };
+  const bytes = await createOdfWriter(profile)(book, [], context);
+  expect((await unpackOdf(bytes)).parts.get("content.xml")).toContain('fo:font-weight="157"');
+});

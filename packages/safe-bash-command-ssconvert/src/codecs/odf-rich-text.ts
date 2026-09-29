@@ -125,7 +125,10 @@ export function writeOdfRichText(value: string, runs: readonly RichTextRun[], xm
     if (typeof a.family === "string") properties["style:font-name"] = definitions.register("fonts", "style:font-face", "rtfont", { "svg:font-family": a.family });
     if (typeof a.size === "number" && Number.isFinite(a.size) && a.size >= 0) properties["fo:font-size"] = a.size / 1024 + "pt";
     if (a.bold !== undefined) {
-      const weight = Math.trunc(Number(a.bold) * 300 + 400);
+      const bold = Number(a.bold), scaled = bold * 300 + 400, nearest = Math.round(scaled);
+      // Recover exact imported integer weights despite binary64 cancellation;
+      // retain GOffice's truncation for genuinely fractional markup weights.
+      const weight = bold === (nearest - 400) / 300 ? nearest : Math.trunc(scaled);
       properties["fo:font-weight"] = weight === 400 ? "normal" : weight === 700 ? "bold" :
         weight >= 100 && weight <= 900 ? String(weight) : Number(a.bold) ? "bold" : "normal";
     }

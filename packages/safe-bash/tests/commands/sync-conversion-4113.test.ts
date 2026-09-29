@@ -356,3 +356,28 @@ test("evaluates grep -f pattern files, flags after -e, and -Fo/-Ewo only-matchin
     "alpha_1,gamma_3,|2|alpha_1,DELTA_4,|a.b,a.b,|cat,dog,|gamma_3;gamma_3;\n"
   );
 });
+
+test("evaluates multi-key sort (-k 2,2n -k 1,1r) and sed a/i/c line operations in sync substitutions, pipelines, and brace loops (Wave 175)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(textProgramCommands());
+  const res = await shell.exec([
+    "printf 'b:10\\na:20\\nc:10\\nd:5\\n' > /tmp/items.txt",
+    "s_multi=$(sort -t : -k 2,2n -k 1,1r /tmp/items.txt | tr '\\n' ',')",
+    "s_uniq=$(sort -u -t : -k 2,2n /tmp/items.txt | tr '\\n' ',')",
+    "sed_i=$(sed '1i HDR:0' /tmp/items.txt | head -n 2 | tr '\\n' ',')",
+    "sed_a=$(sed '$a END:99' /tmp/items.txt | tail -n 2 | tr '\\n' ',')",
+    "sed_c=$(sed '/^a:/c a:999' /tmp/items.txt | tr '\\n' ',')",
+    "loop_out=''",
+    "for k in 1 2; do",
+    "  top=$(sort -t : -k 2,2n -k 1,1r /tmp/items.txt | sed -n '2p')",
+    "  loop_out=\"${loop_out}${top};\"",
+    "done",
+    "echo \"$s_multi|$s_uniq|$sed_i|$sed_a|$sed_c|$loop_out\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "d:5,c:10,b:10,a:20,|d:5,b:10,a:20,|HDR:0,b:10,|d:5,END:99,|b:10,a:999,c:10,d:5,|c:10;c:10;\n"
+  );
+});

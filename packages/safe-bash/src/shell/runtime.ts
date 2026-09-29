@@ -24269,6 +24269,7 @@ export class Runtime {
       | { kind: "p" }
       | { kind: "q" }
       | { kind: "=" }
+      | { kind: "a" | "i" | "c"; text: string }
       | { kind: "y"; map: Map<string, string> }
       | { kind: "s"; re: RegExp; rep: string; printOnMatch: boolean; nth: number });
     const steps: SedStep[] = [];
@@ -24323,9 +24324,12 @@ export class Runtime {
         steps.push({ addr, negated, kind: "=" });
         continue;
       }
-      // Text commands need range state and independent output terminators.
-      // Let the canonical sed executor preserve those byte-level semantics.
-      if (rest.startsWith("i") || rest.startsWith("a") || rest.startsWith("c")) return undefined;
+      if (rest.startsWith("i") || rest.startsWith("a") || rest.startsWith("c")) {
+        const aicM = /^([aic])(?:\s+|\\\s*)(.+)$/.exec(rest);
+        if (!aicM || addrM?.[2] !== undefined || aicM[2]!.includes("\\")) return undefined;
+        steps.push({ addr, negated, kind: aicM[1] as "a" | "i" | "c", text: aicM[2]! });
+        continue;
+      }
       if (rest.startsWith("y") && rest.length >= 4) {
         const delim = rest[1]!;
         if (!"/#|:@,;%!".includes(delim)) return undefined;
@@ -24432,6 +24436,7 @@ export class Runtime {
       const idx1 = i + 1;
       let deleted = false;
       let quitNow = false;
+      const appendedAfter: string[] = [];
       for (let si = 0; si < steps.length; si++) {
         const st = steps[si]!;
         const addrMatched = st.addr ? st.addr(l, idx1, total) : true;
@@ -24447,10 +24452,23 @@ export class Runtime {
         }
         if (st.kind === "=") {
           out.push(String(idx1));
-          // Line numbers are generated records, always terminated, even when
-          // the final input record is partial. Later prints can override this.
           lastInputIndex = -1;
           continue;
+        }
+        if (st.kind === "i") {
+          out.push(st.text);
+          lastInputIndex = -1;
+          continue;
+        }
+        if (st.kind === "a") {
+          appendedAfter.push(st.text);
+          continue;
+        }
+        if (st.kind === "c") {
+          out.push(st.text);
+          lastInputIndex = -1;
+          deleted = true;
+          break;
         }
         if (st.kind === "q") {
           if (!quiet) {
@@ -24506,6 +24524,10 @@ export class Runtime {
       if (!deleted && !quiet) {
         out.push(l);
         lastInputIndex = i;
+      }
+      if (appendedAfter.length > 0) {
+        out.push(...appendedAfter);
+        lastInputIndex = -1;
       }
     }
     return { lines: out, lastInputIndex };
@@ -27303,7 +27325,7 @@ export class Runtime {
     let stable = false;
     let ver = false;
     let sep: string | undefined;
-    let keySpec: string | undefined;
+    const keySpecs: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if (/^-[runfbsVhMd]+$/.test(a)) {
@@ -27334,16 +27356,15 @@ export class Runtime {
       } else if (a.startsWith("--field-separator=") && a.length === 19) {
         sep = a[18]!;
       } else if (a === "-k" && i + 1 < opArgs.length) {
-        if (keySpec !== undefined) return undefined;
-        keySpec = opArgs[++i]!;
+        keySpecs.push(opArgs[++i]!);
       } else if (a.startsWith("-k") && a.length > 2) {
-        if (keySpec !== undefined) return undefined;
-        keySpec = a.slice(2);
+        keySpecs.push(a.slice(2));
       } else {
         return undefined;
       }
     }
-    if (ver || keySpec?.includes("V")) return undefined;
+    if (ver || keySpecs.some(ks => ks.includes("V"))) return undefined;
+    const keySpec = keySpecs[0];
     let startField = 1;
     let endField: number | undefined;
     let keyNum = num;
@@ -27449,7 +27470,51 @@ export class Runtime {
       }
       return a.length - b.length;
     };
-    const sorted = [...rawLines].sort((a, b) => {
+    const extraCompares: Array<(a: string, b: string) => number> = [];
+    for (let ki = 1; ki < keySpecs.length; ki++) {
+      const ks = keySpecs[ki]!;
+      const km = /^([1-9][0-9]{0,2})(?:,([1-9][0-9]{0,2}))?([nrbfVhMd]*)$/.exec(ks);
+      if (!km) return undefined;
+      const sf = Number(km[1]!);
+      const ef = km[2] !== undefined ? Number(km[2]!) : undefined;
+      if (ef !== undefined && ef < sf) return undefined;
+      const kf = km[3] ?? "";
+      const kNum = kf.length > 0 ? kf.includes("n") : num;
+      const kHum = kf.length > 0 ? kf.includes("h") : human;
+      const kMon = kf.length > 0 ? kf.includes("M") : month;
+      const kDic = kf.length > 0 ? kf.includes("d") : dict;
+      const kRev = kf.length > 0 ? kf.includes("r") : rev;
+      const kFld = kf.length > 0 ? kf.includes("f") : fold;
+      const kBlk = kf.length > 0 ? kf.includes("b") : blanks;
+      if (Number(kNum) + Number(kHum) + Number(kMon) > 1 || (kDic && (kNum || kHum || kMon))) return undefined;
+      const extK = (l: string): string => {
+        let raw = sep !== undefined
+          ? l.split(sep).slice(sf - 1, ef).join(sep)
+          : (() => {
+              let offset = 0, start = l.length, end = l.length;
+              for (let field = 1; offset < l.length; field++) {
+                if (field === sf) start = offset;
+                while (l[offset] === " " || l[offset] === "\t") offset++;
+                while (offset < l.length && l[offset] !== " " && l[offset] !== "\t") offset++;
+                if (field === ef) { end = offset; break; }
+              }
+              return l.slice(start, end);
+            })();
+        if (kBlk) raw = raw.replace(/^[ \t]+/, "");
+        if (kDic) raw = raw.replace(/[^a-zA-Z0-9 \t]+/g, "");
+        if (!kFld) return raw;
+        return raw.toUpperCase();
+      };
+      extraCompares.push((a: string, b: string): number => {
+        const ka = extK(a), kb = extK(b);
+        if (kHum) { const hc = compareHuman(ka, kb); return hc !== 0 ? (kRev ? -hc : hc) : 0; }
+        if (kMon) { const ma = parseMonth(ka), mb = parseMonth(kb); return ma !== mb ? (kRev ? mb - ma : ma - mb) : 0; }
+        if (kNum) { const na = parseNum(ka), nb = parseNum(kb); return na !== nb ? (kRev ? nb - na : na - nb) : 0; }
+        if (ka !== kb) { const c = compareBytes(ka, kb); return kRev ? -c : c; }
+        return 0;
+      });
+    }
+    const compareKeys = (a: string, b: string): number => {
       const ka = extractKey(a);
       const kb = extractKey(b);
       if (keyHuman) {
@@ -27470,6 +27535,15 @@ export class Runtime {
         const comparison = compareBytes(ka, kb);
         return keyRev ? -comparison : comparison;
       }
+      for (let ki = 0; ki < extraCompares.length; ki++) {
+        const ec = extraCompares[ki]!(a, b);
+        if (ec !== 0) return ec;
+      }
+      return 0;
+    };
+    const sorted = [...rawLines].sort((a, b) => {
+      const kc = compareKeys(a, b);
+      if (kc !== 0) return kc;
       if (uniq || stable) return 0;
       const comparison = compareBytes(a, b);
       return rev ? -comparison : comparison;
@@ -27477,13 +27551,8 @@ export class Runtime {
     if (!uniq) return sorted;
     const dedup: string[] = [];
     for (let i = 0; i < sorted.length; i++) {
-      if (i === 0) {
+      if (i === 0 || compareKeys(sorted[i]!, sorted[i - 1]!) !== 0) {
         dedup.push(sorted[i]!);
-      } else {
-        const ka = extractKey(sorted[i]!);
-        const kb = extractKey(sorted[i - 1]!);
-        const same = keyHuman ? compareHuman(ka, kb) === 0 : keyMonth ? parseMonth(ka) === parseMonth(kb) : keyNum ? parseNum(ka) === parseNum(kb) : keyVer ? this.compareSyncVersion(ka, kb) === 0 : ka === kb;
-        if (!same) dedup.push(sorted[i]!);
       }
     }
     return dedup;

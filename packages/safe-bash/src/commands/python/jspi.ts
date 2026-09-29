@@ -3,6 +3,11 @@ import type { PythonAsyncExecutor, PythonExecutorStart } from './index.js';
 import { PythonFailure } from './diagnostics.js';
 import { parsePythonInvocation } from './invocation.js';
 import { pythonExecution } from './execution.js';
+import { installPythonLlmModule } from './llm-module.js';
+import { installPythonShellModule } from './shell-module.js';
+import { installPythonJspiRunSync } from './jspi-run-sync.js';
+import { pythonLibraryAdapter } from './library-adapter.js';
+import { pythonHostFailureCode } from './host-capabilities.js';
 import { pythonHostModule } from './host-module.js';
 import { pythonJspiSignatures } from './jspi-trampoline.js';
 import { createPythonJspiScheduler, type PythonJspiCallback } from './jspi-scheduler.js';
@@ -124,8 +129,8 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
             try {
               if (!start.host || !acceptingHostCalls) throw new Error('Python host capability unavailable');
               return { value: await start.host.request(payload[1]) };
-            } catch {
-              return { error: signal.aborted ? 'Python host operation cancelled' : 'Python host operation failed' };
+            } catch (error) {
+              return { errorCode: pythonHostFailureCode(error), error: signal.aborted ? 'Python host operation cancelled' : 'Python host operation failed' };
             }
           }
           signal.throwIfAborted();
@@ -208,6 +213,10 @@ def _safe_native_stat_type(values, extras):
 _safe_stat_type = _safe_native_stat_type
 `);
       runtime.runPython(pythonHostModule);
+      installPythonLlmModule(runtime);
+      installPythonShellModule(runtime);
+      installPythonJspiRunSync(runtime);
+      runtime.runPython(pythonLibraryAdapter);
       runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
       runtime.globals.set('_safe_execution_code', pythonExecution);
       runtime.globals.set('_safe_is_cancelled', () => signal.aborted);

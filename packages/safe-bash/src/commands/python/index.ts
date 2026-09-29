@@ -194,7 +194,6 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
           await writeBytes(stderrOperation!.output, new TextEncoder().encode('python: ' + failure.message + '\n'), signal);
         }
       };
-      if (options.createCapabilities) hostBridge = createPythonHostBridge(options.createCapabilities({ ...context, signal }), { ...options.capabilityLimits, signal });
       const dispatch = async (request: { op: string; args: unknown[] }): Promise<unknown> => {
         if (request.op === 'close') return service.dispatch(request);
         signal.throwIfAborted();
@@ -230,6 +229,16 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         return request.op === 'stat' || request.op === 'lstat' || request.op === 'fstat'
           ? metadata.translate(value as FileStat) : value;
       };
+      if (options.createCapabilities) {
+        const capabilityInput = { async *[Symbol.asyncIterator]() {
+          while (true) {
+            const bytes = await dispatch({ op: 'stdin', args: [maxTransferBytes] }) as number[];
+            if (!bytes.length) break;
+            yield Uint8Array.from(bytes);
+          }
+        } };
+        hostBridge = createPythonHostBridge(options.createCapabilities({ ...context, stdin: capabilityInput, signal }), { ...options.capabilityLimits, signal });
+      }
       options.onProgress?.({ phase: 'initializing', command: context.command });
       const preparation = environment.prepare({ fs: context.fs, cwd: context.cwd, signal,
         requirements: [...(options.packages ?? []), ...(options.packageProfile ? pythonDocumentPackages : []), ...(installation?.packages ?? [])],

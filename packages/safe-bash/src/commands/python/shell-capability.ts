@@ -15,11 +15,14 @@ export function createPythonShellCapability(context: CommandContext, options: { 
   const scope = context.executionScope;
   const invoke = context.invoke;
   let running = false;
-  return { async call(value, { signal }) {
+  const execute: NonNullable<PythonHostCapability['call']> = async (value, { signal }) => {
     signal.throwIfAborted();
     if (running) throw new Error('Python nested shell concurrency limit exceeded');
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Expected a Python shell request');
     const request = value as Record<string, PythonHostValue>;
+    const requestedOutput = request.maxOutputBytes;
+    if (requestedOutput !== undefined && (typeof requestedOutput !== 'number' || !Number.isSafeInteger(requestedOutput) || requestedOutput < 0)) throw new RangeError('Invalid Python shell output limit');
+    const outputLimit = Math.min(maxOutputBytes, typeof requestedOutput === 'number' ? requestedOutput : maxOutputBytes);
     const timeoutMs = request.timeoutMs;
     if (timeoutMs !== undefined && (typeof timeoutMs !== 'number' || !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2147483647)) throw new RangeError('Invalid Python shell timeout');
     const childSignal = typeof timeoutMs === 'number' ? AbortSignal.any([signal, AbortSignal.timeout(timeoutMs)]) : signal;
@@ -41,12 +44,22 @@ export function createPythonShellCapability(context: CommandContext, options: { 
     if (input.length > maxInputBytes) throw new RangeError('Python shell input limit exceeded');
     const bytes = typeof input === 'string' ? new TextEncoder().encode(input) : Uint8Array.from(input as number[]);
     if (bytes.length > maxInputBytes) throw new RangeError('Python shell input limit exceeded');
+    const source = request.stdinMode === 'inherit' && request.stdin === undefined ? context.stdin : { async *[Symbol.asyncIterator]() { yield bytes; } };
+    const childInput = { async *[Symbol.asyncIterator]() {
+      let received = 0;
+      for await (const fragment of source) {
+        childSignal.throwIfAborted();
+        received += fragment.length;
+        if (received > maxInputBytes) throw new RangeError('Python shell input limit exceeded');
+        yield fragment;
+      }
+    } };
     const stdout: number[] = [];
     const stderr: number[] = [];
     let captured = 0;
     const sink = (target: number[]) => ({ async write(chunk: Uint8Array) {
       childSignal.throwIfAborted();
-      if (chunk.length > maxOutputBytes - captured) throw new RangeError('Python shell output limit exceeded');
+      if (chunk.length > outputLimit - captured) throw new RangeError('Python shell output limit exceeded');
       captured += chunk.length;
       for (const byte of chunk) target.push(byte);
     } });
@@ -56,7 +69,7 @@ export function createPythonShellCapability(context: CommandContext, options: { 
       const args = argv as string[] | undefined;
       const result = await invoke(args ? args[0]! : 'sh', args ? args.slice(1) : ['-c', script as string], {
         signal: childSignal, cwd: request.cwd as string | undefined ?? context.cwd, env, replaceEnv: true,
-        stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: sink(stdout), stderr: sink(stderr), externalInvocation: true,
+        stdin: childInput, stdout: sink(stdout), stderr: sink(stderr), externalInvocation: true,
       });
       childSignal.throwIfAborted();
       return { stdout, stderr, exitCode: result.exitCode };
@@ -65,5 +78,11 @@ export function createPythonShellCapability(context: CommandContext, options: { 
       const count = dispatching.get(scope)! - 1;
       if (count) dispatching.set(scope, count); else dispatching.delete(scope);
     }
+  };
+  return { call: execute, async *stream(value, context) {
+    const result = await execute(value, context) as { stdout: number[]; stderr: number[]; exitCode: number };
+    if (result.stdout.length) yield { type: 'stdout', data: result.stdout };
+    if (result.stderr.length) yield { type: 'stderr', data: result.stderr };
+    yield { type: 'exit', returncode: result.exitCode };
   } };
 }

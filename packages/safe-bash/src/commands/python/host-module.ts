@@ -7,13 +7,15 @@ import json
 from _safe_native_fs import request as _request
 
 class HostError(RuntimeError):
- pass
+ def __init__(self, message, code='service'):
+  super().__init__(message)
+  self.code = code
 
 def _send(operation, **fields):
  payload = dict(version=1, operation=operation, **fields)
  response = json.loads(_request(json.dumps(['host', payload], allow_nan=False)))
  if 'error' in response:
-  raise HostError(response['error'])
+  raise HostError(response['error'], response.get('errorCode', 'service'))
  return response['value']
 
 def call(capability, value=None):

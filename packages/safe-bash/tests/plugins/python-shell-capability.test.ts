@@ -51,3 +51,16 @@ test('child deadlines abort work without replacing parent cancellation authority
     assert.equal(pythonShellDispatchActive(context.executionScope), false);
   } finally { clearTimeout(keepAlive); }
 });
+
+test('inherited stdin uses the parent source and enforces a caller output cap', async () => {
+  const signal = new AbortController().signal;
+  const context = { signal, executionScope:{}, cwd:'/', env:{}, stdin:{async *[Symbol.asyncIterator]() {yield new Uint8Array([0,255]);}}, async invoke(_name, _args, options) {
+    const input:number[] = [];
+    for await (const chunk of options!.stdin!) input.push(...chunk);
+    assert.deepEqual(input,[0,255]);
+    await options!.stdout!.write(new Uint8Array([1,2]));
+    return {exitCode:0};
+  }} as CommandContext;
+  const shell = createPythonShellCapability(context);
+  await assert.rejects(shell.call!({argv:['echo'],stdinMode:'inherit',maxOutputBytes:1},{signal}), /output limit/);
+});

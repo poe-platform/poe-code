@@ -9,6 +9,14 @@ export interface PythonHostBridgeOptions {
   readonly maxMessageBytes?: number;
   readonly maxConcurrentCalls?: number;
   readonly maxStreams?: number;
+  readonly maxStreamBytes?: number;
+}
+
+export type PythonHostFailureCode = 'limit' | 'timeout' | 'service';
+export function pythonHostFailureCode(error: unknown): PythonHostFailureCode {
+  if (error instanceof RangeError) return 'limit';
+  if (error instanceof Error && error.name === 'TimeoutError') return 'timeout';
+  return 'service';
 }
 
 /** Invocation-owned, pull-based protocol. An uncooperative host retains admission until it settles. */
@@ -16,7 +24,8 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
   const maxMessageBytes = options.maxMessageBytes ?? 65536;
   const maxConcurrentCalls = options.maxConcurrentCalls ?? 1;
   const maxStreams = options.maxStreams ?? 4;
-  for (const limit of [maxMessageBytes, maxConcurrentCalls, maxStreams]) {
+  const maxStreamBytes = options.maxStreamBytes ?? 1048576;
+  for (const limit of [maxMessageBytes, maxConcurrentCalls, maxStreams, maxStreamBytes]) {
     if (!Number.isSafeInteger(limit) || limit < 1) throw new RangeError('Invalid Python host capability limit');
   }
   if (maxMessageBytes > 65536) throw new RangeError('Python host message limit cannot exceed 65536 bytes');
@@ -24,7 +33,11 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
   const controller = new AbortController();
   const signal = AbortSignal.any([options.signal, controller.signal]);
   const pending = new Set<Promise<unknown>>();
-  const streams = new Map<number, { iterator: AsyncIterator<string | Uint8Array | PythonHostValue>; busy: boolean }>();
+  const streams = new Map<number, { iterator: AsyncIterator<string | Uint8Array | PythonHostValue>; busy: boolean; controller: AbortController; bytes: number }>();
+  const jobs = new Map<number, { controller: AbortController; result?: PythonHostValue; failed?: PythonHostFailureCode }>();
+  const cleanupFailures: unknown[] = [];
+  const jobWork = new Set<Promise<void>>();
+  let nextJob = 1;
   let nextHandle = 1;
   let retired = false;
   let closing: Promise<void> | undefined;
@@ -68,31 +81,27 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
     if (retired) throw new Error('Python host capability retired');
     signal.throwIfAborted();
   };
-  const release = async (handle: number): Promise<void> => {
+  const release = async (handle: number, cancel = true): Promise<void> => {
     const stream = streams.get(handle);
     if (!stream) throw new Error('Unknown Python host stream');
     streams.delete(handle);
-    await stream.iterator.return?.();
+    if (cancel) stream.controller.abort(new Error('Python host stream released'));
+    try { await stream.iterator.return?.(); }
+    catch (error) { cleanupFailures.push(error); throw error; }
   };
-  const request = async (incoming: unknown): Promise<PythonHostValue> => {
-    assertLive();
-    if (pending.size >= maxConcurrentCalls) throw new Error('Python host call concurrency limit exceeded');
-    const payload = data(incoming) as Record<string, PythonHostValue>;
-    if (!payload || Array.isArray(payload) || typeof payload !== 'object' || payload.version !== 1) throw new TypeError('Unsupported Python host protocol');
-    const operation = Promise.resolve().then(async (): Promise<PythonHostValue> => {
-      assertLive();
-      if (payload.operation === 'next' || payload.operation === 'release') {
-        const handle = payload.handle;
-        if (typeof handle !== 'number' || !Number.isSafeInteger(handle)) throw new TypeError('Invalid Python host stream handle');
-        const stream = streams.get(handle);
-        if (!stream) throw new Error('Unknown Python host stream');
-        if (stream.busy) throw new Error('Python host stream already pulling');
-        if (payload.operation === 'release') { await release(handle); return null; }
-        stream.busy = true;
+  const pull = async (handle: number): Promise<PythonHostValue> => {
+    const stream = streams.get(handle);
+    if (!stream) throw new Error('Unknown Python host stream');
+    stream.busy = true;
         try {
           const result = await stream.iterator.next();
           assertLive();
-          if (result.done) { await release(handle); return { done: true }; }
+          stream.controller.signal.throwIfAborted();
+          if (result.done) { await release(handle, false); return { done: true }; }
+          const chunkBytes = result.value instanceof Uint8Array ? result.value.length
+            : new TextEncoder().encode(typeof result.value === 'string' ? result.value : JSON.stringify(data(result.value))).length;
+          if (chunkBytes > maxStreamBytes - stream.bytes) throw new RangeError('Python host stream byte limit exceeded');
+          stream.bytes += chunkBytes;
           const value = result.value instanceof Uint8Array
             ? (() => { if (result.value.length > maxMessageBytes / 4) throw new RangeError('Python host message limit exceeded'); return { type: 'bytes', bytes: Array.from(result.value) }; })()
             : typeof result.value === 'string' ? { type: 'text', text: result.value } : { type: 'data', value: result.value };
@@ -101,6 +110,66 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
           if (streams.has(handle)) await release(handle);
           throw error;
         } finally { stream.busy = false; }
+  };
+  const request = async (incoming: unknown): Promise<PythonHostValue> => {
+    assertLive();
+    if (pending.size >= maxConcurrentCalls) throw new Error('Python host call concurrency limit exceeded');
+    const payload = data(incoming) as Record<string, PythonHostValue>;
+    if (!payload || Array.isArray(payload) || typeof payload !== 'object' || payload.version !== 1) throw new TypeError('Unsupported Python host protocol');
+    const operation = Promise.resolve().then(async (): Promise<PythonHostValue> => {
+      assertLive();
+      if (payload.operation === 'poll' || payload.operation === 'cancel') {
+        const handle = payload.handle;
+        if (typeof handle !== 'number') throw new TypeError('Invalid Python host job');
+        const job = jobs.get(handle);
+        if (!job) throw new Error('Unknown Python host job');
+        if (payload.operation === 'cancel') {
+          jobs.delete(handle);
+          job.controller.abort(new Error('Python guest cancelled host operation'));
+          return null;
+        }
+        if (job.result === undefined && !job.failed) return { done: false };
+        jobs.delete(handle);
+        return job.failed ? { done: true, error: 'Python host operation failed', errorCode: job.failed } : { done: true, value: job.result! };
+      }
+      if (Math.max(jobWork.size, jobs.size) >= maxConcurrentCalls) throw new Error('Python host call concurrency limit exceeded');
+      if (payload.operation === 'begin' || payload.operation === 'begin-next') {
+        let work: (childSignal: AbortSignal) => Promise<PythonHostValue>;
+        let child: AbortController;
+        if (payload.operation === 'begin-next') {
+          const stream = typeof payload.handle === 'number' ? streams.get(payload.handle) : undefined;
+          if (!stream || stream.busy) throw new Error('Unknown or busy Python host stream');
+          child = stream.controller;
+          work = () => pull(payload.handle as number);
+        } else {
+          const capability = typeof payload.capability === 'string' ? registry.get(payload.capability) : undefined;
+          if (!capability?.call) throw new Error('Unknown Python host capability');
+          child = new AbortController();
+          work = childSignal => capability.call!(payload.value ?? null, { signal: childSignal });
+        }
+        const handle = nextJob++;
+        const job: { controller: AbortController; result?: PythonHostValue; failed?: PythonHostFailureCode } = { controller: child };
+        jobs.set(handle, job);
+        const task = Promise.resolve().then(() => {
+          const childSignal = AbortSignal.any([signal, child.signal]);
+          childSignal.throwIfAborted();
+          return work(childSignal);
+        }).then(value => {
+          assertLive();
+          child.signal.throwIfAborted();
+          job.result = data(value);
+        }).catch(error => { job.failed = pythonHostFailureCode(error); }).finally(() => { jobWork.delete(task); });
+        jobWork.add(task);
+        return handle;
+      }
+      if (payload.operation === 'next' || payload.operation === 'release') {
+        const handle = payload.handle;
+        if (typeof handle !== 'number' || !Number.isSafeInteger(handle)) throw new TypeError('Invalid Python host stream handle');
+        const stream = streams.get(handle);
+        if (!stream) throw new Error('Unknown Python host stream');
+        if (stream.busy) throw new Error('Python host stream already pulling');
+        if (payload.operation === 'release') { await release(handle); return null; }
+        return pull(handle);
       }
       if (typeof payload.capability !== 'string') throw new TypeError('Invalid Python host capability');
       const capability = registry.get(payload.capability);
@@ -112,9 +181,10 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
       }
       if (payload.operation === 'stream' && capability.stream) {
         if (streams.size >= maxStreams) throw new Error('Python host stream limit exceeded');
-        const iterator = capability.stream(payload.value ?? null, { signal })[Symbol.asyncIterator]();
+        const child = new AbortController();
+        const iterator = capability.stream(payload.value ?? null, { signal: AbortSignal.any([signal, child.signal]) })[Symbol.asyncIterator]();
         const handle = nextHandle++;
-        streams.set(handle, { iterator, busy: false });
+        streams.set(handle, { iterator, busy: false, controller: child, bytes: 0 });
         return handle;
       }
       throw new Error('Unsupported Python host capability operation');
@@ -128,10 +198,13 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
     retired = true;
     controller.abort(new Error('Python host capability retired'));
     closing = (async () => {
-      await Promise.allSettled([...pending]);
-      const results = await Promise.allSettled([...streams.keys()].map(release));
+      for (const job of jobs.values()) job.controller.abort(controller.signal.reason);
+      await Promise.allSettled([...pending, ...jobWork]);
+      jobs.clear();
+      const results = await Promise.allSettled([...streams.keys()].map(handle => release(handle)));
       registry.clear();
       for (const result of results) if (result.status === 'rejected') throw result.reason;
+      if (cleanupFailures.length) throw cleanupFailures[0];
     })();
     return closing;
   };

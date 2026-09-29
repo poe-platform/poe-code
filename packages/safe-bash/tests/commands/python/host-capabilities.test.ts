@@ -62,3 +62,47 @@ test('bounds composite payloads before serialization and refuses accessors', asy
   assert.equal(called, false);
   await bridge.close();
 });
+
+test('async guest jobs can cancel an outstanding host call without retiring the invocation', async () => {
+  let cancelled = false;
+  const bridge = createPythonHostBridge({ slow: { async call(_, {signal}) {
+    await new Promise<void>(resolve => signal.addEventListener('abort', () => { cancelled = true; resolve(); }, {once:true}));
+    signal.throwIfAborted();
+    return null;
+  } }, echo: {async call(value) { return value; }} }, {signal:new AbortController().signal});
+  const handle = await bridge.request({version:1, operation:'begin', capability:'slow', value:null});
+  assert.deepEqual(await bridge.request({version:1, operation:'poll', handle}), {done:false});
+  await bridge.request({version:1, operation:'cancel', handle});
+  await Promise.resolve();
+  assert.equal(cancelled, true);
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.equal(await bridge.request({version:1, operation:'call', capability:'echo', value:'alive'}), 'alive');
+  await bridge.close();
+});
+
+test('failed iterator release keeps retirement failed', async () => {
+  const failure = new Error('iterator cleanup failed');
+  const bridge = createPythonHostBridge({ stream: { stream() { return { [Symbol.asyncIterator]() { return { async next() { return {done:false, value:'value'}; }, async return() { throw failure; } }; } }; } } }, {signal:new AbortController().signal});
+  const handle = await bridge.request({version:1, operation:'stream', capability:'stream'});
+  await assert.rejects(bridge.request({version:1, operation:'release', handle}), error => error === failure);
+  await assert.rejects(bridge.close(), error => error === failure);
+});
+
+test('natural async stream completion is not classified as cancellation', async () => {
+  const bridge = createPythonHostBridge({ empty:{async *stream() {}} }, {signal:new AbortController().signal});
+  const stream = await bridge.request({version:1, operation:'stream', capability:'empty'});
+  const handle = await bridge.request({version:1, operation:'begin-next', handle:stream});
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.deepEqual(await bridge.request({version:1, operation:'poll', handle}), {done:true,value:{done:true}});
+  await bridge.close();
+});
+
+test('streams enforce a cumulative byte budget and release on overflow', async () => {
+  let closed = false;
+  const bridge = createPythonHostBridge({ output:{async *stream() {try {yield new Uint8Array([1,2]); yield new Uint8Array([3,4]);} finally {closed=true;}}} }, {signal:new AbortController().signal,maxStreamBytes:3});
+  const handle = await bridge.request({version:1,operation:'stream',capability:'output'});
+  await bridge.request({version:1,operation:'next',handle});
+  await assert.rejects(bridge.request({version:1,operation:'next',handle}), /stream byte limit/);
+  assert.equal(closed,true);
+  await bridge.close();
+});

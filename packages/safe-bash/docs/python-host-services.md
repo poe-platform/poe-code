@@ -49,16 +49,23 @@ print(check_output('llm hello | rg hello', shell=True, text=True))
 These synchronous functions suspend at the existing native JSPI boundary while
 JavaScript awaits the operation. They require neither top-level await nor nested
 `asyncio.run`, and do not use busy polling or `Atomics.wait`. They do not preempt
-CPU-only Python. Coroutine/task-cancellation behavior needs separate qualification;
-this API does not claim an async Python calling convention.
+CPU-only Python. The bundled `poe_llm` and `poe_shell` libraries also support coroutine calls.
+Their adapter starts bounded host jobs and yields between readiness checks with
+a 1–16 ms backoff; cancelling a guest task aborts its specific host job. It does
+not poll synchronously or reenter a suspended interpreter. Use
+`pyodide.ffi.run_sync(main())` from an ordinary Python file; this suspension
+boundary and exception translation are exercised in real workerd.
 
 `run` supports literal argv or explicit `shell=True` script parsing, input bytes
 or text, cwd, environment overlays, UTF-8 text output, `check` and a positive
 `timeout` in seconds. It returns `args`, `returncode`, `stdout` and `stderr`.
 `check_output` checks the status and returns captured stdout. Nonzero checked
 results raise `CalledProcessError` with `returncode`, `cmd`, `output` and `stderr`.
-This executes configured Safe Bash commands, not OS processes. There is no
-Popen, PTY, fork, process signaling or arbitrary-binary support.
+This executes configured Safe Bash commands, not OS processes. The runtime also adapts stdlib `subprocess.run` and `subprocess.check_output`
+to the same shell capability. `poe_shell.Client` supports coroutine execution and
+bounded captured stream events. These events follow command completion; they
+do not promise incremental shell output. There is no Popen, PTY, fork, process
+signaling or arbitrary-binary support.
 
 Shell execution uses the parent's invoker and canonical filesystem, with the
 same execution budget and cancellation/deadline authority. cwd/env are child
@@ -70,13 +77,22 @@ interpreter or increase pool capacity. This conservative rule also covers other
 Python stages sharing that execution scope.
 
 Default capability limits are one pending call, four retained streams and 64 KiB
-of serialized data per request/result, with a maximum data depth of 32. Configure
+of serialized data per request/result, 1 MiB of cumulative stream data per stream,
+and a maximum data depth of 32. Configure
 `capabilityLimits` explicitly when installing the plugin. Streams pull one event
 per guest request and copy binary events into owned byte arrays. `with stream(...)`
 or explicit `close()` releases an iterator on early exit. Invocation teardown
 aborts pending operations, awaits their settlement and closes retained iterators.
 Uncooperative host operations retain admission until they settle; cancellation is
 cooperative and does not undo effects already committed.
+
+For `poe_llm.Client`, register `llm.call({ operation, payload }, { signal })`
+for `models`, `complete` and `embed`, and `llm.stream(payload, { signal })`.
+The host validates its application-specific payload and reuses its authorized
+LLM service. Stream callbacks can yield text/bytes directly or typed event data
+including final response metadata. Typed scalar options remain structured data;
+no CLI source serialization occurs. Custom request/response transforms and
+custom Python bridges from the saved library remain supported.
 
 The shell adapter additionally defaults to 8 KiB input and 8 KiB combined captured
 stdout/stderr per call. Configure `maxInputBytes` and `maxOutputBytes` when creating

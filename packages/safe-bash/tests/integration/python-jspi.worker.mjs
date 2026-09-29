@@ -75,6 +75,9 @@ async function qualifyShells(backend, createExecutor) {
 async function qualifyHostServices(backend, createExecutor) {
   let released = 0;
   let calls = 0;
+  let hostCancelled = 0;
+  let libraryReleased = 0;
+  let retiredBridge;
   const provider = { name: 'fake', models: [{ id: 'fake' }], async *complete(request) {
     await new Promise(resolve => setTimeout(resolve, 5));
     request.signal.throwIfAborted();
@@ -121,6 +124,51 @@ try:
 except CalledProcessError as error:
  assert error.returncode == 127
 assert call('identity', 'still-live') == 'still-live'
+from pyodide.ffi import run_sync
+from poe_llm import Client as LlmClient, CapabilityError
+import asyncio
+from poe_shell import Client as ShellClient
+import subprocess
+async def qualify_libraries():
+ async with LlmClient() as client:
+  response = await client.complete('library', options={'enabled': True, 'count': 2, 'nullable': None})
+  assert response.text == 'library'
+  assert (await client.models())[0].id == 'fake'
+  assert (await client.embed(['input'], model='fake')).vectors == ((1.0, 2.0),)
+  async with client.stream('library-stream') as early:
+   assert (await early.__anext__()).text == 'incremental'
+  async with client.stream('library-stream') as chunks:
+   events = [event async for event in chunks]
+   assert events[0].text == 'incremental'
+   assert events[1].data == bytes([0,255,128])
+  task = asyncio.create_task(client.complete('cancel-call'))
+  await asyncio.sleep(0.005)
+  task.cancel()
+  try:
+   await task
+   raise AssertionError('guest cancellation failed')
+  except asyncio.CancelledError:
+   pass
+  await asyncio.sleep(0.005)
+  try:
+   await client.complete('error-call')
+   raise AssertionError('host error was lost')
+  except CapabilityError as error:
+   assert 'private-host-error' not in str(error)
+ async with ShellClient() as child:
+  result = await child.run(['rg', 'changed', '/work/shared.txt'], text=True)
+  assert result.stdout == 'changed\n'
+  async with child.stream(['rg', 'changed', '/work/shared.txt']) as events:
+   streamed = [event async for event in events]
+   assert streamed[0].data == b'changed\n' and streamed[-1].returncode == 0
+run_sync(qualify_libraries())
+try:
+ subprocess.run(['wait'], capture_output=True, timeout=0.001)
+ raise AssertionError('subprocess timeout failed')
+except subprocess.TimeoutExpired:
+ pass
+result = subprocess.run(['rg', 'changed', '/work/shared.txt'], capture_output=True, text=True, check=True)
+assert result.stdout == 'changed\n'
 print('host-ok')
 `));
   const shell = new Shell({fs:backend, cwd:'/work'});
@@ -144,17 +192,52 @@ print('host-ok')
     } });
   } });
   shell.use(llmCommands({providers:[provider], defaultModel:'fake'}));
-  shell.use(pythonCommands({ createExecutor, maxConcurrentWorkers:1, createCapabilities(context) {
+  shell.use(pythonCommands({ createExecutor() {
+    const executor = createExecutor();
+    return { run(start) { retiredBridge = start.host; return executor.run(start); }, terminate: executor.terminate.bind(executor) };
+  }, maxConcurrentWorkers:1, createCapabilities(context) {
     return {
       identity: { async call(value) { calls++; return value; } },
-      llm: { stream(value, {signal}) { return service.complete({prompt:value.prompt, options:{}, attachments:[], signal}); } },
+      llm: {
+        async call(value, {signal}) {
+          if (value.operation === 'models') return [{id:'fake'}];
+          if (value.operation === 'embed') return {model:'fake',vectors:[[1,2]]};
+          if (value.payload.prompt === 'cancel-call') {
+            await new Promise(resolve => signal.addEventListener('abort', () => {hostCancelled++; resolve();}, {once:true}));
+            signal.throwIfAborted();
+          }
+          if (value.payload.prompt === 'error-call') throw new Error('private-host-error');
+          if (value.operation !== 'complete') throw new Error('Unsupported fixture operation');
+          if (value.payload.options.enabled !== true || value.payload.options.count !== 2 || value.payload.options.nullable !== null) throw new Error('Typed options were changed');
+          let text = '';
+          for await (const chunk of service.complete({prompt:value.payload.prompt, options:value.payload.options, attachments:[], signal})) text += chunk;
+          return {model:'fake', text, data:[]};
+        },
+        async *stream(value, {signal}) {
+          if (value.prompt === 'library-stream') {
+            try {
+              yield {type:'text',text:'incremental'};
+              yield {type:'bytes',data:[0,255,128]};
+            } finally { libraryReleased++; }
+          } else yield* service.complete({prompt:value.prompt, options:{}, attachments:[], signal});
+        },
+      },
       bytes: { async *stream() { try { yield new Uint8Array([0,255,128]); yield 'unused'; } finally { released++; } } },
       shell: createPythonShellCapability(context),
     };
   } }));
   try {
     const result = await shell.exec('python host.py');
-    return {exitCode:result.exitCode, stdout:result.stdout, stderr:result.stderr, calls, released};
+    let retirementRejected = false;
+    try { await retiredBridge.request({version:1, operation:'call', capability:'identity', value:null}); }
+    catch { retirementRejected = true; }
+    const sibling = new Shell({fs:backend, cwd:'/work'}).use(pythonCommands({createExecutor, createCapabilities() {
+      return { identity:{async call() { return 'sibling-authority'; }} };
+    } }));
+    let siblingResult;
+    try { siblingResult = await sibling.exec(`python -c "from safe_host import call; print(call('identity'))"`); }
+    finally { await sibling.dispose(); }
+    return {retirementRejected, sibling:siblingResult.stdout, siblingExit:siblingResult.exitCode, exitCode:result.exitCode, stdout:result.stdout, stderr:result.stderr, calls, released, hostCancelled, libraryReleased};
   } finally { await shell.dispose(); }
 }
 

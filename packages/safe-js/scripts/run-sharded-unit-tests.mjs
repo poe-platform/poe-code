@@ -146,7 +146,9 @@ function hasForwardedNpmArguments(fileSystem = fs) {
         return true;
       }
     }
-  } catch {}
+  } catch {
+    // An unavailable invocation record cannot identify a unit-test child.
+  }
   return false;
 }
 

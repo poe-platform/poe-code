@@ -22,10 +22,14 @@ export function consumePretestShardCompletion(fileSystem = fs, targetPath = defa
     const raw = JSON.parse(fileSystem.readFileSync(targetPath, "utf8"));
     try {
       fileSystem.unlinkSync(targetPath);
-    } catch {}
+    } catch {
+      // A consumed marker may already have been removed by another process.
+    }
     if (typeof raw?.timestamp === "number" && Date.now() - raw.timestamp < 60_000) {
       return [...baseExclude, "src/**/*.test.ts", "test/**/*.test.ts"];
     }
-  } catch {}
+  } catch {
+    // Missing or invalid markers leave the normal test discovery unchanged.
+  }
   return baseExclude;
 }

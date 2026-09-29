@@ -112,7 +112,7 @@ export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: 
       if (f.Italic !== undefined) text["fo:font-style"] = Number(f.Italic) ? "italic" : "normal";
       if (f.Underline !== undefined) {
         const underline = Number(f.Underline), low = underline === 3 || underline === 4;
-        text["style:text-underline-style"] = low ? "dash" : underline ? "solid" : "none";
+        text["style:text-underline-style"] = underline ? "solid" : "none";
         text["style:text-underline-type"] = underline === 2 || underline === 4 ? "double" : underline ? "single" : "none";
         text["style:text-underline-width"] = "auto";
         text["style:text-underline-color"] = "font-color";

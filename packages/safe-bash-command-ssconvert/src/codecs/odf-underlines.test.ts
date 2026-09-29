@@ -12,13 +12,14 @@ function styleXml(body: string) {
   return parseXml(`<root xmlns:style="${odfNamespaces.style}" xmlns:gnm="${odfNamespaces.gnm}" xmlns:number="${odfNamespaces.number}" xmlns:fo="${odfNamespaces.fo}">${body}</root>`);
 }
 
-// Gnumeric 325ef79a openoffice-write.c:1146-1158,1422-1438 preserves
-// accounting placement through gnm:text-underline-placement in extended ODF.
+// Gnumeric 325ef79a openoffice-write.c:1146-1158 preserves accounting
+// placement through its extension. Use solid lines: Calc bce0998a
+// undlihdl.cxx:132-148 drops the double type when the style is dashed.
 for (const extended of [false, true])
 it.each([
   [0, "none", "none"], [1, "single", "solid"], [2, "double", "solid"],
-  [3, "single", "dash"], [4, "double", "dash"]
-] as const)(`exports underline %s with the native ODF properties (extended=${extended})`, (underline, type, line) => {
+  [3, "single", "solid"], [4, "double", "solid"]
+] as const)(`exports underline %s with interoperable ODF properties (extended=${extended})`, (underline, type, line) => {
   const styles = createOdfStyles(createOdfXml(context, extended), extended, { sheets: [] }, context);
   styles.register({ style: { gnumeric: { name: "Style", attributes: {}, children: [
     { name: "Font", attributes: { Underline: String(underline) }, text: "Sans" }

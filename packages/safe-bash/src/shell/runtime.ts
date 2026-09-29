@@ -23810,6 +23810,241 @@ export class Runtime {
     for (let i = 0; i < args.length; i++) {
       const a = args[i]!;
       if (ended || !a.startsWith("-") || /^-[0-9.]/.test(a)) {
+        const normNum = a.startsWith("+") ? a.slice(1) : a;
+        if (!/^-?[0-9]{1,7}(?:\.[0-9]{1,4})?$/.test(normNum)) return undefined;
+        nums.push(normNum);
+        continue;
+      }
+      if (a === "--") { ended = true; continue; }
+      if (a === "-w" || a === "--equal-width") { equalWidth = true; continue; }
+      if (a === "-s" || a === "--separator" || a === "-ws" || a === "-sw") {
+        if (a.includes("w")) equalWidth = true;
+        if (i + 1 >= args.length) return undefined;
+        sep = args[++i]!;
+        continue;
+      }
+      if ((a.startsWith("-s") || a.startsWith("-ws")) && a.length > (a.startsWith("-ws") ? 3 : 2)) {
+        if (a.startsWith("-ws")) equalWidth = true;
+        sep = a.slice(a.startsWith("-ws") ? 3 : 2);
+        continue;
+      }
+      if (a.startsWith("--separator=")) {
+        sep = a.slice(12);
+        continue;
+      }
+      if (a === "-f" || a === "--format" || a === "-wf" || a === "-fw") {
+        if (a.includes("w")) equalWidth = true;
+        if (i + 1 >= args.length) return undefined;
+        fmt = args[++i]!;
+        continue;
+      }
+      if ((a.startsWith("-f") || a.startsWith("-wf")) && a.length > (a.startsWith("-wf") ? 3 : 2)) {
+        if (a.startsWith("-wf")) equalWidth = true;
+        fmt = a.slice(a.startsWith("-wf") ? 3 : 2);
+        continue;
+      }
+      if (a.startsWith("--format=")) {
+        fmt = a.slice(9);
+        continue;
+      }
+      return undefined;
+    }
+    if (nums.length < 1 || nums.length > 3 || (equalWidth && fmt !== undefined)) return undefined;
+    if (sep.includes("\0") || (fmt !== undefined && fmt.includes("\0"))) return undefined;
+    let fmtPrefix = "";
+    let fmtLeft = false;
+    let fmtZeroPad = false;
+    let fmtWidth = 0;
+    let fmtPrec: number | undefined;
+    let fmtSpec: "g" | "f" = "g";
+    let fmtSuffix = "";
+    if (fmt !== undefined) {
+      const m = /^([^%]*?)%(-?)(0?)([0-9]{0,2})(?:\.([0-9]{1,2}))?([gf])([^%]*)$/.exec(fmt);
+      if (!m) return undefined;
+      fmtPrefix = m[1]!;
+      fmtLeft = m[2] === "-";
+      fmtZeroPad = !fmtLeft && m[3] === "0";
+      fmtWidth = m[4] ? Number(m[4]) : 0;
+      fmtPrec = m[5] !== undefined ? Number(m[5]) : undefined;
+      fmtSpec = m[6] as "g" | "f";
+      if (fmtSpec === "g" && fmtPrec !== undefined) return undefined;
+      fmtSuffix = m[7]!;
+    }
+    const fracLen = (s: string): number => {
+      const dot = s.indexOf(".");
+      return dot < 0 ? 0 : s.length - dot - 1;
+    };
+    const firstStr = nums.length === 1 ? "1" : nums[0]!;
+    const incrStr = nums.length === 3 ? nums[1]! : "1";
+    const lastStr = nums[nums.length - 1]!;
+    const scalePow = Math.max(fracLen(firstStr), fracLen(incrStr), fracLen(lastStr));
+    const outPrec = Math.max(fracLen(firstStr), fracLen(incrStr));
+    const scaleFactor = 10 ** scalePow;
+    const firstInt = Math.round(Number(firstStr) * scaleFactor);
+    const incrInt = Math.round(Number(incrStr) * scaleFactor);
+    const lastInt = Math.round(Number(lastStr) * scaleFactor);
+    if (incrInt === 0 || Math.abs((lastInt - firstInt) / incrInt) > 1024) return undefined;
+    const formatScaled = (valInt: number): string => {
+      const num = valInt / scaleFactor;
+      return outPrec > 0 ? num.toFixed(outPrec) : String(Math.round(num));
+    };
+    const padWidth = equalWidth ? Math.max(formatScaled(firstInt).length, formatScaled(lastInt).length) : 0;
+    const seqLines: string[] = [];
+    for (let curInt = firstInt; incrInt > 0 ? curInt <= lastInt : curInt >= lastInt; curInt += incrInt) {
+      const cur = curInt / scaleFactor;
+      if (fmt !== undefined) {
+        const rawNum = fmtSpec === "f" ? cur.toFixed(fmtPrec ?? 6) : String(cur);
+        let body = rawNum;
+        if (fmtWidth > rawNum.length) {
+          if (fmtLeft) body = rawNum.padEnd(fmtWidth, " ");
+          else if (fmtZeroPad && rawNum.startsWith("-")) body = "-" + rawNum.slice(1).padStart(fmtWidth - 1, "0");
+          else body = rawNum.padStart(fmtWidth, fmtZeroPad ? "0" : " ");
+        }
+        seqLines.push(fmtPrefix + body + fmtSuffix);
+      } else if (equalWidth) {
+        const raw = formatScaled(curInt);
+        const body = raw.startsWith("-")
+          ? "-" + raw.slice(1).padStart(Math.max(0, padWidth - 1), "0")
+          : raw.padStart(padWidth, "0");
+        seqLines.push(body);
+      } else {
+        seqLines.push(formatScaled(curInt));
+      }
+    }
+    return seqLines.length > 0 ? seqLines.join(sep) + "\n" : "";
+  }
+
+  private evalSyncBase64(inBytes: Uint8Array, opArgs: readonly string[]): string | undefined {
+    let decode = false;
+    let ignoreGarbage = false;
+    let wrapCols = 76;
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (a === "-d" || a === "--decode") { decode = true; continue; }
+      if (a === "-i" || a === "--ignore-garbage") { ignoreGarbage = true; continue; }
+      if (a === "-di" || a === "-id") { decode = true; ignoreGarbage = true; continue; }
+      if (a === "-w") {
+        if (i + 1 >= opArgs.length || !/^[0-9]{1,5}$/.test(opArgs[i + 1]!)) return undefined;
+        wrapCols = Number(opArgs[++i]!);
+        continue;
+      }
+      if (a.startsWith("-w") && /^[0-9]{1,5}$/.test(a.slice(2))) {
+        wrapCols = Number(a.slice(2));
+        continue;
+      }
+      if (a.startsWith("--wrap=") && /^[0-9]{1,5}$/.test(a.slice(7))) {
+        wrapCols = Number(a.slice(7));
+        continue;
+      }
+      return undefined;
+    }
+    if (decode) {
+      const fileStr = sharedSyncPipeDecoder.decode(inBytes);
+      const cleaned = ignoreGarbage ? fileStr.replace(/[^A-Za-z0-9+/=]+/g, "") : fileStr.replace(/[ \t\r\n]+/g, "");
+      if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
+      const decoded = this.syncBase64DecodeBytes(cleaned);
+      if (decoded.some(byte => byte === 0 || byte >= 128)) return undefined;
+      return sharedSyncPipeDecoder.decode(decoded);
+    }
+    const rawB64 = this.syncBase64Encode(inBytes).replace(/\n/g, "");
+    if (rawB64.length === 0) return "";
+    if (wrapCols === 0) return rawB64 + "\n";
+    const lines: string[] = [];
+    for (let i = 0; i < rawB64.length; i += wrapCols) {
+      lines.push(rawB64.slice(i, i + wrapCols));
+    }
+    return lines.join("\n") + "\n";
+  }
+
+  private evalSyncDirname(args: readonly string[], allowZero = false): string | undefined {
+    let zero = false;
+    let ended = false;
+    const operands: string[] = [];
+    for (let i = 0; i < args.length; i++) {
+      const a = args[i]!;
+      if (ended || !a.startsWith("-") || a === "-") {
+        operands.push(a);
+        continue;
+      }
+      if (a === "--") { ended = true; continue; }
+      if (a === "-z" || a === "--zero") { zero = true; continue; }
+      return undefined;
+    }
+    if (zero && !allowZero) return undefined;
+    if (operands.length === 0) return undefined;
+    const out: string[] = [];
+    for (let i = 0; i < operands.length; i++) {
+      const p = operands[i]!;
+      if (p.includes("\0")) return undefined;
+      const parent = dirname(p);
+      let pEnd = parent.length;
+      while (pEnd > 1 && parent[pEnd - 1] === "/") pEnd--;
+      out.push(parent.slice(0, pEnd));
+    }
+    return zero ? out.join("\0") + "\0" : out.join("\n");
+  }
+
+  private evalSyncBasename(args: readonly string[], allowZero = false): string | undefined {
+    let multiple = false;
+    let zero = false;
+    let suffix: string | undefined;
+    let ended = false;
+    const operands: string[] = [];
+    for (let idx = 0; idx < args.length; idx++) {
+      const a = args[idx]!;
+      if (ended || !a.startsWith("-") || a === "-") {
+        operands.push(a);
+        continue;
+      }
+      if (a === "--") { ended = true; continue; }
+      if (a === "-a" || a === "--multiple") { multiple = true; continue; }
+      if (a === "-z" || a === "--zero") { zero = true; continue; }
+      if (a === "-az" || a === "-za") { multiple = true; zero = true; continue; }
+      if ((a === "-s" || a === "--suffix" || a === "-as" || a === "-sa" || a === "-zs" || a === "-sz") && idx + 1 < args.length) {
+        multiple = true;
+        if (a.includes("z")) zero = true;
+        suffix = args[++idx]!;
+        continue;
+      }
+      if (a.startsWith("--suffix=")) {
+        multiple = true;
+        suffix = a.slice(9);
+        continue;
+      }
+      if (a.startsWith("-s") && a.length > 2) {
+        multiple = true;
+        suffix = a.slice(2);
+        continue;
+      }
+      return undefined;
+    }
+    if (zero && !allowZero) return undefined;
+    if (operands.length === 0) return undefined;
+    if (!multiple && operands.length > 2) return undefined;
+    const effSuffix = multiple ? suffix : operands[1];
+    if (effSuffix !== undefined && effSuffix.includes("\0")) return undefined;
+    const paths = multiple ? operands : [operands[0]!];
+    const out: string[] = [];
+    for (const p of paths) {
+      if (p.includes("\0")) return undefined;
+      let res = /^\/+$/u.test(p) ? "/" : basename(p);
+      if (effSuffix && res !== effSuffix && res.endsWith(effSuffix)) {
+        res = res.slice(0, -effSuffix.length);
+      }
+      out.push(res);
+    }
+    return zero ? out.join("\0") + "\0" : out.join("\n");
+  }
+
+  private evalSyncSeq(args: readonly string[]): string | undefined {
+    let sep = "\n";
+    let equalWidth = false;
+    let fmt: string | undefined;
+    let ended = false;
+    const nums: string[] = [];
+    for (let i = 0; i < args.length; i++) {
+      const a = args[i]!;
+      if (ended || !a.startsWith("-") || /^-[0-9.]/.test(a)) {
         if (!/^-?[0-9]{1,7}(?:\.[0-9]{1,4})?$/.test(a)) return undefined;
         nums.push(a);
         continue;
@@ -26811,140 +27046,180 @@ export class Runtime {
     if (args.length === 0 || args[0] === "--help" || args[0] === "--version") return undefined;
     const ops = args[0] === "--" ? args.slice(1) : args;
     if (ops.length === 0) return undefined;
-    if (ops.length === 2 && ops[0] === "length") {
-      const len = Array.from(ops[1]!).length;
-      return { value: String(len), status: len === 0 ? 1 : 0 };
-    }
-    if (ops.length === 4 && ops[0] === "substr") {
-      const s = ops[1]!;
-      if (!/^-?[0-9]+$/.test(ops[2]!) || !/^-?[0-9]+$/.test(ops[3]!)) return undefined;
-      const pos = Number(ops[2]!);
-      const len = Number(ops[3]!);
-      if (!Number.isSafeInteger(pos) || !Number.isSafeInteger(len)) return undefined;
-      const chars = Array.from(s);
-      const out = (pos < 1 || len <= 0 || pos > chars.length) ? "" : chars.slice(pos - 1, pos - 1 + len).join("");
-      return { value: out, status: out.length === 0 ? 1 : 0 };
-    }
-    if (ops.length === 3 && ops[0] === "index") {
-      const s = Array.from(ops[1]!);
-      const set = new Set(Array.from(ops[2]!));
-      let idx = 0;
-      for (let i = 0; i < s.length; i++) {
-        if (set.has(s[i]!)) { idx = i + 1; break; }
-      }
-      return { value: String(idx), status: idx === 0 ? 1 : 0 };
-    }
-    if (ops.length === 3 && (ops[1] === ":" || ops[0] === "match")) {
-      const targetStr = ops[0] === "match" ? ops[1]! : ops[0]!;
-      const rawPat = ops[2]!;
-      if (!/\\[2-9]/.test(rawPat) && !rawPat.includes("[:") && !rawPat.includes("[.") && !rawPat.includes("[=")) {
-        let jsPat = "";
-        let hasCap = false;
-        let inBr = false;
-        const okPat = true;
-        for (let i = 0; i < rawPat.length; i++) {
-          const ch = rawPat[i]!;
-          if (inBr) {
-            jsPat += ch;
-            if (ch === "]") inBr = false;
-            continue;
-          }
-          if (ch === "[") { inBr = true; jsPat += ch; continue; }
-          if (ch === "\\" && i + 1 < rawPat.length) {
-            const nxt = rawPat[++i]!;
-            if (nxt === "(") { hasCap = true; jsPat += "("; }
-            else if (nxt === ")") jsPat += ")";
-            else if ("+?{}|".includes(nxt)) jsPat += nxt;
-            else jsPat += "\\" + nxt;
-            continue;
-          }
-          if ("+?{}()|".includes(ch)) { jsPat += "\\" + ch; continue; }
+    let pos = 0;
+    const isInt = (s: string): boolean => /^[+-]?[0-9]{1,18}$/.test(s);
+    const isTruthy = (s: string): boolean => s !== "" && !/^[+-]?0+$/.test(s);
+    const evalRegexMatch = (targetStr: string, rawPat: string): string | undefined => {
+      if (/\\[2-9]/.test(rawPat) || rawPat.includes("[:") || rawPat.includes("[.") || rawPat.includes("[=")) return undefined;
+      let jsPat = "";
+      let hasCap = false;
+      let inBr = false;
+      for (let i = 0; i < rawPat.length; i++) {
+        const ch = rawPat[i]!;
+        if (inBr) {
           jsPat += ch;
+          if (ch === "]") inBr = false;
+          continue;
         }
-        if (okPat && !inBr) {
-          try {
-            const re = new RegExp("^(?:" + (jsPat.startsWith("^") ? jsPat.slice(1) : jsPat) + ")");
-            const m = re.exec(targetStr);
-            if (!m) {
-              return hasCap ? { value: "", status: 1 } : { value: "0", status: 1 };
-            }
-            if (hasCap) {
-              const cap = m[1] ?? "";
-              return { value: cap, status: (cap === "" || cap === "0") ? 1 : 0 };
-            }
-            const len = Array.from(m[0]).length;
-            return { value: String(len), status: len === 0 ? 1 : 0 };
-          } catch {
-            // fall through
-          }
+        if (ch === "[") { inBr = true; jsPat += ch; continue; }
+        if (ch === "\\" && i + 1 < rawPat.length) {
+          const nxt = rawPat[++i]!;
+          if (nxt === "(") { hasCap = true; jsPat += "("; }
+          else if (nxt === ")") jsPat += ")";
+          else if ("+?{}|".includes(nxt)) jsPat += nxt;
+          else jsPat += "\\" + nxt;
+          continue;
         }
+        if ("+?{}()|".includes(ch)) { jsPat += "\\" + ch; continue; }
+        jsPat += ch;
       }
-    }
-    if (ops.length === 3 && (ops[1] === "|" || ops[1] === "&")) {
-      const a = ops[0]!, b = ops[2]!;
-      const aTruthy = a !== "" && a !== "0";
-      const bTruthy = b !== "" && b !== "0";
-      if (ops[1] === "|") {
-        const res = aTruthy ? a : (bTruthy ? b : "0");
-        return { value: res, status: (aTruthy || bTruthy) ? 0 : 1 };
+      if (inBr) return undefined;
+      try {
+        const re = new RegExp("^(?:" + (jsPat.startsWith("^") ? jsPat.slice(1) : jsPat) + ")");
+        const m = re.exec(targetStr);
+        if (!m) return hasCap ? "" : "0";
+        if (hasCap) return m[1] ?? "";
+        return String(Array.from(m[0]).length);
+      } catch {
+        return undefined;
       }
-      const res = (aTruthy && bTruthy) ? a : "0";
-      return { value: res, status: (aTruthy && bTruthy) ? 0 : 1 };
-    }
-    if (ops.length === 1) {
-      const v = ops[0]!;
-      return { value: v, status: (v === "" || v === "0") ? 1 : 0 };
-    }
-    if (ops.length >= 3 && ops.length % 2 === 1) {
-      for (let i = 0; i < ops.length; i += 2) {
-        if (!/^-?[0-9]{1,15}$/.test(ops[i]!)) return undefined;
+    };
+    const parsePrimary = (): string | undefined => {
+      if (pos >= ops.length) return undefined;
+      const tok = ops[pos]!;
+      if (tok === "+") {
+        pos++;
+        if (pos >= ops.length) return undefined;
+        return ops[pos++]!;
       }
-      const nums: bigint[] = [BigInt(ops[0]!)];
-      const syms: string[] = [];
-      for (let i = 1; i < ops.length; i += 2) {
-        const op = ops[i]!;
-        if (!["+", "-", "*", "/", "%", "=", "==", "!=", ">", ">=", "<", "<="].includes(op)) return undefined;
-        syms.push(op);
-        nums.push(BigInt(ops[i + 1]!));
+      if (tok === "(") {
+        pos++;
+        const v = parseOr();
+        if (v === undefined || pos >= ops.length || ops[pos] !== ")") return undefined;
+        pos++;
+        return v;
       }
-      const addNums: bigint[] = [nums[0]!];
-      const addSyms: string[] = [];
-      for (let i = 0; i < syms.length; i++) {
-        const op = syms[i]!;
-        const r = nums[i + 1]!;
-        if (op === "*" || op === "/" || op === "%") {
-          if ((op === "/" || op === "%") && r === 0n) return undefined;
-          const l = addNums.pop()!;
-          addNums.push(op === "*" ? l * r : op === "/" ? l / r : l % r);
+      if (tok === "length") {
+        pos++;
+        const s = parsePrimary();
+        if (s === undefined) return undefined;
+        return String(Array.from(s).length);
+      }
+      if (tok === "substr") {
+        pos++;
+        const s = parsePrimary();
+        const pStr = parsePrimary();
+        const lStr = parsePrimary();
+        if (s === undefined || pStr === undefined || lStr === undefined) return undefined;
+        if (!isInt(pStr) || !isInt(lStr)) return undefined;
+        const p = Number(pStr), l = Number(lStr);
+        const chars = Array.from(s);
+        return (p < 1 || l <= 0 || p > chars.length) ? "" : chars.slice(p - 1, p - 1 + l).join("");
+      }
+      if (tok === "index") {
+        pos++;
+        const s = parsePrimary();
+        const cStr = parsePrimary();
+        if (s === undefined || cStr === undefined) return undefined;
+        const chars = Array.from(s);
+        const set = new Set(Array.from(cStr));
+        let idx = 0;
+        for (let i = 0; i < chars.length; i++) {
+          if (set.has(chars[i]!)) { idx = i + 1; break; }
+        }
+        return String(idx);
+      }
+      if (tok === "match") {
+        pos++;
+        const s = parsePrimary();
+        const pat = parsePrimary();
+        if (s === undefined || pat === undefined) return undefined;
+        return evalRegexMatch(s, pat);
+      }
+      pos++;
+      return tok;
+    };
+    const parseColon = (): string | undefined => {
+      let left = parsePrimary();
+      if (left === undefined) return undefined;
+      while (pos < ops.length && ops[pos] === ":") {
+        pos++;
+        const right = parsePrimary();
+        if (right === undefined) return undefined;
+        const m = evalRegexMatch(left, right);
+        if (m === undefined) return undefined;
+        left = m;
+      }
+      return left;
+    };
+    const parseMul = (): string | undefined => {
+      let left = parseColon();
+      if (left === undefined) return undefined;
+      while (pos < ops.length && (ops[pos] === "*" || ops[pos] === "/" || ops[pos] === "%")) {
+        const op = ops[pos++]!;
+        const right = parseColon();
+        if (right === undefined || !isInt(left) || !isInt(right)) return undefined;
+        const l = BigInt(left), r = BigInt(right);
+        if ((op === "/" || op === "%") && r === 0n) return undefined;
+        left = String(op === "*" ? l * r : op === "/" ? l / r : l % r);
+      }
+      return left;
+    };
+    const parseAdd = (): string | undefined => {
+      let left = parseMul();
+      if (left === undefined) return undefined;
+      while (pos < ops.length && (ops[pos] === "+" || ops[pos] === "-")) {
+        const op = ops[pos++]!;
+        const right = parseMul();
+        if (right === undefined || !isInt(left) || !isInt(right)) return undefined;
+        const l = BigInt(left), r = BigInt(right);
+        left = String(op === "+" ? l + r : l - r);
+      }
+      return left;
+    };
+    const parseCmp = (): string | undefined => {
+      let left = parseAdd();
+      if (left === undefined) return undefined;
+      while (pos < ops.length && ["=", "==", "!=", "<", "<=", ">", ">="].includes(ops[pos]!)) {
+        const op = ops[pos++]!;
+        const right = parseAdd();
+        if (right === undefined) return undefined;
+        let ok: boolean;
+        if (isInt(left) && isInt(right)) {
+          const l = BigInt(left), r = BigInt(right);
+          ok = (op === "=" || op === "==") ? l === r : op === "!=" ? l !== r : op === "<" ? l < r : op === "<=" ? l <= r : op === ">" ? l > r : l >= r;
         } else {
-          addSyms.push(op);
-          addNums.push(r);
+          ok = (op === "=" || op === "==") ? left === right : op === "!=" ? left !== right : op === "<" ? left < right : op === "<=" ? left <= right : op === ">" ? left > right : left >= right;
         }
+        left = ok ? "1" : "0";
       }
-      const cmpNums: bigint[] = [addNums[0]!];
-      const cmpSyms: string[] = [];
-      for (let i = 0; i < addSyms.length; i++) {
-        const op = addSyms[i]!;
-        const r = addNums[i + 1]!;
-        if (op === "+" || op === "-") {
-          const l = cmpNums.pop()!;
-          cmpNums.push(op === "+" ? l + r : l - r);
-        } else {
-          cmpSyms.push(op);
-          cmpNums.push(r);
-        }
+      return left;
+    };
+    const parseAnd = (): string | undefined => {
+      let left = parseCmp();
+      if (left === undefined) return undefined;
+      while (pos < ops.length && ops[pos] === "&") {
+        pos++;
+        const right = parseCmp();
+        if (right === undefined) return undefined;
+        left = (isTruthy(left) && isTruthy(right)) ? left : "0";
       }
-      let cur = cmpNums[0]!;
-      for (let i = 0; i < cmpSyms.length; i++) {
-        const op = cmpSyms[i]!;
-        const r = cmpNums[i + 1]!;
-        const ok = op === "=" || op === "==" ? cur === r : op === "!=" ? cur !== r : op === ">" ? cur > r : op === ">=" ? cur >= r : op === "<" ? cur < r : cur <= r;
-        cur = ok ? 1n : 0n;
+      return left;
+    };
+    const parseOr = (): string | undefined => {
+      let left = parseAnd();
+      if (left === undefined) return undefined;
+      while (pos < ops.length && ops[pos] === "|") {
+        pos++;
+        const right = parseAnd();
+        if (right === undefined) return undefined;
+        left = isTruthy(left) ? left : (isTruthy(right) ? right : "0");
       }
-      const valStr = cur.toString();
-      return { value: valStr, status: cur === 0n ? 1 : 0 };
-    }
-    return undefined;
+      return left;
+    };
+    const res = parseOr();
+    if (res === undefined || pos !== ops.length) return undefined;
+    return { value: res, status: isTruthy(res) ? 0 : 1 };
   }
 
   private evalSyncBc(
@@ -29136,11 +29411,11 @@ export class Runtime {
           const awk0 = this.evalSyncAwk([], subArgs0);
           if (awk0 !== undefined) stage0Formatted = awk0.join("\n") + (awk0.length > 0 ? "\n" : "");
         } else if (w0Plain0 === "dirname") {
-          const d0 = this.evalSyncDirname(subArgs0);
-          if (d0 !== undefined) stage0Formatted = d0 + "\n";
+          const d0 = this.evalSyncDirname(subArgs0, true);
+          if (d0 !== undefined) stage0Formatted = d0.endsWith("\0") ? d0 : d0 + "\n";
         } else if (w0Plain0 === "basename") {
-          const b0 = this.evalSyncBasename(subArgs0);
-          if (b0 !== undefined) stage0Formatted = b0 + "\n";
+          const b0 = this.evalSyncBasename(subArgs0, true);
+          if (b0 !== undefined) stage0Formatted = b0.endsWith("\0") ? b0 : b0 + "\n";
         } else if (w0Plain0 === "expr") {
           const e0 = this.evalSyncExpr(subArgs0);
           if (e0 !== undefined && e0.status <= 1) stage0Formatted = e0.value + "\n";
@@ -30854,6 +31129,12 @@ export class Runtime {
             } else if (w0Plain === "unexpand") {
               const unexpRes = this.evalSyncUnexpand(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("unexpand", allArgs, rawState.cwd, false) : undefined);
               if (unexpRes !== undefined) fileRes = renderLines(unexpRes);
+            } else if (w0Plain === "factor") {
+              const facRes = this.evalSyncFactor(rawLines, opArgs);
+              if (facRes !== undefined) fileRes = renderLines(facRes);
+            } else if (w0Plain === "tsort") {
+              const tsRes = this.evalSyncTsort(rawLines, opArgs, rawState.cwd);
+              if (tsRes !== undefined) fileRes = renderLines(tsRes);
             } else if (w0Plain === "strings") {
               const strRes = this.evalSyncStrings(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("strings", allArgs, rawState.cwd, false) : undefined);
               if (strRes !== undefined) fileRes = renderLines(strRes);

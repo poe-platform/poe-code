@@ -1,3 +1,4 @@
+import { tsortCommands } from "../../src/commands/tsort/index.js";
 import { hexdumpCommands } from "../../src/commands/hexdump/index.js";
 import { odCommands } from "../../src/commands/od/index.js";
 import { xxdCommands } from "../../src/commands/xxd/index.js";
@@ -1165,5 +1166,32 @@ test("evaluates join -o auto, numfmt --format and whitespace --field, and bc sqr
   assert.equal(
     res.stdout.trim(),
     "id name role|1 alice admin|2 bob NULL|3 NULL guest|#item 002.0K#2.0Ki#15.00:5:2:"
+  );
+});
+
+test("evaluates dirname/basename -z/--suffix, seq -ws/--separator/+nums, and expr parentheses/string comparison in sync substitutions (Wave 212)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  await fs.writeFile("/tmp/graph.txt", new TextEncoder().encode("a b\nb c\n"));
+  const shell = new Shell({ fs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(tableTextCommands())
+    .use(exprCommands())
+    .use(tsortCommands());
+  const res = await shell.exec(`
+    for i in 1 2 3; do
+      dn=\$(dirname -z /tmp/a/b /tmp/c/d | tr "\\0" ":")
+      bn=\$(basename --suffix=.txt /tmp/alpha.txt /tmp/beta.txt | tr "\\n" ":")
+      sq=\$(seq -ws: +1 +3 +10)
+      ex1=\$(expr \\( 2 + 3 \\) \\* 4)
+      ex2=\$(expr "apple" \\< "banana" \\& "fallback" \\| "none")
+      ts=\$(tsort < /tmp/graph.txt | tr "\\n" ":")
+    done
+    printf "%s#%s#%s#%s#%s#%s\\n" "\$dn" "\$bn" "\$sq" "\$ex1" "\$ex2" "\$ts"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "/tmp/a:/tmp/c:#alpha:beta:#01:04:07:10#20#1#a:b:c:"
   );
 });

@@ -25865,7 +25865,7 @@ export class Runtime {
     if (files.length > 1) return undefined;
     let linesToRead = rawLines;
     if (files.length === 1 && files[0] !== "-") {
-      const memLines = this.readSyncMemoryLines(resolvePath(cwd, files[0]!));
+      const memLines = this.readSyncMemoryLines(resolvePath(cwd ?? "/", files[0]!));
       if (memLines === undefined) return undefined;
       linesToRead = memLines;
     }

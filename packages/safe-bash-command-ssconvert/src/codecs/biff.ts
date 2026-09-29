@@ -387,8 +387,25 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       else { const kind = data.u8(start); stringCache = kind === 0; value = kind === 1 ? { kind: "boolean", value: !!data.u8(start + 2) } :
         kind === 2 ? { kind: "error", value: biffErrors[data.u8(start + 2)] ?? "#UNKNOWN!" } : { kind: "blank" }; if (kind > 3) invalidBiff("invalid formula cache tag"); }
       lastFormula = addCell(sheet, data, value, { cachedResult: value, formulaDirty: !!(data.u16(14) & 3) });
-      lastFormula.tokens = data.slice(tokenStart, tokenLength);
-      const arrays = stringParts(index, tokenStart + tokenLength); index = arrays.next; lastFormula.arrays = arrays.parts;
+      let tokenEnd = tokenStart + tokenLength;
+      if (tokenEnd <= data.bytes.length) lastFormula.tokens = data.slice(tokenStart, tokenLength);
+      else {
+        accountFormulaWork(tokenLength);
+        const tokens = new Uint8Array(tokenLength);
+        let written = 0, offset = tokenStart;
+        while (written < tokenLength) {
+          context.signal.throwIfAborted();
+          const part = records[index]!.data;
+          const count = Math.min(tokenLength - written, part.bytes.length - offset);
+          tokens.set(part.slice(offset, count), written); written += count; offset += count;
+          if (written < tokenLength) {
+            if (records[index + 1]?.opcode !== 0x3c) invalidBiff("truncated formula tokens/CONTINUE");
+            index++; offset = 0;
+          }
+        }
+        lastFormula.tokens = tokens; tokenEnd = offset;
+      }
+      const arrays = stringParts(index, tokenEnd); index = arrays.next; lastFormula.arrays = arrays.parts;
       const nextOpcode = records[index + 1]?.opcode;
       const groupFollows = nextOpcode === 0x4bc || nextOpcode === 0x21 || nextOpcode === 0x221 ||
         nextOpcode === 0x36 || nextOpcode === 0x37 || nextOpcode === 0x236;

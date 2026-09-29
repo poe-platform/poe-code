@@ -19,6 +19,7 @@ const macroFunctions = new Set(["AVERAGEIF", "AVERAGEIFS", "CUBEKPIMEMBER", "CUB
 
 export interface CompiledBiffFormula {
   readonly tokens: Uint8Array;
+  readonly tokenBoundaries: readonly number[];
   readonly arrays: Uint8Array;
   readonly diagnostics: readonly Diagnostic[];
   readonly nameDependencies: readonly number[];
@@ -149,6 +150,10 @@ export class BiffFormulaWriter {
     const root = definition ? parseNamedExpression(definition, this.book, parse, () => this.context.signal.throwIfAborted()) :
       parse(source, { sheet, row, column });
     const bytes: number[] = [], arrays: number[] = [], diagnostics: Diagnostic[] = [];
+    const tokenBoundaries: number[] = [];
+    const boundary = () => {
+      if (bytes.length && tokenBoundaries.at(-1) !== bytes.length) tokenBoundaries.push(bytes.length);
+    };
     let sheetLossReported = false;
     const relocations: { offset: number; index: number; kind: "sheet" | "name" }[] = [];
     const push = (part: Uint8Array | readonly number[], target = bytes): void => {
@@ -176,12 +181,15 @@ export class BiffFormulaWriter {
         const chunks: string[] = []; let chunk = "";
         for (const character of value.value) { if (chunk.length + character.length > 255) { chunks.push(chunk); chunk = ""; } chunk += character; }
         chunks.push(chunk);
-        chunks.forEach((text, index) => { push([23]); push(biffString(text, this.revision, this.context, 1)); if (index) push([8]); });
+        chunks.forEach((text, index) => {
+          push([23]); push(biffString(text, this.revision, this.context, 1)); if (index) push([8]); boundary();
+        });
         if (chunks.length > 1) push([21]);
       }
     };
     const visit = (node: FormulaNode): void => {
       this.context.signal.throwIfAborted();
+      boundary();
       if (node.kind === "literal") literal(node.value);
       else if (node.kind === "omitted") push([22]);
       else if (node.kind === "parentheses") { visit(node.child); push([21]); }
@@ -383,11 +391,15 @@ export class BiffFormulaWriter {
             else if (value.kind === "error") data[1] = biffError(value.value); push(data, arrays); }
         }
       }
+      boundary();
     };
     visit(root);
+    boundary();
+    if (bytes.length > 0xffff)
+      throw new SsconvertError("unsupported-feature", "Excel BIFF formula token length exceeds version limits");
     const tokens = new Uint8Array(bytes);
     for (const relocation of relocations) this.relocations.push({ ...relocation, tokens });
-    return { tokens, arrays: new Uint8Array(arrays), diagnostics,
+    return { tokens, tokenBoundaries, arrays: new Uint8Array(arrays), diagnostics,
       nameDependencies: relocations.filter(relocation => relocation.kind === "name").map(relocation => relocation.index) };
   }
 }

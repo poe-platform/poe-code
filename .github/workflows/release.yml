@@ -45,10 +45,25 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm clean-install
+      - name: Restore cached build archive
+        id: build-archive-cache
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: ${{ runner.temp }}/poe-build/build.tar
+          key: build-tar-v1-${{ github.sha }}
       - name: Download freshly verified build
+        if: steps.build-archive-cache.outputs.cache-hit != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            rm -rf "$RUNNER_TEMP/poe-build"
+            if gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"; then
+              exit 0
+            fi
+            [ "$attempt" -lt 6 ] && sleep $((attempt * 5 + RANDOM % 10))
+          done
+          exit 1
       - name: Restore freshly verified build
         env:
           BUILD_SHA256: ${{ needs.validate.outputs.archive-sha256 }}

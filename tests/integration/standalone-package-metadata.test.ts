@@ -209,6 +209,7 @@ describe("standalone package publish metadata", () => {
       types: "./dist/types/safe-bash-command-ssconvert/commands.d.ts",
       import: "./dist/ssconvert/commands.js"
     });
+    expect(rootPackage.files).not.toContain("packages/safe-bash-command-ssconvert/dist/**/*.d.ts");
   });
 
   it("publishes the superintendent MCP server bin with the root package", () => {
@@ -274,6 +275,7 @@ describe("standalone package publish metadata", () => {
       browser: null,
       import: "./dist/shared/safe-js/index.js"
     });
+    expect(rootPackage.files).toContain("!packages/safe-js/dist/package.json");
     expect(rootPackage.files).not.toContain("packages/agent-script/dist");
     expect(safejsPackage).toMatchObject({
       name: "@poe-code/safe-js",

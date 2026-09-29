@@ -144,3 +144,29 @@ restarted with persistent log `out/python-full-unit-after-repairs.log` and an
 explicit terminal `.exit` receipt; no full-suite success is claimed yet.
 Qualifying publication, full service parity and compliant hosted acceptance
 remain incomplete, so issue 1445 stays open.
+
+## Shell stream fragmentation checkpoint
+
+Consumer reproduction tracked in #4185 confirms that a single 256 KiB command
+write exceeded the finite bridge envelope while sixteen 16 KiB writes succeeded.
+The shell adapter now fragments stdout/stderr before array serialization and
+awaits each fragment's admission. `maxStreamChunkBytes` is validated and defaults
+to 16 KiB; callers retain cumulative output and serialized-stream limits. Buffered
+subprocess results keep their separate whole-result envelope requirement.
+
+The repair is delivered on remote main `4d791e9b88`, verified by fresh fetch and
+ancestry. Concurrent upstream CSV publication fixes were preserved; added CSV
+regressions remain. Maintained selected verification passes 704 runner checks,
+84 selected tests and root posttest (`out/python-shell-csv-maintained.log`);
+rebased regressions and lint pass. Coverage includes mixed binary output, exact
+chunks and remainder, backpressure, early close during large writes, byte order
+and one exit event. Source workerd passes 2/2. Fresh independent public tarballs
+`0.0.0-python-shell-1445` installed without workspace symlinks pass actual
+Pyodide/workerd 2/2, including a single 256 KiB shell write under finite native
+limits (`out/python-shell-installed-workerd.log`); safe-bash SHA-1 is
+`18ebb98a2f0df61f1a091fb7c6e4dbaa34979dc7`.
+
+The previous full-suite restart terminated during build because new workspace
+links were absent. Current declared dependencies have been installed; that failed
+run is not full-suite success. Qualifying publication, full shared-service parity
+and compliant consumer/hosted acceptance remain pending.

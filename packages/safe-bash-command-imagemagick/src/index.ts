@@ -3380,6 +3380,14 @@ export async function runIdentifyCli(
   files: Map<string, Uint8Array>,
   stdinBytes?: Uint8Array
 ): Promise<ImageMagickCliResult> {
+  return runIdentifyCliSync(argv, files, stdinBytes);
+}
+
+export function runIdentifyCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  stdinBytes?: Uint8Array
+): ImageMagickCliResult {
   let verbose = false;
   let customFormat: string | undefined;
   const targets: string[] = [];

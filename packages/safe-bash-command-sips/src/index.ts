@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -48,9 +49,8 @@ type SipsAction =
 const SIPS_BUFFER_PROPS = new WeakMap<Uint8Array, Map<string, string | null>>();
 const SIPS_CONTENT_PROPS = new Map<string, Map<string, string | null>>();
 
-async function imageFingerprint(bytes: Uint8Array): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes));
-  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+function imageFingerprint(bytes: Uint8Array): string {
+  return createHash("sha256").update(bytes).digest("hex");
 }
 
 function escapeXml(value: string): string {
@@ -230,6 +230,13 @@ export async function runSipsCli(
   argv: readonly string[],
   files: Map<string, Uint8Array>
 ): Promise<SipsCliResult> {
+  return runSipsCliSync(argv, files);
+}
+
+export function runSipsCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): SipsCliResult {
   if (argv.length === 0) {
     return {
       exitCode: 1,
@@ -555,7 +562,7 @@ export async function runSipsCli(
     }
 
     try {
-      const mergedProps = new Map<string, string | null>(SIPS_BUFFER_PROPS.get(inBytes) ?? SIPS_CONTENT_PROPS.get(await imageFingerprint(inBytes)) ?? []);
+      const mergedProps = new Map<string, string | null>(SIPS_BUFFER_PROPS.get(inBytes) ?? SIPS_CONTENT_PROPS.get(imageFingerprint(inBytes)) ?? []);
       for (const [k, v] of customSetProps) {
         mergedProps.set(k, v);
       }
@@ -782,7 +789,7 @@ export async function runSipsCli(
         files.set(finalOutPath, outBytes);
         if (mergedProps.size > 0) {
           SIPS_BUFFER_PROPS.set(outBytes, mergedProps);
-          SIPS_CONTENT_PROPS.set(await imageFingerprint(outBytes), mergedProps);
+          SIPS_CONTENT_PROPS.set(imageFingerprint(outBytes), mergedProps);
         }
         meta = readImageMetadata(outBytes);
 

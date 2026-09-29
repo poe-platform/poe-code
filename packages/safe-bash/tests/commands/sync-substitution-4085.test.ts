@@ -1,3 +1,7 @@
+import { createSipsCommands } from "../../src/commands/sips/index.js";
+import { createImagemagickCommands } from "../../src/commands/imagemagick/index.js";
+import { createPdfimagesCommands } from "../../src/commands/pdfimages/index.js";
+import { encodePng } from "@poe-code/pdf-ast";
 import { createQpdfCommands } from "../../src/commands/qpdf/index.js";
 import { createPdftkCommands } from "../../src/commands/pdftk/index.js";
 import { createPdfinfoCommands } from "../../src/commands/pdfinfo/index.js";
@@ -1116,5 +1120,39 @@ test("Wave 149: sync pdffonts, pdftohtml, qpdf, and pdftk substitutions and pipe
   assert.match(r2.stdout, /Hello from PDF page one/);
   assert.equal(r3.stdout, "1");
   assert.match(r4.stdout, /NumberOfPages: 1/);
+  assert.ok(elapsed < 1000, `Expected < 1000ms for 4x150 iterations, took ${elapsed.toFixed(1)}ms`);
+});
+
+test("Wave 150: sync sips, identify, magick identify, and pdfimages substitutions and pipelines", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createSipsCommands(),
+    ...createImagemagickCommands(),
+    ...createPdfimagesCommands(),
+  ]) {
+    registry.register(cmd);
+  }
+  const shell = new Shell({ fs, commands: registry });
+
+  const pngBytes = encodePng({ width: 16, height: 12, data: new Uint8Array(16 * 12 * 4) });
+  await fs.writeFile("/icon.png", pngBytes);
+
+  const doc = PdfDocument.create();
+  doc.addPage([612, 792]);
+  await fs.writeFile("/sample.pdf", doc.save());
+
+  const t0 = performance.now();
+  const r1 = await shell.exec('for i in $(seq 1 150); do out=$(sips -g pixelWidth -g pixelHeight /icon.png); done; printf "%s" "$out"');
+  const r2 = await shell.exec('for i in $(seq 1 150); do out=$(identify -format "%wx%h %m" /icon.png); done; printf "%s" "$out"');
+  const r3 = await shell.exec('for i in $(seq 1 150); do out=$(magick identify /icon.png); done; printf "%s" "$out"');
+  const r4 = await shell.exec('for i in $(seq 1 150); do out=$(pdfimages -list /sample.pdf); done; printf "%s" "$out"');
+  const elapsed = performance.now() - t0;
+
+  assert.equal(r1.stdout, "/icon.png\n  pixelWidth: 16\n  pixelHeight: 12");
+  assert.equal(r2.stdout, "16x12 PNG");
+  assert.ok(r3.stdout.startsWith("/icon.png PNG 16x12 "));
+  assert.ok(r4.stdout.startsWith("page"));
   assert.ok(elapsed < 1000, `Expected < 1000ms for 4x150 iterations, took ${elapsed.toFixed(1)}ms`);
 });

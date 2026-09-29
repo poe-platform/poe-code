@@ -72,6 +72,14 @@ export async function runPdfimagesCli(
   files: Map<string, Uint8Array>,
   options: { readonly onAllocateBytes?: (bytes: number) => void } = {}
 ): Promise<PdfimagesCliResult> {
+  return runPdfimagesCliSync(argv, files, options);
+}
+
+export function runPdfimagesCliSync(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  options: { readonly onAllocateBytes?: (bytes: number) => void } = {}
+): PdfimagesCliResult {
   let listOnly = false;
   let usePng = false;
   let useJpeg = false;

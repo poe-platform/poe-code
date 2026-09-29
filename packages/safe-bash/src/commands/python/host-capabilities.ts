@@ -98,7 +98,6 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
   const pull = async (handle: number): Promise<PythonHostValue> => {
     const stream = streams.get(handle);
     if (!stream) throw new Error('Unknown Python host stream');
-    stream.busy = true;
         try {
           const result = await stream.iterator.next();
           assertLive();
@@ -115,7 +114,7 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
         } catch (error) {
           if (streams.has(handle)) await release(handle);
           throw error;
-        } finally { stream.busy = false; }
+        }
   };
   const request = async (incoming: unknown): Promise<PythonHostValue> => {
     assertLive();
@@ -142,9 +141,12 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
       if (payload.operation === 'begin' || payload.operation === 'begin-next') {
         let work: (childSignal: AbortSignal) => Promise<PythonHostValue>;
         let child: AbortController;
+        let reservedStream: { busy: boolean } | undefined;
         if (payload.operation === 'begin-next') {
           const stream = typeof payload.handle === 'number' ? streams.get(payload.handle) : undefined;
           if (!stream || stream.busy) throw new Error('Unknown or busy Python host stream');
+          reservedStream = stream;
+          stream.busy = true;
           child = stream.controller;
           work = () => pull(payload.handle as number);
         } else {
@@ -164,7 +166,10 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
           assertLive();
           child.signal.throwIfAborted();
           job.result = data(value);
-        }).catch(error => { job.failed = pythonHostFailureCode(error); }).finally(() => { jobWork.delete(task); });
+        }).catch(error => { job.failed = pythonHostFailureCode(error); }).finally(() => {
+          if (reservedStream) reservedStream.busy = false;
+          jobWork.delete(task);
+        });
         jobWork.add(task);
         return handle;
       }
@@ -175,7 +180,9 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
         if (!stream) throw new Error('Unknown Python host stream');
         if (stream.busy) throw new Error('Python host stream already pulling');
         if (payload.operation === 'release') { await release(handle); return null; }
-        return pull(handle);
+        stream.busy = true;
+        try { return await pull(handle); }
+        finally { stream.busy = false; }
       }
       if (typeof payload.capability !== 'string') throw new TypeError('Invalid Python host capability');
       const capability = registry.get(payload.capability);

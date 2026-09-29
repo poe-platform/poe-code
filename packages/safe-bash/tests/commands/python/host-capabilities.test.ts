@@ -177,3 +177,39 @@ test('host limits reject invalid finite settings', () => {
     }
   }
 });
+
+
+test('concurrent async pulls reserve a stream before host jobs start', async () => {
+  let finish!: () => void;
+  const gate = new Promise<void>(resolve => { finish = resolve; });
+  let pulls = 0;
+  const bridge = createPythonHostBridge({ output: { stream() {
+    return { [Symbol.asyncIterator]() { return {
+      async next() { pulls++; await gate; return { done: false as const, value: 'chunk' }; },
+      async return() { return { done: true as const, value: undefined }; },
+    }; } };
+  } } }, { signal: new AbortController().signal, maxConcurrentCalls: 2 });
+  try {
+    const handle = await bridge.request({ version: 1, operation: 'stream', capability: 'output' });
+    const results = await Promise.allSettled([
+      bridge.request({ version: 1, operation: 'begin-next', handle }),
+      bridge.request({ version: 1, operation: 'begin-next', handle }),
+    ]);
+    assert.equal(results[0]!.status, 'fulfilled');
+    assert.equal(results[1]!.status, 'rejected');
+    if (results[1]!.status === 'rejected') assert.match(String(results[1].reason), /busy/);
+    assert.equal(pulls, 1);
+    finish();
+    await new Promise<void>(resolve => setImmediate(resolve));
+    const first = results[0]!;
+    if (first.status === 'fulfilled') {
+      assert.deepEqual(await bridge.request({ version: 1, operation: 'poll', handle: first.value }),
+        { done: true, value: { done: false, value: { type: 'text', text: 'chunk' } } });
+    }
+    await bridge.request({ version: 1, operation: 'begin-next', handle });
+    assert.equal(pulls, 2);
+  } finally {
+    finish();
+    await bridge.close();
+  }
+});

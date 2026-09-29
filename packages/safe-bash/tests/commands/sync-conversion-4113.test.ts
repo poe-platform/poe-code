@@ -423,3 +423,26 @@ test("evaluates jq @tsv, @csv, @base64, @base64d, @uri, @sh, with_entries, and i
     "1:alice,2:bob,|1,\"alice\";2,\"bob\";|aGVsbG8=|hello|a%20b%26c|'echo' 'hi there'|{\"a\":10,\"c\":20}\n"
   );
 });
+
+test("evaluates jq boolean and/or operators and if-then-elif-else-end conditionals in sync substitutions, pipelines, and brace loops (Wave 178)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(structuredCommands());
+  const res = await shell.exec([
+    "printf '[{\"name\":\"alice\",\"role\":\"admin\",\"score\":95},{\"name\":\"bob\",\"role\":\"user\",\"score\":82},{\"name\":\"carol\",\"role\":\"admin\",\"score\":70}]\n' > /tmp/users.json",
+    "j_and=$(jq -r '.[] | select(.role == \"admin\" and .score >= 90) | .name' /tmp/users.json)",
+    "j_or=$(jq -r '.[] | select(.name == \"bob\" or .score < 75) | .name' /tmp/users.json | tr '\\n' ',')",
+    "j_if=$(jq -r '.[] | (.name + \":\" + (if .score >= 90 then \"A\" elif .score >= 80 then \"B\" else \"C\" end))' /tmp/users.json | tr '\\n' ',')",
+    "loop_out=''",
+    "for k in 90 80; do",
+    "  c=$(jq --argjson min \"$k\" -r '[.[] | select(.score >= $min and .role != \"guest\") | .name] | join(\":\")' /tmp/users.json)",
+    "  loop_out=\"${loop_out}${c};\"",
+    "done",
+    "echo \"$j_and|$j_or|$j_if|$loop_out\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "alice|bob,carol,|alice:A,bob:B,carol:C,|alice;alice:bob;\n"
+  );
+});

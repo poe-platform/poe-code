@@ -23144,7 +23144,7 @@ export class Runtime {
     return undefined;
   }
 
-  private splitTopLevelJqOp(expr: string, mode: "cmp" | "add" | "mul"): { lhs: string; op: string; rhs: string } | undefined {
+  private splitTopLevelJqOp(expr: string, mode: "or" | "and" | "cmp" | "add" | "mul"): { lhs: string; op: string; rhs: string } | undefined {
     let depth = 0;
     let inStr = false;
     let bestIdx = -1;
@@ -23160,7 +23160,17 @@ export class Runtime {
       if (ch === "(" || ch === "[" || ch === "{") { depth++; continue; }
       if (ch === ")" || ch === "]" || ch === "}") { depth--; continue; }
       if (depth !== 0) continue;
-      if (mode === "cmp") {
+      if (mode === "or") {
+        if (i > 0 && /\s/.test(expr[i - 1]!) && expr.slice(i, i + 2) === "or" && /\s/.test(expr[i + 2] ?? "")) {
+          bestIdx = i;
+          bestOp = "or";
+        }
+      } else if (mode === "and") {
+        if (i > 0 && /\s/.test(expr[i - 1]!) && expr.slice(i, i + 3) === "and" && /\s/.test(expr[i + 3] ?? "")) {
+          bestIdx = i;
+          bestOp = "and";
+        }
+      } else if (mode === "cmp") {
         const two = expr.slice(i, i + 2);
         if (two === "==" || two === "!=" || two === ">=" || two === "<=") {
           return { lhs: expr.slice(0, i).trim(), op: two, rhs: expr.slice(i + 2).trim() };
@@ -23588,7 +23598,7 @@ export class Runtime {
       return [mapped];
     }
     const selM = /^select\(\s*(\.[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?:(==|!=|>=|<=|>|<)\s*(.+))?\s*\)$/.exec(st);
-    if (selM) {
+    if (selM && (!selM[3] || (!/\b(?:and|or)\b/.test(selM[3])))) {
       const fVals = this.evalSyncJqPathOps(item, selM[1]!);
       if (!fVals || fVals.length !== 1) return undefined;
       const lv = fVals[0];
@@ -23726,7 +23736,16 @@ export class Runtime {
       }
       return [outStr];
     }
-    for (const mode of ["cmp", "add", "mul"] as const) {
+    const ifM = /^if\s+(.+?)\s+then\s+(.+?)\s+(?:elif\s+(.+)\s+end|else\s+(.+)\s+end)$/.exec(st);
+    if (ifM) {
+      const cVals = this.evalSyncJqPathOps(item, ifM[1]!);
+      const tVals = this.evalSyncJqPathOps(item, ifM[2]!);
+      const eVals = ifM[3] !== undefined ? this.evalSyncJqPathOps(item, "if " + ifM[3] + " end") : this.evalSyncJqPathOps(item, ifM[4]!);
+      if (!cVals || cVals.length !== 1 || !tVals || !eVals) return undefined;
+      const truthy = cVals[0] !== false && cVals[0] !== null && cVals[0] !== undefined;
+      return truthy ? tVals : eVals;
+    }
+    for (const mode of ["or", "and", "cmp", "add", "mul"] as const) {
       const bin = this.splitTopLevelJqOp(st, mode);
       if (!bin) continue;
       const lVals = this.evalSyncJqPathOps(item, bin.lhs);
@@ -23735,6 +23754,11 @@ export class Runtime {
       const lv = lVals[0];
       const rv = rVals[0];
       const op = bin.op;
+      if (mode === "or" || mode === "and") {
+        const lTruthy = lv !== false && lv !== null && lv !== undefined;
+        const rTruthy = rv !== false && rv !== null && rv !== undefined;
+        return [mode === "or" ? (lTruthy || rTruthy) : (lTruthy && rTruthy)];
+      }
       if (mode === "cmp") {
         if ((typeof lv === "object" && lv !== null) || (typeof rv === "object" && rv !== null)) return undefined;
         if (op === "==") return [lv === rv];

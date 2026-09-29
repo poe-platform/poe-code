@@ -94,6 +94,7 @@ The maintained consumer route passes 26 public groups, six source groups and
 three rejection controls. Final integration retains upstream scoped runtime
 mapping and passes 228 packaging checks and root lint. Full build passed before
 the last upstream integration; this is not a frozen final-revision unit result.
+Release metadata assertions are reconciled in `9c990638d7`; all 20 checks pass.
 Verify containing publication and installed registry consumers before closing
 the artifact family. Keep the private-import rejection guard intact.
 

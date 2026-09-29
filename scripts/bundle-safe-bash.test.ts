@@ -7,6 +7,7 @@ import { build, context, type BuildContext, type BuildResult } from "esbuild";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { resolveBrowserOpBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
+import { createWorkspaceBuildPlan } from "./build-workspaces.mjs";
 
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -530,6 +531,16 @@ beforeAll(async () => {
 beforeAll(async () => {
   const directory = path.join(root, "packages/safe-bash");
   const manifest = JSON.parse(await readFile(path.join(directory, "package.json"), "utf8"));
+  const companions = new Map<string, string>();
+  for (const workspace of createWorkspaceBuildPlan(root).workspaces) {
+    for (const [route, entry] of Object.entries(workspace.manifest.poeCode?.safeLibraryExports?.["safe-bash"] ?? {})) {
+      const target = workspace.manifest.exports[entry as string]?.import;
+      expect(typeof target, `${workspace.name} companion ${route}`).toBe("string");
+      const specifier = `@poe-platform/safe-bash${route.slice(1)}`;
+      expect(companions.has(specifier), specifier).toBe(false);
+      companions.set(specifier, path.resolve(root, workspace.path, target));
+    }
+  }
   browserFixtureBuild = await build({
     entryPoints: [path.join(root, "scripts/fixtures/safe-packages-browser.mjs")],
     bundle: true, write: false, minifyWhitespace: true, metafile: true, platform: "browser",
@@ -537,10 +548,14 @@ beforeAll(async () => {
     plugins: [{
       name: "maintained-browser-fixture-entries",
       setup(builder) {
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/.*)?$/ }, args => ({
-          path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
-          namespace: "evaluated-shell",
-        }));
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/.*)?$/ }, args => {
+          const companion = companions.get(args.path);
+          if (companion) return { path: companion };
+          return {
+            path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
+            namespace: "evaluated-shell",
+          };
+        });
         builder.onLoad({ filter: /.*/, namespace: "evaluated-shell" }, args => {
           const output = portableBuild.metafile!.outputs[path.relative(root, args.path)];
           if (!output) throw new Error(`Missing browser entry: ${args.path}`);

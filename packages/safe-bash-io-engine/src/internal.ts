@@ -1236,6 +1236,7 @@ export function evalSyncLn(
   let verbose = false;
   let noDeref = false;
   let noTargetDir = false;
+  let targetDir: string | undefined;
   let ended = false;
   const operands: string[] = [];
   for (let i = 0; i < opArgs.length; i++) {
@@ -1250,6 +1251,12 @@ export function evalSyncLn(
     if (a === "-v" || a === "--verbose") { verbose = true; continue; }
     if (a === "-n" || a === "--no-dereference") { noDeref = true; continue; }
     if (a === "-T" || a === "--no-target-directory") { noTargetDir = true; continue; }
+    if (a === "-t" || a === "--target-directory" || a.startsWith("--target-directory=")) {
+      const td = a.startsWith("--target-directory=") ? a.slice(19) : opArgs[++i];
+      if (!td) return undefined;
+      targetDir = td;
+      continue;
+    }
     if (a.startsWith("-") && !a.startsWith("--")) {
       for (let j = 1; j < a.length; j++) {
         const ch = a[j]!;
@@ -1258,33 +1265,66 @@ export function evalSyncLn(
         else if (ch === "v") verbose = true;
         else if (ch === "n") noDeref = true;
         else if (ch === "T") noTargetDir = true;
-        else return undefined;
+        else if (ch === "t") {
+          const rest = a.slice(j + 1) || opArgs[++i];
+          if (!rest) return undefined;
+          targetDir = rest;
+          break;
+        } else return undefined;
       }
       continue;
     }
     return undefined;
   }
-  if (operands.length !== 2) return undefined;
-  const src = operands[0]!;
-  let dst = operands[1]!;
-  if (!symbolic && statTypeSync(src) !== "file") return undefined;
-  const dstSt = statTypeSync(dst);
-  if (!noDeref && dstSt === "directory") {
+  if (noTargetDir && targetDir !== undefined) return undefined;
+  let pairs: [string, string][] = [];
+  if (targetDir !== undefined) {
+    if (operands.length === 0 || statTypeSync(targetDir) !== "directory") return undefined;
+    for (const s of operands) {
+      const base = s.replace(/\/+$/, "").split("/").pop() || "";
+      if (!base) return undefined;
+      pairs.push([s, `${targetDir.replace(/\/+$/, "")}/${base}`]);
+    }
+  } else if (operands.length === 1) {
     if (noTargetDir) return undefined;
-    const base = src.replace(/\/+$/, "").split("/").pop() || "";
+    const s = operands[0]!;
+    const base = s.replace(/\/+$/, "").split("/").pop() || "";
     if (!base) return undefined;
-    dst = `${dst.replace(/\/+$/, "")}/${base}`;
-  }
-  if (src === dst) return undefined;
-  const finalSt = statTypeSync(dst);
-  if (finalSt === "file" || finalSt === "symlink") {
-    if (!force) return undefined;
-    if (!rmSync(dst)) return undefined;
-  } else if (finalSt !== "missing") {
+    pairs.push([s, `./${base}`]);
+  } else if (operands.length >= 2) {
+    const last = operands[operands.length - 1]!;
+    const dstSt = statTypeSync(last);
+    if (!noDeref && dstSt === "directory") {
+      if (noTargetDir) return undefined;
+      for (let idx = 0; idx < operands.length - 1; idx++) {
+        const s = operands[idx]!;
+        const base = s.replace(/\/+$/, "").split("/").pop() || "";
+        if (!base) return undefined;
+        pairs.push([s, `${last.replace(/\/+$/, "")}/${base}`]);
+      }
+    } else if (operands.length === 2) {
+      pairs.push([operands[0]!, last]);
+    } else {
+      return undefined;
+    }
+  } else {
     return undefined;
   }
-  if (!linkSync(src, dst, symbolic)) return undefined;
-  return verbose ? `'${dst}' ${symbolic ? "->" : "=>"} '${src}'\n` : "";
+  let out = "";
+  for (const [src, dst] of pairs) {
+    if (!symbolic && statTypeSync(src) !== "file") return undefined;
+    if (src === dst) return undefined;
+    const finalSt = statTypeSync(dst);
+    if (finalSt === "file" || finalSt === "symlink") {
+      if (!force) return undefined;
+      if (!rmSync(dst)) return undefined;
+    } else if (finalSt !== "missing") {
+      return undefined;
+    }
+    if (!linkSync(src, dst, symbolic)) return undefined;
+    if (verbose) out += `'${dst}' ${symbolic ? "->" : "=>"} '${src}'\n`;
+  }
+  return out;
 }
 
 syncCommandEvaluators.evalSyncLn = evalSyncLn;
@@ -1438,6 +1478,7 @@ export function evalSyncHeadTail(
   let mode: "n" | "c" = "n";
   let countStr = "10";
   let headerMode: "default" | "q" | "v" = "default";
+  let zeroTerminated = false;
   let ended = false;
   const operands: string[] = [];
   for (let i = 0; i < opArgs.length; i++) {
@@ -1449,6 +1490,7 @@ export function evalSyncHeadTail(
     if (a === "--") { ended = true; continue; }
     if (a === "-q" || a === "--quiet" || a === "--silent") { headerMode = "q"; continue; }
     if (a === "-v" || a === "--verbose") { headerMode = "v"; continue; }
+    if (a === "-z" || a === "--zero-terminated") { zeroTerminated = true; continue; }
     if (a === "-n" || a === "--lines") {
       if (i + 1 >= opArgs.length) return undefined;
       mode = "n";
@@ -1468,12 +1510,28 @@ export function evalSyncHeadTail(
       countStr = a.startsWith("-") ? a.slice(1) : a;
       continue;
     }
-    if (a.startsWith("-n") && a.length > 2) { mode = "n"; countStr = a.slice(2); continue; }
-    if (a.startsWith("-c") && a.length > 2) { mode = "c"; countStr = a.slice(2); continue; }
+    if (a.startsWith("-") && !a.startsWith("--")) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "q") headerMode = "q";
+        else if (ch === "v") headerMode = "v";
+        else if (ch === "z") zeroTerminated = true;
+        else if (ch === "n" || ch === "c") {
+          mode = ch;
+          const rest = a.slice(j + 1) || opArgs[++i];
+          if (!rest) return undefined;
+          countStr = rest;
+          break;
+        } else return undefined;
+      }
+      continue;
+    }
     return undefined;
   }
-  if (!/^[+-]?[0-9]{1,6}$/.test(countStr)) return undefined;
-  const count = Number(countStr.replace(/^[+-]/, ""));
+  const mCount = /^([+-]?)([0-9]{1,6})(b|kB|K|MB|M)?$/.exec(countStr);
+  if (!mCount) return undefined;
+  const mult = mCount[3] === "b" ? 512 : mCount[3] === "kB" ? 1000 : mCount[3] === "K" ? 1024 : mCount[3] === "MB" ? 1000000 : mCount[3] === "M" ? 1048576 : 1;
+  const count = Number(mCount[2]!) * mult;
   const isPlus = countStr.startsWith("+");
   const isMinus = countStr.startsWith("-");
   if (name === "head" && isPlus) return undefined;
@@ -1491,7 +1549,7 @@ export function evalSyncHeadTail(
       if (!readFileSync) return undefined;
       bytes = readFileSync(t);
     }
-    if (!bytes || bytes.includes(0)) return undefined;
+    if (!bytes || (!zeroTerminated && bytes.includes(0))) return undefined;
     const text = decoder.decode(bytes);
     if (showHeaders) {
       out += `${idx > 0 ? "\n" : ""}==> ${t === "-" ? "standard input" : t} <==\n`;
@@ -1503,11 +1561,12 @@ export function evalSyncHeadTail(
         out += isPlus ? decoder.decode(bytes.subarray(Math.max(0, count - 1))) : (count === 0 ? "" : decoder.decode(bytes.subarray(Math.max(0, bytes.byteLength - count))));
       }
     } else {
-      // Split preserving line terminators
+      // Split preserving record terminators
+      const termCode = zeroTerminated ? 0 : 10;
       const lines: string[] = [];
       let start = 0;
       for (let k = 0; k < text.length; k++) {
-        if (text.charCodeAt(k) === 10) {
+        if (text.charCodeAt(k) === termCode) {
           lines.push(text.slice(start, k + 1));
           start = k + 1;
         }
@@ -1538,6 +1597,7 @@ export function evalSyncWc(
   if (gnuInfo !== undefined) return gnuInfo;
   const flags = new Set<string>();
   let totalMode = "auto";
+  let hasFiles0From = false;
   let ended = false;
   const operands: string[] = [];
   for (let i = 0; i < opArgs.length; i++) {
@@ -1561,6 +1621,20 @@ export function evalSyncWc(
       totalMode = a.slice(8);
       continue;
     }
+    if (a === "--files0-from" || a.startsWith("--files0-from=")) {
+      hasFiles0From = true;
+      const f0 = a === "--files0-from" ? opArgs[++i] : a.slice(14);
+      if (!f0) return undefined;
+      const fBytes = f0 === "-" ? inBytes : readFileSync?.(f0);
+      if (!fBytes || fBytes.byteLength > 16384) return undefined;
+      const fText = decoder.decode(fBytes);
+      const parts = fText.endsWith("\0") ? fText.slice(0, -1).split("\0") : (fText.length === 0 ? [] : fText.split("\0"));
+      for (const p of parts) {
+        if (!p) return undefined;
+        operands.push(p);
+      }
+      continue;
+    }
     if (a.startsWith("-") && !a.startsWith("--")) {
       for (let j = 1; j < a.length; j++) {
         const ch = a[j]!;
@@ -1581,6 +1655,7 @@ export function evalSyncWc(
     flags.add("c");
   }
   const selected = ["l", "w", "m", "c", "L"].filter(f => flags.has(f));
+  if (hasFiles0From && operands.length === 0) return "";
   const names = operands.length > 0 ? operands : ["-"];
   const buffers: Uint8Array[] = [];
   let totalBytesAll = 0;

@@ -847,3 +847,23 @@ test("evaluates cp/mv -t/--target-directory/-n and multi-source, mkdir -pv, and 
     "mkdir: created directory '/tmp/w199',mkdir: created directory '/tmp/w199/sub',#'/tmp/w199_1.txt' -> '/tmp/w199/sub/w199_1.txt','/tmp/w199_2.txt' -> '/tmp/w199/sub/w199_2.txt',#renamed '/tmp/w199_1.txt' -> '/tmp/w199_dst/w199_1.txt',renamed '/tmp/w199_2.txt' -> '/tmp/w199_dst/w199_2.txt',#rmdir: removing directory, '/tmp/w199_rm/inner',rmdir: removing directory, '/tmp/w199_rm',\n",
   );
 });
+
+test("evaluates head/tail -z/bundled flags, ln -t/multi-source, and wc --files0-from in sync substitutions (Wave 200)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands());
+  const r = await shell.exec(
+    [
+      "ht_res=$(printf \"r1\\0r2\\0r3\\0\" | head -zn2 | tail -zn1 | tr -d \"\\0\")",
+      "mkdir -p /tmp/w200_ln && printf \"one\\n\" > /tmp/w200_a.txt && printf \"two\\nthree\\n\" > /tmp/w200_b.txt",
+      "ln_res=$(ln -sv -t /tmp/w200_ln /tmp/w200_a.txt /tmp/w200_b.txt | tr \"\\n\" \",\")",
+      "wc_res=$(printf \"/tmp/w200_a.txt\\0/tmp/w200_b.txt\\0\" | wc -l --total=only --files0-from=-)",
+      "printf \"%s#%s#%s\\n\" \"$ht_res\" \"$ln_res\" \"$wc_res\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "r2#'/tmp/w200_ln/w200_a.txt' -> '/tmp/w200_a.txt','/tmp/w200_ln/w200_b.txt' -> '/tmp/w200_b.txt',#3\n",
+  );
+});

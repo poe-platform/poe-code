@@ -1250,11 +1250,18 @@ async function executeWcSlow(context: Parameters<CommandDefinition["execute"]>[0
           return { exitCode: 1 };
         }
       }
-      const parsed = options(context.args, "lwcmL", { lines: "l", words: "w", bytes: "c", chars: "m", "max-line-length": "L", total: "total:" });
+      const parsed = options(context.args, "lwcmL", { lines: "l", words: "w", bytes: "c", chars: "m", "max-line-length": "L", total: "total:", "files0-from": "files0:" });
       const totalMode = value(parsed, "total") ?? "auto";
       if (!["auto", "always", "only", "never"].includes(totalMode)) throw new UsageError(`invalid argument '${totalMode}' for '--total'`);
       if (!["l", "w", "m", "c", "L"].some(flag => parsed.flags.has(flag))) for (const flag of ["l", "w", "c"]) parsed.flags.add(flag);
       const selected = ["l", "w", "m", "c", "L"].filter(flag => parsed.flags.has(flag));
+      const files0From = value(parsed, "files0");
+      if (files0From !== undefined) {
+        const fBytes = files0From === "-" ? await collectBytes(context.stdin, { signal: context.signal }) : await context.fs.readFile(pathOf(context, files0From), { signal: context.signal });
+        const fText = new TextDecoder("utf-8", { fatal: false }).decode(fBytes);
+        const fParts = fText.endsWith("\0") ? fText.slice(0, -1).split("\0") : (fText.length === 0 ? [] : fText.split("\0"));
+        parsed.operands.push(...fParts.filter(Boolean));
+      }
       const names = parsed.operands.length ? parsed.operands : ["-"];
       const req = assertInputRequirements(context, names);
       if (req) await req;

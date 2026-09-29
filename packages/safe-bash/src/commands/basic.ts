@@ -289,7 +289,7 @@ export function tryFastEcho(args: readonly string[]): string | undefined {
   return (newline && !escaped.stop) ? `${out}\n` : out;
 }
 
-export function tryFastPrintf(args: readonly string[]): string | undefined {
+export function tryFastPrintf(args: readonly string[], allowNull = false): string | undefined {
   const hasDoubleDash = args[0] === "--";
   const fmtIdx = hasDoubleDash ? 1 : 0;
   if (args.length <= fmtIdx) return undefined;
@@ -322,7 +322,7 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
             val = val * 8 + (format.charCodeAt(cur++) - 48);
           }
           const byte = val & 255;
-          if (byte === 0 || byte >= 128) return undefined;
+          if ((!allowNull && byte === 0) || byte >= 128) return undefined;
           result += String.fromCharCode(byte);
           offset = cur;
           continue;
@@ -340,7 +340,7 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
             digits++;
             cur++;
           }
-          if (digits === 0 || val === 0 || val >= 128) return undefined;
+          if (digits === 0 || (!allowNull && val === 0) || val >= 128) return undefined;
           result += String.fromCharCode(val);
           offset = cur;
           continue;

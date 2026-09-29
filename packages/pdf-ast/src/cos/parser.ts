@@ -156,7 +156,7 @@ export class ParsedCosDocument {
   }
 }
 
-function parseNodeFromLexer(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: number): PdfCosNode | undefined {
+function parseNodeFromLexer(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: number, recoverEmptyObject = false): PdfCosNode | undefined {
   type Container =
     | { kind: "array"; start: number; items: PdfCosNode[] }
     | { kind: "dict"; start: number; entries: PdfDictEntry[]; key?: PdfDictEntry["key"] };
@@ -167,6 +167,11 @@ function parseNodeFromLexer(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: nu
     if (!tok) {
       if (!parent) return undefined;
       throw new PdfError("E_PARSE", parent.kind === "array" ? "Unterminated PDF array" : "Unterminated PDF dictionary");
+    }
+    // Eager COS materialization also visits unused dummy objects that PDF.js
+    // need not fetch. Preserve them as null only during document recovery.
+    if (!parent && recoverEmptyObject && tok.kind === "keyword" && tok.value === "endobj") {
+      return { kind: "null", span: tok.span };
     }
     let node: PdfCosNode;
     if (parent?.kind === "array" && tok.kind === "array-end") {
@@ -367,7 +372,7 @@ function parseHeaderVersion(bytes: Uint8Array): string {
   return head.slice(idx + 5, idx + 8);
 }
 
-function parseObjectAtOffset(bytes: Uint8Array, offset: number, maxRecursionDepth: number): PdfIndirectObject {
+function parseObjectAtOffset(bytes: Uint8Array, offset: number, maxRecursionDepth: number, recoverEmptyObject = false): PdfIndirectObject {
   const lexer = new CosByteLexer(bytes, offset);
   const objNumTok = lexer.nextToken();
   const genNumTok = lexer.nextToken();
@@ -380,7 +385,7 @@ function parseObjectAtOffset(bytes: Uint8Array, offset: number, maxRecursionDept
   ) {
     throw new PdfError("E_PARSE", `Malformed indirect object header at byte offset ${offset}`);
   }
-  const value = parseNodeFromLexer(lexer, bytes, maxRecursionDepth);
+  const value = parseNodeFromLexer(lexer, bytes, maxRecursionDepth, recoverEmptyObject);
   if (!value) {
     throw new PdfError("E_PARSE", `Empty indirect object ${objNumTok.value} at offset ${offset}`);
   }
@@ -589,7 +594,7 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompr
     ) {
       pos += 3;
       try {
-        const parsed = parseObjectAtOffset(bytes, headerStart, maxRecursionDepth);
+        const parsed = parseObjectAtOffset(bytes, headerStart, maxRecursionDepth, true);
         objects.set(parsed.objectNumber, parsed);
         if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
         if (parsed.span && parsed.span.end > pos) {
@@ -775,7 +780,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
   const objects = new Map<number, PdfIndirectObject>();
   for (const [objNum, entry] of mergedXref.entries()) {
     if (entry.type === "uncompressed") {
-      const parsed = parseObjectAtOffset(bytes, entry.offset ?? 0, maxRecursionDepth);
+      const parsed = parseObjectAtOffset(bytes, entry.offset ?? 0, maxRecursionDepth, recovery === "repair");
       objects.set(objNum, parsed);
       if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
     }

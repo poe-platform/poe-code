@@ -159,3 +159,8 @@ using `algorithm="AES-256-R5"`, user password `SªSL\u00adprep`, and owner passw
 `owner`. Its one-page text/rectangle source was generated with ReportLab. It
 reproduces pypdf's R5 SASLprep password encoding, which PDF.js's raw R5 candidate
 alone does not authenticate. SHA-256: `3947c5fe9ef65513fc507f1f9aeab885e6972693f0bf8fbdbbfac8a7afb376d4`.
+
+`pdfjs-bug1782186.pdf` is the unchanged `test/pdfs/bug1782186.pdf` from the
+same pinned PDF.js revision (Apache-2.0). Its password is `Hello`; unused empty
+indirect objects exercise eager COS recovery. SHA-256:
+`4c021f37d739c8231cecab5ddd1a93db692f7ba81026315ae1ca39b9b710e86e`.

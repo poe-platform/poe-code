@@ -26,9 +26,13 @@ test("checksum browser graph has no Node crypto dependency", async () => {
   assert.equal(runInContext("typeof process + ':' + typeof Buffer + ':' + typeof crypto", sandbox), "undefined:undefined:undefined");
   const data = Uint8Array.from({ length: 131089 }, (_, index) => index % 251);
   for (const algorithm of ["md5", "sha1", "sha224", "sha256", "sha384", "sha512"]) {
-    for (const size of [0, 3, data.length]) {
+    for (const size of [0, 3, 16384, data.length]) {
       const bytes = data.subarray(0, size);
       const digest = createHash(algorithm).update(bytes).digest("hex");
+      for (const [args, expected] of [
+        [[], `${digest}  -\n`], [["--binary"], `${digest} *-\n`],
+        [["--tag"], `${algorithm.toUpperCase()} (-) = ${digest}\n`],
+      ] as const) assert.equal(checksums.evalSyncChecksum(`${algorithm}sum`, bytes, args), size <= 16384 ? expected : undefined);
       for (const [name, args, expected] of [
         ["cksum", ["-a", algorithm], `${algorithm.toUpperCase()} (-) = ${digest}\n`],
         [`${algorithm}sum`, [], `${digest}  -\n`],

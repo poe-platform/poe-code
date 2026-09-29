@@ -29412,7 +29412,7 @@ export class Runtime {
                   : firstName === "sleep"
                     ? syncCommandEvaluators.evalSyncSleep?.(stageArgs)
                   : firstName === "chmod"
-                    ? syncCommandEvaluators.evalSyncChmod?.(stageArgs, rawState.umask ?? 0o022, (p: string, chg) => this.tryChmodMemoryNodeSync(resolvePath(rawState.cwd, p), chg, false), (p: string) => this.tryStatMemoryNodeModeSync(resolvePath(rawState.cwd, p), true))
+                    ? syncCommandEvaluators.evalSyncChmod?.(stageArgs, rawState.umask ?? 0o022, (p: string, chg) => this.tryChmodMemoryNodeSync(resolvePath(rawState.cwd, p), chg, false))
                   : (firstName === "cal" || firstName === "ncal")
                     ? (() => { const c = evalSyncCal(firstName, stageArgs, (rawState.exported.has("SOURCE_DATE_EPOCH") || rawState.allexport) ? rawState.variables.SOURCE_DATE_EPOCH : undefined); return c !== undefined ? (c.endsWith("\n") ? c : c + "\n") : undefined; })()
                   : firstName === "getopt"

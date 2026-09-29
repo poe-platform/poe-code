@@ -11174,6 +11174,7 @@ export class Runtime {
                   positionalSetVersion,
                   savedPositionals: resumeSavedPos,
                   callerLoopDepth,
+                  lastArgument: fnArgs.at(-1) ?? w0Plain,
                   listIndex: bodyRes.listIndex,
                   pipelineIndex: bodyRes.pipelineIndex,
                 });
@@ -11226,6 +11227,7 @@ export class Runtime {
               this.setSyncPipeStatusCell(activeExisting, statusStr);
               activeStore!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
             }
+            rawState.lastArgument = fnArgs.at(-1) ?? w0Plain;
             rawState.status = exitStatus;
             if (exitStatus !== 0 && !ignored && rawState.errexit) throw new Flow("exit", exitStatus);
             return exitStatus;
@@ -15175,27 +15177,43 @@ export class Runtime {
     const prevFastSubPos = this._fastSubPositional;
     rawState.positional = fnArgs;
     this._fastSubPositional = fnArgs;
-    const savedLocals = new Array<{ name: string; val: string | undefined; wasTouched: boolean }>(fnCall.locals.length);
+    const savedLocals: { name: string; val: string | undefined; wasTouched: boolean }[] = [];
+    const seenLocals = new Set<string>();
     try {
-      for (let i = 0; i < fnCall.locals.length; i++) {
-        const loc = fnCall.locals[i]!;
-        if (loc.isFirstInCmd) this.budget.tick();
-        savedLocals[i] = { name: loc.name, val: rawState.variables[loc.name], wasTouched: touched.has(loc.name) };
-        if (loc.valueWord !== undefined) {
-          rawState.variables[loc.name] = this.fastValueWord(loc.valueWord, rawState, io, false, false, false, false, 0, step.line) as string;
-          touched.add(loc.name);
-        } else {
-          delete rawState.variables[loc.name];
+      for (let i = 0; i < fnCall.locals.length;) {
+        this.budget.tick();
+        let end = i + 1;
+        while (end < fnCall.locals.length && !fnCall.locals[end]!.isFirstInCmd) end++;
+        // Expand the entire simple command before any of its bindings change.
+        const values = fnCall.locals.slice(i, end).map(loc => loc.valueWord === undefined
+          ? undefined
+          : this.fastValueWord(loc.valueWord, rawState, io, false, false, false, false, 0, step.line) as string);
+        const start = i;
+        for (; i < end; i++) {
+          const loc = fnCall.locals[i]!;
+          const alreadyLocal = seenLocals.has(loc.name);
+          if (!alreadyLocal) {
+            savedLocals.push({ name: loc.name, val: rawState.variables[loc.name], wasTouched: touched.has(loc.name) });
+            seenLocals.add(loc.name);
+          }
+          const value = values[i - start];
+          if (value !== undefined) {
+            rawState.variables[loc.name] = value;
+            touched.add(loc.name);
+          } else if (!alreadyLocal) {
+            delete rawState.variables[loc.name];
+          }
         }
       }
       if (fnCall.steps.length > 0) {
         this.execSyncLoopSteps(fnCall.steps, rawState, io, monitor, touched, mode, onUpdate);
       } else {
         rawState.status = 0;
-        onUpdate({ lastCmd: step.cmd, lastArg: fnArgs.length > 0 ? fnArgs[fnArgs.length - 1]! : fnCall.name });
       }
+      rawState.lastArgument = fnArgs.at(-1) ?? fnCall.name;
+      onUpdate({ lastCmd: step.cmd, lastArg: rawState.lastArgument });
     } finally {
-      for (let i = fnCall.locals.length - 1; i >= 0; i--) {
+      for (let i = savedLocals.length - 1; i >= 0; i--) {
         const saved = savedLocals[i]!;
         if (saved.val !== undefined) {
           rawState.variables[saved.name] = saved.val;
@@ -17678,6 +17696,7 @@ export class Runtime {
       positionalSetVersion: number;
       savedPositionals: ReturnType<NonNullable<ReturnType<typeof stateMonitor>>["positionals"]["clone"]>;
       callerLoopDepth: number;
+      lastArgument: string;
       listIndex: number;
       pipelineIndex: number;
     },
@@ -17812,6 +17831,7 @@ export class Runtime {
         throw checkpointFailure;
       }
       if (hasThrown) throw thrownError;
+      state.lastArgument = pendingResume?.lastArgument ?? args.at(-1) ?? name;
       return exitStatus;
     } finally {
       await scope.close();
@@ -18205,6 +18225,7 @@ export class Runtime {
             throw checkpointFailure;
           }
           if (outcome.kind === "throw") throw outcome.reason;
+          state.lastArgument = context.args.at(-1) ?? context.command;
           return outcome.value;
         }
         if (selectedKind === "builtin" && !(state.externalInvocation && this.commands.has(context.command))) {

@@ -99,12 +99,15 @@ including final response metadata. Typed scalar options remain structured data;
 no CLI source serialization occurs. Custom request/response transforms and
 custom Python bridges from the saved library remain supported.
 
-The shell adapter additionally defaults to 8 KiB input and 8 KiB combined captured
-stdout/stderr per call. Configure `maxInputBytes` and `maxOutputBytes` when creating
-the adapter. Capture overflow fails rather than returning silently truncated data.
-Native JSON transport is bounded separately; do not configure capability messages
-above 64 KiB. Application-specific host failures become sanitized `HostError`s in
-the guest; detailed host errors must stay in host-owned diagnostics.
+Configure finite input/output limits explicitly with `maxInputBytes` and
+`maxOutputBytes` when creating the shell adapter. Capture overflow fails rather
+than returning silently truncated data. Native serialized-message budgets are
+configured separately with `capabilityLimits.maxMessageBytes`; there is no
+implicit 64 KiB ceiling. Application-specific host failures become sanitized
+`HostError`s in the guest; detailed errors stay in host-owned diagnostics.
+
+Customizable [Python LLM workflows](python-llm.md) and
+[Python shell/subprocess calls](python-shell.md) use this same invocation bridge.
 
 The asynchronous Node worker protocol is unchanged and does not install these
 capabilities. Use an explicit asynchronous executor supporting `start.host`.

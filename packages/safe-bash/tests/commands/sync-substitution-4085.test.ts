@@ -1792,3 +1792,16 @@ for (const [name, evaluate, args] of [
     assert.deepEqual(removed, occupied ? [] : ['/directory']);
   }
 });
+
+
+test("synchronous rm -d preserves a populated directory in a command substitution", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work/populated", { recursive: true });
+  await fs.writeFile("/work/populated/keep", new TextEncoder().encode("retained"));
+  const registry = new CommandRegistry();
+  for (const command of createAgentCommands({ muscleMemory: true })) registry.register(command);
+  const shell = new Shell({ fs, commands: registry });
+  const result = await shell.exec('output=$(rm -d /work/populated); cat /work/populated/keep');
+  assert.equal(result.stdout, "retained");
+  assert.equal(result.exitCode, 0);
+});

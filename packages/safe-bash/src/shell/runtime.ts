@@ -28033,9 +28033,9 @@ export class Runtime {
           "LC_CTYPE", "LC_NUMERIC", "LC_TIME", "LC_COLLATE", "LC_MONETARY", "LC_MESSAGES",
           "LC_PAPER", "LC_NAME", "LC_ADDRESS", "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION"
         ]) {
-          if (lcAll) lines.push(`${cat}=${lcAll}`);
+          if (lcAll) lines.push(`${cat}="${lcAll}"`);
           else if (getEnv(cat)) lines.push(`${cat}=${getEnv(cat)!}`);
-          else lines.push(`${cat}="${lang}"`);
+          else lines.push(`${cat}="${lang || "C.UTF-8"}"`);
         }
         lines.push(`LC_ALL=${lcAll ?? ""}`);
         return lines.join("\n");
@@ -30683,9 +30683,9 @@ export class Runtime {
         const optInBytes = hasSingleHereStringRedir ? inBytes : undefined;
         const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
         let csvOut = w0Plain === "csvcut"
-          ? evalSyncCsvcut(inBytes, allArgs, readFile)
+          ? evalSyncCsvcut(optInBytes, allArgs, readFile)
           : w0Plain === "csvgrep"
-            ? evalSyncCsvgrep(inBytes, allArgs, readFile)
+            ? evalSyncCsvgrep(optInBytes, allArgs, readFile)
           : w0Plain === "csvlook"
             ? evalSyncCsvlook(optInBytes, allArgs, readFile)
           : w0Plain === "csvjson"

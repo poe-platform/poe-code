@@ -51,11 +51,11 @@ let _syncAbortSignal: AbortSignal | undefined;
 const syncAbortSignal = (): AbortSignal => (_syncAbortSignal ??= new AbortController().signal);
 
 export function evalSyncCsvcut(
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): string | undefined {
-  if (inBytes.byteLength > 16384) return undefined;
+  if (inBytes !== undefined && inBytes.byteLength > 16384) return undefined;
   const budget = new CsvBudget({}, syncAbortSignal());
   try {
     const supplied = parseCsvcutArguments(opArgs, budget);
@@ -73,6 +73,7 @@ export function evalSyncCsvcut(
     if (supplied.names && supplied.headerless) return undefined;
     const dialect: CsvDialect = { ...supplied.dialect, profile: supplied.dialect?.profile ?? "utf8-sig-permissive-v1" };
     if (Number.isSafeInteger(dialect.skipLines) && dialect.skipLines! < 0) dialect.skipLines = 0;
+    if (sourceBytes === undefined) return undefined;
     const parser = new CsvParser(dialect, budget);
     const rows: CsvRow[] = [...parser.push(sourceBytes), ...parser.end()];
     const first = rows[0];

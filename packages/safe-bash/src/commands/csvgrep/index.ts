@@ -51,11 +51,11 @@ let _syncAbortSignal: AbortSignal | undefined;
 const syncAbortSignal = (): AbortSignal => (_syncAbortSignal ??= new AbortController().signal);
 
 export function evalSyncCsvgrep(
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): string | undefined {
-  if (inBytes.byteLength > 16384) return undefined;
+  if (inBytes !== undefined && inBytes.byteLength > 16384) return undefined;
   const budget = new CsvBudget({}, syncAbortSignal());
   try {
     const options = parseCsvgrepArguments(opArgs, budget);
@@ -80,6 +80,7 @@ export function evalSyncCsvgrep(
       if (!fileBytes || fileBytes.byteLength > 16384) return undefined;
       sourceBytes = fileBytes;
     }
+    if (sourceBytes === undefined) return undefined;
     const parser = new CsvParser(options.dialect ?? {}, budget);
     const rows = [...parser.push(sourceBytes), ...parser.end()];
     const matcher = options.names ? undefined : createMatcher(options, fileMatchSet, budget);

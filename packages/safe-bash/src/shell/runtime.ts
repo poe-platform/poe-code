@@ -13093,21 +13093,12 @@ export class Runtime {
           ? whilePrintfInd
           : (forPrintfInd && this.canSyncPrintfInductionBody(command.body, rawState, forPrintfInd) ? forPrintfInd : undefined));
     const prevActivePrintfInd = this._activePrintfInductionName;
-    const prevActiveLoopScript = this._activeLoopBodyScript;
-    const prevActiveLoopCond = this._activeLoopCondScript;
-    const prevActiveLoopVar = this._activeLoopVarName;
     this._activePrintfInductionName = printfInductionName;
-    this._activeLoopBodyScript = command.body;
-    this._activeLoopCondScript = command.kind === "while" ? command.condition : undefined;
-    this._activeLoopVarName = command.kind === "for" ? command.name : (printfInductionName ?? (whilePrintfInd || undefined));
     let bodySyncOk = false;
     try {
       bodySyncOk = !(guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536)) && this.canSyncLoopBody(command.body, rawState, io, false, printfInductionName);
     } finally {
       this._activePrintfInductionName = prevActivePrintfInd;
-      this._activeLoopBodyScript = prevActiveLoopScript;
-      this._activeLoopCondScript = prevActiveLoopCond;
-      this._activeLoopVarName = prevActiveLoopVar;
     }
     if (!bodySyncOk) {
       (command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop = true;
@@ -14341,76 +14332,6 @@ export class Runtime {
     return pos <= 128 ? fastRedirectScratchViews[pos]! : fastRedirectScratchBytes.subarray(0, pos);
   }
   private _activePrintfInductionName: string | undefined = undefined;
-  private _activeLoopBodyScript: Script | undefined = undefined;
-  private _activeLoopCondScript: Script | undefined = undefined;
-  private _activeLoopVarName: string | undefined = undefined;
-  private isVarUnmutatedInScript(varName: string, script: Script): boolean {
-    for (const list of script.lists) {
-      for (const pipeline of list.pipelines) {
-        for (const cmd of pipeline.commands) {
-          if (cmd.kind === "arithmetic") {
-            if (cmd.expression.hasMutation && cmd.expression.source.includes(varName)) return false;
-            continue;
-          }
-          if (cmd.kind === "if") {
-            for (const br of cmd.branches) {
-              if (!this.isVarUnmutatedInScript(varName, br.condition) || !this.isVarUnmutatedInScript(varName, br.body)) return false;
-            }
-            if (cmd.otherwise && !this.isVarUnmutatedInScript(varName, cmd.otherwise)) return false;
-            continue;
-          }
-          if (cmd.kind === "case") {
-            for (const cl of cmd.clauses) {
-              if (!this.isVarUnmutatedInScript(varName, cl.body)) return false;
-            }
-            continue;
-          }
-          if (cmd.kind === "for") {
-            if (cmd.name === varName || !this.isVarUnmutatedInScript(varName, cmd.body)) return false;
-            continue;
-          }
-          if (cmd.kind === "arithmetic-for") {
-            if (cmd.expressions.some(e => e && e.hasMutation && e.source.includes(varName)) || !this.isVarUnmutatedInScript(varName, cmd.body)) return false;
-            continue;
-          }
-          if (cmd.kind === "while") {
-            if (!this.isVarUnmutatedInScript(varName, cmd.condition) || !this.isVarUnmutatedInScript(varName, cmd.body)) return false;
-            continue;
-          }
-          if (cmd.kind === "group" || cmd.kind === "subshell") {
-            if (!this.isVarUnmutatedInScript(varName, cmd.body)) return false;
-            continue;
-          }
-          if (cmd.kind !== "simple") return false;
-          for (const w of cmd.words) {
-            const arrAss = getArrayAssignment(w);
-            if (arrAss && arrAss.name === varName) return false;
-            const p0 = w.parts[0];
-            if (p0?.kind === "text" && !p0.quoted && (p0.value.startsWith(varName + "=") || p0.value.startsWith(varName + "+=") || p0.value.startsWith(varName + "["))) return false;
-          }
-          const w0 = cmd.words[0]?.plain;
-          if (w0 === "read" || w0 === "unset" || w0 === "declare" || w0 === "typeset" || w0 === "local" || w0 === "export" || w0 === "mapfile" || w0 === "readarray") {
-            if (w0 === "read" && varName === "REPLY") return false;
-            if (cmd.words.slice(1).some(w => (w.plain ?? "").includes(varName))) return false;
-          }
-          if (w0 === "printf" && cmd.words[1]?.plain === "-v" && (cmd.words[2]?.plain ?? "").startsWith(varName)) return false;
-          for (const w of [...cmd.words, ...cmd.redirects.map(r => r.target)]) {
-            for (const pt of w.parts) {
-              if (pt.kind === "arithmetic" && pt.expression.hasMutation && pt.expression.source.includes(varName)) return false;
-              if (pt.kind === "substitution" && !this.isVarUnmutatedInScript(varName, pt.script)) return false;
-            }
-          }
-        }
-      }
-    }
-    return true;
-  }
-  private isVarUnmutatedInActiveLoop(varName: string): boolean {
-    if (varName === this._activeLoopVarName || varName === this._activePrintfInductionName) return false;
-    if (this._activeLoopCondScript && !this.isVarUnmutatedInScript(varName, this._activeLoopCondScript)) return false;
-    if (this._activeLoopBodyScript && !this.isVarUnmutatedInScript(varName, this._activeLoopBodyScript)) return false;
-    return true;
-  }
   private canSyncPrintfInductionBody(script: Script, rawState: State, inductionName?: string): boolean {
     for (const list of script.lists) for (const pipeline of list.pipelines) for (const command of pipeline.commands) {
       if (command.kind === "arithmetic") {

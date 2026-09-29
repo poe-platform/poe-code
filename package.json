@@ -572,7 +572,8 @@
     "@poe-code/spreadsheet-format-csv": "0.0.1",
     "@poe-code/spreadsheet-format-ods": "0.0.1",
     "@poe-code/spreadsheet-format-xls": "0.0.1",
-    "@poe-code/xml-ast": "0.0.1"
+    "@poe-code/xml-ast": "0.0.1",
+    "@poe-code/spreadsheet-format-spreadsheetml": "0.0.1"
   },
   "version": "0.0.0-dev",
   "repository": {

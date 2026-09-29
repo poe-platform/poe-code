@@ -67,7 +67,8 @@ an engine's capabilities. There is no global mutable registry.
 
 ## Implementation checkpoint
 
-`86f8fad8fe` delivered explicit selection to remote main. The pending extraction
+`86f8fad8fe` delivered explicit selection to remote main. `275b624b9f` delivered
+the extraction, with its integration series through `f6c3539dbc`. The architecture
 places the workbook model in `packages/spreadsheet-ast`, orchestration in
 `packages/spreadsheet-engine`, and actual readers/writers in
 `packages/spreadsheet-format-{xlsx,csv,ods,xls}`. Original command source paths
@@ -79,7 +80,7 @@ The new `adoptWorkbook` operation validates and snapshots an independently
 created or edited AST under the receiving engine's budgets. It preserves the
 existing requirement that writes operate on a workbook owned by that engine.
 
-Verification completed before the latest upstream reconciliation:
+Verification completed for the initial architecture before later upstream changes:
 
 - Seven affected package lint/type checks and 494 ssconvert test files / 26,287
   tests passed. The maintained build completed 189 tasks across 190 workspaces,
@@ -105,10 +106,16 @@ full rerun reused all 89 shared cache records, passed 197 root files / 4,693 tes
 and passed all 652 Safe Bash build/packaging runner tests. The remaining native
 behavior tests are active; this is not a complete full-gate result.
 
-Current upstream shell changes required further compiler reconciliation. The
-latest complete build and lint evidence above predates those changes. Current
-repository types and workflow lint pass; current ESLint reported unnecessary
-shell-test dollar escapes to the active release owner. No extraction or canonical
-factory prerequisite commit has yet been pushed, and containing publication is
-not verified. The earlier explicit-selection commit `86f8fad8fe` and portable-gh
-repair `2546814fc2` are separately verified on remote main.
+Further delivered fixes include XLSX string formula caches (`6d478e6e83`),
+ODS fractional time import (`91a8df9bed`), named-formula base IDs (`61558ed0d4`),
+signed and abbreviated durations (`371deddbd9`), and fractional time export
+(`9ac53e4f51`). The duration fixes have focused failing-before regressions,
+existing ODF regressions and independent LibreOffice numeric interoperability
+evidence. These results do not establish broader spreadsheet fidelity.
+
+At 2026-09-29 11:15 UTC, pinned root and scoped release runs target
+`9ac53e4f51`; publication is not yet verified. The frozen full unit gate at
+`fbd6434f79` remains active and does not cover the later duration changes.
+SpreadsheetML ownership extraction is tracked by #4290; its existing root
+selected-format route will be joined by the scoped route, with actual reader,
+metadata and schema ownership in `packages/spreadsheet-format-spreadsheetml`.

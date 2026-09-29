@@ -72,3 +72,20 @@ it("an ODS-only application does not obtain shared rich-text helpers from XLSX",
   expect(included.filter(name => ["/spreadsheet-format-xlsx/", "/spreadsheet-format-xls/", "/spreadsheet-format-csv/", "/pdf-lib/", "/fontkit/"]
     .some(part => name.includes(part)))).toEqual([]);
 });
+
+it("a SpreadsheetML application uses an independent format owner without shell commands or competing formats", async () => {
+  const result = await build({
+    stdin: {
+      contents: 'import { createEngine } from "./core.ts"; import { spreadsheetmlFormat } from "./formats/spreadsheetml.ts"; globalThis.engine = createEngine({ formats: [spreadsheetmlFormat] });',
+      resolveDir: fileURLToPath(new URL(".", import.meta.url))
+    },
+    bundle: true, platform: "browser", format: "esm", write: false, metafile: true, logLevel: "silent"
+  });
+  const included = Object.values(result.metafile!.outputs).flatMap(output =>
+    Object.entries(output.inputs).filter(([, value]) => value.bytesInOutput > 0).map(([name]) => name));
+  expect(included.some(name => name.includes("/spreadsheet-format-spreadsheetml/"))).toBe(true);
+  expect(included.filter(name => ["/safe-bash-command-ssconvert/", "/spreadsheet-format-xlsx/", "/spreadsheet-format-xls/",
+    "/spreadsheet-format-csv/", "/spreadsheet-format-ods/", "/pdf-lib/", "/fontkit/"]
+    .some(part => name.includes(part)))).toEqual([]);
+  expect(result.outputFiles[0]!.text).toContain("excel_xml");
+});

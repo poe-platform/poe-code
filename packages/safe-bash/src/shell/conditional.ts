@@ -85,7 +85,7 @@ async function patternAdmission(pattern: string, context: ConditionalContext): P
       }
     } else if (character === "]" && bracket && index > bracketStart + 1) bracket = false;
   }
-  if (bracket) unsupported("unclosed bracket pattern");
+  // The pattern tokenizer treats an unclosed bracket as a literal '['.
 }
 
 async function unary(operator: string, value: string, context: ConditionalContext): Promise<boolean> {

@@ -8188,7 +8188,8 @@ export class Runtime {
             }
             return !rem.associative && rem.references === 1;
           }
-          return this.isPureSyncValueWord(e.left, rawState) && (e.operator === "==" || e.operator === "=" || e.operator === "!=" ? this.canSyncPatternWordParts(e.right, rawState) : this.isPureSyncValueWord(e.right, rawState));
+          // Unquoted patterns may need the asynchronous matcher after values change.
+          return this.isPureSyncValueWord(e.left, rawState) && this.isPureSyncValueWord(e.right, rawState) && (!(e.operator === "==" || e.operator === "=" || e.operator === "!=") || (e.right.parts.length > 0 && e.right.parts.every(p => p.quoted)));
         }
         if (e.kind === "not") return checkCondNoFile(e.operand);
         if (e.kind === "and" || e.kind === "or") return checkCondNoFile(e.left) && checkCondNoFile(e.right);
@@ -12465,7 +12466,8 @@ export class Runtime {
                 if (patInfo?.isVar) return false;
                 return this.isPureSyncValueWord(e.left, rawState) && this.getFastAnchoredEreRegex(e.right, rawState) !== undefined && !rawState.readonlyVariables?.has("BASH_REMATCH") && !rawState.exported.has("BASH_REMATCH") && !stateMonitor(rawState)?.hasOverlay("BASH_REMATCH") && !(store ?? requireArrays(rawState))?.watches.has("BASH_REMATCH");
               }
-              return this.isPureSyncValueWord(e.left, rawState) && (e.operator === "==" || e.operator === "=" || e.operator === "!=" ? this.canSyncPatternWordParts(e.right, rawState) : this.isPureSyncValueWord(e.right, rawState));
+              // A synchronous loop cannot hand off an unsupported pattern mid-iteration.
+              return this.isPureSyncValueWord(e.left, rawState) && this.isPureSyncValueWord(e.right, rawState) && (!(e.operator === "==" || e.operator === "=" || e.operator === "!=") || (e.right.parts.length > 0 && e.right.parts.every(p => p.quoted)));
             }
             if (e.kind === "not") return checkLeaf(e.operand);
             if (e.kind === "and" || e.kind === "or") return checkLeaf(e.left) && checkLeaf(e.right);
@@ -13806,7 +13808,7 @@ export class Runtime {
                 !(store ?? requireArrays(rawState))?.watches.has("BASH_REMATCH")
               );
             }
-            return this.isPureSyncValueWord(e.left, rawState) && (e.operator === "==" || e.operator === "=" || e.operator === "!=" ? this.canSyncPatternWordParts(e.right, rawState) : this.isPureSyncValueWord(e.right, rawState));
+            return this.isPureSyncValueWord(e.left, rawState) && this.isPureSyncValueWord(e.right, rawState) && (!(e.operator === "==" || e.operator === "=" || e.operator === "!=") || (e.right.parts.length > 0 && e.right.parts.every(p => p.quoted)));
           }
           if (e.kind === "not") return checkWhileCond(e.operand, depth + 1);
           if (e.kind === "and" || e.kind === "or") return checkWhileCond(e.left, depth + 1) && checkWhileCond(e.right, depth + 1);

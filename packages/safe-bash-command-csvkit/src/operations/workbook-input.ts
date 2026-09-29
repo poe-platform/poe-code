@@ -1,5 +1,6 @@
-import { read, CFB, set_cptable, type WorkBook } from '@e965/xlsx';
+import { read, set_cptable, type WorkBook } from '@e965/xlsx';
 import { formatA1, parseA1 } from '@poe-code/spreadsheet-ast';
+import { readCfb } from '@poe-code/spreadsheet-format-xls/biff-binary';
 import type { CsvkitWorkbook, CsvkitWorkbookCell } from '../workbook.js';
 import * as codepages from '@e965/xlsx/dist/cpexcel';
 import { createZipCodec, CodecError } from '@poe-code/office-package';
@@ -97,9 +98,9 @@ export class WorkbookInput {
     try {
       let readerBytes = bytes;
       let codepage: number | undefined;
-      if (!namesOnly && r.options.encoding_xls && !unicodeBiff(bytes)) {
+      const stream = !namesOnly && r.options.encoding_xls ? workbookBiffStream(bytes, r) : undefined;
+      if (stream && !unicodeBiff(stream)) {
         codepage = xlsCodepage(String(r.options.encoding_xls));
-        const stream = workbookBiffStream(bytes);
         r.retain(stream.length);
         readerBytes = Uint8Array.from(stream);
         // Unlike xlrd's encoding_override, SheetJS's option loses to CODEPAGE.
@@ -324,16 +325,14 @@ function xlsxDateFormat(format: string, runtime: Runtime): boolean {
   return false;
 }
 function unicodeBiff(bytes: Uint8Array): boolean {
-  const stream = workbookBiffStream(bytes);
-  return stream.length >= 6 && (stream[4]! | stream[5]! << 8) === 0x0600;
+  return bytes.length >= 6 && (bytes[4]! | bytes[5]! << 8) === 0x0600;
 }
-function workbookBiffStream(bytes: Uint8Array): ArrayLike<number> {
-  let stream: ArrayLike<number> = bytes;
-  if (bytes[0] === 208) {
-    const cfb = CFB as { read(data: Uint8Array, options: { type: 'array' }): { FileIndex: readonly { name: string; content: ArrayLike<number> }[] } };
-    stream = cfb.read(bytes, { type: 'array' }).FileIndex.find(entry => entry.name === 'Workbook' || entry.name === 'Book')?.content ?? bytes;
-  }
-  return stream;
+function workbookBiffStream(bytes: Uint8Array, runtime: Runtime): Uint8Array {
+  if (bytes[0] !== 208) return bytes;
+  const streams = readCfb(bytes, { signal: runtime.context.signal,
+    limits: { inputBytes: runtime.context.limits.maxInputBytes },
+    work: runtime.step, retain: size => runtime.retain(size) });
+  return streams.get('Workbook') ?? streams.get('Book') ?? bytes;
 }
 function xlsCodepage(encoding: string): number {
   const names: Readonly<Record<string, number>> = { 'ascii': 20127, 'utf-8': 65001, 'utf8': 65001, 'latin1': 28591, 'latin-1': 28591, 'cp1252': 1252, 'windows-1252': 1252, 'cp437': 437, 'cp850': 850, 'cp932': 932 };

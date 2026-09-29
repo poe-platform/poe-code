@@ -654,6 +654,7 @@
             "@poe-code/office-package": "*",
             "@sqlite.org/sqlite-wasm": "3.50.4-build1",
             "@poe-code/spreadsheet-ast": "*",
+            "@poe-code/spreadsheet-format-xls": "*",
             "@poe-code/xlsx-ast": "*"
           },
           "devDependencies": {

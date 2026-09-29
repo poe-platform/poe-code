@@ -6,7 +6,7 @@ import { define, output, pathOf, UsageError, value } from "safe-bash-io-engine/i
 import { EnvSplitError, parseEnvOptions, type EnvSplitLimits } from "safe-bash-io-engine/commands/env-split";
 import type { VirtualShellPlugin } from "safe-bash-contracts";
 export interface EnvLimits { readonly maxArgumentBytes: number; }
-export interface EnvCommandsOptions { readonly envSplitLimits?: EnvSplitLimits; readonly replace?: boolean; readonly execute?: CommandHandler; readonly limits?: Partial<EnvLimits>; }
+export interface EnvCommandsOptions { readonly envSplitLimits?: EnvSplitLimits | undefined; readonly replace?: boolean; readonly execute?: CommandHandler; readonly limits?: Partial<EnvLimits>; }
 export function createEnvCommand(options: EnvCommandsOptions = {}): CommandDefinition {
  const execute: CommandHandler = options.execute ?? (async context => { throw new FsError("ENOTSUP", { path: context.command }); });
  const max = options.limits?.maxArgumentBytes ?? Infinity; if (max !== Infinity && (!Number.isSafeInteger(max) || max < 1)) throw new RangeError("maxArgumentBytes must be positive");

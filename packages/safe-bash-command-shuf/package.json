@@ -50,6 +50,10 @@
     "./usage": {
       "types": "./dist/usage.d.ts",
       "import": "./dist/usage.js"
+    },
+    "./sync": {
+      "types": "./dist/sync.d.ts",
+      "import": "./dist/sync.js"
     }
   },
   "files": [

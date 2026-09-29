@@ -305,7 +305,6 @@ export function xmllintCommands(options: XmlCommandsOptions = {}): VirtualShellP
   };
 }
 
-export type { XmlQueryLimits as XmllintLimits } from "safe-bash-xml-engine/limits";
 
 const syncXmlDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 

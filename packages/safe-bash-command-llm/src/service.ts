@@ -1,6 +1,6 @@
 import { validateModelOptions } from "./model-options.js";
 import { acceptsMimeType } from "./mime.js";
-import type { LlmModel, LlmProvider, LlmRequest, LlmEmbeddingRequest, LlmEmbeddingResponse, LlmOption, LlmResponseMetadata } from "./types.js";
+import type { LlmModel, LlmProvider, LlmRequest, LlmEmbeddingRequest, LlmEmbeddingResponse, LlmOption, LlmResponseMetadata, LlmSourceRequest, LlmInputSource } from "./types.js";
 
 export interface LlmServiceOptions {
   readonly providers: readonly LlmProvider[];
@@ -13,6 +13,11 @@ export interface LlmServiceModel {
 }
 
 export interface LlmServiceRequest extends Omit<LlmRequest, "model"> {
+  readonly model?: string;
+  readonly maxOutputBytes?: number;
+}
+
+export interface LlmServiceSourceRequest extends Omit<LlmSourceRequest, "model"> {
   readonly model?: string;
   readonly maxOutputBytes?: number;
 }
@@ -49,6 +54,42 @@ function validateOptions(options: Readonly<Record<string, LlmOption>>): void {
   }
 }
 
+async function* streamResult(completion: () => AsyncIterable<string | Uint8Array, LlmResponseMetadata | void>, model: LlmModel, request: { readonly signal: AbortSignal; readonly maxOutputBytes?: number }): AsyncGenerator<LlmStreamEvent> {
+      const limit = request.maxOutputBytes ?? Infinity;
+      if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError("Invalid LLM output limit");
+      const iterator = completion()[Symbol.asyncIterator]();
+      let ended = false;
+      let size = 0;
+      try {
+        while (true) {
+          request.signal.throwIfAborted();
+          const result = await abortable(() => iterator.next(), request.signal);
+          request.signal.throwIfAborted();
+          if (result.done) {
+            ended = true;
+            const metadata: unknown = result.value;
+            if (metadata !== undefined && (!metadata || typeof metadata !== "object" || Array.isArray(metadata))) throw new TypeError("Invalid LLM response metadata");
+            const details = metadata as LlmResponseMetadata | undefined;
+            if (details) validateMetadata(details);
+            yield { type: "response", response: { model: model.id, ...(details?.usage ? { usage: details.usage } : {}), ...(details?.metadata ? { metadata: details.metadata } : {}) } };
+            return;
+          }
+          const chunk = result.value;
+          const text = (model.outputType ?? "text/plain").toLowerCase().startsWith("text/");
+          if (text ? typeof chunk !== "string" : !(chunk instanceof Uint8Array)) throw new TypeError("Provider returned an incompatible LLM output chunk");
+          size += typeof chunk === "string" ? new TextEncoder().encode(chunk).length : chunk.byteLength;
+          if (size > limit) throw new RangeError("LLM output byte limit exceeded");
+          yield typeof chunk === "string" ? { type: "text", text: chunk } : { type: "bytes", data: new Uint8Array(chunk) };
+        }
+      } finally {
+        if (!ended) {
+          const closing = Promise.resolve().then(() => iterator.return?.());
+          if (request.signal.aborted) void closing.catch(() => undefined);
+          else await closing;
+        }
+      }
+}
+
 /** Structured host API shared by shell and other language front ends. */
 export interface LlmService {
   readonly version: 1;
@@ -56,6 +97,7 @@ export interface LlmService {
   resolve(model?: string): LlmServiceModel;
   complete(request: LlmServiceRequest): AsyncIterable<string | Uint8Array, LlmResponseMetadata | void>;
   stream(request: LlmServiceRequest): AsyncIterable<LlmStreamEvent>;
+  streamSources?(request: LlmServiceSourceRequest): AsyncIterable<LlmStreamEvent>;
   embed(request: Omit<LlmEmbeddingRequest, "model"> & { readonly model?: string }): Promise<LlmEmbeddingResponse>;
 }
 
@@ -112,39 +154,39 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
       return entry.provider.complete({ ...input, model: entry.model.id, options: validateModelOptions(entry.model, request.options) });
     },
     async *stream(request: LlmServiceRequest): AsyncGenerator<LlmStreamEvent> {
-      const limit = request.maxOutputBytes ?? Infinity;
-      if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError("Invalid LLM output limit");
       const entry = this.resolve(request.model);
-      const iterator = this.complete(request)[Symbol.asyncIterator]();
-      let ended = false;
-      let size = 0;
+      yield* streamResult(() => this.complete(request), entry.model, request);
+    },
+    async *streamSources(request: LlmServiceSourceRequest): AsyncGenerator<LlmStreamEvent> {
+      const sources = new Set<LlmInputSource>([request.prompt, ...request.system === undefined ? [] : [request.system], ...request.messages?.map(message => message.content) ?? [], ...request.attachments.map(attachment => attachment.source)]);
+      let closing: Promise<void> | undefined, failed = false;
+      const close = (): Promise<void> => closing ??= Promise.allSettled([...sources].map(source => Promise.resolve().then(() => source.dispose()))).then(results => {
+        const rejected = results.find(result => result.status === "rejected");
+        if (rejected?.status === "rejected") throw rejected.reason;
+      });
+      const abort = (): void => { void close().catch(() => undefined); };
+      request.signal.addEventListener("abort", abort, { once: true });
       try {
-        while (true) {
-          request.signal.throwIfAborted();
-          const result = await abortable(() => iterator.next(), request.signal);
-          request.signal.throwIfAborted();
-          if (result.done) {
-            ended = true;
-            const metadata: unknown = result.value;
-            if (metadata !== undefined && (!metadata || typeof metadata !== "object" || Array.isArray(metadata))) throw new TypeError("Invalid LLM response metadata");
-            const details = metadata as LlmResponseMetadata | undefined;
-            if (details) validateMetadata(details);
-            yield { type: "response", response: { model: entry.model.id, ...(details?.usage ? { usage: details.usage } : {}), ...(details?.metadata ? { metadata: details.metadata } : {}) } };
-            return;
-          }
-          const chunk = result.value;
-          const text = (entry.model.outputType ?? "text/plain").toLowerCase().startsWith("text/");
-          if (text ? typeof chunk !== "string" : !(chunk instanceof Uint8Array)) throw new TypeError("Provider returned an incompatible LLM output chunk");
-          size += typeof chunk === "string" ? new TextEncoder().encode(chunk).length : chunk.byteLength;
-          if (size > limit) throw new RangeError("LLM output byte limit exceeded");
-          yield typeof chunk === "string" ? { type: "text", text: chunk } : { type: "bytes", data: new Uint8Array(chunk) };
+        request.signal.throwIfAborted();
+        validateOptions(request.options);
+        const entry = this.resolve(request.model);
+        if (!entry.provider.completeSources) throw new Error(`Model ${entry.model.id} does not support streamed inputs`);
+        for (const source of sources) if (!source || typeof source.dispose !== "function" || typeof source.bytes?.[Symbol.asyncIterator] !== "function") throw new TypeError("Invalid LLM input source");
+        if (request.messages?.length && !entry.model.capabilities?.includes("messages")) throw new Error(`Model ${entry.model.id} does not support messages`);
+        if (request.messages?.some(message => !["system", "user", "assistant"].includes(message.role))) throw new TypeError("Invalid LLM message");
+        if (request.schema !== undefined) {
+          if (!entry.model.capabilities?.includes("schema")) throw new Error(`Model ${entry.model.id} does not support schema`);
+          if (!request.schema || typeof request.schema !== "object" || Array.isArray(request.schema)) throw new TypeError("Invalid LLM schema");
         }
+        for (const attachment of request.attachments) if (!acceptsMimeType(entry.model.attachmentTypes ?? [], attachment.mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${attachment.mimeType}`);
+        const { maxOutputBytes: ignoredMaxOutputBytes, ...input } = request;
+        yield* streamResult(() => entry.provider.completeSources!({ ...input, model: entry.model.id, options: validateModelOptions(entry.model, request.options) }), entry.model, request);
+      } catch (error) {
+        failed = true;
+        throw request.signal.aborted ? request.signal.reason : error;
       } finally {
-        if (!ended) {
-          const closing = Promise.resolve().then(() => iterator.return?.());
-          if (request.signal.aborted) void closing.catch(() => undefined);
-          else await closing;
-        }
+        request.signal.removeEventListener("abort", abort);
+        await close().catch(error => { if (!failed) throw error; });
       }
     },
     async embed(request: Omit<LlmEmbeddingRequest, "model"> & { readonly model?: string }): Promise<LlmEmbeddingResponse> {

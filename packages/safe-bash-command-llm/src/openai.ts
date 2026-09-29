@@ -1,3 +1,4 @@
+import { chatJson } from "./chat-json.js";
 import { parseLlmNumericOption } from "./numeric-option.js";
 import type { HttpRequest, HttpTransport } from "safe-bash-contracts/http";
 import type { LlmModel, LlmProvider, LlmRequest, LlmResponseMetadata } from "./types.js";
@@ -161,6 +162,20 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         return { model: request.model, vectors, ...(openAiRecord(body.usage) ? { usage: body.usage } : {}) };
       }
       throw new Error("OpenAI returned no embedding response");
+    },
+    async *completeSources(request) {
+      request.signal.throwIfAborted();
+      const model = byId.get(request.model);
+      if (!model || model.endpoint !== "chat") throw new Error(`Model ${request.model} does not support streamed inputs`);
+      const body = chatJson({ ...request, options: jsonOptions(request.options, "chat") }, limits.maxRequestBytes);
+      let details: LlmResponseMetadata | undefined;
+      for await (const response of openAiResponse(transport, {
+        url: `${baseUrl}/chat/completions`, method: "POST", signal: request.signal,
+        headers: [["authorization", `Bearer ${apiKey}`], ["content-type", "application/json"]], body,
+      }, limits.maxResponseBytes)) {
+        details = yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
+      }
+      return details;
     },
     async *complete(request) {
       request.signal.throwIfAborted();

@@ -1,3 +1,4 @@
+import type { ByteSource } from "safe-bash-contracts";
 import type { LlmService } from "./service.js";
 export type LlmOption = string | number | boolean | null;
 export type LlmCapability = "messages" | "schema" | "embed";
@@ -9,6 +10,7 @@ export interface LlmProvider {
   readonly name: string;
   readonly models: readonly LlmModel[];
   complete(request: LlmRequest): AsyncIterable<string | Uint8Array, LlmResponseMetadata | void>;
+  completeSources?(request: LlmSourceRequest): AsyncIterable<string | Uint8Array, LlmResponseMetadata | void>;
   embed?(request: LlmEmbeddingRequest): Promise<LlmEmbeddingResponse>;
 }
 export interface LlmModelOption {
@@ -57,4 +59,16 @@ export interface LlmCommandsOptions {
   readonly service?: LlmService;
   readonly defaultModel?: string;
   readonly replace?: boolean;
+}
+
+/** A caller-owned input lease. Disposal must release resources independently of pending reads. */
+export interface LlmInputSource {
+  readonly bytes: ByteSource;
+  dispose(): Promise<void>;
+}
+export interface LlmSourceRequest extends Omit<LlmRequest, "prompt" | "system" | "messages" | "attachments"> {
+  readonly prompt: LlmInputSource;
+  readonly system?: LlmInputSource;
+  readonly messages?: readonly { readonly role: "system" | "user" | "assistant"; readonly content: LlmInputSource }[];
+  readonly attachments: readonly { readonly mimeType: string; readonly source: LlmInputSource }[];
 }

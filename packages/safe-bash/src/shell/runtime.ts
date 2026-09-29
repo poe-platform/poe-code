@@ -99,6 +99,8 @@ import { evalSyncCmp } from "../commands/cmp/index.js";
 import { evalSyncWhich } from "../commands/which/index.js";
 import { evalSyncDiff } from "../commands/diff-patch/index.js";
 import { evalSyncXan } from "../commands/xan/index.js";
+import { evalSyncDate, evalSyncPrintenv } from "../commands/time-env/index.js";
+import { evalSyncLess } from "../commands/less/index.js";
 import { defaultMkdirExecutors, defaultRmExecutors } from "../commands/filesystem.js";
 export const customRegisteredCommands = new WeakSet<object>();
 export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
@@ -24005,7 +24007,7 @@ export class Runtime {
     if (isExtended && isFixed) return undefined;
     const branches: string[] = [];
     for (const rp of rawPatterns) {
-      for (const b of (isFixed ? rp.split("\n") : (isExtended ? rp.split("|") : [rp]))) {
+      for (const b of (isFixed ? rp.split("\n") : (isExtended && !rp.includes("(") && !rp.includes("[") ? rp.split("|") : [rp]))) {
         branches.push(b);
       }
     }
@@ -24022,7 +24024,7 @@ export class Runtime {
         const core = c1.endsWith("$") ? c1.slice(0, -1) : c1;
         if (core.length > 0 && /^[a-zA-Z0-9_ :;,/-]+$/.test(core)) {
           compiledBranches.push({ anchorStart, anchorEnd, needle: isCaseInsensitive ? foldCase(core) : core, re: undefined });
-        } else if (isExtended && !isWordRegexp && core.length > 0 && /^[a-zA-Z0-9_ :;,=.+*?^\-[\]]+$/.test(core) && !/\([^)]*[+*][^)]*\)[+*?]/.test(core)) {
+        } else if (isExtended && !isWordRegexp && core.length > 0 && /^[a-zA-Z0-9_ :;,=.+*?^\-[\]()|]+$/.test(core) && !/\([^)]*[+*][^)]*\)[+*?]/.test(core)) {
           try {
             const fullSrc = (anchorStart ? "^" : "") + core + (anchorEnd ? "$" : "");
             compiledBranches.push({ anchorStart, anchorEnd, needle: "", re: new RegExp(fullSrc, isCaseInsensitive ? "i" : "") });
@@ -26884,8 +26886,8 @@ export class Runtime {
       if (cmd0.kind !== "simple" || (cmd0.redirects.length !== 0 && !cmd0StdinRedir && !cmd0HereStringRedir)) return undefined;
       const w0Plain0 = cmd0.words[0]?.plain;
       const cmd0YesStage = !cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "yes" && pipeline.commands[1]?.kind === "simple" && pipeline.commands[1]?.words[0]?.plain === "head";
-      const cmd0SysStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "uname" || w0Plain0 === "id" || w0Plain0 === "whoami" || w0Plain0 === "hostname" || w0Plain0 === "nproc" || w0Plain0 === "getconf" || w0Plain0 === "locale" || w0Plain0 === "cal" || w0Plain0 === "ncal");
-      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan");
+      const cmd0SysStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "uname" || w0Plain0 === "id" || w0Plain0 === "whoami" || w0Plain0 === "hostname" || w0Plain0 === "nproc" || w0Plain0 === "getconf" || w0Plain0 === "locale" || w0Plain0 === "cal" || w0Plain0 === "ncal" || w0Plain0 === "date" || w0Plain0 === "printenv");
+      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep");
       if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0YesStage && !cmd0SysStage && !cmd0HereStringRedir && !cmd0FileStage) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
@@ -26893,7 +26895,7 @@ export class Runtime {
       if (cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 1) return undefined;
       if (!cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
       const def0 = (w0Plain0 === "printf" || w0Plain0 === "echo" || w0Plain0 === "cat") ? this.commands.get(w0Plain0) : this.getExternalCommand(w0Plain0);
-      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || w0Plain0 === "seq" || cmd0YesStage || cmd0SysStage || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && w0Plain0 !== "fmt" && w0Plain0 !== "md5sum" && w0Plain0 !== "sha1sum" && w0Plain0 !== "sha224sum" && w0Plain0 !== "sha256sum" && w0Plain0 !== "sha384sum" && w0Plain0 !== "sha512sum" && w0Plain0 !== "cksum" && w0Plain0 !== "base32" && w0Plain0 !== "csvcut" && w0Plain0 !== "csvgrep" && w0Plain0 !== "dos2unix" && w0Plain0 !== "unix2dos" && w0Plain0 !== "iconv" && w0Plain0 !== "htmlq" && w0Plain0 !== "xmllint" && w0Plain0 !== "xq" && w0Plain0 !== "yq" && w0Plain0 !== "mdq" && w0Plain0 !== "shuf" && w0Plain0 !== "html-to-markdown" && w0Plain0 !== "unrtf" && w0Plain0 !== "pr" && w0Plain0 !== "file" && w0Plain0 !== "diff3" && w0Plain0 !== "cmp" && w0Plain0 !== "which" && w0Plain0 !== "diff" && w0Plain0 !== "xan" && w0Plain0 !== "yes" && w0Plain0 !== "cal" && w0Plain0 !== "ncal" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
+      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || w0Plain0 === "seq" || cmd0YesStage || cmd0SysStage || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && w0Plain0 !== "fmt" && w0Plain0 !== "md5sum" && w0Plain0 !== "sha1sum" && w0Plain0 !== "sha224sum" && w0Plain0 !== "sha256sum" && w0Plain0 !== "sha384sum" && w0Plain0 !== "sha512sum" && w0Plain0 !== "cksum" && w0Plain0 !== "base32" && w0Plain0 !== "csvcut" && w0Plain0 !== "csvgrep" && w0Plain0 !== "dos2unix" && w0Plain0 !== "unix2dos" && w0Plain0 !== "iconv" && w0Plain0 !== "htmlq" && w0Plain0 !== "xmllint" && w0Plain0 !== "xq" && w0Plain0 !== "yq" && w0Plain0 !== "mdq" && w0Plain0 !== "shuf" && w0Plain0 !== "html-to-markdown" && w0Plain0 !== "unrtf" && w0Plain0 !== "pr" && w0Plain0 !== "file" && w0Plain0 !== "diff3" && w0Plain0 !== "cmp" && w0Plain0 !== "which" && w0Plain0 !== "diff" && w0Plain0 !== "xan" && w0Plain0 !== "less" && w0Plain0 !== "more" && w0Plain0 !== "date" && w0Plain0 !== "printenv" && w0Plain0 !== "egrep" && w0Plain0 !== "fgrep" && w0Plain0 !== "yes" && w0Plain0 !== "cal" && w0Plain0 !== "ncal" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
       const n = pipeline.commands.length;
       const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
@@ -26906,7 +26908,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "xxd" && sName !== "od" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "hexdump" && sName !== "hd" && sName !== "fmt" && sName !== "md5sum" && sName !== "sha1sum" && sName !== "sha224sum" && sName !== "sha256sum" && sName !== "sha384sum" && sName !== "sha512sum" && sName !== "cksum" && sName !== "base32" && sName !== "csvcut" && sName !== "csvgrep" && sName !== "dos2unix" && sName !== "unix2dos" && sName !== "iconv" && sName !== "htmlq" && sName !== "xmllint" && sName !== "xq" && sName !== "yq" && sName !== "mdq" && sName !== "shuf" && sName !== "html-to-markdown" && sName !== "unrtf" && sName !== "pr" && sName !== "file" && sName !== "diff3" && sName !== "cmp" && sName !== "which" && sName !== "diff" && sName !== "xan" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "xxd" && sName !== "od" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "hexdump" && sName !== "hd" && sName !== "fmt" && sName !== "md5sum" && sName !== "sha1sum" && sName !== "sha224sum" && sName !== "sha256sum" && sName !== "sha384sum" && sName !== "sha512sum" && sName !== "cksum" && sName !== "base32" && sName !== "csvcut" && sName !== "csvgrep" && sName !== "dos2unix" && sName !== "unix2dos" && sName !== "iconv" && sName !== "htmlq" && sName !== "xmllint" && sName !== "xq" && sName !== "yq" && sName !== "mdq" && sName !== "shuf" && sName !== "html-to-markdown" && sName !== "unrtf" && sName !== "pr" && sName !== "file" && sName !== "diff3" && sName !== "cmp" && sName !== "which" && sName !== "diff" && sName !== "xan" && sName !== "less" && sName !== "more" && sName !== "egrep" && sName !== "fgrep" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -26943,8 +26945,11 @@ export class Runtime {
           if (sArgs.length !== 0) return undefined;
         } else if (sName === "awk") {
           if (this.evalSyncAwk([], sArgs) === undefined) return undefined;
-        } else if (sName === "grep") {
-          if (this.evalSyncGrep([], sArgs, Boolean(rawState.errexit)) === undefined) return undefined;
+        } else if (sName === "grep" || sName === "egrep" || sName === "fgrep") {
+          if (sName === "egrep") sArgs.unshift("-E");
+          else if (sName === "fgrep") sArgs.unshift("-F");
+          const checkArgs = (i === 0 && cmd0FileStage) ? sArgs.slice(0, -1) : sArgs;
+          if ((i === 0 && cmd0FileStage && (sArgs.length < 2 || sArgs[sArgs.length - 1]!.startsWith("-"))) || this.evalSyncGrep([], checkArgs, Boolean(rawState.errexit)) === undefined) return undefined;
         } else if (sName === "jq") {
           if (sArgs.length === 0 || sArgs.length > 2) return undefined;
           if (sArgs.length === 1 && sArgs[0]!.startsWith("-")) return undefined;
@@ -26993,13 +26998,13 @@ export class Runtime {
           if (evalSyncChecksum(sName, EMPTY_BYTES, sArgs) === undefined) return undefined;
         } else if (sName === "base32") {
           if (evalSyncBase32(EMPTY_BYTES, sArgs) === undefined) return undefined;
-        } else if (sName === "csvcut" || sName === "csvgrep" || sName === "dos2unix" || sName === "unix2dos" || sName === "iconv" || sName === "htmlq" || sName === "xmllint" || sName === "xq" || sName === "yq" || sName === "mdq" || sName === "shuf" || sName === "html-to-markdown" || sName === "unrtf" || sName === "pr" || sName === "file" || sName === "diff3" || sName === "cmp" || sName === "which" || sName === "diff" || sName === "xan") {
+        } else if (sName === "csvcut" || sName === "csvgrep" || sName === "dos2unix" || sName === "unix2dos" || sName === "iconv" || sName === "htmlq" || sName === "xmllint" || sName === "xq" || sName === "yq" || sName === "mdq" || sName === "shuf" || sName === "html-to-markdown" || sName === "unrtf" || sName === "pr" || sName === "file" || sName === "diff3" || sName === "cmp" || sName === "which" || sName === "diff" || sName === "xan" || sName === "less" || sName === "more") {
           // Validated on stage bytes in loop
         } else {
           return undefined;
         }
         stageDefs.push(extDef);
-        stageNames.push(sName);
+        stageNames.push(sName === "egrep" || sName === "fgrep" ? "grep" : sName);
         stageArgsList.push(sArgs);
       }
       const subArgs0: string[] = [];
@@ -27032,8 +27037,14 @@ export class Runtime {
           }
         }
       } else if (cmd0SysStage) {
-        const sys0 = this.evalSyncSysinfo(w0Plain0, subArgs0, rawState);
-        if (sys0 !== undefined) stage0Formatted = sys0 + "\n";
+        if (w0Plain0 === "date") {
+          stage0Formatted = evalSyncDate(subArgs0, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, def0.execute);
+        } else if (w0Plain0 === "printenv") {
+          stage0Formatted = evalSyncPrintenv(subArgs0, rawState.exported, rawState.variables, def0.execute);
+        } else {
+          const sys0 = this.evalSyncSysinfo(w0Plain0, subArgs0, rawState);
+          if (sys0 !== undefined) stage0Formatted = sys0 + "\n";
+        }
       } else if (cmd0FileStage) {
         stage0Formatted = "";
       } else if (cmd0HereStringRedir) {
@@ -27158,6 +27169,11 @@ export class Runtime {
             firstName === "file" ||
             firstName === "diff3" ||
             firstName === "cmp" ||
+            firstName === "which" ||
+            firstName === "diff" ||
+            firstName === "xan" ||
+            firstName === "less" ||
+            firstName === "more" ||
             isInlineBase64 ||
             isInlineTac ||
             isInlineNl ||
@@ -27247,7 +27263,17 @@ export class Runtime {
               if (awkRes === undefined) return undefined;
               outLines = awkRes;
             } else if (isInlineGrep) {
-              const grepRes = this.evalSyncGrep(rawLines, stageArgs, Boolean(rawState.errexit));
+              let gLines = rawLines;
+              let gArgs = stageArgs;
+              if (sIdx === 0 && cmd0FileStage) {
+                const fPath = stageArgs[stageArgs.length - 1]!;
+                const fView = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPath));
+                if (!fView || fView.byteLength > 16384 || fView.includes(0)) return undefined;
+                const fStr = sharedSyncPipeDecoder.decode(fView);
+                gLines = fStr.endsWith("\n") ? fStr.slice(0, -1).split("\n") : (fStr.length === 0 ? [] : fStr.split("\n"));
+                gArgs = stageArgs.slice(0, -1);
+              }
+              const grepRes = this.evalSyncGrep(gLines, gArgs, Boolean(rawState.errexit));
               if (grepRes === undefined) return undefined;
               stageStatus = grepRes.status;
               if (stageStatus !== 0) failureStatus = stageStatus;
@@ -27360,7 +27386,7 @@ export class Runtime {
               prevBuf = nextBuf;
               prevLen = encoded.byteLength;
               continue;
-            } else if (firstName === "envsubst" || firstName === "xxd" || firstName === "od" || firstName === "hexdump" || firstName === "hd" || firstName === "fmt" || firstName === "csvcut" || firstName === "csvgrep" || firstName === "htmlq" || firstName === "xmllint" || firstName === "xq" || firstName === "yq" || firstName === "mdq" || firstName === "shuf" || firstName === "html-to-markdown" || firstName === "unrtf" || firstName === "pr" || firstName === "file" || firstName === "diff3" || firstName === "cmp" || firstName === "which" || firstName === "diff" || firstName === "xan") {
+            } else if (firstName === "envsubst" || firstName === "xxd" || firstName === "od" || firstName === "hexdump" || firstName === "hd" || firstName === "fmt" || firstName === "csvcut" || firstName === "csvgrep" || firstName === "htmlq" || firstName === "xmllint" || firstName === "xq" || firstName === "yq" || firstName === "mdq" || firstName === "shuf" || firstName === "html-to-markdown" || firstName === "unrtf" || firstName === "pr" || firstName === "file" || firstName === "diff3" || firstName === "cmp" || firstName === "which" || firstName === "diff" || firstName === "xan" || firstName === "less" || firstName === "more") {
               const rawBytes = prevBuf.subarray(0, prevLen);
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const outStr = firstName === "envsubst"
@@ -27389,6 +27415,8 @@ export class Runtime {
                     ? evalSyncDiff(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "xan"
                     ? evalSyncXan(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                  : (firstName === "less" || firstName === "more")
+                    ? evalSyncLess(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : (firstName === "xq" || firstName === "yq")
                     ? this.evalSyncXqOrYq(firstName, rawBytes, stageArgs, readFile)
                   : firstName === "xmllint"
@@ -27561,14 +27589,16 @@ export class Runtime {
       w0Plain === "jq" ||
       w0Plain === "awk" ||
       w0Plain === "grep" ||
+      w0Plain === "egrep" ||
+      w0Plain === "fgrep" ||
       w0Plain === "sed" ||
       w0Plain === "cut" ||
       w0Plain === "wc" ||
       w0Plain === "sort" ||
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
-      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "getconf" || w0Plain === "locale" || w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "getopt" || w0Plain === "dos2unix" || w0Plain === "unix2dos" || w0Plain === "iconv" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "pr" || w0Plain === "pathchk" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "which" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "cal" || w0Plain === "ncal" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32";
-    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "getconf" || w0Plain === "locale" || w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "getopt" || w0Plain === "dos2unix" || w0Plain === "unix2dos" || w0Plain === "iconv" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "pr" || w0Plain === "pathchk" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "which" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "cal" || w0Plain === "ncal" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32") && Boolean(this.getExternalCommand(w0Plain))))) {
+      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "getconf" || w0Plain === "locale" || w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "getopt" || w0Plain === "dos2unix" || w0Plain === "unix2dos" || w0Plain === "iconv" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "pr" || w0Plain === "pathchk" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "which" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "less" || w0Plain === "more" || w0Plain === "date" || w0Plain === "printenv" || w0Plain === "egrep" || w0Plain === "fgrep" || w0Plain === "cal" || w0Plain === "ncal" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32";
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "getconf" || w0Plain === "locale" || w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "getopt" || w0Plain === "dos2unix" || w0Plain === "unix2dos" || w0Plain === "iconv" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "pr" || w0Plain === "pathchk" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "which" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "less" || w0Plain === "more" || w0Plain === "date" || w0Plain === "printenv" || w0Plain === "egrep" || w0Plain === "fgrep" || w0Plain === "cal" || w0Plain === "ncal" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {
@@ -27652,6 +27682,26 @@ export class Runtime {
           return pOut;
         }
       }
+      if (fOk && (w0Plain === "date" || w0Plain === "printenv") && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
+        const ext = this.getExternalCommand(w0Plain);
+        const dpOut = w0Plain === "date"
+          ? evalSyncDate(allArgs, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, ext?.execute)
+          : evalSyncPrintenv(allArgs, rawState.exported, rawState.variables, ext?.execute);
+        if (dpOut !== undefined) {
+          let res = dpOut;
+          const outBytes = shellValueByteLength(res);
+          let end = res.length;
+          while (end > 0 && res.charCodeAt(end - 1) === 10) end--;
+          if (end < res.length) res = res.slice(0, end);
+          const nextTotalBytes = this.budget.bytes + outBytes;
+          if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+          this.budget.bytes = nextTotalBytes;
+          this.budget.tick();
+          rawState.substitutionStatus = 0;
+          rawState.status = 0;
+          return res;
+        }
+      }
       if (fOk && w0Plain === "which" && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
         const wOut = evalSyncWhich(allArgs, rawState.cwd, typeof rawState.variables.PATH === "string" ? rawState.variables.PATH : undefined, (p: string) => this.tryCheckMemoryExecutableFileSync(p, true));
         if (wOut !== undefined) {
@@ -27669,7 +27719,7 @@ export class Runtime {
           return res;
         }
       }
-      if (fOk && (w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "pr" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "diff" || w0Plain === "xan") && !hasSingleStdinRedir && (hasSingleHereStringRedir || w0Plain === "shuf" || allArgs.some(a => a !== "-" && !a.startsWith("-")))) {
+      if (fOk && (w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "pr" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "less" || w0Plain === "more") && !hasSingleStdinRedir && (hasSingleHereStringRedir || w0Plain === "shuf" || allArgs.some(a => a !== "-" && !a.startsWith("-")))) {
         const inBytes = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : EMPTY_BYTES;
         const optInBytes = hasSingleHereStringRedir ? inBytes : undefined;
         const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
@@ -27697,6 +27747,8 @@ export class Runtime {
               ? evalSyncDiff(optInBytes, allArgs, readFile)
             : w0Plain === "xan"
               ? evalSyncXan(optInBytes, allArgs, readFile)
+            : (w0Plain === "less" || w0Plain === "more")
+              ? evalSyncLess(optInBytes, allArgs, readFile)
             : (w0Plain === "xq" || w0Plain === "yq")
               ? this.evalSyncXqOrYq(w0Plain, inBytes, allArgs, readFile)
             : w0Plain === "xmllint"
@@ -27825,8 +27877,9 @@ export class Runtime {
             } else if (w0Plain === "awk") {
               const awkRes = this.evalSyncAwk(rawLines, opArgs);
               if (awkRes !== undefined) fileRes = renderLines(awkRes);
-            } else if (w0Plain === "grep") {
-              const grepRes = this.evalSyncGrep(rawLines, opArgs, Boolean(rawState.errexit));
+            } else if (w0Plain === "grep" || w0Plain === "egrep" || w0Plain === "fgrep") {
+              const grepArgs = w0Plain === "grep" ? opArgs : [w0Plain === "egrep" ? "-E" : "-F", ...opArgs];
+              const grepRes = this.evalSyncGrep(rawLines, grepArgs, Boolean(rawState.errexit));
               if (grepRes !== undefined) {
                 exitStatus = grepRes.status;
                 fileRes = renderLines(grepRes.lines);
@@ -27947,6 +28000,9 @@ export class Runtime {
             } else if (w0Plain === "xan") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncXan(view, opArgs, readFile);
+            } else if (w0Plain === "less" || w0Plain === "more") {
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              fileRes = evalSyncLess(view, opArgs, readFile);
             } else if (w0Plain === "envsubst" && hasSingleHereStringRedir) {
               fileRes = this.evalSyncEnvsubst(fileStr, opArgs, rawState);
             } else if (hasSingleHereStringRedir && w0Plain === "column") {

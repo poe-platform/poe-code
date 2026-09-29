@@ -19,3 +19,6 @@ export function timeEnvCommands(options: TimeEnvCommandsOptions = {}): VirtualSh
     for (const definition of commands) host.commands.register(definition, { replace: options.replace ?? false });
   } };
 }
+
+export { evalSyncDate } from "./date.js";
+export { evalSyncPrintenv } from "./printenv.js";

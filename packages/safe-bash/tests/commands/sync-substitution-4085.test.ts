@@ -16,6 +16,9 @@ import { createDiff3Commands } from "../../src/commands/diff3/index.js";
 import { createWhichCommands } from "../../src/commands/which/index.js";
 import { createDiffPatchCommands } from "../../src/commands/diff-patch/index.js";
 import { createXanCommands } from "../../src/commands/xan/index.js";
+import { createTimeEnvCommands } from "../../src/commands/time-env/index.js";
+import { createLessCommands } from "../../src/commands/less/index.js";
+import { createGrepAliasCommands } from "../../src/commands/grep-aliases/index.js";
 
 const parityXml = new TextEncoder().encode('<config><server id="main"><host>local&#13;host</host><?pi target="1"?><?empty?></server><server id="backup"><host>replica</host></server></config>');
 
@@ -611,4 +614,46 @@ test("sync substitution fast path covers which, diff, and xan (Wave 136)", async
   `);
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "2:id,name,score,:80\n");
+});
+
+test("sync substitution fast path covers date, printenv, less, more, egrep, and fgrep (Wave 137)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/notes.txt", new TextEncoder().encode("one\n\n\ntwo\nthree\n"));
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createTimeEnvCommands({ clock: () => 1700000000000 }),
+    ...createLessCommands(),
+    ...createGrepAliasCommands(),
+  ]);
+  const shell = new Shell({ fs, commands, env: { APP_MODE: "prod" } });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(date -u +%Y-%m-%d):$(printenv APP_MODE):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "2023-11-14:prod:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(less -s /notes.txt | tr "\n" ","):$(cat /notes.txt | more +4):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "one,,two,three,:two\nthree:80\n");
+
+  const r3 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(egrep "^t(wo|hree)$" /notes.txt | tr "\n" ","):$(fgrep "one" /notes.txt):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "two,three,:one:80\n");
 });

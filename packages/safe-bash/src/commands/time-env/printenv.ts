@@ -1,4 +1,4 @@
-import { checkSize, command, CommandFailure, emit, ownEnvironment, type Settings } from "./shared.js";
+import { checkSize, command, CommandFailure, emit, ownEnvironment, timeEnvExecutorSettings, type Settings } from "./shared.js";
 
 export function createPrintenvCommand(configuration: Settings) {
   return command("printenv", configuration, async context => {
@@ -46,4 +46,41 @@ export function createPrintenvCommand(configuration: Settings) {
     await emit(context, lines.join(""), configuration.limits);
     return missing ? 1 : 0;
   });
+}
+
+export function evalSyncPrintenv(
+  args: readonly string[],
+  exportedNames: ReadonlySet<string>,
+  variables: Readonly<Record<string, string | undefined>>,
+  execFn?: unknown,
+): string | undefined {
+  const cfg = execFn ? timeEnvExecutorSettings.get(execFn as never) : undefined;
+  if (execFn && !cfg) return undefined;
+  let offset = 0;
+  for (; offset < args.length; offset++) {
+    const arg = args[offset]!;
+    if (arg === "--") {
+      offset++;
+      break;
+    }
+    if (arg.startsWith("-")) return undefined;
+    break;
+  }
+  const names = args.slice(offset);
+  const out: string[] = [];
+  if (names.length > 0) {
+    for (let i = 0; i < names.length; i++) {
+      const name = names[i]!;
+      if (name.includes("=") || !exportedNames.has(name)) return undefined;
+      const val = variables[name];
+      if (typeof val !== "string") return undefined;
+      out.push(val);
+    }
+  } else {
+    for (const name of exportedNames) {
+      const val = variables[name];
+      if (typeof val === "string") out.push(`${name}=${val}`);
+    }
+  }
+  return out.length === 0 ? "" : `${out.join("\n")}\n`;
 }

@@ -282,3 +282,102 @@ export function lessCommands(options: LessCommandsOptions = {}): VirtualShellPlu
 }
 
 export const pagerCommands = lessCommands;
+
+const syncLessDecoder = new TextDecoder("utf-8", { fatal: false });
+const SYNC_LESS_SIMPLE_FLAGS = new Set(["N", "s", "F", "R", "X", "S", "i", "I", "q", "Q", "e", "E", "m", "M", "w", "W", "c", "d", "f", "u", "n", "G", "g", "J", "K", "L", "r", "U", "V"]);
+
+export function evalSyncLess(
+  stdinBytes: Uint8Array | undefined,
+  args: readonly string[],
+  readFile?: (path: string) => Uint8Array | undefined,
+): string | undefined {
+  let lineNumbers = false;
+  let squeezeBlank = false;
+  let startLine = 1;
+  let startSearch: string | undefined;
+  const files: string[] = [];
+  let parsingFlags = true;
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    if (parsingFlags && arg === "--") {
+      parsingFlags = false;
+      continue;
+    }
+    if (parsingFlags && arg.startsWith("+")) {
+      const rest = arg.slice(1);
+      if (rest.startsWith("/")) {
+        startSearch = rest.slice(1);
+      } else if (/^\d+$/u.test(rest)) {
+        startLine = Math.max(1, Number.parseInt(rest, 10));
+      } else {
+        return undefined;
+      }
+      continue;
+    }
+    if (parsingFlags && arg.startsWith("--")) {
+      if (arg === "--LINE-NUMBERS" || arg === "--line-numbers") lineNumbers = true;
+      else if (arg === "--squeeze-blank-lines") squeezeBlank = true;
+      else if (arg === "--quit-if-one-screen" || arg === "--raw-control-chars" || arg === "--RAW-CONTROL-CHARS" || arg === "--no-init" || arg === "--chop-long-lines" || arg === "--ignore-case") {
+        // pass-through
+      } else {
+        return undefined;
+      }
+      continue;
+    }
+    if (parsingFlags && arg.startsWith("-") && arg !== "-") {
+      for (let j = 1; j < arg.length; j++) {
+        const ch = arg[j]!;
+        if (!SYNC_LESS_SIMPLE_FLAGS.has(ch) || ch === "V") return undefined;
+        if (ch === "N") lineNumbers = true;
+        else if (ch === "s") squeezeBlank = true;
+      }
+      continue;
+    }
+    files.push(arg);
+  }
+
+  const chunks: string[] = [];
+  if (files.length === 0) {
+    if (!stdinBytes) return undefined;
+    chunks.push(syncLessDecoder.decode(stdinBytes));
+  } else {
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i]!;
+      const b = f === "-" ? stdinBytes : (readFile ? readFile(f) : undefined);
+      if (!b) return undefined;
+      chunks.push(syncLessDecoder.decode(b));
+    }
+  }
+  const combined = chunks.join("");
+  if (!combined) return "";
+  if (!lineNumbers && !squeezeBlank && startLine === 1 && !startSearch) {
+    return combined;
+  }
+  const hasTrailingNewline = combined.endsWith("\n");
+  const rawLines = combined.split("\n");
+  if (hasTrailingNewline) rawLines.pop();
+  let startIdx = Math.max(0, startLine - 1);
+  if (startSearch) {
+    let found = -1;
+    for (let idx = 0; idx < rawLines.length; idx++) {
+      if (rawLines[idx]!.includes(startSearch)) {
+        found = idx;
+        break;
+      }
+    }
+    if (found >= 0) startIdx = found;
+  }
+  let out = "";
+  let prevBlank = false;
+  for (let idx = startIdx; idx < rawLines.length; idx++) {
+    const line = rawLines[idx]!;
+    const isBlank = line.length === 0;
+    if (squeezeBlank && isBlank && prevBlank) continue;
+    prevBlank = isBlank;
+    const prefix = lineNumbers ? `${String(idx + 1).padStart(6, " ")}  ` : "";
+    const isLast = idx === rawLines.length - 1;
+    out += prefix + line + (!isLast || hasTrailingNewline ? "\n" : "");
+  }
+  return out;
+}

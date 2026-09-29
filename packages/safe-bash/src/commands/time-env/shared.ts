@@ -73,9 +73,11 @@ export async function emit(context: CommandContext, value: string, limits: TimeE
   }
 }
 
+export const timeEnvExecutorSettings = new WeakMap<CommandDefinition["execute"], Settings>();
+
 export function command(name: string, configuration: Settings,
   execute: (context: CommandContext) => Promise<number>): CommandDefinition {
-  return { name, async execute(context) {
+  const def: CommandDefinition = { name, async execute(context) {
     context.signal.throwIfAborted();
     checkSize(context.args.length, configuration.limits.maxArguments, "argument count");
     let size = 0;
@@ -91,6 +93,8 @@ export function command(name: string, configuration: Settings,
       return { exitCode: error.exitCode };
     }
   } };
+  timeEnvExecutorSettings.set(def.execute, configuration);
+  return def;
 }
 
 export function ownEnvironment(context: CommandContext, name: string): string | undefined {

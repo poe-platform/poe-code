@@ -3,7 +3,7 @@ import { input as fileInput, lines, pathOf } from "../internal.js";
 import { writeDiagnostic } from "../../escaping.js";
 import { TimeZone, millisecondsInstant, parseDate } from "./calendar.js";
 import { formatDate } from "./format.js";
-import { checkSize, command, CommandFailure, emit, ownEnvironment, type Settings } from "./shared.js";
+import { checkSize, command, CommandFailure, emit, ownEnvironment, timeEnvExecutorSettings, type Settings, type TimeEnvLimits } from "./shared.js";
 
 interface DateArguments {
   readonly input?: string;
@@ -151,4 +151,44 @@ export function createDateCommand(configuration: Settings) {
     await emit(context, formatDate(parsed.format, instant, zone, configuration.limits), configuration.limits);
     return 0;
   });
+}
+
+const DEFAULT_SYNC_DATE_LIMITS: TimeEnvLimits = Object.freeze({
+  maxArguments: Infinity,
+  maxArgumentBytes: Infinity,
+  maxOutputBytes: Infinity,
+  maxEnvironmentEntries: Infinity,
+  maxFormatWidth: Infinity,
+});
+
+export function evalSyncDate(
+  args: readonly string[],
+  tzEnv: string | undefined,
+  execFn?: unknown,
+): string | undefined {
+  const cfg = execFn ? timeEnvExecutorSettings.get(execFn as never) : undefined;
+  if (execFn && !cfg) return undefined;
+  const limits = cfg?.limits ?? DEFAULT_SYNC_DATE_LIMITS;
+  if (args.length > limits.maxArguments) return undefined;
+  let argBytes = 0;
+  for (let i = 0; i < args.length; i++) {
+    argBytes += Buffer.byteLength(args[i]!);
+    if (argBytes > limits.maxArgumentBytes) return undefined;
+  }
+  try {
+    const parsed = parseArguments(args);
+    if (parsed.informational || parsed.file !== undefined || parsed.reference !== undefined) {
+      return undefined;
+    }
+    const zone = new TimeZone(parsed.utc ? "UTC" : tzEnv ?? cfg?.defaultTimeZone ?? "UTC");
+    const clock = cfg?.clock ?? Date.now;
+    let current: bigint | undefined;
+    const now = (): bigint => (current ??= millisecondsInstant(clock()));
+    const instant = parsed.input === undefined ? now() : parseDate(parsed.input, zone, now);
+    const out = formatDate(parsed.format, instant, zone, limits);
+    if (Buffer.byteLength(out) > limits.maxOutputBytes) return undefined;
+    return out;
+  } catch {
+    return undefined;
+  }
 }

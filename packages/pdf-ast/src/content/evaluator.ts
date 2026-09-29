@@ -861,6 +861,8 @@ function renderShadingDictToImage(
   const [a, b, c, d, e, f] = effectiveCtm;
   const det = a * d - b * c;
   if (Math.abs(det) <= 1e-8) return undefined;
+  const [sa, sb, sc, sd, se, sf] = shadingCtm;
+  const shadingDet = sa * sd - sb * sc;
 
   const t0Dom = shDomain[0] ?? 0;
   const t1Dom = shDomain[1] ?? 1;
@@ -874,8 +876,12 @@ function renderShadingDictToImage(
       const xs = (d * dxPdf - c * dyPdf) / det;
       const ys = (-b * dxPdf + a * dyPdf) / det;
 
-      if (shBBox && (xs < shBBox[0]! || xs > shBBox[2]! || ys < shBBox[1]! || ys > shBBox[3]!)) {
-        continue;
+      if (shBBox) {
+        // PDF.js keeps BBox in shading space, before a Type 1 function's
+        // Matrix maps its domain into that space.
+        const bboxX = (sd * (xPdf - se) - sc * (yPdf - sf)) / shadingDet;
+        const bboxY = (-sb * (xPdf - se) + sa * (yPdf - sf)) / shadingDet;
+        if (bboxX < shBBox[0]! || bboxX > shBBox[2]! || bboxY < shBBox[1]! || bboxY > shBBox[3]!) continue;
       }
 
       let comps: number[] | undefined;

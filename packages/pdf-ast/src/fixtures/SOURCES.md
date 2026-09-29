@@ -296,3 +296,9 @@ patch control points, reuse flags 1–3, and a color function. SHA-256:
 `91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). It covers curved
 patch control points, reuse flags 1–3, and a color function. SHA-256:
 `d0167f51046dc315aeb6be6c48ae874c776f532cbc1b8f4d64efd6ad1215f480`.
+
+`pdfjs-function_based_shading.pdf` is the unchanged PDF.js equality fixture
+`test/pdfs/function_based_shading.pdf` at revision
+`91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). Its fourth panel
+combines a function Matrix with a BBox in shading coordinates. SHA-256:
+`21a0d4951f2d45f86d90dd9bac824805b54b2bd2fefe6efad763d227d484ed64`.

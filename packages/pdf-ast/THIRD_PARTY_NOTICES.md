@@ -485,3 +485,9 @@ The decoding and geometry algorithms are unchanged. The local rasterizer
 paints the resulting RGB triangles. `src/render/mesh-shading.test.ts` ports
 the unchanged upstream equality fixtures `issue4227` and `issue6305-part-1`,
 with independently rendered reference pixels recorded in the tests.
+
+Function-shading BBox coordinates follow PDF.js `FunctionBasedShading` in
+`src/core/pattern.js`, keeping the BBox separate from the function-domain
+Matrix. The local evaluator transforms page pixels back into shading space
+for clipping. `src/render/shading-bbox.test.ts` covers translated, rotated,
+and sheared page transforms and the unchanged upstream equality fixture.

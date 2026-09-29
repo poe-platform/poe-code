@@ -1,0 +1,315 @@
+%PDF-1.4
+%‚„œ”
+14 0 obj
+<<
+  /FunctionType 4
+  /Domain [0 1 0 1]
+  /Range [0 1]
+  /Length 7
+>>
+stream
+{ pop }
+endstream
+endobj
+
+15 0 obj
+<<
+  /FunctionType 4
+  /Domain [0 1 0 1]
+  /Range [0 1]
+  /Length 13
+>>
+stream
+{ add 2 div }
+endstream
+endobj
+
+16 0 obj
+<<
+  /FunctionType 4
+  /Domain [0 1 0 1]
+  /Range [0 1 0 1 0 1]
+  /Length 5
+>>
+stream
+{ 0 }
+endstream
+endobj
+
+17 0 obj
+<<
+  /FunctionType 4
+  /Domain [0 1 0 1]
+  /Range [0 1]
+  /Length 65
+>>
+stream
+{ 0.5 sub exch 0.5 sub dup mul exch dup mul add sqrt 2 sqrt mul }
+endstream
+endobj
+
+18 0 obj
+<<
+  /FunctionType 4
+  /Domain [0 100 0 100]
+  /Range [0 1]
+  /Length 15
+>>
+stream
+{ pop 100 div }
+endstream
+endobj
+
+19 0 obj
+<<
+  /FunctionType 4
+  /Domain [0 1 0 1]
+  /Range [0 1 0 1 0 1]
+  /Length 14
+>>
+stream
+{ 2 copy mul }
+endstream
+endobj
+
+20 0 obj
+<<
+  /FunctionType 4
+  /Domain [0 1 0 1]
+  /Range [0 1]
+  /Length 42
+>>
+stream
+{ 4 mul floor exch 4 mul floor add 2 mod }
+endstream
+endobj
+
+21 0 obj
+<<
+  /FunctionType 4
+  /Domain [0 1 0 1]
+  /Range [0 1]
+  /Length 58
+>>
+stream
+{ dup mul exch dup mul add sqrt 1440 mul sin 1 add 2 div }
+endstream
+endobj
+
+22 0 obj
+<<
+  /FunctionType 4
+  /Domain [0 1 0 1]
+  /Range [0 1 0 1 0 1]
+  /Length 101
+>>
+stream
+{ 2 copy add 90 mul sin dup mul 3 1 roll 180 mul sin dup mul exch 180 mul sin dup mul 3 1 roll exch }
+endstream
+endobj
+
+5 0 obj
+<<
+  /ShadingType 1
+  /ColorSpace /DeviceGray
+  /Domain [0 1 0 1]
+  /Matrix [170 0 0 170 30 582]
+  /Function 14 0 R
+>>
+endobj
+
+6 0 obj
+<<
+  /ShadingType 1
+  /ColorSpace /DeviceGray
+  /Domain [0 1 0 1]
+  /Matrix [170 0 0 170 230 582]
+  /Function 15 0 R
+>>
+endobj
+
+7 0 obj
+<<
+  /ShadingType 1
+  /ColorSpace /DeviceRGB
+  /Domain [0 1 0 1]
+  /Matrix [170 0 0 170 430 582]
+  /Function 16 0 R
+>>
+endobj
+
+8 0 obj
+<<
+  /ShadingType 1
+  /ColorSpace /DeviceGray
+  /Domain [0 1 0 1]
+  /Matrix [170 0 0 170 30 382]
+  /BBox [30 382 200 552]
+  /Function 17 0 R
+>>
+endobj
+
+9 0 obj
+<<
+  /ShadingType 1
+  /ColorSpace /DeviceGray
+  /Domain [0 100 0 100]
+  /Matrix [1.7 0 0 1.7 230 382]
+  /Function 18 0 R
+>>
+endobj
+
+10 0 obj
+<<
+  /ShadingType 1
+  /ColorSpace /DeviceRGB
+  /Domain [0 1 0 1]
+  /Matrix [85 85 -85 85 515 382]
+  /Function 19 0 R
+>>
+endobj
+
+11 0 obj
+<<
+  /ShadingType 1
+  /ColorSpace /DeviceGray
+  /Domain [0 1 0 1]
+  /Matrix [170 0 0 170 30 182]
+  /Function 20 0 R
+>>
+endobj
+
+12 0 obj
+<<
+  /ShadingType 1
+  /ColorSpace /DeviceGray
+  /Domain [0 1 0 1]
+  /Matrix [170 0 0 170 230 182]
+  /Function 21 0 R
+>>
+endobj
+
+13 0 obj
+<<
+  /ShadingType 1
+  /ColorSpace /DeviceRGB
+  /Domain [0 1 0 1]
+  /Matrix [170 0 0 170 430 182]
+  /Function 22 0 R
+>>
+endobj
+
+4 0 obj
+<<
+  /Length 312
+>>
+stream
+q
+30 582 170 170 re W n
+/SH1 sh
+Q
+q
+230 582 170 170 re W n
+/SH2 sh
+Q
+q
+430 582 170 170 re W n
+/SH3 sh
+Q
+q
+30 382 170 170 re W n
+/SH4 sh
+Q
+q
+230 382 170 170 re W n
+/SH5 sh
+Q
+q
+430 382 170 170 re W n
+/SH6 sh
+Q
+q
+30 182 170 170 re W n
+/SH7 sh
+Q
+q
+230 182 170 170 re W n
+/SH8 sh
+Q
+q
+430 182 170 170 re W n
+/SH9 sh
+Q
+endstream
+endobj
+
+3 0 obj
+<<
+  /Type /Page
+  /Parent 2 0 R
+  /MediaBox [0 0 612 792]
+  /Contents 4 0 R
+  /Resources <<
+    /Shading <<
+    /SH1 5 0 R
+    /SH2 6 0 R
+    /SH3 7 0 R
+    /SH4 8 0 R
+    /SH5 9 0 R
+    /SH6 10 0 R
+    /SH7 11 0 R
+    /SH8 12 0 R
+    /SH9 13 0 R
+    >>
+  >>
+>>
+endobj
+
+2 0 obj
+<<
+  /Type /Pages
+  /Kids [3 0 R]
+  /Count 1
+>>
+endobj
+
+1 0 obj
+<<
+  /Type /Catalog
+  /Pages 2 0 R
+>>
+endobj
+
+xref
+0 23
+0000000000 65535 f 
+0000003285 00000 n 
+0000003221 00000 n 
+0000002942 00000 n 
+0000002577 00000 n 
+0000001325 00000 n 
+0000001460 00000 n 
+0000001596 00000 n 
+0000001731 00000 n 
+0000001891 00000 n 
+0000002031 00000 n 
+0000002168 00000 n 
+0000002304 00000 n 
+0000002441 00000 n 
+0000000015 00000 n 
+0000000128 00000 n 
+0000000248 00000 n 
+0000000367 00000 n 
+0000000539 00000 n 
+0000000665 00000 n 
+0000000794 00000 n 
+0000000943 00000 n 
+0000001108 00000 n 
+trailer
+<<
+  /Size 23
+  /Root 1 0 R
+>>
+startxref
+3339
+%%EOF

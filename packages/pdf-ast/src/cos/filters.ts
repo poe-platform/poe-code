@@ -1,4 +1,4 @@
-import { deflate, Inflate } from "pako";
+import { deflate, Inflate, Z_BUF_ERROR } from "pako";
 import { FlateStream, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
 import { PdfError } from "../errors.js";
@@ -50,24 +50,35 @@ export function decodeFlate(
     inflated = new BoundedFlateStream(bytes, maxDecodedBytes).getBytes();
   } catch (error) {
     if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
-    // Preserve the prior raw-DEFLATE and gzip compatibility through pako, but
-    // stop at a chunk boundary before retaining an unbounded decoded result.
+    // Like pypdf, retain useful output when a wrapped stream ends prematurely.
+    // Keep raw-DEFLATE compatibility and reject malformed data/header errors.
+    const wrapped = (bytes[0] === 0x1f && bytes[1] === 0x8b) ||
+      (bytes.length >= 2 && (bytes[0]! & 15) === 8 && (bytes[0]! >>> 4) <= 7 &&
+        ((bytes[0]! << 8) | bytes[1]!) % 31 === 0);
     const decoder = new Inflate({
-      raw: !(bytes[0] === 0x1f && bytes[1] === 0x8b),
+      raw: !wrapped,
       chunkSize: Math.max(1, Math.min(64 * 1024, maxDecodedBytes + 1)),
     });
+    const chunks: Uint8Array[] = [];
     let length = 0;
     decoder.onData = chunk => {
       length += chunk.length;
       if (length > maxDecodedBytes) {
         throw new PdfError("E_LIMIT", "FlateDecode output exceeds maximum decoded byte budget");
       }
-      decoder.chunks.push(chunk);
+      chunks.push(chunk);
     };
-    if (!decoder.push(bytes, true) || decoder.err || !decoder.ended) {
+    const complete = decoder.push(bytes, true);
+    const truncated = wrapped && decoder.err === Z_BUF_ERROR && length > 0;
+    if ((!complete || decoder.err || !decoder.ended) && !truncated) {
       throw new PdfError("E_CAPABILITY", "Invalid FlateDecode compressed stream");
     }
-    inflated = decoder.result;
+    inflated = new Uint8Array(length);
+    let offset = 0;
+    for (const chunk of chunks) {
+      inflated.set(chunk, offset);
+      offset += chunk.length;
+    }
   }
   return applyPredictor(inflated, parms);
 }

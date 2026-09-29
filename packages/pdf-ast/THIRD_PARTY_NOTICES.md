@@ -223,6 +223,14 @@ additional regressions use the extracted upstream streams listed in
 1996–2003 Glyph & Cog, LLC, Apache-2.0. The upstream Flate implementation is a
 JavaScript port of XPDF's implementation.
 
+`src/cos/pypdf-flate-recovery.test.ts` adapts the printable-byte example from
+pypdf 6.19.0 `tests/test_filters.py::test_decompress`, with truncation results
+checked against `pypdf.filters.decompress`. The bounded pako fallback in
+`src/cos/filters.ts` retains partial zlib/gzip output on incomplete input,
+following pypdf's recovery behavior without its byte-at-a-time decoding loop.
+The original PDF.js issue11549 fixture additionally checks the recovered
+Unicode map against pypdf's decoded bytes. pypdf attribution/license is below.
+
 # PDF standard security handler
 
 `src/vendor/pdfjs-fonts.mjs` also includes `src/core/crypto.js`,

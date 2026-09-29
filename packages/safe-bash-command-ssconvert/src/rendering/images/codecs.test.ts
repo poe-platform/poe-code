@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { decode } from "jpeg-js";
 import { encodeGraphImage, type ImageSurface } from "./codecs.js";
 import type { CapabilityContext } from "../../contracts.js";
@@ -26,6 +26,30 @@ it("JPEG composites transparent pixels onto white and uses genuine JPEG encoding
   const decoded = decode(bytes, { useTArray: true, tolerantDecoding: false });
   expect([decoded.width, decoded.height]).toEqual([98, 48]);
   expect(decoded.data.every(byte => byte === 255)).toBe(true);
+});
+it.each([
+  [[0, 0, 0, 0], [255, 255, 255]],
+  [[255, 0, 0, 255], [255, 0, 0]],
+  [[255, 0, 0, 128], [255, 127, 127]],
+])("encodes JPEG without Node globals for RGBA %j", async (pixel, expected) => {
+  const rgba = new Uint8Array(8 * 8 * 4);
+  for (let offset = 0; offset < rgba.length; offset += 4) rgba.set(pixel, offset);
+  const original = rgba.slice();
+  let bytes: Uint8Array;
+  vi.stubGlobal("Buffer", undefined);
+  vi.stubGlobal("process", undefined);
+  try {
+    bytes = await encodeGraphImage({ width: 8, height: 8, commands: [], raster: { width: 8, height: 8, rgba } }, "jpeg", context);
+  } finally {
+    vi.unstubAllGlobals();
+  }
+  const decoded = decode(bytes, { useTArray: true, tolerantDecoding: false });
+  expect([decoded.width, decoded.height]).toEqual([8, 8]);
+  for (let offset = 0; offset < decoded.data.length; offset += 4) {
+    for (let channel = 0; channel < 3; channel++) expect(Math.abs(decoded.data[offset + channel]! - expected[channel]!)).toBeLessThanOrEqual(2);
+    expect(decoded.data[offset + 3]).toBe(255);
+  }
+  expect(rgba).toEqual(original);
 });
 it.each(["svg", "pdf", "ps", "eps"])("encodes a real %s vector target with point geometry", async format => {
   const text = new TextDecoder().decode(await encodeGraphImage(surface, format, context));
@@ -73,7 +97,7 @@ it.each([[256, 1], [1, 256]])("encodes the ICO 256-axis sentinel for dimensions 
   } }, "ico", context);
   expect([bytes[6], bytes[7]]).toEqual([width === 256 ? 0 : width, height === 256 ? 0 : height]);
 });
-it.each(["bmp", "ico", "tiff"])("admits %s output and raster work budgets before encoding", async format => {
+it.each(["bmp", "ico", "tiff", "jpeg"])("enforces %s output and raster work limits", async format => {
   await expect(encodeGraphImage(surface, format, { ...context, limits: { ...context.limits, outputBytes: 1 } })).rejects.toMatchObject({ code: "resource-limit" });
   await expect(encodeGraphImage(surface, format, { ...context, limits: { ...context.limits, workbookWork: 1 } })).rejects.toMatchObject({ code: "resource-limit" });
 });
@@ -87,10 +111,10 @@ it("preserves vector geometry and text instead of encoding an empty surface", as
   expect(new TextDecoder().decode(await encodeGraphImage(scene, "ps", context))).toContain('A&B \\(test\\)');
   await expect(encodeGraphImage(scene, "png", context)).rejects.toThrow("raster surface");
 });
-it("observes cancellation and rejects excessive raster memory before encoding", async () => {
+it.each(["png", "jpeg"])("observes cancellation and rejects excessive raster memory before %s encoding", async format => {
   const controller = new AbortController(); controller.abort(new Error("cancelled"));
-  await expect(encodeGraphImage(surface, "png", { ...context, signal: controller.signal })).rejects.toThrow("cancelled");
-  await expect(encodeGraphImage(surface, "png", { ...context, limits: { ...context.limits, workbookWork: 1 } })).rejects.toMatchObject({ code: "resource-limit" });
+  await expect(encodeGraphImage(surface, format, { ...context, signal: controller.signal })).rejects.toThrow("cancelled");
+  await expect(encodeGraphImage(surface, format, { ...context, limits: { ...context.limits, workbookWork: 1 } })).rejects.toMatchObject({ code: "resource-limit" });
 });
 it.each(["nul\u0000text", "control\u0001text", "surrogate\ud800text", "noncharacter\ufffetext"])("rejects text that cannot form valid SVG XML: %j", async text => {
   await expect(encodeGraphImage({ width: 10, height: 10, commands: [

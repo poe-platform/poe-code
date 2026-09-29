@@ -62,6 +62,13 @@ function parse(args: readonly string[]) {
   return { directory, dryRun, quiet, useTmpdir, deprecatedTmpdir, tmpdir, template, prefix: template.slice(0, template.length - name.length + start), count: end - start, tail };
 }
 
+const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+function sampleTemplateChars(count: number): string {
+  let out = "";
+  for (let index = 0; index < count; index++) out += alphabet[randomInteger(alphabet.length)];
+  return out;
+}
 
 export function evalSyncMktemp(
   opArgs: readonly string[],
@@ -77,10 +84,8 @@ export function evalSyncMktemp(
     const parent = (parsed.deprecatedTmpdir && env.TMPDIR) || parsed.tmpdir || env.TMPDIR || "/tmp";
     validatePath(parent);
     if (!statTypeSync) return undefined;
-    const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     for (let attempt = 0; attempt < 32; attempt++) {
-      let random = "";
-      for (let i = 0; i < parsed.count; i++) random += alphabet[randomInteger(alphabet.length)];
+      const random = sampleTemplateChars(parsed.count);
       const generated = `${parsed.prefix}${random}${parsed.tail}`;
       const display = parsed.useTmpdir ? `${parent.replace(/\/+$/u, "")}/${generated}` : generated;
       const st = statTypeSync(display);
@@ -110,15 +115,13 @@ export function createMktempCommand(configuration: MetadataCommandsOptions = {})
     const parsed = parse(context.args);
     const parent = (parsed.deprecatedTmpdir && context.env.TMPDIR) || parsed.tmpdir || context.env.TMPDIR || "/tmp";
     validatePath(parent);
-    const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     try {
       if (!parsed.dryRun) {
         if (context.fs.capabilities.readOnly) throw new FsError("EROFS", { syscall: "mktemp" });
       }
       for (let attempt = 0; attempt < configured.limits.maxAttempts; attempt++) {
         await budget.step();
-        let random = "";
-        for (let index = 0; index < parsed.count; index++) random += alphabet[randomInteger(alphabet.length)];
+        const random = sampleTemplateChars(parsed.count);
         const generated = `${parsed.prefix}${random}${parsed.tail}`;
         const display = parsed.useTmpdir ? `${parent.replace(/\/+$/u, "")}/${generated}` : generated;
         const path = pathOf(context, display);

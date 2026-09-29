@@ -179,6 +179,29 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     while (records[index + 1]?.opcode === 0x3c) parts.push(records[++index]!.data);
     return { parts, next: index };
   };
+  const formulaParts = (index: number, offset: number, length: number) => {
+    const first = records[index]!.data;
+    let tokens: Uint8Array;
+    if (offset + length <= first.bytes.length) {
+      tokens = first.slice(offset, length); offset += length;
+    } else {
+      accountFormulaWork(length);
+      tokens = new Uint8Array(length);
+      let written = 0;
+      while (written < length) {
+        context.signal.throwIfAborted();
+        const part = records[index]!.data;
+        const count = Math.min(length - written, part.bytes.length - offset);
+        tokens.set(part.slice(offset, count), written); written += count; offset += count;
+        if (written < length) {
+          if (records[index + 1]?.opcode !== 0x3c) invalidBiff("truncated formula tokens/CONTINUE");
+          index++; offset = 0;
+        }
+      }
+    }
+    const extra = stringParts(index, offset);
+    return { tokens, arrays: extra.parts, next: extra.next };
+  };
   for (let index = 0; index < records.length; index++) {
     context.signal.throwIfAborted();
     const record = records[index]!, data = record.data, opcode = record.opcode;
@@ -339,9 +362,9 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
           "Print_Area", "Print_Titles", "Recorder", "Data_Form", "Auto_Activate", "Auto_Deactivate", "Sheet_Title", "_FilterDatabase"][builtin];
         name = (base ?? `_BIFF_BUILTIN_${builtin}`) + text.slice(1);
       } else name = ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length);
-      const tokens = data.slice(start + cursor.consumedBytes, tokenLength);
-      const arrays = stringParts(index, start + cursor.consumedBytes + tokenLength); index = arrays.next;
-      names.push({ name: accountText(name), flags, tokens, arrays: arrays.parts, sheetIndex, revision: ver, codepage, record, ...(sheet ? { owner: sheet } : {}) }); continue;
+      const formula = formulaParts(index, start + cursor.consumedBytes, tokenLength); index = formula.next;
+      names.push({ name: accountText(name), flags, tokens: formula.tokens, arrays: formula.arrays,
+        sheetIndex, revision: ver, codepage, record, ...(sheet ? { owner: sheet } : {}) }); continue;
     }
     if (ignoredOpcodes.has(opcode)) continue;
     if (opcode === 0xf) { if (sheet) sheet.view.referenceMode = data.u16(0) ? "A1" : "R1C1"; continue; }
@@ -387,25 +410,8 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       else { const kind = data.u8(start); stringCache = kind === 0; value = kind === 1 ? { kind: "boolean", value: !!data.u8(start + 2) } :
         kind === 2 ? { kind: "error", value: biffErrors[data.u8(start + 2)] ?? "#UNKNOWN!" } : { kind: "blank" }; if (kind > 3) invalidBiff("invalid formula cache tag"); }
       lastFormula = addCell(sheet, data, value, { cachedResult: value, formulaDirty: !!(data.u16(14) & 3) });
-      let tokenEnd = tokenStart + tokenLength;
-      if (tokenEnd <= data.bytes.length) lastFormula.tokens = data.slice(tokenStart, tokenLength);
-      else {
-        accountFormulaWork(tokenLength);
-        const tokens = new Uint8Array(tokenLength);
-        let written = 0, offset = tokenStart;
-        while (written < tokenLength) {
-          context.signal.throwIfAborted();
-          const part = records[index]!.data;
-          const count = Math.min(tokenLength - written, part.bytes.length - offset);
-          tokens.set(part.slice(offset, count), written); written += count; offset += count;
-          if (written < tokenLength) {
-            if (records[index + 1]?.opcode !== 0x3c) invalidBiff("truncated formula tokens/CONTINUE");
-            index++; offset = 0;
-          }
-        }
-        lastFormula.tokens = tokens; tokenEnd = offset;
-      }
-      const arrays = stringParts(index, tokenEnd); index = arrays.next; lastFormula.arrays = arrays.parts;
+      const formula = formulaParts(index, tokenStart, tokenLength); index = formula.next;
+      lastFormula.tokens = formula.tokens; lastFormula.arrays = formula.arrays;
       const nextOpcode = records[index + 1]?.opcode;
       const groupFollows = nextOpcode === 0x4bc || nextOpcode === 0x21 || nextOpcode === 0x221 ||
         nextOpcode === 0x36 || nextOpcode === 0x37 || nextOpcode === 0x236;

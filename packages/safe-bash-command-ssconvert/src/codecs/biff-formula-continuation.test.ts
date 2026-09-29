@@ -98,3 +98,23 @@ for (const revision of [7, 8] as const) {
     expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: expected });
   });
 }
+
+for (const revision of [7, 8] as const) for (const scope of [undefined, "s"]) {
+  it.each([
+    [`=LEN("${"é€".repeat(3000)}")`, 6000],
+    [`=SUM({${Array.from({ length: 32 }, () => Array<number>(32).fill(1).join(",")).join(";")}})`, 1024]
+  ])(`continues BIFF${revision} named expressions (${scope ?? "global"}, %#)`, async (expression, expected) => {
+    const bytes = await createBiffWriter(revision)({
+      names: [{ name: "Alias", expression: "=Wide", ...(scope ? { sheet: scope } : {}) },
+        { name: "Wide", expression, ...(scope ? { sheet: scope } : {}) }],
+      sheets: [{ id: "s", name: "S", cells: [
+        { row: 0, column: 0, formula: "=Alias", value: { kind: "number", value: 999 } }
+      ] }]
+    }, [], context);
+    const reopened = await readBiff(bytes, context);
+    expect(reopened.sheets[0]!.cells[0]!.formula).toContain("Alias");
+    expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: expected });
+    const edited = { ...reopened, names: reopened.names!.map(name => name.name === "Wide" ? { ...name, expression: "=7" } : name) };
+    expect(recalculateWorkbook(edited, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 7 });
+  });
+}

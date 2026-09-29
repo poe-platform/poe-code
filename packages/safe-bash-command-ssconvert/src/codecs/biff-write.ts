@@ -184,7 +184,10 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
     header[3] = text[0]!; view.setUint16(4, formula.tokens.length, true);
     const scope = name.sheet === undefined ? 0 : book.sheets.findIndex(sheet => sheet.id === name.sheet) + 1;
     view.setUint16(revision === 8 ? 8 : 6, scope, true);
-    output.record(0x18, join(join(header, text.subarray(1)), join(formula.tokens, formula.arrays)));
+    const start = header.length + text.length - 1;
+    output.continuedRecord(0x18, join(join(header, text.subarray(1)), join(formula.tokens, formula.arrays)),
+      [start, ...formula.tokenBoundaries.map(offset => offset + start),
+        ...formula.arrayBoundaries.map(offset => offset + start + formula.tokens.length)]);
   }
   if (revision === 8) {
     metadata.global(output); sst(output, strings, context);

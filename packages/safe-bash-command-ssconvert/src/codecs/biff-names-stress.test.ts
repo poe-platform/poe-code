@@ -38,7 +38,7 @@ it.each([{ tokens: [0x1e, 7, 0] }, { tokens: [] }])("rejects invalid scope even 
 });
 
 it("bounds token lengths even for otherwise valid NAME headers", async () => {
-  await expect(readBiff(workbook([78], [0x1e, 7, 0], 0, 4), context)).rejects.toThrow("truncated binary data");
+  await expect(readBiff(workbook([78], [0x1e, 7, 0], 0, 4), context)).rejects.toThrow("truncated formula tokens/CONTINUE");
 });
 
 it("checks NAME string budgets before token materialization", async () => {

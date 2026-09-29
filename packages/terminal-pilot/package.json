@@ -23,12 +23,12 @@
     }
   },
   "scripts": {
-    "build": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
+    "build": "tsc --emitDeclarationOnly && node scripts/build.mjs",
     "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations @poe-code/user-error toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi jsonc-parser sisteransi smol-toml yaml @poe-code/safe-fs",
     "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations @poe-code/user-error toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi jsonc-parser sisteransi smol-toml yaml @poe-code/safe-fs",
-    "pretest": "npm run build",
+    "pretest": "node -e \"const fs=require('node:fs'); if (!fs.existsSync('dist/cli.js') || !fs.existsSync('dist/commands/index.d.ts')) process.exit(1)\" || npm run build",
     "test": "cd ../.. && vitest run packages/terminal-pilot/src/ --pool=forks",
-    "pretest:unit": "npm run build",
+    "pretest:unit": "node -e \"const fs=require('node:fs'); if (!fs.existsSync('dist/cli.js') || !fs.existsSync('dist/commands/index.d.ts')) process.exit(1)\" || npm run build",
     "test:unit": "cd ../.. && vitest run packages/terminal-pilot/src/ --pool=forks",
     "prepublishOnly": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
     "install-local-package": "TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && npm install -g $TMPD/terminal-pilot-*.tgz && rm -rf $TMPD",

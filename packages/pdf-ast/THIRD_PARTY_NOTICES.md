@@ -288,3 +288,10 @@ and checking every copy and save/reopen. Page copying follows `_writer.py`
 `_add_page`: each occurrence gets a distinct page dictionary while resources
 can remain shared. Content edits replace the page's Contents reference so
 other pages retain their original stream. pypdf attribution/license is above.
+
+Windows Symbol cmap selection in `src/content/evaluator.ts` follows PDF.js
+`src/core/fonts.js` `checkAndRepair`: use encoded character codes for (3,0)
+tables and clear the high byte only for F000–F0FF. The TrueType reader records
+the selected cmap's encoding. Tests in `src/fonts/cid-to-gid.test.ts` cover
+raw and prefixed symbol codes plus the original issue2948 fixture at the
+same pinned PDF.js revision documented above.

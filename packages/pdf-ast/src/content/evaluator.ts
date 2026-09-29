@@ -229,7 +229,15 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
           embeddedCff = parseEmbeddedCffFont(doc.decodeStream(program), baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined, glyphNames);
         } else {
           embeddedTrueType = parseTrueTypeFont(doc.decodeStream(program));
-          if (subtype !== "Type0" && !embeddedTrueType.hasCmap) {
+          if (subtype !== "Type0" && embeddedTrueType.isSymbolicCmap) {
+            // PDF.js maps Windows Symbol (3,0) entries by encoded byte,
+            // clearing the high byte only for the special F000–F0FF range.
+            simpleToGid = new Map();
+            for (let code = 0; code < 256; code++) {
+              const gid = embeddedTrueType.getGlyphId(0xf000 + code) || embeddedTrueType.getGlyphId(code);
+              if (gid > 0) simpleToGid.set(code, gid);
+            }
+          } else if (subtype !== "Type0" && !embeddedTrueType.hasCmap) {
             // PDF.js recovers missing mappings from BaseEncoding/Differences
             // and post names. ToUnicode describes text, not glyph selection.
             simpleToGid = new Map();

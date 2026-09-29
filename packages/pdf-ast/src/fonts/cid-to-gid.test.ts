@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { PdfDocument, renderDisplayListToBitmap, renderDisplayListToSvg, parseTrueTypeFont, embedTrueTypeFontInCos, cosArray, cosName, cosNumber, cosStream, cosDict, dictGet, dictSet, type PdfCosNode } from "../index.js";
 
 // Existing in-memory triangle font from document.test.ts.
@@ -155,6 +156,37 @@ it("honors an explicit glyph zero mapping even when ToUnicode matches another gl
   const display = evaluate(1, cosStream(Uint8Array.of(0, 0, 0, 0)), { unicode: "A" });
   expect(display.glyphs[0]!.unicode).toBe("A");
   expect(display.paths).toHaveLength(0);
+});
+
+// PDF.js fonts.js maps a Windows Symbol cmap by character code and clears
+// the high byte only in F000–F0FF, independently of ToUnicode labels.
+it.each([0x41, 0xf041])("uses symbolic cmap character code %i independently of ToUnicode", code => {
+  const bytes = triangleFont().bytes, view = new DataView(bytes.buffer);
+  view.setUint16(306, 0); // Windows Symbol (3,0), instead of Unicode (3,1).
+  view.setUint16(326, code); view.setUint16(332, code);
+  view.setUint16(336, (1 - code) & 0xffff);
+  const doc = PdfDocument.create(), page = doc.addPage([200, 100]);
+  const font = cosDict({ Type: cosName("Font"), Subtype: cosName("TrueType"), BaseFont: cosName("Triangle"),
+    FirstChar: cosNumber(65), Widths: cosArray([cosNumber(700)]),
+    FontDescriptor: cosDict({ Flags: cosNumber(4), FontFile2: doc.cos.allocateObject(cosStream(bytes)) }),
+    ToUnicode: doc.cos.allocateObject(cosStream(new TextEncoder().encode("1 begincodespacerange <00> <ff> endcodespacerange 1 beginbfchar <41> <005a> endbfchar"))),
+  });
+  dictSet(page.pageDict, "Resources", cosDict({ Font: cosDict({ F1: doc.cos.allocateObject(font) }) }));
+  page.setRawContentStream("BT /F1 100 Tf 10 10 Td (A) Tj ET");
+  const display = PdfDocument.load(doc.save()).getPage(0).evaluateDisplayList();
+  expect(display.glyphs[0]!.unicode).toBe("Z");
+  expect(display.paths).toHaveLength(1);
+  expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
+});
+
+it("renders the first T in PDF.js issue2948 using its embedded symbol cmap", () => {
+  const doc = PdfDocument.load(new Uint8Array(readFileSync(new URL("../fixtures/pdfjs-issue2948.pdf", import.meta.url))));
+  const page = doc.getPage(0);
+  page.setRawContentStream("BT /R10 100 Tf 10 10 Td <01> Tj ET");
+  const display = page.evaluateDisplayList();
+  expect(display.glyphs[0]!.unicode).toBe("T");
+  // The actual capital T is a single contour; .notdef has two rectangular contours.
+  expect(display.paths[0]!.segments.filter(segment => segment.kind === "move")).toHaveLength(1);
 });
 
 it("uses glyph zero when the CID is outside the mapping stream", () => {

@@ -186,6 +186,10 @@ Work began at 2026-09-29 02:42 UTC. The requested ten-hour minimum ends at 2026-
 - #4303 delivered and verified on remote main at `111a8471de`; closed. Remaining symbolic TrueType glyph failure in the existing issue2948 fixture is tracked as #4307; its three fonts have embedded Windows Symbol (3,0) cmap tables and no PDF Encoding entry.
 - #4306: reproduced two failing sync-versus-async completion cases and the CI TypeScript errors. The sync adapter now handles completion callbacks before parseCommand, matching the existing async dispatcher. All 772 op tests, final two callback regressions, and package lint/typecheck pass. Refreshed isolated checkout dependencies for the newly added xml-ast workspace after the first full build exposed its missing local npm link; a fresh maintained full build is running. Evidence: op-sync-completion-red.log, op-sync-tests.log, op-sync-green.log, op-sync-lint-final.log, op-release-full-build-final.log.
 
+- #4307: three failing regressions reproduced ToUnicode lookup being used for Windows Symbol cmap outlines. Following PDF.js, simple fonts now use encoded bytes and the F000–F0FF prefix rule when the selected cmap is (3,0). All 550 PDF tests and package lint/typecheck pass. The unchanged issue2948 fixture now renders its actual letters, including rotated text; inspected symbol-cmap-comparison.png matches PDF.js with mean RGB error 1.996/255. Evidence: symbol-cmap-red.log, symbol-cmap-green.log, symbol-cmap-all-tests.log, symbol-cmap-lint.log, and frozen pdf-ast-symbol-cmap.mjs.
+
+- #4307 selected workspace build and all 120 PDF command consumer cases pass. The original symbolic-font fixture is reused without modification; source, unit expectations, and visual comparison are tied to the pinned PDF.js implementation.
+
 ## Completion evidence to collect
 
 For each outcome record the tested revision, focused and integration commands/results, corpus provenance, independent comparison method, examined visual outputs, issue status, remote-main commit, and release publication. Require at least ten hours of work plus verified completion of all outcomes before marking the goal complete.

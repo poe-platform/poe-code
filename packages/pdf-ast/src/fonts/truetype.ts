@@ -27,6 +27,7 @@ export interface ParsedTrueTypeFont {
   readonly numGlyphs: number;
   readonly isCff: boolean;
   readonly hasCmap: boolean;
+  readonly isSymbolicCmap: boolean;
   readonly glyphNames: readonly (string | undefined)[];
   getGlyphId(codePoint: number): number;
   getAdvanceWidthUnits(glyphId: number): number;
@@ -149,17 +150,22 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
   const cmapNumTables = cmap ? readU16(view, cmapOffset + 2) : 0;
   let format4Offset = 0;
   let format12Offset = 0;
+  let format4IsSymbolic = false;
+  let format12IsSymbolic = false;
   for (let i = 0; i < cmapNumTables; i++) {
     const rec = cmapOffset + 4 + i * 8;
     if (rec + 8 > bytes.byteLength) break;
     const platformID = readU16(view, rec);
+    const encodingID = readU16(view, rec + 2);
     const subOffset = cmapOffset + readU32(view, rec + 4);
     if (subOffset + 4 > bytes.byteLength) continue;
     const fmt = readU16(view, subOffset);
     if (fmt === 12 && (platformID === 3 || platformID === 0)) {
       format12Offset = subOffset;
+      format12IsSymbolic = platformID === 3 && encodingID === 0;
     } else if (fmt === 4 && (platformID === 3 || platformID === 0)) {
       format4Offset = subOffset;
+      format4IsSymbolic = platformID === 3 && encodingID === 0;
     }
   }
 
@@ -467,6 +473,7 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
     numGlyphs,
     isCff: renderCffGlyph !== undefined,
     hasCmap: cmap !== undefined,
+    isSymbolicCmap: format12Offset > 0 ? format12IsSymbolic : format4IsSymbolic,
     glyphNames,
     getGlyphId(codePoint: number): number {
       return codePointToGlyph.get(codePoint) ?? 0;

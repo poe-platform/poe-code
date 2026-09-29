@@ -14,6 +14,7 @@ const runtimePath = "packages/safe-fs/dist/index.js";
 const declarationPath = "packages/safe-fs/dist/index.d.ts";
 
 const expectedCurrentCommands = [
+  "gh",
   "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
   "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
   "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "cmp", "fmt", "shuf", "numfmt", "env", "xargs", "find",
@@ -45,8 +46,8 @@ async function generatedCatalogGuards() {
   assert.ok(initializer && ts.isArrayLiteralExpression(initializer));
   assert.ok(initializer.elements.every(ts.isStringLiteral));
   assert.deepEqual(initializer.elements.map(element => (element as ts.StringLiteral).text), expectedCurrentCommands);
-  assert.equal(expectedCurrentCommands.length, 111);
-  assert.equal(new Set(expectedCurrentCommands).size, 111);
+  assert.equal(expectedCurrentCommands.length, 112);
+  assert.equal(new Set(expectedCurrentCommands).size, 112);
   assert.equal(guards.length, 3, "factory, registered dispatch, and final factory each verify the full catalog");
   return guards.map(guard => {
     const script = `const expectedCurrentCommands = ${initializer.getText(parsed)};\n${guard.getText(parsed)}`;
@@ -55,7 +56,7 @@ async function generatedCatalogGuards() {
   });
 }
 
-test("generated current stream catalog accepts the independent exact 111 names at all three boundaries", async () => {
+test("generated current stream catalog accepts the independent exact 112 names at all three boundaries", async () => {
   assert.deepEqual(createAgentCommands().map(command => command.name), expectedCurrentCommands);
   for (const guard of await generatedCatalogGuards()) {
     const definitions = expectedCurrentCommands.map(name => ({ name }));

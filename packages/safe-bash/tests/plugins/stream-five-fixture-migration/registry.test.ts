@@ -10,13 +10,13 @@ function host(commands = new CommandRegistry()): PluginHost {
   return { commands, use() { throw new Error("Unexpected middleware"); }, registerFileSystem() { throw new Error("Unexpected filesystem"); } };
 }
 
-test("current registry is frozen60 plus fifty independently declared delivered commands", async () => {
+test("current registry is frozen60 plus fifty-two independently declared delivered commands", async () => {
   assert.equal(baseline60.length, 60);
   assert.equal(new Set(baseline60).size, 60);
   assert.deepEqual(baseline60.slice(-4), ["tac", "expand", "fold", "strings"]);
-  const expected = [...baseline60.filter(name => name !== "rg").flatMap(name => name === "[" ? ["[", "cmp", "fmt", "shuf", "numfmt"] : name === "sha256sum" ? ["sha512sum", "sha384sum", "sha256sum", "sha224sum"] : name === "zcat" ? ["zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat"] : name === "mktemp" ? ["mktemp", "truncate"] : name === "tar" ? ["tar", "zip", "unzip"] : [name]), ...approved, "date", "sleep", "printenv", "tree", "file", "rg", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq"];
-  assert.equal(expected.length, 111);
-  assert.equal(new Set(expected).size, 111);
+  const expected = ["gh", ...baseline60.filter(name => name !== "rg").flatMap(name => name === "[" ? ["[", "cmp", "fmt", "shuf", "numfmt"] : name === "sha256sum" ? ["sha512sum", "sha384sum", "sha256sum", "sha224sum"] : name === "zcat" ? ["zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat"] : name === "mktemp" ? ["mktemp", "truncate"] : name === "tar" ? ["tar", "zip", "unzip"] : [name]), ...approved, "date", "sleep", "printenv", "tree", "file", "rg", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq"];
+  assert.equal(expected.length, 112);
+  assert.equal(new Set(expected).size, 112);
   assert.deepEqual(createAgentCommands().map(command => command.name), expected);
   const target = host();
   await agentCommands().setup(target);
@@ -32,7 +32,7 @@ for (const name of approved) test(`${name} aggregate collision is atomic and rep
   assert.throws(() => agentCommands().setup(target), new RegExp(`already registered: ${name}`, "u"));
   assert.deepEqual(target.commands.list(), [original, custom]);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 112);
+  assert.equal(target.commands.list().length, 113);
   assert.equal(target.commands.get("custom"), before[1]);
   assert.notEqual(target.commands.get(name), before[0]);
 });

@@ -170,6 +170,7 @@ test("DU standalone and aggregate replacement remain explicit with limit forward
   try {
     const result = await shell.exec("du -b /usage"); assert.equal(result.exitCode, 1); assert.match(result.stderr, /entry limit exceeded/u);
     const expected = [
+      "gh",
       "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
       "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
       "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "cmp", "fmt", "shuf", "numfmt",
@@ -179,7 +180,7 @@ test("DU standalone and aggregate replacement remain explicit with limit forward
       "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr",
       "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq",
     ];
-    assert.equal(expected.length, 111); assert.equal(new Set(expected).size, 111);
+    assert.equal(expected.length, 112); assert.equal(new Set(expected).size, 112);
     assert.deepEqual(shell.commands.list().map(command => command.name).sort(), expected.sort());
     assert.equal(shell.commands.has("html-to-markdown"), true); assert.equal(shell.commands.has("expr"), true);
     for (const name of ["curl", "safejs", "node", "npm", "npx"]) assert.equal(shell.commands.has(name), false);

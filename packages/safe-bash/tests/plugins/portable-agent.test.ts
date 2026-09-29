@@ -7,6 +7,7 @@ import { agentCommands, createAgentCommands } from "../../src/index.js";
 import { RegexExecutor } from "../../src/commands/regex-execution/portable.js";
 
 const expected = [
+  "gh",
   "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
   "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
   "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "cmp", "fmt", "shuf", "numfmt",
@@ -103,11 +104,11 @@ test("complete portable agent preset accepts an omitted provider", async () => {
   await plugin.dispose?.();
 });
 
-test("default inventory matches the independent 111 names and excludes host opt-ins", () => {
+test("default inventory matches the independent 112 names and excludes host opt-ins", () => {
   const names = createAgentCommands().map(command => command.name);
-  assert.equal(names.length, 111);
+  assert.equal(names.length, 112);
   assert.deepEqual(names.sort(), expected);
-  assert.equal(new Set(names).size, 111);
+  assert.equal(new Set(names).size, 112);
 });
 
 test("portable preset graph never loads fs, native workers, or host command adapters", async () => {
@@ -160,7 +161,7 @@ test("portable registration is atomic and replacement preserves unrelated comman
   const custom = commands.get("custom");
   const replacement = agentCommands({ regexExecutor: browser.createBoundedRegexProvider(), replace: true });
   await replacement.setup(host);
-  assert.equal(commands.list().length, 112);
+  assert.equal(commands.list().length, 113);
   assert.equal(commands.get("custom"), custom);
   await replacement.dispose?.();
   assert.throws(() => replacement.setup(host), /disposed/);

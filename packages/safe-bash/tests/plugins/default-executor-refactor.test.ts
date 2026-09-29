@@ -18,6 +18,7 @@ import { defaults } from "../../src/commands/regex-execution/protocol.js";
 import type { BoundedRegexProvider, RegexWorkerRequest } from "../../src/commands/regex-execution/provider.js";
 
 const expectedNames = [
+  "gh",
   "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
   "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
   "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "cmp", "fmt", "shuf", "numfmt",
@@ -77,7 +78,7 @@ for (const [name, factory] of routes.slice(0, 2)) {
   test(`${name} defaults to the full bounded inventory with expr matching`, async () => {
     const shell = install(factory({}));
     try {
-      assert.equal(expectedNames.length, 111);
+      assert.equal(expectedNames.length, 112);
       const result = await shell.exec("printf 'aa\\nbb\\n' | egrep 'a+' | fgrep aa | rg -F aa; expr aa : 'a*'; env expr 2 + 3");
       assert.deepEqual(shell.commands.list().map(command => command.name).sort(), expectedNames);
       assert.equal(result.exitCode, 0, result.stderr);
@@ -185,7 +186,7 @@ test("aggregate replacement, collision and eager limits retain atomic registrati
   const custom = commands.get("custom");
   const replacement = agentCommands({ replace: true });
   await replacement.setup(host);
-  assert.equal(commands.list().length, 112);
+  assert.equal(commands.list().length, 113);
   assert.equal(commands.get("custom"), custom);
   await replacement.dispose?.();
   assert.throws(() => replacement.setup(host), /disposed/u);

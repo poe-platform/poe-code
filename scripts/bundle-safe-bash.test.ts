@@ -401,8 +401,9 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
   expect(browser.posixPath).toBe(filesystem.posixPath);
   expect(browser.posixPath.join("/a", "..", "b")).toBe("/b");
   const names = browser.createAgentCommands().map(command => command.name).sort();
-  expect(names).toHaveLength(111);
+  expect(names).toHaveLength(112);
   expect(names).toEqual([
+    "gh",
     "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
     "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
     "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",

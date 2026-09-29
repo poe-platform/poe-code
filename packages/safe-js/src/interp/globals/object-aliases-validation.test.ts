@@ -334,7 +334,7 @@ describe("OBJ-001 independent validation", () => {
       expect(new Function("caseName", entry.code)(caseName)).toEqual(entry.expected);
       const result = await run(entry.code, {
         bindings: caseName === undefined ? {} : { caseName },
-        budget: new Budget({ ...limits, deadline: Date.now() + 2000 })
+        budget: new Budget(limits)
       });
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error("Original alias workflow failed");
@@ -395,7 +395,7 @@ describe("OBJ-001 independent validation", () => {
       };
       expect(new Function(code)()).toEqual(expected);
       const result = await run(code, {
-        budget: new Budget({ ...limits, deadline: Date.now() + 2000 })
+        budget: new Budget(limits)
       });
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error("Independent alias workflow failed");
@@ -444,7 +444,7 @@ describe("OBJ-001 independent validation", () => {
     };
     expect(new Function(code)()).toEqual(expected);
     const result = await run(code, {
-      budget: new Budget({ ...limits, deadline: Date.now() + 2000 })
+      budget: new Budget(limits)
     });
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("Independent alias workflow failed");
@@ -477,7 +477,7 @@ describe("OBJ-001 independent validation", () => {
       };
       expect(new Function(code)()).toEqual(expected);
       const result = await run(code, {
-        budget: new Budget({ ...limits, deadline: Date.now() + 2000 })
+        budget: new Budget(limits)
       });
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error("Independent alias workflow failed");
@@ -499,7 +499,7 @@ describe("OBJ-001 independent validation", () => {
     for (let iteration = 0; iteration < 2; iteration += 1) {
       const result = await run(code, {
         bindings: { input },
-        budget: new Budget({ ...limits, deadline: Date.now() + 2000 })
+        budget: new Budget(limits)
       });
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error("Independent alias workflow failed");
@@ -542,7 +542,7 @@ describe("OBJ-001 independent validation", () => {
             }
           }
         },
-        budget: new Budget({ ...limits, deadline: Date.now() + 2000 })
+        budget: new Budget(limits)
       }
     );
     expect(result.ok).toBe(true);

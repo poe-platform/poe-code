@@ -68,8 +68,9 @@ Existing root factories such as `ffmpegCommands()` and `createPdftotextCommand()
 also defer loading. The advanced command subpaths retain their eager SDK and
 synchronous APIs. Selected ssconvert format factories remain supported through
 `configuration.ssconvert.formats`; no format adapter is replaced.
-Concurrent first calls share one code-load promise per family. Failed imports
-retry on the next call. Cancellation stops that caller's wait and prevents late
+Concurrent first calls share one code-load promise per family. Failed loader
+calls retry on the next invocation. Host module caches can retain evaluation
+errors; correcting a broken bundled module can require restarting the host. Cancellation stops that caller's wait and prevents late
 dispatch; it does not cancel another caller's shared code import. Factories and
 execution contexts are invocation-local, and Git shares compiled Wasm code but
 creates separate mutable instances. Existing filesystem, streams, host bindings,

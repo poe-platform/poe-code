@@ -62,6 +62,49 @@ const checksumInformation: Information = {
   options: ["-b, --binary", "-c, --check", "-t, --text", "-z, --zero", "--tag", "--quiet", "--status", "--strict", "--warn", "--ignore-missing"],
 };
 
+export function gnuInformationSync(name: string, args: readonly string[], externalInvocation = false): string | undefined {
+  if (!args.includes("--help") && !args.includes("--version")) return undefined;
+  if ((name === "true" || name === "false" || name === "echo" || name === "[" || name === "pwd") && (args.length !== 1 || !externalInvocation)) return undefined;
+  const info = information[name] ?? (["md5sum", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum"].includes(name) ? checksumInformation : undefined);
+  if (!info) return undefined;
+  const flags = new Map<string, "none" | "required" | "optional">();
+  for (const option of info.options) {
+    const takesValue = option.includes("[=") ? "optional" : option.includes("=") ? "required" : "none";
+    for (const spelling of option.split(", ")) flags.set(spelling.split("=")[0]!.split("[")[0]!, takesValue);
+  }
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index]!;
+    if (arg === "--") break;
+    if (arg === "--help" || arg === "--version") {
+      if (arg === "--help" && info.versionOnly) return undefined;
+      return arg === "--version"
+        ? `${name} (safe-bash virtual implementation)\n`
+        : `Usage: ${name} ${info.usage}\n${info.description}\n\nCommon supported options (additional behavior is documented in the package):\n${info.options.map(option => `  ${option.split(", ").map(spelling => spelling.startsWith("--") ? spelling : spelling.replace("=", " ")).join(", ")}`).join("\n")}\n  --help     display this help and exit\n  --version  display implementation information and exit\n\nThis is the safe-bash virtual implementation; filesystem operations require backend capabilities.\n`;
+    }
+    if (!arg.startsWith("-") || arg === "-") {
+      if (info.stopAtOperand) break;
+      continue;
+    }
+    if (arg.startsWith("--")) {
+      const equal = arg.indexOf("=");
+      const spelling = equal < 0 ? arg : arg.slice(0, equal);
+      if (!flags.has(spelling)) return undefined;
+      if (flags.get(spelling) === "required" && equal < 0) index++;
+      else if (flags.get(spelling) === "none" && equal >= 0) return undefined;
+    } else {
+      for (let offset = 1; offset < arg.length; offset++) {
+        const spelling = `-${arg[offset]}`;
+        if (!flags.has(spelling)) return undefined;
+        if (flags.get(spelling) === "required") {
+          if (offset + 1 === arg.length) index++;
+          break;
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
 export function gnuInformation(name: string, context: CommandContext): Promise<CommandResult | undefined> | undefined {
   if (!context.args.includes("--help") && !context.args.includes("--version")) return undefined;
   return gnuInformationSlow(name, context);

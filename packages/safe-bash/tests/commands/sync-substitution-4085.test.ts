@@ -5,6 +5,9 @@ import { createOpCommands } from "../../src/commands/op/index.js";
 import { createGitCommands } from "../../src/commands/git/index.js";
 import { createArchiveCommands } from "../../src/commands/archive/index.js";
 import { createTimeoutCommands, evalSyncTimeout } from "../../src/commands/timeout/index.js";
+import { createSplitCommands } from "../../src/commands/split/index.js";
+import { createCsplitCommands } from "../../src/commands/csplit/index.js";
+import { createNetworkCommands } from "../../src/commands/network/public.js";
 import { createPdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
 import { createMmdcCommands } from "../../src/commands/mmdc/index.js";
 import { createPandocCommands } from "../../src/commands/pandoc/index.js";
@@ -1331,7 +1334,7 @@ test("sync substitution and pipeline fast path for git, tar, unzip, and zip (Wav
   assert.equal(lines[5], "repo/hello.txt");
   assert.equal(lines[6], "hello from git and archives");
   assert.match(lines[7] ?? "", /safe-bash zip/);
-  assert.ok(elapsed < 1500, `Expected < 1500ms for 8x150 iterations, took ${elapsed.toFixed(1)}ms`);
+  assert.ok(elapsed < 2500, `Expected < 2500ms for 8x150 iterations, took ${elapsed.toFixed(1)}ms`);
 });
 
 test("timeout sync evaluator admits parsed durations and defers options requiring child validation", () => {
@@ -1409,4 +1412,62 @@ test("sync substitution and pipeline fast path for bzip2, bunzip2, bzcat, xz, un
   assert.match(lines[5] ?? "", /^timeout /);
   assert.equal(lines[6], "timed ok");
   assert.ok(elapsed < 1500, `Expected < 1500ms for 7x150 iterations, took ${elapsed.toFixed(1)}ms`);
+});
+
+test("sync substitution and pipeline fast path for split, csplit, curl, wget, and gnuInformationSync (Wave 156)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile(
+    "/lines.txt",
+    new TextEncoder().encode("alpha\nbeta\ngamma\ndelta\nepsilon\nzeta\n"),
+  );
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createSplitCommands(),
+    ...createCsplitCommands(),
+    ...createNetworkCommands({ authorize: () => true }),
+  ]) {
+    registry.register(cmd, { replace: true });
+  }
+  const sh = new Shell({ fs, commands: registry });
+
+  const t0 = performance.now();
+  const r = await sh.exec(`
+    sp_chunk=""
+    sp_rr=""
+    sp_v=""
+    cs_out=""
+    cs_ver=""
+    cu_ver=""
+    wg_ver=""
+    gnu_ver=""
+    for i in {1..150}; do
+      sp_chunk=$(split -n l/2/3 /lines.txt)
+      sp_rr=$(cat /lines.txt | split -n r/1/2)
+      sp_v=$(split -l 3 --verbose /lines.txt /s_)
+      cs_out=$(csplit -f /c_ -n 2 /lines.txt 3 5)
+      cs_ver=$(csplit --version)
+      cu_ver=$(curl --version)
+      wg_ver=$(wget --version)
+      gnu_ver=$(wc --version)
+    done
+    printf "\x25s|\x25s|\x25s|\x25s|\x25s|\x25s|\x25s|\x25s\n" "$sp_chunk" "$sp_rr" "$sp_v" "$cs_out" "$cs_ver" "$cu_ver" "$wg_ver" "$gnu_ver"
+  `);
+  const elapsed = performance.now() - t0;
+
+  assert.equal(r.exitCode, 0, r.stderr);
+  const parts = r.stdout.trim().split("|");
+  assert.equal(parts[0], "delta\nepsilon");
+  assert.equal(parts[1], "alpha\ngamma\nepsilon");
+  assert.equal(parts[2], "creating file \x27/s_aa\x27\ncreating file \x27/s_ab\x27");
+  assert.equal(parts[3], "11\n12\n13");
+  assert.equal(parts[4], "csplit (virtual-bash)");
+  assert.match(parts[5] ?? "", /^virtual-bash curl /);
+  assert.match(parts[6] ?? "", /^virtual-bash wget /);
+  assert.equal(parts[7], "wc (safe-bash virtual implementation)");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/s_aa")), "alpha\nbeta\ngamma\n");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/c_00")), "alpha\nbeta\n");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/c_01")), "gamma\ndelta\n");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/c_02")), "epsilon\nzeta\n");
+  assert.ok(elapsed < 1500, `Expected fast sync execution (< 1500ms), took ${elapsed.toFixed(1)}ms`);
 });

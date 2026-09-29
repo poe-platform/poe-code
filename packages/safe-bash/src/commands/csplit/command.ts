@@ -1,4 +1,6 @@
 import { FsError, type CommandDefinition } from "../../contracts/index.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
+import { integer } from "./options.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { RegexExecutor, withRegexSession } from "../regex-execution/portable.js";
 import { ExprMatchError } from "../regex-execution/protocol.js";
@@ -10,9 +12,154 @@ import { Splitter } from "./split.js";
 
 export type { CsplitCommandsOptions, CsplitLimits } from "./internal.js";
 
+
+export function evalSyncCsplit(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
+): string | undefined {
+  let prefix = "xx";
+  let suffix: string | undefined;
+  let digits = 2;
+  let elide = false;
+  let quiet = false;
+  let suppress = false;
+  const operands: string[] = [];
+  let ended = false;
+  const long: Readonly<Record<string, string>> = {
+    prefix: "f", "suffix-format": "b", "keep-files": "k", "elide-empty-files": "z",
+    digits: "n", quiet: "q", silent: "s", "suppress-matched": "suppress", help: "help", version: "version",
+  };
+  for (let i = 0; i < opArgs.length; i++) {
+    const arg = opArgs[i]!;
+    if (ended || arg === "-" || !arg.startsWith("-")) {
+      operands.push(arg);
+      continue;
+    }
+    if (arg === "--") { ended = true; continue; }
+    if (arg.startsWith("--")) {
+      const eq = arg.indexOf("=");
+      const name = arg.slice(2, eq < 0 ? undefined : eq);
+      const candidates = Object.keys(long).filter(k => k.startsWith(name));
+      const selected = Object.hasOwn(long, name) ? name : (candidates.length === 1 ? candidates[0] : undefined);
+      if (!selected) return undefined;
+      const key = long[selected]!;
+      if (key === "help" || key === "version") {
+        if (eq >= 0) return undefined;
+        return key === "version"
+          ? "csplit (virtual-bash)\n"
+          : "Usage: csplit [OPTION]... FILE PATTERN...\nOptions: -f PREFIX, -b SUFFIX, -k, -z, -n DIGITS, -s, --suppress-matched\nPatterns: INTEGER, /REGEXP/[OFFSET], %REGEXP%[OFFSET], {INTEGER}, {*}\n";
+      }
+      if ("fbn".includes(key)) {
+        const val = eq < 0 ? opArgs[++i] : arg.slice(eq + 1);
+        if (val === undefined) return undefined;
+        if (key === "f") prefix = val;
+        else if (key === "b") suffix = val;
+        else if (key === "n") {
+          const n = Number(val);
+          if (!Number.isSafeInteger(n) || n < 0 || n > 64) return undefined;
+          digits = n;
+        }
+      } else if (eq >= 0) {
+        return undefined;
+      } else if (key === "z") elide = true;
+      else if (key === "q" || key === "s") quiet = true;
+      else if (key === "suppress") suppress = true;
+    } else {
+      for (let off = 1; off < arg.length; off++) {
+        const key = arg[off]!;
+        if (!"fbknsqz".includes(key)) return undefined;
+        if ("fbn".includes(key)) {
+          const val = arg.slice(off + 1) || opArgs[++i];
+          if (val === undefined) return undefined;
+          if (key === "f") prefix = val;
+          else if (key === "b") suffix = val;
+          else if (key === "n") {
+            const n = Number(val);
+            if (!Number.isSafeInteger(n) || n < 0 || n > 64) return undefined;
+            digits = n;
+          }
+          break;
+        }
+        if (key === "z") elide = true;
+        else if (key === "q" || key === "s") quiet = true;
+      }
+    }
+  }
+  if (!writeFileSync || suffix !== undefined || operands.length < 2) return undefined;
+  const inputArg = operands[0]!;
+  const src = inputArg === "-" ? (inBytes ?? new Uint8Array(0)) : readFileSync?.(inputArg);
+  if (!src) return undefined;
+  const lines: Uint8Array[] = [];
+  let lineStart = 0;
+  for (let i = 0; i < src.length; i++) {
+    if (src[i] === 10) {
+      lines.push(src.subarray(lineStart, i + 1));
+      lineStart = i + 1;
+    }
+  }
+  if (lineStart < src.length) lines.push(src.subarray(lineStart));
+  const rawPatterns = operands.slice(1);
+  const parsedPatterns: { line: number; repeat: number }[] = [];
+  let lastLine = 0;
+  for (let i = 0; i < rawPatterns.length; i++) {
+    const p = rawPatterns[i]!;
+    if (p.startsWith("/") || p.startsWith("%") || p.startsWith("{")) return undefined;
+    const ln = integer(p);
+    if (ln === undefined || ln <= BigInt(lastLine) || ln > BigInt(lines.length + 1)) return undefined;
+    lastLine = Number(ln);
+    let rep = 0;
+    const nextArg = rawPatterns[i + 1];
+    if (nextArg?.startsWith("{")) {
+      if (nextArg === "{*}" || !nextArg.endsWith("}")) return undefined;
+      const rc = integer(nextArg.slice(1, -1));
+      if (rc === undefined || rc > 1000n) return undefined;
+      rep = Number(rc);
+      i++;
+    }
+    parsedPatterns.push({ line: Number(ln), repeat: rep });
+  }
+  let nextIdx = 1;
+  const pieces: Uint8Array[] = [];
+  for (const pat of parsedPatterns) {
+    for (let r = 0; r <= pat.repeat; r++) {
+      const target = pat.line * (r + 1);
+      if (target > lines.length + 1 || nextIdx > lines.length) return undefined;
+      const sliceLines: Uint8Array[] = [];
+      while (nextIdx < target) {
+        sliceLines.push(lines[nextIdx - 1]!);
+        nextIdx++;
+      }
+      pieces.push(Buffer.concat(sliceLines));
+      if (suppress) {
+        if (nextIdx > lines.length) return undefined;
+        nextIdx++;
+      }
+    }
+  }
+  const restLines: Uint8Array[] = [];
+  while (nextIdx <= lines.length) {
+    restLines.push(lines[nextIdx - 1]!);
+    nextIdx++;
+  }
+  pieces.push(Buffer.concat(restLines));
+  const sizes: number[] = [];
+  let fileIdx = 0;
+  for (const piece of pieces) {
+    if (elide && piece.length === 0) continue;
+    const name = `${prefix}${String(fileIdx++).padStart(digits, "0")}`;
+    if (!writeFileSync(name, piece)) return undefined;
+    sizes.push(piece.length);
+  }
+  return quiet ? "" : sizes.map(s => `${s}\n`).join("");
+}
+
+syncCommandEvaluators.evalSyncCsplit = evalSyncCsplit;
+
 export function createCsplitCommandWithExecutor(executor: RegexExecutor, options: CsplitCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
-  return { name: "csplit", description: "Split files at bounded line and BRE boundaries",
+  const def: CommandDefinition = { name: "csplit", description: "Split files at bounded line and BRE boundaries",
     filesystemRequirements: [{ id: "split", description: "Atomically mutate owned VFS outputs", capabilities: ["atomicFileMutation"], mutates: true }],
     async execute(context) {
     return withRegexSession(context, executor, async session => {
@@ -65,4 +212,6 @@ export function createCsplitCommandWithExecutor(executor: RegexExecutor, options
       return { exitCode };
     });
   } };
+  builtInDirectContextExecutors.add(def.execute);
+  return def;
 }

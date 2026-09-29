@@ -4,7 +4,7 @@ import { normalizePath, posixPath as posix } from "../../contracts/path.js";
 import { FsError } from "../../contracts/index.js";
 import { inheritYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
-import { pathOf } from "../internal.js";
+import { builtInDirectContextExecutors, pathOf } from "../internal.js";
 import { createDeadlineOutput, deadlineDiagnostic } from "./aggregate.js";
 import { validateRequestHeader, type CurlArguments } from "./args.js";
 import { curlRequestTarget } from "./url.js";
@@ -126,7 +126,7 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
   if (typeof transport !== "function") throw new TypeError("Invalid HTTP transport");
   const authorize = options.authorize;
   const executions = new WeakMap<object, number>();
-  return {
+  const def: CommandDefinition = {
     name: profile.name,
     async execute(context) {
       context.signal.throwIfAborted();
@@ -205,6 +205,8 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
       return { exitCode };
     },
   };
+  builtInDirectContextExecutors.add(def.execute);
+  return def;
 }
 
 async function transfer(context: CommandContext, args: CurlArguments, input: string, limits: NetworkLimits,

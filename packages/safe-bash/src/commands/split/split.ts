@@ -6,7 +6,8 @@ import { Names } from "./names.js";
 import { Outputs } from "./outputs.js";
 import { parseArguments, settings, type SplitArguments, type SplitLimits } from "./options.js";
 import type { CommandFamilyLimits } from "../limits.js";
-import { gnuInformation } from "../gnu-information.js";
+import { gnuInformation, gnuInformationSync } from "../gnu-information.js";
+import { builtInDirectContextExecutors, decoder, syncCommandEvaluators } from "../internal.js";
 
 async function* segment(cursor: Cursor, args: SplitArguments): AsyncGenerator<Uint8Array> {
   let remaining = args.size;
@@ -183,8 +184,92 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
   }
 }
 
+
+export function evalSyncSplit(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
+): string | undefined {
+  const infoText = gnuInformationSync("split", opArgs);
+  if (infoText !== undefined) return infoText;
+  try {
+    const limits = settings({});
+    const args = parseArguments(opArgs, limits);
+    const src = args.input === "-" ? (inBytes ?? new Uint8Array(0)) : readFileSync?.(args.input);
+    if (!src) return undefined;
+    if (args.selectedChunk > 0) {
+      const ci = args.selectedChunk - 1;
+      if (args.chunkMode === "round-robin") {
+        const parts: Uint8Array[] = [];
+        let start = 0;
+        let record = 0;
+        for (let offset = 0; offset < src.length; offset++) {
+          if (src[offset] !== args.separator && offset + 1 !== src.length) continue;
+          if (record++ % args.size === ci) {
+            parts.push(src.subarray(start, offset + 1));
+          }
+          start = offset + 1;
+        }
+        return decoder.decode(Buffer.concat(parts));
+      }
+      const chunkSize = Math.floor(src.length / args.size);
+      const rem = src.length % args.size;
+      if (args.chunkMode === "bytes") {
+        const start = chunkSize * ci + Math.min(ci, rem);
+        const end = chunkSize * (ci + 1) + Math.min(ci + 1, rem);
+        return decoder.decode(src.subarray(start, end));
+      }
+      let chunkOffset = 0;
+      for (let idx = 0; idx <= ci; idx++) {
+        let end = chunkSize * (idx + 1) + Math.min(idx + 1, rem);
+        end = Math.max(end, chunkOffset);
+        while (end < src.length && end > 0 && src[end - 1] !== args.separator) {
+          end++;
+        }
+        if (idx === ci) return decoder.decode(src.subarray(chunkOffset, end));
+        chunkOffset = end;
+      }
+      return "";
+    }
+    if (!writeFileSync) return undefined;
+    const names = new Names(args, limits);
+    const chunks: Uint8Array[] = [];
+    if (args.mode === "bytes") {
+      for (let off = 0; off < src.length; off += args.size) {
+        chunks.push(src.subarray(off, Math.min(src.length, off + args.size)));
+      }
+    } else if (args.mode === "lines") {
+      let start = 0;
+      let lines = 0;
+      for (let off = 0; off < src.length; off++) {
+        if (src[off] === args.separator && ++lines === args.size) {
+          chunks.push(src.subarray(start, off + 1));
+          start = off + 1;
+          lines = 0;
+        }
+      }
+      if (start < src.length) chunks.push(src.subarray(start));
+    } else {
+      return undefined;
+    }
+    const created: string[] = [];
+    for (const chunk of chunks) {
+      if (chunk.length === 0 && args.elideEmpty) continue;
+      const fileName = names.next();
+      if (!writeFileSync(fileName, chunk)) return undefined;
+      created.push(fileName);
+    }
+    return args.verbose ? created.map(n => `creating file '${n}'\n`).join("") : "";
+  } catch {
+    return undefined;
+  }
+}
+
+syncCommandEvaluators.evalSyncSplit = evalSyncSplit;
+
 export function createSplitCommand(limits: SplitLimits): CommandDefinition {
-  return { name: "split", async execute(context) {
+  const def: CommandDefinition = { name: "split", async execute(context) {
     context.signal.throwIfAborted();
     try {
       const infoPromise = gnuInformation("split", context);
@@ -208,4 +293,6 @@ export function createSplitCommand(limits: SplitLimits): CommandDefinition {
       return { exitCode: 1 };
     }
   } };
+  builtInDirectContextExecutors.add(def.execute);
+  return def;
 }

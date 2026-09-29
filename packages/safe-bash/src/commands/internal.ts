@@ -77,6 +77,10 @@ export interface SyncCommandEvaluators {
   evalSyncOp?: (execute: any, opArgs: readonly string[], env: Readonly<Record<string, string>>) => string | undefined;
   evalSyncGit?: (stdinBytes: Uint8Array | undefined, opArgs: readonly string[], cwd: string, inspectNode?: any, readFile?: any, executeFn?: any) => string | undefined;
   evalSyncTimeout?: (opArgs: readonly string[]) => string | undefined;
+  evalSyncSplit?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
+  evalSyncCsplit?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
+  evalSyncCurl?: (opArgs: readonly string[]) => string | undefined;
+  evalSyncWget?: (opArgs: readonly string[]) => string | undefined;
 }
 
 export const syncCommandEvaluators: SyncCommandEvaluators = {};

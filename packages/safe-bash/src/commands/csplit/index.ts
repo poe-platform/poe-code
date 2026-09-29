@@ -1,7 +1,8 @@
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createBoundedRegexProvider } from "../regex-execution/bounded-provider.js";
 import { RegexExecutor } from "../regex-execution/portable.js";
-import { createCsplitCommandWithExecutor } from "./command.js";
+import { createCsplitCommandWithExecutor, evalSyncCsplit } from "./command.js";
+export { evalSyncCsplit };
 import type { CsplitCommandsOptions } from "./internal.js";
 
 export type { CsplitCommandsOptions, CsplitLimits } from "./internal.js";

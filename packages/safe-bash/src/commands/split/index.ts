@@ -1,6 +1,7 @@
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { settings, type SplitCommandsOptions } from "./options.js";
-import { createSplitCommand } from "./split.js";
+import { createSplitCommand, evalSyncSplit } from "./split.js";
+export { evalSyncSplit };
 export type { SplitCommandsOptions, SplitLimits } from "./options.js";
 
 export function createSplitCommands(options: SplitCommandsOptions = {}): readonly CommandDefinition[] {

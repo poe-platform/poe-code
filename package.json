@@ -578,7 +578,8 @@
     "@poe-code/spreadsheet-format-xls": "0.0.1",
     "@poe-code/xml-ast": "0.0.1",
     "@poe-code/spreadsheet-format-spreadsheetml": "0.0.1",
-    "@poe-code/spreadsheet-format-html": "0.0.1"
+    "@poe-code/spreadsheet-format-html": "0.0.1",
+    "@poe-code/xlsx-ast": "0.0.1"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -765,6 +766,8 @@
     "packages/spreadsheet-engine/src/formulas/functions/captured-pow-NOTICE.md",
     "packages/spreadsheet-format-xlsx/dist/**/*.d.ts",
     "packages/spreadsheet-format-xlsx/LICENSE",
+    "packages/xlsx-ast/dist/**/*.d.ts",
+    "packages/xlsx-ast/LICENSE",
     "packages/spreadsheet-format-csv/dist/**/*.d.ts",
     "packages/spreadsheet-format-csv/LICENSE",
     "packages/spreadsheet-format-ods/dist/**/*.d.ts",

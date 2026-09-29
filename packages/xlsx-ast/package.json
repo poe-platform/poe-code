@@ -1,5 +1,5 @@
 {
-  "name": "@poe-code/spreadsheet-format-xlsx",
+  "name": "@poe-code/xlsx-ast",
   "version": "0.0.1",
   "private": true,
   "license": "GPL-2.0-or-later",
@@ -23,20 +23,17 @@
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "test": "cd ../.. && vitest run packages/spreadsheet-format-xlsx",
-    "test:unit": "cd ../.. && vitest run packages/spreadsheet-format-xlsx",
+    "test": "cd ../.. && vitest run packages/xlsx-ast",
+    "test:unit": "cd ../.. && vitest run packages/xlsx-ast",
     "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
   },
   "dependencies": {
     "@poe-code/spreadsheet-engine": "*",
-    "@poe-code/xlsx-ast": "*"
+    "@poe-code/spreadsheet-ast": "*",
+    "@poe-code/office-package": "*",
+    "@poe-code/safe-fs": "*"
   },
   "poeCode": {
-    "safeLibraryExports": {
-      "safe-bash": {
-        "./ssconvert/formats/xlsx": "."
-      }
-    },
     "safeLibraryNotices": {
       "safe-bash": [
         "./LICENSE"

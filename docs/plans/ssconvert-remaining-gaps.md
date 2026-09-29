@@ -46,7 +46,9 @@ as blockers, never as passes, and continue independent work.
 
 Implementation owners: `packages/spreadsheet-ast/src` holds the shared workbook
 model; `packages/spreadsheet-engine/src` holds formulas, orchestration and shared
-utilities; `packages/spreadsheet-format-{xlsx,csv,ods,xls}/src` hold those codecs.
+utilities; `packages/xlsx-ast/src` owns XLSX parsing/writing and the XLSX format
+package supplies compatible registration/reexports. The CSV/ODS/XLS codecs remain
+in `packages/spreadsheet-format-{csv,ods,xls}/src`.
 The remaining codecs, rendering and command composition still live in
 `packages/safe-bash-command-ssconvert/src`. Old paths for extracted implementations
 are compatibility reexports; apply fixes at the new owners. Keep the
@@ -62,8 +64,10 @@ diagnostics. The existing namespace-aware, stepped parser now belongs to
 and error identity through the root and scoped bundles. The parser implementation
 and resource contracts are unchanged. CSVKit's ISO metadata now uses that parser
 with nesting, work and retained-storage accounting; its saxes dependency is removed.
-Pandoc's JPEG migration is delivered. CSVKit's SheetJS replacement and the actual
-XLSX AST extraction remain open; preserve the existing workbook behavior above.
+Pandoc's JPEG migration is delivered. The actual XLSX implementation has moved
+unchanged to `xlsx-ast`; CSVKit's SheetJS replacement remains open. Adapt raw ISO
+dates, declared/reset dimensions and encoding profiles before switching its reader;
+the existing Gnumeric reader's numeric interpretation cannot preserve those alone.
 
 Complete the standard singular/plural/plugin command exports in that package.
 Keep file-output budget and cancellation ownership in `safe-bash-contracts`.

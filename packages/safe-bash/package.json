@@ -2341,7 +2341,8 @@
     "@poe-code/spreadsheet-format-ods": "*",
     "@poe-code/spreadsheet-format-xls": "*",
     "@poe-code/spreadsheet-format-spreadsheetml": "*",
-    "@poe-code/spreadsheet-format-html": "*"
+    "@poe-code/spreadsheet-format-html": "*",
+    "@poe-code/xlsx-ast": "*"
   },
   "main": "./dist/index.js",
   "imports": {

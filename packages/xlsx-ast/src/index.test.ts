@@ -1,13 +1,6 @@
 import { expect, it } from "vitest";
 import { createEngine, type Codec } from "@poe-code/spreadsheet-engine";
-import { xlsxFormat } from "./index.js";
-import { readXlsx, probeXlsx } from "@poe-code/xlsx-ast";
-
-it("uses the shared XLSX implementation for format registration", () => {
-  const reader = xlsxFormat.services.find(service => service.direction === "read");
-  expect(reader?.read).toBe(readXlsx);
-  expect(reader?.probeContent).toBe(probeXlsx);
-});
+import { readXlsx, probeXlsx, createXlsxWriter } from "./index.js";
 
 it("composes xlsx read/write independently around an owned spreadsheet model", async () => {
   const fixture: Codec = { id: "fixture", description: "owned workbook", extensions: [],
@@ -16,13 +9,14 @@ it("composes xlsx read/write independently around an owned spreadsheet model", a
       { row: 1, column: 0, value: { kind: "number", value: 42 } }
     ] }] }; }
   };
-  const engine = createEngine({ formats: [xlsxFormat], codecs: [fixture] });
+  const engine = createEngine({ codecs: [fixture, { id: "xlsx", description: "XLSX", extensions: ["xlsx"],
+    probeContent: probeXlsx, contentProbe: true, read: readXlsx, write: createXlsxWriter("2008") }] });
   const operation = { signal: new AbortController().signal };
   const output: Uint8Array[] = [];
   try {
     const book = await engine.readWorkbook({ kind: "stream", source: [] }, { importType: "fixture" }, operation);
     await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) { output.push(bytes); } } },
-      { exportType: "Gnumeric_Excel:xlsx2" }, operation);
+      { exportType: "xlsx" }, operation);
     const roundtrip = await engine.readWorkbook({ kind: "stream", filename: "book.xlsx", source: output }, {}, operation);
     expect(roundtrip.sheets[0]!.cells.find(cell => cell.row === 0 && cell.column === 0)?.value).toEqual({ kind: "string", value: "Label" });
     expect(roundtrip.sheets[0]!.cells.find(cell => cell.row === 1 && cell.column === 0)?.value).toMatchObject({ kind: "number", value: 42 });

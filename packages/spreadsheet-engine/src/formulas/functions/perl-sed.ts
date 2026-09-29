@@ -208,11 +208,13 @@ function compile(pattern: string, host: FunctionHost): Node {
     let assertion: boolean | undefined;
     let behind = false;
     let atomic = false;
+    let resetCaptures = false;
     let capture = pattern[at] === "?" ? undefined : ++captures;
     if (pattern[at] === "?") {
       at++;
       if (pattern[at] === ":") at++;
       else if (pattern[at] === ">") { at++; atomic = true; }
+      else if (pattern[at] === "|") { at++; resetCaptures = true; }
       else if (pattern[at] === "(") {
         at++;
         let condition: Extract<Node, { kind: "conditional" }>["condition"];
@@ -280,7 +282,7 @@ function compile(pattern: string, host: FunctionHost): Node {
         if (pattern[at++] !== ":") return unsupported("embedded modifier grammar");
       }
     }
-    const inner = alternative(mode); if (pattern[at++] !== ")") return unsupported(); depth--;
+    const inner = alternative(mode, resetCaptures); if (pattern[at++] !== ")") return unsupported(); depth--;
     if (atomic) return node({ kind: "atomic", node: inner });
     if (assertion !== undefined) return behind
       ? node({ kind: "behind", node: inner, negative: assertion, ...widthRange(inner) })
@@ -364,9 +366,17 @@ function compile(pattern: string, host: FunctionHost): Node {
     }
     return node({ kind: "sequence", nodes: result });
   }
-  function alternative(mode: Flags): Node {
+  function alternative(mode: Flags, resetCaptures = false): Node {
+    const firstCapture = captures;
     const result = [sequence(mode)];
-    while (pattern[at] === "|") { at++; result.push(sequence(mode)); }
+    let lastCapture = captures;
+    while (pattern[at] === "|") {
+      at++;
+      if (resetCaptures) captures = firstCapture;
+      result.push(sequence(mode));
+      lastCapture = Math.max(lastCapture, captures);
+    }
+    captures = lastCapture;
     return result.length === 1 ? result[0]! : node({ kind: "alternative", nodes: result });
   }
   const result = alternative(flags); if (at !== pattern.length) return unsupported();

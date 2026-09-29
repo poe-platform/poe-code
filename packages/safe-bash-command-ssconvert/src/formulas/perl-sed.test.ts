@@ -122,6 +122,43 @@ it.each(["(?(0)a|b)", "(?(2)a|b)(a)", "(?(<absent>)a|b)", "(a)(?(1)b|c|d)",
     expect(() => calculate(expression(["ab", pattern, "X"]))).toThrow("PERL_SED");
   });
 
+// Perl 5.34.1 regcomp.c resets each branch's capture index and retains its maximum.
+it.each([
+  ["numbered", "aa bb ab", "(?|(a)|(b))\\1", "X X ab"],
+  ["before and after", "xaazz xbbzz", "(x)(?|(a)|(b))\\2(z)\\3", "X X"],
+  ["uneven", "aazz bccz", "(?|(a)|(b)(c))\\1?\\2?(z)\\3?", "X X"],
+  ["nested", "aa bb cc", "(?|(a)|(?|(b)|(c)))\\1", "X X X"],
+  ["same name", "aa bb ab", "(?|(?<pick>a)|(?<pick>b))\\k<pick>", "X X ab"],
+  ["alias name", "aa bb ab", "(?|(?<left>a)|(?<right>b))\\k<right>", "X X ab"],
+  ["crossed names", "xyxx zwzz xyxy zwzw", "(?|(?<a>x)(?<b>y)|(?<b>z)(?<a>w))\\k<a>\\k<b>", "xyxx zwzz X X"],
+  ["number condition", "ac bc c", "(?|(a)|(b))?(?(1)c|d)", "X X c"],
+  ["name condition", "ac bc c", "(?|(?<a>a)|(?<b>b))?(?(<b>)c|d)", "X X c"],
+  ["relative reference", "aa bb ab", "(?|(a)|(b))\\g{-1}", "X X ab"],
+  ["inside reference", "aa bb ab", "(?|(a)\\1|(b)\\1)", "X X ab"],
+  ["forward reference", "aa bb", "\\1(?|(a)|(b))", "aa bb"],
+  ["uneven condition", "a bc aac bcc", "(?|(a)|(b)(c))(?(2)c|a)", "a bc Xc X"],
+  ["outside number", "aaz bbz ccz", "(?|(a)|(b)(b))(?<end>z)\\3?", "aX X ccz"],
+  ["scoped flags", "Aa bB", "(?i:(?|(a)|(b))\\1)", "X X"],
+  ["lookahead", "aa bb ab", "(?=(?|(a)|(b)))\\1\\1", "X X ab"],
+  ["lookbehind", "aax bbx abx", "(?<=(?|(a)|(b)))\\1x", "aX bX abx"],
+  ["atomic", "ab ac bc", "(?>(?|(a)|(ab)))c", "ab X bc"],
+  ["repeated", "ababb bba aab", "(?|(a)|(b))+\\1", "X Xa Xb"],
+  ["empty branch", "a b", "(?|()|(a))\\1", "XaX XbX"],
+  ["empty group", "ab", "(?|)", "XaXbX"],
+  ["ordinary nested", "aa bb cc dd", "(?|((a)|(b))|((c)|(d)))\\1", "X X X X"],
+  ["flag propagation", "a B b A", "(?|(?i)(a)|(b))", "X X X X"]
+])("matches native branch reset %s", (_label, source, pattern, expected) => {
+  expect(calculate(expression([source!, pattern!, "X"]))).toEqual({ kind: "string", value: expected });
+});
+it("preserves raw byte results through branch reset groups", () => {
+  expect(calculate(expression(["é", "(?|(\\xC3)|(a))(?(1)|.)", "X"])))
+    .toEqual({ kind: "byte-string", value: "58a9" });
+});
+it.each(["(?|(a)|(b))\\2", "(?|(a)|(b))\\g{-2}"])
+  ("rejects nonexistent capture references after branch reset %s", pattern => {
+    expect(() => calculate(expression(["ab", pattern, "X"]))).toThrow("PERL_SED");
+  });
+
 it.each(perlSedLookbehindCases)("matches independent fixed lookbehind $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });

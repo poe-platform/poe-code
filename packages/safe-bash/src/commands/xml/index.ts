@@ -137,11 +137,10 @@ export function xmllintCommands(options: XmlCommandsOptions = {}): VirtualShellP
 }
 export function createXmlCommands(options: XmlCommandsOptions = {}): readonly CommandDefinition[] {
   const limits = resolveXmlQueryLimits(options.limits);
+  const xqDef: CommandDefinition = { name: "xq", execute: (context) => executeXq(context, limits) };
+  if (options.limits === undefined) builtInDirectContextExecutors.add(xqDef.execute);
   const xmllintDef = createXmllintCommand(options);
-  return [
-    { name: "xq", execute: (context) => executeXq(context, limits) },
-    xmllintDef
-  ];
+  return [xqDef, xmllintDef];
 }
 export function xmlCommands(options: XmlCommandsOptions = {}): VirtualShellPlugin {
   const definitions = createXmlCommands(options);
@@ -449,4 +448,99 @@ export function evalSyncXmllint(
   if (scalar === "string") return syncNodeStringValue(contexts[0]) + "\n";
   if (contexts.length === 0) return undefined;
   return contexts.map(serializeXmlNodeSync).join("\n") + "\n";
+}
+
+function xmlElementToJsonSync(node: XmlElement): unknown {
+  const result: Record<string, unknown> = Object.create(null);
+  const names = new Set<string>();
+  for (const attribute of node.attributes) {
+    result["@" + attribute.name] = attribute.value;
+  }
+  const text: string[] = [];
+  for (const child of node.content) {
+    if (child.kind === "text" || child.kind === "cdata") text.push(child.text);
+    else if (child.kind === "element") {
+      const value = xmlElementToJsonSync(child);
+      if (!names.has(child.name)) {
+        result[child.name] = value;
+        names.add(child.name);
+      } else {
+        const previous = result[child.name];
+        if (Array.isArray(previous)) previous.push(value);
+        else result[child.name] = [previous, value];
+      }
+    }
+  }
+  const value = text.join("").trim();
+  if (Object.keys(result).length === 0) return value || null;
+  if (value) result["#text"] = value;
+  return result;
+}
+
+let lastXqXmlText: string | undefined;
+let lastXqJsonStr: string | undefined;
+
+export function evalSyncXq(
+  inBytes: Uint8Array,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): { jsonStr: string; jqArgs: string[] } | undefined {
+  if (inBytes.byteLength > 8192 || opArgs.length > 5) return undefined;
+  let rawOut = false;
+  let compactOut = false;
+  let ended = false;
+  const positional: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (!ended && a === "--") { ended = true; continue; }
+    if (!ended && a.startsWith("-") && a !== "-") {
+      if (a === "-r" || a === "--raw-output") { rawOut = true; continue; }
+      if (a === "-c" || a === "--compact-output") { compactOut = true; continue; }
+      if (a === "-rc" || a === "-cr") { rawOut = true; compactOut = true; continue; }
+      return undefined;
+    }
+    positional.push(a);
+  }
+  const filter = positional[0] ?? ".";
+  const fileArg = positional[1];
+  if (positional.length > 2) return undefined;
+  let srcBytes = inBytes;
+  if (fileArg !== undefined && fileArg !== "-") {
+    if (!readFileSync) return undefined;
+    const fBytes = readFileSync(fileArg);
+    if (!fBytes || fBytes.byteLength > 8192) return undefined;
+    srcBytes = fBytes;
+  }
+  let xmlText: string;
+  try {
+    xmlText = syncXmlDecoder.decode(srcBytes);
+  } catch {
+    return undefined;
+  }
+  let jsonStr: string;
+  if (xmlText === lastXqXmlText && lastXqJsonStr !== undefined) {
+    jsonStr = lastXqJsonStr;
+  } else {
+    let root: XmlElement;
+    try {
+      const limits = resolveXmlQueryLimits(undefined);
+      const parser = parseXmlSteps(xmlText, { ...limits, maxContentNodes: limits.maxNodes, expectedEncoding: "UTF-8" });
+      let step = parser.next();
+      while (!step.done) step = parser.next();
+      root = step.value;
+    } catch {
+      return undefined;
+    }
+    const rootObj: Record<string, unknown> = Object.create(null);
+    rootObj[root.name] = xmlElementToJsonSync(root);
+    jsonStr = JSON.stringify(rootObj);
+    lastXqXmlText = xmlText;
+    lastXqJsonStr = jsonStr;
+  }
+  const jqArgs: string[] = [];
+  if (rawOut && compactOut) jqArgs.push("-rc");
+  else if (rawOut) jqArgs.push("-r");
+  else if (compactOut) jqArgs.push("-c");
+  jqArgs.push(filter);
+  return { jsonStr, jqArgs };
 }

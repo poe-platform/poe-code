@@ -330,3 +330,48 @@ test("Wave 131: sync yes | head pipelines and xmllint --xpath substitutions", as
   assert.equal(r2.exitCode, 0);
   assert.equal(r2.stdout, "localhost:2:80\n");
 });
+
+test("Wave 132: sync xq and yq substitutions and pipelines", async () => {
+  const { createXmlCommands } = await import("../../src/commands/xml/index.js");
+  const { createYqCommands } = await import("../../src/commands/yq/index.js");
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp", { recursive: true });
+  await fs.writeFile(
+    "/tmp/pom.xml",
+    new TextEncoder().encode("<project id=\"p1\"><name>safe-bash</name><version>1.2.0</version><deps><dep>a</dep><dep>b</dep></deps></project>\n")
+  );
+  await fs.writeFile(
+    "/tmp/cfg.yaml",
+    new TextEncoder().encode("app:\n  name: safe-bash\n  port: 8080\n  enabled: true\n")
+  );
+  await fs.writeFile(
+    "/tmp/cfg.toml",
+    new TextEncoder().encode("[server]\nhost = \"127.0.0.1\"\nport = 9000\n")
+  );
+  const commands = new CommandRegistry([
+    ...createStandardCommands(),
+    ...createXmlCommands(),
+    ...createYqCommands(),
+  ]);
+  const shell = new Shell({ fs, commands });
+
+  const r1 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(xq -r ".project.name" /tmp/pom.xml):$(cat /tmp/pom.xml | xq -r ".project.deps.dep[1]"):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "safe-bash:b:80\n");
+
+  const r2 = await shell.exec(`
+    out=""
+    for i in $(seq 1 80); do
+      out="$(yq ".app.name" /tmp/cfg.yaml):$(yq -p toml ".server.port" < /tmp/cfg.toml):$(cat /tmp/cfg.yaml | yq -o json -r ".app.port"):$i"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "safe-bash:9000:8080:80\n");
+});

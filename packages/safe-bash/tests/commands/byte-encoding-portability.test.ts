@@ -61,3 +61,13 @@ test("synchronous stat rendering works without the global Buffer", async () => {
     assert.equal(evalSyncStat(["--printf=%n:%s", "/é"], "/", undefined, () => stat), "/é:3");
   } finally { Object.defineProperty(globalThis, "Buffer", descriptor); }
 });
+
+test("UTF-8 writes preserve whole characters for case-insensitive encoding names", () => {
+  for (const encoding of ["utf8", "UTF8", "UTF-8"]) {
+    const expected = Buffer.alloc(1);
+    const count = expected.write("é", 0, encoding as BufferEncoding);
+    const actual = new Uint8Array(1);
+    assert.equal(writeEncodedBytes(actual, "é", 0, encoding), count, encoding);
+    assert.deepEqual(actual, new Uint8Array(expected));
+  }
+});

@@ -20,6 +20,7 @@ import {
   type PdfRgbColor,
 } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
+import { PdfError } from "../errors.js";
 import { parseCharacterCMap, readCMapCharacters, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "../fonts/truetype.js";
 import { parseContentStream } from "./parser.js";
@@ -100,7 +101,13 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
     let cmap: ParsedToUnicodeCMap | undefined;
     const toUniNode = doc.resolve(dictGet(fObj, "ToUnicode"));
     if (toUniNode?.kind === "stream") {
-      cmap = parseToUnicodeCMap(doc.decodeStream(toUniNode));
+      try {
+        cmap = parseToUnicodeCMap(doc.decodeStream(toUniNode));
+      } catch (error) {
+        if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
+        // PDF.js readToUnicode ignores a damaged optional mapping: the font's
+        // character-code/CID mapping can still supply its visible outlines.
+      }
     }
 
     const encNode = doc.resolve(dictGet(fObj, "Encoding"));

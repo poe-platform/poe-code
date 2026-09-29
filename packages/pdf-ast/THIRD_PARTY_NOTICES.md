@@ -304,3 +304,10 @@ for inline masks, rotation, inverted Decode, alpha, one-pixel masks, and tiling.
 The source fixture and hashes are recorded in `src/fixtures/SOURCES.md`.
 The one-pixel gradient expectation is independently verified by Poppler and
 MuPDF; PDF.js's `paintSolidColorImageMask` optimization loses that pattern.
+
+Malformed dictionary-key recovery follows PDF.js `Parser.getObj`, skipping
+stray non-Name tokens only in local repair mode. Damaged optional ToUnicode
+streams follow `PartialEvaluator.readToUnicode` error recovery while retaining
+local resource-limit errors. `dictionary-recovery.test.ts` ports the original
+`issue11549` equality fixture and covers ordinary/compressed dictionaries,
+trailer metadata, strict mode, and explicit limits.

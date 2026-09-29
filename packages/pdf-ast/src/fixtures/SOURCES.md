@@ -191,3 +191,11 @@ revision `91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). Its upstream
 equality test paints a CCITT stencil with an axial shading pattern. Manifest MD5:
 `0bc5329623fd554174c5e7653f904e28`. SHA-256:
 `2ed729efdc6a2f4454b9a468988798c556a88fa9b47507f6d3e357e4963df661`.
+
+`pdfjs-issue11549_reduced.pdf` is the unchanged PDF.js equality fixture
+`test/pdfs/issue11549_reduced.pdf` at the same revision (Apache-2.0). Font
+dictionaries contain stray `MS` tokens after unescaped names; its ToUnicode
+stream is also truncated. PDF.js ignores the broken map and renders embedded
+glyphs, but cannot extract the displayed English text. Manifest MD5:
+`a1ea636f413e02e10dbdf379ab4a99ae`. SHA-256:
+`13ba78671c0ceaaffb10878e6c153c18924db5afcd54cc7f038eb85fb10e28b1`.

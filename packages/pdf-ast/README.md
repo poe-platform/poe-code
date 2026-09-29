@@ -77,6 +77,8 @@ Bitmap, PNG, and SVG rendering honor page rotation; pixel crops use displayed
 coordinates after rotation.
 Glyph outlines render even when text has no usable Unicode mapping. Unicode fallback covers characters present
 in the bundled standard, Symbol, and Dingbats fonts; embed a font for other scripts.
+A damaged optional ToUnicode stream does not prevent rendering embedded glyphs;
+text extraction may be unavailable for those glyphs.
 
 JPEG decoding uses PDF.js for baseline/progressive, grayscale, RGB, CMYK, and
 YCCK images, with PDF `/Decode` and `/ColorTransform` handling.

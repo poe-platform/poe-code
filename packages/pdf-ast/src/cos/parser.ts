@@ -156,7 +156,7 @@ export class ParsedCosDocument {
   }
 }
 
-function parseNodeFromLexer(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: number, recoverEmptyObject = false): PdfCosNode | undefined {
+function parseNodeFromLexer(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: number, repair = false): PdfCosNode | undefined {
   type Container =
     | { kind: "array"; start: number; items: PdfCosNode[] }
     | { kind: "dict"; start: number; entries: PdfDictEntry[]; key?: PdfDictEntry["key"] };
@@ -170,7 +170,7 @@ function parseNodeFromLexer(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: nu
     }
     // Eager COS materialization also visits unused dummy objects that PDF.js
     // need not fetch. Preserve them as null only during document recovery.
-    if (!parent && recoverEmptyObject && tok.kind === "keyword" && tok.value === "endobj") {
+    if (!parent && repair && tok.kind === "keyword" && tok.value === "endobj") {
       return { kind: "null", span: tok.span };
     }
     let node: PdfCosNode;
@@ -185,6 +185,9 @@ function parseNodeFromLexer(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: nu
         parent.key = { kind: "name", rawBytes: tok.rawBytes, decoded: tok.decoded, span: tok.span };
         continue;
       } else {
+        // PDF.js Parser.getObj advances past stray non-Name keys rather than
+        // discarding the dictionary (e.g. unescaped font-name spaces).
+        if (repair) continue;
         throw new PdfError("E_PARSE", `Expected dictionary key /Name, got ${tok.kind}`);
       }
     } else {
@@ -372,7 +375,7 @@ function parseHeaderVersion(bytes: Uint8Array): string {
   return head.slice(idx + 5, idx + 8);
 }
 
-function parseObjectAtOffset(bytes: Uint8Array, offset: number, maxRecursionDepth: number, recoverEmptyObject = false): PdfIndirectObject {
+function parseObjectAtOffset(bytes: Uint8Array, offset: number, maxRecursionDepth: number, repair = false): PdfIndirectObject {
   const lexer = new CosByteLexer(bytes, offset);
   const objNumTok = lexer.nextToken();
   const genNumTok = lexer.nextToken();
@@ -385,7 +388,7 @@ function parseObjectAtOffset(bytes: Uint8Array, offset: number, maxRecursionDept
   ) {
     throw new PdfError("E_PARSE", `Malformed indirect object header at byte offset ${offset}`);
   }
-  const value = parseNodeFromLexer(lexer, bytes, maxRecursionDepth, recoverEmptyObject);
+  const value = parseNodeFromLexer(lexer, bytes, maxRecursionDepth, repair);
   if (!value) {
     throw new PdfError("E_PARSE", `Empty indirect object ${objNumTok.value} at offset ${offset}`);
   }
@@ -593,7 +596,7 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxRecursi
         try {
           const token = lexer.nextToken();
           if (token?.kind === "keyword" && token.value === "trailer") {
-            const trailer = parseNodeFromLexer(lexer, bytes, maxRecursionDepth);
+            const trailer = parseNodeFromLexer(lexer, bytes, maxRecursionDepth, true);
             if (trailer?.kind === "dict") trailers.push(trailer);
             pos = lexer.offset;
             continue;
@@ -659,7 +662,7 @@ function unpackRecoveredObjects(objects: Map<number, PdfIndirectObject>, maxObje
       const t = dictGet(obj.value.dict, "Type");
       if (t?.kind === "name" && t.decoded === "ObjStm") {
         try {
-          for (const [unpackedNum, unpackedVal] of unpackObjectStream(obj.value, maxDecompressedBytes, maxRecursionDepth).entries()) {
+          for (const [unpackedNum, unpackedVal] of unpackObjectStream(obj.value, maxDecompressedBytes, maxRecursionDepth, true).entries()) {
             if (!objects.has(unpackedNum)) {
               objects.set(unpackedNum, {
                 objectNumber: unpackedNum,
@@ -703,7 +706,8 @@ function recoveredReferences(objects: Map<number, PdfIndirectObject>): { rootRef
 function unpackObjectStream(
   streamObj: PdfCosStream,
   maxDecompressedBytes: number,
-  maxRecursionDepth: number
+  maxRecursionDepth: number,
+  repair = false
 ): Map<number, PdfCosNode> {
   const nNode = dictGet(streamObj.dict, "N");
   const firstNode = dictGet(streamObj.dict, "First");
@@ -724,7 +728,7 @@ function unpackObjectStream(
   for (const pair of pairs) {
     try {
       const valLexer = new CosByteLexer(decoded, firstNode.value + pair.relativeOffset);
-      const node = parseNodeFromLexer(valLexer, decoded, maxRecursionDepth);
+      const node = parseNodeFromLexer(valLexer, decoded, maxRecursionDepth, repair);
       if (node) {
         result.set(pair.objectNumber, node);
       }
@@ -924,7 +928,7 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
       if (!unpacked) {
         const stmObj = objects.get(entry.objectStreamNumber)?.value;
         if (stmObj?.kind === "stream") {
-          unpacked = unpackObjectStream(stmObj, maxDecompressedBytes, maxRecursionDepth);
+          unpacked = unpackObjectStream(stmObj, maxDecompressedBytes, maxRecursionDepth, recovery === "repair");
           objStmCache.set(entry.objectStreamNumber, unpacked);
         }
       }

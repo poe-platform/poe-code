@@ -1,52 +1,8 @@
-import { builtInDirectContextExecutors } from "../internal.js";
-import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
-import {
-  createDos2unixCommand as createRawDos2unixCommand,
-  createUnix2dosCommand as createRawUnix2dosCommand,
-  createDos2unixCommands as createRawDos2unixCommands,
-  type LineEndingCommandsOptions,
-} from "safe-bash-command-dos2unix";
-
 export * from "safe-bash-command-dos2unix";
-
-export function createDos2unixCommand(options: LineEndingCommandsOptions = {}): CommandDefinition {
-  const def = createRawDos2unixCommand(options);
-  if (options.limits === undefined) builtInDirectContextExecutors.add(def.execute);
-  return def;
-}
-
-export function createUnix2dosCommand(options: LineEndingCommandsOptions = {}): CommandDefinition {
-  const def = createRawUnix2dosCommand(options);
-  if (options.limits === undefined) builtInDirectContextExecutors.add(def.execute);
-  return def;
-}
-
-export function createDos2unixCommands(options: LineEndingCommandsOptions = {}): readonly CommandDefinition[] {
-  const defs = createRawDos2unixCommands(options);
-  if (options.limits === undefined) {
-    for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
-  }
-  return defs;
-}
-
-export const createLineEndingCommands = createDos2unixCommands;
-
-export function dos2unixCommands(options: LineEndingCommandsOptions = {}): VirtualShellPlugin {
-  const commands = createDos2unixCommands(options);
-  return {
-    name: "dos2unix-commands",
-    setup(host) {
-      if (!options.replace) {
-        for (const command of commands) {
-          if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
-        }
-      }
-      for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
-    },
-  };
-}
-
-export const lineEndingCommands = dos2unixCommands;
+export {
+  createDos2unixCommand, createUnix2dosCommand, createDos2unixCommands, dos2unixCommands,
+  createDos2unixCommands as createLineEndingCommands, dos2unixCommands as lineEndingCommands,
+} from "safe-bash-command-dos2unix";
 
 export function evalSyncLineEndings(
   cmdName: "dos2unix" | "unix2dos",

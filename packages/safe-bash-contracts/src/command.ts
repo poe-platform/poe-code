@@ -306,6 +306,8 @@ export type AsyncCommandHandler = (context: CommandContext) => Promise<CommandRe
 
 export const commandRuntimeIdentity: object = Object.freeze({});
 
+export { builtInDirectContextExecutors } from "./runtime-control.js";
+
 export interface CommandDefinition {
   readonly name: string;
   readonly runtimeIdentity?: object;

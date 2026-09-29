@@ -1,4 +1,5 @@
 import {
+  builtInDirectContextExecutors,
   commandRuntimeIdentity,
   getCommandArguments,
   type CommandContext,
@@ -378,7 +379,7 @@ export async function htmlq(
 }
 export function createHtmlqCommand(options: HtmlqCommandOptions = {}): CommandDefinition {
   const configuration = Object.freeze({ limits: admittedLimits(options.limits) });
-  return Object.freeze({
+  const command = Object.freeze({
     name: "htmlq",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Select and project inert HTML byte streams",
@@ -386,6 +387,8 @@ export function createHtmlqCommand(options: HtmlqCommandOptions = {}): CommandDe
       return htmlq(context, configuration);
     }
   });
+  if (options.limits === undefined) builtInDirectContextExecutors.add(command.execute);
+  return command;
 }
 export const htmlqCommand = createHtmlqCommand();
 export function htmlqCommands(options: HtmlqCommandsOptions = {}): VirtualShellPlugin {

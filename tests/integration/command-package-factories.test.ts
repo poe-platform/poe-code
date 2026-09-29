@@ -1,5 +1,7 @@
 import { expect, it } from "vitest";
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
+import { builtInDirectContextExecutors } from "../../packages/safe-bash/src/commands/internal.js";
+import * as dos2unix from "safe-bash-command-dos2unix";
 import * as csvkit from "safe-bash-command-csvkit";
 import * as ssconvert from "safe-bash-command-ssconvert";
 import * as csvcut from "safe-bash-command-csvcut";
@@ -7,7 +9,6 @@ import * as csvgrep from "safe-bash-command-csvgrep";
 import * as diff3 from "safe-bash-command-diff3";
 import * as htmlq from "safe-bash-command-htmlq";
 import * as publicHtmlq from "../../packages/safe-bash/src/commands/htmlq/index.js";
-import { builtInDirectContextExecutors } from "../../packages/safe-bash/src/commands/internal.js";
 import * as mmdc from "safe-bash-command-mmdc";
 import * as pdftk from "safe-bash-command-pdftk";
 import * as pdftoppm from "safe-bash-command-pdftoppm";
@@ -15,6 +16,30 @@ import * as pdftotext from "safe-bash-command-pdftotext";
 import * as qpdf from "safe-bash-command-qpdf";
 import * as soffice from "safe-bash-command-soffice";
 import * as wkhtmltopdf from "safe-bash-command-wkhtmltopdf";
+
+it("canonical factories preserve direct-context eligibility only for default limits", () => {
+  for (const command of [...htmlq.createHtmlqCommands(), ...dos2unix.createDos2unixCommands()]) {
+    expect(builtInDirectContextExecutors.has(command.execute)).toBe(true);
+  }
+  for (const command of [
+    ...htmlq.createHtmlqCommands({ limits: { inputBytes: 1 } }),
+    ...dos2unix.createDos2unixCommands({ limits: { maxInputBytes: 1 } })
+  ]) {
+    expect(builtInDirectContextExecutors.has(command.execute)).toBe(false);
+  }
+});
+
+it("line-ending plugins check all duplicate names before registering commands", () => {
+  const registered: string[] = [];
+  const host = { commands: {
+    has: (name: string) => name === "unix2dos",
+    register: (command: CommandDefinition) => registered.push(command.name),
+  } };
+  expect(() => dos2unix.dos2unixCommands().setup(host as Parameters<VirtualShellPlugin["setup"]>[0])).toThrow("already registered");
+  expect(registered).toEqual([]);
+  dos2unix.dos2unixCommands({ replace: true }).setup(host as Parameters<VirtualShellPlugin["setup"]>[0]);
+  expect(registered).toEqual(["dos2unix", "unix2dos"]);
+});
 
 it("csvkit exposes zero-argument command factories and preserves plugin registration", () => {
   const options: csvkit.CsvkitCommandsOptions = {};

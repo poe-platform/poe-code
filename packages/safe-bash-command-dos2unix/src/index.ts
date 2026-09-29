@@ -1,4 +1,4 @@
-import { FsError, outputFailure, type ByteSink, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
+import { builtInDirectContextExecutors, FsError, outputFailure, type ByteSink, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import { Budget, LineEndingError, sameIdentity, settings, type ConversionOptions, type Direction, type LineEndingCommandsOptions } from "safe-bash-line-ending-engine/internal";
 import { Lifecycle, Reader, Writer } from "safe-bash-line-ending-engine/io";
@@ -8,7 +8,7 @@ import { FileInformation } from "safe-bash-line-ending-engine/info";
 
 function definition(direction: Direction, options: LineEndingCommandsOptions): CommandDefinition {
   const limits = settings(options);
-  return { name: direction, description: "Convert DOS and Unix line endings in bounded VFS files or streams", async execute(context) {
+  const command: CommandDefinition = { name: direction, description: "Convert DOS and Unix line endings in bounded VFS files or streams", async execute(context) {
     let life: Lifecycle | undefined;
     const caller = context.signal;
     caller.throwIfAborted();
@@ -221,6 +221,8 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
     if (failure) throw failure.reason;
     return { exitCode: status };
   } };
+  if (options.limits === undefined) builtInDirectContextExecutors.add(command.execute);
+  return command;
 }
 export function createDos2unixCommand(options: LineEndingCommandsOptions = {}): CommandDefinition { return definition("dos2unix", options); }
 export function createUnix2dosCommand(options: LineEndingCommandsOptions = {}): CommandDefinition { return definition("unix2dos", options); }
@@ -232,6 +234,11 @@ export function createDos2unixCommands(options: LineEndingCommandsOptions = {}):
 export function dos2unixCommands(options: LineEndingCommandsOptions = {}): VirtualShellPlugin {
   const commands = createDos2unixCommands(options);
   return { name: "line-ending-commands", setup(host) {
+    if (!options.replace) {
+      for (const command of commands) {
+        if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
+      }
+    }
     for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
   } };
 }

@@ -1,5 +1,3 @@
-import { builtInDirectContextExecutors } from "../internal.js";
-import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   HtmlBudget,
   HtmlError,
@@ -19,11 +17,6 @@ import {
   selectHtml,
   serializeHtml,
   serializeHtmlBytes,
-  createHtmlqCommand as createRawHtmlqCommand,
-  createHtmlqCommands as createRawHtmlqCommands,
-  htmlqCommand as rawHtmlqCommand,
-  type HtmlqCommandOptions,
-  type HtmlqCommandsOptions,
 } from "safe-bash-command-htmlq";
 
 export {
@@ -56,34 +49,7 @@ export type {
   HtmlErrorCode,
 } from "safe-bash-command-htmlq";
 
-builtInDirectContextExecutors.add(rawHtmlqCommand.execute);
-
-export function createHtmlqCommand(options?: HtmlqCommandOptions): CommandDefinition {
-  const def = createRawHtmlqCommand(options);
-  if (options?.limits === undefined) builtInDirectContextExecutors.add(def.execute);
-  return def;
-}
-
-export const htmlqCommand: CommandDefinition = rawHtmlqCommand;
-
-export function createHtmlqCommands(options?: HtmlqCommandsOptions): readonly CommandDefinition[] {
-  const defs = createRawHtmlqCommands(options);
-  if (options?.limits === undefined) {
-    for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
-  }
-  return defs;
-}
-
-export function htmlqCommands(options: HtmlqCommandsOptions = {}): VirtualShellPlugin {
-  const commands = createHtmlqCommands(options);
-  const replace = options.replace ?? false;
-  return {
-    name: "htmlq",
-    setup(host) {
-      for (const command of commands) host.commands.register(command, { replace });
-    },
-  };
-}
+export { createHtmlqCommand, createHtmlqCommands, htmlqCommand, htmlqCommands } from "safe-bash-command-htmlq";
 
 let _syncAbortSignal: AbortSignal | undefined;
 const syncAbortSignal = (): AbortSignal => (_syncAbortSignal ??= new AbortController().signal);

@@ -3062,8 +3062,8 @@
           "implementation": "Writer emits continued NAME records without replacing the name or its consumers. Reader shares bounded token reassembly with FORMULA, then decodes auxiliary payloads. Aliases and declaration scopes remain present in the portable model.",
           "validation": "Eight original large-name failures repaired. Final 1735 tests in 69 BIFF files, package lint/source/test/consumer types and selected workspace build pass. The malformed-name control now expects the precise missing-CONTINUE diagnostic.",
           "publicQualification": "Four compiled SDK/command BIFF7/8 outputs preserve global/local names and aliases; recalculation gives 6000/1024, and editing their definitions yields 7/9. Calc and Gnumeric replace stale 999 caches with 6000/1024. Calc retains named cell formulas, four definitions and all 6000 Unicode characters.",
-          "nativeScopeLimit": "Calc preserves BIFF8 name scopes, but BIFF7 local names become global. Source xiname.cxx:76-85 reads both NAME scope fields; product BIFF7 writes only offset 6, leaving the offset-8 locality field zero. Independently tracked as hey-boss #4075; not a passing scope profile.",
-          "remaining": "BIFF7 native scope (#4075), Gnumeric ARRAY-group readback, Gnumeric continued Unicode auxiliary strings, named/computed INDEX spans and wider name qualification remain open. No issue/family closure."
+          "nativeScopeLimit": "The initial Calc BIFF7 scope failure was repaired by the #4075 worker in b58fabd556. Offset 8 now carries the one-based worksheet scope and BIFF7 offset 6 the zero-based Calc sheet index; import preserves legacy offset-6-only exports through EXTERNSHEET fallback. Gnumeric interprets that legacy field differently and is not a passing native scope profile for the Calc-compatible encoding.",
+          "remaining": "Gnumeric BIFF7 scope qualification, Gnumeric ARRAY-group readback, Gnumeric continued Unicode auxiliary strings, named/computed INDEX spans and wider name qualification remain open. No issue/family closure."
         },
         "groups": {
           "implementation": "ARRAY-group export continues at token and complete auxiliary-element boundaries. Group import uses the same bounded token reassembly as scalar FORMULA and NAME while retaining the original group range and anchor.",
@@ -3071,7 +3071,7 @@
           "validation": "Four original oversized-group failures repaired. Final 1739 tests in 69 BIFF files pass, with package lint/source/test/consumer types and selected workspace build.",
           "publicQualification": "Four compiled SDK/command BIFF7/8 outputs preserve two live groups (A1:A2, A3:A4). Both Calc 26.8.0.3 readbacks independently replace four stale 999 caches with 6000/6000/1024/1024, retain array formula types and ranges, and preserve all Unicode characters.",
           "gnumericLimit": "Gnumeric 1.12.61 warns at excel_formula_shared that the first physical record is shorter than the declared token bytes. It retains two stale 999 caches and returns two #ShortStack! values. This is a failed Gnumeric group profile, not successful native qualification.",
-          "remaining": "Gnumeric continued-group interoperability, Gnumeric continued Unicode auxiliary strings, BIFF7 native name scope (#4075), named/computed INDEX spans and broader profiles remain open. No issue/family closure."
+          "remaining": "Gnumeric continued-group interoperability, Gnumeric continued Unicode auxiliary strings, Gnumeric BIFF7 scope qualification, named/computed INDEX spans and broader profiles remain open. No issue/family closure."
         },
         "longArrayStrings": {
           "source": "LibreOffice bce0998a XclImpStream::ReadRawUniString follows physical continuations using a fresh character-width flag. The existing BiffStrings reader implements that convention. Gnumeric auto-concatenation does not remove those flags from auxiliary strings.",
@@ -3079,7 +3079,15 @@
           "validation": "Three original scalar/name/group failures repaired; an additional failing boundary control caught unnecessary splitting of short strings and was repaired before delivery. All 1742 tests in 69 BIFF files, package lint/source/test/consumer types and selected workspace build pass.",
           "publicQualification": "Four compiled SDK/command long/control outputs pass. Calc 26.8.0.3 replaces stale caches with 18000/18000/18000/after, preserves the name and array-group identity, and preserves all 9000 Unicode pairs in each long string. Both Calc and Gnumeric 1.12.61 retain the short-string control result 256.",
           "gnumericLimit": "Long profile fails: Gnumeric emits malformed-array warnings, returns #ShortStack! for the group and 0 for the following after element. Its first two LEN results of 18000 do not establish text fidelity and are not counted as successful long-string qualification.",
-          "remaining": "Gnumeric continued Unicode strings/groups, BIFF7 native name scope (#4075), named/computed INDEX spans and wider format qualification remain open. No issue/family closure."
+          "remaining": "Gnumeric continued Unicode strings/groups, Gnumeric BIFF7 scope qualification, named/computed INDEX spans and wider format qualification remain open. No issue/family closure."
+        },
+        "scopeDelivery": {
+          "commit": "b58fabd556f49fc22c6ff53b658aa113de03918f",
+          "issue": 4075,
+          "validation": "Worker reports all 1762 tests in 70 BIFF files, focused ESLint and source/test TypeScript checks passing. Reviewed the delivered reader/writer changes; all prior continuation fixes remain.",
+          "native": "Worker independently qualified Calc 26.8.0.3 BIFF7/8 global/First/Last duplicate names and local array aliases: 22/33/11/14/26/10. Manual source/profile evidence is in docs/plans/ssconvert-biff7-name-scope-qa.md.",
+          "related": "4c264d499eda94928133f5c1b2ee96f4faa84839 also repairs cached STRING lookahead after continued groups and continued EXTERNNAME import; authored and delivered by the other worker.",
+          "remaining": "Gnumeric scope interpretation and broader family/native qualification remain open; the scoped #4075 issue is closed by its owner."
         }
       },
       "namedSpanInvestigation": {
@@ -3230,7 +3238,9 @@
       "e6a0019c91d7cc16a33bc8487ab98493211a172c",
       "5bb8e57c7919fa3203cf69021fc90e7fa2d4da98",
       "460b6547a0828fe90621e0612bc8b91f02ed7074",
-      "0187df3739530d7f377b7a4c9c6000d25378231b"
+      "0187df3739530d7f377b7a4c9c6000d25378231b",
+      "4c264d499eda94928133f5c1b2ee96f4faa84839",
+      "b58fabd556f49fc22c6ff53b658aa113de03918f"
     ],
     "verifiedPublication": {
       "version": "17.0.35",
@@ -3410,8 +3420,8 @@
       "scope": "Five atomic repairs: scalar FORMULA, auxiliary array elements, NAME, ARRAY groups and oversized BIFF8 array strings. Each push verified directly against remote main.",
       "checks": "Final 69-file BIFF cohort: 1742 tests. Maintained package lint, source/test/consumer types and selected workspace build pass. Native profiles and failures are recorded in reference.biffReferenceOperators.continuation.",
       "cleanup": "Generated workbooks, Calc profiles and logs removed after compact receipts; no generated binary committed.",
-      "release": "Pinned run 36503801565 at 5bb8e57c79 has passed build/checks/audit; unit/Bash checks are running. It does not include the later ARRAY-group and oversized-string fixes. #4071 tracks the earlier native discovery hang; no containing publication verified.",
-      "remaining": "All 19 families stay open. BIFF7 native NAME scope is #4075 and owned by another fleet machine; Gnumeric INDEX/continued-group/long-auxiliary-string interoperability and other family requirements remain open."
+      "release": "Pinned run 36503801565 at 5bb8e57c79 has passed build, checks, audit, cached unit and all four Bash shards; fresh native unit remains running. It excludes later ARRAY-group/oversized-string/scope fixes. The #4071 investigator confirms the earlier discovery tests passed and identifies unbounded native-process cleanup; a repair is under verification. No containing publication verified.",
+      "remaining": "All 19 families stay open. Scoped BIFF7 Calc NAME scope issue #4075 is delivered in b58fabd556; Gnumeric scope/INDEX/continued-group/long-auxiliary-string interoperability and other family requirements remain open."
     }
   },
   "history": {

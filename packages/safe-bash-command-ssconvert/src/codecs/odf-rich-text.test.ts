@@ -75,3 +75,42 @@ it("rejects a rich boundary inside a UTF-8 character before returning an ODF arc
     value: { kind: "string", value: "😀" }, richText: [{ start: 1, end: 4, attributes: { bold: 1 } }] }] }] };
   await expect(createOdfWriter("extended")(book, [], context)).rejects.toMatchObject({ code: "invalid-request" });
 });
+
+it("imports script positions and explicit baseline resets through inherited text styles", async () => {
+  const scriptStyles = '<style:style style:name="Super" style:family="text"><style:text-properties style:text-position="super 83%"/></style:style>' +
+    '<style:style style:name="Sub" style:family="text" style:parent-style-name="Super"><style:text-properties style:text-position="sub&#9;83%"/></style:style>' +
+    '<style:style style:name="Baseline" style:family="text" style:parent-style-name="Sub"><style:text-properties style:text-position="0% 100%"/></style:style>';
+  const bytes = await fixture({ mimetype: "application/vnd.oasis.opendocument.spreadsheet", "content.xml": content(
+    '<table:table table:name="S"><table:table-row><table:table-cell office:value-type="string"><text:p>' +
+    '<text:span text:style-name="Super">x<text:span text:style-name="Sub">y<text:span text:style-name="Baseline">z</text:span></text:span></text:span>' +
+    '</text:p></table:table-cell></table:table-row></table:table>', scriptStyles) });
+  expect((await readOdf(bytes, context)).sheets[0]!.cells[0]!.richText).toEqual([
+    { start: 0, end: 1, attributes: { subscript: 0, superscript: 1 } },
+    { start: 1, end: 2, attributes: { subscript: 1, superscript: 0 } },
+    { start: 2, end: 3, attributes: { subscript: 0, superscript: 0 } }
+  ]);
+});
+
+it("does not treat an empty percentage as a baseline reset", async () => {
+  const bytes = await fixture({ mimetype: "application/vnd.oasis.opendocument.spreadsheet", "content.xml": content(
+    '<table:table table:name="S"><table:table-row><table:table-cell office:value-type="string"><text:p><text:span text:style-name="Invalid">x</text:span></text:p></table:table-cell></table:table-row></table:table>',
+    '<style:style style:name="Invalid" style:family="text"><style:text-properties style:text-position="% 100%"/></style:style>') });
+  expect((await readOdf(bytes, context)).sheets[0]!.cells[0]!.richText).toBeUndefined();
+});
+
+for (const profile of ["strict", "extended"] as const) {
+  it(`exports subscript, superscript and explicit baseline in ${profile} ODF`, async () => {
+    const richText = [
+      { start: 0, end: 1, attributes: { subscript: 1, superscript: 0 } },
+      { start: 1, end: 2, attributes: { subscript: 0, superscript: 1 } },
+      { start: 2, end: 3, attributes: { subscript: 0, superscript: 0 } }
+    ];
+    const book: Workbook = { sheets: [{ id: "s", name: "S", cells: [{ row: 0, column: 0,
+      value: { kind: "string", value: "abc" }, richText }] }] };
+    const bytes = await createOdfWriter(profile)(book, [], context);
+    const output = (await unpackOdf(bytes)).parts.get("content.xml")!;
+    for (const position of ["sub 83%", "super 83%", "0% 100%"])
+      expect(output).toContain(`style:text-position="${position}"`);
+    expect((await readOdf(bytes, context)).sheets[0]!.cells[0]!.richText).toEqual(richText);
+  });
+}

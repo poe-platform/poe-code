@@ -55,6 +55,16 @@ export function createOdfTextReader(roots: readonly XmlElement[], charge: (amoun
         const bold = attribute(p, "font-weight", "fo"); if (bold !== undefined) result.bold = bold === "bold" || Number(bold) >= 600 ? 1 : 0;
         const italic = attribute(p, "font-style", "fo"); if (italic !== undefined) result.italic = ["italic", "oblique"].includes(italic) ? 1 : 0;
         const strike = attribute(p, "text-line-through-style", "style"); if (strike !== undefined) result.strikethrough = strike === "none" ? 0 : 1;
+        const position = attribute(p, "text-position", "style");
+        if (position !== undefined) {
+          charge(position.length);
+          let token = "";
+          for (const character of position.trim()) { if (" \t\r\n".includes(character)) break; token += character; }
+          if (token === "sub" || token === "super" || token.length > 1 && token.endsWith("%") && Number(token.slice(0, -1)) === 0) {
+            result.subscript = token === "sub" ? 1 : 0;
+            result.superscript = token === "super" ? 1 : 0;
+          }
+        }
         const underline = attribute(p, "text-underline-style", "style"), type = attribute(p, "text-underline-type", "style");
         if (underline !== undefined || type === "none") {
           const double = type === "double" || attribute(p, "text-underline-width", "style") === "bold";
@@ -116,6 +126,9 @@ export function writeOdfRichText(value: string, runs: readonly RichTextRun[], xm
     if (a.bold !== undefined) properties["fo:font-weight"] = Number(a.bold) ? "bold" : "normal";
     if (a.italic !== undefined) properties["fo:font-style"] = Number(a.italic) ? "italic" : "normal";
     if (a.strikethrough !== undefined) properties["style:text-line-through-style"] = Number(a.strikethrough) ? "solid" : "none";
+    // Gnumeric's rich text styles use 83% for automatic sub/superscript.
+    if (a.subscript !== undefined || a.superscript !== undefined)
+      properties["style:text-position"] = Number(a.subscript) ? "sub 83%" : Number(a.superscript) ? "super 83%" : "0% 100%";
     if (typeof a.color === "string") properties["fo:color"] = "#" + a.color.split("x").join("");
     if (typeof a.underline === "string") {
       const low = ["low", "singleAccounting", "doubleAccounting"].includes(a.underline);

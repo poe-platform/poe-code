@@ -22,11 +22,18 @@ export function createPandocCommands(options: PandocCommandsOptions = {}): reado
 }
 
 export function pandocCommands(options: PandocCommandsOptions = {}): VirtualShellPlugin {
-  const commands = createPandocCommands(options);
+  let checkCommand: ((name: string) => boolean) | undefined;
+  const commands = [createPandocCommand(options, (name) => checkCommand?.(name) ?? false)];
   const replace = options.replace ?? false;
   return {
-    name: "pandoc",
+    name: "pandoc-commands",
     setup(host) {
+      checkCommand = (name) => host.commands.has(name);
+      if (!replace) {
+        for (const command of commands) {
+          if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
+        }
+      }
       for (const command of commands) host.commands.register(command, { replace });
     },
   };

@@ -4202,6 +4202,16 @@
       "releaseTestRepairs": "Pinned CI cached units exposed a one-second playground readiness race; filesystem replies now trigger the sentinel check, and cleanup awaits the running command on failure.53 session/execution tests pass. Bash4 exposed three remapped compression exports in29 close-probe cases; derive bundle routes from package exports while preserving all canonical source-contract subpaths.33 close-probe cases pass after repairing an intermediate mixed-runtime alias. Immutable xargs dirname input fixes a current prefer-const error. Each repair was committed and pushed separately."
     }
   },
+  "releaseContinuation20260929": {
+    "verifiedRemoteMain": ["494f5ea7ef", "8ad1f5b520", "f7ff7d472a", "e669cd7856", "c36f308b5d", "e0962e81a4", "a2bc74efcf", "7959e6bc76"],
+    "repairs": "Shell-quote special-parameter suffixes; iterative regex repetition; synchronous arithmetic/format typing; fixture lint; configured xxd/od pipeline limits; export-derived compression probe imports; wc shortcut parity; iterative grouped conditional alternatives.",
+    "wcProfile": "GNU coreutils 9.4 src/wc.c requires printable bytes to start C-locale words. Current 9.11 changed this behavior, so the local Homebrew oracle is not interchangeable. Delegate nonprinting and non-ASCII shortcut inputs to the canonical command; preserve the established GNU/Linux profile.",
+    "validation": "243 stream/substitution tests and final131 conversion/numeric-limit/closure cases pass. Parser:2176 tests, two additional caller-depth controls,18 built probes, public compiled parse/parseModule at500/2000 levels, types and guarded lint pass. Maintained Safe Bash and SafeJS build closures pass. Earlier build failures from concurrent file replacement and a native import timeout remain recorded separately; neither was waived.",
+    "parserScope": "The original500-level grouped-alternate regression and2000-level controls pass without a new default depth limit. Other recursive grammar forms remain; this is not an arbitrary-depth parser guarantee. Issue4293 remains open pending its containing release requirement.",
+    "release": {"run": 36564834012, "head": "7959e6bc768042bd8cf2d08c68f9bdac5b48f080", "status": "pending", "publication": "Unverified; last observed registry remains17.0.35 at a8a8a7efbc. Superseded owned pin36564764580 is confirmed cancelled because it omitted the parser commit."},
+    "cleanup": "Compacted three consumed lint receipts, removing2899618 bytes while retaining short diagnostics and original hashes in ignored out. No logs, generated binaries or workbook archives committed.",
+    "remaining": "All19 ssconvert families remain open. CSVKit SheetJS/xlsx-ast migration and remaining format, rendering, solver and service qualification are not complete. Live full npm test remains in progress and cannot certify an immutable final revision."
+  },
   "xmlMigration20260929": {
     "issues": [1748, 3360, 3512],
     "remoteCommits": {

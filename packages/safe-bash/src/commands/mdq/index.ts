@@ -314,6 +314,8 @@ export function evalSyncMdq(
   if (nodes.length === 0) return undefined;
   if (quiet) return "";
   if (format === "plain") {
+    // Default list spacing must use the canonical renderer.
+    if (breaks) return undefined;
     const pieces: string[] = [];
     const collectPieces = (n: SyncMdNode): void => {
       if (n.kind === "section") {

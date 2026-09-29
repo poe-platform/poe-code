@@ -1445,14 +1445,27 @@
             "trigOnly": 14,
             "allFive": 21
           },
-          "remaining": {
+          "receiptSha256": "1ca0c2e53be69d753bc4c4b9040c0ca7b0646039e6390b327aed530e08f729b3",
+          "initialResidual": {
             "formula": "BESSELY(192.16044087952775,170.39993582028956)",
             "nativeBits": "bf8748933ae336f0",
             "candidateBits": "bf8748933ae336f1",
             "allFiveSubstitutedBits": "bf8748933ae336ec",
-            "finding": "Primitive substitution does not explain this residual. No production numerical change is justified by this experiment alone."
+            "finding": "Substituting five libm primitive families alone left this residual; the native compiler contraction below explains it."
           },
-          "receiptSha256": "1ca0c2e53be69d753bc4c4b9040c0ca7b0646039e6390b327aed530e08f729b3"
+          "compilerContraction": {
+            "source": "Gnumeric 1.12.61 sf-bessel.c:1978-1979 computes cosdiff * sinhu + sinhumu * cosbeta.",
+            "librarySha256": "01e5dfcd2863a5c3ba6f65fc1b9333df3e27e53bfa6d2ca81ef2b1e713e4f60b",
+            "nativeInstructions": "_integral_83_integrand: 0x9dbe0 fmul d0,d14,d11 (cosbeta*sinhumu); 0x9dbe4 fmadd d0,d9,d13,d0 (cosdiff*sinhu plus that rounded product).",
+            "disassemblySha256": "32e6176aae4067a64b738e9d3a847d42df871765fd3160b179b97c0a1b1ae0fa",
+            "candidate": "fma(sinhumu, cosbeta, cosdiff * sinhu); the other product is fused in the retained candidate profile.",
+            "experiment": "Replace only that candidate-source contraction with fma(cosdiff, sinhu, sinhumu * cosbeta), then repeat the independently evaluated Darwin primitive substitutions. This changes one of 22 baseline candidate results; with all five primitive families substituted, all 22 match the full native application exactly.",
+            "fmaOnlyResidualBits": "bf8748933ae336f5",
+            "fmaAndLibmResidualBits": "bf8748933ae336f0",
+            "nativeMatchesOf22": 22,
+            "receiptSha256": "c9c5577a8db39dc234e6a649532cd68954d2d78967df7afe967c949cc0b9d380",
+            "decision": "All 23 differences in this full-application cohort are now explained by primitive/compiler profiles, including the separately qualified huge-phase cosine. Retain the existing product profile; this source experiment does not establish a universally correctly rounded Bessel implementation."
+          }
         },
         "accuracy": {
           "method": "mpmath 1.4.1 Bessel J/Y at 100 and 160 decimal digits, exact binary64 input arguments; all 22 reference values round identically at both precisions.",
@@ -1467,7 +1480,7 @@
           "receiptSha256": "04d6235f690287ba402dbdfacee4759ade385ed7cc22663bc3a8982438c48f93",
           "decision": "Retain the pinned portable primitive profile. Native equality and mathematical accuracy are separate claims; do not alter expected results merely to match Darwin rounding."
         },
-        "remaining": "One small-argument primitive-substitution residual, exact Linux/other-runtime application profiles, broader domains and containing publication. All 19 compatibility families remain open."
+        "remaining": "Exact Linux/other-runtime application profiles, broader domains and containing publication. No unexplained difference remains in this 205-formula macOS cohort; all 19 compatibility families remain open."
       }
     },
     "sheetReferenceSemantics": {
@@ -3575,7 +3588,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution reproduces 21 of 22 small-argument differences; one remains unexplained. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open."
+      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open."
     },
     {
       "id": "format-record-roundtrip",

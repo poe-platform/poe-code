@@ -1,3 +1,5 @@
+import { fdCommands } from "../../src/commands/fd/index.js";
+import { searchCommands } from "../../src/commands/search/index.js";
 import { bcCommands } from "../../src/commands/bc/index.js";
 import { tableTextCommands } from "../../src/commands/table-text/index.js";
 import { columnCommands } from "../../src/commands/column/index.js";
@@ -605,5 +607,25 @@ test("evaluates find -regex/-iregex/-printf/-quit and xargs printf/basename/dirn
   assert.equal(
     r.stdout,
     "alpha.txt:5:f,beta.md:6:f,#/tmp/w189/sub/alpha.txt#[one][two][three]#foo,bar,#/a/b,/c/d,\n",
+  );
+});
+
+test("evaluates rg -o/-w/-x/-r replacement/multiple -e and fd -E exclude/-S size/--and/--path-separator in sync substitutions (Wave 190)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(fdCommands()).use(searchCommands());
+  const r = await shell.exec(
+    [
+      "mkdir -p /tmp/w190/keep /tmp/w190/skip && printf \"12345678\" > /tmp/w190/keep/app.ts && printf \"12\" > /tmp/w190/keep/tiny.ts && printf \"12345678\" > /tmp/w190/skip/ignored.ts",
+      "fd_res=$(fd -E skip -S +5b --and app --path-separator :: . /tmp/w190)",
+      "rg_rep=$(printf \"id=42 name=alice\\nid=99 name=bob\\n\" | rg -o 'id=(\\d+) name=(\\w+)' -r '$2:$1' | tr '\\n' ',')",
+      "rg_multi=$(printf \"apple\\nbanana\\ncherry\\n\" | rg -w -e apple -e cherry | tr '\\n' ',')",
+      "printf \"%s#%s#%s\\n\" \"$fd_res\" \"$rg_rep\" \"$rg_multi\"",
+    ].join("\n")
+  );
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "::tmp::w190::keep::app.ts#alice:42,bob:99,#apple,cherry,\n",
   );
 });

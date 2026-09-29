@@ -79,14 +79,36 @@ export function evalSyncFd(
   }
   if (
     a.help || a.version || a.exec.length > 0 || a.batch || a.details || a.print0 ||
-    a.within !== undefined || a.before !== undefined || a.sizes.length > 0 ||
-    a.excludes.length > 0 || a.patterns.length > 1 || a.pathSeparator !== undefined
+    a.within !== undefined || a.before !== undefined
   ) {
     return undefined;
   }
-  const pat = a.patterns[0] ?? "";
-  const matchFn = compileSimpleFdMatcher(pat, a.mode, a.caseMode);
-  if (!matchFn) return undefined;
+  const matchFns: Array<(subj: string) => boolean> = [];
+  for (const pat of (a.patterns.length > 0 ? a.patterns : [""])) {
+    const fn = compileSimpleFdMatcher(pat, a.mode, a.caseMode);
+    if (!fn) return undefined;
+    matchFns.push(fn);
+  }
+  const excludeFns: Array<(subj: string) => boolean> = [];
+  for (const ex of a.excludes) {
+    const fn = compileSimpleFdMatcher(ex, "glob", "sensitive");
+    if (!fn) return undefined;
+    excludeFns.push(fn);
+  }
+  const sizeChecks: Array<(sz: number) => boolean> = [];
+  for (const szSpec of a.sizes) {
+    const m = /^([+-]?)(d+)(b|k|m|g|t|ki|mi|gi|ti)?$/iu.exec(szSpec.trim());
+    if (!m) return undefined;
+    const op = m[1]!;
+    const num = Number(m[2]!);
+    const u = (m[3] ?? "b").toLowerCase();
+    const mult =
+      u === "b" ? 1 :
+      u === "k" ? 1e3 : u === "m" ? 1e6 : u === "g" ? 1e9 : u === "t" ? 1e12 :
+      u === "ki" ? 1024 : u === "mi" ? 1048576 : u === "gi" ? 1073741824 : 1099511627776;
+    const target = num * mult;
+    sizeChecks.push((sz: number) => op === "+" ? sz >= target : op === "-" ? sz <= target : sz === target);
+  }
   const effectiveCwd = a.baseDirectory === undefined ? cwd : resolveSyncFdPath(cwd, a.baseDirectory);
   const roots = a.roots.length > 0 ? a.roots : ["."];
   const results: string[] = [];
@@ -110,6 +132,7 @@ export function evalSyncFd(
         if (!a.hidden && entry.name.startsWith(".")) continue;
         const childAbs = absDir === "/" ? `/${entry.name}` : `${absDir}/${entry.name}`;
         const childRel = relPrefix ? `${relPrefix}/${entry.name}` : (rootArg === "." ? entry.name : `${rootArg.replace(/\/+$/u, "")}/${entry.name}`);
+        if (excludeFns.length > 0 && excludeFns.some(fn => fn(entry.name) || fn(childRel))) continue;
         if (entry.type === "directory") {
           if (!walk(childAbs, childRel, depth + 1)) return false;
         }
@@ -122,14 +145,16 @@ export function evalSyncFd(
           if (a.types.includes("empty") && entry.type === "file" && entry.size === 0) typeOk = true;
           if (a.types.includes("executable") && entry.type === "file" && ((entry.mode ?? 0) & 0o111) !== 0) typeOk = true;
         }
+        const sizeOk = sizeChecks.length === 0 || (entry.type === "file" && sizeChecks.every(fn => fn(entry.size)));
         let extOk = a.extensions.length === 0;
         if (!extOk) {
           const lower = entry.name.toLowerCase();
           extOk = a.extensions.some(ext => lower.endsWith(`.${ext.toLowerCase()}`));
         }
         const subject = a.fullPath ? childRel : entry.name;
-        if (depthOk && typeOk && extOk && matchFn(subject)) {
-          const disp = a.absolute ? childAbs : (a.stripCwdPrefix ? childRel.replace(/^\.\//u, "") : childRel);
+        if (depthOk && typeOk && sizeOk && extOk && matchFns.every(fn => fn(subject))) {
+          let disp = a.absolute ? childAbs : (a.stripCwdPrefix ? childRel.replace(/^\.\//u, "") : childRel);
+          if (a.pathSeparator !== undefined) disp = disp.split("/").join(a.pathSeparator);
           results.push(a.format ? formatFdPath(a.format, disp) : disp);
         }
       }

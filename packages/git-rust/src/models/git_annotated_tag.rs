@@ -79,7 +79,11 @@ impl GitAnnotatedTag {
             }
         }
 
-        let (message, gpgsig) = if let Some(sig_idx) = body_part.find("-----BEGIN PGP SIGNATURE-----") {
+        let sig_marker = body_part
+            .find("-----BEGIN PGP SIGNATURE-----")
+            .or_else(|| body_part.find("-----BEGIN SSH SIGNATURE-----"))
+            .or_else(|| body_part.find("-----BEGIN PGP MESSAGE-----"));
+        let (message, gpgsig) = if let Some(sig_idx) = sig_marker {
             let msg = body_part[..sig_idx].trim_end_matches('\n').to_string();
             let sig = body_part[sig_idx..].to_string();
             (msg, Some(sig))
@@ -98,7 +102,12 @@ impl GitAnnotatedTag {
     }
 
     pub fn payload(&self) -> String {
-        if let Some(sig_idx) = self.raw.find("-----BEGIN PGP SIGNATURE-----") {
+        let sig_marker = self
+            .raw
+            .find("-----BEGIN PGP SIGNATURE-----")
+            .or_else(|| self.raw.find("-----BEGIN SSH SIGNATURE-----"))
+            .or_else(|| self.raw.find("-----BEGIN PGP MESSAGE-----"));
+        if let Some(sig_idx) = sig_marker {
             self.raw[..sig_idx].to_string()
         } else {
             self.raw.clone()

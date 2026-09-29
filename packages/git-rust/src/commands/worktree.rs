@@ -671,7 +671,7 @@ pub fn commit(
             }
         };
 
-        let comm_obj = CommitObject {
+        let mut comm_obj = CommitObject {
             message: final_message,
             tree: tree_oid,
             parent: parents,
@@ -679,6 +679,32 @@ pub fn commit(
             committer: final_committer,
             gpgsig: None,
         };
+        let cfg_sign = cfg
+            .get("commit.gpgsign")
+            .map(|v| matches!(v.as_str().trim().to_ascii_lowercase().as_str(), "true" | "1" | "yes" | "on"))
+            .unwrap_or(false);
+        if cfg_sign {
+            let gpg_format = cfg
+                .get("gpg.format")
+                .map(|v| v.as_str().trim().to_string())
+                .unwrap_or_else(|| "openpgp".to_string());
+            let signing_key = cfg
+                .get("user.signingkey")
+                .map(|v| v.as_str().trim().to_string())
+                .unwrap_or_else(|| comm_obj.committer.email.clone());
+            let signer_uid = format!("{} <{}>", comm_obj.committer.name, comm_obj.committer.email);
+            let unsigned_payload = crate::models::GitCommit::from_object(&comm_obj).without_signature();
+            let root_guess = gdir.strip_suffix("/.git").unwrap_or(&gdir);
+            comm_obj.gpgsig = Some(crate::crypto::sign_git_payload(
+                fs,
+                root_guess,
+                &gpg_format,
+                &signing_key,
+                &signer_uid,
+                comm_obj.committer.timestamp as u32,
+                &unsigned_payload,
+            ));
+        }
         let bytes = crate::models::GitCommit::from_object(&comm_obj).to_object();
         let oid = _write_object(fs, &gdir, "commit", &bytes, "content", None, dry_run)?;
         if !no_update_branch && !dry_run {

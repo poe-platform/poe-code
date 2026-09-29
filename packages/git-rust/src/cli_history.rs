@@ -239,6 +239,7 @@ pub(crate) struct HistoryOutput<'a> {
     pub no_patch: bool,
     pub skip_merge_diff: bool,
     pub graph: bool,
+    pub show_signature: bool,
 }
 
 pub(crate) fn render_history(
@@ -262,6 +263,19 @@ pub(crate) fn render_history(
             output.format,
             output.abbrev,
         );
+        let rendered = if output.show_signature && let Some(ref sig) = c.commit.gpgsig {
+            let allowed = crate::commands::plumbing::get_config(fs, gitdir, "gpg.ssh.allowedSignersFile")
+                .map(|v| v.as_str().to_string());
+            let sig_status = crate::crypto::verify_git_signature(fs, root, sig, &c.payload, allowed.as_deref())
+                .unwrap_or_else(|e| e);
+            if let Some(first_nl) = rendered.find('\n') {
+                format!("{}\n{sig_status}{}", &rendered[..first_nl], &rendered[first_nl..])
+            } else {
+                format!("{rendered}\n{sig_status}\n")
+            }
+        } else {
+            rendered
+        };
         if output.graph {
             for (li, line) in rendered.lines().enumerate() {
                 if li == 0 {
@@ -343,6 +357,7 @@ pub(crate) fn execute(
         no_patch: false,
         skip_merge_diff: !show,
         graph: false,
+        show_signature: false,
     };
     let mut reverse = false;
     let mut patch = None;
@@ -437,6 +452,8 @@ pub(crate) fn execute(
             skip_count = args[i].parse::<usize>().unwrap_or(0);
         } else if arg == "--graph" {
             output.graph = true;
+        } else if arg == "--show-signature" {
+            output.show_signature = true;
         } else if arg == "--abbrev-commit" {
             output.abbrev = true;
         } else if matches!(arg, "-s" | "--no-patch") {

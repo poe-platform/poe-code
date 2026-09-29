@@ -575,6 +575,7 @@ pub fn execute_git_cli_with_input(
             let mut reuse_commit: Option<&str> = None;
             let mut msg_file: Option<&str> = None;
             let mut commit_paths: Vec<String> = Vec::new();
+            let mut gpg_sign_flag: Option<Option<String>> = None;
             let mut i = 0;
             while i < sub_args.len() {
                 let arg = sub_args[i];
@@ -601,6 +602,22 @@ pub fn execute_git_cli_with_input(
                 }
                 if arg == "--amend" {
                     amend = true;
+                    i += 1;
+                    continue;
+                }
+                if matches!(arg, "-S" | "--gpg-sign") {
+                    gpg_sign_flag = Some(None);
+                    i += 1;
+                    continue;
+                }
+                if arg == "--no-gpg-sign" {
+                    gpg_sign_flag = None;
+                    let _ = set_config(fs, &gitdir, "commit.gpgsign", Some("false"), false);
+                    i += 1;
+                    continue;
+                }
+                if let Some(key_id) = arg.strip_prefix("--gpg-sign=").or_else(|| arg.strip_prefix("-S")) {
+                    gpg_sign_flag = Some(Some(key_id.to_string()));
                     i += 1;
                     continue;
                 }
@@ -769,7 +786,36 @@ pub fn execute_git_cli_with_input(
                 }
             }
             match result {
-                Ok(oid) => {
+                Ok(mut oid) => {
+                    if let Some(ref key_opt) = gpg_sign_flag
+                        && let Ok(read_c) = crate::read_commit(fs, &gitdir, &oid)
+                    {
+                        let gpg_format = get_config(fs, &gitdir, "gpg.format")
+                            .map(|v| v.as_str().to_string())
+                            .unwrap_or_else(|| "openpgp".to_string());
+                        let signing_key = key_opt
+                            .clone()
+                            .or_else(|| get_config(fs, &gitdir, "user.signingkey").map(|v| v.as_str().to_string()))
+                            .unwrap_or_else(|| read_c.commit.committer.email.clone());
+                        let signer_uid = format!("{} <{}>", read_c.commit.committer.name, read_c.commit.committer.email);
+                        let mut signed_obj = read_c.commit.clone();
+                        signed_obj.gpgsig = None;
+                        let unsigned_payload = crate::models::GitCommit::from_object(&signed_obj).without_signature();
+                        signed_obj.gpgsig = Some(crate::crypto::sign_git_payload(
+                            fs,
+                            &repo_root,
+                            &gpg_format,
+                            &signing_key,
+                            &signer_uid,
+                            signed_obj.committer.timestamp as u32,
+                            &unsigned_payload,
+                        ));
+                        if let Ok(new_oid) = crate::commands::plumbing::write_commit(fs, &gitdir, &signed_obj) {
+                            let target_ref = crate::GitRefManager::resolve(fs, &gitdir, "HEAD", Some(2)).unwrap_or_else(|_| "HEAD".to_string());
+                            let _ = crate::GitRefManager::write_ref(fs, &gitdir, &target_ref, &new_oid);
+                            oid = new_oid;
+                        }
+                    }
                     let _ = fs.rm(&join(&[&gitdir, "MERGE_HEAD"]));
                     let _ = fs.rm(&join(&[&gitdir, "MERGE_MSG"]));
                     let _ = fs.rm(&join(&[&gitdir, "MERGE_MODE"]));
@@ -1646,15 +1692,56 @@ pub fn execute_git_cli_with_input(
                     Ok(()) => CliResult::ok(""),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
+            } else if (sub_args[0] == "-v" || sub_args[0] == "--verify") && sub_args.len() > 1 {
+                let tag_name = sub_args[1];
+                let Ok(oid) = resolve_ref(fs, &gitdir, &format!("refs/tags/{tag_name}"), None)
+                    .or_else(|_| crate::cli_history::resolve(fs, &gitdir, tag_name))
+                else {
+                    return CliResult::err(1, format!("error: tag '{tag_name}' not found.\n"));
+                };
+                if let Ok(t) = crate::read_tag(fs, &gitdir, &oid)
+                    && let Some(ref sig) = t.tag.gpgsig
+                {
+                    let allowed = get_config(fs, &gitdir, "gpg.ssh.allowedSignersFile").map(|v| v.as_str().to_string());
+                    let mut unsigned_tag = t.tag.clone();
+                    unsigned_tag.gpgsig = None;
+                    let payload = crate::models::GitAnnotatedTag::from_object(&unsigned_tag).render().to_string();
+                    match crate::crypto::verify_git_signature(fs, &repo_root, sig, &payload, allowed.as_deref()) {
+                        Ok(msg) => CliResult::ok(format!("{msg}\n")),
+                        Err(err) => CliResult::err(1, format!("error: {err}\n")),
+                    }
+                } else {
+                    CliResult::err(1, "error: no signature found\n")
+                }
             } else {
                 let mut names = Vec::new();
                 let mut messages = Vec::new();
                 let mut annotated = false;
+                let mut sign_tag = get_config(fs, &gitdir, "tag.gpgSign")
+                    .or_else(|| get_config(fs, &gitdir, "tag.gpgsign"))
+                    .map(|v| matches!(v.as_str().trim().to_ascii_lowercase().as_str(), "true" | "1" | "yes"))
+                    .unwrap_or(false);
+                let mut sign_key_override: Option<String> = None;
                 let mut force = false;
                 let mut args = sub_args.iter().copied();
                 while let Some(arg) = args.next() {
                     match arg {
                         "-a" | "--annotate" => annotated = true,
+                        "-s" | "--sign" => {
+                            annotated = true;
+                            sign_tag = true;
+                        }
+                        "--no-sign" => {
+                            sign_tag = false;
+                        }
+                        "-u" | "--local-user" => {
+                            let Some(key_id) = args.next() else {
+                                return CliResult::err(129, "error: missing key-id for -u\n");
+                            };
+                            annotated = true;
+                            sign_tag = true;
+                            sign_key_override = Some(key_id.to_string());
+                        }
                         "-f" | "--force" => force = true,
                         "-m" | "--message" => {
                             let Some(message) = args.next() else {
@@ -1666,6 +1753,12 @@ pub fn execute_git_cli_with_input(
                         "--" => {
                             names.extend(args);
                             break;
+                        }
+                        arg if arg.starts_with("--local-user=") || arg.starts_with("-u") => {
+                            let key_id = arg.strip_prefix("--local-user=").unwrap_or(&arg[2..]);
+                            annotated = true;
+                            sign_tag = true;
+                            sign_key_override = Some(key_id.to_string());
                         }
                         arg if arg.starts_with("--message=") || arg.starts_with("-m") => {
                             let message = arg.strip_prefix("--message=").unwrap_or(&arg[2..]);
@@ -1711,6 +1804,46 @@ pub fn execute_git_cli_with_input(
                         timestamp: 1502484200,
                         timezone_offset: 0.0,
                     };
+                    let gpgsig = if sign_tag {
+                        let target_oid = object
+                            .clone()
+                            .or_else(|| resolve_ref(fs, &gitdir, "HEAD", None).ok())
+                            .unwrap_or_default();
+                        let obj_type = crate::_read_object(fs, &gitdir, &target_oid, "content")
+                            .map(|o| o.obj_type)
+                            .unwrap_or_else(|_| "commit".to_string());
+                        let mut msg_with_nl = message.clone();
+                        if !msg_with_nl.ends_with('\n') {
+                            msg_with_nl.push('\n');
+                        }
+                        let unsigned_tag = crate::models::TagObject {
+                            object: target_oid,
+                            object_type: obj_type,
+                            tag: names[0].trim_start_matches("refs/tags/").to_string(),
+                            tagger: tagger.clone(),
+                            message: msg_with_nl,
+                            gpgsig: None,
+                        };
+                        let payload = crate::models::GitAnnotatedTag::from_object(&unsigned_tag).render().to_string();
+                        let gpg_format = get_config(fs, &gitdir, "gpg.format")
+                            .map(|v| v.as_str().to_string())
+                            .unwrap_or_else(|| "openpgp".to_string());
+                        let signing_key = sign_key_override
+                            .or_else(|| get_config(fs, &gitdir, "user.signingkey").map(|v| v.as_str().to_string()))
+                            .unwrap_or_else(|| tagger.email.clone());
+                        let signer_uid = format!("{} <{}>", tagger.name, tagger.email);
+                        Some(crate::crypto::sign_git_payload(
+                            fs,
+                            &repo_root,
+                            &gpg_format,
+                            &signing_key,
+                            &signer_uid,
+                            tagger.timestamp as u32,
+                            &payload,
+                        ))
+                    } else {
+                        None
+                    };
                     annotated_tag(
                         fs,
                         &gitdir,
@@ -1718,7 +1851,7 @@ pub fn execute_git_cli_with_input(
                         Some(&message),
                         object.as_deref(),
                         Some(tagger),
-                        None,
+                        gpgsig,
                         force,
                     )
                 } else {
@@ -4789,7 +4922,11 @@ pub fn execute_git_cli_with_input(
                 return CliResult::err(1, format!("error: commit {rev} not found\n"));
             };
             if let Some(sig) = c.commit.gpgsig {
-                CliResult::ok(format!("Good signature: {}\n", sig.lines().next().unwrap_or("PGP")))
+                let allowed = get_config(fs, &gitdir, "gpg.ssh.allowedSignersFile").map(|v| v.as_str().to_string());
+                match crate::crypto::verify_git_signature(fs, &repo_root, &sig, &c.payload, allowed.as_deref()) {
+                    Ok(msg) => CliResult::ok(format!("{msg}\n")),
+                    Err(err) => CliResult::err(1, format!("error: {err}\n")),
+                }
             } else {
                 CliResult::err(1, "no signature found\n")
             }
@@ -4804,9 +4941,16 @@ pub fn execute_git_cli_with_input(
                 return CliResult::err(1, format!("error: tag '{tag_name}' not found.\n"));
             };
             if let Ok(t) = crate::read_tag(fs, &gitdir, &oid)
-                && t.tag.gpgsig.is_some()
+                && let Some(ref sig) = t.tag.gpgsig
             {
-                CliResult::ok("Good signature\n")
+                let allowed = get_config(fs, &gitdir, "gpg.ssh.allowedSignersFile").map(|v| v.as_str().to_string());
+                let mut unsigned_tag = t.tag.clone();
+                unsigned_tag.gpgsig = None;
+                let payload = crate::models::GitAnnotatedTag::from_object(&unsigned_tag).render().to_string();
+                match crate::crypto::verify_git_signature(fs, &repo_root, sig, &payload, allowed.as_deref()) {
+                    Ok(msg) => CliResult::ok(format!("{msg}\n")),
+                    Err(err) => CliResult::err(1, format!("error: {err}\n")),
+                }
             } else {
                 CliResult::err(1, "no signature found\n")
             }

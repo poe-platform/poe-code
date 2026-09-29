@@ -2,6 +2,7 @@
 
 pub mod commands;
 pub mod cli;
+pub mod crypto;
 mod cli_files;
 mod cli_history;
 mod cli_patch;

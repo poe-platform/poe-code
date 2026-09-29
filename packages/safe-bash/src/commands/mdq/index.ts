@@ -100,6 +100,18 @@ function parseSimpleMarkdownSync(source: string): SyncMdNode[] | undefined {
       blocks.push({ kind: "list", ordered: false, text: "", children: items });
       continue;
     }
+    if (/^[0-9]+\.\s+[^#*_\x60\[\]<>\\~]+$/.test(line)) {
+      const items: SyncMdNode[] = [];
+      let itemIdx = 1;
+      while (i < rawLines.length && /^[0-9]+\.\s+[^#*_\x60\[\]<>\\~]+$/.test(rawLines[i]!)) {
+        const itemText = rawLines[i]!.replace(/^[0-9]+\.\s+/, "").trimEnd();
+        if (itemText.startsWith("[")) return undefined;
+        items.push({ kind: "item", ordered: true, index: itemIdx++, text: itemText, children: [{ kind: "paragraph", text: itemText, children: [] }] });
+        i++;
+      }
+      blocks.push({ kind: "list", ordered: true, text: "", children: items });
+      continue;
+    }
     if (/^[A-Za-z0-9 .,;:!?'"()-]+$/.test(line)) {
       const pLines: string[] = [];
       while (i < rawLines.length && rawLines[i]!.trim() !== "" && /^[A-Za-z0-9 .,;:!?'"()-]+$/.test(rawLines[i]!)) {
@@ -140,15 +152,28 @@ function parseSimpleMdqQuery(query: string): SyncMdSelector[] | undefined {
   const selectors: SyncMdSelector[] = [];
   for (const part of parts) {
     if (part.startsWith("#")) {
-      let rest = part.slice(1);
-      let min: number | undefined;
-      let max: number | undefined;
-      if (rest.startsWith("{")) {
+      let hashes = 0;
+      while (hashes < part.length && part[hashes] === "#") hashes++;
+      if (hashes > 6) return undefined;
+      let rest = part.slice(hashes);
+      let min: number | undefined = hashes > 1 ? hashes : undefined;
+      let max: number | undefined = hashes > 1 ? hashes : undefined;
+      if (hashes === 1 && rest.startsWith("{")) {
         const close = rest.indexOf("}");
         if (close < 0) return undefined;
-        const n = Number(rest.slice(1, close));
-        if (!Number.isInteger(n) || n < 1 || n > 6) return undefined;
-        min = max = n;
+        const spec = rest.slice(1, close);
+        if (spec.includes(",")) {
+          const [loStr, hiStr] = spec.split(",");
+          const lo = loStr ? Number(loStr) : 1;
+          const hi = hiStr ? Number(hiStr) : 6;
+          if (!Number.isInteger(lo) || !Number.isInteger(hi) || lo < 1 || hi > 6 || lo > hi) return undefined;
+          min = lo;
+          max = hi;
+        } else {
+          const n = Number(spec);
+          if (!Number.isInteger(n) || n < 1 || n > 6) return undefined;
+          min = max = n;
+        }
         rest = rest.slice(close + 1);
       }
       if (rest.length > 0 && !rest.startsWith(" ")) return undefined;
@@ -210,8 +235,9 @@ export function evalSyncMdq(
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): string | undefined {
-  if (inBytes.byteLength > 8192 || opArgs.length > 6) return undefined;
+  if (inBytes.byteLength > 8192 || opArgs.length > 8) return undefined;
   let format: "markdown" | "plain" = "markdown";
+  let breaks = true;
   let quiet = false;
   let ended = false;
   const positional: string[] = [];
@@ -226,6 +252,8 @@ export function evalSyncMdq(
       continue;
     }
     if (!ended && (a === "-q" || a === "--quiet")) { quiet = true; continue; }
+    if (!ended && a === "--no-br") { breaks = false; continue; }
+    if (!ended && a === "--br") { breaks = true; continue; }
     if (!ended && a.startsWith("-") && a !== "-") return undefined;
     positional.push(a);
   }
@@ -286,7 +314,28 @@ export function evalSyncMdq(
   if (nodes.length === 0) return undefined;
   if (quiet) return "";
   if (format === "plain") {
-    return nodes.map(renderMdNodePlain).join("\n") + "\n";
+    const pieces: string[] = [];
+    const collectPieces = (n: SyncMdNode): void => {
+      if (n.kind === "section") {
+        if (n.title) pieces.push(n.title);
+        for (const c of n.children) collectPieces(c);
+      } else if (n.kind === "list") {
+        for (const c of n.children) collectPieces(c);
+      } else if (n.text) {
+        pieces.push(n.text);
+      }
+    };
+    for (const n of nodes) collectPieces(n);
+    const raw = pieces.join("\n\n");
+    const parts: string[] = [];
+    let pending = 0;
+    for (const line of raw.split("\n")) {
+      if (!line) { pending++; continue; }
+      if (parts.length) parts.push("\n".repeat(Math.min(pending + 1, breaks ? 2 : 1)));
+      parts.push(line);
+      pending = 0;
+    }
+    return parts.length ? parts.join("") + "\n" : (pieces.length ? "\n" : "");
   }
-  return nodes.map(renderMdNodeMarkdown).join("\n\n   -----\n\n") + "\n";
+  return nodes.map(renderMdNodeMarkdown).join(breaks ? "\n\n   -----\n\n" : "\n\n") + "\n";
 }

@@ -1309,3 +1309,44 @@ test("Wave 216: jq -R/-Rs/-j/-S/--tab/--indent, multi-path del, 2-arg any/all, f
     `"[alpha]","[beta]","[gamma]"|["line1","line2",""]|{"a":{"b":2,"d":4},"z":1}|abc|{"b":{"y":3},"c":4}|[10,30]|[true,true]|[3,4,1,2,true]|[1,3,2]`
   );
 });
+
+test("Wave 217: yq nested YAML mappings/sequences and mdq ordered lists, multi-hash headings, and --no-br in sync substitutions", async () => {
+  const memFs = new MemoryFileSystem();
+  await memFs.mkdir("/tmp");
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" }).use(standardCommands()).use(tableTextCommands()).use(yqCommands()).use(mdqCommands());
+  const res = await shell.exec(`
+    cat <<'EOF' > /tmp/items.yaml
+items:
+  - id: 1
+    name: alpha
+  - id: 2
+    name: beta
+EOF
+    cat <<'EOF' > /tmp/doc.md
+# Main Title
+
+## Section One
+
+1. first step
+2. second step
+
+## Section Two
+
+1. third step
+EOF
+    out=""
+    for i in 1 2 3 4 5; do
+      y1=$(yq -o json -c '.items | map(.name)' /tmp/items.yaml)
+      y2=$(yq -n '{a: {b: 1, c: [2, 3]}}' | paste -sd"|")
+      m1=$(mdq -o plain --no-br '1.' /tmp/doc.md | paste -sd",")
+      m2=$(mdq -o plain --no-br '## Section Two | 1.' /tmp/doc.md)
+      out="$y1#$y2#$m1#$m2"
+    done
+    printf "%s\n" "$out"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    `["alpha","beta"]#a:|  b: 1|  c:|    - 2|    - 3#first step,second step,third step#third step`
+  );
+});

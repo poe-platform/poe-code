@@ -1688,27 +1688,27 @@ test("sync substitution and loop admission covers mktemp -d permissions, install
   const start = performance.now();
   const res = await sh.exec(`
     printf "alpha\nbeta\ngamma\n" > /tmp/w160.txt
-    d1=\$(mktemp -d /tmp/w160d.XXXXXX)
-    f1=\$(mktemp /tmp/w160f.XXXXXX)
-    m_d1=\$(stat -c %a "\$d1")
-    m_f1=\$(stat -c %a "\$f1")
-    bad_mk=\$(mktemp -d /tmp/no_such_dir_160/tmp.XXXXXX 2>/dev/null || echo "failed")
-    _i1=\$(install /tmp/w160.txt /tmp/w160_inst755.txt)
-    _i2=\$(install -m 600 /tmp/w160.txt /tmp/w160_inst600.txt)
-    _i3=\$(install -d -m 750 /tmp/w160_idir/sub)
-    m_i755=\$(stat -c %a /tmp/w160_inst755.txt)
-    m_i600=\$(stat -c %a /tmp/w160_inst600.txt)
-    m_idir=\$(stat -c %a /tmp/w160_idir/sub)
+    d1=$(mktemp -d /tmp/w160d.XXXXXX)
+    f1=$(mktemp /tmp/w160f.XXXXXX)
+    m_d1=$(stat -c %a "$d1")
+    m_f1=$(stat -c %a "$f1")
+    bad_mk=$(mktemp -d /tmp/no_such_dir_160/tmp.XXXXXX 2>/dev/null || echo "failed")
+    _i1=$(install /tmp/w160.txt /tmp/w160_inst755.txt)
+    _i2=$(install -m 600 /tmp/w160.txt /tmp/w160_inst600.txt)
+    _i3=$(install -d -m 750 /tmp/w160_idir/sub)
+    m_i755=$(stat -c %a /tmp/w160_inst755.txt)
+    m_i600=$(stat -c %a /tmp/w160_inst600.txt)
+    m_idir=$(stat -c %a /tmp/w160_idir/sub)
     for ((i = 0; i < 150; i++)); do
-      a=\$(rg -n beta /tmp/w160.txt)
-      b=\$(egrep "a|b" /tmp/w160.txt | head -n 1)
-      c=\$(fgrep "gamma" /tmp/w160.txt)
-      d=\$(expr 20 + 22)
-      e=\$(dd if=/tmp/w160.txt bs=5 count=1 status=none)
-      f=\$(shuf -i 7-7 -n 1)
-      g=\$(less /tmp/w160.txt | head -n 1)
+      a=$(rg -n beta /tmp/w160.txt)
+      b=$(egrep "a|b" /tmp/w160.txt | head -n 1)
+      c=$(fgrep "gamma" /tmp/w160.txt)
+      d=$(expr 20 + 22)
+      e=$(dd if=/tmp/w160.txt bs=5 count=1 status=none)
+      f=$(shuf -i 7-7 -n 1)
+      g=$(less /tmp/w160.txt | head -n 1)
     done
-    printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" "\$m_d1" "\$m_f1" "\$bad_mk" "\$m_i755" "\$m_i600" "\$m_idir" "\$a" "\$b" "\$c" "\$d" "\$e" "\$f" "\$g"
+    printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" "$m_d1" "$m_f1" "$bad_mk" "$m_i755" "$m_i600" "$m_idir" "$a" "$b" "$c" "$d" "$e" "$f" "$g"
   `);
   const elapsed = performance.now() - start;
   assert.equal(res.exitCode, 0);

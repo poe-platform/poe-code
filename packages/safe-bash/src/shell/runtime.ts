@@ -24356,7 +24356,7 @@ export class Runtime {
       | { kind: "p" }
       | { kind: "q" }
       | { kind: "=" }
-      | { kind: "a" | "i" | "c"; text: string }
+      | (({ kind: "a" } | { kind: "i" } | { kind: "c" }) & { text: string })
       | { kind: "y"; map: Map<string, string> }
       | { kind: "s"; re: RegExp; rep: string; printOnMatch: boolean; nth: number });
     const steps: SedStep[] = [];

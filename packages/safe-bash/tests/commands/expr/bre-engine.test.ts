@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { matchExprSteps } from "safe-bash-command-expr/bre-engine";
-import { matchExpr } from "../../../src/commands/expr/bre-worker.js";
+import { matchExpr } from "../../../src/commands/regex-execution/bre-worker.js";
 import { exprMatchCeilings, type ExprMatchDescriptor, type ExprMatchResult } from "../../../src/commands/regex-execution/protocol.js";
 
 const bytes = (text: string) => new TextEncoder().encode(text);

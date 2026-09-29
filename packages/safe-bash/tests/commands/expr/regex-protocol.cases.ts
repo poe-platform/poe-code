@@ -74,7 +74,7 @@ test("worker returns distinct absent, unmatched, empty and failed capture states
 });
 
 test("the BRE compiler refuses main-thread execution", async () => {
-  const { matchExpr } = await import("../../../src/commands/expr/bre-worker.js");
+  const { matchExpr } = await import("../../../src/commands/regex-execution/bre-worker.js");
   assert.throws(() => matchExpr(descriptor, subject), /requires the regex worker/u);
 });
 

@@ -103,7 +103,7 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
         relocation.row += target.row - document.position.row;
         relocation.column += target.column - document.position.column;
       }
-      if (target.sheet !== document.position.sheet) {
+      if (relocation.sheetRelative !== false && target.sheet !== document.position.sheet) {
         const origin = document.sheetOrder?.indexOf(document.position.sheet) ?? -1;
         const destination = document.sheetOrder?.indexOf(target.sheet) ?? -1;
         if (origin < 0 || destination < 0) throw new SsconvertError("invalid-request", "Cross-sheet formula copy requires workbook tab order");

@@ -296,6 +296,7 @@ export class BiffFormulaWriter {
         if (last) { push(first.subarray(0, 2)); push(last.subarray(0, 2)); push(first.subarray(2)); push(last.subarray(2)); }
         else push(first);
       } else if (node.kind === "name") {
+        if (node.relocation) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: live name relocation in BIFF output");
         if (node.workbook) {
           const bookIndex = this.externalBook(node.workbook), book = this.externalBooks[bookIndex]!;
           const scope = node.sheet === undefined ? undefined : this.externalScope(bookIndex, node.sheet);

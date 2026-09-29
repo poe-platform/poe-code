@@ -84,6 +84,13 @@ it("charges parsing and declaration traversal and preserves cancellation", () =>
   controller.abort(reason);
   expect(() => parseExpression(source, { position, signal: controller.signal })).toThrow(reason);
 });
+it("can copy row and column offsets while keeping an explicitly qualified name target's sheet", () => {
+  const parsed = parseExpression('=@name.relative.fixed-sheet[0,0,0]:"$Value"', { position, workbook: book });
+  expect(parsed.ok).toBe(true); if (!parsed.ok) return;
+  const target = { sheet: "s1", row: 3, column: 3 };
+  const copied = rewriteReferences(parsed.document, { translation: "copy", position: target });
+  expect(result(copied, book, target)).toEqual({ kind: "number", value: 17 });
+});
 it.each(['=@name.relative[0,0]:"N"', '=@name.relative[0,0,1.5]:"N"', '=@name.absolute[1,0,0]:"N"',
   '=@name.relative[9007199254740992,0,0]:"N"', '=@name.relative[0,0,0]:""'])("rejects invalid live name spelling %s", source => {
   expect(parseExpression(source, { position }).ok).toBe(false);

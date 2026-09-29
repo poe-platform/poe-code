@@ -243,9 +243,12 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       if (source.startsWith("@name.", offset)) {
         if (grammar.id !== "gnumeric" && !grammar.internalNames) fail("Internal live name in native formula");
         offset += 6;
-        const relative = source.startsWith("relative[", offset);
-        if (!relative && !source.startsWith("absolute[", offset)) fail("Invalid live name mode");
-        offset += 9;
+        const relative = source.startsWith("relative", offset);
+        if (!relative && !source.startsWith("absolute", offset)) fail("Invalid live name mode");
+        offset += 8;
+        const fixedSheet = source.startsWith(".fixed-sheet", offset);
+        if (fixedSheet) offset += 12;
+        if (source[offset++] !== "[") fail("Invalid live name mode");
         const displacement = (separator: string): number => {
           const start = offset;
           if (source[offset] === "-") offset++;
@@ -260,7 +263,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
         const name = quoted('"', grammar.stringEscape);
         if (!name) fail("Empty live name");
         options.onName?.(name);
-        return node({ kind: "name", name, workbook: "", relocation: { relative, row, column, sheet }, start, end: offset });
+        return node({ kind: "name", name, workbook: "", relocation: { relative, row, column, sheet, ...(fixedSheet ? { sheetRelative: false } : {}) }, start, end: offset });
       }
       if (c === "@" && !internalLabels) fail("Internal label reference in native formula");
       if (c === "@" && internalLabels) {

@@ -35,7 +35,7 @@ it("decodes WK3 modern cell/name references and two-byte numeric tokens", async 
   const warnings: string[] = [];
   const book = await readLotus(fixture(), { ...context, async diagnostic(d) { warnings.push(d.message); } });
   expect(warnings).toEqual([]);
-  expect(book.sheets[0]!.cells.map(cell => cell.formula)).toEqual([undefined, "=(A1+1)", "=(A1+1)"]);
+  expect(book.sheets[0]!.cells.map(cell => cell.formula)).toEqual([undefined, "=(A1+1)", '=(@name.relative[0,0,0]:"Total"+1)']);
   const result = recalculateWorkbook(book, context, true);
   expect(result.sheets[0]!.cells.map(cell => cell.value)).toEqual([7, 8, 8].map(value => ({ kind: "number", value })));
 });

@@ -142,7 +142,7 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
           if (grammar.id !== "gnumeric" && !grammar.internalNames)
             throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: live name relocation in target grammar");
           const { relative, row, column, sheet } = value.relocation;
-          return `@name.${relative ? "relative" : "absolute"}[${row},${column},${sheet}]:` + quoteFormulaString(value.name, '"', grammar);
+          return `@name.${relative ? "relative" : "absolute"}${value.relocation.sheetRelative === false ? ".fixed-sheet" : ""}[${row},${column},${sheet}]:` + quoteFormulaString(value.name, '"', grammar);
         }
         if (grammar.qualifiedNames === false && (value.sheet !== undefined || value.workbook !== undefined))
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: qualified formula name in target grammar");

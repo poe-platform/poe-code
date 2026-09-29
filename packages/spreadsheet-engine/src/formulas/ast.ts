@@ -11,12 +11,13 @@ export interface Axis { readonly value: number; readonly relative: boolean }
 /** A binary-format name use retains identity while copies displace its definition.
  * Offsets apply to references resolved at the current definition's declaration
  * anchor. Copy adds row/column deltas only in relative mode and always adds tab
- * displacement; moving a formula leaves the offsets intact. */
+ * displacement unless sheetRelative is false; moving leaves offsets intact. */
 export interface NameRelocation {
   readonly relative: boolean;
   readonly row: number;
   readonly column: number;
   readonly sheet: number;
+  readonly sheetRelative?: boolean;
 }
 export interface ReferenceEndpoint {
   readonly row?: Axis;

@@ -61,7 +61,7 @@ it("prefers an explicitly defined name over external-variable fallback", async (
   const definition = record(9, [0, 0, ...Array.from(name, c => c.charCodeAt(0)), ...Array<number>(16 - name.length).fill(0),
     4, 0, 0, 3, 4, 0, 0, 3]);
   const book = await readLotus(fixture(name, 7, [definition]), context);
-  expect(book.sheets[0]!.cells[0]!.formula).toBe("=(D5+1)");
+  expect(book.sheets[0]!.cells[0]!.formula).toBe('=(@name.relative[0,0,0]:"<<b>>S:A1"+1)');
 });
 
 it("decodes LMBCS external identities before binding both range endpoints", async () => {

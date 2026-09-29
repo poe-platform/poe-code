@@ -8,7 +8,7 @@ import { lmbcsGroups } from "./lotus-charset.js";
 import { readLotusWorks } from "./lotus-works.js";
 import { worksFunctions } from "./lotus-works-functions.js";
 import { lotusFunctions, lotusFunctionsByName } from "./lotus-functions.js";
-import { gnumericGrammar, odfGrammar } from "../formulas/conventions.js";
+import { gnumericGrammar, internalOdfGrammar } from "../formulas/conventions.js";
 import { quoteFormulaString, serializeExpression } from "../formulas/serialization.js";
 import { parseExpression } from "../formulas/parser.js";
 import type { FormulaNode, ReferenceEndpoint } from "../formulas/ast.js";
@@ -245,8 +245,8 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
         };
         const first = endpoint(at + 1, flags & 7), last = op === 2 ? endpoint(at + 5, flags >> 3 & 7) : undefined;
         if (first.sheet && first.sheetRelative || last?.sheet && last.sheetRelative) {
-          // Imported names are expanded into coordinates below. These identifiers
-          // exist only in this decoder-owned expression, until AST substitution.
+          // These decoder-owned identifiers are replaced with reference nodes
+          // before the expression leaves this function; live names stay distinct.
           const name = `LOTUS_SHEET_REFERENCE_${relativeReferences.size}`;
           relativeReferences.set(name, { kind: "reference", start: 0, end: 0, first, ...(last ? { last } : {}) });
           stack.push(name);
@@ -286,18 +286,10 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
           stack.push("#NAME?");
         }
       } else {
-        // libwps resolves name tokens to coordinates: op7 keeps relative axes,
-        // op8 keeps absolute axes. Workbook names are retained independently.
-        const crossSheet = range.first.sheet !== range.last.sheet;
-        const endpoint = (point: LotusNamedRange["first"]) =>
-          (point.sheet === sheetIndex && !crossSheet ? "" : quoteFormulaString(sheetName(point.sheet), "'", gnumericGrammar) + "!") +
-          ref(point.row, point.column, op === 7, op === 7);
-        const single = range.first.row === range.last.row && range.first.column === range.last.column && range.first.sheet === range.last.sheet;
-        const source = endpoint(range.first) + (single ? "" : ":" + endpoint(range.last));
-        stack.push(source);
-        if (crossSheet) indexRanges.set(source, { firstSheet: range.first.sheet, lastSheet: range.last.sheet,
-          first: ref(range.first.row, range.first.column, op === 7, op === 7),
-          last: ref(range.last.row, range.last.column, op === 7, op === 7) });
+        // Calc FindRel/FindAbs retain name indexes. Bind to the original name,
+        // with the token's copy mode, so later definition edits remain live.
+        const fixedSheet = range.first.sheet !== sheetIndex || range.last.sheet !== sheetIndex;
+        stack.push(`@name.${op === 7 ? "relative" : "absolute"}${fixedSheet ? ".fixed-sheet" : ""}[0,0,0]:` + quoteFormulaString(name, '"', gnumericGrammar));
       }
     } else if (modern && op >= 9 && op <= 11) {
       const length = op === 9 ? 4 : op === 10 ? 5 : 11;
@@ -413,14 +405,14 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
     if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: Lotus relative-sheet formula");
     const substitute = (node: FormulaNode): FormulaNode => {
       context.signal.throwIfAborted();
-      if (node.kind === "name") return relativeReferences.get(node.name) ?? node;
+      if (node.kind === "name") return node.relocation ? node : relativeReferences.get(node.name) ?? node;
       if (node.kind === "unary" || node.kind === "parentheses") return { ...node, child: substitute(node.child) };
       if (node.kind === "binary") return { ...node, left: substitute(node.left), right: substitute(node.right) };
       if (node.kind === "call") return { ...node, args: node.args.map(substitute) };
       if (node.kind === "array") return { ...node, rows: node.rows.map(row => row.map(substitute)) };
       return node;
     };
-    const expression = serializeExpression({ ...parsed.document, root: substitute(parsed.document.root) }, odfGrammar, false, true);
+    const expression = serializeExpression({ ...parsed.document, root: substitute(parsed.document.root) }, internalOdfGrammar, false, true);
     if (expression.length > (context.limits.workbookTextBytes ?? context.limits.inputBytes))
       throw new SsconvertError("resource-limit", "ssconvert Lotus formula length limit exceeded");
     return expression;

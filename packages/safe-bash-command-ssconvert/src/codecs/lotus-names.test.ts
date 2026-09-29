@@ -6,6 +6,9 @@ import { parseExpression } from "../formulas/parser.js";
 import { rewriteReferences } from "../formulas/rewriting.js";
 import { recalculateWorkbook } from "../formulas/evaluator.js";
 import { moveWorkbookSheet, renameWorkbookSheet } from "../formulas/workbook.js";
+import { writeGnumeric } from "./gnumeric.js";
+import { createBiffWriter } from "./biff.js";
+import { createXlsxWriter } from "./xlsx.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {}, environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: { inputBytes: 10000, outputBytes: 10000, cells: 1000, sheets: 4, operations: 1000, workbookWork: 100000 } };
@@ -97,10 +100,10 @@ it("recalculates imported names after an apostrophe-containing sheet rename", as
 const namedToken = (text: string, opcode = 7) => [opcode, ...Array.from(text, c => c.charCodeAt(0)), 0];
 const formulaRecord = (tokens: number[], row = 0, column = 1, sheet = 0) => record(25, [...word(row), sheet, column, ...Array<number>(10).fill(0), ...tokens, 3]);
 it.each([
-  { opcode: 7, token: "$Value", formula: "=B1", expected: 13 },
-  { opcode: 7, token: "Value", formula: "=A1", expected: 11 },
-  { opcode: 8, token: "$Value", formula: "=$A$1", expected: 11 },
-  { opcode: 8, token: "$$Value", formula: "=$B$1", expected: 13 }
+  { opcode: 7, token: "$Value", formula: '=@name.relative[0,0,0]:"$Value"', expected: 13 },
+  { opcode: 7, token: "Value", formula: '=@name.relative[0,0,0]:"Value"', expected: 11 },
+  { opcode: 8, token: "$Value", formula: '=@name.absolute[0,0,0]:"Value"', expected: 11 },
+  { opcode: 8, token: "$$Value", formula: '=@name.absolute[0,0,0]:"$Value"', expected: 13 }
 ])("distinguishes the absolute marker from literal dollars in token $opcode/$token", async ({ opcode, token, formula, expected }) => {
   // LibreOffice RangeNameBufferWK3::FindRel uses the original spelling;
   // only FindAbs removes the leading absolute-reference marker.
@@ -132,7 +135,7 @@ it("reads each WK3 reference's flags after earlier tokens", async () => {
 it.each([7, 8])("resolves a forward WK3 name token %i and continues subsequent arithmetic", async opcode => {
   const warnings: string[] = [];
   const book = await readLotus(modern(formulaRecord([...namedToken(opcode === 8 ? "$Value" : "Value", opcode), 5, 2, 0, 15]), newName("Value"), record(24, [0, 0, 0, 0, 22, 0])), { ...context, async diagnostic(d) { warnings.push(d.message); } });
-  expect(book.sheets[0]?.cells.find(c => c.column === 1)?.formula).toBe(opcode === 7 ? "=(A1+1)" : "=($A$1+1)");
+  expect(book.sheets[0]?.cells.find(c => c.column === 1)?.formula).toBe(opcode === 7 ? '=(@name.relative[0,0,0]:"Value"+1)' : '=(@name.absolute[0,0,0]:"Value"+1)');
   const result = recalculateWorkbook(book, context, true);
   expect(result.sheets[0]?.cells.find(c => c.column === 1)?.value).toEqual({ kind: "number", value: 12 });
   expect(warnings).toEqual([]);
@@ -141,15 +144,16 @@ it.each([7, 8])("retains token %i copy semantics at the formula position", async
   const book = await readLotus(modern(newName("Value"), formulaRecord(namedToken("Value", opcode), 2, 2)), context);
   const parsed = parseExpression(book.sheets[0]!.cells[0]!.formula!, { position: { sheet: "lotus-0", row: 2, column: 2 } });
   expect(parsed.ok).toBe(true); if (!parsed.ok) return;
-  expect(rewriteReferences(parsed.document, { translation: "copy", position: { sheet: "lotus-0", row: 3, column: 3 } })).toBe(opcode === 7 ? "=B2" : "=$A$1");
+  expect(rewriteReferences(parsed.document, { translation: "copy", position: { sheet: "lotus-0", row: 3, column: 3 } })).toBe(opcode === 7 ? '=@name.relative[1,1,0]:"Value"' : '=@name.absolute[0,0,0]:"Value"');
 });
 it("uses final escaped sheets and both endpoints for named formula ranges", async () => {
   const book = await readLotus(modern(formulaRecord(namedToken("Across", 8)), newName("Across", [0, 0, 0], [1, 1, 2]), record(0x204, [...Array<number>(10).fill(0), 79, 39, 66, 0]), record(0x204, [...Array<number>(10).fill(0), 76, 97, 115, 116, 0])), context);
-  expect(book.sheets[0]?.cells[0]?.formula).toBe("='O\\'B'!$A$1:'Last'!$C$2");
+  expect(book.sheets[0]?.cells[0]?.formula).toBe('=@name.absolute.fixed-sheet[0,0,0]:"Across"');
+  expect(book.names).toEqual([{ name: "Across", expression: "='O\\'B'!$A$1:'Last'!$C$2" }]);
 });
 it("retains deferred named formulas through their cached string record", async () => {
   const book = await readLotus(modern(formulaRecord(namedToken("Value", 8)), record(26, [0, 0, 0, 1, 120, 0]), newName("Value")), context);
-  expect(book.sheets[0]?.cells[0]).toMatchObject({ formula: "=$A$1", cachedResult: { kind: "string", value: "x" }, formulaDirty: false });
+  expect(book.sheets[0]?.cells[0]).toMatchObject({ formula: '=@name.absolute[0,0,0]:"Value"', cachedResult: { kind: "string", value: "x" }, formulaDirty: false });
 });
 it("does not resurrect an overwritten deferred formula", async () => {
   const book = await readLotus(modern(formulaRecord(namedToken("Value", 8)), record(24, [0, 0, 0, 1, 14, 0]), newName("Value")), context);
@@ -175,11 +179,12 @@ it("preserves cancellation raised by the final unterminated-name diagnostic", as
 });
 it("decodes exact-case and LMBCS token names without selecting a duplicate", async () => {
   const book = await readLotus(modern(newName("N"), newName("n", [0, 0, 2]), newName(String.fromCharCode(0x82), [1, 0, 0]), newName("N", [0, 0, 3]), formulaRecord([...namedToken("N", 8), ...namedToken("n", 8), 15, ...namedToken(String.fromCharCode(0x82), 8), 15])), context);
-  expect(book.sheets[0]?.cells[0]?.formula).toBe("=(($A$1+$C$1)+$A$2)");
+  expect(book.sheets[0]?.cells[0]?.formula).toBe('=((@name.absolute[0,0,0]:"N"+@name.absolute[0,0,0]:"n")+@name.absolute[0,0,0]:"é")');
 });
 it("qualifies a final apostrophe-containing named endpoint from another sheet", async () => {
   const book = await readLotus(modern(formulaRecord(namedToken("Value", 8), 0, 1, 1), newName("Value"), record(0x204, [...Array<number>(10).fill(0), 79, 39, 66, 0])), context);
-  expect(book.sheets[1]?.cells[0]?.formula).toBe("='O\\'B'!$A$1");
+  expect(book.sheets[1]?.cells[0]?.formula).toBe('=@name.absolute.fixed-sheet[0,0,0]:"Value"');
+  expect(book.names).toEqual([{ name: "Value", expression: "='O\\'B'!$A$1" }]);
 });
 it("charges deferred named tokens against the formula operation budget", async () => {
   await expect(readLotus(modern(newName("N"), formulaRecord([...namedToken("N"), ...namedToken("N"), 15])), { ...context, limits: { ...context.limits, operations: 2 } })).rejects.toThrow("operations limit exceeded");
@@ -191,12 +196,12 @@ it.each([false, true])("recalculates a named sheet span with an owner endpoint (
   expect(recalculateWorkbook(book, context, true).sheets[0]?.cells.find(c => c.column === 1)?.value).toEqual({ kind: "number", value: 41 });
 });
 
-it("admits named definitions and expanded formula text under one aggregate budget", async () => {
+it("admits named definitions and live formula text under one aggregate budget", async () => {
   const input = modern(newName("N"), formulaRecord(namedToken("N", 8), 0, 1, 1), formulaRecord(namedToken("N", 8), 0, 1, 2));
   const book = await readLotus(input, context);
   const total = (book.names ?? []).reduce((sum, n) => sum + n.name.length + n.expression.length, 0) +
     book.sheets.reduce((sum, s) => sum + s.cells.reduce((n, c) => n + (c.formula?.length ?? 0), 0), 0);
-  expect(total).toBe(43);
+  expect(total).toBe(91);
   await expect(readLotus(input, { ...context, limits: { ...context.limits, workbookTextBytes: total - 1 } })).rejects.toThrow("expression text limit");
   expect((await readLotus(input, { ...context, limits: { ...context.limits, workbookTextBytes: total } })).names).toEqual(book.names);
 });
@@ -227,7 +232,7 @@ it.each([
   expect(input).toEqual(inputBefore);
 });
 
-it.each([7, 8])("keeps imported token %i coordinates independent of later name replacement or deletion", async opcode => {
+it.each([7, 8])("keeps imported token %i linked to later name replacement or deletion", async opcode => {
   const book = await readLotus(modern(newName("Value"), formulaRecord(namedToken("Value", opcode), 0, 2),
     record(24, [0, 0, 0, 0, 22, 0]), record(24, [0, 0, 0, 1, 26, 0])), context);
   const before = snapshotWorkbook(book, context.limits);
@@ -235,7 +240,8 @@ it.each([7, 8])("keeps imported token %i coordinates independent of later name r
     { row: 0, column: 3, formula: "=Value", formulaDirty: true, value: { kind: "blank" as const } }] })) };
   for (const names of [[{ name: "Value", expression: "='Sheet1'!$B$1" }], []]) {
     const result = recalculateWorkbook(snapshotWorkbook({ ...withNameFormula, names }, context.limits), context, true);
-    expect(result.sheets[0]!.cells.find(cell => cell.column === 2)?.value).toEqual({ kind: "number", value: 11 });
+    expect(result.sheets[0]!.cells.find(cell => cell.column === 2)?.value).toEqual(names.length
+      ? { kind: "number", value: 13 } : { kind: "error", value: "#NAME?" });
     expect(result.sheets[0]!.cells.find(cell => cell.column === 3)?.value).toEqual(names.length
       ? { kind: "number", value: 13 } : { kind: "error", value: "#NAME?" });
   }
@@ -253,4 +259,43 @@ it.each([7, 8])("preserves token %i and workbook name targets across sheet renam
   expect(result.sheets[0]!.cells.find(cell => cell.column === 1)?.value).toEqual({ kind: "number", value: 11 });
   expect(result.names).toEqual([{ name: "Value", expression: "='O\\'Brian'!$A$1" }]);
   expect(book).toEqual(before);
+});
+
+it.each([7, 8])("recalculates a copied token %i after a later definition edit", async opcode => {
+  const book = await readLotus(modern(newName("Value"), formulaRecord(namedToken("Value", opcode), 2, 2),
+    record(24, [0, 0, 0, 0, 22, 0]), record(24, [0, 0, 0, 1, 26, 0]),
+    record(24, [1, 0, 0, 1, 34, 0]), record(24, [1, 0, 0, 2, 38, 0])), context);
+  const source = book.sheets[0]!.cells.find(cell => cell.formula)!;
+  const parsed = parseExpression(source.formula!, { workbook: book, position: { sheet: "lotus-0", row: 2, column: 2 } });
+  expect(parsed.ok).toBe(true); if (!parsed.ok) return;
+  const formula = rewriteReferences(parsed.document, { translation: "copy", position: { sheet: "lotus-0", row: 3, column: 3 } });
+  const copied = { ...book, sheets: book.sheets.map(sheet => ({ ...sheet, cells: [...sheet.cells,
+    { row: 3, column: 3, formula, value: { kind: "blank" as const } }] })) };
+  expect(recalculateWorkbook(copied, context, true).sheets[0]!.cells.find(cell => cell.row === 3)?.value)
+    .toEqual({ kind: "number", value: opcode === 7 ? 17 : 11 });
+  const changed = { ...copied, names: [{ name: "Value", expression: "='Sheet1'!$B$1" }] };
+  expect(recalculateWorkbook(changed, context, true).sheets[0]!.cells.find(cell => cell.row === 3)?.value)
+    .toEqual({ kind: "number", value: opcode === 7 ? 19 : 13 });
+});
+
+it("rejects unqualified native transport instead of writing internal name syntax into a Gnumeric formula", async () => {
+  const book = await readLotus(modern(newName("Value"), formulaRecord(namedToken("Value"))), context);
+  await expect(writeGnumeric(book, [], context)).rejects.toThrow("live name");
+});
+it.each([7, 8] as const)("rejects lossy BIFF%i transport of a live name use", async version => {
+  const book = await readLotus(modern(newName("Value"), formulaRecord(namedToken("Value"))), context);
+  await expect(createBiffWriter(version)(book, [], context)).rejects.toThrow("live name");
+});
+it("rejects lossy XLSX transport of a live name use", async () => {
+  const book = await readLotus(modern(newName("Value"), formulaRecord(namedToken("Value"))), context);
+  await expect(createXlsxWriter("2008")(book, [], context)).rejects.toThrow("live name");
+});
+it("keeps live names beside relative-sheet tokens in internal OpenFormula", async () => {
+  const book = await readLotus(modern(newName("Value"),
+    formulaRecord([...namedToken("Value"), 1, 4, 0, 0, 1, 0, 15], 2, 2),
+    record(24, [0, 0, 1, 0, 22, 0]), record(24, [0, 0, 0, 1, 26, 0])), context);
+  expect(book.sheets[0]!.cells.find(cell => cell.formula)?.formula).toContain('of:=(@name.relative[0,0,0]:"Value"');
+  const changed = { ...book, names: [{ name: "Value", expression: "='Sheet1'!$B$1" }] };
+  expect(recalculateWorkbook(changed, context, true).sheets[0]!.cells.find(cell => cell.formula)?.value)
+    .toEqual({ kind: "number", value: 24 });
 });

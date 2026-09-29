@@ -22,6 +22,8 @@ export function nativeOpenFormula(source: string, position: ParsePosition, conte
       throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: automatic label intersection in Gnumeric output");
     if (node.kind === "reference" && node.label)
       throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: live label reference in Gnumeric output");
+    if (node.kind === "name" && node.relocation)
+      throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: live name relocation in Gnumeric output");
   });
   if (!source.startsWith("of:=")) return source;
   return serializeExpression(parsed.document, gnumericGrammar, false, true, { relativeSheets: "fixed" });

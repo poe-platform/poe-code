@@ -106,3 +106,12 @@ test('streams enforce a cumulative byte budget and release on overflow', async (
   assert.equal(closed,true);
   await bridge.close();
 });
+
+test('oversized sparse arrays are rejected before JSON expansion', async () => {
+  let serialized = false;
+  const value = new Proxy(new Array(1024), {get(target, key, receiver) {if (key === 'toJSON') serialized = true; return Reflect.get(target, key, receiver);}});
+  const bridge = createPythonHostBridge({ large:{async call() {return value;}} }, {signal:new AbortController().signal,maxMessageBytes:256});
+  await assert.rejects(bridge.request({version:1,operation:'call',capability:'large'}), /limit/);
+  assert.equal(serialized,false);
+  await bridge.close();
+});

@@ -58,6 +58,7 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
         return;
       }
       if (typeof item !== 'object' || item === null || !Array.isArray(item) && Object.getPrototypeOf(item) !== Object.prototype && Object.getPrototypeOf(item) !== null) throw new TypeError('Python host messages must contain data only');
+      if (Array.isArray(item) && item.length > maxMessageBytes) throw new RangeError('Python host message limit exceeded');
       estimatedBytes += 2;
       if (Object.getOwnPropertySymbols(item).length) throw new TypeError('Python host messages must contain data only');
       for (const key in item) {

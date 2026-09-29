@@ -703,7 +703,7 @@ export async function* lineBatches(
   const delimiter = nullData ? 0 : 10;
   const extraDelimiter = binary === "binary" ? 0 : -1;
   const delimiterBuffer = nullData ? NUL_DELIMITER_BUFFER : LF_DELIMITER_BUFFER;
-  const chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array> = source instanceof Uint8Array ? [source] : source;
+  const chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array> = source instanceof Uint8Array ? [source] : readBytes(source, limits.signal);
   for await (const data of chunks) {
     const tickPending = limits.tick();
     if (tickPending) await tickPending;

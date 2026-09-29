@@ -51,8 +51,8 @@ export { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-contr
 export { isDefaultCommandOptions, registerDefaultExecutor, registerDefaultExecutors } from "safe-bash-contracts/command";
 
 export interface SyncCommandEvaluators {
-  evalSyncOpenssl?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
-  evalSyncSqlite3?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined) => string | undefined;
+  evalSyncOpenssl?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
+  evalSyncSqlite3?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncGpg?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncSsh?: (opArgs: readonly string[]) => string | undefined;
   evalSyncSshKeygen?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean, cwd?: string) => string | undefined;
@@ -87,7 +87,7 @@ export interface SyncCommandEvaluators {
   evalSyncSponge?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncTruncate?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncInstall?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, mode?: number) => boolean, statTypeSync?: (filePath: string) => string | undefined, mkdirSync?: (filePath: string, mode?: number) => boolean) => string | undefined;
-  evalSyncApplyPatch?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
+  evalSyncApplyPatch?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean, removeFileSync?: (filePath: string) => boolean, mkdirSync?: (filePath: string) => boolean) => string | undefined;
   evalSyncMktemp?: (opArgs: readonly string[], env: Readonly<Record<string, string>>, statTypeSync?: (filePath: string) => string | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean, mkdirSync?: (filePath: string) => boolean) => string | undefined;
   evalSyncTee?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean) => string | undefined;
   evalSyncTouch?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean, utimesNodeSync?: (filePath: string, update: (stat: { atimeMs: number; mtimeMs: number }) => { atimeMs?: number; mtimeMs?: number }) => boolean, tz?: string) => string | undefined;

@@ -30230,13 +30230,13 @@ export class Runtime {
                   : firstName === "mmdc"
                     ? syncCommandEvaluators.evalSyncMmdc?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : firstName === "pandoc"
-                    ? syncCommandEvaluators.evalSyncPandoc?.(stageArgs)
+                    ? syncCommandEvaluators.evalSyncPandoc?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : (firstName === "soffice" || firstName === "libreoffice")
                     ? syncCommandEvaluators.evalSyncSoffice?.(stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : firstName === "ssconvert"
                     ? syncCommandEvaluators.evalSyncSsconvert?.(stageDefs[sIdx]!.execute, stageArgs)
                   : firstName === "wkhtmltopdf"
-                    ? syncCommandEvaluators.evalSyncWkhtmltopdf?.(stageArgs)
+                    ? syncCommandEvaluators.evalSyncWkhtmltopdf?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "op"
                     ? syncCommandEvaluators.evalSyncOp?.(stageDefs[sIdx]!.execute, stageArgs, rawState.variables)
                   : firstName === "git"

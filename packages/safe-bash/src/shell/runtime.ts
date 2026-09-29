@@ -25669,7 +25669,7 @@ export class Runtime {
       }
       if (parsed.files && (parsed.files as readonly { name: string }[]).some(f => f.name !== "-")) return undefined;
       if (inBytes.byteLength === 0) return "";
-      const engine = createFmtEngine(parsed as Parameters<typeof createFmtEngine>[0], undefined, { aborted: false } as AbortSignal);
+      const engine = createFmtEngine(parsed as Parameters<typeof createFmtEngine>[0], {}, { aborted: false } as AbortSignal);
       const gen = engine.run();
       let step = gen.next();
       let sent = false;
@@ -25865,7 +25865,7 @@ export class Runtime {
     if (files.length > 1) return undefined;
     let linesToRead = rawLines;
     if (files.length === 1 && files[0] !== "-") {
-      const memLines = this.readSyncMemoryLines(files[0]!, cwd);
+      const memLines = this.readSyncMemoryLines(resolvePath(cwd, files[0]!));
       if (memLines === undefined) return undefined;
       linesToRead = memLines;
     }

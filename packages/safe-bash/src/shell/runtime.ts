@@ -25853,7 +25853,7 @@ export class Runtime {
     return out;
   }
 
-  private evalSyncTsort(rawLines: readonly string[], opArgs: readonly string[], cwd?: string): string[] | undefined {
+  private evalSyncTsort(rawLines: readonly string[], opArgs: readonly string[], cwd: string): string[] | undefined {
     let optionsEnded = false;
     const files: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {

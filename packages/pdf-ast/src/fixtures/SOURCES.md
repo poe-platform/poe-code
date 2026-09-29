@@ -114,3 +114,20 @@ validate font decoding/geometry; text clipping is qualified separately (#4134).
 | pdfjs-cid_cff.pdf | d894d356411217414fd9040d3d038612e1f4a1598936b2385a76458dd6d64d38 |
 | pdfjs-cff_bluescale_small_zones.pdf | 82eb3d45411342f622e5a785280821abdadefaade3a3789f2906bda2b22a5d8f |
 | pdfjs-text_clip_cff_cid.pdf | 81aaf48f55c659d29d7a533cd913bd9d028ffad183b46580a2122eebe5187506 |
+
+# FlateDecode recovery streams
+
+`pdfjs-flate-*.bin` contains the original compressed bytes extracted with pypdf
+from the indicated PDF.js `test/pdfs` file and indirect object, at revision
+`91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). No font or stream bytes
+were repaired. Expected decoded lengths and SHA-256 values in the test were
+computed independently using that checkout's `FlateStream`, not pdf-ast.
+`issue11651.pdf` objects 8/10 exercise bad checksums and invalid backreferences;
+`issue3885.pdf` object 12 is truncated; `bug1050040.pdf` object 2 has a bad checksum.
+
+| File | Compressed SHA-256 |
+| --- | --- |
+| pdfjs-flate-issue11651.pdf-8.bin | f6d5affeefe60debabb9c08b127fb6b2639a8a3b3c613097895826146e2de36c |
+| pdfjs-flate-issue11651.pdf-10.bin | c62db31061a61e6b273989413e2b1a932f527e5d38a5e66cbee7d75e7a16da80 |
+| pdfjs-flate-issue3885.pdf-12.bin | 90a50754c0c2216bf3a2b2d3e69691cdd777203b5611e35fc6a9da701da40382 |
+| pdfjs-flate-bug1050040.pdf-2.bin | 8720aad581e3839f8edee2fe970d377a24081898114b85e1c9849f3bf78bccc0 |

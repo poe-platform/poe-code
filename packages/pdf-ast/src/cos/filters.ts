@@ -1,4 +1,5 @@
-import { deflate, inflate } from "pako";
+import { deflate, Inflate } from "pako";
+import { FlateStream, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
 import { PdfError } from "../errors.js";
 
@@ -20,6 +21,25 @@ export function encodeFlate(bytes: Uint8Array): Uint8Array {
   return deflate(bytes);
 }
 
+// Keep PDF.js recovery while checking the budget before any output-buffer growth.
+class BoundedFlateStream extends FlateStream {
+  constructor(bytes: Uint8Array, private readonly maxDecodedBytes: number) {
+    super(new Stream(bytes));
+  }
+
+  override ensureBuffer(requested: number): Uint8Array {
+    if (requested > this.maxDecodedBytes) {
+      throw new PdfError("E_LIMIT", "FlateDecode output exceeds maximum decoded byte budget");
+    }
+    if (requested <= this.buffer.byteLength) return this.buffer;
+    let size = this.minBufferLength;
+    while (size < requested) size *= 2;
+    const buffer = new Uint8Array(Math.min(size, this.maxDecodedBytes));
+    buffer.set(this.buffer);
+    return (this.buffer = buffer);
+  }
+}
+
 export function decodeFlate(
   bytes: Uint8Array,
   parms?: PdfFilterDecodeParms,
@@ -27,16 +47,27 @@ export function decodeFlate(
 ): Uint8Array {
   let inflated: Uint8Array;
   try {
-    inflated = inflate(bytes);
-  } catch {
-    try {
-      inflated = inflate(bytes, { raw: true });
-    } catch {
+    inflated = new BoundedFlateStream(bytes, maxDecodedBytes).getBytes();
+  } catch (error) {
+    if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
+    // Preserve the prior raw-DEFLATE and gzip compatibility through pako, but
+    // stop at a chunk boundary before retaining an unbounded decoded result.
+    const decoder = new Inflate({
+      raw: !(bytes[0] === 0x1f && bytes[1] === 0x8b),
+      chunkSize: Math.max(1, Math.min(64 * 1024, maxDecodedBytes + 1)),
+    });
+    let length = 0;
+    decoder.onData = chunk => {
+      length += chunk.length;
+      if (length > maxDecodedBytes) {
+        throw new PdfError("E_LIMIT", "FlateDecode output exceeds maximum decoded byte budget");
+      }
+      decoder.chunks.push(chunk);
+    };
+    if (!decoder.push(bytes, true) || decoder.err || !decoder.ended) {
       throw new PdfError("E_CAPABILITY", "Invalid FlateDecode compressed stream");
     }
-  }
-  if (inflated.byteLength > maxDecodedBytes) {
-    throw new PdfError("E_LIMIT", "FlateDecode output exceeds maximum decoded byte budget");
+    inflated = decoder.result;
   }
   return applyPredictor(inflated, parms);
 }

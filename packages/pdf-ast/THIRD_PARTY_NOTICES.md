@@ -209,3 +209,16 @@ specification example from `cff_parser_spec.js`, with its second charstring
 replaced by an unhinted triangle and compiled once with PDF.js CFFCompiler.
 The test contains no system font assets. Mozilla Foundation, Apache-2.0, same
 pinned revision and license as the other CFF cases.
+
+# FlateDecode
+
+The existing PDF.js vendor bundle also includes unmodified `FlateStream` and
+`DecodeStream` from the pinned revision. `src/cos/filters.ts` subclasses its
+output-buffer allocator to enforce caller byte budgets before growth and caps
+buffer capacity at that budget. Raw-DEFLATE and gzip compatibility retains pako
+with bounded output chunks. The simple predictor test in
+`src/cos/pdfjs-flate.test.ts` is ported from `test/unit/stream_spec.js` to Vitest;
+additional regressions use the extracted upstream streams listed in
+`src/fixtures/SOURCES.md`. Copyright 2012/2017 Mozilla Foundation and
+1996–2003 Glyph & Cog, LLC, Apache-2.0. The upstream Flate implementation is a
+JavaScript port of XPDF's implementation.

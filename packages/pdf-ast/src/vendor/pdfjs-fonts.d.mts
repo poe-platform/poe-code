@@ -1,5 +1,12 @@
 /** PDF.js CFF parser and path compiler; see THIRD_PARTY_NOTICES.md. */
 export class Stream { constructor(bytes: Uint8Array); }
+export class FlateStream {
+  constructor(stream: Stream, length?: number);
+  buffer: Uint8Array;
+  minBufferLength: number;
+  ensureBuffer(requested: number): Uint8Array;
+  getBytes(): Uint8Array;
+}
 export interface CffDict { getByName(name: "FontMatrix"): number[] | undefined; getByName(name: string): unknown; setByName(name: string, value: unknown): void; privateDict?: CffDict; subrsIndex?: { objects: Uint8Array[] }; }
 export interface CffFont {
   header: { major: number; minor: number; hdrSize: number; offSize: number };

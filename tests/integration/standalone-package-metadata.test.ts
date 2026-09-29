@@ -192,7 +192,7 @@ describe("standalone package publish metadata", () => {
       ".", "./agent", "./config", "./config/testing", "./credentials", "./memory", "./skills", "./csvkit", "./csvkit/codecs/python", "./csvkit/codecs/utf8", "./ssconvert",
       "./safe-bash", "./safe-bash/contracts", "./safe-bash/contracts/*", "./safe-bash/commands/media", "./media", "./media/server",
       "./safe-bash/image-ast", "./safe-bash/pdf-ast", "./safe-bash/sharp", "./safe-bash/spreadsheet-ast",
-      "./ssconvert/core", "./ssconvert/formats/csv", "./ssconvert/formats/dbf", "./ssconvert/formats/html", "./ssconvert/formats/xlsx", "./ssconvert/formats/ods", "./ssconvert/formats/xls", "./ssconvert/formats/spreadsheetml",
+      "./ssconvert/core", "./ssconvert/commands", "./ssconvert/formats/csv", "./ssconvert/formats/dbf", "./ssconvert/formats/html", "./ssconvert/formats/xlsx", "./ssconvert/formats/ods", "./ssconvert/formats/xls", "./ssconvert/formats/spreadsheetml",
       "./remote-execution", "./remote-execution/server", "./remote-execution/providers/*",
       "./safe-fs", "./safe-fs/core", "./safe-fs/node", "./safe-fs/node/filesystem",
       "./safe-js", "./safe-js/core", "./safe-js/cli", "./safejs", "./safejs/core", "./safejs/cli",
@@ -200,11 +200,15 @@ describe("standalone package publish metadata", () => {
     ].sort());
     const rootPackage = readPackageJson("package.json");
     expect(rootPackage.exports?.["./ssconvert"]).toEqual({
-      types: "./packages/safe-bash-command-ssconvert/dist/index.d.ts",
+      types: "./dist/types/safe-bash-command-ssconvert/index.d.ts",
       import: "./dist/ssconvert/index.js"
     });
     expect(rootPackage.files).toContain("dist");
-    expect(rootPackage.files).toContain("packages/safe-bash-command-ssconvert/dist/**/*.d.ts");
+    expect(rootPackage.files).toContain("!packages/*/dist/**/*.d.ts");
+    expect(rootPackage.exports?.["./ssconvert/commands"]).toEqual({
+      types: "./dist/types/safe-bash-command-ssconvert/commands.d.ts",
+      import: "./dist/ssconvert/commands.js"
+    });
   });
 
   it("publishes the superintendent MCP server bin with the root package", () => {
@@ -260,8 +264,16 @@ describe("standalone package publish metadata", () => {
 
     expect(rootPackage.devDependencies?.["@poe-code/safe-js"]).toBe("*");
     expect(rootPackage.devDependencies?.["@poe-code/agent-script"]).toBeUndefined();
-    expect(rootPackage.files).toContain("packages/safe-js/dist");
-    expect(rootPackage.files).toContain("!packages/safe-js/dist/package.json");
+    expect(rootPackage.files).toContain("dist");
+    expect(rootPackage.files).not.toContain("packages/safe-js/dist");
+    expect(rootPackage.exports?.["./safe-js"]).toEqual({
+      types: {
+        browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+        default: "./dist/types/safe-js/index.d.ts"
+      },
+      browser: null,
+      import: "./dist/shared/safe-js/index.js"
+    });
     expect(rootPackage.files).not.toContain("packages/agent-script/dist");
     expect(safejsPackage).toMatchObject({
       name: "@poe-code/safe-js",

@@ -3,6 +3,13 @@ import test from "node:test";
 import { createOpenAiProvider } from "./openai.js";
 import reference from "./fixtures/openai-structured-options-reference.json" with {type:"json"};
 import { openAiChatOptions } from "./openai-chat-options.js";
+import integers from "./fixtures/token-integer-reference.json" with { type: "json" };
+test("token key grammar matches pinned Unicode decimal and whitespace semantics", () => {
+ for (const fixture of integers.cases) {
+  if (fixture.accepted) assert.deepEqual(openAiChatOptions({ logit_bias: fixture.input }), { logit_bias: fixture.expected });
+  else assert.throws(() => openAiChatOptions({ logit_bias: fixture.input }));
+ }
+});
 test("token IDs retain exact pinned integers beyond JavaScript numeric precision", () => {
  for (const [input, key, bias] of [
   ['{"9007199254740993":10}', "9007199254740993", 10],

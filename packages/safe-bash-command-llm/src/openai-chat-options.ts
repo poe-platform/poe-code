@@ -1,11 +1,12 @@
-import { parseLlmNumericOption } from "./numeric-option.js";
+import { tokenInteger } from "./token-integer.js";
 import type { LlmOption } from "./types.js";
 
 function biasInteger(value: unknown): number | undefined {
  if (typeof value === "boolean") return Number(value);
  if (typeof value === "number") return Number.isFinite(value) ? Math.trunc(value) : undefined;
- if (typeof value !== "string" || value.includes(".")) return undefined;
- return parseLlmNumericOption(value, "integer");
+ if (typeof value !== "string") return undefined;
+ const integer = tokenInteger(value);
+ return integer === undefined ? undefined : Number(integer);
 }
 
 /** JSON.parse orders integer property names numerically; Python dictionaries do not. */
@@ -43,11 +44,7 @@ function logitBias(input: LlmOption): Record<string, number> {
  const result: Record<string, number> = {};
  for (const key of dictionaryKeys(input)) {
   const value: unknown = (parsed as Record<string, unknown>)[key];
-  let token: string | undefined;
-  if (biasInteger(key) !== undefined) {
-   try { token = BigInt(key.trim().replaceAll("_", "")).toString(); }
-   catch { /* Invalid decimal integer key. */ }
-  }
+  const token = tokenInteger(key);
   const bias = biasInteger(value);
   if (token === undefined || bias === undefined || !Number.isSafeInteger(bias) || bias < -100 || bias > 100) throw new TypeError("Invalid OpenAI logit_bias: Invalid key-value pair in logit_bias dictionary");
   Object.defineProperty(result, token, { value: bias, enumerable: true, configurable: true, writable: true });

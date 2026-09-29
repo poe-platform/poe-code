@@ -381,3 +381,23 @@ test("evaluates multi-key sort (-k 2,2n -k 1,1r) and sed a/i/c line operations i
     "d:5,c:10,b:10,a:20,|d:5,b:10,a:20,|HDR:0,b:10,|d:5,END:99,|b:10,a:999,c:10,d:5,|c:10;c:10;\n"
   );
 });
+
+test("evaluates tr long flags (--delete, --squeeze-repeats), [c*] repeat sets, and uniq -D/--all-repeated in sync substitutions and pipelines (Wave 176)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands());
+  const res = await shell.exec([
+    "printf 'a\\na\\nb\\nc\\nc\\n' > /tmp/dups.txt",
+    "t_del=$(tr --delete '[:punct:]' <<< 'a,b:c!d')",
+    "t_sq=$(tr --squeeze-repeats '[:blank:]' ' ' <<< $'x\t\ty   z')",
+    "t_rep=$(tr '0-9' '[#*]' <<< 'id=42')",
+    "u_all=$(uniq -D /tmp/dups.txt | tr '\\n' ',')",
+    "u_sep=$(uniq --all-repeated=separate /tmp/dups.txt | tr '\\n' ',')",
+    "echo \"$t_del|$t_sq|$t_rep|$u_all|$u_sep\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "abcd|x y z|id=##|a,a,c,c,|a,a,,c,c,\n"
+  );
+});

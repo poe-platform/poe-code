@@ -22947,6 +22947,8 @@ export class Runtime {
       "[:blank:]": "\t ",
       "[:xdigit:]": "0123456789ABCDEFabcdef",
       "[:punct:]": "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
+      "[:graph:]": "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+      "[:print:]": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
     };
     const out: string[] = [];
     for (let i = 0; i < spec.length; i++) {
@@ -22960,13 +22962,24 @@ export class Runtime {
         i = close + 1;
         continue;
       }
-      if (spec[i] === "[") return undefined;
+      if (spec[i] === "[") {
+        const repM = /^\[([^\\\]])\*([0-9]{0,3})\]/.exec(spec.slice(i));
+        if (!repM) return undefined;
+        const cnt = repM[2] ? Number(repM[2]) : 1;
+        for (let r = 0; r < Math.max(1, cnt); r++) out.push(repM[1]!);
+        i += repM[0]!.length - 1;
+        continue;
+      }
       if (spec[i] === "\\") {
         if (i + 1 >= spec.length) return undefined;
         const next = spec[++i]!;
         if (next === "n") out.push("\n");
         else if (next === "t") out.push("\t");
         else if (next === "r") out.push("\r");
+        else if (next === "a") out.push("\x07");
+        else if (next === "b") out.push("\b");
+        else if (next === "f") out.push("\f");
+        else if (next === "v") out.push("\v");
         else if (next === "\\") out.push("\\");
         else if (next >= "0" && next <= "7") {
           let oct = next;
@@ -23010,6 +23023,10 @@ export class Runtime {
       const a = opArgs[idx]!;
       if (a === "--") { idx++; break; }
       if (!a.startsWith("-") || a === "-") break;
+      if (a === "--delete") { flagD = true; idx++; continue; }
+      if (a === "--squeeze-repeats") { flagS = true; idx++; continue; }
+      if (a === "--complement") { flagC = true; idx++; continue; }
+      if (a === "--truncate-set1") { flagT = true; idx++; continue; }
       if (!/^-[cCdst]+$/.test(a)) return undefined;
       for (let k = 1; k < a.length; k++) {
         const ch = a[k]!;
@@ -27571,6 +27588,7 @@ export class Runtime {
     let ignoreCase = false;
     let hasCount = false;
     let onlyRepeated = false;
+    let allRepeated: "none" | "prepend" | "separate" | undefined;
     let onlyUnique = false;
     let skipFields = 0;
     let skipChars = 0;
@@ -27580,6 +27598,9 @@ export class Runtime {
       if (a === "--ignore-case") ignoreCase = true;
       else if (a === "--count") hasCount = true;
       else if (a === "--repeated") onlyRepeated = true;
+      else if (a === "-D" || a === "--all-repeated" || a === "--all-repeated=none") { onlyRepeated = true; allRepeated = "none"; }
+      else if (a === "--all-repeated=prepend") { onlyRepeated = true; allRepeated = "prepend"; }
+      else if (a === "--all-repeated=separate") { onlyRepeated = true; allRepeated = "separate"; }
       else if (a === "--unique") onlyUnique = true;
       else if (/^--skip-fields=[0-9]{1,4}$/.test(a)) skipFields = Number(a.slice(14));
       else if (/^--skip-chars=[0-9]{1,4}$/.test(a)) skipChars = Number(a.slice(13));
@@ -27594,12 +27615,13 @@ export class Runtime {
         if (a[1] === "f") skipFields = n;
         else if (a[1] === "s") skipChars = n;
         else checkChars = n;
-      } else if (/^-[cdui]+$/.test(a)) {
+      } else if (/^-[cduiD]+$/.test(a)) {
         for (let k = 1; k < a.length; k++) {
           const ch = a[k]!;
           if (ch === "i") ignoreCase = true;
           else if (ch === "c") hasCount = true;
           else if (ch === "d") onlyRepeated = true;
+          else if (ch === "D") { onlyRepeated = true; allRepeated = "none"; }
           else if (ch === "u") onlyUnique = true;
         }
       } else {
@@ -27638,8 +27660,14 @@ export class Runtime {
       const k0 = keyOf(rawLines[uIdx]!);
       let uEnd = uIdx + 1;
       while (uEnd < rawLines.length && keyOf(rawLines[uEnd]!) === k0) uEnd++;
+      if (allRepeated !== undefined && (hasCount || onlyUnique)) return undefined;
       const count = uEnd - uIdx;
-      if ((!onlyRepeated || count > 1) && (!onlyUnique || count === 1)) {
+      if (allRepeated !== undefined) {
+        if (count > 1) {
+          if (allRepeated === "prepend" || (allRepeated === "separate" && outLines.length > 0)) outLines.push("");
+          for (let ri = uIdx; ri < uEnd; ri++) outLines.push(rawLines[ri]!);
+        }
+      } else if ((!onlyRepeated || count > 1) && (!onlyUnique || count === 1)) {
         outLines.push(hasCount ? `${String(count).padStart(7, " ")} ${rawLines[uIdx]!}` : rawLines[uIdx]!);
       }
       uIdx = uEnd;

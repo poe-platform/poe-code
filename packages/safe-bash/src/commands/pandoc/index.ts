@@ -11,8 +11,8 @@ import {
 
 export * from "safe-bash-command-pandoc";
 
-export function createPandocCommand(options: PandocCommandsOptions = {}): CommandDefinition {
-  const def = createRawPandocCommand(options);
+export function createPandocCommand(options: PandocCommandsOptions = {}, hasCommand?: (name: string) => boolean): CommandDefinition {
+  const def = createRawPandocCommand(options, hasCommand);
   if (options.limits === undefined && options.filters === undefined && options.jsonFilterCommand === undefined && options.citeproc === undefined) {
     builtInDirectContextExecutors.add(def.execute);
   }
@@ -28,10 +28,12 @@ export function createPandocCommands(options: PandocCommandsOptions = {}): reado
 }
 
 export function pandocCommands(options: PandocCommandsOptions = {}): VirtualShellPlugin {
-  const command = createPandocCommand(options);
+  let hasCommand: ((name: string) => boolean) | undefined;
+  const command = createPandocCommand(options, name => hasCommand?.(name) ?? false);
   return {
     name: "pandoc",
     setup(host) {
+      hasCommand = name => host.commands.has(name);
       host.commands.register(command, { replace: options.replace ?? false });
     },
   };

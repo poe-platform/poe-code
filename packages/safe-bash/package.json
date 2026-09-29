@@ -637,9 +637,7 @@
     },
     "./commands/gh": {
       "types": "./dist/commands/gh/index.d.ts",
-      "workerd": "./dist/commands/gh/index.browser.js",
-      "browser": "./dist/commands/gh/index.browser.js",
-      "default": "./dist/commands/gh/index.js"
+      "import": "./dist/commands/gh/index.js"
     }
   },
   "files": [

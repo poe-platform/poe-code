@@ -25045,7 +25045,7 @@ export class Runtime {
         }
         optArgs.push(a);
       } else if (cmd === "column" || cmd === "fold" || cmd === "expand" || cmd === "unexpand" || cmd === "strings") {
-        if ((a === "-s" || a === "--separator" || a === "-o" || a === "--output-separator" || a === "-N" || a === "--table-columns" || a === "-w" || a === "--width" || a === "-t" && cmd !== "column" || a === "--tabs" || a === "-n" || a === "--bytes") && i + 1 < allArgs.length) {
+        if ((a === "-s" || a === "--separator" || a === "-o" || a === "--output-separator" || a === "-N" || a === "--table-columns" || a === "-R" || a === "--table-right" || a === "-H" || a === "--table-hide" || a === "-O" || a === "--table-order" || a === "--table-name" || a === "-w" || a === "--width" || a === "-t" && cmd !== "column" || a === "--tabs" || a === "-n" || a === "--bytes" || a === "--radix") && i + 1 < allArgs.length) {
           optArgs.push(a, allArgs[++i]!);
           continue;
         }
@@ -26401,15 +26401,30 @@ export class Runtime {
 
   private evalSyncColumn(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
     let tableMode = false;
+    let jsonMode = false;
+    let noHeadings = false;
+    let tableName = "table";
     let sepChars: Set<string> | undefined;
     let outSep = "  ";
     let emptyLines = false;
     let headers: string[] | undefined;
+    let rightSpec: string | undefined;
+    let hideSpec: string | undefined;
+    let orderSpec: string | undefined;
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if (a === "-t" || a === "--table") tableMode = true;
+      else if (a === "-J" || a === "--json") { jsonMode = true; tableMode = true; }
+      else if (a === "-d" || a === "--table-noheadings") noHeadings = true;
       else if (a === "-e" || a === "--table-empty-lines") emptyLines = true;
-      else if (a === "-s" || a === "--separator") {
+      else if (a === "-n" || a === "--table-name") {
+        if (i + 1 >= opArgs.length || !opArgs[i + 1]) return undefined;
+        tableName = opArgs[++i]!;
+      } else if (a.startsWith("-n") && a.length > 2) {
+        tableName = a.slice(2);
+      } else if (a.startsWith("--table-name=") && a.length > 13) {
+        tableName = a.slice(13);
+      } else if (a === "-s" || a === "--separator") {
         if (i + 1 >= opArgs.length || !opArgs[i + 1]) return undefined;
         sepChars = new Set(Array.from(opArgs[++i]!));
       } else if (a.startsWith("-s") && a.length > 2) {
@@ -26430,20 +26445,44 @@ export class Runtime {
         headers = a.slice(2).split(",");
       } else if (a.startsWith("--table-columns=") && a.length > 16) {
         headers = a.slice(16).split(",");
+      } else if (a === "-R" || a === "--table-right") {
+        if (i + 1 >= opArgs.length || !opArgs[i + 1]) return undefined;
+        rightSpec = rightSpec ? rightSpec + "," + opArgs[++i]! : opArgs[++i]!;
+      } else if (a.startsWith("-R") && a.length > 2) {
+        rightSpec = rightSpec ? rightSpec + "," + a.slice(2) : a.slice(2);
+      } else if (a.startsWith("--table-right=") && a.length > 14) {
+        rightSpec = rightSpec ? rightSpec + "," + a.slice(14) : a.slice(14);
+      } else if (a === "-H" || a === "--table-hide") {
+        if (i + 1 >= opArgs.length || !opArgs[i + 1]) return undefined;
+        hideSpec = hideSpec ? hideSpec + "," + opArgs[++i]! : opArgs[++i]!;
+      } else if (a.startsWith("-H") && a.length > 2) {
+        hideSpec = hideSpec ? hideSpec + "," + a.slice(2) : a.slice(2);
+      } else if (a.startsWith("--table-hide=") && a.length > 13) {
+        hideSpec = hideSpec ? hideSpec + "," + a.slice(13) : a.slice(13);
+      } else if (a === "-O" || a === "--table-order") {
+        if (i + 1 >= opArgs.length || !opArgs[i + 1]) return undefined;
+        orderSpec = orderSpec ? orderSpec + "," + opArgs[++i]! : opArgs[++i]!;
+      } else if (a.startsWith("-O") && a.length > 2) {
+        orderSpec = orderSpec ? orderSpec + "," + a.slice(2) : a.slice(2);
+      } else if (a.startsWith("--table-order=") && a.length > 14) {
+        orderSpec = orderSpec ? orderSpec + "," + a.slice(14) : a.slice(14);
       } else if (a.startsWith("-ts") || a.startsWith("-st")) {
         tableMode = true;
         const rest = a.slice(3);
         const sVal = rest.length > 0 ? rest : (i + 1 < opArgs.length ? opArgs[++i] : undefined);
         if (!sVal) return undefined;
         sepChars = new Set(Array.from(sVal));
-      } else if (/^-[te]+$/.test(a)) {
+      } else if (/^-[tedJ]+$/.test(a)) {
         if (a.includes("t")) tableMode = true;
+        if (a.includes("J")) { jsonMode = true; tableMode = true; }
         if (a.includes("e")) emptyLines = true;
+        if (a.includes("d")) noHeadings = true;
       } else {
         return undefined;
       }
     }
     if (!tableMode || /[^\x20-\x7e]/.test(outSep)) return undefined;
+    if (jsonMode && (!headers || headers.length === 0)) return undefined;
     if (sepChars) {
       for (const ch of sepChars) if (ch.length !== 1 || (ch !== "\t" && (ch.charCodeAt(0) < 0x20 || ch.charCodeAt(0) >= 0x7f))) return undefined;
     }
@@ -26473,10 +26512,52 @@ export class Runtime {
       rows.push(row);
     }
     if (rows.length === 0) return [];
-    const allRows = headers ? [headers, ...rows] : rows;
+    const resolveColSpec = (spec: string | undefined): number[] | undefined => {
+      if (!spec) return [];
+      const res: number[] = [];
+      for (const tok of spec.split(",")) {
+        if (!tok) return undefined;
+        let idx = -1;
+        if (/^[1-9][0-9]*$/.test(tok)) idx = Number(tok) - 1;
+        else if (headers) idx = headers.indexOf(tok);
+        if (idx < 0 || idx >= maxCols) return undefined;
+        if (!res.includes(idx)) res.push(idx);
+      }
+      return res;
+    };
+    const rightIndices = resolveColSpec(rightSpec);
+    const hideIndices = resolveColSpec(hideSpec);
+    const orderIndices = resolveColSpec(orderSpec);
+    if (!rightIndices || !hideIndices || !orderIndices) return undefined;
+    const rightSet = new Set(rightIndices);
+    const hideSet = new Set(hideIndices);
+    const ordered: number[] = [...orderIndices];
+    for (let c = 0; c < maxCols; c++) if (!ordered.includes(c)) ordered.push(c);
+    const visibleCols = ordered.filter(c => !hideSet.has(c));
+    if (jsonMode) {
+      const lower = (s: string) => s.toLowerCase();
+      const keys = visibleCols.map(c => JSON.stringify(lower(headers?.[c] ?? "")));
+      let jStr = `{\n   ${JSON.stringify(lower(tableName))}: [\n`;
+      for (let r = 0; r < rows.length; r++) {
+        const row = rows[r]!;
+        jStr += r ? "{\n" : "      {\n";
+        if (!keys.length) jStr += "\n";
+        for (let k = 0; k < keys.length; k++) {
+          const val = row[visibleCols[k]!] ?? "";
+          jStr += `         ${keys[k]}: ${val ? JSON.stringify(val) : "null"}${k + 1 < keys.length ? "," : ""}\n`;
+        }
+        jStr += `      }${r + 1 < rows.length ? "," : "\n"}`;
+      }
+      jStr += `${rows.length ? "" : "\n"}   ]\n}`;
+      return jStr.split("\n");
+    }
+    const allRows = (headers && !noHeadings) ? [headers, ...rows] : rows;
     const widths = new Array<number>(maxCols).fill(0);
-    for (let r = 0; r < allRows.length; r++) {
-      const row = allRows[r]!;
+    if (headers) {
+      for (let c = 0; c < headers.length; c++) widths[c] = headers[c]!.length;
+    }
+    for (let r = 0; r < rows.length; r++) {
+      const row = rows[r]!;
       for (let c = 0; c < row.length; c++) {
         if (row[c]!.length > widths[c]!) widths[c] = row[c]!.length;
       }
@@ -26486,12 +26567,17 @@ export class Runtime {
       const row = allRows[r]!;
       if (row.length === 0) { out.push(""); continue; }
       let line = "";
-      for (let c = 0; c < maxCols; c++) {
+      for (let p = 0; p < visibleCols.length; p++) {
+        const c = visibleCols[p]!;
         const val = row[c] ?? "";
-        if (c + 1 < maxCols) {
-          line += val + " ".repeat(Math.max(0, widths[c]! - val.length)) + outSep;
+        const w = widths[c] ?? 0;
+        const pad = Math.max(0, w - val.length);
+        const isLast = p + 1 === visibleCols.length;
+        const isRight = rightSet.has(c);
+        if (isRight) {
+          line += (val.length > 0 ? " ".repeat(pad) + val : (isLast ? "" : " ".repeat(pad))) + (isLast ? "" : outSep);
         } else {
-          line += val;
+          line += val + (isLast ? "" : " ".repeat(pad) + outSep);
         }
       }
       out.push(line);
@@ -28728,7 +28814,7 @@ export class Runtime {
       const w0Plain0 = cmd0.words[0]?.plain;
       const cmd0YesStage = !cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "yes" && pipeline.commands[1]?.kind === "simple" && pipeline.commands[1]?.words[0]?.plain === "head";
       const cmd0SysStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "uname" || w0Plain0 === "id" || w0Plain0 === "whoami" || w0Plain0 === "hostname" || w0Plain0 === "nproc" || w0Plain0 === "getconf" || w0Plain0 === "locale" || w0Plain0 === "cal" || w0Plain0 === "ncal" || w0Plain0 === "date" || w0Plain0 === "printenv" || w0Plain0 === "env" || w0Plain0 === "pwd" || w0Plain0 === "dirname" || w0Plain0 === "basename" || w0Plain0 === "expr" || w0Plain0 === "getopt" || w0Plain0 === "pathchk" || (w0Plain0 === "awk" && cmd0.words.some(w => w.plain?.includes("BEGIN"))));
-      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "xxd" || w0Plain0 === "od" || w0Plain0 === "hexdump" || w0Plain0 === "hd" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "fmt" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || w0Plain0 === "jq" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk" || w0Plain0 === "rev" || w0Plain0 === "tac" || w0Plain0 === "uniq" || w0Plain0 === "base64" || w0Plain0 === "column" || w0Plain0 === "fold" || w0Plain0 === "expand" || w0Plain0 === "unexpand" || w0Plain0 === "strings" || w0Plain0 === "numfmt") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
+      const cmd0FileStage = !cmd0StdinRedir && !cmd0HereStringRedir && (w0Plain0 === "paste" || w0Plain0 === "comm" || w0Plain0 === "join" || w0Plain0 === "nl" || w0Plain0 === "factor" || w0Plain0 === "tsort" || w0Plain0 === "envsubst" || w0Plain0 === "xxd" || w0Plain0 === "od" || w0Plain0 === "hexdump" || w0Plain0 === "hd" || w0Plain0 === "md5sum" || w0Plain0 === "sha1sum" || w0Plain0 === "sha224sum" || w0Plain0 === "sha256sum" || w0Plain0 === "sha384sum" || w0Plain0 === "sha512sum" || w0Plain0 === "cksum" || w0Plain0 === "base32" || w0Plain0 === "csvcut" || w0Plain0 === "csvgrep" || w0Plain0 === "dos2unix" || w0Plain0 === "unix2dos" || w0Plain0 === "iconv" || w0Plain0 === "gzip" || w0Plain0 === "gunzip" || w0Plain0 === "zcat" || w0Plain0 === "unzstd" || w0Plain0 === "zstdcat" || w0Plain0 === "zstd" || w0Plain0 === "bzip2" || w0Plain0 === "bunzip2" || w0Plain0 === "bzcat" || w0Plain0 === "xz" || w0Plain0 === "unxz" || w0Plain0 === "xzcat" || w0Plain0 === "lzma" || w0Plain0 === "unlzma" || w0Plain0 === "lzcat" || w0Plain0 === "htmlq" || w0Plain0 === "xmllint" || w0Plain0 === "xq" || w0Plain0 === "yq" || w0Plain0 === "mdq" || w0Plain0 === "shuf" || w0Plain0 === "html-to-markdown" || w0Plain0 === "unrtf" || w0Plain0 === "fmt" || w0Plain0 === "pr" || w0Plain0 === "file" || w0Plain0 === "diff3" || w0Plain0 === "cmp" || w0Plain0 === "which" || w0Plain0 === "diff" || w0Plain0 === "xan" || w0Plain0 === "less" || w0Plain0 === "more" || w0Plain0 === "df" || w0Plain0 === "du" || w0Plain0 === "tree" || w0Plain0 === "stat" || w0Plain0 === "fd" || w0Plain0 === "rg" || w0Plain0 === "readlink" || w0Plain0 === "realpath" || w0Plain0 === "ls" || w0Plain0 === "find" || w0Plain0 === "csvlook" || w0Plain0 === "csvjson" || w0Plain0 === "csvsort" || w0Plain0 === "csvformat" || w0Plain0 === "csvstat" || w0Plain0 === "in2csv" || w0Plain0 === "csvstack" || w0Plain0 === "csvjoin" || w0Plain0 === "dd" || w0Plain0 === "xargs" || w0Plain0 === "openssl" || w0Plain0 === "sqlite3" || w0Plain0 === "gpg" || w0Plain0 === "ssh" || w0Plain0 === "ssh-keygen" || w0Plain0 === "pdfinfo" || w0Plain0 === "pdffonts" || w0Plain0 === "pdftotext" || w0Plain0 === "pdftohtml" || w0Plain0 === "exiftool" || w0Plain0 === "qpdf" || w0Plain0 === "pdftk" || w0Plain0 === "sips" || w0Plain0 === "identify" || w0Plain0 === "magick" || w0Plain0 === "convert" || w0Plain0 === "pdfimages" || w0Plain0 === "pdfdetach" || w0Plain0 === "ffprobe" || w0Plain0 === "ffmpeg" || w0Plain0 === "gh" || w0Plain0 === "pdftoppm" || w0Plain0 === "pdftocairo" || w0Plain0 === "mmdc" || w0Plain0 === "pandoc" || w0Plain0 === "soffice" || w0Plain0 === "libreoffice" || w0Plain0 === "ssconvert" || w0Plain0 === "wkhtmltopdf" || w0Plain0 === "op" || w0Plain0 === "git" || w0Plain0 === "tar" || w0Plain0 === "unzip" || w0Plain0 === "zip" || w0Plain0 === "timeout" || w0Plain0 === "split" || w0Plain0 === "csplit" || w0Plain0 === "curl" || w0Plain0 === "wget" || w0Plain0 === "sponge" || w0Plain0 === "truncate" || w0Plain0 === "install" || w0Plain0 === "apply_patch" || w0Plain0 === "mktemp" || w0Plain0 === "tee" || w0Plain0 === "touch" || w0Plain0 === "cp" || w0Plain0 === "mv" || w0Plain0 === "rmdir" || w0Plain0 === "sleep" || w0Plain0 === "chmod" || w0Plain0 === "patch" || w0Plain0 === "mkdir" || w0Plain0 === "rm" || w0Plain0 === "grep" || w0Plain0 === "egrep" || w0Plain0 === "fgrep" || w0Plain0 === "jq" || ((w0Plain0 === "head" || w0Plain0 === "tail" || w0Plain0 === "wc" || w0Plain0 === "sort" || w0Plain0 === "cut" || w0Plain0 === "sed" || w0Plain0 === "awk" || w0Plain0 === "rev" || w0Plain0 === "tac" || w0Plain0 === "uniq" || w0Plain0 === "base64" || w0Plain0 === "column" || w0Plain0 === "fold" || w0Plain0 === "expand" || w0Plain0 === "unexpand" || w0Plain0 === "strings" || w0Plain0 === "numfmt") && cmd0.words.length >= 2 && !cmd0.words.slice(1).some(w => w.plain === "-") && cmd0.words.slice(1).some(w => w.plain !== undefined && !w.plain.startsWith("-"))));
       if (!w0Plain0 || (w0Plain0 !== "echo" && w0Plain0 !== "printf" && w0Plain0 !== "seq" && w0Plain0 !== "cat" && !cmd0YesStage && !cmd0SysStage && !cmd0StdinRedir && !cmd0HereStringRedir && !cmd0FileStage) || hasShellFunction(rawState, w0Plain0) || rawState.extensions?.builtins.has(w0Plain0)) {
         return undefined;
       }
@@ -28845,9 +28931,9 @@ export class Runtime {
         } else if (sName === "fmt") {
           if (this.evalSyncFmt(EMPTY_BYTES, sArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) return undefined;
         } else if (sName === "md5sum" || sName === "sha1sum" || sName === "sha224sum" || sName === "sha256sum" || sName === "sha384sum" || sName === "sha512sum" || sName === "cksum") {
-          if (evalSyncChecksum(sName, EMPTY_BYTES, sArgs) === undefined) return undefined;
+          if (evalSyncChecksum(sName, EMPTY_BYTES, sArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) return undefined;
         } else if (sName === "base32") {
-          if (evalSyncBase32(EMPTY_BYTES, sArgs) === undefined) return undefined;
+          if (evalSyncBase32(EMPTY_BYTES, sArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) return undefined;
         } else if (sName === "cat") {
           if (syncCommandEvaluators.evalSyncCat?.(EMPTY_BYTES, sArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false, true)) === undefined) return undefined;
         } else if (i === 0 && cmd0FileStage && (sName === "head" || sName === "tail")) {
@@ -29361,7 +29447,7 @@ export class Runtime {
               const rawSlice = prevBuf.subarray(0, prevLen);
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const b32Bytes = firstName === "base32"
-                ? evalSyncBase32(rawSlice, stageArgs)
+                ? evalSyncBase32(rawSlice, stageArgs, readFile)
                 : firstName === "iconv"
                   ? evalSyncIconv(sIdx === 0 && cmd0FileStage ? undefined : rawSlice, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : (firstName === "gzip" || firstName === "gunzip" || firstName === "zcat" || firstName === "unzstd" || firstName === "zstdcat" || firstName === "zstd" || firstName === "bzip2" || firstName === "bunzip2" || firstName === "bzcat" || firstName === "xz" || firstName === "unxz" || firstName === "xzcat" || firstName === "lzma" || firstName === "unlzma" || firstName === "lzcat")
@@ -29377,7 +29463,8 @@ export class Runtime {
               prevLen = b32Bytes.byteLength;
               continue;
             } else if (firstName === "md5sum" || firstName === "sha1sum" || firstName === "sha224sum" || firstName === "sha256sum" || firstName === "sha384sum" || firstName === "sha512sum" || firstName === "cksum") {
-              const ckStr = evalSyncChecksum(firstName, prevBuf.subarray(0, prevLen), stageArgs);
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              const ckStr = evalSyncChecksum(firstName, prevBuf.subarray(0, prevLen), stageArgs, readFile);
               if (ckStr === undefined) return undefined;
               const encoded = fastSharedTextEncoder.encode(ckStr);
               const nextTotalBytes = this.budget.bytes + encoded.byteLength;
@@ -29957,7 +30044,7 @@ export class Runtime {
           return res;
         }
       }
-      if (fOk && (w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "csvlook" || w0Plain === "csvjson" || w0Plain === "csvsort" || w0Plain === "csvformat" || w0Plain === "csvstat" || w0Plain === "in2csv" || w0Plain === "csvstack" || w0Plain === "csvjoin" || w0Plain === "dd" || w0Plain === "xargs" || w0Plain === "openssl" || w0Plain === "sqlite3" || w0Plain === "gpg" || w0Plain === "ssh" || w0Plain === "ssh-keygen" || w0Plain === "pdfinfo" || w0Plain === "pdffonts" || w0Plain === "pdftotext" || w0Plain === "pdftohtml" || w0Plain === "exiftool" || w0Plain === "qpdf" || w0Plain === "pdftk" || w0Plain === "sips" || w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "pdfimages" || w0Plain === "pdfdetach" || w0Plain === "ffprobe" || w0Plain === "ffmpeg" || w0Plain === "gh" || w0Plain === "pdftoppm" || w0Plain === "pdftocairo" || w0Plain === "mmdc" || w0Plain === "pandoc" || w0Plain === "soffice" || w0Plain === "libreoffice" || w0Plain === "ssconvert" || w0Plain === "wkhtmltopdf" || w0Plain === "op" || w0Plain === "git" || w0Plain === "tar" || w0Plain === "unzip" || w0Plain === "zip" || w0Plain === "timeout" || w0Plain === "split" || w0Plain === "csplit" || w0Plain === "curl" || w0Plain === "wget" || w0Plain === "sponge" || w0Plain === "truncate" || w0Plain === "install" || w0Plain === "apply_patch" || w0Plain === "mktemp" || w0Plain === "tee" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "patch" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln" || w0Plain === "wc" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "fmt" || w0Plain === "pr" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "less" || w0Plain === "more" || w0Plain === "rg") && !hasSingleStdinRedir && (hasSingleHereStringRedir || w0Plain === "shuf" || w0Plain === "dd" || w0Plain === "xargs" || w0Plain === "openssl" || w0Plain === "sqlite3" || w0Plain === "gpg" || w0Plain === "ssh" || w0Plain === "ssh-keygen" || w0Plain === "pdfinfo" || w0Plain === "pdffonts" || w0Plain === "pdftotext" || w0Plain === "pdftohtml" || w0Plain === "exiftool" || w0Plain === "qpdf" || w0Plain === "pdftk" || w0Plain === "sips" || w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "pdfimages" || w0Plain === "pdfdetach" || w0Plain === "ffprobe" || w0Plain === "ffmpeg" || w0Plain === "gh" || w0Plain === "pdftoppm" || w0Plain === "pdftocairo" || w0Plain === "mmdc" || w0Plain === "pandoc" || w0Plain === "soffice" || w0Plain === "libreoffice" || w0Plain === "ssconvert" || w0Plain === "wkhtmltopdf" || w0Plain === "op" || w0Plain === "git" || w0Plain === "tar" || w0Plain === "unzip" || w0Plain === "zip" || w0Plain === "timeout" || w0Plain === "split" || w0Plain === "csplit" || w0Plain === "curl" || w0Plain === "wget" || w0Plain === "sponge" || w0Plain === "truncate" || w0Plain === "install" || w0Plain === "apply_patch" || w0Plain === "mktemp" || w0Plain === "tee" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "patch" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln" || allArgs.some(a => (a !== "-" && !a.startsWith("-")) || a.startsWith("--files0-from") || a === "-n" || a === "--null-input"))) {
+      if (fOk && (w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "csvlook" || w0Plain === "csvjson" || w0Plain === "csvsort" || w0Plain === "csvformat" || w0Plain === "csvstat" || w0Plain === "in2csv" || w0Plain === "csvstack" || w0Plain === "csvjoin" || w0Plain === "dd" || w0Plain === "xargs" || w0Plain === "openssl" || w0Plain === "sqlite3" || w0Plain === "gpg" || w0Plain === "ssh" || w0Plain === "ssh-keygen" || w0Plain === "pdfinfo" || w0Plain === "pdffonts" || w0Plain === "pdftotext" || w0Plain === "pdftohtml" || w0Plain === "exiftool" || w0Plain === "qpdf" || w0Plain === "pdftk" || w0Plain === "sips" || w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "pdfimages" || w0Plain === "pdfdetach" || w0Plain === "ffprobe" || w0Plain === "ffmpeg" || w0Plain === "gh" || w0Plain === "pdftoppm" || w0Plain === "pdftocairo" || w0Plain === "mmdc" || w0Plain === "pandoc" || w0Plain === "soffice" || w0Plain === "libreoffice" || w0Plain === "ssconvert" || w0Plain === "wkhtmltopdf" || w0Plain === "op" || w0Plain === "git" || w0Plain === "tar" || w0Plain === "unzip" || w0Plain === "zip" || w0Plain === "timeout" || w0Plain === "split" || w0Plain === "csplit" || w0Plain === "curl" || w0Plain === "wget" || w0Plain === "sponge" || w0Plain === "truncate" || w0Plain === "install" || w0Plain === "apply_patch" || w0Plain === "mktemp" || w0Plain === "tee" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "patch" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln" || w0Plain === "wc" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "fmt" || w0Plain === "pr" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "less" || w0Plain === "more" || w0Plain === "rg" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32") && !hasSingleStdinRedir && (hasSingleHereStringRedir || w0Plain === "shuf" || w0Plain === "dd" || w0Plain === "xargs" || w0Plain === "openssl" || w0Plain === "sqlite3" || w0Plain === "gpg" || w0Plain === "ssh" || w0Plain === "ssh-keygen" || w0Plain === "pdfinfo" || w0Plain === "pdffonts" || w0Plain === "pdftotext" || w0Plain === "pdftohtml" || w0Plain === "exiftool" || w0Plain === "qpdf" || w0Plain === "pdftk" || w0Plain === "sips" || w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "pdfimages" || w0Plain === "pdfdetach" || w0Plain === "ffprobe" || w0Plain === "ffmpeg" || w0Plain === "gh" || w0Plain === "pdftoppm" || w0Plain === "pdftocairo" || w0Plain === "mmdc" || w0Plain === "pandoc" || w0Plain === "soffice" || w0Plain === "libreoffice" || w0Plain === "ssconvert" || w0Plain === "wkhtmltopdf" || w0Plain === "op" || w0Plain === "git" || w0Plain === "tar" || w0Plain === "unzip" || w0Plain === "zip" || w0Plain === "timeout" || w0Plain === "split" || w0Plain === "csplit" || w0Plain === "curl" || w0Plain === "wget" || w0Plain === "sponge" || w0Plain === "truncate" || w0Plain === "install" || w0Plain === "apply_patch" || w0Plain === "mktemp" || w0Plain === "tee" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "patch" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln" || allArgs.some(a => (a !== "-" && !a.startsWith("-")) || a.startsWith("--files0-from") || a === "-n" || a === "--null-input"))) {
         const inBytes = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : EMPTY_BYTES;
         const optInBytes = hasSingleHereStringRedir ? inBytes : undefined;
         const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
@@ -30119,6 +30206,10 @@ export class Runtime {
               ? evalSyncLess(optInBytes, allArgs, readFile)
             : w0Plain === "rg"
               ? evalSyncRg(optInBytes, allArgs, readFile)
+            : (w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum")
+              ? (() => { const cs = evalSyncChecksum(w0Plain, inBytes, allArgs, readFile); return cs !== undefined && !cs.includes("\0") ? cs : undefined; })()
+            : w0Plain === "base32"
+              ? (() => { const b32 = evalSyncBase32(inBytes, allArgs, readFile); return b32 !== undefined ? sharedSyncPipeDecoder.decode(b32) : undefined; })()
             : (w0Plain === "xq" || w0Plain === "yq")
               ? this.evalSyncXqOrYq(w0Plain, inBytes, allArgs, readFile)
             : w0Plain === "xmllint"
@@ -30347,9 +30438,12 @@ export class Runtime {
             } else if (w0Plain === "fmt") {
               fileRes = this.evalSyncFmt(view, opArgs);
             } else if (w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum") {
-              fileRes = evalSyncChecksum(w0Plain, view, opArgs);
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              const csOut = evalSyncChecksum(w0Plain, view, opArgs, readFile, !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : undefined);
+              if (csOut !== undefined && !csOut.includes("\0")) fileRes = csOut;
             } else if (w0Plain === "base32") {
-              const b32Out = evalSyncBase32(view, opArgs);
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              const b32Out = evalSyncBase32(view, opArgs, readFile);
               if (b32Out !== undefined) fileRes = sharedSyncPipeDecoder.decode(b32Out);
             } else if (w0Plain === "csvcut") {
               fileRes = evalSyncCsvcut(view, opArgs);
@@ -30600,19 +30694,19 @@ export class Runtime {
             } else if (w0Plain === "envsubst" && (hasSingleHereStringRedir || hasSingleStdinRedir)) {
               fileRes = this.evalSyncEnvsubst(fileStr, opArgs, rawState);
             } else if (w0Plain === "column") {
-              const colRes = this.evalSyncColumn(rawLines, opArgs);
+              const colRes = this.evalSyncColumn(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("column", allArgs, rawState.cwd, false) : undefined);
               if (colRes !== undefined) fileRes = renderLines(colRes);
             } else if (w0Plain === "fold") {
-              const foldRes = this.evalSyncFold(rawLines, opArgs);
+              const foldRes = this.evalSyncFold(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("fold", allArgs, rawState.cwd, false) : undefined);
               if (foldRes !== undefined) fileRes = renderLines(foldRes);
             } else if (w0Plain === "expand") {
-              const expRes = this.evalSyncExpand(rawLines, opArgs);
+              const expRes = this.evalSyncExpand(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("expand", allArgs, rawState.cwd, false) : undefined);
               if (expRes !== undefined) fileRes = renderLines(expRes);
             } else if (w0Plain === "unexpand") {
-              const unexpRes = this.evalSyncUnexpand(rawLines, opArgs);
+              const unexpRes = this.evalSyncUnexpand(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("unexpand", allArgs, rawState.cwd, false) : undefined);
               if (unexpRes !== undefined) fileRes = renderLines(unexpRes);
             } else if (w0Plain === "strings") {
-              const strRes = this.evalSyncStrings(rawLines, opArgs);
+              const strRes = this.evalSyncStrings(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("strings", allArgs, rawState.cwd, false) : undefined);
               if (strRes !== undefined) fileRes = renderLines(strRes);
             }
             if (fileRes !== undefined) {

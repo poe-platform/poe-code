@@ -1109,3 +1109,35 @@ test("evaluates xxd default/-i/file stage, od -Ax/-tc/file stage, and hexdump -n
     "00000000: 41 42 0a                                         AB.#unsigned char _tmp_bin_dat[] = {|  0x41, 0x42, 0x0a|};|unsigned int _tmp_bin_dat_len = 3;|#000000 41 42 0a#   A   B  \\n#00000000  41 42                                             |AB|"
   );
 });
+
+test("evaluates md5sum/sha256sum/cksum file operands and --check, base32 file stage, and column -R/-H/-O/-J in sync substitutions (Wave 210)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  await fs.writeFile("/tmp/a.txt", new TextEncoder().encode("hello\n"));
+  await fs.writeFile("/tmp/b.txt", new TextEncoder().encode("world\n"));
+  await fs.writeFile("/tmp/t1.csv", new TextEncoder().encode("1,alice,95\n"));
+  await fs.writeFile("/tmp/t2.csv", new TextEncoder().encode("2,bob,100\n"));
+  const shell = new Shell({ fs, cwd: "/tmp" })
+    .use(standardCommands())
+    .use(byteCommands())
+    .use(columnCommands())
+    .use(structuredCommands());
+  const res = await shell.exec(`
+    for i in 1 2 3; do
+      m1=\$(md5sum /tmp/a.txt)
+      m2=\$(md5sum /tmp/a.txt /tmp/b.txt | tr "\\n" "|")
+      printf "%s\\n" "\$m1" > /tmp/a.md5
+      mc=\$(md5sum -c /tmp/a.md5)
+      ck=\$(cksum /tmp/a.txt)
+      b32=\$(base32 -w0 /tmp/a.txt | base32 -di)
+      c1=\$(column -t -s, -N id,name,score -R score -H id -O score,name /tmp/t1.csv /tmp/t2.csv | tr "\\n" "|")
+      c2=\$(column -J -n users -s, -N id,name,score -H id /tmp/t1.csv | jq -c .)
+    done
+    printf "%s#%s#%s#%s#%s#%s#%s\\n" "\$m1" "\$m2" "\$mc" "\$ck" "\$b32" "\$c1" "\$c2"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout.trim(),
+    "b1946ac92492d2347c6235b4d2611184  /tmp/a.txt#b1946ac92492d2347c6235b4d2611184  /tmp/a.txt|591785b794601e212b260e25925636fd  /tmp/b.txt|#/tmp/a.txt: OK#3015617425 6 /tmp/a.txt#hello#score  name|   95  alice|  100  bob|#{\"users\":[{\"name\":\"alice\",\"score\":\"95\"}]}"
+  );
+});

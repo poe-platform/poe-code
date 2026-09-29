@@ -362,36 +362,130 @@ export function command(name: string, algorithm: Algorithm, maxInputBytes: numbe
     return { exitCode: failed ? 1 : 0 };
   });
 }
-export function evalSyncChecksum(name: string, inBytes: Uint8Array, opArgs: readonly string[]): string | undefined {
+function digestSync(bytes: Uint8Array, algorithm: Algorithm, bits = 512): Digest {
+  const length = BigInt(bytes.byteLength);
+  if (!numericAlgorithms.has(algorithm)) {
+    const hash = algorithm === "blake2b"
+      ? blake2b.create({ dkLen: bits / 8 })
+      : algorithm === "sha3"
+        ? ({ 224: sha3_224, 256: sha3_256, 384: sha3_384, 512: sha3_512 }[bits]!).create()
+        : hashes[algorithm as keyof typeof hashes].create();
+    hash.update(bytes);
+    return { hex: bytesToHex(hash.digest()), length };
+  }
+  let crc = algorithm === "crc32b" ? 0xffffffff : 0;
+  for (let i = 0; i < bytes.byteLength; i++) {
+    const byte = bytes[i]!;
+    if (algorithm === "bsd") crc = (((crc >>> 1) | ((crc & 1) << 15)) + byte) & 65535;
+    else if (algorithm === "sysv") crc = (crc + byte) >>> 0;
+    else if (algorithm === "crc32b") {
+      crc ^= byte;
+      for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+    } else crc = (crc << 8) ^ crcTable[((crc >>> 24) ^ byte) & 255]!;
+  }
+  if (algorithm === "bsd") return { hex: String(crc).padStart(5, "0"), length };
+  if (algorithm === "sysv") {
+    crc = (crc & 65535) + (crc >>> 16);
+    return { hex: String((crc & 65535) + (crc >>> 16)), length };
+  }
+  if (algorithm === "crc32b") return { hex: String((~crc) >>> 0), length };
+  for (let remaining = length; remaining > 0n; remaining >>= 8n) {
+    crc = (crc << 8) ^ crcTable[((crc >>> 24) ^ Number(remaining & 255n)) & 255]!;
+  }
+  return { hex: String((~crc) >>> 0), length };
+}
+
+export function evalSyncChecksum(
+  name: string,
+  inBytes: Uint8Array,
+  opArgs: readonly string[],
+  readFileSync?: (p: string) => Uint8Array | undefined,
+  fileOperandName?: string,
+): string | undefined {
   if (inBytes.byteLength > 16384) return undefined;
-  if (name === "cksum") {
-    if (opArgs.length > 1 || (opArgs.length === 1 && opArgs[0] !== "-")) return undefined;
-    let crc = 0;
-    for (let i = 0; i < inBytes.byteLength; i++) {
-      crc = (crc << 8) ^ crcTable[((crc >>> 24) ^ inBytes[i]!) & 255]!;
-    }
-    for (let rem = BigInt(inBytes.byteLength); rem > 0n; rem >>= 8n) {
-      crc = (crc << 8) ^ crcTable[((crc >>> 24) ^ Number(rem & 255n)) & 255]!;
-    }
-    return `${(~crc) >>> 0} ${inBytes.byteLength}\n`;
+  const baseAlg: Algorithm | undefined =
+    name === "cksum" ? "crc" :
+    name === "md5sum" ? "md5" :
+    name === "sha1sum" ? "sha1" :
+    name === "sha224sum" ? "sha224" :
+    name === "sha256sum" ? "sha256" :
+    name === "sha384sum" ? "sha384" :
+    name === "sha512sum" ? "sha512" : undefined;
+  if (!baseAlg) return undefined;
+  let selectedAlgorithm: Algorithm;
+  let settings: Settings;
+  try {
+    const effectiveArgs = fileOperandName !== undefined ? [...opArgs, fileOperandName] : opArgs;
+    const selected = name === "cksum" ? parseCksum(effectiveArgs) : { algorithm: baseAlg, settings: parse(effectiveArgs, baseAlg) };
+    selectedAlgorithm = selected.algorithm;
+    settings = selected.settings;
+  } catch {
+    return undefined;
   }
-  const alg = name === "md5sum" ? "md5" : name === "sha1sum" ? "sha1" : name === "sha224sum" ? "sha224" : name === "sha256sum" ? "sha256" : name === "sha384sum" ? "sha384" : name === "sha512sum" ? "sha512" : undefined;
-  if (!alg) return undefined;
-  let binary = false;
-  let tag = false;
-  let ended = false;
-  const operands: string[] = [];
-  for (let i = 0; i < opArgs.length; i++) {
-    const a = opArgs[i]!;
-    if (!ended && a === "--") { ended = true; continue; }
-    if (!ended && (a === "-b" || a === "--binary")) { binary = true; continue; }
-    if (!ended && (a === "-t" || a === "--text")) { binary = false; continue; }
-    if (!ended && a === "--tag") { tag = true; continue; }
-    if (!ended && a.startsWith("-") && a !== "-") return undefined;
-    operands.push(a);
+  if (settings.encoding === "raw") return undefined;
+  let stdinUsed = false;
+  const getBytes = (filename: string): Uint8Array | undefined => {
+    try { validateFilename(filename); } catch { return undefined; }
+    if (filename === "-") {
+      if (stdinUsed) return new Uint8Array(0);
+      stdinUsed = true;
+      return inBytes;
+    }
+    if (fileOperandName !== undefined && filename === fileOperandName && settings.operands.length === 1) {
+      return inBytes;
+    }
+    if (!readFileSync) return undefined;
+    const b = readFileSync(filename);
+    if (!b || b.byteLength > 16384) return undefined;
+    return b;
+  };
+  let out = "";
+  const files = settings.operands.length ? settings.operands : ["-"];
+  for (const filename of files) {
+    const fileBytes = getBytes(filename);
+    if (!fileBytes) return undefined;
+    if (settings.check) {
+      let text: string;
+      try { text = utf8.decode(fileBytes); } catch { return undefined; }
+      const rawLines = text.endsWith("\n") ? text.slice(0, -1).split("\n") : (text.length ? text.split("\n") : []);
+      let valid = 0;
+      let matched = 0;
+      for (const rawLine of rawLines) {
+        const parsedEntry = parseEntry(encoder.encode(rawLine), selectedAlgorithm);
+        if (parsedEntry === "skip") continue;
+        if (!parsedEntry) return undefined;
+        valid++;
+        const targetBytes = getBytes(parsedEntry.filename);
+        if (!targetBytes) {
+          if (settings.ignoreMissing) continue;
+          return undefined;
+        }
+        const actual = digestSync(targetBytes, parsedEntry.algorithm, parsedEntry.bits);
+        if (actual.hex !== parsedEntry.digest) return undefined;
+        matched++;
+        if (settings.report !== "status" && settings.report !== "quiet") {
+          const disp = escaped(parsedEntry.filename);
+          out += `${disp.prefix}${disp.name}: OK\n`;
+        }
+      }
+      if (!valid || !matched) return undefined;
+      continue;
+    }
+    const result = digestSync(fileBytes, selectedAlgorithm, settings.length);
+    const delimiter = settings.zero ? "\0" : "\n";
+    if (numericAlgorithms.has(selectedAlgorithm)) {
+      const size = selectedAlgorithm === "bsd" ? (result.length + 1023n) / 1024n : selectedAlgorithm === "sysv" ? (result.length + 511n) / 512n : result.length;
+      const count = selectedAlgorithm === "bsd" ? String(size).padStart(5, " ") : String(size);
+      out += `${result.hex} ${count}${settings.operands.length ? ` ${filename}` : ""}${delimiter}`;
+    } else {
+      const encoded = settings.encoding === "base64"
+        ? btoa(String.fromCharCode(...hexToBytes(result.hex)))
+        : result.hex;
+      const display = settings.zero ? { prefix: "", name: filename } : escaped(filename);
+      out += settings.tag
+        ? `${display.prefix}${settings.label ?? selectedAlgorithm.toUpperCase()} (${display.name}) = ${encoded}${delimiter}`
+        : `${display.prefix}${encoded} ${settings.binary ? "*" : " "}${display.name}${delimiter}`;
+    }
   }
-  if (operands.length > 1 || (operands.length === 1 && operands[0] !== "-")) return undefined;
-  const hex = bytesToHex(hashes[alg](inBytes));
-  if (tag) return `${alg.toUpperCase()} (-) = ${hex}\n`;
-  return `${hex} ${binary ? "*" : " "}-\n`;
+  return out;
 }

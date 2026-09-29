@@ -141,17 +141,22 @@ export function createBaseCommand(name: "base64" | "base32", maxInputBytes: numb
   });
 }
 
-export function evalSyncBase32(inBytes: Uint8Array, opArgs: readonly string[]): Uint8Array | undefined {
-  if (inBytes.byteLength > 16384) return undefined;
+export function evalSyncBase32(
+  inBytes: Uint8Array,
+  opArgs: readonly string[],
+  readFileSync?: (p: string) => Uint8Array | undefined,
+): Uint8Array | undefined {
   let isDecode = false;
   let ignoreGarbage = false;
   let wrap = 76;
   let ended = false;
+  const operands: string[] = [];
   for (let i = 0; i < opArgs.length; i++) {
     const a = opArgs[i]!;
     if (!ended && a === "--") { ended = true; continue; }
     if (!ended && (a === "-d" || a === "--decode")) { isDecode = true; continue; }
     if (!ended && (a === "-i" || a === "--ignore-garbage")) { ignoreGarbage = true; continue; }
+    if (!ended && (a === "-di" || a === "-id")) { isDecode = true; ignoreGarbage = true; continue; }
     if (!ended && (a === "-w" || a === "--wrap")) {
       if (i + 1 >= opArgs.length || !/^[0-9]+$/.test(opArgs[i + 1]!)) return undefined;
       wrap = Number(opArgs[++i]!);
@@ -165,8 +170,18 @@ export function evalSyncBase32(inBytes: Uint8Array, opArgs: readonly string[]): 
       wrap = Number(a.slice(7));
       continue;
     }
-    return undefined;
+    if (!ended && a.startsWith("-") && a !== "-") return undefined;
+    operands.push(a);
   }
+  if (operands.length > 1) return undefined;
+  let sourceBytes = inBytes;
+  if (operands.length === 1 && operands[0] !== "-") {
+    if (!readFileSync) return undefined;
+    const fb = readFileSync(operands[0]!);
+    if (!fb) return undefined;
+    sourceBytes = fb;
+  }
+  if (sourceBytes.byteLength > 16384) return undefined;
   const alphabet = alphabets.base32;
   if (!isDecode) {
     let carry = 0, bits = 0, symbols = 0, column = 0;
@@ -183,8 +198,8 @@ export function evalSyncBase32(inBytes: Uint8Array, opArgs: readonly string[]): 
         column = 0;
       }
     };
-    for (let i = 0; i < inBytes.byteLength; i++) {
-      carry = (carry << 8) | inBytes[i]!;
+    for (let i = 0; i < sourceBytes.byteLength; i++) {
+      carry = (carry << 8) | sourceBytes[i]!;
       bits += 8;
       while (bits >= aBits) {
         bits -= aBits;
@@ -204,10 +219,10 @@ export function evalSyncBase32(inBytes: Uint8Array, opArgs: readonly string[]): 
     const quantum = new Int16Array(8);
     let qLen = 0;
     let lastByte: number | undefined;
-    const outBuf = new Uint8Array(inBytes.byteLength);
+    const outBuf = new Uint8Array(sourceBytes.byteLength);
     let outUsed = 0;
-    for (let i = 0; i < inBytes.byteLength; i++) {
-      const byte = inBytes[i]!;
+    for (let i = 0; i < sourceBytes.byteLength; i++) {
+      const byte = sourceBytes[i]!;
       const symbol = lookup[byte]!;
       if (ignoreGarbage && symbol === -2) continue;
       if (byte === 10) continue;

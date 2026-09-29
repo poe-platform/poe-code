@@ -76,17 +76,26 @@ All rows require deterministic differential fixtures against the pinned distribu
 | --- | --- |
 | Prompts, stdin and attachments | Existing command suite; request preparation buffers input and attachments. Streaming safe-fs-backed inputs and provider serialization remain required. |
 | Models, aliases and defaults | Injected registry exists; persisted configuration, query/list options and default workflows incomplete. |
-| Options | Strings accepted by shell; richer shared service under implementation. Consumer blanket rejection requires separate regression and delivery. |
+| Options | Strings accepted by shell; typed options and richer shared service delivered; complete CLI option behavior remains incomplete. Consumer blanket rejection requires separate regression and delivery. |
 | Help, diagnostics, status | Command-tree inventory above; differential formatting and exit status incomplete. |
-| Streaming/binary/cancellation | Existing suites; partial errors and cleanup must remain covered. Shared structured events under implementation. |
+| Streaming/binary/cancellation | Existing suites; partial errors and cleanup must remain covered. Shared structured events delivered. |
 | Templates/fragments | Canonical virtual storage and template semantics incomplete. |
-| Conversations/chat | Message contract under implementation; persisted continuation and interactive chat incomplete. |
-| Schemas/tools | Provider schema contract under implementation; CLI schema DSL, tools and chains incomplete. |
+| Conversations/chat | Message contract delivered; persisted continuation and interactive chat incomplete. |
+| Schemas/tools | Opt-in per-model provider schema contract delivered; CLI schema DSL, tools and chains incomplete. |
 | Logs/history | Database capability and actual host implementation incomplete. |
-| Embeddings/collections/similarity | Shared embedding contract under implementation; collection storage, import and similarity incomplete. |
+| Embeddings/collections/similarity | Shared embedding contract delivered; collection storage, import and similarity incomplete. |
 | Keys/plugins/install/configuration | Explicit host capabilities and qualified implementation incomplete. No ambient host access permitted. |
 | Packed consumer/workerd/Miniflare/hosted Poe | Required final acceptance, not established by unit tests. |
 
 ## Delivery receipts
 
 Starting upstream source: `0a539330d5`. Dedicated worktree and branch: `poe-code-deliver-full-ll-1443`. No full-parity claim or issue closure until every incomplete item is implemented or explicitly descoped by the user. Upstream commit, remote-main receipt, publication and consumer rollout must be recorded separately.
+
+### Shared-service milestone (2026-09-29)
+
+- Upstream remote-main receipt: `54cd2377252ac28eeea3009a011a494611ea33e7`, verified equal to freshly fetched `origin/main`.
+- Public `commands/llm` service version 1: typed scalar options, model-specific messages/schema capabilities, embeddings, pull-based text/owned-byte/final metadata events; raw `complete()` compatibility preserved.
+- Selected maintained LLM suite: 190 passed. Post-rebase startup/service/OpenAI suite: 100 passed. Maintained selected workspace build passed. Package typecheck passed source/tests and all 26 current consumer groups. Changed-file lint passed.
+- Fresh independently packed `safe-fs`, `safe-js`, `safe-bash` packages installed without private workspace links: Node LLM fixture passed; the same root-import fixture passed actual Miniflare/workerd using compatibility date `2026-07-08`. This proves the exercised shared-service and shell text/binary flows, not the incomplete parity inventory.
+- Scoped release run `36526925468` was pending when checked; no publication claim. Consumer options fix is separately under normal commit/PR gates; no dependency update or rollout receipt yet.
+- Buffered request preparation, persisted CLI workflows, deterministic full differential coverage, Python capability integration and hosted Poe acceptance remain required. Issue 1443 remains open.

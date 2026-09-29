@@ -62,6 +62,7 @@ interface ResolvedPageFont {
   readonly fontResources?: PdfCosDict | undefined;
   readonly embeddedCff?: EmbeddedCffFont | undefined;
   readonly embeddedTrueType?: ParsedTrueTypeFont | undefined;
+  readonly cidToGid?: Uint16Array | undefined;
   readonly standardOutlines?: StandardFontOutlines | undefined;
 }
 
@@ -192,6 +193,15 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
     const descArrForTt = subtype === "Type0" ? doc.resolveArray(dictGet(fObj, "DescendantFonts")) : undefined;
     const cidDictForTt = descArrForTt && descArrForTt.items[0] ? doc.resolveDict(descArrForTt.items[0]) : undefined;
     const fDesc = fDescDirect ?? (cidDictForTt ? doc.resolveDict(dictGet(cidDictForTt, "FontDescriptor")) : undefined);
+    let cidToGid: Uint16Array | undefined;
+    const cidMap = cidDictForTt ? doc.resolve(dictGet(cidDictForTt, "CIDToGIDMap")) : undefined;
+    if (cidMap?.kind === "stream") {
+      // PDF.js readCidToGidMap reads big-endian pairs; a trailing high byte
+      // gets a zero low byte. Retain explicit zero entries and stream extent.
+      const bytes = doc.decodeStream(cidMap);
+      cidToGid = new Uint16Array(Math.ceil(bytes.length / 2));
+      for (let i = 0; i < bytes.length; i += 2) cidToGid[i / 2] = (bytes[i]! << 8) | (bytes[i + 1] ?? 0);
+    }
     if (fDesc) {
       const type1Program = doc.resolve(dictGet(fDesc, "FontFile"));
       const program = doc.resolve(dictGet(fDesc, "FontFile2")) ?? doc.resolve(dictGet(fDesc, "FontFile3")) ?? type1Program;
@@ -241,6 +251,7 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
       charProcs,
       fontResources,
       embeddedTrueType,
+      cidToGid,
       embeddedCff,
       standardOutlines,
     });
@@ -2088,11 +2099,14 @@ export function evaluateContentStreamToDisplayList(params: {
                 }
               } else if ((font?.embeddedTrueType || font?.embeddedCff || font?.standardOutlines) && st.textRenderMode !== 3) {
                 const cp = item.unicode ? item.unicode.codePointAt(0) : undefined;
-                let glyphOutline = font.embeddedCff ? font.embeddedCff.getGlyphOutline(item.charCode) : cp !== undefined ? (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp) : [];
-                if (glyphOutline.length === 0 && font.embeddedTrueType) {
+                const cidFont = font.subtype === "Type0" && font.embeddedTrueType;
+                if (cidFont) evaluatedType3 = true; // An empty mapped glyph must not fall back to standard text.
+                const glyphId = font.cidToGid ? font.cidToGid[item.charCode] ?? 0 : item.charCode;
+                let glyphOutline = cidFont ? cidFont.getGlyphOutlineByGid(glyphId) : font.embeddedCff ? font.embeddedCff.getGlyphOutline(item.charCode) : cp !== undefined ? (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp) : [];
+                if (glyphOutline.length === 0 && font.embeddedTrueType && !cidFont) {
                   glyphOutline = font.embeddedTrueType.getGlyphOutlineByGid(item.charCode);
                 }
-                if (!font.widths.has(item.charCode) && font.embeddedTrueType) {
+                if (!font.widths.has(item.charCode) && font.embeddedTrueType && !cidFont) {
                   const ttAdv = cp !== undefined ? font.embeddedTrueType.getAdvanceWidth1000(cp) : undefined;
                   if (ttAdv !== undefined) advance1000 = ttAdv;
                 }

@@ -149,3 +149,13 @@ source width when a codespace declaration is absent.
 `src/core/evaluator.js`, and adds integration cases. The tests adapt raw CMap
 values to the public Unicode API. Copyright Mozilla Foundation, Apache-2.0, pinned
 revision `91041fb94d6744bc2a5bccd9aad28d617faa8195`.
+
+
+# TrueType CID-to-glyph selection
+
+`src/content/evaluator.ts` follows PDF.js
+`PartialEvaluator.readCidToGidMap` (`src/core/evaluator.js`, pinned revision
+above) when reading big-endian glyph IDs, including zero-padding an odd trailing
+high byte. The local dense map preserves explicit zero entries and selects glyph
+zero for CIDs outside a supplied stream; Identity and omitted maps retain direct
+CID-to-GID selection. Unicode extraction mappings do not choose CID font shapes.

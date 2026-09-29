@@ -214,7 +214,7 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
   const glyf = tables.get("glyf");
 
   const getGlyphOutlineByGid = (gid: number, depth = 0): PdfPathSegment[] => {
-    if (!loca || !glyf || gid <= 0 || gid >= numGlyphs || depth > 6) return [];
+    if (!loca || !glyf || gid < 0 || gid >= numGlyphs || depth > 6) return [];
     let gOff = 0;
     let gNext = 0;
     if (indexToLocFormat === 0) {

@@ -422,3 +422,90 @@ export async function formatCommandOutput(options: {
   }
   return `${JSON.stringify(projected, null, 2)}\n`;
 }
+
+function evalSimpleJqSync(data: unknown, expr: string): string | undefined {
+  const trimmed = expr.trim();
+  if (trimmed === ".") {
+    return typeof data === "string" ? `${data}\n` : `${JSON.stringify(data, null, 2)}\n`;
+  }
+  if (trimmed === "length") {
+    if (Array.isArray(data) || typeof data === "string") return `${data.length}\n`;
+    if (data && typeof data === "object") return `${Object.keys(data).length}\n`;
+    return undefined;
+  }
+  const mIterField = /^\.\[\]\.([a-zA-Z0-9_]+)$/u.exec(trimmed);
+  if (mIterField && Array.isArray(data)) {
+    const key = mIterField[1]!;
+    return (
+      data
+        .map((item) => {
+          const val = item && typeof item === "object" ? (item as Record<string, unknown>)[key] : null;
+          return typeof val === "string" ? val : JSON.stringify(val ?? null);
+        })
+        .join("\n") + (data.length > 0 ? "\n" : "")
+    );
+  }
+  const mIdxField = /^\.\[(\d+)\](?:\.([a-zA-Z0-9_]+))?$/u.exec(trimmed);
+  if (mIdxField && Array.isArray(data)) {
+    const idx = Number.parseInt(mIdxField[1]!, 10);
+    const elem = data[idx];
+    if (elem === undefined) return "null\n";
+    if (!mIdxField[2]) {
+      return typeof elem === "string" ? `${elem}\n` : `${JSON.stringify(elem, null, 2)}\n`;
+    }
+    const val = elem && typeof elem === "object" ? (elem as Record<string, unknown>)[mIdxField[2]] : null;
+    return typeof val === "string" ? `${val}\n` : `${JSON.stringify(val ?? null)}\n`;
+  }
+  const mField = /^\.([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)*)$/u.exec(trimmed);
+  if (mField && data && typeof data === "object" && !Array.isArray(data)) {
+    const val = resolvePathValue(data, trimmed);
+    if (val === undefined) return "null\n";
+    return typeof val === "string" ? `${val}\n` : `${JSON.stringify(val)}\n`;
+  }
+  return undefined;
+}
+
+export function formatCommandOutputSync(options: {
+  readonly data: unknown;
+  readonly availableFields?: readonly string[] | undefined;
+  readonly jsonFlag?: string | undefined;
+  readonly jqFlag?: string | undefined;
+  readonly templateFlag?: string | undefined;
+}): { readonly handled: true; readonly output: string } | { readonly handled: false } | undefined {
+  const { data, availableFields, jsonFlag, jqFlag, templateFlag } = options;
+  if (jsonFlag === undefined && jqFlag === undefined && templateFlag === undefined) {
+    return undefined;
+  }
+
+  let projected: unknown = data;
+  if (jsonFlag !== undefined) {
+    const fields = jsonFlag
+      .split(",")
+      .map((f) => f.trim())
+      .filter((f) => f.length > 0);
+    if (availableFields) {
+      try {
+        if (Array.isArray(data)) {
+          projected = data.map((item) =>
+            selectJsonFields(item as Record<string, unknown>, fields, availableFields)
+          );
+        } else if (data && typeof data === "object") {
+          projected = selectJsonFields(data as Record<string, unknown>, fields, availableFields);
+        }
+      } catch {
+        return { handled: false };
+      }
+    }
+  }
+
+  if (jqFlag !== undefined) {
+    const jqOut = evalSimpleJqSync(projected, jqFlag);
+    if (jqOut === undefined) return { handled: false };
+    return { handled: true, output: jqOut };
+  }
+  if (templateFlag !== undefined) {
+    const out = evaluateGoTemplate(projected, templateFlag);
+    return { handled: true, output: out.endsWith("\n") ? out : `${out}\n` };
+  }
+  return { handled: true, output: `${JSON.stringify(projected, null, 2)}\n` };
+}

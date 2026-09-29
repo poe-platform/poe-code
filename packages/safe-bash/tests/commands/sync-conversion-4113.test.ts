@@ -1,3 +1,4 @@
+import { ghCommands } from "../../src/commands/gh/index.js";
 import { truncateCommands } from "../../src/commands/truncate/index.js";
 import { timeoutCommands } from "../../src/commands/timeout/index.js";
 import { sofficeCommands } from "../../src/commands/soffice/index.js";
@@ -1952,4 +1953,28 @@ test("Wave 236: ffmpeg lavfi/transcoding/muxing and git init/config/add/commit/b
     res.stdout.trim(),
     "16,12|8,6|pcm_s16le|Initialized empty Git repository|initial commit|v1.0"
   );
+});
+
+test("Wave 237: gh config/alias/repo/issue/pr/release/label/variable/api in sync substitutions and loops", async () => {
+  const sh = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(ghCommands());
+  const r = await sh.exec([
+    "for i in 1 2; do",
+    "  out=$(gh config set editor nvim; gh config get editor)",
+    "  alias_out=$(gh alias set iv \"issue view\"; gh alias list)",
+    "  repo_url=$(gh repo create octocat/sync-wave-237-$i --public -d \"Wave 237 repo $i\" --add-readme)",
+    "  repo_list=$(gh repo list octocat --json name,visibility --jq \".[0].name\")",
+    "  iss_url=$(gh issue create -R octocat/sync-wave-237-$i -t \"Bug $i\" -b \"Details $i\" -l bug)",
+    "  iss_num=$(gh issue list -R octocat/sync-wave-237-$i --json number,title --jq \".[0].number\")",
+    "  iss_view=$(gh issue view 1 -R octocat/sync-wave-237-$i --json title,state --jq \".title\")",
+    "  pr_url=$(gh pr create -R octocat/sync-wave-237-$i -t \"Feat $i\" -b \"PR body\" -B main -H feat-$i)",
+    "  pr_title=$(gh pr view 2 -R octocat/sync-wave-237-$i --json title,state --jq \".title\")",
+    "  rel_url=$(gh release create v1.0.$i -R octocat/sync-wave-237-$i -t \"Release $i\" -n \"Notes $i\")",
+    "  rel_tag=$(gh release view v1.0.$i -R octocat/sync-wave-237-$i --json tagName --jq \".tagName\")",
+    "  var_set=$(gh variable set DEPLOY_ENV -b prod-$i -R octocat/sync-wave-237-$i >/dev/null; gh variable get DEPLOY_ENV -R octocat/sync-wave-237-$i)",
+    "  api_login=$(gh api user --jq \".login\")",
+    "  echo \"$i:$out:$iss_num:$iss_view:$pr_title:$rel_tag:$var_set:$api_login\"",
+    "done"
+  ].join("\n"));
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(r.stdout.trim(), "1:nvim:1:Bug 1:Feat 1:v1.0.1:prod-1:octocat\n2:nvim:1:Bug 2:Feat 2:v1.0.2:prod-2:octocat");
 });

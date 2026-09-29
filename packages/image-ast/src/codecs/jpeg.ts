@@ -485,6 +485,43 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
               }
             }
           }
+        } else {
+          const bit = 1 << approxLow;
+          const refine = (k: number): void => {
+            const value = block[k]!;
+            if (readBit() && (value & bit) === 0) block[k] = value + (value > 0 ? bit : -bit);
+          };
+          let k = spectralStart;
+          if (eobRun === 0) {
+            const acTree = acTrees[comp.acId] ?? acTrees[0]!;
+            while (k <= spectralEnd) {
+              const rs = decodeSymbol(acTree);
+              let zeros = rs >>> 4;
+              const size = rs & 0x0f;
+              let coefficient = 0;
+              if (size !== 0) {
+                if (size !== 1) throw new Error("Invalid JPEG refinement coefficient size");
+                coefficient = readBit() ? bit : -bit;
+              } else if (zeros !== 15) {
+                eobRun = (1 << zeros) + readBits(zeros);
+                break;
+              }
+              // Runs count zero coefficients only; existing values each carry
+              // a correction bit before the next coefficient is introduced.
+              while (k <= spectralEnd) {
+                if (block[k] !== 0) refine(k);
+                else if (zeros-- === 0) break;
+                k++;
+              }
+              if (k > spectralEnd) throw new Error("JPEG refinement run exceeds spectral band");
+              if (coefficient !== 0) block[k] = coefficient;
+              k++;
+            }
+          }
+          if (eobRun > 0) {
+            for (; k <= spectralEnd; k++) if (block[k] !== 0) refine(k);
+            eobRun--;
+          }
         }
       };
 

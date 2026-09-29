@@ -209,8 +209,17 @@ function compile(pattern: string, host: FunctionHost): Node {
     let behind = false;
     let atomic = false;
     let resetCaptures = false;
-    let capture = pattern[at] === "?" ? undefined : ++captures;
-    if (pattern[at] === "?") {
+    let capture = pattern[at] === "?" || pattern[at] === "*" ? undefined : ++captures;
+    if (pattern[at] === "*") {
+      at++;
+      const name = identifier(":");
+      if (name === "atomic") atomic = true;
+      else if (name === "pla" || name === "positive_lookahead") assertion = false;
+      else if (name === "nla" || name === "negative_lookahead") assertion = true;
+      else if (name === "plb" || name === "positive_lookbehind") { assertion = false; behind = true; }
+      else if (name === "nlb" || name === "negative_lookbehind") { assertion = true; behind = true; }
+      else return unsupported();
+    } else if (pattern[at] === "?") {
       at++;
       if (pattern[at] === ":") at++;
       else if (pattern[at] === ">") { at++; atomic = true; }
@@ -218,9 +227,11 @@ function compile(pattern: string, host: FunctionHost): Node {
       else if (pattern[at] === "(") {
         at++;
         let condition: Extract<Node, { kind: "conditional" }>["condition"];
-        if (pattern[at] === "?" && (pattern[at + 1] === "=" || pattern[at + 1] === "!" ||
+        if (pattern[at] === "*" || pattern[at] === "?" && (pattern[at + 1] === "=" || pattern[at + 1] === "!" ||
           pattern[at + 1] === "<" && (pattern[at + 2] === "=" || pattern[at + 2] === "!"))) {
-          condition = { kind: "assertion", node: group({ ...mode }) };
+          const assertionNode = group({ ...mode });
+          if (assertionNode.kind !== "assert" && assertionNode.kind !== "behind") return unsupported();
+          condition = { kind: "assertion", node: assertionNode };
         } else {
           const indices: number[] = [];
           if (pattern[at] === "<" || pattern[at] === "'") {

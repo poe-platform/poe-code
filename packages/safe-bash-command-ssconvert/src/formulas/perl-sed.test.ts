@@ -179,6 +179,42 @@ it.each(["(?|(a)|(b))\\2", "(?|(a)|(b))\\g{-2}"])
     expect(() => calculate(expression(["ab", pattern, "X"]))).toThrow("PERL_SED");
   });
 
+// Perl 5.34.1 regcomp.c alphabetic assertions share the symbolic assertion nodes.
+it.each([
+  ["pla", "ab ac cb", "(a)", "\\1b", "X ac cb", "ab c ac", "a", "ab|c", "X X aX"],
+  ["positive_lookahead", "ab ac cb", "(a)", "\\1b", "X ac cb", "ab c ac", "a", "ab|c", "X X aX"],
+  ["nla", "ab ac cb", "a", ".", "aXXaXXXX", "ab c ac", "a", "c|ab", "X X aX"],
+  ["negative_lookahead", "ab ac cb", "a", ".", "aXXaXXXX", "ab c ac", "a", "c|ab", "X X aX"],
+  ["plb", "aax bbx abx", "(a)", "\\1x", "aX bbx abx", "ab cb", "a", "b|c", "aX Xb"],
+  ["positive_lookbehind", "aax bbx abx", "(a)", "\\1x", "aX bbx abx", "ab cb", "a", "b|c", "aX Xb"],
+  ["nlb", "ab cb aa", "a", ".", "XbXXXXXa", "ab cb", "a", "c|b", "aX Xb"],
+  ["negative_lookbehind", "ab cb aa", "a", ".", "XbXXXXXa", "ab cb", "a", "c|b", "aX Xb"]
+])("matches native alphabetic assertion %s", (alias, source, inner, suffix, expected, conditionSource, condition, branches, conditionExpected) => {
+  expect(calculate(expression([source!, `(*${alias}:${inner})${suffix}`, "X"])))
+    .toEqual({ kind: "string", value: expected });
+  expect(calculate(expression([conditionSource!, `(?(*${alias}:${condition})${branches})`, "X"])))
+    .toEqual({ kind: "string", value: conditionExpected });
+});
+it.each([
+  ["atomic", "abc ac", "(*atomic:a|ab)c", "abc X"],
+  ["atomic captures", "aab abb", "(*atomic:(a|ab))\\1b", "X abb"],
+  ["nested assertions", "ab ac cb", "(*pla:(*nla:c)(a))\\1b", "X ac cb"],
+  ["capture numbering", "aabb ab", "(a)(*pla:(b))(b)\\2", "aX ab"],
+  ["scoped flags", "AB ab aB", "(?i:(*pla:a)ab)", "X X X"],
+  ["repeated assertions", "aba aba", "(*pla:(a))a\\1?", "XbX XbX"],
+  ["empty positive", "ab", "(*pla:)", "XaXbX"],
+  ["empty negative", "ab", "(*nla:)", "ab"]
+])("preserves native alphabetic assertion behavior: %s", (_label, source, pattern, expected) => {
+  expect(calculate(expression([source!, pattern!, "X"]))).toEqual({ kind: "string", value: expected });
+});
+it("preserves raw bytes through alphabetic assertions", () => {
+  expect(calculate(expression(["é", "(*pla:\\xC3).", "X"]))).toEqual({ kind: "byte-string", value: "58a9" });
+});
+it.each(["(*pla)", "(*PLA:a)", "(*unknown:a)", "(*pla:a", "(?(*atomic:a)b|c)", "(?(*pla:a)b|c|d)"])
+  ("refuses native-invalid alphabetic assertion %s", pattern => {
+    expect(() => calculate(expression(["ab", pattern, "X"]))).toThrow("PERL_SED");
+  });
+
 it.each(perlSedLookbehindCases)("matches independent fixed lookbehind $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
-import { searchBre } from "../../../../src/commands/expr/bre-worker.js";
+import { searchBre } from "../../../../src/commands/regex-execution/bre-worker.js";
 import { RegexExecutor } from "../../../../src/commands/regex-execution/client.js";
 import { exprMatchCeilings, type BreSearchDescriptor, type ExprMatchLimits } from "../../../../src/commands/regex-execution/protocol.js";
 import { nativeCases } from "./native.cases.js";

@@ -107,3 +107,21 @@ it("an HTML spreadsheet application excludes shell commands, other formats and d
   expect(result.outputFiles[0]!.text).toContain("html40frag");
   for (const marker of ["createLatexWriter", "writeRoff"]) expect(result.outputFiles[0]!.text).not.toContain(marker);
 });
+
+it("a DBF application owns its reader without shell commands or competing formats", async () => {
+  const result = await build({
+    stdin: {
+      contents: 'import { createEngine } from "./core.ts"; import { dbfFormat } from "./formats/dbf.ts"; globalThis.engine = createEngine({ formats: [dbfFormat] });',
+      resolveDir: fileURLToPath(new URL(".", import.meta.url))
+    },
+    bundle: true, platform: "browser", format: "esm", write: false, metafile: true, logLevel: "silent"
+  });
+  const included = Object.values(result.metafile!.outputs).flatMap(output =>
+    Object.entries(output.inputs).filter(([, value]) => value.bytesInOutput > 0).map(([name]) => name));
+  expect(included.some(name => name.includes("/spreadsheet-format-dbf/"))).toBe(true);
+  expect(included.filter(name => ["/safe-bash-command-ssconvert/", "/spreadsheet-format-xlsx/", "/xlsx-ast/", "/spreadsheet-format-xls/",
+    "/spreadsheet-format-csv/", "/spreadsheet-format-ods/", "/spreadsheet-format-spreadsheetml/", "/spreadsheet-format-html/",
+    "/pdf-lib/", "/fontkit/"].some(part => name.includes(part)))).toEqual([]);
+  expect(result.outputFiles[0]!.text).toContain("Gnumeric_xbase");
+  expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
+});

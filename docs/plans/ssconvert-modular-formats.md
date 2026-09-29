@@ -149,3 +149,26 @@ text, numbers, booleans and the second-sheet AB1 cell. After rebase onto the
 delivered SafeJS parser repair, 197 focused/compatibility tests and full lint
 pass. HTML and declaration commits still await remote delivery at this checkpoint;
 no containing publication has been verified.
+
+The HTML and SpreadsheetML declaration commits were subsequently verified on
+remote main as `9b82e17b71` and `4b8bbac088`. Scoped run `36565974052` and root
+run `36565977028` explicitly pin that containing revision; publication remains
+pending. A later lint pass found an incoming dd empty-catch diagnostic, tracked
+with the release owner separately from format work.
+
+DBF is the next selected table importer, tracked by #4295. Its real reader lives
+in `packages/spreadsheet-format-dbf`; database encoding and record helpers shared
+with Paradox, DIF, SYLK and other legacy readers move to the neutral engine.
+The existing `Gnumeric_xbase:xbase` service remains import-only. Four source
+moves are identical after import normalization. The missing selected route was
+captured before implementation; 32 focused and 154 shared regressions pass,
+along with package lint and the maintained selected build. An independent
+Python dbf 0.99.11 fixture agrees with both the compiled reader and native
+Gnumeric 1.12.61 on code-page text, numbers, booleans and deleted-record skipping.
+LibreOffice DBF export attempts failed and are not counted as qualification.
+The complete containing build, full lint and all 18 package rules subsequently
+passed. Fresh root/scoped tarballs include the DBF runtime route, declarations,
+license and shared helper declarations. Isolated installed workerd consumers
+match the independent records without Node globals or competing formats, and
+strict public NodeNext types pass. Delivery and publication remain pending for
+this DBF checkpoint.

@@ -47,9 +47,9 @@ try {
 ```
 
 Choose `csvFormat` (CSV/TSV), `xlsxFormat`, `odsFormat`, `xlsFormat`,
-`spreadsheetmlFormat` or `htmlFormat` with `formats`. The `/core` entrypoint registers no formats
+`spreadsheetmlFormat`, `htmlFormat` or `dbfFormat` with `formats`. The `/core` entrypoint registers no formats
 by default; import each chosen format from its `/formats/` subpath to keep other
-readers, writers and renderers out of your bundle. The core, CSV, XLSX, ODS, XLS, SpreadsheetML and HTML subpaths are also available
+readers, writers and renderers out of your bundle. The core, CSV, XLSX, ODS, XLS, SpreadsheetML, HTML and DBF subpaths are also available
 under `@poe-platform/safe-bash/ssconvert`. Use `poe-code/safe-bash/spreadsheet-ast`
 (or `@poe-platform/safe-bash/spreadsheet-ast`) for the workbook model alone.
 

@@ -885,7 +885,8 @@
             "@poe-code/spreadsheet-format-ods": "*",
             "@poe-code/spreadsheet-format-xls": "*",
             "@poe-code/spreadsheet-format-spreadsheetml": "*",
-            "@poe-code/spreadsheet-format-html": "*"
+            "@poe-code/spreadsheet-format-html": "*",
+            "@poe-code/spreadsheet-format-dbf": "*"
           },
           "devDependencies": {
             "safe-bash-contracts": "*",
@@ -2344,7 +2345,8 @@
     "@poe-code/spreadsheet-format-xls": "*",
     "@poe-code/spreadsheet-format-spreadsheetml": "*",
     "@poe-code/spreadsheet-format-html": "*",
-    "@poe-code/xlsx-ast": "*"
+    "@poe-code/xlsx-ast": "*",
+    "@poe-code/spreadsheet-format-dbf": "*"
   },
   "main": "./dist/index.js",
   "imports": {

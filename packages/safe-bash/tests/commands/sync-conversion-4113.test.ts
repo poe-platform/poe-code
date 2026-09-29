@@ -1,3 +1,4 @@
+import { metadataCommands } from "../../src/commands/metadata/index.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MemoryFileSystem } from "@poe-code/safe-fs";
@@ -41,4 +42,36 @@ test("sync iconv declines output requiring byte provenance", () => {
   for (const text of ["café", "a\0b"]) {
     assert.equal(evalSyncIconv(new TextEncoder().encode(text), ["-f", "UTF-8", "-t", "LATIN1"]), undefined);
   }
+});
+
+test("evaluates cp/mv mode preservation, ln hard/symbolic links, and stat in sync substitutions (Wave 164)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs }).use(standardCommands()).use(metadataCommands());
+  const res = await shell.exec([
+    "echo \"exec-payload\" > /tmp/src164.sh",
+    "$(chmod 755 /tmp/src164.sh)",
+    "echo \"existing\" > /tmp/exist_cp.sh",
+    "$(chmod 600 /tmp/exist_cp.sh)",
+    "echo \"existing\" > /tmp/exist_mv.sh",
+    "$(chmod 600 /tmp/exist_mv.sh)",
+    "v_cp1=$(cp -v /tmp/src164.sh /tmp/new_cp.sh)",
+    "v_cp2=$(cp /tmp/src164.sh /tmp/exist_cp.sh)",
+    "v_ln1=$(ln -v /tmp/new_cp.sh /tmp/hard_ln.sh)",
+    "v_ln2=$(ln -sfv /tmp/new_cp.sh /tmp/sym_ln.sh)",
+    "v_mv1=$(mv -v /tmp/src164.sh /tmp/exist_mv.sh)",
+    "m_new=$(stat -c \"%a\" /tmp/new_cp.sh)",
+    "m_ecp=$(stat -c \"%a\" /tmp/exist_cp.sh)",
+    "m_emv=$(stat -c \"%a\" /tmp/exist_mv.sh)",
+    "m_hln=$(stat -c \"%a:%h\" /tmp/hard_ln.sh)",
+    "t_sln=$(readlink /tmp/sym_ln.sh)",
+    "echo \"modes=$m_new:$m_ecp:$m_emv hln=$m_hln sln=$t_sln\"",
+    "echo \"vcp=$v_cp1|vln1=$v_ln1|vln2=$v_ln2|vmv=$v_mv1\""
+  ].join("\n"));
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "modes=755:600:755 hln=755:2 sln=/tmp/new_cp.sh\n" +
+    "vcp='/tmp/src164.sh' -> '/tmp/new_cp.sh'|vln1='/tmp/hard_ln.sh' => '/tmp/new_cp.sh'|vln2='/tmp/sym_ln.sh' -> '/tmp/new_cp.sh'|vmv=renamed '/tmp/src164.sh' -> '/tmp/exist_mv.sh'\n"
+  );
 });

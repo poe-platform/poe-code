@@ -109,14 +109,15 @@ export interface SyncCommandEvaluators {
   evalSyncMktemp?: (opArgs: readonly string[], env: Readonly<Record<string, string>>, statTypeSync?: (filePath: string) => string | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean, mkdirSync?: (filePath: string) => boolean) => string | undefined;
   evalSyncTee?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean) => string | undefined;
   evalSyncTouch?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean) => string | undefined;
-  evalSyncCp?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean) => string | undefined;
-  evalSyncMv?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean, rmSync?: (filePath: string) => boolean) => string | undefined;
+  evalSyncCp?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean, mode?: number) => boolean, statModeSync?: (filePath: string) => number | undefined, umask?: number) => string | undefined;
+  evalSyncMv?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean, mode?: number) => boolean, rmSync?: (filePath: string) => boolean, statModeSync?: (filePath: string) => number | undefined) => string | undefined;
   evalSyncRmdir?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, listDirSync?: (filePath: string) => readonly string[] | ReadonlyMap<string, unknown> | undefined, rmSync?: (filePath: string) => boolean) => string | undefined;
   evalSyncSleep?: (opArgs: readonly string[]) => string | undefined;
   evalSyncChmod?: (opArgs: readonly string[], umask: number, chmodNodeSync?: (filePath: string, change: (stat: { type: "file" | "directory" | "symlink"; mode: number }) => number) => boolean) => string | undefined;
   evalSyncPatch?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean) => string | undefined;
   evalSyncMkdir?: (opArgs: readonly string[], umask: number, statTypeSync?: (filePath: string) => string | undefined, mkdirSync?: (filePath: string, recursive: boolean, mode: number) => boolean) => string | undefined;
   evalSyncRm?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, listDirSync?: (filePath: string) => readonly string[] | ReadonlyMap<string, unknown> | undefined, rmSync?: (filePath: string) => boolean) => string | undefined;
+  evalSyncLn?: (opArgs: readonly string[], statTypeSync?: (filePath: string) => string | undefined, rmSync?: (filePath: string) => boolean, linkSync?: (srcOrTarget: string, dstPath: string, symbolic: boolean) => boolean) => string | undefined;
 }
 
 export const syncCommandEvaluators: SyncCommandEvaluators = {};
@@ -781,7 +782,9 @@ export function evalSyncCp(
   opArgs: readonly string[],
   statTypeSync?: (filePath: string) => string | undefined,
   readFileSync?: (filePath: string) => Uint8Array | undefined,
-  writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean,
+  writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean, mode?: number) => boolean,
+  statModeSync?: (filePath: string) => number | undefined,
+  umask = 0o022,
 ): string | undefined {
   const gnuInfo = gnuInfoSyncInternal("cp", opArgs);
   if (gnuInfo !== undefined) return gnuInfo;
@@ -825,8 +828,10 @@ export function evalSyncCp(
   if (src === dst) return undefined;
   const finalSt = statTypeSync(dst);
   if (finalSt !== "missing" && finalSt !== "file") return undefined;
+  const srcMode = statModeSync ? statModeSync(src) : undefined;
+  const createMode = ((srcMode ?? 0o666) & 0o777) & ~umask;
   const bytes = readFileSync(src);
-  if (!bytes || !writeFileSync(dst, bytes, false)) return undefined;
+  if (!bytes || !writeFileSync(dst, bytes, false, createMode)) return undefined;
   return verbose ? `'${src}' -> '${dst}'\n` : "";
 }
 
@@ -834,8 +839,9 @@ export function evalSyncMv(
   opArgs: readonly string[],
   statTypeSync?: (filePath: string) => string | undefined,
   readFileSync?: (filePath: string) => Uint8Array | undefined,
-  writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean) => boolean,
+  writeFileSync?: (filePath: string, bytes: Uint8Array, append: boolean, mode?: number) => boolean,
   rmSync?: (filePath: string) => boolean,
+  statModeSync?: (filePath: string) => number | undefined,
 ): string | undefined {
   const gnuInfo = gnuInfoSyncInternal("mv", opArgs);
   if (gnuInfo !== undefined) return gnuInfo;
@@ -879,8 +885,11 @@ export function evalSyncMv(
   if (src === dst) return undefined;
   const finalSt = statTypeSync(dst);
   if (finalSt !== "missing" && finalSt !== "file") return undefined;
+  const srcMode = statModeSync ? statModeSync(src) : undefined;
   const bytes = readFileSync(src);
-  if (!bytes || !writeFileSync(dst, bytes, false) || !rmSync(src)) return undefined;
+  if (!bytes) return undefined;
+  if (finalSt === "file" && !rmSync(dst)) return undefined;
+  if (!writeFileSync(dst, bytes, false, srcMode) || !rmSync(src)) return undefined;
   return verbose ? `renamed '${src}' -> '${dst}'\n` : "";
 }
 
@@ -1085,3 +1094,70 @@ export function evalSyncRm(
 
 syncCommandEvaluators.evalSyncMkdir = evalSyncMkdir;
 syncCommandEvaluators.evalSyncRm = evalSyncRm;
+
+export function evalSyncLn(
+  opArgs: readonly string[],
+  statTypeSync?: (filePath: string) => string | undefined,
+  rmSync?: (filePath: string) => boolean,
+  linkSync?: (srcOrTarget: string, dstPath: string, symbolic: boolean) => boolean,
+): string | undefined {
+  const gnuInfo = gnuInfoSyncInternal("ln", opArgs);
+  if (gnuInfo !== undefined) return gnuInfo;
+  if (!statTypeSync || !rmSync || !linkSync) return undefined;
+  let symbolic = false;
+  let force = false;
+  let verbose = false;
+  let noDeref = false;
+  let noTargetDir = false;
+  let ended = false;
+  const operands: string[] = [];
+  for (let i = 0; i < opArgs.length; i++) {
+    const a = opArgs[i]!;
+    if (ended || !a.startsWith("-") || a === "-") {
+      operands.push(a);
+      continue;
+    }
+    if (a === "--") { ended = true; continue; }
+    if (a === "-s" || a === "--symbolic") { symbolic = true; continue; }
+    if (a === "-f" || a === "--force") { force = true; continue; }
+    if (a === "-v" || a === "--verbose") { verbose = true; continue; }
+    if (a === "-n" || a === "--no-dereference") { noDeref = true; continue; }
+    if (a === "-T" || a === "--no-target-directory") { noTargetDir = true; continue; }
+    if (a.startsWith("-") && !a.startsWith("--")) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "s") symbolic = true;
+        else if (ch === "f") force = true;
+        else if (ch === "v") verbose = true;
+        else if (ch === "n") noDeref = true;
+        else if (ch === "T") noTargetDir = true;
+        else return undefined;
+      }
+      continue;
+    }
+    return undefined;
+  }
+  if (operands.length !== 2) return undefined;
+  const src = operands[0]!;
+  let dst = operands[1]!;
+  if (!symbolic && statTypeSync(src) !== "file") return undefined;
+  const dstSt = statTypeSync(dst);
+  if (!noDeref && dstSt === "directory") {
+    if (noTargetDir) return undefined;
+    const base = src.replace(/\/+$/, "").split("/").pop() || "";
+    if (!base) return undefined;
+    dst = `${dst.replace(/\/+$/, "")}/${base}`;
+  }
+  if (src === dst) return undefined;
+  const finalSt = statTypeSync(dst);
+  if (finalSt === "file" || finalSt === "symlink") {
+    if (!force) return undefined;
+    if (!rmSync(dst)) return undefined;
+  } else if (finalSt !== "missing") {
+    return undefined;
+  }
+  if (!linkSync(src, dst, symbolic)) return undefined;
+  return verbose ? `'${dst}' ${symbolic ? "->" : "=>"} '${src}'\n` : "";
+}
+
+syncCommandEvaluators.evalSyncLn = evalSyncLn;

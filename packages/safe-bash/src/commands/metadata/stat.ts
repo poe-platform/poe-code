@@ -1,3 +1,23 @@
+const syncStatEncoder = new TextEncoder();
+function concatBytes(chunks: readonly Uint8Array[]): Uint8Array {
+  if (chunks.length === 0) return new Uint8Array(0);
+  if (chunks.length === 1) return chunks[0]!;
+  let total = 0;
+  for (let i = 0; i < chunks.length; i++) total += chunks[i]!.byteLength;
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (let i = 0; i < chunks.length; i++) {
+    const c = chunks[i]!;
+    out.set(c, offset);
+    offset += c.byteLength;
+  }
+  return out;
+}
+function allocSpaces(length: number): Uint8Array {
+  const out = new Uint8Array(length);
+  out.fill(32);
+  return out;
+}
 import { FsError, type CommandContext, type FileStat } from "../../contracts/index.js";
 import { codeOf, diagnostic, pathOf, requireOperands, UsageError } from "../internal.js";
 import { MetadataBudget, metadataCommand, permissionString, settings, type MetadataCommandsOptions } from "./internal.js";
@@ -128,17 +148,17 @@ function formatField(text: string, code: string, flags: string, width: number, p
     const integer = formatField(text.slice(0, decimal), code, flags, integerWidth, undefined, true, false);
     const trailingWidth = integer.length < width && 1 < width - integer.length
       ? Math.abs(width - integer.length - 1 - precision) : 0;
-    return Buffer.concat([integer, Buffer.from(text.slice(decimal)), Buffer.alloc(trailingWidth, 32)]);
+    return concatBytes([integer, syncStatEncoder.encode(text.slice(decimal)), allocSpaces(trailingWidth)]);
   }
-  const encoded = Buffer.from(text);
+  const encoded = syncStatEncoder.encode(text);
   const bytes = !numeric && precision !== undefined ? encoded.subarray(0, precision) : encoded;
   const padding = Math.max(0, width - bytes.length);
-  if (flags.includes("-")) return Buffer.concat([bytes, Buffer.alloc(padding, 32)]);
+  if (flags.includes("-")) return concatBytes([bytes, allocSpaces(padding)]);
   if (numeric && flags.includes("0") && (epoch || precision === undefined) && padding) {
     const prefix = /^[+ -]|^0x/u.exec(text)?.[0] ?? "";
-    return Buffer.from(prefix + "0".repeat(padding) + text.slice(prefix.length));
+    return syncStatEncoder.encode(prefix + "0".repeat(padding) + text.slice(prefix.length));
   }
-  return Buffer.concat([Buffer.alloc(padding, 32), bytes]);
+  return concatBytes([allocSpaces(padding), bytes]);
 }
 
 async function render(context: CommandContext, path: string, name: string, stat: FileStat, format: string, escapes: boolean, limit: number, filesystem: boolean, terse: boolean): Promise<Uint8Array> {
@@ -235,7 +255,7 @@ async function render(context: CommandContext, path: string, name: string, stat:
       append(formatField(linkText, code, flags, width, precision, false, false));
     }
   }
-  return Buffer.concat(chunks);
+  return concatBytes(chunks);
 }
 
 export function createStatCommand(configuration: MetadataCommandsOptions = {}) {
@@ -255,7 +275,7 @@ export function createStatCommand(configuration: MetadataCommandsOptions = {}) {
           ? "%n %s %b %f %u %g %D %i %h %t %T %X %Y %Z %W %o"
           : "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w");
         const text = await render(context, path, name, stat, format, parsed.printf, configured.limits.maxOutputBytes, parsed.filesystem, terse);
-        await budget.output(parsed.printf ? text : Buffer.concat([text, Uint8Array.of(10)]));
+        await budget.output(parsed.printf ? text : concatBytes([text, Uint8Array.of(10)]));
       } catch (error) {
         context.signal.throwIfAborted();
         if (codeOf(error) === "EFBIG") throw error;
@@ -375,7 +395,7 @@ function renderSync(
       append(formatField(linkText, code, flags, width, precision, false, false));
     }
   }
-  return Buffer.concat(chunks);
+  return concatBytes(chunks);
 }
 
 function resolveSyncStatPath(cwd: string, target: string): string {
@@ -415,10 +435,10 @@ export function evalSyncStat(
       : "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w");
     try {
       const rendered = renderSync(abs, name, stat, format, parsed.printf, 262144, parsed.filesystem, terse, quotingStyle);
-      outChunks.push(parsed.printf ? rendered : Buffer.concat([rendered, Uint8Array.of(10)]));
+      outChunks.push(parsed.printf ? rendered : concatBytes([rendered, Uint8Array.of(10)]));
     } catch {
       return undefined;
     }
   }
-  return syncStatDecoder.decode(Buffer.concat(outChunks));
+  return syncStatDecoder.decode(concatBytes(outChunks));
 }

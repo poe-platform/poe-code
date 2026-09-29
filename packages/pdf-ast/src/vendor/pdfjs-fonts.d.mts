@@ -130,6 +130,18 @@ export class PDF17 {
   _hash(password: Uint8Array, input: Uint8Array, userBytes: Uint8Array): Uint8Array;
 }
 export class PDF20 extends PDF17 {}
+export class MeshShading {
+  constructor(shadingType: number, stream: Stream, context: {
+    bitsPerCoordinate: number;
+    bitsPerComponent: number;
+    bitsPerFlag: number;
+    decode: number[];
+    colorFn: null;
+    colorSpace: { numComps: number; getRgb(components: Float32Array, offset: number): Uint8Array };
+    numComps: number;
+  }, verticesPerRow: number);
+  getIR(): ["Mesh", number, Float32Array, Uint8Array, number, number[], null, null];
+}
 export function saslPrep(value: string): string;
 export function buildPostScriptJsFunction(source: string, domain: readonly number[], range: readonly number[]):
   (src: readonly number[], srcOffset: number, dest: number[], destOffset: number) => void;

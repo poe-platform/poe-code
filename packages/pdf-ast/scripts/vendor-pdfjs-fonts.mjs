@@ -29,6 +29,7 @@ const result = await build({
       'export { PageViewport } from "./src/display/page_viewport.js";',
       'export { DeviceCmykCS, CalGrayCS, CalRGBCS, LabCS } from "./src/core/colorspace.js";',
       'export { buildPostScriptJsFunction } from "./src/core/postscript/js_evaluator.js";',
+      'export { MeshShading } from "./src/core/pattern.js";',
       'export { encodeToXmlString } from "./src/core/core_utils.js";',
     ].join("\n"), resolveDir: reference, sourcefile: "pdf-ast-font-entry.js",
   },
@@ -38,6 +39,45 @@ const result = await build({
   plugins: [{
     name: "expose-cff-path-compiler",
     setup(builder) {
+      builder.onLoad({ filter: /pattern\.js$/ }, args => {
+        const source = readFileSync(args.path, "utf8");
+        const section = (start, end) => {
+          const a = source.indexOf(start), b = source.indexOf(end, a);
+          if (a < 0 || b <= a) throw new Error("PDF.js mesh source markers changed");
+          return source.slice(a, b);
+        };
+        // Keep PDF.js's stream reader, patch decoding, tessellation and packing.
+        // Supply already-resolved colors/functions from the local COS evaluator
+        // instead of importing PDF.js's document and ICC/Wasm resource loaders.
+        let mesh = section("class MeshStreamReader", "class DummyShading");
+        const constructorStart = mesh.indexOf("  constructor(\n", mesh.indexOf("class MeshShading"));
+        const decodeStart = mesh.indexOf("    let patchMesh = false;", constructorStart);
+        if (constructorStart < 0 || decodeStart < constructorStart) throw new Error("PDF.js mesh constructor changed");
+        mesh = mesh.slice(0, constructorStart) + [
+          "  constructor(shadingType, stream, context, rowVertices) {",
+          "    super();",
+          "    this.shadingType = shadingType;",
+          "    this.bbox = this.background = null;",
+          "    this.coords = []; this.colors = []; this.figures = [];",
+          "    const reader = new MeshStreamReader(stream, context);",
+          "",
+        ].join("\n") + mesh.slice(decodeStart);
+        mesh = mesh.replace('dict.get("VerticesPerRow") | 0', "rowVertices | 0");
+        // Equivalent cache operations for the package's ES2022/Node 22 target.
+        mesh = mesh.replace("return (bCache ??= new Map()).getOrInsertComputed(count, () =>", "if (bCache?.has(count)) return bCache.get(count);\n  const values = (");
+        const cacheEnd = mesh.indexOf("\n}\n\nfunction clearPatternCaches");
+        if (cacheEnd < 0) throw new Error("PDF.js mesh cache source changed");
+        mesh = mesh.slice(0, cacheEnd) + "\n  (bCache ??= new Map()).set(count, values);\n  return values;" + mesh.slice(cacheEnd);
+        return { contents: [
+          'import { assert, FormatError, MeshFigureType, unreachable } from "../shared/util.js";',
+          'import { MathClamp } from "../shared/math_clamp.js";',
+          section("const ShadingType =", "// Bound temporary buffers"),
+          section("class BaseShading", "// Radial and axial shading"),
+          section("function meshUpdateBounds", "// Type 1 shading"),
+          mesh,
+          "export { MeshShading };",
+        ].join("\n"), loader: "js" };
+      });
       // The standalone CMap class has no imports. Exclude its browser/network
       // factory rather than pulling PDF.js's renderer and scripting entrypoints.
       builder.onLoad({ filter: /cmap\.js$/ }, args => {

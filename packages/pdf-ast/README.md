@@ -100,6 +100,8 @@ Sampled PDF functions interpolate gradients, soft masks, and tint colors across
 all input axes, including packed 1–32-bit samples and reversed encoding ranges.
 Exponential and stitched functions preserve their input domains and output
 ranges, with the same tint evaluation for paths and images.
+Triangle, lattice, Coons, and tensor mesh shadings use PDF.js's stream decoding
+and tessellation, preserving curved control points and shared patch edges.
 Calculator functions use PDF.js's JavaScript evaluator for arithmetic, bitwise
 operations, conditionals, and stack operations, without dynamic code execution.
 CMYK paths, gradients, and images use PDF.js's color conversion, including

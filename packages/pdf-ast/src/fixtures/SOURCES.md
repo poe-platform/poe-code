@@ -284,3 +284,15 @@ from revision `91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0).
 Its calibrated gray ramps cover gamma and white-point conversion. Manifest MD5:
 `ee784999bfa1ed373f55cdabbb580df1`. SHA-256:
 `5521110fbe2a8cf1d299b3a9d9a03d0db928de7addfa2ea50e32fb440575fc12`.
+
+`pdfjs-coons-allflags-withfunction.pdf` is the unchanged PDF.js equality fixture
+`test/pdfs/coons-allflags-withfunction.pdf` (issue4227) at revision
+`91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). It covers curved
+patch control points, reuse flags 1–3, and a color function. SHA-256:
+`8651b10026886ec8e4dd8cad4b13b966aed6fe27bbcc34f8fe4931f0b0efe1ff`.
+
+`pdfjs-tensor-allflags-withfunction.pdf` is the unchanged PDF.js equality fixture
+`test/pdfs/tensor-allflags-withfunction.pdf` (issue6305-part-1) at revision
+`91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). It covers curved
+patch control points, reuse flags 1–3, and a color function. SHA-256:
+`d0167f51046dc315aeb6be6c48ae874c776f532cbc1b8f4d64efd6ad1215f480`.

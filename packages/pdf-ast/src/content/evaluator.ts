@@ -1,4 +1,4 @@
-import { buildPostScriptJsFunction, DeviceCmykCS, getEncoding, type CMap } from "../vendor/pdfjs-fonts.mjs";
+import { buildPostScriptJsFunction, DeviceCmykCS, getEncoding, MeshShading, Stream, type CMap } from "../vendor/pdfjs-fonts.mjs";
 import { parseEmbeddedType1Font } from "../fonts/type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "../fonts/cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "../fonts/standard-outlines.js";
@@ -689,152 +689,25 @@ function renderMeshShadingToImage(
     const r = doc.resolve(it);
     return r?.kind === "number" ? r.value : 0;
   });
-  const xmin = decodeNums[0]!, xmax = decodeNums[1]!, ymin = decodeNums[2]!, ymax = decodeNums[3]!;
-  const numColorParams = Math.max(1, Math.floor((decodeNums.length - 4) / 2));
   const fnNode = dictGet(shDict, "Function");
   const csNode = doc.resolve(dictGet(shDict, "ColorSpace"));
   const csName = csNode?.kind === "name" ? csNode.decoded : "DeviceRGB";
-
-  let bitPos = 0;
-  const totalBits = bytes.length * 8;
-  const readBits = (n: number): number => {
-    let val = 0;
-    for (let i = 0; i < n; i++) {
-      if (bitPos >= totalBits) return val;
-      const byteIdx = bitPos >> 3;
-      const bitIdx = 7 - (bitPos & 7);
-      val = val * 2 + ((bytes[byteIdx]! >> bitIdx) & 1);
-      bitPos++;
-    }
-    return val;
-  };
-  const coordMax = Math.pow(2, bpcCoord) - 1 || 1;
-  const compMax = Math.pow(2, bpcComp) - 1 || 1;
-  const readCoord = (): [number, number] => {
-    const rx = readBits(bpcCoord) / coordMax;
-    const ry = readBits(bpcCoord) / coordMax;
-    return [xmin + rx * (xmax - xmin), ymin + ry * (ymax - ymin)];
-  };
-  const readColorRgb = (): [number, number, number] => {
-    const params: number[] = [];
-    for (let c = 0; c < numColorParams; c++) {
-      const rc = readBits(bpcComp) / compMax;
-      const cMin = decodeNums[4 + c * 2] ?? 0;
-      const cMax = decodeNums[4 + c * 2 + 1] ?? 1;
-      params.push(cMin + rc * (cMax - cMin));
-    }
-    const comps = fnNode ? evalShadingFunctionToComponents(doc, fnNode, params) : params;
-    return convertColorSpaceComponentsToRgb(doc, csNode, csName, comps);
-  };
-
-  interface MeshVertex {
-    x: number;
-    y: number;
-    rgb: [number, number, number];
-  }
-  const triangles: Array<[MeshVertex, MeshVertex, MeshVertex]> = [];
-
-  if (shType === 4) {
-    const minBitsPerVert = bpcFlag + 2 * bpcCoord + numColorParams * bpcComp;
-    let triVerts: [MeshVertex, MeshVertex, MeshVertex] | undefined;
-    while (bitPos + minBitsPerVert <= totalBits) {
-      const flag = readBits(bpcFlag) & 3;
-      const [x, y] = readCoord();
-      const rgb = readColorRgb();
-      const vNew: MeshVertex = { x, y, rgb };
-      if (flag === 0 || !triVerts) {
-        if (bitPos + 2 * minBitsPerVert > totalBits) break;
-        readBits(bpcFlag);
-        const [x1, y1] = readCoord();
-        const rgb1 = readColorRgb();
-        readBits(bpcFlag);
-        const [x2, y2] = readCoord();
-        const rgb2 = readColorRgb();
-        triVerts = [vNew, { x: x1, y: y1, rgb: rgb1 }, { x: x2, y: y2, rgb: rgb2 }];
-        triangles.push(triVerts);
-      } else if (flag === 1) {
-        triVerts = [triVerts[1], triVerts[2], vNew];
-        triangles.push(triVerts);
-      } else if (flag === 2) {
-        triVerts = [triVerts[0], triVerts[2], vNew];
-        triangles.push(triVerts);
-      }
-    }
-  } else if (shType === 5) {
-    const minBitsPerVert = 2 * bpcCoord + numColorParams * bpcComp;
-    const verts: MeshVertex[] = [];
-    while (bitPos + minBitsPerVert <= totalBits) {
-      const [x, y] = readCoord();
-      const rgb = readColorRgb();
-      verts.push({ x, y, rgb });
-    }
-    const numRows = Math.floor(verts.length / vPerRow);
-    for (let r = 0; r + 1 < numRows; r++) {
-      for (let c = 0; c + 1 < vPerRow; c++) {
-        const v00 = verts[r * vPerRow + c]!;
-        const v01 = verts[r * vPerRow + c + 1]!;
-        const v11 = verts[(r + 1) * vPerRow + c + 1]!;
-        const v10 = verts[(r + 1) * vPerRow + c]!;
-        triangles.push([v00, v01, v11], [v00, v11, v10]);
-      }
-    }
-  } else if (shType === 6 || shType === 7) {
-    const numCtrl = shType === 6 ? 12 : 16;
-    const minBitsPatch = bpcFlag + (numCtrl - 4) * 2 * bpcCoord + 2 * numColorParams * bpcComp;
-    let prevPts: Array<[number, number]> | undefined;
-    let prevColors: Array<[number, number, number]> | undefined;
-    while (bitPos + minBitsPatch <= totalBits) {
-      const flag = readBits(bpcFlag) & 3;
-      let pts: Array<[number, number]> = [];
-      let cols: Array<[number, number, number]> = [];
-      if (flag === 0 || !prevPts || !prevColors) {
-        for (let i = 0; i < numCtrl; i++) pts.push(readCoord());
-        for (let i = 0; i < 4; i++) cols.push(readColorRgb());
-      } else {
-        const extraCtrl = numCtrl - 4;
-        const readExtra: Array<[number, number]> = [];
-        for (let i = 0; i < extraCtrl; i++) readExtra.push(readCoord());
-        const c2 = readColorRgb();
-        const c3 = readColorRgb();
-        pts = [prevPts[3]!, prevPts[4]!, prevPts[5]!, prevPts[6]!, ...readExtra];
-        cols = [prevColors[1]!, prevColors[2]!, c2, c3];
-      }
-      prevPts = pts;
-      prevColors = cols;
-      const p00 = pts[0]!;
-      const p03 = pts[3]!;
-      const p33 = pts[6]!;
-      const p30 = pts[9]!;
-      const c00 = cols[0]!, c03 = cols[1]!, c33 = cols[2]!, c30 = cols[3]!;
-      const steps = 4;
-      const grid: MeshVertex[][] = [];
-      for (let iu = 0; iu <= steps; iu++) {
-        const u = iu / steps;
-        const row: MeshVertex[] = [];
-        for (let iv = 0; iv <= steps; iv++) {
-          const v = iv / steps;
-          const x = (1 - u) * (1 - v) * p00[0] + (1 - u) * v * p03[0] + u * v * p33[0] + u * (1 - v) * p30[0];
-          const y = (1 - u) * (1 - v) * p00[1] + (1 - u) * v * p03[1] + u * v * p33[1] + u * (1 - v) * p30[1];
-          const r = (1 - u) * (1 - v) * c00[0] + (1 - u) * v * c03[0] + u * v * c33[0] + u * (1 - v) * c30[0];
-          const g = (1 - u) * (1 - v) * c00[1] + (1 - u) * v * c03[1] + u * v * c33[1] + u * (1 - v) * c30[1];
-          const b = (1 - u) * (1 - v) * c00[2] + (1 - u) * v * c03[2] + u * v * c33[2] + u * (1 - v) * c30[2];
-          row.push({ x, y, rgb: [r, g, b] });
-        }
-        grid.push(row);
-      }
-      for (let iu = 0; iu < steps; iu++) {
-        for (let iv = 0; iv < steps; iv++) {
-          const g00 = grid[iu]![iv]!;
-          const g01 = grid[iu]![iv + 1]!;
-          const g11 = grid[iu + 1]![iv + 1]!;
-          const g10 = grid[iu + 1]![iv]!;
-          triangles.push([g00, g01, g11], [g00, g11, g10]);
-        }
-      }
-    }
-  }
-
-  if (triangles.length === 0) return undefined;
+  const numComps = fnNode ? 1 : getColorSpaceComponentCount(doc, csNode);
+  const mesh = new MeshShading(shType, new Stream(bytes), {
+    bitsPerCoordinate: bpcCoord, bitsPerComponent: bpcComp, bitsPerFlag: bpcFlag,
+    decode: decodeNums, numComps, colorFn: null,
+    colorSpace: {
+      numComps,
+      getRgb(components) {
+        const params = Array.from(components);
+        const values = fnNode ? evalShadingFunctionToComponents(doc, fnNode, params) : params;
+        return new Uint8Array(convertColorSpaceComponentsToRgb(doc, csNode, csName, values)
+          .map(value => Math.round(Math.max(0, Math.min(1, value)) * 255)));
+      },
+    },
+  }, vPerRow);
+  const [, , positions, colors, vertexCount] = mesh.getIR();
+  if (vertexCount === 0) return undefined;
   const [bx0, by0, bx1, by1] = targetBox;
   const boxW = Math.max(1, bx1 - bx0);
   const boxH = Math.max(1, by1 - by0);
@@ -848,10 +721,10 @@ function renderMeshShadingToImage(
     return [((px - bx0) / boxW) * imgW, ((by1 - py) / boxH) * imgH];
   };
 
-  for (const [v0, v1, v2] of triangles) {
-    const [x0, y0] = toImgCoords(v0.x, v0.y);
-    const [x1, y1] = toImgCoords(v1.x, v1.y);
-    const [x2, y2] = toImgCoords(v2.x, v2.y);
+  for (let vertex = 0; vertex < vertexCount; vertex += 3) {
+    const [x0, y0] = toImgCoords(positions[vertex * 2]!, positions[vertex * 2 + 1]!);
+    const [x1, y1] = toImgCoords(positions[vertex * 2 + 2]!, positions[vertex * 2 + 3]!);
+    const [x2, y2] = toImgCoords(positions[vertex * 2 + 4]!, positions[vertex * 2 + 5]!);
     const denom = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2);
     if (Math.abs(denom) < 1e-6) continue;
     const minX = Math.max(0, Math.floor(Math.min(x0, x1, x2)));
@@ -866,13 +739,14 @@ function renderMeshShadingToImage(
         const w1 = ((y2 - y0) * (px - x2) + (x0 - x2) * (py - y2)) / denom;
         const w2 = 1 - w0 - w1;
         if (w0 >= -1e-4 && w1 >= -1e-4 && w2 >= -1e-4) {
-          const r = w0 * v0.rgb[0] + w1 * v1.rgb[0] + w2 * v2.rgb[0];
-          const g = w0 * v0.rgb[1] + w1 * v1.rgb[1] + w2 * v2.rgb[1];
-          const b = w0 * v0.rgb[2] + w1 * v1.rgb[2] + w2 * v2.rgb[2];
           const pIdx = (iy * imgW + ix) * 4;
-          rgba[pIdx] = Math.round(Math.max(0, Math.min(1, r)) * 255);
-          rgba[pIdx + 1] = Math.round(Math.max(0, Math.min(1, g)) * 255);
-          rgba[pIdx + 2] = Math.round(Math.max(0, Math.min(1, b)) * 255);
+          for (let channel = 0; channel < 3; channel++) {
+            rgba[pIdx + channel] = Math.round(
+              w0 * colors[vertex * 4 + channel]! +
+              w1 * colors[vertex * 4 + 4 + channel]! +
+              w2 * colors[vertex * 4 + 8 + channel]!
+            );
+          }
           rgba[pIdx + 3] = a8;
         }
       }

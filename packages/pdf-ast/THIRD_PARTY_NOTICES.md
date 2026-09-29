@@ -475,3 +475,13 @@ streams follow `PartialEvaluator.readToUnicode` error recovery while retaining
 local resource-limit errors. `dictionary-recovery.test.ts` ports the original
 `issue11549` equality fixture and covers ordinary/compressed dictionaries,
 trailer metadata, strict mode, and explicit limits.
+
+Mesh stream decoding, Coons/tensor patch tessellation, and vertex packing use
+PDF.js `MeshStreamReader`, `MeshShading`, and their helpers from
+`src/core/pattern.js` at the same revision (Mozilla Foundation, Apache-2.0).
+The generator replaces only the constructor's PDF.js resource lookup with a
+local stream/color adapter and uses equivalent ES2022 cache operations.
+The decoding and geometry algorithms are unchanged. The local rasterizer
+paints the resulting RGB triangles. `src/render/mesh-shading.test.ts` ports
+the unchanged upstream equality fixtures `issue4227` and `issue6305-part-1`,
+with independently rendered reference pixels recorded in the tests.

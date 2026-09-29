@@ -1040,14 +1040,14 @@ test("evaluates readlink -z/-qn, realpath -z/-L, printenv -0, and env -0/-u in s
   const res = await shell.exec(`
     export A=1 B=2
     for i in 1 2 3; do
-      rl1=\$(readlink -f -z /tmp/link.txt /tmp/dir/target.txt | tr "\\0" ":")
-      rl2=\$(readlink -qn /tmp/link.txt /tmp/link.txt | tr "\\n" ":")
-      rp1=\$(realpath -L -z /tmp/dir/../link.txt | tr "\\0" ":")
-      pe1=\$(printenv -0 A B | tr "\\0" ":")
-      ev1=\$(env -0 -i X=9 Y=8 | tr "\\0" ":")
-      ev2=\$(echo ignored | env -u A C=3 printenv -0 B C | tr "\\0" ":")
+      rl1=$(readlink -f -z /tmp/link.txt /tmp/dir/target.txt | tr "\\0" ":")
+      rl2=$(readlink -qn /tmp/link.txt /tmp/link.txt | tr "\\n" ":")
+      rp1=$(realpath -L -z /tmp/dir/../link.txt | tr "\\0" ":")
+      pe1=$(printenv -0 A B | tr "\\0" ":")
+      ev1=$(env -0 -i X=9 Y=8 | tr "\\0" ":")
+      ev2=$(echo ignored | env -u A C=3 printenv -0 B C | tr "\\0" ":")
     done
-    printf "%s|%s|%s|%s|%s|%s\\n" "\$rl1" "\$rl2" "\$rp1" "\$pe1" "\$ev1" "\$ev2"
+    printf "%s|%s|%s|%s|%s|%s\\n" "$rl1" "$rl2" "$rp1" "$pe1" "$ev1" "$ev2"
   `);
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(
@@ -1068,14 +1068,14 @@ test("evaluates iconv -o/multi-file/-sc, dos2unix -q/-qn/bundled flags, and xarg
     .use(dos2unixCommands());
   const res = await shell.exec(`
     for i in 1 2 3; do
-      ic1=\$(iconv -sc -f UTF-8 -t ASCII /tmp/ic1.txt /tmp/ic2.txt)
-      ic_empty=\$(iconv -f UTF-8 -t ASCII//IGNORE -o /tmp/ic_out.txt /tmp/ic1.txt /tmp/ic2.txt)
-      ic2=\$(cat /tmp/ic_out.txt)
-      d_empty=\$(dos2unix -qn /tmp/d2u.txt /tmp/d2u_out.txt)
-      d1=\$(cat -E /tmp/d2u_out.txt | tr "\\n" ":")
-      x1=\$(printf "a\\0b\\0c\\0" | xargs -0rn2 echo | tr "\\n" ":")
+      ic1=$(iconv -sc -f UTF-8 -t ASCII /tmp/ic1.txt /tmp/ic2.txt)
+      ic_empty=$(iconv -f UTF-8 -t ASCII//IGNORE -o /tmp/ic_out.txt /tmp/ic1.txt /tmp/ic2.txt)
+      ic2=$(cat /tmp/ic_out.txt)
+      d_empty=$(dos2unix -qn /tmp/d2u.txt /tmp/d2u_out.txt)
+      d1=$(cat -E /tmp/d2u_out.txt | tr "\\n" ":")
+      x1=$(printf "a\\0b\\0c\\0" | xargs -0rn2 echo | tr "\\n" ":")
     done
-    printf "%s|%s|%s|%s\\n" "\$ic1" "\$ic2" "\$d1" "\$x1"
+    printf "%s|%s|%s|%s\\n" "$ic1" "$ic2" "$d1" "$x1"
   `);
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(

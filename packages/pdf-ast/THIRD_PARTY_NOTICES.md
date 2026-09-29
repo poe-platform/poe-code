@@ -258,3 +258,11 @@ fixtures and their hashes are listed in `src/fixtures/SOURCES.md`.
 For R5 passwords, the adapter additionally follows pypdf’s SASLprep policy as
 a fallback after PDF.js rejects the raw UTF-8 candidate. The generated pypdf
 regression fixture is documented in `src/fixtures/SOURCES.md`.
+
+The recovery scanner in `src/cos/parser.ts` follows PDF.js `src/core/xref.js`
+`XRef.indexObjects`: discover trailer and XRef dictionaries before object-stream
+decoding, prefer encryption/ID-bearing trailers, and check Root/Pages candidates.
+It retains the latest valid object bodies and checks the newest trailers first.
+`src/cos/repair-encryption.test.ts` covers the original issue15893 fixture and
+local integration cases, including encrypted object streams and direct Encrypt
+dictionaries. Source revision and Apache-2.0 license are the same as above.

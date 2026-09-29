@@ -164,3 +164,9 @@ alone does not authenticate. SHA-256: `3947c5fe9ef65513fc507f1f9aeab885e6972693f
 same pinned PDF.js revision (Apache-2.0). Its password is `Hello`; unused empty
 indirect objects exercise eager COS recovery. SHA-256:
 `4c021f37d739c8231cecab5ddd1a93db692f7ba81026315ae1ca39b9b710e86e`.
+
+`pdfjs-issue15893_reduced.pdf` is unchanged from `test/pdfs/issue15893_reduced.pdf`
+at the same PDF.js revision (Apache-2.0). Its password is `test`. The plaintext
+revision followed by an encrypted revision and broken xref offsets exercises
+trailer discovery before decryption. SHA-256:
+`3c2815853e6fe5c34feb76bb14402cbc46bbd484ecd57b672fc03577d0458ee8`.

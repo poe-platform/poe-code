@@ -556,17 +556,38 @@ function isAsciiDigit(ch: number): boolean {
   return ch >= 0x30 && ch <= 0x39;
 }
 
-function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompressedBytes: number, maxRecursionDepth: number): {
+function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxRecursionDepth: number): {
   objects: Map<number, PdfIndirectObject>;
-  rootRef: PdfCosRef;
-  infoRef?: PdfCosRef | undefined;
-  encryptRef?: PdfCosRef | undefined;
-  idArray?: PdfCosArray | undefined;
+  trailers: PdfCosDict[];
 } {
   const objects = new Map<number, PdfIndirectObject>();
+  const trailers: PdfCosDict[] = [];
   let pos = 0;
   while (pos < bytes.length) {
-    while (pos < bytes.length && !isAsciiDigit(bytes[pos]!)) pos++;
+    // Like PDF.js XRef.indexObjects, retain trailers before trying ObjStm
+    // decoding: their Encrypt/ID entries are needed to decrypt those streams.
+    while (pos < bytes.length && !isAsciiDigit(bytes[pos]!)) {
+      if (bytes[pos] === 0x25) {
+        while (pos < bytes.length && bytes[pos] !== 0x0a && bytes[pos] !== 0x0d) pos++;
+        continue;
+      }
+      if (bytes[pos] === 0x74 && (pos === 0 || isAsciiWhitespace(bytes[pos - 1]!))) {
+        const lexer = new CosByteLexer(bytes, pos);
+        try {
+          const token = lexer.nextToken();
+          if (token?.kind === "keyword" && token.value === "trailer") {
+            const trailer = parseNodeFromLexer(lexer, bytes, maxRecursionDepth);
+            if (trailer?.kind === "dict") trailers.push(trailer);
+            pos = lexer.offset;
+            continue;
+          }
+        } catch (error) {
+          if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
+          // Continue scanning past a damaged trailer.
+        }
+      }
+      pos++;
+    }
     if (pos >= bytes.length) break;
     if (pos > 0 && !isAsciiWhitespace(bytes[pos - 1]!)) {
       while (pos < bytes.length && !isAsciiWhitespace(bytes[pos]!)) pos++;
@@ -596,6 +617,10 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompr
       try {
         const parsed = parseObjectAtOffset(bytes, headerStart, maxRecursionDepth, true);
         objects.set(parsed.objectNumber, parsed);
+        if (parsed.value.kind === "stream") {
+          const type = dictGet(parsed.value.dict, "Type");
+          if (type?.kind === "name" && type.decoded === "XRef") trailers.push(parsed.value.dict);
+        }
         if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
         if (parsed.span && parsed.span.end > pos) {
           pos = parsed.span.end;
@@ -607,6 +632,10 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompr
     }
   }
 
+  return { objects, trailers };
+}
+
+function unpackRecoveredObjects(objects: Map<number, PdfIndirectObject>, maxObjects: number, maxDecompressedBytes: number, maxRecursionDepth: number): void {
   // Unpack any discovered /Type /ObjStm compressed object streams so Catalog/Info inside ObjStm can be recovered
   for (const obj of [...objects.values()]) {
     if (obj.value.kind === "stream") {
@@ -631,6 +660,9 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompr
     }
   }
 
+}
+
+function recoveredReferences(objects: Map<number, PdfIndirectObject>): { rootRef?: PdfCosRef; infoRef?: PdfCosRef } {
   let rootRef: PdfCosRef | undefined;
   let infoRef: PdfCosRef | undefined;
   for (const obj of objects.values()) {
@@ -648,10 +680,7 @@ function repairScanCosDocument(bytes: Uint8Array, maxObjects: number, maxDecompr
     }
   }
 
-  if (!rootRef) {
-    throw new PdfError("E_PARSE", "Unable to repair PDF: no /Type /Catalog object found");
-  }
-  return { objects, rootRef, infoRef };
+  return { ...(rootRef ? { rootRef } : {}), ...(infoRef ? { infoRef } : {}) };
 }
 
 function unpackObjectStream(
@@ -760,29 +789,63 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
     }
   }
 
+  let objects = new Map<number, PdfIndirectObject>();
   if (useRepair || !rootRef) {
     if (recovery !== "repair") {
       throw new PdfError("E_PARSE", "PDF trailer missing /Root reference");
     }
-    const repaired = repairScanCosDocument(bytes, maxObjects, maxDecompressedBytes, maxRecursionDepth);
-    return new ParsedCosDocument({
-      version,
-      bytes,
-      objects: repaired.objects,
-      revisions: [],
-      rootRef: repaired.rootRef,
-      infoRef: repaired.infoRef,
-      maxDecompressedBytes,
-      maxRecursionDepth,
+    useRepair = true;
+    const scanned = repairScanCosDocument(bytes, maxObjects, maxRecursionDepth);
+    objects = scanned.objects;
+    revisions.length = 0;
+    mergedXref.clear();
+    // Prefer a trailer carrying encryption and ID, as PDF.js does. Search the
+    // latest revision first to match the latest object bodies retained above.
+    const hasObjectStreams = [...objects.values()].some(obj => {
+      const type = obj.value.kind === "stream" && dictGet(obj.value.dict, "Type");
+      return type && type.kind === "name" && type.decoded === "ObjStm";
     });
-  }
-
-  const objects = new Map<number, PdfIndirectObject>();
-  for (const [objNum, entry] of mergedXref.entries()) {
-    if (entry.type === "uncompressed") {
-      const parsed = parseObjectAtOffset(bytes, entry.offset ?? 0, maxRecursionDepth, recovery === "repair");
-      objects.set(objNum, parsed);
-      if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
+    const candidates = scanned.trailers.filter(dict => {
+      const root = dictGet(dict, "Root");
+      if (root?.kind !== "ref") return false;
+      const catalog = objects.get(root.objectNumber)?.value;
+      // Compressed roots can only be validated after authentication/unpacking.
+      if (!catalog) return hasObjectStreams;
+      if (catalog.kind !== "dict") return false;
+      const pages = dictGet(catalog, "Pages");
+      if (pages?.kind === "dict") return true;
+      if (pages?.kind !== "ref") return false;
+      const pageTree = objects.get(pages.objectNumber)?.value;
+      return pageTree ? pageTree.kind === "dict" : hasObjectStreams;
+    }).reverse();
+    const encrypted = candidates.filter(dict => {
+      const value = dictGet(dict, "Encrypt");
+      return value?.kind === "dict" || value?.kind === "ref";
+    });
+    const preferred = encrypted.length ? encrypted : candidates;
+    const trailer = preferred.find(dict => dictGet(dict, "ID")?.kind === "array") ?? preferred[0];
+    const root = trailer && dictGet(trailer, "Root");
+    const info = trailer && dictGet(trailer, "Info");
+    const encrypt = trailer && dictGet(trailer, "Encrypt");
+    const id = trailer && dictGet(trailer, "ID");
+    rootRef = root?.kind === "ref" ? root : undefined;
+    infoRef = info?.kind === "ref" ? info : undefined;
+    encryptNode = encrypt?.kind === "ref" || encrypt?.kind === "dict" ? encrypt : undefined;
+    encryptRef = encrypt?.kind === "ref" ? encrypt : undefined;
+    idArray = id?.kind === "array" ? id : undefined;
+    // Without any trailer, an unencrypted catalog may itself be compressed.
+    if (!rootRef && !encryptNode) unpackRecoveredObjects(objects, maxObjects, maxDecompressedBytes, maxRecursionDepth);
+    const fallback = recoveredReferences(objects);
+    rootRef ??= fallback.rootRef;
+    infoRef ??= fallback.infoRef;
+    if (!rootRef) throw new PdfError("E_PARSE", "Unable to repair PDF: no /Type /Catalog object found");
+  } else {
+    for (const [objNum, entry] of mergedXref.entries()) {
+      if (entry.type === "uncompressed") {
+        const parsed = parseObjectAtOffset(bytes, entry.offset ?? 0, maxRecursionDepth, recovery === "repair");
+        objects.set(objNum, parsed);
+        if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
+      }
     }
   }
 
@@ -817,6 +880,11 @@ export function parseCosDocument(bytes: Uint8Array, options: ParseCosOptions = {
     });
     doc.encryption = encState;
     decryptCosDocument(doc, encState);
+  }
+
+  if (useRepair) {
+    unpackRecoveredObjects(objects, maxObjects, maxDecompressedBytes, maxRecursionDepth);
+    doc.infoRef ??= recoveredReferences(objects).infoRef;
   }
 
   // Unpack compressed objects from /ObjStm streams after decryption

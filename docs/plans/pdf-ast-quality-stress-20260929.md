@@ -162,6 +162,8 @@ Work began at 2026-09-29 02:42 UTC. The requested ten-hour minimum ends at 2026-
 
 - #4169: unused empty indirect objects aborted eager COS parsing in PDF.js bug1782186.pdf. Two failing repair regressions now pass by treating an empty body as null only in recovery mode; strict mode still rejects it. All 53 focused COS/security cases, package lint/typecheck/build pass. The original encrypted fixture renders the same ellipse as MuPDF (1684×1191; mean RGB error 0.07393/255), inspected in empty-objects-comparison.png.
 
+- #4168: ten failing cases reproduced dropped Encrypt/ID metadata and ciphertext decoding after xref repair. Following PDF.js XRef.indexObjects, the scanner now discovers trailers/XRef dictionaries before decryption; encrypted object streams unpack afterward. A further failing case rejects a malformed later Root candidate. All 496 PDF cases and package lint/typecheck/build pass. All 120 pdftk/pdftoppm/qpdf/pdftotext consumer cases pass. All 162 user/owner/wrong-password checks over 54 independently generated R2–R6 PDFs pass after corrupting each xref pointer, including decrypted save/reopen. The upstream issue15893 text now renders and visually matches MuPDF in repair-issue15893-comparison.png (mean RGB error 1.927/255). Corpus comparison remains under way.
+
 ## Completion evidence to collect
 
 For each outcome record the tested revision, focused and integration commands/results, corpus provenance, independent comparison method, examined visual outputs, issue status, remote-main commit, and release publication. Require at least ten hours of work plus verified completion of all outcomes before marking the goal complete.

@@ -167,3 +167,32 @@ test("SSHSIG authorization checks identity, namespace, key and comment lines", a
   assert.notEqual((await runCmd(cmd, fs, ["-Y", "find-principals", "-f", "/allowed", "-s", "/message.sig"])).exitCode, 0);
 });
 
+test("ssh-keygen bounds every file input without modifying oversized known_hosts", async () => {
+  const fs = createMemoryFileSystem();
+  const large = new Uint8Array(65).fill(65);
+  await fs.writeFile("/large", large);
+  const cmd = createSshKeygenCommand({ limits: { maxBufferedBytes: 64 } });
+  for (const args of [["-y", "-f", "/large"], ["-l", "-f", "/large"], ["-F", "host", "-f", "/large"], ["-R", "host", "-f", "/large"], ["-Y", "sign", "-f", "/large"], ["-Y", "verify", "-s", "/large"], ["-Y", "find-principals", "-s", "/large"]]) {
+    const result = await runCmd(cmd, fs, args);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("maximum buffered size of 64 bytes"), result.stderr);
+  }
+  assert.deepEqual(await fs.readFile("/large"), large);
+});
+
+
+test("ssh-keygen bounds signing payloads and allowed signer files", async () => {
+  const fs = createMemoryFileSystem();
+  const cmd = createSshKeygenCommand();
+  assert.equal((await runCmd(cmd, fs, ["-f", "/key"])).exitCode, 0);
+  await fs.writeFile("/large", new Uint8Array(513));
+  await fs.writeFile("/message", new TextEncoder().encode("message"));
+  assert.equal((await runCmd(cmd, fs, ["-Y", "sign", "-f", "/key", "-n", "git", "/message"])).exitCode, 0);
+  const bounded = createSshKeygenCommand({ maxBufferedBytes: 512 });
+  for (const args of [["-Y", "sign", "-f", "/key", "-n", "git", "/large"], ["-Y", "verify", "-f", "/large", "-I", "alice", "-n", "git", "-s", "/message.sig"], ["-Y", "find-principals", "-f", "/large", "-s", "/message.sig"]]) {
+    const result = await runCmd(bounded, fs, args, "message");
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("maximum buffered size of 512 bytes"), result.stderr);
+  }
+  await assert.rejects(fs.readFile("/large.sig"));
+});

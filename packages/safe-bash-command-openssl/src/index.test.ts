@@ -8,8 +8,9 @@ async function runOpenssl(
   fs: FileSystem,
   args: string[],
   stdinText = "",
+  maxBufferedBytes = Infinity,
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  const cmd = createOpensslCommand();
+  const cmd = createOpensslCommand({ maxBufferedBytes });
   const stdoutChunks: Uint8Array[] = [];
   const stderrChunks: Uint8Array[] = [];
   const stdinBytes = new TextEncoder().encode(stdinText);
@@ -159,3 +160,13 @@ test("openssl rand fills multiple Web Crypto chunks", async () => {
   assert.equal(result.stdout.trim().length, 262146);
 });
 
+test("openssl bounds pkey and x509 file inputs", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/large", new Uint8Array(65));
+  for (const command of ["pkey", "x509"]) {
+    const result = await runOpenssl(fs, [command, "-in", "/large"], "", 64);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("maximum buffered size of 64 bytes"), result.stderr);
+    assert.equal(result.stdout, "");
+  }
+});

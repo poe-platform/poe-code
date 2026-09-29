@@ -206,6 +206,21 @@ async function pbkdf2DeriveKeyAndIv(password: string, salt: Uint8Array, iteratio
   };
 }
 
+async function readLimitedFile(context: CommandContext, path: string, maxBytes: number): Promise<Uint8Array> {
+  try {
+    const bytes = await context.fs.readFile(path, { ...(maxBytes === Infinity ? {} : { maxBytes }), signal: context.signal });
+    if (bytes.byteLength > maxBytes) {
+      throw new PublicDiagnostic(`input exceeds maximum buffered size of ${maxBytes} bytes`);
+    }
+    return bytes;
+  } catch (error) {
+    if (error instanceof FsError && error.code === "EFBIG") {
+      throw new PublicDiagnostic(`input exceeds maximum buffered size of ${maxBytes} bytes`);
+    }
+    throw error;
+  }
+}
+
 export function createOpensslCommand(options: OpensslCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
   return {
@@ -280,7 +295,7 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
             else if (a === "-out" && i + 1 < rest.length) outFile = rest[++i];
           }
           const input = inFile
-            ? await context.fs.readFile(pathPosix.resolve(context.cwd, inFile))
+            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, inFile), maxBytes)
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
           if (input.byteLength > maxBytes) {
             throw new PublicDiagnostic(`input exceeds maximum buffered size of ${maxBytes} bytes`);
@@ -337,7 +352,7 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
 
           for (const f of targets) {
             const bytes = f
-              ? await context.fs.readFile(pathPosix.resolve(context.cwd, f))
+              ? await readLimitedFile(context, pathPosix.resolve(context.cwd, f), maxBytes)
               : await collectSourceBytes(context.stdin, maxBytes, context.signal);
             if (bytes.byteLength > maxBytes) {
               throw new PublicDiagnostic(`input exceeds maximum buffered size of ${maxBytes} bytes`);
@@ -382,7 +397,7 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
           }
 
           const rawInput = inFile
-            ? await context.fs.readFile(pathPosix.resolve(context.cwd, inFile))
+            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, inFile), maxBytes)
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
           if (rawInput.byteLength > maxBytes) {
             throw new PublicDiagnostic(`input exceeds maximum buffered size of ${maxBytes} bytes`);
@@ -451,7 +466,7 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
             else if (rest[i] === "-pubout") pubOut = true;
           }
           const inputBytes = inFile
-            ? await context.fs.readFile(pathPosix.resolve(context.cwd, inFile))
+            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, inFile), maxBytes)
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
           const pemText = textDecoder.decode(inputBytes);
           const b64Body = pemText
@@ -528,7 +543,7 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
             else if (a === "-dates") showDates = true;
           }
           const inputBytes = inFile
-            ? await context.fs.readFile(pathPosix.resolve(context.cwd, inFile))
+            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, inFile), maxBytes)
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
           const pemText = textDecoder.decode(inputBytes);
           const b64Body = pemText

@@ -342,6 +342,21 @@ async function collectSourceBytes(source: ByteSource, maxBytes: number, signal: 
   return result;
 }
 
+async function readLimitedFile(context: CommandContext, path: string, maxBytes: number): Promise<Uint8Array> {
+  try {
+    const bytes = await context.fs.readFile(path, { ...(maxBytes === Infinity ? {} : { maxBytes }), signal: context.signal });
+    if (bytes.byteLength > maxBytes) {
+      throw new PublicDiagnostic(`input exceeds maximum buffered size of ${maxBytes} bytes`);
+    }
+    return bytes;
+  } catch (error) {
+    if (error instanceof FsError && error.code === "EFBIG") {
+      throw new PublicDiagnostic(`input exceeds maximum buffered size of ${maxBytes} bytes`);
+    }
+    throw error;
+  }
+}
+
 export function createSshKeygenCommand(options: SshCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
   return {
@@ -391,7 +406,10 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
       try {
         if (findHost !== undefined) {
           const khPath = pathPosix.resolve(context.cwd, fileArg ?? "/home/user/.ssh/known_hosts");
-          const khText = textDecoder.decode(await context.fs.readFile(khPath).catch(() => new Uint8Array(0)));
+          const khText = textDecoder.decode(await readLimitedFile(context, khPath, maxBytes).catch(error => {
+            if (error instanceof FsError && error.code === "ENOENT") return new Uint8Array(0);
+            throw error;
+          }));
           const matches = khText
             .split("\n")
             .filter(l => l.trim().length > 0 && !l.startsWith("#") && l.split(/\s+/)[0]?.split(",").includes(findHost!));
@@ -402,7 +420,10 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
 
         if (removeHost !== undefined) {
           const khPath = pathPosix.resolve(context.cwd, fileArg ?? "/home/user/.ssh/known_hosts");
-          const khText = textDecoder.decode(await context.fs.readFile(khPath).catch(() => new Uint8Array(0)));
+          const khText = textDecoder.decode(await readLimitedFile(context, khPath, maxBytes).catch(error => {
+            if (error instanceof FsError && error.code === "ENOENT") return new Uint8Array(0);
+            throw error;
+          }));
           const remaining = khText
             .split("\n")
             .filter(l => l.trim().length === 0 || l.startsWith("#") || !l.split(/\s+/)[0]?.split(",").includes(removeHost!));
@@ -415,14 +436,14 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
         if (yAction !== undefined) {
           if (yAction === "sign") {
             const keyPath = pathPosix.resolve(context.cwd, fileArg ?? "/home/user/.ssh/id_ed25519");
-            const keyPem = textDecoder.decode(await context.fs.readFile(keyPath));
+            const keyPem = textDecoder.decode(await readLimitedFile(context, keyPath, maxBytes));
             const parsed = parseOpenSshEd25519PrivateKey(keyPem);
             if (!parsed) throw new PublicDiagnostic(`invalid OpenSSH Ed25519 key: ${keyPath}`);
             const { privateKey } = await importEd25519FromSeedAndPub(parsed.seed, parsed.pubKey);
 
             const targetFile = positionalFiles[0];
             const payload = targetFile
-              ? await context.fs.readFile(pathPosix.resolve(context.cwd, targetFile))
+              ? await readLimitedFile(context, pathPosix.resolve(context.cwd, targetFile), maxBytes)
               : await collectSourceBytes(context.stdin, maxBytes, context.signal);
             const payloadBuf = payload.buffer.slice(payload.byteOffset, payload.byteOffset + payload.byteLength) as ArrayBuffer;
             const msgHash = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-512", payloadBuf));
@@ -465,7 +486,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
 
           if (yAction === "verify" || yAction === "check-novalidate" || yAction === "find-principals") {
             const sigPath = pathPosix.resolve(context.cwd, signatureFile ?? positionalFiles[0] ?? "");
-            const sigPem = textDecoder.decode(await context.fs.readFile(sigPath));
+            const sigPem = textDecoder.decode(await readLimitedFile(context, sigPath, maxBytes));
             const b64 = sigPem
               .split("\n")
               .map(l => l.trim())
@@ -500,7 +521,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
               if (!allowedSignersFile || (yAction === "verify" && !signerIdentity)) {
                 throw new PublicDiagnostic("allowed signers file and signer identity are required for verification");
               }
-              const asText = textDecoder.decode(await context.fs.readFile(pathPosix.resolve(context.cwd, allowedSignersFile)));
+              const asText = textDecoder.decode(await readLimitedFile(context, pathPosix.resolve(context.cwd, allowedSignersFile), maxBytes));
               const entries = asText.split("\n").map(parseAllowedSigner).filter(entry => entry !== undefined);
               const matching = entries.filter(entry => entry.pubKey.every((byte, index) => byte === pubKey[index])
                 && (yAction === "find-principals" || matchesPatterns(namespace, entry.namespaces ?? "*")));
@@ -551,7 +572,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
 
         if (derivePub) {
           const keyPath = pathPosix.resolve(context.cwd, fileArg ?? "/home/user/.ssh/id_ed25519");
-          const pem = textDecoder.decode(await context.fs.readFile(keyPath));
+          const pem = textDecoder.decode(await readLimitedFile(context, keyPath, maxBytes));
           const parsed = parseOpenSshEd25519PrivateKey(pem);
           if (!parsed) throw new PublicDiagnostic(`invalid OpenSSH private key: ${keyPath}`);
           const pubLine = `ssh-ed25519 ${bytesToBase64(sshEd25519PubkeyBlob(parsed.pubKey))} ${parsed.comment}\n`;
@@ -561,7 +582,7 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
 
         if (showFingerprint) {
           const keyPath = pathPosix.resolve(context.cwd, fileArg ?? "/home/user/.ssh/id_ed25519.pub");
-          const content = textDecoder.decode(await context.fs.readFile(keyPath));
+          const content = textDecoder.decode(await readLimitedFile(context, keyPath, maxBytes));
           const privParsed = parseOpenSshEd25519PrivateKey(content);
           const pubParsed = privParsed ?? parseOpenSshEd25519PublicKey(content);
           if (!pubParsed) throw new PublicDiagnostic(`not a public key file: ${keyPath}`);

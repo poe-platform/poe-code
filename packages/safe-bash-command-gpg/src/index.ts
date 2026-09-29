@@ -385,6 +385,21 @@ async function collectSourceBytes(source: ByteSource, maxBytes: number, signal: 
   return result;
 }
 
+async function readLimitedFile(context: CommandContext, path: string, maxBytes: number): Promise<Uint8Array> {
+  try {
+    const bytes = await context.fs.readFile(path, { ...(maxBytes === Infinity ? {} : { maxBytes }), signal: context.signal });
+    if (bytes.byteLength > maxBytes) {
+      throw new PublicDiagnostic(`input exceeds maximum buffered size of ${maxBytes} bytes`);
+    }
+    return bytes;
+  } catch (error) {
+    if (error instanceof FsError && error.code === "EFBIG") {
+      throw new PublicDiagnostic(`input exceeds maximum buffered size of ${maxBytes} bytes`);
+    }
+    throw error;
+  }
+}
+
 export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
   return {
@@ -469,7 +484,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
 
         if (importKeys) {
           const input = positionals[0]
-            ? await context.fs.readFile(pathPosix.resolve(context.cwd, positionals[0]))
+            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, positionals[0]), maxBytes)
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
           const b64 = textDecoder
             .decode(input)
@@ -488,7 +503,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
 
         if (detachSign) {
           const payload = positionals[0]
-            ? await context.fs.readFile(pathPosix.resolve(context.cwd, positionals[0]))
+            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, positionals[0]), maxBytes)
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
           const key = await ensureKeyForUid(context, signerUid);
           const { armor, keyIdHex } = await createOpenPgpDetachedSignature(key.seed, key.pubKey, key.uid, payload);
@@ -508,9 +523,9 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         if (verify) {
           const sigPath = positionals[0];
           if (!sigPath) throw new PublicDiagnostic("missing signature file for --verify");
-          const sigArmor = textDecoder.decode(await context.fs.readFile(pathPosix.resolve(context.cwd, sigPath)));
+          const sigArmor = textDecoder.decode(await readLimitedFile(context, pathPosix.resolve(context.cwd, sigPath), maxBytes));
           const dataBytes = positionals[1]
-            ? await context.fs.readFile(pathPosix.resolve(context.cwd, positionals[1]))
+            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, positionals[1]), maxBytes)
             : await collectSourceBytes(context.stdin, maxBytes, context.signal);
           const res = await verifyOpenPgpDetachedSignature(sigArmor, dataBytes, await loadKeyring(context));
           if (!res.valid) {

@@ -8,8 +8,9 @@ async function runGpg(
   fs: FileSystem,
   args: string[],
   stdinText = "",
+  maxBufferedBytes = Infinity,
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  const cmd = createGpgCommand();
+  const cmd = createGpgCommand({ maxBufferedBytes });
   const stdoutChunks: Uint8Array[] = [];
   const stderrChunks: Uint8Array[] = [];
   const stdinBytes = new TextEncoder().encode(stdinText);
@@ -130,3 +131,25 @@ test("gpg rejects a cryptographically valid signature with a forged hashed key I
   assert.equal(result.stdout, "");
 });
 
+test("gpg bounds import, signing, signature and payload file inputs", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/large", new Uint8Array(65));
+  for (const args of [["--import", "/large"], ["--detach-sign", "/large"], ["--verify", "/large"]]) {
+    const result = await runGpg(fs, args, "", 64);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("maximum buffered size of 64 bytes"), result.stderr);
+  }
+});
+
+
+test("gpg bounds verification payload files after reading a valid signature", async () => {
+  const fs = createMemoryFileSystem();
+  const sign = await runGpg(fs, ["--detach-sign"], "message");
+  assert.equal(sign.exitCode, 0);
+  await fs.writeFile("/signature", new TextEncoder().encode(sign.stdout));
+  await fs.writeFile("/large", new Uint8Array(513));
+  const result = await runGpg(fs, ["--verify", "/signature", "/large"], "", 512);
+  assert.notEqual(result.exitCode, 0);
+  assert.ok(result.stderr.includes("maximum buffered size of 512 bytes"), result.stderr);
+  assert.equal(result.stdout, "");
+});

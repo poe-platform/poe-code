@@ -3923,6 +3923,35 @@
         ],
         "remaining": "Fresh full CI and registry publication; all 19 ssconvert families remain open."
       }
+    },
+    "currentRelease": {
+      "issue": 3360,
+      "verifiedRemoteMain": [
+        "f09722e0f147e3813681f7f796a1d7f8c827165c",
+        "65638a619bc18bd618cddadfa421951d032aff7c",
+        "e769554c75685d3a24d40e20b2e06996a3712d21",
+        "cced4225f50ce4af6771a51a92be0d4c50feaa5c",
+        "622d2420f34c8895f606d319b5b5b69eedc5db10"
+      ],
+      "previousRun": {
+        "id": 36525540483,
+        "head": "69be906d70784e68ca2b754aa13805c727cd5b49",
+        "conclusion": "failure",
+        "passed": [
+          "build",
+          "audit",
+          "checks",
+          "bash (1)",
+          "bash (2)",
+          "bash (4)"
+        ],
+        "failures": "Three pdfimages tests used a JPEG without frame data; ffmpeg exceeded its 1.5MB Worker bundle guard; the PDF SVG integration test expected text elements rather than glyph paths. Publication skipped."
+      },
+      "repairs": "Valid JPEG fixture with decoded-pixel/dimension and byte-exact extraction checks; actual ffmpeg production minification with unchanged 1.5MB limit and shared-codec input identity; SVG parsing checks full accessible text, viewBox and painted visible glyphs; comments clarify five no-op option branches reported by current root lint.",
+      "checks": "Lotus: 496 tests, package lint/types, selected build, four compiled SDK/command cases. PDF images: 18 tests and package lint/types. ffmpeg: 16 tests, package lint/types, maintained seven-workspace build closure; 1206003-byte compiled artifact creates/probes 30 frames at 2x2. Safe Bash: 652 runner tests and final 22 PDF integration cases pass. Guarded root ESLint: complete, zero errors/warnings.",
+      "probeCorrections": "SVG labels retain spaces; geometry checks apply to visible glyphs. Intermediate test assumptions were corrected, not product regressions.",
+      "publication": "Containing full CI and registry publication remain unverified. Last observed poe-code 17.0.35 at a8a8a7efbc excludes these commits. Replacement pin and ongoing results tracked in hey-boss #3360. All 19 ssconvert families remain open.",
+      "receipt": "out/ssconvert-odf-settings/release-pdf-ffmpeg-failures.json"
     }
   },
   "history": {

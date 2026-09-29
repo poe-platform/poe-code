@@ -4175,6 +4175,7 @@ export class Runtime {
         if (this._syncArithRawWriteOnly) {
           st.variables[reference] = value;
           this._syncArithTouched?.add(reference);
+          if (reference === "OPTIND") this.syncGetopts(st);
           return;
         }
         if (arrayStore(st)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
@@ -11715,6 +11716,7 @@ export class Runtime {
         continue;
       }
       if (part.kind === "arithmetic") {
+        if (part.expression.error && part.expression.source.includes("$")) return false;
         const names = new Set<string>();
         if (!collectPureReadOnlySmiNames(part.expression, names)) {
           if (rawState.nounset || !part.expression.error) return false;
@@ -11732,6 +11734,10 @@ export class Runtime {
               return false;
             }
           }
+        }
+        for (const refName of names) {
+          const value = rawState.variables[refName];
+          if (stateMonitor(rawState)?.store?.get(refName) || controlNames.has(refName) || refName === "OPTIND" || rawState.variableAttributes?.has(refName) || stateMonitor(rawState)?.hasOverlay(refName) || hasUnpreparedLocal(rawState, refName) || (value !== undefined && value !== "" && !/^-?[0-9]+$/.test(value))) return false;
         }
         continue;
       }
@@ -12977,6 +12983,40 @@ export class Runtime {
     }
     return res;
   }
+  private syncLoopArithmeticReadsRemainInteger(steps: readonly SyncLoopStep[], rawState: State): boolean {
+    const reads = new Set<string>();
+    const seen = new WeakSet<object>();
+    // Inspect words in commands, conditions, substitutions, and inlined functions.
+    // Skip optimizer caches, which are not part of the executable syntax.
+    const collect = (value: unknown): void => {
+      if (!value || typeof value !== "object" || seen.has(value)) return;
+      seen.add(value);
+      const node = value as { kind?: string; expression?: ArithmeticProgram };
+      if (node.kind === "arithmetic" && node.expression) collectPureReadOnlySmiNames(node.expression, reads);
+      for (const [key, child] of Object.entries(value)) {
+        if (!key.startsWith("_")) collect(child);
+      }
+    };
+    collect(steps);
+    if (reads.size === 0) return true;
+    const safeWrites = (items: readonly SyncLoopStep[]): boolean => items.every(step => {
+      if (step.name && reads.has(step.name)) {
+        const literal = step.value?.plain;
+        if (step.append || (!this.extractIntLoopStep(step, rawState) && (literal === undefined || !/^-?[0-9]+$/.test(literal)))) return false;
+      }
+      if (step.readHereString?.varNames.some(name => reads.has(name)) || (step.readHereString?.arrayTarget && reads.has(step.readHereString.arrayTarget))) return false;
+      if (step.localDecl?.items.some(item => reads.has(item.name))) return false;
+      if (step.fnCall && (step.fnCall.locals.some(item => reads.has(item.name)) || !safeWrites(step.fnCall.steps))) return false;
+      if (step.ifBranches?.some(branch => !safeWrites(branch.steps)) || (step.elseSteps && !safeWrites(step.elseSteps)) || step.caseClauses?.some(clause => !safeWrites(clause.steps))) return false;
+      if (step.nestedLoop) {
+        const loop = step.nestedLoop.loopCmd;
+        if (loop.kind === "for" && reads.has(loop.name) && !step.nestedLoop.braceWords?.every(value => /^-?[0-9]+$/.test(value))) return false;
+        if (!safeWrites(step.nestedLoop.steps)) return false;
+      }
+      return true;
+    });
+    return safeWrites(steps);
+  }
   private _lastBraceReservation: ValueReservation | undefined;
   private expandBraceRangeWithScope(word: Word, scope: NonNullable<IO[typeof valueScope]>): readonly string[] | undefined {
     let res: ValueReservation | undefined;
@@ -13064,7 +13104,7 @@ export class Runtime {
       return undefined;
     }
     if (command.kind === "for") {
-      if (rawState.variableAttributes?.get(command.name)) return undefined;
+      if (rawState.variableAttributes?.get(command.name) || monitor.hasOverlay(command.name) || hasUnpreparedLocal(rawState, command.name)) return undefined;
       const cachedPlan = (command as { _cachedForPlan?: {
         fastReady?: boolean;
         intSteps: (IntLoopStep | undefined)[];
@@ -13147,7 +13187,7 @@ export class Runtime {
       }
     }
     const { steps: bodyAssignments, redirectCount } = this.buildSyncLoopBody(command, rawState, io);
-    if (bodyAssignments.length > 30) return undefined;
+    if (bodyAssignments.length > 30 || !this.syncLoopArithmeticReadsRemainInteger(bodyAssignments, rawState)) return undefined;
     const touched = this._syncArithRawWriteOnly ? new Set<string>() : sharedSyncLoopTouched;
     touched.clear();
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
@@ -13374,7 +13414,7 @@ export class Runtime {
       }
       const {
         e0, e1, e2, iterations, inductionName, startVal, limitVal, isLe, isSimpleLiteralAsc, arithNamesList, intSteps, allIntStepsReady, hasSubIntStep, hasDeferredSteps, deferredMask, touchedIntNamesList, } = plan;
-      if (store?.get(inductionName) || rawState.readonlyVariables?.has(inductionName) || rawState.variableAttributes?.get(inductionName)) return undefined;
+      if (inductionName === "OPTIND" || controlNames.has(inductionName) || monitor.hasOverlay(inductionName) || hasUnpreparedLocal(rawState, inductionName) || store?.get(inductionName) || rawState.readonlyVariables?.has(inductionName) || rawState.variableAttributes?.get(inductionName)) return undefined;
       if (!isSimpleLiteralAsc && (!this.canSyncArithmeticWithoutFault(e0.tree, rawState, diagnosticLine) || !this.canSyncArithmeticWithoutFault(e1.tree, rawState, diagnosticLine) || !this.canSyncArithmeticWithoutFault(e2.tree, rawState, diagnosticLine))) return undefined;
       if (arithNamesList.length > 0) {
         for (let a = 0; a < arithNamesList.length; a++) {

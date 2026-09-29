@@ -632,8 +632,9 @@ describe("SafeJS CLI", () => {
     const stdout = createSink();
     const stderr = createSink();
     vol.writeFileSync("/repo/script.ajs", 'return new RegExp("a".repeat(5000)).source.length + Number(/a+/.test("a".repeat(3000)));');
-    expect(await runCli([...flags, "script.ajs"], { cwd: "/repo", stdout, stderr })).toBe(0);
+    const status = await runCli([...flags, "script.ajs"], { cwd: "/repo", stdout, stderr });
     expect(stderr.output()).toBe("");
+    expect(status).toBe(0);
   });
 
   it("enforces --max-steps and exits with the budget message when exceeded", async () => {

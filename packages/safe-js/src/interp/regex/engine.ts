@@ -179,42 +179,42 @@ function* matchNode(
       }
       return;
     case "quantifier":
-      yield* matchQuantifier(node, state, context, 0);
+      yield* matchQuantifier(node, state, context);
   }
 }
 
 function* matchQuantifier(
   node: Extract<RegexNode, { type: "quantifier" }>,
   state: MatchState,
-  context: MatchContext,
-  count: number
+  context: MatchContext
 ): Generator<MatchState> {
-  charge(context);
-  const canRepeat = node.max === undefined || count < node.max;
-
-  if (!node.greedy && count >= node.min) {
-    yield state;
-  }
-
-  if (canRepeat) {
-    for (const result of matchNode(node.body, clearCaptures(node.body, state), context)) {
-      if (result.position === state.position) {
-        if (count >= node.min) {
-          continue;
-        }
-        if (count + 1 >= node.min) {
-          yield result;
-        } else {
-          yield* matchQuantifier(node, result, context, count + 1);
-        }
-        continue;
+  // Repetition depth follows input length, so store backtracking continuations
+  // explicitly instead of consuming one host call frame per repetition.
+  const pending: {
+    state: MatchState; count: number; entered: boolean; iterator?: Generator<MatchState>
+  }[] = [{ state, count: 0, entered: false }];
+  while (pending.length) {
+    const frame = pending[pending.length - 1];
+    if (!frame.entered) {
+      charge(context);
+      frame.entered = true;
+      if (!node.greedy && frame.count >= node.min) yield frame.state;
+      if (node.max === undefined || frame.count < node.max) {
+        frame.iterator = matchNode(node.body, clearCaptures(node.body, frame.state), context);
       }
-      yield* matchQuantifier(node, result, context, count + 1);
     }
-  }
-
-  if (node.greedy && count >= node.min) {
-    yield state;
+    const next = frame.iterator?.next();
+    if (next && !next.done) {
+      const result = next.value;
+      if (result.position === frame.state.position) {
+        if (frame.count >= node.min) continue;
+        if (frame.count + 1 >= node.min) { yield result; continue; }
+      }
+      pending.push({ state: result, count: frame.count + 1, entered: false });
+    } else {
+      pending.pop();
+      if (node.greedy && frame.count >= node.min) yield frame.state;
+    }
   }
 }
 

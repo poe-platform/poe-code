@@ -4,6 +4,16 @@ import { matchRegex } from "./engine.js";
 import { parseRegex } from "./parse.js";
 
 describe("matchRegex", () => {
+  it.each(["a+", "a+?b", "(a)+b", "(a|b)+c", "(?<=(a)+)b", "(a?){3000}"])("matches long repetitions without host recursion: %s", source => {
+    const input = 'a'.repeat(3000) + 'bc';
+    const start = source.startsWith('(?<=') ? 3000 : 0;
+    const native = new RegExp(source, 'y'); native.lastIndex = start;
+    const expected = native.exec(input)!;
+    expect(matchRegex(parseRegex(source, 'y'), input, start)).toEqual({
+      index: expected.index, text: expected[0], captures: expected.slice(1)
+    });
+  });
+
   it.each([
     ["abc", "", "--abc--", 0],
     ["a.c", "", "a\nc", 0],

@@ -211,7 +211,14 @@ export function evalSyncSplit(
           }
           start = offset + 1;
         }
-        return decoder.decode(Buffer.concat(parts));
+        const total = parts.reduce((sum, p) => sum + p.length, 0);
+        const merged = new Uint8Array(total);
+        let off = 0;
+        for (const p of parts) {
+          merged.set(p, off);
+          off += p.length;
+        }
+        return decoder.decode(merged);
       }
       const chunkSize = Math.floor(src.length / args.size);
       const rem = src.length % args.size;

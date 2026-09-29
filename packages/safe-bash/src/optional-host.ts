@@ -1,7 +1,17 @@
 export { signalName } from "./commands/timeout/signal.js";
 export { latin1Text } from "./byte-encoding.js";
 export { jobsExtension } from "./shell/extensions/jobs/index.js";
-export { builtInDirectContextExecutors, codeOf, output, pathOf } from "./commands/internal.js";
+export {
+  builtInDirectContextExecutors,
+  codeOf,
+  decoder,
+  isDefaultCommandOptions,
+  output,
+  pathOf,
+  registerDefaultExecutor,
+  registerDefaultExecutors,
+  syncCommandEvaluators,
+} from "./commands/internal.js";
 export { portableTrapExtension } from "./shell/trap.js";
 export type { TrapExtensionOptions, TrapSignalHost } from "./shell/trap.js";
 export { compareCopyIdentity, compareObservedEntries } from "./commands/copy-identity.js";

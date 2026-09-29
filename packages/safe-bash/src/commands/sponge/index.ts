@@ -48,7 +48,9 @@ export function evalSyncSponge(
   const target = files[0]!;
   if (append) {
     const existing = readFileSync?.(target) ?? new Uint8Array(0);
-    const combined = Buffer.concat([existing, payload]);
+    const combined = new Uint8Array(existing.length + payload.length);
+    combined.set(existing, 0);
+    combined.set(payload, existing.length);
     if (!writeFileSync(target, combined)) return undefined;
   } else {
     if (!writeFileSync(target, payload)) return undefined;

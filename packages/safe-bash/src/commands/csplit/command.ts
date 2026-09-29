@@ -131,7 +131,14 @@ export function evalSyncCsplit(
         sliceLines.push(lines[nextIdx - 1]!);
         nextIdx++;
       }
-      pieces.push(Buffer.concat(sliceLines));
+      const sliceLen = sliceLines.reduce((sum, l) => sum + l.length, 0);
+      const mergedSlice = new Uint8Array(sliceLen);
+      let sliceOff = 0;
+      for (const l of sliceLines) {
+        mergedSlice.set(l, sliceOff);
+        sliceOff += l.length;
+      }
+      pieces.push(mergedSlice);
       if (suppress) {
         if (nextIdx > lines.length) return undefined;
         nextIdx++;
@@ -143,7 +150,14 @@ export function evalSyncCsplit(
     restLines.push(lines[nextIdx - 1]!);
     nextIdx++;
   }
-  pieces.push(Buffer.concat(restLines));
+  const restLen = restLines.reduce((sum, l) => sum + l.length, 0);
+  const mergedRest = new Uint8Array(restLen);
+  let restOff = 0;
+  for (const l of restLines) {
+    mergedRest.set(l, restOff);
+    restOff += l.length;
+  }
+  pieces.push(mergedRest);
   const sizes: number[] = [];
   let fileIdx = 0;
   for (const piece of pieces) {

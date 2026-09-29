@@ -485,3 +485,69 @@ export function cmpCommand(): CommandDefinition {
     }
   } };
 }
+
+export function evalSyncCmp(
+  inBytes: Uint8Array | undefined,
+  opArgs: readonly string[],
+  readFileSync?: (path: string) => Uint8Array | undefined,
+): string | undefined {
+  try {
+    const operands: string[] = [];
+    const skips: [bigint, bigint] = [0n, 0n];
+    let count = 9223372036854775807n;
+    let stopped = false;
+    const setSkip = (idx: 0 | 1, text: string) => {
+      const p = byteCount(text, "ignore-initial");
+      if (p > skips[idx]) skips[idx] = p;
+    };
+    for (let i = 0; i < opArgs.length; i++) {
+      const a = opArgs[i]!;
+      if (stopped || a === "-" || !a.startsWith("-")) { operands.push(a); continue; }
+      if (a === "--") { stopped = true; continue; }
+      if (a === "-s" || a === "--silent" || a === "--quiet" || a === "-b" || a === "-c" || a === "--print-bytes" || a === "-l" || a === "--verbose") continue;
+      if (a === "-i" || a === "--ignore-initial") {
+        const v = opArgs[++i];
+        if (v === undefined) return undefined;
+        const d = v.indexOf(":");
+        if (d < 0) { setSkip(0, v); if (skips[0] > skips[1]) skips[1] = skips[0]; }
+        else { setSkip(0, v.slice(0, d)); setSkip(1, v.slice(d + 1)); }
+        continue;
+      }
+      if (a === "-n" || a === "--bytes") {
+        const v = opArgs[++i];
+        if (v === undefined) return undefined;
+        const p = byteCount(v, "bytes");
+        if (p < count) count = p;
+        continue;
+      }
+      return undefined;
+    }
+    if (operands.length < 1 || operands.length > 4) return undefined;
+    if (operands[2] !== undefined) setSkip(0, operands[2]);
+    if (operands[3] !== undefined) setSkip(1, operands[3]);
+    const f0 = operands[0]!;
+    const f1 = operands[1] ?? "-";
+    if (f0 === "-" && f1 === "-") {
+      if (skips[0] === skips[1]) return "";
+      return undefined;
+    }
+    const b0 = f0 === "-" ? inBytes : readFileSync?.(f0);
+    const b1 = f1 === "-" ? inBytes : readFileSync?.(f1);
+    if (!b0 || !b1 || b0.byteLength > 16384 || b1.byteLength > 16384) return undefined;
+    if (skips[0] > BigInt(b0.byteLength) || skips[1] > BigInt(b1.byteLength)) return undefined;
+    const s0 = Number(skips[0]);
+    const s1 = Number(skips[1]);
+    const rem0 = b0.byteLength - s0;
+    const rem1 = b1.byteLength - s1;
+    const limit = count < BigInt(Math.max(rem0, rem1)) ? Number(count) : Math.max(rem0, rem1);
+    const len0 = Math.min(rem0, limit);
+    const len1 = Math.min(rem1, limit);
+    if (len0 !== len1) return undefined;
+    for (let i = 0; i < len0; i++) {
+      if (b0[s0 + i] !== b1[s1 + i]) return undefined;
+    }
+    return "";
+  } catch {
+    return undefined;
+  }
+}

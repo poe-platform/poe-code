@@ -88,37 +88,3 @@ export function cmpCommands(options: CmpCommandsOptions = {}): VirtualShellPlugi
   };
 }
 
-export function evalSyncCmp(
-  inBytes: Uint8Array | undefined,
-  opArgs: readonly string[],
-  readFileSync?: (path: string) => Uint8Array | undefined,
-): string | undefined {
-  try {
-    const args = parseArguments(opArgs, false);
-    if (args.information !== undefined) return undefined;
-    const f0 = args.files[0];
-    const f1 = args.files[1] ?? "-";
-    if (f0 === "-" && f1 === "-") {
-      if (args.skips[0] === args.skips[1]) return "";
-      return undefined;
-    }
-    const b0 = f0 === "-" ? inBytes : readFileSync?.(f0);
-    const b1 = f1 === "-" ? inBytes : readFileSync?.(f1);
-    if (!b0 || !b1 || b0.byteLength > 16384 || b1.byteLength > 16384) return undefined;
-    if (args.skips[0] > BigInt(b0.byteLength) || args.skips[1] > BigInt(b1.byteLength)) return undefined;
-    const s0 = Number(args.skips[0]);
-    const s1 = Number(args.skips[1]);
-    const rem0 = b0.byteLength - s0;
-    const rem1 = b1.byteLength - s1;
-    const limit = args.count < BigInt(Math.max(rem0, rem1)) ? Number(args.count) : Math.max(rem0, rem1);
-    const len0 = Math.min(rem0, limit);
-    const len1 = Math.min(rem1, limit);
-    if (len0 !== len1) return undefined;
-    for (let i = 0; i < len0; i++) {
-      if (b0[s0 + i] !== b1[s1 + i]) return undefined;
-    }
-    return "";
-  } catch {
-    return undefined;
-  }
-}

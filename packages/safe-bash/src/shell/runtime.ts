@@ -95,7 +95,7 @@ import { evalSyncPr } from "../commands/pr/index.js";
 import { evalSyncPathchk } from "../commands/pathchk/index.js";
 import { evalSyncFile } from "../commands/file/index.js";
 import { evalSyncDiff3 } from "../commands/diff3/index.js";
-import { evalSyncCmp } from "../commands/cmp/index.js";
+import { evalSyncCmp } from "../commands/cmp.js";
 import { evalSyncWhich } from "../commands/which/index.js";
 import { evalSyncDiff } from "../commands/diff-patch/index.js";
 const syncXanDecoder = new TextDecoder("utf-8", { fatal: false });

@@ -8,8 +8,9 @@ import { registerDefaultExecutor, registerDefaultExecutors } from "../internal.j
 
 export * from "safe-bash-command-od";
 
-export function createOdCommand(options: OdCommandsOptions = {}): CommandDefinition {
-  return registerDefaultExecutor(createRawOdCommand(options), options);
+export function createOdCommand(options: number | OdCommandsOptions = {}): CommandDefinition {
+  const commandOptions = typeof options === "number" ? { maxInputBytes: options } : options;
+  return registerDefaultExecutor(createRawOdCommand(commandOptions), commandOptions);
 }
 
 export function createOdCommands(options: OdCommandsOptions = {}): readonly CommandDefinition[] {

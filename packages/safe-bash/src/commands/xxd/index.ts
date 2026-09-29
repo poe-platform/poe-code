@@ -8,8 +8,9 @@ import { registerDefaultExecutor, registerDefaultExecutors } from "../internal.j
 
 export * from "safe-bash-command-xxd";
 
-export function createXxdCommand(options: XxdCommandsOptions = {}): CommandDefinition {
-  return registerDefaultExecutor(createRawXxdCommand(options), options);
+export function createXxdCommand(options: number | XxdCommandsOptions = {}): CommandDefinition {
+  const commandOptions = typeof options === "number" ? { maxInputBytes: options } : options;
+  return registerDefaultExecutor(createRawXxdCommand(commandOptions), commandOptions);
 }
 
 export function createXxdCommands(options: XxdCommandsOptions = {}): readonly CommandDefinition[] {

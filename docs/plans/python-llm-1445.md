@@ -252,3 +252,34 @@ First two batches passed500 files/25,672 tests; this is incomplete full validati
 not a passing suite or assertion failure. Original remote log/exit preservation
 and cause reconciliation remain outstanding; no replacement full suite was
 started from an expired observation. Current focused repair gates remain valid.
+
+## Registry repair qualification and remaining attachment parity
+
+Scoped pinned publication `36598809221` completed with successful publisher
+`109510546978` and public verifier `109517632627`. Registry `0.1.760` is now
+retrievable; fetched SLSA provenance authenticates source
+`26517cdd9de731b7bdfddc22fb4ce5b05eef369c` and that workflow run. Safe Bash
+SHA-1 is `71883c9af182794a4db6d808c4fe81acc5063309`. Exact registry Bash/FS/JS
+packages installed independently, without scripts or workspace symlinks, and
+actual Pyodide/workerd passes4/4 (`out/python-registry-760-workerd.log`), including
+host bounds, Unicode/canonical-file streaming, examples, disposal and100MiB
+publication/cancellation recovery. Earlier404/ETARGET reads were temporary;
+no publication run was replayed.
+
+Consumer comment16467 records all six pins adopted at.760, nine host-bound/shared
+service tests passing, nine filesystem/native tests passing and mixed CLI/Python
+billing4/4. Its broader consumer acceptance still has typed-option parity and
+guest-context inheritance failures, so those receipts are not complete acceptance.
+Guest cwd/env/relative-path repair is separately owned in #4628; retain its
+tracking and implementation ownership.
+
+Clarification16441 additionally requires large canonical attachment inputs without
+mandatory whole-file buffering. Current shared LlmRequest attachments still
+require `bytes: Uint8Array`, and Python prepare still stat/readFile/copies them.
+A memory-only TDD regression confirms failure at prepare.readFile before provider
+admission (existing seven adapter tests pass); saved red evidence is
+`out/python-canonical-attachment-confirmed-red.log`. The new test remains local
+until the canonical source integration passes. #1443 source-contract coordination
+is recorded in comments16449/16478; no separate provider transport or competing
+adapter is introduced. Large input parity, remaining #1443 features, #4628
+qualification and established hosted auth/options/cleanup acceptance remain open.

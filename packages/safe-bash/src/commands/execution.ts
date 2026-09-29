@@ -567,7 +567,7 @@ export function evalSyncXargs(
       if (cmd === "dirname") {
         if (args.length === 0) return undefined;
         return args.map(p => {
-          let s = p.replace(/\/+$/, "");
+          const s = p.replace(/\/+$/, "");
           if (!s) return "/";
           const sl = s.lastIndexOf("/");
           if (sl < 0) return ".";

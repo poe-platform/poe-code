@@ -75,6 +75,7 @@ import type { CommandFileDescriptor } from "../contracts/filesystem-descriptor.j
 import { outputFailure } from "../contracts/io.js";
 import { executionCommands } from "../commands/execution.js";
 import { defaultEchoExecutors, extractFastPrintfSpecifiers, formatPrintf, printfCommand, tryFastPrintf } from "../commands/basic.js";
+import { createFmtEngine, parseFmtArguments } from "../commands/fmt.js";
 import { defaultMkdirExecutors, defaultRmExecutors } from "../commands/filesystem.js";
 export const customRegisteredCommands = new WeakSet<object>();
 export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
@@ -11752,7 +11753,7 @@ export class Runtime {
         (cmd.redirects[0]!.descriptor === undefined || cmd.redirects[0]!.descriptor === 0) &&
         !cmd.redirects[0]!.move && !cmd.redirects[0]!.document && checkInvariantWord(cmd.redirects[0]!.target);
       const hasNoRedir = cmd.kind === "simple" && cmd.redirects.length === 0 &&
-        (cmd.words[0]?.plain === "expr" || cmd.words[0]?.plain === "numfmt" || cmd.words[0]?.plain === "paste" || cmd.words[0]?.plain === "nl" || cmd.words[0]?.plain === "comm" || cmd.words[0]?.plain === "join" || cmd.words[0]?.plain === "factor" || cmd.words[0]?.plain === "tsort" || cmd.words[0]?.plain === "envsubst");
+        (cmd.words[0]?.plain === "expr" || cmd.words[0]?.plain === "numfmt" || cmd.words[0]?.plain === "paste" || cmd.words[0]?.plain === "nl" || cmd.words[0]?.plain === "comm" || cmd.words[0]?.plain === "join" || cmd.words[0]?.plain === "factor" || cmd.words[0]?.plain === "tsort" || cmd.words[0]?.plain === "envsubst" || cmd.words[0]?.plain === "uname" || cmd.words[0]?.plain === "id" || cmd.words[0]?.plain === "whoami" || cmd.words[0]?.plain === "hostname" || cmd.words[0]?.plain === "nproc");
       if (cmd.kind !== "simple" || cmd.words.length === 0 || (!hasHere && !hasNoRedir)) {
         return false;
       }
@@ -11777,7 +11778,7 @@ export class Runtime {
         }
       }
     }
-    if (p.commands.some(c => c.kind === "simple" && c.words[0]?.plain === "envsubst") && (rawState.allexport || [...assigned].some(v => rawState.exported.has(v)))) {
+    if (p.commands.some(c => c.kind === "simple" && (c.words[0]?.plain === "envsubst" || c.words[0]?.plain === "uname" || c.words[0]?.plain === "id" || c.words[0]?.plain === "whoami" || c.words[0]?.plain === "hostname" || c.words[0]?.plain === "nproc")) && (rawState.allexport || [...assigned].some(v => rawState.exported.has(v)))) {
       return false;
     }
     const savedBytes = this.budget.bytes;
@@ -25653,6 +25654,145 @@ export class Runtime {
     return hex + "\n";
   }
 
+  private _syncFmtParsedCache = new Map<string, { files?: readonly unknown[] }>();
+  private evalSyncFmt(inBytes: Uint8Array, opArgs: readonly string[]): string | undefined {
+    if (inBytes.byteLength > 4096) return undefined;
+    try {
+      const cacheKey = opArgs.join("\x1f");
+      let parsed = this._syncFmtParsedCache.get(cacheKey);
+      if (!parsed) {
+        const argBytes = opArgs.map(a => fastSharedTextEncoder.encode(a));
+        parsed = parseFmtArguments(argBytes) as { files?: readonly unknown[] };
+        if (this._syncFmtParsedCache.size < 64) this._syncFmtParsedCache.set(cacheKey, parsed);
+      }
+      if (parsed.files && (parsed.files as readonly { name: string }[]).some(f => f.name !== "-")) return undefined;
+      if (inBytes.byteLength === 0) return "";
+      const engine = createFmtEngine(parsed as Parameters<typeof createFmtEngine>[0], undefined, { aborted: false } as AbortSignal);
+      const gen = engine.run();
+      let step = gen.next();
+      let sent = false;
+      let out = "";
+      while (!step.done) {
+        if (step.value === "input") {
+          if (!sent) {
+            sent = true;
+            step = gen.next(inBytes);
+          } else {
+            step = gen.next(null);
+          }
+        } else if (step.value instanceof Uint8Array) {
+          out += sharedSyncPipeDecoder.decode(step.value);
+          step = gen.next();
+        } else {
+          step = gen.next();
+        }
+      }
+      return out;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private evalSyncSysinfo(cmdName: string, opArgs: readonly string[], rawState: State): string | undefined {
+    const raw = (stateMonitor(rawState)?.raw ?? rawState) as State & { _exported?: Set<string> };
+    const isRestrictedEnv = raw._exported === undefined && "_exported" in raw;
+    const getEnv = (name: string): string | undefined => {
+      if (isRestrictedEnv) return name === "PWD" ? raw.variables.PWD : undefined;
+      if (raw.exported.has(name) || raw.allexport) return raw.variables[name];
+      return undefined;
+    };
+    if (cmdName === "uname") {
+      let flagAll = false, flagS = false, flagN = false, flagR = false, flagV = false, flagM = false, flagP = false, flagI = false, flagO = false;
+      let endOfOptions = false;
+      for (let i = 0; i < opArgs.length; i++) {
+        const arg = opArgs[i]!;
+        if (!endOfOptions && arg === "--") { endOfOptions = true; continue; }
+        if (!endOfOptions && (arg === "--help" || arg === "--version")) return undefined;
+        if (!endOfOptions && arg.startsWith("--") && arg.length > 2) {
+          if (arg === "--all") flagAll = true;
+          else if (arg === "--kernel-name" || arg === "--sysname") flagS = true;
+          else if (arg === "--nodename") flagN = true;
+          else if (arg === "--kernel-release" || arg === "--release") flagR = true;
+          else if (arg === "--kernel-version") flagV = true;
+          else if (arg === "--machine") flagM = true;
+          else if (arg === "--processor") flagP = true;
+          else if (arg === "--hardware-platform") flagI = true;
+          else if (arg === "--operating-system") flagO = true;
+          else return undefined;
+          continue;
+        }
+        if (!endOfOptions && arg.startsWith("-") && arg.length > 1) {
+          for (let j = 1; j < arg.length; j++) {
+            const ch = arg[j]!;
+            if (ch === "a") flagAll = true;
+            else if (ch === "s") flagS = true;
+            else if (ch === "n") flagN = true;
+            else if (ch === "r") flagR = true;
+            else if (ch === "v") flagV = true;
+            else if (ch === "m") flagM = true;
+            else if (ch === "p") flagP = true;
+            else if (ch === "i") flagI = true;
+            else if (ch === "o") flagO = true;
+            else return undefined;
+          }
+          continue;
+        }
+        return undefined;
+      }
+      if (!flagAll && !flagS && !flagN && !flagR && !flagV && !flagM && !flagP && !flagI && !flagO) flagS = true;
+      const kernelName = getEnv("UNAME_S") ?? "Linux";
+      const nodename = getEnv("UNAME_N") ?? getEnv("HOSTNAME") ?? "sandbox";
+      const kernelRelease = getEnv("UNAME_R") ?? "6.6.0-sandbox-vfs";
+      const kernelVersion = getEnv("UNAME_V") ?? "#1 SMP Sandbox VFS-ish/GNU";
+      const machine = getEnv("UNAME_M") ?? "x86_64";
+      const processor = getEnv("UNAME_P") ?? "unknown";
+      const hardwarePlatform = getEnv("UNAME_I") ?? "unknown";
+      const operatingSystem = getEnv("UNAME_O") ?? "GNU/Linux";
+      const fields: string[] = [];
+      if (flagAll || flagS) fields.push(kernelName);
+      if (flagAll || flagN) fields.push(nodename);
+      if (flagAll || flagR) fields.push(kernelRelease);
+      if (flagAll || flagV) fields.push(kernelVersion);
+      if (flagAll || flagM) fields.push(machine);
+      if (flagP || (flagAll && processor !== "unknown")) fields.push(processor);
+      if (flagI || (flagAll && hardwarePlatform !== "unknown")) fields.push(hardwarePlatform);
+      if (flagAll || flagO) fields.push(operatingSystem);
+      return fields.join(" ");
+    }
+    if (cmdName === "whoami") {
+      if (opArgs.length !== 0 || this.tryReadMemoryFileViewSync("/etc/passwd", false) !== undefined) return undefined;
+      if (getEnv("ID_EUID") !== undefined || getEnv("EUID") !== undefined || getEnv("ID_UID") !== undefined || getEnv("UID") !== undefined) return undefined;
+      return getEnv("WHOAMI_USER") ?? getEnv("USER") ?? getEnv("LOGNAME") ?? "sandbox";
+    }
+    if (cmdName === "id") {
+      if (this.tryReadMemoryFileViewSync("/etc/passwd", false) !== undefined || this.tryReadMemoryFileViewSync("/etc/group", false) !== undefined) return undefined;
+      for (const k of ["ID_UID", "UID", "ID_EUID", "EUID", "ID_GID", "GID", "ID_EGID", "EGID", "ID_USER", "USER", "LOGNAME", "ID_GROUP", "ID_GROUPS", "ID_CONTEXT"]) {
+        if (getEnv(k) !== undefined) return undefined;
+      }
+      if (opArgs.length === 0) return "uid=1000(sandbox) gid=1000(sandbox) groups=1000(sandbox)";
+      if (opArgs.length === 1) {
+        const a = opArgs[0]!;
+        if (a === "-u" || a === "-g" || a === "-G") return "1000";
+        if (a === "-un" || a === "-nu" || a === "-gn" || a === "-ng" || a === "-Gn" || a === "-nG") return "sandbox";
+      }
+      return undefined;
+    }
+    if (cmdName === "hostname") {
+      if (this.tryReadMemoryFileViewSync("/etc/hostname", false) !== undefined || getEnv("HOSTNAME_DOMAIN") !== undefined || getEnv("HOSTNAME_IP") !== undefined) return undefined;
+      const host = getEnv("HOSTNAME") ?? "sandbox";
+      if (opArgs.length === 0 || (opArgs.length === 1 && (opArgs[0] === "-f" || opArgs[0] === "--fqdn" || opArgs[0] === "--long"))) return host;
+      if (opArgs.length === 1 && (opArgs[0] === "-s" || opArgs[0] === "--short")) return host.split(".")[0]!;
+      if (opArgs.length === 1 && (opArgs[0] === "-i" || opArgs[0] === "--ip-address" || opArgs[0] === "-I" || opArgs[0] === "--all-ip-addresses")) return "127.0.0.1";
+      return undefined;
+    }
+    if (cmdName === "nproc") {
+      if (getEnv("OMP_NUM_THREADS") !== undefined || getEnv("OMP_THREAD_LIMIT") !== undefined || getEnv("NPROC") !== undefined) return undefined;
+      if (opArgs.length === 0 || (opArgs.length === 1 && opArgs[0] === "--all")) return "4";
+      return undefined;
+    }
+    return undefined;
+  }
+
   private evalSyncFactor(rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
     let optionsEnded = false;
     let exponents = false;
@@ -26501,7 +26641,7 @@ export class Runtime {
       if (cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 1) return undefined;
       if (!cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 2) return undefined;
       const def0 = (w0Plain0 === "printf" || w0Plain0 === "echo" || w0Plain0 === "cat") ? this.commands.get(w0Plain0) : this.getExternalCommand(w0Plain0);
-      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
+      if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && w0Plain0 !== "fmt" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
       const n = pipeline.commands.length;
       const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
@@ -26514,7 +26654,7 @@ export class Runtime {
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
         const extDef = this.getExternalCommand(sName);
-        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "xxd" && sName !== "od" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "hexdump" && sName !== "hd" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
+        if (!extDef || (sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "xxd" && sName !== "od" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "hexdump" && sName !== "hd" && sName !== "fmt" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
         const sArgs: string[] = [];
         for (let w = 1; w < sCmd.words.length; w++) {
@@ -26595,6 +26735,8 @@ export class Runtime {
           if (this.evalSyncEnvsubst("", sArgs, rawState) === undefined) return undefined;
         } else if (sName === "hexdump" || sName === "hd") {
           if (this.evalSyncHexdump(new Uint8Array([97]), sArgs, sName === "hd") === undefined) return undefined;
+        } else if (sName === "fmt") {
+          if (this.evalSyncFmt(EMPTY_BYTES, sArgs) === undefined) return undefined;
         } else {
           return undefined;
         }
@@ -26707,6 +26849,7 @@ export class Runtime {
             firstName === "envsubst" ||
             firstName === "hexdump" ||
             firstName === "hd" ||
+            firstName === "fmt" ||
             isInlineBase64 ||
             isInlineTac ||
             isInlineNl ||
@@ -26880,15 +27023,17 @@ export class Runtime {
               const tsRes = this.evalSyncTsort(rawLines, stageArgs, rawState.cwd);
               if (tsRes === undefined) return undefined;
               outLines = tsRes;
-            } else if (firstName === "envsubst" || firstName === "xxd" || firstName === "od" || firstName === "hexdump" || firstName === "hd") {
+            } else if (firstName === "envsubst" || firstName === "xxd" || firstName === "od" || firstName === "hexdump" || firstName === "hd" || firstName === "fmt") {
               const rawBytes = prevBuf.subarray(0, prevLen);
               const outStr = firstName === "envsubst"
                 ? this.evalSyncEnvsubst(inStr, stageArgs, rawState)
-                : firstName === "xxd"
-                  ? this.evalSyncXxd(rawBytes, stageArgs)
-                  : firstName === "od"
-                    ? this.evalSyncOd(rawBytes, stageArgs)
-                    : this.evalSyncHexdump(rawBytes, stageArgs, firstName === "hd");
+                : firstName === "fmt"
+                  ? this.evalSyncFmt(rawBytes, stageArgs)
+                  : firstName === "xxd"
+                    ? this.evalSyncXxd(rawBytes, stageArgs)
+                    : firstName === "od"
+                      ? this.evalSyncOd(rawBytes, stageArgs)
+                      : this.evalSyncHexdump(rawBytes, stageArgs, firstName === "hd");
               if (outStr === undefined) return undefined;
               const encoded = fastSharedTextEncoder.encode(outStr);
               const nextTotalBytes = this.budget.bytes + encoded.byteLength;
@@ -27052,8 +27197,8 @@ export class Runtime {
       w0Plain === "sort" ||
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
-      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd";
-    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd") && Boolean(this.getExternalCommand(w0Plain))))) {
+      (hasSingleHereStringRedir && (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join")) || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc";
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc") && Boolean(this.getExternalCommand(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {
@@ -27072,6 +27217,19 @@ export class Runtime {
         const hv = this.fastValueWord(cmd.redirects[0]!.target, state, io, false, false, false, false, undefined, part.line);
         if (typeof hv === "string" && hv.length <= 16384 && !hv.includes("\0")) hereStrVal = hv + "\n";
         else fOk = false;
+      }
+      if (fOk && (w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc") && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
+        const sysRes = this.evalSyncSysinfo(w0Plain, allArgs, rawState);
+        if (sysRes !== undefined) {
+          const outBytes = shellValueByteLength(sysRes) + 1;
+          const nextTotalBytes = this.budget.bytes + outBytes;
+          if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+          this.budget.bytes = nextTotalBytes;
+          this.budget.tick();
+          rawState.substitutionStatus = 0;
+          rawState.status = 0;
+          return sysRes;
+        }
       }
       if (fOk && w0Plain === "expr" && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
         const exprRes = this.evalSyncExpr(allArgs);
@@ -27252,6 +27410,8 @@ export class Runtime {
               fileRes = this.evalSyncOd(view, opArgs);
             } else if (w0Plain === "hexdump" || w0Plain === "hd") {
               fileRes = this.evalSyncHexdump(view, opArgs, w0Plain === "hd");
+            } else if (w0Plain === "fmt") {
+              fileRes = this.evalSyncFmt(view, opArgs);
             } else if (w0Plain === "envsubst" && hasSingleHereStringRedir) {
               fileRes = this.evalSyncEnvsubst(fileStr, opArgs, rawState);
             } else if (hasSingleHereStringRedir && w0Plain === "column") {

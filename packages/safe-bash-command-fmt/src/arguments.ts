@@ -1,3 +1,4 @@
+const sharedFmtArgDecoder = new TextDecoder("utf-8", { ignoreBOM: true });
 import { FmtError, defaultFmtLimits, fmtBaseline, validateFmtLimits, validateFmtProfile, type FmtOptions, type FmtLimits, type FmtProfile } from './contracts.js';
 import { ownedBytes } from './bytes.js';
 import { quote } from './quoting.js';
@@ -32,7 +33,7 @@ export function parseFmtArguments(input: readonly Uint8Array[], configuration: F
   const bytes = input.map(value => {
     const copy = ownedBytes(value, limits.argumentBytes - size); size += copy.length; return copy;
   });
-  const names = bytes.map(value => new TextDecoder("utf-8", { ignoreBOM: true }).decode(value));
+  const names = bytes.map(value => sharedFmtArgDecoder.decode(value));
   const args = bytes.map(value => Array.from(value, byte => String.fromCharCode(byte)).join(""));
   const settings: Settings = { profile, width: 75, goal: 70, crown: false, tagged: false, split: false, uniform: false, prefix: new Uint8Array(), leading: 0, fullPrefix: 0, files: [] };
   let width: string | undefined;

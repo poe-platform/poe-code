@@ -1,1 +1,1 @@
-export { fmtCommand } from "safe-bash-command-fmt";
+export { createFmtEngine, fmtCommand, parseFmtArguments } from "safe-bash-command-fmt";

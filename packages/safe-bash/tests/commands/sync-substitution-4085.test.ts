@@ -122,3 +122,27 @@ test("Wave 125: sync factor, tsort, envsubst, hexdump -C, column -t, fold, expan
     await shell.dispose();
   }
 });
+
+test("Wave 126: sync fmt, uname, id, whoami, hostname, and nproc in seq loops", async () => {
+  const { standardCommands } = await import("../../src/commands/index.js");
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  try {
+    const rUname = await shell.exec("for i in $(seq 1 5); do out=\"$(uname -s)-$(uname -m)-$i\"; done; echo \"$out\"");
+    assert.equal(rUname.exitCode, 0);
+    assert.equal(rUname.stdout, "Linux-x86_64-5\n");
+
+    const rIdWhoami = await shell.exec("for i in $(seq 1 5); do out=\"$(id -u):$(whoami):$i\"; done; echo \"$out\"");
+    assert.equal(rIdWhoami.exitCode, 0);
+    assert.equal(rIdWhoami.stdout, "1000:sandbox:5\n");
+
+    const rHostNproc = await shell.exec("for i in $(seq 1 5); do out=\"$(hostname):$(nproc):$i\"; done; echo \"$out\"");
+    assert.equal(rHostNproc.exitCode, 0);
+    assert.equal(rHostNproc.stdout, "sandbox:4:5\n");
+
+    const rFmt = await shell.exec("for i in $(seq 1 5); do out=$(printf \"hello world $i foo bar\\n\" | fmt -w 12 | tr \"\\n\" \"|\"); done; echo \"$out\"");
+    assert.equal(rFmt.exitCode, 0);
+    assert.equal(rFmt.stdout, "hello world|5 foo bar|\n");
+  } finally {
+    await shell.dispose();
+  }
+});

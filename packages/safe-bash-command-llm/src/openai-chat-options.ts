@@ -8,6 +8,32 @@ function biasInteger(value: unknown): number | undefined {
  return parseLlmNumericOption(value, "integer");
 }
 
+/** JSON.parse orders integer property names numerically; Python dictionaries do not. */
+function dictionaryKeys(json: string): string[] {
+ const keys = new Set<string>();
+ let depth = 0;
+ let expectingKey = false;
+ for (let index = 0; index < json.length; index++) {
+  const char = json[index];
+  if (char === '"') {
+   const start = index;
+   while (++index < json.length) {
+    if (json[index] === "\\") index++;
+    else if (json[index] === '"') break;
+   }
+   if (depth === 1 && expectingKey) {
+    keys.add(JSON.parse(json.slice(start, index + 1)) as string);
+    expectingKey = false;
+   }
+  } else if (char === "{" || char === "[") {
+   depth++;
+   if (depth === 1) expectingKey = true;
+  } else if (char === "}" || char === "]") depth--;
+  else if (char === "," && depth === 1) expectingKey = true;
+ }
+ return [...keys];
+}
+
 function logitBias(input: LlmOption): Record<string, number> {
  if (typeof input !== "string") throw new TypeError("Invalid OpenAI logit_bias: expected a JSON dictionary");
  let parsed: unknown;
@@ -15,7 +41,8 @@ function logitBias(input: LlmOption): Record<string, number> {
  catch { throw new TypeError("Invalid OpenAI logit_bias: Invalid JSON in logit_bias string"); }
  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new TypeError("Invalid OpenAI logit_bias: expected a JSON dictionary");
  const result: Record<string, number> = {};
- for (const [key, value] of Object.entries(parsed)) {
+ for (const key of dictionaryKeys(input)) {
+  const value: unknown = (parsed as Record<string, unknown>)[key];
   const token = biasInteger(key), bias = biasInteger(value);
   if (token === undefined || !Number.isSafeInteger(token) || bias === undefined || !Number.isSafeInteger(bias) || bias < -100 || bias > 100) throw new TypeError("Invalid OpenAI logit_bias: Invalid key-value pair in logit_bias dictionary");
   Object.defineProperty(result, String(token), { value: bias, enumerable: true, configurable: true, writable: true });

@@ -2,6 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createOpenAiProvider } from "./openai.js";
 import reference from "./fixtures/openai-structured-options-reference.json" with {type:"json"};
+import { openAiChatOptions } from "./openai-chat-options.js";
+test("token bias canonical collisions retain pinned Python dictionary insertion order", () => {
+ for (const [input, expected] of [
+  ['{"01":10,"1":20}', 20],
+  ['{"1":20,"01":10}', 10],
+  ['{"01":10,"1":20,"01":30}', 20],
+  ['{"\\u0030\\u0031":10,"1":20}', 20],
+ ] as const) assert.deepEqual(openAiChatOptions({ logit_bias: input }), { logit_bias: { "1": expected } });
+});
 test("OpenAI JSON mode and token bias match pinned provider request translation", async () => {
  const requests: Record<string, unknown>[] = [];
  const provider = createOpenAiProvider({ apiKey: "synthetic", models: [{ id: "gpt-4o", endpoint: "chat" }], transport: async request => {

@@ -224,3 +224,31 @@ canonical file streaming, provider cleanup, shell/subprocess examples and
 `out/python-bounds-pack-receipt.json`. This is an independently installed local
 candidate, not registry publication or hosted acceptance. Repaired publication,
 full shared-service parity, poe2 adoption and hosted acceptance remain open.
+
+## Publication and consumer reconciliation
+
+Registry `.758` has Safe Bash SHA-1
+`553f2fe9a0d94b2a7ed0edd1d07f8c2c27627899`. Its fetched SLSA provenance identifies
+source `9badb683a5b817dc48b20447c01a7cb06a10ad67` and run `36593867946`, which
+predate the host-budget repair. Repair run `36595943486` completed successfully
+only as a coalesced skip: publication and public verification were skipped, so it
+is not qualifying publication evidence. Maintained pinned-main scoped run
+`36598809221`, source `26517cdd9de731b7bdfddc22fb4ce5b05eef369c`, is confirmed
+pending; that source contains the delivered repair. No duplicate workflow run
+was launched after this confirmed dispatch.
+
+Public library budget documentation is updated on remote main `7ade7e8025`.
+Consumer PR16569 remains open at `aef9917150660d62386b94859e77149ff62804af`;
+its applicable CI checks pass, but this proves neither merge nor repaired-package
+adoption. #1443 remains active with incomplete parity/transport delivery.
+Hosted lane is poe2 issue474 (not poe-code issue474). Its paired run36589890202
+failed production apply-poe at the bundled Convex CLI credential check; Worker
+deployments were skipped and later Joiner cleanup lacks verification state.
+No credential failure cause is inferred and no alternative deployment is used.
+
+Issue comment16138 supplies terminal observation for the previous remote full
+unit runner: exit1, shared batch SIGTERM and none of recorded PIDs present.
+First two batches passed500 files/25,672 tests; this is incomplete full validation,
+not a passing suite or assertion failure. Original remote log/exit preservation
+and cause reconciliation remain outstanding; no replacement full suite was
+started from an expired observation. Current focused repair gates remain valid.

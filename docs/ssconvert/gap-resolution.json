@@ -3793,7 +3793,7 @@
     "odfAnnotations": {
       "commit": "a188df91cdf3b87db97af55d8afafec2c5f4fa80",
       "remote": "verified main",
-      "release": "Full pin 36521660076 at bb3ad96328 contains all delivered repairs; validation pending. Own obsolete pin 36519146966 canceled, no other-worker run canceled. Registry remains 17.0.35 at a8a8a7efbc.",
+      "release": "36521660076 passed build, cached units, all four Bash shards, checks/audit but failed fresh units on missing shuf optional entrypoint. Repairs b43336d4ae/a422333cfa/dd41a64e06 are verified on main; main+optional build, 271 packaging tests, 55 workerd checks and canonical factory identities pass. Containing publication pending; last verified registry 17.0.35 at a8a8a7efbc.",
       "cleanup": "Generated annotation workbooks and isolated profiles removed after compact receipts. No binaries committed.",
       "authorOnlyCommit": "325efb9420822e14dba6b3b84fed02c188122bf5",
       "legacyCommit": "beb3e24fda81b6bdc6fb3a9a439d7156867a5d10"
@@ -3805,7 +3805,7 @@
       "red": "Maintained build proves optional cwd type error, then browser postbuild rejects new node:crypto dependency. Existing browser checksum test independently fails.",
       "green": "41 substitution tests pass for type change; final 161 checksum/substitution tests and focused lint pass. Maintained selected Safe Bash build, optional CLI and browser postbuild pass. Browser VM has no process/Buffer/crypto; all six sync digests match native Node at empty, 3-byte and 16384-byte inputs; larger inputs decline fast path.",
       "retainedUpstream": "7736e4aca3 fixes gh declaration profile, matching our discarded candidate. c6db5c2daf and 735ff59001 reconcile incoming fmt/tsort calls.",
-      "release": "Full pin 36521660076 at bb3ad96328 contains all delivered repairs; validation pending. Own obsolete pin 36519146966 canceled, no other-worker run canceled. Registry remains 17.0.35 at a8a8a7efbc.",
+      "release": "36521660076 passed build, cached units, all four Bash shards, checks/audit but failed fresh units on missing shuf optional entrypoint. Repairs b43336d4ae/a422333cfa/dd41a64e06 are verified on main; main+optional build, 271 packaging tests, 55 workerd checks and canonical factory identities pass. Containing publication pending; last verified registry 17.0.35 at a8a8a7efbc.",
       "registry": {
         "version": "17.0.35",
         "gitHead": "a8a8a7efbc7c29daf9e6e6071d3520e774a3b7f2"
@@ -3817,7 +3817,7 @@
         "71ee3efbf6fdfeb6169f04bb73944c7885bf5d4d"
       ],
       "remote": "Both verified on main",
-      "release": "Full pin 36521660076 at bb3ad96328 contains all delivered repairs; validation pending. Own obsolete pin 36519146966 canceled, no other-worker run canceled. Registry remains 17.0.35 at a8a8a7efbc.",
+      "release": "36521660076 passed build, cached units, all four Bash shards, checks/audit but failed fresh units on missing shuf optional entrypoint. Repairs b43336d4ae/a422333cfa/dd41a64e06 are verified on main; main+optional build, 271 packaging tests, 55 workerd checks and canonical factory identities pass. Containing publication pending; last verified registry 17.0.35 at a8a8a7efbc.",
       "cleanup": "Generated workbooks/profiles and consumed logs/source removed after compact ignored receipts; no binaries committed."
     },
     "ghReleaseRegistration": {
@@ -3828,20 +3828,20 @@
       "remote": "Both verified on main",
       "retainedUpstream": "992ee7b321 supplied identical compiler-path fix; own rebased registration commit contains only root manifest/lock entries.",
       "receipt": "out/ssconvert-odf-settings/release-gh-registration-checks.json",
-      "release": "Full pin 36521660076 at bb3ad96328 contains all delivered repairs; validation pending. Own obsolete pin 36519146966 canceled, no other-worker run canceled. Registry remains 17.0.35 at a8a8a7efbc."
+      "release": "36521660076 passed build, cached units, all four Bash shards, checks/audit but failed fresh units on missing shuf optional entrypoint. Repairs b43336d4ae/a422333cfa/dd41a64e06 are verified on main; main+optional build, 271 packaging tests, 55 workerd checks and canonical factory identities pass. Containing publication pending; last verified registry 17.0.35 at a8a8a7efbc."
     },
     "odfRichWeights": {
       "commit": "8bf0483ffe2361c8398f0cdd2c993d4eec6a55fd",
       "remote": "verified main",
-      "release": "Full pin 36521660076 at bb3ad96328 contains all delivered repairs; validation pending. Own obsolete pin 36519146966 canceled, no other-worker run canceled. Registry remains 17.0.35 at a8a8a7efbc.",
+      "release": "36521660076 passed build, cached units, all four Bash shards, checks/audit but failed fresh units on missing shuf optional entrypoint. Repairs b43336d4ae/a422333cfa/dd41a64e06 are verified on main; main+optional build, 271 packaging tests, 55 workerd checks and canonical factory identities pass. Containing publication pending; last verified registry 17.0.35 at a8a8a7efbc.",
       "integerRoundingCommit": "b8c661b631d4f20b830e38e6c52822eb15b1d1e7",
-      "integerRoundingRelease": "Queued push 36522235161; active pin 36521660076 predates this follow-up. No containing publication verified."
+      "integerRoundingRelease": "b8c661b631 is on main and included by current delivered head dd41a64e06. Containing publication pending after release integration repairs."
     },
     "maestroReleaseRepair": {
       "commit": "899bc9fc9036e8e8fe7391c4bddfac15252cc49d",
       "remote": "verified main",
       "receipt": "out/ssconvert-odf-settings/release-maestro-checks.json",
-      "release": "Full pin 36521660076 at bb3ad96328 contains all delivered repairs; validation pending. Own obsolete pin 36519146966 canceled, no other-worker run canceled. Registry remains 17.0.35 at a8a8a7efbc."
+      "release": "36521660076 passed build, cached units, all four Bash shards, checks/audit but failed fresh units on missing shuf optional entrypoint. Repairs b43336d4ae/a422333cfa/dd41a64e06 are verified on main; main+optional build, 271 packaging tests, 55 workerd checks and canonical factory identities pass. Containing publication pending; last verified registry 17.0.35 at a8a8a7efbc."
     },
     "releaseIntegrationRepairs": {
       "buildBoundaryCommit": "7936d9a358b5f679e15c69570a0c6c6b6a8a2a7b",
@@ -3871,7 +3871,27 @@
       "source": "Reconcile upstream 445429d0dd and deee2e941b; shuf algorithm unchanged in private command package, preserve existing forwarding export and executor registration. Leave excluded legacy command implementation trees excluded.",
       "validation": "Main+optional maintained Safe Bash build passed. 5 private shuf cases;45 adapter shuf passes/9 skips;72 yes adapter passes/1 skip; yes/dd private checks pass. XML 116, PDF 22, facade 18, optional-host 9 and mdq 14 cases plus focused lint pass. Post-rebase maintained main+optional build passes; 25 facade/workspace-dependency checks and focused ESLint pass.",
       "receipt": "out/ssconvert-odf-settings/release-integration-repairs.json",
-      "release": "Full pin 36521660076 at bb3ad96328 contains all delivered repairs; validation pending. Own obsolete pin 36519146966 canceled, no other-worker run canceled. Registry remains 17.0.35 at a8a8a7efbc."
+      "release": "36521660076 passed build, cached units, all four Bash shards, checks/audit but failed fresh units on missing shuf optional entrypoint. Repairs b43336d4ae/a422333cfa/dd41a64e06 are verified on main; main+optional build, 271 packaging tests, 55 workerd checks and canonical factory identities pass. Containing publication pending; last verified registry 17.0.35 at a8a8a7efbc.",
+      "coreAliases": {
+        "commits": [
+          "b43336d4ae20a39b564165ce2c568e94018388b8",
+          "a422333cfa29c9de5a3b06a629dddac4d11d380d",
+          "dd41a64e061d27b4eedd7af65212344166818ae2"
+        ],
+        "remote": "All three verified on main",
+        "validation": "Missing generated shuf/yes/dd entrypoints reproduced; generator derives declared aliases and keeps public core identity. Wasm bundler correction preserves and validates copied assets. All 55 workerd checks, 271 packaging cases and two guarded cases pass; maintained main+optional/browser build and focused lint pass. Df has 13 passing tests and lint/source/test types; old isolated module reproduces four Buffer failures after correcting an initial test descriptor error.",
+        "retainedUpstream": [
+          "0f0a7766a8 xan boundary",
+          "1bdbed0971 cmp boundary",
+          "0fa0a88497 tree bytes and optional-property types; df remains portable with bounded scalar counting"
+        ],
+        "receipts": [
+          "out/ssconvert-odf-settings/core-entrypoints-checks.json",
+          "out/ssconvert-odf-settings/df-portable-checks.json",
+          "out/ssconvert-odf-settings/release-shuf-entrypoint-failure.json"
+        ],
+        "remaining": "Fresh full CI and registry publication; all 19 ssconvert families remain open."
+      }
     }
   },
   "history": {

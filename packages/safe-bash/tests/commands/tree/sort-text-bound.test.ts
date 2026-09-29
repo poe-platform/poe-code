@@ -17,7 +17,12 @@ async function measuredSteps(operation: () => Promise<void>): Promise<number> {
 
 async function measuredScans(value: string, operation: () => Promise<void>) {
   const replace = String.prototype.replace, byteLength = Buffer.byteLength, encode = TextEncoder.prototype.encode;
+  const charCodeAt = String.prototype.charCodeAt;
   const scans = { replace: 0, byteLength: 0, encode: 0 };
+  String.prototype.charCodeAt = function (this: string, index: number) {
+    if (this === value && index === 0) scans.byteLength++;
+    return Reflect.apply(charCodeAt, this, [index]) as number;
+  };
   String.prototype.replace = function (this: string, ...args: Parameters<typeof replace>) {
     if (this === value) scans.replace++;
     return Reflect.apply(replace, this, args) as string;
@@ -31,7 +36,7 @@ async function measuredScans(value: string, operation: () => Promise<void>) {
     return Reflect.apply(encode, this, [input]) as Uint8Array<ArrayBuffer>;
   };
   try { await operation(); return scans; }
-  finally { String.prototype.replace = replace; Buffer.byteLength = byteLength; TextEncoder.prototype.encode = encode; }
+  finally { String.prototype.charCodeAt = charCodeAt; String.prototype.replace = replace; Buffer.byteLength = byteLength; TextEncoder.prototype.encode = encode; }
 }
 
 function textBudget(limits: Partial<TreeLimits>): WalkBudget {

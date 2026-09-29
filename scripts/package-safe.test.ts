@@ -1915,6 +1915,27 @@ it.each(["@poe-code/safe-fs/core", "poe-code/safe-fs/core", "@poe-platform/safe-
   expect(result.outputFiles![0]!.text).not.toContain("extends Error");
 });
 
+it("copies the XML runtime into its owning filesystem artifact without a private dependency", async () => {
+  const { volume, options } = optionalLeftovers();
+  volume.mkdirSync("/repo/packages/xml-ast/dist", { recursive: true });
+  volume.writeFileSync("/repo/packages/xml-ast/package.json", JSON.stringify({
+    name: "@poe-code/xml-ast", private: true, type: "module",
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } }
+  }));
+  volume.writeFileSync("/repo/packages/xml-ast/dist/index.js", "export class XmlLimitError extends SyntaxError {}");
+  volume.writeFileSync("/repo/packages/xml-ast/dist/index.d.ts", "export declare class XmlLimitError extends SyntaxError {}");
+  volume.writeFileSync("/repo/packages/safe-fs/dist/index.js", 'export { XmlLimitError } from "@poe-code/xml-ast";');
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  expect(volume.readFileSync("/output/safe-fs/dist/safe-fs/index.js", "utf8"))
+    .toContain('from "../xml-ast/index.js"');
+  expect(volume.readFileSync("/output/safe-fs/dist/xml-ast/index.js", "utf8"))
+    .toContain("class XmlLimitError");
+  expect(JSON.parse(volume.readFileSync("/output/safe-fs/package.json", "utf8").toString()).dependencies)
+    .not.toHaveProperty("@poe-code/xml-ast");
+  for (const owner of ["safe-js", "safe-bash"])
+    expect(volume.existsSync(`/output/${owner}/dist/xml-ast/index.js`)).toBe(false);
+});
+
 it("copies XML declarations into their owning filesystem artifact without circular self-reexports", async () => {
   const { volume, options } = optionalLeftovers();
   volume.mkdirSync("/repo/packages/xml-ast/dist", { recursive: true });

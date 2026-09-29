@@ -24,3 +24,5 @@ export {
 } from "./pdf-renderer.js";
 
 export { createWkhtmltopdfCommands, type WkhtmltopdfCommandsOptions } from "./command.js";
+
+export { informationText } from "./information.js";

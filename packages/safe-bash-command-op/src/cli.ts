@@ -182,7 +182,8 @@ function scanCommand(argv: readonly string[], channel: "stable" | "beta", resolv
   return { path, args, flags, command, help };
 }
 
-function parseCommand(argv: readonly string[], env: Readonly<Record<string, string>>, channel: "stable" | "beta") {
+export { renderOpHelp };
+export function parseCommand(argv: readonly string[], env: Readonly<Record<string, string>>, channel: "stable" | "beta") {
   const resolved = scanCommand(argv, channel);
   const parsed = scanCommand(argv, channel, commandFlags(resolved.command, channel, resolved.path.length === 0));
   const { path, flags, command } = parsed;

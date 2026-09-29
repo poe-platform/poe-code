@@ -1,3 +1,7 @@
+import { createSofficeCommands } from "../../src/commands/soffice/index.js";
+import { createSsconvertCommands } from "../../src/commands/ssconvert/index.js";
+import { createWkhtmltopdfCommands } from "../../src/commands/wkhtmltopdf/index.js";
+import { createOpCommands } from "../../src/commands/op/index.js";
 import { createPdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
 import { createMmdcCommands } from "../../src/commands/mmdc/index.js";
 import { createPandocCommands } from "../../src/commands/pandoc/index.js";
@@ -1227,4 +1231,37 @@ test("Wave 152: sync pdftoppm, pdftocairo, mmdc, and pandoc substitutions and pi
   assert.match(r3.stdout, /<svg/);
   assert.equal(r4.stdout, "commonmark");
   assert.ok(elapsed < 1000, `Expected <1000ms for 4x150 iterations, got ${elapsed.toFixed(1)}ms`);
+});
+
+
+test("Wave 153: sync soffice, libreoffice, ssconvert, wkhtmltopdf, and op substitutions and pipelines", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createSofficeCommands(),
+    ...createSsconvertCommands(),
+    ...createWkhtmltopdfCommands(),
+    ...createOpCommands({ version: "2.30.0" }),
+  ]) {
+    registry.register(cmd);
+  }
+  const shell = new Shell({ fs, commands: registry });
+
+  await fs.writeFile("/note.txt", new TextEncoder().encode("Hello LibreOffice Cat"));
+
+  const t0 = performance.now();
+  const r1 = await shell.exec('for i in $(seq 1 150); do s=$(soffice --cat /note.txt); done; printf "%s" "$s"');
+  const r2 = await shell.exec('for i in $(seq 1 150); do s=$(libreoffice --version); done; printf "%s" "$s"');
+  const r3 = await shell.exec('for i in $(seq 1 150); do s=$(ssconvert --version | head -n 1); done; printf "%s" "$s"');
+  const r4 = await shell.exec('for i in $(seq 1 150); do s=$(wkhtmltopdf --version | head -n 1); done; printf "%s" "$s"');
+  const r5 = await shell.exec('for i in $(seq 1 150); do s=$(op --version); done; printf "%s" "$s"');
+  const elapsed = performance.now() - t0;
+
+  assert.equal(r1.stdout, "Hello LibreOffice Cat");
+  assert.match(r2.stdout, /LibreOffice 24\.8/);
+  assert.match(r3.stdout, /ssconvert/);
+  assert.match(r4.stdout, /wkhtmltopdf/);
+  assert.equal(r5.stdout, "2.30.0");
+  assert.ok(elapsed < 1000, `Expected <1000ms for 5x150 iterations, got ${elapsed.toFixed(1)}ms`);
 });

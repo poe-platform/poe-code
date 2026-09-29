@@ -1,4 +1,4 @@
-import { createOpCommand as createDispatcher, type OpCommandContext, type OpCommandOptions } from "./cli.js";
+import { createOpCommand as createDispatcher, parseCommand, renderOpHelp, type OpCommandContext, type OpCommandOptions } from "./cli.js";
 import { createSecretHandlers } from "./secrets.js";
 import { createCompletionHandler } from "./completion.js";
 import { createEnvironmentHandlers } from "./environment-commands.js";
@@ -52,13 +52,34 @@ export function opCommands(options: OpCommandsOptions = {}): VirtualShellPlugin 
   };
 }
 
+const opMetaByExecutor = new WeakMap<CommandDefinition["execute"], { version: string; channel: "stable" | "beta" }>();
+
+export function evalSyncOp(
+  execFn: CommandDefinition["execute"],
+  opArgs: readonly string[],
+  env: Readonly<Record<string, string>>,
+): string | undefined {
+  const meta = opMetaByExecutor.get(execFn);
+  if (!meta) return undefined;
+  const biometric = env.OP_BIOMETRIC_UNLOCK_ENABLED;
+  if (biometric !== undefined && biometric !== "true" && biometric !== "false") return undefined;
+  try {
+    const parsed = parseCommand(opArgs, env, meta.channel);
+    if (parsed.flags.version === true) return `${meta.version}\n`;
+    if (parsed.help) return renderOpHelp(parsed.path, meta.channel);
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function createOpCommand(options: OpCommandsOptions = {}): CommandDefinition & { execute(context: OpCommandContext): Promise<{ exitCode: number }> } {
   const command = createOp(options);
   const authentication = options.authentication === undefined ? undefined : Object.freeze({ ...options.authentication });
   const pluginScope = options.pluginScope === undefined ? undefined : Object.freeze({ ...options.pluginScope });
   const confirmPluginClear = options.confirmPluginClear;
   const selectPlugin = options.selectPlugin;
-  return {
+  const def: CommandDefinition & { execute(context: OpCommandContext): Promise<{ exitCode: number }> } = {
     name: "op",
     description: "Object-backed secrets with explicitly granted virtual shell capabilities",
     async execute(context: CommandContext | OpCommandContext) {
@@ -127,4 +148,6 @@ export function createOpCommand(options: OpCommandsOptions = {}): CommandDefinit
       return command.execute(invocation);
     },
   };
+  opMetaByExecutor.set(def.execute, { version: options.version ?? "0.0.1", channel: options.channel ?? "stable" });
+  return def;
 }

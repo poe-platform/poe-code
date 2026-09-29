@@ -634,11 +634,11 @@ function parseCsvRows(text: string): string[][] {
   return rows;
 }
 
-export async function runSofficeCli(
+export function runSofficeCliSync(
   argv: readonly string[],
   files: Map<string, Uint8Array>,
   cwd = "/"
-): Promise<SofficeCliResult> {
+): SofficeCliResult {
   let convertSpec: string | undefined;
   let catMode = false;
   let outdir = cwd;
@@ -892,6 +892,14 @@ export async function runSofficeCli(
   } catch (error) {
     return { exitCode: 1, stdout: "", stderr: `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n` };
   }
+}
+
+export async function runSofficeCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  cwd = "/"
+): Promise<SofficeCliResult> {
+  return runSofficeCliSync(argv, files, cwd);
 }
 
 export async function soffice(context: CommandContext): Promise<{ exitCode: number }> {

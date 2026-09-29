@@ -276,7 +276,7 @@ describe("safe-bash-command-pdftoppm", () => {
       "CropBox",
       cosArray([cosNumber(20), cosNumber(10), cosNumber(120), cosNumber(60)])
     );
-    page.drawRect({ x: 25, y: 15, width: 50, height: 30, fillColor: { r: 0.8, g: 0.2, b: 0.4 } });
+    page.drawRect({ x: 25, y: 15, width: 50, height: 30, fill: { r: 0.8, g: 0.2, b: 0.4 } });
 
     const files = new Map<string, Uint8Array>([["crop-svg.pdf", doc.save()]]);
 
@@ -302,6 +302,16 @@ describe("safe-bash-command-pdftoppm", () => {
     const highJpg = files.get("highq.jpg")!;
     // DQT marker is at offset 20 (0xff 0xdb 0x00 0x43 0x00 <64 quant bytes>)
     expect(lowJpg[25]).toBeGreaterThan(highJpg[25]!);
+  });
+
+  it("uses the rotated CropBox for SVG and applies pixel crops relative to it", async () => {
+    const doc = PdfDocument.create(), page = doc.addPage([80, 100]);
+    page.setCropBox(20, 30, 60, 50);
+    page.setRotation(90);
+    const files = new Map<string, Uint8Array>([["input.pdf", doc.save()]]);
+    const result = await runPdftoppmCli(["-svg", "-r", "72", "-cropbox", "-x", "2", "-y", "5", "-W", "10", "-H", "15", "-singlefile", "input.pdf", "output"], files);
+    expect(result.exitCode).toBe(0);
+    expect(new TextDecoder().decode(files.get("output.svg")!)).toContain('width="10" height="15" viewBox="32 25 10 15"');
   });
 
   it("supports -transp transparent PNG/SVG backgrounds, -progress stderr reporting, and -q quiet mode", async () => {
@@ -538,7 +548,7 @@ describe("safe-bash-command-pdftoppm", () => {
     expect(pdfRes.exitCode).toBe(0);
     const subDoc = PdfDocument.load(files.get("sub.pdf")!);
     expect(subDoc.pageCount).toBe(1);
-    expect(subDoc.extractText(0)).toContain("Cairo Page Two");
+    expect(subDoc.getPage(0).extractText()).toContain("Cairo Page Two");
     expect(subDoc.getPage(0).getSize()).toEqual({ width: 120, height: 90 });
 
     const epsRes = await runPdftocairoCli(["-eps", "-f", "1", "-l", "1", "deck.pdf", "fig1.eps"], files);

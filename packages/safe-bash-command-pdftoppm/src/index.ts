@@ -23,7 +23,8 @@ import {
   encodePpm,
   encodeTiff,
   renderDisplayListToSvg,
-  renderPdfPageToBitmap,
+  renderDisplayListToBitmap,
+  getDisplayListCropBox,
   type PdfCropRect,
 } from "@poe-code/pdf-ast";
 
@@ -294,29 +295,9 @@ export function runPdftoppmCliSync(
     if (evenOnly && p % 2 === 1) continue;
 
     const page = doc.getPage(p - 1);
-    let rawSize = page.getSize();
-    let resolvedCropBox: [number, number, number, number] | undefined;
-    if (useCropBox) {
-      let cur: typeof page.pageDict | undefined = page.pageDict;
-      const visited = new Set<typeof page.pageDict>();
-      while (cur && !visited.has(cur)) {
-        visited.add(cur);
-        const cb = doc.cos.resolveArray(dictGet(cur, "CropBox"));
-        if (cb && cb.items.length >= 4) {
-          const nums = cb.items.slice(0, 4).map(it => {
-            const r = doc.cos.resolve(it);
-            return r?.kind === "number" ? r.value : 0;
-          });
-          resolvedCropBox = [nums[0]!, nums[1]!, nums[2]!, nums[3]!];
-          rawSize = {
-            width: Math.max(1, Math.abs(nums[2]! - nums[0]!)),
-            height: Math.max(1, Math.abs(nums[3]! - nums[1]!)),
-          };
-          break;
-        }
-        cur = doc.cos.resolveDict(dictGet(cur, "Parent"));
-      }
-    }
+    const displayList = page.evaluateDisplayList({ hideAnnotations });
+    const box = useCropBox ? getDisplayListCropBox(displayList) : [0, 0, displayList.width, displayList.height];
+    const rawSize = { width: box[2]! - box[0]!, height: box[3]! - box[1]! };
     const rot = page.getRotation();
     const ptW = rot === 90 || rot === 270 ? rawSize.height : rawSize.width;
     const ptH = rot === 90 || rot === 270 ? rawSize.width : rawSize.height;
@@ -343,35 +324,17 @@ export function runPdftoppmCliSync(
 
     let renderedBytes: Uint8Array;
     if (format === "svg") {
-      let svgCropRect = cropRect;
-      if (useCropBox && resolvedCropBox) {
-        const fullMediaSize = page.getSize();
-        const scaleX = effDpiX / 72;
-        const scaleY = effDpiY / 72;
-        const cbScreenX = resolvedCropBox[0] * scaleX;
-        const cbScreenY = (fullMediaSize.height - resolvedCropBox[3]) * scaleY;
-        const cbScreenW = Math.abs(resolvedCropBox[2] - resolvedCropBox[0]) * scaleX;
-        const cbScreenH = Math.abs(resolvedCropBox[3] - resolvedCropBox[1]) * scaleY;
-        svgCropRect = hasCrop
-          ? {
-              x: cbScreenX + cropX,
-              y: cbScreenY + cropY,
-              width: cropW || Math.max(1, cbScreenW - cropX),
-              height: cropH || Math.max(1, cbScreenH - cropY),
-            }
-          : { x: cbScreenX, y: cbScreenY, width: cbScreenW, height: cbScreenH };
-      }
-      const svgText = renderDisplayListToSvg(page.evaluateDisplayList({ hideAnnotations }), {
+      const svgText = renderDisplayListToSvg(displayList, {
         dpiX: effDpiX,
         dpiY: effDpiY,
         useCropBox,
-        cropRect: svgCropRect,
+        cropRect,
         hideAnnotations,
         transparent,
       });
       renderedBytes = new TextEncoder().encode(svgText);
     } else {
-      const bitmap = renderPdfPageToBitmap(doc.cos, p - 1, {
+      const bitmap = renderDisplayListToBitmap(displayList, {
         dpiX: effDpiX,
         dpiY: effDpiY,
         useCropBox,

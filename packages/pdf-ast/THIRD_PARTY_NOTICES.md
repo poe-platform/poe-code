@@ -408,6 +408,13 @@ fixtures, with independently obtained reference pixels. Full non-isolated
 backdrop compositing for groups with outer effects retains PDF.js's documented
 limitation. Form contents remain vectors in SVG output.
 
+CropBox handling follows PDF.js `Page.getBoundingBox` and `Page.view` in
+`src/core/document.js`, and the SVG corner transform follows
+`PageViewport.convertToViewportRectangle`. The adaptation stores bounds on the
+local display list and crops before page rotation, keeping editing coordinates
+unchanged. `src/render/crop-box.test.ts` covers these rules and the unmodified
+`issue13520.pdf` equality fixture, recorded in `src/fixtures/SOURCES.md`.
+
 Malformed dictionary-key recovery follows PDF.js `Parser.getObj`, skipping
 stray non-Name tokens only in local repair mode. Damaged optional ToUnicode
 streams follow `PartialEvaluator.readToUnicode` error recovery while retaining

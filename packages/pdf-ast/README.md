@@ -83,6 +83,12 @@ ToUnicode maps decode mixed one- through four-byte character codes, including
 ligatures and supplementary Unicode characters.
 Bitmap, PNG, and SVG rendering honor page rotation; pixel crops use displayed
 coordinates after rotation.
+Pass `useCropBox: true` to render the visible page area in any bitmap, PNG, or
+SVG entrypoint. CropBox coordinates are normalized and intersected with MediaBox;
+an empty intersection falls back to MediaBox, which remains the default when
+cropping is not requested. Display lists retain `cropBox` metadata without
+changing content coordinates. `getDisplayListCropBox(list)` exposes the resolved
+visible bounds for applications choosing their own output size.
 Bitmap strokes preserve joins, miter limits, caps and dash continuity, and apply
 opacity once across overlapping segments of the same stroke.
 Zero-length dashes preserve round and square dots in bitmap and SVG output,

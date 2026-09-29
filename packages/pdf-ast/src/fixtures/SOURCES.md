@@ -33,6 +33,16 @@ renders; their stroke-alpha behavior differs from PDF.js on the direct path.
 For outer-opacity groups, the intermediate-surface behavior follows PDF.js,
 including its documented limitation for full non-isolated backdrop compositing.
 
+# PDF.js visible-page regression fixture
+
+`pdfjs-issue13520.pdf` is unchanged `test/pdfs/issue13520.pdf` from the same
+Mozilla PDF.js revision (Apache-2.0), SHA-256
+`2716c9b9e7f828b03f7bd79ad5d5b77b57e29869c16cf98813ee1397aacfe399`.
+`../render/crop-box.test.ts` checks its visible artwork dimensions at 75px long
+edge; independent visual comparisons use 600px. The memory-only rectangle cases
+follow `Page.getBoundingBox` and `Page.view`: normalize CropBox, intersect it with
+MediaBox, and fall back to MediaBox for empty or invalid bounds.
+
 # qpdf regression fixtures
 
 Unmodified files from https://github.com/qpdf/qpdf, revision

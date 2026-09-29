@@ -183,7 +183,7 @@ export class PdfPage {
         return [n0.value, n1.value, n2.value, n3.value];
       }
     }
-    return [0, 0, 612, 792];
+    return key === "MediaBox" ? [0, 0, 612, 792] : this.resolveBox("MediaBox");
   }
 
   getMediaBox(): [number, number, number, number] {
@@ -930,7 +930,9 @@ export class PdfPage {
         });
       }
     }
-    return evaluateContentStreamToDisplayList({
+    const mediaBox = this.getMediaBox(), cropBox = this.getCropBox();
+    const originX = Math.min(mediaBox[0], mediaBox[2]), originY = Math.min(mediaBox[1], mediaBox[3]);
+    return { ...evaluateContentStreamToDisplayList({
       pageIndex: this.index,
       width,
       height,
@@ -939,7 +941,7 @@ export class PdfPage {
       cosDoc: this.cosDoc,
       resourcesDict: evalResourcesDict,
       annotations: extractPageAnnotations(this.cosDoc, this.pageDict),
-    });
+    }), cropBox: [cropBox[0] - originX, cropBox[1] - originY, cropBox[2] - originX, cropBox[3] - originY] };
   }
 
   extractPage(options?: ExtractTextOptions): PdfExtractedPage {
@@ -961,11 +963,11 @@ export class PdfPage {
   }
 
   renderToBitmap(options?: RenderToPngOptions): RgbaBitmap {
-    return renderDisplayListToBitmap(this.evaluateDisplayList(), options);
+    return renderDisplayListToBitmap(this.evaluateDisplayList({ hideAnnotations: options?.hideAnnotations }), options);
   }
 
   renderToPng(options?: RenderToPngOptions): Uint8Array {
-    return renderDisplayListToPng(this.evaluateDisplayList(), options);
+    return renderDisplayListToPng(this.evaluateDisplayList({ hideAnnotations: options?.hideAnnotations }), options);
   }
 }
 

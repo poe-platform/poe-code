@@ -1189,6 +1189,19 @@ function renderSoftMask(mask: PdfSoftMask, displayList: PdfDisplayList, scale: n
   return bitmap;
 }
 
+// PDF.js Page.view: visible bounds are the normalized CropBox/MediaBox
+// intersection. An empty or malformed crop falls back to the full media box.
+export function getDisplayListCropBox(list: PdfDisplayList): [number, number, number, number] {
+  const full: [number, number, number, number] = [0, 0, list.width, list.height];
+  const box = list.cropBox;
+  if (!box || !box.every(Number.isFinite)) return full;
+  const x0 = Math.max(0, Math.min(box[0], box[2]));
+  const y0 = Math.max(0, Math.min(box[1], box[3]));
+  const x1 = Math.min(list.width, Math.max(box[0], box[2]));
+  const y1 = Math.min(list.height, Math.max(box[1], box[3]));
+  return x1 > x0 && y1 > y0 ? [x0, y0, x1, y1] : full;
+}
+
 function hasBlendModes(operations: readonly PdfPaintOperation[]): boolean {
   return operations.some(operation =>
     (!!operation.value.blendMode && operation.value.blendMode !== "Normal" && operation.value.blendMode !== "Compatible") ||
@@ -1236,7 +1249,7 @@ export function renderDisplayListToBitmap(
     let operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
     if (operation.kind === "group") {
       const group = operation.value;
-      const bitmap = renderDisplayListToBitmap({ ...displayList, rotation: 0, operations: group.operations }, { ...options, scale, dpiX: undefined, dpiY: undefined, cropRect: undefined, transparent: true });
+      const bitmap = renderDisplayListToBitmap({ ...displayList, rotation: 0, operations: group.operations }, { ...options, scale, dpiX: undefined, dpiY: undefined, cropRect: undefined, useCropBox: false, transparent: true });
       for (let i = 3; i < bitmap.data.length; i += 4) bitmap.data[i] = Math.round(bitmap.data[i]! * group.alpha);
       operation = { kind: "image", value: {
         name: "TransparencyGroup", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
@@ -1408,6 +1421,13 @@ export function renderDisplayListToBitmap(
     result = { width: targetW, height: targetH, data: resampled };
   }
 
+  if (options.useCropBox) {
+    const box = getDisplayListCropBox(displayList);
+    result = cropRgbaBitmap(result, {
+      x: box[0] * scaleX, y: (displayList.height - box[3]) * scaleY,
+      width: (box[2] - box[0]) * scaleX, height: (box[3] - box[1]) * scaleY,
+    });
+  }
   result = rotateRgbaBitmapQuarterTurns(result, displayList.rotation ?? 0);
   if (options.cropRect) {
     result = cropRgbaBitmap(result, options.cropRect);
@@ -1500,18 +1520,29 @@ export function renderDisplayListToSvg(
   const quarterTurn = displayList.rotation === 90 || displayList.rotation === 270;
   const outputScaleX = quarterTurn ? scaleY : scaleX;
   const outputScaleY = quarterTurn ? scaleX : scaleY;
-  const fullW = Math.max(1, Math.round(viewport.width * outputScaleX));
-  const fullH = Math.max(1, Math.round(viewport.height * outputScaleY));
-  const vbX = options.cropRect ? options.cropRect.x / outputScaleX : 0;
-  const vbY = options.cropRect ? options.cropRect.y / outputScaleY : 0;
+  let bounds = [0, 0, viewport.width, viewport.height];
+  if (options.useCropBox) {
+    // PDF.js PageViewport.convertToViewportRectangle transforms both corners.
+    const [x0, y0, x1, y1] = getDisplayListCropBox(displayList);
+    const [a, b, c, d, e, f] = viewport.transform;
+    bounds = [a * x0 + c * y0 + e, b * x0 + d * y0 + f, a * x1 + c * y1 + e, b * x1 + d * y1 + f];
+  }
+  const viewX = Math.min(bounds[0]!, bounds[2]!), viewY = Math.min(bounds[1]!, bounds[3]!);
+  const viewWidth = Math.abs(bounds[2]! - bounds[0]!), viewHeight = Math.abs(bounds[3]! - bounds[1]!);
+  const fullW = Math.max(1, Math.round(viewWidth * outputScaleX));
+  const fullH = Math.max(1, Math.round(viewHeight * outputScaleY));
+  const cropX = options.cropRect ? options.cropRect.x / outputScaleX : 0;
+  const vbX = viewX + cropX;
+  const cropY = options.cropRect ? options.cropRect.y / outputScaleY : 0;
+  const vbY = viewY + cropY;
   const vbW =
     options.cropRect && options.cropRect.width > 0
       ? options.cropRect.width / outputScaleX
-      : Math.max(1, viewport.width - vbX);
+      : Math.max(1, viewWidth - cropX);
   const vbH =
     options.cropRect && options.cropRect.height > 0
       ? options.cropRect.height / outputScaleY
-      : Math.max(1, viewport.height - vbY);
+      : Math.max(1, viewHeight - cropY);
   const outW =
     options.cropRect && options.cropRect.width > 0
       ? Math.round(options.cropRect.width)
@@ -1656,24 +1687,6 @@ function collectLeavesForRaster(
   return out;
 }
 
-function extractBoxArray(cosDoc: ReturnType<typeof parseCosDocument>, dict: PdfCosDict, key: string): [number, number, number, number] | undefined {
-  let cur: PdfCosDict | undefined = dict;
-  const visited = new Set<PdfCosDict>();
-  while (cur && !visited.has(cur)) {
-    visited.add(cur);
-    const arr = cosDoc.resolveArray(dictGet(cur, key));
-    if (arr && arr.items.length >= 4) {
-      const nums = arr.items.slice(0, 4).map(item => {
-        const r = cosDoc.resolve(item);
-        return r?.kind === "number" ? r.value : 0;
-      });
-      return [nums[0]!, nums[1]!, nums[2]!, nums[3]!];
-    }
-    cur = cosDoc.resolveDict(dictGet(cur, "Parent"));
-  }
-  return undefined;
-}
-
 export function renderPdfPageToBitmap(
   pdfBytes: Uint8Array | ParsedCosDocument,
   pageIndex = 0,
@@ -1686,35 +1699,7 @@ export function renderPdfPageToBitmap(
   if (!leaf) throw new Error(`Page index ${pageIndex} out of bounds`);
   const resolvedIndex = leaves.indexOf(leaf);
   const page = new PdfPage(cos, leaf.ref, leaf.dict, resolvedIndex);
-  const { cropRect, ...restOptions } = options ?? {};
-  let bitmap = renderDisplayListToBitmap(
-    // CropBox is in unrotated page coordinates. Apply page rotation after it.
-    { ...page.evaluateDisplayList({ hideAnnotations: options?.hideAnnotations }), rotation: 0 },
-    restOptions
-  );
-  if (options?.useCropBox) {
-    const cropBox = extractBoxArray(cos, leaf.dict, "CropBox");
-    if (cropBox) {
-      const mediaBox = extractBoxArray(cos, leaf.dict, "MediaBox") ?? [0, 0, page.getSize().width, page.getSize().height];
-      const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1.5);
-      const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
-      const scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
-      const mediaH = mediaBox[3] - mediaBox[1];
-      const bx = Math.round((cropBox[0] - mediaBox[0]) * scaleX);
-      const by = Math.round((mediaH - (cropBox[3] - mediaBox[1])) * scaleY);
-      const bw = Math.max(1, Math.round(Math.abs(cropBox[2] - cropBox[0]) * scaleX));
-      const bh = Math.max(1, Math.round(Math.abs(cropBox[3] - cropBox[1]) * scaleY));
-      bitmap = cropRgbaBitmap(bitmap, { x: bx, y: by, width: bw, height: bh });
-    }
-  }
-  const rotation = page.getRotation();
-  if (rotation === 90 || rotation === 180 || rotation === 270) {
-    bitmap = rotateRgbaBitmapQuarterTurns(bitmap, rotation);
-  }
-  if (cropRect) {
-    bitmap = cropRgbaBitmap(bitmap, cropRect);
-  }
-  return bitmap;
+  return page.renderToBitmap(options);
 }
 
 export function renderPdfPageToPng(

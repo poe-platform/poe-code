@@ -990,10 +990,16 @@
         },
         "safe-bash-command-soffice": {
           "version": "0.0.1",
-          "dependencies": {},
+          "dependencies": {
+            "@poe-code/spreadsheet-engine": "*",
+            "@poe-code/spreadsheet-format-csv": "*",
+            "@poe-code/spreadsheet-format-ods": "*",
+            "@poe-code/spreadsheet-format-xlsx": "*"
+          },
           "devDependencies": {
             "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
           },
           "portable": true
         },

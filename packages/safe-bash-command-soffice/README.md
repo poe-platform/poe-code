@@ -11,10 +11,10 @@ Headless LibreOffice (`soffice` / `libreoffice`) conversion command for `safe-ba
 | Writer -> PDF | `soffice --headless --convert-to pdf:writer_pdf_Export report.docx` | Renders DOCX/HTML/Markdown/TXT headings, paragraphs, lists, and tables into paginated PDFs. |
 | Calc -> PDF | `soffice --headless --convert-to pdf:calc_pdf_Export finance.xlsx` | Renders XLSX/CSV worksheets into grid-bordered tabular PDFs with shaded headers. |
 | Impress -> PDF | `soffice --headless --convert-to pdf:impress_pdf_Export deck.pptx` | Renders PPTX slides into landscape 16:9 widescreen PDFs. |
-| Calc -> CSV (StarCalc) | `soffice --headless --convert-to "csv:Text - txt - csv (StarCalc):59,34,76,1" book.xlsx` | Exports worksheets to CSV with configurable field separator, quote character, and BOM/encoding. |
+| Calc -> CSV (StarCalc) | `soffice --headless --convert-to "csv:Text - txt - csv (StarCalc):59,34,76,1" book.xlsx` | Exports XLSX/ODS worksheets to CSV with configurable field separator, quote character, and quoting. |
 | PDF -> DOCX / XLSX / CSV / HTML / PNG / TXT | `soffice --headless --convert-to docx document.pdf` | Converts PDFs into DOCX, XLSX, CSV, HTML, PNG, or TXT and supports `soffice --cat` / `libreoffice` alias. |
 
-CSV input preserves quoted commas, escaped quotes, and embedded newlines. `-convert-to` and `-outdir` are accepted alongside their double-dash forms, including `=value`. Compatibility options `--infilter`, `--pidfile`, and `--language` consume their values but do not configure conversion. Malformed ZIP inputs return an error diagnostic.
+CSV input preserves quoted commas, escaped quotes, and embedded newlines. ODS-to-XLSX conversion preserves typed cells, sheet names and column positions; ODS-to-CSV exports the active worksheet and preserves explicit line breaks. These routes use the shared spreadsheet engine and independently selectable format modules. `-convert-to` and `-outdir` are accepted alongside their double-dash forms, including `=value`. Compatibility options `--infilter`, `--pidfile`, and `--language` consume their values but do not configure conversion. Malformed ZIP inputs return an error diagnostic.
 
 ## Quick Start
 
@@ -32,3 +32,8 @@ The workspace entrypoint exports `sofficeCommands()` for plugin registration,
 `createSofficeCommands()` for the command collection, and
 `createSofficeCommand()` for a single command. Each accepts an optional
 `SofficeCommandsOptions` object; existing factory names remain available.
+
+For direct TypeScript conversion, use `await runSofficeCli(args, files, cwd,
+{ signal })`. Failed ODS conversion preserves an existing destination. The
+synchronous helper retains its synchronous routes and reports an error for
+ODS-to-CSV/XLSX conversion; use the async API for those formats.

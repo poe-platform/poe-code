@@ -23,9 +23,15 @@
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@poe-code/spreadsheet-engine": "*",
+    "@poe-code/spreadsheet-format-csv": "*",
+    "@poe-code/spreadsheet-format-ods": "*",
+    "@poe-code/spreadsheet-format-xlsx": "*"
+  },
   "devDependencies": {
     "@poe-code/pdf-ast": "*",
-    "safe-bash-contracts": "*"
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*"
   }
 }

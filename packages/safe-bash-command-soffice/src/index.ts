@@ -1,3 +1,4 @@
+import { convertOds, starCalcCsvOptions } from "./spreadsheet.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -422,17 +423,7 @@ function renderSlidesToPdf(slides: readonly { title: string; bullets: string[] }
 }
 
 function formatStarCalcCsv(rows: readonly string[][], filterOptions?: string): Uint8Array {
-  let sep = ",";
-  let quote = '"';
-  let quoteAll = false;
-  if (filterOptions) {
-    const parts = filterOptions.split(",");
-    const sepCode = Number.parseInt(parts[0] ?? "44", 10);
-    if (Number.isFinite(sepCode) && sepCode > 0) sep = String.fromCharCode(sepCode);
-    const quoteCode = Number.parseInt(parts[1] ?? "34", 10);
-    if (Number.isFinite(quoteCode) && quoteCode > 0) quote = String.fromCharCode(quoteCode);
-    if (parts[6] === "true") quoteAll = true;
-  }
+  const { separator: sep, quote, quoteAll } = starCalcCsvOptions(filterOptions);
 
   const lines = rows.map((row) =>
     row
@@ -634,11 +625,12 @@ function parseCsvRows(text: string): string[][] {
   return rows;
 }
 
-export function runSofficeCliSync(
+function* runSofficeSteps(
   argv: readonly string[],
   files: Map<string, Uint8Array>,
-  cwd = "/"
-): SofficeCliResult {
+  cwd: string,
+  signal: AbortSignal
+): Generator<() => Promise<Uint8Array>, SofficeCliResult, Uint8Array> {
   let convertSpec: string | undefined;
   let catMode = false;
   let outdir = cwd;
@@ -755,7 +747,9 @@ export function runSofficeCliSync(
 
       let outBytes: Uint8Array;
 
-      if ([".docx", ".odt", ".ods", ".odp", ".rtf"].some(ext => lowerIn.endsWith(ext))) {
+      if (lowerIn.endsWith(".ods") && (targetExt === "csv" || targetExt === "xlsx")) {
+        outBytes = yield () => convertOds(inputBytes, targetExt, filterOpts, signal);
+      } else if ([".docx", ".odt", ".ods", ".odp", ".rtf"].some(ext => lowerIn.endsWith(ext))) {
         const blocks = lowerIn.endsWith(".docx")
           ? parseDocxBlocks(inputBytes)
           : [".odt", ".ods", ".odp"].some(ext => lowerIn.endsWith(ext))
@@ -884,6 +878,7 @@ export function runSofficeCliSync(
         }
       }
 
+      signal.throwIfAborted();
       files.set(outPath, outBytes);
       stdout += `convert ${inputPath} -> ${outPath} using filter : ${filterName}\n`;
     }
@@ -894,12 +889,35 @@ export function runSofficeCliSync(
   }
 }
 
-export async function runSofficeCli(
+export function runSofficeCliSync(
   argv: readonly string[],
   files: Map<string, Uint8Array>,
   cwd = "/"
+): SofficeCliResult {
+  const steps = runSofficeSteps(argv, files, cwd, new AbortController().signal);
+  const step = steps.next();
+  if (step.done) return step.value;
+  const result: SofficeCliResult = { exitCode: 1, stdout: "", stderr: "Error: this spreadsheet conversion requires the asynchronous runSofficeCli API\n" };
+  steps.return(result);
+  return result;
+}
+
+export async function runSofficeCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  cwd = "/",
+  options: { readonly signal?: AbortSignal } = {}
 ): Promise<SofficeCliResult> {
-  return runSofficeCliSync(argv, files, cwd);
+  const signal = options.signal ?? new AbortController().signal;
+  signal.throwIfAborted();
+  const steps = runSofficeSteps(argv, files, cwd, signal);
+  let step = steps.next();
+  while (!step.done) {
+    try { step = steps.next(await step.value()); }
+    catch (error) { step = steps.throw(error); }
+  }
+  signal.throwIfAborted();
+  return step.value;
 }
 
 export async function soffice(context: CommandContext): Promise<{ exitCode: number }> {
@@ -924,7 +942,7 @@ export async function soffice(context: CommandContext): Promise<{ exitCode: numb
     }
 
     const existingSnap = new Map(vfsFiles);
-    const res = await runSofficeCli(argv, vfsFiles, context.cwd);
+    const res = await runSofficeCli(argv, vfsFiles, context.cwd, { signal: invocation.signal });
 
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);

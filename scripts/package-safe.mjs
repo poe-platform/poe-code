@@ -1,3 +1,4 @@
+import { privateExportStarsPlugin } from "./private-export-stars.mjs";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { builtinModules } from "node:module";
@@ -348,8 +349,19 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         });
       }
       recipes.push(...resolveCommandExportBuilds(rootDir, source, root, workspaces, { alias, external }));
+      const runtimeExports = new Map();
       for (const recipe of recipes) {
-        const result = await bundle({ ...recipe, sourcemap: false, plugins: [canonicalFileSystemImports, ...(recipe.plugins ?? [])] });
+        const result = await bundle({ ...recipe, metafile: true, sourcemap: false, plugins: [privateExportStarsPlugin(runtimeExports, files, path.join(packageDir, "src")), canonicalFileSystemImports, ...(recipe.plugins ?? [])] });
+        for (const metadata of Object.values(result.metafile?.outputs ?? {})) {
+          if (!metadata.entryPoint || !metadata.exports?.length) continue;
+          const entry = path.resolve(rootDir, metadata.entryPoint);
+          for (const { dir, pkg } of workspaces) {
+            if (!Object.hasOwn(source.poeCode?.integration?.privateWorkspaces ?? {}, pkg.name) || source.poeCode.integration.privateWorkspaces[pkg.name].publicAlias) continue;
+            for (const [route, target] of Object.entries(pkg.exports ?? {})) {
+              if (typeof target.import === "string" && path.resolve(rootDir, "packages", dir, target.import) === entry) runtimeExports.set(pkg.name + (route === "." ? "" : route.slice(1)), metadata.exports);
+            }
+          }
+        }
         for (const output of result.outputFiles) {
           bundled.set(output.path, output.contents);
           pending.push(output.path);

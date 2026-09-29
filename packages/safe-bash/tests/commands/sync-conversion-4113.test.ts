@@ -446,3 +446,15 @@ test("evaluates jq boolean and/or operators and if-then-elif-else-end conditiona
     "alice|bob,carol,|alice:A,bob:B,carol:C,|alice;alice:bob;\n"
   );
 });
+
+test("evaluates jq range, sub/gsub, scan, escaped test(), predicate any(expr)/all(expr), paths/leaf_paths, and getpath in sync substitutions and pipelines (Wave 179)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/tmp");
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(structuredCommands());
+  const r = await shell.exec("j_rng=$(jq -cn '[range(1; 8; 2)]')\nj_sub=$(echo '\"foo_123_bar_456\"' | jq -r 'sub(\"_[0-9]+\"; \"-NUM\") | gsub(\"_\"; \":\")')\nj_scan=$(echo '\"v1.2 and v3.45\"' | jq -c '[scan(\"v[0-9]+\\\\.[0-9]+\")]')\nj_test=$(echo '\"release-2026\"' | jq 'test(\"^release-[0-9]{4}$\")')\nj_any=$(echo '[2, 5, 12, 3]' | jq 'any(. > 10), all(. > 0)' | tr '\\n' ',')\nj_paths=$(echo '{\"a\":{\"b\":1},\"c\":[2,3]}' | jq -c '[leaf_paths]')\nj_getp=$(echo '{\"a\":{\"b\":42}}' | jq 'getpath([\"a\",\"b\"])')\nprintf \"%s|%s|%s|%s|%s|%s|%s\\n\" \"$j_rng\" \"$j_sub\" \"$j_scan\" \"$j_test\" \"$j_any\" \"$j_paths\" \"$j_getp\"");
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(
+    r.stdout,
+    "[1,3,5,7]|foo-NUM:bar:456|[\"v1.2\",\"v3.45\"]|true|true,true,|[[\"a\",\"b\"],[\"c\",0],[\"c\",1]]|42\n",
+  );
+});

@@ -23651,10 +23651,127 @@ export class Runtime {
       }
       return [clone];
     }
-    const testFnM = /^test\(\s*"([^"\\]*)"(?:\s*;\s*"([i]*)")?\s*\)$/.exec(st);
+    const rangeFnM = /^range\(\s*(.+)\s*\)$/.exec(st);
+    if (rangeFnM) {
+      const argSplit = splitSyncJqExpression(rangeFnM[1]!, ";");
+      if (!argSplit || argSplit.parts.length < 1 || argSplit.parts.length > 3) return undefined;
+      const evalNum = (e: string): number | undefined => {
+        const v = this.evalSyncJqPathOps(item, e.trim());
+        return v && v.length === 1 && typeof v[0] === "number" && Number.isFinite(v[0]) ? v[0] : undefined;
+      };
+      const start = argSplit.parts.length === 1 ? 0 : evalNum(argSplit.parts[0]!);
+      const end = evalNum(argSplit.parts[argSplit.parts.length === 1 ? 0 : 1]!);
+      const step = argSplit.parts.length === 3 ? evalNum(argSplit.parts[2]!) : 1;
+      if (start === undefined || end === undefined || step === undefined || step === 0) return undefined;
+      const count = Math.max(0, Math.ceil((end - start) / step));
+      if (!Number.isFinite(count) || count > 10000) return undefined;
+      const outRange: unknown[] = [];
+      for (let cur = start; step > 0 ? cur < end : cur > end; cur += step) {
+        outRange.push(cur);
+      }
+      return outRange;
+    }
+    const anyAllFnM = /^(any|all)\(\s*(.+)\s*\)$/.exec(st);
+    if (anyAllFnM && Array.isArray(item)) {
+      const argSplit = splitSyncJqExpression(anyAllFnM[2]!, ";");
+      if (argSplit && argSplit.parts.length === 1) {
+        const isAny = anyAllFnM[1] === "any";
+        const predExpr = argSplit.parts[0]!.trim();
+        for (const el of item) {
+          const r = this.evalSyncJqPathOps(el, predExpr);
+          if (!r) return undefined;
+          for (const rv of r) {
+            const truthy = rv !== false && rv !== null && rv !== undefined;
+            if (isAny && truthy) return [true];
+            if (!isAny && !truthy) return [false];
+          }
+        }
+        return [isAny ? false : true];
+      }
+    }
+    if (st === "paths" || st === "leaf_paths" || st === "paths(scalars)") {
+      if (!item || typeof item !== "object") return [];
+      const leavesOnly = st !== "paths";
+      const outPaths: unknown[] = [];
+      const walkPaths = (cur: unknown, prefix: Array<string | number>): void => {
+        if (Array.isArray(cur)) {
+          for (let i = 0; i < cur.length; i++) {
+            const nextP = [...prefix, i];
+            const val = cur[i];
+            const isScalar = val === null || typeof val !== "object";
+            if (!leavesOnly || isScalar) outPaths.push(nextP);
+            if (!isScalar) walkPaths(val, nextP);
+          }
+        } else if (cur && typeof cur === "object") {
+          for (const k of Object.keys(cur as Record<string, unknown>)) {
+            const nextP = [...prefix, k];
+            const val = (cur as Record<string, unknown>)[k];
+            const isScalar = val === null || typeof val !== "object";
+            if (!leavesOnly || isScalar) outPaths.push(nextP);
+            if (!isScalar) walkPaths(val, nextP);
+          }
+        }
+      };
+      walkPaths(item, []);
+      return outPaths;
+    }
+    const getPathM = /^getpath\(\s*(.+)\s*\)$/.exec(st);
+    if (getPathM) {
+      const pVals = this.evalSyncJqPathOps(item, getPathM[1]!.trim());
+      if (!pVals || pVals.length !== 1 || !Array.isArray(pVals[0])) return undefined;
+      let cur: unknown = item;
+      for (const stepKey of pVals[0] as unknown[]) {
+        if (cur === null || cur === undefined) {
+          if (typeof stepKey === "string" || (typeof stepKey === "number" && Number.isInteger(stepKey))) {
+            cur = null;
+            continue;
+          }
+          return undefined;
+        }
+        if (Array.isArray(cur) && typeof stepKey === "number" && Number.isInteger(stepKey)) {
+          const idx = stepKey < 0 ? cur.length + stepKey : stepKey;
+          cur = idx >= 0 && idx < cur.length ? cur[idx] : null;
+        } else if (cur && typeof cur === "object" && !Array.isArray(cur) && typeof stepKey === "string") {
+          cur = Object.hasOwn(cur, stepKey) ? (cur as Record<string, unknown>)[stepKey] : null;
+        } else {
+          return undefined;
+        }
+      }
+      return [cur];
+    }
+    const subFnM = /^(g?sub)\(\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*;\s*"([^"\\]*(?:\\.[^"\\]*)*)"(?:\s*;\s*"([gi]*)")?\s*\)$/.exec(st);
+    if (subFnM && typeof item === "string" && !subFnM[3]!.includes("\\(")) {
+      try {
+        const patStr = JSON.parse("\"" + subFnM[2]! + "\"") as string;
+        const repStr = JSON.parse("\"" + subFnM[3]! + "\"") as string;
+        const flags = (subFnM[1] === "gsub" ? "g" : "") + ((subFnM[4] ?? "").includes("i") ? "i" : "");
+        const re = new RegExp(patStr, flags);
+        return [item.replace(re, () => repStr)];
+      } catch {
+        return undefined;
+      }
+    }
+    const scanFnM = /^scan\(\s*"([^"\\]*(?:\\.[^"\\]*)*)"(?:\s*;\s*"([i]*)")?\s*\)$/.exec(st);
+    if (scanFnM && typeof item === "string") {
+      try {
+        const patStr = JSON.parse("\"" + scanFnM[1]! + "\"") as string;
+        if (patStr.length === 0) return undefined;
+        const re = new RegExp(patStr, "g" + ((scanFnM[2] ?? "").includes("i") ? "i" : ""));
+        const matches: unknown[] = [];
+        for (const m of item.matchAll(re)) {
+          if (m[0].length === 0) return undefined;
+          matches.push(m.length > 1 ? m.slice(1).map(g => g ?? null) : m[0]);
+        }
+        return matches;
+      } catch {
+        return undefined;
+      }
+    }
+    const testFnM = /^test\(\s*"([^"\\]*(?:\\.[^"\\]*)*)"(?:\s*;\s*"([im]*)")?\s*\)$/.exec(st);
     if (testFnM && typeof item === "string") {
       try {
-        const re = new RegExp(testFnM[1]!, testFnM[2] ?? "");
+        const patStr = JSON.parse("\"" + testFnM[1]! + "\"") as string;
+        const re = new RegExp(patStr, testFnM[2] ?? "");
         return [re.test(item)];
       } catch {
         return undefined;
@@ -28149,7 +28266,14 @@ export class Runtime {
             : (this.evalSyncGrep([], sArgs, Boolean(rawState.errexit)) !== undefined || this.evalSyncGrepWithFiles(sArgs, false, false, Boolean(rawState.errexit), rawState.cwd, []) !== undefined);
           if (!grepOk) return undefined;
         } else if (sName === "jq") {
-          if (this.evalSyncJq((i === 0 && cmd0FileStage) ? undefined : "null", sArgs, rawState.cwd) === undefined) return undefined;
+          const jqPreOk = (i === 0 && cmd0FileStage)
+            ? this.evalSyncJq(undefined, sArgs, rawState.cwd) !== undefined
+            : (this.evalSyncJq("null", sArgs, rawState.cwd) !== undefined ||
+               this.evalSyncJq("{}", sArgs, rawState.cwd) !== undefined ||
+               this.evalSyncJq("[]", sArgs, rawState.cwd) !== undefined ||
+               this.evalSyncJq("\"\"", sArgs, rawState.cwd) !== undefined ||
+               this.evalSyncJq("0", sArgs, rawState.cwd) !== undefined);
+          if (!jqPreOk) return undefined;
         } else if (sName === "base64") {
           if (this.evalSyncBase64(EMPTY_BYTES, (i === 0 && cmd0FileStage) ? sArgs.slice(0, -1) : sArgs) === undefined) return undefined;
         } else if (sName === "tac") {

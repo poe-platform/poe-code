@@ -3,7 +3,7 @@ import { commandRuntimeIdentity } from "../../contracts/command.js";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { assertCountedFileOutput, openFileOutput, writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import { yieldTurn } from "../../contracts/yield.js";
-import { codeOf, output, pathOf } from "../internal.js";
+import { builtInDirectContextExecutors, codeOf, output, pathOf, syncCommandEvaluators } from "../internal.js";
 import { compareCopyIdentity, compareObservedEntries } from "../copy-identity.js";
 import { helpText, parseArguments, type InstallArguments } from "./arguments.js";
 import { parseMode, type InstallMode } from "./mode.js";
@@ -409,10 +409,47 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
   await attributes(operation, destination, destinationDisplay, modes.file, source);
 }
 
+
+export function evalSyncInstall(
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
+): string | undefined {
+  let verbose = false;
+  const files: string[] = [];
+  let ended = false;
+  for (let i = 0; i < opArgs.length; i++) {
+    const arg = opArgs[i]!;
+    if (ended || arg === "-" || !arg.startsWith("-")) {
+      files.push(arg);
+      continue;
+    }
+    if (arg === "--") { ended = true; continue; }
+    if (arg === "--help") return helpText;
+    if (arg === "--version") return "install (safe-bash; GNU coreutils 9.7 target)\n";
+    if (arg === "-v" || arg === "--verbose") { verbose = true; continue; }
+    if (arg === "-c" || arg === "-p" || arg === "--preserve-timestamps" || arg === "-T" || arg === "--no-target-directory") continue;
+    if (arg === "-m" || arg === "--mode") {
+      if (opArgs[++i] === undefined) return undefined;
+      continue;
+    }
+    if (arg.startsWith("--mode=") || (arg.startsWith("-m") && arg.length > 2)) continue;
+    return undefined;
+  }
+  if (!readFileSync || !writeFileSync || files.length !== 2) return undefined;
+  const [srcPath, dstPath] = files as [string, string];
+  const srcBytes = readFileSync(srcPath);
+  if (!srcBytes) return undefined;
+  if (!writeFileSync(dstPath, srcBytes)) return undefined;
+  return verbose ? `${quote(srcPath)} -> ${quote(dstPath)}\n` : "";
+}
+
+syncCommandEvaluators.evalSyncInstall = evalSyncInstall;
+
 export function createInstallCommand(options: InstallCommandsOptions = {}): CommandDefinition {
   const settings = { ...options }, maxFileBytes = settings.maxFileBytes ?? Infinity;
   if (maxFileBytes !== Infinity && (!Number.isSafeInteger(maxFileBytes) || maxFileBytes < 0)) throw new TypeError("maxFileBytes must be a nonnegative safe integer or Infinity");
-  return { name: "install", runtimeIdentity: commandRuntimeIdentity, filesystemRequirements: [
+  const def: CommandDefinition = { name: "install", runtimeIdentity: commandRuntimeIdentity, filesystemRequirements: [
     { id: "file", description: "Install file contents with modes", capabilities: ["read", "stat", "write", "exclusiveCreate", "permissions"], mutates: true },
     { id: "directory", description: "Create installation directories", capabilities: ["stat", "mkdir", "permissions"], mutates: true },
     { id: "timestamps", description: "Preserve installation timestamps", capabilities: ["timestamps"], mutates: true },
@@ -484,6 +521,8 @@ export function createInstallCommand(options: InstallCommandsOptions = {}): Comm
       return { exitCode };
     } catch (error) { await report(error); return { exitCode: 1 }; }
   } };
+  builtInDirectContextExecutors.add(def.execute);
+  return def;
 }
 
 export function createInstallCommands(options: InstallCommandsOptions = {}): readonly CommandDefinition[] { return [createInstallCommand(options)]; }

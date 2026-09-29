@@ -1,5 +1,5 @@
 import { commandRuntimeIdentity, FsError, dirname, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandResult, type FileStat, type FileSystemCapabilities, type VirtualShellPlugin } from "../../contracts/index.js";
-import { codeOf, pathOf } from "../internal.js";
+import { builtInDirectContextExecutors, codeOf, pathOf, syncCommandEvaluators } from "../internal.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { argumentBytes, helpText, maximumSize, minimumSize, parseArguments, quote, TruncateError, type TruncateArguments } from "./arguments.js";
 
@@ -158,9 +158,55 @@ async function executeInvocation(context: CommandContext, settings: TruncateComm
   return { exitCode };
 }
 
+
+export function evalSyncTruncate(
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
+): string | undefined {
+  try {
+    const args = parseArguments(opArgs, false);
+    if (args.display === "help") return helpText;
+    if (args.display === "version") return "truncate (safe-bash; GNU coreutils 9.7 semantics)\n";
+    if (!writeFileSync || args.ioBlocks || args.files.length === 0) return undefined;
+    let refSize: bigint | undefined;
+    if (args.reference !== undefined) {
+      const refBytes = readFileSync?.(args.reference);
+      if (!refBytes) return undefined;
+      refSize = BigInt(refBytes.length);
+    }
+    for (const file of args.files) {
+      const existing = readFileSync?.(file);
+      if (!existing && args.noCreate) continue;
+      const curSize = BigInt(existing?.length ?? 0);
+      const base = refSize ?? curSize;
+      let target: bigint;
+      if (args.size === undefined) target = refSize!;
+      else if (args.mode === "absolute") target = args.size;
+      else if (args.mode === "relative") target = base + args.size;
+      else if (args.mode === "<") target = curSize < args.size ? curSize : args.size;
+      else if (args.mode === ">") target = curSize > args.size ? curSize : args.size;
+      else if (args.mode === "/") target = (curSize / args.size) * args.size;
+      else target = ((curSize + args.size - 1n) / args.size) * args.size;
+      if (target < 0n || target > 1048576n) return undefined;
+      const n = Number(target);
+      const out = new Uint8Array(n);
+      if (existing && existing.length > 0) {
+        out.set(existing.subarray(0, Math.min(existing.length, n)));
+      }
+      if (!writeFileSync(file, out)) return undefined;
+    }
+    return "";
+  } catch {
+    return undefined;
+  }
+}
+
+syncCommandEvaluators.evalSyncTruncate = evalSyncTruncate;
+
 export function createTruncateCommand(options: TruncateCommandsOptions = {}): CommandDefinition {
   const settings = { ...options };
-  return {
+  const def: CommandDefinition = {
     name: "truncate",
     runtimeIdentity: commandRuntimeIdentity,
     filesystemRequirements: [
@@ -183,6 +229,8 @@ export function createTruncateCommand(options: TruncateCommandsOptions = {}): Co
       } finally { await close(); }
     },
   };
+  builtInDirectContextExecutors.add(def.execute);
+  return def;
 }
 
 export function createTruncateCommands(options: TruncateCommandsOptions = {}): readonly CommandDefinition[] {

@@ -8,6 +8,10 @@ import { createTimeoutCommands, evalSyncTimeout } from "../../src/commands/timeo
 import { createSplitCommands } from "../../src/commands/split/index.js";
 import { createCsplitCommands } from "../../src/commands/csplit/index.js";
 import { createNetworkCommands } from "../../src/commands/network/public.js";
+import { createSpongeCommands } from "../../src/commands/sponge/index.js";
+import { createTruncateCommands } from "../../src/commands/truncate/index.js";
+import { createInstallCommands } from "../../src/commands/install/index.js";
+import { createApplyPatchCommands } from "../../src/commands/apply-patch/index.js";
 import { createPdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
 import { createMmdcCommands } from "../../src/commands/mmdc/index.js";
 import { createPandocCommands } from "../../src/commands/pandoc/index.js";
@@ -1469,5 +1473,55 @@ test("sync substitution and pipeline fast path for split, csplit, curl, wget, an
   assert.equal(new TextDecoder().decode(await fs.readFile("/c_00")), "alpha\nbeta\n");
   assert.equal(new TextDecoder().decode(await fs.readFile("/c_01")), "gamma\ndelta\n");
   assert.equal(new TextDecoder().decode(await fs.readFile("/c_02")), "epsilon\nzeta\n");
+  assert.ok(elapsed < 1500, `Expected fast sync execution (< 1500ms), took ${elapsed.toFixed(1)}ms`);
+});
+
+test("sync substitution and pipeline fast path for sponge, truncate, install, and apply_patch (Wave 157)", async () => {
+  const fs = new MemoryFileSystem();
+  const registry = new CommandRegistry();
+  for (const cmd of [
+    ...createStandardCommands(),
+    ...createSpongeCommands(),
+    ...createTruncateCommands(),
+    ...createInstallCommands(),
+    ...createApplyPatchCommands(),
+  ]) {
+    registry.register(cmd, { replace: true });
+  }
+  const sh = new Shell({ fs, commands: registry });
+
+  const t0 = performance.now();
+  const r = await sh.exec(`
+    sp_out=""
+    sp_ver=""
+    tr_ver=""
+    in_out=""
+    in_ver=""
+    ap_out=""
+    for i in {1..150}; do
+      sp_out=$(printf "soaked-line\n" | sponge)
+      $(printf "abcdef\n" | sponge /sp.txt)
+      $(truncate -s 4 /sp.txt)
+      in_out=$(install -v /sp.txt /inst.txt)
+      sp_ver=$(sponge --version)
+      tr_ver=$(truncate --version)
+      in_ver=$(install --version)
+      ap_out=$(printf "*** Begin Patch\n*** Add File: /patched.txt\n+hello patch\n*** End Patch\n" | apply_patch)
+    done
+    printf "\x25s|\x25s|\x25s|\x25s|\x25s|\x25s\n" "$sp_out" "$sp_ver" "$tr_ver" "$in_out" "$in_ver" "$ap_out"
+  `);
+  const elapsed = performance.now() - t0;
+
+  assert.equal(r.exitCode, 0, r.stderr);
+  const parts = r.stdout.trim().split("|");
+  assert.equal(parts[0], "soaked-line");
+  assert.equal(parts[1], "sponge (virtual-bash)");
+  assert.match(parts[2] ?? "", /^truncate /);
+  assert.equal(parts[3], "\x27/sp.txt\x27 -> \x27/inst.txt\x27");
+  assert.match(parts[4] ?? "", /^install /);
+  assert.equal(parts[5], "Success. Updated the following files:\nA /patched.txt");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/sp.txt")), "abcd");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/inst.txt")), "abcd");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/patched.txt")), "hello patch\n");
   assert.ok(elapsed < 1500, `Expected fast sync execution (< 1500ms), took ${elapsed.toFixed(1)}ms`);
 });

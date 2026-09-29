@@ -81,6 +81,10 @@ export interface SyncCommandEvaluators {
   evalSyncCsplit?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
   evalSyncCurl?: (opArgs: readonly string[]) => string | undefined;
   evalSyncWget?: (opArgs: readonly string[]) => string | undefined;
+  evalSyncSponge?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
+  evalSyncTruncate?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
+  evalSyncInstall?: (opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
+  evalSyncApplyPatch?: (inBytes: Uint8Array | undefined, opArgs: readonly string[], readFileSync?: (filePath: string) => Uint8Array | undefined, writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean) => string | undefined;
 }
 
 export const syncCommandEvaluators: SyncCommandEvaluators = {};

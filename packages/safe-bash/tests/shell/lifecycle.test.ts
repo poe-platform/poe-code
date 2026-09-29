@@ -1,3 +1,4 @@
+import { compileShellProbe } from "../shell-stress/helpers.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
@@ -103,10 +104,12 @@ test("nested while and until effects execute once and preserve loop control", as
   }
 });
 
+const probeProgram = await compileShellProbe(fileURLToPath(new URL("./lifecycle-probe.ts", import.meta.url)));
+
 for (const scenario of ["cleanup-abort", "cleanup-late-rejection", "shared-delayed-generator", "shared-serialized", "shared-repeated-cancellation", "shared-abandoned-rejection", "shared-retained-rejection", "owned-cleanup-abort", "busy-loop-abort", "busy-until-abort", "busy-group-loop-abort", "busy-function-loop-abort", "busy-if-loop-abort", "busy-substitution-loop-abort"]) {
   test(`hard-timeout lifecycle regression: ${scenario}`, () => {
-    const result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(new URL("./lifecycle-probe.ts", import.meta.url)), scenario], {
-      timeout: 3000, encoding: "utf8", maxBuffer: 1024 * 1024,
+    const result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--input-type=module", "-", scenario], {
+      input: probeProgram, timeout: 3000, encoding: "utf8", maxBuffer: 1024 * 1024,
     });
     assert.equal(result.error, undefined, `${scenario}: ${result.error?.message}`);
     assert.equal(result.signal, null, `${scenario}: child terminated by ${result.signal}`);

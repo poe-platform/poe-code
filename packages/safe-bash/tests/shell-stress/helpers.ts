@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { after, before } from "node:test";
 import { build, transform } from "esbuild";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -45,12 +46,13 @@ function checkChild(result: { error?: Error | undefined; signal: NodeJS.Signals 
   assert.notEqual(result.status, null, `${label}: no exit status`);
 }
 
-async function executeVirtual(request: ChildRequest | BatchRequest, dependencies = { sourceEvidence, isolatedSpawn }) {
-  const before = dependencies.sourceEvidence();
+export async function compileShellProbe(entry: string): Promise<string> {
   const privateWorkspaces = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).poeCode.integration.privateWorkspaces;
   const bundled = await build({
-    entryPoints: [fileURLToPath(new URL("./virtual-child.ts", import.meta.url))],
+    entryPoints: [entry],
+    banner: { js: `process.argv[1] = ${JSON.stringify(entry)};` },
     bundle: true, packages: "external", platform: "node", format: "esm", target: "es2022", write: false,
+    minify: true, keepNames: true,
     resolveExtensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".css", ".json"],
     alias: {
       ...Object.fromEntries(Object.keys(privateWorkspaces).map(name => [name,
@@ -70,11 +72,35 @@ async function executeVirtual(request: ChildRequest | BatchRequest, dependencies
       },
     }],
   });
-  const result = await dependencies.isolatedSpawn(process.execPath, ["--unhandled-rejections=strict", "--input-type=module", "-", "--request-fd=3"], {
-    cwd: root, env: environment(tmpdir()), input: bundled.outputFiles[0]!.text, extraInput: JSON.stringify(request),
+  return bundled.outputFiles[0]!.text;
+}
+
+let virtualProgram: Promise<string> | undefined;
+let preparedSources: ReturnType<typeof sourceEvidence> | undefined;
+before(async () => {
+  preparedSources = sourceEvidence();
+  virtualProgram = compileShellProbe(fileURLToPath(new URL("./virtual-child.ts", import.meta.url)));
+  await virtualProgram;
+});
+after(context => {
+  if (!preparedSources) return;
+  const completedSources = sourceEvidence();
+  assert.equal(completedSources.aggregate, preparedSources.aggregate,
+    "Source changed during complete probe run; rerun without attribution");
+  context.diagnostic(JSON.stringify({ sourceScope: "run", sourceBefore: preparedSources.aggregate,
+    sourceAfter: completedSources.aggregate, timeBefore: preparedSources.time, timeAfter: completedSources.time }));
+});
+
+// Keep complete source qualification outside guest deadlines. Injected adapters
+// still capture each invocation so mutation and rejection tests remain precise.
+async function executeVirtual(request: ChildRequest | BatchRequest, dependencies?: { sourceEvidence: typeof sourceEvidence; isolatedSpawn: typeof isolatedSpawn }) {
+  const before = dependencies ? dependencies.sourceEvidence() : preparedSources ?? sourceEvidence();
+  const program = await (virtualProgram ??= compileShellProbe(fileURLToPath(new URL("./virtual-child.ts", import.meta.url))));
+  const result = await (dependencies?.isolatedSpawn ?? isolatedSpawn)(process.execPath, ["--unhandled-rejections=strict", "--input-type=module", "-", "--request-fd=3"], {
+    cwd: root, env: environment(tmpdir()), input: program, extraInput: JSON.stringify(request),
     timeout: hardDeadlineMs, maxBuffer,
   });
-  const after = dependencies.sourceEvidence();
+  const after = dependencies ? dependencies.sourceEvidence() : preparedSources ?? sourceEvidence();
   const name = request.kind === "batch" ? request.fixtures.map(fixture => fixture.name).join(", ") : request.fixture?.name ?? request.probe;
   const context = `${name}; source ${before.revision} ${before.aggregate} @ ${before.time}; after ${after.aggregate} @ ${after.time}`;
   checkChild(result, context);
@@ -90,7 +116,7 @@ export async function runVirtual(request: ChildRequest): Promise<Observation | {
   return value as Observation | { passed: string };
 }
 
-export async function runVirtualBatch(fixtures: readonly StressCase[], dependencies = { sourceEvidence, isolatedSpawn }) {
+export async function runVirtualBatch(fixtures: readonly StressCase[], dependencies?: { sourceEvidence: typeof sourceEvidence; isolatedSpawn: typeof isolatedSpawn }) {
   assert.ok(fixtures.length > 0 && fixtures.length <= maxBatchCases, `Virtual batch requires 1..${maxBatchCases} cases`);
   const { value, before, after } = await executeVirtual({ kind: "batch", fixtures }, dependencies);
   assert.ok(Array.isArray(value), "Virtual batch must return an outcome array");

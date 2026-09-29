@@ -53,7 +53,7 @@ for (const scenario of [
           })),
           ...sourceAliases,
         },
-        format: "esm", target: "es2022", write: false }).then(result => result.outputFiles[0]!.text);
+        format: "esm", target: "es2022", write: false, minify: true, keepNames: true }).then(result => result.outputFiles[0]!.text);
       probes.set(entry, prepared);
     }
     const result = await runRemoteCloseChild(["--unhandled-rejections=strict", "--input-type=module", "-", scenario], await prepared);

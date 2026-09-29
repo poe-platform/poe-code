@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { compileShellProbe } from "../helpers.js";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -23,10 +24,12 @@ assert.ok([originalCohortHash, "fdc22c27541f4f29334274e35238c22fa4645730dbe52391
 assert.equal(native.profiles.length, 2);
 assert.deepEqual(native.profiles.map(profile => profile.rows.map(row => row.id)), [cases.map(row => row.id), cases.map(row => row.id)]);
 
+const program = await compileShellProbe(resolve(owned, "virtual-child.ts"));
+
 async function probe(id: string, ids: readonly string[] = []) {
   const env = sanitizedEnv();
   if (process.env.INVOCATION_TRACE) env.INVOCATION_TRACE = process.env.INVOCATION_TRACE;
-  return boundedProcess(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--import", `./${owned}/trace.mjs`, `${owned}/virtual-child.ts`, id, ...ids], { cwd: resolve("."), env });
+  return boundedProcess(process.execPath, ["--unhandled-rejections=strict", "--import", `./${owned}/trace.mjs`, "--input-type=module", "-", id, ...ids], { cwd: resolve("."), env, input: Buffer.from(program) });
 }
 
 const filtered = ["--test-name-pattern", "--test-skip-pattern"].some(flag =>

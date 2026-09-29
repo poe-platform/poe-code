@@ -1,3 +1,4 @@
+import { compileShellProbe } from "../shell-stress/helpers.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -232,9 +233,11 @@ test("PATH propagates backend denials and does not try a second readable interpr
   assert.equal(result.stdout, "");
 });
 
+const probeProgram = await compileShellProbe(fileURLToPath(new URL("./invocation-modes-probe.ts", import.meta.url)));
+
 for (const scenario of ["recursive-c", "recursive-stdin", "recursive-path", "cancel-lookup", "cancel-source", "cancel-drain", "cancel-command", "cancel-empty-chunks", "cancel-incomplete-unit", "late-source", "source-limit", "output-limit", "syntax-without-eof"]) {
   test(`hard-bounded invocation regression: ${scenario}`, () => {
-    const result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(new URL("./invocation-modes-probe.ts", import.meta.url)), scenario], { encoding: "utf8", timeout: 5000, maxBuffer: 1048576 });
+    const result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--input-type=module", "-", scenario], { input: probeProgram, encoding: "utf8", timeout: 5000, maxBuffer: 1048576 });
     assert.equal(result.error, undefined, result.error?.message);
     assert.equal(result.signal, null, result.stderr);
     assert.equal(result.status, 0, result.stderr);

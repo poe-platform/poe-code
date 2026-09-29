@@ -17,8 +17,8 @@ for (const [cohort, fixtures] of [["differential", differentialCases], ["parse-b
     test(`GNU5.3 declared-profile ${cohort} batch ${offset / maxBatchCases + 1}`, async context => {
       const execution = await runVirtualBatch(batch).then(result => ({ result }), (error: unknown) => ({ error }));
       if ("result" in execution) {
-        const { before, after } = execution.result;
-        context.diagnostic(JSON.stringify({ sourceScope: "batch", sourceBefore: before.aggregate, sourceAfter: after.aggregate, timeBefore: before.time, timeAfter: after.time, revision: before.revision, sourceAdmission: before.sourceAdmission }));
+        const { before } = execution.result;
+        context.diagnostic(JSON.stringify({ sourceScope: "run-preparation", sourceBefore: before.aggregate, timeBefore: before.time, revision: before.revision, sourceAdmission: before.sourceAdmission }));
       }
       for (const [index, fixture] of batch.entries()) {
         await context.test(`GNU5.3 declared-profile ${cohort}: ${fixture.name}`, async child => {

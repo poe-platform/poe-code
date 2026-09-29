@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { Worker } from "node:worker_threads";
 import { once } from "node:events";
-import { dirname, resolvePath } from "../../src/index.js";
+import { dirname, resolvePath } from "../../src/contracts/path.js";
 import type { MemoryFileSystem } from "../../src/index.js";
 import { maxBatchCases } from "./model.js";
 import type { BatchRequest, ChildRequest, Observation, ScriptOutcome, Snapshot } from "./model.js";
@@ -24,11 +24,8 @@ async function snapshot(fs: MemoryFileSystem, directory = "/", root = directory)
 }
 
 async function runRequest(request: ChildRequest): Promise<Observation | { passed: string }> {
-  const independentWatchdog = new Worker('const {workerData,parentPort} = require("node:worker_threads"); setTimeout(() => process.kill(-workerData, "SIGKILL"), 4500); parentPort.postMessage("ready");', { eval: true, workerData: process.pid, execArgv: ["--unhandled-rejections=strict"] });
   const watchdog = setTimeout(() => { throw new Error("Virtual child cooperative watchdog exceeded"); }, 4000);
   try {
-    const [ready] = await once(independentWatchdog, "message");
-    if (ready !== "ready") throw new Error("Invalid virtual child watchdog readiness");
     if (request.kind === "probe") {
       if (!request.probe) throw new Error("Missing probe");
       await runProbe(request.probe);
@@ -58,24 +55,30 @@ async function runRequest(request: ChildRequest): Promise<Observation | { passed
     }
   } finally {
     clearTimeout(watchdog);
-    await independentWatchdog.terminate();
   }
 }
 
-const request = JSON.parse(readFileSync(process.argv.includes("--request-fd=3") ? 3 : 0, "utf8")) as ChildRequest | BatchRequest;
-if (request.kind === "batch") {
-  if (!Array.isArray(request.fixtures) || request.fixtures.length < 1 || request.fixtures.length > maxBatchCases) throw new Error("Invalid virtual batch size");
-  const outcomes: ScriptOutcome[] = [];
-  for (const fixture of request.fixtures) {
-    try {
-      const observation = await runRequest({ kind: "script", fixture });
-      if (!("exitCode" in observation)) throw new Error("Expected script observation");
-      outcomes.push({ name: fixture.name, status: "fulfilled", observation });
-    } catch (error) {
-      outcomes.push({ name: fixture.name, status: "rejected", error: error instanceof Error ? error.stack ?? error.message : String(error) });
+const independentWatchdog = new Worker('const {workerData,parentPort} = require("node:worker_threads"); setTimeout(() => process.kill(-workerData, "SIGKILL"), 4500); parentPort.postMessage("ready");', { eval: true, workerData: process.pid, execArgv: ["--unhandled-rejections=strict"] });
+try {
+  const [ready] = await once(independentWatchdog, "message");
+  if (ready !== "ready") throw new Error("Invalid virtual child watchdog readiness");
+  const request = JSON.parse(readFileSync(process.argv.includes("--request-fd=3") ? 3 : 0, "utf8")) as ChildRequest | BatchRequest;
+  if (request.kind === "batch") {
+    if (!Array.isArray(request.fixtures) || request.fixtures.length < 1 || request.fixtures.length > maxBatchCases) throw new Error("Invalid virtual batch size");
+    const outcomes: ScriptOutcome[] = [];
+    for (const fixture of request.fixtures) {
+      try {
+        const observation = await runRequest({ kind: "script", fixture });
+        if (!("exitCode" in observation)) throw new Error("Expected script observation");
+        outcomes.push({ name: fixture.name, status: "fulfilled", observation });
+      } catch (error) {
+        outcomes.push({ name: fixture.name, status: "rejected", error: error instanceof Error ? error.stack ?? error.message : String(error) });
+      }
     }
+    console.log(JSON.stringify(outcomes));
+  } else {
+    console.log(JSON.stringify(await runRequest(request)));
   }
-  console.log(JSON.stringify(outcomes));
-} else {
-  console.log(JSON.stringify(await runRequest(request)));
+} finally {
+  await independentWatchdog.terminate();
 }

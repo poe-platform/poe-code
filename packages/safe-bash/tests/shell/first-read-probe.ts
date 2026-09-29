@@ -1,14 +1,11 @@
 import assert from "node:assert/strict";
 import { setImmediate as turn } from "node:timers/promises";
-import {
-  agentCommands,
-  createNodeHttpTransport,
-  createOutputOperation,
-  MemoryFileSystem,
-  networkCommands,
-  pipeBytes,
-  Shell,
-} from "../../src/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
+import { createNodeHttpTransport } from "../../src/commands/network/transport.js";
+import { networkCommands } from "../../src/commands/network/public.js";
+import { createOutputOperation, pipeBytes } from "../../src/contracts/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { Shell } from "../../src/shell/node.js";
 import type { ByteSource, FileSystem, ShellResult } from "../../src/index.js";
 import { bounded, httpFixture, s3Fixture, Trace } from "../stress/remote-cancellation/helpers.js";
 import {

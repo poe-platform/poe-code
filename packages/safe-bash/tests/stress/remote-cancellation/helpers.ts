@@ -4,7 +4,11 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import type { Socket } from "node:net";
 import { setImmediate as turn } from "node:timers/promises";
 import { test } from "node:test";
-import { agentCommands, MockS3Client, S3FileSystem, Shell, ShellLimitError, WebDavFileSystem } from "../../../src/index.js";
+import { agentCommands } from "../../../src/plugins/index.js";
+import { MockS3Client, S3FileSystem } from "../../../src/fs/s3/index.js";
+import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
+import { Shell } from "../../../src/shell/node.js";
+import { ShellLimitError } from "../../../src/shell/types.js";
 import type { ByteSource, FileSystem, ShellResult, S3Transport } from "../../../src/index.js";
 import type { S3StreamPutInput } from "poe-code/safe-fs";
 import { MockDav } from "../../fs/webdav/mock.js";

@@ -302,5 +302,21 @@ preservation, snapshots, duplicate registration and empty/default registrations.
 Published-bundle checks exercise raw arguments, output budgets and cancellation
 through the selected entrypoint. The installed-package release fixtures now
 exercise selected CSV conversion, disabled XLSX preservation, empty defaults,
-plugin registration and the public TypeScript contract. This follow-up is still
-under validation and is not yet claimed as remotely delivered or published.
+plugin registration and the public TypeScript contract. The command fix is
+verified on remote main as `e765e7c23d`. Its full package suite passed 26,511
+checks across 500 files; 96 shell checks, the focused bundle checks, full build
+and full lint also passed. A fresh root archive passed Node, Bun, strict public
+TypeScript checks, and actual Workerd CSV/CSV+XLSX conversion without Node
+compatibility or unselected codec contributions. Publication remains pending.
+
+Fresh scoped staging exposed a release prerequisite from the root runtime
+ownership change: the packager rejected `dist/shared/safe-js/index.js` because
+it expected a workspace output. The same failure occurred in hosted run
+`36591191083`. Issue #4422 maps only declared root-owned SafeJS runtime entries
+back to the scoped workspace outputs, preserving export conditions and refusing
+unknown paths. Failing-before memfs coverage, all 212 packaging tests, ESLint,
+and real staging of all three scoped packages pass. Fresh archives pass selected
+command execution in Node and Bun, strict root/scoped TypeScript consumers, and
+CSV-only and CSV+XLSX conversion in Workerd without Node compatibility. Both
+scoped SafeJS entrypoints execute bounded programs in Node and Bun. Containing
+publication remains pending.

@@ -389,11 +389,20 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       return enqueueExport(built.replace("./dist/", `./packages/${owner}/dist/`));
     };
     if (name === "safe-js") {
+      // Root SDK runtimes have their own output directory. Scoped archives own
+      // the workspace builds; map only declared entries, retaining conditions.
+      const runtimeEntries = new Map(Object.values(source.exports ?? {})
+        .filter(target => typeof target?.import === "string" && target.import.startsWith("./dist/"))
+        .map(target => [`./dist/shared/${name}/${target.import.slice("./dist/".length)}`,
+          `./packages/${name}/${target.import.slice(2)}`]));
+      const scopedExport = value => typeof value === "string" ? runtimeEntries.get(value) ?? value
+        : value && typeof value === "object"
+          ? Object.fromEntries(Object.entries(value).map(([condition, target]) => [condition, scopedExport(target)])) : value;
       const rootExports = Object.entries(root.exports ?? {})
         .filter(([key]) => key === "./safe-js" || key.startsWith("./safe-js/"))
         .map(([key, value]) => [key === "./safe-js" ? "." : "." + key.slice("./safe-js".length), value]);
       for (const [key, value] of rootExports.length ? rootExports : Object.entries(source.exports).map(([key, value]) => [key, workspaceTarget(value)])) {
-        exports[key] = enqueueExport(value);
+        exports[key] = enqueueExport(scopedExport(value));
       }
       for (const suffix of ["", "/core", "/node"]) {
         const target = "./dist/compat/fs" + suffix.replace("/", "-");

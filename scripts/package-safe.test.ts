@@ -144,6 +144,27 @@ function getCachedDeclaration(distPath: string, source: string, compilerOptions:
   return emitted;
 }
 
+it.each(["index", "undeclared"])("stages only declared root-owned SafeJS runtime exports: %s", async entry => {
+  const { volume, options } = optionalLeftovers();
+  const manifest = JSON.parse(volume.readFileSync("/repo/package.json", "utf8").toString());
+  manifest.exports["./safe-js"] = {
+    types: "./packages/safe-js/dist/index.d.ts", browser: null,
+    import: `./dist/shared/safe-js/${entry}.js`
+  };
+  volume.writeFileSync("/repo/package.json", JSON.stringify(manifest));
+  volume.mkdirSync("/repo/dist/shared/safe-js", { recursive: true });
+  volume.writeFileSync("/repo/dist/shared/safe-js/index.js", "throw new Error('root runtime must not enter scoped archive');");
+  volume.writeFileSync("/repo/packages/safe-js/dist/index.js", "export const scopedIdentity = {};\n");
+  if (entry === "undeclared") {
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Not a built package file");
+    return;
+  }
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const published = JSON.parse(volume.readFileSync("/output/safe-js/package.json", "utf8").toString());
+  expect(published.exports["."]).toEqual({ types: "./dist/safe-js/index.d.ts", browser: null, import: "./dist/safe-js/index.js" });
+  expect(volume.readFileSync("/output/safe-js/dist/safe-js/index.js", "utf8")).toBe("export const scopedIdentity = {};\n");
+});
+
 it("embeds the declared ssconvert SDK behind its legacy CLI subpath without a CLI dependency", async () => {
   const { volume, options } = optionalLeftovers();
   volume.mkdirSync("/repo/packages/safe-bash-command-ssconvert/dist", { recursive: true });

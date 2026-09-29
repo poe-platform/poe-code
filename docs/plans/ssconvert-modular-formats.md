@@ -1,7 +1,7 @@
 # Selectable spreadsheet formats
 
-Tracking: hey-boss #4091. Compatibility work remains tracked by #1748;
-release integration remains tracked by #3360.
+This plan covers modular format ownership and selected-format composition.
+Broader format compatibility and containing release integration are separate workstreams.
 
 The user requested twelve hours of implementation beginning 2026-09-29
 02:34:55 UTC, with compatibility work ordered by common usage: XLSX,
@@ -119,7 +119,7 @@ routes. `d9b17d1963` removed soffice's early Node prebundle, and `db78c3bab6`
 repaired canonical XML runtime copying into scoped SafeFS. Those three commits
 are verified on remote main; 228 focused boundary/packaging checks passed.
 Actual installed-consumer qualification and containing publication remain open.
-HTML table ownership is the next format extraction, tracked by #4294, preserving
+HTML table ownership is the next format extraction, preserving
 the compatibility provider's additional LaTeX/roff registrations.
 
 At the 2026-09-29 11:45 UTC checkpoint, both pinned releases of `9ac53e4f51`
@@ -156,7 +156,7 @@ run `36565977028` explicitly pin that containing revision; publication remains
 pending. A later lint pass found an incoming dd empty-catch diagnostic, tracked
 with the release owner separately from format work.
 
-DBF is the next selected table importer, tracked by #4295. Its real reader lives
+DBF is the next selected table importer. Its real reader lives
 in `packages/spreadsheet-format-dbf`; database encoding and record helpers shared
 with Paradox, DIF, SYLK and other legacy readers move to the neutral engine.
 The existing `Gnumeric_xbase:xbase` service remains import-only. Four source
@@ -212,7 +212,7 @@ and evaluator runtime repairs delivered by other workers were preserved.
 Scoped pin `36576991455` selects that exact revision; root pin `36577000641`
 selects its descendant `cdf3bdb837`. Publication remains separately monitored.
 
-Follow-up #4308 reconciles the newer synchronous conversion path with the same
+A follow-up reconciles the newer synchronous conversion path with the same
 ownership boundaries. The shell adapter now only wires archive operations and
 the evaluator; command parsing and dispatch live in the command owner. CSV
 parsing/formatting lives in the CSV format package, with the field quoting
@@ -265,20 +265,20 @@ Replacement pin
 [36585960531](https://github.com/poe-platform/poe-code/actions/runs/36585960531)
 selects `e0a0878513`, whose ancestry includes both the final ssconvert changes
 and Pandoc repair `683adeb82b`. It is pending at this checkpoint; root runtime
-and declaration ownership repairs remain tracked by #3360. Cancelled and
+and declaration ownership repairs remain outstanding at this checkpoint. Cancelled and
 superseded runs are not publication evidence.
 
 The local complete installed gate had 84 native passes and three 30-second
 deadlines. Exact retries passed both storage cases but reproduced the session
 capacity deadline; diagnostic worker startup alone took 26.562 seconds. Its
-cause remains open in #4314, separately from the unchanged hosted gate's pass.
+cause remains unresolved, separately from the unchanged hosted gate's pass.
 
-The validated XLSX formula-cache fixes in #3521 are published. Its supplemental
+The validated XLSX formula-cache fixes are published. The supplemental
 formula/defined-name text-encoding question remains open: recorded Gnumeric,
 openpyxl and Calc roundtrip observations do not justify unconditional Xstring
-decoding. Broader compatibility families under #1748 also remain open. Completed
-format-extraction and release-prerequisite issues have individual acceptance
-audits; no blanket compatibility closure or full-fidelity claim is made.
+decoding. Broader compatibility families also remain open. Completed
+format-extraction and release-prerequisite repairs have individual acceptance
+evidence; no blanket compatibility closure or full-fidelity claim is made.
 
 
 ## Selected-format command composition audit
@@ -286,8 +286,8 @@ audits; no blanket compatibility closure or full-fidelity claim is made.
 The post-publication audit found that selected SDK bundles were isolated, but
 `createSsconvertCommand({ formats: [csvFormat] })` still statically imported the
 compatibility engine. The reproduced browser bundle included 262 unrelated
-codec/rendering inputs and occupied 10,853,309 bytes. Issue #4417 tracks this
-remaining command-side architecture requirement; scoped 0.1.755 does not fix it.
+codec/rendering inputs and occupied 10,853,309 bytes. This leaves a command-side
+architecture requirement; scoped 0.1.755 does not fix it.
 
 The new `/ssconvert/commands` entrypoint binds the shared shell adapter to the
 neutral engine, with explicit format and rendering capabilities. `/ssconvert/core`
@@ -312,7 +312,7 @@ compatibility or unselected codec contributions. Publication remains pending.
 Fresh scoped staging exposed a release prerequisite from the root runtime
 ownership change: the packager rejected `dist/shared/safe-js/index.js` because
 it expected a workspace output. The same failure occurred in hosted run
-`36591191083`. Issue #4422 maps only declared root-owned SafeJS runtime entries
+`36591191083`. The repair maps only declared root-owned SafeJS runtime entries
 back to the scoped workspace outputs, preserving export conditions and refusing
 unknown paths. Failing-before memfs coverage, all 212 packaging tests, ESLint,
 and real staging of all three scoped packages pass. Fresh archives pass selected
@@ -329,7 +329,8 @@ command fix `e765e7c23d` and scoped runtime mapping repair `9badb683a5`.
 completed publication and verification successfully. The hosted installed gate
 passed all 15 native files and 87 tests; independent public registry checks
 verified all three exact archives, SHA-512 integrity, matching source provenance,
-fresh npm installation and Node imports. Issue #4422 is closed on that evidence.
+fresh npm installation and Node imports. The scoped runtime mapping repair is
+fully delivered and published.
 
 Root publication remains outstanding. The release owner delivered root-owned
 declaration closures in `01fd535e84`, Node codec declaration compatibility in
@@ -339,8 +340,16 @@ historical workspace entry. Independent execution of the current root artifact
 passed selected CSV conversion; its browser bundle excludes unselected XLSX,
 BIFF, ODS and PDF implementations. The metadata suite independently passes all
 20 tests. These checks qualify the repair but do not establish publication.
-The containing pinned root
-[run 36598284494](https://github.com/poe-platform/poe-code/actions/runs/36598284494)
-is queued. #4091 and #4417 remain open until root publication is verified;
-#3521's supplemental encoding question and #4314's local native deadline remain
-unresolved as described above.
+The prior pinned root run `36598284494` failed on browser fixture resolution and
+archive declaration expectations. Those repairs are delivered, together with
+independent root/scoped consumer fixtures and the macOS fixture Git launcher
+repair. All 65 focused fixture checks and lint pass; separate installed Node,
+Bun and Workerd consumers pass. The archive controls pass 265 checks with one
+explicit-input skip, recorded separately.
+
+At the 2026-09-29 17:58 UTC checkpoint, containing root
+[run 36608263579](https://github.com/poe-platform/poe-code/actions/runs/36608263579)
+at `524b1d3106` is queued. Its source contains all architecture, command and
+packaging repairs. The earlier unstarted `b00b184630` pin was retired by its
+owner. Root publication remains unverified; the supplemental encoding question
+and local native deadline remain unresolved as described above.

@@ -344,7 +344,7 @@ describe("harness recovery e2e", () => {
       snapshotPath: snapshotPath()
     });
 
-    await flushMicrotasks();
+    await waitForCall(resumedCalls, "right");
     expect(resumedCalls).toEqual(["left", "right"]);
     secondRun.right.resolve("right:done");
     secondRun.left.resolve("left:done");

@@ -1,3 +1,6 @@
+import { FsError } from "safe-bash-contracts";
+import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { yieldTurn } from "safe-bash-contracts/yield";
 
 const pathPosix = {
   resolve(cwd: string, target: string): string {
@@ -67,10 +70,15 @@ export function settings(options: SpongeCommandsOptions = {}): SpongeLimits {
 async function collectSourceBytes(source: ByteSource, maxBytes: number, signal: AbortSignal): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let total = 0;
+  let quantum = 0;
+  let chunksRead = 0;
   for await (const chunk of readBytes(source, signal)) {
     total += chunk.byteLength;
+    signal.throwIfAborted();
+    quantum += Math.max(1, chunk.byteLength);
+    if (quantum >= 16384 || ++chunksRead >= 128) { quantum = 0; chunksRead = 0; await yieldTurn(signal); }
     if (total > maxBytes) {
-      throw new Error(`input exceeds maximum buffered size of ${maxBytes} bytes`);
+      throw new PublicDiagnostic(`input exceeds maximum buffered size of ${maxBytes} bytes`);
     }
     if (chunk.byteLength > 0) {
       chunks.push(chunk);
@@ -94,7 +102,8 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
     description: "Soak up all standard input before writing to a file",
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
-      const args = context.args;
+      context.signal.throwIfAborted();
+      const args = getCommandArguments(context).args;
       let append = false;
       const files: string[] = [];
       let endOfOptions = false;
@@ -145,11 +154,13 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
           let existing: Uint8Array = new Uint8Array(0);
           try {
             existing = await context.fs.readFile(targetPath);
-          } catch {
+          } catch (error) {
+            context.signal.throwIfAborted();
+            if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
             existing = new Uint8Array(0);
           }
           if (existing.byteLength + buffered.byteLength > maxBytes) {
-            throw new Error(`combined output exceeds maximum buffered size of ${maxBytes} bytes`);
+            throw new PublicDiagnostic(`combined output exceeds maximum buffered size of ${maxBytes} bytes`);
           }
           await writeFileOutput(context, buffered, data => context.fs.appendFile(targetPath, data, { signal: context.signal }));
         } else {
@@ -157,6 +168,8 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
         }
         return { exitCode: 0 };
       } catch (err) {
+        context.signal.throwIfAborted();
+        if (!(err instanceof PublicDiagnostic) && !(err instanceof FsError)) throw err;
         const msg = err instanceof Error ? err.message : String(err);
         await writeText(context.stderr, `sponge: ${msg}\n`);
         return { exitCode: 1 };

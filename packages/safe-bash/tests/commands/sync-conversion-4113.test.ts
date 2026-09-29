@@ -1945,7 +1945,7 @@ test("Wave 236: ffmpeg lavfi/transcoding/muxing and git init/config/add/commit/b
     printf "hello git\n" > /tmp/w236_repo/hello.txt
     g3=$(git -C /tmp/w236_repo add hello.txt && git -C /tmp/w236_repo commit -m "initial commit" >/dev/null && git -C /tmp/w236_repo log -n 1 --pretty=%s)
     g4=$(git -C /tmp/w236_repo branch feature && git -C /tmp/w236_repo tag v1.0 && git -C /tmp/w236_repo tag -l)
-    printf "%s|%s|%s|%s|%s|%s\\n" "\$fp1" "\$fp2" "\$fp3" "\$g1" "\$g3" "\$g4"
+    printf "%s|%s|%s|%s|%s|%s\\n" "$fp1" "$fp2" "$fp3" "$g1" "$g3" "$g4"
   `);
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(

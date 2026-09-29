@@ -46,7 +46,10 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
       tick(bytes.length);
       if (disposed || bytes.length > context.limits.inputBytes) fail();
       if (!exports) {
-        compiled ??= wasm.compile(Uint8Array.from(atob(harfbuzzBase64), character => character.charCodeAt(0)));
+        compiled ??= wasm.compile(Uint8Array.from(atob(harfbuzzBase64), character => character.charCodeAt(0))).catch(error => {
+          compiled = undefined;
+          throw error;
+        });
         const module = await compiled;
         tick();
         if (disposed) fail();

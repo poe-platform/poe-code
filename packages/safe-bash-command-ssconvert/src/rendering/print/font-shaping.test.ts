@@ -13,6 +13,23 @@ function fixture() {
   return {controller, context, cleanups, tick: () => controller.signal.throwIfAborted()};
 }
 afterEach(() => vi.restoreAllMocks());
+it("retries compilation after a shared failure without retaining rejected code", async () => {
+  vi.resetModules();
+  const {createFontShaper: createFreshShaper} = await import("./font-shaping.js");
+  const failure = new WebAssembly.CompileError("temporary compilation denial");
+  const compile = vi.spyOn(WebAssembly, "compile").mockRejectedValueOnce(failure);
+  const f = fixture(), metrics = fontkit.create(bytes);
+  const first = createFreshShaper(f.context, f.tick), second = createFreshShaper(f.context, f.tick);
+  const retry = createFreshShaper(f.context, f.tick);
+  try {
+    const results = await Promise.allSettled([first.addFont(bytes, metrics), second.addFont(bytes, metrics)]);
+    expect(results).toEqual([{status: "rejected", reason: failure}, {status: "rejected", reason: failure}]);
+    expect(compile).toHaveBeenCalledTimes(1);
+    await retry.addFont(bytes, metrics);
+    expect(compile).toHaveBeenCalledTimes(2);
+    expect(retry.shape(metrics, "AB").glyphs.flatMap(glyph => glyph.codePoints)).toEqual([65, 66]);
+  } finally {first.dispose(); second.dispose(); retry.dispose();}
+});
 it("registers ownership before acquisition and refuses a released conversion", async () => {
   const f = fixture(), instantiate = vi.spyOn(WebAssembly satisfies FontShapingWebAssembly, "instantiate");
   const shaper = createFontShaper(f.context, f.tick), metrics = fontkit.create(bytes);

@@ -79,6 +79,7 @@ test("printf accepts long directives and literals while bounding malformed diagn
 test("printf scans directive grammar consistently for text and opaque byte formats", async () => {
   for (const [format, operands] of [
     ["%0005d|%.d|%.s", ["7", "0", "text"]],
+    ["%hhhd|%llld|%jzd", ["7", "8", "9"]],
     ["%#.*hx|%jd|%zu|%td|%hhd|%llX", ["4", "15", "17", "18", "-19", "20", "255"]],
     ["[% +0-6.2Lf]|%000*.*s|%s", ["1.5", "-5", "2", "abc", "tail"]],
   ] as const) {
@@ -95,7 +96,7 @@ test("printf scans directive grammar consistently for text and opaque byte forma
       assert.deepEqual(result.stderr, native.stderr);
     }
   }
-  for (const format of ["%", "% ", "%8-2s", "%*3s", "%.**s", "%1.2.3s", "%hhhd", "%llld", "%jzd", "%Hs", "%.", "%..s", "%α"]) {
+  for (const format of ["%", "% ", "%8-2s", "%*3s", "%.**s", "%1.2.3s", "%Hs", "%.", "%..s", "%α"]) {
     for (const raw of [false, true]) {
       const result = await runByteArguments("printf", [raw ? shellValueFromBytes(Buffer.from(format)) : format]);
       assert.equal(result.exitCode, 1, format);

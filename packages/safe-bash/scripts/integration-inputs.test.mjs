@@ -31,6 +31,7 @@ test("basic command audit regressions remain in active discovery", () => {
     "tests/commands/basic-printf-locale.test.ts",
     "tests/commands/basic-printf-alternate.test.ts",
     "tests/commands/basic-printf-Q.test.ts",
+    "tests/commands/basic-printf-wide.test.ts",
     "tests/commands/basic-pwd-environment.test.ts",
   ]) assert.ok(selected.includes(path), path);
 });

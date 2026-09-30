@@ -37,13 +37,15 @@ export async function parsePrintfDirective(format: string | Uint8Array, start: n
   const width = await field();
   let precision: number | "*" | undefined;
   if (character() === ".") { offset++; precision = await field(); }
-  const length = character();
-  if (length && "hlLjzt".includes(length)) {
+  let wide = false;
+  for (let modifier = character(); modifier && "hlLjzt".includes(modifier); modifier = character()) {
+    wide ||= modifier === "l";
     offset++;
-    if ((length === "h" || length === "l") && character() === length) offset++;
+    if ((offset - start) % 1024 === 0) await yieldTurn(signal);
   }
-  const specifier = character();
-  if (!specifier || !"sbqQcdiouxXfFeEgGaA".includes(specifier)) {
+  let specifier = character();
+  if (wide && (specifier === "s" || specifier === "c")) specifier = specifier.toUpperCase();
+  if (!specifier || !"sbqQcCSdiouxXfFeEgGaA".includes(specifier)) {
     const end = start + 64;
     const preview = typeof format === "string" ? format.slice(start, end) : decoder.decode(format.subarray(start, end));
     throw new UsageError(`invalid format near '${preview}${format.length > end ? "..." : ""}'`);

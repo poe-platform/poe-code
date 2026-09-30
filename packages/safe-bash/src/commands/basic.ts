@@ -9,6 +9,7 @@ import { parsePrintfFloat } from "./printf-float.js";
 import { printfDecimal } from "./printf-decimal.js";
 import { parsePrintfDirective } from "./printf-format.js";
 import { quotePrintf } from "./printf-quote.js";
+import { widePrintf } from "./printf-wide.js";
 
 const utf8Encoder = new TextEncoder();
 
@@ -232,6 +233,17 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
       const supplied = args[suppliedIndex] ?? "";
       let text: string;
       let specialFloat: string | undefined;
+      if (specifier === "S" || specifier === "C") {
+        const suppliedBytes = arguments_.bytes(suppliedIndex) ?? new Uint8Array();
+        const wide = unicode.utf8 ? await widePrintf(suppliedBytes, specifier === "C", precision, context.signal)
+          : specifier === "C" ? { bytes: suppliedBytes.length ? suppliedBytes.subarray(0, 1) : Uint8Array.of(0), characters: 1 }
+          : { bytes: suppliedBytes.subarray(0, precision), characters: Math.min(suppliedBytes.length, precision ?? suppliedBytes.length) };
+        const padding = " ".repeat(Math.max(0, width - wide.characters));
+        if (!flags.includes("-")) await output(context, padding);
+        await output(context, wide.bytes);
+        if (flags.includes("-")) await output(context, padding);
+        continue;
+      }
       if (specifier === "b" || specifier === "s") {
         const suppliedValue = arguments_.values[suppliedIndex] ?? "";
         const raw = specifier === "b" && typeof suppliedValue === "string" ? suppliedValue : arguments_.bytes(suppliedIndex) ?? new Uint8Array();

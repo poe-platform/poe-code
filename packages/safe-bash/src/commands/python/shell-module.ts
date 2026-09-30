@@ -1,5 +1,5 @@
 /** Portable Python shell workflows; transport is supplied by the parent invocation. */
-const pythonShellModule = String.raw`
+const pythonShellModule = /* @__PURE__ */ (() => String.raw`
 from __future__ import annotations
 import asyncio
 import math
@@ -221,7 +221,7 @@ def _check_output(args, **options):
 
 def _unsupported_popen(*args, **kwargs):
     raise NotImplementedError('Safe Bash does not expose OS processes; use run or check_output')
-`;
+`)();
 
 export function installPythonShellModule(runtime: {
   readonly globals: { set(name: string, value: unknown): void; delete(name: string): unknown };

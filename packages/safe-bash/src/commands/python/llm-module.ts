@@ -1,5 +1,5 @@
 /** Python source bundled as data; a host bridge must install it as poe_llm. */
-const pythonLlmModule = String.raw`
+const pythonLlmModule = /* @__PURE__ */ (() => String.raw`
 """Async Python workflows for the invocation-owned JavaScript LLM service."""
 from __future__ import annotations
 
@@ -460,7 +460,7 @@ class Conversation:
             self.messages.extend((Message("user", prompt), Message("assistant", response.text)))
             self.id = response.conversation or self.id
             return response
-`;
+`)();
 
 /** Install only Python data/code, without exposing a host service or credentials. */
 export function installPythonLlmModule(runtime: {

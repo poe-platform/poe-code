@@ -1,5 +1,5 @@
 /** The customizable Python libraries share one bounded, data-only protocol. */
-export const pythonLibraryAdapter = String.raw`
+export const pythonLibraryAdapter = /* @__PURE__ */ (() => String.raw`
 import sys as _safe_library_sys, types as _safe_library_types
 import safe_host as _safe_library_host
 
@@ -125,4 +125,4 @@ for _safe_library_name in ('llm', 'shell'):
  _safe_library_sys.modules[_safe_library_module.__name__] = _safe_library_module
 
 del _safe_library_sys, _safe_library_types, _safe_library_host, _safe_library_name, _safe_library_module, _safe_library_type
-`;
+`)();

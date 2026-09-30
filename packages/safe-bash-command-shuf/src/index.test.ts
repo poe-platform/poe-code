@@ -33,3 +33,19 @@ test("shuf declares stdin, file input, and mutating named output support", () =>
   assert.deepEqual(requirements?.map(mode => mode.id), ['stdin', 'file', 'output']);
   assert.equal(requirements?.find(mode => mode.id === 'output')?.mutates, true);
 });
+
+test("range sampling preserves a displaced value below the GNU sparse threshold", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/random", new Uint8Array([0, 0, 1, 0, 0]));
+  const chunks: Uint8Array[] = [];
+  const result = await createShufCommand().execute({
+    command: "shuf",
+    args: createCommandArguments(["--random-source=/random", "-i0-131070", "-n2"]).args,
+    cwd: "/", env: {}, fs, stdin: createBytePipe().readable,
+    stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
+    stderr: { async write() { assert.fail("unexpected diagnostic"); } },
+    signal: new AbortController().signal,
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(Buffer.concat(chunks).toString(), "1\n0\n");
+});

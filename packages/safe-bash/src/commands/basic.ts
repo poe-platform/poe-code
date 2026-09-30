@@ -1,6 +1,6 @@
 import { writeDiagnostic } from "../escaping.js";
-import { basename, dirname, getCommandArguments, type CommandContext, type CommandDefinition, type CommandHandler, type CommandResult } from "../contracts/index.js";
-import { define, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
+import { getCommandArguments, type CommandContext, type CommandDefinition, type CommandHandler, type CommandResult } from "../contracts/index.js";
+import { define, escapeBytes, options, output, requireOperands, UsageError } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { pwdRequirements } from "./portable-requirements.js";
 import { printfInteger } from "./printf-integer.js";
@@ -72,25 +72,55 @@ export function basicCommands(): CommandDefinition[] {
       return { exitCode: 0 };
     }),
     define("basename", async (context) => {
-      const parsed = options(context.args, "as:z", { multiple: "a", suffix: "s", zero: "z" }, true);
+      const arguments_ = getCommandArguments(context);
+      const operands: number[] = [];
+      let suffix: Uint8Array | undefined;
+      const parsed = options(arguments_.args, "as:z", { multiple: "a", suffix: "s", zero: "z" }, true,
+        index => { operands.push(index); },
+        (_key, index, offset) => { suffix = arguments_.bytes(index)!.subarray(offset); });
       const multiple = parsed.flags.has("a") || parsed.flags.has("s");
       requireOperands(parsed.operands, 1, multiple ? Infinity : 2);
-      const suffix = value(parsed, "s") ?? (multiple ? undefined : parsed.operands[1]);
-      for (const operand of multiple ? parsed.operands : parsed.operands.slice(0, 1)) {
-        let result = /^\/+$/u.test(operand) ? "/" : basename(operand);
-        if (suffix && result !== suffix && result.endsWith(suffix)) result = result.slice(0, -suffix.length);
-        await output(context, result + (parsed.flags.has("z") ? "\0" : "\n"));
+      if (!multiple && operands.length === 2) suffix = arguments_.bytes(operands[1]!)!;
+      for (const index of multiple ? operands : operands.slice(0, 1)) {
+        const operand = arguments_.bytes(index)!;
+        let end = operand.length;
+        while (end > 0 && operand[end - 1] === 47) end--;
+        let start = end;
+        while (start > 0 && operand[start - 1] !== 47) start--;
+        if (end === 0 && operand.length > 0) end = 1;
+        if (suffix?.length && suffix.length < end - start) {
+          let matches = true;
+          for (let offset = 0; offset < suffix.length; offset++) {
+            if (operand[end - suffix.length + offset] !== suffix[offset]) { matches = false; break; }
+          }
+          if (matches) end -= suffix.length;
+        }
+        const result = new Uint8Array(end - start + 1);
+        result.set(operand.subarray(start, end));
+        result[result.length - 1] = parsed.flags.has("z") ? 0 : 10;
+        await output(context, result);
       }
       return { exitCode: 0 };
     }, 1, 1),
     define("dirname", async (context) => {
-      const parsed = options(context.args, "z", { zero: "z" }, true);
+      const arguments_ = getCommandArguments(context);
+      const operands: number[] = [];
+      const parsed = options(arguments_.args, "z", { zero: "z" }, true, index => { operands.push(index); });
       requireOperands(parsed.operands);
-      for (const operand of parsed.operands) {
-        const parent = dirname(operand);
-        let end = parent.length;
-        while (end > 1 && parent[end - 1] === "/") end--;
-        await output(context, parent.slice(0, end) + (parsed.flags.has("z") ? "\0" : "\n"));
+      for (const index of operands) {
+        const operand = arguments_.bytes(index)!;
+        let end = operand.length;
+        while (end > 0 && operand[end - 1] === 47) end--;
+        if (end === 0 && operand.length > 0) end = 1;
+        else {
+          while (end > 0 && operand[end - 1] !== 47) end--;
+          while (end > 1 && operand[end - 1] === 47) end--;
+        }
+        const result = new Uint8Array((end || 1) + 1);
+        if (end) result.set(operand.subarray(0, end));
+        else result[0] = 46;
+        result[result.length - 1] = parsed.flags.has("z") ? 0 : 10;
+        await output(context, result);
       }
       return { exitCode: 0 };
     }, 1, 1),

@@ -711,6 +711,39 @@ test("path utilities retain upstream slash and suffix boundary behavior", async 
   }
 });
 
+test("path utilities preserve opaque bytes and compare suffix byte identity", async () => {
+  const raw = (...bytes: number[]) => shellValueFromBytes(Uint8Array.from(bytes));
+  for (const [command, args, expected] of [
+    ["basename", [raw(47, 97, 255, 47, 98, 254)], [98, 254, 10]],
+    ["dirname", [raw(47, 97, 255, 47, 98, 254)], [47, 97, 255, 10]],
+    ["basename", [raw(98, 254), raw(255)], [98, 254, 10]],
+    ["basename", ["-s", raw(255), raw(98, 254)], [98, 254, 10]],
+    ["basename", [raw(45, 115, 255), raw(98, 254)], [98, 254, 10]],
+    ["basename", [raw(45, 45, 115, 117, 102, 102, 105, 120, 61, 255), raw(98, 254)], [98, 254, 10]],
+    ["basename", ["-s", raw(254), raw(98, 254)], [98, 10]],
+    ["basename", ["-az", raw(98, 255), raw(98, 254)], [98, 255, 0, 98, 254, 0]],
+    ["dirname", ["-z", raw(97, 255, 47, 98), raw(97, 254, 47, 98)], [97, 255, 0, 97, 254, 0]],
+  ] as const) {
+    const result = await runByteArguments(command, args);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr.length, 0);
+    assert.deepEqual(result.stdout, Buffer.from(expected));
+  }
+  const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(createStandardCommands()) });
+  try {
+    for (const [script, expected] of [
+      ["path=$(printf '%b' '/a\\377/b\\376'); basename \"$path\"", [98, 254, 10]],
+      ["path=$(printf '%b' '/a\\377/b\\376'); dirname \"$path\"", [47, 97, 255, 10]],
+      ["suffix=$(printf '%b' '\\377'); path=$(printf '%b' 'b\\376'); basename -s \"$suffix\" \"$path\"", [98, 254, 10]],
+    ] as const) {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, Uint8Array.from(expected));
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("true and false ignore arguments and cancellation propagates", async () => {
   assert.equal((await run("true", ["--anything"])).exitCode, 0);
   assert.equal((await run("false")).exitCode, 1);

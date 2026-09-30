@@ -134,3 +134,49 @@ fn test_ssh_clone_fetch_pull_push_auth_known_hosts_and_receive_hooks() {
         Some(format!("post-receive:{pushed_oid}\n").as_str())
     );
 }
+
+
+#[test]
+fn test_ssh_push_all_tags_refspecs_and_tilde_home_expansion() {
+    let fs = MemoryFs::new();
+    let seed = [0x42u8; 32];
+    let pub_key = git_rust::crypto::ed25519_public_key(&seed);
+    let priv_pem = git_rust::crypto::format_openssh_ed25519_private_key(&seed, "dev@corp");
+    let pub_line = git_rust::crypto::format_openssh_ed25519_public_key(&pub_key, "dev@corp");
+
+    fs.write_str("/root/.ssh/id_corp", &priv_pem);
+    fs.write_str("/root/.ssh/known_hosts", &format!("git.corp.internal {pub_line}\n"));
+    fs.write_str(
+        "/root/.ssh/config",
+        "Host corp\n  HostName git.corp.internal\n  User git\n  IdentityFile ~/.ssh/id_corp\n  StrictHostKeyChecking yes\n  UserKnownHostsFile ~/.ssh/known_hosts\n",
+    );
+
+    let remote = "/remotes/git.corp.internal/team/app.git";
+    assert_eq!(execute_git_cli(&fs, remote, &["init", "--bare", "-b", "main"]).exit_code, 0);
+    fs.write_str(&format!("{remote}/host_key.pub"), &pub_line);
+    fs.write_str(&format!("{remote}/authorized_keys"), &pub_line);
+
+    let local = "/work/app";
+    assert_eq!(execute_git_cli(&fs, local, &["init", "-b", "main"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, local, &["config", "user.name", "Dev"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, local, &["config", "user.email", "dev@corp"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, local, &["remote", "add", "origin", "git@corp:team/app.git"]).exit_code, 0);
+
+    fs.write_str("/work/app/f.txt", "1\n");
+    assert_eq!(execute_git_cli(&fs, local, &["add", "f.txt"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, local, &["commit", "-m", "c1"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, local, &["tag", "v1.0.0"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, local, &["checkout", "-b", "feat"]).exit_code, 0);
+
+    assert_eq!(execute_git_cli(&fs, local, &["push", "origin", "--all"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, local, &["push", "origin", "--tags"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, local, &["push", "origin", "HEAD:refs/heads/rel"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, local, &["push", "origin", ":refs/heads/feat"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, local, &["push", "origin", "--delete", "v1.0.0"]).exit_code, 0);
+
+    let ls = execute_git_cli(&fs, local, &["ls-remote", "origin"]).stdout;
+    assert!(ls.contains("refs/heads/main"));
+    assert!(ls.contains("refs/heads/rel"));
+    assert!(!ls.contains("refs/heads/feat"));
+    assert!(!ls.contains("refs/tags/v1.0.0"));
+}

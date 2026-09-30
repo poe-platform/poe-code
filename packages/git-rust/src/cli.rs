@@ -4437,8 +4437,42 @@ pub fn execute_git_cli_with_input(
             }
         }
         "push" => {
+            let remote_name = positionals.first().copied().unwrap_or("origin");
+            let base_force = sub_args.contains(&"-f") || sub_args.contains(&"--force");
+            let base_delete = sub_args.contains(&"--delete") || sub_args.contains(&"-d");
+            let mut specs: Vec<(Option<String>, Option<String>, bool, bool)> = Vec::new();
+            if sub_args.contains(&"--all") {
+                for b in crate::list_refs(fs, &gitdir, "refs/heads") {
+                    let full = format!("refs/heads/{b}");
+                    specs.push((Some(full.clone()), Some(full), base_force, false));
+                }
+            }
+            if sub_args.contains(&"--tags") {
+                for t in crate::list_refs(fs, &gitdir, "refs/tags") {
+                    let full = format!("refs/tags/{t}");
+                    specs.push((Some(full.clone()), Some(full), base_force, false));
+                }
+            }
+            for raw_spec in positionals.iter().skip(1) {
+                let (force_spec, spec) = if let Some(stripped) = raw_spec.strip_prefix("+") {
+                    (true, stripped)
+                } else {
+                    (base_force, *raw_spec)
+                };
+                if let Some((src, dst)) = spec.split_once(":") {
+                    if src.is_empty() {
+                        specs.push((Some(dst.to_string()), Some(dst.to_string()), force_spec, true));
+                    } else {
+                        specs.push((Some(src.to_string()), Some(dst.to_string()), force_spec, base_delete));
+                    }
+                } else {
+                    specs.push((Some(spec.to_string()), None, force_spec, base_delete));
+                }
+            }
+            if specs.is_empty() {
+                specs.push((None, None, base_force, base_delete));
+            }
             if !sub_args.contains(&"--no-verify") {
-                let remote_name = positionals.first().copied().unwrap_or("origin");
                 let remote_url = get_config(fs, &gitdir, &format!("remote.{remote_name}.url"))
                     .map(|v| v.as_str().to_string())
                     .unwrap_or_else(|| remote_name.to_string());
@@ -4460,44 +4494,43 @@ pub fn execute_git_cli_with_input(
                     return CliResult::err(pre_p.exit_code, format!("{}{}", pre_p.stdout, pre_p.stderr));
                 }
             }
-            match push(
-                fs,
-                http,
-                Some(&repo_root),
-                Some(&gitdir),
-                positionals.get(1).copied(),
-                None,
-                positionals.first().copied(),
-                None,
-                sub_args.contains(&"-f") || sub_args.contains(&"--force"),
-                sub_args.contains(&"--delete") || sub_args.contains(&"-d"),
-                None,
-                None,
-                None,
-            ) {
-                Ok(_) => {
-                    if sub_args.contains(&"-u") || sub_args.contains(&"--set-upstream") {
-                        let remote = positionals.first().copied().unwrap_or("origin");
-                        let branch = positionals
-                            .get(1)
-                            .map(|s| s.to_string())
-                            .or_else(|| current_branch(fs, &gitdir, false, false).ok().flatten());
-                        if let Some(branch) = branch {
-                            let name = branch.trim_start_matches("refs/heads/");
-                            for (key, value) in [
-                                (format!("branch.{name}.remote"), remote.to_string()),
-                                (format!("branch.{name}.merge"), format!("refs/heads/{name}")),
-                            ] {
-                                if let Err(e) = set_config(fs, &gitdir, &key, Some(&value), false) {
-                                    return CliResult::err(128, format!("fatal: {}\n", e.message));
-                                }
-                            }
+            for (src_ref, dst_ref, force_flag, delete_flag) in &specs {
+                if let Err(e) = push(
+                    fs,
+                    http,
+                    Some(&repo_root),
+                    Some(&gitdir),
+                    src_ref.as_deref(),
+                    dst_ref.as_deref(),
+                    Some(remote_name),
+                    None,
+                    *force_flag,
+                    *delete_flag,
+                    None,
+                    None,
+                    None,
+                ) {
+                    return CliResult::err(128, format!("fatal: {}\n", e.message));
+                }
+            }
+            if sub_args.contains(&"-u") || sub_args.contains(&"--set-upstream") {
+                let branch = positionals
+                    .get(1)
+                    .map(|s| s.trim_start_matches("+").split(":").next().unwrap_or(s).to_string())
+                    .or_else(|| current_branch(fs, &gitdir, false, false).ok().flatten());
+                if let Some(branch) = branch {
+                    let name = branch.trim_start_matches("refs/heads/");
+                    for (key, value) in [
+                        (format!("branch.{name}.remote"), remote_name.to_string()),
+                        (format!("branch.{name}.merge"), format!("refs/heads/{name}")),
+                    ] {
+                        if let Err(e) = set_config(fs, &gitdir, &key, Some(&value), false) {
+                            return CliResult::err(128, format!("fatal: {}\n", e.message));
                         }
                     }
-                    CliResult::ok("")
                 }
-                Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
             }
+            CliResult::ok("")
         }
         "check-ref-format" => {
             let branch_mode = sub_args.contains(&"--branch");

@@ -141,3 +141,30 @@ fn test_post_checkout_post_merge_pre_rebase_pre_push_and_core_hooks_path() {
     let seen = fs.read_str("/repo/.git/pre-push-seen").unwrap_or_default();
     assert_eq!(seen.trim(), "origin|https://example.com/repo.git|refs/heads/main");
 }
+
+
+#[test]
+fn test_post_rewrite_hook_cat_stdin_on_amend_and_rebase() {
+    let fs = MemoryFs::new();
+    let repo = "/repo-rewrite";
+    assert_eq!(execute_git_cli(&fs, repo, &["init", "-b", "main"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, repo, &["config", "user.name", "Tester"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, repo, &["config", "user.email", "tester@example.com"]).exit_code, 0);
+
+    fs.write_str(
+        "/repo-rewrite/.git/hooks/post-rewrite",
+        "#!/bin/sh\necho \"mode:$1\" >> /repo-rewrite/rewrite.log\ncat >> /repo-rewrite/rewrite.log\nexit 0\n",
+    );
+
+    fs.write_str("/repo-rewrite/a.txt", "v1\n");
+    assert_eq!(execute_git_cli(&fs, repo, &["add", "a.txt"]).exit_code, 0);
+    assert_eq!(execute_git_cli(&fs, repo, &["commit", "-m", "initial"]).exit_code, 0);
+    let old_oid = execute_git_cli(&fs, repo, &["rev-parse", "HEAD"]).stdout.trim().to_string();
+
+    assert_eq!(execute_git_cli(&fs, repo, &["commit", "--amend", "-m", "amended"]).exit_code, 0);
+    let new_oid = execute_git_cli(&fs, repo, &["rev-parse", "HEAD"]).stdout.trim().to_string();
+
+    let log = fs.read_str("/repo-rewrite/rewrite.log").unwrap_or_default();
+    assert!(log.contains("mode:amend"));
+    assert!(log.contains(&format!("{old_oid} {new_oid}")));
+}

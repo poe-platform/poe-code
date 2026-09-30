@@ -689,10 +689,26 @@ fn eval_single_command(
             0
         }
         "cat" => {
-            for f in &toks[1..] {
-                let p = resolve_fs_path(repo_root, f);
-                if let Some(content) = fs.read_str(&p) {
-                    local_out.push_str(&content);
+            if toks.len() == 1 {
+                while *stdin_cursor < stdin_lines.len() {
+                    local_out.push_str(stdin_lines[*stdin_cursor]);
+                    local_out.push('\n');
+                    *stdin_cursor += 1;
+                }
+            } else {
+                for f in &toks[1..] {
+                    if f == "-" {
+                        while *stdin_cursor < stdin_lines.len() {
+                            local_out.push_str(stdin_lines[*stdin_cursor]);
+                            local_out.push('\n');
+                            *stdin_cursor += 1;
+                        }
+                    } else {
+                        let p = resolve_fs_path(repo_root, f);
+                        if let Some(content) = fs.read_str(&p) {
+                            local_out.push_str(&content);
+                        }
+                    }
                 }
             }
             0

@@ -180,7 +180,12 @@ pub fn resolve_ssh_config(
 
     for path in config_paths {
         if let Some(text) = fs.read_str(&path) {
-            parse_ssh_config_text(&text, &endpoint.host, &mut cfg);
+            let config_home = path
+                .strip_suffix("/.ssh/config")
+                .filter(|h| !h.is_empty())
+                .map(|h| h.to_string())
+                .unwrap_or_else(crate::environment::home);
+            parse_ssh_config_text_with_home(&text, &endpoint.host, &config_home, &mut cfg);
             break;
         }
     }
@@ -250,6 +255,10 @@ fn apply_ssh_command_flags(cmd: &str, cfg: &mut SshHostConfig) {
 }
 
 pub fn parse_ssh_config_text(text: &str, target_host: &str, cfg: &mut SshHostConfig) {
+    parse_ssh_config_text_with_home(text, target_host, &crate::environment::home(), cfg);
+}
+
+pub fn parse_ssh_config_text_with_home(text: &str, target_host: &str, home_dir: &str, cfg: &mut SshHostConfig) {
     let mut active = true;
     let mut seen_hostname = false;
     let mut seen_user = false;
@@ -289,7 +298,7 @@ pub fn parse_ssh_config_text(text: &str, target_host: &str, cfg: &mut SshHostCon
             }
         } else if key.eq_ignore_ascii_case("IdentityFile") && !seen_identity {
             let expanded = if let Some(rest) = val.strip_prefix("~/") {
-                format!("{}/{rest}", crate::environment::home())
+                format!("{home_dir}/{rest}")
             } else {
                 val.to_string()
             };
@@ -300,7 +309,7 @@ pub fn parse_ssh_config_text(text: &str, target_host: &str, cfg: &mut SshHostCon
             seen_strict = true;
         } else if key.eq_ignore_ascii_case("UserKnownHostsFile") && !seen_known_hosts {
             let expanded = if let Some(rest) = val.strip_prefix("~/") {
-                format!("{}/{rest}", crate::environment::home())
+                format!("{home_dir}/{rest}")
             } else {
                 val.to_string()
             };
@@ -750,8 +759,17 @@ pub fn ssh_push(
         None => crate::current_branch(fs, &local_gitdir, false, false)?
             .ok_or_else(|| GitError::missing_parameter("ref"))?,
     };
-    let full_local_ref = if local_ref.starts_with("refs/") {
+    let full_local_ref = if local_ref == "HEAD" {
+        crate::current_branch(fs, &local_gitdir, true, false)
+            .ok()
+            .flatten()
+            .unwrap_or_else(|| "HEAD".to_string())
+    } else if local_ref.starts_with("refs/") {
         local_ref.clone()
+    } else if delete {
+        GitRefManager::expand(fs, &remote_gitdir, &local_ref)
+            .or_else(|_| GitRefManager::expand(fs, &local_gitdir, &local_ref))
+            .unwrap_or_else(|_| format!("refs/heads/{local_ref}"))
     } else {
         GitRefManager::expand(fs, &local_gitdir, &local_ref)
             .unwrap_or_else(|_| format!("refs/heads/{local_ref}"))

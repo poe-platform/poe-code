@@ -115,6 +115,18 @@ describe("safe-bash sharded unit runner", () => {
     expect(calls[0]).not.toContain("--experimental-test-isolation=none");
   });
 
+  it("isolates tests that replace Node builtin exports", () => {
+    const fileSystem = createSafeBashFixture();
+    fileSystem.writeFileSync("/repo/packages/safe-bash/src/a.test.ts",
+      'import { syncBuiltinESMExports } from "node:module";\nsyncBuiltinESMExports();\n');
+    const shards = partitionSafeBashTestShards("/repo/packages/safe-bash",
+      ["src/a.test.ts", "src/b.test.ts"], { fileSystem });
+    expect(shards).toEqual([
+      { index: 0, isolate: false, files: ["src/b.test.ts"] },
+      { index: 1, isolate: true, files: ["src/a.test.ts"] }
+    ]);
+  });
+
   it("computes per-shard and per-file keys and invalidates only modified test files", () => {
     const fileSystem = createSafeBashFixture();
     const raw = partitionSafeBashTestShards(

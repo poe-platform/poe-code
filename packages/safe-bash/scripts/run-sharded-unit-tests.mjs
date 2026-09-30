@@ -65,7 +65,7 @@ export function partitionSafeBashTestShards(
     } catch {
       source = "";
     }
-    if (ISOLATED_TEST_FILES.has(file) || ISOLATED_PATTERNS.test(source)) {
+    if (ISOLATED_TEST_FILES.has(file) || ISOLATED_PATTERNS.test(source) || source.includes("syncBuiltinESMExports")) {
       isolated.push(file);
     } else {
       shared.push(file);

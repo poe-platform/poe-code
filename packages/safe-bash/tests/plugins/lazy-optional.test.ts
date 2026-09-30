@@ -181,3 +181,12 @@ test("explicit ssconvert format selections do not install implicit default forma
     await shell.dispose();
   }
 });
+
+
+test("lazy Pandoc factories reject invalid registration before execution", () => {
+  for (const create of [lazy.createPandocCommand, lazy.createPandocCommands, lazy.pandocCommands]) {
+    assert.throws(() => create({ jsonFilterCommand: "node --eval" }), TypeError);
+    assert.throws(() => create({ citeproc: { style: 73 as unknown as string } }), TypeError);
+    assert.throws(() => create({ jsonFilterCommand: "node", filters: { apply: async document => document } }), TypeError);
+  }
+});

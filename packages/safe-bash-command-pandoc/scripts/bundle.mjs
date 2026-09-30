@@ -24,7 +24,7 @@ const notices = await Promise.all(["fengari", "sprintf-js", "citeproc"].map(asyn
 // Prepare portable adapters and embed third-party parsers. First-party engines
 // and contracts retain their canonical workspace owners in the parent bundle.
 await build({
-  entryPoints: ["src/index.ts", "src/command.ts", "src/lua-filters.ts", "src/citeproc-filters.ts"], outdir: "dist",
+  entryPoints: ["src/options.ts", "src/index.ts", "src/command.ts", "src/lua-filters.ts", "src/citeproc-filters.ts"], outdir: "dist",
   bundle: true, platform: "browser", format: "esm", target: "es2022",
   external, splitting: true, chunkNames: "chunks/[name]-[hash]", sourcemap: true,
   define: { process: "undefined", "process.env.FENGARICONF": '"{}"' },

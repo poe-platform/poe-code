@@ -46,6 +46,10 @@
     "./command": {
       "types": "./dist/command.d.ts",
       "import": "./dist/command.js"
+    },
+    "./options": {
+      "types": "./dist/options.d.ts",
+      "import": "./dist/options.js"
     }
   },
   "dependencies": {

@@ -1,6 +1,7 @@
 // Ambient declarations must follow source consumers without adding a runtime import.
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./citeproc.d.ts" />
+import {validateCiteprocOptions} from "./options.js";
 import CSL from "citeproc";
 import {PandocError} from "./errors.js";
 import {htmlReader} from "./html.js";
@@ -46,11 +47,7 @@ function metaValueToCsl(value: MetaValue, numeric = false): unknown {
 
 /** Run citeproc-js with supplied or metadata CSL references and bounded defaults. */
 export function createCiteprocFilterCapability(options: CiteprocFilterOptions = {}): FilterCapability {
-  if (!options || typeof options !== "object" ||
-      (options.style !== undefined && typeof options.style !== "string") ||
-      (options.locale !== undefined && typeof options.locale !== "string") ||
-      (options.references !== undefined && !Array.isArray(options.references)))
-    throw new TypeError("CSL style, locale and references must be valid when supplied");
+  validateCiteprocOptions(options);
   const style = options.style ?? defaultStyle;
   const locale = options.locale ?? defaultLocale;
   return {

@@ -1,3 +1,4 @@
+import {validatePandocOptions} from "./options.js";
 import {convert} from "./engine.js";
 import {createCiteprocFilterCapability, type CiteprocFilterOptions} from "./citeproc-filters.js";
 import {createJsonFilterCapability} from "./json-filters.js";
@@ -58,11 +59,8 @@ function parseShebangCommand(bytes: Uint8Array): string | undefined {
 
 /** Explicit opt-in: SDK owns all parsing, validation and document conversion. */
 export function createPandocCommand(options: PandocCommandsOptions = {}, hasCommand?: (name: string) => boolean): CommandDefinition {
-  if (options.replace !== undefined && typeof options.replace !== "boolean") throw new TypeError("pandoc replace must be boolean");
+  validatePandocOptions(options);
   const interpreter = options.jsonFilterCommand;
-  if (interpreter !== undefined && (typeof interpreter !== "string" || !interpreter || [...interpreter].some(character => character.trim() === "" || character === "/" || character === "\0")))
-    throw new TypeError("pandoc jsonFilterCommand must be a registered command name");
-  if (interpreter !== undefined && options.filters !== undefined) throw new TypeError("Supply either filters or jsonFilterCommand");
   const limits = {...options.limits};
   const configuredFilters = options.filters;
   const citeprocCapability = createCiteprocFilterCapability(options.citeproc);

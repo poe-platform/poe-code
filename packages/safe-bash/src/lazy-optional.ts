@@ -1,3 +1,4 @@
+import { validatePandocOptions } from "safe-bash-command-pandoc/options";
 import {
   createLazyCommandLoader,
   createLazyCommands,
@@ -134,6 +135,7 @@ export const pandocCommands: pandocModule["pandocCommands"] = (options = {}) => 
   };
 };
 export const createPandocCommands: pandocModule["createPandocCommands"] = (...args) => {
+  validatePandocOptions(args[0] === undefined ? {} : args[0]);
   const definitions = createLazyCommands(pandocMetadata, async () => {
     const module = await loadpandoc();
     return () => module.createPandocCommands(...args);
@@ -141,6 +143,7 @@ export const createPandocCommands: pandocModule["createPandocCommands"] = (...ar
   return definitions;
 };
 export const createPandocCommand: pandocModule["createPandocCommand"] = (...args) => {
+  validatePandocOptions(args[0] === undefined ? {} : args[0]);
   const metadata = pandocMetadata.find((item) => item.name === "pandoc");
   if (!metadata) throw new TypeError("Unknown pandoc command");
   return createLazyCommands([metadata], async () => {

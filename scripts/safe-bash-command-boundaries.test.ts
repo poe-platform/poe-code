@@ -22,9 +22,14 @@ for (const command of commands) {
       if (entry.endsWith('.ts')) {
         const source = readFileSync(new URL(`../packages/safe-bash/src/commands/${command}/${entry}`, import.meta.url), 'utf8').trim();
         const parsed = ts.createSourceFile(entry, source, ts.ScriptTarget.Latest, true);
-        assert.ok(parsed.statements.every(statement => ts.isExportDeclaration(statement)
-          && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)
-          && statement.moduleSpecifier.text.startsWith(name)), `${entry} retains an implementation in the shell`);
+        assert.ok(parsed.statements.every(statement => {
+          if (ts.isImportDeclaration(statement)) return !statement.importClause
+            && !statement.attributes && ts.isStringLiteral(statement.moduleSpecifier)
+            && statement.moduleSpecifier.text === '../../portable-buffer.js';
+          return ts.isExportDeclaration(statement)
+            && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)
+            && (statement.moduleSpecifier.text === name || statement.moduleSpecifier.text.startsWith(name + '/'));
+        }), `${entry} retains an implementation in the shell`);
       }
     }
   });

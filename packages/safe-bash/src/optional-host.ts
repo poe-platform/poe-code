@@ -11,6 +11,7 @@ export {
   registerDefaultExecutor,
   registerDefaultExecutors,
   syncCommandEvaluators,
+  UsageError,
 } from "./commands/internal.js";
 export { portableTrapExtension } from "./shell/trap.js";
 export type { TrapExtensionOptions, TrapSignalHost } from "./shell/trap.js";
@@ -44,3 +45,5 @@ export type {
   ShellSpecialParameterHook,
 } from "./shell/extensions.js";
 export type { RawRecord, ReadLine } from "./shell/input.js";
+export { ByteInputBudget } from "./commands/bytes/input-budget.js";
+export { inputRequirements } from "./commands/portable-requirements.js";

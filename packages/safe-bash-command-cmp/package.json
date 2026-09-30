@@ -11,17 +11,9 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./compare": {
-      "types": "./dist/compare.d.ts",
-      "import": "./dist/compare.js"
-    },
     "./index": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./io": {
-      "types": "./dist/io.d.ts",
-      "import": "./dist/io.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
@@ -43,6 +35,7 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
-    "safe-bash-io-engine": "*"
+    "safe-bash-io-engine": "*",
+    "safe-bash-byte-input-engine": "*"
   }
 }

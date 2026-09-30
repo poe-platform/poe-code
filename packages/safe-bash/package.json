@@ -1247,14 +1247,13 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
-            "safe-bash-io-engine": "*"
+            "safe-bash-io-engine": "*",
+            "safe-bash-byte-input-engine": "*"
           },
           "portable": true,
           "optionalModules": {
             ".": "./dist/commands/cmp/index.js",
-            "./compare": "./dist/commands/cmp/compare.js",
             "./index": "./dist/commands/cmp/index.js",
-            "./io": "./dist/commands/cmp/io.js",
             "./options": "./dist/commands/cmp/options.js"
           }
         },

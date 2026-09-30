@@ -82,14 +82,15 @@ describe("safe-bash sharded unit runner", () => {
   });
 
   it.each([
-    "cleanup-registration/controls.test.ts",
-    "continuation/glob-transport.test.ts",
-    "executor.test.ts",
-    "followup/messageerror.test.ts"
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts",
+    "tests/commands/regex-execution/continuation/glob-transport.test.ts",
+    "tests/commands/regex-execution/executor.test.ts",
+    "tests/commands/regex-execution/followup/messageerror.test.ts",
+    "tests/commands/expr/abort-reason-regression.test.ts"
   ])("isolates the Worker-patching harness %s on its first execution", file => {
     const fileSystem = createSafeBashFixture();
     const root = "/repo/packages/safe-bash";
-    const entry = `tests/commands/regex-execution/${file}`;
+    const entry = file;
     fileSystem.mkdirSync(`${root}/${entry.slice(0, entry.lastIndexOf("/"))}`, { recursive: true });
     fileSystem.writeFileSync(`${root}/${entry}`, 'workersModule.Worker = ControlledWorker;\nsyncBuiltinESMExports();\n');
     expect(partitionSafeBashTestShards(root, [entry, "src/a.test.ts"], { fileSystem })).toEqual([

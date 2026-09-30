@@ -4,13 +4,11 @@ import { fileURLToPath } from "node:url";
 import { createContext, runInContext } from "node:vm";
 import { build } from "esbuild";
 import { createDos2unixCommand, createUnix2dosCommand, createDos2unixCommands, dos2unixCommands } from "safe-bash-command-dos2unix";
-import { LineEndingError } from "safe-bash-line-ending-engine";
 import { createCommandArguments, CommandArgumentIdentityError } from "safe-bash-contracts";
 import { writeFileOutput, filesystemOutputBudgets } from "safe-bash-contracts/filesystem-output-budget";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { createManagedControlController } from "safe-bash-contracts/signals";
 import { createDos2unixCommand as publicDos2unix, createUnix2dosCommand as publicUnix2dos, lineEndingCommands } from "../packages/safe-bash/src/commands/line-endings/index.js";
-import { LineEndingError as compatibleError } from "safe-bash-line-ending-engine";
 import { writeFileOutput as compatibleWrite } from "../packages/safe-bash/src/contracts/filesystem-output.js";
 import { filesystemOutputBudgets as compatibleBudgets } from "../packages/safe-bash/src/contracts/filesystem-output-budget.js";
 import { yieldTurn as compatibleYield } from "../packages/safe-bash/src/contracts/yield.js";
@@ -65,7 +63,6 @@ it("shares the private implementation, diagnostics and file output accounting wi
     expect(builtInDirectContextExecutors.has(command.execute)).toBe(true);
     expect(builtInDirectContextExecutors.has(facade({ limits: { maxInputBytes: 1 } }).execute)).toBe(false);
   }
-  expect(compatibleError).toBe(LineEndingError);
   expect(compatibleWrite).toBe(writeFileOutput);
   expect(compatibleBudgets).toBe(filesystemOutputBudgets);
   expect(compatibleYield).toBe(yieldTurn);

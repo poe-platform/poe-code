@@ -79,7 +79,7 @@ test("malformed session diagnostics match the host JSON error contract", async (
     assert.equal(errors[1], errors[0]);
   }
 });
-test("Rust parser limit failures do not retry an unrestricted host parse", async () => {
+test("deep session values use native parsing without a host fallback", async () => {
   let extension = null;
   for (let level = 0; level < 140; level++) extension = [extension];
   const source = JSON.stringify({ ...session, extension }),
@@ -92,7 +92,7 @@ test("Rust parser limit failures do not retry an unrestricted host parse", async
     throw Error("unrestricted parse must not run");
   };
   try {
-    await assert.rejects(store.load("t"), (error) => error.message.includes("DepthLimit"));
+    assert.deepEqual(await store.load("t"), { ...session, extension });
     assert.equal(attempts, 0);
   } finally {
     JSON.parse = parse;

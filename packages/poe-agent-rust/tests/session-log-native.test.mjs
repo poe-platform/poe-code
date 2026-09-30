@@ -125,7 +125,7 @@ test("JSONL replay preserves blank-line numbering and final-record validation", 
   }
 });
 
-test("parser bounds reject complete and partial final records instead of discarding them", async () => {
+test("deep JSONL final records and memory snapshots retain their values", async () => {
   let extension = null;
   for (let level = 0; level < 140; level++) extension = [extension];
   let source = JSON.stringify({ ...entry, extension });
@@ -138,20 +138,12 @@ test("parser bounds reject complete and partial final records instead of discard
       }
     }
   });
-  await assert.rejects(
-    store.list(),
-    (error) => error.message === "Rust session parser limit exceeded at /x/t.jsonl:1."
-  );
+  assert.deepEqual(await store.list(), [{ ...entry, extension }]);
   source += "\n";
-  await assert.rejects(
-    store.list(),
-    (error) => error.message === "Rust session parser limit exceeded at /x/t.jsonl:1."
-  );
+  assert.deepEqual(await store.list(), [{ ...entry, extension }]);
   const memory = own.createMemorySessionStore("t");
-  await assert.rejects(memory.append({ ...entry, extension }), (error) =>
-    error.message.includes("DepthLimit")
-  );
-  assert.deepEqual(await memory.list(), []);
+  await memory.append({ ...entry, extension });
+  assert.deepEqual(await memory.list(), [{ ...entry, extension }]);
 });
 test("all entry kinds and malformed metadata replay agree with the original validator", async () => {
   const base = { id: "id", parentId: null, createdAt: "at" },

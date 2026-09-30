@@ -640,7 +640,8 @@ Browser snapshots have no byte limit, including automatic snapshots after
 navigation. Legacy `maxSnapshotBytes` settings are ignored.
 Pass `onSnapshot` to `createPlaywrightCli` or `createPlaywrightController` to inspect
 navigation response headers and call `recapture()` before publishing YAML or JSON.
-Page URL and title reflect changes made by the hook. The `/playwright` entrypoint
+Page URL, title and console events reflect changes made by the hook. Recaptures
+re-resolve target selectors and finish before the session accepts another command. The `/playwright` entrypoint
 also exports `getPlaywrightMainFrameNavigation(context, page)` for passive metadata
 reads. See the [snapshot hook contract](src/contracts/playwright-snapshot.md).
 `playwright-cli --help` and `playwright-cli show --help` report dashboard

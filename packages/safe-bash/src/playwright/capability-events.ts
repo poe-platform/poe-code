@@ -54,7 +54,15 @@ export function observePlaywrightCapabilities(context: PlaywrightContext, regist
     bytes += size - (previous?.bytes ?? 0);
     history.set(record, { bytes: size, evict });
     if (size > state.maxBytes) forget(record);
-    while (history.size > (limits.maxEventEntries ?? Infinity) || bytes > state.maxBytes) forget(history.keys().next().value!);
+    while (history.size > (limits.maxEventEntries ?? Infinity) || bytes > state.maxBytes) {
+      // Preserve active navigation metadata ahead of rolling diagnostics, while
+      // still applying the configured byte and entry budgets to every record.
+      let diagnostic: object | undefined;
+      for (const record of history.keys()) {
+        if (!('mainFrameNavigation' in record) || !record.mainFrameNavigation) { diagnostic = record; break; }
+      }
+      forget(diagnostic ?? history.keys().next().value!);
+    }
   };
   const byteLength = (text: string) => new TextEncoder().encode(text).byteLength;
   const pageEvents = (page: PlaywrightPage): PageEvents => {

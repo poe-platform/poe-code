@@ -896,11 +896,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         return { sections };
       }
       sections.push(...await downloadSections(session));
-      if (invocation.writeArtifact) {
-        const consoleLink = await flushPlaywrightConsole(session.lease!.context, page, { ...(session.configuration ? { configuration: session.configuration } : {}), writeArtifact });
-        if (consoleLink) sections.push({ title: 'Events', content: `- New console entries: ${consoleLink}` });
-      }
-      const pageSectionIndex = sections.length;
+      let pageSectionIndex = sections.length;
       if (snapshot !== 'none' && (page.frames || page.ariaSnapshot || page._snapshotForAI || page.ariaSnapshotJSON || session.lease?.captureSnapshotJSON)) {
         const snapshotOptions: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureReferences?: import('./adapter.js').PlaywrightSnapshotReferenceCapture } = { timeout: sessionSnapshotTimeout(session), ...(session.configuration?.snapshot?.boxes === undefined ? {} : { boxes: session.configuration.snapshot.boxes }), ...(session.lease?.captureSnapshotReferences ? { captureReferences: session.lease.captureSnapshotReferences } : {}) };
         if (parsed.command === 'snapshot') {
@@ -910,16 +906,22 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             snapshotOptions.depth = depth;
           }
           if (parsed.options.boxes) snapshotOptions.boxes = true;
-          if (parsed.args[0]) snapshotOptions.root = await resolveTarget(session, parsed.args[0]);
         }
         const captureWithHook = async <TSnapshot>(format: 'yaml' | 'json', capture: () => Promise<TSnapshot>): Promise<TSnapshot> => {
           let active = true;
-          const recapture = async () => {
-            if (!active) throw new Error('Playwright snapshot hook has completed');
-            check();
-            const value = await capture();
-            check();
-            return value;
+          let pending: Promise<void> = Promise.resolve();
+          const recapture = () => {
+            if (!active) return Promise.reject(new Error('Playwright snapshot hook has completed'));
+            const operation = pending.then(async () => {
+              check();
+              if (parsed.command === 'snapshot' && parsed.args[0]) snapshotOptions.root = await resolveTarget(session, parsed.args[0]);
+              const value = await capture();
+              check();
+              return value;
+            });
+            // Observe failures immediately, and serialize all admitted captures.
+            pending = operation.then(() => {}, () => {});
+            return operation;
           };
           try {
             const initial = await recapture();
@@ -929,7 +931,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               snapshot: initial, ...(navigation ? { navigation } : {}), signal: local.signal, recapture });
             check();
             return result;
-          } finally { active = false; }
+          } finally { active = false; await pending; }
         };
         retained = false;
         if (parsed.command === 'snapshot' && parsed.json && filename === undefined) {
@@ -937,21 +939,26 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           check();
           retained = parsed.command === 'snapshot';
           sections.push({ title: 'Snapshot', content: { json: tree as unknown as import('./response.js').PlaywrightJsonValue }, codeframe: 'json' });
-          return { sections };
+        } else {
+          retained = false;
+          const text = await captureWithHook('yaml', () => session.snapshot.capture(page, local.signal, snapshotOptions));
+          check();
+          retained = parsed.command === 'snapshot';
+          if (filename !== undefined || snapshot === 'file' && invocation.writeArtifact) {
+            const target = filename ?? capabilityArtifactName('page', 'yml', session.configuration);
+            const bytes = new TextEncoder().encode(text);
+            if (bytes.byteLength > maxArtifactBytes) throw new PlaywrightResourceLimitError('Artifact byte limit exceeded');
+            if (!invocation.writeArtifact) throw new Error('Artifact byte destination unsupported');
+            await writeArtifact(bytes, target);
+            sections.push({ title: 'Snapshot', content: `- [Snapshot](${target})` });
+          } else sections.push({ title: 'Snapshot', content: text.trimEnd(), codeframe: 'yaml' });
         }
-        retained = false;
-        const text = await captureWithHook('yaml', () => session.snapshot.capture(page, local.signal, snapshotOptions));
-        check();
-        retained = parsed.command === 'snapshot';
-        if (filename !== undefined || snapshot === 'file' && invocation.writeArtifact) {
-          const target = filename ?? capabilityArtifactName('page', 'yml', session.configuration);
-          const bytes = new TextEncoder().encode(text);
-          if (bytes.byteLength > maxArtifactBytes) throw new PlaywrightResourceLimitError('Artifact byte limit exceeded');
-          if (!invocation.writeArtifact) throw new Error('Artifact byte destination unsupported');
-          await writeArtifact(bytes, target);
-          sections.push({ title: 'Snapshot', content: `- [Snapshot](${target})` });
-        } else sections.push({ title: 'Snapshot', content: text.trimEnd(), codeframe: 'yaml' });
       }
+      if (invocation.writeArtifact) {
+        const consoleLink = await flushPlaywrightConsole(session.lease!.context, page, { ...(session.configuration ? { configuration: session.configuration } : {}), writeArtifact });
+        if (consoleLink) sections.splice(pageSectionIndex++, 0, { title: 'Events', content: `- New console entries: ${consoleLink}` });
+      }
+
       if (parsed.command !== 'snapshot' || !parsed.json) {
         const title = await page.title?.();
         check();

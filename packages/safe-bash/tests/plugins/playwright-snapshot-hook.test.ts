@@ -59,7 +59,7 @@ test('navigation reader exposes only retained main-frame response metadata acros
     assert.deepEqual(getPlaywrightMainFrameNavigation(f.context, f.page), { url: 'https://example.com/redirect' });
     f.respond(next, 200);
     for (let index = 0; index < 10; index++) f.navigate(`https://example.com/api/${index}`, false);
-    assert.equal(getPlaywrightMainFrameNavigation(f.context, f.page), undefined);
+    assert.deepEqual(getPlaywrightMainFrameNavigation(f.context, f.page), { url: 'https://example.com/redirect', status: 200, headers: { 'cf-mitigated': 'challenge' } });
   } finally { for (const cleanup of cleanups) await cleanup(); }
   assert.equal(getPlaywrightMainFrameNavigation(f.context, f.page), undefined);
 });
@@ -195,5 +195,101 @@ test('recapture replaces interstitial element refs with actionable post-challeng
     await run(['click', 'e2']);
     assert.deepEqual(clicked, ['Continue']);
     assert.ok(snapshot.disposedCapsules.length > 0);
+  } finally { await controller.dispose(); }
+});
+
+for (const throws of [false, true]) test(`pending recapture drains before hook ${throws ? 'failure' : 'return'}`, async () => {
+  const f = fixture();
+  let finish!: () => void;
+  let started!: () => void;
+  const ready = new Promise<void>(resolve => { started = resolve; });
+  const pending = new Promise<void>(resolve => { finish = resolve; });
+  let captures = 0;
+  f.page.ariaSnapshot = async () => {
+    if (++captures === 2) { started(); await pending; }
+    return '- document "Ready"\n';
+  };
+  const failure = new Error('Hook failed');
+  const controller = createPlaywrightController({ adapter: f.adapter, onSnapshot: async request => {
+    void request.recapture();
+    void request.recapture();
+    await ready;
+    if (throws) throw failure;
+    return request.snapshot;
+  } });
+  let settled = false;
+  const run = controller.run({ args: ['open'], env: {}, signal: new AbortController().signal, async write() {} });
+  const outcome = run.then(() => { settled = true; }, error => { settled = true; assert.equal(error, failure); });
+  try {
+    await ready;
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(settled, false);
+    assert.equal(captures, 2);
+  } finally { finish(); await outcome; await controller.dispose(); }
+  assert.equal(captures, 3);
+});
+
+test('snapshot flushes only destination console messages after the hook', async () => {
+  const f = fixture();
+  const artifacts: string[] = [];
+  const log = (text: string) => f.context.emit('console', { page: () => f.page, type: () => 'warning', text: () => text, location: () => ({ url: f.page.url(), lineNumber: 1 }) });
+  f.page.ariaSnapshot = async () => { log('challenge'); return '- document "Challenge"\n'; };
+  const controller = createPlaywrightController({ adapter: f.adapter, onSnapshot: async request => {
+    await f.page.goto!('https://example.com/destination');
+    log('destination');
+    return request.snapshot;
+  } });
+  try {
+    await controller.run({ args: ['open'], env: {}, signal: new AbortController().signal, async write() {}, async writeArtifact(bytes) { artifacts.push(new TextDecoder().decode(bytes)); } });
+    assert.ok(artifacts.some(text => text.includes('destination')));
+    assert.ok(!artifacts.some(text => text.includes('challenge')));
+  } finally { await controller.dispose(); }
+});
+
+test('console eviction preserves navigation within configured entry and byte limits', async () => {
+  const f = fixture();
+  const cleanups: (() => Promise<void>)[] = [];
+  observePlaywrightCapabilities(f.context, cleanup => cleanups.push(cleanup), { maxCommandBytes: 512, maxArtifactBytes: 512, maxEventEntries: 2 });
+  try {
+    const request = f.navigate('https://example.com');
+    f.respond(request, 200);
+    for (let i = 0; i < 10; i++) f.context.emit('console', { page: () => f.page, type: () => 'info', text: () => `message ${i}`, location: () => ({ url: 'https://example.com', lineNumber: 1 }) });
+    assert.equal(getPlaywrightMainFrameNavigation(f.context, f.page)?.status, 200);
+    f.navigate('x'.repeat(513));
+    assert.equal(getPlaywrightMainFrameNavigation(f.context, f.page), undefined);
+  } finally { for (const cleanup of cleanups) await cleanup(); }
+});
+
+test('unlimited event retention preserves more than 4096 records', async () => {
+  const f = fixture();
+  const cleanups: (() => Promise<void>)[] = [];
+  observePlaywrightCapabilities(f.context, cleanup => cleanups.push(cleanup), { maxCommandBytes: Infinity, maxArtifactBytes: Infinity });
+  try {
+    f.navigate('https://example.com');
+    for (let i = 0; i < 4100; i++) f.navigate(`https://example.com/api/${i}`, false);
+    assert.deepEqual(getPlaywrightMainFrameNavigation(f.context, f.page), { url: 'https://example.com' });
+  } finally { for (const cleanup of cleanups) await cleanup(); }
+});
+
+for (const format of ['yaml', 'json'] as const) test(`${format} target snapshot resolves the root again after DOM replacement`, async () => {
+  const f = fixture();
+  let generation = 0;
+  const roots: PlaywrightElementHandle[] = [];
+  f.page.locator = () => ({ async elementHandle() {
+    const root = { generation, async dispose() {} } as unknown as PlaywrightElementHandle;
+    roots.push(root);
+    return root;
+  }, toString: () => '[object Object]' }) as ReturnType<PlaywrightPage['locator']>;
+  f.page.ariaSnapshot = async () => '- document "Ready"\n';
+  const controller = createPlaywrightController({ adapter: f.adapter, onSnapshot: async request => {
+    if (request.command !== 'snapshot') return request.snapshot;
+    generation++;
+    return request.recapture();
+  } });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {} });
+  try {
+    await run(['open']);
+    await run(['snapshot', '#root', ...(format === 'json' ? ['--json'] : [])]);
+    assert.deepEqual(roots.map(root => (root as unknown as { generation: number }).generation), [0, 1]);
   } finally { await controller.dispose(); }
 });

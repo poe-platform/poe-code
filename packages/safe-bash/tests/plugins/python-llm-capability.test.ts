@@ -6,7 +6,7 @@ import { createLlmCommands } from '../../src/commands/llm/command.js';
 import { MemoryFileSystem } from '../../src/fs/memory/index.js';
 import { toByteSource } from '../../src/contracts/index.js';
 import type { CommandContext } from '../../src/contracts/index.js';
-import type { LlmRequest } from '../../src/commands/llm/types.js';
+import type { LlmRequest, LlmProvider } from '../../src/commands/llm/types.js';
 
 const signal = new AbortController().signal;
 
@@ -442,7 +442,7 @@ test('resolves key aliases on the JavaScript host without exposing stored keys t
   const embedKeys: (string | undefined)[] = [];
   const provider: LlmProvider = {
     name: 'mock',
-    models: [{ id: 'mock-1', capabilities: ['embed'] }],
+    models: [{ id: 'mock-1', capabilities: ['embed'], attachmentTypes: ['text/plain'] }],
     async *complete(req) {
       seenKeys.push(req.key);
       yield 'ok';
@@ -458,22 +458,31 @@ test('resolves key aliases on the JavaScript host without exposing stored keys t
   };
   const service = createLlmService({ providers: [provider], defaultModel: 'mock-1' });
   const capability = createPythonLlmCapability(
-    { fs: fsInstance, cwd: '/home/user', env: { HOME: '/home/user' }, inputBudget: { claim: () => {} } },
+    { fs: fsInstance, cwd: '/home/user', env: { HOME: '/home/user' } },
     service,
-    { maxInputBytes: 65536, maxOutputBytes: 65536 },
+    { maxBufferedResponseBytes: 65536 },
   );
-  const comp = await capability.call(
+  const comp = await capability.call!(
     { operation: 'complete', payload: { prompt: 'hello', key: 'team-openai' } },
     { signal: new AbortController().signal },
   ) as { text: string };
   assert.equal(comp.text, 'ok');
   assert.deepEqual(seenKeys, ['sk-host-only-secret']);
-  await capability.call(
+  await fsInstance.writeFile('/home/user/note.txt', new TextEncoder().encode('canonical'));
+  const attached = {prompt:'hello',key:'team-openai',attachments:[{path:'/home/user/note.txt',mimeType:'text/plain'}]};
+  const completion = await capability.call!({operation:'complete',payload:attached},{signal}) as {text:string};
+  assert.equal(completion.text,'ok');
+  const streamed = [];
+  for await (const event of capability.stream!(attached,{signal})) streamed.push(event);
+  assert.equal(streamed.length,2);
+  assert.deepEqual(seenKeys, ['sk-host-only-secret','sk-host-only-secret','sk-host-only-secret']);
+
+  await capability.call!(
     { operation: 'embed', payload: { inputs: ['hello'], key: 'team-openai' } },
     { signal: new AbortController().signal },
   );
   assert.deepEqual(embedKeys, ['sk-host-only-secret']);
-  const config = await capability.call(
+  const config = await capability.call!(
     { operation: 'configuration', payload: {} },
     { signal: new AbortController().signal },
   ) as Record<string, unknown>;

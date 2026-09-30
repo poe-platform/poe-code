@@ -237,7 +237,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         ...(payload.messages === undefined ? {} : {messages:(payload.messages as unknown as {role:'system'|'user'|'assistant';content:string}[]).map(message => ({role:message.role,content:textSource(message.content)}))}),
         ...(payload.schema === undefined ? {} : {schema:record(payload.schema)}),
         options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>,
-        attachments, signal, stream, ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
+        attachments, signal, stream, ...(key === undefined ? {} : {key}), ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
       };
     } catch (error) {
       await Promise.allSettled(sources.map(source => source.dispose()));

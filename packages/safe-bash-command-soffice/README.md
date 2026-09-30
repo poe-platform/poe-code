@@ -1,6 +1,6 @@
 # `@poe-platform/safe-bash/commands/soffice`
 
-`createSofficeCommand(options?)` creates one command, `createSofficeCommands(options?)` returns the command family, and `sofficeCommands(options?)` registers it as a shell plugin. `SofficeCommandsOptions` describes configuration; all three factories accept no arguments.
+`createSofficeCommand(options?)` creates one command, `createSofficeCommands(options?)` returns the command family, and `sofficeCommands(options?)` registers it as a shell plugin. `SofficeCommandsOptions` describes configuration; all three factories accept no arguments. `SofficeLimits` configures cumulative `maxInputBytes`, `maxOutputBytes`, and `maxArgumentBytes` through `options.limits`; omitted limits default to `Infinity`. Asynchronous execution yields between bounded work batches and honors cancellation.
 
 Headless LibreOffice (`soffice` / `libreoffice`) conversion command for `safe-bash` virtual shells and TypeScript, rendering `.docx`, `.odt`, `.ods`, `.odp`, `.xlsx`, `.pptx`, `.csv`, `.html`, `.md`, and `.txt` documents to styled multi-page PDFs (and converting spreadsheets to `.xlsx`, `.csv`, `.txt`, `.html`, and documents to `.txt`, `.html`, `.md`) via `@poe-code/pdf-ast`.
 

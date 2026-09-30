@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { resolvePath } from "@poe-code/safe-fs/core";
 import { convertOds, starCalcCsvOptions } from "./spreadsheet.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -12,7 +13,22 @@ import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { PdfDocument, rgb } from "@poe-code/pdf-ast";
 
+export interface SofficeLimits {
+  readonly maxInputBytes: number;
+  readonly maxOutputBytes: number;
+  readonly maxArgumentBytes: number;
+}
+
+function resolveLimits(options: SofficeCommandOptions): SofficeLimits {
+  const limits = { maxInputBytes: Infinity, maxOutputBytes: Infinity, maxArgumentBytes: Infinity, ...options.limits };
+  for (const [name, value] of Object.entries(limits)) {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) throw new RangeError(`${name} limit must be a nonnegative safe integer or Infinity`);
+  }
+  return limits;
+}
+
 export interface SofficeCommandOptions {
+  readonly limits?: Partial<SofficeLimits>;
   readonly replace?: boolean;
 }
 
@@ -177,7 +193,7 @@ function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: 
   return slides;
 }
 
-function renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Uint8Array {
+function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Generator<undefined, Uint8Array> {
   const doc = PdfDocument.create();
   doc.setTitle(title);
   doc.setCreator("LibreOffice 24.8 (@poe-code/pdf-ast)");
@@ -192,7 +208,9 @@ function renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Uin
     }
   };
 
+  let work = 0;
   for (const block of blocks) {
+    if (++work % 32 === 0) yield undefined;
     if (block.kind === "heading") {
       ensureSpace(32);
       page.drawText(block.text ?? "", {
@@ -219,7 +237,9 @@ function renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Uin
       const colWidth = tableWidth / colCount;
       const rowHeight = 22;
 
-      block.rows.forEach((row, rIdx) => {
+      for (let rIdx = 0; rIdx < block.rows.length; rIdx++) {
+        if (++work % 32 === 0) yield undefined;
+        const row = block.rows[rIdx]!;
         ensureSpace(rowHeight + 6);
         const rowTop = y;
         const rowBottom = y - rowHeight;
@@ -263,7 +283,7 @@ function renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Uin
           });
         });
         y -= rowHeight;
-      });
+      }
       y -= 14;
     }
   }
@@ -568,7 +588,7 @@ function* runSofficeSteps(
   files: Map<string, Uint8Array>,
   cwd: string,
   signal: AbortSignal
-): Generator<() => Promise<Uint8Array>, SofficeCliResult, Uint8Array> {
+): Generator<undefined | (() => Promise<Uint8Array>), SofficeCliResult, Uint8Array | undefined> {
   try {
     const parsed = parseSofficeArguments(argv, cwd);
     if ("exitCode" in parsed) return parsed;
@@ -577,6 +597,8 @@ function* runSofficeSteps(
     if (catMode && !convertSpec && inputs.length > 0) {
       const chunks: string[] = [];
       for (const inputPath of inputs) {
+      yield undefined;
+      signal.throwIfAborted();
         const bytes = files.get(inputPath) ?? files.get(resolvePath(cwd, inputPath));
         if (!bytes) {
           return { exitCode: 1, stdout: "", stderr: `Error: source file could not be loaded: ${inputPath}\n` };
@@ -619,6 +641,8 @@ function* runSofficeSteps(
     let stdout = "";
 
     for (const inputPath of inputs) {
+      yield undefined;
+      signal.throwIfAborted();
       const inputBytes = files.get(inputPath) ?? files.get(resolvePath(cwd, inputPath));
       if (!inputBytes) {
         return {
@@ -648,7 +672,7 @@ function* runSofficeSteps(
       let outBytes: Uint8Array;
 
       if (lowerIn.endsWith(".ods") && (targetExt === "csv" || targetExt === "xlsx")) {
-        outBytes = yield () => convertOds(inputBytes, targetExt, filterOpts, signal);
+        outBytes = (yield () => convertOds(inputBytes, targetExt, filterOpts, signal))!;
       } else if ([".docx", ".odt", ".ods", ".odp", ".rtf"].some(ext => lowerIn.endsWith(ext))) {
         const blocks = lowerIn.endsWith(".docx")
           ? parseDocxBlocks(inputBytes)
@@ -656,7 +680,7 @@ function* runSofficeSteps(
             ? parseOdtBlocks(inputBytes)
             : parseRtfBlocks(inputBytes);
         if (targetExt === "pdf") {
-          outBytes = renderBlocksToPdf(blocks, stem);
+          outBytes = yield* renderBlocksToPdf(blocks, stem);
         } else if (targetExt === "html") {
           outBytes = renderBlocksToHtml(blocks, stem);
         } else if (targetExt === "docx") {
@@ -680,7 +704,7 @@ function* runSofficeSteps(
         } else if (targetExt === "html") {
           outBytes = renderBlocksToHtml([{ kind: "table", rows }], stem);
         } else if (targetExt === "pdf") {
-          outBytes = renderBlocksToPdf([{ kind: "table", rows }], stem);
+          outBytes = yield* renderBlocksToPdf([{ kind: "table", rows }], stem);
         } else {
           outBytes = new TextEncoder().encode(rows.map(row => row.join("\t")).join("\n") + "\n");
         }
@@ -741,7 +765,7 @@ function* runSofficeSteps(
             ? { kind: "heading", text: l.slice(2).trim() }
             : { kind: "paragraph", text: l }
         );
-        outBytes = targetExt === "pdf" ? renderBlocksToPdf(blocks, stem) : targetExt === "docx" ? buildDocxFromBlocks(blocks) : targetExt === "html" ? renderBlocksToHtml(blocks, stem) : inputBytes;
+        outBytes = targetExt === "pdf" ? yield* renderBlocksToPdf(blocks, stem) : targetExt === "docx" ? buildDocxFromBlocks(blocks) : targetExt === "html" ? renderBlocksToHtml(blocks, stem) : inputBytes;
       }
 
       if (targetExt === "pdf" && filterOpts && filterOpts.trim().startsWith("{")) {
@@ -795,7 +819,8 @@ export function runSofficeCliSync(
   cwd = "/"
 ): SofficeCliResult {
   const steps = runSofficeSteps(argv, files, cwd, new AbortController().signal);
-  const step = steps.next();
+  let step = steps.next();
+  while (!step.done && step.value === undefined) step = steps.next();
   if (step.done) return step.value;
   const result: SofficeCliResult = { exitCode: 1, stdout: "", stderr: "Error: this spreadsheet conversion requires the asynchronous runSofficeCli API\n" };
   steps.return(result);
@@ -811,20 +836,33 @@ export async function runSofficeCli(
   const signal = options.signal ?? new AbortController().signal;
   signal.throwIfAborted();
   const steps = runSofficeSteps(argv, files, cwd, signal);
-  let step = steps.next();
-  while (!step.done) {
-    try { step = steps.next(await step.value()); }
-    catch (error) { step = steps.throw(error); }
-  }
-  signal.throwIfAborted();
-  return step.value;
+  try {
+    let step = steps.next();
+    while (!step.done) {
+      try {
+        await yieldTurn(signal);
+        signal.throwIfAborted();
+        step = steps.next(step.value ? await step.value() : undefined);
+      } catch (error) { step = steps.throw(error); }
+    }
+    signal.throwIfAborted();
+    return step.value;
+  } finally { steps.return({ exitCode: 1, stdout: "", stderr: "" }); }
 }
 
-export async function soffice(context: CommandContext): Promise<{ exitCode: number }> {
+export async function soffice(context: CommandContext, options: SofficeCommandOptions = {}): Promise<{ exitCode: number }> {
+  const limits = resolveLimits(options);
+  let outputBytes = 0;
+  const chargeOutput = (bytes: number) => {
+    outputBytes += bytes;
+    if (outputBytes > limits.maxOutputBytes) throw new RangeError("Output byte limit exceeded");
+  };
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
+    const argumentBytes = argv.reduce((total, arg) => total + new TextEncoder().encode(arg).byteLength + 1, 0);
+    if (argumentBytes > limits.maxArgumentBytes) throw new RangeError("Argument byte limit exceeded");
 
     const vfsFiles = new Map<string, Uint8Array>();
     const parsed = parseSofficeArguments(argv, context.cwd);
@@ -842,6 +880,7 @@ export async function soffice(context: CommandContext): Promise<{ exitCode: numb
       }
       inputBytes += bytes.byteLength;
       context.inputBudget?.check(inputBytes);
+      if (inputBytes > limits.maxInputBytes) throw new RangeError("Input byte limit exceeded");
       vfsFiles.set(abs, bytes);
     }
 
@@ -852,12 +891,14 @@ export async function soffice(context: CommandContext): Promise<{ exitCode: numb
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
     if (res.stdout) {
+      chargeOutput(new TextEncoder().encode(res.stdout).byteLength);
       const stdout = invocation.child(context.stdout);
       await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
     }
 
     for (const [fileKey, fileBytes] of vfsFiles.entries()) {
       if (existingSnap.get(fileKey) !== fileBytes) {
+        chargeOutput(fileBytes.byteLength);
         const abs = resolvePath(context.cwd, fileKey);
         const parentDir = abs.slice(0, abs.lastIndexOf("/")) || "/";
         try {
@@ -875,26 +916,26 @@ export async function soffice(context: CommandContext): Promise<{ exitCode: numb
   }
 }
 
-export function createSofficeCommand(_options: SofficeCommandOptions = {}): CommandDefinition {
+export function createSofficeCommand(options: SofficeCommandOptions = {}): CommandDefinition {
   return Object.freeze({
     name: "soffice",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Headless document/spreadsheet/presentation to PDF and CSV converter via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return soffice(context);
+      return soffice(context, options);
     }
   });
 }
 
 export const sofficeCommand: CommandDefinition = createSofficeCommand();
 
-export function createLibreofficeCommand(_options: SofficeCommandOptions = {}): CommandDefinition {
+export function createLibreofficeCommand(options: SofficeCommandOptions = {}): CommandDefinition {
   return Object.freeze({
     name: "libreoffice",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Headless LibreOffice document/spreadsheet/presentation to PDF converter via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return soffice(context);
+      return soffice(context, options);
     }
   });
 }

@@ -303,7 +303,7 @@ function parse(context: CommandContext, argumentLimit: number, maximumArguments:
 function filePath(context: CommandContext, name: string): string {
   let decoded: string;
   try { decoded = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(Uint8Array.from(name, character => character.charCodeAt(0))); }
-  catch { throw new FsError("ENOTSUP"); }
+  catch { throw new FsError("ENOENT"); }
   return pathOf(context, decoded);
 }
 

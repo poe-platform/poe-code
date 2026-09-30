@@ -40,7 +40,7 @@ test("independent session token and trusted explicit connection routing", async 
     credentials: { ...credentials, sessionToken: "session/+==" },
     request: (options, callback) => { assert.equal(options.hostname, "review-bucket.namespace.invalid"); return nativeRequest({ ...options, hostname: "127.0.0.1" }, callback); },
   });
-  assert.deepEqual((await transport.getObject({ ...object, Key: "a/../%" })).Body, Buffer.from("ok"));
+  assert.deepEqual((await transport.getObject({ ...object, Key: "a/../%" })).Body, new TextEncoder().encode("ok"));
 });
 
 test("independent PUT snapshots reused bytes before awaiting credentials", async context => {

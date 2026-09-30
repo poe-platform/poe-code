@@ -14,7 +14,7 @@ test("real TCP wire preserves dot segments, repeated slashes, UTF-8 and literal 
     response.writeHead(200, { "content-length": "3", etag: '"opaque"' });
     response.end(Buffer.from([0, 128, 255]));
   });
-  for (const path of paths) assert.deepEqual((await fixture.transport().getObject({ ...key, Key: path })).Body, Buffer.from([0, 128, 255]));
+  for (const path of paths) assert.deepEqual((await fixture.transport().getObject({ ...key, Key: path })).Body, Uint8Array.of(0, 128, 255));
   assert.deepEqual(seen, expected.map(path => `/testbucket/${path}`));
 });
 
@@ -96,7 +96,7 @@ test("explicit session credentials and request factory preserve signed Host and 
     assert.equal(options.agent, false);
     return nodeRequest(options, callback);
   } });
-  assert.deepEqual((await client.getObject({ ...key, Key: "a/../b" })).Body, Buffer.from("value"));
+  assert.deepEqual((await client.getObject({ ...key, Key: "a/../b" })).Body, new TextEncoder().encode("value"));
   assert.equal(calls, 1);
 });
 

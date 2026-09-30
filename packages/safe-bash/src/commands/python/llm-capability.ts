@@ -11,9 +11,9 @@ function record(value: PythonHostValue): {readonly [key:string]:PythonHostValue}
   return value as {readonly [key:string]:PythonHostValue};
 }
 
-type PythonLlmContext = Pick<CommandContext, 'fs' | 'cwd' | 'inputBudget'> & Partial<Pick<CommandContext, 'env' | 'fetch'>>;
+type PythonLlmContext = Pick<CommandContext, 'fs' | 'cwd' | 'inputBudget'> & Partial<Pick<CommandContext, 'env' | 'capabilities'>> & { readonly fetch?: typeof globalThis.fetch | undefined };
 
-function configurationContext(context: PythonLlmContext, payload: {readonly [key:string]:PythonHostValue}, signal: AbortSignal): Pick<CommandContext, 'fs' | 'cwd' | 'env' | 'signal' | 'fetch'> {
+function configurationContext(context: PythonLlmContext, payload: {readonly [key:string]:PythonHostValue}, signal: AbortSignal): Parameters<typeof createLlmTemplateStore>[0] {
   const cwd = payload.cwd === undefined ? context.cwd : payload.cwd;
   if (typeof cwd !== 'string' || !cwd.startsWith('/') || cwd.includes('\0')) throw new TypeError('LLM configuration cwd must be an absolute canonical path');
   const env = {...context.env};
@@ -24,7 +24,7 @@ function configurationContext(context: PythonLlmContext, payload: {readonly [key
       else env[key] = value as string;
     }
   }
-  return {fs:context.fs,cwd,env,signal,...(context.fetch ? {fetch:context.fetch} : {})};
+  return {fs:context.fs,cwd,env,signal,...(context.capabilities ? {capabilities:context.capabilities} : {}),...(context.fetch ? {fetch:context.fetch} : {})};
 }
 
 /** Count the wire representation before retaining/serializing host metadata. */

@@ -137,26 +137,43 @@ test("xxd: issue 420 native reverse lexical inputs across chunk boundaries", asy
 
 test("xxd: normal reversal validates addresses and data", async () => {
   assert.equal((await run("xxd", ["-rp"], " 61\t62\r\n63 ")).stdout, "abc");
-  for (const text of ["garbage", "00000000: 6g", "00000001: 61", "00000000: 61\n00000000: 62", "00000000: 6", "x".repeat(4097)]) {
+  for (const text of ["garbage", "00000000: 6g", "00000000: 61\n00000000: 62", "00000000: 6", "x".repeat(4097)]) {
     assert.equal((await run("xxd", ["-r"], text)).exitCode, 1, text.slice(0, 30));
   }
+  assert.deepEqual((await run("xxd", ["-r"], "00000001: 61")).bytes, Buffer.from([0, 97]));
   const partial = await run("xxd", ["-r"], "00000000: 61\n00000001: zz\n");
   assert.equal(partial.exitCode, 1);
   assert.equal(partial.stdout, "a");
 });
 
-test("xxd: unsupported flags/output operands preserve every VFS file", async () => {
+test("xxd: unsupported flags preserve every VFS file", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("original"));
   await fs.writeFile("/output", Buffer.from("preserved"));
   await fs.symlink("/input", "/alias");
   await fs.link("/input", "/hardlink");
-  for (const args of [["-r", "input", "output"], ["-r", "input", "alias"], ["-r", "input", "hardlink"], ["-s-1"], ["-c0"], ["-r", "-s1"], ["-r", "-l1"], ["-r", "-d"], ["-lbad", "-l1"], ["-wat"], ["input", "-", "extra"]]) {
+  for (const args of [["-s-1"], ["-c0"], ["-r", "-l1"], ["-r", "-d"], ["-lbad", "-l1"], ["-wat"], ["input", "-", "extra"]]) {
     assert.equal((await run("xxd", args, "!!", { fs })).exitCode, 2, args.join(" "));
   }
   assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "original");
   assert.equal(Buffer.from(await fs.readFile("/output")).toString(), "preserved");
   assert.equal((await run("xxd", ["-p", "input", "-"], "", { fs })).stdout, "6f726967696e616c\n");
+});
+
+test("xxd: output operands roundtrip sparse addresses and reverse seeks through Shell", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("AB"));
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    for (const command of ["xxd input encoded", "xxd -r -s4 encoded output"]) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+    }
+    assert.deepEqual(Buffer.from(await fs.readFile("/output")), Buffer.from([0, 0, 0, 0, 65, 66]));
+    assert.deepEqual(Buffer.from(await fs.readFile("/input")), Buffer.from("AB"));
+  } finally { await shell.dispose(); }
 });
 
 test("od: byte formats, addresses, escapes and stable little endian", async () => {

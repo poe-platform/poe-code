@@ -8,6 +8,9 @@ Node, browsers and Workers, without Node builtins. File paths require an explici
 and an asynchronous output method; byte inputs also
 support synchronous output. `@poe-code/image-ast/portable` exposes codecs and
 pixel operations; `compositeImage` accepts an explicit `readFile` capability.
+Pixel operations also expose `...Steps` generators, such as `resizeImageSteps`,
+for hosts that schedule bounded work between event-loop turns. The synchronous
+functions return the same pixel results.
 Input pixel limits are disabled by default; set `limitInputPixels` to a positive
 integer to enforce a limit.
 

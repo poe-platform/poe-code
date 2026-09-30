@@ -102,7 +102,7 @@ export function resolveGravityOffset(
   return { x, y };
 }
 
-function regionEntropy(
+function *regionEntropySteps(
   rgba: Uint8Array,
   imgW: number,
   rx: number,
@@ -111,7 +111,8 @@ function regionEntropy(
   rh: number,
   channels = 3,
   hasAlpha = false
-): number {
+): Generator<void, number, void> {
+  let work = 0;
   const total = rw * rh;
   if (total <= 0) return 0;
   const bands = hasAlpha ? 4 : channels === 1 ? 1 : 3;
@@ -120,7 +121,9 @@ function regionEntropy(
   const hB = new Int32Array(256);
   const hA = new Int32Array(256);
   for (let y = ry; y < ry + rh; y++) {
+    if (++work % 16384 === 0) yield;
     for (let x = rx; x < rx + rw; x++) {
+    if (++work % 16384 === 0) yield;
       const idx = (y * imgW + x) * 4;
       if (hasAlpha) {
         const a = rgba[idx + 3]!;
@@ -141,6 +144,7 @@ function regionEntropy(
   const bins = new Int32Array(256);
   let sum = 0;
   for (let i = 0; i < 256; i++) {
+    if (++work % 16384 === 0) yield;
     const b =
       bands === 1
         ? hR[i]!
@@ -153,6 +157,7 @@ function regionEntropy(
   if (sum <= 0) return 0;
   let h = 0;
   for (let i = 0; i < 256; i++) {
+    if (++work % 16384 === 0) yield;
     const c = bins[i]!;
     if (c > 0) {
       const p = c / sum;
@@ -162,7 +167,7 @@ function regionEntropy(
   return h;
 }
 
-function smartcropEntropy(
+function *smartcropEntropySteps(
   rgba: Uint8Array,
   srcW: number,
   srcH: number,
@@ -170,26 +175,28 @@ function smartcropEntropy(
   dstH: number,
   channels = 3,
   hasAlpha = false
-): { readonly x: number; readonly y: number } {
+): Generator<void, { readonly x: number; readonly y: number }, void> {
+  let work = 0;
   let left = 0;
   let top = 0;
   let width = srcW;
   let height = srcH;
   const maxSlice = Math.max(1, Math.max(Math.ceil((srcW - dstW) / 8), Math.ceil((srcH - dstH) / 8)));
   while (width > dstW || height > dstH) {
+    if (++work % 16384 === 0) yield;
     const sliceW = Math.min(width - dstW, maxSlice);
     const sliceH = Math.min(height - dstH, maxSlice);
     if (sliceW > 0) {
-      const eLeft = regionEntropy(rgba, srcW, left, top, sliceW, height, channels, hasAlpha);
-      const eRight = regionEntropy(rgba, srcW, left + width - sliceW, top, sliceW, height, channels, hasAlpha);
+      const eLeft = (yield* regionEntropySteps(rgba, srcW, left, top, sliceW, height, channels, hasAlpha));
+      const eRight = (yield* regionEntropySteps(rgba, srcW, left + width - sliceW, top, sliceW, height, channels, hasAlpha));
       width -= sliceW;
       if (eLeft < eRight) {
         left += sliceW;
       }
     }
     if (sliceH > 0) {
-      const eTop = regionEntropy(rgba, srcW, left, top, width, sliceH, channels, hasAlpha);
-      const eBottom = regionEntropy(rgba, srcW, left, top + height - sliceH, width, sliceH, channels, hasAlpha);
+      const eTop = (yield* regionEntropySteps(rgba, srcW, left, top, width, sliceH, channels, hasAlpha));
+      const eBottom = (yield* regionEntropySteps(rgba, srcW, left, top + height - sliceH, width, sliceH, channels, hasAlpha));
       height -= sliceH;
       if (eTop < eBottom) {
         top += sliceH;
@@ -199,17 +206,18 @@ function smartcropEntropy(
   return { x: left, y: top };
 }
 
-function smartcropAttention(
+function *smartcropAttentionSteps(
   rgba: Uint8Array,
   srcW: number,
   srcH: number,
   dstW: number,
   dstH: number,
   hasAlpha = false
-): { readonly x: number; readonly y: number } {
+): Generator<void, { readonly x: number; readonly y: number }, void> {
+  let work = 0;
   const hscale = 32.0 / srcW;
   const vscale = 32.0 / srcH;
-  const rgba32 = resampleRawBitmap(rgba, srcW, srcH, 32, 32, "lanczos3", hscale, vscale);
+  const rgba32 = (yield* resampleRawBitmapSteps(rgba, srcW, srcH, 32, 32, "lanczos3", hscale, vscale));
   const X = new Float32Array(32 * 32);
   const Y = new Float32Array(32 * 32);
   const Z = new Float32Array(32 * 32);
@@ -219,6 +227,7 @@ function smartcropAttention(
   };
   const fLab = (t: number): number => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16.0 / 116.0);
   for (let i = 0; i < 32 * 32; i++) {
+    if (++work % 16384 === 0) yield;
     const idx = i * 4;
     let r = rgba32[idx]!;
     let g = rgba32[idx + 1]!;
@@ -239,11 +248,15 @@ function smartcropAttention(
 
   const sumMap = new Float32Array(32 * 32);
   for (let y = 0; y < 32; y++) {
+    if (++work % 16384 === 0) yield;
     for (let x = 0; x < 32; x++) {
+    if (++work % 16384 === 0) yield;
       const i = y * 32 + x;
       let conv = 8.0 * Y[i]!;
       for (let ky = -1; ky <= 1; ky++) {
+    if (++work % 16384 === 0) yield;
         for (let kx = -1; kx <= 1; kx++) {
+    if (++work % 16384 === 0) yield;
           if (kx === 0 && ky === 0) continue;
           const sy = Math.max(0, Math.min(31, y + ky));
           const sx = Math.max(0, Math.min(31, x + kx));
@@ -269,21 +282,25 @@ function smartcropAttention(
   const sigma = Math.max(1.0, Math.hypot(hscale * dstW, vscale * dstH) / 10.0);
   const twoSigmaSq = 2 * sigma * sigma;
   let rIdx = 0;
-  while (rIdx < 50 && Math.exp(-(rIdx * rIdx) / twoSigmaSq) >= 0.2) rIdx++;
+  while (rIdx < 50 && Math.exp(-(rIdx * rIdx) / twoSigmaSq) >= 0.2) { if (++work % 16384 === 0) yield; rIdx++; }
   const radius = Math.max(1, rIdx) - 1;
   const size = radius * 2 + 1;
   const kernel = new Float64Array(size);
   let kSum = 0;
   for (let i = -radius; i <= radius; i++) {
+    if (++work % 16384 === 0) yield;
     const w = Math.round(20.0 * Math.exp(-(i * i) / twoSigmaSq));
     kernel[i + radius] = w;
     kSum += w;
   }
   const tmp = new Float32Array(32 * 32);
   for (let y = 0; y < 32; y++) {
+    if (++work % 16384 === 0) yield;
     for (let x = 0; x < 32; x++) {
+    if (++work % 16384 === 0) yield;
       let acc = 0;
       for (let k = -radius; k <= radius; k++) {
+    if (++work % 16384 === 0) yield;
         const sx = Math.max(0, Math.min(31, x + k));
         acc += sumMap[y * 32 + sx]! * kernel[k + radius]!;
       }
@@ -294,9 +311,12 @@ function smartcropAttention(
   let maxX = 0;
   let maxY = 0;
   for (let y = 0; y < 32; y++) {
+    if (++work % 16384 === 0) yield;
     for (let x = 0; x < 32; x++) {
+    if (++work % 16384 === 0) yield;
       let acc = 0;
       for (let k = -radius; k <= radius; k++) {
+    if (++work % 16384 === 0) yield;
         const sy = Math.max(0, Math.min(31, y + k));
         acc += tmp[sy * 32 + x]! * kernel[k + radius]!;
       }
@@ -328,14 +348,15 @@ function fmaDouble(a: number, b: number, c: number): number {
   return (p + c) + err;
 }
 
-function computeVipsNearestIndices2D(
+function *computeVipsNearestIndices2DSteps(
   srcW: number,
   srcH: number,
   dstW: number,
   dstH: number,
   explicitHscale?: number,
   explicitVscale?: number
-): { readonly xs: Int32Array; readonly ys: Int32Array } {
+): Generator<void, { readonly xs: Int32Array; readonly ys: Int32Array }, void> {
+  let work = 0;
   let hscale = explicitHscale ?? 1.0 / (srcW / dstW);
   let vscale = explicitVscale ?? 1.0 / (srcH / dstH);
   const targetW = Math.trunc(fmaDouble(srcW, hscale, 0.5));
@@ -366,6 +387,7 @@ function computeVipsNearestIndices2D(
     const voffset = (extraPixels + 1.0) * 0.5 - 1.0;
     let pos = fmaDouble(0.5, vshrink, -0.5) - voffset;
     for (let y = 0; y < dstH; y++) {
+    if (++work % 16384 === 0) yield;
       const subIdx = Math.max(0, Math.min(subH - 1, Math.trunc(pos)));
       ys[y] = subIdx * yshrink;
       pos += vshrink;
@@ -382,6 +404,7 @@ function computeVipsNearestIndices2D(
     const hoffset = (extraPixels + 1.0) * 0.5 - 1.0;
     let pos = fmaDouble(0.5, hshrink, -0.5) - hoffset;
     for (let x = 0; x < dstW; x++) {
+    if (++work % 16384 === 0) yield;
       const subIdx = Math.max(0, Math.min(subW - 1, Math.trunc(pos)));
       xs[x] = subIdx * xshrink;
       pos += hshrink;
@@ -395,12 +418,14 @@ function computeVipsNearestIndices2D(
       if (hscale >= 1.0) {
         const zoomX = Math.floor(remHscale);
         for (let x = 0; x < dstW; x++) {
+    if (++work % 16384 === 0) yield;
           xs[x] = Math.max(0, Math.min(subW - 1, Math.floor(x / zoomX))) * xshrink;
         }
       }
       if (vscale >= 1.0) {
         const zoomY = Math.floor(remVscale);
         for (let y = 0; y < dstH; y++) {
+    if (++work % 16384 === 0) yield;
           ys[y] = Math.max(0, Math.min(subH - 1, Math.floor(y / zoomY))) * yshrink;
         }
       }
@@ -411,6 +436,7 @@ function computeVipsNearestIndices2D(
       if (hscale >= 1.0) {
         let d9 = 1.0;
         for (let x = 0; x < dstW; x++) {
+    if (++work % 16384 === 0) yield;
           const subIdx = Math.max(0, Math.min(subW - 1, Math.trunc(d9) - 1));
           xs[x] = subIdx * xshrink;
           d9 += ia;
@@ -418,6 +444,7 @@ function computeVipsNearestIndices2D(
       }
       if (vscale >= 1.0) {
         for (let y = 0; y < dstH; y++) {
+    if (++work % 16384 === 0) yield;
           const d8 = y * id + 1.0;
           const subIdx = Math.max(0, Math.min(subH - 1, Math.trunc(d8) - 1));
           ys[y] = subIdx * yshrink;
@@ -426,10 +453,10 @@ function computeVipsNearestIndices2D(
     }
   } else {
     if (hscale === 1.0) {
-      for (let x = 0; x < dstW; x++) xs[x] = Math.min(subW - 1, x) * xshrink;
+      for (let x = 0; x < dstW; x++) { if (++work % 16384 === 0) yield; xs[x] = Math.min(subW - 1, x) * xshrink; }
     }
     if (vscale === 1.0) {
-      for (let y = 0; y < dstH; y++) ys[y] = Math.min(subH - 1, y) * yshrink;
+      for (let y = 0; y < dstH; y++) { if (++work % 16384 === 0) yield; ys[y] = Math.min(subH - 1, y) * yshrink; }
     }
   }
   return { xs, ys };
@@ -490,20 +517,25 @@ const VIPS_BICUBIC_TABLE = (() => {
   return t;
 })();
 
-function shrinkVBox(
+function *shrinkVBoxSteps(
   src: Uint8Array,
   w: number,
   h: number,
   vshrink: number
-): { readonly data: Uint8Array; readonly h: number } {
+): Generator<void, { readonly data: Uint8Array; readonly h: number }, void> {
+  let work = 0;
   const outH = Math.ceil(h / vshrink);
   const out = new Uint8Array(w * outH * 4);
   const roundAdd = vshrink >> 1;
   for (let y = 0; y < outH; y++) {
+    if (++work % 16384 === 0) yield;
     for (let x = 0; x < w; x++) {
+    if (++work % 16384 === 0) yield;
       for (let c = 0; c < 4; c++) {
+    if (++work % 16384 === 0) yield;
         let sum = 0;
         for (let k = 0; k < vshrink; k++) {
+    if (++work % 16384 === 0) yield;
           const sy = Math.min(h - 1, y * vshrink + k);
           sum += src[(sy * w + x) * 4 + c]!;
         }
@@ -514,20 +546,25 @@ function shrinkVBox(
   return { data: out, h: outH };
 }
 
-function shrinkHBox(
+function *shrinkHBoxSteps(
   src: Uint8Array,
   w: number,
   h: number,
   hshrink: number
-): { readonly data: Uint8Array; readonly w: number } {
+): Generator<void, { readonly data: Uint8Array; readonly w: number }, void> {
+  let work = 0;
   const outW = Math.ceil(w / hshrink);
   const out = new Uint8Array(outW * h * 4);
   const roundAdd = hshrink >> 1;
   for (let y = 0; y < h; y++) {
+    if (++work % 16384 === 0) yield;
     for (let x = 0; x < outW; x++) {
+    if (++work % 16384 === 0) yield;
       for (let c = 0; c < 4; c++) {
+    if (++work % 16384 === 0) yield;
         let sum = 0;
         for (let k = 0; k < hshrink; k++) {
+    if (++work % 16384 === 0) yield;
           const sx = Math.min(w - 1, x * hshrink + k);
           sum += src[(y * w + sx) * 4 + c]!;
         }
@@ -538,7 +575,7 @@ function shrinkHBox(
   return { data: out, w: outW };
 }
 
-export function resampleRawBitmap(
+export function *resampleRawBitmapSteps(
   src: Uint8Array,
   srcW: number,
   srcH: number,
@@ -548,7 +585,8 @@ export function resampleRawBitmap(
   explicitHscale?: number,
   explicitVscale?: number,
   alreadyPremultiplied = false
-): Uint8Array {
+): Generator<void, Uint8Array, void> {
+  let work = 0;
   if (srcW === dstW && srcH === dstH && (explicitHscale === undefined || explicitHscale === 1.0) && (explicitVscale === undefined || explicitVscale === 1.0)) {
     return new Uint8Array(src);
   }
@@ -556,6 +594,7 @@ export function resampleRawBitmap(
   let hasSemiTransparentAlpha = false;
   if (!alreadyPremultiplied) {
     for (let i = 3; i < src.length; i += 4) {
+    if (++work % 16384 === 0) yield;
       if (src[i]! < 255) {
         hasSemiTransparentAlpha = true;
         break;
@@ -567,6 +606,7 @@ export function resampleRawBitmap(
   if (hasSemiTransparentAlpha) {
     const pre = new Uint8Array(src.length);
     for (let i = 0; i < src.length; i += 4) {
+    if (++work % 16384 === 0) yield;
       const a = src[i + 3]!;
       const af = Math.fround(a / 255.0);
       pre[i] = Math.max(0, Math.min(255, Math.trunc(Math.fround(src[i]! * af))));
@@ -579,10 +619,12 @@ export function resampleRawBitmap(
 
   if (kernel === "nearest") {
     const out = new Uint8Array(dstW * dstH * 4);
-    const { xs, ys } = computeVipsNearestIndices2D(srcW, srcH, dstW, dstH, explicitHscale, explicitVscale);
+    const { xs, ys } = (yield* computeVipsNearestIndices2DSteps(srcW, srcH, dstW, dstH, explicitHscale, explicitVscale));
     for (let y = 0; y < dstH; y++) {
+    if (++work % 16384 === 0) yield;
       const sy = ys[y]!;
       for (let x = 0; x < dstW; x++) {
+    if (++work % 16384 === 0) yield;
         const sx = xs[x]!;
         const sIdx = (sy * srcW + sx) * 4;
         const dIdx = (y * dstW + x) * 4;
@@ -607,7 +649,7 @@ export function resampleRawBitmap(
       let extraPixels = fmaDouble(targetH, vshrink, -h);
       const intVshrink = Math.max(1, Math.floor((h / targetH) / 2.0));
       if (intVshrink > 1) {
-        const res = shrinkVBox(cur, w, h, intVshrink);
+        const res = (yield* shrinkVBoxSteps(cur, w, h, intVshrink));
         cur = res.data;
         h = res.h;
         vshrink /= intVshrink;
@@ -620,13 +662,17 @@ export function resampleRawBitmap(
         const out = new Uint8Array(w * targetH * 4);
         let Y = fmaDouble(0.5, vshrink, -0.5) - voffset;
         for (let y = 0; y < targetH; y++) {
+    if (++work % 16384 === 0) yield;
           const iy = Math.trunc(Y);
           const ty = ((Math.trunc(Y * 128.0) & 127) + 1) >> 1;
           const wRow = ty * nPoint;
           for (let x = 0; x < w; x++) {
+    if (++work % 16384 === 0) yield;
             for (let c = 0; c < 4; c++) {
+    if (++work % 16384 === 0) yield;
               let sum = 0;
               for (let j = 0; j < nPoint; j++) {
+    if (++work % 16384 === 0) yield;
                 const sy = Math.max(0, Math.min(h - 1, iy + j - topPad));
                 sum += cur[(sy * w + x) * 4 + c]! * table[wRow + j]!;
               }
@@ -647,7 +693,7 @@ export function resampleRawBitmap(
       let extraPixels = fmaDouble(targetW, hshrink, -w);
       const intHshrink = Math.max(1, Math.floor((w / targetW) / 2.0));
       if (intHshrink > 1) {
-        const res = shrinkHBox(cur, w, h, intHshrink);
+        const res = (yield* shrinkHBoxSteps(cur, w, h, intHshrink));
         cur = res.data;
         w = res.w;
         hshrink /= intHshrink;
@@ -660,13 +706,17 @@ export function resampleRawBitmap(
         const out = new Uint8Array(targetW * h * 4);
         let X = fmaDouble(0.5, hshrink, -0.5) - hoffset;
         for (let x = 0; x < targetW; x++) {
+    if (++work % 16384 === 0) yield;
           const ix = Math.trunc(X);
           const tx = ((Math.trunc(X * 128.0) & 127) + 1) >> 1;
           const wRow = tx * nPoint;
           for (let y = 0; y < h; y++) {
+    if (++work % 16384 === 0) yield;
             for (let c = 0; c < 4; c++) {
+    if (++work % 16384 === 0) yield;
               let sum = 0;
               for (let j = 0; j < nPoint; j++) {
+    if (++work % 16384 === 0) yield;
                 const sx = Math.max(0, Math.min(w - 1, ix + j - leftPad));
                 sum += cur[(y * w + sx) * 4 + c]! * table[wRow + j]!;
               }
@@ -688,6 +738,7 @@ export function resampleRawBitmap(
       const id = remHscale * invDet;
       if (kernel === "linear" || kernel === "bilinear") {
         for (let y = 0; y < dstH; y++) {
+    if (++work % 16384 === 0) yield;
           const d8 = y * id + 0.5;
           const iy = Math.trunc(d8);
           const sy = Math.trunc((d8 - iy) * 4096.0);
@@ -695,6 +746,7 @@ export function resampleRawBitmap(
           const y1 = Math.max(0, Math.min(h - 1, iy));
           let d9 = 0.5;
           for (let x = 0; x < dstW; x++) {
+    if (++work % 16384 === 0) yield;
             const ix = Math.trunc(d9);
             const sx = Math.trunc((d9 - ix) * 4096.0);
             const x0 = Math.max(0, Math.min(w - 1, ix - 1));
@@ -704,6 +756,7 @@ export function resampleRawBitmap(
             const c2 = sy - c3;
             const c0 = 4096 - sy - c1;
             for (let c = 0; c < 4; c++) {
+    if (++work % 16384 === 0) yield;
               const p00 = cur[(y0 * w + x0) * 4 + c]!;
               const p10 = cur[(y0 * w + x1) * 4 + c]!;
               const p01 = cur[(y1 * w + x0) * 4 + c]!;
@@ -716,6 +769,7 @@ export function resampleRawBitmap(
         }
       } else {
         for (let y = 0; y < dstH; y++) {
+    if (++work % 16384 === 0) yield;
           const d8 = y * id + 1.5;
           const iy = Math.trunc(d8);
           const ty = ((Math.trunc(d8 * 128.0) & 127) + 1) >> 1;
@@ -729,6 +783,7 @@ export function resampleRawBitmap(
           const y3 = Math.max(0, Math.min(h - 1, iy));
           let d9 = 1.5;
           for (let x = 0; x < dstW; x++) {
+    if (++work % 16384 === 0) yield;
             const ix = Math.trunc(d9);
             const tx = ((Math.trunc(d9 * 128.0) & 127) + 1) >> 1;
             const wx0 = VIPS_BICUBIC_TABLE[tx * 4]!;
@@ -740,6 +795,7 @@ export function resampleRawBitmap(
             const x2 = Math.max(0, Math.min(w - 1, ix - 1));
             const x3 = Math.max(0, Math.min(w - 1, ix));
             for (let c = 0; c < 4; c++) {
+    if (++work % 16384 === 0) yield;
               const r0 =
                 (wx0 * cur[(y0 * w + x0) * 4 + c]! +
                   wx1 * cur[(y0 * w + x1) * 4 + c]! +
@@ -782,6 +838,7 @@ export function resampleRawBitmap(
   if (hasSemiTransparentAlpha) {
     const unpre = new Uint8Array(cur.length);
     for (let i = 0; i < cur.length; i += 4) {
+    if (++work % 16384 === 0) yield;
       const a = cur[i + 3]!;
       if (a === 0) {
         unpre[i] = 0;
@@ -802,7 +859,7 @@ export function resampleRawBitmap(
   return cur;
 }
 
-export function resizeImage(
+export function *resizeImageSteps(
   img: RgbaImage,
   spec: {
     readonly width: number | null;
@@ -815,13 +872,15 @@ export function resizeImage(
     readonly withoutReduction: boolean;
   },
   postScaleTransform?: (scaled: RgbaImage) => RgbaImage
-): RgbaImage {
+): Generator<void, RgbaImage, void> {
+  let work = 0;
   if (img.pages && img.pages > 1 && img.pageHeight && img.height === img.pages * img.pageHeight) {
     const pages = img.pages;
     const pageH = img.pageHeight;
     const pageBytes = img.width * pageH * 4;
     const resizedPages: RgbaImage[] = [];
     for (let p = 0; p < pages; p++) {
+    if (++work % 16384 === 0) yield;
       const singlePage: RgbaImage = {
         ...img,
         height: pageH,
@@ -829,14 +888,24 @@ export function resizeImage(
         pageHeight: pageH,
         data: img.data.subarray(p * pageBytes, (p + 1) * pageBytes)
       };
-      resizedPages.push(resizeImage(singlePage, spec, postScaleTransform));
+      resizedPages.push((yield* resizeImageSteps(singlePage, spec, postScaleTransform)));
     }
     const first = resizedPages[0]!;
     const outW = first.width;
     const outPageH = first.height;
     const outData = new Uint8Array(outW * outPageH * pages * 4);
     for (let p = 0; p < pages; p++) {
-      outData.set(resizedPages[p]!.data, p * outW * outPageH * 4);
+    if (++work % 16384 === 0) yield;
+      {
+ const copySource = resizedPages[p]!.data;
+ const copyTargetOffset = p * outW * outPageH * 4;
+ for (let copyOffset = 0; copyOffset < copySource.length; copyOffset += 65536) {
+  const copyEnd = Math.min(copySource.length, copyOffset + 65536);
+  outData.set(copySource.subarray(copyOffset, copyEnd), copyTargetOffset + copyOffset);
+  work += (copyEnd - copyOffset) / 4;
+  if (work >= 16384) { work %= 16384; yield; }
+ }
+}
     }
     return {
       ...first,
@@ -889,7 +958,7 @@ export function resizeImage(
   const vscale = 1.0 / yShrink;
   let scaledW = Math.max(1, Math.trunc(fmaDouble(srcW, hscale, 0.5)));
   let scaledH = Math.max(1, Math.trunc(fmaDouble(srcH, vscale, 0.5)));
-  let scaledData = resampleRawBitmap(
+  let scaledData = (yield* resampleRawBitmapSteps(
     img.data,
     srcW,
     srcH,
@@ -899,7 +968,7 @@ export function resizeImage(
     hscale,
     vscale,
     Boolean(img.isPremultiplied)
-  );
+  ));
   if (postScaleTransform) {
     const transformed = postScaleTransform({ ...img, width: scaledW, height: scaledH, data: scaledData });
     scaledW = transformed.width;
@@ -924,14 +993,24 @@ export function resizeImage(
       const pos = typeof spec.position === "string" ? spec.position.toLowerCase() : spec.position;
       const offset =
         pos === "entropy" || pos === 16
-          ? smartcropEntropy(scaledData, scaledW, scaledH, cropW, cropH, img.channels, img.hasAlpha)
+          ? (yield* smartcropEntropySteps(scaledData, scaledW, scaledH, cropW, cropH, img.channels, img.hasAlpha))
           : pos === "attention" || pos === 17
-            ? smartcropAttention(scaledData, scaledW, scaledH, cropW, cropH, img.hasAlpha)
+            ? (yield* smartcropAttentionSteps(scaledData, scaledW, scaledH, cropW, cropH, img.hasAlpha))
             : resolveGravityOffset(scaledW, scaledH, cropW, cropH, spec.position, true);
       const cropped = new Uint8Array(cropW * cropH * 4);
       for (let y = 0; y < cropH; y++) {
+    if (++work % 16384 === 0) yield;
         const srcRow = ((offset.y + y) * scaledW + offset.x) * 4;
-        cropped.set(scaledData.subarray(srcRow, srcRow + cropW * 4), y * cropW * 4);
+        {
+ const copySource = scaledData.subarray(srcRow, srcRow + cropW * 4);
+ const copyTargetOffset = y * cropW * 4;
+ for (let copyOffset = 0; copyOffset < copySource.length; copyOffset += 65536) {
+  const copyEnd = Math.min(copySource.length, copyOffset + 65536);
+  cropped.set(copySource.subarray(copyOffset, copyEnd), copyTargetOffset + copyOffset);
+  work += (copyEnd - copyOffset) / 4;
+  if (work >= 16384) { work %= 16384; yield; }
+ }
+}
       }
       return { ...img, width: cropW, height: cropH, data: cropped };
     }
@@ -949,6 +1028,7 @@ export function resizeImage(
       const bgG = img.isPremultiplied ? Math.trunc(Math.fround(bg.g * Math.fround(bg.a / 255.0))) : bg.g;
       const bgB = img.isPremultiplied ? Math.trunc(Math.fround(bg.b * Math.fround(bg.a / 255.0))) : bg.b;
       for (let i = 0; i < embedW * embedH; i++) {
+    if (++work % 16384 === 0) yield;
         canvas[i * 4] = bgR;
         canvas[i * 4 + 1] = bgG;
         canvas[i * 4 + 2] = bgB;
@@ -956,9 +1036,19 @@ export function resizeImage(
       }
       const offset = resolveGravityOffset(embedW, embedH, scaledW, scaledH, spec.position, false);
       for (let y = 0; y < scaledH; y++) {
+    if (++work % 16384 === 0) yield;
         const srcRow = y * scaledW * 4;
         const dstRow = ((offset.y + y) * embedW + offset.x) * 4;
-        canvas.set(scaledData.subarray(srcRow, srcRow + scaledW * 4), dstRow);
+        {
+ const copySource = scaledData.subarray(srcRow, srcRow + scaledW * 4);
+ const copyTargetOffset = dstRow;
+ for (let copyOffset = 0; copyOffset < copySource.length; copyOffset += 65536) {
+  const copyEnd = Math.min(copySource.length, copyOffset + 65536);
+  canvas.set(copySource.subarray(copyOffset, copyEnd), copyTargetOffset + copyOffset);
+  work += (copyEnd - copyOffset) / 4;
+  if (work >= 16384) { work %= 16384; yield; }
+ }
+}
       }
       return {
         ...img,
@@ -980,4 +1070,41 @@ export function resizeImage(
   }
 
   return { ...img, width: scaledW, height: scaledH, data: scaledData };
+}
+
+export function resampleRawBitmap(
+  src: Uint8Array,
+  srcW: number,
+  srcH: number,
+  dstW: number,
+  dstH: number,
+  kernel: ResizeKernel = "lanczos3",
+  explicitHscale?: number,
+  explicitVscale?: number,
+  alreadyPremultiplied = false
+): Uint8Array {
+  const steps = resampleRawBitmapSteps(src, srcW, srcH, dstW, dstH, kernel, explicitHscale, explicitVscale, alreadyPremultiplied);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function resizeImage(
+  img: RgbaImage,
+  spec: {
+    readonly width: number | null;
+    readonly height: number | null;
+    readonly fit: ResizeFit;
+    readonly position: GravityPosition;
+    readonly kernel: ResizeKernel;
+    readonly background: RgbaColor;
+    readonly withoutEnlargement: boolean;
+    readonly withoutReduction: boolean;
+  },
+  postScaleTransform?: (scaled: RgbaImage) => RgbaImage
+): RgbaImage {
+  const steps = resizeImageSteps(img, spec, postScaleTransform);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
 }

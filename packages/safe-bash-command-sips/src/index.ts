@@ -7,25 +7,10 @@ import {
   type CommandContext,
   type CommandDefinition
 } from "safe-bash-contracts/command";
-import { readBytes, writeBytes } from "safe-bash-contracts/io";
+import { writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import {
-  computeImageStats,
-  decodeImage,
-  encodeImage,
-  extendImage,
-  extractImage,
-  flipImage,
-  flopImage,
-  parseColor,
-  readImageMetadata,
-  resizeImage,
-  rotateImage,
-  type ImageFormat,
-  type ImageMetadata,
-  type RgbaImage
-} from "@poe-code/image-ast/portable";
+import { decodeImage, encodeImage, parseColor, readImageMetadata, type ImageFormat, type ImageMetadata, type RgbaImage, computeImageStatsSteps, extendImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, resizeImageSteps, rotateImageSteps } from "@poe-code/image-ast/portable";
 
 export interface SipsLimits {
   readonly maxInputBytes: number;
@@ -189,54 +174,56 @@ function normalizeTargetFormat(fmt: string): ImageFormat | undefined {
   return undefined;
 }
 
-function applySipsOddCanvasCropOrPad(
-  image: RgbaImage,
-  curW: number,
-  curH: number,
-  dstW: number,
-  dstH: number,
-  padColorInput: { readonly r: number; readonly g: number; readonly b: number; readonly alpha?: number } | string
-): RgbaImage {
-  const rawObj = encodeImage(image.channels === 2 ? { ...image, space: "srgb", channels: 4 } : image, { format: "raw" });
-  const ch = rawObj.channels as 1 | 2 | 3 | 4;
-  const src = rawObj.data;
-  const pad = parseColor(padColorInput, ch === 4 || ch === 2 ? 0 : 255);
-  const bg = [pad.r, pad.g, pad.b, pad.a];
-  const offsetX = (dstW - curW) / 2;
-  const offsetY = (dstH - curH) / 2;
-  const out = new Uint8Array(dstW * dstH * ch);
-
-  const sampleCh = (ix: number, iy: number, c: number): number => {
-    if (ix < 0 || ix >= curW || iy < 0 || iy >= curH) {
-      return bg[c] ?? 0;
+function* applySipsOddCanvasCropOrPadSteps(image: RgbaImage, curW: number, curH: number, dstW: number, dstH: number, padColorInput: {
+    readonly r: number;
+    readonly g: number;
+    readonly b: number;
+    readonly alpha?: number;
+} | string): Generator<void, RgbaImage, void> {
+    let work = 0;
+    const rawObj = encodeImage(image.channels === 2 ? { ...image, space: "srgb", channels: 4 } : image, { format: "raw" });
+    const ch = rawObj.channels as 1 | 2 | 3 | 4;
+    const src = rawObj.data;
+    const pad = parseColor(padColorInput, ch === 4 || ch === 2 ? 0 : 255);
+    const bg = [pad.r, pad.g, pad.b, pad.a];
+    const offsetX = (dstW - curW) / 2;
+    const offsetY = (dstH - curH) / 2;
+    const out = new Uint8Array(dstW * dstH * ch);
+    const sampleCh = (ix: number, iy: number, c: number): number => {
+        if (ix < 0 || ix >= curW || iy < 0 || iy >= curH) {
+            return bg[c] ?? 0;
+        }
+        return src[(iy * curW + ix) * ch + c]!;
+    };
+    for (let y = 0; y < dstH; y++) {
+        if (++work % 16384 === 0)
+            yield;
+        const sy = y - offsetY;
+        const iy0 = Math.floor(sy);
+        const wy1 = sy - iy0;
+        const wy0 = 1 - wy1;
+        const iy1 = iy0 + 1;
+        for (let x = 0; x < dstW; x++) {
+            if (++work % 16384 === 0)
+                yield;
+            const sx = x - offsetX;
+            const ix0 = Math.floor(sx);
+            const wx1 = sx - ix0;
+            const wx0 = 1 - wx1;
+            const ix1 = ix0 + 1;
+            const dIdx = (y * dstW + x) * ch;
+            for (let c = 0; c < ch; c++) {
+                if (++work % 16384 === 0)
+                    yield;
+                const v = sampleCh(ix0, iy0, c) * wx0 * wy0 +
+                    sampleCh(ix1, iy0, c) * wx1 * wy0 +
+                    sampleCh(ix0, iy1, c) * wx0 * wy1 +
+                    sampleCh(ix1, iy1, c) * wx1 * wy1;
+                out[dIdx + c] = Math.max(0, Math.min(255, Math.round(v)));
+            }
+        }
     }
-    return src[(iy * curW + ix) * ch + c]!;
-  };
-
-  for (let y = 0; y < dstH; y++) {
-    const sy = y - offsetY;
-    const iy0 = Math.floor(sy);
-    const wy1 = sy - iy0;
-    const wy0 = 1 - wy1;
-    const iy1 = iy0 + 1;
-    for (let x = 0; x < dstW; x++) {
-      const sx = x - offsetX;
-      const ix0 = Math.floor(sx);
-      const wx1 = sx - ix0;
-      const wx0 = 1 - wx1;
-      const ix1 = ix0 + 1;
-      const dIdx = (y * dstW + x) * ch;
-      for (let c = 0; c < ch; c++) {
-        const v =
-          sampleCh(ix0, iy0, c) * wx0 * wy0 +
-          sampleCh(ix1, iy0, c) * wx1 * wy0 +
-          sampleCh(ix0, iy1, c) * wx0 * wy1 +
-          sampleCh(ix1, iy1, c) * wx1 * wy1;
-        out[dIdx + c] = Math.max(0, Math.min(255, Math.round(v)));
-      }
-    }
-  }
-  return decodeImage(out, { raw: { width: dstW, height: dstH, channels: ch } });
+    return decodeImage(out, { raw: { width: dstW, height: dstH, channels: ch } });
 }
 
 function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, SipsCliResult, void> {
@@ -591,7 +578,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                 for (const act of effectiveActions) {
                     yield;
                     if (act.kind === "rotate") {
-                        const rotated = encodeImage(rotateImage(image, act.degrees, parseColor(effectivePadColor)), {}).data;
+                        const rotated = encodeImage((yield* rotateImageSteps(image, act.degrees, parseColor(effectivePadColor))), {}).data;
                         image = decodeImage(rotated);
                         resizeInput = undefined;
                         meta = readImageMetadata(rotated);
@@ -599,7 +586,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                         curH = meta.height;
                     }
                     else if (act.kind === "flip") {
-                        image = decodeImage(encodeImage(act.direction === "horizontal" ? flopImage(image) : flipImage(image), {}).data);
+                        image = decodeImage(encodeImage(act.direction === "horizontal" ? (yield* flopImageSteps(image)) : (yield* flipImageSteps(image)), {}).data);
                         resizeInput = undefined;
                     }
                     else if (act.kind === "resampleMax") {
@@ -635,7 +622,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                         if (cropOffsetX === undefined &&
                             cropOffsetY === undefined &&
                             ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0)) {
-                            image = applySipsOddCanvasCropOrPad(image, curW, curH, act.width, act.height, effectivePadColor);
+                            image = (yield* applySipsOddCanvasCropOrPadSteps(image, curW, curH, act.width, act.height, effectivePadColor));
                             curW = act.width;
                             curH = act.height;
                             resizeInput = undefined;
@@ -650,20 +637,20 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                             const srcBottom = Math.max(srcTop + 1, Math.min(curH, oy + act.height));
                             const cw = srcRight - srcLeft;
                             const ch = srcBottom - srcTop;
-                            image = extractImage(image, { left: srcLeft, top: srcTop, width: cw, height: ch });
+                            image = (yield* extractImageSteps(image, { left: srcLeft, top: srcTop, width: cw, height: ch }));
                             const padLeft = Math.max(0, srcLeft - ox);
                             const padTop = Math.max(0, srcTop - oy);
                             const padRight = Math.max(0, act.width - cw - padLeft);
                             const padBottom = Math.max(0, act.height - ch - padTop);
                             if (padLeft > 0 || padTop > 0 || padRight > 0 || padBottom > 0) {
-                                image = extendImage(image, {
+                                image = (yield* extendImageSteps(image, {
                                     top: padTop,
                                     bottom: padBottom,
                                     left: padLeft,
                                     right: padRight,
                                     background: parseColor(effectivePadColor),
                                     extendWith: "background"
-                                });
+                                }));
                             }
                             curW = act.width;
                             curH = act.height;
@@ -679,7 +666,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                         const top = cropOffsetY !== undefined
                             ? Math.max(0, Math.min(curH - ch, cropOffsetY))
                             : Math.max(0, Math.floor((curH - ch) / 2));
-                        image = extractImage(image, { left, top, width: cw, height: ch });
+                        image = (yield* extractImageSteps(image, { left, top, width: cw, height: ch }));
                         curW = cw;
                         curH = ch;
                         if (act.width > curW || act.height > curH) {
@@ -689,14 +676,14 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                             const padRight = padX - padLeft;
                             const padTop = Math.floor(padY / 2);
                             const padBottom = padY - padTop;
-                            image = extendImage(image, {
+                            image = (yield* extendImageSteps(image, {
                                 top: padTop,
                                 bottom: padBottom,
                                 left: padLeft,
                                 right: padRight,
                                 background: parseColor(effectivePadColor),
                                 extendWith: "background"
-                            });
+                            }));
                             curW = act.width;
                             curH = act.height;
                         }
@@ -705,7 +692,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                     }
                     else if (act.kind === "pad") {
                         if ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0) {
-                            image = applySipsOddCanvasCropOrPad(image, curW, curH, act.width, act.height, effectivePadColor);
+                            image = (yield* applySipsOddCanvasCropOrPadSteps(image, curW, curH, act.width, act.height, effectivePadColor));
                             curW = act.width;
                             curH = act.height;
                             resizeInput = undefined;
@@ -716,7 +703,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                             const ch = Math.min(curH, act.height);
                             const left = Math.max(0, Math.floor((curW - cw) / 2));
                             const top = Math.max(0, Math.floor((curH - ch) / 2));
-                            image = extractImage(image, { left, top, width: cw, height: ch });
+                            image = (yield* extractImageSteps(image, { left, top, width: cw, height: ch }));
                             curW = cw;
                             curH = ch;
                         }
@@ -726,14 +713,14 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                         const right = padX - left;
                         const top = Math.floor(padY / 2);
                         const bottom = padY - top;
-                        image = extendImage(image, {
+                        image = (yield* extendImageSteps(image, {
                             top,
                             bottom,
                             left,
                             right,
                             background: parseColor(effectivePadColor),
                             extendWith: "background"
-                        });
+                        }));
                         curW = act.width;
                         curH = act.height;
                         image = decodeImage(encodeImage(image, {}).data);
@@ -743,10 +730,10 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                         // Repeated resample flags replace the pending resize until the next
                         // crop, pad, rotation or flip materializes the image.
                         resizeInput ??= image;
-                        image = resizeImage(resizeInput, {
+                        image = (yield* resizeImageSteps(resizeInput, {
                             width: curW, height: curH, fit: "fill", position: "centre", kernel: "lanczos3",
                             background: parseColor(), withoutEnlargement: false, withoutReduction: false
-                        });
+                        }));
                     }
                 }
                 const outFmt = targetFormat ?? (meta.format === "pdf" || meta.format === "svg" ? "png" : meta.format);
@@ -1152,7 +1139,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 outParts.push(formatIdentifyCustom(customFormat, baseInPath, meta, bytes.byteLength));
             }
             else if (verbose) {
-                const stats = computeImageStats(decodeImage(bytes, inputOptions));
+                const stats = (yield* computeImageStatsSteps(decodeImage(bytes, inputOptions)));
                 outParts.push(`Image: ${inPath}\n` +
                     `  Format: ${meta.format.toUpperCase()}\n` +
                     `  Geometry: ${meta.width}x${meta.height}+0+0\n` +

@@ -25881,25 +25881,6 @@ export class Runtime {
         ? l.split(/[ \t]+/).filter(Boolean)
         : (l.length === 0 ? [] : l.split(awkSep));
       if (rowPred && !rowPred(l, fields, li + 1)) continue;
-      if (subRe) {
-        if (subTarget === "0") {
-          l = l.replace(subRe, matched => subRep.split("&").join(matched));
-          fields = awkSep === undefined || awkSep === " "
-            ? l.split(/[ \t]+/).filter(Boolean)
-            : (l.length === 0 ? [] : l.split(awkSep));
-        } else {
-          const tIdx = subTarget === "NF" ? fields.length : Number(subTarget);
-          if (tIdx >= 1 && tIdx <= fields.length) {
-            fields = [...fields];
-            let replaced = false;
-            fields[tIdx - 1] = fields[tIdx - 1]!.replace(subRe, matched => {
-              replaced = true;
-              return subRep.split("&").join(matched);
-            });
-            if (replaced) l = fields.join(ofs);
-          }
-        }
-      }
       if (preAssigns.length > 0) {
         for (let ai = 0; ai < preAssigns.length; ai++) {
           const pa = preAssigns[ai]!;
@@ -25964,6 +25945,25 @@ export class Runtime {
             while (fields.length < fIdx) fields.push("");
             fields[fIdx - 1] = valStr;
             l = fields.join(ofs);
+          }
+        }
+      }
+      if (subRe) {
+        if (subTarget === "0") {
+          l = l.replace(subRe, matched => subRep.split("&").join(matched));
+          fields = awkSep === undefined || awkSep === " "
+            ? l.split(/[ \t]+/).filter(Boolean)
+            : (l.length === 0 ? [] : l.split(awkSep));
+        } else {
+          const tIdx = subTarget === "NF" ? fields.length : Number(subTarget);
+          if (tIdx >= 1 && tIdx <= fields.length) {
+            fields = [...fields];
+            let replaced = false;
+            fields[tIdx - 1] = fields[tIdx - 1]!.replace(subRe, matched => {
+              replaced = true;
+              return subRep.split("&").join(matched);
+            });
+            if (replaced) l = fields.join(ofs);
           }
         }
       }

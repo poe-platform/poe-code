@@ -116,3 +116,9 @@ test('sequence boxes accept spaced functional CSS colors', () => {
     assert.equal(document.groups[0]!.label, 'Team');
   }
 });
+
+test('flowchart linkStyle color reaches edge labels', async () => {
+  const { layoutMermaid } = await import('./index.js');
+  const scene = layoutMermaid(parseMermaid('flowchart LR\nA -->|hello| B\nlinkStyle 0 color:#ff0000,stroke:#123456,stroke-width:5px'));
+  assert.equal(scene.edges[0]!.labelPill!.lines[0]!.color, '#ff0000');
+});

@@ -1378,6 +1378,7 @@ export function* layoutGraphDocumentSteps(
     const style = edgeStylesById.get(e.id);
     const shifted = shiftEdge(e, shiftX, shiftY);
     return { ...shifted, stroke: style?.stroke ?? shifted.stroke, strokeWidth: style?.strokeWidth ?? shifted.strokeWidth,
+      labelPill: shifted.labelPill && style?.color ? { ...shifted.labelPill, lines: shifted.labelPill.lines.map(line => ({ ...line, color: style.color ?? line.color })) } : shifted.labelPill,
       startMarker: shifted.startMarker && style?.stroke ? { ...shifted.startMarker, stroke: style.stroke, fill: shifted.startMarker.fill === shifted.stroke ? style.stroke : shifted.startMarker.fill } : shifted.startMarker,
       endMarker: shifted.endMarker && style?.stroke ? { ...shifted.endMarker, stroke: style.stroke, fill: shifted.endMarker.fill === shifted.stroke ? style.stroke : shifted.endMarker.fill } : shifted.endMarker
     };

@@ -206,9 +206,10 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
   };
   const metadata = JSON.parse(readRegularInput(root, "package.json", 100000, fileSystem, boundaries).toString("utf8"));
   const privateWorkspaces = sourceDependencies ? [] : Object.keys(metadata.poeCode?.integration?.privateWorkspaces ?? {});
+  const privateDirectories = privateWorkspaces.map(name => name === "@poe-code/pdf-ast" ? "pdf-ast" : name);
   const dependencyPaths = Object.fromEntries(Object.entries(parsed.options.paths ?? {}).map(([specifier, targets]) => [specifier,
     targets.map(target => {
-      const workspace = privateWorkspaces.find(name => target.startsWith(`../${name}/src/`));
+      const workspace = privateDirectories.find(directory => target.startsWith(`../${directory}/src/`));
       if (!workspace) return target;
       const declaration = `../${workspace}/dist/${target.slice(`../${workspace}/src/`.length)}`;
       return declaration.endsWith(".ts") ? `${declaration.slice(0, -3)}.d.ts` : declaration;
@@ -216,12 +217,13 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
   ]));
   const paths = { ...dependencyPaths };
   const manifest = metadata;
-  for (const name of privateWorkspaces) {
+  for (const [index, name] of privateWorkspaces.entries()) {
+    const directory = privateDirectories[index];
     const profile = manifest.poeCode.integration.privateWorkspaces[name];
-    assertLiteralInputPath(name);
-    assert.ok(!name.includes("/"), "private workspace name must be a literal directory");
+    assertLiteralInputPath(directory);
+    assert.ok(!directory.includes("/"), "private workspace name must be a literal directory");
     assert.equal(manifest.devDependencies?.[name], "*", "private workspace must be an explicit local build dependency");
-    const implementationRoot = resolve(root, "..", name);
+    const implementationRoot = resolve(root, "..", directory);
     const implementation = JSON.parse(readRegularInput(implementationRoot, "package.json", 65536, fileSystem));
     assert.equal(implementation.name, name, "private workspace identity");
     assert.equal(implementation.private, true, "implementation must remain private");

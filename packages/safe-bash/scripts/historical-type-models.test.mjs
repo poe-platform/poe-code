@@ -528,27 +528,47 @@ test("ordinary triple-slash file references still use the unchanged compiler hos
   assert.deepEqual(result.program.getRootFileNames(), [join(root, "tests/check.ts")]);
 });
 
-for (const sourceDependencies of [false, true]) test(`private dependencies check ${sourceDependencies ? "source" : "built declarations"} without changing runtime aliases or strict caller diagnostics`, () => {
+for (const [name, directory] of [["safe-bash-command-example", "safe-bash-command-example"], ["@poe-code/pdf-ast", "pdf-ast"]]) for (const sourceDependencies of [false, true]) test(`private dependency ${name} checks ${sourceDependencies ? "source" : "built declarations"} without changing runtime aliases or strict caller diagnostics`, () => {
   const specimen = fixture();
   addStandardLibrary(specimen.fileSystem);
-  specimen.fileSystem.mkdirSync("/safe-bash-command-example/src", { recursive: true });
-  specimen.fileSystem.mkdirSync("/safe-bash-command-example/dist", { recursive: true });
-  specimen.fileSystem.writeFileSync("/safe-bash-command-example/package.json", JSON.stringify({ name: "safe-bash-command-example", private: true, version: "1.0.0", type: "module", exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } }));
-  specimen.fileSystem.writeFileSync("/safe-bash-command-example/src/index.ts", "export interface Options { value?: string; }\nexport function run(value): string { return value; }\n");
-  specimen.fileSystem.writeFileSync("/safe-bash-command-example/dist/index.d.ts", "export interface Options { value?: string; }\nexport declare function run(value: string): string;\n");
-  specimen.fileSystem.writeFileSync("/package/package.json", JSON.stringify({ type: "module", devDependencies: { "safe-bash-command-example": "*" }, poeCode: { integration: { privateWorkspaces: { "safe-bash-command-example": { version: "1.0.0" } } } } }));
+  specimen.fileSystem.mkdirSync(`/${directory}/src`, { recursive: true });
+  specimen.fileSystem.mkdirSync(`/${directory}/dist`, { recursive: true });
+  specimen.fileSystem.writeFileSync(`/${directory}/package.json`, JSON.stringify({ name, private: true, version: "1.0.0", type: "module", exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } }));
+  specimen.fileSystem.writeFileSync(`/${directory}/src/index.ts`, "export interface Options { value?: string; }\nexport function run(value): string { return value; }\n");
+  specimen.fileSystem.writeFileSync(`/${directory}/dist/index.d.ts`, "export interface Options { value?: string; }\nexport declare function run(value: string): string;\n");
+  specimen.fileSystem.writeFileSync("/package/package.json", JSON.stringify({ type: "module", devDependencies: { [name]: "*" }, poeCode: { integration: { privateWorkspaces: { [name]: { version: "1.0.0" } } } } }));
   const config = {
     compilerOptions: { strict: true, exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true, module: "NodeNext", target: "ES2023", types: [], skipLibCheck: true,
-      paths: { "safe-bash-command-example": ["../safe-bash-command-example/src/index.ts"] } },
+      paths: { [name]: [`../${directory}/src/index.ts`], "fixture-alias": [`../${directory}/src/index.ts`] } },
     files: ["tests/check.ts"],
   };
   specimen.fileSystem.writeFileSync(join(root, "tsconfig.json"), JSON.stringify(config));
-  specimen.fileSystem.writeFileSync(join(root, "tests/check.ts"), 'import { run, type Options } from "safe-bash-command-example";\nexport const options: Options = { value: undefined };\nexport const indexed: string = [run("value")][0];\n');
+  specimen.fileSystem.writeFileSync(join(root, "tests/check.ts"), `import { run, type Options } from "${name}";\nimport { run as alias } from "fixture-alias";\nalias("value");\nexport const options: Options = { value: undefined };\nexport const indexed: string = [run("value")][0];\n`);
   const result = checkHistoricalSources(root, { ...specimen, boundaries, sourceDependencies });
-  assert.equal(Boolean(result.program.getSourceFile("/safe-bash-command-example/dist/index.d.ts")), !sourceDependencies);
-  assert.equal(Boolean(result.program.getSourceFile("/safe-bash-command-example/src/index.ts")), sourceDependencies);
+  assert.equal(Boolean(result.program.getSourceFile(`/${directory}/dist/index.d.ts`)), !sourceDependencies);
+  assert.equal(Boolean(result.program.getSourceFile(`/${directory}/src/index.ts`)), sourceDependencies);
   assert.deepEqual(result.diagnostics.map(diagnostic => diagnostic.code), sourceDependencies ? [2375, 2322, 7006] : [2375, 2322]);
   assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), config);
+});
+
+for (const name of ["@poe-code/other", "@other/pdf-ast"]) test(`private declarations reject an unadmitted scoped directory: ${name}`, () => {
+  const specimen = fixture();
+  specimen.fileSystem.writeFileSync(join(root, "package.json"), JSON.stringify({
+    devDependencies: { [name]: "*" },
+    poeCode: { integration: { privateWorkspaces: { [name]: { version: "1.0.0" } } } },
+  }));
+  assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries }), /private workspace name must be a literal directory/);
+});
+
+test("the admitted PDF directory still requires exact package identity", () => {
+  const specimen = fixture();
+  specimen.fileSystem.writeFileSync(join(root, "package.json"), JSON.stringify({
+    devDependencies: { "@poe-code/pdf-ast": "*" },
+    poeCode: { integration: { privateWorkspaces: { "@poe-code/pdf-ast": { version: "1.0.0" } } } },
+  }));
+  specimen.fileSystem.mkdirSync("/pdf-ast", { recursive: true });
+  specimen.fileSystem.writeFileSync("/pdf-ast/package.json", JSON.stringify({ name: "@other/pdf-ast", private: true, type: "module", version: "1.0.0" }));
+  assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries }), /private workspace identity/);
 });
 
 test("source checking consumes built engine declarations without changing runtime aliases or strict caller diagnostics", () => {

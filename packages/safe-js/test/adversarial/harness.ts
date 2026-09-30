@@ -1,10 +1,12 @@
 import { formatInterpreterError } from "../../src/error/format.js";
 import { Budget, SandboxError } from "../../src/interp/budget.js";
 import { createGeneratorChannel } from "../../src/interp/generator.js";
+import { interpret } from "../../src/interp/interpreter.js";
 import { matchRegex } from "../../src/interp/regex/engine.js";
 import { parseRegex } from "../../src/interp/regex/parse.js";
 import { lint } from "../../src/lint.js";
 import { parse } from "../../src/parse.js";
+import { parseModule } from "../../src/parse/parser.js";
 import { run } from "../../src/run.js";
 import { assertSnapshotGraphDepth, SnapshotBudgetError } from "../../src/graph-depth.js";
 import { dump } from "../../src/dump.js";
@@ -97,7 +99,10 @@ async function assertSandboxFailure(
   budgetName: string
 ): Promise<void> {
   try {
-    await run(source, { budget });
+    // These attacks exercise interpreter limits without rebuilding unrelated SDK
+    // globals and replay journals. Determinism and module loading above use run().
+    const module = parseModule(source);
+    await interpret({ type: "BlockStatement", body: module.body, span: module.span }, { budget });
     throw new Error("resource attack completed without a sandbox error");
   } catch (error) {
     if (

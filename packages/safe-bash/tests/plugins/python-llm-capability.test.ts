@@ -430,3 +430,53 @@ test('Python complete supports extract/extract_last and template extract fields 
   assert.equal(fromUrl.text,'first = 1\n');
   assert.deepEqual(modes,[false,false,false,false,false]);
 });
+
+test('resolves key aliases on the JavaScript host without exposing stored keys to Python', async () => {
+  const fsInstance = new MemoryFileSystem();
+  await fsInstance.mkdir('/home/user/.config/io.datasette.llm', { recursive: true });
+  await fsInstance.writeFile('/home/user/.config/io.datasette.llm/keys.json', new TextEncoder().encode(JSON.stringify({
+    '// Note': 'This file stores secret API credentials. Do not share!',
+    'team-openai': 'sk-host-only-secret',
+  })));
+  const seenKeys: (string | undefined)[] = [];
+  const embedKeys: (string | undefined)[] = [];
+  const provider: LlmProvider = {
+    name: 'mock',
+    models: [{ id: 'mock-1', capabilities: ['embed'] }],
+    async *complete(req) {
+      seenKeys.push(req.key);
+      yield 'ok';
+    },
+    async *completeSources(req) {
+      seenKeys.push(req.key);
+      yield 'ok';
+    },
+    async embed(req) {
+      embedKeys.push(req.key);
+      return { model: req.model, vectors: [[0.5, 0.25]] };
+    },
+  };
+  const service = createLlmService({ providers: [provider], defaultModel: 'mock-1' });
+  const capability = createPythonLlmCapability(
+    { fs: fsInstance, cwd: '/home/user', env: { HOME: '/home/user' }, inputBudget: { claim: () => {} } },
+    service,
+    { maxInputBytes: 65536, maxOutputBytes: 65536 },
+  );
+  const comp = await capability.call(
+    { operation: 'complete', payload: { prompt: 'hello', key: 'team-openai' } },
+    { signal: new AbortController().signal },
+  ) as { text: string };
+  assert.equal(comp.text, 'ok');
+  assert.deepEqual(seenKeys, ['sk-host-only-secret']);
+  await capability.call(
+    { operation: 'embed', payload: { inputs: ['hello'], key: 'team-openai' } },
+    { signal: new AbortController().signal },
+  );
+  assert.deepEqual(embedKeys, ['sk-host-only-secret']);
+  const config = await capability.call(
+    { operation: 'configuration', payload: {} },
+    { signal: new AbortController().signal },
+  ) as Record<string, unknown>;
+  assert.equal('keys' in config, false);
+  assert.equal(JSON.stringify(config).includes('sk-host-only-secret'), false);
+});

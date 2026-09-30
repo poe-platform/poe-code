@@ -94,6 +94,7 @@ class Request:
     conversation: Optional[str] = None
     extract: Optional[bool] = None
     extract_last: Optional[bool] = None
+    key: Optional[str] = None
 
     def payload(self):
         if not isinstance(self.prompt, str):
@@ -114,7 +115,9 @@ class Request:
             value = getattr(self, key)
             if value is not None and not isinstance(value, bool):
                 raise TypeError(key + " must be a boolean")
-        for key in ("model", "system", "schema", "template", "conversation", "extract", "extract_last"):
+        if self.key is not None and (not isinstance(self.key, str) or not self.key or "\0" in self.key):
+            raise TypeError("Key must be a nonempty string")
+        for key in ("model", "system", "schema", "template", "conversation", "extract", "extract_last", "key"):
             value = getattr(self, key)
             if value is not None:
                 result[key] = copy.deepcopy(value)
@@ -272,7 +275,7 @@ def _check_size(response, limit):
         raise LimitError()
 
 class Client:
-    def __init__(self, *, bridge=None, model=None, options=None, system=None,
+    def __init__(self, *, bridge=None, model=None, options=None, system=None, key=None,
                  request_transform=None, response_transform=None,
                  max_response_bytes=None, timeout=None):
         if bridge is None:
@@ -281,7 +284,7 @@ class Client:
             except ImportError as error:
                 raise CapabilityError() from error
         self._bridge = bridge
-        self._defaults = {"model": model, "system": system, "options": _options(options or {})}
+        self._defaults = {"model": model, "system": system, "key": key, "options": _options(options or {})}
         self._request_transform = request_transform
         self._response_transform = response_transform
         self._limit = _limit(max_response_bytes)
@@ -333,6 +336,7 @@ class Client:
                 raise TypeError("A Request cannot be combined with keyword fields")
             return replace(prompt, model=prompt.model if prompt.model is not None else self._defaults["model"],
                            system=prompt.system if prompt.system is not None else self._defaults["system"],
+                           key=prompt.key if prompt.key is not None else self._defaults["key"],
                            options={**self._defaults["options"], **prompt.options})
         fields = {**self._defaults, **values, "prompt": prompt}
         fields["options"] = {**self._defaults["options"], **values.get("options", {})}
@@ -407,14 +411,17 @@ class Client:
         self._streams.add(stream)
         return stream
 
-    async def embed(self, inputs, *, model=None, options=None, timeout=None, max_response_bytes=_DEFAULT_LIMIT):
+    async def embed(self, inputs, *, model=None, key=None, options=None, timeout=None, max_response_bytes=_DEFAULT_LIMIT):
         if isinstance(inputs, str):
             raise TypeError("Embedding inputs must be an iterable of strings")
         inputs = tuple(inputs)
         if not all(isinstance(value, str) for value in inputs):
             raise TypeError("Embedding inputs must be an iterable of strings")
+        selected_key = key if key is not None else self._defaults["key"]
+        if selected_key is not None and (not isinstance(selected_key, str) or not selected_key or "\0" in selected_key):
+            raise TypeError("Key must be a nonempty string")
         payload = {**_configuration_context(), "model": model if model is not None else self._defaults["model"], "inputs": list(inputs),
-                   "options": _options({**self._defaults["options"], **(options or {})})}
+                   "options": _options({**self._defaults["options"], **(options or {})}), **({"key": selected_key} if selected_key is not None else {})}
         payload["timeout"] = self._timeout if timeout is None else _timeout(timeout)
         payload["max_response_bytes"] = self._limit if max_response_bytes is _DEFAULT_LIMIT else _limit(max_response_bytes)
         result = await self._run(lambda: self._bridge.call("embed", payload), payload["timeout"])

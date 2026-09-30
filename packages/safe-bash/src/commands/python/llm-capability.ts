@@ -125,6 +125,8 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     signal.throwIfAborted();
     const requestContext = configurationContext(context,payload,signal);
     const configuration = createLlmConfiguration(requestContext);
+    if (payload.key !== undefined && payload.key !== null && (typeof payload.key !== 'string' || !payload.key || payload.key.includes('\0'))) throw new TypeError('Invalid LLM key');
+    const key = typeof payload.key === 'string' ? await configuration.resolveKey(payload.key) : undefined;
     if (payload.conversation !== undefined && payload.conversation !== null) throw new TypeError('The shared LLM service does not yet support persisted conversation');
     const parameters: Record<string,string> = {};
     for (const [key,item] of Object.entries(record(payload.parameters ?? {}))) {
@@ -248,7 +250,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       ...(payload.messages === undefined ? {} : {messages:payload.messages as unknown as NonNullable<LlmServiceRequest['messages']>}),
       ...(payload.schema === undefined ? {} : {schema:record(payload.schema)}),
       options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>,
-      attachments:[], signal, stream, ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
+      attachments:[], signal, stream, ...(key === undefined ? {} : {key}), ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
     };
   };
   const responses = async function* (value:PythonHostValue, signal:AbortSignal, ceiling = Infinity) {
@@ -328,7 +330,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       }
       if (operation.operation === 'embed') {
         const prepared = await prepare(payload,signal);
-        const result = await service.embed({model:prepared.model!,inputs:payload.inputs as readonly string[],options:prepared.options,signal:prepared.signal});
+        const result = await service.embed({model:prepared.model!,inputs:payload.inputs as readonly string[],options:prepared.options,signal:prepared.signal,...(prepared.key === undefined ? {} : {key:prepared.key})});
         prepared.signal.throwIfAborted();
         const {vectors: ignoredVectors, ...metadata} = result;
         jsonBytes(metadata as unknown as PythonHostValue,metadataLimit);

@@ -12,6 +12,7 @@ import {
 import type { SpawnCommandOptions } from "../providers/spawn-options.js";
 import {
   DEFAULT_SPAWN_MODE,
+  resolveSafeBashEnvOverrides,
   type McpSpawnConfig,
   type SpawnMode
 } from "@poe-code/agent-spawn";
@@ -34,6 +35,8 @@ export interface SpawnCoreOptions {
   args?: string[];
   /** Environment overrides applied only to this spawned run. */
   env?: Record<string, string | undefined>;
+  /** Route Bash calls through the workspace-backed safe-bash CLI. */
+  safeBash?: boolean;
   /** MCP servers passed at spawn time */
   mcpServers?: McpSpawnConfig;
   /** Skill references to bridge into the spawned agent for this run. */

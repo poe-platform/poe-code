@@ -144,7 +144,7 @@ it("handles empty and bounded long books deterministically without empty trailin
   const doc = book([para, para, heading("End")]);
   const first = await output(doc), second = await output(doc);
   expect(second.bytes).toEqual(first.bytes);
-  expect([...first.parts.keys()].filter(p => p.includes("chapter-")).length).toBe(3);
+  expect([...first.parts.keys()].filter(p => p.includes("chapter-")).length).toBe(2);
   expect((await output(book([heading("Changed")]))).bytes).not.toEqual(empty.bytes);
   closure(first.parts);
 });
@@ -220,4 +220,22 @@ it("uses the thin safe-bash adapter for binary EPUB3 stdout", async () => {
   expect(chunks.length).toBeGreaterThan(0);
   closure(unzip(Buffer.concat(chunks)));
   expect((await convert([{bytes: new TextEncoder().encode("# Original")}], {from: "commonmark", to: "epub3", yes: true}, {})).kind).toBe("binary");
+});
+
+it("keeps long heading sections together without synthetic continuation chapters", async () => {
+  const {parts} = await output(book([heading("First"), {t: "Para", c: [{t: "Str", c: "x".repeat(70000)}]}, {t: "Para", c: [{t: "Str", c: "Tail"}]}, heading("Second")]));
+  expect([...parts.keys()].filter(name => name.includes("chapter-"))).toEqual(["EPUB/chapter-1.xhtml", "EPUB/chapter-2.xhtml"]);
+  expect(new TextDecoder().decode(parts.get("EPUB/chapter-1.xhtml"))).toContain("Tail");
+  expect(new TextDecoder().decode(parts.get("EPUB/nav.xhtml"))).not.toContain("Chapter 2");
+});
+
+it("gives empty and symbol headings navigation anchors present in chapter XHTML", async () => {
+  const {parts} = await output(book([heading(""), heading("!!!"), heading("", "section-1")]));
+  const nav = xml(parts.get("EPUB/nav.xhtml")!);
+  for (const anchor of nav.tags.filter(t => t.name === "a")) {
+    const [chapter, id] = anchor.attrs.href!.split("#");
+    expect(id).toBeTruthy();
+    expect(id).not.toBe("undefined");
+    expect(xml(parts.get(`EPUB/${chapter}`)!).tags.some(t => t.attrs.id === decodeURIComponent(id!))).toBe(true);
+  }
 });

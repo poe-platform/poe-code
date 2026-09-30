@@ -10,7 +10,7 @@ it("executes a returned Lua Str filter table with local closures", async () => {
   }, {filters})).resolves.toMatchObject({text: "<p>HELLO!</p>\n"});
 });
 
-it.each(['return {Para = function(el) return el end}', 'return {{Str = function(el) return el end}}', 'return 42'])("rejects unsupported returned filters: %s", async script => {
+it.each(['return 42'])("rejects unsupported returned filters: %s", async script => {
   const filters = createLuaFilterCapability({readFile: async () => new TextEncoder().encode(script)});
   await expect(convert([{bytes: new TextEncoder().encode("Hello")}], {
     from: "commonmark", to: "html", filters: [{kind: "lua", path: "filter.lua"}]

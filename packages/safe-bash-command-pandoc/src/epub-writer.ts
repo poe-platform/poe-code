@@ -124,14 +124,14 @@ export const epubWriter: WriterCapability = {
     ctx.charge("retainedBytes", html.text.length * 4);
     const fragment = parseFragment(html.text);
     const chapters: Chapter[] = [];
-    let current: Chapter = {name: "chapter-1.xhtml", nodes: []}, length = 0;
+    let current: Chapter = {name: "chapter-1.xhtml", nodes: []};
     for(const node of fragment.childNodes) {
       await ctx.cooperate();
       if(tree.isTextNode(node) && !node.value.trim()) continue;
-      if(current.nodes.length && (tree.isElementNode(node) && ["h1", "h2", "h3", "h4", "h5", "h6"].slice(0, ctx.epub?.chapterLevel ?? 1).includes(node.tagName) || length >= 65536)) {
-        chapters.push(current); current = {name: `chapter-${chapters.length + 1}.xhtml`, nodes: []}; length = 0;
+      if(current.nodes.length && (tree.isElementNode(node) && ["h1", "h2", "h3", "h4", "h5", "h6"].slice(0, ctx.epub?.chapterLevel ?? 1).includes(node.tagName))) {
+        chapters.push(current); current = {name: `chapter-${chapters.length + 1}.xhtml`, nodes: []};
       }
-      current.nodes.push(node); length += text(node).length;
+      current.nodes.push(node);
     }
     chapters.push(current);
     const targets = new Map<string, string>();

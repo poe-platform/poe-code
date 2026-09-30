@@ -163,7 +163,7 @@ await shell.exec("pandoc -f commonmark -t html -F ./identity.py sample.md");
 The runtime owns filter loading and execution. Registration does not grant it
 filesystem or process authority, install an interpreter, or enable ambient lookup.
 
-Local Lua `Str` filters can run in the supplied JavaScript Lua VM. Configure a
+Local Lua AST filters can run in the supplied JavaScript Lua VM. Configure a
 reader for trusted scripts, then pass the capability to the SDK or shell plugin:
 
 ```ts
@@ -180,42 +180,33 @@ await convert([{bytes: new TextEncoder().encode("Hello")}], {
 The VM exposes basic Lua, string, table, math and UTF-8 libraries and `FORMAT`.
 It does not expose host filesystem/process libraries. Conversion work limits
 interrupt Lua instructions. Use trusted scripts: VM allocations and library
-calls are not isolated or individually metered. `Str` callbacks may be global
-or returned in a single table, such as `return {Str = function(el) return el end}`.
-The loaded callback stays fixed for the traversal even if the script changes globals.
-Callbacks return an inline element, an inline list (empty deletes the element),
-or nil to preserve it. Supported constructors are `pandoc.Str`, `pandoc.Space`,
-`pandoc.SoftBreak`, `pandoc.LineBreak`, `pandoc.Emph`, `pandoc.Underline`,
-`pandoc.Strong`, `pandoc.Strikeout`, `pandoc.Superscript`, `pandoc.Subscript` and
-`pandoc.SmallCaps`. Wrapping constructors take an inline list, for example
-`return pandoc.Emph({pandoc.Str(string.upper(el.text))})`. Generated replacements
-are not filtered again. Other callbacks, constructors and filter lists remain
-unsupported. This Lua capability does not process citeproc;
-use the separate CSL capability above.
+calls are not isolated or individually metered. Both `createLuaFilterCapability({readFile})`
+and `createLuaFilterCapability(loadScript)` accept the same filters. Define global
+callbacks, return one callback table, or return a list of tables to run in order.
+Within each table, inline callbacks run before `Inlines`, block callbacks, `Blocks`,
+`Meta`, and `Pandoc`. Callback identities remain fixed if the script changes globals.
 
-`createLuaFilterCapability(loadScript)` executes genuine Lua 5.3 using Fengari.
-Supply an explicit `(path, signal) => Promise<Uint8Array>` loader and pass the
-returned capability as `filters` in the SDK, `createPandocCommand`, or
-`pandocCommands`. It supports the reported uppercase filter:
+Callbacks cover the document's inline and block elements, including headers,
+paragraphs, code, links, images, spans, divs, lists, tables, and raw content.
+Return an element, a replacement list (empty deletes the element), or nil to
+preserve the original. Use `pandoc.Header`, `pandoc.Para`, `pandoc.Plain`,
+`pandoc.Code`, `pandoc.CodeBlock`, `pandoc.Link`, `pandoc.Image`, `pandoc.Span`,
+`pandoc.Div`, `pandoc.RawInline`, `pandoc.RawBlock`, and the inline constructors
+such as `pandoc.Str` and `pandoc.Emph` to create replacements. `pandoc.List`
+provides list operations; `pandoc.utils.stringify` extracts text from elements.
+For example:
 
 ```lua
-function Str(el)
-  el.text = string.upper(el.text)
-  return el
-end
+return {
+  {Header = function(el) el.level = 2; return el end},
+  {Para = function(el) return pandoc.Plain(el.content) end}
+}
 ```
 
-This profile supports only `Str` callbacks, either global or returned in a
-`{Str = function(el) ... end}` table; helpers must be local. Return a Str with
-string `text` and `tag = "Str"`, or nil to preserve the original. Other callbacks,
-filter lists, Pandoc constructors, and citeproc are unsupported and fail explicitly.
-The VM has no file, process, module-loading, or printing APIs. Basic string
-operations are available; patterns, repetition, formatting, and bytecode loading
-are disabled. `FORMAT` contains the target writer name, preserving aliases and
-removing extension suffixes, and is available while the script loads.
-Scripts run in a fresh VM with conversion instruction checks;
-script bytes and returned text share the conversion budgets. Use trusted scripts
-only: VM allocations are not isolated or bounded by the SDK retained-byte limit.
+`FORMAT` contains the target writer name without extension suffixes and is
+available while the script loads. Scripts run in a fresh VM; script bytes and
+returned AST values share conversion budgets. This capability does not process
+citeproc; use the separate CSL capability above.
 
 `limits` configures optional resource budgets. EPUB and PPTX archive paths and
 text metadata use `text`; binary archive metadata uses `binaryBytes`. Every exported `defaultLimits` value

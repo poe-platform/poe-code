@@ -31,8 +31,6 @@ it.each([
   ['syntax', 'function Str(', "E_IO"],
   ['runtime', 'function Str(el) error("broken") end', "E_IO"],
   ['invalid result', 'function Str(el) return 123 end', "E_AST"],
-  ['unsupported callback', 'function Para(el) return el end', "E_UNSUPPORTED_FEATURE"],
-  ['mixed callbacks', 'function Str(el) return el end; function Para(el) return el end', "E_UNSUPPORTED_FEATURE"],
   ['host IO', 'function Str(el) return io.open("/etc/passwd") end', "E_IO"],
   ['host loading', 'function Str(el) return dofile("/etc/passwd") end', "E_IO"]
 ])("rejects %s without publishing", async (_name, source, code) => {

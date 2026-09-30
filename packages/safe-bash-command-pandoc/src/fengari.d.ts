@@ -4,6 +4,16 @@ declare module "fengari" {
   export function to_luastring(text: string): Uint8Array;
   export const lua: {
     LUA_REGISTRYINDEX: number;
+    LUA_TNIL: number;
+    LUA_TBOOLEAN: number;
+    lua_checkstack(state: State, extra: number): boolean;
+    lua_pushboolean(state: State, value: boolean): void;
+    lua_pushnumber(state: State, value: number): void;
+    lua_toboolean(state: State, index: number): boolean;
+    lua_tonumber(state: State, index: number): number;
+    lua_rawseti(state: State, index: number, key: number): void;
+    lua_settable(state: State, index: number): void;
+    lua_pushjsfunction(state: State, callback: (state: State) => number): void;
     LUA_OK: number; LUA_MASKCOUNT: number;
     lua_close(state: State): void;
     lua_sethook(state: State, hook: () => void, mask: number, count: number): void;

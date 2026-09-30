@@ -24,7 +24,7 @@ it("runs Lua control flow and closures rather than recognizing filter source", a
   await expect(convert([{bytes: encoder.encode("Hello world")}], options, {filters})).resolves.toMatchObject({text: "<p>Hello world!</p>\n"});
 });
 
-it.each(["function Str(el) error('broken') end", "function Str(el) return 42 end", "function Para(el) return el end", "function Str("])("rejects invalid or unsupported Lua without publication: %s", async source => {
+it.each(["function Str(el) error('broken') end", "function Str(el) return 42 end", "function Str("])("rejects invalid or unsupported Lua without publication: %s", async source => {
   const publish = vi.fn();
   await expect(convert([{bytes: encoder.encode("Hello")}], options, {filters: setup(source), output: {publish}})).rejects.toMatchObject({name: "PandocError"});
   expect(publish).not.toHaveBeenCalled();

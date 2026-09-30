@@ -45,6 +45,8 @@ export interface SpawnCoreOptions {
   hooks?: HookBridgeOptions;
   /** Resume a prior provider thread/session before sending the prompt. */
   resumeThreadId?: string;
+  /** Opt-in: use workspace-backed safe-bash as the agent SHELL (default: false) */
+  safeBash?: boolean;
   /** Whether prompt was read from stdin */
   useStdin?: boolean;
 }

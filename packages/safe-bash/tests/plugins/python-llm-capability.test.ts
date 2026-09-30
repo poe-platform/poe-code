@@ -285,7 +285,7 @@ test('source admission rejects unsupported models before opening canonical files
 test('named templates share Bash evaluation, defaults, model selection and canonical attachments', async () => {
   const {fs,service,requests} = await fixture();
   await fs.mkdir('/settings/templates',{recursive:true});
-  await fs.writeFile('/settings/templates/review.yaml',new TextEncoder().encode('prompt: "Review $topic: $input"\nsystem: "Be $style"\nmodel: alias\ndefaults:\n  style: terse\noptions:\n  mode: exact\nattachments:\n  - note.txt\n'));
+  await fs.writeFile('/settings/templates/review.yaml',new TextEncoder().encode('prompt: "Review $topic: $input"\nsystem: "Be $style"\nmodel: alias\nschema_object:\n  type: object\ndefaults:\n  style: terse\noptions:\n  mode: exact\nattachments:\n  - note.txt\n'));
   const env = {LLM_USER_PATH:'/settings'};
   const cleanups:(() => void | Promise<void>)[] = [];
   const context:CommandContext = {command:'llm',args:['-t','review','-p','topic','code','question'],fs,cwd:'/work',env,signal,
@@ -299,9 +299,11 @@ test('named templates share Bash evaluation, defaults, model selection and canon
     assert.deepEqual(semantic(requests[1]!),semantic(requests[0]!));
     assert.equal(requests[1]!.prompt,'Review code: question');
     assert.equal(requests[1]!.system,'Be terse');
+    assert.deepEqual(requests[1]!.schema,{type:'object'});
     assert.equal(new TextDecoder().decode(requests[1]!.attachments[0]!.bytes),'canonical');
-    await capability.call!({operation:'complete',payload:{template:'review',prompt:'other',system:'explicit',parameters:{topic:'tests',style:'full'},options:{mode:'override'}}},{signal});
+    await capability.call!({operation:'complete',payload:{template:'review',prompt:'other',system:'explicit',schema:{type:'string'},parameters:{topic:'tests',style:'full'},options:{mode:'override'}}},{signal});
     assert.equal(requests[2]!.system,'explicit');
+    assert.deepEqual(requests[2]!.schema,{type:'string'});
     assert.deepEqual(requests[2]!.options,{mode:'override'});
     await assert.rejects(capability.call!({operation:'complete',payload:{template:'review',parameters:{}}},{signal}),/Missing variables: topic/);
     assert.equal(requests.length,3);

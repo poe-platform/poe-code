@@ -148,6 +148,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         ...(payload.system === undefined && evaluated.system !== undefined ? {system:evaluated.system} : {}),
         ...(payload.model == null && stored.model !== undefined ? {model:stored.model} : {}),
         options:{...stored.options,...record(payload.options ?? {})},
+        ...(payload.schema === undefined && stored.schema_object !== undefined ? {schema:stored.schema_object as PythonHostValue} : {}),
         attachments:[...(stored.attachments ?? []).map(path => ({path})),
           ...inputs.filter(input => record(input).mimeType === undefined),
           ...(stored.attachment_types ?? []).map(item => ({path:item.value,mimeType:item.type})),

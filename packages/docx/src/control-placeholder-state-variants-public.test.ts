@@ -1,11 +1,16 @@
 import { Volume } from "memfs";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import * as api from "./index.js";
 import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
+
+vi.mock("@poe-code/office-package", async importOriginal => ({
+  ...await importOriginal<typeof import("@poe-code/office-package")>(),
+  yieldEventLoop: async () => {}
+}));
 
 const native = await compiledPublicRuntime, encode = (value: string) => new TextEncoder().encode(value);
 const states = [
@@ -19,7 +24,7 @@ for (const codec of ["utf8", "utf16le", "utf16be"] as const)
 for (const runtime of ["source", "native"] as const) for (const route of ["sdk", "sdk-batch", "cli", "cli-batch"] as const)
 for (const operation of ["read", "fill", "empty-repeat", "empty-template"] as const) for (const state of states)
 it(`placeholder boolean state ${state.name}; strict=${strict}; kind=${kind}; codec=${codec}; runtime=${runtime}; route=${route}; operation=${operation}`, async () => {
-  const product: typeof api = runtime === "native" ? native : api, context = { limits: textContext.limits, signal: textContext.signal, encoding: { order: "input", compression: "store" } as const };
+  const product: typeof api = runtime === "native" ? native : api, context = { limits: textContext.limits, signal: textContext.signal, budget: new product.DocumentBudget({}, textContext.signal, async signal => { signal.throwIfAborted(); }), encoding: { order: "input", compression: "store" } as const };
   const field = (type: string, tag: string, id: number) => `<w:sdt><w:sdtPr><w:id w:val="${id}"/><w:tag w:val="${tag}"/><w:${type}/>${state.flag}<w:placeholder><w:docPart w:val="Retained definition"/></w:placeholder></w:sdtPr><w:sdtContent><w:r><w:rPr><w:i/></w:rPr><w:t>Original 海🌊</w:t></w:r></w:sdtContent></w:sdt>`;
   const fields = field("text", "plain", 3) + field("richText", "rich", 4);
   const region = `<w:sdt xmlns:v="http://schemas.microsoft.com/office/word/2012/wordml"><w:sdtPr><w:id w:val="1"/><w:tag w:val="records"/><v:repeatingSection/></w:sdtPr><w:sdtContent><w:sdt><w:sdtPr><w:id w:val="2"/><v:repeatingSectionItem/></w:sdtPr><w:sdtContent><w:p>${fields}</w:p></w:sdtContent></w:sdt></w:sdtContent></w:sdt>`;

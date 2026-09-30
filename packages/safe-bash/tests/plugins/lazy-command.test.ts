@@ -21,8 +21,7 @@ test("registration and discovery do not load; concurrent first executions share 
             contexts.push(context);
             await writeText(
               context.stdout,
-              `${context.cwd}:${context.env.MARK}:${context.args.join("|")}`,
-              context.signal
+              `${context.cwd}:${context.env.MARK}:${context.args.join("|")}`
             );
             return { exitCode: 0 };
           }
@@ -80,7 +79,7 @@ test("cancelled wait does not cancel shared loading or dispatch late work", asyn
   });
   const command = createLazyCommands([{ name: "lazy" }], load)[0]!;
   const controller = new AbortController();
-  const invocation = command.execute({ signal: controller.signal } as unknown as CommandContext);
+  const invocation = Promise.resolve(command.execute({ signal: controller.signal } as unknown as CommandContext));
   await Promise.resolve();
   controller.abort(new Error("cancelled"));
   await assert.rejects(invocation, /cancelled/);

@@ -87,3 +87,16 @@ test('source scale applies to PNG and PDF resolution without changing PDF page s
   const pdf = renderMermaidPdf(source);
   assert.equal(pdf.width, svg.width * 0.75);
 });
+
+test('pie ratios remain finite for large finite values', () => {
+  const result = renderMermaidSvg('pie\n"Large": 1e308', { limits: { maxWork: 100000 } });
+  assert.ok(result.svg.includes('100.0%'));
+  assert.ok(!result.svg.includes('Infinity'));
+});
+
+test('frontmatter titles are visible text in graph and sequence output', () => {
+  for (const body of ['flowchart LR\nA --> B', 'sequenceDiagram\nA->>B: Hello']) {
+    const svg = renderMermaidSvg(`---\ntitle: Visible heading\n---\n${body}`).svg;
+    assert.ok(svg.includes('>Visible heading</text>'));
+  }
+});

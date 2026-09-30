@@ -12,14 +12,14 @@ export function layoutPie(document: MermaidDocument, options?: MermaidLayoutOpti
   const padding = options?.padding ?? theme.padding;
   const titleHeight = document.title ? 40 : 0;
   const radius = 120, cx = padding + radius, cy = padding + titleHeight + radius;
-  const labels = data.map(slice => `${slice.label}${document.showData ? ` [${slice.value}]` : ''} (${(100 * slice.value / total).toFixed(1)}%)`);
+  const labels = data.map(slice => `${slice.label}${document.showData ? ` [${slice.value}]` : ''} (${(100 * (slice.value / total)).toFixed(1)}%)`);
   const legendWidth = labels.reduce((maximum, text) => Math.max(maximum, measureLineWidth(text, 13, "ui", 400)), 120) + 24;
   const width = Math.max(padding * 2 + radius * 2 + 40 + legendWidth, document.title ? measureLineWidth(document.title, 16, "ui", 600) + padding * 2 : 0);
   const height = padding * 2 + titleHeight + Math.max(radius * 2, data.length * 48);
   const nodes: SceneNode[] = [];
   let angle = -Math.PI / 2;
   const slices = data.map((slice, index) => {
-    const sweep = 2 * Math.PI * slice.value / total;
+    const sweep = 2 * Math.PI * (slice.value / total);
     const steps = Math.max(1, Math.ceil(sweep * radius / 2));
     budget.chargeWork(steps + 1);
     const points: Point[] = [{ x: cx, y: cy }];

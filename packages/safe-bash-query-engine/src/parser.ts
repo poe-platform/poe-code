@@ -32,8 +32,9 @@ export type Ast =
   | { kind: "if"; condition: Ast; yes: Ast; no: Ast };
 interface Token { text: string; offset: number; kind: "symbol" | "name" | "number" | "string" | "end" }
 const precedence: Readonly<Record<string, number>> = Object.freeze({
-  "|": 1, ",": 2, "=": 3, "|=": 3, "+=": 3, "-=": 3, "*=": 3, "/=": 3, "%=": 3, "//=": 3,
-  "//": 4, or: 5, and: 6, "==": 7, "!=": 7, "<": 7, ">": 7, "<=": 7, ">=": 7,
+  "|": 1, ",": 2, "//": 3,
+  "=": 4, "|=": 4, "+=": 4, "-=": 4, "*=": 4, "/=": 4, "%=": 4, "//=": 4,
+  or: 5, and: 6, "==": 7, "!=": 7, "<": 7, ">": 7, "<=": 7, ">=": 7,
   "+": 8, "-": 8, "*": 9, "/": 9, "%": 9,
 });
 export const functions: Readonly<Record<string, readonly number[]>> = Object.freeze({
@@ -278,7 +279,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
         const priority = Object.hasOwn(precedence, operator) ? precedence[operator]! : -1;
         if (priority < minimum || (stopComma && operator === ",")) break;
         take();
-        const assignment = priority === 3;
+        const assignment = priority === 4;
         if (assignment && !isPath(left)) fail("unsupported assignment path");
         const right = expression(priority + (assignment ? 0 : 1), stopComma);
         left = { kind: "binary", operator, left, right };

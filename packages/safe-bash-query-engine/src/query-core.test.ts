@@ -2,6 +2,26 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createYqQuerySession } from "./query-core.js";
 
+for (const [filter, input, expected] of [
+  [".a = .b // 5", { b: null }, { b: null, a: null }],
+  [".a |= . // 5", { a: null }, { a: null }],
+  [".a += .b // 5", { a: 2, b: null }, { a: 2, b: null }],
+  [".a = (.b // 5)", { b: null }, { b: null, a: 5 }],
+  [".a |= (. // 5)", { a: null }, { a: 5 }],
+] as const) {
+  test(`assignment binds before alternative: ${filter}`, async () => {
+    const session = createYqQuerySession({ signal: new AbortController().signal });
+    session.compileOnce(filter);
+    try {
+      const values = [];
+      for await (const value of session.run(input)) {
+        values.push(await session.ownedWork.stringifyJson(value, { pretty: false, maxBytes: 100, limitName: "maxValueBytes" }));
+      }
+      assert.deepEqual(values, [JSON.stringify(expected)]);
+    } finally { await session.close(); }
+  });
+}
+
 test("shared queries retain decimal arithmetic and stream order", async () => {
   const session = createYqQuerySession({ signal: new AbortController().signal });
   session.compileOnce(".[] | . + 0.1");

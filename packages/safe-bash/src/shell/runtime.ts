@@ -14038,7 +14038,9 @@ export class Runtime {
           !rawState.extensions?.builtins.has("getopts") &&
           !hasActiveVariableAttributes(rawState)
         ) {
-          const optstring = condCmd.words[1]!.plain ?? this.fastValueWord(condCmd.words[1]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+          // Expanded optstrings can change after each body execution. Keep them
+          // on the normal path, which expands each getopts invocation.
+          const optstring = condCmd.words[1]!.plain;
           const optVar = condCmd.words[2]!.plain;
           if (
             typeof optstring !== "string" ||

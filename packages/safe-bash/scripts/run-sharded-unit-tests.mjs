@@ -14,6 +14,7 @@ const ISOLATED_PATTERNS = /\b(?:process\s*\.\s*(?:chdir|exit)|mock\s*\.)\b/;
 // These harnesses replace process-global APIs, including through imported helpers.
 const ISOLATED_TEST_FILES = new Set([
   "tests/commands/expr/abort-reason-regression.test.ts",
+  "tests/commands/expr/regex-lifecycle.test.ts",
   "tests/commands/network-zero-caps-review/holdout.test.ts",
   "tests/commands/regex-execution/cleanup-registration/controls.test.ts",
   "tests/commands/regex-execution/continuation/glob-transport.test.ts",

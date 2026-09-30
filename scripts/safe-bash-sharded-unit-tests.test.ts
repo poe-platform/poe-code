@@ -86,7 +86,8 @@ describe("safe-bash sharded unit runner", () => {
     "tests/commands/regex-execution/continuation/glob-transport.test.ts",
     "tests/commands/regex-execution/executor.test.ts",
     "tests/commands/regex-execution/followup/messageerror.test.ts",
-    "tests/commands/expr/abort-reason-regression.test.ts"
+    "tests/commands/expr/abort-reason-regression.test.ts",
+    "tests/commands/expr/regex-lifecycle.test.ts"
   ])("isolates the Worker-patching harness %s on its first execution", file => {
     const fileSystem = createSafeBashFixture();
     const root = "/repo/packages/safe-bash";

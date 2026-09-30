@@ -393,7 +393,7 @@ it("preserves public contract exports when the browser bundle externalizes their
     "command-requirements": ["evaluateCommandSupport", "assertCommandRequirements"],
     errors: ["isErrnoCode", "isFsError", "toFsError", "FsError"],
     filesystem: ["ACCESS_MODES"],
-    io: ["collectBytes", "readBytes", "toByteSource", "outputFailure", "createBytePipe", "writeText", "writeBytes", "pipeBytes", "collectText"],
+    io: ["InputByteBudget", "collectBytes", "readBytes", "toByteSource", "outputFailure", "createBytePipe", "writeText", "writeBytes", "pipeBytes", "collectText"],
     output: ["createOutputOperation"],
     plugin: ["composeMiddleware"],
   };

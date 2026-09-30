@@ -75,6 +75,11 @@ def _options(values):
             raise ValueError("Model options must be finite")
     return result
 
+def _configuration_context():
+    return {"cwd": os.getcwd(), "configuration_env": {
+        name: os.environ.get(name) for name in ("HOME", "XDG_CONFIG_HOME", "LLM_USER_PATH")
+    }}
+
 @dataclass(frozen=True)
 class Request:
     prompt: str = ""
@@ -100,7 +105,7 @@ class Request:
             if not isinstance(message, Message) or not isinstance(message.role, str) or not isinstance(message.content, str):
                 raise TypeError("Messages must contain typed Message values")
             messages.append({"role": message.role, "content": message.content})
-        result = {"prompt": self.prompt, "messages": messages,
+        result = {**_configuration_context(), "prompt": self.prompt, "messages": messages,
                   "attachments": [attachment.payload() for attachment in self.attachments],
                   "options": _options(self.options)}
         for key in ("model", "system", "schema", "template", "conversation"):
@@ -343,13 +348,13 @@ class Client:
             self._tasks.discard(task)
 
     async def configuration(self):
-        value = await self._run(lambda: self._bridge.call("configuration", {}), self._timeout)
+        value = await self._run(lambda: self._bridge.call("configuration", _configuration_context()), self._timeout)
         return Configuration(default_model=value.get("default_model"),
                              aliases=copy.deepcopy(value.get("aliases", {})),
                              model_options=copy.deepcopy(value.get("model_options", {})))
 
     async def models(self):
-        values = await self._run(lambda: self._bridge.call("models", {}), self._timeout)
+        values = await self._run(lambda: self._bridge.call("models", _configuration_context()), self._timeout)
         return tuple(Model(id=value["id"], aliases=tuple(value.get("aliases", ())),
                            capabilities=tuple(value.get("capabilities", ())),
                            metadata=copy.deepcopy(value.get("metadata", {}))) for value in values)
@@ -379,7 +384,7 @@ class Client:
         inputs = tuple(inputs)
         if not all(isinstance(value, str) for value in inputs):
             raise TypeError("Embedding inputs must be an iterable of strings")
-        payload = {"model": model if model is not None else self._defaults["model"], "inputs": list(inputs),
+        payload = {**_configuration_context(), "model": model if model is not None else self._defaults["model"], "inputs": list(inputs),
                    "options": _options({**self._defaults["options"], **(options or {})})}
         payload["timeout"] = self._timeout if timeout is None else _timeout(timeout)
         result = await self._run(lambda: self._bridge.call("embed", payload), payload["timeout"])

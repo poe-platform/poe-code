@@ -44,14 +44,18 @@ async def summarize():
 ```
 
 Named templates use the same canonical configuration directory as Bash `llm`
-(`LLM_USER_PATH`, or the parent environment's configuration directory). Template
+(`LLM_USER_PATH`, or the current guest environment's configuration directory). Template
 parameters are strings; explicit model, system and options override template
 values. Saved model options apply first, followed by template options and explicit
 request options; their existing types are preserved. Attachments declared by templates use the same retained canonical reads.
 Use `await client.configuration()` to inspect the saved default model, aliases
 and per-model options as a typed `Configuration` snapshot. Changes to that snapshot
 do not modify host state. Completions, streams and embeddings resolve saved aliases
-and defaults through the shared JavaScript configuration service.
+and defaults through the shared JavaScript configuration service. Changes to
+Python cwd and `HOME`, `XDG_CONFIG_HOME` or `LLM_USER_PATH` take effect on the next
+operation, including relative template attachments. Other environment fields are
+not forwarded by the direct LLM API; provider authorization remains on the parent
+JavaScript service.
 
 For a stored `review` template with prompt `Review $topic: $input`:
 

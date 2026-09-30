@@ -359,3 +359,27 @@ test('model discovery respects the host buffered ceiling for persisted aliases',
   const capability = createPythonLlmCapability({fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'}},service,{maxBufferedResponseBytes:512});
   await assert.rejects(capability.call!({operation:'models'},{signal}),/response limit/);
 });
+
+test('direct template and configuration calls use current guest cwd and selected environment', async () => {
+  const {fs,service,requests} = await fixture();
+  await fs.mkdir('/guest',{recursive:true});
+  await fs.writeFile('/guest/note.txt',new TextEncoder().encode('guest-canonical'));
+  for (const [directory,prompt,mode] of [['/parent-settings','Parent','parent'],['/guest-settings','Guest','guest']] as const) {
+    await fs.mkdir(directory+'/templates',{recursive:true});
+    await fs.writeFile(directory+'/templates/review.yaml',new TextEncoder().encode(`prompt: "${prompt} $input"\nattachments:\n  - note.txt\n`));
+    await fs.writeFile(directory+'/model_options.json',new TextEncoder().encode(JSON.stringify({model:{mode}})));
+  }
+  await fs.writeFile('/guest-settings/default_model.txt',new TextEncoder().encode('guest-alias'));
+  await fs.writeFile('/guest-settings/aliases.json',new TextEncoder().encode(JSON.stringify({'guest-alias':'model'})));
+  const capability = createPythonLlmCapability({fs,cwd:'/work',env:{LLM_USER_PATH:'/parent-settings'}},service);
+  const current = {cwd:'/guest',configuration_env:{LLM_USER_PATH:'/guest-settings',HOME:null,XDG_CONFIG_HOME:null}};
+  await capability.call!({operation:'complete',payload:{...current,prompt:'q',template:'review'}},{signal});
+  assert.equal(requests[0]!.prompt,'Guest q');
+  assert.deepEqual(requests[0]!.options,{mode:'guest'});
+  assert.equal(new TextDecoder().decode(requests[0]!.attachments[0]!.bytes),'guest-canonical');
+  const configuration = await capability.call!({operation:'configuration',payload:current},{signal});
+  assert.deepEqual(configuration,{default_model:'guest-alias',aliases:{'guest-alias':'model'},model_options:{model:{mode:'guest'}}});
+  const models = await capability.call!({operation:'models',payload:current},{signal}) as readonly {aliases:readonly string[]}[];
+  assert.deepEqual(models[0]!.aliases,['alias','guest-alias']);
+  await assert.rejects(capability.call!({operation:'models',payload:{configuration_env:{OPENAI_API_KEY:'synthetic'}}},{signal}),/configuration environment/);
+});

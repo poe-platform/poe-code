@@ -23,6 +23,8 @@ class FakeBridge:
   self.calls.append((operation, payload))
   if self.fail:
    raise LlmError('invalid_option', 'Unsupported temperature')
+  if operation == 'configuration':
+   return {'default_model': None, 'aliases': {}, 'model_options': {}}
   if operation == 'models':
    return [{'id': 'provider/model', 'aliases': ['small'], 'capabilities': ['complete', 'stream']}]
   if operation == 'embed':
@@ -40,6 +42,24 @@ class FakeBridge:
   return chunks()
 
 class LibraryTests(unittest.IsolatedAsyncioTestCase):
+ async def test_all_operations_capture_current_guest_configuration_context(self):
+  from unittest.mock import patch
+  bridge = FakeBridge()
+  async with Client(bridge=bridge, model='provider/model') as client:
+   with patch('os.getcwd', return_value='/guest'), patch.dict(__import__('os').environ, {'HOME':'/guest/home','XDG_CONFIG_HOME':'/guest/xdg','LLM_USER_PATH':'/guest-settings','EXTRA':'synthetic'}, clear=True):
+    await client.complete('context')
+    await client.models()
+    await client.configuration()
+    await client.embed(['one'])
+    async with client.stream('context') as stream:
+     self.assertEqual(len([event async for event in stream]),3)
+    for operation,payload in bridge.calls:
+     self.assertEqual(payload.get('cwd'),'/guest')
+     self.assertEqual(payload.get('configuration_env'), {'HOME':'/guest/home','XDG_CONFIG_HOME':'/guest/xdg','LLM_USER_PATH':'/guest-settings'})
+   with patch.dict(__import__('os').environ, {}, clear=True):
+    await client.configuration()
+    self.assertEqual(bridge.calls[-1][1]['configuration_env'], {'HOME':None,'XDG_CONFIG_HOME':None,'LLM_USER_PATH':None})
+
  async def test_configuration_snapshot_is_typed_and_owned(self):
   from poe_llm import Configuration, CapabilityError
   stored = {'default_model':'small', 'aliases':{'small':'provider/model'}, 'model_options':{'provider/model':{'mode':'saved'}}}

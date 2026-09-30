@@ -11,6 +11,22 @@ function record(value: PythonHostValue): {readonly [key:string]:PythonHostValue}
   return value as {readonly [key:string]:PythonHostValue};
 }
 
+type PythonLlmContext = Pick<CommandContext, 'fs' | 'cwd' | 'inputBudget'> & Partial<Pick<CommandContext, 'env'>>;
+
+function configurationContext(context: PythonLlmContext, payload: {readonly [key:string]:PythonHostValue}, signal: AbortSignal): Pick<CommandContext, 'fs' | 'cwd' | 'env' | 'signal'> {
+  const cwd = payload.cwd === undefined ? context.cwd : payload.cwd;
+  if (typeof cwd !== 'string' || !cwd.startsWith('/') || cwd.includes('\0')) throw new TypeError('LLM configuration cwd must be an absolute canonical path');
+  const env = {...context.env};
+  if (payload.configuration_env !== undefined) {
+    for (const [key,value] of Object.entries(record(payload.configuration_env))) {
+      if (!['HOME','XDG_CONFIG_HOME','LLM_USER_PATH'].includes(key) || value !== null && typeof value !== 'string') throw new TypeError('Unsupported LLM configuration environment');
+      if (value === null) delete env[key];
+      else env[key] = value as string;
+    }
+  }
+  return {fs:context.fs,cwd,env,signal};
+}
+
 /** Count the wire representation before retaining/serializing host metadata. */
 function jsonBytes(value: PythonHostValue, limit: number): number {
   if (limit === Infinity) return 0;
@@ -85,7 +101,7 @@ export interface PythonLlmCapabilityOptions {
 }
 
 /** Reuses the invocation's authorized service; Python receives only model data. */
-export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | 'cwd' | 'inputBudget'> & Partial<Pick<CommandContext, 'env'>>, service: LlmService, options: PythonLlmCapabilityOptions = {}): PythonHostCapability {
+export function createPythonLlmCapability(context: PythonLlmContext, service: LlmService, options: PythonLlmCapabilityOptions = {}): PythonHostCapability {
   const chunkBytes = options.maxStreamChunkBytes ?? 16384;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError('Invalid Python LLM stream chunk limit');
   const bufferedLimit = options.maxBufferedResponseBytes ?? Infinity;
@@ -102,7 +118,8 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
       signal = AbortSignal.any([signal, AbortSignal.timeout(Math.max(1, Math.ceil(timeout * 1000)))]);
     }
     signal.throwIfAborted();
-    const configuration = createLlmConfiguration({...context,env:context.env ?? {},signal});
+    const requestContext = configurationContext(context,payload,signal);
+    const configuration = createLlmConfiguration(requestContext);
     if (payload.conversation !== undefined && payload.conversation !== null) throw new TypeError('The shared LLM service does not yet support persisted conversation');
     const parameters: Record<string,string> = {};
     for (const [key,item] of Object.entries(record(payload.parameters ?? {}))) {
@@ -111,7 +128,7 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
     }
     if (payload.template !== undefined && payload.template !== null) {
       if (typeof payload.template !== 'string') throw new TypeError('Template name must be a string');
-      const stored = await createLlmTemplateStore({...context,env:context.env ?? {},signal}).load(payload.template);
+      const stored = await createLlmTemplateStore(requestContext).load(payload.template);
       validateLlmTemplateParameters(stored,parameters);
       const input = payload.prompt ?? '';
       if (typeof input !== 'string') throw new TypeError('Invalid LLM text input');
@@ -162,7 +179,7 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
         const attachment = record(value);
         if (typeof attachment.path !== 'string' || !attachment.path || attachment.path.includes('\0') || attachment.path.includes('://')) throw new TypeError('Attachment requires a canonical filesystem path');
         if (attachment.mimeType !== undefined && typeof attachment.mimeType !== 'string') throw new TypeError('Invalid attachment MIME type');
-        const path = pathOf(context, attachment.path);
+        const path = pathOf(requestContext, attachment.path);
         const capabilities = await context.fs.capabilitiesFor?.(path, {signal}) ?? context.fs.capabilities;
         signal.throwIfAborted();
         if (capabilities.retainedRead !== true || !context.fs.openReadFile) throw new TypeError('Canonical attachment filesystem requires retained reads');
@@ -262,7 +279,7 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
       const operation = record(value);
       const payload = record(operation.payload ?? {});
       if (operation.operation === 'models') {
-        const configuration = createLlmConfiguration({...context,env:context.env ?? {},signal});
+        const configuration = createLlmConfiguration(configurationContext(context,payload,signal));
         const aliases = await configuration.aliases();
         const models = service.models.map(entry => ({
           id:entry.model.id,aliases:getLlmModelAliases(entry,aliases),capabilities:[...entry.model.capabilities ?? []],
@@ -272,7 +289,7 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
         return models;
       }
       if (operation.operation === 'configuration') {
-        const configuration = createLlmConfiguration({...context,env:context.env ?? {},signal});
+        const configuration = createLlmConfiguration(configurationContext(context,payload,signal));
         const result = {default_model:await configuration.defaultModel() ?? null,aliases:await configuration.aliases(),model_options:await configuration.allModelOptions()};
         jsonBytes(result,bufferedLimit);
         return result;

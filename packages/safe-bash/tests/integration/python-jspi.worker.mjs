@@ -188,6 +188,7 @@ async function qualifyHostServices(backend, createExecutor) {
     }
     if (request.prompt === 'error-call') throw new Error('private-host-error');
     if (request.prompt === 'library' && (request.options.enabled !== true || request.options.count !== 2 || request.options.nullable !== null)) throw new Error('Typed options were changed');
+    if (request.prompt === 'Guest native' && (request.system !== 'guest' || request.options.mode !== 'guest' || new TextDecoder().decode(request.attachments[0]?.bytes) !== 'guest-canonical')) throw new Error('Guest template configuration or canonical path changed');
     if (request.prompt === 'configured' && (request.model !== 'fake' || request.options.mode !== 'override')) throw new Error('Canonical configuration or typed precedence changed');
     if (request.prompt === 'Review code: native' && (request.system !== 'Be terse' || request.options.enabled !== true || new TextDecoder().decode(request.attachments[0]?.bytes) !== 'changed')) throw new Error('Named template semantics changed');
     if (request.prompt === 'attached') {
@@ -229,6 +230,12 @@ async function qualifyHostServices(backend, createExecutor) {
     return {model:request.model,vectors:request.inputs.map(() => [1,2]),usage:{input:request.inputs.length},metadata:{id:'embedding-1'}};
   } };
   const service = createLlmService({ providers: [provider], defaultModel: 'fake' });
+  await backend.mkdir('/guest/config/templates',{recursive:true});
+  await backend.writeFile('/guest/note.txt',new TextEncoder().encode('guest-canonical'));
+  await backend.writeFile('/guest/config/default_model.txt',new TextEncoder().encode('guest-alias'));
+  await backend.writeFile('/guest/config/aliases.json',new TextEncoder().encode(JSON.stringify({'guest-alias':'fake'})));
+  await backend.writeFile('/guest/config/model_options.json',new TextEncoder().encode(JSON.stringify({fake:{mode:'guest'}})));
+  await backend.writeFile('/guest/config/templates/review.yaml',new TextEncoder().encode('prompt: "Guest $input"\nsystem: guest\nattachments:\n  - note.txt\n'));
   await backend.mkdir('/settings/templates',{recursive:true});
   await backend.writeFile('/settings/default_model.txt',new TextEncoder().encode('saved'));
   await backend.writeFile('/settings/aliases.json',new TextEncoder().encode(JSON.stringify({saved:'fake'})));
@@ -305,6 +312,26 @@ async def qualify_libraries():
   configuration = await client.configuration()
   assert configuration.default_model == 'saved' and configuration.aliases == {'saved':'fake'}
   assert configuration.model_options == {'fake':{'mode':'saved'}}
+  import os
+  original_cwd = os.getcwd()
+  original_user_path = os.environ.get('LLM_USER_PATH')
+  try:
+   os.chdir('/guest')
+   os.environ['LLM_USER_PATH'] = '/guest/config'
+   guest_configuration = await client.configuration()
+   assert guest_configuration.default_model == 'guest-alias' and guest_configuration.model_options == {'fake':{'mode':'guest'}}
+   assert 'guest-alias' in (await client.models())[0].aliases
+   guest_response = await client.complete('native', template='review')
+   assert guest_response.text == 'Guest native'
+   async with ShellClient() as child:
+    guest_bash = await child.run(['llm','-t','review','native'],text=True,check=True)
+    assert guest_bash.stdout == guest_response.text + '\n'
+  finally:
+   os.chdir(original_cwd)
+   if original_user_path is None:
+    os.environ.pop('LLM_USER_PATH',None)
+   else:
+    os.environ['LLM_USER_PATH'] = original_user_path
   response = await client.complete('configured', model='saved', options={'mode':'override'})
   assert response.model == 'fake' and response.text == 'configured'
   embedded = await client.embed((value for value in ['input']), model='saved')

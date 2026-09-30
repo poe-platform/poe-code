@@ -231,7 +231,11 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
             else text += String.fromCharCode(byte);
           }
           text += "'";
-        } else text = supplied === "" ? "''" : supplied.replace(/[^a-zA-Z0-9_./-]/gu, character => `\\${character}`);
+        } else text = supplied === "" ? "''" : supplied.replace(/[^a-zA-Z0-9_./@%+=:-]/gu, (character, offset: number) => {
+          if (character === "#" && offset > 0) return character;
+          if (character === "~" && offset > 0 && supplied[offset - 1] !== ":" && supplied[offset - 1] !== "=") return character;
+          return `\\${character}`;
+        });
         if (precision !== undefined) text = text.slice(0, precision);
       }
       else {

@@ -25,6 +25,14 @@ Audit `true`, `false`, `echo`, `pwd`, `basename`, `dirname`, and `printf` agains
 - The broad typecheck reproduced two lazy-command fixture type errors; corrected the sink arity and normalized the handler result to a Promise. Its three focused tests pass. Standalone consumer staging also requires outputs beyond the selected Safe Bash build closure; a normal full build is in progress before retrying qualification.
 - Local commits exist; remote delivery and publication are not yet verified.
 
+## Additional printf qualification
+
+- Independent classified cohort: 1,956 comparisons (1,380 integer formats/operands, 576 string/escape/quote/reuse cases), zero oracle errors. All 232 differences were accounted for: 138 GNU rejections of Bash flags, 54 GNU bare-quote numeric errors, 24 Darwin string-padding differences, and 16 old Bash 3.2 empty `%b` padding differences. Newer upstream source confirms the candidate's empty `%b` padding behavior. This does not mean every GNU or Bash input is supported.
+- All 234 eligible fast-helper cases matched handler bytes and status after the empty-numeric fix.
+- Reproduced and fixed unnecessary `%q` escaping of safe punctuation and noninitial hashes/tildes. The regression also checks contextual tilde protection and actual Shell eval roundtrips, so relaxing escaping cannot silently alter arguments. Current basic suite: 221 passed; guarded lint passed.
+- Quoting rules reviewed from https://raw.githubusercontent.com/gnu-mirror-unofficial/bash/master/lib/sh/shquote.c, SHA-256 `27a2be058864e9ee7d3aa6a3ec9f312ea153946532fdc488a1fbf4d0140876bd` (GPL-3.0-or-later), using printf's flags=3 semantics. System Bash 3.2's leading-tilde output differs from the newer source and is not used as that expectation.
+- Full workspace builds completed, but the root build suffix encountered a sandbox denial creating tsx's IPC socket. Retrying the maintained normal build with the required execution permission; no route or gate was replaced.
+
 Upstream references acquired 2026-09-30 (GPL-3.0-or-later test sources; semantic cases re-expressed in the existing suite):
 
 | Source URL | SHA-256 of inspected source |

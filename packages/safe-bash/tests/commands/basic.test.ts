@@ -673,6 +673,31 @@ test("printf applies q precision to quoted output before width padding", async (
   }
 });
 
+test("printf q follows Bash punctuation and contextual hash and tilde quoting", async () => {
+  // Upstream sh_backslash_quote with printf's flags=3: quote shell syntax,
+  // a leading hash, and tildes at the start or after assignment separators.
+  for (const [operand, expected] of [
+    ["path:one+two=x@y%z", "path:one+two=x@y%z"],
+    ["#comment", "\\#comment"], ["a#b", "a#b"],
+    ["~", "\\~"], ["a~b", "a~b"], ["x=~", "x=\\~"], ["x:~", "x:\\~"],
+    ["a,b^c", "a\\,b\\^c"], ["[]{}", "\\[\\]\\{\\}"],
+  ] as const) {
+    for (const raw of [false, true]) {
+      const result = await runByteArguments("printf", ["%q", raw ? shellValueFromBytes(Buffer.from(operand)) : operand]);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr.length, 0);
+      assert.equal(result.stdout.toString(), expected);
+    }
+    const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([printfCommand]) });
+    try {
+      const result = await shell.exec('quoted=$(printf %q "$VALUE"); eval "set -- $quoted"; printf "%s:%s" "$#" "$1"', { env: { VALUE: operand } });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "1:" + operand);
+    } finally { await shell.dispose(); }
+  }
+});
+
 test("path utilities retain upstream slash and suffix boundary behavior", async () => {
   // Semantic cases reviewed against GNU coreutils tests/misc/{basename,dirname}.pl
   // (2026-09-30), then independently checked with GNU coreutils 9.12.

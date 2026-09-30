@@ -12,6 +12,7 @@ export async function portableRuntime(contents: string) {
   const result = await build({
     ...options, loader: { ...options.loader, ".wasm": "binary" }, external: [], entryPoints: undefined, splitting: false, format: "cjs", sourcemap: false,
     alias: { ...options.alias,
+      "@poe-code/xml-ast": path.join(root, "packages/xml-ast/src/index.ts"),
       "@poe-code/safe-fs": filesystem,
       "@poe-code/safe-fs/core": filesystem,
       "@poe-code/safe-fs/xml": filesystem,
@@ -23,7 +24,8 @@ export async function portableRuntime(contents: string) {
     stdin: { contents, resolveDir: root },
   });
   assert.deepEqual(Object.values(result.metafile!.outputs).flatMap(output => output.imports), []);
-  const realm = createContext({ TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream,
+  // Injected Web APIs throw host TypeErrors, so preserve their error identity too.
+  const realm = createContext({ TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream,
     ReadableStream, WritableStream, AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask,
     crypto: globalThis.crypto, performance, URL, FormData, Blob, Response, Request, btoa, atob });
   assert.equal(runInContext("typeof Buffer + ':' + typeof process", realm), "undefined:undefined");

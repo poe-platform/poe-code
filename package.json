@@ -340,7 +340,7 @@
       "types": "./dist/types/safe-bash/shell-entry.d.ts",
       "workerd": "./packages/safe-bash/dist/shell-entry.browser.js",
       "browser": "./packages/safe-bash/dist/shell-entry.browser.js",
-      "import": "./packages/safe-bash/dist/shell-entry.js"
+      "import": "./dist/safe-bash-shell.js"
     },
     "./safe-bash/full": {
       "types": {
@@ -350,14 +350,15 @@
       },
       "workerd": "./packages/safe-bash/dist/core.browser.js",
       "browser": "./packages/safe-bash/dist/core.browser.js",
-      "node": "./dist/safe-bash.js",
-      "default": "./dist/safe-bash.js"
+      "node": "./dist/safe-bash-full.js",
+      "import": "./dist/safe-bash-full.js",
+      "default": "./dist/safe-bash-full.js"
     },
     "./safe-bash/registry": {
       "types": "./dist/types/safe-bash/registry-entry.d.ts",
       "workerd": "./packages/safe-bash/dist/registry-entry.browser.js",
       "browser": "./packages/safe-bash/dist/registry-entry.browser.js",
-      "import": "./packages/safe-bash/dist/registry-entry.js"
+      "import": "./dist/safe-bash-registry.js"
     }
   },
   "engines": {

@@ -187,6 +187,11 @@ describe("standalone package publish metadata", () => {
     expect(toolcraftPackage.bundleDependencies).not.toContain("mcp-oauth");
     expect(toolcraftPackage.optionalDependencies?.["mcp-oauth"]).toBeUndefined();
   });
+  it.each(["shell", "registry", "full"])("publishes %s through a root-owned Node bundle", profile => {
+    const entry = readPackageJson("package.json").exports?.[`./safe-bash/${profile}`] as { import?: string };
+    expect(entry.import?.startsWith("./dist/")).toBe(true);
+  });
+
   it("keeps root poe-code exports focused on supported SDK surfaces", () => {
     expect(Object.keys(readPackageJson("package.json").exports ?? {}).sort()).toEqual([
       ".", "./agent", "./config", "./config/testing", "./credentials", "./memory", "./skills", "./csvkit", "./csvkit/codecs/python", "./csvkit/codecs/utf8", "./ssconvert",

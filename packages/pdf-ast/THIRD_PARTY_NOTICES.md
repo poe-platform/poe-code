@@ -534,3 +534,11 @@ Copyright (c) 2002-2007, www.pdfbox.org
 
 Based on source code originally developed in the PaDaF project.
 Copyright (c) 2010 Atos Worldline SAS
+
+`src/pdfbox-strings.test.ts` adapts `TestCOSString` and
+`PDFDocEncodingTest` at the same PDFBox revision, retaining the Unicode inputs
+and expected round trips, including all 256 PDFBOX-3864 characters. Local COS
+nodes preserve byte representation, so decoded strings replace Java COSString
+value equality. `src/ast.ts` follows `COSString` in using PDFDocEncoding only
+for representable characters and UTF-16BE otherwise. The reverse encoding map
+is derived from the existing decoder table. Apache-2.0, ASF notice above.

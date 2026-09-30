@@ -419,10 +419,10 @@ export function cosName(decoded: string, rawBytes?: Uint8Array, span?: ByteSpan)
 
 export function cosString(value: string | Uint8Array, span?: ByteSpan): PdfCosString {
   if (typeof value === "string") {
-    // Encode ASCII/Latin-1 directly or UTF-16BE with BOM if non-Latin1
+    // Follow PDFBox COSString: PDFDocEncoding when representable, otherwise UTF-16BE.
     let needsUtf16 = false;
     for (let i = 0; i < value.length; i++) {
-      if (value.charCodeAt(i) > 0xff) {
+      if (!PDF_DOC_ENCODING_REVERSE.has(value.charCodeAt(i))) {
         needsUtf16 = true;
         break;
       }
@@ -440,7 +440,7 @@ export function cosString(value: string | Uint8Array, span?: ByteSpan): PdfCosSt
     }
     const bytes = new Uint8Array(value.length);
     for (let i = 0; i < value.length; i++) {
-      bytes[i] = value.charCodeAt(i) & 0xff;
+      bytes[i] = PDF_DOC_ENCODING_REVERSE.get(value.charCodeAt(i))!;
     }
     return { kind: "string", format: "literal", bytes, span };
   }
@@ -610,6 +610,10 @@ const PDF_DOC_ENCODING_MAP: Readonly<Record<number, number>> = {
   0xa0: 0x20ac,
   0xad: 0xfffd,
 };
+
+const PDF_DOC_ENCODING_REVERSE = new Map<number, number>(
+  Array.from({ length: 256 }, (_, byte) => [PDF_DOC_ENCODING_MAP[byte] ?? byte, byte])
+);
 
 function decodeUtf16UnitsWithSurrogateCheck(units: readonly number[]): string {
   let out = "";

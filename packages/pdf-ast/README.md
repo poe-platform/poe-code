@@ -41,6 +41,9 @@ const pngBytes = page.renderToPng({ scale: 1.5 });
 const pdfBytes = doc.save({ normalizeContent: true });
 ```
 
+Metadata and form strings use PDFDocEncoding where possible and UTF-16BE
+otherwise, preserving Unicode characters through editing and saving.
+
 After `page.redact()`, saving rewrites the file and removes unreachable objects,
 including obsolete content streams and discarded image/Form resources. This also
 applies when `incremental: true` is requested, since previous revisions would

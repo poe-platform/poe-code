@@ -236,6 +236,9 @@ try {
       fixture.hostRelease.resolve();
       result = await bounded(publicExecution, "unenrolled settlement after controlled release");
     } else {
+      // The process deadline bounds startup; this deadline bounds cancellation
+      // once the controlled remote operation has actually been acquired.
+      if (remote) await fixture.started.promise;
       result = await bounded(publicExecution, scenario);
     }
     assert.ok(boundary, "public boundary snapshot captured");

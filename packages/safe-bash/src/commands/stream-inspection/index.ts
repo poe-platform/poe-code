@@ -2,7 +2,7 @@ import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createTacCommand } from "./tac.js";
 import { createExpandCommand } from "./expand.js";
-import { createFoldCommand } from "./fold.js";
+import { createFoldCommand } from "safe-bash-command-fold/family";
 import { createStringsCommand } from "./strings.js";
 import { settings, type StreamInspectionCommandsOptions } from "./shared.js";
 export type { StreamInspectionCommandsOptions, StreamInspectionLimits } from "./shared.js";

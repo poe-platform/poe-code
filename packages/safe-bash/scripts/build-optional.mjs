@@ -233,13 +233,13 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
     for (const statement of source.statements) {
       if (!ts.isExportDeclaration(statement) || !statement.moduleSpecifier || !ts.isStringLiteral(statement.moduleSpecifier) || !statement.exportClause || !ts.isNamedExports(statement.exportClause)) continue;
       const from = path.resolve(path.dirname(support), statement.moduleSpecifier.text);
-      if ((declaration ? declarationTarget(from) : from) !== filename) continue;
+      if (statement.moduleSpecifier.text !== filename && (declaration ? declarationTarget(from) : from) !== filename) continue;
       for (const element of statement.exportClause.elements) {
         if (!element.propertyName || element.propertyName.text === element.name.text) provided.add(element.name.text);
       }
     }
     if (names.every(name => provided.has(name))) {
-      regular(filename);
+      if (path.isAbsolute(filename)) regular(filename);
       return true;
     }
     return false;
@@ -272,6 +272,7 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
     }
     const host = path.resolve(core, coreManifest.exports?.["./optional-host"]?.[declaration ? "types" : "import"] ?? "");
     for (const edge of moduleEdges(host, regular(host).toString()).edges) {
+      if (edge.specifier === specifier && supportBinding(specifier, names, declaration)) return requirePeer("@poe-platform/safe-bash/optional-host");
       if (!edge.specifier.startsWith(".")) continue;
       const target = declaration ? declarationTarget(path.resolve(path.dirname(host), edge.specifier)) : path.resolve(path.dirname(host), edge.specifier);
       if (moduleEdges(target, regular(target).toString()).edges.some(reference => reference.specifier === specifier) && supportBinding(target, names, declaration)) return requirePeer("@poe-platform/safe-bash/optional-host");

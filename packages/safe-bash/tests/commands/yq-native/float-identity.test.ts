@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { run } from "./helpers.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { mikeYqCommands } from "../../../src/commands/yq/mike.js";
+import { mikeYqCommands } from "safe-bash-command-yq/mike";
 import { Shell } from "../../../src/shell/shell.js";
 
 for (const operation of ["tag", "type"]) {

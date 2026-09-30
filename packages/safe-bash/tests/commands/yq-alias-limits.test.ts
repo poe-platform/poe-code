@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { toByteSource, type CommandContext } from "../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createYqCommand, type YqCommandsOptions } from "../../src/commands/yq/index.js";
-import { copyAlias, YqLedger, resolveYqLimits } from "../../src/commands/yq/accounting.js";
+import { copyAlias, YqLedger, resolveYqLimits } from "safe-bash-command-yq/accounting";
 import { createYqQuerySession } from "../../src/commands/structured/query-core.js";
 
 for (const [limits, code] of [

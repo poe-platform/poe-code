@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { run } from "../yq-scripting/helpers.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { parseYamlDocuments } from "../../../src/commands/yq/parser.js";
-import { YqLedger } from "../../../src/commands/yq/accounting.js";
+import { parseYamlDocuments } from "safe-bash-command-yq/parser";
+import { YqLedger } from "safe-bash-command-yq/accounting";
 import type { YqOwnedWork } from "../../../src/commands/structured/query-core.js";
 
 test("native YAML rejects many short lines below the document byte cap", async () => {

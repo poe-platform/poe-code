@@ -89,6 +89,7 @@ function fixture() {
   }
   for (const statement of hostDeclarations.statements) {
     if (!ts.isExportDeclaration(statement) || !statement.moduleSpecifier || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
+    if (!statement.moduleSpecifier.text.startsWith(".")) continue;
     const target = core + "/dist/" + statement.moduleSpecifier.text.slice(2, -3);
     data[target + ".d.ts"] ??= "export {};\n";
     if (!statement.isTypeOnly) data[target + ".js"] ??= "export {};\n";
@@ -255,7 +256,7 @@ describe("optional-owned compiled graph", () => {
         if (!compilation.emittedFiles.includes(filename)) compilation.emittedFiles.push(filename);
       }
     }
-    volume.writeFileSync(core + "/dist/commands/yes/helper.js", boundaries.map(([target, names]) => `export { ${names} } from "../${target}.js";`).join("\n"));
+    volume.writeFileSync(core + "/dist/commands/yes/helper.js", boundaries.map(([target, names]) => `export { ${names} } from "${target.startsWith("yq/") ? "safe-bash-command-" + target : "../" + target + ".js"}";`).join("\n"));
     await buildOptionalPackage(options);
     const rewritten = volume.readFileSync(optional + "/dist/opt-in/commands/yes/helper.js", "utf8").toString();
     for (const [target, names] of boundaries) {
@@ -509,7 +510,7 @@ describe("optional-owned compiled graph", () => {
     for (const statement of hostDeclarations.statements) {
       if (!ts.isExportDeclaration(statement) || !statement.moduleSpecifier || !ts.isStringLiteral(statement.moduleSpecifier) || !statement.exportClause || !ts.isNamedExports(statement.exportClause)) throw new Error("Expected explicit named host re-exports");
       const names = statement.exportClause.elements.map(element => element.name.text);
-      const specifier = "../../" + statement.moduleSpecifier.text.slice(2);
+      const specifier = statement.moduleSpecifier.text.startsWith(".") ? "../../" + statement.moduleSpecifier.text.slice(2) : statement.moduleSpecifier.text;
       declarations.push(`export type { ${names.join(", ")} } from ${JSON.stringify(specifier)};`);
       expectedDeclarations.push(`export type { ${names.join(", ")} } from "@poe-platform/safe-bash/optional-host";`);
       if (!statement.isTypeOnly) {
@@ -591,4 +592,25 @@ describe("optional-owned compiled graph", () => {
     await expect(buildOptionalPackage(options)).rejects.toThrow("Missing public peer:");
     expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
+});
+
+it.each([false, true])("routes direct private optional-host re-exports and rejects missing bindings: %s", async missing => {
+  const { volume, options, compilation } = fixture();
+  const name = "safe-bash-command-host-fixture";
+  const manifest = JSON.parse(volume.readFileSync(core + "/package.json", "utf8").toString());
+  manifest.devDependencies[name] = "*";
+  manifest.poeCode.integration.privateWorkspaces[name] = { version: "0.0.1", dependencies: {}, devDependencies: {} };
+  volume.writeFileSync(core + "/package.json", JSON.stringify(manifest));
+  for (const suffix of ["js", "d.ts"]) {
+    const host = core + "/dist/optional-host." + suffix;
+    volume.writeFileSync(host, volume.readFileSync(host, "utf8") + `export { ${missing ? "other" : "helperToken"} } from "${name}/helper";\n`);
+    volume.writeFileSync(core + "/dist/commands/yes/helper." + suffix, `import { helperToken } from "${name}/helper"; export const helper = helperToken;\n`);
+  }
+  compilation.emittedFiles.push(core + "/dist/commands/yes/helper.d.ts");
+  volume.writeFileSync(core + "/dist/commands/yes/index.d.ts", 'export { helper } from "./helper.js";\n');
+  if (missing) await expect(buildOptionalPackage(options)).rejects.toThrow("Unmapped private optional reference");
+  else {
+    await expect(buildOptionalPackage(options)).resolves.toMatchObject({ status: 0 });
+    for (const suffix of ["js", "d.ts"]) expect(volume.readFileSync(core + "/dist/opt-in/commands/yes/helper." + suffix, "utf8")).toContain('from "@poe-platform/safe-bash/optional-host"');
+  }
 });

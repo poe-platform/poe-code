@@ -8,9 +8,9 @@ import { Shell } from "../../../src/shell/shell.js";
 import { createYqCommand, createYqCommands, yqCommands } from "../../../src/commands/yq/index.js";
 import { createYqQuerySession, type YqOwnedWork } from "../../../src/commands/structured/query-core.js";
 import { JqLimitError } from "../../../src/commands/structured/limits.js";
-import { parseYamlDocuments } from "../../../src/commands/yq/parser.js";
-import { YqLedger } from "../../../src/commands/yq/accounting.js";
-import { YqError } from "../../../src/commands/yq/errors.js";
+import { parseYamlDocuments } from "safe-bash-command-yq/parser";
+import { YqLedger } from "safe-bash-command-yq/accounting";
+import { YqError } from "safe-bash-command-yq/errors";
 
 function sink(): ByteSink & { readonly bytes: Uint8Array[] } {
   const bytes: Uint8Array[] = [];

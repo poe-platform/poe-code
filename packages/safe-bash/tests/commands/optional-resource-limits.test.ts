@@ -15,7 +15,7 @@ import { settings as hexdumpSettings } from "safe-bash-command-hexdump/internal"
 import { limitsFor } from "../../src/commands/network/shared.js";
 import { settings as shufSettings } from "safe-bash-command-shuf/options";
 import { settings as exprSettings } from "safe-bash-command-expr/internal";
-import { settings as lineEndingSettings } from "../../src/commands/line-endings/internal.js";
+import { settings as lineEndingSettings } from "safe-bash-line-ending-engine/internal";
 import { settings as iconvSettings } from "safe-bash-command-iconv/internal";
 import { settings as splitSettings } from "safe-bash-command-split/options";
 import { settings as patchSettings } from "safe-bash-command-apply-patch/options";

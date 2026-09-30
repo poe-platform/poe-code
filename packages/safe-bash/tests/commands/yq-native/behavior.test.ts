@@ -6,8 +6,8 @@ import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { commandRuntimeIdentity, createCommandArguments, FsError } from "../../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../../src/contracts/value.js";
 import { Shell } from "../../../src/shell/index.js";
-import { createMikeYqCommand, createMikeYqCommands, mikeYqCommands } from "../../../src/commands/yq/mike.js";
-import type { MikeYqOptions } from "../../../src/commands/yq/mike.js";
+import { createMikeYqCommand, createMikeYqCommands, mikeYqCommands } from "safe-bash-command-yq/mike";
+import type { MikeYqOptions } from "safe-bash-command-yq/mike";
 import { native, nativeOptions, run } from "./helpers.js";
 
 test("Mike yq expressions require double-quoted string literals", async () => {

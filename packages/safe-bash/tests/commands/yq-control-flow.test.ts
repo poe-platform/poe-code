@@ -4,7 +4,7 @@ import { toByteSource, type ByteSource, type CommandContext } from "../../src/co
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createYqCommand } from "../../src/commands/yq/index.js";
 import { createYqQuerySession } from "../../src/commands/structured/query-core.js";
-import { YqLedger } from "../../src/commands/yq/accounting.js";
+import { YqLedger } from "safe-bash-command-yq/accounting";
 
 async function run(source: string, input: string | Uint8Array | ByteSource) {
   const stdout: Uint8Array[] = [];

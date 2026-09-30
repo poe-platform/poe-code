@@ -8,7 +8,7 @@ import { ColumnBudget } from "safe-bash-command-column/internal";
 import { settings as columnSettings } from "safe-bash-command-column/options";
 import { Budget as HexBudget, settings as hexSettings } from "safe-bash-command-hexdump/internal";
 import { Budget as PrBudget, settings as prSettings } from "safe-bash-command-pr/internal";
-import { Budget as EndingBudget, settings as endingSettings } from "../../src/commands/line-endings/internal.js";
+import { Budget as EndingBudget, settings as endingSettings } from "safe-bash-line-ending-engine/internal";
 import { Session as InspectionSession, settings as inspectionSettings } from "../../src/commands/stream-inspection/shared.js";
 
 const factories: readonly [string, (context: CommandContext) => () => void | Promise<void>][] = [

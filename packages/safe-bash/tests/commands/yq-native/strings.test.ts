@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
-import { mikeYqCommands } from "../../../src/commands/yq/mike.js";
+import { mikeYqCommands } from "safe-bash-command-yq/mike";
 import { run } from "./helpers.js";
 
 for (const [expression, input, expected] of [

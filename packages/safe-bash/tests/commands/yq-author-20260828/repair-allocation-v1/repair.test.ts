@@ -5,10 +5,10 @@ import { toByteSource, type ByteSink, type CommandContext } from "../../../../sr
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { createYqQuerySession, type YqOwnedWork } from "../../../../src/commands/structured/query-core.js";
 import { JqLimitError, type Json } from "../../../../src/commands/structured/limits.js";
-import { YqLedger } from "../../../../src/commands/yq/accounting.js";
-import { encodeYaml } from "../../../../src/commands/yq/encoder.js";
+import { YqLedger } from "safe-bash-command-yq/accounting";
+import { encodeYaml } from "safe-bash-command-yq/encoder";
 import { createYqCommand, type YqLimits } from "../../../../src/commands/yq/index.js";
-import { parseYamlDocuments } from "../../../../src/commands/yq/parser.js";
+import { parseYamlDocuments } from "safe-bash-command-yq/parser";
 
 // Inspect the owning implementations, not safe-bash's compatibility re-exports.
 const root = new URL("../../../../../", import.meta.url);

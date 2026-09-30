@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { Composer, Document, Lexer } from "yaml";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { type InvocationCleanup, type ByteSource } from "../../../src/contracts/index.js";
-import { createMikeYqCommand } from "../../../src/commands/yq/mike.js";
+import { createMikeYqCommand } from "safe-bash-command-yq/mike";
 import { run } from "./helpers.js";
 
 for (const [name, input, limit] of [

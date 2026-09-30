@@ -1,4 +1,4 @@
-import { createMikeYqCommand, type MikeYqOptions } from "../../../src/commands/yq/mike.js";
+import { createMikeYqCommand, type MikeYqOptions } from "safe-bash-command-yq/mike";
 import { toByteSource, type CommandContext } from "../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 

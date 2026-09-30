@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { run } from "./helpers.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
-import { mikeYqCommands } from "../../../src/commands/yq/mike.js";
+import { mikeYqCommands } from "safe-bash-command-yq/mike";
 import { MockS3Client, S3FileSystem } from "@poe-code/safe-fs";
 
 const inputs = [

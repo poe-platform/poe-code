@@ -5,7 +5,7 @@ import test from "node:test";
 import { createCommandArguments, FsError, type ByteSource } from "../../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../../src/contracts/value.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { mikeYqCommands } from "../../../src/commands/yq/mike.js";
+import { mikeYqCommands } from "safe-bash-command-yq/mike";
 import { Shell } from "../../../src/shell/shell.js";
 import { ShellLimitError } from "../../../src/shell/types.js";
 import { native, nativeOptions, run } from "./helpers.js";

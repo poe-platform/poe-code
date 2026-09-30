@@ -155,4 +155,4 @@ The workspace entrypoint exports `mmdcCommands()` for plugin registration,
 `createMmdcCommands()` for the command collection, and
 `createMmdcCommand()` for a single command. Each accepts an optional
 `MmdcCommandsOptions` object; existing factory names remain available.
-SVG output includes static URL links. Callback declarations are accepted without running JavaScript. PNG and PDF preserve the diagram appearance; PDF pages use 72 points per inch and embed the antialiased raster, with resolution controlled by `scale`.
+SVG output includes static URL links. Sequence participants display every named `link` and `links` entry as a separate link. Callback declarations are accepted without running JavaScript. PNG and PDF preserve the diagram appearance; PDF pages use 72 points per inch and embed the antialiased raster, with resolution controlled by `scale`.

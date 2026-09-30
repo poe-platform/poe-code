@@ -152,6 +152,7 @@ export function* parseSequenceDiagramSteps(
   const nodes = new Map<string, DocumentNode>();
   const groups: DocumentGroup[] = [];
   const hrefs = new Map<string, string>();
+  const namedLinks = new Map<string, { label: string; href: string }[]>();
   const edges: DocumentEdge[] = [];
   const notes: DocumentNote[] = [];
   const activations: SequenceActivationEvent[] = [];
@@ -225,18 +226,26 @@ export function* parseSequenceDiagramSteps(
         if (href !== undefined) hrefs.set(target.word, href);
       } else {
         const colon = rest.indexOf(":");
-        if (colon >= 0) {
-          const id = rest.slice(0, colon).trim(), value = rest.slice(colon + 1).trim();
-          let href: string | undefined;
-          if (lowerKw === "link") {
-            const at = value.indexOf("@");
-            if (at >= 0) href = value.slice(at + 1).trim();
-          } else {
-            try { const links: unknown = JSON.parse(value); if (links && typeof links === "object") href = Object.values(links).find(link => typeof link === "string"); }
-            catch { throw new MermaidError("E_SYNTAX", "Invalid sequence links mapping", { span }); }
-          }
-          if (href !== undefined) hrefs.set(id, interactionHref(JSON.stringify(href))!);
+        if (colon < 0) throw new MermaidError("E_SYNTAX", "Expected a sequence link target", { span });
+        const id = rest.slice(0, colon).trim(), value = rest.slice(colon + 1).trim();
+        let entries: [string, unknown][];
+        if (lowerKw === "link") {
+          const at = value.indexOf("@");
+          if (at < 0) throw new MermaidError("E_SYNTAX", "Expected a sequence link label and URL", { span });
+          entries = [[value.slice(0, at).trim(), value.slice(at + 1).trim()]];
+        } else {
+          let links: unknown;
+          try { links = JSON.parse(value); }
+          catch { throw new MermaidError("E_SYNTAX", "Invalid sequence links mapping", { span }); }
+          if (!links || typeof links !== "object" || Array.isArray(links)) throw new MermaidError("E_SYNTAX", "Invalid sequence links mapping", { span });
+          entries = Object.entries(links);
         }
+        const links = namedLinks.get(id) ?? [];
+        for (const [label, url] of entries) {
+          if (typeof url !== "string" || !url) throw new MermaidError("E_SYNTAX", "Sequence link URLs must be nonempty strings", { span });
+          links.push({ label: checkSafeLabelText(label, budget, span), href: interactionHref(JSON.stringify(url))! });
+        }
+        namedLinks.set(id, links);
       }
       continue;
     }
@@ -464,7 +473,7 @@ export function* parseSequenceDiagramSteps(
   return {
     family: "sequence",
     direction: "TD",
-    nodes: Array.from(nodes.values(), node => ({ ...node, href: hrefs.get(node.id) })),
+    nodes: Array.from(nodes.values(), node => ({ ...node, href: hrefs.get(node.id), links: namedLinks.get(node.id) })),
     groups,
     edges,
     notes,

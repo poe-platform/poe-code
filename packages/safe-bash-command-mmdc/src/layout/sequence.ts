@@ -50,7 +50,14 @@ export function* layoutSequenceDocumentSteps(
   const cardSizes = participants.map((p) => {
     const labelText = p.stereotype === "actor" ? `«actor»\n${p.label}` : p.label;
     const lineHeight = Math.round(13 * 1.35);
-    const m = { ...measureTextBlock(labelText, { fontSize: 13, fontWeight: 600, fontFamily: "ui", lineHeight }), lineHeight };
+    const measureOptions = { fontSize: 13, fontWeight: 600 as const, fontFamily: "ui" as const, lineHeight };
+    const base = measureTextBlock(labelText, measureOptions);
+    const lines = base.lines.map(line => ({ ...line, href: p.links?.length ? p.href : undefined }));
+    for (const link of p.links ?? []) {
+      const block = measureTextBlock(link.label, measureOptions);
+      for (const line of block.lines) lines.push({ ...line, href: link.href });
+    }
+    const m = { lines, lineHeight, width: lines.reduce((width, line) => Math.max(width, line.width), 0), height: lines.length * lineHeight };
     const width = Math.max(108, snap8(m.width + 32));
     const height = Math.max(44, snap8(m.height + 20));
     return { width, height, metrics: m };
@@ -695,6 +702,7 @@ export function* layoutSequenceDocumentSteps(
       const nx = Math.round(cx - cs.width / 2);
       const lines: SceneTextLine[] = cs.metrics.lines.map((l, lIdx) => ({
         text: l.text,
+        href: l.href,
         width: l.width,
         x: nx + cs.width / 2,
         y: cardY + 10 + (lIdx + 0.78) * cs.metrics.lineHeight,
@@ -706,7 +714,7 @@ export function* layoutSequenceDocumentSteps(
       }));
       return {
         id: cardId,
-        href: p.href,
+        href: p.links?.length ? undefined : p.href,
         shape: "participant",
         x: nx,
         y: cardY,

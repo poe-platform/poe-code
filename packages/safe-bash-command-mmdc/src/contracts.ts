@@ -320,6 +320,7 @@ export interface DiagramStyle {
 }
 
 export interface DocumentNode {
+  readonly links?: readonly { readonly label: string; readonly href: string }[] | undefined;
   readonly href?: string | undefined;
   readonly id: string;
   readonly label: string;
@@ -406,6 +407,7 @@ export interface Rect {
 }
 
 export interface SceneTextLine {
+  readonly href?: string | undefined;
   readonly text: string;
   readonly width: number;
   readonly x: number;

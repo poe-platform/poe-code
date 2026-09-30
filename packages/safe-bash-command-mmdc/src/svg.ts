@@ -28,7 +28,8 @@ function renderTextLine(line: SceneTextLine, themeFontFamily: string, monoFontFa
   const anchor =
     line.align === "center" ? "middle" : line.align === "right" ? "end" : "start";
   const family = line.fontFamily === "mono" ? monoFontFamily : themeFontFamily;
-  return `<text x="${line.x}" y="${line.y}" fill="${escapeXml(line.color)}" font-family="${escapeXml(family)}" font-size="${line.fontSize}" font-weight="${line.fontWeight}" letter-spacing="0.025em" text-anchor="${anchor}">${escapeXml(line.text)}</text>`;
+  const text = `<text x="${line.x}" y="${line.y}" fill="${escapeXml(line.color)}" font-family="${escapeXml(family)}" font-size="${line.fontSize}" font-weight="${line.fontWeight}" letter-spacing="0.025em" text-anchor="${anchor}">${escapeXml(line.text)}</text>`;
+  return line.href === undefined ? text : `<a href="${escapeXml(line.href)}">${text}</a>`;
 }
 
 function buildRoundedDiamondPath(x: number, y: number, w: number, h: number, r = 4): string {

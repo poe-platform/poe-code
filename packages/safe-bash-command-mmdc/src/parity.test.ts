@@ -100,3 +100,11 @@ test('frontmatter titles are visible text in graph and sequence output', () => {
     assert.ok(svg.includes('>Visible heading</text>'));
   }
 });
+
+test('sequence named links retain every label and URL across repeated declarations', () => {
+  const source = 'sequenceDiagram\nparticipant A\nA->>A: Hello\nlinks A: {"Docs":"https://example.com/docs","Status":"https://example.com/status"}\nlink A: Help @ https://example.com/help\nclick A href "https://example.com/profile"';
+  const svg = renderMermaidSvg(source).svg;
+  for (const label of ['Docs', 'Status', 'Help']) assert.ok(svg.includes(`>${label}</text>`));
+  for (const path of ['docs', 'status', 'help', 'profile']) assert.ok(svg.includes(`href="https://example.com/${path}"`));
+  assert.ok(renderMermaidPng(source).png.length > 0);
+});

@@ -18,7 +18,7 @@ function unit(bytes: Uint8Array, offset: number, utf8: boolean): { text: string;
 }
 
 /** Preserve valid printable UTF-8 units even beside invalid octets. */
-export async function quotePrintf(bytes: Uint8Array, utf8: boolean, signal: AbortSignal): Promise<Uint8Array> {
+export async function quotePrintf(bytes: Uint8Array, utf8: boolean, signal: AbortSignal, alternate = false): Promise<Uint8Array> {
   signal.throwIfAborted();
   let ansi = false;
   for (let offset = 0, count = 0; offset < bytes.length; count++) {
@@ -28,7 +28,7 @@ export async function quotePrintf(bytes: Uint8Array, utf8: boolean, signal: Abor
     offset += current.size;
   }
   if (!bytes.length) return encoder.encode("''");
-  let text = ansi ? "$'" : "";
+  let text = ansi ? "$'" : alternate ? "'" : "";
   for (let offset = 0, count = 0; offset < bytes.length; count++) {
     if (count && count % 1024 === 0) await yieldTurn(signal);
     const current = unit(bytes, offset, utf8);
@@ -37,6 +37,7 @@ export async function quotePrintf(bytes: Uint8Array, utf8: boolean, signal: Abor
       if (current.size === 1 && controls[first]) text += controls[first];
       else for (let index = 0; index < current.size; index++) text += "\\" + bytes[offset + index]!.toString(8).padStart(3, "0");
     } else if (ansi) text += first === 39 || first === 92 ? "\\" + current.text : current.text;
+    else if (alternate) text += first === 39 ? "'\\''" : current.text;
     else {
       const safe = current.size > 1 || "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_./@%+=:-".includes(current.text)
         || first === 35 && offset > 0 || first === 126 && offset > 0 && bytes[offset - 1] !== 58 && bytes[offset - 1] !== 61;
@@ -44,5 +45,5 @@ export async function quotePrintf(bytes: Uint8Array, utf8: boolean, signal: Abor
     }
     offset += current.size;
   }
-  return encoder.encode(text + (ansi ? "'" : ""));
+  return encoder.encode(text + (ansi || alternate ? "'" : ""));
 }

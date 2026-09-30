@@ -19,6 +19,20 @@ import * as typecheckInputs from "./typecheck-inputs.mjs";
 
 const owner = "fixture producer";
 
+test("basic command audit regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const selected = discoverTests(root, loadBoundaries(root));
+  for (const path of [
+    "tests/commands/basic-echo-locale.test.ts",
+    "tests/commands/basic-echo-posix.test.ts",
+    "tests/commands/basic-external.test.ts",
+    "tests/commands/basic-false-information.test.ts",
+    "tests/commands/basic-printf-locale.test.ts",
+    "tests/commands/basic-printf-alternate.test.ts",
+    "tests/commands/basic-pwd-environment.test.ts",
+  ]) assert.ok(selected.includes(path), path);
+});
+
 test("issue 4086 regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/sync-parity-4086.test.ts"));

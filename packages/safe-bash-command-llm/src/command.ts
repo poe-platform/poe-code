@@ -11,10 +11,13 @@ import { createLlmSpool } from "./retained-spool.js";
 import { findExtractedRange } from "./extract-range.js";
 import { fileSource } from "./file-source.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
+import { resolveLlmSchemaInput } from "./schema-input.js";
 import { configurationCommand } from "./configuration-command.js";
 import { listLlmModels, LlmModelsUsageError, modelsGroupHelp } from "./models-list.js";
 
 interface Arguments {
+  schema?: string;
+  schemaMulti?: string;
   model?: string;
   system?: string;
   key?: string;
@@ -48,9 +51,11 @@ async function parse(length: number, text: (index: number) => string, step: () =
       if (++index >= length) throw new Error(`Option ${flag} requires an argument`);
       return text(index);
     };
-    if (!["-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+    if (!["-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
     const value = attached ?? take();
     if (flag === "-t" || flag === "--template") parsed.template = value;
+    else if (flag === "--schema") parsed.schema = value;
+    else if (flag === "--schema-multi") parsed.schemaMulti = value;
     else if (flag === "--key") parsed.key = value;
     else if (flag === "--save") parsed.save = value;
     else if (flag === "-p" || flag === "--param") Object.defineProperty(parsed.params, value, { value: take(), enumerable: true, configurable: true, writable: true });
@@ -198,11 +203,17 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step);
     const configuration = createLlmConfiguration(context);
     const templateStore = createLlmTemplateStore(context, templateLoaderOptions);
+    const schemaInput = args.schemaMulti ?? args.schema;
+    let schema = schemaInput ? await resolveLlmSchemaInput({...context, signal}, schemaInput, {
+      multi: Boolean(args.schemaMulti), maxBytes: inputLimit - inputBytes, admitBytes: admitInput,
+      loadTemplate: name => templateStore.load(name),
+    }) : undefined;
     if (args.save && args.template) throw new Error("Error: --save cannot be used with --template");
     let stored;
     try { stored = args.template === undefined ? undefined : await templateStore.load(args.template); }
     catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
     if (stored) {
+      if (stored.schema_object) schema = stored.schema_object;
       try { validateLlmTemplateParameters(stored, args.params); }
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
     }
@@ -260,6 +271,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       const attachments = args.attachments.filter(item => item.mimeType === undefined).map(item => item.path);
       const attachmentTypes = args.attachments.filter(item => item.mimeType !== undefined).map(item => ({ type: item.mimeType!, value: item.path }));
       const saved = {
+        ...(schema === undefined ? {} : { schema_object: schema }),
         ...(args.model === undefined ? {} : { model: entry!.model.id }),
         ...(prompt ? { prompt } : {}), ...(args.system === undefined ? {} : { system: args.system }),
         ...(args.extract === "last" ? { extract_last: true } : args.extract === "first" ? { extract: true } : {}),
@@ -349,6 +361,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     const resolvedKey = args.key === undefined ? undefined : await configuration.resolveKey(args.key);
     const request: LlmRequest = {
+      ...(schema === undefined ? {} : { schema }),
       model: entry.model.id, prompt,
       ...(args.system === undefined ? {} : { system: args.system }), attachments, options: args.options, signal, stream: !args.noStream,
       ...(resolvedKey === undefined ? {} : { key: resolvedKey }),
@@ -357,6 +370,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (args.noStream) outputSpool = await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal), spool => spool.close());
     if (streamed) {
       const events = service.streamSources!({ model: request.model, options: request.options, signal, stream: request.stream, prompt: promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt),
+        ...(schema === undefined ? {} : { schema }),
         ...(args.system === undefined ? {} : { system: textSource(args.system) }),
         ...(resolvedKey === undefined ? {} : { key: resolvedKey }),
         attachments: sourceAttachments });

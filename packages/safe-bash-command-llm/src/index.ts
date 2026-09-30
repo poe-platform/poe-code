@@ -10,5 +10,6 @@ export { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, vali
 export { templateYaml } from "./template-yaml.js";
 export { findExtractedRange } from "./extract-range.js";
 export { parseLlmSchemaDsl } from "./schemas.js";
+export { resolveLlmSchemaInput, type LlmSchemaInputOptions } from "./schema-input.js";
 
 export { getLlmModelAliases } from "./models-list.js";

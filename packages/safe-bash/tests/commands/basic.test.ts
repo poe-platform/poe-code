@@ -250,6 +250,34 @@ test("printf empty numeric operands retain failure across repeated formats and s
   } finally { await shell.dispose(); }
 });
 
+test("printf shell optimizations preserve empty numeric operand errors", async () => {
+  const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([printfCommand]) });
+  try {
+    for (const format of ["%d", "%i", "%u", "%o", "%x", "%X", "%.0d", "%05u"]) {
+      const expected = await run("printf", [format, ""]);
+      assert.equal(expected.exitCode, 1);
+      assert.equal(expected.stderr, "printf: '': invalid number\n");
+      for (const script of [
+        'printf "$FORMAT" ""',
+        'printf -v value "$FORMAT" ""; result=$?; printf %s "$value"; exit "$result"',
+        'value=$(printf "$FORMAT" ""); result=$?; printf %s "$value"; exit "$result"',
+      ]) {
+        const result = await shell.exec(script, { env: { FORMAT: format } });
+        assert.equal(result.exitCode, expected.exitCode, script + format);
+        assert.equal(result.stdout, expected.stdout, script + format);
+        assert.equal(result.stderr, expected.stderr, script + format);
+      }
+      const repeated = await shell.exec('for i in 1 2 3; do printf "$FORMAT" ""; done', { env: { FORMAT: format } });
+      assert.equal(repeated.exitCode, 1);
+      assert.equal(repeated.stdout, expected.stdout.repeat(3));
+      assert.equal(repeated.stderr, expected.stderr.repeat(3));
+      const omitted = await shell.exec('printf "$FORMAT"', { env: { FORMAT: format } });
+      assert.equal(omitted.exitCode, 0);
+      assert.equal(omitted.stderr, "");
+    }
+  } finally { await shell.dispose(); }
+});
+
 const nativeConsumerGoldens = [
   {
     "id": "printf-negative-zero-pipeline",

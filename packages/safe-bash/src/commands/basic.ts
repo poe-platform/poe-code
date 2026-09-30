@@ -439,7 +439,8 @@ export function tryFastPrintf(args: readonly string[], allowNull = false): strin
       }
       if (conv === 100 || conv === 105) {
         const rawVal = args[argument++] ?? "0";
-        const val = rawVal.length === 0 ? "0" : rawVal;
+        if (rawVal.length === 0) return undefined;
+        const val = rawVal;
         if (val.length > 15) return undefined;
         const first = val.charCodeAt(0);
         let start = 0;
@@ -480,7 +481,8 @@ export function tryFastPrintf(args: readonly string[], allowNull = false): strin
       }
       if (conv === 120 || conv === 88 || conv === 111 || conv === 117) {
         const rawVal = args[argument++] ?? "0";
-        const val = rawVal.length === 0 ? "0" : rawVal;
+        if (rawVal.length === 0) return undefined;
+        const val = rawVal;
         if (val.length > 15) return undefined;
         if (val.length > 1 && val.charCodeAt(0) === 48) return undefined;
         for (let i = 0; i < val.length; i++) {

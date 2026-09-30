@@ -6,6 +6,7 @@ interface Information {
   readonly options: readonly string[];
   readonly stopAtOperand?: boolean;
   readonly versionOnly?: boolean;
+  readonly exitCode?: number;
 }
 
 // These describe the virtual implementations, not the complete GNU option set.
@@ -52,7 +53,7 @@ const information: Readonly<Record<string, Information>> = {
   wc: { usage: "[OPTION]... [FILE]...", description: "Count input lines, words, bytes, characters or display width.", options: ["-l, --lines", "-w, --words", "-c, --bytes", "-m, --chars", "-L, --max-line-length"] },
   pwd: { usage: "[OPTION]...", description: "Print the full filename of the current working directory.", options: ["-L, --logical", "-P, --physical"] },
   true: { usage: "[ignored command line arguments]", description: "Exit with a status code indicating success.", options: [] },
-  false: { usage: "[ignored command line arguments]", description: "Exit with a status code indicating failure.", options: [] },
+  false: { usage: "[ignored command line arguments]", description: "Exit with a status code indicating failure.", options: [], exitCode: 1 },
   echo: { usage: "[SHORT-OPTION]... [STRING]...", description: "Echo the STRING(s) to standard output.", options: ["-n", "-e", "-E"] },
   "[": { usage: "EXPRESSION ]", description: "Evaluate conditional expression.", options: [] },
 };
@@ -128,7 +129,7 @@ async function gnuInformationSlow(name: string, context: CommandContext): Promis
         ? `${name} (safe-bash virtual implementation)\n`
         : `Usage: ${name} ${info.usage}\n${info.description}\n\nCommon supported options (additional behavior is documented in the package):\n${info.options.map(option => `  ${option.split(", ").map(spelling => spelling.startsWith("--") ? spelling : spelling.replace("=", " ")).join(", ")}`).join("\n")}\n  --help     display this help and exit\n  --version  display implementation information and exit\n\nThis is the safe-bash virtual implementation; filesystem operations require backend capabilities.\n`;
       await writeBytes(context.stdout, new TextEncoder().encode(text), context.signal);
-      return { exitCode: 0 };
+      return { exitCode: info.exitCode ?? 0 };
     }
     if (!arg.startsWith("-") || arg === "-") {
       if (info.stopAtOperand) break;

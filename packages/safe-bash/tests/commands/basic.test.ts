@@ -744,6 +744,43 @@ test("path utilities preserve opaque bytes and compare suffix byte identity", as
   } finally { await shell.dispose(); }
 });
 
+for (const command of ["basename", "dirname"]) {
+  test(`${command} awaits each output and observes cancellation between operands`, async () => {
+    for (const cancel of [false, true]) {
+      const controller = new AbortController();
+      const reason = new Error("cancelled after first operand");
+      let enter!: () => void, release!: () => void;
+      const entered = new Promise<void>(resolve => { enter = resolve; });
+      const pending = new Promise<void>(resolve => { release = resolve; });
+      const chunks: Uint8Array[] = [];
+      const args = command === "basename" ? ["-a", "a/first", "b/second"] : ["first/a", "second/b"];
+      const execution = Promise.resolve(createStandardCommands().find(entry => entry.name === command)!.execute({
+        command, args, cwd: "/work", env: {}, fs: await fixture(), signal: controller.signal,
+        stdin: toByteSource(""),
+        stdout: { async write(chunk) {
+          chunks.push(chunk.slice());
+          if (chunks.length === 1) { enter(); await pending; }
+        } },
+        stderr: { async write() { assert.fail("unexpected diagnostic"); } },
+      }));
+      await entered;
+      assert.equal(chunks.length, 1);
+      assert.equal(Buffer.from(chunks[0]!).toString(), "first\n");
+      if (cancel) controller.abort(reason);
+      release();
+      if (cancel) {
+        await assert.rejects(execution, error => error === reason);
+        assert.equal(chunks.length, 1);
+      } else {
+        assert.equal((await execution).exitCode, 0);
+        assert.equal(Buffer.concat(chunks).toString(), "first\nsecond\n");
+      }
+    }
+    const reason = new Error("cancelled before invocation");
+    await assert.rejects(run(command, ["path"], { signal: AbortSignal.abort(reason) }), error => error === reason);
+  });
+}
+
 test("true and false ignore arguments and cancellation propagates", async () => {
   assert.equal((await run("true", ["--anything"])).exitCode, 0);
   assert.equal((await run("false")).exitCode, 1);

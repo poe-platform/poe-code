@@ -16,6 +16,15 @@ Audit `true`, `false`, `echo`, `pwd`, `basename`, `dirname`, and `printf` agains
 - Independent review exercised 648 argument/format permutations against Darwin Bash 3.2.57, with GNU coreutils 9.12 and Zsh 5.9 spot checks. It confirmed `%q` precision omission and shell fast-path empty-numeric status divergence. Other quoting/locale differences remain to qualify and fix.
 - `%q` precision fix reproduced a failing test before changing the formatter. Root guarded ESLint passed. Build and type/consumer qualification remain in progress.
 
+## Byte paths and fast invocation cohort
+
+- Fixed empty numeric operands bypassing errors through `tryFastPrintf`. Reproduced status loss in ordinary Shell calls, `-v`, loops, and command substitution; the regression checks eight integer formats through all four routes and preserves successful omitted operands.
+- Fixed basename/dirname replacing opaque pathname bytes and falsely removing distinct decoded suffixes. Regression coverage includes positional, separate/attached short, and attached long suffixes, multiple outputs, zero terminators, and Shell variables populated through command substitution.
+- Independent candidate comparison: 1,250/1,250 cases matched GNU coreutils 9.12 (Darwin, `LC_ALL=C`), covering 48 paths, six suffixes, four suffix forms, dirname output modes, and duplicate decoded identities. Six independent cancellation/backpressure controls passed and are now retained in maintained tests.
+- Current basic suite: 220 passed. Adjacent eight-file run before adding the two stream tests: 532 passed, 17 skipped, zero failures. Skips are not counted as passes. Guarded root lint passed after the final test additions.
+- The broad typecheck reproduced two lazy-command fixture type errors; corrected the sink arity and normalized the handler result to a Promise. Its three focused tests pass. Standalone consumer staging also requires outputs beyond the selected Safe Bash build closure; a normal full build is in progress before retrying qualification.
+- Local commits exist; remote delivery and publication are not yet verified.
+
 Upstream references acquired 2026-09-30 (GPL-3.0-or-later test sources; semantic cases re-expressed in the existing suite):
 
 | Source URL | SHA-256 of inspected source |

@@ -969,6 +969,20 @@
       ],
       "poe-code/safe-bash/contracts/*": [
         "../safe-bash-contracts/src/*.ts"
+      ],
+      "safe-bash-command-docx": [
+        "../safe-bash-command-docx/src/index.ts"
+      ],
+      "safe-bash-command-docx/*": [
+        "../safe-bash-command-docx/src/*.ts",
+        "../safe-bash-command-docx/src/*"
+      ],
+      "safe-bash-command-pptx": [
+        "../safe-bash-command-pptx/src/index.ts"
+      ],
+      "safe-bash-command-pptx/*": [
+        "../safe-bash-command-pptx/src/*.ts",
+        "../safe-bash-command-pptx/src/*"
       ]
     },
     "baseUrl": "."

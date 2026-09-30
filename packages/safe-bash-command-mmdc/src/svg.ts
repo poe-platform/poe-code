@@ -231,42 +231,47 @@ export function* serializeSceneToSvgSteps(
     );
   }
 
-  // Lifelines
-  for (const life of scene.lifelines) {
-    if (++work % 16 === 0) yield;
-    parts.push(
-      `<line x1="${life.x}" y1="${life.y1}" x2="${life.x}" y2="${life.y2}" stroke="${escapeXml(life.stroke)}" stroke-width="1.25" stroke-dasharray="5 5"/>`
-    );
-  }
-
-  // Groups
-  scene.groups.forEach((group, idx) => {
-    const clipId = `${idPrefix}mmdc-group-clip-${idx}`;
-    const dashAttr = group.dashed ? ` stroke-dasharray="6 4"` : "";
-    parts.push(
-      `<g class="mmdc-group" data-id="${escapeXml(group.id)}">` +
-        `<defs><clipPath id="${clipId}"><rect x="${group.x}" y="${group.y}" width="${group.width}" height="${group.height}" rx="${group.rx}"/></clipPath></defs>` +
-        `<rect x="${group.x}" y="${group.y}" width="${group.width}" height="${group.height}" rx="${group.rx}" fill="${escapeXml(group.fill)}"/>` +
-        `<rect x="${group.x}" y="${group.y}" width="${group.width}" height="${group.headerHeight}" fill="${escapeXml(group.headerFill)}" clip-path="url(#${clipId})"/>` +
-        `<line x1="${group.x}" y1="${group.y + group.headerHeight}" x2="${group.x + group.width}" y2="${group.y + group.headerHeight}" stroke="${escapeXml(group.stroke)}" stroke-width="1"/>` +
-        `<rect x="${group.x}" y="${group.y}" width="${group.width}" height="${group.height}" rx="${group.rx}" fill="none" stroke="${escapeXml(group.stroke)}" stroke-width="${group.strokeWidth}"${dashAttr}/>` +
-        renderTextLine(group.label, theme.fontFamily, theme.monospaceFontFamily)
-    );
-    if (group.sectionDividers) {
-      for (const div of group.sectionDividers) {
+  // Participant backgrounds sit behind lifelines; other groups retain their overlay order.
+  for (const participantBoxes of [true, false]) {
+    if (!participantBoxes) {
+      // Lifelines
+      for (const life of scene.lifelines) {
+        if (++work % 16 === 0) yield;
         parts.push(
-          `<line x1="${group.x}" y1="${div.y}" x2="${group.x + group.width}" y2="${div.y}" stroke="${escapeXml(group.stroke)}" stroke-width="1" stroke-dasharray="5 4"/>`
+          `<line x1="${life.x}" y1="${life.y1}" x2="${life.x}" y2="${life.y2}" stroke="${escapeXml(life.stroke)}" stroke-width="1.25" stroke-dasharray="5 5"/>`
         );
-        if (div.label) {
-          const padX = 6;
-          const pillW = Math.ceil(div.label.width + padX * 2);
-          parts.push(`<rect x="${div.label.x - padX}" y="${div.y + 3}" width="${pillW}" height="17" rx="4" fill="${escapeXml(theme.surface)}" stroke="${escapeXml(theme.border)}" stroke-width="0.75"/>`);
-          parts.push(renderTextLine(div.label, theme.fontFamily, theme.monospaceFontFamily));
-        }
       }
     }
-    parts.push(`</g>`);
-  });
+    // Groups
+    scene.groups.forEach((group, idx) => {
+      if ((group.kind === "participantBox") !== participantBoxes) return;
+      const clipId = `${idPrefix}mmdc-group-clip-${idx}`;
+      const dashAttr = group.dashed ? ` stroke-dasharray="6 4"` : "";
+      parts.push(
+        `<g class="mmdc-group" data-id="${escapeXml(group.id)}">` +
+          `<defs><clipPath id="${clipId}"><rect x="${group.x}" y="${group.y}" width="${group.width}" height="${group.height}" rx="${group.rx}"/></clipPath></defs>` +
+          `<rect x="${group.x}" y="${group.y}" width="${group.width}" height="${group.height}" rx="${group.rx}" fill="${escapeXml(group.fill)}"/>` +
+          `<rect x="${group.x}" y="${group.y}" width="${group.width}" height="${group.headerHeight}" fill="${escapeXml(group.headerFill)}" clip-path="url(#${clipId})"/>` +
+          `<line x1="${group.x}" y1="${group.y + group.headerHeight}" x2="${group.x + group.width}" y2="${group.y + group.headerHeight}" stroke="${escapeXml(group.stroke)}" stroke-width="1"/>` +
+          `<rect x="${group.x}" y="${group.y}" width="${group.width}" height="${group.height}" rx="${group.rx}" fill="none" stroke="${escapeXml(group.stroke)}" stroke-width="${group.strokeWidth}"${dashAttr}/>` +
+          renderTextLine(group.label, theme.fontFamily, theme.monospaceFontFamily)
+      );
+      if (group.sectionDividers) {
+        for (const div of group.sectionDividers) {
+          parts.push(
+            `<line x1="${group.x}" y1="${div.y}" x2="${group.x + group.width}" y2="${div.y}" stroke="${escapeXml(group.stroke)}" stroke-width="1" stroke-dasharray="5 4"/>`
+          );
+          if (div.label) {
+            const padX = 6;
+            const pillW = Math.ceil(div.label.width + padX * 2);
+            parts.push(`<rect x="${div.label.x - padX}" y="${div.y + 3}" width="${pillW}" height="17" rx="4" fill="${escapeXml(theme.surface)}" stroke="${escapeXml(theme.border)}" stroke-width="0.75"/>`);
+            parts.push(renderTextLine(div.label, theme.fontFamily, theme.monospaceFontFamily));
+          }
+        }
+      }
+      parts.push(`</g>`);
+    });
+  }
 
   // Activations
   for (const act of scene.activations) {

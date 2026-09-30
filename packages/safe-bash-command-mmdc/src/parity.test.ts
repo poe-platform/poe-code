@@ -134,3 +134,11 @@ test('PDF retains intermediate PNG work and memory accounting without counting i
   assert.throws(() => renderMermaidPdf(source, { limits: { maxWork: png.accounting.work - 1 } }), /work budget/);
   assert.throws(() => renderMermaidPdf(source, { limits: { maxMemoryBytes: png.accounting.memoryBytes - 1 } }), /Memory byte budget/);
 });
+
+test('opaque participant boxes preserve visible lifelines in SVG and raster output', async () => {
+  const { layoutMermaid, rasterizeScene, serializeSceneToSvg } = await import('./index.js');
+  const scene = layoutMermaid(parseMermaid('sequenceDiagram\nbox Purple Team\nparticipant A\nparticipant B\nend\nA->>B: Hello'));
+  assert.notDeepEqual(rasterizeScene(scene).rgba, rasterizeScene({ ...scene, lifelines: [] }).rgba);
+  const svg = serializeSceneToSvg(scene);
+  assert.ok(svg.indexOf('class="mmdc-group"') < svg.indexOf('stroke-dasharray="5 5"'));
+});

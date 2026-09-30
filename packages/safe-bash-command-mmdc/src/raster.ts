@@ -1160,105 +1160,110 @@ export function* rasterizeSceneSteps(
   const effectiveScale = Math.min(sx, sy);
   const shadowColor = parseCssColor(scene.theme.shadowColor);
 
-  // 2. Lifelines
-  for (const life of scene.lifelines) {
-    if (++work % 4096 === 0) yield;
-
-    (yield* drawPolyline4x4Steps(
-      rgba,
-      width,
-      height,
-      [
-        { x: life.x * effectiveScale, y: life.y1 * effectiveScale },
-        { x: life.x * effectiveScale, y: life.y2 * effectiveScale }
-      ],
-      parseCssColor(life.stroke),
-      1.25 * effectiveScale,
-      true,
-      effectiveScale
-    ));
-  }
-
-  // 1. Groups
-  for (const group of scene.groups) {
-    if (++work % 4096 === 0) yield;
-
-    options?.budget?.chargeWork(32);
-    (yield* drawRoundedShapeSteps(
-      rgba,
-      width,
-      height,
-      group.x,
-      group.y,
-      group.width,
-      group.height,
-      group.rx,
-      false,
-      parseCssColor(group.fill),
-      parseCssColor(group.headerFill),
-      group.headerHeight,
-      parseCssColor(group.stroke),
-      group.strokeWidth,
-      group.dashed === true,
-      effectiveScale
-    ));
-    (yield* drawPolyline4x4Steps(
-      rgba,
-      width,
-      height,
-      [
-        { x: group.x * effectiveScale, y: (group.y + group.headerHeight) * effectiveScale },
-        {
-          x: (group.x + group.width) * effectiveScale,
-          y: (group.y + group.headerHeight) * effectiveScale
-        }
-      ],
-      parseCssColor(group.stroke),
-      1 * effectiveScale,
-      false,
-      effectiveScale
-    ));
-    (yield* drawTextLine4x4Steps(rgba, width, height, group.label, effectiveScale));
-
-    if (group.sectionDividers) {
-      for (const div of group.sectionDividers) {
+  // Participant backgrounds sit behind lifelines; other groups retain their overlay order.
+  for (const participantBoxes of [true, false]) {
+    if (!participantBoxes) {
+      // 2. Lifelines
+      for (const life of scene.lifelines) {
         if (++work % 4096 === 0) yield;
-
+    
         (yield* drawPolyline4x4Steps(
           rgba,
           width,
           height,
           [
-            { x: group.x * effectiveScale, y: div.y * effectiveScale },
-            { x: (group.x + group.width) * effectiveScale, y: div.y * effectiveScale }
+            { x: life.x * effectiveScale, y: life.y1 * effectiveScale },
+            { x: life.x * effectiveScale, y: life.y2 * effectiveScale }
           ],
-          parseCssColor(group.stroke),
-          1 * effectiveScale,
+          parseCssColor(life.stroke),
+          1.25 * effectiveScale,
           true,
           effectiveScale
         ));
-        if (div.label) {
-          const padX = 6;
-          const pillW = Math.ceil(div.label.width + padX * 2);
-          (yield* drawRoundedShapeSteps(
+      }
+    }
+    // 1. Groups
+    for (const group of scene.groups) {
+      if ((group.kind === "participantBox") !== participantBoxes) continue;
+      if (++work % 4096 === 0) yield;
+  
+      options?.budget?.chargeWork(32);
+      (yield* drawRoundedShapeSteps(
+        rgba,
+        width,
+        height,
+        group.x,
+        group.y,
+        group.width,
+        group.height,
+        group.rx,
+        false,
+        parseCssColor(group.fill),
+        parseCssColor(group.headerFill),
+        group.headerHeight,
+        parseCssColor(group.stroke),
+        group.strokeWidth,
+        group.dashed === true,
+        effectiveScale
+      ));
+      (yield* drawPolyline4x4Steps(
+        rgba,
+        width,
+        height,
+        [
+          { x: group.x * effectiveScale, y: (group.y + group.headerHeight) * effectiveScale },
+          {
+            x: (group.x + group.width) * effectiveScale,
+            y: (group.y + group.headerHeight) * effectiveScale
+          }
+        ],
+        parseCssColor(group.stroke),
+        1 * effectiveScale,
+        false,
+        effectiveScale
+      ));
+      (yield* drawTextLine4x4Steps(rgba, width, height, group.label, effectiveScale));
+  
+      if (group.sectionDividers) {
+        for (const div of group.sectionDividers) {
+          if (++work % 4096 === 0) yield;
+  
+          (yield* drawPolyline4x4Steps(
             rgba,
             width,
             height,
-            div.label.x - padX,
-            div.y + 3,
-            pillW,
-            17,
-            4,
-            false,
-            parseCssColor(scene.theme.surface),
-            undefined,
-            undefined,
-            parseCssColor(scene.theme.border),
-            0.75,
-            false,
+            [
+              { x: group.x * effectiveScale, y: div.y * effectiveScale },
+              { x: (group.x + group.width) * effectiveScale, y: div.y * effectiveScale }
+            ],
+            parseCssColor(group.stroke),
+            1 * effectiveScale,
+            true,
             effectiveScale
           ));
-          (yield* drawTextLine4x4Steps(rgba, width, height, div.label, effectiveScale));
+          if (div.label) {
+            const padX = 6;
+            const pillW = Math.ceil(div.label.width + padX * 2);
+            (yield* drawRoundedShapeSteps(
+              rgba,
+              width,
+              height,
+              div.label.x - padX,
+              div.y + 3,
+              pillW,
+              17,
+              4,
+              false,
+              parseCssColor(scene.theme.surface),
+              undefined,
+              undefined,
+              parseCssColor(scene.theme.border),
+              0.75,
+              false,
+              effectiveScale
+            ));
+            (yield* drawTextLine4x4Steps(rgba, width, height, div.label, effectiveScale));
+          }
         }
       }
     }

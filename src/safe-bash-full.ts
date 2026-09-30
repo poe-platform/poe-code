@@ -1,1 +1,1 @@
-export * from "@poe-platform/safe-bash/full";
+export * from "@poe-platform/safe-bash";

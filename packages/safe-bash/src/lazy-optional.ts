@@ -1,3 +1,4 @@
+import { createGhCommands, ghMetadata } from "./lazy-gh.js";
 import { validatePandocOptions } from "safe-bash-command-pandoc/options";
 import {
   createLazyCommandLoader,
@@ -609,24 +610,8 @@ export const createCsvkitCommand: csvkitModule["createCsvkitCommand"] = (...args
 };
 export type { CsvkitCommandsOptions } from "./commands/csvkit/index.js";
 
-type ghModule = typeof import("./commands/gh/index.js");
-const loadgh = createLazyCommandLoader(() => import("./commands/gh/index.js"));
-const ghMetadata = [
-  { name: "gh", description: "Work seamlessly with GitHub from the command line" }
-] as const;
-export const createGhCommand: ghModule["createGhCommand"] = (...args) =>
-  createLazyCommands(ghMetadata, async () => {
-    const module = await loadgh();
-    return () => [module.createGhCommand(...args)];
-  })[0]!;
-export const createGhCommands: ghModule["createGhCommands"] = (...args) =>
-  createLazyCommands(ghMetadata, async () => {
-    const module = await loadgh();
-    return () => module.createGhCommands(...args);
-  });
-export const ghCommands: ghModule["ghCommands"] = (options = {}) =>
-  lazyCommandPlugin("gh-commands", createGhCommands(options), options.replace ?? false);
-export type { GhCommandOptions, GhCommandsOptions, GhLimits } from "./commands/gh/index.js";
+export { createGhCommand, createGhCommands, ghCommands } from "./lazy-gh.js";
+export type { GhCommandOptions, GhCommandsOptions, GhLimits } from "./lazy-gh.js";
 
 /** Extension contract for trusted, statically bundled command code. */
 export {
@@ -637,7 +622,7 @@ export {
 export type { LazyCommandMetadata, LazyCommandFactory } from "./plugins/lazy-command.js";
 
 export interface OptionalCommandConfiguration {
-  readonly gh?: Parameters<ghModule["createGhCommands"]>[0];
+  readonly gh?: Parameters<typeof createGhCommands>[0];
   readonly ffmpeg?: Parameters<ffmpegModule["createFfmpegCommands"]>[0];
   readonly git?: Parameters<gitModule["createGitCommands"]>[0];
   readonly soffice?: Parameters<sofficeModule["createSofficeCommands"]>[0];

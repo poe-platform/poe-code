@@ -49,3 +49,26 @@ test("root import cannot statically evaluate optional spreadsheet, PDF, media or
     );
   }
 });
+
+test("default command registration does not link unrelated optional families", async () => {
+  const result = await build({
+    absWorkingDir: root,
+    entryPoints: ["packages/safe-bash/src/plugins/index.ts"],
+    tsconfig: "packages/safe-bash/tsconfig.json",
+    bundle: true,
+    splitting: true,
+    format: "esm",
+    platform: "node",
+    outdir: "out/lazy-default-graph",
+    write: false,
+    metafile: true,
+    loader: { ".wasm": "copy" },
+    logLevel: "silent"
+  });
+  for (const path of Object.keys(result.metafile.inputs)) {
+    assert.ok(
+      !["spreadsheet-engine/", "pdf-ast/", "mp4-ast/", "safe-bash-command-pandoc/", "safe-bash-command-soffice/", "safe-bash-command-ffmpeg/"].some(owner => path.includes("/" + owner)),
+      `Default command registration links unrelated optional engine: ${path}`
+    );
+  }
+});

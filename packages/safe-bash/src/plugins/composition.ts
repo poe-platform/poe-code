@@ -1,4 +1,4 @@
-import { createGhCommands, type GhCommandOptions } from "../lazy-optional.js";
+import { createGhCommands, type GhCommandOptions } from "../lazy-gh.js";
 import { CommandRegistry, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { createStandardCommandsWithGrep, type ExecutionCommandsOptions, type StandardCommandsOptions } from "../commands/standard.js";

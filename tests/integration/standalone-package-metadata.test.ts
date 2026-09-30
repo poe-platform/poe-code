@@ -193,6 +193,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash", "./safe-bash/contracts", "./safe-bash/contracts/*", "./safe-bash/commands/media", "./media", "./media/server",
       "./safe-bash/image-ast", "./safe-bash/pdf-ast", "./safe-bash/sharp", "./safe-bash/spreadsheet-ast",
       "./safe-bash/shell",
+      "./safe-bash/registry",
       "./safe-bash/full",
       "./ssconvert/core", "./ssconvert/commands", "./ssconvert/formats/csv", "./ssconvert/formats/dbf", "./ssconvert/formats/html", "./ssconvert/formats/xlsx", "./ssconvert/formats/ods", "./ssconvert/formats/xls", "./ssconvert/formats/spreadsheetml",
       "./remote-execution", "./remote-execution/server", "./remote-execution/providers/*",

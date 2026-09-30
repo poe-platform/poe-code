@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
-import { fileURLToPath } from "node:url";
+import { bundleProbe } from "./bundle-probe.js";
 import { FsError, resolvePath, toByteSource, writeText } from "../../src/contracts/index.js";
 import type { ByteSource, FileSystem } from "../../src/contracts/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
@@ -495,10 +495,13 @@ test("exact source limit boundary admits one script and never reads oversized so
   assert.equal(reads, 0);
 });
 
+let probeSource: Promise<string> | undefined;
 for (const scenario of ["recursion", "cancel-stat", "cancel-read", "cancel-command", "late-rejection", "output-limit", "source-limit"]) {
-  test(`hard-bounded script regression: ${scenario}`, () => {
-    const result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(new URL("./script-entrypoint-probe.ts", import.meta.url)), scenario], {
-      encoding: "utf8", timeout: 5000, maxBuffer: 1024 * 1024,
+  test(`hard-bounded script regression: ${scenario}`, async () => {
+    probeSource ??= bundleProbe(new URL("./script-entrypoint-probe.ts", import.meta.url));
+    const source = await probeSource;
+    const result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--input-type=module", "-", scenario], {
+      encoding: "utf8", timeout: 5000, maxBuffer: 1024 * 1024, input: source,
     });
     assert.equal(result.error, undefined, result.error?.message);
     assert.equal(result.signal, null, result.stderr);

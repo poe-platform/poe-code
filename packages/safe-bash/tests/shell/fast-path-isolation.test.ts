@@ -238,3 +238,117 @@ for (const wrap of [(body: string) => `{ ${body}; }`, (body: string) => `f() { $
     assert.match(result.stderr, /grep:/);
   });
 }
+
+for (const tail of [
+  'echo -n second', 'echo -e second', 'echo -ne second', 'echo -en second',
+  'echo $v', 'printf %x "$v"', 'printf -v out %x "$v"', 'shift 2',
+]) {
+  for (const wrapper of [
+    (body: string) => `{ ${body}; }`,
+    (body: string) => `if true; then ${body}; fi`,
+    (body: string) => `case a in a) ${body};; esac`,
+    (body: string) => `f() { ${body}; }; f one`,
+    (body: string) => `eval '${body}'`,
+  ]) test(`compound fallback executes effects once: ${wrapper(tail)}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`v="08"; x=0; ${wrapper(`x=$((x+1)); echo "ran:$x"; ${tail}`)}; echo "final:$x"`);
+    assert.equal(result.stdout.split('ran:').length - 1, 1, result.stdout);
+    assert.ok(result.stdout.endsWith('final:1\n'), result.stdout);
+  });
+}
+
+for (const value of ['a b', '', '-n', '-1', '1234567890123456']) test(`runtime expansion fallback executes once: ${JSON.stringify(value)}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`v="${value}"; { x=$((x+1)); echo "ran:$x"; echo $v; printf -v out %x "$v"; }; echo "final:$x"`);
+  assert.equal(result.stdout.split('ran:').length - 1, 1, result.stdout);
+  assert.ok(result.stdout.endsWith('final:1\n'), result.stdout);
+});
+
+for (const body of [
+  'local a="${g:=mutated}"; echo "$a"',
+  'local a=1; printf -v a "%s" "${g:=mutated}"; echo "$a"',
+  'local a=1; a="${g:=mutated}"; echo "$a"',
+]) test(`substitution isolates expansion mutations: ${body}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`f() { ${body}; }; x=$(f); echo "x=$x g=$g"`);
+  assert.equal(result.stdout, 'x=mutated g=\n');
+  assert.equal(result.stderr, '');
+});
+
+test('substitution fallback isolates arithmetic and last argument', async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec('v="a b"; f() { local a="${u:=$((g += 5))}"; echo $v:$a; }; g=1; x=$(f); echo "x=$x g=$g u=$u"; : parent_arg; f() { local a=1; echo sub_arg; }; echo "$(f)" "$_"');
+  assert.equal(result.stdout, 'x=a b:6 g=1 u=\nsub_arg parent_arg\n');
+});
+
+for (const [script, expected] of [
+  ['x=$(case a in a) :;; esac); echo "ok:$x"', 'ok:\n'],
+  ['x=$(if true; then echo ok; fi); echo "$x"', 'ok\n'],
+  ['f() { local a=1; echo $a; }; x=$(f); echo "$x"', '1\n'],
+  ['LC_ALL=C; x="éabcd"; echo "${x:2:3}:$(echo ok)"', 'abc:ok\n'],
+  ["x=$(printf '%s' 'abc' | sed 's/abc/xyz/'); echo \"$x\"", 'xyz\n'],
+  ["x=$(printf '%s' 'abc' | cat); echo \"$x\"", 'abc\n'],
+]) test(`shell fast paths without Buffer: ${script}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands());
+  context.after(() => shell.dispose());
+  const original = globalThis.Buffer;
+  try {
+    assert.equal(Reflect.deleteProperty(globalThis, "Buffer"), true);
+    const result = await shell.exec(script!);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, '');
+    assert.equal(result.exitCode, 0);
+  } finally { globalThis.Buffer = original; }
+});
+
+for (const format of ['x', 'X', 'o', 'u']) {
+  for (const operand of ['08', '-1', '1234567890123456']) {
+    for (const destination of ['', '-v out ']) test(`printf fallback executes once: ${destination}%${format} ${operand}`, async context => {
+      const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`v="${operand}"; { x=$((x+1)); echo "ran:$x"; printf ${destination}%${format} "$v"; }; echo "final:$x"`);
+      assert.equal(result.stdout.split('ran:').length - 1, 1, result.stdout);
+      assert.ok(result.stdout.endsWith('final:1\n'), result.stdout);
+    });
+  }
+}
+
+
+
+for (const command of ['echo', 'f() { echo "${g:-${u:=mutated}}"; }; f']) test(`pure substitution checks nested mutation: ${command}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const source = command === 'echo' ? 'echo "${g:-${u:=mutated}}"' : command;
+  const result = await shell.exec(`x=$(${source}); echo "x=$x u=$u"`);
+  assert.equal(result.stdout, 'x=mutated u=\n');
+});
+
+
+
+for (const argument of ['$((x+=1))', '"${g:=$((x+=1))}"']) test(`function admission does not replay argument mutation: ${argument}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`x=0; f() { echo "$1"; }; f ${argument}; echo "final:$x"`);
+  assert.equal(result.stdout, '1\nfinal:1\n');
+  assert.equal(result.stderr, '');
+});
+
+test('repeated function calls recheck conditional byte values before effects', async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("LC_ALL=en_US.UTF-8; x=0; v=a; f() { ((x+=1)); [[ $v == a ]]; }; f; v=$'\\xff'; f; echo \"final:$x\"");
+  assert.equal(result.stdout, 'final:2\n');
+  assert.equal(result.stderr, '');
+});
+
+test('replacement tilde follows modern Bash quoting rules', async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec('HOME=/home/u; s="hello"; old="l"; echo "${s/$old/~}" ${s/$old/~} "${s/$old/"~"}"');
+  assert.equal(result.stdout, 'he/home/ulo he/home/ulo he~lo\n');
+  assert.equal(result.stderr, '');
+});

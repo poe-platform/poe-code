@@ -7,9 +7,9 @@ for (const name of families) {
   if (typeof command.execute !== "function") throw new Error(`${name}: missing execute`);
   const definitions = commands[`create${title}Commands`]();
   if (!definitions.some(value => value.name === command.name)) throw new Error(`${name}: primary command missing`);
-  const registered = [];
-  commands[`${name}Commands`]().setup({ commands: { has: () => false, register: value => registered.push(value.name) } });
-  if (JSON.stringify(registered) !== JSON.stringify(definitions.map(value => value.name))) throw new Error(`${name}: plugin inventory differs`);
+  const registry = new commands.CommandRegistry();
+  commands[`${name}Commands`]().setup({ commands: registry });
+  if (JSON.stringify(registry.list().map(value => value.name)) !== JSON.stringify(definitions.map(value => value.name))) throw new Error(`${name}: plugin inventory differs`);
 }
 for (const name of ["createNcalCommand", "createFfprobeCommand", "createMagickCommand", "createConvertCommand", "createMogrifyCommand", "createCompositeCommand", "createMontageCommand", "createIdentifyCommand", "createCompareCommand", "createPdfuniteCommand", "createPdfseparateCommand", "createPdffontsCommand", "createPdfdetachCommand", "createPdftocairoCommand", "createLibreofficeCommand", "createFormatInspectionCommand"]) {
   if (typeof commands[name] !== "function") throw new Error(`${name}: missing factory`);

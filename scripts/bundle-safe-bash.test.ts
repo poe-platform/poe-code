@@ -559,6 +559,7 @@ beforeAll(async () => {
         builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/.*)?$/ }, args => {
           const companion = companions.get(args.path);
           if (companion) return { path: companion };
+          if (args.path === "@poe-platform/safe-bash/contracts") return { path: path.join(directory, "src/contracts/index.ts") };
           return {
             path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
             namespace: "evaluated-shell",

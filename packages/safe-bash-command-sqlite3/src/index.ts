@@ -363,7 +363,7 @@ function formatQueryResult(res: QueryResultSet, state: CliSessionState): string 
       for (const r of rows) {
         lines.push(r.map((v) => formatCsvCell(formatCellValue(v, state.nullValue), sep)).join(sep));
       }
-      return `${lines.join("\n")}\n`;
+      return lines.map(line => line + state.rowSeparator).join("");
     }
 
     case "json": {
@@ -968,8 +968,10 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           state.mode = newMode as OutputMode;
           if (newMode === "list") {
             state.colSeparator = "|";
+            state.rowSeparator = "\n";
           } else if (newMode === "csv") {
             state.colSeparator = ",";
+            state.rowSeparator = "\r\n";
           } else if (newMode === "tabs") {
             state.colSeparator = "\t";
           } else if (newMode === "insert" && parts[2]) {

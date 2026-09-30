@@ -180,7 +180,7 @@ test("sqlite3 matches native /usr/bin/sqlite3 for COALESCE/IFNULL/IIF projection
 
   const rModeSwitch = await runSqlite3(fs, [":memory:", ".mode csv", "SELECT 1, 2;", ".mode list", "SELECT 3, 4;"]);
   assert.equal(rModeSwitch.code, 0, rModeSwitch.stderr);
-  assert.equal(rModeSwitch.stdout, "1,2\n3|4\n");
+  assert.equal(rModeSwitch.stdout, "1,2\r\n3|4\n");
 
   const rColNoHeader = await runSqlite3(fs, ["-column", ":memory:", "SELECT 3779 AS number, 'open' AS state, 1 AS version;"]);
   assert.equal(rColNoHeader.code, 0, rColNoHeader.stderr);
@@ -598,4 +598,15 @@ test("sqlite3 supports exact and zero budgets and counts repeated reads", async 
   const quit = await runSqlite3(fs, ["/quit.db"], "CREATE TABLE t(x);\n.quit");
   assert.equal(quit.code, 0);
   assert.ok((await fs.readFile("/quit.db")).length > 0);
+});
+
+test("dot-command CSV uses CRLF and returning to list restores separators", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:", ".mode csv", "SELECT 1,2;", ".mode list", "SELECT 3,4;"]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, "1,2\r\n3|4\n");
+});
+
+test("CLI CSV flag retains LF row separators", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), ["-csv", ":memory:", "SELECT 1,2;"]);
+  assert.equal(result.stdout, "1,2\n");
 });

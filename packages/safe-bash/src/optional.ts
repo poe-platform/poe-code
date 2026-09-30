@@ -5,8 +5,8 @@ export { createCmpCommand, createCmpCommands, cmpCommands } from "./commands/cmp
 export type { CmpCommandsOptions, CmpLimits } from "./commands/cmp/index.js";
 export { createDdCommand, createDdCommands, ddCommands } from "./commands/dd/index.js";
 export type { DdCommandsOptions, DdLimits, DdFileHandle, DdFileOpener, DdFileRequest } from "./commands/dd/index.js";
-export { createShufCommand, createShufCommands, shufCommands } from "./commands/shuf/index.js";
-export type { ShufCommandsOptions, ShufLimits } from "./commands/shuf/index.js";
+export { createShufCommand, createShufCommands, shufCommands } from "safe-bash-command-shuf";
+export type { ShufCommandsOptions, ShufLimits } from "safe-bash-command-shuf";
 export { createTruncateCommand, createTruncateCommands, truncateCommands } from "./commands/truncate/index.js";
 export type { TruncateCommandsOptions } from "./commands/truncate/index.js";
 export { createInstallCommand, createInstallCommands, installCommands } from "./commands/install/index.js";

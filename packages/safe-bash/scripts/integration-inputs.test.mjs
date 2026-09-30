@@ -587,6 +587,12 @@ test("optional scripting leaves stay outside the default build and package expor
   }
   assert.equal(configuration.exclude.includes("src/commands/shuf/index.ts"), false, "standard commands require the canonical shuf adapter");
   assert.equal(metadata.files.includes("!dist/commands/shuf"), false, "standard shuf must retain its packaged adapter");
+  for (const name of ["arguments", "evaluate", "expression", "formats", "inplace", "mike", "native-encoder", "native-work", "nodes"]) {
+    for (const suffix of ["js", "js.map", "d.ts", "d.ts.map"]) {
+      const path = `!dist/commands/yq/${name}.${suffix}`;
+      assert.ok(metadata.files.includes(path), `optional YAML artifact must remain unpublished: ${path}`);
+    }
+  }
   assert.equal(metadata.files.includes("!dist/commands/yq"), false, "shared restricted yq must remain packaged");
   for (const path of ["src/jobs.ts", "src/shell/extensions/jobs/index.ts", "src/shell/extensions/jobs/state.ts"]) {
     assert.equal(configuration.exclude.includes(path), false, `core jobs must remain in the default build: ${path}`);

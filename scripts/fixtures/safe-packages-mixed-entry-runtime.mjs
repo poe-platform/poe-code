@@ -121,7 +121,7 @@ export async function verifyShufCommands(entry = defaultEntry) {
       ["printf /shuf-lines | xargs shuf --random-source=/shuf-random", "alpha\nbeta\ngamma\n"],
       ["shuf --random-source=/shuf-random -o /shuf-lines /shuf-lines; cat /shuf-lines", "alpha\nbeta\ngamma\n"],
       ["shuf --random-source=/shuf-random -i7-10 -n3", "7\n8\n9\n"],
-      ["shuf --random-source=/shuf-sparse-random -i0-131071 -n2", "1\n1\n"],
+      ["shuf --random-source=/shuf-sparse-random -i0-131071 -n2", "1\n0\n"],
       ["shuf --random-source=/missing -n0 -e alpha beta", ""],
       ["shuf --random-source=/missing -i1-18446744073709551615 -n0 -o /shuf-empty; test -f /shuf-empty && cat /shuf-empty", ""],
       ["shuf -- \"'?\"", "", "shuf: ''\\''?': No such file or directory\n", 1],

@@ -10,7 +10,7 @@ import { writeFileOutput, filesystemOutputBudgets } from "safe-bash-contracts/fi
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { createManagedControlController } from "safe-bash-contracts/signals";
 import { createDos2unixCommand as publicDos2unix, createUnix2dosCommand as publicUnix2dos, lineEndingCommands } from "../packages/safe-bash/src/commands/line-endings/index.js";
-import { LineEndingError as compatibleError } from "../packages/safe-bash/src/commands/line-endings/internal.js";
+import { LineEndingError as compatibleError } from "safe-bash-line-ending-engine";
 import { writeFileOutput as compatibleWrite } from "../packages/safe-bash/src/contracts/filesystem-output.js";
 import { filesystemOutputBudgets as compatibleBudgets } from "../packages/safe-bash/src/contracts/filesystem-output-budget.js";
 import { yieldTurn as compatibleYield } from "../packages/safe-bash/src/contracts/yield.js";

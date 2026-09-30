@@ -2255,6 +2255,10 @@
       "workerd": "./dist/registry-entry.browser.js",
       "browser": "./dist/registry-entry.browser.js",
       "import": "./dist/registry-entry.js"
+    },
+    "./commands/dos2unix": {
+      "types": "./dist/commands/dos2unix/index.d.ts",
+      "import": "./dist/commands/dos2unix/index.js"
     }
   },
   "sideEffects": [

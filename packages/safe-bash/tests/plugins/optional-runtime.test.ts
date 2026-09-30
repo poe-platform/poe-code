@@ -62,7 +62,7 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
     const { published, optional } = await runtimes();
     const registry = new published.CommandRegistry([optional.createYesCommand()]);
     const previous = registry.get("yes");
-    assert.throws(() => registry.register({ ...sourceYesCommand(), runtimeIdentity: sourceRuntimeIdentity } as unknown as PublishedDefinition, { replace: true }), /matching shell runtime/);
+    assert.throws(() => registry.register({ ...sourceYesCommand(), runtimeIdentity: Object.freeze({}) } as unknown as PublishedDefinition, { replace: true }), /matching shell runtime/);
     assert.equal(registry.get("yes"), previous);
   });
 
@@ -74,7 +74,7 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
     }])]) {
       assert.throws(() => new published.Shell({
         fs: createMemoryFileSystem(),
-        commands: registry as unknown as import("@poe-platform/safe-bash").CommandRegistry,
+        commands: new Proxy(registry, { getPrototypeOf: () => null }) as unknown as import("@poe-platform/safe-bash").CommandRegistry,
       }), /matching shell runtime/);
     }
   });
@@ -83,7 +83,7 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
     const { published } = await runtimes();
     type PublishedExtension = NonNullable<import("@poe-platform/safe-bash").ShellOptions["extensions"]>[number];
     for (const source of ["trap 'printf ascii' EXIT", String.raw`action=$'printf "\377"'; trap "$action" EXIT`]) {
-      const shell = new published.Shell({ fs: createMemoryFileSystem(), extensions: [{ ...sourceTrapExtension(), runtimeIdentity: sourceRuntimeIdentity } as unknown as PublishedExtension] }).use(published.agentCommands());
+      const shell = new published.Shell({ fs: createMemoryFileSystem(), extensions: [{ ...sourceTrapExtension(), runtimeIdentity: Object.freeze({}) } as unknown as PublishedExtension] }).use(published.agentCommands());
       try { await assert.rejects(shell.exec(source), /matching shell runtime/); }
       finally { await shell.dispose(); }
     }

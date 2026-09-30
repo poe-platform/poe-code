@@ -222,7 +222,7 @@ export function settings(options: GhCommandOptions = {}): GhLimits {
 }
 
 export function createGhCommand(options: GhCommandOptions = {}): CommandDefinition {
-  const limits = settings(options);
+  const configuredLimits = settings(options);
   const backends = new WeakMap<CommandContext["fs"], GitHubBackend>();
   const openssl = createDefaultOpenSslProvider(options.openssl);
 
@@ -242,7 +242,7 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
         });
         backends.set(context.fs, backend);
       }
-      backend.resetUsage();
+      const limits = { ...configuredLimits };
       const ssh = createDefaultSshProvider(options.ssh, backend.getActiveUser());
       const input = createGhInput(context, limits);
       context = { ...context, fs: input.fs };
@@ -473,7 +473,7 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
     backend: options.backend,
     hasCustomHttp: Boolean(options.http),
     hasCustomBrowser: Boolean(options.openBrowser),
-    limits,
+    limits: configuredLimits,
   });
   return def;
 }

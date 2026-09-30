@@ -46,8 +46,7 @@ export class GitHubBackend {
   readonly now: () => Date;
 
   #nextId = 1000;
-  #httpRequests = 0;
-  #httpBytes = 0;
+  #httpUsage = new WeakMap<GhLimits, { requests: number; bytes: number }>();
 
   constructor(options: {
     readonly defaultUser?: string | undefined;
@@ -110,17 +109,26 @@ export class GitHubBackend {
   }
 
   resetUsage(): void {
-    this.#httpRequests = 0;
-    this.#httpBytes = 0;
+    this.#httpUsage = new WeakMap();
+  }
+
+  #usage(limits: GhLimits): { requests: number; bytes: number } {
+    let usage = this.#httpUsage.get(limits);
+    if (!usage) {
+      usage = { requests: 0, bytes: 0 };
+      this.#httpUsage.set(limits, usage);
+    }
+    return usage;
   }
 
   recordHttpCall(requestBytes: number, responseBytes: number, limits: GhLimits): void {
-    this.#httpRequests += 1;
-    if (this.#httpRequests > limits.maxHttpRequests) {
+    const usage = this.#usage(limits);
+    usage.requests += 1;
+    if (usage.requests > limits.maxHttpRequests) {
       throw new Error("gh HTTP request limit exceeded");
     }
-    this.#httpBytes += requestBytes + responseBytes;
-    if (this.#httpBytes > limits.maxHttpBytes) {
+    usage.bytes += requestBytes + responseBytes;
+    if (usage.bytes > limits.maxHttpBytes) {
       throw new Error("gh HTTP byte limit exceeded");
     }
   }
@@ -563,18 +571,19 @@ export class GitHubBackend {
     customHttp: GhHttpTransport | undefined,
     limits: GhLimits
   ): Promise<GhHttpResponse> {
-    if (this.#httpRequests >= limits.maxHttpRequests) {
+    const usage = this.#usage(limits);
+    if (usage.requests >= limits.maxHttpRequests) {
       throw new Error("gh HTTP request limit exceeded");
     }
-    if (this.#httpBytes + request.body.length > limits.maxHttpBytes) {
+    if (usage.bytes + request.body.length > limits.maxHttpBytes) {
       throw new Error("gh HTTP byte limit exceeded");
     }
     if (customHttp) {
-      this.#httpRequests += 1;
-      this.#httpBytes += request.body.length;
+      usage.requests += 1;
+      usage.bytes += request.body.length;
       const response = await customHttp(request);
-      this.#httpBytes += response.body.length;
-      if (this.#httpBytes > limits.maxHttpBytes) {
+      usage.bytes += response.body.length;
+      if (usage.bytes > limits.maxHttpBytes) {
         throw new Error("gh HTTP byte limit exceeded");
       }
       return response;

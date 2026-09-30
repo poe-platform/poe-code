@@ -1179,3 +1179,20 @@ test("agent command composition includes gh with default and custom families", a
     }
   }
 });
+
+
+test("concurrent GitHub calls retain independent HTTP budgets", async () => {
+  let arrived = 0;
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const { run } = createTestHarness({
+    limits: { maxHttpRequests: 1, maxHttpBytes: 2 },
+    http: async () => {
+      if (++arrived === 2) release();
+      await gate;
+      return { status: 200, headers: {}, body: new TextEncoder().encode("{}") };
+    },
+  });
+  const results = await Promise.all([run("gh", ["api", "user"], { allowFailure: true }), run("gh", ["api", "user"], { allowFailure: true })]);
+  for (const result of results) assert.equal(result.exitCode, 0, result.stderr);
+});

@@ -190,3 +190,21 @@ test("lazy Pandoc factories reject invalid registration before execution", () =>
     assert.throws(() => create({ jsonFilterCommand: "node", filters: { apply: async document => document } }), TypeError);
   }
 });
+
+test("lazy GitHub state persists per filesystem without leaking to another shell", async () => {
+  const plugin = lazy.ghCommands();
+  const first = new Shell({ fs: createMemoryFileSystem() }).use(plugin);
+  const second = new Shell({ fs: createMemoryFileSystem() }).use(plugin);
+  try {
+    const created = await first.exec("gh issue create -R octocat/demo -t retained -b body");
+    assert.equal(created.exitCode, 0, created.stderr);
+    const retained = await first.exec("gh issue list -R octocat/demo --json title");
+    const isolated = await second.exec("gh issue list -R octocat/demo --json title");
+    assert.equal(retained.exitCode, 0, retained.stderr);
+    assert.equal(isolated.exitCode, 0, isolated.stderr);
+    assert.deepEqual(JSON.parse(retained.stdout).map((issue: { title: string }) => issue.title), ["retained"]);
+    assert.deepEqual(JSON.parse(isolated.stdout), []);
+  } finally {
+    await Promise.all([first.dispose(), second.dispose()]);
+  }
+});

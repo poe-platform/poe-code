@@ -111,7 +111,7 @@ with its own cleanup scope and the same borrowed bridge.
 | Discovery and selection | `models()`, `model=` | Resolve identities and aliases through the shared catalog |
 | Prompt, system and messages | `Request`, `Message`, `complete()` | Validate and dispatch the same request as the CLI |
 | Options | String, safe integer (±9,007,199,254,740,991), finite float, boolean, null | Preserve types and validate provider settings |
-| Attachments | `Attachment(path, mime_type)` | Read the canonical invocation filesystem; resolve relative paths from current Python cwd; infer MIME when omitted |
+| Attachments | `Attachment(path, mime_type)` | Lease canonical files, resolve relative paths from current Python cwd and stream bounded input chunks; infer MIME from a bounded prefix |
 | Text and binary responses | `Response`, incremental `Stream` events | Return text/bytes and final response records |
 | Usage and metadata | `Response` and `Embeddings` fields | Supply available provider metadata |
 | Structured output | `schema`, `Response.json()` | Validate and send schema through the shared service |
@@ -152,6 +152,19 @@ and terminal model/usage/metadata is emitted once after payload chunks.
 Buffered ceilings are separate from cumulative streaming limits, so large results
 can stream incrementally into canonical files. Embeddings must independently fit
 the bridge message budget; oversized results fail explicitly.
+
+Canonical attachments use the shared service's `streamSources` contract, preserving
+model identity, typed options, messages and schema. The adapter retains a file
+handle and reads at most 16 KiB per input chunk; it samples at most 4 KiB for MIME
+inference. It does not read or copy the entire file before provider admission.
+The parent input budget checks both retained file sizes and actual streamed bytes.
+Finite input limits reject excess data; streaming never silently truncates files.
+Cancellation, preparation errors and early output-stream exit release the leases.
+
+The filesystem must authorize retained reads, and the selected provider must
+support the shared streamed-input contract. Unsupported capabilities fail
+explicitly. There is no automatic whole-file buffering fallback or Python HTTP
+implementation. Calls without attachments retain the shared buffered request API.
 
 Exceptions include `LlmError(code, message)`, `CapabilityError`, `LimitError`,
 native `asyncio.CancelledError` and `asyncio.TimeoutError`. Invalid Python option

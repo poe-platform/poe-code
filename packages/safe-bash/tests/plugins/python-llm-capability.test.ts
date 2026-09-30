@@ -26,6 +26,20 @@ async function fixture(binary = false) {
         return {usage:{input:3}, metadata:{id:'response-1'}};
       } finally {closed++;}
     },
+    async *completeSources(request) {
+      const read = async (source: {bytes:AsyncIterable<Uint8Array>}) => {
+        const chunks:Uint8Array[] = [];
+        for await (const chunk of source.bytes) chunks.push(chunk);
+        return new Uint8Array(Buffer.concat(chunks));
+      };
+      const {prompt,system,messages,attachments,...fields} = request;
+      requests.push({...fields,prompt:new TextDecoder().decode(await read(prompt)),
+        ...(system ? {system:new TextDecoder().decode(await read(system))} : {}),
+        ...(messages ? {messages:await Promise.all(messages.map(async message => ({role:message.role,content:new TextDecoder().decode(await read(message.content))})))} : {}),
+        attachments:await Promise.all(attachments.map(async attachment => ({mimeType:attachment.mimeType,bytes:await read(attachment.source)})))});
+      try { yield 'answer'; yield '!'; return {usage:{input:3},metadata:{id:'response-1'}}; }
+      finally {closed++;}
+    },
     async embed(request) {return {model:request.model, vectors:request.inputs.map(() => [1,2]), usage:{input:request.inputs.length}};},
   }]});
   const capability = createPythonLlmCapability({fs,cwd:'/work'}, service);
@@ -120,4 +134,150 @@ test('large binary provider events split in order with one terminal metadata eve
   await early.next();
   await early.return!();
   assert.equal(closed,2);
+});
+
+test('canonical Python attachments do not require whole-file reads before provider admission', async () => {
+  const original = new MemoryFileSystem();
+  await original.writeFile('/attachment.txt', new TextEncoder().encode('canonical streamed input'));
+  let wholeReads = 0, admitted = false;
+  const fs = new Proxy(original, {get(target, property) {
+    if (property === 'readFile') return async () => { wholeReads++; throw new Error('Whole-file read forbidden for canonical attachment source'); };
+    const value = Reflect.get(target, property, target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const service = createLlmService({defaultModel:'m', providers:[{name:'test', models:[{id:'m',attachmentTypes:['text/plain']}], async *complete() { yield 'buffered'; assert.fail('Buffered provider path forbidden'); }, async *completeSources(request) {
+    admitted = true;
+    assert.equal(request.attachments.length, 1);
+    yield 'accepted';
+  }}]});
+  const capability = createPythonLlmCapability({fs,cwd:'/'}, service);
+  const response = await capability.call!({operation:'complete',payload:{attachments:[{path:'/attachment.txt',mimeType:'text/plain'}]}},{signal:new AbortController().signal});
+  assert.equal((response as {text:string}).text,'accepted');
+  assert.equal(wholeReads,0);
+  assert.equal(admitted,true);
+});
+
+test('large canonical attachments stream bounded chunks with exact bytes and release on early close', async () => {
+  const original = new MemoryFileSystem();
+  const content = new Uint8Array(16 * 1024 * 1024 + 7).fill(173);
+  await original.writeFile('/large.bin',content);
+  let closed = 0, wholeReads = 0, observed = 0;
+  const fs = new Proxy(original,{get(target,property) {
+    if (property === 'readFile') return async () => { wholeReads++; throw new Error('Whole-file read forbidden'); };
+    if (property === 'openReadFile') return async (...args:Parameters<typeof original.openReadFile>) => {
+      const handle = await original.openReadFile(...args);
+      return {...handle,async close() {closed++; await handle.close();}};
+    };
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const service = createLlmService({defaultModel:'m',providers:[{name:'test',models:[{id:'m',attachmentTypes:['application/octet-stream']}],async *complete() {yield 'buffered'; assert.fail('Buffered path forbidden');},async *completeSources(request) {
+    for await (const chunk of request.attachments[0]!.source.bytes) {
+      assert.ok(chunk.length <= 16384);
+      assert.ok(chunk.every(byte => byte === 173));
+      observed += chunk.length;
+      if (request.options.partial === true) { yield 'partial'; return; }
+    }
+    yield 'received'; yield 'more';
+  }}]});
+  const capability = createPythonLlmCapability({fs,cwd:'/'},service);
+  const payload = {attachments:[{path:'/large.bin',mimeType:'application/octet-stream'}]};
+  const first = capability.stream!(payload,{signal})[Symbol.asyncIterator]();
+  await first.next();
+  await first.return!();
+  assert.equal(observed,content.length);
+  assert.equal(closed,1);
+  assert.equal(wholeReads,0);
+  const partial = capability.stream!({...payload,options:{partial:true}},{signal})[Symbol.asyncIterator]();
+  await partial.next();
+  await partial.return!();
+  assert.equal(observed,content.length + 16384);
+  assert.equal(closed,2);
+  await assert.rejects(createPythonLlmCapability({fs,cwd:'/',inputBudget:{maxBytes:8,check() {}}},service).call!({operation:'complete',payload},{signal}),/input byte limit/);
+  assert.equal(closed,3);
+});
+
+test('cancellation during a retained attachment read closes its lease without a whole-file fallback', async () => {
+  const original = new MemoryFileSystem();
+  await original.writeFile('/pending.txt',new Uint8Array([1]));
+  let started!:() => void;
+  const entered = new Promise<void>(resolve => {started = resolve;});
+  let closed = 0;
+  const fs = new Proxy(original,{get(target,property) {
+    if (property === 'openReadFile') return async (...args:Parameters<typeof original.openReadFile>) => {
+      const handle = await original.openReadFile(...args);
+      return {...handle,async read(_offset:number,_size:number,options:{signal?:AbortSignal}) {
+        started();
+        const signal = options.signal!;
+        signal.throwIfAborted();
+        return await new Promise<Uint8Array>((_resolve,reject) => signal.addEventListener('abort',() => reject(signal.reason),{once:true}));
+      },async close() {closed++; await handle.close();}};
+    };
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const service = createLlmService({defaultModel:'m',providers:[{name:'test',models:[{id:'m',attachmentTypes:['text/plain']}],async *complete() {yield 'wrong path';},async *completeSources(request) {
+    for await (const ignoredChunk of request.attachments[0]!.source.bytes) yield 'unexpected';
+  }}]});
+  const controller = new AbortController();
+  const operation = createPythonLlmCapability({fs,cwd:'/'},service).call!({operation:'complete',payload:{attachments:[{path:'/pending.txt',mimeType:'text/plain'}]}},{signal:controller.signal});
+  const rejected = assert.rejects(operation,/stop source/);
+  await entered;
+  controller.abort(new Error('stop source'));
+  await rejected;
+  assert.equal(closed,1);
+});
+
+test('streamed attachment admission also checks actual read bytes against the host input budget', async () => {
+  const original = new MemoryFileSystem();
+  await original.writeFile('/changed.txt',new Uint8Array([1]));
+  let closed = 0;
+  const fs = new Proxy(original,{get(target,property) {
+    if (property === 'openReadFile') return async (...args:Parameters<typeof original.openReadFile>) => {
+      const handle = await original.openReadFile(...args);
+      return {...handle,async read(_offset:number,maxBytes:number) {assert.equal(maxBytes,5); return new Uint8Array(5);},async close() {closed++; await handle.close();}};
+    };
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const service = createLlmService({defaultModel:'m',providers:[{name:'test',models:[{id:'m',attachmentTypes:['text/plain']}],async *complete() {yield 'wrong path';},async *completeSources(request) {
+    for await (const ignoredChunk of request.attachments[0]!.source.bytes) yield 'unexpected';
+  }}]});
+  await assert.rejects(createPythonLlmCapability({fs,cwd:'/',inputBudget:{maxBytes:4,check() {}}},service).call!({operation:'complete',payload:{attachments:[{path:'/changed.txt',mimeType:'text/plain'}]}},{signal}),/input byte limit/);
+  assert.equal(closed,1);
+});
+
+test('canonical source admission respects retained-read capability refusal', async () => {
+  const original = new MemoryFileSystem();
+  await original.writeFile('/private.txt',new Uint8Array([1]));
+  let opened = 0;
+  const fs = new Proxy(original,{get(target,property) {
+    if (property === 'capabilitiesFor') return async () => ({...original.capabilities,retainedRead:false});
+    if (property === 'openReadFile') return async (...args:Parameters<typeof original.openReadFile>) => {opened++; return await original.openReadFile(...args);};
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const {service} = await fixture();
+  await assert.rejects(createPythonLlmCapability({fs,cwd:'/'},service).call!({operation:'complete',payload:{model:'alias',attachments:[{path:'/private.txt',mimeType:'text/plain'}]}},{signal}),/retained read/i);
+  assert.equal(opened,0);
+});
+
+
+test('source admission rejects unsupported models before opening canonical files', async () => {
+  const original = new MemoryFileSystem();
+  let opened = 0;
+  const fs = new Proxy(original,{get(target,property) {
+    if (property === 'openReadFile') return async () => {opened++; throw new Error('canonical file opened before model admission');};
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const shared = createLlmService({defaultModel:'blocked',providers:[{
+    name:'test',models:[{id:'blocked',inputSources:false}],
+    async *complete() {yield 'buffered';}, async *completeSources() {yield 'unexpected';},
+  }]});
+  const service = {...shared,streamSources() {throw new Error('stream dispatch before model admission');}};
+  const capability = createPythonLlmCapability({fs,cwd:'/'},service);
+  await assert.rejects(capability.call!({operation:'complete',payload:{attachments:[{path:'/input.bin',mimeType:'application/octet-stream'}]}},{signal}),/Model blocked does not support streamed inputs/);
+  await assert.rejects(capability.call!({operation:'complete',payload:{model:'missing',attachments:[{path:'/input.bin',mimeType:'application/octet-stream'}]}},{signal}),/Unknown model: missing/);
+  assert.equal(opened,0);
 });

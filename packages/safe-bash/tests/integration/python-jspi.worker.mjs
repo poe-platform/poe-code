@@ -164,6 +164,7 @@ async function qualifyHostServices(backend, createExecutor) {
   let calls = 0;
   let hostCancelled = 0;
   let libraryReleased = 0;
+  let inputSourceBytes = 0;
   let retiredBridge;
   const provider = { name:'fake', models:[
     {id:'fake',capabilities:['messages','schema','embed'],attachmentTypes:['text/plain']},
@@ -199,6 +200,29 @@ async function qualifyHostServices(backend, createExecutor) {
       } finally {libraryReleased++;}
     } else yield request.prompt;
     return {usage:{input:3},metadata:{id:'fake-response'}};
+  }, async *completeSources(request) {
+    const read = async source => {
+      const parts = [];
+      let length = 0;
+      for await (const chunk of source.bytes) { parts.push(chunk); length += chunk.length; }
+      const bytes = new Uint8Array(length);
+      let offset = 0;
+      for (const part of parts) { bytes.set(part,offset); offset += part.length; }
+      return bytes;
+    };
+    const prompt = new TextDecoder().decode(await read(request.prompt));
+    if (prompt === 'large-source') {
+      for await (const chunk of request.attachments[0].source.bytes) {
+        if (chunk.length > 16384 || chunk.some(byte => byte !== 173)) throw new Error('Canonical input source changed');
+        inputSourceBytes += chunk.length;
+      }
+      yield String(inputSourceBytes);
+      return {metadata:{id:'large-source'}};
+    }
+    return yield* this.complete({...request,prompt,
+      ...(request.system ? {system:new TextDecoder().decode(await read(request.system))} : {}),
+      ...(request.messages ? {messages:await Promise.all(request.messages.map(async message => ({role:message.role,content:new TextDecoder().decode(await read(message.content))})))} : {}),
+      attachments:await Promise.all(request.attachments.map(async attachment => ({mimeType:attachment.mimeType,bytes:await read(attachment.source)})))});
   }, async embed(request) {
     return {model:request.model,vectors:request.inputs.map(() => [1,2]),usage:{input:request.inputs.length},metadata:{id:'embedding-1'}};
   } };
@@ -273,6 +297,12 @@ async def qualify_libraries():
    events = [event async for event in chunks]
    assert events[0].text == 'incremental'
    assert events[1].text == '-end' and events[-1].response.model == 'fake'
+  with open('/work/large-input.bin', 'wb') as large:
+   for _ in range(4096):
+    large.write(bytes([173]) * 4096)
+   large.write(bytes([173]) * 7)
+  large_result = await client.complete('large-source', attachments=[Attachment('/work/large-input.bin', mime_type='text/plain')])
+  assert large_result.text == '16777223' and large_result.metadata['id'] == 'large-source'
   for prompt in ['host-buffer', 'host-empty', 'host-metadata']:
    try:
     await client.complete(prompt, max_response_bytes=1000000)
@@ -439,7 +469,7 @@ print('host-ok')
     let siblingResult;
     try { siblingResult = await sibling.exec(`python -c "from safe_host import call; print(call('identity'))"`); }
     finally { await sibling.dispose(); }
-    return {examples, shellStreamCancelled, retirementRejected, sibling:siblingResult.stdout, siblingExit:siblingResult.exitCode, exitCode:result.exitCode, stdout:result.stdout, stderr:result.stderr, calls, released, hostCancelled, libraryReleased};
+    return {examples, shellStreamCancelled, retirementRejected, sibling:siblingResult.stdout, siblingExit:siblingResult.exitCode, exitCode:result.exitCode, stdout:result.stdout, stderr:result.stderr, calls, released, hostCancelled, libraryReleased, inputSourceBytes};
   } finally { await shell.dispose(); }
 }
 

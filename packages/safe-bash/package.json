@@ -1397,6 +1397,25 @@
           "dependencies": {},
           "devDependencies": {},
           "portable": true
+        },
+        "safe-bash-command-docx": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-pptx": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -2350,7 +2369,9 @@
     "@poe-code/spreadsheet-format-spreadsheetml": "*",
     "@poe-code/spreadsheet-format-html": "*",
     "@poe-code/xlsx-ast": "*",
-    "@poe-code/spreadsheet-format-dbf": "*"
+    "@poe-code/spreadsheet-format-dbf": "*",
+    "safe-bash-command-docx": "*",
+    "safe-bash-command-pptx": "*"
   },
   "main": "./dist/index.js",
   "imports": {

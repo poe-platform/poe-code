@@ -582,7 +582,9 @@
     "@poe-code/spreadsheet-format-spreadsheetml": "0.0.1",
     "@poe-code/spreadsheet-format-html": "0.0.1",
     "@poe-code/xlsx-ast": "0.0.1",
-    "@poe-code/spreadsheet-format-dbf": "0.0.1"
+    "@poe-code/spreadsheet-format-dbf": "0.0.1",
+    "safe-bash-command-docx": "*",
+    "safe-bash-command-pptx": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

@@ -23,23 +23,39 @@ const commands = await Promise.all(entries.map(async entry => ({
   api: await import(resolve(root, entry.file, "../src/index.ts"))
 })));
 
+const documentEngines: Record<string, { replace?: boolean; engine: { execute(): Promise<{ exitCode: number; stdout: Uint8Array; stderr: Uint8Array }> } }> = Object.fromEntries(
+  ["safe-bash-command-docx", "safe-bash-command-pptx"].map(name => [name, {
+    engine: { async execute() { return { exitCode: 0, stdout: new Uint8Array(), stderr: new Uint8Array() }; } }
+  }])
+);
+
 describe.each(commands)("$name public command contract", ({ name, api }) => {
   const stem = name.slice("safe-bash-command-".length);
   const words = stem.split("-");
   const title = words.map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
   const pluginName = title[0]!.toLowerCase() + title.slice(1);
 
-  it("creates a default command, its collection, and a matching plugin without options", async () => {
-    const single: CommandDefinition = api[`create${title}Command`]();
-    const collection: readonly CommandDefinition[] = api[`create${title}Commands`]();
-    const plugin: VirtualShellPlugin = api[`${pluginName}Commands`]();
+  const requiredOptions = documentEngines[name];
+  if (requiredOptions) {
+    it("requires an explicit document engine for every factory", () => {
+      for (const factory of [`create${title}Command`, `create${title}Commands`, `${pluginName}Commands`]) {
+        expect(() => api[factory]()).toThrow("explicit");
+        expect(() => api[factory]({})).toThrow("explicit");
+      }
+    });
+  }
+
+  it("creates a command, its collection, and a matching plugin with required capabilities", async () => {
+    const single: CommandDefinition = api[`create${title}Command`](requiredOptions);
+    const collection: readonly CommandDefinition[] = api[`create${title}Commands`](requiredOptions);
+    const plugin: VirtualShellPlugin = api[`${pluginName}Commands`](requiredOptions);
     expect(single.name).not.toBe("");
     expect(single.execute).toBeTypeOf("function");
     expect(collection.length).toBeGreaterThan(0);
     expect(collection.map((command) => command.name)).toContain(single.name);
     expect(new Set(collection.map((command) => command.name)).size).toBe(collection.length);
 
-    for (const options of [undefined, {}, { replace: true }]) {
+    for (const options of [requiredOptions, { ...requiredOptions }, { ...requiredOptions, replace: true }]) {
       const registry = new CommandRegistry();
       const register = vi.spyOn(registry, "register");
       await (options === undefined ? plugin : api[`${pluginName}Commands`](options)).setup({

@@ -1,5 +1,5 @@
 import { bytesFrom } from "safe-bash-byte-engine";
-import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
+import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { createBufferedOutput, FsError, getCommandArguments, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { diagnostic, pathOf } from "safe-bash-io-engine/internal";
@@ -43,8 +43,6 @@ export class Session {
   private outputBytes = 0;
   private steps = 0;
   private untilYield = 4096;
-  private yieldChecks = 0;
-  private lastYield = monotonicNow();
   readonly buffered: ReturnType<typeof createBufferedOutput>;
   private signalAborted = false;
   private readonly pollSignal: boolean;
@@ -85,13 +83,7 @@ export class Session {
     this.charge(count);
     if (this.untilYield <= 0) {
       this.untilYield = 4096;
-      if (++this.yieldChecks % 16 !== 0 && !hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
-        runYieldCheckpoint(this.signal);
-        this.signal.throwIfAborted();
-        return;
-      }
       return yieldTurn(this.signal).then(() => {
-        this.lastYield = monotonicNow();
         this.signal.throwIfAborted();
       });
     }

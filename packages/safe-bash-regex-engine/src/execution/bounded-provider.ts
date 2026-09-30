@@ -712,9 +712,7 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
   }
   const estimatedWork = lastEreCache.work + batchWork + 256;
   if (ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork) {
-    if ((!unboundedLedger && estimatedWork > 32768) || !ledger.advanceSyncCheckpointIfNoExternalYield?.(signal)) {
-      return undefined;
-    }
+    return undefined;
   }
   ledger.admitInput("subjectBytes", maxSubjectLen, signal);
   ledger.charge("work", lastEreCache.work + batchWork, signal);
@@ -738,7 +736,7 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
   const word = selected.word;
   for (let r = 0; r < rows.length; r++) {
     if (ledger.workAllowanceUntilCheckpoint(signal) < 256) {
-      ledger.advanceSyncCheckpointIfNoExternalYield?.(signal);
+      return undefined;
     }
     const row = rows[r]! as Row & { chunk?: Uint8Array; start?: number; searchEnd?: number };
     const hasRange = row.chunk !== undefined && typeof row.start === "number" && typeof row.searchEnd === "number";

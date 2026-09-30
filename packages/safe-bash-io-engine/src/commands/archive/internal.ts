@@ -1,6 +1,6 @@
 import { bytesFrom, utf8ByteLength } from "safe-bash-byte-engine";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
-import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { collectBytes, readBytes, writeBytes, type ByteSource, type CommandContext, type FileStat } from "safe-bash-contracts";
 
 export interface ArchiveLimits {
@@ -177,7 +177,6 @@ export class Budget {
   members = 0;
   totalBytes = 0;
   textBytes = 0;
-  private lastYield = monotonicNow();
   constructor(readonly context: CommandContext, readonly limits: ArchiveLimits) {}
   async member(size = 0): Promise<void> {
     this.context.signal.throwIfAborted();
@@ -185,9 +184,8 @@ export class Budget {
     if (!Number.isSafeInteger(size) || size < 0 || size > this.limits.maxEntryBytes) fail("entry byte limit exceeded");
     if (size > this.limits.maxTotalBytes - this.totalBytes) fail("total payload byte limit exceeded");
     this.totalBytes += size;
-    if (this.members % 128 === 0 && (this.members === 128 || this.members % 2048 === 0 || hasYieldCheckpoint(this.context.signal) || monotonicNow() - this.lastYield >= 16)) {
+    if (this.members % 128 === 0) {
       await yieldTurn(this.context.signal);
-      this.lastYield = monotonicNow();
     }
   }
   async output(value: string | Uint8Array, stderr = false): Promise<void> {
@@ -201,7 +199,6 @@ export class Budget {
 export async function* bounded(source: ByteSource, maximum: number, signal: AbortSignal, chunkSize: number): ByteSource {
   let size = 0;
   let turns = 0;
-  let lastYield = monotonicNow();
   for await (const chunk of readBytes(source, signal)) {
     if (chunk.length > maximum - size) fail("archive byte limit exceeded");
     size += chunk.length;
@@ -216,9 +213,8 @@ export async function* bounded(source: ByteSource, maximum: number, signal: Abor
         yield chunk.subarray(offset, Math.min(chunk.length, offset + chunkSize));
       }
     }
-    if (++turns % 128 === 0 && (turns === 128 || turns % 2048 === 0 || hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 16)) {
+    if (++turns % 128 === 0) {
       await yieldTurn(signal);
-      lastYield = monotonicNow();
     }
   }
 }

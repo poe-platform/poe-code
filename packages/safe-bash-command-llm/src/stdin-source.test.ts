@@ -48,3 +48,29 @@ test('provider error releases retained prompt staging',async()=>{
  const result=await run(chunks,[],async source=>{for await(const bytes of source){assert.equal(bytes[0],97);throw new Error('provider failed');}});
  assert.equal(result.exitCode,1);assert.match(result.error,/provider failed/);
 });
+
+
+test('oversized borrowed stdin is decoded in bounded UTF8 slices', async () => {
+ const size = 16 * 1024 * 1024 + 7;
+ const bytes = new Uint8Array(size).fill(97);
+ const emoji = new TextEncoder().encode('🙂');
+ bytes.set(emoji, 16382);
+ let received = 0, largestDecode = 0;
+ const originalDecode = TextDecoder.prototype.decode;
+ TextDecoder.prototype.decode = function(input, options) {
+  largestDecode = Math.max(largestDecode, input?.byteLength ?? 0);
+  return originalDecode.call(this, input, options);
+ };
+ try {
+  const chunks = { async *[Symbol.asyncIterator]() { yield bytes; } };
+  const result = await run(chunks, [], async source => {
+   for await (const chunk of source) {
+    assert.deepEqual(chunk, bytes.subarray(received, received + chunk.byteLength));
+    received += chunk.byteLength;
+   }
+  });
+  assert.equal(result.exitCode, 0, result.error);
+  assert.equal(received, size);
+  assert.ok(largestDecode <= 16384, `largest decode was ${largestDecode}`);
+ } finally { TextDecoder.prototype.decode = originalDecode; }
+});

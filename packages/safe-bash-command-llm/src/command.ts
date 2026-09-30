@@ -222,14 +222,17 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         const chunk = result.value;
         if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
         admitInput(chunk.byteLength);
-        const decoded = decoder.decode(chunk, { stream: true });
         stdinBytes += chunk.byteLength;
         if (stagePrompt) {
+          for (let offset = 0; offset < chunk.byteLength; offset += 16384) {
+            await step();
+            decoder.decode(chunk.subarray(offset, Math.min(offset + 16384, chunk.byteLength)), { stream: true });
+          }
           if (chunk.byteLength) {
             promptSpool ??= await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal, "input"), spool => spool.close());
             await promptSpool.write(chunk);
           }
-        } else fragments.push(decoded);
+        } else fragments.push(decoder.decode(chunk, { stream: true }));
       }
     }
     const decoderTail = decoder.decode();

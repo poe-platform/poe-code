@@ -365,3 +365,15 @@ test('byte-locale substring preserves a split UTF-8 byte without Buffer', async 
     assert.equal(result.exitCode, 0);
   } finally { globalThis.Buffer = original; }
 });
+
+test('portable pipeline decoding preserves an initial UTF-8 BOM', async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const original = globalThis.Buffer;
+  try {
+    assert.equal(Reflect.deleteProperty(globalThis, "Buffer"), true);
+    const result = await shell.exec('x=$(printf "%s" "\uFEFFabc" | cat); echo "$x"');
+    assert.deepEqual(result.stdoutBytes, Uint8Array.of(0xef, 0xbb, 0xbf, 0x61, 0x62, 0x63, 0x0a));
+    assert.equal(result.stderr, '');
+  } finally { globalThis.Buffer = original; }
+});

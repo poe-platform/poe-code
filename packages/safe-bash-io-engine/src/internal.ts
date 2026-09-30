@@ -44,7 +44,7 @@ async function handleDefineError(
 }
 
 export const encoder: InstanceType<typeof TextEncoder> = new TextEncoder();
-export const decoder: InstanceType<typeof TextDecoder> = new TextDecoder();
+export const decoder: InstanceType<typeof TextDecoder> = new TextDecoder("utf-8", { ignoreBOM: true });
 export const bufferLimit = Infinity;
 export { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-control";
 

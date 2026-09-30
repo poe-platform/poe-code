@@ -1,4 +1,4 @@
-import { createGhCommands } from "../commands/gh/index.js";
+import { createGhCommands } from "../lazy-gh.js";
 import type { CommandDefinition } from "../contracts/index.js";
 import { RegexExecutor } from "../commands/regex-execution/portable.js";
 import { createBoundedRegexProvider } from "../commands/regex-execution/bounded-provider.js";

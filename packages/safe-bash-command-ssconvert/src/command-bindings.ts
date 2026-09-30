@@ -13,7 +13,7 @@ import {
   type CommandDefinition,
   type VirtualShellPlugin
 } from "safe-bash-contracts";
-import { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-control";
+import { builtInDirectContextExecutors, syncCommandEvaluators, type SyncCommandEvaluators } from "safe-bash-contracts/runtime-control";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 
@@ -33,10 +33,12 @@ export interface SsconvertCommandBindings {
 /** Bind one shell implementation to either explicit formats or the compatibility composition. */
 export function createCommandBindings(
   createEngine: (options: EngineOptions) => Engine,
-  compatibilityDefaults = false
+  compatibilityDefaults = false,
+  synchronousEvaluator?: SyncCommandEvaluators["evalSyncSsconvert"]
 ): SsconvertCommandBindings {
   /** Explicit opt-in; the domain engine is the only conversion implementation. */
   function createSsconvertCommand(options: SsconvertCommandsOptions = {}): CommandDefinition {
+    if (synchronousEvaluator) syncCommandEvaluators.evalSyncSsconvert = synchronousEvaluator;
     const configured = { ...options };
     if (configured.replace !== undefined && typeof configured.replace !== "boolean")
       throw new TypeError("ssconvert replace must be boolean");

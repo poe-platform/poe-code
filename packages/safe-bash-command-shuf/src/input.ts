@@ -1,10 +1,98 @@
-import { FsError, readBytes, type ByteSource } from "safe-bash-contracts";
+import { FsError, readBytes, type ByteSource, type CommandContext, type FileReadHandle, type FileStat } from "safe-bash-contracts";
 import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { Diagnostic } from "./args.js";
 
 export function virtualPath(cwd: string, name: string): string {
   if (name === "") throw new FsError("ENOENT");
-  return name.startsWith("/") ? name : `${cwd.endsWith("/") ? cwd : `${cwd}/`}${name}`;
+  let decoded: string;
+  try { decoded = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(Uint8Array.from(name, character => character.charCodeAt(0))); }
+  catch { throw new FsError("ENOENT"); }
+  return decoded.startsWith("/") ? decoded : `${cwd.endsWith("/") ? cwd : `${cwd}/`}${decoded}`;
+}
+
+/** Own only acquisition and reads; a capability or pathname query owns no reader. */
+export class FileInput {
+  stat: FileStat | undefined;
+  private handle: FileReadHandle | undefined;
+  private source: AsyncGenerator<Uint8Array> | undefined;
+  private opening: Promise<void> | undefined;
+  private closing: Promise<void> | undefined;
+  private closed = false;
+  private readonly controller = new AbortController();
+  private readonly signal: AbortSignal;
+
+  constructor(private readonly context: CommandContext, private readonly maxBytes: number) {
+    this.signal = AbortSignal.any([context.signal, this.controller.signal]);
+  }
+
+  async open(name: string): Promise<void> {
+    const { fs } = this.context;
+    const signal = this.signal;
+    signal.throwIfAborted();
+    const path = virtualPath(this.context.cwd, name);
+    const capabilities = await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities;
+    signal.throwIfAborted();
+    const retained = fs.openReadFile !== undefined && capabilities.retainedRead !== false;
+    if (!retained) {
+      if (capabilities.stat !== false) this.stat = await fs.stat(path, { signal });
+      signal.throwIfAborted();
+    }
+    if (this.closed) throw new FsError("EBADF");
+    this.opening = Promise.resolve().then(async () => {
+      signal.throwIfAborted();
+      let input: ByteSource;
+      if (retained) {
+        this.handle = await fs.openReadFile!(path, { signal });
+        signal.throwIfAborted();
+        this.stat = await this.handle.stat({ signal });
+        signal.throwIfAborted();
+        const handle = this.handle;
+        const maximum = Math.min(65536, this.maxBytes);
+        input = { async *[Symbol.asyncIterator]() {
+          let position = 0;
+          while (true) {
+            const bytes = await handle.read(position, maximum, { signal });
+            signal.throwIfAborted();
+            if (!bytes.length) return;
+            position += bytes.length;
+            yield new Uint8Array(bytes);
+          }
+        } };
+      } else if (fs.readStream && capabilities.streamingRead !== false) {
+        input = fs.readStream(path, { signal, chunkSize: Math.min(65536, this.maxBytes) });
+      } else {
+        if (capabilities.read === false) throw new FsError("ENOTSUP");
+        const maxBytes = this.maxBytes;
+        input = { async *[Symbol.asyncIterator]() {
+          const bytes = await fs.readFile(path, { signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
+          if (bytes.byteLength > maxBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
+          yield bytes;
+        } };
+      }
+      signal.throwIfAborted();
+      this.source = ownedBytes(input, signal);
+    });
+    await this.opening;
+  }
+
+  next(): Promise<IteratorResult<Uint8Array>> {
+    this.signal.throwIfAborted();
+    return this.source!.next();
+  }
+
+  close(): Promise<void> {
+    this.closed = true;
+    this.controller.abort(new Error("shuf input is closed"));
+    return this.closing ??= Promise.resolve().then(async () => {
+      await this.opening?.catch(() => {});
+      try { await this.source?.return(undefined); }
+      finally { await this.handle?.close(); }
+    });
+  }
+
+  [Symbol.asyncIterator](): AsyncIterator<Uint8Array> {
+    return { next: () => this.next(), return: async () => { await this.close(); return { done: true, value: undefined }; } };
+  }
 }
 
 export function ownedBytes(source: ByteSource, signal: AbortSignal): AsyncGenerator<Uint8Array> & AsyncDisposable {
@@ -12,6 +100,8 @@ export function ownedBytes(source: ByteSource, signal: AbortSignal): AsyncGenera
   const controller = new AbortController();
   const readingSignal = AbortSignal.any([signal, controller.signal]);
   let finished = false;
+  let failed = false;
+  let failure: unknown;
   let closing: Promise<IteratorResult<Uint8Array>> | undefined;
   const close = (): Promise<IteratorResult<Uint8Array>> => {
     controller.abort(new Error("shuf input is closed"));
@@ -24,9 +114,11 @@ export function ownedBytes(source: ByteSource, signal: AbortSignal): AsyncGenera
     [Symbol.asyncIterator]() {
       return {
         async next() {
-          const next = await iterator.next();
-          finished = next.done === true;
-          return next;
+          try {
+            const next = await iterator.next();
+            finished = next.done === true;
+            return next;
+          } catch (error) { failed = true; failure = error; throw error; }
         },
         return: close,
       };
@@ -39,8 +131,11 @@ export function ownedBytes(source: ByteSource, signal: AbortSignal): AsyncGenera
         yield chunk;
         if (++chunks % 1024 === 0) await yieldTurn(readingSignal);
       }
+    } catch (error) {
+      if (failed) throw failure;
+      throw error;
     } finally {
-      await close();
+      await close().catch(error => { if (!failed) throw error; });
     }
   })();
   return {

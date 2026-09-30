@@ -1,16 +1,17 @@
 import {
-  builtInDirectContextExecutors, commandRuntimeIdentity, createBufferedOutput, getCommandArguments, isFsError, toByteSource, writeBytes,
+  builtInDirectContextExecutors, commandRuntimeIdentity, createBufferedOutput, getCommandArguments, isFsError, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition,
 } from "safe-bash-contracts";
 import { openFileOutput, type FileOutput } from "./filesystem-output.js";
 import { hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
-import { countMax, Diagnostic, fileQuote, parse, quote } from "./args.js";
-import { ownedBytes, readAllRecords, records, virtualPath } from "./input.js";
+import { countMax, Diagnostic, fileQuote, parse, quote, unicodeLocale } from "./args.js";
+import { FileInput, ownedBytes, readAllRecords, records, virtualPath } from "./input.js";
 import { settings, type ShufCommandsOptions } from "./options.js";
 import { RandomIntegers } from "./random.js";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 
 import { textOutputRequirements } from "safe-bash-io-engine/portable-requirements";
+import { diagnostic as reportDiagnostic } from "safe-bash-io-engine/internal";
 
 const encoder = new TextEncoder();
 const errors: Readonly<Record<string, string>> = {
@@ -35,7 +36,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
       let output: FileOutput | undefined;
       let source: AsyncGenerator<Uint8Array> | undefined;
       let inputSource: AsyncGenerator<Uint8Array> | undefined;
-      let openingInput: Promise<void> | undefined;
+      let fileInput: FileInput | undefined;
       const inputController = new AbortController();
       const inputSignal = AbortSignal.any([context.signal, inputController.signal]);
       inheritYieldCheckpoint(context.signal, inputSignal);
@@ -48,8 +49,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         closed = true;
         inputController.abort(new Error("shuf input is closed"));
         return cleanup ??= (async () => {
-          await openingInput?.catch(() => {});
-          const results = await Promise.allSettled([source?.return(undefined), inputSource?.return(undefined), random?.close()]);
+          const results = await Promise.allSettled([source?.return(undefined), inputSource?.return(undefined), fileInput?.close(), random?.close()]);
           const failed = results.find(result => result.status === "rejected");
           if (failed?.status === "rejected") throw failed.reason;
         })();
@@ -57,6 +57,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
       context.registerCleanup?.(close);
       try {
         context.signal.throwIfAborted();
+        const unicode = unicodeLocale(context);
         const parsed = parse(context);
         if (parsed.action) {
           const { help, version } = await import("./usage.js");
@@ -80,33 +81,25 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
             lines.push(line);
           }
           size = BigInt(lines.length);
-        } else if (parsed.count !== 0n && !parsed.range) {
-          const name = parsed.operands.length ? context.args[parsed.operands[0]!]! : "-";
+        } else if (!parsed.range && !parsed.echo && (parsed.count !== 0n || parsed.repeat)) {
+          const name = parsed.count === 0n || !parsed.operands.length ? "-" : Array.from(getCommandArguments(context).bytes(parsed.operands[0]!)!, byte => String.fromCharCode(byte)).join("");
           let inputSize = Infinity;
-          openingInput = Promise.resolve().then(async () => {
+          {
             inputSignal.throwIfAborted();
             let input: ByteSource;
             if (name === "-") input = context.stdin;
             else {
-              diagnostic = fileQuote(name);
-              const path = virtualPath(context.cwd, name);
-              const stat = await context.fs.stat(path, { signal: inputSignal });
-              if (stat.type === "file" && Number.isSafeInteger(stat.size) && stat.size >= 0) inputSize = stat.size;
-              inputSignal.throwIfAborted();
-              await context.fs.access(path, 4, { signal: inputSignal });
-              inputSignal.throwIfAborted();
-              if (context.fs.readStream) input = context.fs.readStream(path, { signal: inputSignal });
-              else {
-                const bytes = await context.fs.readFile(path, { signal: inputSignal, ...(Number.isFinite(limits.maxInputBytes) ? { maxBytes: limits.maxInputBytes } : {}) });
-                if (bytes.byteLength > limits.maxInputBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
-                input = toByteSource(bytes);
-              }
+              diagnostic = fileQuote(name, unicode);
+              fileInput = new FileInput({ ...context, signal: inputSignal }, limits.maxInputBytes);
+              await fileInput.open(name);
+              const stat = fileInput.stat;
+              if (stat?.type === "file" && Number.isSafeInteger(stat.size) && stat.size >= 0) inputSize = stat.size;
+              input = fileInput;
             }
             inputSource = ownedBytes(input, inputSignal);
             inputSignal.throwIfAborted();
             if (closed) throw new Error("shuf input is closed");
-          });
-          await openingInput;
+          }
           diagnostic = "read error";
           reservoir = !parsed.repeat && parsed.count < countMax && inputSize > 8 * 1024 * 1024;
           if (!reservoir) {
@@ -118,9 +111,10 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         }
         random = new RandomIntegers(context, parsed.random, limits.maxInputBytes);
         const count = parsed.repeat || parsed.count < size ? parsed.count : size;
-        diagnostic = fileQuote(parsed.random ?? "getrandom");
-        if (reservoir || parsed.repeat || count > 0n) await random.open();
-        diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
+        diagnostic = fileQuote(parsed.random ?? "getrandom", unicode);
+        if (reservoir && parsed.count > 0n || parsed.repeat || count > 0n) await random.open();
+        if (parsed.repeat && parsed.random === undefined) random.seed();
+        diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random, unicode)}: read error`;
         if (reservoir) {
           let seen = 0n;
           while (seen < parsed.count) {
@@ -135,7 +129,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
           }
           if (seen === parsed.count) {
             while (true) {
-              diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
+              diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random, unicode)}: read error`;
               const chosen = await random.choose(seen + 1n);
               diagnostic = "read error";
               const next = await source!.next();
@@ -167,12 +161,13 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         const streamDirect = !parsed.repeat && parsed.output === undefined && parsed.random === undefined;
         const permutation: bigint[] = [];
         const swaps = new Map<bigint, bigint>();
-        diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
+        const sparse = ahead > 0n && (size > 0xffffffffn || size >= 128n * 1024n && size / ahead >= 32n);
+        diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random, unicode)}: read error`;
         const useSyncRandom = parsed.random === undefined;
         if (!parsed.repeat && !streamDirect) {
           for (let index = 0n; index < ahead; index++) {
             const chosen = index + (useSyncRandom ? random.chooseSync(size - index) : await random.choose(size - index));
-            permutation.push(swaps.get(chosen) ?? chosen);
+            permutation.push(sparse && chosen === index ? index : swaps.get(chosen) ?? chosen);
             swaps.set(chosen, swaps.get(index) ?? index);
             swaps.delete(index);
             if (index % 1024n === 1023n) {
@@ -186,7 +181,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
           }
         }
         if (parsed.output !== undefined) {
-          diagnostic = fileQuote(parsed.output);
+          diagnostic = fileQuote(parsed.output, unicode);
           openingRootOutput = parsed.output.length > 0 && Array.from(parsed.output).every(character => character === "/");
           output = await openFileOutput(context, virtualPath(context.cwd, parsed.output), "w");
           openingRootOutput = false;
@@ -195,13 +190,13 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         const sink = createBufferedOutput(output?.sink ?? context.stdout, context.signal);
         for (let index = 0n; index < ahead; index++) {
           context.signal.throwIfAborted();
-          diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
+          diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random, unicode)}: read error`;
           let chosen: bigint;
           if (parsed.repeat) {
             chosen = useSyncRandom ? random.chooseSync(size) : await random.choose(size);
           } else if (streamDirect) {
             const pick = index + (useSyncRandom ? random.chooseSync(size - index) : await random.choose(size - index));
-            chosen = swaps.get(pick) ?? pick;
+            chosen = sparse && pick === index ? index : swaps.get(pick) ?? pick;
             swaps.set(pick, swaps.get(index) ?? index);
             swaps.delete(index);
           } else {
@@ -210,6 +205,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
           const line = parsed.range ? encoder.encode(`${parsed.range.low + chosen}${parsed.delimiter === 0 ? "\0" : "\n"}`) : lines[Number(chosen)]!;
           diagnostic = "write error";
           await sink.write(line);
+          if (parsed.repeat && parsed.random !== undefined) await sink.flush();
           if (index % 256n === 255n) {
             if (++yieldChecks % 16 === 0 || hasYieldCheckpoint(context.signal) || monotonicNow() - lastYield >= 25) {
               await yieldTurn(context.signal); lastYield = monotonicNow();
@@ -228,7 +224,10 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         if (output) await output.abort(error);
         context.signal.throwIfAborted();
         if (isFsError(error) && error.code === "EPIPE" && diagnostic === "write error") return { exitCode: 141 };
-        if (!(error instanceof Diagnostic) && !isFsError(error)) throw error;
+        if (!(error instanceof Diagnostic) && !isFsError(error)) {
+          await reportDiagnostic(context, error);
+          return { exitCode: 1 };
+        }
         const message = error instanceof Diagnostic ? error.message : `shuf: ${diagnostic}: ${openingRootOutput && error.code === "EISDIR" ? "File exists" : errors[error.code] ?? error.code}\n`;
         await writeBytes(context.stderr, error instanceof Diagnostic && error.bytes ? error.bytes : encoder.encode(message), context.signal);
         return { exitCode: 1 };

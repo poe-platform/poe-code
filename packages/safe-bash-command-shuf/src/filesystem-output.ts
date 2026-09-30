@@ -309,7 +309,22 @@ export async function openFileOutput(context: FileOutputContext, path: string, o
       }
       if (flag === "wx") throw new FsError("ENOTSUP", { path, syscall: "writeStream", message: "exclusive output requires streaming support" });
       if (flag === "w" && capabilities.write === false) throw new FsError("ENOTSUP", { path, syscall: "writeFile" });
-      if ((!incremental || flag === "a") && capabilities.append === false) throw new FsError("ENOTSUP", { path, syscall: "appendFile" });
+      if (flag === "a" && capabilities.append === false) throw new FsError("ENOTSUP", { path, syscall: "appendFile" });
+      if (!incremental && flag === "w") {
+        await fs.writeFile(path, new Uint8Array(), { ...fsOptions, flag });
+        const chunks: Uint8Array[] = [];
+        let size = 0;
+        for await (const chunk of source) {
+          signal.throwIfAborted();
+          chunks.push(new Uint8Array(chunk));
+          size += chunk.byteLength;
+        }
+        const bytes = new Uint8Array(size);
+        let offset = 0;
+        for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+        await fs.writeFile(path, bytes, fsOptions);
+        return;
+      }
       const sink = incremental ? await incremental() : await (async (): Promise<ByteSink> => {
         if (flag === "a") await fs.appendFile(path, new Uint8Array(), fsOptions);
         else await fs.writeFile(path, new Uint8Array(), { ...fsOptions, flag });

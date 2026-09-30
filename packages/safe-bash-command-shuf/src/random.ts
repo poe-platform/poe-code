@@ -1,14 +1,15 @@
 import type { CommandContext } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { Diagnostic, quote, wordMax } from "./args.js";
-import { ownedBytes, virtualPath } from "./input.js";
+import { Diagnostic, quote, unicodeLocale, wordMax } from "./args.js";
+import { FileInput } from "./input.js";
 
 export class RandomIntegers {
   private value = 0n;
   private maximum = 0n;
   private bytes = new Uint8Array();
   private offset = 0;
-  private source: AsyncGenerator<Uint8Array> | undefined;
+  private source: FileInput | undefined;
+  private state: Uint32Array | undefined;
   private closed = false;
   private closing: Promise<void> | undefined;
   private opening: Promise<void> | undefined;
@@ -23,35 +24,45 @@ export class RandomIntegers {
   open(): Promise<void> {
     if (this.closed) return Promise.reject(this.signal.reason);
     return this.opening ??= Promise.resolve().then(async () => {
-      const { fs } = this.context;
       const signal = this.signal;
       signal.throwIfAborted();
       if (this.name === undefined) return;
-      const path = virtualPath(this.context.cwd, this.name);
-      await fs.access(path, 4, { signal });
-      signal.throwIfAborted();
-      if (fs.readStream) this.source = ownedBytes(fs.readStream(path, { signal, chunkSize: Math.min(4096, this.maxBytes) }), signal);
-      else {
-        const maxBytes = this.maxBytes;
-        this.source = ownedBytes((async function* () {
-          const bytes = await fs.readFile(path, { signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
-          if (bytes.byteLength > maxBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
-          yield bytes;
-        })(), signal);
-      }
+      this.source = new FileInput({ ...this.context, signal }, this.maxBytes);
+      await this.source.open(this.name);
       signal.throwIfAborted();
     });
   }
 
-  async close(): Promise<void> {
+  close(): Promise<void> {
     this.closed = true;
     this.controller.abort(new Error("shuf random source is closed"));
     return this.closing ??= (async () => {
-      await this.opening?.catch(() => {});
-      await this.source?.return(undefined);
+      await this.source?.close();
       this.bytes.fill(0);
       this.value = this.maximum = 0n;
     })();
+  }
+
+  seed(): void {
+    if (!this.state) {
+      this.state = globalThis.crypto.getRandomValues(new Uint32Array(4));
+      if (this.state.every(value => value === 0)) this.state[0] = 1;
+    }
+  }
+
+  private refill(): void {
+    this.seed();
+    const state = this.state!;
+    const product = Math.imul(state[1]!, 5);
+    const result = Math.imul((product << 7) | (product >>> 25), 9) >>> 0;
+    const shifted = state[1]! << 9;
+    state[2] = state[2]! ^ state[0]!;
+    state[3] = state[3]! ^ state[1]!;
+    state[1] = state[1]! ^ state[2]!;
+    state[0] = state[0]! ^ state[3]!;
+    state[2] = state[2]! ^ shifted;
+    state[3] = (state[3]! << 11) | (state[3]! >>> 21);
+    this.bytes = Uint8Array.of(result & 255, (result >>> 8) & 255, (result >>> 16) & 255, result >>> 24);
   }
 
   private async byte(): Promise<number> {
@@ -61,11 +72,11 @@ export class RandomIntegers {
       if (this.source) {
         const next = await this.source.next();
         this.signal.throwIfAborted();
-        if (next.done) throw new Diagnostic(`shuf: ${quote(this.name!)}: end of file\n`);
+        if (next.done) throw new Diagnostic(`shuf: ${quote(this.name!, unicodeLocale(this.context))}: end of file\n`);
         if (next.value.byteLength > this.maxBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
         this.bytes = new Uint8Array(next.value);
       } else {
-        this.bytes = globalThis.crypto.getRandomValues(new Uint8Array(4096));
+        this.refill();
       }
       this.offset = 0;
       this.signal.throwIfAborted();
@@ -81,7 +92,7 @@ export class RandomIntegers {
       if (this.closed) throw new Error("shuf random source is closed");
       while (this.maximum < target) {
         if (this.offset === this.bytes.length) {
-          this.bytes = globalThis.crypto.getRandomValues(this.bytes.length === 4096 ? this.bytes : new Uint8Array(4096));
+          this.refill();
           this.offset = 0;
         }
         this.value = ((this.value << 8n) + BigInt(this.bytes[this.offset++]!)) & wordMax;

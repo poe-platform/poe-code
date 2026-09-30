@@ -219,6 +219,7 @@ test("shuf preserves primary falsey input failure over secondary retirement fail
     async return():Promise<IteratorResult<Uint8Array>> {throw new Error("secondary");},
   };}},onInternalError(error) {reported.push(error);}});
   assert.equal(result.exitCode,1); assert.deepEqual(reported,[false]);
+  assert.equal(result.stderr.toString(), "shuf: internal error\n");
 });
 
 test("shuf uses the invocation-local seeded PRNG once and preserves permutations", async context => {

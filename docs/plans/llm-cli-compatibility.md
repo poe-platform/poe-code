@@ -1,6 +1,6 @@
 # LLM CLI compatibility
 
-Reference: Simon Willison `llm==0.27.1`, inspected through its Click command tree on 2026-09-28. Provider plugins are versioned independently. The target includes tools, fragments and schemas as well as the original issue feature families. A row marked incomplete remains required.
+Reference: Simon Willison `llm==0.27.1`, inspected through its Click command tree on 2026-09-28. Provider plugins are versioned independently. The target includes tools, fragments and schemas as well as the original issue feature families. A row marked incomplete remains required. Command rows track complete end-to-end parity; partial upstream delivery is recorded in the acceptance matrix below.
 
 ## Command and flag inventory
 
@@ -74,16 +74,16 @@ All rows require deterministic differential fixtures against the pinned distribu
 
 | Behavior | Current evidence / work remaining |
 | --- | --- |
-| Prompts, stdin and attachments | Existing command suite; request preparation buffers input and attachments. Streaming safe-fs-backed inputs and provider serialization remain required. |
+| Prompts, stdin and attachments | The shared service and OpenAI transport accept retained safe-fs-backed prompt/attachment sources with bounded reads and request serialization. Buffered injected-provider compatibility remains explicit. Final consumer source transport and hosted qualification remain required. |
 | Models, aliases and defaults | Persisted aliases, defaults and string options have 16 initial and 13 additional pinned differential cases. Additional local changes cover plain alias listing, repeated queries, clear-all and declared model option validation. Complete help/errors, host catalog declarations and remaining reference semantics are incomplete. Control files currently have an explicit 1 MiB quota; unlimited-reference qualification remains unresolved. |
 | Options | Strings accepted by shell; typed options and richer shared service delivered; complete CLI option behavior remains incomplete. Consumer blanket rejection requires separate regression and delivery. |
 | Help, diagnostics, status | Command-tree inventory above; differential formatting and exit status incomplete. |
 | Streaming/binary/cancellation | Existing suites; partial errors and cleanup must remain covered. Shared structured events delivered. |
-| Templates/fragments | Canonical virtual storage and template semantics incomplete. |
+| Templates/fragments | Named templates, parameters, saved attachment paths/types, loader callbacks and template schema propagation are delivered in canonical virtual storage. Fragments and final host qualification remain incomplete. |
 | Conversations/chat | Message contract delivered; persisted continuation and interactive chat incomplete. |
-| Schemas/tools | Opt-in per-model provider schema contract delivered; CLI schema DSL, tools and chains incomplete. |
+| Schemas/tools | Per-model provider schemas, CLI schema DSL, prompt --schema/--schema-multi, template schema references and the shared SDK resolver are delivered. Stored schema IDs/history, tools and chains remain incomplete. |
 | Logs/history | Database capability and actual host implementation incomplete. |
 | Embeddings/collections/similarity | Shared embedding contract delivered; collection storage, import and similarity incomplete. |
-| Keys/plugins/install/configuration | Explicit host capabilities and qualified implementation incomplete. No ambient host access permitted. |
+| Keys/plugins/install/configuration | Virtual key storage and --key alias resolution are delivered. Plugin/tool installation and final qualified host implementations remain incomplete. No ambient host access permitted. |
 | Packed consumer/workerd/Miniflare/hosted Poe | Required final acceptance, not established by unit tests. |
 

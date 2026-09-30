@@ -119,7 +119,10 @@ function abortLoader<Value>(start: () => PromiseLike<Value> | Value, signal: Abo
     if (signal.aborted) abort();
   });
 }
-export type LlmTemplateStoreContext = Pick<CommandContext, "fs" | "cwd" | "env" | "signal" | "capabilities"> & Partial<Pick<CommandContext, "invoke" | "stdin" | "stdout" | "stderr">> & { readonly fetch?: typeof globalThis.fetch | undefined };
+export type LlmTemplateStoreContext = Pick<CommandContext, "fs" | "cwd" | "env" | "signal"> &
+  Partial<Omit<CommandContext, "fs" | "cwd" | "env" | "signal">> & {
+    readonly fetch?: typeof globalThis.fetch | undefined;
+  };
 export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders?: TemplateLoaderOptions) {
   const directory = `${createLlmConfiguration(context).directory}/templates`;
   const filename = (name: string): string => {

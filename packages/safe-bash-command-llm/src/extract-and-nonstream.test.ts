@@ -18,6 +18,7 @@ test("OpenAI provider supports non-streaming chat completion JSON responses when
       requestBodies.push(body);
       return {
         status: 200,
+        statusText: "OK",
         headers: [],
         body: {
           async *[Symbol.asyncIterator]() {
@@ -62,7 +63,7 @@ test("CLI extraction flags (-x, --extract, --xl, --extract-last) and template ex
       [["prompt", "fixture", "--xl", "-x"], { stream: false, out: "last\n\n" }],
     ] as const) {
       const modes: unknown[] = [];
-      const complete = async function* (request: { stream?: boolean }) {
+      const complete = async function* (request: { stream?: boolean | undefined }) {
         modes.push(request.stream);
         yield "```\nfirst\n```\n```\nlast\n```";
       };

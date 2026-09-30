@@ -79,8 +79,8 @@ test("template loaders support URL fetch, plugin prefixes, byte limits, and inde
       await assert.rejects(() => store.load(item.name), { message: item.result.error });
     } else {
       const loaded = await store.load(item.name) as unknown as Record<string, unknown>;
-      assert.deepEqual(loaded, item.result.value);
-      assert.equal(loaded.functionsTrusted, item.result.functionsTrusted);
+      assert.deepEqual(loaded, item.result.value as unknown);
+      assert.equal((loaded as Record<string, unknown>).functionsTrusted, item.result.functionsTrusted);
     }
   }
 

@@ -8,6 +8,7 @@ import { printfHex } from "./printf-hex.js";
 import { parsePrintfFloat } from "./printf-float.js";
 import { printfDecimal } from "./printf-decimal.js";
 import { parsePrintfDirective } from "./printf-format.js";
+import { quotePrintf } from "./printf-quote.js";
 
 const utf8Encoder = new TextEncoder();
 
@@ -226,23 +227,13 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         continue;
       }
       if (specifier === "q") {
-        const bytes = arguments_.bytes(suppliedIndex) ?? new Uint8Array();
-        if (bytes.some(byte => byte < 32 || byte === 127 || byte >= 128)) {
-          const controls: Record<number, string> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 27: "\\E" };
-          text = "$'";
-          for (const byte of bytes) {
-            if (controls[byte]) text += controls[byte];
-            else if (byte < 32 || byte === 127 || byte >= 128) text += `\\${byte.toString(8).padStart(3, "0")}`;
-            else if (byte === 39 || byte === 92) text += `\\${String.fromCharCode(byte)}`;
-            else text += String.fromCharCode(byte);
-          }
-          text += "'";
-        } else text = supplied === "" ? "''" : supplied.replace(/[^a-zA-Z0-9_./@%+=:-]/gu, (character, offset: number) => {
-          if (character === "#" && offset > 0) return character;
-          if (character === "~" && offset > 0 && supplied[offset - 1] !== ":" && supplied[offset - 1] !== "=") return character;
-          return `\\${character}`;
-        });
-        if (precision !== undefined) text = text.slice(0, precision);
+        const quoted = await quotePrintf(arguments_.bytes(suppliedIndex) ?? new Uint8Array(), unicode.utf8, context.signal);
+        const bytes = quoted.subarray(0, precision);
+        const padding = " ".repeat(Math.max(0, width - bytes.length));
+        if (!flags.includes("-")) await output(context, padding);
+        await output(context, bytes);
+        if (flags.includes("-")) await output(context, padding);
+        continue;
       }
       else {
         let number = supplied === "" ? 0 : /^["']/u.test(supplied) ? quotedNumber(suppliedIndex) : Number(supplied);

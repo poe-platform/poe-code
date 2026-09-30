@@ -1,29 +1,26 @@
 #!/usr/bin/env node
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-const currentDir = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(currentDir, "..");
-const distSafeBash = path.join(rootDir, "dist", "safe-bash.js");
-const distCliSafeBash = path.join(rootDir, "dist", "cli", "safe-bash-main.js");
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(scriptDir, "..");
+const distEntry = path.join(repoRoot, "dist", "bin", "safe-bash.js");
 
-if (fs.existsSync(distCliSafeBash)) {
-  const mod = await import(pathToFileURL(distCliSafeBash).href);
-  await mod.safeBashMain();
-} else if (fs.existsSync(distSafeBash)) {
-  const mod = await import(pathToFileURL(distSafeBash).href);
-  if (typeof mod.safeBashMain === "function") {
-    await mod.safeBashMain();
+if (fs.existsSync(distEntry)) {
+  try {
+    await import(pathToFileURL(distEntry).href);
+    process.exit(process.exitCode ?? 0);
+  } catch {
+    // Fall back to tsx source entrypoint when dist/ is incomplete
   }
-} else {
-  const tsxBin = path.join(rootDir, "node_modules", ".bin", "tsx");
-  const entry = path.join(rootDir, "src", "cli", "safe-bash-entry.ts");
-  const res = spawnSync(tsxBin, [entry, ...process.argv.slice(2)], {
-    stdio: "inherit",
-    env: process.env,
-    cwd: process.cwd()
-  });
-  process.exit(res.status ?? 1);
 }
+
+const tsxCli = path.join(repoRoot, "node_modules", "tsx", "dist", "cli.mjs");
+const srcEntry = path.join(repoRoot, "src", "cli", "safe-bash-entry.ts");
+const res = spawnSync(process.execPath, [tsxCli, srcEntry, ...process.argv.slice(2)], {
+  stdio: "inherit",
+  env: process.env
+});
+process.exit(res.status ?? 1);

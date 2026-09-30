@@ -17,7 +17,7 @@ for (const cancel of [false, true]) {
     let turns = 0;
     t.mock.method(globalThis, "setTimeout", ((callback: () => void, ms?: number) => timer(() => {
       turns++;
-      if (cancel) controller.abort(reason);
+      if (cancel && turns === 2) controller.abort(reason);
       callback();
     }, ms)) as typeof setTimeout);
     const request = {
@@ -31,6 +31,6 @@ for (const cancel of [false, true]) {
       const result = await createPdfAstRenderer().open(request);
       await result.close();
     }
-    assert.ok(turns > 0, "processing must yield independently of elapsed time");
+    assert.ok(turns > 1, "processing must yield independently of elapsed time");
   });
 }

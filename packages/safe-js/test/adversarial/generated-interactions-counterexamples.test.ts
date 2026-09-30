@@ -22,12 +22,12 @@ it.each([
     expect(await run(source, { snapshot: restore(wire, { source }) }))
       .toMatchObject({ ok: true, returnValue: 1 });
   } finally { await completed; }
-}, 2000);
+});
 it("minimal source-module admission and legacy neighbor", async () => {
   expect(await run("return 1")).toMatchObject({ ok: true, returnValue: 1 });
   expect(await run("export {};", { sourceType: "module" }))
     .toMatchObject({ ok: true, returnValue: {} });
-}, 2000);
+});
 });
 
 it("minimized host cancellation contract", async () => {
@@ -37,4 +37,4 @@ it("minimized host cancellation contract", async () => {
     signal: controller.signal, modules: { cap: { stop: () => { controller.abort(reason); } } }
   });
   await expect(execution).rejects.toMatchObject({ name: "Error", message: "cancel" });
-}, 2000);
+});

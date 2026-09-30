@@ -109,7 +109,7 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
       work: (engine?.accounting().work ?? 0) + overheadWork,
       peakRetainedBytes: peakRetained,
     });
-    const diagnostic = async (message: string): Promise<void> => {
+    const diagnostic = async (message: string, output: OutputOperation = stderr!): Promise<void> => {
       signal.throwIfAborted();
       retain(message.length * 3);
       chargeWork(message.length * 4);
@@ -120,7 +120,7 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
       const bytes = storage.subarray(0, written);
       if (bytes.length > limits.outputBytes - diagnostics - (engine?.accounting().outputBytes ?? 0)) throw new FoldError('LIMIT', 'Output byte limit exceeded');
       diagnostics += bytes.length;
-      await writeBytes(stderr!.output, bytes, signal);
+      await writeBytes(output.output, bytes, signal);
     };
     let options: FoldOptions;
     try {
@@ -151,6 +151,12 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
         }
         retain(extent * 3);
         argumentRetention = extent * 3;
+        if (context.args.length === 1 && (context.args[0] === '--help' || context.args[0] === '--version')) {
+          await diagnostic(context.args[0] === '--help'
+            ? 'Usage: fold [OPTION]... [FILE]...\nWrap input lines to fit the specified width (default 80).\n  -b, --bytes       count bytes\n  -c, --characters  count characters\n  -s, --spaces      break at spaces\n  -w, --width=N     use width N\n      --help        display this help\n      --version     display version information\n'
+            : 'fold (safe-bash) 0.0.1\n', stdout);
+          return { exitCode: 0, filesRead, filesFailed, accounting: accounting() };
+        }
         options = parseFoldArguments(context.args, limits);
       }
       for (const file of options.files) if (file.includes('\0')) throw new FoldError('OPTION', 'NUL is unavailable in VFS paths');

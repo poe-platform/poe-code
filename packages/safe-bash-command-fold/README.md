@@ -39,7 +39,7 @@ Register this plugin for an explicit locale profile and additional controls belo
 Grouped flags (`-bc`), unique long abbreviations (`--wid=5`), leading whitespace,
 `+5` and `05` widths are accepted. Zero, negative, fractional, suffixed and
 out-of-range widths are rejected. Widths must fit checked JS safe-integer arithmetic
-and the released 64-bit range. `--help` and `--version` are unavailable.
+and the released 64-bit range. `--help` and `--version` display information when used as the sole argument, without reading input.
 
 Examples: `fold -w40 /notes`, `fold -s -w20 /notes`,
 `printf abcdef | fold -c -w3` (outputs `abc\ndef`). No operands or `-` reads stdin.

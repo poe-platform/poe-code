@@ -502,3 +502,14 @@ test('cancellation during operand admission prevents VFS and output acquisition'
   assert.equal(f.stdout.length, 0); assert.equal(f.stderr.length, 0);
   await Promise.all(f.cleanups.map(cleanup => cleanup()));
 });
+
+for (const option of ['--help', '--version']) {
+  test(`fold ${option} succeeds without reading input`, async () => {
+    const f = fixture([option], 'unused');
+    const context = { ...f.context, stdin: { [Symbol.asyncIterator]() { throw new Error('information must not read stdin'); } } };
+    assert.equal((await createFoldCommand().execute(context)).exitCode, 0);
+    assert.equal(f.stderr.length, 0);
+    assert.ok(f.text().includes(option === '--help' ? 'Usage: fold' : 'fold'));
+    await Promise.all(f.cleanups.map(cleanup => cleanup()));
+  });
+}

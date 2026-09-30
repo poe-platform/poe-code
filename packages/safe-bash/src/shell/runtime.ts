@@ -20812,7 +20812,7 @@ export class Runtime {
             catch (error) {
               this.signal.throwIfAborted();
               if (error instanceof ShellLimitError) throw error;
-              await this.diagnostic(context, "indexed array: unsupported subscript"); status = 2; continue;
+              await this.diagnostic(context, `unset: ${name}: bad array subscript`); status = 1; continue;
             }
             if (index === undefined) { await this.diagnostic(context, "indexed array: index outside 0..2147483647"); status = 1; continue; }
             await this.unsetIndexed(state, base, index);

@@ -8,11 +8,71 @@ export async function configurationCommand(
   output: (text: string) => Promise<void>, diagnostic: (text: string) => Promise<void>,
 ): Promise<boolean> {
   if (args.length === 1 && args[0] === "--version") { await output("llm, version 0.27.1\n"); return true; }
+  const keysCmd = args[0] === "keys";
   const aliases = args[0] === "aliases";
   const defaults = args[0] === "models" && args[1] === "default";
   const options = args[0] === "models" && args[1] === "options";
-  if (!aliases && !defaults && !options) return false;
+  if (!keysCmd && !aliases && !defaults && !options) return false;
   const configuration = createLlmConfiguration(context);
+  if (keysCmd) {
+    const tokens = args.slice(1), sub = tokens[0];
+    if (sub === "path" && tokens.length === 1) {
+      await output(`${configuration.directory}/keys.json\n`);
+      return true;
+    }
+    if (sub === undefined || (sub === "list" && tokens.length === 1)) {
+      const path = `${configuration.directory}/keys.json`;
+      let exists = true;
+      try { await context.fs.lstat(path, { signal: context.signal }); }
+      catch { exists = false; }
+      if (!exists) {
+        await output("No keys found\n");
+        return true;
+      }
+      const stored = await configuration.keys();
+      for (const key of Object.keys(stored).sort()) {
+        await output(`${key}\n`);
+      }
+      return true;
+    }
+    if (sub === "get" && tokens.length === 2) {
+      await output(`${await configuration.getKey(tokens[1]!)}\n`);
+      return true;
+    }
+    if (sub === "set") {
+      let name: string | undefined;
+      let value: string | undefined;
+      for (let i = 1; i < tokens.length; i++) {
+        const token = tokens[i]!;
+        if (token === "--value") {
+          if (++i >= tokens.length) throw new Error("Option '--value' requires an argument");
+          value = tokens[i]!;
+        } else if (token.startsWith("--value=")) {
+          value = token.slice(8);
+        } else if (token.startsWith("-")) {
+          throw new Error(`No such option: ${token}`);
+        } else if (name === undefined) {
+          name = token;
+        } else {
+          throw new Error("Unexpected extra arguments");
+        }
+      }
+      if (!name) throw new Error("Missing argument 'NAME'");
+      if (value === undefined) {
+        let stdinText = "";
+        const decoder = new TextDecoder();
+        for await (const chunk of context.stdin) {
+          context.signal.throwIfAborted();
+          stdinText += decoder.decode(chunk, { stream: true });
+        }
+        stdinText += decoder.decode();
+        value = stdinText.replace(/\r?\n$/, "");
+      }
+      await configuration.setKey(name, value);
+      return true;
+    }
+    throw new Error("Invalid keys command");
+  }
   const canonical = async (model: string): Promise<string> => {
     const resolved = await configuration.resolveAlias(model);
     try { return service.resolve(resolved).model.id; } catch { return resolved; }

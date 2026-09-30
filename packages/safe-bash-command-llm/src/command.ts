@@ -17,6 +17,7 @@ import { listLlmModels, LlmModelsUsageError, modelsGroupHelp } from "./models-li
 interface Arguments {
   model?: string;
   system?: string;
+  key?: string;
   prompt: string;
   template?: string;
   save?: string;
@@ -47,9 +48,10 @@ async function parse(length: number, text: (index: number) => string, step: () =
       if (++index >= length) throw new Error(`Option ${flag} requires an argument`);
       return text(index);
     };
-    if (!["-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+    if (!["-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
     const value = attached ?? take();
     if (flag === "-t" || flag === "--template") parsed.template = value;
+    else if (flag === "--key") parsed.key = value;
     else if (flag === "--save") parsed.save = value;
     else if (flag === "-p" || flag === "--param") Object.defineProperty(parsed.params, value, { value: take(), enumerable: true, configurable: true, writable: true });
     else if (flag === "-m" || flag === "--model") parsed.model = value;
@@ -179,7 +181,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Template failed"}`); }
       return { exitCode };
     }
-    const configurationInvocation = argumentsValue.args[0] === "aliases" || argumentsValue.args[0] === "models" && ["default", "options"].includes(argumentsValue.args[1] ?? "") || argumentsValue.args[0] === "--version";
+    const configurationInvocation = argumentsValue.args[0] === "keys" || argumentsValue.args[0] === "aliases" || argumentsValue.args[0] === "models" && ["default", "options"].includes(argumentsValue.args[1] ?? "") || argumentsValue.args[0] === "--version";
     if (configurationInvocation) {
       try {
         const tokens = Array.from({ length: argumentsValue.args.length }, (_, index) => argumentText(index));
@@ -345,15 +347,19 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       if (!acceptsMimeType(entry.model.attachmentTypes ?? [], mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${mimeType}`);
       attachments.push({ mimeType, bytes: new Uint8Array(bytes) });
     }
+    const resolvedKey = args.key === undefined ? undefined : await configuration.resolveKey(args.key);
     const request: LlmRequest = {
       model: entry.model.id, prompt,
       ...(args.system === undefined ? {} : { system: args.system }), attachments, options: args.options, signal, stream: !args.noStream,
+      ...(resolvedKey === undefined ? {} : { key: resolvedKey }),
     };
     signal.throwIfAborted();
     if (args.noStream) outputSpool = await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal), spool => spool.close());
     if (streamed) {
       const events = service.streamSources!({ model: request.model, options: request.options, signal, stream: request.stream, prompt: promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt),
-        ...(args.system === undefined ? {} : { system: textSource(args.system) }), attachments: sourceAttachments });
+        ...(args.system === undefined ? {} : { system: textSource(args.system) }),
+        ...(resolvedKey === undefined ? {} : { key: resolvedKey }),
+        attachments: sourceAttachments });
       iterator = (async function* () {
         for await (const event of events) {
           if (event.type === "text") yield event.text;

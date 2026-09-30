@@ -170,7 +170,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       for await (const response of openAiResponse(transport, {
         url: `${baseUrl}/embeddings`, method: "POST", signal: request.signal,
         ...jsonBody({ ...values, model: request.model, input: request.inputs }, limits.maxRequestBytes),
-        headers: [["authorization", `Bearer ${apiKey}`], ["content-type", "application/json"]],
+        headers: [["authorization", `Bearer ${request.key ? credential(request.key) : apiKey}`], ["content-type", "application/json"]],
       }, limits.maxResponseBytes)) {
         const body = await openAiJson(response, request.signal, limits.maxResponseBytes);
         if (!Array.isArray(body.data) || body.data.length !== request.inputs.length) throw new TypeError("Invalid OpenAI embedding response");
@@ -192,7 +192,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       let details: LlmResponseMetadata | undefined;
       for await (const response of openAiResponse(transport, {
         url: `${baseUrl}/chat/completions`, method: "POST", signal: request.signal,
-        headers: [["authorization", `Bearer ${apiKey}`], ["content-type", "application/json"]], body,
+        headers: [["authorization", `Bearer ${request.key ? credential(request.key) : apiKey}`], ["content-type", "application/json"]], body,
       }, limits.maxResponseBytes)) {
         if (request.stream === false) {
           const parsed = openAiChatJsonResult(await openAiJson(response, request.signal, limits.maxResponseBytes), request.signal);
@@ -224,7 +224,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       }
       const send = (path: string, method: string, body?: Pick<HttpRequest, "body" | "headers">) => openAiResponse(transport, {
         url: `${baseUrl}${path}`, method, signal: request.signal,
-        ...body, headers: [["authorization", `Bearer ${apiKey}`], ...(body?.headers ?? [])],
+        ...body, headers: [["authorization", `Bearer ${request.key ? credential(request.key) : apiKey}`], ...(body?.headers ?? [])],
       }, limits.maxResponseBytes);
       if (model.endpoint === "chat") {
         const messages: unknown[] = [];

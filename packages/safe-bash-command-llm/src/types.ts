@@ -36,6 +36,7 @@ export interface LlmEmbeddingRequest {
   readonly inputs: readonly string[];
   readonly options: Readonly<Record<string, LlmOption>>;
   readonly signal: AbortSignal;
+  readonly key?: string | undefined;
 }
 export interface LlmEmbeddingResponse extends LlmResponseMetadata {
   readonly model: string;
@@ -51,6 +52,7 @@ export interface LlmRequest {
   options: Readonly<Record<string, LlmOption>>;
   signal: AbortSignal;
   stream?: boolean | undefined;
+  key?: string | undefined;
 }
 export interface LlmLimits {
   readonly maxInputBytes: number;

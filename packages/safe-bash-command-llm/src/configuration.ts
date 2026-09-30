@@ -27,6 +27,10 @@ export interface LlmConfiguration {
   modelOptions(model: string): Promise<Record<string, string>>;
   setModelOption(model: string, name: string, value: string): Promise<void>;
   clearModelOption(model: string, name?: string): Promise<void>;
+  keys(): Promise<Record<string, string>>;
+  getKey(name: string): Promise<string>;
+  setKey(name: string, value: string): Promise<void>;
+  resolveKey(keyOrAlias: string): Promise<string>;
 }
 
 export function createLlmConfiguration(context: Context): LlmConfiguration {
@@ -91,6 +95,43 @@ export function createLlmConfiguration(context: Context): LlmConfiguration {
     if (!record(value) || !Object.values(value).every(stringRecord)) throw new Error("Invalid model_options.json: expected model option objects");
     return value as Options;
   };
+  const keysDefault = { "// Note": "This file stores secret API credentials. Do not share!" };
+  const readKeysObject = async (): Promise<{ exists: boolean; values: Record<string, string> }> => {
+    const text = await read("keys.json");
+    if (text === undefined) return { exists: false, values: {} };
+    try {
+      const parsed = JSON.parse(text) as unknown;
+      if (!stringRecord(parsed)) return { exists: true, values: { ...keysDefault } };
+      return { exists: true, values: parsed };
+    } catch {
+      return { exists: true, values: { ...keysDefault } };
+    }
+  };
+  const keys = async (): Promise<Record<string, string>> => {
+    const { exists, values } = await readKeysObject();
+    if (!exists) return {};
+    const copy = { ...values };
+    delete copy["// Note"];
+    return copy;
+  };
+  const getKey = async (name: string): Promise<string> => {
+    const { exists, values } = await readKeysObject();
+    if (!exists) throw new Error("No keys found");
+    if (!Object.hasOwn(values, name) || name === "// Note") throw new Error(`No key found with name '${name}'`);
+    return values[name]!;
+  };
+  const setKey = (name: string, value: string): Promise<void> => serialized(async () => {
+    const expected = await stat(filename("keys.json"));
+    const { exists, values } = await readKeysObject();
+    const current: Record<string, string> = exists ? { ...values } : { ...keysDefault };
+    current[name] = value;
+    await write("keys.json", JSON.stringify(current, null, 2) + "\n", expected);
+  });
+  const resolveKey = async (keyOrAlias: string): Promise<string> => {
+    const { exists, values } = await readKeysObject();
+    if (exists && Object.hasOwn(values, keyOrAlias) && keyOrAlias !== "// Note") return values[keyOrAlias]!;
+    return keyOrAlias;
+  };
   const resolveAlias = async (name: string): Promise<string> => {
     const values = await aliases(), seen = new Set<string>();
     while (Object.hasOwn(values, name)) {
@@ -107,7 +148,7 @@ export function createLlmConfiguration(context: Context): LlmConfiguration {
     await write("model_options.json", JSON.stringify(next, null, 2), expected);
   });
   return {
-    directory, aliases, resolveAlias, allModelOptions: options,
+    directory, aliases, resolveAlias, allModelOptions: options, keys, getKey, setKey, resolveKey,
     setAlias: (name, model) => serialized(async () => {
       const expected = await stat(filename("aliases.json"));
       const values = await aliases();

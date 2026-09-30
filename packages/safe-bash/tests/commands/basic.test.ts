@@ -488,9 +488,35 @@ test("byte escape parsing respects view offsets and returns owned output", () =>
   assert.deepEqual(Array.from(backing), [11, 255, 92, 116, 128, 12]);
 });
 
-test("string escape parsing retains legacy unknown supplementary escape behavior", () => {
-  assert.deepEqual(Array.from(escapeBytes("\\\u{1f4a9}").bytes), [92, 239, 191, 189, 239, 191, 189]);
-  assert.deepEqual(Array.from(escapeBytes(Uint8Array.of(92, 240, 159, 146, 169)).bytes), [92, 240, 159, 146, 169]);
+test("string escape parsing preserves unknown supplementary characters like byte input", () => {
+  for (const glyph of ["\u{10000}", "🐳", "💩", "𝄞", "\u{20000}", "\u{10ffff}"]) {
+    const source = "\\" + glyph + "\\nTAIL";
+    const expected = Buffer.from("\\" + glyph + "\nTAIL");
+    assert.deepEqual(Buffer.from(escapeBytes(source).bytes), expected);
+    assert.deepEqual(Buffer.from(escapeBytes(Buffer.from(source)).bytes), expected);
+  }
+});
+
+test("echo preserves supplementary unknown escapes through text, byte, and shell routes", async () => {
+  for (const glyph of ["\u{10000}", "🐳", "💩", "𝄞", "\u{20000}", "\u{10ffff}"]) {
+    const operand = "prefix\\" + glyph + "\\tTAIL";
+    const expected = Buffer.from("prefix\\" + glyph + "\tTAIL");
+    for (const raw of [false, true]) {
+      const result = await runByteArguments("echo", ["-ne", raw ? shellValueFromBytes(Buffer.from(operand)) : operand]);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr.length, 0);
+      assert.deepEqual(result.stdout, expected);
+    }
+    const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(createStandardCommands()) });
+    try {
+      for (const script of ['echo -ne "$VALUE"', 'result=$(echo -ne "$VALUE"); printf %s "$result"', 'echo -ne "$VALUE" > /work/bytes; cat /work/bytes']) {
+        const result = await shell.exec(script, { env: { VALUE: operand } });
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(Buffer.from(result.stdoutBytes), expected);
+      }
+    } finally { await shell.dispose(); }
+  }
 });
 test("standard plugin exports real handlers and detects collisions before registration", async () => {
   assert(createStandardCommands().some(command => command.name === "printf"));

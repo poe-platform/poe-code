@@ -605,7 +605,8 @@ export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOc
       if (octal) { chunks.push(Uint8Array.of(parseInt(octal[1] || octal[2] || "0", 8) & 255)); index += 1 + octal[0].length; continue; }
       const hexadecimal = /^x([0-9a-fA-F]{1,2})/u.exec(rest);
       if (hexadecimal) { chunks.push(Uint8Array.of(parseInt(hexadecimal[1]!, 16))); index += 1 + hexadecimal[0].length; continue; }
-      chunks.push(encoder.encode(`\\${next}`)); index += 2;
+      const character = String.fromCodePoint(text.codePointAt(index + 1)!);
+      chunks.push(encoder.encode(`\\${character}`)); index += 1 + character.length;
     }
     return { bytes: concatenate(chunks), stop: false };
   }

@@ -1,4 +1,4 @@
-import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
+import { commandRuntimeIdentity, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { command } from "safe-bash-checksum-engine";
 import { sha512 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
@@ -35,7 +35,10 @@ export function sha512Hex(data: Uint8Array): string {
 
 export function createSha512sumCommand(options: Sha512sumCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
-  return command("sha512sum", "sha512", limits.maxInputBytes, limits.maxArgumentBytes);
+  return {
+    ...command("sha512sum", "sha512", limits.maxInputBytes, limits.maxArgumentBytes),
+    runtimeIdentity: commandRuntimeIdentity,
+  };
 }
 
 export function createSha512sumCommands(options: Sha512sumCommandsOptions = {}): readonly CommandDefinition[] {

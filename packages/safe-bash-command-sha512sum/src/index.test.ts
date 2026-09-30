@@ -2,8 +2,18 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createBytePipe, createCommandArguments } from "safe-bash-contracts";
-import { createSha512sumCommand, sha512Hex } from "./index.js";
+import { CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments } from "safe-bash-contracts";
+import { createSha512sumCommand, createSha512sumCommands, sha512Hex } from "./index.js";
+
+test("sha512sum factories retain the shared command runtime identity", () => {
+  for (const options of [{}, { limits: { maxInputBytes: 16, maxArgumentBytes: 32 } }]) {
+    for (const definition of [createSha512sumCommand(options), ...createSha512sumCommands(options)]) {
+      assert.equal(definition.runtimeIdentity, commandRuntimeIdentity);
+      assert.equal(new CommandRegistry([definition]).has("sha512sum"), true);
+      assert.throws(() => new CommandRegistry([{ ...definition, runtimeIdentity: {} }]));
+    }
+  }
+});
 
 test("sha512Hex matches node:crypto sha512 across empty, short, and multi-block inputs", () => {
   for (const input of ["", "abc", "hello world\n", "a".repeat(250), "x".repeat(1024)]) {

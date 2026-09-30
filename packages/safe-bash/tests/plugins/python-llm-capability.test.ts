@@ -400,3 +400,33 @@ test('Python configuration mutations reuse canonical storage and reject malforme
   await assert.rejects(change({action:'set_model_option',model:'model',name:'mode'}),/value/);
   await assert.rejects(change({action:'unsupported'}),/configuration action/);
 });
+
+test('Python complete supports extract/extract_last and template extract fields with template loaders', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/settings/templates',{recursive:true});
+  await fs.writeFile('/settings/templates/code.yaml',new TextEncoder().encode('prompt: "$input"\nextract_last: true\n'));
+  const modes:unknown[] = [];
+  const service = createLlmService({defaultModel:'model',providers:[{
+    name:'test',models:[{id:'model'}],
+    async *complete(request) {
+      modes.push(request.stream);
+      yield 'Intro\n```python\nfirst = 1\n```\nMiddle\n```python\nsecond = 2\n```\nOutro';
+    },
+  }]});
+  const loaders = new Map([['custom', async (remainder:string) => ({name:`custom:${remainder}`,prompt:`Loaded $input (${remainder})`,extract:true})]]);
+  const capability = createPythonLlmCapability({
+    fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'},
+    async fetch() { return new Response('prompt: "Remote $input"\nextract: true\n', {status:200}); },
+  },service,{templateLoaders:loaders,maxRemoteTemplateBytes:4096});
+  const first = await capability.call!({operation:'complete',payload:{prompt:'q',extract:true}},{signal}) as {text:string};
+  assert.equal(first.text,'first = 1\n');
+  const last = await capability.call!({operation:'complete',payload:{prompt:'q',extract_last:true}},{signal}) as {text:string};
+  assert.equal(last.text,'second = 2\n');
+  const fromSaved = await capability.call!({operation:'complete',payload:{template:'code',prompt:'q'}},{signal}) as {text:string};
+  assert.equal(fromSaved.text,'second = 2\n');
+  const fromLoader = await capability.call!({operation:'complete',payload:{template:'custom:demo',prompt:'q'}},{signal}) as {text:string};
+  assert.equal(fromLoader.text,'first = 1\n');
+  const fromUrl = await capability.call!({operation:'complete',payload:{template:'https://templates.invalid/review.yaml',prompt:'q'}},{signal}) as {text:string};
+  assert.equal(fromUrl.text,'first = 1\n');
+  assert.deepEqual(modes,[false,false,false,false,false]);
+});

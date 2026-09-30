@@ -92,6 +92,8 @@ class Request:
     template: Optional[str] = None
     parameters: Mapping[str, Any] = field(default_factory=dict)
     conversation: Optional[str] = None
+    extract: Optional[bool] = None
+    extract_last: Optional[bool] = None
 
     def payload(self):
         if not isinstance(self.prompt, str):
@@ -108,7 +110,11 @@ class Request:
         result = {**_configuration_context(), "prompt": self.prompt, "messages": messages,
                   "attachments": [attachment.payload() for attachment in self.attachments],
                   "options": _options(self.options)}
-        for key in ("model", "system", "schema", "template", "conversation"):
+        for key in ("extract", "extract_last"):
+            value = getattr(self, key)
+            if value is not None and not isinstance(value, bool):
+                raise TypeError(key + " must be a boolean")
+        for key in ("model", "system", "schema", "template", "conversation", "extract", "extract_last"):
             value = getattr(self, key)
             if value is not None:
                 result[key] = copy.deepcopy(value)
@@ -132,6 +138,8 @@ class Response:
     data: bytes = b""
     usage: Mapping[str, Any] = field(default_factory=dict)
     conversation: Optional[str] = None
+    extract: Optional[bool] = None
+    extract_last: Optional[bool] = None
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     @classmethod

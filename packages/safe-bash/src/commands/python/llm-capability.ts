@@ -1,7 +1,7 @@
 import type { CommandContext } from '../../contracts/index.js';
 import type { LlmService, LlmServiceRequest, LlmServiceSourceRequest } from '../llm/service.js';
 import type { LlmOption, LlmInputSource } from '../llm/types.js';
-import { getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters } from 'safe-bash-command-llm';
+import { getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, findExtractedRange, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplateLoader } from 'safe-bash-command-llm';
 import { sniffMimeType } from '../llm/mime.js';
 import { pathOf } from '../internal.js';
 import type { PythonHostCapability, PythonHostValue } from './host-capabilities.js';
@@ -11,9 +11,9 @@ function record(value: PythonHostValue): {readonly [key:string]:PythonHostValue}
   return value as {readonly [key:string]:PythonHostValue};
 }
 
-type PythonLlmContext = Pick<CommandContext, 'fs' | 'cwd' | 'inputBudget'> & Partial<Pick<CommandContext, 'env'>>;
+type PythonLlmContext = Pick<CommandContext, 'fs' | 'cwd' | 'inputBudget'> & Partial<Pick<CommandContext, 'env' | 'fetch'>>;
 
-function configurationContext(context: PythonLlmContext, payload: {readonly [key:string]:PythonHostValue}, signal: AbortSignal): Pick<CommandContext, 'fs' | 'cwd' | 'env' | 'signal'> {
+function configurationContext(context: PythonLlmContext, payload: {readonly [key:string]:PythonHostValue}, signal: AbortSignal): Pick<CommandContext, 'fs' | 'cwd' | 'env' | 'signal' | 'fetch'> {
   const cwd = payload.cwd === undefined ? context.cwd : payload.cwd;
   if (typeof cwd !== 'string' || !cwd.startsWith('/') || cwd.includes('\0')) throw new TypeError('LLM configuration cwd must be an absolute canonical path');
   const env = {...context.env};
@@ -24,7 +24,7 @@ function configurationContext(context: PythonLlmContext, payload: {readonly [key
       else env[key] = value as string;
     }
   }
-  return {fs:context.fs,cwd,env,signal};
+  return {fs:context.fs,cwd,env,signal,...(context.fetch ? {fetch:context.fetch} : {})};
 }
 
 /** Count the wire representation before retaining/serializing host metadata. */
@@ -98,6 +98,8 @@ export interface PythonLlmCapabilityOptions {
   readonly maxBufferedResponseBytes?: number;
   readonly maxBufferedEvents?: number;
   readonly maxMetadataBytes?: number;
+  readonly templateLoaders?: ReadonlyMap<string, LlmTemplateLoader>;
+  readonly maxRemoteTemplateBytes?: number;
 }
 
 /** Reuses the invocation's authorized service; Python receives only model data. */
@@ -107,10 +109,13 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
   const bufferedLimit = options.maxBufferedResponseBytes ?? Infinity;
   const eventLimit = options.maxBufferedEvents ?? bufferedLimit;
   const metadataLimit = options.maxMetadataBytes ?? bufferedLimit;
+  const maxRemoteBytes = options.maxRemoteTemplateBytes ?? context.inputBudget?.maxBytes ?? 1_048_576;
+  if (!Number.isSafeInteger(maxRemoteBytes) || maxRemoteBytes < 1) throw new RangeError('Invalid Python LLM remote template limit');
+  const templateLoaderOptions = {maxRemoteBytes,...(options.templateLoaders ? {loaders:options.templateLoaders} : {})};
   for (const limit of [bufferedLimit, eventLimit, metadataLimit]) {
     if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError('Invalid Python LLM host limit');
   }
-  const prepare = async (value: PythonHostValue, signal: AbortSignal): Promise<LlmServiceRequest | LlmServiceSourceRequest> => {
+  const prepare = async (value: PythonHostValue, signal: AbortSignal): Promise<(LlmServiceRequest | LlmServiceSourceRequest) & {readonly extract?: 'first' | 'last'}> => {
     let payload = record(value);
     const timeout = payload.timeout;
     if (timeout !== undefined && timeout !== null) {
@@ -128,7 +133,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     }
     if (payload.template !== undefined && payload.template !== null) {
       if (typeof payload.template !== 'string') throw new TypeError('Template name must be a string');
-      const stored = await createLlmTemplateStore(requestContext).load(payload.template);
+      const stored = await createLlmTemplateStore(requestContext,templateLoaderOptions).load(payload.template);
       validateLlmTemplateParameters(stored,parameters);
       const input = payload.prompt ?? '';
       if (typeof input !== 'string') throw new TypeError('Invalid LLM text input');
@@ -145,6 +150,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
           ...inputs.filter(input => record(input).mimeType === undefined),
           ...(stored.attachment_types ?? []).map(item => ({path:item.value,mimeType:item.type})),
           ...inputs.filter(input => record(input).mimeType !== undefined)],
+        ...(payload.extract === undefined && payload.extract_last === undefined && (stored.extract_last || stored.extract) ? (stored.extract_last ? {extract_last:true} : {extract:true}) : {}),
       };
     } else if (Object.keys(parameters).length) throw new TypeError('Template parameters require a named template');
     const selected = payload.model ?? await configuration.defaultModel();
@@ -153,6 +159,10 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     const {model} = service.resolve(identity);
     payload = {...payload,model:model.id,options:{...await configuration.modelOptions(model.id),...record(payload.options ?? {})}};
     signal.throwIfAborted();
+    if (payload.extract !== undefined && typeof payload.extract !== 'boolean' || payload.extract_last !== undefined && typeof payload.extract_last !== 'boolean') throw new TypeError('Invalid LLM extract option');
+    if (payload.stream !== undefined && typeof payload.stream !== 'boolean') throw new TypeError('Invalid LLM stream option');
+    const extract:'first'|'last'|undefined = payload.extract_last ? 'last' : payload.extract ? 'first' : undefined;
+    const stream = extract ? false : typeof payload.stream === 'boolean' ? payload.stream : true;
     const limit = payload.max_response_bytes;
     if (limit !== undefined && limit !== null && (typeof limit !== 'number' || !Number.isSafeInteger(limit) || limit < 0)) throw new RangeError('Invalid LLM response limit');
     const attachments: {mimeType:string;source:LlmInputSource}[] = [];
@@ -225,7 +235,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         ...(payload.messages === undefined ? {} : {messages:(payload.messages as unknown as {role:'system'|'user'|'assistant';content:string}[]).map(message => ({role:message.role,content:textSource(message.content)}))}),
         ...(payload.schema === undefined ? {} : {schema:record(payload.schema)}),
         options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>,
-        attachments, signal, ...(limit == null ? {} : {maxOutputBytes:limit as number}),
+        attachments, signal, stream, ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
       };
     } catch (error) {
       await Promise.allSettled(sources.map(source => source.dispose()));
@@ -238,7 +248,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       ...(payload.messages === undefined ? {} : {messages:payload.messages as unknown as NonNullable<LlmServiceRequest['messages']>}),
       ...(payload.schema === undefined ? {} : {schema:record(payload.schema)}),
       options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>,
-      attachments:[], signal, ...(limit == null ? {} : {maxOutputBytes:limit as number}),
+      attachments:[], signal, stream, ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
     };
   };
   const responses = async function* (value:PythonHostValue, signal:AbortSignal, ceiling = Infinity) {
@@ -320,7 +330,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         const prepared = await prepare(payload,signal);
         const result = await service.embed({model:prepared.model!,inputs:payload.inputs as readonly string[],options:prepared.options,signal:prepared.signal});
         prepared.signal.throwIfAborted();
-        const {vectors: _vectors, ...metadata} = result;
+        const {vectors: ignoredVectors, ...metadata} = result;
         jsonBytes(metadata as unknown as PythonHostValue,metadataLimit);
         jsonBytes(result as unknown as PythonHostValue,Math.min(bufferedLimit,prepared.maxOutputBytes ?? Infinity));
         return result as unknown as PythonHostValue;
@@ -333,7 +343,8 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       const admit = (size: number): void => {
         if (size > bufferedLimit - envelopeBytes - textBytes - dataBytes) throw new RangeError('Python LLM buffered response limit exceeded');
       };
-      for await (const {event,signal:operationSignal} of responses(payload, signal, bufferedLimit)) {
+      let extract:'first'|'last'|undefined = payload.extract_last ? 'last' : payload.extract ? 'first' : undefined;
+      for await (const {event,signal:operationSignal} of (async function* () { const prepared = await prepare(payload, signal); extract = prepared.extract; const request = {...prepared, maxOutputBytes:Math.min(prepared.maxOutputBytes ?? Infinity, bufferedLimit)}; if (typeof request.prompt === 'string') { for await (const event of service.stream(request as LlmServiceRequest)) yield {event,signal:request.signal,extract}; return; } const streamed = request as LlmServiceSourceRequest; try { for await (const event of service.streamSources!(streamed)) yield {event,signal:request.signal,extract}; } finally { await Promise.allSettled([streamed.prompt, ...streamed.system ? [streamed.system] : [], ...streamed.messages?.map(message => message.content) ?? [], ...streamed.attachments.map(attachment => attachment.source)].map(source => source.dispose())); } })()) {
         operationSignal.throwIfAborted();
         if (++received > eventLimit) throw new RangeError('Python LLM buffered event limit exceeded');
         if (event.type === 'text') {
@@ -358,6 +369,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
           response = {...details};
         }
       }
+      if (extract && text) { const bytes = new TextEncoder().encode(text); const range = await findExtractedRange({size:bytes.byteLength,async read(position,maxBytes) { return bytes.subarray(position,position + maxBytes); }}, extract === 'last', signal); if (range && range.end > range.start) text = new TextDecoder().decode(bytes.subarray(range.start,range.end)); }
       return {...response,text,data};
     },
     stream:events,

@@ -51,6 +51,68 @@ describe("safe-bash sharded unit runner", () => {
     ]);
   });
 
+  it("isolates the imported offline guard before its first execution without isolating siblings", () => {
+    const fileSystem = createSafeBashFixture();
+    const root = "/repo/packages/safe-bash";
+    const holdout = "tests/commands/network-zero-caps-review/holdout.test.ts";
+    const sibling = "tests/commands/network-zero-caps-review/sibling.test.ts";
+    fileSystem.mkdirSync(`${root}/tests/commands/network-zero-caps-review`, { recursive: true });
+    fileSystem.writeFileSync(`${root}/${holdout}`, 'import { assertOffline } from "./offline.mjs";\n');
+    fileSystem.writeFileSync(`${root}/${sibling}`, 'import test from "node:test";\ntest("sibling", () => {});\n');
+    expect(partitionSafeBashTestShards(root, [holdout, sibling], { fileSystem })).toEqual([
+      { index: 0, isolate: false, files: [sibling] },
+      { index: 1, isolate: true, files: [holdout] }
+    ]);
+    const calls: string[][] = [];
+    const status = runSafeBashShardedUnitTests({
+      root,
+      repoRoot: "/repo",
+      fileSystem,
+      env: { PATH: "/usr/bin", POE_CHECK_CACHE: "0" },
+      files: [holdout],
+      spawn: (_cmd: string, args: string[]) => {
+        calls.push(args);
+        return { status: 0 };
+      }
+    });
+    expect(status).toBe(0);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toContain(holdout);
+    expect(calls[0]).not.toContain("--experimental-test-isolation=none");
+  });
+
+  it.each([
+    "cleanup-registration/controls.test.ts",
+    "continuation/glob-transport.test.ts",
+    "executor.test.ts",
+    "followup/messageerror.test.ts"
+  ])("isolates the Worker-patching harness %s on its first execution", file => {
+    const fileSystem = createSafeBashFixture();
+    const root = "/repo/packages/safe-bash";
+    const entry = `tests/commands/regex-execution/${file}`;
+    fileSystem.mkdirSync(`${root}/${entry.slice(0, entry.lastIndexOf("/"))}`, { recursive: true });
+    fileSystem.writeFileSync(`${root}/${entry}`, 'workersModule.Worker = ControlledWorker;\nsyncBuiltinESMExports();\n');
+    expect(partitionSafeBashTestShards(root, [entry, "src/a.test.ts"], { fileSystem })).toEqual([
+      { index: 0, isolate: false, files: ["src/a.test.ts"] },
+      { index: 1, isolate: true, files: [entry] }
+    ]);
+    const calls: string[][] = [];
+    expect(runSafeBashShardedUnitTests({
+      root,
+      repoRoot: "/repo",
+      fileSystem,
+      env: { PATH: "/usr/bin", POE_CHECK_CACHE: "0" },
+      files: [entry],
+      spawn: (_cmd: string, args: string[]) => {
+        calls.push(args);
+        return { status: 0 };
+      }
+    })).toBe(0);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toContain(entry);
+    expect(calls[0]).not.toContain("--experimental-test-isolation=none");
+  });
+
   it("computes per-shard and per-file keys and invalidates only modified test files", () => {
     const fileSystem = createSafeBashFixture();
     const raw = partitionSafeBashTestShards(

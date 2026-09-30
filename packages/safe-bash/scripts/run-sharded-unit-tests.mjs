@@ -11,6 +11,14 @@ function defaultReporterArguments(args) {
 }
 
 const ISOLATED_PATTERNS = /\b(?:process\s*\.\s*(?:chdir|exit)|mock\s*\.)\b/;
+// These harnesses replace process-global APIs, including through imported helpers.
+const ISOLATED_TEST_FILES = new Set([
+  "tests/commands/network-zero-caps-review/holdout.test.ts",
+  "tests/commands/regex-execution/cleanup-registration/controls.test.ts",
+  "tests/commands/regex-execution/continuation/glob-transport.test.ts",
+  "tests/commands/regex-execution/executor.test.ts",
+  "tests/commands/regex-execution/followup/messageerror.test.ts"
+]);
 const SCOPED_SAFE_BASH_ENV_KEYS = [
   "SAFE_BASH_TEST_RG",
   "SAFEJS_LOCAL_ROOT",
@@ -55,7 +63,7 @@ export function partitionSafeBashTestShards(
     } catch {
       source = "";
     }
-    if (ISOLATED_PATTERNS.test(source)) {
+    if (ISOLATED_TEST_FILES.has(file) || ISOLATED_PATTERNS.test(source)) {
       isolated.push(file);
     } else {
       shared.push(file);

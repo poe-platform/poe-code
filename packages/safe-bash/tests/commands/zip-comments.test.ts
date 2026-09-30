@@ -83,7 +83,7 @@ test("zip archive comment reader owns fragmented UTF-8 and stops at exact termin
       throw new Error("read beyond terminator");
     } finally { closed = true; }
   } };
-  assert.deepEqual(await readZipComment(source, settings({}), new AbortController().signal), Buffer.from("🐯"));
+  assert.deepEqual(Array.from(await readZipComment(source, settings({}), new AbortController().signal)), Array.from(Buffer.from("🐯")));
   assert.equal(pulls, 7);
   assert.equal(closed, true);
 });

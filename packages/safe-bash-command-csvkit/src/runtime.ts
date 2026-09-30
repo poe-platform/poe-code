@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import type { CsvkitContext, ByteSource } from "./contracts.js";
 import type { MatchFileScope } from "./match-files.js";
 import type { CommandDescriptor } from "./descriptor.js";
@@ -219,8 +220,12 @@ export class Runtime {
         for (let count = 0; count < skipped; count++) if (await file.nextLine(false) === null) break;
         return;
       }
-      let emitted = 0;
+      let emitted = 0, workRows = 0;
       for await (const record of readCsvStream(file.lines(skipped), dialect, this.step, this.#admitRow)) {
+        if (++workRows % 128 === 0) {
+          await yieldTurn(this.context.signal);
+          this.context.signal.throwIfAborted();
+        }
       // Parse first so upstream float conversion diagnostics remain observable.
       // String-only operations must explicitly qualify primitive input cells.
       const cells = record.cells;

@@ -23,5 +23,8 @@
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*"
+  }
 }

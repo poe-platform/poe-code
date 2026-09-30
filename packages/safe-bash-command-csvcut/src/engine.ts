@@ -39,7 +39,7 @@ export async function* parseCsvRecords(
       signal.throwIfAborted();
       const chunk = await next.call(producer);
       if (chunk.done) break;
-      for (const row of parser.push(chunk.value)) {
+      for await (const row of parser.pushAsync(chunk.value)) {
         signal.throwIfAborted();
         yield row;
       }

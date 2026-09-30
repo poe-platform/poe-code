@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from 'safe-bash-contracts/command';
 import { FsError } from 'safe-bash-contracts/errors';
 import { readBytes, writeBytes, type ByteSource } from 'safe-bash-contracts/io';
@@ -90,6 +91,8 @@ async function executeDiff3(context: CommandContext, configuration: Diff3Command
         metadataRetained = retained;
       }
       if (!options.information) for (const file of options.files) {
+        await yieldTurn(signal);
+        signal.throwIfAborted();
         signal.throwIfAborted();
         let source: ByteSource, borrowed = 0, acquiredInput: { bytes: Uint8Array | undefined } | undefined;
         if (file === '-') source = context.stdin;

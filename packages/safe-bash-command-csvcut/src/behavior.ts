@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import {
   CsvBudget, CsvError, CsvParser, generatedHeaders, resolveColumns, serializeRow,
   type CsvDialect, type CsvLimits, type CsvRow, type CsvSelection
@@ -133,6 +134,10 @@ export function cutCsv(
         // Parse synchronously before producer advancement; never retain its views.
         const step = supplied.names ? 1 : 4096;
         for (let offset = 0; offset < length; offset += step) {
+          if (offset % 4096 === 0) {
+            await yieldTurn(signal);
+            signal.throwIfAborted();
+          }
           retain(parser.push(bytes.subarray(offset, Math.min(offset + step, length))));
           if (supplied.names && rows.length) {
             // Input counts delivered bytes, including the suffix deliberately

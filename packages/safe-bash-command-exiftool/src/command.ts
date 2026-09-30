@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { commandRuntimeIdentity, getCommandArguments, type CommandDefinition } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
@@ -139,6 +140,8 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
         };
         let errors = 0, updated = 0, created = 0, unchanged = 0, read = 0;
         for (const file of invocation.files) {
+          await yieldTurn(context.signal);
+          context.signal.throwIfAborted();
           let tags: readonly MetadataTag[] = [];
           try {
             const { path, original, bytes } = await acquire(file);

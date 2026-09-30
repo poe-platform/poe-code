@@ -341,6 +341,7 @@ export function command(name: string, algorithm: Algorithm, maxInputBytes: numbe
     const state: InputState = { stdinUsed: false, budget: new ByteInputBudget(maxInputBytes) };
     let failed = false;
     for (const filename of settings.operands.length ? settings.operands : ["-"]) {
+      await yieldTurn(context.signal);
       context.signal.throwIfAborted();
       if (settings.check) {
         try { if (!await verify(context, filename, selectedAlgorithm, settings, state)) failed = true; }

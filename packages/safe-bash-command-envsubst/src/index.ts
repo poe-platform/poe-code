@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import {
   collectBytes,
   commandRuntimeIdentity,
@@ -111,12 +112,19 @@ export function extractVariablesFromBytes(bytes: Uint8Array): string[] {
   return vars;
 }
 
-export function substituteBytes(
+export function substituteBytes(input: Uint8Array, env: Readonly<Record<string, string | undefined>>, allowedVars: ReadonlySet<string> | undefined, maxOutputBytes: number): Uint8Array {
+  const steps = substituteSteps(input, env, allowedVars, maxOutputBytes);
+  let step = steps.next();
+  while (!step.done) step = steps.next();
+  return step.value;
+}
+
+function* substituteSteps(
   input: Uint8Array,
   env: Readonly<Record<string, string | undefined>>,
   allowedVars: ReadonlySet<string> | undefined,
   maxOutputBytes: number
-): Uint8Array {
+): Generator<void, Uint8Array> {
   const chunks: Uint8Array[] = [];
   let totalOut = 0;
   const pushChunk = (chunk: Uint8Array) => {
@@ -130,7 +138,9 @@ export function substituteBytes(
 
   let segStart = 0;
   let i = 0;
+  let nextTurn = 4096;
   while (i < input.byteLength) {
+    if (i >= nextTurn) { yield; nextTurn = i + 4096; }
     if (input[i] !== 36) {
       i++;
       continue;
@@ -147,7 +157,10 @@ export function substituteBytes(
       let j = i + 2;
       if (j < input.byteLength && isIdentStart(input[j]!)) {
         j++;
-        while (j < input.byteLength && isIdentPart(input[j]!)) j++;
+        while (j < input.byteLength && isIdentPart(input[j]!)) {
+          if (j >= nextTurn) { yield; nextTurn = j + 4096; }
+          j++;
+        }
         if (j < input.byteLength && input[j] === 125) {
           varName = sharedDecoder.decode(input.subarray(i + 2, j));
           endIdx = j + 1;
@@ -155,7 +168,10 @@ export function substituteBytes(
       }
     } else if (isIdentStart(next)) {
       let j = i + 2;
-      while (j < input.byteLength && isIdentPart(input[j]!)) j++;
+      while (j < input.byteLength && isIdentPart(input[j]!)) {
+          if (j >= nextTurn) { yield; nextTurn = j + 4096; }
+          j++;
+        }
       varName = sharedDecoder.decode(input.subarray(i + 1, j));
       endIdx = j;
     }
@@ -257,12 +273,20 @@ export function createEnvsubstCommand(options: EnvsubstCommandsOptions = {}): Co
       }
 
       try {
-        const output = substituteBytes(input, context.env, allowedVars, limits.maxOutputBytes);
+        const steps = substituteSteps(input, context.env, allowedVars, limits.maxOutputBytes);
+        let step = steps.next();
+        while (!step.done) {
+          await yieldTurn(context.signal);
+          context.signal.throwIfAborted();
+          step = steps.next();
+        }
+        const output = step.value;
         if (output.byteLength > 0) {
           await writeBytes(context.stdout, output);
         }
         return { exitCode: 0 };
       } catch (err) {
+        context.signal.throwIfAborted();
         await writeText(context.stderr, `${err instanceof Error ? err.message : "envsubst: error"}\n`);
         return { exitCode: 1 };
       }

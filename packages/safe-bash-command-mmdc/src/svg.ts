@@ -191,14 +191,15 @@ function renderNode(
   return `<g class="mmdc-node" data-id="${escapeXml(node.id)}">${shapeSvg}${dividersSvg}${badgesSvg}${linesSvg}</g>`;
 }
 
-export function serializeSceneToSvg(
+export function* serializeSceneToSvgSteps(
   scene: MermaidScene,
   budget?: MermaidBudget,
   svgId?: string
-): string {
+): Generator<void, string> {
   const { theme } = scene;
   const idPrefix = svgId === undefined ? "" : `svg-${Array.from(svgId, ch => ch.codePointAt(0)!.toString(16)).join("-")}-`;
   const parts: string[] = [];
+  let work = 0;
 
   parts.push(
     `<svg xmlns="http://www.w3.org/2000/svg"${svgId === undefined ? "" : ` id="${escapeXml(svgId)}"`} width="${scene.width}" height="${scene.height}" viewBox="${scene.viewBox.x} ${scene.viewBox.y} ${scene.viewBox.width} ${scene.viewBox.height}" role="img">`
@@ -230,6 +231,7 @@ export function serializeSceneToSvg(
 
   // Lifelines
   for (const life of scene.lifelines) {
+    if (++work % 16 === 0) yield;
     parts.push(
       `<line x1="${life.x}" y1="${life.y1}" x2="${life.x}" y2="${life.y2}" stroke="${escapeXml(life.stroke)}" stroke-width="1.25" stroke-dasharray="5 5"/>`
     );
@@ -266,6 +268,7 @@ export function serializeSceneToSvg(
 
   // Activations
   for (const act of scene.activations) {
+    if (++work % 16 === 0) yield;
     parts.push(
       `<rect x="${act.x}" y="${act.y}" width="${act.width}" height="${act.height}" rx="2" fill="${escapeXml(act.fill)}" stroke="${escapeXml(act.stroke)}" stroke-width="1.25"/>`
     );
@@ -273,6 +276,7 @@ export function serializeSceneToSvg(
 
   // Edges (strokes + arrowheads)
   for (const edge of scene.edges) {
+    if (++work % 16 === 0) yield;
     const dash = edge.lineStyle === "dotted" ? ` stroke-dasharray="5 4"` : "";
     parts.push(
       `<g class="mmdc-edge" data-id="${escapeXml(edge.id)}">` +
@@ -284,12 +288,15 @@ export function serializeSceneToSvg(
   }
 
   // Nodes
-  scene.nodes.forEach((node, idx) => {
+  for (let idx = 0; idx < scene.nodes.length; idx++) {
+    if (++work % 16 === 0) yield;
+    const node = scene.nodes[idx]!;
     parts.push(renderNode(node, theme.fontFamily, theme.monospaceFontFamily, idx, idPrefix));
-  });
+  }
 
   // Edge label pills on top of edges & nodes
   for (const edge of scene.edges) {
+    if (++work % 16 === 0) yield;
     if (edge.labelPill) {
       parts.push(renderPill(edge.labelPill, theme.fontFamily, theme.monospaceFontFamily));
     }
@@ -303,6 +310,7 @@ export function serializeSceneToSvg(
 
   // Notes
   for (const note of scene.notes) {
+    if (++work % 16 === 0) yield;
     const filterAttr = note.shadow ? ` filter="url(#${idPrefix}mmdc-shadow)"` : "";
     const linesSvg = note.lines
       .map((l) => renderTextLine(l, theme.fontFamily, theme.monospaceFontFamily))
@@ -319,4 +327,11 @@ export function serializeSceneToSvg(
   const svg = parts.join("\n");
   budget?.chargeOutputBytes(encoder.encode(svg).byteLength);
   return svg;
+}
+
+export function serializeSceneToSvg(scene: MermaidScene, budget?: MermaidBudget, svgId?: string): string {
+  const steps = serializeSceneToSvgSteps(scene, budget, svgId);
+  let step = steps.next();
+  while (!step.done) step = steps.next();
+  return step.value;
 }

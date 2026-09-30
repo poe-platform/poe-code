@@ -554,7 +554,9 @@
         "safe-bash-csv-engine": {
           "version": "0.0.1",
           "dependencies": {},
-          "devDependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
           "portable": true
         },
         "safe-bash-xml-engine": {

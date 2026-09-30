@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { HtmlBudget, HtmlError, invocationOptions, type HtmlOptions } from "./contracts.js";
 import { parseHtml, detachHtmlNode, replaceHtmlAttribute, getInternalHtmlNode } from "./tree.js";
 import { selectHtml } from "./selectors.js";
@@ -105,6 +106,10 @@ export async function* projectHtmlq(
   }
   let selectedIndex = 0;
   for (const node of selected) {
+    if (selectedIndex % 64 === 0) {
+      await yieldTurn(invocation.signal);
+      invocation.signal.throwIfAborted();
+    }
     const isFirstNode = selectedIndex++ === 0;
     if (removal) {
       const first = selectHtml(node, removal, invocation).next().value;

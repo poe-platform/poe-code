@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from 'safe-bash-contracts/command';
 import { FsError } from 'safe-bash-contracts/errors';
 import { readBytes, writeBytes, type ByteSource } from 'safe-bash-contracts/io';
@@ -184,6 +185,8 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
       await diagnostic(`fold: '${file}': ${messages[error.code] ?? error.code}\n`);
     };
     for (const file of options.files.length ? options.files : ['-']) {
+      await yieldTurn(signal);
+      signal.throwIfAborted();
       signal.throwIfAborted();
       let source: ByteSource;
       let ownedInput = 0;
@@ -240,6 +243,7 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
           const length = byteExtent.call(next.value) as number;
           if (!length) await deliver(engine.push(next.value));
           for (let offset = 0; offset < length; offset += 4096) {
+            await yieldTurn(signal);
             signal.throwIfAborted();
             // Intrinsic subarray still invokes producer-controlled species.
             // A direct view reads the original storage without that callback.

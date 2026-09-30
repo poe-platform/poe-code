@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -37,7 +38,7 @@ import { layoutMermaid } from "./layout.js";
 import { parseMermaid } from "./parser.js";
 import { encodeRgbaToPng } from "./png.js";
 import { rasterizeScene } from "./raster.js";
-import { serializeSceneToSvg } from "./svg.js";
+import { serializeSceneToSvgSteps } from "./svg.js";
 import { resolveMermaidTheme } from "./theme.js";
 
 const encoder = new TextEncoder();
@@ -272,10 +273,10 @@ function resolveRenderOptions(options?: MermaidPngRenderOptions): MermaidPngRend
   };
 }
 
-export function renderMermaidSvg(
+function* renderMermaidSvgSteps(
   source: string,
   options?: MermaidRenderOptions
-): MermaidSvgResult {
+): Generator<void, MermaidSvgResult> {
   options = resolveRenderOptions(options);
   const hostCeiling = options?.settings?.limits
     ? admitMermaidLimits(options.settings.limits, defaultMermaidLimits)
@@ -301,7 +302,7 @@ export function renderMermaidSvg(
       `Scene geometry verification failed: ${check.violations[0] ?? "invalid geometry"}`
     );
   }
-  const svg = serializeSceneToSvg(scene, budget, options?.svgId);
+  const svg = yield* serializeSceneToSvgSteps(scene, budget, options?.svgId);
 
   return {
     svg,
@@ -311,6 +312,13 @@ export function renderMermaidSvg(
     family: scene.family,
     accounting: budget.snapshot()
   };
+}
+
+export function renderMermaidSvg(source: string, options?: MermaidRenderOptions): MermaidSvgResult {
+  const steps = renderMermaidSvgSteps(source, options);
+  let step = steps.next();
+  while (!step.done) step = steps.next();
+  return step.value;
 }
 
 export function renderMermaidPng(
@@ -631,7 +639,8 @@ export async function runMmdc(
     }
 
     // Yield before parse/layout so cancellation can be observed
-    await Promise.resolve();
+    await yieldTurn(signal);
+    signal.throwIfAborted();
     budget.check();
 
     // Mermaid config overrides the CLI theme, matching the standard command.
@@ -666,17 +675,25 @@ export async function runMmdc(
 
     let outputBytes: Uint8Array;
     if (parsedArgs.outputFormat === "svg") {
-      const res = renderMermaidSvg(sourceText, renderOptions);
-      outputBytes = encoder.encode(res.svg);
+      const steps = renderMermaidSvgSteps(sourceText, renderOptions);
+      let step = steps.next();
+      while (!step.done) {
+        await yieldTurn(signal);
+        signal.throwIfAborted();
+        step = steps.next();
+      }
+      outputBytes = encoder.encode(step.value.svg);
     } else {
-      await Promise.resolve();
+      await yieldTurn(signal);
+      signal.throwIfAborted();
       budget.check();
       const res = renderMermaidPng(sourceText, renderOptions);
       outputBytes = res.png;
     }
 
     // Yield before publishing so cancellation stops before VFS write
-    await Promise.resolve();
+    await yieldTurn(signal);
+    signal.throwIfAborted();
     budget.check();
 
     if (outPath === "-") {

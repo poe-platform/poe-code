@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 /** Original bounded CSV reader; UTF-8-sig, Python-style permissive quote closure profile. */
 export class CsvError extends Error {
   constructor(
@@ -198,6 +199,15 @@ export class CsvParser {
     )
       throw new CsvError("ARGUMENT", "Skip lines must be nonnegative");
   }
+  /** Consume a borrowed producer chunk in bounded units before its next pull. */
+  async *pushAsync(bytes: Uint8Array): AsyncGenerator<CsvRow> {
+    for (let offset = 0; offset < bytes.byteLength; offset += 4096) {
+      await yieldTurn(this.budget.signal);
+      this.budget.signal.throwIfAborted();
+      yield* this.push(bytes.subarray(offset, offset + 4096));
+    }
+  }
+
   push(bytes: Uint8Array): CsvRow[] {
     if (this.ended) throw new CsvError("INPUT", "CSV parser is closed");
     this.budget.charge("work", 0);

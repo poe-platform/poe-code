@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -210,11 +211,18 @@ function makeRgbaImg(width: number, height: number, data: Uint8Array): RgbaImage
   };
 }
 
-function parseLavfiSource(
+function parseLavfiSource(spec: string, budget: MediaBudgetTracker, durationOverride?: number): MediaDocument {
+  const steps = lavfiSteps(spec, budget, durationOverride);
+  let step = steps.next();
+  while (!step.done) step = steps.next();
+  return step.value;
+}
+
+function* lavfiSteps(
   spec: string,
   budget: MediaBudgetTracker,
   durationOverride?: number
-): MediaDocument {
+): Generator<void, MediaDocument> {
   // Examples:
   // color=c=red:s=320x240:r=25:d=2
   // testsrc=size=160x120:rate=10:duration=1
@@ -242,15 +250,17 @@ function parseLavfiSource(
     const totalSamples = Math.max(1024, Math.round(duration * sampleRate));
     budget.checkDuration(duration);
 
-    const channelData = Array.from({ length: channels }, () => {
+    const channelData: Float32Array[] = [];
+    for (let channel = 0; channel < channels; channel++) {
       const arr = new Float32Array(totalSamples);
       if (filterName === "sine") {
         for (let i = 0; i < totalSamples; i++) {
+          if (i % 4096 === 0) yield;
           arr[i] = Math.sin((2 * Math.PI * freq * i) / sampleRate) * 0.5;
         }
       }
-      return arr;
-    });
+      channelData.push(arr);
+    }
 
     const mp4Bytes = createSyntheticMp4({
       width: 16,
@@ -287,9 +297,11 @@ function parseLavfiSource(
 
   const frames: MediaVideoFrame[] = [];
   for (let i = 0; i < frameCount; i++) {
+    yield;
     budget.recordFrame(width, height);
     const rgba = new Uint8Array(width * height * 4);
     for (let y = 0; y < height; y++) {
+      if (y % 16 === 0) yield;
       for (let x = 0; x < width; x++) {
         const idx = (y * width + x) * 4;
         if (filterName.startsWith("testsrc") || filterName === "smptebars") {
@@ -2040,11 +2052,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (features.lavfiSources === false) {
               throw new Error("lavfi synthetic sources are disabled by consumer feature configuration");
             }
-            return parseLavfiSource(filePath, budget, input?.durationSeconds !== undefined
+            const steps = lavfiSteps(filePath, budget, input?.durationSeconds !== undefined
               ? (input.startSeconds ?? 0) + input.durationSeconds
               : input?.endSeconds ?? (outputDuration !== undefined
                 ? (input?.startSeconds ?? 0) + (outputSs ?? 0) + outputDuration
                 : outputTo !== undefined ? (input?.startSeconds ?? 0) + outputTo : undefined));
+            let step = steps.next();
+            while (!step.done) {
+              await yieldTurn(context.signal);
+              context.signal.throwIfAborted();
+              step = steps.next();
+            }
+            return step.value;
           }
 
           if (/\.m3u8?$/i.test(filePath) || explicitFormat === "hls") {
@@ -2226,6 +2245,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         // Load all inputs and apply per-input slicing / looping
         const loadedDocs: MediaDocument[] = [];
         for (const inp of inputs) {
+          await yieldTurn(context.signal);
+          context.signal.throwIfAborted();
           let doc = await loadSingleDocument(inp.path, inp.format, inp.fps, inp);
           if (
             inp.startSeconds !== undefined ||

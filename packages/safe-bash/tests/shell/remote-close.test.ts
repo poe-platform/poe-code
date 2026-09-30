@@ -44,7 +44,8 @@ for (const scenario of [
       prepared = build({ entryPoints: [entry], bundle: true, packages: "external", platform: "node",
         alias: {
           ...Object.fromEntries(Object.keys(privateWorkspaces).filter(name => !Object.hasOwn(sourceAliases, name)).flatMap(name => {
-            const root = new URL(`../../../${name}/`, import.meta.url);
+            const directory = name.startsWith("@") ? name.split("/")[1]! : name;
+            const root = new URL(`../../../${directory}/`, import.meta.url);
             const manifest = JSON.parse(readFileSync(new URL("package.json", root), "utf8"));
             return Object.entries(manifest.exports as Record<string, string | {import: string}>).map(([route, target]) => [
               route === "." ? name : name + route.slice(1),

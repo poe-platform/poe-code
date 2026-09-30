@@ -27,7 +27,7 @@ const probeProgram = await build({
   platform: "node", format: "esm", target: "es2022", write: false,
   alias: {
     ...Object.fromEntries(Object.keys(privateWorkspaces).filter(name => name !== "safe-bash-contracts").flatMap(name => {
-      const root = resolve("..", name);
+      const root = resolve("..", name.startsWith("@") ? name.split("/")[1]! : name);
       const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
       return Object.entries(manifest.exports as Record<string, string | { import: string }>).map(([route, target]) => [
         route === "." ? name : name + route.slice(1),

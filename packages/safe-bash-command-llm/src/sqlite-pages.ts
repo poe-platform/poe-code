@@ -1,4 +1,5 @@
-import { FsError, type ByteSource, type FileReadHandle, type FileStat } from 'safe-bash-contracts';
+import { FsError, type ByteSource, type FileReadHandle } from 'safe-bash-contracts';
+import { verifySqliteSnapshot } from './sqlite-snapshot.js';
 import { yieldTurn } from 'safe-bash-contracts/yield';
 
 function corrupt(): never { throw new FsError('EIO', { message: 'Invalid SQLite table record or page chain' }); }
@@ -19,15 +20,6 @@ function varint(bytes: Uint8Array, start: number): { value: bigint; end: number 
   }
   return corrupt();
 }
-function unchanged(actual: FileStat, expected: FileStat): void {
-  const identity = expected.opaqueIdentity !== undefined ? actual.opaqueIdentity === expected.opaqueIdentity
-    : expected.dev !== undefined && expected.ino !== undefined && actual.dev === expected.dev && actual.ino === expected.ino;
-  if (!identity || expected.identityScope === undefined || expected.identityScope !== actual.identityScope ||
-      actual.type !== 'file' || actual.size !== expected.size || actual.revision !== expected.revision ||
-      actual.opaqueVersion !== expected.opaqueVersion || actual.mtimeMs !== expected.mtimeMs || actual.ctimeMs !== expected.ctimeMs) {
-    throw new FsError('EBUSY', { message: 'SQLite retained snapshot changed' });
-  }
-}
 
 /** Read a table-btree row from a retained, closed/checkpointed SQLite snapshot.
  * The caller owns the handle; no ambient filesystem, full-file read or page cache.
@@ -39,9 +31,9 @@ export async function findSqliteRecord(file: FileReadHandle, rootPage: number, r
   signal.throwIfAborted();
   if (rowid < -(1n << 63n) || rowid >= 1n << 63n) throw new RangeError('SQLite rowid out of range');
   const expected = await file.stat({ signal });
-  unchanged(expected, expected);
+  verifySqliteSnapshot(expected, expected);
   if (!Number.isSafeInteger(expected.size) || expected.size < 100) return corrupt();
-  const check = async (): Promise<void> => { signal.throwIfAborted(); unchanged(await file.stat({ signal }), expected); };
+  const check = async (): Promise<void> => { signal.throwIfAborted(); verifySqliteSnapshot(await file.stat({ signal }), expected); };
   const read = async (position: number, count: number): Promise<Uint8Array> => {
     await check();
     if (!Number.isSafeInteger(position) || position < 0 || count < 0 || count > 65536 || position + count > expected.size) return corrupt();

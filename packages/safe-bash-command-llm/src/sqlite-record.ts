@@ -1,3 +1,4 @@
+import { sqliteSourceChunks } from './sqlite-stream.js';
 import { yieldTurn } from 'safe-bash-contracts/yield';
 import type { ByteSource } from 'safe-bash-contracts';
 
@@ -34,35 +35,6 @@ function scalar(value: null | bigint | number): { serial: bigint; bytes: Uint8Ar
   return { serial: BigInt(index + 1), bytes };
 }
 
-function interruptible<Value>(start: () => PromiseLike<Value> | Value, signal: AbortSignal): Promise<Value> {
-  signal.throwIfAborted();
-  return new Promise((resolve, reject) => {
-    const abort = (): void => reject(signal.reason);
-    signal.addEventListener('abort', abort, { once: true });
-    Promise.resolve().then(() => { signal.throwIfAborted(); return start(); }).then(
-      value => { signal.removeEventListener('abort', abort); if (signal.aborted) reject(signal.reason); else resolve(value); },
-      error => { signal.removeEventListener('abort', abort); reject(signal.aborted ? signal.reason : error); },
-    );
-  });
-}
-
-async function* sourceChunks(source: ByteSource, signal: AbortSignal): ByteSource {
-  const iterator = source[Symbol.asyncIterator]();
-  let done = false;
-  try {
-    while (true) {
-      const result = await interruptible(() => iterator.next(), signal);
-      if (result.done) { done = true; return; }
-      yield result.value;
-    }
-  } finally {
-    if (!done) {
-      const closing = Promise.resolve().then(() => iterator.return?.());
-      if (signal.aborted) void closing.catch(() => undefined);
-      else await interruptible(() => closing, signal);
-    }
-  }
-}
 
 /** Encode a SQLite record without materializing any variable-length field.
  * Storage must discard the private snapshot if consuming this stream fails. */
@@ -90,7 +62,7 @@ export function sqliteRecord(values: readonly SqliteRecordValue[]): {
     for (const serial of serials) { signal.throwIfAborted(); yield serial.slice(); }
     for (const field of fields) {
       let consumed = 0;
-      for await (const chunk of sourceChunks(field.source, signal)) {
+      for await (const chunk of sqliteSourceChunks(field.source, signal)) {
         await yieldTurn(signal);
         signal.throwIfAborted();
         if (!(chunk instanceof Uint8Array)) throw new TypeError('SQLite field source must yield bytes');

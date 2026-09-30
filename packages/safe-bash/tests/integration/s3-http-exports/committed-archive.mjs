@@ -711,7 +711,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       assert.equal(manifest.engines.node, ">=22");
       assert.deepEqual(manifest.files, [
         "dist", "!dist/optional.js", "!dist/optional.js.map", "!dist/optional.d.ts", "!dist/optional.d.ts.map",
-        "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install", "!dist/commands/shuf",
+        "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install",
         "!dist/commands/truncate", "!dist/commands/yes",
         // The optional yq nodes implementation owns comments; preserve the reviewed npm ordering.
         "!dist/commands/yq/expression.js",
@@ -722,6 +722,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         "!dist/fs/devices", "!dist/shell/extensions/arrays", "!dist/shell/extensions/trap",
         "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read", "!dist/opt-in",
         ...["js", "js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/op/op.test.${extension}`),
+        "!dist/optional",
       ], "committed dist packaging contract drift");
       assertArchiveDependencyContract(manifest);
       for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);

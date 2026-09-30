@@ -114,7 +114,7 @@ const engineMarkers = {
 export const safeBashProfileBaselines = {
   "core": 4511475,
   "rootCore": 4518173,
-  "pythonLlm": 4743042,
+  "pythonLlm": 4773428,
   "pdf": 5584820,
   "multiplePdf": 5662677,
   "csv": 6217430,
@@ -124,9 +124,9 @@ export const safeBashProfileBaselines = {
   "registryWithRegex": 6014961,
   "enabledConsumer": 6079876,
   "full": 25001199,
-  "rootPythonLlm": 4750080,
+  "rootPythonLlm": 4780517,
   "splitCore": 4434552,
-  "splitPythonLlm": 4664875,
+  "splitPythonLlm": 4695775,
   "splitEnabledConsumer": 5995120,
   "splitFull": 24845451
 };

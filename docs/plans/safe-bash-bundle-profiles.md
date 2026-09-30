@@ -22,7 +22,7 @@ Budgets are derived from the measured installed tarballs below: 2% total growth,
 | --- | ---: | ---: |
 | core | 4,511,475 | 0 |
 | rootCore | 4,518,173 | 6,698 |
-| pythonLlm | 4,743,042 | 231,567 |
+| pythonLlm | 4,773,428 | 261,953 |
 | pdf | 5,584,820 | 1,073,345 |
 | multiplePdf | 5,662,677 | 1,151,202 |
 | csv | 6,217,430 | 1,705,955 |
@@ -32,11 +32,13 @@ Budgets are derived from the measured installed tarballs below: 2% total growth,
 | registryWithRegex | 6,014,961 | 1,503,486 |
 | enabledConsumer | 6,079,876 | 1,568,401 |
 | full | 25,001,199 | 20,489,724 |
-| rootPythonLlm | 4,750,080 | 238,605 |
+| rootPythonLlm | 4,780,517 | 269,042 |
 | splitCore | 4,434,552 | -76,923 |
-| splitPythonLlm | 4,664,875 | 153,400 |
+| splitPythonLlm | 4,695,775 | 184,300 |
 | splitEnabledConsumer | 5,995,120 | 1,483,645 |
 | splitFull | 24,845,451 | 20,333,976 |
+
+The Python/LLM baselines additionally include the integrated template store, template YAML handling, extraction ranges, key aliases, and Python LLM capability/module changes since `c7d1b86e90`. These profiles grew by 30,386–30,900 bytes in total (25,823 bytes incremental for Python/LLM after core growth). The installed graph retains the selected Python and LLM modules; unrelated profiles remain within their previous budgets. The root facade regression was fixed independently: command bootstrap declarations no longer force every command chunk into root imports, reducing measured root overhead from 92,347 to 6,708 bytes without changing its budget. Only the three Python/LLM baselines were updated; growth tolerances and runtime/engine assertions remain unchanged.
 
 The Worker checks pipeline streaming, canonical filesystem writes, abort-reason identity, selected PDF inspection, CSV/XLSX conversion and Git initialization/status. Python execution and LLM responses use injected test hosts, without model requests. Installed type fixtures verify shell/full identity and selected command contracts; existing Node/Bun publication fixtures cover normal import behavior.
 

@@ -63,7 +63,7 @@ const values=[];for(let i=0;i<${resize + 1};i++)values.push(f());return [before,
     Array.from({ length: resize + 1 }, (_, i) => value + i + 2)];
   expect(await runInNewContext(`(async function(){'use strict';${source}})()`, {}, { timeout: 100 })).toEqual(expected);
   await qualify(source, expected, seed, true);
-}, 2000);
+});
 
 it.each(cases)("module cycle TLA seed=$seed case=$index", async ({ seed, value, resize }) => {
   const sources: Record<string, string> = {

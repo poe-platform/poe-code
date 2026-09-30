@@ -929,7 +929,7 @@ test("printf diagnoses trailing floating input and rejects nonfinite integer ope
   for (const [operand, expected] of [
     ["0x.p2", "0.000000"], ["0x1p", "1.000000"], ["0x1p+", "1.000000"],
     ["0x1p2junk", "4.000000"], ["nan(bad!)", "nan"], ["infinite", "inf"], ["", "0.000000"],
-  ]) {
+  ] as const) {
     const result = await run("printf", ["%f", operand]);
     assert.equal(result.exitCode, 1, operand);
     assert.equal(result.stdout, expected, operand);

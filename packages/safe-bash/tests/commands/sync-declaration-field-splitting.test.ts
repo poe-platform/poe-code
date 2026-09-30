@@ -5,7 +5,7 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
 
-const cases: [string, string, string?][] = [];
+const cases: [string, string, (string | undefined)?][] = [];
 for (const header of ['for i in 1 2', 'for ((i=0;i<2;i++))']) {
   for (const builtin of ['local', 'declare', 'typeset']) {
     cases.push([`${header}: ${builtin} self reference`, `x=outer; f() { ${header}; do ${builtin} x="$x"; done; echo "in:$x"; }; f; echo "out:$x"`]);

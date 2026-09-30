@@ -1,5 +1,5 @@
 import type { CommandContext } from "safe-bash-contracts";
-import type { LlmService } from "./service.js";
+import type { LlmService, LlmServiceModel } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
 
 export const modelsGroupHelp = "Usage: llm models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available models\n  default  Show or set the default model\n  options  Manage default options for models\n";
@@ -23,6 +23,15 @@ function wrapDescription(description: string): string {
   }
   if (line) lines.push(line);
   return lines.join("\n      ");
+}
+
+/** Combine catalog and persisted aliases with the same matching rules for every API. */
+export function getLlmModelAliases({ provider, model }: LlmServiceModel, configured: Readonly<Record<string, string>>): readonly string[] {
+  const aliases = new Set(model.aliases);
+  for (const [alias, target] of Object.entries(configured)) {
+    if (target === model.id || target === `${provider.name}/${model.id}` || model.aliases?.includes(target)) aliases.add(alias);
+  }
+  return [...aliases];
 }
 
 /** Reference model-list query semantics for the configured host catalog. */
@@ -69,16 +78,13 @@ export async function listLlmModels(context: CommandContext, service: LlmService
   const shownDescriptions = new Set<string>();
   for (const { provider, model } of service.models) {
     await step();
-    const aliases = new Set(model.aliases);
-    for (const [alias, target] of Object.entries(configuredAliases)) {
-      if (target === model.id || target === `${provider.name}/${model.id}` || model.aliases?.includes(target)) aliases.add(alias);
-    }
+    const aliases = getLlmModelAliases({ provider, model }, configuredAliases);
     const description = `${provider.name}: ${model.id}`;
     const terms = [description, ...aliases].map(value => value.toLowerCase());
     if (!queries.every(query => terms.some(term => term.includes(query.toLowerCase())))) continue;
-    if (selected.length && !selected.some(value => value === model.id || aliases.has(value))) continue;
+    if (selected.length && !selected.some(value => value === model.id || aliases.includes(value))) continue;
     if (schemas && !model.capabilities?.includes("schema") || tools || asyncModels) continue;
-    let output = description + (aliases.size ? ` (aliases: ${[...aliases].join(", ")})` : "");
+    let output = description + (aliases.length ? ` (aliases: ${aliases.join(", ")})` : "");
     if (options && Object.keys(model.options ?? {}).length) {
       output += "\n  Options:";
       for (const [name, rule] of Object.entries(model.options!)) {

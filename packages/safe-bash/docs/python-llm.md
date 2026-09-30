@@ -126,7 +126,7 @@ with its own cleanup scope and the same borrowed bridge.
 
 | Feature | Python API | Host responsibility |
 | --- | --- | --- |
-| Discovery and selection | `models()`, `model=` | Resolve identities and aliases through the shared catalog |
+| Discovery and selection | `models()`, `model=` | Resolve identities through the shared catalog and list its aliases alongside canonical saved aliases |
 | Prompt, system and messages | `Request`, `Message`, `complete()` | Validate and dispatch the same request as the CLI |
 | Options | String, safe integer (±9,007,199,254,740,991), finite float, boolean, null | Preserve types and validate provider settings |
 | Attachments | `Attachment(path, mime_type)` | Lease canonical files, resolve relative paths from current Python cwd and stream bounded input chunks; infer MIME from a bounded prefix |
@@ -145,7 +145,8 @@ The client defaults to no response-byte limit and no timeout. Set
 and stream calls. Explicit `None` or `float("inf")` disables a byte limit.
 Completion timeouts include request and response transforms, and client cleanup
 cancels and awaits that work. Text is measured as UTF-8, binary as bytes;
-embeddings use eight bytes per numeric element. Stream limits count incremental
+embeddings use eight bytes per numeric element. Host buffering ceilings also apply
+to model listings and configuration snapshots. Stream limits count incremental
 payloads and separately check a final response. These guest checks do not bound
 interpreter memory, provider buffers or billing. Configure host admission,
 serialized-message and stream limits through `capabilityLimits`. The host may

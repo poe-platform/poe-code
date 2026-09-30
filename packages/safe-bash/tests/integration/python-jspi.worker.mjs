@@ -300,7 +300,8 @@ async def qualify_libraries():
   async with client.stream('native', template='review', parameters={'topic':'code'}) as template_stream:
    template_events = [event async for event in template_stream]
    assert template_events[0].text == 'Review code: native' and template_events[-1].response.model == 'fake'
-  assert (await client.models())[0].id == 'fake'
+  models = await client.models()
+  assert models[0].id == 'fake' and 'saved' in models[0].aliases
   configuration = await client.configuration()
   assert configuration.default_model == 'saved' and configuration.aliases == {'saved':'fake'}
   assert configuration.model_options == {'fake':{'mode':'saved'}}

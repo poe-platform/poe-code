@@ -347,5 +347,15 @@ test('Python shares canonical saved model defaults aliases and option precedence
     assert.equal((result as {model:string}).model,'model');
     const configuration = await capability.call!({operation:'configuration'},{signal});
     assert.deepEqual(configuration,{default_model:'favorite',aliases:{favorite:'alias'},model_options:{model:{mode:'saved'}}});
+    const models = await capability.call!({operation:'models'},{signal}) as readonly {aliases:readonly string[]}[];
+    assert.deepEqual(models[0]!.aliases,['alias','favorite']);
   } finally {for (const cleanup of cleanups) await cleanup();}
+});
+
+test('model discovery respects the host buffered ceiling for persisted aliases', async () => {
+  const {fs,service} = await fixture();
+  await fs.mkdir('/settings',{recursive:true});
+  await fs.writeFile('/settings/aliases.json',new TextEncoder().encode(JSON.stringify({['x'.repeat(5000)]:'model'})));
+  const capability = createPythonLlmCapability({fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'}},service,{maxBufferedResponseBytes:512});
+  await assert.rejects(capability.call!({operation:'models'},{signal}),/response limit/);
 });

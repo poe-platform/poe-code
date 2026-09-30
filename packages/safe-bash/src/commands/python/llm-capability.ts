@@ -1,7 +1,7 @@
 import type { CommandContext } from '../../contracts/index.js';
 import type { LlmService, LlmServiceRequest, LlmServiceSourceRequest } from '../llm/service.js';
 import type { LlmOption, LlmInputSource } from '../llm/types.js';
-import { createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters } from 'safe-bash-command-llm';
+import { getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters } from 'safe-bash-command-llm';
 import { sniffMimeType } from '../llm/mime.js';
 import { pathOf } from '../internal.js';
 import type { PythonHostCapability, PythonHostValue } from './host-capabilities.js';
@@ -261,10 +261,16 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
       signal.throwIfAborted();
       const operation = record(value);
       const payload = record(operation.payload ?? {});
-      if (operation.operation === 'models') return service.models.map(({provider,model}) => ({
-        id:model.id, aliases:[...model.aliases ?? []], capabilities:[...model.capabilities ?? []],
-        metadata:{provider:provider.name, attachmentTypes:[...model.attachmentTypes ?? []], outputType:model.outputType ?? 'text/plain'},
-      }));
+      if (operation.operation === 'models') {
+        const configuration = createLlmConfiguration({...context,env:context.env ?? {},signal});
+        const aliases = await configuration.aliases();
+        const models = service.models.map(entry => ({
+          id:entry.model.id,aliases:getLlmModelAliases(entry,aliases),capabilities:[...entry.model.capabilities ?? []],
+          metadata:{provider:entry.provider.name,attachmentTypes:[...entry.model.attachmentTypes ?? []],outputType:entry.model.outputType ?? 'text/plain'},
+        }));
+        jsonBytes(models,bufferedLimit);
+        return models;
+      }
       if (operation.operation === 'configuration') {
         const configuration = createLlmConfiguration({...context,env:context.env ?? {},signal});
         const result = {default_model:await configuration.defaultModel() ?? null,aliases:await configuration.aliases(),model_options:await configuration.allModelOptions()};

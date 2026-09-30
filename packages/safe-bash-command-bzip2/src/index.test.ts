@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createBytePipe, createCommandArguments } from "safe-bash-contracts";
+import { createBytePipe, createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createBzip2Command, createBunzip2Command, createBzcatCommand, createBzip2Commands, bzip2Commands } from "./index.js";
 
 test("bzip2 command roundtrips data through compress and decompress", async () => {
@@ -44,4 +44,17 @@ test("bzip2 command roundtrips data through compress and decompress", async () =
   for await (const c of bzcatOut.readable) chunks.push(c);
   assert.equal(Buffer.concat(chunks).toString("utf8"), "hello bzip2 world\n");
   assert.equal(createBunzip2Command().name, "bunzip2");
+});
+
+test("bunzip2 preserves corruption status across later operand errors", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/broken.bz2", new TextEncoder().encode("BZh9broken"));
+  const values = createCommandArguments(["-c", "/broken.bz2", "/missing.bz2"]);
+  const result = await createBunzip2Command().execute({
+    command: "bunzip2", args: values.args, argumentValues: values,
+    cwd: "/", env: {}, fs, stdin: toByteSource(""),
+    stdout: { async write() {} }, stderr: { async write() {} },
+    signal: new AbortController().signal,
+  });
+  assert.equal(result.exitCode, 2);
 });

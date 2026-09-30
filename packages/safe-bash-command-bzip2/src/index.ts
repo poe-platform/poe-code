@@ -8,6 +8,7 @@ import { codeOf, diagnostic, output } from "safe-bash-compression-engine/interna
 import { runOperand } from "safe-bash-compression-engine/operand";
 import { planOperands, verifyOperandDestinations } from "safe-bash-compression-engine/files";
 import { parseOptions, profiles } from "safe-bash-compression-engine/options";
+import { CompressedDataError } from "safe-bash-compression-engine/errors";
 import { DecodedBudget, type CompressionCommandOptions } from "safe-bash-compression-engine/stream";
 
 export type { CompressionCommandOptions } from "safe-bash-compression-engine/stream";
@@ -98,7 +99,7 @@ function createNamedBzip2Command(
           } catch (error) {
             context.signal.throwIfAborted();
             if (parsed.quiet < 2) await diagnostic(context, error);
-            exitCode = 1;
+            exitCode = Math.max(exitCode, error instanceof CompressedDataError ? 2 : 1);
             if (decodedBudget.exceeded) break;
           }
         }

@@ -13,17 +13,17 @@ const parseSyncCompressionOptions = createOptionsParser([
   { ...formats.xz, format: "xz", names: ["xz", "unxz", "xzcat"] },
   { ...formats.xz, suffix: ".lzma", format: "xz", names: ["lzma", "unlzma", "lzcat"] },
 ]);
+import { createBzip2Commands } from "safe-bash-command-bzip2";
 import { createXzCommands } from "safe-bash-command-xz";
 import { runOperand } from "safe-bash-compression-engine/operand";
 import { DecodedBudget, type CompressionCommandOptions } from "./stream.js";
-import { CompressedDataError } from "./errors.js";
 
 export function createCompressionCommands(config: CompressionCommandOptions = {}): readonly CommandDefinition[] {
   const maxDecodedBytes = config.maxDecodedBytes;
   if (maxDecodedBytes !== undefined && maxDecodedBytes !== Infinity && (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0)) {
     throw new RangeError("maxDecodedBytes must be a nonnegative safe integer or Infinity");
   }
-  const commands = profiles.flatMap(profile => profile.names).map((name) => define(name, async (context) => {
+  const commands = profiles.flatMap(profile => profile.format === "bzip2" ? createBzip2Commands(config) : profile.names.map((name) => define(name, async (context) => {
     const options = parseOptions(name, context.args);
     if (options.help) {
       await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n${options.format === "zstd" ? "-1..-9, --best\nHigher levels and --fast[=NUM] are unsupported by the bounded codec.\n" : "-1..-9, --fast, --best\n"}${options.format === "zstd" ? "-q, --quiet (repeat to suppress errors)\n" : ""}${options.format === "gzip" ? "-q, --quiet (suppress warnings)\n-r, --recursive (traverse directories without following symlinks)\n-n, --no-name (always enabled)\n" : `Default compression level: ${options.level}.\n`}-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
@@ -64,16 +64,15 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
       } catch (error) {
         context.signal.throwIfAborted();
         if (options.quiet < 2) await diagnostic(context, error);
-        const failureCode = options.format === "bzip2" && error instanceof CompressedDataError ? 2 : 1;
-        exitCode = options.format === "bzip2" ? Math.max(exitCode, failureCode) : failureCode;
+        exitCode = 1;
         if (decodedBudget.exceeded) break;
       }
     }
     return { exitCode };
-  }));
+  })));
   const xzCmds = createXzCommands(config);
   if (maxDecodedBytes === undefined || maxDecodedBytes === Infinity) {
-    for (const c of xzCmds) builtInDirectContextExecutors.add(c.execute);
+    for (const c of [...commands, ...xzCmds]) builtInDirectContextExecutors.add(c.execute);
   }
   return [...commands.slice(0, 6), ...xzCmds, ...commands.slice(6)];
 }

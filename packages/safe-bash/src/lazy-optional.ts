@@ -760,3 +760,122 @@ export function optionalCommands(options: OptionalCommandsOptions = {}): Virtual
     options.replace ?? false
   );
 }
+
+export const createConvertCommand: imagemagickModule["createConvertCommand"] = (...args) => {
+  const metadata = imagemagickMetadata.find(item => item.name === "convert");
+  if (!metadata) throw new TypeError("Unknown convert command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadimagemagick();
+    return () => [module.createConvertCommand(...args)];
+  })[0]!;
+};
+
+export const createMogrifyCommand: imagemagickModule["createMogrifyCommand"] = (...args) => {
+  const metadata = imagemagickMetadata.find(item => item.name === "mogrify");
+  if (!metadata) throw new TypeError("Unknown mogrify command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadimagemagick();
+    return () => [module.createMogrifyCommand(...args)];
+  })[0]!;
+};
+
+export const createCompositeCommand: imagemagickModule["createCompositeCommand"] = (...args) => {
+  const metadata = imagemagickMetadata.find(item => item.name === "composite");
+  if (!metadata) throw new TypeError("Unknown composite command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadimagemagick();
+    return () => [module.createCompositeCommand(...args)];
+  })[0]!;
+};
+
+export const createMontageCommand: imagemagickModule["createMontageCommand"] = (...args) => {
+  const metadata = imagemagickMetadata.find(item => item.name === "montage");
+  if (!metadata) throw new TypeError("Unknown montage command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadimagemagick();
+    return () => [module.createMontageCommand(...args)];
+  })[0]!;
+};
+
+export const createIdentifyCommand: imagemagickModule["createIdentifyCommand"] = (...args) => {
+  const metadata = imagemagickMetadata.find(item => item.name === "identify");
+  if (!metadata) throw new TypeError("Unknown identify command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadimagemagick();
+    return () => [module.createIdentifyCommand(...args)];
+  })[0]!;
+};
+
+export const createCompareCommand: imagemagickModule["createCompareCommand"] = (...args) => {
+  const metadata = imagemagickMetadata.find(item => item.name === "compare");
+  if (!metadata) throw new TypeError("Unknown compare command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadimagemagick();
+    return () => [module.createCompareCommand(...args)];
+  })[0]!;
+};
+
+export const createPdfuniteCommand: pdfinfoModule["createPdfuniteCommand"] = (...args) => {
+  const metadata = pdfinfoMetadata.find(item => item.name === "pdfunite");
+  if (!metadata) throw new TypeError("Unknown pdfunite command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadpdfinfo();
+    return () => [module.createPdfuniteCommand(...args)];
+  })[0]!;
+};
+
+export const createPdfseparateCommand: pdfinfoModule["createPdfseparateCommand"] = (...args) => {
+  const metadata = pdfinfoMetadata.find(item => item.name === "pdfseparate");
+  if (!metadata) throw new TypeError("Unknown pdfseparate command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadpdfinfo();
+    return () => [module.createPdfseparateCommand(...args)];
+  })[0]!;
+};
+
+export const createPdffontsCommand: pdfinfoModule["createPdffontsCommand"] = (...args) => {
+  const metadata = pdfinfoMetadata.find(item => item.name === "pdffonts");
+  if (!metadata) throw new TypeError("Unknown pdffonts command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadpdfinfo();
+    return () => [module.createPdffontsCommand(...args)];
+  })[0]!;
+};
+
+export const createPdfdetachCommand: pdfinfoModule["createPdfdetachCommand"] = (...args) => {
+  const metadata = pdfinfoMetadata.find(item => item.name === "pdfdetach");
+  if (!metadata) throw new TypeError("Unknown pdfdetach command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadpdfinfo();
+    return () => [module.createPdfdetachCommand(...args)];
+  })[0]!;
+};
+
+export const createPdftocairoCommand: pdfinfoModule["createPdftocairoCommand"] = (...args) => {
+  const metadata = pdftoppmMetadata.find(item => item.name === "pdftocairo");
+  if (!metadata) throw new TypeError("Unknown pdftocairo command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadpdfinfo();
+    return () => [module.createPdftocairoCommand(...args)];
+  })[0]!;
+};
+
+export const createLibreofficeCommand: sofficeModule["createLibreofficeCommand"] = (...args) => {
+  const metadata = sofficeMetadata.find(item => item.name === "libreoffice");
+  if (!metadata) throw new TypeError("Unknown libreoffice command");
+  return createLazyCommands([metadata], async () => {
+    const module = await loadsoffice();
+    return () => [module.createLibreofficeCommand(...args)];
+  })[0]!;
+};
+
+export const createFormatInspectionCommand: pandocModule["createFormatInspectionCommand"] = (...args) => ({
+  name: "pandoc",
+  description: "List available document formats and dialect extensions",
+  async execute(context) {
+    context.signal.throwIfAborted();
+    const module = await loadpandoc();
+    context.signal.throwIfAborted();
+    return module.createFormatInspectionCommand(...args).execute(context);
+  }
+});

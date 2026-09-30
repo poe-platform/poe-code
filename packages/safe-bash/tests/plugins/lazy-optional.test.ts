@@ -208,3 +208,43 @@ test("lazy GitHub state persists per filesystem without leaking to another shell
     await Promise.all([first.dispose(), second.dispose()]);
   }
 });
+
+test("auxiliary public factories retain lazy registration and execute their own commands", async () => {
+  const core = await import("../../src/core.js");
+  const factories = [
+    ["createConvertCommand", "convert"], ["createMogrifyCommand", "mogrify"],
+    ["createCompositeCommand", "composite"], ["createMontageCommand", "montage"],
+    ["createIdentifyCommand", "identify"], ["createCompareCommand", "compare"],
+    ["createPdfuniteCommand", "pdfunite"], ["createPdfseparateCommand", "pdfseparate"],
+    ["createPdffontsCommand", "pdffonts"], ["createPdfdetachCommand", "pdfdetach"],
+    ["createPdftocairoCommand", "pdftocairo"], ["createLibreofficeCommand", "libreoffice"]
+  ] as const;
+  const directFactories = { ...await import("../../src/commands/imagemagick/index.js"), ...await import("../../src/commands/pdfinfo/index.js"), ...await import("../../src/commands/soffice/index.js") };
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  const direct = new Shell({ fs: createMemoryFileSystem() });
+  try {
+    for (const [factory, name] of factories) {
+      assert.equal(typeof lazy[factory], "function", factory);
+      assert.equal(core[factory], lazy[factory], factory);
+      const command = lazy[factory]();
+      assert.equal(command.name, name);
+      shell.register(command);
+      direct.register(directFactories[factory]());
+      const result = await shell.exec(`${name} --help`);
+      const expected = await direct.exec(`${name} --help`);
+      assert.deepEqual(result, expected, name);
+    }
+  } finally { await Promise.all([shell.dispose(), direct.dispose()]); }
+});
+
+test("lazy format inspection accepts its standalone context", async () => {
+  assert.equal(typeof lazy.createFormatInspectionCommand, "function");
+  const core = await import("../../src/core.js");
+  assert.equal(core.createFormatInspectionCommand, lazy.createFormatInspectionCommand);
+  const chunks: Uint8Array[] = [];
+  const command = lazy.createFormatInspectionCommand();
+  const result = await command.execute({ args: ["--list-input-formats"], signal: new AbortController().signal,
+    stdout: { async write(bytes) { chunks.push(bytes); } }, stderr: { async write() { assert.fail("unexpected stderr"); } } });
+  assert.equal(result.exitCode, 0);
+  assert.ok(new TextDecoder().decode(Buffer.concat(chunks)).includes("markdown"));
+});

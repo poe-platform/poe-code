@@ -1,5 +1,4 @@
 export * from "./core.js";
-export { createGitCommand, createGitCommands, gitCommands, type GitCommandsOptions } from "./commands/git/index.js";
 export { Shell } from "./shell/node.js";
 export type { WorkerShellOptions, WorkerModule } from "./worker/host.js";
 export * from "./commands/network/index.js";

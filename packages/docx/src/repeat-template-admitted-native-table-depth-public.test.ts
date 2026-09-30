@@ -6,11 +6,11 @@ import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 
 const api = await compiledPublicRuntime;
+const execute = nativeRepeatTemplate();
 
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
 for (const codec of ["utf8", "utf16le", "utf16be"] as const) {
   describe(`native table matrix; strict=${strict}; kind=${kind}; codec=${codec}`, () => {
-  const execute = nativeRepeatTemplate();
 for (const depth of [1, 1024, 2048])
 for (const operation of ["controls.repeat", "template.apply"] as const) {
   const label = `repeat/template admitted nested native table depth; strict=${strict}; kind=${kind}; codec=${codec}; depth=${depth}; operation=${operation}`;

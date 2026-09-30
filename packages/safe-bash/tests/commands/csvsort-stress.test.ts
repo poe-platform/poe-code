@@ -59,9 +59,11 @@ test("csvsort stress: injected warning provenance preserves renamed headers and 
     0, { ...options, columnWarnings: { utilsPath: "/reference/agate/utils.py" } });
 });
 
-test("csvsort stress: missing warning provenance stays an explicit blocker; suppression is injected", async () => {
+test("csvsort stress: portable defaults suppress warnings; native profiles require provenance", async () => {
   const input = "a,a\n9,10\n8,2\n";
-  await check("csvsort -y 0", input, "", "csvkit: unsupported or unqualified: Agate duplicate/unnamed column warning provenance\n", 78);
+  await check("csvsort -y 0", input, "a,a_2\n8,2\n9,10\n");
+  await check("csvsort -y 0", input, "", "csvkit: unsupported or unqualified: Agate duplicate/unnamed column warning provenance\n", 78,
+    { ...options, columnWarnings: {} });
   await check("csvsort -y 0", input, "a,a_2\n8,2\n9,10\n", "", 0,
     { ...options, columnWarnings: { suppressWarnings: true } });
 });

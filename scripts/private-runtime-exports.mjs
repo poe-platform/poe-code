@@ -9,7 +9,7 @@ export function privateRuntimeExportResolver(rootDir, external, files, recipe, b
       const profiles = JSON.parse(await files.readFile(path.join(rootDir, "packages/safe-bash/package.json"), "utf8")).poeCode.integration.privateWorkspaces;
       const entries = new Map();
       for (const name of Object.keys(profiles)) {
-        const directory = path.join(rootDir, "packages", name);
+        const directory = path.join(rootDir, "packages", name.startsWith("@") ? name.split("/")[1] : name);
         const pkg = JSON.parse(await files.readFile(path.join(directory, "package.json"), "utf8"));
         for (const [route, target] of Object.entries(pkg.exports ?? {})) {
           if (typeof target.import !== "string" || !target.import.startsWith("./dist/")) throw new Error("Unqualified private export: " + name + " " + route);

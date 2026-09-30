@@ -1,3 +1,4 @@
+import { shellValueByteLength } from "safe-bash-contracts/value";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { SM3 } from "./sm3.js";
 import { blake2b } from "@noble/hashes/blake2.js";
@@ -329,7 +330,7 @@ export function command(name: string, algorithm: Algorithm, maxInputBytes: numbe
       const arguments_ = getCommandArguments(context);
       let argumentBytes = 0;
       for (let index = 0; index < arguments_.args.length; index++) {
-        const bytes = arguments_.bytes(index)!.byteLength;
+        const bytes = shellValueByteLength(arguments_.values[index]!);
         if (bytes > maxArgumentBytes - argumentBytes) throw new FsError("EFBIG", { message: "checksum argument limit exceeded" });
         argumentBytes += bytes;
       }

@@ -113,16 +113,17 @@ const workspaces = (JSON.parse(readFileSync(join(repositoryRoot, "package.json")
 const workspaceSourcePaths: Record<string, string[]> = {};
 const workspaceExports: { specifier: string; source: string }[] = [];
 for (const path of globSync(workspaces.map(pattern => `${pattern}/package.json`), { cwd: repositoryRoot })) {
-  const manifest = JSON.parse(readFileSync(join(repositoryRoot, path), "utf8")) as { name: string; exports?: Record<string, { types?: string }> };
+  const manifest = JSON.parse(readFileSync(join(repositoryRoot, path), "utf8")) as { name: string; exports?: Record<string, { types?: string | { default?: string } }> };
   if (!manifest.name.startsWith("safe-bash-")) continue;
   const directory = relative(root, join(repositoryRoot, dirname(path))).split(sep).join("/");
   workspaceSourcePaths[manifest.name] = [`${directory}/src/index.ts`];
   workspaceSourcePaths[`${manifest.name}/*`] = [`${directory}/src/*.ts`, `${directory}/src/*`];
   for (const [subpath, target] of Object.entries(manifest.exports ?? {})) {
-    if (!target.types?.startsWith("./dist/") || !target.types.endsWith(".d.ts")) continue;
+    const types = typeof target.types === "string" ? target.types : target.types?.default;
+    if (!types?.startsWith("./dist/") || !types.endsWith(".d.ts")) continue;
     workspaceExports.push({
       specifier: manifest.name + (subpath === "." ? "" : subpath.slice(1)),
-      source: join(root, directory, "src", target.types.slice("./dist/".length, -".d.ts".length) + ".ts"),
+      source: join(root, directory, "src", types.slice("./dist/".length, -".d.ts".length) + ".ts"),
     });
   }
 }

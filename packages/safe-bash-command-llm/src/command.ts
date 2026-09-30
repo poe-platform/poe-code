@@ -15,7 +15,10 @@ import { resolveLlmSchemaInput } from "./schema-input.js";
 import { configurationCommand } from "./configuration-command.js";
 import { listLlmModels, LlmModelsUsageError, modelsGroupHelp } from "./models-list.js";
 
+import { selectLlmModelByQuery } from "./model-selection.js";
+
 interface Arguments {
+  queries: string[];
   schema?: string;
   schemaMulti?: string;
   model?: string;
@@ -32,7 +35,7 @@ interface Arguments {
 }
 
 async function parse(length: number, text: (index: number) => string, step: () => Promise<void>): Promise<Arguments> {
-  const parsed: Arguments = { prompt: "", params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
+  const parsed: Arguments = { prompt: "", queries: [], params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
   const operands: string[] = [];
   let ended = false;
   for (let index = 0; index < length; index++) {
@@ -51,9 +54,10 @@ async function parse(length: number, text: (index: number) => string, step: () =
       if (++index >= length) throw new Error(`Option ${flag} requires an argument`);
       return text(index);
     };
-    if (!["-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+    if (!["-q", "--query", "-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
     const value = attached ?? take();
-    if (flag === "-t" || flag === "--template") parsed.template = value;
+    if (flag === "-q" || flag === "--query") parsed.queries.push(value);
+    else if (flag === "-t" || flag === "--template") parsed.template = value;
     else if (flag === "--schema") parsed.schema = value;
     else if (flag === "--schema-multi") parsed.schemaMulti = value;
     else if (flag === "--key") parsed.key = value;
@@ -202,6 +206,10 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const promptOffset = argumentsValue.args[0] === "prompt" ? 1 : 0;
     const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step);
     const configuration = createLlmConfiguration(context);
+    if (args.model === undefined && args.queries.length) {
+      try { args.model = (await selectLlmModelByQuery(service.models, args.queries, await configuration.aliases(), signal)).model.id; }
+      catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Model selection failed"}`); }
+    }
     const templateStore = createLlmTemplateStore(context, templateLoaderOptions);
     const schemaInput = args.schemaMulti ?? args.schema;
     let schema = schemaInput ? await resolveLlmSchemaInput({...context, signal}, schemaInput, {

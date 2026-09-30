@@ -12,4 +12,4 @@ export { findExtractedRange } from "./extract-range.js";
 export { parseLlmSchemaDsl } from "./schemas.js";
 export { resolveLlmSchemaInput, type LlmSchemaInputOptions } from "./schema-input.js";
 
-export { getLlmModelAliases } from "./models-list.js";
+export { getLlmModelAliases, selectLlmModelByQuery } from "./model-selection.js";

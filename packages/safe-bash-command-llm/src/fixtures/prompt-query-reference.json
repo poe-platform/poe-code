@@ -1,0 +1,72 @@
+{
+  "reference": "llm==0.27.1",
+  "cases": [
+    {
+      "argv": [
+        "-q",
+        "FAST",
+        "hello"
+      ],
+      "exitCode": 0,
+      "stdout": "beta\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "prompt",
+        "--query=fast",
+        "hello"
+      ],
+      "exitCode": 0,
+      "stdout": "beta\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-qfast",
+        "-q",
+        "Fixture",
+        "hello"
+      ],
+      "exitCode": 0,
+      "stdout": "beta\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-q",
+        "speed",
+        "-q",
+        "alpha",
+        "hello"
+      ],
+      "exitCode": 0,
+      "stdout": "long-alpha\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-q",
+        "missing",
+        "-m",
+        "zeta",
+        "hello"
+      ],
+      "exitCode": 0,
+      "stdout": "zeta\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-q",
+        "missing",
+        "-q",
+        "other",
+        "hello"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: No model found matching queries missing, other\n"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
+import { getLlmModelAliases } from "./model-selection.js";
+export { getLlmModelAliases } from "./model-selection.js";
 import type { CommandContext } from "safe-bash-contracts";
-import type { LlmService, LlmServiceModel } from "./service.js";
+import type { LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
 
 export const modelsGroupHelp = "Usage: llm models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available models\n  default  Show or set the default model\n  options  Manage default options for models\n";
@@ -23,15 +25,6 @@ function wrapDescription(description: string): string {
   }
   if (line) lines.push(line);
   return lines.join("\n      ");
-}
-
-/** Combine catalog and persisted aliases with the same matching rules for every API. */
-export function getLlmModelAliases({ provider, model }: LlmServiceModel, configured: Readonly<Record<string, string>>): readonly string[] {
-  const aliases = new Set(model.aliases);
-  for (const [alias, target] of Object.entries(configured)) {
-    if (target === model.id || target === `${provider.name}/${model.id}` || model.aliases?.includes(target)) aliases.add(alias);
-  }
-  return [...aliases];
 }
 
 /** Reference model-list query semantics for the configured host catalog. */

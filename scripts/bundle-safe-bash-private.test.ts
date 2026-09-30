@@ -99,7 +99,7 @@ it("runs portable Lua filters without Node globals or builtins", async () => {
   const result = await build({
     stdin: { contents: `import {createLuaFilterCapability} from "./packages/safe-bash-command-pandoc/src/lua-filters.ts";
       const filter = createLuaFilterCapability(async () => new TextEncoder().encode('function Str(el) el.text = string.upper(el.text); return el end'));
-      globalThis.pending = filter.apply({"pandoc-api-version": [1,23,1], meta: {}, blocks: [{t:"Para",c:[{t:"Str",c:"portable"}]}]}, {kind:"lua",path:"upper.lua"}, {to:"plain", checkpoint(){}, charge(){}, bound(){}, async cooperate(){}}).then(document => {globalThis.result = document.blocks[0].c[0].c;});`, resolveDir: process.cwd() },
+      globalThis.pending = filter.apply({metadata: {}, resources: [], blocks: [{t:"Para",c:[{t:"Str",c:"portable"}]}]}, {kind:"lua",path:"upper.lua"}, {to:"plain", checkpoint(){}, charge(){}, bound(){}, async cooperate(){}}).then(document => {globalThis.result = document.blocks[0].c[0].c;});`, resolveDir: process.cwd() },
     bundle: true, platform: "browser", format: "iife", write: false, define, plugins, external: ["fengari"],
   });
   const context = { TextEncoder, TextDecoder, Uint8Array, result: undefined, pending: undefined };

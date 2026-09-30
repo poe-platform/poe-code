@@ -14,11 +14,9 @@ const cases = [
   ...['/', '//', '/#', '/%'].flatMap(operator => [
     `HOME=/home/user; p=X; r="~"; printf '<%s>\\n' "\${p${operator}X/$r}"`,
     `HOME=/home/user; p=X; r="~"; printf '<%s>\\n' \${p${operator}X/$r}`,
-    `HOME=/home/user; p=X; printf '<%s>\\n' "\${p${operator}X/~}"`,
     `HOME=/home/user; p=X; printf '<%s>\\n' \${p${operator}X/"~"}`,
   ]),
   'HOME=/home/user; p=/home/user/X; r="~"; printf "<%s>\\n" "${p/~/$r}"',
-  'HOME=/home/user; p=/home/user/X; printf "<%s>\\n" "${p/~/~}"',
   ...['#', '##', '%', '%%', '/', '//', '/#', '/%'].map(operator =>
     `HOME=/home/user; p=/home/user; a=(/home/user /home/user); printf '%s|%s\\n' "\${p${operator}~${operator.startsWith('/') ? '/X' : ''}}" "\${a[*]${operator}~${operator.startsWith('/') ? '/X' : ''}}"`,
   ),
@@ -41,9 +39,21 @@ const cases = [
     `x=$(printf '[%4s][%-4s][%.1s]' '${text}' '${text}' '${text}'); printf '%s\\n' "$x"`,
   ]),
 ];
-for (const maxExpansionBytes of [undefined, 65536]) for (const source of cases) test(`Bash parity (${maxExpansionBytes ?? 'default'} bytes): ${source}`, async () => {
-  const expected = execFileSync('/bin/bash', ['-c', source]);
-  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()), limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } });
+// Bash 5.2/5.3 expand raw replacement tildes inside an outer quoted expansion;
+// macOS's Bash 3.2 does not. Keep these modern expectations host-independent.
+const modernReplacementCases = [
+  ...['/', '//', '/#', '/%'].map(operator => ({
+    source: `HOME=/home/user; p=X; printf '<%s>\\n' "\${p${operator}X/~}"`,
+    stdout: '</home/user>\n',
+  })),
+  { source: 'HOME=/home/user; p=/home/user/X; printf "<%s>\\n" "${p/~/~}"', stdout: '</home/user/X>\n' },
+];
+for (const maxExpansionBytes of [undefined, 65536]) for (const { source, stdout } of [
+  ...cases.map(source => ({ source, stdout: undefined })), ...modernReplacementCases,
+]) test(`${stdout === undefined ? 'Bash parity' : 'Modern Bash replacement'} (${maxExpansionBytes ?? 'default'} bytes): ${source}`, async () => {
+  const env = { HOME: '/home/user' };
+  const expected = stdout === undefined ? execFileSync('/bin/bash', ['-c', source], { env: { ...process.env, ...env } }) : Buffer.from(stdout);
+  const shell = new Shell({ fs: new MemoryFileSystem(), env, commands: new CommandRegistry(basicCommands()), limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } });
   try {
     const actual = await shell.exec(source);
     assert.equal(actual.exitCode, 0);

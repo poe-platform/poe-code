@@ -21814,7 +21814,7 @@ export class Runtime {
     const replacementIO = part.replacement ? this.parameterOperandIO(part.replacement, state, io) : io;
     for (const [index, entry] of (part.replacement?.parts ?? []).entries()) {
       let value = entry.kind === "text" ? entry.value : await this.part(entry, state, replacementIO, hereString);
-      if (index === 0 && entry.kind === "text" && !part.quoted && !entry.quoted && /^~(?:\/|$)/u.test(value)) {
+      if (index === 0 && entry.kind === "text" && !entry.quoted && /^~(?:\/|$)/u.test(value)) {
         const home = state.variables.HOME ?? "~";
         scratch.reserve((home.length + value.length - 1) * 2, 0);
         value = home + value.slice(1);

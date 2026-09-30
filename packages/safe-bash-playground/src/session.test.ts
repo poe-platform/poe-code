@@ -10,7 +10,7 @@ vi.mock("virtual:safe-bash-worker-sources", async () => {
 
 vi.mock("./engine/index.js", async () => {
   const { buildBrowserEngine } = await import("./engine/build-plugin.mjs");
-  const built = await buildBrowserEngine();
+  const built = await buildBrowserEngine({ minify: true });
   return import(
     /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(`const navigator = { language: "en-US" };\n${built.code}\n//# sourceURL=safe-bash-browser-session.mjs`).toString("base64")}`
   );
@@ -21,7 +21,7 @@ const workspaceLimit = 16 * 1024 * 1024;
 let fixture: ReturnType<typeof browserWorkerFixture>;
 beforeAll(async () => {
   const { buildBrowserEngine } = await import("./engine/build-plugin.mjs");
-  fixture = browserWorkerFixture((await buildBrowserEngine({ entry: "../execution-worker.ts" })).code);
+  fixture = browserWorkerFixture((await buildBrowserEngine({ entry: "../execution-worker.ts", minify: true })).code);
   vi.stubGlobal("Worker", fixture.Worker);
 });
 afterEach(async () => {

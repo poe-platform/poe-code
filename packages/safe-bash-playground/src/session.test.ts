@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSession, SESSION_LIMITS } from "./session.js";
 import { sampleFiles } from "./samples.js";
 import { browserWorkerFixture } from "../test/browser-worker.js";
@@ -24,10 +24,14 @@ beforeAll(async () => {
   fixture = browserWorkerFixture((await buildBrowserEngine({ entry: "../execution-worker.ts", minify: true })).code);
   vi.stubGlobal("Worker", fixture.Worker);
 });
+// Native worker startup depends on host scheduling. Correctness cases control
+// deadlines explicitly; execution.test.ts verifies automatic deadline delivery.
+beforeEach(() => vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] }));
 afterEach(async () => {
   try {
     expect(fixture.workers.size).toBe(0);
   } finally {
+    vi.useRealTimers();
     await fixture.close();
   }
 });

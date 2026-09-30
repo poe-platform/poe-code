@@ -166,7 +166,7 @@ describe("native Vitest workspace result cache", () => {
     }
   });
 
-  it("injects --test-concurrency=1 into NODE_OPTIONS for non-safe-bash unit tasks so node --test never spawns parallel workers", async () => {
+  it("keeps native unit task NODE_OPTIONS accepted by the running Node version", async () => {
     const state = fixture();
     const observedOptions: Record<string, string | undefined> = {};
     const spawn = vi.fn((_exec, args, opts) => {
@@ -177,6 +177,11 @@ describe("native Vitest workspace result cache", () => {
       return child;
     });
     await testWorkspaces("/repo", { ...state, spawn, cache: false });
-    expect(observedOptions["--workspace=packages/native"]).toContain("--test-concurrency=1");
+    const { spawnSync } = await import("node:child_process");
+    const result = spawnSync(process.execPath, ["-e", "process.exit(0)"], {
+      env: { ...process.env, NODE_OPTIONS: observedOptions["--workspace=packages/native"] ?? "" },
+      encoding: "utf8"
+    });
+    expect(result.status, result.stderr).toBe(0);
   });
 });

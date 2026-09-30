@@ -224,8 +224,10 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         executionFailed = true;
         if (output) await output.abort(error);
         context.signal.throwIfAborted();
+        inputSignal.throwIfAborted();
         if (isFsError(error) && error.code === "EPIPE" && diagnostic === "write error") return { exitCode: 141 };
         if (!(error instanceof Diagnostic) && !isFsError(error)) {
+          if ((diagnostic === "write error" || diagnostic === "getrandom") && error instanceof Error) throw error;
           await writeDiagnostic(context.stderr, `${context.command}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
           return { exitCode: 1 };
         }

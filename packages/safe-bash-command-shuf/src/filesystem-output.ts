@@ -310,7 +310,7 @@ export async function openFileOutput(context: FileOutputContext, path: string, o
       if (flag === "wx") throw new FsError("ENOTSUP", { path, syscall: "writeStream", message: "exclusive output requires streaming support" });
       if (flag === "w" && capabilities.write === false) throw new FsError("ENOTSUP", { path, syscall: "writeFile" });
       if (flag === "a" && capabilities.append === false) throw new FsError("ENOTSUP", { path, syscall: "appendFile" });
-      if (!incremental && flag === "w") {
+      if (!incremental && flag === "w" && capabilities.append === false) {
         await fs.writeFile(path, new Uint8Array(), { ...fsOptions, flag });
         const chunks: Uint8Array[] = [];
         let size = 0;

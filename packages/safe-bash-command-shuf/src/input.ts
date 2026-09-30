@@ -69,8 +69,8 @@ export class FileInput {
           yield bytes;
         } };
       }
-      signal.throwIfAborted();
       this.source = ownedBytes(input, signal);
+      signal.throwIfAborted();
     });
     await this.opening;
   }

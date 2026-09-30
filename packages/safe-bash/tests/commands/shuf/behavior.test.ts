@@ -78,6 +78,7 @@ test("readFile-only VFS works for both records and entropy", async () => {
   await fs.writeFile("/in", Buffer.from("a\nb\nc\n"));
   await fs.writeFile("/random", entropy);
   Object.defineProperty(fs, "readStream", { value: undefined });
+  Object.defineProperty(fs, "openReadFile", { value: undefined });
   const actual = await run(["--random-source=/random", "/in"], undefined, undefined, { fs });
   assert.equal(actual.exitCode, 0);
   assert.equal(actual.stdout.length, 6);
@@ -169,6 +170,7 @@ test("cancellation waits for cooperative source cleanup", async () => {
 
 test("entropy failures are not replaced by insecure fallback", async () => {
   const fs = createMemoryFileSystem();
+  Object.defineProperty(fs, "openReadFile", { value: undefined });
   await fs.writeFile("/random", entropy);
   fs.readStream = () => (async function* () { yield await Promise.reject<Uint8Array>(new FsError("EIO")); })();
   const actual = await run(["-e", "a", "b", "--random-source=/random"], undefined, undefined, { fs });
@@ -178,6 +180,7 @@ test("entropy failures are not replaced by insecure fallback", async () => {
 
 test("retained entropy is copied before the producer advances", async context => {
   const fs = createMemoryFileSystem();
+  Object.defineProperty(fs, "openReadFile", { value: undefined });
   await fs.writeFile("/random", entropy);
   fs.readStream = () => (async function* () {
     const chunk = Buffer.alloc(1);
@@ -239,7 +242,9 @@ test("secure system entropy is used and its failure is propagated", async contex
     await assert.rejects(run(["-i0-9", "-n1"]), error => error === failure);
     assert.equal(mock.mock.callCount(), 1);
     assert.equal(mock.mock.calls[0]!.this, globalThis.crypto);
-    assert.ok(mock.mock.calls[0]!.arguments[0] instanceof Uint8Array);
+    const seed = mock.mock.calls[0]!.arguments[0];
+    assert.ok(seed instanceof Uint32Array);
+    assert.equal(seed.length, 4);
   } finally { mock.mock.restore(); }
 });
 
@@ -268,7 +273,10 @@ for (const entropySource of [false, true]) {
       finally { closed = true; }
     })();
     const overrides: Partial<CommandContext> = { fs, signal: controller.signal };
-    if (entropySource) fs.readStream = () => empty;
+    if (entropySource) {
+      Object.defineProperty(fs, "openReadFile", { value: undefined });
+      fs.readStream = () => empty;
+    }
     else Object.assign(overrides, { stdin: empty });
     const timer = setTimeout(() => controller.abort(reason), 5);
     try {

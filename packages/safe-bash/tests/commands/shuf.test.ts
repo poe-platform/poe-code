@@ -188,6 +188,7 @@ test("shuf accepts more than 4096 empty producer chunks and retires once", async
 test("shuf writes complete output through a buffered-only filesystem", async () => {
   const { fs, volume } = fixture();
   Object.defineProperty(fs, "writeStream", { value: undefined });
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, append: false } });
   const result = await shuffle(["-e", "a", "-o", "result"], "", { fs });
   assert.equal(result.exitCode, 0, result.stderr.toString());
   assert.equal(volume.readFileSync("/work/result", "utf8"), "a\n");

@@ -8,6 +8,7 @@ import { authenticateOracle, entropy, native, nativeOptions, run } from "./helpe
 
 test("review: entropy cleanup cannot replace an escaping output failure", async () => {
   const fs = createMemoryFileSystem();
+  Object.defineProperty(fs, "openReadFile", { value: undefined });
   await fs.writeFile("/random", entropy);
   const primary = new Error("primary output failure");
   const cleanup = new Error("entropy return failure");
@@ -29,6 +30,7 @@ test("review: entropy cleanup cannot replace an escaping output failure", async 
 test("review: falsey execution failures and diagnostic sink failures survive cleanup", async () => {
   for (const primary of [undefined, null, false, 0, "", new Error("diagnostic sink failure")]) {
     const fs = createMemoryFileSystem();
+    Object.defineProperty(fs, "openReadFile", { value: undefined });
     await fs.writeFile("/random", entropy);
     let returns = 0;
     fs.readStream = () => ({
@@ -51,6 +53,7 @@ test("review: falsey execution failures and diagnostic sink failures survive cle
 
 test("review: cleanup failure after successful execution remains observable", async () => {
   const fs = createMemoryFileSystem();
+  Object.defineProperty(fs, "openReadFile", { value: undefined });
   await fs.writeFile("/random", entropy);
   const cleanup = new Error("cleanup is the only failure");
   let returns = 0;
@@ -69,6 +72,7 @@ test("review: cleanup failure after successful execution remains observable", as
 for (const reason of [undefined, null, false, 0, new FsError("EIO")]) {
   test(`review: caller cancellation outranks rejected entropy cleanup: ${String(reason)}`, async () => {
     const fs = createMemoryFileSystem();
+    Object.defineProperty(fs, "openReadFile", { value: undefined });
     await fs.writeFile("/random", entropy);
     const controller = new AbortController();
     const cleanup = new Error("entropy return failure");
@@ -92,6 +96,7 @@ for (const reason of [undefined, null, false, 0, new FsError("EIO")]) {
 
 test("review: nonregular named input uses GNU unknown-size reservoir selection", nativeOptions, async () => {
   const fs = createMemoryFileSystem();
+  Object.defineProperty(fs, "openReadFile", { value: undefined });
   const bytes = Buffer.from("a\nb\nc\nd\ne\nf\ng\n");
   await fs.writeFile("/input", bytes);
   await fs.writeFile("/random", entropy);

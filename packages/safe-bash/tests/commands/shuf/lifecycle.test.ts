@@ -13,6 +13,8 @@ function deferred<Value>() {
 
 async function fixture() {
   const fs = createMemoryFileSystem();
+  // These controls exercise stream/readFile hooks rather than retained handles.
+  Object.defineProperty(fs, "openReadFile", { value: undefined, writable: true });
   await fs.writeFile("/random", entropy);
   const cleanup: InvocationCleanup[] = [];
   const context: CommandContext = {
@@ -48,9 +50,16 @@ test("entropy close waits for an admitted open and prohibits later reads", async
   const { fs, context } = await fixture();
   const entered = deferred<void>();
   const release = deferred<void>();
-  let reads = 0;
-  fs.access = async () => { entered.resolve(); await release.promise; };
-  fs.readStream = () => { reads++; return (async function* () {})(); };
+  let reads = 0, closes = 0;
+  fs.openReadFile = async () => {
+    entered.resolve();
+    await release.promise;
+    return {
+      async stat() { assert.fail("closed entropy must not inspect its late handle"); },
+      async read() { reads++; return new Uint8Array(); },
+      async close() { closes++; },
+    };
+  };
   const random = new RandomIntegers(context, "/random");
   const opening = random.open();
   const rejected = assert.rejects(opening);
@@ -62,6 +71,7 @@ test("entropy close waits for an admitted open and prohibits later reads", async
     assert.equal(completed, false);
   } finally { release.resolve(); await closing; await rejected; }
   assert.equal(reads, 0);
+  assert.equal(closes, 1);
 });
 
 for (const duringOpen of [false, true]) {

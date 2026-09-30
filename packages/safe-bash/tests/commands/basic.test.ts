@@ -924,11 +924,15 @@ test("printf formats signed nonfinite C operands across floating directives", as
   assert.equal(padded.stdout, "[    +nan][     inf][-INF    ]");
 });
 
-test("printf rejects malformed floating tokens and nonfinite integer operands", async () => {
-  for (const operand of ["0x.p2", "0x1p", "0x1p+", "0x1p2junk", "nan(bad!)", "infinite", ""]) {
+test("printf diagnoses trailing floating input and rejects nonfinite integer operands", async () => {
+  // NaN payloads retain the identifier-only profile, with the numeric prefix preserved.
+  for (const [operand, expected] of [
+    ["0x.p2", "0.000000"], ["0x1p", "1.000000"], ["0x1p+", "1.000000"],
+    ["0x1p2junk", "4.000000"], ["nan(bad!)", "nan"], ["infinite", "inf"], ["", "0.000000"],
+  ]) {
     const result = await run("printf", ["%f", operand]);
     assert.equal(result.exitCode, 1, operand);
-    assert.equal(result.stdout, "0.000000", operand);
+    assert.equal(result.stdout, expected, operand);
     assert.ok(result.stderr.includes("invalid number"), operand);
   }
   for (const operand of ["nan", "inf", "0x1p2"]) assert.equal((await run("printf", ["%d", operand])).exitCode, 1);

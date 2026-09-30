@@ -289,6 +289,10 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
           const parsed = parsePrintfFloat(supplied);
           number = parsed?.value ?? NaN;
           specialFloat = parsed?.special;
+          if (parsed?.error) {
+            await writeDiagnostic(context.stderr, `printf: '${supplied}': ${parsed.error}\n`, context.signal);
+            exitCode = 1;
+          }
         }
         if ("fFeEgGaA".includes(specifier) && (!Number.isFinite(number) && specialFloat === undefined || supplied === "" && suppliedIndex < args.length)) {
           await writeDiagnostic(context.stderr, `printf: '${supplied}': invalid number\n`, context.signal);

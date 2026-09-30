@@ -43,7 +43,7 @@ export async function parsePrintfDirective(format: string | Uint8Array, start: n
     if ((length === "h" || length === "l") && character() === length) offset++;
   }
   const specifier = character();
-  if (!specifier || !"sbqcdiouxXfFeEgGaA".includes(specifier)) {
+  if (!specifier || !"sbqQcdiouxXfFeEgGaA".includes(specifier)) {
     const end = start + 64;
     const preview = typeof format === "string" ? format.slice(start, end) : decoder.decode(format.subarray(start, end));
     throw new UsageError(`invalid format near '${preview}${format.length > end ? "..." : ""}'`);

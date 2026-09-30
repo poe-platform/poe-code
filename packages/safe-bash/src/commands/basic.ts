@@ -253,9 +253,11 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         if (flags.includes("-")) await output(context, padding);
         continue;
       }
-      if (specifier === "q") {
-        const quoted = await quotePrintf(arguments_.bytes(suppliedIndex) ?? new Uint8Array(), unicode.utf8, context.signal, flags.includes("#"));
-        const bytes = quoted.subarray(0, precision);
+      if (specifier === "q" || specifier === "Q") {
+        const suppliedBytes = arguments_.bytes(suppliedIndex) ?? new Uint8Array();
+        const quoted = await quotePrintf(specifier === "Q" ? suppliedBytes.subarray(0, precision) : suppliedBytes,
+          unicode.utf8, context.signal, flags.includes("#"));
+        const bytes = specifier === "Q" ? quoted : quoted.subarray(0, precision);
         const padding = " ".repeat(Math.max(0, width - bytes.length));
         if (!flags.includes("-")) await output(context, padding);
         await output(context, bytes);

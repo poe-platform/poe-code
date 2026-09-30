@@ -282,12 +282,18 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         const mimeType = attachment.mimeType ?? sniffMimeType(path, first.done ? new Uint8Array() : first.value);
         if (!acceptsMimeType(entry.model.attachmentTypes ?? [], mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${mimeType}`);
         admitInput(stat.size);
+        let closed = false, consumed = false;
         sourceAttachments.push({ mimeType, source: {
-          dispose: source.dispose,
+          async dispose() { closed = true; await source.dispose(); },
           bytes: { async *[Symbol.asyncIterator]() {
+            if (closed || consumed) throw new FsError("EBADF", { message: "LLM attachment source is closed" });
+            consumed = true;
+            signal.throwIfAborted();
             if (!first.done) yield first.value;
             while (true) {
+              if (closed) throw new FsError("EBADF", { message: "LLM attachment source is closed" });
               const next = await interrupted(() => input.next(), signal);
+              if (closed) throw new FsError("EBADF", { message: "LLM attachment source is closed" });
               if (next.done) break;
               yield next.value;
             }

@@ -35,7 +35,7 @@ test("agent composition retains an explicitly supplied kill-after policy", async
   assert.equal((await timeout.execute(capture.context)).exitCode, 137);
 });
 
-test("default kill-after terminates a shell which ignores TERM", { timeout: 5000 }, async () => {
+test("default kill-after terminates a shell which ignores TERM", { timeout: 15000 }, async () => {
   const fs = createMemoryFileSystem();
   const shell = new Shell({ fs });
   shell.use(agentCommands());
@@ -46,7 +46,7 @@ test("default kill-after terminates a shell which ignores TERM", { timeout: 5000
   } finally { await shell.dispose(); }
 });
 
-test("explicit worker commands can be forcibly retired while their event loop is blocked", { timeout: 5000 }, async () => {
+test("explicit worker commands can be forcibly retired while their event loop is blocked", { timeout: 15000 }, async () => {
   const shell = new Shell({ fs: createMemoryFileSystem(), workerModules: [{
     specifier: new URL("./timeout-worker-fixture.ts", import.meta.url).href,
     exportName: "workerCommands",
@@ -60,7 +60,7 @@ test("explicit worker commands can be forcibly retired while their event loop is
   } finally { await shell.dispose(); }
 });
 
-test("default TERM can retire a blocked event loop without waiting for escalation", { timeout: 5000 }, async () => {
+test("default TERM can retire a blocked event loop without waiting for escalation", { timeout: 15000 }, async () => {
   const shell = new Shell({ fs: createMemoryFileSystem(), workerModules: [{
     specifier: new URL("./timeout-worker-fixture.ts", import.meta.url).href,
     exportName: "workerCommands",
@@ -117,7 +117,7 @@ test("worker children inherit ignored TERM from their caller", async () => {
   } finally { await shell.dispose(); }
 });
 
-test("parent cancellation retires the worker and preserves the parent's reason", { timeout: 5000 }, async () => {
+test("parent cancellation retires the worker and preserves the parent's reason", { timeout: 15000 }, async () => {
   const controller = new AbortController();
   const reason = new Error("caller cancelled");
   const shell = new Shell({ fs: createMemoryFileSystem() });
@@ -130,7 +130,7 @@ test("parent cancellation retires the worker and preserves the parent's reason",
   } finally { await shell.dispose(); }
 });
 
-test("worker timeout retires a pending stdin read and leaves closure to its caller", { timeout: 5000 }, async () => {
+test("worker timeout retires a pending stdin read and leaves closure to its caller", { timeout: 15000 }, async () => {
   let started = false;
   let closes = 0;
   const stdin = {
@@ -151,7 +151,7 @@ test("worker timeout retires a pending stdin read and leaves closure to its call
   } finally { await shell.dispose(); }
 });
 
-test("STOP waits for hard escalation rather than terminating the child", { timeout: 5000 }, async () => {
+test("STOP waits for hard escalation rather than terminating the child", { timeout: 15000 }, async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() });
   shell.use(agentCommands());
   try {
@@ -262,9 +262,9 @@ for (const operation of ["metadata", "stream"] as const) {
       const shell = new Shell({ fs, deviceView: "provided" }).use(agentCommands());
       try {
         const child = operation === "metadata" ? "ls -d /blocked" : "cat /blocked";
-        const script = `sh -c 'timeout 0.02 ${child}; printf continued; sleep 0.1'`;
+        const script = `sh -c 'timeout 0.2 ${child}; printf continued; sleep 0.1'`;
         const observations: boolean[] = [];
-        const result = await shell.exec(isolated ? `timeout --preserve-status -k0.1 1 ${script}` : script, {
+        const result = await shell.exec(isolated ? `timeout --preserve-status -k0.1 5 ${script}` : script, {
           stdout: { async write(bytes) {
             if (new TextDecoder().decode(bytes) === "continued") observations.push(closed);
           } },

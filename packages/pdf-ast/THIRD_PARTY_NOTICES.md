@@ -542,3 +542,10 @@ nodes preserve byte representation, so decoded strings replace Java COSString
 value equality. `src/ast.ts` follows `COSString` in using PDFDocEncoding only
 for representable characters and UTF-16BE otherwise. The reverse encoding map
 is derived from the existing decoder table. Apache-2.0, ASF notice above.
+
+`src/cos/pdfbox-lexer.test.ts` adapts `TestCOSParser` and `TestCOSNumber`,
+keeping the upstream literal, name, and numeric expectations through the local
+token API. Java-specific number range and object identity checks are omitted.
+Literal recovery in `src/cos/lexer.ts` follows `BaseParser.checkForEndOfString`;
+the adapter defers the recovery until EOF to preserve balanced multiline
+strings. Additional local cases check following fields and token budgets.

@@ -295,6 +295,7 @@ export class CosByteLexer {
     const start = this.pos;
     this.pos++;
     let depth = 1;
+    let recovery: { offset: number; length: number } | undefined;
     const out: number[] = [];
 
     while (this.pos < this.end && depth > 0) {
@@ -331,7 +332,20 @@ export class CosByteLexer {
         out.push(b);
       } else if (b === 0x29) {
         depth--;
-        if (depth > 0) out.push(b);
+        if (depth > 0) {
+          // PDFBox BaseParser.checkForEndOfString identifies a dictionary
+          // boundary after an unmatched close. Defer recovery until EOF so
+          // balanced multiline strings retain their literal contents.
+          const next = this.bytes[this.pos];
+          const afterLine = next === 0x0d && this.bytes[this.pos + 1] === 0x0a
+            ? this.pos + 2 : this.pos + 1;
+          const delimiter = this.bytes[afterLine];
+          if (!recovery && this.pos + 2 < this.end &&
+              (next === 0x0a || next === 0x0d) && (delimiter === 0x2f || delimiter === 0x3e)) {
+            recovery = { offset: this.pos, length: out.length };
+          }
+          out.push(b);
+        }
       } else if (b === 0x0d) {
         if (this.pos < this.end && this.bytes[this.pos] === 0x0a) this.pos++;
         out.push(0x0a);
@@ -343,6 +357,10 @@ export class CosByteLexer {
       }
     }
 
+    if (depth > 0 && recovery) {
+      this.pos = recovery.offset;
+      out.length = recovery.length;
+    }
     return {
       kind: "string",
       bytes: Uint8Array.from(out),

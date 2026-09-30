@@ -1,5 +1,6 @@
 import type { ByteSource, InvocationCleanup } from "safe-bash-contracts";
 import type { HttpRequest, HttpResponse, HttpTransport } from "safe-bash-contracts/http";
+import { yieldTurn } from "safe-bash-contracts/yield";
 
 export function openAiAbortable<Value>(pending: PromiseLike<Value>, signal: AbortSignal): Promise<Value> {
   return new Promise((resolve, reject) => {
@@ -21,7 +22,7 @@ export async function* openAiBytes(source: ByteSource, signal: AbortSignal, limi
   signal.throwIfAborted();
   const iterator = source[Symbol.asyncIterator]();
   let failed = false, finished = false;
-  let size = 0;
+  let size = 0, windows = 0;
   try {
     while (true) {
       signal.throwIfAborted();
@@ -30,7 +31,12 @@ export async function* openAiBytes(source: ByteSource, signal: AbortSignal, limi
       if (!(next.value instanceof Uint8Array)) throw new Error("OpenAI returned a non-byte response chunk");
       size += next.value.byteLength;
       if (size > limit) throw new RangeError("Provider response byte limit exceeded");
-      yield Uint8Array.from(next.value);
+      if (!next.value.byteLength) yield new Uint8Array(0);
+      for (let offset = 0; offset < next.value.byteLength; offset += 16384) {
+        if (++windows % 64 === 0) await yieldTurn(signal);
+        signal.throwIfAborted();
+        yield Uint8Array.from(next.value.subarray(offset, offset + 16384));
+      }
     }
   } catch (error) {
     failed = true;

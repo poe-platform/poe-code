@@ -122,3 +122,15 @@ test('flowchart linkStyle color reaches edge labels', async () => {
   const scene = layoutMermaid(parseMermaid('flowchart LR\nA -->|hello| B\nlinkStyle 0 color:#ff0000,stroke:#123456,stroke-width:5px'));
   assert.equal(scene.edges[0]!.labelPill!.lines[0]!.color, '#ff0000');
 });
+
+test('PDF retains intermediate PNG work and memory accounting without counting it as output', async () => {
+  const { renderMermaidPdf } = await import('./index.js');
+  const source = 'flowchart TD\nA --> B';
+  const png = renderMermaidPng(source);
+  const pdf = renderMermaidPdf(source);
+  assert.ok(pdf.accounting.work >= png.accounting.work);
+  assert.ok(pdf.accounting.memoryBytes >= png.accounting.memoryBytes);
+  assert.equal(pdf.accounting.outputBytes, pdf.pdf.length);
+  assert.throws(() => renderMermaidPdf(source, { limits: { maxWork: png.accounting.work - 1 } }), /work budget/);
+  assert.throws(() => renderMermaidPdf(source, { limits: { maxMemoryBytes: png.accounting.memoryBytes - 1 } }), /Memory byte budget/);
+});

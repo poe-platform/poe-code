@@ -252,7 +252,8 @@ export function* encodeRgbaToPngSteps(
   rgba: Uint8Array,
   width: number,
   height: number,
-  budget?: MermaidBudget
+  budget?: MermaidBudget,
+  destination: "output" | "intermediate" = "output"
 ): Generator<void, Uint8Array, void> {
   yield;
 
@@ -266,8 +267,9 @@ export function* encodeRgbaToPngSteps(
   }
 
   const rowStride = width * 4;
-  const filtered = new Uint8Array((rowStride + 1) * height);
-  budget?.chargeMemoryBytes(filtered.byteLength);
+  const filteredBytes = (rowStride + 1) * height;
+  budget?.chargeMemoryBytes(filteredBytes);
+  const filtered = new Uint8Array(filteredBytes);
 
   // Filter 1 (Sub) turns horizontal solid-color scanlines into zeros
   for (let y = 0; y < height; y++) {
@@ -302,7 +304,8 @@ export function* encodeRgbaToPngSteps(
   const iendChunk = (yield* makeChunkSteps("IEND", new Uint8Array(0)));
 
   const totalLen = PNG_SIGNATURE.length + ihdrChunk.length + idatChunk.length + iendChunk.length;
-  budget?.chargeOutputBytes(totalLen);
+  if (destination === "intermediate") budget?.chargeMemoryBytes(totalLen);
+  else budget?.chargeOutputBytes(totalLen);
 
   const png = new Uint8Array(totalLen);
   let offset = 0;

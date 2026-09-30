@@ -83,8 +83,7 @@ export interface MermaidPdfResult {
 export function* renderMermaidPdfSteps(source: string, options?: MermaidPngRenderOptions): Generator<void, MermaidPdfResult, void> {
   const { scene, budget, renderOptions } = yield* prepareSceneSteps(source, options);
   const raster = yield* rasterizeSceneSteps(scene, { scale: renderOptions?.scale ?? 1, budget });
-  const png = yield* encodeRgbaToPngSteps(raster.rgba, raster.width, raster.height);
-  budget.chargeMemoryBytes(png.byteLength);
+  const png = yield* encodeRgbaToPngSteps(raster.rgba, raster.width, raster.height, budget, "intermediate");
   budget.check();
   const document = PdfDocument.create();
   const width = scene.width * 0.75, height = scene.height * 0.75;

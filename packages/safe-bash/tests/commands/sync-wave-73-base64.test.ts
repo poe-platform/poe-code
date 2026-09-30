@@ -33,3 +33,17 @@ test("base64 loops work without the Node Buffer global", async () => {
     await shell.dispose();
   }
 });
+
+for (const loop of [
+  "for i in {1..2}",
+  "for ((i=1;i<=2;i++))",
+  "i=0; while ((i++<2))",
+]) test(`raw substitution bytes survive assignment in ${loop}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createByteCommands()]) });
+  try {
+    const result = await shell.exec(String.raw`${loop}; do echo before; x=$(printf '\377\376\n\n'); printf '%s' "$x" | base64; done`);
+    assert.equal(result.stdout, "before\n//4=\nbefore\n//4=\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});

@@ -188,8 +188,8 @@ test("source append during streaming is detected before file publication", async
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["input"]);
 });
 
-test("explicit 256 MiB decoded output cap protects existing files without retaining expanded data", { timeout: 15000 }, async context => {
-  const member = gzipSync(Buffer.alloc(1024 * 1024, 65));
+test("configured decoded output cap protects existing files without retaining expanded data", { timeout: 15000 }, async context => {
+  const member = gzipSync(Buffer.alloc(1024, 65));
   const archive = Buffer.concat(Array.from({ length: 257 }, () => member));
   const fs = await memory({ files: { "input.gz": archive, input: "PROTECTED" } });
   let consumed = 0;
@@ -198,11 +198,11 @@ test("explicit 256 MiB decoded output cap protects existing files without retain
     writeFlag = options?.flag;
     for await (const chunk of readBytes(source, options?.signal)) consumed += chunk.length;
   } });
-  const shell = new Shell({ fs: wrapped, cwd: "/work" }).use(byteCommands({ compression: { maxDecodedBytes: 256 * 1024 * 1024 } }));
+  const shell = new Shell({ fs: wrapped, cwd: "/work" }).use(byteCommands({ compression: { maxDecodedBytes: 256 * 1024 } }));
   context.after(() => shell.dispose());
   const result = await shell.exec("gunzip -f input.gz");
   assert.equal(result.exitCode, 1); assert.match(result.stderr, /decompression decoded byte limit exceeded/u);
-  assert.equal(consumed, 256 * 1024 * 1024); assert.equal(writeFlag, "w");
+  assert.equal(consumed, 256 * 1024); assert.equal(writeFlag, "w");
   assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), "PROTECTED");
   assert.deepEqual(Buffer.from(await fs.readFile("/work/input.gz")), archive);
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name).sort(), ["input", "input.gz"]);

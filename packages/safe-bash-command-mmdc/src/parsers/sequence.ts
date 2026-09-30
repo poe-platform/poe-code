@@ -254,7 +254,17 @@ export function* parseSequenceDiagramSteps(
       if (openBox) throw new MermaidError("E_SYNTAX", "Participant boxes cannot be nested", { span });
       let label = trimWhitespace(text.slice(afterKw)), fill: string | undefined;
       const first = readWord(label, 0);
-      try { parseCssColor(first.word); fill = first.word; label = trimWhitespace(label.slice(first.next)); } catch { /* A color is optional. */ }
+      let colorEnd = first.next;
+      const opening = label.indexOf("(");
+      if (opening >= 0 && opening < colorEnd) {
+        let depth = 0;
+        for (let index = opening; index < label.length; index++) {
+          if (label[index] === "(") depth++;
+          if (label[index] === ")" && --depth === 0) { colorEnd = index + 1; break; }
+        }
+      }
+      const color = label.slice(0, colorEnd);
+      try { parseCssColor(color); fill = color; label = trimWhitespace(label.slice(colorEnd)); } catch { /* A color is optional. */ }
       checkSafeLabelText(label, budget, span);
       openBox = { id: `participant_box_${groups.length}`, label: stripQuotes(label), kind: "participantBox", fill, span };
       budget.enterDepth(1);

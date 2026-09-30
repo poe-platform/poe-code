@@ -108,3 +108,11 @@ test('sequence named links retain every label and URL across repeated declaratio
   for (const path of ['docs', 'status', 'help', 'profile']) assert.ok(svg.includes(`href="https://example.com/${path}"`));
   assert.ok(renderMermaidPng(source).png.length > 0);
 });
+
+test('sequence boxes accept spaced functional CSS colors', () => {
+  for (const fill of ['rgb(33, 66, 99)', 'rgba(33, 66, 99, 0.5)']) {
+    const document = parseMermaid(`sequenceDiagram\nbox ${fill} Team\nparticipant A\nend\nA->>A: Hi`);
+    assert.equal(document.groups[0]!.fill, fill);
+    assert.equal(document.groups[0]!.label, 'Team');
+  }
+});

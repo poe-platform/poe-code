@@ -1,7 +1,7 @@
 import type { CommandContext } from '../../contracts/index.js';
 import type { LlmService, LlmServiceRequest, LlmServiceSourceRequest } from '../llm/service.js';
 import type { LlmOption, LlmInputSource } from '../llm/types.js';
-import { getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, findExtractedRange, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplateLoader } from 'safe-bash-command-llm';
+import { selectLlmModelByQuery, getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, findExtractedRange, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplateLoader } from 'safe-bash-command-llm';
 import { sniffMimeType } from '../llm/mime.js';
 import { pathOf } from '../internal.js';
 import type { PythonHostCapability, PythonHostValue } from './host-capabilities.js';
@@ -291,6 +291,14 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       signal.throwIfAborted();
       const operation = record(value);
       const payload = record(operation.payload ?? {});
+      if (operation.operation === 'select_model') {
+        const queries = payload.queries;
+        if (!Array.isArray(queries) || !queries.length || queries.some(query => typeof query !== 'string')) throw new TypeError('Model queries must be a nonempty array of strings');
+        const configuration = createLlmConfiguration(configurationContext(context,payload,signal));
+        const selected = await selectLlmModelByQuery(service.models,queries as string[],await configuration.aliases(),signal);
+        jsonBytes(selected.model.id,bufferedLimit);
+        return selected.model.id;
+      }
       if (operation.operation === 'models') {
         const configuration = createLlmConfiguration(configurationContext(context,payload,signal));
         const aliases = await configuration.aliases();

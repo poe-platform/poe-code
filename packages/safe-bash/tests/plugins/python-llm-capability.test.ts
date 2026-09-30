@@ -491,3 +491,19 @@ test('resolves key aliases on the JavaScript host without exposing stored keys t
   assert.equal('keys' in config, false);
   assert.equal(JSON.stringify(config).includes('sk-host-only-secret'), false);
 });
+
+test('Python model queries reuse shared selection and canonical aliases without invoking providers', async () => {
+  const {fs} = await fixture();
+  const provider:LlmProvider = {name:'catalog',models:[{id:'long-model'},{id:'model'}],
+    complete() { throw new Error('Selection must not invoke provider'); }};
+  const service = createLlmService({providers:[provider]});
+  const capability = createPythonLlmCapability({fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'}},service);
+  await capability.call!({operation:'configure',payload:{action:'set_alias',name:'preferred',model:'long-model'}},{signal});
+  assert.equal(await capability.call!({operation:'select_model',payload:{queries:['CATALOG','long']}},{signal}),'long-model');
+  assert.equal(await capability.call!({operation:'select_model',payload:{queries:['model']}},{signal}),'model');
+  assert.equal(await capability.call!({operation:'select_model',payload:{queries:['preferred']}},{signal}),'long-model');
+  await assert.rejects(capability.call!({operation:'select_model',payload:{queries:['missing']}},{signal}),/No model found/);
+  for (const queries of [[],[1],'quick']) {
+    await assert.rejects(capability.call!({operation:'select_model',payload:{queries}},{signal}),/queries/);
+  }
+});

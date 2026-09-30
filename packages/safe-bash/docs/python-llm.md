@@ -79,6 +79,13 @@ response = await client.complete(
 )
 ```
 
+Use `model = await client.select_model("provider", "small")` to select a model
+with the shared Bash query rules, then pass that ID as `model=model`. Queries
+match case-insensitively against provider/model names and catalog or saved aliases.
+All queries must match; the shortest matching model ID wins, with catalog order
+breaking ties. No match raises an error. Selection inherits the client timeout,
+current configuration directory and host response budget without calling a provider.
+
 Paths refer to the caller's canonical agent filesystem. Python sends attachment
 paths, rather than copying attachment contents into the request. JavaScript owns
 reading, authorization and provider transport. Binary results are `response.data`;
@@ -144,7 +151,7 @@ with its own cleanup scope and the same borrowed bridge.
 
 | Feature | Python API | Host responsibility |
 | --- | --- | --- |
-| Discovery and selection | `models()`, `model=` | Resolve identities through the shared catalog and list its aliases alongside canonical saved aliases |
+| Discovery and selection | `models()`, `select_model(*queries)`, `model=` | Resolve identities through the shared catalog and list its aliases alongside canonical saved aliases |
 | Prompt, system and messages | `Request`, `Message`, `complete()` | Validate and dispatch the same request as the CLI |
 | Options | String, safe integer (±9,007,199,254,740,991), finite float, boolean, null | Preserve types and validate provider settings |
 | Attachments | `Attachment(path, mime_type)` | Lease canonical files, resolve relative paths from current Python cwd and stream bounded input chunks; infer MIME from a bounded prefix |

@@ -25,6 +25,8 @@ class FakeBridge:
    raise LlmError('invalid_option', 'Unsupported temperature')
   if operation == 'configuration':
    return {'default_model': None, 'aliases': {}, 'model_options': {}}
+  if operation == 'select_model':
+   return 'provider/model'
   if operation == 'models':
    return [{'id': 'provider/model', 'aliases': ['small'], 'capabilities': ['complete', 'stream']}]
   if operation == 'embed':
@@ -42,6 +44,18 @@ class FakeBridge:
   return chunks()
 
 class LibraryTests(unittest.IsolatedAsyncioTestCase):
+ async def test_model_selection_is_structured_and_validates_queries(self):
+  bridge = FakeBridge()
+  async with Client(bridge=bridge) as client:
+   self.assertEqual(await client.select_model('FAST', 'small'), 'provider/model')
+   self.assertEqual(bridge.calls[-1][0], 'select_model')
+   self.assertEqual(bridge.calls[-1][1]['queries'], ['FAST', 'small'])
+   count = len(bridge.calls)
+   for queries in [(), (1,), ('fast', None)]:
+    with self.assertRaises(TypeError):
+     await client.select_model(*queries)
+   self.assertEqual(len(bridge.calls), count)
+
  async def test_all_operations_capture_current_guest_configuration_context(self):
   from unittest.mock import patch
   bridge = FakeBridge()
@@ -49,6 +63,7 @@ class LibraryTests(unittest.IsolatedAsyncioTestCase):
    with patch('os.getcwd', return_value='/guest'), patch.dict(__import__('os').environ, {'HOME':'/guest/home','XDG_CONFIG_HOME':'/guest/xdg','LLM_USER_PATH':'/guest-settings','EXTRA':'synthetic'}, clear=True):
     await client.complete('context')
     await client.models()
+    await client.select_model('small')
     await client.configuration()
     await client.embed(['one'])
     async with client.stream('context') as stream:

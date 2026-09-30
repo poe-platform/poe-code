@@ -386,6 +386,12 @@ class Client:
                              aliases=copy.deepcopy(value.get("aliases", {})),
                              model_options=copy.deepcopy(value.get("model_options", {})))
 
+    async def select_model(self, *queries: str) -> str:
+        if not queries or not all(isinstance(query, str) for query in queries):
+            raise TypeError("Model queries must be one or more strings")
+        payload = {**_configuration_context(), "queries": list(queries)}
+        return await self._run(lambda: self._bridge.call("select_model", payload), self._timeout)
+
     async def models(self):
         values = await self._run(lambda: self._bridge.call("models", _configuration_context()), self._timeout)
         return tuple(Model(id=value["id"], aliases=tuple(value.get("aliases", ())),

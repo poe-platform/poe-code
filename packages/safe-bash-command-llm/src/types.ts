@@ -1,5 +1,6 @@
 import type { ByteSource } from "safe-bash-contracts";
 import type { LlmService } from "./service.js";
+import type { LlmTemplateLoader } from "./templates.js";
 export type LlmOption = string | number | boolean | null;
 export type LlmCapability = "messages" | "schema" | "embed";
 export interface LlmResponseMetadata {
@@ -60,6 +61,8 @@ export interface LlmCommandsOptions {
   readonly providers?: readonly LlmProvider[];
   readonly defaultModel?: string;
   readonly replace?: boolean;
+  readonly templateLoaders?: ReadonlyMap<string, LlmTemplateLoader>;
+  readonly maxRemoteTemplateBytes?: number;
 }
 
 /** A caller-owned input lease. Disposal must release resources independently of pending reads. */

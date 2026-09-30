@@ -6,7 +6,7 @@ import { acceptsMimeType, sniffMimeType } from "./mime.js";
 import type { LlmCommandsOptions, LlmRequest, LlmInputSource } from "./types.js";
 import { createLlmService, type LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
-import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters } from "./templates.js";
+import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters, type TemplateLoaderOptions } from "./templates.js";
 import { createLlmSpool } from "./retained-spool.js";
 import { fileSource } from "./file-source.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
@@ -71,7 +71,7 @@ async function interrupted<Value>(start: () => Value | PromiseLike<Value>, signa
   });
 }
 
-async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"]) {
+async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions) {
   context.signal.throwIfAborted();
   const controller = new AbortController();
   const operation = createOutputOperation(context, context.stdout);
@@ -171,9 +171,10 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       return { exitCode: 0 };
     }
     if (argumentsValue.args[0] === "templates") {
-      try { await createLlmTemplateStore(context).command(Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText); }
+      let exitCode = 0;
+      try { exitCode = await createLlmTemplateStore(context, templateLoaderOptions).command(Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, text => writeDiagnostic(context.stderr, text, signal)); }
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Template failed"}`); }
-      return { exitCode: 0 };
+      return { exitCode };
     }
     const configurationInvocation = argumentsValue.args[0] === "aliases" || argumentsValue.args[0] === "models" && ["default", "options"].includes(argumentsValue.args[1] ?? "") || argumentsValue.args[0] === "--version";
     if (configurationInvocation) {
@@ -191,7 +192,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const promptOffset = argumentsValue.args[0] === "prompt" ? 1 : 0;
     const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step);
     const configuration = createLlmConfiguration(context);
-    const templateStore = createLlmTemplateStore(context);
+    const templateStore = createLlmTemplateStore(context, templateLoaderOptions);
     if (args.save && args.template) throw new Error("Error: --save cannot be used with --template");
     let stored;
     try { stored = args.template === undefined ? undefined : await templateStore.load(args.template); }
@@ -394,8 +395,10 @@ export function createLlmCommand(options: LlmCommandsOptions = {}): CommandDefin
   }
   const limits = options.limits === undefined ? undefined : Object.freeze({ ...options.limits });
   if (options.service && (options.providers !== undefined || options.defaultModel !== undefined)) throw new TypeError("Configure providers and defaultModel on the injected LLM service");
+  const maxRemoteBytes = options.maxRemoteTemplateBytes ?? limits?.maxInputBytes ?? 1_048_576;
+  const templateLoaderOptions: TemplateLoaderOptions = { maxRemoteBytes, ...(options.templateLoaders ? { loaders: options.templateLoaders } : {}) };
   const service = options.service ?? createLlmService({ ...options, providers: options.providers ?? [] });
-  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits) };
+  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions) };
 }
 
 export function createLlmCommands(options: LlmCommandsOptions = {}): readonly CommandDefinition[] {

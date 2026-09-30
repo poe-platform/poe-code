@@ -36,8 +36,7 @@ for (const [name, source, expected] of [
     for (const command of basicCommands()) shell.register(command);
     try {
       const result = await shell.exec(source);
-      if (name === "collation") assert.match(result.stderr, /unsupported conditional profile/);
-      else assert.equal(result.stderr, "");
+      assert.equal(result.stderr, "");
       assert.equal(result.stdout, `${expected}\n`);
     } finally { await shell.dispose(); }
   });

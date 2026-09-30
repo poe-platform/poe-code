@@ -1,7 +1,7 @@
 import { RegexExecutor } from "../commands/regex-execution/portable.js";
 import { createBoundedRegexProvider } from "../commands/regex-execution/bounded-provider.js";
 import { commandExecutor, composeRawAgentCommands, type AgentCommandsOptions, type AgentRegexExecutors } from "./composition.js";
-import type { VirtualShellPlugin } from "../contracts/index.js";
+import type { CommandDefinition, VirtualShellPlugin } from "../contracts/index.js";
 
 export type BaseAgentCommandsOptions = Omit<AgentCommandsOptions, "gh">;
 
@@ -14,16 +14,23 @@ export function createRegexExecutors(options: AgentCommandsOptions): AgentRegexE
 
 
 export function baseAgentCommands(options: BaseAgentCommandsOptions = {}): VirtualShellPlugin {
-  // Forward supplied limits without turning omitted defaults into explicit options.
   const regex = Object.freeze({ ...options.regex });
-  const executors = createRegexExecutors({ ...options, regex });
+  return createAgentCommandPlugin({ ...options, regex }, createRegexExecutors({ ...options, regex }));
+}
+
+export function createAgentCommandPlugin(
+  options: BaseAgentCommandsOptions,
+  executors: AgentRegexExecutors,
+  additionalCommands: readonly CommandDefinition[] = [],
+): VirtualShellPlugin {
+  const regex = options.regex ?? {};
   let disposal: Promise<void> | undefined;
   const plugin: VirtualShellPlugin = {
     name: "base-agent-commands",
     setup(host) {
       if (disposal) throw new Error("Agent commands are disposed");
       host.provideCapabilities?.({ regex: { executor: executors.grep.provider, limits: regex } });
-      const definitions = composeRawAgentCommands({ ...options, execute: options.execute ?? commandExecutor(name => host.commands.get(name)) }, executors);
+      const definitions = composeRawAgentCommands({ ...options, execute: options.execute ?? commandExecutor(name => host.commands.get(name)) }, executors, additionalCommands);
       if (!options.replace) for (const definition of definitions) {
         if (host.commands.has(definition.name)) throw new Error(`Command already registered: ${definition.name}`);
       }

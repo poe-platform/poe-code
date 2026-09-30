@@ -1,4 +1,4 @@
-import { baseAgentCommands, createRegexExecutors } from "./base.js";
+import { createAgentCommandPlugin, createRegexExecutors } from "./base.js";
 import { createGhCommands } from "../lazy-gh.js";
 import type { CommandDefinition } from "../contracts/index.js";
 import { composeAgentCommands, type AgentCommandsOptions } from "./composition.js";
@@ -18,18 +18,14 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
 }
 
 export function agentCommands(options: AgentCommandsOptions = {}): VirtualShellPlugin {
-  const base = baseAgentCommands(options);
+  const regex = Object.freeze({ ...options.regex });
+  const base = createAgentCommandPlugin({ ...options, regex }, createRegexExecutors({ ...options, regex }), createGhCommands(options.gh));
   const recipe = captureAgentWorkerRecipe(options);
   const plugin: VirtualShellPlugin = {
     name: "agent-commands",
     setup(host) {
       const previous = new Map(host.commands.list().map(command => [command.name, command.execute]));
-      const definitions = createGhCommands(options.gh);
-      if (!options.replace) for (const definition of definitions) {
-        if (host.commands.has(definition.name)) throw new Error(`Command already registered: ${definition.name}`);
-      }
       base.setup(host);
-      for (const definition of definitions) host.commands.register(definition, { replace: options.replace ?? false });
       if (recipe) for (const definition of host.commands.list()) {
         if (previous.get(definition.name) !== definition.execute) agentWorkerRecipes.set(definition.execute, recipe);
       }

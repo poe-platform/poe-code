@@ -119,7 +119,8 @@ function abortLoader<Value>(start: () => PromiseLike<Value> | Value, signal: Abo
     if (signal.aborted) abort();
   });
 }
-export function createLlmTemplateStore(context: Pick<CommandContext, "fs" | "cwd" | "env" | "signal" | "fetch">, loaders?: TemplateLoaderOptions) {
+export type LlmTemplateStoreContext = Pick<CommandContext, "fs" | "cwd" | "env" | "signal" | "capabilities"> & Partial<Pick<CommandContext, "invoke" | "stdin" | "stdout" | "stderr">> & { readonly fetch?: typeof globalThis.fetch | undefined };
+export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders?: TemplateLoaderOptions) {
   const directory = `${createLlmConfiguration(context).directory}/templates`;
   const filename = (name: string): string => {
     if (!name || name.includes("/") || name.includes("\\") || name === "." || name === "..") throw new Error(`Invalid template name: ${name}`);
@@ -129,13 +130,14 @@ export function createLlmTemplateStore(context: Pick<CommandContext, "fs" | "cwd
     try {
       context.signal.throwIfAborted();
       if (name.startsWith("https://") || name.startsWith("http://")) {
-        if (!context.fetch) throw new Error("Template URL loading is not configured");
+        const fetch = context.fetch ?? context.capabilities?.fetch;
+        if (!fetch) throw new Error("Template URL loading is not configured");
         if (!loaders || !Number.isSafeInteger(loaders.maxRemoteBytes) || loaders.maxRemoteBytes < 1) throw new Error("Template URL byte limit is not configured");
         let response: Response | undefined, failed = false;
         let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
         const abort = () => { void reader?.cancel().catch(() => {}); };
         try {
-          response = await abortLoader(() => context.fetch!(name, { signal: context.signal }), context.signal, async response => { await response.body?.cancel(); });
+          response = await abortLoader(() => fetch(name, { signal: context.signal }), context.signal, async response => { await response.body?.cancel(); });
           if (!response.ok) {
             const kind = response.status < 500 ? "Client" : "Server";
             throw new Error(`${kind} error '${response.status} ${response.statusText}' for url '${name}'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/${response.status}`);
@@ -314,7 +316,7 @@ export function createLlmTemplateStore(context: Pick<CommandContext, "fs" | "cwd
         catch (error) { if (!(error instanceof FsError) || error.code !== "ENOENT") throw error; await publish(name!, new TextEncoder().encode("prompt: ")); }
         const editor = context.env.VISUAL || context.env.EDITOR || "vi";
         const result = await context.invoke("sh", ["-c", editor + ' "$1"', "llm-template-editor", path], {
-          signal: context.signal, cwd: context.cwd, env: context.env, replaceEnv: true, stdin: context.stdin, stdout: context.stdout, stderr: context.stderr, externalInvocation: true,
+          signal: context.signal, cwd: context.cwd, env: context.env, replaceEnv: true, ...(context.stdin ? { stdin: context.stdin } : {}), ...(context.stdout ? { stdout: context.stdout } : {}), ...(context.stderr ? { stderr: context.stderr } : {}), externalInvocation: true,
         });
         context.signal.throwIfAborted();
         if (result.exitCode !== 0) throw new Error("Editing failed!");

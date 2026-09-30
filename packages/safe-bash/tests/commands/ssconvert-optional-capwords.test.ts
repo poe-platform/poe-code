@@ -3,7 +3,7 @@ import test from "node:test";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
-import { createEngine, pythonSampleFunctions } from "poe-code/ssconvert";
+import { createEngine, pythonSampleFunctions } from "safe-bash-command-ssconvert";
 
 test("optional capwords shares command/SDK bytes and preserves namespace through checkpoint replay", async () => {
   const source = '<Workbook xmlns="http://www.gnumeric.org/v10.dtd"><Sheets><Sheet><Name>Sheet</Name><Cells><Cell Row="0" Col="0">=PY_CAPWORDS("hELLO world")</Cell></Cells></Sheet></Sheets></Workbook>';

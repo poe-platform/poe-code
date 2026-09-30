@@ -5,7 +5,7 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
 import { FsError, isErrnoCode } from "../../src/contracts/index.js";
-import { createEngine } from "poe-code/ssconvert";
+import { createEngine } from "safe-bash-command-ssconvert";
 
 test("database virtual command preserves SDK bytes, replay and namespace without companion effects", async () => {
   const source = '"Crème,A,8","Amount,N"\nété,-12.5\n';

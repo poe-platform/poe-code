@@ -5,7 +5,7 @@ import { Shell } from "../../src/shell/index.js";
 import { FsError, isErrnoCode } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
-import { createEngine, type Workbook, type Codec } from "poe-code/ssconvert";
+import { createEngine, type Workbook, type Codec } from "safe-bash-command-ssconvert";
 
 test("Oleo coordinate boundaries survive virtual conversion, XML checkpoint and replay", async () => {
   const fs = new MemoryFileSystem();

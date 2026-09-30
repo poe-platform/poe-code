@@ -5,7 +5,7 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { FsError, isErrnoCode } from "../../src/contracts/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
-import { createEngine } from "poe-code/ssconvert";
+import { createEngine } from "safe-bash-command-ssconvert";
 
 test("BIFF import shares actual virtual command/SDK bytes, replay and memfs effects", async () => {
   const source = new Uint8Array(30), view = new DataView(source.buffer);

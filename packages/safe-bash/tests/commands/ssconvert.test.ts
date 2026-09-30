@@ -9,7 +9,7 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { createMountFileSystem } from "../../src/fs/mount/index.js";
 import { FsError, isErrnoCode } from "../../src/contracts/index.js";
 import { createSsconvertCommand, ssconvertCommands } from "../../src/commands/ssconvert/index.js";
-import { createEngine, createResourceIO, perlSampleFunctions, pythonSampleFunctions, exportRangeForSheet, renderCellText, type Workbook, type Codec, type ExternalFormulaRequest, type TextFormatMode } from "poe-code/ssconvert";
+import { createEngine, createResourceIO, perlSampleFunctions, pythonSampleFunctions, exportRangeForSheet, renderCellText, type Workbook, type Codec, type ExternalFormulaRequest, type TextFormatMode } from "safe-bash-command-ssconvert";
 
 test("ssconvert filter preserves ASCII header matching and empty STRING criteria through XML replay", async () => {
   for (const [header, field, condition, tail] of [
@@ -811,7 +811,7 @@ const options = {
           ]
         };
       },
-      async write(book: import("poe-code/ssconvert").Workbook, values: readonly string[]) {
+      async write(book: import("safe-bash-command-ssconvert").Workbook, values: readonly string[]) {
         const cell = book.sheets[0]!.cells[0]!;
         return new TextEncoder().encode(
           `${cell.value.kind === "string" ? cell.value.value : ""}:${values.join(",")}`
@@ -1135,7 +1135,7 @@ test("ssconvert inherited terminals share SDK parsing without virtual file effec
   const shell = new Shell({ fs: filesystem(volume), cwd: "/work" })
     .use(ssconvertCommands(options));
   try {
-    const { parseCommand } = await import("poe-code/ssconvert");
+    const { parseCommand } = await import("safe-bash-command-ssconvert");
     for (const args of [["--help"], ["--help-all"], ["--help-gtk"],
       ["--help-libspreadsheet"], ["-L", "/other", "--version"],
       ["--libspreadsheet-version"], ["--gtk-display=:999", "--version"],

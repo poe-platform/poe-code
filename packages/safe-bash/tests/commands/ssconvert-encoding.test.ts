@@ -4,7 +4,7 @@ import { Volume } from "memfs";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
-import { createEngine } from "poe-code/ssconvert";
+import { createEngine } from "safe-bash-command-ssconvert";
 
 test("virtual ssconvert refuses uncaptured multibyte input and retains the destination", async () => {
   const fs = new MemoryFileSystem();

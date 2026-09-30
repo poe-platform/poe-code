@@ -5,7 +5,7 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { FsError, isErrnoCode } from "../../src/contracts/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
-import { createEngine, createResourceIO } from "poe-code/ssconvert";
+import { createEngine, createResourceIO } from "safe-bash-command-ssconvert";
 
 function filesystem(volume: Volume) {
   const base = new MemoryFileSystem();

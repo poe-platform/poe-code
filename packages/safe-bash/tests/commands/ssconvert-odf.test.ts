@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
 import { createZipCodec } from "@poe-code/office-package";
-import { createEngine, runCommand } from "poe-code/ssconvert";
+import { createEngine, runCommand } from "safe-bash-command-ssconvert";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { type Codec } from "poe-code/ssconvert";
+import { type Codec } from "safe-bash-command-ssconvert";
 import { createCommandArguments, type CommandContext } from "../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";

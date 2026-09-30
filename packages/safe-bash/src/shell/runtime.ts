@@ -14254,6 +14254,7 @@ export class Runtime {
               ? (this.tryEvalConditionalSync(whileCondExpr, rawState, monitor, store, io, condLine) ?? 1) === 0
               : this.evalSyncLoopArithStmt(whileArithProg!, rawState, io, touched, condLine);
             if (condCmd.kind === "simple") { lastCmd = condCmd; lastArg = this.fastValueWord(condCmd.words[condCmd.words.length - 1]!, rawState, io, false, false, false, true) as string; }
+            rawState.status = condNonZero ? 0 : 1;
             if (condNonZero !== (command.kind === "while")) break;
             ++iterCount;
             this.budget.loop();
@@ -15610,7 +15611,8 @@ export class Runtime {
           const condOk = nl.condExpr !== undefined
             ? (this.tryEvalConditionalSync(nl.condExpr, rawState, monitor, arrayStore(rawState), io, nl.condLine) ?? 1) === 0
             : this.evalSyncLoopArithStmt(nl.condArith!, rawState, io, touched, nl.condLine);
-          if (nl.condCmd?.kind === "simple") { innerLastCmd = nl.condCmd; innerLastArg = "]"; }
+          if (nl.condCmd?.kind === "simple") { innerLastCmd = nl.condCmd; innerLastArg = this.fastValueWord(nl.condCmd.words[nl.condCmd.words.length - 1]!, rawState, io, false, false, false, true) as string; }
+          rawState.status = condOk ? 0 : 1;
           if (condOk !== (lc.kind === "while")) break;
           this.budget.loop();
           if ((++turn & 127) === 0) runYieldCheckpoint(this.signal);
@@ -15750,11 +15752,11 @@ export class Runtime {
         continue;
       } else if (step.condStmt !== undefined) {
         const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
-        rawState.status = cStatus;
         if (step.cmd.kind === "simple") {
           lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
           onUpdate({ lastCmd, lastArg });
         }
+        rawState.status = cStatus;
         continue;
       } else if (step.arithStmt !== undefined) {
         const nonZero = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line);

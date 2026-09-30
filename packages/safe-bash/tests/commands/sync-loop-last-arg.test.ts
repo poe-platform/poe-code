@@ -160,3 +160,32 @@ for (const middleware of [false, true]) for (const call of new Set([...issue4080
     } finally { await shell.dispose(); }
   });
 }
+
+const issue3978Loops = [
+  'i=0; while [[ -n "$i" ]]; do echo "iter=$i status=$?"; [[ "$i" == 0 ]] && i=1 || i=""; [[ "$i" == 999 ]]; done',
+  'i=0; until [[ -z "$i" ]]; do echo "iter=$i status=$?"; i=""; done',
+  'i=0; while ((i < 2)); do echo "iter=$i status=$?"; ((i++)); false; done',
+  'i=0; until ((i >= 2)); do echo "iter=$i status=$?"; ((i++)); done',
+  's=hello; while test -n "$s"; do s=""; done',
+  's=hello; until test -z "$s"; do s=""; done',
+  's=hello; while test "$s" = hello; do s=done; done',
+  's=hello; while test -z "$s"; do echo never; done',
+  's=hello; while [ -n "$s" ]; do s=""; done',
+  'for j in 1 2; do test "$j" = 9; done',
+  'for j in 1 2; do test -n "$?"; done',
+  'for j in 1 2; do echo x >/dev/null; test "$j" = 9; done',
+  'for j in 1 2; do if test "$j" = 2; then s=yes; fi; done',
+];
+for (const loop of issue3978Loops) {
+  for (const header of ['', 'for outer in 1', 'for ((outer=0;outer<1;outer++))']) test(`3978 ${header || 'outer'}: ${loop}`, async () => {
+    const source = `${header ? `${header}; do ${loop}; done` : loop}; printf 'status=%s lastarg=[%s]\\n' "$?" "$_"`;
+    const oracle = spawnSync('/bin/bash', ['--noprofile', '--norc', '-c', source], { encoding: 'utf8' });
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.stderr, oracle.stderr);
+      assert.equal(result.exitCode, oracle.status);
+      assert.equal(result.stdout, oracle.stdout);
+    } finally { await shell.dispose(); }
+  });
+}

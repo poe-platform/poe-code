@@ -635,6 +635,6 @@ describe("real safe-bash browser kernel", () => {
       ])
     );
     expect(kernel.supportedCommands).toHaveLength(112);
-    expect(kernel.supportedCommands).toEqual(expect.arrayContaining(["sha512sum", "sha384sum", "sha224sum"]));
+    expect(kernel.supportedCommands).toEqual(expect.arrayContaining(["sha512sum", "sha384sum", "sha224sum", "gh"]));
   });
 });

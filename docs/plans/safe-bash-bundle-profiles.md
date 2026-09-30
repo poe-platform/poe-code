@@ -20,23 +20,23 @@ Budgets are derived from the measured installed tarballs below: 2% total growth,
 
 | Profile | Static bytes | Delta from core |
 | --- | ---: | ---: |
-| core | 4,949,332 | 0 |
-| rootCore | 4,954,469 | 5,137 |
-| pythonLlm | 5,046,947 | 97,615 |
-| pdf | 5,942,440 | 993,108 |
-| multiplePdf | 6,018,154 | 1,068,822 |
-| csv | 6,656,262 | 1,706,930 |
-| csvXlsx | 6,852,858 | 1,903,526 |
-| git | 10,269,735 | 5,320,403 |
-| baseRegistry | 6,212,163 | 1,262,831 |
-| registryWithRegex | 6,213,504 | 1,264,164 |
-| enabledConsumer | 6,287,679 | 1,338,347 |
-| full | 24,851,519 | 19,902,187 |
-| rootPythonLlm | 5,052,096 | 102,764 |
-| splitCore | 4,871,225 | -78,107 |
-| splitPythonLlm | 4,968,430 | 19,098 |
-| splitEnabledConsumer | 6,195,230 | 1,245,852 |
-| splitFull | 24,702,427 | 19,753,095 |
+| core | 4,511,475 | 0 |
+| rootCore | 4,518,173 | 6,698 |
+| pythonLlm | 4,743,042 | 231,567 |
+| pdf | 5,584,820 | 1,073,345 |
+| multiplePdf | 5,662,677 | 1,151,202 |
+| csv | 6,217,430 | 1,705,955 |
+| csvXlsx | 6,451,765 | 1,940,290 |
+| git | 9,866,010 | 5,354,535 |
+| baseRegistry | 6,014,924 | 1,503,449 |
+| registryWithRegex | 6,014,961 | 1,503,486 |
+| enabledConsumer | 6,079,876 | 1,568,401 |
+| full | 25,001,199 | 20,489,724 |
+| rootPythonLlm | 4,750,080 | 238,605 |
+| splitCore | 4,434,552 | -76,923 |
+| splitPythonLlm | 4,664,875 | 153,400 |
+| splitEnabledConsumer | 5,995,120 | 1,483,645 |
+| splitFull | 24,845,451 | 20,333,976 |
 
 The Worker checks pipeline streaming, canonical filesystem writes, abort-reason identity, selected PDF inspection, CSV/XLSX conversion and Git initialization/status. Python execution and LLM responses use injected test hosts, without model requests. Installed type fixtures verify shell/full identity and selected command contracts; existing Node/Bun publication fixtures cover normal import behavior.
 

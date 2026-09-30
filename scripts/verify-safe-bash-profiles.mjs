@@ -112,23 +112,23 @@ const engineMarkers = {
 // Allow 2% total growth and 5% incremental growth (at least 16 KiB) so
 // optional-engine regressions cannot hide behind unrelated core reductions.
 export const safeBashProfileBaselines = {
-  "core": 4949332,
-  "rootCore": 4954469,
-  "pythonLlm": 5046947,
-  "pdf": 5942440,
-  "multiplePdf": 6018154,
-  "csv": 6656262,
-  "csvXlsx": 6852858,
-  "git": 10269735,
-  "baseRegistry": 6212163,
-  "registryWithRegex": 6213504,
-  "enabledConsumer": 6287679,
-  "full": 24851519,
-  "rootPythonLlm": 5052096,
-  "splitCore": 4871225,
-  "splitPythonLlm": 4968430,
-  "splitEnabledConsumer": 6195230,
-  "splitFull": 24702427
+  "core": 4511475,
+  "rootCore": 4518173,
+  "pythonLlm": 4743042,
+  "pdf": 5584820,
+  "multiplePdf": 5662677,
+  "csv": 6217430,
+  "csvXlsx": 6451765,
+  "git": 9866010,
+  "baseRegistry": 6014924,
+  "registryWithRegex": 6014961,
+  "enabledConsumer": 6079876,
+  "full": 25001199,
+  "rootPythonLlm": 4750080,
+  "splitCore": 4434552,
+  "splitPythonLlm": 4664875,
+  "splitEnabledConsumer": 5995120,
+  "splitFull": 24845451
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));

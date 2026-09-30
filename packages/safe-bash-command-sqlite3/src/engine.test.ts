@@ -281,3 +281,13 @@ test("valid UPSERT bindings and multi-column EXISTS remain supported", () => {
   db.exec("INSERT INTO t AS u VALUES (1, 3) ON CONFLICT(a) DO UPDATE SET b = u.b + excluded.b WHERE excluded.a = u.a");
   assert.deepEqual(db.exec("SELECT b, EXISTS(SELECT 1, 2), (SELECT b FROM t) FROM t WHERE a IN (SELECT a FROM t)")[0]!.rows, [[5, 1, 5]]);
 });
+
+for (const [sql, expected] of [
+  ["WITH RECURSIVE cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<10000) SELECT count(*), max(x), sum(x) FROM cnt", [[10000, 10000, 50005000]]],
+  ["SELECT count(*), max(value) FROM generate_series(1,150000)", [[150000, 150000]]],
+  ["SELECT length(zeroblob(100000)), length(randomblob(100000))", [[100000, 100000]]],
+] as const) {
+  test(`uncapped SQLite query: ${sql}`, () => {
+    assert.deepEqual(new SqliteDatabase().exec(sql)[0]!.rows, expected);
+  });
+}

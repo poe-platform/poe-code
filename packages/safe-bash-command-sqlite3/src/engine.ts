@@ -3570,11 +3570,9 @@ export class SqliteDatabase {
       }
     }
 
-    let iterations = 0;
     const stepMap = new Map(cteMap);
     const cteKey = cteName.toLowerCase();
-    while (workingRows.length > 0 && iterations < 5000) {
-      iterations += 1;
+    while (workingRows.length > 0) {
       stepMap.set(cteKey, { columns: cols, rows: workingRows });
       const nextRes = this.executeSelectCompound(recTokens, positionalParams, stepMap);
       const nextWorking: SqlValue[][] = [];
@@ -4695,11 +4693,11 @@ export class SqliteDatabase {
       const step = args[2] !== undefined ? Math.trunc(toSqlNumber(args[2])) : 1;
       const rows: SqlValue[][] = [];
       if (step > 0) {
-        for (let v = start; v <= stop && rows.length < 100000; v += step) {
+        for (let v = start; v <= stop; v += step) {
           rows.push([v]);
         }
       } else if (step < 0) {
-        for (let v = start; v >= stop && rows.length < 100000; v += step) {
+        for (let v = start; v >= stop; v += step) {
           rows.push([v]);
         }
       }
@@ -5975,7 +5973,7 @@ export class SqliteDatabase {
       case "RANDOM":
         return Math.floor((Math.random() - 0.5) * 2 * Number.MAX_SAFE_INTEGER);
       case "RANDOMBLOB": {
-        const n = Math.max(0, Math.min(65536, Math.trunc(toSqlNumber(a0 ?? 0))));
+        const n = Math.max(0, Math.trunc(toSqlNumber(a0 ?? 0)));
         const b = new Uint8Array(n);
         for (let i = 0; i < n; i += 1) {
           b[i] = Math.floor(Math.random() * 256);
@@ -5983,7 +5981,7 @@ export class SqliteDatabase {
         return b;
       }
       case "ZEROBLOB": {
-        const n = Math.max(0, Math.min(65536, Math.trunc(toSqlNumber(a0 ?? 0))));
+        const n = Math.max(0, Math.trunc(toSqlNumber(a0 ?? 0)));
         return new Uint8Array(n);
       }
       case "CHANGES":

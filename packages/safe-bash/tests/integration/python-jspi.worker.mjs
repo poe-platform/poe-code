@@ -188,6 +188,7 @@ async function qualifyHostServices(backend, createExecutor) {
     }
     if (request.prompt === 'error-call') throw new Error('private-host-error');
     if (request.prompt === 'library' && (request.options.enabled !== true || request.options.count !== 2 || request.options.nullable !== null)) throw new Error('Typed options were changed');
+    if (request.prompt === 'Review code: native' && (request.system !== 'Be terse' || request.options.enabled !== true || new TextDecoder().decode(request.attachments[0]?.bytes) !== 'changed')) throw new Error('Named template semantics changed');
     if (request.prompt === 'attached') {
       if (new TextDecoder().decode(request.attachments[0]?.bytes) !== 'changed' || request.messages[0]?.content !== 'prior' || request.schema.type !== 'object' || request.options.temperature !== 0.7) throw new Error('Rich request or canonical attachment changed');
     }
@@ -227,6 +228,8 @@ async function qualifyHostServices(backend, createExecutor) {
     return {model:request.model,vectors:request.inputs.map(() => [1,2]),usage:{input:request.inputs.length},metadata:{id:'embedding-1'}};
   } };
   const service = createLlmService({ providers: [provider], defaultModel: 'fake' });
+  await backend.mkdir('/settings/templates',{recursive:true});
+  await backend.writeFile('/settings/templates/review.yaml',new TextEncoder().encode('prompt: "Review $topic: $input"\nsystem: "Be $style"\nmodel: fake\ndefaults:\n  style: terse\noptions:\n  enabled: true\nattachments:\n  - /work/shared.txt\n'));
   await backend.writeFile('/work/host.py', new TextEncoder().encode(String.raw`
 import subprocess
 from safe_host import call, stream, run, check_output, CalledProcessError, HostError
@@ -288,6 +291,11 @@ async def qualify_libraries():
   assert response.text == 'library' and response.usage['input'] == 3 and response.metadata['id'] == 'fake-response'
   response = await client.complete('attached', messages=[Message('assistant','prior')], schema={'type':'object'}, attachments=[Attachment('/work/shared.txt')], options={'temperature':0.7})
   assert response.text == 'attached'
+  response = await client.complete('native', template='review', parameters={'topic':'code'})
+  assert response.text == 'Review code: native'
+  async with client.stream('native', template='review', parameters={'topic':'code'}) as template_stream:
+   template_events = [event async for event in template_stream]
+   assert template_events[0].text == 'Review code: native' and template_events[-1].response.model == 'fake'
   assert (await client.models())[0].id == 'fake'
   embedded = await client.embed((value for value in ['input']), model='fake')
   assert embedded.vectors == ((1.0, 2.0),) and embedded.metadata['id'] == 'embedding-1'
@@ -394,7 +402,7 @@ result = subprocess.run(['rg', 'changed', '/work/shared.txt'], capture_output=Tr
 assert result.stdout == 'changed\n'
 print('host-ok')
 `));
-  const shell = new Shell({fs:backend, cwd:'/work',env:{PARENT:'present'}});
+  const shell = new Shell({fs:backend, cwd:'/work',env:{PARENT:'present',LLM_USER_PATH:'/settings'}});
   shell.use({ name: 'host-fixture', setup(host) {
     for (const command of createSearchCommands()) host.commands.register(command);
     host.commands.register({name:'env-probe', async execute(context) {

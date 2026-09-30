@@ -281,3 +281,47 @@ test('source admission rejects unsupported models before opening canonical files
   await assert.rejects(capability.call!({operation:'complete',payload:{model:'missing',attachments:[{path:'/input.bin',mimeType:'application/octet-stream'}]}},{signal}),/Unknown model: missing/);
   assert.equal(opened,0);
 });
+
+test('named templates share Bash evaluation, defaults, model selection and canonical attachments', async () => {
+  const {fs,service,requests} = await fixture();
+  await fs.mkdir('/settings/templates',{recursive:true});
+  await fs.writeFile('/settings/templates/review.yaml',new TextEncoder().encode('prompt: "Review $topic: $input"\nsystem: "Be $style"\nmodel: alias\ndefaults:\n  style: terse\noptions:\n  mode: exact\nattachments:\n  - note.txt\n'));
+  const env = {LLM_USER_PATH:'/settings'};
+  const cleanups:(() => void | Promise<void>)[] = [];
+  const context:CommandContext = {command:'llm',args:['-t','review','-p','topic','code','question'],fs,cwd:'/work',env,signal,
+    stdin:toByteSource(''),stdout:{async write() {}},stderr:{async write() {}},registerCleanup(cleanup) {cleanups.push(cleanup);}};
+  try {
+    const bash = await createLlmCommands({service})[0]!.execute(context);
+    assert.equal(bash.exitCode,0);
+    const capability = createPythonLlmCapability(context,service);
+    await capability.call!({operation:'complete',payload:{template:'review',prompt:'question',parameters:{topic:'code'}}},{signal});
+    const semantic = ({signal:_signal,...request}:LlmRequest) => ({...request,options:{...request.options},messages:request.messages ?? []});
+    assert.deepEqual(semantic(requests[1]!),semantic(requests[0]!));
+    assert.equal(requests[1]!.prompt,'Review code: question');
+    assert.equal(requests[1]!.system,'Be terse');
+    assert.equal(new TextDecoder().decode(requests[1]!.attachments[0]!.bytes),'canonical');
+    await capability.call!({operation:'complete',payload:{template:'review',prompt:'other',system:'explicit',parameters:{topic:'tests',style:'full'},options:{mode:'override'}}},{signal});
+    assert.equal(requests[2]!.system,'explicit');
+    assert.deepEqual(requests[2]!.options,{mode:'override'});
+    await assert.rejects(capability.call!({operation:'complete',payload:{template:'review',parameters:{}}},{signal}),/Missing variables: topic/);
+    assert.equal(requests.length,3);
+  } finally {for (const cleanup of cleanups) await cleanup();}
+});
+
+test('named template loading is included in the completion timeout', async () => {
+  const {fs,service,requests} = await fixture();
+  await fs.mkdir('/.config/io.datasette.llm/templates',{recursive:true});
+  await fs.writeFile('/.config/io.datasette.llm/templates/slow.yaml',new TextEncoder().encode('prompt: "$input"\n'));
+  const slow = new Proxy(fs,{get(target,property) {
+    if (property === 'readFile') return async (...args:Parameters<typeof fs.readFile>) => {
+      await new Promise(resolve => setTimeout(resolve,15));
+      args[1]?.signal?.throwIfAborted();
+      return target.readFile(...args);
+    };
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const capability = createPythonLlmCapability({fs:slow,cwd:'/work'},service);
+  await assert.rejects(capability.call!({operation:'complete',payload:{template:'slow',prompt:'q',timeout:0.001}},{signal}),{name:'TimeoutError'});
+  assert.equal(requests.length,0);
+});

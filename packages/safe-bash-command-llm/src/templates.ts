@@ -119,7 +119,7 @@ function abortLoader<Value>(start: () => PromiseLike<Value> | Value, signal: Abo
     if (signal.aborted) abort();
   });
 }
-export function createLlmTemplateStore(context: CommandContext, loaders?: TemplateLoaderOptions) {
+export function createLlmTemplateStore(context: Pick<CommandContext, "fs" | "cwd" | "env" | "signal" | "fetch">, loaders?: TemplateLoaderOptions) {
   const directory = `${createLlmConfiguration(context).directory}/templates`;
   const filename = (name: string): string => {
     if (!name || name.includes("/") || name.includes("\\") || name === "." || name === "..") throw new Error(`Invalid template name: ${name}`);

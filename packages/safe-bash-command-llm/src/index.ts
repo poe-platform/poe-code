@@ -6,7 +6,7 @@ export { createElevenLabsProvider, type ElevenLabsModel, type ElevenLabsProvider
 export type { LlmProviderLimits } from "./providers/shared.js";
 export { createLlmConfiguration, type LlmConfiguration } from "./configuration.js";
 export { validateModelOptions } from "./model-options.js";
-export { createLlmTemplateStore, evaluateLlmTemplate, validateLlmTemplateParameters, type LlmTemplate, type LlmTemplateLoader, type TemplateLoaderOptions } from "./templates.js";
+export { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplate, type LlmTemplateLoader, type TemplateLoaderOptions } from "./templates.js";
 export { templateYaml } from "./template-yaml.js";
 export { findExtractedRange } from "./extract-range.js";
 export { parseLlmSchemaDsl } from "./schemas.js";

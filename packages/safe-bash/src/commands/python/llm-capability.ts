@@ -1,6 +1,7 @@
 import type { CommandContext } from '../../contracts/index.js';
 import type { LlmService, LlmServiceRequest, LlmServiceSourceRequest } from '../llm/service.js';
 import type { LlmOption, LlmInputSource } from '../llm/types.js';
+import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters } from 'safe-bash-command-llm';
 import { sniffMimeType } from '../llm/mime.js';
 import { pathOf } from '../internal.js';
 import type { PythonHostCapability, PythonHostValue } from './host-capabilities.js';
@@ -84,7 +85,7 @@ export interface PythonLlmCapabilityOptions {
 }
 
 /** Reuses the invocation's authorized service; Python receives only model data. */
-export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | 'cwd' | 'inputBudget'>, service: LlmService, options: PythonLlmCapabilityOptions = {}): PythonHostCapability {
+export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | 'cwd' | 'inputBudget'> & Partial<Pick<CommandContext, 'env'>>, service: LlmService, options: PythonLlmCapabilityOptions = {}): PythonHostCapability {
   const chunkBytes = options.maxStreamChunkBytes ?? 16384;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError('Invalid Python LLM stream chunk limit');
   const bufferedLimit = options.maxBufferedResponseBytes ?? Infinity;
@@ -94,17 +95,40 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
     if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError('Invalid Python LLM host limit');
   }
   const prepare = async (value: PythonHostValue, signal: AbortSignal): Promise<LlmServiceRequest | LlmServiceSourceRequest> => {
-    const payload = record(value);
-    for (const key of ['template', 'conversation']) {
-      if (payload[key] !== undefined && payload[key] !== null) throw new TypeError(`The shared LLM service does not yet support persisted ${key}`);
-    }
-    if (payload.parameters !== undefined && Object.keys(record(payload.parameters)).length) throw new TypeError('Template parameters require shared-service template support');
+    let payload = record(value);
     const timeout = payload.timeout;
     if (timeout !== undefined && timeout !== null) {
       if (typeof timeout !== 'number' || !Number.isFinite(timeout) || timeout <= 0 || timeout * 1000 > 2147483647) throw new RangeError('Invalid LLM timeout');
       signal = AbortSignal.any([signal, AbortSignal.timeout(Math.max(1, Math.ceil(timeout * 1000)))]);
     }
     signal.throwIfAborted();
+    if (payload.conversation !== undefined && payload.conversation !== null) throw new TypeError('The shared LLM service does not yet support persisted conversation');
+    const parameters: Record<string,string> = {};
+    for (const [key,item] of Object.entries(record(payload.parameters ?? {}))) {
+      if (typeof item !== 'string') throw new TypeError('Template parameters must be strings');
+      parameters[key] = item;
+    }
+    if (payload.template !== undefined && payload.template !== null) {
+      if (typeof payload.template !== 'string') throw new TypeError('Template name must be a string');
+      const stored = await createLlmTemplateStore({...context,env:context.env ?? {},signal}).load(payload.template);
+      validateLlmTemplateParameters(stored,parameters);
+      const input = payload.prompt ?? '';
+      if (typeof input !== 'string') throw new TypeError('Invalid LLM text input');
+      const usesInput = llmTemplateUsesInput(stored);
+      const evaluated = evaluateLlmTemplate(stored,usesInput ? input : '',parameters);
+      const inputs = payload.attachments ?? [];
+      if (!Array.isArray(inputs)) throw new TypeError('Expected canonical LLM attachments');
+      payload = {...payload,
+        prompt:evaluated.prompt ? !usesInput && input ? `${evaluated.prompt}\n${input}` : evaluated.prompt : input,
+        ...(payload.system === undefined && evaluated.system !== undefined ? {system:evaluated.system} : {}),
+        ...(payload.model == null && stored.model !== undefined ? {model:stored.model} : {}),
+        options:{...stored.options,...record(payload.options ?? {})},
+        attachments:[...(stored.attachments ?? []).map(path => ({path})),
+          ...inputs.filter(input => record(input).mimeType === undefined),
+          ...(stored.attachment_types ?? []).map(item => ({path:item.value,mimeType:item.type})),
+          ...inputs.filter(input => record(input).mimeType !== undefined)],
+      };
+    } else if (Object.keys(parameters).length) throw new TypeError('Template parameters require a named template');
     const limit = payload.max_response_bytes;
     if (limit !== undefined && limit !== null && (typeof limit !== 'number' || !Number.isSafeInteger(limit) || limit < 0)) throw new RangeError('Invalid LLM response limit');
     const attachments: {mimeType:string;source:LlmInputSource}[] = [];

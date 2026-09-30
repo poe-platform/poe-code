@@ -43,6 +43,18 @@ async def summarize():
         print(response.model, response.text, response.usage)
 ```
 
+Named templates use the same canonical configuration directory as Bash `llm`
+(`LLM_USER_PATH`, or the parent environment's configuration directory). Template
+parameters are strings; explicit model, system and options override template
+values. Attachments declared by templates use the same retained canonical reads.
+For a stored `review` template with prompt `Review $topic: $input`:
+
+```python
+response = await client.complete(
+    "this change", template="review", parameters={"topic": "code"},
+)
+```
+
 Paths refer to the caller's canonical agent filesystem. Python sends attachment
 paths, rather than copying attachment contents into the request. JavaScript owns
 reading, authorization and provider transport. Binary results are `response.data`;
@@ -115,7 +127,7 @@ with its own cleanup scope and the same borrowed bridge.
 | Text and binary responses | `Response`, incremental `Stream` events | Return text/bytes and final response records |
 | Usage and metadata | `Response` and `Embeddings` fields | Supply available provider metadata |
 | Structured output | `schema`, `Response.json()` | Validate and send schema through the shared service |
-| Templates | `template`, `parameters`, Python prompt functions | Python prompt functions work; named templates/parameters are explicitly rejected until shared-service support is delivered |
+| Templates | `template`, `parameters`, Python prompt functions | Load named templates from canonical shared configuration; reuse Bash interpolation, defaults, options and attachments |
 | Conversations | `Conversation`, prior messages | Python orchestrates message history; persisted conversation IDs are explicitly rejected until shared-service support is delivered |
 | Embeddings | `embed()`, `Embeddings` | Use the shared embedding operation; reject unsupported providers |
 | Logs, collections and configuration | No persistence methods currently | The shared service must supply persistence before these methods are available |

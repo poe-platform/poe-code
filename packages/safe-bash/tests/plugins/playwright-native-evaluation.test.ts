@@ -145,3 +145,16 @@ test('missing-selector errors never request locator code for an unresolved targe
   assert.ok(result);
   assert.deepEqual(result.sections, [{ title: 'Error', content: 'Error: "#missing" does not match any elements.' }]);
 });
+
+for (const limits of [undefined, { maxCommandBytes: Infinity, maxArtifactBytes: Infinity }]) {
+  test(`native evaluation accepts inputs and outputs beyond former caps with ${limits ? 'explicit Infinity' : 'omitted limits'}`, async () => {
+    const state = fixture();
+    const request = { ...state.request, args: ['"x".repeat(1048577)' + ' '.repeat(65537)], options: { filename: 'large.json' } };
+    if (limits) request.limits = limits;
+    else delete request.limits;
+    const result = await evaluateNativeExpression(request);
+    assert.equal(result?.status, 'value');
+    assert.equal(result?.text.length, 1048579);
+    assert.deepEqual(state.events, ['acquire', 'serialize', 'dispose']);
+  });
+}

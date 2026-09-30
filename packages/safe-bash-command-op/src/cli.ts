@@ -358,7 +358,8 @@ function approvalManifest(request: OpBackendRequest, requests: readonly OpBacken
 }
 
 export function createOpCommand(options: OpCommandOptions = {}): { name: "op"; execute(context: OpCommandContext): Promise<{ exitCode: number }> } {
-  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
+  const maxInputBytes = options.limits?.maxInputBytes ?? Infinity;
+  if (maxInputBytes !== Infinity && (!Number.isSafeInteger(maxInputBytes) || maxInputBytes < 1)) throw new RangeError("Invalid op limit: maxInputBytes");
   const { backend = createObjectBackend(), authorize, approve, authorizeResolution, approveResolved, approvalMode = "resolved", version = "0.0.1", channel = "stable" } = options;
   const handlers = { ...options.handlers };
   const planners = new Map(Object.entries(handlers).flatMap(([key, handler]) => typeof (handler as Partial<OpPreparedHandler>).prepare === "function" ? [[key, (handler as OpPreparedHandler).prepare.bind(handler)] as const] : []));
@@ -513,7 +514,10 @@ export function createOpCommand(options: OpCommandOptions = {}): { name: "op"; e
         }
         return { exitCode: 0 };
       } catch (error) {
-        await original.stderr.write(new TextEncoder().encode(`op: ${context.signal.aborted ? "operation aborted" : error instanceof Error ? error.message : "operation failed"}\n`));
+        let message = error instanceof Error ? error.message : "operation failed";
+        try { budget.assertOpen(); }
+        catch { message = `input exceeds maximum size of ${maxInputBytes} bytes`; }
+        await original.stderr.write(new TextEncoder().encode(`op: ${context.signal.aborted ? "operation aborted" : message}\n`));
         return { exitCode: context.signal.aborted ? 130 : 1 };
       } finally {
         finished = true;

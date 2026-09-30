@@ -3,10 +3,10 @@ import test from "node:test";
 import { createOpCommand, type OpLimits } from "./index.js";
 
 test("op validates configured limits and accepts unlimited defaults", () => {
-  const limits: Partial<OpLimits> = { maxInputBytes: 0 };
+  const limits: Partial<OpLimits> = { maxInputBytes: 1 };
   assert.doesNotThrow(() => createOpCommand({ limits }));
   assert.doesNotThrow(() => createOpCommand({ limits: { maxInputBytes: Infinity } }));
-  for (const value of [-1, NaN, 1.5]) {
+  for (const value of [0, -1, NaN, 1.5, -Infinity]) {
     assert.throws(() => createOpCommand({ limits: { maxInputBytes: value } }), RangeError);
   }
 });
@@ -25,5 +25,5 @@ test("op rejects oversized piped input before calling the backend", async () => 
   });
   assert.equal(result.exitCode, 1);
   assert.equal(called, false);
-  assert.match(Buffer.concat(errors).toString(), /input byte limit/);
+  assert.match(Buffer.concat(errors).toString(), /input exceeds maximum size of 3 bytes/);
 });

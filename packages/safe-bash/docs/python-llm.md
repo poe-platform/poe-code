@@ -50,7 +50,21 @@ values. Saved model options apply first, followed by template options and explic
 request options; their existing types are preserved. Attachments declared by templates use the same retained canonical reads.
 Use `await client.configuration()` to inspect the saved default model, aliases
 and per-model options as a typed `Configuration` snapshot. Changes to that snapshot
-do not modify host state. Completions, streams and embeddings resolve saved aliases
+do not modify host state. Use `await client.configure(action, **fields)` to persist
+changes in the same canonical store used by Bash. Actions are `set_default_model`
+(`model`), `set_alias` (`name`, `model`), `remove_alias` (`name`),
+`set_model_option` (`model`, `name`, `value`) and `clear_model_option` (`model`,
+optional `name`; omit it to clear all options for that model). Models resolve to
+canonical IDs before storage. Saved option values are strings, matching the shared
+configuration contract; per-call options retain their native types. For example:
+
+```python
+await client.configure("set_alias", name="reviewer", model="your-model")
+await client.configure("set_model_option", model="reviewer", name="temperature", value="0.2")
+```
+
+Each call performs one shared atomic publication and uses the client timeout and
+current guest configuration directory. Completions, streams and embeddings resolve saved aliases
 and defaults through the shared JavaScript configuration service. Changes to
 Python cwd and `HOME`, `XDG_CONFIG_HOME` or `LLM_USER_PATH` take effect on the next
 operation, including relative template attachments. Other environment fields are
@@ -140,7 +154,7 @@ with its own cleanup scope and the same borrowed bridge.
 | Templates | `template`, `parameters`, Python prompt functions | Load named templates from canonical shared configuration; reuse Bash interpolation, defaults, options and attachments |
 | Conversations | `Conversation`, prior messages | Python orchestrates message history; persisted conversation IDs are explicitly rejected until shared-service support is delivered |
 | Embeddings | `embed()`, `Embeddings` | Use the shared embedding operation; reject unsupported providers |
-| Configuration | `configuration()`, saved model defaults, aliases and options | Read canonical shared configuration; explicit request values override stored defaults |
+| Configuration | `configuration()`, saved model defaults, aliases and options | Read and mutate canonical shared configuration; explicit request values override stored defaults |
 | Logs and collections | No persistence methods currently | Shared persistence integration remains unavailable |
 | Cancellation and cleanup | Async context managers, timeout, response limit | Cancel invocation-owned operations and release streams |
 

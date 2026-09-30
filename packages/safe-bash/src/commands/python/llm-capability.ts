@@ -288,6 +288,28 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         jsonBytes(models,bufferedLimit);
         return models;
       }
+      if (operation.operation === 'configure') {
+        const configuration = createLlmConfiguration(configurationContext(context,payload,signal));
+        const required = (name:string):string => {
+          const value = payload[name];
+          if (typeof value !== 'string' || !value || value.includes('\0')) throw new TypeError(`Configuration ${name} must be a nonempty string`);
+          return value;
+        };
+        const model = async ():Promise<string> => service.resolve(await configuration.resolveAlias(required('model'))).model.id;
+        switch (payload.action) {
+          case 'set_default_model': await configuration.setDefaultModel(await model()); break;
+          case 'set_alias': await configuration.setAlias(required('name'),await model()); break;
+          case 'remove_alias': await configuration.removeAlias(required('name')); break;
+          case 'set_model_option': {
+            if (typeof payload.value !== 'string') throw new TypeError('Configuration value must be a string');
+            await configuration.setModelOption(await model(),required('name'),payload.value); break;
+          }
+          case 'clear_model_option':
+            await configuration.clearModelOption(await model(),payload.name === undefined ? undefined : required('name')); break;
+          default: throw new TypeError('Unsupported configuration action');
+        }
+        return null;
+      }
       if (operation.operation === 'configuration') {
         const configuration = createLlmConfiguration(configurationContext(context,payload,signal));
         const result = {default_model:await configuration.defaultModel() ?? null,aliases:await configuration.aliases(),model_options:await configuration.allModelOptions()};

@@ -383,3 +383,20 @@ test('direct template and configuration calls use current guest cwd and selected
   assert.deepEqual(models[0]!.aliases,['alias','guest-alias']);
   await assert.rejects(capability.call!({operation:'models',payload:{configuration_env:{OPENAI_API_KEY:'synthetic'}}},{signal}),/configuration environment/);
 });
+
+
+test('Python configuration mutations reuse canonical storage and reject malformed changes', async () => {
+  const {fs,service} = await fixture();
+  const capability = createPythonLlmCapability({fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'}},service);
+  const change = (payload:Record<string,string>) => capability.call!({operation:'configure',payload},{signal});
+  await change({action:'set_alias',name:'favorite',model:'alias'});
+  await change({action:'set_default_model',model:'favorite'});
+  await change({action:'set_model_option',model:'favorite',name:'mode',value:'saved'});
+  assert.deepEqual(await capability.call!({operation:'configuration'},{signal}),{default_model:'model',aliases:{favorite:'model'},model_options:{model:{mode:'saved'}}});
+  await change({action:'clear_model_option',model:'favorite',name:'mode'});
+  await change({action:'remove_alias',name:'favorite'});
+  assert.deepEqual(await capability.call!({operation:'configuration'},{signal}),{default_model:'model',aliases:{},model_options:{}});
+  await assert.rejects(change({action:'set_alias',name:'bad',model:'missing'}),/Unknown model/);
+  await assert.rejects(change({action:'set_model_option',model:'model',name:'mode'}),/value/);
+  await assert.rejects(change({action:'unsupported'}),/configuration action/);
+});

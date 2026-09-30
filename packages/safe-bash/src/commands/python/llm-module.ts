@@ -347,6 +347,27 @@ class Client:
         finally:
             self._tasks.discard(task)
 
+    async def configure(self, action: str, *, model: str | None = None, name: str | None = None, value: str | None = None) -> None:
+        requirements = {
+            "set_default_model": ("model",), "set_alias": ("name", "model"),
+            "remove_alias": ("name",), "set_model_option": ("model", "name", "value"),
+            "clear_model_option": ("model",),
+        }
+        if action not in requirements:
+            raise ValueError("Unsupported configuration action")
+        fields = {"model": model, "name": name, "value": value}
+        for key in requirements[action]:
+            item = fields[key]
+            if not isinstance(item, str) or (key != "value" and not item) or "\\0" in item:
+                raise TypeError("Configuration " + key + " must be a string")
+        allowed = set(requirements[action]) | ({"name"} if action == "clear_model_option" else set())
+        for key, item in fields.items():
+            if item is not None and (key not in allowed or not isinstance(item, str)):
+                raise TypeError("Unexpected configuration " + key)
+        payload = {**_configuration_context(), "action": action,
+                   **{key: item for key, item in fields.items() if item is not None}}
+        await self._run(lambda: self._bridge.call("configure", payload), self._timeout)
+
     async def configuration(self):
         value = await self._run(lambda: self._bridge.call("configuration", _configuration_context()), self._timeout)
         return Configuration(default_model=value.get("default_model"),

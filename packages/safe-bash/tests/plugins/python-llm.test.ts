@@ -60,6 +60,21 @@ class LibraryTests(unittest.IsolatedAsyncioTestCase):
     await client.configuration()
     self.assertEqual(bridge.calls[-1][1]['configuration_env'], {'HOME':None,'XDG_CONFIG_HOME':None,'LLM_USER_PATH':None})
 
+ async def test_configuration_changes_are_structured_and_scoped(self):
+  bridge = FakeBridge()
+  async with Client(bridge=bridge) as client:
+   await client.configure('set_alias', name='favorite', model='provider/model')
+   operation,payload = bridge.calls[-1]
+   self.assertEqual(operation,'configure')
+   self.assertEqual(payload['action'],'set_alias')
+   self.assertEqual(payload['name'],'favorite')
+   self.assertEqual(payload['model'],'provider/model')
+   self.assertIn('configuration_env',payload)
+   with self.assertRaises(TypeError):
+    await client.configure('set_model_option', model='provider/model', name='temperature', value=0.5)
+   with self.assertRaises(ValueError):
+    await client.configure('unsupported')
+
  async def test_configuration_snapshot_is_typed_and_owned(self):
   from poe_llm import Configuration, CapabilityError
   stored = {'default_model':'small', 'aliases':{'small':'provider/model'}, 'model_options':{'provider/model':{'mode':'saved'}}}

@@ -321,6 +321,19 @@ async def qualify_libraries():
    guest_configuration = await client.configuration()
    assert guest_configuration.default_model == 'guest-alias' and guest_configuration.model_options == {'fake':{'mode':'guest'}}
    assert 'guest-alias' in (await client.models())[0].aliases
+   await client.configure('set_alias',name='temporary',model='guest-alias')
+   await client.configure('set_default_model',model='temporary')
+   await client.configure('set_model_option',model='temporary',name='mode',value='changed')
+   changed = await client.configuration()
+   assert changed.default_model == 'fake' and changed.aliases['temporary'] == 'fake'
+   assert changed.model_options['fake']['mode'] == 'changed'
+   async with ShellClient() as child:
+    changed_bash = await child.run(['llm','aliases','list'],text=True,check=True)
+    assert 'temporary' in changed_bash.stdout
+   await client.configure('clear_model_option',model='temporary')
+   await client.configure('remove_alias',name='temporary')
+   await client.configure('set_default_model',model='guest-alias')
+   await client.configure('set_model_option',model='fake',name='mode',value='guest')
    guest_response = await client.complete('native', template='review')
    assert guest_response.text == 'Guest native'
    async with ShellClient() as child:

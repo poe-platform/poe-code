@@ -2559,6 +2559,8 @@ export async function qpdf(context: CommandContext): Promise<{ exitCode: number 
       if (
         token.startsWith("--overlay=") ||
         token.startsWith("--underlay=") ||
+        token.startsWith("--add-attachment=") ||
+        token.startsWith("--copy-attachments-from=") ||
         token.startsWith("--update-from-json=")
       ) {
         candidate = token.slice(token.indexOf("=") + 1);

@@ -11,7 +11,8 @@ import { RandomIntegers } from "./random.js";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 
 import { textOutputRequirements } from "safe-bash-io-engine/portable-requirements";
-import { diagnostic as reportDiagnostic } from "safe-bash-io-engine/internal";
+import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
+import { writeDiagnostic } from "safe-bash-contracts/escaping";
 
 const encoder = new TextEncoder();
 const errors: Readonly<Record<string, string>> = {
@@ -225,7 +226,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         context.signal.throwIfAborted();
         if (isFsError(error) && error.code === "EPIPE" && diagnostic === "write error") return { exitCode: 141 };
         if (!(error instanceof Diagnostic) && !isFsError(error)) {
-          await reportDiagnostic(context, error);
+          await writeDiagnostic(context.stderr, `${context.command}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
           return { exitCode: 1 };
         }
         const message = error instanceof Diagnostic ? error.message : `shuf: ${diagnostic}: ${openingRootOutput && error.code === "EISDIR" ? "File exists" : errors[error.code] ?? error.code}\n`;

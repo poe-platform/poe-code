@@ -127,10 +127,9 @@ options. Invalid options and malformed operands produce diagnostics and status
   `ls -l` is a stable numeric/UTC presentation, not native locale formatting;
   terminal columns, block totals, and owner lookup are absent.
 - `printf` does not implement `%n`, time formats, complete `%q` rendering
-  compatibility, or native overflow behavior. Each directive is capped at 16 KiB,
-  including `%`, flags, fields, length modifier, and conversion; malformed
-  directives are scanned with cooperative CPU/cancellation checks and bounded
-  diagnostic previews. Width is capped at one million; precision at 1,000 (100
+  compatibility, or native overflow behavior. Malformed directives are scanned
+  with cooperative CPU/cancellation checks and bounded diagnostic previews.
+  Width is capped at one million; precision at 1,000 (100
   for floating formats). `%s` precision is byte-based. Floating formatting uses
   JavaScript numbers rather than the platform C floating-point library. Unicode
   `\u`/`\U` escapes support C/POSIX and UTF-8 output, with `LC_ALL`, `LC_CTYPE`,

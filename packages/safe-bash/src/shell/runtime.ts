@@ -24545,9 +24545,23 @@ export class Runtime {
       if (patSpec.length === 0 || patSpec.includes("[.") || patSpec.includes("[=") || /\\[1-9]/.test(patSpec)) return undefined;
       const normPat = syncPosixRegexSource(patSpec);
       if (normPat === undefined) return undefined;
-      const jsPat = isExtended
-        ? normPat
-        : normPat.replace(/\\([+?()|])/g, "$1");
+      let jsPat = normPat;
+      if (!isExtended) {
+        jsPat = "";
+        let inBracket = false;
+        for (let i = 0; i < normPat.length; i++) {
+          const ch = normPat[i]!;
+          if (ch === "\\") {
+            const next = normPat[++i];
+            if (next === undefined) return undefined;
+            jsPat += !inBracket && "+?(){}|".includes(next) ? next : "\\" + next;
+          } else {
+            if (ch === "[") inBracket = true;
+            else if (ch === "]") inBracket = false;
+            jsPat += !inBracket && "+?(){}|".includes(ch) ? "\\" + ch : ch;
+          }
+        }
+      }
       try { return new RegExp(jsPat); } catch { return undefined; }
     };
     type SedAddrFn = (l: string, idx1: number, total: number) => boolean;

@@ -107,7 +107,13 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
       const record = key && cacheStore?.read(key);
       const cached = record?.success === true && JSON.stringify(record.files) === JSON.stringify(files);
       if (key) cacheStats[cached ? "cacheHits" : "cacheMisses"]++;
-      groups.push({ phase, specifications: selected.map(specification => ({ moduleId: specification.moduleId })), key, files, cached });
+      const fileKeys = new Map(key && runBatch ? files.map(file => [path.resolve(root, file),
+        taskCacheKey(fingerprints.get(phase.name), "test:unit:file", [...phase.selectors, file])]) : []);
+      const resumed = new Set([...fileKeys].filter(([id, fileKey]) => {
+        const record = cacheStore?.read(fileKey);
+        return record?.success === true && JSON.stringify(record.files) === JSON.stringify([path.relative(root, id)]);
+      }).map(([id]) => id));
+      groups.push({ phase, specifications: selected.map(specification => ({ moduleId: specification.moduleId })), key, files, cached, fileKeys, resumed });
     }
     for (const filename of requested ?? []) assert.ok(scheduled.has(filename), `Test file is outside selected unit ownership: ${filename}`);
     byPath.clear();
@@ -122,11 +128,11 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
         console.log(`Unit workspace ${group.phase.name}: no test files (explicitly allowed)`);
         continue;
       }
-      console.log(`Unit workspace ${group.phase.name}: running ${group.specifications.length} files`);
+      console.log(`Unit workspace ${group.phase.name}: running ${group.specifications.length - group.resumed.size} files${group.resumed.size ? ` (${group.resumed.size} isolated files cached)` : ""}`);
     }
-    const queue = groups.filter(group => !group.cached).flatMap(group => group.specifications);
+    const queue = groups.filter(group => !group.cached).flatMap(group => group.specifications.filter(specification => !group.resumed.has(specification.moduleId)));
     if (queue.length) {
-      const completed = new Set();
+      const completed = new Set(groups.flatMap(group => [...group.resumed]));
       let queueCompleted = false;
       try {
         for (let offset = 0; offset < queue.length; offset += batchSize) {
@@ -141,6 +147,19 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
           assert.equal(result.length, ids.length, "Unit batch completion changed");
           assert.deepEqual(new Set(result), new Set(ids), "Unit batch completion changed");
           for (const id of result) completed.add(id);
+          // runBatch resolves only after its isolated worker and teardown finish.
+          // Persist those files now so interruption cannot discard verified progress.
+          const started = performance.now();
+          const current = revalidateFingerprints ? revalidateFingerprints() : fingerprints;
+          if (revalidateFingerprints) cacheStats.fingerprintMs += Math.round(performance.now() - started);
+          for (const group of groups) {
+            if (!group.key || !current?.has(group.phase.name)
+              || taskCacheKey(current.get(group.phase.name), "test:unit", group.phase.selectors) !== group.key) continue;
+            for (const id of result) {
+              const fileKey = group.fileKeys.get(id);
+              if (fileKey) cacheStore.write(fileKey, { success: true, files: [path.relative(root, id)] });
+            }
+          }
           continue;
         }
         if (offset) {

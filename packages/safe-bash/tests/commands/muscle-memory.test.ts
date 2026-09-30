@@ -154,7 +154,7 @@ for (const muscleMemory of [false, true]) for (const route of ["factory", "plugi
         assert.equal(shell.commands.list().filter(command => command.name === name).length, 1);
       }
       assert.equal(shell.commands.list().filter(command => command.name === "yes").length, muscleMemory ? 1 : 0);
-      const version = muscleMemory ? "shuf (virtual-bash, GNU coreutils 9.7 profile)\n" : "shuf (virtual-bash)\n";
+      const version = "shuf (virtual-bash, GNU coreutils 9.7 profile)\n";
       for (const script of ["shuf --version", "env shuf --version"]) {
         const result = await shell.exec(script);
         assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, version, ""]);

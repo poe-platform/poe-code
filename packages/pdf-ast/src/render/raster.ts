@@ -15,11 +15,12 @@ export interface RgbaBitmap {
   readonly data: Uint8Array;
 }
 
-export function encodePng(bitmap: RgbaBitmap): Uint8Array {
-  return encodeRgbaToPng(bitmap.width, bitmap.height, bitmap.data);
+export function *encodePngSteps(bitmap: RgbaBitmap): Generator<void, Uint8Array, void> {
+  return (yield* encodeRgbaToPngSteps(bitmap.width, bitmap.height, bitmap.data));
 }
 
-export function decodePng(pngBytes: Uint8Array): RgbaBitmap {
+export function *decodePngSteps(pngBytes: Uint8Array): Generator<void, RgbaBitmap, void> {
+  let work = 0;
   if (pngBytes.length < 24 || pngBytes[0] !== 137 || pngBytes[1] !== 80 || pngBytes[2] !== 78 || pngBytes[3] !== 71) {
     throw new Error("Invalid PNG signature");
   }
@@ -30,6 +31,7 @@ export function decodePng(pngBytes: Uint8Array): RgbaBitmap {
   const idatParts: Uint8Array[] = [];
   let pos = 8;
   while (pos + 8 <= pngBytes.length) {
+    if (++work % 16384 === 0) yield;
     const len = view.getUint32(pos, false);
     const type = String.fromCharCode(pngBytes[pos + 4]!, pngBytes[pos + 5]!, pngBytes[pos + 6]!, pngBytes[pos + 7]!);
     const chunkData = pngBytes.subarray(pos + 8, pos + 8 + len);
@@ -53,6 +55,7 @@ export function decodePng(pngBytes: Uint8Array): RgbaBitmap {
   const mergedIdat = new Uint8Array(totalIdat);
   let off = 0;
   for (const part of idatParts) {
+    if (++work % 16384 === 0) yield;
     mergedIdat.set(part, off);
     off += part.length;
   }
@@ -85,8 +88,10 @@ export function decodePng(pngBytes: Uint8Array): RgbaBitmap {
 
   if (colorType === 3) {
     for (let y = 0; y < height; y++) {
+    if (++work % 16384 === 0) yield;
       const rowStart = y * rowBytes;
       for (let x = 0; x < width; x++) {
+    if (++work % 16384 === 0) yield;
         const idx = readSubByteSample(rowStart, x);
         const dst = (y * width + x) * 4;
         if (plteChunk && idx * 3 + 2 < plteChunk.length) {
@@ -105,6 +110,7 @@ export function decodePng(pngBytes: Uint8Array): RgbaBitmap {
     const step = bitDepth === 16 ? 8 : 4;
     const chOff = bitDepth === 16 ? 2 : 1;
     for (let i = 0; i < width * height; i++) {
+    if (++work % 16384 === 0) yield;
       data[i * 4] = unpredicted[i * step] ?? 0;
       data[i * 4 + 1] = unpredicted[i * step + chOff] ?? 0;
       data[i * 4 + 2] = unpredicted[i * step + chOff * 2] ?? 0;
@@ -117,6 +123,7 @@ export function decodePng(pngBytes: Uint8Array): RgbaBitmap {
     const trnsG = trnsChunk && trnsChunk.length >= 6 ? (bitDepth === 16 ? (trnsChunk[2]! << 8) | trnsChunk[3]! : trnsChunk[3]!) : -1;
     const trnsB = trnsChunk && trnsChunk.length >= 6 ? (bitDepth === 16 ? (trnsChunk[4]! << 8) | trnsChunk[5]! : trnsChunk[5]!) : -1;
     for (let i = 0; i < width * height; i++) {
+    if (++work % 16384 === 0) yield;
       const r = unpredicted[i * step] ?? 0;
       const g = unpredicted[i * step + chOff] ?? 0;
       const b = unpredicted[i * step + chOff * 2] ?? 0;
@@ -132,6 +139,7 @@ export function decodePng(pngBytes: Uint8Array): RgbaBitmap {
     const step = bitDepth === 16 ? 4 : 2;
     const chOff = bitDepth === 16 ? 2 : 1;
     for (let i = 0; i < width * height; i++) {
+    if (++work % 16384 === 0) yield;
       const g = unpredicted[i * step] ?? 0;
       data[i * 4] = g;
       data[i * 4 + 1] = g;
@@ -142,8 +150,10 @@ export function decodePng(pngBytes: Uint8Array): RgbaBitmap {
     const maxSample = bitDepth < 8 ? (1 << bitDepth) - 1 : 255;
     const trnsGray = trnsChunk && trnsChunk.length >= 2 ? (bitDepth === 16 ? (trnsChunk[0]! << 8) | trnsChunk[1]! : trnsChunk[1]!) : -1;
     for (let y = 0; y < height; y++) {
+    if (++work % 16384 === 0) yield;
       const rowStart = y * rowBytes;
       for (let x = 0; x < width; x++) {
+    if (++work % 16384 === 0) yield;
         const dst = (y * width + x) * 4;
         if (bitDepth === 16) {
           const s16 = ((unpredicted[rowStart + x * 2] ?? 0) << 8) | (unpredicted[rowStart + x * 2 + 1] ?? 0);
@@ -282,12 +292,14 @@ function fdct8x8(spatial: Float64Array, coeffs: Float64Array): void {
   }
 }
 
-function bitLengthAndMag(val: number): { size: number; bits: number } {
+function *bitLengthAndMagSteps(val: number): Generator<void, { size: number; bits: number }, void> {
+  let work = 0;
   if (val === 0) return { size: 0, bits: 0 };
   const absV = Math.abs(val);
   let size = 0;
   let tmp = absV;
   while (tmp > 0) {
+    if (++work % 16384 === 0) yield;
     size++;
     tmp >>= 1;
   }
@@ -295,7 +307,8 @@ function bitLengthAndMag(val: number): { size: number; bits: number } {
   return { size, bits };
 }
 
-export function encodeJpeg(bitmap: RgbaBitmap, quality = 90): Uint8Array {
+export function *encodeJpegSteps(bitmap: RgbaBitmap, quality = 90): Generator<void, Uint8Array, void> {
+  let work = 0;
   const w = Math.max(1, bitmap.width);
   const h = Math.max(1, bitmap.height);
   const qClamp = Math.max(1, Math.min(100, quality));
@@ -303,6 +316,7 @@ export function encodeJpeg(bitmap: RgbaBitmap, quality = 90): Uint8Array {
 
   const qZigZag = new Uint8Array(64);
   for (let i = 0; i < 64; i++) {
+    if (++work % 16384 === 0) yield;
     const rawQ = STD_LUMINANCE_QUANT[ZIGZAG_ORDER[i]!]!;
     const scaled = Math.floor((rawQ * scaleFactor + 50) / 100);
     qZigZag[i] = Math.max(1, Math.min(255, scaled));
@@ -429,10 +443,14 @@ export function encodeJpeg(bitmap: RgbaBitmap, quality = 90): Uint8Array {
   let dcCr = 0;
 
   for (let my = 0; my < mcusY; my++) {
+    if (++work % 16384 === 0) yield;
     for (let mx = 0; mx < mcusX; mx++) {
+    if (++work % 16384 === 0) yield;
       for (let by = 0; by < 8; by++) {
+    if (++work % 16384 === 0) yield;
         const py = Math.min(h - 1, my * 8 + by);
         for (let bx = 0; bx < 8; bx++) {
+    if (++work % 16384 === 0) yield;
           const px = Math.min(w - 1, mx * 8 + bx);
           const idx = (py * w + px) * 4;
           const r = bitmap.data[idx] ?? 0;
@@ -460,13 +478,15 @@ export function encodeJpeg(bitmap: RgbaBitmap, quality = 90): Uint8Array {
   const out = new Uint8Array(totalLen);
   let off = 0;
   for (const part of [app0, dqt, dht, sof0, sosHeader, entropyArr, eoi]) {
+    if (++work % 16384 === 0) yield;
     out.set(part, off);
     off += part.length;
   }
   return out;
 }
 
-export function encodePpm(bitmap: RgbaBitmap): Uint8Array {
+export function *encodePpmSteps(bitmap: RgbaBitmap): Generator<void, Uint8Array, void> {
+  let work = 0;
   const w = Math.max(1, bitmap.width);
   const h = Math.max(1, bitmap.height);
   const header = new TextEncoder().encode(`P6\n${w} ${h}\n255\n`);
@@ -474,6 +494,7 @@ export function encodePpm(bitmap: RgbaBitmap): Uint8Array {
   out.set(header, 0);
   let dst = header.length;
   for (let i = 0; i < w * h; i++) {
+    if (++work % 16384 === 0) yield;
     out[dst++] = bitmap.data[i * 4] ?? 255;
     out[dst++] = bitmap.data[i * 4 + 1] ?? 255;
     out[dst++] = bitmap.data[i * 4 + 2] ?? 255;
@@ -481,7 +502,8 @@ export function encodePpm(bitmap: RgbaBitmap): Uint8Array {
   return out;
 }
 
-export function encodePgm(bitmap: RgbaBitmap): Uint8Array {
+export function *encodePgmSteps(bitmap: RgbaBitmap): Generator<void, Uint8Array, void> {
+  let work = 0;
   const w = Math.max(1, bitmap.width);
   const h = Math.max(1, bitmap.height);
   const header = new TextEncoder().encode(`P5\n${w} ${h}\n255\n`);
@@ -489,6 +511,7 @@ export function encodePgm(bitmap: RgbaBitmap): Uint8Array {
   out.set(header, 0);
   let dst = header.length;
   for (let i = 0; i < w * h; i++) {
+    if (++work % 16384 === 0) yield;
     const r = bitmap.data[i * 4] ?? 255;
     const g = bitmap.data[i * 4 + 1] ?? 255;
     const b = bitmap.data[i * 4 + 2] ?? 255;
@@ -497,12 +520,15 @@ export function encodePgm(bitmap: RgbaBitmap): Uint8Array {
   return out;
 }
 
-function encodePackBitsRow(row: Uint8Array): number[] {
+function *encodePackBitsRowSteps(row: Uint8Array): Generator<void, number[], void> {
+  let work = 0;
   const out: number[] = [];
   let i = 0;
   while (i < row.length) {
+    if (++work % 16384 === 0) yield;
     let runLen = 1;
     while (i + runLen < row.length && runLen < 128 && row[i + runLen] === row[i]) {
+    if (++work % 16384 === 0) yield;
       runLen++;
     }
     if (runLen >= 2) {
@@ -512,12 +538,14 @@ function encodePackBitsRow(row: Uint8Array): number[] {
       const litStart = i;
       let litLen = 0;
       while (i < row.length && litLen < 128) {
+    if (++work % 16384 === 0) yield;
         if (i + 1 < row.length && row[i + 1] === row[i]) break;
         i++;
         litLen++;
       }
       out.push(litLen - 1);
       for (let k = 0; k < litLen; k++) {
+    if (++work % 16384 === 0) yield;
         out.push(row[litStart + k]!);
       }
     }
@@ -527,15 +555,17 @@ function encodePackBitsRow(row: Uint8Array): number[] {
 
 export type TiffCompressionMode = "none" | "packbits" | "deflate" | "lzw" | "jpeg";
 
-export function encodeTiff(
+export function *encodeTiffSteps(
   bitmap: RgbaBitmap,
   dpi = 72,
   compression: TiffCompressionMode = "none"
-): Uint8Array {
+): Generator<void, Uint8Array, void> {
+  let work = 0;
   const { width, height, data } = bitmap;
   const rgbByteLength = width * height * 3;
   const rawRgb = new Uint8Array(rgbByteLength);
   for (let i = 0, j = 0; i < data.length; i += 4, j += 3) {
+    if (++work % 16384 === 0) yield;
     rawRgb[j] = data[i]!;
     rawRgb[j + 1] = data[i + 1]!;
     rawRgb[j + 2] = data[i + 2]!;
@@ -551,8 +581,9 @@ export function encodeTiff(
     const packed: number[] = [];
     const rowStride = width * 3;
     for (let y = 0; y < height; y++) {
+    if (++work % 16384 === 0) yield;
       const row = rawRgb.subarray(y * rowStride, (y + 1) * rowStride);
-      packed.push(...encodePackBitsRow(row));
+      packed.push(...(yield* encodePackBitsRowSteps(row)));
     }
     stripBytes = new Uint8Array(packed);
   } else if (compression === "lzw") {
@@ -623,7 +654,8 @@ export function encodeTiff(
   return out;
 }
 
-export function encodePbm(bitmap: RgbaBitmap): Uint8Array {
+export function *encodePbmSteps(bitmap: RgbaBitmap): Generator<void, Uint8Array, void> {
+  let work = 0;
   const w = Math.max(1, bitmap.width);
   const h = Math.max(1, bitmap.height);
   const header = new TextEncoder().encode(`P4\n${w} ${h}\n`);
@@ -632,9 +664,12 @@ export function encodePbm(bitmap: RgbaBitmap): Uint8Array {
   out.set(header, 0);
   let dst = header.length;
   for (let y = 0; y < h; y++) {
+    if (++work % 16384 === 0) yield;
     for (let bx = 0; bx < rowBytes; bx++) {
+    if (++work % 16384 === 0) yield;
       let byteVal = 0;
       for (let bit = 0; bit < 8; bit++) {
+    if (++work % 16384 === 0) yield;
         const x = bx * 8 + bit;
         if (x < w) {
           const idx = (y * w + x) * 4;
@@ -653,7 +688,8 @@ export function encodePbm(bitmap: RgbaBitmap): Uint8Array {
   return out;
 }
 
-export function rotateRgbaBitmapQuarterTurns(bitmap: RgbaBitmap, degrees: number): RgbaBitmap {
+export function *rotateRgbaBitmapQuarterTurnsSteps(bitmap: RgbaBitmap, degrees: number): Generator<void, RgbaBitmap, void> {
+  let work = 0;
   const norm = ((Math.round(degrees / 90) * 90) % 360 + 360) % 360;
   if (norm === 0) return bitmap;
   const srcW = bitmap.width;
@@ -661,7 +697,9 @@ export function rotateRgbaBitmapQuarterTurns(bitmap: RgbaBitmap, degrees: number
   if (norm === 180) {
     const out = new Uint8Array(srcW * srcH * 4);
     for (let y = 0; y < srcH; y++) {
+    if (++work % 16384 === 0) yield;
       for (let x = 0; x < srcW; x++) {
+    if (++work % 16384 === 0) yield;
         const sIdx = (y * srcW + x) * 4;
         const dIdx = ((srcH - 1 - y) * srcW + (srcW - 1 - x)) * 4;
         out[dIdx] = bitmap.data[sIdx]!;
@@ -676,7 +714,9 @@ export function rotateRgbaBitmapQuarterTurns(bitmap: RgbaBitmap, degrees: number
   const dstH = srcW;
   const out = new Uint8Array(dstW * dstH * 4);
   for (let y = 0; y < srcH; y++) {
+    if (++work % 16384 === 0) yield;
     for (let x = 0; x < srcW; x++) {
+    if (++work % 16384 === 0) yield;
       const sIdx = (y * srcW + x) * 4;
       const dx = norm === 90 ? srcH - 1 - y : y;
       const dy = norm === 90 ? x : srcW - 1 - x;
@@ -690,7 +730,8 @@ export function rotateRgbaBitmapQuarterTurns(bitmap: RgbaBitmap, degrees: number
   return { width: dstW, height: dstH, data: out };
 }
 
-export function cropRgbaBitmap(bitmap: RgbaBitmap, rect: PdfCropRect): RgbaBitmap {
+export function *cropRgbaBitmapSteps(bitmap: RgbaBitmap, rect: PdfCropRect): Generator<void, RgbaBitmap, void> {
+  let work = 0;
   const x0 = Math.max(0, Math.min(bitmap.width - 1, Math.round(rect.x)));
   const y0 = Math.max(0, Math.min(bitmap.height - 1, Math.round(rect.y)));
   const maxW = Math.max(1, bitmap.width - x0);
@@ -699,6 +740,7 @@ export function cropRgbaBitmap(bitmap: RgbaBitmap, rect: PdfCropRect): RgbaBitma
   const h = rect.height > 0 ? Math.max(1, Math.min(maxH, Math.round(rect.height))) : maxH;
   const out = new Uint8Array(w * h * 4);
   for (let dy = 0; dy < h; dy++) {
+    if (++work % 16384 === 0) yield;
     const srcRowStart = ((y0 + dy) * bitmap.width + x0) * 4;
     const dstRowStart = dy * w * 4;
     out.set(bitmap.data.subarray(srcRowStart, srcRowStart + w * 4), dstRowStart);
@@ -718,26 +760,30 @@ const CRC_TABLE = (() => {
   return table;
 })();
 
-function crc32(bytes: Uint8Array): number {
+function *crc32Steps(bytes: Uint8Array): Generator<void, number, void> {
+  let work = 0;
   let c = 0xffffffff;
   for (let i = 0; i < bytes.length; i++) {
+    if (++work % 16384 === 0) yield;
     c = CRC_TABLE[(c ^ bytes[i]!) & 0xff]! ^ (c >>> 8);
   }
   return (c ^ 0xffffffff) >>> 0;
 }
 
-function makePngChunk(type: string, data: Uint8Array): Uint8Array {
+function *makePngChunkSteps(type: string, data: Uint8Array): Generator<void, Uint8Array, void> {
+  let work = 0;
   const out = new Uint8Array(12 + data.length);
   const view = new DataView(out.buffer);
   view.setUint32(0, data.length, false);
-  for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
+  for (let i = 0; i < 4; i++) { if (++work % 16384 === 0) yield; out[4 + i] = type.charCodeAt(i); }
   out.set(data, 8);
-  const crc = crc32(out.subarray(4, 8 + data.length));
+  const crc = (yield* crc32Steps(out.subarray(4, 8 + data.length)));
   view.setUint32(8 + data.length, crc, false);
   return out;
 }
 
-export function encodeRgbaToPng(width: number, height: number, rgba: Uint8Array): Uint8Array {
+export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8Array): Generator<void, Uint8Array, void> {
+  let work = 0;
   const signature = Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10]);
   const ihdr = new Uint8Array(13);
   const ihdrView = new DataView(ihdr.buffer);
@@ -752,20 +798,22 @@ export function encodeRgbaToPng(width: number, height: number, rgba: Uint8Array)
   const stride = width * 4;
   const rawScanlines = new Uint8Array((stride + 1) * height);
   for (let y = 0; y < height; y++) {
+    if (++work % 16384 === 0) yield;
     const rowStart = y * (stride + 1);
     rawScanlines[rowStart] = 0; // Filter type 0 (None)
     rawScanlines.set(rgba.subarray(y * stride, (y + 1) * stride), rowStart + 1);
   }
 
   const compressed = encodeFlate(rawScanlines);
-  const ihdrChunk = makePngChunk("IHDR", ihdr);
-  const idatChunk = makePngChunk("IDAT", compressed);
-  const iendChunk = makePngChunk("IEND", new Uint8Array(0));
+  const ihdrChunk = (yield* makePngChunkSteps("IHDR", ihdr));
+  const idatChunk = (yield* makePngChunkSteps("IDAT", compressed));
+  const iendChunk = (yield* makePngChunkSteps("IEND", new Uint8Array(0)));
 
   const total = signature.length + ihdrChunk.length + idatChunk.length + iendChunk.length;
   const out = new Uint8Array(total);
   let offset = 0;
   for (const part of [signature, ihdrChunk, idatChunk, iendChunk]) {
+    if (++work % 16384 === 0) yield;
     out.set(part, offset);
     offset += part.length;
   }
@@ -933,13 +981,15 @@ interface Edge {
   y1: number;
 }
 
-function segmentsToScreenPaths(segments: readonly PdfPathSegment[], pageHeight: number, scale: number,
+function *segmentsToScreenPathsSteps(segments: readonly PdfPathSegment[], pageHeight: number, scale: number,
   toScreen = (x: number, y: number): StrokePoint => [x * scale, (pageHeight - y) * scale]
-): StrokeSubpath[] {
+): Generator<void, StrokeSubpath[], void> {
+  let work = 0;
   const paths: StrokeSubpath[] = [];
   let points: StrokePoint[] = [];
   let current: StrokePoint = [0, 0];
   for (const segment of segments) {
+    if (++work % 16384 === 0) yield;
     if (segment.kind === "move") {
       if (points.length) paths.push({ points, closed: false });
       current = toScreen(segment.x, segment.y);
@@ -953,7 +1003,7 @@ function segmentsToScreenPaths(segments: readonly PdfPathSegment[], pageHeight: 
       const a = toScreen(segment.x1, segment.y1), b = toScreen(segment.x2, segment.y2);
       const end = toScreen(segment.x, segment.y);
       const curve = flattenCubic(current[0], current[1], a[0], a[1], b[0], b[1], end[0], end[1]);
-      for (let i = 1; i < curve.length; i++) points.push(curve[i]!);
+      for (let i = 1; i < curve.length; i++) { if (++work % 16384 === 0) yield; points.push(curve[i]!); }
       current = end;
     } else if (segment.kind === "close") {
       if (points.length) {
@@ -1012,7 +1062,7 @@ function prepareStroke(path: PdfEvaluatedPath, scale: number) {
   return { matrix, width, dashArray, dashPhase };
 }
 
-function strokeContours(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0): StrokePoint[][] {
+function *strokeContoursSteps(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0): Generator<void, StrokePoint[][], void> {
   const stroke = prepareStroke(path, scale);
   if (!stroke) return [];
   const inverse = inverseStrokeMatrix(stroke.matrix);
@@ -1029,16 +1079,19 @@ function strokeContours(path: PdfEvaluatedPath, pageHeight: number, scale: numbe
     (a * x / strokeScale + c * y / strokeScale + e - originX) * scale,
     (pageHeight + originY - b * x / strokeScale - d * y / strokeScale - f) * scale,
   ];
-  const contours = strokeOutlines(segmentsToScreenPaths(path.segments, pageHeight, scale, project),
+  const contours = strokeOutlines((yield* segmentsToScreenPathsSteps(path.segments, pageHeight, scale, project)),
     stroke.width * strokeScale, path.lineCap ?? 0, path.lineJoin ?? 0, path.miterLimit ?? 10,
     stroke.dashArray?.map(value => Math.max(0, value * strokeScale)), stroke.dashPhase * strokeScale);
   return contours.map(points => points.map(toScreen));
 }
 
-function pathsToEdges(paths: readonly StrokeSubpath[], closeSubpaths = false): Edge[] {
+function *pathsToEdgesSteps(paths: readonly StrokeSubpath[], closeSubpaths = false): Generator<void, Edge[], void> {
+  let work = 0;
   const edges: Edge[] = [];
   for (const { points, closed } of paths) {
+    if (++work % 16384 === 0) yield;
     for (let i = 1; i < points.length; i++) {
+    if (++work % 16384 === 0) yield;
       const a = points[i - 1]!, b = points[i]!;
       edges.push({ x0: a[0], y0: a[1], x1: b[0], y1: b[1] });
     }
@@ -1050,7 +1103,7 @@ function pathsToEdges(paths: readonly StrokeSubpath[], closeSubpaths = false): E
   return edges;
 }
 
-function fillEdgesScanline4x4(
+function *fillEdgesScanline4x4Steps(
   rgba: Uint8Array,
   width: number,
   height: number,
@@ -1063,11 +1116,13 @@ function fillEdgesScanline4x4(
   blendMode?: string,
   clipMask?: Uint8Array,
   groupAlpha?: Float32Array
-): void {
+): Generator<void, void, void> {
+  let work = 0;
   if (edges.length === 0) return;
   let minY = Infinity;
   let maxY = -Infinity;
   for (const e of edges) {
+    if (++work % 16384 === 0) yield;
     minY = Math.min(minY, e.y0, e.y1);
     maxY = Math.max(maxY, e.y0, e.y1);
   }
@@ -1080,11 +1135,14 @@ function fillEdgesScanline4x4(
 
   const subOffsets = [0.125, 0.375, 0.625, 0.875];
   for (let py = startRow; py <= endRow; py++) {
+    if (++work % 16384 === 0) yield;
     const rowCounts = new Uint8Array(width);
     for (const sy of subOffsets) {
+    if (++work % 16384 === 0) yield;
       const scanY = py + sy;
       const crossings: Array<{ x: number; dir: number }> = [];
       for (const e of edges) {
+    if (++work % 16384 === 0) yield;
         if ((e.y0 <= scanY && e.y1 > scanY) || (e.y1 <= scanY && e.y0 > scanY)) {
           const t = (scanY - e.y0) / (e.y1 - e.y0);
           crossings.push({
@@ -1098,12 +1156,14 @@ function fillEdgesScanline4x4(
       const intervals: Array<[number, number]> = [];
       if (fillRule === "evenodd") {
         for (let i = 0; i + 1 < crossings.length; i += 2) {
+    if (++work % 16384 === 0) yield;
           intervals.push([crossings[i]!.x, crossings[i + 1]!.x]);
         }
       } else {
         let winding = 0;
         let intervalStart = 0;
         for (const c of crossings) {
+    if (++work % 16384 === 0) yield;
           const prevWinding = winding;
           winding += c.dir;
           if (prevWinding === 0 && winding !== 0) {
@@ -1114,10 +1174,13 @@ function fillEdgesScanline4x4(
         }
       }
       for (const [xLeft, xRight] of intervals) {
+    if (++work % 16384 === 0) yield;
         const xStart = Math.max(clipMinX, Math.floor(xLeft));
         const xEnd = Math.min(clipMaxX, Math.ceil(xRight));
         for (let px = xStart; px <= xEnd; px++) {
+    if (++work % 16384 === 0) yield;
           for (const sx of subOffsets) {
+    if (++work % 16384 === 0) yield;
             const sampleX = px + sx;
             if (sampleX >= xLeft && sampleX <= xRight) {
               rowCounts[px] = (rowCounts[px] ?? 0) + 1;
@@ -1127,6 +1190,7 @@ function fillEdgesScanline4x4(
       }
     }
     for (let px = 0; px < width; px++) {
+    if (++work % 16384 === 0) yield;
       const count = rowCounts[px]!;
       if (count > 0) {
         const cov = antialias ? count / 16 : count >= 8 ? 1 : 0;
@@ -1175,12 +1239,14 @@ function paintOperations(displayList: PdfDisplayList): readonly PdfPaintOperatio
 
 // PDF.js _prepareSMaskCanvas/_bakeSMaskCanvas: composite the group's backdrop
 // before converting luminosity, then apply the 256-entry transfer function.
-function renderSoftMask(mask: PdfSoftMask, displayList: PdfDisplayList, scale: number): RgbaBitmap {
-  const bitmap = renderDisplayListToBitmap({
+function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, scale: number): Generator<void, RgbaBitmap, void> {
+  let work = 0;
+  const bitmap = (yield* renderDisplayListToBitmapSteps({
     ...displayList, rotation: 0, glyphs: [], paths: [], images: [], operations: mask.operations,
-  }, { scale, transparent: true });
+  }, { scale, transparent: true }));
   const { data } = bitmap;
   for (let i = 0; i < data.length; i += 4) {
+    if (++work % 16384 === 0) yield;
     let value = data[i + 3]!;
     if (mask.subtype === "Luminosity") {
       const alpha = value / 255;
@@ -1226,12 +1292,13 @@ function containsBackdropGroup(operations: readonly PdfPaintOperation[]): boolea
     (needsGroupBackdrop(operation.value) || containsBackdropGroup(operation.value.operations)));
 }
 
-function renderDisplayListLayer(
+function *renderDisplayListLayerSteps(
   displayList: PdfDisplayList,
   options: RenderToPngOptions,
   scale: number,
   backdrop?: Uint8Array
-): RgbaBitmap {
+): Generator<void, RgbaBitmap, void> {
+  let work = 0;
   const [originX, originY] = displayList.origin ?? [0, 0];
   const pageTop = originY + displayList.height;
   const toScreen = (x: number, y: number): StrokePoint => [(x - originX) * scale, (pageTop - y) * scale];
@@ -1251,6 +1318,7 @@ function renderDisplayListLayer(
   const bgB = transparent ? 0 : Math.round(bg.b * 255);
   const bgA = transparent ? 0 : 255;
   for (let i = 0; !backdrop && i < width * height; i++) {
+    if (++work % 16384 === 0) yield;
     rgba[i * 4] = bgR;
     rgba[i * 4 + 1] = bgG;
     rgba[i * 4 + 2] = bgB;
@@ -1266,15 +1334,16 @@ function renderDisplayListLayer(
   let cachedSoftMaskPixels: Uint8Array | undefined;
   const imageClipMasks = new Map<readonly PdfEvaluatedImage[], Uint8Array>();
   for (const original of paintOperations(displayList)) {
+    if (++work % 16384 === 0) yield;
     if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
     let operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
     if (operation.kind === "group") {
       const group = operation.value;
-      const bitmap = renderDisplayListLayer(
+      const bitmap = (yield* renderDisplayListLayerSteps(
         { ...displayList, operations: group.operations },
         { ...options, transparent: true }, scale, needsGroupBackdrop(group) ? rgba : undefined
-      );
-      for (let i = 3; i < bitmap.data.length; i += 4) bitmap.data[i] = Math.round(bitmap.data[i]! * group.alpha);
+      ));
+      for (let i = 3; i < bitmap.data.length; i += 4) { if (++work % 16384 === 0) yield; bitmap.data[i] = Math.round(bitmap.data[i]! * group.alpha); }
       operation = { kind: "image", value: {
         name: "TransparencyGroup", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
         matrix: [bitmap.width / scale, 0, 0, bitmap.height / scale, originX, pageTop - bitmap.height / scale],
@@ -1286,10 +1355,11 @@ function renderDisplayListLayer(
     if (clips && !clipMask) {
       clipMask = new Uint8Array(width * height * 4).fill(255);
       for (const clip of clips) {
+    if (++work % 16384 === 0) yield;
         const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
         const layer = new Uint8Array(width * height * 4);
-        fillEdgesScanline4x4(layer, width, height, pathsToEdges(segmentsToScreenPaths(segments, displayList.height, scale, toScreen), true), { r: 1, g: 1, b: 1 }, 1, fillRule);
-        for (let i = 3; i < layer.length; i += 4) clipMask[i] = Math.round(clipMask[i]! * layer[i]! / 255);
+        (yield* fillEdgesScanline4x4Steps(layer, width, height, (yield* pathsToEdgesSteps((yield* segmentsToScreenPathsSteps(segments, displayList.height, scale, toScreen)), true)), { r: 1, g: 1, b: 1 }, 1, fillRule));
+        for (let i = 3; i < layer.length; i += 4) { if (++work % 16384 === 0) yield; clipMask[i] = Math.round(clipMask[i]! * layer[i]! / 255); }
       }
       cachedClips = clips;
       cachedClipMask = clipMask;
@@ -1297,12 +1367,12 @@ function renderDisplayListLayer(
     const softMask = original.value.softMask;
     if (softMask) {
       if (softMask !== cachedSoftMask) {
-        cachedSoftMaskPixels = renderSoftMask(softMask, displayList, scale).data;
+        cachedSoftMaskPixels = (yield* renderSoftMaskSteps(softMask, displayList, scale)).data;
         cachedSoftMask = softMask;
       }
       if (clipMask) {
         clipMask = clipMask.slice();
-        for (let i = 3; i < clipMask.length; i += 4) clipMask[i] = Math.round(clipMask[i]! * cachedSoftMaskPixels![i]! / 255);
+        for (let i = 3; i < clipMask.length; i += 4) { if (++work % 16384 === 0) yield; clipMask[i] = Math.round(clipMask[i]! * cachedSoftMaskPixels![i]! / 255); }
       } else {
         clipMask = cachedSoftMaskPixels;
       }
@@ -1313,16 +1383,17 @@ function renderDisplayListLayer(
       if (!imageMask) {
         imageMask = new Uint8Array(width * height * 4).fill(255);
         for (const image of imageClips) {
-          const layer = renderDisplayListToBitmap({
+    if (++work % 16384 === 0) yield;
+          const layer = (yield* renderDisplayListToBitmapSteps({
             ...displayList, rotation: 0, paths: [], glyphs: [], images: [image], operations: [{ kind: "image", value: image }],
-          }, { scale, transparent: true }).data;
-          for (let i = 3; i < layer.length; i += 4) imageMask[i] = Math.round(imageMask[i]! * layer[i]! / 255);
+          }, { scale, transparent: true })).data;
+          for (let i = 3; i < layer.length; i += 4) { if (++work % 16384 === 0) yield; imageMask[i] = Math.round(imageMask[i]! * layer[i]! / 255); }
         }
         imageClipMasks.set(imageClips, imageMask);
       }
       if (clipMask) {
         clipMask = clipMask.slice();
-        for (let i = 3; i < clipMask.length; i += 4) clipMask[i] = Math.round(clipMask[i]! * imageMask[i]! / 255);
+        for (let i = 3; i < clipMask.length; i += 4) { if (++work % 16384 === 0) yield; clipMask[i] = Math.round(clipMask[i]! * imageMask[i]! / 255); }
       } else {
         clipMask = imageMask;
       }
@@ -1330,19 +1401,19 @@ function renderDisplayListLayer(
     if (operation.kind === "path") {
       const path = operation.value;
       if (path.fillColor) {
-        const edges = pathsToEdges(segmentsToScreenPaths(path.segments, displayList.height, scale, toScreen), true);
+        const edges = (yield* pathsToEdgesSteps((yield* segmentsToScreenPathsSteps(path.segments, displayList.height, scale, toScreen)), true));
         const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [(path.clipRect[0] - originX) * scale, (pageTop - path.clipRect[3]) * scale, (path.clipRect[2] - originX) * scale, (pageTop - path.clipRect[1]) * scale] : undefined;
-        fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask, groupAlpha);
+        (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask, groupAlpha));
       }
       if (path.strokeColor) {
         const rawSw = path.strokeWidth * scale * (path.strokeMatrix ? Math.hypot(path.strokeMatrix[0], path.strokeMatrix[1]) : 1);
         const strokeAlpha = options.thinLineMode === "shape" && rawSw < 1
           ? (path.strokeAlpha ?? 1) * Math.max(0.25, rawSw) : path.strokeAlpha ?? 1;
-        const edges = pathsToEdges(strokeContours(path, displayList.height, scale, originX, originY).map(points => ({ points, closed: true })));
+        const edges = (yield* pathsToEdgesSteps((yield* strokeContoursSteps(path, displayList.height, scale, originX, originY)).map(points => ({ points, closed: true }))));
         const clipScreen: [number, number, number, number] | undefined = path.clipRect
           ? [(path.clipRect[0] - originX) * scale, (pageTop - path.clipRect[3]) * scale, (path.clipRect[2] - originX) * scale, (pageTop - path.clipRect[1]) * scale] : undefined;
-        fillEdgesScanline4x4(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
-          original.kind === "glyph" ? aaTxt : aaVec, path.blendMode, clipMask, groupAlpha);
+        (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
+          original.kind === "glyph" ? aaTxt : aaVec, path.blendMode, clipMask, groupAlpha));
       }
     } else if (operation.kind === "image") {
       const img = operation.value;
@@ -1379,10 +1450,12 @@ function renderDisplayListLayer(
       const sample = new Float64Array(4);
 
       for (let py = minPy; py <= maxPy; py++) {
+    if (++work % 16384 === 0) yield;
         const yPdf = pageTop - (py + 0.5) / scale;
         if (img.clipRect && (yPdf < img.clipRect[1] || yPdf > img.clipRect[3])) continue;
         const dyPdf = yPdf - f;
         for (let px = minPx; px <= maxPx; px++) {
+    if (++work % 16384 === 0) yield;
           const xPdf = originX + (px + 0.5) / scale;
           if (img.clipRect && (xPdf < img.clipRect[0] || xPdf > img.clipRect[2])) continue;
           const dxPdf = xPdf - e;
@@ -1395,7 +1468,7 @@ function renderDisplayListLayer(
             const sx = Math.min(source.width - 1, Math.max(0, Math.floor(u * source.width)));
             const sy = Math.min(source.height - 1, Math.max(0, Math.floor((1 - v) * source.height)));
             const sIdx = (sy * source.width + sx) * 4;
-            for (let c = 0; c < 4; c++) sample[c] = source.data[sIdx + c]!;
+            for (let c = 0; c < 4; c++) { if (++work % 16384 === 0) yield; sample[c] = source.data[sIdx + c]!; }
           }
           blendPixel(
             rgba,
@@ -1421,6 +1494,7 @@ function renderDisplayListLayer(
     // C = Cn + (Cn - C0) * (alpha0 / alphagn - alpha0).
     // This retains inner blending without compositing the backdrop twice.
     for (let i = 0; i < rgba.length; i += 4) {
+    if (++work % 16384 === 0) yield;
       const alpha = groupAlpha[i / 4]!;
       if (alpha === 0) {
         rgba.fill(0, i, i + 4);
@@ -1428,6 +1502,7 @@ function renderDisplayListLayer(
       }
       const factor = backdrop[i + 3]! / 255 * (1 / alpha - 1);
       for (let channel = 0; channel < 3; channel++) {
+    if (++work % 16384 === 0) yield;
         const color = rgba[i + channel]!;
         rgba[i + channel] = Math.max(0, Math.min(255,
           Math.round(color + (color - backdrop[i + channel]!) * factor)));
@@ -1438,6 +1513,7 @@ function renderDisplayListLayer(
 
   if (deferBackground) {
     for (let i = 0; i < rgba.length; i += 4) {
+    if (++work % 16384 === 0) yield;
       const alpha = rgba[i + 3]! / 255;
       rgba[i] = Math.round(rgba[i]! * alpha + bg.r * 255 * (1 - alpha));
       rgba[i + 1] = Math.round(rgba[i + 1]! * alpha + bg.g * 255 * (1 - alpha));
@@ -1448,22 +1524,25 @@ function renderDisplayListLayer(
   return { width, height, data: rgba };
 }
 
-export function renderDisplayListToBitmap(
+export function *renderDisplayListToBitmapSteps(
   displayList: PdfDisplayList,
   options: RenderToPngOptions = {}
-): RgbaBitmap {
+): Generator<void, RgbaBitmap, void> {
+  let work = 0;
   const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1.5);
   const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
   const scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
-  let result = renderDisplayListLayer(displayList, options, scaleX);
+  let result = (yield* renderDisplayListLayerSteps(displayList, options, scaleX));
   const { width, height, data: rgba } = result;
   if (Math.abs(scaleX - scaleY) > 1e-6) {
     const targetW = Math.max(1, Math.round(displayList.width * scaleX));
     const targetH = Math.max(1, Math.round(displayList.height * scaleY));
     const resampled = new Uint8Array(targetW * targetH * 4);
     for (let y = 0; y < targetH; y++) {
+    if (++work % 16384 === 0) yield;
       const sy = Math.min(height - 1, Math.floor((y / targetH) * height));
       for (let x = 0; x < targetW; x++) {
+    if (++work % 16384 === 0) yield;
         const sx = Math.min(width - 1, Math.floor((x / targetW) * width));
         const sIdx = (sy * width + sx) * 4;
         const dIdx = (y * targetW + x) * 4;
@@ -1478,24 +1557,24 @@ export function renderDisplayListToBitmap(
 
   if (options.useCropBox) {
     const box = getDisplayListCropBox(displayList);
-    result = cropRgbaBitmap(result, {
+    result = (yield* cropRgbaBitmapSteps(result, {
       x: box[0] * scaleX, y: (displayList.height - box[3]) * scaleY,
       width: (box[2] - box[0]) * scaleX, height: (box[3] - box[1]) * scaleY,
-    });
+    }));
   }
-  result = rotateRgbaBitmapQuarterTurns(result, displayList.rotation ?? 0);
+  result = (yield* rotateRgbaBitmapQuarterTurnsSteps(result, displayList.rotation ?? 0));
   if (options.cropRect) {
-    result = cropRgbaBitmap(result, options.cropRect);
+    result = (yield* cropRgbaBitmapSteps(result, options.cropRect));
   }
   return result;
 }
 
-export function renderDisplayListToPng(
+export function *renderDisplayListToPngSteps(
   displayList: PdfDisplayList,
   options: RenderToPngOptions = {}
-): Uint8Array {
-  const bmp = renderDisplayListToBitmap(displayList, options);
-  return encodeRgbaToPng(bmp.width, bmp.height, bmp.data);
+): Generator<void, Uint8Array, void> {
+  const bmp = (yield* renderDisplayListToBitmapSteps(displayList, options));
+  return (yield* encodeRgbaToPngSteps(bmp.width, bmp.height, bmp.data));
 }
 
 function pdfBlendModeToCss(mode?: string): string | undefined {
@@ -1520,9 +1599,11 @@ function pdfBlendModeToCss(mode?: string): string | undefined {
   return map[mode];
 }
 
-function escapeXmlText(str: string): string {
+function *escapeXmlTextSteps(str: string): Generator<void, string, void> {
+  let work = 0;
   let valid = "";
   for (const char of str) {
+    if (++work % 16384 === 0) yield;
     const cp = char.codePointAt(0)!;
     // XML 1.0's Char production excludes controls, lone surrogates, FFFE and
     // FFFF even when written as numeric entities. Keep the glyph shape intact.
@@ -1532,22 +1613,25 @@ function escapeXmlText(str: string): string {
   return encodeToXmlString(valid);
 }
 
-function svgImage(image: PdfEvaluatedImage, pageHeight: number): string {
+function *svgImageSteps(image: PdfEvaluatedImage, pageHeight: number): Generator<void, string, void> {
+  let work = 0;
   if (!image.decodedRgba) return "";
-  const png = encodeRgbaToPng(image.width, image.height, image.decodedRgba);
+  const png = (yield* encodeRgbaToPngSteps(image.width, image.height, image.decodedRgba));
   const chunks: string[] = [];
   for (let offset = 0; offset < png.length; offset += 8192)
-    chunks.push(String.fromCharCode(...png.subarray(offset, offset + 8192)));
+    { if (++work % 16384 === 0) yield; chunks.push(String.fromCharCode(...png.subarray(offset, offset + 8192))); }
   const [a, b, c, d, e, f] = image.matrix;
   return `<image width="1" height="1" preserveAspectRatio="none" transform="matrix(${a} ${-b} ${-c} ${d} ${e + c} ${pageHeight - f - d})" href="data:image/png;base64,${btoa(chunks.join(""))}"/>`;
 }
 
-function svgPathData(segments: readonly PdfPathSegment[], height: number, matrix?: readonly number[]): string {
+function *svgPathDataSteps(segments: readonly PdfPathSegment[], height: number, matrix?: readonly number[]): Generator<void, string, void> {
+  let work = 0;
   const dParts: string[] = [];
   const point = (x: number, y: number) => matrix
     ? `${matrix[0]! * x + matrix[2]! * y + matrix[4]!} ${height - matrix[1]! * x - matrix[3]! * y - matrix[5]!}`
     : `${x} ${height - y}`;
   for (const seg of segments) {
+    if (++work % 16384 === 0) yield;
     if (seg.kind === "move") {
       dParts.push(`M ${point(seg.x, seg.y)}`);
     } else if (seg.kind === "line") {
@@ -1564,19 +1648,19 @@ function svgPathData(segments: readonly PdfPathSegment[], height: number, matrix
   return dParts.join(" ");
 }
 
-export function renderDisplayListToSvg(
+export function *renderDisplayListToSvgSteps(
   displayList: PdfDisplayList,
   options: RenderToPngOptions = {}
-): string {
+): Generator<void, string, void> {
   const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1);
   if (containsBackdropGroup(paintOperations(displayList))) {
     // SVG opacity/mask groups cannot reproduce PDF backdrop removal. Use the
     // bitmap compositor when non-isolated inner blends need the parent page.
-    const bitmap = renderDisplayListToBitmap(displayList, { ...options, scale: baseScale });
-    const embedded = svgImage({
+    const bitmap = (yield* renderDisplayListToBitmapSteps(displayList, { ...options, scale: baseScale }));
+    const embedded = (yield* svgImageSteps({
       name: "PageComposite", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
       matrix: [bitmap.width, 0, 0, bitmap.height, 0, 0], colorSpace: "DeviceRGB", bitsPerComponent: 8,
-    }, bitmap.height);
+    }, bitmap.height));
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${bitmap.width}" height="${bitmap.height}" viewBox="0 0 ${bitmap.width} ${bitmap.height}">${embedded}</svg>\n`;
   }
   const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
@@ -1730,12 +1814,13 @@ export function renderDisplayListToSvg(
   return parts.join("\n");
 }
 
-function collectLeavesForRaster(
+function *collectLeavesForRasterSteps(
   cosDoc: ReturnType<typeof parseCosDocument>,
   node: PdfCosNode | undefined,
   out: Array<{ ref: PdfCosRef; dict: PdfCosDict }> = [],
   visited = new Set<number>()
-): Array<{ ref: PdfCosRef; dict: PdfCosDict }> {
+): Generator<void, Array<{ ref: PdfCosRef; dict: PdfCosDict }>, void> {
+  let work = 0;
   if (!node) return out;
   let ref: PdfCosRef | undefined;
   if (node.kind === "ref") {
@@ -1747,21 +1832,21 @@ function collectLeavesForRaster(
   if (!dict) return out;
   const kids = cosDoc.resolveArray(dictGet(dict, "Kids"));
   if (kids) {
-    for (const k of kids.items) collectLeavesForRaster(cosDoc, k, out, visited);
+    for (const k of kids.items) { if (++work % 16384 === 0) yield; yield* collectLeavesForRasterSteps(cosDoc, k, out, visited); }
   } else {
     out.push({ ref: ref ?? cosDoc.allocateObject(dict), dict });
   }
   return out;
 }
 
-export function renderPdfPageToBitmap(
+export function *renderPdfPageToBitmapSteps(
   pdfBytes: Uint8Array | ParsedCosDocument,
   pageIndex = 0,
   options?: RenderToPngOptions
-): RgbaBitmap {
+): Generator<void, RgbaBitmap, void> {
   const cos = pdfBytes instanceof Uint8Array ? parseCosDocument(pdfBytes) : pdfBytes;
   const catalog = cos.resolveDict(cos.rootRef);
-  const leaves = collectLeavesForRaster(cos, catalog ? dictGet(catalog, "Pages") : undefined);
+  const leaves = (yield* collectLeavesForRasterSteps(cos, catalog ? dictGet(catalog, "Pages") : undefined));
   const leaf = leaves[pageIndex] ?? (pageIndex >= 1 ? leaves[pageIndex - 1] : undefined);
   if (!leaf) throw new Error(`Page index ${pageIndex} out of bounds`);
   const resolvedIndex = leaves.indexOf(leaf);
@@ -1769,11 +1854,223 @@ export function renderPdfPageToBitmap(
   return page.renderToBitmap(options);
 }
 
+export function *renderPdfPageToPngSteps(
+  pdfBytes: Uint8Array | ParsedCosDocument,
+  pageIndex = 0,
+  options?: RenderToPngOptions
+): Generator<void, Uint8Array, void> {
+  const bmp = (yield* renderPdfPageToBitmapSteps(pdfBytes, pageIndex, options));
+  return (yield* encodeRgbaToPngSteps(bmp.width, bmp.height, bmp.data));
+}
+
+export function encodePng(
+  bitmap: RgbaBitmap
+): Uint8Array {
+  const steps = encodePngSteps(bitmap);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function decodePng(
+  pngBytes: Uint8Array
+): RgbaBitmap {
+  const steps = decodePngSteps(pngBytes);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+function bitLengthAndMag(
+  val: number
+): { size: number; bits: number } {
+  const steps = bitLengthAndMagSteps(val);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function encodeJpeg(
+  bitmap: RgbaBitmap,
+  quality = 90
+): Uint8Array {
+  const steps = encodeJpegSteps(bitmap, quality);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function encodePpm(
+  bitmap: RgbaBitmap
+): Uint8Array {
+  const steps = encodePpmSteps(bitmap);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function encodePgm(
+  bitmap: RgbaBitmap
+): Uint8Array {
+  const steps = encodePgmSteps(bitmap);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function encodeTiff(
+  bitmap: RgbaBitmap,
+  dpi = 72,
+  compression: TiffCompressionMode = "none"
+): Uint8Array {
+  const steps = encodeTiffSteps(bitmap, dpi, compression);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function encodePbm(
+  bitmap: RgbaBitmap
+): Uint8Array {
+  const steps = encodePbmSteps(bitmap);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function rotateRgbaBitmapQuarterTurns(
+  bitmap: RgbaBitmap,
+  degrees: number
+): RgbaBitmap {
+  const steps = rotateRgbaBitmapQuarterTurnsSteps(bitmap, degrees);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function cropRgbaBitmap(
+  bitmap: RgbaBitmap,
+  rect: PdfCropRect
+): RgbaBitmap {
+  const steps = cropRgbaBitmapSteps(bitmap, rect);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function encodeRgbaToPng(
+  width: number,
+  height: number,
+  rgba: Uint8Array
+): Uint8Array {
+  const steps = encodeRgbaToPngSteps(width, height, rgba);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+function strokeContours(
+  path: PdfEvaluatedPath,
+  pageHeight: number,
+  scale: number,
+  originX = 0,
+  originY = 0
+): StrokePoint[][] {
+  const steps = strokeContoursSteps(path, pageHeight, scale, originX, originY);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+function renderSoftMask(
+  mask: PdfSoftMask,
+  displayList: PdfDisplayList,
+  scale: number
+): RgbaBitmap {
+  const steps = renderSoftMaskSteps(mask, displayList, scale);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function renderDisplayListToBitmap(
+  displayList: PdfDisplayList,
+  options: RenderToPngOptions = {}
+): RgbaBitmap {
+  const steps = renderDisplayListToBitmapSteps(displayList, options);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function renderDisplayListToPng(
+  displayList: PdfDisplayList,
+  options: RenderToPngOptions = {}
+): Uint8Array {
+  const steps = renderDisplayListToPngSteps(displayList, options);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+function escapeXmlText(
+  str: string
+): string {
+  const steps = escapeXmlTextSteps(str);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+function svgImage(
+  image: PdfEvaluatedImage,
+  pageHeight: number
+): string {
+  const steps = svgImageSteps(image, pageHeight);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+function svgPathData(
+  segments: readonly PdfPathSegment[],
+  height: number,
+  matrix?: readonly number[]
+): string {
+  const steps = svgPathDataSteps(segments, height, matrix);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function renderDisplayListToSvg(
+  displayList: PdfDisplayList,
+  options: RenderToPngOptions = {}
+): string {
+  const steps = renderDisplayListToSvgSteps(displayList, options);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
+export function renderPdfPageToBitmap(
+  pdfBytes: Uint8Array | ParsedCosDocument,
+  pageIndex = 0,
+  options?: RenderToPngOptions
+): RgbaBitmap {
+  const steps = renderPdfPageToBitmapSteps(pdfBytes, pageIndex, options);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
+}
+
 export function renderPdfPageToPng(
   pdfBytes: Uint8Array | ParsedCosDocument,
   pageIndex = 0,
   options?: RenderToPngOptions
 ): Uint8Array {
-  const bmp = renderPdfPageToBitmap(pdfBytes, pageIndex, options);
-  return encodeRgbaToPng(bmp.width, bmp.height, bmp.data);
+  const steps = renderPdfPageToPngSteps(pdfBytes, pageIndex, options);
+  let next = steps.next();
+  while (!next.done) next = steps.next();
+  return next.value;
 }

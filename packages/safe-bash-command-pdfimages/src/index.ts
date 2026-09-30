@@ -10,14 +10,7 @@ import {
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import {
-  PdfDocument,
-  encodePbm,
-  encodePng,
-  encodePpm,
-  encodeTiff,
-  extractDocumentImages,
-} from "@poe-code/pdf-ast";
+import { PdfDocument, encodePbmSteps, encodePngSteps, encodePpmSteps, encodeTiffSteps, extractDocumentImagesSteps } from "@poe-code/pdf-ast";
 
 export interface PdfimagesLimits {
   readonly maxInputBytes: number;
@@ -157,13 +150,13 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: quiet ? "" : `I/O Error: Couldn't open file '${inputPath}'\n` };
-  }
-
-  let doc: PdfDocument;
-  try {
-    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-  } catch (err) {
-    return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
+    }
+    let doc: PdfDocument;
+    try {
+        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+    }
+    catch (err) {
+        return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
     }
     const totalPages = Math.max(1, doc.pageCount);
     const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
@@ -176,10 +169,11 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
                 : `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`,
         };
     }
-    const allExtracted = extractDocumentImages(doc.cos, {
+    const allExtracted = (yield* extractDocumentImagesSteps(doc.cos, {
         firstPage,
         ...(lastPage > 0 ? { lastPage } : {}),
-    });
+        signal: options.signal
+    }));
     const seenObjectIds = new Set<string>();
     const extracted = uniqueOnly
         ? allExtracted.filter((img) => {
@@ -232,19 +226,19 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
             }
             else if (useTiff) {
                 ext = "tif";
-                outBytes = encodeTiff(img.bitmap, img.xPpi);
+                outBytes = (yield* encodeTiffSteps(img.bitmap, img.xPpi));
             }
             else if (usePng) {
                 ext = "png";
-                outBytes = encodePng(img.bitmap);
+                outBytes = (yield* encodePngSteps(img.bitmap));
             }
             else if (img.colorSpace === "gray" && img.bitsPerComponent === 1) {
                 ext = "pbm";
-                outBytes = encodePbm(img.bitmap);
+                outBytes = (yield* encodePbmSteps(img.bitmap));
             }
             else {
                 ext = "ppm";
-                outBytes = encodePpm(img.bitmap);
+                outBytes = (yield* encodePpmSteps(img.bitmap));
             }
             const outName = includePage
                 ? `${root}-${String(img.pageNumber).padStart(3, "0")}-${numStr}.${ext}`

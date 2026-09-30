@@ -4,6 +4,10 @@ Unified first-party PDF AST, parser, lossless editor, extractor, and 2D PNG rast
 
 `@poe-code/pdf-ast` provides a three-layer PDF Abstract Syntax Tree (`COS Object Graph` → `Content Stream & 2D Display List` → `Semantic & Layout Extraction AST`) so applications can parse, inspect, edit, redact, merge, extract tables/text, and render PDFs to PNG with zero native dependencies.
 
+`renderDisplayListToBitmapSteps`, encoding `...Steps` functions, and
+`extractDocumentImagesSteps` expose bounded work generators for responsive
+page and pixel processing. Synchronous APIs remain available.
+
 ## Feature Index
 
 | Capability | Entry Point | Description |

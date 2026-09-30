@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { runNativeTests } from "./run-native-tests.mjs";
+import { copyNativeBinding } from "./native-binding.mjs";
 import { createHash } from "node:crypto";
 import { accessSync, constants, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -145,7 +146,7 @@ if ((operation === "build" || operation === "test") && existsSync(bindingManifes
       try {
         const dest = path.join(base, `${pkgName}-${rustDigest}`);
         mkdirSync(dest, { recursive: true });
-        copyFileSync(path.join(output, builtNodeName), path.join(dest, builtNodeName));
+        copyNativeBinding(path.join(output, builtNodeName), path.join(dest, builtNodeName));
         copyFileSync(path.join(output, dtsName), path.join(dest, dtsName));
         break;
       } catch (error) { void error; }
@@ -155,7 +156,7 @@ if ((operation === "build" || operation === "test") && existsSync(bindingManifes
   if (cachedEntryDir) {
     mkdirSync(output, { recursive: true });
     const cachedNode = readdirSync(cachedEntryDir).find((name) => name.endsWith(".node"));
-    copyFileSync(path.join(cachedEntryDir, cachedNode), path.join(output, cachedNode));
+    copyNativeBinding(path.join(cachedEntryDir, cachedNode), path.join(output, cachedNode));
     copyFileSync(path.join(cachedEntryDir, dtsName), path.join(output, dtsName));
   } else if (hasFreshLocalBinding) {
     saveToNapiCache(nodeFile);

@@ -67,5 +67,13 @@ export function runTests(root, args, spawn = spawnSync, fileSystem, execution) {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  process.exitCode = runTests(fileURLToPath(new URL("../", import.meta.url)), [...reporterArguments(args), ...args], spawnSync, undefined, parseTestExecution(process.env));
+  const execution = parseTestExecution(process.env);
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  if (args.length === 0 && process.env.SAFE_BASH_SHARD_RUNNER !== "0") {
+    import("./run-sharded-unit-tests.mjs").then(({ runSafeBashShardedUnitTests }) => {
+      process.exitCode = runSafeBashShardedUnitTests({ root, env: process.env, execution });
+    });
+  } else {
+    process.exitCode = runTests(root, [...reporterArguments(args), ...args], spawnSync, undefined, execution);
+  }
 }

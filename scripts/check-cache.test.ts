@@ -322,4 +322,41 @@ describe("content-addressed check cache", () => {
     }));
     expect(key()).not.toBe(before);
   });
+  it("scopes turbo.json task overrides per workspace so unrelated workspace entries do not invalidate other packages", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({
+      tasks: {
+        build: { dependsOn: ["^build"], outputs: ["dist/**"] },
+        "test:unit": { dependsOn: ["^build"] },
+        "alpha#test:unit": { dependsOn: ["build"] }
+      }
+    }));
+    const files = [...state.files, "turbo.json"];
+    const key = (name = "alpha", event = "test:unit") =>
+      createTaskFingerprints(state.plan, { files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event }).get(name);
+    const alphaBefore = key("alpha");
+    const betaBefore = key("beta");
+
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({
+      tasks: {
+        build: { dependsOn: ["^build"], outputs: ["dist/**"] },
+        "test:unit": { dependsOn: ["^build"] },
+        "alpha#test:unit": { dependsOn: ["build"] },
+        "other#test:unit": { dependsOn: ["^build"], outputs: [] }
+      }
+    }));
+    expect(key("alpha")).toBe(alphaBefore);
+    expect(key("beta")).toBe(betaBefore);
+
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({
+      tasks: {
+        build: { dependsOn: ["^build"], outputs: ["dist/**"] },
+        "test:unit": { dependsOn: ["^build"] },
+        "alpha#test:unit": { dependsOn: ["^build"], inputs: ["src/**"] },
+        "other#test:unit": { dependsOn: ["^build"], outputs: [] }
+      }
+    }));
+    expect(key("alpha")).not.toBe(alphaBefore);
+    expect(key("beta")).toBe(betaBefore);
+  });
 });

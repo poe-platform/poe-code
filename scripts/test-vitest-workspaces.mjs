@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { taskCacheKey } from "./check-cache.mjs";
 import { workspaceUnitSelections } from "./workspace-test-ownership.mjs";
 
 export function sharedVitestStages(plan, fileSystem = fs) {
@@ -34,12 +37,83 @@ export function sharedVitestStages(plan, fileSystem = fs) {
   return [shared, ...plan.testStages.filter(stage => !compatible.includes(stage))];
 }
 
-export async function runSharedVitest(root, phases, { cacheStore, fingerprints, cache = false, cacheFiles, batchSize = 250, runBatch, testFiles } = {}) {
+function matchSimpleGlobPattern(root, pattern, fileSystem) {
+  const dirRel = path.posix.dirname(pattern);
+  const basePattern = path.posix.basename(pattern);
+  const fullDir = path.join(root, dirRel);
+  if (!fileSystem.existsSync(fullDir)) return [];
+  const prefix = basePattern.startsWith("*.") ? basePattern.slice(1) : null;
+  return fileSystem.readdirSync(fullDir)
+    .map(name => String(name))
+    .filter(name => prefix ? name.endsWith(prefix) : name === basePattern)
+    .sort()
+    .map(name => path.posix.join(dirRel, name));
+}
+
+export function prewarmNativeNodeTestWorkspaces(root, plan, {
+  cacheStore,
+  fingerprints,
+  spawn = spawnSync,
+  fileSystem = fs,
+  batchSize = 35
+} = {}) {
+  const selections = new Map(workspaceUnitSelections(root, fileSystem).map(s => [s.path, s]));
+  const candidates = [];
+  for (const stage of plan.testStages ?? []) {
+    if (!stage.path || stage.event !== "test:unit") continue;
+    const sel = selections.get(stage.path);
+    if (!sel || !sel.requiresNativePool || sel.hasHooks) continue;
+    const settings = { ...plan.configuration?.tasks?.["test:unit"], ...plan.configuration?.tasks?.[stage.name + "#test:unit"] };
+    if (settings.cache === false) continue;
+    const pkgPath = path.join(root, stage.path, "package.json");
+    if (!fileSystem.existsSync(pkgPath)) continue;
+    const pkg = JSON.parse(fileSystem.readFileSync(pkgPath, "utf8"));
+    const script = pkg.scripts?.["test:unit"] ?? "";
+    if (!script.startsWith("node --import tsx --test")) continue;
+    const fp = fingerprints?.get(stage.name);
+    if (!fp) continue;
+    const key = taskCacheKey(fp, "test:unit:native", plan.testArguments ?? []);
+    if (cacheStore?.read(key)?.success === true) continue;
+    const stageFiles = sel.exclusions.flatMap(pattern => matchSimpleGlobPattern(root, pattern, fileSystem));
+    if (!stageFiles.length) continue;
+    candidates.push({ stage, key, files: stageFiles });
+  }
+  let prewarmedWorkspaces = 0;
+  let batches = 0;
+  let index = 0;
+  while (index < candidates.length) {
+    const batchStages = [];
+    const batchFiles = [];
+    while (index < candidates.length && (batchFiles.length === 0 || batchFiles.length + candidates[index].files.length <= batchSize)) {
+      batchStages.push(candidates[index]);
+      batchFiles.push(...candidates[index].files);
+      index++;
+    }
+    batches++;
+    const startedAt = performance.now();
+    const result = spawn(
+      process.execPath,
+      ["--import", "tsx", "--test", "--test-concurrency=1", "--experimental-test-isolation=none", ...batchFiles],
+      { cwd: root, stdio: "inherit" }
+    );
+    if (result.status === 0 && !result.signal) {
+      const durationMs = Math.round((performance.now() - startedAt) / Math.max(1, batchStages.length));
+      for (const item of batchStages) {
+        cacheStore?.write(item.key, { success: true, durationMs });
+        prewarmedWorkspaces++;
+      }
+    }
+  }
+  return { prewarmedWorkspaces, batches };
+}
+
+export async function runSharedVitest(root, phases, { cacheStore, fingerprints, cache = false, cacheFiles, batchSize = 250, runBatch, testFiles, fileSystem = fs } = {}) {
   assert.ok(Number.isSafeInteger(batchSize) && batchSize > 0, "Invalid Vitest batch size");
   const environment = { TEST: process.env.TEST, VITEST: process.env.VITEST, NODE_ENV: process.env.NODE_ENV };
   const contexts = [];
   const failures = [];
   const pendingRecords = [];
+  const pendingFileRecords = [];
   let revalidateFingerprints;
   const cacheStats = { cacheHits: 0, cacheMisses: 0, fingerprintMs: 0 };
   process.env.TEST = "true";
@@ -78,12 +152,18 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
     const requested = testFiles && new Set(testFiles.map(filename => path.resolve(root, filename)));
     const groups = [];
     const { createCheckCache, createTaskFingerprints, taskCacheKey } = await import("./check-cache.mjs");
+    const fileKeyByModuleId = new Map();
     if (cache && !cacheStore) {
       cacheStore = createCheckCache();
       const { createWorkspaceBuildPlan } = await import("./build-workspaces.mjs");
       const started = performance.now();
       const fingerprintPlan = createWorkspaceBuildPlan(root);
-      const fingerprintOptions = { files: cacheFiles, environment: { ...process.env }, selected: phases.filter(phase => phase.path !== null).map(phase => phase.name) };
+      const fingerprintOptions = {
+        files: cacheFiles,
+        environment: { ...process.env },
+        selected: phases.filter(phase => phase.path !== null).map(phase => phase.name),
+        includeRoot: phases.some(phase => phase.path === null)
+      };
       fingerprints = createTaskFingerprints(fingerprintPlan, fingerprintOptions);
       revalidateFingerprints = () => createTaskFingerprints(fingerprintPlan, fingerprintOptions);
       cacheStats.fingerprintMs = Math.round(performance.now() - started);
@@ -105,15 +185,46 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
         ? taskCacheKey(fingerprints.get(phase.name), "test:unit", phase.selectors) : undefined;
       const files = selected.map(specification => path.relative(root, specification.moduleId)).sort();
       const record = key && cacheStore?.read(key);
-      const cached = record?.success === true && JSON.stringify(record.files) === JSON.stringify(files);
-      if (key) cacheStats[cached ? "cacheHits" : "cacheMisses"]++;
+      let cached = record?.success === true && JSON.stringify(record.files) === JSON.stringify(files);
       const fileKeys = new Map(key && runBatch ? files.map(file => [path.resolve(root, file),
         taskCacheKey(fingerprints.get(phase.name), "test:unit:file", [...phase.selectors, file])]) : []);
       const resumed = new Set([...fileKeys].filter(([id, fileKey]) => {
-        const record = cacheStore?.read(fileKey);
-        return record?.success === true && JSON.stringify(record.files) === JSON.stringify([path.relative(root, id)]);
+        const fileRecord = cacheStore?.read(fileKey);
+        return fileRecord?.success === true && JSON.stringify(fileRecord.files) === JSON.stringify([path.relative(root, id)]);
       }).map(([id]) => id));
-      groups.push({ phase, specifications: selected.map(specification => ({ moduleId: specification.moduleId })), key, files, cached, fileKeys, resumed });
+      const sourceFp = phase.cache !== false
+        ? (phase.path === null ? fingerprints?.rootBase : fingerprints?.sourceFingerprints?.get(phase.name))
+        : undefined;
+      let runnableSpecifications = selected;
+      if (sourceFp && cacheStore) {
+        for (const specification of selected) {
+          const rel = path.relative(root, specification.moduleId).split(path.sep).join("/");
+          let fileBytes = Buffer.alloc(0);
+          try { fileBytes = fileSystem.readFileSync(specification.moduleId); } catch { /* ignore */ }
+          const fileDigest = createHash("sha256").update(rel + "\0").update(fileBytes).digest("hex");
+          const fileKey = taskCacheKey(sourceFp, "test:unit:file", [rel, fileDigest]);
+          fileKeyByModuleId.set(specification.moduleId, {
+            fileKey,
+            sourceFp,
+            phaseName: phase.name,
+            isRoot: phase.path === null
+          });
+        }
+        if (!cached) {
+          runnableSpecifications = selected.filter(specification => {
+            const meta = fileKeyByModuleId.get(specification.moduleId);
+            return !meta || cacheStore.read(meta.fileKey)?.success !== true;
+          });
+          if (runnableSpecifications.length === 0 && selected.length > 0) {
+            cached = true;
+            if (key) {
+              pendingRecords.push({ name: phase.name, selectors: phase.selectors, key, value: { success: true, files } });
+            }
+          }
+        }
+      }
+      if (key || (phase.path === null && sourceFp)) cacheStats[cached ? "cacheHits" : "cacheMisses"]++;
+      groups.push({ phase, specifications: runnableSpecifications.map(specification => ({ moduleId: specification.moduleId })), key, files, cached, fileKeys, resumed });
     }
     for (const filename of requested ?? []) assert.ok(scheduled.has(filename), `Test file is outside selected unit ownership: ${filename}`);
     byPath.clear();
@@ -188,6 +299,10 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
         }
         queueCompleted = true;
       } finally {
+        for (const moduleId of completed) {
+          const meta = fileKeyByModuleId.get(moduleId);
+          if (meta) pendingFileRecords.push(meta);
+        }
         for (const group of groups) if (group.key && !group.cached && (group.specifications.length > 0 || queueCompleted) && group.specifications.every(specification => completed.has(specification.moduleId))) {
           pendingRecords.push({ name: group.phase.name, selectors: group.phase.selectors, key: group.key, value: { success: true, files: group.files } });
         }
@@ -204,11 +319,17 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
       else process.env[name] = value;
     }
   }
-  if (pendingRecords.length && failures.length <= 1) {
+  if ((pendingRecords.length || pendingFileRecords.length) && failures.length <= 1) {
     const started = performance.now();
     const current = revalidateFingerprints ? revalidateFingerprints() : fingerprints;
     if (revalidateFingerprints) cacheStats.fingerprintMs += Math.round(performance.now() - started);
     const { taskCacheKey } = await import("./check-cache.mjs");
+    for (const meta of pendingFileRecords) {
+      const currentSourceFp = meta.isRoot ? current?.rootBase : current?.sourceFingerprints?.get(meta.phaseName);
+      if (currentSourceFp && currentSourceFp === meta.sourceFp) {
+        cacheStore.write(meta.fileKey, { success: true });
+      }
+    }
     for (const record of pendingRecords) {
       if (current.has(record.name) && taskCacheKey(current.get(record.name), "test:unit", record.selectors) === record.key) cacheStore.write(record.key, record.value);
     }
@@ -234,11 +355,18 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     assert.ok(shared, "Shared Vitest is not enabled for this workspace configuration");
     if (expected.length) assert.deepEqual(shared.testArguments, [...(groupArgument ? [groupArgument] : []), ...(affectedArgument ? [affectedArgument] : []), ...selectionArguments, ...fileArguments, ...expected], "Workspace unit selection changed before shared execution");
     const { runVitestBatch } = await import("./run-vitest-batch.mjs");
+    const caching = process.env.POE_CHECK_CACHE !== "0" && process.env.TURBO_FORCE !== "true"
+      && (process.env.POE_SNAPSHOT_MODE ?? "playback") === "playback" && (process.env.POE_SNAPSHOT_MISS ?? "error") === "error";
     await runSharedVitest(root, shared.phases, {
       runBatch: runVitestBatch, testFiles: plan.testFiles,
-      cache: process.env.POE_CHECK_CACHE !== "0" && process.env.TURBO_FORCE !== "true"
-        && (process.env.POE_SNAPSHOT_MODE ?? "playback") === "playback" && (process.env.POE_SNAPSHOT_MISS ?? "error") === "error"
+      cache: caching
     });
+    if (caching && !plan.testFiles && !plan.ciGroup) {
+      const { createCheckCache, createTaskFingerprints } = await import("./check-cache.mjs");
+      const store = createCheckCache();
+      const fps = createTaskFingerprints(plan, { environment: { ...process.env } });
+      prewarmNativeNodeTestWorkspaces(root, plan, { cacheStore: store, fingerprints: fps });
+    }
   } catch (error) {
     console.error(error);
     process.exitCode = 1;

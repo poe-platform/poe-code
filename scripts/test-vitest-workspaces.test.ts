@@ -1,6 +1,6 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { runSharedVitest, sharedVitestStages } from "./test-vitest-workspaces.mjs";
+import { prewarmNativeNodeTestWorkspaces, runSharedVitest, sharedVitestStages } from "./test-vitest-workspaces.mjs";
 import { createCheckCache } from "./check-cache.mjs";
 
 const mocks = vi.hoisted(() => ({ createVitest: vi.fn(), reportStarted: vi.fn(), reportFinished: vi.fn(), reportModule: vi.fn(), reporterOptions: vi.fn() }));
@@ -629,5 +629,78 @@ describe("batched shared Vitest execution", () => {
       expect(mocks.reportFinished).toHaveBeenCalledOnce();
       expect(mocks.reportFinished).toHaveBeenCalledWith(modules, [], "passed");
     }
+  });
+  it("caches individual root and workspace test files via rootBase and sourceFingerprints so editing one test file only reruns that file", async () => {
+    const { fileSystem } = fixture();
+    fileSystem.mkdirSync("/repo/src", { recursive: true });
+    fileSystem.writeFileSync("/repo/src/root.test.ts", "export const r = 1;");
+    fileSystem.writeFileSync("/repo/packages/alpha/src/unit.test.ts", "export const a1 = 1;");
+    fileSystem.writeFileSync("/repo/packages/alpha/src/second.test.ts", "export const a2 = 1;");
+    const alphaSecondFile = { moduleId: "/repo/packages/alpha/src/second.test.ts" };
+    const allFiles = [rootFile, alphaFile, alphaSecondFile, betaFile];
+    const globImpl = async (filters?: string[]) =>
+      filters === undefined ? [...allFiles]
+        : filters[0].startsWith("/repo/") ? allFiles.filter(f => filters.includes(f.moduleId))
+          : filters[0] === "packages/alpha/src" ? [alphaFile, alphaSecondFile] : [betaFile];
+    const cacheStore = createCheckCache({ directory: "/cache", fileSystem });
+    const fingerprints = Object.assign(new Map([["alpha", "a".repeat(64)], ["beta", "b".repeat(64)]]), {
+      rootBase: "r".repeat(64),
+      sourceFingerprints: new Map([["alpha", "s".repeat(64)], ["beta", "t".repeat(64)]])
+    });
+
+    const first = contexts();
+    first.execution.globTestSpecifications.mockImplementation(globImpl);
+    first.execution.runTestSpecifications.mockResolvedValueOnce({
+      testModules: allFiles.map(f => ({ ...f, ok: () => true })),
+      unhandledErrors: []
+    });
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints, fileSystem });
+
+    const second = contexts();
+    second.execution.globTestSpecifications.mockImplementation(globImpl);
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints, fileSystem });
+    expect(second.execution.runTestSpecifications).not.toHaveBeenCalled();
+
+    fileSystem.writeFileSync("/repo/packages/alpha/src/second.test.ts", "export const a2 = 2;");
+    const updatedFingerprints = Object.assign(new Map([["alpha", "c".repeat(64)], ["beta", "b".repeat(64)]]), {
+      rootBase: "r".repeat(64),
+      sourceFingerprints: new Map([["alpha", "s".repeat(64)], ["beta", "t".repeat(64)]])
+    });
+    const third = contexts();
+    third.execution.globTestSpecifications.mockImplementation(globImpl);
+    third.execution.runTestSpecifications.mockResolvedValueOnce({
+      testModules: [{ ...alphaSecondFile, ok: () => true }],
+      unhandledErrors: []
+    });
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints: updatedFingerprints, fileSystem });
+    expect(third.execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([alphaSecondFile], false);
+  });
+
+  it("prewarms uncached node --import tsx --test workspaces in a single serial --experimental-test-isolation=none batch", () => {
+    const fileSystem = createFsFromVolume(Volume.fromJSON({
+      "/repo/packages/one/package.json": JSON.stringify({ name: "one", scripts: { "test:unit": "node --import tsx --test src/*.test.ts" } }),
+      "/repo/packages/one/src/a.test.ts": "export {};",
+      "/repo/packages/two/package.json": JSON.stringify({ name: "two", scripts: { "test:unit": "node --import tsx --test src/*.test.ts" } }),
+      "/repo/packages/two/src/b.test.ts": "export {};"
+    })) as unknown as typeof import("node:fs");
+    const cacheStore = createCheckCache({ directory: "/cache", fileSystem });
+    const fingerprints = new Map([["one", "1".repeat(64)], ["two", "2".repeat(64)]]);
+    const plan = {
+      root: "/repo",
+      testArguments: [],
+      configuration: { tasks: { "test:unit": {} } },
+      testStages: [
+        { id: "one#test:unit", name: "one", path: "packages/one", event: "test:unit" },
+        { id: "two#test:unit", name: "two", path: "packages/two", event: "test:unit" }
+      ]
+    };
+    const spawn = vi.fn(() => ({ status: 0, signal: null }));
+    const summary = prewarmNativeNodeTestWorkspaces("/repo", plan, { cacheStore, fingerprints, spawn, fileSystem });
+    expect(summary).toMatchObject({ prewarmedWorkspaces: 2, batches: 1 });
+    expect(spawn).toHaveBeenCalledOnce();
+    expect(spawn.mock.calls[0][1]).toEqual([
+      "--import", "tsx", "--test", "--test-concurrency=1", "--experimental-test-isolation=none",
+      "packages/one/src/a.test.ts", "packages/two/src/b.test.ts"
+    ]);
   });
 });

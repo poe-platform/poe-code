@@ -63,5 +63,11 @@ export default async function* conciseReporter(events) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  process.exitCode = runNodeTests(process.argv.slice(2));
+  import("./run-sharded-unit-tests.mjs").then(({ runCachedRunnerTests }) => {
+    process.exitCode = runCachedRunnerTests({
+      root: fileURLToPath(new URL("../", import.meta.url)),
+      args: process.argv.slice(2),
+      env: process.env
+    });
+  });
 }

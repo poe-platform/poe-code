@@ -39,13 +39,16 @@ function defaultCheckFiles(plan, environment, fileSystem, selected) {
   return [...cached, ...others];
 }
 
+const realFsDigestCache = new Map();
+
 export function createTaskFingerprints(plan, {
   fileSystem = fs,
   environment = process.env,
   selected = plan.workspaces.map(workspace => workspace.name),
   files = defaultCheckFiles(plan, environment, fileSystem, selected),
   runtime = { versions: process.versions, platform: process.platform, arch: process.arch },
-  event = "test:unit"
+  event = "test:unit",
+  includeRoot = false
 } = {}) {
   const relevantNames = new Set(event === "build"
     ? ["NODE_ENV", "NODE_OPTIONS", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]
@@ -67,28 +70,49 @@ export function createTaskFingerprints(plan, {
   const uncacheable = new Set();
   const inputFiles = new Set();
   const ownerOf = file => owners.get(file.split("/").slice(0, 2).join("/") + "/");
+  let turboTasks = null;
+  let cargoScriptDigest = null;
+  const rustWorkspaces = new Set(plan.workspaces.filter(w => w.path.endsWith("-rust")).map(w => w.name));
   const read = file => {
     if (payloads.has(file)) return payloads.get(file);
-    let bytes, identity;
+    const fullPath = path.join(plan.root, file);
+    let bytes, identity, cacheStamp;
     try {
-      const stat = fileSystem.lstatSync(path.join(plan.root, file));
+      const stat = fileSystem.lstatSync(fullPath);
       if (stat.isSymbolicLink()) {
-        identity = "link:" + fileSystem.readlinkSync(path.join(plan.root, file));
-        if (fileSystem.statSync(path.join(plan.root, file)).isFile()) bytes = fileSystem.readFileSync(path.join(plan.root, file));
+        identity = "link:" + fileSystem.readlinkSync(fullPath);
+        if (fileSystem.statSync(fullPath).isFile()) bytes = fileSystem.readFileSync(fullPath);
         else {
           uncacheable.add(ownerOf(file) ?? "*");
           bytes = Buffer.alloc(0);
         }
       }
-      else if (stat.isFile()) { identity = String(stat.mode & 0o777); bytes = fileSystem.readFileSync(path.join(plan.root, file)); }
+      else if (stat.isFile()) {
+        identity = String(stat.mode & 0o777);
+        if (fileSystem === fs) {
+          cacheStamp = `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeMs}:${stat.ctimeMs}:${identity}`;
+          const cached = realFsDigestCache.get(fullPath);
+          if (cached && cached.stamp === cacheStamp) {
+            if (cached.importedFiles) modules.set(file, cached.importedFiles);
+            payloads.set(file, cached.digest);
+            return cached.digest;
+          }
+        }
+        bytes = fileSystem.readFileSync(fullPath);
+      }
       else throw new Error("Check input is not a file: " + file);
     } catch (error) {
       if (error.code !== "ENOENT") throw error;
       identity ??= "deleted"; bytes = Buffer.alloc(0);
     }
     const digest = createHash("sha256").update(file + "\0" + identity + "\0").update(bytes).digest("hex");
+    let importedFiles;
     if ([".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"].includes(path.extname(file))) {
-      modules.set(file, preProcessFile(bytes.toString("utf8"), true, true).importedFiles.map(imported => imported.fileName));
+      importedFiles = preProcessFile(bytes.toString("utf8"), true, true).importedFiles.map(imported => imported.fileName);
+      modules.set(file, importedFiles);
+    }
+    if (fileSystem === fs && cacheStamp) {
+      realFsDigestCache.set(fullPath, { stamp: cacheStamp, digest, importedFiles });
     }
     payloads.set(file, digest);
     return digest;
@@ -127,7 +151,15 @@ export function createTaskFingerprints(plan, {
     }
     else if (file === "package-lock.json") {
       try {
-        const parsed = JSON.parse(fileSystem.readFileSync(path.join(plan.root, file), "utf8"));
+        const fullLock = path.join(plan.root, file);
+        const lockStat = fileSystem === fs ? fileSystem.lstatSync(fullLock) : null;
+        const lockStamp = lockStat ? `lock:${lockStat.dev}:${lockStat.ino}:${lockStat.size}:${lockStat.mtimeMs}:${lockStat.ctimeMs}` : null;
+        const cachedLock = lockStamp ? realFsDigestCache.get(fullLock) : null;
+        if (cachedLock && cachedLock.stamp === lockStamp) {
+          common.update(cachedLock.digest);
+          continue;
+        }
+        const parsed = JSON.parse(fileSystem.readFileSync(fullLock, "utf8"));
         if (parsed && typeof parsed === "object" && parsed.packages && typeof parsed.packages === "object") {
           const externalPackages = Object.entries(parsed.packages)
             .filter(([key, value]) => key.startsWith("node_modules/") && value && typeof value === "object" && value.link !== true)
@@ -141,9 +173,28 @@ export function createTaskFingerprints(plan, {
                 optional: Boolean(value.optional)
               }
             ]);
-          common.update(createHash("sha256").update(JSON.stringify({
+          const lockDigest = createHash("sha256").update(JSON.stringify({
             lockfileVersion: parsed.lockfileVersion ?? null,
             externalPackages
+          })).digest("hex");
+          if (lockStamp) realFsDigestCache.set(fullLock, { stamp: lockStamp, digest: lockDigest });
+          common.update(lockDigest);
+        } else {
+          common.update(read(file));
+        }
+      } catch {
+        common.update(read(file));
+      }
+    }
+    else if (file === "turbo.json") {
+      try {
+        const parsed = JSON.parse(fileSystem.readFileSync(path.join(plan.root, file), "utf8"));
+        if (parsed && typeof parsed === "object" && parsed.tasks && typeof parsed.tasks === "object") {
+          turboTasks = parsed.tasks;
+          common.update(createHash("sha256").update(JSON.stringify({
+            $schema: parsed.$schema ?? null,
+            globalDependencies: parsed.globalDependencies ?? null,
+            baseTask: parsed.tasks[event] ?? null
           })).digest("hex"));
         } else {
           common.update(read(file));
@@ -152,9 +203,12 @@ export function createTaskFingerprints(plan, {
         common.update(read(file));
       }
     }
+    else if (file === "packages/mcp-protocol-rust/scripts/cargo.mjs") {
+      cargoScriptDigest = read(file);
+    }
     else if ((event === "build"
-      ? ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "scripts/guard-package-dist.mjs", "scripts/build-workspaces.mjs", "scripts/bundle-safe-bash.mjs", "scripts/package-safe.mjs", "scripts/publish-bundle.mjs", "scripts/set-bin-executable.mjs"]
-      : ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "turbo.json", "vitest.config.ts", "vitest.root.config.ts", "tests/setup.ts", "tests/test-env.ts", "scripts/guard-package-dist.mjs", "scripts/build-workspaces.mjs", "scripts/test-vitest-workspaces.mjs", "scripts/workspace-test-ownership.mjs", "scripts/run-vitest-batch.mjs", "scripts/vitest-batch-worker.mjs", "scripts/vitest-immediate-reporter.mjs", "packages/mcp-protocol-rust/scripts/cargo.mjs"]
+      ? ["package.json", "package-lock.json", "tsconfig.json", "scripts/guard-package-dist.mjs", "scripts/build-workspaces.mjs", "scripts/set-bin-executable.mjs"]
+      : ["package.json", "package-lock.json", "tsconfig.json", "vitest.config.ts", "tests/setup.ts", "tests/test-env.ts", "scripts/guard-package-dist.mjs", "scripts/build-workspaces.mjs", "scripts/test-vitest-workspaces.mjs", "scripts/workspace-test-ownership.mjs", "scripts/run-vitest-batch.mjs", "scripts/vitest-batch-worker.mjs", "scripts/vitest-immediate-reporter.mjs"]
     ).includes(file)) common.update(read(file));
   }
   const importedPackages = (file, visited = new Set(), rootInputs) => {
@@ -224,6 +278,7 @@ export function createTaskFingerprints(plan, {
   for (const name of globalImports) prepareSource(name);
   const shared = common.digest("hex");
   const fingerprints = new Map();
+  const sourceFingerprints = new Map();
   for (const name of selected) {
     const closure = new Set();
     const visit = current => {
@@ -237,11 +292,31 @@ export function createTaskFingerprints(plan, {
     visit(name);
     for (const globalName of globalImports) visit(globalName);
     if (uncacheable.has("*") || [...closure].some(current => uncacheable.has(current))) continue;
-    const hash = createHash("sha256").update(shared).update("\0" + name + "\0");
-    if (event !== "build") hash.update(ownTests.get(name));
-    for (const current of [...closure].sort()) hash.update(current).update(ownSource.get(current));
+    const taskOverride = turboTasks ? JSON.stringify(turboTasks[name + "#" + event] ?? null) : "";
+    const rustExtra = cargoScriptDigest && [...closure].some(c => rustWorkspaces.has(c)) ? cargoScriptDigest : "";
+    const srcHash = createHash("sha256").update(shared).update("\0" + name + "\0").update(taskOverride).update(rustExtra);
+    for (const current of [...closure].sort()) srcHash.update(current).update(ownSource.get(current));
+    const srcDigest = srcHash.digest("hex");
+    sourceFingerprints.set(name, srcDigest);
+    const hash = createHash("sha256").update(srcDigest);
+    if (event !== "build") hash.update("\0").update(ownTests.get(name));
     fingerprints.set(name, hash.digest("hex"));
   }
+  if (includeRoot && event !== "build" && !uncacheable.has("*")) {
+    const rootHash = createHash("sha256").update(shared).update("\0__root_base__\0");
+    if (turboTasks) rootHash.update(JSON.stringify(turboTasks["//#test:unit"] ?? null));
+    for (const file of [...inputFiles].sort()) {
+      if (ownerOf(file)) continue;
+      if (file.endsWith(".test.ts") || file.endsWith(".spec.ts") || file.endsWith(".schema-test.ts")) continue;
+      rootHash.update(read(file));
+    }
+    for (const ws of plan.workspaces.map(w => w.name).sort()) {
+      if (!ownSource.has(ws)) prepareSource(ws);
+      rootHash.update(ws).update(ownSource.get(ws));
+    }
+    fingerprints.rootBase = rootHash.digest("hex");
+  }
+  fingerprints.sourceFingerprints = sourceFingerprints;
   return fingerprints;
 }
 
@@ -348,6 +423,9 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
     "node scripts/build.mjs",
     "tsc --noEmit && npm run build:site",
+    "tsc --emitDeclarationOnly && node scripts/build.mjs",
+    "node ../../scripts/guard-package-dist.mjs && tsc && mkdir -p dist/vendor && cp src/vendor/* dist/vendor/ && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js",
+    "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --minify --platform=browser --format=esm --target=es2022 --external:safe-bash-contracts --external:safe-bash-contracts/* --outfile=dist/index.js",
     "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
     "node --import tsx scripts/generate-gh-workflows.ts && tsc && node --import tsx scripts/build-assets.ts",
     "node ../../scripts/guard-package-dist.mjs && rm -rf dist/opt-in && node scripts/integration-inputs.mjs && node scripts/build.mjs",
@@ -418,7 +496,9 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
 const knownPretestHooks = new Set([
   "npm run typecheck:public",
   "node scripts/numberformat-data.mjs && npm run typecheck:fs",
+  "node scripts/numberformat-data.mjs && npm run typecheck:fs && node scripts/run-sharded-unit-tests.mjs",
   "node --import tsx scripts/build-browser-run-code-guest.ts",
+  "node -e \"const fs=require('node:fs'); if (!fs.existsSync('dist/cli.js') || !fs.existsSync('dist/commands/index.d.ts')) process.exit(1)\" || npm run build",
   "npm run build"
 ]);
 
@@ -483,7 +563,7 @@ export function prepareNativeUnitCache(plan, stages, { cacheStore, cacheFiles, e
 export function createCheckCache({
   directory = checkCacheDirectory(),
   fileSystem = fs,
-  fallbackDirectory = fileSystem === fs ? path.resolve(os.tmpdir(), "poe-code", "checks-v1") : undefined,
+  fallbackDirectory = (fileSystem === fs || fileSystem?.readFileSync === fs.readFileSync) ? path.resolve(os.tmpdir(), "poe-code", "checks-v1") : undefined,
   maxDirectoryBytes = 800 * 1024 * 1024,
   targetDirectoryBytes = 600 * 1024 * 1024
 } = {}) {

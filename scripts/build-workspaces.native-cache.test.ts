@@ -138,4 +138,45 @@ describe("native Vitest workspace result cache", () => {
     expect(runCiBashShard(process.cwd(), { environment: { ...env, SAFE_BASH_TEST_SHARD: "3/4" }, spawn, cacheStore: state.cacheStore })).toBe(0);
     expect(spawn).toHaveBeenCalledTimes(2);
   });
+  it("admits all 211 repository workspace builds to prepareBuildCache and all non-safe-bash native unit stages to prepareNativeUnitCache", async () => {
+    const { createWorkspaceTestPlan } = await import("./build-workspaces.mjs");
+    const { sharedVitestStages } = await import("./test-vitest-workspaces.mjs");
+    const { prepareBuildCache, prepareNativeUnitCache } = await import("./check-cache.mjs");
+    const realFs = await import("node:fs");
+    const plan = createWorkspaceTestPlan(process.cwd(), { fileSystem: realFs });
+    const stages = sharedVitestStages(plan, realFs);
+    const fakeStore = {
+      read: () => ({ success: true, outputs: [{ path: "dist/index.js", mode: 0o644, bytes: "" }] }),
+      write: () => {},
+      restore: () => {},
+      capture: () => []
+    };
+    const buildCache = prepareBuildCache(plan, plan.buildStages, { cacheStore: fakeStore, cacheFiles: ["package.json"], environment: {}, fileSystem: realFs });
+    for (const stage of plan.buildStages) {
+      const prevHits = buildCache.stats.cacheHits;
+      const prevMisses = buildCache.stats.cacheMisses;
+      buildCache.restore(stage);
+      expect(buildCache.stats.cacheHits + buildCache.stats.cacheMisses, "Uncached build stage: " + stage.name).toBe(prevHits + prevMisses + 1);
+    }
+
+    const unitCache = prepareNativeUnitCache(plan, stages, { cacheStore: fakeStore, cacheFiles: ["package.json"], environment: {}, fileSystem: realFs });
+    for (const stage of stages) {
+      if (stage.event === "test:unit:shared" || stage.name === "@poe-platform/safe-bash") continue;
+      expect(unitCache?.restore(stage), "Uncached native unit stage: " + stage.name).toBe(true);
+    }
+  });
+
+  it("injects --test-concurrency=1 into NODE_OPTIONS for non-safe-bash unit tasks so node --test never spawns parallel workers", async () => {
+    const state = fixture();
+    const observedOptions: Record<string, string | undefined> = {};
+    const spawn = vi.fn((_exec, args, opts) => {
+      const wsArg = args.find((a: string) => a.startsWith("--workspace="));
+      observedOptions[wsArg ?? "root"] = opts?.env?.NODE_OPTIONS;
+      const child = new EventEmitter();
+      queueMicrotask(() => child.emit("close", 0, null));
+      return child;
+    });
+    await testWorkspaces("/repo", { ...state, spawn, cache: false });
+    expect(observedOptions["--workspace=packages/native"]).toContain("--test-concurrency=1");
+  });
 });

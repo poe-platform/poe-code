@@ -10,7 +10,7 @@ export default defineConfig({
     testTimeout: 15000,
     hookTimeout: 15000,
     teardownTimeout: 15000,
-    maxWorkers: 4,
+    maxWorkers: 1,
     setupFiles: ["../../tests/setup.ts"],
     env: { FORCE_COLOR: "1" },
     include: ["src/**/*.test.ts", "test/**/*.test.ts"],

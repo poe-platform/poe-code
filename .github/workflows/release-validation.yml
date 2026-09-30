@@ -195,9 +195,26 @@ jobs:
           cache: npm
       - run: npm clean-install
       - run: npm audit signatures
+      - name: Restore lint stress cache
+        id: audit-cache
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: .turbo/ci-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-lint-stress-v1-${{ hashFiles('scripts/lint-*', 'eslint.config.js', 'vitest.lint-stress.config.ts', 'package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-lint-stress-v1-
       - name: Run required lint stress tests
+        env:
+          POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
+          TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
         run: npm run test:stress:lint
         timeout-minutes: 7
+      - name: Save lint stress cache
+        if: always() && steps.audit-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .turbo/ci-cache
+          key: ${{ steps.audit-cache.outputs.cache-primary-key }}
   unit:
     if: ${{ !inputs.build_only && needs.build.outputs.superseded != 'true' }}
     needs: build

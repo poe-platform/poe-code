@@ -171,4 +171,24 @@ describe("safe-js sharded unit test runner", () => {
     expect(summary.skipped).toBe(false);
     expect(summary.shards).toBe(2);
   });
+  it("enforces --maxWorkers=1 and VITEST_MAX_WORKERS=1 so sharded execution never spawns parallel workers", () => {
+    const fileSystem = createFixtureFs();
+    const spawnCalls: Array<{ args: string[]; env: Record<string, string | undefined> }> = [];
+    const spawn = vi.fn((_cmd: string, args: string[], opts: { env: Record<string, string | undefined> }) => {
+      spawnCalls.push({ args, env: opts.env });
+      return { status: 0, signal: null };
+    });
+    runSafeJsShardedUnitTests("/repo", {
+      fileSystem,
+      spawn,
+      sharedShardSize: 2,
+      isolatedShardSize: 2
+    });
+    expect(spawnCalls.length).toBeGreaterThan(0);
+    for (const call of spawnCalls) {
+      expect(call.args).toContain("--maxWorkers=1");
+      expect(call.args).not.toContain("--maxWorkers=4");
+      expect(call.env.VITEST_MAX_WORKERS).toBe("1");
+    }
+  });
 });

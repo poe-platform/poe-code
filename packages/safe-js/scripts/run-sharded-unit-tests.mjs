@@ -143,16 +143,25 @@ export function computeSafeJsShardKeys(rootDirectory, shards, { fileSystem = fs 
   return shards.map(shard => {
     const shardHash = crypto.createHash("sha256");
     shardHash.update(`${baseDigest}\0isolate:${shard.isolate}\0`);
+    const fileKeys = {};
     for (const file of shard.files) {
+      const fileBytes = fileSystem.readFileSync(path.join(rootDirectory, file));
       shardHash.update(file);
       shardHash.update("\0");
-      shardHash.update(fileSystem.readFileSync(path.join(rootDirectory, file)));
+      shardHash.update(fileBytes);
       shardHash.update("\0");
+      fileKeys[file] = crypto
+        .createHash("sha256")
+        .update(`${baseDigest}\0file:\0${shard.isolate}\0${file}\0`)
+        .update(fileBytes)
+        .digest("hex");
     }
-    return {
+    const result = {
       ...shard,
       key: shardHash.digest("hex")
     };
+    Object.defineProperty(result, "fileKeys", { value: fileKeys, enumerable: false });
+    return result;
   });
 }
 
@@ -224,8 +233,21 @@ export function runSafeJsShardedUnitTests(
   let cacheMisses = 0;
   const vitestEntrypoint = path.join(rootDirectory, "node_modules/vitest/vitest.mjs");
 
+  const useFileLevelCache = store && cacheStore === undefined;
   for (const shard of shards) {
     if (store?.read(shard.key)?.success === true) {
+      cacheHits++;
+      continue;
+    }
+    const filesToRun = useFileLevelCache
+      ? shard.files.filter(file => store.read(shard.fileKeys[file])?.success !== true)
+      : shard.files;
+    if (filesToRun.length === 0) {
+      store?.write(shard.key, {
+        success: true,
+        shardIndex: shard.index,
+        files: shard.files.length
+      });
       cacheHits++;
       continue;
     }
@@ -239,13 +261,13 @@ export function runSafeJsShardedUnitTests(
         "--testTimeout=30000",
         "--hookTimeout=30000",
         "--teardownTimeout=30000",
-        "--maxWorkers=4",
+        "--maxWorkers=1",
         ...(isolate ? [] : ["--no-isolate"]),
-        ...shard.files
+        ...filesToRun
       ];
       return spawn(process.execPath, args, {
         cwd: rootDirectory,
-        env: { ...environment, VITEST_MAX_WORKERS: "4" },
+        env: { ...environment, VITEST_MAX_WORKERS: "1" },
         stdio: "inherit"
       });
     };
@@ -257,6 +279,11 @@ export function runSafeJsShardedUnitTests(
       throw new Error(
         `@poe-code/safe-js shard ${shard.index + 1}/${shards.length} failed (${result.signal ?? result.status})`
       );
+    }
+    if (useFileLevelCache) {
+      for (const file of filesToRun) {
+        store.write(shard.fileKeys[file], { success: true, file });
+      }
     }
     store?.write(shard.key, {
       success: true,

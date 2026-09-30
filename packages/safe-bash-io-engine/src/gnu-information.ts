@@ -5,6 +5,7 @@ interface Information {
   readonly description: string;
   readonly options: readonly string[];
   readonly stopAtOperand?: boolean;
+  readonly stopAtOperandInPosix?: boolean;
   readonly versionOnly?: boolean;
   readonly exitCode?: number;
 }
@@ -15,8 +16,8 @@ const information: Readonly<Record<string, Information>> = {
   du: { usage: "[OPTION]... [FILE]...", description: "Report virtual file allocation.", options: ["-a, --all", "-s, --summarize", "-c, --total", "-h, --human-readable", "-B, --block-size=SIZE", "-b, --bytes", "--apparent-size", "-d, --max-depth=NUM", "-X, --exclude-from=FILE", "--exclude=PATTERN", "-t, --threshold=SIZE"], versionOnly: true },
   base32: { usage: "[OPTION]... [FILE]", description: "Encode or decode Base32 data.", options: ["-d, --decode", "-i, --ignore-garbage", "-w, --wrap=COLS"] },
   base64: { usage: "[OPTION]... [FILE]", description: "Encode or decode Base64 data.", options: ["-d, --decode", "-i, --ignore-garbage", "-w, --wrap=COLS"] },
-  basename: { usage: "[OPTION]... NAME... [SUFFIX]", description: "Remove directory components and an optional suffix from names.", options: ["-a, --multiple", "-s, --suffix=SUFFIX", "-z, --zero"] },
-  dirname: { usage: "[OPTION]... NAME...", description: "Print the directory component of each name.", options: ["-z, --zero"] },
+  basename: { usage: "[OPTION]... NAME... [SUFFIX]", description: "Remove directory components and an optional suffix from names.", options: ["-a, --multiple", "-s, --suffix=SUFFIX", "-z, --zero"], stopAtOperand: true },
+  dirname: { usage: "[OPTION]... NAME...", description: "Print the directory component of each name.", options: ["-z, --zero"], stopAtOperandInPosix: true },
   chmod: { usage: "[OPTION]... MODE FILE...", description: "Change virtual file permissions, subject to filesystem capabilities.", options: ["-R, --recursive", "-v, --verbose", "-c, --changes", "-f, --silent, --quiet", "--reference=FILE"] },
   cksum: { usage: "[OPTION]... [FILE]...", description: "Compute checksums of files or standard input.", options: ["-a, --algorithm=TYPE", "-b, --binary", "-z, --zero", "--tag", "--untagged", "--raw", "--base64"] },
   comm: { usage: "[OPTION]... FILE1 FILE2", description: "Compare sorted files in the C/POSIX byte locale.", options: ["-1", "-2", "-3", "--output-delimiter=STR", "--check-order", "--nocheck-order"] },
@@ -51,7 +52,7 @@ const information: Readonly<Record<string, Information>> = {
   unexpand: { usage: "[OPTION]... [FILE]...", description: "Convert spaces to tabs.", options: ["-a, --all", "-t, --tabs=LIST", "--first-only"] },
   uniq: { usage: "[OPTION]... [INPUT [OUTPUT]]", description: "Filter adjacent repeated input records.", options: ["-c, --count", "-d, --repeated", "-u, --unique", "-i, --ignore-case", "-f, --skip-fields=NUM", "-s, --skip-chars=NUM", "-w, --check-chars=NUM", "-z, --zero-terminated"] },
   wc: { usage: "[OPTION]... [FILE]...", description: "Count input lines, words, bytes, characters or display width.", options: ["-l, --lines", "-w, --words", "-c, --bytes", "-m, --chars", "-L, --max-line-length"] },
-  pwd: { usage: "[OPTION]...", description: "Print the full filename of the current working directory.", options: ["-L, --logical", "-P, --physical"] },
+  pwd: { usage: "[OPTION]...", description: "Print the full filename of the current working directory.", options: ["-L, --logical", "-P, --physical"], stopAtOperandInPosix: true },
   true: { usage: "[ignored command line arguments]", description: "Exit with a status code indicating success.", options: [] },
   false: { usage: "[ignored command line arguments]", description: "Exit with a status code indicating failure.", options: [], exitCode: 1 },
   echo: { usage: "[SHORT-OPTION]... [STRING]...", description: "Echo the STRING(s) to standard output.", options: ["-n", "-e", "-E"] },
@@ -63,7 +64,7 @@ const checksumInformation: Information = {
   options: ["-b, --binary", "-c, --check", "-t, --text", "-z, --zero", "--tag", "--quiet", "--status", "--strict", "--warn", "--ignore-missing"],
 };
 
-export function gnuInformationSync(name: string, args: readonly string[], externalInvocation = false): string | undefined {
+export function gnuInformationSync(name: string, args: readonly string[], externalInvocation = false, posixlyCorrect = false): string | undefined {
   if (!args.includes("--help") && !args.includes("--version")) return undefined;
   if ((name === "true" || name === "false" || name === "echo" || name === "[" || name === "pwd") && (args.length !== 1 || !externalInvocation)) return undefined;
   const info = information[name] ?? (["md5sum", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum"].includes(name) ? checksumInformation : undefined);
@@ -83,7 +84,7 @@ export function gnuInformationSync(name: string, args: readonly string[], extern
         : `Usage: ${name} ${info.usage}\n${info.description}\n\nCommon supported options (additional behavior is documented in the package):\n${info.options.map(option => `  ${option.split(", ").map(spelling => spelling.startsWith("--") ? spelling : spelling.replace("=", " ")).join(", ")}`).join("\n")}\n  --help     display this help and exit\n  --version  display implementation information and exit\n\nThis is the safe-bash virtual implementation; filesystem operations require backend capabilities.\n`;
     }
     if (!arg.startsWith("-") || arg === "-") {
-      if (info.stopAtOperand) break;
+      if (info.stopAtOperand || info.stopAtOperandInPosix && posixlyCorrect) break;
       continue;
     }
     if (arg.startsWith("--")) {
@@ -134,7 +135,7 @@ async function gnuInformationSlow(name: string, context: CommandContext): Promis
       return { exitCode: info.exitCode ?? 0 };
     }
     if (!arg.startsWith("-") || arg === "-") {
-      if (info.stopAtOperand || name === "pwd" && context.env.POSIXLY_CORRECT !== undefined) break;
+      if (info.stopAtOperand || info.stopAtOperandInPosix && context.env.POSIXLY_CORRECT !== undefined) break;
       continue;
     }
     if (arg.startsWith("--")) {

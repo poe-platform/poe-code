@@ -30160,7 +30160,7 @@ export class Runtime {
             firstName === "head" || firstName === "tail" || firstName === "wc" || firstName === "cat" || firstName === "date" || firstName === "cal" || firstName === "ncal" || firstName === "getopt" || firstName === "pathchk" || firstName === "printenv" || firstName === "env" || firstName === "mktemp" || firstName === "tee" || firstName === "touch" || firstName === "cp" || firstName === "mv" || firstName === "rmdir" || firstName === "sleep" || firstName === "chmod" || firstName === "patch" || firstName === "mkdir" || firstName === "rm" || firstName === "ln" || ((stageArgs.includes("--help") || stageArgs.includes("--version")) && gnuInformationSync(firstName, stageArgs) !== undefined)) {
               const rawBytes = prevBuf.subarray(0, prevLen);
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              const outStr = ((stageArgs.includes("--help") || stageArgs.includes("--version")) ? gnuInformationSync(firstName, stageArgs) : undefined) ?? (firstName === "envsubst"
+              const outStr = ((stageArgs.includes("--help") || stageArgs.includes("--version")) ? gnuInformationSync(firstName, stageArgs, false, (rawState.exported.has("POSIXLY_CORRECT") || rawState.allexport) && rawState.variables.POSIXLY_CORRECT !== undefined) : undefined) ?? (firstName === "envsubst"
                 ? this.evalSyncEnvsubst(inStr, stageArgs, rawState)
                 : firstName === "fmt"
                   ? this.evalSyncFmt(rawBytes, stageArgs, readFile)
@@ -30523,7 +30523,7 @@ export class Runtime {
       if (!definition || !builtInDirectContextExecutors.has(definition.execute)) return undefined;
     }
     if (cmd.words.length === 2 && cmd.redirects.length === 0 && (cmd.words[1]?.plain === "--help" || cmd.words[1]?.plain === "--version")) {
-      const gnuInfo = gnuInformationSync(w0Plain, [cmd.words[1]!.plain!]);
+      const gnuInfo = gnuInformationSync(w0Plain, [cmd.words[1]!.plain!], false, (rawState.exported.has("POSIXLY_CORRECT") || rawState.allexport) && rawState.variables.POSIXLY_CORRECT !== undefined);
       if (gnuInfo !== undefined) {
         const extDef = this.getExternalCommand(w0Plain);
         if (!extDef || !builtInDirectContextExecutors.has(extDef.execute)) return undefined;
@@ -30858,8 +30858,8 @@ export class Runtime {
             ? syncCommandEvaluators.evalSyncWc?.(optInBytes, allArgs, byteLocale(rawState.variables), readFile)
           : w0Plain === "ln"
             ? syncCommandEvaluators.evalSyncLn?.(allArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } }, (s: string, d: string, sym: boolean) => this.tryLinkMemoryNodeSync(sym ? s : resolvePath(rawState.cwd, s), resolvePath(rawState.cwd, d), sym))
-          : (allArgs.includes("--help") || allArgs.includes("--version")) && gnuInformationSync(w0Plain, allArgs) !== undefined
-            ? gnuInformationSync(w0Plain, allArgs)
+          : (allArgs.includes("--help") || allArgs.includes("--version")) && gnuInformationSync(w0Plain, allArgs, false, (rawState.exported.has("POSIXLY_CORRECT") || rawState.allexport) && rawState.variables.POSIXLY_CORRECT !== undefined) !== undefined
+            ? gnuInformationSync(w0Plain, allArgs, false, (rawState.exported.has("POSIXLY_CORRECT") || rawState.allexport) && rawState.variables.POSIXLY_CORRECT !== undefined)
             : w0Plain === "mdq"
               ? evalSyncMdq(inBytes, allArgs, readFile)
             : w0Plain === "shuf"

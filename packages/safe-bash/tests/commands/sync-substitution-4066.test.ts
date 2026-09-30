@@ -5,12 +5,12 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 
-async function execute(source: string) {
+async function execute(source: string, env: Record<string, string> = {}) {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/alpha", new Uint8Array());
   await fs.writeFile("/beta", new Uint8Array());
   const shell = new Shell({ fs, commands: new CommandRegistry(createStandardCommands()) });
-  try { return await shell.exec(source); } finally { await shell.dispose(); }
+  try { return await shell.exec(source, { env }); } finally { await shell.dispose(); }
 }
 
 for (const command of ["echo a $x", "basename -- $x", "dirname -- $x"]) {
@@ -36,8 +36,8 @@ for (const [command, stdout] of [
   ["basename -- /foo/bar-a -a", "bar\n"],
 ] as const) {
   for (const source of [command, `${command} > out; cat out`, `echo "$(${command})"`, `for i in 1 2; do echo "$(${command})"; done`]) {
-    test(`pathname options stop at operand: ${source}`, async () => {
-      const result = await execute(source);
+    test(`pathname POSIX options stop at operand: ${source}`, async () => {
+      const result = await execute(source, { POSIXLY_CORRECT: "1" });
       assert.equal(result.stdout, source.startsWith("for ") ? stdout + stdout : stdout);
       assert.equal(result.stderr, "");
       assert.equal(result.exitCode, 0);

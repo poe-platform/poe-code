@@ -161,13 +161,15 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
         lua.lua_pop(state, 1);
         await context.cooperate();
         lua.lua_rawgeti(state, lua.LUA_REGISTRYINDEX, runner);
-        push({blocks: document.blocks, meta: document.metadata});
+        const inputMeta = document.metadata ?? ((document as {meta?: Document["metadata"]}).meta ?? {});
+        push({blocks: document.blocks, meta: inputMeta});
         lua.lua_newtable(state);
         for (let i = 0; i < filters.length; i++) {lua.lua_rawgeti(state, lua.LUA_REGISTRYINDEX, filters[i]!); lua.lua_rawseti(state, -2, i + 1);}
         checked(lua.lua_pcall(state, 2, 1, 0), true);
         const result = read() as {blocks: Document["blocks"]; meta: Document["metadata"]};
         await context.cooperate();
-        return {...document, blocks: share(document.blocks, result.blocks) as Document["blocks"], metadata: share(document.metadata, Array.isArray(result.meta) && !result.meta.length ? {} : result.meta) as Document["metadata"]};
+        const nextMetadata = share(inputMeta, Array.isArray(result.meta) && !result.meta.length ? {} : result.meta) as Document["metadata"];
+        return {...document, ...(Object.hasOwn(document, "meta") && !Object.hasOwn(document, "metadata") ? {meta: nextMetadata} : {}), blocks: share(document.blocks, result.blocks) as Document["blocks"], metadata: nextMetadata};
       } finally {lua.lua_close(state);}
     }
   };

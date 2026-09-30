@@ -70,7 +70,7 @@ export class Runtime {
     this.#assertOpen();
     if (this.#work - this.#lastYieldWork < 4096) return;
     this.#lastYieldWork = this.#work;
-    await new Promise<void>(resolve => setTimeout(resolve, 0));
+    await yieldTurn(this.context.signal);
     this.#assertOpen();
   }
   retain(bytes: number): void {

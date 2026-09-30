@@ -202,9 +202,9 @@ test("cooperative checkpoint observes cancellation after a frozen-clock yield", 
   const controller = new AbortController(), b = new CsvBudget({}, controller.signal);
   b.charge('work', 4096);
   const reason = new Error('canceled during yield');
-  const timer = setTimeout(() => controller.abort(reason), 0);
+  const timer = setImmediate(() => controller.abort(reason));
   try { await assert.rejects(b.checkpoint(), error => error === reason); }
-  finally { clearTimeout(timer); b.dispose(); }
+  finally { clearImmediate(timer); b.dispose(); }
 });
 
 test("numeric quoting uses Python decimal syntax and float text", () => {
@@ -213,4 +213,15 @@ test("numeric quoting uses Python decimal syntax and float text", () => {
   for (const value of ['0x10', ' ', '1__2']) {
     assert.throws(() => new CsvParser({ quoting: 2 }, budget()).push(enc.encode(value + '\n')), { code: 'INPUT' });
   }
+});
+
+test("work-count yields invoke the shell's registered checkpoint", async () => {
+  const { registerYieldCheckpoint } = await import('safe-bash-contracts/yield');
+  const controller = new AbortController(), b = new CsvBudget({}, controller.signal);
+  let calls = 0;
+  registerYieldCheckpoint(controller.signal, () => calls++);
+  b.charge('work', 4096);
+  await b.checkpoint();
+  assert.equal(calls, 1);
+  b.dispose();
 });

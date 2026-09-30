@@ -67,7 +67,7 @@ export class CsvBudget {
     this.signal.throwIfAborted();
     if (this.usage.work - this.lastYieldWork < 4096) return;
     this.lastYieldWork = this.usage.work;
-    await new Promise<void>(resolve => setTimeout(resolve, 0));
+    await yieldTurn(this.signal);
     this.signal.throwIfAborted();
   }
   remaining(key: Exclude<keyof CsvLimits, "fieldBytes">): number {

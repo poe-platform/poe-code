@@ -549,3 +549,12 @@ token API. Java-specific number range and object identity checks are omitted.
 Literal recovery in `src/cos/lexer.ts` follows `BaseParser.checkForEndOfString`;
 the adapter defers the recovery until EOF to preserve balanced multiline
 strings. Additional local cases check following fields and token budgets.
+
+`src/edit/pdfbox-forms.test.ts` adapts `TestRadioButtons.testRadioButtonPDModel`
+and the PDFBOX-4366/PDFBOX-6207 checkbox regressions. In-memory COS dictionaries
+replace PDFBox model builders; field values and widget appearance states retain
+the original expectations. Empty dictionaries stand in for unused appearances.
+`src/render/pdfbox-blend-mode.test.ts` ports all four
+`TestPDFRendererBlendMode` cases, preserving page dimensions, sample coordinates,
+and expected blue/white pixels. Vitest replaces JUnit; bitmap RGBA values replace
+Java packed ARGB integers. Both use the same PDFBox revision and ASF license.

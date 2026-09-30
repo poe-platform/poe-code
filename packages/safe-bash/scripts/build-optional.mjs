@@ -381,7 +381,7 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
       const origin = original.statements[index];
       if (!ts.isExportDeclaration(origin) || !origin.moduleSpecifier || !ts.isStringLiteral(origin.moduleSpecifier)) continue;
       const parts = origin.moduleSpecifier.text.split("/");
-      const name = parts[1] === "commands" || parts[1] === "fs" ? parts[2] : parts[1] === "shell" && parts[2] === "extensions" ? parts[3] : undefined;
+      const name = parts[1] === "commands" || parts[1] === "fs" ? parts[2] : parts[1] === "shell" && parts[2] === "extensions" ? parts[3] : parts[0]?.startsWith("safe-bash-command-") && commandEntries.includes(parts[0].slice("safe-bash-command-".length)) ? parts[0].slice("safe-bash-command-".length) : undefined;
       const groups = new Map();
       if (name) groups.set(name, statement.getText(source));
       else if (origin.moduleSpecifier.text === "./index.js" && statement.exportClause && ts.isNamedExports(statement.exportClause)) {

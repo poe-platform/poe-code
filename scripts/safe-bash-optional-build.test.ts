@@ -614,3 +614,37 @@ it.each([false, true])("routes direct private optional-host re-exports and rejec
     for (const suffix of ["js", "d.ts"]) expect(volume.readFileSync(core + "/dist/opt-in/commands/yes/helper." + suffix, "utf8")).toContain('from "@poe-platform/safe-bash/optional-host"');
   }
 });
+
+it("emits optional command entrypoints when src/optional.ts re-exports directly from safe-bash-command-*", async () => {
+  const { volume, options } = fixture();
+  const name = "safe-bash-command-shuf";
+  const directory = root + "/packages/" + name;
+  volume.mkdirSync(directory + "/dist", { recursive: true });
+  volume.writeFileSync(directory + "/dist/index.js", 'export const createShufCommand = () => {}; export const createShufCommands = () => {}; export const shufCommands = () => {};');
+  volume.writeFileSync(directory + "/dist/index.d.ts", 'export declare function createShufCommand(): void; export declare function createShufCommands(): void; export declare function shufCommands(): void; export interface ShufCommandsOptions {} export interface ShufLimits {}');
+  volume.writeFileSync(directory + "/package.json", JSON.stringify({
+    name, private: true, type: "module", version: "0.0.1", dependencies: {}, devDependencies: {},
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  const manifest = JSON.parse(volume.readFileSync(core + "/package.json", "utf8").toString());
+  manifest.devDependencies[name] = "*";
+  manifest.poeCode.integration.privateWorkspaces[name] = {
+    version: "0.0.1", dependencies: {}, devDependencies: {},
+    optionalModules: { ".": "./dist/optional/commands/shuf/index.js" },
+  };
+  manifest.exports["./commands/shuf"] = {
+    types: "./dist/opt-in/entrypoints/shuf.d.ts",
+    import: "./dist/opt-in/entrypoints/shuf.js",
+  };
+  volume.writeFileSync(core + "/package.json", JSON.stringify(manifest));
+  const runtime = 'export { createShufCommand, createShufCommands, shufCommands } from "safe-bash-command-shuf";';
+  const types = 'export type { ShufCommandsOptions, ShufLimits } from "safe-bash-command-shuf";';
+  volume.appendFileSync(core + "/dist/optional.js", runtime);
+  volume.appendFileSync(core + "/dist/optional.d.ts", runtime + " " + types);
+  const result = await buildOptionalPackage(options);
+  expect(result.status).toBe(0);
+  expect(result.files).toContain("entrypoints/shuf.js");
+  expect(result.files).toContain("entrypoints/shuf.d.ts");
+  expect(volume.readFileSync(core + "/dist/opt-in/entrypoints/shuf.js", "utf8")).toContain('from "../optional/commands/shuf/index.js"');
+  expect(volume.readFileSync(core + "/dist/opt-in/entrypoints/shuf.d.ts", "utf8")).toContain('export type { ShufCommandsOptions, ShufLimits } from "../optional/commands/shuf/index.js"');
+});

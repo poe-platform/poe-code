@@ -140,6 +140,23 @@ export function stageConsumerDependencies(root, temporary, packageRoots) {
   return [...staged.values()].map(({ name, directory, files }) => ({ name, directory, files }));
 }
 
+export function privateWorkspaceDeclarationPaths(root, candidate, privateAliases) {
+  const paths = {};
+  for (const name of privateAliases) {
+    const directory = name.startsWith("@") ? name.split("/")[1] : name;
+    const metadata = JSON.parse(readFileSync(resolve(root, "..", directory, "package.json"), "utf8"));
+    for (const [route, entry] of Object.entries(metadata.exports ?? {})) {
+      const target = nodeTypeTarget(entry.types);
+      if (!target?.startsWith("./dist/")) continue;
+      const declaration = join("dist", directory, target.slice("./dist/".length));
+      // Packaging retains the declaration dependency closure. Unused exports need
+      // no artifact entry; every actual helper resolution is authenticated below.
+      paths[name + (route === "." ? "" : route.slice(1))] = [join(candidate, declaration)];
+    }
+  }
+  return paths;
+}
+
 export async function stageStandaloneConsumerPackage(root, temporary) {
   const input = createBuiltPackageBinding(root);
   const source = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
@@ -173,17 +190,7 @@ export async function stageStandaloneConsumerPackage(root, temporary) {
     binding.filesystem.privateEntries.set(specifier, target.slice(2));
   }
   binding.privateAliases = Object.keys(source.poeCode.integration.privateWorkspaces);
-  for (const name of binding.privateAliases) {
-    const metadata = JSON.parse(readFileSync(resolve(root, "..", name, "package.json"), "utf8"));
-    for (const [route, entry] of Object.entries(metadata.exports ?? {})) {
-      const target = nodeTypeTarget(entry.types);
-      if (!target?.startsWith("./dist/")) continue;
-      const declaration = join("dist", name, target.slice("./dist/".length));
-      // Packaging retains the declaration dependency closure. Unused exports need
-      // no artifact entry; every actual helper resolution is authenticated below.
-      paths[name + (route === "." ? "" : route.slice(1))] = [join(candidate, declaration)];
-    }
-  }
+  Object.assign(paths, privateWorkspaceDeclarationPaths(root, candidate, binding.privateAliases));
   const current = createBuiltPackageBinding(root);
   assert.equal(current.metadataSha256, input.metadataSha256, "workspace metadata changed during artifact qualification");
   assert.deepEqual(current.declarations, input.declarations, "workspace declarations changed during artifact qualification");

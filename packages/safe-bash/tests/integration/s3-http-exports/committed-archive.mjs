@@ -731,6 +731,23 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       assert.ok(rootManifest.workspaces.includes("packages/*"), "workspace package prefix missing");
       const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
       const facadeExports = {
+        "./safe-bash/shell": {
+          types: "./dist/types/safe-bash/shell-entry.d.ts",
+          workerd: "./packages/safe-bash/dist/shell-entry.browser.js",
+          browser: "./packages/safe-bash/dist/shell-entry.browser.js",
+          import: "./dist/safe-bash-shell.js",
+        },
+        "./safe-bash/registry": {
+          types: "./dist/types/safe-bash/registry-entry.d.ts",
+          workerd: "./packages/safe-bash/dist/registry-entry.browser.js",
+          browser: "./packages/safe-bash/dist/registry-entry.browser.js",
+          import: "./dist/safe-bash-registry.js",
+        },
+        "./safe-bash/full": {
+          types: { workerd: "./dist/types/safe-bash/core.d.ts", browser: "./dist/types/safe-bash/core.d.ts", default: "./dist/safe-bash.d.ts" },
+          workerd: "./packages/safe-bash/dist/core.browser.js", browser: "./packages/safe-bash/dist/core.browser.js",
+          node: "./dist/safe-bash-full.js", import: "./dist/safe-bash-full.js", default: "./dist/safe-bash-full.js",
+        },
         "./safe-bash": {
           types: { workerd: "./dist/types/safe-bash/core.d.ts", browser: "./dist/types/safe-bash/core.d.ts", default: "./dist/safe-bash.d.ts" },
           workerd: "./packages/safe-bash/dist/core.browser.js", browser: "./packages/safe-bash/dist/core.browser.js",

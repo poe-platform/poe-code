@@ -38,6 +38,12 @@ class Model:
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
 @dataclass(frozen=True)
+class Configuration:
+    default_model: Optional[str] = None
+    aliases: Mapping[str, str] = field(default_factory=dict)
+    model_options: Mapping[str, Mapping[str, str]] = field(default_factory=dict)
+
+@dataclass(frozen=True)
 class Message:
     role: str
     content: str
@@ -335,6 +341,12 @@ class Client:
             return await asyncio.wait_for(task, timeout)
         finally:
             self._tasks.discard(task)
+
+    async def configuration(self):
+        value = await self._run(lambda: self._bridge.call("configuration", {}), self._timeout)
+        return Configuration(default_model=value.get("default_model"),
+                             aliases=copy.deepcopy(value.get("aliases", {})),
+                             model_options=copy.deepcopy(value.get("model_options", {})))
 
     async def models(self):
         values = await self._run(lambda: self._bridge.call("models", {}), self._timeout)

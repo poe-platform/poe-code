@@ -325,3 +325,27 @@ test('named template loading is included in the completion timeout', async () =>
   await assert.rejects(capability.call!({operation:'complete',payload:{template:'slow',prompt:'q',timeout:0.001}},{signal}),{name:'TimeoutError'});
   assert.equal(requests.length,0);
 });
+
+test('Python shares canonical saved model defaults aliases and option precedence with Bash', async () => {
+  const {fs,service,requests} = await fixture();
+  await fs.mkdir('/settings',{recursive:true});
+  await fs.writeFile('/settings/default_model.txt',new TextEncoder().encode('favorite'));
+  await fs.writeFile('/settings/aliases.json',new TextEncoder().encode(JSON.stringify({favorite:'alias'})));
+  await fs.writeFile('/settings/model_options.json',new TextEncoder().encode(JSON.stringify({model:{mode:'saved'}})));
+  const cleanups:(() => void | Promise<void>)[] = [];
+  const context:CommandContext = {command:'llm',args:['question'],fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'},signal,
+    stdin:toByteSource(''),stdout:{async write() {}},stderr:{async write() {}},registerCleanup(cleanup) {cleanups.push(cleanup);}};
+  try {
+    assert.equal((await createLlmCommands({service})[0]!.execute(context)).exitCode,0);
+    const capability = createPythonLlmCapability(context,service);
+    await capability.call!({operation:'complete',payload:{prompt:'question'}},{signal});
+    assert.deepEqual(requests[1]!.options,requests[0]!.options);
+    assert.equal(requests[1]!.model,requests[0]!.model);
+    await capability.call!({operation:'complete',payload:{model:'favorite',prompt:'override',options:{mode:'direct',enabled:true,count:2}}},{signal});
+    assert.deepEqual(requests[2]!.options,{mode:'direct',enabled:true,count:2});
+    const result = await capability.call!({operation:'embed',payload:{model:'favorite',inputs:['one'],options:{mode:'embedding'}}},{signal});
+    assert.equal((result as {model:string}).model,'model');
+    const configuration = await capability.call!({operation:'configuration'},{signal});
+    assert.deepEqual(configuration,{default_model:'favorite',aliases:{favorite:'alias'},model_options:{model:{mode:'saved'}}});
+  } finally {for (const cleanup of cleanups) await cleanup();}
+});

@@ -1,7 +1,7 @@
 import type { CommandContext } from '../../contracts/index.js';
 import type { LlmService, LlmServiceRequest, LlmServiceSourceRequest } from '../llm/service.js';
 import type { LlmOption, LlmInputSource } from '../llm/types.js';
-import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters } from 'safe-bash-command-llm';
+import { createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters } from 'safe-bash-command-llm';
 import { sniffMimeType } from '../llm/mime.js';
 import { pathOf } from '../internal.js';
 import type { PythonHostCapability, PythonHostValue } from './host-capabilities.js';
@@ -102,6 +102,7 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
       signal = AbortSignal.any([signal, AbortSignal.timeout(Math.max(1, Math.ceil(timeout * 1000)))]);
     }
     signal.throwIfAborted();
+    const configuration = createLlmConfiguration({...context,env:context.env ?? {},signal});
     if (payload.conversation !== undefined && payload.conversation !== null) throw new TypeError('The shared LLM service does not yet support persisted conversation');
     const parameters: Record<string,string> = {};
     for (const [key,item] of Object.entries(record(payload.parameters ?? {}))) {
@@ -129,6 +130,12 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
           ...inputs.filter(input => record(input).mimeType !== undefined)],
       };
     } else if (Object.keys(parameters).length) throw new TypeError('Template parameters require a named template');
+    const selected = payload.model ?? await configuration.defaultModel();
+    if (selected !== undefined && typeof selected !== 'string') throw new TypeError('Model must be a string');
+    const identity = selected === undefined ? undefined : await configuration.resolveAlias(selected);
+    const {model} = service.resolve(identity);
+    payload = {...payload,model:model.id,options:{...await configuration.modelOptions(model.id),...record(payload.options ?? {})}};
+    signal.throwIfAborted();
     const limit = payload.max_response_bytes;
     if (limit !== undefined && limit !== null && (typeof limit !== 'number' || !Number.isSafeInteger(limit) || limit < 0)) throw new RangeError('Invalid LLM response limit');
     const attachments: {mimeType:string;source:LlmInputSource}[] = [];
@@ -258,9 +265,15 @@ export function createPythonLlmCapability(context: Pick<CommandContext, 'fs' | '
         id:model.id, aliases:[...model.aliases ?? []], capabilities:[...model.capabilities ?? []],
         metadata:{provider:provider.name, attachmentTypes:[...model.attachmentTypes ?? []], outputType:model.outputType ?? 'text/plain'},
       }));
+      if (operation.operation === 'configuration') {
+        const configuration = createLlmConfiguration({...context,env:context.env ?? {},signal});
+        const result = {default_model:await configuration.defaultModel() ?? null,aliases:await configuration.aliases(),model_options:await configuration.allModelOptions()};
+        jsonBytes(result,bufferedLimit);
+        return result;
+      }
       if (operation.operation === 'embed') {
-        return await service.embed({...(payload.model == null ? {} : {model:payload.model as string}),
-          inputs:payload.inputs as readonly string[], options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>, signal}) as unknown as PythonHostValue;
+        const prepared = await prepare(payload,signal);
+        return await service.embed({model:prepared.model!,inputs:payload.inputs as readonly string[],options:prepared.options,signal:prepared.signal}) as unknown as PythonHostValue;
       }
       if (operation.operation !== 'complete') throw new TypeError('Unsupported Python LLM operation');
       let text = '', textBytes = 0, dataBytes = 0, received = 0;

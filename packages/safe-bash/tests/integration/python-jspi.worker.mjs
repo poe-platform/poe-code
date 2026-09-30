@@ -188,6 +188,7 @@ async function qualifyHostServices(backend, createExecutor) {
     }
     if (request.prompt === 'error-call') throw new Error('private-host-error');
     if (request.prompt === 'library' && (request.options.enabled !== true || request.options.count !== 2 || request.options.nullable !== null)) throw new Error('Typed options were changed');
+    if (request.prompt === 'configured' && (request.model !== 'fake' || request.options.mode !== 'override')) throw new Error('Canonical configuration or typed precedence changed');
     if (request.prompt === 'Review code: native' && (request.system !== 'Be terse' || request.options.enabled !== true || new TextDecoder().decode(request.attachments[0]?.bytes) !== 'changed')) throw new Error('Named template semantics changed');
     if (request.prompt === 'attached') {
       if (new TextDecoder().decode(request.attachments[0]?.bytes) !== 'changed' || request.messages[0]?.content !== 'prior' || request.schema.type !== 'object' || request.options.temperature !== 0.7) throw new Error('Rich request or canonical attachment changed');
@@ -229,6 +230,9 @@ async function qualifyHostServices(backend, createExecutor) {
   } };
   const service = createLlmService({ providers: [provider], defaultModel: 'fake' });
   await backend.mkdir('/settings/templates',{recursive:true});
+  await backend.writeFile('/settings/default_model.txt',new TextEncoder().encode('saved'));
+  await backend.writeFile('/settings/aliases.json',new TextEncoder().encode(JSON.stringify({saved:'fake'})));
+  await backend.writeFile('/settings/model_options.json',new TextEncoder().encode(JSON.stringify({fake:{mode:'saved'}})));
   await backend.writeFile('/settings/templates/review.yaml',new TextEncoder().encode('prompt: "Review $topic: $input"\nsystem: "Be $style"\nmodel: fake\ndefaults:\n  style: terse\noptions:\n  enabled: true\nattachments:\n  - /work/shared.txt\n'));
   await backend.writeFile('/work/host.py', new TextEncoder().encode(String.raw`
 import subprocess
@@ -297,7 +301,12 @@ async def qualify_libraries():
    template_events = [event async for event in template_stream]
    assert template_events[0].text == 'Review code: native' and template_events[-1].response.model == 'fake'
   assert (await client.models())[0].id == 'fake'
-  embedded = await client.embed((value for value in ['input']), model='fake')
+  configuration = await client.configuration()
+  assert configuration.default_model == 'saved' and configuration.aliases == {'saved':'fake'}
+  assert configuration.model_options == {'fake':{'mode':'saved'}}
+  response = await client.complete('configured', model='saved', options={'mode':'override'})
+  assert response.model == 'fake' and response.text == 'configured'
+  embedded = await client.embed((value for value in ['input']), model='saved')
   assert embedded.vectors == ((1.0, 2.0),) and embedded.metadata['id'] == 'embedding-1'
   async with client.stream('library-stream') as early:
    assert (await early.__anext__()).text == 'incremental'

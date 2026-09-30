@@ -40,6 +40,28 @@ class FakeBridge:
   return chunks()
 
 class LibraryTests(unittest.IsolatedAsyncioTestCase):
+ async def test_configuration_snapshot_is_typed_and_owned(self):
+  from poe_llm import Configuration, CapabilityError
+  stored = {'default_model':'small', 'aliases':{'small':'provider/model'}, 'model_options':{'provider/model':{'mode':'saved'}}}
+  class ConfigBridge(FakeBridge):
+   async def call(self, operation, payload):
+    self.calls.append((operation,payload))
+    if operation == 'configuration':
+     return stored
+    return await super().call(operation,payload)
+  bridge = ConfigBridge()
+  async with Client(bridge=bridge) as client:
+   result = await client.configuration()
+  self.assertIsInstance(result,Configuration)
+  self.assertEqual(result.default_model,'small')
+  self.assertEqual(result.aliases,{'small':'provider/model'})
+  stored['aliases']['small'] = 'changed'
+  stored['model_options']['provider/model']['mode'] = 'changed'
+  self.assertEqual(result.aliases,{'small':'provider/model'})
+  self.assertEqual(result.model_options,{'provider/model':{'mode':'saved'}})
+  with self.assertRaises(CapabilityError):
+   await client.configuration()
+
  async def test_embedding_metadata_is_preserved_and_owned(self):
   bridge = FakeBridge()
   async with Client(bridge=bridge, model='provider/model') as client:

@@ -46,7 +46,13 @@ async def summarize():
 Named templates use the same canonical configuration directory as Bash `llm`
 (`LLM_USER_PATH`, or the parent environment's configuration directory). Template
 parameters are strings; explicit model, system and options override template
-values. Attachments declared by templates use the same retained canonical reads.
+values. Saved model options apply first, followed by template options and explicit
+request options; their existing types are preserved. Attachments declared by templates use the same retained canonical reads.
+Use `await client.configuration()` to inspect the saved default model, aliases
+and per-model options as a typed `Configuration` snapshot. Changes to that snapshot
+do not modify host state. Completions, streams and embeddings resolve saved aliases
+and defaults through the shared JavaScript configuration service.
+
 For a stored `review` template with prompt `Review $topic: $input`:
 
 ```python
@@ -130,7 +136,8 @@ with its own cleanup scope and the same borrowed bridge.
 | Templates | `template`, `parameters`, Python prompt functions | Load named templates from canonical shared configuration; reuse Bash interpolation, defaults, options and attachments |
 | Conversations | `Conversation`, prior messages | Python orchestrates message history; persisted conversation IDs are explicitly rejected until shared-service support is delivered |
 | Embeddings | `embed()`, `Embeddings` | Use the shared embedding operation; reject unsupported providers |
-| Logs, collections and configuration | No persistence methods currently | The shared service must supply persistence before these methods are available |
+| Configuration | `configuration()`, saved model defaults, aliases and options | Read canonical shared configuration; explicit request values override stored defaults |
+| Logs and collections | No persistence methods currently | Shared persistence integration remains unavailable |
 | Cancellation and cleanup | Async context managers, timeout, response limit | Cancel invocation-owned operations and release streams |
 
 The client defaults to no response-byte limit and no timeout. Set

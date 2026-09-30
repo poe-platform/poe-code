@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -93,7 +94,22 @@ function replacePdfNameToken(content: string, oldName: string, newName: string):
   return out;
 }
 
+export interface QpdfLimits {
+  readonly maxInputBytes: number;
+  readonly maxOutputBytes: number;
+  readonly maxArgumentBytes: number;
+}
+
+function resolveLimits(options: QpdfCommandOptions): QpdfLimits {
+  const limits = { maxInputBytes: Infinity, maxOutputBytes: Infinity, maxArgumentBytes: Infinity, ...options.limits };
+  for (const [name, value] of Object.entries(limits)) {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) throw new RangeError(`${name} limit must be a nonnegative safe integer or Infinity`);
+  }
+  return limits;
+}
+
 export interface QpdfCommandOptions {
+  readonly limits?: Partial<QpdfLimits>;
   readonly replace?: boolean;
 }
 
@@ -618,15 +634,26 @@ function collectNumberTreeDicts(
 export async function runQpdfCli(
   argv: readonly string[],
   files: Map<string, Uint8Array>,
-  readStdin?: () => Promise<void>
+  readStdin?: () => Promise<void>,
+  signal?: AbortSignal
 ): Promise<QpdfCliResult> {
+  signal?.throwIfAborted();
   const parsed = parseQpdfArguments(argv);
   if (parsed.result) return parsed.result;
   const { inputFile, pageSpecs, stampSpecs, addAttachmentSpecs, copyAttachmentsSpecs, updateFromJsonFiles } = parsed.options;
   const usesStdin = inputFile === "-" || updateFromJsonFiles.includes("-") ||
     [...pageSpecs, ...stampSpecs, ...addAttachmentSpecs, ...copyAttachmentsSpecs].some(spec => spec.file === "-");
   if (readStdin && usesStdin) await readStdin();
-  return executeQpdfCli(parsed.options, files);
+  const steps = executeQpdfCli(parsed.options, files);
+  try {
+    let step = steps.next();
+    while (!step.done) {
+      await yieldTurn(signal);
+      signal?.throwIfAborted();
+      step = steps.next();
+    }
+    return step.value;
+  } finally { steps.return({ exitCode: 2, stdout: "", stderr: "" }); }
 }
 
 function parseQpdfArguments(argv: readonly string[]) {
@@ -1063,13 +1090,16 @@ export function runQpdfCliSync(
 ): QpdfCliResult {
   const parsed = parseQpdfArguments(argv);
   if (parsed.result) return parsed.result;
-  return executeQpdfCli(parsed.options, files);
+  const steps = executeQpdfCli(parsed.options, files);
+  let step = steps.next();
+  while (!step.done) step = steps.next();
+  return step.value;
 }
 
-function executeQpdfCli(
+function* executeQpdfCli(
   options: NonNullable<ReturnType<typeof parseQpdfArguments>["options"]>,
   files: Map<string, Uint8Array>
-): QpdfCliResult {
+): Generator<void, QpdfCliResult> {
   const {
     check,
     showNpages,
@@ -1550,6 +1580,7 @@ function executeQpdfCli(
     }
     const loadedSpecs: { doc: PdfDocument; indices: number[] }[] = [];
     for (const spec of pageSpecs) {
+      yield;
       const srcBytes = loadBytes(spec.file);
       if (!srcBytes) {
         return { exitCode: 2, stdout: "", stderr: `qpdf: cannot open ${spec.file}\n` };
@@ -1587,6 +1618,7 @@ function executeQpdfCli(
   for (const rot of rotateSpecs) {
     const pageNums = parseQpdfPageRange(rot.range, workingDoc.getPageCount());
     for (const pNum of pageNums) {
+      yield;
       const page = workingDoc.getPage(pNum - 1);
       if (rot.relative) {
         const current = page.getRotation();
@@ -1743,6 +1775,7 @@ function executeQpdfCli(
   if (flattenRotation) {
     const enc = new TextEncoder();
     for (const page of workingDoc.getPages()) {
+      yield;
       const rot = page.getRotation();
       if (rot === 90 || rot === 180 || rot === 270) {
         const { width: W, height: H } = page.getSize();
@@ -1808,6 +1841,7 @@ function executeQpdfCli(
   if (flattenAnnotations !== false) {
     const enc = new TextEncoder();
     for (const page of workingDoc.getPages()) {
+      yield;
       const annotsNode = workingDoc.cos.resolve(dictGet(page.dict, "Annots"));
       const annotsArr = asArray(annotsNode);
       if (!annotsArr) continue;
@@ -1995,6 +2029,7 @@ function executeQpdfCli(
     };
     let extCounter = 1;
     for (const page of workingDoc.getPages()) {
+      yield;
       let modified = false;
       const pageRes = page.getResourcesDict();
       let xobjSub = asDict(workingDoc.cos.resolve(dictGet(pageRes, "XObject")));
@@ -2086,6 +2121,7 @@ function executeQpdfCli(
     ] as const;
 
     for (const page of workingDoc.getPages()) {
+      yield;
       const refNames = new Set<string>();
       collectPdfNamesFromBytes(page.getRawContentStream(), refNames);
 
@@ -2219,6 +2255,7 @@ function executeQpdfCli(
 
   // Expand --copy-attachments-from
   for (const copySpec of copyAttachmentsSpecs) {
+      yield;
     const srcBytes = loadBytes(copySpec.file);
     if (!srcBytes) {
       return { exitCode: 2, stdout: "", stderr: `qpdf: cannot open ${copySpec.file}\n` };
@@ -2362,6 +2399,7 @@ function executeQpdfCli(
       }
 
       for (const addSpec of addAttachmentSpecs) {
+      yield;
         const attBytes = loadBytes(addSpec.file);
         if (!attBytes) {
           return { exitCode: 2, stdout: "", stderr: `qpdf: cannot open attachment ${addSpec.file}\n` };
@@ -2461,6 +2499,7 @@ function executeQpdfCli(
       return replaced ? out : undefined;
     };
     for (let startIdx = 0; startIdx < total; startIdx += splitPagesGroup) {
+      yield;
       const endIdx = Math.min(total - 1, startIdx + splitPagesGroup - 1);
       const subDoc = PdfDocument.create();
       if (wMeta.title) subDoc.setTitle(wMeta.title);
@@ -2517,11 +2556,19 @@ function executeQpdfCli(
   return { exitCode: repairedWarning && !warningExit0 ? 3 : 0, stdout: "", stderr: "" };
 }
 
-export async function qpdf(context: CommandContext): Promise<{ exitCode: number }> {
+export async function qpdf(context: CommandContext, options: QpdfCommandOptions = {}): Promise<{ exitCode: number }> {
+  const limits = resolveLimits(options);
+  let outputBytes = 0;
+  const chargeOutput = (bytes: number) => {
+    outputBytes += bytes;
+    if (outputBytes > limits.maxOutputBytes) throw new RangeError("Output byte limit exceeded");
+  };
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
+    const argumentBytes = argv.reduce((total, arg) => total + new TextEncoder().encode(arg).byteLength + 1, 0);
+    if (argumentBytes > limits.maxArgumentBytes) throw new RangeError("Argument byte limit exceeded");
 
     // Collect referenced VFS files into a working Map and write back any modified/created outputs
     const vfsFiles = new Map<string, Uint8Array>();
@@ -2532,6 +2579,7 @@ export async function qpdf(context: CommandContext): Promise<{ exitCode: number 
       if (delta > 0) {
         accountedBytes += delta;
         context.inputBudget?.check(accountedBytes);
+        if (accountedBytes > limits.maxInputBytes) throw new RangeError("Input byte limit exceeded");
       }
     };
 
@@ -2555,6 +2603,8 @@ export async function qpdf(context: CommandContext): Promise<{ exitCode: number 
     }
 
     for (const token of argv) {
+      await yieldTurn(invocation.signal);
+      invocation.signal.throwIfAborted();
       let candidate = token;
       if (
         token.startsWith("--overlay=") ||
@@ -2568,40 +2618,38 @@ export async function qpdf(context: CommandContext): Promise<{ exitCode: number 
         continue;
       }
       const abs = resolveVfsPath(candidate);
+      let bytes: Uint8Array;
       try {
-        const bytes = await context.fs.readFile(abs, { signal: invocation.signal });
-        chargeBytes(bytes.byteLength);
-        vfsFiles.set(candidate, bytes);
+        bytes = await context.fs.readFile(abs, { signal: invocation.signal });
       } catch {
+        invocation.signal.throwIfAborted();
         // Might be an output file or range spec
+        continue;
       }
+      chargeBytes(bytes.byteLength);
+      vfsFiles.set(candidate, bytes);
     }
 
-    if (argv.includes("--json-input") || argv.some((t) => t.startsWith("--update-from-json="))) {
+    if (argv.includes("--json-input") || argv.some(t => t.startsWith("--update-from-json="))) {
       for (const fileBytes of [...vfsFiles.values()]) {
-        try {
-          const parsed = JSON.parse(new TextDecoder().decode(fileBytes)) as Record<string, unknown>;
-          const objs =
-            Array.isArray(parsed.qpdf) && typeof parsed.qpdf[1] === "object"
-              ? (parsed.qpdf[1] as Record<string, unknown>)
-              : typeof parsed.objects === "object" && parsed.objects !== null
-                ? (parsed.objects as Record<string, unknown>)
-                : undefined;
-          if (!objs) continue;
-          for (const entry of Object.values(objs)) {
-            if (typeof entry === "object" && entry !== null && "stream" in entry) {
-              const st = (entry as { stream?: { datafile?: unknown } }).stream;
-              if (st && typeof st.datafile === "string" && !vfsFiles.has(st.datafile)) {
-                const dfBytes = await context.fs.readFile(resolveVfsPath(st.datafile), {
-                  signal: invocation.signal,
-                });
-                chargeBytes(dfBytes.byteLength);
-                vfsFiles.set(st.datafile, dfBytes);
-              }
-            }
-          }
-        } catch {
-          // Not a JSON file or missing external stream file
+        let parsed: Record<string, unknown>;
+        try { parsed = JSON.parse(new TextDecoder().decode(fileBytes)) as Record<string, unknown>; }
+        catch { continue; }
+        if (!parsed || typeof parsed !== "object") continue;
+        const objs = Array.isArray(parsed.qpdf) && typeof parsed.qpdf[1] === "object"
+          ? parsed.qpdf[1] as Record<string, unknown>
+          : typeof parsed.objects === "object" && parsed.objects !== null
+            ? parsed.objects as Record<string, unknown> : undefined;
+        if (!objs) continue;
+        for (const entry of Object.values(objs)) {
+          if (typeof entry !== "object" || entry === null || !("stream" in entry)) continue;
+          const stream = (entry as { stream?: { datafile?: unknown } }).stream;
+          if (!stream || typeof stream.datafile !== "string" || vfsFiles.has(stream.datafile)) continue;
+          let bytes: Uint8Array;
+          try { bytes = await context.fs.readFile(resolveVfsPath(stream.datafile), { signal: invocation.signal }); }
+          catch { invocation.signal.throwIfAborted(); continue; }
+          chargeBytes(bytes.byteLength);
+          vfsFiles.set(stream.datafile, bytes);
         }
       }
     }
@@ -2623,21 +2671,21 @@ export async function qpdf(context: CommandContext): Promise<{ exitCode: number 
       }
       vfsFiles.set("-", bytes);
       existingSnap.set("-", bytes);
-    });
+    }, invocation.signal);
 
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
     if (res.stdout) {
       const outBytes = new TextEncoder().encode(res.stdout);
-      chargeBytes(outBytes.byteLength);
+      chargeOutput(outBytes.byteLength);
       const stdout = invocation.child(context.stdout);
       await writeBytes(stdout.output, outBytes, invocation.signal);
     }
 
     for (const [fileKey, fileBytes] of vfsFiles.entries()) {
       if (existingSnap.get(fileKey) !== fileBytes) {
-        chargeBytes(fileBytes.byteLength);
+        chargeOutput(fileBytes.byteLength);
         if (fileKey === "-") {
           const stdout = invocation.child(context.stdout);
           await writeBytes(stdout.output, fileBytes, invocation.signal);
@@ -2654,13 +2702,13 @@ export async function qpdf(context: CommandContext): Promise<{ exitCode: number 
   }
 }
 
-export function createQpdfCommand(_options: QpdfCommandOptions = {}): CommandDefinition {
+export function createQpdfCommand(options: QpdfCommandOptions = {}): CommandDefinition {
   return Object.freeze({
     name: "qpdf",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Structural PDF inspection, encryption, page selection, and transformation via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return qpdf(context);
+      return qpdf(context, options);
     }
   });
 }

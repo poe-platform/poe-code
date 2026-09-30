@@ -21,7 +21,8 @@ export function basicCommands(): CommandDefinition[] {
     define("false", () => ({ exitCode: 1 })),
     define("echo", async (context) => {
       const arguments_ = getCommandArguments(context);
-      const posix = (context as { externalInvocation?: boolean }).externalInvocation && context.env.POSIXLY_CORRECT !== undefined;
+      const external = (context as { externalInvocation?: boolean }).externalInvocation === true;
+      const posix = external && context.env.POSIXLY_CORRECT !== undefined;
       let newline = true;
       let escapes = false;
       let offset = 0;
@@ -37,7 +38,7 @@ export function basicCommands(): CommandDefinition[] {
       const text = typeof joined === "string" ? joined : arguments_.withValues([joined]).bytes(0)!;
       if (escapes) {
         const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
-        const escaped = escapeBytes(text, true, false, (context as { externalInvocation?: boolean }).externalInvocation ? undefined : {
+        const escaped = escapeBytes(text, true, external, external ? undefined : {
           utf8: locale !== "C" && locale !== "POSIX",
           missingDigit() {},
         });

@@ -684,7 +684,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       }
     }
     const portable = resolveBrowserShellBuild(repository, { external: ["safe-bash-contracts", "@poe-platform/safe-fs"] });
-    const [privateBuild, buffer, shell, fs] = await Promise.all([
+    const [privateBuild, buffer, shell, fs, csvgrepRegex] = await Promise.all([
       build({ entryPoints: privateEntries, outdir: "/repo/packages",
         bundle: false, write: false, format: "esm", target: "es2022" }),
       build({ entryPoints: [path.join(repository, "packages/safe-bash/browser/buffer.mjs")],
@@ -696,8 +696,12 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       }),
       build({ entryPoints: [path.join(repository, "packages/safe-fs/src/core.ts")],
         bundle: true, write: false, platform: "browser", format: "esm", target: "es2022" }),
+      build({ entryPoints: [path.join(repository, "packages/safe-bash-command-csvkit/src/python-regex.ts")],
+        bundle: true, write: false, platform: "browser", format: "esm", target: "es2022" }),
     ]);
     for (const output of privateBuild.outputFiles!) if (!volume.existsSync(output.path)) volume.writeFileSync(output.path, output.contents);
+    // Stage the real portable helper used by the focused csvgrep consumer.
+    volume.writeFileSync("/repo/packages/safe-bash-command-csvgrep/dist/csvkit-python-regex.js", csvgrepRegex.outputFiles[0]!.contents);
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
     volume.mkdirSync("/repo/packages/safe-bash/browser", { recursive: true });
     volume.writeFileSync("/repo/packages/safe-bash/browser/buffer.mjs", buffer.outputFiles[0]!.contents);
@@ -750,7 +754,9 @@ it.each([false, true])("admits asset-only contract owners against the full priva
         if (builder.initialOptions.external?.some(name => specifier === name || specifier.startsWith(name + "/"))) return { path: specifier, external: true };
         if (specifier.startsWith("node:")) throw new Error("Node dependency in portable command consumer: " + specifier);
         let filename;
-        if (specifier.startsWith("@poe-platform/")) {
+        if (specifier === "safe-bash-command-csvkit/python-regex") {
+          filename = "/repo/packages/safe-bash-command-csvgrep/dist/csvkit-python-regex.js";
+        } else if (specifier.startsWith("@poe-platform/")) {
           const [name, ...route] = specifier.slice("@poe-platform/".length).split("/");
           const pkg = JSON.parse(volume.readFileSync(`/output/${name}/package.json`, "utf8").toString());
           const key = route.length ? "./" + route.join("/") : ".";

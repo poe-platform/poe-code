@@ -10,6 +10,8 @@ import { settings, type ShufCommandsOptions } from "./options.js";
 import { RandomIntegers } from "./random.js";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 
+import { textOutputRequirements } from "safe-bash-io-engine/portable-requirements";
+
 const encoder = new TextEncoder();
 const errors: Readonly<Record<string, string>> = {
   ENOENT: "No such file or directory", EACCES: "Permission denied", EPERM: "Operation not permitted",
@@ -23,6 +25,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
   const limits = settings(options);
   const command = Object.freeze({
     name: "shuf",
+    filesystemRequirements: textOutputRequirements,
     runtimeIdentity: commandRuntimeIdentity,
     description: "Write a random permutation of input records",
     async execute(context: CommandContext) {

@@ -47,3 +47,4 @@ export type {
 export type { RawRecord, ReadLine } from "./shell/input.js";
 export { ByteInputBudget } from "./commands/bytes/input-budget.js";
 export { inputRequirements } from "./commands/portable-requirements.js";
+export { textOutputRequirements } from "safe-bash-io-engine/portable-requirements";

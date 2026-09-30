@@ -27,3 +27,9 @@ test("shuf permutes -e and -i ranges", async () => {
   const lines = Buffer.concat(chunks).toString("utf8").trim().split("\n");
   assert.equal(lines.length, 3);
 });
+
+test("shuf declares stdin, file input, and mutating named output support", () => {
+  const requirements = createShufCommand().filesystemRequirements;
+  assert.deepEqual(requirements?.map(mode => mode.id), ['stdin', 'file', 'output']);
+  assert.equal(requirements?.find(mode => mode.id === 'output')?.mutates, true);
+});

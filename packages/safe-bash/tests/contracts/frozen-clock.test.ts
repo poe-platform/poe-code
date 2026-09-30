@@ -18,6 +18,8 @@ import { Budget as DuBudget } from "../../../safe-bash-command-du/src/budget.js"
 import { settings as duSettings } from "../../../safe-bash-command-du/src/options.js";
 import { WalkBudget } from "../../../safe-bash-command-tree/src/io.js";
 import { settings as treeSettings } from "../../../safe-bash-command-tree/src/options.js";
+import { Budget as ArchiveBudget, bounded, settings as archiveSettings } from "../../../safe-bash-io-engine/src/commands/archive/internal.js";
+import { Session, settings as streamSettings } from "../../../safe-bash-text-stream-engine/src/stream-format/shared.js";
 import { stringCheckpoint } from "../../../safe-bash-io-engine/src/shell/string-operations.js";
 
 const cases: [string, () => CommandDefinition, string[], string][] = [
@@ -84,7 +86,7 @@ test("string expansion admits timer cancellation after its first frozen-clock tu
   } finally { clearTimeout(timer); }
 });
 
-for (const name of ["file", "diff-patch", "split", "du", "tree"]) {
+for (const name of ["file", "diff-patch", "split", "du", "tree", "archive-members", "archive-chunks", "stream-format"]) {
   test(`${name} work checkpoints repeatedly yield with a frozen clock`, async t => {
     t.mock.method(performance, "now", () => 0);
     t.mock.method(Date, "now", () => 0);
@@ -98,7 +100,16 @@ for (const name of ["file", "diff-patch", "split", "du", "tree"]) {
       command: name, args: createCommandArguments([]).args, cwd: "/", env: {}, fs: createMemoryFileSystem(),
       stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }, signal: new AbortController().signal,
     };
-    if (name === "file") {
+    if (name === "archive-members") {
+      const budget = new ArchiveBudget(context, archiveSettings({}));
+      for (let i = 0; i < 4096; i++) await budget.member();
+    } else if (name === "archive-chunks") {
+      const source = (async function* () { for (let i = 0; i < 4096; i++) yield new Uint8Array(1); })();
+      for await (const chunk of bounded(source, Infinity, context.signal, 512)) assert.equal(chunk.length, 1);
+    } else if (name === "stream-format") {
+      const session = new Session(context, streamSettings({}));
+      try { for (let i = 0; i < 32; i++) await session.step(4096); } finally { await session.close(); }
+    } else if (name === "file") {
       const budget = new SharedBudget(context, fileSettings({}));
       try { for (let i = 0; i < 4096; i++) await budget.step(); } finally { budget.dispose(); }
     } else if (name === "diff-patch") {

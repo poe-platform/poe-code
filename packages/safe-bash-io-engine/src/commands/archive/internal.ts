@@ -185,7 +185,7 @@ export class Budget {
     if (!Number.isSafeInteger(size) || size < 0 || size > this.limits.maxEntryBytes) fail("entry byte limit exceeded");
     if (size > this.limits.maxTotalBytes - this.totalBytes) fail("total payload byte limit exceeded");
     this.totalBytes += size;
-    if (this.members % 128 === 0 && (this.members === 128 || hasYieldCheckpoint(this.context.signal) || monotonicNow() - this.lastYield >= 16)) {
+    if (this.members % 128 === 0 && (this.members === 128 || this.members % 2048 === 0 || hasYieldCheckpoint(this.context.signal) || monotonicNow() - this.lastYield >= 16)) {
       await yieldTurn(this.context.signal);
       this.lastYield = monotonicNow();
     }
@@ -216,7 +216,7 @@ export async function* bounded(source: ByteSource, maximum: number, signal: Abor
         yield chunk.subarray(offset, Math.min(chunk.length, offset + chunkSize));
       }
     }
-    if (++turns % 128 === 0 && (turns === 128 || hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 16)) {
+    if (++turns % 128 === 0 && (turns === 128 || turns % 2048 === 0 || hasYieldCheckpoint(signal) || monotonicNow() - lastYield >= 16)) {
       await yieldTurn(signal);
       lastYield = monotonicNow();
     }

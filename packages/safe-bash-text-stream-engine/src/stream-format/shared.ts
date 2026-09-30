@@ -43,6 +43,7 @@ export class Session {
   private outputBytes = 0;
   private steps = 0;
   private untilYield = 4096;
+  private yieldChecks = 0;
   private lastYield = monotonicNow();
   readonly buffered: ReturnType<typeof createBufferedOutput>;
   private signalAborted = false;
@@ -84,7 +85,7 @@ export class Session {
     this.charge(count);
     if (this.untilYield <= 0) {
       this.untilYield = 4096;
-      if (!hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
+      if (++this.yieldChecks % 16 !== 0 && !hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
         runYieldCheckpoint(this.signal);
         this.signal.throwIfAborted();
         return;

@@ -21,6 +21,8 @@ export interface LlmModelOption {
   readonly nullable?: boolean;
 }
 export interface LlmModel {
+  /** Source input support for this model; otherwise inferred from the provider hook. */
+  readonly inputSources?: boolean;
   readonly id: string;
   readonly aliases?: readonly string[];
   readonly attachmentTypes?: readonly string[];

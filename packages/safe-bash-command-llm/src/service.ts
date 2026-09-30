@@ -193,7 +193,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
         request.signal.throwIfAborted();
         validateOptions(request.options);
         const entry = this.resolve(request.model);
-        if (!entry.provider.completeSources) throw new Error(`Model ${entry.model.id} does not support streamed inputs`);
+        if (!entry.provider.completeSources || entry.model.inputSources === false) throw new Error(`Model ${entry.model.id} does not support streamed inputs`);
         for (const source of sources) if (!source || typeof source.dispose !== "function" || typeof source.bytes?.[Symbol.asyncIterator] !== "function") throw new TypeError("Invalid LLM input source");
         if (request.messages?.length && !entry.model.capabilities?.includes("messages")) throw new Error(`Model ${entry.model.id} does not support messages`);
         if (request.messages?.some(message => !["system", "user", "assistant"].includes(message.role))) throw new TypeError("Invalid LLM message");

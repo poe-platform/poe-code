@@ -119,6 +119,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
   const baseUrl = base.href.endsWith("/") ? base.href.slice(0, -1) : base.href;
   const configured = options.models.map(model => Object.freeze({
     ...model,
+    inputSources: model.endpoint === "chat",
     capabilities: Object.freeze(model.capabilities ?? (model.endpoint === "chat" ? ["messages"] as const : model.endpoint === "embeddings" ? ["embed"] as const : [])),
     ...(model.aliases === undefined ? {} : { aliases: Object.freeze([...model.aliases]) }),
     ...(model.attachmentTypes === undefined ? {} : { attachmentTypes: Object.freeze([...model.attachmentTypes]) }),

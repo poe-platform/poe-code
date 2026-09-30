@@ -255,7 +255,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     ];
     const attachments: { mimeType: string; bytes: Uint8Array }[] = [];
     const sourceAttachments: { mimeType: string; source: LlmInputSource }[] = [];
-    const streamed = service.streamSources !== undefined && entry.provider.completeSources !== undefined;
+    const streamed = service.streamSources !== undefined && entry.provider.completeSources !== undefined && entry.model.inputSources !== false;
     const textSource = (value: string): LlmInputSource => ({
       async dispose() {},
       bytes: { async *[Symbol.asyncIterator]() {

@@ -401,14 +401,16 @@ test("csvkit Shell choices preserve CPython 3.14 rejected-value repr and allowed
   } finally { await shell.dispose(); }
 });
 
-test("csvgrep Shell missing match-file capability is an explicit blocker without acquiring input", async () => {
+test("csvgrep Shell missing match file fails without acquiring CSV input", async () => {
+  const reference = parserContract.profiles.find(profile => profile.runtime.startsWith("3.14.2"))!;
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands(options));
   try {
     const result = await shell.exec("csvgrep -f matches --help", { stdin: {
-      async *[Symbol.asyncIterator]() { assert.fail("missing match-file capability must not acquire CSV input"); yield new Uint8Array(); }
+      async *[Symbol.asyncIterator]() { assert.fail("missing match file must not acquire CSV input"); yield new Uint8Array(); }
     } });
     assert.deepEqual({ status: result.exitCode, stdout: result.stdout, stderr: result.stderr }, {
-      status: 78, stdout: "", stderr: "csvkit: unsupported or unqualified: csvgrep match-file opening capability\n"
+      status: 2, stdout: "", stderr: reference.commands.find(item => item.name === "csvgrep")!.usage
+        + "csvgrep: error: argument -f/--file: can't open 'matches': ENOENT: no such file or directory, stat '/matches'\n"
     });
     const help = await shell.exec("csvgrep --help -f matches");
     assert.equal(help.exitCode, 0);
@@ -702,7 +704,7 @@ test("csvjoin repeated output-column warning provenance remains an explicit bloc
   await fs.writeFile("/left.csv", new TextEncoder().encode("id,left\nx,L\n"));
   await fs.writeFile("/right.csv", new TextEncoder().encode("id,right\ny,R\n"));
   await fs.writeFile("/third.csv", new TextEncoder().encode("id,third\ny,T\n"));
-  const shell = new Shell({ fs }).use(csvkitCommands(options));
+  const shell = new Shell({ fs }).use(csvkitCommands({ ...options, columnWarnings: {} }));
   try {
     const result = await shell.exec("csvjoin -I -y 0 --outer -c id /left.csv /right.csv /third.csv");
     assert.equal(result.exitCode, 78);

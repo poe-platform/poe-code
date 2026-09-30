@@ -84,7 +84,10 @@ test(`lazy optional loading in actual workerd (${consumer ? "installed" : "sourc
               labels = families.filter(
                 (family) =>
                   contents.includes(`// packages/safe-bash/src/commands/${family}/index.ts`) ||
-                  contents.includes(`// packages/safe-bash-command-${family}/`)
+                  (family === "pandoc"
+                    ? ["src/implementation.ts", "src/command.ts", "dist/index.js", "dist/command.js"]
+                        .some(entry => contents.includes(`// packages/safe-bash-command-pandoc/${entry}`))
+                    : contents.includes(`// packages/safe-bash-command-${family}/`))
               );
               for (const [owner, label] of [
                 ["spreadsheet-engine", "spreadsheet-engine"],
@@ -95,7 +98,7 @@ test(`lazy optional loading in actual workerd (${consumer ? "installed" : "sourc
               }
             } else if (!consumer && args.path.includes("/safe-bash/src/commands/")) {
               const family = args.path.split("/").at(-2);
-              if (families.includes(family) && args.path.endsWith("/index.ts")) labels = [family];
+              if (families.includes(family) && (args.path.endsWith("/index.ts") || args.path.endsWith("/implementation.ts"))) labels = [family];
             }
             if (labels.length === 0) return;
             contents ??= await readFile(args.path, "utf8");

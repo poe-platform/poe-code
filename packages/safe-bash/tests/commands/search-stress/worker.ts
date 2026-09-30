@@ -3,10 +3,8 @@ import { dirname } from "node:path";
 import { readFileSync } from "node:fs";
 import { createNodeRegexProvider } from "../../../src/commands/regex-execution/client.js";
 import { createSearchCommands, searchCommands } from "../../../src/commands/search/index.js";
-import { standardCommands } from "../../../src/commands/index.js";
 import { toByteSource, type CommandContext } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { Shell } from "../../../src/shell/index.js";
 import { bytes, type Probe, type Outcome } from "./harness.js";
 
 const probes = JSON.parse(readFileSync(0, "utf8")) as Probe[];
@@ -37,6 +35,10 @@ for (const probe of probes) {
   let code: number;
   const regexExecutor = createNodeRegexProvider();
   if (probe.script !== undefined) {
+    const [{ standardCommands }, { Shell }] = await Promise.all([
+      import("../../../src/commands/index.js"),
+      import("../../../src/shell/index.js"),
+    ]);
     const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands({ regexExecutor })).use(searchCommands({ regexExecutor, ...probe.options }));
     const result = await shell.exec(probe.script, probe.stdin === undefined ? {} : { stdin: bytes(probe.stdin) });
     code = result.exitCode;

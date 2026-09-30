@@ -26,6 +26,7 @@ test("basic command audit regressions remain in active discovery", () => {
     "tests/commands/basic-dirname-options.test.ts",
     "tests/commands/basic-echo-locale.test.ts",
     "tests/commands/basic-echo-posix.test.ts",
+    "tests/commands/basic-echo-information.test.ts",
     "tests/commands/basic-external.test.ts",
     "tests/commands/basic-false-information.test.ts",
     "tests/commands/basic-printf-locale.test.ts",

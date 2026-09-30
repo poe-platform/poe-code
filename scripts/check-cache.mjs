@@ -344,6 +344,10 @@ function stageBuildOutputPatterns(stage, configuredOutputs = ["dist/**"]) {
   if (buildScript.includes("scripts/build-wasm.mjs")) {
     patterns.add("src/wasm.generated.ts");
   }
+  if (stage.manifest.scripts?.postbuild === "node scripts/build-optional-cli.mjs") {
+    patterns.add("dist/opt-in/**");
+    patterns.add("dist/browser/**");
+  }
   return [...patterns];
 }
 
@@ -672,6 +676,7 @@ export function createCheckCache({
     },
     capture(root, patterns) {
       const records = [];
+      const seen = new Set();
       const visit = relative => {
         const absolute = path.join(root, relative);
         const stat = fileSystem.lstatSync(absolute);
@@ -679,7 +684,10 @@ export function createCheckCache({
         if (stat.isDirectory()) for (const entry of fileSystem.readdirSync(absolute).sort()) visit(relative + "/" + entry);
         else {
           assert.ok(stat.isFile(), "Cached output must be a file");
-          records.push({ path: relative, mode: stat.mode & 0o777, bytes: fileSystem.readFileSync(absolute).toString("base64") });
+          if (!seen.has(relative)) {
+            seen.add(relative);
+            records.push({ path: relative, mode: stat.mode & 0o777, bytes: fileSystem.readFileSync(absolute).toString("base64") });
+          }
         }
       };
       for (const { root: relative } of outputSpecs(patterns)) {

@@ -1,6 +1,6 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
-import { createCheckCache, createTaskFingerprints } from "./check-cache.mjs";
+import { createCheckCache, createTaskFingerprints, prepareBuildCache } from "./check-cache.mjs";
 
 function fixture(root = "/repo") {
   const files = {
@@ -358,5 +358,34 @@ describe("content-addressed check cache", () => {
     }));
     expect(key("alpha")).not.toBe(alphaBefore);
     expect(key("beta")).toBe(betaBefore);
+  });
+
+  it("treats cached safe-bash build records without postbuild dist/opt-in and dist/browser outputs as cache misses", () => {
+    const state = fixture();
+    const buildScript = "node ../../scripts/guard-package-dist.mjs && rm -rf dist/opt-in && node scripts/integration-inputs.mjs && node scripts/build.mjs";
+    const postbuildScript = "node scripts/build-optional-cli.mjs";
+    const stage = {
+      name: "alpha",
+      path: "packages/alpha",
+      event: "build",
+      manifest: { name: "alpha", scripts: { build: buildScript, postbuild: postbuildScript } }
+    };
+    const plan = {
+      ...state.plan,
+      configuration: { tasks: { build: { outputs: ["dist/**"] } } },
+      workspaces: [{ name: "alpha", path: "packages/alpha", manifest: stage.manifest }, ...state.plan.workspaces.slice(1)]
+    };
+    const cacheStore = createCheckCache({ directory: "/cache", fileSystem: state.fileSystem });
+    state.fileSystem.mkdirSync("/repo/packages/alpha/dist", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/alpha/dist/index.js", "export {};");
+    const first = prepareBuildCache(plan, [stage], { cacheStore, cacheFiles: state.files, environment: {}, fileSystem: state.fileSystem });
+    first.save(stage, 100);
+    expect(first.restore(stage)).toBe(false);
+    state.fileSystem.mkdirSync("/repo/packages/alpha/dist/opt-in/entrypoints", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/alpha/dist/opt-in/entrypoints/shuf.d.ts", "export {};");
+    state.fileSystem.mkdirSync("/repo/packages/alpha/dist/browser", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/alpha/dist/browser/index.js", "export {};");
+    first.save(stage, 100);
+    expect(first.restore(stage)).toBe(true);
   });
 });

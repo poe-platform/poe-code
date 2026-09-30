@@ -13,11 +13,12 @@ export const packagePrefix = "packages/safe-bash";
 export const authority = fileURLToPath(new URL("../../../", import.meta.url));
 const sharedName = "@poe-code/office-package";
 const sharedPrefix = "packages/office-package";
-const sharedPaths = Object.freeze(["tsconfig.json", ...["package.json", "tsconfig.json", "LICENSE", "src/index.ts", "src/runtime.ts", "src/compression.ts", "src/zip.ts"].map(path => sharedPrefix + "/" + path)]);
+const sharedPaths = Object.freeze(["tsconfig.json", ...["package.json", "tsconfig.json", "LICENSE", "src/index.ts", "src/runtime.ts", "src/compression.ts", "src/zip.ts", "src/zip-sync.ts"].map(path => sharedPrefix + "/" + path)]);
 const sharedExports = Object.freeze({
   ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
   "./zip": { types: "./dist/zip.d.ts", import: "./dist/zip.js" },
   "./compression": { types: "./dist/compression.d.ts", import: "./dist/compression.js" },
+  "./zip-sync": { types: "./dist/zip-sync.d.ts", import: "./dist/zip-sync.js" },
 });
 const sharedArtifactBindings = new WeakSet();
 const workspacePrerequisiteBindings = new WeakSet();

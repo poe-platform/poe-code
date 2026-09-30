@@ -127,5 +127,5 @@ test("xxd reverses autoskip dumps", async () => {
 
 test("xxd reverse plain honors the seek offset", async () => {
   const input = new TextEncoder().encode("4142");
-  assert.equal(await run(["-r", "-p", "-s", "2"], input), "\0\0AB");
+  assert.equal(await runParity(["-r", "-p", "-s", "2"], input), "\0\0AB");
 });

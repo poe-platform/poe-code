@@ -983,6 +983,13 @@
       "safe-bash-command-pptx/*": [
         "../safe-bash-command-pptx/src/*.ts",
         "../safe-bash-command-pptx/src/*"
+      ],
+      "safe-bash-command-llm": [
+        "../safe-bash-command-llm/src/index.ts"
+      ],
+      "safe-bash-command-llm/*": [
+        "../safe-bash-command-llm/src/*.ts",
+        "../safe-bash-command-llm/src/*"
       ]
     },
     "baseUrl": "."

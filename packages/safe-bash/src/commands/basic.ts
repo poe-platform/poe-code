@@ -1,5 +1,5 @@
 import { writeDiagnostic } from "../escaping.js";
-import { getCommandArguments, type CommandContext, type CommandDefinition, type CommandHandler, type CommandResult } from "../contracts/index.js";
+import { FsError, getCommandArguments, type CommandContext, type CommandDefinition, type CommandHandler, type CommandResult } from "../contracts/index.js";
 import { define, escapeBytes, options, output, requireOperands, UsageError } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { pwdRequirements } from "./portable-requirements.js";
@@ -62,20 +62,47 @@ export function basicCommands(): CommandDefinition[] {
       return { exitCode: 0 };
     }),
     define("pwd", async (context) => {
-      let mode: "physical" | "logical" = (context as { externalInvocation?: boolean }).externalInvocation && context.env.POSIXLY_CORRECT === undefined ? "physical" : "logical";
-      for (const arg of context.args) {
-        if (arg === "--" || !arg.startsWith("-") || arg === "-") break;
+      const external = (context as { externalInvocation?: boolean }).externalInvocation === true;
+      let mode: "physical" | "logical" = external && context.env.POSIXLY_CORRECT === undefined ? "physical" : "logical";
+      let ignored = false;
+      for (let index = 0; index < context.args.length; index++) {
+        const arg = context.args[index]!;
+        if (arg === "--") { ignored ||= index + 1 < context.args.length; break; }
+        if (!arg.startsWith("-") || arg === "-") {
+          ignored = true;
+          if (!external || context.env.POSIXLY_CORRECT !== undefined) break;
+          continue;
+        }
         if (arg === "--logical") { mode = "logical"; continue; }
         if (arg === "--physical") { mode = "physical"; continue; }
         for (const flag of arg.slice(1)) {
-          if (flag !== "L" && flag !== "P") throw new UsageError(`invalid option '${flag}'`);
+          if (flag !== "L" && flag !== "P") {
+            if (!external) throw new UsageError(`invalid option '${flag}'`);
+            await writeDiagnostic(context.stderr, `pwd: invalid option '${flag}'\n`, context.signal);
+            return { exitCode: 1 };
+          }
           mode = flag === "P" ? "physical" : "logical";
         }
       }
-      assertCommandRequirements(context, pwdRequirements, [mode]);
-      if (mode === "physical" && context.fs.capabilitiesFor) assertCommandRequirements(context, pwdRequirements, [mode],
+      if (external && ignored) await writeDiagnostic(context.stderr, "pwd: ignoring non-option arguments\n", context.signal);
+      const requiredMode = external ? "physical" : mode;
+      assertCommandRequirements(context, pwdRequirements, [requiredMode]);
+      if (requiredMode === "physical" && context.fs.capabilitiesFor) assertCommandRequirements(context, pwdRequirements, [requiredMode],
         await context.fs.capabilitiesFor(context.cwd, { signal: context.signal }));
-      await output(context, `${mode === "physical" ? await context.fs.realpath(context.cwd, { signal: context.signal }) : context.cwd}\n`);
+      let directory = requiredMode === "physical" ? await context.fs.realpath(context.cwd, { signal: context.signal }) : context.cwd;
+      context.signal.throwIfAborted();
+      if (external && mode === "logical") {
+        const logical = context.env.PWD;
+        if (logical?.startsWith("/") && !logical.split("/").some(component => component === "." || component === "..")) {
+          try {
+            if (await context.fs.realpath(logical, { signal: context.signal }) === directory) directory = logical;
+          } catch (error) {
+            context.signal.throwIfAborted();
+            if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EACCES", "ELOOP"].includes(error.code)) throw error;
+          }
+        }
+      }
+      await output(context, `${directory}\n`);
       return { exitCode: 0 };
     }),
     define("basename", async (context) => {

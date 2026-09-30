@@ -112,6 +112,7 @@ export function gnuInformation(name: string, context: CommandContext): Promise<C
 }
 
 async function gnuInformationSlow(name: string, context: CommandContext): Promise<CommandResult | undefined> {
+  if (name === "pwd" && !(context as { externalInvocation?: boolean }).externalInvocation) return undefined;
   if ((name === "true" || name === "false" || name === "echo" || name === "[") && (context.args.length !== 1 || !(context as { externalInvocation?: boolean }).externalInvocation)) return undefined;
   const info = information[name] ?? (["md5sum", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum"].includes(name) ? checksumInformation : undefined);
   if (!info) return undefined;
@@ -132,7 +133,7 @@ async function gnuInformationSlow(name: string, context: CommandContext): Promis
       return { exitCode: info.exitCode ?? 0 };
     }
     if (!arg.startsWith("-") || arg === "-") {
-      if (info.stopAtOperand) break;
+      if (info.stopAtOperand || name === "pwd" && context.env.POSIXLY_CORRECT !== undefined) break;
       continue;
     }
     if (arg.startsWith("--")) {

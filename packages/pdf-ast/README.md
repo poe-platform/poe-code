@@ -63,14 +63,11 @@ Text patterns follow glyph contours while preserving text clipping and strokes.
 Stencil images' transformed alpha masks are available as `clipImages` on
 display-list paints; source image extraction remains independent of painting.
 ExtGState soft masks and Form group opacity apply to bitmap and SVG output;
-SVG rasterizes soft masks at the export scale. Pages with a non-isolated masked
-group containing blend or mask effects use a raster SVG fallback; other pages
-keep Form contents as vectors.
-Ordinary non-isolated Forms blend directly with page content. Forms with outer
-opacity or blending use PDF.js's intermediate-surface behavior. Non-isolated
-masked groups with inner compositing effects copy the page backdrop before
-applying the outer mask, bounded by the transformed Form BBox. Full non-isolated
-backdrop compositing for other combinations remains unsupported.
+SVG rasterizes soft masks at the export scale. Non-isolated Forms blend their
+contents against the page backdrop, then apply group opacity and masks once.
+Separate group alpha prevents the copied backdrop from being painted twice,
+including on partially transparent pages. SVG uses a raster fallback for pages
+whose non-isolated groups need this backdrop; other pages keep Forms as vectors.
 The viewer background stays outside page blend calculations in bitmap and SVG.
 
 All 14 standard PDF fonts use bundled PDFium/Foxit outlines and PDF.js metrics.

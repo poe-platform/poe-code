@@ -404,15 +404,16 @@ and intermediate-surface state reset. Bitmap and SVG exports follow
 `beginDrawing` in keeping the viewer background outside page blend calculations.
 `src/render/transparency-group.test.ts` adds local opacity/blend/mask cases and
 ports the unchanged `transparency_group.pdf` and `bug1873345.pdf` equality
-fixtures, with independently obtained reference pixels. Full non-isolated
-backdrop compositing for groups with outer effects retains PDF.js's documented
-limitation.
+fixtures, with independently obtained reference pixels. Non-isolated backdrop
+compositing now uses PDFBox's group-alpha and backdrop-removal algorithm,
+described below.
 
 Masked non-isolated Forms with inner blending or soft-mask effects follow
 PDF.js `beginGroup`'s `needsBackdropCopy && inSMaskMode` path. The raster adapter
 copies the existing page within the transformed Form BBox before painting the
-group; ordinary outer-opacity groups keep their transparent intermediate.
-`src/render/masked-group-backdrop.test.ts` covers this distinction and the
+group. The PDFBox adaptation below extends this to ordinary outer-opacity
+groups and removes the copied backdrop before final compositing.
+`src/render/masked-group-backdrop.test.ts` covers these cases and the
 unchanged `issue13520.pdf` fixture. SVG uses a raster fallback for pages requiring
 this backdrop copy; other Form groups retain their vector output.
 
@@ -558,3 +559,16 @@ the original expectations. Empty dictionaries stand in for unused appearances.
 `TestPDFRendererBlendMode` cases, preserving page dimensions, sample coordinates,
 and expected blue/white pixels. Vitest replaces JUnit; bitmap RGBA values replace
 Java packed ARGB integers. Both use the same PDFBox revision and ASF license.
+
+Non-isolated group compositing in `src/render/raster.ts` adapts PDFBox
+`PageDrawer.TransparencyGroup` and `GroupGraphics.removeBackdrop` at the same
+revision. Each paint accumulates group-only alpha separately from its color
+surface, which starts with the parent backdrop. Backdrop removal retains inner
+blend effects and restores group alpha before applying outer opacity and masks.
+The local implementation uses a Float32 alpha plane and straight RGBA bytes,
+with a raster SVG fallback for affected pages. `transparency-group.test.ts`
+checks opaque and partial backdrops, nested opacity, masks, overlapping paints,
+strokes, images, untouched pixels, and normal/incremental/copied-page saves.
+Opaque RGB expectations were independently checked using Poppler 26.08.0's
+Splash renderer; transparent expectations also check the PDF compositing
+formula. ASF, Apache-2.0, notices and license above.

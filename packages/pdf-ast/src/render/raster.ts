@@ -897,11 +897,16 @@ function blendPixel(
   color: PdfRgbColor,
   alpha: number,
   blendMode?: string,
-  clipMask?: Uint8Array
+  clipMask?: Uint8Array,
+  groupAlpha?: Float32Array
 ): void {
   if (px < 0 || py < 0 || px >= width || py >= height || alpha <= 0) return;
   const a = Math.min(1, Math.max(0, alpha)) * (clipMask ? clipMask[(py * width + px) * 4 + 3]! / 255 : 1);
   const idx = (py * width + px) * 4;
+  if (groupAlpha) {
+    const pixel = py * width + px;
+    groupAlpha[pixel] = a + groupAlpha[pixel]! * (1 - a);
+  }
   const csR = Math.min(1, Math.max(0, color.r));
   const csG = Math.min(1, Math.max(0, color.g));
   const csB = Math.min(1, Math.max(0, color.b));
@@ -1056,7 +1061,8 @@ function fillEdgesScanline4x4(
   clipScreen?: readonly [number, number, number, number],
   antialias = true,
   blendMode?: string,
-  clipMask?: Uint8Array
+  clipMask?: Uint8Array,
+  groupAlpha?: Float32Array
 ): void {
   if (edges.length === 0) return;
   let minY = Infinity;
@@ -1124,7 +1130,7 @@ function fillEdgesScanline4x4(
       const count = rowCounts[px]!;
       if (count > 0) {
         const cov = antialias ? count / 16 : count >= 8 ? 1 : 0;
-        blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode, clipMask);
+        blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode, clipMask, groupAlpha);
       }
     }
   }
@@ -1209,10 +1215,10 @@ function hasCompositingEffects(operations: readonly PdfPaintOperation[], include
     (operation.kind === "group" && hasCompositingEffects(operation.value.operations, includeSoftMasks)));
 }
 
-// PDF.js beginGroup: needsBackdropCopy && inSMaskMode. Ordinary outer-opacity
-// groups still use transparent intermediates, even when they are non-isolated.
+// PDFBox PageDrawer: inner blends in a non-isolated group see its parent.
+// Normal-only groups can use transparent intermediates without a backdrop.
 function needsGroupBackdrop(group: PdfPaintGroup): boolean {
-  return group.isolated === false && !!group.softMask && hasCompositingEffects(group.operations, true);
+  return group.isolated === false && hasCompositingEffects(group.operations, true);
 }
 
 function containsBackdropGroup(operations: readonly PdfPaintOperation[]): boolean {
@@ -1220,20 +1226,20 @@ function containsBackdropGroup(operations: readonly PdfPaintOperation[]): boolea
     (needsGroupBackdrop(operation.value) || containsBackdropGroup(operation.value.operations)));
 }
 
-export function renderDisplayListToBitmap(
+function renderDisplayListLayer(
   displayList: PdfDisplayList,
-  options: RenderToPngOptions = {}
+  options: RenderToPngOptions,
+  scale: number,
+  backdrop?: Uint8Array
 ): RgbaBitmap {
-  const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1.5);
-  const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
-  const scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
-  const scale = scaleX;
   const [originX, originY] = displayList.origin ?? [0, 0];
   const pageTop = originY + displayList.height;
   const toScreen = (x: number, y: number): StrokePoint => [(x - originX) * scale, (pageTop - y) * scale];
   const width = Math.max(1, Math.round(displayList.width * scale));
   const height = Math.max(1, Math.round(displayList.height * scale));
-  const rgba = new Uint8Array(width * height * 4);
+  const rgba = backdrop ? backdrop.slice() : new Uint8Array(width * height * 4);
+  // PDFBox GroupGraphics keeps the group's alpha separate from its backdrop.
+  const groupAlpha = backdrop ? new Float32Array(width * height) : undefined;
 
   // PDF.js beginDrawing: blend modes see the page's transparent backdrop,
   // never the viewer's white/custom background. Composite that background last.
@@ -1244,7 +1250,7 @@ export function renderDisplayListToBitmap(
   const bgG = transparent ? 0 : Math.round(bg.g * 255);
   const bgB = transparent ? 0 : Math.round(bg.b * 255);
   const bgA = transparent ? 0 : 255;
-  for (let i = 0; i < width * height; i++) {
+  for (let i = 0; !backdrop && i < width * height; i++) {
     rgba[i * 4] = bgR;
     rgba[i * 4 + 1] = bgG;
     rgba[i * 4 + 2] = bgB;
@@ -1264,16 +1270,10 @@ export function renderDisplayListToBitmap(
     let operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
     if (operation.kind === "group") {
       const group = operation.value;
-      let operations = group.operations;
-      if (needsGroupBackdrop(group)) {
-        operations = [{ kind: "image", value: {
-          name: "GroupBackdrop", width, height, decodedRgba: rgba.slice(),
-          matrix: [width / scale, 0, 0, height / scale, originX, pageTop - height / scale],
-          colorSpace: "DeviceRGB", bitsPerComponent: 8,
-          ...(group.bboxClip ? { clipPaths: [group.bboxClip] } : {}),
-        } }, ...operations];
-      }
-      const bitmap = renderDisplayListToBitmap({ ...displayList, rotation: 0, operations }, { ...options, scale, dpiX: undefined, dpiY: undefined, cropRect: undefined, useCropBox: false, transparent: true });
+      const bitmap = renderDisplayListLayer(
+        { ...displayList, operations: group.operations },
+        { ...options, transparent: true }, scale, needsGroupBackdrop(group) ? rgba : undefined
+      );
       for (let i = 3; i < bitmap.data.length; i += 4) bitmap.data[i] = Math.round(bitmap.data[i]! * group.alpha);
       operation = { kind: "image", value: {
         name: "TransparencyGroup", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
@@ -1332,7 +1332,7 @@ export function renderDisplayListToBitmap(
       if (path.fillColor) {
         const edges = pathsToEdges(segmentsToScreenPaths(path.segments, displayList.height, scale, toScreen), true);
         const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [(path.clipRect[0] - originX) * scale, (pageTop - path.clipRect[3]) * scale, (path.clipRect[2] - originX) * scale, (pageTop - path.clipRect[1]) * scale] : undefined;
-        fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask);
+        fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask, groupAlpha);
       }
       if (path.strokeColor) {
         const rawSw = path.strokeWidth * scale * (path.strokeMatrix ? Math.hypot(path.strokeMatrix[0], path.strokeMatrix[1]) : 1);
@@ -1342,7 +1342,7 @@ export function renderDisplayListToBitmap(
         const clipScreen: [number, number, number, number] | undefined = path.clipRect
           ? [(path.clipRect[0] - originX) * scale, (pageTop - path.clipRect[3]) * scale, (path.clipRect[2] - originX) * scale, (pageTop - path.clipRect[1]) * scale] : undefined;
         fillEdgesScanline4x4(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
-          original.kind === "glyph" ? aaTxt : aaVec, path.blendMode, clipMask);
+          original.kind === "glyph" ? aaTxt : aaVec, path.blendMode, clipMask, groupAlpha);
       }
     } else if (operation.kind === "image") {
       const img = operation.value;
@@ -1409,10 +1409,30 @@ export function renderDisplayListToBitmap(
               b: sample[2]! / 255,
             },
             sample[3]! / 255,
-            img.blendMode, clipMask
+            img.blendMode, clipMask, groupAlpha
           );
         }
       }
+    }
+  }
+
+  if (backdrop && groupAlpha) {
+    // PDFBox GroupGraphics.removeBackdrop:
+    // C = Cn + (Cn - C0) * (alpha0 / alphagn - alpha0).
+    // This retains inner blending without compositing the backdrop twice.
+    for (let i = 0; i < rgba.length; i += 4) {
+      const alpha = groupAlpha[i / 4]!;
+      if (alpha === 0) {
+        rgba.fill(0, i, i + 4);
+        continue;
+      }
+      const factor = backdrop[i + 3]! / 255 * (1 / alpha - 1);
+      for (let channel = 0; channel < 3; channel++) {
+        const color = rgba[i + channel]!;
+        rgba[i + channel] = Math.max(0, Math.min(255,
+          Math.round(color + (color - backdrop[i + channel]!) * factor)));
+      }
+      rgba[i + 3] = Math.round(alpha * 255);
     }
   }
 
@@ -1425,7 +1445,18 @@ export function renderDisplayListToBitmap(
       rgba[i + 3] = 255;
     }
   }
-  let result: RgbaBitmap = { width, height, data: rgba };
+  return { width, height, data: rgba };
+}
+
+export function renderDisplayListToBitmap(
+  displayList: PdfDisplayList,
+  options: RenderToPngOptions = {}
+): RgbaBitmap {
+  const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1.5);
+  const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
+  const scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
+  let result = renderDisplayListLayer(displayList, options, scaleX);
+  const { width, height, data: rgba } = result;
   if (Math.abs(scaleX - scaleY) > 1e-6) {
     const targetW = Math.max(1, Math.round(displayList.width * scaleX));
     const targetH = Math.max(1, Math.round(displayList.height * scaleY));
@@ -1539,8 +1570,8 @@ export function renderDisplayListToSvg(
 ): string {
   const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1);
   if (containsBackdropGroup(paintOperations(displayList))) {
-    // SVG masks isolate their group from earlier paints. Use the same raster
-    // composite as PNG when PDF blending needs that earlier page backdrop.
+    // SVG opacity/mask groups cannot reproduce PDF backdrop removal. Use the
+    // bitmap compositor when non-isolated inner blends need the parent page.
     const bitmap = renderDisplayListToBitmap(displayList, { ...options, scale: baseScale });
     const embedded = svgImage({
       name: "PageComposite", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,

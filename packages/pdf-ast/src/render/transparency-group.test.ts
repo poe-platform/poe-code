@@ -2,14 +2,14 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { cosArray, cosBool, cosDict, cosName, cosNumber, cosStream, dictSet } from "../ast.js";
 import { PdfDocument } from "../document.js";
-import { renderDisplayListToSvg, type RgbaBitmap } from "./raster.js";
+import { decodePng, renderDisplayListToSvg, type RgbaBitmap } from "./raster.js";
 
 const numbers = (values: number[]) => cosArray(values.map(value => cosNumber(value)));
 
-function groupPdf(options: { alpha?: number; blend?: string | undefined; inner?: string; backdrop?: string; isolated?: boolean; mask?: boolean; nested?: boolean; clip?: string } = {}) {
+function groupPdf(options: { alpha?: number; blend?: string | undefined; inner?: string; backdrop?: string; isolated?: boolean; mask?: boolean; nested?: boolean; clip?: string; save?: "normal" | "incremental" | "copy" } = {}) {
   const doc = PdfDocument.create();
   const page = doc.addPage([80, 80]);
-  const form = cosStream(new TextEncoder().encode(options.inner ?? "/Normal gs 1 0 0 rg 0 0 30 40 re f 10 0 30 40 re f"), { dict: cosDict({
+  const form = cosStream(Uint8Array.from(options.inner ?? "/Normal gs 1 0 0 rg 0 0 30 40 re f 10 0 30 40 re f", ch => ch.charCodeAt(0)), { dict: cosDict({
     Type: cosName("XObject"), Subtype: cosName("Form"), BBox: numbers([0, 0, 40, 40]),
     Group: cosDict({ S: cosName("Transparency"), I: cosBool(options.isolated ?? false) }),
     Resources: cosDict({ ExtGState: cosDict({
@@ -41,6 +41,12 @@ function groupPdf(options: { alpha?: number; blend?: string | undefined; inner?:
     ExtGState: cosDict({ Group: groupState, Half: cosDict({ ca: cosNumber(0.5) }) }),
   }));
   page.setRawContentStream(new TextEncoder().encode(`${options.backdrop ?? ""} ${options.clip ?? ""} /Group gs /G Do`));
+  if (options.save === "copy") {
+    const copy = PdfDocument.create();
+    copy.copyPagesFrom(doc, [0]);
+    return PdfDocument.load(copy.save()).getPage(0);
+  }
+  if (options.save) return PdfDocument.load(doc.save({ incremental: options.save === "incremental" })).getPage(0);
   return page;
 }
 
@@ -71,9 +77,10 @@ describe("non-isolated transparency Forms", () => {
     expect(pixel(bitmap, 60, 20)).toEqual([0, 0, 255, 255]);
   });
 
-  it("matches PDF.js intermediate surfaces when a group has outer opacity", () => {
+  it("blends against the page before applying group opacity (Poppler reference)", () => {
     const bitmap = groupPdf({ inner: "/Multiply gs 0.5 g 0 0 40 40 re f", backdrop: "0.8 0.4 0.2 rg 0 0 80 80 re f" }).renderToBitmap({ scale: 1 });
-    expect(pixel(bitmap, 20, 20)).toEqual([166, 115, 90, 255]);
+    // Poppler 26.08 at 72 dpi: [152, 76, 37]. Allow byte-rounding differences.
+    [152, 76, 37, 255].forEach((channel, i) => expect(Math.abs(pixel(bitmap, 20, 20)[i]! - channel)).toBeLessThanOrEqual(2));
   });
 
   it("keeps explicitly isolated groups independent of the page backdrop", () => {
@@ -84,9 +91,40 @@ describe("non-isolated transparency Forms", () => {
   it("composites group opacity over a partially transparent backdrop", () => {
     const bitmap = groupPdf({ inner: "/Half gs /Multiply gs 0.5 g 0 0 40 40 re f", backdrop: "q /Half gs 0.8 0.4 0.2 rg 0 0 80 80 re f Q" }).renderToBitmap({ scale: 1, transparent: true });
     const actual = pixel(bitmap, 20, 20);
-    // Independent Poppler/PDFium references: alpha .5 + (.5 * .5) * (1 - .5).
-    [173, 112, 81, 160].forEach((channel, i) => expect(Math.abs(actual[i]! - channel)).toBeLessThanOrEqual(1));
+    // Backdrop removal: group alpha .5, outer alpha .5, backdrop alpha .5.
+    [168, 97, 61, 160].forEach((channel, i) => expect(Math.abs(actual[i]! - channel)).toBeLessThanOrEqual(1));
     expect(pixel(bitmap, 60, 20)).toEqual([204, 102, 51, 128]);
+  });
+
+  it.each([
+    ["nested opacity", { nested: true, inner: "/Multiply gs 0.5 g 0 0 40 40 re f" }, [179, 89, 45, 255]],
+    ["outer mask", { mask: true, inner: "/Multiply gs 0.5 g 0 0 40 40 re f" }, [179, 89, 45, 255]],
+    ["overlapping half-opacity paints", { inner: "/Half gs /Multiply gs 0.5 g 0 0 30 40 re f 10 0 30 40 re f" }, [159, 80, 40, 255]],
+    ["stroke", { inner: "/Multiply gs 0.5 G 20 w 0 20 m 40 20 l S" }, [153, 77, 39, 255]],
+    ["inline image", { inner: "/Multiply gs 40 0 0 40 0 0 cm BI /W 1 /H 1 /CS /RGB /BPC 8 ID \x80\x80\x80 EI" }, [153, 77, 39, 255]],
+  ] as const)("preserves the backdrop through %s", (_label, options, expected) => {
+    const bitmap = groupPdf({ ...options, backdrop: "0.8 0.4 0.2 rg 0 0 80 80 re f" }).renderToBitmap({ scale: 1 });
+    expected.forEach((channel, i) => expect(Math.abs(pixel(bitmap, 20, 20)[i]! - channel)).toBeLessThanOrEqual(2));
+  });
+
+  it("does not composite untouched backdrop pixels a second time", () => {
+    const bitmap = groupPdf({ inner: "/Multiply gs 0.5 g 0 0 10 10 re f", backdrop: "q /Half gs 0.8 0.4 0.2 rg 0 0 80 80 re f Q" }).renderToBitmap({ scale: 1, transparent: true });
+    expect(pixel(bitmap, 20, 20)).toEqual([204, 102, 51, 128]);
+  });
+
+  it.each(["normal", "incremental", "copy"] as const)("preserves non-isolated blending through %s save", save => {
+    const page = groupPdf({ save, inner: "/Multiply gs 0.5 g 0 0 40 40 re f", backdrop: "0.8 0.4 0.2 rg 0 0 80 80 re f" });
+    const expected = [153, 77, 39, 255];
+    expected.forEach((channel, i) => expect(Math.abs(pixel(page.renderToBitmap({ scale: 1 }), 20, 20)[i]! - channel)).toBeLessThanOrEqual(1));
+  });
+
+  it("retains non-isolated colors in SVG output", () => {
+    const page = groupPdf({ inner: "/Multiply gs 0.5 g 0 0 40 40 re f", backdrop: "0.8 0.4 0.2 rg 0 0 80 80 re f" });
+    const svg = renderDisplayListToSvg(page.evaluateDisplayList(), { scale: 1 });
+    const href = svg.match(/href="data:image\/png;base64,([^"]+)"/);
+    expect(href).not.toBeNull();
+    const bitmap = decodePng(new Uint8Array(Buffer.from(href![1]!, "base64")));
+    [153, 77, 39, 255].forEach((channel, i) => expect(Math.abs(pixel(bitmap, 20, 20)[i]! - channel)).toBeLessThanOrEqual(1));
   });
 
   it("preserves transparency outside the group on an empty backdrop", () => {

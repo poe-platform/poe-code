@@ -57,8 +57,8 @@ describe("PDF.js masked non-isolated group backdrops", () => {
     expect(pixel(maskedGroup({ isolated: true }).page.renderToBitmap({ scale: 1 }))).toEqual([128, 0, 127, 255]);
   });
 
-  it("retains PDF.js's transparent intermediate for unmasked outer-opacity groups", () => {
-    expect(pixel(maskedGroup({ mask: false, alpha: 0.5 }).page.renderToBitmap({ scale: 1 }))).toEqual([128, 0, 127, 255]);
+  it("blends unmasked outer-opacity groups against the backdrop", () => {
+    expect(pixel(maskedGroup({ mask: false, alpha: 0.5 }).page.renderToBitmap({ scale: 1 }))).toEqual([128, 0, 255, 255]);
   });
 
   it("keeps ordinary Normal paints independent of backdrop copying", () => {

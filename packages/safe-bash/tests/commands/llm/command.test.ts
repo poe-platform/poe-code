@@ -49,7 +49,7 @@ test("routes aliases and combines stdin content before the instruction with unto
   assert.equal((await run.execute()).exitCode, 0);
   const request = fake.requests[0]!;
   assert.equal(request.model, "text");
-  assert.equal(request.prompt, "notes\n\nsummarize this");
+  assert.equal(request.prompt, "notes summarize this");
   assert.equal(request.system, "be terse");
   assert.deepEqual({ ...request.options }, { temperature: "0.70", ["__proto__"]: "literal" });
   assert.deepEqual(request.attachments, []);
@@ -299,7 +299,7 @@ test("plugins preflight replacement and work in real Shell pipelines and binary 
   const result = await shell.exec("printf notes | llm summarize; llm -m raw picture > /picture.png");
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "hello world\n");
-  assert.equal(text.requests[0]!.prompt, "notes\n\nsummarize");
+  assert.equal(text.requests[0]!.prompt, "notes summarize");
   assert.deepEqual(await fs.readFile("/picture.png"), Uint8Array.of(0, 255, 128));
   const piped = await shell.exec("llm -m raw picture | base64");
   assert.equal(piped.stdout, "AP+A\n");
@@ -337,7 +337,7 @@ test("shell input admission combines stdin and attachments without charging prom
   const fake = { ...provider(), models: [{ id: "text", attachmentTypes: ["text/plain"] }] };
   const shell = new Shell({ fs, limits: { maxInputBytes: 4 } }).use(llmCommands({ providers: [fake], defaultModel: "text" }));
   assert.equal((await shell.exec("llm --at /three text/plain 'summarize this'", { stdin: "a" })).exitCode, 0);
-  assert.equal(fake.requests[0]!.prompt, "a\n\nsummarize this");
+  assert.equal(fake.requests[0]!.prompt, "a summarize this");
   await assert.rejects(shell.exec("llm --at /three text/plain", { stdin: "ab" }), /maxInputBytes/);
   await assert.rejects(shell.exec("llm --at /three text/plain --at /three text/plain"), /maxInputBytes/);
   assert.equal(fake.requests.length, 1);

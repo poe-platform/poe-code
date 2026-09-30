@@ -235,7 +235,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const decoderTail = decoder.decode();
     if (!stagePrompt) fragments.push(decoderTail);
     if (promptSpool && args.prompt) {
-      if (stdinBytes) await promptSpool.write(new TextEncoder().encode("\n\n"));
+      if (stdinBytes) await promptSpool.write(new TextEncoder().encode(" "));
       for (let start = 0; start < args.prompt.length;) {
         await step();
         let end = Math.min(args.prompt.length, start + 8192);
@@ -246,7 +246,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       }
     }
     const content = fragments.join("");
-    let prompt = content && args.prompt ? `${content}\n\n${args.prompt}` : content || args.prompt;
+    let prompt = content && args.prompt ? `${content} ${args.prompt}` : content || args.prompt;
     if (args.save) {
       const attachments = args.attachments.filter(item => item.mimeType === undefined).map(item => item.path);
       const attachmentTypes = args.attachments.filter(item => item.mimeType !== undefined).map(item => ({ type: item.mimeType!, value: item.path }));

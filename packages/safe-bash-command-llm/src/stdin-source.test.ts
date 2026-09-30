@@ -34,7 +34,7 @@ test('split UTF8 stdin preserves bytes and reference prompt separator',async()=>
  const encoded=new TextEncoder().encode('before 🙂');let text='';
  const chunks={async *[Symbol.asyncIterator](){for(const byte of encoded)yield Uint8Array.of(byte);}};
  const result=await run(chunks,['after'],async source=>{const decoder=new TextDecoder('utf8',{fatal:true});for await(const bytes of source)text+=decoder.decode(bytes,{stream:true});text+=decoder.decode();});
- assert.equal(result.exitCode,0,result.error);assert.equal(text,'before 🙂\n\nafter');
+ assert.equal(result.exitCode,0,result.error);assert.equal(text,'before 🙂 after');
 });
 
 test('invalid UTF8 is rejected before model transport and staging is released',async()=>{

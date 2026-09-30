@@ -63,7 +63,7 @@ test("llm resolves aliases, combines stdin and instruction, and passes options u
     assert.equal(result.exitCode, 0);
     assert.equal(result.stdout, "hello\n");
     assert.equal(request.model, "text");
-    assert.equal(request.prompt, "content\n\nsummarize");
+    assert.equal(request.prompt, "content summarize");
     assert.equal(request.system, "system");
     assert.equal(request.options.size, "001");
     assert.equal(request.options.__proto__, "safe");

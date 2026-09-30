@@ -202,6 +202,7 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
           }
           text += "'";
         } else text = supplied === "" ? "''" : supplied.replace(/[^a-zA-Z0-9_./-]/gu, character => `\\${character}`);
+        if (precision !== undefined) text = text.slice(0, precision);
       }
       else {
         let number = supplied === "" ? 0 : /^["']/u.test(supplied) ? quotedNumber(suppliedIndex) : Number(supplied);

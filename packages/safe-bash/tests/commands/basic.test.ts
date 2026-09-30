@@ -618,6 +618,71 @@ test("basename and dirname handle roots, suffixes, multiple names and zero outpu
   assert.equal((await run("dirname", ["-z", "/a/b///", "name", "/"])).stdout, "/a\0.\0/\0");
 });
 
+test("printf applies q precision to quoted output before width padding", async () => {
+  // Bash printf.tests exercises %10.8q and %*.*q; include a truncation
+  // boundary inside an escape so truncating the operand cannot pass.
+  for (const [format, operands, expected] of [
+    ["[%10.2q]|[%.0q]", ["abc def", "abc"], "[        ab]|[]"],
+    ["[%.2q]|[%.4q]", ["a b", "a b"], "[a\\]|[a\\ b]"],
+    ["[%-6.2q]", ["a b"], "[a\\    ]"],
+    ["[%*.*q]", ["6", "2", "a b"], "[    a\\]"],
+    ["[%.1q]|[%.0q]", ["", ""], "[']|[]"],
+  ] as const) {
+    for (const raw of [false, true]) {
+      const result = await runByteArguments("printf", [format, ...operands.map(operand => raw ? shellValueFromBytes(Buffer.from(operand)) : operand)]);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr.length, 0);
+      assert.equal(result.stdout.toString(), expected);
+    }
+    const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([printfCommand]) });
+    try {
+      const env = Object.fromEntries(operands.map((operand, index) => [`ARG${index}`, operand]));
+      const result = await shell.exec('printf -- "$FORMAT" ' + operands.map((_, index) => `"$ARG${index}"`).join(" "), { env: { ...env, FORMAT: format } });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, expected);
+    } finally { await shell.dispose(); }
+  }
+});
+
+test("path utilities retain upstream slash and suffix boundary behavior", async () => {
+  // Semantic cases reviewed against GNU coreutils tests/misc/{basename,dirname}.pl
+  // (2026-09-30), then independently checked with GNU coreutils 9.12.
+  // This virtual POSIX profile treats a double-slash root as a single slash.
+  for (const [path, suffix, expected] of [
+    ["", "", ""], ["/", "/", "/"], ["//", "//", "/"],
+    ["///a///", "", "a"], ["aa", "a", "a"], ["a-a", "-a", "a"],
+    ["fs", "fs", "fs"], ["fs/", "s", "f"], ["fs/", "s/", "fs"],
+    ["dir/file.suf", ".suf", "file"], ["fs", "x", "fs"],
+    ["d/q name", "", "q name"],
+  ]) {
+    for (const prefix of [[], ["-z"]]) {
+      const result = await run("basename", [...prefix, "--", path!, suffix!]);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, expected + (prefix.length ? "\0" : "\n"));
+    }
+  }
+  for (const [path, expected] of [
+    ["", "."], ["f", "."], ["d/f//", "d"], ["/d/f//", "/d"],
+    ["//", "/"], ["//a//", "/"], ["///a///", "/"],
+    ["///a///b", "///a"], ["///a//b/", "///a"], ["q name/f", "q name"],
+  ]) {
+    for (const prefix of [[], ["--zero"]]) {
+      const result = await run("dirname", [...prefix, "--", path!]);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, expected + (prefix.length ? "\0" : "\n"));
+    }
+  }
+  for (const option of ["-za", "-az", "--zero"]) {
+    const result = await run("basename", [option, "-s", "a", "aa", "ba", "ab"]);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "a\0b\0ab\0");
+  }
+});
+
 test("true and false ignore arguments and cancellation propagates", async () => {
   assert.equal((await run("true", ["--anything"])).exitCode, 0);
   assert.equal((await run("false")).exitCode, 1);

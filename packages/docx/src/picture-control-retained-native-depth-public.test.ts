@@ -1,5 +1,5 @@
 import { Volume } from "memfs";
-import { expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import * as source from "./index.js";
@@ -10,12 +10,7 @@ import { readPackage } from "../tests/assertions.js";
 
 const compiled = await compiledPublicRuntime;
 const limits = { ...textContext.limits, maxArchiveBytes: 8 * 1024 * 1024, maxEntryBytes: 4 * 1024 * 1024, maxTotalBytes: 8 * 1024 * 1024, maxRetainedBytes: 1024 * 1024 * 1024 };
-for (const runtime of ["source", "compiled"] as const)
-for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const codec of ["utf8", "utf8bom", "utf16le", "utf16be"] as const)
-for (const carrier of ["inline", "anchor"] as const) for (const depth of [32, 8192])
-for (const route of ["sdk", "sdk-batch", "cli", "cli-batch"] as const)
-it(`picture controls retain unrelated admitted native property depth; runtime=${runtime}; strict=${strict}; kind=${kind}; codec=${codec}; carrier=${carrier}; depth=${depth}; route=${route}`, async () => {
+async function prepareFixture(runtime: "source" | "compiled", strict: boolean, kind: "docx" | "dotx", codec: "utf8" | "utf8bom" | "utf16le" | "utf16be", carrier: "inline" | "anchor", depth: number) {
   const api = runtime === "source" ? source : compiled;
   expect(compiled.Document).not.toBe(source.Document); expect(compiled.DocumentBudget).not.toBe(source.DocumentBudget);
   const context = () => ({ signal: textContext.signal, limits, encoding: { order: "input", compression: "store" } as const, budget: new api.DocumentBudget({ xmlDepth: 32768, retainedBytes: 1024 * 1024 * 1024 }, textContext.signal) });
@@ -58,24 +53,51 @@ it(`picture controls retain unrelated admitted native property depth; runtime=${
   expect((await api.validateDocument(input, context())).valid).toBe(true);
   const document = await api.Document(input, context()); expect(document.paragraphs[0]!.text).toBe("Outside 海🌊");
   await document.save({ async write(bytes: Uint8Array) { memory.appendFileSync("/saved", bytes); } }); expect(new Uint8Array(memory.readFileSync("/saved") as Buffer)).toEqual(original);
+  return { api, context, input, original, before, replacement, nativeProperties, r, position, originals };
+}
+for (const runtime of ["source", "compiled"] as const)
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+for (const codec of ["utf8", "utf8bom", "utf16le", "utf16be"] as const)
+for (const carrier of ["inline", "anchor"] as const) for (const depth of [32, 8192])
+describe(`runtime=${runtime}; strict=${strict}; kind=${kind}; codec=${codec}; carrier=${carrier}; depth=${depth}`, () => {
+let prepared: Awaited<ReturnType<typeof prepareFixture>>;
+beforeAll(async () => { prepared = await prepareFixture(runtime, strict, kind, codec, carrier, depth); });
+for (const route of ["sdk", "sdk-batch", "cli", "cli-batch"] as const) {
+it(`reads picture control; route=${route}`, async () => {
+  const { api, context, input } = prepared;
   const readBatch = { version: 1 as const, operations: [{ operation: "controls.list" as const, arguments: { control: 1 } }] };
+  let value: source.ControlReadData;
+  if (route === "sdk") value = await api.inspectDocumentControls(input, { control: 1 }, context());
+  else if (route === "sdk-batch") {
+    const result = await api.executeDocumentBatch(input, readBatch, {}, context());
+    expect(result.publication).toBeNull(); value = result.results[0]!.data as source.ControlReadData;
+  } else {
+    const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); await fs.writeFile("/read", new TextEncoder().encode(JSON.stringify(readBatch)));
+    const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits, documentLimits: { xmlDepth: 32768, retainedBytes: 1024 * 1024 * 1024 } }) }));
+    try {
+      const result = await shell.exec((route === "cli" ? "docx controls list /input --control 1" : "docx batch /input --ops-file /read") + " --json");
+      expect(result.exitCode, result.stdout + result.stderr).toBe(0);
+      const envelope = JSON.parse(result.stdout); expect(envelope).toMatchObject({ ok: true, affected: 0, errors: [] });
+      value = route === "cli" ? envelope.data : envelope.data.results[0].data;
+      expect(await fs.readFile("/input")).toEqual(input);
+    } finally { await shell.dispose(); }
+  }
+  expect(value.items).toHaveLength(1); expect(value.items[0]).toMatchObject({ kind: "picture", id: "7", tag: "picture", lock: "unlocked", placeholder: true, support: "supported", reason: null, value: { relationshipId: "old", target: "/archive/media/old.png", external: false, contentType: "image/png" } });
+});
+it(`picture controls retain unrelated admitted native property depth; runtime=${runtime}; strict=${strict}; kind=${kind}; codec=${codec}; carrier=${carrier}; depth=${depth}; route=${route}`, async () => {
+  const { api, context, input, original, before, replacement, nativeProperties, r, position, originals } = prepared;
+  const memory = Volume.fromJSON({ "/input": Buffer.from(input), "/saved": "", "/output": "" });
   const setBatch = { version: 1 as const, operations: [{ operation: "controls.set" as const, arguments: { control: 1, file: { kind: "bytes" as const, base64: Buffer.from(replacement).toString("base64") } } }] };
-  let value: source.ControlReadData, output: Uint8Array;
+  let output: Uint8Array;
   if (route === "sdk" || route === "sdk-batch") {
-    if (route === "sdk") value = await api.inspectDocumentControls(input, { control: 1 }, context());
-    else { const result = await api.executeDocumentBatch(input, readBatch, {}, context()); expect(result.publication).toBeNull(); value = result.results[0]!.data as source.ControlReadData; }
-    expect(value.items).toHaveLength(1); expect(value.items[0]).toMatchObject({ kind: "picture", id: "7", tag: "picture", lock: "unlocked", placeholder: true, support: "supported", reason: null, value: { relationshipId: "old", target: "/archive/media/old.png", external: false, contentType: "image/png" } });
     const publication = { ...context(), stdout: { async write(bytes: Uint8Array) { memory.appendFileSync("/output", bytes); } } };
     if (route === "sdk") expect(await api.editDocumentControls(input, { control: 1, file: setBatch.operations[0]!.arguments.file, output: "-" }, publication)).toMatchObject({ changed: true });
     else expect((await api.executeDocumentBatch(input, setBatch, { output: "-" }, publication)).publication).not.toBeNull();
     output = new Uint8Array(memory.readFileSync("/output") as Buffer);
   } else {
-    const fs = new MemoryFileSystem(), retained = new TextEncoder().encode("Retained destination"); await fs.writeFile("/input", input); await fs.writeFile("/output", retained); await fs.writeFile("/pixel.png", replacement); await fs.writeFile("/read", new TextEncoder().encode(JSON.stringify(readBatch))); await fs.writeFile("/set", new TextEncoder().encode(JSON.stringify(setBatch)));
+    const fs = new MemoryFileSystem(), retained = new TextEncoder().encode("Retained destination"); await fs.writeFile("/input", input); await fs.writeFile("/output", retained); await fs.writeFile("/pixel.png", replacement); await fs.writeFile("/set", new TextEncoder().encode(JSON.stringify(setBatch)));
     const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits, documentLimits: { xmlDepth: 32768, retainedBytes: 1024 * 1024 * 1024 } }) }));
     try {
-      const read = await shell.exec((route === "cli" ? "docx controls list /input --control 1" : "docx batch /input --ops-file /read") + " --json"); expect(read.exitCode, read.stdout + read.stderr).toBe(0);
-      const envelope = JSON.parse(read.stdout); expect(envelope).toMatchObject({ ok: true, affected: 0, errors: [] }); value = route === "cli" ? envelope.data : envelope.data.results[0].data;
-      expect(value.items).toHaveLength(1); expect(value.items[0]).toMatchObject({ kind: "picture", id: "7", tag: "picture", lock: "unlocked", placeholder: true, support: "supported", reason: null, value: { relationshipId: "old", target: "/archive/media/old.png", external: false, contentType: "image/png" } });
       expect(await fs.readFile("/output")).toEqual(retained);
       const result = await shell.exec((route === "cli" ? "docx controls set /input --control 1 --file /pixel.png" : "docx batch /input --ops-file /set") + " --output /output --force --json"); expect(result.exitCode, result.stdout + result.stderr).toBe(0); expect(JSON.parse(result.stdout)).toMatchObject({ ok: true, errors: [] });
       output = await fs.readFile("/output"); expect(await fs.readFile("/input")).toEqual(original); expect(await fs.readFile("/pixel.png")).toEqual(replacement);
@@ -90,4 +112,7 @@ it(`picture controls retain unrelated admitted native property depth; runtime=${
   const edges = new TextDecoder(codec === "utf16le" ? "utf-16le" : codec === "utf16be" ? "utf-16be" : "utf8", { fatal: true }).decode(after.get("archive/_rels/master.xml.rels")!); expect(edges).toContain('<Relationship Id="old" Type="' + r + '/image" Target="media/old.png"/>'); expect(edges).toContain('<Relationship Id="audit" Type="urn:original:inert" Target="https://example.invalid/no-fetch" TargetMode="External"/>'); expect(edges).toContain('<!--edges--><?owned edges?>');
   for (const name of ["archive/master.xml", "archive/_rels/master.xml.rels", "[Content_Types].xml"]) { const bytes = after.get(name)!; if (codec === "utf16le" || codec === "utf16be") expect([...bytes.subarray(0, 2)]).toEqual(codec === "utf16le" ? [0xff, 0xfe] : [0xfe, 0xff]); else if (codec === "utf8bom") expect([...bytes.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf]); }
   expect((await api.validateDocument(output!, context())).valid).toBe(true); expect(input).toEqual(original); expect(new Uint8Array(memory.readFileSync("/input") as Buffer)).toEqual(original);
+});
+
+}
 });

@@ -3,7 +3,7 @@ import { build } from "esbuild";
 import { Volume, createFsFromVolume } from "memfs";
 import { privateExportStarsPlugin } from "./private-export-stars.mjs";
 
-it("preserves a shared external export-star facade in every split browser entry", async () => {
+it.each([false, true])("preserves a shared external export-star facade in every split browser entry (resolve=%s)", async resolve => {
   const volume = Volume.fromJSON({
     "/fixture/root.ts": 'export * from "./facade.ts";',
     "/fixture/facade.ts": 'export * from "private-command";',
@@ -11,7 +11,10 @@ it("preserves a shared external export-star facade in every split browser entry"
   const files = createFsFromVolume(volume);
   const result = await build({ absWorkingDir: "/fixture", entryPoints: { root: "/fixture/root.ts", facade: "/fixture/facade.ts" },
     outdir: "/fixture/dist", bundle: true, splitting: true, format: "esm", platform: "browser", write: false, metafile: true,
-    external: ["private-command"], plugins: [privateExportStarsPlugin(new Map([["private-command", ["createCommand"]]]), files.promises), {
+    external: ["private-command"], plugins: [privateExportStarsPlugin(
+      new Map(resolve ? [] : [["private-command", ["createCommand"]]]), files.promises, undefined,
+      resolve ? async (specifier: string) => specifier === "private-command" ? ["createCommand"] : undefined : undefined
+    ), {
       name: "virtual-fixture", setup(builder) {
         builder.onResolve({ filter: /.*/ }, args => args.path === "private-command" ? { path: args.path, external: true } : { path: args.path.startsWith("/") ? args.path : "/fixture/" + args.path.slice(2), namespace: "file" });
         builder.onLoad({ filter: /.*/ }, async args => ({ contents: await files.promises.readFile(args.path, "utf8") as string, loader: "ts" }));

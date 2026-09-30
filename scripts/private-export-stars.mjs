@@ -9,8 +9,7 @@ function addBindingNames(name, names) {
 }
 
 /** Make external facade names explicit before esbuild shares them between entries. */
-export function rewritePrivateExportStars(filename, text, exports) {
-  const source = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true);
+export function rewritePrivateExportStars(filename, text, exports, source = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true)) {
   const explicit = new Set();
   for (const statement of source.statements) {
     if (ts.isExportDeclaration(statement) && !statement.isTypeOnly && statement.exportClause && ts.isNamedExports(statement.exportClause)) {
@@ -37,8 +36,9 @@ export function privateExportStarsPlugin(exports, files, sourceRoot, resolveExpo
     builder.onLoad({ filter: /\.[cm]?[jt]s$/, namespace: "file" }, async args => {
       if ((!exports.size && !resolveExports) || sourceRoot && !args.path.startsWith(sourceRoot + path.sep)) return undefined;
       const text = (await files.readFile(args.path)).toString();
+      const source = ts.createSourceFile(args.path, text, ts.ScriptTarget.Latest, true);
+      let rewrite = !resolveExports;
       if (resolveExports) {
-        const source = ts.createSourceFile(args.path, text, ts.ScriptTarget.Latest, true);
         for (const statement of source.statements) {
           if (!ts.isExportDeclaration(statement) || statement.exportClause || statement.isTypeOnly || !statement.moduleSpecifier || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
           const specifier = statement.moduleSpecifier.text;
@@ -46,9 +46,11 @@ export function privateExportStarsPlugin(exports, files, sourceRoot, resolveExpo
             const names = await resolveExports(specifier);
             if (names !== undefined) exports.set(specifier, names);
           }
+          if (exports.has(specifier)) rewrite = true;
         }
       }
-      const contents = rewritePrivateExportStars(args.path, text, exports);
+      if (!rewrite) return undefined;
+      const contents = rewritePrivateExportStars(args.path, text, exports, source);
       return contents === text ? undefined : { contents, loader: args.path.endsWith(".ts") ? "ts" : "js" };
     });
   } };

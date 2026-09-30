@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { createMemoryFileSystem } from "poe-code/safe-fs";
 import * as core from "../../src/index.js";
 import { latin1Text } from "../../src/byte-encoding.js";
-import { builtInDirectContextExecutors, codeOf, decoder, output, pathOf, isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors, UsageError } from "../../src/commands/internal.js";
+import { builtInDirectContextExecutors, codeOf, decoder, diagnostic, encoder, output, pathOf, isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors, UsageError } from "../../src/commands/internal.js";
 import { ByteInputBudget } from "../../src/commands/bytes/input-budget.js";
 import { inputRequirements, textOutputRequirements } from "../../src/commands/portable-requirements.js";
 import { compareCopyIdentity, compareObservedEntries } from "../../src/commands/copy-identity.js";
@@ -62,7 +62,7 @@ for (const profile of [
 
 test("optional host preserves canonical helper and type identities", async () => {
   const host = await import("../../src/optional-host.js");
-  const expected = { UsageError, ByteInputBudget, inputRequirements, textOutputRequirements, decoder, isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors, builtInDirectContextExecutors, latin1Text, codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, jobsExtension, signalName, utf8ByteLength, utf8Encoder, utf8Decoder, encodeBase64, decodeBase64, compareBytes };
+  const expected = { UsageError, ByteInputBudget, inputRequirements, textOutputRequirements, decoder, diagnostic, encoder, isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors, builtInDirectContextExecutors, latin1Text, codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, jobsExtension, signalName, utf8ByteLength, utf8Encoder, utf8Decoder, encodeBase64, decodeBase64, compareBytes };
   assert.deepEqual(Object.keys(host).sort(), Object.keys(expected).sort());
   for (const name of Object.keys(expected) as (keyof typeof expected)[]) {
     assert.equal(host[name], expected[name], name);

@@ -220,7 +220,7 @@ describe("optional-owned compiled graph", () => {
 
   it("routes optional synchronization through the canonical host registry", async () => {
     const { volume, options } = fixture();
-    const names = "isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors";
+    const names = "encoder, diagnostic, isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors";
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", `export { ${names} } from "../internal.js";`);
     volume.writeFileSync(core + "/dist/commands/yes/index.d.ts", `export { ${names} } from "../internal.js";`);
     await expect(buildOptionalPackage(options)).resolves.toMatchObject({ status: 0 });

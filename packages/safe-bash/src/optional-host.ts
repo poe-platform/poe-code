@@ -5,6 +5,8 @@ export {
   builtInDirectContextExecutors,
   codeOf,
   decoder,
+  diagnostic,
+  encoder,
   isDefaultCommandOptions,
   output,
   pathOf,

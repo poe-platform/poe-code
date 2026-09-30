@@ -318,7 +318,12 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       }
       if (operation.operation === 'embed') {
         const prepared = await prepare(payload,signal);
-        return await service.embed({model:prepared.model!,inputs:payload.inputs as readonly string[],options:prepared.options,signal:prepared.signal}) as unknown as PythonHostValue;
+        const result = await service.embed({model:prepared.model!,inputs:payload.inputs as readonly string[],options:prepared.options,signal:prepared.signal});
+        prepared.signal.throwIfAborted();
+        const {vectors: _vectors, ...metadata} = result;
+        jsonBytes(metadata as unknown as PythonHostValue,metadataLimit);
+        jsonBytes(result as unknown as PythonHostValue,Math.min(bufferedLimit,prepared.maxOutputBytes ?? Infinity));
+        return result as unknown as PythonHostValue;
       }
       if (operation.operation !== 'complete') throw new TypeError('Unsupported Python LLM operation');
       let text = '', textBytes = 0, dataBytes = 0, received = 0;

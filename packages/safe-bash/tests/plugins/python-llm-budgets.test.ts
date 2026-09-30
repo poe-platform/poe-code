@@ -79,3 +79,19 @@ test('buffered ceiling admits exact JSON bytes and counts envelopes and escaped 
   const refused = createPythonLlmCapability(context,service,{maxBufferedResponseBytes:limit - 1,maxMetadataBytes:1024});
   await assert.rejects(refused.call!({operation:'complete',payload:{}},{signal}),/limit/);
 });
+
+test('embedding results obey host vector envelope and metadata ceilings and guest limits', async () => {
+  const result = {model:'m',vectors:[[1,2,3]],metadata:{detail:'🌍"'}};
+  const service = createLlmService({defaultModel:'m',providers:[{name:'test',models:[{id:'m',capabilities:['embed']}],async *complete() {yield '';},async embed() {return result;}}]});
+  const bytes = new TextEncoder().encode(JSON.stringify(result)).length;
+  const payload = {inputs:['one']};
+  const accepted = createPythonLlmCapability(context,service,{maxBufferedResponseBytes:bytes,maxMetadataBytes:128});
+  assert.deepEqual(await accepted.call!({operation:'embed',payload},{signal}),result);
+  const refused = createPythonLlmCapability(context,service,{maxBufferedResponseBytes:bytes - 1,maxMetadataBytes:128});
+  for (const max_response_bytes of [undefined,999999]) {
+    await assert.rejects(refused.call!({operation:'embed',payload:{...payload,...max_response_bytes === undefined ? {} : {max_response_bytes}}},{signal}),/limit/);
+  }
+  await assert.rejects(accepted.call!({operation:'embed',payload:{...payload,max_response_bytes:bytes - 1}},{signal}),/limit/);
+  const metadata = createPythonLlmCapability(context,service,{maxBufferedResponseBytes:1024,maxMetadataBytes:4});
+  await assert.rejects(metadata.call!({operation:'embed',payload},{signal}),/limit/);
+});

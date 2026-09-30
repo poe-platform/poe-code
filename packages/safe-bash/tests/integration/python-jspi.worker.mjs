@@ -349,6 +349,12 @@ async def qualify_libraries():
   assert response.model == 'fake' and response.text == 'configured'
   embedded = await client.embed((value for value in ['input']), model='saved')
   assert embedded.vectors == ((1.0, 2.0),) and embedded.metadata['id'] == 'embedding-1'
+  try:
+   await client.embed(['input'],model='saved',max_response_bytes=1)
+   raise AssertionError('Embedding envelope limit was ignored')
+  except LimitError:
+   pass
+  assert (await client.embed(['input'],model='saved')).vectors == embedded.vectors
   async with client.stream('library-stream') as early:
    assert (await early.__anext__()).text == 'incremental'
   async with client.stream('library-stream') as chunks:

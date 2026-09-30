@@ -399,7 +399,7 @@ class Client:
         self._streams.add(stream)
         return stream
 
-    async def embed(self, inputs, *, model=None, options=None, timeout=None):
+    async def embed(self, inputs, *, model=None, options=None, timeout=None, max_response_bytes=_DEFAULT_LIMIT):
         if isinstance(inputs, str):
             raise TypeError("Embedding inputs must be an iterable of strings")
         inputs = tuple(inputs)
@@ -408,11 +408,12 @@ class Client:
         payload = {**_configuration_context(), "model": model if model is not None else self._defaults["model"], "inputs": list(inputs),
                    "options": _options({**self._defaults["options"], **(options or {})})}
         payload["timeout"] = self._timeout if timeout is None else _timeout(timeout)
+        payload["max_response_bytes"] = self._limit if max_response_bytes is _DEFAULT_LIMIT else _limit(max_response_bytes)
         result = await self._run(lambda: self._bridge.call("embed", payload), payload["timeout"])
         vectors = tuple(tuple(vector) for vector in result["vectors"])
         if len(vectors) != len(inputs) or any(type(value) not in (int, float) or not math.isfinite(value) for vector in vectors for value in vector):
             raise LlmError("protocol", "Invalid embedding result")
-        if self._limit is not None and sum(len(vector) for vector in vectors) * 8 > self._limit:
+        if payload["max_response_bytes"] is not None and sum(len(vector) for vector in vectors) * 8 > payload["max_response_bytes"]:
             raise LimitError()
         return Embeddings(result["model"], vectors, copy.deepcopy(result.get("usage", {})), copy.deepcopy(result.get("metadata", {})))
 

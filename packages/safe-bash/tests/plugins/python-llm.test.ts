@@ -97,6 +97,20 @@ class LibraryTests(unittest.IsolatedAsyncioTestCase):
   with self.assertRaises(CapabilityError):
    await client.configuration()
 
+ async def test_embedding_uses_client_and_per_call_response_limits(self):
+  bridge = FakeBridge()
+  async with Client(bridge=bridge, max_response_bytes=256) as client:
+   await client.embed(['one'])
+   self.assertEqual(bridge.calls[-1][1]['max_response_bytes'],256)
+   await client.embed(['one'],max_response_bytes=64)
+   self.assertEqual(bridge.calls[-1][1]['max_response_bytes'],64)
+   with self.assertRaises(LimitError):
+    await client.embed(['one'],max_response_bytes=8)
+   with self.assertRaises(ValueError):
+    await client.embed(['one'],max_response_bytes=-1)
+  async with Client(bridge=bridge, max_response_bytes=8) as client:
+   await client.embed(['one'],max_response_bytes=None)
+
  async def test_embedding_metadata_is_preserved_and_owned(self):
   bridge = FakeBridge()
   async with Client(bridge=bridge, model='provider/model') as client:

@@ -160,11 +160,15 @@ with its own cleanup scope and the same borrowed bridge.
 
 The client defaults to no response-byte limit and no timeout. Set
 `max_response_bytes` and `timeout` (seconds) on the client or individual completion
-and stream calls. Explicit `None` or `float("inf")` disables a byte limit.
+stream and embedding calls. Explicit `None` or `float("inf")` disables a byte limit.
 Completion timeouts include request and response transforms, and client cleanup
 cancels and awaits that work. Text is measured as UTF-8, binary as bytes;
 embeddings use eight bytes per numeric element. Host buffering ceilings also apply
-to model listings and configuration snapshots. Stream limits count incremental
+to model listings, configuration snapshots and embedding results. Embedding
+host and per-call limits count the serialized vector/result envelope, including usage and metadata;
+`embed(..., max_response_bytes=...)` can lower the host ceiling and inherits the
+client limit by default. The host metadata ceiling also applies to embedding
+metadata independently of the vectors. Stream limits count incremental
 payloads and separately check a final response. These guest checks do not bound
 interpreter memory, provider buffers or billing. Configure host admission,
 serialized-message and stream limits through `capabilityLimits`. The host may

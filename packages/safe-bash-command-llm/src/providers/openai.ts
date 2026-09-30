@@ -1,1 +1,1 @@
-export { createOpenAiProvider, type OpenAiProviderOptions, type OpenAiModel } from "../openai.js";
+export { serializeOpenAiChatRequest, type OpenAiChatSourceRequest, createOpenAiProvider, type OpenAiProviderOptions, type OpenAiModel } from "../openai.js";

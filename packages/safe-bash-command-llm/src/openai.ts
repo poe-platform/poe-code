@@ -1,3 +1,4 @@
+export { chatJson as serializeOpenAiChatRequest, type OpenAiChatSourceRequest } from "./chat-json.js";
 import { openAiChatOptions } from "./openai-chat-options.js";
 import { chatJson } from "./chat-json.js";
 import { parseLlmNumericOption } from "./numeric-option.js";

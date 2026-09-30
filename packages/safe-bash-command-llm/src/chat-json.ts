@@ -3,9 +3,18 @@ import { base64Stream } from "./base64-stream.js";
 import { acceptsMimeType } from "./mime.js";
 import { jsonValue } from "./json-value.js";
 import type { LlmSourceRequest } from "./types.js";
-/** Admit provider-owned control fields before opening the streamed HTTP body. */
-export function chatJson(request: Omit<LlmSourceRequest, "options"> & { readonly options: Readonly<Record<string, unknown>> }, limit: number): AsyncIterable<Uint8Array> {
+/** Sources are borrowed; the caller owns their leases and provider admission. */
+export type OpenAiChatSourceRequest = Omit<LlmSourceRequest, "options"> & {
+  readonly options: Readonly<Record<string, unknown>>;
+};
+
+/** Encode admitted OpenAI-compatible controls and UTF-8/binary sources into a
+ * backpressured HTTP body. Does not dispose leases or translate model options.
+ * Keep request metadata stable until consumption finishes. maxBytes includes
+ * JSON escaping and base64; Infinity explicitly opts out of wire accounting. */
+export function chatJson(request: OpenAiChatSourceRequest, limit: number): AsyncIterable<Uint8Array> {
   request.signal.throwIfAborted();
+  if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError("Invalid provider request byte limit");
   for (const field of ["model", "messages", "stream"]) if (Object.hasOwn(request.options, field)) throw new TypeError(`${field} is controlled by the provider`);
   if (request.schema && Object.hasOwn(request.options, "response_format")) throw new TypeError("schema conflicts with response_format");
   for (const attachment of request.attachments) if (!acceptsMimeType(["image/*"], attachment.mimeType)) throw new TypeError("Only image attachments are supported");

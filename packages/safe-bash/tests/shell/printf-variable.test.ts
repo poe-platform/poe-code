@@ -163,7 +163,8 @@ const modernContracts = new Map<string, { stdout: Uint8Array; hasStderr: boolean
   ["replacing byte scalar at index zero", { stdout: new TextEncoder().encode("new"), hasStderr: false }],
   ["UTF-8 indexed payload and BOM", { stdout: Uint8Array.of(239, 187, 191, 195, 169), hasStderr: false }],
 ]);
-const version = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", 'printf "%s" "$BASH_VERSION"'], {
+const bashExecutable = process.env.SAFE_BASH_TEST_BASH ?? "/bin/bash";
+const version = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", 'printf "%s" "$BASH_VERSION"'], {
   env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000,
 });
 assert.ifError(version.error);
@@ -180,7 +181,7 @@ for (const [name, script] of cases) {
     try {
       const result = await shell.exec(script);
       const compareNative = () => {
-        const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], { env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
+        const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script], { env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
         assert.ifError(oracle.error);
         assert.equal(oracle.signal, null);
         assert.equal(result.exitCode, oracle.status, result.stderr);
@@ -193,7 +194,7 @@ for (const [name, script] of cases) {
         assert.deepEqual(result.stdoutBytes, contract.stdout, result.stderr);
         assert.equal(result.stderr.length > 0, contract.hasStderr);
         await context.test("GNU Bash 5+ native comparison", {
-          skip: bashMajor < 5 ? `GNU Bash 5+ oracle unavailable; /bin/bash is ${bashVersion}` : false,
+          skip: bashMajor < 5 ? `GNU Bash 5+ oracle unavailable; ${bashExecutable} is ${bashVersion}` : false,
         }, compareNative);
       } else {
         compareNative();

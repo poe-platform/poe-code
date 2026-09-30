@@ -33,6 +33,14 @@ Audit `true`, `false`, `echo`, `pwd`, `basename`, `dirname`, and `printf` agains
 - Quoting rules reviewed from https://raw.githubusercontent.com/gnu-mirror-unofficial/bash/master/lib/sh/shquote.c, SHA-256 `27a2be058864e9ee7d3aa6a3ec9f312ea153946532fdc488a1fbf4d0140876bd` (GPL-3.0-or-later), using printf's flags=3 semantics. System Bash 3.2's leading-tilde output differs from the newer source and is not used as that expectation.
 - Full workspace builds completed, but the root build suffix encountered a sandbox denial creating tsx's IPC socket. Retrying the maintained normal build with the required execution permission; no route or gate was replaced.
 
+## Current Bash oracle and remaining findings
+
+- Normal `npm run build` passed after the permitted retry, including root schema generation and bundle stages. Source typechecking passed; public consumer qualification is still running.
+- `%q` independent ASCII check: 2,856 context/width/precision cases; 2,845 matched Bash 3.2 exactly and 11 contextual tilde differences matched the newer upstream source. All 476 complete quoted values roundtripped in both native Bash and Safe Shell.
+- Obtained an isolated Bash 5.3.20 oracle from official Homebrew Sequoia bottles. No global tool installation or product native fallback. Bash bottle SHA-256 `753bdd9943047829a2f8469ed2d29fc71d0de5572df2a6d0e7b3f30be71ae937`; executable SHA-256 `a371777caf6cae7af43b2f61d94bcc409eb9cfdc02c97e0eaf71c0ed60e7b761`. Matching Readline bottle SHA-256 `461763fa21c050a59e5bbceedf67dcacf24e4aa4604490d73f0c9fa0f40e7fe5`; extracted readline/library hashes `3677cafdb5b027d03e45ffb903d555f27f0266767cd6c6676342377c1195aa4d` and `bf1a8ca341d0c5d657be58d55048121ff475ebe9811475c59356d3930d41e402`. Library search configuration is scoped to the audit launcher.
+- Added `SAFE_BASH_TEST_BASH` to the existing native comparison fixture, retaining `/bin/bash` as its default. The maintained printf-variable test route passed 126 tests with zero skips against Bash 5.3.20, including the 17 Bash 5 comparisons unavailable on system Bash 3.2.
+- Confirmed an additional shared escape parser defect, not yet fixed: unknown backslash escapes before supplementary Unicode scalars are split into replacement characters on text-based echo routes. Independent cohort: 960 comparisons, 240 failures (72 each against Bash/GNU for direct text echo; 96 through shell, loops, redirection, and command substitution). Raw-byte echo and all printf variants passed. This remains required audit work.
+
 Upstream references acquired 2026-09-30 (GPL-3.0-or-later test sources; semantic cases re-expressed in the existing suite):
 
 | Source URL | SHA-256 of inspected source |

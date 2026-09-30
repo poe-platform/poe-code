@@ -46,6 +46,6 @@ test("external logical pwd observes cancellation before resolving exported PWD",
     stdout: { async write() { assert.fail("cancelled command wrote stdout"); } },
     stderr: { async write() { assert.fail("cancelled command wrote stderr"); } },
   };
-  await assert.rejects(basicCommands().find(command => command.name === "pwd")!.execute(context), error => error === expired);
+  await assert.rejects(Promise.resolve(basicCommands().find(command => command.name === "pwd")!.execute(context)), (error: unknown) => error === expired);
   assert.deepEqual(reads, ["/alias"]);
 });

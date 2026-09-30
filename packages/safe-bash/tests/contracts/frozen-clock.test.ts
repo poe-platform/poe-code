@@ -44,6 +44,7 @@ for (const [name, factory, args, input] of cases) {
     await fs.writeFile("/input", new TextEncoder().encode(input));
     if (name === "shuf" && args.includes("8")) {
       // Select the large-file reservoir path without allocating a huge fixture.
+      Object.defineProperty(fs, "openReadFile", { value: undefined });
       const stat = fs.stat.bind(fs);
       t.mock.method(fs, "stat", async (...args: Parameters<typeof fs.stat>) => ({ ...await stat(...args), size: 9 * 1024 * 1024 }));
     }

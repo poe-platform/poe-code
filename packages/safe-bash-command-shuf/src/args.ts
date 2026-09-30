@@ -34,7 +34,7 @@ export function quote(value: string | Uint8Array): string {
 export function fileQuote(value: string): string {
   if (value && value !== "{" && value !== "}" && !"#~".includes(value[0]!) && Array.from(value).every(character => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_+-./,%#@]{}~".includes(character))) return value;
   if (!value.includes("'") && !Array.from(value).some(character => character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127)) return `'${value}'`;
-  if (value.includes("'") && !Array.from(value).some(character => "\"\\$`".includes(character) || character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127)) return `"${value}"`;
+  if (value.includes("'") && !Array.from(value).some(character => "!\"$&()*;<=>?[\\^`|".includes(character) || character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127)) return `"${value}"`;
   let result = "'";
   let escaped = false;
   for (const code of Buffer.from(value)) {

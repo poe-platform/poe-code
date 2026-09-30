@@ -1378,7 +1378,8 @@
           "optionalModules": {
             ".": "./dist/commands/truncate/index.js",
             "./arguments": "./dist/commands/truncate/arguments.js",
-            "./index": "./dist/commands/truncate/index.js"
+            "./index": "./dist/commands/truncate/index.js",
+            "./sync": "./dist/commands/truncate/sync.js"
           }
         },
         "safe-bash-query-engine": {

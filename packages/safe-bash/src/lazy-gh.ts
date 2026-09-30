@@ -3,7 +3,7 @@ import { createLazyCommandLoader, createLazyCommands, lazyCommandPlugin } from "
 import type { CommandContext } from "./contracts/index.js";
 
 type ghModule = typeof import("./commands/gh/index.js");
-const loadgh = createLazyCommandLoader(() => import("./commands/gh/index.js"));
+const loadgh = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/gh/index.js"));
 export const ghMetadata = [
   { name: "gh", description: "Work seamlessly with GitHub from the command line" }
 ] as const;

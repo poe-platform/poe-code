@@ -11,7 +11,7 @@ import type { VirtualShellPlugin } from "./contracts/plugin.js";
 // Static metadata keeps registration and discovery independent of engine evaluation.
 
 type ffmpegModule = typeof import("./commands/ffmpeg/index.js");
-const loadffmpeg = createLazyCommandLoader(() => import("./commands/ffmpeg/index.js"));
+const loadffmpeg = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/ffmpeg/index.js"));
 const ffmpegMetadata = [
   {
     name: "ffmpeg",
@@ -56,7 +56,7 @@ export type { FfmpegCommandsOptions } from "./commands/ffmpeg/index.js";
 export type { FfmpegCommandPair } from "./commands/ffmpeg/index.js";
 
 type gitModule = typeof import("./commands/git/index.js");
-const loadgit = createLazyCommandLoader(() => import("./commands/git/index.js"));
+const loadgit = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/git/index.js"));
 const gitMetadata = [
   {
     name: "git",
@@ -83,7 +83,7 @@ export const createGitCommand: gitModule["createGitCommand"] = (...args) => {
 export type { GitCommandsOptions } from "./commands/git/index.js";
 
 type sofficeModule = typeof import("./commands/soffice/index.js");
-const loadsoffice = createLazyCommandLoader(() => import("./commands/soffice/index.js"));
+const loadsoffice = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/soffice/index.js"));
 const sofficeMetadata = [
   {
     name: "soffice",
@@ -117,7 +117,7 @@ export const createSofficeCommands: sofficeModule["createSofficeCommands"] = (..
 export type { SofficeCommandsOptions } from "./commands/soffice/index.js";
 
 type pandocModule = typeof import("./commands/pandoc/implementation.js");
-const loadpandoc = createLazyCommandLoader(() => import("./commands/pandoc/implementation.js"));
+const loadpandoc = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/pandoc/implementation.js"));
 const pandocMetadata = [
   {
     name: "pandoc",
@@ -156,8 +156,8 @@ export type { PandocCommandsOptions } from "./commands/pandoc/implementation.js"
 export type { PandocLimits } from "./commands/pandoc/implementation.js";
 
 type ssconvertModule = typeof import("./commands/ssconvert/index.js");
-const loadssconvert = createLazyCommandLoader(() => import("safe-bash-command-ssconvert"));
-const loadSelectedSsconvert = createLazyCommandLoader(
+const loadssconvert = /* @__PURE__ */ createLazyCommandLoader(() => import("safe-bash-command-ssconvert"));
+const loadSelectedSsconvert = /* @__PURE__ */ createLazyCommandLoader(
   () => import("safe-bash-command-ssconvert/commands")
 );
 const ssconvertMetadata = [
@@ -195,7 +195,7 @@ export const createSsconvertCommands: ssconvertModule["createSsconvertCommands"]
 };
 
 type pdfinfoModule = typeof import("./commands/pdfinfo/index.js");
-const loadpdfinfo = createLazyCommandLoader(() => import("./commands/pdfinfo/index.js"));
+const loadpdfinfo = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/pdfinfo/index.js"));
 const pdfinfoMetadata = [
   {
     name: "pdfinfo",
@@ -240,7 +240,7 @@ export const createPdfinfoCommands: pdfinfoModule["createPdfinfoCommands"] = (..
 export type { PdfinfoCommandsOptions } from "./commands/pdfinfo/index.js";
 
 type pdftotextModule = typeof import("./commands/pdftotext/index.js");
-const loadpdftotext = createLazyCommandLoader(() => import("./commands/pdftotext/index.js"));
+const loadpdftotext = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/pdftotext/index.js"));
 const pdftotextMetadata = [
   {
     name: "pdftotext",
@@ -276,7 +276,7 @@ export const createPdftotextCommands: pdftotextModule["createPdftotextCommands"]
 export type { PdftotextCommandsOptions } from "./commands/pdftotext/index.js";
 
 type pdfimagesModule = typeof import("./commands/pdfimages/index.js");
-const loadpdfimages = createLazyCommandLoader(() => import("./commands/pdfimages/index.js"));
+const loadpdfimages = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/pdfimages/index.js"));
 const pdfimagesMetadata = [
   {
     name: "pdfimages",
@@ -308,7 +308,7 @@ export const createPdfimagesCommands: pdfimagesModule["createPdfimagesCommands"]
 export type { PdfimagesCommandsOptions } from "./commands/pdfimages/index.js";
 
 type pdftoppmModule = typeof import("./commands/pdftoppm/index.js");
-const loadpdftoppm = createLazyCommandLoader(() => import("./commands/pdftoppm/index.js"));
+const loadpdftoppm = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/pdftoppm/index.js"));
 const pdftoppmMetadata = [
   {
     name: "pdftoppm",
@@ -340,7 +340,7 @@ export const createPdftoppmCommands: pdftoppmModule["createPdftoppmCommands"] = 
 export type { PdftoppmCommandsOptions } from "./commands/pdftoppm/index.js";
 
 type pdftkModule = typeof import("./commands/pdftk/index.js");
-const loadpdftk = createLazyCommandLoader(() => import("./commands/pdftk/index.js"));
+const loadpdftk = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/pdftk/index.js"));
 const pdftkMetadata = [
   {
     name: "pdftk",
@@ -369,7 +369,7 @@ export const createPdftkCommands: pdftkModule["createPdftkCommands"] = (...args)
 export type { PdftkCommandsOptions } from "./commands/pdftk/index.js";
 
 type qpdfModule = typeof import("./commands/qpdf/index.js");
-const loadqpdf = createLazyCommandLoader(() => import("./commands/qpdf/index.js"));
+const loadqpdf = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/qpdf/index.js"));
 const qpdfMetadata = [
   {
     name: "qpdf",
@@ -398,7 +398,7 @@ export const createQpdfCommands: qpdfModule["createQpdfCommands"] = (...args) =>
 export type { QpdfCommandsOptions } from "./commands/qpdf/index.js";
 
 type sipsModule = typeof import("./commands/sips/index.js");
-const loadsips = createLazyCommandLoader(() => import("./commands/sips/index.js"));
+const loadsips = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/sips/index.js"));
 const sipsMetadata = [
   {
     name: "sips",
@@ -426,7 +426,7 @@ export const createSipsCommands: sipsModule["createSipsCommands"] = (...args) =>
 export type { SipsCommandsOptions } from "./commands/sips/index.js";
 
 type imagemagickModule = typeof import("./commands/imagemagick/index.js");
-const loadimagemagick = createLazyCommandLoader(() => import("./commands/imagemagick/index.js"));
+const loadimagemagick = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/imagemagick/index.js"));
 const imagemagickMetadata = [
   {
     name: "magick",
@@ -494,7 +494,7 @@ export const createImagemagickCommand: imagemagickModule["createImagemagickComma
 export type { ImagemagickCommandsOptions } from "./commands/imagemagick/index.js";
 
 type wkhtmltopdfModule = typeof import("./commands/wkhtmltopdf/index.js");
-const loadwkhtmltopdf = createLazyCommandLoader(() => import("./commands/wkhtmltopdf/index.js"));
+const loadwkhtmltopdf = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/wkhtmltopdf/index.js"));
 const wkhtmltopdfMetadata = [
   {
     name: "wkhtmltopdf",
@@ -530,7 +530,7 @@ export const createWkhtmltopdfCommands: wkhtmltopdfModule["createWkhtmltopdfComm
 export type { WkhtmltopdfCommandsOptions } from "./commands/wkhtmltopdf/index.js";
 
 type csvkitModule = typeof import("./commands/csvkit/index.js");
-const loadcsvkit = createLazyCommandLoader(() => import("./commands/csvkit/index.js"));
+const loadcsvkit = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/csvkit/index.js"));
 const csvkitMetadata = [
   {
     name: "csvclean",

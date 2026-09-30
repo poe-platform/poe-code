@@ -382,7 +382,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
           const aggregate = path.join(path.dirname(coreEntry), "full-core.browser.js");
           bundled.set(aggregate, coreOutput.contents);
           pending.push(aggregate);
-          const routes = ["shell-entry.browser.js", "plugins/index.browser.js", "commands/regex-execution/public.browser.js", "commands/python/index.browser.js",
+          const routes = ["shell-entry.browser.js", "registry-entry.browser.js", "plugins/index.browser.js", "commands/regex-execution/public.browser.js", "commands/python/index.browser.js",
             "commands/llm/index.browser.js", "commands/llm/providers/index.browser.js"];
           const declarations = ['export * from "./full-core.browser.js";'];
           const claimed = new Set();

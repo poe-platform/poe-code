@@ -32,7 +32,11 @@ export function basicCommands(): CommandDefinition[] {
       const joined = arguments_.slice(offset).join(" ");
       const text = typeof joined === "string" ? joined : arguments_.withValues([joined]).bytes(0)!;
       if (escapes) {
-        const escaped = escapeBytes(text, true);
+        const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
+        const escaped = escapeBytes(text, true, false, (context as { externalInvocation?: boolean }).externalInvocation ? undefined : {
+          utf8: locale !== "C" && locale !== "POSIX",
+          missingDigit() {},
+        });
         if (escaped.stop) newline = false;
         if (newline) {
           const withNewline = new Uint8Array(escaped.bytes.byteLength + 1);
@@ -315,6 +319,8 @@ export function tryFastEcho(args: readonly string[]): string | undefined {
   if (!escapes) {
     return newline ? `${text}\n` : text;
   }
+  // Unicode escapes depend on the command environment, which this path lacks.
+  if (text.includes("\\u") || text.includes("\\U")) return undefined;
   const escaped = escapeBytes(text, true);
   for (let i = 0; i < escaped.bytes.byteLength; i++) {
     const b = escaped.bytes[i]!;

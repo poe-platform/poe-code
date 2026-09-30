@@ -30,6 +30,7 @@ export interface SpawnCommandOptions {
   detach?: boolean;
   mountPoeCode?: boolean;
   runnerSync?: RuntimeOverrideOptions["runnerSync"];
+  safeBash?: boolean;
   worktree?: WorktreeExecutionOptions;
 }
 

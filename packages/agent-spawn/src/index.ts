@@ -18,7 +18,13 @@ export {
   SPAWN_MODES,
   DEFAULT_SPAWN_MODE
 } from "./types.js";
-export { mergeSpawnEnvironment, type SpawnEnvironment } from "./environment.js";
+export {
+  mergeSpawnEnvironment,
+  resolveSafeBashBinaryPath,
+  resolveSafeBashEnvOverrides,
+  type SafeBashEnvOptions,
+  type SpawnEnvironment
+} from "./environment.js";
 
 export type {
   AcpSpawnConfig,

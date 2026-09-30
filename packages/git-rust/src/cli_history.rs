@@ -524,6 +524,19 @@ pub(crate) fn execute(
         };
         let authors = compile(&author_filters)?;
         let greps = compile(&grep_filters)?;
+        let unfiltered_depth = if !reverse
+            && !no_merges
+            && !merges_only
+            && authors.is_empty()
+            && greps.is_empty()
+            && paths.is_empty()
+            && !all_refs
+            && !revision.contains("..")
+        {
+            depth.map(|d| d.saturating_add(skip_count))
+        } else {
+            None
+        };
         let history = |rev: &str| -> Result<Vec<ReadCommitResult>, GitError> {
             let oid = resolve(fs, gitdir, if rev.is_empty() { "HEAD" } else { rev })?;
             if first_parent {
@@ -532,6 +545,9 @@ pub(crate) fn execute(
                 let mut cur = Some(oid);
                 let mut seen = BTreeSet::new();
                 while let Some(oid) = cur {
+                    if unfiltered_depth.is_some_and(|max| list.len() >= max) {
+                        break;
+                    }
                     if !seen.insert(oid.clone()) { break; }
                     let c = crate::read_commit(fs, gitdir, &oid)?;
                     cur = if shallow.contains(&oid) { None } else { c.commit.parent.first().cloned() };
@@ -539,7 +555,7 @@ pub(crate) fn execute(
                 }
                 Ok(list)
             } else {
-                log(fs, gitdir, Some(&oid), None, None, None, false, false)
+                log(fs, gitdir, Some(&oid), None, unfiltered_depth, None, false, false)
             }
         };
         let ancestors = |rev: &str| -> Result<BTreeSet<String>, GitError> {
@@ -567,7 +583,7 @@ pub(crate) fn execute(
         for tip in tips {
             if !first_parent && !all_refs && !revision.contains("..") {
                 let follow_path = if follow && paths.len() == 1 { Some(paths[0].as_str()) } else { None };
-                commits.extend(log(fs, gitdir, Some(&resolve(fs, gitdir, tip)?), follow_path, None, None, false, follow && follow_path.is_some())?);
+                commits.extend(log(fs, gitdir, Some(&resolve(fs, gitdir, tip)?), follow_path, unfiltered_depth, None, false, follow && follow_path.is_some())?);
             } else {
                 commits.extend(history(tip)?);
             }

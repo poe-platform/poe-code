@@ -6,6 +6,7 @@ export type RuntimeCliOptions = {
   runtimeImage?: string;
   detach?: boolean;
   runnerSync?: "both" | "upload" | "none";
+  safeBash?: boolean;
 };
 
 export function addRuntimeOptions<TCommand extends Command>(command: TCommand): TCommand {
@@ -21,7 +22,8 @@ export function addRuntimeOptions<TCommand extends Command>(command: TCommand): 
     .addOption(
       new Option("--runner-sync <mode>", "Override runner workspace sync: both | upload | none")
         .choices(["both", "upload", "none"])
-    );
+    )
+    .option("--safe-bash", "Opt-in: use workspace-backed safe-bash as the agent SHELL");
 }
 
 export function pickRuntimeOptions(options: RuntimeCliOptions): RuntimeCliOptions {
@@ -29,6 +31,7 @@ export function pickRuntimeOptions(options: RuntimeCliOptions): RuntimeCliOption
     ...(options.runtime ? { runtime: options.runtime } : {}),
     ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
     ...(options.detach ? { detach: true } : {}),
-    ...(options.runnerSync ? { runnerSync: options.runnerSync } : {})
+    ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),
+    ...(options.safeBash ? { safeBash: true } : {})
   };
 }

@@ -11,7 +11,7 @@ import { observeAgentSpawn } from "../observability/otel.js";
 import { startNativeOtelCapture, type NativeOtelCapture } from "../native-otel.js";
 import { redactPromptArgIndexes, shouldSendPromptViaStdin } from "../prompt-transport.js";
 import { resolveSpawnExecution } from "../runtime.js";
-import { mergeSpawnEnvironment } from "../environment.js";
+import { mergeSpawnEnvironment, resolveSafeBashEnvOverrides } from "../environment.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "../skill-bridge.js";
 import {
   DEFAULT_SPAWN_MODE,
@@ -467,6 +467,7 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
             const envOverrides = mergeEnvironment(
               mcpEnvVars,
               modeResolved.env,
+              resolveSafeBashEnvOverrides({ safeBash: options.safeBash, cwd }),
               nativeOtel.env
             );
             const processEnv =
@@ -646,7 +647,7 @@ function normalizeSpawnStreamingOptions(options: SpawnStreamingOptions): SpawnSt
     "cwd", "model", "args", "mcpServers", "skills", "hooks", "resumeThreadId",
     "useStdin", "interactive", "signal", "otelSink", "captureOtel", "captureOtelContent", "env",
     "middlewares", "tee", "activityTimeoutMs", "logPath", "logDir", "logFileName", "runtime",
-    "runtimeImage", "runtimeConfigCwd", "detach", "mountPoeCode", "runnerSync"
+    "runtimeImage", "runtimeConfigCwd", "detach", "mountPoeCode", "runnerSync", "safeBash"
   ];
   for (const name of optionalNames) {
     const value = getOwnProperty(options, name);

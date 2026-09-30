@@ -13,7 +13,7 @@ import { createSpawnRetry } from "./retry.js";
 import { resolveSpawnExecution } from "./runtime.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "./skill-bridge.js";
 import { spawnStreaming } from "./acp/spawn.js";
-import { mergeSpawnEnvironment } from "./environment.js";
+import { mergeSpawnEnvironment, resolveSafeBashEnvOverrides } from "./environment.js";
 import {
   resolveAgentModeConfig,
   type CliSpawnConfig,
@@ -275,6 +275,7 @@ async function runSpawn(
     const envOverrides = {
       ...(modeEnv ?? {}),
       ...getMcpEnv(spawnConfig, options.mcpServers),
+      ...resolveSafeBashEnvOverrides({ safeBash: options.safeBash, cwd }),
       ...(options.env ?? {})
     };
     const processEnv =

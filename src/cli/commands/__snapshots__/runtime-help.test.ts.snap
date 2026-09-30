@@ -26,6 +26,8 @@ Options:
   --detach                Run as a detached runtime job
   --runner-sync <mode>    Override runner workspace sync: both | upload | none
                           (choices: "both", "upload", "none")
+  --safe-bash             Opt-in: use workspace-backed safe-bash as the agent
+                          SHELL
   -h, --help              Display help for command
 
 Global Options:
@@ -65,6 +67,8 @@ Options:
   --detach                Run as a detached runtime job
   --runner-sync <mode>    Override runner workspace sync: both | upload | none
                           (choices: "both", "upload", "none")
+  --safe-bash             Opt-in: use workspace-backed safe-bash as the agent
+                          SHELL
   -h, --help              Display help for command
 
 Global Options:
@@ -137,6 +141,8 @@ Infrastructure:
   --detach                     Run as a detached runtime job
   --runner-sync <mode>         Override runner workspace sync: both | upload |
                                none (choices: "both", "upload", "none")
+  --safe-bash                  Opt-in: use workspace-backed safe-bash as the
+                               agent SHELL
 
 Global Options:
   -y, --yes                    Accept defaults without prompting.

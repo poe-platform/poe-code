@@ -547,7 +547,8 @@ export function registerSpawnCommand(
       "--runtime",
       "--runtime-image",
       "--detach",
-      "--runner-sync"
+      "--runner-sync",
+      "--safe-bash"
     ]
   });
 

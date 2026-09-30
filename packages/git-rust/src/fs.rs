@@ -80,6 +80,14 @@ enum VfsEntry {
         mtime_seconds: u32,
         mtime_nanoseconds: u32,
     },
+    HostFile {
+        host_path: std::path::PathBuf,
+        size: u64,
+        mode: u32,
+        ino: u64,
+        mtime_seconds: u32,
+        mtime_nanoseconds: u32,
+    },
     Dir {
         mode: u32,
         ino: u64,
@@ -205,7 +213,7 @@ impl MemoryFs {
                             );
                         }
                     }
-                    VfsEntry::File { .. } => {
+                    VfsEntry::File { .. } | VfsEntry::HostFile { .. } => {
                         if !is_last {
                             return Err(FsError::enotdir(&current));
                         }
@@ -261,6 +269,26 @@ impl MemoryFs {
                 mtime_seconds: *mtime_seconds,
                 mtime_nanoseconds: *mtime_nanoseconds,
             },
+            VfsEntry::HostFile {
+                size,
+                mode,
+                ino,
+                mtime_seconds,
+                mtime_nanoseconds,
+                ..
+            } => FileStat {
+                kind: NodeKind::File,
+                mode: *mode,
+                size: *size,
+                ino: *ino,
+                dev: 1,
+                uid: 1000,
+                gid: 1000,
+                ctime_seconds: *mtime_seconds,
+                ctime_nanoseconds: *mtime_nanoseconds,
+                mtime_seconds: *mtime_seconds,
+                mtime_nanoseconds: *mtime_nanoseconds,
+            },
             VfsEntry::Dir { mode, ino } => FileStat {
                 kind: NodeKind::Directory,
                 mode: *mode,
@@ -301,6 +329,9 @@ impl MemoryFs {
         let resolved = Self::resolve_path_internal(&state, filepath, true, 0)?;
         match state.entries.get(&resolved) {
             Some(VfsEntry::File { data, .. }) => Ok(data.clone()),
+            Some(VfsEntry::HostFile { host_path, .. }) => {
+                std::fs::read(host_path).map_err(|_| FsError::enoent(filepath))
+            }
             Some(VfsEntry::Dir { .. }) => Err(FsError::eisdir(filepath)),
             _ => Err(FsError::enoent(filepath)),
         }
@@ -342,7 +373,7 @@ impl MemoryFs {
             return Err(FsError::eisdir(&resolved));
         }
         let ino = match state.entries.get(&resolved) {
-            Some(VfsEntry::File { ino, .. }) => *ino,
+            Some(VfsEntry::File { ino, .. } | VfsEntry::HostFile { ino, .. }) => *ino,
             _ => {
                 let i = state.next_ino;
                 state.next_ino += 1;
@@ -391,6 +422,45 @@ impl MemoryFs {
 
     pub fn write_str(&self, filepath: &str, contents: &str) {
         self.write(filepath, contents.as_bytes());
+    }
+
+    pub fn register_host_file(
+        &self,
+        filepath: &str,
+        host_path: std::path::PathBuf,
+        size: u64,
+        mode: u32,
+    ) {
+        let mut state = self.state.write().unwrap();
+        let cleaned = Self::clean_abs_path(filepath);
+        let norm_mode = if (mode & 0o111) != 0 {
+            0o100755
+        } else {
+            0o100644
+        };
+        let ino = state.next_ino;
+        state.next_ino += 1;
+        state.clock_tick += 1;
+        let mtime = state.clock_tick;
+        state.entries.insert(
+            cleaned,
+            VfsEntry::HostFile {
+                host_path,
+                size,
+                mode: norm_mode,
+                ino,
+                mtime_seconds: mtime,
+                mtime_nanoseconds: 0,
+            },
+        );
+    }
+
+    pub fn is_modified_file(&self, filepath: &str) -> bool {
+        let state = self.state.read().unwrap();
+        let Ok(resolved) = Self::resolve_path_internal(&state, filepath, false, 0) else {
+            return false;
+        };
+        matches!(state.entries.get(&resolved), Some(VfsEntry::File { .. }))
     }
 
     pub fn mkdir_single(&self, filepath: &str) -> Result<(), FsError> {
@@ -591,7 +661,7 @@ impl MemoryFs {
             let new_ino = state.next_ino;
             state.next_ino += 1;
             match &mut entry {
-                VfsEntry::File { ino, .. } => *ino = new_ino,
+                VfsEntry::File { ino, .. } | VfsEntry::HostFile { ino, .. } => *ino = new_ino,
                 VfsEntry::Dir { ino, .. } => *ino = new_ino,
                 VfsEntry::Symlink { ino, .. } => *ino = new_ino,
             }
@@ -615,7 +685,7 @@ impl MemoryFs {
         };
         let mut results = Vec::new();
         for (k, v) in &state.entries {
-            if k != &resolved && k.starts_with(&prefix) && matches!(v, VfsEntry::File { .. } | VfsEntry::Symlink { .. }) {
+            if k != &resolved && k.starts_with(&prefix) && matches!(v, VfsEntry::File { .. } | VfsEntry::HostFile { .. } | VfsEntry::Symlink { .. }) {
                 let rel = &k[prefix.len()..];
                 results.push(format!("{filepath}/{rel}"));
             }

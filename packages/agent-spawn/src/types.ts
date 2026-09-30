@@ -156,6 +156,8 @@ export interface SpawnOptions {
   mountPoeCode?: boolean;
   /** Override runner workspace sync behavior. */
   runnerSync?: RuntimeOverrideOptions["runnerSync"];
+  /** Opt-in: use workspace-backed safe-bash as the agent SHELL (default: false) */
+  safeBash?: boolean;
 }
 
 export interface SpawnUsage {

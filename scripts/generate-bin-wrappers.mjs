@@ -1,5 +1,5 @@
 import path from "node:path";
-import { mkdir, writeFile } from "node:fs/promises";
+import { chmod, mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { assertSafeOutputDirectory } from "./guard-package-dist.mjs";
 import { versionGateSnippet } from "./node-version-gate.mjs";
@@ -21,3 +21,16 @@ const poeAgentContent = [
   ""
 ].join("\n");
 await writeFile(poeAgentPath, poeAgentContent, { encoding: "utf8" });
+await chmod(poeAgentPath, 0o755);
+
+// Generate standalone safe-bash binary wrapper
+const safeBashPath = path.join(binDir, "safe-bash.js");
+await assertSafeOutputDirectory(rootDir, safeBashPath);
+const safeBashContent = [
+  "#!/usr/bin/env node",
+  versionGateSnippet("safe-bash"),
+  'import("../safe-bash.js").then(function (m) { return m.safeBashMain(); }).catch(function (err) { console.error(err); process.exit(1); })',
+  ""
+].join("\n");
+await writeFile(safeBashPath, safeBashContent, { encoding: "utf8" });
+await chmod(safeBashPath, 0o755);

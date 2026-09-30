@@ -220,6 +220,7 @@ export function spawn(
           ...(options.hooks ? { hooks: options.hooks } : {}),
           resumeThreadId: options.resumeThreadId,
           runtimeConfigCwd: options.runtimeConfigCwd,
+          ...(options.safeBash ? { safeBash: true } : {}),
           ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {})
         });
@@ -268,6 +269,7 @@ export function spawn(
           ...(resolvedAcpEnv || options.env
             ? { env: { ...(resolvedAcpEnv ?? {}), ...(options.env ?? {}) } }
             : {}),
+          ...(options.safeBash ? { safeBash: true } : {}),
           ...runtimeOverrides
         });
         const { events: rawEvents, done } = acpSpawn;
@@ -344,6 +346,7 @@ export function spawn(
           captureOtelContent,
           ...(nativeCaptureMiddlewares ? { middlewares: nativeCaptureMiddlewares } : {}),
           runtimeConfigCwd: options.runtimeConfigCwd,
+          ...(options.safeBash ? { safeBash: true } : {}),
           ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
           ...(options.tee ? { tee: options.tee } : {}),
@@ -418,6 +421,7 @@ export function spawn(
           signal: options.signal,
           otelSink: options.otelSink,
           runtimeConfigCwd: options.runtimeConfigCwd,
+          ...(options.safeBash ? { safeBash: true } : {}),
           ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
           ...(options.tee ? { tee: options.tee } : {}),
@@ -449,6 +453,7 @@ export function spawn(
         ...(options.skills && options.skills.length > 0 ? { skills: options.skills } : {}),
         ...(options.hooks ? { hooks: options.hooks } : {}),
         resumeThreadId: options.resumeThreadId,
+        ...(options.safeBash ? { safeBash: true } : {}),
         ...runtimeOverrides,
         ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
         useStdin: options.useStdin ?? false

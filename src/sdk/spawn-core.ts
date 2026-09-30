@@ -85,12 +85,18 @@ export async function spawnCore(
   const cwdOverride = workspace.cwd;
 
   try {
+    const safeBashEnv = resolveSafeBashEnvOverrides({ safeBash: options.safeBash, cwd: cwdOverride });
+    const effectiveEnv =
+      Object.keys(safeBashEnv).length > 0 || options.env
+        ? { ...safeBashEnv, ...(options.env ?? {}) }
+        : undefined;
     const spawnOptions: SpawnCommandOptions = {
       prompt: options.prompt,
       args: options.args,
       model,
       mode,
-      env: options.env,
+      env: effectiveEnv,
+      ...(options.safeBash ? { safeBash: true } : {}),
       mcpServers: options.mcpServers,
       skills: options.skills,
       hooks: options.hooks,

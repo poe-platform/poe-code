@@ -173,7 +173,7 @@ fn load_host_dir_into_vfs(
     };
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().to_string();
-        if name == "node_modules" || name == "target" {
+        if name == "node_modules" || name == "target" || name == "rr-cache" || name == "lost-found" || name == "logs" {
             continue;
         }
         let host_path = entry.path();
@@ -193,14 +193,12 @@ fn load_host_dir_into_vfs(
             }
         } else if meta.is_dir() {
             load_host_dir_into_vfs(&host_path, &vfs_path, fs, tracked_files);
-        } else if meta.is_file()
-            && let Ok(bytes) = stdfs::read(&host_path)
-        {
+        } else if meta.is_file() {
             #[cfg(unix)]
             let mode = meta.permissions().mode();
             #[cfg(not(unix))]
             let mode = 0o100644u32;
-            fs.write_with_mode(&vfs_path, &bytes, mode);
+            fs.register_host_file(&vfs_path, host_path, meta.len(), mode);
             tracked_files.insert(vfs_path);
         }
     }
@@ -229,6 +227,9 @@ fn sync_vfs_root_to_host(root: &str, fs: &MemoryFs, initial_files: &BTreeSet<Str
                 }
             }
             NodeKind::File => {
+                if !fs.is_modified_file(path) {
+                    continue;
+                }
                 if let Some(bytes) = fs.read(path) {
                     let unchanged = stdfs::read(host_path).map(|b| b == bytes).unwrap_or(false);
                     if !unchanged {
@@ -346,13 +347,83 @@ fn main() {
     let mut synced_roots: Vec<String> = Vec::new();
     let mut initial_files = BTreeSet::new();
 
+    let subcmd = raw_args.get(idx).map(|s| s.as_str()).unwrap_or("");
+    let git_dir_only_cmd = matches!(
+        subcmd,
+        "log"
+            | "rev-parse"
+            | "branch"
+            | "tag"
+            | "config"
+            | "remote"
+            | "show"
+            | "cat-file"
+            | "for-each-ref"
+            | "symbolic-ref"
+            | "update-ref"
+            | "verify-commit"
+            | "verify-tag"
+            | "ls-remote"
+            | "ls-tree"
+            | "describe"
+            | "shortlog"
+            | "reflog"
+            | "push"
+            | "fetch"
+            | "hash-object"
+            | "var"
+            | "check-ref-format"
+    );
+    let read_only_cmd = matches!(
+        subcmd,
+        "log"
+            | "status"
+            | "diff"
+            | "rev-parse"
+            | "show"
+            | "cat-file"
+            | "ls-files"
+            | "ls-tree"
+            | "for-each-ref"
+            | "describe"
+            | "verify-commit"
+            | "verify-tag"
+            | "shortlog"
+            | "blame"
+            | "reflog"
+            | "var"
+            | "ls-remote"
+    );
+
     let repo_root_path =
         find_host_repo_root(&effective_cwd).unwrap_or_else(|| effective_cwd.clone());
     let repo_root_str = repo_root_path.to_string_lossy().to_string();
+    let _ = fs.mkdir(&repo_root_str);
+    let _ = fs.mkdir(&effective_cwd.to_string_lossy());
     if repo_root_path.exists() {
-        load_host_dir_into_vfs(&repo_root_path, &repo_root_str, &fs, &mut initial_files);
+        if git_dir_only_cmd {
+            let dot_git = repo_root_path.join(".git");
+            let dot_git_vfs = format!("{}/.git", repo_root_str.trim_end_matches('/'));
+            if dot_git.is_dir() {
+                load_host_dir_into_vfs(&dot_git, &dot_git_vfs, &fs, &mut initial_files);
+                synced_roots.push(dot_git_vfs);
+            } else if dot_git.is_file()
+                && let Ok(bytes) = stdfs::read(&dot_git)
+            {
+                fs.write_with_mode(&dot_git_vfs, &bytes, 0o100644);
+                initial_files.insert(dot_git_vfs.clone());
+                synced_roots.push(dot_git_vfs);
+            } else if repo_root_path.join("HEAD").is_file() {
+                load_host_dir_into_vfs(&repo_root_path, &repo_root_str, &fs, &mut initial_files);
+                synced_roots.push(repo_root_str.clone());
+            }
+        } else {
+            load_host_dir_into_vfs(&repo_root_path, &repo_root_str, &fs, &mut initial_files);
+            synced_roots.push(repo_root_str.clone());
+        }
+    } else {
+        synced_roots.push(repo_root_str.clone());
     }
-    synced_roots.push(repo_root_str.clone());
 
     // If `.git` is a gitfile pointing to an external worktree/common gitdir, load that too
     let dot_git = repo_root_path.join(".git");
@@ -366,11 +437,38 @@ fn main() {
         } else {
             repo_root_path.join(gd_path)
         };
+        let gd_str = resolved_gd.to_string_lossy().to_string();
+        if resolved_gd.exists() {
+            load_host_dir_into_vfs(&resolved_gd, &gd_str, &fs, &mut initial_files);
+            synced_roots.push(gd_str.clone());
+        }
         if let Some(common_parent) = resolved_gd.parent().and_then(|p| p.parent())
             && common_parent.exists()
         {
             let cp_str = common_parent.to_string_lossy().to_string();
             load_host_dir_into_vfs(common_parent, &cp_str, &fs, &mut initial_files);
+            for shared in ["objects", "refs", "packed-refs", "config", "hooks", "info"] {
+                let target = format!("{cp_str}/{shared}");
+                let link_path = format!("{gd_str}/{shared}");
+                if fs.exists(&target) {
+                    if fs.readdir(&link_path).is_ok_and(|c| c.is_empty()) {
+                        let _ = fs.rmdir(&link_path);
+                    }
+                    if !fs.exists(&link_path) {
+                        let _ = fs.writelink(&link_path, target.as_bytes());
+                    } else if shared == "refs"
+                        && let Ok(entries) = fs.readdir(&target)
+                    {
+                        for child in entries {
+                            let child_target = format!("{target}/{child}");
+                            let child_link = format!("{link_path}/{child}");
+                            if !fs.exists(&child_link) {
+                                let _ = fs.writelink(&child_link, child_target.as_bytes());
+                            }
+                        }
+                    }
+                }
+            }
             synced_roots.push(cp_str);
         }
     }
@@ -429,7 +527,7 @@ fn main() {
     }
 
     let arg_refs: Vec<&str> = raw_args.iter().map(String::as_str).collect();
-    let cwd_str = host_cwd.to_string_lossy().to_string();
+    let cwd_str = effective_cwd.to_string_lossy().to_string();
     let mut connect_to = Vec::new();
     for i in 0..raw_args.len() {
         if raw_args[i] == "-c"
@@ -455,8 +553,10 @@ fn main() {
     let _environment = git_rust::environment::EnvironmentScope::new(request_env);
     let res = execute_git_cli_with_input(&fs, &cwd_str, &arg_refs, &http_client, &stdin_buf);
 
-    for root in &synced_roots {
-        sync_vfs_root_to_host(root, &fs, &initial_files);
+    if !read_only_cmd {
+        for root in &synced_roots {
+            sync_vfs_root_to_host(root, &fs, &initial_files);
+        }
     }
 
     if let Some(ref raw_bytes) = res.stdout_bytes {

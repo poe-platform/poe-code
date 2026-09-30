@@ -144,6 +144,8 @@ export interface SpawnOptions {
   mountPoeCode?: boolean;
   /** Runner workspace sync override: both, upload, or none */
   runnerSync?: RunnerSync;
+  /** Opt-in: use workspace-backed safe-bash as the agent SHELL (default: false) */
+  safeBash?: boolean;
   /** Run the provider in a managed git worktree and reconcile successful output afterward */
   worktree?: WorktreeExecutionOptions;
 }

@@ -15,7 +15,7 @@ import { applyMiddlewares, type AcpMiddleware, type SpawnContext } from "./middl
 import { observeAgentSpawn } from "../observability/otel.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "../skill-bridge.js";
 import type { HookBridgeOptions } from "../types.js";
-import { mergeSpawnEnvironment } from "../environment.js";
+import { mergeSpawnEnvironment, resolveSafeBashEnvOverrides } from "../environment.js";
 import { validateMcpSpawnConfig } from "../configs/mcp.js";
 import { normalizeModelOverride } from "../model-utils.js";
 
@@ -34,6 +34,7 @@ export interface SpawnAcpOptions {
   detach?: boolean;
   mountPoeCode?: boolean;
   runnerSync?: "both" | "upload" | "none";
+  safeBash?: boolean;
   signal?: AbortSignal;
   otelSink?: OtelSink;
   middlewares?: AcpMiddleware[];
@@ -157,13 +158,18 @@ export function spawnAcp(input: SpawnAcpOptions): SpawnAcpResult {
     | undefined;
   const mcpEnvVars = options.mcpServers && mcpEnv ? mcpEnv(options.mcpServers) : {};
 
+  const cwd = options.cwd ?? process.cwd();
   const acpEnv = getOwnProperty(acpConfig, "env") as NodeJS.ProcessEnv | undefined;
-  const envOverrides = { ...(acpEnv ?? {}), ...mcpEnvVars, ...(options.env ?? {}) };
+  const envOverrides = {
+    ...(acpEnv ?? {}),
+    ...mcpEnvVars,
+    ...resolveSafeBashEnvOverrides({ safeBash: options.safeBash, cwd }),
+    ...(options.env ?? {})
+  };
   const env =
     Object.keys(envOverrides).length > 0
       ? mergeSpawnEnvironment(process.env, envOverrides)
       : undefined;
-  const cwd = options.cwd ?? process.cwd();
   const manifest = bridgeResourcesForRun(options.agentId, cwd, options.skills, options.hooks);
 
   let client: AcpClient;
@@ -466,7 +472,7 @@ function normalizeSpawnAcpOptions(options: SpawnAcpOptions): SpawnAcpOptions {
   const optionalNames: readonly (keyof SpawnAcpOptions)[] = [
     "cwd", "model", "mcpServers", "skills", "hooks", "resumeThreadId", "runtime",
     "runtimeImage", "detach", "mountPoeCode", "runnerSync", "signal",
-    "otelSink", "middlewares", "env"
+    "otelSink", "middlewares", "env", "safeBash"
   ];
   for (const name of optionalNames) {
     const value = getOwnProperty(options, name);

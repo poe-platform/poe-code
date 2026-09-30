@@ -46,45 +46,52 @@ if (Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10) !== "timed-
 });
 
 it("notifies independently acknowledged workers in registration order and cleans their waits", async () => {
-  const source = `/*---
-flags: [onlyStrict]
-includes: [atomicsHelper.js]
-features: [SharedArrayBuffer, Atomics]
----*/
-function report() {
-  let value;
-  while ((value = $262.agent.getReport()) === null) $262.agent.sleep(1);
-  return value;
-}
-const buffer = new SharedArrayBuffer(4);
-$262.agent.start(\`
-  $262.agent.receiveBroadcast(async function(buffer) {
-    const wait = Atomics.waitAsync(new Int32Array(buffer), 0, 0);
-    $262.agent.report("first-ready");
-    $262.agent.report("first:" + await wait.value);
-    $262.agent.leaving();
+  const { Test262Agents } = await import("./agents.js");
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(new Error("agent FIFO test timed out")), 3000);
+  const agents = new Test262Agents({ deadline: Date.now() + 3000 }, error => controller.abort(error));
+  const report = async () => {
+    let value;
+    while ((value = agents.getReport()) === null) {
+      controller.signal.throwIfAborted();
+      await new Promise<void>(resolve => setTimeout(resolve, 1));
+    }
+    return value;
+  };
+  const interrupted = new Promise<never>((_, reject) => {
+    controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true });
   });
-\`);
-$262.agent.broadcast(buffer, 0);
-if (report() !== "first-ready") throw new Error("first registration");
-$262.agent.start(\`
-  $262.agent.receiveBroadcast(async function(buffer) {
-    const wait = Atomics.waitAsync(new Int32Array(buffer), 0, 0);
-    $262.agent.report("second-ready");
-    $262.agent.report("second:" + await wait.value);
-    $262.agent.leaving();
-  });
-\`);
-// The first agent already received its buffer; this broadcast must still be
-// acknowledged independently of its suspended receive callback.
-$262.agent.broadcast(buffer, 0);
-if (report() !== "second-ready") throw new Error("second registration");
-const words = new Int32Array(buffer);
-if (Atomics.notify(words, 0, 1) !== 1 || report() !== "first:ok") throw new Error("FIFO first");
-if (Atomics.notify(words, 0, 1) !== 1 || report() !== "second:ok") throw new Error("FIFO second");
-if (Atomics.notify(words, 0) !== 0) throw new Error("stale registration");`;
-  expect(await executeTest262("fifo-agents.js", source, { harness, timeoutMs: 3000 }))
-    .toEqual({ kind: "test", results: [{ mode: "strict", status: "passed" }] });
+  try {
+    await Promise.race([interrupted, (async () => {
+      // Start fresh workers together; registration order is controlled by broadcasts,
+      // not by serial worker startup or interpreted polling in a third realm.
+      await Promise.all([1, 2].map(id => agents.start(`
+        ${id === 2 ? "$262.agent.receiveBroadcast(function() {});" : ""}
+        $262.agent.receiveBroadcast(async function(buffer) {
+          const wait = Atomics.waitAsync(new Int32Array(buffer), 0, 0);
+          $262.agent.report("${id}-ready");
+          $262.agent.report("${id}:" + await wait.value);
+          $262.agent.leaving();
+        });
+      `)));
+      const buffer = new SharedArrayBuffer(4);
+      await agents.broadcast(buffer, 0);
+      expect(await report()).toBe("1-ready");
+      // Worker one must acknowledge while its first callback is still suspended.
+      await agents.broadcast(buffer, 0);
+      expect(await report()).toBe("2-ready");
+      const words = new Int32Array(buffer);
+      expect(Atomics.notify(words, 0, 1)).toBe(1);
+      expect(await report()).toBe("1:ok");
+      expect(Atomics.notify(words, 0, 1)).toBe(1);
+      expect(await report()).toBe("2:ok");
+      expect(Atomics.notify(words, 0)).toBe(0);
+    })()]);
+  } finally {
+    clearTimeout(timeout);
+    controller.abort(new Error("agent FIFO test finished"));
+    await agents.dispose();
+  }
 });
 
 it.each(["Promise.resolve()", "new Promise(resolve => setTimeout(resolve, 1))"])("propagates an asynchronous agent failure after %s", async suspension => {

@@ -2329,6 +2329,23 @@ it("carries declared Buffer initialization into generated chunks while pruning u
   expect(manifest.sideEffects).not.toContain("./dist/safe-bash/core.browser.js");
 });
 
+it("keeps unused command initializer chunks out of the lightweight root facade", async () => {
+  const { volume, options } = optionalLeftovers();
+  const base = "/repo/packages/safe-bash/dist/";
+  await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (settings: BuildOptions) => {
+    if (!Object.hasOwn(settings.entryPoints ?? {}, "core.browser")) return options.bundle(settings);
+    const outputs = {
+      [base + "core.browser.js"]: { inputs: {}, exports: [] },
+      [base + "chunks/bootstrap.js"]: { inputs: { "packages/safe-bash/src/portable-buffer.ts": { bytesInOutput: 1 } } },
+      [base + "chunks/python.js"]: { inputs: { "packages/safe-bash/src/commands/python/index.ts": { bytesInOutput: 1 } } },
+    };
+    return { outputFiles: Object.keys(outputs).map(path => ({ path, contents: Buffer.from("export {};\n") })), metafile: { inputs: {}, outputs } };
+  } });
+  const facade = volume.readFileSync("/output/safe-bash/dist/safe-bash/core.browser.js", "utf8").toString();
+  expect(facade).toContain('import "./chunks/bootstrap.js"');
+  expect(facade).not.toContain('import "./chunks/python.js"');
+});
+
 it("ships Git's workerd runtime, conditional imports, and exact WASM asset", async () => {
   const { volume, options } = optionalLeftovers();
   const name = "safe-bash-command-git";

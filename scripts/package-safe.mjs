@@ -394,9 +394,15 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             for (const name of names) claimed.add(name);
             if (names.length) declarations.push(`export { ${names.join(", ")} } from ${JSON.stringify("./" + route)};`);
           }
-          for (const filename of effectfulBundles) {
-            if (filename.startsWith(path.dirname(coreEntry) + path.sep))
-              declarations.push(`import ${JSON.stringify("./" + path.relative(path.dirname(coreEntry), filename).split(path.sep).join("/"))};`);
+          // Command entrypoints carry their bootstrap transitively, but their
+          // own chunks must only run when that command is selected. The root
+          // facade needs the shared Buffer initializer, not every command.
+          const bootstrap = path.join(packageDir, "src/portable-buffer.ts");
+          for (const [output, metadata] of Object.entries(result.metafile.outputs)) {
+            if (!Object.entries(metadata.inputs).some(([input, contribution]) =>
+              contribution.bytesInOutput > 0 && path.resolve(rootDir, input) === bootstrap)) continue;
+            const filename = path.resolve(rootDir, output);
+            declarations.push(`import ${JSON.stringify("./" + path.relative(path.dirname(coreEntry), filename).split(path.sep).join("/"))};`);
           }
           coreOutput.contents = new TextEncoder().encode(declarations.join("\n") + "\n");
         }

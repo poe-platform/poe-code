@@ -1,3 +1,4 @@
+import { probeProgram } from "./host-probe-program.js";
 import assert from "node:assert/strict";
 import { appendFile, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -17,7 +18,12 @@ async function probe(id: string, originalHost = false, batch?: Batch, context?: 
   if (process.env.INVOCATION_TRACE) env.INVOCATION_TRACE = process.env.INVOCATION_TRACE;
   const args = batch ? [`${owned}/v2-batch-child.ts`, "--batch", ...batch.ids] : [`${owned}/${originalHost ? "probe" : "v2-probe"}.ts`, id];
   const trace = env.INVOCATION_TRACE ? ["--import", "./tests/shell-stress/invocation-modes/trace.mjs"] : [];
-  const pending = batch?.pending ?? boundedProcess(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", ...trace, ...args], { cwd: process.cwd(), env });
+  // Compile the unchanged host graph once; each scenario retains an isolated,
+  // bounded process without repeated TypeScript loader startup.
+  const pending = batch?.pending ?? boundedProcess(process.execPath, originalHost
+    ? ["--unhandled-rejections=strict", ...trace, "--input-type=module", "-", id]
+    : ["--unhandled-rejections=strict", "--import", "tsx", ...trace, ...args],
+  { cwd: process.cwd(), env, ...(originalHost ? { input: probeProgram.outputFiles[0]!.contents } : {}) });
   if (batch) batch.pending = pending;
   const child = await pending;
   if (batch) context?.diagnostic(JSON.stringify({ id, sourceScope: "batch", batchIds: batch.ids,

@@ -17911,7 +17911,7 @@ export class Runtime {
     }
     const def = this.commands.get(name);
     let fastOut: string | undefined;
-    if (name === "echo" && def && defaultEchoExecutors.has(def.execute) && (args.length === 0 || !args[0]!.startsWith("-"))) {
+    if (name === "echo" && (options.env ?? context.env).POSIXLY_CORRECT === undefined && def && defaultEchoExecutors.has(def.execute) && (args.length === 0 || !args[0]!.startsWith("-"))) {
       fastOut = args.join(" ") + "\n";
     } else if (name === "printf" && def?.execute === printfCommand.execute && args.length >= 1 && !args[0]!.startsWith("-")) fastOut = tryFastPrintf(args);
     if (fastOut === undefined) return undefined;

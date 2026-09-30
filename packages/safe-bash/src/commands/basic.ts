@@ -19,16 +19,18 @@ export function basicCommands(): CommandDefinition[] {
     define("false", () => ({ exitCode: 1 })),
     define("echo", async (context) => {
       const arguments_ = getCommandArguments(context);
+      const posix = (context as { externalInvocation?: boolean }).externalInvocation && context.env.POSIXLY_CORRECT !== undefined;
       let newline = true;
       let escapes = false;
       let offset = 0;
-      while (/^-[neE]+$/u.test(arguments_.args[offset] ?? "")) {
+      while ((!posix || arguments_.args[0] === "-n") && /^-[neE]+$/u.test(arguments_.args[offset] ?? "")) {
         for (const flag of arguments_.args[offset]!.slice(1)) {
           if (flag === "n") newline = false;
           else escapes = flag === "e";
         }
         offset++;
       }
+      if (posix) escapes = true;
       const joined = arguments_.slice(offset).join(" ");
       const text = typeof joined === "string" ? joined : arguments_.withValues([joined]).bytes(0)!;
       if (escapes) {

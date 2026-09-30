@@ -7,19 +7,19 @@ function verifyRetainedFile(actual: FileStat, expected: FileStat): void {
  const sameIdentity = expected.opaqueIdentity !== undefined
   ? expected.opaqueIdentity === actual.opaqueIdentity
   : expected.dev !== undefined && expected.ino !== undefined && expected.dev === actual.dev && expected.ino === actual.ino;
- if (!sameOwner || !sameIdentity || actual.type !== "file" || actual.size !== expected.size || actual.revision !== expected.revision || actual.opaqueVersion !== expected.opaqueVersion || actual.mtimeMs !== expected.mtimeMs || actual.ctimeMs !== expected.ctimeMs) throw new FsError("EBUSY", { message: "LLM output spool changed" });
+ if (!sameOwner || !sameIdentity || actual.type !== "file" || actual.size !== expected.size || actual.revision !== expected.revision || actual.opaqueVersion !== expected.opaqueVersion || actual.mtimeMs !== expected.mtimeMs || actual.ctimeMs !== expected.ctimeMs) throw new FsError("EBUSY", { message: "LLM spool changed" });
 }
 
-/** Keep nonstream output in caller-owned staging and replay bounded retained reads. */
-export async function createLlmOutputSpool(fs: FileSystem, directory: string, signal: AbortSignal) {
+/** Retain bytes in caller-owned staging and replay bounded identity-checked reads. */
+export async function createLlmSpool(fs: FileSystem, directory: string, signal: AbortSignal, purpose: "input" | "output" = "output") {
  const parent = await fs.stat(directory, { signal });
  if (parent.type !== "directory") throw new FsError("ENOTDIR", { path: directory });
  const caps = await fs.capabilitiesFor?.(directory, { signal }) ?? fs.capabilities;
- if (!caps.retainedStagingCleanup || !caps.retainedStagingWrite || !caps.retainedRead || !fs.createStagedFile || !fs.openReadFile) throw new FsError("ENOTSUP", { message: "LLM nonstream output requires caller filesystem retained staging and reads" });
+ if (!caps.retainedStagingCleanup || !caps.retainedStagingWrite || !caps.retainedRead || !fs.createStagedFile || !fs.openReadFile) throw new FsError("ENOTSUP", { message: "LLM staging requires caller filesystem retained staging and reads" });
  let staging;
  for (let attempt = 0; attempt < 16; attempt++) {
   try {
-   staging = await fs.createStagedFile(`${directory === "/" ? "" : directory}/.llm-output-${++serial}`, "output", { type: "file", data: new Uint8Array(0) }, { parent, mode: 0o600, retainCleanup: true, signal });
+   staging = await fs.createStagedFile(`${directory === "/" ? "" : directory}/.llm-${purpose}-${++serial}`, purpose, { type: "file", data: new Uint8Array(0) }, { parent, mode: 0o600, retainCleanup: true, signal });
    break;
   } catch (error) {
    signal.throwIfAborted();
@@ -41,7 +41,7 @@ export async function createLlmOutputSpool(fs: FileSystem, directory: string, si
  return {
   async write(bytes: Uint8Array): Promise<void> {
    signal.throwIfAborted();
-   if (sealed || closing) throw new FsError("EBADF", { message: "LLM output spool is closed" });
+   if (sealed || closing) throw new FsError("EBADF", { message: "LLM spool is closed" });
    for (let offset = 0; offset < bytes.byteLength; offset += 16384) {
     const chunk = bytes.subarray(offset, offset + 16384);
     await writer.write(chunk, { signal });
@@ -50,23 +50,23 @@ export async function createLlmOutputSpool(fs: FileSystem, directory: string, si
   },
   async *replay(): AsyncIterable<Uint8Array> {
    signal.throwIfAborted();
-   if (sealed || closing) throw new FsError("EBADF", { message: "LLM output spool is closed" });
+   if (sealed || closing) throw new FsError("EBADF", { message: "LLM spool is closed" });
    sealed = await writer.finish({ signal });
-   if (sealed.size !== written) throw new FsError("EIO", { message: "LLM output spool size mismatch" });
+   if (sealed.size !== written) throw new FsError("EIO", { message: "LLM spool size mismatch" });
    signal.throwIfAborted();
-   if (closing) throw new FsError("EBADF", { message: "LLM output spool is closed" });
+   if (closing) throw new FsError("EBADF", { message: "LLM spool is closed" });
    const opened = await fs.openReadFile!(owner.file.path, { signal });
    if (closing || signal.aborted) {
     await opened.close();
     signal.throwIfAborted();
-    throw new FsError("EBADF", { message: "LLM output spool is closed" });
+    throw new FsError("EBADF", { message: "LLM spool is closed" });
    }
    reader = opened;
    verifyRetainedFile(await reader.stat({ signal }), sealed);
    let position = 0;
    while (position < written) {
     const bytes = await reader.read(position, Math.min(16384, written - position), { signal });
-    if (!bytes.byteLength || bytes.byteLength > Math.min(16384, written - position)) throw new FsError("EIO", { message: "Invalid LLM output spool read" });
+    if (!bytes.byteLength || bytes.byteLength > Math.min(16384, written - position)) throw new FsError("EIO", { message: "Invalid LLM spool read" });
     verifyRetainedFile(await reader.stat({ signal }), sealed);
     position += bytes.byteLength;
     yield bytes;

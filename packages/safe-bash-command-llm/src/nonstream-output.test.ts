@@ -68,7 +68,7 @@ test("nonstream output uses caller retained storage with bounded writes and read
 
 
 test("spool cancellation retires a retained reader acquired after cleanup", async () => {
-  const { createLlmOutputSpool } = await import("./output-spool.js");
+  const { createLlmSpool } = await import("./retained-spool.js");
   const backing = new MemoryFileSystem();
   const controller = new AbortController();
   let entered!: () => void, release!: () => void, closes = 0;
@@ -85,7 +85,7 @@ test("spool cancellation retires a retained reader acquired after cleanup", asyn
     const value: unknown = Reflect.get(target, key);
     return typeof value === "function" ? value.bind(target) : value;
   } });
-  const spool = await createLlmOutputSpool(fs, "/", controller.signal);
+  const spool = await createLlmSpool(fs, "/", controller.signal);
   await spool.write(Uint8Array.of(1, 2));
   const pending = spool.replay()[Symbol.asyncIterator]().next();
   await opening;

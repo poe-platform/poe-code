@@ -7,7 +7,7 @@ import type { LlmCommandsOptions, LlmRequest, LlmInputSource } from "./types.js"
 import { createLlmService, type LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
 import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters } from "./templates.js";
-import { createLlmOutputSpool } from "./output-spool.js";
+import { createLlmSpool } from "./retained-spool.js";
 import { fileSource } from "./file-source.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
 import { configurationCommand } from "./configuration-command.js";
@@ -96,7 +96,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     work++;
     if (work % 256 === 0) await yieldTurn(signal);
   };
-  let outputSpool: Awaited<ReturnType<typeof createLlmOutputSpool>> | undefined;
+  let outputSpool: Awaited<ReturnType<typeof createLlmSpool>> | undefined;
   let outputBytes = 0;
   let writing = false;
   const write = async (chunk: Uint8Array): Promise<void> => {
@@ -203,6 +203,10 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const selected = args.model ?? stored?.model ?? (args.save ? undefined : await configuration.defaultModel());
     const model = selected === undefined ? undefined : await configuration.resolveAlias(selected);
     const entry = args.save && selected === undefined ? undefined : service.resolve(model);
+    const streamed = entry !== undefined && service.streamSources !== undefined && entry.provider.completeSources !== undefined && entry.model.inputSources !== false;
+    const stagePrompt = streamed && stored === undefined && args.save === undefined;
+    let promptSpool: Awaited<ReturnType<typeof createLlmSpool>> | undefined;
+    let stdinBytes = 0;
     const fragments: string[] = [];
     const decoder = new TextDecoder("utf-8", { fatal: true });
     const templateUsesInput = stored !== undefined && llmTemplateUsesInput(stored);
@@ -218,10 +222,29 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         const chunk = result.value;
         if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
         admitInput(chunk.byteLength);
-        fragments.push(decoder.decode(chunk, { stream: true }));
+        const decoded = decoder.decode(chunk, { stream: true });
+        stdinBytes += chunk.byteLength;
+        if (stagePrompt) {
+          if (chunk.byteLength) {
+            promptSpool ??= await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal, "input"), spool => spool.close());
+            await promptSpool.write(chunk);
+          }
+        } else fragments.push(decoded);
       }
     }
-    fragments.push(decoder.decode());
+    const decoderTail = decoder.decode();
+    if (!stagePrompt) fragments.push(decoderTail);
+    if (promptSpool && args.prompt) {
+      if (stdinBytes) await promptSpool.write(new TextEncoder().encode("\n\n"));
+      for (let start = 0; start < args.prompt.length;) {
+        await step();
+        let end = Math.min(args.prompt.length, start + 8192);
+        const last = args.prompt.charCodeAt(end - 1);
+        if (end < args.prompt.length && last >= 0xd800 && last <= 0xdbff) end--;
+        await promptSpool.write(new TextEncoder().encode(args.prompt.slice(start, end)));
+        start = end;
+      }
+    }
     const content = fragments.join("");
     let prompt = content && args.prompt ? `${content}\n\n${args.prompt}` : content || args.prompt;
     if (args.save) {
@@ -255,7 +278,6 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     ];
     const attachments: { mimeType: string; bytes: Uint8Array }[] = [];
     const sourceAttachments: { mimeType: string; source: LlmInputSource }[] = [];
-    const streamed = service.streamSources !== undefined && entry.provider.completeSources !== undefined && entry.model.inputSources !== false;
     const textSource = (value: string): LlmInputSource => ({
       async dispose() {},
       bytes: { async *[Symbol.asyncIterator]() {
@@ -316,9 +338,9 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       ...(args.system === undefined ? {} : { system: args.system }), attachments, options: args.options, signal,
     };
     signal.throwIfAborted();
-    if (args.noStream) outputSpool = await operation.acquire(() => createLlmOutputSpool(context.fs, context.cwd, signal), spool => spool.close());
+    if (args.noStream) outputSpool = await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal), spool => spool.close());
     if (streamed) {
-      const events = service.streamSources!({ model: request.model, options: request.options, signal, prompt: textSource(prompt),
+      const events = service.streamSources!({ model: request.model, options: request.options, signal, prompt: promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt),
         ...(args.system === undefined ? {} : { system: textSource(args.system) }), attachments: sourceAttachments });
       iterator = (async function* () {
         for await (const event of events) {

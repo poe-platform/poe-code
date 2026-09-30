@@ -139,7 +139,7 @@ export function basicCommands(): CommandDefinition[] {
     define("dirname", async (context) => {
       const arguments_ = getCommandArguments(context);
       const operands: number[] = [];
-      const parsed = options(arguments_.args, "z", { zero: "z" }, true, index => { operands.push(index); });
+      const parsed = options(arguments_.args, "z", { zero: "z" }, context.env.POSIXLY_CORRECT !== undefined, index => { operands.push(index); });
       requireOperands(parsed.operands);
       for (const index of operands) {
         const operand = arguments_.bytes(index)!;

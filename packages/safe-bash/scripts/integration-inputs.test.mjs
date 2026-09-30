@@ -23,6 +23,7 @@ test("basic command audit regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const selected = discoverTests(root, loadBoundaries(root));
   for (const path of [
+    "tests/commands/basic-dirname-options.test.ts",
     "tests/commands/basic-echo-locale.test.ts",
     "tests/commands/basic-echo-posix.test.ts",
     "tests/commands/basic-external.test.ts",

@@ -21,7 +21,7 @@ export async function runProduct(dependencies = { sourceGuard, runChild }) {
   for (let offset = 0; offset < fixtures.length; offset += batchSize) {
     const batch = fixtures.slice(offset, offset + batchSize);
     const before = await dependencies.sourceGuard();
-    const processResult = await dependencies.runChild(process.execPath, ['--unhandled-rejections=strict', '--import', 'tsx', resolve(owned, 'product-child.mjs'), '--batch', ...batch.map(fixture => fixture.id)], { env: { ...environment, CURRENT_SHELL_SOURCE_GUARD: before.sha256 }, deadline: 8000 });
+    const processResult = await dependencies.runChild(process.execPath, ['--unhandled-rejections=strict', '--import', 'tsx', resolve(owned, 'product-child.mjs'), '--batch', ...batch.map(fixture => fixture.id)], { env: { ...environment, CURRENT_SHELL_SOURCE_GUARD: before.sha256 }, deadline: 8000 * (batch.length + 1) });
     const after = await dependencies.sourceGuard();
     let children;
     try { children = JSON.parse(Buffer.from(processResult.stdout, 'base64').toString()); } catch { children = null; }

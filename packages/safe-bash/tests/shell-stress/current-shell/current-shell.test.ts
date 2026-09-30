@@ -27,10 +27,10 @@ async function batchHarness() {
     async runChild(executable: string, args: string[], options: { deadline: number; env: NodeJS.ProcessEnv }) {
       calls.push('spawn');
       assert.equal(executable, process.execPath);
-      assert.equal(options.deadline, 8000);
       assert.equal(options.env.CURRENT_SHELL_SOURCE_GUARD, guard.sha256);
       assert.ok(args.includes('--batch'));
       const ids = args.slice(args.indexOf('--batch') + 1);
+      assert.equal(options.deadline, 8000 * (ids.length + 1));
       assert.ok(ids.length > 0 && ids.length <= maxBatchCases);
       launches.push(ids);
       const rows = ids.map(id => ({

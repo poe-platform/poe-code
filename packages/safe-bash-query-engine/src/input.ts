@@ -620,6 +620,7 @@ export function parseJson(input: string, budget: Budget, byteEncoded = false): J
 export async function* readChunks(source: ByteSource, budget: Budget): AsyncGenerator<Uint8Array> {
   for await (const chunk of readBytes(source, budget.signal)) {
     { const _p = budget.tickSync(); if (_p) await _p; }
+    if (chunk.byteLength === 0) { const pending = budget.ensureFreshWindow(); if (pending) await pending; }
     budget.inputBytes += chunk.byteLength;
     if (budget.inputBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
     let offset = 0;
@@ -1040,6 +1041,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
       const res = syncRes ?? await iter.next();
       if (res.done) { done = true; break; }
       const rawChunk = res.value;
+      if (rawChunk.byteLength === 0) { const pending = budget.ensureFreshWindow(); if (pending) await pending; }
       const pt = budget.tickSync();
       if (pt) await pt;
       budget.inputBytes += rawChunk.byteLength;

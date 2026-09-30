@@ -1,4 +1,4 @@
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -889,10 +889,10 @@ function* runPdftotextCliSteps(argv: readonly string[], files: ReadonlyMap<strin
             stderr: args.quiet
                 ? ""
                 : `I/O Error: Couldn't open file '${target}': No such file or directory.\n`,
-            outputPath: args.outputFile ?? "-"
-        };
-    }
-    return (yield* extractPdfToTextBytesCooperativelySteps(fileBytes, argv, signal));
+      outputPath: args.outputFile ?? "-"
+    };
+  }
+  return (yield* extractPdfToTextBytesCooperativelySteps(fileBytes, argv, signal));
 }
 export async function runPdftotextCli(argv: readonly string[], files: ReadonlyMap<string, Uint8Array>, stdinBytes: Uint8Array = new Uint8Array(0), signal?: AbortSignal): Promise<PdftotextCliResult> {
     return drainSteps(runPdftotextCliSteps(argv, files, stdinBytes, signal), signal);
@@ -907,7 +907,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
     const parsed = parseArgs(argv);
 
     if (parsed.error || parsed.listenc || parsed.version || parsed.help) {
-      const res = await extractPdfToTextBytesCooperatively(new Uint8Array(0), argv, invocation.signal);
+      const res = await drainSteps(extractPdfToTextBytesCooperativelySteps(new Uint8Array(0), argv, invocation.signal), invocation.signal);
       if (res.stderr) {
         await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
       }
@@ -959,7 +959,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
       }
     }
 
-    const res = await extractPdfToTextBytesCooperatively(pdfBytes, argv, invocation.signal);
+    const res = await drainSteps(extractPdfToTextBytesCooperativelySteps(pdfBytes, argv, invocation.signal), invocation.signal);
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
@@ -1032,10 +1032,9 @@ function bytesToBase64(bytes: Uint8Array): string {
   return out;
 }
 
-function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
-    exitCode: number;
-    stdout: string;
-    stderr: string;
+function* runPdftohtmlCliSteps(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, { exitCode: number; stdout: string; stderr: string;
 }, void> {
     let cooperativeWork = 63;
     let xmlMode = false;
@@ -1049,84 +1048,75 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
     let encoding = "UTF-8";
     let password = "";
     const positionals: string[] = [];
-    for (let i = 0; i < argv.length; i++) {
+
+  for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const arg = argv[i]!;
-        if (arg === "-v" || arg === "--version") {
-            return { exitCode: 0, stdout: "pdftohtml version 24.08.0\n", stderr: "" };
-        }
-        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-            return {
-                exitCode: 0,
-                stdout: "Usage: pdftohtml [options] <PDF-file> [<html-file>|<xml-file>]\n  -xml / -stdout / -s / -i / -noframes / -c / -f <int> / -l <int>\n",
-                stderr: ""
-            };
-        }
-        if (arg === "-xml")
-            xmlMode = true;
-        else if (arg === "-stdout")
-            toStdout = true;
-        else if (arg === "-i")
-            ignoreImages = true;
-        else if (arg === "-dataurls")
-            dataUrls = true;
-        else if (arg === "-f")
-            firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
-        else if (arg === "-l")
-            lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
-        else if (arg === "-zoom") {
-            const z = Number.parseFloat(argv[++i] ?? "1");
-            if (Number.isFinite(z) && z > 0)
-                zoom = z;
-        }
-        else if (arg === "-fmt") {
-            const fmtVal = (argv[++i] ?? "").toLowerCase();
-            if (fmtVal === "png")
-                imageFmt = "png";
-            else if (fmtVal === "jpg" || fmtVal === "jpeg")
-                imageFmt = "jpg";
-            else {
-                return { exitCode: 99, stdout: "", stderr: `Command Line Error: Invalid image format '${fmtVal}'\n` };
-            }
-        }
-        else if (arg === "-enc") {
-            const nextEnc = argv[++i] ?? "";
-            if (!SUPPORTED_ENCODINGS.has(nextEnc)) {
-                return { exitCode: 99, stdout: "", stderr: `Command Line Error: Unknown encoding '${nextEnc}'\n` };
-            }
-            encoding = nextEnc;
-        }
-        else if (arg === "-upw" || arg === "-opw")
-            password = argv[++i] ?? "";
-        else if (arg === "-s" ||
-            arg === "-noframes" ||
-            arg === "-c" ||
-            arg === "-p" ||
-            arg === "-q" ||
-            arg === "-hidden" ||
-            arg === "-nomerge" ||
-            arg === "-nodrm") {
-            // Flag options
-        }
-        else if (!arg.startsWith("-") || arg === "-") {
-            positionals.push(arg);
-        }
+    if (arg === "-v" || arg === "--version") {
+      return { exitCode: 0, stdout: "pdftohtml version 24.08.0\n", stderr: "" };
     }
-    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-    if (!inputPath) {
-        return { exitCode: 99, stdout: "", stderr: "Usage: pdftohtml [options] <PDF-file> [<html-file>]\n" };
+    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+      return {
+        exitCode: 0,
+        stdout: "Usage: pdftohtml [options] <PDF-file> [<html-file>|<xml-file>]\n  -xml / -stdout / -s / -i / -noframes / -c / -f <int> / -l <int>\n",
+        stderr: ""
+      };
     }
-    const pdfBytes = files.get(inputPath);
-    if (!pdfBytes) {
-        return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
+    if (arg === "-xml") xmlMode = true;
+    else if (arg === "-stdout") toStdout = true;
+    else if (arg === "-i") ignoreImages = true;
+    else if (arg === "-dataurls") dataUrls = true;
+    else if (arg === "-f") firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
+    else if (arg === "-l") lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
+    else if (arg === "-zoom") {
+      const z = Number.parseFloat(argv[++i] ?? "1");
+      if (Number.isFinite(z) && z > 0) zoom = z;
+    } else if (arg === "-fmt") {
+      const fmtVal = (argv[++i] ?? "").toLowerCase();
+      if (fmtVal === "png") imageFmt = "png";
+      else if (fmtVal === "jpg" || fmtVal === "jpeg") imageFmt = "jpg";
+      else {
+        return { exitCode: 99, stdout: "", stderr: `Command Line Error: Invalid image format '${fmtVal}'\n` };
+      }
+    } else if (arg === "-enc") {
+      const nextEnc = argv[++i] ?? "";
+      if (!SUPPORTED_ENCODINGS.has(nextEnc)) {
+        return { exitCode: 99, stdout: "", stderr: `Command Line Error: Unknown encoding '${nextEnc}'\n` };
+      }
+      encoding = nextEnc;
     }
-    let doc: PdfDocument;
-    try {
-        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+    else if (arg === "-upw" || arg === "-opw") password = argv[++i] ?? "";
+    else if (
+      arg === "-s" ||
+      arg === "-noframes" ||
+      arg === "-c" ||
+      arg === "-p" ||
+      arg === "-q" ||
+      arg === "-hidden" ||
+      arg === "-nomerge" ||
+      arg === "-nodrm"
+    ) {
+      // Flag options
+    } else if (!arg.startsWith("-") || arg === "-") {
+      positionals.push(arg);
     }
-    catch (err) {
-        return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+  }
+
+  const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+  if (!inputPath) {
+    return { exitCode: 99, stdout: "", stderr: "Usage: pdftohtml [options] <PDF-file> [<html-file>]\n" };
+  }
+  const pdfBytes = files.get(inputPath);
+  if (!pdfBytes) {
+    return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
+  }
+
+  let doc: PdfDocument;
+  try {
+    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+  } catch (err) {
+    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
     }
     const totalPages = Math.max(1, doc.pageCount);
     const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
@@ -1403,7 +1393,8 @@ export function runPdftohtmlCliSync(argv: readonly string[], files: Map<string, 
     stdout: string;
     stderr: string;
 } {
-    let steps = runPdftohtmlCliSteps(argv, files, signal), next = steps.next();
+    const steps = runPdftohtmlCliSteps(argv, files, signal);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -1527,13 +1518,4 @@ export function createPdftotextCommands(options: PdftotextCommandsOptions = {}):
   return Object.freeze([createPdftotextCommand(options), createPdftohtmlCommand(options)]);
 }
 
-async function drainSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
-  try {
-    for (;;) {
-      signal?.throwIfAborted();
-      const next = steps.next();
-      if (next.done) return next.value;
-      await yieldTurn(signal);
-    }
-  } finally { steps.return(undefined as T); }
-}
+

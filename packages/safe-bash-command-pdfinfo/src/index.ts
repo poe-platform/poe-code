@@ -1,4 +1,4 @@
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -1152,9 +1152,9 @@ function* runPdfinfoCliSteps(argv: readonly string[], files: ReadonlyMap<string,
             exitCode: 1,
             stdout: "",
             stderr: `I/O Error: Couldn't open file '${target}': No such file or directory.\n`
-        };
-    }
-    return (yield* inspectPdfBytesCooperativelySteps(fileBytes, argv, { fileSize: fileBytes.byteLength }, signal));
+    };
+  }
+  return (yield* inspectPdfBytesCooperativelySteps(fileBytes, argv, { fileSize: fileBytes.byteLength }, signal));
 }
 export async function runPdfinfoCli(argv: readonly string[], files: ReadonlyMap<string, Uint8Array>, stdinBytes: Uint8Array = new Uint8Array(0), signal?: AbortSignal): Promise<PdfinfoCliResult> {
     return drainSteps(runPdfinfoCliSteps(argv, files, stdinBytes, signal), signal);
@@ -1176,7 +1176,7 @@ export async function pdfinfo(context: CommandContext): Promise<{ exitCode: numb
       return { exitCode: parsed.errorExitCode ?? 99 };
     }
     if (parsed.listenc || parsed.version || parsed.help) {
-      const res = await inspectPdfBytesCooperatively(new Uint8Array(0), argv, undefined, invocation.signal);
+      const res = await drainSteps(inspectPdfBytesCooperativelySteps(new Uint8Array(0), argv, undefined, invocation.signal), invocation.signal);
       if (res.stdout) {
         const stdout = invocation.child(context.stdout);
         await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
@@ -1225,10 +1225,10 @@ export async function pdfinfo(context: CommandContext): Promise<{ exitCode: numb
       }
     }
 
-    const res = await inspectPdfBytesCooperatively(pdfBytes, argv, {
+    const res = await drainSteps(inspectPdfBytesCooperativelySteps(pdfBytes, argv, {
       fileSize: isStdin ? 0 : pdfBytes.byteLength,
       isStdin
-    }, invocation.signal);
+    }, invocation.signal), invocation.signal);
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
@@ -1256,181 +1256,151 @@ export function createPdfinfoCommand(options: PdfinfoCommandOptions = {}): Comma
 
 export const pdfinfoCommand: CommandDefinition = createPdfinfoCommand();
 
-function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
-    exitCode: number;
-    stdout: string;
-    stderr: string;
-    stdoutBytes?: Uint8Array;
+function* runPdftoppmCliSteps(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, { exitCode: number; stdout: string; stderr: string; stdoutBytes?: Uint8Array;
 }, void> {
     let cooperativeWork = 63;
     let format: "png" | "ppm" | "pgm" | "pbm" | "jpeg" | "svg" | "tif" = "ppm";
-    let colorMode: "color" | "gray" | "mono" = "color";
-    let dpi = 150;
-    let dpiX: number | undefined;
-    let dpiY: number | undefined;
-    let scaleTo = 0;
-    let scaleToX = 0;
-    let scaleToY = 0;
-    let cropX = 0;
-    let cropY = 0;
-    let cropW = 0;
-    let cropH = 0;
-    let hasCrop = false;
-    let useCropBox = false;
-    let hideAnnotations = false;
-    let transparent = false;
-    let progress = false;
-    let quiet = false;
-    let jpegQuality = 90;
-    let firstPage = 1;
-    let lastPage = 0;
-    let oddOnly = false;
-    let evenOnly = false;
-    let singleFile = false;
-    let forceNum = false;
-    let sep = "-";
-    let setPageNo: number | undefined;
-    let password = "";
-    const positionals: string[] = [];
-    for (let i = 0; i < argv.length; i++) {
+  let colorMode: "color" | "gray" | "mono" = "color";
+  let dpi = 150;
+  let dpiX: number | undefined;
+  let dpiY: number | undefined;
+  let scaleTo = 0;
+  let scaleToX = 0;
+  let scaleToY = 0;
+  let cropX = 0;
+  let cropY = 0;
+  let cropW = 0;
+  let cropH = 0;
+  let hasCrop = false;
+  let useCropBox = false;
+  let hideAnnotations = false;
+  let transparent = false;
+  let progress = false;
+  let quiet = false;
+  let jpegQuality = 90;
+  let firstPage = 1;
+  let lastPage = 0;
+  let oddOnly = false;
+  let evenOnly = false;
+  let singleFile = false;
+  let forceNum = false;
+  let sep = "-";
+  let setPageNo: number | undefined;
+  let password = "";
+  const positionals: string[] = [];
+
+  for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const arg = argv[i]!;
-        if (arg === "-v" || arg === "--version") {
-            return { exitCode: 0, stdout: "pdftoppm version 24.08.0\n", stderr: "" };
-        }
-        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-            return {
-                exitCode: 0,
-                stdout: "Usage: pdftoppm [options] [PDF-file [PPM-file-prefix]]\n  -png / -ppm / -gray / -mono / -jpeg / -svg\n  -r <dpi> / -rx <dpi> / -ry <dpi> / -scale-to <px> / -f <int> / -l <int> / -singlefile / -cropbox\n",
-                stderr: ""
-            };
-        }
-        if (arg === "-png")
-            format = "png";
-        else if (arg === "-tiff")
-            format = "tif";
-        else if (arg === "-ppm")
-            format = "ppm";
-        else if (arg === "-gray" || arg === "-pgm") {
-            colorMode = "gray";
-            if (format === "ppm")
-                format = "pgm";
-        }
-        else if (arg === "-mono" || arg === "-pbm") {
-            colorMode = "mono";
-            if (format === "ppm")
-                format = "pbm";
-        }
-        else if (arg === "-jpeg" || arg === "-jpg")
-            format = "jpeg";
-        else if (arg === "-svg")
-            format = "svg";
-        else if (arg === "-singlefile")
-            singleFile = true;
-        else if (arg === "-forcenum")
-            forceNum = true;
-        else if (arg === "-o")
-            oddOnly = true;
-        else if (arg === "-e")
-            evenOnly = true;
-        else if (arg === "-cropbox")
-            useCropBox = true;
-        else if (arg === "-hide-annotations")
-            hideAnnotations = true;
-        else if (arg === "-transp")
-            transparent = true;
-        else if (arg === "-overprint") {
-            // Accepted for Poppler CLI compatibility
-        }
-        else if (arg === "-progress")
-            progress = true;
-        else if (arg === "-q")
-            quiet = true;
-        else if (arg === "-setpageno") {
-            const n = Number.parseInt(argv[++i] ?? "", 10);
-            if (Number.isFinite(n))
-                setPageNo = n;
-        }
-        else if (arg === "-jpegopt") {
-            const optStr = argv[++i] ?? "";
-            for (const part of optStr.split(",")) {
+    if (arg === "-v" || arg === "--version") {
+      return { exitCode: 0, stdout: "pdftoppm version 24.08.0\n", stderr: "" };
+    }
+    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+      return {
+        exitCode: 0,
+        stdout:
+          "Usage: pdftoppm [options] [PDF-file [PPM-file-prefix]]\n  -png / -ppm / -gray / -mono / -jpeg / -svg\n  -r <dpi> / -rx <dpi> / -ry <dpi> / -scale-to <px> / -f <int> / -l <int> / -singlefile / -cropbox\n",
+        stderr: ""
+      };
+    }
+    if (arg === "-png") format = "png";
+    else if (arg === "-tiff") format = "tif";
+    else if (arg === "-ppm") format = "ppm";
+    else if (arg === "-gray" || arg === "-pgm") {
+      colorMode = "gray";
+      if (format === "ppm") format = "pgm";
+    } else if (arg === "-mono" || arg === "-pbm") {
+      colorMode = "mono";
+      if (format === "ppm") format = "pbm";
+    }
+    else if (arg === "-jpeg" || arg === "-jpg") format = "jpeg";
+    else if (arg === "-svg") format = "svg";
+    else if (arg === "-singlefile") singleFile = true;
+    else if (arg === "-forcenum") forceNum = true;
+    else if (arg === "-o") oddOnly = true;
+    else if (arg === "-e") evenOnly = true;
+    else if (arg === "-cropbox") useCropBox = true;
+    else if (arg === "-hide-annotations") hideAnnotations = true;
+    else if (arg === "-transp") transparent = true;
+    else if (arg === "-overprint") {
+      // Accepted for Poppler CLI compatibility
+    }
+    else if (arg === "-progress") progress = true;
+    else if (arg === "-q") quiet = true;
+    else if (arg === "-setpageno") {
+      const n = Number.parseInt(argv[++i] ?? "", 10);
+      if (Number.isFinite(n)) setPageNo = n;
+    }
+    else if (arg === "-jpegopt") {
+      const optStr = argv[++i] ?? "";
+      for (const part of optStr.split(",")) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 const eqIdx = part.indexOf("=");
-                if (eqIdx > 0 && part.slice(0, eqIdx).trim().toLowerCase() === "quality") {
-                    const qVal = Number(part.slice(eqIdx + 1).trim());
-                    if (Number.isFinite(qVal) && qVal >= 1 && qVal <= 100) {
-                        jpegQuality = Math.round(qVal);
-                    }
-                }
-            }
+        if (eqIdx > 0 && part.slice(0, eqIdx).trim().toLowerCase() === "quality") {
+          const qVal = Number(part.slice(eqIdx + 1).trim());
+          if (Number.isFinite(qVal) && qVal >= 1 && qVal <= 100) {
+            jpegQuality = Math.round(qVal);
+          }
         }
-        else if (arg === "-sep")
-            sep = argv[++i] ?? "-";
-        else if (arg === "-r")
-            dpi = Number(argv[++i] ?? "150") || 150;
-        else if (arg === "-rx")
-            dpiX = Number(argv[++i] ?? "150") || 150;
-        else if (arg === "-ry")
-            dpiY = Number(argv[++i] ?? "150") || 150;
-        else if (arg === "-scale-to")
-            scaleTo = Number(argv[++i] ?? "0") || 0;
-        else if (arg === "-scale-to-x")
-            scaleToX = Number(argv[++i] ?? "0") || 0;
-        else if (arg === "-scale-to-y")
-            scaleToY = Number(argv[++i] ?? "0") || 0;
-        else if (arg === "-x") {
-            cropX = Number(argv[++i] ?? "0") || 0;
-            hasCrop = true;
-        }
-        else if (arg === "-y") {
-            cropY = Number(argv[++i] ?? "0") || 0;
-            hasCrop = true;
-        }
-        else if (arg === "-W") {
-            cropW = Number(argv[++i] ?? "0") || 0;
-            hasCrop = true;
-        }
-        else if (arg === "-H") {
-            cropH = Number(argv[++i] ?? "0") || 0;
-            hasCrop = true;
-        }
-        else if (arg === "-sz") {
-            const sz = Number(argv[++i] ?? "0") || 0;
-            cropW = sz;
-            cropH = sz;
-            hasCrop = true;
-        }
-        else if (arg === "-f")
-            firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
-        else if (arg === "-l")
-            lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
-        else if (arg === "-upw" || arg === "-opw")
-            password = argv[++i] ?? "";
-        else if (arg === "-tiffcompression" ||
-            arg === "-aa" ||
-            arg === "-aaVector" ||
-            arg === "-thinlinemode" ||
-            arg === "-freetype")
-            i++;
-        else if (!arg.startsWith("-") || arg === "-")
-            positionals.push(arg);
+      }
     }
-    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-    if (!inputPath) {
-        return { exitCode: 99, stdout: "", stderr: "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n" };
+    else if (arg === "-sep") sep = argv[++i] ?? "-";
+    else if (arg === "-r") dpi = Number(argv[++i] ?? "150") || 150;
+    else if (arg === "-rx") dpiX = Number(argv[++i] ?? "150") || 150;
+    else if (arg === "-ry") dpiY = Number(argv[++i] ?? "150") || 150;
+    else if (arg === "-scale-to") scaleTo = Number(argv[++i] ?? "0") || 0;
+    else if (arg === "-scale-to-x") scaleToX = Number(argv[++i] ?? "0") || 0;
+    else if (arg === "-scale-to-y") scaleToY = Number(argv[++i] ?? "0") || 0;
+    else if (arg === "-x") {
+      cropX = Number(argv[++i] ?? "0") || 0;
+      hasCrop = true;
+    } else if (arg === "-y") {
+      cropY = Number(argv[++i] ?? "0") || 0;
+      hasCrop = true;
+    } else if (arg === "-W") {
+      cropW = Number(argv[++i] ?? "0") || 0;
+      hasCrop = true;
+    } else if (arg === "-H") {
+      cropH = Number(argv[++i] ?? "0") || 0;
+      hasCrop = true;
     }
-    const pdfBytes = files.get(inputPath);
-    if (!pdfBytes) {
-        return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
+    else if (arg === "-sz") {
+      const sz = Number(argv[++i] ?? "0") || 0;
+      cropW = sz;
+      cropH = sz;
+      hasCrop = true;
     }
-    let doc: PdfDocument;
-    try {
-        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-    }
-    catch (err) {
-        return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+    else if (arg === "-f") firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
+    else if (arg === "-l") lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
+    else if (arg === "-upw" || arg === "-opw") password = argv[++i] ?? "";
+    else if (
+      arg === "-tiffcompression" ||
+      arg === "-aa" ||
+      arg === "-aaVector" ||
+      arg === "-thinlinemode" ||
+      arg === "-freetype"
+    ) i++;
+    else if (!arg.startsWith("-") || arg === "-") positionals.push(arg);
+  }
+
+  const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+  if (!inputPath) {
+    return { exitCode: 99, stdout: "", stderr: "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n" };
+  }
+  const pdfBytes = files.get(inputPath);
+  if (!pdfBytes) {
+    return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
+  }
+
+  let doc: PdfDocument;
+  try {
+    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+  } catch (err) {
+    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
     }
     const totalPages = Math.max(1, doc.pageCount);
     const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
@@ -1715,13 +1685,13 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: quiet ? "" : `I/O Error: Couldn't open file '${inputPath}'\n` };
-    }
-    let doc: PdfDocument;
-    try {
-        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-    }
-    catch (err) {
-        return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
+  }
+
+  let doc: PdfDocument;
+  try {
+    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+  } catch (err) {
+    return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
     }
     const totalPages = Math.max(1, doc.pageCount);
     const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
@@ -1917,13 +1887,12 @@ function* runPdfuniteCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const srcBytes = files.get(srcPath);
         if (!srcBytes) {
             return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}'\n` };
-        }
-        let srcDoc: PdfDocument;
-        try {
-            srcDoc = PdfDocument.load(srcBytes, password ? { password } : undefined);
-        }
-        catch (err) {
-            return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+    }
+    let srcDoc: PdfDocument;
+    try {
+      srcDoc = PdfDocument.load(srcBytes, password ? { password } : undefined);
+    } catch (err) {
+      return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
         }
         if (!copiedMeta) {
             copyDocumentMetadata(srcDoc, merged);
@@ -2188,13 +2157,12 @@ function* runPdfseparateCliSteps(argv: readonly string[], files: Map<string, Uin
     const srcBytes = files.get(srcPath);
     if (!srcBytes) {
         return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}'\n` };
-    }
-    let srcDoc: PdfDocument;
-    try {
-        srcDoc = PdfDocument.load(srcBytes, password ? { password } : undefined);
-    }
-    catch (err) {
-        return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+  }
+  let srcDoc: PdfDocument;
+  try {
+    srcDoc = PdfDocument.load(srcBytes, password ? { password } : undefined);
+  } catch (err) {
+    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
     }
     const endPage = lastPage > 0 ? Math.min(srcDoc.pageCount, lastPage) : srcDoc.pageCount;
     if (firstPage > srcDoc.pageCount ||
@@ -2292,13 +2260,13 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
-    }
-    let doc: PdfDocument;
-    try {
-        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-    }
-    catch (err) {
-        return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+  }
+
+  let doc: PdfDocument;
+  try {
+    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+  } catch (err) {
+    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
     }
     const cos = doc.cos;
     const endPage = lastPage > 0 ? Math.min(doc.pageCount, lastPage) : doc.pageCount;
@@ -2403,21 +2371,16 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     : "   [none]";
                 const locSuffix = showLoc
                     ? ` ${hasEmbeddedFile ? "Embedded" : showLocPs ? `Substitute (${fontName})` : "Substitute"}`
-                    : "";
-                if (showSubst) {
-                    if (!hasEmbeddedFile) {
-                        let subFontName = fontName;
-                        if (fontName.startsWith("Helvetica") || fontName.startsWith("Arial"))
-                            subFontName = "Nimbus Sans";
-                        else if (fontName.startsWith("Times"))
-                            subFontName = "Nimbus Roman";
-                        else if (fontName.startsWith("Courier"))
-                            subFontName = "Nimbus Mono PS";
-                        else if (fontName === "Symbol")
-                            subFontName = "Standard Symbols PS";
-                        else if (fontName === "ZapfDingbats")
-                            subFontName = "D050000L";
-                        const subFontFile = `/usr/share/fonts/type1/urw-base35/${subFontName.replaceAll(" ", "")}.t1`;
+          : "";
+        if (showSubst) {
+          if (!hasEmbeddedFile) {
+            let subFontName = fontName;
+            if (fontName.startsWith("Helvetica") || fontName.startsWith("Arial")) subFontName = "Nimbus Sans";
+            else if (fontName.startsWith("Times")) subFontName = "Nimbus Roman";
+            else if (fontName.startsWith("Courier")) subFontName = "Nimbus Mono PS";
+            else if (fontName === "Symbol") subFontName = "Standard Symbols PS";
+            else if (fontName === "ZapfDingbats") subFontName = "D050000L";
+            const subFontFile = `/usr/share/fonts/type1/urw-base35/${subFontName.replaceAll(" ", "")}.t1`;
                         rows.push(`${fontName.slice(0, 36).padEnd(36)} ${objIdStr} ${subFontName.slice(0, 36).padEnd(36)} ${subFontFile}`);
                     }
                 }
@@ -2525,7 +2488,8 @@ export function runPdffontsCliSync(argv: readonly string[], files: Map<string, U
     stdout: string;
     stderr: string;
 } {
-    let steps = runPdffontsCliSteps(argv, files, signal), next = steps.next();
+    const steps = runPdffontsCliSteps(argv, files, signal);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -2681,13 +2645,13 @@ function* runPdfdetachCliSteps(argv: readonly string[], files: Map<string, Uint8
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
-    }
-    let doc: PdfDocument;
-    try {
-        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-    }
-    catch (err) {
-        return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+  }
+
+  let doc: PdfDocument;
+  try {
+    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+  } catch (err) {
+    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
     }
     const attachments = collectEmbeddedAttachments(doc);
     if (listOnly || (!saveNumber && !saveFileName && !saveAll)) {
@@ -2748,7 +2712,8 @@ export function runPdfdetachCliSync(argv: readonly string[], files: Map<string, 
     stdout: string;
     stderr: string;
 } {
-    let steps = runPdfdetachCliSteps(argv, files, signal), next = steps.next();
+    const steps = runPdfdetachCliSteps(argv, files, signal);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -3110,12 +3075,12 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
         const pdfBytes = files.get(inputPath);
         if (!pdfBytes)
             return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
-        const doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-        const endPage = lastPage > 0 ? Math.min(doc.pageCount, lastPage) : doc.pageCount;
-        if (firstPage > doc.pageCount || firstPage > endPage) {
-            return { exitCode: 99, stdout: "", stderr: "Command Line Error: Wrong page range given\n" };
-        }
-        const rawOut = positionals[1] ?? (inputPath === "-" ? "-" : `${inputStem}.${format}`);
+    const doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+    const endPage = lastPage > 0 ? Math.min(doc.pageCount, lastPage) : doc.pageCount;
+    if (firstPage > doc.pageCount || firstPage > endPage) {
+      return { exitCode: 99, stdout: "", stderr: "Command Line Error: Wrong page range given\n" };
+    }
+    const rawOut = positionals[1] ?? (inputPath === "-" ? "-" : `${inputStem}.${format}`);
         const finalOut = rawOut === "-" || rawOut.toLowerCase().endsWith(`.${format}`) ? rawOut : `${rawOut}.${format}`;
         if (format === "pdf") {
             const outDoc = PdfDocument.create();
@@ -3245,13 +3210,4 @@ export function createPdfinfoCommands(options: PdfinfoCommandsOptions = {}): rea
     return [createPdfinfoCommand(options), createPdfuniteCommand(options), createPdfseparateCommand(options), createPdffontsCommand(options), createPdfdetachCommand(options)];
 }
 
-async function drainSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
-  try {
-    for (;;) {
-      signal?.throwIfAborted();
-      const next = steps.next();
-      if (next.done) return next.value;
-      await yieldTurn(signal);
-    }
-  } finally { steps.return(undefined as T); }
-}
+

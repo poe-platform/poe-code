@@ -1,4 +1,4 @@
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -527,106 +527,101 @@ function createDefaultState(): MagickState {
   };
 }
 
-function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kernelSpec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickMorphology4ChSteps(
+  img: RgbaImage,
+  methodRaw: string,
+  kernelSpec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const m = methodRaw.toLowerCase();
-    let rx = 1;
-    let ry = 1;
-    const colonIdx = kernelSpec.indexOf(":");
-    const sizePart = colonIdx >= 0 ? kernelSpec.slice(colonIdx + 1) : kernelSpec;
-    if (sizePart.includes("x")) {
-        const [wS, hS] = sizePart.split("x");
-        rx = Math.max(1, Math.floor((Number(wS) || 3) / 2));
-        ry = Math.max(1, Math.floor((Number(hS) || 3) / 2));
-    }
-    else if (sizePart.length > 0 && !Number.isNaN(Number(sizePart))) {
-        rx = Math.max(1, Math.round(Number(sizePart)));
-        ry = rx;
-    }
-    const step = (src: RgbaImage, isMax: boolean): RgbaImage => {
-        const w = src.width;
-        const h = src.height;
-        const out = new Uint8Array(src.data.length);
-        for (let y = 0; y < h; y++) {
-            for (let x = 0; x < w; x++) {
-                const dstOff = (y * w + x) * 4;
-                for (let c = 0; c < 4; c++) {
-                    let best = src.data[dstOff + c]!;
-                    for (let dy = -ry; dy <= ry; dy++) {
-                        const sy = Math.max(0, Math.min(h - 1, y + dy));
-                        for (let dx = -rx; dx <= rx; dx++) {
-                            const sx = Math.max(0, Math.min(w - 1, x + dx));
-                            const v = src.data[(sy * w + sx) * 4 + c]!;
-                            if (isMax ? v > best : v < best)
-                                best = v;
-                        }
-                    }
-                    out[dstOff + c] = best;
-                }
+  let rx = 1;
+  let ry = 1;
+  const colonIdx = kernelSpec.indexOf(":");
+  const sizePart = colonIdx >= 0 ? kernelSpec.slice(colonIdx + 1) : kernelSpec;
+  if (sizePart.includes("x")) {
+    const [wS, hS] = sizePart.split("x");
+    rx = Math.max(1, Math.floor((Number(wS) || 3) / 2));
+    ry = Math.max(1, Math.floor((Number(hS) || 3) / 2));
+  } else if (sizePart.length > 0 && !Number.isNaN(Number(sizePart))) {
+    rx = Math.max(1, Math.round(Number(sizePart)));
+    ry = rx;
+  }
+
+  const step = (src: RgbaImage, isMax: boolean): RgbaImage => {
+    const w = src.width;
+    const h = src.height;
+    const out = new Uint8Array(src.data.length);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const dstOff = (y * w + x) * 4;
+        for (let c = 0; c < 4; c++) {
+          let best = src.data[dstOff + c]!;
+          for (let dy = -ry; dy <= ry; dy++) {
+            const sy = Math.max(0, Math.min(h - 1, y + dy));
+            for (let dx = -rx; dx <= rx; dx++) {
+              const sx = Math.max(0, Math.min(w - 1, x + dx));
+              const v = src.data[(sy * w + sx) * 4 + c]!;
+              if (isMax ? v > best : v < best) best = v;
             }
+          }
+          out[dstOff + c] = best;
         }
-        return { ...src, data: out };
-    };
-    const diffImg = (a: RgbaImage, b: RgbaImage): RgbaImage => {
-        const out = new Uint8Array(a.data.length);
-        for (let i = 0; i < out.length; i++) {
-            out[i] = clampByteVal(a.data[i]! - b.data[i]!);
-        }
-        return { ...a, data: out };
-    };
-    if (m === "erode" || m === "minimum")
-        return step(img, false);
-    if (m === "dilate" || m === "maximum")
-        return step(img, true);
-    if (m === "open")
-        return step(step(img, false), true);
-    if (m === "close")
-        return step(step(img, true), false);
-    if (m === "edgein")
-        return diffImg(img, step(img, false));
-    if (m === "edgeout")
-        return diffImg(step(img, true), img);
-    if (m === "edge" || m === "gradient")
-        return diffImg(step(img, true), step(img, false));
-    if (m === "tophat")
-        return diffImg(img, step(step(img, false), true));
-    if (m === "bottomhat")
-        return diffImg(step(step(img, true), false), img);
-    if (m === "median") {
-        const w = img.width;
-        const h = img.height;
-        const out = new Uint8Array(img.data.length);
-        const win: number[] = [];
-        for (let y = 0; y < h; y++) {
+      }
+    }
+    return { ...src, data: out };
+  };
+
+  const diffImg = (a: RgbaImage, b: RgbaImage): RgbaImage => {
+    const out = new Uint8Array(a.data.length);
+    for (let i = 0; i < out.length; i++) {
+      out[i] = clampByteVal(a.data[i]! - b.data[i]!);
+    }
+    return { ...a, data: out };
+  };
+
+  if (m === "erode" || m === "minimum") return step(img, false);
+  if (m === "dilate" || m === "maximum") return step(img, true);
+  if (m === "open") return step(step(img, false), true);
+  if (m === "close") return step(step(img, true), false);
+  if (m === "edgein") return diffImg(img, step(img, false));
+  if (m === "edgeout") return diffImg(step(img, true), img);
+  if (m === "edge" || m === "gradient") return diffImg(step(img, true), step(img, false));
+  if (m === "tophat") return diffImg(img, step(step(img, false), true));
+  if (m === "bottomhat") return diffImg(step(step(img, true), false), img);
+  if (m === "median") {
+    const w = img.width;
+    const h = img.height;
+    const out = new Uint8Array(img.data.length);
+    const win: number[] = [];
+    for (let y = 0; y < h; y++) {
             if (++cooperativeWork % 65536 === 0)
                 yield;
             for (let x = 0; x < w; x++) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
                 const dstOff = (y * w + x) * 4;
-                for (let c = 0; c < 4; c++) {
+        for (let c = 0; c < 4; c++) {
                     if (++cooperativeWork % 65536 === 0)
                         yield;
                     win.length = 0;
-                    for (let dy = -ry; dy <= ry; dy++) {
+          for (let dy = -ry; dy <= ry; dy++) {
                         if (++cooperativeWork % 65536 === 0)
                             yield;
                         const sy = Math.max(0, Math.min(h - 1, y + dy));
-                        for (let dx = -rx; dx <= rx; dx++) {
+            for (let dx = -rx; dx <= rx; dx++) {
                             if (++cooperativeWork % 65536 === 0)
                                 yield;
                             const sx = Math.max(0, Math.min(w - 1, x + dx));
-                            win.push(img.data[(sy * w + sx) * 4 + c]!);
-                        }
-                    }
-                    win.sort((a, b) => a - b);
-                    out[dstOff + c] = win[Math.floor(win.length / 2)]!;
-                }
+              win.push(img.data[(sy * w + sx) * 4 + c]!);
             }
+          }
+          win.sort((a, b) => a - b);
+          out[dstOff + c] = win[Math.floor(win.length / 2)]!;
         }
-        return { ...img, data: out };
+      }
     }
-    return step(img, true);
+    return { ...img, data: out };
+  }
+  return step(img, true);
 }
 
 function createRoseImage(): RgbaImage {
@@ -658,71 +653,86 @@ function createRoseImage(): RgbaImage {
   };
 }
 
-function* applyMagickFloodfillSteps(img: RgbaImage, geomStr: string, targetColor: RgbaColor | undefined, replacement: RgbaColor, fuzz: number, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickFloodfillSteps(
+  img: RgbaImage,
+  geomStr: string,
+  targetColor: RgbaColor | undefined,
+  replacement: RgbaColor,
+  fuzz: number, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = parseMagickGeometry(geomStr);
-    const w = img.width;
-    const h = img.height;
-    const sx = Math.max(0, Math.min(w - 1, Math.round(g.x || g.width || 0)));
-    const sy = Math.max(0, Math.min(h - 1, Math.round(g.y || g.height || 0)));
-    const out = new Uint8Array(img.data);
-    const seedOff = (sy * w + sx) * 4;
-    const refR = targetColor ? targetColor.r : out[seedOff]!;
-    const refG = targetColor ? targetColor.g : out[seedOff + 1]!;
-    const refB = targetColor ? targetColor.b : out[seedOff + 2]!;
-    const matchesRef = (pIdx: number): boolean => {
-        const off = pIdx * 4;
-        return (Math.max(Math.abs(out[off]! - refR), Math.abs(out[off + 1]! - refG), Math.abs(out[off + 2]! - refB)) <= fuzz);
-    };
-    const startIdx = sy * w + sx;
-    if (!matchesRef(startIdx))
-        return img;
-    const visited = new Uint8Array(w * h);
-    const queue = new Int32Array(w * h);
-    let head = 0;
-    let tail = 0;
-    queue[tail++] = startIdx;
-    visited[startIdx] = 1;
-    while (head < tail) {
+  const w = img.width;
+  const h = img.height;
+  const sx = Math.max(0, Math.min(w - 1, Math.round(g.x || g.width || 0)));
+  const sy = Math.max(0, Math.min(h - 1, Math.round(g.y || g.height || 0)));
+  const out = new Uint8Array(img.data);
+  const seedOff = (sy * w + sx) * 4;
+  const refR = targetColor ? targetColor.r : out[seedOff]!;
+  const refG = targetColor ? targetColor.g : out[seedOff + 1]!;
+  const refB = targetColor ? targetColor.b : out[seedOff + 2]!;
+
+  const matchesRef = (pIdx: number): boolean => {
+    const off = pIdx * 4;
+    return (
+      Math.max(
+        Math.abs(out[off]! - refR),
+        Math.abs(out[off + 1]! - refG),
+        Math.abs(out[off + 2]! - refB)
+      ) <= fuzz
+    );
+  };
+
+  const startIdx = sy * w + sx;
+  if (!matchesRef(startIdx)) return img;
+
+  const visited = new Uint8Array(w * h);
+  const queue = new Int32Array(w * h);
+  let head = 0;
+  let tail = 0;
+  queue[tail++] = startIdx;
+  visited[startIdx] = 1;
+
+  while (head < tail) {
         if (++cooperativeWork % 65536 === 0)
             yield;
         const cur = queue[head++]!;
-        const off = cur * 4;
-        out[off] = replacement.r;
-        out[off + 1] = replacement.g;
-        out[off + 2] = replacement.b;
-        out[off + 3] = replacement.a;
-        const cx = cur % w;
-        const cy = Math.floor(cur / w);
-        const neighbors = [
-            cx > 0 ? cur - 1 : -1,
-            cx + 1 < w ? cur + 1 : -1,
-            cy > 0 ? cur - w : -1,
-            cy + 1 < h ? cur + w : -1
-        ];
-        for (const nb of neighbors) {
-            if (++cooperativeWork % 65536 === 0)
+    const off = cur * 4;
+    out[off] = replacement.r;
+    out[off + 1] = replacement.g;
+    out[off + 2] = replacement.b;
+    out[off + 3] = replacement.a;
+
+    const cx = cur % w;
+    const cy = Math.floor(cur / w);
+    const neighbors = [
+      cx > 0 ? cur - 1 : -1,
+      cx + 1 < w ? cur + 1 : -1,
+      cy > 0 ? cur - w : -1,
+      cy + 1 < h ? cur + w : -1
+    ];
+    for (const nb of neighbors) {
+      if (++cooperativeWork % 65536 === 0)
                 yield;
             if (nb >= 0 && visited[nb] === 0 && matchesRef(nb)) {
-                visited[nb] = 1;
-                queue[tail++] = nb;
-            }
-        }
+        visited[nb] = 1;
+        queue[tail++] = nb;
+      }
     }
-    return { ...img, data: out, hasAlpha: true };
+  }
+  return { ...img, data: out, hasAlpha: true };
 }
 
 function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     if (stack.length === 0) {
-        throw new Error("evaluate-sequence requires at least one image");
-    }
-    if (stack.length === 1)
-        return stack[0]!;
-    const base = stack[0]!;
-    const w = base.width;
-    const h = base.height;
-    const normalized = stack.map((im) => im.width === w && im.height === h ? im : applyMagickResize(im, `${w}x${h}!`, "bilinear"));
+    throw new Error("evaluate-sequence requires at least one image");
+  }
+  if (stack.length === 1) return stack[0]!;
+  const base = stack[0]!;
+  const w = base.width;
+  const h = base.height;
+  const normalized = stack.map((im) =>
+    im.width === w && im.height === h ? im : applyMagickResize(im, `${w}x${h}!`, "bilinear"));
     const n = normalized.length;
     const out = new Uint8Array(w * h * 4);
     const op = opRaw.toLowerCase().replace(/[-_]/g, "");
@@ -3098,6 +3108,7 @@ function applyMagickCropToStack(
 }
 
 function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    yield;
     const g = parseMagickGeometry(geomStr);
     const targetW = Math.max(1, Math.round(g.width ?? img.width));
     const targetH = Math.max(1, Math.round(g.height ?? img.height));
@@ -3124,6 +3135,7 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
 }
 
 function* applyMagickDrawSteps(img: RgbaImage, drawCmd: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    yield;
     let cooperativeWork = 0;
     const svgElements: string[] = [];
     let fill = rgbaToCss(state.fill);
@@ -3276,6 +3288,7 @@ function* applyMagickDrawSteps(img: RgbaImage, drawCmd: string, state: MagickSta
 }
 
 function* applyMagickAnnotateSteps(img: RgbaImage, offsetStr: string, text: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    yield;
     const g = parseMagickGeometry(offsetStr);
     const fontSize = Math.max(8, state.pointsize);
     const estW = Math.max(8, Math.ceil(text.length * fontSize * 0.6));
@@ -3652,7 +3665,8 @@ export async function runIdentifyCli(argv: readonly string[], files: Map<string,
     return drainSteps(runIdentifyCliSteps(argv, files, stdinBytes, signal), signal);
 }
 export function runIdentifyCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
-    let steps = runIdentifyCliSteps(argv, files, stdinBytes, signal), next = steps.next();
+    const steps = runIdentifyCliSteps(argv, files, stdinBytes, signal);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -4766,7 +4780,8 @@ export async function runConvertCli(argv: readonly string[], files: Map<string, 
     return drainSteps(runConvertCliSteps(argv, files, stdinBytes, signal), signal);
 }
 export function runConvertCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
-    let steps = runConvertCliSteps(argv, files, stdinBytes, signal), next = steps.next();
+    const steps = runConvertCliSteps(argv, files, stdinBytes, signal);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -4934,7 +4949,8 @@ export async function runMogrifyCli(argv: readonly string[], files: Map<string, 
     return drainSteps(runMogrifyCliSteps(argv, files, _stdinBytes, signal), signal);
 }
 export function runMogrifyCliSync(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
-    let steps = runMogrifyCliSteps(argv, files, _stdinBytes, signal), next = steps.next();
+    const steps = runMogrifyCliSteps(argv, files, _stdinBytes, signal);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -4981,7 +4997,8 @@ export async function runCompositeCli(argv: readonly string[], files: Map<string
     return drainSteps(runCompositeCliSteps(argv, files, stdinBytes, signal), signal);
 }
 export function runCompositeCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
-    let steps = runCompositeCliSteps(argv, files, stdinBytes, signal), next = steps.next();
+    const steps = runCompositeCliSteps(argv, files, stdinBytes, signal);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -5271,7 +5288,8 @@ export async function runCompareCli(argv: readonly string[], files: Map<string, 
     return drainSteps(runCompareCliSteps(argv, files, stdinBytes, signal), signal);
 }
 export function runCompareCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
-    let steps = runCompareCliSteps(argv, files, stdinBytes, signal), next = steps.next();
+    const steps = runCompareCliSteps(argv, files, stdinBytes, signal);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -5417,7 +5435,8 @@ export async function runMontageCli(argv: readonly string[], files: Map<string, 
     return drainSteps(runMontageCliSteps(argv, files, stdinBytes, signal), signal);
 }
 export function runMontageCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
-    let steps = runMontageCliSteps(argv, files, stdinBytes, signal), next = steps.next();
+    const steps = runMontageCliSteps(argv, files, stdinBytes, signal);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -5426,7 +5445,7 @@ export function runMontageCliSync(argv: readonly string[], files: Map<string, Ui
 
 
 
-function* runMagickCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array): Generator<void, ImageMagickCliResult, void> {
+function* runMagickCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     const sub = argv[0];
     if (sub === "identify") {
         return (yield* runIdentifyCliSteps(argv.slice(1), files, stdinBytes, signal));
@@ -5448,11 +5467,12 @@ function* runMagickCliSteps(argv: readonly string[], files: Map<string, Uint8Arr
     }
     return (yield* runConvertCliSteps(argv, files, stdinBytes, signal));
 }
-export async function runMagickCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array): Promise<ImageMagickCliResult> {
-    return drainSteps(runMagickCliSteps(argv, files, stdinBytes), undefined);
+export async function runMagickCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    return drainSteps(runMagickCliSteps(argv, files, stdinBytes, signal), signal);
 }
-export function runMagickCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array): ImageMagickCliResult {
-    let steps = runMagickCliSteps(argv, files, stdinBytes), next = steps.next();
+export function runMagickCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
+    const steps = runMagickCliSteps(argv, files, stdinBytes, signal);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -5701,16 +5721,7 @@ export function createImagemagickCommands(options: ImagemagickCommandsOptions = 
     return [createMagickCommand(options), createConvertCommand(options), createMogrifyCommand(options), createCompositeCommand(options), createMontageCommand(options), createIdentifyCommand(options), createCompareCommand(options)];
 }
 
-async function drainSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
-  try {
-    for (;;) {
-      signal?.throwIfAborted();
-      const next = steps.next();
-      if (next.done) return next.value;
-      await yieldTurn(signal);
-    }
-  } finally { steps.return(undefined as T); }
-}
+
 
 function* mapSteps<T, U>(values: readonly T[], mapper: (value: T) => Generator<void, U, void>): Generator<void, U[], void> {
   const result: U[] = [];

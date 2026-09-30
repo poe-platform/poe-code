@@ -1,4 +1,4 @@
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -2043,7 +2043,8 @@ export async function runPdftkCli(argv: readonly string[], files: Map<string, Ui
     return drainSteps(runPdftkCliSteps(argv, files, signal), signal);
 }
 export function runPdftkCliSync(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): PdftkCliResult {
-    let steps = runPdftkCliSteps(argv, files, signal), next = steps.next();
+    const steps = runPdftkCliSteps(argv, files, signal);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -2170,13 +2171,4 @@ export function createPdftkCommands(options: PdftkCommandsOptions = {}): readonl
   return Object.freeze([createPdftkCommand(options)]);
 }
 
-async function drainSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
-  try {
-    for (;;) {
-      signal?.throwIfAborted();
-      const next = steps.next();
-      if (next.done) return next.value;
-      await yieldTurn(signal);
-    }
-  } finally { steps.return(undefined as T); }
-}
+

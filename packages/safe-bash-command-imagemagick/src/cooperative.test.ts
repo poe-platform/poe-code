@@ -65,3 +65,16 @@ test("pixel transforms yield during work and stop before encoding output", async
     expect(files.has("out.png")).toBe(false);
   } finally { vi.unstubAllGlobals(); vi.restoreAllMocks(); }
 });
+
+import { runConvertCliSync } from "./index.js";
+
+test("synchronous and cooperative pixel pipelines produce identical files", async () => {
+  const input = encodePng({ width: 16, height: 16, data: Uint8Array.from({ length: 16 * 16 * 4 }, (_, index) => index % 256) });
+  const synchronous = new Map([["in", input]]);
+  const cooperative = new Map([["in", input]]);
+  const args = ["in", "-negate", "-evaluate", "Add", "1", "-splice", "2x2", "out.png"];
+  const expected = runConvertCliSync(args, synchronous);
+  expect(await runConvertCli(args, cooperative)).toEqual(expected);
+  expect(expected.exitCode).toBe(0);
+  expect(cooperative.get("out.png")).toEqual(synchronous.get("out.png"));
+});

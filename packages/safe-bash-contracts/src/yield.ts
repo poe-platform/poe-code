@@ -174,3 +174,16 @@ export function yieldTurn(signal?: AbortSignal): Promise<void> {
     else timeoutHandle = setTimeout(finish, 0);
   });
 }
+
+export async function drainCooperativeSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
+  try {
+    let next = steps.next();
+    while (!next.done) {
+      try {
+        await yieldTurn(signal);
+        next = steps.next();
+      } catch (error) { next = steps.throw(error); }
+    }
+    return next.value;
+  } finally { steps.return(undefined as T); }
+}

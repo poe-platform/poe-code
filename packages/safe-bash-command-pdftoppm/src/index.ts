@@ -1,4 +1,4 @@
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -90,248 +90,200 @@ function extractPdftoppmPositionals(argv: readonly string[]): string[] {
   return pos;
 }
 
-function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, options: {
-    readonly signal?: AbortSignal;
+function* runPdftoppmCliSteps(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  options: { readonly signal?: AbortSignal;
     readonly onAllocateBytes?: (bytes: number) => void;
 } = {}): Generator<void, PdftoppmCliResult, void> {
     let cooperativeWork = 63;
     let format: "ppm" | "pgm" | "pbm" | "png" | "svg" | "jpg" | "tif" = "ppm";
-    let explicitContainer: "png" | "tif" | "jpg" | "svg" | undefined;
-    let colorMode: "rgb" | "gray" | "mono" = "rgb";
-    let dpi = 150;
-    let dpiX: number | undefined;
-    let dpiY: number | undefined;
-    let scaleTo = 0;
-    let scaleToX = 0;
-    let scaleToY = 0;
-    let firstPage = 1;
-    let lastPage = 0;
-    let oddOnly = false;
-    let evenOnly = false;
-    let singleFile = false;
-    let forceNum = false;
-    let sep = "-";
-    let setPageNo: number | undefined;
-    let cropX = 0;
-    let cropY = 0;
-    let cropW = 0;
-    let cropH = 0;
-    let hasCrop = false;
-    let useCropBox = false;
-    let hideAnnotations = false;
-    let transparent = false;
-    let progress = false;
-    let quiet = false;
-    let jpegQuality = 90;
-    let tiffCompression: "none" | "packbits" | "deflate" | "lzw" | "jpeg" = "none";
-    let antialiasText = true;
-    let antialiasVector = true;
-    let thinLineMode: "none" | "solid" | "shape" = "none";
-    let password = "";
-    const positionals: string[] = [];
-    for (let i = 0; i < argv.length; i++) {
+  let explicitContainer: "png" | "tif" | "jpg" | "svg" | undefined;
+  let colorMode: "rgb" | "gray" | "mono" = "rgb";
+  let dpi = 150;
+  let dpiX: number | undefined;
+  let dpiY: number | undefined;
+  let scaleTo = 0;
+  let scaleToX = 0;
+  let scaleToY = 0;
+  let firstPage = 1;
+  let lastPage = 0;
+  let oddOnly = false;
+  let evenOnly = false;
+  let singleFile = false;
+  let forceNum = false;
+  let sep = "-";
+  let setPageNo: number | undefined;
+  let cropX = 0;
+  let cropY = 0;
+  let cropW = 0;
+  let cropH = 0;
+  let hasCrop = false;
+  let useCropBox = false;
+  let hideAnnotations = false;
+  let transparent = false;
+  let progress = false;
+  let quiet = false;
+  let jpegQuality = 90;
+  let tiffCompression: "none" | "packbits" | "deflate" | "lzw" | "jpeg" = "none";
+  let antialiasText = true;
+  let antialiasVector = true;
+  let thinLineMode: "none" | "solid" | "shape" = "none";
+  let password = "";
+  const positionals: string[] = [];
+
+  for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const arg = argv[i]!;
-        if (arg === "-v" || arg === "--version") {
-            return { exitCode: 0, stdout: "pdftoppm version 24.08.0\n", stderr: "" };
-        }
-        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-            return {
-                exitCode: 0,
-                stdout: "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n  -png / -gray / -mono / -svg / -r <fp> / -rx <fp> / -ry <fp> / -f <int> / -l <int> / -singlefile / -x <int> / -y <int> / -W <int> / -H <int> / -cropbox\n",
-                stderr: "",
-            };
-        }
-        if (arg === "-png") {
-            format = "png";
-            explicitContainer = "png";
-        }
-        else if (arg === "-tiff") {
-            format = "tif";
-            explicitContainer = "tif";
-        }
-        else if (arg === "-jpeg" || arg === "-jpg" || arg === "-jpegcmyk") {
-            format = "jpg";
-            explicitContainer = "jpg";
-        }
-        else if (arg === "-gray") {
-            colorMode = "gray";
-            if (!explicitContainer)
-                format = "pgm";
-        }
-        else if (arg === "-mono") {
-            colorMode = "mono";
-            if (!explicitContainer)
-                format = "pbm";
-        }
-        else if (arg === "-svg") {
-            format = "svg";
-            explicitContainer = "svg";
-        }
-        else if (arg === "-ppm")
-            format = "ppm";
-        else if (arg === "-singlefile")
-            singleFile = true;
-        else if (arg === "-forcenum")
-            forceNum = true;
-        else if (arg === "-o")
-            oddOnly = true;
-        else if (arg === "-e")
-            evenOnly = true;
-        else if (arg === "-cropbox")
-            useCropBox = true;
-        else if (arg === "-hide-annotations")
-            hideAnnotations = true;
-        else if (arg === "-transp")
-            transparent = true;
-        else if (arg === "-overprint") {
-            // Accepted for Poppler CLI compatibility
-        }
-        else if (arg === "-progress")
-            progress = true;
-        else if (arg === "-q")
-            quiet = true;
-        else if (arg === "-jpegopt") {
-            const optStr = argv[++i] ?? "";
-            for (const part of optStr.split(",")) {
+    if (arg === "-v" || arg === "--version") {
+      return { exitCode: 0, stdout: "pdftoppm version 24.08.0\n", stderr: "" };
+    }
+    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+      return {
+        exitCode: 0,
+        stdout:
+          "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n  -png / -gray / -mono / -svg / -r <fp> / -rx <fp> / -ry <fp> / -f <int> / -l <int> / -singlefile / -x <int> / -y <int> / -W <int> / -H <int> / -cropbox\n",
+        stderr: "",
+      };
+    }
+    if (arg === "-png") { format = "png"; explicitContainer = "png"; }
+    else if (arg === "-tiff") { format = "tif"; explicitContainer = "tif"; }
+    else if (arg === "-jpeg" || arg === "-jpg" || arg === "-jpegcmyk") { format = "jpg"; explicitContainer = "jpg"; }
+    else if (arg === "-gray") { colorMode = "gray"; if (!explicitContainer) format = "pgm"; }
+    else if (arg === "-mono") { colorMode = "mono"; if (!explicitContainer) format = "pbm"; }
+    else if (arg === "-svg") { format = "svg"; explicitContainer = "svg"; }
+    else if (arg === "-ppm") format = "ppm";
+    else if (arg === "-singlefile") singleFile = true;
+    else if (arg === "-forcenum") forceNum = true;
+    else if (arg === "-o") oddOnly = true;
+    else if (arg === "-e") evenOnly = true;
+    else if (arg === "-cropbox") useCropBox = true;
+    else if (arg === "-hide-annotations") hideAnnotations = true;
+    else if (arg === "-transp") transparent = true;
+    else if (arg === "-overprint") {
+      // Accepted for Poppler CLI compatibility
+    }
+    else if (arg === "-progress") progress = true;
+    else if (arg === "-q") quiet = true;
+    else if (arg === "-jpegopt") {
+      const optStr = argv[++i] ?? "";
+      for (const part of optStr.split(",")) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 const eqIdx = part.indexOf("=");
-                if (eqIdx > 0 && part.slice(0, eqIdx).trim().toLowerCase() === "quality") {
-                    const qVal = Number(part.slice(eqIdx + 1).trim());
-                    if (Number.isFinite(qVal) && qVal >= 1 && qVal <= 100) {
-                        jpegQuality = Math.round(qVal);
-                    }
-                }
-            }
+        if (eqIdx > 0 && part.slice(0, eqIdx).trim().toLowerCase() === "quality") {
+          const qVal = Number(part.slice(eqIdx + 1).trim());
+          if (Number.isFinite(qVal) && qVal >= 1 && qVal <= 100) {
+            jpegQuality = Math.round(qVal);
+          }
         }
-        else if (arg === "-tiffcompression") {
-            const comp = (argv[++i] ?? "").toLowerCase();
-            if (comp === "none" ||
-                comp === "packbits" ||
-                comp === "deflate" ||
-                comp === "lzw" ||
-                comp === "jpeg") {
-                tiffCompression = comp;
-            }
-            else {
-                return {
-                    exitCode: 99,
-                    stdout: "",
-                    stderr: quiet ? "" : `Bad '-tiffcompression' value on command line\n`,
-                };
-            }
-        }
-        else if (arg === "-aa") {
-            const v = (argv[++i] ?? "").toLowerCase();
-            if (v === "yes")
-                antialiasText = true;
-            else if (v === "no")
-                antialiasText = false;
-            else {
-                return { exitCode: 99, stdout: "", stderr: quiet ? "" : `Bad '-aa' value on command line\n` };
-            }
-        }
-        else if (arg === "-aaVector") {
-            const v = (argv[++i] ?? "").toLowerCase();
-            if (v === "yes")
-                antialiasVector = true;
-            else if (v === "no")
-                antialiasVector = false;
-            else {
-                return { exitCode: 99, stdout: "", stderr: quiet ? "" : `Bad '-aaVector' value on command line\n` };
-            }
-        }
-        else if (arg === "-thinlinemode") {
-            const v = (argv[++i] ?? "").toLowerCase();
-            if (v === "none" || v === "solid" || v === "shape")
-                thinLineMode = v;
-            else {
-                return { exitCode: 99, stdout: "", stderr: quiet ? "" : `Bad '-thinlinemode' value on command line\n` };
-            }
-        }
-        else if (arg === "-freetype" ||
-            arg === "-defaultgray" ||
-            arg === "-defaultrgb" ||
-            arg === "-defaultcmyk") {
-            i++;
-        }
-        else if (arg === "-setpageno") {
-            const n = Number.parseInt(argv[++i] ?? "", 10);
-            if (Number.isFinite(n))
-                setPageNo = n;
-        }
-        else if (arg === "-sep") {
-            sep = argv[++i] ?? "-";
-        }
-        else if (arg === "-r") {
-            dpi = Math.max(1, Number(argv[++i] ?? "150") || 150);
-        }
-        else if (arg === "-rx") {
-            dpiX = Math.max(1, Number(argv[++i] ?? "150") || 150);
-        }
-        else if (arg === "-ry") {
-            dpiY = Math.max(1, Number(argv[++i] ?? "150") || 150);
-        }
-        else if (arg === "-scale-to") {
-            scaleTo = Math.max(0, Number(argv[++i] ?? "0") || 0);
-        }
-        else if (arg === "-scale-to-x") {
-            scaleToX = Number(argv[++i] ?? "0") || 0;
-        }
-        else if (arg === "-scale-to-y") {
-            scaleToY = Number(argv[++i] ?? "0") || 0;
-        }
-        else if (arg === "-f") {
-            firstPage = Math.max(1, Number.parseInt(argv[++i] ?? "1", 10) || 1);
-        }
-        else if (arg === "-l") {
-            lastPage = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
-        }
-        else if (arg === "-x") {
-            cropX = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
-            hasCrop = true;
-        }
-        else if (arg === "-y") {
-            cropY = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
-            hasCrop = true;
-        }
-        else if (arg === "-W") {
-            cropW = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
-            hasCrop = true;
-        }
-        else if (arg === "-H") {
-            cropH = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
-            hasCrop = true;
-        }
-        else if (arg === "-sz") {
-            const sz = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
-            cropW = sz;
-            cropH = sz;
-            hasCrop = true;
-        }
-        else if (arg === "-upw" || arg === "-opw") {
-            password = argv[++i] ?? "";
-        }
-        else if (!arg.startsWith("-") || arg === "-") {
-            positionals.push(arg);
-        }
+      }
+    } else if (arg === "-tiffcompression") {
+      const comp = (argv[++i] ?? "").toLowerCase();
+      if (
+        comp === "none" ||
+        comp === "packbits" ||
+        comp === "deflate" ||
+        comp === "lzw" ||
+        comp === "jpeg"
+      ) {
+        tiffCompression = comp;
+      } else {
+        return {
+          exitCode: 99,
+          stdout: "",
+          stderr: quiet ? "" : `Bad '-tiffcompression' value on command line\n`,
+        };
+      }
+    } else if (arg === "-aa") {
+      const v = (argv[++i] ?? "").toLowerCase();
+      if (v === "yes") antialiasText = true;
+      else if (v === "no") antialiasText = false;
+      else {
+        return { exitCode: 99, stdout: "", stderr: quiet ? "" : `Bad '-aa' value on command line\n` };
+      }
+    } else if (arg === "-aaVector") {
+      const v = (argv[++i] ?? "").toLowerCase();
+      if (v === "yes") antialiasVector = true;
+      else if (v === "no") antialiasVector = false;
+      else {
+        return { exitCode: 99, stdout: "", stderr: quiet ? "" : `Bad '-aaVector' value on command line\n` };
+      }
+    } else if (arg === "-thinlinemode") {
+      const v = (argv[++i] ?? "").toLowerCase();
+      if (v === "none" || v === "solid" || v === "shape") thinLineMode = v;
+      else {
+        return { exitCode: 99, stdout: "", stderr: quiet ? "" : `Bad '-thinlinemode' value on command line\n` };
+      }
+    } else if (
+      arg === "-freetype" ||
+      arg === "-defaultgray" ||
+      arg === "-defaultrgb" ||
+      arg === "-defaultcmyk"
+    ) {
+      i++;
     }
-    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-    if (!inputPath) {
-        return { exitCode: 99, stdout: "", stderr: "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n" };
+    else if (arg === "-setpageno") {
+      const n = Number.parseInt(argv[++i] ?? "", 10);
+      if (Number.isFinite(n)) setPageNo = n;
     }
-    const pdfBytes = files.get(inputPath);
-    if (!pdfBytes) {
-        return { exitCode: 1, stdout: "", stderr: quiet ? "" : `I/O Error: Couldn't open file '${inputPath}'\n` };
+    else if (arg === "-sep") {
+      sep = argv[++i] ?? "-";
+    } else if (arg === "-r") {
+      dpi = Math.max(1, Number(argv[++i] ?? "150") || 150);
+    } else if (arg === "-rx") {
+      dpiX = Math.max(1, Number(argv[++i] ?? "150") || 150);
+    } else if (arg === "-ry") {
+      dpiY = Math.max(1, Number(argv[++i] ?? "150") || 150);
+    } else if (arg === "-scale-to") {
+      scaleTo = Math.max(0, Number(argv[++i] ?? "0") || 0);
+    } else if (arg === "-scale-to-x") {
+      scaleToX = Number(argv[++i] ?? "0") || 0;
+    } else if (arg === "-scale-to-y") {
+      scaleToY = Number(argv[++i] ?? "0") || 0;
+    } else if (arg === "-f") {
+      firstPage = Math.max(1, Number.parseInt(argv[++i] ?? "1", 10) || 1);
+    } else if (arg === "-l") {
+      lastPage = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
+    } else if (arg === "-x") {
+      cropX = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
+      hasCrop = true;
+    } else if (arg === "-y") {
+      cropY = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
+      hasCrop = true;
+    } else if (arg === "-W") {
+      cropW = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
+      hasCrop = true;
+    } else if (arg === "-H") {
+      cropH = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
+      hasCrop = true;
+    } else if (arg === "-sz") {
+      const sz = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
+      cropW = sz;
+      cropH = sz;
+      hasCrop = true;
+    } else if (arg === "-upw" || arg === "-opw") {
+      password = argv[++i] ?? "";
+    } else if (!arg.startsWith("-") || arg === "-") {
+      positionals.push(arg);
     }
-    let doc: PdfDocument;
-    try {
-        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-    }
-    catch (err) {
-        return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
+  }
+
+  const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+  if (!inputPath) {
+    return { exitCode: 99, stdout: "", stderr: "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n" };
+  }
+  const pdfBytes = files.get(inputPath);
+  if (!pdfBytes) {
+    return { exitCode: 1, stdout: "", stderr: quiet ? "" : `I/O Error: Couldn't open file '${inputPath}'\n` };
+  }
+
+  let doc: PdfDocument;
+  try {
+    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+  } catch (err) {
+    return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
     }
     const totalPages = Math.max(1, doc.pageCount);
     const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
@@ -482,7 +434,8 @@ export function runPdftoppmCliSync(argv: readonly string[], files: Map<string, U
     readonly signal?: AbortSignal;
     readonly onAllocateBytes?: (bytes: number) => void;
 } = {}): PdftoppmCliResult {
-    let steps = runPdftoppmCliSteps(argv, files, options), next = steps.next();
+    const steps = runPdftoppmCliSteps(argv, files, options);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -813,13 +766,12 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
         const pdfBytes = files.get(inputPath);
         if (!pdfBytes) {
             return { exitCode: 1, stdout: "", stderr: quiet ? "" : `I/O Error: Couldn't open file '${inputPath}'\n` };
-        }
-        let doc: PdfDocument;
-        try {
-            doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-        }
-        catch (err) {
-            return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
+    }
+    let doc: PdfDocument;
+    try {
+      doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+    } catch (err) {
+      return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
         }
         const totalPages = Math.max(1, doc.pageCount);
         const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
@@ -955,7 +907,8 @@ export function runPdftocairoCliSync(argv: readonly string[], files: Map<string,
     readonly signal?: AbortSignal;
     readonly onAllocateBytes?: (bytes: number) => void;
 } = {}): PdftoppmCliResult {
-    let steps = runPdftocairoCliSteps(argv, files, options), next = steps.next();
+    const steps = runPdftocairoCliSteps(argv, files, options);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -1073,13 +1026,4 @@ export function createPdftoppmCommands(options: PdftoppmCommandsOptions = {}): r
   return Object.freeze([createPdftoppmCommand(options), createPdftocairoCommand(options)]);
 }
 
-async function drainSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
-  try {
-    for (;;) {
-      signal?.throwIfAborted();
-      const next = steps.next();
-      if (next.done) return next.value;
-      await yieldTurn(signal);
-    }
-  } finally { steps.return(undefined as T); }
-}
+

@@ -1,4 +1,4 @@
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -157,13 +157,13 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: quiet ? "" : `I/O Error: Couldn't open file '${inputPath}'\n` };
-    }
-    let doc: PdfDocument;
-    try {
-        doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
-    }
-    catch (err) {
-        return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
+  }
+
+  let doc: PdfDocument;
+  try {
+    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+  } catch (err) {
+    return { exitCode: 1, stdout: "", stderr: quiet ? "" : `PDF Error: ${(err as Error).message}\n` };
     }
     const totalPages = Math.max(1, doc.pageCount);
     const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
@@ -298,7 +298,8 @@ export function runPdfimagesCliSync(argv: readonly string[], files: Map<string, 
     readonly signal?: AbortSignal;
     readonly onAllocateBytes?: (bytes: number) => void;
 } = {}): PdfimagesCliResult {
-    let steps = runPdfimagesCliSteps(argv, files, options), next = steps.next();
+    const steps = runPdfimagesCliSteps(argv, files, options);
+    let next = steps.next();
     while (!next.done) {
         next = steps.next();
     }
@@ -418,13 +419,4 @@ export function createPdfimagesCommands(options: PdfimagesCommandsOptions = {}):
     return [createPdfimagesCommand(options)];
 }
 
-async function drainSteps<T>(steps: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
-  try {
-    for (;;) {
-      signal?.throwIfAborted();
-      const next = steps.next();
-      if (next.done) return next.value;
-      await yieldTurn(signal);
-    }
-  } finally { steps.return(undefined as T); }
-}
+

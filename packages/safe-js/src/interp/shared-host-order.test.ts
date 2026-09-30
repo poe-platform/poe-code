@@ -31,12 +31,15 @@ it.each([
 });
 
 it("replays separate invocation and settlement growth", async () => {
+  let release!:()=>void;
+  const read=new Promise<void>(resolve=>{release=resolve;});
   const source=`const b=new SharedArrayBuffer(4,{maxByteLength:16});const a=new Uint8Array(b);
-    const pending=mutate(b);const before=[b.byteLength,a[7]];
+    const pending=mutate(b);const before=[b.byteLength,a[7]];observed();
     await pending;return [before,b.byteLength,a[15]]`;
-  const bindings={mutate:async(buffer:SharedArrayBuffer)=>{
+  const bindings={observed:()=>release(),mutate:async(buffer:SharedArrayBuffer)=>{
     buffer.grow(8);new Uint8Array(buffer)[7]=7;
-    await new Promise<void>(resolve=>setImmediate(resolve));
+    // A timer may settle during an interpreter yield, before the initial read.
+    await read;
     buffer.grow(16);new Uint8Array(buffer)[15]=9;
   }};
   const result=await run(source,{bindings});

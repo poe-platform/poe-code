@@ -253,7 +253,7 @@ for (const raw of [false, true]) test(`truncate configured argument bytes admitt
 test("truncate configured raw argument byte boundary is exact", async () => {
   const argumentValues = createCommandArguments([shellValueFromBytes(Uint8Array.of(45, 115, 49)), shellValueFromBytes(Uint8Array.of(255, 255))]);
   const result = await resize(argumentValues.args, { argumentValues }, { limits: { maxArgumentBytes: 5 } });
-  assert.equal(Buffer.from(result.stderrHex, "hex").toString(), "truncate: cannot open ''$'\\377\\377' for writing: No such file or directory\n");
+  assert.equal(Buffer.from(result.stderrHex, "hex").toString(), "truncate: cannot open ''$'\\377\\377' for writing: Operation not supported\n");
 });
 
 test("truncate configured argument limit can exceed 65536 bytes", async () => {
@@ -621,7 +621,8 @@ interface ExtraCase {
 const extra = (JSON.parse(readFileSync(new URL("./truncate-extra.snapshot.json", import.meta.url), "utf8")) as { cases: ExtraCase[] }).cases;
 for (const entry of extra) {
   const nullSeek = entry.argvHex.includes("2f6465762f6e756c6c");
-  test(`truncate ${entry.seekGap && !nullSeek ? "documented backend seek gap" : "GNU 8.30 raw/nonregular custom handles"} ${entry.name}`, async () => {
+  const unsupportedReference = entry.argvHex[0] === "2d72" && ["ff", "27ff", "eda080", "e280"].includes(entry.argvHex[1]!);
+  test(`truncate ${unsupportedReference ? "documented UTF8 path gap" : entry.seekGap && !nullSeek ? "documented backend seek gap" : "GNU 8.30 raw/nonregular custom handles"} ${entry.name}`, async () => {
     const argumentValues = createCommandArguments(entry.argvHex.map(value => shellValueFromBytes(Buffer.from(value, "hex"))));
     const setup = fixture();
     if (entry.name.startsWith("nonregular")) {
@@ -641,6 +642,15 @@ for (const entry of extra) {
     if (entry.seekGap && !nullSeek) {
       assert.match(Buffer.from(result.stderrHex, "hex").toString(), /cannot get the size.*Operation not supported/);
       assert.notEqual(result.stderrHex, entry.stderrHex);
+      assert.equal(setup.volume.existsSync("/work/new"), false);
+    } else if (unsupportedReference) {
+      // Preserve the native byte-path snapshot; this filesystem accepts UTF8 paths only.
+      const native = Buffer.from(entry.stderrHex, "hex");
+      const missing = Buffer.from("No such file or directory\n");
+      assert.deepEqual(native.subarray(native.length - missing.length), missing);
+      const expected = Buffer.concat([native.subarray(0, native.length - missing.length), Buffer.from("Operation not supported\n")]);
+      assert.deepEqual({ exitCode: result.exitCode, stdoutHex: result.stdoutHex, stderrHex: result.stderrHex },
+        { exitCode: 1, stdoutHex: "", stderrHex: expected.toString("hex") });
       assert.equal(setup.volume.existsSync("/work/new"), false);
     } else {
       assert.deepEqual({ exitCode: result.exitCode, stdoutHex: result.stdoutHex, stderrHex: result.stderrHex }, { exitCode: entry.exitCode, stdoutHex: entry.stdoutHex, stderrHex: entry.stderrHex });
@@ -1137,7 +1147,7 @@ test("truncate preserves raw diagnostic bytes without Buffer and never aliases i
       stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
     assert.equal(result.exitCode, 1);
   } finally { Reflect.set(globalThis, "Buffer", original); }
-  assert.equal(stderr, "truncate: cannot stat ''$'\\377': No such file or directory\n");
+  assert.equal(stderr, "truncate: cannot stat ''$'\\377': Operation not supported\n");
 });
 
 test("truncate -o uses ioBlockSize with preferredIoBlockSize fallback and supports R/Q suffixes", async () => {

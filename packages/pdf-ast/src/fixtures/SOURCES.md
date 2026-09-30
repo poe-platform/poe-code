@@ -314,3 +314,26 @@ SHA-256: `9bd4a6f17bac7b6d218ae0f8d28ea80f7025948499fa3686e46d6950cac6ab9a`.
 `91041fb94d6744bc2a5bccd9aad28d617faa8195` (Apache-2.0). Six text lines
 exercise word spacing with a Type 3 width table that omits the space glyph.
 SHA-256: `8ac40dc49d40af8b5a50b442ced56b8db962c961a779a0284cd3a6207adc0bb7`.
+
+# Apache PDFBox pattern regressions
+
+Unmodified fixtures used by `pdfbox/src/test/java/org/apache/pdfbox/rendering/TestQuality.java`
+at revision `c4d556abc9d5f0cbc486d459c84682321dd38ff4`. Each download was
+verified against the SHA-512 declared in the upstream `pdfbox/pom.xml`.
+Local tests retain the upstream page, 100 dpi resolution, pixel coordinates, and assertions.
+
+| Local file | Upstream URL | SHA-256 |
+| --- | --- | --- |
+| pdfbox-6077-example.pdf | https://issues.apache.org/jira/secure/attachment/13078553/example.pdf | 120d090e9f037483c0702477537cd2814f66e7ce5aaea33e190bfdc10973a4cc |
+| pdfbox-5842-reduced.pdf | https://issues.apache.org/jira/secure/attachment/13078557/PDFBOX-5842-reduced.pdf | 8ff30cecefc29ae0a6603178c14eb1961b14a3139dd4fb56fa41b4170a4248e6 |
+| pdfbox-5403-bad-rendering.pdf | https://issues.apache.org/jira/secure/attachment/13041734/bad+rendering.pdf | c5f06f8157a5ee796d44b2900cbd71fafa4d0c0f06806536af3b0f8a6b980a01 |
+| pdfbox-5250-pattern-reduced3.pdf | https://issues.apache.org/jira/secure/attachment/13073765/PDFBOX-5250-pattern-reduced3.pdf | 700aabf396a4cacae2e483b1bc933b1f6a648487bd4fa915fbb09f869a73863d |
+
+The unit tests render only the original sampled pixel at 100 dpi, retaining the
+original full-page coordinate mapping. Full-page renders also passed the same
+assertions before this optimization.
+
+`pdfjs-pattern_text_embedded_font.pdf` is unchanged `test/pdfs/pattern_text_embedded_font.pdf`
+from Mozilla PDF.js revision `91041fb94d6744bc2a5bccd9aad28d617faa8195`
+(Apache-2.0), SHA-256 `0d87537cfba850b7501db8010801bebe62b9cc19776ae387f9dafc61e00b1699`.
+It covers checkerboard tiling and axial shading inside embedded glyphs.

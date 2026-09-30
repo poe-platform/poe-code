@@ -54,8 +54,10 @@ Alpha/Luminosity mask content, backdrop, and transfer values. Standard-font glyp
 to `glyph.outline`, keeping letters separate from page drawing paths. The `glyphs`, `paths`, and
 `images` arrays remain available for inspection and extraction.
 
-Stencil images preserve the current shading or tiling pattern in bitmap and
-SVG output. Their transformed alpha masks are available as `clipImages` on
+Text, paths, and stencil images preserve shading and tiling pattern fills in
+bitmap and SVG output, including uncolored tiles and transformed Forms.
+Text patterns follow glyph contours while preserving text clipping and strokes.
+Stencil images' transformed alpha masks are available as `clipImages` on
 display-list paints; source image extraction remains independent of painting.
 ExtGState soft masks and Form group opacity apply to bitmap and SVG output;
 SVG rasterizes soft masks at the export scale. Pages with a non-isolated masked

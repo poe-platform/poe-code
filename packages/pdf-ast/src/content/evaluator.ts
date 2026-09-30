@@ -305,6 +305,7 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
 
 interface GraphicsState {
   ctm: Matrix6;
+  initialCtm: Matrix6;
   strokeColor: PdfRgbColor;
   fillColor: PdfRgbColor;
   strokeAlpha: number;
@@ -1075,6 +1076,7 @@ export function evaluateContentStreamToDisplayList(params: {
 
   const initialState: GraphicsState = {
     ctm: [1, 0, 0, 1, 0, 0],
+    initialCtm: [1, 0, 0, 1, 0, 0],
     strokeColor: { r: 0, g: 0, b: 0 },
     fillColor: { r: 0, g: 0, b: 0 },
       strokeAlpha: 1,
@@ -1414,6 +1416,99 @@ export function evaluateContentStreamToDisplayList(params: {
     stateStack.pop();
   };
 
+  const paintPattern = (
+    segments: PdfPathSegment[],
+    fillRule: "nonzero" | "evenodd",
+    resources: PdfCosDict | undefined,
+    activeFonts: Map<string, ResolvedPageFont>,
+    depth: number,
+    mcid?: number,
+    actualText?: string
+  ): boolean => {
+    const st = curState(), doc = params.cosDoc;
+    if (!st.fillPatternName || !doc || !resources) return false;
+    if (depth >= 8) throw new PdfError("E_LIMIT", "Pattern nesting exceeds the form depth limit");
+    const patterns = doc.resolveDict(dictGet(resources, "Pattern"));
+    const pattern = patterns && doc.resolve(dictGet(patterns, st.fillPatternName));
+    const dict = pattern?.kind === "stream" ? pattern.dict : pattern?.kind === "dict" ? pattern : undefined;
+    if (!dict) return false;
+    const nums = (key: string, fallback: number[]): number[] => {
+      const array = doc.resolveArray(dictGet(dict, key));
+      return array ? array.items.map((item, i) => {
+        const value = doc.resolve(item);
+        return value?.kind === "number" ? value.value : fallback[i] ?? 0;
+      }) : fallback;
+    };
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const include = (x: number, y: number) => {
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y);
+      x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    };
+    for (const segment of segments) {
+      if (segment.kind === "close") continue;
+      include(segment.x, segment.y);
+      if (segment.kind === "cubic") { include(segment.x1, segment.y1); include(segment.x2, segment.y2); }
+      if (segment.kind === "rect") include(segment.x + segment.width, segment.y + segment.height);
+    }
+    const [originX, originY] = params.origin ?? [0, 0];
+    const clip = st.clipRect ?? [originX, originY, originX + params.width, originY + params.height];
+    const bounds: [number, number, number, number] = [Math.max(x0, clip[0]!), Math.max(y0, clip[1]!), Math.min(x1, clip[2]!), Math.min(y1, clip[3]!)];
+    if (!(bounds[2] > bounds[0] && bounds[3] > bounds[1])) return true;
+    // PDFBox TilingPaint / PageDrawer: pattern coordinates start at the
+    // containing stream's initial matrix, independently of the text matrix.
+    const matrix = multiplyMatrices(nums("Matrix", [1, 0, 0, 1, 0, 0]) as Matrix6, st.initialCtm);
+    const type = doc.resolve(dictGet(dict, "PatternType"));
+    stateStack.push({ ...st, clipRect: bounds, clipPaths: [...(st.clipPaths ?? []), { segments, fillRule }] });
+    try {
+      if (type?.kind === "number" && type.value === 2) {
+        const shading = doc.resolve(dictGet(dict, "Shading"));
+        const shadingDict = shading?.kind === "stream" ? shading.dict : shading?.kind === "dict" ? shading : undefined;
+        if (!shadingDict) return false;
+        const image = renderShadingDictToImage(doc, shadingDict, matrix, bounds, st.fillAlpha,
+          "PatternShading_" + st.fillPatternName, bounds, shading?.kind === "stream" ? shading : undefined, st.blendMode);
+        if (image) emit({ kind: "image", value: image });
+        return !!image;
+      }
+      if (pattern?.kind !== "stream") return false;
+      const xStepNode = doc.resolve(dictGet(dict, "XStep"));
+      const yStepNode = doc.resolve(dictGet(dict, "YStep"));
+      const xStep = xStepNode?.kind === "number" ? Math.abs(xStepNode.value) : 0;
+      const yStep = yStepNode?.kind === "number" ? Math.abs(yStepNode.value) : 0;
+      const determinant = matrix[0] * matrix[3] - matrix[1] * matrix[2];
+      if (!xStep || !yStep || !determinant) return true;
+      const inverse: Matrix6 = [matrix[3] / determinant, -matrix[1] / determinant, -matrix[2] / determinant,
+        matrix[0] / determinant, (matrix[2] * matrix[5] - matrix[3] * matrix[4]) / determinant,
+        (matrix[1] * matrix[4] - matrix[0] * matrix[5]) / determinant];
+      const corners = [[bounds[0], bounds[1]], [bounds[2], bounds[1]], [bounds[2], bounds[3]], [bounds[0], bounds[3]]]
+        .map(([x, y]) => transformPoint(inverse, x!, y!));
+      const box = nums("BBox", [0, 0, xStep, yStep]);
+      const ix0 = Math.floor((Math.min(...corners.map(p => p[0])) - box[2]!) / xStep) + 1;
+      const ix1 = Math.ceil((Math.max(...corners.map(p => p[0])) - box[0]!) / xStep) - 1;
+      const iy0 = Math.floor((Math.min(...corners.map(p => p[1])) - box[3]!) / yStep) + 1;
+      const iy1 = Math.ceil((Math.max(...corners.map(p => p[1])) - box[1]!) / yStep) - 1;
+      if ((ix1 - ix0 + 1) * (iy1 - iy0 + 1) > 20000) throw new PdfError("E_LIMIT", "Pattern tile count exceeds 20000");
+      const nodes = parseContentStream(doc.decodeStream(pattern));
+      const patternResources = doc.resolveDict(dictGet(dict, "Resources")) ?? resources;
+      const patternFonts = new Map(activeFonts);
+      for (const [key, font] of resolvePageFonts(doc, patternResources)) patternFonts.set(key, font);
+      for (let iy = iy0; iy <= iy1; iy++) {
+        for (let ix = ix0; ix <= ix1; ix++) {
+          const tileCtm = multiplyMatrices([1, 0, 0, 1, ix * xStep, iy * yStep], matrix);
+          const points = [[box[0]!, box[1]!], [box[2]!, box[1]!], [box[2]!, box[3]!], [box[0]!, box[3]!]]
+            .map(([x, y]) => transformPoint(tileCtm, x!, y!));
+          const tileClip: PdfPathSegment[] = [
+            ...points.map(([x, y], i) => ({ kind: i === 0 ? "move" as const : "line" as const, x, y })), { kind: "close" },
+          ];
+          stateStack.push({ ...curState(), fillPatternName: undefined, ctm: tileCtm, initialCtm: tileCtm,
+            clipPaths: [...(curState().clipPaths ?? []), tileClip] });
+          try { walkNodes(nodes, mcid, actualText, patternResources, patternFonts, depth + 1); }
+          finally { stateStack.pop(); }
+        }
+      }
+      return true;
+    } finally { stateStack.pop(); }
+  };
+
   const paintForm = (
     form: PdfCosStream,
     activeResources: PdfCosDict | undefined,
@@ -1486,7 +1581,7 @@ export function evaluateContentStreamToDisplayList(params: {
     }
     const parentOperations = capturedOperations;
     const children: PdfPaintOperation[] = [];
-    const nextState = { ...st, ctm: nextCtm };
+    const nextState = { ...st, ctm: nextCtm, initialCtm: nextCtm };
     if (compositeGroup) {
       capturedOperations = children;
       nextState.fillAlpha = nextState.strokeAlpha = 1;
@@ -1664,140 +1759,8 @@ export function evaluateContentStreamToDisplayList(params: {
 
           const isFill = ["f", "F", "f*", "B", "B*", "b", "b*"].includes(node.paint);
           const isStroke = ["S", "s", "B", "B*", "b", "b*"].includes(node.paint);
-          let evaluatedFillPattern = false;
-          if (isFill && st.fillPatternName && params.cosDoc && activeResources && depth < 6) {
-            const patMap = params.cosDoc.resolveDict(dictGet(activeResources, "Pattern"));
-            const patNode = patMap ? params.cosDoc.resolve(dictGet(patMap, st.fillPatternName)) : undefined;
-            const patDict = patNode?.kind === "stream" ? patNode.dict : patNode?.kind === "dict" ? patNode : undefined;
-            const patTypeNode = patDict && params.cosDoc ? params.cosDoc.resolve(dictGet(patDict, "PatternType")) : undefined;
-            const patType = patTypeNode?.kind === "number" ? patTypeNode.value : patNode?.kind === "stream" ? 1 : 0;
-            if (patDict && patType === 2 && params.cosDoc) {
-              let pMinX = Infinity, pMinY = Infinity, pMaxX = -Infinity, pMaxY = -Infinity;
-              for (const s of transformedSegments) {
-                if (s.kind === "move" || s.kind === "line") {
-                  pMinX = Math.min(pMinX, s.x);
-                  pMinY = Math.min(pMinY, s.y);
-                  pMaxX = Math.max(pMaxX, s.x);
-                  pMaxY = Math.max(pMaxY, s.y);
-                } else if (s.kind === "cubic") {
-                  pMinX = Math.min(pMinX, s.x1, s.x2, s.x);
-                  pMinY = Math.min(pMinY, s.y1, s.y2, s.y);
-                  pMaxX = Math.max(pMaxX, s.x1, s.x2, s.x);
-                  pMaxY = Math.max(pMaxY, s.y1, s.y2, s.y);
-                } else if (s.kind === "rect") {
-                  pMinX = Math.min(pMinX, s.x);
-                  pMinY = Math.min(pMinY, s.y);
-                  pMaxX = Math.max(pMaxX, s.x + s.width);
-                  pMaxY = Math.max(pMaxY, s.y + s.height);
-                }
-              }
-              if (Number.isFinite(pMinX) && Number.isFinite(pMinY) && pMaxX > pMinX && pMaxY > pMinY) {
-                const shading = params.cosDoc.resolve(dictGet(patDict, "Shading"));
-                const shDict = shading?.kind === "stream" ? shading.dict : shading?.kind === "dict" ? shading : undefined;
-                if (shDict) {
-                  let patMatrix: Matrix6 = [1, 0, 0, 1, 0, 0];
-                  const pmArr = params.cosDoc.resolveArray(dictGet(patDict, "Matrix"));
-                  if (pmArr && pmArr.items.length >= 6) {
-                    const mn = (idx: number, fb = 0) => {
-                      const r = params.cosDoc!.resolve(pmArr.items[idx]);
-                      return r?.kind === "number" ? r.value : fb;
-                    };
-                    patMatrix = [mn(0, 1), mn(1, 0), mn(2, 0), mn(3, 1), mn(4, 0), mn(5, 0)];
-                  }
-                  const patClip: [number, number, number, number] = st.clipRect
-                    ? [
-                        Math.max(st.clipRect[0], pMinX),
-                        Math.max(st.clipRect[1], pMinY),
-                        Math.min(st.clipRect[2], pMaxX),
-                        Math.min(st.clipRect[3], pMaxY),
-                      ]
-                    : [pMinX, pMinY, pMaxX, pMaxY];
-                  const shImg = renderShadingDictToImage(
-                    params.cosDoc,
-                    shDict,
-                    patMatrix,
-                    patClip,
-                    st.fillAlpha,
-                    "PatternShading_" + st.fillPatternName,
-                    patClip,
-                    shading?.kind === "stream" ? shading : undefined,
-                    st.blendMode
-                  );
-                  if (shImg) {
-                    emit({ kind: "image", value: shImg });
-                    evaluatedFillPattern = true;
-                  }
-                }
-              }
-            } else if (patNode?.kind === "stream") {
-              let pMinX = Infinity, pMinY = Infinity, pMaxX = -Infinity, pMaxY = -Infinity;
-              for (const s of transformedSegments) {
-                if (s.kind === "move" || s.kind === "line") {
-                  pMinX = Math.min(pMinX, s.x);
-                  pMinY = Math.min(pMinY, s.y);
-                  pMaxX = Math.max(pMaxX, s.x);
-                  pMaxY = Math.max(pMaxY, s.y);
-                } else if (s.kind === "cubic") {
-                  pMinX = Math.min(pMinX, s.x1, s.x2, s.x);
-                  pMinY = Math.min(pMinY, s.y1, s.y2, s.y);
-                  pMaxX = Math.max(pMaxX, s.x1, s.x2, s.x);
-                  pMaxY = Math.max(pMaxY, s.y1, s.y2, s.y);
-                } else if (s.kind === "rect") {
-                  pMinX = Math.min(pMinX, s.x);
-                  pMinY = Math.min(pMinY, s.y);
-                  pMaxX = Math.max(pMaxX, s.x + s.width);
-                  pMaxY = Math.max(pMaxY, s.y + s.height);
-                }
-              }
-              if (Number.isFinite(pMinX) && Number.isFinite(pMinY) && pMaxX > pMinX && pMaxY > pMinY) {
-                const xsNode = params.cosDoc.resolve(dictGet(patNode.dict, "XStep"));
-                const ysNode = params.cosDoc.resolve(dictGet(patNode.dict, "YStep"));
-                const xStep = xsNode?.kind === "number" && Math.abs(xsNode.value) > 1e-3 ? Math.abs(xsNode.value) : 40;
-                const yStep = ysNode?.kind === "number" && Math.abs(ysNode.value) > 1e-3 ? Math.abs(ysNode.value) : 40;
-                let patMatrix: Matrix6 = [1, 0, 0, 1, 0, 0];
-                const pmArr = params.cosDoc.resolveArray(dictGet(patNode.dict, "Matrix"));
-                if (pmArr && pmArr.items.length >= 6) {
-                  const mn = (idx: number, fb = 0) => {
-                    const r = params.cosDoc!.resolve(pmArr.items[idx]);
-                    return r?.kind === "number" ? r.value : fb;
-                  };
-                  patMatrix = [mn(0, 1), mn(1, 0), mn(2, 0), mn(3, 1), mn(4, 0), mn(5, 0)];
-                }
-                const tileClip: [number, number, number, number] = st.clipRect
-                  ? [
-                      Math.max(st.clipRect[0], pMinX),
-                      Math.max(st.clipRect[1], pMinY),
-                      Math.min(st.clipRect[2], pMaxX),
-                      Math.min(st.clipRect[3], pMaxY),
-                    ]
-                  : [pMinX, pMinY, pMaxX, pMaxY];
-                const patNodes = parseContentStream(params.cosDoc.decodeStream(patNode));
-                const patResDict = params.cosDoc.resolveDict(dictGet(patNode.dict, "Resources")) ?? activeResources;
-                const patFonts = new Map<string, ResolvedPageFont>(activeFonts);
-                for (const [fk, fv] of resolvePageFonts(params.cosDoc, patResDict).entries()) {
-                  patFonts.set(fk, fv);
-                }
-                const ixStart = Math.floor(pMinX / xStep);
-                const ixEnd = Math.min(ixStart + 8, Math.ceil(pMaxX / xStep) - 1);
-                const iyStart = Math.floor(pMinY / yStep);
-                const iyEnd = Math.min(iyStart + 8, Math.ceil(pMaxY / yStep) - 1);
-                for (let iy = iyStart; iy <= iyEnd; iy++) {
-                  for (let ix = ixStart; ix <= ixEnd; ix++) {
-                    const tileCtm = multiplyMatrices([1, 0, 0, 1, ix * xStep, iy * yStep], patMatrix);
-                    stateStack.push({
-                      ...st,
-                      fillPatternName: undefined,
-                      ctm: tileCtm,
-                      clipRect: tileClip,
-                    });
-                    walkNodes(patNodes, mcid, actualText, patResDict, patFonts, depth + 1);
-                    if (stateStack.length > 1) stateStack.pop();
-                  }
-                }
-                evaluatedFillPattern = true;
-              }
-            }
-          }
+          const evaluatedFillPattern = isFill && paintPattern(transformedSegments,
+            node.paint.includes("*") ? "evenodd" : "nonzero", activeResources, activeFonts, depth, mcid, actualText);
           if (evaluatedFillPattern && !isStroke) {
             applyClip();
             break;
@@ -2008,10 +1971,12 @@ export function evaluateContentStreamToDisplayList(params: {
                   if (st.textRenderMode >= 4 && st.textRenderMode <= 7) pendingTextClip.push(...transformedGlyphSegs);
                   const isFillGlyph = st.textRenderMode === 0 || st.textRenderMode === 2 || st.textRenderMode === 4 || st.textRenderMode === 6;
                   const isStrokeGlyph = st.textRenderMode === 1 || st.textRenderMode === 2 || st.textRenderMode === 5 || st.textRenderMode === 6;
+                  const patterned = isFillGlyph && paintPattern(transformedGlyphSegs, "nonzero",
+                    activeResources, activeFonts, depth, mcid, actualText);
                   const paint: PdfEvaluatedPath = {
                     segments: transformedGlyphSegs,
-                    fillColor: isFillGlyph ? st.fillColor : undefined,
-                    fillAlpha: isFillGlyph ? st.fillAlpha : undefined,
+                    fillColor: isFillGlyph && !patterned ? st.fillColor : undefined,
+                    fillAlpha: isFillGlyph && !patterned ? st.fillAlpha : undefined,
                     strokeColor: isStrokeGlyph ? st.strokeColor : undefined,
                     strokeAlpha: isStrokeGlyph ? st.strokeAlpha : undefined,
                     strokeWidth: isStrokeGlyph ? st.strokeWidth : 0,

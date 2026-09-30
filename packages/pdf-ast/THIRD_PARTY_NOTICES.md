@@ -504,3 +504,33 @@ or zero when absent. Standard-font widths apply only without an explicit
 Widths table. `src/fonts/explicit-widths.test.ts` covers Type1, TrueType and
 Type3 widths with and without ToUnicode, plus the unchanged upstream
 `Type3WordSpacing.pdf` fixture.
+
+# Apache PDFBox rendering regressions
+
+`src/render/pdfbox-patterns.test.ts` adapts `TestQuality.java` at revision
+`c4d556abc9d5f0cbc486d459c84682321dd38ff4`, retaining its original page,
+100 dpi resolution, pixel coordinates, and assertions. Test fixture provenance
+and checksums are recorded in `src/fixtures/SOURCES.md`. Licensed under
+Apache-2.0; see `licenses/PDFJS-APACHE-2.0.txt`.
+
+Source: https://github.com/apache/pdfbox
+
+The pattern transform handling in `src/content/evaluator.ts` follows PDFBox
+`TilingPaint` and `PageDrawer`: concatenate the containing stream initial
+matrix with the pattern matrix, then clip the paint to the glyph or path.
+
+Relevant upstream NOTICE:
+
+Apache PDFBox
+Copyright 2014 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+Based on source code originally developed in the PDFBox and
+FontBox projects.
+
+Copyright (c) 2002-2007, www.pdfbox.org
+
+Based on source code originally developed in the PaDaF project.
+Copyright (c) 2010 Atos Worldline SAS

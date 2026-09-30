@@ -109,7 +109,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
   const bufferedLimit = options.maxBufferedResponseBytes ?? Infinity;
   const eventLimit = options.maxBufferedEvents ?? bufferedLimit;
   const metadataLimit = options.maxMetadataBytes ?? bufferedLimit;
-  const maxRemoteBytes = options.maxRemoteTemplateBytes ?? context.inputBudget?.maxBytes ?? 1_048_576;
+  const maxRemoteBytes = options.maxRemoteTemplateBytes ?? (context.inputBudget?.maxBytes === Infinity ? undefined : context.inputBudget?.maxBytes) ?? 1_048_576;
   if (!Number.isSafeInteger(maxRemoteBytes) || maxRemoteBytes < 1) throw new RangeError('Invalid Python LLM remote template limit');
   const templateLoaderOptions = {maxRemoteBytes,...(options.templateLoaders ? {loaders:options.templateLoaders} : {})};
   for (const limit of [bufferedLimit, eventLimit, metadataLimit]) {

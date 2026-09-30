@@ -507,3 +507,11 @@ test('Python model queries reuse shared selection and canonical aliases without 
     await assert.rejects(capability.call!({operation:'select_model',payload:{queries}},{signal}),/queries/);
   }
 });
+
+test('unlimited shell input budget retains the finite remote template default', async () => {
+  const {fs,service} = await fixture();
+  const capability = createPythonLlmCapability({fs,cwd:'/work',inputBudget:{maxBytes:Infinity,check() {}}},service);
+  const result = await capability.call!({operation:'complete',payload:{prompt:'q'}},{signal}) as {text:string};
+  assert.equal(typeof result.text,'string');
+  assert.throws(() => createPythonLlmCapability({fs,cwd:'/work'},service,{maxRemoteTemplateBytes:Infinity}),/remote template limit/);
+});

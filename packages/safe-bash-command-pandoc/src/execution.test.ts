@@ -15,12 +15,12 @@ describe("original execution-context fixtures", () => {
       for (let quantum = 0; quantum < 3; quantum++) {
         let observed = false;
         const host = new Promise<void>(resolve => setImmediate(() => { observed = true; resolve(); }));
-        await context.cooperate(256);
+        await context.cooperate(8192);
         expect(observed).toBe(true);
         await host;
       }
       setImmediate(() => controller.abort());
-      await expect(context.cooperate(256)).rejects.toMatchObject({ code: "E_CANCELLED" });
+      await expect(context.cooperate(8192)).rejects.toMatchObject({ code: "E_CANCELLED" });
     } finally {
       clock.mockRestore();
       date.mockRestore();

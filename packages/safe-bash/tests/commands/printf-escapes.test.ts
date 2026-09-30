@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { streamCommands } from "../../src/commands/streams.js";
-import { CommandRegistry } from "../../src/contracts/index.js";
+import { CommandRegistry, createCommandArguments, toByteSource } from "../../src/contracts/index.js";
+import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 
@@ -12,6 +13,45 @@ async function run(command: string, args: string[], options: { env?: Record<stri
     return await shell.exec([command, ...args].map(value => "'" + value.split("'").join("'\\''") + "'").join(" "));
   } finally { await shell.dispose(); }
 }
+
+for (const raw of [false, true]) for (const entry of [
+  { format: "one\\ctwo\\n", operands: [], expected: "one\\ctwo\n" },
+  { format: "\\'|\\\"|\\?|%s\\n", operands: ["one", "two"], expected: "'|\"|?|one\n'|\"|?|two\n" },
+]) test(`printf literal-format escapes retain their own rules; raw=${raw}; format=${entry.format}`, async () => {
+  const argumentValues = createCommandArguments([raw ? shellValueFromBytes(Buffer.from(entry.format)) : entry.format, ...entry.operands]);
+  const chunks: Uint8Array[] = [];
+  const result = await basicCommands().find(command => command.name === "printf")!.execute({
+    command: "printf", args: argumentValues.args, argumentValues, cwd: "/", env: {},
+    fs: new MemoryFileSystem(), signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
+    stderr: { async write(bytes) { assert.equal(bytes.length, 0); } },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(Buffer.concat(chunks).toString(), entry.expected);
+});
+
+test("literal-format escape modes agree through optimized and middleware Shell routes", async () => {
+  for (const middleware of [false, true]) {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+    if (middleware) shell.use((_context, next) => next());
+    try {
+      const format = "\\'|\\\"|\\?|one\\ctwo:%s\\n";
+      for (const script of [
+        'printf "$FORMAT" A',
+        'printf -v result "$FORMAT" A; printf %s "$result"',
+        'for value in A B; do printf "$FORMAT" "$value"; done',
+      ]) {
+        const result = await shell.exec(script, { env: { FORMAT: format } });
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, script.startsWith("for") ? "'|\"|?|one\\ctwo:A\n'|\"|?|one\\ctwo:B\n" : "'|\"|?|one\\ctwo:A\n");
+      }
+      const operand = await shell.exec('printf %b "$VALUE"', { env: { VALUE: "\\'|\\\"|\\?|one\\ctwo" } });
+      assert.equal(operand.stdout, "\\'|\\\"|\\?|one");
+      const echo = await shell.exec('echo -ne "$VALUE"', { env: { VALUE: "\\'|\\\"|\\?|one\\ctwo" } });
+      assert.equal(echo.stdout, "\\'|\\\"|\\?|one");
+    } finally { await shell.dispose(); }
+  }
+});
 
 test("printf warns on missing hexadecimal digits while preserving Bash output and status", async () => {
   for (const locale of ["C", "C.UTF-8"]) for (const operand of ["Owned\\x", "Owned\\xGtail", "Owned\\xZ3tail"]) {

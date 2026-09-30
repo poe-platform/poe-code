@@ -196,7 +196,7 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         const end = rawFormat ? rawFormat.indexOf(37, offset) : format.indexOf("%", offset);
         const limit = end < 0 ? formatLength : end;
         const literal = rawFormat ? rawFormat.subarray(offset, limit) : format.slice(offset, limit);
-        const escaped = escapeBytes(literal, false, false, unicode);
+        const escaped = escapeBytes(literal, false, false, unicode, true);
         for (const escape of escapeErrors.splice(0)) await writeDiagnostic(context.stderr, `printf: missing ${escape === "x" ? "hex" : "unicode"} digit for \\${escape}\n`, context.signal);
         await output(context, escaped.bytes);
         stopped = escaped.stop;

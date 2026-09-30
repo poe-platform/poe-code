@@ -270,6 +270,15 @@ test("env exits 125 on usage/chdir errors, rejects -u A=B, and accepts =value", 
   assert.equal(eqVal.stdout, "=foo\n");
 });
 
+test("xargs rejects printf-only punctuation delimiter escapes", async () => {
+  for (const delimiter of ["\\?", "\\'", '\\"']) {
+    const result = await run("xargs", ["-d", delimiter, "printf", "%s"], { stdin: "one?two" });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /delimiter must be one ASCII byte/u);
+  }
+});
+
 test("xargs respects -d and -0 option ordering", async () => {
   const res = await run("xargs", ["-d", ":", "-0", "-n", "1", "echo"], { stdin: "a:b\0c\0" });
   assert.equal(res.exitCode, 0);

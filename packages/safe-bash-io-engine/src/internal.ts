@@ -587,7 +587,7 @@ export function replaceArgument(source: string | Uint8Array, pattern: string, re
 }
 
 export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOctal = false,
-  unicode?: { utf8: boolean; missingDigit: (escape: string) => void }): { bytes: Uint8Array; stop: boolean } {
+  unicode?: { utf8: boolean; missingDigit: (escape: string) => void }, literalFormat = false): { bytes: Uint8Array; stop: boolean } {
   if (unicode && typeof text === "string") text = encoder.encode(text);
   if (typeof text === "string") {
     const chunks: Uint8Array[] = [];
@@ -598,7 +598,8 @@ export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOc
         chunks.push(encoder.encode(character)); index += character.length; continue;
       }
       const next = text[index + 1]!;
-      if (next === "c") return { bytes: concatenate(chunks), stop: true };
+      if (!literalFormat && next === "c") return { bytes: concatenate(chunks), stop: true };
+      if (literalFormat && (next === "'" || next === '"' || next === "?")) { chunks.push(encoder.encode(next)); index += 2; continue; }
       if (control[next] !== undefined) { chunks.push(Uint8Array.of(control[next])); index += 2; continue; }
       const rest = text.slice(index + 1);
       const octal = zeroOctal ? (bareOctal ? /^(?:0([0-7]{0,3})|([1-7][0-7]{0,2}))/u : /^0([0-7]{0,3})/u).exec(rest) : /^([0-7]{1,3})/u.exec(rest);
@@ -618,7 +619,8 @@ export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOc
   for (let index = 0; index < source.length;) {
     if (source[index] !== 92 || index + 1 === source.length) { bytes[size++] = source[index++]!; continue; }
     const next = source[index + 1]!;
-    if (next === 99) return { bytes: bytes.subarray(0, size), stop: true };
+    if (!literalFormat && next === 99) return { bytes: bytes.subarray(0, size), stop: true };
+    if (literalFormat && (next === 39 || next === 34 || next === 63)) { bytes[size++] = next; index += 2; continue; }
     if (control[next] !== undefined) { bytes[size++] = control[next]; index += 2; continue; }
     if (zeroOctal ? next === 48 || bareOctal && next >= 49 && next <= 55 : next >= 48 && next <= 55) {
       let offset = index + (zeroOctal && next === 48 ? 2 : 1);
